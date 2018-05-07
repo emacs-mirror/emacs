@@ -593,7 +593,9 @@ is a symbol saying if this is a client or server originated."
                           method
                           params
                           &key success-fn error-fn timeout-fn (async-p t))
-  "Make a request to PROCESS, expecting a reply."
+  "Make a request to PROCESS, expecting a reply.
+Return the ID of this request, unless ASYNC-P is nil, in which
+case never returns locally."
   (let* ((id (eglot--next-request-id))
          (timeout-fn
           (or timeout-fn
@@ -658,22 +660,34 @@ is a symbol saying if this is a client or server originated."
             (when (memq timeout-timer timer-list)
               (eglot--message
                "(request) Last-change cancelling timer for continuation %s" id)
-              (cancel-timer timeout-timer))))))))
+              (cancel-timer timeout-timer))))))
+    ;; Finally, return the id.
+    id))
+
+(cl-defmacro eglot--lambda (cl-lambda-list &body body)
+  (declare (indent 1) (debug (sexp &rest form)))
+  `(cl-function
+    (lambda ,cl-lambda-list
+      ,@body)))
 
 (defun eglot--sync-request (proc method params)
   "Like `eglot--request' for PROC, METHOD and PARAMS, but synchronous.
 Meaning only return locally if successful, otherwise exit non-locally."
   (let* ((timeout-error-sym (cl-gensym))
-         (retval (eglot--request proc method params
-                                 :success-fn (lambda (&rest args)
-                                               (if (vectorp (car args))
-                                                   (car args)
-                                                 args))
-                                 :error-fn (cl-function
-                                            (lambda (&key code message &allow-other-keys)
-                                              (eglot--error "Oops: %s: %s" code message)))
-                                 :timeout-fn (lambda () timeout-error-sym)
-                                 :async-p nil)))
+         (catch-tag (make-symbol "eglot--sync-request-catch-tag"))
+         (retval
+          (catch catch-tag
+            (eglot--request proc method params
+                            :success-fn (lambda (&rest args)
+                                          (throw catch-tag (if (vectorp (car args))
+                                                               (car args)
+                                                             args)))
+                            :error-fn (eglot--lambda
+                                          (&key code message &allow-other-keys)
+                                        (eglot--error "Oops: %s: %s" code message))
+                            :timeout-fn (lambda ()
+                                          (throw catch-tag timeout-error-sym))
+                            :async-p nil))))
     ;; FIXME: There's maybe an emacs bug here. Because timeout-fn runs
     ;; in a timer, the better and obvious choice of throwing the erro
     ;; in the lambda is not quitting the `accept-process-output'
@@ -740,12 +754,6 @@ Meaning only return locally if successful, otherwise exit non-locally."
 (defun eglot--mapply (fun seq)
   "Apply FUN to every element of SEQ."
   (mapcar (lambda (e) (apply fun e)) seq))
-
-(cl-defmacro eglot--lambda (cl-lambda-list &body body)
-  (declare (indent 1) (debug (sexp &rest form)))
-  `(cl-function
-    (lambda ,cl-lambda-list
-      ,@body)))
 
 (defun eglot--path-to-uri (path)
   "Urify PATH."
