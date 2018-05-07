@@ -772,6 +772,23 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (13 . "Enum") (14 . "Keyword") (15 . "Snippet") (16 . "Color")
     (17 . "File") (18 . "Reference")))
 
+(defun eglot--format-markup (markup)
+  "Format MARKUP according to LSP's spec."
+  (cond ((stringp markup)
+         (with-temp-buffer
+           (ignore-errors (funcall 'markdown-mode))
+           (font-lock-ensure)
+           (insert markup)
+           (string-trim (buffer-string))))
+        (t
+         (with-temp-buffer
+           (ignore-errors (funcall (intern (concat
+                                            (plist-get markup :language)
+                                            "-mode" ))))
+           (insert (plist-get markup :value))
+           (font-lock-ensure)
+           (buffer-string)))))
+
 
 ;;; Minor modes
 ;;;
@@ -796,7 +813,10 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
     (add-hook 'xref-backend-functions 'eglot-xref-backend nil t)
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
-    (flymake-mode 1))
+    (add-function :before-until (local 'eldoc-documentation-function)
+                  #'eglot-eldoc-function)
+    (flymake-mode 1)
+    (eldoc-mode 1))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
@@ -806,7 +826,9 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (remove-hook 'before-save-hook 'eglot--signal-textDocument/willSave t)
     (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t)
     (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
-    (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t))))
+    (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
+    (remove-function (local 'eldoc-documentation-function)
+                     #'eglot-eldoc-function))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
@@ -1409,6 +1431,22 @@ DUMMY is ignored"
                        (string-lessp
                         (get-text-property 0 :sortText a)
                         (get-text-property 0 :sortText b)))))))))
+
+(defun eglot-eldoc-function ()
+  "EGLOT's `eldoc-documentation-function' function."
+  (eglot--request (eglot--current-process-or-lose)
+                  :textDocument/hover
+                  (eglot--obj
+                   :textDocument (eglot--current-buffer-TextDocumentIdentifier)
+                   :position (eglot--pos-to-lsp-position))
+                  :success-fn (eglot--lambda (&key contents _range)
+                                (eldoc-message
+                                 (mapconcat #'eglot--format
+                                            (if (vectorp contents)
+                                                contents
+                                              (list contents))
+                                            "\n"))))
+  nil)
 
 
 ;;; Dynamic registration
