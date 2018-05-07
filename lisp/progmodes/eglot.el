@@ -135,9 +135,6 @@ A list (WHAT SERIOUS-P)." t)
 Either a list of strings (a shell command and arguments), or a
 list of a single string of the form <host>:<port>")
 
-(eglot--define-process-var eglot--buffer-open-count (make-hash-table)
-  "Keeps track of didOpen/didClose notifs for each buffer.")
-
 (defun eglot--make-process (name managed-major-mode contact)
   "Make a process from CONTACT.
 NAME is a name to give the inferior process or connection.
@@ -1158,33 +1155,17 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
-  (let* ((proc (eglot--current-process-or-lose))
-         (count (1+ (or (gethash (current-buffer)
-                                 (eglot--buffer-open-count proc))
-                        0))))
-    (when (> count 1)
-      (eglot--error "Too many textDocument/didOpen notifs for %s" (current-buffer)))
-    (setf (gethash (current-buffer) (eglot--buffer-open-count proc))
-          count)
-    (eglot--notify proc
-                   :textDocument/didOpen
-                   (eglot--obj :textDocument
-                               (eglot--current-buffer-TextDocumentItem)))))
+  (eglot--notify (eglot--current-process-or-lose)
+                 :textDocument/didOpen
+                 (eglot--obj :textDocument
+                             (eglot--current-buffer-TextDocumentItem))))
 
 (defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
-  (let* ((proc (eglot--current-process-or-lose))
-         (count (1- (or (gethash (current-buffer)
-                                 (eglot--buffer-open-count proc))
-                        0))))
-    (when (< count 0)
-      (eglot--error "Too many textDocument/didClose notifs for %s" (current-buffer)))
-    (setf (gethash (current-buffer) (eglot--buffer-open-count proc))
-          count)
-    (eglot--notify proc
-                   :textDocument/didClose
-                   (eglot--obj :textDocument
-                               (eglot--current-buffer-TextDocumentIdentifier)))))
+  (eglot--notify (eglot--current-process-or-lose)
+                 :textDocument/didClose
+                 (eglot--obj :textDocument
+                             (eglot--current-buffer-TextDocumentIdentifier))))
 
 (defun eglot--signal-textDocument/willSave ()
   "Send textDocument/willSave to server."
