@@ -1128,52 +1128,65 @@ were deleted/added)"
   "Hook onto `after-change-functions'.
 Records START, END and PRE-CHANGE-LENGTH locally."
   (cl-incf eglot--versioned-identifier)
-  (push (list start end pre-change-length) eglot--recent-after-changes))
+  (push (list start end pre-change-length
+              (buffer-substring-no-properties start end))
+        eglot--recent-after-changes))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
-  (when (and eglot--recent-before-changes
-             eglot--recent-after-changes)
-    (let* ((proc (eglot--current-process-or-lose))
-           (sync-kind (plist-get (eglot--capabilities proc) :textDocumentSync)))
-      (save-restriction
-        (widen)
-        (unless (or (not sync-kind)
-                    (eq sync-kind 0))
-          (eglot--notify
-           proc
-           :textDocument/didChange
-           (eglot--obj
-            :textDocument
-            (eglot--current-buffer-VersionedTextDocumentIdentifier)
-            :contentChanges
-            (if (or (eq sync-kind 1)
-                    (/= (length eglot--recent-before-changes)
-                        (length eglot--recent-after-changes)))
-                (vector
-                 (eglot--obj
-                  :text (buffer-substring-no-properties (point-min) (point-max))))
-              (apply
-               #'vector
-               (mapcar
-                (pcase-lambda (`(,before-start-position
-                                 ,before-end-position
-                                 ,after-start
-                                 ,after-end
-                                 ,len))
-                  (eglot--obj
-                   :range
-                   (eglot--obj
-                    :start before-start-position
-                    :end before-end-position)
-                   :rangeLength len
-                   :text (buffer-substring-no-properties after-start after-end)))
-                (reverse
-                 (cl-mapcar 'append
-                            eglot--recent-before-changes
-                            eglot--recent-after-changes)))))))))))
-  (setq eglot--recent-before-changes nil
-        eglot--recent-after-changes nil))
+  (unwind-protect
+      (when (or eglot--recent-before-changes
+                eglot--recent-after-changes)
+        (let* ((proc (eglot--current-process-or-lose))
+               (sync-kind (plist-get (eglot--capabilities proc)
+                                     :textDocumentSync))
+               (emacs-messup
+                (/= (length eglot--recent-before-changes)
+                    (length eglot--recent-after-changes)))
+               (full-sync-p (or (eq sync-kind 1) emacs-messup)))
+          (when emacs-messup
+            (unless (eq sync-kind 1)
+              (eglot--warn "Using full sync because before: %s and after: %s"
+                           eglot--recent-before-changes
+                           eglot--recent-after-changes)))
+          (save-restriction
+            (widen)
+            (unless (or (not sync-kind)
+                        (eq sync-kind 0))
+              (eglot--notify
+               proc
+               :textDocument/didChange
+               (eglot--obj
+                :textDocument
+                (eglot--current-buffer-VersionedTextDocumentIdentifier)
+                :contentChanges
+                (if full-sync-p
+                    (vector
+                     (eglot--obj
+                      :text (buffer-substring-no-properties (point-min)
+                                                            (point-max))))
+                  (apply
+                   #'vector
+                   (mapcar
+                    (pcase-lambda (`(,before-start-position
+                                     ,before-end-position
+                                     ,_after-start
+                                     ,_after-end
+                                     ,len
+                                     ,after-text))
+                      (eglot--obj
+                       :range
+                       (eglot--obj
+                        :start before-start-position
+                        :end before-end-position)
+                       :rangeLength len
+                       :text after-text))
+                    (reverse
+                     (cl-mapcar 'append
+                                eglot--recent-before-changes
+                                eglot--recent-after-changes)))))))))))
+    (setq eglot--recent-before-changes nil
+          eglot--recent-after-changes nil)))
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
