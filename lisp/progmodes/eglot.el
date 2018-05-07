@@ -193,10 +193,11 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                                     :willSave t
                                     :willSaveWaitUntil :json-false
                                     :didSave t)
-                  :completion `(:dynamicRegistration :json-false)
-                  :hover      `(:dynamicRegistration :json-false)
-                  :references `(:dynamicRegistration :json-false)
-                  :definition `(:dynamicRegistration :json-false)
+                  :completion     `(:dynamicRegistration :json-false)
+                  :hover          `(:dynamicRegistration :json-false)
+                  :references     `(:dynamicRegistration :json-false)
+                  :definition     `(:dynamicRegistration :json-false)
+                  :documentSymbol `(:dynamicRegistration :json-false)
                   :publishDiagnostics `(:relatedInformation :json-false))
    :experimental (eglot--obj)))
 
@@ -703,6 +704,17 @@ Meaning only return locally if successful, otherwise exit non-locally."
                 (- (goto-char (or pos (point)))
                    (line-beginning-position)))))
 
+(defun eglot--lsp-position-to-point (pos-plist)
+  "Convert LSP position POS-PLIST to Emacs point."
+  (save-excursion (goto-char (point-min))
+                  (forward-line (plist-get pos-plist :line))
+                  (forward-char
+                   (min (plist-get pos-plist :character)
+                        (- (line-end-position)
+                           (line-beginning-position))))
+                  (point)))
+
+
 (defun eglot--mapply (fun seq)
   "Apply FUN to every element of SEQ."
   (mapcar (lambda (e) (apply fun e)) seq))
@@ -766,6 +778,7 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'eglot-eldoc-function)
+    (advice-add imenu-create-index-function :around #'eglot-imenu)
     (flymake-mode 1)
     (eldoc-mode 1))
    (t
@@ -779,7 +792,8 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-function (local 'eldoc-documentation-function)
-                     #'eglot-eldoc-function))))
+                     #'eglot-eldoc-function)
+    (advice-remove imenu-create-index-function #'eglot-imenu))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
@@ -956,36 +970,28 @@ running.  INTERACTIVE is t if called interactively."
     (cond
      (buffer
       (with-current-buffer buffer
-        (cl-flet ((pos-at (pos-plist)
-                          (save-excursion (goto-char (point-min))
-                                          (forward-line (plist-get pos-plist :line))
-                                          (forward-char
-                                           (min (plist-get pos-plist :character)
-                                                (- (line-end-position)
-                                                   (line-beginning-position))))
-                                          (point))))
-          (cl-loop for diag-spec across diagnostics
-                   collect (cl-destructuring-bind (&key range severity _group
-                                                        _code source message)
-                               diag-spec
-                             (cl-destructuring-bind (&key start end)
-                                 range
-                               (let* ((begin-pos (pos-at start))
-                                      (end-pos (pos-at end)))
-                                 (flymake-make-diagnostic
-                                  (current-buffer)
-                                  begin-pos end-pos
-                                  (cond ((<= severity 1) :error)
-                                        ((= severity 2)  :warning)
-                                        (t               :note))
-                                  (concat source ": " message)))))
-                   into diags
-                   finally
-                   (if eglot--current-flymake-report-fn
-                       (funcall eglot--current-flymake-report-fn
-                                diags)
-                     (setq eglot--unreported-diagnostics
-                           diags))))))
+        (cl-loop
+         for diag-spec across diagnostics
+         collect (cl-destructuring-bind (&key range severity _group
+                                              _code source message)
+                     diag-spec
+                   (cl-destructuring-bind (&key start end)
+                       range
+                     (let* ((begin-pos (eglot--lsp-position-to-point start))
+                            (end-pos (eglot--lsp-position-to-point end)))
+                       (flymake-make-diagnostic
+                        (current-buffer)
+                        begin-pos end-pos
+                        (cond ((<= severity 1) :error)
+                              ((= severity 2)  :warning)
+                              (t               :note))
+                        (concat source ": " message)))))
+         into diags
+         finally (if eglot--current-flymake-report-fn
+                     (funcall eglot--current-flymake-report-fn
+                              diags)
+                   (setq eglot--unreported-diagnostics
+                         diags)))))
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
@@ -1320,6 +1326,26 @@ DUMMY is ignored"
                                                 (list contents))
                                               "\n")))))
   nil)
+
+(defun eglot-imenu (oldfun)
+  "EGLOT's `imenu-create-index-function' overriding OLDFUN."
+  (if (eglot--server-capable :documentSymbolProvider)
+      (let ((entries
+             (eglot--mapply
+              (eglot--lambda (&key name kind location _containerName)
+                (cons (propertize name :kind (cdr (assoc kind eglot--kind-names)))
+                      (eglot--lsp-position-to-point
+                       (plist-get (plist-get location :range) :start))))
+              (eglot--sync-request
+               (eglot--current-process-or-lose)
+               :textDocument/documentSymbol
+               (eglot--obj
+                :textDocument (eglot--current-buffer-TextDocumentIdentifier))))))
+        (append
+         (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
+                       entries)
+         entries))
+    (funcall oldfun)))
 
 
 ;;; Dynamic registration
