@@ -42,8 +42,10 @@
   :prefix "eglot-"
   :group 'applications)
 
-(defvar eglot-executables '((rust-mode . ("rls"))
-                            (python-mode . ("pyls")))
+(defvar eglot-executables
+  '((rust-mode . ("rls"))
+    (python-mode . ("pyls"))
+    (js-mode . ("javascript-typescript-stdio")))
   "Alist mapping major modes to server executables.")
 
 (defface eglot-mode-line
@@ -145,23 +147,24 @@ list of a single string of the form <host>:<port>")
 (eglot--define-process-var eglot--buffer-open-count (make-hash-table)
   "Keeps track of didOpen/didClose notifs for each buffer.")
 
-(defun eglot--make-process (name contact)
+(defun eglot--make-process (name managed-major-mode contact)
   "Make a process from CONTACT.
 NAME is a name to give the inferior process or connection.
+MANAGED-MAJOR-MODE is a symbol naming a major mode.
 CONTACT is as `eglot--contact'.  Returns a process object."
-  (let* ((readable-name (format "EGLOT server (%s)" name))
+  (let* ((readable-name (format "EGLOT server (%s/%s)" name managed-major-mode))
          (buffer (get-buffer-create
                   (format "*%s inferior*" readable-name)))
-         (singleton (and (null (cdr contact)) (car contact)))
+         singleton
          (proc
-          (if (and
-               singleton
-               (string-match "^[\s\t]*\\(.*\\):\\([[:digit:]]+\\)[\s\t]*$"
-                             singleton))
+          (if (and (setq singleton (and (null (cdr contact)) (car contact)))
+                   (string-match "^[\s\t]*\\(.*\\):\\([[:digit:]]+\\)[\s\t]*$"
+                                 singleton))
               (open-network-stream readable-name
                                    buffer
                                    (match-string 1 singleton)
-                                   (string-to-number (match-string 2 singleton)))
+                                   (string-to-number
+                                    (match-string 2 singleton)))
             (make-process
              :name readable-name
              :buffer buffer
@@ -236,7 +239,7 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                                short-name contact &optional success-fn)
   "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT.
 SUCCESS-FN with no args if all goes well."
-  (let* ((proc (eglot--make-process short-name contact))
+  (let* ((proc (eglot--make-process short-name managed-major-mode contact))
          (buffer (process-buffer proc)))
     (setf (eglot--contact proc) contact
           (eglot--project proc) project
@@ -297,15 +300,16 @@ SUCCESS-FN with no args if all goes well."
      managed-major-mode
      (let ((prompt
             (cond (current-prefix-arg
-                   "[eglot] Execute program (or connect to <host>:<port>) ")
+                   "[eglot] Enter program to execute (or <host>:<port>): ")
                   ((null guessed-command)
                    (format "[eglot] Sorry, couldn't guess for `%s'!\n\
-Execute program (or connect to <host>:<port>) "
+Enter program to execute (or <host>:<port>): "
                            managed-major-mode)))))
        (if prompt
            (split-string-and-unquote
             (read-shell-command prompt
-                                (combine-and-quote-strings guessed-command)
+                                (if (listp guessed-command)
+                                    (combine-and-quote-strings guessed-command))
                                 'eglot-command-history))
          guessed-command))
      t)))
@@ -347,7 +351,7 @@ INTERACTIVE is t if called interactively."
          command
          (lambda (proc)
            (eglot--message "Connected! Process `%s' now managing `%s' \
-buffers in project %s."
+buffers in project `%s'."
                            proc
                            managed-major-mode
                            short-name)))))))
@@ -1101,9 +1105,10 @@ running.  INTERACTIVE is t if called interactively."
   "Compute TextDocumentItem object for current buffer."
   (append
    (eglot--current-buffer-VersionedTextDocumentIdentifier)
-   (eglot--obj :languageId (cdr (assoc major-mode
-                                       '((rust-mode . rust)
-                                         (emacs-lisp-mode . emacs-lisp))))
+   (eglot--obj :languageId
+               (if (string-match "\\(.*\\)-mode" (symbol-name major-mode))
+                   (match-string 1 (symbol-name major-mode))
+                 "unknown")
                :text
                (save-restriction
                  (widen)
