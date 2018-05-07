@@ -817,93 +817,51 @@ that case, also signal textDocument/didOpen."
     (with-selected-window (posn-window (event-start event))
       (call-interactively what))))
 
+(defun eglot--mode-line-props (thing face defs &optional prepend)
+  "Helper for function `eglot--mode-line-format'.
+Uses THING, FACE, DEFS and PREPEND."
+  (cl-loop with map = (make-sparse-keymap)
+           for (elem . rest) on defs
+           for (key def help) = elem
+           do (define-key map `[mode-line ,key] (eglot--mode-line-call def))
+           concat (format "%s: %s" key help) into blurb
+           when rest concat "\n" into blurb
+           finally (return `(:propertize ,thing
+                                         face ,face
+                                         keymap ,map help-echo ,(concat prepend blurb)
+                                         mouse-face mode-line-highlight))))
+
 (defun eglot--mode-line-format ()
-  "Compose the mode-line format spec."
+  "Compose the EGLOT's mode-line."
   (pcase-let* ((proc (eglot--current-process))
-               (name (and proc
-                          (process-live-p proc)
-                          (eglot--short-name proc)))
-               (pending (and proc
-                             (hash-table-count
-                              (eglot--pending-continuations proc))))
-               (`(,_id ,doing ,done-p)
-                (and proc
-                     (eglot--spinner proc)))
-               (`(,status ,serious-p)
-                (and proc
-                     (eglot--status proc))))
+               (name (and (process-live-p proc) (eglot--short-name proc)))
+               (pending (and proc (hash-table-count
+                                   (eglot--pending-continuations proc))))
+               (`(,_id ,doing ,done-p) (and proc (eglot--spinner proc)))
+               (`(,status ,serious-p) (and proc (eglot--status proc))))
     (append
-     `((:propertize "eglot"
-                    face eglot-mode-line
-                    keymap ,(let ((map (make-sparse-keymap)))
-                              (define-key map [mode-line down-mouse-1]
-                                (eglot--mode-line-call 'eglot-menu))
-                              map)
-                    mouse-face mode-line-highlight
-                    help-echo "mouse-1: pop-up EGLOT menu"
-                    ))
+     `(,(eglot--mode-line-props "eglot" 'eglot-mode-line
+                                '((down-mouse-1 eglot-menu "pop up EGLOT menu"))))
      (when name
-       `(":"
-         (:propertize
-          ,name
-          face eglot-mode-line
-          keymap ,(let ((map (make-sparse-keymap)))
-                    (define-key map [mode-line mouse-1]
-                      (eglot--mode-line-call 'eglot-events-buffer))
-                    (define-key map [mode-line mouse-2]
-                      (eglot--mode-line-call 'eglot-shutdown))
-                    (define-key map [mode-line mouse-3]
-                      (eglot--mode-line-call 'eglot-reconnect))
-                    map)
-          mouse-face mode-line-highlight
-          help-echo ,(concat "mouse-1: go to events buffer\n"
-                             "mouse-2: quit server\n"
-                             "mouse-3: reconnect to server"))
+       `(":" ,(eglot--mode-line-props
+               name 'eglot-mode-line
+               '((mouse-1 eglot-events-buffer "go to events buffer")
+                 (mouse-2 eglot-shutdown      "quit server")
+                 (mouse-3 eglot-reconnect     "reconnect to server")))
          ,@(when serious-p
-             `("/"
-               (:propertize
-                ,status
-                help-echo ,(concat "mouse-1: go to events buffer\n"
-                                   "mouse-3: clear this status")
-                mouse-face mode-line-highlight
-                face compilation-mode-line-fail
-                keymap ,(let ((map (make-sparse-keymap)))
-                          (define-key map [mode-line mouse-1]
-                            (eglot--mode-line-call 'eglot-events-buffer))
-                          (define-key map [mode-line mouse-3]
-                            (eglot--mode-line-call 'eglot-clear-status))
-                          map))))
+             `("/" ,(eglot--mode-line-props
+                     status 'compilation-mode-line-fail
+                     '((mouse-1 eglot-events-buffer "go to events buffer")
+                       (mouse-3 eglot-clear-status  "clear this status")))))
          ,@(when (and doing (not done-p))
-             `("/"
-               (:propertize
-                ,doing
-                help-echo ,(concat "mouse-1: go to events buffer")
-                mouse-face mode-line-highlight
-                face compilation-mode-line-run
-                keymap ,(let ((map (make-sparse-keymap)))
-                          (define-key map [mode-line mouse-1]
-                            (eglot--mode-line-call 'eglot-events-buffer))
-                          map))))
+             `("/" ,(eglot--mode-line-props
+                     doing 'compilation-mode-line-run
+                     '((mouse-1 eglot-events-buffer "go to events buffer")))))
          ,@(when (cl-plusp pending)
-             `("/"
-               (:propertize
-                (format "%d" pending)
-                help-echo ,(format
-                            "%s unanswered requests\n%s"
-                            pending
-                            (concat "mouse-1: go to events buffer"
-                                    "mouse-3: forget pending continuations"))
-                mouse-face mode-line-highlight
-                face ,(cond ((and pending (cl-plusp pending))
-                             'warning)
-                            (t
-                             'eglot-mode-line))
-                keymap ,(let ((map (make-sparse-keymap)))
-                          (define-key map [mode-line mouse-1]
-                            (eglot--mode-line-call 'eglot-events-buffer))
-                          (define-key map [mode-line mouse-3]
-                            (eglot--mode-line-call 'eglot-forget-pending-continuations))
-                          map)))))))))
+             `("/" ,(eglot--mode-line-props
+                     (format "%d" pending) 'warning
+                     '((mouse-1 eglot-events-buffer "go to events buffer")
+                       (mouse-3 eglot-clear-status  "clear this status"))))))))))
 
 (add-to-list 'mode-line-misc-info `(eglot-mode (" [" eglot--mode-line-format "] ")))
 
