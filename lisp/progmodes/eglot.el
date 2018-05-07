@@ -34,6 +34,7 @@
 (require 'warnings)
 (require 'flymake)
 (require 'xref)
+(require 'subr-x)
 
 
 ;;; User tweakable stuff
@@ -763,7 +764,7 @@ Meaning only return locally if successful, otherwise exit non-locally."
   "Format MARKUP according to LSP's spec."
   (cond ((stringp markup)
          (with-temp-buffer
-           (ignore-errors (funcall 'markdown-mode))
+           (ignore-errors (funcall (intern "markdown-mode"))) ;escape bytecompiler
            (font-lock-ensure)
            (insert markup)
            (string-trim (buffer-string))))
@@ -1428,7 +1429,7 @@ DUMMY is ignored"
                    :position (eglot--pos-to-lsp-position))
                   :success-fn (eglot--lambda (&key contents _range)
                                 (eldoc-message
-                                 (mapconcat #'eglot--format
+                                 (mapconcat #'eglot--format-markup
                                             (if (vectorp contents)
                                                 contents
                                               (list contents))
