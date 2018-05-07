@@ -415,7 +415,8 @@ INTERACTIVE is t if called interactively."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (let ((inhibit-read-only t)
-            (expected-bytes (eglot--expected-bytes proc)))
+            (expected-bytes (eglot--expected-bytes proc))
+            (done (make-symbol "eglot--process-filter-done-tag")))
         ;; Insert the text, advancing the process marker.
         ;;
         (save-excursion
@@ -424,51 +425,52 @@ INTERACTIVE is t if called interactively."
           (set-marker (process-mark proc) (point)))
         ;; Loop (more than one message might have arrived)
         ;;
-        (catch 'done
-          (while t
-            (cond ((not expected-bytes)
-                   ;; Starting a new message
-                   ;;
-                   (setq expected-bytes
-                         (and (search-forward-regexp
-                               "\\(?:.*: .*\r\n\\)*Content-Length: \
-*\\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
-                               (+ (point) 100)
-                               t)
-                              (string-to-number (match-string 1))))
-                   (unless expected-bytes
-                     (throw 'done :waiting-for-new-message)))
-                  (t
-                   ;; Attempt to complete a message body
-                   ;;
-                   (let ((available-bytes (- (position-bytes (process-mark proc))
-                                             (position-bytes (point)))))
-                     (cond
-                      ((>= available-bytes
-                           expected-bytes)
-                       (let* ((message-end (byte-to-position
-                                            (+ (position-bytes (point))
-                                               expected-bytes))))
-                         (unwind-protect
-                             (save-restriction
-                               (narrow-to-region (point) message-end)
-                               (let* ((json-object-type 'plist)
-                                      (json-message (json-read)))
-                                 ;; Process content in another buffer,
-                                 ;; shielding buffer from tamper
-                                 ;;
-                                 (with-temp-buffer
-                                   (eglot--process-receive proc json-message))))
-                           (goto-char message-end)
-                           (delete-region (point-min) (point))
-                           (setq expected-bytes nil))))
-                      (t
-                       ;; Message is still incomplete
+        (unwind-protect
+            (catch done
+              (while t
+                (cond ((not expected-bytes)
+                       ;; Starting a new message
                        ;;
-                       (throw 'done :waiting-for-more-bytes-in-this-message))))))))
-        ;; Saved parsing state for next visit to this filter
-        ;;
-        (setf (eglot--expected-bytes proc) expected-bytes)))))
+                       (setq expected-bytes
+                             (and (search-forward-regexp
+                                   "\\(?:.*: .*\r\n\\)*Content-Length: \
+*\\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
+                                   (+ (point) 100)
+                                   t)
+                                  (string-to-number (match-string 1))))
+                       (unless expected-bytes
+                         (throw done :waiting-for-new-message)))
+                      (t
+                       ;; Attempt to complete a message body
+                       ;;
+                       (let ((available-bytes (- (position-bytes (process-mark proc))
+                                                 (position-bytes (point)))))
+                         (cond
+                          ((>= available-bytes
+                               expected-bytes)
+                           (let* ((message-end (byte-to-position
+                                                (+ (position-bytes (point))
+                                                   expected-bytes))))
+                             (unwind-protect
+                                 (save-restriction
+                                   (narrow-to-region (point) message-end)
+                                   (let* ((json-object-type 'plist)
+                                          (json-message (json-read)))
+                                     ;; Process content in another buffer,
+                                     ;; shielding buffer from tamper
+                                     ;;
+                                     (with-temp-buffer
+                                       (eglot--process-receive proc json-message))))
+                               (goto-char message-end)
+                               (delete-region (point-min) (point))
+                               (setq expected-bytes nil))))
+                          (t
+                           ;; Message is still incomplete
+                           ;;
+                           (throw done :waiting-for-more-bytes-in-this-message))))))))
+          ;; Saved parsing state for next visit to this filter
+          ;;
+          (setf (eglot--expected-bytes proc) expected-bytes))))))
 
 (defun eglot-events-buffer (process &optional interactive)
   "Display events buffer for current LSP connection PROCESS.
@@ -654,18 +656,25 @@ is a symbol saying if this is a client or server originated."
 (defun eglot--sync-request (proc method params)
   "Like `eglot--request' for PROC, METHOD and PARAMS, but synchronous.
 Meaning only return locally if successful, otherwise exit non-locally."
-  (eglot--request proc method params
-                  :success-fn (lambda (&rest args)
-                                (if (vectorp (car args))
-                                    (car args)
-                                  args))
-                  :error-fn (cl-function
-                             (lambda (&key code message &allow-other-keys)
-                               (eglot--error "Oops: %s: %s" code message)))
-                  :timeout-fn (lambda ()
-                                (eglot--error
-                                 "Tired of waiting for reply to sync request"))
-                  :async-p nil))
+  (let* ((timeout-error-sym (cl-gensym))
+         (retval (eglot--request proc method params
+                                 :success-fn (lambda (&rest args)
+                                               (if (vectorp (car args))
+                                                   (car args)
+                                                 args))
+                                 :error-fn (cl-function
+                                            (lambda (&key code message &allow-other-keys)
+                                              (eglot--error "Oops: %s: %s" code message)))
+                                 :timeout-fn (lambda () timeout-error-sym)
+                                 :async-p nil)))
+    ;; FIXME: There's maybe an emacs bug here. Because timeout-fn runs
+    ;; in a timer, the better and obvious choice of throwing the erro
+    ;; in the lambda is not quitting the `accept-process-output'
+    ;; infinite loop up there. So use this contorted strategy with
+    ;; `cl-gensym'.
+    (if (eq retval timeout-error-sym)
+        (eglot--error "Tired of waiting for reply to sync request")
+      retval)))
 
 (cl-defun eglot--notify (process method params)
   "Notify PROCESS of something, don't expect a reply.e"
@@ -1045,8 +1054,9 @@ running.  INTERACTIVE is t if called interactively."
 (cl-defun eglot--server-client/registerCapability
     (proc &key id registrations)
   "Handle notification client/registerCapability"
-  (let ((jsonrpc-id id))
-    (catch 'done
+  (let ((jsonrpc-id id)
+        (done (make-symbol "done")))
+    (catch done
       (mapc
        (lambda (reg)
          (apply
@@ -1059,12 +1069,11 @@ running.  INTERACTIVE is t if called interactively."
                    (and (functionp handler-sym)
                         (apply handler-sym proc :id id registerOptions))))
                (unless ok
-                 (throw
-                  'done
-                  (eglot--reply proc jsonrpc-id
-                                :error (eglot--obj
-                                        :code -32601
-                                        :message (or message "sorry :-("))))))))
+                 (throw done
+                        (eglot--reply proc jsonrpc-id
+                                      :error (eglot--obj
+                                              :code -32601
+                                              :message (or message "sorry :-("))))))))
           reg))
        registrations)
       (eglot--reply proc id :result (eglot--obj :message "OK")))))
