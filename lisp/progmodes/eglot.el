@@ -757,6 +757,13 @@ Meaning only return locally if successful, otherwise exit non-locally."
   "Convert URI to a file path."
   (url-filename (url-generic-parse-url (url-unhex-string uri))))
 
+(defconst eglot--kind-names
+  `((1 . "Text") (2 . "Method") (3 . "Function") (4 . "Constructor")
+    (5 . "Field") (6 . "Variable") (7 . "Class") (8 . "Interface")
+    (9 . "Module") (10 . "Property") (11 . "Unit") (12 . "Value")
+    (13 . "Enum") (14 . "Keyword") (15 . "Snippet") (16 . "Color")
+    (17 . "File") (18 . "Reference")))
+
 
 ;;; Minor modes
 ;;;
@@ -777,10 +784,11 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
-    ;; (add-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen nil t)
+    ;;(add-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen nil t)
     (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
     (add-hook 'xref-backend-functions 'eglot-xref-backend nil t)
+    (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (flymake-mode 1))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
@@ -791,7 +799,8 @@ Meaning only return locally if successful, otherwise exit non-locally."
     ;; (remove-hook 'after-revert-hook 'eglot--signal-textDocument/didOpen t)
     (remove-hook 'before-save-hook 'eglot--signal-textDocument/willSave t)
     (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t)
-    (remove-hook 'xref-backend-functions 'eglot-xref-backend t))))
+    (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
+    (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
@@ -1352,6 +1361,48 @@ DUMMY is ignored"
    (eglot--sync-request (eglot--current-process-or-lose)
                         :workspace/symbol
                         (eglot--obj :query pattern))))
+
+(defun eglot-completion-at-point ()
+  "EGLOT's `completion-at-point' function."
+  (let ((bounds (bounds-of-thing-at-point 'sexp))
+        (proc (eglot--current-process-or-lose)))
+    (when (plist-get (eglot--capabilities proc)
+                     :completionProvider)
+      (list
+       (if bounds (car bounds) (point))
+       (if bounds (cdr bounds) (point))
+       (completion-table-dynamic
+        (lambda (_ignored)
+          (let* ((resp (eglot--sync-request
+                        proc
+                        :textDocument/completion
+                        (eglot--obj
+                         :textDocument (eglot--current-buffer-TextDocumentIdentifier)
+                         :position (eglot--pos-to-lsp-position))))
+                 (items (if (vectorp resp) resp
+                          (plist-get resp :items))))
+            (eglot--mapply
+             (eglot--lambda (&key insertText label kind detail
+                                  documentation sortText)
+               (propertize insertText
+                           :label label :kind kind :detail detail
+                           :documentation documentation :sortText sortText))
+             items))))
+       :annotation-function
+       (lambda (what)
+         (let ((detail (get-text-property 0 :detail what))
+               (kind (get-text-property 0 :kind what)))
+           (format "%s%s"
+                   detail
+                   (if kind
+                       (format " (%s)" (cdr (assoc kind eglot--kind-names)))
+                     ""))))
+       :display-sort-function
+       (lambda (items)
+         (sort items (lambda (a b)
+                       (string-lessp
+                        (get-text-property 0 :sortText a)
+                        (get-text-property 0 :sortText b)))))))))
 
 
 ;;; Dynamic registration
