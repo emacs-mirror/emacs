@@ -265,6 +265,9 @@ SUCCESS-FN with no args if all goes well."
           (lambda (&key capabilities)
             (setf (eglot--capabilities proc) capabilities)
             (setf (eglot--status proc) nil)
+            (dolist (buffer (buffer-list))
+              (with-current-buffer buffer
+                (eglot--maybe-activate-editing-mode proc)))
             (when success-fn (funcall success-fn proc))
             (eglot--notify proc :initialized (eglot--obj :__dummy__ t)))))))))
 
@@ -344,10 +347,7 @@ INTERACTIVE is t if called interactively."
 buffers in project %s."
                            proc
                            managed-major-mode
-                           short-name)
-           (dolist (buffer (buffer-list))
-             (with-current-buffer buffer
-               (eglot--maybe-activate-editing-mode proc)))))))))
+                           short-name)))))))
 
 (defun eglot-reconnect (process &optional interactive)
   "Reconnect to PROCESS.
@@ -360,11 +360,7 @@ INTERACTIVE is t if called interactively."
    (eglot--major-mode process)
    (eglot--short-name process)
    (eglot--contact process)
-   (lambda (proc)
-     (eglot--message "Reconnected!")
-     (dolist (buffer (buffer-list))
-       (with-current-buffer buffer
-         (eglot--maybe-activate-editing-mode proc))))))
+   (lambda (_proc) (eglot--message "Reconnected!"))))
 
 (defvar eglot--inhibit-auto-reconnect nil
   "If non-nil, don't autoreconnect on unexpected quit.")
@@ -397,9 +393,11 @@ INTERACTIVE is t if called interactively."
                            (process-exit-status process)))
           ((null eglot--inhibit-auto-reconnect)
            (eglot--warn
-            "(sentinel) Reconnecting after process unexpectedly changed to %s."
+            "(sentinel) Reconnecting after process unexpectedly changed to `%s'."
             change)
-           (eglot-reconnect process)
+           (condition-case-unless-debug err
+               (eglot-reconnect process)
+             (error (eglot--warn "Auto-reconnect failed: %s " err) ))
            (setq eglot--inhibit-auto-reconnect
                  (run-with-timer
                   3 nil
@@ -493,13 +491,22 @@ INTERACTIVE is t if called interactively."
       (display-buffer buffer))
     buffer))
 
-(defun eglot--log-event (proc type message &optional id error)
+(defun eglot--log-event (proc message type)
   "Log an eglot-related event.
-PROC is the current process.  TYPE is an identifier.  MESSAGE is
-a JSON-like plist or anything else.  ID is a continuation
-identifier.  ERROR is non-nil if this is a JSON-RPC error."
+PROC is the current process.  MESSAGE is a JSON-like plist.  TYPE
+is a symbol saying if this is a client or server originated."
   (with-current-buffer (eglot-events-buffer proc)
-    (let ((inhibit-read-only t))
+    (let* ((inhibit-read-only t)
+           (id (plist-get message :id))
+           (error (plist-get message :error))
+           (method (plist-get message :method))
+           (subtype (cond ((and method id)       'request)
+                          (method                'notification)
+                          (id                    'reply)
+                          ;; pyls keeps on sending these
+                          (t                     'unexpected-thingy)))
+           (type
+            (format "%s-%s" type subtype)))
       (goto-char (point-max))
       (let ((msg (format "%s%s%s:\n%s\n"
                          type
@@ -518,15 +525,7 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
          (continuations (and id
                              (not method)
                              (gethash id (eglot--pending-continuations proc)))))
-    (eglot--log-event proc
-                      (cond ((and method id)       'server-request)
-                            (method                'server-notification)
-                            (continuations         'server-reply)
-                            ;; pyls keeps on sending these
-                            (t                     'unexpected-server-thingy))
-                      message
-                      id
-                      err)
+    (eglot--log-event proc message 'server)
     (when err (setf (eglot--status proc) '("error" t)))
     (cond (method
            ;; a server notification or a server request
@@ -557,19 +556,13 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
 
 (defvar eglot--expect-carriage-return nil)
 
-(defun eglot--process-send (id proc message &optional reply)
+(defun eglot--process-send (proc message)
   "Send MESSAGE to PROC (ID is optional)."
-  (let* ((json (json-encode message))
-         (to-send (format "Content-Length: %d\r\n\r\n%s"
-                          (string-bytes json)
-                          json)))
-    (process-send-string proc to-send)
-    (eglot--log-event proc (if id
-                               (if reply
-                                   'client-reply
-                                 'client-request)
-                             'client-notification)
-                      message id (plist-get message :error))))
+  (let ((json (json-encode message)))
+    (process-send-string proc (format "Content-Length: %d\r\n\r\n%s"
+                                      (string-bytes json)
+                                      json))
+    (eglot--log-event proc message 'client)))
 
 (defvar eglot--next-request-id 0)
 
@@ -614,8 +607,7 @@ identifier.  ERROR is non-nil if this is a JSON-RPC error."
                   "(request) Request id=%s replied to with result=%s: %s"
                   id result-body)))))
          (catch-tag (cl-gensym (format "eglot--tag-%d-" id))))
-    (eglot--process-send id
-                         process
+    (eglot--process-send process
                          (eglot--obj :jsonrpc "2.0"
                                      :id id
                                      :method method
@@ -678,21 +670,18 @@ Meaning only return locally if successful, otherwise exit non-locally."
 
 (cl-defun eglot--notify (process method params)
   "Notify PROCESS of something, don't expect a reply.e"
-  (eglot--process-send nil
-                       process
+  (eglot--process-send process
                        (eglot--obj :jsonrpc  "2.0"
-                                   :id nil
                                    :method method
                                    :params params)))
 
 (cl-defun eglot--reply (process id &key result error)
   "Reply to PROCESS's request ID with MESSAGE."
-  (eglot--process-send id process
+  (eglot--process-send process
                        (eglot--obj :jsonrpc  "2.0"
-                                   :id nil
+                                   :id id
                                    :result result
-                                   :error error)
-                       t))
+                                   :error error)))
 
 
 ;;; Helpers
@@ -1057,28 +1046,29 @@ running.  INTERACTIVE is t if called interactively."
 (cl-defun eglot--server-client/registerCapability
     (proc &key id registrations)
   "Handle notification client/registerCapability"
-  (catch 'done
-    (mapc
-     (lambda (reg)
-       (apply
-        (cl-function
-         (lambda (&key id method registerOptions)
-           (pcase-let*
-               ((handler-sym (intern (concat "eglot--register-"
-                                             method)))
-                (`(,ok ,message)
-                 (and (functionp handler-sym)
-                      (apply handler-sym proc :id id registerOptions))))
-             (unless ok
-               (throw
-                'done
-                (eglot--reply proc id
-                              :error (eglot--obj
-                                      :code -32601
-                                      :message (or message "sorry :-("))))))))
-        reg))
-     registrations)
-    (eglot--reply proc id :result (eglot--obj :message "OK"))))
+  (let ((jsonrpc-id id))
+    (catch 'done
+      (mapc
+       (lambda (reg)
+         (apply
+          (cl-function
+           (lambda (&key id method registerOptions)
+             (pcase-let*
+                 ((handler-sym (intern (concat "eglot--register-"
+                                               method)))
+                  (`(,ok ,message)
+                   (and (functionp handler-sym)
+                        (apply handler-sym proc :id id registerOptions))))
+               (unless ok
+                 (throw
+                  'done
+                  (eglot--reply proc jsonrpc-id
+                                :error (eglot--obj
+                                        :code -32601
+                                        :message (or message "sorry :-("))))))))
+          reg))
+       registrations)
+      (eglot--reply proc id :result (eglot--obj :message "OK")))))
 
 (defvar eglot--recent-before-changes nil
   "List of recent changes as collected by `eglot--before-change'.")
@@ -1236,8 +1226,9 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
 
 (defvar eglot--xref-known-symbols nil)
 
-(defun eglot--xref-reset-known-symbols ()
-  "Reset `eglot--xref-reset-known-symbols'."
+(defun eglot--xref-reset-known-symbols (&rest _dummy)
+  "Reset `eglot--xref-reset-known-symbols'.
+DUMMY is ignored"
   (setq eglot--xref-known-symbols nil))
 
 (advice-add 'xref-find-definitions :after #'eglot--xref-reset-known-symbols)
