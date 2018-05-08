@@ -1274,13 +1274,13 @@ DUMMY is ignored"
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
-  (let ((bounds (bounds-of-thing-at-point 'sexp))
+  (let ((bounds (bounds-of-thing-at-point 'symbol))
         (proc (eglot--current-process-or-lose)))
     (when (eglot--server-capable :completionProvider)
       (list
        (or (car bounds) (point))
        (or (cdr bounds) (point))
-       (completion-table-dynamic
+       (completion-table-with-cache
         (lambda (_ignored)
           (let* ((resp (eglot--sync-request
                         proc
@@ -1291,19 +1291,17 @@ DUMMY is ignored"
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (eglot--mapply
              (eglot--lambda (&key insertText label kind detail
-                                  documentation sortText)
-               (propertize insertText
-                           :label label :kind kind :detail detail
+                                  documentation sortText &allow-other-keys)
+               (propertize (or insertText label)
+                           :kind-name (cdr (assoc kind eglot--kind-names))
+                           :detail detail
                            :documentation documentation :sortText sortText))
              items))))
        :annotation-function
        (lambda (what) (let ((detail (get-text-property 0 :detail what))
-                            (kind (get-text-property 0 :kind what)))
-                        (format "%s%s"
-                                detail
-                                (if kind
-                                    (format " (%s)" (cdr (assoc kind eglot--kind-names)))
-                                  ""))))
+                            (kind-name (get-text-property 0 :kind what)))
+                        (concat (if detail (format " %s" detail) "")
+                                (if kind-name (format " (%s)" kind-name) ""))))
        :display-sort-function
        (lambda (items) (sort items (lambda (a b)
                                      (string-lessp
