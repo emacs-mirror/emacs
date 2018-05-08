@@ -552,10 +552,12 @@ is a symbol saying if this is a client or server originated."
 (cl-defun eglot--request (process
                           method
                           params
-                          &key success-fn error-fn timeout-fn (async-p t))
+                          &key success-fn error-fn timeout-fn (async-p t)
+                          (timeout eglot-request-timeout))
   "Make a request to PROCESS, expecting a reply.
 Return the ID of this request, unless ASYNC-P is nil, in which
-case never returns locally."
+case never returns locally.  Wait TIMEOUT seconds for a
+response."
   (let* ((id (eglot--next-request-id))
          (timeout-fn (or timeout-fn
                          (lambda ()
@@ -583,7 +585,7 @@ case never returns locally."
     (catch catch-tag
       (let ((timeout-timer
              (run-with-timer
-              eglot-request-timeout nil
+              timeout nil
               (if async-p
                   (lambda ()
                     (remhash id (eglot--pending-continuations process))
@@ -912,10 +914,12 @@ running.  INTERACTIVE is t if called interactively."
                                    :success-fn brutal
                                    :async-p (not sync)
                                    :error-fn brutal
-                                   :timeout-fn brutal))
+                                   :timeout-fn brutal
+                                   :timeout 3))
      :error-fn brutal
      :async-p (not sync)
-     :timeout-fn brutal)))
+     :timeout-fn brutal
+     :timeout 3)))
 
 (cl-defun eglot--server-window/showMessage (_process &key type message)
   "Handle notification window/showMessage"
