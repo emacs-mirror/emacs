@@ -495,7 +495,7 @@ is a symbol saying if this is a client or server originated."
                              (not method)
                              (gethash id (eglot--pending-continuations proc)))))
     (eglot--log-event proc message 'server)
-    (when err (setf (eglot--status proc) '("error" t)))
+    (when err (setf (eglot--status proc) `(,err t)))
     (cond (method
            ;; a server notification or a server request
            (let* ((handler-sym (intern (concat "eglot--server-"
@@ -566,7 +566,7 @@ response."
          (error-fn (or error-fn
                        (cl-function
                         (lambda (&key code message &allow-other-keys)
-                          (setf (eglot--status process) '("error" t))
+                          (setf (eglot--status process) `(,message t))
                           (eglot--warn
                            "(request) Request id=%s errored with code=%s: %s"
                            id code message)))))
@@ -780,7 +780,7 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'eglot-eldoc-function)
-    (advice-add imenu-create-index-function :around #'eglot-imenu)
+    (add-function :around (local imenu-create-index-function) #'eglot-imenu)
     (flymake-mode 1)
     (eldoc-mode 1))
    (t
@@ -795,7 +795,7 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
-    (advice-remove imenu-create-index-function #'eglot-imenu))))
+    (remove-function (local imenu-create-index-function) #'eglot-imenu))))
 
 (define-minor-mode eglot-mode
   "Minor mode for all buffers managed by EGLOT in some way."  nil
@@ -870,9 +870,10 @@ Uses THING, FACE, DEFS and PREPEND."
                  (mouse-3 eglot-reconnect     "reconnect to server")))
          ,@(when serious-p
              `("/" ,(eglot--mode-line-props
-                     status 'compilation-mode-line-fail
+                     "error" 'compilation-mode-line-fail
                      '((mouse-1 eglot-events-buffer "go to events buffer")
-                       (mouse-3 eglot-clear-status  "clear this status")))))
+                       (mouse-3 eglot-clear-status  "clear this status"))
+                     (format "An error occured: %s\n" status))))
          ,@(when (and doing (not done-p))
              `("/" ,(eglot--mode-line-props
                      doing 'compilation-mode-line-run
@@ -881,7 +882,8 @@ Uses THING, FACE, DEFS and PREPEND."
              `("/" ,(eglot--mode-line-props
                      (format "%d" pending) 'warning
                      '((mouse-1 eglot-events-buffer "go to events buffer")
-                       (mouse-3 eglot-clear-status  "clear this status"))))))))))
+                       (mouse-3 eglot-clear-status  "clear this status"))
+                     (format "%d pending requests\n" pending)))))))))
 
 (add-to-list 'mode-line-misc-info `(eglot-mode (" [" eglot--mode-line-format "] ")))
 
