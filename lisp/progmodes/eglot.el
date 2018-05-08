@@ -193,11 +193,12 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                                     :willSave t
                                     :willSaveWaitUntil :json-false
                                     :didSave t)
-                  :completion     `(:dynamicRegistration :json-false)
-                  :hover          `(:dynamicRegistration :json-false)
-                  :references     `(:dynamicRegistration :json-false)
-                  :definition     `(:dynamicRegistration :json-false)
-                  :documentSymbol `(:dynamicRegistration :json-false)
+                  :completion         `(:dynamicRegistration :json-false)
+                  :hover              `(:dynamicRegistration :json-false)
+                  :references         `(:dynamicRegistration :json-false)
+                  :definition         `(:dynamicRegistration :json-false)
+                  :documentSymbol     `(:dynamicRegistration :json-false)
+                  :documentHighlight  `(:dynamicRegistration :json-false)
                   :publishDiagnostics `(:relatedInformation :json-false))
    :experimental (eglot--obj)))
 
@@ -1057,6 +1058,11 @@ running.  INTERACTIVE is t if called interactively."
                  (widen)
                  (buffer-substring-no-properties (point-min) (point-max))))))
 
+(defun eglot--current-buffer-TextDocumentPositionParams ()
+  "Compute TextDocumentPositionParams."
+  (eglot--obj :textDocument (eglot--current-buffer-TextDocumentIdentifier)
+              :position (eglot--pos-to-lsp-position)))
+
 (defun eglot--before-change (start end)
   "Hook onto `before-change-functions'.
 Records START and END, crucially convert them into
@@ -1206,11 +1212,12 @@ DUMMY is ignored"
                (eglot--mapply
                 (eglot--lambda (&key name kind location containerName)
                   (propertize name
-                              :position (plist-get
-                                         (plist-get location :range)
-                                         :start)
+                              :textDocumentPositionParams
+                              (eglot--obj :textDocument text-id
+                                          :position (plist-get
+                                                     (plist-get location :range)
+                                                     :start))
                               :locations (list location)
-                              :textDocument text-id
                               :kind kind
                               :containerName containerName))
                 (eglot--sync-request proc
@@ -1220,11 +1227,10 @@ DUMMY is ignored"
          (all-completions string eglot--xref-known-symbols))))))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
-  (let ((symatpt (symbol-at-point)))
-    (when symatpt
-      (propertize (symbol-name symatpt)
-                  :textDocument (eglot--current-buffer-TextDocumentIdentifier)
-                  :position (eglot--pos-to-lsp-position)))))
+  (when-let ((symatpt (symbol-at-point)))
+    (propertize (symbol-name symatpt)
+                :textDocumentPositionParams
+                (eglot--current-buffer-TextDocumentPositionParams))))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql eglot)) identifier)
   (let* ((rich-identifier
@@ -1234,11 +1240,8 @@ DUMMY is ignored"
               (get-text-property 0 :locations rich-identifier)
             (eglot--sync-request (eglot--current-process-or-lose)
                                  :textDocument/definition
-                                 (eglot--obj
-                                  :textDocument
-                                  (get-text-property 0 :textDocument identifier)
-                                  :position
-                                  (get-text-property 0 :position identifier))))))
+                                 (get-text-property
+                                  0 :textDocumentPositionParams identifier)))))
     (eglot--mapply
      (eglot--lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
@@ -1246,26 +1249,21 @@ DUMMY is ignored"
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
   (unless (eglot--server-capable :referencesProvider) (cl-return nil))
-  (let* ((identifier (if (get-text-property 0 :position identifier)
-                         identifier
-                       (car (member identifier eglot--xref-known-symbols))))
-         (position
-          (and identifier (get-text-property 0 :position identifier)))
-         (textDocument
-          (and identifier (get-text-property 0 :textDocument identifier))))
-    (unless (and position textDocument)
-      (eglot--error "Don't know where %s is in the workspace" identifier))
+  (let ((params
+         (or (get-text-property 0 :textDocumentPositionParams identifier)
+             (let ((rich (car (member identifier eglot--xref-known-symbols))))
+               (and rich (get-text-property 0 :textDocumentPositionParams rich))))))
+    (unless params
+      (eglot--error "Don' know where %s is in the workspace!" identifier))
     (eglot--mapply
      (eglot--lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
      (eglot--sync-request (eglot--current-process-or-lose)
                           :textDocument/references
-                          (eglot--obj
-                           :textDocument
-                           textDocument
-                           :position
-                           position
-                           :context (eglot--obj :includeDeclaration t))))))
+                          (append
+                           params
+                           (eglot--obj :context
+                                       (eglot--obj :includeDeclaration t)))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
@@ -1291,9 +1289,7 @@ DUMMY is ignored"
           (let* ((resp (eglot--sync-request
                         proc
                         :textDocument/completion
-                        (eglot--obj
-                         :textDocument (eglot--current-buffer-TextDocumentIdentifier)
-                         :position (eglot--pos-to-lsp-position))))
+                        (eglot--current-buffer-TextDocumentPositionParams)))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (eglot--mapply
              (eglot--lambda (&key insertText label kind detail
@@ -1314,21 +1310,42 @@ DUMMY is ignored"
                                       (get-text-property 0 :sortText a)
                                       (get-text-property 0 :sortText b)))))))))
 
+(defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
+
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function."
-  (when (eglot--server-capable :hoverProvider)
-    (eglot--request (eglot--current-process-or-lose)
-                    :textDocument/hover
-                    (eglot--obj
-                     :textDocument (eglot--current-buffer-TextDocumentIdentifier)
-                     :position (eglot--pos-to-lsp-position))
-                    :success-fn (eglot--lambda (&key contents _range)
-                                  (eldoc-message
-                                   (mapconcat #'eglot--format-markup
-                                              (if (vectorp contents)
-                                                  contents
-                                                (list contents))
-                                              "\n")))))
+  (let ((buffer (current-buffer))
+        (proc (eglot--current-process-or-lose))
+        (position-params (eglot--current-buffer-TextDocumentPositionParams)))
+    (when (eglot--server-capable :hoverProvider)
+      (eglot--request proc :textDocument/hover position-params
+                      :success-fn (eglot--lambda (&key contents _range)
+                                    (eldoc-message
+                                     (mapconcat #'eglot--format-markup
+                                                (if (vectorp contents)
+                                                    contents
+                                                  (list contents))
+                                                "\n")))))
+    (when (eglot--server-capable :documentHighlightProvider)
+      (eglot--request
+       proc :textDocument/documentHighlight position-params
+       :success-fn (lambda (highlights)
+                     (mapc #'delete-overlay eglot--highlights)
+                     (setq eglot--highlights
+                           (when (get-buffer-window buffer)
+                             (with-current-buffer buffer
+                               (eglot--mapply
+                                (eglot--lambda (&key range kind)
+                                  (cl-destructuring-bind (&key start end) range
+                                    (let ((ov (make-overlay
+                                               (eglot--lsp-position-to-point start)
+                                               (eglot--lsp-position-to-point end)
+                                               buffer)))
+                                      (overlay-put ov 'face 'highlight)
+                                      (overlay-put ov 'evaporate t)
+                                      (overlay-put ov :kind kind)
+                                      ov)))
+                                highlights))))))))
   nil)
 
 (defun eglot-imenu (oldfun)
