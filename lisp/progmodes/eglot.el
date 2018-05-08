@@ -664,10 +664,10 @@ Meaning only return locally if successful, otherwise exit non-locally."
 
 (cl-defun eglot--reply (process id &key result error)
   "Reply to PROCESS's request ID with MESSAGE."
-  (eglot--process-send process (eglot--obj :jsonrpc  "2.0"
-                                           :id id
-                                           :result result
-                                           :error error)))
+  (eglot--process-send
+   process `(:jsonrpc  "2.0" :id ,id
+                       ,@(when result `(:result ,result))
+                       ,@(when error `(:error ,error)))))
 
 
 ;;; Helpers
@@ -1031,6 +1031,20 @@ running.  INTERACTIVE is t if called interactively."
        registrations)
       (eglot--reply proc id :result (eglot--obj :message "OK")))))
 
+(cl-defun eglot--server-workspace/applyEdit
+    (proc &key id _label edit)
+  "Handle notification client/registerCapability"
+  (condition-case err
+      (progn
+        (eglot--apply-workspace-edit edit 'confirm)
+        (eglot--reply proc id :result `(:applied )))
+    (error
+     (eglot--reply proc id
+                   :result `(:applied :json-false)
+                   :error
+                   (eglot--obj :code -32001
+                               :message (format "%s" err))))))
+
 (defvar eglot--recent-before-changes nil
   "List of recent changes as collected by `eglot--before-change'.")
 (defvar eglot--recent-after-changes nil
@@ -1370,61 +1384,76 @@ DUMMY is ignored"
          entries))
     (funcall oldfun)))
 
-(defun eglot--apply-text-edits (uri edits proc &optional version)
-  "Apply the EDITS for buffer of URI and return it."
-  (let* ((path (eglot--uri-to-path uri))
-         (buffer (and path
-                      (find-file-noselect path))))
-    (unless buffer
-      (eglot--error "Can't find `%s' to perform server edits"))
-    (with-current-buffer buffer
-      (unless (eq proc (eglot--current-process))
-        (eglot--error "Buffer `%s' for `%s' isn't managed by %s"
-                      (current-buffer) uri proc))
-      (unless (or (not version)
-                  (equal version eglot--versioned-identifier))
-        (eglot--error "Edits on `%s' require version %d, you have %d"
-                      uri version eglot--versioned-identifier))
-      (eglot--mapply
-       (eglot--lambda (&key range newText)
-         (save-restriction
-           (widen)
-           (save-excursion
-             (let ((start (eglot--lsp-position-to-point (plist-get range :start))))
-               (goto-char start)
-               (delete-region start
-                              (eglot--lsp-position-to-point (plist-get range :end)))
-               (insert newText)))))
-       edits)
-      (eglot--message "%s: %s edits" (current-buffer) (length edits)))
-    buffer))
+(defun eglot--apply-text-edits (buffer edits &optional version)
+  "Apply the EDITS for BUFFER."
+  (with-current-buffer buffer
+    (unless (or (not version)
+                (equal version eglot--versioned-identifier))
+      (eglot--error "Edits on `%s' require version %d, you have %d"
+                    buffer version eglot--versioned-identifier))
+    (eglot--mapply
+     (eglot--lambda (&key range newText)
+       (save-restriction
+         (widen)
+         (save-excursion
+           (let ((start (eglot--lsp-position-to-point (plist-get range :start))))
+             (goto-char start)
+             (delete-region start
+                            (eglot--lsp-position-to-point (plist-get range :end)))
+             (insert newText)))))
+     edits)
+    (eglot--message "%s: Performed %s edits" (current-buffer) (length edits))))
+
+(defun eglot--apply-workspace-edit (wedit &optional confirm)
+  "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
+  (let (prepared)
+    (cl-destructuring-bind (&key changes documentChanges)
+        wedit
+      (cl-loop
+       for change on documentChanges
+       do (push (cl-destructuring-bind (&key textDocument edits) change
+                  (cl-destructuring-bind (&key uri version) textDocument
+                    (list (eglot--uri-to-path uri) edits version)))
+                prepared))
+      (cl-loop for (uri edits) on changes by #'cddr
+               do (push (list (eglot--uri-to-path uri) edits) prepared)))
+    (if (or confirm
+            (cl-notevery #'find-buffer-visiting
+                         (mapcar #'car prepared)))
+        (unless (y-or-n-p
+                 (format "[eglot] Server requests to edit %s files.\n  %s\n\
+Proceed? "
+                         (length prepared)
+                         (mapconcat #'identity
+                                    (mapcar #'car prepared)
+                                    "\n  ")))
+          (eglot--error "User cancelled server edit")))
+    (unwind-protect
+        (let (edit)
+          (while (setq edit (car prepared))
+            (cl-destructuring-bind (path edits &optional version) edit
+              (eglot--apply-text-edits (find-file-noselect path)
+                                       edits
+                                       version)
+              (pop prepared))))
+      (if prepared
+          (eglot--warn "Caution: edits of files %s failed."
+                       (mapcar #'car prepared))
+        (eglot--message "Edit successful!")))))
 
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
   (interactive
-   (list
-    (read-from-minibuffer (format "Rename `%s' to: " (symbol-at-point)))))
+   (list (read-from-minibuffer (format "Rename `%s' to: " (symbol-at-point)))))
   (unless (eglot--server-capable :renameProvider)
     (eglot--error "Server can't rename!"))
-  (let* ((proc (eglot--current-process-or-lose))
-         (workspace-edit
-          (eglot--sync-request proc
-                               :textDocument/rename
-                               (append
-                                (eglot--current-buffer-TextDocumentPositionParams)
-                                (eglot--obj :newName newname))))
-         performed)
-    (cl-destructuring-bind (&key changes documentChanges)
-        workspace-edit
-      (cl-loop for change on documentChanges
-               do (push
-                   (cl-destructuring-bind (&key textDocument edits) change
-                     (cl-destructuring-bind (&key uri version) textDocument
-                       (eglot--apply-text-edits uri edits proc version)))
-                   performed))
-      (cl-loop for (uri edits) on changes by #'cddr
-               do (push (eglot--apply-text-edits uri edits proc)
-                        performed)))))
+  (eglot--apply-workspace-edit
+   (eglot--sync-request (eglot--current-process-or-lose)
+                        :textDocument/rename
+                        (append
+                         (eglot--current-buffer-TextDocumentPositionParams)
+                         (eglot--obj :newName newname)))
+   current-prefix-arg))
 
 
 ;;; Dynamic registration
