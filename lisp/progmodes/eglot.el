@@ -199,6 +199,7 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                   :definition         `(:dynamicRegistration :json-false)
                   :documentSymbol     `(:dynamicRegistration :json-false)
                   :documentHighlight  `(:dynamicRegistration :json-false)
+                  :rename             `(:dynamicRegistration :json-false)
                   :publishDiagnostics `(:relatedInformation :json-false))
    :experimental (eglot--obj)))
 
@@ -729,6 +730,7 @@ Meaning only return locally if successful, otherwise exit non-locally."
 
 (defun eglot--uri-to-path (uri)
   "Convert URI to a file path."
+  (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
   (url-filename (url-generic-parse-url (url-unhex-string uri))))
 
 (defconst eglot--kind-names
@@ -1367,6 +1369,62 @@ DUMMY is ignored"
                        entries)
          entries))
     (funcall oldfun)))
+
+(defun eglot--apply-text-edits (uri edits proc &optional version)
+  "Apply the EDITS for buffer of URI and return it."
+  (let* ((path (eglot--uri-to-path uri))
+         (buffer (and path
+                      (find-file-noselect path))))
+    (unless buffer
+      (eglot--error "Can't find `%s' to perform server edits"))
+    (with-current-buffer buffer
+      (unless (eq proc (eglot--current-process))
+        (eglot--error "Buffer `%s' for `%s' isn't managed by %s"
+                      (current-buffer) uri proc))
+      (unless (or (not version)
+                  (equal version eglot--versioned-identifier))
+        (eglot--error "Edits on `%s' require version %d, you have %d"
+                      uri version eglot--versioned-identifier))
+      (eglot--mapply
+       (eglot--lambda (&key range newText)
+         (save-restriction
+           (widen)
+           (save-excursion
+             (let ((start (eglot--lsp-position-to-point (plist-get range :start))))
+               (goto-char start)
+               (delete-region start
+                              (eglot--lsp-position-to-point (plist-get range :end)))
+               (insert newText)))))
+       edits)
+      (eglot--message "%s: %s edits" (current-buffer) (length edits)))
+    buffer))
+
+(defun eglot-rename (newname)
+  "Rename the current symbol to NEWNAME."
+  (interactive
+   (list
+    (read-from-minibuffer (format "Rename `%s' to: " (symbol-at-point)))))
+  (unless (eglot--server-capable :renameProvider)
+    (eglot--error "Server can't rename!"))
+  (let* ((proc (eglot--current-process-or-lose))
+         (workspace-edit
+          (eglot--sync-request proc
+                               :textDocument/rename
+                               (append
+                                (eglot--current-buffer-TextDocumentPositionParams)
+                                (eglot--obj :newName newname))))
+         performed)
+    (cl-destructuring-bind (&key changes documentChanges)
+        workspace-edit
+      (cl-loop for change on documentChanges
+               do (push
+                   (cl-destructuring-bind (&key textDocument edits) change
+                     (cl-destructuring-bind (&key uri version) textDocument
+                       (eglot--apply-text-edits uri edits proc version)))
+                   performed))
+      (cl-loop for (uri edits) on changes by #'cddr
+               do (push (eglot--apply-text-edits uri edits proc)
+                        performed)))))
 
 
 ;;; Dynamic registration
