@@ -2,8 +2,11 @@
 
 ;; Copyright (C) 2017  João Távora
 
+;; Version: 0.1
 ;; Author: João Távora
-;; Keywords: extensions
+;; Url: https://github.com/joaotavora/eglot
+;; Keywords: convenience, languages
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,7 +23,8 @@
 
 ;;; Commentary:
 
-;;
+;; M-x eglot in some file under some .git controlled dir should get
+;; you started, but see README.md.
 
 ;;; Code:
 
@@ -285,6 +289,7 @@ Enter program to execute (or <host>:<port>): "
          guessed-command))
      t)))
 
+;;;###autoload
 (defun eglot (managed-major-mode command &optional interactive)
   "Start a Language Server Protocol server.
 Server is started with COMMAND and manages buffers of
@@ -1465,8 +1470,10 @@ Proceed? "
       (pcase-let ((`(,_id ,what ,done ,_detail) (eglot--spinner proc)))
         (and (equal "Indexing" what) done))))
 
+;;;###autoload
 (add-hook 'rust-mode-hook 'eglot--setup-rls-idiosyncrasies)
 
+;;;###autoload
 (defun eglot--setup-rls-idiosyncrasies ()
   "RLS needs special treatment..."
   (add-hook 'eglot--ready-predicates 'eglot--rls-probably-ready-for-p t t))
