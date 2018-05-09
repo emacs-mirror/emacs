@@ -869,7 +869,7 @@ Uses THING, FACE, DEFS and PREPEND."
                (name (and (process-live-p proc) (eglot--short-name proc)))
                (pending (and proc (hash-table-count
                                    (eglot--pending-continuations proc))))
-               (`(,_id ,doing ,done-p) (and proc (eglot--spinner proc)))
+               (`(,_id ,doing ,done-p ,detail) (and proc (eglot--spinner proc)))
                (`(,status ,serious-p) (and proc (eglot--status proc))))
     (append
      `(,(eglot--mode-line-props "eglot" 'eglot-mode-line
@@ -888,7 +888,9 @@ Uses THING, FACE, DEFS and PREPEND."
                      (format "An error occured: %s\n" status))))
          ,@(when (and doing (not done-p))
              `("/" ,(eglot--mode-line-props
-                     doing 'compilation-mode-line-run
+                     (format "%s%s" doing
+                             (if detail (format ":%s" detail) ""))
+                     'compilation-mode-line-run
                      '((mouse-1 eglot-events-buffer "go to events buffer")))))
          ,@(when (cl-plusp pending)
              `("/" ,(eglot--mode-line-props
@@ -1460,7 +1462,7 @@ Proceed? "
   "Guess if the RLS running in PROC is ready for WHAT."
   (or (eq what :textDocument/completion) ; RLS normally ready for this
                                         ; one, even if building
-      (pcase-let ((`(,_id ,what ,done) (eglot--spinner proc)))
+      (pcase-let ((`(,_id ,what ,done ,_detail) (eglot--spinner proc)))
         (and (equal "Indexing" what) done))))
 
 (add-hook 'rust-mode-hook 'eglot--setup-rls-idiosyncrasies)
@@ -1470,9 +1472,9 @@ Proceed? "
   (add-hook 'eglot--ready-predicates 'eglot--rls-probably-ready-for-p t t))
 
 (cl-defun eglot--server-window/progress
-    (process &key id done title &allow-other-keys)
+    (process &key id done title message &allow-other-keys)
   "Handle notification window/progress"
-  (setf (eglot--spinner process) (list id title done)))
+  (setf (eglot--spinner process) (list id title done message)))
 
 (provide 'eglot)
 ;;; eglot.el ends here
