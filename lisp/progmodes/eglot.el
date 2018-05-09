@@ -769,7 +769,6 @@ Meaning only return locally if successful, otherwise exit non-locally."
   nil nil eglot-mode-map
   (cond
    (eglot--managed-mode
-    (eglot-mode 1)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
@@ -796,11 +795,10 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
-    (remove-function (local imenu-create-index-function) #'eglot-imenu))))
-
-(define-minor-mode eglot-mode
-  "Minor mode for all buffers managed by EGLOT in some way."  nil
-  nil eglot-mode-map)
+    (remove-function (local imenu-create-index-function) #'eglot-imenu)
+    (let ((proc (eglot--current-process)))
+      (when (and (process-live-p proc) (y-or-n-p "[eglot] Kill server too? "))
+        (eglot-shutdown proc nil t))))))
 
 (defun eglot--buffer-managed-p (&optional proc)
   "Tell if current buffer is managed by PROC."
@@ -886,7 +884,8 @@ Uses THING, FACE, DEFS and PREPEND."
                        (mouse-3 eglot-clear-status  "clear this status"))
                      (format "%d pending requests\n" pending)))))))))
 
-(add-to-list 'mode-line-misc-info `(eglot-mode (" [" eglot--mode-line-format "] ")))
+(add-to-list 'mode-line-misc-info
+             `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
 
 
 ;;; Protocol implementation (Requests, notifications, etc)
