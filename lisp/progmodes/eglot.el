@@ -1292,7 +1292,9 @@ DUMMY is ignored"
        (lambda (items) (sort items (lambda (a b)
                                      (string-lessp
                                       (get-text-property 0 :sortText a)
-                                      (get-text-property 0 :sortText b)))))))))
+                                      (get-text-property 0 :sortText b)))))
+       :exit-function
+       (lambda (_string _status) (eglot-eldoc-function))))))
 
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
