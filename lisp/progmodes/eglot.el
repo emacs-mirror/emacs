@@ -462,7 +462,7 @@ INTERACTIVE is t if called interactively."
     (when interactive (display-buffer buffer))
     buffer))
 
-(defun eglot--log-event (proc message type)
+(defun eglot--log-event (proc message &optional type)
   "Log an eglot-related event.
 PROC is the current process.  MESSAGE is a JSON-like plist.  TYPE
 is a symbol saying if this is a client or server originated."
@@ -477,7 +477,7 @@ is a symbol saying if this is a client or server originated."
                           ;; pyls keeps on sending these
                           (t                     'unexpected-thingy)))
            (type
-            (format "%s-%s" type subtype)))
+            (format "%s-%s" (or type :internal) subtype)))
       (goto-char (point-max))
       (let ((msg (format "%s%s%s:\n%s\n"
                          type
@@ -486,7 +486,7 @@ is a symbol saying if this is a client or server originated."
                          (pp-to-string message))))
         (when error
           (setq msg (propertize msg 'face 'error)))
-        (insert msg)))))
+        (insert-before-markers msg)))))
 
 (defun eglot--process-receive (proc message)
   "Process MESSAGE from PROC."
@@ -500,14 +500,12 @@ is a symbol saying if this is a client or server originated."
     (when err (setf (eglot--status proc) `(,err t)))
     (cond (method
            ;; a server notification or a server request
-           (let* ((handler-sym (intern (concat "eglot--server-"
-                                               method))))
+           (let* ((handler-sym (intern (concat "eglot--server-" method))))
              (if (functionp handler-sym)
                  (apply handler-sym proc (append
                                           (plist-get message :params)
                                           (if id `(:id ,id))))
-               (eglot--warn "No implementation of method %s yet"
-                            method)
+               (eglot--warn "No implementation of method %s yet" method)
                (when id
                  (eglot--reply
                   proc id
@@ -1264,7 +1262,8 @@ DUMMY is ignored"
      location-or-locations)))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
-  (unless (eglot--server-capable :referencesProvider) (cl-return nil))
+  (unless (eglot--server-capable :referencesProvider)
+    (cl-return-from xref-backend-references nil))
   (let ((params
          (or (get-text-property 0 :textDocumentPositionParams identifier)
              (let ((rich (car (member identifier eglot--xref-known-symbols))))
@@ -1316,10 +1315,10 @@ DUMMY is ignored"
                            :documentation documentation :sortText sortText))
              items))))
        :annotation-function
-       (lambda (what) (let ((detail (get-text-property 0 :detail what))
-                            (kind-name (get-text-property 0 :kind what)))
-                        (concat (if detail (format " %s" detail) "")
-                                (if kind-name (format " (%s)" kind-name) ""))))
+       (lambda (what)
+         (propertize (concat " " (or (get-text-property 0 :detail what)
+                                     (get-text-property 0 :kind what)))
+                     'face 'font-lock-function-name-face))
        :display-sort-function
        (lambda (items) (sort items (lambda (a b)
                                      (string-lessp
