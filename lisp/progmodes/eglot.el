@@ -135,6 +135,10 @@ A list (WHAT SERIOUS-P)." t)
 Either a list of strings (a shell command and arguments), or a
 list of a single string of the form <host>:<port>")
 
+(eglot--define-process-var eglot--deferred-actions
+    (make-hash-table :test #'equal)
+  "Actions deferred to when server is thought to be ready.")
+
 (defun eglot--make-process (name managed-major-mode contact)
   "Make a process from CONTACT.
 NAME is a name to give the inferior process or connection.
@@ -442,7 +446,8 @@ INTERACTIVE is t if called interactively."
                       (throw done :waiting-for-more-bytes-in-this-message))))))))
           ;; Saved parsing state for next visit to this filter
           ;;
-          (setf (eglot--expected-bytes proc) expected-bytes))))))
+          (setf (eglot--expected-bytes proc) expected-bytes))))
+    (eglot--call-deferred proc)))
 
 (defun eglot-events-buffer (process &optional interactive)
   "Display events buffer for current LSP connection PROCESS.
@@ -549,110 +554,118 @@ is a symbol saying if this is a client or server originated."
   (interactive (list (eglot--current-process-or-lose)))
   (setf (eglot--status process) nil))
 
-(cl-defun eglot--request (process
-                          method
-                          params
-                          &key success-fn error-fn timeout-fn (async-p t)
-                          (timeout eglot-request-timeout))
-  "Make a request to PROCESS, expecting a reply.
-Return the ID of this request, unless ASYNC-P is nil, in which
-case never returns locally.  Wait TIMEOUT seconds for a
-response."
-  (let* ((id (eglot--next-request-id))
-         (timeout-fn (or timeout-fn
-                         (lambda ()
-                           (eglot--warn
-                            "(request) Tired of waiting for reply to %s" id))))
-         (error-fn (or error-fn
-                       (cl-function
-                        (lambda (&key code message &allow-other-keys)
-                          (setf (eglot--status process) `(,message t))
-                          (eglot--warn
-                           "(request) Request id=%s errored with code=%s: %s"
-                           id code message)))))
-         (success-fn (or success-fn
-                         (cl-function
-                          (lambda (&rest result-body)
-                            (eglot--debug
-                             "(request) Request id=%s replied to with result=%s"
-                             id result-body)))))
-         (catch-tag (cl-gensym (format "eglot--tag-%d-" id))))
-    (eglot--process-send process
-                         (eglot--obj :jsonrpc "2.0"
-                                     :id id
-                                     :method method
-                                     :params params))
-    (catch catch-tag
-      (let ((timeout-timer
-             (run-with-timer
-              timeout nil
-              (if async-p
-                  (lambda ()
-                    (remhash id (eglot--pending-continuations process))
-                    (funcall timeout-fn))
-                (lambda ()
-                  (remhash id (eglot--pending-continuations process))
-                  (throw catch-tag (funcall timeout-fn)))))))
-        (puthash id
-                 (list (if async-p
-                           success-fn
-                         (lambda (&rest args)
-                           (throw catch-tag (apply success-fn args))))
-                       (if async-p
-                           error-fn
-                         (lambda (&rest args)
-                           (throw catch-tag (apply error-fn args))))
-                       timeout-timer)
-                 (eglot--pending-continuations process))
-        (unless async-p
-          (unwind-protect
-              (while t
-                (unless (process-live-p process)
-                  (cond ((eglot--moribund process)
-                         (throw catch-tag (delete-process process)))
-                        (t
-                         (eglot--error
-                          "(request) Proc %s died unexpectedly during request with code %s"
-                          process
-                          (process-exit-status process)))))
-                (accept-process-output nil 0.01))
-            (when (memq timeout-timer timer-list)
-              (eglot--message
-               "(request) Last-change cancelling timer for continuation %s" id)
-              (cancel-timer timeout-timer))))))
-    ;; Finally, return the id.
-    id))
+(defun eglot--call-deferred (proc)
+  "Call PROC's deferred actions, who may again defer themselves."
+  (let ((actions (hash-table-values (eglot--deferred-actions proc))))
+    (eglot--log-event proc `(:running-deferred ,(length actions)))
+    (mapc #'funcall (mapcar #'car actions))))
+
+(defvar eglot--ready-predicates '(eglot--server-ready-p)
+  "Special hook of predicates controlling deferred actions.
+When one of these functions returns nil, a deferrable
+`eglot--request' will be deferred.  Each predicate is passed the
+an symbol for the request request and a process object.")
+
+(defun eglot--server-ready-p (_what _proc)
+  "Tell if server of PROC ready for processing deferred WHAT."
+  (not (eglot--outstanding-edits-p)))
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
   (declare (indent 1) (debug (sexp &rest form)))
   `(cl-function (lambda ,cl-lambda-list ,@body)))
 
-(defun eglot--sync-request (proc method params)
+(cl-defun eglot--request (proc
+                          method
+                          params
+                          &rest args
+                          &key success-fn error-fn timeout-fn
+                          (timeout eglot-request-timeout)
+                          (deferred nil))
+  "Make a request to PROCESS, expecting a reply.
+Return the ID of this request. Wait TIMEOUT seconds for response.
+If DEFERRED, maybe defer request to the future, or never at all,
+in case a new request with identical DEFERRED and for the same
+buffer overrides it. However, if that happens, the original
+timeout keeps counting."
+  (let* ((id (eglot--next-request-id))
+         (existing-timer nil)
+         (make-timeout
+          (lambda ( )
+            (or existing-timer
+                (run-with-timer
+                 timeout nil
+                 (lambda ()
+                   (remhash id (eglot--pending-continuations proc))
+                   (funcall (or timeout-fn
+                                (lambda ()
+                                  (eglot--error
+                                   "Tired of waiting for reply to %s, id=%s"
+                                   method id))))))))))
+    (when deferred
+      (let* ((buf (current-buffer))
+             (existing (gethash (list deferred buf) (eglot--deferred-actions proc))))
+        (when existing (setq existing-timer (cadr existing)))
+        (if (run-hook-with-args-until-failure 'eglot--ready-predicates
+                                              deferred proc)
+            (remhash (list deferred buf) (eglot--deferred-actions proc))
+          (eglot--log-event proc `(:deferring ,method :id ,id :params ,params))
+          (let* ((buf (current-buffer)) (point (point))
+                 (later (lambda ()
+                          (when (buffer-live-p buf)
+                            (with-current-buffer buf
+                              (save-excursion (goto-char point)
+                                              (apply #'eglot--request proc
+                                                     method params args)))))))
+            (puthash (list deferred buf) (list later (funcall make-timeout))
+                     (eglot--deferred-actions proc))
+            (cl-return-from eglot--request nil)))))
+    ;; Really run it
+    ;;
+    (puthash id
+             (list (or success-fn (eglot--lambda (&rest result-body)
+                                    (eglot--debug
+                                     "Request %s, id=%s replied to with result=%s"
+                                     method id result-body)))
+                   (or error-fn (eglot--lambda
+                                    (&key code message &allow-other-keys)
+                                  (setf (eglot--status proc) `(,message t))
+                                  (eglot--warn
+                                   "Request %s, id=%s errored with code=%s: %s"
+                                   method id code message)))
+                   (funcall make-timeout))
+             (eglot--pending-continuations proc))
+    (eglot--process-send proc (eglot--obj :jsonrpc "2.0"
+                                          :id id
+                                          :method method
+                                          :params params))))
+
+(defun eglot--sync-request (proc method params &optional deferred)
   "Like `eglot--request' for PROC, METHOD and PARAMS, but synchronous.
-Meaning only return locally if successful, otherwise exit non-locally."
-  (let* ((timeout-error-sym (cl-gensym))
-         (catch-tag (make-symbol "eglot--sync-request-catch-tag"))
-         (retval
-          (catch catch-tag
-            (eglot--request proc method params
-                            :success-fn (lambda (&rest args)
-                                          (throw catch-tag (if (vectorp (car args))
-                                                               (car args)
-                                                             args)))
-                            :error-fn (eglot--lambda
-                                          (&key code message &allow-other-keys)
-                                        (eglot--error "Oops: %s: %s" code message))
-                            :timeout-fn (lambda ()
-                                          (throw catch-tag timeout-error-sym))
-                            :async-p nil))))
-    ;; FIXME: There's maybe an emacs bug here. Because timeout-fn runs
-    ;; in a timer, the better and obvious choice of throwing the erro
-    ;; in the lambda is not quitting the `accept-process-output'
-    ;; infinite loop up there. So use this contorted strategy with
-    ;; `cl-gensym'.
-    (if (eq retval timeout-error-sym)
-        (eglot--error "Tired of waiting for reply to sync request")
-      retval)))
+Meaning only return locally if successful, otherwise exit non-locally.
+DEFERRED is passed to `eglot--request', which see."
+  ;; Launching a deferred sync request with outstanding changes is a
+  ;; bad idea, since that might lead to the request never having a
+  ;; chance to run, because `eglot--ready-predicates'.
+  (when deferred (eglot--signal-textDocument/didChange))
+  (let* ((done (make-symbol "eglot--sync-request-catch-tag"))
+         (res
+          (catch done (eglot--request
+                       proc method params
+                       :success-fn (lambda (&rest args)
+                                     (throw done (if (vectorp (car args))
+                                                     (car args) args)))
+                       :error-fn (eglot--lambda
+                                     (&key code message &allow-other-keys)
+                                   (throw done
+                                          `(error ,(format "Oops: %s: %s"
+                                                           code message))))
+                       :timeout-fn (lambda ()
+                                     (throw done '(error "Timed out")))
+                       :deferred deferred)
+                 ;; now spin, baby!
+                 (while t (accept-process-output nil 0.01)))))
+    (when (and (listp res) (eq 'error (car res))) (eglot--error (cadr res)))
+    res))
 
 (cl-defun eglot--notify (process method params)
   "Notify PROCESS of something, don't expect a reply.e"
@@ -1113,7 +1126,9 @@ Records START, END and PRE-CHANGE-LENGTH locally."
                                                                :end end-pos)
                                             :rangeLength len
                                             :text after-text)])))))
-      (setq eglot--recent-changes (cons [] [])))))
+      (setq eglot--recent-changes (cons [] []))
+      (setf (eglot--spinner proc) (list nil :textDocument/didChange t))
+      (eglot--call-deferred proc))))
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
@@ -1273,7 +1288,8 @@ DUMMY is ignored"
           (let* ((resp (eglot--sync-request
                         proc
                         :textDocument/completion
-                        (eglot--current-buffer-TextDocumentPositionParams)))
+                        (eglot--current-buffer-TextDocumentPositionParams)
+                        :textDocument/completion))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (eglot--mapply
              (eglot--lambda (&key insertText label kind detail
@@ -1311,7 +1327,8 @@ DUMMY is ignored"
                                                 (if (vectorp contents)
                                                     contents
                                                   (list contents))
-                                                "\n")))))
+                                                "\n")))
+                      :deferred :textDocument/hover))
     (when (eglot--server-capable :documentHighlightProvider)
       (eglot--request
        proc :textDocument/documentHighlight position-params
@@ -1331,7 +1348,8 @@ DUMMY is ignored"
                                       (overlay-put ov 'evaporate t)
                                       (overlay-put ov :kind kind)
                                       ov)))
-                                highlights))))))))
+                                highlights)))))
+       :deferred :textDocument/documentHighlight)))
   nil)
 
 (defun eglot-imenu (oldfun)
@@ -1438,6 +1456,19 @@ Proceed? "
 
 ;;; Rust-specific
 ;;;
+(defun eglot--rls-probably-ready-for-p (what proc)
+  "Guess if the RLS running in PROC is ready for WHAT."
+  (or (eq what :textDocument/completion) ; RLS normally ready for this
+                                        ; one, even if building
+      (pcase-let ((`(,_id ,what ,done) (eglot--spinner proc)))
+        (and (equal "Indexing" what) done))))
+
+(add-hook 'rust-mode-hook 'eglot--setup-rls-idiosyncrasies)
+
+(defun eglot--setup-rls-idiosyncrasies ()
+  "RLS needs special treatment..."
+  (add-hook 'eglot--ready-predicates 'eglot--rls-probably-ready-for-p t t))
+
 (cl-defun eglot--server-window/progress
     (process &key id done title &allow-other-keys)
   "Handle notification window/progress"
