@@ -310,7 +310,7 @@ INTERACTIVE is t if called interactively."
                (y-or-n-p "[eglot] Live process found, reconnect instead? "))
           (eglot-reconnect current-process interactive)
         (when (process-live-p current-process)
-          (eglot-shutdown current-process 'sync))
+          (eglot-shutdown current-process))
         (eglot--connect project
                         managed-major-mode
                         short-name
@@ -327,7 +327,7 @@ managing `%s' buffers in project `%s'."
 INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-process-or-lose) t))
   (when (process-live-p process)
-    (eglot-shutdown process 'sync interactive))
+    (eglot-shutdown process interactive))
   (eglot--connect (eglot--project process)
                   (eglot--major-mode process)
                   (eglot--short-name process)
@@ -341,13 +341,12 @@ INTERACTIVE is t if called interactively."
   "Called with PROCESS undergoes CHANGE."
   (eglot--debug "(sentinel) Process state changed to %s" change)
   (when (not (process-live-p process))
-    ;; Remember to cancel all timers
+    ;; Cancel timers and error any outstanding continuations
     ;;
-    (maphash (lambda (id triplet)
-               (cl-destructuring-bind (_success _error timeout) triplet
-                 (eglot--message
-                  "(sentinel) Cancelling timer for continuation %s" id)
-                 (cancel-timer timeout)))
+    (maphash (lambda (_id triplet)
+               (cl-destructuring-bind (_success error timeout) triplet
+                 (cancel-timer timeout)
+                 (funcall error :code -1 :message (format "Server died"))))
              (eglot--pending-continuations process))
     ;; Turn off `eglot--managed-mode' where appropriate.
     ;;
@@ -400,46 +399,47 @@ INTERACTIVE is t if called interactively."
         (unwind-protect
             (catch done
               (while t
-                (cond ((not expected-bytes)
-                       ;; Starting a new message
-                       ;;
-                       (setq expected-bytes
-                             (and (search-forward-regexp
-                                   "\\(?:.*: .*\r\n\\)*Content-Length: \
+                (cond
+                 ((not expected-bytes)
+                  ;; Starting a new message
+                  ;;
+                  (setq expected-bytes
+                        (and (search-forward-regexp
+                              "\\(?:.*: .*\r\n\\)*Content-Length: \
 *\\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
-                                   (+ (point) 100)
-                                   t)
-                                  (string-to-number (match-string 1))))
-                       (unless expected-bytes
-                         (throw done :waiting-for-new-message)))
-                      (t
-                       ;; Attempt to complete a message body
-                       ;;
-                       (let ((available-bytes (- (position-bytes (process-mark proc))
-                                                 (position-bytes (point)))))
-                         (cond
-                          ((>= available-bytes
-                               expected-bytes)
-                           (let* ((message-end (byte-to-position
-                                                (+ (position-bytes (point))
-                                                   expected-bytes))))
-                             (unwind-protect
-                                 (save-restriction
-                                   (narrow-to-region (point) message-end)
-                                   (let* ((json-object-type 'plist)
-                                          (json-message (json-read)))
-                                     ;; Process content in another buffer,
-                                     ;; shielding buffer from tamper
-                                     ;;
-                                     (with-temp-buffer
-                                       (eglot--process-receive proc json-message))))
-                               (goto-char message-end)
-                               (delete-region (point-min) (point))
-                               (setq expected-bytes nil))))
-                          (t
-                           ;; Message is still incomplete
-                           ;;
-                           (throw done :waiting-for-more-bytes-in-this-message))))))))
+                              (+ (point) 100)
+                              t)
+                             (string-to-number (match-string 1))))
+                  (unless expected-bytes
+                    (throw done :waiting-for-new-message)))
+                 (t
+                  ;; Attempt to complete a message body
+                  ;;
+                  (let ((available-bytes (- (position-bytes (process-mark proc))
+                                            (position-bytes (point)))))
+                    (cond
+                     ((>= available-bytes
+                          expected-bytes)
+                      (let* ((message-end (byte-to-position
+                                           (+ (position-bytes (point))
+                                              expected-bytes))))
+                        (unwind-protect
+                            (save-restriction
+                              (narrow-to-region (point) message-end)
+                              (let* ((json-object-type 'plist)
+                                     (json-message (json-read)))
+                                ;; Process content in another buffer,
+                                ;; shielding buffer from tamper
+                                ;;
+                                (with-temp-buffer
+                                  (eglot--process-receive proc json-message))))
+                          (goto-char message-end)
+                          (delete-region (point-min) (point))
+                          (setq expected-bytes nil))))
+                     (t
+                      ;; Message is still incomplete
+                      ;;
+                      (throw done :waiting-for-more-bytes-in-this-message))))))))
           ;; Saved parsing state for next visit to this filter
           ;;
           (setf (eglot--expected-bytes proc) expected-bytes))))))
@@ -798,7 +798,7 @@ Meaning only return locally if successful, otherwise exit non-locally."
     (remove-function (local imenu-create-index-function) #'eglot-imenu)
     (let ((proc (eglot--current-process)))
       (when (and (process-live-p proc) (y-or-n-p "[eglot] Kill server too? "))
-        (eglot-shutdown proc nil t))))))
+        (eglot-shutdown proc t))))))
 
 (defun eglot--buffer-managed-p (&optional proc)
   "Tell if current buffer is managed by PROC."
@@ -890,38 +890,24 @@ Uses THING, FACE, DEFS and PREPEND."
 
 ;;; Protocol implementation (Requests, notifications, etc)
 ;;;
-(defun eglot-shutdown (process &optional sync interactive)
-  "Politely ask the server PROCESS to quit.
-Forcefully quit it if it doesn't respond.
-If SYNC, don't leave this function with the server still
-running.  INTERACTIVE is t if called interactively."
-  (interactive (list (eglot--current-process-or-lose) t t))
-  (when interactive
-    (eglot--message "(eglot-shutdown) Asking %s politely to terminate"
-                    process))
-  (let ((brutal (lambda ()
-                  (eglot--warn "Brutally deleting existing process %s"
-                               process)
-                  (setf (eglot--moribund process) t)
-                  (delete-process process))))
-    (eglot--request
-     process :shutdown nil
-     :success-fn (lambda (&rest _anything)
-                   (when interactive
-                     (eglot--message "Now asking %s politely to exit" process))
-                   (setf (eglot--moribund process) t)
-                   (eglot--request process
-                                   :exit
-                                   nil
-                                   :success-fn brutal
-                                   :async-p (not sync)
-                                   :error-fn brutal
-                                   :timeout-fn brutal
-                                   :timeout 3))
-     :error-fn brutal
-     :async-p (not sync)
-     :timeout-fn brutal
-     :timeout 3)))
+(defun eglot-shutdown (proc &optional interactive)
+  "Politely ask the server PROC to quit.
+Forcefully quit it if it doesn't respond.  Don't leave this
+function with the server still running.  INTERACTIVE is t if
+called interactively."
+  (interactive (list (eglot--current-process-or-lose) t))
+  (when interactive (eglot--message "Asking %s politely to terminate" proc))
+  (unwind-protect
+      (let ((eglot-request-timeout 3))
+        (setf (eglot--moribund proc) t)
+        (eglot--sync-request proc
+                             :shutdown
+                             nil)
+        ;; this one should always fail
+        (ignore-errors (eglot--sync-request proc :exit nil)))
+    (when (process-live-p proc)
+      (eglot--warn "Brutally deleting existing process %s" proc)
+      (delete-process proc))))
 
 (cl-defun eglot--server-window/showMessage (_process &key type message)
   "Handle notification window/showMessage"
