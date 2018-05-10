@@ -47,9 +47,10 @@
   :prefix "eglot-"
   :group 'applications)
 
-(defvar eglot-executables '((rust-mode . ("rls"))
-                            (python-mode . ("pyls"))
-                            (js-mode . ("javascript-typescript-stdio")))
+(defvar eglot-server-programs '((rust-mode . ("rls"))
+                                (python-mode . ("pyls"))
+                                (js-mode . ("javascript-typescript-stdio"))
+                                (sh-mode . ("bash-language-server" "start")))
   "Alist mapping major modes to server executables.")
 
 (defface eglot-mode-line
@@ -204,10 +205,8 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                   :publishDiagnostics `(:relatedInformation :json-false))
    :experimental (eglot--obj)))
 
-(defun eglot--connect (project managed-major-mode
-                               short-name contact &optional success-fn)
-  "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT.
-SUCCESS-FN with no args if all goes well."
+(defun eglot--connect (project managed-major-mode short-name contact)
+  "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT."
   (let* ((proc (eglot--make-process short-name managed-major-mode contact))
          (buffer (process-buffer proc)))
     (setf (eglot--contact proc) contact
@@ -216,70 +215,68 @@ SUCCESS-FN with no args if all goes well."
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
         (setf (eglot--short-name proc) short-name)
-        (push proc
-              (gethash (project-current)
-                       eglot--processes-by-project))
+        (push proc (gethash project eglot--processes-by-project))
         (erase-buffer)
         (read-only-mode t)
-        (with-current-buffer (eglot-events-buffer proc)
-          (let ((inhibit-read-only t))
-            (insert
-             (format "\n-----------------------------------\n"))))
-        (eglot--request
-         proc
-         :initialize
-         (eglot--obj :processId (unless (eq (process-type proc)
-                                            'network)
-                                  (emacs-pid))
-                     :rootUri  (eglot--path-to-uri
-                                (car (project-roots (project-current))))
-                     :initializationOptions  []
-                     :capabilities (eglot--client-capabilities))
-         :success-fn
-         (cl-function
-          (lambda (&key capabilities)
-            (setf (eglot--capabilities proc) capabilities)
-            (setf (eglot--status proc) nil)
-            (dolist (buffer (buffer-list))
-              (with-current-buffer buffer
-                (eglot--maybe-activate-editing-mode proc)))
-            (when success-fn (funcall success-fn proc))
-            (eglot--notify proc :initialized (eglot--obj :__dummy__ t)))))))))
+        (cl-destructuring-bind (&key capabilities)
+            (eglot--sync-request
+             proc
+             :initialize
+             (eglot--obj :processId (unless (eq (process-type proc)
+                                                'network)
+                                      (emacs-pid))
+                         :rootUri  (eglot--path-to-uri
+                                    (car (project-roots project)))
+                         :initializationOptions  []
+                         :capabilities (eglot--client-capabilities)))
+          (setf (eglot--capabilities proc) capabilities)
+          (setf (eglot--status proc) nil)
+          (dolist (buffer (buffer-list))
+            (with-current-buffer buffer
+              (eglot--maybe-activate-editing-mode proc)))
+          (eglot--notify proc :initialized (eglot--obj :__dummy__ t))
+          proc)))))
 
 (defvar eglot--command-history nil
   "History of COMMAND arguments to `eglot'.")
 
 (defun eglot--interactive ()
   "Helper for `eglot'."
-  (let* ((managed-major-mode
+  (let* ((guessed-mode (if buffer-file-name major-mode))
+         (managed-mode
           (cond
-           ((or current-prefix-arg
-                (not buffer-file-name))
+           ((or (>= (prefix-numeric-value current-prefix-arg) 16)
+                (not guessed-mode))
             (intern
              (completing-read
               "[eglot] Start a server to manage buffers of what major mode? "
               (mapcar #'symbol-name (eglot--all-major-modes)) nil t
-              (symbol-name major-mode) nil
-              (symbol-name major-mode) nil)))
-           (t major-mode)))
-         (guessed-command
-          (cdr (assoc managed-major-mode eglot-executables))))
+              (symbol-name guessed-mode) nil (symbol-name guessed-mode) nil)))
+           (t guessed-mode)))
+         (guessed-command (cdr (assoc managed-mode eglot-server-programs)))
+         (base-prompt "[eglot] Enter program to execute (or <host>:<port>): ")
+         (prompt
+          (cond (current-prefix-arg base-prompt)
+                ((null guessed-command)
+                 (concat (format "[eglot] Sorry, couldn't guess for `%s'!"
+                                 managed-mode)
+                         "\n" base-prompt))
+                ((and (listp guessed-command)
+                      (not (executable-find (car guessed-command))))
+                 (concat (format "[eglot] I guess you want to run `%s'"
+                                 (combine-and-quote-strings guessed-command))
+                         (format ", but I can't find `%s' in PATH!"
+                                 (car guessed-command))
+                         "\n" base-prompt)))))
     (list
-     managed-major-mode
-     (let ((prompt
-            (cond (current-prefix-arg
-                   "[eglot] Enter program to execute (or <host>:<port>): ")
-                  ((null guessed-command)
-                   (format "[eglot] Sorry, couldn't guess for `%s'!\n\
-Enter program to execute (or <host>:<port>): "
-                           managed-major-mode)))))
-       (if prompt
-           (split-string-and-unquote
-            (read-shell-command prompt
-                                (if (listp guessed-command)
-                                    (combine-and-quote-strings guessed-command))
-                                'eglot-command-history))
-         guessed-command))
+     managed-mode
+     (if prompt
+         (split-string-and-unquote
+          (read-shell-command prompt
+                              (if (listp guessed-command)
+                                  (combine-and-quote-strings guessed-command))
+                              'eglot-command-history))
+       guessed-command)
      t)))
 
 ;;;###autoload
@@ -296,8 +293,11 @@ is also know as the server's \"contact\".
 
 MANAGED-MAJOR-MODE is an Emacs major mode.
 
-With a prefix arg, prompt for MANAGED-MAJOR-MODE and COMMAND,
-else guess them from current context and `eglot-executables'.
+Interactively, guess MANAGED-MAJOR-MODE from current buffer and
+COMMAND from `eglot-server-programs'.  With a single
+\\[universal-argument] prefix arg, prompt for COMMAND.  With two
+\\[universal-argument] prefix args, also prompt for
+MANAGED-MAJOR-MODE.
 
 INTERACTIVE is t if called interactively."
   (interactive (eglot--interactive))
@@ -313,16 +313,13 @@ INTERACTIVE is t if called interactively."
           (eglot-reconnect current-process interactive)
         (when (process-live-p current-process)
           (eglot-shutdown current-process))
-        (eglot--connect project
-                        managed-major-mode
-                        short-name
-                        command
-                        (lambda (proc)
-                          (eglot--message "Connected! Process `%s' now \
+        (let ((proc (eglot--connect project
+                                    managed-major-mode
+                                    short-name
+                                    command)))
+          (eglot--message "Connected! Process `%s' now \
 managing `%s' buffers in project `%s'."
-                                          proc
-                                          managed-major-mode
-                                          short-name)))))))
+                          proc managed-major-mode short-name))))))
 
 (defun eglot-reconnect (process &optional interactive)
   "Reconnect to PROCESS.
@@ -333,8 +330,8 @@ INTERACTIVE is t if called interactively."
   (eglot--connect (eglot--project process)
                   (eglot--major-mode process)
                   (eglot--short-name process)
-                  (eglot--contact process)
-                  (lambda (_proc) (eglot--message "Reconnected!"))))
+                  (eglot--contact process))
+  (eglot--message "Reconnected!"))
 
 (defvar eglot--inhibit-auto-reconnect nil
   "If non-nil, don't autoreconnect on unexpected quit.")
@@ -343,6 +340,9 @@ INTERACTIVE is t if called interactively."
   "Called when PROC undergoes CHANGE."
   (eglot--log-event proc `(:message "Process state changed" :change ,change))
   (when (not (process-live-p proc))
+    (with-current-buffer (eglot-events-buffer proc)
+      (let ((inhibit-read-only t))
+        (insert "\n----------b---y---e---b---y---e----------\n")))
     ;; Cancel outstanding timers
     (maphash (lambda (_id triplet)
                (cl-destructuring-bind (_success _error timeout) triplet
