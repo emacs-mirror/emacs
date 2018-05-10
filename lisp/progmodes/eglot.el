@@ -341,7 +341,7 @@ INTERACTIVE is t if called interactively."
 
 (defun eglot--process-sentinel (proc change)
   "Called when PROC undergoes CHANGE."
-  (eglot--debug "(sentinel) Process state changed to %s" change)
+  (eglot--log-event proc `(:message "Process state changed" :change ,change))
   (when (not (process-live-p proc))
     ;; Cancel outstanding timers
     (maphash (lambda (_id triplet)
@@ -474,8 +474,7 @@ is a symbol saying if this is a client or server originated."
            (subtype (cond ((and method id)       'request)
                           (method                'notification)
                           (id                    'reply)
-                          ;; pyls keeps on sending these
-                          (t                     'unexpected-thingy)))
+                          (t                     'message)))
            (type
             (format "%s-%s" (or type :internal) subtype)))
       (goto-char (point-max))
@@ -553,7 +552,7 @@ is a symbol saying if this is a client or server originated."
 
 (defun eglot--call-deferred (proc)
   "Call PROC's deferred actions, who may again defer themselves."
-  (let ((actions (hash-table-values (eglot--deferred-actions proc))))
+  (when-let ((actions (hash-table-values (eglot--deferred-actions proc))))
     (eglot--log-event proc `(:running-deferred ,(length actions)))
     (mapc #'funcall (mapcar #'car actions))))
 
@@ -619,16 +618,15 @@ timeout keeps counting."
     ;; Really run it
     ;;
     (puthash id
-             (list (or success-fn (eglot--lambda (&rest result-body)
-                                    (eglot--debug
-                                     "Request %s, id=%s replied to with result=%s"
-                                     method id result-body)))
-                   (or error-fn (eglot--lambda
-                                    (&key code message &allow-other-keys)
-                                  (setf (eglot--status proc) `(,message t))
-                                  (eglot--warn
-                                   "Request %s, id=%s errored with code=%s: %s"
-                                   method id code message)))
+             (list (or success-fn
+                       (eglot--lambda (&rest _ignored)
+                         (eglot--log-event
+                          proc (eglot--obj :message "success ignored" :id id))))
+                   (or error-fn
+                       (eglot--lambda (&key code message &allow-other-keys)
+                         (setf (eglot--status proc) `(,message t))
+                         proc (eglot--obj :message "error ignored, status set"
+                                          :id id :error code)))
                    (funcall make-timeout))
              (eglot--pending-continuations proc))
     (eglot--process-send proc (eglot--obj :jsonrpc "2.0"
@@ -680,12 +678,6 @@ DEFERRED is passed to `eglot--request', which see."
 
 ;;; Helpers
 ;;;
-(defun eglot--debug (format &rest args)
-  "Debug message FORMAT with ARGS."
-  (display-warning 'eglot
-                   (apply #'format format args)
-                   :debug))
-
 (defun eglot--error (format &rest args)
   "Error out with FORMAT with ARGS."
   (error (apply #'format format args)))
@@ -693,10 +685,6 @@ DEFERRED is passed to `eglot--request', which see."
 (defun eglot--message (format &rest args)
   "Message out with FORMAT with ARGS."
   (message (concat "[eglot] " (apply #'format format args))))
-
-(defun eglot--log (format &rest args)
-  "Log out with FORMAT with ARGS."
-  (message (concat "[eglot-log] " (apply #'format format args))))
 
 (defun eglot--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
@@ -954,15 +942,11 @@ called interactively."
                       :error (eglot--obj :code -32800
                                          :message "User cancelled"))))))
 
-(cl-defun eglot--server-window/logMessage (_process &key type message)
-  "Handle notification window/logMessage"
-  (eglot--log (propertize "Server reports (type=%s): %s"
-                          'face (if (<= type 1) 'error))
-              type message))
+(cl-defun eglot--server-window/logMessage (_proc &key _type _message)
+  "Handle notification window/logMessage") ;; noop, use events buffer
 
-(cl-defun eglot--server-telemetry/event (_process &rest any)
-  "Handle notification telemetry/event"
-  (eglot--log "Server telemetry: %s" any))
+(cl-defun eglot--server-telemetry/event (_proc &rest _any)
+  "Handle notification telemetry/event") ;; noop, use events buffer
 
 (defvar-local eglot--unreported-diagnostics nil
   "Unreported diagnostics for this buffer.")
