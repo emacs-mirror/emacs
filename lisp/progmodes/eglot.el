@@ -1471,12 +1471,11 @@ Proceed? "
         (and (equal "Indexing" what) done))))
 
 ;;;###autoload
-(add-hook 'rust-mode-hook 'eglot--setup-rls-idiosyncrasies)
-
-;;;###autoload
-(defun eglot--setup-rls-idiosyncrasies ()
-  "RLS needs special treatment..."
-  (add-hook 'eglot--ready-predicates 'eglot--rls-probably-ready-for-p t t))
+(progn
+  (add-hook 'rust-mode-hook 'eglot--setup-rls-idiosyncrasies)
+  (defun eglot--setup-rls-idiosyncrasies ()
+    "Prepare `eglot' to deal with RLS's special treatment."
+    (add-hook 'eglot--ready-predicates 'eglot--rls-probably-ready-for-p t t)))
 
 (cl-defun eglot--server-window/progress
     (process &key id done title message &allow-other-keys)
