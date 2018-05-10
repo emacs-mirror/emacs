@@ -1278,23 +1278,35 @@ DUMMY is ignored"
                                        :textDocument/completion))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (eglot--mapply
-             (eglot--lambda (&key insertText label kind detail
-                                  documentation sortText &allow-other-keys)
-               (propertize (or insertText label)
-                           :kind-name (cdr (assoc kind eglot--kind-names))
-                           :detail detail
-                           :documentation documentation :sortText sortText))
+             (eglot--lambda (&rest all &key label &allow-other-keys)
+               (add-text-properties 0 1 all label) label)
              items))))
        :annotation-function
-       (lambda (what)
-         (propertize (concat " " (or (get-text-property 0 :detail what)
-                                     (get-text-property 0 :kind what)))
+       (lambda (obj)
+         (propertize (concat " " (or (get-text-property 0 :detail obj)
+                                     (cdr (assoc (get-text-property 0 :kind obj)
+                                                 eglot--kind-names))))
                      'face 'font-lock-function-name-face))
        :display-sort-function
-       (lambda (items) (sort items (lambda (a b)
-                                     (string-lessp
-                                      (get-text-property 0 :sortText a)
-                                      (get-text-property 0 :sortText b)))))
+       (lambda (items)
+         (sort items (lambda (a b)
+                       (string-lessp
+                        (or (get-text-property 0 :sortText a) "")
+                        (or (get-text-property 0 :sortText b) "")))))
+       :company-doc-buffer
+       (lambda (obj)
+         (let ((documentation
+                (or (get-text-property 0 :documentation obj)
+                    (plist-get (eglot--request proc :completionItem/resolve
+                                               (text-properties-at 0 obj))
+                               :documentation))))
+           (when documentation
+             (with-current-buffer (get-buffer-create " *eglot doc*")
+               (erase-buffer)
+               (ignore-errors (funcall (intern "markdown-mode")))
+               (font-lock-ensure)
+               (insert documentation)
+               (current-buffer)))))
        :exit-function
        (lambda (_string _status) (eglot-eldoc-function))))))
 
