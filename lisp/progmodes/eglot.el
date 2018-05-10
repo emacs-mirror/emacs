@@ -78,11 +78,9 @@
                     (if (project-current) "" " (Also no current project)"))))
 
 (defmacro eglot--define-process-var
-    (var-sym initval &optional doc mode-line-update-p)
+    (var-sym initval &optional doc)
   "Define VAR-SYM as a generalized process-local variable.
-INITVAL is the default value.  DOC is the documentation.
-MODE-LINE-UPDATE-P says to also force a mode line update
-after setting it."
+INITVAL is the default value.  DOC is the documentation."
   (declare (indent 2))
   `(progn
      (put ',var-sym 'function-documentation ,doc)
@@ -94,16 +92,11 @@ after setting it."
            (let ((def ,initval))
              (process-put proc ',var-sym def)
              def))))
-     (gv-define-setter ,var-sym (to-store &optional process)
-       (let* ((prop ',var-sym))
-         ,(let ((form '(let ((proc (or ,process (eglot--current-process-or-lose))))
-                         (process-put proc ',prop ,to-store))))
-            (if mode-line-update-p
-                `(backquote (prog1 ,form (force-mode-line-update t)))
-              `(backquote ,form)))))))
+     (gv-define-setter ,var-sym (to-store process)
+       `(let ((once ,to-store)) (process-put ,process ',',var-sym once) once))))
 
 (eglot--define-process-var eglot--short-name nil
-  "A short name for the process" t)
+  "A short name for the process")
 
 (eglot--define-process-var eglot--major-mode nil
   "The major-mode this server is managing.")
@@ -128,11 +121,11 @@ after setting it."
 
 (eglot--define-process-var eglot--spinner `(nil nil t)
   "\"Spinner\" used by some servers.
-A list (ID WHAT DONE-P)." t)
+A list (ID WHAT DONE-P).")
 
 (eglot--define-process-var eglot--status `(:unknown nil)
   "Status as declared by the server.
-A list (WHAT SERIOUS-P)." t)
+A list (WHAT SERIOUS-P).")
 
 (eglot--define-process-var eglot--contact nil
   "Method used to contact a server.
@@ -531,7 +524,8 @@ is a symbol saying if this is a client or server originated."
                    (apply (cl-first continuations) res)
                  (funcall (cl-first continuations) res)))))
           (id
-           (eglot--warn "Ooops no continuation for id %s" id)))))
+           (eglot--warn "Ooops no continuation for id %s" id)))
+    (force-mode-line-update t)))
 
 (defvar eglot--expect-carriage-return nil)
 
