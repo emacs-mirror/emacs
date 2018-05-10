@@ -380,6 +380,7 @@ INTERACTIVE is t if called interactively."
               "(sentinel) Not auto-reconnecting, last one didn't last long."
               change)))
       (delete-process proc))))
+
 (defun eglot--process-filter (proc string)
   "Called when new data STRING has arrived for PROC."
   (when (buffer-live-p (process-buffer proc))
@@ -441,8 +442,7 @@ INTERACTIVE is t if called interactively."
                       (throw done :waiting-for-more-bytes-in-this-message))))))))
           ;; Saved parsing state for next visit to this filter
           ;;
-          (setf (eglot--expected-bytes proc) expected-bytes))))
-    (eglot--call-deferred proc)))
+          (setf (eglot--expected-bytes proc) expected-bytes))))))
 
 (defun eglot-events-buffer (process &optional interactive)
   "Display events buffer for current LSP connection PROCESS.
@@ -522,6 +522,7 @@ is a symbol saying if this is a client or server originated."
                  (funcall (cl-first continuations) res)))))
           (id
            (eglot--warn "Ooops no continuation for id %s" id)))
+    (eglot--call-deferred proc)
     (force-mode-line-update t)))
 
 (defvar eglot--expect-carriage-return nil)
