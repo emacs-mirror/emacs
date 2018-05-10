@@ -219,7 +219,7 @@ CONTACT is as `eglot--contact'.  Returns a process object."
         (erase-buffer)
         (read-only-mode t)
         (cl-destructuring-bind (&key capabilities)
-            (eglot--sync-request
+            (eglot--request
              proc
              :initialize
              (eglot--obj :processId (unless (eq (process-type proc)
@@ -558,9 +558,9 @@ is a symbol saying if this is a client or server originated."
 
 (defvar eglot--ready-predicates '(eglot--server-ready-p)
   "Special hook of predicates controlling deferred actions.
-When one of these functions returns nil, a deferrable
-`eglot--request' will be deferred.  Each predicate is passed the
-an symbol for the request request and a process object.")
+If one of these returns nil, a deferrable `eglot--async-request'
+will be deferred.  Each predicate is passed the symbol for the
+request request and a process object.")
 
 (defun eglot--server-ready-p (_what _proc)
   "Tell if server of PROC ready for processing deferred WHAT."
@@ -570,13 +570,13 @@ an symbol for the request request and a process object.")
   (declare (indent 1) (debug (sexp &rest form)))
   `(cl-function (lambda ,cl-lambda-list ,@body)))
 
-(cl-defun eglot--request (proc
-                          method
-                          params
-                          &rest args
-                          &key success-fn error-fn timeout-fn
-                          (timeout eglot-request-timeout)
-                          (deferred nil))
+(cl-defun eglot--async-request (proc
+                                method
+                                params
+                                &rest args
+                                &key success-fn error-fn timeout-fn
+                                (timeout eglot-request-timeout)
+                                (deferred nil))
   "Make a request to PROCESS, expecting a reply.
 Return the ID of this request. Wait TIMEOUT seconds for response.
 If DEFERRED, maybe defer request to the future, or never at all,
@@ -610,11 +610,11 @@ timeout keeps counting."
                           (when (buffer-live-p buf)
                             (with-current-buffer buf
                               (save-excursion (goto-char point)
-                                              (apply #'eglot--request proc
+                                              (apply #'eglot--async-request proc
                                                      method params args)))))))
             (puthash (list deferred buf) (list later (funcall make-timeout))
                      (eglot--deferred-actions proc))
-            (cl-return-from eglot--request nil)))))
+            (cl-return-from eglot--async-request nil)))))
     ;; Really run it
     ;;
     (puthash id
@@ -634,17 +634,17 @@ timeout keeps counting."
                                           :method method
                                           :params params))))
 
-(defun eglot--sync-request (proc method params &optional deferred)
-  "Like `eglot--request' for PROC, METHOD and PARAMS, but synchronous.
+(defun eglot--request (proc method params &optional deferred)
+  "Like `eglot--async-request' for PROC, METHOD and PARAMS, but synchronous.
 Meaning only return locally if successful, otherwise exit non-locally.
-DEFERRED is passed to `eglot--request', which see."
+DEFERRED is passed to `eglot--async-request', which see."
   ;; Launching a deferred sync request with outstanding changes is a
   ;; bad idea, since that might lead to the request never having a
   ;; chance to run, because `eglot--ready-predicates'.
   (when deferred (eglot--signal-textDocument/didChange))
-  (let* ((done (make-symbol "eglot--sync-request-catch-tag"))
+  (let* ((done (make-symbol "eglot--request-catch-tag"))
          (res
-          (catch done (eglot--request
+          (catch done (eglot--async-request
                        proc method params
                        :success-fn (lambda (&rest args)
                                      (throw done (if (vectorp (car args))
@@ -914,11 +914,11 @@ called interactively."
   (unwind-protect
       (let ((eglot-request-timeout 3))
         (setf (eglot--moribund proc) t)
-        (eglot--sync-request proc
-                             :shutdown
-                             nil)
+        (eglot--request proc
+                        :shutdown
+                        nil)
         ;; this one should always fail
-        (ignore-errors (eglot--sync-request proc :exit nil)))
+        (ignore-errors (eglot--request proc :exit nil)))
     (when (process-live-p proc)
       (eglot--warn "Brutally deleting existing process %s" proc)
       (delete-process proc))))
@@ -1031,21 +1031,21 @@ called interactively."
                    (eglot--obj :code -32001
                                :message (format "%s" err))))))
 
-(defun eglot--current-buffer-TextDocumentIdentifier ()
+(defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
   (eglot--obj :uri (eglot--path-to-uri buffer-file-name)))
 
 (defvar-local eglot--versioned-identifier 0)
 
-(defun eglot--current-buffer-VersionedTextDocumentIdentifier ()
+(defun eglot--VersionedTextDocumentIdentifier ()
   "Compute VersionedTextDocumentIdentifier object for current buffer."
-  (append (eglot--current-buffer-TextDocumentIdentifier)
+  (append (eglot--TextDocumentIdentifier)
           (eglot--obj :version eglot--versioned-identifier)))
 
-(defun eglot--current-buffer-TextDocumentItem ()
+(defun eglot--TextDocumentItem ()
   "Compute TextDocumentItem object for current buffer."
   (append
-   (eglot--current-buffer-VersionedTextDocumentIdentifier)
+   (eglot--VersionedTextDocumentIdentifier)
    (eglot--obj :languageId
                (if (string-match "\\(.*\\)-mode" (symbol-name major-mode))
                    (match-string 1 (symbol-name major-mode))
@@ -1055,9 +1055,9 @@ called interactively."
                  (widen)
                  (buffer-substring-no-properties (point-min) (point-max))))))
 
-(defun eglot--current-buffer-TextDocumentPositionParams ()
+(defun eglot--TextDocumentPositionParams ()
   "Compute TextDocumentPositionParams."
-  (eglot--obj :textDocument (eglot--current-buffer-TextDocumentIdentifier)
+  (eglot--obj :textDocument (eglot--TextDocumentIdentifier)
               :position (eglot--pos-to-lsp-position)))
 
 (defvar-local eglot--recent-changes nil
@@ -1104,7 +1104,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
          proc :textDocument/didChange
          (eglot--obj
           :textDocument
-          (eglot--current-buffer-VersionedTextDocumentIdentifier)
+          (eglot--VersionedTextDocumentIdentifier)
           :contentChanges
           (if full-sync-p (vector
                            (eglot--obj
@@ -1126,14 +1126,14 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didOpen
                  (eglot--obj :textDocument
-                             (eglot--current-buffer-TextDocumentItem))))
+                             (eglot--TextDocumentItem))))
 
 (defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
   (eglot--notify (eglot--current-process-or-lose)
                  :textDocument/didClose
                  (eglot--obj :textDocument
-                             (eglot--current-buffer-TextDocumentIdentifier))))
+                             (eglot--TextDocumentIdentifier))))
 
 (defun eglot--signal-textDocument/willSave ()
   "Send textDocument/willSave to server."
@@ -1142,7 +1142,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
    :textDocument/willSave
    (eglot--obj
     :reason 1 ; Manual, emacs laughs in the face of auto-save muahahahaha
-    :textDocument (eglot--current-buffer-TextDocumentIdentifier))))
+    :textDocument (eglot--TextDocumentIdentifier))))
 
 (defun eglot--signal-textDocument/didSave ()
   "Send textDocument/didSave to server."
@@ -1152,7 +1152,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
    (eglot--obj
     ;; TODO: Handle TextDocumentSaveRegistrationOptions to control this.
     :text (buffer-substring-no-properties (point-min) (point-max))
-    :textDocument (eglot--current-buffer-TextDocumentIdentifier))))
+    :textDocument (eglot--TextDocumentIdentifier))))
 
 (defun eglot-flymake-backend (report-fn &rest _more)
   "An EGLOT Flymake backend.
@@ -1190,7 +1190,7 @@ DUMMY is ignored"
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
   (when (eglot--server-capable :documentSymbolProvider)
     (let ((proc (eglot--current-process-or-lose))
-          (text-id (eglot--current-buffer-TextDocumentIdentifier)))
+          (text-id (eglot--TextDocumentIdentifier)))
       (completion-table-with-cache
        (lambda (string)
          (setq eglot--xref-known-symbols
@@ -1205,17 +1205,17 @@ DUMMY is ignored"
                               :locations (list location)
                               :kind kind
                               :containerName containerName))
-                (eglot--sync-request proc
-                                     :textDocument/documentSymbol
-                                     (eglot--obj
-                                      :textDocument text-id))))
+                (eglot--request proc
+                                :textDocument/documentSymbol
+                                (eglot--obj
+                                 :textDocument text-id))))
          (all-completions string eglot--xref-known-symbols))))))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
   (when-let ((symatpt (symbol-at-point)))
     (propertize (symbol-name symatpt)
                 :textDocumentPositionParams
-                (eglot--current-buffer-TextDocumentPositionParams))))
+                (eglot--TextDocumentPositionParams))))
 
 (cl-defmethod xref-backend-definitions ((_backend (eql eglot)) identifier)
   (let* ((rich-identifier
@@ -1223,10 +1223,10 @@ DUMMY is ignored"
          (location-or-locations
           (if rich-identifier
               (get-text-property 0 :locations rich-identifier)
-            (eglot--sync-request (eglot--current-process-or-lose)
-                                 :textDocument/definition
-                                 (get-text-property
-                                  0 :textDocumentPositionParams identifier)))))
+            (eglot--request (eglot--current-process-or-lose)
+                            :textDocument/definition
+                            (get-text-property
+                             0 :textDocumentPositionParams identifier)))))
     (eglot--mapply
      (eglot--lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
@@ -1244,12 +1244,12 @@ DUMMY is ignored"
     (eglot--mapply
      (eglot--lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
-     (eglot--sync-request (eglot--current-process-or-lose)
-                          :textDocument/references
-                          (append
-                           params
-                           (eglot--obj :context
-                                       (eglot--obj :includeDeclaration t)))))))
+     (eglot--request (eglot--current-process-or-lose)
+                     :textDocument/references
+                     (append
+                      params
+                      (eglot--obj :context
+                                  (eglot--obj :includeDeclaration t)))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
@@ -1258,9 +1258,9 @@ DUMMY is ignored"
        (let ((range (plist-get location :range))
              (uri (plist-get location :uri)))
          (eglot--xref-make name uri (plist-get range :start))))
-     (eglot--sync-request (eglot--current-process-or-lose)
-                          :workspace/symbol
-                          (eglot--obj :query pattern)))))
+     (eglot--request (eglot--current-process-or-lose)
+                     :workspace/symbol
+                     (eglot--obj :query pattern)))))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
@@ -1272,11 +1272,10 @@ DUMMY is ignored"
        (or (cdr bounds) (point))
        (completion-table-with-cache
         (lambda (_ignored)
-          (let* ((resp (eglot--sync-request
-                        proc
-                        :textDocument/completion
-                        (eglot--current-buffer-TextDocumentPositionParams)
-                        :textDocument/completion))
+          (let* ((resp (eglot--request proc
+                                       :textDocument/completion
+                                       (eglot--TextDocumentPositionParams)
+                                       :textDocument/completion))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (eglot--mapply
              (eglot--lambda (&key insertText label kind detail
@@ -1305,9 +1304,9 @@ DUMMY is ignored"
   "EGLOT's `eldoc-documentation-function' function."
   (let ((buffer (current-buffer))
         (proc (eglot--current-process-or-lose))
-        (position-params (eglot--current-buffer-TextDocumentPositionParams)))
+        (position-params (eglot--TextDocumentPositionParams)))
     (when (eglot--server-capable :hoverProvider)
-      (eglot--request
+      (eglot--async-request
        proc :textDocument/hover position-params
        :success-fn (eglot--lambda (&key contents range)
                      (when (get-buffer-window buffer)
@@ -1325,7 +1324,7 @@ DUMMY is ignored"
                                               (list contents)))) "\n"))))))
        :deferred :textDocument/hover))
     (when (eglot--server-capable :documentHighlightProvider)
-      (eglot--request
+      (eglot--async-request
        proc :textDocument/documentHighlight position-params
        :success-fn (lambda (highlights)
                      (mapc #'delete-overlay eglot--highlights)
@@ -1353,11 +1352,10 @@ DUMMY is ignored"
                 (cons (propertize name :kind (cdr (assoc kind eglot--kind-names)))
                       (eglot--lsp-position-to-point
                        (plist-get (plist-get location :range) :start))))
-              (eglot--sync-request
-               (eglot--current-process-or-lose)
-               :textDocument/documentSymbol
-               (eglot--obj
-                :textDocument (eglot--current-buffer-TextDocumentIdentifier))))))
+              (eglot--request (eglot--current-process-or-lose)
+                              :textDocument/documentSymbol
+                              (eglot--obj
+                               :textDocument (eglot--TextDocumentIdentifier))))))
         (append
          (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
                        entries)
@@ -1425,11 +1423,9 @@ Proceed? "
   (unless (eglot--server-capable :renameProvider)
     (eglot--error "Server can't rename!"))
   (eglot--apply-workspace-edit
-   (eglot--sync-request (eglot--current-process-or-lose)
-                        :textDocument/rename
-                        (append
-                         (eglot--current-buffer-TextDocumentPositionParams)
-                         (eglot--obj :newName newname)))
+   (eglot--request (eglot--current-process-or-lose)
+                   :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
+                                          ,@(eglot--obj :newName newname)))
    current-prefix-arg))
 
 
@@ -1448,7 +1444,7 @@ Proceed? "
 (defun eglot--rls-probably-ready-for-p (what proc)
   "Guess if the RLS running in PROC is ready for WHAT."
   (or (eq what :textDocument/completion) ; RLS normally ready for this
-                                        ; one, even if building
+                                        ; one, even if building ;
       (pcase-let ((`(,_id ,what ,done ,_detail) (eglot--spinner proc)))
         (and (equal "Indexing" what) done))))
 
