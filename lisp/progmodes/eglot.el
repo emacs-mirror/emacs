@@ -1176,7 +1176,7 @@ DUMMY is ignored"
 
 (defun eglot--xref-make (name uri position)
   "Like `xref-make' but with LSP's NAME, URI and POSITION."
-  (cl-destructuring-bind (line character) position
+  (cl-destructuring-bind (&key line character) position
     (xref-make name (xref-make-file-location
                      (eglot--uri-to-path uri)
                      ;; F!@(#*&#$)CKING OFF-BY-ONE again
