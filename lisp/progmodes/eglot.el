@@ -740,7 +740,7 @@ DEFERRED is passed to `eglot--request', which see."
   "Format MARKUP according to LSP's spec."
   (cond ((stringp markup)
          (with-temp-buffer
-           (ignore-errors (funcall (intern "markdown-mode"))) ;escape bytecompiler
+           (ignore-errors (funcall (intern "markdown-mode"))) ;escape bytecomp
            (font-lock-ensure)
            (insert markup)
            (string-trim (buffer-string))))
@@ -756,6 +756,15 @@ DEFERRED is passed to `eglot--request', which see."
 (defun eglot--server-capable (feat)
   "Determine if current server is capable of FEAT."
   (plist-get (eglot--capabilities (eglot--current-process-or-lose)) feat))
+
+(cl-defmacro eglot--with-lsp-range ((start end) range &body body
+                                    &aux (range-sym (cl-gensym)))
+  "Bind LSP RANGE to START and END. Evaluate BODY."
+  (declare (indent 2) (debug (sexp sexp &rest form)))
+  `(let* ((,range-sym ,range)
+          (,start (eglot--lsp-position-to-point (plist-get ,range-sym :start)))
+          (,end (eglot--lsp-position-to-point (plist-get ,range-sym :end))))
+     ,@body))
 
 
 ;;; Minor modes
@@ -965,17 +974,13 @@ called interactively."
          collect (cl-destructuring-bind (&key range severity _group
                                               _code source message)
                      diag-spec
-                   (cl-destructuring-bind (&key start end)
-                       range
-                     (let* ((begin-pos (eglot--lsp-position-to-point start))
-                            (end-pos (eglot--lsp-position-to-point end)))
-                       (flymake-make-diagnostic
-                        (current-buffer)
-                        begin-pos end-pos
-                        (cond ((<= severity 1) :error)
-                              ((= severity 2)  :warning)
-                              (t               :note))
-                        (concat source ": " message)))))
+                   (eglot--with-lsp-range (beg end) range
+                     (flymake-make-diagnostic (current-buffer)
+                                              beg end
+                                              (cond ((<= severity 1) :error)
+                                                    ((= severity 2)  :warning)
+                                                    (t               :note))
+                                              (concat source ": " message))))
          into diags
          finally (cond (eglot--current-flymake-report-fn
                         (funcall eglot--current-flymake-report-fn diags)
@@ -1302,15 +1307,23 @@ DUMMY is ignored"
         (proc (eglot--current-process-or-lose))
         (position-params (eglot--current-buffer-TextDocumentPositionParams)))
     (when (eglot--server-capable :hoverProvider)
-      (eglot--request proc :textDocument/hover position-params
-                      :success-fn (eglot--lambda (&key contents _range)
-                                    (eldoc-message
-                                     (mapconcat #'eglot--format-markup
-                                                (if (vectorp contents)
-                                                    contents
-                                                  (list contents))
-                                                "\n")))
-                      :deferred :textDocument/hover))
+      (eglot--request
+       proc :textDocument/hover position-params
+       :success-fn (eglot--lambda (&key contents range)
+                     (when (get-buffer-window buffer)
+                       (with-current-buffer buffer
+                         (eldoc-message
+                          (concat
+                           (and range
+                                (eglot--with-lsp-range (beg end) range
+                                  (concat (buffer-substring beg end)  ": ")))
+                           (mapconcat #'eglot--format-markup
+                                      (append
+                                       (cond ((vectorp contents)
+                                              contents)
+                                             (contents
+                                              (list contents)))) "\n"))))))
+       :deferred :textDocument/hover))
     (when (eglot--server-capable :documentHighlightProvider)
       (eglot--request
        proc :textDocument/documentHighlight position-params
@@ -1321,11 +1334,8 @@ DUMMY is ignored"
                              (with-current-buffer buffer
                                (eglot--mapply
                                 (eglot--lambda (&key range kind)
-                                  (cl-destructuring-bind (&key start end) range
-                                    (let ((ov (make-overlay
-                                               (eglot--lsp-position-to-point start)
-                                               (eglot--lsp-position-to-point end)
-                                               buffer)))
+                                  (eglot--with-lsp-range (beg end) range
+                                    (let ((ov (make-overlay beg end)))
                                       (overlay-put ov 'face 'highlight)
                                       (overlay-put ov 'evaporate t)
                                       (overlay-put ov :kind kind)
@@ -1366,11 +1376,8 @@ DUMMY is ignored"
        (save-restriction
          (widen)
          (save-excursion
-           (let ((start (eglot--lsp-position-to-point (plist-get range :start))))
-             (goto-char start)
-             (delete-region start
-                            (eglot--lsp-position-to-point (plist-get range :end)))
-             (insert newText)))))
+           (eglot--with-lsp-range (beg end) range
+             (goto-char beg) (delete-region beg end) (insert newText)))))
      edits)
     (eglot--message "%s: Performed %s edits" (current-buffer) (length edits))))
 
