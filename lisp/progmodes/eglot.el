@@ -1,12 +1,13 @@
 ;;; eglot.el --- Client for Language Server Protocol (LSP) servers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017  João Távora
+;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 ;; Version: 0.1
-;; Author: João Távora
-;; Url: https://github.com/joaotavora/eglot
+;; Author: João Távora <joaotavora@gmail.com>
+;; Maintainer: João Távora <joaotavora@gmail.com>
+;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (json-mode "1.6.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
