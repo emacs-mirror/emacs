@@ -825,6 +825,9 @@ DEFERRED is passed to `eglot--request', which see."
                           (or (and (null proc) cur)
                               (and proc (eq proc cur))))))
 
+(defvar-local eglot--current-flymake-report-fn nil
+  "Current flymake report function for this buffer")
+
 (defun eglot--maybe-activate-editing-mode (&optional proc)
   "Maybe activate mode function `eglot--managed-mode'.
 If PROC is supplied, do it only if BUFFER is managed by it.  In
@@ -968,9 +971,6 @@ called interactively."
 (cl-defun eglot--server-telemetry/event (_process &rest any)
   "Handle notification telemetry/event"
   (eglot--log "Server telemetry: %s" any))
-
-(defvar-local eglot--current-flymake-report-fn nil
-  "Current flymake report function for this buffer")
 
 (defvar-local eglot--unreported-diagnostics nil
   "Unreported diagnostics for this buffer.")
@@ -1479,7 +1479,13 @@ Proceed? "
 (cl-defun eglot--server-window/progress
     (process &key id done title message &allow-other-keys)
   "Handle notification window/progress"
-  (setf (eglot--spinner process) (list id title done message)))
+  (setf (eglot--spinner process) (list id title done message))
+  (when (and (equal "Indexing" title) done)
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (eglot--buffer-managed-p process)
+          (funcall (or eglot--current-flymake-report-fn #'ignore)
+                   eglot--unreported-diagnostics))))))
 
 (provide 'eglot)
 ;;; eglot.el ends here
