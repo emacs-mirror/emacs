@@ -467,62 +467,58 @@ INTERACTIVE is t if called interactively."
 PROC is the current process.  MESSAGE is a JSON-like plist.  TYPE
 is a symbol saying if this is a client or server originated."
   (with-current-buffer (eglot-events-buffer proc)
-    (let* ((inhibit-read-only t)
-           (id (plist-get message :id))
-           (error (plist-get message :error))
-           (method (plist-get message :method))
-           (subtype (cond ((and method id)       'request)
-                          (method                'notification)
-                          (id                    'reply)
-                          (t                     'message)))
-           (type
-            (format "%s-%s" (or type :internal) subtype)))
-      (goto-char (point-max))
-      (let ((msg (format "%s%s%s:\n%s\n"
-                         type
-                         (if id (format " (id:%s)" id) "")
-                         (if error " ERROR" "")
-                         (pp-to-string message))))
-        (when error
-          (setq msg (propertize msg 'face 'error)))
-        (insert-before-markers msg)))))
+    (cl-destructuring-bind (&key method id error &allow-other-keys) message
+      (let* ((inhibit-read-only t)
+             (subtype (cond ((and method id)       'request)
+                            (method                'notification)
+                            (id                    'reply)
+                            (t                     'message)))
+             (type
+              (format "%s-%s" (or type :internal) subtype)))
+        (goto-char (point-max))
+        (let ((msg (format "%s%s%s:\n%s\n"
+                           type
+                           (if id (format " (id:%s)" id) "")
+                           (if error " ERROR" "")
+                           (pp-to-string message))))
+          (when error
+            (setq msg (propertize msg 'face 'error)))
+          (insert-before-markers msg))))))
 
 (defun eglot--process-receive (proc message)
   "Process MESSAGE from PROC."
-  (let* ((id (plist-get message :id))
-         (method (plist-get message :method))
-         (err (plist-get message :error))
-         (continuations (and id
-                             (not method)
-                             (gethash id (eglot--pending-continuations proc)))))
-    (eglot--log-event proc message 'server)
-    (when err (setf (eglot--status proc) `(,err t)))
-    (cond (method
-           ;; a server notification or a server request
-           (let* ((handler-sym (intern (concat "eglot--server-" method))))
-             (if (functionp handler-sym)
-                 (apply handler-sym proc (append
-                                          (plist-get message :params)
-                                          (if id `(:id ,id))))
-               (eglot--warn "No implementation of method %s yet" method)
-               (when id
-                 (eglot--reply
-                  proc id
-                  :error (eglot--obj :code -32601
-                                     :message "Method unimplemented"))))))
-          (continuations
-           (cancel-timer (cl-third continuations))
-           (remhash id (eglot--pending-continuations proc))
-           (if err
-               (apply (cl-second continuations) err)
-             (let ((res (plist-get message :result)))
-               (if (listp res)
-                   (apply (cl-first continuations) res)
-                 (funcall (cl-first continuations) res)))))
-          (id
-           (eglot--warn "Ooops no continuation for id %s" id)))
-    (eglot--call-deferred proc)
-    (force-mode-line-update t)))
+  (cl-destructuring-bind (&key method id error &allow-other-keys) message
+    (let* ((continuations (and id
+                               (not method)
+                               (gethash id (eglot--pending-continuations proc)))))
+      (eglot--log-event proc message 'server)
+      (when error (setf (eglot--status proc) `(,error t)))
+      (cond (method
+             ;; a server notification or a server request
+             (let* ((handler-sym (intern (concat "eglot--server-" method))))
+               (if (functionp handler-sym)
+                   (apply handler-sym proc (append
+                                            (plist-get message :params)
+                                            (if id `(:id ,id))))
+                 (eglot--warn "No implementation of method %s yet" method)
+                 (when id
+                   (eglot--reply
+                    proc id
+                    :error (eglot--obj :code -32601
+                                       :message "Method unimplemented"))))))
+            (continuations
+             (cancel-timer (cl-third continuations))
+             (remhash id (eglot--pending-continuations proc))
+             (if error
+                 (apply (cl-second continuations) error)
+               (let ((res (plist-get message :result)))
+                 (if (listp res)
+                     (apply (cl-first continuations) res)
+                   (funcall (cl-first continuations) res)))))
+            (id
+             (eglot--warn "Ooops no continuation for id %s" id)))
+      (eglot--call-deferred proc)
+      (force-mode-line-update t))))
 
 (defvar eglot--expect-carriage-return nil)
 
@@ -941,10 +937,9 @@ called interactively."
                                     'face (if (<= type 1) 'error))
                         type message)
                 "\nChoose an option: ")
-               (mapcar (lambda (obj) (plist-get obj :title)) actions)
-               nil
-               t
-               (plist-get (elt actions 0) :title)))
+               (or (mapcar (lambda (obj) (plist-get obj :title)) actions)
+                   '("OK"))
+               nil t (plist-get (elt actions 0) :title)))
       (if reply
           (eglot--reply process id :result (eglot--obj :title reply))
         (eglot--reply process id
@@ -1181,11 +1176,11 @@ DUMMY is ignored"
 
 (defun eglot--xref-make (name uri position)
   "Like `xref-make' but with LSP's NAME, URI and POSITION."
-  (xref-make name (xref-make-file-location
-                   (eglot--uri-to-path uri)
-                   ;; F!@(#*&#$)CKING OFF-BY-ONE again
-                   (1+ (plist-get position :line))
-                   (plist-get position :character))))
+  (cl-destructuring-bind (line character) position
+    (xref-make name (xref-make-file-location
+                     (eglot--uri-to-path uri)
+                     ;; F!@(#*&#$)CKING OFF-BY-ONE again
+                     (1+ line) character))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
   (when (eglot--server-capable :documentSymbolProvider)
@@ -1255,8 +1250,7 @@ DUMMY is ignored"
   (when (eglot--server-capable :workspaceSymbolProvider)
     (eglot--mapply
      (eglot--lambda (&key name location &allow-other-keys)
-       (let ((range (plist-get location :range))
-             (uri (plist-get location :uri)))
+       (cl-destructuring-bind (&key uri range) location
          (eglot--xref-make name uri (plist-get range :start))))
      (eglot--request (eglot--current-process-or-lose)
                      :workspace/symbol
