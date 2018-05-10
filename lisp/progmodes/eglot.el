@@ -1,4 +1,4 @@
-;;; eglot.el --- A client for Language Server Protocol (LSP) servers  -*- lexical-binding: t; -*-
+;;; eglot.el --- Client for Language Server Protocol (LSP) servers  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  João Távora
 
