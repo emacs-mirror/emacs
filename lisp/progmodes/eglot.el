@@ -339,50 +339,47 @@ INTERACTIVE is t if called interactively."
 (defvar eglot--inhibit-auto-reconnect nil
   "If non-nil, don't autoreconnect on unexpected quit.")
 
-(defun eglot--process-sentinel (process change)
-  "Called with PROCESS undergoes CHANGE."
+(defun eglot--process-sentinel (proc change)
+  "Called when PROC undergoes CHANGE."
   (eglot--debug "(sentinel) Process state changed to %s" change)
-  (when (not (process-live-p process))
-    ;; Cancel timers and error any outstanding continuations
-    ;;
+  (when (not (process-live-p proc))
+    ;; Cancel outstanding timers
     (maphash (lambda (_id triplet)
-               (cl-destructuring-bind (_success error timeout) triplet
-                 (cancel-timer timeout)
-                 (funcall error :code -1 :message (format "Server died"))))
-             (eglot--pending-continuations process))
-    ;; Turn off `eglot--managed-mode' where appropriate.
-    ;;
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-        (when (eglot--buffer-managed-p process)
-          (eglot--managed-mode -1))))
-    ;; Forget about the process-project relationship
-    ;;
-    (setf (gethash (eglot--project process) eglot--processes-by-project)
-          (delq process
-                (gethash (eglot--project process) eglot--processes-by-project)))
-    (cond ((eglot--moribund process)
-           (eglot--message "(sentinel) Moribund process exited with status %s"
-                           (process-exit-status process)))
-          ((null eglot--inhibit-auto-reconnect)
-           (eglot--warn
-            "(sentinel) Reconnecting after process unexpectedly changed to `%s'."
-            change)
-           (condition-case-unless-debug err
-               (eglot-reconnect process)
-             (error (eglot--warn "Auto-reconnect failed: %s " err) ))
-           (setq eglot--inhibit-auto-reconnect
-                 (run-with-timer
-                  3 nil
-                  (lambda ()
-                    (setq eglot--inhibit-auto-reconnect nil)))))
-          (t
-           (eglot--warn
-            "(sentinel) Not auto-reconnecting, last one didn't last long."
-            change)))
-    (force-mode-line-update t)
-    (delete-process process)))
-
+               (cl-destructuring-bind (_success _error timeout) triplet
+                 (cancel-timer timeout)))
+             (eglot--pending-continuations proc))
+    (unwind-protect
+        ;; Call all outstanding error handlers
+        (maphash (lambda (_id triplet)
+                   (cl-destructuring-bind (_success error _timeout) triplet
+                     (funcall error :code -1 :message (format "Server died"))))
+                 (eglot--pending-continuations proc))
+      ;; Turn off `eglot--managed-mode' where appropriate.
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer
+          (when (eglot--buffer-managed-p proc)
+            (eglot--managed-mode -1))))
+      ;; Forget about the process-project relationship
+      (setf (gethash (eglot--project proc) eglot--processes-by-project)
+            (delq proc
+                  (gethash (eglot--project proc) eglot--processes-by-project)))
+      (cond ((eglot--moribund proc)
+             (eglot--message "(sentinel) Moribund process exited with status %s"
+                             (process-exit-status proc)))
+            ((null eglot--inhibit-auto-reconnect)
+             (eglot--warn
+              "(sentinel) Reconnecting after process unexpectedly changed to `%s'."
+              change)
+             (setq eglot--inhibit-auto-reconnect
+                   (run-with-timer 3 nil
+                                   (lambda ()
+                                     (setq eglot--inhibit-auto-reconnect nil))))
+             (eglot-reconnect proc))
+            (t
+             (eglot--warn
+              "(sentinel) Not auto-reconnecting, last one didn't last long."
+              change)))
+      (delete-process proc))))
 (defun eglot--process-filter (proc string)
   "Called when new data STRING has arrived for PROC."
   (when (buffer-live-p (process-buffer proc))
