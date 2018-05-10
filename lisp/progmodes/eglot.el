@@ -798,9 +798,7 @@ DEFERRED is passed to `eglot--request', which see."
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'eglot-eldoc-function)
-    (add-function :around (local imenu-create-index-function) #'eglot-imenu)
-    (flymake-mode 1)
-    (eldoc-mode 1))
+    (add-function :around (local imenu-create-index-function) #'eglot-imenu))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
@@ -818,6 +816,9 @@ DEFERRED is passed to `eglot--request', which see."
       (when (and (process-live-p proc) (y-or-n-p "[eglot] Kill server too? "))
         (eglot-shutdown proc t))))))
 
+(add-hook 'eglot--managed-mode-hook 'flymake-mode)
+(add-hook 'eglot--managed-mode-hook 'eldoc-mode)
+
 (defun eglot--buffer-managed-p (&optional proc)
   "Tell if current buffer is managed by PROC."
   (and buffer-file-name (let ((cur (eglot--current-process)))
@@ -832,7 +833,8 @@ that case, also signal textDocument/didOpen."
   (when (eglot--buffer-managed-p proc)
     (eglot--managed-mode 1)
     (eglot--signal-textDocument/didOpen)
-    (flymake-start)))
+    (flymake-start)
+    (funcall (or eglot--current-flymake-report-fn #'ignore) nil)))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
@@ -999,11 +1001,11 @@ called interactively."
                               (t               :note))
                         (concat source ": " message)))))
          into diags
-         finally (if eglot--current-flymake-report-fn
-                     (funcall eglot--current-flymake-report-fn
-                              diags)
-                   (setq eglot--unreported-diagnostics
-                         diags)))))
+         finally (cond (eglot--current-flymake-report-fn
+                        (funcall eglot--current-flymake-report-fn diags)
+                        (setq eglot--unreported-diagnostics nil))
+                       (t
+                        (setq eglot--unreported-diagnostics diags))))))
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
@@ -1174,15 +1176,12 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 (defun eglot-flymake-backend (report-fn &rest _more)
   "An EGLOT Flymake backend.
 Calls REPORT-FN maybe if server publishes diagnostics in time."
-  ;; Maybe call immediately if anything unreported (this will clear
-  ;; any pending diags)
+  (setq eglot--current-flymake-report-fn report-fn)
+  ;; Report anything unreported
   (when eglot--unreported-diagnostics
     (funcall report-fn eglot--unreported-diagnostics)
     (setq eglot--unreported-diagnostics nil))
-  ;; Setup so maybe it's called later, too.
-  (setq eglot--current-flymake-report-fn report-fn)
-  ;; Take this opportunity to signal a didChange that might eventually
-  ;; make the server report new diagnostics.
+  ;; Signal a didChange that might eventually bring new diagnotics
   (eglot--signal-textDocument/didChange))
 
 (defun eglot-xref-backend ()
