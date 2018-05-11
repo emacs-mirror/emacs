@@ -59,8 +59,18 @@
   "Face for package-name in EGLOT's mode line.")
 
 (defcustom eglot-request-timeout 10
-  "How many seconds to way for a reply from the server."
+  "How many seconds to wait for a reply from the server."
   :type :integer)
+
+(defcustom eglot-autoreconnect 3
+  "Control EGLOT's ability to reconnect automatically.
+If t, always reconnect automatically (not recommended).  If nil,
+never reconnect automatically after unexpected server shutdowns,
+crashes or network failures.  A positive integer number says to
+only autoreconnect if the previous successful connection attempt
+lasted more than that many seconds."
+  :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
+                 (integer :tag "Number of seconds")))
 
 
 ;;; Process management
@@ -128,6 +138,9 @@ A list (ID WHAT DONE-P).")
 (eglot--define-process-var eglot--status `(:unknown nil)
   "Status as declared by the server.
 A list (WHAT SERIOUS-P).")
+
+(eglot--define-process-var eglot--inhibit-autoreconnect eglot-autoreconnect
+  "If non-nil, don't autoreconnect on unexpected quit.")
 
 (eglot--define-process-var eglot--contact nil
   "Method used to contact a server.
@@ -206,8 +219,9 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                   :publishDiagnostics `(:relatedInformation :json-false))
    :experimental (eglot--obj)))
 
-(defun eglot--connect (project managed-major-mode short-name contact)
-  "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT."
+(defun eglot--connect (project managed-major-mode short-name contact interactive)
+  "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT.
+INTERACTIVE is t if inside interactive call."
   (let* ((proc (eglot--make-process short-name managed-major-mode contact))
          (buffer (process-buffer proc)))
     (setf (eglot--contact proc) contact
@@ -215,6 +229,15 @@ CONTACT is as `eglot--contact'.  Returns a process object."
           (eglot--major-mode proc) managed-major-mode)
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
+        (setf (eglot--inhibit-autoreconnect proc)
+              (cond
+               ((booleanp eglot-autoreconnect) (not eglot-autoreconnect))
+               (interactive nil)
+               ((cl-plusp eglot-autoreconnect)
+                (run-with-timer eglot-autoreconnect nil
+                                (lambda ()
+                                  (setf (eglot--inhibit-autoreconnect proc)
+                                        (null eglot-autoreconnect)))))))
         (setf (eglot--short-name proc) short-name)
         (push proc (gethash project eglot--processes-by-project))
         (erase-buffer)
@@ -317,7 +340,8 @@ INTERACTIVE is t if called interactively."
         (let ((proc (eglot--connect project
                                     managed-major-mode
                                     short-name
-                                    command)))
+                                    command
+                                    interactive)))
           (eglot--message "Connected! Process `%s' now \
 managing `%s' buffers in project `%s'."
                           proc managed-major-mode short-name))))))
@@ -331,11 +355,9 @@ INTERACTIVE is t if called interactively."
   (eglot--connect (eglot--project process)
                   (eglot--major-mode process)
                   (eglot--short-name process)
-                  (eglot--contact process))
+                  (eglot--contact process)
+                  interactive)
   (eglot--message "Reconnected!"))
-
-(defvar eglot--inhibit-auto-reconnect nil
-  "If non-nil, don't autoreconnect on unexpected quit.")
 
 (defun eglot--process-sentinel (proc change)
   "Called when PROC undergoes CHANGE."
@@ -364,22 +386,13 @@ INTERACTIVE is t if called interactively."
       (setf (gethash (eglot--project proc) eglot--processes-by-project)
             (delq proc
                   (gethash (eglot--project proc) eglot--processes-by-project)))
-      (cond ((eglot--moribund proc)
-             (eglot--message "(sentinel) Moribund process exited with status %s"
-                             (process-exit-status proc)))
-            ((null eglot--inhibit-auto-reconnect)
-             (eglot--warn
-              "(sentinel) Reconnecting after process unexpectedly changed to `%s'."
-              change)
-             (setq eglot--inhibit-auto-reconnect
-                   (run-with-timer 3 nil
-                                   (lambda ()
-                                     (setq eglot--inhibit-auto-reconnect nil))))
+      (eglot--message "Server exited with status %s" (process-exit-status proc))
+      (cond ((eglot--moribund proc))
+            ((not (eglot--inhibit-autoreconnect proc))
+             (eglot--warn "Reconnecting unexpected server exit.")
              (eglot-reconnect proc))
             (t
-             (eglot--warn
-              "(sentinel) Not auto-reconnecting, last one didn't last long."
-              change)))
+             (eglot--warn "Not auto-reconnecting, last one didn't last long.")))
       (delete-process proc))))
 
 (defun eglot--process-filter (proc string)
