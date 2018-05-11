@@ -400,8 +400,7 @@ INTERACTIVE is t if called interactively."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       (let ((inhibit-read-only t)
-            (expected-bytes (eglot--expected-bytes proc))
-            (done (make-symbol "eglot--process-filter-done-tag")))
+            (expected-bytes (eglot--expected-bytes proc)))
         ;; Insert the text, advancing the process marker.
         ;;
         (save-excursion
@@ -411,8 +410,8 @@ INTERACTIVE is t if called interactively."
         ;; Loop (more than one message might have arrived)
         ;;
         (unwind-protect
-            (catch done
-              (while t
+            (let (done)
+              (while (not done)
                 (cond
                  ((not expected-bytes)
                   ;; Starting a new message
@@ -425,7 +424,7 @@ INTERACTIVE is t if called interactively."
                               t)
                              (string-to-number (match-string 1))))
                   (unless expected-bytes
-                    (throw done :waiting-for-new-message)))
+                    (setq done :waiting-for-new-message)))
                  (t
                   ;; Attempt to complete a message body
                   ;;
@@ -453,7 +452,7 @@ INTERACTIVE is t if called interactively."
                      (t
                       ;; Message is still incomplete
                       ;;
-                      (throw done :waiting-for-more-bytes-in-this-message))))))))
+                      (setq done :waiting-for-more-bytes-in-this-message))))))))
           ;; Saved parsing state for next visit to this filter
           ;;
           (setf (eglot--expected-bytes proc) expected-bytes))))))
@@ -652,25 +651,20 @@ DEFERRED is passed to `eglot--async-request', which see."
   ;; bad idea, since that might lead to the request never having a
   ;; chance to run, because `eglot--ready-predicates'.
   (when deferred (eglot--signal-textDocument/didChange))
-  (let* ((done (make-symbol "eglot--request-catch-tag"))
-         (res
-          (catch done (eglot--async-request
-                       proc method params
-                       :success-fn (lambda (&rest args)
-                                     (throw done (if (vectorp (car args))
-                                                     (car args) args)))
-                       :error-fn (eglot--lambda
-                                     (&key code message &allow-other-keys)
-                                   (throw done
-                                          `(error ,(format "Oops: %s: %s"
-                                                           code message))))
-                       :timeout-fn (lambda ()
-                                     (throw done '(error "Timed out")))
-                       :deferred deferred)
-                 ;; now spin, baby!
-                 (while t (accept-process-output nil 0.01)))))
-    (when (and (listp res) (eq 'error (car res))) (eglot--error (cadr res)))
-    res))
+  (let ((retval))
+    (eglot--async-request
+     proc method params
+     :success-fn (lambda (&rest args)
+                   (setq retval `(done ,(if (vectorp (car args))
+                                            (car args) args))))
+     :error-fn (eglot--lambda (&key code message &allow-other-keys)
+                 (setq retval `(error ,(format "Oops: %s: %s" code message))))
+     :timeout-fn (lambda ()
+                   (setq retval '(error "Timed out")))
+     :deferred deferred)
+    (while (not retval) (accept-process-output nil 30))
+    (when (eq 'error (car retval)) (eglot--error (cadr retval)))
+    (cadr retval)))
 
 (cl-defun eglot--notify (process method params)
   "Notify PROCESS of something, don't expect a reply.e"
