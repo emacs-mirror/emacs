@@ -1314,6 +1314,28 @@ DUMMY is ignored"
 
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
+(defun eglot--hover-info (contents &optional range)
+  (concat (and range
+               (eglot--with-lsp-range (beg end) range
+                 (concat (buffer-substring beg end)  ": ")))
+          (mapconcat #'eglot--format-markup
+                     (append
+                      (cond ((vectorp contents)
+                             contents)
+                            (contents
+                             (list contents)))) "\n")))
+
+(defun eglot-help-at-point ()
+  "Request \"hover\" information for the thing at point."
+  (interactive)
+  (cl-destructuring-bind (&key contents range)
+      (eglot--request (eglot--current-process-or-lose) :textDocument/hover
+                      (eglot--TextDocumentPositionParams))
+    (when (seq-empty-p contents) (eglot--error "No hover info here"))
+    (with-help-window "*eglot help*"
+      (with-current-buffer standard-output
+        (insert (eglot--hover-info contents range))))))
+
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function."
   (let ((buffer (current-buffer))
@@ -1325,17 +1347,7 @@ DUMMY is ignored"
        :success-fn (eglot--lambda (&key contents range)
                      (when (get-buffer-window buffer)
                        (with-current-buffer buffer
-                         (eldoc-message
-                          (concat
-                           (and range
-                                (eglot--with-lsp-range (beg end) range
-                                  (concat (buffer-substring beg end)  ": ")))
-                           (mapconcat #'eglot--format-markup
-                                      (append
-                                       (cond ((vectorp contents)
-                                              contents)
-                                             (contents
-                                              (list contents)))) "\n"))))))
+                         (eldoc-message (eglot--hover-info contents range)))))
        :deferred :textDocument/hover))
     (when (eglot--server-capable :documentHighlightProvider)
       (eglot--async-request
@@ -1346,12 +1358,11 @@ DUMMY is ignored"
                            (when (get-buffer-window buffer)
                              (with-current-buffer buffer
                                (eglot--mapply
-                                (eglot--lambda (&key range kind)
+                                (eglot--lambda (&key range _kind)
                                   (eglot--with-lsp-range (beg end) range
                                     (let ((ov (make-overlay beg end)))
                                       (overlay-put ov 'face 'highlight)
                                       (overlay-put ov 'evaporate t)
-                                      (overlay-put ov :kind kind)
                                       ov)))
                                 highlights)))))
        :deferred :textDocument/documentHighlight)))
@@ -1482,3 +1493,7 @@ Proceed? "
 
 (provide 'eglot)
 ;;; eglot.el ends here
+
+;; Local Variables:
+;; checkdoc-force-docstrings-flag: nil
+;; End:
