@@ -1,6 +1,6 @@
 ;;; eglot.el --- Client for Language Server Protocol (LSP) servers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018 Free Software Foundation, Inc.
 
 ;; Version: 0.1
 ;; Author: João Távora <joaotavora@gmail.com>
