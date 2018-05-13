@@ -217,6 +217,8 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                   :publishDiagnostics `(:relatedInformation :json-false))
    :experimental (eglot--obj)))
 
+(defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
+
 (defun eglot--connect (project managed-major-mode short-name contact interactive)
   "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT.
 INTERACTIVE is t if inside interactive call."
@@ -238,6 +240,7 @@ INTERACTIVE is t if inside interactive call."
                                         (null eglot-autoreconnect)))))))
         (setf (eglot--short-name proc) short-name)
         (push proc (gethash project eglot--processes-by-project))
+        (run-hook-with-args 'eglot-connect-hook proc)
         (erase-buffer)
         (read-only-mode t)
         (cl-destructuring-bind (&key capabilities)
