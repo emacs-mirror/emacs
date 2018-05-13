@@ -292,6 +292,7 @@ INTERACTIVE is t if inside interactive call."
                          "\n" base-prompt)))))
     (list
      managed-mode
+     (or (project-current) `(transient . default-directory))
      (if prompt
          (split-string-and-unquote
           (read-shell-command prompt
@@ -302,10 +303,12 @@ INTERACTIVE is t if inside interactive call."
      t)))
 
 ;;;###autoload
-(defun eglot (managed-major-mode command &optional interactive)
+(defun eglot (managed-major-mode project command &optional interactive)
   "Start a Language Server Protocol server.
 Server is started with COMMAND and manages buffers of
 MANAGED-MAJOR-MODE for the current project.
+
+PROJECT is a project instance as returned by `project-current'.
 
 COMMAND is a list of strings, an executable program and
 optionally its arguments.  If the first and only string in the
@@ -323,8 +326,7 @@ MANAGED-MAJOR-MODE.
 
 INTERACTIVE is t if called interactively."
   (interactive (eglot--interactive))
-  (let* ((project (project-current 'maybe))
-         (short-name (eglot--project-short-name project)))
+  (let* ((short-name (eglot--project-short-name project)))
     (let ((current-process (eglot--current-process)))
       (if (and (process-live-p current-process)
                interactive
@@ -339,7 +341,8 @@ INTERACTIVE is t if called interactively."
                                     interactive)))
           (eglot--message "Connected! Process `%s' now \
 managing `%s' buffers in project `%s'."
-                          proc managed-major-mode short-name))))))
+                          proc managed-major-mode short-name)
+          proc)))))
 
 (defun eglot-reconnect (process &optional interactive)
   "Reconnect to PROCESS.
