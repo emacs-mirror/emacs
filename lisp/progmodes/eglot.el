@@ -24,8 +24,7 @@
 
 ;;; Commentary:
 
-;; M-x eglot in some file under some .git controlled dir should get
-;; you started, but see README.md.
+;; Simply M-x eglot should be enough to get you started, but see README.md.
 
 ;;; Code:
 
@@ -79,15 +78,13 @@ lasted more than that many seconds."
 
 (defun eglot--current-process ()
   "The current logical EGLOT process."
-  (let* ((cur (project-current))
-         (processes (and cur (gethash cur eglot--processes-by-project))))
-    (cl-find major-mode processes :key #'eglot--major-mode)))
+  (let* ((probe (or (project-current) (cons 'transient default-directory))))
+    (cl-find major-mode (gethash probe eglot--processes-by-project)
+             :key #'eglot--major-mode)))
 
 (defun eglot--current-process-or-lose ()
   "Return the current EGLOT process or error."
-  (or (eglot--current-process)
-      (eglot--error "No current EGLOT process%s"
-                    (if (project-current) "" " (Also no current project)"))))
+  (or (eglot--current-process) (eglot--error "No current EGLOT process")))
 
 (defmacro eglot--define-process-var
     (var-sym initval &optional doc)
@@ -326,11 +323,8 @@ MANAGED-MAJOR-MODE.
 
 INTERACTIVE is t if called interactively."
   (interactive (eglot--interactive))
-  (let* ((project (project-current))
+  (let* ((project (project-current 'maybe))
          (short-name (eglot--project-short-name project)))
-    (unless project (eglot--error "Cannot work without a current project!"))
-    (unless command (eglot--error "Don't know how to start EGLOT for %s buffers"
-                                  major-mode))
     (let ((current-process (eglot--current-process)))
       (if (and (process-live-p current-process)
                interactive
