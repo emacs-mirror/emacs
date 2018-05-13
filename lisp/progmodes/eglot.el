@@ -651,20 +651,25 @@ DEFERRED is passed to `eglot--async-request', which see."
   ;; bad idea, since that might lead to the request never having a
   ;; chance to run, because `eglot--ready-predicates'.
   (when deferred (eglot--signal-textDocument/didChange))
-  (let ((retval))
-    (eglot--async-request
-     proc method params
-     :success-fn (lambda (&rest args)
-                   (setq retval `(done ,(if (vectorp (car args))
-                                            (car args) args))))
-     :error-fn (eglot--lambda (&key code message &allow-other-keys)
-                 (setq retval `(error ,(format "Oops: %s: %s" code message))))
-     :timeout-fn (lambda ()
-                   (setq retval '(error "Timed out")))
-     :deferred deferred)
-    (while (not retval) (accept-process-output nil 30))
-    (when (eq 'error (car retval)) (eglot--error (cadr retval)))
-    (cadr retval)))
+  (let* ((done (make-symbol "eglot--request-catch-tag"))
+         (res
+          (catch done (eglot--async-request
+                       proc method params
+                       :success-fn (lambda (&rest args)
+                                     (throw done (if (vectorp (car args))
+                                                     (car args) args)))
+                       :error-fn (eglot--lambda
+                                     (&key code message &allow-other-keys)
+                                   (throw done
+                                          `(error ,(format "Oops: %s: %s"
+                                                           code message))))
+                       :timeout-fn (lambda ()
+                                     (throw done '(error "Timed out")))
+                       :deferred deferred)
+                 ;; now spin, baby!
+                 (while t (accept-process-output nil 0.01)))))
+    (when (and (listp res) (eq 'error (car res))) (eglot--error (cadr res)))
+    res))
 
 (cl-defun eglot--notify (process method params)
   "Notify PROCESS of something, don't expect a reply.e"
