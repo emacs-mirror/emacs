@@ -211,6 +211,7 @@ CONTACT is as `eglot--contact'.  Returns a process object."
                                     :didSave t)
                   :completion         `(:dynamicRegistration :json-false)
                   :hover              `(:dynamicRegistration :json-false)
+                  :signatureHelp      `(:dynamicRegistration :json-false)
                   :references         `(:dynamicRegistration :json-false)
                   :definition         `(:dynamicRegistration :json-false)
                   :documentSymbol     `(:dynamicRegistration :json-false)
@@ -1330,6 +1331,28 @@ DUMMY is ignored"
                             (contents
                              (list contents)))) "\n")))
 
+(defun eglot--sig-info (sigs active-sig active-param)
+  (cl-loop
+   for (sig . moresigs) on (append sigs nil) for i from 0
+   concat (cl-destructuring-bind (&key label _documentation parameters) sig
+            (let (active-doc)
+              (concat
+               (propertize (replace-regexp-in-string "(.*$" "(" label)
+                           'face 'font-lock-function-name-face)
+               (cl-loop
+                for (param . moreparams) on (append parameters nil) for j from 0
+                concat (cl-destructuring-bind (&key label documentation) param
+                         (when (and (eql j active-param) (eql i active-sig))
+                           (setq label (propertize
+                                        label
+                                        'face 'eldoc-highlight-function-argument))
+                           (when documentation
+                             (setq active-doc (concat label ": " documentation))))
+                         label)
+                if moreparams concat ", " else concat ")")
+               (when active-doc (concat "\n" active-doc)))))
+   when moresigs concat "\n"))
+
 (defun eglot-help-at-point ()
   "Request \"hover\" information for the thing at point."
   (interactive)
@@ -1342,35 +1365,51 @@ DUMMY is ignored"
         (insert (eglot--hover-info contents range))))))
 
 (defun eglot-eldoc-function ()
-  "EGLOT's `eldoc-documentation-function' function."
-  (let ((buffer (current-buffer))
-        (proc (eglot--current-process-or-lose))
-        (position-params (eglot--TextDocumentPositionParams)))
-    (when (eglot--server-capable :hoverProvider)
-      (eglot--async-request
-       proc :textDocument/hover position-params
-       :success-fn (eglot--lambda (&key contents range)
-                     (when (get-buffer-window buffer)
-                       (with-current-buffer buffer
-                         (eldoc-message (eglot--hover-info contents range)))))
-       :deferred :textDocument/hover))
-    (when (eglot--server-capable :documentHighlightProvider)
-      (eglot--async-request
-       proc :textDocument/documentHighlight position-params
-       :success-fn (lambda (highlights)
-                     (mapc #'delete-overlay eglot--highlights)
-                     (setq eglot--highlights
-                           (when (get-buffer-window buffer)
-                             (with-current-buffer buffer
-                               (eglot--mapply
-                                (eglot--lambda (&key range _kind)
-                                  (eglot--with-lsp-range (beg end) range
-                                    (let ((ov (make-overlay beg end)))
-                                      (overlay-put ov 'face 'highlight)
-                                      (overlay-put ov 'evaporate t)
-                                      ov)))
-                                highlights)))))
-       :deferred :textDocument/documentHighlight)))
+  "EGLOT's `eldoc-documentation-function' function.
+If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
+  (let* ((buffer (current-buffer))
+         (proc (eglot--current-process-or-lose))
+         (position-params (eglot--TextDocumentPositionParams))
+         sig-showing)
+    (cl-macrolet ((when-buffer-window
+                   (&body body) `(when (get-buffer-window buffer)
+                                   (with-current-buffer buffer ,@body))))
+      (when (eglot--server-capable :signatureHelpProvider)
+        (eglot--async-request
+         proc :textDocument/signatureHelp position-params
+         :success-fn (eglot--lambda (&key signatures activeSignature
+                                          activeParameter)
+                       (when-buffer-window
+                        (when (cl-plusp (length signatures))
+                          (setq sig-showing t)
+                          (eldoc-message (eglot--sig-info signatures
+                                                          activeSignature
+                                                          activeParameter)))))
+         :deferred :textDocument/signatureHelp))
+      (when (eglot--server-capable :hoverProvider)
+        (eglot--async-request
+         proc :textDocument/hover position-params
+         :success-fn (eglot--lambda (&key contents range)
+                       (unless sig-showing
+                         (when-buffer-window
+                          (eldoc-message (eglot--hover-info contents range)))))
+         :deferred :textDocument/hover))
+      (when (eglot--server-capable :documentHighlightProvider)
+        (eglot--async-request
+         proc :textDocument/documentHighlight position-params
+         :success-fn (lambda (highlights)
+                       (mapc #'delete-overlay eglot--highlights)
+                       (setq eglot--highlights
+                             (when-buffer-window
+                              (eglot--mapply
+                               (eglot--lambda (&key range _kind)
+                                 (eglot--with-lsp-range (beg end) range
+                                   (let ((ov (make-overlay beg end)))
+                                     (overlay-put ov 'face 'highlight)
+                                     (overlay-put ov 'evaporate t)
+                                     ov)))
+                               highlights))))
+         :deferred :textDocument/documentHighlight))))
   nil)
 
 (defun eglot-imenu (oldfun)
