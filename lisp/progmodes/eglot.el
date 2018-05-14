@@ -24,8 +24,7 @@
 
 ;;; Commentary:
 
-;; M-x eglot in some file under some .git controlled dir should get
-;; you started, but see README.md.
+;; Simply M-x eglot should be enough to get you started, but see README.md.
 
 ;;; Code:
 
@@ -41,6 +40,7 @@
 (require 'xref)
 (require 'subr-x)
 (require 'jrpc)
+(require 'filenotify)
 
 
 ;;; User tweakable stuff
@@ -93,12 +93,19 @@ A list (ID WHAT DONE-P).")
 (jrpc-define-process-var eglot--inhibit-autoreconnect eglot-autoreconnect
   "If non-nil, don't autoreconnect on unexpected quit.")
 
+(jrpc-define-process-var eglot--file-watches (make-hash-table :test #'equal)
+  "File system watches for the didChangeWatchedfiles thingy.")
+
 (defun eglot--on-shutdown (proc)
   ;; Turn off `eglot--managed-mode' where appropriate.
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (eglot--buffer-managed-p proc)
         (eglot--managed-mode -1))))
+  ;; Kill any expensive watches
+  (maphash (lambda (_id watches)
+               (mapcar #'file-notify-rm-watch watches))
+           (eglot--file-watches proc))
   ;; Sever the project/process relationship for proc
   (setf (gethash (eglot--project proc) eglot--processes-by-project)
         (delq proc
@@ -129,9 +136,9 @@ called interactively."
 
 (defun eglot--find-current-process ()
   "The current logical EGLOT process."
-  (let* ((cur (project-current))
-         (processes (and cur (gethash cur eglot--processes-by-project))))
-    (cl-find major-mode processes :key #'eglot--major-mode)))
+  (let* ((probe (or (project-current) (cons 'transient default-directory))))
+    (cl-find major-mode (gethash probe eglot--processes-by-project)
+             :key #'eglot--major-mode)))
 
 (defun eglot--project-short-name (project)
   "Give PROJECT a short name."
@@ -149,15 +156,17 @@ called interactively."
   "What the EGLOT LSP client supports."
   (jrpc-obj
    :workspace    (jrpc-obj
+                  :applyEdit t
+                  :workspaceEdit `(:documentChanges :json-false)
+                  :didChangeWatchesFiles `(:dynamicRegistration t)
                   :symbol `(:dynamicRegistration :json-false))
    :textDocument (jrpc-obj
                   :synchronization (jrpc-obj
                                     :dynamicRegistration :json-false
-                                    :willSave t
-                                    :willSaveWaitUntil :json-false
-                                    :didSave t)
+                                    :willSave t :willSaveWaitUntil t :didSave t)
                   :completion         `(:dynamicRegistration :json-false)
                   :hover              `(:dynamicRegistration :json-false)
+                  :signatureHelp      `(:dynamicRegistration :json-false)
                   :references         `(:dynamicRegistration :json-false)
                   :definition         `(:dynamicRegistration :json-false)
                   :documentSymbol     `(:dynamicRegistration :json-false)
@@ -199,6 +208,7 @@ called interactively."
                          "\n" base-prompt)))))
     (list
      managed-mode
+     (or (project-current) `(transient . default-directory))
      (if prompt
          (split-string-and-unquote
           (read-shell-command prompt
@@ -209,10 +219,12 @@ called interactively."
      t)))
 
 ;;;###autoload
-(defun eglot (managed-major-mode command &optional interactive)
+(defun eglot (managed-major-mode project command &optional interactive)
   "Start a Language Server Protocol server.
 Server is started with COMMAND and manages buffers of
 MANAGED-MAJOR-MODE for the current project.
+
+PROJECT is a project instance as returned by `project-current'.
 
 COMMAND is a list of strings, an executable program and
 optionally its arguments.  If the first and only string in the
@@ -230,11 +242,7 @@ MANAGED-MAJOR-MODE.
 
 INTERACTIVE is t if called interactively."
   (interactive (eglot--interactive))
-  (let* ((project (project-current))
-         (short-name (eglot--project-short-name project)))
-    (unless project (eglot--error "Cannot work without a current project!"))
-    (unless command (eglot--error "Don't know how to start EGLOT for %s buffers"
-                                  major-mode))
+  (let* ((short-name (eglot--project-short-name project)))
     (let ((current-process (jrpc-current-process)))
       (if (and (process-live-p current-process)
                interactive
@@ -249,7 +257,8 @@ INTERACTIVE is t if called interactively."
                                     interactive)))
           (eglot--message "Connected! Process `%s' now \
 managing `%s' buffers in project `%s'."
-                          proc managed-major-mode short-name))))))
+                          proc managed-major-mode short-name)
+          proc)))))
 
 (defun eglot-reconnect (process &optional interactive)
   "Reconnect to PROCESS.
@@ -266,12 +275,15 @@ INTERACTIVE is t if called interactively."
 
 (defalias 'eglot-events-buffer 'jrpc-events-buffer)
 
+(defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
+
 (defun eglot--connect (project managed-major-mode name command
                                dont-inhibit)
   (let ((proc (jrpc-connect name command "eglot--server-" #'eglot--on-shutdown)))
     (setf (eglot--project proc) project)
     (setf (eglot--major-mode proc)managed-major-mode)
     (push proc (gethash project eglot--processes-by-project))
+    (run-hook-with-args 'eglot-connect-hook proc)
     (cl-destructuring-bind (&key capabilities)
         (jrpc-request
          proc
@@ -461,10 +473,6 @@ that case, also signal textDocument/didOpen."
 
 ;;; Mode-line, menu and other sugar
 ;;;
-(defvar eglot-menu)
-
-(easy-menu-define eglot-menu eglot-mode-map "EGLOT" `("EGLOT" ))
-
 (defvar eglot--mode-line-format `(:eval (eglot--mode-line-format)))
 
 (put 'eglot--mode-line-format 'risky-local-variable t)
@@ -498,8 +506,7 @@ Uses THING, FACE, DEFS and PREPEND."
                (`(,_id ,doing ,done-p ,detail) (and proc (eglot--spinner proc)))
                (`(,status ,serious-p) (and proc (jrpc-status proc))))
     (append
-     `(,(eglot--mode-line-props "eglot" 'eglot-mode-line
-                                '((down-mouse-1 eglot-menu "pop up EGLOT menu"))))
+     `(,(eglot--mode-line-props "eglot" 'eglot-mode-line nil))
      (when name
        `(":" ,(eglot--mode-line-props
                name 'eglot-mode-line
@@ -597,36 +604,35 @@ Uses THING, FACE, DEFS and PREPEND."
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
+(cl-defun eglot--register-unregister (proc jsonrpc-id things how)
+  "Helper for `eglot--server-client/registerCapability'.
+THINGS are either registrations or unregisterations."
+  (dolist (thing (cl-coerce things 'list))
+    (cl-destructuring-bind (&key id method registerOptions) thing
+      (let (retval)
+        (unwind-protect
+            (setq retval (apply (intern (format "eglot--%s-%s" how method))
+                                proc :id id registerOptions))
+          (unless (eq t (car retval))
+            (cl-return-from eglot--register-unregister
+              (jrpc-reply
+               proc jsonrpc-id
+               :error `(:code -32601 :message ,(or (cadr retval) "sorry")))))))))
+  (jrpc-reply proc jsonrpc-id :result (jrpc-obj :message "OK")))
+
 (cl-defun eglot--server-client/registerCapability
     (proc &key id registrations)
-  "Handle notification client/registerCapability"
-  (let ((jrpc-id id)
-        (done (make-symbol "done")))
-    (catch done
-      (mapc
-       (lambda (reg)
-         (apply
-          (cl-function
-           (lambda (&key id method registerOptions)
-             (pcase-let*
-                 ((handler-sym (intern (concat "eglot--register-"
-                                               method)))
-                  (`(,ok ,message)
-                   (and (functionp handler-sym)
-                        (apply handler-sym proc :id id registerOptions))))
-               (unless ok
-                 (throw done
-                        (jrpc-reply proc jrpc-id
-                                    :error (jrpc-obj
-                                            :code -32601
-                                            :message (or message "sorry :-("))))))))
-          reg))
-       registrations)
-      (jrpc-reply proc id :result (jrpc-obj :message "OK")))))
+  "Handle server request client/registerCapability"
+  (eglot--register-unregister proc id registrations 'register))
+
+(cl-defun eglot--server-client/unregisterCapability
+    (proc &key id unregisterations) ;; XXX: Yeah, typo and all.. See spec...
+  "Handle server request client/unregisterCapability"
+  (eglot--register-unregister proc id unregisterations 'unregister))
 
 (cl-defun eglot--server-workspace/applyEdit
     (proc &key id _label edit)
-  "Handle notification client/registerCapability"
+  "Handle server request workspace/applyEdit"
   (condition-case err
       (progn
         (eglot--apply-workspace-edit edit 'confirm)
@@ -737,26 +743,27 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
   (setq eglot--recent-changes (cons [] []))
-  (jrpc-notify (jrpc-current-process-or-lose)
-               :textDocument/didOpen
-               (jrpc-obj :textDocument
-                         (eglot--TextDocumentItem))))
+  (jrpc-notify
+   (jrpc-current-process-or-lose)
+   :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
 
 (defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
-  (jrpc-notify (jrpc-current-process-or-lose)
-               :textDocument/didClose
-               (jrpc-obj :textDocument
-                         (eglot--TextDocumentIdentifier))))
+  (jrpc-notify
+   (jrpc-current-process-or-lose)
+   :textDocument/didClose `(:textDocument ,(eglot--TextDocumentIdentifier))))
 
 (defun eglot--signal-textDocument/willSave ()
   "Send textDocument/willSave to server."
-  (jrpc-notify
-   (jrpc-current-process-or-lose)
-   :textDocument/willSave
-   (jrpc-obj
-    :reason 1 ; Manual, emacs laughs in the face of auto-save muahahahaha
-    :textDocument (eglot--TextDocumentIdentifier))))
+  (let ((proc (jrpc-current-process-or-lose))
+        (params `(:reason 1 :textDocument ,(eglot--TextDocumentIdentifier))))
+    (jrpc-notify proc :textDocument/willSave params)
+    (ignore-errors
+      (let ((jrpc-request-timeout 0.5))
+        (when (plist-get :willSaveWaitUntil
+                         (eglot--server-capable :textDocumentSync))
+          (eglot--apply-text-edits
+           (jrpc-request proc :textDocument/willSaveWaituntil params)))))))
 
 (defun eglot--signal-textDocument/didSave ()
   "Send textDocument/didSave to server."
@@ -936,6 +943,28 @@ DUMMY is ignored"
                             (contents
                              (list contents)))) "\n")))
 
+(defun eglot--sig-info (sigs active-sig active-param)
+  (cl-loop
+   for (sig . moresigs) on (append sigs nil) for i from 0
+   concat (cl-destructuring-bind (&key label _documentation parameters) sig
+            (let (active-doc)
+              (concat
+               (propertize (replace-regexp-in-string "(.*$" "(" label)
+                           'face 'font-lock-function-name-face)
+               (cl-loop
+                for (param . moreparams) on (append parameters nil) for j from 0
+                concat (cl-destructuring-bind (&key label documentation) param
+                         (when (and (eql j active-param) (eql i active-sig))
+                           (setq label (propertize
+                                        label
+                                        'face 'eldoc-highlight-function-argument))
+                           (when documentation
+                             (setq active-doc (concat label ": " documentation))))
+                         label)
+                if moreparams concat ", " else concat ")")
+               (when active-doc (concat "\n" active-doc)))))
+   when moresigs concat "\n"))
+
 (defun eglot-help-at-point ()
   "Request \"hover\" information for the thing at point."
   (interactive)
@@ -948,35 +977,51 @@ DUMMY is ignored"
         (insert (eglot--hover-info contents range))))))
 
 (defun eglot-eldoc-function ()
-  "EGLOT's `eldoc-documentation-function' function."
-  (let ((buffer (current-buffer))
-        (proc (jrpc-current-process-or-lose))
-        (position-params (eglot--TextDocumentPositionParams)))
-    (when (eglot--server-capable :hoverProvider)
-      (jrpc-async-request
-       proc :textDocument/hover position-params
-       :success-fn (jrpc-lambda (&key contents range)
-                     (when (get-buffer-window buffer)
-                       (with-current-buffer buffer
-                         (eldoc-message (eglot--hover-info contents range)))))
-       :deferred :textDocument/hover))
-    (when (eglot--server-capable :documentHighlightProvider)
-      (jrpc-async-request
-       proc :textDocument/documentHighlight position-params
-       :success-fn (lambda (highlights)
-                     (mapc #'delete-overlay eglot--highlights)
-                     (setq eglot--highlights
-                           (when (get-buffer-window buffer)
-                             (with-current-buffer buffer
-                               (jrpc-mapply
-                                (jrpc-lambda (&key range _kind)
-                                  (eglot--with-lsp-range (beg end) range
-                                    (let ((ov (make-overlay beg end)))
-                                      (overlay-put ov 'face 'highlight)
-                                      (overlay-put ov 'evaporate t)
-                                      ov)))
-                                highlights)))))
-       :deferred :textDocument/documentHighlight)))
+  "EGLOT's `eldoc-documentation-function' function.
+If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
+  (let* ((buffer (current-buffer))
+         (proc (jrpc-current-process-or-lose))
+         (position-params (eglot--TextDocumentPositionParams))
+         sig-showing)
+    (cl-macrolet ((when-buffer-window
+                   (&body body) `(when (get-buffer-window buffer)
+                                   (with-current-buffer buffer ,@body))))
+      (when (eglot--server-capable :signatureHelpProvider)
+        (jrpc-async-request
+         proc :textDocument/signatureHelp position-params
+         :success-fn (jrpc-lambda (&key signatures activeSignature
+                                          activeParameter)
+                       (when-buffer-window
+                        (when (cl-plusp (length signatures))
+                          (setq sig-showing t)
+                          (eldoc-message (eglot--sig-info signatures
+                                                          activeSignature
+                                                          activeParameter)))))
+         :deferred :textDocument/signatureHelp))
+      (when (eglot--server-capable :hoverProvider)
+        (jrpc-async-request
+         proc :textDocument/hover position-params
+         :success-fn (jrpc-lambda (&key contents range)
+                       (unless sig-showing
+                         (when-buffer-window
+                          (eldoc-message (eglot--hover-info contents range)))))
+         :deferred :textDocument/hover))
+      (when (eglot--server-capable :documentHighlightProvider)
+        (jrpc-async-request
+         proc :textDocument/documentHighlight position-params
+         :success-fn (lambda (highlights)
+                       (mapc #'delete-overlay eglot--highlights)
+                       (setq eglot--highlights
+                             (when-buffer-window
+                              (jrpc-mapply
+                               (jrpc-lambda (&key range _kind)
+                                 (eglot--with-lsp-range (beg end) range
+                                   (let ((ov (make-overlay beg end)))
+                                     (overlay-put ov 'face 'highlight)
+                                     (overlay-put ov 'evaporate t)
+                                     ov)))
+                               highlights))))
+         :deferred :textDocument/documentHighlight))))
   nil)
 
 (defun eglot-imenu (oldfun)
@@ -998,22 +1043,20 @@ DUMMY is ignored"
          entries))
     (funcall oldfun)))
 
-(defun eglot--apply-text-edits (buffer edits &optional version)
-  "Apply the EDITS for BUFFER."
-  (with-current-buffer buffer
-    (unless (or (not version)
-                (equal version eglot--versioned-identifier))
-      (eglot--error "Edits on `%s' require version %d, you have %d"
-                    buffer version eglot--versioned-identifier))
-    (jrpc-mapply
-     (jrpc-lambda (&key range newText)
-       (save-restriction
-         (widen)
-         (save-excursion
-           (eglot--with-lsp-range (beg end) range
-             (goto-char beg) (delete-region beg end) (insert newText)))))
-     edits)
-    (eglot--message "%s: Performed %s edits" (current-buffer) (length edits))))
+(defun eglot--apply-text-edits (edits &optional version)
+  "Apply EDITS for current buffer if at VERSION, or if it's nil."
+  (unless (or (not version) (equal version eglot--versioned-identifier))
+    (eglot--error "Edits on `%s' require version %d, you have %d"
+                  (current-buffer) version eglot--versioned-identifier))
+  (jrpc-mapply
+   (jrpc-lambda (&key range newText)
+     (save-restriction
+       (widen)
+       (save-excursion
+         (eglot--with-lsp-range (beg end) range
+           (goto-char beg) (delete-region beg end) (insert newText)))))
+   edits)
+  (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
   "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
@@ -1043,9 +1086,8 @@ Proceed? "
         (let (edit)
           (while (setq edit (car prepared))
             (cl-destructuring-bind (path edits &optional version) edit
-              (eglot--apply-text-edits (find-file-noselect path)
-                                       edits
-                                       version)
+              (with-current-buffer (find-file-noselect path)
+                (eglot--apply-text-edits edits version))
               (pop prepared))))
       (if prepared
           (eglot--warn "Caution: edits of files %s failed."
@@ -1067,12 +1109,45 @@ Proceed? "
 
 ;;; Dynamic registration
 ;;;
-(cl-defun eglot--register-workspace/didChangeWatchedFiles
-    (_proc &key _id _watchers)
+(cl-defun eglot--register-workspace/didChangeWatchedFiles (proc &key id watchers)
   "Handle dynamic registration of workspace/didChangeWatchedFiles"
-  ;; TODO: file-notify-add-watch and
-  ;; file-notify-rm-watch can probably handle this
-  (list nil "Sorry, can't do this yet"))
+  (eglot--unregister-workspace/didChangeWatchedFiles proc :id id)
+  (let* (success
+         (globs (mapcar (lambda (w) (plist-get w :globPattern)) watchers)))
+    (cl-labels
+        ((handle-event
+          (event)
+          (cl-destructuring-bind (desc action file &optional file1) event
+            (cond
+             ((and (memq action '(created changed deleted))
+                   (cl-find file globs
+                            :test (lambda (f glob)
+                                    (string-match (wildcard-to-regexp
+                                                   (expand-file-name glob))
+                                                  f))))
+              (jrpc-notify
+               proc :workspace/didChangeWatchedFiles
+               `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
+                                          :type ,(cl-case action
+                                                   (created 1)
+                                                   (changed 2)
+                                                   (deleted 3)))))))
+             ((eq action 'renamed)
+              (handle-event desc 'deleted file)
+              (handle-event desc 'created file1))))))
+      (unwind-protect
+          (progn (dolist (dir (delete-dups (mapcar #'file-name-directory globs)))
+                   (push (file-notify-add-watch dir '(change) #'handle-event)
+                         (gethash id (eglot--file-watches proc))))
+                 (setq success `(t "OK")))
+        (unless success
+          (eglot--unregister-workspace/didChangeWatchedFiles proc :id id))))))
+
+(cl-defun eglot--unregister-workspace/didChangeWatchedFiles (proc &key id)
+  "Handle dynamic unregistration of workspace/didChangeWatchedFiles"
+  (mapc #'file-notify-rm-watch (gethash id (eglot--file-watches proc)))
+  (remhash id (eglot--file-watches proc))
+  (list t "OK"))
 
 
 ;;; Rust-specific
