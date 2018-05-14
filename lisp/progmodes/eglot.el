@@ -224,7 +224,7 @@ CONTACT is as `eglot--contact'.  Returns a process object."
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
-(defun eglot--connect (project managed-major-mode short-name contact interactive)
+(defun eglot--connect (project managed-major-mode short-name contact _interactive)
   "Connect for PROJECT, MANAGED-MAJOR-MODE, SHORT-NAME and CONTACT.
 INTERACTIVE is t if inside interactive call."
   (let* ((proc (eglot--make-process short-name managed-major-mode contact))
@@ -233,11 +233,10 @@ INTERACTIVE is t if inside interactive call."
           (eglot--project proc) project
           (eglot--major-mode proc) managed-major-mode)
     (with-current-buffer buffer
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t) success)
         (setf (eglot--inhibit-autoreconnect proc)
               (cond
                ((booleanp eglot-autoreconnect) (not eglot-autoreconnect))
-               (interactive nil)
                ((cl-plusp eglot-autoreconnect)
                 (run-with-timer eglot-autoreconnect nil
                                 (lambda ()
@@ -248,24 +247,27 @@ INTERACTIVE is t if inside interactive call."
         (run-hook-with-args 'eglot-connect-hook proc)
         (erase-buffer)
         (read-only-mode t)
-        (cl-destructuring-bind (&key capabilities)
-            (eglot--request
-             proc
-             :initialize
-             (eglot--obj :processId (unless (eq (process-type proc)
-                                                'network)
-                                      (emacs-pid))
-                         :rootUri  (eglot--path-to-uri
-                                    (car (project-roots project)))
-                         :initializationOptions  []
-                         :capabilities (eglot--client-capabilities)))
-          (setf (eglot--capabilities proc) capabilities)
-          (setf (eglot--status proc) nil)
-          (dolist (buffer (buffer-list))
-            (with-current-buffer buffer
-              (eglot--maybe-activate-editing-mode proc)))
-          (eglot--notify proc :initialized (eglot--obj :__dummy__ t))
-          proc)))))
+        (unwind-protect
+            (cl-destructuring-bind (&key capabilities)
+                (eglot--request
+                 proc
+                 :initialize
+                 (eglot--obj :processId (unless (eq (process-type proc)
+                                                    'network)
+                                          (emacs-pid))
+                             :capabilities(eglot--client-capabilities)
+                             :rootUri  (eglot--path-to-uri
+                                        (car (project-roots project)))
+                             :initializationOptions  []))
+              (setf (eglot--capabilities proc) capabilities)
+              (setf (eglot--status proc) nil)
+              (dolist (buffer (buffer-list))
+                (with-current-buffer buffer
+                  (eglot--maybe-activate-editing-mode proc)))
+              (eglot--notify proc :initialized (eglot--obj :__dummy__ t))
+              (setq success proc))
+          (unless (or success (not (process-live-p proc)) (eglot--moribund proc))
+            (eglot-shutdown proc)))))))
 
 (defvar eglot--command-history nil
   "History of COMMAND arguments to `eglot'.")
@@ -398,10 +400,10 @@ INTERACTIVE is t if called interactively."
       (eglot--message "Server exited with status %s" (process-exit-status proc))
       (cond ((eglot--moribund proc))
             ((not (eglot--inhibit-autoreconnect proc))
-             (eglot--warn "Reconnecting unexpected server exit.")
+             (eglot--warn "Reconnecting after unexpected server exit")
              (eglot-reconnect proc))
-            (t
-             (eglot--warn "Not auto-reconnecting, last one didn't last long.")))
+            ((timerp (eglot--inhibit-autoreconnect proc))
+             (eglot--warn "Not auto-reconnecting, last on didn't last long.")))
       (delete-process proc))))
 
 (defun eglot--process-filter (proc string)
