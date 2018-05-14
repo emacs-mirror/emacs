@@ -95,13 +95,14 @@ A list (ID WHAT DONE-P).")
 
 (defun eglot--on-shutdown (proc)
   ;; Turn off `eglot--managed-mode' where appropriate.
-  (setf (gethash (eglot--project proc) eglot--processes-by-project)
-        (delq proc
-              (gethash (eglot--project proc) eglot--processes-by-project)))
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (eglot--buffer-managed-p proc)
         (eglot--managed-mode -1))))
+  ;; Sever the project/process relationship for proc
+  (setf (gethash (eglot--project proc) eglot--processes-by-project)
+        (delq proc
+              (gethash (eglot--project proc) eglot--processes-by-project)))
   (cond ((eglot--moribund proc))
         ((not (eglot--inhibit-autoreconnect proc))
          (eglot--warn "Reconnecting unexpected server exit.")
@@ -267,7 +268,7 @@ INTERACTIVE is t if called interactively."
 
 (defun eglot--connect (project managed-major-mode name command
                                dont-inhibit)
-  (let ((proc (jrpc-connect name command "eglot--server-")))
+  (let ((proc (jrpc-connect name command "eglot--server-" #'eglot--on-shutdown)))
     (setf (eglot--project proc) project)
     (setf (eglot--major-mode proc)managed-major-mode)
     (push proc (gethash project eglot--processes-by-project))
@@ -326,11 +327,11 @@ INTERACTIVE is t if called interactively."
   "Convert point POS to LSP position."
   (save-excursion
     (jrpc-obj :line
-                ;; F!@(#*&#$)CKING OFF-BY-ONE
-                (1- (line-number-at-pos pos t))
-                :character
-                (- (goto-char (or pos (point)))
-                   (line-beginning-position)))))
+              ;; F!@(#*&#$)CKING OFF-BY-ONE
+              (1- (line-number-at-pos pos t))
+              :character
+              (- (goto-char (or pos (point)))
+                 (line-beginning-position)))))
 
 (defun eglot--lsp-position-to-point (pos-plist)
   "Convert LSP position POS-PLIST to Emacs point."
@@ -401,7 +402,6 @@ INTERACTIVE is t if called interactively."
    (eglot--managed-mode
     (add-hook 'jrpc-find-process-functions 'eglot--find-current-process nil t)
     (add-hook 'jrpc-ready-predicates 'eglot--server-ready-p nil t)
-    (add-hook 'jrpc-server-moribund-hook 'eglot--on-shutdown nil t)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
@@ -417,7 +417,6 @@ INTERACTIVE is t if called interactively."
    (t
     (remove-hook 'jrpc-find-process-functions 'eglot--find-current-process t)
     (remove-hook 'jrpc-ready-predicates 'eglot--server-ready-p t)
-    (remove-hook 'jrpc-server-moribund-hook 'eglot--on-shutdown t)
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
     (remove-hook 'before-change-functions 'eglot--before-change t)
@@ -439,11 +438,9 @@ INTERACTIVE is t if called interactively."
 
 (defun eglot--buffer-managed-p (&optional proc)
   "Tell if current buffer can be managed by PROC."
-  (and buffer-file-name
-       (cond ((null proc) (jrpc-current-process))
-             (t (and (eq major-mode (eglot--major-mode proc))
-                     (let ((proj (project-current)))
-                       (and proj (equal proj (eglot--project proc)))))))))
+  (and buffer-file-name (let ((cur (eglot--find-current-process)))
+                          (or (and (null proc) cur)
+                              (and proc (eq proc cur))))))
 
 (defvar-local eglot--current-flymake-report-fn nil
   "Current flymake report function for this buffer")
@@ -585,12 +582,12 @@ Uses THING, FACE, DEFS and PREPEND."
                                               _code source message)
                      diag-spec
                    (eglot--with-lsp-range (beg end) range
-                                          (flymake-make-diagnostic (current-buffer)
-                                                                   beg end
-                                                                   (cond ((<= severity 1) :error)
-                                                                         ((= severity 2)  :warning)
-                                                                         (t               :note))
-                                                                   (concat source ": " message))))
+                     (flymake-make-diagnostic (current-buffer)
+                                              beg end
+                                              (cond ((<= severity 1) :error)
+                                                    ((= severity 2)  :warning)
+                                                    (t               :note))
+                                              (concat source ": " message))))
          into diags
          finally (cond (eglot--current-flymake-report-fn
                         (funcall eglot--current-flymake-report-fn diags)
@@ -657,18 +654,18 @@ Uses THING, FACE, DEFS and PREPEND."
   (append
    (eglot--VersionedTextDocumentIdentifier)
    (jrpc-obj :languageId
-               (if (string-match "\\(.*\\)-mode" (symbol-name major-mode))
-                   (match-string 1 (symbol-name major-mode))
-                 "unknown")
-               :text
-               (save-restriction
-                 (widen)
-                 (buffer-substring-no-properties (point-min) (point-max))))))
+             (if (string-match "\\(.*\\)-mode" (symbol-name major-mode))
+                 (match-string 1 (symbol-name major-mode))
+               "unknown")
+             :text
+             (save-restriction
+               (widen)
+               (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun eglot--TextDocumentPositionParams ()
   "Compute TextDocumentPositionParams."
   (jrpc-obj :textDocument (eglot--TextDocumentIdentifier)
-              :position (eglot--pos-to-lsp-position)))
+            :position (eglot--pos-to-lsp-position)))
 
 (defvar-local eglot--recent-changes nil
   "Recent buffer changes as collected by `eglot--before-change'.")
@@ -931,7 +928,7 @@ DUMMY is ignored"
 (defun eglot--hover-info (contents &optional range)
   (concat (and range
                (eglot--with-lsp-range (beg end) range
-                                      (concat (buffer-substring beg end)  ": ")))
+                 (concat (buffer-substring beg end)  ": ")))
           (mapconcat #'eglot--format-markup
                      (append
                       (cond ((vectorp contents)
