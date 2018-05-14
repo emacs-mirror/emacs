@@ -79,7 +79,7 @@ lasted more than that many seconds."
 
 (defun eglot--current-process ()
   "The current logical EGLOT process."
-  (let* ((probe (or (project-current) (cons 'transient default-directory))))
+  (let* ((probe (or (project-current) `(transient . ,default-directory))))
     (cl-find major-mode (gethash probe eglot--processes-by-project)
              :key #'eglot--major-mode)))
 
@@ -300,7 +300,7 @@ INTERACTIVE is t if inside interactive call."
                          "\n" base-prompt)))))
     (list
      managed-mode
-     (or (project-current) `(transient . default-directory))
+     (or (project-current) `(transient . ,default-directory))
      (if prompt
          (split-string-and-unquote
           (read-shell-command prompt
