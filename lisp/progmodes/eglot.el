@@ -532,8 +532,6 @@ is a symbol saying if this is a client or server originated."
       (eglot--call-deferred proc)
       (force-mode-line-update t))))
 
-(defvar eglot--expect-carriage-return nil)
-
 (defun eglot--process-send (proc message)
   "Send MESSAGE to PROC (ID is optional)."
   (let ((json (json-encode message)))
@@ -542,7 +540,7 @@ is a symbol saying if this is a client or server originated."
                                       json))
     (eglot--log-event proc message 'client)))
 
-(defvar eglot--next-request-id 0)
+(defvar eglot--next-request-id 0 "ID for next request.")
 
 (defun eglot--next-request-id ()
   "Compute the next id for a client request."
