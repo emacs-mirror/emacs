@@ -843,10 +843,6 @@ that case, also signal textDocument/didOpen."
 
 ;;; Mode-line, menu and other sugar
 ;;;
-(defvar eglot-menu)
-
-(easy-menu-define eglot-menu eglot-mode-map "EGLOT" `("EGLOT" ))
-
 (defvar eglot--mode-line-format `(:eval (eglot--mode-line-format)))
 
 (put 'eglot--mode-line-format 'risky-local-variable t)
@@ -881,8 +877,7 @@ Uses THING, FACE, DEFS and PREPEND."
                (`(,_id ,doing ,done-p ,detail) (and proc (eglot--spinner proc)))
                (`(,status ,serious-p) (and proc (eglot--status proc))))
     (append
-     `(,(eglot--mode-line-props "eglot" 'eglot-mode-line
-                                '((down-mouse-1 eglot-menu "pop up EGLOT menu"))))
+     `(,(eglot--mode-line-props "eglot" 'eglot-mode-line nil))
      (when name
        `(":" ,(eglot--mode-line-props
                name 'eglot-mode-line
