@@ -39,6 +39,7 @@
 (require 'flymake)
 (require 'xref)
 (require 'subr-x)
+(require 'filenotify)
 
 
 ;;; User tweakable stuff
@@ -148,6 +149,9 @@ list of a single string of the form <host>:<port>")
     (make-hash-table :test #'equal)
   "Actions deferred to when server is thought to be ready.")
 
+(eglot--define-process-var eglot--file-watches (make-hash-table :test #'equal)
+  "File system watches for the didChangeWatchedfiles thingy.")
+
 (defun eglot--make-process (name managed-major-mode contact)
   "Make a process from CONTACT.
 NAME is a name to give the inferior process or connection.
@@ -199,6 +203,9 @@ CONTACT is as `eglot--contact'.  Returns a process object."
   "What the EGLOT LSP client supports."
   (eglot--obj
    :workspace    (eglot--obj
+                  :applyEdit t
+                  :workspaceEdit `(:documentChanges :json-false)
+                  :didChangeWatchesFiles `(:dynamicRegistration t)
                   :symbol `(:dynamicRegistration :json-false))
    :textDocument (eglot--obj
                   :synchronization (eglot--obj
@@ -365,11 +372,14 @@ INTERACTIVE is t if called interactively."
     (with-current-buffer (eglot-events-buffer proc)
       (let ((inhibit-read-only t))
         (insert "\n----------b---y---e---b---y---e----------\n")))
-    ;; Cancel outstanding timers
+    ;; Cancel outstanding timers and file system watches
     (maphash (lambda (_id triplet)
                (cl-destructuring-bind (_success _error timeout) triplet
                  (cancel-timer timeout)))
              (eglot--pending-continuations proc))
+    (maphash (lambda (_id watches)
+               (mapcar #'file-notify-rm-watch watches))
+             (eglot--file-watches proc))
     (unwind-protect
         ;; Call all outstanding error handlers
         (maphash (lambda (_id triplet)
@@ -990,32 +1000,31 @@ called interactively."
      (t
       (eglot--message "OK so %s isn't visited" filename)))))
 
+(cl-defun eglot--register-unregister (proc jsonrpc-id things how)
+  "Helper for `eglot--server-client/registerCapability'.
+THINGS are either registrations or unregisterations."
+  (dolist (thing (cl-coerce things 'list))
+    (cl-destructuring-bind (&key id method registerOptions) thing
+      (let (retval)
+        (unwind-protect
+            (setq retval (apply (intern (format "eglot--%s-%s" how method))
+                                proc :id id registerOptions))
+          (unless (eq t (car retval))
+            (cl-return-from eglot--register-unregister
+              (eglot--reply
+               proc jsonrpc-id
+               :error `(:code -32601 :message ,(or (cadr retval) "sorry")))))))))
+  (eglot--reply proc jsonrpc-id :result (eglot--obj :message "OK")))
+
 (cl-defun eglot--server-client/registerCapability
     (proc &key id registrations)
-  "Handle notification client/registerCapability"
-  (let ((jsonrpc-id id)
-        (done (make-symbol "done")))
-    (catch done
-      (mapc
-       (lambda (reg)
-         (apply
-          (cl-function
-           (lambda (&key id method registerOptions)
-             (pcase-let*
-                 ((handler-sym (intern (concat "eglot--register-"
-                                               method)))
-                  (`(,ok ,message)
-                   (and (functionp handler-sym)
-                        (apply handler-sym proc :id id registerOptions))))
-               (unless ok
-                 (throw done
-                        (eglot--reply proc jsonrpc-id
-                                      :error (eglot--obj
-                                              :code -32601
-                                              :message (or message "sorry :-("))))))))
-          reg))
-       registrations)
-      (eglot--reply proc id :result (eglot--obj :message "OK")))))
+  "Handle server request client/registerCapability"
+  (eglot--register-unregister proc id registrations 'register))
+
+(cl-defun eglot--server-client/unregisterCapability
+    (proc &key id unregisterations) ;; XXX: Yeah, typo and all.. See spec...
+  "Handle server request client/unregisterCapability"
+  (eglot--register-unregister proc id unregisterations 'unregister))
 
 (cl-defun eglot--server-workspace/applyEdit
     (proc &key id _label edit)
@@ -1489,12 +1498,45 @@ Proceed? "
 
 ;;; Dynamic registration
 ;;;
-(cl-defun eglot--register-workspace/didChangeWatchedFiles
-    (_proc &key _id _watchers)
+(cl-defun eglot--register-workspace/didChangeWatchedFiles (proc &key id watchers)
   "Handle dynamic registration of workspace/didChangeWatchedFiles"
-  ;; TODO: file-notify-add-watch and
-  ;; file-notify-rm-watch can probably handle this
-  (list nil "Sorry, can't do this yet"))
+  (eglot--unregister-workspace/didChangeWatchedFiles proc :id id)
+  (let* (success
+         (globs (mapcar (lambda (w) (plist-get w :globPattern)) watchers)))
+    (cl-labels
+        ((handle-event
+          (event)
+          (cl-destructuring-bind (desc action file &optional file1) event
+            (cond
+             ((and (memq action '(created changed deleted))
+                   (cl-find file globs
+                            :test (lambda (f glob)
+                                    (string-match (wildcard-to-regexp
+                                                   (expand-file-name glob))
+                                                  f))))
+              (eglot--notify
+               proc :workspace/didChangeWatchedFiles
+               `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
+                                          :type ,(cl-case action
+                                                   (created 1)
+                                                   (changed 2)
+                                                   (deleted 3)))))))
+             ((eq action 'renamed)
+              (handle-event desc 'deleted file)
+              (handle-event desc 'created file1))))))
+      (unwind-protect
+          (progn (dolist (dir (delete-dups (mapcar #'file-name-directory globs)))
+                   (push (file-notify-add-watch dir '(change) #'handle-event)
+                         (gethash id (eglot--file-watches proc))))
+                 (setq success `(t "OK")))
+        (unless success
+          (eglot--unregister-workspace/didChangeWatchedFiles proc :id id))))))
+
+(cl-defun eglot--unregister-workspace/didChangeWatchedFiles (proc &key id)
+  "Handle dynamic unregistration of workspace/didChangeWatchedFiles"
+  (mapc #'file-notify-rm-watch (gethash id (eglot--file-watches proc)))
+  (remhash id (eglot--file-watches proc))
+  (list t "OK"))
 
 
 ;;; Rust-specific
