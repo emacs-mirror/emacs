@@ -203,9 +203,7 @@ CONTACT is as `eglot--contact'.  Returns a process object."
    :textDocument (eglot--obj
                   :synchronization (eglot--obj
                                     :dynamicRegistration :json-false
-                                    :willSave t
-                                    :willSaveWaitUntil :json-false
-                                    :didSave t)
+                                    :willSave t :willSaveWaitUntil t :didSave t)
                   :completion         `(:dynamicRegistration :json-false)
                   :hover              `(:dynamicRegistration :json-false)
                   :signatureHelp      `(:dynamicRegistration :json-false)
@@ -1023,7 +1021,7 @@ called interactively."
 
 (cl-defun eglot--server-workspace/applyEdit
     (proc &key id _label edit)
-  "Handle notification client/registerCapability"
+  "Handle server request workspace/applyEdit"
   (condition-case err
       (progn
         (eglot--apply-workspace-edit edit 'confirm)
@@ -1127,26 +1125,27 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
   (setq eglot--recent-changes (cons [] []))
-  (eglot--notify (eglot--current-process-or-lose)
-                 :textDocument/didOpen
-                 (eglot--obj :textDocument
-                             (eglot--TextDocumentItem))))
+  (eglot--notify
+   (eglot--current-process-or-lose)
+   :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
 
 (defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
-  (eglot--notify (eglot--current-process-or-lose)
-                 :textDocument/didClose
-                 (eglot--obj :textDocument
-                             (eglot--TextDocumentIdentifier))))
+  (eglot--notify
+   (eglot--current-process-or-lose)
+   :textDocument/didClose `(:textDocument ,(eglot--TextDocumentIdentifier))))
 
 (defun eglot--signal-textDocument/willSave ()
   "Send textDocument/willSave to server."
-  (eglot--notify
-   (eglot--current-process-or-lose)
-   :textDocument/willSave
-   (eglot--obj
-    :reason 1 ; Manual, emacs laughs in the face of auto-save muahahahaha
-    :textDocument (eglot--TextDocumentIdentifier))))
+  (let ((proc (eglot--current-process-or-lose))
+        (params `(:reason 1 :textDocument ,(eglot--TextDocumentIdentifier))))
+    (eglot--notify proc :textDocument/willSave params)
+    (ignore-errors
+      (let ((eglot-request-timeout 0.5))
+        (when (plist-get :willSaveWaitUntil
+                         (eglot--server-capable :textDocumentSync))
+          (eglot--apply-text-edits
+           (eglot--request proc :textDocument/willSaveWaituntil params)))))))
 
 (defun eglot--signal-textDocument/didSave ()
   "Send textDocument/didSave to server."
@@ -1426,22 +1425,20 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          entries))
     (funcall oldfun)))
 
-(defun eglot--apply-text-edits (buffer edits &optional version)
-  "Apply the EDITS for BUFFER."
-  (with-current-buffer buffer
-    (unless (or (not version)
-                (equal version eglot--versioned-identifier))
-      (eglot--error "Edits on `%s' require version %d, you have %d"
-                    buffer version eglot--versioned-identifier))
-    (eglot--mapply
-     (eglot--lambda (&key range newText)
-       (save-restriction
-         (widen)
-         (save-excursion
-           (eglot--with-lsp-range (beg end) range
-             (goto-char beg) (delete-region beg end) (insert newText)))))
-     edits)
-    (eglot--message "%s: Performed %s edits" (current-buffer) (length edits))))
+(defun eglot--apply-text-edits (edits &optional version)
+  "Apply EDITS for current buffer if at VERSION, or if it's nil."
+  (unless (or (not version) (equal version eglot--versioned-identifier))
+    (eglot--error "Edits on `%s' require version %d, you have %d"
+                  (current-buffer) version eglot--versioned-identifier))
+  (eglot--mapply
+   (eglot--lambda (&key range newText)
+     (save-restriction
+       (widen)
+       (save-excursion
+         (eglot--with-lsp-range (beg end) range
+           (goto-char beg) (delete-region beg end) (insert newText)))))
+   edits)
+  (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
   "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
@@ -1471,9 +1468,8 @@ Proceed? "
         (let (edit)
           (while (setq edit (car prepared))
             (cl-destructuring-bind (path edits &optional version) edit
-              (eglot--apply-text-edits (find-file-noselect path)
-                                       edits
-                                       version)
+              (with-current-buffer (find-file-noselect path)
+                (eglot--apply-text-edits edits version))
               (pop prepared))))
       (if prepared
           (eglot--warn "Caution: edits of files %s failed."
