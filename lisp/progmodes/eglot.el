@@ -277,9 +277,18 @@ INTERACTIVE is t if called interactively."
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
+(defun eglot--dispatch (proc method id &rest params)
+  ;; a server notification or a server request
+  (let* ((handler-sym (intern (concat "eglot--server-" method))))
+    (if (functionp handler-sym)
+        (apply handler-sym proc (append params (if id `(:id ,id))))
+      (jrpc-reply
+                  proc id
+                  :error (jrpc-obj :code -32601 :message "Unimplemented")))))
+
 (defun eglot--connect (project managed-major-mode name command
                                dont-inhibit)
-  (let ((proc (jrpc-connect name command "eglot--server-" #'eglot--on-shutdown)))
+  (let ((proc (jrpc-connect name command #'eglot--dispatch #'eglot--on-shutdown)))
     (setf (eglot--project proc) project)
     (setf (eglot--major-mode proc)managed-major-mode)
     (push proc (gethash project eglot--processes-by-project))
