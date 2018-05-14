@@ -612,9 +612,9 @@ timeout keeps counting."
                    (remhash id (eglot--pending-continuations proc))
                    (funcall (or timeout-fn
                                 (lambda ()
-                                  (eglot--error
-                                   "Tired of waiting for reply to %s, id=%s"
-                                   method id))))))))))
+                                  (eglot--log-event
+                                   proc `(:timed-out ,method :id id
+                                                     :params ,params)))))))))))
     (when deferred
       (let* ((buf (current-buffer))
              (existing (gethash (list deferred buf) (eglot--deferred-actions proc))))
