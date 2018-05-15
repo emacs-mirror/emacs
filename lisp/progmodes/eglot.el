@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018 Free Software Foundation, Inc.
 
-;; Version: 0.1
+;; Version: 0.2
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -24,8 +24,28 @@
 
 ;;; Commentary:
 
-;; Simply M-x eglot should be enough to get you started, but see README.md.
-
+;; Simply M-x eglot should be enough to get you started, but here's a
+;; little info (see the accompanying README.md or the URL for more).
+;;
+;; M-x eglot starts a server via a shell-command guessed from
+;; `eglot-server-programs', using the current major-mode (for whatever
+;; language you're programming in) as a hint.  If it can't guess, it
+;; prompts you in the mini-buffer for these things.  Actually, the
+;; server needen't be locally started: you can connect to a running
+;; server via TCP by entering a <host:port> syntax.
+;;
+;; Anyway, if the connection is successful, you should see an `eglot'
+;; indicator pop up in your mode-line.  More importantly, this means
+;; current *and future* file buffers of that major mode *inside your
+;; current project* automatically become \"managed\" by the LSP
+;; server, i.e.  information about their contents is exchanged
+;; periodically to provide enhanced code analysis via
+;; `xref-find-definitions', `flymake-mode', `eldoc-mode',
+;; `completion-at-point', among others.
+;;
+;; To "unmanage" these buffers, shutdown the server with M-x
+;; eglot-shutdown.
+;;
 ;;; Code:
 
 (require 'json)
@@ -314,9 +334,22 @@ INTERACTIVE is t if inside interactive call."
 
 ;;;###autoload
 (defun eglot (managed-major-mode project command &optional interactive)
-  "Start a Language Server Protocol server.
-Server is started with COMMAND and manages buffers of
-MANAGED-MAJOR-MODE for the current project.
+  "Manage a project with a Language Server Protocol (LSP) server.
+
+The LSP server is started (or contacted) via COMMAND.  If this
+operation is successful, current *and future* file buffers of
+MANAGED-MAJOR-MODE inside PROJECT automatically become
+\"managed\" by the LSP server, meaning information about their
+contents is exchanged periodically to provide enhanced
+code-analysis via `xref-find-definitions', `flymake-mode',
+`eldoc-mode', `completion-at-point', among others.
+
+Interactively, the command attempts to guess MANAGED-MAJOR-MODE
+from current buffer, COMMAND from `eglot-server-programs' and
+PROJECT from `project-current'.  If it can't guess, the user is
+prompted.  With a single \\[universal-argument] prefix arg, it
+always prompt for COMMAND.  With two \\[universal-argument]
+prefix args, also prompts for MANAGED-MAJOR-MODE.
 
 PROJECT is a project instance as returned by `project-current'.
 
@@ -327,12 +360,6 @@ indication to connect to a server instead of starting one.  This
 is also know as the server's \"contact\".
 
 MANAGED-MAJOR-MODE is an Emacs major mode.
-
-Interactively, guess MANAGED-MAJOR-MODE from current buffer and
-COMMAND from `eglot-server-programs'.  With a single
-\\[universal-argument] prefix arg, prompt for COMMAND.  With two
-\\[universal-argument] prefix args, also prompt for
-MANAGED-MAJOR-MODE.
 
 INTERACTIVE is t if called interactively."
   (interactive (eglot--interactive))
