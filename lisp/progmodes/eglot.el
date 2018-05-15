@@ -71,7 +71,9 @@
 (defvar eglot-server-programs '((rust-mode . ("rls"))
                                 (python-mode . ("pyls"))
                                 (js-mode . ("javascript-typescript-stdio"))
-                                (sh-mode . ("bash-language-server" "start")))
+                                (sh-mode . ("bash-language-server" "start"))
+                                (php-mode . ("php" "vendor/felixfbecker/\
+language-server/bin/php-language-server.php")))
   "Alist mapping major modes to server executables.")
 
 (defface eglot-mode-line
@@ -276,6 +278,7 @@ INTERACTIVE is t if inside interactive call."
                                                     'network)
                                           (emacs-pid))
                              :capabilities(eglot--client-capabilities)
+                             :rootPath  (car (project-roots project))
                              :rootUri  (eglot--path-to-uri
                                         (car (project-roots project)))
                              :initializationOptions  []))
