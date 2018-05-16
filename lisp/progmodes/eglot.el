@@ -75,7 +75,9 @@
                                 (sh-mode . ("bash-language-server" "start"))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
-  "Alist mapping major modes to server executables.")
+  "Alist of (MAJOR-MODE . CONTACT) mapping major modes to server executables.
+CONTACT can be anything accepted by that parameter in the
+function `eglot', which see.")
 
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
@@ -198,7 +200,7 @@ called interactively."
    :experimental (jrpc-obj)))
 
 (defvar eglot--command-history nil
-  "History of COMMAND arguments to `eglot'.")
+  "History of CONTACT arguments to `eglot'.")
 
 (defun eglot--interactive ()
   "Helper for `eglot'."
@@ -213,6 +215,7 @@ called interactively."
               (mapcar #'symbol-name (eglot--all-major-modes)) nil t
               (symbol-name guessed-mode) nil (symbol-name guessed-mode) nil)))
            (t guessed-mode)))
+         (project (or (project-current) `(transient . ,default-directory)))
          (guessed-command (cdr (assoc managed-mode eglot-server-programs)))
          (base-prompt "[eglot] Enter program to execute (or <host>:<port>): ")
          (prompt
@@ -222,26 +225,30 @@ called interactively."
                                  managed-mode)
                          "\n" base-prompt))
                 ((and (listp guessed-command)
+                      (not (integerp (cadr guessed-command)))
                       (not (executable-find (car guessed-command))))
                  (concat (format "[eglot] I guess you want to run `%s'"
                                  (combine-and-quote-strings guessed-command))
                          (format ", but I can't find `%s' in PATH!"
                                  (car guessed-command))
-                         "\n" base-prompt)))))
-    (list
-     managed-mode
-     (or (project-current) `(transient . ,default-directory))
-     (if prompt
-         (split-string-and-unquote
-          (read-shell-command prompt
-                              (if (listp guessed-command)
-                                  (combine-and-quote-strings guessed-command))
-                              'eglot-command-history))
-       guessed-command)
-     t)))
+                         "\n" base-prompt))))
+         (contact
+          (cond ((not prompt) guessed-command)
+                (t
+                 (let ((string (read-shell-command
+                                prompt
+                                (if (listp guessed-command)
+                                    (combine-and-quote-strings guessed-command))
+                                'eglot-command-history)))
+                   (if (and string (string-match
+                                    "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
+                                    (string-trim string)))
+                       (list (match-string 1 string) (match-string 2 string))
+                     (split-string-and-unquote string)))))))
+    (list managed-mode project contact t)))
 
 ;;;###autoload
-(defun eglot (managed-major-mode project command &optional interactive)
+(defun eglot (managed-major-mode project contact &optional interactive)
   "Manage a project with a Language Server Protocol (LSP) server.
 
 The LSP server is started (or contacted) via COMMAND.  If this
@@ -253,7 +260,7 @@ code-analysis via `xref-find-definitions', `flymake-mode',
 `eldoc-mode', `completion-at-point', among others.
 
 Interactively, the command attempts to guess MANAGED-MAJOR-MODE
-from current buffer, COMMAND from `eglot-server-programs' and
+from current buffer, CONTACT from `eglot-server-programs' and
 PROJECT from `project-current'.  If it can't guess, the user is
 prompted.  With a single \\[universal-argument] prefix arg, it
 always prompt for COMMAND.  With two \\[universal-argument]
@@ -261,11 +268,14 @@ prefix args, also prompts for MANAGED-MAJOR-MODE.
 
 PROJECT is a project instance as returned by `project-current'.
 
-COMMAND is a list of strings, an executable program and
-optionally its arguments.  If the first and only string in the
-list is of the form \"<host>:<port>\" it is taken as an
-indication to connect to a server instead of starting one.  This
-is also know as the server's \"contact\".
+CONTACT is a list of strings (COMMAND [ARGS...]) specifying how
+to start a server subprocess to connect to.  If the second
+element in the list is an integer number instead of a string, the
+list is interpreted as (HOST PORT [PARAMETERS...]) to connect to
+an existing server via TCP, the remaining PARAMETERS being given
+as `open-network-stream's optional arguments.  CONTACT can also
+be a function of no arguments returning a live connected process
+object.
 
 MANAGED-MAJOR-MODE is an Emacs major mode.
 
@@ -282,7 +292,7 @@ INTERACTIVE is t if called interactively."
         (let ((proc (eglot--connect project
                                     managed-major-mode
                                     (format "%s/%s" short-name managed-major-mode)
-                                    command)))
+                                    contact)))
           (eglot--message "Connected! Process `%s' now \
 managing `%s' buffers in project `%s'."
                           proc managed-major-mode short-name)
@@ -310,13 +320,13 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
   (let* ((handler-sym (intern (concat "eglot--server-" method))))
     (if (functionp handler-sym)
         (apply handler-sym proc (append params (if id `(:id ,id))))
-      (jrpc-reply
-                  proc id
+      (jrpc-reply proc id
                   :error (jrpc-obj :code -32601 :message "Unimplemented")))))
 
-(defun eglot--connect (project managed-major-mode name command)
-  (let ((proc (jrpc-connect name command #'eglot--dispatch #'eglot--on-shutdown))
-        success)
+(defun eglot--connect (project managed-major-mode name contact)
+  (let* ((contact (if (functionp contact) (funcall contact) contact))
+         (proc (jrpc-connect name contact #'eglot--dispatch #'eglot--on-shutdown))
+         success)
     (setf (eglot--project proc) project)
     (setf (eglot--major-mode proc)managed-major-mode)
     (push proc (gethash project eglot--processes-by-project))
@@ -350,7 +360,7 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
                                           (null eglot-autoreconnect)))))))
           (setq success proc))
       (unless (or success (not (process-live-p proc)) (eglot--moribund proc))
-            (eglot-shutdown proc)))))
+        (eglot-shutdown proc)))))
 
 (defun eglot--server-ready-p (_what _proc)
   "Tell if server of PROC ready for processing deferred WHAT."
