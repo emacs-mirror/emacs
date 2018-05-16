@@ -128,7 +128,7 @@ A list (ID WHAT DONE-P).")
         (eglot--managed-mode -1))))
   ;; Kill any expensive watches
   (maphash (lambda (_id watches)
-               (mapcar #'file-notify-rm-watch watches))
+             (mapcar #'file-notify-rm-watch watches))
            (eglot--file-watches proc))
   ;; Sever the project/process relationship for proc
   (setf (gethash (eglot--project proc) eglot--processes-by-project)
@@ -314,7 +314,7 @@ INTERACTIVE is t if called interactively."
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
-(defun eglot--dispatch (proc method id &rest params)
+(defun eglot--dispatch (proc method id params)
   "Dispatcher passed to `jrpc-connect'.
 Builds a function from METHOD, passes it PROC, ID and PARAMS."
   (let* ((handler-sym (intern (concat "eglot--server-" method))))
@@ -865,7 +865,7 @@ DUMMY is ignored"
       (completion-table-with-cache
        (lambda (string)
          (setq eglot--xref-known-symbols
-               (jrpc-mapply
+               (mapcar
                 (jrpc-lambda (&key name kind location containerName)
                   (propertize name
                               :textDocumentPositionParams
@@ -898,7 +898,7 @@ DUMMY is ignored"
                           :textDocument/definition
                           (get-text-property
                            0 :textDocumentPositionParams identifier)))))
-    (jrpc-mapply
+    (mapcar
      (jrpc-lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
      location-or-locations)))
@@ -912,7 +912,7 @@ DUMMY is ignored"
                (and rich (get-text-property 0 :textDocumentPositionParams rich))))))
     (unless params
       (eglot--error "Don' know where %s is in the workspace!" identifier))
-    (jrpc-mapply
+    (mapcar
      (jrpc-lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
      (jrpc-request (jrpc-current-process-or-lose)
@@ -924,7 +924,7 @@ DUMMY is ignored"
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
-    (jrpc-mapply
+    (mapcar
      (jrpc-lambda (&key name location &allow-other-keys)
        (cl-destructuring-bind (&key uri range) location
          (eglot--xref-make name uri (plist-get range :start))))
@@ -947,7 +947,7 @@ DUMMY is ignored"
                                      (eglot--TextDocumentPositionParams)
                                      :textDocument/completion))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
-            (jrpc-mapply
+            (mapcar
              (jrpc-lambda (&rest all &key label &allow-other-keys)
                (add-text-properties 0 1 all label) label)
              items))))
@@ -1040,7 +1040,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
         (jrpc-async-request
          proc :textDocument/signatureHelp position-params
          :success-fn (jrpc-lambda (&key signatures activeSignature
-                                          activeParameter)
+                                        activeParameter)
                        (when-buffer-window
                         (when (cl-plusp (length signatures))
                           (setq sig-showing t)
@@ -1063,7 +1063,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (mapc #'delete-overlay eglot--highlights)
                        (setq eglot--highlights
                              (when-buffer-window
-                              (jrpc-mapply
+                              (mapcar
                                (jrpc-lambda (&key range _kind)
                                  (eglot--with-lsp-range (beg end) range
                                    (let ((ov (make-overlay beg end)))
@@ -1078,7 +1078,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   "EGLOT's `imenu-create-index-function' overriding OLDFUN."
   (if (eglot--server-capable :documentSymbolProvider)
       (let ((entries
-             (jrpc-mapply
+             (mapcar
               (jrpc-lambda (&key name kind location _containerName)
                 (cons (propertize name :kind (cdr (assoc kind eglot--kind-names)))
                       (eglot--lsp-position-to-point
@@ -1098,14 +1098,13 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
-  (jrpc-mapply
-   (jrpc-lambda (&key range newText)
-     (save-restriction
-       (widen)
-       (save-excursion
-         (eglot--with-lsp-range (beg end) range
-           (goto-char beg) (delete-region beg end) (insert newText)))))
-   edits)
+  (mapc (jrpc-lambda (&key range newText)
+          (save-restriction
+            (widen)
+            (save-excursion
+              (eglot--with-lsp-range (beg end) range
+                (goto-char beg) (delete-region beg end) (insert newText)))))
+        edits)
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
