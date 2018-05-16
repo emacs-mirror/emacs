@@ -541,7 +541,7 @@ is a symbol saying if this is a client or server originated."
 
 (defun eglot--process-receive (proc message)
   "Process MESSAGE from PROC."
-  (cl-destructuring-bind (&key method id error &allow-other-keys) message
+  (cl-destructuring-bind (&key method id params error result _jsonrpc) message
     (let* ((continuations (and id
                                (not method)
                                (gethash id (eglot--pending-continuations proc)))))
@@ -551,24 +551,19 @@ is a symbol saying if this is a client or server originated."
              ;; a server notification or a server request
              (let* ((handler-sym (intern (concat "eglot--server-" method))))
                (if (functionp handler-sym)
-                   (apply handler-sym proc (append
-                                            (plist-get message :params)
-                                            (if id `(:id ,id))))
+                   ;; FIXME: will fail if params is array instead of  not an object
+                   (apply handler-sym proc (append params (if id `(:id ,id))))
                  (eglot--warn "No implementation of method %s yet" method)
                  (when id
                    (eglot--reply
                     proc id
-                    :error (eglot--obj :code -32601
-                                       :message "Method unimplemented"))))))
+                    :error `(:code -32601 :message "Method unimplemented"))))))
             (continuations
              (cancel-timer (cl-third continuations))
              (remhash id (eglot--pending-continuations proc))
              (if error
-                 (apply (cl-second continuations) error)
-               (let ((res (plist-get message :result)))
-                 (if (listp res)
-                     (apply (cl-first continuations) res)
-                   (funcall (cl-first continuations) res)))))
+                 (funcall (cl-second continuations) error)
+               (funcall (cl-first continuations) result)))
             (id
              (eglot--warn "Ooops no continuation for id %s" id)))
       (eglot--call-deferred proc)
@@ -615,8 +610,9 @@ request request and a process object.")
   (not (eglot--outstanding-edits-p)))
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
-  (declare (indent 1) (debug (sexp &rest form)))
-  `(cl-function (lambda ,cl-lambda-list ,@body)))
+  (declare (debug (sexp &rest form)))
+  (let ((e (gensym "eglot--lambda-elem")))
+    `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
 
 (cl-defun eglot--async-request (proc
                                 method
@@ -625,12 +621,14 @@ request request and a process object.")
                                 &key success-fn error-fn timeout-fn
                                 (timeout eglot-request-timeout)
                                 (deferred nil))
-  "Make a request to PROCESS, expecting a reply.
-Return the ID of this request. Wait TIMEOUT seconds for response.
-If DEFERRED, maybe defer request to the future, or never at all,
-in case a new request with identical DEFERRED and for the same
-buffer overrides it. However, if that happens, the original
-timeout keeps counting."
+  "Make a request to PROCESS, expecting a reply later on.
+SUCCESS-FN and ERROR-FN are passed `:result' and `:error'
+objects, respectively.  Wait TIMEOUT seconds for response or call
+nullary TIMEOUT-FN.  If DEFERRED, maybe defer request to the
+future, or to never at all, in case a new request with identical
+DEFERRED and for the same buffer overrides it (however, if that
+happens, the original timeout keeps counting). Return the ID of
+this request."
   (let* ((id (eglot--next-request-id))
          (existing-timer nil)
          (make-timeout
@@ -692,23 +690,18 @@ DEFERRED is passed to `eglot--async-request', which see."
   (when deferred (eglot--signal-textDocument/didChange))
   (let* ((done (make-symbol "eglot--request-catch-tag"))
          (res
-          (catch done (eglot--async-request
-                       proc method params
-                       :success-fn (lambda (&rest args)
-                                     (throw done (if (vectorp (car args))
-                                                     (car args) args)))
-                       :error-fn (eglot--lambda
-                                     (&key code message &allow-other-keys)
-                                   (throw done
-                                          `(error ,(format "Oops: %s: %s"
-                                                           code message))))
-                       :timeout-fn (lambda ()
-                                     (throw done '(error "Timed out")))
-                       :deferred deferred)
-                 ;; now spin, baby!
-                 (while t (accept-process-output nil 0.01)))))
-    (when (and (listp res) (eq 'error (car res))) (eglot--error (cadr res)))
-    res))
+          (catch done
+            (eglot--async-request
+             proc method params
+             :success-fn (lambda (result) (throw done `(done ,result)))
+             :timeout-fn (lambda () (throw done '(error "Timed out")))
+             :error-fn (eglot--lambda (&key code message _data)
+                         (throw done `(error
+                                       ,(format "Ooops: %s: %s" code message))))
+             :deferred deferred)
+            (while t (accept-process-output nil 30)))))
+    (when (eq 'error (car res)) (eglot--error (cadr res)))
+    (cadr res)))
 
 (cl-defun eglot--notify (process method params)
   "Notify PROCESS of something, don't expect a reply.e"
@@ -761,11 +754,6 @@ DEFERRED is passed to `eglot--async-request', which see."
                         (- (line-end-position)
                            (line-beginning-position))))
                   (point)))
-
-
-(defun eglot--mapply (fun seq)
-  "Apply FUN to every element of SEQ."
-  (mapcar (lambda (e) (apply fun e)) seq))
 
 (defun eglot--path-to-uri (path)
   "Urify PATH."
@@ -1232,7 +1220,7 @@ DUMMY is ignored"
       (completion-table-with-cache
        (lambda (string)
          (setq eglot--xref-known-symbols
-               (eglot--mapply
+               (mapcar
                 (eglot--lambda (&key name kind location containerName)
                   (propertize name
                               :textDocumentPositionParams
@@ -1265,10 +1253,9 @@ DUMMY is ignored"
                             :textDocument/definition
                             (get-text-property
                              0 :textDocumentPositionParams identifier)))))
-    (eglot--mapply
-     (eglot--lambda (&key uri range)
-       (eglot--xref-make identifier uri (plist-get range :start)))
-     location-or-locations)))
+    (mapcar (eglot--lambda (&key uri range)
+              (eglot--xref-make identifier uri (plist-get range :start)))
+            location-or-locations)))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
   (unless (eglot--server-capable :referencesProvider)
@@ -1279,25 +1266,23 @@ DUMMY is ignored"
                (and rich (get-text-property 0 :textDocumentPositionParams rich))))))
     (unless params
       (eglot--error "Don' know where %s is in the workspace!" identifier))
-    (eglot--mapply
-     (eglot--lambda (&key uri range)
-       (eglot--xref-make identifier uri (plist-get range :start)))
-     (eglot--request (eglot--current-process-or-lose)
-                     :textDocument/references
-                     (append
-                      params
-                      (eglot--obj :context
-                                  (eglot--obj :includeDeclaration t)))))))
+    (mapcar (eglot--lambda (&key uri range)
+              (eglot--xref-make identifier uri (plist-get range :start)))
+            (eglot--request (eglot--current-process-or-lose)
+                            :textDocument/references
+                            (append
+                             params
+                             (eglot--obj :context
+                                         (eglot--obj :includeDeclaration t)))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
-    (eglot--mapply
-     (eglot--lambda (&key name location &allow-other-keys)
-       (cl-destructuring-bind (&key uri range) location
-         (eglot--xref-make name uri (plist-get range :start))))
-     (eglot--request (eglot--current-process-or-lose)
-                     :workspace/symbol
-                     (eglot--obj :query pattern)))))
+    (mapcar (eglot--lambda (&key name location &allow-other-keys)
+              (cl-destructuring-bind (&key uri range) location
+                (eglot--xref-make name uri (plist-get range :start))))
+            (eglot--request (eglot--current-process-or-lose)
+                            :workspace/symbol
+                            (eglot--obj :query pattern)))))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
@@ -1314,7 +1299,7 @@ DUMMY is ignored"
                                        (eglot--TextDocumentPositionParams)
                                        :textDocument/completion))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
-            (eglot--mapply
+            (mapcar
              (eglot--lambda (&rest all &key label &allow-other-keys)
                (add-text-properties 0 1 all label) label)
              items))))
@@ -1430,15 +1415,14 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (mapc #'delete-overlay eglot--highlights)
                        (setq eglot--highlights
                              (when-buffer-window
-                              (eglot--mapply
-                               (eglot--lambda (&key range _kind)
-                                 (pcase-let ((`(,beg . ,end)
-                                              (eglot--range-region range)))
-                                   (let ((ov (make-overlay beg end)))
-                                     (overlay-put ov 'face 'highlight)
-                                     (overlay-put ov 'evaporate t)
-                                     ov)))
-                               highlights))))
+                              (mapcar (eglot--lambda (&key range _kind)
+                                        (pcase-let ((`(,beg . ,end)
+                                                     (eglot--range-region range)))
+                                          (let ((ov (make-overlay beg end)))
+                                            (overlay-put ov 'face 'highlight)
+                                            (overlay-put ov 'evaporate t)
+                                            ov)))
+                                      highlights))))
          :deferred :textDocument/documentHighlight))))
   nil)
 
@@ -1446,7 +1430,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   "EGLOT's `imenu-create-index-function' overriding OLDFUN."
   (if (eglot--server-capable :documentSymbolProvider)
       (let ((entries
-             (eglot--mapply
+             (mapcar
               (eglot--lambda (&key name kind location _containerName)
                 (cons (propertize name :kind (cdr (assoc kind eglot--kind-names)))
                       (eglot--lsp-position-to-point
@@ -1466,14 +1450,13 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
-  (eglot--mapply
-   (eglot--lambda (&key range newText)
-     (save-restriction
-       (widen)
-       (save-excursion
-         (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-           (goto-char beg) (delete-region beg end) (insert newText)))))
-   edits)
+  (mapc (eglot--lambda (&key range newText)
+          (save-restriction
+            (widen)
+            (save-excursion
+              (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
+                (goto-char beg) (delete-region beg end) (insert newText)))))
+        edits)
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
