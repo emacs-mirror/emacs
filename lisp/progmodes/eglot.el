@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018 Free Software Foundation, Inc.
 
-;; Version: 0.1
+;; Version: 0.2
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -24,8 +24,28 @@
 
 ;;; Commentary:
 
-;; Simply M-x eglot should be enough to get you started, but see README.md.
-
+;; Simply M-x eglot should be enough to get you started, but here's a
+;; little info (see the accompanying README.md or the URL for more).
+;;
+;; M-x eglot starts a server via a shell-command guessed from
+;; `eglot-server-programs', using the current major-mode (for whatever
+;; language you're programming in) as a hint.  If it can't guess, it
+;; prompts you in the mini-buffer for these things.  Actually, the
+;; server needen't be locally started: you can connect to a running
+;; server via TCP by entering a <host:port> syntax.
+;;
+;; Anyway, if the connection is successful, you should see an `eglot'
+;; indicator pop up in your mode-line.  More importantly, this means
+;; current *and future* file buffers of that major mode *inside your
+;; current project* automatically become \"managed\" by the LSP
+;; server, i.e.  information about their contents is exchanged
+;; periodically to provide enhanced code analysis via
+;; `xref-find-definitions', `flymake-mode', `eldoc-mode',
+;; `completion-at-point', among others.
+;;
+;; To "unmanage" these buffers, shutdown the server with M-x
+;; eglot-shutdown.
+;;
 ;;; Code:
 
 (require 'json)
@@ -52,7 +72,9 @@
 (defvar eglot-server-programs '((rust-mode . ("rls"))
                                 (python-mode . ("pyls"))
                                 (js-mode . ("javascript-typescript-stdio"))
-                                (sh-mode . ("bash-language-server" "start")))
+                                (sh-mode . ("bash-language-server" "start"))
+                                (php-mode . ("php" "vendor/felixfbecker/\
+language-server/bin/php-language-server.php")))
   "Alist mapping major modes to server executables.")
 
 (defface eglot-mode-line
@@ -112,9 +134,9 @@ A list (ID WHAT DONE-P).")
               (gethash (eglot--project proc) eglot--processes-by-project)))
   (cond ((eglot--moribund proc))
         ((not (eglot--inhibit-autoreconnect proc))
-         (eglot--warn "Reconnecting unexpected server exit.")
+         (eglot--warn "Reconnecting after unexpected server exit.")
          (eglot-reconnect proc))
-        (t
+        ((timerp (eglot--inhibit-autoreconnect proc))
          (eglot--warn "Not auto-reconnecting, last one didn't last long."))))
 
 (defun eglot-shutdown (proc &optional interactive)
@@ -220,9 +242,22 @@ called interactively."
 
 ;;;###autoload
 (defun eglot (managed-major-mode project command &optional interactive)
-  "Start a Language Server Protocol server.
-Server is started with COMMAND and manages buffers of
-MANAGED-MAJOR-MODE for the current project.
+  "Manage a project with a Language Server Protocol (LSP) server.
+
+The LSP server is started (or contacted) via COMMAND.  If this
+operation is successful, current *and future* file buffers of
+MANAGED-MAJOR-MODE inside PROJECT automatically become
+\"managed\" by the LSP server, meaning information about their
+contents is exchanged periodically to provide enhanced
+code-analysis via `xref-find-definitions', `flymake-mode',
+`eldoc-mode', `completion-at-point', among others.
+
+Interactively, the command attempts to guess MANAGED-MAJOR-MODE
+from current buffer, COMMAND from `eglot-server-programs' and
+PROJECT from `project-current'.  If it can't guess, the user is
+prompted.  With a single \\[universal-argument] prefix arg, it
+always prompt for COMMAND.  With two \\[universal-argument]
+prefix args, also prompts for MANAGED-MAJOR-MODE.
 
 PROJECT is a project instance as returned by `project-current'.
 
@@ -233,12 +268,6 @@ indication to connect to a server instead of starting one.  This
 is also know as the server's \"contact\".
 
 MANAGED-MAJOR-MODE is an Emacs major mode.
-
-Interactively, guess MANAGED-MAJOR-MODE from current buffer and
-COMMAND from `eglot-server-programs'.  With a single
-\\[universal-argument] prefix arg, prompt for COMMAND.  With two
-\\[universal-argument] prefix args, also prompt for
-MANAGED-MAJOR-MODE.
 
 INTERACTIVE is t if called interactively."
   (interactive (eglot--interactive))
@@ -253,8 +282,7 @@ INTERACTIVE is t if called interactively."
         (let ((proc (eglot--connect project
                                     managed-major-mode
                                     (format "%s/%s" short-name managed-major-mode)
-                                    command
-                                    interactive)))
+                                    command)))
           (eglot--message "Connected! Process `%s' now \
 managing `%s' buffers in project `%s'."
                           proc managed-major-mode short-name)
@@ -269,8 +297,7 @@ INTERACTIVE is t if called interactively."
   (eglot--connect (eglot--project process)
                   (eglot--major-mode process)
                   (jrpc-name process)
-                  (jrpc-contact process)
-                  interactive)
+                  (jrpc-contact process))
   (eglot--message "Reconnected!"))
 
 (defalias 'eglot-events-buffer 'jrpc-events-buffer)
@@ -278,7 +305,8 @@ INTERACTIVE is t if called interactively."
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
 (defun eglot--dispatch (proc method id &rest params)
-  ;; a server notification or a server request
+  "Dispatcher passed to `jrpc-connect'.
+Builds a function from METHOD, passes it PROC, ID and PARAMS."
   (let* ((handler-sym (intern (concat "eglot--server-" method))))
     (if (functionp handler-sym)
         (apply handler-sym proc (append params (if id `(:id ,id))))
@@ -286,40 +314,43 @@ INTERACTIVE is t if called interactively."
                   proc id
                   :error (jrpc-obj :code -32601 :message "Unimplemented")))))
 
-(defun eglot--connect (project managed-major-mode name command
-                               dont-inhibit)
-  (let ((proc (jrpc-connect name command #'eglot--dispatch #'eglot--on-shutdown)))
+(defun eglot--connect (project managed-major-mode name command)
+  (let ((proc (jrpc-connect name command #'eglot--dispatch #'eglot--on-shutdown))
+        success)
     (setf (eglot--project proc) project)
     (setf (eglot--major-mode proc)managed-major-mode)
     (push proc (gethash project eglot--processes-by-project))
     (run-hook-with-args 'eglot-connect-hook proc)
-    (cl-destructuring-bind (&key capabilities)
-        (jrpc-request
-         proc
-         :initialize
-         (jrpc-obj :processId (unless (eq (process-type proc)
-                                          'network)
-                                (emacs-pid))
-                   :rootUri  (eglot--path-to-uri
-                              (car (project-roots project)))
-                   :initializationOptions  []
-                   :capabilities (eglot--client-capabilities)))
-      (setf (eglot--capabilities proc) capabilities)
-      (setf (jrpc-status proc) nil)
-      (dolist (buffer (buffer-list))
-        (with-current-buffer buffer
-          (eglot--maybe-activate-editing-mode proc)))
-      (jrpc-notify proc :initialized (jrpc-obj :__dummy__ t))
-      (setf (eglot--inhibit-autoreconnect proc)
-            (cond
-             ((booleanp eglot-autoreconnect) (not eglot-autoreconnect))
-             (dont-inhibit nil)
-             ((cl-plusp eglot-autoreconnect)
-              (run-with-timer eglot-autoreconnect nil
-                              (lambda ()
-                                (setf (eglot--inhibit-autoreconnect proc)
-                                      (null eglot-autoreconnect)))))))
-      proc)))
+    (unwind-protect
+        (cl-destructuring-bind (&key capabilities)
+            (jrpc-request
+             proc
+             :initialize
+             (jrpc-obj :processId (unless (eq (process-type proc)
+                                              'network)
+                                    (emacs-pid))
+                       :rootPath  (car (project-roots project))
+                       :rootUri  (eglot--path-to-uri
+                                  (car (project-roots project)))
+                       :initializationOptions  []
+                       :capabilities (eglot--client-capabilities)))
+          (setf (eglot--capabilities proc) capabilities)
+          (setf (jrpc-status proc) nil)
+          (dolist (buffer (buffer-list))
+            (with-current-buffer buffer
+              (eglot--maybe-activate-editing-mode proc)))
+          (jrpc-notify proc :initialized (jrpc-obj :__dummy__ t))
+          (setf (eglot--inhibit-autoreconnect proc)
+                (cond
+                 ((booleanp eglot-autoreconnect) (not eglot-autoreconnect))
+                 ((cl-plusp eglot-autoreconnect)
+                  (run-with-timer eglot-autoreconnect nil
+                                  (lambda ()
+                                    (setf (eglot--inhibit-autoreconnect proc)
+                                          (null eglot-autoreconnect)))))))
+          (setq success proc))
+      (unless (or success (not (process-live-p proc)) (eglot--moribund proc))
+            (eglot-shutdown proc)))))
 
 (defun eglot--server-ready-p (_what _proc)
   "Tell if server of PROC ready for processing deferred WHAT."
