@@ -805,14 +805,10 @@ DEFERRED is passed to `eglot--async-request', which see."
   "Determine if current server is capable of FEAT."
   (plist-get (eglot--capabilities (eglot--current-process-or-lose)) feat))
 
-(cl-defmacro eglot--with-lsp-range ((start end) range &body body
-                                    &aux (range-sym (cl-gensym)))
-  "Bind LSP RANGE to START and END. Evaluate BODY."
-  (declare (indent 2) (debug (sexp sexp &rest form)))
-  `(let* ((,range-sym ,range)
-          (,start (eglot--lsp-position-to-point (plist-get ,range-sym :start)))
-          (,end (eglot--lsp-position-to-point (plist-get ,range-sym :end))))
-     ,@body))
+(defun eglot--range-region (range)
+  "Return region (BEG . END) that represents LSP RANGE."
+  (cons (eglot--lsp-position-to-point (plist-get range :start))
+        (eglot--lsp-position-to-point (plist-get range :end))))
 
 
 ;;; Minor modes
@@ -1016,7 +1012,7 @@ called interactively."
          collect (cl-destructuring-bind (&key range severity _group
                                               _code source message)
                      diag-spec
-                   (eglot--with-lsp-range (beg end) range
+                   (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                      (flymake-make-diagnostic (current-buffer)
                                               beg end
                                               (cond ((<= severity 1) :error)
@@ -1355,7 +1351,7 @@ DUMMY is ignored"
 
 (defun eglot--hover-info (contents &optional range)
   (concat (and range
-               (eglot--with-lsp-range (beg end) range
+               (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                  (concat (buffer-substring beg end)  ": ")))
           (mapconcat #'eglot--format-markup
                      (append
@@ -1436,7 +1432,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                              (when-buffer-window
                               (eglot--mapply
                                (eglot--lambda (&key range _kind)
-                                 (eglot--with-lsp-range (beg end) range
+                                 (pcase-let ((`(,beg . ,end)
+                                              (eglot--range-region range)))
                                    (let ((ov (make-overlay beg end)))
                                      (overlay-put ov 'face 'highlight)
                                      (overlay-put ov 'evaporate t)
@@ -1474,7 +1471,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
      (save-restriction
        (widen)
        (save-excursion
-         (eglot--with-lsp-range (beg end) range
+         (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
            (goto-char beg) (delete-region beg end) (insert newText)))))
    edits)
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
