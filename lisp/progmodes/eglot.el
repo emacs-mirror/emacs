@@ -610,7 +610,7 @@ request request and a process object.")
   (not (eglot--outstanding-edits-p)))
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
-  (declare (debug (sexp &rest form)))
+  (declare (indent 1) (debug (sexp &rest form)))
   (let ((e (gensym "eglot--lambda-elem")))
     `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
 
