@@ -721,11 +721,11 @@ DEFERRED is passed to `eglot--async-request', which see."
 ;;;
 (defun eglot--error (format &rest args)
   "Error out with FORMAT with ARGS."
-  (error (apply #'format format args)))
+  (error "[eglot] %s" (apply #'format format args)))
 
 (defun eglot--message (format &rest args)
   "Message out with FORMAT with ARGS."
-  (message (concat "[eglot] " (apply #'format format args))))
+  (message "[eglot] %s" (apply #'format format args)))
 
 (defun eglot--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
