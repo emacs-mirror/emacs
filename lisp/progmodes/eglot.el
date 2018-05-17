@@ -195,6 +195,7 @@ CONTACT is as `eglot--contact'.  Returns a process object."
             (make-process :name readable-name
                           :buffer buffer
                           :command contact
+                          :coding 'no-conversion
                           :connection-type 'pipe
                           :stderr (get-buffer-create (format "*%s stderr*"
                                                              name))))))
@@ -756,14 +757,16 @@ DEFERRED is passed to `eglot--async-request', which see."
                   (point)))
 
 (defun eglot--path-to-uri (path)
-  "Urify PATH."
-  (url-hexify-string (concat "file://" (file-truename path))
-                     url-path-allowed-chars))
+  "URIfy PATH."
+  (url-hexify-string
+   (concat "file://" (if (eq system-type 'windows-nt) "/") (file-truename path))
+   url-path-allowed-chars))
 
 (defun eglot--uri-to-path (uri)
   "Convert URI to a file path."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
-  (url-filename (url-generic-parse-url (url-unhex-string uri))))
+  (let ((retval (url-filename (url-generic-parse-url (url-unhex-string uri)))))
+    (if (eq system-type 'windows-nt) (substring retval 1) retval)))
 
 (defconst eglot--kind-names
   `((1 . "Text") (2 . "Method") (3 . "Function") (4 . "Constructor")
@@ -989,11 +992,7 @@ called interactively."
 (cl-defun eglot--server-textDocument/publishDiagnostics
     (_process &key uri diagnostics)
   "Handle notification publishDiagnostics"
-  (let* ((obj (url-generic-parse-url uri))
-	 (filename (car (url-path-and-query obj)))
-         (buffer (find-buffer-visiting filename)))
-    (cond
-     (buffer
+  (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
         (cl-loop
          for diag-spec across diagnostics
@@ -1012,9 +1011,8 @@ called interactively."
                         (funcall eglot--current-flymake-report-fn diags)
                         (setq eglot--unreported-diagnostics nil))
                        (t
-                        (setq eglot--unreported-diagnostics diags))))))
-     (t
-      (eglot--message "OK so %s isn't visited" filename)))))
+                        (setq eglot--unreported-diagnostics diags)))))
+    (eglot--warn "Diagnostics received for unvisited %s" uri)))
 
 (cl-defun eglot--register-unregister (proc jsonrpc-id things how)
   "Helper for `eglot--server-client/registerCapability'.
