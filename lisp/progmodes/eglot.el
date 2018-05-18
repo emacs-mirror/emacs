@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018 Free Software Foundation, Inc.
 
-;; Version: 0.2
+;; Version: 0.3
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -318,7 +318,7 @@ INTERACTIVE is t if called interactively."
   "Dispatcher passed to `jrpc-connect'.
 Builds a function from METHOD, passes it PROC, ID and PARAMS."
   (let* ((handler-sym (intern (concat "eglot--server-" method))))
-    (if (functionp handler-sym)
+    (if (functionp handler-sym) ;; FIXME: fails if params is array, not object
         (apply handler-sym proc (append params (if id `(:id ,id))))
       (jrpc-reply proc id
                   :error (jrpc-obj :code -32601 :message "Unimplemented")))))
@@ -371,11 +371,11 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
 ;;;
 (defun eglot--error (format &rest args)
   "Error out with FORMAT with ARGS."
-  (error (apply #'format format args)))
+  (error "[eglot] %s" (apply #'format format args)))
 
 (defun eglot--message (format &rest args)
   "Message out with FORMAT with ARGS."
-  (message (concat "[eglot] " (apply #'format format args))))
+  (message "[eglot] %s" (apply #'format format args)))
 
 (defun eglot--warn (format &rest args)
   "Warning message with FORMAT and ARGS."
@@ -406,14 +406,16 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
                   (point)))
 
 (defun eglot--path-to-uri (path)
-  "Urify PATH."
-  (url-hexify-string (concat "file://" (file-truename path))
-                     url-path-allowed-chars))
+  "URIfy PATH."
+  (url-hexify-string
+   (concat "file://" (if (eq system-type 'windows-nt) "/") (file-truename path))
+   url-path-allowed-chars))
 
 (defun eglot--uri-to-path (uri)
   "Convert URI to a file path."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
-  (url-filename (url-generic-parse-url (url-unhex-string uri))))
+  (let ((retval (url-filename (url-generic-parse-url (url-unhex-string uri)))))
+    (if (eq system-type 'windows-nt) (substring retval 1) retval)))
 
 (defconst eglot--kind-names
   `((1 . "Text") (2 . "Method") (3 . "Function") (4 . "Constructor")
@@ -443,14 +445,10 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
   "Determine if current server is capable of FEAT."
   (plist-get (eglot--capabilities (jrpc-current-process-or-lose)) feat))
 
-(cl-defmacro eglot--with-lsp-range ((start end) range &body body
-                                    &aux (range-sym (cl-gensym)))
-  "Bind LSP RANGE to START and END. Evaluate BODY."
-  (declare (indent 2) (debug (sexp sexp &rest form)))
-  `(let* ((,range-sym ,range)
-          (,start (eglot--lsp-position-to-point (plist-get ,range-sym :start)))
-          (,end (eglot--lsp-position-to-point (plist-get ,range-sym :end))))
-     ,@body))
+(defun eglot--range-region (range)
+  "Return region (BEG . END) that represents LSP RANGE."
+  (cons (eglot--lsp-position-to-point (plist-get range :start))
+        (eglot--lsp-position-to-point (plist-get range :end))))
 
 
 ;;; Minor modes
@@ -627,18 +625,14 @@ Uses THING, FACE, DEFS and PREPEND."
 (cl-defun eglot--server-textDocument/publishDiagnostics
     (_process &key uri diagnostics)
   "Handle notification publishDiagnostics"
-  (let* ((obj (url-generic-parse-url uri))
-	 (filename (car (url-path-and-query obj)))
-         (buffer (find-buffer-visiting filename)))
-    (cond
-     (buffer
+  (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
         (cl-loop
          for diag-spec across diagnostics
          collect (cl-destructuring-bind (&key range severity _group
                                               _code source message)
                      diag-spec
-                   (eglot--with-lsp-range (beg end) range
+                   (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                      (flymake-make-diagnostic (current-buffer)
                                               beg end
                                               (cond ((<= severity 1) :error)
@@ -650,9 +644,8 @@ Uses THING, FACE, DEFS and PREPEND."
                         (funcall eglot--current-flymake-report-fn diags)
                         (setq eglot--unreported-diagnostics nil))
                        (t
-                        (setq eglot--unreported-diagnostics diags))))))
-     (t
-      (eglot--message "OK so %s isn't visited" filename)))))
+                        (setq eglot--unreported-diagnostics diags)))))
+    (eglot--warn "Diagnostics received for unvisited %s" uri)))
 
 (cl-defun eglot--register-unregister (proc jsonrpc-id things how)
   "Helper for `eglot--server-client/registerCapability'.
@@ -898,8 +891,7 @@ DUMMY is ignored"
                           :textDocument/definition
                           (get-text-property
                            0 :textDocumentPositionParams identifier)))))
-    (mapcar
-     (jrpc-lambda (&key uri range)
+    (mapcar (jrpc-lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
      location-or-locations)))
 
@@ -984,7 +976,7 @@ DUMMY is ignored"
 
 (defun eglot--hover-info (contents &optional range)
   (concat (and range
-               (eglot--with-lsp-range (beg end) range
+               (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                  (concat (buffer-substring beg end)  ": ")))
           (mapconcat #'eglot--format-markup
                      (append
@@ -1065,7 +1057,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                              (when-buffer-window
                               (mapcar
                                (jrpc-lambda (&key range _kind)
-                                 (eglot--with-lsp-range (beg end) range
+                                 (pcase-let ((`(,beg . ,end)
+                                              (eglot--range-region range)))
                                    (let ((ov (make-overlay beg end)))
                                      (overlay-put ov 'face 'highlight)
                                      (overlay-put ov 'evaporate t)
@@ -1102,7 +1095,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
           (save-restriction
             (widen)
             (save-excursion
-              (eglot--with-lsp-range (beg end) range
+              (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                 (goto-char beg) (delete-region beg end) (insert newText)))))
         edits)
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
