@@ -744,11 +744,13 @@ Records START, END and PRE-CHANGE-LENGTH locally."
                  `[(,pre-change-length
                     ,(buffer-substring-no-properties start end))])))
 
-;; HACK!
+;; HACK! Launching a deferred sync request with outstanding changes is a
+;; bad idea, since that might lead to the request never having a
+;; chance to run, because `jrpc-ready-predicates'.
 (advice-add #'jrpc-request :before
-            (lambda (_proc _method _params &optional deferred)
+            (cl-function (lambda (_proc _method _params &key deferred)
               (when (and eglot--managed-mode deferred)
-                (eglot--signal-textDocument/didChange))))
+                (eglot--signal-textDocument/didChange)))))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
@@ -937,7 +939,7 @@ DUMMY is ignored"
           (let* ((resp (jrpc-request proc
                                      :textDocument/completion
                                      (eglot--TextDocumentPositionParams)
-                                     :textDocument/completion))
+                                     :deferred :textDocument/completion))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (mapcar
              (jrpc-lambda (&rest all &key label &allow-other-keys)
