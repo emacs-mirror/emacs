@@ -317,11 +317,12 @@ INTERACTIVE is t if called interactively."
 (defun eglot--dispatch (proc method id params)
   "Dispatcher passed to `jrpc-connect'.
 Builds a function from METHOD, passes it PROC, ID and PARAMS."
-  (let* ((handler-sym (intern (concat "eglot--server-" method))))
+  (let* ((handler-sym (intern (format "eglot--server-%s" method))))
     (if (functionp handler-sym) ;; FIXME: fails if params is array, not object
         (apply handler-sym proc (append params (if id `(:id ,id))))
       (jrpc-reply proc id
-                  :error (jrpc-obj :code -32601 :message "Unimplemented")))))
+                  :error (jrpc-obj :code -32601 :message "Unimplemented")))
+    (force-mode-line-update t)))
 
 (defun eglot--connect (project managed-major-mode name contact)
   (let* ((contact (if (functionp contact) (funcall contact) contact))
