@@ -273,7 +273,8 @@ INTERACTIVE is t if inside interactive call."
                                                     'network)
                                           (emacs-pid))
                              :capabilities(eglot--client-capabilities)
-                             :rootPath  (car (project-roots project))
+                             :rootPath  (expand-file-name
+                                         (car (project-roots project)))
                              :rootUri  (eglot--path-to-uri
                                         (car (project-roots project)))
                              :initializationOptions  []))
