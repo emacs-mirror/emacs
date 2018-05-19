@@ -779,7 +779,8 @@ If optional MARKER, return a marker instead"
                  (list (plist-get markup :value)
                        (intern (concat (plist-get markup :language) "-mode" ))))))
     (with-temp-buffer
-      (funcall mode) (insert string) (font-lock-ensure) (buffer-string))))
+      (ignore-errors (funcall mode))
+      (insert string) (font-lock-ensure) (buffer-string))))
 
 (defun eglot--server-capable (&rest feats)
 "Determine if current server is capable of FEATS."
@@ -1324,10 +1325,7 @@ DUMMY is ignored"
                                     :documentation)))))
            (when documentation
              (with-current-buffer (get-buffer-create " *eglot doc*")
-               (erase-buffer)
-               (ignore-errors (funcall (intern "markdown-mode")))
-               (font-lock-ensure)
-               (insert documentation)
+               (insert (eglot--format-markup documentation))
                (current-buffer)))))
        :exit-function (lambda (_string _status)
                         (eglot--signal-textDocument/didChange)
@@ -1339,10 +1337,8 @@ DUMMY is ignored"
   (concat (and range (pcase-let ((`(,beg ,end) (eglot--range-region range)))
                        (concat (buffer-substring beg end)  ": ")))
           (mapconcat #'eglot--format-markup
-                     (append (cond ((vectorp contents)
-                                    contents)
-                                   (contents
-                                    (list contents)))) "\n")))
+                     (append (cond ((vectorp contents) contents)
+                                   (contents (list contents)))) "\n")))
 
 (defun eglot--sig-info (sigs active-sig active-param)
   (cl-loop
