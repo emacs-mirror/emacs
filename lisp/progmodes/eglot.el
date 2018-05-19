@@ -1429,8 +1429,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          proc :textDocument/hover position-params
          :success-fn (eglot--lambda (&key contents range)
                        (unless sig-showing
-                         (when-buffer-window
-                          (eldoc-message (eglot--hover-info contents range)))))
+                         (setq eldoc-last-message (eglot--hover-info contents range))
+                         (when-buffer-window (eldoc-message eldoc-last-message))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
         (eglot--async-request
