@@ -172,6 +172,9 @@ A list (WHAT SERIOUS-P).")
 (eglot--define-process-var eglot--file-watches (make-hash-table :test #'equal)
   "File system watches for the didChangeWatchedfiles thingy.")
 
+(eglot--define-process-var eglot--managed-buffers nil
+  "Buffers managed by the server.")
+
 (defun eglot--make-process (name managed-major-mode contact)
   "Make a process from CONTACT.
 NAME is used to name the the started process or connection.
@@ -415,10 +418,8 @@ INTERACTIVE is t if called interactively."
                      (funcall error `(:code -1 :message "Server died"))))
                  (eglot--pending-continuations proc))
       ;; Turn off `eglot--managed-mode' where appropriate.
-      (dolist (buffer (buffer-list))
-        (with-current-buffer buffer
-          (when (eglot--buffer-managed-p proc)
-            (eglot--managed-mode -1))))
+      (dolist (buffer (eglot--managed-buffers proc))
+        (with-current-buffer buffer (eglot--managed-mode-onoff proc -1)))
       ;; Forget about the process-project relationship
       (setf (gethash (eglot--project proc) eglot--processes-by-project)
             (delq proc
@@ -849,19 +850,20 @@ If optional MARKERS, make markers."
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
-    (remove-function (local imenu-create-index-function) #'eglot-imenu)
-    (let ((proc (eglot--current-process)))
-      (when (and (process-live-p proc) (y-or-n-p "[eglot] Kill server too? "))
-        (eglot-shutdown proc t))))))
+    (remove-function (local imenu-create-index-function) #'eglot-imenu))))
+
+(defun eglot--managed-mode-onoff (proc arg)
+  "Proxy for function `eglot--managed-mode' with ARG and PROC."
+  (eglot--managed-mode arg)
+  (let ((buf (current-buffer)))
+    (if eglot--managed-mode
+        (cl-pushnew buf (eglot--managed-buffers proc))
+      (setf (eglot--managed-buffers proc)
+            (delq buf (eglot--managed-buffers proc))))))
 
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
 
-(defun eglot--buffer-managed-p (&optional proc)
-  "Tell if current buffer is managed by PROC."
-  (and buffer-file-name (let ((cur (eglot--current-process)))
-                          (or (and (null proc) cur)
-                              (and proc (eq proc cur))))))
 
 (defvar-local eglot--current-flymake-report-fn nil
   "Current flymake report function for this buffer")
@@ -871,11 +873,14 @@ If optional MARKERS, make markers."
 If PROC is supplied, do it only if BUFFER is managed by it.  In
 that case, also signal textDocument/didOpen."
   ;; Called even when revert-buffer-in-progress-p
-  (when (eglot--buffer-managed-p proc)
-    (eglot--managed-mode 1)
-    (eglot--signal-textDocument/didOpen)
-    (flymake-start)
-    (funcall (or eglot--current-flymake-report-fn #'ignore) nil)))
+  (let* ((cur (and buffer-file-name (eglot--current-process)))
+         (proc (or (and (null proc) cur)
+                   (and proc (eq proc cur) cur))))
+    (when proc
+      (eglot--managed-mode-onoff proc 1)
+      (eglot--signal-textDocument/didOpen)
+      (flymake-start)
+      (funcall (or eglot--current-flymake-report-fn #'ignore) nil))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
@@ -960,6 +965,9 @@ function with the server still running."
         (eglot--request proc :shutdown nil)
         ;; this one is supposed to always fail, hence ignore-errors
         (ignore-errors (eglot--request proc :exit nil)))
+    ;; Turn off `eglot--managed-mode' where appropriate.
+    (dolist (buffer (eglot--managed-buffers proc))
+      (with-current-buffer buffer (eglot--managed-mode-onoff proc -1)))
     (when (process-live-p proc)
       (eglot--warn "Brutally deleting non-compliant existing process %s" proc)
       (delete-process proc))))
@@ -1589,11 +1597,10 @@ Proceed? "
   "Handle notification window/progress"
   (setf (eglot--spinner process) (list id title done message))
   (when (and (equal "Indexing" title) done)
-    (dolist (buffer (buffer-list))
+    (dolist (buffer (eglot--managed-buffers process))
       (with-current-buffer buffer
-        (when (eglot--buffer-managed-p process)
-          (funcall (or eglot--current-flymake-report-fn #'ignore)
-                   eglot--unreported-diagnostics))))))
+        (funcall (or eglot--current-flymake-report-fn #'ignore)
+                 eglot--unreported-diagnostics)))))
 
 (provide 'eglot)
 ;;; eglot.el ends here
