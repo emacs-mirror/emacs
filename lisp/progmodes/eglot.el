@@ -702,7 +702,7 @@ DEFERRED is passed to `eglot--async-request', which see."
                               (throw done `(error
                                             ,(format "Ooops: %s: %s" code message))))
                   :deferred deferred))
-                 (while t (accept-process-output nil 30)))
+                (while t (accept-process-output nil 30)))
             (when (cadr id-and-timer) (cancel-timer (cadr id-and-timer))))))
     (when (eq 'error (car res)) (eglot--error (cadr res)))
     (cadr res)))
@@ -1300,15 +1300,19 @@ DUMMY is ignored"
                                        :textDocument/completion))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (mapcar
-             (eglot--lambda (&rest all &key label &allow-other-keys)
-               (add-text-properties 0 1 all label) label)
+             (eglot--lambda (&rest all &key label insertText &allow-other-keys)
+               (let ((insert (or insertText label)))
+                 (add-text-properties 0 1 all insert) insert))
              items))))
        :annotation-function
        (lambda (obj)
-         (propertize (concat " " (or (get-text-property 0 :detail obj)
-                                     (cdr (assoc (get-text-property 0 :kind obj)
-                                                 eglot--kind-names))))
-                     'face 'font-lock-function-name-face))
+         (cl-destructuring-bind (&key detail documentation kind &allow-other-keys)
+             (text-properties-at 0 obj)
+           (concat " " (propertize
+                        (or (and documentation
+                                 (replace-regexp-in-string "\n.*" "" documentation))
+                            detail (cdr (assoc kind eglot--kind-names)))
+                        'face 'font-lock-function-name-face))))
        :display-sort-function
        (lambda (items)
          (sort items (lambda (a b)
@@ -1329,8 +1333,9 @@ DUMMY is ignored"
                (font-lock-ensure)
                (insert documentation)
                (current-buffer)))))
-       :exit-function
-       (lambda (_string _status) (eglot-eldoc-function))))))
+       :exit-function (lambda (_string _status)
+                        (eglot--signal-textDocument/didChange)
+                        (eglot-eldoc-function))))))
 
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
