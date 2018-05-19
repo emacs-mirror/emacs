@@ -796,9 +796,16 @@ If optional MARKER, return a marker instead"
            (font-lock-ensure)
            (buffer-string)))))
 
-(defun eglot--server-capable (feat)
-  "Determine if current server is capable of FEAT."
-  (plist-get (eglot--capabilities (eglot--current-process-or-lose)) feat))
+(defun eglot--server-capable (&rest feats)
+  "Determine if current server is capable of FEATS."
+  (cl-loop for caps = (eglot--capabilities (eglot--current-process-or-lose))
+           then (cadr probe)
+           for feat in feats
+           for probe = (plist-member caps feat)
+           if (not probe) do (cl-return nil)
+           if (eq (cadr probe) t) do (cl-return t)
+           if (eq (cadr probe) :json-false) do (cl-return nil)
+           finally (cl-return (or probe t))))
 
 (defun eglot--range-region (range &optional markers)
   "Return region (BEG END) that represents LSP RANGE.
@@ -1323,9 +1330,11 @@ DUMMY is ignored"
        (lambda (obj)
          (let ((documentation
                 (or (get-text-property 0 :documentation obj)
-                    (plist-get (eglot--request proc :completionItem/resolve
-                                               (text-properties-at 0 obj))
-                               :documentation))))
+                    (and (eglot--server-capable :completionProvider
+                                                :resolveProvider)
+                         (plist-get (eglot--request proc :completionItem/resolve
+                                                    (text-properties-at 0 obj))
+                                    :documentation)))))
            (when documentation
              (with-current-buffer (get-buffer-create " *eglot doc*")
                (erase-buffer)
