@@ -624,13 +624,13 @@ objects, respectively.  Wait TIMEOUT seconds for response or call
 nullary TIMEOUT-FN.  If DEFERRED, maybe defer request to the
 future, or to never at all, in case a new request with identical
 DEFERRED and for the same buffer overrides it (however, if that
-happens, the original timeout keeps counting). Return the ID of
-this request."
+happens, the original timeout keeps counting). Return a list (ID
+TIMER)."
   (let* ((id (eglot--next-request-id))
-         (existing-timer nil)
-         (make-timeout
+         (timer nil)
+         (make-timer
           (lambda ( )
-            (or existing-timer
+            (or timer
                 (run-with-timer
                  timeout nil
                  (lambda ()
@@ -643,7 +643,7 @@ this request."
     (when deferred
       (let* ((buf (current-buffer))
              (existing (gethash (list deferred buf) (eglot--deferred-actions proc))))
-        (when existing (setq existing-timer (cadr existing)))
+        (when existing (setq existing (cadr existing)))
         (if (run-hook-with-args-until-failure 'eglot--ready-predicates
                                               deferred proc)
             (remhash (list deferred buf) (eglot--deferred-actions proc))
@@ -655,11 +655,15 @@ this request."
                               (save-excursion (goto-char point)
                                               (apply #'eglot--async-request proc
                                                      method params args)))))))
-            (puthash (list deferred buf) (list later (funcall make-timeout))
+            (puthash (list deferred buf) (list later (setq timer (funcall make-timer)))
                      (eglot--deferred-actions proc))
             (cl-return-from eglot--async-request nil)))))
     ;; Really run it
     ;;
+    (eglot--process-send proc (eglot--obj :jsonrpc "2.0"
+                                          :id id
+                                          :method method
+                                          :params params))
     (puthash id
              (list (or success-fn
                        (eglot--lambda (&rest _ignored)
@@ -670,12 +674,9 @@ this request."
                          (setf (eglot--status proc) `(,message t))
                          proc (eglot--obj :message "error ignored, status set"
                                           :id id :error code)))
-                   (funcall make-timeout))
+                   (setq timer (funcall make-timer)))
              (eglot--pending-continuations proc))
-    (eglot--process-send proc (eglot--obj :jsonrpc "2.0"
-                                          :id id
-                                          :method method
-                                          :params params))))
+    (list id timer)))
 
 (defun eglot--request (proc method params &optional deferred)
   "Like `eglot--async-request' for PROC, METHOD and PARAMS, but synchronous.
@@ -685,18 +686,22 @@ DEFERRED is passed to `eglot--async-request', which see."
   ;; bad idea, since that might lead to the request never having a
   ;; chance to run, because `eglot--ready-predicates'.
   (when deferred (eglot--signal-textDocument/didChange))
-  (let* ((done (make-symbol "eglot--request-catch-tag"))
+  (let* ((done (make-symbol "eglot-catch")) id-and-timer
          (res
-          (catch done
-            (eglot--async-request
-             proc method params
-             :success-fn (lambda (result) (throw done `(done ,result)))
-             :timeout-fn (lambda () (throw done '(error "Timed out")))
-             :error-fn (eglot--lambda (&key code message _data)
-                         (throw done `(error
-                                       ,(format "Ooops: %s: %s" code message))))
-             :deferred deferred)
-            (while t (accept-process-output nil 30)))))
+          (unwind-protect
+              (catch done
+                (setq
+                 id-and-timer
+                 (eglot--async-request
+                  proc method params
+                  :success-fn (lambda (result) (throw done `(done ,result)))
+                  :timeout-fn (lambda () (throw done '(error "Timed out")))
+                  :error-fn (eglot--lambda (&key code message _data)
+                              (throw done `(error
+                                            ,(format "Ooops: %s: %s" code message))))
+                  :deferred deferred))
+                 (while t (accept-process-output nil 30)))
+            (when (cadr id-and-timer) (cancel-timer (cadr id-and-timer))))))
     (when (eq 'error (car res)) (eglot--error (cadr res)))
     (cadr res)))
 
