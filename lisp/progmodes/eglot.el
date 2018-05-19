@@ -589,7 +589,8 @@ is a symbol saying if this is a client or server originated."
 (defun eglot-clear-status (process)
   "Clear most recent error message from PROCESS."
   (interactive (list (eglot--current-process-or-lose)))
-  (setf (eglot--status process) nil))
+  (setf (eglot--status process) nil)
+  (force-mode-line-update t))
 
 (defun eglot--call-deferred (proc)
   "Call PROC's deferred actions, who may again defer themselves."
