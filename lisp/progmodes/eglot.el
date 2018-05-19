@@ -109,21 +109,16 @@ lasted more than that many seconds."
   "Return the current EGLOT process or error."
   (or (eglot--current-process) (eglot--error "No current EGLOT process")))
 
-(defmacro eglot--define-process-var
-    (var-sym initval &optional doc)
+(defmacro eglot--define-process-var (var-sym initval &optional doc)
   "Define VAR-SYM as a generalized process-local variable.
 INITVAL is the default value.  DOC is the documentation."
-  (declare (indent 2))
+  (declare (indent 2) (doc-string 3))
   `(progn
-     (put ',var-sym 'function-documentation ,doc)
      (defun ,var-sym (proc)
-       (let* ((plist (process-plist proc))
-              (probe (plist-member plist ',var-sym)))
-         (if probe
-             (cadr probe)
-           (let ((def ,initval))
-             (process-put proc ',var-sym def)
-             def))))
+       ,doc (let* ((plist (process-plist proc))
+                   (probe (plist-member plist ',var-sym)))
+              (if probe (cadr probe)
+                (let ((def ,initval)) (process-put proc ',var-sym def) def))))
      (gv-define-setter ,var-sym (to-store process)
        `(let ((once ,to-store)) (process-put ,process ',',var-sym once) once))))
 
@@ -738,29 +733,23 @@ DEFERRED is passed to `eglot--async-request', which see."
   "Warning message with FORMAT and ARGS."
   (apply #'eglot--message (concat "(warning) " format) args)
   (let ((warning-minimum-level :error))
-    (display-warning 'eglot
-                     (apply #'format format args)
-                     :warning)))
+    (display-warning 'eglot (apply #'format format args) :warning)))
 
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
   (save-excursion
-    (eglot--obj :line
-                ;; F!@(#*&#$)CKING OFF-BY-ONE
-                (1- (line-number-at-pos pos t))
-                :character
-                (- (goto-char (or pos (point)))
-                   (line-beginning-position)))))
+    (eglot--obj :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
+                :character (- (goto-char (or pos (point)))
+                              (line-beginning-position)))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
 If optional MARKER, return a marker instead"
   (save-excursion (goto-char (point-min))
                   (forward-line (plist-get pos-plist :line))
-                  (forward-char
-                   (min (plist-get pos-plist :character)
-                        (- (line-end-position)
-                           (line-beginning-position))))
+                  (forward-char (min (plist-get pos-plist :character)
+                                     (- (line-end-position)
+                                        (line-beginning-position))))
                   (if marker (copy-marker (point-marker)) (point))))
 
 (defun eglot--path-to-uri (path)
@@ -784,31 +773,24 @@ If optional MARKER, return a marker instead"
 
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
-  (cond ((stringp markup)
-         (with-temp-buffer
-           (ignore-errors (funcall (intern "markdown-mode"))) ;escape bytecomp
-           (font-lock-ensure)
-           (insert markup)
-           (string-trim (buffer-string))))
-        (t
-         (with-temp-buffer
-           (ignore-errors (funcall (intern (concat
-                                            (plist-get markup :language)
-                                            "-mode" ))))
-           (insert (plist-get markup :value))
-           (font-lock-ensure)
-           (buffer-string)))))
+  (pcase-let ((`(,string ,mode)
+               (if (stringp markup) (list (string-trim markup)
+                                          (intern "markdown-mode"))
+                 (list (plist-get markup :value)
+                       (intern (concat (plist-get markup :language) "-mode" ))))))
+    (with-temp-buffer
+      (funcall mode) (insert string) (font-lock-ensure) (buffer-string))))
 
 (defun eglot--server-capable (&rest feats)
-  "Determine if current server is capable of FEATS."
-  (cl-loop for caps = (eglot--capabilities (eglot--current-process-or-lose))
-           then (cadr probe)
-           for feat in feats
-           for probe = (plist-member caps feat)
-           if (not probe) do (cl-return nil)
-           if (eq (cadr probe) t) do (cl-return t)
-           if (eq (cadr probe) :json-false) do (cl-return nil)
-           finally (cl-return (or probe t))))
+"Determine if current server is capable of FEATS."
+(cl-loop for caps = (eglot--capabilities (eglot--current-process-or-lose))
+         then (cadr probe)
+         for feat in feats
+         for probe = (plist-member caps feat)
+         if (not probe) do (cl-return nil)
+         if (eq (cadr probe) t) do (cl-return t)
+         if (eq (cadr probe) :json-false) do (cl-return nil)
+         finally (cl-return (or probe t))))
 
 (defun eglot--range-region (range &optional markers)
   "Return region (BEG END) that represents LSP RANGE.
@@ -864,7 +846,6 @@ If optional MARKERS, make markers."
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
 
-
 (defvar-local eglot--current-flymake-report-fn nil
   "Current flymake report function for this buffer")
 
@@ -874,8 +855,7 @@ If PROC is supplied, do it only if BUFFER is managed by it.  In
 that case, also signal textDocument/didOpen."
   ;; Called even when revert-buffer-in-progress-p
   (let* ((cur (and buffer-file-name (eglot--current-process)))
-         (proc (or (and (null proc) cur)
-                   (and proc (eq proc cur) cur))))
+         (proc (or (and (null proc) cur) (and proc (eq proc cur) cur))))
     (when proc
       (eglot--managed-mode-onoff proc 1)
       (eglot--signal-textDocument/didOpen)
@@ -1009,7 +989,7 @@ function with the server still running."
   "Unreported diagnostics for this buffer.")
 
 (cl-defun eglot--server-textDocument/publishDiagnostics
-    (_process &key uri diagnostics)
+    (_proc &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
@@ -1063,15 +1043,12 @@ THINGS are either registrations or unregisterations."
     (proc &key id _label edit)
   "Handle server request workspace/applyEdit"
   (condition-case err
-      (progn
-        (eglot--apply-workspace-edit edit 'confirm)
-        (eglot--reply proc id :result `(:applied )))
-    (error
-     (eglot--reply proc id
-                   :result `(:applied :json-false)
-                   :error
-                   (eglot--obj :code -32001
-                               :message (format "%s" err))))))
+      (progn (eglot--apply-workspace-edit edit 'confirm)
+             (eglot--reply proc id :result `(:applied )))
+    (error (eglot--reply proc id
+                         :result `(:applied :json-false)
+                         :error (eglot--obj :code -32001
+                                            :message (format "%s" err))))))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
@@ -1359,15 +1336,13 @@ DUMMY is ignored"
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
 (defun eglot--hover-info (contents &optional range)
-  (concat (and range
-               (pcase-let ((`(,beg ,end) (eglot--range-region range)))
-                 (concat (buffer-substring beg end)  ": ")))
+  (concat (and range (pcase-let ((`(,beg ,end) (eglot--range-region range)))
+                       (concat (buffer-substring beg end)  ": ")))
           (mapconcat #'eglot--format-markup
-                     (append
-                      (cond ((vectorp contents)
-                             contents)
-                            (contents
-                             (list contents)))) "\n")))
+                     (append (cond ((vectorp contents)
+                                    contents)
+                                   (contents
+                                    (list contents)))) "\n")))
 
 (defun eglot--sig-info (sigs active-sig active-param)
   (cl-loop
