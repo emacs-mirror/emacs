@@ -640,7 +640,7 @@ TIMER)."
                    (funcall (or timeout-fn
                                 (lambda ()
                                   (eglot--log-event
-                                   proc `(:timed-out ,method :id id
+                                   proc `(:timed-out ,method :id ,id
                                                      :params ,params)))))))))))
     (when deferred
       (let* ((buf (current-buffer))
@@ -703,7 +703,9 @@ DEFERRED is passed to `eglot--async-request', which see."
                                             ,(format "Ooops: %s: %s" code message))))
                   :deferred deferred))
                 (while t (accept-process-output nil 30)))
-            (when (cadr id-and-timer) (cancel-timer (cadr id-and-timer))))))
+            (pcase-let ((`(,id ,timer) id-and-timer))
+              (when id (remhash id (eglot--pending-continuations proc)))
+              (when timer (cancel-timer timer))))))
     (when (eq 'error (car res)) (eglot--error (cadr res)))
     (cadr res)))
 
