@@ -23,9 +23,7 @@
 (require 'system-packages nil t)
 
 (eval-when-compile
-  (defvar system-packages-package-manager)
-  (defvar system-packages-supported-package-managers)
-  (defvar system-packages-use-sudo))
+  (declare-function system-packages-get-command "system-packages"))
 
 (defun use-package-ensure-system-package-install-command (pack)
   "Return the default install command for PACK."
