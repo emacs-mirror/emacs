@@ -748,15 +748,16 @@ DEFERRED is passed to `eglot--async-request', which see."
                 (- (goto-char (or pos (point)))
                    (line-beginning-position)))))
 
-(defun eglot--lsp-position-to-point (pos-plist)
-  "Convert LSP position POS-PLIST to Emacs point."
+(defun eglot--lsp-position-to-point (pos-plist &optional marker)
+  "Convert LSP position POS-PLIST to Emacs point.
+If optional MARKER, return a marker instead"
   (save-excursion (goto-char (point-min))
                   (forward-line (plist-get pos-plist :line))
                   (forward-char
                    (min (plist-get pos-plist :character)
                         (- (line-end-position)
                            (line-beginning-position))))
-                  (point)))
+                  (if marker (copy-marker (point-marker)) (point))))
 
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
@@ -798,10 +799,11 @@ DEFERRED is passed to `eglot--async-request', which see."
   "Determine if current server is capable of FEAT."
   (plist-get (eglot--capabilities (eglot--current-process-or-lose)) feat))
 
-(defun eglot--range-region (range)
-  "Return region (BEG . END) that represents LSP RANGE."
-  (cons (eglot--lsp-position-to-point (plist-get range :start))
-        (eglot--lsp-position-to-point (plist-get range :end))))
+(defun eglot--range-region (range &optional markers)
+  "Return region (BEG END) that represents LSP RANGE.
+If optional MARKERS, make markers."
+  (list (eglot--lsp-position-to-point (plist-get range :start) markers)
+        (eglot--lsp-position-to-point (plist-get range :end) markers)))
 
 
 ;;; Minor modes
@@ -998,7 +1000,7 @@ function with the server still running."
          collect (cl-destructuring-bind (&key range severity _group
                                               _code source message)
                      diag-spec
-                   (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
+                   (pcase-let ((`(,beg ,end) (eglot--range-region range)))
                      (flymake-make-diagnostic (current-buffer)
                                               beg end
                                               (cond ((<= severity 1) :error)
@@ -1333,7 +1335,7 @@ DUMMY is ignored"
 
 (defun eglot--hover-info (contents &optional range)
   (concat (and range
-               (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
+               (pcase-let ((`(,beg ,end) (eglot--range-region range)))
                  (concat (buffer-substring beg end)  ": ")))
           (mapconcat #'eglot--format-markup
                      (append
@@ -1413,7 +1415,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (setq eglot--highlights
                              (when-buffer-window
                               (mapcar (eglot--lambda (&key range _kind)
-                                        (pcase-let ((`(,beg . ,end)
+                                        (pcase-let ((`(,beg ,end)
                                                      (eglot--range-region range)))
                                           (let ((ov (make-overlay beg end)))
                                             (overlay-put ov 'face 'highlight)
@@ -1447,13 +1449,14 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
-  (mapc (eglot--lambda (&key range newText)
-          (save-restriction
-            (widen)
-            (save-excursion
-              (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-                (goto-char beg) (delete-region beg end) (insert newText)))))
-        edits)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (mapc (eglot--lambda (newText beg end)
+              (goto-char beg) (delete-region beg end) (insert newText))
+            (mapcar (eglot--lambda (&key range newText)
+                      (cons newText (eglot--range-region range 'markers)))
+                    edits))))
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
