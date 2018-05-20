@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018 Free Software Foundation, Inc.
 
-;; Version: 0.3
+;; Version: 0.4
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -121,11 +121,10 @@ A list (ID WHAT DONE-P).")
   "File system watches for the didChangeWatchedfiles thingy.")
 
 (defun eglot--on-shutdown (proc)
+  "Called by jsonrpc.el when PROC is already dead."
   ;; Turn off `eglot--managed-mode' where appropriate.
-  (dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when (eglot--buffer-managed-p proc)
-        (eglot--managed-mode -1))))
+    (dolist (buffer (eglot--managed-buffers proc))
+      (with-current-buffer buffer (eglot--managed-mode-onoff proc -1)))
   ;; Kill any expensive watches
   (maphash (lambda (_id watches)
              (mapcar #'file-notify-rm-watch watches))
@@ -141,21 +140,24 @@ A list (ID WHAT DONE-P).")
         ((timerp (eglot--inhibit-autoreconnect proc))
          (eglot--warn "Not auto-reconnecting, last one didn't last long."))))
 
-(defun eglot-shutdown (proc &optional interactive)
+(defun eglot-shutdown (proc &optional _interactive)
   "Politely ask the server PROC to quit.
 Forcefully quit it if it doesn't respond.  Don't leave this
 function with the server still running.  INTERACTIVE is t if
 called interactively."
   (interactive (list (jsonrpc-current-process-or-lose) t))
-  (when interactive (eglot--message "Asking %s politely to terminate" proc))
+  (eglot--message "Asking %s politely to terminate" proc)
   (unwind-protect
       (let ((jsonrpc-request-timeout 3))
         (setf (eglot--moribund proc) t)
         (jsonrpc-request proc :shutdown nil)
-        ;; this one should always fail under normal conditions
+        ;; this one should always fail, hence ignore-errors
         (ignore-errors (jsonrpc-request proc :exit nil)))
+    ;; Turn off `eglot--managed-mode' where appropriate.
+    (dolist (buffer (eglot--managed-buffers proc))
+      (with-current-buffer buffer (eglot--managed-mode-onoff proc -1)))
     (when (process-live-p proc)
-      (eglot--warn "Brutally deleting existing process %s" proc)
+      (eglot--warn "Brutally deleting non-compliant %s" proc)
       (delete-process proc))))
 
 (defun eglot--find-current-process ()
@@ -163,6 +165,9 @@ called interactively."
   (let* ((probe (or (project-current) `(transient . ,default-directory))))
     (cl-find major-mode (gethash probe eglot--processes-by-project)
              :key #'eglot--major-mode)))
+
+(jsonrpc-define-process-var eglot--managed-buffers nil
+  "Buffers managed by the server.")
 
 (defun eglot--project-short-name (project)
   "Give PROJECT a short name."
@@ -216,35 +221,30 @@ called interactively."
               (symbol-name guessed-mode) nil (symbol-name guessed-mode) nil)))
            (t guessed-mode)))
          (project (or (project-current) `(transient . ,default-directory)))
-         (guessed-command (cdr (assoc managed-mode eglot-server-programs)))
+         (guessed (cdr (assoc managed-mode eglot-server-programs)))
+         (program (and (listp guessed) (stringp (car guessed)) (car guessed)))
          (base-prompt "[eglot] Enter program to execute (or <host>:<port>): ")
          (prompt
           (cond (current-prefix-arg base-prompt)
-                ((null guessed-command)
-                 (concat (format "[eglot] Sorry, couldn't guess for `%s'!"
-                                 managed-mode)
-                         "\n" base-prompt))
-                ((and (listp guessed-command)
-                      (not (integerp (cadr guessed-command)))
-                      (not (executable-find (car guessed-command))))
+                ((null guessed)
+                 (format "[eglot] Sorry, couldn't guess for `%s'\n%s!"
+                         managed-mode base-prompt))
+                ((and program (not (executable-find program)))
                  (concat (format "[eglot] I guess you want to run `%s'"
-                                 (combine-and-quote-strings guessed-command))
-                         (format ", but I can't find `%s' in PATH!"
-                                 (car guessed-command))
+                                 (combine-and-quote-strings guessed))
+                         (format ", but I can't find `%s' in PATH!" program)
                          "\n" base-prompt))))
          (contact
-          (cond ((not prompt) guessed-command)
-                (t
-                 (let ((string (read-shell-command
-                                prompt
-                                (if (listp guessed-command)
-                                    (combine-and-quote-strings guessed-command))
-                                'eglot-command-history)))
-                   (if (and string (string-match
-                                    "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
-                                    (string-trim string)))
-                       (list (match-string 1 string) (match-string 2 string))
-                     (split-string-and-unquote string)))))))
+          (if prompt
+              (let ((s (read-shell-command
+                        prompt
+                        (if program (combine-and-quote-strings guessed))
+                        'eglot-command-history)))
+                (if (string-match "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
+                                  (string-trim s))
+                    (list (match-string 1 s) (string-to-number (match-string 2 s)))
+                  (split-string-and-unquote s)))
+            guessed)))
     (list managed-mode project contact t)))
 
 ;;;###autoload
@@ -341,7 +341,8 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
              (jsonrpc-obj :processId (unless (eq (process-type proc)
                                                  'network)
                                        (emacs-pid))
-                          :rootPath  (car (project-roots project))
+                          :rootPath  (expand-file-name
+                                      (car (project-roots project)))
                           :rootUri  (eglot--path-to-uri
                                      (car (project-roots project)))
                           :initializationOptions  []
@@ -383,29 +384,24 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
   "Warning message with FORMAT and ARGS."
   (apply #'eglot--message (concat "(warning) " format) args)
   (let ((warning-minimum-level :error))
-    (display-warning 'eglot
-                     (apply #'format format args)
-                     :warning)))
+    (display-warning 'eglot (apply #'format format args) :warning)))
 
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
   (save-excursion
-    (jsonrpc-obj :line
-                 ;; F!@(#*&#$)CKING OFF-BY-ONE
-                 (1- (line-number-at-pos pos t))
-                 :character
-                 (- (goto-char (or pos (point)))
-                    (line-beginning-position)))))
+    (jsonrpc-obj :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
+                 :character (- (goto-char (or pos (point)))
+                               (line-beginning-position)))))
 
-(defun eglot--lsp-position-to-point (pos-plist)
-  "Convert LSP position POS-PLIST to Emacs point."
+(defun eglot--lsp-position-to-point (pos-plist &optional marker)
+  "Convert LSP position POS-PLIST to Emacs point.
+If optional MARKER, return a marker instead"
   (save-excursion (goto-char (point-min))
                   (forward-line (plist-get pos-plist :line))
-                  (forward-char
-                   (min (plist-get pos-plist :character)
-                        (- (line-end-position)
-                           (line-beginning-position))))
-                  (point)))
+                  (forward-char (min (plist-get pos-plist :character)
+                                     (- (line-end-position)
+                                        (line-beginning-position))))
+                  (if marker (copy-marker (point-marker)) (point))))
 
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
@@ -428,29 +424,31 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
 
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
-  (cond ((stringp markup)
-         (with-temp-buffer
-           (ignore-errors (funcall (intern "markdown-mode"))) ;escape bytecomp
-           (font-lock-ensure)
-           (insert markup)
-           (string-trim (buffer-string))))
-        (t
-         (with-temp-buffer
-           (ignore-errors (funcall (intern (concat
-                                            (plist-get markup :language)
-                                            "-mode" ))))
-           (insert (plist-get markup :value))
-           (font-lock-ensure)
-           (buffer-string)))))
+  (pcase-let ((`(,string ,mode)
+               (if (stringp markup) (list (string-trim markup)
+                                          (intern "markdown-mode"))
+                 (list (plist-get markup :value)
+                       (intern (concat (plist-get markup :language) "-mode" ))))))
+    (with-temp-buffer
+      (ignore-errors (funcall mode))
+      (insert string) (font-lock-ensure) (buffer-string))))
 
-(defun eglot--server-capable (feat)
-  "Determine if current server is capable of FEAT."
-  (plist-get (eglot--capabilities (jsonrpc-current-process-or-lose)) feat))
+(defun eglot--server-capable (&rest feats)
+  "Determine if current server is capable of FEATS."
+  (cl-loop for caps = (eglot--capabilities (jsonrpc-current-process-or-lose))
+           then (cadr probe)
+           for feat in feats
+           for probe = (plist-member caps feat)
+           if (not probe) do (cl-return nil)
+           if (eq (cadr probe) t) do (cl-return t)
+           if (eq (cadr probe) :json-false) do (cl-return nil)
+           finally (cl-return (or probe t))))
 
-(defun eglot--range-region (range)
-  "Return region (BEG . END) that represents LSP RANGE."
-  (cons (eglot--lsp-position-to-point (plist-get range :start))
-        (eglot--lsp-position-to-point (plist-get range :end))))
+(defun eglot--range-region (range &optional markers)
+  "Return region (BEG END) that represents LSP RANGE.
+If optional MARKERS, make markers."
+  (list (eglot--lsp-position-to-point (plist-get range :start) markers)
+        (eglot--lsp-position-to-point (plist-get range :end) markers)))
 
 
 ;;; Minor modes
@@ -490,19 +488,19 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
-    (remove-function (local imenu-create-index-function) #'eglot-imenu)
-    (let ((proc (eglot--find-current-process)))
-      (when (and (process-live-p proc) (y-or-n-p "[eglot] Kill server too? "))
-        (eglot-shutdown proc t))))))
+    (remove-function (local imenu-create-index-function) #'eglot-imenu))))
+
+(defun eglot--managed-mode-onoff (proc arg)
+  "Proxy for function `eglot--managed-mode' with ARG and PROC."
+  (eglot--managed-mode arg)
+  (let ((buf (current-buffer)))
+    (if eglot--managed-mode
+        (cl-pushnew buf (eglot--managed-buffers proc))
+      (setf (eglot--managed-buffers proc)
+            (delq buf (eglot--managed-buffers proc))))))
 
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
-
-(defun eglot--buffer-managed-p (&optional proc)
-  "Tell if current buffer can be managed by PROC."
-  (and buffer-file-name (let ((cur (eglot--find-current-process)))
-                          (or (and (null proc) cur)
-                              (and proc (eq proc cur))))))
 
 (defvar-local eglot--current-flymake-report-fn nil
   "Current flymake report function for this buffer")
@@ -512,11 +510,13 @@ Builds a function from METHOD, passes it PROC, ID and PARAMS."
 If PROC is supplied, do it only if BUFFER is managed by it.  In
 that case, also signal textDocument/didOpen."
   ;; Called even when revert-buffer-in-progress-p
-  (when (eglot--buffer-managed-p proc)
-    (eglot--managed-mode 1)
-    (eglot--signal-textDocument/didOpen)
-    (flymake-start)
-    (funcall (or eglot--current-flymake-report-fn #'ignore) nil)))
+  (let* ((cur (and buffer-file-name (eglot--find-current-process)))
+         (proc (or (and (null proc) cur) (and proc (eq proc cur) cur))))
+    (when proc
+      (eglot--managed-mode-onoff proc 1)
+      (eglot--signal-textDocument/didOpen)
+      (flymake-start)
+      (funcall (or eglot--current-flymake-report-fn #'ignore) nil))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
@@ -532,7 +532,8 @@ that case, also signal textDocument/didOpen."
   (lambda (event)
     (interactive "e")
     (with-selected-window (posn-window (event-start event))
-      (call-interactively what))))
+      (call-interactively what)
+      (force-mode-line-update t))))
 
 (defun eglot--mode-line-props (thing face defs &optional prepend)
   "Helper for function `eglot--mode-line-format'.
@@ -567,7 +568,7 @@ Uses THING, FACE, DEFS and PREPEND."
              `("/" ,(eglot--mode-line-props
                      "error" 'compilation-mode-line-fail
                      '((mouse-1 eglot-events-buffer "go to events buffer")
-                       (mouse-3 eglot-clear-status  "clear this status"))
+                       (mouse-3 jrpc-clear-status  "clear this status"))
                      (format "An error occured: %s\n" status))))
          ,@(when (and doing (not done-p))
              `("/" ,(eglot--mode-line-props
@@ -577,9 +578,10 @@ Uses THING, FACE, DEFS and PREPEND."
                      '((mouse-1 eglot-events-buffer "go to events buffer")))))
          ,@(when (cl-plusp pending)
              `("/" ,(eglot--mode-line-props
-                     (format "%d" pending) 'warning
+                     (format "%d oustanding requests" pending) 'warning
                      '((mouse-1 eglot-events-buffer "go to events buffer")
-                       (mouse-3 eglot-clear-status  "clear this status"))
+                       (mouse-3 jrpc-forget-pending-continuations
+                                "fahgettaboudit"))
                      (format "%d pending requests\n" pending)))))))))
 
 (add-to-list 'mode-line-misc-info
@@ -625,7 +627,7 @@ Uses THING, FACE, DEFS and PREPEND."
   "Unreported diagnostics for this buffer.")
 
 (cl-defun eglot--server-textDocument/publishDiagnostics
-    (_process &key uri diagnostics)
+    (_proc &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
@@ -634,7 +636,7 @@ Uses THING, FACE, DEFS and PREPEND."
          collect (cl-destructuring-bind (&key range severity _group
                                               _code source message)
                      diag-spec
-                   (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
+                   (pcase-let ((`(,beg ,end) (eglot--range-region range)))
                      (flymake-make-diagnostic (current-buffer)
                                               beg end
                                               (cond ((<= severity 1) :error)
@@ -679,15 +681,12 @@ THINGS are either registrations or unregisterations."
     (proc &key id _label edit)
   "Handle server request workspace/applyEdit"
   (condition-case err
-      (progn
-        (eglot--apply-workspace-edit edit 'confirm)
-        (jsonrpc-reply proc id :result `(:applied )))
-    (error
-     (jsonrpc-reply proc id
-                    :result `(:applied :json-false)
-                    :error
-                    (jsonrpc-obj :code -32001
-                                 :message (format "%s" err))))))
+      (progn (eglot--apply-workspace-edit edit 'confirm)
+             (jsonrpc-reply proc id :result `(:applied )))
+    (error (jsonrpc-reply proc id
+                          :result `(:applied :json-false)
+                          :error (jsonrpc-obj :code -32001
+                                              :message (format "%s" err))))))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
@@ -752,7 +751,8 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 (advice-add #'jsonrpc-request :before
             (cl-function (lambda (_proc _method _params &key deferred)
                            (when (and eglot--managed-mode deferred)
-                             (eglot--signal-textDocument/didChange)))))
+                             (eglot--signal-textDocument/didChange))))
+            '((name . eglot--signal-textDocument/didChange)))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
@@ -945,15 +945,19 @@ DUMMY is ignored"
                                         :deferred :textDocument/completion))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (mapcar
-             (jsonrpc-lambda (&rest all &key label &allow-other-keys)
-               (add-text-properties 0 1 all label) label)
+             (jsonrpc-lambda (&rest all &key label insertText &allow-other-keys)
+               (let ((insert (or insertText label)))
+                 (add-text-properties 0 1 all insert) insert))
              items))))
        :annotation-function
        (lambda (obj)
-         (propertize (concat " " (or (get-text-property 0 :detail obj)
-                                     (cdr (assoc (get-text-property 0 :kind obj)
-                                                 eglot--kind-names))))
-                     'face 'font-lock-function-name-face))
+         (cl-destructuring-bind (&key detail documentation kind &allow-other-keys)
+             (text-properties-at 0 obj)
+           (concat " " (propertize
+                        (or (and documentation
+                                 (replace-regexp-in-string "\n.*" "" documentation))
+                            detail (cdr (assoc kind eglot--kind-names)))
+                        'face 'font-lock-function-name-face))))
        :display-sort-function
        (lambda (items)
          (sort items (lambda (a b)
@@ -964,31 +968,27 @@ DUMMY is ignored"
        (lambda (obj)
          (let ((documentation
                 (or (get-text-property 0 :documentation obj)
-                    (plist-get (jsonrpc-request proc :completionItem/resolve
-                                                (text-properties-at 0 obj))
-                               :documentation))))
+                    (and (eglot--server-capable :completionProvider
+                                                :resolveProvider)
+                         (plist-get (jsonrpc-request proc :completionItem/resolve
+                                                     (text-properties-at 0 obj))
+                                    :documentation)))))
            (when documentation
              (with-current-buffer (get-buffer-create " *eglot doc*")
-               (erase-buffer)
-               (ignore-errors (funcall (intern "markdown-mode")))
-               (font-lock-ensure)
-               (insert documentation)
+               (insert (eglot--format-markup documentation))
                (current-buffer)))))
-       :exit-function
-       (lambda (_string _status) (eglot-eldoc-function))))))
+       :exit-function (lambda (_string _status)
+                        (eglot--signal-textDocument/didChange)
+                        (eglot-eldoc-function))))))
 
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
 (defun eglot--hover-info (contents &optional range)
-  (concat (and range
-               (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-                 (concat (buffer-substring beg end)  ": ")))
+  (concat (and range (pcase-let ((`(,beg ,end) (eglot--range-region range)))
+                       (concat (buffer-substring beg end)  ": ")))
           (mapconcat #'eglot--format-markup
-                     (append
-                      (cond ((vectorp contents)
-                             contents)
-                            (contents
-                             (list contents)))) "\n")))
+                     (append (cond ((vectorp contents) contents)
+                                   (contents (list contents)))) "\n")))
 
 (defun eglot--sig-info (sigs active-sig active-param)
   (cl-loop
@@ -1051,9 +1051,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          proc :textDocument/hover position-params
          :success-fn (jsonrpc-lambda (&key contents range)
                        (unless sig-showing
-                         (when-buffer-window
-                          (eldoc-message
-                           (eglot--hover-info contents range)))))
+                         ;; for eglot-tests.el's sake, set this unconditionally
+                         (setq eldoc-last-message
+                               (eglot--hover-info contents range))
+                         (when-buffer-window (eldoc-message eldoc-last-message))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
         (jsonrpc-async-request
@@ -1065,7 +1066,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                  (when-buffer-window
                   (mapcar
                    (jsonrpc-lambda (&key range _kind)
-                     (pcase-let ((`(,beg . ,end)
+                     (pcase-let ((`(,beg ,end)
                                   (eglot--range-region range)))
                        (let ((ov (make-overlay beg end)))
                          (overlay-put ov 'face 'highlight)
@@ -1100,14 +1101,14 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
-  (mapc (jsonrpc-lambda
-            (&key range newText)
-          (save-restriction
-            (widen)
-            (save-excursion
-              (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-                (goto-char beg) (delete-region beg end) (insert newText)))))
-        edits)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (mapc (jsonrpc-lambda (newText beg end)
+              (goto-char beg) (delete-region beg end) (insert newText))
+            (mapcar (jsonrpc-lambda (&key range newText)
+                      (cons newText (eglot--range-region range 'markers)))
+                    edits))))
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
@@ -1223,11 +1224,10 @@ Proceed? "
   "Handle notification window/progress"
   (setf (eglot--spinner process) (list id title done message))
   (when (and (equal "Indexing" title) done)
-    (dolist (buffer (buffer-list))
+    (dolist (buffer (eglot--managed-buffers process))
       (with-current-buffer buffer
-        (when (eglot--buffer-managed-p process)
-          (funcall (or eglot--current-flymake-report-fn #'ignore)
-                   eglot--unreported-diagnostics))))))
+        (funcall (or eglot--current-flymake-report-fn #'ignore)
+                 eglot--unreported-diagnostics)))))
 
 (provide 'eglot)
 ;;; eglot.el ends here
