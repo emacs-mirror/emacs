@@ -148,9 +148,9 @@ called interactively."
   (interactive (list (jsonrpc-current-process-or-lose) t))
   (eglot--message "Asking %s politely to terminate" proc)
   (unwind-protect
-      (let ((jsonrpc-request-timeout 3))
+      (progn
         (setf (eglot--moribund proc) t)
-        (jsonrpc-request proc :shutdown nil)
+        (jsonrpc-request proc :shutdown nil :timeout 3)
         ;; this one should always fail, hence ignore-errors
         (ignore-errors (jsonrpc-request proc :exit nil)))
     ;; Turn off `eglot--managed-mode' where appropriate.
@@ -749,7 +749,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 ;; bad idea, since that might lead to the request never having a
 ;; chance to run, because `jsonrpc-ready-predicates'.
 (advice-add #'jsonrpc-request :before
-            (cl-function (lambda (_proc _method _params &key deferred)
+            (cl-function (lambda (_proc _method _params &key deferred _timeout)
                            (when (and eglot--managed-mode deferred)
                              (eglot--signal-textDocument/didChange))))
             '((name . eglot--signal-textDocument/didChange)))
@@ -805,12 +805,11 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   (let ((proc (jsonrpc-current-process-or-lose))
         (params `(:reason 1 :textDocument ,(eglot--TextDocumentIdentifier))))
     (jsonrpc-notify proc :textDocument/willSave params)
-    (ignore-errors
-      (let ((jsonrpc-request-timeout 0.5))
-        (when (plist-get :willSaveWaitUntil
-                         (eglot--server-capable :textDocumentSync))
-          (eglot--apply-text-edits
-           (jsonrpc-request proc :textDocument/willSaveWaituntil params)))))))
+    (when (eglot--server-capable :textDocumentSync :willSaveWaitUntil)
+      (ignore-errors
+        (eglot--apply-text-edits
+         (jsonrpc-request proc :textDocument/willSaveWaituntil params
+                          :timeout 0.5))))))
 
 (defun eglot--signal-textDocument/didSave ()
   "Send textDocument/didSave to server."
