@@ -541,17 +541,21 @@ is a symbol saying if this is a client or server originated."
                                (gethash id (eglot--pending-continuations proc)))))
       (eglot--log-event proc message 'server)
       (when error (setf (eglot--status proc) `(,error t)))
-      (cond (method
-             ;; a server notification or a server request
-             (let* ((handler-sym (intern (concat "eglot--server-" method))))
-               (if (functionp handler-sym)
-                   ;; FIXME: will fail if params is array instead of  not an object
-                   (apply handler-sym proc (append params (if id `(:id ,id))))
-                 (eglot--warn "No implementation of method %s yet" method)
-                 (when id
-                   (eglot--reply
-                    proc id
-                    :error `(:code -32601 :message "Method unimplemented"))))))
+      (unless (or (null method)
+                  (keywordp method))
+        (setq method (intern (format ":%s" method))))
+      (cond ((and method id)
+             (condition-case-unless-debug _err
+                 (apply #'eglot-handle-request proc id method params)
+               (cl-no-applicable-method
+                (eglot--reply proc id
+                   :error `(:code -32601 :message "Method unimplemented")))))
+            (method
+             (condition-case-unless-debug _err
+                 (apply #'eglot-handle-notification proc method params)
+               (cl-no-applicable-method
+                (eglot--log-event
+                 proc '(:error `(:message "Notification unimplemented"))))))
             (continuations
              (cancel-timer (cl-third continuations))
              (remhash id (eglot--pending-continuations proc))
@@ -953,14 +957,15 @@ function with the server still running."
       (eglot--warn "Brutally deleting non-compliant existing process %s" proc)
       (delete-process proc))))
 
-(cl-defun eglot--server-window/showMessage (_process &key type message)
+(cl-defmethod eglot-handle-notification
+  (_process (_method (eql :window/showMessage)) &key type message)
   "Handle notification window/showMessage"
   (eglot--message (propertize "Server reports (type=%s): %s"
                               'face (if (<= type 1) 'error))
                   type message))
 
-(cl-defun eglot--server-window/showMessageRequest
-    (process &key id type message actions)
+(cl-defmethod eglot-handle-request
+    (process id (_method (eql :window/showMessageRequest)) &key type message actions)
   "Handle server request window/showMessageRequest"
   (let (reply)
     (unwind-protect
@@ -980,17 +985,19 @@ function with the server still running."
                       :error (eglot--obj :code -32800
                                          :message "User cancelled"))))))
 
-(cl-defun eglot--server-window/logMessage (_proc &key _type _message)
+(cl-defmethod eglot-handle-notification
+  (_proc (_method (eql :window/logMessage)) &key _type _message)
   "Handle notification window/logMessage") ;; noop, use events buffer
 
-(cl-defun eglot--server-telemetry/event (_proc &rest _any)
+(cl-defmethod eglot-handle-notification
+  (_proc (_method (eql :telemetry/event)) &rest _any)
   "Handle notification telemetry/event") ;; noop, use events buffer
 
 (defvar-local eglot--unreported-diagnostics nil
   "Unreported diagnostics for this buffer.")
 
-(cl-defun eglot--server-textDocument/publishDiagnostics
-    (_proc &key uri diagnostics)
+(cl-defmethod eglot-handle-notification
+    (_proc (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
@@ -1015,7 +1022,7 @@ function with the server still running."
     (eglot--warn "Diagnostics received for unvisited %s" uri)))
 
 (cl-defun eglot--register-unregister (proc jsonrpc-id things how)
-  "Helper for `eglot--server-client/registerCapability'.
+  "Helper for `registerCapability'.
 THINGS are either registrations or unregisterations."
   (dolist (thing (cl-coerce things 'list))
     (cl-destructuring-bind (&key id method registerOptions) thing
@@ -1030,18 +1037,19 @@ THINGS are either registrations or unregisterations."
                :error `(:code -32601 :message ,(or (cadr retval) "sorry")))))))))
   (eglot--reply proc jsonrpc-id :result (eglot--obj :message "OK")))
 
-(cl-defun eglot--server-client/registerCapability
-    (proc &key id registrations)
+(cl-defmethod eglot-handle-request
+    (proc id (_method (eql :client/registerCapability)) &key registrations)
   "Handle server request client/registerCapability"
   (eglot--register-unregister proc id registrations 'register))
 
-(cl-defun eglot--server-client/unregisterCapability
-    (proc &key id unregisterations) ;; XXX: Yeah, typo and all.. See spec...
+(cl-defmethod eglot-handle-request
+  (proc id (_method (eql :client/unregisterCapability))
+        &key unregisterations) ;; XXX: "unregisterations" (sic)
   "Handle server request client/unregisterCapability"
   (eglot--register-unregister proc id unregisterations 'unregister))
 
-(cl-defun eglot--server-workspace/applyEdit
-    (proc &key id _label edit)
+(cl-defmethod eglot-handle-request
+    (proc id (_method (eql :workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit"
   (condition-case err
       (progn (eglot--apply-workspace-edit edit 'confirm)
@@ -1563,12 +1571,12 @@ Proceed? "
     "Prepare `eglot' to deal with RLS's special treatment."
     (add-hook 'eglot--ready-predicates 'eglot--rls-probably-ready-for-p t t)))
 
-(cl-defun eglot--server-window/progress
-    (process &key id done title message &allow-other-keys)
+(cl-defmethod eglot-handle-notification
+    (proc (_method (eql :window/progress)) &key id done title message &allow-other-keys)
   "Handle notification window/progress"
-  (setf (eglot--spinner process) (list id title done message))
+  (setf (eglot--spinner proc) (list id title done message))
   (when (and (equal "Indexing" title) done)
-    (dolist (buffer (eglot--managed-buffers process))
+    (dolist (buffer (eglot--managed-buffers proc))
       (with-current-buffer buffer
         (funcall (or eglot--current-flymake-report-fn #'ignore)
                  eglot--unreported-diagnostics)))))
