@@ -72,6 +72,8 @@
                                 (python-mode . ("pyls"))
                                 (js-mode . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
+                                (c++-mode . (eglot-cquery "cquery"))
+                                (c-mode . (eglot-cquery "cquery"))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
   "How the command `eglot' guesses the server to start.
@@ -1612,6 +1614,34 @@ Proceed? "
       (with-current-buffer buffer
         (funcall (or eglot--current-flymake-report-fn #'ignore)
                  eglot--unreported-diagnostics)))))
+
+
+;;; cquery-specific
+;;;
+(defclass eglot-cquery (eglot-lsp-server) ()
+  :documentation "cquery's C/C++ langserver.")
+
+(cl-defmethod eglot-initialization-options ((server eglot-cquery))
+  "Passes through required cquery initialization options"
+  (let* ((root (car (project-roots (eglot--project server))))
+         (cache (expand-file-name ".cquery_cached_index/" root)))
+    (vector :cacheDirectory (file-name-as-directory cache)
+            :progressReportFrequencyMs -1)))
+
+(cl-defmethod eglot-handle-notification
+  ((server eglot-cquery) (_method (eql :$cquery/progress))
+   &rest counts &key activeThreads &allow-other-keys)
+  "No-op for noisy $cquery/progress extension")
+
+(cl-defmethod eglot-handle-notification
+  ((server eglot-cquery) (_method (eql :$cquery/setInactiveRegions))
+   &key uri inactiveRegions &allow-other-keys)
+  "No-op for unsupported $cquery/setInactiveRegions extension")
+
+(cl-defmethod eglot-handle-notification
+  ((server eglot-cquery) (_method (eql :$cquery/publishSemanticHighlighting))
+   &key uri symbols &allow-other-keys)
+  "No-op for unsupported $cquery/publishSemanticHighlighting extension")
 
 (provide 'eglot)
 ;;; eglot.el ends here
