@@ -774,6 +774,10 @@ DEFERRED is passed to `eglot--async-request', which see."
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'format format args) :warning)))
 
+(defun eglot--debug (server format &rest args)
+  "Warning message with FORMAT and ARGS."
+  (eglot--log-event server `(:message ,(format format args))))
+
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
   (save-excursion
