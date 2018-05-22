@@ -113,7 +113,7 @@ lasted more than that many seconds."
                  (integer :tag "Number of seconds")))
 
 
-;;; API
+;;; API (WORK-IN-PROGRESS!)
 ;;;
 (defmacro eglot--obj (&rest what) 
   "Make WHAT a JSON object suitable for `json-encode'."
@@ -302,7 +302,7 @@ class SERVER-CLASS."
              :initialize
              (eglot--obj
               :processId (unless (eq (process-type proc) 'network) (emacs-pid))
-              :capabilities (eglot-client-capabilities)
+              :capabilities (eglot-client-capabilities server)
               :rootPath  (expand-file-name (car (project-roots project)))
               :rootUri  (eglot--path-to-uri (car (project-roots project)))
               :initializationOptions (eglot-initialization-options server)))
@@ -820,15 +820,15 @@ If optional MARKER, return a marker instead"
       (insert string) (font-lock-ensure) (buffer-string))))
 
 (defun eglot--server-capable (&rest feats)
-"Determine if current server is capable of FEATS."
-(cl-loop for caps = (eglot--capabilities (eglot--current-server-or-lose))
-         then (cadr probe)
-         for feat in feats
-         for probe = (plist-member caps feat)
-         if (not probe) do (cl-return nil)
-         if (eq (cadr probe) t) do (cl-return t)
-         if (eq (cadr probe) :json-false) do (cl-return nil)
-         finally (cl-return (or probe t))))
+  "Determine if current server is capable of FEATS."
+  (cl-loop for caps = (eglot--capabilities (eglot--current-server-or-lose))
+           then (cadr probe)
+           for feat in feats
+           for probe = (plist-member caps feat)
+           if (not probe) do (cl-return nil)
+           if (eq (cadr probe) t) do (cl-return t)
+           if (eq (cadr probe) :json-false) do (cl-return nil)
+           finally (cl-return (or probe t))))
 
 (defun eglot--range-region (range &optional markers)
   "Return region (BEG END) that represents LSP RANGE.
@@ -1032,7 +1032,7 @@ function with the server still running."
   "Unreported diagnostics for this buffer.")
 
 (cl-defmethod eglot-handle-notification
-    (_server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
+  (_server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
@@ -1073,18 +1073,18 @@ THINGS are either registrations or unregisterations."
   (eglot--reply server jsonrpc-id :result (eglot--obj :message "OK")))
 
 (cl-defmethod eglot-handle-request
-    (server id (_method (eql :client/registerCapability)) &key registrations)
+  (server id (_method (eql :client/registerCapability)) &key registrations)
   "Handle server request client/registerCapability"
   (eglot--register-unregister server id registrations 'register))
 
 (cl-defmethod eglot-handle-request
   (server id (_method (eql :client/unregisterCapability))
-        &key unregisterations) ;; XXX: "unregisterations" (sic)
+          &key unregisterations) ;; XXX: "unregisterations" (sic)
   "Handle server request client/unregisterCapability"
   (eglot--register-unregister server id unregisterations 'unregister))
 
 (cl-defmethod eglot-handle-request
-    (server id (_method (eql :workspace/applyEdit)) &key _label edit)
+  (server id (_method (eql :workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit"
   (condition-case err
       (progn (eglot--apply-workspace-edit edit 'confirm)
