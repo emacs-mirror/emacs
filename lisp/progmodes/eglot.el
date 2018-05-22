@@ -115,12 +115,19 @@ lasted more than that many seconds."
 
 ;;; API
 ;;;
+(defmacro eglot--obj (&rest what) 
+  "Make WHAT a JSON object suitable for `json-encode'."
+  (declare (debug (&rest form)))
+  ;; FIXME: not really API. Should it be?
+  ;; FIXME: maybe later actually do something, for now this just fixes
+  ;; the indenting of literal plists.
+  `(list ,@what))
+
 (cl-defgeneric eglot-server-ready-p (server what) ;; API
   "Tell if SERVER is ready for WHAT in current buffer.
 If it isn't, a deferrable `eglot--async-request' *will* be
 deferred to the future."
-  (:method (_s _what)
-           "Normally not ready if outstanding changes."
+  (:method (_s _what) "Normally ready if no outstanding changes."
            (not (eglot--outstanding-edits-p))))
 
 (cl-defgeneric eglot-handle-request (server method id &rest params)
@@ -128,6 +135,35 @@ deferred to the future."
 
 (cl-defgeneric eglot-handle-notification (server method id &rest params)
   "Handle SERVER's METHOD notification with PARAMS.")
+
+(cl-defgeneric eglot-initialization-options (server)
+  "JSON object to send under `initializationOptions'"
+  (:method (_s) nil)) ; blank default
+
+(cl-defgeneric eglot-client-capabilities (server)
+  "What the EGLOT LSP client supports for SERVER."
+  (:method (_s)
+           (eglot--obj
+            :workspace (eglot--obj
+                        :applyEdit t
+                        :workspaceEdit `(:documentChanges :json-false)
+                        :didChangeWatchesFiles `(:dynamicRegistration t)
+                        :symbol `(:dynamicRegistration :json-false))
+            :textDocument
+            (eglot--obj
+             :synchronization (eglot--obj
+                               :dynamicRegistration :json-false
+                               :willSave t :willSaveWaitUntil t :didSave t)
+             :completion         `(:dynamicRegistration :json-false)
+             :hover              `(:dynamicRegistration :json-false)
+             :signatureHelp      `(:dynamicRegistration :json-false)
+             :references         `(:dynamicRegistration :json-false)
+             :definition         `(:dynamicRegistration :json-false)
+             :documentSymbol     `(:dynamicRegistration :json-false)
+             :documentHighlight  `(:dynamicRegistration :json-false)
+             :rename             `(:dynamicRegistration :json-false)
+             :publishDiagnostics `(:relatedInformation :json-false))
+            :experimental (eglot--obj))))
 
 
 ;;; Process management
@@ -223,13 +259,6 @@ CONTACT is in `eglot'.  Returns a process object."
       (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t)))
     proc))
 
-(defmacro eglot--obj (&rest what)
-  "Make WHAT a suitable argument for `json-encode'."
-  (declare (debug (&rest form)))
-  ;; FIXME: maybe later actually do something, for now this just fixes
-  ;; the indenting of literal plists.
-  `(list ,@what))
-
 (defun eglot--all-major-modes ()
   "Return all know major modes."
   (let ((retval))
@@ -237,29 +266,6 @@ CONTACT is in `eglot'.  Returns a process object."
                 (when (plist-member (symbol-plist sym) 'derived-mode-parent)
                   (push sym retval))))
     retval))
-
-(defun eglot--client-capabilities ()
-  "What the EGLOT LSP client supports."
-  (eglot--obj
-   :workspace    (eglot--obj
-                  :applyEdit t
-                  :workspaceEdit `(:documentChanges :json-false)
-                  :didChangeWatchesFiles `(:dynamicRegistration t)
-                  :symbol `(:dynamicRegistration :json-false))
-   :textDocument (eglot--obj
-                  :synchronization (eglot--obj
-                                    :dynamicRegistration :json-false
-                                    :willSave t :willSaveWaitUntil t :didSave t)
-                  :completion         `(:dynamicRegistration :json-false)
-                  :hover              `(:dynamicRegistration :json-false)
-                  :signatureHelp      `(:dynamicRegistration :json-false)
-                  :references         `(:dynamicRegistration :json-false)
-                  :definition         `(:dynamicRegistration :json-false)
-                  :documentSymbol     `(:dynamicRegistration :json-false)
-                  :documentHighlight  `(:dynamicRegistration :json-false)
-                  :rename             `(:dynamicRegistration :json-false)
-                  :publishDiagnostics `(:relatedInformation :json-false))
-   :experimental (eglot--obj)))
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
@@ -294,15 +300,12 @@ class SERVER-CLASS."
             (eglot--request
              server
              :initialize
-             (eglot--obj :processId (unless (eq (process-type proc)
-                                                'network)
-                                      (emacs-pid))
-                         :capabilities(eglot--client-capabilities)
-                         :rootPath  (expand-file-name
-                                     (car (project-roots project)))
-                         :rootUri  (eglot--path-to-uri
-                                    (car (project-roots project)))
-                         :initializationOptions  []))
+             (eglot--obj
+              :processId (unless (eq (process-type proc) 'network) (emacs-pid))
+              :capabilities (eglot-client-capabilities)
+              :rootPath  (expand-file-name (car (project-roots project)))
+              :rootUri  (eglot--path-to-uri (car (project-roots project)))
+              :initializationOptions (eglot-initialization-options server)))
           (setf (eglot--capabilities server) capabilities)
           (setf (eglot--status server) nil)
           (dolist (buffer (buffer-list))
