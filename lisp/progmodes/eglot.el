@@ -1038,7 +1038,7 @@ function with the server still running."
   "Unreported diagnostics for this buffer.")
 
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
+  (server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
@@ -1060,7 +1060,7 @@ function with the server still running."
                         (setq eglot--unreported-diagnostics nil))
                        (t
                         (setq eglot--unreported-diagnostics diags)))))
-    (eglot--warn "Diagnostics received for unvisited %s" uri)))
+    (eglot--debug server "Diagnostics received for unvisited %s" uri)))
 
 (cl-defun eglot--register-unregister (server jsonrpc-id things how)
   "Helper for `registerCapability'.
