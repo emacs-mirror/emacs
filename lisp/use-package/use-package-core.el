@@ -920,7 +920,7 @@ If RECURSED is non-nil, recurse into sublists."
               (eq 'lambda (car v)))
          v)
         ((and (listp v)
-              (memq '(quote function) (car v))
+              (memq (car v) '(quote function))
               (eq 'lambda (car (cadr v))))
          (cadr v))
         (t v)))
