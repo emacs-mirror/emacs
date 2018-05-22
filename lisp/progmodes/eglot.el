@@ -68,7 +68,7 @@
   :prefix "eglot-"
   :group 'applications)
 
-(defvar eglot-server-programs '((rust-mode . ("rls"))
+(defvar eglot-server-programs '((rust-mode . (eglot-rls "rls"))
                                 (python-mode . ("pyls"))
                                 (js-mode . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
@@ -111,6 +111,23 @@ only autoreconnect if the previous successful connection attempt
 lasted more than that many seconds."
   :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
                  (integer :tag "Number of seconds")))
+
+
+;;; API
+;;;
+(cl-defgeneric eglot-server-ready-p (server what) ;; API
+  "Tell if SERVER is ready for WHAT in current buffer.
+If it isn't, a deferrable `eglot--async-request' *will* be
+deferred to the future."
+  (:method (_s _what)
+           "Normally not ready if outstanding changes."
+           (not (eglot--outstanding-edits-p))))
+
+(cl-defgeneric eglot-handle-request (server method id &rest params)
+  "Handle SERVER's METHOD request with ID and PARAMS.")
+
+(cl-defgeneric eglot-handle-notification (server method id &rest params)
+  "Handle SERVER's METHOD notification with PARAMS.")
 
 
 ;;; Process management
@@ -619,16 +636,6 @@ originated."
     (eglot--log-event server `(:running-deferred ,(length actions)))
     (mapc #'funcall (mapcar #'car actions))))
 
-(defvar eglot--ready-predicates '(eglot--server-ready-p)
-  "Special hook of predicates controlling deferred actions.
-If one of these returns nil, a deferrable `eglot--async-request'
-will be deferred.  Each predicate is passed the symbol for the
-request request and a process object.")
-
-(defun eglot--server-ready-p (_what _server)
-  "Tell if SERVER is ready for processing deferred WHAT."
-  (not (eglot--outstanding-edits-p)))
-
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
   (declare (indent 1) (debug (sexp &rest form)))
   (let ((e (gensym "eglot--lambda-elem")))
@@ -668,8 +675,7 @@ TIMER)."
              (existing (gethash (list deferred buf)
                                 (eglot--deferred-actions server))))
         (when existing (setq existing (cadr existing)))
-        (if (run-hook-with-args-until-failure 'eglot--ready-predicates
-                                              deferred server)
+        (if (eglot-server-ready-p server deferred)
             (remhash (list deferred buf) (eglot--deferred-actions server))
           (eglot--log-event server `(:deferring ,method :id ,id :params ,params))
           (let* ((buf (current-buffer)) (point (point))
@@ -708,9 +714,9 @@ TIMER)."
   "Like `eglot--async-request' for SERVER, METHOD and PARAMS, but synchronous.
 Meaning only return locally if successful, otherwise exit non-locally.
 DEFERRED is passed to `eglot--async-request', which see."
-  ;; Launching a deferred sync request with outstanding changes is a
-  ;; bad idea, since that might lead to the request never having a
-  ;; chance to run, because `eglot--ready-predicates'.
+  ;; HACK: A deferred sync request with outstanding changes is a bad
+  ;; idea, since that might lead to the request never having a chance
+  ;; to run, because idle timers don't run in `accept-process-output'.
   (when deferred (eglot--signal-textDocument/didChange))
   (let* ((done (make-symbol "eglot-catch")) id-and-timer
          (res
@@ -1583,22 +1589,19 @@ Proceed? "
 
 ;;; Rust-specific
 ;;;
-(defun eglot--rls-probably-ready-for-p (what server)
-  "Guess if the RLS running in SERVER is ready for WHAT."
-  (or (eq what :textDocument/completion) ; RLS normally ready for this
-                                        ; one, even if building ;
-      (pcase-let ((`(,_id ,what ,done ,_detail) (eglot--spinner server)))
-        (and (equal "Indexing" what) done))))
+(defclass eglot-rls (eglot-lsp-server) () :documentation "Rustlang's RLS.")
 
-;;;###autoload
-(progn
-  (add-hook 'rust-mode-hook 'eglot--setup-rls-idiosyncrasies)
-  (defun eglot--setup-rls-idiosyncrasies ()
-    "Prepare `eglot' to deal with RLS's special treatment."
-    (add-hook 'eglot--ready-predicates 'eglot--rls-probably-ready-for-p t t)))
+(cl-defmethod eglot-server-ready-p ((server eglot-rls) what)
+  "Except for :completion, RLS isn't ready until Indexing done."
+  (and (cl-call-next-method)
+       (or ;; RLS normally ready for this, even if building.
+        (eq :textDocument/completion what)
+        (pcase-let ((`(,_id ,what ,done ,_detail) (eglot--spinner server)))
+          (and (equal "Indexing" what) done)))))
 
 (cl-defmethod eglot-handle-notification
-  (server (_method (eql :window/progress)) &key id done title message &allow-other-keys)
+  ((server eglot-rls) (_method (eql :window/progress))
+   &key id done title message &allow-other-keys)
   "Handle notification window/progress"
   (setf (eglot--spinner server) (list id title done message))
   (when (and (equal "Indexing" title) done)
