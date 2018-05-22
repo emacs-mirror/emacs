@@ -132,9 +132,9 @@
   (should (equal (use-package-normalize-function t) t))
   (should (equal (use-package-normalize-function 'sym) 'sym))
   (should (equal (use-package-normalize-function #'sym) 'sym))
-  (should (equal (use-package-normalize-function (lambda () ...)) (lambda () ...)))
-  (should (equal (use-package-normalize-function '(lambda () ...)) (lambda () ...)))
-  (should (equal (use-package-normalize-function #'(lambda () ...)) (lambda () ...)))
+  (should (equal (use-package-normalize-function '(lambda () ...)) '(lambda () ...)))
+  (should (equal (use-package-normalize-function ''(lambda () ...)) '(lambda () ...)))
+  (should (equal (use-package-normalize-function '#'(lambda () ...)) '(lambda () ...)))
 
   (should (equal (use-package-normalize-function 1) 1))
   (should (equal (use-package-normalize-function "Hello") "Hello"))
