@@ -432,7 +432,7 @@ INTERACTIVE is t if called interactively."
 (defun eglot--process-sentinel (proc change)
   "Called when PROC undergoes CHANGE."
   (let ((server (process-get proc 'eglot-server)))
-    (eglot--log-event server `(:message "Process state changed" :change ,change))
+    (eglot--debug server "Process state changed: %s" change)
     (when (not (process-live-p proc))
       (with-current-buffer (eglot-events-buffer server)
         (let ((inhibit-read-only t))
@@ -597,8 +597,7 @@ originated."
              (condition-case-unless-debug _err
                  (apply #'eglot-handle-notification server method params)
                (cl-no-applicable-method
-                (eglot--log-event
-                 server '(:error `(:message "Notification unimplemented"))))))
+                (eglot--debug server "Notification unimplemented: %s" method))))
             (continuations
              (cancel-timer (cl-third continuations))
              (remhash id (eglot--pending-continuations server))
@@ -638,7 +637,7 @@ originated."
 (defun eglot--call-deferred (server)
   "Call SERVER's deferred actions, who may again defer themselves."
   (when-let ((actions (hash-table-values (eglot--deferred-actions server))))
-    (eglot--log-event server `(:running-deferred ,(length actions)))
+    (eglot--debug server "running %d deferred actions" (length actions))
     (mapc #'funcall (mapcar #'car actions))))
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
@@ -682,7 +681,7 @@ TIMER)."
         (when existing (setq existing (cadr existing)))
         (if (eglot-server-ready-p server deferred)
             (remhash (list deferred buf) (eglot--deferred-actions server))
-          (eglot--log-event server `(:deferring ,method :id ,id :params ,params))
+          (eglot--debug server "deferring %s (id %s)" method id)
           (let* ((buf (current-buffer)) (point (point))
                  (later (lambda ()
                           (when (buffer-live-p buf)
@@ -704,8 +703,7 @@ TIMER)."
     (puthash id
              (list (or success-fn
                        (eglot--lambda (&rest _ignored)
-                         (eglot--log-event
-                          server (eglot--obj :message "success ignored" :id id))))
+                         (eglot--debug server "%s success ignored (id %s)" method id)))
                    (or error-fn
                        (eglot--lambda (&key code message &allow-other-keys)
                          (setf (eglot--status server) `(,message t))
