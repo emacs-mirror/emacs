@@ -72,6 +72,8 @@
                                 (python-mode . ("pyls"))
                                 (js-mode . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
+                                (c++-mode . (eglot-cquery "cquery"))
+                                (c-mode . (eglot-cquery "cquery"))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
   "How the command `eglot' guesses the server to start.
@@ -422,7 +424,7 @@ INTERACTIVE is t if called interactively."
 (defun eglot--process-sentinel (proc change)
   "Called when PROC undergoes CHANGE."
   (let ((server (process-get proc 'eglot-server)))
-    (eglot--log-event server `(:message "Process state changed" :change ,change))
+    (eglot--debug server "Process state changed: %s" change)
     (when (not (process-live-p proc))
       (with-current-buffer (eglot-events-buffer server)
         (let ((inhibit-read-only t))
@@ -587,7 +589,7 @@ originated."
            (if id
                (eglot--reply
                 server id :error `(:code -32601 :message "Method unimplemented"))
-             (eglot--log-event
+             (eglot--debug
               server '(:error `(:message "Notification unimplemented")))))))
        (continuations
         (cancel-timer (cl-third continuations))
@@ -622,7 +624,7 @@ originated."
 (defun eglot--call-deferred (server)
   "Call SERVER's deferred actions, who may again defer themselves."
   (when-let ((actions (hash-table-values (eglot--deferred-actions server))))
-    (eglot--log-event server `(:maybe-run-deferred ,(mapcar #'caddr actions)))
+    (eglot--debug server `(:maybe-run-deferred ,(mapcar #'caddr actions)))
     (mapc #'funcall (mapcar #'car actions))))
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
@@ -658,7 +660,7 @@ happens, the original timer keeps counting). Return (ID TIMER)."
                     (lambda ()
                       (remhash id (eglot--pending-continuations server))
                       (if timeout-fn (funcall timeout-fn)
-                        (eglot--log-event
+                        (eglot--debug
                          server `(:timed-out ,method :id ,id :params ,params))))))))
     (when deferred
       (if (eglot-server-ready-p server deferred)
@@ -667,7 +669,7 @@ happens, the original timer keeps counting). Return (ID TIMER)."
         ;; Otherwise, save in `eglot--deferred-actions' and exit non-locally
         (unless old-id
           ;; Also, if it's the first deferring for this id, inform the log
-          (eglot--log-event server `(:deferring ,method :id ,id :params ,params)))
+          (eglot--debug server `(:deferring ,method :id ,id :params ,params)))
         (puthash (list deferred buf)
                  (list (lambda () (when (buffer-live-p buf)
                                     (with-current-buffer buf
@@ -683,7 +685,7 @@ happens, the original timer keeps counting). Return (ID TIMER)."
     (puthash id (list
                  (or success-fn
                      (eglot--lambda (&rest _ignored)
-                       (eglot--log-event
+                       (eglot--debug
                         server `(:message "success ignored" :id ,id))))
                  (or error-fn
                      (eglot--lambda (&key code message &allow-other-keys)
@@ -750,6 +752,11 @@ DEFERRED is passed to `eglot--async-request', which see."
   (apply #'eglot--message (concat "(warning) " format) args)
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'format format args) :warning)))
+
+(defun eglot--debug (server format &rest args)
+  "Debug message for SERVER with FORMAT and ARGS."
+  (eglot--log-event
+   server (if (stringp format)`(:message ,(format format args)) format)))
 
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
@@ -1012,7 +1019,7 @@ function with the server still running."
   "Unreported diagnostics for this buffer.")
 
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
+  (server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
@@ -1034,7 +1041,7 @@ function with the server still running."
                         (setq eglot--unreported-diagnostics nil))
                        (t
                         (setq eglot--unreported-diagnostics diags)))))
-    (eglot--warn "Diagnostics received for unvisited %s" uri)))
+    (eglot--debug server "Diagnostics received for unvisited %s" uri)))
 
 (cl-defun eglot--register-unregister (server jsonrpc-id things how)
   "Helper for `registerCapability'.
@@ -1589,6 +1596,34 @@ Proceed? "
       (with-current-buffer buffer
         (funcall (or eglot--current-flymake-report-fn #'ignore)
                  eglot--unreported-diagnostics)))))
+
+
+;;; cquery-specific
+;;;
+(defclass eglot-cquery (eglot-lsp-server) ()
+  :documentation "cquery's C/C++ langserver.")
+
+(cl-defmethod eglot-initialization-options ((server eglot-cquery))
+  "Passes through required cquery initialization options"
+  (let* ((root (car (project-roots (eglot--project server))))
+         (cache (expand-file-name ".cquery_cached_index/" root)))
+    (vector :cacheDirectory (file-name-as-directory cache)
+            :progressReportFrequencyMs -1)))
+
+(cl-defmethod eglot-handle-notification
+  ((_server eglot-cquery) (_method (eql :$cquery/progress))
+   &rest counts &key _activeThreads &allow-other-keys)
+  "No-op for noisy $cquery/progress extension")
+
+(cl-defmethod eglot-handle-notification
+  ((_server eglot-cquery) (_method (eql :$cquery/setInactiveRegions))
+   &key _uri _inactiveRegions &allow-other-keys)
+  "No-op for unsupported $cquery/setInactiveRegions extension")
+
+(cl-defmethod eglot-handle-notification
+  ((_server eglot-cquery) (_method (eql :$cquery/publishSemanticHighlighting))
+   &key _uri _symbols &allow-other-keys)
+  "No-op for unsupported $cquery/publishSemanticHighlighting extension")
 
 (provide 'eglot)
 ;;; eglot.el ends here
