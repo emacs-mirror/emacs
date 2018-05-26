@@ -191,6 +191,11 @@ lasted more than that many seconds."
 (defvar eglot--servers-by-project (make-hash-table :test #'equal)
   "Keys are projects.  Values are lists of processes.")
 
+;; HACK: Do something to fix this in the jsonrpc API or here, but in
+;; the meantime concentrate the hack here.
+(defalias 'eglot--process 'jsonrpc--process
+  "An abuse of `jsonrpc--process', a jsonrpc.el internal.")
+
 (defun eglot-shutdown (server &optional _interactive)
   "Politely ask SERVER to quit.
 Forcefully quit it if it doesn't respond.  Don't leave this
@@ -206,9 +211,9 @@ function with the server still running."
     ;; Turn off `eglot--managed-mode' where appropriate.
     (dolist (buffer (eglot--managed-buffers server))
       (with-current-buffer buffer (eglot--managed-mode-onoff server -1)))
-    (when (process-live-p (jsonrpc--process server))
+    (when (process-live-p (eglot--process server))
       (eglot--warn "Brutally deleting non-compliant server %s" (jsonrpc-name server))
-      (delete-process (jsonrpc--process server)))))
+      (delete-process (eglot--process server)))))
 
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
@@ -330,7 +335,7 @@ INTERACTIVE is t if called interactively."
                                     (car (project-roots project)))))
          (current-server (jsonrpc-current-connection))
          (live-p (and current-server
-                      (process-live-p (jsonrpc--process current-server)))))
+                      (process-live-p (eglot--process current-server)))))
     (if (and live-p
              interactive
              (y-or-n-p "[eglot] Live process found, reconnect instead? "))
@@ -351,7 +356,7 @@ managing `%s' buffers in project `%s'."
   "Reconnect to SERVER.
 INTERACTIVE is t if called interactively."
   (interactive (list (jsonrpc-current-connection-or-lose) t))
-  (when (process-live-p (jsonrpc--process server))
+  (when (process-live-p (eglot--process server))
     (eglot-shutdown server interactive))
   (eglot--connect (eglot--project server)
                   (eglot--major-mode server)
@@ -391,7 +396,7 @@ And NICKNAME and CONTACT."
              server
              :initialize
              (jsonrpc-obj :processId (unless (eq (process-type
-                                                  (jsonrpc--process server))
+                                                  (eglot--process server))
                                                  'network)
                                        (emacs-pid))
                           :rootPath  (expand-file-name
@@ -415,7 +420,7 @@ And NICKNAME and CONTACT."
                                     (setf (eglot--inhibit-autoreconnect server)
                                           (null eglot-autoreconnect)))))))
           (setq success server))
-      (unless (or success (not (process-live-p (jsonrpc--process server)))
+      (unless (or success (not (process-live-p (eglot--process server)))
                   (eglot--moribund server))
         (eglot-shutdown server)))))
 
@@ -851,7 +856,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
                                              :text after-text)])))))
       (setq eglot--recent-changes (cons [] []))
       (setf (eglot--spinner server) (list nil :textDocument/didChange t))
-      ;; HACK!
+      ;; HACK! perhaps jsonrpc should just call this on every send
       (jsonrpc--call-deferred server))))
 
 (defun eglot--signal-textDocument/didOpen ()
