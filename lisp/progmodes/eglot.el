@@ -115,14 +115,6 @@ lasted more than that many seconds."
 
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
-(defmacro eglot--obj (&rest what)
-  "Make WHAT a JSON object suitable for `json-encode'."
-  (declare (debug (&rest form)))
-  ;; FIXME: not really API. Should it be?
-  ;; FIXME: maybe later actually do something, for now this just fixes
-  ;; the indenting of literal plists.
-  `(list ,@what))
-
 (cl-defgeneric eglot-server-ready-p (server what) ;; API
   "Tell if SERVER is ready for WHAT in current buffer.
 If it isn't, a deferrable `eglot--async-request' *will* be
@@ -143,15 +135,15 @@ deferred to the future."
 (cl-defgeneric eglot-client-capabilities (server)
   "What the EGLOT LSP client supports for SERVER."
   (:method (_s)
-           (eglot--obj
-            :workspace (eglot--obj
+           (list
+            :workspace (list
                         :applyEdit t
                         :workspaceEdit `(:documentChanges :json-false)
                         :didChangeWatchesFiles `(:dynamicRegistration t)
                         :symbol `(:dynamicRegistration :json-false))
             :textDocument
-            (eglot--obj
-             :synchronization (eglot--obj
+            (list
+             :synchronization (list
                                :dynamicRegistration :json-false
                                :willSave t :willSaveWaitUntil t :didSave t)
              :completion         `(:dynamicRegistration :json-false)
@@ -163,7 +155,7 @@ deferred to the future."
              :documentHighlight  `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
              :publishDiagnostics `(:relatedInformation :json-false))
-            :experimental (eglot--obj))))
+            :experimental (list))))
 
 
 ;;; Process management
@@ -300,7 +292,7 @@ class SERVER-CLASS."
             (eglot--request
              server
              :initialize
-             (eglot--obj
+             (list
               :processId (unless (eq (process-type proc) 'network) (emacs-pid))
               :capabilities (eglot-client-capabilities server)
               :rootPath  (expand-file-name (car (project-roots project)))
@@ -311,7 +303,7 @@ class SERVER-CLASS."
           (dolist (buffer (buffer-list))
             (with-current-buffer buffer
               (eglot--maybe-activate-editing-mode server)))
-          (eglot--notify server :initialized (eglot--obj :__dummy__ t))
+          (eglot--notify server :initialized `(:__dummy__ t))
           (run-hook-with-args 'eglot-connect-hook server)
           (setq connect-success server))
       (unless (or connect-success
@@ -691,12 +683,12 @@ happens, the original timer keeps counting). Return (ID TIMER)."
                  (or success-fn
                      (eglot--lambda (&rest _ignored)
                        (eglot--log-event
-                        server (eglot--obj :message "success ignored" :id id))))
+                        server `(:message "success ignored" :id ,id))))
                  (or error-fn
                      (eglot--lambda (&key code message &allow-other-keys)
                        (setf (eglot--status server) `(,message t))
-                       server (eglot--obj :message "error ignored, status set"
-                                          :id id :error code)))
+                       server `(:message "error ignored, status set"
+                                         :id ,id :error ,code)))
                  (or timer (funcall make-timer)))
              (eglot--pending-continuations server))
     (list id timer)))
@@ -732,16 +724,14 @@ DEFERRED is passed to `eglot--async-request', which see."
 
 (cl-defun eglot--notify (server method params)
   "Notify SERVER of something, don't expect a reply.e"
-  (eglot--send server (eglot--obj :jsonrpc  "2.0"
-                                  :method method
-                                  :params params)))
+  (eglot--send server `(:jsonrpc  "2.0" :method ,method :params ,params)))
 
 (cl-defun eglot--reply (server id &key result error)
   "Reply to PROCESS's request ID with MESSAGE."
   (eglot--send
-   server`(:jsonrpc  "2.0" :id ,id
-                     ,@(when result `(:result ,result))
-                     ,@(when error `(:error ,error)))))
+   server `(:jsonrpc  "2.0" :id ,id
+                      ,@(when result `(:result ,result))
+                      ,@(when error `(:error ,error)))))
 
 
 ;;; Helpers
@@ -763,9 +753,9 @@ DEFERRED is passed to `eglot--async-request', which see."
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
   (save-excursion
-    (eglot--obj :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
-                :character (- (goto-char (or pos (point)))
-                              (line-beginning-position)))))
+    (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
+          :character (- (goto-char (or pos (point)))
+                        (line-beginning-position)))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
@@ -1003,10 +993,9 @@ function with the server still running."
                    '("OK"))
                nil t (plist-get (elt actions 0) :title)))
       (if reply
-          (eglot--reply server id :result (eglot--obj :title reply))
+          (eglot--reply server id :result `(:title ,reply))
         (eglot--reply server id
-                      :error (eglot--obj :code -32800
-                                         :message "User cancelled"))))))
+                      :error `(:code -32800 :message "User cancelled"))))))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql :window/logMessage)) &key _type _message)
@@ -1058,7 +1047,7 @@ THINGS are either registrations or unregisterations."
               (eglot--reply
                server jsonrpc-id
                :error `(:code -32601 :message ,(or (cadr retval) "sorry")))))))))
-  (eglot--reply server jsonrpc-id :result (eglot--obj :message "OK")))
+  (eglot--reply server jsonrpc-id :result `(:message "OK")))
 
 (cl-defmethod eglot-handle-request
   (server id (_method (eql :client/registerCapability)) &key registrations)
@@ -1079,37 +1068,36 @@ THINGS are either registrations or unregisterations."
              (eglot--reply server id :result `(:applied )))
     (error (eglot--reply server id
                          :result `(:applied :json-false)
-                         :error (eglot--obj :code -32001
-                                            :message (format "%s" err))))))
+                         :error `(:code -32001 :message ,(format "%s" err))))))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
-  (eglot--obj :uri (eglot--path-to-uri buffer-file-name)))
+  (list :uri (eglot--path-to-uri buffer-file-name)))
 
 (defvar-local eglot--versioned-identifier 0)
 
 (defun eglot--VersionedTextDocumentIdentifier ()
   "Compute VersionedTextDocumentIdentifier object for current buffer."
   (append (eglot--TextDocumentIdentifier)
-          (eglot--obj :version eglot--versioned-identifier)))
+          `(:version ,eglot--versioned-identifier)))
 
 (defun eglot--TextDocumentItem ()
   "Compute TextDocumentItem object for current buffer."
   (append
    (eglot--VersionedTextDocumentIdentifier)
-   (eglot--obj :languageId
-               (if (string-match "\\(.*\\)-mode" (symbol-name major-mode))
-                   (match-string 1 (symbol-name major-mode))
-                 "unknown")
-               :text
-               (save-restriction
-                 (widen)
-                 (buffer-substring-no-properties (point-min) (point-max))))))
+   (list :languageId
+         (if (string-match "\\(.*\\)-mode" (symbol-name major-mode))
+             (match-string 1 (symbol-name major-mode))
+           "unknown")
+         :text
+         (save-restriction
+           (widen)
+           (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun eglot--TextDocumentPositionParams ()
   "Compute TextDocumentPositionParams."
-  (eglot--obj :textDocument (eglot--TextDocumentIdentifier)
-              :position (eglot--pos-to-lsp-position)))
+  (list :textDocument (eglot--TextDocumentIdentifier)
+        :position (eglot--pos-to-lsp-position)))
 
 (defvar-local eglot--recent-changes nil
   "Recent buffer changes as collected by `eglot--before-change'.")
@@ -1160,19 +1148,18 @@ Records START, END and PRE-CHANGE-LENGTH locally."
         (widen)
         (eglot--notify
          server :textDocument/didChange
-         (eglot--obj
+         (list
           :textDocument (eglot--VersionedTextDocumentIdentifier)
           :contentChanges
           (if full-sync-p (vector
-                           (eglot--obj
+                           (list
                             :text (buffer-substring-no-properties (point-min)
                                                                   (point-max))))
             (cl-loop for (start-pos end-pos) across (car eglot--recent-changes)
                      for (len after-text) across (cdr eglot--recent-changes)
-                     vconcat `[,(eglot--obj :range (eglot--obj :start start-pos
-                                                               :end end-pos)
-                                            :rangeLength len
-                                            :text after-text)])))))
+                     vconcat `[,(list :range `(:start ,start-pos :end ,end-pos)
+                                      :rangeLength len
+                                      :text after-text)])))))
       (setq eglot--recent-changes (cons [] []))
       (eglot--call-deferred server))))
 
@@ -1206,7 +1193,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   (eglot--notify
    (eglot--current-server-or-lose)
    :textDocument/didSave
-   (eglot--obj
+   (list
     ;; TODO: Handle TextDocumentSaveRegistrationOptions to control this.
     :text (buffer-substring-no-properties (point-min) (point-max))
     :textDocument (eglot--TextDocumentIdentifier))))
@@ -1253,17 +1240,15 @@ DUMMY is ignored"
                 (eglot--lambda (&key name kind location containerName)
                   (propertize name
                               :textDocumentPositionParams
-                              (eglot--obj :textDocument text-id
-                                          :position (plist-get
-                                                     (plist-get location :range)
-                                                     :start))
+                              (list :textDocument text-id
+                                    :position (plist-get
+                                               (plist-get location :range)
+                                               :start))
                               :locations (list location)
                               :kind kind
                               :containerName containerName))
-                (eglot--request server
-                                :textDocument/documentSymbol
-                                (eglot--obj
-                                 :textDocument text-id))))
+                (eglot--request
+                 server :textDocument/documentSymbol `(:textDocument ,text-id))))
          (all-completions string eglot--xref-known-symbols))))))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
@@ -1301,8 +1286,7 @@ DUMMY is ignored"
                             :textDocument/references
                             (append
                              params
-                             (eglot--obj :context
-                                         (eglot--obj :includeDeclaration t)))))))
+                             `(:context (:includeDeclaration t)))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
@@ -1311,7 +1295,7 @@ DUMMY is ignored"
                 (eglot--xref-make name uri (plist-get range :start))))
             (eglot--request (eglot--current-server-or-lose)
                             :workspace/symbol
-                            (eglot--obj :query pattern)))))
+                            (list :query pattern)))))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
@@ -1466,8 +1450,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (plist-get (plist-get location :range) :start))))
               (eglot--request (eglot--current-server-or-lose)
                               :textDocument/documentSymbol
-                              (eglot--obj
-                               :textDocument (eglot--TextDocumentIdentifier))))))
+                              `(:textDocument ,(eglot--TextDocumentIdentifier))))))
         (append
          (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
                        entries)
@@ -1534,7 +1517,7 @@ Proceed? "
   (eglot--apply-workspace-edit
    (eglot--request (eglot--current-server-or-lose)
                    :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
-                                          ,@(eglot--obj :newName newname)))
+                                          :newName ,newname))
    current-prefix-arg))
 
 
