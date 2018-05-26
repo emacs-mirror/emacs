@@ -1131,6 +1131,8 @@ THINGS are either registrations or unregisterations."
   (cl-plusp (+ (length (car eglot--recent-changes))
                (length (cdr eglot--recent-changes)))))
 
+(defvar eglot--change-idle-timer nil "Idle timer for textDocument/didChange.")
+
 (defun eglot--before-change (start end)
   "Hook onto `before-change-functions'.
 Records START and END, crucially convert them into
@@ -1149,7 +1151,12 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   (setf (cdr eglot--recent-changes)
         (vconcat (cdr eglot--recent-changes)
                  `[(,pre-change-length
-                    ,(buffer-substring-no-properties start end))])))
+                    ,(buffer-substring-no-properties start end))]))
+  (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
+  (setq eglot--change-idle-timer
+        (run-with-idle-timer
+         0.5 nil (lambda () (eglot--signal-textDocument/didChange)
+                   (setq eglot--change-idle-timer nil)))))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
@@ -1166,8 +1173,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
         (eglot--notify
          server :textDocument/didChange
          (eglot--obj
-          :textDocument
-          (eglot--VersionedTextDocumentIdentifier)
+          :textDocument (eglot--VersionedTextDocumentIdentifier)
           :contentChanges
           (if full-sync-p (vector
                            (eglot--obj
@@ -1180,7 +1186,6 @@ Records START, END and PRE-CHANGE-LENGTH locally."
                                             :rangeLength len
                                             :text after-text)])))))
       (setq eglot--recent-changes (cons [] []))
-      (setf (eglot--spinner server) (list nil :textDocument/didChange t))
       (eglot--call-deferred server))))
 
 (defun eglot--signal-textDocument/didOpen ()
@@ -1225,9 +1230,7 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
   ;; Report anything unreported
   (when eglot--unreported-diagnostics
     (funcall report-fn eglot--unreported-diagnostics)
-    (setq eglot--unreported-diagnostics nil))
-  ;; Signal a didChange that might eventually bring new diagnotics
-  (eglot--signal-textDocument/didChange))
+    (setq eglot--unreported-diagnostics nil)))
 
 (defun eglot-xref-backend ()
   "EGLOT xref backend."
