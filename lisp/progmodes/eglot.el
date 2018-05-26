@@ -115,7 +115,7 @@ lasted more than that many seconds."
 
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
-(defmacro eglot--obj (&rest what) 
+(defmacro eglot--obj (&rest what)
   "Make WHAT a JSON object suitable for `json-encode'."
   (declare (debug (&rest form)))
   ;; FIXME: not really API. Should it be?
@@ -582,29 +582,28 @@ originated."
                                (gethash id (eglot--pending-continuations server)))))
       (eglot--log-event server message 'server)
       (when error (setf (eglot--status server) `(,error t)))
-      (unless (or (null method)
-                  (keywordp method))
+      (unless (or (null method) (keywordp method))
         (setq method (intern (format ":%s" method))))
-      (cond ((and method id)
-             (condition-case-unless-debug _err
-                 (apply #'eglot-handle-request server id method params)
-               (cl-no-applicable-method
-                (eglot--reply server id
-                              :error `(:code -32601 :message "Method unimplemented")))))
-            (method
-             (condition-case-unless-debug _err
-                 (apply #'eglot-handle-notification server method params)
-               (cl-no-applicable-method
-                (eglot--log-event
-                 server '(:error `(:message "Notification unimplemented"))))))
-            (continuations
-             (cancel-timer (cl-third continuations))
-             (remhash id (eglot--pending-continuations server))
-             (if error
-                 (funcall (cl-second continuations) error)
-               (funcall (cl-first continuations) result)))
-            (id
-             (eglot--warn "Ooops no continuation for id %s" id)))
+      (cond
+       (method
+        (condition-case-unless-debug _err
+            (if id
+                (apply #'eglot-handle-request server id method params)
+              (apply #'eglot-handle-notification server method params))
+          (cl-no-applicable-method
+           (if id
+               (eglot--reply
+                server id :error `(:code -32601 :message "Method unimplemented"))
+             (eglot--log-event
+              server '(:error `(:message "Notification unimplemented")))))))
+       (continuations
+        (cancel-timer (cl-third continuations))
+        (remhash id (eglot--pending-continuations server))
+        (if error
+            (funcall (cl-second continuations) error)
+          (funcall (cl-first continuations) result)))
+       (id
+        (eglot--warn "Ooops no continuation for id %s" id)))
       (eglot--call-deferred server)
       (force-mode-line-update t))))
 
