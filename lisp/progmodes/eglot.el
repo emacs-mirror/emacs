@@ -211,8 +211,8 @@ deferred to the future."
     :documentation "How server was started and how it can be re-started."
     :initarg :contact :accessor eglot--contact)
    (deferred-actions
-     :documentation "Map (DEFERRED-ID BUF) to (FN TIMER).
-DEFERRED request from BUF is FN. It's sent later, not later than TIMER."
+     :documentation "Map (DEFERRED BUF) to (FN TIMER ID).  FN is a saved\
+DEFERRED request from BUF, to be sent not later than TIMER as ID."
      :initform (make-hash-table :test #'equal) :accessor eglot--deferred-actions)
    (file-watches
     :documentation "Map ID to list of WATCHES for `didChangeWatchedFiles'."
@@ -615,12 +615,6 @@ originated."
                                  (string-bytes json) json))
     (eglot--log-event server message 'client)))
 
-(defvar eglot--next-request-id 0 "ID for next request.")
-
-(defun eglot--next-request-id ()
-  "Compute the next id for a client request."
-  (setq eglot--next-request-id (1+ eglot--next-request-id)))
-
 (defun eglot-forget-pending-continuations (server)
   "Stop waiting for responses from the current LSP SERVER."
   (interactive (list (eglot--current-server-or-lose)))
@@ -635,13 +629,15 @@ originated."
 (defun eglot--call-deferred (server)
   "Call SERVER's deferred actions, who may again defer themselves."
   (when-let ((actions (hash-table-values (eglot--deferred-actions server))))
-    (eglot--log-event server `(:running-deferred ,(length actions)))
+    (eglot--log-event server `(:maybe-run-deferred ,(mapcar #'caddr actions)))
     (mapc #'funcall (mapcar #'car actions))))
 
 (cl-defmacro eglot--lambda (cl-lambda-list &body body)
   (declare (indent 1) (debug (sexp &rest form)))
   (let ((e (gensym "eglot--lambda-elem")))
     `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
+
+(defvar-local eglot--next-request-id 0 "ID for next `eglot--async-request'.")
 
 (cl-defun eglot--async-request (server
                                 method
@@ -656,59 +652,52 @@ objects, respectively.  Wait TIMEOUT seconds for response or call
 nullary TIMEOUT-FN.  If DEFERRED, maybe defer request to the
 future, or to never at all, in case a new request with identical
 DEFERRED and for the same buffer overrides it (however, if that
-happens, the original timeout keeps counting). Return a list (ID
-TIMER)."
-  (let* ((id (eglot--next-request-id))
-         (timer nil)
-         (make-timer
-          (lambda ( )
-            (or timer
-                (run-with-timer
-                 timeout nil
-                 (lambda ()
-                   (remhash id (eglot--pending-continuations server))
-                   (funcall (or timeout-fn
-                                (lambda ()
-                                  (eglot--log-event
-                                   server `(:timed-out ,method :id ,id
-                                                       :params ,params)))))))))))
+happens, the original timer keeps counting). Return (ID TIMER)."
+  (pcase-let* ( (buf (current-buffer)) (pos (point-marker))
+                (`(,_ ,timer ,old-id)
+                 (and deferred (gethash (list deferred buf)
+                                        (eglot--deferred-actions server))))
+                (id (or old-id (cl-incf eglot--next-request-id)))
+                (make-timer
+                 (lambda ( )
+                   (run-with-timer
+                    timeout nil
+                    (lambda ()
+                      (remhash id (eglot--pending-continuations server))
+                      (if timeout-fn (funcall timeout-fn)
+                        (eglot--log-event
+                         server `(:timed-out ,method :id ,id :params ,params))))))))
     (when deferred
-      (let* ((buf (current-buffer))
-             (existing (gethash (list deferred buf)
-                                (eglot--deferred-actions server))))
-        (when existing (setq existing (cadr existing)))
-        (if (eglot-server-ready-p server deferred)
-            (remhash (list deferred buf) (eglot--deferred-actions server))
-          (eglot--log-event server `(:deferring ,method :id ,id :params ,params))
-          (let* ((buf (current-buffer)) (point (point))
-                 (later (lambda ()
-                          (when (buffer-live-p buf)
-                            (with-current-buffer buf
-                              (save-excursion
-                                (goto-char point)
-                                (apply #'eglot--async-request server
-                                       method params args)))))))
-            (puthash (list deferred buf)
-                     (list later (setq timer (funcall make-timer)))
-                     (eglot--deferred-actions server))
-            (cl-return-from eglot--async-request nil)))))
-    ;; Really run it
-    ;;
-    (eglot--send server (eglot--obj :jsonrpc "2.0"
-                                    :id id
-                                    :method method
-                                    :params params))
-    (puthash id
-             (list (or success-fn
-                       (eglot--lambda (&rest _ignored)
-                         (eglot--log-event
-                          server (eglot--obj :message "success ignored" :id id))))
-                   (or error-fn
-                       (eglot--lambda (&key code message &allow-other-keys)
-                         (setf (eglot--status server) `(,message t))
-                         server (eglot--obj :message "error ignored, status set"
-                                            :id id :error code)))
-                   (setq timer (funcall make-timer)))
+      (if (eglot-server-ready-p server deferred)
+          ;; Server is ready, we jump below and send it immediately.
+          (remhash (list deferred buf) (eglot--deferred-actions server))
+        ;; Otherwise, save in `eglot--deferred-actions' and exit non-locally
+        (unless old-id
+          ;; Also, if it's the first deferring for this id, inform the log
+          (eglot--log-event server `(:deferring ,method :id ,id :params ,params)))
+        (puthash (list deferred buf)
+                 (list (lambda () (when (buffer-live-p buf)
+                                    (with-current-buffer buf
+                                      (save-excursion
+                                        (goto-char pos)
+                                        (apply #'eglot--async-request server
+                                               method params args)))))
+                       (or timer (funcall make-timer)) id)
+                 (eglot--deferred-actions server))
+        (cl-return-from eglot--async-request nil)))
+    ;; Really send the request
+    (eglot--send server `(:jsonrpc "2.0" :id ,id :method ,method :params ,params))
+    (puthash id (list
+                 (or success-fn
+                     (eglot--lambda (&rest _ignored)
+                       (eglot--log-event
+                        server (eglot--obj :message "success ignored" :id id))))
+                 (or error-fn
+                     (eglot--lambda (&key code message &allow-other-keys)
+                       (setf (eglot--status server) `(,message t))
+                       server (eglot--obj :message "error ignored, status set"
+                                          :id id :error code)))
+                 (or timer (funcall make-timer)))
              (eglot--pending-continuations server))
     (list id timer)))
 
