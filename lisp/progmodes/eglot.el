@@ -184,9 +184,9 @@ deferred to the future."
    (capabilities
     :documentation "JSON object containing server capabilities."
     :accessor eglot--capabilities)
-   (moribund
+   (shutdown-requested
     :documentation "Flag set when server is shutting down."
-    :accessor eglot--moribund)
+    :accessor eglot--shutdown-requested)
    (project
     :documentation "Project associated with server."
     :initarg :project :accessor eglot--project)
@@ -307,7 +307,7 @@ class SERVER-CLASS."
           (run-hook-with-args 'eglot-connect-hook server)
           (setq connect-success server))
       (unless (or connect-success
-                  (not (process-live-p proc)) (eglot--moribund server))
+                  (not (process-live-p proc)))
         (eglot-shutdown server)))))
 
 (defvar eglot--command-history nil
@@ -454,7 +454,8 @@ INTERACTIVE is t if called interactively."
                          (eglot--process server)))
         (delete-process proc)
         ;; Consider autoreconnecting
-        (cond ((eglot--moribund server))
+        (cond ((eglot--shutdown-requested server)
+               (setf (eglot--shutdown-requested server) :sentinel-done))
               ((not (eglot--inhibit-autoreconnect server))
                (eglot--warn "Reconnecting after unexpected server exit")
                (eglot-reconnect server))
@@ -959,15 +960,17 @@ function with the server still running."
   (eglot--message "Asking %s politely to terminate" (eglot--name server))
   (unwind-protect
       (let ((eglot-request-timeout 3))
-        (setf (eglot--moribund server) t)
+        (setf (eglot--shutdown-requested server) t)
         (eglot--request server :shutdown nil)
         ;; this one is supposed to always fail, hence ignore-errors
         (ignore-errors (eglot--request server :exit nil)))
     ;; Turn off `eglot--managed-mode' where appropriate.
     (dolist (buffer (eglot--managed-buffers server))
       (with-current-buffer buffer (eglot--managed-mode-onoff server -1)))
-    (when (process-live-p (eglot--process server))
-      (eglot--warn "Brutally deleting non-compliant server %s" (eglot--name server))
+    (while (progn (accept-process-output nil 0.1)
+                  (not (eq (eglot--shutdown-requested server) :sentinel-done)))
+      (eglot--warn "Sentinel for %s still hasn't run, brutally deleting it!"
+                   (eglot--process server))
       (delete-process (eglot--process server)))))
 
 (cl-defmethod eglot-handle-notification
