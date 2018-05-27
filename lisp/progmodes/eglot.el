@@ -833,6 +833,9 @@ If optional MARKERS, make markers."
 ;;;
 (defvar eglot-mode-map (make-sparse-keymap))
 
+(defvar-local eglot--current-flymake-report-fn nil
+  "Current flymake report function for this buffer")
+
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some EGLOT project."
   nil nil eglot-mode-map
@@ -862,7 +865,8 @@ If optional MARKERS, make markers."
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
-    (remove-function (local imenu-create-index-function) #'eglot-imenu))))
+    (remove-function (local imenu-create-index-function) #'eglot-imenu)
+    (setq eglot--current-flymake-report-fn nil))))
 
 (defun eglot--managed-mode-onoff (server arg)
   "Proxy for function `eglot--managed-mode' with ARG and SERVER."
@@ -876,9 +880,6 @@ If optional MARKERS, make markers."
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
 
-(defvar-local eglot--current-flymake-report-fn nil
-  "Current flymake report function for this buffer")
-
 (defun eglot--maybe-activate-editing-mode (&optional server)
   "Maybe activate mode function `eglot--managed-mode'.
 If SERVER is supplied, do it only if BUFFER is managed by it.  In
@@ -888,9 +889,7 @@ that case, also signal textDocument/didOpen."
          (server (or (and (null server) cur) (and server (eq server cur) cur))))
     (when server
       (eglot--managed-mode-onoff server 1)
-      (eglot--signal-textDocument/didOpen)
-      (flymake-start)
-      (funcall (or eglot--current-flymake-report-fn #'ignore) nil))))
+      (eglot--signal-textDocument/didOpen))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
@@ -1046,7 +1045,7 @@ function with the server still running."
                         (funcall eglot--current-flymake-report-fn diags)
                         (setq eglot--unreported-diagnostics nil))
                        (t
-                        (setq eglot--unreported-diagnostics diags)))))
+                        (setq eglot--unreported-diagnostics (cons t diags))))))
     (eglot--debug server "Diagnostics received for unvisited %s" uri)))
 
 (cl-defun eglot--register-unregister (server jsonrpc-id things how)
@@ -1221,7 +1220,7 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
   (setq eglot--current-flymake-report-fn report-fn)
   ;; Report anything unreported
   (when eglot--unreported-diagnostics
-    (funcall report-fn eglot--unreported-diagnostics)
+    (funcall report-fn (cdr eglot--unreported-diagnostics))
     (setq eglot--unreported-diagnostics nil)))
 
 (defun eglot-xref-backend ()
@@ -1598,12 +1597,7 @@ Proceed? "
   ((server eglot-rls) (_method (eql :window/progress))
    &key id done title message &allow-other-keys)
   "Handle notification window/progress"
-  (setf (eglot--spinner server) (list id title done message))
-  (when (and (equal "Indexing" title) done)
-    (dolist (buffer (eglot--managed-buffers server))
-      (with-current-buffer buffer
-        (funcall (or eglot--current-flymake-report-fn #'ignore)
-                 eglot--unreported-diagnostics)))))
+  (setf (eglot--spinner server) (list id title done message)))
 
 
 ;;; cquery-specific
