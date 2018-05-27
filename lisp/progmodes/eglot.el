@@ -397,7 +397,7 @@ INTERACTIVE is t if called interactively."
         (eglot-reconnect current-server interactive)
       (when (and current-server
                  (process-live-p (eglot--process current-server)))
-        (eglot-shutdown current-server))
+        (ignore-errors (eglot-shutdown current-server)))
       (let ((server (eglot--connect project
                                     managed-major-mode
                                     command
@@ -413,7 +413,7 @@ managing `%s' buffers in project `%s'."
 INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-server-or-lose) t))
   (when (process-live-p (eglot--process server))
-    (eglot-shutdown server interactive))
+    (ignore-errors (eglot-shutdown server interactive)))
   (eglot--connect (eglot--project server)
                   (eglot--major-mode server)
                   (eglot--contact server)
