@@ -1491,39 +1491,30 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
   "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
-  (let (prepared)
-    (cl-destructuring-bind (&key changes documentChanges)
-        wedit
-      (cl-loop
-       for change on documentChanges
-       do (push (cl-destructuring-bind (&key textDocument edits) change
-                  (cl-destructuring-bind (&key uri version) textDocument
-                    (list (eglot--uri-to-path uri) edits version)))
-                prepared))
+  (cl-destructuring-bind (&key changes documentChanges) wedit
+    (let ((prepared
+           (mapcar (eglot--lambda (&key textDocument edits)
+                     (cl-destructuring-bind (&key uri version) textDocument
+                       (list (eglot--uri-to-path uri) edits version)))
+                   documentChanges)))
       (cl-loop for (uri edits) on changes by #'cddr
-               do (push (list (eglot--uri-to-path uri) edits) prepared)))
-    (if (or confirm
-            (cl-notevery #'find-buffer-visiting
-                         (mapcar #'car prepared)))
-        (unless (y-or-n-p
-                 (format "[eglot] Server requests to edit %s files.\n  %s\n\
-Proceed? "
-                         (length prepared)
-                         (mapconcat #'identity
-                                    (mapcar #'car prepared)
-                                    "\n  ")))
-          (eglot--error "User cancelled server edit")))
-    (unwind-protect
-        (let (edit)
-          (while (setq edit (car prepared))
-            (cl-destructuring-bind (path edits &optional version) edit
-              (with-current-buffer (find-file-noselect path)
-                (eglot--apply-text-edits edits version))
-              (pop prepared))))
-      (if prepared
-          (eglot--warn "Caution: edits of files %s failed."
-                       (mapcar #'car prepared))
-        (eglot--message "Edit successful!")))))
+               do (push (list (eglot--uri-to-path uri) edits) prepared))
+      (if (or confirm
+              (cl-notevery #'find-buffer-visiting
+                           (mapcar #'car prepared)))
+          (unless (y-or-n-p
+                   (format "[eglot] Server wants to edit:\n  %s\n Proceed? "
+                           (mapconcat #'identity (mapcar #'car prepared) "\n  ")))
+            (eglot--error "User cancelled server edit")))
+      (unwind-protect
+          (let (edit) (while (setq edit (car prepared))
+                        (cl-destructuring-bind (path edits &optional version) edit
+                          (with-current-buffer (find-file-noselect path)
+                            (eglot--apply-text-edits edits version))
+                          (pop prepared))))
+        (if prepared (eglot--warn "Caution: edits of files %s failed."
+                                  (mapcar #'car prepared))
+          (eglot--message "Edit successful!"))))))
 
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
