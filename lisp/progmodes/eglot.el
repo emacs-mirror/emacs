@@ -60,6 +60,7 @@
 (require 'xref)
 (require 'subr-x)
 (require 'filenotify)
+(require 'ert)
 
 
 ;;; User tweakable stuff
@@ -817,10 +818,15 @@ If optional MARKER, return a marker instead"
            finally (cl-return (or probe t))))
 
 (defun eglot--range-region (range &optional markers)
-  "Return region (BEG END) that represents LSP RANGE.
+  "Return region (BEG . END) that represents LSP RANGE.
 If optional MARKERS, make markers."
-  (list (eglot--lsp-position-to-point (plist-get range :start) markers)
-        (eglot--lsp-position-to-point (plist-get range :end) markers)))
+  (let* ((st (plist-get range :start))
+         (beg (eglot--lsp-position-to-point st markers))
+         (end (eglot--lsp-position-to-point (plist-get range :end) markers)))
+    ;; Fallback to `flymake-diag-region' if server botched the range
+    (if (/= beg end) (cons beg end) (flymake-diag-region
+                                     (current-buffer) (plist-get st :line)
+                                     (1- (plist-get st :character))))))
 
 
 ;;; Minor modes
@@ -1028,7 +1034,7 @@ function with the server still running."
          collect (cl-destructuring-bind (&key range severity _group
                                               _code source message)
                      diag-spec
-                   (pcase-let ((`(,beg ,end) (eglot--range-region range)))
+                   (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                      (flymake-make-diagnostic (current-buffer)
                                               beg end
                                               (cond ((<= severity 1) :error)
@@ -1362,7 +1368,7 @@ DUMMY is ignored"
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
 (defun eglot--hover-info (contents &optional range)
-  (concat (and range (pcase-let ((`(,beg ,end) (eglot--range-region range)))
+  (concat (and range (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                        (concat (buffer-substring beg end)  ": ")))
           (mapconcat #'eglot--format-markup
                      (append (cond ((vectorp contents) contents)
@@ -1397,9 +1403,9 @@ DUMMY is ignored"
       (eglot--request (eglot--current-server-or-lose) :textDocument/hover
                       (eglot--TextDocumentPositionParams))
     (when (seq-empty-p contents) (eglot--error "No hover info here"))
-    (with-help-window "*eglot help*"
-      (with-current-buffer standard-output
-        (insert (eglot--hover-info contents range))))))
+    (let ((blurb (eglot--hover-info contents range)))
+      (with-help-window "*eglot help*"
+        (with-current-buffer standard-output (insert blurb))))))
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function.
@@ -1409,8 +1415,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          (position-params (eglot--TextDocumentPositionParams))
          sig-showing)
     (cl-macrolet ((when-buffer-window
-                   (&body body) `(when (get-buffer-window buffer)
-                                   (with-current-buffer buffer ,@body))))
+                   (&body body)
+                   `(when (or (get-buffer-window buffer) (ert-running-test))
+                      (with-current-buffer buffer ,@body))))
       (when (eglot--server-capable :signatureHelpProvider)
         (eglot--async-request
          server :textDocument/signatureHelp position-params
@@ -1428,8 +1435,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          server :textDocument/hover position-params
          :success-fn (eglot--lambda (&key contents range)
                        (unless sig-showing
-                         (setq eldoc-last-message (eglot--hover-info contents range))
-                         (when-buffer-window (eldoc-message eldoc-last-message))))
+                         (when-buffer-window
+                          (eldoc-message (eglot--hover-info contents range)))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
         (eglot--async-request
@@ -1438,8 +1445,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (mapc #'delete-overlay eglot--highlights)
                        (setq eglot--highlights
                              (when-buffer-window
-                              (mapcar (eglot--lambda (&key range _kind)
-                                        (pcase-let ((`(,beg ,end)
+                              (mapcar (eglot--lambda (&key range _kind _role)
+                                        (pcase-let ((`(,beg . ,end)
                                                      (eglot--range-region range)))
                                           (let ((ov (make-overlay beg end)))
                                             (overlay-put ov 'face 'highlight)
@@ -1475,7 +1482,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (save-restriction
     (widen)
     (save-excursion
-      (mapc (eglot--lambda (newText beg end)
+      (mapc (pcase-lambda (`(,newText ,beg . ,end))
               (goto-char beg) (delete-region beg end) (insert newText))
             (mapcar (eglot--lambda (&key range newText)
                       (cons newText (eglot--range-region range 'markers)))
