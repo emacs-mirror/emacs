@@ -121,9 +121,7 @@ lasted more than that many seconds."
 (cl-defgeneric eglot-server-ready-p (server what) ;; API
   "Tell if SERVER is ready for WHAT in current buffer.
 If it isn't, a deferrable `eglot--async-request' *will* be
-deferred to the future."
-  (:method (_s _what) "Normally ready if no outstanding changes."
-           (not (eglot--outstanding-edits-p))))
+deferred to the future.")
 
 (cl-defgeneric eglot-handle-request (server method id &rest params)
   "Handle SERVER's METHOD request with ID and PARAMS.")
@@ -1117,10 +1115,8 @@ THINGS are either registrations or unregisterations."
 (defvar-local eglot--recent-changes nil
   "Recent buffer changes as collected by `eglot--before-change'.")
 
-(defun eglot--outstanding-edits-p ()
-  "Non-nil if there are outstanding edits."
-  (cl-plusp (+ (length (car eglot--recent-changes))
-               (length (cdr eglot--recent-changes)))))
+(defmethod eglot-server-ready-p (_s _what)
+  "Normally ready if no outstanding changes." (not eglot--recent-changes))
 
 (defvar eglot--change-idle-timer nil "Idle timer for textDocument/didChange.")
 
@@ -1130,19 +1126,20 @@ Records START and END, crucially convert them into
 LSP (line/char) positions before that information is
 lost (because the after-change thingy doesn't know if newlines
 were deleted/added)"
-  (setf (car eglot--recent-changes)
-        (vconcat (car eglot--recent-changes)
-                 `[(,(eglot--pos-to-lsp-position start)
-                    ,(eglot--pos-to-lsp-position end))])))
+  (when (listp eglot--recent-changes)
+    (push `(,(eglot--pos-to-lsp-position start)
+            ,(eglot--pos-to-lsp-position end))
+          eglot--recent-changes)))
 
 (defun eglot--after-change (start end pre-change-length)
   "Hook onto `after-change-functions'.
 Records START, END and PRE-CHANGE-LENGTH locally."
   (cl-incf eglot--versioned-identifier)
-  (setf (cdr eglot--recent-changes)
-        (vconcat (cdr eglot--recent-changes)
-                 `[(,pre-change-length
-                    ,(buffer-substring-no-properties start end))]))
+  (if (and (listp eglot--recent-changes)
+           (null (cddr (car eglot--recent-changes))))
+      (setf (cddr (car eglot--recent-changes))
+            `(,pre-change-length ,(buffer-substring-no-properties start end)))
+    (setf eglot--recent-changes :emacs-messup))
   (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
   (setq eglot--change-idle-timer
         (run-with-idle-timer
@@ -1151,14 +1148,11 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
-  (when (eglot--outstanding-edits-p)
+  (when eglot--recent-changes
     (let* ((server (eglot--current-server-or-lose))
            (sync-kind (eglot--server-capable :textDocumentSync))
-           (emacs-messup (/= (length (car eglot--recent-changes))
-                             (length (cdr eglot--recent-changes))))
-           (full-sync-p (or (eq sync-kind 1) emacs-messup)))
-      (when emacs-messup
-        (eglot--warn "`eglot--recent-changes' messup: %s" eglot--recent-changes))
+           (full-sync-p (or (eq sync-kind 1)
+                            (eq :emacs-messup eglot--recent-changes))))
       (save-restriction
         (widen)
         (eglot--notify
@@ -1166,22 +1160,19 @@ Records START, END and PRE-CHANGE-LENGTH locally."
          (list
           :textDocument (eglot--VersionedTextDocumentIdentifier)
           :contentChanges
-          (if full-sync-p (vector
-                           (list
-                            :text (buffer-substring-no-properties (point-min)
-                                                                  (point-max))))
-            (cl-loop for (start-pos end-pos) across (car eglot--recent-changes)
-                     for (len after-text) across (cdr eglot--recent-changes)
-                     vconcat `[,(list :range `(:start ,start-pos :end ,end-pos)
-                                      :rangeLength len
-                                      :text after-text)])))))
-      (setq eglot--recent-changes (cons [] []))
+          (if full-sync-p
+              (vector `(:text ,(buffer-substring-no-properties (point-min)
+                                                               (point-max))))
+            (cl-loop for (beg end len text) in (reverse eglot--recent-changes)
+                     vconcat `[,(list :range `(:start ,beg :end ,end)
+                                      :rangeLength len :text text)])))))
+      (setq eglot--recent-changes nil)
       (setf (eglot--spinner server) (list nil :textDocument/didChange t))
       (eglot--call-deferred server))))
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
-  (setq eglot--recent-changes (cons [] []) eglot--versioned-identifier 0)
+  (setq eglot--recent-changes nil eglot--versioned-identifier 0)
   (eglot--notify
    (eglot--current-server-or-lose)
    :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
