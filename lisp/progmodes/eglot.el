@@ -1118,7 +1118,7 @@ THINGS are either registrations or unregisterations."
 (defmethod eglot-server-ready-p (_s _what)
   "Normally ready if no outstanding changes." (not eglot--recent-changes))
 
-(defvar eglot--change-idle-timer nil "Idle timer for textDocument/didChange.")
+(defvar-local eglot--change-idle-timer nil "Idle timer for didChange signals.")
 
 (defun eglot--before-change (start end)
   "Hook onto `before-change-functions'.
@@ -1141,10 +1141,14 @@ Records START, END and PRE-CHANGE-LENGTH locally."
             `(,pre-change-length ,(buffer-substring-no-properties start end)))
     (setf eglot--recent-changes :emacs-messup))
   (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
-  (setq eglot--change-idle-timer
-        (run-with-idle-timer
-         0.5 nil (lambda () (eglot--signal-textDocument/didChange)
-                   (setq eglot--change-idle-timer nil)))))
+  (let ((buf (current-buffer)))
+    (setq eglot--change-idle-timer
+          (run-with-idle-timer
+           0.5 nil (lambda () (when (buffer-live-p buf)
+                                (with-current-buffer buf
+                                  (when eglot--managed-mode
+                                    (eglot--signal-textDocument/didChange)
+                                    (setq eglot--change-idle-timer nil)))))))))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
