@@ -1177,6 +1177,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
                                       :rangeLength len
                                       :text after-text)])))))
       (setq eglot--recent-changes (cons [] []))
+      (setf (eglot--spinner server) (list nil :textDocument/didChange t))
       (eglot--call-deferred server))))
 
 (defun eglot--signal-textDocument/didOpen ()
