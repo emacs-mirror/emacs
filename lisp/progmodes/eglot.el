@@ -1181,7 +1181,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
-  (setq eglot--recent-changes (cons [] []))
+  (setq eglot--recent-changes (cons [] []) eglot--versioned-identifier 0)
   (eglot--notify
    (eglot--current-server-or-lose)
    :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
