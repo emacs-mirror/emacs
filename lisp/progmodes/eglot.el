@@ -233,22 +233,21 @@ DEFERRED request from BUF, to be sent not later than TIMER as ID."
   "Make a process object from CONTACT.
 NAME is used to name the the started process or connection.
 CONTACT is in `eglot'.  Returns a process object."
-  (let* ((buffer (get-buffer-create (format "*%s stdout*" name)))
+  (let* ((stdout (format "*%s stdout*" name)) stderr
          (proc (cond
                 ((processp contact) contact)
                 ((integerp (cadr contact))
-                 (apply #'open-network-stream name buffer contact))
+                 (apply #'open-network-stream name stdout contact))
                 (t (make-process
-                    :name name
-                    :command contact
-                    :coding 'no-conversion
-                    :connection-type 'pipe
-                    :stderr (get-buffer-create (format "*%s stderr*" name)))))))
-    (set-process-buffer proc buffer)
-    (set-marker (process-mark proc) (with-current-buffer buffer (point-min)))
+                    :name name :command contact :buffer stdout
+                    :coding 'no-conversion :connection-type 'pipe
+                    :stderr (setq stderr (format "*%s stderr*" name)))))))
+    (process-put proc 'eglot-stderr stderr)
+    (set-process-buffer proc (get-buffer-create stdout))
+    (set-marker (process-mark proc) (with-current-buffer stdout (point-min)))
     (set-process-filter proc #'eglot--process-filter)
     (set-process-sentinel proc #'eglot--process-sentinel)
-    (with-current-buffer buffer
+    (with-current-buffer stdout
       (let ((inhibit-read-only t)) (erase-buffer) (read-only-mode t)))
     proc))
 
@@ -543,6 +542,12 @@ INTERACTIVE is t if called interactively."
                        buffer))))
     (when interactive (display-buffer buffer))
     buffer))
+
+(defun eglot-stderr-buffer (server)
+  "Pop to stderr of SERVER, if it exists, else error."
+  (interactive (list (eglot--current-server-or-lose)))
+  (if-let ((b (process-get (eglot--process server) 'eglot-stderr)))
+      (pop-to-buffer b) (user-error "[eglot] No stderr buffer!")))
 
 (defun eglot--log-event (server message &optional type)
   "Log an eglot-related event.
@@ -934,26 +939,25 @@ Uses THING, FACE, DEFS and PREPEND."
      (when name
        `(":" ,(eglot--mode-line-props
                name 'eglot-mode-line
-               '((mouse-1 eglot-events-buffer "go to events buffer")
+               '((C-mouse-1 eglot-stderr-buffer "go to stderr buffer")
+                 (mouse-1 eglot-events-buffer "go to events buffer")
                  (mouse-2 eglot-shutdown      "quit server")
                  (mouse-3 eglot-reconnect     "reconnect to server")))
          ,@(when serious-p
              `("/" ,(eglot--mode-line-props
                      "error" 'compilation-mode-line-fail
-                     '((mouse-1 eglot-events-buffer "go to events buffer")
-                       (mouse-3 eglot-clear-status  "clear this status"))
+                     '((mouse-3 eglot-clear-status  "clear this status"))
                      (format "An error occured: %s\n" status))))
          ,@(when (and doing (not done-p))
              `("/" ,(eglot--mode-line-props
                      (format "%s%s" doing
                              (if detail (format ":%s" detail) ""))
-                     'compilation-mode-line-run
-                     '((mouse-1 eglot-events-buffer "go to events buffer")))))
+                     'compilation-mode-line-run '())))
          ,@(when (cl-plusp pending)
              `("/" ,(eglot--mode-line-props
                      (format "%d" pending) 'warning
-                     '((mouse-1 eglot-events-buffer "go to events buffer")
-                       (mouse-3 eglot-clear-status  "clear this status"))
+                     '((mouse-3 eglot-forget-pending-continuations
+                                "forget these continuations"))
                      (format "%d pending requests\n" pending)))))))))
 
 (add-to-list 'mode-line-misc-info
