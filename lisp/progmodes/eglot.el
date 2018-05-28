@@ -118,6 +118,22 @@ lasted more than that many seconds."
 
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
+(cl-defmacro eglot--with-live-buffer (buf &rest body)
+  "Check BUF live, then do BODY in it." (declare (indent 1) (debug t))
+  (let ((b (cl-gensym)))
+    `(let ((,b ,buf)) (if (buffer-live-p ,b) (with-current-buffer ,b ,@body)))))
+
+(cl-defmacro eglot--lambda (cl-lambda-list &body body)
+  "Make a unary function of ARG, a plist-like JSON object.
+CL-LAMBDA-LIST destructures ARGS before running BODY."
+  (declare (indent 1) (debug (sexp &rest form)))
+  (let ((e (gensym "eglot--lambda-elem")))
+    `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
+
+(cl-defmacro eglot--widening (&rest body)
+  "Save excursion and restriction. Widen. Then run BODY." (declare (debug t))
+  `(save-excursion (save-restriction (widen) ,@body)))
+
 (cl-defgeneric eglot-server-ready-p (server what) ;; API
   "Tell if SERVER is ready for WHAT in current buffer.
 If it isn't, a deferrable `eglot--async-request' *will* be
@@ -464,67 +480,64 @@ INTERACTIVE is t if called interactively."
 
 (defun eglot--process-filter (proc string)
   "Called when new data STRING has arrived for PROC."
-  (when (buffer-live-p (process-buffer proc))
-    (with-current-buffer (process-buffer proc)
-      (let ((inhibit-read-only t)
-            (expected-bytes (process-get proc 'eglot-expected-bytes)))
-        ;; Insert the text, advancing the process marker.
-        ;;
-        (save-excursion
-          (goto-char (process-mark proc))
-          (insert string)
-          (set-marker (process-mark proc) (point)))
-        ;; Loop (more than one message might have arrived)
-        ;;
-        (unwind-protect
-            (let (done)
-              (while (not done)
-                (cond
-                 ((not expected-bytes)
-                  ;; Starting a new message
-                  ;;
-                  (setq expected-bytes
-                        (and (search-forward-regexp
-                              "\\(?:.*: .*\r\n\\)*Content-Length: \
+  (eglot--with-live-buffer (process-buffer proc)
+    (let ((expected-bytes (process-get proc 'eglot-expected-bytes))
+          (inhibit-read-only t) done)
+      ;; Insert the text, advancing the process marker.
+      ;;
+      (save-excursion
+        (goto-char (process-mark proc))
+        (insert string)
+        (set-marker (process-mark proc) (point)))
+      ;; Loop (more than one message might have arrived)
+      ;;
+      (unwind-protect
+          (while (not done)
+            (cond ((not expected-bytes)
+                   ;; Starting a new message
+                   ;;
+                   (setq expected-bytes
+                         (and (search-forward-regexp
+                               "\\(?:.*: .*\r\n\\)*Content-Length: \
 *\\([[:digit:]]+\\)\r\n\\(?:.*: .*\r\n\\)*\r\n"
-                              (+ (point) 100)
-                              t)
-                             (string-to-number (match-string 1))))
-                  (unless expected-bytes
-                    (setq done :waiting-for-new-message)))
-                 (t
-                  ;; Attempt to complete a message body
-                  ;;
-                  (let ((available-bytes (- (position-bytes (process-mark proc))
-                                            (position-bytes (point)))))
-                    (cond
-                     ((>= available-bytes
-                          expected-bytes)
-                      (let* ((message-end (byte-to-position
-                                           (+ (position-bytes (point))
-                                              expected-bytes))))
-                        (unwind-protect
-                            (save-restriction
-                              (narrow-to-region (point) message-end)
-                              (let* ((json-object-type 'plist)
-                                     (json-message (json-read)))
-                                ;; Process content in another buffer,
-                                ;; shielding buffer from tamper
-                                ;;
-                                (with-temp-buffer
-                                  (eglot--server-receive
-                                   (process-get proc 'eglot-server)
-                                   json-message))))
-                          (goto-char message-end)
-                          (delete-region (point-min) (point))
-                          (setq expected-bytes nil))))
-                     (t
-                      ;; Message is still incomplete
-                      ;;
-                      (setq done :waiting-for-more-bytes-in-this-message))))))))
-          ;; Saved parsing state for next visit to this filter
-          ;;
-          (process-put proc 'eglot-expected-bytes expected-bytes))))))
+                               (+ (point) 100)
+                               t)
+                              (string-to-number (match-string 1))))
+                   (unless expected-bytes
+                     (setq done :waiting-for-new-message)))
+                  (t
+                   ;; Attempt to complete a message body
+                   ;;
+                   (let ((available-bytes (- (position-bytes (process-mark proc))
+                                             (position-bytes (point)))))
+                     (cond
+                      ((>= available-bytes
+                           expected-bytes)
+                       (let* ((message-end (byte-to-position
+                                            (+ (position-bytes (point))
+                                               expected-bytes))))
+                         (unwind-protect
+                             (save-restriction
+                               (narrow-to-region (point) message-end)
+                               (let* ((json-object-type 'plist)
+                                      (json-message (json-read)))
+                                 ;; Process content in another buffer,
+                                 ;; shielding buffer from tamper
+                                 ;;
+                                 (with-temp-buffer
+                                   (eglot--server-receive
+                                    (process-get proc 'eglot-server)
+                                    json-message))))
+                           (goto-char message-end)
+                           (delete-region (point-min) (point))
+                           (setq expected-bytes nil))))
+                      (t
+                       ;; Message is still incomplete
+                       ;;
+                       (setq done :waiting-for-more-bytes-in-this-message)))))))
+        ;; Saved parsing state for next visit to this filter
+        ;;
+        (process-put proc 'eglot-expected-bytes expected-bytes)))))
 
 (defun eglot-events-buffer (server &optional interactive)
   "Display events buffer for current LSP SERVER.
@@ -631,11 +644,6 @@ originated."
     (eglot--debug server `(:maybe-run-deferred ,(mapcar #'caddr actions)))
     (mapc #'funcall (mapcar #'car actions))))
 
-(cl-defmacro eglot--lambda (cl-lambda-list &body body)
-  (declare (indent 1) (debug (sexp &rest form)))
-  (let ((e (gensym "eglot--lambda-elem")))
-    `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
-
 (defvar-local eglot--next-request-id 0 "ID for next `eglot--async-request'.")
 
 (cl-defun eglot--async-request (server
@@ -652,7 +660,7 @@ nullary TIMEOUT-FN.  If DEFERRED, maybe defer request to the
 future, or to never at all, in case a new request with identical
 DEFERRED and for the same buffer overrides it (however, if that
 happens, the original timer keeps counting). Return (ID TIMER)."
-  (pcase-let* ( (buf (current-buffer)) (pos (point-marker))
+  (pcase-let* ( (buf (current-buffer))
                 (`(,_ ,timer ,old-id)
                  (and deferred (gethash (list deferred buf)
                                         (eglot--deferred-actions server))))
@@ -675,12 +683,9 @@ happens, the original timer keeps counting). Return (ID TIMER)."
           ;; Also, if it's the first deferring for this id, inform the log
           (eglot--debug server `(:deferring ,method :id ,id :params ,params)))
         (puthash (list deferred buf)
-                 (list (lambda () (when (buffer-live-p buf)
-                                    (with-current-buffer buf
-                                      (save-excursion
-                                        (goto-char pos)
-                                        (apply #'eglot--async-request server
-                                               method params args)))))
+                 (list (lambda () (eglot--with-live-buffer buf
+                                    (apply #'eglot--async-request server
+                                           method params args)))
                        (or timer (funcall make-timer)) id)
                  (eglot--deferred-actions server))
         (cl-return-from eglot--async-request nil)))
@@ -741,7 +746,7 @@ DEFERRED is passed to `eglot--async-request', which see."
                       ,@(when error `(:error ,error)))))
 
 
-;;; Helpers
+;;; Helpers (move these to API?)
 ;;;
 (defun eglot--error (format &rest args)
   "Error out with FORMAT with ARGS."
@@ -1107,9 +1112,8 @@ THINGS are either registrations or unregisterations."
              (match-string 1 (symbol-name major-mode))
            "unknown")
          :text
-         (save-restriction
-           (widen)
-           (buffer-substring-no-properties (point-min) (point-max))))))
+         (eglot--widening
+          (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun eglot--TextDocumentPositionParams ()
   "Compute TextDocumentPositionParams."
@@ -1148,11 +1152,10 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   (let ((buf (current-buffer)))
     (setq eglot--change-idle-timer
           (run-with-idle-timer
-           0.5 nil (lambda () (when (buffer-live-p buf)
-                                (with-current-buffer buf
-                                  (when eglot--managed-mode
-                                    (eglot--signal-textDocument/didChange)
-                                    (setq eglot--change-idle-timer nil)))))))))
+           0.5 nil (lambda () (eglot--with-live-buffer buf
+                                (when eglot--managed-mode
+                                  (eglot--signal-textDocument/didChange)
+                                  (setq eglot--change-idle-timer nil))))))))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
@@ -1161,19 +1164,19 @@ Records START, END and PRE-CHANGE-LENGTH locally."
            (sync-kind (eglot--server-capable :textDocumentSync))
            (full-sync-p (or (eq sync-kind 1)
                             (eq :emacs-messup eglot--recent-changes))))
-      (save-restriction
-        (widen)
-        (eglot--notify
-         server :textDocument/didChange
-         (list
-          :textDocument (eglot--VersionedTextDocumentIdentifier)
-          :contentChanges
-          (if full-sync-p
-              (vector `(:text ,(buffer-substring-no-properties (point-min)
-                                                               (point-max))))
-            (cl-loop for (beg end len text) in (reverse eglot--recent-changes)
-                     vconcat `[,(list :range `(:start ,beg :end ,end)
-                                      :rangeLength len :text text)])))))
+      (eglot--notify
+       server :textDocument/didChange
+       (list
+        :textDocument (eglot--VersionedTextDocumentIdentifier)
+        :contentChanges
+        (if full-sync-p
+            (vector `(:text ,(eglot--widening
+                              (buffer-substring-no-properties (point-min)
+                                                              (point-max)))))
+          (cl-loop for (beg end len text) in (reverse eglot--recent-changes)
+                   vconcat `[,(list :range `(:start ,beg :end ,end)
+                                    :rangeLength len :text text)]))))
+      
       (setq eglot--recent-changes nil)
       (setf (eglot--spinner server) (list nil :textDocument/didChange t))
       (eglot--call-deferred server))))
@@ -1478,14 +1481,12 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
-  (save-restriction
-    (widen)
-    (save-excursion
-      (mapc (pcase-lambda (`(,newText ,beg . ,end))
-              (goto-char beg) (delete-region beg end) (insert newText))
-            (mapcar (eglot--lambda (&key range newText)
-                      (cons newText (eglot--range-region range 'markers)))
-                    edits))))
+  (eglot--widening
+   (mapc (pcase-lambda (`(,newText ,beg . ,end))
+           (goto-char beg) (delete-region beg end) (insert newText))
+         (mapcar (eglot--lambda (&key range newText)
+                   (cons newText (eglot--range-region range 'markers)))
+                 edits)))
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
