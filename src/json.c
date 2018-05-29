@@ -395,16 +395,31 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
       record_unwind_protect_ptr (json_release_object, *json);
       FOR_EACH_TAIL (tail)
         {
-          Lisp_Object pair = XCAR (tail);
-          CHECK_CONS (pair);
-          Lisp_Object key_symbol = XCAR (pair);
-          Lisp_Object value = XCDR (pair);
+          const char *key_str;
+          Lisp_Object value;
+          Lisp_Object key_symbol;
+          if ( EQ (Vjson_serialize_use_plists, Qt) ) {
+            key_symbol = XCAR (tail);
+            tail = XCDR(tail);
+            CHECK_CONS (tail);
+            value = XCAR (tail);
+            if (EQ (tail, li.tortoise)) circular_list (lisp);
+          } else {
+            Lisp_Object pair = XCAR (tail);
+            CHECK_CONS (pair);
+            key_symbol = XCAR (pair);
+            value = XCDR (pair);
+          }
           CHECK_SYMBOL (key_symbol);
           Lisp_Object key = SYMBOL_NAME (key_symbol);
           /* We can't specify the length, so the string must be
              null-terminated.  */
           check_string_without_embedded_nulls (key);
-          const char *key_str = SSDATA (key);
+          key_str = SSDATA (key);
+          /* If using plists, maybe strip the ":" from symbol-name */
+          if (EQ (Vjson_serialize_use_plists, Qt) &&
+              ':' == key_str[0] &&
+              key_str[1] ) key_str = &key_str[1];
           /* Only add element if key is not already present.  */
           if (json_object_get (*json, key_str) == NULL)
             {
@@ -476,13 +491,17 @@ lisp_to_json (Lisp_Object lisp)
 
 DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, 1, NULL,
        doc: /* Return the JSON representation of OBJECT as a string.
-OBJECT must be a vector, hashtable, or alist, and its elements can
-recursively contain `:null', `:false', t, numbers, strings, or other
-vectors hashtables, and alist.  `:null', `:false', and t will be
-converted to JSON null, false, and true values, respectively.  Vectors
-will be converted to JSON arrays, and hashtables and alists to JSON
-objects.  Hashtable keys must be strings without embedded null
-characters and must be unique within each object.  Alist keys must be
+
+OBJECT must be a vector of values or a key-value map.  Hashtables,
+alists and plists are accepted as maps, the variable
+`json-serialize-use-plists' controlling which one of the latter two to
+use.  In any of these cases, values can be `:null', `:false', t,
+numbers, strings, or, recursively, other vectors, hashtables, alists
+or plists.  `:null', `:false', and t will be converted to JSON null,
+false, and true values, respectively.  Vectors will be converted to
+JSON arrays, and hashtables, alists and plists to JSON objects.
+Hashtable keys must be strings without embedded null characters and
+must be unique within each object.  Alist or plist keys must be
 symbols; if a key is duplicate, the first instance is used.  */)
   (Lisp_Object object)
 {
@@ -605,6 +624,7 @@ OBJECT.  */)
 enum json_object_type {
   json_object_hashtable,
   json_object_alist,
+  json_object_plist
 };
 
 /* Convert a JSON object to a Lisp object.  */
@@ -692,6 +712,30 @@ json_to_lisp (json_t *json, enum json_object_type object_type)
               result = Fnreverse (result);
               break;
             }
+          case json_object_plist:
+            {
+              result = Qnil;
+              const char *key_str;
+              json_t *value;
+              json_object_foreach (json, key_str, value)
+                {
+                  /* No idea if using AUTO_STRING and Fconcat for
+                     making keywords is idiomatic, but seems to work
+                     nicely */
+                  AUTO_STRING (colon, ":");
+                  Lisp_Object key =
+                    Fintern (CALLN (Fconcat, colon, json_build_string (key_str))
+                             , Qnil);
+                  result = Fcons (key, result); /* build the plist as
+                                                   value-key since
+                                                   we're going to
+                                                   reverse it in the
+                                                   end.*/
+                  result = Fcons (json_to_lisp (value, object_type), result);
+                }
+              result = Fnreverse (result);
+              break;
+            }
           default:
             /* Can't get here.  */
             emacs_abort ();
@@ -721,8 +765,10 @@ json_parse_object_type (ptrdiff_t nargs, Lisp_Object *args)
           return json_object_hashtable;
         else if (EQ (value, Qalist))
           return json_object_alist;
+        else if (EQ (value, Qplist))
+          return json_object_plist;
         else
-          wrong_choice (list2 (Qhash_table, Qalist), value);
+          wrong_choice (list3 (Qhash_table, Qalist, Qplist), value);
       }
     default:
       wrong_type_argument (Qplistp, Flist (nargs, args));
@@ -733,15 +779,16 @@ DEFUN ("json-parse-string", Fjson_parse_string, Sjson_parse_string, 1, MANY,
        NULL,
        doc: /* Parse the JSON STRING into a Lisp object.
 This is essentially the reverse operation of `json-serialize', which
-see.  The returned object will be a vector, hashtable, or alist.  Its
-elements will be `:null', `:false', t, numbers, strings, or further
-vectors, hashtables, and alists.  If there are duplicate keys in an
-object, all but the last one are ignored.  If STRING doesn't contain a
-valid JSON object, an error of type `json-parse-error' is signaled.
-The keyword argument `:object-type' specifies which Lisp type is used
-to represent objects; it can be `hash-table' or `alist'.
-usage: (json-parse-string STRING &key (OBJECT-TYPE \\='hash-table))  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
+see.  The returned object will be a vector, hashtable, alist, or
+plist.  Its elements will be `:null', `:false', t, numbers, strings,
+or further vectors, hashtables, alists, or plists.  If there are
+duplicate keys in an object, all but the last one are ignored.  If
+STRING doesn't contain a valid JSON object, an error of type
+`json-parse-error' is signaled.  The keyword argument `:object-type'
+specifies which Lisp type is used to represent objects; it can be
+`hash-table', `alist' or `plist'.
+usage: (json-parse-string STRING &key (OBJECT-TYPE \\='hash-table)) */)
+     (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -903,6 +950,11 @@ syms_of_json (void)
   DEFSYM (Qpure, "pure");
   DEFSYM (Qside_effect_free, "side-effect-free");
 
+  DEFVAR_LISP ("json-serialize-use-plists", Vjson_serialize_use_plists,
+               doc:
+               /* If non-nil use plists instead of alists in json-serialize.*/);
+  Vjson_serialize_use_plists = Qnil;
+
   DEFSYM (Qjson_serialize, "json-serialize");
   DEFSYM (Qjson_parse_string, "json-parse-string");
   Fput (Qjson_serialize, Qpure, Qt);
@@ -912,6 +964,7 @@ syms_of_json (void)
 
   DEFSYM (QCobject_type, ":object-type");
   DEFSYM (Qalist, "alist");
+  DEFSYM (Qplist, "plist");
 
   defsubr (&Sjson_serialize);
   defsubr (&Sjson_insert);
