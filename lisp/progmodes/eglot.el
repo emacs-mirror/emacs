@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018 Free Software Foundation, Inc.
 
-;; Version: 0.4
+;; Version: 0.7
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -61,6 +61,7 @@
 (require 'subr-x)
 (require 'jsonrpc)
 (require 'filenotify)
+(require 'ert)
 
 
 ;;; User tweakable stuff
@@ -73,6 +74,8 @@
                                 (python-mode . ("pyls"))
                                 (js-mode . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
+                                (c++-mode . (eglot-cquery "cquery"))
+                                (c-mode . (eglot-cquery "cquery"))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
   "How the command `eglot' guesses the server to start.
@@ -112,13 +115,21 @@ lasted more than that many seconds."
 
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
-(defmacro eglot--obj (&rest what)
-  "Make WHAT a JSON object suitable for `json-encode'."
-  (declare (debug (&rest form)))
-  ;; FIXME: not really API. Should it be?
-  ;; FIXME: maybe later actually do something, for now this just fixes
-  ;; the indenting of literal plists.
-  `(list ,@what))
+(cl-defmacro eglot--with-live-buffer (buf &rest body)
+  "Check BUF live, then do BODY in it." (declare (indent 1) (debug t))
+  (let ((b (cl-gensym)))
+    `(let ((,b ,buf)) (if (buffer-live-p ,b) (with-current-buffer ,b ,@body)))))
+
+(cl-defmacro eglot--lambda (cl-lambda-list &body body)
+  "Make a unary function of ARG, a plist-like JSON object.
+CL-LAMBDA-LIST destructures ARGS before running BODY."
+  (declare (indent 1) (debug (sexp &rest form)))
+  (let ((e (gensym "eglot--lambda-elem")))
+    `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
+
+(cl-defmacro eglot--widening (&rest body)
+  "Save excursion and restriction. Widen. Then run BODY." (declare (debug t))
+  `(save-excursion (save-restriction (widen) ,@body)))
 
 (cl-defgeneric eglot-handle-request (server method id &rest params)
   "Handle SERVER's METHOD request with ID and PARAMS.")
@@ -133,15 +144,15 @@ lasted more than that many seconds."
 (cl-defgeneric eglot-client-capabilities (server)
   "What the EGLOT LSP client supports for SERVER."
   (:method (_s)
-           (eglot--obj
-            :workspace (eglot--obj
+           (list
+            :workspace (list
                         :applyEdit t
                         :workspaceEdit `(:documentChanges :json-false)
                         :didChangeWatchesFiles `(:dynamicRegistration t)
                         :symbol `(:dynamicRegistration :json-false))
             :textDocument
-            (eglot--obj
-             :synchronization (eglot--obj
+            (list
+             :synchronization (list
                                :dynamicRegistration :json-false
                                :willSave t :willSaveWaitUntil t :didSave t)
              :completion         `(:dynamicRegistration :json-false)
@@ -153,7 +164,7 @@ lasted more than that many seconds."
              :documentHighlight  `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
              :publishDiagnostics `(:relatedInformation :json-false))
-            :experimental (eglot--obj))))
+            :experimental (list))))
 
 (defclass eglot-lsp-server (jsonrpc-process-connection)
   ((project-nickname
@@ -165,9 +176,9 @@ lasted more than that many seconds."
    (capabilities
     :documentation "JSON object containing server capabilities."
     :accessor eglot--capabilities)
-   (moribund
+   (shutdown-requested
     :documentation "Flag set when server is shutting down."
-    :accessor eglot--moribund)
+    :accessor eglot--shutdown-requested)
    (project
     :documentation "Project associated with server."
     :initarg :project :accessor eglot--project)
@@ -204,15 +215,17 @@ function with the server still running."
   (eglot--message "Asking %s politely to terminate" (jsonrpc-name server))
   (unwind-protect
       (progn
-        (setf (eglot--moribund server) t)
+        (setf (eglot--shutdown-requested server) t)
         (jsonrpc-request server :shutdown nil :timeout 3)
         ;; this one is supposed to always fail, hence ignore-errors
         (ignore-errors (jsonrpc-request server :exit nil :timeout 1)))
     ;; Turn off `eglot--managed-mode' where appropriate.
     (dolist (buffer (eglot--managed-buffers server))
       (with-current-buffer buffer (eglot--managed-mode-onoff server -1)))
-    (when (process-live-p (eglot--process server))
-      (eglot--warn "Brutally deleting non-compliant server %s" (jsonrpc-name server))
+    (while (progn (accept-process-output nil 0.1)
+                  (not (eq (eglot--shutdown-requested server) :sentinel-done)))
+      (eglot--warn "Sentinel for %s still hasn't run, brutally deleting it!"
+                   (eglot--process server))
       (delete-process (eglot--process server)))))
 
 (defun eglot--on-shutdown (server)
@@ -224,11 +237,12 @@ function with the server still running."
   (maphash (lambda (_id watches)
              (mapcar #'file-notify-rm-watch watches))
            (eglot--file-watches server))
-  ;; Sever the project/process relationship for proc
+  ;; Sever the project/server relationship for `server'
   (setf (gethash (eglot--project server) eglot--servers-by-project)
         (delq server
               (gethash (eglot--project server) eglot--servers-by-project)))
-  (cond ((eglot--moribund server))
+  (cond ((eglot--shutdown-requested server)
+         (setf (eglot--shutdown-requested server) :sentinel-done))
         ((not (eglot--inhibit-autoreconnect server))
          (eglot--warn "Reconnecting after unexpected server exit.")
          (eglot-reconnect server))
@@ -340,7 +354,7 @@ INTERACTIVE is t if called interactively."
              interactive
              (y-or-n-p "[eglot] Live process found, reconnect instead? "))
         (eglot-reconnect current-server interactive)
-      (when live-p (eglot-shutdown current-server))
+      (when live-p (ignore-errors (eglot-shutdown current-server)))
       (let ((server (eglot--connect project
                                     managed-major-mode
                                     (format "%s/%s" nickname managed-major-mode)
@@ -357,7 +371,7 @@ managing `%s' buffers in project `%s'."
 INTERACTIVE is t if called interactively."
   (interactive (list (jsonrpc-current-connection-or-lose) t))
   (when (process-live-p (eglot--process server))
-    (eglot-shutdown server interactive))
+    (ignore-errors (eglot-shutdown server interactive)))
   (eglot--connect (eglot--project server)
                   (eglot--major-mode server)
                   (jsonrpc-name server)
@@ -395,22 +409,22 @@ And NICKNAME and CONTACT."
             (jsonrpc-request
              server
              :initialize
-             (jsonrpc-obj :processId (unless (eq (process-type
-                                                  (eglot--process server))
-                                                 'network)
-                                       (emacs-pid))
-                          :rootPath  (expand-file-name
-                                      (car (project-roots project)))
-                          :rootUri  (eglot--path-to-uri
-                                     (car (project-roots project)))
-                          :initializationOptions (eglot-initialization-options server)
-                          :capabilities (eglot-client-capabilities server)))
+             (list :processId (unless (eq (process-type
+                                           (eglot--process server))
+                                          'network)
+                                (emacs-pid))
+                   :rootPath  (expand-file-name
+                               (car (project-roots project)))
+                   :rootUri  (eglot--path-to-uri
+                              (car (project-roots project)))
+                   :initializationOptions (eglot-initialization-options server)
+                   :capabilities (eglot-client-capabilities server)))
           (setf (eglot--capabilities server) capabilities)
           (setf (jsonrpc-status server) nil)
           (dolist (buffer (buffer-list))
             (with-current-buffer buffer
               (eglot--maybe-activate-editing-mode server)))
-          (jsonrpc-notify server :initialized (jsonrpc-obj :__dummy__ t))
+          (jsonrpc-notify server :initialized `(:__dummy__ t))
           (setf (eglot--inhibit-autoreconnect server)
                 (cond
                  ((booleanp eglot-autoreconnect) (not eglot-autoreconnect))
@@ -420,12 +434,11 @@ And NICKNAME and CONTACT."
                                     (setf (eglot--inhibit-autoreconnect server)
                                           (null eglot-autoreconnect)))))))
           (setq success server))
-      (unless (or success (not (process-live-p (eglot--process server)))
-                  (eglot--moribund server))
+      (unless (or success (not (process-live-p (eglot--process server))))
         (eglot-shutdown server)))))
 
 
-;;; Helpers
+;;; Helpers (move these to API?)
 ;;;
 (defun eglot--error (format &rest args)
   "Error out with FORMAT with ARGS."
@@ -444,9 +457,9 @@ And NICKNAME and CONTACT."
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
   (save-excursion
-    (jsonrpc-obj :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
-                 :character (- (goto-char (or pos (point)))
-                               (line-beginning-position)))))
+    (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
+          :character (- (goto-char (or pos (point)))
+                        (line-beginning-position)))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
@@ -500,15 +513,23 @@ If optional MARKER, return a marker instead"
            finally (cl-return (or probe t))))
 
 (defun eglot--range-region (range &optional markers)
-  "Return region (BEG END) that represents LSP RANGE.
+  "Return region (BEG . END) that represents LSP RANGE.
 If optional MARKERS, make markers."
-  (list (eglot--lsp-position-to-point (plist-get range :start) markers)
-        (eglot--lsp-position-to-point (plist-get range :end) markers)))
+  (let* ((st (plist-get range :start))
+         (beg (eglot--lsp-position-to-point st markers))
+         (end (eglot--lsp-position-to-point (plist-get range :end) markers)))
+    ;; Fallback to `flymake-diag-region' if server botched the range
+    (if (/= beg end) (cons beg end) (flymake-diag-region
+                                     (current-buffer) (plist-get st :line)
+                                     (1- (plist-get st :character))))))
 
 
 ;;; Minor modes
 ;;;
 (defvar eglot-mode-map (make-sparse-keymap))
+
+(defvar-local eglot--current-flymake-report-fn nil
+  "Current flymake report function for this buffer")
 
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some EGLOT project."
@@ -516,7 +537,6 @@ If optional MARKERS, make markers."
   (cond
    (eglot--managed-mode
     (add-hook 'jsonrpc-find-connection-functions 'eglot--find-current-server nil t)
-    (add-hook 'jsonrpc-ready-predicates 'eglot--server-ready-p nil t)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
@@ -531,7 +551,6 @@ If optional MARKERS, make markers."
     (add-function :around (local imenu-create-index-function) #'eglot-imenu))
    (t
     (remove-hook 'jsonrpc-find-connection-functions 'eglot--find-current-server t)
-    (remove-hook 'jsonrpc-ready-predicates 'eglot--server-ready-p t)
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
     (remove-hook 'before-change-functions 'eglot--before-change t)
@@ -543,7 +562,8 @@ If optional MARKERS, make markers."
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
-    (remove-function (local imenu-create-index-function) #'eglot-imenu))))
+    (remove-function (local imenu-create-index-function) #'eglot-imenu)
+    (setq eglot--current-flymake-report-fn nil))))
 
 (defun eglot--managed-mode-onoff (server arg)
   "Proxy for function `eglot--managed-mode' with ARG and SERVER."
@@ -556,9 +576,6 @@ If optional MARKERS, make markers."
 
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
-
-(defvar-local eglot--current-flymake-report-fn nil
-  "Current flymake report function for this buffer")
 
 (defun eglot--find-current-server ()
   "Find the current logical EGLOT server."
@@ -575,9 +592,7 @@ that case, also signal textDocument/didOpen."
          (server (or (and (null server) cur) (and server (eq server cur) cur))))
     (when server
       (eglot--managed-mode-onoff server 1)
-      (eglot--signal-textDocument/didOpen)
-      (flymake-start)
-      (funcall (or eglot--current-flymake-report-fn #'ignore) nil))))
+      (eglot--signal-textDocument/didOpen))))
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
@@ -622,27 +637,25 @@ Uses THING, FACE, DEFS and PREPEND."
      `(,(eglot--mode-line-props "eglot" 'eglot-mode-line nil))
      (when nick
        `(":" ,(eglot--mode-line-props
-               nick'eglot-mode-line
-               '((mouse-1 eglot-events-buffer "go to events buffer")
+               nick 'eglot-mode-line
+               '((C-mouse-1 jsonrpc-stderr-buffer "go to stderr buffer")
+                 (mouse-1 eglot-events-buffer "go to events buffer")
                  (mouse-2 eglot-shutdown      "quit server")
                  (mouse-3 eglot-reconnect     "reconnect to server")))
          ,@(when serious-p
              `("/" ,(eglot--mode-line-props
                      "error" 'compilation-mode-line-fail
-                     '((mouse-1 eglot-events-buffer "go to events buffer")
-                       (mouse-3 jsonrpc-clear-status  "clear this status"))
+                     '((mouse-3 jsonrpc-clear-status  "clear this status"))
                      (format "An error occured: %s\n" status))))
          ,@(when (and doing (not done-p))
              `("/" ,(eglot--mode-line-props
                      (format "%s%s" doing
                              (if detail (format ":%s" detail) ""))
-                     'compilation-mode-line-run
-                     '((mouse-1 eglot-events-buffer "go to events buffer")))))
+                     'compilation-mode-line-run '())))
          ,@(when (cl-plusp pending)
              `("/" ,(eglot--mode-line-props
                      (format "%d oustanding requests" pending) 'warning
-                     '((mouse-1 eglot-events-buffer "go to events buffer")
-                       (mouse-3 jsonrpc-forget-pending-continuations
+                     '((mouse-3 jsonrpc-forget-pending-continuations
                                 "fahgettaboudit"))))))))))
 
 (add-to-list 'mode-line-misc-info
@@ -674,10 +687,9 @@ Uses THING, FACE, DEFS and PREPEND."
                    '("OK"))
                nil t (plist-get (elt actions 0) :title)))
       (if reply
-          (jsonrpc-reply server id :result (jsonrpc-obj :title reply))
+          (jsonrpc-reply server id :result `(:title ,reply))
         (jsonrpc-reply server id
-                       :error (jsonrpc-obj :code -32800
-                                           :message "User cancelled"))))))
+                       :error `(:code -32800 :message "User cancelled"))))))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql :window/logMessage)) &key _type _message)
@@ -691,7 +703,7 @@ Uses THING, FACE, DEFS and PREPEND."
   "Unreported diagnostics for this buffer.")
 
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
+  (server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
@@ -700,7 +712,7 @@ Uses THING, FACE, DEFS and PREPEND."
          collect (cl-destructuring-bind (&key range severity _group
                                               _code source message)
                      diag-spec
-                   (pcase-let ((`(,beg ,end) (eglot--range-region range)))
+                   (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                      (flymake-make-diagnostic (current-buffer)
                                               beg end
                                               (cond ((<= severity 1) :error)
@@ -712,8 +724,8 @@ Uses THING, FACE, DEFS and PREPEND."
                         (funcall eglot--current-flymake-report-fn diags)
                         (setq eglot--unreported-diagnostics nil))
                        (t
-                        (setq eglot--unreported-diagnostics diags)))))
-    (eglot--warn "Diagnostics received for unvisited %s" uri)))
+                        (setq eglot--unreported-diagnostics (cons t diags))))))
+    (jsonrpc--debug server "Diagnostics received for unvisited %s" uri)))
 
 (cl-defun eglot--register-unregister (server jsonrpc-id things how)
   "Helper for `registerCapability'.
@@ -729,7 +741,7 @@ THINGS are either registrations or unregisterations."
               (jsonrpc-reply
                server jsonrpc-id
                :error `(:code -32601 :message ,(or (cadr retval) "sorry")))))))))
-  (jsonrpc-reply server jsonrpc-id :result (jsonrpc-obj :message "OK")))
+  (jsonrpc-reply server jsonrpc-id :result `(:message "OK")))
 
 (cl-defmethod eglot-handle-request
   (server id (_method (eql :client/registerCapability)) &key registrations)
@@ -750,52 +762,44 @@ THINGS are either registrations or unregisterations."
              (jsonrpc-reply server id :result `(:applied )))
     (error (jsonrpc-reply server id
                           :result `(:applied :json-false)
-                          :error (eglot--obj :code -32001
-                                             :message (format "%s" err))))))
+                          :error `(:code -32001 :message (format "%s" ,err))))))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
-  (jsonrpc-obj :uri (eglot--path-to-uri buffer-file-name)))
+  `(:uri ,(eglot--path-to-uri buffer-file-name)))
 
 (defvar-local eglot--versioned-identifier 0)
 
 (defun eglot--VersionedTextDocumentIdentifier ()
   "Compute VersionedTextDocumentIdentifier object for current buffer."
   (append (eglot--TextDocumentIdentifier)
-          (jsonrpc-obj :version eglot--versioned-identifier)))
+          `(:version ,eglot--versioned-identifier)))
 
 (defun eglot--TextDocumentItem ()
   "Compute TextDocumentItem object for current buffer."
   (append
    (eglot--VersionedTextDocumentIdentifier)
-   (jsonrpc-obj :languageId
-                (if (string-match "\\(.*\\)-mode" (symbol-name major-mode))
-                    (match-string 1 (symbol-name major-mode))
-                  "unknown")
-                :text
-                (save-restriction
-                  (widen)
-                  (buffer-substring-no-properties (point-min) (point-max))))))
+   (list :languageId
+         (if (string-match "\\(.*\\)-mode" (symbol-name major-mode))
+             (match-string 1 (symbol-name major-mode))
+           "unknown")
+         :text
+         (eglot--widening
+          (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun eglot--TextDocumentPositionParams ()
   "Compute TextDocumentPositionParams."
-  (jsonrpc-obj :textDocument (eglot--TextDocumentIdentifier)
-               :position (eglot--pos-to-lsp-position)))
+  (list :textDocument (eglot--TextDocumentIdentifier)
+        :position (eglot--pos-to-lsp-position)))
 
 (defvar-local eglot--recent-changes nil
   "Recent buffer changes as collected by `eglot--before-change'.")
 
-(defun eglot--outstanding-edits-p ()
-  "Non-nil if there are outstanding edits."
-  (cl-plusp (+ (length (car eglot--recent-changes))
-               (length (cdr eglot--recent-changes)))))
-
 (cl-defmethod jsonrpc-connection-ready-p ((_server eglot-lsp-server) _what)
-  "Tell if SERVER is ready for WHAT in current buffer.
-If it isn't, a deferrable `eglot--async-request' *will* be
-deferred to the future."
-  (and (cl-call-next-method)
-       (not (eglot--outstanding-edits-p))))
+  "Tell if SERVER is ready for WHAT in current buffer."
+  (and (cl-call-next-method) (not eglot--recent-changes)))
+
+(defvar-local eglot--change-idle-timer nil "Idle timer for didChange signals.")
 
 (defun eglot--before-change (start end)
   "Hook onto `before-change-functions'.
@@ -803,23 +807,32 @@ Records START and END, crucially convert them into
 LSP (line/char) positions before that information is
 lost (because the after-change thingy doesn't know if newlines
 were deleted/added)"
-  (setf (car eglot--recent-changes)
-        (vconcat (car eglot--recent-changes)
-                 `[(,(eglot--pos-to-lsp-position start)
-                    ,(eglot--pos-to-lsp-position end))])))
+  (when (listp eglot--recent-changes)
+    (push `(,(eglot--pos-to-lsp-position start)
+            ,(eglot--pos-to-lsp-position end))
+          eglot--recent-changes)))
 
 (defun eglot--after-change (start end pre-change-length)
   "Hook onto `after-change-functions'.
 Records START, END and PRE-CHANGE-LENGTH locally."
   (cl-incf eglot--versioned-identifier)
-  (setf (cdr eglot--recent-changes)
-        (vconcat (cdr eglot--recent-changes)
-                 `[(,pre-change-length
-                    ,(buffer-substring-no-properties start end))])))
+  (if (and (listp eglot--recent-changes)
+           (null (cddr (car eglot--recent-changes))))
+      (setf (cddr (car eglot--recent-changes))
+            `(,pre-change-length ,(buffer-substring-no-properties start end)))
+    (setf eglot--recent-changes :emacs-messup))
+  (when eglot--change-idle-timer (cancel-timer eglot--change-idle-timer))
+  (let ((buf (current-buffer)))
+    (setq eglot--change-idle-timer
+          (run-with-idle-timer
+           0.5 nil (lambda () (eglot--with-live-buffer buf
+                                (when eglot--managed-mode
+                                  (eglot--signal-textDocument/didChange)
+                                  (setq eglot--change-idle-timer nil))))))))
 
 ;; HACK! Launching a deferred sync request with outstanding changes is a
 ;; bad idea, since that might lead to the request never having a
-;; chance to run, because `jsonrpc-ready-predicates'.
+;; chance to run, because `jsonrpc-connection-ready-p'.
 (advice-add #'jsonrpc-request :before
             (cl-function (lambda (_proc _method _params &key deferred _timeout)
                            (when (and eglot--managed-mode deferred)
@@ -828,40 +841,30 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
-  (when (eglot--outstanding-edits-p)
+  (when eglot--recent-changes
     (let* ((server (jsonrpc-current-connection-or-lose))
            (sync-kind (eglot--server-capable :textDocumentSync))
-           (emacs-messup (/= (length (car eglot--recent-changes))
-                             (length (cdr eglot--recent-changes))))
-           (full-sync-p (or (eq sync-kind 1) emacs-messup)))
-      (when emacs-messup
-        (eglot--warn "`eglot--recent-changes' messup: %s" eglot--recent-changes))
-      (save-restriction
-        (widen)
-        (jsonrpc-notify
-         server :textDocument/didChange
-         (jsonrpc-obj
-          :textDocument
-          (eglot--VersionedTextDocumentIdentifier)
-          :contentChanges
-          (if full-sync-p (vector
-                           (jsonrpc-obj
-                            :text (buffer-substring-no-properties (point-min)
-                                                                  (point-max))))
-            (cl-loop for (start-pos end-pos) across (car eglot--recent-changes)
-                     for (len after-text) across (cdr eglot--recent-changes)
-                     vconcat `[,(jsonrpc-obj :range (jsonrpc-obj :start start-pos
-                                                                 :end end-pos)
-                                             :rangeLength len
-                                             :text after-text)])))))
-      (setq eglot--recent-changes (cons [] []))
+           (full-sync-p (or (eq sync-kind 1)
+                            (eq :emacs-messup eglot--recent-changes))))
+      (jsonrpc-notify
+       server :textDocument/didChange
+       (list
+        :textDocument (eglot--VersionedTextDocumentIdentifier)
+        :contentChanges
+        (if full-sync-p
+            (vector `(:text ,(eglot--widening
+                              (buffer-substring-no-properties (point-min)
+                                                              (point-max)))))
+          (cl-loop for (beg end len text) in (reverse eglot--recent-changes)
+                   vconcat `[,(list :range `(:start ,beg :end ,end)
+                                    :rangeLength len :text text)]))))
+      (setq eglot--recent-changes nil)
       (setf (eglot--spinner server) (list nil :textDocument/didChange t))
-      ;; HACK! perhaps jsonrpc should just call this on every send
       (jsonrpc--call-deferred server))))
 
 (defun eglot--signal-textDocument/didOpen ()
   "Send textDocument/didOpen to server."
-  (setq eglot--recent-changes (cons [] []))
+  (setq eglot--recent-changes nil eglot--versioned-identifier 0)
   (jsonrpc-notify
    (jsonrpc-current-connection-or-lose)
    :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
@@ -888,7 +891,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   (jsonrpc-notify
    (jsonrpc-current-connection-or-lose)
    :textDocument/didSave
-   (jsonrpc-obj
+   (list
     ;; TODO: Handle TextDocumentSaveRegistrationOptions to control this.
     :text (buffer-substring-no-properties (point-min) (point-max))
     :textDocument (eglot--TextDocumentIdentifier))))
@@ -899,10 +902,8 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
   (setq eglot--current-flymake-report-fn report-fn)
   ;; Report anything unreported
   (when eglot--unreported-diagnostics
-    (funcall report-fn eglot--unreported-diagnostics)
-    (setq eglot--unreported-diagnostics nil))
-  ;; Signal a didChange that might eventually bring new diagnotics
-  (eglot--signal-textDocument/didChange))
+    (funcall report-fn (cdr eglot--unreported-diagnostics))
+    (setq eglot--unreported-diagnostics nil)))
 
 (defun eglot-xref-backend ()
   "EGLOT xref backend."
@@ -938,17 +939,16 @@ DUMMY is ignored"
                     (&key name kind location containerName)
                   (propertize name
                               :textDocumentPositionParams
-                              (jsonrpc-obj :textDocument text-id
-                                           :position (plist-get
-                                                      (plist-get location :range)
-                                                      :start))
+                              (list :textDocument text-id
+                                    :position (plist-get
+                                               (plist-get location :range)
+                                               :start))
                               :locations (list location)
                               :kind kind
                               :containerName containerName))
                 (jsonrpc-request server
                                  :textDocument/documentSymbol
-                                 (jsonrpc-obj
-                                  :textDocument text-id))))
+                                 `(:textDocument ,text-id))))
          (all-completions string eglot--xref-known-symbols))))))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
@@ -987,8 +987,8 @@ DUMMY is ignored"
                       :textDocument/references
                       (append
                        params
-                       (jsonrpc-obj :context
-                                    (jsonrpc-obj :includeDeclaration t)))))))
+                       (list :context
+                             (list :includeDeclaration t)))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
@@ -998,7 +998,7 @@ DUMMY is ignored"
          (eglot--xref-make name uri (plist-get range :start))))
      (jsonrpc-request (jsonrpc-current-connection-or-lose)
                       :workspace/symbol
-                      (jsonrpc-obj :query pattern)))))
+                      `(:query ,pattern)))))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
@@ -1055,11 +1055,12 @@ DUMMY is ignored"
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
 (defun eglot--hover-info (contents &optional range)
-  (concat (and range (pcase-let ((`(,beg ,end) (eglot--range-region range)))
-                       (concat (buffer-substring beg end)  ": ")))
-          (mapconcat #'eglot--format-markup
-                     (append (cond ((vectorp contents) contents)
-                                   (contents (list contents)))) "\n")))
+  (let ((heading (and range (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
+                              (concat (buffer-substring beg end)  ": "))))
+        (body (mapconcat #'eglot--format-markup
+                         (append (cond ((vectorp contents) contents)
+                                       ((stringp contents) (list contents)))) "\n")))
+    (when (or heading (cl-plusp (length body))) (concat heading body))))
 
 (defun eglot--sig-info (sigs active-sig active-param)
   (cl-loop
@@ -1090,9 +1091,9 @@ DUMMY is ignored"
       (jsonrpc-request (jsonrpc-current-connection-or-lose) :textDocument/hover
                        (eglot--TextDocumentPositionParams))
     (when (seq-empty-p contents) (eglot--error "No hover info here"))
-    (with-help-window "*eglot help*"
-      (with-current-buffer standard-output
-        (insert (eglot--hover-info contents range))))))
+    (let ((blurb (eglot--hover-info contents range)))
+      (with-help-window "*eglot help*"
+        (with-current-buffer standard-output (insert blurb))))))
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function.
@@ -1102,8 +1103,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          (position-params (eglot--TextDocumentPositionParams))
          sig-showing)
     (cl-macrolet ((when-buffer-window
-                   (&body body) `(when (get-buffer-window buffer)
-                                   (with-current-buffer buffer ,@body))))
+                   (&body body) ; notice the exception when testing with `ert'
+                   `(when (or (get-buffer-window buffer) (ert-running-test))
+                      (with-current-buffer buffer ,@body))))
       (when (eglot--server-capable :signatureHelpProvider)
         (jsonrpc-async-request
          server :textDocument/signatureHelp position-params
@@ -1122,10 +1124,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          server :textDocument/hover position-params
          :success-fn (jsonrpc-lambda (&key contents range)
                        (unless sig-showing
-                         ;; for eglot-tests.el's sake, set this unconditionally
-                         (setq eldoc-last-message
-                               (eglot--hover-info contents range))
-                         (when-buffer-window (eldoc-message eldoc-last-message))))
+                         (when-buffer-window
+                          (when-let (info (eglot--hover-info contents range))
+                            (eglot--message "OK so info is %S and %S" info (null info))
+                            (eldoc-message info)))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
         (jsonrpc-async-request
@@ -1136,7 +1138,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
            (setq eglot--highlights
                  (when-buffer-window
                   (mapcar
-                   (jsonrpc-lambda (&key range _kind)
+                   (jsonrpc-lambda (&key range _kind _role)
                      (pcase-let ((`(,beg ,end)
                                   (eglot--range-region range)))
                        (let ((ov (make-overlay beg end)))
@@ -1159,8 +1161,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (plist-get (plist-get location :range) :start))))
               (jsonrpc-request (jsonrpc-current-connection-or-lose)
                                :textDocument/documentSymbol
-                               (jsonrpc-obj
-                                :textDocument (eglot--TextDocumentIdentifier))))))
+                               `(:textDocument ,(eglot--TextDocumentIdentifier))))))
         (append
          (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
                        entries)
@@ -1172,51 +1173,40 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
-  (save-restriction
-    (widen)
-    (save-excursion
-      (mapc (jsonrpc-lambda (newText beg end)
-              (goto-char beg) (delete-region beg end) (insert newText))
-            (mapcar (jsonrpc-lambda (&key range newText)
-                      (cons newText (eglot--range-region range 'markers)))
-                    edits))))
+  (eglot--widening
+   (mapc (pcase-lambda (`(,newText ,beg . ,end))
+           (goto-char beg) (delete-region beg end) (insert newText))
+         (mapcar (jsonrpc-lambda (&key range newText)
+                   (cons newText (eglot--range-region range 'markers)))
+                 edits)))
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
   "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
-  (let (prepared)
-    (cl-destructuring-bind (&key changes documentChanges)
-        wedit
-      (cl-loop
-       for change on documentChanges
-       do (push (cl-destructuring-bind (&key textDocument edits) change
-                  (cl-destructuring-bind (&key uri version) textDocument
-                    (list (eglot--uri-to-path uri) edits version)))
-                prepared))
+  (cl-destructuring-bind (&key changes documentChanges) wedit
+    (let ((prepared
+           (mapcar (jsonrpc-lambda (&key textDocument edits)
+                     (cl-destructuring-bind (&key uri version) textDocument
+                       (list (eglot--uri-to-path uri) edits version)))
+                   documentChanges)))
       (cl-loop for (uri edits) on changes by #'cddr
-               do (push (list (eglot--uri-to-path uri) edits) prepared)))
-    (if (or confirm
-            (cl-notevery #'find-buffer-visiting
-                         (mapcar #'car prepared)))
-        (unless (y-or-n-p
-                 (format "[eglot] Server requests to edit %s files.\n  %s\n\
-Proceed? "
-                         (length prepared)
-                         (mapconcat #'identity
-                                    (mapcar #'car prepared)
-                                    "\n  ")))
-          (eglot--error "User cancelled server edit")))
-    (unwind-protect
-        (let (edit)
-          (while (setq edit (car prepared))
-            (cl-destructuring-bind (path edits &optional version) edit
-              (with-current-buffer (find-file-noselect path)
-                (eglot--apply-text-edits edits version))
-              (pop prepared))))
-      (if prepared
-          (eglot--warn "Caution: edits of files %s failed."
-                       (mapcar #'car prepared))
-        (eglot--message "Edit successful!")))))
+               do (push (list (eglot--uri-to-path uri) edits) prepared))
+      (if (or confirm
+              (cl-notevery #'find-buffer-visiting
+                           (mapcar #'car prepared)))
+          (unless (y-or-n-p
+                   (format "[eglot] Server wants to edit:\n  %s\n Proceed? "
+                           (mapconcat #'identity (mapcar #'car prepared) "\n  ")))
+            (eglot--error "User cancelled server edit")))
+      (unwind-protect
+          (let (edit) (while (setq edit (car prepared))
+                        (cl-destructuring-bind (path edits &optional version) edit
+                          (with-current-buffer (find-file-noselect path)
+                            (eglot--apply-text-edits edits version))
+                          (pop prepared))))
+        (if prepared (eglot--warn "Caution: edits of files %s failed."
+                                  (mapcar #'car prepared))
+          (eglot--message "Edit successful!"))))))
 
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
@@ -1227,7 +1217,7 @@ Proceed? "
   (eglot--apply-workspace-edit
    (jsonrpc-request (jsonrpc-current-connection-or-lose)
                     :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
-                                           ,@(jsonrpc-obj :newName newname)))
+                                           :newName ,newname))
    current-prefix-arg))
 
 
@@ -1290,12 +1280,35 @@ Proceed? "
   ((server eglot-rls) (_method (eql :window/progress))
    &key id done title message &allow-other-keys)
   "Handle notification window/progress"
-  (setf (eglot--spinner server) (list id title done message))
-  (when (and (equal "Indexing" title) done)
-    (dolist (buffer (eglot--managed-buffers server))
-      (with-current-buffer buffer
-        (funcall (or eglot--current-flymake-report-fn #'ignore)
-                 eglot--unreported-diagnostics)))))
+  (setf (eglot--spinner server) (list id title done message)))
+
+
+;;; cquery-specific
+;;;
+(defclass eglot-cquery (eglot-lsp-server) ()
+  :documentation "cquery's C/C++ langserver.")
+
+(cl-defmethod eglot-initialization-options ((server eglot-cquery))
+  "Passes through required cquery initialization options"
+  (let* ((root (car (project-roots (eglot--project server))))
+         (cache (expand-file-name ".cquery_cached_index/" root)))
+    (vector :cacheDirectory (file-name-as-directory cache)
+            :progressReportFrequencyMs -1)))
+
+(cl-defmethod eglot-handle-notification
+  ((_server eglot-cquery) (_method (eql :$cquery/progress))
+   &rest counts &key _activeThreads &allow-other-keys)
+  "No-op for noisy $cquery/progress extension")
+
+(cl-defmethod eglot-handle-notification
+  ((_server eglot-cquery) (_method (eql :$cquery/setInactiveRegions))
+   &key _uri _inactiveRegions &allow-other-keys)
+  "No-op for unsupported $cquery/setInactiveRegions extension")
+
+(cl-defmethod eglot-handle-notification
+  ((_server eglot-cquery) (_method (eql :$cquery/publishSemanticHighlighting))
+   &key _uri _symbols &allow-other-keys)
+  "No-op for unsupported $cquery/publishSemanticHighlighting extension")
 
 (provide 'eglot)
 ;;; eglot.el ends here
