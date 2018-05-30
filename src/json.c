@@ -325,14 +325,14 @@ json_check_utf8 (Lisp_Object string)
   CHECK_TYPE (utf8_string_p (string), Qutf_8_string_p, string);
 }
 
-static json_t *lisp_to_json (Lisp_Object);
+static json_t *lisp_to_json (Lisp_Object, Lisp_Object);
 
 /* Convert a Lisp object to a toplevel JSON object (array or object).
    This returns Lisp_Object so we can use unbind_to.  The return value
    is always nil.  */
 
 static _GL_ARG_NONNULL ((2)) Lisp_Object
-lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
+lisp_to_json_toplevel_1 (Lisp_Object lisp, Lisp_Object use_plists, json_t **json)
 {
   if (VECTORP (lisp))
     {
@@ -343,7 +343,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
       for (ptrdiff_t i = 0; i < size; ++i)
         {
           int status
-            = json_array_append_new (*json, lisp_to_json (AREF (lisp, i)));
+            = json_array_append_new (*json, lisp_to_json (AREF (lisp, i),
+                                                          use_plists));
           if (status == -1)
             json_out_of_memory ();
         }
@@ -370,7 +371,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
             if (json_object_get (*json, key_str) != NULL)
               wrong_type_argument (Qjson_value_p, lisp);
             int status = json_object_set_new (*json, key_str,
-                                              lisp_to_json (HASH_VALUE (h, i)));
+                                              lisp_to_json (HASH_VALUE (h, i),
+                                                            use_plists));
             if (status == -1)
               {
                 /* A failure can be caused either by an invalid key or
@@ -398,7 +400,7 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
           const char *key_str;
           Lisp_Object value;
           Lisp_Object key_symbol;
-          if ( EQ (Vjson_serialize_use_plists, Qt) ) {
+          if ( EQ (use_plists, Qt) ) {
             key_symbol = XCAR (tail);
             tail = XCDR(tail);
             CHECK_CONS (tail);
@@ -417,14 +419,15 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
           check_string_without_embedded_nulls (key);
           key_str = SSDATA (key);
           /* If using plists, maybe strip the ":" from symbol-name */
-          if (EQ (Vjson_serialize_use_plists, Qt) &&
+          if (EQ (use_plists, Qt) &&
               ':' == key_str[0] &&
               key_str[1] ) key_str = &key_str[1];
           /* Only add element if key is not already present.  */
           if (json_object_get (*json, key_str) == NULL)
             {
               int status
-                = json_object_set_new (*json, key_str, lisp_to_json (value));
+                = json_object_set_new (*json, key_str,
+                                       lisp_to_json (value, use_plists));
               if (status == -1)
                 json_out_of_memory ();
             }
@@ -441,12 +444,12 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
    hashtable, or alist.  */
 
 static json_t *
-lisp_to_json_toplevel (Lisp_Object lisp)
+lisp_to_json_toplevel (Lisp_Object lisp, Lisp_Object use_plists)
 {
   if (++lisp_eval_depth > max_lisp_eval_depth)
     xsignal0 (Qjson_object_too_deep);
   json_t *json;
-  lisp_to_json_toplevel_1 (lisp, &json);
+  lisp_to_json_toplevel_1 (lisp, use_plists, &json);
   --lisp_eval_depth;
   return json;
 }
@@ -456,7 +459,7 @@ lisp_to_json_toplevel (Lisp_Object lisp)
    JSON object.  */
 
 static json_t *
-lisp_to_json (Lisp_Object lisp)
+lisp_to_json (Lisp_Object lisp, Lisp_Object use_plists)
 {
   if (EQ (lisp, QCnull))
     return json_check (json_null ());
@@ -486,24 +489,26 @@ lisp_to_json (Lisp_Object lisp)
     }
 
   /* LISP now must be a vector, hashtable, or alist.  */
-  return lisp_to_json_toplevel (lisp);
+  return lisp_to_json_toplevel (lisp, use_plists);
 }
 
-DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, 1, NULL,
+DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, 2, NULL,
        doc: /* Return the JSON representation of OBJECT as a string.
 
 OBJECT must be a vector of values or a key-value map.  Hashtables,
-alists and plists are accepted as maps, the variable
-`json-serialize-use-plists' controlling which one of the latter two to
-use.  In any of these cases, values can be `:null', `:false', t,
-numbers, strings, or, recursively, other vectors, hashtables, alists
-or plists.  `:null', `:false', and t will be converted to JSON null,
-false, and true values, respectively.  Vectors will be converted to
-JSON arrays, and hashtables, alists and plists to JSON objects.
-Hashtable keys must be strings without embedded null characters and
-must be unique within each object.  Alist or plist keys must be
-symbols; if a key is duplicate, the first instance is used.  */)
-  (Lisp_Object object)
+alists and plists are accepted as maps.  Since the latter two are both
+lists and this function can't currently guess the format from the
+variable, the optional argument USE-PLISTS is used to control which of
+the two to use.  In any of these cases, values can be `:null',
+`:false', t, numbers, strings, or, recursively, other vectors,
+hashtables, alists or plists.  `:null', `:false', and t will be
+converted to JSON null, false, and true values, respectively.  Vectors
+will be converted to JSON arrays, and hashtables, alists and plists to
+JSON objects.  Hashtable keys must be strings without embedded null
+characters and must be unique within each object.  Alist or plist keys
+must be symbols; if a key is duplicate, the first instance is
+used.  */)
+     (Lisp_Object object, Lisp_Object use_plists)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -522,7 +527,7 @@ symbols; if a key is duplicate, the first instance is used.  */)
     }
 #endif
 
-  json_t *json = lisp_to_json_toplevel (object);
+  json_t *json = lisp_to_json_toplevel (object, use_plists);
   record_unwind_protect_ptr (json_release_object, json);
 
   /* If desired, we might want to add the following flags:
@@ -578,12 +583,12 @@ json_insert_callback (const char *buffer, size_t size, void *data)
   return NILP (d->error) ? 0 : -1;
 }
 
-DEFUN ("json-insert", Fjson_insert, Sjson_insert, 1, 1, NULL,
+DEFUN ("json-insert", Fjson_insert, Sjson_insert, 1, 2, NULL,
        doc: /* Insert the JSON representation of OBJECT before point.
 This is the same as (insert (json-serialize OBJECT)), but potentially
 faster.  See the function `json-serialize' for allowed values of
-OBJECT.  */)
-  (Lisp_Object object)
+OBJECT and the meaning of USE-PLISTS  */)
+     (Lisp_Object object, Lisp_Object use_plists)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -602,7 +607,7 @@ OBJECT.  */)
     }
 #endif
 
-  json_t *json = lisp_to_json (object);
+  json_t *json = lisp_to_json (object, use_plists);
   record_unwind_protect_ptr (json_release_object, json);
 
   struct json_insert_data data;
@@ -949,11 +954,6 @@ syms_of_json (void)
 
   DEFSYM (Qpure, "pure");
   DEFSYM (Qside_effect_free, "side-effect-free");
-
-  DEFVAR_LISP ("json-serialize-use-plists", Vjson_serialize_use_plists,
-               doc:
-               /* If non-nil use plists instead of alists in json-serialize.*/);
-  Vjson_serialize_use_plists = Qnil;
 
   DEFSYM (Qjson_serialize, "json-serialize");
   DEFSYM (Qjson_parse_string, "json-parse-string");

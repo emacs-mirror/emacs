@@ -5067,22 +5067,19 @@ either @code{hash-table} to parse JSON objects as hashtables with
 string keys (the default), @code{alist} to parse them as alists or
 @code{plist} to parse them as plists.
 
-@vindex json-serialize-use-plists
 @cindex serializing plists as json
-  For the serialization function, the variable
-@var{json-serialize-use-plists} controls the converse process,
-resolving the ambiguity when a list is found in the Lisp object to
-serialize. If @code{nil}, its default, the list is interpreted as an
-alist, otherwise it is interpreted as a plist.
-
 @defun json-serialize object
 This function returns a new Lisp string which contains the JSON
-representation of @var{object}.
+representation of @var{object}. The optional argument @var{use-plists}
+resolves the ambiguity when a list is found in the Lisp object to
+serialize: if it is @code{nil}, its default, the list is interpreted
+as an alist, otherwise it is interpreted as a plist.
 @end defun
 
 @defun json-insert object
 This function inserts the JSON representation of @var{object} into the
-current buffer before point.
+current buffer before point. The optional argument @var{use-plists} is
+interpreted as in @dfn{json-serialize}.
 @end defun
 
 @defun json-parse-string string &key (object-type @code{hash-table})
