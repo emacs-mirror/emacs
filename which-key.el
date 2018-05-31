@@ -1476,16 +1476,21 @@ which are strings. KEY is of the form produced by `key-binding'."
       (intern (cdr keydesc))))
 
 (defun which-key--map-binding-p (map keydesc)
+  "Does MAP contain KEYDESC = (key . binding)?"
   (or
    (when (bound-and-true-p evil-state)
-     (eq (which-key--safe-lookup-key
-          map
-          (kbd (which-key--current-key-string
-                (format "<%s-state> %s" evil-state (car keydesc)))))
-         (intern (cdr keydesc))))
-   (eq (which-key--safe-lookup-key
-        map (kbd (which-key--current-key-string (car keydesc))))
-       (intern (cdr keydesc)))))
+     (let ((lookup
+            (which-key--safe-lookup-key
+             map
+             (kbd (which-key--current-key-string
+                   (format "<%s-state> %s" evil-state (car keydesc)))))))
+       (or (eq lookup (intern (cdr keydesc)))
+           (and (keymapp lookup) (string= (cdr keydesc) "Prefix Command")))))
+   (let ((lookup
+          (which-key--safe-lookup-key
+           map (kbd (which-key--current-key-string (car keydesc))))))
+     (or (eq lookup (intern (cdr keydesc)))
+         (and (keymapp lookup) (string= (cdr keydesc) "Prefix Command"))))))
 
 (defun which-key--pseudo-key (key &optional prefix)
   "Replace the last key in the sequence KEY by a special symbol
