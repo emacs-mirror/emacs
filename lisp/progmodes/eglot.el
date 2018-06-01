@@ -1126,7 +1126,6 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (unless sig-showing
                          (when-buffer-window
                           (when-let (info (eglot--hover-info contents range))
-                            (eglot--message "OK so info is %S and %S" info (null info))
                             (eldoc-message info)))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
