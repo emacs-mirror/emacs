@@ -1372,7 +1372,9 @@ DUMMY is ignored"
             (mapcar
              (eglot--lambda (&rest all &key label insertText &allow-other-keys)
                (let ((insert (or insertText label)))
-                 (add-text-properties 0 1 all insert) insert))
+                 (add-text-properties 0 1 all insert)
+                 (put-text-property 0 1 'eglot--lsp-completion all insert)
+                 insert))
              items))))
        :annotation-function
        (lambda (obj)
@@ -1391,13 +1393,15 @@ DUMMY is ignored"
                         (or (get-text-property 0 :sortText b) "")))))
        :company-doc-buffer
        (lambda (obj)
-         (let ((documentation
-                (or (get-text-property 0 :documentation obj)
-                    (and (eglot--server-capable :completionProvider
-                                                :resolveProvider)
-                         (plist-get (eglot--request server :completionItem/resolve
-                                                    (text-properties-at 0 obj))
-                                    :documentation)))))
+         (let* ((documentation
+                 (or (get-text-property 0 :documentation obj)
+                     (and (eglot--server-capable :completionProvider
+                                                 :resolveProvider)
+                          (plist-get
+                           (eglot--request server :completionItem/resolve
+                                           (get-text-property
+                                            0 'eglot--lsp-completion obj))
+                           :documentation)))))
            (when documentation
              (with-current-buffer (get-buffer-create " *eglot doc*")
                (insert (eglot--format-markup documentation))
