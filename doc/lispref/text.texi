@@ -5026,16 +5026,18 @@ represented using Lisp vectors.
 
 @item
 JSON has only one map type, the object.  JSON objects are represented
-using Lisp hashtables or alists.  When an alist contains several
-elements with the same key, Emacs uses only the first element for
-serialization, in accordance with the behavior of @code{assq}.
+using Lisp hashtables, alists or plists.  When an alist or plist
+contains several elements with the same key, Emacs uses only the first
+element for serialization, in accordance with the behavior of
+@code{assq}.
 
 @end itemize
 
 @noindent
-Note that @code{nil} is a valid alist and represents the empty JSON
-object, @code{@{@}}, not @code{null}, @code{false}, or an empty array,
-all of which are different JSON values.
+Note that @code{nil}, being both a valid alist and a valid plist,
+represents @code{@{@}}, the empty JSON object; not @code{null},
+@code{false}, or an empty array, all of which are different JSON
+values.
 
   If some Lisp object can't be represented in JSON, the serialization
 functions will signal an error of type @code{wrong-type-argument}.
@@ -5058,12 +5060,15 @@ The parsing functions will signal the following errors:
   Only top-level values (arrays and objects) can be serialized to
 JSON.  The subobjects within these top-level values can be of any
 type.  Likewise, the parsing functions will only return vectors,
-hashtables, and alists.
+hashtables, alists, and plists.
 
   The parsing functions accept keyword arguments.  Currently only one
-keyword argument, @code{:object-type}, is recognized; its value can be
-either @code{hash-table} to parse JSON objects as hashtables with
-string keys (the default) or @code{alist} to parse them as alists.
+keyword argument, @code{:object-type}, is recognized; its value
+decides which Lisp object to use for representing the key-value
+mappings of a JSON object.  It can be either @code{hash-table}, the
+default, to make hashtables with strings as keys, @code{alist} to use
+alists with symbols as keys or @code{plist} to use plists with keyword
+symbols as keys.
 
 @defun json-serialize object
 This function returns a new Lisp string which contains the JSON

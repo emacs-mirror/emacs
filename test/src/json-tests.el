@@ -69,7 +69,31 @@
   (should-error (json-serialize '((1 . 2))) :type 'wrong-type-argument)
   (should-error (json-serialize '((a . 1) . b)) :type 'wrong-type-argument)
   (should-error (json-serialize '#1=((a . 1) . #1#)) :type 'circular-list)
-  (should-error (json-serialize '(#1=(a #1#)))))
+  (should-error (json-serialize '(#1=(a #1#))))
+
+  (should (equal (json-serialize '(:abc [1 2 t] :def :null))
+                 "{\"abc\":[1,2,true],\"def\":null}"))
+  (should (equal (json-serialize '(abc [1 2 t] :def :null))
+                 "{\"abc\":[1,2,true],\"def\":null}"))
+  (should-error (json-serialize '#1=(:a 1 . #1#)) :type 'circular-list)
+  (should-error (json-serialize '#1=(:a 1 :b . #1#)) :type 'circular-list)
+  (should-error (json-serialize '(:foo "bar" (unexpected-alist-key . 1)))
+                :type 'wrong-type-argument)
+  (should-error (json-serialize '((abc . "abc") :unexpected-plist-key "key"))
+                :type 'wrong-type-argument)
+  (should-error (json-serialize '(:foo bar :odd-numbered))
+                :type 'wrong-type-argument)
+  (should (equal
+           (json-serialize
+            (list :detect-hash-table #s(hash-table test equal data ("bla" "ble"))
+                  :detect-alist `((bla . "ble"))
+                  :detect-plist `(:bla "ble")))
+           "\
+{\
+\"detect-hash-table\":{\"bla\":\"ble\"},\
+\"detect-alist\":{\"bla\":\"ble\"},\
+\"detect-plist\":{\"bla\":\"ble\"}\
+}")))
 
 (ert-deftest json-serialize/object-with-duplicate-keys ()
   (skip-unless (fboundp 'json-serialize))
@@ -89,7 +113,9 @@
       (should (equal (cl-sort (map-pairs actual) #'string< :key #'car)
                      '(("abc" . [9 :false]) ("def" . :null)))))
     (should (equal (json-parse-string input :object-type 'alist)
-                   '((abc . [9 :false]) (def . :null))))))
+                   '((abc . [9 :false]) (def . :null))))
+    (should (equal (json-parse-string input :object-type 'plist)
+                   '(:abc [9 :false] :def :null)))))
 
 (ert-deftest json-parse-string/string ()
   (skip-unless (fboundp 'json-parse-string))
