@@ -1216,7 +1216,6 @@ Records START, END and PRE-CHANGE-LENGTH locally."
           (cl-loop for (beg end len text) in (reverse eglot--recent-changes)
                    vconcat `[,(list :range `(:start ,beg :end ,end)
                                     :rangeLength len :text text)]))))
-      
       (setq eglot--recent-changes nil)
       (setf (eglot--spinner server) (list nil :textDocument/didChange t))
       (eglot--call-deferred server))))
@@ -1554,6 +1553,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                           (pop prepared))))
         (if prepared (eglot--warn "Caution: edits of files %s failed."
                                   (mapcar #'car prepared))
+          (eglot-eldoc-function)
           (eglot--message "Edit successful!"))))))
 
 (defun eglot-rename (newname)
