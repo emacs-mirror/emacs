@@ -782,7 +782,7 @@ problems at github. If DISABLE is non-nil disable support."
         (add-hook 'pre-command-hook #'which-key--hide-popup)
         (add-hook 'focus-out-hook #'which-key--stop-timer)
         (add-hook 'focus-in-hook #'which-key--start-timer)
-        (add-hook 'window-configuration-change-hook
+        (add-hook 'window-size-change-functions
                   'which-key--hide-popup-on-frame-size-change)
         (which-key--start-timer))
     (setq echo-keystrokes which-key--echo-keystrokes-backup)
@@ -793,7 +793,7 @@ problems at github. If DISABLE is non-nil disable support."
     (remove-hook 'pre-command-hook #'which-key--hide-popup)
     (remove-hook 'focus-out-hook #'which-key--stop-timer)
     (remove-hook 'focus-in-hook #'which-key--start-timer)
-    (remove-hook 'window-configuration-change-hook
+    (remove-hook 'window-size-change-functions
                  'which-key--hide-popup-on-frame-size-change)
     (which-key--stop-timer)))
 
@@ -1092,7 +1092,7 @@ total height."
     (frame (which-key--hide-buffer-frame))
     (custom (funcall which-key-custom-hide-popup-function))))
 
-(defun which-key--hide-popup-on-frame-size-change ()
+(defun which-key--hide-popup-on-frame-size-change (&optional _)
   "Hide which-key popup if the frame is resized (to trigger a new
 popup)."
   (when (which-key--frame-size-changed-p)
