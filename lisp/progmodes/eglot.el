@@ -908,12 +908,15 @@ that case, also signal textDocument/didOpen."
 
 (put 'eglot--mode-line-format 'risky-local-variable t)
 
-(defun eglot--mode-line-call (what)
+(defun eglot--mouse-call (what)
   "Make an interactive lambda for calling WHAT from mode-line."
   (lambda (event)
     (interactive "e")
-    (with-selected-window (posn-window (event-start event))
-      (call-interactively what))))
+    (let ((start (event-start event))) (with-selected-window (posn-window start)
+                                         (save-excursion
+                                           (goto-char (or (posn-point start)
+                                                          (point)))
+                                           (call-interactively what))))))
 
 (defun eglot--mode-line-props (thing face defs &optional prepend)
   "Helper for function `eglot--mode-line-format'.
@@ -921,7 +924,7 @@ Uses THING, FACE, DEFS and PREPEND."
   (cl-loop with map = (make-sparse-keymap)
            for (elem . rest) on defs
            for (key def help) = elem
-           do (define-key map `[mode-line ,key] (eglot--mode-line-call def))
+           do (define-key map `[mode-line ,key] (eglot--mouse-call def))
            concat (format "%s: %s" key help) into blurb
            when rest concat "\n" into blurb
            finally (return `(:propertize ,thing
@@ -967,6 +970,41 @@ Uses THING, FACE, DEFS and PREPEND."
 
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
+
+
+;; A horrible hack of Flymake's insufficient API that must go into
+;; Emacs master, or better, 26.2
+(cl-defstruct (eglot--diag (:include flymake--diag)
+                           (:constructor eglot--make-diag
+                                         (buffer beg end type text props)))
+  props)
+(advice-add 'flymake--highlight-line :after
+            (lambda (diag)
+              (when (cl-typep diag 'eglot--diag)
+                (let ((ov (cl-find diag
+                                   (overlays-at (flymake-diagnostic-beg diag))
+                                   :key (lambda (ov)
+                                          (overlay-get ov 'flymake-diagnostic)))))
+                  (cl-loop for (key . value) in (eglot--diag-props diag)
+                           do (overlay-put ov key value)))))
+            '((name . eglot-hacking-in-some-per-diag-overlay-properties)))
+
+
+(defun eglot--overlay-diag-props ()
+  `((mouse-face . highlight)
+    (help-echo . (lambda (window _ov pos)
+                   (with-selected-window window
+                     (concat (mapconcat
+                              #'flymake-diagnostic-text
+                              (flymake-diagnostics pos)
+                              "\n")
+                             "\nmouse-1: Get LSP code actions"))))
+    (keymap . ,(let ((map (make-sparse-keymap)))
+                 (define-key map [mouse-1]
+                   (eglot--mouse-call 'eglot-get-code-actions))
+                 map))))
+
+
 
 
 ;;; Protocol implementation (Requests, notifications, etc)
@@ -1037,16 +1075,18 @@ function with the server still running."
       (with-current-buffer buffer
         (cl-loop
          for diag-spec across diagnostics
-         collect (cl-destructuring-bind (&key range severity _group
+         collect (cl-destructuring-bind (&key range ((:severity sev)) _group
                                               _code source message)
                      diag-spec
+                   (setq message (concat source ": " message))
                    (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-                     (flymake-make-diagnostic (current-buffer)
-                                              beg end
-                                              (cond ((<= severity 1) :error)
-                                                    ((= severity 2)  :warning)
-                                                    (t               :note))
-                                              (concat source ": " message))))
+                     (eglot--make-diag (current-buffer) beg end
+                                       (cond ((<= sev 1) ':error)
+                                             ((= sev 2)  ':warning)
+                                             (t          ':note))
+                                       message (cons
+                                                `(eglot-lsp-diag . ,diag-spec)
+                                                (eglot--overlay-diag-props)))))
          into diags
          finally (cond (eglot--current-flymake-report-fn
                         (funcall eglot--current-flymake-report-fn diags)
@@ -1528,6 +1568,44 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                                           :newName ,newname))
    current-prefix-arg))
 
+
+(defun eglot-get-code-actions (&optional beg end)
+  "Get code actions between BEG and END."
+  (interactive
+   (let (diags)
+     (cond ((region-active-p) (list (region-beginning) (region-end)))
+           ((setq diags (flymake-diagnostics (point)))
+            (list (cl-reduce #'min (mapcar #'flymake-diagnostic-beg diags))
+                  (cl-reduce #'max (mapcar #'flymake-diagnostic-end diags))))
+           (t (list (point-min) (point-max))))))
+  (let* ((actions (eglot--request
+                   (eglot--current-server-or-lose)
+                   :textDocument/codeAction
+                   (list :textDocument (eglot--TextDocumentIdentifier)
+                         :range (list :start (eglot--pos-to-lsp-position beg)
+                                      :end (eglot--pos-to-lsp-position end))
+                         :context
+                         `(:diagnostics
+                           [,@(mapcar (lambda (diag)
+                                        (cdr (assoc 'eglot-lsp-diag
+                                                    (eglot--diag-props diag))))
+                                      (cl-remove-if-not
+                                       (lambda (diag) (cl-typep diag 'eglot--diag))
+                                       (flymake-diagnostics beg end)))]))))
+         (menu (let ((map (make-sparse-keymap)))
+                 (mapc (eglot--lambda (&key title command _arguments)
+                         (define-key map (vector (intern command))
+                           `(,title dummy)))
+                       actions)
+                 (setq map `(keymap "Code actions here:" ,@(cdr map)))))
+         (command-sym  (car
+                        (if (listp last-nonmenu-event)
+                            (x-popup-menu last-nonmenu-event menu)
+                          (tmm-prompt menu))))
+
+         )
+    (message "would be applying %S" command-sym)))
+
 
 ;;; Dynamic registration
 ;;;
@@ -1601,7 +1679,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (let* ((root (car (project-roots (eglot--project server))))
          (cache (expand-file-name ".cquery_cached_index/" root)))
     (list :cacheDirectory (file-name-as-directory cache)
-          :progressReportFrequencyMs -1)))
+          :progressReportFrequencyMs -1
+          :discoverSystemIncludes :json-false
+          :enableIndexOnDidChange t)))
 
 (cl-defmethod eglot-handle-notification
   ((_server eglot-cquery) (_method (eql :$cquery/progress))
