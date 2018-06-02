@@ -1138,7 +1138,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                  (when-buffer-window
                   (mapcar
                    (jsonrpc-lambda (&key range _kind _role)
-                     (pcase-let ((`(,beg ,end)
+                     (pcase-let ((`(,beg . ,end)
                                   (eglot--range-region range)))
                        (let ((ov (make-overlay beg end)))
                          (overlay-put ov 'face 'highlight)
