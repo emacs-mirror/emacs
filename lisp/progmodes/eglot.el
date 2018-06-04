@@ -270,7 +270,7 @@ CONTACT is in `eglot'.  Returns a process object."
     proc))
 
 (defun eglot--all-major-modes ()
-  "Return all know major modes."
+  "Return all known major modes."
   (let ((retval))
     (mapatoms (lambda (sym)
                 (when (plist-member (symbol-plist sym) 'derived-mode-parent)
@@ -737,7 +737,7 @@ DEFERRED is passed to `eglot--async-request', which see."
     (cadr res)))
 
 (cl-defun eglot--notify (server method params)
-  "Notify SERVER of something, don't expect a reply.e"
+  "Notify SERVER of something, don't expect a reply."
   (eglot--send server `(:jsonrpc  "2.0" :method ,method :params ,params)))
 
 (cl-defun eglot--reply (server id &key result error)
@@ -1272,7 +1272,7 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
 
 (defun eglot--xref-reset-known-symbols (&rest _dummy)
   "Reset `eglot--xref-reset-known-symbols'.
-DUMMY is ignored"
+DUMMY is ignored."
   (setq eglot--xref-known-symbols nil))
 
 (advice-add 'xref-find-definitions :after #'eglot--xref-reset-known-symbols)
