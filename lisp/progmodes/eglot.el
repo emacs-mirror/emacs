@@ -816,16 +816,26 @@ If optional MARKER, return a marker instead"
       (ignore-errors (funcall mode))
       (insert string) (font-lock-ensure) (buffer-string))))
 
+(defcustom eglot-ignored-server-capabilites (list)
+  "LSP server capabilities that Eglot could use, but won't.
+You could add, for instance, the symbol
+`:documentHighlightProvider' to prevent automatic highlighting
+under cursor."
+  :type '(repeat symbol))
+
 (defun eglot--server-capable (&rest feats)
   "Determine if current server is capable of FEATS."
-  (cl-loop for caps = (eglot--capabilities (eglot--current-server-or-lose))
-           then (cadr probe)
-           for feat in feats
-           for probe = (plist-member caps feat)
-           if (not probe) do (cl-return nil)
-           if (eq (cadr probe) t) do (cl-return t)
-           if (eq (cadr probe) :json-false) do (cl-return nil)
-           finally (cl-return (or probe t))))
+  (unless (cl-some (lambda (feat)
+                     (memq feat eglot-ignored-server-capabilites))
+                   feats)
+    (cl-loop for caps = (eglot--capabilities (eglot--current-server-or-lose))
+             then (cadr probe)
+             for feat in feats
+             for probe = (plist-member caps feat)
+             if (not probe) do (cl-return nil)
+             if (eq (cadr probe) t) do (cl-return t)
+             if (eq (cadr probe) :json-false) do (cl-return nil)
+             finally (cl-return (or probe t)))))
 
 (defun eglot--range-region (range &optional markers)
   "Return region (BEG . END) that represents LSP RANGE.
