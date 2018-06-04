@@ -61,7 +61,8 @@ deferred until the prefix key sequence is pressed."
               (bind-key* key keymap)
             (bind-key key keymap))
           (setq unread-command-events
-                (listify-key-sequence kv)))
+                (mapcar (lambda (ev) (cons t ev))
+                        (listify-key-sequence kv))))
       (use-package-error
        (format "package.el %s failed to define keymap %s"
                package keymap-symbol)))))
