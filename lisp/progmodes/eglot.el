@@ -1153,7 +1153,7 @@ THINGS are either registrations or unregisterations."
 (defvar-local eglot--recent-changes nil
   "Recent buffer changes as collected by `eglot--before-change'.")
 
-(defmethod eglot-server-ready-p (_s _what)
+(cl-defmethod eglot-server-ready-p (_s _what)
   "Normally ready if no outstanding changes." (not eglot--recent-changes))
 
 (defvar-local eglot--change-idle-timer nil "Idle timer for didChange signals.")
