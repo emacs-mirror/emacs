@@ -983,38 +983,20 @@ Uses THING, FACE, DEFS and PREPEND."
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
 
-
-;; FIXME: A horrible hack of Flymake's insufficient API that must go
-;; into Emacs master, or better, 26.2
-(cl-defstruct (eglot--diag (:include flymake--diag)
-                           (:constructor eglot--make-diag
-                                         (buffer beg end type text props)))
-  props)
+(put 'eglot-note 'flymake-category 'flymake-note)
+(put 'eglot-warning 'flymake-category 'flymake-warning)
+(put 'eglot-error 'flymake-category 'flymake-error)
 
-(advice-add 'flymake--highlight-line :after
-            (lambda (diag)
-              (when (cl-typep diag 'eglot--diag)
-                (let ((ov (cl-find diag
-                                   (overlays-at (flymake-diagnostic-beg diag))
-                                   :key (lambda (ov)
-                                          (overlay-get ov 'flymake-diagnostic)))))
-                  (cl-loop for (key . value) in (eglot--diag-props diag)
-                           do (overlay-put ov key value)))))
-            '((name . eglot-hacking-in-some-per-diag-overlay-properties)))
+(defalias 'eglot--make-diag 'flymake-make-diagnostic)
+(defalias 'eglot--diag-data 'flymake-diagnostic-data)
 
-
-(defun eglot--overlay-diag-props ()
-  `((mouse-face . highlight)
-    (help-echo . (lambda (window _ov pos)
-                   (with-selected-window window
-                     (mapconcat
-                      #'flymake-diagnostic-text
-                      (flymake-diagnostics pos)
-                      "\n"))))
-    (keymap . ,(let ((map (make-sparse-keymap)))
-                 (define-key map [mouse-1]
-                   (eglot--mouse-call 'eglot-code-actions))
-                 map))))
+(dolist (type '(eglot-error eglot-warning eglot-note))
+  (put type 'flymake-overlay-control
+       `((mouse-face . highlight)
+         (keymap . ,(let ((map (make-sparse-keymap)))
+                      (define-key map [mouse-1]
+                        (eglot--mouse-call 'eglot-code-actions))
+                      map)))))
 
 
 ;;; Protocol implementation (Requests, notifications, etc)
@@ -1091,12 +1073,10 @@ function with the server still running."
                    (setq message (concat source ": " message))
                    (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                      (eglot--make-diag (current-buffer) beg end
-                                       (cond ((<= sev 1) ':error)
-                                             ((= sev 2)  ':warning)
-                                             (t          ':note))
-                                       message (cons
-                                                `(eglot-lsp-diag . ,diag-spec)
-                                                (eglot--overlay-diag-props)))))
+                                       (cond ((<= sev 1) 'eglot-error)
+                                             ((= sev 2)  'eglot-warning)
+                                             (t          'eglot-note))
+                                       message `((eglot-lsp-diag . ,diag-spec)))))
          into diags
          finally (cond (eglot--current-flymake-report-fn
                         (funcall eglot--current-flymake-report-fn diags)
@@ -1605,10 +1585,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                          `(:diagnostics
                            [,@(mapcar (lambda (diag)
                                         (cdr (assoc 'eglot-lsp-diag
-                                                    (eglot--diag-props diag))))
-                                      (cl-remove-if-not
-                                       (lambda (diag) (cl-typep diag 'eglot--diag))
-                                       (flymake-diagnostics beg end)))]))))
+                                                    (eglot--diag-data diag))))
+                                      (flymake-diagnostics beg end))]))))
          (menu-items (mapcar (eglot--lambda (&key title command arguments)
                                `(,title . (:command ,command :arguments ,arguments)))
                              actions))
@@ -1717,6 +1695,40 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   ((_server eglot-cquery) (_method (eql :$cquery/publishSemanticHighlighting))
    &key _uri _symbols &allow-other-keys)
   "No-op for unsupported $cquery/publishSemanticHighlighting extension")
+
+
+;; FIXME: A horrible hack of Flymake's insufficient API that must go
+;; into Emacs master, or better, 26.2
+(when (version< emacs-version "27.0")
+  (cl-defstruct (eglot--diag (:include flymake--diag)
+                             (:constructor eglot--make-diag-1))
+    data-1)
+  (defsubst eglot--make-diag (buffer beg end type text data)
+    (let ((sym (alist-get type eglot--diag-error-types-to-old-types)))
+      (eglot--make-diag-1 :buffer buffer :beg beg :end end :type sym
+                          :text text :data-1 data)))
+  (defsubst eglot--diag-data (diag)
+    (and (eglot--diag-p diag) (eglot--diag-data-1 diag)))
+  (defvar eglot--diag-error-types-to-old-types
+    '((eglot-error . :error)
+      (eglot-warning . :warning)
+      (eglot-note . :note)))
+  (advice-add
+   'flymake--highlight-line :after
+   (lambda (diag)
+     (when (eglot--diag-p diag)
+       (let ((ov (cl-find diag
+                          (overlays-at (flymake-diagnostic-beg diag))
+                          :key (lambda (ov)
+                                 (overlay-get ov 'flymake-diagnostic))))
+             (overlay-properties
+              (get (car (rassoc (flymake-diagnostic-type diag)
+                                eglot--diag-error-types-to-old-types))
+                   'flymake-overlay-control)))
+         (cl-loop for (k . v) in overlay-properties
+                  do (overlay-put ov k v)))))
+   '((name . eglot-hacking-in-some-per-diag-overlay-properties))))
+
 
 (provide 'eglot)
 ;;; eglot.el ends here
