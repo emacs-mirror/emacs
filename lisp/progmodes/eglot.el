@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018 Free Software Foundation, Inc.
 
-;; Version: 0.7
+;; Version: 0.8
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -86,15 +86,15 @@ mode symbol.  SPEC is
 PROGRAM is called with ARGS and is expected to serve LSP requests
 over the standard input/output channels.
 
-* A list (HOST PORT [ARGS...]) where HOST is a string and PORT is a
-positive integer number for connecting to a server via TCP.
+* A list (HOST PORT [ARGS...]) where HOST is a string and PORT is
+a positive integer number for connecting to a server via TCP.
 Remaining ARGS are passed to `open-network-stream' for upgrading
-the connection with encryption, etc...
+the connection with encryption or other capabilities.
 
 * A function of no arguments returning a connected process.
 
 * A cons (CLASS-NAME . SPEC) where CLASS-NAME is a symbol
-designating a subclass of `eglot-lsp-server', for
+designating a subclass of symbol `eglot-lsp-server', for
 representing experimental LSP servers.  In this case SPEC is
 interpreted as described above this point.")
 
@@ -120,13 +120,6 @@ lasted more than that many seconds."
   (let ((b (cl-gensym)))
     `(let ((,b ,buf)) (if (buffer-live-p ,b) (with-current-buffer ,b ,@body)))))
 
-(cl-defmacro eglot--lambda (cl-lambda-list &body body)
-  "Make a unary function of ARG, a plist-like JSON object.
-CL-LAMBDA-LIST destructures ARGS before running BODY."
-  (declare (indent 1) (debug (sexp &rest form)))
-  (let ((e (gensym "eglot--lambda-elem")))
-    `(lambda (,e) (apply (cl-function (lambda ,cl-lambda-list ,@body)) ,e))))
-
 (cl-defmacro eglot--widening (&rest body)
   "Save excursion and restriction. Widen. Then run BODY." (declare (debug t))
   `(save-excursion (save-restriction (widen) ,@body)))
@@ -147,6 +140,8 @@ CL-LAMBDA-LIST destructures ARGS before running BODY."
            (list
             :workspace (list
                         :applyEdit t
+                        :executeCommand `(:dynamicRegistration :json-false)
+                        :codeAction `(:dynamicRegistration :json-false)
                         :workspaceEdit `(:documentChanges :json-false)
                         :didChangeWatchesFiles `(:dynamicRegistration t)
                         :symbol `(:dynamicRegistration :json-false))
@@ -250,7 +245,7 @@ function with the server still running."
          (eglot--warn "Not auto-reconnecting, last one didn't last long."))))
 
 (defun eglot--all-major-modes ()
-  "Return all know major modes."
+  "Return all known major modes."
   (let ((retval))
     (mapatoms (lambda (sym)
                 (when (plist-member (symbol-plist sym) 'derived-mode-parent)
@@ -501,16 +496,26 @@ If optional MARKER, return a marker instead"
       (ignore-errors (funcall mode))
       (insert string) (font-lock-ensure) (buffer-string))))
 
+(defcustom eglot-ignored-server-capabilites (list)
+  "LSP server capabilities that Eglot could use, but won't.
+You could add, for instance, the symbol
+`:documentHighlightProvider' to prevent automatic highlighting
+under cursor."
+  :type '(repeat symbol))
+
 (defun eglot--server-capable (&rest feats)
   "Determine if current server is capable of FEATS."
-  (cl-loop for caps = (eglot--capabilities (jsonrpc-current-connection-or-lose))
-           then (cadr probe)
-           for feat in feats
-           for probe = (plist-member caps feat)
-           if (not probe) do (cl-return nil)
-           if (eq (cadr probe) t) do (cl-return t)
-           if (eq (cadr probe) :json-false) do (cl-return nil)
-           finally (cl-return (or probe t))))
+  (unless (cl-some (lambda (feat)
+                     (memq feat eglot-ignored-server-capabilites))
+                   feats)
+    (cl-loop for caps = (eglot--capabilities (jsonrpc-current-connection-or-lose))
+             then (cadr probe)
+             for feat in feats
+             for probe = (plist-member caps feat)
+             if (not probe) do (cl-return nil)
+             if (eq (cadr probe) t) do (cl-return t)
+             if (eq (cadr probe) :json-false) do (cl-return nil)
+             finally (cl-return (or probe t)))))
 
 (defun eglot--range-region (range &optional markers)
   "Return region (BEG . END) that represents LSP RANGE.
@@ -603,13 +608,16 @@ that case, also signal textDocument/didOpen."
 
 (put 'eglot--mode-line-format 'risky-local-variable t)
 
-(defun eglot--mode-line-call (what)
+(defun eglot--mouse-call (what)
   "Make an interactive lambda for calling WHAT from mode-line."
   (lambda (event)
     (interactive "e")
-    (with-selected-window (posn-window (event-start event))
-      (call-interactively what)
-      (force-mode-line-update t))))
+    (let ((start (event-start event))) (with-selected-window (posn-window start)
+                                         (save-excursion
+                                           (goto-char (or (posn-point start)
+                                                          (point)))
+                                           (call-interactively what)
+                                           (force-mode-line-update t))))))
 
 (defun eglot--mode-line-props (thing face defs &optional prepend)
   "Helper for function `eglot--mode-line-format'.
@@ -617,7 +625,7 @@ Uses THING, FACE, DEFS and PREPEND."
   (cl-loop with map = (make-sparse-keymap)
            for (elem . rest) on defs
            for (key def help) = elem
-           do (define-key map `[mode-line ,key] (eglot--mode-line-call def))
+           do (define-key map `[mode-line ,key] (eglot--mouse-call def))
            concat (format "%s: %s" key help) into blurb
            when rest concat "\n" into blurb
            finally (return `(:propertize ,thing
@@ -660,6 +668,21 @@ Uses THING, FACE, DEFS and PREPEND."
 
 (add-to-list 'mode-line-misc-info
              `(eglot--managed-mode (" [" eglot--mode-line-format "] ")))
+
+(put 'eglot-note 'flymake-category 'flymake-note)
+(put 'eglot-warning 'flymake-category 'flymake-warning)
+(put 'eglot-error 'flymake-category 'flymake-error)
+
+(defalias 'eglot--make-diag 'flymake-make-diagnostic)
+(defalias 'eglot--diag-data 'flymake-diagnostic-data)
+
+(dolist (type '(eglot-error eglot-warning eglot-note))
+  (put type 'flymake-overlay-control
+       `((mouse-face . highlight)
+         (keymap . ,(let ((map (make-sparse-keymap)))
+                      (define-key map [mouse-1]
+                        (eglot--mouse-call 'eglot-code-actions))
+                      map)))))
 
 
 ;;; Protocol implementation (Requests, notifications, etc)
@@ -709,16 +732,16 @@ Uses THING, FACE, DEFS and PREPEND."
       (with-current-buffer buffer
         (cl-loop
          for diag-spec across diagnostics
-         collect (cl-destructuring-bind (&key range severity _group
+         collect (cl-destructuring-bind (&key range ((:severity sev)) _group
                                               _code source message)
                      diag-spec
+                   (setq message (concat source ": " message))
                    (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-                     (flymake-make-diagnostic (current-buffer)
-                                              beg end
-                                              (cond ((<= severity 1) :error)
-                                                    ((= severity 2)  :warning)
-                                                    (t               :note))
-                                              (concat source ": " message))))
+                     (eglot--make-diag (current-buffer) beg end
+                                       (cond ((<= sev 1) 'eglot-error)
+                                             ((= sev 2)  'eglot-warning)
+                                             (t          'eglot-note))
+                                       message `((eglot-lsp-diag . ,diag-spec)))))
          into diags
          finally (cond (eglot--current-flymake-report-fn
                         (funcall eglot--current-flymake-report-fn diags)
@@ -913,7 +936,7 @@ Calls REPORT-FN maybe if server publishes diagnostics in time."
 
 (defun eglot--xref-reset-known-symbols (&rest _dummy)
   "Reset `eglot--xref-reset-known-symbols'.
-DUMMY is ignored"
+DUMMY is ignored."
   (setq eglot--xref-known-symbols nil))
 
 (advice-add 'xref-find-definitions :after #'eglot--xref-reset-known-symbols)
@@ -1018,7 +1041,9 @@ DUMMY is ignored"
             (mapcar
              (jsonrpc-lambda (&rest all &key label insertText &allow-other-keys)
                (let ((insert (or insertText label)))
-                 (add-text-properties 0 1 all insert) insert))
+                 (add-text-properties 0 1 all insert)
+                 (put-text-property 0 1 'eglot--lsp-completion all insert)
+                 insert))
              items))))
        :annotation-function
        (lambda (obj)
@@ -1037,13 +1062,15 @@ DUMMY is ignored"
                         (or (get-text-property 0 :sortText b) "")))))
        :company-doc-buffer
        (lambda (obj)
-         (let ((documentation
-                (or (get-text-property 0 :documentation obj)
-                    (and (eglot--server-capable :completionProvider
-                                                :resolveProvider)
-                         (plist-get (jsonrpc-request server :completionItem/resolve
-                                                     (text-properties-at 0 obj))
-                                    :documentation)))))
+         (let* ((documentation
+                 (or (get-text-property 0 :documentation obj)
+                     (and (eglot--server-capable :completionProvider
+                                                 :resolveProvider)
+                          (plist-get
+                           (jsonrpc-request server :completionItem/resolve
+                                            (get-text-property
+                                             0 'eglot--lsp-completion obj))
+                           :documentation)))))
            (when documentation
              (with-current-buffer (get-buffer-create " *eglot doc*")
                (insert (eglot--format-markup documentation))
@@ -1205,6 +1232,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                           (pop prepared))))
         (if prepared (eglot--warn "Caution: edits of files %s failed."
                                   (mapcar #'car prepared))
+          (eglot-eldoc-function)
           (eglot--message "Edit successful!"))))))
 
 (defun eglot-rename (newname)
@@ -1218,6 +1246,50 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                     :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
                                            :newName ,newname))
    current-prefix-arg))
+
+
+(defun eglot-code-actions (&optional beg end)
+  "Get and offer to execute code actions between BEG and END."
+  (interactive
+   (let (diags)
+     (cond ((region-active-p) (list (region-beginning) (region-end)))
+           ((setq diags (flymake-diagnostics (point)))
+            (list (cl-reduce #'min (mapcar #'flymake-diagnostic-beg diags))
+                  (cl-reduce #'max (mapcar #'flymake-diagnostic-end diags))))
+           (t (list (point-min) (point-max))))))
+  (unless (eglot--server-capable :codeActionProvider)
+    (eglot--error "Server can't execute code actions!"))
+  (let* ((server (jsonrpc-current-connection-or-lose))
+         (actions (jsonrpc-request
+                   server
+                   :textDocument/codeAction
+                   (list :textDocument (eglot--TextDocumentIdentifier)
+                         :range (list :start (eglot--pos-to-lsp-position beg)
+                                      :end (eglot--pos-to-lsp-position end))
+                         :context
+                         `(:diagnostics
+                           [,@(mapcar (lambda (diag)
+                                        (cdr (assoc 'eglot-lsp-diag
+                                                    (eglot--diag-data diag))))
+                                      (flymake-diagnostics beg end))]))))
+         (menu-items (mapcar (jsonrpc-lambda (&key title command arguments)
+                               `(,title . (:command ,command :arguments ,arguments)))
+                             actions))
+         (menu (and menu-items `("Eglot code actions:" ("dummy" ,@menu-items))))
+         (command-and-args
+          (and menu
+               (if (listp last-nonmenu-event)
+                   (x-popup-menu last-nonmenu-event menu)
+                 (let ((never-mind (gensym)) retval)
+                   (setcdr (cadr menu)
+                           (cons `("never mind..." . ,never-mind) (cdadr menu)))
+                   (if (eq (setq retval (tmm-prompt menu)) never-mind)
+                       (keyboard-quit)
+                     retval))))))
+    (if command-and-args
+        (jsonrpc-request server :workspace/executeCommand command-and-args)
+      (eglot--message "No code actions here"))))
+
 
 
 ;;; Dynamic registration
@@ -1291,8 +1363,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   "Passes through required cquery initialization options"
   (let* ((root (car (project-roots (eglot--project server))))
          (cache (expand-file-name ".cquery_cached_index/" root)))
-    (vector :cacheDirectory (file-name-as-directory cache)
-            :progressReportFrequencyMs -1)))
+    (list :cacheDirectory (file-name-as-directory cache)
+          :progressReportFrequencyMs -1)))
 
 (cl-defmethod eglot-handle-notification
   ((_server eglot-cquery) (_method (eql :$cquery/progress))
@@ -1308,6 +1380,40 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   ((_server eglot-cquery) (_method (eql :$cquery/publishSemanticHighlighting))
    &key _uri _symbols &allow-other-keys)
   "No-op for unsupported $cquery/publishSemanticHighlighting extension")
+
+
+;; FIXME: A horrible hack of Flymake's insufficient API that must go
+;; into Emacs master, or better, 26.2
+(when (version< emacs-version "27.0")
+  (cl-defstruct (eglot--diag (:include flymake--diag)
+                             (:constructor eglot--make-diag-1))
+    data-1)
+  (defsubst eglot--make-diag (buffer beg end type text data)
+    (let ((sym (alist-get type eglot--diag-error-types-to-old-types)))
+      (eglot--make-diag-1 :buffer buffer :beg beg :end end :type sym
+                          :text text :data-1 data)))
+  (defsubst eglot--diag-data (diag)
+    (and (eglot--diag-p diag) (eglot--diag-data-1 diag)))
+  (defvar eglot--diag-error-types-to-old-types
+    '((eglot-error . :error)
+      (eglot-warning . :warning)
+      (eglot-note . :note)))
+  (advice-add
+   'flymake--highlight-line :after
+   (lambda (diag)
+     (when (eglot--diag-p diag)
+       (let ((ov (cl-find diag
+                          (overlays-at (flymake-diagnostic-beg diag))
+                          :key (lambda (ov)
+                                 (overlay-get ov 'flymake-diagnostic))))
+             (overlay-properties
+              (get (car (rassoc (flymake-diagnostic-type diag)
+                                eglot--diag-error-types-to-old-types))
+                   'flymake-overlay-control)))
+         (cl-loop for (k . v) in overlay-properties
+                  do (overlay-put ov k v)))))
+   '((name . eglot-hacking-in-some-per-diag-overlay-properties))))
+
 
 (provide 'eglot)
 ;;; eglot.el ends here
