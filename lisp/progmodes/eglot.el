@@ -900,6 +900,9 @@ If optional MARKERS, make markers."
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
 
+(defvar-local eglot--unreported-diagnostics nil
+  "Unreported Flymake diagnostics for this buffer.")
+
 (defun eglot--maybe-activate-editing-mode (&optional server)
   "Maybe activate mode function `eglot--managed-mode'.
 If SERVER is supplied, do it only if BUFFER is managed by it.  In
@@ -908,6 +911,7 @@ that case, also signal textDocument/didOpen."
   (let* ((cur (and buffer-file-name (eglot--current-server)))
          (server (or (and (null server) cur) (and server (eq server cur) cur))))
     (when server
+      (setq eglot--unreported-diagnostics `(:just-opened . nil))
       (eglot--managed-mode-onoff server 1)
       (eglot--signal-textDocument/didOpen))))
 
@@ -1056,9 +1060,6 @@ function with the server still running."
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql :telemetry/event)) &rest _any)
   "Handle notification telemetry/event") ;; noop, use events buffer
-
-(defvar-local eglot--unreported-diagnostics nil
-  "Unreported diagnostics for this buffer.")
 
 (cl-defmethod eglot-handle-notification
   (server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
