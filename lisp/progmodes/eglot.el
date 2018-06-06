@@ -258,7 +258,7 @@ CONTACT is in `eglot'.  Returns a process object."
                  (apply #'open-network-stream name stdout contact))
                 (t (make-process
                     :name name :command contact :buffer stdout
-                    :coding 'no-conversion :connection-type 'pipe
+                    :coding 'utf-8-emacs-unix :connection-type 'pipe
                     :stderr (setq stderr (format "*%s stderr*" name)))))))
     (process-put proc 'eglot-stderr stderr)
     (set-process-buffer proc (get-buffer-create stdout))
