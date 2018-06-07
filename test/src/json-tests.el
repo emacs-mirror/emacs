@@ -209,6 +209,37 @@ Test with both unibyte and multibyte strings."
     (should-not (bobp))
     (should (looking-at-p (rx " [456]" eos)))))
 
+
+
+(ert-deftest json-parse-with-custom-null-and-false-objects ()
+  (let ((input
+         "{ \"abc\" : [1, 2, true], \"def\" : null, \"abc\" : [9, false] }\n"))
+    (should (equal (json-parse-string input
+                                      :object-type 'plist
+                                      :null-object :json-null
+                                      :false-object :json-false)
+                   '(:abc [9 :json-false] :def :json-null)))
+    (should (equal (json-parse-string input
+                                      :object-type 'plist
+                                      :false-object :json-false)
+                   '(:abc [9 :json-false] :def :null)))
+    (should (equal (json-parse-string input
+                                      :object-type 'alist
+                                      :null-object :zilch)
+                   '((abc . [9 :false]) (def . :zilch))))
+    (should (equal (json-parse-string input
+                                      :object-type 'alist
+                                      :false-object nil
+                                      :null-object nil)
+                   '((abc . [9 nil]) (def))))
+    (let* ((thingy '(1 2 3))
+           (retval (json-parse-string input
+                                      :object-type 'alist
+                                      :false-object thingy
+                                      :null-object nil)))
+      (should (equal retval `((abc . [9 ,thingy]) (def))))
+      (should (eq (elt (cdr (car retval)) 1) thingy)))))
+
 (ert-deftest json-insert/signal ()
   (skip-unless (fboundp 'json-insert))
   (with-temp-buffer

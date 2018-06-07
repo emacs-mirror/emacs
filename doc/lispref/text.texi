@@ -5008,9 +5008,10 @@ Specifically:
 @itemize
 
 @item
-JSON has a couple of keywords: @code{null}, @code{false}, and
-@code{true}.  These are represented in Lisp using the keywords
-@code{:null}, @code{:false}, and @code{t}, respectively.
+JSON uses three keywords: @code{true}, @code{null}, @code{false}.
+@code{true} is represented by the symbol @code{t}.  By default, the
+remaining two are represented, respectively, by the symbols
+@code{:null} and @code{:false}.
 
 @item
 JSON only has floating-point numbers.  They can represent both Lisp
@@ -5062,14 +5063,6 @@ JSON.  The subobjects within these top-level values can be of any
 type.  Likewise, the parsing functions will only return vectors,
 hashtables, alists, and plists.
 
-  The parsing functions accept keyword arguments.  Currently only one
-keyword argument, @code{:object-type}, is recognized; its value
-decides which Lisp object to use for representing the key-value
-mappings of a JSON object.  It can be either @code{hash-table}, the
-default, to make hashtables with strings as keys, @code{alist} to use
-alists with symbols as keys or @code{plist} to use plists with keyword
-symbols as keys.
-
 @defun json-serialize object
 This function returns a new Lisp string which contains the JSON
 representation of @var{object}.
@@ -5080,16 +5073,38 @@ This function inserts the JSON representation of @var{object} into the
 current buffer before point.
 @end defun
 
-@defun json-parse-string string &key (object-type @code{hash-table})
+@defun json-parse-string string &rest args
 This function parses the JSON value in @var{string}, which must be a
-Lisp string.
+Lisp string.  The arguments @var{args} are a list of keyword/argument
+pairs. The following keywords are accepted:
+
+@itemize
+
+@item @code{:object-type}
+The value decides which Lisp object to use for representing the key-value
+mappings of a JSON object.  It can be either @code{hash-table}, the
+default, to make hashtables with strings as keys, @code{alist} to use
+alists with symbols as keys or @code{plist} to use plists with keyword
+symbols as keys.
+
+@item @code{:null-object}
+The value decides which Lisp object use to represent the JSON keyword
+@code{null}.  It defaults to the lisp symbol @code{:null}.
+
+@item @code{:false-object}
+The value decides which Lisp object use to represent the JSON keyword
+@code{false}.  It defaults to the lisp symbol @code{:false}.
+
+@end itemize
+
 @end defun
 
-@defun json-parse-buffer &key (object-type @code{hash-table})
+@defun json-parse-buffer &rest args
 This function reads the next JSON value from the current buffer,
 starting at point.  It moves point to the position immediately after
 the value if a value could be read and converted to Lisp; otherwise it
-doesn't move point.
+doesn't move point.  @var{args} is interpreted as in
+@code{json-parse-string}.
 @end defun
 
 
