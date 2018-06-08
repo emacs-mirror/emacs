@@ -79,8 +79,8 @@
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
   "How the command `eglot' guesses the server to start.
-An association list of (MAJOR-MODE . SPEC) pair.  MAJOR-MODE is a
-mode symbol.  SPEC is
+An association list of (MAJOR-MODE . CONTACT) pair.  MAJOR-MODE
+is a mode symbol.  CONTACT is:
 
 * In the most common case, a list of strings (PROGRAM [ARGS...]).
 PROGRAM is called with ARGS and is expected to serve LSP requests
@@ -91,12 +91,15 @@ a positive integer number for connecting to a server via TCP.
 Remaining ARGS are passed to `open-network-stream' for upgrading
 the connection with encryption or other capabilities.
 
-* A function of no arguments returning a connected process.
-
-* A cons (CLASS-NAME . SPEC) where CLASS-NAME is a symbol
-designating a subclass of symbol `eglot-lsp-server', for
-representing experimental LSP servers.  In this case SPEC is
-interpreted as described above this point.")
+* A cons (CLASS-NAME . INITARGS) where CLASS-NAME is a symbol
+designating a subclass of `eglot-lsp-server', for representing
+experimental LSP servers.  INITARGS is a keyword-value plist used
+to initialize CLASS-NAME, or a plain list interpreted as the
+previous descriptions of CONTACT, in which case it is converted
+to produce a plist with a suitable :PROCESS initarg to
+CLASS-NAME.  The class `eglot-lsp-server' descends
+`jsonrpc-process-connection', which you should see for semantics
+of the mandatory :PROCESS argument.")
 
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
@@ -124,8 +127,8 @@ lasted more than that many seconds."
   "Save excursion and restriction. Widen. Then run BODY." (declare (debug t))
   `(save-excursion (save-restriction (widen) ,@body)))
 
-(cl-defgeneric eglot-handle-request (server method id &rest params)
-  "Handle SERVER's METHOD request with ID and PARAMS.")
+(cl-defgeneric eglot-handle-request (server method &rest params)
+  "Handle SERVER's METHOD request with PARAMS.")
 
 (cl-defgeneric eglot-handle-notification (server method id &rest params)
   "Handle SERVER's METHOD notification with PARAMS.")
@@ -164,10 +167,10 @@ lasted more than that many seconds."
 (defclass eglot-lsp-server (jsonrpc-process-connection)
   ((project-nickname
     :documentation "Short nickname for the associated project."
-    :initarg :project-nickname :accessor eglot--project-nickname)
+    :accessor eglot--project-nickname)
    (major-mode
     :documentation "Major mode symbol."
-    :initarg :major-mode :accessor eglot--major-mode)
+    :accessor eglot--major-mode)
    (capabilities
     :documentation "JSON object containing server capabilities."
     :accessor eglot--capabilities)
@@ -176,19 +179,22 @@ lasted more than that many seconds."
     :accessor eglot--shutdown-requested)
    (project
     :documentation "Project associated with server."
-    :initarg :project :accessor eglot--project)
+    :accessor eglot--project)
    (spinner
     :documentation "List (ID DOING-WHAT DONE-P) representing server progress."
     :initform `(nil nil t) :accessor eglot--spinner)
    (inhibit-autoreconnect
     :documentation "Generalized boolean inhibiting auto-reconnection if true."
-    :initarg :inhibit-autoreconnect :accessor eglot--inhibit-autoreconnect)
+    :accessor eglot--inhibit-autoreconnect)
    (file-watches
     :documentation "Map ID to list of WATCHES for `didChangeWatchedFiles'."
     :initform (make-hash-table :test #'equal) :accessor eglot--file-watches)
    (managed-buffers
     :documentation "List of buffers managed by server."
-    :initarg :managed-buffers :accessor eglot--managed-buffers))
+    :accessor eglot--managed-buffers)
+   (saved-initargs
+    :documentation "Saved initargs for reconnection purposes"
+    :accessor eglot--saved-initargs))
   :documentation
   "Represents a server. Wraps a process for LSP communication.")
 
@@ -296,47 +302,35 @@ function with the server still running."
                     (list (match-string 1 s) (string-to-number (match-string 2 s)))
                   (split-string-and-unquote s)))
             guess)))
-    (list managed-mode project (cons class contact) t)))
+    (list managed-mode project class contact t)))
 
 ;;;###autoload
-(defun eglot (managed-major-mode project contact &optional interactive)
+(defun eglot (managed-major-mode project class contact &optional interactive)
   "Manage a project with a Language Server Protocol (LSP) server.
 
-The LSP server is started (or contacted) via CONTACT.  If this
-operation is successful, current *and future* file buffers of
-MANAGED-MAJOR-MODE inside PROJECT automatically become
+The LSP server of CLASS started (or contacted) via CONTACT.  If
+this operation is successful, current *and future* file buffers
+of MANAGED-MAJOR-MODE inside PROJECT automatically become
 \"managed\" by the LSP server, meaning information about their
 contents is exchanged periodically to provide enhanced
 code-analysis via `xref-find-definitions', `flymake-mode',
 `eldoc-mode', `completion-at-point', among others.
 
 Interactively, the command attempts to guess MANAGED-MAJOR-MODE
-from current buffer, CONTACT from `eglot-server-programs' and
-PROJECT from `project-current'.  If it can't guess, the user is
-prompted.  With a single \\[universal-argument] prefix arg, it
-always prompt for COMMAND.  With two \\[universal-argument]
-prefix args, also prompts for MANAGED-MAJOR-MODE.
+from current buffer, CLASS and CONTACT from
+`eglot-server-programs' and PROJECT from `project-current'.  If
+it can't guess, the user is prompted.  With a single
+\\[universal-argument] prefix arg, it always prompt for COMMAND.
+With two \\[universal-argument] prefix args, also prompts for
+MANAGED-MAJOR-MODE.
 
 PROJECT is a project instance as returned by `project-current'.
 
-CONTACT specifies how to contact the server. It can be:
+CLASS is a subclass of symbol `eglot-lsp-server'.
 
-* a list of strings (COMMAND [ARGS...]) specifying how
-to start a server subprocess to connect to.
-
-* A list with a string as the first element and an integer number
-as the second list is interpreted as (HOST PORT [PARAMETERS...])
-and connects to an existing server via TCP, with the remaining
-PARAMETERS being given as `open-network-stream's optional
-arguments.
-
-* A list (CLASS-SYM CONTACT...) where CLASS-SYM names the
-subclass of `eglot-server' used to create the server object. The
-remaining arguments are processed as described in the previous
-paragraphs.
-
-* A function of arguments returning arguments compatible with the
-previous description.
+CONTACT specifies how to contact the server.  It is a
+keyword-value plist used to initialize CLASS or a plain list as
+described in `eglot-server-programs', which see.
 
 INTERACTIVE is t if called interactively."
   (interactive (eglot--interactive))
@@ -354,6 +348,7 @@ INTERACTIVE is t if called interactively."
                                     managed-major-mode
                                     (format "%s/%s" nickname managed-major-mode)
                                     nickname
+                                    class
                                     contact)))
         (eglot--message "Connected! Process `%s' now \
 managing `%s' buffers in project `%s'."
@@ -371,29 +366,51 @@ INTERACTIVE is t if called interactively."
                   (eglot--major-mode server)
                   (jsonrpc-name server)
                   (eglot--project-nickname server)
-                  (jsonrpc-contact server))
+                  (eieio-object-class-name server)
+                  (eglot--saved-initargs server))
   (eglot--message "Reconnected!"))
 
 (defalias 'eglot-events-buffer 'jsonrpc-events-buffer)
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
-(defun eglot--dispatch (server method id params)
-  "Dispatcher passed to `jsonrpc-connect'.
-Calls a function on SERVER, METHOD ID and PARAMS."
-  (let ((method (intern (format ":%s" method))))
-    (if id
-        (apply #'eglot-handle-request server id method params)
-      (apply #'eglot-handle-notification server method params)
-      (force-mode-line-update t))))
-
-(defun eglot--connect (project managed-major-mode name nickname contact)
+(defun eglot--connect (project managed-major-mode name nickname
+                               class contact)
   "Connect to PROJECT, MANAGED-MAJOR-MODE, NAME.
-And NICKNAME and CONTACT."
-  (let* ((contact (if (functionp contact) (funcall contact) contact))
+And don't forget NICKNAME and CLASS, CONTACT.  This docstring
+appeases checkdoc, that's all."
+  (let* ((readable-name (format "EGLOT (%s/%s)" nickname managed-major-mode))
+         (initargs
+          (cond ((keywordp (car contact)) contact)
+                ((integerp (cadr contact))
+                 `(:process ,(lambda ()
+                               (apply #'open-network-stream
+                                      readable-name nil
+                                      (car contact) (cadr contact)
+                                      (cddr contact)))))
+                ((stringp (car contact))
+                 `(:process ,(lambda ()
+                               (make-process
+                                :name readable-name
+                                :command contact
+                                :connection-type 'pipe
+                                :coding 'utf-8-emacs-unix
+                                :stderr (get-buffer-create
+                                         (format "*%s stderr*" readable-name))))))))
+         (spread
+          (lambda (fn)
+            (lambda (&rest args)
+              (apply fn (append (butlast args) (car (last args)))))))
          (server
-          (jsonrpc-connect name contact #'eglot--dispatch #'eglot--on-shutdown))
+          (apply
+           #'make-instance class
+           :name name
+           :notification-dispatcher (funcall spread #'eglot-handle-notification)
+           :request-dispatcher (funcall spread #'eglot-handle-request)
+           :on-shutdown #'eglot--on-shutdown
+           initargs))
          success)
+    (setf (eglot--saved-initargs server) initargs)
     (setf (eglot--project server) project)
     (setf (eglot--project-nickname server) nickname)
     (setf (eglot--major-mode server) managed-major-mode)
@@ -688,14 +705,14 @@ Uses THING, FACE, DEFS and PREPEND."
 ;;; Protocol implementation (Requests, notifications, etc)
 ;;;
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql :window/showMessage)) &key type message)
+  (_server (_method (eql window/showMessage)) &key type message)
   "Handle notification window/showMessage"
   (eglot--message (propertize "Server reports (type=%s): %s"
                               'face (if (<= type 1) 'error))
                   type message))
 
 (cl-defmethod eglot-handle-request
-  (server id (_method (eql :window/showMessageRequest)) &key type message actions)
+  (server (_method (eql window/showMessageRequest)) &key type message actions)
   "Handle server request window/showMessageRequest"
   (let (reply)
     (unwind-protect
@@ -710,23 +727,23 @@ Uses THING, FACE, DEFS and PREPEND."
                    '("OK"))
                nil t (plist-get (elt actions 0) :title)))
       (if reply
-          (jsonrpc-reply server id :result `(:title ,reply))
-        (jsonrpc-reply server id
+          (jsonrpc-reply server :result `(:title ,reply))
+        (jsonrpc-reply server
                        :error `(:code -32800 :message "User cancelled"))))))
 
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql :window/logMessage)) &key _type _message)
+  (_server (_method (eql window/logMessage)) &key _type _message)
   "Handle notification window/logMessage") ;; noop, use events buffer
 
 (cl-defmethod eglot-handle-notification
-  (_server (_method (eql :telemetry/event)) &rest _any)
+  (_server (_method (eql telemetry/event)) &rest _any)
   "Handle notification telemetry/event") ;; noop, use events buffer
 
 (defvar-local eglot--unreported-diagnostics nil
   "Unreported diagnostics for this buffer.")
 
 (cl-defmethod eglot-handle-notification
-  (server (_method (eql :textDocument/publishDiagnostics)) &key uri diagnostics)
+  (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics)
   "Handle notification publishDiagnostics"
   (if-let ((buffer (find-buffer-visiting (eglot--uri-to-path uri))))
       (with-current-buffer buffer
@@ -750,7 +767,7 @@ Uses THING, FACE, DEFS and PREPEND."
                         (setq eglot--unreported-diagnostics (cons t diags))))))
     (jsonrpc--debug server "Diagnostics received for unvisited %s" uri)))
 
-(cl-defun eglot--register-unregister (server jsonrpc-id things how)
+(cl-defun eglot--register-unregister (server things how)
   "Helper for `registerCapability'.
 THINGS are either registrations or unregisterations."
   (dolist (thing (cl-coerce things 'list))
@@ -762,28 +779,28 @@ THINGS are either registrations or unregisterations."
           (unless (eq t (car retval))
             (cl-return-from eglot--register-unregister
               (jsonrpc-reply
-               server jsonrpc-id
+               server
                :error `(:code -32601 :message ,(or (cadr retval) "sorry")))))))))
-  (jsonrpc-reply server jsonrpc-id :result `(:message "OK")))
+  (jsonrpc-reply server :result `(:message "OK")))
 
 (cl-defmethod eglot-handle-request
-  (server id (_method (eql :client/registerCapability)) &key registrations)
+  (server (_method (eql client/registerCapability)) &key registrations)
   "Handle server request client/registerCapability"
-  (eglot--register-unregister server id registrations 'register))
+  (eglot--register-unregister server registrations 'register))
 
 (cl-defmethod eglot-handle-request
-  (server id (_method (eql :client/unregisterCapability))
+  (server (_method (eql client/unregisterCapability))
           &key unregisterations) ;; XXX: "unregisterations" (sic)
   "Handle server request client/unregisterCapability"
-  (eglot--register-unregister server id unregisterations 'unregister))
+  (eglot--register-unregister server unregisterations 'unregister))
 
 (cl-defmethod eglot-handle-request
-  (server id (_method (eql :workspace/applyEdit)) &key _label edit)
+  (server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit"
   (condition-case err
       (progn (eglot--apply-workspace-edit edit 'confirm)
-             (jsonrpc-reply server id :result `(:applied )))
-    (error (jsonrpc-reply server id
+             (jsonrpc-reply server :result `(:applied )))
+    (error (jsonrpc-reply server
                           :result `(:applied :json-false)
                           :error `(:code -32001 :message (format "%s" ,err))))))
 
@@ -1348,7 +1365,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
           (and (equal "Indexing" what) done)))))
 
 (cl-defmethod eglot-handle-notification
-  ((server eglot-rls) (_method (eql :window/progress))
+  ((server eglot-rls) (_method (eql window/progress))
    &key id done title message &allow-other-keys)
   "Handle notification window/progress"
   (setf (eglot--spinner server) (list id title done message)))
@@ -1367,17 +1384,17 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
           :progressReportFrequencyMs -1)))
 
 (cl-defmethod eglot-handle-notification
-  ((_server eglot-cquery) (_method (eql :$cquery/progress))
+  ((_server eglot-cquery) (_method (eql $cquery/progress))
    &rest counts &key _activeThreads &allow-other-keys)
   "No-op for noisy $cquery/progress extension")
 
 (cl-defmethod eglot-handle-notification
-  ((_server eglot-cquery) (_method (eql :$cquery/setInactiveRegions))
+  ((_server eglot-cquery) (_method (eql $cquery/setInactiveRegions))
    &key _uri _inactiveRegions &allow-other-keys)
   "No-op for unsupported $cquery/setInactiveRegions extension")
 
 (cl-defmethod eglot-handle-notification
-  ((_server eglot-cquery) (_method (eql :$cquery/publishSemanticHighlighting))
+  ((_server eglot-cquery) (_method (eql $cquery/publishSemanticHighlighting))
    &key _uri _symbols &allow-other-keys)
   "No-op for unsupported $cquery/publishSemanticHighlighting extension")
 
