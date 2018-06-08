@@ -203,11 +203,6 @@ lasted more than that many seconds."
 (defvar eglot--servers-by-project (make-hash-table :test #'equal)
   "Keys are projects.  Values are lists of processes.")
 
-;; HACK: Do something to fix this in the jsonrpc API or here, but in
-;; the meantime concentrate the hack here.
-(defalias 'eglot--process 'jsonrpc--process
-  "An abuse of `jsonrpc--process', a jsonrpc.el internal.")
-
 (defun eglot-shutdown (server &optional _interactive)
   "Politely ask SERVER to quit.
 Forcefully quit it if it doesn't respond.  Don't leave this
@@ -218,16 +213,15 @@ function with the server still running."
       (progn
         (setf (eglot--shutdown-requested server) t)
         (jsonrpc-request server :shutdown nil :timeout 3)
-        ;; this one is supposed to always fail, hence ignore-errors
+        ;; this one is supposed to always fail, because it asks the
+        ;; server to exit itself. Hence ignore-errors.
         (ignore-errors (jsonrpc-request server :exit nil :timeout 1)))
     ;; Turn off `eglot--managed-mode' where appropriate.
     (dolist (buffer (eglot--managed-buffers server))
       (with-current-buffer buffer (eglot--managed-mode-onoff server -1)))
-    (while (progn (accept-process-output nil 0.1)
-                  (not (eq (eglot--shutdown-requested server) :sentinel-done)))
-      (eglot--warn "Sentinel for %s still hasn't run, brutally deleting it!"
-                   (eglot--process server))
-      (delete-process (eglot--process server)))))
+    ;; Now ask jsonrpc.el to shutdown server (which in normal
+    ;; conditions should return immediately).
+    (jsonrpc-shutdown server)))
 
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
@@ -243,7 +237,7 @@ function with the server still running."
         (delq server
               (gethash (eglot--project server) eglot--servers-by-project)))
   (cond ((eglot--shutdown-requested server)
-         (setf (eglot--shutdown-requested server) :sentinel-done))
+         t)
         ((not (eglot--inhibit-autoreconnect server))
          (eglot--warn "Reconnecting after unexpected server exit.")
          (eglot-reconnect server))
@@ -337,8 +331,7 @@ INTERACTIVE is t if called interactively."
   (let* ((nickname (file-name-base (directory-file-name
                                     (car (project-roots project)))))
          (current-server (jsonrpc-current-connection))
-         (live-p (and current-server
-                      (process-live-p (eglot--process current-server)))))
+         (live-p (and current-server (jsonrpc-running-p current-server))))
     (if (and live-p
              interactive
              (y-or-n-p "[eglot] Live process found, reconnect instead? "))
@@ -360,7 +353,7 @@ managing `%s' buffers in project `%s'."
   "Reconnect to SERVER.
 INTERACTIVE is t if called interactively."
   (interactive (list (jsonrpc-current-connection-or-lose) t))
-  (when (process-live-p (eglot--process server))
+  (when (jsonrpc-running-p server)
     (ignore-errors (eglot-shutdown server interactive)))
   (eglot--connect (eglot--project server)
                   (eglot--major-mode server)
@@ -421,9 +414,7 @@ appeases checkdoc, that's all."
             (jsonrpc-request
              server
              :initialize
-             (list :processId (unless (eq (process-type
-                                           (eglot--process server))
-                                          'network)
+             (list :processId (unless (eq (jsonrpc-process-type server) 'network)
                                 (emacs-pid))
                    :rootPath  (expand-file-name
                                (car (project-roots project)))
@@ -446,7 +437,7 @@ appeases checkdoc, that's all."
                                     (setf (eglot--inhibit-autoreconnect server)
                                           (null eglot-autoreconnect)))))))
           (setq success server))
-      (unless (or success (not (process-live-p (eglot--process server))))
+      (when (and (not success) (jsonrpc-running-p server))
         (eglot-shutdown server)))))
 
 
