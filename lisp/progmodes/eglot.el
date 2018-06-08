@@ -596,6 +596,9 @@ If optional MARKERS, make markers."
     (cl-find major-mode (gethash probe eglot--servers-by-project)
              :key #'eglot--major-mode)))
 
+(defvar-local eglot--unreported-diagnostics nil
+  "Unreported Flymake diagnostics for this buffer.")
+
 (defun eglot--maybe-activate-editing-mode (&optional server)
   "Maybe activate mode function `eglot--managed-mode'.
 If SERVER is supplied, do it only if BUFFER is managed by it.  In
@@ -604,6 +607,7 @@ that case, also signal textDocument/didOpen."
   (let* ((cur (and buffer-file-name (eglot--find-current-server)))
          (server (or (and (null server) cur) (and server (eq server cur) cur))))
     (when server
+      (setq eglot--unreported-diagnostics `(:just-opened . nil))
       (eglot--managed-mode-onoff server 1)
       (eglot--signal-textDocument/didOpen))))
 
@@ -729,9 +733,6 @@ Uses THING, FACE, DEFS and PREPEND."
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql telemetry/event)) &rest _any)
   "Handle notification telemetry/event") ;; noop, use events buffer
-
-(defvar-local eglot--unreported-diagnostics nil
-  "Unreported diagnostics for this buffer.")
 
 (cl-defmethod eglot-handle-notification
   (server (_method (eql textDocument/publishDiagnostics)) &key uri diagnostics)
