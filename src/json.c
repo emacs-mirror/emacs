@@ -325,14 +325,28 @@ json_check_utf8 (Lisp_Object string)
   CHECK_TYPE (utf8_string_p (string), Qutf_8_string_p, string);
 }
 
-static json_t *lisp_to_json (Lisp_Object);
+enum json_object_type {
+  json_object_hashtable,
+  json_object_alist,
+  json_object_plist
+};
+
+struct json_configuration {
+  enum json_object_type object_type;
+  Lisp_Object null_object;
+  Lisp_Object false_object;
+};
+
+static json_t *lisp_to_json (Lisp_Object, struct json_configuration *conf);
 
 /* Convert a Lisp object to a toplevel JSON object (array or object).
    This returns Lisp_Object so we can use unbind_to.  The return value
    is always nil.  */
 
 static _GL_ARG_NONNULL ((2)) Lisp_Object
-lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
+lisp_to_json_toplevel_1 (Lisp_Object lisp,
+                         json_t **json,
+                         struct json_configuration *conf)
 {
   if (VECTORP (lisp))
     {
@@ -343,7 +357,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
       for (ptrdiff_t i = 0; i < size; ++i)
         {
           int status
-            = json_array_append_new (*json, lisp_to_json (AREF (lisp, i)));
+            = json_array_append_new (*json, lisp_to_json (AREF (lisp, i),
+                                                          conf));
           if (status == -1)
             json_out_of_memory ();
         }
@@ -370,7 +385,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
             if (json_object_get (*json, key_str) != NULL)
               wrong_type_argument (Qjson_value_p, lisp);
             int status = json_object_set_new (*json, key_str,
-                                              lisp_to_json (HASH_VALUE (h, i)));
+                                              lisp_to_json (HASH_VALUE (h, i),
+                                                            conf));
             if (status == -1)
               {
                 /* A failure can be caused either by an invalid key or
@@ -430,7 +446,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
           if (json_object_get (*json, key_str) == NULL)
             {
               int status
-                = json_object_set_new (*json, key_str, lisp_to_json (value));
+                = json_object_set_new (*json, key_str, lisp_to_json (value,
+                                                                     conf));
               if (status == -1)
                 json_out_of_memory ();
             }
@@ -447,12 +464,12 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp, json_t **json)
    hashtable, alist, or plist.  */
 
 static json_t *
-lisp_to_json_toplevel (Lisp_Object lisp)
+lisp_to_json_toplevel (Lisp_Object lisp, struct json_configuration *conf)
 {
   if (++lisp_eval_depth > max_lisp_eval_depth)
     xsignal0 (Qjson_object_too_deep);
   json_t *json;
-  lisp_to_json_toplevel_1 (lisp, &json);
+  lisp_to_json_toplevel_1 (lisp, &json, conf);
   --lisp_eval_depth;
   return json;
 }
@@ -462,11 +479,11 @@ lisp_to_json_toplevel (Lisp_Object lisp)
    JSON object.  */
 
 static json_t *
-lisp_to_json (Lisp_Object lisp)
+lisp_to_json (Lisp_Object lisp, struct json_configuration *conf)
 {
-  if (EQ (lisp, QCnull))
+  if (EQ (lisp, conf->null_object))
     return json_check (json_null ());
-  else if (EQ (lisp, QCfalse))
+  else if (EQ (lisp, conf->false_object))
     return json_check (json_false ());
   else if (EQ (lisp, Qt))
     return json_check (json_true ());
@@ -492,21 +509,77 @@ lisp_to_json (Lisp_Object lisp)
     }
 
   /* LISP now must be a vector, hashtable, alist, or plist.  */
-  return lisp_to_json_toplevel (lisp);
+  return lisp_to_json_toplevel (lisp, conf);
 }
 
-DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, 1, NULL,
+static void
+json_parse_args (ptrdiff_t nargs,
+                 Lisp_Object *args,
+                 struct json_configuration *conf,
+                 bool configure_object_type)
+{
+  if ((nargs % 2) != 0)
+    wrong_type_argument (Qplistp, Flist (nargs, args));
+
+  /* Start from the back so first value is honoured. */
+  for (ptrdiff_t i = nargs; i > 0; i -= 2) {
+    Lisp_Object key = args[i - 2];
+    Lisp_Object value = args[i - 1];
+    if (configure_object_type && EQ (key, QCobject_type))
+      {
+        if (EQ (value, Qhash_table))
+          conf->object_type = json_object_hashtable;
+        else if (EQ (value, Qalist))
+          conf->object_type = json_object_alist;
+        else if (EQ (value, Qplist))
+          conf->object_type = json_object_plist;
+        else
+          wrong_choice (list3 (Qhash_table, Qalist, Qplist), value);
+      }
+    else if (EQ (key, QCnull_object))
+      conf->null_object = value;
+    else if (EQ (key, QCfalse_object))
+      conf->false_object = value;
+    else if (configure_object_type)
+      wrong_choice (list3 (QCobject_type,
+                           QCnull_object,
+                           QCfalse_object),
+                    value);
+    else
+      wrong_choice (list2 (QCnull_object,
+                           QCfalse_object),
+                    value);
+  }
+}
+
+DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, MANY,
+       NULL,
        doc: /* Return the JSON representation of OBJECT as a string.
+
 OBJECT must be a vector, hashtable, alist, or plist and its elements
-can recursively contain `:null', `:false', t, numbers, strings, or
-other vectors hashtables, alists or plists.  `:null', `:false', and t
-will be converted to JSON null, false, and true values, respectively.
-Vectors will be converted to JSON arrays, whereas hashtables, alists
-and plists are converted to JSON objects.  Hashtable keys must be
-strings without embedded null characters and must be unique within
-each object.  Alist and plist keys must be symbols; if a key is
-duplicate, the first instance is used.  */)
-  (Lisp_Object object)
+can recursively contain the lisp equivalents to the JSON null and
+false values, t, numbers, strings, or other vectors hashtables, alists
+or plists.  t will be converted to the JSON true value.  Vectors will
+be converted to JSON arrays, whereas hashtables, alists and plists are
+converted to JSON objects.  Hashtable keys must be strings without
+embedded null characters and must be unique within each object.  Alist
+and plist keys must be symbols; if a key is duplicate, the first
+instance is used.
+
+The lisp equivalents to the JSON null and false values are
+configurable in the arguments ARGS, a list of keyword/argument pairs:
+
+The keyword argument `:null-object' specifies which object to use
+to represent a JSON null value.  It defaults to `:null'.
+
+The keyword argument `:false-object' specifies which object to use to
+represent a JSON false value.  It defaults to `:false'.
+
+Note that ambiguity can arise if you specify the same value for
+`:null-object' and `:false-object', and so this function's behaviour
+is unspecified
+*/)
+     (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -525,7 +598,10 @@ duplicate, the first instance is used.  */)
     }
 #endif
 
-  json_t *json = lisp_to_json_toplevel (object);
+  struct json_configuration conf = {json_object_hashtable, QCnull, QCfalse};
+  json_parse_args (nargs - 1, args + 1, &conf, false);
+
+  json_t *json = lisp_to_json_toplevel (args[0], &conf);
   record_unwind_protect_ptr (json_release_object, json);
 
   /* If desired, we might want to add the following flags:
@@ -581,12 +657,13 @@ json_insert_callback (const char *buffer, size_t size, void *data)
   return NILP (d->error) ? 0 : -1;
 }
 
-DEFUN ("json-insert", Fjson_insert, Sjson_insert, 1, 1, NULL,
+DEFUN ("json-insert", Fjson_insert, Sjson_insert, 1, MANY,
+       NULL,
        doc: /* Insert the JSON representation of OBJECT before point.
 This is the same as (insert (json-serialize OBJECT)), but potentially
 faster.  See the function `json-serialize' for allowed values of
 OBJECT.  */)
-  (Lisp_Object object)
+     (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -605,7 +682,10 @@ OBJECT.  */)
     }
 #endif
 
-  json_t *json = lisp_to_json (object);
+  struct json_configuration conf = {json_object_hashtable, QCnull, QCfalse};
+  json_parse_args (nargs - 1, args + 1, &conf, false);
+
+  json_t *json = lisp_to_json (args[0], &conf);
   record_unwind_protect_ptr (json_release_object, json);
 
   struct json_insert_data data;
@@ -623,18 +703,6 @@ OBJECT.  */)
 
   return unbind_to (count, Qnil);
 }
-
-enum json_object_type {
-  json_object_hashtable,
-  json_object_alist,
-  json_object_plist
-};
-
-struct json_configuration {
-  enum json_object_type object_type;
-  Lisp_Object null_object;
-  Lisp_Object false_object;
-};
 
 /* Convert a JSON object to a Lisp object.  */
 
@@ -755,41 +823,6 @@ json_to_lisp (json_t *json, struct json_configuration *conf)
   emacs_abort ();
 }
 
-static void
-json_parse_args (ptrdiff_t nargs,
-                 Lisp_Object *args,
-                 struct json_configuration *conf)
-{
-  if ((nargs % 2) != 0)
-    wrong_type_argument (Qplistp, Flist (nargs, args));
-
-  /* Start from the back so first value is honoured. */
-  for (ptrdiff_t i = nargs; i > 0; i -= 2) {
-    Lisp_Object key = args[i - 2];
-    Lisp_Object value = args[i - 1];
-    if (EQ (key, QCobject_type))
-      {
-        if (EQ (value, Qhash_table))
-          conf->object_type = json_object_hashtable;
-        else if (EQ (value, Qalist))
-          conf->object_type = json_object_alist;
-        else if (EQ (value, Qplist))
-          conf->object_type = json_object_plist;
-        else
-          wrong_choice (list3 (Qhash_table, Qalist, Qplist), value);
-      }
-    else if (EQ (key, QCnull_object))
-      conf->null_object = value;
-    else if (EQ (key, QCfalse_object))
-      conf->false_object = value;
-    else
-      wrong_choice (list3 (QCobject_type,
-                           QCnull_object,
-                           QCfalse_object),
-                    value);
-  }
-}
-
 DEFUN ("json-parse-string", Fjson_parse_string, Sjson_parse_string, 1, MANY,
        NULL,
        doc: /* Parse the JSON STRING into a Lisp object.
@@ -810,10 +843,8 @@ The keyword argument `:null-object' specifies which object to use
 to represent a JSON null value.  It defaults to `:null'.
 
 The keyword argument `:false-object' specifies which object to use to
-represent a JSON false value.  It defaults to `:false'.
-
-usage: (json-parse-string STRING &rest args) */)
-     (ptrdiff_t nargs, Lisp_Object *args)
+represent a JSON false value.  It defaults to `:false'. */)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
 
@@ -836,7 +867,7 @@ usage: (json-parse-string STRING &rest args) */)
   Lisp_Object encoded = json_encode (string);
   check_string_without_embedded_nulls (encoded);
   struct json_configuration conf = {json_object_hashtable, QCnull, QCfalse};
-  json_parse_args (nargs - 1, args + 1, &conf);
+  json_parse_args (nargs - 1, args + 1, &conf, true);
 
   json_error_t error;
   json_t *object = json_loads (SSDATA (encoded), 0, &error);
@@ -884,8 +915,7 @@ DEFUN ("json-parse-buffer", Fjson_parse_buffer, Sjson_parse_buffer,
        doc: /* Read JSON object from current buffer starting at point.
 This is similar to `json-parse-string', which see.  Move point after
 the end of the object if parsing was successful.  On error, point is
-not moved.
-usage: (json-parse-buffer &rest args)  */)
+not moved.  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -906,7 +936,7 @@ usage: (json-parse-buffer &rest args)  */)
 #endif
 
   struct json_configuration conf = {json_object_hashtable, QCnull, QCfalse};
-  json_parse_args (nargs, args, &conf);
+  json_parse_args (nargs, args, &conf, true);
 
   ptrdiff_t point = PT_BYTE;
   struct json_read_buffer_data data = {.point = point};

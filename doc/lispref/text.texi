@@ -5063,20 +5063,34 @@ JSON.  The subobjects within these top-level values can be of any
 type.  Likewise, the parsing functions will only return vectors,
 hashtables, alists, and plists.
 
-@defun json-serialize object
+@defun json-serialize object &rest args
 This function returns a new Lisp string which contains the JSON
-representation of @var{object}.
+representation of @var{object}.  The arguments @var{args} are a list
+of keyword/argument pairs.  The following keywords are accepted:
+
+@itemize
+
+@item @code{:null-object}
+The value decides which Lisp object use to represent the JSON keyword
+@code{null}.  It defaults to the lisp symbol @code{:null}.
+
+@item @code{:false-object}
+The value decides which Lisp object use to represent the JSON keyword
+@code{false}.  It defaults to the lisp symbol @code{:false}.
 @end defun
 
-@defun json-insert object
+@end itemize
+
+@defun json-insert object &rest args
 This function inserts the JSON representation of @var{object} into the
-current buffer before point.
+current buffer before point.  @var{args} is interpreted as in
+@code{json-parse-string}.
 @end defun
 
 @defun json-parse-string string &rest args
 This function parses the JSON value in @var{string}, which must be a
 Lisp string.  The arguments @var{args} are a list of keyword/argument
-pairs. The following keywords are accepted:
+pairs.  The following keywords are accepted:
 
 @itemize
 
