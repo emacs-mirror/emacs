@@ -1610,6 +1610,18 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
 
 ;;; Dynamic registration
 ;;;
+(defun eglot--wildcard-to-regexp (wildcard)
+  "(Very lame attempt to) convert WILDCARD to a Elisp regexp."
+  (cl-loop
+   with substs = '(("{" . "\\\\(")
+                   ("}" . "\\\\)")
+                   ("," . "\\\\|"))
+   with string = (wildcard-to-regexp wildcard)
+   for (pattern . rep) in substs
+   for target = string then result
+   for result = (replace-regexp-in-string pattern rep target)
+   finally return result))
+
 (cl-defun eglot--register-workspace/didChangeWatchedFiles (server &key id watchers)
   "Handle dynamic registration of workspace/didChangeWatchedFiles"
   (eglot--unregister-workspace/didChangeWatchedFiles server :id id)
@@ -1623,7 +1635,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
              ((and (memq action '(created changed deleted))
                    (cl-find file globs
                             :test (lambda (f glob)
-                                    (string-match (wildcard-to-regexp
+                                    (string-match (eglot--wildcard-to-regexp
                                                    (expand-file-name glob))
                                                   f))))
               (eglot--notify
