@@ -696,13 +696,13 @@ happens, the original timer keeps counting). Return (ID TIMER)."
     (puthash id (list
                  (or success-fn
                      (eglot--lambda (&rest _ignored)
-                                    (eglot--debug
-                                     server `(:message "success ignored" :id ,id))))
+                       (eglot--debug
+                        server `(:message "success ignored" :id ,id))))
                  (or error-fn
                      (eglot--lambda (&key code message &allow-other-keys)
-                                    (setf (eglot--status server) `(,message t))
-                                    server `(:message "error ignored, status set"
-                                                      :id ,id :error ,code)))
+                       (setf (eglot--status server) `(,message t))
+                       server `(:message "error ignored, status set"
+                                         :id ,id :error ,code)))
                  (or timer (funcall make-timer)))
              (eglot--pending-continuations server))
     (list id timer)))
@@ -726,8 +726,8 @@ DEFERRED is passed to `eglot--async-request', which see."
                   :success-fn (lambda (result) (throw done `(done ,result)))
                   :timeout-fn (lambda () (throw done '(error "Timed out")))
                   :error-fn (eglot--lambda (&key code message _data)
-                                           (throw done `(error
-                                                         ,(format "Ooops: %s: %s" code message))))
+                              (throw done `(error
+                                            ,(format "Ooops: %s: %s" code message))))
                   :deferred deferred))
                 (while t (accept-process-output nil 30)))
             (pcase-let ((`(,id ,timer) id-and-timer))
@@ -1286,15 +1286,15 @@ DUMMY is ignored."
          (setq eglot--xref-known-symbols
                (mapcar
                 (eglot--lambda (&key name kind location containerName)
-                               (propertize name
-                                           :textDocumentPositionParams
-                                           (list :textDocument text-id
-                                                 :position (plist-get
-                                                            (plist-get location :range)
-                                                            :start))
-                                           :locations (list location)
-                                           :kind kind
-                                           :containerName containerName))
+                  (propertize name
+                              :textDocumentPositionParams
+                              (list :textDocument text-id
+                                    :position (plist-get
+                                               (plist-get location :range)
+                                               :start))
+                              :locations (list location)
+                              :kind kind
+                              :containerName containerName))
                 (eglot--request
                  server :textDocument/documentSymbol `(:textDocument ,text-id))))
          (all-completions string eglot--xref-known-symbols))))))
@@ -1316,7 +1316,7 @@ DUMMY is ignored."
                             (get-text-property
                              0 :textDocumentPositionParams identifier)))))
     (mapcar (eglot--lambda (&key uri range)
-                           (eglot--xref-make identifier uri (plist-get range :start)))
+              (eglot--xref-make identifier uri (plist-get range :start)))
             location-or-locations)))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
@@ -1329,7 +1329,7 @@ DUMMY is ignored."
     (unless params
       (eglot--error "Don' know where %s is in the workspace!" identifier))
     (mapcar (eglot--lambda (&key uri range)
-                           (eglot--xref-make identifier uri (plist-get range :start)))
+              (eglot--xref-make identifier uri (plist-get range :start)))
             (eglot--request (eglot--current-server-or-lose)
                             :textDocument/references
                             (append
@@ -1339,8 +1339,8 @@ DUMMY is ignored."
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
     (mapcar (eglot--lambda (&key name location &allow-other-keys)
-                           (cl-destructuring-bind (&key uri range) location
-                             (eglot--xref-make name uri (plist-get range :start))))
+              (cl-destructuring-bind (&key uri range) location
+                (eglot--xref-make name uri (plist-get range :start))))
             (eglot--request (eglot--current-server-or-lose)
                             :workspace/symbol
                             (list :query pattern)))))
@@ -1362,10 +1362,10 @@ DUMMY is ignored."
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (mapcar
              (eglot--lambda (&rest all &key label insertText &allow-other-keys)
-                            (let ((insert (or insertText label)))
-                              (add-text-properties 0 1 all insert)
-                              (put-text-property 0 1 'eglot--lsp-completion all insert)
-                              insert))
+               (let ((insert (or insertText label)))
+                 (add-text-properties 0 1 all insert)
+                 (put-text-property 0 1 'eglot--lsp-completion all insert)
+                 insert))
              items))))
        :annotation-function
        (lambda (obj)
@@ -1459,20 +1459,20 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          server :textDocument/signatureHelp position-params
          :success-fn (eglot--lambda (&key signatures activeSignature
                                           activeParameter)
-                                    (when-buffer-window
-                                     (when (cl-plusp (length signatures))
-                                       (setq sig-showing t)
-                                       (eldoc-message (eglot--sig-info signatures
-                                                                       activeSignature
-                                                                       activeParameter)))))
+                       (when-buffer-window
+                        (when (cl-plusp (length signatures))
+                          (setq sig-showing t)
+                          (eldoc-message (eglot--sig-info signatures
+                                                          activeSignature
+                                                          activeParameter)))))
          :deferred :textDocument/signatureHelp))
       (when (eglot--server-capable :hoverProvider)
         (eglot--async-request
          server :textDocument/hover position-params
          :success-fn (eglot--lambda (&key contents range)
-                                    (unless sig-showing
-                                      (when-buffer-window
-                                       (eldoc-message (eglot--hover-info contents range)))))
+                       (unless sig-showing
+                         (when-buffer-window
+                          (eldoc-message (eglot--hover-info contents range)))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
         (eglot--async-request
@@ -1482,12 +1482,12 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (setq eglot--highlights
                              (when-buffer-window
                               (mapcar (eglot--lambda (&key range _kind _role)
-                                                     (pcase-let ((`(,beg . ,end)
-                                                                  (eglot--range-region range)))
-                                                       (let ((ov (make-overlay beg end)))
-                                                         (overlay-put ov 'face 'highlight)
-                                                         (overlay-put ov 'evaporate t)
-                                                         ov)))
+                                        (pcase-let ((`(,beg . ,end)
+                                                     (eglot--range-region range)))
+                                          (let ((ov (make-overlay beg end)))
+                                            (overlay-put ov 'face 'highlight)
+                                            (overlay-put ov 'evaporate t)
+                                            ov)))
                                       highlights))))
          :deferred :textDocument/documentHighlight))))
   nil)
@@ -1498,9 +1498,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
       (let ((entries
              (mapcar
               (eglot--lambda (&key name kind location _containerName)
-                             (cons (propertize name :kind (cdr (assoc kind eglot--kind-names)))
-                                   (eglot--lsp-position-to-point
-                                    (plist-get (plist-get location :range) :start))))
+                (cons (propertize name :kind (cdr (assoc kind eglot--kind-names)))
+                      (eglot--lsp-position-to-point
+                       (plist-get (plist-get location :range) :start))))
               (eglot--request (eglot--current-server-or-lose)
                               :textDocument/documentSymbol
                               `(:textDocument ,(eglot--TextDocumentIdentifier))))))
@@ -1519,7 +1519,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
    (mapc (pcase-lambda (`(,newText ,beg . ,end))
            (goto-char beg) (delete-region beg end) (insert newText))
          (mapcar (eglot--lambda (&key range newText)
-                                (cons newText (eglot--range-region range 'markers)))
+                   (cons newText (eglot--range-region range 'markers)))
                  edits)))
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
@@ -1528,8 +1528,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (cl-destructuring-bind (&key changes documentChanges) wedit
     (let ((prepared
            (mapcar (eglot--lambda (&key textDocument edits)
-                                  (cl-destructuring-bind (&key uri version) textDocument
-                                    (list (eglot--uri-to-path uri) edits version)))
+                     (cl-destructuring-bind (&key uri version) textDocument
+                       (list (eglot--uri-to-path uri) edits version)))
                    documentChanges)))
       (cl-loop for (uri edits) on changes by #'cddr
                do (push (list (eglot--uri-to-path uri) edits) prepared))
@@ -1589,7 +1589,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                                                     (eglot--diag-data diag))))
                                       (flymake-diagnostics beg end))]))))
          (menu-items (mapcar (eglot--lambda (&key title command arguments)
-                                            `(,title . (:command ,command :arguments ,arguments)))
+                               `(,title . (:command ,command :arguments ,arguments)))
                              actions))
          (menu (and menu-items `("Eglot code actions:" ("dummy" ,@menu-items))))
          (command-and-args
