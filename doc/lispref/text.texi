@@ -5065,21 +5065,22 @@ hashtables, alists, and plists.
 
 @defun json-serialize object &rest args
 This function returns a new Lisp string which contains the JSON
-representation of @var{object}.  The arguments @var{args} are a list
-of keyword/argument pairs.  The following keywords are accepted:
+representation of @var{object}.  The argument @var{args} is a list of
+keyword/argument pairs.  The following keywords are accepted:
 
-@itemize
+@table @code
 
-@item @code{:null-object}
-The value decides which Lisp object use to represent the JSON keyword
-@code{null}.  It defaults to the lisp symbol @code{:null}.
+@item :null-object
+The value decides which Lisp object to use to represent the JSON
+keyword @code{null}.  It defaults to the symbol @code{:null}.
 
-@item @code{:false-object}
-The value decides which Lisp object use to represent the JSON keyword
-@code{false}.  It defaults to the lisp symbol @code{:false}.
+@item :false-object
+The value decides which Lisp object to use to represent the JSON
+keyword @code{false}.  It defaults to the symbol @code{:false}.
+
+@end table
+
 @end defun
-
-@end itemize
 
 @defun json-insert object &rest args
 This function inserts the JSON representation of @var{object} into the
@@ -5089,27 +5090,27 @@ current buffer before point.  @var{args} is interpreted as in
 
 @defun json-parse-string string &rest args
 This function parses the JSON value in @var{string}, which must be a
-Lisp string.  The arguments @var{args} are a list of keyword/argument
+Lisp string.  The argument @var{args} is a list of keyword/argument
 pairs.  The following keywords are accepted:
 
-@itemize
+@table @code
 
-@item @code{:object-type}
-The value decides which Lisp object to use for representing the key-value
-mappings of a JSON object.  It can be either @code{hash-table}, the
-default, to make hashtables with strings as keys, @code{alist} to use
-alists with symbols as keys or @code{plist} to use plists with keyword
-symbols as keys.
+@item :object-type
+The value decides which Lisp object to use for representing the
+key-value mappings of a JSON object.  It can be either
+@code{hash-table}, the default, to make hashtables with strings as
+keys; @code{alist} to use alists with symbols as keys; or @code{plist}
+to use plists with keyword symbols as keys.
 
-@item @code{:null-object}
-The value decides which Lisp object use to represent the JSON keyword
-@code{null}.  It defaults to the lisp symbol @code{:null}.
+@item :null-object
+The value decides which Lisp object to use to represent the JSON
+keyword @code{null}.  It defaults to the symbol @code{:null}.
 
-@item @code{:false-object}
-The value decides which Lisp object use to represent the JSON keyword
-@code{false}.  It defaults to the lisp symbol @code{:false}.
+@item :false-object
+The value decides which Lisp object to use to represent the JSON
+keyword @code{false}.  It defaults to the symbol @code{:false}.
 
-@end itemize
+@end table
 
 @end defun
 

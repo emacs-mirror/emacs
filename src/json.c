@@ -557,7 +557,7 @@ DEFUN ("json-serialize", Fjson_serialize, Sjson_serialize, 1, MANY,
        doc: /* Return the JSON representation of OBJECT as a string.
 
 OBJECT must be a vector, hashtable, alist, or plist and its elements
-can recursively contain the lisp equivalents to the JSON null and
+can recursively contain the Lisp equivalents to the JSON null and
 false values, t, numbers, strings, or other vectors hashtables, alists
 or plists.  t will be converted to the JSON true value.  Vectors will
 be converted to JSON arrays, whereas hashtables, alists and plists are
@@ -566,7 +566,7 @@ embedded null characters and must be unique within each object.  Alist
 and plist keys must be symbols; if a key is duplicate, the first
 instance is used.
 
-The lisp equivalents to the JSON null and false values are
+The Lisp equivalents to the JSON null and false values are
 configurable in the arguments ARGS, a list of keyword/argument pairs:
 
 The keyword argument `:null-object' specifies which object to use
@@ -575,10 +575,10 @@ to represent a JSON null value.  It defaults to `:null'.
 The keyword argument `:false-object' specifies which object to use to
 represent a JSON false value.  It defaults to `:false'.
 
-Note that ambiguity can arise if you specify the same value for
-`:null-object' and `:false-object', and so this function's behaviour
-is unspecified
-*/)
+In you specify the same value for `:null-object' and `:false-object',
+a potentially ambiguous situation, the JSON output will not contain
+any JSON false values.
+usage: (json-serialize STRING &rest ARGS) */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
@@ -843,7 +843,8 @@ The keyword argument `:null-object' specifies which object to use
 to represent a JSON null value.  It defaults to `:null'.
 
 The keyword argument `:false-object' specifies which object to use to
-represent a JSON false value.  It defaults to `:false'. */)
+represent a JSON false value.  It defaults to `:false'.
+usage: (json-parse-string STRING &rest ARGS) */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t count = SPECPDL_INDEX ();
