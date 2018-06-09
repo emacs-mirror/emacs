@@ -707,24 +707,18 @@ Uses THING, FACE, DEFS and PREPEND."
                   type message))
 
 (cl-defmethod eglot-handle-request
-  (server (_method (eql window/showMessageRequest)) &key type message actions)
+  (_server (_method (eql window/showMessageRequest)) &key type message actions)
   "Handle server request window/showMessageRequest"
-  (let (reply)
-    (unwind-protect
-        (setq reply
-              (completing-read
-               (concat
-                (format (propertize "[eglot] Server reports (type=%s): %s"
-                                    'face (if (<= type 1) 'error))
-                        type message)
-                "\nChoose an option: ")
-               (or (mapcar (lambda (obj) (plist-get obj :title)) actions)
-                   '("OK"))
-               nil t (plist-get (elt actions 0) :title)))
-      (if reply
-          (jsonrpc-reply server :result `(:title ,reply))
-        (jsonrpc-reply server
-                       :error `(:code -32800 :message "User cancelled"))))))
+  (or (completing-read
+       (concat
+        (format (propertize "[eglot] Server reports (type=%s): %s"
+                            'face (if (<= type 1) 'error))
+                type message)
+        "\nChoose an option: ")
+       (or (mapcar (lambda (obj) (plist-get obj :title)) actions)
+           '("OK"))
+       nil t (plist-get (elt actions 0) :title))
+      (jsonrpc-error :code -32800 :message "User cancelled")))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql window/logMessage)) &key _type _message)
@@ -762,18 +756,13 @@ Uses THING, FACE, DEFS and PREPEND."
 (cl-defun eglot--register-unregister (server things how)
   "Helper for `registerCapability'.
 THINGS are either registrations or unregisterations."
-  (dolist (thing (cl-coerce things 'list))
-    (cl-destructuring-bind (&key id method registerOptions) thing
-      (let (retval)
-        (unwind-protect
-            (setq retval (apply (intern (format "eglot--%s-%s" how method))
-                                server :id id registerOptions))
-          (unless (eq t (car retval))
-            (cl-return-from eglot--register-unregister
-              (jsonrpc-reply
-               server
-               :error `(:code -32601 :message ,(or (cadr retval) "sorry")))))))))
-  (jsonrpc-reply server :result `(:message "OK")))
+  (cl-loop
+   for thing in (cl-coerce things 'list)
+   collect (cl-destructuring-bind (&key id method registerOptions) thing
+             (apply (intern (format "eglot--%s-%s" how method))
+                    server :id id registerOptions))
+   into results
+   finally return `(:ok ,@results)))
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql client/registerCapability)) &key registrations)
@@ -787,14 +776,9 @@ THINGS are either registrations or unregisterations."
   (eglot--register-unregister server unregisterations 'unregister))
 
 (cl-defmethod eglot-handle-request
-  (server (_method (eql workspace/applyEdit)) &key _label edit)
+  (_server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit"
-  (condition-case err
-      (progn (eglot--apply-workspace-edit edit 'confirm)
-             (jsonrpc-reply server :result `(:applied )))
-    (error (jsonrpc-reply server
-                          :result `(:applied :json-false)
-                          :error `(:code -32001 :message (format "%s" ,err))))))
+  (eglot--apply-workspace-edit edit 'confirm))
 
 (defun eglot--TextDocumentIdentifier ()
   "Compute TextDocumentIdentifier object for current buffer."
@@ -1206,8 +1190,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
 (defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."
   (unless (or (not version) (equal version eglot--versioned-identifier))
-    (eglot--error "Edits on `%s' require version %d, you have %d"
-                  (current-buffer) version eglot--versioned-identifier))
+    (jsonrpc-error "Edits on `%s' require version %d, we have %d"
+                   (current-buffer) version eglot--versioned-identifier))
   (eglot--widening
    (mapc (pcase-lambda (`(,newText ,beg . ,end))
            (goto-char beg) (delete-region beg end) (insert newText))
@@ -1223,7 +1207,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
            (mapcar (jsonrpc-lambda (&key textDocument edits)
                      (cl-destructuring-bind (&key uri version) textDocument
                        (list (eglot--uri-to-path uri) edits version)))
-                   documentChanges)))
+                   documentChanges))
+          edit)
       (cl-loop for (uri edits) on changes by #'cddr
                do (push (list (eglot--uri-to-path uri) edits) prepared))
       (if (or confirm
@@ -1233,16 +1218,17 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                    (format "[eglot] Server wants to edit:\n  %s\n Proceed? "
                            (mapconcat #'identity (mapcar #'car prepared) "\n  ")))
             (eglot--error "User cancelled server edit")))
+      (while (setq edit (car prepared))
+        (cl-destructuring-bind (path edits &optional version) edit
+          (with-current-buffer (find-file-noselect path)
+            (eglot--apply-text-edits edits version))
+          (pop prepared))
+        t)
       (unwind-protect
-          (let (edit) (while (setq edit (car prepared))
-                        (cl-destructuring-bind (path edits &optional version) edit
-                          (with-current-buffer (find-file-noselect path)
-                            (eglot--apply-text-edits edits version))
-                          (pop prepared))))
-        (if prepared (eglot--warn "Caution: edits of files %s failed."
-                                  (mapcar #'car prepared))
-          (eglot-eldoc-function)
-          (eglot--message "Edit successful!"))))))
+          (if prepared (eglot--warn "Caution: edits of files %s failed."
+                                    (mapcar #'car prepared))
+            (eglot-eldoc-function)
+            (eglot--message "Edit successful!"))))))
 
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
@@ -1345,7 +1331,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
           (progn (dolist (dir (delete-dups (mapcar #'file-name-directory globs)))
                    (push (file-notify-add-watch dir '(change) #'handle-event)
                          (gethash id (eglot--file-watches server))))
-                 (setq success `(t "OK")))
+                 (setq
+                  success
+                  `(:message ,(format "OK, watching %s watchers"
+                                      (length watchers)))))
         (unless success
           (eglot--unregister-workspace/didChangeWatchedFiles server :id id))))))
 
