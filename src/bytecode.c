@@ -739,8 +739,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	  NEXT;
 
 	CASE (Bsave_excursion):
-	  record_unwind_protect (save_excursion_restore,
-				 save_excursion_save ());
+	  record_unwind_protect_excursion ();
 	  NEXT;
 
 	CASE (Bsave_current_buffer): /* Obsolete since ??.  */

@@ -2014,17 +2014,47 @@ think it does, because \"free\" is pretty hard to define in practice."
   :version "25.1"
   :type '(choice integer (const :tag "Never issue warning" nil)))
 
-(defun abort-if-file-too-large (size op-type filename)
+(declare-function x-popup-dialog "menu.c" (position contents &optional header))
+
+(defun files--ask-user-about-large-file (size op-type filename offer-raw)
+  (let ((prompt (format "File %s is large (%s), really %s?"
+		        (file-name-nondirectory filename)
+		        (file-size-human-readable size) op-type)))
+    (if (not offer-raw)
+        (if (y-or-n-p prompt) nil 'abort)
+      (let* ((use-dialog (and (display-popup-menus-p)
+                              last-input-event
+	                      (listp last-nonmenu-event)
+	                      use-dialog-box))
+             (choice
+              (if use-dialog
+                  (x-popup-dialog t `(,prompt
+                                      ("Yes" . ?y)
+                                      ("No" . ?n)
+                                      ("Open in raw mode" . ?r)))
+                (read-char-choice
+                 (concat prompt " (y)es or (n)o or (r)aw ")
+                 '(?y ?Y ?n ?N ?r ?R)))))
+        (cond ((memq choice '(?y ?Y)) nil)
+              ((memq choice '(?r ?R)) 'raw)
+              (t 'abort))))))
+
+(defun abort-if-file-too-large (size op-type filename &optional offer-raw)
   "If file SIZE larger than `large-file-warning-threshold', allow user to abort.
-OP-TYPE specifies the file operation being performed (for message to user)."
-  (when (and large-file-warning-threshold size
-	     (> size large-file-warning-threshold)
-             ;; No point in warning if we can't read it.
-             (file-readable-p filename)
-	     (not (y-or-n-p (format "File %s is large (%s), really %s? "
-				    (file-name-nondirectory filename)
-				    (file-size-human-readable size) op-type))))
-    (user-error "Aborted")))
+OP-TYPE specifies the file operation being performed (for message
+to user).  If OFFER-RAW is true, give user the additional option
+to open the file in raw mode. If the user chooses this option,
+`abort-if-file-too-large' returns the symbol `raw'. Otherwise, it
+returns nil or exits non-locally."
+  (let ((choice (and large-file-warning-threshold size
+	             (> size large-file-warning-threshold)
+                     ;; No point in warning if we can't read it.
+                     (file-readable-p filename)
+                     (files--ask-user-about-large-file
+                      size op-type filename offer-raw))))
+    (when (eq choice 'abort)
+      (user-error "Aborted"))
+    choice))
 
 (defun warn-maybe-out-of-memory (size)
   "Warn if an attempt to open file of SIZE bytes may run out of memory."
@@ -2104,7 +2134,10 @@ the various files."
 		  (setq buf other))))
 	;; Check to see if the file looks uncommonly large.
 	(when (not (or buf nowarn))
-	  (abort-if-file-too-large (nth 7 attributes) "open" filename)
+          (when (eq (abort-if-file-too-large
+                     (nth 7 attributes) "open" filename t)
+                    'raw)
+            (setf rawfile t))
 	  (warn-maybe-out-of-memory (nth 7 attributes)))
 	(if buf
 	    ;; We are using an existing buffer.

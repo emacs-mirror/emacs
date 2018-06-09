@@ -1131,16 +1131,19 @@ ftfont_open2 (struct frame *f,
 	  return Qnil;
 	}
     }
-  set_save_integer (val, 1, XSAVE_INTEGER (val, 1) + 1);
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
   if (FT_Set_Pixel_Sizes (ft_face, size, size) != 0)
     {
       if (XSAVE_INTEGER (val, 1) == 0)
-	FT_Done_Face (ft_face);
+	{
+	  FT_Done_Face (ft_face);
+	  cache_data->ft_face = NULL;
+	}
       return Qnil;
     }
+  set_save_integer (val, 1, XSAVE_INTEGER (val, 1) + 1);
 
   ASET (font_object, FONT_FILE_INDEX, filename);
   font = XFONT_OBJECT (font_object);

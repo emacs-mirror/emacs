@@ -587,8 +587,8 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
   if (face_id == DEFAULT_FACE_ID)
     {
       Lisp_Object face = fringe_faces[which];
-      face_id = NILP (face) ? lookup_named_face (f, Qfringe, false)
-	: lookup_derived_face (f, face, FRINGE_FACE_ID, 0);
+      face_id = NILP (face) ? lookup_named_face (w, f, Qfringe, false)
+	: lookup_derived_face (w, f, face, FRINGE_FACE_ID, 0);
       if (face_id < 0)
 	face_id = FRINGE_FACE_ID;
     }
@@ -1633,20 +1633,10 @@ If FACE is nil, reset face to default fringe face.  */)
   if (!n)
     error ("Undefined fringe bitmap");
 
-  /* The purpose of the following code is to signal an error if FACE
-     is not a face.  This is for the caller's convenience only; the
-     redisplay code should be able to fail gracefully.  Skip the check
-     if FRINGE_FACE_ID is unrealized (as in batch mode and during
-     daemon startup).  */
-  if (!NILP (face))
-    {
-      struct frame *f = SELECTED_FRAME ();
-
-      if (FACE_FROM_ID_OR_NULL (f, FRINGE_FACE_ID)
-	  && lookup_derived_face (f, face, FRINGE_FACE_ID, 1) < 0)
-	error ("No such face");
-    }
-
+  /* We used to check, as a convenience to callers, for basic face
+     validity here, but since validity can depend on the specific
+     _window_ in which this buffer is being displayed, defer the check
+     to redisplay, which can cope with bad face specifications.  */
   fringe_faces[n] = face;
   return Qnil;
 }

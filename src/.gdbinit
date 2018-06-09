@@ -1020,9 +1020,6 @@ define xpr
     if $misc == Lisp_Misc_Overlay
       xoverlay
     end
-#    if $misc == Lisp_Misc_Save_Value
-#      xsavevalue
-#    end
   end
   if $type == Lisp_Vectorlike
     set $size = ((struct Lisp_Vector *) $ptr)->header.size

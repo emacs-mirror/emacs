@@ -3132,15 +3132,15 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   SAFE_NALLOCA (state, 1, menu->panecount);
   memset (state, 0, sizeof (*state));
   faces[0]
-    = lookup_derived_face (sf, intern ("tty-menu-disabled-face"),
+    = lookup_derived_face (NULL, sf, intern ("tty-menu-disabled-face"),
 			   DEFAULT_FACE_ID, 1);
   faces[1]
-    = lookup_derived_face (sf, intern ("tty-menu-enabled-face"),
+    = lookup_derived_face (NULL, sf, intern ("tty-menu-enabled-face"),
 			   DEFAULT_FACE_ID, 1);
   selectface = intern ("tty-menu-selected-face");
-  faces[2] = lookup_derived_face (sf, selectface,
+  faces[2] = lookup_derived_face (NULL, sf, selectface,
 				  faces[0], 1);
-  faces[3] = lookup_derived_face (sf, selectface,
+  faces[3] = lookup_derived_face (NULL, sf, selectface,
 				  faces[1], 1);
 
   /* Make sure the menu title is always displayed with

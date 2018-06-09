@@ -2809,7 +2809,7 @@ init_iterator (struct it *it, struct window *w,
   /* Perhaps remap BASE_FACE_ID to a user-specified alternative.  */
   if (! NILP (Vface_remapping_alist))
     remapped_base_face_id
-      = lookup_basic_face (XFRAME (w->frame), base_face_id);
+      = lookup_basic_face (w, XFRAME (w->frame), base_face_id);
 
   /* Use one of the mode line rows of W's desired matrix if
      appropriate.  */
@@ -4060,7 +4060,7 @@ handle_face_prop (struct it *it)
 	     might be a big deal.  */
 	  base_face_id = it->string_from_prefix_prop_p
 	    ? (!NILP (Vface_remapping_alist)
-	       ? lookup_basic_face (it->f, DEFAULT_FACE_ID)
+	       ? lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID)
 	       : DEFAULT_FACE_ID)
 	    : underlying_face_id (it);
 	}
@@ -4988,7 +4988,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 		  struct face *f;
 
 		  f = FACE_FROM_ID (it->f,
-				    lookup_basic_face (it->f, DEFAULT_FACE_ID));
+				    lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID));
 		  new_height = (XFLOATINT (it->font_height)
 				* XINT (f->lface[LFACE_HEIGHT_INDEX]));
 		}
@@ -5175,12 +5175,12 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 
       if (it)
 	{
-	  int face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
+	  int face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
 
 	  if (CONSP (XCDR (XCDR (spec))))
 	    {
 	      Lisp_Object face_name = XCAR (XCDR (XCDR (spec)));
-	      int face_id2 = lookup_derived_face (it->f, face_name,
+	      int face_id2 = lookup_derived_face (it->w, it->f, face_name,
 						  FRINGE_FACE_ID, false);
 	      if (face_id2 >= 0)
 		face_id = face_id2;
@@ -6985,7 +6985,7 @@ merge_escape_glyph_face (struct it *it)
   else
     {
       /* Merge the `escape-glyph' face into the current face.  */
-      face_id = merge_faces (it->f, Qescape_glyph, 0, it->face_id);
+      face_id = merge_faces (it->w, Qescape_glyph, 0, it->face_id);
       last_escape_glyph_frame = it->f;
       last_escape_glyph_face_id = it->face_id;
       last_escape_glyph_merged_face_id = face_id;
@@ -7010,7 +7010,7 @@ merge_glyphless_glyph_face (struct it *it)
   else
     {
       /* Merge the `glyphless-char' face into the current face.  */
-      face_id = merge_faces (it->f, Qglyphless_char, 0, it->face_id);
+      face_id = merge_faces (it->w, Qglyphless_char, 0, it->face_id);
       last_glyphless_glyph_frame = it->f;
       last_glyphless_glyph_face_id = it->face_id;
       last_glyphless_glyph_merged_face_id = face_id;
@@ -7184,7 +7184,7 @@ get_next_display_element (struct it *it)
 		    }
 
 		  face_id = (lface_id
-			     ? merge_faces (it->f, Qt, lface_id, it->face_id)
+			     ? merge_faces (it->w, Qt, lface_id, it->face_id)
 			     : merge_escape_glyph_face (it));
 
 		  XSETINT (it->ctl_chars[0], g);
@@ -7199,7 +7199,7 @@ get_next_display_element (struct it *it)
 	      if (nonascii_space_p && EQ (Vnobreak_char_display, Qt))
 		{
 		  /* Merge `nobreak-space' into the current face.  */
-		  face_id = merge_faces (it->f, Qnobreak_space, 0,
+		  face_id = merge_faces (it->w, Qnobreak_space, 0,
 					 it->face_id);
 		  XSETINT (it->ctl_chars[0], ' ');
 		  ctl_len = 1;
@@ -7212,7 +7212,7 @@ get_next_display_element (struct it *it)
 	      if (nonascii_hyphen_p && EQ (Vnobreak_char_display, Qt))
 		{
 		  /* Merge `nobreak-space' into the current face.  */
-		  face_id = merge_faces (it->f, Qnobreak_hyphen, 0,
+		  face_id = merge_faces (it->w, Qnobreak_hyphen, 0,
 					 it->face_id);
 		  XSETINT (it->ctl_chars[0], '-');
 		  ctl_len = 1;
@@ -7232,7 +7232,7 @@ get_next_display_element (struct it *it)
 		}
 
 	      face_id = (lface_id
-			 ? merge_faces (it->f, Qt, lface_id, it->face_id)
+			 ? merge_faces (it->w, Qt, lface_id, it->face_id)
 			 : merge_escape_glyph_face (it));
 
 	      /* Draw non-ASCII space/hyphen with escape glyph: */
@@ -7860,7 +7860,7 @@ next_element_from_display_vector (struct it *it)
 	{
 	  int lface_id = GLYPH_CODE_FACE (gc);
 	  if (lface_id > 0)
-	    it->face_id = merge_faces (it->f, Qt, lface_id,
+	    it->face_id = merge_faces (it->w, Qt, lface_id,
 				       it->saved_face_id);
 	}
 
@@ -7889,7 +7889,7 @@ next_element_from_display_vector (struct it *it)
 		GLYPH_CODE_FACE (it->dpvec[it->current.dpvec_index + 1]);
 
 	      if (lface_id > 0)
-		next_face_id = merge_faces (it->f, Qt, lface_id,
+		next_face_id = merge_faces (it->w, Qt, lface_id,
 					    it->saved_face_id);
 	    }
 	}
@@ -20084,7 +20084,7 @@ append_space_for_newline (struct it *it, bool default_face_p)
 	  /* If the default face was remapped, be sure to use the
 	     remapped face for the appended newline.  */
 	  if (default_face_p)
-	    it->face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
+	    it->face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
 	  else if (it->face_before_selective_p)
 	    it->face_id = it->saved_face_id;
 	  face = FACE_FROM_ID (it->f, it->face_id);
@@ -20231,8 +20231,9 @@ extend_face_to_end_of_line (struct it *it)
     return;
 
   /* The default face, possibly remapped. */
-  default_face = FACE_FROM_ID_OR_NULL (f,
-				       lookup_basic_face (f, DEFAULT_FACE_ID));
+  default_face = FACE_FROM_ID_OR_NULL (
+    f,
+    lookup_basic_face (it->w, f, DEFAULT_FACE_ID));
 
   /* Face extension extends the background and box of IT->face_id
      to the end of the line.  If the background equals the background
@@ -20486,11 +20487,12 @@ trailing_whitespace_p (ptrdiff_t charpos)
 }
 
 
-/* Highlight trailing whitespace, if any, in ROW.  */
+/* Highlight trailing whitespace, if any, in row at IT.  */
 
 static void
-highlight_trailing_whitespace (struct frame *f, struct glyph_row *row)
+highlight_trailing_whitespace (struct it *it)
 {
+  struct glyph_row *row = it->glyph_row;
   int used = row->used[TEXT_AREA];
 
   if (used)
@@ -20535,7 +20537,7 @@ highlight_trailing_whitespace (struct frame *f, struct glyph_row *row)
 		  && glyph->u.ch == ' '))
 	  && trailing_whitespace_p (glyph->charpos))
 	{
-	  int face_id = lookup_named_face (f, Qtrailing_whitespace, false);
+	  int face_id = lookup_named_face (it->w, it->f, Qtrailing_whitespace, false);
 	  if (face_id < 0)
 	    return;
 
@@ -21107,9 +21109,9 @@ maybe_produce_line_number (struct it *it)
   char lnum_buf[INT_STRLEN_BOUND (ptrdiff_t) + 1];
   bool beyond_zv = IT_BYTEPOS (*it) >= ZV_BYTE ? true : false;
   ptrdiff_t lnum_offset = -1; /* to produce 1-based line numbers */
-  int lnum_face_id = merge_faces (it->f, Qline_number, 0, DEFAULT_FACE_ID);
+  int lnum_face_id = merge_faces (it->w, Qline_number, 0, DEFAULT_FACE_ID);
   int current_lnum_face_id
-    = merge_faces (it->f, Qline_number_current_line, 0, DEFAULT_FACE_ID);
+    = merge_faces (it->w, Qline_number_current_line, 0, DEFAULT_FACE_ID);
   /* Compute point's line number if needed.  */
   if ((EQ (Vdisplay_line_numbers, Qrelative)
        || EQ (Vdisplay_line_numbers, Qvisual)
@@ -21559,7 +21561,8 @@ display_line (struct it *it, int cursor_vpos)
 	     portions of the screen will clear with the default face's
 	     background color.  */
 	  if (row->reversed_p
-	      || lookup_basic_face (it->f, DEFAULT_FACE_ID) != DEFAULT_FACE_ID)
+	      || lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID)
+              != DEFAULT_FACE_ID)
 	    extend_face_to_end_of_line (it);
 	  break;
 	}
@@ -22192,7 +22195,7 @@ display_line (struct it *it, int cursor_vpos)
 
   /* Highlight trailing whitespace.  */
   if (!NILP (Vshow_trailing_whitespace))
-    highlight_trailing_whitespace (it->f, it->glyph_row);
+    highlight_trailing_whitespace (it);
 
   /* Compute pixel dimensions of this line.  */
   compute_line_metrics (it);
@@ -27862,7 +27865,7 @@ calc_line_height_property (struct it *it, Lisp_Object val, struct font *font,
       int face_id;
       struct face *face;
 
-      face_id = lookup_named_face (it->f, face_name, false);
+      face_id = lookup_named_face (it->w, it->f, face_name, false);
       face = FACE_FROM_ID_OR_NULL (it->f, face_id);
       if (face == NULL || ((font = face->font) == NULL))
 	return make_number (-1);

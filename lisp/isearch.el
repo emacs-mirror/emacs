@@ -2036,6 +2036,7 @@ If search string is empty, just beep."
 (defun isearch-yank-kill ()
   "Pull string from kill ring into search string."
   (interactive)
+  (unless isearch-mode (isearch-mode t))
   (isearch-yank-string (current-kill 0)))
 
 (defun isearch-yank-pop ()

@@ -1976,11 +1976,11 @@ readevalloop (Lisp_Object readcharfun,
       if (!NILP (start))
 	{
 	  /* Switch to the buffer we are reading from.  */
-	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  record_unwind_protect_excursion ();
 	  set_buffer_internal (b);
 
 	  /* Save point in it.  */
-	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  record_unwind_protect_excursion ();
 	  /* Save ZV in it.  */
 	  record_unwind_protect (save_restriction_restore, save_restriction_save ());
 	  /* Those get unbound after we read one expression.  */
@@ -2137,7 +2137,7 @@ This function preserves the position of point.  */)
 
   specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
-  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+  record_unwind_protect_excursion ();
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   specbind (Qlexical_binding, lisp_file_lexically_bound_p (buf) ? Qt : Qnil);
   BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));

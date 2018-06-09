@@ -1110,12 +1110,55 @@ Note that the style variables are always made local to the buffer."
     (goto-char start)
     (while (progn
 	     (parse-partial-sexp (point) end nil nil st-s 'syntax-table)
-	     (c-clear-char-property (1- (point)) 'syntax-table)
+	     (unless (bobp)
+	       (c-clear-char-property (1- (point)) 'syntax-table))
 	     (setq st-pos (point))
 	     (and (< (point) end)
 		  (not (eq (char-before) ?\")))))
     (goto-char (min no-st-pos st-pos))
     nil))
+
+(defun c-multiline-string-check-final-quote ()
+  ;; Check that the final quote in the buffer is correctly marked or not with
+  ;; a string-fence syntax-table text propery.  The return value has no
+  ;; significance.
+  (let (pos-ll pos-lt)
+    (save-excursion
+      (goto-char (point-max))
+      (skip-chars-backward "^\"")
+      (while
+	  (and
+	   (not (bobp))
+	   (cond
+	    ((progn
+	       (setq pos-ll (c-literal-limits)
+		     pos-lt (c-literal-type pos-ll))
+	       (memq pos-lt '(c c++)))
+	     ;; In a comment.
+	     (goto-char (car pos-ll)))
+	    ((save-excursion
+	       (backward-char)	; over "
+	       (eq (logand (skip-chars-backward "\\\\") 1) 1))
+	     ;; At an escaped string.
+	     (backward-char)
+	     t)
+	    (t
+	     ;; At a significant "
+	     (c-clear-char-property (1- (point)) 'syntax-table)
+	     (setq pos-ll (c-literal-limits)
+		   pos-lt (c-literal-type pos-ll))
+	     nil)))
+	(skip-chars-backward "^\""))
+      (cond
+       ((bobp))
+       ((eq pos-lt 'string)
+	(c-put-char-property (1- (point)) 'syntax-table '(15)))
+       (t nil)))))
+
+(defvar c-bc-changed-stringiness nil)
+;; Non-nil when, in a before-change function, the deletion of a range of text
+;; will change the "stringiness" of the subsequent text.  Only used when
+;; `c-multiline-sting-start-char' is a non-nil value which isn't a character.
 
 (defun c-before-change-check-unbalanced-strings (beg end)
   ;; If BEG or END is inside an unbalanced string, remove the syntax-table
@@ -1175,6 +1218,18 @@ Note that the style variables are always made local to the buffer."
 	       (< (point) (point-max))))))
       (setq c-new-END (max (point) c-new-END)))
 
+     (c-multiline-string-start-char
+      (setq c-bc-changed-stringiness
+	    (not (eq (eq end-literal-type 'string)
+		     (eq beg-literal-type 'string))))
+      ;; Deal with deletion of backslashes before "s.
+      (goto-char end)
+      (if (and (looking-at "\\\\*\"")
+	       (eq (logand (skip-chars-backward "\\\\" beg) 1) 1))
+	  (setq c-bc-changed-stringiness (not c-bc-changed-stringiness)))
+      (if (eq beg-literal-type 'string)
+	  (setq c-new-BEG (min (car beg-limits) c-new-BEG))))
+
      ((< c-new-END (point-max))
       (goto-char (1+ c-new-END))	; might be a newline.
       ;; In the following regexp, the initial \n caters for a newline getting
@@ -1183,7 +1238,6 @@ Note that the style variables are always made local to the buffer."
 			 nil t)
       ;; We're at an EOLL or point-max.
       (setq c-new-END (min (1+ (point)) (point-max)))
-      ;; FIXME!!!  Write a clever comment here.
       (goto-char c-new-END)
       (if (equal (c-get-char-property (1- (point)) 'syntax-table) '(15))
 	  (if (memq (char-before) '(?\n ?\r))
@@ -1202,14 +1256,16 @@ Note that the style variables are always made local to the buffer."
 	(if (c-search-backward-char-property 'syntax-table '(15) c-new-BEG)
 	    (c-clear-char-property (point) 'syntax-table))))
 
-    (when (eq end-literal-type 'string)
-      (c-clear-char-property (1- (cdr end-limits)) 'syntax-table))
+    (unless (and c-multiline-string-start-char
+		 (not (c-characterp c-multiline-string-start-char)))
+      (when (eq end-literal-type 'string)
+	(c-clear-char-property (1- (cdr end-limits)) 'syntax-table))
 
-    (when (eq beg-literal-type 'string)
-      (setq c-new-BEG (min c-new-BEG (car beg-limits)))
-      (c-clear-char-property (car beg-limits) 'syntax-table))))
+      (when (eq beg-literal-type 'string)
+	(setq c-new-BEG (min c-new-BEG (car beg-limits)))
+	(c-clear-char-property (car beg-limits) 'syntax-table)))))
 
-(defun c-after-change-re-mark-unbalanced-strings (beg _end _old-len)
+(defun c-after-change-re-mark-unbalanced-strings (beg end _old-len)
   ;; Mark any unbalanced strings in the region (c-new-BEG c-new-END) with
   ;; string fence syntax-table text properties.
   ;;
@@ -1218,66 +1274,90 @@ Note that the style variables are always made local to the buffer."
   ;;
   ;; This function is called exclusively as an after-change function via
   ;; `c-before-font-lock-functions'.
-  (c-save-buffer-state
-      ((cll (progn (goto-char c-new-BEG)
-		   (c-literal-limits)))
-       (beg-literal-type (and cll (c-literal-type cll)))
-       (beg-limits
-	(cond
-	 ((and (eq beg-literal-type 'string)
-	       (c-unescaped-nls-in-string-p (car cll)))
-	  (cons
-	   (car cll)
+  (if (and c-multiline-string-start-char
+	   (not (c-characterp c-multiline-string-start-char)))
+      ;; Only the last " might need to be marked.
+      (c-save-buffer-state
+	  ((beg-literal-limits
+	    (progn (goto-char beg) (c-literal-limits)))
+	   (beg-literal-type (c-literal-type beg-literal-limits))
+	   end-literal-limits end-literal-type)
+	(when (and (eq beg-literal-type 'string)
+		   (c-get-char-property (car beg-literal-limits) 'syntax-table))
+	  (c-clear-char-property (car beg-literal-limits) 'syntax-table)
+	  (setq c-bc-changed-stringiness (not c-bc-changed-stringiness)))
+	(setq end-literal-limits (progn (goto-char end) (c-literal-limits))
+	      end-literal-type (c-literal-type end-literal-limits))
+	;; Deal with the insertion of backslashes before a ".
+	(goto-char end)
+	(if (and (looking-at "\\\\*\"")
+		 (eq (logand (skip-chars-backward "\\\\" beg) 1) 1))
+	    (setq c-bc-changed-stringiness (not c-bc-changed-stringiness)))
+	(when (eq (eq (eq beg-literal-type 'string)
+		      (eq end-literal-type 'string))
+		  c-bc-changed-stringiness)
+	  (c-multiline-string-check-final-quote)))
+    ;; There could be several "s needing marking.
+    (c-save-buffer-state
+	((cll (progn (goto-char c-new-BEG)
+		     (c-literal-limits)))
+	 (beg-literal-type (and cll (c-literal-type cll)))
+	 (beg-limits
+	  (cond
+	   ((and (eq beg-literal-type 'string)
+		 (c-unescaped-nls-in-string-p (car cll)))
+	    (cons
+	     (car cll)
+	     (progn
+	       (goto-char (1+ (car cll)))
+	       (search-forward-regexp
+		(cdr (assq (char-after (car cll)) c-string-innards-re-alist))
+		nil t)
+	       (min (1+ (point)) (point-max)))))
+	   ((and (null beg-literal-type)
+		 (goto-char beg)
+		 (eq (char-before) c-multiline-string-start-char)
+		 (memq (char-after) c-string-delims))
+	    (cons (point)
+		  (progn
+		    (forward-char)
+		    (search-forward-regexp
+		     (cdr (assq (char-before) c-string-innards-re-alist)) nil t)
+		    (1+ (point)))))
+	   (cll)))
+	 s)
+      (goto-char
+       (cond ((null beg-literal-type)
+	      c-new-BEG)
+	     ((eq beg-literal-type 'string)
+	      (car beg-limits))
+	     (t				; comment
+	      (cdr beg-limits))))
+      (while
+	  (and
+	   (< (point) c-new-END)
 	   (progn
-	     (goto-char (1+ (car cll)))
-	     (search-forward-regexp
-	      (cdr (assq (char-after (car cll)) c-string-innards-re-alist))
-	      nil t)
-	     (min (1+ (point)) (point-max)))))
-	 ((and (null beg-literal-type)
-	       (goto-char beg)
-	       (eq (char-before) c-multiline-string-start-char)
-	       (memq (char-after) c-string-delims))
-	  (cons (point)
-		(progn
-		  (forward-char)
-		  (search-forward-regexp
-		   (cdr (assq (char-before) c-string-innards-re-alist)) nil t)
-		  (1+ (point)))))
-	 (cll)))
-       s)
-    (goto-char
-     (cond ((null beg-literal-type)
-	    c-new-BEG)
-	   ((eq beg-literal-type 'string)
-	    (car beg-limits))
-	   (t				; comment
-	    (cdr beg-limits))))
-    (while
-	(and
-	 (< (point) c-new-END)
-	 (progn
-	   ;; Skip over any comments before the next string.
-	   (while (progn
-		    (setq s (parse-partial-sexp (point) c-new-END nil
-						nil s 'syntax-table))
-		    (and (not (nth 3 s))
-			 (< (point) c-new-END)
-			 (not (memq (char-before) c-string-delims)))))
-	   ;; We're at the start of a string.
-	   (memq (char-before) c-string-delims)))
-      (if (c-unescaped-nls-in-string-p (1- (point)))
-	  (looking-at "[^\"]*")
-	(looking-at (cdr (assq (char-before) c-string-innards-re-alist))))
-      (cond
-       ((memq (char-after (match-end 0)) '(?\n ?\r))
-	(c-put-char-property (1- (point)) 'syntax-table '(15))
-	(c-put-char-property (match-end 0) 'syntax-table '(15)))
-       ((or (eq (match-end 0) (point-max))
-	    (eq (char-after (match-end 0)) ?\\)) ; \ at EOB
-	(c-put-char-property (1- (point)) 'syntax-table '(15))))
-      (goto-char (min (1+ (match-end 0)) (point-max)))
-      (setq s nil))))
+	     ;; Skip over any comments before the next string.
+	     (while (progn
+		      (setq s (parse-partial-sexp (point) c-new-END nil
+						  nil s 'syntax-table))
+		      (and (not (nth 3 s))
+			   (< (point) c-new-END)
+			   (not (memq (char-before) c-string-delims)))))
+	     ;; We're at the start of a string.
+	     (memq (char-before) c-string-delims)))
+	(if (c-unescaped-nls-in-string-p (1- (point)))
+	    (looking-at "\\(\\\\\\(.\\|\n|\\\r\\)\\|[^\"]\\)*")
+	  (looking-at (cdr (assq (char-before) c-string-innards-re-alist))))
+	(cond
+	 ((memq (char-after (match-end 0)) '(?\n ?\r))
+	  (c-put-char-property (1- (point)) 'syntax-table '(15))
+	  (c-put-char-property (match-end 0) 'syntax-table '(15)))
+	 ((or (eq (match-end 0) (point-max))
+	      (eq (char-after (match-end 0)) ?\\)) ; \ at EOB
+	  (c-put-char-property (1- (point)) 'syntax-table '(15))))
+	(goto-char (min (1+ (match-end 0)) (point-max)))
+	(setq s nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing of quotes.

@@ -84,6 +84,10 @@ Syntax check is done ``on-the-fly''.  It is started whenever
 @code{flymake-start-on-flymake-mode} is nil;
 
 @item
+the buffer is saved, unless @code{flymake-start-on-save-buffer} is
+nil;
+
+@item
 a newline character is added to the buffer, unless
 @code{flymake-start-syntax-check-on-newline} is nil;
 
@@ -219,6 +223,10 @@ after a newline character is inserted into the buffer.
 @item flymake-start-on-flymake-mode
 A boolean flag indicating whether to start syntax check immediately
 after enabling @code{flymake-mode}.
+
+@item flymake-start-on-save-buffer
+A boolean flag indicating whether to start syntax check after saving
+the buffer.
 
 @item flymake-error
 A custom face for highlighting regions for which an error has been

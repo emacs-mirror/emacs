@@ -1696,7 +1696,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   {
     ptrdiff_t count = SPECPDL_INDEX ();
 
-    record_unwind_protect (save_excursion_restore, save_excursion_save ());
+    record_unwind_protect_excursion ();
     set_buffer_internal (b);
 
     /* First run the query functions; if any query is answered no,

@@ -5656,7 +5656,7 @@ scroll_command (Lisp_Object window, Lisp_Object n, int direction)
      the moment.  But don't screw up if window_scroll gets an error.  */
   if (XBUFFER (w->contents) != current_buffer)
     {
-      record_unwind_protect (save_excursion_restore, save_excursion_save ());
+      record_unwind_protect_excursion ();
       Fset_buffer (w->contents);
     }
 

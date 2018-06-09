@@ -1016,37 +1016,30 @@ save_excursion_save (void)
 void
 save_excursion_restore (Lisp_Object info)
 {
-  Lisp_Object tem, tem1;
-
-  tem = Fmarker_buffer (XSAVE_OBJECT (info, 0));
+  Lisp_Object marker = XSAVE_OBJECT (info, 0);
+  Lisp_Object window = XSAVE_OBJECT (info, 2);
+  free_misc (info);
+  Lisp_Object buffer = Fmarker_buffer (marker);
   /* If we're unwinding to top level, saved buffer may be deleted.  This
-     means that all of its markers are unchained and so tem is nil.  */
-  if (NILP (tem))
-    goto out;
+     means that all of its markers are unchained and so BUFFER is nil.  */
+  if (NILP (buffer))
+    return;
 
-  Fset_buffer (tem);
+  Fset_buffer (buffer);
 
-  /* Point marker.  */
-  tem = XSAVE_OBJECT (info, 0);
-  Fgoto_char (tem);
-  unchain_marker (XMARKER (tem));
+  Fgoto_char (marker);
+  unchain_marker (XMARKER (marker));
 
   /* If buffer was visible in a window, and a different window was
      selected, and the old selected window is still showing this
      buffer, restore point in that window.  */
-  tem = XSAVE_OBJECT (info, 2);
-  if (WINDOWP (tem)
-      && !EQ (tem, selected_window)
-      && (tem1 = XWINDOW (tem)->contents,
-	  (/* Window is live...  */
-	   BUFFERP (tem1)
-	   /* ...and it shows the current buffer.  */
-	   && XBUFFER (tem1) == current_buffer)))
-    Fset_window_point (tem, make_number (PT));
-
- out:
-
-  free_misc (info);
+  if (WINDOWP (window) && !EQ (window, selected_window))
+    {
+      /* Set window point if WINDOW is live and shows the current buffer.  */
+      Lisp_Object contents = XWINDOW (window)->contents;
+      if (BUFFERP (contents) && XBUFFER (contents) == current_buffer)
+	Fset_window_point (window, make_number (PT));
+    }
 }
 
 DEFUN ("save-excursion", Fsave_excursion, Ssave_excursion, 0, UNEVALLED, 0,
@@ -1068,7 +1061,7 @@ usage: (save-excursion &rest BODY)  */)
   register Lisp_Object val;
   ptrdiff_t count = SPECPDL_INDEX ();
 
-  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+  record_unwind_protect_excursion ();
 
   val = Fprogn (args);
   return unbind_to (count, val);
@@ -3242,7 +3235,7 @@ buffer stay intact.  */)
 
   Fundo_boundary ();
   ptrdiff_t count = SPECPDL_INDEX ();
-  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+  record_unwind_protect_excursion ();
 
   ptrdiff_t i = size_a;
   ptrdiff_t j = size_b;

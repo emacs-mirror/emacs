@@ -3810,7 +3810,7 @@ font_range (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t *limit,
 	  face_id =
 	    NILP (Vface_remapping_alist)
 	    ? DEFAULT_FACE_ID
-	    : lookup_basic_face (f, DEFAULT_FACE_ID);
+	    : lookup_basic_face (w, f, DEFAULT_FACE_ID);
 
 	  face_id = face_at_string_position (w, string, pos, 0, &ignore,
 					     face_id, false);
@@ -4559,7 +4559,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       CHECK_CHARACTER (ch);
       c = XINT (ch);
       f = XFRAME (selected_frame);
-      face_id = lookup_basic_face (f, DEFAULT_FACE_ID);
+      face_id = lookup_basic_face (NULL, f, DEFAULT_FACE_ID);
       pos = -1;
     }
   else

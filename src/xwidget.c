@@ -749,8 +749,10 @@ argument procedure FUN.*/)
   /* JavaScript execution happens asynchronously.  If an elisp
      callback function is provided we pass it to the C callback
      procedure that retrieves the return value.  */
+  gchar *script_string
+    = XSAVE_POINTER (XCAR (AREF (xw->script_callbacks, idx)), 0);
   webkit_web_view_run_javascript (WEBKIT_WEB_VIEW (xw->widget_osr),
-                                  XSAVE_POINTER (XCAR (AREF (xw->script_callbacks, idx)), 0),
+				  script_string,
                                   NULL, /* cancelable */
                                   webkit_javascript_finished_cb,
 				  (gpointer) idx);
@@ -1221,15 +1223,13 @@ kill_buffer_xwidgets (Lisp_Object buffer)
             gtk_widget_destroy (xw->widgetwindow_osr);
           }
 	if (!NILP (xw->script_callbacks))
-	  {
-	    ptrdiff_t idx;
-	    for (idx = 0; idx < ASIZE (xw->script_callbacks); idx++)
-	      {
-		if (!NILP (AREF (xw->script_callbacks, idx)))
-		  xfree (XSAVE_POINTER (XCAR (AREF (xw->script_callbacks, idx)), 0));
-		ASET (xw->script_callbacks, idx, Qnil);
-	      }
-	  }
+	  for (ptrdiff_t idx = 0; idx < ASIZE (xw->script_callbacks); idx++)
+	    {
+	      Lisp_Object cb = AREF (xw->script_callbacks, idx);
+	      if (!NILP (cb))
+		xfree (XSAVE_POINTER (XCAR (cb), 0));
+	      ASET (xw->script_callbacks, idx, Qnil);
+	    }
       }
     }
 }

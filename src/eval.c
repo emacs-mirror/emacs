@@ -3415,6 +3415,12 @@ record_unwind_protect_int (void (*function) (int), int arg)
 }
 
 void
+record_unwind_protect_excursion (void)
+{
+  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+}
+
+void
 record_unwind_protect_void (void (*function) (void))
 {
   specpdl_ptr->unwind_void.kind = SPECPDL_UNWIND_VOID;

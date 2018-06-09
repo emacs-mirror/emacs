@@ -196,9 +196,15 @@ If nil, never start checking buffer automatically like this."
   'flymake-start-on-flymake-mode "26.1")
 
 (defcustom flymake-start-on-flymake-mode t
-  "Start syntax check when `flymake-mode' is enabled.
+  "If non-nil, start syntax check when `flymake-mode' is enabled.
 Specifically, start it when the buffer is actually displayed."
   :version "26.1"
+  :type 'boolean)
+
+(defcustom flymake-start-on-save-buffer t
+  "If non-nil start syntax check when a buffer is saved.
+Specifically, start it when the saved buffer is actually displayed."
+  :version "27.1"
   :type 'boolean)
 
 (defcustom flymake-log-level -1
@@ -962,7 +968,7 @@ Do it only if `flymake-no-changes-timeout' is non-nil."
     (flymake--schedule-timer-maybe)))
 
 (defun flymake-after-save-hook ()
-  (when flymake-mode
+  (when flymake-start-on-save-buffer
     (flymake-log :debug "starting syntax check as buffer was saved")
     (flymake-start t)))
 

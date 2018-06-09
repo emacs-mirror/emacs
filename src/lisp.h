@@ -228,8 +228,8 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
 
    USE_LSB_TAG not only requires the least 3 bits of pointers returned by
    malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
-   on the few static Lisp_Objects used, all of which are aligned via
-   'char alignas (GCALIGNMENT) gcaligned;' inside a union.  */
+   on some non-GC Lisp_Objects, all of which are aligned via
+   GCALIGNED_UNION at the end of a union.  */
 
 enum Lisp_Bits
   {
@@ -275,6 +275,12 @@ DEFINE_GDB_SYMBOL_END (VALMASK)
 # error "USE_LSB_TAG not supported on this platform; please report this." \
 	"Try 'configure --with-wide-int' to work around the problem."
 error !;
+#endif
+
+#if USE_LSB_TAG
+# define GCALIGNED_UNION char alignas (GCALIGNMENT) gcaligned;
+#else
+# define GCALIGNED_UNION
 #endif
 
 /* Lisp_Word is a scalar word suitable for holding a tagged pointer or
@@ -776,10 +782,10 @@ struct Lisp_Symbol
       /* Next symbol in obarray bucket, if the symbol is interned.  */
       struct Lisp_Symbol *next;
     } s;
-    char alignas (GCALIGNMENT) gcaligned;
+    GCALIGNED_UNION
   } u;
 };
-verify (alignof (struct Lisp_Symbol) % GCALIGNMENT == 0);
+verify (!USE_LSB_TAG || alignof (struct Lisp_Symbol) % GCALIGNMENT == 0);
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
@@ -890,9 +896,9 @@ union vectorlike_header
 	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
 	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
     ptrdiff_t size;
-    char alignas (GCALIGNMENT) gcaligned;
+    GCALIGNED_UNION
   };
-verify (alignof (union vectorlike_header) % GCALIGNMENT == 0);
+verify (!USE_LSB_TAG || alignof (union vectorlike_header) % GCALIGNMENT == 0);
 
 INLINE bool
 (SYMBOLP) (Lisp_Object x)
@@ -1250,10 +1256,10 @@ struct Lisp_Cons
 	struct Lisp_Cons *chain;
       } u;
     } s;
-    char alignas (GCALIGNMENT) gcaligned;
+    GCALIGNED_UNION
   } u;
 };
-verify (alignof (struct Lisp_Cons) % GCALIGNMENT == 0);
+verify (!USE_LSB_TAG || alignof (struct Lisp_Cons) % GCALIGNMENT == 0);
 
 INLINE bool
 (NILP) (Lisp_Object x)
@@ -1372,10 +1378,10 @@ struct Lisp_String
       unsigned char *data;
     } s;
     struct Lisp_String *next;
-    char alignas (GCALIGNMENT) gcaligned;
+    GCALIGNED_UNION
   } u;
 };
-verify (alignof (struct Lisp_String) % GCALIGNMENT == 0);
+verify (!USE_LSB_TAG || alignof (struct Lisp_String) % GCALIGNMENT == 0);
 
 INLINE bool
 STRINGP (Lisp_Object x)
@@ -3977,6 +3983,7 @@ extern void record_unwind_protect (void (*) (Lisp_Object), Lisp_Object);
 extern void record_unwind_protect_ptr (void (*) (void *), void *);
 extern void record_unwind_protect_int (void (*) (int), int);
 extern void record_unwind_protect_void (void (*) (void));
+extern void record_unwind_protect_excursion (void);
 extern void record_unwind_protect_nothing (void);
 extern void clear_unwind_protect (ptrdiff_t);
 extern void set_unwind_protect (ptrdiff_t, void (*) (Lisp_Object), Lisp_Object);
@@ -4680,13 +4687,14 @@ extern void *record_xmalloc (size_t) ATTRIBUTE_ALLOC_SIZE ((1));
 #define SAFE_ALLOCA_LISP(buf, nelt) SAFE_ALLOCA_LISP_EXTRA (buf, nelt, 0)
 
 
-/* If USE_STACK_LISP_OBJECTS, define macros that and functions that allocate
-   block-scoped conses and strings.  These objects are not
-   managed by the garbage collector, so they are dangerous: passing them
-   out of their scope (e.g., to user code) results in undefined behavior.
-   Conversely, they have better performance because GC is not involved.
+/* If USE_STACK_LISP_OBJECTS, define macros and functions that
+   allocate some Lisp objects on the C stack.  As the storage is not
+   managed by the garbage collector, these objects are dangerous:
+   passing them to user code could result in undefined behavior if the
+   objects are in use after the C function returns.  Conversely, these
+   objects have better performance because GC is not involved.
 
-   This feature is experimental and requires careful debugging.
+   While debugging you may want to disable allocation on the C stack.
    Build with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS=0' to disable it.  */
 
 #if (!defined USE_STACK_LISP_OBJECTS \
@@ -4751,7 +4759,8 @@ enum
    Take its unibyte value from the null-terminated string STR,
    an expression that should not have side effects.
    STR's value is not necessarily copied.  The resulting Lisp string
-   should not be modified or made visible to user code.  */
+   should not be modified or given text properties or made visible to
+   user code.  */
 
 #define AUTO_STRING(name, str) \
   AUTO_STRING_WITH_LEN (name, str, strlen (str))
@@ -4760,7 +4769,8 @@ enum
    Take its unibyte value from the null-terminated string STR with length LEN.
    STR may have side effects and may contain null bytes.
    STR's value is not necessarily copied.  The resulting Lisp string
-   should not be modified or made visible to user code.  */
+   should not be modified or given text properties or made visible to
+   user code.  */
 
 #define AUTO_STRING_WITH_LEN(name, str, len)				\
   Lisp_Object name =							\
