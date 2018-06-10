@@ -46,6 +46,13 @@
 ;; To "unmanage" these buffers, shutdown the server with M-x
 ;; eglot-shutdown.
 ;;
+;; You can also do:
+;;
+;;   (add-hook 'foo-mode-hook 'eglot-ensure)
+;;
+;; To attempt to start an eglot session automatically everytime a
+;; foo-mode buffer is visited.
+;;
 ;;; Code:
 
 (require 'json)
@@ -255,8 +262,10 @@ function with the server still running."
 (defvar eglot--command-history nil
   "History of CONTACT arguments to `eglot'.")
 
-(defun eglot--interactive ()
-  "Helper for `eglot'."
+(defun eglot--guess-contact (&optional interactive)
+  "Helper for `eglot'.
+Return (MANAGED-MODE PROJECT CONTACT CLASS).
+If INTERACTIVE, maybe prompt user."
   (let* ((guessed-mode (if buffer-file-name major-mode))
          (managed-mode
           (cond
@@ -274,17 +283,20 @@ function with the server still running."
                     (prog1 (car guess) (setq guess (cdr guess)))
                   'eglot-lsp-server))
          (program (and (listp guess) (stringp (car guess)) (car guess)))
-         (base-prompt "[eglot] Enter program to execute (or <host>:<port>): ")
+         (base-prompt
+          (and interactive
+               "[eglot] Enter program to execute (or <host>:<port>): "))
          (prompt
-          (cond (current-prefix-arg base-prompt)
-                ((null guess)
-                 (format "[eglot] Sorry, couldn't guess for `%s'\n%s!"
-                         managed-mode base-prompt))
-                ((and program (not (executable-find program)))
-                 (concat (format "[eglot] I guess you want to run `%s'"
-                                 (combine-and-quote-strings guess))
-                         (format ", but I can't find `%s' in PATH!" program)
-                         "\n" base-prompt))))
+          (and base-prompt
+               (cond (current-prefix-arg base-prompt)
+                     ((null guess)
+                      (format "[eglot] Sorry, couldn't guess for `%s'!\n%s"
+                              managed-mode base-prompt))
+                     ((and program (not (executable-find program)))
+                      (concat (format "[eglot] I guess you want to run `%s'"
+                                      (combine-and-quote-strings guess))
+                              (format ", but I can't find `%s' in PATH!" program)
+                              "\n" base-prompt)))))
          (contact
           (if prompt
               (let ((s (read-shell-command
@@ -296,7 +308,7 @@ function with the server still running."
                     (list (match-string 1 s) (string-to-number (match-string 2 s)))
                   (split-string-and-unquote s)))
             guess)))
-    (list managed-mode project class contact t)))
+    (list managed-mode project class contact)))
 
 ;;;###autoload
 (defun eglot (managed-major-mode project class contact &optional interactive)
@@ -327,26 +339,22 @@ keyword-value plist used to initialize CLASS or a plain list as
 described in `eglot-server-programs', which see.
 
 INTERACTIVE is t if called interactively."
-  (interactive (eglot--interactive))
-  (let* ((nickname (file-name-base (directory-file-name
-                                    (car (project-roots project)))))
-         (current-server (eglot--current-server))
+  (interactive (append (eglot--guess-contact t) '(t)))
+  (let* ((current-server (eglot--current-server))
          (live-p (and current-server (jsonrpc-running-p current-server))))
     (if (and live-p
              interactive
              (y-or-n-p "[eglot] Live process found, reconnect instead? "))
         (eglot-reconnect current-server interactive)
       (when live-p (ignore-errors (eglot-shutdown current-server)))
-      (let ((server (eglot--connect project
-                                    managed-major-mode
-                                    (format "%s/%s" nickname managed-major-mode)
-                                    nickname
+      (let ((server (eglot--connect managed-major-mode
+                                    project
                                     class
                                     contact)))
         (eglot--message "Connected! Process `%s' now \
 managing `%s' buffers in project `%s'."
                         (jsonrpc-name server) managed-major-mode
-                        nickname)
+                        (eglot--project-nickname server))
         server))))
 
 (defun eglot-reconnect (server &optional interactive)
@@ -355,13 +363,33 @@ INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-server-or-lose) t))
   (when (jsonrpc-running-p server)
     (ignore-errors (eglot-shutdown server interactive)))
-  (eglot--connect (eglot--project server)
-                  (eglot--major-mode server)
-                  (jsonrpc-name server)
-                  (eglot--project-nickname server)
+  (eglot--connect (eglot--major-mode server)
+                  (eglot--project server)
                   (eieio-object-class-name server)
                   (eglot--saved-initargs server))
   (eglot--message "Reconnected!"))
+
+(defvar eglot--managed-mode) ; forward decl
+
+(defun eglot-ensure ()
+  "Start Eglot session for current buffer if there isn't one."
+  (let ((buffer (current-buffer)))
+    (cl-labels
+        ((maybe-connect
+          ()
+          (remove-hook 'post-command-hook #'maybe-connect nil)
+          (eglot--with-live-buffer buffer
+            (if eglot--managed-mode
+                (eglot--message "%s is already managed by existing `%s'"
+                                buffer
+                                (eglot--project-nickname (eglot--current-server)))
+              (let ((server (apply #'eglot--connect (eglot--guess-contact))))
+                (eglot--message
+                 "Automatically started `%s' to manage `%s' buffers in project `%s'"
+                 (eglot--project-nickname server)
+                 major-mode
+                 (eglot--project-nickname server)))))))
+      (add-hook 'post-command-hook #'maybe-connect 'append nil))))
 
 (defun eglot-events-buffer (server)
   "Display events buffer for SERVER."
@@ -380,12 +408,12 @@ INTERACTIVE is t if called interactively."
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
-(defun eglot--connect (project managed-major-mode name nickname
-                               class contact)
-  "Connect to PROJECT, MANAGED-MAJOR-MODE, NAME.
-And don't forget NICKNAME and CLASS, CONTACT.  This docstring
-appeases checkdoc, that's all."
-  (let* ((readable-name (format "EGLOT (%s/%s)" nickname managed-major-mode))
+(defun eglot--connect (managed-major-mode project class contact)
+  "Connect to MANAGED-MAJOR-MODE, PROJECT, CLASS and CONTACT.
+This docstring appeases checkdoc, that's all."
+  (let* ((nickname (file-name-base (directory-file-name
+                                    (car (project-roots project)))))
+         (readable-name (format "EGLOT (%s/%s)" nickname managed-major-mode))
          (initargs
           (cond ((keywordp (car contact)) contact)
                 ((integerp (cadr contact))
@@ -410,7 +438,7 @@ appeases checkdoc, that's all."
          (server
           (apply
            #'make-instance class
-           :name name
+           :name readable-name
            :notification-dispatcher (funcall spread #'eglot-handle-notification)
            :request-dispatcher (funcall spread #'eglot-handle-request)
            :on-shutdown #'eglot--on-shutdown
