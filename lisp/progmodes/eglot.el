@@ -207,7 +207,7 @@ lasted more than that many seconds."
   "Politely ask SERVER to quit.
 Forcefully quit it if it doesn't respond.  Don't leave this
 function with the server still running."
-  (interactive (list (jsonrpc-current-connection-or-lose) t))
+  (interactive (list (eglot--current-server-or-lose) t))
   (eglot--message "Asking %s politely to terminate" (jsonrpc-name server))
   (unwind-protect
       (progn
@@ -330,7 +330,7 @@ INTERACTIVE is t if called interactively."
   (interactive (eglot--interactive))
   (let* ((nickname (file-name-base (directory-file-name
                                     (car (project-roots project)))))
-         (current-server (jsonrpc-current-connection))
+         (current-server (eglot--current-server))
          (live-p (and current-server (jsonrpc-running-p current-server))))
     (if (and live-p
              interactive
@@ -352,7 +352,7 @@ managing `%s' buffers in project `%s'."
 (defun eglot-reconnect (server &optional interactive)
   "Reconnect to SERVER.
 INTERACTIVE is t if called interactively."
-  (interactive (list (jsonrpc-current-connection-or-lose) t))
+  (interactive (list (eglot--current-server-or-lose) t))
   (when (jsonrpc-running-p server)
     (ignore-errors (eglot-shutdown server interactive)))
   (eglot--connect (eglot--project server)
@@ -363,7 +363,20 @@ INTERACTIVE is t if called interactively."
                   (eglot--saved-initargs server))
   (eglot--message "Reconnected!"))
 
-(defalias 'eglot-events-buffer 'jsonrpc-events-buffer)
+(defun eglot-events-buffer (server)
+  "Display events buffer for SERVER."
+  (interactive (eglot--current-server-or-lose))
+  (display-buffer (jsonrpc-events-buffer server)))
+
+(defun eglot-stderr-buffer (server)
+  "Display stderr buffer for SERVER."
+  (interactive (eglot--current-server-or-lose))
+  (display-buffer (jsonrpc-stderr-buffer server)))
+
+(defun eglot-forget-pending-continuations (server)
+  "Forget pending requests for SERVER."
+  (interactive (eglot--current-server-or-lose))
+  (jsonrpc-forget-pending-continuations server))
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
@@ -515,7 +528,7 @@ under cursor."
   (unless (cl-some (lambda (feat)
                      (memq feat eglot-ignored-server-capabilites))
                    feats)
-    (cl-loop for caps = (eglot--capabilities (jsonrpc-current-connection-or-lose))
+    (cl-loop for caps = (eglot--capabilities (eglot--current-server-or-lose))
              then (cadr probe)
              for feat in feats
              for probe = (plist-member caps feat)
@@ -548,7 +561,6 @@ If optional MARKERS, make markers."
   nil nil eglot-mode-map
   (cond
    (eglot--managed-mode
-    (add-hook 'jsonrpc-find-connection-functions 'eglot--find-current-server nil t)
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
@@ -562,7 +574,6 @@ If optional MARKERS, make markers."
                   #'eglot-eldoc-function)
     (add-function :around (local imenu-create-index-function) #'eglot-imenu))
    (t
-    (remove-hook 'jsonrpc-find-connection-functions 'eglot--find-current-server t)
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
     (remove-hook 'before-change-functions 'eglot--before-change t)
@@ -589,11 +600,16 @@ If optional MARKERS, make markers."
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
 
-(defun eglot--find-current-server ()
+(defun eglot--current-server ()
   "Find the current logical EGLOT server."
   (let* ((probe (or (project-current) `(transient . ,default-directory))))
     (cl-find major-mode (gethash probe eglot--servers-by-project)
              :key #'eglot--major-mode)))
+
+(defun eglot--current-server-or-lose ()
+  "Return current logical EGLOT server connection or error."
+  (or (eglot--current-server)
+      (jsonrpc-error "No current JSON-RPC connection")))
 
 (defvar-local eglot--unreported-diagnostics nil
   "Unreported Flymake diagnostics for this buffer.")
@@ -603,7 +619,7 @@ If optional MARKERS, make markers."
 If SERVER is supplied, do it only if BUFFER is managed by it.  In
 that case, also signal textDocument/didOpen."
   ;; Called even when revert-buffer-in-progress-p
-  (let* ((cur (and buffer-file-name (eglot--find-current-server)))
+  (let* ((cur (and buffer-file-name (eglot--current-server)))
          (server (or (and (null server) cur) (and server (eq server cur) cur))))
     (when server
       (setq eglot--unreported-diagnostics `(:just-opened . nil))
@@ -614,7 +630,7 @@ that case, also signal textDocument/didOpen."
 
 (defun eglot-clear-status (server)
   "Clear the last JSONRPC error for SERVER."
-  (interactive (list (jsonrpc-current-connection-or-lose)))
+  (interactive (list (eglot--current-server-or-lose)))
   (setf (jsonrpc-last-error server) nil))
 
 
@@ -651,7 +667,7 @@ Uses THING, FACE, DEFS and PREPEND."
 
 (defun eglot--mode-line-format ()
   "Compose the EGLOT's mode-line."
-  (pcase-let* ((server (jsonrpc-current-connection))
+  (pcase-let* ((server (eglot--current-server))
                (nick (and server (eglot--project-nickname server)))
                (pending (and server (hash-table-count
                                      (jsonrpc--request-continuations server))))
@@ -662,7 +678,7 @@ Uses THING, FACE, DEFS and PREPEND."
      (when nick
        `(":" ,(eglot--mode-line-props
                nick 'eglot-mode-line
-               '((C-mouse-1 jsonrpc-stderr-buffer "go to stderr buffer")
+               '((C-mouse-1 eglot-stderr-buffer "go to stderr buffer")
                  (mouse-1 eglot-events-buffer "go to events buffer")
                  (mouse-2 eglot-shutdown      "quit server")
                  (mouse-3 eglot-reconnect     "reconnect to server")))
@@ -680,7 +696,7 @@ Uses THING, FACE, DEFS and PREPEND."
          ,@(when (cl-plusp pending)
              `("/" ,(eglot--mode-line-props
                      (format "%d oustanding requests" pending) 'warning
-                     '((mouse-3 jsonrpc-forget-pending-continuations
+                     '((mouse-3 eglot-forget-pending-continuations
                                 "fahgettaboudit"))))))))))
 
 (add-to-list 'mode-line-misc-info
@@ -863,7 +879,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
   (when eglot--recent-changes
-    (let* ((server (jsonrpc-current-connection-or-lose))
+    (let* ((server (eglot--current-server-or-lose))
            (sync-kind (eglot--server-capable :textDocumentSync))
            (full-sync-p (or (eq sync-kind 1)
                             (eq :emacs-messup eglot--recent-changes))))
@@ -887,18 +903,18 @@ Records START, END and PRE-CHANGE-LENGTH locally."
   "Send textDocument/didOpen to server."
   (setq eglot--recent-changes nil eglot--versioned-identifier 0)
   (jsonrpc-notify
-   (jsonrpc-current-connection-or-lose)
+   (eglot--current-server-or-lose)
    :textDocument/didOpen `(:textDocument ,(eglot--TextDocumentItem))))
 
 (defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
   (jsonrpc-notify
-   (jsonrpc-current-connection-or-lose)
+   (eglot--current-server-or-lose)
    :textDocument/didClose `(:textDocument ,(eglot--TextDocumentIdentifier))))
 
 (defun eglot--signal-textDocument/willSave ()
   "Send textDocument/willSave to server."
-  (let ((server (jsonrpc-current-connection-or-lose))
+  (let ((server (eglot--current-server-or-lose))
         (params `(:reason 1 :textDocument ,(eglot--TextDocumentIdentifier))))
     (jsonrpc-notify server :textDocument/willSave params)
     (when (eglot--server-capable :textDocumentSync :willSaveWaitUntil)
@@ -910,7 +926,7 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 (defun eglot--signal-textDocument/didSave ()
   "Send textDocument/didSave to server."
   (jsonrpc-notify
-   (jsonrpc-current-connection-or-lose)
+   (eglot--current-server-or-lose)
    :textDocument/didSave
    (list
     ;; TODO: Handle TextDocumentSaveRegistrationOptions to control this.
@@ -950,7 +966,7 @@ DUMMY is ignored."
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
   (when (eglot--server-capable :documentSymbolProvider)
-    (let ((server (jsonrpc-current-connection-or-lose))
+    (let ((server (eglot--current-server-or-lose))
           (text-id (eglot--TextDocumentIdentifier)))
       (completion-table-with-cache
        (lambda (string)
@@ -984,7 +1000,7 @@ DUMMY is ignored."
          (location-or-locations
           (if rich-identifier
               (get-text-property 0 :locations rich-identifier)
-            (jsonrpc-request (jsonrpc-current-connection-or-lose)
+            (jsonrpc-request (eglot--current-server-or-lose)
                              :textDocument/definition
                              (get-text-property
                               0 :textDocumentPositionParams identifier)))))
@@ -1004,7 +1020,7 @@ DUMMY is ignored."
     (mapcar
      (jsonrpc-lambda (&key uri range)
        (eglot--xref-make identifier uri (plist-get range :start)))
-     (jsonrpc-request (jsonrpc-current-connection-or-lose)
+     (jsonrpc-request (eglot--current-server-or-lose)
                       :textDocument/references
                       (append
                        params
@@ -1017,14 +1033,14 @@ DUMMY is ignored."
      (jsonrpc-lambda (&key name location &allow-other-keys)
        (cl-destructuring-bind (&key uri range) location
          (eglot--xref-make name uri (plist-get range :start))))
-     (jsonrpc-request (jsonrpc-current-connection-or-lose)
+     (jsonrpc-request (eglot--current-server-or-lose)
                       :workspace/symbol
                       `(:query ,pattern)))))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
   (let ((bounds (bounds-of-thing-at-point 'symbol))
-        (server (jsonrpc-current-connection-or-lose)))
+        (server (eglot--current-server-or-lose)))
     (when (eglot--server-capable :completionProvider)
       (list
        (or (car bounds) (point))
@@ -1113,7 +1129,7 @@ DUMMY is ignored."
   "Request \"hover\" information for the thing at point."
   (interactive)
   (cl-destructuring-bind (&key contents range)
-      (jsonrpc-request (jsonrpc-current-connection-or-lose) :textDocument/hover
+      (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
                        (eglot--TextDocumentPositionParams))
     (when (seq-empty-p contents) (eglot--error "No hover info here"))
     (let ((blurb (eglot--hover-info contents range)))
@@ -1124,7 +1140,7 @@ DUMMY is ignored."
   "EGLOT's `eldoc-documentation-function' function.
 If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (let* ((buffer (current-buffer))
-         (server (jsonrpc-current-connection-or-lose))
+         (server (eglot--current-server-or-lose))
          (position-params (eglot--TextDocumentPositionParams))
          sig-showing)
     (cl-macrolet ((when-buffer-window
@@ -1183,7 +1199,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                 (cons (propertize name :kind (cdr (assoc kind eglot--kind-names)))
                       (eglot--lsp-position-to-point
                        (plist-get (plist-get location :range) :start))))
-              (jsonrpc-request (jsonrpc-current-connection-or-lose)
+              (jsonrpc-request (eglot--current-server-or-lose)
                                :textDocument/documentSymbol
                                `(:textDocument ,(eglot--TextDocumentIdentifier))))))
         (append
@@ -1242,7 +1258,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (eglot--server-capable :renameProvider)
     (eglot--error "Server can't rename!"))
   (eglot--apply-workspace-edit
-   (jsonrpc-request (jsonrpc-current-connection-or-lose)
+   (jsonrpc-request (eglot--current-server-or-lose)
                     :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
                                            :newName ,newname))
    current-prefix-arg))
@@ -1259,7 +1275,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
            (t (list (point-min) (point-max))))))
   (unless (eglot--server-capable :codeActionProvider)
     (eglot--error "Server can't execute code actions!"))
-  (let* ((server (jsonrpc-current-connection-or-lose))
+  (let* ((server (eglot--current-server-or-lose))
          (actions (jsonrpc-request
                    server
                    :textDocument/codeAction
