@@ -423,7 +423,6 @@ appeases checkdoc, that's all."
                    :initializationOptions (eglot-initialization-options server)
                    :capabilities (eglot-client-capabilities server)))
           (setf (eglot--capabilities server) capabilities)
-          (setf (jsonrpc-status server) nil)
           (dolist (buffer (buffer-list))
             (with-current-buffer buffer
               (eglot--maybe-activate-editing-mode server)))
@@ -613,6 +612,11 @@ that case, also signal textDocument/didOpen."
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
 
+(defun eglot-clear-status (server)
+  "Clear the last JSONRPC error for SERVER."
+  (interactive (list (jsonrpc-current-connection-or-lose)))
+  (setf (jsonrpc-last-error server) nil))
+
 
 ;;; Mode-line, menu and other sugar
 ;;;
@@ -652,7 +656,7 @@ Uses THING, FACE, DEFS and PREPEND."
                (pending (and server (hash-table-count
                                      (jsonrpc--request-continuations server))))
                (`(,_id ,doing ,done-p ,detail) (and server (eglot--spinner server)))
-               (`(,status ,serious-p) (and server (jsonrpc-status server))))
+               (last-error (and server (jsonrpc-last-error server))))
     (append
      `(,(eglot--mode-line-props "eglot" 'eglot-mode-line nil))
      (when nick
@@ -662,11 +666,12 @@ Uses THING, FACE, DEFS and PREPEND."
                  (mouse-1 eglot-events-buffer "go to events buffer")
                  (mouse-2 eglot-shutdown      "quit server")
                  (mouse-3 eglot-reconnect     "reconnect to server")))
-         ,@(when serious-p
+         ,@(when last-error
              `("/" ,(eglot--mode-line-props
                      "error" 'compilation-mode-line-fail
-                     '((mouse-3 jsonrpc-clear-status  "clear this status"))
-                     (format "An error occured: %s\n" status))))
+                     '((mouse-3 eglot-clear-status  "clear this status"))
+                     (format "An error occured: %s\n" (plist-get last-error
+                                                                 :message)))))
          ,@(when (and doing (not done-p))
              `("/" ,(eglot--mode-line-props
                      (format "%s%s" doing
