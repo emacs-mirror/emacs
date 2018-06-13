@@ -867,8 +867,8 @@ under cursor."
              for feat in feats
              for probe = (plist-member caps feat)
              if (not probe) do (cl-return nil)
-             if (eq (cadr probe) t) do (cl-return t)
              if (eq (cadr probe) :json-false) do (cl-return nil)
+             if (not (listp (cadr probe))) do (cl-return (cadr probe))
              finally (cl-return (or probe t)))))
 
 (defun eglot--range-region (range &optional markers)
