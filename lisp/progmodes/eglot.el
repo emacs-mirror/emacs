@@ -1039,14 +1039,14 @@ Uses THING, FACE, DEFS and PREPEND."
 
 ;;; Protocol implementation (Requests, notifications, etc)
 ;;;
-(defun eglot-shutdown (server &optional _interactive)
+(defun eglot-shutdown (server &optional _interactive timeout)
   "Politely ask SERVER to quit.
-Forcefully quit it if it doesn't respond.  Don't leave this
-function with the server still running."
+Forcefully quit it if it doesn't respond within TIMEOUT seconds.
+Don't leave this function with the server still running."
   (interactive (list (eglot--current-server-or-lose) t))
   (eglot--message "Asking %s politely to terminate" (eglot--name server))
   (unwind-protect
-      (let ((eglot-request-timeout 3))
+      (let ((eglot-request-timeout (or timeout 1.5)))
         (setf (eglot--shutdown-requested server) t)
         (eglot--request server :shutdown nil)
         ;; this one is supposed to always fail, hence ignore-errors
