@@ -131,7 +131,7 @@ FAQ - Issues and Errors
 
 The @code{use-package} macro allows you to isolate package configuration
 in your @file{.emacs} file in a way that is both performance-oriented and,
-well, tidy.  I created it because I have over 80 packages that I use in
+well, tidy.  I created it because I have over 400 packages that I use in
 Emacs, and things were getting difficult to manage.  Yet with this utility
 my total load time is around 2 seconds, with no loss of functionality!
 
