@@ -737,7 +737,7 @@ happens, the original timer keeps counting). Return (ID TIMER)."
                        (setf (eglot--status server) `(,message t))
                        server `(:message "error ignored, status set"
                                          :id ,id :error ,code)))
-                 (or timer (funcall make-timer)))
+                 (setq timer (or timer (funcall make-timer))))
              (eglot--pending-continuations server))
     (list id timer)))
 
@@ -758,7 +758,10 @@ DEFERRED is passed to `eglot--async-request', which see."
                  (eglot--async-request
                   server method params
                   :success-fn (lambda (result) (throw done `(done ,result)))
-                  :timeout-fn (lambda () (throw done '(error "Timed out")))
+                  :timeout-fn (lambda () (throw done
+                                                `(error
+                                                  ,(format "Request id=%s timed out"
+                                                           (car id-and-timer)))))
                   :error-fn (eglot--lambda (&key code message _data)
                               (throw done `(error
                                             ,(format "Ooops: %s: %s" code message))))
