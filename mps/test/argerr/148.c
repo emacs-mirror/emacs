@@ -221,7 +221,9 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
           the pun would probably work fine almost everywhere)
        */
        comment("About to fix with null pointer...");
-       res = mps_fix(ss, NULL);
+       MPS_SCAN_BEGIN(ss) {
+         res = MPS_FIX2(ss, NULL);
+       } MPS_SCAN_END(ss);
        error("fix with null pointer");
        if (res != MPS_RES_OK) return res;
        obj->data.ref[i].addr = p;

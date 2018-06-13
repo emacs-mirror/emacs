@@ -103,7 +103,7 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
      if (obj->ref[0] != NULL)
      {
       if (formatcomments) printf("Fix: %p.\n", (void*)&(obj->ref[0]));
-      res = MPS_FIX(ss, (mps_addr_t *) &(obj->ref[0])); /* pun! */
+      res = MPS_FIX12(ss, (mps_addr_t *) &(obj->ref[0])); /* pun! */
       if (res != MPS_RES_OK)
       {
        return res;
@@ -112,7 +112,7 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
      if (obj->ref[1] != NULL)
      {
       if (formatcomments) printf("Fix: %p.\n", (void*)&(obj->ref[1]));
-      res = MPS_FIX(ss, (mps_addr_t *) &(obj->ref[1])); /* pun! */
+      res = MPS_FIX12(ss, (mps_addr_t *) &(obj->ref[1])); /* pun! */
       if (res != MPS_RES_OK)
       {
        return res;

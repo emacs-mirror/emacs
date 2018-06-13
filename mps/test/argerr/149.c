@@ -255,7 +255,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        */
        comment("About to fix with null pointer...");
        p = NULL;
-       res = mps_fix(ss, (mps_addr_t *) &p);
+       res = MPS_FIX12(ss, (mps_addr_t *) &p);
        error("fix with null pointer");
        if (res != MPS_RES_OK) return res;
        obj->data.ref[i].addr = p;

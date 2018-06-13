@@ -1,7 +1,7 @@
 /* fmtdy.c: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *  Portions copyright (c) 2002 Global Graphics Software.
  *
  * .readership: MPS developers, Dylan developers
@@ -407,8 +407,11 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
     return MPS_RES_OK;
   }
 
-  res = mps_fix(mps_ss, p);     /* fix the wrapper */
-  if ( res != MPS_RES_OK ) return res;
+  MPS_SCAN_BEGIN(mps_ss) {
+    res = MPS_FIX12(mps_ss, p); /* fix the wrapper */
+  } MPS_SCAN_END(mps_ss);
+  if (res != MPS_RES_OK)
+    return res;
   w = (mps_word_t *)p[0];       /* wrapper is header word */
   assert(dylan_wrapper_check(w));
 
@@ -567,8 +570,11 @@ extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
   assert((h & 3) == 0);
   unused(h);
   
-  res = mps_fix(mps_ss, p);
-  if ( res != MPS_RES_OK ) return res;
+  MPS_SCAN_BEGIN(mps_ss) {
+    res = MPS_FIX12(mps_ss, p);
+  } MPS_SCAN_END(mps_ss);
+  if (res != MPS_RES_OK)
+    return res;
 
   /* w points to wrapper */
   w = (mps_word_t *)p[0];
@@ -852,7 +858,7 @@ mps_res_t dylan_fmt_weak(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
