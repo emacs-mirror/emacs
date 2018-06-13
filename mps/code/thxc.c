@@ -37,6 +37,7 @@ typedef struct mps_thr_s {      /* OS X / Mach thread structure */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attaches to arena */
   Bool alive;                   /* thread believed to be alive? */
+  Bool forking;                 /* thread currently calling fork? */
   thread_port_t port;           /* thread kernel port */
 } ThreadStruct;
 
@@ -48,6 +49,7 @@ Bool ThreadCheck(Thread thread)
   CHECKL(thread->serial < thread->arena->threadSerial);
   CHECKD_NOSIG(Ring, &thread->arenaRing);
   CHECKL(BoolCheck(thread->alive));
+  CHECKL(BoolCheck(thread->forking));
   CHECKL(MACH_PORT_VALID(thread->port));
   return TRUE;
 }
@@ -80,6 +82,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->alive = TRUE;
+  thread->forking = FALSE;
   thread->port = mach_thread_self();
   thread->sig = ThreadSig;
   AVERT(Thread, thread);
@@ -99,6 +102,7 @@ void ThreadDeregister(Thread thread, Arena arena)
 {
   AVERT(Thread, thread);
   AVERT(Arena, arena);
+  AVER(!thread->forking);
 
   RingRemove(&thread->arenaRing);
 
@@ -157,6 +161,16 @@ static Bool threadSuspend(Thread thread)
   return kern_return == KERN_SUCCESS;
 }
 
+
+/* ThreadRingSuspend -- suspend all threads on a ring, except the
+ * current one.
+ */
+void ThreadRingSuspend(Ring threadRing, Ring deadRing)
+{
+  mapThreadRing(threadRing, deadRing, threadSuspend);
+}
+
+
 static Bool threadResume(Thread thread)
 {
   kern_return_t kern_return;
@@ -169,15 +183,6 @@ static Bool threadResume(Thread thread)
   return kern_return == KERN_SUCCESS;
 }
 
-
-/* ThreadRingSuspend -- suspend all threads on a ring, except the
- * current one.
- */
-void ThreadRingSuspend(Ring threadRing, Ring deadRing)
-{
-  mapThreadRing(threadRing, deadRing, threadSuspend);
-}
-
 /* ThreadRingResume -- resume all threads on a ring, except the
  * current one.
  */
@@ -185,6 +190,59 @@ void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
   mapThreadRing(threadRing, deadRing, threadResume);
 }
+
+
+static Bool threadForkPrepare(Thread thread)
+{
+  AVER(!thread->forking);
+  thread->forking = (thread->port == mach_thread_self());
+  return TRUE;
+}
+
+/* ThreadRingForkPrepare -- prepare for a fork by marking the current
+ * thread as forking.
+ */
+void ThreadRingForkPrepare(Ring threadRing, Ring deadRing)
+{
+  mapThreadRing(threadRing, deadRing, threadForkPrepare);
+}
+
+
+static Bool threadForkParent(Thread thread)
+{
+  thread->forking = FALSE;
+  return TRUE;
+}
+
+/* ThreadRingForkParent -- clear the forking flag in the parent after
+ * a fork.
+ */
+void ThreadRingForkParent(Ring threadRing, Ring deadRing)
+{
+  mapThreadRing(threadRing, deadRing, threadForkParent);
+}
+
+
+static Bool threadForkChild(Thread thread)
+{
+  if (thread->forking) {
+    thread->port = mach_thread_self();
+    AVER(MACH_PORT_VALID(thread->port));
+    thread->forking = FALSE;
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+/* ThreadRingForkChild -- update the mach thread port for the current
+ * thread; move all other threads to the dead ring.
+ */
+void ThreadRingForkChild(Ring threadRing, Ring deadRing)
+{
+  mapThreadRing(threadRing, deadRing, threadForkChild);
+}
+
 
 Thread ThreadRingThread(Ring threadRing)
 {

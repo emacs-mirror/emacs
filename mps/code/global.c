@@ -100,6 +100,16 @@ static void arenaDenounce(Arena arena)
 }
 
 
+
+/* GlobalsArenaRing -- return the global ring of arenas */
+
+Ring GlobalsArenaRing(void)
+{
+  AVER(arenaRingInit);
+  return &arenaRing;
+}
+
+
 /* GlobalsCheck -- check the arena globals */
 
 Bool GlobalsCheck(Globals arenaGlobals)
