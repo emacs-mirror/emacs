@@ -1024,3 +1024,10 @@ Arena introspection and debugging
         return storage to the operating system). For reliable results
         call this function and interpret the result while the arena is
         in the :term:`parked state`.
+
+    .. seealso::
+
+        To find out which :term:`pool` the address belongs to, use
+        :c:func:`mps_addr_pool`, and to find out which :term:`object
+        format` describes the object at the address, use
+        :c:func:`mps_addr_fmt`.
