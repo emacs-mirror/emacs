@@ -492,6 +492,7 @@ extern Res GlobalsCompleteCreate(Globals arenaGlobals);
 extern void GlobalsPrepareToDestroy(Globals arenaGlobals);
 extern Res GlobalsDescribe(Globals arena, mps_lib_FILE *stream, Count depth);
 extern Ring GlobalsRememberedSummaryRing(Globals);
+extern Ring GlobalsArenaRing(void);
 
 #define ArenaGlobals(arena) (&(arena)->globals)
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)

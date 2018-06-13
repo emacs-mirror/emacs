@@ -342,6 +342,69 @@ extern void ProtThreadRegister(Bool setup)
 }
 
 
+/* atfork handlers -- support for fork()
+ *
+ * In order to support fork(), we need to solve the following problems:
+ *
+ * (1) the MPS lock might be held by another thread;
+ *
+ * (2.1) only the thread that called fork() exists in the child process;
+ *
+ * (2.2) in particular, the protection fault handling thread does not
+ * exist in the child process.
+ *
+ * (3) this thread has a new Mach port number in the child.
+ *
+ * TODO: what about protExcPort?
+ */
+
+static void prot_atfork_prepare(void)
+{
+  Ring node, nextNode;
+
+  /* Take all the locks, solving (1). */
+
+  /* For each arena, remember which thread is the current thread (if
+     any), solving (2.1). */
+  RING_FOR(node, GlobalsArenaRing(), nextNode) {
+    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
+    Arena arena = GlobalsArena(arenaGlobals);
+    ThreadRingForkPrepare(ArenaThreadRing(arena), ArenaDeadRing(arena));
+  }
+}
+
+static void prot_atfork_parent(void)
+{
+  Ring node, nextNode;
+  /* Release all the locks in reverse order. */
+
+  /* For each arena, mark threads as not forking any more. */
+  RING_FOR(node, GlobalsArenaRing(), nextNode) {
+    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
+    Arena arena = GlobalsArena(arenaGlobals);
+    ThreadRingForkParent(ArenaThreadRing(arena), ArenaDeadRing(arena));
+  }
+}
+
+static void prot_atfork_child(void)
+{
+  Ring node, nextNode;
+  /* For each arena, move all the threads to the dead ring, solving
+     (2.1), except for the thread that was marked as current by the
+     prepare handler, for which we update its mach port number,
+     solving (3). */
+  RING_FOR(node, GlobalsArenaRing(), nextNode) {
+    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
+    Arena arena = GlobalsArena(arenaGlobals);
+    ThreadRingForkChild(ArenaThreadRing(arena), ArenaDeadRing(arena));
+  }
+
+  /* Restart the protection fault handling thread, solving (2.2). */
+
+  /* Release all the locks in reverse order, solving (1). */
+}
+
+
 /* ProtSetup -- set up protection exception handling */
 
 static void protSetupInner(void)
@@ -383,6 +446,9 @@ static void protSetupInner(void)
   AVER(pr == 0);
   if (pr != 0)
     fprintf(stderr, "ERROR: MPS pthread_create: %d\n", pr); /* .trans.must */
+
+  /* Install fork handlers. */
+  pthread_atfork(prot_atfork_prepare, prot_atfork_parent, prot_atfork_child);
 }
 
 void ProtSetup(void)

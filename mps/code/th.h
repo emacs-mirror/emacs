@@ -73,6 +73,13 @@ extern Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
                       void *closure);
 
 
+/* ThreadRingFork* -- atfork handlers for Unix */
+
+void ThreadRingForkPrepare(Ring threadRing, Ring deadRing);
+void ThreadRingForkParent(Ring threadRing, Ring deadRing);
+void ThreadRingForkChild(Ring threadRing, Ring deadRing);
+
+
 #endif /* th_h */
 
 
