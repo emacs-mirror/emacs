@@ -126,20 +126,17 @@ static void protAtForkPrepare(void)
 
 static void protAtForkParent(void)
 {
-  /* Release all the locks in reverse order
-     <design/thread-safety/#sol.fork.lock>. */
+  /* Release all the locks <design/thread-safety/#sol.fork.lock>. */
   GlobalsReleaseAll();
 }
 
 static void protAtForkChild(void)
 {
   /* For each arena, move all threads to the dead ring, except for the
-     thread that was marked as current by the prepare handler
-     <design/thread-safety/#sol.fork.threads>. */
+     current thread <design/thread-safety/#sol.fork.threads>. */
   GlobalsArenaMap(ThreadRingForkChild);
 
-  /* Release all the locks in reverse order
-     <design/thread-safety/#sol.fork.lock>. */
+  /* Reinitialize all the locks <design/thread-safety/#sol.fork.lock>. */
   GlobalsReinitializeAll();
 }
 
