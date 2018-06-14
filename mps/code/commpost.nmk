@@ -237,9 +237,6 @@ $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
 $(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\forktest.exe: $(PFM)\$(VARIETY)\forktest.obj \
-	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
-
 $(PFM)\$(VARIETY)\fotest.exe: $(PFM)\$(VARIETY)\fotest.obj \
 	$(PFM)\$(VARIETY)\mps.lib $(TESTLIBOBJ)
 

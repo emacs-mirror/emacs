@@ -4,6 +4,18 @@ Release notes
 =============
 
 
+.. _release-notes-1.117:
+
+Release 1.117.0
+---------------
+
+New features
+............
+
+#. On FreeBSD, Linux and macOS, the MPS is now able to run in the
+   child process after ``fork()``.
+
+
 .. _release-notes-1.116:
 
 Release 1.116.0

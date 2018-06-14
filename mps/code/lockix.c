@@ -212,7 +212,7 @@ static Lock globalLock = &globalLockStruct;
 static Lock globalRecLock = &globalRecLockStruct;
 static pthread_once_t isGlobalLockInit = PTHREAD_ONCE_INIT;
 
-static void globalLockInit(void)
+void LockInitGlobal(void)
 {
   LockInit(globalLock);
   LockInit(globalRecLock);
@@ -226,7 +226,7 @@ void (LockClaimGlobalRecursive)(void)
   int res;
 
   /* Ensure the global lock has been initialized */
-  res = pthread_once(&isGlobalLockInit, globalLockInit);
+  res = pthread_once(&isGlobalLockInit, LockInitGlobal);
   AVER(res == 0);
   LockClaimRecursive(globalRecLock);
 }
@@ -247,7 +247,7 @@ void (LockClaimGlobal)(void)
   int res;
 
   /* Ensure the global lock has been initialized */
-  res = pthread_once(&isGlobalLockInit, globalLockInit);
+  res = pthread_once(&isGlobalLockInit, LockInitGlobal);
   AVER(res == 0);
   LockClaim(globalLock);
 }
