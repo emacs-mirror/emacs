@@ -7,7 +7,7 @@
 #ifndef protxc_h
 #define protxc_h
 
-extern void ProtThreadRegister(Bool setup);
+extern void ProtThreadRegister(void);
 
 #endif /* protxc_h */
 
