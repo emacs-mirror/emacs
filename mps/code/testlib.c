@@ -388,6 +388,7 @@ void error(const char *format, ...)
 
  va_start(args, format);
  verror(format, args);
+ /* va_end(args); */ /* provokes "unreachable code" error from MSVC */
 }
 
 
