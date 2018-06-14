@@ -286,9 +286,20 @@ static void *protCatchThread(void *p) {
 }
 
 
+/* protSetupThread -- the Mach port number of either the very first
+ * thread to create an arena, or else the child thread after a fork.
+ *
+ * The purpose is to avoid registering this thread twice if the client
+ * program calls mps_thread_reg on it. We need this special case
+ * because we don't require thread registration of the sole thread of
+ * a single-threaded mutator.
+ */
+static mach_port_t protSetupThread = MACH_PORT_NULL;
+
+
 /* ProtThreadRegister -- register a thread for protection exception handling */
 
-extern void ProtThreadRegister(Bool setup)
+extern void ProtThreadRegister(void)
 {
   kern_return_t kr;
   mach_msg_type_number_t old_exception_count = 1;
@@ -298,23 +309,13 @@ extern void ProtThreadRegister(Bool setup)
   exception_behavior_t old_behaviors;
   thread_state_flavor_t old_flavors;
   mach_port_t self;
-  static mach_port_t setupThread = MACH_PORT_NULL;
 
   self = mach_thread_self();
   AVER(MACH_PORT_VALID(self));
   
-  /* Avoid setting up the exception handler for the thread that calls
-     ProtSetup twice, in the case where the mutator registers that thread
-     explicitly.  We need a special case because we don't require thread
-     registration of the sole thread of a single-threaded mutator. */
-  if (setup) {
-    AVER(setupThread == MACH_PORT_NULL);
-    setupThread = self;
-  } else {
-    AVER(setupThread != MACH_PORT_NULL);
-    if (self == setupThread)
-      return;
-  }
+  /* Avoid setting up the exception handler twice. */
+  if (self == protSetupThread)
+    return;
   
   /* Ask to receive EXC_BAD_ACCESS exceptions on our port, complete
      with thread state and identity information in the message.
@@ -342,77 +343,17 @@ extern void ProtThreadRegister(Bool setup)
 }
 
 
-/* atfork handlers -- support for fork()
- *
- * In order to support fork(), we need to solve the following problems:
- *
- * (1) the MPS lock might be held by another thread;
- *
- * (2.1) only the thread that called fork() exists in the child process;
- *
- * (2.2) in particular, the protection fault handling thread does not
- * exist in the child process.
- *
- * (3) this thread has a new Mach port number in the child.
- *
- * TODO: what about protExcPort?
+/* protExcThreadStart -- create exception port, register the current
+ * thread with that port, and create a thread to handle exception
+ * messages.
  */
 
-static void prot_atfork_prepare(void)
-{
-  Ring node, nextNode;
-
-  /* Take all the locks, solving (1). */
-
-  /* For each arena, remember which thread is the current thread (if
-     any), solving (2.1). */
-  RING_FOR(node, GlobalsArenaRing(), nextNode) {
-    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
-    Arena arena = GlobalsArena(arenaGlobals);
-    ThreadRingForkPrepare(ArenaThreadRing(arena), ArenaDeadRing(arena));
-  }
-}
-
-static void prot_atfork_parent(void)
-{
-  Ring node, nextNode;
-  /* Release all the locks in reverse order. */
-
-  /* For each arena, mark threads as not forking any more. */
-  RING_FOR(node, GlobalsArenaRing(), nextNode) {
-    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
-    Arena arena = GlobalsArena(arenaGlobals);
-    ThreadRingForkParent(ArenaThreadRing(arena), ArenaDeadRing(arena));
-  }
-}
-
-static void prot_atfork_child(void)
-{
-  Ring node, nextNode;
-  /* For each arena, move all the threads to the dead ring, solving
-     (2.1), except for the thread that was marked as current by the
-     prepare handler, for which we update its mach port number,
-     solving (3). */
-  RING_FOR(node, GlobalsArenaRing(), nextNode) {
-    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
-    Arena arena = GlobalsArena(arenaGlobals);
-    ThreadRingForkChild(ArenaThreadRing(arena), ArenaDeadRing(arena));
-  }
-
-  /* Restart the protection fault handling thread, solving (2.2). */
-
-  /* Release all the locks in reverse order, solving (1). */
-}
-
-
-/* ProtSetup -- set up protection exception handling */
-
-static void protSetupInner(void)
+static void protExcThreadStart(void)
 {
   kern_return_t kr;
-  int pr;
-  pthread_t excThread;
   mach_port_t self;
+  pthread_t excThread;
+  int pr;
 
   /* Create a port to send and receive exceptions. */
   self = mach_task_self();
@@ -436,19 +377,81 @@ static void protSetupInner(void)
   if (kr != KERN_SUCCESS)
     mach_error("ERROR: MPS mach_port_insert_right", kr); /* .trans.must */
   
-  ProtThreadRegister(TRUE);
+  protSetupThread = MACH_PORT_NULL;
+  ProtThreadRegister();
+  protSetupThread = self;
 
-  /* Launch the exception handling thread.  We use pthread_create because
-     it's much simpler than setting up a thread from scratch using Mach,
-     and that's basically what it does.  See [Libc]
-     <http://www.opensource.apple.com/source/Libc/Libc-825.26/pthreads/pthread.c> */
+  /* Launch the exception handling thread. We use pthread_create
+   * because it's much simpler than setting up a thread from scratch
+   * using Mach, and that's basically what it does. See [Libc]
+   * <http://www.opensource.apple.com/source/Libc/Libc-825.26/pthreads/pthread.c> */
   pr = pthread_create(&excThread, NULL, protCatchThread, NULL);
   AVER(pr == 0);
   if (pr != 0)
     fprintf(stderr, "ERROR: MPS pthread_create: %d\n", pr); /* .trans.must */
+}
+
+
+/* atfork handlers -- support for fork()
+ *
+ * In order to support fork(), we need to solve the following problems:
+ *
+ * .fork.lock: the MPS lock might be held by another thread;
+ *
+ * .fork.threads: only the thread that called fork() exists in the
+ * child process;
+ *
+ * .fork.exc-thread: in particular, the exception handling thread does
+ * not exist in the child process. Also, the port on which the
+ * exception thread receives its messages apparently does not exist in
+ * the child and so needs to be re-allocated.
+ *
+ * .fork.mach-port: the thread that does survive in the child process
+ * has a different Mach port number in the child.
+ */
+
+static void protAtForkPrepare(void)
+{
+  /* Take all the locks (see .fork.lock). */
+
+  /* For each arena, remember which thread is the current thread, if
+     any (see .fork.threads). */
+  GlobalsArenaMap(ThreadRingForkPrepare, UNUSED_POINTER);
+}
+
+static void protAtForkParent(void)
+{
+  /* Release all the locks in reverse order (see .fork.lock). */
+
+  /* For each arena, mark threads as not forking any more
+     (see .fork.threads). */
+  GlobalsArenaMap(ThreadRingForkParent, UNUSED_POINTER);
+}
+
+static void protAtForkChild(void)
+{
+  /* For each arena, move all threads to the dead ring, except for the
+     thread that was marked as current by the prepare handler (see
+     .fork.threads), for which we update its mach port number (see
+     .fork.mach-port). */
+  GlobalsArenaMap(ThreadRingForkChild, UNUSED_POINTER);
+
+  /* Restart the exception handling thread (see .fork.exc-thread). */
+  protExcThreadStart();
+
+  /* Release all the locks in reverse order, solving (see .fork.lock). */
+}
+
+
+/* ProtSetup -- set up protection exception handling */
+
+static void protSetupInner(void)
+{
+  AVER(protSetupThread == MACH_PORT_NULL);
+  protExcThreadStart();
 
   /* Install fork handlers. */
-  pthread_atfork(prot_atfork_prepare, prot_atfork_parent, prot_atfork_child);
+  pthread_atfork(protAtForkPrepare, protAtForkParent, protAtForkChild);
 }
 
 void ProtSetup(void)
