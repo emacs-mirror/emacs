@@ -13,7 +13,7 @@ New features
 ............
 
 #. On FreeBSD, Linux and macOS, the MPS is now able to run in the
-   child process after ``fork()``.
+   child process after ``fork()``. See :ref:`topic-thread-fork`.
 
 
 .. _release-notes-1.116:
