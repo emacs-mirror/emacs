@@ -133,29 +133,26 @@ void ThreadDeregister(Thread thread, Arena arena)
 
 
 /* mapThreadRing -- map over threads on ring calling a function on
- * each one except the current thread.
+ * each one.
  *
  * Threads that are found to be dead (that is, if func returns FALSE)
- * are moved to deadRing, in order to implement
+ * are marked as dead and moved to deadRing, in order to implement
  * design.thread-manager.sol.thread.term.attempt.
  */
 
 static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 {
   Ring node, next;
-  pthread_t self;
 
   AVERT(Ring, threadRing);
   AVERT(Ring, deadRing);
   AVER(FUNCHECK(func));
 
-  self = pthread_self();
   RING_FOR(node, threadRing, next) {
     Thread thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
     AVER(thread->alive);
-    if (!pthread_equal(self, thread->id) /* .thread.id */
-        && !(*func)(thread))
+    if (!(*func)(thread))
     {
       thread->alive = FALSE;
       RingRemove(&thread->arenaRing);
@@ -171,9 +168,14 @@ static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 
 static Bool threadSuspend(Thread thread)
 {
+  Res res;
+  pthread_t self;
+  self = pthread_self();
+  if (pthread_equal(self, thread->id)) /* .thread.id */
+    return TRUE;
+
   /* .error.suspend: if PThreadextSuspend fails, we assume the thread
    * has been terminated. */
-  Res res;
   AVER(thread->context == NULL);
   res = PThreadextSuspend(&thread->thrextStruct, &thread->context);
   AVER(res == ResOK);
@@ -196,6 +198,11 @@ void ThreadRingSuspend(Ring threadRing, Ring deadRing)
 static Bool threadResume(Thread thread)
 {
   Res res;
+  pthread_t self;
+  self = pthread_self();
+  if (pthread_equal(self, thread->id)) /* .thread.id */
+    return TRUE;
+
   /* .error.resume: If PThreadextResume fails, we assume the thread
    * has been terminated. */
   AVER(thread->context != NULL);
@@ -209,6 +216,22 @@ static Bool threadResume(Thread thread)
 void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
   mapThreadRing(threadRing, deadRing, threadResume);
+}
+
+
+static Bool threadForkChild(Thread thread)
+{
+  return pthread_equal(pthread_self(), thread->id); /* .thread.id */
+}
+
+/* ThreadRingForkChild -- update the mach thread port for the current
+ * thread <design/thread-safety/#sol.fork.mach-port>; move all other
+ * threads to the dead ring <design/thread-safety/#sol.fork.threads>.
+ */
+void ThreadRingForkChild(Arena arena)
+{
+  AVERT(Arena, arena);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkChild);
 }
 
 
