@@ -75,9 +75,9 @@ extern Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
 
 /* ThreadRingFork* -- atfork handlers for Unix */
 
-void ThreadRingForkPrepare(Arena arena, void *closure);
-void ThreadRingForkParent(Arena arena, void *closure);
-void ThreadRingForkChild(Arena arena, void *closure);
+void ThreadRingForkPrepare(Arena arena);
+void ThreadRingForkParent(Arena arena);
+void ThreadRingForkChild(Arena arena);
 
 
 #endif /* th_h */

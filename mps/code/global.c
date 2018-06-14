@@ -53,6 +53,45 @@ static void arenaReleaseRingLock(void)
 }
 
 
+/* GlobalsClaimAll -- claim all MPS locks <design/thread-safety/#fork.lock> */
+
+void GlobalsClaimAll(void)
+{
+  LockClaimGlobalRecursive();
+  arenaClaimRingLock();
+  GlobalsArenaMap(ArenaEnter);
+}
+
+/* GlobalsReleaseAll -- release all MPS locks. GlobalsClaimAll must
+ * previously have been called. <design/thread-safety/#sol.fork.lock> */
+
+void GlobalsReleaseAll(void)
+{
+  GlobalsArenaMap(ArenaLeave);
+  arenaReleaseRingLock();
+  LockReleaseGlobalRecursive();
+}
+
+/* arenaReinitLock -- reinitialize the lock for an arena */
+
+static void arenaReinitLock(Arena arena)
+{
+  AVERT(Arena, arena);
+  ShieldLeave(arena);
+  LockInit(ArenaGlobals(arena)->lock);
+}
+
+/* GlobalsReinitializeAll -- reinitialize all MPS locks, and leave the
+ * shield for all arenas. GlobalsClaimAll must previously have been
+ * called. <design/thread-safety/#sol.fork.lock> */
+
+void GlobalsReinitializeAll(void)
+{
+  LockInitGlobal();
+  GlobalsArenaMap(arenaReinitLock);
+}
+
+
 /* arenaAnnounce -- add a new arena into the global ring of arenas
  *
  * On entry, the arena must not be locked (there should be no need,
@@ -103,13 +142,13 @@ static void arenaDenounce(Arena arena)
 /* GlobalsArenaMap -- map a function over the arenas. The caller must
  * have acquired the ring lock. */
 
-void GlobalsArenaMap(void (*func)(Arena arena, void *closure), void *closure)
+void GlobalsArenaMap(void (*func)(Arena arena))
 {
   Ring node, nextNode;
   RING_FOR(node, &arenaRing, nextNode) {
     Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
     Arena arena = GlobalsArena(arenaGlobals);
-    func(arena, closure);
+    func(arena);
   }
 }
 

@@ -127,15 +127,21 @@ static Lock globalLock = &globalLockStruct;
 static Lock globalRecLock = &globalRecLockStruct;
 static Bool globalLockInit = FALSE; /* TRUE iff initialized */
 
+void LockInitGlobal(void)
+{
+  globalLock->claims = 0;
+  LockInit(globalLock);
+  globalRecLock->claims = 0;
+  LockInit(globalRecLock);
+  globalLockInit = TRUE;
+}
 
 static void lockEnsureGlobalLock(void)
 {
   /* Ensure both global locks have been initialized. */
-  /* There is a race condition initializing them. */
+  /* There is a race condition initializing them (job004056). */
   if (!globalLockInit) {
-    LockInit(globalLock);
-    LockInit(globalRecLock);
-    globalLockInit = TRUE;
+    LockInitGlobal();
   }
 }
 
