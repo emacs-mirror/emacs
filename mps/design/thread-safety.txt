@@ -45,7 +45,7 @@ updated at most once (that is, the protocol classes).
 
 _`.req.deadlock`: The MPS must not deadlock.
 
-_`.req.fork`: On Unix platforms, the MPS must be able to continue in
+_`.req.fork`: On Unix platforms, the MPS should be able to continue in
 the child process after a ``fork()``. (Source: job004062_.)
 
 .. _job004062: https://www.ravenbrook.com/project/mps/issue/job004062/
@@ -250,11 +250,12 @@ Fork safety
 -----------
 
 _`.sol.fork.atfork`: The MPS solves the fork-safety problems by
-calling |pthread_atfork|_ to install handler functions that are called
-in the parent process just before fork (the "prepare" handler), and in
-the parent and child processes just after fork (the "parent" and "child" handlers respectively).
+calling |pthread_atfork|_ to install handler functions that are
+called in the parent process just before fork (the "prepare" handler),
+and in the parent and child processes just after fork (the "parent"
+and "child" handlers respectively).
 
-.. |pthread_atfork| replace: ``pthread_atfork()``
+.. |pthread_atfork| replace:: ``pthread_atfork()``
 .. _pthread_atfork: http://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_atfork.html
 
 _`.sol.fork.lock`: In the prepare handler, the MPS takes all the
@@ -265,14 +266,15 @@ In the child handler, the MPS would like to release the locks but this
 does not work (neither on macOS nor on Linux), so instead it
 reinitializes them.
 
-_`.sol.fork.threads`: In the prepare handler, the MPS identifies for
-each arena the current thread, that is, the one calling ``fork()``
-which will survive into the child process, and marks this thread by
-setting a flag in the appropriate ``ThreadStruct``. In the parent
-handler, this flag is cleared. In the child handler, all threads
-(except for the one flagged) are marked as dead and transferred to the
-ring of dead threads. (The MPS can't destroy the thread structures at
-this point because they are owned by the client program.)
+_`.sol.fork.threads`: On macOS, in the prepare handler, the MPS
+identifies for each arena the current thread, that is, the one calling
+``fork()`` which will survive into the child process, and marks this
+thread by setting a flag in the appropriate ``ThreadStruct``. In the
+parent handler, this flag is cleared. On all Unix platforms, in the
+child handler, all threads (except for the current thread) are marked
+as dead and transferred to the ring of dead threads. (The MPS can't
+destroy the thread structures at this point because they are owned by
+the client program.)
 
 _`.sol.fork.exc-thread`: On macOS, in the child handler, the exception
 port and dedicated thread are re-created, and the current thread
