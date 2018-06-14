@@ -87,7 +87,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->sig = ThreadSig;
   AVERT(Thread, thread);
 
-  ProtThreadRegister(FALSE);
+  ProtThreadRegister();
 
   ring = ArenaThreadRing(arena);
 
@@ -115,7 +115,7 @@ void ThreadDeregister(Thread thread, Arena arena)
 
 
 /* mapThreadRing -- map over threads on ring calling a function on
- * each one except the current thread.
+ * each one.
  *
  * Threads that are found to be dead (that is, if func returns FALSE)
  * are marked as dead and moved to deadRing, in order to implement
@@ -125,21 +125,16 @@ void ThreadDeregister(Thread thread, Arena arena)
 static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 {
   Ring node, next;
-  mach_port_t self;
 
   AVERT(Ring, threadRing);
   AVERT(Ring, deadRing);
   AVER(FUNCHECK(func));
 
-  self = mach_thread_self();
-  AVER(MACH_PORT_VALID(self));
   RING_FOR(node, threadRing, next) {
     Thread thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
     AVER(thread->alive);
-    if (thread->port != self
-        && !(*func)(thread))
-    {
+    if (!(*func)(thread)) {
       thread->alive = FALSE;
       RingRemove(&thread->arenaRing);
       RingAppend(deadRing, &thread->arenaRing);
@@ -151,6 +146,11 @@ static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 static Bool threadSuspend(Thread thread)
 {
   kern_return_t kern_return;
+  mach_port_t self = mach_thread_self();
+  AVER(MACH_PORT_VALID(self));
+  if (thread->port == self)
+    return TRUE;
+
   kern_return = thread_suspend(thread->port);
   /* No rendezvous is necessary: thread_suspend "prevents the thread
    * from executing any more user-level instructions" */
@@ -174,6 +174,11 @@ void ThreadRingSuspend(Ring threadRing, Ring deadRing)
 static Bool threadResume(Thread thread)
 {
   kern_return_t kern_return;
+  mach_port_t self = mach_thread_self();
+  AVER(MACH_PORT_VALID(self));
+  if (thread->port == self)
+    return TRUE;
+
   kern_return = thread_resume(thread->port);
   /* Mach has no equivalent of EAGAIN. */
   AVER(kern_return == KERN_SUCCESS);
@@ -202,9 +207,10 @@ static Bool threadForkPrepare(Thread thread)
 /* ThreadRingForkPrepare -- prepare for a fork by marking the current
  * thread as forking.
  */
-void ThreadRingForkPrepare(Ring threadRing, Ring deadRing)
+void ThreadRingForkPrepare(Arena arena, void *closure)
 {
-  mapThreadRing(threadRing, deadRing, threadForkPrepare);
+  AVER(closure == UNUSED_POINTER);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkPrepare);
 }
 
 
@@ -217,9 +223,10 @@ static Bool threadForkParent(Thread thread)
 /* ThreadRingForkParent -- clear the forking flag in the parent after
  * a fork.
  */
-void ThreadRingForkParent(Ring threadRing, Ring deadRing)
+void ThreadRingForkParent(Arena arena, void *closure)
 {
-  mapThreadRing(threadRing, deadRing, threadForkParent);
+  AVER(closure == UNUSED_POINTER);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkParent);
 }
 
 
@@ -238,9 +245,10 @@ static Bool threadForkChild(Thread thread)
 /* ThreadRingForkChild -- update the mach thread port for the current
  * thread; move all other threads to the dead ring.
  */
-void ThreadRingForkChild(Ring threadRing, Ring deadRing)
+void ThreadRingForkChild(Arena arena, void *closure)
 {
-  mapThreadRing(threadRing, deadRing, threadForkChild);
+  AVER(closure == UNUSED_POINTER);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkChild);
 }
 
 

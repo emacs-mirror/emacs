@@ -100,13 +100,17 @@ static void arenaDenounce(Arena arena)
 }
 
 
+/* GlobalsArenaMap -- map a function over the arenas. The caller must
+ * have acquired the ring lock. */
 
-/* GlobalsArenaRing -- return the global ring of arenas */
-
-Ring GlobalsArenaRing(void)
+void GlobalsArenaMap(void (*func)(Arena arena, void *closure), void *closure)
 {
-  AVER(arenaRingInit);
-  return &arenaRing;
+  Ring node, nextNode;
+  RING_FOR(node, &arenaRing, nextNode) {
+    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
+    Arena arena = GlobalsArena(arenaGlobals);
+    func(arena, closure);
+  }
 }
 
 
@@ -601,7 +605,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
   Res res;
 
   arenaClaimRingLock();    /* <design/arena/#lock.ring> */
-  AVERT(Ring, &arenaRing);
 
   RING_FOR(node, &arenaRing, nextNode) {
     Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
