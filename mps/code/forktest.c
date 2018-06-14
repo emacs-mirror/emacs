@@ -1,11 +1,14 @@
-/* tagtest.c: TAGGED POINTER TEST
+/* forktest.c: FORK SAFETY TEST
  *
  * $Id: //info.ravenbrook.com/project/mps/branch/2018-06-13/fork/code/tagtest.c#1 $
  * Copyright (c) 2018 Ravenbrook Limited.  See end of file for license.
  *
  * .overview: This test case is a regression test for job004062. It
  * checks that the MPS correctly runs in the child process after a
- * fork() on FreeBSD, Linux or OS X.
+ * fork() on FreeBSD, Linux or macOS.
+ *
+ * .format: This test case uses a trivial object format in which each
+ * object contains a single reference.
  */
 
 #include <stdio.h>
@@ -26,9 +29,9 @@ enum {
 typedef struct obj_s {
   unsigned type;                /* One of the TYPE_ enums */
   union {
-    struct obj_s *ref;
-    mps_addr_t fwd;
-    size_t pad;
+    struct obj_s *ref;          /* TYPE_REF */
+    mps_addr_t fwd;             /* TYPE_FWD */
+    size_t pad;                 /* TYPE_PAD */
   } u;
 } obj_s, *obj_t;
 
@@ -108,7 +111,8 @@ int main(int argc, char *argv[])
   testlib_init(argc, argv);
 
   /* Set the pause time to be very small so that the incremental
-     collector has to leave a read barrier in place for us to hit. */
+     collector (when it runs) will have to leave a read barrier in
+     place for us to hit. */
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, 0.0);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
@@ -139,7 +143,7 @@ int main(int argc, char *argv[])
   die(mps_ap_create_k(&obj_ap, pool, mps_args_none),
       "Couldn't create obj allocation point");
 
-  /* Create a linked list of a million cells. */
+  /* Create a linked list of objects. */
   first = NULL;
   for (i = 0; i < 100000; ++i) {
     size_t size = ALIGN_UP(sizeof(obj_s), ALIGNMENT);
@@ -157,17 +161,20 @@ int main(int argc, char *argv[])
   pid = fork();
   cdie(pid >= 0, "fork failed");
   if (pid == 0) {
-    /* Child: allow a collection to start */
+    /* Child: allow a collection to start, which will cause a read
+       barrier to be applied to any segment containing live objects
+       that was scanned. */
     mps_arena_release(arena);
 
-    /* Read a bunch of stuff so that we hit the read barrier. */
+    /* Read all the objects, so that if there is read barrier in place
+       we will hit it. */
     for (obj = first; obj != NULL; obj = obj->u.ref) {
       Insist(obj->type == TYPE_REF);
     }
 
     mps_arena_park(arena);
   } else {
-    /* Parent: wait for child result */
+    /* Parent: wait for child and check that its exit status is zero. */
     int stat;
     cdie(pid == waitpid(pid, &stat, 0), "waitpid failed");
     cdie(WIFEXITED(stat), "child did not exit normally");
