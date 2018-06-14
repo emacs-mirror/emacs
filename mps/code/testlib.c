@@ -388,7 +388,6 @@ void error(const char *format, ...)
 
  va_start(args, format);
  verror(format, args);
- va_end(args);
 }
 
 
