@@ -152,8 +152,7 @@ static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
     Thread thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
     AVER(thread->alive);
-    if (!(*func)(thread))
-    {
+    if (!(*func)(thread)) {
       thread->alive = FALSE;
       RingRemove(&thread->arenaRing);
       RingAppend(deadRing, &thread->arenaRing);
@@ -224,9 +223,8 @@ static Bool threadForkChild(Thread thread)
   return pthread_equal(pthread_self(), thread->id); /* .thread.id */
 }
 
-/* ThreadRingForkChild -- update the mach thread port for the current
- * thread <design/thread-safety/#sol.fork.mach-port>; move all other
- * threads to the dead ring <design/thread-safety/#sol.fork.threads>.
+/* ThreadRingForkChild -- move threads except for the current thread
+ * to the dead ring <design/thread-safety/#sol.fork.threads>.
  */
 void ThreadRingForkChild(Arena arena)
 {

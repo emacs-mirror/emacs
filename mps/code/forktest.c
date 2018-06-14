@@ -35,11 +35,6 @@ typedef struct obj_s {
   } u;
 } obj_s, *obj_t;
 
-#define ALIGNMENT sizeof(obj_s)
-
-/* Align up a to a multiple of b. */
-#define ALIGN_UP(a, b) (((a) + (b) - 1) & ~((b) - 1))
-
 static void obj_fwd(mps_addr_t old, mps_addr_t new)
 {
   obj_t obj = old;
@@ -73,7 +68,7 @@ static mps_addr_t obj_skip(mps_addr_t addr)
   } else {
     size = sizeof(obj_s);
   }
-  return (char *)addr + ALIGN_UP(size, ALIGNMENT);
+  return (char *)addr + size;
 }
 
 static mps_res_t obj_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
@@ -125,7 +120,7 @@ int main(int argc, char *argv[])
       "Couldn't create thread root");
 
   MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, ALIGNMENT);
+    MPS_ARGS_ADD(args, MPS_KEY_FMT_ALIGN, sizeof(obj_s));
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SCAN, obj_scan);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_SKIP, obj_skip);
     MPS_ARGS_ADD(args, MPS_KEY_FMT_FWD, obj_fwd);
@@ -146,7 +141,7 @@ int main(int argc, char *argv[])
   /* Create a linked list of objects. */
   first = NULL;
   for (i = 0; i < 100000; ++i) {
-    size_t size = ALIGN_UP(sizeof(obj_s), ALIGNMENT);
+    size_t size = sizeof(obj_s);
     mps_addr_t addr;
     do {
       die(mps_reserve(&addr, obj_ap, size), "Couldn't allocate.");
