@@ -1,4 +1,4 @@
-;;; use-package-delight.el --- Support for the :delight keyword
+;;; use-package-delight.el --- Support for the :delight keyword  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2017 John Wiegley
 
@@ -52,7 +52,7 @@
           ":delight expects `delight' arguments or a list of them"))))
 
 ;;;###autoload
-(defun use-package-normalize/:delight (name keyword args)
+(defun use-package-normalize/:delight (name _keyword args)
   "Normalize arguments to delight."
   (cond ((null args)
          `((,(use-package-as-mode name) nil ,name)))
@@ -77,7 +77,7 @@
               args)))))
 
 ;;;###autoload
-(defun use-package-handler/:delight (name keyword args rest state)
+(defun use-package-handler/:delight (name _keyword args rest state)
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      body
