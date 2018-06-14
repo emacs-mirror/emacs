@@ -110,8 +110,8 @@ void LockInitGlobal(void)
 {
   globalLock->claims = 0;
   LockInit(globalLock);
-  globalRecursiveLock->claims = 0;
-  LockInit(globalRecursiveLock);
+  globalRecLock->claims = 0;
+  LockInit(globalRecLock);
 }
 
 void (LockClaimGlobalRecursive)(void)
