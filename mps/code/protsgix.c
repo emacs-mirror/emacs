@@ -28,6 +28,7 @@
 
 #include "prmcix.h"
 
+#include <pthread.h>   /* for pthread_atfork */
 #include <signal.h>    /* for many functions */
 #include <ucontext.h>  /* for ucontext_t */
 #include <unistd.h>    /* for getpid */
@@ -115,6 +116,34 @@ static void sigHandle(int sig, siginfo_t *info, void *uap)  /* .sigh.args */
 }
 
 
+/* atfork handlers -- support for fork(). See <design/thread-safety/> */
+
+static void protAtForkPrepare(void)
+{
+  /* Take all the locks <design/thread-safety/#sol.fork.lock>. */
+  GlobalsClaimAll();
+}
+
+static void protAtForkParent(void)
+{
+  /* Release all the locks in reverse order
+     <design/thread-safety/#sol.fork.lock>. */
+  GlobalsReleaseAll();
+}
+
+static void protAtForkChild(void)
+{
+  /* For each arena, move all threads to the dead ring, except for the
+     thread that was marked as current by the prepare handler
+     <design/thread-safety/#sol.fork.threads>. */
+  GlobalsArenaMap(ThreadRingForkChild);
+
+  /* Release all the locks in reverse order
+     <design/thread-safety/#sol.fork.lock>. */
+  GlobalsReinitializeAll();
+}
+
+
 /*  ProtSetup -- global protection setup
  *
  *  Under Unix, the global setup involves installing a signal handler
@@ -132,6 +161,9 @@ void ProtSetup(void)
 {
   struct sigaction sa;
   int result;
+
+  /* Install fork handlers <design/thread-safety/#sol.fork.atfork>. */
+  pthread_atfork(protAtForkPrepare, protAtForkParent, protAtForkChild);
 
   sa.sa_sigaction = sigHandle;
   sigemptyset(&sa.sa_mask);
