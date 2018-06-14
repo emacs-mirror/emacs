@@ -205,11 +205,11 @@ static Bool threadForkPrepare(Thread thread)
 }
 
 /* ThreadRingForkPrepare -- prepare for a fork by marking the current
- * thread as forking.
+ * thread as forking <design/thread-safety/#sol.fork.threads>.
  */
-void ThreadRingForkPrepare(Arena arena, void *closure)
+void ThreadRingForkPrepare(Arena arena)
 {
-  AVER(closure == UNUSED_POINTER);
+  AVERT(Arena, arena);
   mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkPrepare);
 }
 
@@ -221,11 +221,11 @@ static Bool threadForkParent(Thread thread)
 }
 
 /* ThreadRingForkParent -- clear the forking flag in the parent after
- * a fork.
+ * a fork <design/thread-safety/#sol.fork.threads>.
  */
-void ThreadRingForkParent(Arena arena, void *closure)
+void ThreadRingForkParent(Arena arena)
 {
-  AVER(closure == UNUSED_POINTER);
+  AVERT(Arena, arena);
   mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkParent);
 }
 
@@ -243,11 +243,12 @@ static Bool threadForkChild(Thread thread)
 }
 
 /* ThreadRingForkChild -- update the mach thread port for the current
- * thread; move all other threads to the dead ring.
+ * thread <design/thread-safety/#sol.fork.mach-port>; move all other
+ * threads to the dead ring <design/thread-safety/#sol.fork.threads>.
  */
-void ThreadRingForkChild(Arena arena, void *closure)
+void ThreadRingForkChild(Arena arena)
 {
-  AVER(closure == UNUSED_POINTER);
+  AVERT(Arena, arena);
   mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkChild);
 }
 

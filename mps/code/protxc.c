@@ -392,54 +392,44 @@ static void protExcThreadStart(void)
 }
 
 
-/* atfork handlers -- support for fork()
- *
- * In order to support fork(), we need to solve the following problems:
- *
- * .fork.lock: the MPS lock might be held by another thread;
- *
- * .fork.threads: only the thread that called fork() exists in the
- * child process;
- *
- * .fork.exc-thread: in particular, the exception handling thread does
- * not exist in the child process. Also, the port on which the
- * exception thread receives its messages apparently does not exist in
- * the child and so needs to be re-allocated.
- *
- * .fork.mach-port: the thread that does survive in the child process
- * has a different Mach port number in the child.
- */
+/* atfork handlers -- support for fork(). See <design/thread-safety/> */
 
 static void protAtForkPrepare(void)
 {
-  /* Take all the locks (see .fork.lock). */
+  /* Take all the locks <design/thread-safety/#sol.fork.lock>. */
+  GlobalsClaimAll();
 
   /* For each arena, remember which thread is the current thread, if
-     any (see .fork.threads). */
-  GlobalsArenaMap(ThreadRingForkPrepare, UNUSED_POINTER);
+     any <design/thread-safety/#sol.fork.threads>. */
+  GlobalsArenaMap(ThreadRingForkPrepare);
 }
 
 static void protAtForkParent(void)
 {
-  /* Release all the locks in reverse order (see .fork.lock). */
-
   /* For each arena, mark threads as not forking any more
-     (see .fork.threads). */
-  GlobalsArenaMap(ThreadRingForkParent, UNUSED_POINTER);
+     <design/thread-safety/#sol.fork.threads>. */
+  GlobalsArenaMap(ThreadRingForkParent);
+
+  /* Release all the locks in reverse order
+     <design/thread-safety/#sol.fork.lock>. */
+  GlobalsReleaseAll();
 }
 
 static void protAtForkChild(void)
 {
   /* For each arena, move all threads to the dead ring, except for the
-     thread that was marked as current by the prepare handler (see
-     .fork.threads), for which we update its mach port number (see
-     .fork.mach-port). */
-  GlobalsArenaMap(ThreadRingForkChild, UNUSED_POINTER);
+     thread that was marked as current by the prepare handler
+     <design/thread-safety/#sol.fork.threads>, for which we update its
+     mach port number <design/thread-safety/#sol.fork.mach-port>. */
+  GlobalsArenaMap(ThreadRingForkChild);
 
-  /* Restart the exception handling thread (see .fork.exc-thread). */
+  /* Restart the exception handling thread
+     <design/thread-safety/#sol.fork.exc-thread>. */
   protExcThreadStart();
 
-  /* Release all the locks in reverse order, solving (see .fork.lock). */
+  /* Release all the locks in reverse order
+     <design/thread-safety/#sol.fork.lock>. */
+  GlobalsReinitializeAll();
 }
 
 
@@ -450,7 +440,7 @@ static void protSetupInner(void)
   AVER(protSetupThread == MACH_PORT_NULL);
   protExcThreadStart();
 
-  /* Install fork handlers. */
+  /* Install fork handlers <design/thread-safety/#sol.fork.atfork>. */
   pthread_atfork(protAtForkPrepare, protAtForkParent, protAtForkChild);
 }
 

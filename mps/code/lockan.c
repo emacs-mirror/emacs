@@ -106,6 +106,13 @@ static Lock globalLock = &globalLockStruct;
 
 static Lock globalRecLock = &globalRecursiveLockStruct;
 
+void LockInitGlobal(void)
+{
+  globalLock->claims = 0;
+  LockInit(globalLock);
+  globalRecursiveLock->claims = 0;
+  LockInit(globalRecursiveLock);
+}
 
 void (LockClaimGlobalRecursive)(void)
 {

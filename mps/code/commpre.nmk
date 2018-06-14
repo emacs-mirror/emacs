@@ -77,7 +77,6 @@ TEST_TARGETS=\
     expt825.exe \
     finalcv.exe \
     finaltest.exe \
-    forktest.exe \
     fotest.exe \
     gcbench.exe \
     landtest.exe \
