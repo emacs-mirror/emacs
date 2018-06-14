@@ -145,6 +145,7 @@ static void arenaDenounce(Arena arena)
 void GlobalsArenaMap(void (*func)(Arena arena))
 {
   Ring node, nextNode;
+  AVERT(Ring, &arenaRing);
   RING_FOR(node, &arenaRing, nextNode) {
     Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
     Arena arena = GlobalsArena(arenaGlobals);
@@ -644,6 +645,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
   Res res;
 
   arenaClaimRingLock();    /* <design/arena/#lock.ring> */
+  AVERT(Ring, &arenaRing);
 
   RING_FOR(node, &arenaRing, nextNode) {
     Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
