@@ -263,8 +263,8 @@ locks: that is, the global locks, and then the arena lock for every
 arena. Note that a side-effect of this is that the shield is entered
 for each arena. In the parent handler, the MPS releases all the locks.
 In the child handler, the MPS would like to release the locks but this
-does not work (neither on macOS nor on Linux), so instead it
-reinitializes them.
+does not work on any supported platform, so instead it reinitializes
+them, by calling ``LockInitGlobal()``.
 
 _`.sol.fork.threads`: On macOS, in the prepare handler, the MPS
 identifies for each arena the current thread, that is, the one calling
@@ -292,6 +292,8 @@ Document History
 - 2002-06-21 RB_ Converted from MMInfo database design document.
 
 - 2013-05-22 GDR_ Converted to reStructuredText.
+
+- 2018-06-14 GDR_ Added fork safety design.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

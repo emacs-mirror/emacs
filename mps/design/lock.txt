@@ -287,6 +287,8 @@ Document History
 
 - 2014-10-21 GDR_ Brought up to date.
 
+- 2018-06-14 GDR_ Added ``LockInitGlobal()``.
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
