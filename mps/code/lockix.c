@@ -1,7 +1,7 @@
 /* lockix.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .posix: The implementation uses a POSIX interface, and should be reusable
  * for many Unix-like operating systems.
@@ -9,7 +9,7 @@
  * .freebsd: This implementation supports FreeBSD (platform
  * MPS_OS_FR).
  *
- * .darwin: This implementation supports Darwin (OS X) (platform
+ * .darwin: This implementation supports Darwin (macOS) (platform
  * MPS_OS_XC).
  *
  * .design: These locks are implemented using mutexes.
@@ -280,7 +280,7 @@ void LockSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

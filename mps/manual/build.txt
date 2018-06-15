@@ -34,14 +34,14 @@ Compiling for production
 
 In the simplest case, you can compile the MPS to an object file with just::
 
-    cc -c mps.c           (Unix/Mac OS X)
+    cc -c mps.c           (Unix/macOS)
     cl /c mps.c           (Windows)
 
 This will build a "hot" variety (for production) object file for use
 with ``mps.h``.  You can greatly improve performance by allowing global
 optimization, for example::
 
-    cc -O2 -c mps.c       (Unix/Mac OS X)
+    cc -O2 -c mps.c       (Unix/macOS)
     cl /O2 /c mps.c       (Windows)
 
 
@@ -51,7 +51,7 @@ Compiling for debugging
 You can get a "cool" variety MPS (with more internal checking, for
 debugging and development) with::
 
-    cc -g -DCONFIG_VAR_COOL -c mps.c    (Unix/Mac OS X)
+    cc -g -DCONFIG_VAR_COOL -c mps.c    (Unix/macOS)
     cl /Zi /DCONFIG_VAR_COOL /c mps.c   (Windows)
 
 
@@ -68,7 +68,7 @@ between it and the MPS.  So if your format implementation is in, say,
 
 then::
 
-    cc -O2 -c mymps.c     (Unix/Mac OS X)
+    cc -O2 -c mymps.c     (Unix/macOS)
     cl /O2 /c mymps.c     (Windows)
 
 This will get your format code inlined with the MPS garbage collector.
@@ -111,7 +111,7 @@ with ``pkg_add -r gmake``.
 On Windows platforms the NMAKE tool is used. This comes with Microsoft
 Visual Studio C++ or the Microsoft Windows SDK.
 
-On Mac OS X the MPS is built using Xcode, either by opening
+On macOS the MPS is built using Xcode, either by opening
 ``mps.xcodeproj`` with the Xcode app, or using the command-line
 "xcodebuild" tool, installed from Xcode → Preferences → Downloads →
 Components → Command Line Tools.
@@ -137,15 +137,15 @@ Platform     OS          Architecture    Compiler      Makefile
 ==========   =========   =============   ============  =================
 ``fri3gc``   FreeBSD     IA-32           GCC           ``fri3gc.gmk``
 ``fri3ll``   FreeBSD     IA-32           Clang         ``fri3ll.gmk``
-``fri6gc``   FreeBSD     x86_64          GCC           ``fri6gc.gmk``
-``fri6ll``   FreeBSD     x86_64          Clang         ``fri6ll.gmk``
+``fri6gc``   FreeBSD     x86-64          GCC           ``fri6gc.gmk``
+``fri6ll``   FreeBSD     x86-64          Clang         ``fri6ll.gmk``
 ``lii3gc``   Linux       IA-32           GCC           ``lii3gc.gmk``
-``lii6gc``   Linux       x86_64          GCC           ``lii6gc.gmk``
-``lii6ll``   Linux       x86_64          Clang         ``lii6ll.gmk``
+``lii6gc``   Linux       x86-64          GCC           ``lii6gc.gmk``
+``lii6ll``   Linux       x86-64          Clang         ``lii6ll.gmk``
 ``w3i3mv``   Windows     IA-32           Microsoft C   ``w3i3mv.nmk``
-``w3i6mv``   Windows     x86_64          Microsoft C   ``w3i6mv.nmk``
-``xci3ll``   Mac OS X    IA-32           Clang         ``mps.xcodeproj``
-``xci6ll``   Mac OS X    x86_64          Clang         ``mps.xcodeproj``
+``w3i6mv``   Windows     x86-64          Microsoft C   ``w3i6mv.nmk``
+``xci3ll``   macOS       IA-32           Clang         ``mps.xcodeproj``
+``xci6ll``   macOS       x86-64          Clang         ``mps.xcodeproj``
 ==========   =========   =============   ============  =================
 
 Historically, the MPS worked on a much wider variety of platforms, and
@@ -195,13 +195,13 @@ To build just one target, run one of these commands::
     nmake /f w3i3mv.nmk <target>         (32-bit)
     nmake /f w3i6mv.nmk <target>         (64-bit)
 
-On Mac OS X, you can build from the command line with::
+On macOS, you can build from the command line with::
 
     xcodebuild
 
 On most platforms, the output of the build goes to a directory named
 after the platform (e.g. ``lii6ll``) so that you can share the source
-tree across platforms.  On Mac OS X the output goes in a directory
+tree across platforms.  On macOS the output goes in a directory
 called ``xc``.  Building generates ``mps.a`` or ``mps.lib`` or
 equivalent, a library of object code which you can link with your
 application, subject to the :ref:`MPS licensing conditions <license>`.
@@ -241,7 +241,7 @@ loads a diagnostic stream of events into a `SQLite3
 <http://www.sqlite.org/>`_ database for processing. In order to build
 this program, you need to install the SQLite3 development resources.
 
-* On Mac OS X, SQLite3 is pre-installed, so this tool builds by
+* On macOS, SQLite3 is pre-installed, so this tool builds by
   default.
 
 * On Linux, you need to install the ``libsqlite3-dev`` package::

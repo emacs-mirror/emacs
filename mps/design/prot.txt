@@ -139,7 +139,7 @@ _`.impl.ix`: POSIX implementation. See design.mps.protix_.
 
 _`.impl.w3`: Windows implementation.
 
-_`.impl.xc`: OS X implementation.
+_`.impl.xc`: macOS implementation.
 
 
 Document History
@@ -163,7 +163,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

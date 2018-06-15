@@ -91,7 +91,7 @@ General debugging advice
    On these operating systems, you can add this command to your
    ``.gdbinit`` if you always want it to be run.
 
-   On OS X, barrier hits do not use signals and so do not enter the
+   On macOS, barrier hits do not use signals and so do not enter the
    debugger.
 
 #. .. index::
@@ -155,7 +155,7 @@ program (data segment, text segment, stack and heap):
     }
 
 When ASLR is turned on, running this program outputs different
-addresses on each run. For example, here are four runs on OS X
+addresses on each run. For example, here are four runs on macOS
 10.9.3::
 
     data: 0x10a532020 text: 0x10a531ed0 stack: 0x7fff556ceb1c heap: 0x7f9f80c03980
@@ -196,7 +196,7 @@ Here's the situation on each of the operating systems supported by the MPS:
 
       $ setarch $(uname -m) -R ./myprogram
 
-* On **OS X** (10.7 or later), ASLR can be disabled for a single
+* On **macOS** (10.7 or later), ASLR can be disabled for a single
   process by starting the process using :c:func:`posix_spawn`, passing
   the undocumented attribute ``0x100``, like this:
 
@@ -213,7 +213,7 @@ Here's the situation on each of the operating systems supported by the MPS:
 
   The MPS provides the source code for a command-line tool
   implementing this (``tool/noaslr.c``). We've confirmed that this
-  works on OS X 10.9.3, but since the technique is undocumented, it
+  works on macOS 10.9.3, but since the technique is undocumented, it
   may well break in future releases. (If you know of a documented way
   to achieve this, please :ref:`contact us <contact>`.)
 

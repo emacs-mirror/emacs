@@ -105,7 +105,7 @@ Improvements
 
 .improv.by-os: The overheads hardware barriers varies widely between
 operating systems.  On Windows it is very cheap to change memory
-protection and to handle protecion faults.  On OS X it is very
+protection and to handle protecion faults.  On macOS it is very
 expensive.  The balance between barriers and scanning work is
 different.  We should measure the relative costs and tune the deferral
 for each separately.
@@ -138,7 +138,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2016 Ravenbrook Limited <http://www.ravenbrook.com/>. All
+Copyright © 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>. All
 rights reserved.  This is an open source license. Contact Ravenbrook
 for commercial licensing options.
 

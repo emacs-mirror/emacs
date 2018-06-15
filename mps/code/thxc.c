@@ -1,7 +1,7 @@
-/* thxc.c: OS X MACH THREADS MANAGER
+/* thxc.c: THREAD MANAGER (macOS)
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/thread-manager/>.
  *
@@ -32,7 +32,7 @@
 SRCID(thxc, "$Id$");
 
 
-typedef struct mps_thr_s {      /* OS X / Mach thread structure */
+typedef struct mps_thr_s {      /* macOS thread structure */
   Sig sig;                      /* <design/sig/> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
@@ -388,7 +388,7 @@ void ThreadSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

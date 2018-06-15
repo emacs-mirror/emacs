@@ -1,7 +1,7 @@
-/* protxc.h: PROTECTION EXCPETION HANDLER FOR OS X MACH
+/* protxc.h: PROTECTION EXCEPTION HANDLER (macOS)
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2018 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef protxc_h
@@ -13,7 +13,7 @@ extern void ProtThreadRegister(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
