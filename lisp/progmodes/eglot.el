@@ -163,7 +163,6 @@ deferred to the future.")
             :workspace (list
                         :applyEdit t
                         :executeCommand `(:dynamicRegistration :json-false)
-                        :codeAction `(:dynamicRegistration :json-false)
                         :workspaceEdit `(:documentChanges :json-false)
                         :didChangeWatchesFiles `(:dynamicRegistration t)
                         :symbol `(:dynamicRegistration :json-false))
@@ -179,6 +178,8 @@ deferred to the future.")
              :definition         `(:dynamicRegistration :json-false)
              :documentSymbol     `(:dynamicRegistration :json-false)
              :documentHighlight  `(:dynamicRegistration :json-false)
+             :codeAction         `(:dynamicRegistration :json-false)
+             :formatting         `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
              :publishDiagnostics `(:relatedInformation :json-false))
             :experimental (list))))
@@ -1397,8 +1398,6 @@ DUMMY is ignored."
                            :tabSize tab-width
                            :insertSpaces (not indent-tabs-mode)))
            :textDocument/formatting))
-         (before-point
-          (buffer-substring (max (- (point) 60) (point-min)) (point)))
          (after-point
           (buffer-substring (point) (min (+ (point) 60) (point-max))))
          (regexp (and (not (bobp))
