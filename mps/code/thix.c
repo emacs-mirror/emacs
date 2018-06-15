@@ -331,7 +331,7 @@ static void threadRingForkChild(Arena arena)
 
 static void threadAtForkChild(void)
 {
-  GlobalsArenaMap(ThreadRingForkChild);
+  GlobalsArenaMap(threadRingForkChild);
 }
 
 void ThreadSetup(void)
