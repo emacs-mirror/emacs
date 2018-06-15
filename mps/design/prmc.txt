@@ -263,8 +263,8 @@ _`.impl.w3.context.sp`: The stack pointer is obtained from
 ``CONTEXT.Esp`` (on IA-32) or ``CONTEXT.Rsp`` (on x86-64).
 
 
-OS X implementation
-...................
+macOS implementation
+....................
 
 _`.impl.xc`: In ``prmcix.c`` and ``prmcxc.c``, with processor-specific
 parts in ``prmci3.c`` and ``prmci6.c``, and other platform-specific
@@ -311,7 +311,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

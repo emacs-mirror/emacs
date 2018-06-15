@@ -116,7 +116,7 @@ Very briefly, the critical path consists of five stages:
        write a good scanner. Then that could be linked from here.
 
 #. The first-stage fix, which filters out pointers inline in the
-   scanner.  This is implemented in ``MPS_FIX()`` macros in
+   scanner.  This is implemented in the ``MPS_FIX1()`` macro in
    mps.h_.
 
    .. _mps.h: ../code/mps.h
@@ -371,7 +371,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2012-2014 Ravenbrook Limited. All rights reserved. 
+Copyright © 2012-2018 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

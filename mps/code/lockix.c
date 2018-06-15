@@ -1,7 +1,7 @@
 /* lockix.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .posix: The implementation uses a POSIX interface, and should be reusable
  * for many Unix-like operating systems.
@@ -9,7 +9,7 @@
  * .freebsd: This implementation supports FreeBSD (platform
  * MPS_OS_FR).
  *
- * .darwin: This implementation supports Darwin (OS X) (platform
+ * .darwin: This implementation supports Darwin (macOS) (platform
  * MPS_OS_XC).
  *
  * .design: These locks are implemented using mutexes.
@@ -212,7 +212,7 @@ static Lock globalLock = &globalLockStruct;
 static Lock globalRecLock = &globalRecLockStruct;
 static pthread_once_t isGlobalLockInit = PTHREAD_ONCE_INIT;
 
-static void globalLockInit(void)
+void LockInitGlobal(void)
 {
   LockInit(globalLock);
   LockInit(globalRecLock);
@@ -226,7 +226,7 @@ void (LockClaimGlobalRecursive)(void)
   int res;
 
   /* Ensure the global lock has been initialized */
-  res = pthread_once(&isGlobalLockInit, globalLockInit);
+  res = pthread_once(&isGlobalLockInit, LockInitGlobal);
   AVER(res == 0);
   LockClaimRecursive(globalRecLock);
 }
@@ -247,7 +247,7 @@ void (LockClaimGlobal)(void)
   int res;
 
   /* Ensure the global lock has been initialized */
-  res = pthread_once(&isGlobalLockInit, globalLockInit);
+  res = pthread_once(&isGlobalLockInit, LockInitGlobal);
   AVER(res == 0);
   LockClaim(globalLock);
 }
@@ -261,6 +261,16 @@ void (LockReleaseGlobal)(void)
 }
 
 
+/* LockSetup -- one-time lock initialization */
+
+void LockSetup(void)
+{
+  /* Claim all locks before a fork; release in the parent;
+     reinitialize in the child <design/thread-safety/#sol.fork.lock> */
+  pthread_atfork(GlobalsClaimAll, GlobalsReleaseAll, GlobalsReinitializeAll);
+}
+
+
 #elif defined(LOCK_NONE)
 #include "lockan.c"
 #else
@@ -270,7 +280,7 @@ void (LockReleaseGlobal)(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

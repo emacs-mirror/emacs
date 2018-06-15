@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -1697,7 +1697,7 @@ mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
   mps_res_t res;
 
   MPS_SCAN_BEGIN(mps_ss) {
-    res = MPS_FIX(mps_ss, ref_io);
+    res = MPS_FIX12(mps_ss, ref_io);
   } MPS_SCAN_END(mps_ss);
 
   return res;
@@ -2159,7 +2159,7 @@ void _mps_args_set_key(mps_arg_s args[MPS_ARGS_MAX], unsigned i,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -270,7 +270,7 @@ passing ``PROT_NONE`` and ``MAP_PRIVATE | MAP_ANON``.
 
 _`.impl.ix.anon.trans`: Note that ``MAP_ANON`` ("map anonymous
 memory not associated with any specific file") is an extension to
-POSIX, but it is supported by FreeBSD, Linux, and OS X. A work-around
+POSIX, but it is supported by FreeBSD, Linux, and macOS. A work-around
 that was formerly used on systems lacking ``MAP_ANON`` was to map
 the file ``/dev/zero``.
 
@@ -369,7 +369,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

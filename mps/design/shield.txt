@@ -156,7 +156,7 @@ This hysteresis allows the MPS to proceed with garbage collection
 during a pause without actually setting hardware protection until it
 returns to the mutator. This is particularly important on operating
 systems where the protection is expensive and poorly implemented, such
-as OS X.
+as macOS.
 
 The queue also ensures that no memory protection system calls will be
 needed for incremental garbage collection if a complete collection
@@ -362,7 +362,7 @@ Theoretically we can do this, but:
     non-moving collection.
 
  2. The main cost of protection is changing it at all, not whether we
-    change just read or write.  On OS X, the main cost seems to be the
+    change just read or write.  On macOS, the main cost seems to be the
     TLB flush, which affects wall-clock time of everything on the
     processor!
 
@@ -406,7 +406,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

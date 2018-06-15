@@ -1,7 +1,7 @@
-/* thxc.c: OS X MACH THREADS MANAGER
+/* thxc.c: THREAD MANAGER (macOS)
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/thread-manager/>.
  *
@@ -26,17 +26,19 @@
 #include <mach/task.h>
 #include <mach/thread_act.h>
 #include <mach/thread_status.h>
+#include <pthread.h>
 
 
 SRCID(thxc, "$Id$");
 
 
-typedef struct mps_thr_s {      /* OS X / Mach thread structure */
+typedef struct mps_thr_s {      /* macOS thread structure */
   Sig sig;                      /* <design/sig/> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attaches to arena */
   Bool alive;                   /* thread believed to be alive? */
+  Bool forking;                 /* thread currently calling fork? */
   thread_port_t port;           /* thread kernel port */
 } ThreadStruct;
 
@@ -48,6 +50,7 @@ Bool ThreadCheck(Thread thread)
   CHECKL(thread->serial < thread->arena->threadSerial);
   CHECKD_NOSIG(Ring, &thread->arenaRing);
   CHECKL(BoolCheck(thread->alive));
+  CHECKL(BoolCheck(thread->forking));
   CHECKL(MACH_PORT_VALID(thread->port));
   return TRUE;
 }
@@ -80,11 +83,13 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->alive = TRUE;
+  thread->forking = FALSE;
   thread->port = mach_thread_self();
+  AVER(MACH_PORT_VALID(thread->port));
   thread->sig = ThreadSig;
   AVERT(Thread, thread);
 
-  ProtThreadRegister(FALSE);
+  ProtThreadRegister();
 
   ring = ArenaThreadRing(arena);
 
@@ -99,6 +104,7 @@ void ThreadDeregister(Thread thread, Arena arena)
 {
   AVERT(Thread, thread);
   AVERT(Arena, arena);
+  AVER(!thread->forking);
 
   RingRemove(&thread->arenaRing);
 
@@ -111,7 +117,7 @@ void ThreadDeregister(Thread thread, Arena arena)
 
 
 /* mapThreadRing -- map over threads on ring calling a function on
- * each one except the current thread.
+ * each one.
  *
  * Threads that are found to be dead (that is, if func returns FALSE)
  * are marked as dead and moved to deadRing, in order to implement
@@ -121,21 +127,16 @@ void ThreadDeregister(Thread thread, Arena arena)
 static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 {
   Ring node, next;
-  mach_port_t self;
 
   AVERT(Ring, threadRing);
   AVERT(Ring, deadRing);
   AVER(FUNCHECK(func));
 
-  self = mach_thread_self();
-  AVER(MACH_PORT_VALID(self));
   RING_FOR(node, threadRing, next) {
     Thread thread = RING_ELT(Thread, arenaRing, node);
     AVERT(Thread, thread);
     AVER(thread->alive);
-    if (thread->port != self
-        && !(*func)(thread))
-    {
+    if (!(*func)(thread)) {
       thread->alive = FALSE;
       RingRemove(&thread->arenaRing);
       RingAppend(deadRing, &thread->arenaRing);
@@ -147,21 +148,14 @@ static void mapThreadRing(Ring threadRing, Ring deadRing, Bool (*func)(Thread))
 static Bool threadSuspend(Thread thread)
 {
   kern_return_t kern_return;
+  mach_port_t self = mach_thread_self();
+  AVER(MACH_PORT_VALID(self));
+  if (thread->port == self)
+    return TRUE;
+
   kern_return = thread_suspend(thread->port);
   /* No rendezvous is necessary: thread_suspend "prevents the thread
    * from executing any more user-level instructions" */
-  AVER(kern_return == KERN_SUCCESS);
-  /* Experimentally, values other then KERN_SUCCESS indicate the thread has
-     terminated <https://info.ravenbrook.com/mail/2014/10/25/18-12-36/0/>. */
-  /* design.thread-manager.sol.thread.term.attempt */
-  return kern_return == KERN_SUCCESS;
-}
-
-static Bool threadResume(Thread thread)
-{
-  kern_return_t kern_return;
-  kern_return = thread_resume(thread->port);
-  /* Mach has no equivalent of EAGAIN. */
   AVER(kern_return == KERN_SUCCESS);
   /* Experimentally, values other then KERN_SUCCESS indicate the thread has
      terminated <https://info.ravenbrook.com/mail/2014/10/25/18-12-36/0/>. */
@@ -178,6 +172,24 @@ void ThreadRingSuspend(Ring threadRing, Ring deadRing)
   mapThreadRing(threadRing, deadRing, threadSuspend);
 }
 
+
+static Bool threadResume(Thread thread)
+{
+  kern_return_t kern_return;
+  mach_port_t self = mach_thread_self();
+  AVER(MACH_PORT_VALID(self));
+  if (thread->port == self)
+    return TRUE;
+
+  kern_return = thread_resume(thread->port);
+  /* Mach has no equivalent of EAGAIN. */
+  AVER(kern_return == KERN_SUCCESS);
+  /* Experimentally, values other then KERN_SUCCESS indicate the thread has
+     terminated <https://info.ravenbrook.com/mail/2014/10/25/18-12-36/0/>. */
+  /* design.thread-manager.sol.thread.term.attempt */
+  return kern_return == KERN_SUCCESS;
+}
+
 /* ThreadRingResume -- resume all threads on a ring, except the
  * current one.
  */
@@ -185,6 +197,7 @@ void ThreadRingResume(Ring threadRing, Ring deadRing)
 {
   mapThreadRing(threadRing, deadRing, threadResume);
 }
+
 
 Thread ThreadRingThread(Ring threadRing)
 {
@@ -291,9 +304,95 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 }
 
 
+/* threadAtForkPrepare -- for each arena, mark the current thread as
+ * forking <design/thread-safety/#sol.fork.thread>.
+ */
+
+static Bool threadForkPrepare(Thread thread)
+{
+  mach_port_t self;
+  AVERT(Thread, thread);
+  AVER(!thread->forking);
+  self = mach_thread_self();
+  AVER(MACH_PORT_VALID(self));
+  thread->forking = (thread->port == self);
+  return TRUE;
+}
+
+static void threadRingForkPrepare(Arena arena)
+{
+  AVERT(Arena, arena);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkPrepare);
+}
+
+static void threadAtForkPrepare(void)
+{
+  GlobalsArenaMap(threadRingForkPrepare);
+}
+
+
+/* threadAtForkParent -- for each arena, clear the forking flag for
+ * all threads <design/thread-safety/#sol.fork.thread>.
+ */
+
+static Bool threadForkParent(Thread thread)
+{
+  AVERT(Thread, thread);
+  thread->forking = FALSE;
+  return TRUE;
+}
+
+static void threadRingForkParent(Arena arena)
+{
+  AVERT(Arena, arena);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkParent);
+}
+
+static void threadAtForkParent(void)
+{
+  GlobalsArenaMap(threadRingForkParent);
+}
+
+
+/* threadAtForkChild -- For each arena, move all threads to the dead
+ * ring, except for the thread that was marked as forking by the
+ * prepare handler <design/thread-safety/#sol.fork.thread>, for which
+ * update its mach port <design/thread-safety/#sol.fork.mach-port>.
+ */
+
+static Bool threadForkChild(Thread thread)
+{
+  AVERT(Thread, thread);
+  if (thread->forking) {
+    thread->port = mach_thread_self();
+    AVER(MACH_PORT_VALID(thread->port));
+    thread->forking = FALSE;
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+static void threadRingForkChild(Arena arena)
+{
+  AVERT(Arena, arena);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkChild);
+}
+
+static void threadAtForkChild(void)
+{
+  GlobalsArenaMap(threadRingForkChild);
+}
+
+void ThreadSetup(void)
+{
+  pthread_atfork(threadAtForkPrepare, threadAtForkParent, threadAtForkChild);
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

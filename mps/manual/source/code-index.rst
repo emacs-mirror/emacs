@@ -180,17 +180,17 @@ prmcw3.c      Mutator context implementation for Windows.
 prmcw3.h      Mutator context interface for Windows.
 prmcw3i3.c    Mutator context implementation for Windows, IA-32.
 prmcw3i6.c    Mutator context implementation for Windows, x86-64.
-prmcxc.c      Mutator context implementation for OS X.
-prmcxc.h      Mutator context interface for OS X.
-prmcxci3.c    Mutator context implementation for OS X, IA-32.
-prmcxci6.c    Mutator context implementation for OS X, x86-64.
+prmcxc.c      Mutator context implementation for macOS.
+prmcxc.h      Mutator context interface for macOS.
+prmcxci3.c    Mutator context implementation for macOS, IA-32.
+prmcxci6.c    Mutator context implementation for macOS, x86-64.
 prot.h        Protection interface. See design.mps.prot_.
 protan.c      Protection implementation for standard C.
 protix.c      Protection implementation for POSIX.
 protsgix.c    Protection implementation for POSIX (signals part).
 protw3.c      Protection implementation for Windows.
-protxc.c      Protection implementation for OS X.
-protxc.h      Protection interface for OS X.
+protxc.c      Protection implementation for macOS.
+protxc.h      Protection interface for macOS.
 pthrdext.c    Protection implementation for POSIX (threads part).
 pthrdext.h    Protection interface for POSIX (threads part).
 sp.h          Stack probe interface. See design.mps.sp_.
@@ -210,7 +210,7 @@ th.h          Threads interface. See design.mps.thread-manager_.
 than.c        Threads implementation for standard C.
 thix.c        Threads implementation for POSIX.
 thw3.c        Threads implementation for Windows.
-thxc.c        Threads implementation for OS X.
+thxc.c        Threads implementation for macOS.
 vm.c          Virtual memory implementation (common part).
 vm.h          Virtual memory interface. See design.mps.vm_.
 vman.c        Virtual memory implementation for standard C.
@@ -349,6 +349,7 @@ expt825.c         Regression test for job000825_.
 fbmtest.c         Free block manager (CBS and Freelist) test.
 finalcv.c         :ref:`topic-finalization` coverage test.
 finaltest.c       :ref:`topic-finalization` test.
+forktest.c        :ref:`topic-thread-fork` test.
 fotest.c          Failover allocator test.
 landtest.c        Land test.
 locbwcss.c        Locus backwards compatibility stress test.

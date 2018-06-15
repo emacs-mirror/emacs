@@ -21,6 +21,11 @@
 extern size_t LockSize(void);
 
 
+/* LockInitGlobal -- initialize global locks */
+
+extern void LockInitGlobal(void);
+
+
 /*  LockInit/Finish
  *
  *  lock points to the allocated lock structure.  A lock has no
@@ -126,6 +131,11 @@ extern void LockClaimGlobal(void);
  */
 
 extern void LockReleaseGlobal(void);
+
+
+/* LockSetup -- one-time lock initialization */
+
+extern void LockSetup(void);
 
 
 #endif /* lock_h */

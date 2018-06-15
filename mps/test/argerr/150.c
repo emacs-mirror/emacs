@@ -254,7 +254,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
           the pun would probably work fine almost everywhere)
        */
        comment("About to fix on unaligned addr...");
-       res = mps_fix(ss, UNALIGNED);
+       res = MPS_FIX12(ss, (mps_addr_t *) UNALIGNED);
        error("unaligned fix");
        if (res != MPS_RES_OK) return res;
        obj->data.ref[i].addr = p;

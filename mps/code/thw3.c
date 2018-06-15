@@ -312,6 +312,12 @@ Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
 }
 
 
+void ThreadSetup(void)
+{
+  /* Nothing to do as MPS does not support fork() on Windows. */
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.

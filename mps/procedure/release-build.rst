@@ -146,7 +146,7 @@ the branch. A typical invocation looks like this::
    release name according to the variant, for example,
    ``mps-cet-1.110.0.zip``
 
-On a Unix (including OS X) machine:
+On a Unix (including macOS) machine:
 
 #. Create a fresh Perforce client workspace::
 

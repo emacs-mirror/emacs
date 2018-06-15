@@ -1,10 +1,10 @@
 /* protix.c: PROTECTION FOR UNIX
  *
  *  $Id$
- *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  *  Somewhat generic across different Unix systems.  Shared between
- *  OS X, FreeBSD, and Linux.
+ *  macOS, FreeBSD, and Linux.
  *
  *
  *  SOURCES
@@ -19,7 +19,7 @@
  *    be safely passed as a void *. Single UNIX Specification Version 2 (aka
  *    X/OPEN XSH5) says that the parameter is a void *. Some Unix-likes may
  *    declare this parameter as a caddr_t. FreeBSD used to do this (on the now
- *    very obsolete FreeBSD 2.2.x series), as did OS X, but both now implement
+ *    very obsolete FreeBSD 2.2.x series), as did macOS, but both now implement
  *    it correctly as void *. caddr_t is usually char *.
  *
  *  .assume.write-only:  More of an anti-assumption really.  We
@@ -119,7 +119,7 @@ Size ProtGranularity(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

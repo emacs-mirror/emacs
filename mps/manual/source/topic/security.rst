@@ -34,7 +34,7 @@ determine the address of allocated structures.
 There is currently no workaround for this issue. If this affects you,
 please :ref:`contact us <contact>`.
 
-Other supported platforms are unaffected by this issue: Linux and OS X
+Other supported platforms are unaffected by this issue: Linux and macOS
 randomize the addresses allocated by :c:func:`mmap`, and Windows
 randomizes the addresses allocated by :c:func:`VirtualAlloc`.
 
