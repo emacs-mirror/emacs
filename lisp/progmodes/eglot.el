@@ -1382,6 +1382,35 @@ DUMMY is ignored."
                             :workspace/symbol
                             (list :query pattern)))))
 
+(defun eglot-format-buffer ()
+  "Format contents of current buffer."
+  (interactive)
+  (unless (eglot--server-capable :documentFormattingProvider)
+    (eglot--error "Server can't format!"))
+  (let* ((server (eglot--current-server-or-lose))
+         (resp
+          (eglot--request
+           server
+           :textDocument/formatting
+           (list :textDocument (eglot--TextDocumentIdentifier)
+                 :options (list
+                           :tabSize tab-width
+                           :insertSpaces (not indent-tabs-mode)))
+           :textDocument/formatting))
+         (before-point
+          (buffer-substring (max (- (point) 60) (point-min)) (point)))
+         (after-point
+          (buffer-substring (point) (min (+ (point) 60) (point-max))))
+         (regexp (and (not (bobp))
+                      (replace-regexp-in-string
+                       "[\s\t\n\r]+" "[\s\t\n\r]+"
+                       (concat "\\(" (regexp-quote after-point) "\\)")))))
+    (when resp
+      (save-excursion
+        (eglot--apply-text-edits resp))
+      (when (and (bobp) regexp (search-forward-regexp regexp nil t))
+        (goto-char (match-beginning 1))))))
+
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
   (let ((bounds (bounds-of-thing-at-point 'symbol))
