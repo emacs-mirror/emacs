@@ -85,6 +85,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->alive = TRUE;
   thread->forking = FALSE;
   thread->port = mach_thread_self();
+  AVER(MACH_PORT_VALID(thread->port));
   thread->sig = ThreadSig;
   AVERT(Thread, thread);
 
@@ -309,9 +310,12 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 
 static Bool threadForkPrepare(Thread thread)
 {
+  mach_port_t self;
   AVERT(Thread, thread);
   AVER(!thread->forking);
-  thread->forking = (thread->port == mach_thread_self());
+  self = mach_thread_self();
+  AVER(MACH_PORT_VALID(self));
+  thread->forking = (thread->port == self);
   return TRUE;
 }
 
