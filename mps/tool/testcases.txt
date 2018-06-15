@@ -20,7 +20,7 @@ exposet0       =P
 expt825
 finalcv        =P
 finaltest      =P
-forktest       =X
+forktest       =P =X
 fotest
 gcbench        =N                benchmark
 landtest
