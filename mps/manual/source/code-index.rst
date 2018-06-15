@@ -349,7 +349,7 @@ expt825.c         Regression test for job000825_.
 fbmtest.c         Free block manager (CBS and Freelist) test.
 finalcv.c         :ref:`topic-finalization` coverage test.
 finaltest.c       :ref:`topic-finalization` test.
-forktest.c        :ref:`topic-fork-safety` test.
+forktest.c        :ref:`topic-thread-fork` test.
 fotest.c          Failover allocator test.
 landtest.c        Land test.
 locbwcss.c        Locus backwards compatibility stress test.

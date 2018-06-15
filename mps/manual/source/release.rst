@@ -33,7 +33,8 @@ New features
 #. The MPS no longer supports Linux 2.4 and 2.5. (These versions used
    LinuxThreads_ instead of POSIX threads; all major distributions
    have long since ceased to support these versions and so it is no
-   longer convenient to test against them.)
+   longer convenient to test against them.) See
+   :ref:`guide-overview-platforms`.
 
    .. _LinuxThreads: http://pauillac.inria.fr/~xleroy/linuxthreads/
 
