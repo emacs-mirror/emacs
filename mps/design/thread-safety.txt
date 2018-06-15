@@ -45,6 +45,11 @@ updated at most once (that is, the protocol classes).
 
 _`.req.deadlock`: The MPS must not deadlock.
 
+_`.req.fork`: On Unix platforms, the MPS should be able to continue in
+the child process after a ``fork()``. (Source: job004062_.)
+
+.. _job004062: https://www.ravenbrook.com/project/mps/issue/job004062/
+
 _`.req.perf`: Performance should not be unreasonably hindered.
 
 
@@ -131,6 +136,38 @@ easiest to implement first, but could be evolved into a `.binary`_
 strategy. (That evolution has now happened. tony 1999-08-31).
 
 
+Fork safety
+...........
+
+In order to support ``fork()``, we need to solve the following problems:
+
+_`.anal.fork.lock`: Any MPS lock might be held by another thread at
+the point where ``fork()`` is called. The lock would be protecting the
+integrity of some data structure. But in the child the thread holding
+the lock no longer exists, and so there is no way to restore the
+integrity.
+
+_`.anal.fork.threads`: In the child process after a ``fork()``, there
+is only one thread, which is a copy of the thread that called
+``fork()`` in the parent process. All other threads no longer exist.
+But the MPS maintains references to these threads, via the
+``ThreadStruct`` object` created by calls to ``mps_thread_reg()``. If
+we try to communicate with these threads it will fail or crash.
+
+_`.anal.fork.exc-thread`: On macOS, the MPS handles protection faults
+using a dedicated thread. But in the child process after a ``fork()``,
+this dedicated thread no longer exists. Also, the Mach port on which
+the dedicated thread receives its messages does not exist in the child
+either.
+
+_`.anal.fork.mach-port`: On macOS, the MPS identifies threads via
+their Mach port numbers, which are stashed in the ``ThreadStruct`` and
+used to identify the current thread, for example in
+``ThreadSuspend()``. But in the child process after ``fork()`` the
+running thread has a different Mach port number than it did in the
+parent.
+
+
 Design
 ------
 
@@ -209,6 +246,44 @@ design.mps.sig.check.arg.unlocked_).
 .. _design.mps.sig.check.arg.unlocked: sig#check-arg-unlocked
 
 
+Fork safety
+-----------
+
+_`.sol.fork.atfork`: The MPS solves the fork-safety problems by
+calling |pthread_atfork|_ to install handler functions that are
+called in the parent process just before fork (the "prepare" handler),
+and in the parent and child processes just after fork (the "parent"
+and "child" handlers respectively).
+
+.. |pthread_atfork| replace:: ``pthread_atfork()``
+.. _pthread_atfork: http://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_atfork.html
+
+_`.sol.fork.lock`: In the prepare handler, the MPS takes all the
+locks: that is, the global locks, and then the arena lock for every
+arena. Note that a side-effect of this is that the shield is entered
+for each arena. In the parent handler, the MPS releases all the locks.
+In the child handler, the MPS would like to release the locks but this
+does not work on any supported platform, so instead it reinitializes
+them, by calling ``LockInitGlobal()``.
+
+_`.sol.fork.thread`: On macOS, in the prepare handler, the MPS
+identifies for each arena the current thread, that is, the one calling
+``fork()`` which will survive into the child process, and marks this
+thread by setting a flag in the appropriate ``ThreadStruct``. In the
+parent handler, this flag is cleared. On all Unix platforms, in the
+child handler, all threads (except for the current thread) are marked
+as dead and transferred to the ring of dead threads. (The MPS can't
+destroy the thread structures at this point because they are owned by
+the client program.)
+
+_`.sol.fork.exc-thread`: On macOS, in the child handler, the exception
+port and dedicated thread are re-created, and the current thread
+re-registered with the exception port.
+
+_`.sol.fork.mach-port`: On macOS, in the child handler, the thread
+flagged as forking gets its port number updated.
+
+
 Document History
 ----------------
 
@@ -217,6 +292,8 @@ Document History
 - 2002-06-21 RB_ Converted from MMInfo database design document.
 
 - 2013-05-22 GDR_ Converted to reStructuredText.
+
+- 2018-06-14 GDR_ Added fork safety design.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/

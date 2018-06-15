@@ -114,6 +114,43 @@ Signal and exception handling issues
 
 
 .. index::
+   single: fork safety
+
+.. _topic-thread-fork:
+
+Fork safety
+-----------
+
+On Linux, FreeBSD and macOS, the MPS makes a best-effort attempt to
+continue running in the child process after a call to :c:func:`fork`,
+even if the :term:`client program` was running multiple
+:term:`threads` at the point where the call is made to :c:func:`fork`.
+
+.. warning::
+
+    POSIX offers little or nothing in the way of guarantees about the
+    situation of a child process running after a multi-threaded parent
+    forked. The specification_ says:
+
+    .. _specification: http://pubs.opengroup.org/onlinepubs/9699919799/functions/fork.html
+
+        A process shall be created with a single thread. If a
+        multi-threaded process calls :c:func:`fork`, the new process shall
+        contain a replica of the calling thread and its entire address
+        space, possibly including the states of mutexes and other
+        resources. Consequently, to avoid errors, the child process may
+        only execute async-signal-safe operations until such time as one
+        of the :c:func:`exec` functions is called.
+
+.. note::
+
+    Although only one thread is created in the child process, any
+    threads in the parent process that were registered with the MPS by
+    calling :c:func:`mps_thread_reg` must still be deregistered, by
+    calling :c:func:`mps_thread_dereg`, before the arena is destroyed.
+
+
+.. index::
    single: thread; interface
 
 Thread interface

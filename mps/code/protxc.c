@@ -286,9 +286,20 @@ static void *protCatchThread(void *p) {
 }
 
 
+/* protSetupThread -- the Mach port number of either the very first
+ * thread to create an arena, or else the child thread after a fork.
+ *
+ * The purpose is to avoid registering this thread twice if the client
+ * program calls mps_thread_reg on it. We need this special case
+ * because we don't require thread registration of the sole thread of
+ * a single-threaded mutator.
+ */
+static mach_port_t protSetupThread = MACH_PORT_NULL;
+
+
 /* ProtThreadRegister -- register a thread for protection exception handling */
 
-extern void ProtThreadRegister(Bool setup)
+extern void ProtThreadRegister(void)
 {
   kern_return_t kr;
   mach_msg_type_number_t old_exception_count = 1;
@@ -298,23 +309,13 @@ extern void ProtThreadRegister(Bool setup)
   exception_behavior_t old_behaviors;
   thread_state_flavor_t old_flavors;
   mach_port_t self;
-  static mach_port_t setupThread = MACH_PORT_NULL;
 
   self = mach_thread_self();
   AVER(MACH_PORT_VALID(self));
   
-  /* Avoid setting up the exception handler for the thread that calls
-     ProtSetup twice, in the case where the mutator registers that thread
-     explicitly.  We need a special case because we don't require thread
-     registration of the sole thread of a single-threaded mutator. */
-  if (setup) {
-    AVER(setupThread == MACH_PORT_NULL);
-    setupThread = self;
-  } else {
-    AVER(setupThread != MACH_PORT_NULL);
-    if (self == setupThread)
-      return;
-  }
+  /* Avoid setting up the exception handler twice. */
+  if (self == protSetupThread)
+    return;
   
   /* Ask to receive EXC_BAD_ACCESS exceptions on our port, complete
      with thread state and identity information in the message.
@@ -342,14 +343,17 @@ extern void ProtThreadRegister(Bool setup)
 }
 
 
-/* ProtSetup -- set up protection exception handling */
+/* protExcThreadStart -- create exception port, register the current
+ * thread with that port, and create a thread to handle exception
+ * messages.
+ */
 
-static void protSetupInner(void)
+static void protExcThreadStart(void)
 {
   kern_return_t kr;
-  int pr;
-  pthread_t excThread;
   mach_port_t self;
+  pthread_t excThread;
+  int pr;
 
   /* Create a port to send and receive exceptions. */
   self = mach_task_self();
@@ -373,16 +377,48 @@ static void protSetupInner(void)
   if (kr != KERN_SUCCESS)
     mach_error("ERROR: MPS mach_port_insert_right", kr); /* .trans.must */
   
-  ProtThreadRegister(TRUE);
+  protSetupThread = MACH_PORT_NULL;
+  ProtThreadRegister();
+  protSetupThread = self;
 
-  /* Launch the exception handling thread.  We use pthread_create because
-     it's much simpler than setting up a thread from scratch using Mach,
-     and that's basically what it does.  See [Libc]
-     <http://www.opensource.apple.com/source/Libc/Libc-825.26/pthreads/pthread.c> */
+  /* Launch the exception handling thread. We use pthread_create
+   * because it's much simpler than setting up a thread from scratch
+   * using Mach, and that's basically what it does. See [Libc]
+   * <http://www.opensource.apple.com/source/Libc/Libc-825.26/pthreads/pthread.c> */
   pr = pthread_create(&excThread, NULL, protCatchThread, NULL);
   AVER(pr == 0);
   if (pr != 0)
     fprintf(stderr, "ERROR: MPS pthread_create: %d\n", pr); /* .trans.must */
+}
+
+
+/* atfork handlers -- support for fork(). See <design/thread-safety/> */
+
+static void protAtForkPrepare(void)
+{
+}
+
+static void protAtForkParent(void)
+{
+}
+
+static void protAtForkChild(void)
+{
+  /* Restart the exception handling thread
+     <design/thread-safety/#sol.fork.exc-thread>. */
+  protExcThreadStart();
+}
+
+
+/* ProtSetup -- set up protection exception handling */
+
+static void protSetupInner(void)
+{
+  AVER(protSetupThread == MACH_PORT_NULL);
+  protExcThreadStart();
+
+  /* Install fork handlers <design/thread-safety/#sol.fork.atfork>. */
+  pthread_atfork(protAtForkPrepare, protAtForkParent, protAtForkChild);
 }
 
 void ProtSetup(void)
