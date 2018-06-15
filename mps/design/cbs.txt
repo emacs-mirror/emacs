@@ -68,24 +68,18 @@ is typically embedded in another structure.
 External classes
 ................
 
-``CLASS(CBS)``
+_`.class.cbs`: ``CLASS(CBS)`` is the CBS class, a subclass of
+``CLASS(Land)`` suitable for passing to ``LandInit()``.
 
-_`.class.cbs`: The CBS class, a subclass of ``CLASS(Land)`` suitable
-for passing to ``LandInit()``.
+_`.class.fast`: ``CLASS(CBSFast)`` is subclass of ``CLASS(CBS)`` that
+maintains, for each subtree, the size of the largest block in that
+subtree. This enables the ``LandFindFirst()``, ``LandFindLast()``, and
+``LandFindLargest()`` generic functions.
 
-``CLASS(CBSFast)``
-
-_`.class.fast`: A subclass of ``CLASS(CBS)`` that maintains, for each
-subtree, the size of the largest block in that subtree. This enables
-the ``LandFindFirst()``, ``LandFindLast()``, and ``LandFindLargest()``
-generic functions.
-
-``CLASS(CBSZoned)``
-
-_`.class.zoned`: A subclass of ``CLASS(CBSFast)`` that maintains, for
-each subtree, the union of the zone sets of all ranges in that
-subtree. This enables the ``LandFindInZones()`` generic function.
-
+_`.class.zoned`: ``CLASS(CBSZoned)`` is a subclass of
+``CLASS(CBSFast)`` that maintains, for each subtree, the union of the
+zone sets of all ranges in that subtree. This enables the
+``LandFindInZones()`` generic function.
 
 
 Keyword arguments
@@ -279,7 +273,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 1998-2016 Ravenbrook Limited. All rights reserved. 
+Copyright © 1998-2018 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

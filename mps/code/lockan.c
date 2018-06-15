@@ -106,6 +106,13 @@ static Lock globalLock = &globalLockStruct;
 
 static Lock globalRecLock = &globalRecursiveLockStruct;
 
+void LockInitGlobal(void)
+{
+  globalLock->claims = 0;
+  LockInit(globalLock);
+  globalRecLock->claims = 0;
+  LockInit(globalRecLock);
+}
 
 void (LockClaimGlobalRecursive)(void)
 {
@@ -125,6 +132,11 @@ void (LockClaimGlobal)(void)
 void (LockReleaseGlobal)(void)
 {
   LockRelease(globalLock);
+}
+
+void LockSetup(void)
+{
+  /* Nothing to do as ANSI platform does not have fork(). */
 }
 
 

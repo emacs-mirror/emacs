@@ -193,7 +193,7 @@ static void test_pool(const char *name, mps_pool_t pool, size_t roots_count)
         size_t condemned = mps_message_gc_condemned_size(arena, msg);
         size_t not_condemned = mps_message_gc_not_condemned_size(arena, msg);
 
-        printf("\nCollection %lu finished:\n", collections++);
+        printf("\nCollection %lu finished:\n", (unsigned long)collections++);
         printf("live %"PRIuLONGEST"\n", (ulongest_t)live);
         printf("condemned %"PRIuLONGEST"\n", (ulongest_t)condemned);
         printf("not_condemned %"PRIuLONGEST"\n", (ulongest_t)not_condemned);
