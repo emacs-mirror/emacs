@@ -155,20 +155,21 @@ int main(int argc, char *argv[])
 
   pid = fork();
   cdie(pid >= 0, "fork failed");
-  if (pid == 0) {
-    /* Child: allow a collection to start, which will cause a read
-       barrier to be applied to any segment containing live objects
-       that was scanned. */
-    mps_arena_release(arena);
 
-    /* Read all the objects, so that if there is read barrier in place
-       we will hit it. */
-    for (obj = first; obj != NULL; obj = obj->u.ref) {
-      Insist(obj->type == TYPE_REF);
-    }
+  /* Allow a collection to start, which will cause a read barrier to
+     be applied to any segment containing live objects that was
+     scanned. */
+  mps_arena_release(arena);
 
-    mps_arena_park(arena);
-  } else {
+  /* Read all the objects, so that if there is read barrier in place
+     we will hit it. */
+  for (obj = first; obj != NULL; obj = obj->u.ref) {
+    Insist(obj->type == TYPE_REF);
+  }
+
+  mps_arena_park(arena);
+
+  if (pid != 0) {
     /* Parent: wait for child and check that its exit status is zero. */
     int stat;
     cdie(pid == waitpid(pid, &stat, 0), "waitpid failed");
