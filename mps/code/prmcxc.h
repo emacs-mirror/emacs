@@ -1,7 +1,7 @@
-/* prmcxc.h: MUTATOR CONTEXT FOR OS X MACH
+/* prmcxc.h: MUTATOR CONTEXT (macOS)
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */
@@ -32,7 +32,7 @@ extern void MutatorContextInitThread(MutatorContext context, THREAD_STATE_S *thr
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

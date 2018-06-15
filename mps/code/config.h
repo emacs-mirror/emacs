@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -546,7 +546,7 @@
 #endif
 
 
-/* .feature.xc: OS X feature specification
+/* .feature.xc: macOS feature specification
  *
  * The MPS needs the following symbols which are not defined by default
  *
@@ -589,7 +589,7 @@
 
 #else
 
-#error "Unknown OS X architecture"
+#error "Unknown macOS architecture"
 
 #endif
 #endif
@@ -694,7 +694,7 @@
  *
  * TODO: These settings were determined by trial and error, but should
  * be based on measurement of the protection overhead on each
- * platform.  We know it's extremely different between OS X and
+ * platform.  We know it's extremely different between macOS and
  * Windows, for example.  See design.mps.write-barrier.improv.by-os.
  *
  * TODO: Consider basing the count on the amount of time that has
@@ -712,7 +712,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
