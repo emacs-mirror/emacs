@@ -396,40 +396,17 @@ static void protExcThreadStart(void)
 
 static void protAtForkPrepare(void)
 {
-  /* Take all the locks <design/thread-safety/#sol.fork.lock>. */
-  GlobalsClaimAll();
-
-  /* For each arena, remember which thread is the current thread, if
-     any <design/thread-safety/#sol.fork.threads>. */
-  GlobalsArenaMap(ThreadRingForkPrepare);
 }
 
 static void protAtForkParent(void)
 {
-  /* For each arena, mark threads as not forking any more
-     <design/thread-safety/#sol.fork.threads>. */
-  GlobalsArenaMap(ThreadRingForkParent);
-
-  /* Release all the locks in reverse order
-     <design/thread-safety/#sol.fork.lock>. */
-  GlobalsReleaseAll();
 }
 
 static void protAtForkChild(void)
 {
-  /* For each arena, move all threads to the dead ring, except for the
-     thread that was marked as current by the prepare handler
-     <design/thread-safety/#sol.fork.threads>, for which we update its
-     mach port number <design/thread-safety/#sol.fork.mach-port>. */
-  GlobalsArenaMap(ThreadRingForkChild);
-
   /* Restart the exception handling thread
      <design/thread-safety/#sol.fork.exc-thread>. */
   protExcThreadStart();
-
-  /* Release all the locks in reverse order
-     <design/thread-safety/#sol.fork.lock>. */
-  GlobalsReinitializeAll();
 }
 
 
