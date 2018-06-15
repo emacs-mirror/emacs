@@ -36,8 +36,6 @@ DECLARE_CLASS(Seg, LOSeg, GCSeg);
 
 /* forward declaration */
 static Bool LOCheck(LO lo);
-static Res loSegFix(Seg seg, ScanState ss, Ref *refIO);
-static void loSegReclaim(Seg seg, Trace trace);
 
 
 /* LOGSegStruct -- LO segment structure */
@@ -63,6 +61,8 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
 static void loSegFinish(Inst inst);
 static Count loSegGrains(LOSeg loseg);
 static Res loSegWhiten(Seg seg, Trace trace);
+static Res loSegFix(Seg seg, ScanState ss, Ref *refIO);
+static void loSegReclaim(Seg seg, Trace trace);
 static void loSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
                       void *p, size_t s);
 
