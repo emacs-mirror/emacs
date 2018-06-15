@@ -87,8 +87,8 @@ static void arenaReinitLock(Arena arena)
 
 void GlobalsReinitializeAll(void)
 {
-  LockInitGlobal();
   GlobalsArenaMap(arenaReinitLock);
+  LockInitGlobal();
 }
 
 
@@ -275,7 +275,13 @@ Res GlobalsInit(Globals arenaGlobals)
     arenaRingInit = TRUE;
     RingInit(&arenaRing);
     arenaSerial = (Serial)0;
+    /* The setup functions call pthread_atfork (on the appropriate
+       platforms) and so must be called in the correct order. Here we
+       require the locks to be taken first in the "prepare" case and
+       released last in the "parent" and "child" cases. */
+    ThreadSetup();
     ProtSetup();
+    LockSetup();
   }
   arena = GlobalsArena(arenaGlobals);
   /* Ensure updates to arenaSerial do not race by doing the update
