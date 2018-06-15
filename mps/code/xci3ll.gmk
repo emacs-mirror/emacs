@@ -1,9 +1,9 @@
 # -*- makefile -*-
 #
-# xci3ll.gmk: BUILD FOR MAC OS X/i386/Clang PLATFORM
+# xci3ll.gmk: BUILD FOR macOS/IA-32/Clang/LLVM PLATFORM
 #
 # $Id$
-# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
 #
 # .prefer.xcode: The documented and preferred way to develop the MPS
 # for this platform is to use the Xcode project (mps.xcodeproj). This
@@ -34,7 +34,7 @@ include comm.gmk
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

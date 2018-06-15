@@ -1,7 +1,7 @@
-/* vmix.c: VIRTUAL MEMORY MAPPING FOR UNIX (ISH)
+/* vmix.c: VIRTUAL MEMORY MAPPING (POSIX)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the virtual memory mapping
  * interface (vm.h) for Unix-like operating systems.  It was created
@@ -10,7 +10,7 @@
  * copied from vli.c (Linux) which was itself copied from vmo1.c (OSF/1
  * / DIGITAL UNIX / Tru64).
  *
- * .deployed: Currently used on Darwin (OS X) and FreeBSD.
+ * .deployed: Currently used on Darwin (macOS) and FreeBSD.
  *
  * .design: See <design/vm/>.  .design.mmap: mmap(2) is used to
  * reserve address space by creating a mapping with page access none.
@@ -225,7 +225,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

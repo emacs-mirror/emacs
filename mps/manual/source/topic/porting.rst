@@ -61,7 +61,7 @@ usable.
 
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are implementations for POSIX in ``protix.c`` plus
-   ``protsgix.c``, Windows in ``protw3.c``, and OS X using Mach in
+   ``protsgix.c``, Windows in ``protw3.c``, and macOS using Mach in
    ``protix.c`` plus ``protxc.c``.
 
    There is a generic implementation in ``protan.c``, which can't
@@ -76,7 +76,7 @@ usable.
    stack` can be scanned.
 
    See :ref:`design-prmc` for the design, and ``prmc.h`` for the
-   interface. There are implementations on Unix, Windows, and OS X for
+   interface. There are implementations on Unix, Windows, and macOS for
    IA-32 and x86-64.
 
    There is a generic implementation in ``prmcan.c``, which can't
@@ -117,7 +117,7 @@ usable.
 
    See :ref:`design-thread-manager` for the design, and ``th.h`` for
    the interface. There are implementations for POSIX in ``thix.c``
-   plus ``pthrdext.c``, OS X using Mach in ``thxc.c``, Windows in
+   plus ``pthrdext.c``, macOS using Mach in ``thxc.c``, Windows in
    ``thw3.c``.
 
    There is a generic implementation in ``than.c``, which necessarily

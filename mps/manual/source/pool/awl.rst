@@ -252,7 +252,7 @@ following are true:
 
 #. The MPS is running on Linux/IA-32 or Windows/IA-32. Extending this
    list to new (reasonable) operating systems should be tolerable (for
-   example, OS X/IA-32). Extending this to new processor architectures
+   example, macOS/IA-32). Extending this to new processor architectures
    requires more work.
 
 #. The processor instruction that is accessing the object is of a

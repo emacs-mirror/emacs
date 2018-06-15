@@ -104,7 +104,7 @@ Signal and exception handling issues
     
     * On Windows, you must not install a first-chance exception handler.
     
-    * On OS X, you must not install a thread-local Mach exception handler
+    * On macOS, you must not install a thread-local Mach exception handler
       for ``EXC_BAD_ACCESS`` exceptions.
 
     All of these things are, in fact, possible, but your program must

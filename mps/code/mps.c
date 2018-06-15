@@ -1,14 +1,14 @@
 /* mps.c: MEMORY POOL SYSTEM ALL-IN-ONE TRANSLATION UNIT
  *
  * $Id$
- * Copyright (C) 2012-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2012-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This file can be compiled to create the complete MPS library in
  * a single compilation, allowing the compiler to apply global optimizations
  * and inlining effectively.  On most modern compilers this is also faster
  * than compiling each file separately.
  *
- * .purpose.universal: This file also allows simple building of a Mac OS X
+ * .purpose.universal: This file also allows simple building of a macOS
  * "universal" (multiple architecture) binary when the set of source files
  * differs by architecture.  It may work for other platforms in a similar
  * manner.
@@ -111,33 +111,33 @@
 #include "span.c"       /* generic stack probe */
 #include "ssan.c"       /* generic stack scanner */
 
-/* Mac OS X on 32-bit Intel built with Clang or GCC */
+/* macOS on 32-bit Intel built with Clang or GCC */
 
 #elif defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "thxc.c"       /* OS X Mach threading */
+#include "thxc.c"       /* macOS Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protxc.c"     /* OS X Mach exception handling */
+#include "protxc.c"     /* macOS Mach exception handling */
 #include "prmci3.c"     /* 32-bit Intel mutator context decoding */
-#include "prmcxc.c"     /* Mac OS X mutator context */
-#include "prmcxci3.c"   /* 32-bit Intel for Mac OS X mutator context */
+#include "prmcxc.c"     /* macOS mutator context */
+#include "prmcxci3.c"   /* 32-bit Intel for macOS mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
-/* Mac OS X on 64-bit Intel build with Clang or GCC */
+/* macOS on 64-bit Intel build with Clang or GCC */
 
 #elif defined(MPS_PF_XCI6LL) || defined(MPS_PF_XCI6GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "thxc.c"       /* OS X Mach threading */
+#include "thxc.c"       /* macOS Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protxc.c"     /* OS X Mach exception handling */
+#include "protxc.c"     /* macOS Mach exception handling */
 #include "prmci6.c"     /* 64-bit Intel mutator context decoding */
-#include "prmcxc.c"     /* Mac OS X mutator context */
-#include "prmcxci6.c"   /* 64-bit Intel for Mac OS X mutator context */
+#include "prmcxc.c"     /* macOS mutator context */
+#include "prmcxci6.c"   /* 64-bit Intel for macOS mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
@@ -275,7 +275,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

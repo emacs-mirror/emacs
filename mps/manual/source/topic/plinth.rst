@@ -72,7 +72,7 @@ for useful advice.)
     If this preprocessor constant is defined, exclude the ANSI plinth
     (``mpsioan.c`` and ``mpsliban.c``) from the MPS. For example::
 
-        cc -DCONFIG_PLINTH_NONE -c mps.c        (Unix/OS X)
+        cc -DCONFIG_PLINTH_NONE -c mps.c        (Unix/macOS)
         cl /Gs /DCONFIG_PLINTH_NONE /c mps.c    (Windows)
 
     Having excluded the ANSI plinth, you must of course supply your

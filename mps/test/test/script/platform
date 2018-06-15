@@ -13,7 +13,7 @@
 # Set lots of variables correctly, depending on the platform
 # (which was determined in 'options')
 #
-# Currently, it should work correctly on Windows, Linux, MacOS X,
+# Currently, it should work correctly on Windows, Linux, macOS,
 # FreeBSD.
 #
 
