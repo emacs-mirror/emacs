@@ -261,6 +261,16 @@ void (LockReleaseGlobal)(void)
 }
 
 
+/* LockSetup -- one-time lock initialization */
+
+void LockSetup(void)
+{
+  /* Claim all locks before a fork; release in the parent;
+     reinitialize in the child <design/thread-safety/#sol.fork.lock> */
+  pthread_atfork(GlobalsClaimAll, GlobalsReleaseAll, GlobalsReinitializeAll);
+}
+
+
 #elif defined(LOCK_NONE)
 #include "lockan.c"
 #else

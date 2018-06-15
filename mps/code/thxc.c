@@ -26,6 +26,7 @@
 #include <mach/task.h>
 #include <mach/thread_act.h>
 #include <mach/thread_status.h>
+#include <pthread.h>
 
 
 SRCID(thxc, "$Id$");
@@ -197,62 +198,6 @@ void ThreadRingResume(Ring threadRing, Ring deadRing)
 }
 
 
-static Bool threadForkPrepare(Thread thread)
-{
-  AVER(!thread->forking);
-  thread->forking = (thread->port == mach_thread_self());
-  return TRUE;
-}
-
-/* ThreadRingForkPrepare -- prepare for a fork by marking the current
- * thread as forking <design/thread-safety/#sol.fork.threads>.
- */
-void ThreadRingForkPrepare(Arena arena)
-{
-  AVERT(Arena, arena);
-  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkPrepare);
-}
-
-
-static Bool threadForkParent(Thread thread)
-{
-  thread->forking = FALSE;
-  return TRUE;
-}
-
-/* ThreadRingForkParent -- clear the forking flag in the parent after
- * a fork <design/thread-safety/#sol.fork.threads>.
- */
-void ThreadRingForkParent(Arena arena)
-{
-  AVERT(Arena, arena);
-  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkParent);
-}
-
-
-static Bool threadForkChild(Thread thread)
-{
-  if (thread->forking) {
-    thread->port = mach_thread_self();
-    AVER(MACH_PORT_VALID(thread->port));
-    thread->forking = FALSE;
-    return TRUE;
-  } else {
-    return FALSE;
-  }
-}
-
-/* ThreadRingForkChild -- update the mach thread port for the current
- * thread <design/thread-safety/#sol.fork.mach-port>; move all other
- * threads to the dead ring <design/thread-safety/#sol.fork.threads>.
- */
-void ThreadRingForkChild(Arena arena)
-{
-  AVERT(Arena, arena);
-  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkChild);
-}
-
-
 Thread ThreadRingThread(Ring threadRing)
 {
   Thread thread;
@@ -355,6 +300,89 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
     return res;
 
   return ResOK;
+}
+
+
+/* threadAtForkPrepare -- for each arena, mark the current thread as
+ * forking <design/thread-safety/#sol.fork.thread>.
+ */
+
+static Bool threadForkPrepare(Thread thread)
+{
+  AVERT(Thread, thread);
+  AVER(!thread->forking);
+  thread->forking = (thread->port == mach_thread_self());
+  return TRUE;
+}
+
+static void threadRingForkPrepare(Arena arena)
+{
+  AVERT(Arena, arena);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkPrepare);
+}
+
+static void threadAtForkPrepare(void)
+{
+  GlobalsArenaMap(threadRingForkPrepare);
+}
+
+
+/* threadAtForkParent -- for each arena, clear the forking flag for
+ * all threads <design/thread-safety/#sol.fork.thread>.
+ */
+
+static Bool threadForkParent(Thread thread)
+{
+  AVERT(Thread, thread);
+  thread->forking = FALSE;
+  return TRUE;
+}
+
+static void threadRingForkParent(Arena arena)
+{
+  AVERT(Arena, arena);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkParent);
+}
+
+static void threadAtForkParent(void)
+{
+  GlobalsArenaMap(threadRingForkParent);
+}
+
+
+/* threadAtForkChild -- For each arena, move all threads to the dead
+ * ring, except for the thread that was marked as forking by the
+ * prepare handler <design/thread-safety/#sol.fork.thread>, for which
+ * update its mach port <design/thread-safety/#sol.fork.mach-port>.
+ */
+
+static Bool threadForkChild(Thread thread)
+{
+  AVERT(Thread, thread);
+  if (thread->forking) {
+    thread->port = mach_thread_self();
+    AVER(MACH_PORT_VALID(thread->port));
+    thread->forking = FALSE;
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+static void threadRingForkChild(Arena arena)
+{
+  AVERT(Arena, arena);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkChild);
+}
+
+static void threadAtForkChild(void)
+{
+  GlobalsArenaMap(threadRingForkChild);
+}
+
+void ThreadSetup(void)
+{
+  pthread_atfork(threadAtForkPrepare, threadAtForkParent, threadAtForkChild);
 }
 
 

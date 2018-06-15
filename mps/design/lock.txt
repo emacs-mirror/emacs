@@ -141,9 +141,9 @@ that this function need not be thread-safe (see `.req.held`_).
 Initialize (or re-initialize) the global locks. This should only be
 called in the following circumstances: the first time either of the
 global locks is claimed; and in the child process after a ``fork()``.
-See design.mps.thread-safety.sol.fork.locks_.
+See design.mps.thread-safety.sol.fork.lock_.
 
-.. _design.mps.thread-safety.sol.fork.locks: thread-safety#sol-fork-locks
+.. _design.mps.thread-safety.sol.fork.lock: thread-safety#sol-fork-lock
 
 ``void LockClaimGlobal(void)``
 
@@ -163,6 +163,11 @@ to the current thread and claims the lock (if not already held).
 
 Restores the previous state of the recursive global lock remembered by
 the corresponding ``LockClaimGlobalRecursive()`` call.
+
+``void LockSetup(void)``
+
+One-time initialization function, intended for calling
+``pthread_atfork()`` on the appropriate platforms: see design.mps.thread-safety.sol.fork.lock_.
 
 
 Implementation

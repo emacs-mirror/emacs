@@ -133,6 +133,11 @@ extern void LockClaimGlobal(void);
 extern void LockReleaseGlobal(void);
 
 
+/* LockSetup -- one-time lock initialization */
+
+extern void LockSetup(void);
+
+
 #endif /* lock_h */
 
 

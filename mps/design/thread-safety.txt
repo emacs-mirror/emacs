@@ -266,7 +266,7 @@ In the child handler, the MPS would like to release the locks but this
 does not work on any supported platform, so instead it reinitializes
 them, by calling ``LockInitGlobal()``.
 
-_`.sol.fork.threads`: On macOS, in the prepare handler, the MPS
+_`.sol.fork.thread`: On macOS, in the prepare handler, the MPS
 identifies for each arena the current thread, that is, the one calling
 ``fork()`` which will survive into the child process, and marks this
 thread by setting a flag in the appropriate ``ThreadStruct``. In the

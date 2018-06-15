@@ -171,6 +171,10 @@ void (LockReleaseGlobal)(void)
   LockRelease(globalLock);
 }
 
+void LockSetup(void)
+{
+  /* Nothing to do as MPS does not support fork() on Windows. */
+}
 
 #elif defined(LOCK_NONE)
 #include "lockan.c"

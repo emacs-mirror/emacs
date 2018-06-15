@@ -218,21 +218,6 @@ void ThreadRingResume(Ring threadRing, Ring deadRing)
 }
 
 
-static Bool threadForkChild(Thread thread)
-{
-  return pthread_equal(pthread_self(), thread->id); /* .thread.id */
-}
-
-/* ThreadRingForkChild -- move threads except for the current thread
- * to the dead ring <design/thread-safety/#sol.fork.threads>.
- */
-void ThreadRingForkChild(Arena arena)
-{
-  AVERT(Arena, arena);
-  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkChild);
-}
-
-
 /* ThreadRingThread -- return the thread at the given ring element */
 
 Thread ThreadRingThread(Ring threadRing)
@@ -325,6 +310,33 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
     return res;
 
   return ResOK;
+}
+
+
+/* threadAtForkChild -- for each arena, move threads except for the
+ * current thread to the dead ring <design/thread-safety/#sol.fork.thread>.
+ */
+
+static Bool threadForkChild(Thread thread)
+{
+  AVERT(Thread, thread);
+  return pthread_equal(pthread_self(), thread->id); /* .thread.id */
+}
+
+static void threadRingForkChild(Arena arena)
+{
+  AVERT(Arena, arena);
+  mapThreadRing(ArenaThreadRing(arena), ArenaDeadRing(arena), threadForkChild);
+}
+
+static void threadAtForkChild(void)
+{
+  GlobalsArenaMap(ThreadRingForkChild);
+}
+
+void ThreadSetup(void)
+{
+  pthread_atfork(NULL, NULL, threadAtForkChild);
 }
 
 

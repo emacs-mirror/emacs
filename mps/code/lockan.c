@@ -134,6 +134,11 @@ void (LockReleaseGlobal)(void)
   LockRelease(globalLock);
 }
 
+void LockSetup(void)
+{
+  /* Nothing to do as ANSI platform does not have fork(). */
+}
+
 
 /* C. COPYRIGHT AND LICENSE
  *
