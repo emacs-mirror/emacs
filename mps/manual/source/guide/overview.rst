@@ -43,6 +43,8 @@ for details.
    single: Memory Pool System; supported target platforms
    single: platforms; supported
 
+.. _guide-overview-platforms:
+
 Supported target platforms
 --------------------------
 
