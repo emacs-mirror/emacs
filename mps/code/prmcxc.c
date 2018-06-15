@@ -1,7 +1,7 @@
-/* prmcxc.c: MUTATOR CONTEXT INTEL 386 (MAC OS X)
+/* prmcxc.c: MUTATOR CONTEXT (macOS)
  *
  * $Id$
- * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
@@ -88,7 +88,7 @@ Res MutatorContextScan(ScanState ss, MutatorContext context,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
