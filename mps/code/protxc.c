@@ -286,17 +286,6 @@ static void *protCatchThread(void *p) {
 }
 
 
-/* protSetupThread -- the Mach port number of either the very first
- * thread to create an arena, or else the child thread after a fork.
- *
- * The purpose is to avoid registering this thread twice if the client
- * program calls mps_thread_reg on it. We need this special case
- * because we don't require thread registration of the sole thread of
- * a single-threaded mutator.
- */
-static mach_port_t protSetupThread = MACH_PORT_NULL;
-
-
 /* ProtThreadRegister -- register a thread for protection exception handling */
 
 extern void ProtThreadRegister(void)
@@ -312,11 +301,7 @@ extern void ProtThreadRegister(void)
 
   self = mach_thread_self();
   AVER(MACH_PORT_VALID(self));
-  
-  /* Avoid setting up the exception handler twice. */
-  if (self == protSetupThread)
-    return;
-  
+
   /* Ask to receive EXC_BAD_ACCESS exceptions on our port, complete
      with thread state and identity information in the message.
      The MACH_EXCEPTION_CODES flag causes the code fields to be
@@ -377,9 +362,9 @@ static void protExcThreadStart(void)
   if (kr != KERN_SUCCESS)
     mach_error("ERROR: MPS mach_port_insert_right", kr); /* .trans.must */
   
-  protSetupThread = MACH_PORT_NULL;
+  /* We don't require the mutator to register the sole thread in a
+   * single-threaded program, so register it automatically now. */
   ProtThreadRegister();
-  protSetupThread = self;
 
   /* Launch the exception handling thread. We use pthread_create
    * because it's much simpler than setting up a thread from scratch
@@ -414,7 +399,6 @@ static void protAtForkChild(void)
 
 static void protSetupInner(void)
 {
-  AVER(protSetupThread == MACH_PORT_NULL);
   protExcThreadStart();
 
   /* Install fork handlers <design/thread-safety/#sol.fork.atfork>. */
