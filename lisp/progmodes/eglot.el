@@ -847,7 +847,7 @@ If optional MARKER, return a marker instead"
   "Format MARKUP according to LSP's spec."
   (pcase-let ((`(,string ,mode)
                (if (stringp markup) (list (string-trim markup)
-                                          (intern "markdown-mode"))
+                                          (intern "gfm-mode"))
                  (list (plist-get markup :value)
                        (intern (concat (plist-get markup :language) "-mode" ))))))
     (with-temp-buffer
