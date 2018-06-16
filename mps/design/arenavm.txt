@@ -226,7 +226,7 @@ Document History
 - 2013-05-24 GDR_ Converted to reStructuredText.
 
 - 2014-02-17 RB_ Updated to note use of SparseArray rather than direct
-management of page table mapping.
+  management of page table mapping.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
@@ -235,7 +235,7 @@ management of page table mapping.
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
