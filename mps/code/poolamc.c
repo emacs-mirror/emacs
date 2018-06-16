@@ -1462,7 +1462,7 @@ static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 }
 
 
-/* amcFixInPlace -- fix an reference without moving the object
+/* amcSegFixInPlace -- fix a reference without moving the object
  *
  * Usually this function is used for ambiguous references, but during
  * emergency tracing may be used for references of any rank.
@@ -1470,7 +1470,7 @@ static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
  * If the segment has a nailboard then we use that to record the fix.
  * Otherwise we simply grey and nail the entire segment.
  */
-static void amcFixInPlace(Seg seg, ScanState ss, Ref *refIO)
+static void amcSegFixInPlace(Seg seg, ScanState ss, Ref *refIO)
 {
   Addr ref;
 
@@ -1536,7 +1536,7 @@ static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO)
   }
 
 fixInPlace: /* see <design/poolamc/>.Nailboard.emergency */
-  amcFixInPlace(seg, ss, refIO);
+  amcSegFixInPlace(seg, ss, refIO);
   return ResOK;
 }
 
@@ -1594,7 +1594,7 @@ static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
       STATISTIC(++ss->nailCount);
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
-    amcFixInPlace(seg, ss, refIO);
+    amcSegFixInPlace(seg, ss, refIO);
     return ResOK;
   }
 
