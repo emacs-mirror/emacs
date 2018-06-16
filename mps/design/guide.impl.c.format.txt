@@ -25,10 +25,10 @@ _`.readership`: This document is intended for anyone working on or with the
 C source code.
 
 
-General Formatting Conventions
+General formatting conventions
 ------------------------------
 
-Line Width
+Line width
 ..........
 
 _`.width`: Lines should be no wider than 72 characters. _`.width.why`: Many
@@ -37,11 +37,12 @@ placed side by side. Restricting lines to 72 characters allows line
 numbering to be used (in vi for example) and also allows diffs to be
 displayed without overflowing the terminal.
 
-White Space
+White space
 ...........
 
 _`.space.notab`: No tab characters should appear in the source files.
 Ordinary spaces should be used to indent and format the sources.
+
 _`.space.notab.why`: Tab characters are displayed differently on different
 platforms, and sometimes translated back and forth, destroying layout
 information.
@@ -55,15 +56,18 @@ sub-expressions more tightly. For example::
 
     foo = x + y*z;
 
-_`.space.control`: One space between the keyword, ``switch``, ``while``,
-``for`` and the following paren.  _`.space.control.why`: This distinguishes
-control statements lexically from function calls, making it easier to
-distinguish them visually and when searching with tools like grep.
+_`.space.control`: One space between a control-flow keyword
+(``switch``, ``while``, ``for``, ``if``) and the following opening
+parenthesis.
 
-_`.space.function.not`: No space between a function name and the following
-paren beginning its argument list.
+_`.space.control.why`: This distinguishes control statements lexically
+from function calls, making it easier to distinguish them visually and
+when searching with tools like ``grep``.
 
-Sections and Paragraphs
+_`.space.function.not`: No space between a function name and the opening
+parenthesis beginning its argument list.
+
+Sections and paragraphs
 .......................
 
 _`.section`: Source files can be thought of as breaking down into
@@ -74,7 +78,7 @@ _`.section.space`: Precede sections by two blank lines (except the first
 one in the file, which should be the leader comment in any case).
 
 _`.section.comment`: Each section should start with a banner comment (see
-.comment.banner) describing what the section contains.
+`.comment.banner`_) describing what the section contains.
 
 _`.para`: Within sections, code often breaks down into natural units called
 "paragraphs". A paragraph might be a set of strongly related
@@ -200,7 +204,7 @@ a semicolon. If it does, indent to the same amount, otherwise indent by
 two more spaces. The main exceptions are lines starting with a close
 brace, goto-labels, and line-breaks between parentheses.
 
-Positioning of Braces
+Positioning of braces
 .....................
 
 _`.brace.otb`: Use the "One True Brace" (or OTB) style. This places the
@@ -239,7 +243,7 @@ this will be a ``goto`` or an assignment. For example::
 Note in particular that an ``if`` with an ``else`` must have braces on both
 paths.
 
-Switch Statements
+Switch statements
 .................
 
 _`.switch`: format switch statements like this::
@@ -282,11 +286,11 @@ even if all it contains is ``NOTREACHED`` and ``break``.  Remember that
 ``NOTREACHED`` doesn't stop the process in all build varieties.
 
 
-Formatting Comments
-...................
+Comments
+........
 
 _`.comment`: There are three types of comments: banners, paragraph
-comments, and columnar comments.
+comments, and column comments.
 
 _`.comment.banner`: Banner comments come at the start of sections. A banner
 comment consists of a heading usually composed of a symbol, an em-dash
@@ -307,19 +311,18 @@ the banner comment and the section it comments. For example::
  
     typedef struct BlockStruct {
 
-_`.comment.para`: Paragraph comments come at the start of paragraphs in the
-code. A paragraph comment consists of formatted English text, with each
-line wrapped by the open and close comment tokens (``/*`` and ``*/``).
-(This avoids problems when cutting and pasting comments.) For example::
+_`.comment.para`: Paragraph comments come at the start of paragraphs
+in the code. A paragraph comment consists of formatted English text.
+For example::
 
-      /* If the freed area is in the base sentinel then insert */
-      /* the new descriptor after it, otherwise insert before. */
-      if(isBase) {
+      /* If the freed area is in the base sentinel then insert
+         the new descriptor after it, otherwise insert before. */
+      if (isBase) {
 
 _`.comment.para.precede`: Paragraph comments, even one-liners, precede the
 code to which they apply.
 
-_`.comment.column`: Columnar comments appear in a column to the right of
+_`.comment.column`: Column comments appear in a column to the right of
 the code. They should be used sparingly, since they clutter the code and
 make it hard to edit. Use them on variable declarations and structure,
 union, or enum declarations. They should start at least at column 32
