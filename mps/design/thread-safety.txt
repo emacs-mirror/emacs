@@ -77,7 +77,7 @@ _`.lock-cost`: The cost of locking in performance terms are:
 _`.anal.perf.signif`: `.lock-cost.pause`_ is significant if there are
 MPS functions that take a long time. Using more locks, e.g. having a
 lock per pool as well as a lock per arena, is a way of decreasing the
-locking conflict between threads (.lock-cost.pause and
+locking conflict between threads (`.lock-cost.pause`_ and
 `.lock-cost.wait`_). However this could increase
 `.lock-cost.overhead`_ significantly.
 
@@ -302,7 +302,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
