@@ -724,6 +724,13 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   }
 
   i = AddrOffset(SegBase(seg), base) >> lo->alignShift;
+
+  /* Not a real reference if unallocated. */
+  if (!BTGet(loseg->alloc, i)) {
+    AVER_CRITICAL(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
   if(!BTGet(loseg->mark, i)) {
     ss->wasMarked = FALSE;  /* <design/fix/#protocol.was-marked> */
     if(ss->rank == RankWEAK) {

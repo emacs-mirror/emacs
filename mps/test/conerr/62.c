@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = LO pool asserts on unaligned exact reference
+ summary = LO pool asserts on exact reference to unallocated object
  language = c
  link = myfmt.o testlib.o
 OUTPUT_SPEC
@@ -25,7 +25,7 @@ static void test(void)
  mps_root_t root;
  mps_fmt_t format;
  mps_ap_t ap_ams, ap_lo;
- mps_addr_t p, q, unaligned;
+ mps_addr_t p, q, unallocated;
 
  cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none), "create arena");
  mps_arena_park(arena);
@@ -46,9 +46,12 @@ static void test(void)
  /* p is in the LO pool */
  p = allocone(ap_lo, 0, NULL, NULL, sizeof(mycell));
 
- /* q is in the AMS pool with unaligned exact reference to p */
- unaligned = (void *)((char*)p + 1);
- q = allocone(ap_ams, 1, p, unaligned, sizeof(mycell));
+ /* Destroy the LO allocation point so that p's segment gets unbuffered. */
+ mps_ap_destroy(ap_lo);
+
+ /* q is in the AMS pool with exact reference to p and unallocated object */
+ unallocated = (void *)((char*)p + sizeof(mycell));
+ q = allocone(ap_ams, 1, p, unallocated, sizeof(mycell));
 
  mps_arena_start_collect(arena);
  mps_arena_park(arena);
@@ -56,7 +59,6 @@ static void test(void)
  /* Keep q (and thus p) alive during the collection. */
  report("q", "%p", q);
 
- mps_ap_destroy(ap_lo);
  mps_ap_destroy(ap_ams);
  mps_pool_destroy(pool_lo);
  mps_pool_destroy(pool_ams);

@@ -39,9 +39,9 @@ static void test(void)
 
  /* p is in the AWL pool */
  p = allocone(ap, 0, NULL, NULL, sizeof(mycell));
- unaligned = (void *)((char*)p + 1);
 
  /* q is in the AWL pool with unaligned exact reference to p */
+ unaligned = (void *)((char*)p + 1);
  q = allocone(ap, 1, p, unaligned, sizeof(mycell));
 
  mps_arena_start_collect(arena);
