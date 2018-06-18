@@ -699,6 +699,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   LOSeg loseg = MustBeA_CRITICAL(LOSeg, seg);
   Ref clientRef;
   Addr base;
+  Size i;
 
   AVERT_CRITICAL(ScanState, ss);
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
@@ -716,31 +717,19 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     return ResOK;
   }
 
-  switch(ss->rank) {
-  case RankAMBIG:
-    if(!AddrIsAligned(base, PoolAlignment(pool))) {
-      return ResOK;
+  if (!AddrIsAligned(base, PoolAlignment(pool))) {
+    AVER_CRITICAL(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  i = AddrOffset(SegBase(seg), base) >> lo->alignShift;
+  if(!BTGet(loseg->mark, i)) {
+    ss->wasMarked = FALSE;  /* <design/fix/#protocol.was-marked> */
+    if(ss->rank == RankWEAK) {
+      *refIO = (Addr)0;
+    } else {
+      BTSet(loseg->mark, i);
     }
-  /* fall through */
-
-  case RankEXACT:
-  case RankFINAL:
-  case RankWEAK: {
-    Size i = AddrOffset(SegBase(seg), base) >> lo->alignShift;
-
-    if(!BTGet(loseg->mark, i)) {
-      ss->wasMarked = FALSE;  /* <design/fix/#protocol.was-marked> */
-      if(ss->rank == RankWEAK) {
-        *refIO = (Addr)0;
-      } else {
-        BTSet(loseg->mark, i);
-      }
-    }
-  } break;
-
-  default:
-    NOTREACHED;
-    break;
   }
 
   return ResOK;
