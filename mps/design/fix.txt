@@ -21,8 +21,8 @@ interface also allows the value of such references to be changed (this
 is necessary in order to implement a moving memory manager).
 
 
-Architecture
--------------
+Was-marked protocol
+-------------------
 
 _`.was-marked`: The ``ScanState`` has a ``Bool wasMarked``
 field. This is used for finalization.
@@ -62,6 +62,8 @@ Document History
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
 - 2013-04-14 GDR_ Converted to reStructuredText.
+
+- 2018-06-18 GDR_ Simplify the ``wasMarked`` protocol.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
