@@ -7,7 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= poolams.c
- assertcond = AMS_ALLOCED(seg, i)
+ assertcond = ss->rank == RankAMBIG
 END_HEADER
 */
 
