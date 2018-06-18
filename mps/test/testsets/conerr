@@ -73,3 +73,6 @@ conerr/59.c
 % conerr/63.c -- assertion is on the critical path
 % conerr/64.c -- assertion is on the critical path
 % conerr/65.c -- assertion is on the critical path
+% conerr/66.c -- assertion is on the critical path
+% conerr/67.c -- assertion is on the critical path
+% conerr/68.c -- assertion is on the critical path
