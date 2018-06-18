@@ -1,7 +1,7 @@
 /* poolams.c: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  *
@@ -1412,7 +1412,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(refIO != NULL);
 
   format = pool->format;
-  AVERT(Format, format);
+  AVERT_CRITICAL(Format, format);
 
   amsseg = Seg2AMSSeg(seg);
   AVERT_CRITICAL(AMSSeg, amsseg);
@@ -1864,7 +1864,7 @@ Bool AMSCheck(AMS ams)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
