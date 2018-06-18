@@ -1427,11 +1427,17 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(SegBase(seg) <= clientRef);
   AVER_CRITICAL(clientRef < SegLimit(seg)); /* see .ref-limit */
   base = AddrSub((Addr)clientRef, format->headerSize);
-  /* can get an ambiguous reference too close to the base of the
-   * segment, so when we subtract the header we are not in the
-   * segment any longer.  This isn't a real reference,
-   * so we can just skip it.  */
+
+  /* Not a real reference if out of bounds. This can happen if an
+     ambiguous reference is closer to the base of the segment than the
+     header size. */
   if (base < SegBase(seg)) {
+    AVER_CRITICAL(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  /* Not a real reference if unaligned. */
+  if (!AddrIsAligned(base, PoolAlignment(pool))) {
     AVER_CRITICAL(ss->rank == RankAMBIG);
     return ResOK;
   }
@@ -1442,24 +1448,23 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   ss->wasMarked = TRUE;
 
+  /* Not a real reference if unallocated. */
+  if (!AMS_ALLOCED(seg, i)) {
+    AVER_CRITICAL(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
   switch (ss->rank) {
   case RankAMBIG:
     if (PoolAMS(pool)->shareAllocTable)
       /* In this state, the pool doesn't support ambiguous references (see */
       /* .ambiguous.noshare), so this is not a reference. */
       break;
-    /* not a real pointer if not aligned or not allocated */
-    if (!AddrIsAligned(base, PoolAlignment(pool))
-       || !AMS_ALLOCED(seg, i)) {
-      break;
-    }
     amsseg->ambiguousFixes = TRUE;
     /* falls through */
   case RankEXACT:
   case RankFINAL:
   case RankWEAK:
-    AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));
-    AVER_CRITICAL(AMS_ALLOCED(seg, i)); /* <design/check/#.common> */
     if (AMS_IS_WHITE(seg, i)) {
       ss->wasMarked = FALSE;
       if (ss->rank == RankWEAK) { /* then splat the reference */
