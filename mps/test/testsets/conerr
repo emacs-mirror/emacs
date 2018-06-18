@@ -67,3 +67,4 @@ conerr/56.c
 % conerr/57.c -- see <code/ld.c#.add.no-arena-check>
 % conerr/58.c -- see <code/ld.c#.stale.no-arena-check>
 conerr/59.c
+% conerr/60.c -- assertion is on the critical path
