@@ -717,6 +717,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     return ResOK;
   }
 
+  /* Not a real reference if unaligned. */
   if (!AddrIsAligned(base, PoolAlignment(pool))) {
     AVER_CRITICAL(ss->rank == RankAMBIG);
     return ResOK;

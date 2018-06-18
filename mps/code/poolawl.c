@@ -995,12 +995,19 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   if (base < SegBase(seg)) {
     return ResOK;
   }
+
+  /* Not a real reference if unaligned. */
+  if (!AddrIsAligned(base, PoolAlignment(pool))) {
+    AVER_CRITICAL(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
   i = awlIndexOfAddr(SegBase(seg), awl, base);
 
   switch(ss->rank) {
   case RankAMBIG:
-    /* not a real pointer if not aligned or not allocated */
-    if (!AddrIsAligned(base, sizeof(void *)) || !BTGet(awlseg->alloc, i))
+    /* not a real reference if not allocated */
+    if (!BTGet(awlseg->alloc, i))
       return ResOK;
     /* falls through */
   case RankEXACT:
