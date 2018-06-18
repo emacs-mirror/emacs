@@ -1440,8 +1440,6 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(i < amsseg->grains);
   AVER_CRITICAL(!AMS_IS_INVALID_COLOUR(seg, i));
 
-  ss->wasMarked = TRUE;
-
   switch (ss->rank) {
   case RankAMBIG:
     if (PoolAMS(pool)->shareAllocTable)
@@ -1461,7 +1459,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));
     AVER_CRITICAL(AMS_ALLOCED(seg, i)); /* <design/check/#.common> */
     if (AMS_IS_WHITE(seg, i)) {
-      ss->wasMarked = FALSE;
+      ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
       if (ss->rank == RankWEAK) { /* then splat the reference */
         *refIO = (Ref)0;
       } else {
