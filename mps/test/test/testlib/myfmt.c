@@ -5,7 +5,6 @@ myfmt.c
 
 #include "myfmt.h"
 #include <string.h>
-#include <stdio.h>
 
 enum {MCpadsingle, MCpadmany, MCheart, MCdata};
 
@@ -86,9 +85,10 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   while (base < limit)
   {
    mycell *obj = base;
+   unsigned long data = (unsigned long)obj->data;
    mps_res_t res;
 
-   if (formatcomments) printf("Scan %p.\n", (void *)base);
+   commentif(formatcomments, "scan %lu at %p", data, obj);
    switch (obj->tag)
    {
     case MCpadsingle:
@@ -102,7 +102,7 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 
      if (obj->ref[0] != NULL)
      {
-      if (formatcomments) printf("Fix: %p.\n", (void*)&(obj->ref[0]));
+      commentif(formatcomments, "fix %lu[0] -> %p", data, obj->ref[0]);
       res = MPS_FIX12(ss, (mps_addr_t *) &(obj->ref[0])); /* pun! */
       if (res != MPS_RES_OK)
       {
@@ -111,7 +111,7 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
      }
      if (obj->ref[1] != NULL)
      {
-      if (formatcomments) printf("Fix: %p.\n", (void*)&(obj->ref[1]));
+      commentif(formatcomments, "fix %lu[1] -> %p", data, obj->ref[1]);
       res = MPS_FIX12(ss, (mps_addr_t *) &(obj->ref[1])); /* pun! */
       if (res != MPS_RES_OK)
       {
@@ -154,7 +154,7 @@ void mycopy(mps_addr_t object, mps_addr_t to)
 /* mycell *toj = to;
 */
 
- if (formatcomments) printf("copy! %p -> %p\n", object, to);
+ commentif(formatcomments, "copy! %p -> %p\n", object, to);
 
 /* this line is bad, because the objects might overlap,
    and then C doesn't guarantee to do the right thing!
