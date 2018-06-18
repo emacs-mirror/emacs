@@ -444,36 +444,6 @@ static void AWLNoteScan(Seg seg, ScanState ss)
 }
 
 
-/* AWLSegCreate -- Create a new segment of at least given size */
-
-static Res AWLSegCreate(AWLSeg *awlsegReturn,
-                        RankSet rankSet, Pool pool, Size size)
-{
-  AWL awl = MustBeA(AWLPool, pool);
-  Arena arena = PoolArena(pool);
-  Seg seg;
-  Res res;
-
-  AVER(awlsegReturn != NULL);
-  AVERT(RankSet, rankSet);
-  AVER(size > 0);
-
-  size = SizeArenaGrains(size, arena);
-  /* beware of large sizes overflowing upon rounding */
-  if (size == 0)
-    return ResMEMORY;
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    res = PoolGenAlloc(&seg, awl->pgen, CLASS(AWLSeg), size, args);
-  } MPS_ARGS_END(args);
-  if (res != ResOK)
-    return res;
-
-  *awlsegReturn = MustBeA(AWLSeg, seg);
-  return ResOK;
-}
-
-
 /* AWLSegAlloc -- allocate an object in a given segment */
 
 static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
@@ -630,7 +600,9 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
   Addr base, limit;
   Res res;
   Ring node, nextNode;
+  Seg seg;
   AWLSeg awlseg;
+  AWL awl = MustBeA(AWLPool, pool);
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
@@ -639,7 +611,7 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
 
   RING_FOR(node, &pool->segRing, nextNode) {
-    Seg seg = SegOfPoolRing(node);
+    seg = SegOfPoolRing(node);
     
     awlseg = MustBeA(AWLSeg, seg);
 
@@ -653,18 +625,20 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* No free space in existing awlsegs, so create new awlseg */
-
-  res = AWLSegCreate(&awlseg, BufferRankSet(buffer), pool, size);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, BufferRankSet(buffer));
+    res = PoolGenAlloc(&seg, awl->pgen, CLASS(AWLSeg),
+                       SizeArenaGrains(size, PoolArena(pool)), args);
+  } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
+  awlseg = MustBeA(AWLSeg, seg);
   base = SegBase(MustBeA(Seg, awlseg));
   limit = SegLimit(MustBeA(Seg, awlseg));
 
 found:
   {
     Index i, j;
-    AWL awl = MustBeA(AWLPool, pool);
-    Seg seg = MustBeA(Seg, awlseg);
     i = PoolIndexOfAddr(SegBase(seg), pool, base);
     j = PoolIndexOfAddr(SegBase(seg), pool, limit);
     AVER(i < j);
