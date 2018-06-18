@@ -251,31 +251,6 @@ static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
 }
 
 
-/* loSegCreate -- Creates a segment of size at least size.
- *
- * Segments will be multiples of ArenaGrainSize.
- */
-
-static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size)
-{
-  LO lo = MustBeA(LOPool, pool);
-  Seg seg;
-  Res res;
-
-  AVER(loSegReturn != NULL);
-  AVER(size > 0);
-
-  res = PoolGenAlloc(&seg, lo->pgen, CLASS(LOSeg),
-                     SizeArenaGrains(size, PoolArena(pool)),
-                     argsNone);
-  if (res != ResOK)
-    return res;
-
-  *loSegReturn = MustBeA(LOSeg, seg);
-  return ResOK;
-}
-
-
 /* loSegReclaim -- reclaim white objects in an LO segment
  *
  * Could consider implementing this using Walk.
@@ -560,10 +535,12 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* No segment had enough space, so make a new one. */
-  res = loSegCreate(&loseg, pool, size);
-  if(res != ResOK)
+  res = PoolGenAlloc(&seg, lo->pgen, CLASS(LOSeg),
+                     SizeArenaGrains(size, PoolArena(pool)),
+                     argsNone);
+  if (res != ResOK)
     return res;
-  seg = MustBeA(Seg, loseg);
+  loseg = MustBeA(LOSeg, seg);
   base = SegBase(seg);
   limit = SegLimit(seg);
 
