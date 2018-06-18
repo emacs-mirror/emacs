@@ -26,7 +26,7 @@ function/19.c
 function/20.c
 function/21.c
 function/22.c
-% function/23.c -- interactive test, can't run unattended
+% function/23.c -- infinite loop; also job003789
 function/24.c
 function/25.c
 function/26.c
