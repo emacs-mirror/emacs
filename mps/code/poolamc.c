@@ -1476,8 +1476,6 @@ static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg,
 
   arena = PoolArena(pool);
 
-  ss->wasMarked = TRUE;
-
   if(ss->rank == RankAMBIG)
     goto fixInPlace;
 
@@ -1528,10 +1526,6 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
   EVENT0(AMCFix);
-
-  /* For the moment, assume that the object was already marked. */
-  /* (See <design/fix/#protocol.was-marked>.) */
-  ss->wasMarked = TRUE;
 
   /* If the reference is ambiguous, set up the datastructures for */
   /* managing a nailed segment.  This involves marking the segment */
@@ -1598,8 +1592,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* Object is not preserved yet (neither moved, nor nailed) */
     /* so should be preserved by forwarding. */
 
-    /* <design/fix/#protocol.was-marked> */
-    ss->wasMarked = FALSE;
+    ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
 
     /* Get the forwarding buffer from the object's generation. */
     gen = amcSegGen(seg);

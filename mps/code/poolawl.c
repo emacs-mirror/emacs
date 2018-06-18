@@ -1,7 +1,7 @@
 /* poolawl.c: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -985,7 +985,6 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER(refIO != NULL);
 
   clientRef = *refIO;
-  ss->wasMarked = TRUE;
 
   base = AddrSub((Addr)clientRef, pool->format->headerSize);
   /* can get an ambiguous reference to close to the base of the
@@ -1007,7 +1006,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   case RankFINAL:
   case RankWEAK:
     if (!BTGet(awlseg->mark, i)) {
-      ss->wasMarked = FALSE;
+      ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
       if (ss->rank == RankWEAK) {
         *refIO = (Ref)0;
       } else {
@@ -1266,7 +1265,7 @@ static Bool AWLCheck(AWL awl)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
