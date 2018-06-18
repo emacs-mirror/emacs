@@ -1004,28 +1004,20 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   i = awlIndexOfAddr(SegBase(seg), awl, base);
 
-  switch(ss->rank) {
-  case RankAMBIG:
-    /* not a real reference if not allocated */
-    if (!BTGet(awlseg->alloc, i))
-      return ResOK;
-    /* falls through */
-  case RankEXACT:
-  case RankFINAL:
-  case RankWEAK:
-    if (!BTGet(awlseg->mark, i)) {
-      ss->wasMarked = FALSE;
-      if (ss->rank == RankWEAK) {
-        *refIO = (Ref)0;
-      } else {
-        BTSet(awlseg->mark, i);
-        SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
-      }
+  /* Not a real reference if unallocated. */
+  if (!BTGet(awlseg->alloc, i)) {
+    AVER_CRITICAL(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  if (!BTGet(awlseg->mark, i)) {
+    ss->wasMarked = FALSE;
+    if (ss->rank == RankWEAK) {
+      *refIO = (Ref)0;
+    } else {
+      BTSet(awlseg->mark, i);
+      SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
     }
-    break;
-  default:
-    NOTREACHED;
-    return ResUNIMPL;
   }
 
   return ResOK;
