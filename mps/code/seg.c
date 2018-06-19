@@ -1247,7 +1247,7 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
     AVER_CRITICAL(trseg == seg);
     TractSetWhite(tract, BS_BITFIELD(Trace, white));
   }
-  AVER(addr == limit);
+  AVER_CRITICAL(addr == limit);
 
   seg->white = BS_BITFIELD(Trace, white);
 }
@@ -1339,7 +1339,7 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
 
   gcseg->summary = summary;
 
-  AVER(seg->rankSet != RankSetEMPTY);
+  AVER_CRITICAL(seg->rankSet != RankSetEMPTY);
 }
 
 
@@ -1371,7 +1371,7 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   /* rankSet == RankSetEMPTY implies summary == RefSetEMPTY */
-  AVER(rankSet != RankSetEMPTY || summary == RefSetEMPTY);
+  AVER_CRITICAL(rankSet != RankSetEMPTY || summary == RefSetEMPTY);
 
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
