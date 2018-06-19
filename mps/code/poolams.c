@@ -598,7 +598,7 @@ static Res AMSSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 
 DEFINE_CLASS(Seg, AMSSeg, klass)
 {
-  INHERIT_CLASS(klass, AMSSeg, GCSeg);
+  INHERIT_CLASS(klass, AMSSeg, MutatorSeg);
   klass->instClassStruct.describe = AMSSegDescribe;
   klass->instClassStruct.finish = AMSSegFinish;
   klass->size = sizeof(AMSSegStruct);
