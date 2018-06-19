@@ -1268,38 +1268,33 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
 
 static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 {
-  GCSeg gcseg;
   RankSet oldRankSet;
-  Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                /* .seg.method.check */
   AVERT_CRITICAL(RankSet, rankSet);        /* .seg.method.check */
   AVER_CRITICAL(rankSet == RankSetEMPTY
                 || RankSetIsSingle(rankSet)); /* .seg.method.check */
-  gcseg = SegGCSeg(seg);
-  AVERT_CRITICAL(GCSeg, gcseg);
-  AVER_CRITICAL(&gcseg->segStruct == seg);
 
-  arena = PoolArena(SegPool(seg));
   oldRankSet = seg->rankSet;
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
 
   if (oldRankSet == RankSetEMPTY) {
     if (rankSet != RankSetEMPTY) {
-      AVER(gcseg->summary == RefSetEMPTY);
-      ShieldRaise(arena, seg, AccessWRITE);
+      AVER_CRITICAL(SegGCSeg(seg)->summary == RefSetEMPTY);
+      ShieldRaise(PoolArena(SegPool(seg)), seg, AccessWRITE);
     }
   } else {
     if (rankSet == RankSetEMPTY) {
-      AVER(gcseg->summary == RefSetEMPTY);
-      ShieldLower(arena, seg, AccessWRITE);
+      AVER_CRITICAL(SegGCSeg(seg)->summary == RefSetEMPTY);
+      ShieldLower(PoolArena(SegPool(seg)), seg, AccessWRITE);
     }
   }
 }
 
 
-static void gcSegSyncWriteBarrier(Seg seg, Arena arena)
+static void gcSegSyncWriteBarrier(Seg seg)
 {
+  Arena arena = PoolArena(SegPool(seg));
   /* Can't check seg -- this function enforces invariants tested by SegCheck. */
   if (SegSummary(seg) == RefSetUNIV)
     ShieldLower(arena, seg, AccessWRITE);
@@ -1320,19 +1315,17 @@ static void gcSegSyncWriteBarrier(Seg seg, Arena arena)
 static void gcSegSetSummary(Seg seg, RefSet summary)
 {
   GCSeg gcseg;
-  Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                 /* .seg.method.check */
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
-  arena = PoolArena(SegPool(seg));
   gcseg->summary = summary;
 
   AVER(seg->rankSet != RankSetEMPTY);
 
-  gcSegSyncWriteBarrier(seg, arena);
+  gcSegSyncWriteBarrier(seg);
 }
 
 
@@ -1341,7 +1334,6 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
 static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
   GCSeg gcseg;
-  Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                    /* .seg.method.check */
   AVERT_CRITICAL(RankSet, rankSet);            /* .seg.method.check */
@@ -1354,13 +1346,11 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   /* rankSet == RankSetEMPTY implies summary == RefSetEMPTY */
   AVER(rankSet != RankSetEMPTY || summary == RefSetEMPTY);
 
-  arena = PoolArena(SegPool(seg));
-
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
 
   if (rankSet != RankSetEMPTY)
-    gcSegSyncWriteBarrier(seg, arena);
+    gcSegSyncWriteBarrier(seg);
 }
 
 
