@@ -377,7 +377,9 @@ static void protExcThreadStart(void)
 }
 
 
-/* protAtForkChild -- support for fork(). See <design/thread-safety/> */
+/* protAtForkChild -- support for fork()
+ * <design/thread-safety/#sol.fork.exc-thread>
+ */
 
 static void protAtForkChild(void)
 {
