@@ -51,9 +51,15 @@ subclass with additional properties.
 
 .. _design.mps.protocol: protocol
 
-_`.over.hierarchy.gcseg`: The segment module provides ``GCSeg`` - a
-subclass of ``Seg`` which has full support for GC including buffering
-and the ability to be linked onto the grey ring.
+_`.over.hierarchy.gcseg`: ``GCSeg`` is a subclass of ``Seg`` which
+implements garbage collection, including buffering and the ability to
+be linked onto the grey ring. It does not implement hardware barriers,
+and so can only be used with software barriers, for example internally
+in the MPS.
+
+_`.over.hierarchy.mutatorseg`: ``MutatorSeg`` is a subclass of
+``GCSeg`` implementing hardware barriers. It is suitable for handing
+out to the mutator.
 
 
 Data Structure

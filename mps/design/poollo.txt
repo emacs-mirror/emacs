@@ -129,8 +129,12 @@ computations. It is ``SizeLog2(pool->alignment).`` It can be used on
 the right of a shift operator (``<<`` or ``>>``) to convert between a
 number of bytes and a number of grains.
 
-_`.loseg`: Every segment is an instance of segment class ``LOSegClass``, a
-subclass of ``GCSegClass``, and is an object of type ``LOSegStruct``.
+_`.loseg`: Every segment is an instance of segment class
+``LOSegClass``, a subclass of ``MutatorSegClass`` (see
+design.mps.seg.over.hierarchy.mutatorseg_), and is an object of type
+``LOSegStruct``.
+
+.. _design.mps.seg.over.hierarchy.mutatorseg: seg#over-hierarchy-mutatorseg
 
 _`.loseg.purpose`: The purpose of the ``LOSeg`` structure is to
 associate the bit tables used for recording allocation and mark
