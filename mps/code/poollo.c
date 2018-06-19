@@ -699,7 +699,7 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   LOSeg loseg = MustBeA_CRITICAL(LOSeg, seg);
   Ref clientRef;
   Addr base;
-  Size i;
+  Index i;
 
   AVERT_CRITICAL(ScanState, ss);
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
