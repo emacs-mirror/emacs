@@ -166,7 +166,7 @@ typedef struct MRGRefSegStruct {
 /* forward declarations */
 
 DECLARE_CLASS(Seg, MRGLinkSeg, Seg);
-DECLARE_CLASS(Seg, MRGRefSeg, GCSeg);
+DECLARE_CLASS(Seg, MRGRefSeg, MutatorSeg);
 
 
 /* MRGLinkSegCheck -- check a link segment
@@ -296,7 +296,7 @@ DEFINE_CLASS(Seg, MRGLinkSeg, klass)
 
 DEFINE_CLASS(Seg, MRGRefSeg, klass)
 {
-  INHERIT_CLASS(klass, MRGRefSeg, GCSeg);
+  INHERIT_CLASS(klass, MRGRefSeg, MutatorSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this */
   klass->size = sizeof(MRGRefSegStruct);
   klass->init = MRGRefSegInit;

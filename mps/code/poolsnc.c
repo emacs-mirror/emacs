@@ -47,7 +47,7 @@ typedef SNC SNCPool;
 #define SNCPoolCheck SNCCheck
 DECLARE_CLASS(Pool, SNCPool, AbstractScanPool);
 
-DECLARE_CLASS(Seg, SNCSeg, GCSeg);
+DECLARE_CLASS(Seg, SNCSeg, MutatorSeg);
 DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
@@ -167,7 +167,7 @@ DEFINE_CLASS(Buffer, SNCBuf, klass)
 
 /* SNCSegStruct -- SNC segment subclass
  *
- * This subclass of GCSeg links segments in chains.
+ * This subclass of MutatorSeg links segments in chains.
  */
 
 #define SNCSegSig ((Sig)0x51954C59)    /* SIGSNCSeG */
@@ -229,7 +229,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 DEFINE_CLASS(Seg, SNCSeg, klass)
 {
-  INHERIT_CLASS(klass, SNCSeg, GCSeg);
+  INHERIT_CLASS(klass, SNCSeg, MutatorSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
   klass->size = sizeof(SNCSegStruct);
   klass->init = sncSegInit;

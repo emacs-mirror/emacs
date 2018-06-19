@@ -38,7 +38,7 @@ typedef AMC AMCPool;
 DECLARE_CLASS(Pool, AMCPool, AMCZPool);
 
 DECLARE_CLASS(Buffer, amcBuf, SegBuf);
-DECLARE_CLASS(Seg, amcSeg, GCSeg);
+DECLARE_CLASS(Seg, amcSeg, MutatorSeg);
 
 
 /* amcGenStruct -- pool AMC generation descriptor */
@@ -331,7 +331,7 @@ static Res AMCSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 
 DEFINE_CLASS(Seg, amcSeg, klass)
 {
-  INHERIT_CLASS(klass, amcSeg, GCSeg);
+  INHERIT_CLASS(klass, amcSeg, MutatorSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
   klass->instClassStruct.describe = AMCSegDescribe;
   klass->size = sizeof(amcSegStruct);

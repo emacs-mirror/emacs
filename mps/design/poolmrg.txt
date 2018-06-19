@@ -336,7 +336,7 @@ the latter will be used to store the link parts of guardians (see
 one of each class, by the function ``MRGSegPairCreate()``. Each
 segment contains a link to its pair.
 
-_`.mrgseg.ref`: ``MRGRefSegClass`` is a subclass of ``GCSegClass``.
+_`.mrgseg.ref`: ``MRGRefSegClass`` is a subclass of ``MutatorSegClass``.
 Instances are of type ``MRGRefSeg``, and contain:
 
 - _`.mrgseg.ref.mrgring`: a field for the ring of ref part segments in
