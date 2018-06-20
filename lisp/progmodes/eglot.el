@@ -1403,27 +1403,14 @@ DUMMY is ignored."
   (interactive)
   (unless (eglot--server-capable :documentFormattingProvider)
     (eglot--error "Server can't format!"))
-  (let* ((server (eglot--current-server-or-lose))
-         (resp
-          (eglot--request
-           server
-           :textDocument/formatting
-           (list :textDocument (eglot--TextDocumentIdentifier)
-                 :options (list
-                           :tabSize tab-width
-                           :insertSpaces (not indent-tabs-mode)))
-           :textDocument/formatting))
-         (after-point
-          (buffer-substring (point) (min (+ (point) 60) (point-max))))
-         (regexp (and (not (bobp))
-                      (replace-regexp-in-string
-                       "[\s\t\n\r]+" "[\s\t\n\r]+"
-                       (concat "\\(" (regexp-quote after-point) "\\)")))))
-    (when resp
-      (save-excursion
-        (eglot--apply-text-edits resp))
-      (when (and (bobp) regexp (search-forward-regexp regexp nil t))
-        (goto-char (match-beginning 1))))))
+  (eglot--apply-text-edits
+   (eglot--request
+    (eglot--current-server-or-lose)
+    :textDocument/formatting
+    (list :textDocument (eglot--TextDocumentIdentifier)
+          :options (list :tabSize tab-width
+                         :insertSpaces
+                         (if indent-tabs-mode :json-false t))))))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
@@ -1595,12 +1582,17 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
-  (eglot--widening
-   (mapc (pcase-lambda (`(,newText ,beg . ,end))
-           (goto-char beg) (delete-region beg end) (insert newText))
-         (mapcar (eglot--lambda (&key range newText)
-                   (cons newText (eglot--range-region range 'markers)))
-                 edits)))
+  (mapc (pcase-lambda (`(,newText ,beg . ,end))
+          (save-restriction
+            (narrow-to-region beg end)
+            (let ((source (current-buffer)))
+              (with-temp-buffer
+                (insert newText)
+                (let ((temp (current-buffer)))
+                  (with-current-buffer source (replace-buffer-contents temp)))))))
+        (mapcar (eglot--lambda (&key range newText)
+                  (cons newText (eglot--range-region range 'markers)))
+                edits))
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
