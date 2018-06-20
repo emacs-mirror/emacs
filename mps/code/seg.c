@@ -1249,10 +1249,12 @@ static void mutatorSegFlip(Seg seg, Trace trace)
 
   NextMethod(Seg, MutatorSeg, flip)(seg, trace);
 
-  /* Raise the read barrier if the segment was not grey for any
-     currently flipped trace. */
   arena = PoolArena(SegPool(seg));
   flippedTraces = arena->flippedTraces;
+  AVER(!TraceSetIsMember(flippedTraces, trace));
+
+  /* Raise the read barrier if the segment was not grey for any
+     currently flipped trace. */
   if (TraceSetInter(SegGrey(seg), flippedTraces) == TraceSetEMPTY) {
     ShieldRaise(arena, seg, AccessREAD);
   } else {
