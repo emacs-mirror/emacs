@@ -299,7 +299,7 @@ class SERVER-CLASS."
          server connect-success)
     (setq server
           (make-instance
-           (or server-class 'eglot-lsp-server)
+           server-class
            :process proc :major-mode managed-major-mode
            :project project :contact contact
            :name name :project-nickname nickname
@@ -341,23 +341,28 @@ class SERVER-CLASS."
 
 (defun eglot--guess-contact (&optional interactive)
   "Helper for `eglot'.
-Return (MANAGED-MODE PROJECT CONTACT CLASS).
-If INTERACTIVE, maybe prompt user."
+Return (MANAGED-MODE PROJECT CLASS CONTACT).  If INTERACTIVE is
+non-nil, maybe prompt user, else error as soon as something can't
+be guessed."
   (let* ((guessed-mode (if buffer-file-name major-mode))
          (managed-mode
           (cond
-           ((or (>= (prefix-numeric-value current-prefix-arg) 16)
-                (not guessed-mode))
+           ((and interactive
+                 (or (>= (prefix-numeric-value current-prefix-arg) 16)
+                     (not guessed-mode)))
             (intern
              (completing-read
               "[eglot] Start a server to manage buffers of what major mode? "
               (mapcar #'symbol-name (eglot--all-major-modes)) nil t
               (symbol-name guessed-mode) nil (symbol-name guessed-mode) nil)))
+           ((not guessed-mode)
+            (eglot--error "Can't guess mode to manage for `%s'" (current-buffer)))
            (t guessed-mode)))
          (project (or (project-current) `(transient . ,default-directory)))
          (guess (cdr (assoc managed-mode eglot-server-programs)))
-         (class (and (consp guess) (symbolp (car guess))
-                     (prog1 (car guess) (setq guess (cdr guess)))))
+         (class (or (and (consp guess) (symbolp (car guess))
+                         (prog1 (car guess) (setq guess (cdr guess))))
+                    'eglot-lsp-server))
          (program (and (listp guess) (stringp (car guess)) (car guess)))
          (base-prompt
           (and interactive
@@ -374,16 +379,18 @@ If INTERACTIVE, maybe prompt user."
                               (format ", but I can't find `%s' in PATH!" program)
                               "\n" base-prompt)))))
          (contact
-          (if prompt
-              (let ((s (read-shell-command
-                        prompt
-                        (if program (combine-and-quote-strings guess))
-                        'eglot-command-history)))
-                (if (string-match "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
-                                  (string-trim s))
-                    (list (match-string 1 s) (string-to-number (match-string 2 s)))
-                  (split-string-and-unquote s)))
-            guess)))
+          (or (and prompt
+                   (let ((s (read-shell-command
+                             prompt
+                             (if program (combine-and-quote-strings guess))
+                             'eglot-command-history)))
+                     (if (string-match "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
+                                       (string-trim s))
+                         (list (match-string 1 s)
+                               (string-to-number (match-string 2 s)))
+                       (split-string-and-unquote s))))
+              guess
+              (eglot--error "Couldn't guess for `%s'!" managed-mode))))
     (list managed-mode project class contact)))
 
 ;;;###autoload
@@ -470,7 +477,8 @@ INTERACTIVE is t if called interactively."
                  (eglot--name server)
                  major-mode
                  (eglot--project-nickname server)))))))
-      (add-hook 'post-command-hook #'maybe-connect 'append nil))))
+      (when buffer-file-name
+        (add-hook 'post-command-hook #'maybe-connect 'append nil)))))
 
 (defun eglot--process-sentinel (proc change)
   "Called when PROC undergoes CHANGE."
