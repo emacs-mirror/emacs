@@ -8,28 +8,68 @@
  * mpseventcnv program).
  */
 
+#include <assert.h> /* assert */
+#include <stddef.h> /* offsetof */
 #include <stdio.h> /* printf, puts */
 
 #include "event.h"
 
+static void format(size_t size, const char *sort)
+{
+  switch (sort[0]) {
+  case 'D':
+    printf("d");
+    break;
+  case 'S':
+    printf("s");
+    break;
+  case 'B':
+    printf("?");
+    break;
+  default:
+    switch (size) {
+    case 1:
+      printf("B");
+      break;
+    case 2:
+      printf("H");
+      break;
+    case 4:
+      printf("L");
+      break;
+    case 8:
+      printf("Q");
+      break;
+    default:
+      assert(FALSE);
+      break;
+    }
+  }
+}
+
 int main(int argc, char *argv[])
 {
+  size_t size, prev_offset;
   UNUSED(argc);
   UNUSED(argv);
 
   puts("from collections import namedtuple");
 
-  printf("__version__ = %d, %d, %d\n", EVENT_VERSION_MAJOR,
+  printf("\n__version__ = %d, %d, %d\n", EVENT_VERSION_MAJOR,
          EVENT_VERSION_MEDIAN, EVENT_VERSION_MINOR);
 
+  puts("\n# Description of an event kind.");
   puts("KindDesc = namedtuple('KindDesc', 'name code doc')");
+
+  puts("\n# Namespace containing a KindDesc for every kind.");
   puts("class Kind:");
-#define ENUM(_, NAME, DOC)                                              \
-  printf("    " #NAME " = KindDesc('" #NAME "', %d, \"%s\")\n",        \
+#define ENUM(_, NAME, DOC)                                      \
+  printf("    " #NAME " = KindDesc('" #NAME "', %d, '%s')\n", \
          EventKind ## NAME, DOC);
   EventKindENUM(ENUM, _);
 #undef ENUM
 
+  puts("\n# Mapping from kind number to KindDesc.");
   puts("KIND = {");
 #define ENUM(_, NAME, _1) \
   printf("    %d: Kind." #NAME ",\n", EventKind ## NAME);
@@ -37,25 +77,69 @@ int main(int argc, char *argv[])
 #undef ENUM
   puts("}");
 
+  puts("\n# Description of a parameter of an event.");
   puts("EventParam = namedtuple('EventParam', 'sort name')");
-  puts("EventDesc = namedtuple('EventDesc', 'name code always kind params')");
+
+  puts("\n# Description of the parameters of an event.");
+  puts("EventDesc = namedtuple('EventDesc', "
+       "'name code always kind params maxsize format')");
+
+  puts("\n# Namespace containing an EventDesc for every event.");
   puts("class Event:");
-#define EVENT_PARAM(X, INDEX, SORT, NAME)               \
+#define PAD_TO(offset)                                  \
+  if (prev_offset < offset)                             \
+    printf("%ux", (unsigned)(offset - prev_offset));    \
+  prev_offset = offset;
+#define EVENT_PARAM(X, INDEX, SORT, NAME)                       \
   puts("        EventParam('" #SORT "', '" #NAME "'),");
+#define EVENT_FORMAT(STRUCTNAME, INDEX, SORT, NAME)             \
+  PAD_TO(offsetof(Event##STRUCTNAME##Struct, f##INDEX));        \
+  format(sizeof(EventF##SORT), #SORT);                          \
+  prev_offset += sizeof(EventF##SORT);
 #define EVENT_DEFINE(X, NAME, CODE, ALWAYS, KIND)                       \
   printf("    " #NAME " = EventDesc('" #NAME "', %d, %s, Kind." #KIND ", [\n", \
          CODE, ALWAYS ? "True" : "False");                              \
   EVENT_ ## NAME ## _PARAMS(EVENT_PARAM, X);                            \
-  puts("    ])");
+  size = sizeof(Event##NAME##Struct) - sizeof(EventAnyStruct);          \
+  printf("    ], %u, '=", (unsigned)size);                              \
+  prev_offset = sizeof(EventAnyStruct);                                 \
+  EVENT_ ## NAME ## _PARAMS(EVENT_FORMAT, NAME);                        \
+  PAD_TO(sizeof(Event##NAME##Struct));                                  \
+  puts("')");
   EVENT_LIST(EVENT_DEFINE, 0);
-#undef EVENT
+#undef EVENT_DEFINE
+#undef EVENT_PARAM
+#undef EVENT_FORMAT
 
+  puts("\n# Mapping from event number to EventDesc.");
   puts("EVENT = {");
 #define EVENT_ITEM(X, NAME, CODE, ALWAYS, KIND) \
   printf("    %d: Event." #NAME ",\n", CODE);
   EVENT_LIST(EVENT_ITEM, 0);
-#undef EVENT
+#undef EVENT_ITEM
   puts("}");
+
+  puts("\n# Description of an event header.");
+  printf("EventAnyDesc = namedtuple('EventAnyDesc', '");
+#define EVENT_FIELD(type, name) printf("%s ", #name);
+  EVENT_ANY_FIELDS(EVENT_FIELD)
+#undef EVENT_FIELD
+  puts("')");
+
+  puts("\n# Size of event header in bytes.");
+  printf("EVENT_ANY_SIZE = %u\n", (unsigned)sizeof(EventAnyStruct));
+
+  puts("\n# Struct format for event header.");
+  printf("EVENT_ANY_FORMAT = '=");
+  prev_offset = 0;
+#define EVENT_FIELD(type, name)                 \
+  PAD_TO(offsetof(EventAnyStruct, name));       \
+  format(sizeof(type), "?");                    \
+  prev_offset += sizeof(type);
+  EVENT_ANY_FIELDS(EVENT_FIELD)
+#undef EVENT_FIELD
+  PAD_TO(sizeof(EventAnyStruct));
+  puts("'");
 
   return 0;
 }
