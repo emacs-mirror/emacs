@@ -35,9 +35,9 @@
  * of a telemetry stream, allowing that stream to be identified.
  */
 
-#define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)6)
-#define EVENT_VERSION_MINOR  ((unsigned)1)
+#define EVENT_VERSION_MAJOR  ((unsigned)2)
+#define EVENT_VERSION_MEDIAN ((unsigned)0)
+#define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
 /* EVENT_LIST -- list of event types and general properties
