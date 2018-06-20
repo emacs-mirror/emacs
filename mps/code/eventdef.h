@@ -547,7 +547,7 @@
 #define EVENT_CommitLimitSet_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, limit) \
-  PARAM(X,  2, U, OK)
+  PARAM(X,  2, B, OK)
 
 #define EVENT_SpareCommitLimitSet_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
