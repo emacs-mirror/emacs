@@ -257,6 +257,20 @@ void SegSetGrey(Seg seg, TraceSet grey)
 }
 
 
+/* SegFlip -- update barriers for trace that's about to flip */
+
+void SegFlip(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+
+  /* Don't dispatch to the class method unless the segment is grey for
+     the trace that's about to flip, and contains references. */
+  if (TraceSetIsMember(SegGrey(seg), trace) && SegRankSet(seg) != RankSetEMPTY)
+    Method(Seg, seg, flip)(seg, trace);
+}
+
+
 /* SegSetWhite -- change the whiteness of a segment
  *
  * Sets the segment whiteness to the trace set ts.
@@ -788,6 +802,16 @@ static void segNoSetGrey(Seg seg, TraceSet grey)
 }
 
 
+/* segTrivFlip -- ignore trace that's about to flip */
+
+static void segTrivFlip(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(seg->rankSet != RankSetEMPTY);
+}
+
+
 /* segNoSetWhite -- non-method to change the whiteness of a segment */
 
 static void segNoSetWhite(Seg seg, TraceSet white)
@@ -1213,6 +1237,29 @@ static void mutatorSegSetGrey(Seg seg, TraceSet grey)
   } else {
     if (TraceSetInter(grey, flippedTraces) == TraceSetEMPTY)
       ShieldLower(arena, seg, AccessREAD);
+  }
+}
+
+/* mutatorSegFlip -- update barriers for a trace that's about to flip */
+
+static void mutatorSegFlip(Seg seg, Trace trace)
+{
+  TraceSet flippedTraces;
+  Arena arena;
+
+  NextMethod(Seg, MutatorSeg, flip)(seg, trace);
+
+  /* Raise the read barrier if the segment was not grey for any
+     currently flipped trace. */
+  arena = PoolArena(SegPool(seg));
+  flippedTraces = arena->flippedTraces;
+  if (TraceSetInter(SegGrey(seg), flippedTraces) == TraceSetEMPTY) {
+    ShieldRaise(arena, seg, AccessREAD);
+  } else {
+    /* If the segment is grey for some currently flipped trace then
+       the read barrier must already have been raised, either in this
+       method or in mutatorSegSetGrey. */
+    AVER(SegSM(seg) & AccessREAD);
   }
 }
 
@@ -1644,6 +1691,7 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->setBuffer = segNoSetBuffer;
   klass->unsetBuffer = segNoUnsetBuffer;
   klass->setGrey = segNoSetGrey;
+  klass->flip = segTrivFlip;
   klass->setWhite = segNoSetWhite;
   klass->setRankSet = segNoSetRankSet;
   klass->setRankSummary = segNoSetRankSummary;
@@ -1688,6 +1736,7 @@ DEFINE_CLASS(Seg, MutatorSeg, klass)
   INHERIT_CLASS(klass, MutatorSeg, GCSeg);
   klass->setSummary = mutatorSegSetSummary; 
   klass->setGrey = mutatorSegSetGrey;
+  klass->flip = mutatorSegFlip;
   klass->setRankSet = mutatorSegSetRankSet;
   klass->setRankSummary = mutatorSegSetRankSummary;
   AVERT(SegClass, klass);
