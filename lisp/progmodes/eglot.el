@@ -78,15 +78,19 @@
 
 (defvar eglot-server-programs '((rust-mode . (eglot-rls "rls"))
                                 (python-mode . ("pyls"))
-                                (js-mode . ("javascript-typescript-stdio"))
+                                ((js-mode
+                                  js2-mode
+                                  rjsx-mode) . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
-                                (c++-mode . (eglot-cquery "cquery"))
-                                (c-mode . (eglot-cquery "cquery"))
+                                ((c++-mode
+                                  c-mode) . (eglot-cquery "cquery"))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . SPEC) pair.  MAJOR-MODE is a
-mode symbol.  SPEC is
+mode symbol, or a list of mode symbols.  The associated SPEC
+specifies how to start a server for managing buffers of those
+modes.  SPEC can be:
 
 * In the most common case, a list of strings (PROGRAM [ARGS...]).
 PROGRAM is called with ARGS and is expected to serve LSP requests
@@ -359,7 +363,10 @@ be guessed."
             (eglot--error "Can't guess mode to manage for `%s'" (current-buffer)))
            (t guessed-mode)))
          (project (or (project-current) `(transient . ,default-directory)))
-         (guess (cdr (assoc managed-mode eglot-server-programs)))
+         (guess (cdr (assoc managed-mode eglot-server-programs
+                            (lambda (m1 m2)
+                              (or (eq m1 m2)
+                                  (and (listp m1) (memq m2 m1)))))))
          (class (or (and (consp guess) (symbolp (car guess))
                          (prog1 (car guess) (setq guess (cdr guess))))
                     'eglot-lsp-server))
