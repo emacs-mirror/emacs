@@ -233,6 +233,16 @@ of ``segLo`` and ``segHi``.
 Extensibility
 -------------
 
+Garbage collection
+..................
+
+``typedef void (*SegFlipMethod)(Seg seg, Trace trace)``
+
+_`.method.flip`: Raise the read barrier, if necessary, for a trace
+that's about to flip and for which the segment is grey and potentially
+contains references.
+
+
 Splitting and merging
 .....................
 

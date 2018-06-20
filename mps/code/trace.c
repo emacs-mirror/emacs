@@ -590,15 +590,11 @@ static Res traceFlip(Trace trace)
   /* drj 2003-02-19) */
 
   /* Now that the mutator is black we must prevent it from reading */
-  /* grey objects so that it can't obtain white pointers.  This is */
-  /* achieved by read protecting all segments containing objects */
-  /* which are grey for any of the flipped traces. */
+  /* grey objects so that it can't obtain white pointers. */
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
       Seg seg = SegOfGreyRing(node);
-      if(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY
-          && TraceSetIsMember(SegGrey(seg), trace))
-        ShieldRaise(arena, seg, AccessREAD);
+      SegFlip(seg, trace);
     }
 
   /* @@@@ When write barrier collection is implemented, this is where */

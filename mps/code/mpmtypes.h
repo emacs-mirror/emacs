@@ -152,6 +152,7 @@ typedef void (*FreeBlockVisitor)(Addr base, Addr limit, Pool pool, void *p);
 typedef Res (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size,
                              ArgList args);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
+typedef void (*SegFlipMethod)(Seg seg, Trace trace);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
 typedef void (*SegSetRankSetMethod)(Seg seg, RankSet rankSet);
 typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet,
