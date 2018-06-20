@@ -90,20 +90,20 @@ Args  Locals  Function
 ====  ======  ========================
    5       0  ``PoolAccess()``
    5       0  ``PoolSegAccess()``
-   3       5  ``TraceSegAccess()``
+   3       8  ``TraceSegAccess()``
    4       1  ``traceScanSeg()``
-   4       8  ``traceScanSegRes()``
+   4       9  ``traceScanSegRes()``
    4       0  ``PoolScan()``
-   4       5  ``AMCScan()``
+   4       6  ``AMCScan()``
    3     ≤64  ``format->scan()``
-   4      15  ``AMCFix()``
-   4       5  ``BufferFill()``
-   6      10  ``AMCBufferFill()``
-   6       9  ``PoolGenAlloc()``
-   7       5  ``SegAlloc()``
-   5       5  ``ArenaAlloc()``
-   5       5  ``arenaAllocPolicy()``
-   5      11  ``arenaAllocFromLand()``
+   4      17  ``AMCFix()``
+   3       5  ``BufferFill()``
+   5      11  ``AMCBufferFill()``
+   5      73  ``PoolGenAlloc()``
+   6       5  ``SegAlloc()``
+   4       4  ``ArenaAlloc()``
+   5       6  ``PolicyAlloc()``
+   6      10  ``ArenaFreeLandAlloc()``
    7       1  ``LandFindInZones()``
    7      16  ``cbsFindInZones()``
    5       3  ``cbsFindFirst()``
@@ -111,12 +111,12 @@ Args  Locals  Function
    3       7  ``SplaySplay()``
    4       8  ``SplaySplitDown()``
    3       0  ``SplayZig()``
- 109    ≤190  **Total**
+ 105    ≤261  **Total**
 ====  ======  ========================
 
 We expect that a compiler will often be able to share stack space
 between function arguments and local variables, but in the worst case
-where it cannot, this call requires no more than 299 words of stack
+where it cannot, this call requires no more than 366 words of stack
 space.
 
 This isn't necessarily the deepest call into the MPS (the MPS's
@@ -186,7 +186,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
