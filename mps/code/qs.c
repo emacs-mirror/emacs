@@ -1,7 +1,7 @@
 /* qs.c: QUICKSORT
  *
  *  $Id$
- *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  *  The purpose of this program is to act as a "real" client of the MM.
  *  It is a test, but (hopefully) less contrived than some of the other
@@ -415,7 +415,7 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
       if(res != MPS_RES_OK)
         return res;
       cell->value = addr;
-    /* fall */
+    /* fall through */
 
     case QSInt:
     fixTail:
@@ -538,7 +538,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
