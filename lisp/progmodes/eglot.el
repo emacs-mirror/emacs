@@ -1583,17 +1583,18 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (or (not version) (equal version eglot--versioned-identifier))
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
-  (mapc (pcase-lambda (`(,newText ,beg . ,end))
-          (save-restriction
-            (narrow-to-region beg end)
-            (let ((source (current-buffer)))
-              (with-temp-buffer
-                (insert newText)
-                (let ((temp (current-buffer)))
-                  (with-current-buffer source (replace-buffer-contents temp)))))))
-        (mapcar (eglot--lambda (&key range newText)
-                  (cons newText (eglot--range-region range 'markers)))
-                edits))
+  (atomic-change-group
+    (mapc (pcase-lambda (`(,newText ,beg . ,end))
+            (save-restriction
+              (narrow-to-region beg end)
+              (let ((source (current-buffer)))
+                (with-temp-buffer
+                  (insert newText)
+                  (let ((temp (current-buffer)))
+                    (with-current-buffer source (replace-buffer-contents temp)))))))
+          (mapcar (eglot--lambda (&key range newText)
+                    (cons newText (eglot--range-region range 'markers)))
+                  edits)))
   (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
