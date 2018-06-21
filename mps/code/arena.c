@@ -1174,7 +1174,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
   /* Freeing memory might create spare pages, but not more than this. */
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
-  EVENT3(ArenaFree, arena, wholeBase, wholeSize);
+  EVENT4(ArenaFree, arena, wholeBase, wholeSize, pool);
 }
 
 
