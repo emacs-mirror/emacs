@@ -1584,7 +1584,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
     (eglot--error "Edits on `%s' require version %d, you have %d"
                   (current-buffer) version eglot--versioned-identifier))
   (atomic-change-group
-    (let* ((howmany (length edits))
+    (let* ((change-group (prepare-change-group))
+           (howmany (length edits))
            (reporter (make-progress-reporter
                       (format "[eglot] applying %s edits to `%s'..."
                               howmany (current-buffer))
@@ -1604,6 +1605,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
             (mapcar (eglot--lambda (&key range newText)
                       (cons newText (eglot--range-region range 'markers)))
                     edits))
+      (undo-amalgamate-change-group change-group)
       (progress-reporter-done reporter))))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
