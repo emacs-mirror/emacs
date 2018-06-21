@@ -1,30 +1,51 @@
 
 
 import argparse
-import struct
+from struct import Struct
 import sys
 
-import mpsevent
+from mpsevent import *
 
 
 def run(file):
-    _read = file.read
-    _unpack = struct.unpack
-    _any_desc = mpsevent.EventAnyDesc
-    _any_size = mpsevent.EVENT_ANY_SIZE
-    _any_format = mpsevent.EVENT_ANY_FORMAT
-    _event = mpsevent.EVENT
+    # Cache frequently-used values in local variables.
+    read = file.read
+    header_desc = HeaderDesc
+    header_size = HEADER_SIZE
+    event_dict = EVENT
+
+    # Special handling for Intern.
+    Intern_code = Event.Intern.code
+    Intern_struct = Struct(Event.Intern.format)
+    Intern_size = Intern_struct.size
+    Intern_unpack = Intern_struct.unpack
+
+    # Build unpacker functions.
+    header_struct = Struct(HEADER_FORMAT)
+    assert header_struct.size == header_size
+    header_unpack = header_struct.unpack
+    event_unpack = {}
+    for code, desc in event_dict.items():
+        s = Struct(desc.format)
+        assert code == Intern_code or s.size == desc.maxsize
+        event_unpack[code] = s.unpack
+
     while True:
-        header_data = _read(_any_size)
+        header_data = read(header_size)
         if not header_data:
             break
-        header = _any_desc(*_unpack(_any_format, header_data))
-        event_desc = _event[header.code]
-        size = header.size - _any_size
-        assert size <= event_desc.maxsize
-        event_data = _read(size)
-        print(event_desc.name, event_desc.format, len(event_data))
-        event = _unpack(event_desc.format, event_data)
+        header = header_desc(*header_unpack(header_data))
+        code = header.code
+        event_desc = event_dict[code]
+        size = header.size - header_size
+        if code == Intern_code:
+            assert size <= event_desc.maxsize
+            e = (Intern_unpack(read(Intern_size))
+                 + (read(size - Intern_size).rstrip(b'\0'),)
+        else:
+            assert size == event_desc.maxsize
+            e = event_unpack[code](read(size))
+        print(event_desc.name, *header, event_desc.format, *e)
 
 
 def main():

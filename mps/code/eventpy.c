@@ -4,8 +4,8 @@
  * Copyright (c) 2016-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This command-line program emits Python data structures that can be
- * used to parse an event stream in text format (as output by the
- * mpseventcnv program).
+ * used to parse a telemetry stream in the binary format for the
+ * platform it was compiled for.
  */
 
 #include <assert.h> /* assert */
@@ -14,17 +14,26 @@
 
 #include "event.h"
 
+/* format -- output struct format code corresponding to event field
+ *
+ * size is the size of the field in bytes
+ * sort is a one-character string corresponding to the EventF* typedef
+ * for the field, thus "P" for a field of type EventFP.
+ */
+
 static void format(size_t size, const char *sort)
 {
   switch (sort[0]) {
+  case 'B':
+    printf("?");
+    break;
   case 'D':
     printf("d");
     break;
   case 'S':
-    printf("s");
-    break;
-  case 'B':
-    printf("?");
+    /* Strings can't be handled through the struct format mechanism
+       because we don't know their length until the header has been
+       read. */
     break;
   default:
     switch (size) {
@@ -50,6 +59,7 @@ static void format(size_t size, const char *sort)
 int main(int argc, char *argv[])
 {
   size_t size, prev_offset;
+  char prev_sort;
   UNUSED(argc);
   UNUSED(argv);
 
@@ -86,12 +96,13 @@ int main(int argc, char *argv[])
 
   puts("\n# Namespace containing an EventDesc for every event.");
   puts("class Event:");
-#define PAD_TO(offset)                                  \
-  if (prev_offset < offset)                             \
-    printf("%ux", (unsigned)(offset - prev_offset));    \
-  prev_offset = offset;
+#define PAD_TO(OFFSET)                                  \
+  if (prev_sort != 'S' && prev_offset < (OFFSET))       \
+    printf("%ux", (unsigned)((OFFSET) - prev_offset));  \
+  prev_offset = (OFFSET);
 #define EVENT_PARAM(X, INDEX, SORT, NAME)                       \
-  puts("        EventParam('" #SORT "', '" #NAME "'),");
+  puts("        EventParam('" #SORT "', '" #NAME "'),");        \
+  prev_sort = #SORT[0];
 #define EVENT_FORMAT(STRUCTNAME, INDEX, SORT, NAME)             \
   PAD_TO(offsetof(Event##STRUCTNAME##Struct, f##INDEX));        \
   format(sizeof(EventF##SORT), #SORT);                          \
@@ -120,17 +131,17 @@ int main(int argc, char *argv[])
   puts("}");
 
   puts("\n# Description of an event header.");
-  printf("EventAnyDesc = namedtuple('EventAnyDesc', '");
+  printf("HeaderDesc = namedtuple('HeaderDesc', '");
 #define EVENT_FIELD(type, name) printf("%s ", #name);
   EVENT_ANY_FIELDS(EVENT_FIELD)
 #undef EVENT_FIELD
   puts("')");
 
   puts("\n# Size of event header in bytes.");
-  printf("EVENT_ANY_SIZE = %u\n", (unsigned)sizeof(EventAnyStruct));
+  printf("HEADER_SIZE = %u\n", (unsigned)sizeof(EventAnyStruct));
 
   puts("\n# Struct format for event header.");
-  printf("EVENT_ANY_FORMAT = '=");
+  printf("HEADER_FORMAT = '=");
   prev_offset = 0;
 #define EVENT_FIELD(type, name)                 \
   PAD_TO(offsetof(EventAnyStruct, name));       \
