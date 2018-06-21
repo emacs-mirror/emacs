@@ -423,9 +423,9 @@ void EventDump(mps_lib_FILE *stream)
   }
 
   for (kind = 0; kind < EventKindLIMIT; ++kind) {
-    for (event = (Event)EventBuffer[kind];
-         (char *)event < EventLogged[kind];
-         event = (Event)((char *)event + event->any.size)) {
+    for (event = (void *)EventBuffer[kind];
+         (void *)event < (void *)EventLogged[kind];
+         event = PointerAdd(event, event->any.size)) {
       /* Try to keep going even if there's an error, because this is used as a
          backtrace and we'll take what we can get. */
       (void)EventWrite(event, stream);
