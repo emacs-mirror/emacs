@@ -43,32 +43,33 @@ extern void EventDump(mps_lib_FILE *stream);
 /* Event writing support */
 
 extern char EventBuffer[EventKindLIMIT][EventBufferSIZE];
-extern char *EventLast[EventKindLIMIT];
+extern char *EventLogged[EventKindLIMIT];
 extern Word EventKindControl;
 
 
-/* Events are written into the buffer from the top down, so that a backtrace
-   can find them all starting at EventLast. */
+/* Write event into buffer and maybe flush the buffer. */
 
-#define EVENT_BEGIN(name, structSize) \
-  BEGIN \
-    if(EVENT_ALL || Event##name##Always) { /* see config.h */ \
-      Event##name##Struct *_event; \
-      size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
-      if (_size > (size_t)(EventLast[Event##name##Kind] \
-                           - EventBuffer[Event##name##Kind])) \
-        EventFlush(Event##name##Kind); \
-      AVER(_size <= (size_t)(EventLast[Event##name##Kind] \
-                             - EventBuffer[Event##name##Kind])); \
-      _event = (void *)(EventLast[Event##name##Kind] - _size); \
-      _event->code = Event##name##Code; \
-      _event->size = (EventSize)_size; \
+#define EVENT_BEGIN(name, structSize)                                   \
+  BEGIN {                                                               \
+    if(EVENT_ALL || Event##name##Always) { /* see config.h */           \
+      Event##name##Struct *_event;                                      \
+      size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN);           \
+      if (_size > (size_t)(EventBuffer[Event##name##Kind]               \
+                           + EventBufferSIZE                            \
+                           - EventLogged[Event##name##Kind]))           \
+        EventFlush(Event##name##Kind);                                  \
+      AVER(_size <= (size_t)(EventBuffer[Event##name##Kind]             \
+                             + EventBufferSIZE                          \
+                             - EventLogged[Event##name##Kind]));        \
+      _event = (void *)(EventLogged[Event##name##Kind]);                \
+      _event->code = Event##name##Code;                                 \
+      _event->size = (EventSize)_size;                                  \
       EVENT_CLOCK(_event->clock);
 
-#define EVENT_END(name, size) \
-      EventLast[Event##name##Kind] -= _size; \
-    } \
-  END
+#define EVENT_END(name, size)                       \
+      EventLogged[Event##name##Kind] += _size;      \
+    }                                               \
+  } END
 
 
 /* EVENTn -- event emitting macros
@@ -93,10 +94,10 @@ extern Word EventKindControl;
   END
 
 
-#define EVENT0(name) EVENT_BEGIN(name, sizeof(EventAnyStruct)) EVENT_END(name, sizeof(EventAnyStruct))
 /* The following lines were generated with
-   python -c 'for i in range(1,22): print "#define EVENT%d(name, %s) EVENT_BEGIN(name, sizeof(Event##name##Struct)) %s EVENT_END(name, sizeof(Event##name##Struct))" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["_event->f%d = (p%d);" % (j, j) for j in range(0, i)]))'
+   python -c 'for i in range(22): print("#define EVENT{}(name{}) EVENT_BEGIN(name, sizeof(Event##name##Struct)) {} EVENT_END(name, sizeof(Event##name##Struct))".format(i, "".join(map(", p{}".format, range(i))), " ".join(map("_event->f{0} = (p{0});".format, range(i)))))'
  */
+#define EVENT0(name) EVENT_BEGIN(name, sizeof(Event##name##Struct))  EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT1(name, p0) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT2(name, p0, p1) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT3(name, p0, p1, p2) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); EVENT_END(name, sizeof(Event##name##Struct))
@@ -123,10 +124,10 @@ extern Word EventKindControl;
 #else /* EVENT not */
 
 
-#define EVENT0(name) NOOP
 /* The following lines were generated with
-   python -c 'for i in range(1,22): print "#define EVENT%d(name, %s) BEGIN %s END" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["UNUSED(p%d);" % j for j in range(0, i)]))'
+   python -c 'for i in range(22): print("#define EVENT{}(name{}) BEGIN {} END".format(i, "".join(map(", p{}".format, range(i))), " ".join(map("UNUSED(p{});".format, range(i)))))'
  */
+#define EVENT0(name) BEGIN  END
 #define EVENT1(name, p0) BEGIN UNUSED(p0); END
 #define EVENT2(name, p0, p1) BEGIN UNUSED(p0); UNUSED(p1); END
 #define EVENT3(name, p0, p1, p2) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); END

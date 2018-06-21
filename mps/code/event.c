@@ -30,13 +30,13 @@ static Bool eventIOInited = FALSE;
 static mps_io_t eventIO;
 static Serial EventInternSerial;
 
-/* Buffers in which events are recorded, from the top down. */
+/* Buffers in which events are recorded. */
 char EventBuffer[EventKindLIMIT][EventBufferSIZE];
 
-/* Pointers to last event logged into each buffer. */
-char *EventLast[EventKindLIMIT];
+/* Pointers to limit of events logged into each buffer. */
+char *EventLogged[EventKindLIMIT];
 
-/* Pointers to the last even written out of each buffer. */
+/* Pointers to the limit of events written out of each buffer. */
 static char *EventWritten[EventKindLIMIT];
 
 EventControlSet EventKindControl;       /* Bit set used to control output. */
@@ -76,16 +76,16 @@ void EventFlush(EventKind kind)
   AVER(NONNEGATIVE(kind));
   AVER(kind < EventKindLIMIT);
 
-  AVER(EventBuffer[kind] <= EventLast[kind]);
-  AVER(EventLast[kind] <= EventWritten[kind]);
-  AVER(EventWritten[kind] <= EventBuffer[kind] + EventBufferSIZE);
+  AVER(EventBuffer[kind] <= EventWritten[kind]);
+  AVER(EventWritten[kind] <= EventLogged[kind]);
+  AVER(EventLogged[kind] <= EventBuffer[kind] + EventBufferSIZE);
 
   /* Send all pending events to the event stream. */
   EventSync();
 
   /* Flush the in-memory buffer whether or not we send this buffer, so
      that we can continue to record recent events. */
-  EventLast[kind] = EventWritten[kind] = EventBuffer[kind] + EventBufferSIZE;
+  EventLogged[kind] = EventWritten[kind] = EventBuffer[kind];
 }
 
 
@@ -103,12 +103,12 @@ void EventSync(void)
     if (BS_IS_MEMBER(EventKindControl, kind)) {
       size_t size;
       Res res;
-      
-      AVER(EventBuffer[kind] <= EventLast[kind]);
-      AVER(EventLast[kind] <= EventWritten[kind]);
-      AVER(EventWritten[kind] <= EventBuffer[kind] + EventBufferSIZE);
 
-      size = (size_t)(EventWritten[kind] - EventLast[kind]);
+      AVER(EventBuffer[kind] <= EventWritten[kind]);
+      AVER(EventWritten[kind] <= EventLogged[kind]);
+      AVER(EventLogged[kind] <= EventBuffer[kind] + EventBufferSIZE);
+
+      size = (size_t)(EventLogged[kind] - EventWritten[kind]);
       if (size > 0) {
 
         /* Ensure the IO stream is open.  We do this late so that no stream is
@@ -126,10 +126,10 @@ void EventSync(void)
            C library or kernel's buffer size.  We could pad out the buffer with
            a marker for this purpose. */
       
-        res = (Res)mps_io_write(eventIO, (void *)EventLast[kind], size);
+        res = (Res)mps_io_write(eventIO, (void *)EventWritten[kind], size);
         if (res == ResOK) {
           /* TODO: Consider taking some other action if a write fails. */
-          EventWritten[kind] = EventLast[kind];
+          EventWritten[kind] = EventLogged[kind];
           wrote = TRUE;
         }
       }
@@ -205,9 +205,9 @@ void EventInit(void)
     if (!eventInited) {
       EventKind kind;
       for (kind = 0; kind < EventKindLIMIT; ++kind) {
-        AVER(EventLast[kind] == NULL);
+        AVER(EventLogged[kind] == NULL);
         AVER(EventWritten[kind] == NULL);
-        EventLast[kind] = EventWritten[kind] = EventBuffer[kind] + EventBufferSIZE;
+        EventLogged[kind] = EventWritten[kind] = EventBuffer[kind];
       }
       eventInited = TRUE;
       EventKindControl = (Word)mps_lib_telemetry_control();
@@ -423,8 +423,8 @@ void EventDump(mps_lib_FILE *stream)
   }
 
   for (kind = 0; kind < EventKindLIMIT; ++kind) {
-    for (event = (Event)EventLast[kind];
-         (char *)event < EventBuffer[kind] + EventBufferSIZE;
+    for (event = (Event)EventBuffer[kind];
+         (char *)event < EventLogged[kind];
          event = (Event)((char *)event + event->any.size)) {
       /* Try to keep going even if there's an error, because this is used as a
          backtrace and we'll take what we can get. */
