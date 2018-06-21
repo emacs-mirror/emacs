@@ -1410,7 +1410,8 @@ DUMMY is ignored."
     (list :textDocument (eglot--TextDocumentIdentifier)
           :options (list :tabSize tab-width
                          :insertSpaces
-                         (if indent-tabs-mode :json-false t))))))
+                         (if indent-tabs-mode :json-false t)))
+    :textDocument/formatting)))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
