@@ -563,7 +563,8 @@
 #define EVENT_ArenaFree_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, A, base) \
-  PARAM(X,  2, W, size)
+  PARAM(X,  2, W, size) \
+  PARAM(X,  3, P, pool)
 
 #define EVENT_ArenaAllocFail_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
