@@ -1,31 +1,45 @@
 
 
 import argparse
+from collections import namedtuple
 from struct import Struct
 import sys
 
-from mpsevent import *
+import mpsevent
 
 
-def run(file):
+# Mapping from event code to a namedtuple for that event.
+EVENT_NAMEDTUPLE = {
+    code: namedtuple(desc.name, [param.name for param in desc.params])
+    for code, desc in mpsevent.EVENT.items()
+}
+
+
+def decode_events(file):
+    """Generate the events in file as pairs header, event."""
+
     # Cache frequently-used values in local variables.
     read = file.read
-    header_desc = HeaderDesc
-    header_size = HEADER_SIZE
-    event_dict = EVENT
+    header_desc = mpsevent.HeaderDesc
+    header_size = mpsevent.HEADER_SIZE
+    event_dict = mpsevent.EVENT
+    event_namedtuple = EVENT_NAMEDTUPLE
 
     # Special handling for Intern.
-    Intern_code = Event.Intern.code
-    Intern_struct = Struct(Event.Intern.format)
+    Intern_desc = mpsevent.Event.Intern
+    Intern_code = Intern_desc.code
+    Intern_struct = Struct(Intern_desc.format)
     Intern_size = Intern_struct.size
     Intern_unpack = Intern_struct.unpack
+    Intern_namedtuple = event_namedtuple[Intern_code]
 
-    # Build unpacker functions.
-    header_struct = Struct(HEADER_FORMAT)
+    # Build unpacker functions for each type of event.
+    header_struct = Struct(mpsevent.HEADER_FORMAT)
     assert header_struct.size == header_size
     header_unpack = header_struct.unpack
     event_unpack = {}
     for code, desc in event_dict.items():
+        assert code == desc.code
         s = Struct(desc.format)
         assert code == Intern_code or s.size == desc.maxsize
         event_unpack[code] = s.unpack
@@ -40,12 +54,12 @@ def run(file):
         size = header.size - header_size
         if code == Intern_code:
             assert size <= event_desc.maxsize
-            e = (Intern_unpack(read(Intern_size))
-                 + (read(size - Intern_size).rstrip(b'\0'),)
+            event = Intern_namedtuple(*Intern_unpack(read(Intern_size)),
+                                      (read(size - Intern_size).rstrip(b'\0')))
         else:
             assert size == event_desc.maxsize
-            e = event_unpack[code](read(size))
-        print(event_desc.name, *header, event_desc.format, *e)
+            event = event_namedtuple[code](*event_unpack[code](read(size)))
+        yield header, event
 
 
 def main():
@@ -54,7 +68,9 @@ def main():
                         type=argparse.FileType('rb'), default=sys.stdin,
                         help="telemetry output from the MPS instance")
     args = parser.parse_args()
-    run(args.telemetry)
+    for header, event in decode_events(args.telemetry):
+        print(header, event)
+
 
 if __name__ == '__main__':
     main()
