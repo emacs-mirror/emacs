@@ -67,7 +67,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0088)
+#define EventCodeMAX ((EventCode)0x0089)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -194,7 +194,8 @@
   EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena) \
   /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */ \
   EVENT(X, PauseTimeSet       , 0x0087,  TRUE, Arena) \
-  EVENT(X, TraceEndGen        , 0x0088,  TRUE, Trace)
+  EVENT(X, TraceEndGen        , 0x0088,  TRUE, Trace) \
+  EVENT(X, LabelPointer       , 0x0089,  TRUE, User)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -233,7 +234,10 @@
 #define EVENT_ArenaCreateVM_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, userSize) \
-  PARAM(X,  2, W, chunkSize)
+  PARAM(X,  2, W, chunkSize) \
+  PARAM(X,  3, W, grainSize) \
+  PARAM(X,  4, P, arenaClass) \
+  PARAM(X,  5, U, serial)
 
 #define EVENT_ArenaCreateVMNZ_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -279,7 +283,10 @@
 #define EVENT_ArenaCreateCL_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, size) \
-  PARAM(X,  2, A, base)
+  PARAM(X,  2, A, base) \
+  PARAM(X,  3, W, grainSize) \
+  PARAM(X,  4, P, arenaClass) \
+  PARAM(X,  5, U, serial)
 
 #define EVENT_ArenaDestroy_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)
@@ -298,7 +305,8 @@
 #define EVENT_PoolInit_PARAMS(PARAM, X) \
   PARAM(X,  0, P, pool) \
   PARAM(X,  1, P, arena) \
-  PARAM(X,  2, P, poolClass)
+  PARAM(X,  2, P, poolClass) \
+  PARAM(X,  3, U, serial)
 
 #define EVENT_PoolFinish_PARAMS(PARAM, X) \
   PARAM(X,  0, P, pool)
@@ -711,6 +719,10 @@
   PARAM(X,  3, W, forwarded)    /* bytes forwarded from generation */ \
   PARAM(X,  4, W, preservedInPlace) /* bytes preserved in generation */ \
   PARAM(X,  5, D, mortality)    /* updated mortality */
+
+#define EVENT_LabelPointer_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, pointer) \
+  PARAM(X,  1, W, stringId)
 
 
 #endif /* eventdef_h */

@@ -297,6 +297,16 @@ void EventLabelAddr(Addr addr, EventStringId id)
 }
 
 
+/* EventLabelPointer -- emit event to label pointer with the given id */
+
+void EventLabelPointer(Pointer pointer, EventStringId id)
+{
+  AVER((Serial)id < EventInternSerial);
+
+  EVENT2(LabelPointer, pointer, id);
+}
+
+
 /* Convert event parameter sort to WriteF arguments */
 
 #define EVENT_WRITE_PARAM_MOST(name, index, sort, ident) \
@@ -489,6 +499,15 @@ void EventLabelAddr(Addr addr, Word id)
   UNUSED(id);
   /* EventLabelAddr is reached in varieties without events, but doesn't have
      to do anything. */
+}
+
+
+void EventLabelPointer(Pointer pointer, Word id)
+{
+  UNUSED(pointer);
+  UNUSED(id);
+  /* EventLabelPointer is reached in varieties without events, but
+     doesn't have to do anything. */
 }
 
 
