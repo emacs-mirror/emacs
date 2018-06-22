@@ -48,13 +48,13 @@ extern char *EventLogged[EventKindLIMIT];
 extern Word EventKindControl;
 
 
-/* Write event into buffer and maybe flush the buffer. */
+/* EVENT_BEGIN -- flush buffer if necessary and write event header */
 
 #define EVENT_BEGIN(name, structSize)                                   \
   BEGIN {                                                               \
     if(EVENT_ALL || Event##name##Always) { /* see config.h */           \
       Event##name##Struct *_event;                                      \
-      size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN);           \
+      size_t _size = size_tAlignUp(structSize, EVENT_ALIGN);            \
       if (_size > (size_t)(EventBuffer[Event##name##Kind]               \
                            + EventBufferSIZE                            \
                            - EventLogged[Event##name##Kind]))           \
@@ -62,7 +62,7 @@ extern Word EventKindControl;
       AVER(_size <= (size_t)(EventBuffer[Event##name##Kind]             \
                              + EventBufferSIZE                          \
                              - EventLogged[Event##name##Kind]));        \
-      _event = (void *)(EventLogged[Event##name##Kind]);                \
+      _event = (void *)EventLogged[Event##name##Kind];                  \
       _event->code = Event##name##Code;                                 \
       _event->size = (EventSize)_size;                                  \
       EVENT_CLOCK(_event->clock);
