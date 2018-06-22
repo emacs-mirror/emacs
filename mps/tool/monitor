@@ -144,7 +144,7 @@ class Pool(EventHandler):
         label = self.model.label(self.pointer)
         if label:
             return label
-        class_name = self.model.label(self.pool_class)[:-4] or 'Pool'
+        class_name = self.model.label(self.pool_class) or 'Pool'
         if self.serial is not None:
             return f"{class_name}[{self.serial}]"
         else:
@@ -178,7 +178,7 @@ class Arena(EventHandler):
         label = self.model.label(self.pointer)
         if label:
             return label
-        class_name = self.model.label(self.arena_class)[:-5] or 'Arena'
+        class_name = self.model.label(self.arena_class) or 'Arena'
         if self.serial is not None:
             return f"{class_name}[{self.serial}]"
         else:
@@ -202,19 +202,44 @@ class Arena(EventHandler):
     ArenaCreateCL = ArenaCreateVM
 
 
+class Line:
+    "A line in a Matplotlib plot wrapping a TimeSeries."
+    def __init__(self, owner, desc, series):
+        self.owner = owner
+        self.desc = desc
+        self.series = series
+        self.line = None
+
+    def update(self, axes, seconds):
+        """Update the line in the given set of axes. seconds is a function
+        converting eventclocks to seconds.
+
+        """
+        if len(self.series.t) < 2:
+            return
+        x = seconds(self.series.t)
+        y = self.series.y
+        label = f"{self.owner.name}.{self.desc}"
+        if self.line is None:
+            self.line, = axes.plot(x, y, label=label)
+        else:
+            self.line.set_data(x, y)
+            self.line.set_label(label)
+
+
 class Model(EventHandler):
     "Model of an application using the MPS."
     def __init__(self):
         self._intern = {}       # stringId -> string
         self._label = {}        # address or pointer -> stringId
         self.arena = {}         # pointer -> Arena
-        self.time_series = []   # List of (owner, desc, TimeSeries) pairs
+        self.lines = []         # list(Line)
         self.clocks_per_second = None
         self.sync = TimeSeries()
 
     def add_time_series(self, owner, desc, series):
         "Add a time series to the model."
-        self.time_series.append((owner, desc, series))
+        self.lines.append(Line(owner, desc, series))
 
     def label(self, pointer):
         "Return string labelling address or pointer, or None if unlabelled."
@@ -223,27 +248,22 @@ class Model(EventHandler):
     @property
     def eventclocks_to_seconds(self):
         "Return function converting eventclocks to seconds."
-        n = len(self.sync.t)
         cps = self.clocks_per_second
-        if n <= 1 or cps is None:
-            # Don't have enough information to convert to seconds.
+        if len(self.sync.t) < 2 or cps is None:
+            # Don't have enough data to compute seconds.
             return lambda e: e
-        # The cycle counter frequency can vary due to thermal
-        # throttling, turbo boost etc., so use piecewise linear
-        # interpolation to convert to clocks and thence to seconds.
-        return lambda e: np.interp(e, self.sync.t, self.sync.y) / cps
+        else:
+            # The cycle counter frequency can vary due to thermal
+            # throttling, turbo boost etc., so use piecewise linear
+            # interpolation to convert to clocks and thence to seconds.
+            return lambda e: np.interp(e, self.sync.t, self.sync.y) / cps
 
-    def plot(self):
-        "Plot all the model's time series."
-        plt = matplotlib.pyplot
-        figure, axes = plt.subplots()
+    def update(self, axes):
+        "Update time series on the given axes."
         seconds = self.eventclocks_to_seconds
-        for owner, desc, series in self.time_series:
-            axes.plot(seconds(series.t), series.y, label=f"{owner.name}.{desc}")
-        axes.legend()
-        plt.xlabel("time (seconds)")
-        plt.ylabel("bytes")
-        plt.show()
+        for line in self.lines:
+            line.update(axes, seconds)
+        axes.legend(loc=2)
 
     def delegate_to_arena(self, event):
         "Handle a telemetry event by delegating to the arena model."
@@ -289,9 +309,16 @@ def main():
     args = parser.parse_args()
 
     model = Model()
-    for event in decode_events(args.telemetry.read):
+    events = decode_events(args.telemetry.read)
+    for event in events:
         model.handle(event)
-    model.plot()
+
+    plt = matplotlib.pyplot
+    figure, axes = plt.subplots()
+    axes.set_xlabel("time (seconds)")
+    axes.set_ylabel("bytes")
+    model.update(axes)
+    plt.show()
 
 
 if __name__ == '__main__':
