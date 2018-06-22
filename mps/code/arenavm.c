@@ -659,7 +659,8 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   AVER(ChunkPageSize(chunk) == ArenaGrainSize(arena));
 
   AVERT(VMArena, vmArena);
-  EVENT3(ArenaCreateVM, arena, size, chunkSize);
+  EVENT6(ArenaCreateVM, arena, size, chunkSize, grainSize,
+         ClassOfPoly(Arena, arena), arena->serial);
 
   vmArena->extended(arena, chunk->base, chunkSize);
   

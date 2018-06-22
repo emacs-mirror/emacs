@@ -32,6 +32,7 @@ extern EventControlSet EventControl(EventControlSet resetMask,
 extern EventStringId EventInternString(const char *label);
 extern EventStringId EventInternGenString(size_t, const char *label);
 extern void EventLabelAddr(Addr addr, Word id);
+extern void EventLabelPointer(Pointer pointer, Word id);
 extern void EventFlush(EventKind kind);
 extern Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth);
 extern Res EventWrite(Event event, mps_lib_FILE *stream);

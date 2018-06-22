@@ -147,7 +147,8 @@ Res PoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   if (res != ResOK)
     return res;
 
-  EVENT3(PoolInit, pool, PoolArena(pool), ClassOfPoly(Pool, pool));
+  EVENT4(PoolInit, pool, PoolArena(pool), ClassOfPoly(Pool, pool),
+         pool->serial);
 
   return ResOK;
 }
