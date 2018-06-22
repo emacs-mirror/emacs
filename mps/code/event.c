@@ -53,7 +53,7 @@ static Res eventClockSync(void)
   Res res;
   size_t size;
 
-  size= size_tAlignUp(sizeof(eventClockSyncStruct), MPS_PF_ALIGN);
+  size= size_tAlignUp(sizeof(eventClockSyncStruct), EVENT_ALIGN);
   eventClockSyncStruct.code = EventEventClockSyncCode;
   eventClockSyncStruct.size = (EventSize)size;
   EVENT_CLOCK(eventClockSyncStruct.clock);
@@ -182,7 +182,7 @@ void EventInit(void)
   EVENT_PARAM_CHECK_##sort(name, index, ident)
 
 #define EVENT_CHECK(X, name, code, always, kind) \
-  AVER(size_tAlignUp(sizeof(Event##name##Struct), MPS_PF_ALIGN) \
+  AVER(size_tAlignUp(sizeof(Event##name##Struct), EVENT_ALIGN) \
        <= EventSizeMAX); \
   AVER(Event##name##Code == code); \
   AVER(0 <= code); \

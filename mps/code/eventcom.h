@@ -115,6 +115,9 @@ typedef unsigned char EventFB;          /* Boolean */
 
 EVENT_LIST(EVENT_STRUCT, X)
 
+/* Maximum alignment requirement of any event type. */
+#define EVENT_ALIGN (sizeof(EventFP))
+
 
 /* Event -- event union type
  *
