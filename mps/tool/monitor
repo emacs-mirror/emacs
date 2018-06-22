@@ -14,6 +14,7 @@ from struct import Struct
 import sys
 
 import matplotlib.pyplot
+import numpy as np
 
 import mpsevent
 
@@ -83,17 +84,9 @@ def decode_events(read):
 
 class TimeSeries:
     "Series of data points in time order."
-    def __init__(self, model, owner, desc):
+    def __init__(self):
         self.t = []
         self.y = []
-        self.owner = owner
-        self.desc = desc
-        model.add_time_series(self)
-
-    @property
-    def name(self):
-        "Name of time series."
-        return f"{self.owner.name}.{self.desc}"
 
     def append(self, t, y):
         "Append data y at time t."
@@ -104,8 +97,8 @@ class TimeSeries:
 
 class Accumulator(TimeSeries):
     "Time series that is always non-negative and updates by accumulation."
-    def __init__(self, model, owner, desc, initial=0):
-        super().__init__(model, owner, desc)
+    def __init__(self, initial=0):
+        super().__init__()
         self.value = initial
 
     def add(self, t, delta):
@@ -143,7 +136,8 @@ class Pool(EventHandler):
         self.pointer = pointer
         self.pool_class = None
         self.serial = None
-        self.alloc = Accumulator(arena.model, self, "alloc")
+        self.alloc = Accumulator()
+        self.model.add_time_series(self, "alloc", self.alloc)
 
     @property
     def name(self):
@@ -214,23 +208,41 @@ class Model(EventHandler):
         self._intern = {}       # stringId -> string
         self._label = {}        # address or pointer -> stringId
         self.arena = {}         # pointer -> Arena
-        self.time_series = []   # List of TimeSeries
+        self.time_series = []   # List of (owner, desc, TimeSeries) pairs
+        self.clocks_per_second = None
+        self.sync = TimeSeries()
 
-    def add_time_series(self, series):
+    def add_time_series(self, owner, desc, series):
         "Add a time series to the model."
-        self.time_series.append(series)
+        self.time_series.append((owner, desc, series))
 
     def label(self, pointer):
-        "String labelling address or pointer, or None if unlabelled."
+        "Return string labelling address or pointer, or None if unlabelled."
         return self._intern.get(self._label.get(pointer))
+
+    @property
+    def eventclocks_to_seconds(self):
+        "Return function converting eventclocks to seconds."
+        n = len(self.sync.t)
+        cps = self.clocks_per_second
+        if n <= 1 or cps is None:
+            # Don't have enough information to convert to seconds.
+            return lambda e: e
+        # The cycle counter frequency can vary due to thermal
+        # throttling, turbo boost etc., so use piecewise linear
+        # interpolation to convert to clocks and thence to seconds.
+        return lambda e: np.interp(e, self.sync.t, self.sync.y) / cps
 
     def plot(self):
         "Plot all the model's time series."
         plt = matplotlib.pyplot
         figure, axes = plt.subplots()
-        for series in self.time_series:
-            axes.plot(series.t, series.y, label=series.name)
+        seconds = self.eventclocks_to_seconds
+        for owner, desc, series in self.time_series:
+            axes.plot(seconds(series.t), series.y, label=f"{owner.name}.{desc}")
         axes.legend()
+        plt.xlabel("time (seconds)")
+        plt.ylabel("bytes")
         plt.show()
 
     def delegate_to_arena(self, event):
@@ -243,6 +255,19 @@ class Model(EventHandler):
         arena.handle(event)
 
     ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = PoolInit = delegate_to_arena
+
+    def EventInit(self, event):
+        stream_version = event.major, event.median
+        monitor_version = mpsevent.__version__[:2]
+        if stream_version != monitor_version:
+            raise RuntimeError("Monitor version {} is incompatible with "
+                               "telemetry stream version {}.".format(
+                                   '.'.join(map(str, monitor_version)),
+                                   '.'.join(map(str, stream_version))))
+        self.clocks_per_second = event.clocksPerSec
+
+    def EventClockSync(self, event):
+        self.sync.append(event.header.clock, event.clock)
 
     def Intern(self, event):
         self._intern[event.stringId] = event.string.decode('ascii', 'replace')
