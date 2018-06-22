@@ -395,34 +395,35 @@ functions.
 
 ``SuperclassPoly(kind, class)``
 
-_`.if.superclass`: An introspection function which returns the direct
-superclass of class object ``class`` as a class of kind ``kind``.
-This may assert if the superclass is not (a subtype of) the kind
-requested.
+_`.if.superclass-poly`: An introspection function which returns the
+direct superclass of class object ``class`` as a class of kind
+``kind``. This may assert if the superclass is not (a subtype of) the
+kind requested.
 
 
 ``ClassOfPoly(kind, inst)``
 
-_`.if.class`: An introspection function which returns the class of
-which ``inst`` is a direct instance, as a class of kind ``kind``.
-This may assert if the class is not (a subtype of) the kind requested.
+_`.if.class-of-poly`: An introspection function which returns the
+class of which ``inst`` is a direct instance, as a class of kind
+``kind``. This may assert if the class is not (a subtype of) the kind
+requested.
 
 
 ``SetClassOfPoly(inst, class)``
 
-_`.if.set-class`: An initialization function that sets the class of
-``inst`` to be ``class``.  This is intended only for use in
+_`.if.set-class-of-poly`: An initialization function that sets the
+class of ``inst`` to be ``class``. This is intended only for use in
 initialization functions, to specialize the instance once its fields
-have been initialized.  Each Init function should call its superclass
+have been initialized. Each Init function should call its superclass
 init, finally reaching InstInit, and then, once it has set up its
 fields, use SetClassOfPoly to set the class and check the instance
-with its check method.  Compare with `design.mps.sig`_.
+with its check method. Compare with `design.mps.sig`_.
 
 .. _`design.mps.sig`: sig
 
 ``IsSubclass(sub, super)``
 
-_`.if.subclass`: An introspection function which returns a ``Bool``
+_`.if.is-subclass`: An introspection function which returns a ``Bool``
 indicating whether ``sub`` is a subclass of ``super``. That is, it is
 a predicate for testing subclass relationships.
 
@@ -644,7 +645,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
