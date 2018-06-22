@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018 Free Software Foundation, Inc.
 
-;; Version: 0.8
+;; Version: 0.10
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -79,15 +79,19 @@
 
 (defvar eglot-server-programs '((rust-mode . (eglot-rls "rls"))
                                 (python-mode . ("pyls"))
-                                (js-mode . ("javascript-typescript-stdio"))
+                                ((js-mode
+                                  js2-mode
+                                  rjsx-mode) . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
-                                (c++-mode . (eglot-cquery "cquery"))
-                                (c-mode . (eglot-cquery "cquery"))
+                                ((c++-mode
+                                  c-mode) . (eglot-cquery "cquery"))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
   "How the command `eglot' guesses the server to start.
-An association list of (MAJOR-MODE . CONTACT) pair.  MAJOR-MODE
-is a mode symbol.  CONTACT is:
+An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
+is a mode symbol, or a list of mode symbols.  The associated
+CONTACT specifies how to start a server for managing buffers of
+those modes.  CONTACT can be:
 
 * In the most common case, a list of strings (PROGRAM [ARGS...]).
 PROGRAM is called with ARGS and is expected to serve LSP requests
@@ -151,7 +155,6 @@ lasted more than that many seconds."
             :workspace (list
                         :applyEdit t
                         :executeCommand `(:dynamicRegistration :json-false)
-                        :codeAction `(:dynamicRegistration :json-false)
                         :workspaceEdit `(:documentChanges :json-false)
                         :didChangeWatchesFiles `(:dynamicRegistration t)
                         :symbol `(:dynamicRegistration :json-false))
@@ -167,6 +170,8 @@ lasted more than that many seconds."
              :definition         `(:dynamicRegistration :json-false)
              :documentSymbol     `(:dynamicRegistration :json-false)
              :documentHighlight  `(:dynamicRegistration :json-false)
+             :codeAction         `(:dynamicRegistration :json-false)
+             :formatting         `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
              :publishDiagnostics `(:relatedInformation :json-false))
             :experimental (list))))
@@ -210,16 +215,16 @@ lasted more than that many seconds."
 (defvar eglot--servers-by-project (make-hash-table :test #'equal)
   "Keys are projects.  Values are lists of processes.")
 
-(defun eglot-shutdown (server &optional _interactive)
+(defun eglot-shutdown (server &optional _interactive timeout)
   "Politely ask SERVER to quit.
-Forcefully quit it if it doesn't respond.  Don't leave this
-function with the server still running."
+Forcefully quit it if it doesn't respond within TIMEOUT seconds.
+Don't leave this function with the server still running."
   (interactive (list (eglot--current-server-or-lose) t))
   (eglot--message "Asking %s politely to terminate" (jsonrpc-name server))
   (unwind-protect
       (progn
         (setf (eglot--shutdown-requested server) t)
-        (jsonrpc-request server :shutdown nil :timeout 3)
+        (jsonrpc-request server :shutdown nil :timeout (or timeout 1.5))
         ;; this one is supposed to always fail, because it asks the
         ;; server to exit itself. Hence ignore-errors.
         (ignore-errors (jsonrpc-request server :exit nil :timeout 1)))
@@ -264,24 +269,31 @@ function with the server still running."
 
 (defun eglot--guess-contact (&optional interactive)
   "Helper for `eglot'.
-Return (MANAGED-MODE PROJECT CONTACT CLASS).
-If INTERACTIVE, maybe prompt user."
+Return (MANAGED-MODE PROJECT CLASS CONTACT).  If INTERACTIVE is
+non-nil, maybe prompt user, else error as soon as something can't
+be guessed."
   (let* ((guessed-mode (if buffer-file-name major-mode))
          (managed-mode
           (cond
-           ((or (>= (prefix-numeric-value current-prefix-arg) 16)
-                (not guessed-mode))
+           ((and interactive
+                 (or (>= (prefix-numeric-value current-prefix-arg) 16)
+                     (not guessed-mode)))
             (intern
              (completing-read
               "[eglot] Start a server to manage buffers of what major mode? "
               (mapcar #'symbol-name (eglot--all-major-modes)) nil t
               (symbol-name guessed-mode) nil (symbol-name guessed-mode) nil)))
+           ((not guessed-mode)
+            (eglot--error "Can't guess mode to manage for `%s'" (current-buffer)))
            (t guessed-mode)))
          (project (or (project-current) `(transient . ,default-directory)))
-         (guess (cdr (assoc managed-mode eglot-server-programs)))
-         (class (if (and (consp guess) (symbolp (car guess)))
-                    (prog1 (car guess) (setq guess (cdr guess)))
-                  'eglot-lsp-server))
+         (guess (cdr (assoc managed-mode eglot-server-programs
+                            (lambda (m1 m2)
+                              (or (eq m1 m2)
+                                  (and (listp m1) (memq m2 m1)))))))
+         (class (or (and (consp guess) (symbolp (car guess))
+                         (prog1 (car guess) (setq guess (cdr guess))))
+                    'eglot-lsp-server))
          (program (and (listp guess) (stringp (car guess)) (car guess)))
          (base-prompt
           (and interactive
@@ -298,16 +310,18 @@ If INTERACTIVE, maybe prompt user."
                               (format ", but I can't find `%s' in PATH!" program)
                               "\n" base-prompt)))))
          (contact
-          (if prompt
-              (let ((s (read-shell-command
-                        prompt
-                        (if program (combine-and-quote-strings guess))
-                        'eglot-command-history)))
-                (if (string-match "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
-                                  (string-trim s))
-                    (list (match-string 1 s) (string-to-number (match-string 2 s)))
-                  (split-string-and-unquote s)))
-            guess)))
+          (or (and prompt
+                   (let ((s (read-shell-command
+                             prompt
+                             (if program (combine-and-quote-strings guess))
+                             'eglot-command-history)))
+                     (if (string-match "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
+                                       (string-trim s))
+                         (list (match-string 1 s)
+                               (string-to-number (match-string 2 s)))
+                       (split-string-and-unquote s))))
+              guess
+              (eglot--error "Couldn't guess for `%s'!" managed-mode))))
     (list managed-mode project class contact)))
 
 ;;;###autoload
@@ -389,7 +403,8 @@ INTERACTIVE is t if called interactively."
                  (eglot--project-nickname server)
                  major-mode
                  (eglot--project-nickname server)))))))
-      (add-hook 'post-command-hook #'maybe-connect 'append nil))))
+      (when buffer-file-name
+        (add-hook 'post-command-hook #'maybe-connect 'append nil)))))
 
 (defun eglot-events-buffer (server)
   "Display events buffer for SERVER."
@@ -537,7 +552,7 @@ If optional MARKER, return a marker instead"
   "Format MARKUP according to LSP's spec."
   (pcase-let ((`(,string ,mode)
                (if (stringp markup) (list (string-trim markup)
-                                          (intern "markdown-mode"))
+                                          (intern "gfm-mode"))
                  (list (plist-get markup :value)
                        (intern (concat (plist-get markup :language) "-mode" ))))))
     (with-temp-buffer
@@ -561,8 +576,8 @@ under cursor."
              for feat in feats
              for probe = (plist-member caps feat)
              if (not probe) do (cl-return nil)
-             if (eq (cadr probe) t) do (cl-return t)
              if (eq (cadr probe) :json-false) do (cl-return nil)
+             if (not (listp (cadr probe))) do (cl-return (cadr probe))
              finally (cl-return (or probe t)))))
 
 (defun eglot--range-region (range &optional markers)
@@ -571,10 +586,7 @@ If optional MARKERS, make markers."
   (let* ((st (plist-get range :start))
          (beg (eglot--lsp-position-to-point st markers))
          (end (eglot--lsp-position-to-point (plist-get range :end) markers)))
-    ;; Fallback to `flymake-diag-region' if server botched the range
-    (if (/= beg end) (cons beg end) (flymake-diag-region
-                                     (current-buffer) (plist-get st :line)
-                                     (1- (plist-get st :character))))))
+    (cons beg end)))
 
 
 ;;; Minor modes
@@ -788,7 +800,18 @@ Uses THING, FACE, DEFS and PREPEND."
                                               _code source message)
                      diag-spec
                    (setq message (concat source ": " message))
-                   (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
+                   (pcase-let
+                       ((`(,beg . ,end) (eglot--range-region range)))
+                     ;; Fallback to `flymake-diag-region' if server
+                     ;; botched the range
+                     (if (= beg end)
+                         (let* ((st (plist-get range :start))
+                                (diag-region
+                                 (flymake-diag-region
+                                  (current-buffer) (plist-get st :line)
+                                  (1- (plist-get st :character)))))
+                           (setq beg (car diag-region)
+                                 end (cdr diag-region))))
                      (eglot--make-diag (current-buffer) beg end
                                        (cond ((<= sev 1) 'eglot-error)
                                              ((= sev 2)  'eglot-warning)
@@ -1065,6 +1088,21 @@ DUMMY is ignored."
                       :workspace/symbol
                       `(:query ,pattern)))))
 
+(defun eglot-format-buffer ()
+  "Format contents of current buffer."
+  (interactive)
+  (unless (eglot--server-capable :documentFormattingProvider)
+    (eglot--error "Server can't format!"))
+  (eglot--apply-text-edits
+   (jsonrpc-request
+    (eglot--current-server-or-lose)
+    :textDocument/formatting
+    (list :textDocument (eglot--TextDocumentIdentifier)
+          :options (list :tabSize tab-width
+                         :insertSpaces
+                         (if indent-tabs-mode :json-false t)))
+    :deferred :textDocument/formatting)))
+
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
   (let ((bounds (bounds-of-thing-at-point 'symbol))
@@ -1239,15 +1277,32 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
 (defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."
   (unless (or (not version) (equal version eglot--versioned-identifier))
-    (jsonrpc-error "Edits on `%s' require version %d, we have %d"
+    (jsonrpc-error "Edits on `%s' require version %d, you have %d"
                    (current-buffer) version eglot--versioned-identifier))
-  (eglot--widening
-   (mapc (pcase-lambda (`(,newText ,beg . ,end))
-           (goto-char beg) (delete-region beg end) (insert newText))
-         (mapcar (jsonrpc-lambda (&key range newText)
-                   (cons newText (eglot--range-region range 'markers)))
-                 edits)))
-  (eglot--message "%s: Performed %s edits" (current-buffer) (length edits)))
+  (atomic-change-group
+    (let* ((change-group (prepare-change-group))
+           (howmany (length edits))
+           (reporter (make-progress-reporter
+                      (format "[eglot] applying %s edits to `%s'..."
+                              howmany (current-buffer))
+                      0 howmany))
+           (done 0))
+      (mapc (pcase-lambda (`(,newText ,beg . ,end))
+              (let ((source (current-buffer)))
+                (with-temp-buffer
+                  (insert newText)
+                  (let ((temp (current-buffer)))
+                    (with-current-buffer source
+                      (save-excursion
+                        (save-restriction
+                          (narrow-to-region beg end)
+                          (replace-buffer-contents temp)))
+                      (progress-reporter-update reporter (cl-incf done)))))))
+            (mapcar (jsonrpc-lambda (&key range newText)
+                      (cons newText (eglot--range-region range 'markers)))
+                    edits))
+      (undo-amalgamate-change-group change-group)
+      (progress-reporter-done reporter))))
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
   "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
