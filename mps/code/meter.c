@@ -2,12 +2,6 @@
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
- *
- * TRANSGRESSIONS
- *
- * .trans.label: We label meters with EventLabelAddr, but of course that's
- * meant for labelling Addr's.  We get away with it as long as the type
- * Meter is compatible with Addr.
  */
 
 #include "meter.h"
@@ -30,7 +24,7 @@ void MeterInit(Meter meter, const char *name, void *owner)
   meter->min = (Size)-1;
 
   sym = EventInternString(name);
-  EventLabelAddr((Addr)meter, sym); /* see .trans.label */
+  EventLabelPointer(meter, sym);
   EVENT2(MeterInit, meter, owner);
 }
 

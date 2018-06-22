@@ -305,7 +305,8 @@ static Res ClientArenaCreate(Arena *arenaReturn, ArgList args)
   arena->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
   AVER(ArenaGrainSize(arena) == ChunkPageSize(arena->primary));
 
-  EVENT3(ArenaCreateCL, arena, size, base);
+  EVENT6(ArenaCreateCL, arena, size, base, grainSize,
+         ClassOfPoly(Arena, arena), arena->serial);
   AVERT(ClientArena, clientArena);
   *arenaReturn = arena;
   return ResOK;

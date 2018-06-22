@@ -8,8 +8,8 @@
 
 
 import argparse
-from collections import defaultdict, namedtuple
-from functools import partial
+from collections import namedtuple
+import os
 from struct import Struct
 import sys
 
@@ -83,10 +83,17 @@ def decode_events(read):
 
 class TimeSeries:
     "Series of data points in time order."
-    def __init__(self, model, name):
+    def __init__(self, model, owner, desc):
         self.t = []
         self.y = []
+        self.owner = owner
+        self.desc = desc
         model.add_time_series(self)
+
+    @property
+    def name(self):
+        "Name of time series."
+        return f"{self.owner.name}.{self.desc}"
 
     def append(self, t, y):
         "Append data y at time t."
@@ -97,18 +104,20 @@ class TimeSeries:
 
 class Accumulator(TimeSeries):
     "Time series that is always non-negative and updates by accumulation."
-    def __init__(self, model, name, initial=0):
-        super().__init__(model, name)
+    def __init__(self, model, owner, desc, initial=0):
+        super().__init__(model, owner, desc)
         self.value = initial
 
     def add(self, t, delta):
         "Add delta to the accumulator at time t."
+        self.append(t, self.value)
         self.value += delta
         self.append(t, self.value)
 
     def sub(self, t, delta):
         "Subtract delta from the accumulator at time t."
         assert self.value >= delta
+        self.append(t, self.value)
         self.value -= delta
         self.append(t, self.value)
 
@@ -128,8 +137,24 @@ class EventHandler:
 
 class Pool(EventHandler):
     "Model of an MPS pool."
-    def __init__(self, model):
-        self.alloc = Accumulator(model, "Bytes allocated from the arena.")
+    def __init__(self, arena, pointer):
+        self.arena = arena
+        self.model = arena.model
+        self.pointer = pointer
+        self.pool_class = None
+        self.serial = None
+        self.alloc = Accumulator(arena.model, self, "alloc")
+
+    @property
+    def name(self):
+        label = self.model.label(self.pointer)
+        if label:
+            return label
+        class_name = self.model.label(self.pool_class)[:-4] or 'Pool'
+        if self.serial is not None:
+            return f"{class_name}[{self.serial}]"
+        else:
+            return f"{class_name}[{self.pointer:x}]"
 
     def ArenaAlloc(self, event):
         self.alloc.add(event.header.clock, event.size)
@@ -137,57 +162,105 @@ class Pool(EventHandler):
     def ArenaFree(self, event):
         self.alloc.sub(event.header.clock, event.size)
 
+    def PoolInit(self, event):
+        self.pool_class = event.poolClass
+        self.serial = event.serial
+
 
 class Arena(EventHandler):
     "Model of an MPS arena."
-    def __init__(self, model):
-        self.pool = defaultdict(partial(Pool, model)) # address -> Pool
+    def __init__(self, model, pointer):
+        self.model = model
+        self.pointer = pointer
+        self.arena_class = None
+        self.serial = None
+        self.pool = {}          # pointer -> Pool
+
+    @property
+    def name(self):
+        if len(self.model.arena) <= 1:
+            # No need to distinguish arenas if there's just one.
+            return ""
+        label = self.model.label(self.pointer)
+        if label:
+            return label
+        class_name = self.model.label(self.arena_class)[:-5] or 'Arena'
+        if self.serial is not None:
+            return f"{class_name}[{self.serial}]"
+        else:
+            return f"{class_name}[{self.pointer:x}]"
 
     def delegate_to_pool(self, event):
         "Handle a telemetry event by delegating to the pool model."
-        self.pool[event.pool].handle(event)
+        pointer = event.pool
+        try:
+            pool = self.pool[pointer]
+        except KeyError:
+            self.pool[pointer] = pool = Pool(self, pointer)
+        pool.handle(event)
 
     ArenaAlloc = ArenaFree = PoolInit = delegate_to_pool
+
+    def ArenaCreateVM(self, event):
+        self.arena_class = event.arenaClass
+        self.serial = event.serial
+
+    ArenaCreateCL = ArenaCreateVM
 
 
 class Model(EventHandler):
     "Model of an application using the MPS."
     def __init__(self):
-        self.intern = {}        # stringId -> string
-        self.label = {}         # address -> stringId
-        self.arena = defaultdict(partial(Arena, self)) # address -> Arena
+        self._intern = {}       # stringId -> string
+        self._label = {}        # address or pointer -> stringId
+        self.arena = {}         # pointer -> Arena
         self.time_series = []   # List of TimeSeries
 
     def add_time_series(self, series):
         "Add a time series to the model."
         self.time_series.append(series)
 
+    def label(self, pointer):
+        "String labelling address or pointer, or None if unlabelled."
+        return self._intern.get(self._label.get(pointer))
+
     def plot(self):
         "Plot all the model's time series."
         plt = matplotlib.pyplot
-        figure = plt.figure()
+        figure, axes = plt.subplots()
         for series in self.time_series:
-            plt.plot(series.t, series.y)
+            axes.plot(series.t, series.y, label=series.name)
+        axes.legend()
         plt.show()
 
     def delegate_to_arena(self, event):
         "Handle a telemetry event by delegating to the arena model."
-        self.arena[event.arena].handle(event)
+        addr = event.arena
+        try:
+            arena = self.arena[addr]
+        except KeyError:
+            self.arena[addr] = arena = Arena(self, addr)
+        arena.handle(event)
 
     ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = PoolInit = delegate_to_arena
 
     def Intern(self, event):
-        self.intern[event.stringId] = event.string
+        self._intern[event.stringId] = event.string.decode('ascii', 'replace')
 
     def Label(self, event):
-        self.label[event.address] = event.stringId
+        self._label[event.address] = event.stringId
+
+    def LabelPointer(self, event):
+        self._label[event.pointer] = event.stringId
 
 
 def main():
     parser = argparse.ArgumentParser(description="Memory Pool System Monitor.")
-    parser.add_argument('telemetry', metavar='FILENAME', nargs='?',
-                        type=argparse.FileType('rb'), default=sys.stdin,
-                        help="telemetry output from the MPS instance")
+    parser.add_argument(
+        'telemetry', metavar='FILENAME', nargs='?',
+        type=argparse.FileType('rb'),
+        default=os.environ.get('MPS_TELEMETRY_FILENAME', 'mpsio.log'),
+        help="telemetry output from the MPS instance")
     args = parser.parse_args()
 
     model = Model()
@@ -229,4 +302,4 @@ if __name__ == '__main__':
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# $Id: //info.ravenbrook.com/project/mps/branch/2018-06-20/monitor/tool/branch#1 $
+# $Id$

@@ -289,6 +289,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failMFSInit;
 
+  EventLabelPointer(ArenaCBSBlockPool(arena), EventInternString("CBSBlock"));
   return ResOK;
 
 failMFSInit:
@@ -497,6 +498,7 @@ Res ControlInit(Arena arena)
   if (res != ResOK)
     return res;
   arena->poolReady = TRUE;      /* <design/arena/#pool.ready> */
+  EventLabelPointer(&arena->controlPoolStruct, EventInternString("Control"));
   return ResOK;
 }
 
