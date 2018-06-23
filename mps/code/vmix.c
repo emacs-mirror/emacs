@@ -39,22 +39,17 @@
  */
 
 #include "mpm.h"
+
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
+#error "vmix.c is specific to MPS_OS_FR, MPS_OS_LI or MPS_OS_XC"
+#endif
+
 #include "vm.h"
 
-/* for mmap(2), munmap(2) */
-#include <sys/types.h>
+#include <errno.h> /* errno */
 #include <sys/mman.h> /* see .feature.li in config.h */
-
-/* for errno(2) */
-#include <errno.h>
-
-/* for getpagesize(3) */
-#include <unistd.h>
-
-
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_XC) && !defined(MPS_OS_LI)
-#error "vmix.c is Unix-like specific, currently MPS_OS_FR XC LI"
-#endif
+#include <sys/types.h> /* mmap, munmap */
+#include <unistd.h> /* getpagesize */
 
 SRCID(vmix, "$Id$");
 
