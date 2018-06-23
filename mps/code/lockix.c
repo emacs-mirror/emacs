@@ -29,19 +29,17 @@
  * implementation (lockli.c).
  */
 
-#include "config.h"
+#include "mpm.h"
+
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
+#error "lockix.c is specific to MPS_OS_FR, MPS_OS_LI or MPS_OS_XC"
+#endif
+
+#include "lock.h"
 
 #include <pthread.h> /* see .feature.li in config.h */
 #include <semaphore.h>
 #include <errno.h>
-
-#include "lock.h"
-#include "mpmtypes.h"
-
-
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
-#error "lockix.c is Unix specific."
-#endif
 
 SRCID(lockix, "$Id$");
 
