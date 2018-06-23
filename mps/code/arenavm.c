@@ -686,8 +686,6 @@ static void VMArenaDestroy(Arena arena)
   VMStruct vmStruct;
   VM vm = &vmStruct;
 
-  EVENT1(ArenaDestroy, vmArena);
-
   /* Destroy all chunks, including the primary. See
    * <design/arena/#chunk.delete> */
   arena->primary = NULL;
@@ -710,6 +708,8 @@ static void VMArenaDestroy(Arena arena)
   VMCopy(vm, VMArenaVM(vmArena));
   VMUnmap(vm, VMBase(vm), VMLimit(vm));
   VMFinish(vm);
+
+  EVENT1(ArenaDestroy, vmArena);
 }
 
 
