@@ -430,17 +430,17 @@ INTERACTIVE is t if called interactively."
 
 (defun eglot-events-buffer (server)
   "Display events buffer for SERVER."
-  (interactive (eglot--current-server-or-lose))
+  (interactive (list (eglot--current-server-or-lose)))
   (display-buffer (jsonrpc-events-buffer server)))
 
 (defun eglot-stderr-buffer (server)
   "Display stderr buffer for SERVER."
-  (interactive (eglot--current-server-or-lose))
+  (interactive (list (eglot--current-server-or-lose)))
   (display-buffer (jsonrpc-stderr-buffer server)))
 
 (defun eglot-forget-pending-continuations (server)
   "Forget pending requests for SERVER."
-  (interactive (eglot--current-server-or-lose))
+  (interactive (list (eglot--current-server-or-lose)))
   (jsonrpc-forget-pending-continuations server))
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
