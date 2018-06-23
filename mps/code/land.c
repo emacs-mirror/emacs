@@ -416,7 +416,7 @@ Bool LandClassCheck(LandClass klass)
   CHECKL(FUNCHECK(klass->findLargest));
   CHECKL(FUNCHECK(klass->findInZones));
 
-  /* Check that buffer classes override sets of related methods. */
+  /* Check that land classes override sets of related methods. */
   CHECKL((klass->init == LandAbsInit)
          == (klass->instClassStruct.finish == LandAbsFinish));
   CHECKL((klass->insert == landNoInsert) == (klass->delete == landNoDelete));
