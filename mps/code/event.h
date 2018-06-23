@@ -44,33 +44,31 @@ extern void EventDump(mps_lib_FILE *stream);
 /* Event writing support */
 
 extern char EventBuffer[EventKindLIMIT][EventBufferSIZE];
-extern char *EventLogged[EventKindLIMIT];
+extern char *EventLast[EventKindLIMIT];
 extern Word EventKindControl;
 
 
 /* EVENT_BEGIN -- flush buffer if necessary and write event header */
 
-#define EVENT_BEGIN(name, structSize)                                   \
-  BEGIN {                                                               \
-    if(EVENT_ALL || Event##name##Always) { /* see config.h */           \
-      Event##name##Struct *_event;                                      \
-      size_t _size = size_tAlignUp(structSize, EVENT_ALIGN);            \
-      if (_size > (size_t)(EventBuffer[Event##name##Kind]               \
-                           + EventBufferSIZE                            \
-                           - EventLogged[Event##name##Kind]))           \
-        EventFlush(Event##name##Kind);                                  \
-      AVER(_size <= (size_t)(EventBuffer[Event##name##Kind]             \
-                             + EventBufferSIZE                          \
-                             - EventLogged[Event##name##Kind]));        \
-      _event = (void *)EventLogged[Event##name##Kind];                  \
-      _event->code = Event##name##Code;                                 \
-      _event->size = (EventSize)_size;                                  \
+#define EVENT_BEGIN(name, structSize) \
+  BEGIN \
+    if(EVENT_ALL || Event##name##Always) { /* see config.h */ \
+      Event##name##Struct *_event; \
+      size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
+      if (_size > (size_t)(EventLast[Event##name##Kind] \
+                           - EventBuffer[Event##name##Kind])) \
+        EventFlush(Event##name##Kind); \
+      AVER(_size <= (size_t)(EventLast[Event##name##Kind] \
+                             - EventBuffer[Event##name##Kind])); \
+      _event = (void *)(EventLast[Event##name##Kind] - _size); \
+      _event->code = Event##name##Code; \
+      _event->size = (EventSize)_size; \
       EVENT_CLOCK(_event->clock);
 
-#define EVENT_END(name, size)                       \
-      EventLogged[Event##name##Kind] += _size;      \
-    }                                               \
-  } END
+#define EVENT_END(name, size) \
+      EventLast[Event##name##Kind] -= _size; \
+    } \
+  END
 
 
 /* EVENTn -- event emitting macros
