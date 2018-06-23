@@ -1,7 +1,7 @@
 /* prmcix.c: MUTATOR CONTEXT (POSIX)
  *
  * $Id$
- * Copyright (c) 2016-2017 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
@@ -12,13 +12,15 @@
  * the context at pointer-aligned boundaries.
  */
 
+#include "mpm.h"
+
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
+#error "prmcix.c is specific to MPS_OS_FR or MPS_OS_LI"
+#endif
+
 #include "prmcix.h"
 
 SRCID(prmcix, "$Id$");
-
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
-#error "prmcix.c is specific to MPS_OS_FR and MPS_OS_LI"
-#endif
 
 
 Bool MutatorContextCheck(MutatorContext context)
@@ -82,7 +84,7 @@ Res MutatorContextScan(ScanState ss, MutatorContext context,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2016-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

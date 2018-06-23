@@ -1,7 +1,7 @@
 /* lockw3.c: RECURSIVE LOCKS IN WIN32
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .design: These are implemented using critical sections.
  *  See the section titled "Synchronization functions" in the Groups
@@ -23,8 +23,8 @@
 
 #include "mpm.h"
 
-#ifndef MPS_OS_W3
-#error "lockw3.c is specific to Win32 but MPS_OS_W3 not defined"
+#if !defined(MPS_OS_W3)
+#error "lockw3.c is specific to MPS_OS_W3"
 #endif
 
 #include "mpswin.h"
@@ -185,7 +185,7 @@ void LockSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* spw3i6.c: STACK PROBE FOR 64-BIT WINDOWS
  *
  * $Id$
- * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2018 Ravenbrook Limited.  See end of file for license.
  *
  * The function StackProbe ensures that the stack has at least depth
  * words available. It achieves this by exploiting an obscure but
@@ -10,9 +10,14 @@
  * _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
  */
 
+#include "mpm.h"
+
+#if !defined(MPS_OS_W3)
+#error "spw3i3.c is specific to MPS_OS_W3"
+#endif
+
 #include <stdlib.h> /* _alloca */
 
-#include "mpm.h"
 
 void StackProbe(Size depth)
 {
@@ -22,7 +27,7 @@ void StackProbe(Size depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
