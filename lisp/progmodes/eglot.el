@@ -85,32 +85,42 @@
                                 (sh-mode . ("bash-language-server" "start"))
                                 ((c++-mode
                                   c-mode) . (eglot-cquery "cquery"))
+                                (ruby-mode
+                                 . ("solagraph" "socket" "--port"
+                                    :autoport))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 is a mode symbol, or a list of mode symbols.  The associated
-CONTACT specifies how to start a server for managing buffers of
-those modes.  CONTACT can be:
+CONTACT specifies how to connect to a server for managing buffers
+of those modes.  CONTACT can be:
 
 * In the most common case, a list of strings (PROGRAM [ARGS...]).
-PROGRAM is called with ARGS and is expected to serve LSP requests
-over the standard input/output channels.
+  PROGRAM is called with ARGS and is expected to serve LSP requests
+  over the standard input/output channels.
 
-* A list (HOST PORT [ARGS...]) where HOST is a string and PORT is
-a positive integer number for connecting to a server via TCP.
-Remaining ARGS are passed to `open-network-stream' for upgrading
-the connection with encryption or other capabilities.
+* A list (HOST PORT [TCP-ARGS...]) where HOST is a string and PORT is
+  na positive integer number for connecting to a server via TCP.
+  Remaining ARGS are passed to `open-network-stream' for
+  upgrading the connection with encryption or other capabilities.
+
+* A list (PROGRAM [ARGS...] :autoport [MOREARGS...]), whereby a
+  combination of the two previous options is used..  First, an
+  attempt is made to find an available server port, then PROGRAM
+  is launched with ARGS; the `:autoport' keyword substituted for
+  that number; and MOREARGS.  Eglot then attempts to to establish
+  a TCP connection to that port number on the localhost.
 
 * A cons (CLASS-NAME . INITARGS) where CLASS-NAME is a symbol
-designating a subclass of `eglot-lsp-server', for representing
-experimental LSP servers.  INITARGS is a keyword-value plist used
-to initialize CLASS-NAME, or a plain list interpreted as the
-previous descriptions of CONTACT, in which case it is converted
-to produce a plist with a suitable :PROCESS initarg to
-CLASS-NAME.  The class `eglot-lsp-server' descends
-`jsonrpc-process-connection', which you should see for semantics
-of the mandatory :PROCESS argument.")
+  designating a subclass of `eglot-lsp-server', for representing
+  experimental LSP servers.  INITARGS is a keyword-value plist
+  used to initialize CLASS-NAME, or a plain list interpreted as
+  the previous descriptions of CONTACT, in which case it is
+  converted to produce a plist with a suitable :PROCESS initarg
+  to CLASS-NAME.  The class `eglot-lsp-server' descends
+  `jsonrpc-process-connection', which you should see for the
+  semantics of the mandatory :PROCESS argument.")
 
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
@@ -205,8 +215,11 @@ lasted more than that many seconds."
     :documentation "List of buffers managed by server."
     :accessor eglot--managed-buffers)
    (saved-initargs
-    :documentation "Saved initargs for reconnection purposes"
-    :accessor eglot--saved-initargs))
+    :documentation "Saved initargs for reconnection purposes."
+    :accessor eglot--saved-initargs)
+   (inferior-process
+    :documentation "Server subprocess started automatically."
+    :accessor eglot--inferior-process))
   :documentation
   "Represents a server. Wraps a process for LSP communication.")
 
@@ -244,6 +257,9 @@ Don't leave this function with the server still running."
   (maphash (lambda (_id watches)
              (mapcar #'file-notify-rm-watch watches))
            (eglot--file-watches server))
+  ;; Kill any autostarted inferior processes
+  (when-let (proc (eglot--inferior-process server))
+    (delete-process proc))
   ;; Sever the project/server relationship for `server'
   (setf (gethash (eglot--project server) eglot--servers-by-project)
         (delq server
@@ -297,7 +313,11 @@ be guessed."
          (program (and (listp guess) (stringp (car guess)) (car guess)))
          (base-prompt
           (and interactive
-               "[eglot] Enter program to execute (or <host>:<port>): "))
+               "Enter program to execute (or <host>:<port>): "))
+         (program-guess
+          (and program
+               (combine-and-quote-strings (cl-subst ":autoport:"
+                                                    :autoport guess))))
          (prompt
           (and base-prompt
                (cond (current-prefix-arg base-prompt)
@@ -306,20 +326,22 @@ be guessed."
                               managed-mode base-prompt))
                      ((and program (not (executable-find program)))
                       (concat (format "[eglot] I guess you want to run `%s'"
-                                      (combine-and-quote-strings guess))
+                                      program-guess)
                               (format ", but I can't find `%s' in PATH!" program)
                               "\n" base-prompt)))))
          (contact
           (or (and prompt
                    (let ((s (read-shell-command
                              prompt
-                             (if program (combine-and-quote-strings guess))
+                             program-guess
                              'eglot-command-history)))
                      (if (string-match "^\\([^\s\t]+\\):\\([[:digit:]]+\\)$"
                                        (string-trim s))
                          (list (match-string 1 s)
                                (string-to-number (match-string 2 s)))
-                       (split-string-and-unquote s))))
+                       (cl-subst
+                        :autoport ":autoport:" (split-string-and-unquote s)
+                        :test #'equal))))
               guess
               (eglot--error "Couldn't guess for `%s'!" managed-mode))))
     (list managed-mode project class contact)))
@@ -429,6 +451,7 @@ This docstring appeases checkdoc, that's all."
   (let* ((nickname (file-name-base (directory-file-name
                                     (car (project-roots project)))))
          (readable-name (format "EGLOT (%s/%s)" nickname managed-major-mode))
+         autostart-inferior-process
          (initargs
           (cond ((keywordp (car contact)) contact)
                 ((integerp (cadr contact))
@@ -437,6 +460,14 @@ This docstring appeases checkdoc, that's all."
                                       readable-name nil
                                       (car contact) (cadr contact)
                                       (cddr contact)))))
+                ((and (stringp (car contact)) (memq :autoport contact))
+                 `(:process ,(lambda ()
+                               (pcase-let ((`(,connection . ,inferior)
+                                            (eglot--inferior-bootstrap
+                                             readable-name
+                                             contact)))
+                                 (setq autostart-inferior-process inferior)
+                                 connection))))
                 ((stringp (car contact))
                  `(:process ,(lambda ()
                                (make-process
@@ -463,6 +494,7 @@ This docstring appeases checkdoc, that's all."
     (setf (eglot--project server) project)
     (setf (eglot--project-nickname server) nickname)
     (setf (eglot--major-mode server) managed-major-mode)
+    (setf (eglot--inferior-process server) autostart-inferior-process)
     (push server (gethash project eglot--servers-by-project))
     (run-hook-with-args 'eglot-connect-hook server)
     (unwind-protect
@@ -494,6 +526,54 @@ This docstring appeases checkdoc, that's all."
           (setq success server))
       (when (and (not success) (jsonrpc-running-p server))
         (eglot-shutdown server)))))
+
+(defun eglot--inferior-bootstrap (name contact &optional connect-args)
+  "Use CONTACT to start a server, then connect to it.
+Return a cons of two process objects (CONNECTION . INFERIOR).
+Name both based on NAME.
+CONNECT-ARGS are passed as additional arguments to
+`open-network-stream'."
+  (let* ((port-probe (make-network-process :name "eglot-port-probe-dummy"
+                                           :server t
+                                           :host "localhost"
+                                           :service 0))
+         (port-number (unwind-protect
+                          (process-contact port-probe :service)
+                        (delete-process port-probe)))
+         inferior connection)
+    (unwind-protect
+        (progn
+          (setq inferior
+                (make-process
+                 :name (format "autostart-inferior-%s" name)
+                 :stderr (format "*%s stderr*" name)
+                 :command (cl-subst
+                           (format "%s" port-number) :autoport contact)))
+          (setq connection
+                (cl-loop
+                 repeat 10 for i from 1
+                 do (accept-process-output nil 0.5)
+                 while (process-live-p inferior)
+                 do (eglot--message
+                     "Trying to connect to localhost and port %s (attempt %s)"
+                     port-number i)
+                 thereis (ignore-errors
+                           (apply #'open-network-stream
+                                  (format "autoconnect-%s" name)
+                                  nil
+                                  "localhost" port-number connect-args))))
+          (cons connection inferior))
+      (cond ((and (process-live-p connection)
+                  (process-live-p inferior))
+             (eglot--message "Done, connected to %s!" port-number))
+            (t
+             (when inferior (delete-process inferior))
+             (when connection (delete-process connection))
+             (eglot--error "Could not start and connect to server%s"
+                           (if inferior
+                               (format " started with %s"
+                                       (process-command inferior))
+                             "!")))))))
 
 
 ;;; Helpers (move these to API?)
