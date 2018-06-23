@@ -14,11 +14,21 @@
 
 #include "event.h"
 
+/* See <https://docs.python.org/3/library/struct.html#byte-order-size-and-alignment> */
+#if defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)
+#define BYTE_ORDER "<"
+#else
+#error "Can't determine byte order for platform architecture."
+#endif
+
+
 /* format -- output struct format code corresponding to event field
  *
  * size is the size of the field in bytes
  * sort is a one-character string corresponding to the EventF* typedef
  * for the field, thus "P" for a field of type EventFP.
+ *
+ * See <https://docs.python.org/3/library/struct.html>
  */
 
 static void format(size_t size, const char *sort)
@@ -112,7 +122,7 @@ int main(int argc, char *argv[])
          CODE, ALWAYS ? "True" : "False");                              \
   EVENT_ ## NAME ## _PARAMS(EVENT_PARAM, X);                            \
   size = sizeof(Event##NAME##Struct) - sizeof(EventAnyStruct);          \
-  printf("    ], %u, '=", (unsigned)size);                              \
+  printf("    ], %u, '%s", (unsigned)size, BYTE_ORDER);                 \
   prev_offset = sizeof(EventAnyStruct);                                 \
   EVENT_ ## NAME ## _PARAMS(EVENT_FORMAT, NAME);                        \
   PAD_TO(sizeof(Event##NAME##Struct));                                  \
@@ -145,7 +155,7 @@ int main(int argc, char *argv[])
   printf("HEADER_SIZE = %u\n", (unsigned)sizeof(EventAnyStruct));
 
   puts("\n# Struct format for event header.");
-  printf("HEADER_FORMAT = '=");
+  printf("HEADER_FORMAT = '%s", BYTE_ORDER);
   prev_offset = 0;
 #define EVENT_FIELD(TYPE, NAME, DOC)            \
   PAD_TO(offsetof(EventAnyStruct, NAME));       \
