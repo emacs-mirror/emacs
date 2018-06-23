@@ -13,6 +13,7 @@ import os
 from struct import Struct
 import sys
 
+import matplotlib.animation
 import matplotlib.pyplot
 import numpy as np
 
@@ -29,9 +30,9 @@ EVENT_NAMEDTUPLE = {
 EVENT_NAME = {code:desc.name for code, desc in mpsevent.EVENT.items()}
 
 
-def decode_events(read):
+def event_decoder(read):
     """Decode the events in an I/O stream and generate them as tuples in
-    the order that they are read.
+    eventclock order.
 
     The argument must be a function implementing the io.RawIOBase.read
     specification (that is, it takes a size and returns up to size
@@ -43,6 +44,7 @@ def decode_events(read):
     header_size = mpsevent.HEADER_SIZE
     event_dict = mpsevent.EVENT
     event_namedtuple = EVENT_NAMEDTUPLE
+    EventClockSync_code = mpsevent.Event.EventClockSync.code
 
     # Special handling for Intern.
     Intern_desc = mpsevent.Event.Intern
@@ -63,45 +65,39 @@ def decode_events(read):
         assert code == Intern_code or s.size == desc.maxsize
         event_unpack[code] = s.unpack
 
-    while True:
-        header_data = read(header_size)
-        if not header_data:
-            break
-        header = header_desc(*header_unpack(header_data))
-        code = header.code
-        event_desc = event_dict[code]
-        size = header.size - header_size
-        if code == Intern_code:
-            assert size <= event_desc.maxsize
-            event = Intern_namedtuple(header,
-                                      *Intern_unpack(read(Intern_size)),
-                                      read(size - Intern_size).rstrip(b'\0'))
-        else:
-            assert size == event_desc.maxsize
-            event = event_namedtuple[code](header,
-                                           *event_unpack[code](read(size)))
-        yield event
-
-
-def order_events(events):
-    "Given a raw telemetry stream, generate events in eventclock order."
-    Intern_desc = mpsevent.Event.Intern
-    EventClockSync_code = mpsevent.Event.EventClockSync.code
     def key(event):
         return event.header.clock
-    while True:
+
+    batch = []
+    def decoder():
         # Events are output in batches terminated by an EventClockSync
         # event. When we see this, we know that we've received all
-        # events up to that one.
-        batch = []
-        for event in events:
+        # events up to that one and can sort the batch.
+        while True:
+            header_data = read(header_size)
+            if not header_data:
+                break
+            header = header_desc(*header_unpack(header_data))
+            code = header.code
+            event_desc = event_dict[code]
+            size = header.size - header_size
+            if code == Intern_code:
+                assert size <= event_desc.maxsize
+                event = Intern_namedtuple(
+                    header,
+                    *Intern_unpack(read(Intern_size)),
+                    read(size - Intern_size).rstrip(b'\0'))
+            else:
+                assert size == event_desc.maxsize
+                event = event_namedtuple[code](
+                    header, *event_unpack[code](read(size)))
             batch.append(event)
             if event.header.code == EventClockSync_code:
-                break
-        if not batch:
-            break
-        batch.sort(key=key)
-        yield from batch
+                batch.sort(key=key)
+                yield from batch
+                batch.clear()
+
+    return decoder
 
 
 class TimeSeries:
@@ -262,8 +258,9 @@ class Model(EventHandler):
         self.arena = {}         # pointer -> Arena
         self.arenas = []
         self.lines = []         # list(Line)
-        self.clocks_per_second = None
+        self.clocks_per_second = 1000000.0
         self.sync = TimeSeries()
+        self.needs_update = False
 
     def add_time_series(self, owner, desc, series):
         "Add a time series to the model."
@@ -276,22 +273,26 @@ class Model(EventHandler):
     @property
     def eventclocks_to_seconds(self):
         "Return function converting eventclocks to seconds."
+        eventclocks = self.sync.t
+        clocks = self.sync.y
         cps = self.clocks_per_second
-        if len(self.sync.t) < 2 or cps is None:
-            # Don't have enough data to compute seconds.
-            return lambda e: e
-        else:
-            # The cycle counter frequency can vary due to thermal
-            # throttling, turbo boost etc., so use piecewise linear
-            # interpolation to convert to clocks and thence to seconds.
-            return lambda e: np.interp(e, self.sync.t, self.sync.y) / cps
+        # The cycle counter frequency can vary due to thermal
+        # throttling, turbo boost etc., so use piecewise linear
+        # interpolation to convert to clocks and thence to seconds.
+        return lambda e: np.interp(e, eventclocks, clocks) / cps
 
     def update(self, axes):
-        "Update time series on the given axes."
+        "Update time series on the given axes and return list of updated lines."
+        if not self.needs_update or len(self.sync.t) < 2:
+            return ()
+        self.needs_update = False
         seconds = self.eventclocks_to_seconds
         for line in self.lines:
             line.update(axes, seconds)
-        axes.legend(loc=2)
+        # axes.legend(loc=2)
+        axes.set_xlim(0, seconds(self.sync.t[-1]))
+        axes.set_ylim(0, max(max(l.series.y, default=1) for l in self.lines))
+        return [l.line for l in self.lines]
 
     def delegate_to_arena(self, event):
         "Handle a telemetry event by delegating to the arena model."
@@ -317,6 +318,7 @@ class Model(EventHandler):
         self.clocks_per_second = event.clocksPerSec
 
     def EventClockSync(self, event):
+        self.needs_update = True
         self.sync.append(event.header.clock, event.clock)
 
     def Intern(self, event):
@@ -335,22 +337,40 @@ class Model(EventHandler):
 def main():
     parser = argparse.ArgumentParser(description="Memory Pool System Monitor.")
     parser.add_argument(
-        'telemetry', metavar='FILENAME', nargs='?',
-        type=argparse.FileType('rb'),
+        'telemetry', metavar='FILENAME', nargs='?', type=str,
         default=os.environ.get('MPS_TELEMETRY_FILENAME', 'mpsio.log'),
         help="telemetry output from the MPS instance")
     args = parser.parse_args()
 
+    # TODO: O_NONBLOCK does not work on Windows.
+    fd = os.open(args.telemetry, os.O_NONBLOCK, os.O_RDONLY)
+    read = os.fdopen(fd, 'rb').read
+
     model = Model()
-    events = order_events(decode_events(args.telemetry.read))
-    for event in events:
-        model.handle(event)
+    events = event_decoder(read)
+    EventClockSync_code = mpsevent.Event.EventClockSync.code
 
     plt = matplotlib.pyplot
     figure, axes = plt.subplots()
     axes.set_xlabel("time (seconds)")
     axes.set_ylabel("bytes")
-    model.update(axes)
+
+    def func(frame):
+        return model.update(axes)
+
+    def frames():
+        while True:
+            try:
+                for event in events():
+                    model.handle(event)
+                yield
+                break
+            except BlockingIOError:
+                yield
+
+    anim = matplotlib.animation.FuncAnimation(
+        figure, func, frames=frames, interval=20, blit=False)
+
     plt.show()
 
 
