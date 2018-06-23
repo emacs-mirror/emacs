@@ -30,7 +30,8 @@ EVENT_NAME = {code:desc.name for code, desc in mpsevent.EVENT.items()}
 
 
 def decode_events(read):
-    """Decode the events in an I/O stream and generate them as tuples.
+    """Decode the events in an I/O stream and generate them as tuples in
+    the order that they are read.
 
     The argument must be a function implementing the io.RawIOBase.read
     specification (that is, it takes a size and returns up to size
@@ -80,6 +81,27 @@ def decode_events(read):
             event = event_namedtuple[code](header,
                                            *event_unpack[code](read(size)))
         yield event
+
+
+def order_events(events):
+    "Given a raw telemetry stream, generate events in eventclock order."
+    Intern_desc = mpsevent.Event.Intern
+    EventClockSync_code = mpsevent.Event.EventClockSync.code
+    def key(event):
+        return event.header.clock
+    while True:
+        # Events are output in batches terminated by an EventClockSync
+        # event. When we see this, we know that we've received all
+        # events up to that one.
+        batch = []
+        for event in events:
+            batch.append(event)
+            if event.header.code == EventClockSync_code:
+                break
+        if not batch:
+            break
+        batch.sort(key=key)
+        yield from batch
 
 
 class TimeSeries:
@@ -141,14 +163,14 @@ class Pool(EventHandler):
 
     @property
     def name(self):
-        label = self.model.label(self.pointer)
-        if label:
-            return label
-        class_name = self.model.label(self.pool_class) or 'Pool'
-        if self.serial is not None:
-            return f"{class_name}[{self.serial}]"
-        else:
-            return f"{class_name}[{self.pointer:x}]"
+        name = self.model.label(self.pointer)
+        if not name:
+            class_name = self.model.label(self.pool_class) or 'Pool'
+            if self.serial is not None:
+                name = f"{class_name}[{self.serial}]"
+            else:
+                name = f"{class_name}[{self.pointer:x}]"
+        return f"{self.arena.name}.{name}"
 
     def ArenaAlloc(self, event):
         self.alloc.add(event.header.clock, event.size)
@@ -168,21 +190,22 @@ class Arena(EventHandler):
         self.pointer = pointer
         self.arena_class = None
         self.serial = None
+        self.pools = []
         self.pool = {}          # pointer -> Pool
 
     @property
     def name(self):
-        if len(self.model.arena) <= 1:
+        if len(self.model.arenas) <= 1:
             # No need to distinguish arenas if there's just one.
             return ""
-        label = self.model.label(self.pointer)
-        if label:
-            return label
-        class_name = self.model.label(self.arena_class) or 'Arena'
-        if self.serial is not None:
-            return f"{class_name}[{self.serial}]"
-        else:
-            return f"{class_name}[{self.pointer:x}]"
+        name = self.model.label(self.pointer)
+        if not name:
+            class_name = self.model.label(self.arena_class) or 'Arena'
+            if self.serial is not None:
+                name = f"{class_name}[{self.serial}]"
+            else:
+                name = f"{class_name}[{self.pointer:x}]"
+        return name
 
     def delegate_to_pool(self, event):
         "Handle a telemetry event by delegating to the pool model."
@@ -191,6 +214,7 @@ class Arena(EventHandler):
             pool = self.pool[pointer]
         except KeyError:
             self.pool[pointer] = pool = Pool(self, pointer)
+            self.pools.append(pool)
         pool.handle(event)
 
     ArenaAlloc = ArenaFree = PoolInit = delegate_to_pool
@@ -200,6 +224,9 @@ class Arena(EventHandler):
         self.serial = event.serial
 
     ArenaCreateCL = ArenaCreateVM
+
+    def PoolFinish(self, event):
+        del self.pool[event.pool]
 
 
 class Line:
@@ -233,6 +260,7 @@ class Model(EventHandler):
         self._intern = {}       # stringId -> string
         self._label = {}        # address or pointer -> stringId
         self.arena = {}         # pointer -> Arena
+        self.arenas = []
         self.lines = []         # list(Line)
         self.clocks_per_second = None
         self.sync = TimeSeries()
@@ -272,9 +300,11 @@ class Model(EventHandler):
             arena = self.arena[addr]
         except KeyError:
             self.arena[addr] = arena = Arena(self, addr)
+            self.arenas.append(arena)
         arena.handle(event)
 
-    ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = PoolInit = delegate_to_arena
+    ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = PoolInit = \
+        PoolFinish = delegate_to_arena
 
     def EventInit(self, event):
         stream_version = event.major, event.median
@@ -298,6 +328,9 @@ class Model(EventHandler):
     def LabelPointer(self, event):
         self._label[event.pointer] = event.stringId
 
+    def ArenaDestroy(self, event):
+        del self.arena[event.arena]
+
 
 def main():
     parser = argparse.ArgumentParser(description="Memory Pool System Monitor.")
@@ -309,7 +342,7 @@ def main():
     args = parser.parse_args()
 
     model = Model()
-    events = decode_events(args.telemetry.read)
+    events = order_events(decode_events(args.telemetry.read))
     for event in events:
         model.handle(event)
 

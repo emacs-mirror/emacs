@@ -76,7 +76,7 @@
   EVENT(X, AMCInit            , 0x0003,  TRUE, Pool) \
   EVENT(X, AMCFinish          , 0x0004,  TRUE, Pool) \
   EVENT(X, ArenaCreateVM      , 0x0005,  TRUE, Arena) \
-  EVENT(X, ArenaCreateVMNZ    , 0x0006,  TRUE, Arena) \
+  /* EVENT(X, ArenaCreateVMNZ    , 0x0006,  TRUE, Arena) */ \
   EVENT(X, ArenaWriteFaults   , 0x0007,  TRUE, Trace) \
   EVENT(X, MeterInit          , 0x0008,  TRUE, Pool) \
   EVENT(X, MeterValues        , 0x0009,  TRUE, Pool) \
@@ -232,17 +232,12 @@
 #define EVENT_AMCFix_PARAMS(PARAM, X)
 
 #define EVENT_ArenaCreateVM_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, userSize) \
-  PARAM(X,  2, W, chunkSize) \
-  PARAM(X,  3, W, grainSize) \
-  PARAM(X,  4, P, arenaClass) \
-  PARAM(X,  5, U, serial)
-
-#define EVENT_ArenaCreateVMNZ_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, userSize) \
-  PARAM(X,  2, W, chunkSize)
+  PARAM(X,  0, P, arena) /* the arena */ \
+  PARAM(X,  1, W, userSize) /* requested address space in bytes */ \
+  PARAM(X,  2, W, chunkSize) /* arena's chunk size in bytes */ \
+  PARAM(X,  3, W, grainSize) /* arena's grain size in bytes */ \
+  PARAM(X,  4, P, arenaClass) /* arena's class */ \
+  PARAM(X,  5, U, serial) /* arena's serial number */
 
 #define EVENT_ArenaWriteFaults_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -281,12 +276,12 @@
   PARAM(X,  2, P, seg)
 
 #define EVENT_ArenaCreateCL_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, size) \
-  PARAM(X,  2, A, base) \
-  PARAM(X,  3, W, grainSize) \
-  PARAM(X,  4, P, arenaClass) \
-  PARAM(X,  5, U, serial)
+  PARAM(X,  0, P, arena) /* the arena */ \
+  PARAM(X,  1, W, size) /* size of memory given to arena in bytes */ \
+  PARAM(X,  2, A, base) /* base address of memory given to arena */ \
+  PARAM(X,  3, W, grainSize) /* arena's grain size in bytes */ \
+  PARAM(X,  4, P, arenaClass) /* arena's class */ \
+  PARAM(X,  5, U, serial) /* arena's serial number */
 
 #define EVENT_ArenaDestroy_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)
@@ -303,13 +298,14 @@
   PARAM(X,  1, P, seg)
 
 #define EVENT_PoolInit_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, pool) \
-  PARAM(X,  1, P, arena) \
-  PARAM(X,  2, P, poolClass) \
-  PARAM(X,  3, U, serial)
+  PARAM(X,  0, P, pool) /* the pool */ \
+  PARAM(X,  1, P, arena) /* pool's arena */ \
+  PARAM(X,  2, P, poolClass) /* pool's class */ \
+  PARAM(X,  3, U, serial) /* pool's serial number within the arena */
 
 #define EVENT_PoolFinish_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, pool)
+  PARAM(X,  0, P, pool) /* the pool */ \
+  PARAM(X,  1, P, arena) /* pool's arena */
 
 #define EVENT_PoolAlloc_PARAMS(PARAM, X) \
   PARAM(X,  0, P, pool) \
@@ -326,12 +322,12 @@
   PARAM(X,  1, P, owner)
 
 #define EVENT_Intern_PARAMS(PARAM, X) \
-  PARAM(X,  0, W, stringId) \
-  PARAM(X,  1, S, string)
+  PARAM(X,  0, W, stringId) /* identifier of interned string */ \
+  PARAM(X,  1, S, string) /* the interned string */
 
 #define EVENT_Label_PARAMS(PARAM, X) \
-  PARAM(X,  0, A, address) \
-  PARAM(X,  1, W, stringId)
+  PARAM(X,  0, A, address) /* address */ \
+  PARAM(X,  1, W, stringId) /* string identifier of its label */
 
 #define EVENT_TraceDestroy_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace)
@@ -562,17 +558,17 @@
   PARAM(X,  1, W, limit)
 
 #define EVENT_ArenaAlloc_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena) \
-  PARAM(X,  1, P, baseTract) \
-  PARAM(X,  2, A, base) \
-  PARAM(X,  3, W, size) \
-  PARAM(X,  4, P, pool)
+  PARAM(X,  0, P, arena) /* the arena */ \
+  PARAM(X,  1, P, baseTract) /* first allocated tract */ \
+  PARAM(X,  2, A, base) /* base of the allocated block */ \
+  PARAM(X,  3, W, size) /* size of the allocated block in bytes */ \
+  PARAM(X,  4, P, pool) /* pool that requested the allocation */
 
 #define EVENT_ArenaFree_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena) \
-  PARAM(X,  1, A, base) \
-  PARAM(X,  2, W, size) \
-  PARAM(X,  3, P, pool)
+  PARAM(X,  0, P, arena) /* the arena */ \
+  PARAM(X,  1, A, base) /* base of the freed block */ \
+  PARAM(X,  2, W, size) /* size of the freed block in bytes */ \
+  PARAM(X,  3, P, pool) /* pool that freed the block */
 
 #define EVENT_ArenaAllocFail_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -721,8 +717,8 @@
   PARAM(X,  5, D, mortality)    /* updated mortality */
 
 #define EVENT_LabelPointer_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, pointer) \
-  PARAM(X,  1, W, stringId)
+  PARAM(X,  0, P, pointer) /* pointer */ \
+  PARAM(X,  1, W, stringId) /* string identifier of its label */
 
 
 #endif /* eventdef_h */
