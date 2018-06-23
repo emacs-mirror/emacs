@@ -73,17 +73,17 @@ int main(int argc, char *argv[])
 
   puts("\n# Namespace containing a KindDesc for every kind.");
   puts("class Kind:");
-#define ENUM(_, NAME, DOC)                                      \
-  printf("    " #NAME " = KindDesc('" #NAME "', %d, '%s')\n", \
+#define ENUM(X, NAME, DOC)                                      \
+  printf("    " #NAME " = KindDesc('" #NAME "', %d, '%s')\n",   \
          EventKind ## NAME, DOC);
-  EventKindENUM(ENUM, _);
+  EventKindENUM(ENUM, X);
 #undef ENUM
 
   puts("\n# Mapping from kind number to KindDesc.");
   puts("KIND = {");
-#define ENUM(_, NAME, _1) \
+#define ENUM(X, NAME, DOC) \
   printf("    %d: Kind." #NAME ",\n", EventKind ## NAME);
-  EventKindENUM(ENUM, _);
+  EventKindENUM(ENUM, X);
 #undef ENUM
   puts("}");
 
@@ -132,10 +132,14 @@ int main(int argc, char *argv[])
 
   puts("\n# Description of an event header.");
   printf("HeaderDesc = namedtuple('HeaderDesc', '");
-#define EVENT_FIELD(type, name) printf("%s ", #name);
+#define EVENT_FIELD(TYPE, NAME, DOC) printf("%s ", #NAME);
   EVENT_ANY_FIELDS(EVENT_FIELD)
 #undef EVENT_FIELD
-  puts("')");
+  puts("')\nHeaderDesc.__doc__ = '''");
+#define EVENT_FIELD(TYPE, NAME, DOC) printf("  %s -- %s\n", #NAME, DOC);
+  EVENT_ANY_FIELDS(EVENT_FIELD)
+#undef EVENT_FIELD
+  puts("'''");
 
   puts("\n# Size of event header in bytes.");
   printf("HEADER_SIZE = %u\n", (unsigned)sizeof(EventAnyStruct));
@@ -143,10 +147,10 @@ int main(int argc, char *argv[])
   puts("\n# Struct format for event header.");
   printf("HEADER_FORMAT = '=");
   prev_offset = 0;
-#define EVENT_FIELD(type, name)                 \
-  PAD_TO(offsetof(EventAnyStruct, name));       \
-  format(sizeof(type), "?");                    \
-  prev_offset += sizeof(type);
+#define EVENT_FIELD(TYPE, NAME, DOC)            \
+  PAD_TO(offsetof(EventAnyStruct, NAME));       \
+  format(sizeof(TYPE), "?");                    \
+  prev_offset += sizeof(TYPE);
   EVENT_ANY_FIELDS(EVENT_FIELD)
 #undef EVENT_FIELD
   PAD_TO(sizeof(EventAnyStruct));

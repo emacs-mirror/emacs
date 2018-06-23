@@ -76,11 +76,11 @@ typedef unsigned short EventSize;
 /* Common prefix for all event structures.  The size field allows an event
    reader to skip over events whose codes it does not recognise. */
 #define EVENT_ANY_FIELDS(X) \
-  X(EventCode, code) /* encoding of the event type */ \
-  X(EventSize, size) /* allows reader to skip events of unknown code */ \
-  X(EventClock, clock) /* when the event occurred */
+  X(EventCode, code, "encoding of the event type") \
+  X(EventSize, size, "allows reader to skip events of unknown code") \
+  X(EventClock, clock, "when the event occurred")
 
-#define EVENT_ANY_STRUCT_FIELD(type, name) type name;
+#define EVENT_ANY_STRUCT_FIELD(TYPE, NAME, DOC) TYPE NAME;
 
 typedef struct EventAnyStruct {
   EVENT_ANY_FIELDS(EVENT_ANY_STRUCT_FIELD)
