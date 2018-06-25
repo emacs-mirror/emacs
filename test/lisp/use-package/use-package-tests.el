@@ -1,4 +1,4 @@
-;;; use-package-tests.el --- Tests for use-package.el
+;;; use-package-tests.el --- Tests for use-package.el  -*- lexical-binding: t; -*-
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -132,9 +132,9 @@
   (should (equal (use-package-normalize-function t) t))
   (should (equal (use-package-normalize-function 'sym) 'sym))
   (should (equal (use-package-normalize-function #'sym) 'sym))
-  (should (equal (use-package-normalize-function (lambda () ...)) (lambda () ...)))
-  (should (equal (use-package-normalize-function '(lambda () ...)) (lambda () ...)))
-  (should (equal (use-package-normalize-function #'(lambda () ...)) (lambda () ...)))
+  (should (equal (use-package-normalize-function '(lambda () ...)) '(lambda () ...)))
+  (should (equal (use-package-normalize-function ''(lambda () ...)) '(lambda () ...)))
+  (should (equal (use-package-normalize-function '#'(lambda () ...)) '(lambda () ...)))
 
   (should (equal (use-package-normalize-function 1) 1))
   (should (equal (use-package-normalize-function "Hello") "Hello"))

@@ -38,6 +38,12 @@
 ;;
 ;;   (bind-key "C-c x" 'my-ctrl-c-x-command)
 ;;
+;; If the keybinding argument is a vector, it is passed straight to
+;; `define-key', so remapping a key with `[remap COMMAND]' works as
+;; expected:
+;;
+;;   (bind-key [remap original-ctrl-c-x-command] 'my-ctrl-c-x-command)
+;;
 ;; If you want the keybinding to override all minor modes that may also bind
 ;; the same key, use the `bind-key*' form:
 ;;
