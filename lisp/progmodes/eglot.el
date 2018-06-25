@@ -86,7 +86,7 @@
                                 ((c++-mode
                                   c-mode) . (eglot-cquery "cquery"))
                                 (ruby-mode
-                                 . ("solagraph" "socket" "--port"
+                                 . ("solargraph" "socket" "--port"
                                     :autoport))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php")))
