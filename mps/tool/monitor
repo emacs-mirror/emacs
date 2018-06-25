@@ -9,12 +9,16 @@
 
 import argparse
 from collections import namedtuple
+from itertools import cycle
 import os
 from struct import Struct
 import sys
+import time
 
-import matplotlib.animation
-import matplotlib.pyplot
+from matplotlib.backends.qt_compat import QtCore, QtWidgets
+from matplotlib.backends.backend_qt5agg import (
+    FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
+from matplotlib.figure import Figure
 import numpy as np
 
 import mpsevent
@@ -226,33 +230,40 @@ class Arena(EventHandler):
 
 
 class Line:
+    colors = cycle('blue orange green red purple brown pink gray olive cyan'
+                   .split())
+
     "A line in a Matplotlib plot wrapping a TimeSeries."
     def __init__(self, owner, desc, series):
         self.owner = owner
         self.desc = desc
         self.series = series
-        self.line = None
+        self.color = next(self.colors)
+        self.drawn = True
 
-    def update(self, axes, seconds):
-        """Update the line in the given set of axes. seconds is a function
-        converting eventclocks to seconds.
+    @property
+    def label(self):
+        return f"{self.owner.name}.{self.desc}"
+
+    @property
+    def ready(self):
+        return len(self.series.t) >= 2
+
+    def plot(self, axes, seconds):
+        """Plot line on axes. seconds is a function converting eventclocks
+        to seconds.
 
         """
-        if len(self.series.t) < 2:
-            return
-        x = seconds(self.series.t)
-        y = self.series.y
-        label = f"{self.owner.name}.{self.desc}"
-        if self.line is None:
-            self.line, = axes.plot(x, y, label=label)
-        else:
-            self.line.set_data(x, y)
-            self.line.set_label(label)
+        if self.ready and self.drawn:
+            x = seconds(self.series.t)
+            y = self.series.y
+            axes.plot(x, y, color=self.color, label=self.label)
 
 
 class Model(EventHandler):
     "Model of an application using the MPS."
-    def __init__(self):
+    def __init__(self, events):
+        self._events = events
         self._intern = {}       # stringId -> string
         self._label = {}        # address or pointer -> stringId
         self.arena = {}         # pointer -> Arena
@@ -260,7 +271,7 @@ class Model(EventHandler):
         self.lines = []         # list(Line)
         self.clocks_per_second = 1000000.0
         self.sync = TimeSeries()
-        self.needs_update = False
+        self._needs_update = False
 
     def add_time_series(self, owner, desc, series):
         "Add a time series to the model."
@@ -281,18 +292,28 @@ class Model(EventHandler):
         # interpolation to convert to clocks and thence to seconds.
         return lambda e: np.interp(e, eventclocks, clocks) / cps
 
-    def update(self, axes):
-        "Update time series on the given axes and return list of updated lines."
-        if not self.needs_update or len(self.sync.t) < 2:
-            return ()
-        self.needs_update = False
+    def plot(self, axes):
+        "Draw time series on the given axes."
         seconds = self.eventclocks_to_seconds
+        axes.clear()
+        axes.set_xlabel("time (seconds)")
+        axes.set_ylabel("bytes")
         for line in self.lines:
-            line.update(axes, seconds)
-        # axes.legend(loc=2)
-        axes.set_xlim(0, seconds(self.sync.t[-1]))
-        axes.set_ylim(0, max(max(l.series.y, default=1) for l in self.lines))
-        return [l.line for l in self.lines]
+            line.plot(axes, seconds)
+        axes.figure.canvas.draw()
+
+    def update(self, axes):
+        try:
+            for event in self._events():
+                self.handle(event)
+        except BlockingIOError:
+            pass
+        if self._needs_update and len(self.sync.t) >= 2:
+            self._needs_update = False
+            self.plot(axes)
+
+    def needs_update(self, *args):
+        self._needs_update = True
 
     def delegate_to_arena(self, event):
         "Handle a telemetry event by delegating to the arena model."
@@ -318,8 +339,8 @@ class Model(EventHandler):
         self.clocks_per_second = event.clocksPerSec
 
     def EventClockSync(self, event):
-        self.needs_update = True
         self.sync.append(event.header.clock, event.clock)
+        self.needs_update()
 
     def Intern(self, event):
         self._intern[event.stringId] = event.string.decode('ascii', 'replace')
@@ -334,6 +355,51 @@ class Model(EventHandler):
         del self.arena[event.arena]
 
 
+class ApplicationWindow(QtWidgets.QMainWindow):
+    def __init__(self, model):
+        super().__init__()
+        self._model = model
+        self._main = QtWidgets.QWidget()
+        self.setCentralWidget(self._main)
+        layout = QtWidgets.QHBoxLayout(self._main)
+
+        self._line_checkbox = {}
+        left_panel = QtWidgets.QVBoxLayout()
+        layout.addLayout(left_panel)
+        self._lines = QtWidgets.QVBoxLayout()
+        left_panel.addLayout(self._lines)
+        left_panel.addStretch(1)
+
+        canvas = FigureCanvas(Figure(figsize=(10, 6)))
+        layout.addWidget(canvas)
+        self.addToolBar(QtCore.Qt.BottomToolBarArea,
+                        NavigationToolbar(canvas, self))
+
+        self._axes = canvas.figure.subplots()
+        self._update()
+
+        self._timer = canvas.new_timer(100, [(self._update, (), {})])
+        self._timer.start()
+
+    def _update(self):
+        self._model.update(self._axes)
+        for line in self._model.lines:
+            if line.ready:
+                label = line.label
+                if line in self._line_checkbox:
+                    self._line_checkbox[line].setText(label)
+                else:
+                    checkbox = QtWidgets.QCheckBox(label)
+                    self._line_checkbox[line] = checkbox
+                    checkbox.setChecked(True)
+                    self._lines.addWidget(checkbox)
+                    def state_changed(state, line=line):
+                        line.drawn = bool(state)
+                        self._model.needs_update()
+                    checkbox.stateChanged.connect(state_changed)
+                    checkbox.setStyleSheet(f"color:{line.color}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Memory Pool System Monitor.")
     parser.add_argument(
@@ -346,32 +412,11 @@ def main():
     fd = os.open(args.telemetry, os.O_NONBLOCK, os.O_RDONLY)
     read = os.fdopen(fd, 'rb').read
 
-    model = Model()
-    events = event_decoder(read)
-    EventClockSync_code = mpsevent.Event.EventClockSync.code
-
-    plt = matplotlib.pyplot
-    figure, axes = plt.subplots()
-    axes.set_xlabel("time (seconds)")
-    axes.set_ylabel("bytes")
-
-    def func(frame):
-        return model.update(axes)
-
-    def frames():
-        while True:
-            try:
-                for event in events():
-                    model.handle(event)
-                yield
-                break
-            except BlockingIOError:
-                yield
-
-    anim = matplotlib.animation.FuncAnimation(
-        figure, func, frames=frames, interval=20, blit=False)
-
-    plt.show()
+    model = Model(event_decoder(read))
+    qapp = QtWidgets.QApplication([])
+    app = ApplicationWindow(model)
+    app.show()
+    qapp.exec_()
 
 
 if __name__ == '__main__':
