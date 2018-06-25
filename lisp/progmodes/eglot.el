@@ -692,7 +692,7 @@ If optional MARKERS, make markers."
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'eglot-eldoc-function)
-    (add-function :around (local imenu-create-index-function) #'eglot-imenu))
+    (add-function :around (local 'imenu-create-index-function) #'eglot-imenu))
    (t
     (remove-hook 'flymake-diagnostic-functions 'eglot-flymake-backend t)
     (remove-hook 'after-change-functions 'eglot--after-change t)
@@ -705,7 +705,7 @@ If optional MARKERS, make markers."
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
-    (remove-function (local imenu-create-index-function) #'eglot-imenu)
+    (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
     (setq eglot--current-flymake-report-fn nil))))
 
 (defun eglot--managed-mode-onoff (server arg)
