@@ -298,13 +298,21 @@ class Model(EventHandler):
                 sync = batch[-1]
                 assert sync.header.code == EventClockSync_code
                 self.sync.append(sync.header.clock, sync.clock)
+
+                # The Time Stamp Counter frequency can vary due to
+                # thermal throttling, turbo boost etc., so use linear
+                # interpolation within each batch to convert to clocks
+                # and thence to seconds.
+                # 
+                # In theory the Time Stamp Counter can wrap around,
+                # but it is a 64-bit register even on IA-32, and at
+                # 2.5 GHz it will take hundreds of years to do so, so
+                # we ignore this possibility.
                 eventclocks = self.sync.t[-2:]
                 clocks = self.sync.y[-2:]
                 cps = self.clocks_per_second
-                # The cycle counter frequency can vary due to thermal
-                # throttling, turbo boost etc., so use piecewise linear
-                # interpolation to convert to clocks and thence to seconds.
                 seconds = lambda e: np.interp(e, eventclocks, clocks) / cps
+
                 for event in batch:
                     self.handle(seconds(event.header.clock), event)
                 if len(self.sync.t) >= 2:
