@@ -708,23 +708,33 @@ If optional MARKERS, make markers."
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
     (setq eglot--current-flymake-report-fn nil))))
 
+(defvar-local eglot--cached-current-server nil
+  "A cached reference to the current EGLOT server.
+Reset in `eglot--managed-mode-onoff'.")
+
 (defun eglot--managed-mode-onoff (server arg)
   "Proxy for function `eglot--managed-mode' with ARG and SERVER."
   (eglot--managed-mode arg)
   (let ((buf (current-buffer)))
-    (if eglot--managed-mode
-        (cl-pushnew buf (eglot--managed-buffers server))
-      (setf (eglot--managed-buffers server)
-            (delq buf (eglot--managed-buffers server))))))
+    (cond (eglot--managed-mode
+           (setq eglot--cached-current-server server)
+           (cl-pushnew buf (eglot--managed-buffers server)))
+          (t
+           (setq eglot--cached-current-server nil)
+           (setf (eglot--managed-buffers server)
+                 (delq buf (eglot--managed-buffers server)))))))
 
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
 
 (defun eglot--current-server ()
   "Find the current logical EGLOT server."
-  (let* ((probe (or (project-current) `(transient . ,default-directory))))
-    (cl-find major-mode (gethash probe eglot--servers-by-project)
-             :key #'eglot--major-mode)))
+  (or
+   eglot--cached-current-server
+   (let* ((probe (or (project-current)
+                     `(transient . ,default-directory))))
+     (cl-find major-mode (gethash probe eglot--servers-by-project)
+              :key #'eglot--major-mode))))
 
 (defun eglot--current-server-or-lose ()
   "Return current logical EGLOT server connection or error."
@@ -738,6 +748,12 @@ If optional MARKERS, make markers."
   "Maybe activate mode function `eglot--managed-mode'.
 If SERVER is supplied, do it only if BUFFER is managed by it.  In
 that case, also signal textDocument/didOpen."
+  (unless server
+    (when eglot--cached-current-server
+      (display-warning
+       :eglot "`eglot--cached-current-server' is non-nil, but it should be!\n\
+Please report this as a possible bug.")
+      (setq eglot--cached-current-server nil)))
   ;; Called even when revert-buffer-in-progress-p
   (let* ((cur (and buffer-file-name (eglot--current-server)))
          (server (or (and (null server) cur) (and server (eq server cur) cur))))
