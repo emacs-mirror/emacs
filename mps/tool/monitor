@@ -15,7 +15,7 @@ from struct import Struct
 import sys
 import time
 
-from matplotlib.backends.qt_compat import QtCore, QtWidgets
+from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
@@ -358,9 +358,14 @@ class Model(EventHandler):
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self, model):
         super().__init__()
+
         self._model = model
         self._main = QtWidgets.QWidget()
         self.setCentralWidget(self._main)
+
+        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self)
+        shortcut.activated.connect(self.close)
+
         layout = QtWidgets.QHBoxLayout(self._main)
 
         self._line_checkbox = {}
