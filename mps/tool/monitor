@@ -34,9 +34,9 @@ EVENT_NAMEDTUPLE = {
 EVENT_NAME = {code:desc.name for code, desc in mpsevent.EVENT.items()}
 
 
-def event_decoder(read):
-    """Decode the events in an I/O stream and generate them as tuples in
-    eventclock order.
+def batch_decoder(read):
+    """Decode the events in an I/O stream and generate batches as lists of
+    tuples in eventclock order.
 
     The argument must be a function implementing the io.RawIOBase.read
     specification (that is, it takes a size and returns up to size
@@ -98,7 +98,7 @@ def event_decoder(read):
             batch.append(event)
             if event.header.code == EventClockSync_code:
                 batch.sort(key=key)
-                yield from batch
+                yield batch
                 batch.clear()
 
     return decoder
@@ -142,12 +142,12 @@ class EventHandler:
     with the same name as the event.
 
     """
-    def ignore(self, event):
+    def ignore(self, t, event):
         "Handle a telemetry event by doing nothing."
 
-    def handle(self, event):
+    def handle(self, t, event):
         "Handle a telemetry event by dispatching."
-        getattr(self, EVENT_NAME[event.header.code], self.ignore)(event)
+        getattr(self, EVENT_NAME[event.header.code], self.ignore)(t, event)
 
 
 class Pool(EventHandler):
@@ -172,13 +172,13 @@ class Pool(EventHandler):
                 name = f"{class_name}[{self.pointer:x}]"
         return f"{self.arena.name}.{name}"
 
-    def ArenaAlloc(self, event):
-        self.alloc.add(event.header.clock, event.size)
+    def ArenaAlloc(self, t, event):
+        self.alloc.add(t, event.size)
 
-    def ArenaFree(self, event):
-        self.alloc.sub(event.header.clock, event.size)
+    def ArenaFree(self, t, event):
+        self.alloc.sub(t, event.size)
 
-    def PoolInit(self, event):
+    def PoolInit(self, t, event):
         self.pool_class = event.poolClass
         self.serial = event.serial
 
@@ -207,7 +207,7 @@ class Arena(EventHandler):
                 name = f"{class_name}[{self.pointer:x}]"
         return name
 
-    def delegate_to_pool(self, event):
+    def delegate_to_pool(self, t, event):
         "Handle a telemetry event by delegating to the pool model."
         pointer = event.pool
         try:
@@ -215,17 +215,17 @@ class Arena(EventHandler):
         except KeyError:
             self.pool[pointer] = pool = Pool(self, pointer)
             self.pools.append(pool)
-        pool.handle(event)
+        pool.handle(t, event)
 
     ArenaAlloc = ArenaFree = PoolInit = delegate_to_pool
 
-    def ArenaCreateVM(self, event):
+    def ArenaCreateVM(self, t, event):
         self.arena_class = event.arenaClass
         self.serial = event.serial
 
     ArenaCreateCL = ArenaCreateVM
 
-    def PoolFinish(self, event):
+    def PoolFinish(self, t, event):
         del self.pool[event.pool]
 
 
@@ -239,7 +239,7 @@ class Line:
         self.desc = desc
         self.series = series
         self.color = next(self.colors)
-        self.drawn = True
+        self.draw = True
 
     @property
     def label(self):
@@ -249,21 +249,18 @@ class Line:
     def ready(self):
         return len(self.series.t) >= 2
 
-    def plot(self, axes, seconds):
-        """Plot line on axes. seconds is a function converting eventclocks
-        to seconds.
-
-        """
-        if self.ready and self.drawn:
-            x = seconds(self.series.t)
+    def plot(self, axes):
+        "Plot line on axes."
+        if self.ready and self.draw:
+            x = self.series.t
             y = self.series.y
             axes.plot(x, y, color=self.color, label=self.label)
 
 
 class Model(EventHandler):
     "Model of an application using the MPS."
-    def __init__(self, events):
-        self._events = events
+    def __init__(self, batches):
+        self._batches = batches
         self._intern = {}       # stringId -> string
         self._label = {}        # address or pointer -> stringId
         self.arena = {}         # pointer -> Arena
@@ -284,38 +281,44 @@ class Model(EventHandler):
     @property
     def eventclocks_to_seconds(self):
         "Return function converting eventclocks to seconds."
-        eventclocks = self.sync.t
-        clocks = self.sync.y
-        cps = self.clocks_per_second
-        # The cycle counter frequency can vary due to thermal
-        # throttling, turbo boost etc., so use piecewise linear
-        # interpolation to convert to clocks and thence to seconds.
-        return lambda e: np.interp(e, eventclocks, clocks) / cps
 
     def plot(self, axes):
         "Draw time series on the given axes."
-        seconds = self.eventclocks_to_seconds
         axes.clear()
         axes.set_xlabel("time (seconds)")
         axes.set_ylabel("bytes")
         for line in self.lines:
-            line.plot(axes, seconds)
+            line.plot(axes)
         axes.figure.canvas.draw()
 
     def update(self, axes):
+        EventClockSync_code = mpsevent.Event.EventClockSync.code
         try:
-            for event in self._events():
-                self.handle(event)
+            for batch in self._batches():
+                sync = batch[-1]
+                assert sync.header.code == EventClockSync_code
+                self.sync.append(sync.header.clock, sync.clock)
+                eventclocks = self.sync.t[-2:]
+                clocks = self.sync.y[-2:]
+                cps = self.clocks_per_second
+                # The cycle counter frequency can vary due to thermal
+                # throttling, turbo boost etc., so use piecewise linear
+                # interpolation to convert to clocks and thence to seconds.
+                seconds = lambda e: np.interp(e, eventclocks, clocks) / cps
+                for event in batch:
+                    self.handle(seconds(event.header.clock), event)
+                if len(self.sync.t) >= 2:
+                    self.needs_update()
         except BlockingIOError:
             pass
-        if self._needs_update and len(self.sync.t) >= 2:
+        if self._needs_update:
             self._needs_update = False
             self.plot(axes)
 
     def needs_update(self, *args):
         self._needs_update = True
 
-    def delegate_to_arena(self, event):
+    def delegate_to_arena(self, t, event):
         "Handle a telemetry event by delegating to the arena model."
         addr = event.arena
         try:
@@ -323,12 +326,12 @@ class Model(EventHandler):
         except KeyError:
             self.arena[addr] = arena = Arena(self, addr)
             self.arenas.append(arena)
-        arena.handle(event)
+        arena.handle(t, event)
 
     ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = PoolInit = \
         PoolFinish = delegate_to_arena
 
-    def EventInit(self, event):
+    def EventInit(self, t, event):
         stream_version = event.major, event.median
         monitor_version = mpsevent.__version__[:2]
         if stream_version != monitor_version:
@@ -338,29 +341,26 @@ class Model(EventHandler):
                                    '.'.join(map(str, stream_version))))
         self.clocks_per_second = event.clocksPerSec
 
-    def EventClockSync(self, event):
-        self.sync.append(event.header.clock, event.clock)
-        self.needs_update()
-
-    def Intern(self, event):
+    def Intern(self, t, event):
         self._intern[event.stringId] = event.string.decode('ascii', 'replace')
 
-    def Label(self, event):
+    def Label(self, t, event):
         self._label[event.address] = event.stringId
 
-    def LabelPointer(self, event):
+    def LabelPointer(self, t, event):
         self._label[event.pointer] = event.stringId
 
-    def ArenaDestroy(self, event):
+    def ArenaDestroy(self, t, event):
         del self.arena[event.arena]
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
-    def __init__(self, model):
+    def __init__(self, model, title):
         super().__init__()
 
         self._model = model
         self._main = QtWidgets.QWidget()
+        self.setWindowTitle(title)
         self.setCentralWidget(self._main)
 
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self)
@@ -399,7 +399,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     checkbox.setChecked(True)
                     self._lines.addWidget(checkbox)
                     def state_changed(state, line=line):
-                        line.drawn = bool(state)
+                        line.draw = bool(state)
                         self._model.needs_update()
                     checkbox.stateChanged.connect(state_changed)
                     checkbox.setStyleSheet(f"color:{line.color}")
@@ -417,15 +417,15 @@ def main():
     fd = os.open(args.telemetry, os.O_NONBLOCK, os.O_RDONLY)
     read = os.fdopen(fd, 'rb').read
 
-    model = Model(event_decoder(read))
+    model = Model(batch_decoder(read))
     qapp = QtWidgets.QApplication([])
-    app = ApplicationWindow(model)
+    app = ApplicationWindow(model, args.telemetry)
     app.show()
-    qapp.exec_()
+    return qapp.exec_()
 
 
 if __name__ == '__main__':
-    main()
+    exit(main())
 
 
 # C. COPYRIGHT AND LICENCE
