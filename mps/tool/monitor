@@ -267,8 +267,8 @@ class Model(EventHandler):
         self.arenas = []
         self.lines = []         # list(Line)
         self.clocks_per_second = 1000000.0
-        self.sync = TimeSeries()
-        self._needs_update = False
+        self.sync = TimeSeries() # Time series of EventClockSync events.
+        self._needs_redraw = False # Plot needs redrawing?
 
     def add_time_series(self, owner, desc, series):
         "Add a time series to the model."
@@ -316,15 +316,15 @@ class Model(EventHandler):
                 for event in batch:
                     self.handle(seconds(event.header.clock), event)
                 if len(self.sync.t) >= 2:
-                    self.needs_update()
+                    self.needs_redraw()
         except BlockingIOError:
             pass
-        if self._needs_update:
-            self._needs_update = False
+        if self._needs_redraw:
+            self._needs_redraw = False
             self.plot(axes)
 
-    def needs_update(self, *args):
-        self._needs_update = True
+    def needs_redraw(self, *args):
+        self._needs_redraw = True
 
     def delegate_to_arena(self, t, event):
         "Handle a telemetry event by delegating to the arena model."
@@ -408,7 +408,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     self._lines.addWidget(checkbox)
                     def state_changed(state, line=line):
                         line.draw = bool(state)
-                        self._model.needs_update()
+                        self._model.needs_redraw()
                     checkbox.stateChanged.connect(state_changed)
                     checkbox.setStyleSheet(f"color:{line.color}")
 
