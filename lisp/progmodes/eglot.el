@@ -1349,8 +1349,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                                :textDocument/documentSymbol
                                `(:textDocument ,(eglot--TextDocumentIdentifier))))))
         (append
-         (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
-                       entries)
+         (cl-remove nil
+                    (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
+                                  entries)
+                    :key #'car)
          entries))
     (funcall oldfun)))
 
