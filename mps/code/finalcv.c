@@ -1,7 +1,7 @@
 /* finalcv.c: FINALIZATION COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * DESIGN
@@ -143,6 +143,10 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
     /* store index in vector's slot */
     ((mps_word_t *)p)[vectorSLOT] = dylan_int(i);
 
+    /* mps_definalize fails when there have been no calls to mps_finalize
+       yet, or for an address that was not registered for finalization. */
+    Insist(mps_definalize(arena, &p) == MPS_RES_FAIL);
+
     die(mps_finalize(arena, &p), "finalize\n");
     root[i] = p; state[i] = rootSTATE;
   }
@@ -246,7 +250,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
