@@ -301,7 +301,7 @@ determined then the smallest unsigned integer with a large enough
 range may be used instead.
 
 
-``typedef int LocusPrefKind``
+``typedef unsigned LocusPrefKind``
 
 _`.locusprefkind`: The type ``LocusPrefKind`` expresses a preference for
 addresses within an address space. It takes one of the following
@@ -477,7 +477,7 @@ _`.rootmode.conv.c`: ``RootMode`` is converted to ``mps_rm_t`` in the
 MPS C Interface.
 
 
-``typedef int RootVar``
+``typedef unsigned RootVar``
 
 _`.rootvar`: The type ``RootVar`` is the type of the discriminator for
 the union within ``RootStruct``.
