@@ -11,7 +11,7 @@
 
 
 import argparse
-from collections import deque, namedtuple
+from collections import defaultdict, deque, namedtuple
 from itertools import cycle
 import os
 from struct import Struct
@@ -189,6 +189,28 @@ class Accumulator(TimeSeries):
         self.append(t, self.value)
 
 
+class MovingAverageRatio(TimeSeries):
+    "Exponentially weighted moving average on/off ratio."
+    def __init__(self, t, alpha=0.99):
+        super().__init__()
+        self._on = self._off = 0.0
+        self._last = t
+        self._alpha = alpha
+        self._beta = 1 - alpha
+        self._ratio = 0.0
+
+    def off(self, t):
+        self._on = t - self._last
+        self._last = t
+        ratio = self._on / (self._on + self._off)
+        self._ratio = self._ratio * self._alpha + ratio * self._beta
+        self.append(t, self._ratio)
+
+    def on(self, t):
+        self._off = t - self._last
+        self._last = t
+
+
 class EventHandler:
     """Object that handles a telemetry event by dispatching to the method
     with the same name as the event.
@@ -204,8 +226,8 @@ class EventHandler:
 
 class Pool(EventHandler):
     "Model of an MPS pool."
-    def __init__(self, arena, pointer):
-        "Create Pool owned by arena, at pointer."
+    def __init__(self, arena, pointer, t):
+        "Create Pool owned by arena, at pointer, at time t."
         self._arena = arena       # Owning arena.
         self._model = arena.model # Owning model.
         self._pointer = pointer   # Pool's pointer.
@@ -213,7 +235,7 @@ class Pool(EventHandler):
         self._serial = None       # Pool's serial number within arena.
         self._alloc = Accumulator()
         self._model.add_time_series(
-            self, "alloc", self._alloc,
+            self, self._alloc, "bytes", "alloc",
             "memory allocated by the pool from the arena")
 
     @property
@@ -240,14 +262,18 @@ class Pool(EventHandler):
 
 class Arena(EventHandler):
     "Model of an MPS arena."
-    def __init__(self, model, pointer):
-        "Create Arena owned by model, at pointer."
+    def __init__(self, model, pointer, t):
+        "Create Arena owned by model, at pointer, at time t."
         self.model = model       # Owning model.
         self._pointer = pointer  # Arena's pointer.
         self._arena_class = None # Arena's class pointer.
         self._serial = None      # Arena's serial number.
         self._pools = []         # List of Pools ever belonging to arena.
         self._pool = {}          # pointer -> Pool (for live pools)
+        self._poll = MovingAverageRatio(t)
+        self.model.add_time_series(
+            self, self._poll, "fraction", "poll",
+            "polling fraction of CPU time (moving average)")
 
     @property
     def name(self):
@@ -269,7 +295,7 @@ class Arena(EventHandler):
         try:
             pool = self._pool[pointer]
         except KeyError:
-            self._pool[pointer] = pool = Pool(self, pointer)
+            self._pool[pointer] = pool = Pool(self, pointer, t)
             self._pools.append(pool)
         pool.handle(t, event)
 
@@ -284,16 +310,23 @@ class Arena(EventHandler):
     def PoolFinish(self, t, event):
         del self._pool[event.pool]
 
+    def ArenaPollBegin(self, t, event):
+        self._poll.on(t)
+
+    def ArenaPollEnd(self, t, event):
+        self._poll.off(t)
+
 
 class Line:
     "A line in a Matplotlib plot wrapping a TimeSeries."
     colors = cycle('blue orange green red purple brown pink gray olive cyan'
                    .split())
 
-    def __init__(self, owner, name, series, desc):
+    def __init__(self, owner, series, unit, name, desc):
         self.owner = owner      # Owning object.
-        self._name = name       # Brief description.
         self.series = series    # Time series.
+        self.unit = unit        # Unit.
+        self._name = name       # Brief description.
         self.desc = desc        # Brief description.
         self.draw = True        # Plot this line?
         self.color = next(self.colors)
@@ -323,25 +356,33 @@ class Model(EventHandler):
         self._label = {}        # address or pointer -> stringId
         self._arena = {}        # pointer -> Arena (for live arenas)
         self.arenas = []        # All arenas created in the model.
-        self.lines = []         # All time series available for plotting.
+        self.lines = []         # All Lines available for plotting.
+        self._unit_lines = defaultdict(list) # Lines collated by unit.
         self._needs_redraw = True # Plot needs redrawing?
 
-    def add_time_series(self, owner, name, series, desc):
+    def add_time_series(self, *args):
         "Add a time series to the model."
-        self.lines.append(Line(owner, name, series, desc))
+        line = Line(*args)
+        self.lines.append(line)
+        self._unit_lines[line.unit].append(line)
 
     def label(self, pointer):
         "Return string labelling address or pointer, or None if unlabelled."
         return self._intern.get(self._label.get(pointer))
 
-    def plot(self, axes):
+    def plot(self, axes_list):
         "Draw time series on the given axes."
-        if self._needs_redraw:
-            self._needs_redraw = False
+        if not self._needs_redraw:
+            return
+        self._needs_redraw = False
+        # Determine which unit to plot on each axis.
+        lines_list = sorted(self._unit_lines.values(), key=len, reverse=True)
+        for axes in axes_list:
             axes.clear()
             axes.set_xlabel("time (seconds)")
-            axes.set_ylabel("bytes")
-            for line in self.lines:
+        for axes, lines in zip(axes_list, lines_list):
+            axes.set_ylabel(lines[0].unit)
+            for line in lines:
                 line.plot(axes)
             axes.figure.canvas.draw()
 
@@ -363,12 +404,12 @@ class Model(EventHandler):
         try:
             arena = self._arena[addr]
         except KeyError:
-            self._arena[addr] = arena = Arena(self, addr)
+            self._arena[addr] = arena = Arena(self, addr, t)
             self.arenas.append(arena)
         arena.handle(t, event)
 
-    ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = PoolInit = \
-        PoolFinish = delegate_to_arena
+    ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = ArenaPollBegin = \
+        ArenaPollEnd = PoolInit = PoolFinish = delegate_to_arena
 
     def EventClockSync(self, t, event):
         self.needs_redraw()
@@ -441,6 +482,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Matplot canvas and toolbar.
         canvas = FigureCanvas(Figure(figsize=(10, 6)))
         self._axes = canvas.figure.subplots()
+        self._axes2 = self._axes.twinx()
         main_layout.addWidget(canvas)
         self._toolbar = ApplicationToolbar(canvas, self)
         self.addToolBar(QtCore.Qt.BottomToolBarArea, self._toolbar)
@@ -465,7 +507,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self._home_limits = None
         self._model.update()
         if not self._toolbar.paused:
-            self._model.plot(self._axes)
+            self._model.plot([self._axes, self._axes2])
             self._home_limits = self._limits
 
         # Find new time series and create corresponding checkboxes.
