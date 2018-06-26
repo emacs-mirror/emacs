@@ -443,7 +443,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                         self._model.needs_redraw()
                     checkbox.stateChanged.connect(state_changed)
                     checkbox.setStyleSheet(f"color:{line.color}")
-        self._lines_scroll.setMinimumWidth(
+        self._lines_scroll.setFixedWidth(
             self._lines_widget.sizeHint().width())
 
 
