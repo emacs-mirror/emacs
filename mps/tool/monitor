@@ -33,6 +33,9 @@ EVENT_NAMEDTUPLE = {
 # Mapping from event code to event name.
 EVENT_NAME = {code:desc.name for code, desc in mpsevent.EVENT.items()}
 
+# Icon for the toolbar pause button.
+PAUSE_ICON = os.path.abspath(os.path.join(os.path.dirname(__file__), 'pause'))
+
 
 def batch_decoder(read):
     """Decode the events in an I/O stream and generate batches as lists of
@@ -291,7 +294,7 @@ class Model(EventHandler):
             line.plot(axes)
         axes.figure.canvas.draw()
 
-    def update(self, axes):
+    def update(self, axes, paused):
         EventClockSync_code = mpsevent.Event.EventClockSync.code
         try:
             for batch in self._batches():
@@ -308,8 +311,8 @@ class Model(EventHandler):
                 # but it is a 64-bit register even on IA-32, and at
                 # 2.5 GHz it will take hundreds of years to do so, so
                 # we ignore this possibility.
-                eventclocks = self.sync.t[-2:]
-                clocks = self.sync.y[-2:]
+                self.sync.t = eventclocks = self.sync.t[-2:]
+                self.sync.y = clocks = self.sync.y[-2:]
                 cps = self.clocks_per_second
                 seconds = lambda e: np.interp(e, eventclocks, clocks) / cps
 
@@ -319,7 +322,7 @@ class Model(EventHandler):
                     self.needs_redraw()
         except BlockingIOError:
             pass
-        if self._needs_redraw:
+        if self._needs_redraw and not paused:
             self._needs_redraw = False
             self.plot(axes)
 
@@ -362,11 +365,24 @@ class Model(EventHandler):
         del self.arena[event.arena]
 
 
+class ApplicationToolbar(NavigationToolbar):
+    def __init__(self, *args, **kwargs):
+        self.toolitems += (('Pause', 'Pause', PAUSE_ICON, 'pause'),)
+        super().__init__(*args, **kwargs)
+        self._actions['pause'].setCheckable(True)
+        self.paused = False
+
+    def pause(self):
+        self.paused = not self.paused
+        self._actions['pause'].setChecked(self.paused)
+
+
 class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self, model, title):
         super().__init__()
 
         self._model = model
+        self._home = None
         self._main = QtWidgets.QWidget()
         self.setWindowTitle(title)
         self.setCentralWidget(self._main)
@@ -391,8 +407,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         canvas = FigureCanvas(Figure(figsize=(10, 6)))
         main_layout.addWidget(canvas)
-        self.addToolBar(QtCore.Qt.BottomToolBarArea,
-                        NavigationToolbar(canvas, self))
+
+        self._toolbar = ApplicationToolbar(canvas, self)
+        self.addToolBar(QtCore.Qt.BottomToolBarArea, self._toolbar)
 
         self._axes = canvas.figure.subplots()
         self._update()
@@ -400,8 +417,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._timer = canvas.new_timer(100, [(self._update, (), {})])
         self._timer.start()
 
+    @property
+    def _limits(self):
+        return self._axes.get_xlim(), self._axes.get_ylim()
+
     def _update(self):
-        self._model.update(self._axes)
+        if not self._toolbar.paused and self._home not in (None, self._limits):
+            self._toolbar.pause()
+            self._home = None
+        self._model.update(self._axes, self._toolbar.paused)
+        if not self._toolbar.paused:
+            self._home = self._limits
         for line in self._model.lines:
             if line.ready:
                 label = line.label
