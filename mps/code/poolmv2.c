@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -1030,7 +1030,7 @@ static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
   if (!TESTC(MVTPool, mvt))
     return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
   res = NextMethod(Inst, MVTPool, describe)(inst, stream, depth);
   if (res != ResOK)
@@ -1353,7 +1353,7 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
