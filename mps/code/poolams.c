@@ -1432,13 +1432,13 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
      ambiguous reference is closer to the base of the segment than the
      header size. */
   if (base < SegBase(seg)) {
-    AVER_CRITICAL(ss->rank == RankAMBIG);
+    AVER(ss->rank == RankAMBIG);
     return ResOK;
   }
 
   /* Not a real reference if unaligned. */
   if (!AddrIsAligned(base, PoolAlignment(pool))) {
-    AVER_CRITICAL(ss->rank == RankAMBIG);
+    AVER(ss->rank == RankAMBIG);
     return ResOK;
   }
 
@@ -1450,7 +1450,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   /* Not a real reference if unallocated. */
   if (!AMS_ALLOCED(seg, i)) {
-    AVER_CRITICAL(ss->rank == RankAMBIG);
+    AVER(ss->rank == RankAMBIG);
     return ResOK;
   }
 
