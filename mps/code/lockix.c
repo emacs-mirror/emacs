@@ -159,8 +159,8 @@ void (LockClaimRecursive)(Lock lock)
   /* pthread_mutex_lock will return: */
   /*     0 if we have just claimed the lock */
   /*     EDEADLK if we own the lock already. */
-  AVER((res == 0 && lock->claims == 0)  ||
-       (res == EDEADLK && lock->claims > 0));
+  AVER((res == 0) == (lock->claims == 0));
+  AVER((res == EDEADLK) == (lock->claims > 0));
 
   ++lock->claims;
   AVER(lock->claims > 0);
