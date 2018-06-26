@@ -298,10 +298,10 @@ references in them. This method is called via the generic function
 
 _`.method.fix`: The ``fix`` method indicates that the reference
 ``*refIO`` has been discovered at rank ``ss->rank`` by the traces in
-``ss->traces``, and the sgment must handle this discovery according to
-the fix protocol (design.mps.fix_). If the method moves the object, it
-must update ``*refIO`` to refer to the new location of the object. If
-the method determines that the referenced object died (for example,
+``ss->traces``, and the segment must handle this discovery according
+to the fix protocol (design.mps.fix_). If the method moves the object,
+it must update ``*refIO`` to refer to the new location of the object.
+If the method determines that the referenced object died (for example,
 because the highest-ranking references to the object were weak), it
 must update ``*refIO`` to ``NULL``. Segment classes that automatically
 reclaim dead objects must provide this method, and pools that use

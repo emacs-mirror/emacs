@@ -770,8 +770,8 @@ static Res awlSegWhiten(Seg seg, Trace trace)
 
 /* awlSegGreyen -- Greyen method for AWL segments */
 
-/* awlsegRangeGreyen -- subroutine for awlSegGreyen */
-static void awlsegRangeGreyen(AWLSeg awlseg, Index base, Index limit)
+/* awlSegRangeGreyen -- subroutine for awlSegGreyen */
+static void awlSegRangeGreyen(AWLSeg awlseg, Index base, Index limit)
 {
   /* AWLSeg not checked as that's already been done */
   AVER(limit <= awlseg->grains);
@@ -801,14 +801,14 @@ static void awlSegGreyen(Seg seg, Trace trace)
     if (SegBuffer(&buffer, seg)) {
       Addr base = SegBase(seg);
 
-      awlsegRangeGreyen(awlseg,
+      awlSegRangeGreyen(awlseg,
                         0,
                         PoolIndexOfAddr(base, pool, BufferScanLimit(buffer)));
-      awlsegRangeGreyen(awlseg,
+      awlSegRangeGreyen(awlseg,
                         PoolIndexOfAddr(base, pool, BufferLimit(buffer)),
                         awlseg->grains);
     } else {
-      awlsegRangeGreyen(awlseg, 0, awlseg->grains);
+      awlSegRangeGreyen(awlseg, 0, awlseg->grains);
     }
   }
 }
