@@ -747,7 +747,7 @@ void (ArenaPoll)(Globals globals)
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
   start = ClockNow();
 
-  EVENT3(ArenaPoll, arena, start, FALSE);
+  EVENT1(ArenaPollBegin, arena);
 
   do {
     moreWork = TracePoll(&tracedWork, &worldCollected, globals,
@@ -762,7 +762,7 @@ void (ArenaPoll)(Globals globals)
     ArenaAccumulateTime(arena, start, ClockNow());
   }
 
-  EVENT3(ArenaPoll, arena, start, BOOLOF(workWasDone));
+  EVENT2(ArenaPollEnd, arena, BOOLOF(workWasDone));
 
   globals->insidePoll = FALSE;
 }
