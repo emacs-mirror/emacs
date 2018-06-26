@@ -1,7 +1,7 @@
 /* mpmtypes.h: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2001 Global Graphics Software.
  *
  * .design: <design/type/>
@@ -62,7 +62,7 @@ typedef unsigned TraceSet;              /* <design/trace/> */
 typedef unsigned TraceState;            /* <design/trace/> */
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
-typedef int RootVar;                    /* <design/type/#rootvar> */
+typedef unsigned RootVar;               /* <design/type/#rootvar> */
 
 typedef Word *BT;                       /* <design/bt/> */
 typedef struct BootBlockStruct *BootBlock; /* <code/boot.c> */
@@ -86,7 +86,7 @@ typedef struct SegStruct *Seg;          /* <code/seg.c> */
 typedef struct GCSegStruct *GCSeg;      /* <code/seg.c> */
 typedef struct SegClassStruct *SegClass; /* <code/seg.c> */
 typedef struct LocusPrefStruct *LocusPref; /* <design/locus/>, <code/locus.c> */
-typedef int LocusPrefKind;              /* <design/locus/>, <code/locus.c> */
+typedef unsigned LocusPrefKind;         /* <design/locus/>, <code/locus.c> */
 typedef struct mps_arena_class_s *ArenaClass; /* <design/arena/> */
 typedef struct mps_arena_s *Arena;      /* <design/arena/> */
 typedef Arena AbstractArena;
@@ -426,7 +426,7 @@ typedef double WriteFD;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
