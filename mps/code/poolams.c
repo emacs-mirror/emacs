@@ -1192,7 +1192,7 @@ static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
 
   /* If we're using the alloc table as a white table, we can't use it to */
   /* determine where there are objects. */
-  AVER(!(ams->shareAllocTable && amsseg->colourTablesInUse));
+  AVER(!ams->shareAllocTable || !amsseg->colourTablesInUse);
 
   p = SegBase(seg);
   limit = SegLimit(seg);
