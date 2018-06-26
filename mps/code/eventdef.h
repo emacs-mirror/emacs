@@ -67,7 +67,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0089)
+#define EventCodeMAX ((EventCode)0x008B)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -182,7 +182,7 @@
   EVENT(X, EventInit          , 0x0074,  TRUE, Arena) \
   EVENT(X, EventClockSync     , 0x0075,  TRUE, Arena) \
   EVENT(X, ArenaAccess        , 0x0076,  TRUE, Arena) \
-  EVENT(X, ArenaPoll          , 0x0077,  TRUE, Arena) \
+  /* EVENT(X, ArenaPoll          , 0x0077,  TRUE, Arena) */ \
   EVENT(X, ArenaSetEmergency  , 0x0078,  TRUE, Arena) \
   EVENT(X, VMCompact          , 0x0079,  TRUE, Arena) \
   EVENT(X, amcScanNailed      , 0x0080,  TRUE, Seg) \
@@ -195,7 +195,9 @@
   /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */ \
   EVENT(X, PauseTimeSet       , 0x0087,  TRUE, Arena) \
   EVENT(X, TraceEndGen        , 0x0088,  TRUE, Trace) \
-  EVENT(X, LabelPointer       , 0x0089,  TRUE, User)
+  EVENT(X, LabelPointer       , 0x0089,  TRUE, User) \
+  EVENT(X, ArenaPollBegin     , 0x008A,  TRUE, Arena) \
+  EVENT(X, ArenaPollEnd       , 0x008B,  TRUE, Arena)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -645,11 +647,6 @@
   PARAM(X,  2, P, addr) \
   PARAM(X,  3, U, mode)
 
-#define EVENT_ArenaPoll_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, start) \
-  PARAM(X,  2, B, workWasDone)
-
 #define EVENT_ArenaSetEmergency_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, B, emergency)
@@ -720,6 +717,12 @@
   PARAM(X,  0, P, pointer) /* pointer */ \
   PARAM(X,  1, W, stringId) /* string identifier of its label */
 
+#define EVENT_ArenaPollBegin_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) /* arena about to be polled */
+
+#define EVENT_ArenaPollEnd_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) /* arena that was polled */ \
+  PARAM(X,  1, B, workWasDone) /* any collection work done in poll? */
 
 #endif /* eventdef_h */
 
