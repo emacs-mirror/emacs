@@ -3,12 +3,15 @@
 # $Id$
 # Copyright (c) 2018 Ravenbrook Limited. See end of file for license.
 #
-# This program reads a telemetry stream from a program using the MPS,
-# and constructs a model of the MPS data structures in the progam.
+# Read a telemetry stream from a program using the MPS, construct a
+# model of the MPS data structures in the progam, and display selected
+# time series from the model in a graphical user interface.
+# 
+# Requirements: Python 3.6, Matplotlib, PyQt5.
 
 
 import argparse
-from collections import namedtuple
+from collections import deque, namedtuple
 from itertools import cycle
 import os
 from struct import Struct
@@ -19,7 +22,6 @@ from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
-import numpy as np
 
 import mpsevent
 
@@ -33,17 +35,30 @@ EVENT_NAMEDTUPLE = {
 # Mapping from event code to event name.
 EVENT_NAME = {code:desc.name for code, desc in mpsevent.EVENT.items()}
 
+# Unpack function for event header.
+HEADER_UNPACK = Struct(mpsevent.HEADER_FORMAT).unpack
+
+# Unpack function for each event code.
+EVENT_UNPACK = {c:Struct(d.format).unpack for c, d in mpsevent.EVENT.items()}
+
 # Icon for the toolbar pause button.
 PAUSE_ICON = os.path.abspath(os.path.join(os.path.dirname(__file__), 'pause'))
 
 
-def batch_decoder(read):
-    """Decode the events in an I/O stream and generate batches as lists of
-    tuples in eventclock order.
+def telemetry_decoder(read):
+    """Return a function that decodes the events in an I/O stream and
+    generate pairs (time, event) in time order, where time is CPU time
+    in seconds and event is a tuple.
 
-    The argument must be a function implementing the io.RawIOBase.read
-    specification (that is, it takes a size and returns up to size
-    bytes from the I/O stream).
+    Unknown event codes are read but ignored.
+
+    The 'read' argument must be a function implementing the
+    io.RawIOBase.read specification (that is, it takes a size and
+    returns up to size bytes from the I/O stream).
+
+    The function can be called multiple times (for example, if the
+    underlying file is non-blocking then call to read might raise
+    BlockingIOError) without losing events from the stream.
 
     """
     # Cache frequently-used values in local variables.
@@ -51,9 +66,12 @@ def batch_decoder(read):
     header_size = mpsevent.HEADER_SIZE
     event_dict = mpsevent.EVENT
     event_namedtuple = EVENT_NAMEDTUPLE
+    event_unpack = EVENT_UNPACK
+    header_unpack = HEADER_UNPACK
     EventClockSync_code = mpsevent.Event.EventClockSync.code
+    EventInit_code = mpsevent.Event.EventInit.code
 
-    # Special handling for Intern.
+    # Special handling for Intern events.
     Intern_desc = mpsevent.Event.Intern
     Intern_code = Intern_desc.code
     Intern_struct = Struct(Intern_desc.format)
@@ -61,48 +79,79 @@ def batch_decoder(read):
     Intern_unpack = Intern_struct.unpack
     Intern_namedtuple = event_namedtuple[Intern_code]
 
-    # Build unpacker functions for each type of event.
-    header_struct = Struct(mpsevent.HEADER_FORMAT)
-    assert header_struct.size == header_size
-    header_unpack = header_struct.unpack
-    event_unpack = {}
-    for code, desc in event_dict.items():
-        assert code == desc.code
-        s = Struct(desc.format)
-        assert code == Intern_code or s.size == desc.maxsize
-        event_unpack[code] = s.unpack
+    batch = []                  # Current batch of (unordered) events.
+    eventclocks = deque(maxlen=2) # Eventclocks from last two EventClockSync.
+    clocks = deque(maxlen=2)    # Clocks from last two EventClockSync.
+    clocks_per_sec = None       # CLOCKS_PER_SEC value from EventInit event.
 
     def key(event):
+        "Key function for sorting events into time order."
         return event.header.clock
 
-    batch = []
     def decoder():
-        # Events are output in batches terminated by an EventClockSync
-        # event. When we see this, we know that we've received all
-        # events up to that one and can sort the batch.
+        nonlocal clocks_per_sec
         while True:
             header_data = read(header_size)
             if not header_data:
                 break
             header = header_desc(*header_unpack(header_data))
             code = header.code
-            event_desc = event_dict[code]
             size = header.size - header_size
             if code == Intern_code:
+                event_desc = event_dict[code]
                 assert size <= event_desc.maxsize
                 event = Intern_namedtuple(
                     header,
                     *Intern_unpack(read(Intern_size)),
                     read(size - Intern_size).rstrip(b'\0'))
-            else:
+            elif code in event_dict:
+                event_desc = event_dict[code]
                 assert size == event_desc.maxsize
                 event = event_namedtuple[code](
                     header, *event_unpack[code](read(size)))
+            else:
+                # Unknown code might indicate a new event added since
+                # mpsevent.py was updated, so just read and ignore.
+                read(size)
+
             batch.append(event)
             if event.header.code == EventClockSync_code:
-                batch.sort(key=key)
-                yield batch
-                batch.clear()
+                # Events are output in batches terminated by an EventClockSync
+                # event. So when we see an EventClockSync event, we know that
+                # we've received all events up to that one and can sort and
+                # emit the batch.
+                #
+                # The Time Stamp Counter frequency can vary due to thermal
+                # throttling, turbo boost etc., so linearly interpolate within
+                # each batch to convert to clocks and thence to seconds. (This
+                # requires at least two EventClockSync events.)
+                #
+                # In theory the Time Stamp Counter can wrap around, but it is
+                # a 64-bit register even on IA-32, and at 2.5 GHz it will take
+                # hundreds of years to do so, so we ignore this possibility.
+                # 
+                # TODO: on 32-bit platforms at 1 MHz, clock values will wrap
+                # around in about 72 minutes and so this needs to be handled.
+                eventclocks.append(event.header.clock)
+                clocks.append(event.clock)
+                if len(clocks) == 2:
+                    batch.sort(key=key)
+                    # Solve for: seconds = m * eventclocks + c
+                    m = ((clocks[1] - clocks[0])
+                         / ((eventclocks[1] - eventclocks[0]) * clocks_per_sec))
+                    c = clocks[0] / clocks_per_sec - m * eventclocks[0]
+                    for e in batch:
+                        yield m * e.header.clock + c, e
+                    batch.clear()
+            elif event.header.code == EventInit_code:
+                stream_version = event.major, event.median, event.minor
+                if stream_version[:2] != mpsevent.__version__[:2]:
+                    raise RuntimeError(
+                        "Monitor version {} is incompatible with "
+                        "telemetry stream version {}.".format(
+                            '.'.join(map(str, mpsevent.__version__)),
+                            '.'.join(map(str, stream_version))))
+                clocks_per_sec = event.clocksPerSec
 
     return decoder
 
@@ -146,107 +195,112 @@ class EventHandler:
 
     """
     def ignore(self, t, event):
-        "Handle a telemetry event by doing nothing."
+        "Handle a telemetry event at time t by doing nothing."
 
     def handle(self, t, event):
-        "Handle a telemetry event by dispatching."
+        "Handle a telemetry event at time t by dispatching."
         getattr(self, EVENT_NAME[event.header.code], self.ignore)(t, event)
 
 
 class Pool(EventHandler):
     "Model of an MPS pool."
     def __init__(self, arena, pointer):
-        self.arena = arena
-        self.model = arena.model
-        self.pointer = pointer
-        self.pool_class = None
-        self.serial = None
-        self.alloc = Accumulator()
-        self.model.add_time_series(self, "alloc", self.alloc)
+        "Create Pool owned by arena, at pointer."
+        self._arena = arena       # Owning arena.
+        self._model = arena.model # Owning model.
+        self._pointer = pointer   # Pool's pointer.
+        self._pool_class = None   # Pool's class pointer.
+        self._serial = None       # Pool's serial number within arena.
+        self._alloc = Accumulator()
+        self._model.add_time_series(
+            self, "alloc", self._alloc,
+            "memory allocated by the pool from the arena")
 
     @property
     def name(self):
-        name = self.model.label(self.pointer)
+        name = self._model.label(self._pointer)
         if not name:
-            class_name = self.model.label(self.pool_class) or 'Pool'
-            if self.serial is not None:
-                name = f"{class_name}[{self.serial}]"
+            class_name = self._model.label(self._pool_class) or 'Pool'
+            if self._serial is not None:
+                name = f"{class_name}[{self._serial}]"
             else:
-                name = f"{class_name}[{self.pointer:x}]"
-        return f"{self.arena.name}.{name}"
+                name = f"{class_name}[{self._pointer:x}]"
+        return f"{self._arena.name}.{name}"
 
     def ArenaAlloc(self, t, event):
-        self.alloc.add(t, event.size)
+        self._alloc.add(t, event.size)
 
     def ArenaFree(self, t, event):
-        self.alloc.sub(t, event.size)
+        self._alloc.sub(t, event.size)
 
     def PoolInit(self, t, event):
-        self.pool_class = event.poolClass
-        self.serial = event.serial
+        self._pool_class = event.poolClass
+        self._serial = event.serial
 
 
 class Arena(EventHandler):
     "Model of an MPS arena."
     def __init__(self, model, pointer):
-        self.model = model
-        self.pointer = pointer
-        self.arena_class = None
-        self.serial = None
-        self.pools = []
-        self.pool = {}          # pointer -> Pool
+        "Create Arena owned by model, at pointer."
+        self.model = model       # Owning model.
+        self._pointer = pointer  # Arena's pointer.
+        self._arena_class = None # Arena's class pointer.
+        self._serial = None      # Arena's serial number.
+        self._pools = []         # List of Pools ever belonging to arena.
+        self._pool = {}          # pointer -> Pool (for live pools)
 
     @property
     def name(self):
         if len(self.model.arenas) <= 1:
             # No need to distinguish arenas if there's just one.
             return ""
-        name = self.model.label(self.pointer)
+        name = self.model.label(self._pointer)
         if not name:
-            class_name = self.model.label(self.arena_class) or 'Arena'
-            if self.serial is not None:
-                name = f"{class_name}[{self.serial}]"
+            class_name = self.model.label(self._arena_class) or 'Arena'
+            if self._serial is not None:
+                name = f"{class_name}[{self._serial}]"
             else:
-                name = f"{class_name}[{self.pointer:x}]"
+                name = f"{class_name}[{self._pointer:x}]"
         return name
 
     def delegate_to_pool(self, t, event):
         "Handle a telemetry event by delegating to the pool model."
         pointer = event.pool
         try:
-            pool = self.pool[pointer]
+            pool = self._pool[pointer]
         except KeyError:
-            self.pool[pointer] = pool = Pool(self, pointer)
-            self.pools.append(pool)
+            self._pool[pointer] = pool = Pool(self, pointer)
+            self._pools.append(pool)
         pool.handle(t, event)
 
     ArenaAlloc = ArenaFree = PoolInit = delegate_to_pool
 
     def ArenaCreateVM(self, t, event):
-        self.arena_class = event.arenaClass
-        self.serial = event.serial
+        self._arena_class = event.arenaClass
+        self._serial = event.serial
 
     ArenaCreateCL = ArenaCreateVM
 
     def PoolFinish(self, t, event):
-        del self.pool[event.pool]
+        del self._pool[event.pool]
 
 
 class Line:
+    "A line in a Matplotlib plot wrapping a TimeSeries."
     colors = cycle('blue orange green red purple brown pink gray olive cyan'
                    .split())
 
-    "A line in a Matplotlib plot wrapping a TimeSeries."
-    def __init__(self, owner, desc, series):
-        self.owner = owner
-        self.desc = desc
-        self.series = series
+    def __init__(self, owner, name, series, desc):
+        self.owner = owner      # Owning object.
+        self._name = name       # Brief description.
+        self.series = series    # Time series.
+        self.desc = desc        # Brief description.
+        self.draw = True        # Plot this line?
         self.color = next(self.colors)
-        self.draw = True
 
     @property
-    def label(self):
-        return f"{self.owner.name}.{self.desc}"
+    def name(self):
+        return f"{self.owner.name}.{self._name}"
 
     @property
     def ready(self):
@@ -257,100 +311,67 @@ class Line:
         if self.ready and self.draw:
             x = self.series.t
             y = self.series.y
-            axes.plot(x, y, color=self.color, label=self.label)
+            axes.plot(x, y, color=self.color, label=self.name)
 
 
 class Model(EventHandler):
     "Model of an application using the MPS."
-    def __init__(self, batches):
-        self._batches = batches
+    def __init__(self, events):
+        "Create model based on function generating telemetry events."
+        self._events = events
         self._intern = {}       # stringId -> string
         self._label = {}        # address or pointer -> stringId
-        self.arena = {}         # pointer -> Arena
-        self.arenas = []
-        self.lines = []         # list(Line)
-        self.clocks_per_second = 1000000.0
-        self.sync = TimeSeries() # Time series of EventClockSync events.
-        self._needs_redraw = False # Plot needs redrawing?
+        self._arena = {}        # pointer -> Arena (for live arenas)
+        self.arenas = []        # All arenas created in the model.
+        self.lines = []         # All time series available for plotting.
+        self._needs_redraw = True # Plot needs redrawing?
 
-    def add_time_series(self, owner, desc, series):
+    def add_time_series(self, owner, name, series, desc):
         "Add a time series to the model."
-        self.lines.append(Line(owner, desc, series))
+        self.lines.append(Line(owner, name, series, desc))
 
     def label(self, pointer):
         "Return string labelling address or pointer, or None if unlabelled."
         return self._intern.get(self._label.get(pointer))
 
-    @property
-    def eventclocks_to_seconds(self):
-        "Return function converting eventclocks to seconds."
-
     def plot(self, axes):
         "Draw time series on the given axes."
-        axes.clear()
-        axes.set_xlabel("time (seconds)")
-        axes.set_ylabel("bytes")
-        for line in self.lines:
-            line.plot(axes)
-        axes.figure.canvas.draw()
+        if self._needs_redraw:
+            self._needs_redraw = False
+            axes.clear()
+            axes.set_xlabel("time (seconds)")
+            axes.set_ylabel("bytes")
+            for line in self.lines:
+                line.plot(axes)
+            axes.figure.canvas.draw()
 
-    def update(self, axes, paused):
-        EventClockSync_code = mpsevent.Event.EventClockSync.code
+    def update(self):
+        "Consume available telemetry events and update the model."
         try:
-            for batch in self._batches():
-                sync = batch[-1]
-                assert sync.header.code == EventClockSync_code
-                self.sync.append(sync.header.clock, sync.clock)
-
-                # The Time Stamp Counter frequency can vary due to
-                # thermal throttling, turbo boost etc., so use linear
-                # interpolation within each batch to convert to clocks
-                # and thence to seconds.
-                # 
-                # In theory the Time Stamp Counter can wrap around,
-                # but it is a 64-bit register even on IA-32, and at
-                # 2.5 GHz it will take hundreds of years to do so, so
-                # we ignore this possibility.
-                self.sync.t = eventclocks = self.sync.t[-2:]
-                self.sync.y = clocks = self.sync.y[-2:]
-                cps = self.clocks_per_second
-                seconds = lambda e: np.interp(e, eventclocks, clocks) / cps
-
-                for event in batch:
-                    self.handle(seconds(event.header.clock), event)
-                if len(self.sync.t) >= 2:
-                    self.needs_redraw()
+            for t, event in self._events():
+                self.handle(t, event)
         except BlockingIOError:
             pass
-        if self._needs_redraw and not paused:
-            self._needs_redraw = False
-            self.plot(axes)
 
-    def needs_redraw(self, *args):
+    def needs_redraw(self):
+        "Call this when the model needs redrawing."
         self._needs_redraw = True
 
     def delegate_to_arena(self, t, event):
         "Handle a telemetry event by delegating to the arena model."
         addr = event.arena
         try:
-            arena = self.arena[addr]
+            arena = self._arena[addr]
         except KeyError:
-            self.arena[addr] = arena = Arena(self, addr)
+            self._arena[addr] = arena = Arena(self, addr)
             self.arenas.append(arena)
         arena.handle(t, event)
 
     ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = PoolInit = \
         PoolFinish = delegate_to_arena
 
-    def EventInit(self, t, event):
-        stream_version = event.major, event.median
-        monitor_version = mpsevent.__version__[:2]
-        if stream_version != monitor_version:
-            raise RuntimeError("Monitor version {} is incompatible with "
-                               "telemetry stream version {}.".format(
-                                   '.'.join(map(str, monitor_version)),
-                                   '.'.join(map(str, stream_version))))
-        self.clocks_per_second = event.clocksPerSec
+    def EventClockSync(self, t, event):
+        self.needs_redraw()
 
     def Intern(self, t, event):
         self._intern[event.stringId] = event.string.decode('ascii', 'replace')
@@ -362,87 +383,111 @@ class Model(EventHandler):
         self._label[event.pointer] = event.stringId
 
     def ArenaDestroy(self, t, event):
-        del self.arena[event.arena]
+        del self._arena[event.arena]
 
 
 class ApplicationToolbar(NavigationToolbar):
-    def __init__(self, *args, **kwargs):
+    "Subclass of Matplotlib's navigation toolbar adding a pause button."
+    def __init__(self, *args):
         self.toolitems += (('Pause', 'Pause', PAUSE_ICON, 'pause'),)
-        super().__init__(*args, **kwargs)
+        super().__init__(*args)
         self._actions['pause'].setCheckable(True)
         self.paused = False
 
     def pause(self):
+        "Toggle the pause button."
         self.paused = not self.paused
         self._actions['pause'].setChecked(self.paused)
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
-    def __init__(self, model, title):
+    """PyQt5 application displaying time series derived from MPS telemetry
+    output.
+
+    """
+    def __init__(self, model : Model, title : str):
+        """Create application. 'model' is the MPS model whose time series are
+        to be displayed, and 'title' is the main window title.
+
+        """
         super().__init__()
 
-        self._model = model
-        self._home = None
-        self._main = QtWidgets.QWidget()
-        self.setWindowTitle(title)
-        self.setCentralWidget(self._main)
+        self._model = model      # The MPS model.
+        self._home_limits = None # Limits of the graph in "home" position.
+        self._line_checkbox = {} # Line -> QCheckbox
 
+        self.setWindowTitle(title)
+
+        # Control-W (Command-W on macOS) shortcut for closing the window.
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self)
         shortcut.activated.connect(self.close)
 
-        main_layout = QtWidgets.QHBoxLayout(self._main)
+        main = QtWidgets.QWidget()
+        self.setCentralWidget(main)
+        main_layout = QtWidgets.QHBoxLayout(main)
 
-        self._lines_scroll = QtWidgets.QScrollArea()
-        self._lines_widget = QtWidgets.QWidget()
-        self._lines_scroll.setWidget(self._lines_widget)
-        self._lines_scroll.setWidgetResizable(True)
-        self._lines_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-
-        self._line_checkbox = {}
-        lines_layout = QtWidgets.QVBoxLayout(self._lines_widget)
+        # Scrollable list of checkboxes, one for each time series.
         self._lines = QtWidgets.QVBoxLayout()
+        self._lines_scroll = QtWidgets.QScrollArea(
+            horizontalScrollBarPolicy=QtCore.Qt.ScrollBarAlwaysOff)
+        self._lines_widget = QtWidgets.QWidget()
+        lines_layout = QtWidgets.QVBoxLayout(self._lines_widget)
         lines_layout.addLayout(self._lines)
         lines_layout.addStretch(1)
+        self._lines_scroll.setWidget(self._lines_widget)
+        self._lines_scroll.setWidgetResizable(True)
         main_layout.addWidget(self._lines_scroll)
 
+        # Matplot canvas and toolbar.
         canvas = FigureCanvas(Figure(figsize=(10, 6)))
+        self._axes = canvas.figure.subplots()
         main_layout.addWidget(canvas)
-
         self._toolbar = ApplicationToolbar(canvas, self)
         self.addToolBar(QtCore.Qt.BottomToolBarArea, self._toolbar)
 
-        self._axes = canvas.figure.subplots()
+        # Call self._update in a loop forever.
         self._update()
-
         self._timer = canvas.new_timer(100, [(self._update, (), {})])
         self._timer.start()
 
     @property
     def _limits(self):
+        "Current x and y limits of the Matplotlib graph."
         return self._axes.get_xlim(), self._axes.get_ylim()
 
     def _update(self):
-        if not self._toolbar.paused and self._home not in (None, self._limits):
+        "Update the model and redraw if not paused."
+        if (not self._toolbar.paused
+            and self._home_limits not in (None, self._limits)):
+            # Limits changed (for example, because user zoomed in), so pause
+            # further updates to give user a chance to explore.
             self._toolbar.pause()
-            self._home = None
-        self._model.update(self._axes, self._toolbar.paused)
+            self._home_limits = None
+        self._model.update()
         if not self._toolbar.paused:
-            self._home = self._limits
+            self._model.plot(self._axes)
+            self._home_limits = self._limits
+
+        # Find new time series and create corresponding checkboxes.
         for line in self._model.lines:
-            if line.ready:
-                label = line.label
-                if line in self._line_checkbox:
-                    self._line_checkbox[line].setText(label)
-                else:
-                    checkbox = QtWidgets.QCheckBox(label)
-                    self._line_checkbox[line] = checkbox
-                    checkbox.setChecked(True)
-                    self._lines.addWidget(checkbox)
-                    def state_changed(state, line=line):
-                        line.draw = bool(state)
-                        self._model.needs_redraw()
-                    checkbox.stateChanged.connect(state_changed)
-                    checkbox.setStyleSheet(f"color:{line.color}")
+            if not line.ready:
+                continue
+            if line in self._line_checkbox:
+                # A line's name can change dynamically (for example, because
+                # of the creation of a second arena, or a Label event), so
+                # ensure that it is up to date.
+                self._line_checkbox[line].setText(line.name)
+            else:
+                checkbox = QtWidgets.QCheckBox(line.name)
+                self._line_checkbox[line] = checkbox
+                checkbox.setChecked(True)
+                checkbox.setToolTip(line.desc)
+                self._lines.addWidget(checkbox)
+                def state_changed(state, line=line):
+                    line.draw = bool(state)
+                    self._model.needs_redraw()
+                checkbox.stateChanged.connect(state_changed)
+                checkbox.setStyleSheet(f"color:{line.color}")
         self._lines_scroll.setFixedWidth(
             self._lines_widget.sizeHint().width())
 
@@ -459,7 +504,7 @@ def main():
     fd = os.open(args.telemetry, os.O_NONBLOCK, os.O_RDONLY)
     read = os.fdopen(fd, 'rb').read
 
-    model = Model(batch_decoder(read))
+    model = Model(telemetry_decoder(read))
     qapp = QtWidgets.QApplication([])
     app = ApplicationWindow(model, args.telemetry)
     app.show()
