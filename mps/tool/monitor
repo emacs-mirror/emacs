@@ -193,21 +193,20 @@ class MovingAverageRatio(TimeSeries):
     "Exponentially weighted moving average on/off ratio."
     def __init__(self, t, alpha=0.99):
         super().__init__()
-        self._on = self._off = 0.0
+        self._on = 0.0
+        self._off = 0.0
         self._last = t
         self._alpha = alpha
         self._beta = 1 - alpha
-        self._ratio = 0.0
 
     def off(self, t):
-        self._on = t - self._last
+        self._on = self._on * self._alpha + (t - self._last) * self._beta
         self._last = t
-        ratio = self._on / (self._on + self._off)
-        self._ratio = self._ratio * self._alpha + ratio * self._beta
+        self._ratio = self._on / (self._on + self._off)
         self.append(t, self._ratio)
 
     def on(self, t):
-        self._off = t - self._last
+        self._off = self._off * self._alpha + (t - self._last) * self._beta
         self._last = t
 
 
