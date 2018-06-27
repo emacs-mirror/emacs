@@ -54,7 +54,7 @@ extern Word EventKindControl;
   BEGIN \
     if(EVENT_ALL || Event##name##Always) { /* see config.h */ \
       Event##name##Struct *_event; \
-      size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
+      size_t _size = size_tAlignUp(structSize, EVENT_ALIGN); \
       if (_size > (size_t)(EventLast[Event##name##Kind] \
                            - EventBuffer[Event##name##Kind])) \
         EventFlush(Event##name##Kind); \
