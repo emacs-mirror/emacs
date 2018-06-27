@@ -339,10 +339,9 @@ class Line:
 
     def plot(self, axes):
         "Plot line on axes."
-        if self.ready and self.draw:
-            x = self.series.t
-            y = self.series.y
-            axes.plot(x, y, color=self.color, label=self.name)
+        x = self.series.t
+        y = self.series.y
+        axes.plot(x, y, color=self.color, label=self.name)
 
 
 class Model(EventHandler):
@@ -355,14 +354,12 @@ class Model(EventHandler):
         self._arena = {}        # pointer -> Arena (for live arenas)
         self.arenas = []        # All arenas created in the model.
         self.lines = []         # All Lines available for plotting.
-        self._unit_lines = defaultdict(list) # Lines collated by unit.
         self._needs_redraw = True # Plot needs redrawing?
 
     def add_time_series(self, *args):
         "Add a time series to the model."
         line = Line(*args)
         self.lines.append(line)
-        self._unit_lines[line.unit].append(line)
 
     def label(self, pointer):
         "Return string labelling address or pointer, or None if unlabelled."
@@ -373,15 +370,29 @@ class Model(EventHandler):
         if not self._needs_redraw:
             return
         self._needs_redraw = False
-        # Determine which unit to plot on each axis.
-        lines_list = sorted(self._unit_lines.values(), key=len, reverse=True)
-        for axes in axes_list:
+
+        # Collate drawable lines by unit.
+        unit_lines = defaultdict(list)
+        for line in self.lines:
+            if line.ready and line.draw:
+                unit_lines[line.unit].append(line)
+
+        # Assign units to axes.
+        axes_iter = iter(axes_list)
+        lines_iter = iter(sorted(unit_lines.values(), key=len, reverse=True))
+        for lines, axes in zip(lines_iter, axes_iter):
+            axes.set_axis_on()
             axes.clear()
             axes.set_xlabel("time (seconds)")
-        for axes, lines in zip(axes_list, lines_list):
             axes.set_ylabel(lines[0].unit)
             for line in lines:
                 line.plot(axes)
+            axes.figure.canvas.draw()
+
+        # Remaining axes are not needed.
+        for axes in axes_iter:
+            axes.clear()
+            axes.set_axis_off()
             axes.figure.canvas.draw()
 
     def update(self):
