@@ -548,12 +548,11 @@ def main():
     def decoder_thread():
         with open(args.telemetry, 'rb') as f:
             decoder = telemetry_decoder(f.read)
-            while True:
+            while not stop.isSet():
                 for batch in decoder():
                     if stop.isSet():
-                        return
-                    else:
-                        event_queue.put(batch)
+                        break
+                    event_queue.put(batch)
 
     thread = threading.Thread(target=decoder_thread)
     thread.start()
