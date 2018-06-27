@@ -86,69 +86,73 @@ def telemetry_decoder(read):
         # Key function for sorting events into time order.
         return event.header.clock
 
-    # Generate batches of events decoded from the I/O stream.
-    while True:
-        header_data = read(header_size)
-        if not header_data:
-            break
-        header = header_desc(*header_unpack(header_data))
-        code = header.code
-        size = header.size - header_size
-        if code == Intern_code:
-            event_desc = event_dict[code]
-            assert size <= event_desc.maxsize
-            event = Intern_namedtuple(
-                header,
-                *Intern_unpack(read(Intern_size)),
-                read(size - Intern_size).rstrip(b'\0'))
-        elif code in event_dict:
-            event_desc = event_dict[code]
-            assert size == event_desc.maxsize
-            event = event_namedtuple[code](
-                header, *event_unpack[code](read(size)))
-        else:
-            # Unknown code might indicate a new event added since
-            # mpsevent.py was updated, so just read and ignore.
-            read(size)
-            continue
+    def decoder():
+        # Generate batches of events decoded from the I/O stream.
+        nonlocal clocks_per_sec
+        while True:
+            header_data = read(header_size)
+            if not header_data:
+                break
+            header = header_desc(*header_unpack(header_data))
+            code = header.code
+            size = header.size - header_size
+            if code == Intern_code:
+                event_desc = event_dict[code]
+                assert size <= event_desc.maxsize
+                event = Intern_namedtuple(
+                    header,
+                    *Intern_unpack(read(Intern_size)),
+                    read(size - Intern_size).rstrip(b'\0'))
+            elif code in event_dict:
+                event_desc = event_dict[code]
+                assert size == event_desc.maxsize
+                event = event_namedtuple[code](
+                    header, *event_unpack[code](read(size)))
+            else:
+                # Unknown code might indicate a new event added since
+                # mpsevent.py was updated, so just read and ignore.
+                read(size)
+                continue
 
-        batch.append(event)
-        if event.header.code == EventClockSync_code:
-            # Events are output in batches terminated by an EventClockSync
-            # event. So when we see an EventClockSync event, we know that
-            # we've received all events up to that one and can sort and
-            # emit the batch.
-            #
-            # The Time Stamp Counter frequency can vary due to thermal
-            # throttling, turbo boost etc., so linearly interpolate within
-            # each batch to convert to clocks and thence to seconds. (This
-            # requires at least two EventClockSync events.)
-            #
-            # In theory the Time Stamp Counter can wrap around, but it is
-            # a 64-bit register even on IA-32, and at 2.5 GHz it will take
-            # hundreds of years to do so, so we ignore this possibility.
-            # 
-            # TODO: on 32-bit platforms at 1 MHz, clock values will wrap
-            # around in about 72 minutes and so this needs to be handled.
-            eventclocks.append(event.header.clock)
-            clocks.append(event.clock)
-            if len(clocks) == 2:
-                batch.sort(key=key)
-                # Solve for: seconds = m * eventclocks + c
-                m = ((clocks[1] - clocks[0])
-                     / ((eventclocks[1] - eventclocks[0]) * clocks_per_sec))
-                c = clocks[0] / clocks_per_sec - m * eventclocks[0]
-                yield [(m * e.header.clock + c, e) for e in batch]
-                batch.clear()
-        elif event.header.code == EventInit_code:
-            stream_version = event.major, event.median, event.minor
-            if stream_version[:2] != mpsevent.__version__[:2]:
-                raise RuntimeError(
-                    "Monitor version {} is incompatible with "
-                    "telemetry stream version {}.".format(
-                        '.'.join(map(str, mpsevent.__version__)),
-                        '.'.join(map(str, stream_version))))
-            clocks_per_sec = event.clocksPerSec
+            batch.append(event)
+            if event.header.code == EventClockSync_code:
+                # Events are output in batches terminated by an EventClockSync
+                # event. So when we see an EventClockSync event, we know that
+                # we've received all events up to that one and can sort and
+                # emit the batch.
+                #
+                # The Time Stamp Counter frequency can vary due to thermal
+                # throttling, turbo boost etc., so linearly interpolate within
+                # each batch to convert to clocks and thence to seconds. (This
+                # requires at least two EventClockSync events.)
+                #
+                # In theory the Time Stamp Counter can wrap around, but it is
+                # a 64-bit register even on IA-32, and at 2.5 GHz it will take
+                # hundreds of years to do so, so we ignore this possibility.
+                # 
+                # TODO: on 32-bit platforms at 1 MHz, clock values will wrap
+                # around in about 72 minutes and so this needs to be handled.
+                eventclocks.append(event.header.clock)
+                clocks.append(event.clock)
+                if len(clocks) == 2:
+                    batch.sort(key=key)
+                    # Solve for: seconds = m * eventclocks + c
+                    m = ((clocks[1] - clocks[0])
+                         / ((eventclocks[1] - eventclocks[0]) * clocks_per_sec))
+                    c = clocks[0] / clocks_per_sec - m * eventclocks[0]
+                    yield [(m * e.header.clock + c, e) for e in batch]
+                    batch.clear()
+            elif event.header.code == EventInit_code:
+                stream_version = event.major, event.median, event.minor
+                if stream_version[:2] != mpsevent.__version__[:2]:
+                    raise RuntimeError(
+                        "Monitor version {} is incompatible with "
+                        "telemetry stream version {}.".format(
+                            '.'.join(map(str, mpsevent.__version__)),
+                            '.'.join(map(str, stream_version))))
+                clocks_per_sec = event.clocksPerSec
+
+    return decoder
 
 
 class TimeSeries:
@@ -539,11 +543,17 @@ def main():
         help="telemetry output from the MPS instance")
     args = parser.parse_args()
     event_queue = queue.Queue()
+    stop = threading.Event()
 
     def decoder_thread():
         with open(args.telemetry, 'rb') as f:
-            for batch in telemetry_decoder(f.read):
-                event_queue.put(batch)
+            decoder = telemetry_decoder(f.read)
+            while True:
+                for batch in decoder():
+                    if stop.isSet():
+                        return
+                    else:
+                        event_queue.put(batch)
 
     thread = threading.Thread(target=decoder_thread)
     thread.start()
@@ -551,7 +561,10 @@ def main():
     qapp = QtWidgets.QApplication([])
     app = ApplicationWindow(model, args.telemetry)
     app.show()
-    return qapp.exec_()
+    result = qapp.exec_()
+    stop.set()
+    thread.join()
+    return result
 
 
 if __name__ == '__main__':
