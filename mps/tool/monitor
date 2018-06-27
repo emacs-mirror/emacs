@@ -553,28 +553,29 @@ def main():
         default=os.environ.get('MPS_TELEMETRY_FILENAME', 'mpsio.log'),
         help="telemetry output from the MPS instance")
     args = parser.parse_args()
-    event_queue = queue.Queue()
-    stop = threading.Event()
 
-    def decoder_thread():
-        with open(args.telemetry, 'rb') as f:
-            decoder = telemetry_decoder(f.read)
+    with open(args.telemetry, 'rb') as telemetry_file:
+        event_queue = queue.Queue()
+        stop = threading.Event()
+
+        def decoder_thread():
+            decoder = telemetry_decoder(telemetry_file.read)
             while not stop.isSet():
                 for batch in decoder():
                     if stop.isSet():
                         break
                     event_queue.put(batch)
 
-    thread = threading.Thread(target=decoder_thread)
-    thread.start()
-    model = Model(event_queue)
-    qapp = QtWidgets.QApplication([])
-    app = ApplicationWindow(model, args.telemetry)
-    app.show()
-    result = qapp.exec_()
-    stop.set()
-    thread.join()
-    return result
+        thread = threading.Thread(target=decoder_thread)
+        thread.start()
+        model = Model(event_queue)
+        qapp = QtWidgets.QApplication([])
+        app = ApplicationWindow(model, args.telemetry)
+        app.show()
+        result = qapp.exec_()
+        stop.set()
+        thread.join()
+        return result
 
 
 if __name__ == '__main__':
