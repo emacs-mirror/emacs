@@ -57,21 +57,13 @@ typedef struct mps_pool_class_s {
   PoolInitMethod init;          /* initialize the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
   PoolFreeMethod free;          /* free memory to pool */
+  PoolSegPoolGenMethod segPoolGen; /* get pool generation of segment */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
-  PoolAccessMethod access;      /* handles read/write accesses */
-  PoolWhitenMethod whiten;      /* whiten objects in a segment */
-  PoolGreyMethod grey;          /* grey non-white objects */
-  PoolBlackenMethod blacken;    /* blacken grey objects without scanning */
-  PoolScanMethod scan;          /* find references during tracing */
-  PoolFixMethod fix;            /* referent reachable during tracing */
-  PoolFixMethod fixEmergency;   /* as fix, no failure allowed */
-  PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */
   PoolFramePopMethod framePop;  /* pop an allocation frame */
-  PoolWalkMethod walk;          /* walk over a segment */
   PoolFreeWalkMethod freewalk;  /* walk over free blocks */
   PoolBufferClassMethod bufferClass; /* default BufferClass of pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
@@ -102,9 +94,9 @@ typedef struct mps_pool_s {     /* generic structure */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */
   Serial bufferSerial;          /* serial of next buffer */
   RingStruct segRing;           /* segs are attached to pool */
-  Align alignment;              /* alignment for units */
-  Format format;                /* format only if class->attr&AttrFMT */
-  PoolFixMethod fix;            /* fix method */
+  Align alignment;              /* alignment for grains */
+  Shift alignShift;             /* log2(alignment) */
+  Format format;                /* format or NULL */
 } PoolStruct;
 
 
@@ -228,6 +220,15 @@ typedef struct SegClassStruct {
   SegSetRankSummaryMethod setRankSummary; /* change rank set & summary */
   SegMergeMethod merge;         /* merge two adjacent segments */
   SegSplitMethod split;         /* split a segment into two */
+  SegAccessMethod access;       /* handles read/write accesses */
+  SegWhitenMethod whiten;       /* whiten objects */
+  SegGreyenMethod greyen;       /* greyen non-white objects */
+  SegBlackenMethod blacken;     /* blacken grey objects without scanning */
+  SegScanMethod scan;           /* find references during tracing */
+  SegFixMethod fix;             /* referent reachable during tracing */
+  SegFixMethod fixEmergency;    /* as fix, no failure allowed */
+  SegReclaimMethod reclaim;     /* reclaim dead objects after tracing */
+  SegWalkMethod walk;           /* walk over a segment */
   Sig sig;                      /* .class.end-sig */
 } SegClassStruct;
 
@@ -417,8 +418,7 @@ typedef struct ScanStateStruct {
   Sig sig;                      /* <design/sig/> */
   struct mps_ss_s ss_s;         /* .ss <http://bash.org/?400459> */
   Arena arena;                  /* owning arena */
-  PoolFixMethod fix;            /* third stage fix function */
-  void *fixClosure;             /* closure data for fix */
+  SegFixMethod fix;             /* third stage fix function */
   TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
@@ -449,8 +449,7 @@ typedef struct TraceStruct {
   TraceState state;             /* current state of trace */
   Rank band;                    /* current band */
   Bool firstStretch;            /* in first stretch of band (see accessor) */
-  PoolFixMethod fix;            /* fix method to apply to references */
-  void *fixClosure;             /* closure information for fix method */
+  SegFixMethod fix;             /* fix method to apply to references */
   Chain chain;                  /* chain being incrementally collected */
   STATISTIC_DECL(Size preTraceArenaReserved) /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */

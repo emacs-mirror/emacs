@@ -1,17 +1,17 @@
 /* protw3.c: PROTECTION FOR WIN32
  *
  *  $Id$
- *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "prmcw3.h"
-#include "vm.h" /* PageSize */
 
-#ifndef MPS_OS_W3
-#error "protw3.c is Win32-specific, but MPS_OS_W3 is not set"
+#if !defined(MPS_OS_W3)
+#error "protw3.c is specific to MPS_OS_W3"
 #endif
 
 #include "mpswin.h"
+#include "vm.h" /* PageSize */
 
 SRCID(protw3, "$Id$");
 
@@ -138,7 +138,7 @@ void ProtSync(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
