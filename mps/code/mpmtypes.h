@@ -105,6 +105,7 @@ typedef struct LandClassStruct *LandClass; /* <design/land/> */
 typedef unsigned FindDelete;            /* <design/land/> */
 typedef struct ShieldStruct *Shield; /* design.mps.shield */
 typedef struct HistoryStruct *History;  /* design.mps.arena.ld */
+typedef struct PoolGenStruct *PoolGen;  /* <design/strategy/> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -164,6 +165,17 @@ typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
+typedef Res (*SegAccessMethod)(Seg seg, Arena arena, Addr addr,
+                               AccessSet mode, MutatorContext context);
+typedef Res (*SegWhitenMethod)(Seg seg, Trace trace);
+typedef void (*SegGreyenMethod)(Seg seg, Trace trace);
+typedef void (*SegBlackenMethod)(Seg seg, TraceSet traceSet);
+typedef Res (*SegScanMethod)(Bool *totalReturn, Seg seg, ScanState ss);
+typedef Res (*SegFixMethod)(Seg seg, ScanState ss, Ref *refIO);
+typedef void (*SegReclaimMethod)(Seg seg, Trace trace);
+typedef void (*SegWalkMethod)(Seg seg, Format format, FormattedObjectsVisitor f,
+                              void *v, size_t s);
+
 
 /* Buffer*Method -- see <design/buffer/> */
 
@@ -186,27 +198,17 @@ typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*PoolInitMethod)(Pool pool, Arena arena, PoolClass klass, ArgList args);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
+typedef PoolGen (*PoolSegPoolGenMethod)(Pool pool, Seg seg);
 typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size);
 typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,
                                       Addr init, Addr limit);
-typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
-                                AccessSet mode, MutatorContext context);
-typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg);
-typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg);
-typedef void (*PoolBlackenMethod)(Pool pool, TraceSet traceSet, Seg seg);
-typedef Res (*PoolScanMethod)(Bool *totalReturn, ScanState ss,
-                              Pool pool, Seg seg);
-typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
-typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                               void *v, size_t s);
 typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockVisitor f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
@@ -272,10 +274,9 @@ typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range
 #define TraceSetUNIV    ((TraceSet)((1u << TraceLIMIT) - 1))
 #define RankSetEMPTY    BS_EMPTY(RankSet)
 #define RankSetUNIV     ((RankSet)((1u << RankLIMIT) - 1))
-#define AttrFMT         ((Attr)(1<<0))  /* <design/type/#attr> */
-#define AttrGC          ((Attr)(1<<1))
-#define AttrMOVINGGC    ((Attr)(1<<2))
-#define AttrMASK        (AttrFMT | AttrGC | AttrMOVINGGC)
+#define AttrGC          ((Attr)(1<<0))
+#define AttrMOVINGGC    ((Attr)(1<<1))
+#define AttrMASK        (AttrGC | AttrMOVINGGC)
 
 
 /* Locus preferences */

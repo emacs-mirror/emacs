@@ -107,6 +107,7 @@ static void ArenaNoDestroy(Arena arena)
 DEFINE_CLASS(Inst, ArenaClass, klass)
 {
   INHERIT_CLASS(klass, ArenaClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 
@@ -132,6 +133,7 @@ DEFINE_CLASS(Arena, AbstractArena, klass)
   klass->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
   klass->chunkPageMapped = ArenaNoChunkPageMapped;
   klass->sig = ArenaClassSig;
+  AVERT(ArenaClass, klass);
 }
 
 
@@ -154,6 +156,15 @@ Bool ArenaClassCheck(ArenaClass klass)
   CHECKL(FUNCHECK(klass->compact));
   CHECKL(FUNCHECK(klass->pagesMarkAllocated));
   CHECKL(FUNCHECK(klass->chunkPageMapped));
+
+  /* Check that arena classes override sets of related methods. */
+  CHECKL((klass->init == ArenaAbsInit)
+         == (klass->instClassStruct.finish == ArenaAbsFinish));
+  CHECKL((klass->create == ArenaNoCreate)
+         == (klass->destroy == ArenaNoDestroy));
+  CHECKL((klass->chunkInit == ArenaNoChunkInit)
+         == (klass->chunkFinish == ArenaNoChunkFinish));
+
   CHECKS(ArenaClass, klass);
   return TRUE;
 }

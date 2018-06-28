@@ -45,12 +45,15 @@ typedef struct SNCStruct {
 
 typedef SNC SNCPool;
 #define SNCPoolCheck SNCCheck
-DECLARE_CLASS(Pool, SNCPool, AbstractScanPool);
+DECLARE_CLASS(Pool, SNCPool, AbstractSegBufPool);
 
 DECLARE_CLASS(Seg, SNCSeg, GCSeg);
 DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
+static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss);
+static void sncSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s);
 
 
 /* Management of segment chains
@@ -161,6 +164,7 @@ DEFINE_CLASS(Buffer, SNCBuf, klass)
   klass->instClassStruct.finish = SNCBufFinish;
   klass->size = sizeof(SNCBufStruct);
   klass->init = SNCBufInit;
+  AVERT(BufferClass, klass);
 }
 
 
@@ -225,14 +229,32 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 }
 
 
+/* sncSegFinish -- finish an SNC segment */
+
+static void sncSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  SNCSeg sncseg = MustBeA(SNCSeg, seg);
+
+  sncseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, SNCSeg, finish)(inst);
+}
+
+
 /* SNCSegClass -- Class definition for SNC segments */
 
 DEFINE_CLASS(Seg, SNCSeg, klass)
 {
   INHERIT_CLASS(klass, SNCSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.finish = sncSegFinish;
   klass->size = sizeof(SNCSegStruct);
   klass->init = sncSegInit;
+  klass->scan = sncSegScan;
+  klass->walk = sncSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -367,6 +389,7 @@ static Res SNCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(pool->format != NULL);
 
   pool->alignment = pool->format->alignment;
+  pool->alignShift = SizeLog2(pool->alignment);
   snc->freeSegs = NULL;
 
   SetClassOfPoly(pool, CLASS(SNCPool));
@@ -480,24 +503,20 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
 }
 
 
-static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
   Addr base, limit;
   Format format;
-  SNC snc;
   Res res;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
-  AVERT(Pool, pool);
-  snc = PoolSNC(pool);
-  AVERT(SNC, snc);
 
-  format = pool->format;
+  format = SegPool(seg)->format;
   base = SegBase(seg);
   limit = SegBufferScanLimit(seg);
- 
+
   if (base < limit) {
     res = FormatScan(format, ss, base, limit);
     if (res != ResOK) {
@@ -588,11 +607,11 @@ static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
 }
 
 
-static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                    void *p, size_t s)
+static void sncSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s)
 {
-  AVERT(Pool, pool);
   AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
 
@@ -602,12 +621,8 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Addr object = SegBase(seg);
     Addr nextObject;
     Addr limit;
-    SNC snc;
-    Format format;
+    Pool pool = SegPool(seg);
 
-    snc = PoolSNC(pool);
-    AVERT(SNC, snc);
-    format = pool->format;
     limit = SegBufferScanLimit(seg);
 
     while(object < limit) {
@@ -671,21 +686,19 @@ static Size SNCFreeSize(Pool pool)
 
 DEFINE_CLASS(Pool, SNCPool, klass)
 {
-  INHERIT_CLASS(klass, SNCPool, AbstractScanPool);
-  PoolClassMixInFormat(klass);
+  INHERIT_CLASS(klass, SNCPool, AbstractSegBufPool);
   klass->instClassStruct.finish = SNCFinish;
   klass->size = sizeof(SNCStruct);
   klass->varargs = SNCVarargs;
   klass->init = SNCInit;
   klass->bufferFill = SNCBufferFill;
   klass->bufferEmpty = SNCBufferEmpty;
-  klass->scan = SNCScan;
   klass->framePush = SNCFramePush;
   klass->framePop = SNCFramePop;
-  klass->walk = SNCWalk;
   klass->bufferClass = SNCBufClassGet;
   klass->totalSize = SNCTotalSize;
   klass->freeSize = SNCFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 
