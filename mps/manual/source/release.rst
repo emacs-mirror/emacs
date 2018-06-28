@@ -15,6 +15,15 @@ New features
 #. On FreeBSD, Linux and macOS, the MPS is now able to run in the
    child process after ``fork()``. See :ref:`topic-thread-fork`.
 
+#. The MPS now supports Windows Vista or later; it no longer supports
+   Windows XP. (Microsoft's own support for Windows XP `expired in
+   April 2014`_.) This is so that we can use |InitOnceExecuteOnce|_ to
+   ensure thread-safe initialization.
+
+   .. _expired in April 2014: https://www.microsoft.com/en-gb/windowsforbusiness/end-of-xp-support
+   .. |InitOnceExecuteOnce| replace:: ``InitOnceExecuteOnce()``
+   .. _InitOnceExecuteOnce: https://docs.microsoft.com/en-us/windows/desktop/api/synchapi/nf-synchapi-initonceexecuteonce
+
 
 .. _release-notes-1.116:
 
