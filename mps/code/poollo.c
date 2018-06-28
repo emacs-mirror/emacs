@@ -681,6 +681,7 @@ static Res loSegFix(Seg seg, ScanState ss, Ref *refIO)
   Pool pool = SegPool(seg);
   Ref clientRef;
   Addr base;
+  Index i;
 
   AVERT_CRITICAL(ScanState, ss);
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
@@ -688,39 +689,36 @@ static Res loSegFix(Seg seg, ScanState ss, Ref *refIO)
 
   clientRef = *refIO;
   base = AddrSub((Addr)clientRef, pool->format->headerSize);
-  /* can get an ambiguous reference to close to the base of the
-   * segment, so when we subtract the header we are not in the
-   * segment any longer.  This isn't a real reference,
-   * so we can just skip it.  */
+
+  /* Not a real reference if out of bounds. This can happen if an
+     ambiguous reference is closer to the base of the segment than the
+     header size. */
   if (base < SegBase(seg)) {
+    AVER(ss->rank == RankAMBIG);
     return ResOK;
   }
 
-  switch(ss->rank) {
-  case RankAMBIG:
-    if(!AddrIsAligned(base, PoolAlignment(pool))) {
-      return ResOK;
+  /* Not a real reference if unaligned. */
+  if (!AddrIsAligned(base, PoolAlignment(pool))) {
+    AVER(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  i = PoolIndexOfAddr(SegBase(seg), pool, base);
+
+  /* Not a real reference if unallocated. */
+  if (!BTGet(loseg->alloc, i)) {
+    AVER(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  if(!BTGet(loseg->mark, i)) {
+    ss->wasMarked = FALSE;  /* <design/fix/#was-marked.not> */
+    if(ss->rank == RankWEAK) {
+      *refIO = (Addr)0;
+    } else {
+      BTSet(loseg->mark, i);
     }
-  /* fall through */
-
-  case RankEXACT:
-  case RankFINAL:
-  case RankWEAK: {
-    Index i = PoolIndexOfAddr(SegBase(seg), pool, base);
-
-    if(!BTGet(loseg->mark, i)) {
-      ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
-      if(ss->rank == RankWEAK) {
-        *refIO = (Addr)0;
-      } else {
-        BTSet(loseg->mark, i);
-      }
-    }
-  } break;
-
-  default:
-    NOTREACHED;
-    break;
   }
 
   return ResOK;
