@@ -2,12 +2,16 @@
  *
  *  $Id$
  *
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
-#include "mps.h"
 
+#if !defined(MPS_OS_W3)
+#error "mpsiw3.c is specific to MPS_OS_W3"
+#endif
+
+#include "mps.h"
 #include "mpswin.h"
 
 SRCID(mpsiw3, "$Id$");
@@ -33,7 +37,7 @@ void mps_SEH_handler(void *p, size_t s)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

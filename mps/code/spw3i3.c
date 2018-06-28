@@ -1,7 +1,7 @@
 /* spw3i3.c: STACK PROBE FOR 32-BIT WINDOWS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * This function reads a location that is depth words beyond the
@@ -12,6 +12,10 @@
 
 
 #include "mpm.h"
+
+#if !defined(MPS_OS_W3) && !defined(MPS_ARCH_I3)
+#error "spw3i3.c is specific to MPS_OS_W3 and MPS_ARCH_I3"
+#endif
 
 #ifdef MPS_BUILD_PC
 
@@ -33,7 +37,7 @@ void StackProbe(Size depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

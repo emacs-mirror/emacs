@@ -204,6 +204,11 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 #define PoolArenaRing(pool) (&(pool)->arenaRing)
 #define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
 #define PoolHasAttr(pool, Attr) ((ClassOfPoly(Pool, pool)->attr & (Attr)) != 0)
+#define PoolSizeGrains(pool, size) ((size) >> (pool)->alignShift)
+#define PoolGrainsSize(pool, grains) ((grains) << (pool)->alignShift)
+#define PoolIndexOfAddr(base, pool, p) \
+  (AddrOffset((base), (p)) >> (pool)->alignShift)
+#define PoolAddrOfIndex(base, pool, i) AddrAdd(base, PoolGrainsSize(pool, i))
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
@@ -220,18 +225,8 @@ extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolFree(Pool pool, Addr old, Size size);
+extern PoolGen PoolSegPoolGen(Pool pool, Seg seg);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
-extern Res PoolAccess(Pool pool, Seg seg, Addr addr,
-                      AccessSet mode, MutatorContext context);
-extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
-extern void PoolGrey(Pool pool, Trace trace, Seg seg);
-extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
-extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
-extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                     void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
@@ -242,6 +237,7 @@ extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
 extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
 extern void PoolTrivFree(Pool pool, Addr old, Size size);
+extern PoolGen PoolNoSegPoolGen(Pool pool, Seg seg);
 extern Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
                             Pool pool, Buffer buffer, Size size);
 extern Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
@@ -253,21 +249,7 @@ extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
 extern Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
-extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
-                        AccessSet mode, MutatorContext context);
-extern Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
-                         AccessSet mode, MutatorContext context);
-extern Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
-                            AccessSet mode, MutatorContext context);
-extern Res PoolNoWhiten(Pool pool, Trace trace, Seg seg);
-extern Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg);
-extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
-extern void PoolTrivGrey(Pool pool, Trace trace, Seg seg);
-extern void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg);
-extern void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
@@ -276,8 +258,6 @@ extern Res PoolNoFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                       void *p, size_t s);
 extern void PoolTrivFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
@@ -286,17 +266,14 @@ extern Size PoolNoSize(Pool pool);
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
 extern void PoolClassMixInBuffer(PoolClass klass);
-extern void PoolClassMixInScan(PoolClass klass);
-extern void PoolClassMixInFormat(PoolClass klass);
 extern void PoolClassMixInCollect(PoolClass klass);
 DECLARE_CLASS(Inst, PoolClass, InstClass);
 DECLARE_CLASS(Pool, AbstractPool, Inst);
 DECLARE_CLASS(Pool, AbstractBufferPool, AbstractPool);
 DECLARE_CLASS(Pool, AbstractSegBufPool, AbstractBufferPool);
-DECLARE_CLASS(Pool, AbstractScanPool, AbstractSegBufPool);
 typedef Pool AbstractCollectPool;
 #define AbstractCollectPoolCheck PoolCheck
-DECLARE_CLASS(Pool, AbstractCollectPool, AbstractScanPool);
+DECLARE_CLASS(Pool, AbstractCollectPool, AbstractSegBufPool);
 
 
 /* Message Interface -- see <design/message/> */
@@ -667,6 +644,21 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi);
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at);
+extern Res SegAccess(Seg seg, Arena arena, Addr addr,
+                     AccessSet mode, MutatorContext context);
+extern Res SegWholeAccess(Seg seg, Arena arena, Addr addr,
+                          AccessSet mode, MutatorContext context);
+extern Res SegSingleAccess(Seg seg, Arena arena, Addr addr,
+                           AccessSet mode, MutatorContext context);
+extern Res SegWhiten(Seg seg, Trace trace);
+extern void SegGreyen(Seg seg, Trace trace);
+extern void SegBlacken(Seg seg, TraceSet traceSet);
+extern Res SegScan(Bool *totalReturn, Seg seg, ScanState ss);
+extern Res SegFix(Seg seg, ScanState ss, Addr *refIO);
+extern Res SegFixEmergency(Seg seg, ScanState ss, Addr *refIO);
+extern void SegReclaim(Seg seg, Trace trace);
+extern void SegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                    void *v, size_t s);
 extern Res SegAbsDescribe(Inst seg, mps_lib_FILE *stream, Count depth);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);

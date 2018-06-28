@@ -1014,6 +1014,13 @@ Bool BufferClassCheck(BufferClass klass)
   CHECKL(FUNCHECK(klass->rankSet));
   CHECKL(FUNCHECK(klass->setRankSet));
   CHECKL(FUNCHECK(klass->reassignSeg));
+
+  /* Check that buffer classes override sets of related methods. */
+  CHECKL((klass->init == BufferAbsInit)
+         == (klass->instClassStruct.finish == BufferAbsFinish));
+  CHECKL((klass->attach == bufferTrivAttach)
+         == (klass->detach == bufferTrivDetach));
+
   CHECKS(BufferClass, klass);
   return TRUE;
 }
@@ -1026,6 +1033,7 @@ Bool BufferClassCheck(BufferClass klass)
 DEFINE_CLASS(Inst, BufferClass, klass)
 {
   INHERIT_CLASS(klass, BufferClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 DEFINE_CLASS(Buffer, Buffer, klass)
@@ -1043,6 +1051,7 @@ DEFINE_CLASS(Buffer, Buffer, klass)
   klass->setRankSet = bufferNoSetRankSet;
   klass->reassignSeg = bufferNoReassignSeg;
   klass->sig = BufferClassSig;
+  AVERT(BufferClass, klass);
 }
 
 
@@ -1248,6 +1257,7 @@ DEFINE_CLASS(Buffer, SegBuf, klass)
   klass->rankSet = segBufRankSet;
   klass->setRankSet = segBufSetRankSet;
   klass->reassignSeg = segBufReassignSeg;
+  AVERT(BufferClass, klass);
 }
 
 
@@ -1304,6 +1314,7 @@ DEFINE_CLASS(Buffer, RankBuf, klass)
   INHERIT_CLASS(klass, RankBuf, SegBuf);
   klass->varargs = rankBufVarargs;
   klass->init = rankBufInit;
+  AVERT(BufferClass, klass);
 }
 
 

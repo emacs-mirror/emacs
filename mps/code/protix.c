@@ -35,15 +35,15 @@
  */
 
 #include "mpm.h"
-#include "vm.h"
 
-#if !defined(MPS_OS_LI) && !defined(MPS_OS_FR) && !defined(MPS_OS_XC)
-#error "protix.c is Unix-specific, currently for MPS_OS_LI FR XC"
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
+#error "protix.c is specific to MPS_OS_FR, MPS_OS_LI or MPS_OS_XC"
 #endif
+
+#include "vm.h"
 
 #include <limits.h>
 #include <stddef.h>
-
 #include <sys/mman.h>
 #include <sys/types.h>
 

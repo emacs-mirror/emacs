@@ -12,6 +12,12 @@
 SRCID(land, "$Id$");
 
 
+/* Forward declarations */
+
+static Res landNoInsert(Range rangeReturn, Land land, Range range);
+static Res landNoDelete(Range rangeReturn, Land land, Range range);
+
+
 /* FindDeleteCheck -- check method for a FindDelete value */
 
 Bool FindDeleteCheck(FindDelete findDelete)
@@ -409,6 +415,12 @@ Bool LandClassCheck(LandClass klass)
   CHECKL(FUNCHECK(klass->findLast));
   CHECKL(FUNCHECK(klass->findLargest));
   CHECKL(FUNCHECK(klass->findInZones));
+
+  /* Check that land classes override sets of related methods. */
+  CHECKL((klass->init == LandAbsInit)
+         == (klass->instClassStruct.finish == LandAbsFinish));
+  CHECKL((klass->insert == landNoInsert) == (klass->delete == landNoDelete));
+
   CHECKS(LandClass, klass);
   return TRUE;
 }
@@ -528,6 +540,7 @@ static Res LandAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 DEFINE_CLASS(Inst, LandClass, klass)
 {
   INHERIT_CLASS(klass, LandClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 DEFINE_CLASS(Land, Land, klass)
@@ -547,6 +560,7 @@ DEFINE_CLASS(Land, Land, klass)
   klass->findLargest = landNoFind;
   klass->findInZones = landNoFindInZones;
   klass->sig = LandClassSig;
+  AVERT(LandClass, klass);
 }
 
 
