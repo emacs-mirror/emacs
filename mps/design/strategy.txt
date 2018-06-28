@@ -424,7 +424,7 @@ other uses of that:
   pool.  Any non-white segment in the rampGen with new set to FALSE has
   its size added to ``poolGen->newSize`` and gets new set to TRUE.
 
-- in ``AMCWhiten()``, if new is TRUE, the segment size is deducted
+- in ``amcSegWhiten()``, if new is TRUE, the segment size is deducted
   from ``poolGen.newSize`` and new is set to FALSE.
 
 

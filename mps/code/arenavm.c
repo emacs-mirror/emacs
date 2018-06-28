@@ -1219,6 +1219,7 @@ DEFINE_CLASS(Arena, VMArena, klass)
   klass->compact = VMCompact;
   klass->pagesMarkAllocated = VMPagesMarkAllocated;
   klass->chunkPageMapped = VMChunkPageMapped;
+  AVERT(ArenaClass, klass);
 }
 
 

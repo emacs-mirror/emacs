@@ -349,6 +349,7 @@ DEFINE_CLASS(Pool, MFSPool, klass)
   klass->free = MFSFree;
   klass->totalSize = MFSTotalSize;
   klass->freeSize = MFSFreeSize;  
+  AVERT(PoolClass, klass);
 }
 
 
