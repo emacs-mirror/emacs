@@ -155,6 +155,13 @@ def telemetry_decoder(read):
     return decoder
 
 
+def bits_of_word(w, n):
+    "Generate the bits in the word w, which has n bits."
+    for _ in range(n):
+        w, bit = divmod(w, 2)
+        yield bit
+
+
 class TimeSeries:
     "Series of data points in time order."
     def __init__(self):
@@ -176,6 +183,7 @@ class Accumulator(TimeSeries):
 
     def add(self, t, delta):
         "Add delta to the accumulator at time t."
+        assert self.value >= -delta
         self.append(t, self.value)
         self.value += delta
         self.append(t, self.value)
@@ -271,7 +279,14 @@ class Arena(EventHandler):
         self._poll = MovingAverageRatio(t)
         self.model.add_time_series(
             self, self._poll, "fraction", "poll",
-            "polling fraction of CPU time (moving average)")
+            "polling time moving average")
+        self._gen_zoneset = {}   # generation pointer -> current zoneset
+        self._zone_ref_size = {} # zone -> Accumulator of bytes in segments
+                                 # referencing that zone
+        self._univ_size = Accumulator()
+        self.model.add_time_series(
+            self, self._univ_size, "bytes", "zone-ref-univ",
+            "size of segments referencing the universe")
 
     @property
     def name(self):
@@ -313,6 +328,30 @@ class Arena(EventHandler):
 
     def ArenaPollEnd(self, t, event):
         self._poll.off(t)
+
+    def ArenaGenZoneAdd(self, t, event):
+        self._gen_zoneset[event.gendesc] = event.zoneSet
+
+    def SegSetSummary(self, t, event):
+        n = self.model.word_width
+        univ = (1 << n) - 1
+        new_univ = event.newSummary == univ
+        old_univ = event.oldSummary == univ
+        self._univ_size.add(t, (new_univ - old_univ) * event.size)
+        old_summary = 0 if old_univ else event.oldSummary
+        new_summary = 0 if new_univ else event.newSummary
+        for zone, old, new in zip(reversed(range(n)),
+                                  bits_of_word(old_summary, n),
+                                  bits_of_word(new_summary, n)):
+            if new == old:
+                continue
+            if zone not in self._zone_ref_size:
+                a = Accumulator()
+                self._zone_ref_size[zone] = a
+                self.model.add_time_series(
+                    self, a, "bytes", f"zone-ref-{zone}",
+                    f"size of segments referencing zone {zone}")
+            self._zone_ref_size[zone].add(t, (new - old) * event.size)
 
 
 class Line:
@@ -420,8 +459,9 @@ class Model(EventHandler):
             self.arenas.append(arena)
         arena.handle(t, event)
 
-    ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = ArenaPollBegin = \
-        ArenaPollEnd = PoolInit = PoolFinish = delegate_to_arena
+    ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = \
+        ArenaGenZoneAdd = ArenaPollBegin = ArenaPollEnd = PoolInit = \
+        PoolFinish = SegSetSummary = delegate_to_arena
 
     def EventClockSync(self, t, event):
         self.needs_redraw()
@@ -437,6 +477,9 @@ class Model(EventHandler):
 
     def ArenaDestroy(self, t, event):
         del self._arena[event.arena]
+
+    def EventInit(self, t, event):
+        self.word_width = event.wordWidth
 
 
 class ApplicationToolbar(NavigationToolbar):
@@ -535,7 +578,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 checkbox = QtWidgets.QCheckBox(line.name)
                 self._line_checkbox[line] = checkbox
                 checkbox.setChecked(True)
-                checkbox.setToolTip(line.desc)
+                checkbox.setToolTip(f"{line.desc} ({line.unit})")
                 self._lines.addWidget(checkbox)
                 def state_changed(state, line=line):
                     line.draw = bool(state)
