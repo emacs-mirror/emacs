@@ -1101,7 +1101,11 @@ static void gcSegFinish(Inst inst)
     RingRemove(&gcseg->greyRing);
     seg->grey = TraceSetEMPTY;
   }
-  SegSetSummary(seg, RefSetEMPTY);
+
+  EVENT5(SegSetSummary, PoolArena(SegPool(seg)), seg, SegSize(seg),
+         gcseg->summary, RefSetEMPTY);
+
+  gcseg->summary = RefSetEMPTY;
 
   gcseg->sig = SigInvalid;
 
