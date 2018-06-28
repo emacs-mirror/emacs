@@ -20,6 +20,11 @@
  */
 
 #include "mpm.h"
+
+#if !defined(MPS_OS_XC)
+#error "protw3.c is specific to MPS_OS_XC"
+#endif
+
 #include "protxc.h"
 
 #include <mach/mach_init.h>

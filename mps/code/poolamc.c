@@ -1,7 +1,7 @@
 /* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/poolamc/>.
@@ -1518,8 +1518,6 @@ static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO)
   pool = SegPool(seg);
   arena = PoolArena(pool);
 
-  ss->wasMarked = TRUE;
-
   if(ss->rank == RankAMBIG)
     goto fixInPlace;
 
@@ -1570,10 +1568,6 @@ static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
   EVENT0(AMCFix);
-
-  /* For the moment, assume that the object was already marked. */
-  /* (See <design/fix/#protocol.was-marked>.) */
-  ss->wasMarked = TRUE;
 
   /* If the reference is ambiguous, set up the datastructures for */
   /* managing a nailed segment.  This involves marking the segment */
@@ -1641,8 +1635,7 @@ static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
     /* Object is not preserved yet (neither moved, nor nailed) */
     /* so should be preserved by forwarding. */
 
-    /* <design/fix/#protocol.was-marked> */
-    ss->wasMarked = FALSE;
+    ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
 
     /* Get the forwarding buffer from the object's generation. */
     gen = amcSegGen(seg);
@@ -1667,7 +1660,7 @@ static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
         grey = TraceSetUnion(grey, ss->traces);
         SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
       } else {
-        AVER(SegRankSet(toSeg) == RankSetEMPTY);
+        AVER_CRITICAL(SegRankSet(toSeg) == RankSetEMPTY);
       }
       SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
 
@@ -2151,7 +2144,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

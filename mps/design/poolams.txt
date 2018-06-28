@@ -143,7 +143,7 @@ outlawed.
 
 _`.colour.alloc`: Objects are allocated black. This is the most
 efficient alternative for traces in the black mutator phase, and
-.not-req.grey means that's sufficient.
+`.not-req.grey`_ means that's sufficient.
 
 .. note::
 
@@ -386,11 +386,11 @@ ignored like free space, so need the same encoding).
 Reclaim
 .......
 
-_`.reclaim`: Reclaim uses either of analysis.non-moving-colour
-.constraint.reclaim.white-free-bit (just reuse the non-white table as
-the alloc table) or
+_`.reclaim`: Reclaim uses either of
+analysis.non-moving-colour.constraint.reclaim.white-free-bit (just
+reuse the non-white table as the alloc table) or
 analysis.non-moving-colour.constraint.reclaim.free-bit (copy it),
-depending on the shareAllocTable flag (as set by `.init.share`_).
+depending on the ``shareAllocTable`` flag (as set by `.init.share`_).
 However, bit table still has to be iterated over to count the free
 grains. Also, in a debug pool, each white block has to be splatted.
 
@@ -497,7 +497,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

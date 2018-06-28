@@ -56,13 +56,13 @@
  */
 
 #include "mpm.h"
+
+#if !defined(MPS_OS_XC)
+#error "protxc.c is specific to MPS_OS_XC"
+#endif
+
 #include "prmcxc.h"
 #include "protxc.h"
-
-#include <stdlib.h> /* see .trans.stdlib */
-#include <stdio.h> /* see .trans.stdlib */
-
-#include <pthread.h>
 
 #include <mach/mach_port.h>
 #include <mach/mach_init.h>
@@ -72,10 +72,9 @@
 #include <mach/mach_error.h>
 #include <mach/i386/thread_status.h>
 #include <mach/exc.h>
-
-#if !defined(MPS_OS_XC)
-#error "protxc.c is macOS specific"
-#endif
+#include <pthread.h>
+#include <stdlib.h> /* see .trans.stdlib */
+#include <stdio.h> /* see .trans.stdlib */
 
 SRCID(protxc, "$Id$");
 
@@ -377,15 +376,9 @@ static void protExcThreadStart(void)
 }
 
 
-/* atfork handlers -- support for fork(). See <design/thread-safety/> */
-
-static void protAtForkPrepare(void)
-{
-}
-
-static void protAtForkParent(void)
-{
-}
+/* protAtForkChild -- support for fork()
+ * <design/thread-safety/#sol.fork.exc-thread>
+ */
 
 static void protAtForkChild(void)
 {
@@ -402,7 +395,7 @@ static void protSetupInner(void)
   protExcThreadStart();
 
   /* Install fork handlers <design/thread-safety/#sol.fork.atfork>. */
-  pthread_atfork(protAtForkPrepare, protAtForkParent, protAtForkChild);
+  pthread_atfork(NULL, NULL, protAtForkChild);
 }
 
 void ProtSetup(void)

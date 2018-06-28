@@ -1,7 +1,7 @@
 /* poolams.c: AUTOMATIC MARK & SWEEP POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  *
@@ -1219,7 +1219,7 @@ static Res semSegIterate(Seg seg, AMSObjectFunction f, void *closure)
 
   /* If we're using the alloc table as a white table, we can't use it to */
   /* determine where there are objects. */
-  AVER(!(amsseg->ams->shareAllocTable && amsseg->colourTablesInUse));
+  AVER(!amsseg->ams->shareAllocTable || !amsseg->colourTablesInUse);
 
   p = SegBase(seg);
   limit = SegLimit(seg);
@@ -1459,8 +1459,6 @@ static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO)
   AVER_CRITICAL(i < amsseg->grains);
   AVER_CRITICAL(!AMS_IS_INVALID_COLOUR(seg, i));
 
-  ss->wasMarked = TRUE;
-
   switch (ss->rank) {
   case RankAMBIG:
     if (PoolAMS(pool)->shareAllocTable)
@@ -1480,7 +1478,7 @@ static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO)
     AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));
     AVER_CRITICAL(AMS_ALLOCED(seg, i)); /* <design/check/#.common> */
     if (AMS_IS_WHITE(seg, i)) {
-      ss->wasMarked = FALSE;
+      ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
       if (ss->rank == RankWEAK) { /* then splat the reference */
         *refIO = (Ref)0;
       } else {
@@ -1852,7 +1850,7 @@ Bool AMSCheck(AMS ams)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

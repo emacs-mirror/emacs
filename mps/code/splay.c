@@ -1,7 +1,7 @@
 /* splay.c: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.  In the MPS these are usually
@@ -753,7 +753,7 @@ Bool SplayTreeInsert(SplayTree splay, Tree node) {
   switch (SplaySplay(splay, splay->nodeKey(node), splay->compare)) {
   default:
     NOTREACHED;
-    /* defensive fall-through */
+    /* fall through */
   case CompareEQUAL: /* duplicate node */
     return FALSE;
     
@@ -930,7 +930,7 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   switch (cmp) {
   default:
     NOTREACHED;
-    /* defensive fall-through */
+    /* fall through */
   case CompareEQUAL:
     found = FALSE;
     break;
@@ -1005,7 +1005,7 @@ Tree SplayTreeNext(SplayTree splay, TreeKey oldKey) {
   switch (SplaySplay(splay, oldKey, splay->compare)) {
   default:
     NOTREACHED;
-    /* defensive fall-through */
+    /* fall through */
   case CompareLESS:
     return SplayTreeRoot(splay);
 
@@ -1394,7 +1394,7 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

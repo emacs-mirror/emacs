@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -53,7 +53,9 @@ static void arenaReleaseRingLock(void)
 }
 
 
-/* GlobalsClaimAll -- claim all MPS locks <design/thread-safety/#fork.lock> */
+/* GlobalsClaimAll -- claim all MPS locks
+ * <design/thread-safety/#sol.fork.lock>
+ */
 
 void GlobalsClaimAll(void)
 {
@@ -1117,7 +1119,7 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

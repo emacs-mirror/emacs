@@ -405,25 +405,21 @@ perform another pass (see `.fun.scan.pass`_ above).
 
 ``Res awlSegFix(Seg seg, ScanState ss, Ref *refIO)``
 
-_`.fun.fix`: ``ss->wasMarked`` is set to ``TRUE`` (clear compliance
-with design.mps.fix.protocol.was-marked.conservative_).
-
-.. _design.mps.fix.protocol.was-marked.conservative: fix#protocol-was-marked-conservative
-
-If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
-immediately unless the reference is aligned to the pool alignment.
-
-If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
-immediately unless the referenced grain is allocated.
+_`.fun.fix`: If the rank (``ss->rank``) is ``RankAMBIG`` then fix
+returns immediately unless the reference is in the segment bounds,
+aligned to the pool alignment, and allocated.
 
 The bit in the marked table corresponding to the referenced grain will
 be read. If it is already marked then fix returns. Otherwise (the
-grain is unmarked), ``ss->wasMarked`` is set to ``FALSE``, the
-remaining actions depend on whether the rank (``ss->rank``) is
-``RankWEAK`` or not. If the rank is weak then the reference is
-adjusted to 0 (see design.mps.weakness) and fix returns. If the rank
-is something else then the mark bit corresponding to the referenced
-grain is set, and the segment is greyed using ``SegSetGrey()``.
+grain is unmarked), ``ss->wasMarked`` is set to ``FALSE`` (see
+design.mps.fix.was-marked.not_), the remaining actions depend on
+whether the rank (``ss->rank``) is ``RankWEAK`` or not. If the rank is
+weak then the reference is adjusted to 0 (see design.mps.weakness) and
+fix returns. If the rank is something else then the mark bit
+corresponding to the referenced grain is set, and the segment is
+greyed using ``SegSetGrey()``.
+
+.. _design.mps.fix.was-marked.not: fix#was-marked-not
 
 ``void awlSegReclaim(Seg seg, Trace trace)``
 
@@ -503,7 +499,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
