@@ -794,6 +794,7 @@ DEFINE_CLASS(Land, Freelist, klass)
   klass->findLast = freelistFindLast;
   klass->findLargest = freelistFindLargest;
   klass->findInZones = freelistFindInZones;
+  AVERT(LandClass, klass);
 }
 
 

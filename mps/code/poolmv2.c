@@ -149,6 +149,7 @@ DEFINE_CLASS(Pool, MVTPool, klass)
   klass->bufferEmpty = MVTBufferEmpty;
   klass->totalSize = MVTTotalSize;
   klass->freeSize = MVTFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 /* Macros */
@@ -306,6 +307,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
     goto failABQInit;
 
   pool->alignment = align;
+  pool->alignShift = SizeLog2(pool->alignment);
   mvt->reuseSize = reuseSize;
   mvt->fillSize = fillSize;
   mvt->abqOverflow = FALSE;
