@@ -1101,7 +1101,7 @@ static void gcSegFinish(Inst inst)
     RingRemove(&gcseg->greyRing);
     seg->grey = TraceSetEMPTY;
   }
-  gcseg->summary = RefSetEMPTY;
+  SegSetSummary(seg, RefSetEMPTY);
 
   gcseg->sig = SigInvalid;
 
@@ -1328,6 +1328,9 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   arena = PoolArena(SegPool(seg));
+
+  EVENT5(SegSetSummary, arena, seg, SegSize(seg), gcseg->summary, summary);
+
   gcseg->summary = summary;
 
   AVER(seg->rankSet != RankSetEMPTY);
@@ -1357,6 +1360,9 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   arena = PoolArena(SegPool(seg));
 
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
+
+  EVENT5(SegSetSummary, arena, seg, SegSize(seg), gcseg->summary, summary);
+
   gcseg->summary = summary;
 
   if (rankSet != RankSetEMPTY)

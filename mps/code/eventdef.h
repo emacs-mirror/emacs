@@ -67,7 +67,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x008B)
+#define EventCodeMAX ((EventCode)0x008C)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -197,7 +197,8 @@
   EVENT(X, TraceEndGen        , 0x0088,  TRUE, Trace) \
   EVENT(X, LabelPointer       , 0x0089,  TRUE, User) \
   EVENT(X, ArenaPollBegin     , 0x008A,  TRUE, Arena) \
-  EVENT(X, ArenaPollEnd       , 0x008B,  TRUE, Arena)
+  EVENT(X, ArenaPollEnd       , 0x008B,  TRUE, Arena) \
+  EVENT(X, SegSetSummary      , 0x008C,  TRUE, Seg)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -723,6 +724,13 @@
 #define EVENT_ArenaPollEnd_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) /* arena that was polled */ \
   PARAM(X,  1, B, workWasDone) /* any collection work done in poll? */
+
+#define EVENT_SegSetSummary_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) /* arena owning segment */ \
+  PARAM(X,  1, P, seg) /* the segment */ \
+  PARAM(X,  2, W, size) /* its size in bytes */ \
+  PARAM(X,  3, W, oldSummary) /* old summary */ \
+  PARAM(X,  4, W, newSummary) /* new summary */
 
 #endif /* eventdef_h */
 
