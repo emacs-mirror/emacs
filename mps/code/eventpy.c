@@ -107,9 +107,12 @@ int main(int argc, char *argv[])
   puts("\n# Namespace containing an EventDesc for every event.");
   puts("class Event:");
 #define PAD_TO(OFFSET)                                  \
-  if (prev_sort != 'S' && prev_offset < (OFFSET))       \
-    printf("%ux", (unsigned)((OFFSET) - prev_offset));  \
-  prev_offset = (OFFSET);
+  BEGIN {                                               \
+    size_t offset = (OFFSET);                           \
+    if (prev_sort != 'S' && prev_offset < offset)       \
+      printf("%ux", (unsigned)(offset - prev_offset));  \
+    prev_offset = offset;                               \
+  } END
 #define EVENT_PARAM(X, INDEX, SORT, NAME)                       \
   puts("        EventParam('" #SORT "', '" #NAME "'),");        \
   prev_sort = #SORT[0];
