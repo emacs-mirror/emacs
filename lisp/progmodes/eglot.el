@@ -448,8 +448,8 @@ INTERACTIVE is t if called interactively."
 (defun eglot--connect (managed-major-mode project class contact)
   "Connect to MANAGED-MAJOR-MODE, PROJECT, CLASS and CONTACT.
 This docstring appeases checkdoc, that's all."
-  (let* ((nickname (file-name-base (directory-file-name
-                                    (car (project-roots project)))))
+  (let* ((default-directory (car (project-roots project)))
+         (nickname (file-name-base (directory-file-name default-directory)))
          (readable-name (format "EGLOT (%s/%s)" nickname managed-major-mode))
          autostart-inferior-process
          (initargs
@@ -504,10 +504,8 @@ This docstring appeases checkdoc, that's all."
              :initialize
              (list :processId (unless (eq (jsonrpc-process-type server) 'network)
                                 (emacs-pid))
-                   :rootPath  (expand-file-name
-                               (car (project-roots project)))
-                   :rootUri  (eglot--path-to-uri
-                              (car (project-roots project)))
+                   :rootPath (expand-file-name default-directory)
+                   :rootUri (eglot--path-to-uri default-directory)
                    :initializationOptions (eglot-initialization-options server)
                    :capabilities (eglot-client-capabilities server)))
           (setf (eglot--capabilities server) capabilities)
