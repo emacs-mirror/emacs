@@ -90,22 +90,22 @@ Args  Locals  Function
 ====  ======  ========================
    5       0  ``SegAccess()``
    5       0  ``SegWholeAccess()``
-   3       5  ``TraceSegAccess()``
+   3       8  ``TraceSegAccess()``
    4       1  ``traceScanSeg()``
-   4       8  ``traceScanSegRes()``
+   4       9  ``traceScanSegRes()``
    4       0  ``SegScan()``
    4       5  ``amcSegScan()``
    4       0  ``FormatScan()``
    3     ≤64  ``format->scan()``
    3       0  ``SegFix()``
    4      15  ``amcSegFix()``
-   4       5  ``BufferFill()``
-   6      10  ``AMCBufferFill()``
-   6       9  ``PoolGenAlloc()``
-   7       5  ``SegAlloc()``
-   5       5  ``ArenaAlloc()``
-   5       5  ``arenaAllocPolicy()``
-   5      11  ``arenaAllocFromLand()``
+   3       5  ``BufferFill()``
+   5      11  ``AMCBufferFill()``
+   5      73  ``PoolGenAlloc()``
+   6       5  ``SegAlloc()``
+   4       4  ``ArenaAlloc()``
+   5       6  ``PolicyAlloc()``
+   6      10  ``ArenaFreeLandAlloc()``
    7       1  ``LandFindInZones()``
    7      16  ``cbsFindInZones()``
    5       3  ``cbsFindFirst()``
@@ -113,12 +113,12 @@ Args  Locals  Function
    3       7  ``SplaySplay()``
    4       8  ``SplaySplitDown()``
    3       0  ``SplayZig()``
- 116    ≤190  **Total**
+ 112    ≤258  **Total**
 ====  ======  ========================
 
 We expect that a compiler will not need to push all local variables
 onto the stack, but even in the case where it pushes all of them, this
-call requires no more than 306 words of stack space.
+call requires no more than 370 words of stack space.
 
 This isn't necessarily the deepest call into the MPS (the MPS's
 modular design and class system makes it hard to do a complete
@@ -187,7 +187,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

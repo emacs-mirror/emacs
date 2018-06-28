@@ -1,7 +1,7 @@
 /* poollo.c: LEAF POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -686,8 +686,6 @@ static Res loSegFix(Seg seg, ScanState ss, Ref *refIO)
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
   AVER_CRITICAL(refIO != NULL);
 
-  ss->wasMarked = TRUE;         /* <design/fix/#protocol.was-marked> */
-
   clientRef = *refIO;
   base = AddrSub((Addr)clientRef, pool->format->headerSize);
   /* can get an ambiguous reference to close to the base of the
@@ -711,7 +709,7 @@ static Res loSegFix(Seg seg, ScanState ss, Ref *refIO)
     Index i = PoolIndexOfAddr(SegBase(seg), pool, base);
 
     if(!BTGet(loseg->mark, i)) {
-      ss->wasMarked = FALSE;  /* <design/fix/#protocol.was-marked> */
+      ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
       if(ss->rank == RankWEAK) {
         *refIO = (Addr)0;
       } else {
@@ -795,7 +793,7 @@ static Bool LOCheck(LO lo)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

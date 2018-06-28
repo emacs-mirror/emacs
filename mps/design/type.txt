@@ -299,7 +299,7 @@ determined then the smallest unsigned integer with a large enough
 range may be used instead.
 
 
-``typedef int LocusPrefKind``
+``typedef unsigned LocusPrefKind``
 
 _`.locusprefkind`: The type ``LocusPrefKind`` expresses a preference for
 addresses within an address space. It takes one of the following
@@ -475,7 +475,7 @@ _`.rootmode.conv.c`: ``RootMode`` is converted to ``mps_rm_t`` in the
 MPS C Interface.
 
 
-``typedef int RootVar``
+``typedef unsigned RootVar``
 
 _`.rootvar`: The type ``RootVar`` is the type of the discriminator for
 the union within ``RootStruct``.
@@ -561,7 +561,9 @@ represented in the obvious way::
 
     member(ti, ts) ⇔ ((1<<ti) & ts) != 0
 
-``TraceSet`` is used to represent colour in the Tracer. See
+In the multiple-traces design, each region of memory may be a
+different colour for each trace. Thus the set of traces for which a
+segment is grey (say) is represented by a ``TraceSet``. See
 design.mps.trace_.
 
 .. _design.mps.trace: trace
@@ -692,7 +694,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
