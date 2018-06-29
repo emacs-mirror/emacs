@@ -12,7 +12,7 @@
 
 import argparse
 from collections import defaultdict, deque, namedtuple
-from itertools import cycle
+from itertools import count, cycle
 import os
 import queue
 from struct import Struct
@@ -86,10 +86,10 @@ def telemetry_decoder(read):
         # Key function for sorting events into time order.
         return event.header.clock
 
-    def decoder():
-        # Generate batches of events decoded from the I/O stream.
+    def decoder(n=None):
+        # Generate up to n batches of events decoded from the I/O stream.
         nonlocal clocks_per_sec
-        while True:
+        for _ in (count() if n is None else range(n)):
             header_data = read(header_size)
             if not header_data:
                 break
@@ -367,6 +367,8 @@ class Line:
         self.desc = desc        # Brief description.
         self.draw = True        # Plot this line?
         self.color = next(self.colors)
+        self.axes = None        # Currently plotted on axes.
+        self.line = None        # Matplotlib Line2D object.
 
     @property
     def name(self):
@@ -376,11 +378,30 @@ class Line:
     def ready(self):
         return len(self.series.t) >= 2
 
+    def unplot(self):
+        if self.axes:
+            self.line.remove()
+            self.axes = None
+
     def plot(self, axes):
-        "Plot line on axes."
+        "Plot or update line on axes."
         x = self.series.t
         y = self.series.y
-        axes.plot(x, y, color=self.color, label=self.name)
+        if self.line is None:
+            self.axes = axes
+            self.line, = axes.plot(x, y, color=self.color, label=self.name)
+        else:
+            if self.axes != axes:
+                self.unplot()
+                axes.addline(self.line)
+                self.axes = axes
+            self.line.set_data(x, y)
+            self.line.set_label(self.name)
+
+    def contains(self, event):
+        if self.line is None:
+            return False, None
+        return self.line.contains(event)
 
 
 class Model(EventHandler):
@@ -415,24 +436,24 @@ class Model(EventHandler):
         for line in self.lines:
             if line.ready and line.draw:
                 unit_lines[line.unit].append(line)
+            else:
+                line.unplot()
 
         # Assign units to axes.
         axes_iter = iter(axes_list)
         lines_iter = iter(sorted(unit_lines.values(), key=len, reverse=True))
         for lines, axes in zip(lines_iter, axes_iter):
             axes.set_axis_on()
-            axes.clear()
             axes.set_xlabel("time (seconds)")
             axes.set_ylabel(lines[0].unit)
             for line in lines:
                 line.plot(axes)
-            axes.figure.canvas.draw()
+            axes.relim()
+            axes.autoscale_view()
 
         # Remaining axes are not needed.
         for axes in axes_iter:
-            axes.clear()
             axes.set_axis_off()
-            axes.figure.canvas.draw()
 
     def update(self):
         "Consume available telemetry events and update the model."
@@ -535,17 +556,46 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         main_layout.addWidget(self._lines_scroll)
 
         # Matplot canvas and toolbar.
-        canvas = FigureCanvas(Figure(figsize=(10, 6)))
-        self._axes = canvas.figure.subplots()
+        self._canvas = FigureCanvas(Figure(figsize=(10, 6)))
+        self._axes = self._canvas.figure.subplots()
         self._axes2 = self._axes.twinx()
-        main_layout.addWidget(canvas)
-        self._toolbar = ApplicationToolbar(canvas, self)
+        main_layout.addWidget(self._canvas)
+        self._toolbar = ApplicationToolbar(self._canvas, self)
         self.addToolBar(QtCore.Qt.BottomToolBarArea, self._toolbar)
+
+        # Line annotations.
+        self._line_annotation = self._axes.annotate(
+            "", xy=(0, 0), xytext=(-20, 20),
+            textcoords='offset points',
+            bbox=dict(boxstyle='round', fc='w'),
+            arrowprops=dict(arrowstyle='->'),
+            visible=False)
+        self._line_annotation.get_bbox_patch().set_alpha(0.8)
+        self._canvas.mpl_connect("button_release_event", self._click)
 
         # Call self._update in a loop forever.
         self._update()
-        self._timer = canvas.new_timer(100, [(self._update, (), {})])
+        self._timer = self._canvas.new_timer(100, [(self._update, (), {})])
         self._timer.start()
+
+    def _click(self, event):
+        "Handle left mouse click by annotating line clicked on."
+        if event.button != 1 or not event.inaxes:
+            return
+        a = self._line_annotation
+        for line in self._model.lines:
+            contains, index = line.contains(event)
+            if contains:
+                x, y = line.line.get_data()
+                i = index['ind'][0]
+                a.remove()
+                line.axes.add_artist(a)
+                a.xy = x[i], y[i]
+                a.set_text(line.name)
+                a.set_visible(True)
+                break
+        else:
+            a.set_visible(False)
 
     @property
     def _limits(self):
@@ -564,6 +614,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if not self._toolbar.paused:
             self._model.plot([self._axes, self._axes2])
             self._home_limits = self._limits
+            self._canvas.draw()
 
         # Find new time series and create corresponding checkboxes.
         for line in self._model.lines:
@@ -601,7 +652,7 @@ def main():
         event_queue = queue.Queue()
         model = Model(event_queue)
         decoder = telemetry_decoder(telemetry_file.read)
-        for batch in decoder():
+        for batch in decoder(1):
             event_queue.put(batch)
             model.update()
         stop = threading.Event()
