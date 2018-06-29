@@ -154,7 +154,7 @@ typedef struct MVSpanStruct {
   AddrOffset((span)->base.limit, (span)->limit.base)
 
 
-static Bool MVCheck(MV mv);
+Bool MVCheck(MV mv);
 
 
 /* MVSpanCheck -- check the consistency of a span structure */
@@ -931,7 +931,7 @@ mps_pool_class_t mps_class_mv_debug(void)
 
 /* MVCheck -- check the consistency of an MV structure */
 
-static Bool MVCheck(MV mv)
+Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
   CHECKC(MVPool, mv);
