@@ -1,7 +1,7 @@
 /* mpmst.h: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -398,6 +398,11 @@ typedef struct mps_fmt_s {
  * through the MPS interface to optimise the critical path scan loop.
  * See ["The critical path through the MPS"](../design/critical-path.txt).
  *
+ * .ss.fix-closure: The fixClosure member allows the caller of the
+ * scanning protocol to pass data through to this fix function. This
+ * is not used in the public MPS, but is needed by the transforms
+ * extension.
+ *
  * .ss.zone: For binary compatibility, the zone shift is exported as
  * a word rather than a shift, so that the external mps_ss_s is a uniform
  * three-word structure.  See <code/mps.h#ss> and <design/interface-c>.
@@ -419,6 +424,7 @@ typedef struct ScanStateStruct {
   struct mps_ss_s ss_s;         /* .ss <http://bash.org/?400459> */
   Arena arena;                  /* owning arena */
   SegFixMethod fix;             /* third stage fix function */
+  void *fixClosure;             /* see .ss.fix-closure */
   TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
@@ -450,6 +456,7 @@ typedef struct TraceStruct {
   Rank band;                    /* current band */
   Bool firstStretch;            /* in first stretch of band (see accessor) */
   SegFixMethod fix;             /* fix method to apply to references */
+  void *fixClosure;             /* see .ss.fix-closure */
   Chain chain;                  /* chain being incrementally collected */
   STATISTIC_DECL(Size preTraceArenaReserved) /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */
@@ -817,7 +824,7 @@ typedef struct AllocPatternStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
