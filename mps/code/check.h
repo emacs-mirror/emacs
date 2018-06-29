@@ -1,7 +1,7 @@
 /* check.h: ASSERTION INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
@@ -37,6 +37,7 @@
 #include "config.h"
 #include "misc.h"
 #include "mpslib.h"
+#include "protocol.h"
 
 
 /* ASSERT -- basic assertion
@@ -51,12 +52,22 @@
 
 #define ASSERT(cond, condstring) \
   BEGIN \
-    if (cond) NOOP; else \
+    if (LIKELY(cond)) NOOP; else \
       mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)); \
   END
 
+#define ASSERTP(cond, condstring, default_) \
+  ((void)(LIKELY(cond) \
+          || (mps_lib_assert_fail(MPS_FILE, __LINE__, (condstring)), FALSE)), \
+   (default_))
+
+#define ASSERT_ISTYPE(type, val) (type ## Check(val))
 #define ASSERT_TYPECHECK(type, val) \
-  ASSERT(type ## Check(val), "TypeCheck " #type ": " #val)
+  ASSERT(ASSERT_ISTYPE(type, val), "TypeCheck " #type ": " #val)
+
+#define ASSERT_ISCLASS(klass, val) (klass ## Check(CouldBeA(klass, val)))
+#define ASSERT_CLASSCHECK(klass, val) \
+  ASSERT(ASSERT_ISCLASS(klass, val), "ClassCheck " #klass ": " #val)
 
 #define ASSERT_NULLCHECK(type, val) \
   ASSERT((val) != NULL, "NullCheck " #type ": " #val)
@@ -103,28 +114,44 @@ extern unsigned CheckLevel;
 #endif
 
 
-/* AVER, AVERT -- MPM assertions
+/* AVER, AVERT, AVERC, AVERP -- MPM assertions
  *
- * AVER and AVERT are used to assert conditions in the code.  AVER checks
- * an expression.  AVERT checks that a value is of the correct type and
- * may perform consistency checks on the value.
+ * AVER and friends are used to assert conditions in the code.
  *
- * AVER and AVERT are on by default, and check conditions even in "hot"
- * varieties intended to work in production.  To avoid the cost of a check
- * in critical parts of the code, use AVER_CRITICAL and AVERT_CRITICAL,
- * but only when you've *proved* that this makes a difference to performance
- * that affects requirements.
+ * AVER checks an expression.
+ *
+ * AVERT checks that a value is of the correct type and may perform
+ * consistency checks on the value by calling a check function.
+ *
+ * AVERC checks that a value is of the correct class (including
+ * subclasses) and may perform consistency checks on the value by
+ * calling a check function.
+ *
+ * AVERP checks an expression but is itself a void * expression, and
+ * so can be used in expression macros.
+ *
+ * AVER etc. are on by default, and check conditions even in "hot"
+ * varieties intended to work in production.  To avoid the cost of a
+ * check in critical parts of the code, use AVER_CRITICAL etc., but
+ * only when you've *proved* that this makes a difference to
+ * performance that affects requirements.
  */
 
 #if defined(AVER_AND_CHECK_NONE)
 
 #define AVER(cond)                  DISCARD(cond)
-#define AVERT(type, val)            DISCARD(type ## Check(val))
+#define AVERT(type, val)            DISCARD(ASSERT_ISTYPE(type, val))
+#define AVERC(klass, val)           DISCARD(ASSERT_ISCLASS(klass, val))
+#define AVERP(cond, dflt)           (DISCARD_EXP(cond), dflt)
+#define AVERPC(cond, condstring, dflt) (DISCARD_EXP(cond), dflt)
 
 #else
 
 #define AVER(cond)                  ASSERT(cond, #cond)
 #define AVERT                       ASSERT_TYPECHECK
+#define AVERC                       ASSERT_CLASSCHECK
+#define AVERP(cond, dflt)           ASSERTP(cond, #cond, dflt)
+#define AVERPC                      ASSERTP
 
 #endif
 
@@ -132,11 +159,17 @@ extern unsigned CheckLevel;
 
 #define AVER_CRITICAL(cond)         ASSERT(cond, #cond)
 #define AVERT_CRITICAL              ASSERT_TYPECHECK
+#define AVERC_CRITICAL              ASSERT_CLASSCHECK
+#define AVERP_CRITICAL(cond, dflt)  ASSERTP(cond, #cond, dflt)
+#define AVERPC_CRITICAL             ASSERTP
 
 #else
 
 #define AVER_CRITICAL               DISCARD
-#define AVERT_CRITICAL(type, val)   DISCARD(type ## Check(val))
+#define AVERT_CRITICAL(type, val)   DISCARD(ASSERT_ISTYPE(type, val))
+#define AVERC_CRITICAL(klass, val)  DISCARD(ASSERT_ISCLASS(klass, val))
+#define AVERP_CRITICAL(cond, dflt)  (DISCARD_EXP(cond), dflt)
+#define AVERPC_CRITICAL(cond, condstring, dflt) (DISCARD_EXP(cond), dflt)
 
 #endif
 
@@ -170,16 +203,27 @@ extern unsigned CheckLevel;
 #define TESTT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)
 
 
-/* CHECKS -- Check Signature
+/* TESTC -- check class simply
+ *
+ * TODO: Does this need to be thread safe like TESTT?
+ */
+
+#define TESTC(klass, val)       ((val) != NULL && IsA(klass, val))
+
+
+/* CHECKS, CHECKC -- Check Signature, Check Class
  *
  * (if CHECKLEVEL == CheckLevelMINIMAL, this is all we check)
  */
 
 #if defined(AVER_AND_CHECK_NONE)
 #define CHECKS(type, val)       DISCARD(TESTT(type, val))
+#define CHECKC(klass, val)      DISCARD(MustBeA(klass, val))
 #else
 #define CHECKS(type, val) \
   ASSERT(TESTT(type, val), "SigCheck " #type ": " #val)
+#define CHECKC(klass, val) \
+  ASSERT(TESTC(klass, val), "ClassCheck " #klass ": " #val)
 #endif
 
 
@@ -253,6 +297,11 @@ extern unsigned CheckLevel;
                  ASSERT_NULLCHECK(type, val), \
                  ASSERT_TYPECHECK(type, val))
 
+#define CHECKD_CLASS(klass, val) \
+  CHECK_BY_LEVEL(NOOP, \
+                 CHECKC(klass, val) \
+                 ASSERT_CLASSCHECK(klass, val))
+
 #define CHECKU(type, val) \
   CHECK_BY_LEVEL(NOOP, \
                  CHECKS(type, val), \
@@ -265,15 +314,16 @@ extern unsigned CheckLevel;
 
 #else /* AVER_AND_CHECK_ALL, not */
 
-/* TODO: This gives comparable performance to white-hot when compiling
+/* TODO: This gives comparable performance to RASH when compiling
    using mps.c and -O2 (to get check methods inlined), but is it a bit
    too minimal?  How much do we rely on check methods? */
 
-#define CHECKL(cond)            DISCARD(cond)
-#define CHECKD(type, val)       DISCARD(TESTT(type, val))
-#define CHECKD_NOSIG(type, val) DISCARD((val) != NULL)
-#define CHECKU(type, val)       DISCARD(TESTT(type, val))
-#define CHECKU_NOSIG(type, val) DISCARD((val) != NULL)
+#define CHECKL(cond)             DISCARD(cond)
+#define CHECKD(type, val)        DISCARD(TESTT(type, val))
+#define CHECKD_NOSIG(type, val)  DISCARD((val) != NULL)
+#define CHECKD_CLASS(klass, val) DISCARD((val) != NULL)
+#define CHECKU(type, val)        DISCARD(TESTT(type, val))
+#define CHECKU_NOSIG(type, val)  DISCARD((val) != NULL)
 
 #endif /* AVER_AND_CHECK_ALL */
 
@@ -324,7 +374,7 @@ extern unsigned CheckLevel;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

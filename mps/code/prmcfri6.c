@@ -1,94 +1,36 @@
-/* proti6.c: PROTECTION MUTATOR CONTEXT (x64)
+/* prmcfri6.c: MUTATOR CONTEXT x64 (FREEBSD)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/prot/> for the generic design of the interface
- * which is implemented in this module, including the contracts for the
- * functions.
- *
- * .purpose: This module implements the part of the protection module
- * that implements the MutatorFaultContext type. 
- *
- *
- * SOURCES
- *
- * .source.amd64: AMD64 Architecture Programmer’s Manual Volume 3: 
- * General-Purpose and System Instructions
- * <http://support.amd.com/us/Processor_TechDocs/24594_APM_v3.pdf>
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  *
  * ASSUMPTIONS
  *
- * .assume.null: It's always safe for Prot*StepInstruction to return
- * ResUNIMPL.  A null implementation of this module would be overly
- * conservative but otherwise correct.
- *
+ * .sp: The stack pointer in the context is RSP.
  */
 
-#include "mpm.h"
+#include "prmcix.h"
 #include "prmci6.h"
 
-SRCID(proti6, "$Id$");
+SRCID(prmcfri6, "$Id$");
 
-#if !defined(MPS_ARCH_I6)
-#error "proti6.c is specific to MPS_ARCH_I6"
+#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I6)
+#error "prmcfri6.c is specific to MPS_OS_FR and MPS_ARCH_I6"
 #endif
 
 
-static Bool IsSimpleMov(Size *inslenReturn,
-                        MRef *srcReturn,
-                        MRef *destReturn,
-                        MutatorFaultContext context)
+Addr MutatorContextSP(MutatorContext context)
 {
-  Byte *insvec;
-  MRef faultmem;
-
-  Prmci6DecodeFaultContext(&faultmem, &insvec, context);
-  /* Unimplemented */
-  UNUSED(inslenReturn);
-  UNUSED(srcReturn);
-  UNUSED(destReturn);
-  
-  return FALSE;
-}
-
-
-Bool ProtCanStepInstruction(MutatorFaultContext context)
-{
-  Size inslen;
-  MRef src;
-  MRef dest;
-
-  /* .assume.null */
-  if(IsSimpleMov(&inslen, &src, &dest, context)) {
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
-
-Res ProtStepInstruction(MutatorFaultContext context)
-{
-  Size inslen;
-  MRef src;
-  MRef dest;
-
-  /* .assume.null */
-  if(IsSimpleMov(&inslen, &src, &dest, context)) {
-    *dest = *src;
-    Prmci6StepOverIns(context, inslen);
-    return ResOK;
-  }
-
-  return ResUNIMPL;
+  AVERT(MutatorContext, context);
+  return (Addr)context->ucontext->uc_mcontext.mc_rsp;   /* .sp */
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

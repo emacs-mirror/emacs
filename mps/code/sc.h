@@ -1,7 +1,7 @@
 /* sc.h: STACK CONTEXT
  *
  * $Id$
- * Copyright (c) 2012 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2018 Ravenbrook Limited.  See end of file for license.
  *
  * Provides a context to hold the registers and stack pointer
  * 
@@ -45,7 +45,7 @@
  */
 
 
-/* Mac OS X on 32-bit Intel built with Clang or GCC */
+/* macOS on IA-32 built with Clang or GCC */
 
 #if defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
 
@@ -64,7 +64,7 @@ typedef struct StackContextStruct {
 
 #define StackContextSP(sc) ((Addr *)(sc)->jumpBuffer[JB_ESP/sizeof(int)])
 
-/* On MacOS X the stackPointer can end up pointing above the StackContext
+/* On macOS the stackPointer can end up pointing above the StackContext
  * which we assume to be stored on the stack because it is no longer
  * needed once we have _longjmp()ed back. So take the minimum of the 
  * SP and the base of the StackContext structure. */
@@ -72,7 +72,7 @@ typedef struct StackContextStruct {
   (StackContextSP(sc) < (Addr*)(sc) ? StackContextSP(sc) : (Addr*)(sc))
 
 
-/* Mac OS X on 64-bit Intel build with Clang or GCC */
+/* macOS on x86-64 built with Clang or GCC */
 
 #elif defined(MPS_PF_XCI6LL) || defined(MPS_PF_XCI6GC)
 
@@ -99,7 +99,7 @@ typedef struct StackContextStruct {
 #define StackContextSP(sc) \
   (*(Addr **)((char *)(sc)->jumpBuffer+JB_RSP))
 
-/* On MacOS X the stackPointer can end up pointing above the StackContext
+/* On macOS the stackPointer can end up pointing above the StackContext
  * which we assume to be stored on the stack because it is no longer
  * needed once we have _longjmp()ed back. So take the minimum of the 
  * SP and the base of the StackContext structure. */
@@ -165,7 +165,7 @@ typedef struct StackContextStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2012 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

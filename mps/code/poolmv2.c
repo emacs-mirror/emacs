@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -31,14 +31,14 @@ SRCID(poolmv2, "$Id$");
 
 typedef struct MVTStruct *MVT;
 static void MVTVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs);
-static Res MVTInit(Pool pool, ArgList arg);
+static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList arg);
 static Bool MVTCheck(MVT mvt);
-static void MVTFinish(Pool pool);
+static void MVTFinish(Inst inst);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize);
 static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
 static void MVTFree(Pool pool, Addr base, Size size);
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
+static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 static Size MVTTotalSize(Pool pool);
 static Size MVTFreeSize(Pool pool);
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size);
@@ -55,6 +55,9 @@ static ABQ MVTABQ(MVT mvt);
 static Land MVTFreePrimary(MVT mvt);
 static Land MVTFreeSecondary(MVT mvt);
 static Land MVTFreeLand(MVT mvt);
+
+typedef MVT MVTPool;
+DECLARE_CLASS(Pool, MVTPool, AbstractBufferPool);
 
 
 /* Types */
@@ -92,63 +95,61 @@ typedef struct MVTStruct
   Size unavailable;             /* bytes lost to fragmentation */
  
   /* pool meters*/
-  METER_DECL(segAllocs);
-  METER_DECL(segFrees);
-  METER_DECL(bufferFills);
-  METER_DECL(bufferEmpties);
-  METER_DECL(poolFrees);
-  METER_DECL(poolSize);
-  METER_DECL(poolAllocated);
-  METER_DECL(poolAvailable);
-  METER_DECL(poolUnavailable);
-  METER_DECL(poolUtilization);
+  METER_DECL(segAllocs)
+  METER_DECL(segFrees)
+  METER_DECL(bufferFills)
+  METER_DECL(bufferEmpties)
+  METER_DECL(poolFrees)
+  METER_DECL(poolSize)
+  METER_DECL(poolAllocated)
+  METER_DECL(poolAvailable)
+  METER_DECL(poolUnavailable)
+  METER_DECL(poolUtilization)
   /* abq meters */
-  METER_DECL(finds);
-  METER_DECL(overflows);
-  METER_DECL(underflows);
-  METER_DECL(refills);
-  METER_DECL(refillPushes);
-  METER_DECL(returns);
+  METER_DECL(finds)
+  METER_DECL(overflows)
+  METER_DECL(underflows)
+  METER_DECL(refills)
+  METER_DECL(refillPushes)
+  METER_DECL(returns)
   /* fragmentation meters */
-  METER_DECL(perfectFits);
-  METER_DECL(firstFits);
-  METER_DECL(secondFits);
-  METER_DECL(failures);
+  METER_DECL(perfectFits)
+  METER_DECL(firstFits)
+  METER_DECL(secondFits)
+  METER_DECL(failures)
   /* contingency meters */
-  METER_DECL(emergencyContingencies);
-  METER_DECL(fragLimitContingencies);
-  METER_DECL(contingencySearches);
-  METER_DECL(contingencyHardSearches);
+  METER_DECL(emergencyContingencies)
+  METER_DECL(fragLimitContingencies)
+  METER_DECL(contingencySearches)
+  METER_DECL(contingencyHardSearches)
   /* splinter meters */
-  METER_DECL(splinters);
-  METER_DECL(splintersUsed);
-  METER_DECL(splintersDropped);
-  METER_DECL(sawdust);
+  METER_DECL(splinters)
+  METER_DECL(splintersUsed)
+  METER_DECL(splintersDropped)
+  METER_DECL(sawdust)
   /* exception meters */
-  METER_DECL(exceptions);
-  METER_DECL(exceptionSplinters);
-  METER_DECL(exceptionReturns);
+  METER_DECL(exceptions)
+  METER_DECL(exceptionSplinters)
+  METER_DECL(exceptionReturns)
  
   Sig sig;
 } MVTStruct;
 
 
-DEFINE_POOL_CLASS(MVTPoolClass, this)
+DEFINE_CLASS(Pool, MVTPool, klass)
 {
-  INHERIT_CLASS(this, AbstractBufferPoolClass);
-  this->name = "MVT";
-  this->size = sizeof(MVTStruct);
-  this->offset = offsetof(MVTStruct, poolStruct);
-  this->varargs = MVTVarargs;
-  this->init = MVTInit;
-  this->finish = MVTFinish;
-  this->free = MVTFree;
-  this->bufferFill = MVTBufferFill;
-  this->bufferEmpty = MVTBufferEmpty;
-  this->totalSize = MVTTotalSize;
-  this->freeSize = MVTFreeSize;
-  this->describe = MVTDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MVTPool, AbstractBufferPool);
+  klass->instClassStruct.describe = MVTDescribe;
+  klass->instClassStruct.finish = MVTFinish;
+  klass->size = sizeof(MVTStruct);
+  klass->varargs = MVTVarargs;
+  klass->init = MVTInit;
+  klass->free = MVTFree;
+  klass->bufferFill = MVTBufferFill;
+  klass->bufferEmpty = MVTBufferEmpty;
+  klass->totalSize = MVTTotalSize;
+  klass->freeSize = MVTFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 /* Macros */
@@ -219,9 +220,8 @@ ARG_DEFINE_KEY(MVT_MAX_SIZE, Size);
 ARG_DEFINE_KEY(MVT_RESERVE_DEPTH, Count);
 ARG_DEFINE_KEY(MVT_FRAG_LIMIT, double);
 
-static Res MVTInit(Pool pool, ArgList args)
+static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  Arena arena;
   Size align = MVT_ALIGN_DEFAULT;
   Size minSize = MVT_MIN_SIZE_DEFAULT;
   Size meanSize = MVT_MEAN_SIZE_DEFAULT;
@@ -234,12 +234,11 @@ static Res MVTInit(Pool pool, ArgList args)
   Res res;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
-  /* can't AVERT mvt, yet */
-  arena = PoolArena(pool);
+  AVER(pool != NULL);
   AVERT(Arena, arena);
-  
+  AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
+
   if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
   if (ArgPick(&arg, args, MPS_KEY_MIN_SIZE))
@@ -279,12 +278,17 @@ static Res MVTInit(Pool pool, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = LandInit(MVTFreePrimary(mvt), CBSFastLandClassGet(), arena, align, mvt,
+  res = NextMethod(Pool, MVTPool, init)(pool, arena, klass, args);
+  if (res != ResOK)
+    goto failNextInit;
+  mvt = CouldBeA(MVTPool, pool);
+
+  res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFast), arena, align, mvt,
                  mps_args_none);
   if (res != ResOK)
     goto failFreePrimaryInit;
  
-  res = LandInit(MVTFreeSecondary(mvt), FreelistLandClassGet(), arena, align,
+  res = LandInit(MVTFreeSecondary(mvt), CLASS(Freelist), arena, align,
                  mvt, mps_args_none);
   if (res != ResOK)
     goto failFreeSecondaryInit;
@@ -292,7 +296,7 @@ static Res MVTInit(Pool pool, ArgList args)
   MPS_ARGS_BEGIN(foArgs) {
     MPS_ARGS_ADD(foArgs, FailoverPrimary, MVTFreePrimary(mvt));
     MPS_ARGS_ADD(foArgs, FailoverSecondary, MVTFreeSecondary(mvt));
-    res = LandInit(MVTFreeLand(mvt), FailoverLandClassGet(), arena, align, mvt,
+    res = LandInit(MVTFreeLand(mvt), CLASS(Failover), arena, align, mvt,
                    foArgs);
   } MPS_ARGS_END(foArgs);
   if (res != ResOK)
@@ -303,6 +307,7 @@ static Res MVTInit(Pool pool, ArgList args)
     goto failABQInit;
 
   pool->alignment = align;
+  pool->alignShift = SizeLog2(pool->alignment);
   mvt->reuseSize = reuseSize;
   mvt->fillSize = fillSize;
   mvt->abqOverflow = FALSE;
@@ -357,11 +362,13 @@ static Res MVTInit(Pool pool, ArgList args)
   METER_INIT(mvt->exceptionSplinters, "exception splinters", (void *)mvt);
   METER_INIT(mvt->exceptionReturns, "exception returns", (void *)mvt);
 
+  SetClassOfPoly(pool, CLASS(MVTPool));
   mvt->sig = MVTSig;
-
-  AVERT(MVT, mvt);
+  AVERC(MVT, mvt);
+  
   EVENT6(PoolInitMVT, pool, minSize, meanSize, maxSize,
                reserveDepth, fragLimit);
+
   return ResOK;
 
 failABQInit:
@@ -371,6 +378,8 @@ failFreeLandInit:
 failFreeSecondaryInit:
   LandFinish(MVTFreePrimary(mvt));
 failFreePrimaryInit:
+  NextMethod(Inst, MVTPool, finish)(MustBeA(Inst, pool));
+failNextInit:
   AVER(res != ResOK);
   return res;
 }
@@ -382,8 +391,9 @@ ATTRIBUTE_UNUSED
 static Bool MVTCheck(MVT mvt)
 {
   CHECKS(MVT, mvt);
+  CHECKC(MVTPool, mvt);
   CHECKD(Pool, MVTPool(mvt));
-  CHECKL(MVTPool(mvt)->class == MVTPoolClassGet());
+  CHECKC(MVTPool, mvt);
   CHECKD(CBS, &mvt->cbsStruct);
   CHECKD(ABQ, &mvt->abqStruct);
   CHECKD(Freelist, &mvt->flStruct);
@@ -413,18 +423,15 @@ static Bool MVTCheck(MVT mvt)
 
 /* MVTFinish -- finish an MVT pool
  */
-static void MVTFinish(Pool pool)
+static void MVTFinish(Inst inst)
 {
-  MVT mvt;
-  Arena arena;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MVT mvt = MustBeA(MVTPool, pool);
+  Arena arena = PoolArena(pool);
   Ring ring;
   Ring node, nextNode;
  
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
   mvt->sig = SigInvalid;
 
@@ -442,6 +449,8 @@ static void MVTFinish(Pool pool)
   LandFinish(MVTFreeLand(mvt));
   LandFinish(MVTFreeSecondary(mvt));
   LandFinish(MVTFreePrimary(mvt));
+
+  NextMethod(Inst, MVTPool, finish)(inst);
 }
 
 
@@ -1014,36 +1023,37 @@ static Size MVTFreeSize(Pool pool)
 
 /* MVTDescribe -- describe an MVT pool */
 
-static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
+  MVT mvt = CouldBeA(MVTPool, pool);
   Res res;
-  MVT mvt;
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  mvt = PoolMVT(pool);
-  if (!TESTT(MVT, mvt))
-    return ResFAIL;
+  if (!TESTC(MVTPool, mvt))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "MVT $P {\n", (WriteFP)mvt,
-               "  minSize: $U\n", (WriteFU)mvt->minSize,
-               "  meanSize: $U\n", (WriteFU)mvt->meanSize,
-               "  maxSize: $U\n", (WriteFU)mvt->maxSize,
-               "  fragLimit: $U\n", (WriteFU)mvt->fragLimit,
-               "  reuseSize: $U\n", (WriteFU)mvt->reuseSize,
-               "  fillSize: $U\n", (WriteFU)mvt->fillSize,
-               "  availLimit: $U\n", (WriteFU)mvt->availLimit,
-               "  abqOverflow: $S\n", WriteFYesNo(mvt->abqOverflow),
-               "  splinter: $S\n", WriteFYesNo(mvt->splinter),
-               "  splinterBase: $A\n", (WriteFA)mvt->splinterBase,
-               "  splinterLimit: $A\n", (WriteFU)mvt->splinterLimit,
-               "  size: $U\n", (WriteFU)mvt->size,
-               "  allocated: $U\n", (WriteFU)mvt->allocated,
-               "  available: $U\n", (WriteFU)mvt->available,
-               "  unavailable: $U\n", (WriteFU)mvt->unavailable,
+  res = NextMethod(Inst, MVTPool, describe)(inst, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "minSize: $U\n", (WriteFU)mvt->minSize,
+               "meanSize: $U\n", (WriteFU)mvt->meanSize,
+               "maxSize: $U\n", (WriteFU)mvt->maxSize,
+               "fragLimit: $U\n", (WriteFU)mvt->fragLimit,
+               "reuseSize: $U\n", (WriteFU)mvt->reuseSize,
+               "fillSize: $U\n", (WriteFU)mvt->fillSize,
+               "availLimit: $U\n", (WriteFU)mvt->availLimit,
+               "abqOverflow: $S\n", WriteFYesNo(mvt->abqOverflow),
+               "splinter: $S\n", WriteFYesNo(mvt->splinter),
+               "splinterBase: $A\n", (WriteFA)mvt->splinterBase,
+               "splinterLimit: $A\n", (WriteFU)mvt->splinterLimit,
+               "size: $U\n", (WriteFU)mvt->size,
+               "allocated: $U\n", (WriteFU)mvt->allocated,
+               "available: $U\n", (WriteFU)mvt->available,
+               "unavailable: $U\n", (WriteFU)mvt->unavailable,
                NULL);
   if (res != ResOK)
     return res;
@@ -1094,8 +1104,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
   METER_WRITE(mvt->exceptionSplinters, stream, depth + 2);
   METER_WRITE(mvt->exceptionReturns, stream, depth + 2);
  
-  res = WriteF(stream, depth, "} MVT $P\n", (WriteFP)mvt, NULL);
-  return res;
+  return ResOK;
 }
 
 
@@ -1106,7 +1115,7 @@ static Res MVTDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 PoolClass PoolClassMVT(void)
 {
-  return MVTPoolClassGet();
+  return CLASS(MVTPool);
 }
 
 
@@ -1129,7 +1138,7 @@ mps_pool_class_t mps_class_mvt(void)
  */
 static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
 {
-  Res res = SegAlloc(segReturn, SegClassGet(), LocusPrefDefault(), size,
+  Res res = SegAlloc(segReturn, CLASS(Seg), LocusPrefDefault(), size,
                      MVTPool(mvt), argsNone);
 
   if (res == ResOK) {
@@ -1344,23 +1353,9 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 }
 
 
-/* Return the CBS of an MVT pool for the benefit of fotest.c. */
-
-extern Land _mps_mvt_cbs(Pool);
-Land _mps_mvt_cbs(Pool pool) {
-  MVT mvt;
-
-  AVERT(Pool, pool);
-  mvt = PoolMVT(pool);
-  AVERT(MVT, mvt);
-
-  return MVTFreePrimary(mvt);
-}
-
-
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

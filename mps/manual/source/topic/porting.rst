@@ -48,8 +48,8 @@ usable.
    again without deadlocking.
 
    See :ref:`design-lock` for the design, and ``lock.h`` for the
-   interface. There are implementations for Linux in ``lockli.c``,
-   POSIX in ``lockix.c``, and Windows in ``lockw3.c``.
+   interface. There are implementations for POSIX in ``lockix.c``, and
+   Windows in ``lockw3.c``.
 
    There is a generic implementation in ``lockan.c``, which cannot
    actually take any locks and so only works for a single thread.
@@ -61,23 +61,22 @@ usable.
 
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are implementations for POSIX in ``protix.c`` plus
-   ``protsgix.c``, Linux in ``protli.c``, Windows in ``protw3.c``, and
-   OS X using Mach in ``protxc.c``.
+   ``protsgix.c``, Windows in ``protw3.c``, and macOS using Mach in
+   ``protix.c`` plus ``protxc.c``.
 
    There is a generic implementation in ``protan.c``, which can't
    provide memory protection, so it forces memory to be scanned until
-   that there is no further need to protect it. This means it can't
-   support incremental collection, and has no control over pause
-   times.
+   there is no further need to protect it. This means it can't support
+   incremental collection, and has no control over pause times.
 
-#. The **protection mutator context** module figures out what the
-   :term:`mutator` was doing when it caused a :term:`protection
-   fault`, so that access to a protected region of memory can be
-   handled, or when a thread was suspended, so that its
-   :term:`registers` and :term:`control stack` can be scanned.
+#. The **mutator context** module figures out what the :term:`mutator`
+   was doing when it caused a :term:`protection fault`, so that access
+   to a protected region of memory can be handled, or when a thread
+   was suspended, so that its :term:`registers` and :term:`control
+   stack` can be scanned.
 
-   See :ref:`design-prmc` for the design, and ``prot.h`` for the
-   interface. There are implementations on Unix, Windows, and OS X for
+   See :ref:`design-prmc` for the design, and ``prmc.h`` for the
+   interface. There are implementations on Unix, Windows, and macOS for
    IA-32 and x86-64.
 
    There is a generic implementation in ``prmcan.c``, which can't
@@ -118,7 +117,7 @@ usable.
 
    See :ref:`design-thread-manager` for the design, and ``th.h`` for
    the interface. There are implementations for POSIX in ``thix.c``
-   plus ``pthrdext.c``, OS X using Mach in ``thxc.c``, Windows in
+   plus ``pthrdext.c``, macOS using Mach in ``thxc.c``, Windows in
    ``thw3.c``.
 
    There is a generic implementation in ``than.c``, which necessarily
@@ -196,14 +195,14 @@ For example::
 
     #elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
-    #include "lockli.c"     /* Linux locks */
+    #include "lockix.c"     /* Posix locks */
     #include "thix.c"       /* Posix threading */
     #include "pthrdext.c"   /* Posix thread extensions */
     #include "vmix.c"       /* Posix virtual memory */
     #include "protix.c"     /* Posix protection */
-    #include "protli.c"     /* Linux protection */
-    #include "proti6.c"     /* 64-bit Intel mutator context */
-    #include "prmci6li.c"   /* 64-bit Intel for Linux mutator context */
+    #include "protsgix.c"   /* Posix signal handling */
+    #include "prmci6.c"     /* 64-bit Intel mutator context */
+    #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
     #include "span.c"       /* generic stack probe */
     #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
@@ -229,11 +228,11 @@ For example, ``lii6ll.gmk`` looks like this:
     PFM = lii6ll
 
     MPMPF = \
-        lockli.c \
-        prmci6li.c \
-        proti6.c \
+        lockix.c \
+        prmci6.c \
+        prmclii6.c \
         protix.c \
-        protli.c \
+        protsgix.c \
         pthrdext.c \
         span.c \
         ssixi6.c \
@@ -267,8 +266,8 @@ this:
     MPMPF = \
         [lockw3] \
         [mpsiw3] \
-        [prmci6w3] \
-        [proti6] \
+        [prmci6] \
+        [prmcw3i6] \
         [protw3] \
         [spw3i6] \
         [ssw3i6mv] \

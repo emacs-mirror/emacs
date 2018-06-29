@@ -1,10 +1,9 @@
-/* prmci6li.c: PROTECTION MUTATOR CONTEXT x64 (LINUX)
+/* prmclii6.c: MUTATOR CONTEXT x64 (LINUX)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  *
  * SOURCES
@@ -16,9 +15,6 @@
  *
  * .sp: The stack pointer in the context is RSP.
  *
- * .context.regroots: The root regs are assumed to be recorded in the context
- * at pointer-aligned boundaries.
- *
  * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
@@ -26,30 +22,29 @@
 #include "prmcix.h"
 #include "prmci6.h"
 
-SRCID(prmci6li, "$Id$");
+SRCID(prmclii6, "$Id$");
 
 #if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I6)
-#error "prmci6li.c is specific to MPS_OS_LI and MPS_ARCH_I6"
+#error "prmclii6.c is specific to MPS_OS_LI and MPS_ARCH_I6"
 #endif
 
 
 /* Prmci6AddressHoldingReg -- return an address of a register in a context */
 
-MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
+MRef Prmci6AddressHoldingReg(MutatorContext context, unsigned int regnum)
 {
   MRef gregs;
 
-  AVER(mfc != NULL);
+  AVERT(MutatorContext, context);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 15);
-  AVER(mfc->ucontext != NULL);
 
   /* TODO: The current arrangement of the fix operation (taking a Ref *)
      forces us to pun these registers (actually `int` on LII6GC).  We can
      suppress the warning by casting through `void *` and this might make
      it safe, but does it really?  RB 2012-09-10 */
-  AVER(sizeof(void *) == sizeof(*mfc->ucontext->uc_mcontext.gregs));
-  gregs = (void *)mfc->ucontext->uc_mcontext.gregs;
+  AVER(sizeof(void *) == sizeof(*context->ucontext->uc_mcontext.gregs));
+  gregs = (void *)context->ucontext->uc_mcontext.gregs;
 
   /* .assume.regref */
   /* The register numbers (REG_RAX etc.) are defined in <ucontext.h>
@@ -83,50 +78,40 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 
 void Prmci6DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
-                              MutatorFaultContext mfc)
+                              MutatorContext context)
 {
+  AVER(faultmemReturn != NULL);
+  AVER(insvecReturn != NULL);
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
+
   /* .source.linux.kernel (linux/arch/x86/mm/fault.c). */
-  *faultmemReturn = (MRef)mfc->info->si_addr;
-  *insvecReturn = (Byte*)mfc->ucontext->uc_mcontext.gregs[REG_RIP];
+  *faultmemReturn = (MRef)context->info->si_addr;
+  *insvecReturn = (Byte*)context->ucontext->uc_mcontext.gregs[REG_RIP];
 }
 
 
 /* Prmci6StepOverIns -- modify context to step over instruction */
 
-void Prmci6StepOverIns(MutatorFaultContext mfc, Size inslen)
+void Prmci6StepOverIns(MutatorContext context, Size inslen)
 {
-  mfc->ucontext->uc_mcontext.gregs[REG_RIP] += (Word)inslen;
+  AVERT(MutatorContext, context);
+
+  context->ucontext->uc_mcontext.gregs[REG_RIP] += (Word)inslen;
 }
 
 
-Addr MutatorFaultContextSP(MutatorFaultContext mfc)
+Addr MutatorContextSP(MutatorContext context)
 {
-  return (Addr)mfc->ucontext->uc_mcontext.gregs[REG_RSP];
-}
+  AVERT(MutatorContext, context);
 
-
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
-                            mps_area_scan_t scan_area,
-                            void *closure)
-{
-  mcontext_t *mc;
-  Res res;
-
-  /* This scans the root registers (.context.regroots).  It also
-     unnecessarily scans the rest of the context.  The optimisation
-     to scan only relevant parts would be machine dependent. */
-  mc = &mfc->ucontext->uc_mcontext;
-  res = TraceScanArea(ss,
-                      (Word *)mc,
-                      (Word *)((char *)mc + sizeof(*mc)),
-                      scan_area, closure);
-  return res;
+  return (Addr)context->ucontext->uc_mcontext.gregs[REG_RSP];
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

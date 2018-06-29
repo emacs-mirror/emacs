@@ -1,60 +1,42 @@
-/* prmci6li.c: PROTECTION MUTATOR CONTEXT x64 (FREEBSD)
+/* prmcfri3.c: MUTATOR CONTEXT INTEL 386 (FREEBSD)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext.
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
+ *
+ *
+ * SOURCES
+ *
+ * .source.i486: Intel486 Microprocessor Family Programmer's
+ * Reference Manual
  *
  *
  * ASSUMPTIONS
  *
- * .sp: The stack pointer in the context is RSP.
- *
- * .context.regroots: The root regs are RDI, RSI, RBX, RDX, RCX, RAX,
- * and they are assumed to be recorded in the context at
- * pointer-aligned boundaries.
+ * .sp: The stack pointer in the context is ESP.
  */
 
 #include "prmcix.h"
-#include "prmci6.h"
+#include "prmci3.h"
 
-SRCID(prmci6fr, "$Id$");
+SRCID(prmcfri3, "$Id$");
 
-#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I6)
-#error "prmci6fr.c is specific to MPS_OS_FR and MPS_ARCH_I6"
+#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I3)
+#error "prmcfri3.c is specific to MPS_OS_FR and MPS_ARCH_I3"
 #endif
 
 
-Addr MutatorFaultContextSP(MutatorFaultContext mfc)
+Addr MutatorContextSP(MutatorContext context)
 {
-  return (Addr)mfc->ucontext->uc_mcontext.mc_rsp;   /* .sp */
-}
-
-
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
-                            mps_area_scan_t scan_area,
-                            void *closure)
-{
-  Res res;
-
-  /* This scans the root registers (.context.regroots).  It also unnecessarily
-     scans the rest of the context.  The optimisation to scan only relevant
-     parts would be machine dependent. */
-  res = TraceScanArea(
-    ss,
-    (Word *)mfc->ucontext,
-    (Word *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext))),
-    scan_area, closure
-  );
-
-  return res;
+  AVERT(MutatorContext, context);
+  return (Addr)context->ucontext->uc_mcontext.mc_esp;   /* .sp */
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

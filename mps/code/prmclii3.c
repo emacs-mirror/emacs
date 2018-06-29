@@ -1,10 +1,9 @@
-/* prmci3xc.c: PROTECTION MUTATOR CONTEXT INTEL 386 (MAC OS X)
+/* prmclii3.c: MUTATOR CONTEXT INTEL 386 (LINUX)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  *
  * SOURCES
@@ -17,53 +16,53 @@
  *
  * ASSUMPTIONS
  *
- * .context.regroots: The root regs are assumed to be recorded in the context
- * at pointer-aligned boundaries.
+ * .sp: The stack pointer in the context is ESP.
  *
  * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
 
-#include "prmcxc.h"
+#include "prmcix.h"
 #include "prmci3.h"
 
-SRCID(prmci3xc, "$Id$");
+SRCID(prmclii3, "$Id$");
 
-#if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I3)
-#error "prmci3xc.c is specific to MPS_OS_XC and MPS_ARCH_I3"
+#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I3)
+#error "prmclii3.c is specific to MPS_OS_LI and MPS_ARCH_I3"
 #endif
 
 
 /* Prmci3AddressHoldingReg -- return an address of a register in a context */
 
-MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
+MRef Prmci3AddressHoldingReg(MutatorContext context, unsigned int regnum)
 {
-  THREAD_STATE_S *threadState;
+  MRef gregs;
 
-  AVER(mfc != NULL);
+  AVERT(MutatorContext, context);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 7);
-  AVER(mfc->threadState != NULL);
-  threadState = mfc->threadState;
+
+  /* TODO: The current arrangement of the fix operation (taking a Ref *)
+     forces us to pun these registers (actually `int` on LII3GC).  We can
+     suppress the warning by casting through `void *` and this might make
+     it safe, but does it really?  RB 2012-09-10 */
+  AVER(sizeof(void *) == sizeof(*context->ucontext->uc_mcontext.gregs));
+  gregs = (void *)context->ucontext->uc_mcontext.gregs;
 
   /* .source.i486 */
   /* .assume.regref */
   /* The register numbers (REG_EAX etc.) are defined in <ucontext.h>
      but only if _GNU_SOURCE is defined: see .feature.li in
      config.h. */
-  /* TODO: The current arrangement of the fix operation (taking a Ref *)
-     forces us to pun these registers (actually `int` on LII3GC).  We can
-     suppress the warning by casting through `void *` and this might make
-     it safe, but does it really?  RB 2012-09-10 */
   switch (regnum) {
-    case 0: return (void *)&threadState->__eax;
-    case 1: return (void *)&threadState->__ecx;
-    case 2: return (void *)&threadState->__edx;
-    case 3: return (void *)&threadState->__ebx;
-    case 4: return (void *)&threadState->__esp;
-    case 5: return (void *)&threadState->__ebp;
-    case 6: return (void *)&threadState->__esi;
-    case 7: return (void *)&threadState->__edi;
+    case 0: return &gregs[REG_EAX];
+    case 1: return &gregs[REG_ECX];
+    case 2: return &gregs[REG_EDX];
+    case 3: return &gregs[REG_EBX];
+    case 4: return &gregs[REG_ESP];
+    case 5: return &gregs[REG_EBP];
+    case 6: return &gregs[REG_ESI];
+    case 7: return &gregs[REG_EDI];
     default:
       NOTREACHED;
       return NULL;  /* Avoids compiler warning. */
@@ -75,49 +74,40 @@ MRef Prmci3AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 
 void Prmci3DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
-                              MutatorFaultContext mfc)
+                              MutatorContext context)
 {
-  *faultmemReturn = (MRef)mfc->address;
-  *insvecReturn = (Byte*)mfc->threadState->__eip;
+  AVER(faultmemReturn != NULL);
+  AVER(insvecReturn != NULL);
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
+
+  /* .source.linux.kernel (linux/arch/i386/mm/fault.c). */
+  *faultmemReturn = (MRef)context->info->si_addr;
+  *insvecReturn = (Byte*)context->ucontext->uc_mcontext.gregs[REG_EIP];
 }
 
 
 /* Prmci3StepOverIns -- modify context to step over instruction */
 
-void Prmci3StepOverIns(MutatorFaultContext mfc, Size inslen)
+void Prmci3StepOverIns(MutatorContext context, Size inslen)
 {
-  mfc->threadState->__eip += (Word)inslen;
+  AVERT(MutatorContext, context);
+
+  context->ucontext->uc_mcontext.gregs[REG_EIP] += (unsigned long)inslen;
 }
 
 
-Addr MutatorFaultContextSP(MutatorFaultContext mfc)
+Addr MutatorContextSP(MutatorContext context)
 {
-  return (Addr)mfc->threadState->__esp;
-}
+  AVERT(MutatorContext, context);
 
-
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
-                            mps_area_scan_t scan_area,
-                            void *closure)
-{
-  x86_thread_state32_t *mc;
-  Res res;
-
-  /* This scans the root registers (.context.regroots).  It also
-     unnecessarily scans the rest of the context.  The optimisation
-     to scan only relevant parts would be machine dependent. */
-  mc = mfc->threadState;
-  res = TraceScanArea(ss,
-                      (Word *)mc,
-                      (Word *)((char *)mc + sizeof(*mc)),
-                      scan_area, closure);
-  return res;
+  return (Addr)context->ucontext->uc_mcontext.gregs[REG_ESP];
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
