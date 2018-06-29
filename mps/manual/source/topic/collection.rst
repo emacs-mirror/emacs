@@ -55,8 +55,9 @@ you can choose which chain it should use by passing the
 
 Create a generation chain by preparing an array of
 :c:type:`mps_gen_param_s` structures giving the *capacity* (in
-kilobytes) and *predicted mortality* (between 0 and 1) of each
-generation, and passing them to :c:func:`mps_chain_create`.
+kilobytes) and *initial predicted mortality* (between 0 and 1
+inclusive) of each generation, and passing them to
+:c:func:`mps_chain_create`.
 
 When the *new size* of a generation exceeds its capacity, the MPS will
 be prepared to start collecting the chain to which the generation
@@ -95,17 +96,29 @@ For example::
         } mps_gen_param_s;
 
     ``mps_capacity`` is the capacity of the generation, in
-    :term:`kilobytes`. When the size of the generation
-    exceeds this, the MPS will be prepared to start collecting it.
+    :term:`kilobytes`. When the size of the generation exceeds this,
+    the MPS will be prepared to start collecting it.
 
-    ``mps_mortality`` is the predicted mortality of the generation:
-    the proportion (between 0 and 1) of blocks in the generation that
-    are expected to be :term:`dead` when the generation is collected.
+    .. note::
 
-    These numbers are hints to the MPS that it may use to make
-    decisions about when and what to collect: nothing will go wrong
-    (other than suboptimal performance) if you make poor
-    choices. See :ref:`topic-collection-schedule`.
+        The name *capacity* is somewhat misleading. When a generation
+        reaches its capacity the MPS may not be able to collect it
+        immediately (for example because some other generation is
+        being collected), but this does not prevent allocation into
+        the generation, and so the size of a generation will often
+        exceed its capacity.
+
+    ``mps_mortality`` is the initial predicted mortality of the
+    generation: the proportion (between 0 and 1 inclusive) of bytes in
+    the generation that are expected to be :term:`dead` when the
+    generation is collected.
+
+    .. note::
+
+        This value is only used as an initial estimate. The MPS
+        measures the mortality each time it collects the generation,
+        and maintains a moving average. So it is not important to
+        provide an accurate estimate here.
 
 
 .. c:function:: mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t arena, size_t gen_count, mps_gen_param_s *gen_params)
@@ -186,28 +199,6 @@ In pools such as :ref:`pool-amc`, blocks in generation *g* that
 survive collection get promoted to generation *g*\+1. If the last
 generation in the chain is collected, the survivors are promoted into
 an :term:`arena`\-wide "top" generation.
-
-The predicted mortality is used to estimate how long the collection
-will take, and this is used in turn to decide how much work the
-collector will do each time it has an opportunity to do some work. The constraints here are:
-
-#. The :term:`client program` might have specified a limit on the
-   acceptable length of the pause if the work is being done inside
-   :c:func:`mps_arena_step`.
-
-#. The collector needs to keep up with the :term:`client program`:
-   that is, it has to collect garbage at least as fast as the client
-   is producing it, otherwise the amount of garbage will grow without
-   bound.
-
-With perfect prediction, the collector's work should be smoothly
-distributed, with a small maximum pause time. Getting the predicted
-mortality wrong leads to "lumpy" distribution of collection work with
-a longer maximum pause time. If the predicted mortality is too high,
-the collector will start out by taking small time slices and then find
-that it has to catch up later by taking larger time slices. If the
-predicted mortality is too low, the collector will take larger time
-slices up front and then find that it is idle later on.
 
 
 .. index::

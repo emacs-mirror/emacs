@@ -207,18 +207,16 @@ before calling ``SegMerge()``:
   represented if this is not so.
 
 - _`.merge.inv.buffer`: One or other of ``segLo`` and ``segHi`` may
-  attached to a buffer, but not both. Justification: the segment
+  be attached to a buffer, but not both. Justification: the segment
   module does not support attachment of a single seg to 2 buffers.
 
 - _`.merge.inv.similar`: ``segLo`` and ``segHi`` must be sufficiently
   similar. Two segments are sufficiently similar if they have
   identical values for each of the following fields: ``class``,
-  ``sm``, ``grey``, ``white``, ``nailed``, ``rankSet``. Justification:
-  there is no single choice of behaviour for cases where these fields
-  are not identical. The pool class must make it's own choices about
-  this if it wishes to permit more flexible merging. If so, it should
-  be a simple matter for the pool to arrange for the segments to look
-  sufficiently similar before calling ``SegMerge()``.
+  ``grey``, ``white``, ``nailed``, ``rankSet``. Justification: There
+  has yet to be a need to implement default behaviour for these
+  cases. Pool classes should arrange for these values to be the same
+  before calling ``SegMerge()``.
 
 _`.merge.state`: The merged segment will share the same state as
 ``segLo`` and ``segHi`` for those fields which are identical (see
@@ -228,6 +226,125 @@ of ``segLo`` and ``segHi``.
 
 Extensibility
 -------------
+
+Garbage collection
+..................
+
+``typedef Res (*SegAccessMethod)(Seg seg, Arena arena, Addr addr, AccessSet mode, MutatorContext context)``
+
+_`.method.access`: The ``access`` method indicates that the client
+program attempted to access the address ``addr``, but has been denied
+due to a protection fault. The ``mode`` indicates whether the client
+program was trying to read (``AccessREAD``) or write (``AccessWRITE``)
+the address. If this can't be determined, ``mode`` is ``AccessREAD |
+AccessWRITE``. The segment should perform any work necessary to remove
+the protection whilst still preserving appropriate invariants (this
+might scanning the region containing ``addr``). Segment classes are
+not required to provide this method, and not doing so indicates they
+never protect any memory managed by the pool. This method is called
+via the generic function ``SegAccess()``.
+
+``typedef Res (*SegWhitenMethod)(Seg seg, Trace trace)``
+
+_`.method.whiten`: The ``whiten`` method requests that the segment
+``seg`` condemn (a subset of, but typically all) its objects for the
+trace ``trace``. That is, prepare them for participation in the trace
+to determine their liveness. The segment should expect fix requests
+(`.method.fix`_) during the trace and a reclaim request
+(`.method.reclaim`_) at the end of the trace. Segment
+classes that automatically reclaim dead objects must provide this
+method, and pools that use these segment classes must additionally set
+the ``AttrGC`` attribute. This method is called via the generic
+function ``SegWhiten()``.
+
+``typedef void (*SegGreyenMethod)(Seg seg, Trace trace)``
+
+_`.method.grey`: The ``greyen`` method requires the segment ``seg`` to
+colour its objects grey for the trace ``trace`` (excepting objects
+that were already condemned for this trace). That is, make them ready
+for scanning by the trace ``trace``. The segment must arrange that any
+appropriate invariants are preserved, possibly by using the protection
+interface (see design.mps.prot_). Segment classes are not required to
+provide this method, and not doing so indicates that all instances of
+this class will have no fixable or traceable references in them. This
+method is called via the generic function ``SegGreyen()``.
+
+.. _design.mps.prot: prot
+
+``typedef void (*SegBlackenMethod)(Seg seg, TraceSet traceSet)``
+
+_`.method.blacken`: The ``blacken`` method is called if it is known
+that the segment ``seg`` cannot refer to the white set for any of the
+traces in ``traceSet``. The segment must blacken all its grey objects
+for those traces. Segment classes are not required to provide this
+method, and not doing so indicates that all instances of this class
+will have no fixable or traceable references in them. This method is
+called via the generic function ``SegBlacken()``.
+
+``typedef Res (*SegScanMethod)(Bool *totalReturn, Seg seg, ScanState ss)``
+
+_`.method.scan`: The ``scan`` method scans all the grey objects on the
+segment ``seg``, passing the scan state ``ss`` to ``FormatScan``. The
+segment may additionally accumulate a summary of *all* its objects. If
+it succeeds in accumulating such a summary it must indicate that it
+has done so by setting the ``*totalReturn`` parameter to ``TRUE``.
+Otherwise it must set ``*totalReturn`` to ``FALSE``. Segment classes
+are not required to provide this method, and not doing so indicates
+that all instances of this class will have no fixable or traceable
+references in them. This method is called via the generic function
+``SegScan()``.
+
+``typedef Res (*SegFixMethod)(Seg seg, ScanState ss, Ref *refIO)``
+
+_`.method.fix`: The ``fix`` method indicates that the reference
+``*refIO`` has been discovered at rank ``ss->rank`` by the traces in
+``ss->traces``, and the segment must handle this discovery according
+to the fix protocol (design.mps.fix_). If the method moves the object,
+it must update ``*refIO`` to refer to the new location of the object.
+If the method determines that the referenced object died (for example,
+because the highest-ranking references to the object were weak), it
+must update ``*refIO`` to ``NULL``. Segment classes that automatically
+reclaim dead objects must provide this method, and pools that use
+these classes must additionally set the ``AttrGC`` attribute. Pool
+classes that use segment classes that may move objects must also set
+the ``AttrMOVINGGC`` attribute. The ``fix`` method is on the critical
+path (see design.mps.critical-path_) and so must be fast. This method
+is called via the function ``TraceFix()``.
+
+.. _design.mps.fix: fix
+.. _design.mps.critical-path: critical-path
+
+_`.method.fixEmergency`: The ``fixEmergency`` method is used to
+perform fixing in "emergency" situations. Its specification is
+identical to the ``fix`` method, but it must complete its work without
+allocating memory (perhaps by using some approximation, or by running
+more slowly). Segment classes must provide this method if and only if
+they provide the ``fix`` method. If the ``fix`` method does not need
+to allocate memory, then it is acceptable for ``fix`` and
+``fixEmergency`` to be the same.
+
+``typedef void (*SegReclaimMethod)(Seg seg, Trace trace)``
+
+_`.method.reclaim`: The ``reclaim`` method indicates that any
+remaining white objects in the segment ``seg`` have now been proved
+unreachable by the trace ``trace``, and so are dead. The segment
+should reclaim the resources associated with the dead objects. Segment
+classes are not required to provide this method. If they do, pools
+that use them must set the ``AttrGC`` attribute. This method is called
+via the generic function ``SegReclaim()``.
+
+``typedef void (*SegWalkMethod)(Seg seg, Format format, FormattedObjectsVisitor f, void *v, size_t s)``
+
+_`.method.walk`: The ``walk`` method must call the visitor function
+``f`` (along with its closure parameters ``v`` and ``s`` and the
+format ``format``) once for each of the *black* objects in the
+segment ``seg``. Padding objects may or may not be included in the
+walk, at the segment's discretion: it is the responsibility of the
+client program to handle them. Forwarding objects must not be included
+in the walk. Segment classes need not provide this method. This
+method is called by the genetic function ``SegWalk()``, which is
+called by the heap walker ``mps_arena_formatted_objects_walk()``.
+
 
 Splitting and merging
 .....................
@@ -248,7 +365,12 @@ _`.method.split.next`: A split method should always call the next
 method, either before or after any class-specific code (see
 design.mps.protocol.overview.next-method_).
 
-.. _design.mps.protocol.overview.next-method: protocol#overview.next-method
+.. _design.mps.protocol.overview.next-method: protocol#overview-next-method
+
+_`.method.split.accounting`: If ``seg`` belongs to a generation in a
+chain, then the pool generation accounting must be updated. In the
+simple case where the split segments remain in the same generation,
+this can be done by calling ``PoolGenAccountForSegSplit()``.
 
 ``typedef Res (*SegMergeMethod)(Seg seg, Seg segHi, Addr base, Addr mid, Addr limit)``
 
@@ -265,7 +387,13 @@ _`.method.merge.next`: A merge method should always call the next
 method, either before or after any class-specific code (see
 design.mps.protocol.overview.next-method_).
 
-.. _design.mps.protocol.overview.next-method: protocol#overview.next-method
+.. _design.mps.protocol.overview.next-method: protocol#overview-next-method
+
+_`.method.merge.accounting`: If ``seg`` belongs to a generation in a
+chain, then the pool generation accounting must be updated. In the
+simple case where the two segments started in the same generation and
+the merged segment remains in that generation, this can be done by
+calling ``PoolGenAccountForSegMerge()``.
 
 _`.split-merge.shield`: Split and merge methods may assume that the
 segments they are manipulating are not in the shield queue.
@@ -289,7 +417,7 @@ before calling the next method, the appropriate anti-method must be
 used (see design.mps.protocol.guide.fail.after-next_). Split methods
 are anti-methods for merge methods, and vice-versa.
 
-.. _design.mps.protocol.guide.fail.after-next: protocol#guide.fail.after-next
+.. _design.mps.protocol.guide.fail.after-next: protocol#guide-fail-after-next
 
 _`.split-merge.fail.anti.constrain`: In general, care should be taken
 when writing split and merge methods to ensure that they really are

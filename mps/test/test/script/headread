@@ -85,6 +85,9 @@ sub readheader {
  } else {
   $testid = $test_header{"id"};
  }
+ if (length($testid) > 70) {
+  $testid = substr($testid, 0, 33) . "..." . substr($testid, -33);
+ }
  if (! exists $test_header{"harness"}) {
   $test_header{"harness"} = "1.0";
  }
@@ -149,7 +152,7 @@ sub read_results {
   &debug($_);
   if (/^!/) {
 # result variable
-   if  (/^!(\w+)\s*=\s*(.+)\s*/) {
+   if  (/^!(\w+)\s*=\s*(.+?)\s*$/) {
     $real_output{$1} = $2
    } else {
     die "Badly formatted result line in output:\n$_\n";
@@ -157,6 +160,7 @@ sub read_results {
   } elsif (/Abort trap|abnormal program termination|Segmentation fault/) {
 # abort for other reason
    $real_output{"abort"} = "true";
+   $real_output{"assert_or_abort"} = "true";
   } elsif (/^%/ || /^\s$/) {
 # comment or blank line
   } else {

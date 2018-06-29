@@ -148,7 +148,7 @@ MPS detects that objects are finalizable.
 
 _`.over.message`: ``PoolClassMRG`` implements a ``MessageClass`` (see
 design.mps.message_). All the messages are of one ``MessageType``. This
-type is ``MessageTypeFinalization``. Messages are created when objects
+type is ``MessageTypeFINALIZATION``. Messages are created when objects
 are discovered to be finalizable and destroyed when the MPS client has
 received the message.
 
@@ -183,7 +183,7 @@ registered for finalization. This protocol is handled by the arena
 module on behalf of finalization. see
 design.mps.finalize.int.finalize_.
 
-.. _design.mps.finalize.int.finalize: finalize#int.finalize
+.. _design.mps.finalize.int.finalize: finalize#int-finalize
 
 
 Finalizer execution
@@ -204,7 +204,7 @@ _`.protocol.life`: An instance of PoolClassMRG is needed in order to
 support finalization, it is called the "final" pool and is attached to
 the arena (see design.mps.finalize.int.arena.struct_).
 
-.. _design.mps.finalize.int.arena.struct: finalize#int.arena.struct
+.. _design.mps.finalize.int.arena.struct: finalize#int-arena-struct
 
 _`.protocol.life.birth`: The final pool is created lazily by
 ``ArenaFinalize()``.
@@ -432,9 +432,9 @@ to grow very quickly.
 _`.finish`: Iterate over all the segments, returning all the segments
 to the arena.
 
-``Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)``
+``Res mrgRefSegScan(Bool *totalReturn, Pool pool, Seg seg, ScanState ss)``
 
-_`.scan`: ``MRGScan()`` scans a segment.
+_`.scan`: ``mrgRefSegScan()`` scans a segment of guardians.
 
 _`.scan.trivial`: Scan will do nothing (that is, return immediately)
 if the tracing rank is anything other than final.
@@ -451,10 +451,10 @@ scanning is detrimental, it will only delay finalization. If the rank
 is higher than final there is nothing to do, the pool only contains
 final references.
 
-_`.scan.guardians`: ``MRGScan()`` will iterate over all guardians in
-the segment. Every guardian's reference will be fixed (_`.scan.free`:
-note that guardians that are on the free list have ``NULL`` in their
-reference part).
+_`.scan.guardians`: ``mrgRefSegScan()`` will iterate over all
+guardians in the segment. Every guardian's reference will be fixed
+(_`.scan.free`: note that guardians that are on the free list have
+``NULL`` in their reference part).
 
 _`.scan.wasold`: If the object referred to had not been fixed
 previously (that is, was unmarked) then the object is not referenced
@@ -489,14 +489,6 @@ and exit lists and prints the guardians in each. The location of the
 guardian and the value of the reference in it will be printed out.
 Provided for debugging only.
 
-_`.functions.unused`: All of these will be unused: ``BufferInit()``,
-``BufferFill()``, ``BufferEmpty()``, ``BufferFinish()``,
-``TraceBegin()``, ``TraceCondemn()``, ``PoolFix()``, ``PoolReclaim()``, ``TraceEnd()``.
-
-_`.functions.trivial`: The Grey method of the pool class will be
-``PoolTrivGrey()``, this pool has no further bookkeeping to perform
-for grey segments.
-
 
 Transgressions
 --------------
@@ -512,7 +504,7 @@ arena. A suggested strategy for this is as follows:
 
 - Add a free segment ring to the pool.
 
-- In ``MRGRefSegScan()``, if the segment is entirely free, don't scan
+- In ``mrgRefSegScan()``, if the segment is entirely free, don't scan
   it, but instead detach its links from the free ring, and move the
   segment to the free segment ring.
 
@@ -658,7 +650,7 @@ and haven't been finalized. This will test `.promise.unreachable`_ and
 Notes
 -----
 
-_`.access.inadequate`: ``PoolAccess()`` will scan segments at
+_`.access.inadequate`: ``SegAccess()`` will scan segments at
 `RankEXACT``. Really it should be scanned at whatever the minimum rank
 of all grey segments is (the trace rank phase), however there is no
 way to find this out. As a consequence we will sometimes scan pages at
@@ -685,7 +677,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

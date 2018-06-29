@@ -42,7 +42,7 @@ static void setobj(mps_addr_t a, size_t size, unsigned char val)
 static mps_res_t mvt_alloc(mps_addr_t *ref, mps_ap_t ap, size_t size) {
  mps_res_t res;
 
- size = ((size+7)/8)*8;
+ size = (size + MPS_PF_ALIGN - 1) & ~(MPS_PF_ALIGN - 1);
 
  do {
   MPS_RESERVE_BLOCK(res, *ref, ap, size);
@@ -71,7 +71,7 @@ static int chkobj(mps_addr_t a, size_t size, unsigned char val)
 static void dt(int kind,
    size_t minSize, size_t avgSize, size_t maxSize,
    mps_word_t depth, mps_word_t fragLimit,
-   size_t mins, size_t maxs, int number, int iter)
+   unsigned long mins, unsigned long maxs, int number, int iter)
 {
  mps_pool_t pool;
  mps_ap_t ap;
@@ -118,11 +118,11 @@ static void dt(int kind,
    if (queue[hd].addr != NULL)
    {
     asserts(chkobj(queue[hd].addr, queue[hd].size, (unsigned char) (hd%256)),
-      "corrupt at %x (%s: %x, %x, %x, %i, %i, %x, %x, %i, %i)",
+      "corrupt at %x (%s: %x, %x, %x, %i, %i, %lx, %lx, %i, %i)",
       queue[hd].addr,
       tdesc[kind], (int) minSize, (int) avgSize, (int) maxSize,
       (int) depth, (int) fragLimit,
-      (int) mins, (int) maxs, number, iter);
+      mins, maxs, number, iter);
     mps_free(pool, queue[hd].addr, queue[hd].size);
    }
    size = ranrange(mins, maxs);
@@ -145,16 +145,16 @@ static void dt(int kind,
  time1=clock();
  secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %i, %i, %x, %x, %i, %i) in %.2f s",
+ comment("%s test (%x, %x, %x, %i, %i, %lx, %lx, %i, %i) in %.2f s",
   tdesc[kind], (int) minSize, (int) avgSize, (int) maxSize,
   (int) depth, (int) fragLimit,
-  (int) mins, (int) maxs, number, iter, secs);
+  mins, maxs, number, iter, secs);
 }
 
 static void test(void)
 {
  mps_thr_t thread;
- size_t mins;
+ unsigned long mins;
  mps_word_t dep, frag;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*100)), "create arena");

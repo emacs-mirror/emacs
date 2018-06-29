@@ -163,3 +163,10 @@ Pool introspection
         may immediately become invalidated. For reliable results call
         this function and interpret the result while the arena is in
         the :term:`parked state`.
+
+    .. seealso::
+
+        To find out which :term:`object format` describes the object
+        at the address, use :c:func:`mps_addr_fmt`. If you only care
+        whether the address belongs to a particular :term:`arena`, use
+        :c:func:`mps_arena_has_addr`.

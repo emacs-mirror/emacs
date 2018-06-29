@@ -20,19 +20,14 @@ If the option is _cumulative_, however, both will apply.
 What the options mean:
 
 MMQA_MPS_INCLUDE_DIR / -i
- a directory where the MM header files may be found. No default.
+ a directory where the MPS source code may be found. Defaults to the
+ code directory relative to the test script.
 
 MMQA_MPS_LINK_OBJ / -l
  the MM libraries and plinth to link with. Separate multiple files
  with spaces. (Spaces in the paths will make the test harness go
- wrong, unfortunately.) No default.
-
-MMQA_MPS_PRODUCT / -prod
- You won't normally need to (and shouldn't) set this option, which
- will default to "epcore" or "dylan", whichever is appropriate to
- the memory manager specified in MMQA_MPS_LINK_OBJ. If however you
- want to test a memory manager which predates MPS version
- identification, then you must set it manually.
+ wrong, unfortunately.) Defaults to the appropriate file for the
+ platform and variety.
 
 MMQA_LOG_DIR / -g
  the directory in which log files should be saved. Default is
@@ -49,6 +44,9 @@ MMQA_PLATFORM / -p
  and used to specify compiler options and command-line syntax for
  running tests. Setting it to a value not appropriate to the
  machine you are using will make the test system go wrong.
+
+MMQA_VARIETY / -v
+ the MPS variety to test. Defaults to cool.
 
 MMQA_PARAMETERS / -a (cumulative)
  parameter settings to use for a test. These override any parameter

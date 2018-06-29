@@ -265,6 +265,13 @@ this documentation.
     :c:type:`mps_fmt_t` for this argument.
 
 
+``format.c: format->poolCount == 0``
+
+    The client program called :c:func:`mps_fmt_destroy` on a format
+    that was still being used by a pool. It is necessary to call
+    :c:func:`mps_pool_destroy` first.
+
+
 ``global.c: RingIsSingle(&arena->chainRing)``
 
     The client program called :c:func:`mps_arena_destroy` without
@@ -279,7 +286,7 @@ this documentation.
     It is necessary to call :c:func:`mps_fmt_destroy` first.
 
 
-``global.c: RingIsSingle(&arena->rootRing)``
+``global.c: RingIsSingle(&arenaGlobals->rootRing)``
 
     The client program called :c:func:`mps_arena_destroy` without
     destroying all the :term:`roots` belonging to the arena.
@@ -293,7 +300,7 @@ this documentation.
     It is necessary to call :c:func:`mps_thread_dereg` first.
 
 
-``global.c: RingLength(&arenaGlobals->poolRing) == 5``
+``global.c: RingLength(&arenaGlobals->poolRing) == 4``
 
     The client program called :c:func:`mps_arena_destroy` without
     destroying all the :term:`pools` belonging to the arena.
@@ -351,9 +358,9 @@ this documentation.
 
 ``seg.c: gcseg->buffer == NULL``
 
-    The client program destroyed pool without first destroying all the
-    allocation points created on that pool. The allocation points must
-    be destroyed first.
+    The client program destroyed a pool without first destroying all
+    the allocation points created on that pool. The allocation points
+    must be destroyed first.
 
 
 ``trace.c: ss->rank < RankEXACT``
