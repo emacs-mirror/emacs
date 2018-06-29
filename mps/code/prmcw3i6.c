@@ -1,12 +1,11 @@
-/* prmci6w3.c: PROTECTION MUTATOR CONTEXT INTEL x64 (Windows)
+/* prmcw3i6.c: MUTATOR CONTEXT INTEL x64 (Windows)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * PURPOSE
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  * SOURCES
  *
@@ -15,29 +14,35 @@
  *
  * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
+ *
+ * .assume.sp: The stack pointer is stored in CONTEXT.Rsp. This
+ * requires CONTEXT_CONTROL to be set in ContextFlags when
+ * GetThreadContext is called.
  */
 
 #include "prmcw3.h"
 #include "prmci6.h"
 #include "mpm.h"
 
-SRCID(prmci6w3, "$Id$");
+SRCID(prmcw3i6, "$Id$");
 
 #if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I6)
-#error "prmci6w3.c is specific to MPS_OS_W3 and MPS_ARCH_I6"
+#error "prmcw3i6.c is specific to MPS_OS_W3 and MPS_ARCH_I6"
 #endif
 
 
 /* Prmci6AddressHoldingReg -- Return an address for a given machine register */
 
-MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
+MRef Prmci6AddressHoldingReg(MutatorContext context, unsigned int regnum)
 {
   PCONTEXT wincont;
 
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 16);
 
-  wincont = context->ep->ContextRecord;
+  wincont = context->the.ep->ContextRecord;
 
   switch (regnum) {
   case  0: return (MRef)&wincont->Rax;
@@ -66,32 +71,49 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
 /* Prmci6DecodeFaultContext -- decode fault context */
 
 void Prmci6DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
-                              MutatorFaultContext context)
+                              MutatorContext context)
 {
   LPEXCEPTION_RECORD er;
 
-  er = context->ep->ExceptionRecord;
+  AVER(faultmemReturn != NULL);
+  AVER(insvecReturn != NULL);
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
+
+  er = context->the.ep->ExceptionRecord;
 
   /* Assert that this is an access violation.  The computation of */
   /* faultmem depends on this. */
   AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
 
   *faultmemReturn = (MRef)er->ExceptionInformation[1];
-  *insvecReturn = (Byte*)context->ep->ContextRecord->Rip;
+  *insvecReturn = (Byte*)context->the.ep->ContextRecord->Rip;
 }
 
 
 /* Prmci6StepOverIns -- skip an instruction by changing the context */
 
-void Prmci6StepOverIns(MutatorFaultContext context, Size inslen)
+void Prmci6StepOverIns(MutatorContext context, Size inslen)
 {
-  context->ep->ContextRecord->Rip += (DWORD64)inslen;
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
+
+  context->the.ep->ContextRecord->Rip += (DWORD64)inslen;
+}
+
+
+Addr MutatorContextSP(MutatorContext context)
+{
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextTHREAD);
+
+  return (Addr)context->the.context.Rsp; /* .assume.sp */
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

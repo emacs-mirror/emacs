@@ -1,7 +1,7 @@
 /* poolamc.c: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: <design/poolamc/>.
@@ -15,25 +15,36 @@
 
 SRCID(poolamc, "$Id$");
 
-/* AMC typedef */
 typedef struct AMCStruct *AMC;
-
-/* amcGen typedef */
 typedef struct amcGenStruct *amcGen;
 
 /* Function returning TRUE if block in nailboarded segment is pinned. */
 typedef Bool (*amcPinnedFunction)(AMC amc, Nailboard board, Addr base, Addr limit);
 
-
 /* forward declarations */
 
+static Res amcSegWhiten(Seg seg, Trace trace);
+static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss);
+static void amcSegReclaim(Seg seg, Trace trace);
 static Bool amcSegHasNailboard(Seg seg);
 static Nailboard amcSegNailboard(Seg seg);
 static Bool AMCCheck(AMC amc);
-static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-extern PoolClass AMCZPoolClassGet(void);
-extern BufferClass amcBufClassGet(void);
-extern SegClass amcSegClassGet(void);
+static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO);
+static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO);
+static void amcSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s);
+
+/* local class declations */
+
+typedef AMC AMCZPool;
+#define AMCZPoolCheck AMCCheck
+DECLARE_CLASS(Pool, AMCZPool, AbstractSegBufPool);
+
+typedef AMC AMCPool;
+DECLARE_CLASS(Pool, AMCPool, AMCZPool);
+
+DECLARE_CLASS(Buffer, amcBuf, SegBuf);
+DECLARE_CLASS(Seg, amcSeg, GCSeg);
 
 
 /* amcGenStruct -- pool AMC generation descriptor */
@@ -47,7 +58,7 @@ typedef struct amcGenStruct {
   Sig sig;                      /* <code/misc.h#sig> */
 } amcGenStruct;
 
-#define amcGenAMC(amcgen) PoolAMC((amcgen)->pgen.pool)
+#define amcGenAMC(amcgen) MustBeA(AMCZPool, (amcgen)->pgen.pool)
 #define amcGenPool(amcgen) ((amcgen)->pgen.pool)
 
 #define amcGenNr(amcgen) ((amcgen)->pgen.nr)
@@ -70,9 +81,13 @@ enum {
 
 /* amcSegStruct -- AMC-specific fields appended to GCSegStruct
  *
- * .seg.old: The "old" flag is FALSE if the segment has never been
- * collected, and so its size is accounted against the pool
- * generation's newSize; it is TRUE if the segment has been collected
+ * .seg.accounted-as-buffered: The "accountedAsBuffered" flag is TRUE
+ * if the segment has an atached buffer and is accounted against the
+ * pool generation's bufferedSize. But note that if this is FALSE, the
+ * segment might still have an attached buffer -- this happens if the
+ * segment was condemned while the buffer was attached.
+ *
+ * .seg.old: The "old" flag is TRUE if the segment has been collected
  * at least once, and so its size is accounted against the pool
  * generation's oldSize.
  *
@@ -93,13 +108,12 @@ typedef struct amcSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   amcGen gen;               /* generation this segment belongs to */
   Nailboard board;          /* nailboard for this segment or NULL if none */
+  Size forwarded[TraceLIMIT]; /* size of objects forwarded for each trace */
+  BOOLFIELD(accountedAsBuffered); /* .seg.accounted-as-buffered */
   BOOLFIELD(old);           /* .seg.old */
   BOOLFIELD(deferred);      /* .seg.deferred */
   Sig sig;                  /* <code/misc.h#sig> */
 } amcSegStruct;
-
-#define Seg2amcSeg(seg)             ((amcSeg)(seg))
-#define amcSeg2Seg(amcseg)          ((Seg)(amcseg))
 
 
 ATTRIBUTE_UNUSED
@@ -110,8 +124,9 @@ static Bool amcSegCheck(amcSeg amcseg)
   CHECKU(amcGen, amcseg->gen);
   if (amcseg->board) {
     CHECKD(Nailboard, amcseg->board);
-    CHECKL(SegNailed(amcSeg2Seg(amcseg)) != TraceSetEMPTY);
+    CHECKL(SegNailed(MustBeA(Seg, amcseg)) != TraceSetEMPTY);
   }
+  /* CHECKL(BoolCheck(amcseg->accountedAsBuffered)); <design/type/#bool.bitfield.check> */
   /* CHECKL(BoolCheck(amcseg->old)); <design/type/#bool.bitfield.check> */
   /* CHECKL(BoolCheck(amcseg->deferred)); <design/type/#bool.bitfield.check> */
   return TRUE;
@@ -126,7 +141,6 @@ ARG_DEFINE_KEY(amc_seg_gen, Pointer);
 static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   amcGen amcgen;
-  SegClass super;
   amcSeg amcseg;
   Res res;
   ArgStruct arg;
@@ -134,24 +148,37 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   ArgRequire(&arg, args, amcKeySegGen);
   amcgen = arg.val.p;
 
-  AVERT(Seg, seg);
-  amcseg = Seg2amcSeg(seg);
-  /* no useful checks for base and size */
-
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(amcSegClass);
-  res = super->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, amcSeg, init)(seg, pool, base, size, args);
   if(res != ResOK)
     return res;
+  amcseg = CouldBeA(amcSeg, seg);
 
   amcseg->gen = amcgen;
   amcseg->board = NULL;
+  amcseg->accountedAsBuffered = FALSE;
   amcseg->old = FALSE;
   amcseg->deferred = FALSE;
+
+  SetClassOfPoly(seg, CLASS(amcSeg));
   amcseg->sig = amcSegSig;
-  AVERT(amcSeg, amcseg);
+  AVERC(amcSeg, amcseg);
 
   return ResOK;
+}
+
+
+/* amcSegFinish -- finish an AMC segment */
+
+static void amcSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  amcSeg amcseg = MustBeA(amcSeg, seg);
+
+  amcseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, amcSeg, finish)(inst);
 }
 
 
@@ -166,14 +193,10 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
 {
-  amcSeg amcseg;
   Buffer buffer;
 
   AVER(pbSketch);
   AVER(cbSketch >= 5);
-  AVERT(Seg, seg);
-  amcseg = Seg2amcSeg(seg);
-  AVERT(amcSeg, amcseg);
 
   if(SegNailed(seg) == TraceSetEMPTY) {
     pbSketch[0] = 'm';  /* mobile */
@@ -195,8 +218,7 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
     pbSketch[2] = 'W';  /* White */
   }
 
-  buffer = SegBuffer(seg);
-  if(buffer == NULL) {
+  if (!SegBuffer(&buffer, seg)) {
     pbSketch[3] = '_';
   } else {
     Bool mut = BufferIsMutator(buffer);
@@ -232,29 +254,26 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
  *
  * See <design/poolamc/#seg-describe>.
  */
-static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
+static Res AMCSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  amcSeg amcseg = CouldBeA(amcSeg, inst);
+  Seg seg = CouldBeA(Seg, amcseg);
   Res res;
   Pool pool;
-  amcSeg amcseg;
-  SegClass super;
   Addr i, p, base, limit, init;
   Align step;
   Size row;
   char abzSketch[5];
+  Buffer buffer;
 
-  if(!TESTT(Seg, seg))
-    return ResFAIL;
-  if(stream == NULL)
-    return ResFAIL;
-  amcseg = Seg2amcSeg(seg);
-  if(!TESTT(amcSeg, amcseg))
-    return ResFAIL;
+  if (!TESTC(amcSeg, amcseg))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
 
   /* Describe the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(amcSegClass);
-  res = super->describe(seg, stream, depth);
-  if(res != ResOK)
+  res = NextMethod(Inst, amcSeg, describe)(inst, stream, depth);
+  if (res != ResOK)
     return res;
 
   pool = SegPool(seg);
@@ -265,16 +284,9 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
   p = AddrAdd(base, pool->format->headerSize);
   limit = SegLimit(seg);
 
-  res = WriteF(stream, depth,
-               "AMC seg $P [$A,$A){\n",
-               (WriteFP)seg, (WriteFA)base, (WriteFA)limit,
-               NULL);
-  if(res != ResOK)
-    return res;
-
-  if(amcSegHasNailboard(seg)) {
+  if (amcSegHasNailboard(seg)) {
     res = WriteF(stream, depth + 2, "Boarded\n", NULL);
-  } else if(SegNailed(seg) == TraceSetEMPTY) {
+  } else if (SegNailed(seg) == TraceSetEMPTY) {
     res = WriteF(stream, depth + 2, "Mobile\n", NULL);
   } else {
     res = WriteF(stream, depth + 2, "Stuck\n", NULL);
@@ -284,32 +296,32 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
   res = WriteF(stream, depth + 2,
                "Map:  *===:object  @+++:nails  bbbb:buffer\n", NULL);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
-  if(SegBuffer(seg) != NULL)
-    init = BufferGetInit(SegBuffer(seg));
+  if (SegBuffer(&buffer, seg))
+    init = BufferGetInit(buffer);
   else
     init = limit;
   
-  for(i = base; i < limit; i = AddrAdd(i, row)) {
+  for (i = base; i < limit; i = AddrAdd(i, row)) {
     Addr j;
     char c;
 
     res = WriteF(stream, depth + 2, "$A  ", (WriteFA)i, NULL);
-    if(res != ResOK)
+    if (res != ResOK)
       return res;
 
     /* @@@@ This misses a header-sized pad at the end. */
-    for(j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
-      if(j >= limit)
+    for (j = i; j < AddrAdd(i, row); j = AddrAdd(j, step)) {
+      if (j >= limit)
         c = ' ';  /* if seg is not a whole number of print rows */
-      else if(j >= init)
+      else if (j >= init)
         c = 'b';
       else {
         Bool nailed = amcSegHasNailboard(seg)
           && NailboardGet(amcSegNailboard(seg), j);
-        if(j == p) {
+        if (j == p) {
           c = (nailed ? '@' : '*');
           p = (pool->format->skip)(p);
         } else {
@@ -317,21 +329,17 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
         }
       }
       res = WriteF(stream, 0, "$C", (WriteFC)c, NULL);
-      if(res != ResOK)
+      if (res != ResOK)
         return res;
     }
 
     res = WriteF(stream, 0, "\n", NULL);
-    if(res != ResOK)
+    if (res != ResOK)
       return res;
   }
 
   AMCSegSketch(seg, abzSketch, NELEMS(abzSketch));
   res = WriteF(stream, depth + 2, "Sketch: $S\n", (WriteFS)abzSketch, NULL);
-  if(res != ResOK)
-    return res;
-
-  res = WriteF(stream, depth, "} AMC Seg $P\n", (WriteFP)seg, NULL);
   if(res != ResOK)
     return res;
 
@@ -341,15 +349,21 @@ static Res AMCSegDescribe(Seg seg, mps_lib_FILE *stream, Count depth)
 
 /* amcSegClass -- Class definition for AMC segments */
 
-DEFINE_SEG_CLASS(amcSegClass, class)
+DEFINE_CLASS(Seg, amcSeg, klass)
 {
-  INHERIT_CLASS(class, GCSegClass);
-  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->name = "AMCSEG";
-  class->size = sizeof(amcSegStruct);
-  class->init = AMCSegInit;
-  class->describe = AMCSegDescribe;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, amcSeg, GCSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.describe = AMCSegDescribe;
+  klass->instClassStruct.finish = amcSegFinish;
+  klass->size = sizeof(amcSegStruct);
+  klass->init = AMCSegInit;
+  klass->whiten = amcSegWhiten;
+  klass->scan = amcSegScan;
+  klass->fix = amcSegFix;
+  klass->fixEmergency = amcSegFixEmergency;
+  klass->reclaim = amcSegReclaim;
+  klass->walk = amcSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -360,7 +374,7 @@ DEFINE_SEG_CLASS(amcSegClass, class)
  */
 static Bool amcSegHasNailboard(Seg seg)
 {
-  amcSeg amcseg = Seg2amcSeg(seg);
+  amcSeg amcseg = MustBeA(amcSeg, seg);
   return amcseg->board != NULL;
 }
 
@@ -369,7 +383,7 @@ static Bool amcSegHasNailboard(Seg seg)
 
 static Nailboard amcSegNailboard(Seg seg)
 {
-  amcSeg amcseg = Seg2amcSeg(seg);
+  amcSeg amcseg = MustBeA(amcSeg, seg);
   AVER(amcSegHasNailboard(seg));
   return amcseg->board;
 }
@@ -379,7 +393,7 @@ static Nailboard amcSegNailboard(Seg seg)
 
 static amcGen amcSegGen(Seg seg)
 {
-  amcSeg amcseg = Seg2amcSeg(seg);
+  amcSeg amcseg = MustBeA(amcSeg, seg);
   return amcseg->gen;
 }
 
@@ -408,9 +422,6 @@ typedef struct AMCStruct { /* <design/poolamc/#struct> */
   Size largeSize;          /* min size of "large" segments */
   Sig sig;                 /* <design/pool/#outer-structure.sig> */
 } AMCStruct;
-
-#define PoolAMC(pool) PARENT(AMCStruct, poolStruct, (pool))
-#define AMCPool(amc) (&(amc)->poolStruct)
 
 
 /* amcGenCheck -- check consistency of a generation structure */
@@ -448,18 +459,6 @@ typedef struct amcBufStruct {
 } amcBufStruct;
 
 
-/* Buffer2amcBuf -- convert generic Buffer to an amcBuf */
-
-#define Buffer2amcBuf(buffer) \
-  PARENT(amcBufStruct, segbufStruct, \
-         PARENT(SegBufStruct, bufferStruct, buffer))
-
-/* amcBuf2Buffer -- convert amcBuf to generic Buffer */
-
-#define amcBuf2Buffer(amcbuf) (&(amcbuf)->segbufStruct.bufferStruct)
-
-
-
 /* amcBufCheck -- check consistency of an amcBuf */
 
 ATTRIBUTE_UNUSED
@@ -471,7 +470,7 @@ static Bool amcBufCheck(amcBuf amcbuf)
     CHECKD(amcGen, amcbuf->gen);
   CHECKL(BoolCheck(amcbuf->forHashArrays));
   /* hash array buffers only created by mutator */
-  CHECKL(BufferIsMutator(amcBuf2Buffer(amcbuf)) || !amcbuf->forHashArrays);
+  CHECKL(BufferIsMutator(MustBeA(Buffer, amcbuf)) || !amcbuf->forHashArrays);
   return TRUE;
 }
 
@@ -480,7 +479,7 @@ static Bool amcBufCheck(amcBuf amcbuf)
 
 static amcGen amcBufGen(Buffer buffer)
 {
-  return Buffer2amcBuf(buffer)->gen;
+  return MustBeA(amcBuf, buffer)->gen;
 }
 
 
@@ -488,11 +487,9 @@ static amcGen amcBufGen(Buffer buffer)
 
 static void amcBufSetGen(Buffer buffer, amcGen gen)
 {
-  amcBuf amcbuf;
-
-  if(gen != NULL)
+  amcBuf amcbuf = MustBeA(amcBuf, buffer);
+  if (gen != NULL)
     AVERT(amcGen, gen);
-  amcbuf = Buffer2amcBuf(buffer);
   amcbuf->gen = gen;
 }
 
@@ -503,31 +500,24 @@ ARG_DEFINE_KEY(ap_hash_arrays, Bool);
 
 /* AMCBufInit -- Initialize an amcBuf */
 
-static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
+static Res AMCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   amcBuf amcbuf;
-  BufferClass superclass;
   Res res;
   Bool forHashArrays = FALSE;
   ArgStruct arg;
-
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
   if (ArgPick(&arg, args, amcKeyAPHashArrays))
     forHashArrays = arg.val.b;
 
   /* call next method */
-  superclass = BUFFER_SUPERCLASS(amcBufClass);
-  res = (*superclass->init)(buffer, pool, args);
+  res = NextMethod(Buffer, amcBuf, init)(buffer, pool, isMutator, args);
   if(res != ResOK)
     return res;
+  amcbuf = CouldBeA(amcBuf, buffer);
 
-  amcbuf = Buffer2amcBuf(buffer);
-  if(BufferIsMutator(buffer)) {
+  if (BufferIsMutator(buffer)) {
     /* Set up the buffer to be allocating in the nursery. */
     amcbuf->gen = amc->nursery;
   } else {
@@ -535,8 +525,10 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
     amcbuf->gen = NULL;
   }
   amcbuf->forHashArrays = forHashArrays;
+
+  SetClassOfPoly(buffer, CLASS(amcBuf));
   amcbuf->sig = amcBufSig;
-  AVERT(amcBuf, amcbuf);
+  AVERC(amcBuf, amcbuf);
 
   BufferSetRankSet(buffer, amc->rankSet);
 
@@ -546,33 +538,24 @@ static Res AMCBufInit(Buffer buffer, Pool pool, ArgList args)
 
 /* AMCBufFinish -- Finish an amcBuf */
 
-static void AMCBufFinish(Buffer buffer)
+static void AMCBufFinish(Inst inst)
 {
-  BufferClass super;
-  amcBuf amcbuf;
-
-  AVERT(Buffer, buffer);
-  amcbuf = Buffer2amcBuf(buffer);
-  AVERT(amcBuf, amcbuf);
-
+  Buffer buffer = MustBeA(Buffer, inst);
+  amcBuf amcbuf = MustBeA(amcBuf, buffer);
   amcbuf->sig = SigInvalid;
-
-  /* Finish the superclass fields last. */
-  super = BUFFER_SUPERCLASS(amcBufClass);
-  super->finish(buffer);
+  NextMethod(Inst, amcBuf, finish)(inst);
 }
 
 
 /* amcBufClass -- The class definition */
 
-DEFINE_BUFFER_CLASS(amcBufClass, class)
+DEFINE_CLASS(Buffer, amcBuf, klass)
 {
-  INHERIT_CLASS(class, SegBufClass);
-  class->name = "AMCBUF";
-  class->size = sizeof(amcBufStruct);
-  class->init = AMCBufInit;
-  class->finish = AMCBufFinish;
-  AVERT(BufferClass, class);
+  INHERIT_CLASS(klass, amcBuf, SegBuf);
+  klass->instClassStruct.finish = AMCBufFinish;
+  klass->size = sizeof(amcBufStruct);
+  klass->init = AMCBufInit;
+  AVERT(BufferClass, klass);
 }
 
 
@@ -580,14 +563,13 @@ DEFINE_BUFFER_CLASS(amcBufClass, class)
 
 static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
 {
+  Pool pool = MustBeA(AbstractPool, amc);
   Arena arena;
   Buffer buffer;
-  Pool pool;
   amcGen amcgen;
   Res res;
   void *p;
 
-  pool = AMCPool(amc);
   arena = pool->arena;
 
   res = ControlAlloc(&p, arena, sizeof(amcGenStruct));
@@ -595,7 +577,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
     goto failControlAlloc;
   amcgen = (amcGen)p;
 
-  res = BufferCreate(&buffer, EnsureamcBufClass(), pool, FALSE, argsNone);
+  res = BufferCreate(&buffer, CLASS(amcBuf), pool, FALSE, argsNone);
   if(res != ResOK)
     goto failBufferCreate;
 
@@ -669,14 +651,14 @@ static Res amcGenDescribe(amcGen gen, mps_lib_FILE *stream, Count depth)
 
 /* amcSegCreateNailboard -- create nailboard for segment */
 
-static Res amcSegCreateNailboard(Seg seg, Pool pool)
+static Res amcSegCreateNailboard(Seg seg)
 {
-  amcSeg amcseg;
+  amcSeg amcseg = MustBeA(amcSeg, seg);
+  Pool pool = SegPool(seg);
   Nailboard board;
   Arena arena;
   Res res;
 
-  amcseg = Seg2amcSeg(seg);
   AVER(!amcSegHasNailboard(seg));
   arena = PoolArena(pool);
 
@@ -684,7 +666,9 @@ static Res amcSegCreateNailboard(Seg seg, Pool pool)
                         SegBase(seg), SegLimit(seg));
   if (res != ResOK)
     return res;
+
   amcseg->board = board;
+
   return ResOK;
 }
 
@@ -693,7 +677,7 @@ static Res amcSegCreateNailboard(Seg seg, Pool pool)
 
 static Bool amcPinnedInterior(AMC amc, Nailboard board, Addr base, Addr limit)
 {
-  Size headerSize = AMCPool(amc)->format->headerSize;
+  Size headerSize = MustBeA(AbstractPool, amc)->format->headerSize;
   return !NailboardIsResRange(board, AddrSub(base, headerSize),
                               AddrSub(limit, headerSize));
 }
@@ -727,11 +711,11 @@ static void AMCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
  * See <design/poolamc/#init>.
  * Shared by AMCInit and AMCZinit.
  */
-static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
+static Res amcInitComm(Pool pool, Arena arena, PoolClass klass,
+                       RankSet rankSet, ArgList args)
 {
   AMC amc;
   Res res;
-  Arena arena;
   Index i;
   size_t genArraySize;
   size_t genCount;
@@ -742,12 +726,11 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   ArgStruct arg;
   
   AVER(pool != NULL);
-
-  amc = PoolAMC(pool);
-  arena = PoolArena(pool);
-
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  pool->format = arg.val.format;
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  AVERT(PoolClass, klass);
+  AVER(IsSubclass(klass, AMCZPool));
+  
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else
@@ -759,8 +742,6 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_LARGE_SIZE))
     largeSize = arg.val.size;
   
-  AVERT(Format, pool->format);
-  AVER(FormatArena(pool->format) == arena);
   AVERT(Chain, chain);
   AVER(chain->arena == arena);
   AVER(extendBy > 0);
@@ -770,8 +751,17 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
    * unacceptable fragmentation due to the padding objects. This
    * assertion catches this bad case. */
   AVER(largeSize >= extendBy);
+
+  res = NextMethod(Pool, AMCZPool, init)(pool, arena, klass, args);
+  if (res != ResOK)
+    goto failNextInit;
+  amc = CouldBeA(AMCZPool, pool);
+
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
+
   pool->alignment = pool->format->alignment;
-  pool->fix = AMCFix;
+  pool->alignShift = SizeLog2(pool->alignment);
   amc->rankSet = rankSet;
 
   RingInit(&amc->genRing);
@@ -795,8 +785,9 @@ static Res amcInitComm(Pool pool, RankSet rankSet, ArgList args)
   amc->extendBy = SizeArenaGrains(extendBy, arena);
   amc->largeSize = largeSize;
 
+  SetClassOfPoly(pool, klass);
   amc->sig = AMCSig;
-  AVERT(AMC, amc);
+  AVERC(AMCZPool, amc);
 
   /* Init generations. */
   genCount = ChainGens(chain);
@@ -841,17 +832,26 @@ failGenAlloc:
   }
   ControlFree(arena, amc->gen, genArraySize);
 failGensAlloc:
+  NextMethod(Inst, AMCZPool, finish)(MustBeA(Inst, pool));
+failNextInit:
+  AVER(res != ResOK);
   return res;
 }
 
-static Res AMCInit(Pool pool, ArgList args)
+/* TODO: AMCInit should call AMCZInit (its superclass) then
+   specialize, but amcInitComm creates forwarding buffers that copy
+   the rank set from the pool, making this awkward. */
+
+static Res AMCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  return amcInitComm(pool, RankSetSingle(RankEXACT), args);
+  UNUSED(klass); /* used for debug pools only */
+  return amcInitComm(pool, arena, CLASS(AMCPool), RankSetSingle(RankEXACT), args);
 }
 
-static Res AMCZInit(Pool pool, ArgList args)
+static Res AMCZInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  return amcInitComm(pool, RankSetEMPTY, args);
+  UNUSED(klass); /* used for debug pools only */
+  return amcInitComm(pool, arena, CLASS(AMCZPool), RankSetEMPTY, args);
 }
 
 
@@ -859,15 +859,12 @@ static Res AMCZInit(Pool pool, ArgList args)
  *
  * See <design/poolamc/#finish>.
  */
-static void AMCFinish(Pool pool)
+static void AMCFinish(Inst inst)
 {
-  AMC amc;
+  Pool pool = MustBeA(AbstractPool, inst);
+  AMC amc = MustBeA(AMCZPool, pool);
   Ring ring;
   Ring node, nextNode;
-
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
   EVENT1(AMCFinish, amc);
 
@@ -884,8 +881,9 @@ static void AMCFinish(Pool pool)
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
     amcGen gen = amcSegGen(seg);
-    amcSeg amcseg = Seg2amcSeg(seg);
+    amcSeg amcseg = MustBeA(amcSeg, seg);
     AVERT(amcSeg, amcseg);
+    AVER(!amcseg->accountedAsBuffered);
     PoolGenFree(&gen->pgen, seg,
                 0,
                 amcseg->old ? SegSize(seg) : 0,
@@ -906,6 +904,8 @@ static void AMCFinish(Pool pool)
   }
 
   amc->sig = SigInvalid;
+
+  NextMethod(Inst, AMCZPool, finish)(inst);
 }
 
 
@@ -917,18 +917,15 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size)
 {
   Seg seg;
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Res res;
   Addr base, limit;
   Arena arena;
   Size grainsSize;
   amcGen gen;
   PoolGen pgen;
-  amcBuf amcbuf;
+  amcBuf amcbuf = MustBeA(amcBuf, buffer);
 
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Buffer, buffer);
@@ -939,8 +936,6 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   arena = PoolArena(pool);
   gen = amcBufGen(buffer);
   AVERT(amcGen, gen);
-  amcbuf = Buffer2amcBuf(buffer);
-  AVERT(amcBuf, amcbuf);
   pgen = &gen->pgen;
 
   /* Create and attach segment.  The location of this segment is */
@@ -953,7 +948,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, amcKeySegGen, p, gen);
-    res = PoolGenAlloc(&seg, pgen, amcSegClassGet(), grainsSize, args);
+    res = PoolGenAlloc(&seg, pgen, CLASS(amcSeg), grainsSize, args);
   } MPS_ARGS_END(args);
   if(res != ResOK)
     return res;
@@ -972,7 +967,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
        && gen == amc->rampGen)
       || amcbuf->forHashArrays) 
   {
-    Seg2amcSeg(seg)->deferred = TRUE;
+    MustBeA(amcSeg, seg)->deferred = TRUE;
   }
 
   base = SegBase(seg);
@@ -998,7 +993,9 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
     }
   }
 
-  PoolGenAccountForFill(pgen, SegSize(seg), Seg2amcSeg(seg)->deferred);
+  PoolGenAccountForFill(pgen, SegSize(seg));
+  MustBeA(amcSeg, seg)->accountedAsBuffered = TRUE;
+
   *baseReturn = base;
   *limitReturn = limit;
   return ResOK;
@@ -1012,18 +1009,19 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 static void AMCBufferEmpty(Pool pool, Buffer buffer,
                            Addr init, Addr limit)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Size size;
   Arena arena;
   Seg seg;
+  amcSeg amcseg;
+  TraceId ti;
+  Trace trace;
 
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
   seg = BufferSeg(buffer);
   AVERT(Seg, seg);
+  amcseg = MustBeA(amcSeg, seg);
   AVER(init <= limit);
 
   arena = BufferArena(buffer);
@@ -1043,10 +1041,20 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
     ShieldCover(arena, seg);
   }
 
-  /* The unused part of the buffer is not reused by AMC, so we pass 0
-   * for the unused argument. This call therefore has no effect on the
-   * accounting, but we call it anyway for consistency. */
-  PoolGenAccountForEmpty(&amcSegGen(seg)->pgen, 0, Seg2amcSeg(seg)->deferred);
+  /* Any allocation in the buffer (including the padding object just
+   * created) is white, so needs to be accounted as condemned for all
+   * traces for which this segment is white. */
+  TRACE_SET_ITER(ti, trace, seg->white, arena)
+    GenDescCondemned(amcseg->gen->pgen.gen, trace,
+                     AddrOffset(BufferBase(buffer), limit));
+  TRACE_SET_ITER_END(ti, trace, seg->white, arena);
+
+  if (amcseg->accountedAsBuffered) {
+    /* Account the entire buffer (including the padding object) as used. */
+    PoolGenAccountForEmpty(&amcseg->gen->pgen, SegSize(seg), 0,
+                           amcseg->deferred);
+    amcseg->accountedAsBuffered = FALSE;
+  }
 }
 
 
@@ -1054,11 +1062,8 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
 
 static void AMCRampBegin(Pool pool, Buffer buf, Bool collectAll)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
 
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   AVERT(Buffer, buf);
   AVERT(Bool, collectAll);
   UNUSED(collectAll); /* obsolete */
@@ -1076,11 +1081,8 @@ static void AMCRampBegin(Pool pool, Buffer buf, Bool collectAll)
 
 static void AMCRampEnd(Pool pool, Buffer buf)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
 
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   AVERT(Buffer, buf);
 
   AVER(amc->rampCount > 0);
@@ -1114,14 +1116,15 @@ static void AMCRampEnd(Pool pool, Buffer buf)
      * pool generation's sizes. */
     RING_FOR(node, PoolSegRing(pool), nextNode) {
       Seg seg = SegOfPoolRing(node);
-      amcSeg amcseg = Seg2amcSeg(seg);
+      amcSeg amcseg = MustBeA(amcSeg, seg);
       if(amcSegGen(seg) == amc->rampGen
          && amcseg->deferred
          && SegWhite(seg) == TraceSetEMPTY)
       {
-        PoolGenUndefer(pgen,
-                       amcseg->old ? SegSize(seg) : 0,
-                       amcseg->old ? 0 : SegSize(seg));
+        if (!amcseg->accountedAsBuffered)
+          PoolGenUndefer(pgen,
+                         amcseg->old ? SegSize(seg) : 0,
+                         amcseg->old ? 0 : SegSize(seg));
         amcseg->deferred = FALSE;
       }
     }
@@ -1129,27 +1132,35 @@ static void AMCRampEnd(Pool pool, Buffer buf)
 }
 
 
-/* AMCWhiten -- condemn the segment for the trace
+/* amcSegPoolGen -- get pool generation for a segment */
+
+static PoolGen amcSegPoolGen(Pool pool, Seg seg)
+{
+  amcSeg amcseg = MustBeA(amcSeg, seg);  
+  AVERT(Pool, pool);
+  AVER(pool == SegPool(seg));
+  return &amcseg->gen->pgen;
+}
+
+
+/* amcSegWhiten -- condemn the segment for the trace
  *
  * If the segment has a mutator buffer on it, we nail the buffer,
  * because we can't scan or reclaim uncommitted buffers.
  */
-static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
+static Res amcSegWhiten(Seg seg, Trace trace)
 {
   Size condemned = 0;
   amcGen gen;
-  AMC amc;
   Buffer buffer;
-  amcSeg amcseg;
+  amcSeg amcseg = MustBeA(amcSeg, seg);
+  Pool pool = SegPool(seg);
+  AMC amc = MustBeA(AMCZPool, pool);
   Res res;
 
-  AVERT(Pool, pool);
   AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  amcseg = Seg2amcSeg(seg);
 
-  buffer = SegBuffer(seg);
-  if(buffer != NULL) {
+  if (SegBuffer(&buffer, seg)) {
     AVERT(Buffer, buffer);
 
     if(!BufferIsMutator(buffer)) {      /* forwarding buffer */
@@ -1169,20 +1180,21 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
         /* BufferDetach(buffer, pool); */
       /* } */
       else {
+        Addr bufferScanLimit = BufferScanLimit(buffer);
         /* There is an active buffer, make sure it's nailed. */
         if(!amcSegHasNailboard(seg)) {
           if(SegNailed(seg) == TraceSetEMPTY) {
-            res = amcSegCreateNailboard(seg, pool);
+            res = amcSegCreateNailboard(seg);
             if(res != ResOK) {
               /* Can't create nailboard, don't condemn. */
               return ResOK;
             }
-            if(BufferScanLimit(buffer) != BufferLimit(buffer)) {
+            if (bufferScanLimit != BufferLimit(buffer)) {
               NailboardSetRange(amcSegNailboard(seg),
-                                BufferScanLimit(buffer),
+                                bufferScanLimit,
                                 BufferLimit(buffer));
             }
-            ++trace->nailCount;
+            STATISTIC(++trace->nailCount);
             SegSetNailed(seg, TraceSetSingle(trace));
           } else {
             /* Segment is nailed already, cannot create a nailboard */
@@ -1191,35 +1203,42 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
           }
         } else {
           /* We have a nailboard, the buffer must be nailed already. */
-          AVER(BufferScanLimit(buffer) == BufferLimit(buffer)
+          AVER(bufferScanLimit == BufferLimit(buffer)
                || NailboardIsSetRange(amcSegNailboard(seg), 
-                                      BufferScanLimit(buffer),
+                                      bufferScanLimit,
                                       BufferLimit(buffer)));
           /* Nail it for this trace as well. */
           SegSetNailed(seg, TraceSetAdd(SegNailed(seg), trace));
         }
+        /* Move the buffer's base up to the scan limit, so that we can
+         * detect allocation that happens during the trace, and
+         * account for it correctly in AMCBufferEmpty and
+         * amcSegReclaimNailed. */
+        buffer->base = bufferScanLimit;
         /* We didn't condemn the buffer, subtract it from the count. */
-        /* @@@@ We could subtract all the nailed grains. */
         /* Relies on unsigned arithmetic wrapping round */
         /* on under- and overflow (which it does). */
-        condemned -= AddrOffset(BufferScanLimit(buffer), BufferLimit(buffer));
+        condemned -= AddrOffset(BufferBase(buffer), BufferLimit(buffer));
       }
     }
   }
 
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
-  condemned += SegSize(seg);
-  trace->condemned += condemned;
-
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
-
   gen = amcSegGen(seg);
   AVERT(amcGen, gen);
   if (!amcseg->old) {
-    PoolGenAccountForAge(&gen->pgen, SegSize(seg), amcseg->deferred);
     amcseg->old = TRUE;
+    if (amcseg->accountedAsBuffered) {
+      /* Note that the segment remains buffered but the buffer contents
+       * are accounted as old. See .seg.accounted-as-buffered. */
+      amcseg->accountedAsBuffered = FALSE;
+      PoolGenAccountForAge(&gen->pgen, SegSize(seg), 0, amcseg->deferred);
+    } else
+      PoolGenAccountForAge(&gen->pgen, 0, SegSize(seg), amcseg->deferred);
   }
+
+  amcseg->forwarded[trace->ti] = 0;
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
+  GenDescCondemned(gen->pgen.gen, trace, condemned + SegSize(seg));
 
   /* Ensure we are forwarding into the right generation. */
 
@@ -1240,21 +1259,20 @@ static Res AMCWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* amcScanNailedRange -- make one scanning pass over a range of
+/* amcSegScanNailedRange -- make one scanning pass over a range of
  * addresses in a nailed segment.
  *
  * *totalReturn is set to FALSE if not all the objects between base and
  * limit have been scanned.  It is not touched otherwise.
  */
-static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
-                              ScanState ss,
-                              AMC amc, Nailboard board,
-                              Addr base, Addr limit)
+static Res amcSegScanNailedRange(Bool *totalReturn, Bool *moreReturn,
+                                 ScanState ss, AMC amc, Nailboard board,
+                                 Addr base, Addr limit)
 {
   Format format;
   Size headerSize;
   Addr p, clientLimit;
-  Pool pool = AMCPool(amc);
+  Pool pool = MustBeA(AbstractPool, amc);
   format = pool->format;
   headerSize = format->headerSize;
   p = AddrAdd(base, headerSize);
@@ -1280,7 +1298,7 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
 }
 
 
-/* amcScanNailedOnce -- make one scanning pass over a nailed segment
+/* amcSegScanNailedOnce -- make one scanning pass over a nailed segment
  *
  * *totalReturn is set to TRUE iff all objects in segment scanned.
  * *moreReturn is set to FALSE only if there are no more objects
@@ -1289,12 +1307,13 @@ static Res amcScanNailedRange(Bool *totalReturn, Bool *moreReturn,
  * also if during emergency fixing any new marks got added to the
  * nailboard.
  */
-static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
-                             ScanState ss, Seg seg, AMC amc)
+static Res amcSegScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
+                                ScanState ss, Seg seg, AMC amc)
 {
   Addr p, limit;
   Nailboard board;
   Res res;
+  Buffer buffer;
 
   EVENT3(AMCScanBegin, amc, seg, ss); /* TODO: consider using own event */
 
@@ -1303,14 +1322,14 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   NailboardClearNewNails(board);
 
   p = SegBase(seg);
-  while(SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
+  while (SegBuffer(&buffer, seg)) {
+    limit = BufferScanLimit(buffer);
     if(p >= limit) {
       AVER(p == limit);
       goto returnGood;
     }
-    res = amcScanNailedRange(totalReturn, moreReturn,
-                             ss, amc, board, p, limit);
+    res = amcSegScanNailedRange(totalReturn, moreReturn,
+                                ss, amc, board, p, limit);
     if (res != ResOK)
       return res;
     p = limit;
@@ -1318,8 +1337,8 @@ static Res amcScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
 
   limit = SegLimit(seg);
   /* @@@@ Shouldn't p be set to BufferLimit here?! */
-  res = amcScanNailedRange(totalReturn, moreReturn,
-                           ss, amc, board, p, limit);
+  res = amcSegScanNailedRange(totalReturn, moreReturn,
+                              ss, amc, board, p, limit);
   if (res != ResOK)
     return res;
 
@@ -1331,17 +1350,17 @@ returnGood:
 }
 
 
-/* amcScanNailed -- scan a nailed segment */
+/* amcSegScanNailed -- scan a nailed segment */
 
-static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
-                         Seg seg, AMC amc)
+static Res amcSegScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
+                            Seg seg, AMC amc)
 {
   Bool total, moreScanning;
   size_t loops = 0;
 
   do {
     Res res;
-    res = amcScanNailedOnce(&total, &moreScanning, ss, seg, amc);
+    res = amcSegScanNailedOnce(&total, &moreScanning, ss, seg, amc);
     if(res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1377,37 +1396,37 @@ static Res amcScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
 }
 
 
-/* AMCScan -- scan a single seg, turning it black
+/* amcSegScan -- scan a single seg, turning it black
  *
  * See <design/poolamc/#seg-scan>.
  */
-static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
   Addr base, limit;
   Format format;
+  Pool pool;
   AMC amc;
   Res res;
+  Buffer buffer;
 
   AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
   AVERT(Seg, seg);
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
+  AVERT(ScanState, ss);
 
-
+  pool = SegPool(seg);
+  amc = MustBeA(AMCZPool, pool);
   format = pool->format;
 
   if(amcSegHasNailboard(seg)) {
-    return amcScanNailed(totalReturn, ss, pool, seg, amc);
+    return amcSegScanNailed(totalReturn, ss, pool, seg, amc);
   }
 
   EVENT3(AMCScanBegin, amc, seg, ss);
 
   base = AddrAdd(SegBase(seg), format->headerSize);
   /* <design/poolamc/#seg-scan.loop> */
-  while(SegBuffer(seg) != NULL) {
-    limit = AddrAdd(BufferScanLimit(SegBuffer(seg)),
+  while (SegBuffer(&buffer, seg)) {
+    limit = AddrAdd(BufferScanLimit(buffer),
                     format->headerSize);
     if(base >= limit) {
       /* @@@@ Are we sure we don't need scan the rest of the */
@@ -1443,7 +1462,7 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 }
 
 
-/* amcFixInPlace -- fix an reference without moving the object
+/* amcSegFixInPlace -- fix a reference without moving the object
  *
  * Usually this function is used for ambiguous references, but during
  * emergency tracing may be used for references of any rank.
@@ -1451,11 +1470,9 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
  * If the segment has a nailboard then we use that to record the fix.
  * Otherwise we simply grey and nail the entire segment.
  */
-static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
+static void amcSegFixInPlace(Seg seg, ScanState ss, Ref *refIO)
 {
   Addr ref;
-
-  UNUSED(pool);
 
   ref = (Addr)*refIO;
   /* An ambiguous reference can point before the header. */
@@ -1484,28 +1501,22 @@ static void amcFixInPlace(Pool pool, Seg seg, ScanState ss, Ref *refIO)
 }
 
 
-/* AMCFixEmergency -- fix a reference, without allocating
+/* amcSegFixEmergency -- fix a reference, without allocating
  *
  * See <design/poolamc/#emergency.fix>.
  */
-static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg,
-                           Ref *refIO)
+static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO)
 {
   Arena arena;
-  AMC amc;
   Addr newRef;
+  Pool pool;
 
-  AVERT(Pool, pool);
-  AVERT(ScanState, ss);
   AVERT(Seg, seg);
+  AVERT(ScanState, ss);
   AVER(refIO != NULL);
 
+  pool = SegPool(seg);
   arena = PoolArena(pool);
-  AVERT(Arena, arena);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
-
-  ss->wasMarked = TRUE;
 
   if(ss->rank == RankAMBIG)
     goto fixInPlace;
@@ -1523,18 +1534,19 @@ static Res AMCFixEmergency(Pool pool, ScanState ss, Seg seg,
   }
 
 fixInPlace: /* see <design/poolamc/>.Nailboard.emergency */
-  amcFixInPlace(pool, seg, ss, refIO);
+  amcSegFixInPlace(seg, ss, refIO);
   return ResOK;
 }
 
 
-/* AMCFix -- fix a reference to the pool
+/* amcSegFix -- fix a reference to the segment
  *
  * See <design/poolamc/#fix>.
  */
-static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
 {
   Arena arena;
+  Pool pool;
   AMC amc;
   Res res;
   Format format;       /* cache of pool->format */
@@ -1548,17 +1560,14 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   amcGen gen;          /* generation of old copy of object */
   TraceSet grey;       /* greyness of object being relocated */
   Seg toSeg;           /* segment to which object is being relocated */
+  TraceId ti;
+  Trace trace;
 
   /* <design/trace/#fix.noaver> */
-  AVERT_CRITICAL(Pool, pool);
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
   EVENT0(AMCFix);
-
-  /* For the moment, assume that the object was already marked. */
-  /* (See <design/fix/#protocol.was-marked>.) */
-  ss->wasMarked = TRUE;
 
   /* If the reference is ambiguous, set up the datastructures for */
   /* managing a nailed segment.  This involves marking the segment */
@@ -1569,21 +1578,22 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* rather than "!amcSegHasNailboard(seg)" because this avoids */
     /* setting up a new nailboard when the segment was nailed, but */
     /* had no nailboard.  This must be avoided because otherwise */
-    /* assumptions in AMCFixEmergency will be wrong (essentially */
+    /* assumptions in amcSegFixEmergency will be wrong (essentially */
     /* we will lose some pointer fixes because we introduced a */
     /* nailboard). */
     if(SegNailed(seg) == TraceSetEMPTY) {
-      res = amcSegCreateNailboard(seg, pool);
+      res = amcSegCreateNailboard(seg);
       if(res != ResOK)
         return res;
-      ++ss->nailCount;
+      STATISTIC(++ss->nailCount);
       SegSetNailed(seg, TraceSetUnion(SegNailed(seg), ss->traces));
     }
-    amcFixInPlace(pool, seg, ss, refIO);
+    amcSegFixInPlace(seg, ss, refIO);
     return ResOK;
   }
 
-  amc = PoolAMC(pool);
+  pool = SegPool(seg);
+  amc = MustBeA_CRITICAL(AMCZPool, pool);
   AVERT_CRITICAL(AMC, amc);
   format = pool->format;
   headerSize = format->headerSize;
@@ -1625,8 +1635,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     /* Object is not preserved yet (neither moved, nor nailed) */
     /* so should be preserved by forwarding. */
 
-    /* <design/fix/#protocol.was-marked> */
-    ss->wasMarked = FALSE;
+    ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
 
     /* Get the forwarding buffer from the object's generation. */
     gen = amcSegGen(seg);
@@ -1634,8 +1643,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     AVER_CRITICAL(buffer != NULL);
 
     length = AddrOffset(ref, clientQ);  /* .exposed.seg */
-    STATISTIC_STAT(++ss->forwardedCount);
-    ss->forwardedSize += length;
+    STATISTIC(++ss->forwardedCount);
     do {
       res = BUFFER_RESERVE(&newBase, buffer, length);
       if (res != ResOK)
@@ -1652,7 +1660,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         grey = TraceSetUnion(grey, ss->traces);
         SegSetSummary(toSeg, RefSetUnion(SegSummary(toSeg), SegSummary(seg)));
       } else {
-        AVER(SegRankSet(toSeg) == RankSetEMPTY);
+        AVER_CRITICAL(SegRankSet(toSeg) == RankSetEMPTY);
       }
       SegSetGrey(toSeg, TraceSetUnion(SegGrey(toSeg), grey));
 
@@ -1661,7 +1669,11 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
       ShieldCover(arena, toSeg);
     } while (!BUFFER_COMMIT(buffer, newBase, length));
-    ss->copiedSize += length;
+
+    STATISTIC(ss->copiedSize += length);
+    TRACE_SET_ITER(ti, trace, ss->traces, ss->arena)
+      MustBeA(amcSeg, seg)->forwarded[ti] += length;
+    TRACE_SET_ITER_END(ti, trace, ss->traces, ss->arena);
 
     (*format->move)(ref, newRef);  /* .exposed.seg */
 
@@ -1669,7 +1681,7 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existent) snap-out cache here) */
-    STATISTIC_STAT(++ss->snapCount);
+    STATISTIC(++ss->snapCount);
   }
 
   /* .fix.update: update the reference to whatever the above code */
@@ -1684,25 +1696,25 @@ returnRes:
 }
 
 
-/* amcReclaimNailed -- reclaim what you can from a nailed segment */
+/* amcSegReclaimNailed -- reclaim what you can from a nailed segment */
 
-static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
+static void amcSegReclaimNailed(Pool pool, Trace trace, Seg seg)
 {
   Addr p, limit;
   Arena arena;
   Format format;
-  Size bytesReclaimed = (Size)0;
+  STATISTIC_DECL(Size bytesReclaimed = (Size)0)
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
+  PoolGen pgen;
   Size headerSize;
   Addr padBase;          /* base of next padding object */
   Size padLength;        /* length of next padding object */
+  Buffer buffer;
 
   /* All arguments AVERed by AMCReclaim */
 
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
   format = pool->format;
 
   arena = PoolArena(pool);
@@ -1712,11 +1724,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   headerSize = format->headerSize;
   ShieldExpose(arena, seg);
   p = SegBase(seg);
-  if(SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
-  } else {
-    limit = SegLimit(seg);
-  }
+  limit = SegBufferScanLimit(seg);
   padBase = p;
   padLength = 0;
   while(p < limit) {
@@ -1742,7 +1750,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
         /* Replace run of forwarding pointers and unreachable objects
          * with a padding object. */
         (*format->pad)(padBase, padLength);
-        bytesReclaimed += padLength;
+        STATISTIC(bytesReclaimed += padLength);
         padLength = 0;
       }
       padBase = q;
@@ -1759,7 +1767,7 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
     /* Replace final run of forwarding pointers and unreachable
      * objects with a padding object. */
     (*format->pad)(padBase, padLength);
-    bytesReclaimed += padLength;
+    STATISTIC(bytesReclaimed += padLength);
   }
   ShieldCover(arena, seg);
 
@@ -1767,44 +1775,47 @@ static void amcReclaimNailed(Pool pool, Trace trace, Seg seg)
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
   if(SegNailed(seg) == TraceSetEMPTY && amcSegHasNailboard(seg)) {
     NailboardDestroy(amcSegNailboard(seg), arena);
-    Seg2amcSeg(seg)->board = NULL;
+    MustBeA(amcSeg, seg)->board = NULL;
   }
 
-  AVER(bytesReclaimed <= SegSize(seg));
-  trace->reclaimSize += bytesReclaimed;
-  trace->preservedInPlaceCount += preservedInPlaceCount;
-  trace->preservedInPlaceSize += preservedInPlaceSize;
+  STATISTIC(AVER(bytesReclaimed <= SegSize(seg)));
+  STATISTIC(trace->reclaimSize += bytesReclaimed);
+  STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
+  pgen = &amcSegGen(seg)->pgen;
+  if (SegBuffer(&buffer, seg)) {
+    /* Any allocation in the buffer was white, so needs to be
+     * accounted as condemned now. */
+    GenDescCondemned(pgen->gen, trace,
+                     AddrOffset(BufferBase(buffer), BufferLimit(buffer)));
+  }
+  GenDescSurvived(pgen->gen, trace, MustBeA(amcSeg, seg)->forwarded[trace->ti],
+                  preservedInPlaceSize);
 
   /* Free the seg if we can; fixes .nailboard.limitations.middle. */
   if(preservedInPlaceCount == 0
-     && (SegBuffer(seg) == NULL)
+     && (!SegHasBuffer(seg))
      && (SegNailed(seg) == TraceSetEMPTY)) {
 
-    amcGen gen = amcSegGen(seg);
-
     /* We may not free a buffered seg. */
-    AVER(SegBuffer(seg) == NULL);
+    AVER(!SegHasBuffer(seg));
 
-    PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
+    PoolGenFree(pgen, seg, 0, SegSize(seg), 0, MustBeA(amcSeg, seg)->deferred);
   }
 }
 
 
-/* AMCReclaim -- recycle a segment if it is still white
+/* amcSegReclaim -- recycle a segment if it is still white
  *
  * See <design/poolamc/#reclaim>.
  */
-static void AMCReclaim(Pool pool, Trace trace, Seg seg)
+static void amcSegReclaim(Seg seg, Trace trace)
 {
-  AMC amc;
+  amcSeg amcseg = MustBeA_CRITICAL(amcSeg, seg);
+  Pool pool = SegPool(seg);
+  AMC amc = MustBeA_CRITICAL(AMCZPool, pool);
   amcGen gen;
 
-  AVERT_CRITICAL(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT_CRITICAL(AMC, amc);
   AVERT_CRITICAL(Trace, trace);
-  AVERT_CRITICAL(Seg, seg);
-
   gen = amcSegGen(seg);
   AVERT_CRITICAL(amcGen, gen);
 
@@ -1822,31 +1833,28 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
   }
 
   if(SegNailed(seg) != TraceSetEMPTY) {
-    amcReclaimNailed(pool, trace, seg);
+    amcSegReclaimNailed(pool, trace, seg);
     return;
   }
 
   /* We may not free a buffered seg.  (But all buffered + condemned */
   /* segs should have been nailed anyway). */
-  AVER(SegBuffer(seg) == NULL);
+  AVER(!SegHasBuffer(seg));
 
-  trace->reclaimSize += SegSize(seg);
+  STATISTIC(trace->reclaimSize += SegSize(seg));
 
-  PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, Seg2amcSeg(seg)->deferred);
+  GenDescSurvived(gen->pgen.gen, trace, amcseg->forwarded[trace->ti], 0);
+  PoolGenFree(&gen->pgen, seg, 0, SegSize(seg), 0, amcseg->deferred);
 }
 
 
-/* AMCWalk -- Apply function to (black) objects in segment */
+/* amcSegWalk -- Apply function to (black) objects in segment */
 
-static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                    void *p, size_t s)
+static void amcSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s)
 {
-  Addr object, nextObject, limit;
-  AMC amc;
-  Format format;
-
-  AVERT(Pool, pool);
   AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures so can't be checked */
 
@@ -1860,24 +1868,16 @@ static void AMCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
   if(SegWhite(seg) == TraceSetEMPTY && SegGrey(seg) == TraceSetEMPTY
      && SegNailed(seg) == TraceSetEMPTY)
   {
-    amc = PoolAMC(pool);
-    AVERT(AMC, amc);
-    format = pool->format;
+    Addr object, nextObject, limit;
+    Pool pool = SegPool(seg);
 
-    /* If the segment is buffered, only walk as far as the end */
-    /* of the initialized objects.  cf. AMCScan */
-    if(SegBuffer(seg) != NULL)
-      limit = BufferScanLimit(SegBuffer(seg));
-    else
-      limit = SegLimit(seg);
-    limit = AddrAdd(limit, format->headerSize);
-
+    limit = AddrAdd(SegBufferScanLimit(seg), format->headerSize);
     object = AddrAdd(SegBase(seg), format->headerSize);
     while(object < limit) {
       /* Check not a broken heart. */
       AVER((*format->isMoved)(object) == NULL);
-      (*f)(object, pool->format, pool, p, s);
-      nextObject = (*pool->format->skip)(object);
+      (*f)(object, format, pool, p, s);
+      nextObject = (*format->skip)(object);
       AVER(nextObject > object);
       object = nextObject;
     }
@@ -1892,8 +1892,12 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
 {
   Arena arena;
   Ring ring, next, node;
+  Format format = NULL;
+  Bool b;
 
-  AVER(IsSubclassPoly(pool->class, AMCZPoolClassGet()));
+  AVER(IsA(AMCZPool, pool));
+  b = PoolFormat(&format, pool);
+  AVER(b);
 
   arena = PoolArena(pool);
   ring = PoolSegRing(pool);
@@ -1902,90 +1906,9 @@ static void amcWalkAll(Pool pool, FormattedObjectsVisitor f, void *p, size_t s)
     Seg seg = SegOfPoolRing(node);
 
     ShieldExpose(arena, seg);
-    AMCWalk(pool, seg, f, p, s);
+    amcSegWalk(seg, format, f, p, s);
     ShieldCover(arena, seg);
   }
-}
-
-
-/* amcAddrObjectSearch -- skip over objects (belonging to pool)
- * starting at objBase until we reach one of the following cases:
- * 1. addr is found (and not moved): set *pReturn to the client
- * pointer to the object containing addr and return ResOK;
- * 2. addr is found, but it moved: return ResFAIL;
- * 3. we reach searchLimit: return ResFAIL.
- */
-static Res amcAddrObjectSearch(Addr *pReturn, Pool pool, Addr objBase,
-                               Addr searchLimit, Addr addr)
-{
-  Format format;
-  Size hdrSize;
-
-  AVER(pReturn != NULL);
-  AVERT(Pool, pool);
-  AVER(objBase <= searchLimit);
-
-  format = pool->format;
-  hdrSize = format->headerSize;
-  while (objBase < searchLimit) {
-    Addr objRef = AddrAdd(objBase, hdrSize);
-    Addr objLimit = AddrSub((*format->skip)(objRef), hdrSize);
-    AVER(objBase < objLimit);
-    if (addr < objLimit) {
-      AVER(objBase <= addr);
-      AVER(addr < objLimit); /* the point */
-      if (!(*format->isMoved)(objRef)) {
-        *pReturn = objRef;
-        return ResOK;
-      }
-      break;
-    }
-    objBase = objLimit;
-  }
-  return ResFAIL;
-}
-
-
-/* AMCAddrObject -- find client pointer to object containing addr.
- * addr is known to belong to seg, which belongs to pool.
- * See job003589.
- */
-static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
-{
-  Res res;
-  Arena arena;
-  Addr base, limit;    /* range of objects on segment */
-
-  AVER(pReturn != NULL);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegPool(seg) == pool);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-
-  arena = PoolArena(pool);
-  base = SegBase(seg);
-  if (SegBuffer(seg) != NULL) {
-    /* We use BufferGetInit here (and not BufferScanLimit) because we
-     * want to be able to find objects that have been allocated and
-     * committed since the last flip. These objects lie between the
-     * addresses returned by BufferScanLimit (which returns the value
-     * of init at the last flip) and BufferGetInit.
-     *
-     * Strictly speaking we only need a limit that is at least the
-     * maximum of the objects on the segments. This is because addr
-     * *must* point inside a live object and we stop skipping once we
-     * have found it. The init pointer serves this purpose.
-     */
-    limit = BufferGetInit(SegBuffer(seg));
-  } else {
-    limit = SegLimit(seg);
-  }
-
-  ShieldExpose(arena, seg);
-  res = amcAddrObjectSearch(pReturn, pool, base, limit, addr);
-  ShieldCover(arena, seg);
-  return res;
 }
 
 
@@ -1993,13 +1916,9 @@ static Res AMCAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
 
 static Size AMCTotalSize(Pool pool)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Size size = 0;
   Ring node, nextNode;
-
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
   RING_FOR(node, &amc->genRing, nextNode) {
     amcGen gen = RING_ELT(amcGen, amcRing, node);
@@ -2015,13 +1934,9 @@ static Size AMCTotalSize(Pool pool)
 
 static Size AMCFreeSize(Pool pool)
 {
-  AMC amc;
+  AMC amc = MustBeA(AMCZPool, pool);
   Size size = 0;
   Ring node, nextNode;
-
-  AVERT(Pool, pool);
-  amc = PoolAMC(pool);
-  AVERT(AMC, amc);
 
   RING_FOR(node, &amc->genRing, nextNode) {
     amcGen gen = RING_ELT(amcGen, amcRing, node);
@@ -2037,27 +1952,22 @@ static Size AMCFreeSize(Pool pool)
  *
  * See <design/poolamc/#describe>.
  */
-static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+
+static Res AMCDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
+  AMC amc = CouldBeA(AMCZPool, pool);
   Res res;
-  AMC amc;
   Ring node, nextNode;
   const char *rampmode;
 
-  if(!TESTT(Pool, pool))
-    return ResFAIL;
-  amc = PoolAMC(pool);
-  if(!TESTT(AMC, amc))
-    return ResFAIL;
-  if(stream == NULL)
-    return ResFAIL;
+  if (!TESTC(AMCZPool, amc))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               (amc->rankSet == RankSetEMPTY) ? "AMCZ" : "AMC",
-               " $P {\n", (WriteFP)amc, "  pool $P ($U)\n",
-               (WriteFP)AMCPool(amc), (WriteFU)AMCPool(amc)->serial,
-               NULL);
-  if(res != ResOK)
+  res = NextMethod(Inst, AMCZPool, describe)(inst, stream, depth);
+  if (res != ResOK)
     return res;
 
   switch(amc->rampMode) {
@@ -2084,19 +1994,15 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
-  if(0) {
+  if (0) {
     /* SegDescribes */
-    RING_FOR(node, &AMCPool(amc)->segRing, nextNode) {
+    RING_FOR(node, &pool->segRing, nextNode) {
       Seg seg = RING_ELT(Seg, poolRing, node);
-      res = AMCSegDescribe(seg, stream, depth + 2);
+      res = SegDescribe(seg, stream, depth + 2);
       if(res != ResOK)
         return res;
     }
   }
-
-  res = WriteF(stream, depth, "} AMC $P\n", (WriteFP)amc, NULL);
-  if(res != ResOK)
-    return res;
 
   return ResOK;
 }
@@ -2104,46 +2010,35 @@ static Res AMCDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 
 /* AMCZPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCZPoolClass, this)
+DEFINE_CLASS(Pool, AMCZPool, klass)
 {
-  INHERIT_CLASS(this, AbstractSegBufPoolClass);
-  PoolClassMixInFormat(this);
-  PoolClassMixInCollect(this);
-  this->name = "AMCZ";
-  this->size = sizeof(AMCStruct);
-  this->offset = offsetof(AMCStruct, poolStruct);
-  this->attr |= AttrMOVINGGC;
-  this->varargs = AMCVarargs;
-  this->init = AMCZInit;
-  this->finish = AMCFinish;
-  this->bufferFill = AMCBufferFill;
-  this->bufferEmpty = AMCBufferEmpty;
-  this->whiten = AMCWhiten;
-  this->fix = AMCFix;
-  this->fixEmergency = AMCFixEmergency;
-  this->reclaim = AMCReclaim;
-  this->rampBegin = AMCRampBegin;
-  this->rampEnd = AMCRampEnd;
-  this->addrObject = AMCAddrObject;
-  this->walk = AMCWalk;
-  this->bufferClass = amcBufClassGet;
-  this->totalSize = AMCTotalSize;
-  this->freeSize = AMCFreeSize;  
-  this->describe = AMCDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, AMCZPool, AbstractSegBufPool);
+  PoolClassMixInCollect(klass);
+  klass->instClassStruct.describe = AMCDescribe;
+  klass->instClassStruct.finish = AMCFinish;
+  klass->size = sizeof(AMCStruct);
+  klass->attr |= AttrMOVINGGC;
+  klass->varargs = AMCVarargs;
+  klass->init = AMCZInit;
+  klass->bufferFill = AMCBufferFill;
+  klass->bufferEmpty = AMCBufferEmpty;
+  klass->rampBegin = AMCRampBegin;
+  klass->rampEnd = AMCRampEnd;
+  klass->segPoolGen = amcSegPoolGen;
+  klass->bufferClass = amcBufClassGet;
+  klass->totalSize = AMCTotalSize;
+  klass->freeSize = AMCFreeSize;  
+  AVERT(PoolClass, klass);
 }
 
 
 /* AMCPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AMCPoolClass, this)
+DEFINE_CLASS(Pool, AMCPool, klass)
 {
-  INHERIT_CLASS(this, AMCZPoolClass);
-  PoolClassMixInScan(this);
-  this->name = "AMC";
-  this->init = AMCInit;
-  this->scan = AMCScan;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, AMCPool, AMCZPool);
+  klass->init = AMCInit;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -2151,14 +2046,14 @@ DEFINE_POOL_CLASS(AMCPoolClass, this)
 
 mps_pool_class_t mps_class_amc(void)
 {
-  return (mps_pool_class_t)AMCPoolClassGet();
+  return (mps_pool_class_t)CLASS(AMCPool);
 }
 
 /* mps_class_amcz -- return the pool class descriptor to the client */
 
 mps_pool_class_t mps_class_amcz(void)
 {
-  return (mps_pool_class_t)AMCZPoolClassGet();
+  return (mps_pool_class_t)CLASS(AMCZPool);
 }
 
 
@@ -2222,8 +2117,8 @@ ATTRIBUTE_UNUSED
 static Bool AMCCheck(AMC amc)
 {
   CHECKS(AMC, amc);
-  CHECKD(Pool, AMCPool(amc));
-  CHECKL(IsSubclassPoly(AMCPool(amc)->class, AMCZPoolClassGet()));
+  CHECKC(AMCZPool, amc);
+  CHECKD(Pool, MustBeA(AbstractPool, amc));
   CHECKL(RankSetCheck(amc->rankSet));
   CHECKD_NOSIG(Ring, &amc->genRing);
   CHECKL(BoolCheck(amc->gensBooted));
@@ -2249,7 +2144,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

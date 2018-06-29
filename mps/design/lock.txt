@@ -59,28 +59,35 @@ be claimed again by the thread currently holding them, without
 blocking or deadlocking. (This is needed to implement the global
 recursive lock.)
 
+_`.req.held`: Provide a means to test if a lock is held. (This is
+needed for debugging a dynamic function table callback on Windows on
+x86-64. See ``mps_arena_busy()`` for a detailed description of this
+use case. Note that in this use case the program is running
+single-threaded and so there is no need for this feature to be
+thread-safe.)
+
 _`.req.global`: Provide *global* locks: that is locks that need not be
 allocated or initialized by the user.
 
 _`.req.global.binary`: Provide a global binary lock. (This is required
 to protect the data structure allowing multiple arenas to coordinate
 handling of protection faults: see
-design.mps.thread-safety.arch.global.binary_.)
+design.mps.thread-safety.sol.global.mutable_.)
 
-.. _design.mps.thread-safety.arch.global.binary: thread-safety#arch.global.binary
+.. _design.mps.thread-safety.sol.global.mutable: thread-safety#sol-global-mutable
 
 _`.req.global.recursive`: Provide a global recursive lock. (This is
-required to protect pool class initialization: see 
-design.mps.thread-safety.arch.global.recursive_.)
+required to protect protocol class initialization: see
+design.mps.thread-safety.sol.global.once_.)
 
-.. _design.mps.thread-safety.arch.global.recursive: thread-safety#arch.global.recursive
+.. _design.mps.thread-safety.sol.global.once: thread-safety#sol-global-once
 
 _`.req.deadlock.not`: There is no requirement to provide protection
 against deadlock. (Clients are able to avoid deadlock using
 traditional strategies such as ordering of locks; see
-design.mps.thread-safety.deadlock_.)
+design.mps.thread-safety.sol.deadlock_.)
 
-.. _design.mps.thread-safety.deadlock: thread-safety#deadlock
+.. _design.mps.thread-safety.sol.deadlock: thread-safety#sol-deadlock
 
 
 Interface
@@ -124,6 +131,20 @@ thread and claims the lock (if not already held).
 Restores the previous state of the lock remembered by the
 corresponding ``LockClaimRecursive()`` call.
 
+``Bool LockIsHeld(Lock lock)``
+
+Return true if the lock is held by any thread, false otherwise. Note
+that this function need not be thread-safe (see `.req.held`_).
+
+``void LockInitGlobal(void)``
+
+Initialize (or re-initialize) the global locks. This should only be
+called in the following circumstances: the first time either of the
+global locks is claimed; and in the child process after a ``fork()``.
+See design.mps.thread-safety.sol.fork.lock_.
+
+.. _design.mps.thread-safety.sol.fork.lock: thread-safety#sol-fork-lock
+
 ``void LockClaimGlobal(void)``
 
 Claims ownership of the binary global lock which was previously not
@@ -142,6 +163,11 @@ to the current thread and claims the lock (if not already held).
 
 Restores the previous state of the recursive global lock remembered by
 the corresponding ``LockClaimGlobalRecursive()`` call.
+
+``void LockSetup(void)``
+
+One-time initialization function, intended for calling
+``pthread_atfork()`` on the appropriate platforms: see design.mps.thread-safety.sol.fork.lock_.
 
 
 Implementation
@@ -193,15 +219,6 @@ _`.impl.ix`: POSIX implementation ``lockix.c``:
 - recursive locking calls ``pthread_mutex_lock()`` and expects either
   success or ``EDEADLK`` (indicating a recursive claim);
 - also performs checking.
-
-_`.impl.li`: Linux implementation ``lockli.c``:
-
-- supports [POSIXThreads]_;
-- also supports [LinuxThreads]_, a partial implementation of POSIX Threads
-  that was used in Linux 2.4 and 2.5;
-- almost identical to `.impl.posix`_, except that on LinuxThreads
-  ``pthread_mutexattr_setkind_np`` is used where POSIX has
-  ``pthread_mutexattr_settype``.
 
 
 Example
@@ -258,11 +275,6 @@ References
    "Critical Section Objects";
    <http://msdn.microsoft.com/en-us/library/windows/desktop/ms682530.aspx>
 
-.. [LinuxThreads]
-   Xavier Leroy;
-   "The LinuxThreads library";
-   <http://pauillac.inria.fr/~xleroy/linuxthreads/>
-
 .. [POSIXThreads]
    The Open Group;
    "The Single UNIX Specification, Version 2---Threads";
@@ -280,6 +292,8 @@ Document History
 
 - 2014-10-21 GDR_ Brought up to date.
 
+- 2018-06-14 GDR_ Added ``LockInitGlobal()``.
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
@@ -287,7 +301,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

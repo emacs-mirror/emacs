@@ -1,5 +1,5 @@
 .. index::
-   single: MFS
+   single: MFS pool class
    single: pool class; MFS
 
 .. _pool-mfs:
@@ -24,7 +24,7 @@ in the free block. :c:func:`mps_alloc` pops this stack and
 
 
 .. index::
-   single: MFS; properties
+   single: MFS pool class; properties
 
 MFS properties
 --------------
@@ -66,7 +66,7 @@ MFS properties
 
 
 .. index::
-   single: MFS; interface
+   single: MFS pool class; interface
 
 MFS interface
 -------------

@@ -1,42 +1,44 @@
-/* thw3.h: WIN32 THREAD MANAGER HEADER
+/* prmc.h: MUTATOR CONTEXT INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
- * This is used in <code/thw3.c> and <code/thw3i3.c> and <code/thw3i6.c>
+ * See <design/prmc/> for the design of the generic interface including
+ * the contracts for these functions.
  *
- * .nt: uses Win32 specific stuff
- * HANDLE
- * DWORD
+ * This interface has several different implementations, typically one
+ * per platform, see <code/prmc*.c> for the various implementations.
  */
 
-#ifndef thw3_h
-#define thw3_h
+#ifndef prmc_h
+#define prmc_h
 
-#include "mpm.h"
+#include "mpmtypes.h"
 
-#if !defined(MPS_OS_W3) /* .nt */
-#error "Compiling thw3 when MPS_OS_W3 not defined."
-#endif
+#define MutatorContextSig ((Sig)0x519302C0) /* SIGnature MUTator COntext */
 
-#include "mpswin.h"
+enum {
+  MutatorContextFAULT, /* Context of thread stopped by protection fault. */
+  MutatorContextTHREAD, /* Context of thread stopped by thread manager. */
+  MutatorContextLIMIT
+};
 
-typedef struct mps_thr_s {      /* Win32 thread structure */
-  Sig sig;                      /* <design/sig/> */
-  Serial serial;                /* from arena->threadSerial */
-  Arena arena;                  /* owning arena */
-  RingStruct arenaRing;         /* threads attached to arena */
-  Bool alive;                   /* thread believed to be alive? */
-  HANDLE handle;                /* Handle of thread, see
-                                 * <code/thw3.c#thread.handle> */
-  DWORD id;                     /* Thread id of thread */
-} ThreadStruct;
+typedef unsigned MutatorContextVar;
 
-#endif /* thw3_h */
+extern Bool MutatorContextCheck(MutatorContext context);
+extern Bool MutatorContextCanStepInstruction(MutatorContext context);
+extern Res MutatorContextStepInstruction(MutatorContext context);
+extern Addr MutatorContextSP(MutatorContext context);
+extern Res MutatorContextScan(ScanState ss, MutatorContext context,
+                              mps_area_scan_t scan, void *closure);
+
+
+#endif /* prmc_h */
+
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

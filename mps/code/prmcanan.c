@@ -1,66 +1,37 @@
-/* prmci3fr.c: PROTECTION MUTATOR CONTEXT INTEL 386 (FREEBSD)
+/* prmcanan.c: MUTATOR CONTEXT (GENERIC PROCESSOR ARCHITECTURE)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
- *
- *
- * SOURCES
- *
- * .source.i486: Intel486 Microprocessor Family Programmer's
- * Reference Manual
- *
- *
- * ASSUMPTIONS
- *
- * .sp: The stack pointer in the context is ESP.
- *
- * .context.regroots: The root regs are EDI, ESI, EBX, EDX, ECX, EAX,
- * and they are assumed to be recorded in the context at
- * pointer-aligned boundaries.
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
+ * In this version for a generic processor architecture, none of the
+ * functions have a useful implementation.
  */
 
-#include "prmcix.h"
-#include "prmci3.h"
+#include "mpm.h"
 
-SRCID(prmci3fr, "$Id$");
-
-#if !defined(MPS_OS_FR) || !defined(MPS_ARCH_I3)
-#error "prmci3fr.c is specific to MPS_OS_FR and MPS_ARCH_I3"
-#endif
+SRCID(prmcanan, "$Id$");
 
 
-Addr MutatorFaultContextSP(MutatorFaultContext mfc)
+Bool MutatorContextCanStepInstruction(MutatorContext context)
 {
-  return (Addr)mfc->ucontext->uc_mcontext.mc_esp;   /* .sp */
+  UNUSED(context);
+
+  return FALSE;
 }
 
 
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
-                            mps_area_scan_t scan_area,
-                            void *closure)
+Res MutatorContextStepInstruction(MutatorContext context)
 {
-  Res res;
+  UNUSED(context);
 
-  /* This scans the root registers (.context.regroots).  It also unnecessarily
-     scans the rest of the context.  The optimisation to scan only relevant
-     parts would be machine dependent. */
-  res = TraceScanArea(
-    ss,
-    (Word *)mfc->ucontext,
-    (Word *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext))),
-    scan_area, closure
-  );
-
-  return res;
+  return ResUNIMPL;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

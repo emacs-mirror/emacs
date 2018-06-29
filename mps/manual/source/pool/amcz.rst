@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/master/manual/wiki/pool_classes.html>`_
 
 .. index::
-   single: AMCZ
+   single: AMCZ pool class
    single: pool class; AMCZ
 
 .. _pool-amcz:
@@ -27,7 +27,7 @@ See :ref:`guide-advanced-segregation` for an example.
 
 
 .. index::
-   single: AMCZ; properties
+   single: AMCZ pool class; properties
 
 AMCZ properties
 ---------------
@@ -45,7 +45,7 @@ AMCZ is identical to :ref:`pool-amc`, except that:
 
 
 .. index::
-   single: AMCZ; interface
+   single: AMCZ pool class; interface
 
 AMCZ interface
 --------------
@@ -89,7 +89,7 @@ AMCZ interface
 
         
 .. index::
-   pair: AMCZ; introspection
+   pair: AMCZ pool class; introspection
 
 AMCZ introspection
 ------------------

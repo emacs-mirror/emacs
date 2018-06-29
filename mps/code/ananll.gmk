@@ -10,6 +10,7 @@ PFM = ananll
 MPMPF = \
     lockan.c \
     prmcan.c \
+    prmcanan.c \
     protan.c \
     span.c \
     ssan.c \

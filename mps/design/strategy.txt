@@ -215,13 +215,14 @@ collected; it also uses the *total size* of the generation to compute
 the mortality.
 
 _`.accounting.check`: Computing the new size for a pool generation is
-far from straightforward: see job003772_ for some (former) errors in
-this code. In order to assist with checking that this has been
-computed correctly, the locus module uses a double-entry book-keeping
-system to account for every byte in each pool generation. This uses
-six accounts:
+far from straightforward: see job003772_ and job004007_ for some
+(former) errors in this code. In order to assist with checking that
+this has been computed correctly, the locus module uses a double-entry
+book-keeping system to account for every byte in each pool generation.
+This uses seven accounts:
 
 .. _job003772: http://www.ravenbrook.com/project/mps/issue/job003772/
+.. _job004007: http://www.ravenbrook.com/project/mps/issue/job004007/
 
 _`.account.total`: Memory acquired from the arena.
 
@@ -237,6 +238,10 @@ would complain.
 
 _`.account.free`: Memory that is not in use (free or lost to
 fragmentation).
+
+_`.account.buffered`: Memory in a buffer that was handed out to the
+client program via ``BufferFill()``, and which has not yet been
+condemned.
 
 _`.account.new`: Memory in use by the client program, allocated
 since the last time the generation was condemned.
@@ -267,15 +272,19 @@ accounted as *old* or *oldDeferred* (see `.accounting.op.reclaim`_).
 Finally, debit *free*, credit *total*. (But see
 `.account.total.negated`_.)
 
-_`.accounting.op.fill`: Allocate memory, for example by filling a
-buffer. Debit *free*, credit *new* or *newDeferred*.
+_`.accounting.op.fill`: Fill a buffer. Debit *free*, credit *buffered*.
 
-_`.accounting.op.empty`: Deallocate memory, for example by emptying
-the unused portion of a buffer. Debit *new* or *newDeferred*, credit
-*free*.
+_`.accounting.op.empty`: Empty a buffer. Debit *buffered*, credit
+*new* or *newDeferred* with the allocated part of the buffer, credit
+*free* with the unused part of the buffer.
 
-_`.accounting.op.age`: Condemn memory. Debit *new* or *newDeferred*,
-credit *old* or *oldDeferred*.
+_`.accounting.op.age`: Condemn memory. Debit *buffered* (if part or
+all of a buffer was condemned) and either *new* or *newDeferred*,
+credit *old* or *oldDeferred*. Note that the condemned part of the
+buffer remains part of the buffer until the buffer is emptied, but is
+now accounted as *old* or *oldDeferred*. The uncondemned part of the
+buffer, if any, remains accounted as *buffered* until it is either
+emptied or condemned in its turn.
 
 _`.accounting.op.reclaim`: Reclaim dead memory. Debit *old* or
 *oldDeferred*, credit *free*.
@@ -415,7 +424,7 @@ other uses of that:
   pool.  Any non-white segment in the rampGen with new set to FALSE has
   its size added to ``poolGen->newSize`` and gets new set to TRUE.
 
-- in ``AMCWhiten()``, if new is TRUE, the segment size is deducted
+- in ``amcSegWhiten()``, if new is TRUE, the segment size is deducted
   from ``poolGen.newSize`` and new is set to FALSE.
 
 
@@ -477,36 +486,44 @@ runtime in collections. (This fraction is given by the
 Starting a trace
 ................
 
-``Bool PolicyStartTrace(Trace *traceReturn, Arena arena)``
+``Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn, Arena arena, Bool collectWorldAllowed)``
 
 _`.policy.start`: Consider starting a trace. If a trace was started,
 update ``*traceReturn`` to point to the trace and return TRUE.
 Otherwise, leave ``*traceReturn`` unchanged and return FALSE.
 
-_`.policy.start.impl`: This uses the "Lisp Machine" strategy, which
-tries to schedule collections of the world so that the collector just
-keeps pace with the mutator: that is, it starts a collection when the
+_`.policy.start.world`: If ``collectWorldAllowed`` is TRUE, consider
+starting a collection of the whole world, and if such a collection is
+started, set ``*collectWorldReturn`` to TRUE.
+
+This decision uses the "Lisp Machine" strategy, which tries to
+schedule collections of the world so that the collector just keeps
+pace with the mutator: that is, it starts a collection when the
 predicted completion time of the collection is around the time when
 the mutator is predicted to reach the current memory limit. See
 [Pirinen]_.
 
-_`.policy.start.chain`: If it is not yet time to schedule a collection
-of the world, ``PolicyStartTrace()`` considers collecting a set of
-zones corresponding to a set of generations on a chain.
+_`.policy.start.world.hack`: The ``collectWorldAllowed`` flag was
+added to fix job004011_ by ensuring that the MPS starts at most one
+collection of the world in each call to ``ArenaPoll()``. But this is
+is fragile and inelegant. Ideally the MPS would be able to deduce that
+a collection of a set of generations can't possibly make progress
+(because nothing that refers to this set of generations has changed),
+and so not start such a collection.
+
+.. _job004011: http://www.ravenbrook.com/project/mps/issue/job004011/
+
+_`.policy.start.chain`: If ``collectWorldAllowed`` is FALSE, or if it
+is not yet time to schedule a collection of the world,
+``PolicyStartTrace()`` considers collecting a set of zones
+corresponding to a set of generations on a chain.
 
 It picks these generations by calling ``ChainDeferral()`` for each
 chain; this function indicates if the chain needs collecting, and if
 so, how urgent it is to collect that chain. The most urgent chain in
 need of collection (if any) is then condemned by calling
 ``policyCondemnChain()``, which chooses the set of generations to
-condemn, computes the zoneset corresponding to the union those
-generations, and condemns those zones by calling
-``TraceCondemnZones()``.
-
-Note that the resulting condemned set includes every segment in an
-automatic pool in any zone in the zoneset. It is not limited to the
-segments actually associated with the condemned generations.
-
+condemn, and condemns all the segments in those generations.
 
 
 Trace progress
@@ -525,10 +542,12 @@ clock time when the MPS was entered; ``moreWork`` and ``tracedWork``
 are the results of the last call to ``TracePoll()``.
 
 _`.policy.poll.impl`: The implementation keep doing work until either
-the maximum pause time is exceeded (see design.mps.arena.pause-time_),
+the maximum pause time is exceeded (see `design.mps.arena.pause-time`_),
 or there is no more work to do. Then it schedules the next collection
 so that there is approximately one call to ``TracePoll()`` for every
 ``ArenaPollALLOCTIME`` bytes of allocation.
+
+.. _design.mps.arena.pause-time: arena#pause-time
 
 
 References

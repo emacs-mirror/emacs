@@ -255,7 +255,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        */
        comment("About to fix with unaligned pointer...");
        p = UNALIGNED;
-       res = mps_fix(ss, &p);
+       res = MPS_FIX2(ss, &p);
        error("fix with unaligned pointer");
        if (res != MPS_RES_OK) return res;
        obj->data.ref[i].addr = p;

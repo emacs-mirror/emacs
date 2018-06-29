@@ -1,14 +1,13 @@
-/* proti3.c: PROTECTION MUTATOR CONTEXT (INTEL 386)
+/* prmci3.c: MUTATOR CONTEXT (INTEL 386)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/prot/> for the generic design of the interface
+ * .design: See <design/prmc/> for the generic design of the interface
  * which is implemented in this module, including the contracts for the
  * functions.
  *
- * .purpose: This module implements the part of the protection module
- * that implements the MutatorFaultContext type. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  * .requirements: Current requirements are for limited support only, for
  * stepping the sorts of instructions that the Dylan compiler might
@@ -31,9 +30,9 @@
  *
  * ASSUMPTIONS
  *
- * .assume.null: It's always safe for Prot*StepInstruction to return
- * ResUNIMPL.  A null implementation of this module would be overly
- * conservative but otherwise correct.
+ * .assume.null: It's always safe for MutatorContextCanStepInstruction
+ * to return FALSE. A null implementation of this module would be
+ * overly conservative but otherwise correct.
  *
  * .assume.want: The Dylan implementation is likely to access a
  * weak table vector using either MOV r/m32,r32 or MOV r32,r/m32
@@ -52,10 +51,10 @@
 #include "mpm.h"
 #include "prmci3.h"
 
-SRCID(proti3, "$Id$");
+SRCID(prmci3, "$Id$");
 
 #if !defined(MPS_ARCH_I3)
-#error "proti3.c is specific to MPS_ARCH_I3"
+#error "prmci3.c is specific to MPS_ARCH_I3"
 #endif
 
 
@@ -100,7 +99,7 @@ static void DecodeModRM(unsigned int *modReturn,
 
 /* RegValue -- Return the value of a machine register from a context */
 
-static Word RegValue(MutatorFaultContext context, unsigned int regnum)
+static Word RegValue(MutatorContext context, unsigned int regnum)
 {
   MRef addr;
 
@@ -131,7 +130,7 @@ static Word SignedInsElt(Byte insvec[], Count i)
 static Bool DecodeSimpleMov(unsigned int *regnumReturn,
                             MRef *memReturn,
                             Size *inslenReturn,
-                            MutatorFaultContext context,
+                            MutatorContext context,
                             Byte insvec[])
 {
   unsigned int mod;
@@ -178,7 +177,7 @@ static Bool DecodeSimpleMov(unsigned int *regnumReturn,
 static Bool IsSimpleMov(Size *inslenReturn,
                         MRef *srcReturn,
                         MRef *destReturn,
-                        MutatorFaultContext context)
+                        MutatorContext context)
 {
   Byte *insvec;
   unsigned int regnum;
@@ -211,11 +210,13 @@ static Bool IsSimpleMov(Size *inslenReturn,
 }
 
 
-Bool ProtCanStepInstruction(MutatorFaultContext context)
+Bool MutatorContextCanStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;
   MRef dest;
+
+  AVERT(MutatorContext, context);
 
   /* .assume.null */
   /* .assume.want */
@@ -227,11 +228,13 @@ Bool ProtCanStepInstruction(MutatorFaultContext context)
 }
 
 
-Res ProtStepInstruction(MutatorFaultContext context)
+Res MutatorContextStepInstruction(MutatorContext context)
 {
   Size inslen;
   MRef src;
   MRef dest;
+
+  AVERT(MutatorContext, context);
 
   /* .assume.null */
   /* .assume.want */
@@ -247,7 +250,7 @@ Res ProtStepInstruction(MutatorFaultContext context)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

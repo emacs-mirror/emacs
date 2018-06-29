@@ -20,6 +20,7 @@ exposet0       =P
 expt825
 finalcv        =P
 finaltest      =P
+forktest       =X
 fotest
 gcbench        =N                benchmark
 landtest
@@ -37,6 +38,7 @@ poolncv
 qs
 sacss
 segsmss
+sncss
 steptest       =P
 tagtest
 teletest       =N                interactive

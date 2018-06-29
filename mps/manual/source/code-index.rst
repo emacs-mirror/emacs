@@ -162,32 +162,35 @@ File          Description
 lock.h        Lock interface. See design.mps.lock_.
 lockan.c      Lock implementation for standard C.
 lockix.c      Lock implementation for POSIX.
-lockli.c      Lock implementation for Linux.
 lockw3.c      Lock implementation for Windows.
-prmcan.c      Mutator context implementation for standard C.
+prmc.h        Mutator context interface. See design.mps.prmc_.
+prmcan.c      Mutator context implementation for generic operating system.
+prmcanan.c    Mutator context implementation for generic architecture.
+prmcfri3.c    Mutator context implementation for FreeBSD, IA-32.
+prmcfri6.c    Mutator context implementation for FreeBSD, x86-64.
+prmci3.c      Mutator context implementation for IA-32.
 prmci3.h      Mutator context interface for IA-32.
-prmci3fr.c    Mutator context implementation for FreeBSD, IA-32.
-prmci3li.c    Mutator context implementation for Linux, IA-32.
-prmci3w3.c    Mutator context implementation for Windows, IA-32.
-prmci3xc.c    Mutator context implementation for OS X, IA-32.
+prmci6.c      Mutator context implementation for x86-64.
 prmci6.h      Mutator context interface for x86-64.
-prmci6fr.c    Mutator context implementation for FreeBSD, x86-64.
-prmci6li.c    Mutator context implementation for Linux, x86-64.
-prmci6w3.c    Mutator context implementation for Windows, x86-64.
-prmci6xc.c    Mutator context implementation for OS X, x86-64.
+prmcix.c      Mutator context implementation for POSIX.
 prmcix.h      Mutator context interface for POSIX.
+prmclii3.c    Mutator context implementation for Linux, IA-32.
+prmclii6.c    Mutator context implementation for Linux, x86-64.
+prmcw3.c      Mutator context implementation for Windows.
 prmcw3.h      Mutator context interface for Windows.
-prmcxc.h      Mutator context interface for OS X.
+prmcw3i3.c    Mutator context implementation for Windows, IA-32.
+prmcw3i6.c    Mutator context implementation for Windows, x86-64.
+prmcxc.c      Mutator context implementation for macOS.
+prmcxc.h      Mutator context interface for macOS.
+prmcxci3.c    Mutator context implementation for macOS, IA-32.
+prmcxci6.c    Mutator context implementation for macOS, x86-64.
 prot.h        Protection interface. See design.mps.prot_.
 protan.c      Protection implementation for standard C.
-proti3.c      Protection implementation for IA-32.
-proti6.c      Protection implementation for x86-64.
 protix.c      Protection implementation for POSIX.
-protli.c      Protection implementation for Linux.
 protsgix.c    Protection implementation for POSIX (signals part).
 protw3.c      Protection implementation for Windows.
-protxc.c      Protection implementation for OS X.
-protxc.h      Protection interface for OS X.
+protxc.c      Protection implementation for macOS.
+protxc.h      Protection interface for macOS.
 pthrdext.c    Protection implementation for POSIX (threads part).
 pthrdext.h    Protection interface for POSIX (threads part).
 sp.h          Stack probe interface. See design.mps.sp_.
@@ -200,17 +203,14 @@ ssan.c        Stack scanning implementation for standard C.
 ssixi3.c      Stack scanning implementation for POSIX, IA-32.
 ssixi6.c      Stack scanning implementation for POSIX, x86-64.
 ssw3i3mv.c    Stack scanning implementation for Windows, IA-32, Visual C.
-ssw3i3pc.c    Stack scanning implementation for Windows, x86-64, Pelles C.
-ssw3i6mv.c    Stack scanning implementation for Windows, IA-32, Visual C.
+ssw3i3pc.c    Stack scanning implementation for Windows, IA-32, Pelles C.
+ssw3i6mv.c    Stack scanning implementation for Windows, x86-64, Visual C.
 ssw3i6pc.c    Stack scanning implementation for Windows, x86-64, Pelles C.
 th.h          Threads interface. See design.mps.thread-manager_.
 than.c        Threads implementation for standard C.
 thix.c        Threads implementation for POSIX.
 thw3.c        Threads implementation for Windows.
-thw3.h        Threads interface for Windows.
-thw3i3.c      Threads implementation for Windows, IA-32.
-thw3i6.c      Threads implementation for Windows, x86-64.
-thxc.c        Threads implementation for OS X.
+thxc.c        Threads implementation for macOS.
 vm.c          Virtual memory implementation (common part).
 vm.h          Virtual memory interface. See design.mps.vm_.
 vman.c        Virtual memory implementation for standard C.
@@ -349,6 +349,7 @@ expt825.c         Regression test for job000825_.
 fbmtest.c         Free block manager (CBS and Freelist) test.
 finalcv.c         :ref:`topic-finalization` coverage test.
 finaltest.c       :ref:`topic-finalization` test.
+forktest.c        :ref:`topic-thread-fork` test.
 fotest.c          Failover allocator test.
 landtest.c        Land test.
 locbwcss.c        Locus backwards compatibility stress test.

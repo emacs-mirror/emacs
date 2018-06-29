@@ -1,7 +1,7 @@
 /* poolmv.c: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * An observation: Freeing memory introduces more information
@@ -30,7 +30,6 @@
 
 SRCID(poolmv, "$Id$");
 
-
 /* MVStruct -- MV (Manual Variable) pool outer structure
  *
  * .mv: See <code/poolmv.c>, <design/poolmv/>.
@@ -55,6 +54,10 @@ typedef struct MVStruct {       /* MV pool outer structure */
   Sig sig;                      /* <design/sig/> */
 } MVStruct;
 
+typedef MV MVPool;
+#define MVPoolCheck MVCheck
+DECLARE_CLASS(Pool, MVPool, AbstractBufferPool);
+DECLARE_CLASS(Pool, MVDebugPool, MVPool);
 
 #define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)
 #define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
@@ -240,7 +243,7 @@ static void MVDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* MVInit -- init method for class MV */
 
-static Res MVInit(Pool pool, ArgList args)
+static Res MVInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Align align = MV_ALIGN_DEFAULT;
   Size extendBy = MV_EXTEND_BY_DEFAULT;
@@ -248,10 +251,14 @@ static Res MVInit(Pool pool, ArgList args)
   Size maxSize = MV_MAX_SIZE_DEFAULT;
   Size blockExtendBy, spanExtendBy;
   MV mv;
-  Arena arena;
   Res res;
   ArgStruct arg;
   
+  AVERT(Arena, arena);
+  AVER(pool != NULL);
+  AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
+
   if (ArgPick(&arg, args, MPS_KEY_ALIGN))
     align = arg.val.align;
   if (ArgPick(&arg, args, MPS_KEY_EXTEND_BY))
@@ -261,8 +268,6 @@ static Res MVInit(Pool pool, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_MAX_SIZE))
     maxSize = arg.val.size;
 
-  arena = PoolArena(pool);
-
   AVERT(Align, align);
   AVER(align <= ArenaGrainSize(arena));
   AVER(extendBy > 0);
@@ -271,8 +276,13 @@ static Res MVInit(Pool pool, ArgList args)
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
+  res = NextMethod(Pool, MVPool, init)(pool, arena, klass, args);
+  if (res != ResOK)
+    return res;
+  mv = CouldBeA(MVPool, pool);
+
   pool->alignment = align;
-  mv = PoolMV(pool);
+  pool->alignShift = SizeLog2(pool->alignment);
 
   /* At 100% fragmentation we will need one block descriptor for every other */
   /* allocated block, or (extendBy/avgSize)/2 descriptors.  See note 1. */
@@ -307,28 +317,31 @@ static Res MVInit(Pool pool, ArgList args)
   mv->free = 0;
   mv->lost = 0;
 
+  SetClassOfPoly(pool, CLASS(MVPool));
   mv->sig = MVSig;
-  AVERT(MV, mv);
+  AVERC(MVPool, mv);
+  
   EVENT5(PoolInitMV, pool, arena, extendBy, avgSize, maxSize);
+
   return ResOK;
 
 failSpanPoolInit:
   PoolFinish(mvBlockPool(mv));
 failBlockPoolInit:
+  NextMethod(Inst, MVPool, finish)(MustBeA(Inst, pool));
   return res;
 }
 
 
 /* MVFinish -- finish method for class MV */
 
-static void MVFinish(Pool pool)
+static void MVFinish(Inst inst)
 {
-  MV mv;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MV mv = MustBeA(MVPool, pool);
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
   MVSpan span;
 
-  AVERT(Pool, pool);
-  mv = PoolMV(pool);
   AVERT(MV, mv);
 
   /* Destroy all the spans attached to the pool. */
@@ -343,6 +356,8 @@ static void MVFinish(Pool pool)
 
   PoolFinish(mvBlockPool(mv));
   PoolFinish(mvSpanPool(mv));
+
+  NextMethod(Inst, MVPool, finish)(inst);
 }
 
 
@@ -740,44 +755,46 @@ static Size MVTotalSize(Pool pool)
 
 static Size MVFreeSize(Pool pool)
 {
-  MV mv;
-  Size size = 0;
-  Ring node, next;
+  MV mv = MustBeA(MVPool, pool);
 
-  AVERT(Pool, pool);
-  mv = PoolMV(pool);
-  AVERT(MV, mv);
-
-  RING_FOR(node, &mv->spans, next) {
-    MVSpan span = RING_ELT(MVSpan, spans, node);
-    AVERT(MVSpan, span);
-    size += span->free;
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Size size = 0;
+    Ring node, next;
+    RING_FOR(node, &mv->spans, next) {
+      MVSpan span = RING_ELT(MVSpan, spans, node);
+      AVERT(MVSpan, span);
+      size += span->free;
+    }
+    AVER(size == mv->free);
   }
+#endif
 
-  AVER(size == mv->free + mv->lost);
-  return size;
+  return mv->free + mv->lost;
 }
 
 
-static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MVDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
+  Pool pool = CouldBeA(AbstractPool, inst);
+  MV mv = CouldBeA(MVPool, pool);
   Res res;
-  MV mv;
   MVSpan span;
   Align step;
   Size length;
   char c;
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
-  if (!TESTT(Pool, pool))
-    return ResFAIL;
-  mv = PoolMV(pool);
-  if (!TESTT(MV, mv))
-    return ResFAIL;
+  if (!TESTC(MVPool, mv))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
+  res = NextMethod(Inst, MVPool, describe)(inst, stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
                "blockPool $P ($U)\n",
                (WriteFP)mvBlockPool(mv), (WriteFU)mvBlockPool(mv)->serial,
                "spanPool  $P ($U)\n",
@@ -788,7 +805,8 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
                "free      $W\n",  (WriteFP)mv->free,
                "lost      $W\n",  (WriteFP)mv->lost,
                NULL);
-  if(res != ResOK) return res;              
+  if(res != ResOK)
+    return res;
 
   step = pool->alignment;
   length = 0x40 * step;
@@ -798,11 +816,11 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     Addr i, j;
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
-    res = WriteF(stream, depth, "MVSpan $P {\n", (WriteFP)span, NULL);
+    res = WriteF(stream, depth + 2, "MVSpan $P {\n", (WriteFP)span, NULL);
     if (res != ResOK)
       return res;
 
-    res = WriteF(stream, depth + 2,
+    res = WriteF(stream, depth + 4,
                  "span    $P\n", (WriteFP)span,
                  "tract   $P\n", (WriteFP)span->tract,
                  "free    $W\n", (WriteFW)span->free,
@@ -822,7 +840,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
     block = span->blocks;
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
-      res = WriteF(stream, depth + 2, "$A ", (WriteFA)i, NULL);
+      res = WriteF(stream, depth + 4, "$A ", (WriteFA)i, NULL);
       if (res != ResOK)
         return res;
 
@@ -854,7 +872,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
       if (res != ResOK)
         return res;
     }
-    res = WriteF(stream, depth, "} MVSpan $P\n", (WriteFP)span, NULL);
+    res = WriteF(stream, depth + 2, "} MVSpan $P\n", (WriteFP)span, NULL);
     if (res != ResOK)
       return res;
   }
@@ -866,35 +884,32 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
 /* Pool class MV */
 
 
-DEFINE_POOL_CLASS(MVPoolClass, this)
+DEFINE_CLASS(Pool, MVPool, klass)
 {
-  INHERIT_CLASS(this, AbstractBufferPoolClass);
-  this->name = "MV";
-  this->size = sizeof(MVStruct);
-  this->offset = offsetof(MVStruct, poolStruct);
-  this->varargs = MVVarargs;
-  this->init = MVInit;
-  this->finish = MVFinish;
-  this->alloc = MVAlloc;
-  this->free = MVFree;
-  this->totalSize = MVTotalSize;
-  this->freeSize = MVFreeSize;
-  this->describe = MVDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MVPool, AbstractBufferPool);
+  klass->instClassStruct.describe = MVDescribe;
+  klass->instClassStruct.finish = MVFinish;
+  klass->size = sizeof(MVStruct);
+  klass->varargs = MVVarargs;
+  klass->init = MVInit;
+  klass->alloc = MVAlloc;
+  klass->free = MVFree;
+  klass->totalSize = MVTotalSize;
+  klass->freeSize = MVFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 
 /* Pool class MVDebug */
 
-DEFINE_POOL_CLASS(MVDebugPoolClass, this)
+DEFINE_CLASS(Pool, MVDebugPool, klass)
 {
-  INHERIT_CLASS(this, MVPoolClass);
-  PoolClassMixInDebug(this);
-  this->name = "MVDBG";
-  this->size = sizeof(MVDebugStruct);
-  this->varargs = MVDebugVarargs;
-  this->debugMixin = MVDebugMixin;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MVDebugPool, MVPool);
+  PoolClassMixInDebug(klass);
+  klass->size = sizeof(MVDebugStruct);
+  klass->varargs = MVDebugVarargs;
+  klass->debugMixin = MVDebugMixin;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -905,12 +920,12 @@ DEFINE_POOL_CLASS(MVDebugPoolClass, this)
 
 mps_pool_class_t mps_class_mv(void)
 {
-  return (mps_pool_class_t)(EnsureMVPoolClass());
+  return (mps_pool_class_t)CLASS(MVPool);
 }
 
 mps_pool_class_t mps_class_mv_debug(void)
 {
-  return (mps_pool_class_t)(EnsureMVDebugPoolClass());
+  return (mps_pool_class_t)CLASS(MVDebugPool);
 }
 
 
@@ -919,8 +934,8 @@ mps_pool_class_t mps_class_mv_debug(void)
 static Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
+  CHECKC(MVPool, mv);
   CHECKD(Pool, MVPool(mv));
-  CHECKL(IsSubclassPoly(MVPool(mv)->class, EnsureMVPoolClass()));
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);
@@ -933,7 +948,7 @@ static Bool MVCheck(MV mv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

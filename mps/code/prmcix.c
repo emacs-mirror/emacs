@@ -1,91 +1,90 @@
-/* prmci3w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Windows)
+/* prmcix.c: MUTATOR CONTEXT (POSIX)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016-2018 Ravenbrook Limited.  See end of file for license.
  *
- * PURPOSE
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
- *
- * SOURCES
- *
- * .source.i486: Intel486 Microprocessor Family Programmer's
- * Reference Manual (book.intel92).
  *
  * ASSUMPTIONS
  *
- * .assume.regref: The registers in the context can be modified by
- * storing into an MRef pointer.
+ * .context.regroots: The root registers are assumed to be recorded in
+ * the context at pointer-aligned boundaries.
  */
 
-#include "prmcw3.h"
-#include "prmci3.h"
 #include "mpm.h"
 
-SRCID(prmci3w3, "$Id$");
-
-#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I3)
-#error "prmci3w3.c is specific to MPS_OS_W3 and MPS_ARCH_I3"
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
+#error "prmcix.c is specific to MPS_OS_FR or MPS_OS_LI"
 #endif
 
+#include "prmcix.h"
 
-/* Prmci3AddressHoldingReg -- Return an address for a given machine register */
+SRCID(prmcix, "$Id$");
 
-MRef Prmci3AddressHoldingReg(MutatorFaultContext context, unsigned int regnum)
+
+Bool MutatorContextCheck(MutatorContext context)
 {
-  PCONTEXT wincont;
-
-  AVER(NONNEGATIVE(regnum));
-  AVER(regnum <= 7);
-
-  wincont = context->ep->ContextRecord;
-
-  switch (regnum) {
-  case 0: return (MRef)&wincont->Eax;
-  case 1: return (MRef)&wincont->Ecx;
-  case 2: return (MRef)&wincont->Edx;
-  case 3: return (MRef)&wincont->Ebx;
-  case 4: return (MRef)&wincont->Esp;
-  case 5: return (MRef)&wincont->Ebp;
-  case 6: return (MRef)&wincont->Esi;
-  case 7: return (MRef)&wincont->Edi;
-  default:
-    NOTREACHED;
-    return NULL; /* suppress warning */
-  }
+  CHECKS(MutatorContext, context);
+  CHECKL(NONNEGATIVE(context->var));
+  CHECKL(context->var < MutatorContextLIMIT);
+  CHECKL((context->var == MutatorContextTHREAD) == (context->info == NULL));
+  CHECKL(context->ucontext != NULL);
+  return TRUE;
 }
 
 
-/* Prmci3DecodeFaultContext -- decode fault context */
-
-void Prmci3DecodeFaultContext(MRef *faultmemReturn, Byte **insvecReturn,
-                              MutatorFaultContext context)
+void MutatorContextInitFault(MutatorContext context, siginfo_t *info,
+                             ucontext_t *ucontext)
 {
-  LPEXCEPTION_RECORD er;
+  AVER(context != NULL);
+  AVER(info != NULL);
+  AVER(ucontext != NULL);
 
-  er = context->ep->ExceptionRecord;
+  context->var = MutatorContextFAULT;
+  context->info = info;
+  context->ucontext = ucontext;
+  context->sig = MutatorContextSig;
 
-  /* Assert that this is an access violation.  The computation of */
-  /* faultmem depends on this. */
-  AVER(er->ExceptionCode == EXCEPTION_ACCESS_VIOLATION);
-
-  *faultmemReturn = (MRef)er->ExceptionInformation[1];
-  *insvecReturn = (Byte*)context->ep->ContextRecord->Eip;
+  AVERT(MutatorContext, context);
 }
 
 
-/* Prmci3StepOverIns -- skip an instruction by changing the context */
-
-void Prmci3StepOverIns(MutatorFaultContext context, Size inslen)
+void MutatorContextInitThread(MutatorContext context, ucontext_t *ucontext)
 {
-  context->ep->ContextRecord->Eip += (DWORD)inslen;
+  AVER(context != NULL);
+  AVER(ucontext != NULL);
+
+  context->var = MutatorContextTHREAD;
+  context->info = NULL;
+  context->ucontext = ucontext;
+  context->sig = MutatorContextSig;
+
+  AVERT(MutatorContext, context);
+}
+
+
+Res MutatorContextScan(ScanState ss, MutatorContext context,
+                       mps_area_scan_t scan_area, void *closure)
+{
+  mcontext_t *mc;
+  Res res;
+
+  /* This scans the root registers (.context.regroots).  It also
+     unnecessarily scans the rest of the context.  The optimisation
+     to scan only relevant parts would be machine dependent. */
+  mc = &context->ucontext->uc_mcontext;
+  res = TraceScanArea(ss,
+                      (Word *)mc,
+                      (Word *)((char *)mc + sizeof(*mc)),
+                      scan_area, closure);
+  return res;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
@@ -123,3 +122,4 @@ void Prmci3StepOverIns(MutatorFaultContext context, Size inslen)
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+

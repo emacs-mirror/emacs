@@ -1,10 +1,9 @@
-/* prmci6xc.c: PROTECTION MUTATOR CONTEXT x64 (OS X)
+/* prmcxci6.c: MUTATOR CONTEXT (macOS, x86-64)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: This module implements the part of the protection module
- * that decodes the MutatorFaultContext. 
+ * .purpose: Implement the mutator context module. See <design/prmc/>.
  *
  *
  * SOURCES
@@ -14,9 +13,6 @@
  *
  * .sp: The stack pointer in the context is RSP.
  *
- * .context.regroots: The root regs are assumed to be recorded in the context
- * at pointer-aligned boundaries.
- *
  * .assume.regref: The registers in the context can be modified by
  * storing into an MRef pointer.
  */
@@ -24,24 +20,24 @@
 #include "prmcxc.h"
 #include "prmci6.h"
 
-SRCID(prmci6xc, "$Id$");
+SRCID(prmcxci6, "$Id$");
 
 #if !defined(MPS_OS_XC) || !defined(MPS_ARCH_I6)
-#error "prmci6xc.c is specific to MPS_OS_XC and MPS_ARCH_I6"
+#error "prmcxci6.c is specific to MPS_OS_XC and MPS_ARCH_I6"
 #endif
 
 
 /* Prmci6AddressHoldingReg -- return an address of a register in a context */
 
-MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
+MRef Prmci6AddressHoldingReg(MutatorContext context, unsigned int regnum)
 {
   THREAD_STATE_S *threadState;
 
-  AVER(mfc != NULL);
+  AVERT(MutatorContext, context);
   AVER(NONNEGATIVE(regnum));
   AVER(regnum <= 15);
-  AVER(mfc->threadState != NULL);
-  threadState = mfc->threadState;
+
+  threadState = context->threadState;
 
   /* .assume.regref */
   /* The register numbers (REG_RAX etc.) are defined in <ucontext.h>
@@ -78,49 +74,40 @@ MRef Prmci6AddressHoldingReg(MutatorFaultContext mfc, unsigned int regnum)
 
 void Prmci6DecodeFaultContext(MRef *faultmemReturn,
                               Byte **insvecReturn,
-                              MutatorFaultContext mfc)
+                              MutatorContext context)
 {
-  *faultmemReturn = (MRef)mfc->address;
-  *insvecReturn = (Byte*)mfc->threadState->__rip;
+  AVER(faultmemReturn != NULL);
+  AVER(insvecReturn != NULL);
+  AVERT(MutatorContext, context);
+  AVER(context->var == MutatorContextFAULT);
+
+  *faultmemReturn = (MRef)context->address;
+  *insvecReturn = (Byte*)context->threadState->__rip;
 }
 
 
 /* Prmci6StepOverIns -- modify context to step over instruction */
 
-void Prmci6StepOverIns(MutatorFaultContext mfc, Size inslen)
+void Prmci6StepOverIns(MutatorContext context, Size inslen)
 {
-  mfc->threadState->__rip += (Word)inslen;
+  AVERT(MutatorContext, context);
+  AVER(0 < inslen);
+
+  context->threadState->__rip += (Word)inslen;
 }
 
 
-Addr MutatorFaultContextSP(MutatorFaultContext mfc)
+Addr MutatorContextSP(MutatorContext context)
 {
-  return (Addr)mfc->threadState->__rsp;
-}
+  AVERT(MutatorContext, context);
 
-
-Res MutatorFaultContextScan(ScanState ss, MutatorFaultContext mfc,
-                            mps_area_scan_t scan_area,
-                            void *closure)
-{
-  x86_thread_state64_t *mc;
-  Res res;
-
-  /* This scans the root registers (.context.regroots).  It also
-     unnecessarily scans the rest of the context.  The optimisation
-     to scan only relevant parts would be machine dependent. */
-  mc = mfc->threadState;
-  res = TraceScanArea(ss,
-                      (Word *)mc,
-                      (Word *)((char *)mc + sizeof(*mc)),
-                      scan_area, closure);
-  return res;
+  return (Addr)context->threadState->__rsp;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

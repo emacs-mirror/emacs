@@ -4,7 +4,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolams/>`_
 
 .. index::
-   single: AMS
+   single: AMS pool class
    single: pool class; AMS
 
 .. _pool-ams:
@@ -31,7 +31,7 @@ blocks that need to be automatically managed, but cannot be moved.
 
 
 .. index::
-   single: AMS; properties
+   single: AMS pool class; properties
 
 AMS properties
 --------------
@@ -89,7 +89,7 @@ AMS properties
 
 
 .. index::
-   single: AMS; interface
+   single: AMS pool class; interface
 
 AMS interface
 -------------
