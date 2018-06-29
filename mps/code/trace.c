@@ -1,7 +1,7 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -38,6 +38,7 @@ Bool ScanStateCheck(ScanState ss)
 
   CHECKS(ScanState, ss);
   CHECKL(FUNCHECK(ss->fix));
+  /* Can't check ss->fixClosure. */
   CHECKL(ScanStateZoneShift(ss) == ss->arena->zoneShift);
   white = ZoneSetEMPTY;
   TRACE_SET_ITER(ti, trace, ss->traces, ss->arena)
@@ -73,11 +74,14 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
      necessary to dispatch to the fix methods of sets of traces in
      TraceFix. */
   ss->fix = NULL;
+  ss->fixClosure = NULL;
   TRACE_SET_ITER(ti, trace, ts, arena) {
     if (ss->fix == NULL) {
       ss->fix = trace->fix;
+      ss->fixClosure = trace->fixClosure;
     } else {
       AVER(ss->fix == trace->fix);
+      AVER(ss->fixClosure == trace->fixClosure);
     }
   } TRACE_SET_ITER_END(ti, trace, ts, arena);
   AVER(ss->fix != NULL);
@@ -188,6 +192,7 @@ Bool TraceCheck(Trace trace)
     CHECKU(Chain, trace->chain);
   }
   CHECKL(FUNCHECK(trace->fix));
+  /* Can't check trace->fixClosure. */
 
   /* @@@@ checks for counts missing */
 
@@ -669,6 +674,7 @@ found:
   trace->state = TraceINIT;
   trace->band = RankMIN;
   trace->fix = SegFix;
+  trace->fixClosure = NULL;
   trace->chain = NULL;
   STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
   trace->condemned = (Size)0;   /* nothing condemned yet */
@@ -1860,7 +1866,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited
+ * Copyright (C) 2001-2018 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
