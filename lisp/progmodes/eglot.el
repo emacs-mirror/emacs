@@ -206,6 +206,7 @@ lasted more than that many seconds."
     :documentation "List (ID DOING-WHAT DONE-P) representing server progress."
     :initform `(nil nil t) :accessor eglot--spinner)
    (inhibit-autoreconnect
+    :initform t
     :documentation "Generalized boolean inhibiting auto-reconnection if true."
     :accessor eglot--inhibit-autoreconnect)
    (file-watches
