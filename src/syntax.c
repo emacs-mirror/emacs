@@ -33,7 +33,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define SYNTAX_ENTRY(c) syntax_property_entry (c, 1)
 #define SYNTAX_WITH_FLAGS(c) syntax_property_with_flags (c, 1)
 
-/* Eight single-bit flags have the following meanings:
+/* Nine single-bit flags have the following meanings:
   1. This character is the first of a two-character comment-start sequence.
   2. This character is the second of a two-character comment-start sequence.
   3. This character is the first of a two-character comment-end sequence.
@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   6. The char is part of a delimiter for comments of style "b".
   7. This character is part of a nestable comment sequence.
   8. The char is part of a delimiter for comments of style "c".
+  9. The char will close an open string (except one opened by a string-fence).
   Note that any two-character sequence whose first character has flag 1
   and whose second character has flag 2 will be interpreted as a comment start.
 
@@ -108,7 +109,11 @@ SYNTAX_FLAGS_COMMENT_NESTED (int flags)
 {
   return (flags >> 22) & 1;
 }
-
+static bool
+SYNTAX_FLAGS_CLOSE_STRING (int flags)
+{
+  return (flags >> 24) & 1;
+}
 /* FLAGS should be the flags of the main char of the comment marker, e.g.
    the second for comstart and the first for comend.  */
 static int
@@ -1206,6 +1211,10 @@ the value of a `syntax-table' text property.  */)
       case 'c':
 	val |= 1 << 23;
 	break;
+
+      case 's':
+        val |= 1 << 24;
+        break;
       }
 
   if (val < ASIZE (Vsyntax_code_object) && NILP (match))
@@ -1257,6 +1266,8 @@ c (on any of its chars) using this flag:
  p means CHAR is a prefix character for `backward-prefix-chars';
    such characters are treated as whitespace when they occur
    between expressions.
+ s means CHAR will terminate any open string (except one started by a
+   character with generic string fence syntax).
 usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE)  */)
   (Lisp_Object c, Lisp_Object newentry, Lisp_Object syntax_table)
 {
@@ -1294,7 +1305,8 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
   (Lisp_Object syntax)
 {
   int code, syntax_code;
-  bool start1, start2, end1, end2, prefix, comstyleb, comstylec, comnested;
+  bool start1, start2, end1, end2, prefix, comstyleb, comstylec, comnested,
+    strclose;
   char str[2];
   Lisp_Object first, match_lisp, value = syntax;
 
@@ -1335,6 +1347,7 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
   comstyleb = SYNTAX_FLAGS_COMMENT_STYLEB (syntax_code);
   comstylec = SYNTAX_FLAGS_COMMENT_STYLEC (syntax_code);
   comnested = SYNTAX_FLAGS_COMMENT_NESTED (syntax_code);
+  strclose = SYNTAX_FLAGS_CLOSE_STRING (syntax_code);
 
   if (Smax <= code)
     {
@@ -1368,6 +1381,8 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
     insert ("c", 1);
   if (comnested)
     insert ("n", 1);
+  if (strclose)
+    insert ("s", 1);
 
   insert_string ("\twhich means: ");
 
@@ -1438,6 +1453,9 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
 		   ",\n\t  is a prefix character for `backward-prefix-chars'");
       insert1 (Fsubstitute_command_keys (prefixdoc));
     }
+
+  if (strclose)
+    insert_string (",\n\t   will close any string started by a char with \" syntax");
 
   return syntax;
 }
@@ -2637,6 +2655,144 @@ syntax_multibyte (int c, bool multibyte_symbol_p)
   return ASCII_CHAR_P (c) || !multibyte_symbol_p ? SYNTAX (c) : Ssymbol;
 }
 
+static bool
+back_maybe_string (ptrdiff_t *from, ptrdiff_t *from_byte,
+                   ptrdiff_t stop, bool multibyte_symbol_p)
+{
+  unsigned short int quit_count = 0;
+  enum syntaxcode code = Smax;
+  int syntax = Smax, prev_syntax;
+  ptrdiff_t at = *from, at_byte = *from_byte;
+  ptrdiff_t targ, targ_byte;
+  int c, stringterm;
+  ptrdiff_t defun_start;
+  ptrdiff_t defun_start_byte;
+
+#define DEC_AT                                                  \
+  do {                                                          \
+    rarely_quit (++quit_count);                                 \
+    prev_syntax = syntax;                                       \
+    DEC_BOTH (at, at_byte);                                     \
+    if (at >= stop)                                             \
+      UPDATE_SYNTAX_TABLE_BACKWARD (at);                        \
+    if (char_quoted (at, at_byte))                              \
+      {                                                         \
+        DEC_BOTH (at, at_byte);                                 \
+        syntax = code = Sword;                                  \
+      }                                                         \
+    else                                                        \
+      {                                                         \
+        c = FETCH_CHAR_AS_MULTIBYTE (at_byte);                  \
+        syntax = SYNTAX_WITH_FLAGS (c);                         \
+        code = syntax_multibyte (c, multibyte_symbol_p);        \
+      }                                                         \
+    if (SYNTAX_FLAGS_COMSTART_FIRST (syntax)                    \
+        && SYNTAX_FLAGS_COMSTART_SECOND (prev_syntax))          \
+      code = Scomment;                                          \
+  } while (0)
+
+  /* Find the alleged string opener. */
+  while ((at > stop)
+         && (code != Sstring)
+         && (!SYNTAX_FLAGS_CLOSE_STRING (syntax)))
+    {
+      DEC_AT;
+    }
+  if (code != Sstring)
+    goto lose;
+  stringterm = c;
+  targ = at;
+  targ_byte = at_byte;
+
+  /* Now go back over paired delimiters which are STRINGTERM.   */
+  while (true)                  /* One quoted string per iteration. */
+    {
+      DEC_AT;
+      /* Search back for a terminating string delimiter: */
+      while ((at > stop)
+             && (code != Sstring)
+             && (code != Sstring_fence)
+             && (!SYNTAX_FLAGS_CLOSE_STRING (syntax)))
+        {
+          DEC_AT;
+          /* Check for comment and "other" strings. */
+        }
+      if ((at <= stop)
+          || SYNTAX_FLAGS_CLOSE_STRING (syntax))
+        goto done;
+      if (code == Sstring_fence)
+        stringterm = ST_STRING_STYLE;
+      else if (code == Sstring)
+        stringterm = c;
+      /* Now search back for the matching opening string delimiter: */
+      DEC_AT;
+      while ((at > stop)
+             && !((stringterm == ST_STRING_STYLE)
+                  && (syntax == Sstring_fence))
+             && !((c == stringterm)
+                  && (syntax == Sstring))
+             && (!SYNTAX_FLAGS_CLOSE_STRING (syntax)))
+        {
+          if ((syntax == Sstring_fence)
+              || (syntax == Sstring)
+              || (syntax == Scomment))
+            goto lossage;
+          DEC_AT;
+        }
+      if ((at <= stop)
+          || SYNTAX_FLAGS_CLOSE_STRING (syntax))
+        goto lose;         /* Even number of string delims in line. */
+    }
+
+ done:
+  UPDATE_SYNTAX_TABLE_FORWARD (targ);
+  *from = targ;
+  *from_byte = targ_byte;
+  return true;
+ lose:
+  UPDATE_SYNTAX_TABLE_FORWARD (*from);
+  return false;
+
+ lossage:
+  /* We've encountered possible comments or strings with mixed
+     delimiters.  Bail out and scan forward from a safe position. */
+  {
+    struct lisp_parse_state state;
+    bool adjusted = true;
+
+    defun_start = find_defun_start (*from, *from_byte);
+    defun_start_byte = find_start_value_byte;
+    adjusted = (defun_start > BEGV);
+    internalize_parse_state (Qnil, &state);
+    scan_sexps_forward (&state,
+                        defun_start, defun_start_byte,
+                        *from, TYPE_MINIMUM (EMACS_INT),
+                        0, 0);
+    if (!adjusted)
+      {
+        adjusted = true;
+        find_start_value
+          = CONSP (state.levelstarts) ? XINT (XCAR (state.levelstarts))
+          : state.thislevelstart >= 0 ? state.thislevelstart
+          : find_start_value;
+        find_start_value_byte = CHAR_TO_BYTE (find_start_value);
+      }
+
+    if ((state.instring != -1)
+        && (state.instring != ST_STRING_STYLE)
+        && (state.comstr_start >= stop))
+      {
+        UPDATE_SYNTAX_TABLE_BACKWARD (state.comstr_start);
+        *from = state.comstr_start;
+        *from_byte = CHAR_TO_BYTE (*from);
+        return true;
+      }
+    /* Syntax table is already valid at *FROM, after the
+       `scan_sexps_forward' */
+    return false;
+  }
+}
+
 static Lisp_Object
 scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 {
@@ -2803,13 +2959,16 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 	      while (1)
 		{
 		  enum syntaxcode c_code;
+                  int c_code_flags;
 		  if (from >= stop)
 		    goto lose;
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
 		  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 		  c_code = syntax_multibyte (c, multibyte_symbol_p);
+                  c_code_flags = SYNTAX_WITH_FLAGS (c);
 		  if (code == Sstring
-		      ? c == stringterm && c_code == Sstring
+		      ? (c == stringterm && c_code == Sstring)
+                      || SYNTAX_FLAGS_CLOSE_STRING (c_code_flags)
 		      : c_code == Sstring_fence)
 		    break;
 
@@ -2965,6 +3124,10 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 		 for very little gain, so we don't bother either.  -sm */
 	      if (found)
 		from = out_charpos, from_byte = out_bytepos;
+              else if (SYNTAX_FLAGS_CLOSE_STRING (syntax)
+                       && back_maybe_string (&from, &from_byte, stop,
+                                             multibyte_symbol_p))
+                goto done2;
 	      break;
 
 	    case Scomment_fence:
@@ -3006,7 +3169,14 @@ scan_lists (EMACS_INT from, EMACS_INT count, EMACS_INT depth, bool sexpflag)
 		}
 	      if (!depth && sexpflag) goto done2;
 	      break;
-	    default:
+	    case Swhitespace:
+            case Spunct:
+              if (SYNTAX_FLAGS_CLOSE_STRING (syntax)
+                  && back_maybe_string (&from, &from_byte, stop,
+                                        multibyte_symbol_p))
+                goto done2;
+              break;
+            default:
 	      /* Ignore whitespace, punctuation, quote, endcomment.  */
 	      break;
 	    }
@@ -3046,7 +3216,7 @@ function scans over parentheses until the depth goes to zero COUNT
 times.  Hence, positive DEPTH moves out that number of levels of
 parentheses, while negative DEPTH moves to a deeper level.
 
-Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
+Comments are skipped over if `parse-sexp-ignore-comments' is non-nil.
 
 If we reach the beginning or end of the accessible part of the buffer
 before we have scanned over COUNT lists, return nil if the depth at
@@ -3065,7 +3235,7 @@ DEFUN ("scan-sexps", Fscan_sexps, Sscan_sexps, 2, 2, 0,
 If COUNT is negative, scan backwards.
 Returns the character number of the position thus found.
 
-Comments are ignored if `parse-sexp-ignore-comments' is non-nil.
+Comments are skipped over if `parse-sexp-ignore-comments' is non-nil.
 
 If the beginning or end of (the accessible part of) the buffer is reached
 in the middle of a parenthetical grouping, an error is signaled.
@@ -3396,10 +3566,12 @@ do { prev_from = from;				\
 	      {
 		int c;
 		enum syntaxcode c_code;
+                int c_code_flags;
 
 		if (from >= end) goto done;
 		c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 		c_code = SYNTAX (c);
+                c_code_flags = SYNTAX_WITH_FLAGS (c);
 
 		/* Check C_CODE here so that if the char has
 		   a syntax-table property which says it is NOT
@@ -3421,9 +3593,12 @@ do { prev_from = from;				\
 		    break;
 
 		  default:
-		    break;
+                    if (nofence
+                        && SYNTAX_FLAGS_CLOSE_STRING (c_code_flags))
+                      goto string_end;
+                    break;
 		  }
-		INC_FROM;
+                INC_FROM;
 		rarely_quit (++quit_count);
 	      }
 	  }

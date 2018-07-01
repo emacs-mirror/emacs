@@ -287,6 +287,16 @@ If a number, only buffers greater than this size have fontification messages."
 		 (integer :tag "size"))
   :group 'font-lock
   :version "24.1")
+
+(defcustom font-lock-warn-open-string t
+  "Fontify the opening quote of an unterminated string with warning face?
+This is done when this variable is non-nil.
+
+This works only when the syntax-table entry for newline contains the flag `s'
+\(see page \"xxx\" in the Elisp manual)."
+  :type 'boolean
+  :group 'font-lock
+  :version "27.1")
 
 
 ;; Originally these variable values were face names such as `bold' etc.
@@ -1597,18 +1607,30 @@ START should be at the beginning of a line."
 	      (replace-regexp-in-string "^ *" "" comment-end))))
         ;; Find the `start' state.
         (state (syntax-ppss start))
-        face beg)
+        face beg in-string s-c-start)
     (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
     ;;
     ;; Find each interesting place between here and `end'.
     (while
 	(progn
 	  (when (or (nth 3 state) (nth 4 state))
+            (setq s-c-start (nth 8 state))
+            (setq in-string (nth 3 state))
 	    (setq face (funcall font-lock-syntactic-face-function state))
 	    (setq beg (max (nth 8 state) start))
 	    (setq state (parse-partial-sexp (point) end nil nil state
 					    'syntax-table))
 	    (when face (put-text-property beg (point) 'face face))
+;;;; NEW STOUGH, 2018-06-29
+            (put-text-property s-c-start (1+ s-c-start)
+                               'face
+                               (if (and font-lock-warn-open-string
+                                        in-string
+                                        (not (nth 3 state))
+                                        (not (eq in-string (char-before))))
+                                   'font-lock-warning-face
+                                 face))
+;;;; END OF NEW STOUGH
 	    (when (and (eq face 'font-lock-comment-face)
                        (or font-lock-comment-start-skip
 			   comment-start-skip))

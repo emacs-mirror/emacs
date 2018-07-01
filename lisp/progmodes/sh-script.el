@@ -429,7 +429,7 @@ name symbol."
 (defvar sh-mode-syntax-table
   (sh-mode-syntax-table ()
 	?\# "<"
-	?\n ">#"
+	?\n ">#s"
 	?\" "\"\""
 	?\' "\"'"
 	?\` "\"`"
