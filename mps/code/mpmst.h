@@ -757,6 +757,7 @@ typedef struct mps_arena_s {
 
   /* locus fields (<code/locus.c>) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */
+  Serial genSerial;             /* serial of next generation */
 
   /* format fields (<code/format.c>) */
   RingStruct formatRing;        /* ring of formats attached to arena */

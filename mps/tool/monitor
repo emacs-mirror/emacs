@@ -280,12 +280,16 @@ class Arena(EventHandler):
         self.model.add_time_series(
             self, self._poll, "fraction", "poll",
             "polling time moving average")
-        self._gen_zoneset = {}   # generation pointer -> current zoneset
-        self._zone_ref_size = {} # zone -> Accumulator of bytes in segments
-                                 # referencing that zone
-        self._univ_size = Accumulator()
+        self._seg_size = {}      # segment pointer -> size
+        self._seg_summary = {}   # segment pointer -> summary
+        self._gen_serial = {}    # generation pointer -> generation serial
+        self._gen_zoneset = {}   # generation serial -> current zoneset
+        self._gen_mortality = {} # generation serial -> mortality TimeSeries
+        self._gen_ref_size = {}  # generation serial -> refsize TimeSeries
+        self._zone_ref_size = {} # zone -> refsize Accumulator
+        self._univ_ref_size = Accumulator()
         self.model.add_time_series(
-            self, self._univ_size, "bytes", "zone-ref-univ",
+            self, self._univ_ref_size, "bytes", "ref-zone-univ",
             "size of segments referencing the universe")
 
     @property
@@ -312,7 +316,10 @@ class Arena(EventHandler):
             self._pools.append(pool)
         pool.handle(t, event)
 
-    ArenaAlloc = ArenaFree = PoolInit = delegate_to_pool
+    ArenaAlloc = \
+    ArenaFree = \
+    PoolInit = \
+        delegate_to_pool
 
     def ArenaCreateVM(self, t, event):
         self._arena_class = event.arenaClass
@@ -329,15 +336,44 @@ class Arena(EventHandler):
     def ArenaPollEnd(self, t, event):
         self._poll.off(t)
 
-    def ArenaGenZoneAdd(self, t, event):
-        self._gen_zoneset[event.gendesc] = event.zoneSet
+    def GenZoneSet(self, t, event):
+        self._gen_zoneset[self._gen_serial[event.gen]] = event.zoneSet
+
+    def GenInit(self, t, event):
+        self._gen_serial[event.gen] = serial = event.serial
+        self._gen_mortality[serial] = mortality = TimeSeries()
+        self.model.add_time_series(
+            self, mortality, "fraction", f"mortality-gen-{serial}",
+            "mortality of data in the generation")
+        self._gen_ref_size[serial] = ref_size = TimeSeries()
+        self.model.add_time_series(
+            self, ref_size, "bytes", f"ref-gen-{serial}",
+            "size of segments referencing the generation")
+
+    def GenFinish(self, t, event):
+        self._gen_zoneset.pop(event.serial, None)
+
+    def TraceStart(self, t, event):
+        for serial, zoneSet in self._gen_zoneset.items():
+            ref_size = 0
+            for seg, summary in self._seg_summary.items():
+                if zoneSet & summary:
+                    ref_size += self._seg_size[seg]
+            self._gen_ref_size[serial].append(t, ref_size)
+
+    def TraceEndGen(self, t, event):
+        self._gen_mortality[self._gen_serial[event.gen]].append(
+            t, event.mortality)
 
     def SegSetSummary(self, t, event):
+        size = event.size
+        self._seg_summary[event.seg] = event.newSummary
+        self._seg_size[event.seg] = size
         n = self.model.word_width
         univ = (1 << n) - 1
         new_univ = event.newSummary == univ
         old_univ = event.oldSummary == univ
-        self._univ_size.add(t, (new_univ - old_univ) * event.size)
+        self._univ_ref_size.add(t, (new_univ - old_univ) * size)
         old_summary = 0 if old_univ else event.oldSummary
         new_summary = 0 if new_univ else event.newSummary
         for zone, old, new in zip(reversed(range(n)),
@@ -346,12 +382,11 @@ class Arena(EventHandler):
             if new == old:
                 continue
             if zone not in self._zone_ref_size:
-                a = Accumulator()
-                self._zone_ref_size[zone] = a
+                self._zone_ref_size[zone] = ref_size = Accumulator()
                 self.model.add_time_series(
-                    self, a, "bytes", f"zone-ref-{zone}",
+                    self, ref_size, "bytes", f"ref-zone-{zone}",
                     f"size of segments referencing zone {zone}")
-            self._zone_ref_size[zone].add(t, (new - old) * event.size)
+            self._zone_ref_size[zone].add(t, (new - old) * size)
 
 
 class Line:
@@ -393,7 +428,7 @@ class Line:
         else:
             if self.axes != axes:
                 self.unplot()
-                axes.addline(self.line)
+                axes.add_line(self.line)
                 self.axes = axes
             self.line.set_data(x, y)
             self.line.set_label(self.name)
@@ -480,9 +515,21 @@ class Model(EventHandler):
             self.arenas.append(arena)
         arena.handle(t, event)
 
-    ArenaCreateVM = ArenaCreateCL = ArenaAlloc = ArenaFree = \
-        ArenaGenZoneAdd = ArenaPollBegin = ArenaPollEnd = PoolInit = \
-        PoolFinish = SegSetSummary = delegate_to_arena
+    ArenaAlloc = \
+    ArenaCreateCL = \
+    ArenaCreateVM = \
+    ArenaFree = \
+    ArenaPollBegin = \
+    ArenaPollEnd = \
+    GenInit = \
+    GenFinish = \
+    GenZoneSet = \
+    PoolFinish = \
+    PoolInit = \
+    SegSetSummary = \
+    TraceStart = \
+    TraceEndGen = \
+        delegate_to_arena
 
     def EventClockSync(self, t, event):
         self.needs_redraw()
@@ -571,6 +618,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             arrowprops=dict(arrowstyle='->'),
             visible=False)
         self._line_annotation.get_bbox_patch().set_alpha(0.8)
+        self._annotated_line = None
         self._canvas.mpl_connect("button_release_event", self._click)
 
         # Call self._update in a loop forever.
@@ -584,6 +632,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             return
         a = self._line_annotation
         for line in self._model.lines:
+            if not (line.ready and line.draw):
+                continue
             contains, index = line.contains(event)
             if contains:
                 x, y = line.line.get_data()
@@ -593,9 +643,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 a.xy = x[i], y[i]
                 a.set_text(line.name)
                 a.set_visible(True)
+                self._annotated_line = line
                 break
         else:
             a.set_visible(False)
+            self._annotated_line = None
 
     @property
     def _limits(self):
@@ -633,6 +685,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self._lines.addWidget(checkbox)
                 def state_changed(state, line=line):
                     line.draw = bool(state)
+                    if line == self._annotated_line:
+                        self._line_annotation.set_visible(False)
                     self._model.needs_redraw()
                 checkbox.stateChanged.connect(state_changed)
                 checkbox.setStyleSheet(f"color:{line.color}")

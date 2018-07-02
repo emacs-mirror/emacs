@@ -1650,10 +1650,9 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 
   /* TODO: compute rate of scanning here. */
 
-  EVENT8(TraceStart, trace, mortality, finishingTime,
-         trace->condemned, trace->notCondemned,
-         trace->foundation, trace->white,
-         trace->quantumWork);
+  EVENT9(TraceStart, trace->arena, trace, mortality, finishingTime,
+         trace->condemned, trace->notCondemned, trace->foundation,
+         trace->white, trace->quantumWork);
 
   trace->state = TraceUNFLIPPED;
   TracePostStartMessage(trace);
