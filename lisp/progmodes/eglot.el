@@ -602,7 +602,8 @@ CONNECT-ARGS are passed as additional arguments to
   "Convert LSP position POS-PLIST to Emacs point.
 If optional MARKER, return a marker instead"
   (save-excursion (goto-char (point-min))
-                  (forward-line (plist-get pos-plist :line))
+                  (forward-line (min most-positive-fixnum
+                                     (plist-get pos-plist :line)))
                   (forward-char (min (plist-get pos-plist :character)
                                      (- (line-end-position)
                                         (line-beginning-position))))
