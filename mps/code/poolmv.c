@@ -62,7 +62,7 @@ DECLARE_CLASS(Pool, MVDebugPool, MVPool);
 #define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)
 #define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
 
-#define MVPool(mv) (&(mv)->poolStruct)
+#define MVPool(mv) RVALUE(&(mv)->poolStruct)
 #define PoolMV(pool) PARENT(MVStruct, poolStruct, pool)
 
 
