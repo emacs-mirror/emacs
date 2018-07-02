@@ -1695,6 +1695,16 @@ c-noise-macro-with-parens-names is invalid: %s" c-noise-macro-with-parens-names)
 	       (copy-sequence c-noise-macro-names))
 	      (t (error "c-make-noise-macro-regexps: \
 c-noise-macro-names is invalid: %s" c-noise-macro-names)))))
+
+(defcustom c-modeline-display-flags t
+  "If non-nil, `mode-name' includes indicators for certain minor modes.
+
+See Info node `(ccmode) Minor Modes'.
+
+These flags are defined by `c-modeline-flags'."
+  :version "27.1"
+  :type 'boolean
+  :group 'c)
 
 ;; Non-customizable variables, still part of the interface to CC Mode
 (defvar c-macro-with-semi-re nil

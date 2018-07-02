@@ -525,6 +525,18 @@ It was obsolete since Emacs 22.1, replaced by customize.
 Use of built-in libgnutls based functionality (described in the Emacs
 GnuTLS manual) is recommended instead.
 
+** CC mode
+
++++
+*** The user option 'c-modeline-display-flags' allows hiding the
+sequence of characters indicating the states of various minor modes,
+which by default are appended to 'mode-name' in the mode line (and
+elsewhere).
+
+---
+*** 'mode-name' is no longer required to be a string.  The function
+'c-update-modeline' now uses mode line constructs to append the minor
+mode flags to 'mode-name'.
 
 ** Message
 

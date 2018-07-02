@@ -258,31 +258,46 @@ With universal argument, inserts the analysis as a comment on that line."
 (defvar c-block-comment-flag nil)
 (make-variable-buffer-local 'c-block-comment-flag)
 
+(defvar c-modeline-flags
+  '(c-modeline-display-flags
+    ("/"
+     (c-block-comment-flag "*" "/")
+     (c-electric-flag ("l" (c-auto-newline "a")))
+     (c-hungry-delete-key "h")
+     ;; FIXME: subword-mode already comes with its own lighter!
+     (c-subword-mode "w")))
+  "A mode line construct to indicate the enabled minor modes.
+
+See Info node `(ccmode) Minor Modes'.
+
+The flags are hidden when `c-modeline-display-flags' is nil.
+
+This construct is added to `mode-name' by `c-update-modeline'.")
+
+(defvar-local c--modeline-major-mode nil
+  "The last major mode processed by `c-update-modeline'.
+
+Internal use only.
+
+If the value of `major-mode' is not a match for this buffer-
+local value, then a new mode has been invoked (e.g. a derived
+mode of the previous value seen).  That in turn means that
+`mode-name' has been reset by the new major mode body, and it
+needs to be processed.")
+
 (defun c-update-modeline ()
-  (let ((fmt (format "/%s%s%s%s%s"
-		     (if c-block-comment-flag "*" "/")
-		     (if c-electric-flag "l" "")
-		     (if (and c-electric-flag c-auto-newline)
-			 "a" "")
-		     (if c-hungry-delete-key "h" "")
-		     (if (and
-			  ;; (cc-)subword might not be loaded.
-			  (boundp 'c-subword-mode)
-			  (symbol-value 'c-subword-mode))
-                         ;; FIXME: subword-mode already comes with its
-                         ;; own lighter!
-			 "w"
-		       "")))
-        ;; FIXME: Derived modes might want to use something else
-        ;; than a string for `mode-name'.
-	(bare-mode-name (if (string-match "\\(^[^/]*\\)/" mode-name)
-			    (match-string 1 mode-name)
-			  mode-name)))
-    (setq mode-name
-	  (if (> (length fmt) 1)
-	      (concat bare-mode-name fmt)
-	bare-mode-name))
-    (force-mode-line-update)))
+  "Add `c-modeline-flags' to `mode-name', if not already done.
+
+This is called from `c-basic-common-init' and should also be
+invoked via the :after-hook of the major mode.  The hook ensures
+that this function is still called for derived modes which don't
+call `c-basic-common-init'."
+  (unless (eq major-mode c--modeline-major-mode)
+    (setq mode-name (list mode-name 'c-modeline-flags))
+    (unless (stringp (car mode-name))
+      (push "" mode-name))
+    (setq c--modeline-major-mode major-mode))
+  (force-mode-line-update))
 
 (defun c-toggle-syntactic-indentation (&optional arg)
   "Toggle syntactic indentation.
@@ -322,7 +337,6 @@ after special characters such as brace, comma, semi-colon, and colon."
   (setq c-auto-newline
 	(c-calculate-state arg (and c-auto-newline c-electric-flag)))
   (if c-auto-newline (setq c-electric-flag t))
-  (c-update-modeline)
   (c-keep-region-active))
 
 (defalias 'c-toggle-auto-state 'c-toggle-auto-newline)
@@ -339,7 +353,6 @@ the mode line after the mode name) the delete key gobbles all preceding
 whitespace in one fell swoop."
   (interactive "P")
   (setq c-hungry-delete-key (c-calculate-state arg c-hungry-delete-key))
-  (c-update-modeline)
   (c-keep-region-active))
 
 (defun c-toggle-auto-hungry-state (&optional arg)
@@ -352,7 +365,6 @@ See `c-toggle-auto-newline' and `c-toggle-hungry-state' for details."
   (interactive "P")
   (setq c-auto-newline (c-calculate-state arg c-auto-newline))
   (setq c-hungry-delete-key (c-calculate-state arg c-hungry-delete-key))
-  (c-update-modeline)
   (c-keep-region-active))
 
 (defun c-toggle-electric-state (&optional arg)
@@ -362,7 +374,6 @@ positive, turns it off when negative, and just toggles it when zero or
 left out."
   (interactive "P")
   (setq c-electric-flag (c-calculate-state arg c-electric-flag))
-  (c-update-modeline)
   (when (fboundp 'electric-indent-local-mode) ; Emacs 24.4 or later.
     (electric-indent-local-mode (if c-electric-flag 1 0)))
   (c-keep-region-active))
@@ -390,7 +401,6 @@ This action does nothing when the mode only has one comment style."
 	(if c-block-comment-flag
 	    (concat " " c-block-comment-ender)
 	  ""))
-  (c-update-modeline)
   (c-keep-region-active))
 
 

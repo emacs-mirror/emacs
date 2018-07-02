@@ -1179,16 +1179,21 @@ you initialize a buffer, the comment style is set to the default for
 the major mode, electric mode and syntactic-indentation mode are
 enabled, but the other three modes are disabled.
 
-@ccmode{} displays the current state of the first five of these minor
-modes on the mode line by appending characters to the major mode's
-name: @samp{/} or @samp{*} to indicate the comment style (respectively
-line or block), and one letter for each of the other minor modes which
-is enabled - @samp{l} for electric mode, @samp{a} for auto-newline
-mode, @samp{h} for hungry delete mode, and @samp{w} for subword mode.
-If the comment style was block and all the other modes were enabled,
-you'd see @samp{C/*lahw}@footnote{The @samp{C} would be replaced with
-the name of the language in question for the other languages @ccmode{}
-supports.}.
+@ccmode{}, by default, displays the current state of the first five of
+these minor modes on the mode line by appending characters to the
+major mode's name: @samp{/} or @samp{*} to indicate the comment style
+(respectively line or block), and one letter for each of the other
+minor modes which is enabled - @samp{l} for electric mode, @samp{a}
+for auto-newline mode, @samp{h} for hungry delete mode, and @samp{w}
+for subword mode.  If the comment style was block and all the other
+modes were enabled, you'd see @samp{C/*lahw}@footnote{The @samp{C}
+would be replaced with the name of the language in question for the
+other languages @ccmode{} supports.}.
+
+@vindex c-modeline-display-flags
+@vindex modeline-display-flags @r{(c-)}
+If you do not wish these minor mode states to be displayed, set the
+user option @code{c-modeline-display-flags} to @code{nil}.
 
 Here are the commands to toggle these modes:
 

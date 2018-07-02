@@ -365,7 +365,7 @@ a null operation."
   (interactive
    (list (let ((completion-ignore-case t)
 	       (prompt (format "Which %s indentation style? "
-			       mode-name)))
+			       (format-mode-line mode-name))))
 	   (completing-read prompt c-style-alist nil t nil
 			    'c-set-style-history
 			    c-indentation-style))))

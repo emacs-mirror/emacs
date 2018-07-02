@@ -185,10 +185,6 @@
 (defvar c-auto-newline nil)
 (make-variable-buffer-local 'c-auto-newline)
 
-;; Included in the mode line to indicate the active submodes.
-;; (defvar c-submode-indicators nil)
-;; (make-variable-buffer-local 'c-submode-indicators)
-
 (defun c-calculate-state (arg prevstate)
   ;; Calculate the new state of PREVSTATE, t or nil, based on arg. If
   ;; arg is nil or zero, toggle the state. If arg is negative, turn

@@ -637,11 +637,7 @@ that requires a literal mode spec at compile time."
   (when (fboundp 'electric-indent-local-mode)
     (setq c-electric-flag electric-indent-mode))
 
-;;   ;; Put submode indicators onto minor-mode-alist, but only once.
-;;   (or (assq 'c-submode-indicators minor-mode-alist)
-;;       (setq minor-mode-alist
-;; 	    (cons '(c-submode-indicators c-submode-indicators)
-;; 		  minor-mode-alist)))
+  ;; Add minor mode flags to `mode-name'.
   (c-update-modeline)
 
   ;; Install the functions that ensure that various internal caches
@@ -2029,16 +2025,14 @@ This function is called from `c-common-init', once per mode initialization."
           (with-current-buffer buf
             (when c-buffer-is-cc-mode
               ;; Don't use `c-toggle-electric-state' here due to recursion.
-              (setq c-electric-flag electric-indent-mode)
-              (c-update-modeline))))
+              (setq c-electric-flag electric-indent-mode))))
         (buffer-list)))
 
 (defun c-electric-indent-local-mode-hook ()
   ;; Emacs has en/disabled `electric-indent-local-mode' for this buffer.
   ;; Propagate this through to this buffer's value of `c-electric-flag'
   (when c-buffer-is-cc-mode
-    (setq c-electric-flag electric-indent-mode)
-    (c-update-modeline)))
+    (setq c-electric-flag electric-indent-mode)))
 
 
 ;; Support for C
@@ -2521,7 +2515,7 @@ Key bindings:
 	 t (message "") nil)
      (reporter-submit-bug-report
       c-mode-help-address
-      (concat "CC Mode " c-version " (" mode-name ")")
+      (concat "CC Mode " c-version " (" (format-mode-line mode-name) ")")
       (let ((vars (append
 		   c-style-variables
 		   '(c-buffer-is-cc-mode
