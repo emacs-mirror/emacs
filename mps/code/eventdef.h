@@ -67,7 +67,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x008C)
+#define EventCodeMAX ((EventCode)0x008E)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -190,7 +190,7 @@
   EVENT(X, TraceCreatePoolGen , 0x0082,  TRUE, Trace) \
   /* new events for performance analysis of large heaps. */ \
   /* EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) */ \
-  EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
+  EVENT(X, GenZoneSet         , 0x0084,  TRUE, Arena) \
   EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena) \
   /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */ \
   EVENT(X, PauseTimeSet       , 0x0087,  TRUE, Arena) \
@@ -198,7 +198,9 @@
   EVENT(X, LabelPointer       , 0x0089,  TRUE, User) \
   EVENT(X, ArenaPollBegin     , 0x008A,  TRUE, Arena) \
   EVENT(X, ArenaPollEnd       , 0x008B,  TRUE, Arena) \
-  EVENT(X, SegSetSummary      , 0x008C,  TRUE, Seg)
+  EVENT(X, SegSetSummary      , 0x008C,  TRUE, Seg) \
+  EVENT(X, GenInit            , 0x008D,  TRUE, Arena) \
+  EVENT(X, GenFinish          , 0x008E,  TRUE, Arena)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -608,7 +610,7 @@
 
 #define EVENT_ChainCondemnAuto_PARAMS(PARAM, X) \
   PARAM(X,  0, P, chain) /* chain with gens being condemned */ \
-  PARAM(X,  1, W, topCondemnedGenSerial) /* condemned gens [0..this] */ \
+  PARAM(X,  1, W, topCondemnedGenIndex) /* condemned gens [0..this] */ \
   PARAM(X,  2, W, genCount) /* total gens in chain */
 
 #define EVENT_TraceFindGrey_PARAMS(PARAM, X) \
@@ -658,14 +660,15 @@
   PARAM(X,  2, U, why)          /* reason for creation */
 
 #define EVENT_TraceStart_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, trace)        /* trace being started */ \
-  PARAM(X,  1, D, mortality)    /* as passed to TraceStart */ \
-  PARAM(X,  2, D, finishingTime) /* as passed to TraceStart */ \
-  PARAM(X,  3, W, condemned)    /* condemned bytes */ \
-  PARAM(X,  4, W, notCondemned) /* collectible but not condemned bytes */ \
-  PARAM(X,  5, W, foundation)   /* foundation size */ \
-  PARAM(X,  6, W, white)        /* white reference set */ \
-  PARAM(X,  7, W, quantumWork)  /* tracing work to be done in each poll */
+  PARAM(X,  0, P, arena)        /* arena owning trace */ \
+  PARAM(X,  1, P, trace)        /* trace being started */ \
+  PARAM(X,  2, D, mortality)    /* as passed to TraceStart */ \
+  PARAM(X,  3, D, finishingTime) /* as passed to TraceStart */ \
+  PARAM(X,  4, W, condemned)    /* condemned bytes */ \
+  PARAM(X,  5, W, notCondemned) /* collectible but not condemned bytes */ \
+  PARAM(X,  6, W, foundation)   /* foundation size */ \
+  PARAM(X,  7, W, white)        /* white reference set */ \
+  PARAM(X,  8, W, quantumWork)  /* tracing work to be done in each poll */
 
 #define EVENT_VMCompact_PARAMS(PARAM, X) \
   PARAM(X,  0, W, vmem0)        /* pre-collection reserved size */ \
@@ -681,7 +684,7 @@
   PARAM(X,  5, W, refset)       /* scan state refset */
 
 #define EVENT_TraceCreatePoolGen_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, gendesc)      /* generation description */ \
+  PARAM(X,  0, P, gen)          /* generation */ \
   PARAM(X,  1, W, capacity)     /* capacity of generation */ \
   PARAM(X,  2, D, mortality)    /* mortality of generation */ \
   PARAM(X,  3, W, zone)         /* zone set of generation */ \
@@ -693,10 +696,10 @@
   PARAM(X,  9, W, newDeferredSize) /* new size (deferred) of pool gen */ \
   PARAM(X, 10, W, oldDeferredSize) /* old size (deferred) of pool gen */
 
-#define EVENT_ArenaGenZoneAdd_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena)        /* the arena */ \
-  PARAM(X,  1, P, gendesc)      /* the generation description */ \
-  PARAM(X,  2, W, zoneSet)      /* the new zoneSet */
+#define EVENT_GenZoneSet_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena)        /* arena owning generation */ \
+  PARAM(X,  1, P, gen)          /* the generation */ \
+  PARAM(X,  2, W, zoneSet)      /* generation's new summary */
 
 #define EVENT_ArenaUseFreeZone_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)        /* the arena */ \
@@ -707,12 +710,13 @@
   PARAM(X,  1, D, pauseTime)    /* the new maximum pause time, in seconds */
 
 #define EVENT_TraceEndGen_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, trace)        /* the trace */ \
-  PARAM(X,  1, P, gen)          /* the generation */ \
-  PARAM(X,  2, W, condemned)    /* bytes condemned in generation */ \
-  PARAM(X,  3, W, forwarded)    /* bytes forwarded from generation */ \
-  PARAM(X,  4, W, preservedInPlace) /* bytes preserved in generation */ \
-  PARAM(X,  5, D, mortality)    /* updated mortality */
+  PARAM(X,  0, P, arena)        /* the arena */ \
+  PARAM(X,  1, P, trace)        /* the trace */ \
+  PARAM(X,  2, P, gen)          /* the generation */ \
+  PARAM(X,  3, W, condemned)    /* bytes condemned in generation */ \
+  PARAM(X,  4, W, forwarded)    /* bytes forwarded from generation */ \
+  PARAM(X,  5, W, preservedInPlace) /* bytes preserved in generation */ \
+  PARAM(X,  6, D, mortality)    /* updated mortality */
 
 #define EVENT_LabelPointer_PARAMS(PARAM, X) \
   PARAM(X,  0, P, pointer) /* pointer */ \
@@ -731,6 +735,16 @@
   PARAM(X,  2, W, size) /* its size in bytes */ \
   PARAM(X,  3, W, oldSummary) /* old summary */ \
   PARAM(X,  4, W, newSummary) /* new summary */
+
+#define EVENT_GenInit_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) /* arena owning generation */ \
+  PARAM(X,  1, P, gen) /* the generation */ \
+  PARAM(X,  2, U, serial) /* serial number within arena */
+
+#define EVENT_GenFinish_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) /* arena owning generation */ \
+  PARAM(X,  1, P, gen) /* the generation */ \
+  PARAM(X,  2, U, serial) /* serial number within arena */
 
 #endif /* eventdef_h */
 
