@@ -8,8 +8,8 @@
  *                   pool, since it is used to implement that pool.
  *
  * .purpose: This is a pool class for manually managed objects of
- * variable size where address-ordered first fit is an appropriate
- * policy.  Provision is made to allocate in reverse.
+ * variable size where address-ordered first (or last) fit is an
+ * appropriate policy.
  *
  * .design: <design/poolmvff>
  *
