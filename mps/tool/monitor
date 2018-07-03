@@ -289,7 +289,7 @@ class Arena(EventHandler):
         self._zone_ref_size = {} # zone -> refsize Accumulator
         self._univ_ref_size = Accumulator()
         self.model.add_time_series(
-            self, self._univ_ref_size, "bytes", "ref-zone-univ",
+            self, self._univ_ref_size, "bytes", "zone-univ.ref",
             "size of segments referencing the universe")
 
     @property
@@ -343,12 +343,12 @@ class Arena(EventHandler):
         self._gen_serial[event.gen] = serial = event.serial
         self._gen_mortality[serial] = mortality = TimeSeries()
         self.model.add_time_series(
-            self, mortality, "fraction", f"mortality-gen-{serial}",
-            "mortality of data in the generation")
+            self, mortality, "fraction", f"gen-{serial}.mortality",
+            f"mortality of data in generation {serial}")
         self._gen_ref_size[serial] = ref_size = TimeSeries()
         self.model.add_time_series(
-            self, ref_size, "bytes", f"ref-gen-{serial}",
-            "size of segments referencing the generation")
+            self, ref_size, "bytes", f"gen-{serial}.ref",
+            f"size of segments referencing generation {serial}")
 
     def GenFinish(self, t, event):
         self._gen_zoneset.pop(event.serial, None)
@@ -384,7 +384,7 @@ class Arena(EventHandler):
             if zone not in self._zone_ref_size:
                 self._zone_ref_size[zone] = ref_size = Accumulator()
                 self.model.add_time_series(
-                    self, ref_size, "bytes", f"ref-zone-{zone}",
+                    self, ref_size, "bytes", f"zone-{zone}.ref",
                     f"size of segments referencing zone {zone}")
             self._zone_ref_size[zone].add(t, (new - old) * size)
 
@@ -669,16 +669,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self._canvas.draw()
 
         # Find new time series and create corresponding checkboxes.
+        checkboxes_changed = False
         for line in self._model.lines:
             if not line.ready:
                 continue
+            new_name = line.name
             if line in self._line_checkbox:
                 # A line's name can change dynamically (for example, because
                 # of the creation of a second arena, or a Label event), so
                 # ensure that it is up to date.
-                self._line_checkbox[line].setText(line.name)
+                old_name = self._line_checkbox[line].text()
+                if old_name != new_name:
+                    self._line_checkbox[line].setText(new_name)
+                    checkboxes_changed = True
             else:
-                checkbox = QtWidgets.QCheckBox(line.name)
+                checkboxes_changed = True
+                checkbox = QtWidgets.QCheckBox(new_name)
                 self._line_checkbox[line] = checkbox
                 checkbox.setChecked(True)
                 checkbox.setToolTip(f"{line.desc} ({line.unit})")
@@ -690,8 +696,16 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     self._model.needs_redraw()
                 checkbox.stateChanged.connect(state_changed)
                 checkbox.setStyleSheet(f"color:{line.color}")
-        self._lines_scroll.setFixedWidth(
-            self._lines_widget.sizeHint().width())
+
+        # Sort checkboxes into order by name and update width.
+        if checkboxes_changed:
+            checkboxes = self._line_checkbox.values()
+            for checkbox in checkboxes:
+                self._lines.removeWidget(checkbox)
+            for checkbox in sorted(checkboxes, key=lambda c:c.text()):
+                self._lines.addWidget(checkbox)
+            self._lines_scroll.setFixedWidth(
+                self._lines_widget.sizeHint().width())
 
 
 def main():
