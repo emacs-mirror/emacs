@@ -27,22 +27,30 @@ single size, but different instances can manage objects of different
 sizes. The size of object that an instance can manage is declared when
 the instance is created.
 
-MFS operates in a very simple manner: each extent allocated from the
-arena is divided into units.  Free units are kept on a linked list
-using a header stored in the unit itself.  The linked list is not
-ordered; allocation and deallocation simply pop and push from the head
-of the list.  This is fast, but successive allocations might have poor
+
+Implementation
+--------------
+
+_`.impl.extents`: MFS operates in a very simple manner: each extent
+allocated from the arena is divided into units.
+
+_`.impl.free-units`: Free units are kept on a linked list using a
+header stored in the unit itself. The linked list is not ordered;
+allocation and deallocation simply pop and push from the head of the
+list. This is fast, but successive allocations might have poor
 locality if previous successive frees did.
 
-The list of extents belonging to the pool is maintained as a ring with
-a node at the start of each extent.
+_`.impl.extent-ring`: The list of extents belonging to the pool is
+maintained as a ring with a node at the start of each extent.
 
-Storing the linked list of free nodes and the extent ring node in the
-managed memory is against the general principle of the MPS design,
-which keeps its management structures away from client memory.
-However, the MFS pool is used during the bootstrapping process (see
-design.mps.bootstrap) and so has no other memory pools available for
-storage.
+_`.impl.extent-ring.justify`: Storing the linked list of free nodes
+and the extent ring node in the managed memory is against the general
+principle of the MPS design, which keeps its management structures
+away from client memory. However, the MFS pool is used during the
+bootstrapping process (see design.mps.bootstrap.land.sol.pool_) and so
+has no other memory pools available for storage.
+
+.. _design.mps.bootstrap.land.sol.pool: bootstrap#land-sol-pool
 
 
 Document History
