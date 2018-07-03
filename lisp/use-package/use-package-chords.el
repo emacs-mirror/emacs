@@ -37,7 +37,7 @@
    `(,(macroexpand
        `(bind-chords :package ,name ,@arg)))))
 
-(add-to-list 'use-package-keywords :chords t)
+(add-to-list 'use-package-keywords :chords)
 
 (provide 'use-package-chords)
 
