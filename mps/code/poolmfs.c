@@ -66,7 +66,7 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Size extendBy = MFS_EXTEND_BY_DEFAULT;
   Bool extendSelf = TRUE;
-  Size unitSize;
+  Size unitSize, ringSize, minExtendBy;
   MFS mfs;
   ArgStruct arg;
   Res res;
@@ -97,8 +97,10 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   if (unitSize < UNIT_MIN)
     unitSize = UNIT_MIN;
   unitSize = SizeAlignUp(unitSize, MPS_PF_ALIGN);
-  if (extendBy < sizeof(RingStruct) + unitSize)
-    extendBy = unitSize;
+  ringSize = SizeAlignUp(sizeof(RingStruct), MPS_PF_ALIGN);
+  minExtendBy = ringSize + unitSize;
+  if (extendBy < minExtendBy)
+    extendBy = minExtendBy;
 
   extendBy = SizeArenaGrains(extendBy, arena);
 
@@ -129,10 +131,13 @@ void MFSFinishExtents(Pool pool, MFSExtentVisitor visitor,
   MFS mfs = MustBeA(MFSPool, pool);
   Ring ring, node, next;
 
+  AVER(FUNCHECK(visitor));
+  /* Can't check closure */
+
   ring = &mfs->extentRing;
   node = RingNext(ring);
   RING_FOR(node, ring, next) {
-    Addr base = (Addr)node;
+    Addr base = (Addr)node;     /* See .ring-node.at-base. */
     RingRemove(node);
     visitor(pool, base, mfs->extendBy, closure);
   }
@@ -166,6 +171,7 @@ void MFSExtend(Pool pool, Addr base, Size size)
   MFS mfs = MustBeA(MFSPool, pool);
   Word i, unitsPerExtent;
   Size unitSize;
+  Size ringSize;
   Header header = NULL;
   Ring mfsRing;
 
@@ -176,15 +182,18 @@ void MFSExtend(Pool pool, Addr base, Size size)
      being inserted from elsewhere then it must have been set up correctly. */
   AVER(PoolHasAddr(pool, base));
 
-  /* Store an extent ring node at the start of the extent.  The MFS
-     pool can't keep control structures in another pool because it is
-     used at boostrap as the first pool. */
+  /* .ring-node.at-base: Store the extent ring node at the base of the
+     extent. This transgresses the rule that pools should allocate
+     control structures from another pool, because an MFS is required
+     during bootstrap when no other pools are available. See
+     <design/poolmfs/#impl.extent-ring.justify> */
   mfsRing = (Ring)base;
   RingInit(mfsRing);
   RingAppend(&mfs->extentRing, mfsRing);
 
-  base = AddrAdd(base, sizeof(RingStruct));
-  size -= sizeof(RingStruct);
+  ringSize = SizeAlignUp(sizeof(RingStruct), MPS_PF_ALIGN);
+  base = AddrAdd(base, ringSize);
+  size -= ringSize;
 
   /* Update accounting */
   mfs->total += size;
@@ -241,7 +250,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     if (!mfs->extendSelf)
       return ResLIMIT;
 
-    /* Create a new region and attach it to the pool. */
+    /* Create a new extent and attach it to the pool. */
     res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool);
     if(res != ResOK)
       return res;
