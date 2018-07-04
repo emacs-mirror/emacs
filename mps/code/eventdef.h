@@ -93,8 +93,8 @@
   EVENT(X, SegFree            , 0x0014,  TRUE, Seg) \
   EVENT(X, PoolInit           , 0x0015,  TRUE, Pool) \
   EVENT(X, PoolFinish         , 0x0016,  TRUE, Pool) \
-  EVENT(X, PoolAlloc          , 0x0017,  TRUE, Object) \
-  EVENT(X, PoolFree           , 0x0018,  TRUE, Object) \
+  EVENT(X, PoolAlloc          , 0x0017, FALSE, Object) \
+  EVENT(X, PoolFree           , 0x0018, FALSE, Object) \
   EVENT(X, LandInit           , 0x0019,  TRUE, Pool) \
   EVENT(X, Intern             , 0x001a,  TRUE, User) \
   EVENT(X, Label              , 0x001b,  TRUE, User) \
