@@ -692,12 +692,15 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size)
 
 void ControlFree(Arena arena, void* base, size_t size)
 {
+  Pool pool;
+
   AVERT(Arena, arena);
   AVER(base != NULL);
   AVER(size > 0);
   AVER(arena->poolReady);
 
-  PoolFree(ArenaControlPool(arena), (Addr)base, (Size)size);
+  pool = ArenaControlPool(arena);
+  PoolFree(pool, (Addr)base, (Size)size);
 }
 
 
@@ -874,8 +877,9 @@ static void arenaExcludePage(Arena arena, Range pageRange)
 {
   RangeStruct oldRange;
   Res res;
+  Land land = ArenaFreeLand(arena);
 
-  res = LandDelete(&oldRange, ArenaFreeLand(arena), pageRange);
+  res = LandDelete(&oldRange, land, pageRange);
   AVER(res == ResOK); /* we just gave memory to the Land */
 }
 
@@ -895,12 +899,14 @@ static Res arenaFreeLandInsertExtend(Range rangeReturn, Arena arena,
                                      Range range)
 {
   Res res;
+  Land land;
   
   AVER(rangeReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Range, range);
 
-  res = LandInsert(rangeReturn, ArenaFreeLand(arena), range);
+  land = ArenaFreeLand(arena);
+  res = LandInsert(rangeReturn, land, range);
 
   if (res == ResLIMIT) { /* CBS block pool ran out of blocks */
     RangeStruct pageRange;
@@ -909,7 +915,7 @@ static Res arenaFreeLandInsertExtend(Range rangeReturn, Arena arena,
       return res;
     /* .insert.exclude: Must insert before exclude so that we can
        bootstrap when the zoned CBS is empty. */
-    res = LandInsert(rangeReturn, ArenaFreeLand(arena), range);
+    res = LandInsert(rangeReturn, land, range);
     AVER(res == ResOK); /* we just gave memory to the CBS block pool */
     arenaExcludePage(arena, &pageRange);
   }
@@ -940,6 +946,7 @@ static void arenaFreeLandInsertSteal(Range rangeReturn, Arena arena,
   res = arenaFreeLandInsertExtend(rangeReturn, arena, rangeIO);
   
   if (res != ResOK) {
+    Land land;
     Addr pageBase;
     Tract tract;
     AVER(ResIsAllocFailure(res));
@@ -958,7 +965,8 @@ static void arenaFreeLandInsertSteal(Range rangeReturn, Arena arena,
     MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaGrainSize(arena));
 
     /* Try again. */
-    res = LandInsert(rangeReturn, ArenaFreeLand(arena), rangeIO);
+    land = ArenaFreeLand(arena);
+    res = LandInsert(rangeReturn, land, rangeIO);
     AVER(res == ResOK); /* we just gave memory to the CBS block pool */
   }
 
@@ -1014,9 +1022,11 @@ void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit)
 {
   RangeStruct range, oldRange;
   Res res;
+  Land land;
 
   RangeInit(&range, base, limit);
-  res = LandDelete(&oldRange, ArenaFreeLand(arena), &range);
+  land = ArenaFreeLand(arena);
+  res = LandDelete(&oldRange, land, &range);
   
   /* Shouldn't be any other kind of failure because we were only deleting
      a non-coalesced block.  See .chunk.no-coalesce and
@@ -1044,6 +1054,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
   Index baseIndex;
   Count pages;
   Res res;
+  Land land;
   
   AVER(tractReturn != NULL);
   AVERT(Arena, arena);
@@ -1058,8 +1069,8 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
 
   /* Step 1. Find a range of address space. */
   
-  res = LandFindInZones(&found, &range, &oldRange, ArenaFreeLand(arena),
-                        size, zones, high);
+  land = ArenaFreeLand(arena);
+  res = LandFindInZones(&found, &range, &oldRange, land, size, zones, high);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
@@ -1067,8 +1078,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
     if (res != ResOK) /* disastrously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    res = LandFindInZones(&found, &range, &oldRange, ArenaFreeLand(arena),
-                          size, zones, high);
+    res = LandFindInZones(&found, &range, &oldRange, land, size, zones, high);
     AVER(res != ResLIMIT);
   }
 
