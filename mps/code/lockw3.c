@@ -136,13 +136,32 @@ void LockInitGlobal(void)
   globalLockInit = TRUE;
 }
 
-static void lockEnsureGlobalLock(void)
+/* lockEnsureGlobalLock -- one-time initialization of global locks
+ *
+ * InitOnceExecuteOnce ensures that only one thread can be running the
+ * callback at a time, which allows to safely check globalLockInit. See
+ * <https://docs.microsoft.com/en-us/windows/desktop/api/synchapi/nf-synchapi-initonceexecuteonce>
+ * but note that at time of writing (2018-06-27) the documentation has
+ * the arguments the wrong way round (parameter comes before context).
+ */
+
+static BOOL CALLBACK lockEnsureGlobalLockCallback(INIT_ONCE *init_once, void *parameter, void **context)
 {
-  /* Ensure both global locks have been initialized. */
-  /* There is a race condition initializing them (job004056). */
+  UNUSED(init_once);
+  AVER(parameter == UNUSED_POINTER);
+  UNUSED(context);
   if (!globalLockInit) {
     LockInitGlobal();
   }
+  return TRUE;
+}
+
+static void lockEnsureGlobalLock(void)
+{
+  static INIT_ONCE init_once = INIT_ONCE_STATIC_INIT;
+  BOOL b = InitOnceExecuteOnce(&init_once, lockEnsureGlobalLockCallback,
+                               UNUSED_POINTER, NULL);
+  AVER(b);
 }
 
 void (LockClaimGlobalRecursive)(void)

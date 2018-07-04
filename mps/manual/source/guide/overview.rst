@@ -50,7 +50,8 @@ Supported target platforms
 
 The MPS is currently supported for deployment on:
 
-- Windows XP or later, on IA-32 and x86-64, using Microsoft Visual C/C++;
+- Windows Vista or later, on IA-32 and x86-64, using Microsoft Visual
+  C/C++;
 
 - Linux 2.6 or later, on IA-32 using GCC and on x86-64 using GCC or
   Clang/LLVM;
