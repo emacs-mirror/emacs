@@ -5,17 +5,7 @@
  *
  * This is the implementation of the MFS pool class.
  *
- * DESIGN
- *
- * .design.misplaced: This design is misplaced, it should be in a
- * separate document.
- *
- * MFS operates in a very simple manner: each region allocated from
- * the arena is divided into units.  Free units are kept on a linked
- * list using a header stored in the unit itself.  The linked list is
- * not ordered; allocation anddeallocation simply pop and push from
- * the head of the list.  This is fast, but successive allocations might
- * have poor locality if previous successive frees did.
+ * See design.mps.poolmfs.
  *
  * .restriction: This pool cannot allocate from the arena control
  * pool (as the control pool is an instance of PoolClassMV and MV uses
@@ -76,7 +66,7 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Size extendBy = MFS_EXTEND_BY_DEFAULT;
   Bool extendSelf = TRUE;
-  Size unitSize;
+  Size unitSize, ringSize, minExtendBy;
   MFS mfs;
   ArgStruct arg;
   Res res;
@@ -107,15 +97,18 @@ static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   if (unitSize < UNIT_MIN)
     unitSize = UNIT_MIN;
   unitSize = SizeAlignUp(unitSize, MPS_PF_ALIGN);
-  if (extendBy < unitSize)
-    extendBy = unitSize;
+  ringSize = SizeAlignUp(sizeof(RingStruct), MPS_PF_ALIGN);
+  minExtendBy = ringSize + unitSize;
+  if (extendBy < minExtendBy)
+    extendBy = minExtendBy;
+
   extendBy = SizeArenaGrains(extendBy, arena);
 
   mfs->extendBy = extendBy;
   mfs->extendSelf = extendSelf;
   mfs->unitSize = unitSize;
   mfs->freeList = NULL;
-  mfs->tractList = NULL;
+  RingInit(&mfs->extentRing);
   mfs->total = 0;
   mfs->free = 0;
 
@@ -132,21 +125,27 @@ failNextInit:
 }
 
 
-void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
-                     void *closure)
+void MFSFinishExtents(Pool pool, MFSExtentVisitor visitor,
+                      void *closure)
 {
   MFS mfs = MustBeA(MFSPool, pool);
+  Ring ring, node, next;
 
-  while (mfs->tractList != NULL) {
-    Tract nextTract = (Tract)TractP(mfs->tractList);   /* .tract.chain */
-    visitor(pool, TractBase(mfs->tractList), mfs->extendBy, closure);
-    mfs->tractList = nextTract;
+  AVER(FUNCHECK(visitor));
+  /* Can't check closure */
+
+  ring = &mfs->extentRing;
+  node = RingNext(ring);
+  RING_FOR(node, ring, next) {
+    Addr base = (Addr)node;     /* See .ring-node.at-base. */
+    RingRemove(node);
+    visitor(pool, base, mfs->extendBy, closure);
   }
 }
 
 
-static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
-                                void *closure)
+static void MFSExtentFreeVisitor(Pool pool, Addr base, Size size,
+                                 void *closure)
 {
   AVER(closure == UNUSED_POINTER);
   UNUSED(closure);
@@ -159,7 +158,7 @@ static void MFSFinish(Inst inst)
   Pool pool = MustBeA(AbstractPool, inst);
   MFS mfs = MustBeA(MFSPool, pool);
 
-  MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER);
+  MFSFinishExtents(pool, MFSExtentFreeVisitor, UNUSED_POINTER);
 
   mfs->sig = SigInvalid;
 
@@ -167,28 +166,37 @@ static void MFSFinish(Inst inst)
 }
 
 
-void MFSExtend(Pool pool, Addr base, Size size)
+void MFSExtend(Pool pool, Addr base, Addr limit)
 {
   MFS mfs = MustBeA(MFSPool, pool);
-  Tract tract;
   Word i, unitsPerExtent;
+  Size size;
   Size unitSize;
+  Size ringSize;
   Header header = NULL;
+  Ring mfsRing;
 
-  AVER(size == mfs->extendBy);
+  AVER(base < limit);
+  AVER(AddrOffset(base, limit) == mfs->extendBy);
 
   /* Ensure that the memory we're adding belongs to this pool.  This is
      automatic if it was allocated using ArenaAlloc, but if the memory is
      being inserted from elsewhere then it must have been set up correctly. */
   AVER(PoolHasAddr(pool, base));
-  
-  /* .tract.chain: chain first tracts through TractP(tract) */
-  tract = TractOfBaseAddr(PoolArena(pool), base);
 
-  AVER(TractPool(tract) == pool);
+  /* .ring-node.at-base: Store the extent ring node at the base of the
+     extent. This transgresses the rule that pools should allocate
+     control structures from another pool, because an MFS is required
+     during bootstrap when no other pools are available. See
+     <design/poolmfs/#impl.extent-ring.justify> */
+  mfsRing = (Ring)base;
+  RingInit(mfsRing);
+  RingAppend(&mfs->extentRing, mfsRing);
 
-  TractSetP(tract, (void *)mfs->tractList);
-  mfs->tractList = tract;
+  ringSize = SizeAlignUp(sizeof(RingStruct), MPS_PF_ALIGN);
+  base = AddrAdd(base, ringSize);
+  AVER(base < limit);
+  size = AddrOffset(base, limit);
 
   /* Update accounting */
   mfs->total += size;
@@ -245,12 +253,12 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     if (!mfs->extendSelf)
       return ResLIMIT;
 
-    /* Create a new region and attach it to the pool. */
+    /* Create a new extent and attach it to the pool. */
     res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool);
     if(res != ResOK)
       return res;
 
-    MFSExtend(pool, base, mfs->extendBy);
+    MFSExtend(pool, base, AddrAdd(base, mfs->extendBy));
 
     /* The first unit in the region is now the head of the new free list. */
     f = mfs->freeList;
@@ -332,7 +340,6 @@ static Res MFSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
                 "freeList $P\n", (WriteFP)mfs->freeList,
                 "total $W\n", (WriteFW)mfs->total,
                 "free $W\n", (WriteFW)mfs->free,
-                "tractList $P\n", (WriteFP)mfs->tractList,
                 NULL);
 }
 
@@ -380,9 +387,7 @@ Bool MFSCheck(MFS mfs)
   CHECKL(SizeIsArenaGrains(mfs->extendBy, arena));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, PoolAlignment(MFSPool(mfs))) ==
          mfs->unitSize);
-  if(mfs->tractList != NULL) {
-    CHECKD_NOSIG(Tract, mfs->tractList);
-  }
+  CHECKL(RingCheck(&mfs->extentRing));
   CHECKL(mfs->free <= mfs->total);
   CHECKL((mfs->total - mfs->free) % mfs->unitSize == 0);
   return TRUE;

@@ -466,8 +466,8 @@ static void arenaFreeLandFinish(Arena arena)
 
   /* The CBS block pool can't free its own memory via ArenaFree because
    * that would use the free land. */
-  MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
-                  UNUSED_POINTER);
+  MFSFinishExtents(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
+                   UNUSED_POINTER);
 
   arena->hasFreeLand = FALSE;
   LandFinish(ArenaFreeLand(arena));
@@ -852,15 +852,16 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 
 static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
 {
-  Addr pageBase;
+  Addr pageBase, pageLimit;
   Res res;
 
   res = arenaAllocPage(&pageBase, arena, ArenaCBSBlockPool(arena));
   if (res != ResOK)
     return res;
-  MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaGrainSize(arena));
+  pageLimit = AddrAdd(pageBase, ArenaGrainSize(arena));
+  MFSExtend(ArenaCBSBlockPool(arena), pageBase, pageLimit);
 
-  RangeInitSize(pageRangeReturn, pageBase, ArenaGrainSize(arena));
+  RangeInit(pageRangeReturn, pageBase, pageLimit);
   return ResOK;
 }
 
@@ -940,22 +941,23 @@ static void arenaFreeLandInsertSteal(Range rangeReturn, Arena arena,
   res = arenaFreeLandInsertExtend(rangeReturn, arena, rangeIO);
   
   if (res != ResOK) {
-    Addr pageBase;
+    Addr pageBase, pageLimit;
     Tract tract;
     AVER(ResIsAllocFailure(res));
 
     /* Steal a page from the memory we're about to free. */
     AVER(RangeSize(rangeIO) >= ArenaGrainSize(arena));
     pageBase = RangeBase(rangeIO);
-    RangeInit(rangeIO, AddrAdd(pageBase, ArenaGrainSize(arena)),
-                       RangeLimit(rangeIO));
+    pageLimit = AddrAdd(pageBase, ArenaGrainSize(arena));
+    AVER(pageLimit <= RangeLimit(rangeIO));
+    RangeInit(rangeIO, pageLimit, RangeLimit(rangeIO));
 
     /* Steal the tract from its owning pool. */
     tract = TractOfBaseAddr(arena, pageBase);
     TractFinish(tract);
     TractInit(tract, ArenaCBSBlockPool(arena), pageBase);
   
-    MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaGrainSize(arena));
+    MFSExtend(ArenaCBSBlockPool(arena), pageBase, pageLimit);
 
     /* Try again. */
     res = LandInsert(rangeReturn, ArenaFreeLand(arena), rangeIO);
