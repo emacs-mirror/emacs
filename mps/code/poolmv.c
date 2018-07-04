@@ -591,7 +591,8 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
     regionSize = SizeArenaGrains(size, arena);
     res = ArenaAlloc(&base, LocusPrefDefault(), regionSize, pool);
     if (res != ResOK) {
-      PoolFree(mvSpanPool(mv), (Addr)span, sizeof(MVSpanStruct));
+      Pool spanPool = mvSpanPool(mv);
+      PoolFree(spanPool, (Addr)span, sizeof(MVSpanStruct));
       return res;
     }
   }
@@ -680,6 +681,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   /* free space should be less than total space */
   AVER(span->free <= SpanInsideSentinels(span));
   if(span->free == SpanSize(span)) { /* the whole span is free */
+    Pool spanPool;
     AVER(span->blockCount == 2);
     /* both blocks are the trivial sentinel blocks */
     AVER(span->base.limit == span->base.base);
@@ -688,7 +690,8 @@ static void MVFree(Pool pool, Addr old, Size size)
     ArenaFree(TractBase(span->tract), span->size, pool);
     RingRemove(&span->spans);
     RingFinish(&span->spans);
-    PoolFree(mvSpanPool(mv), (Addr)span, sizeof(MVSpanStruct));
+    spanPool = mvSpanPool(mv);
+    PoolFree(spanPool, (Addr)span, sizeof(MVSpanStruct));
   }
 }
 

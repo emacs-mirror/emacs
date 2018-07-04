@@ -100,6 +100,7 @@ static void MVFFReduce(MVFF mvff)
   Size freeSize, freeLimit, targetFree;
   RangeStruct freeRange, oldFreeRange;
   Align grainSize;
+  Land totalLand, freeLand;
 
   AVERT_CRITICAL(MVFF, mvff);
   arena = PoolArena(MVFFPool(mvff));
@@ -107,8 +108,10 @@ static void MVFFReduce(MVFF mvff)
   /* Try to return memory when the amount of free memory exceeds a
      threshold fraction of the total memory. */
 
-  freeLimit = (Size)(LandSize(MVFFTotalLand(mvff)) * mvff->spare);
-  freeSize = LandSize(MVFFFreeLand(mvff));
+  totalLand = MVFFTotalLand(mvff);
+  freeLimit = (Size)(LandSize(totalLand) * mvff->spare);
+  freeLand = MVFFFreeLand(mvff);
+  freeSize = LandSize(freeLand);
   if (freeSize < freeLimit)
     return;
 
@@ -133,7 +136,7 @@ static void MVFFReduce(MVFF mvff)
      stored at the root node. */
 
   while (freeSize > targetFree
-         && LandFindLargest(&freeRange, &oldFreeRange, MVFFFreeLand(mvff),
+         && LandFindLargest(&freeRange, &oldFreeRange, freeLand,
                             grainSize, FindDeleteNONE))
   {
     RangeStruct grainRange, oldRange;
@@ -171,16 +174,16 @@ static void MVFFReduce(MVFF mvff)
        to delete from the TotalCBS we add back to the free list, which
        can't fail. */
 
-    res = LandDelete(&oldRange, MVFFFreeLand(mvff), &grainRange);
+    res = LandDelete(&oldRange, freeLand, &grainRange);
     if (res != ResOK)
       break;
     freeSize -= RangeSize(&grainRange);
-    AVER(freeSize == LandSize(MVFFFreeLand(mvff)));
+    AVER(freeSize == LandSize(freeLand));
 
-    res = LandDelete(&oldRange, MVFFTotalLand(mvff), &grainRange);
+    res = LandDelete(&oldRange, totalLand, &grainRange);
     if (res != ResOK) {
       RangeStruct coalescedRange;
-      res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &grainRange);
+      res = LandInsert(&coalescedRange, freeLand, &grainRange);
       AVER(res == ResOK);
       break;
     }
@@ -204,6 +207,7 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size)
   RangeStruct range, coalescedRange;
   Addr base;
   Res res;
+  Land totalLand, freeLand;
 
   AVERT(MVFF, mvff);
   AVER(size > 0);
@@ -233,7 +237,8 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size)
   }
 
   RangeInitSize(&range, base, allocSize);
-  res = LandInsert(&coalescedRange, MVFFTotalLand(mvff), &range);
+  totalLand = MVFFTotalLand(mvff);
+  res = LandInsert(&coalescedRange, totalLand, &range);
   if (res != ResOK) {
     /* Can't record this memory, so return it to the arena and fail. */
     ArenaFree(base, allocSize, pool);
@@ -241,7 +246,8 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size)
   }
 
   DebugPoolFreeSplat(pool, RangeBase(&range), RangeLimit(&range));
-  res = LandInsert(rangeReturn, MVFFFreeLand(mvff), &range);
+  freeLand = MVFFFreeLand(mvff);
+  res = LandInsert(rangeReturn, freeLand, &range);
   /* Insertion must succeed because it fails over to a Freelist. */
   AVER(res == ResOK);
 
@@ -331,6 +337,7 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   Res res;
   RangeStruct range, coalescedRange;
   MVFF mvff;
+  Land freeLand;
 
   AVERT_CRITICAL(Pool, pool);
   mvff = PoolMVFF(pool);
@@ -341,7 +348,8 @@ static void MVFFFree(Pool pool, Addr old, Size size)
   AVER_CRITICAL(size > 0);
 
   RangeInitSize(&range, old, SizeAlignUp(size, PoolAlignment(pool)));
-  res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &range);
+  freeLand = MVFFFreeLand(mvff);
+  res = LandInsert(&coalescedRange, freeLand, &range);
   /* Insertion must succeed because it fails over to a Freelist. */
   AVER_CRITICAL(res == ResOK);
   MVFFReduce(mvff);
@@ -388,6 +396,7 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
   Res res;
   MVFF mvff;
   RangeStruct range, coalescedRange;
+  Land freeLand;
 
   AVERT(Pool, pool);
   mvff = PoolMVFF(pool);
@@ -399,7 +408,8 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
   if (RangeIsEmpty(&range))
     return;
 
-  res = LandInsert(&coalescedRange, MVFFFreeLand(mvff), &range);
+  freeLand = MVFFFreeLand(mvff);
+  res = LandInsert(&coalescedRange, freeLand, &range);
   AVER(res == ResOK);
   MVFFReduce(mvff);
 }
@@ -607,18 +617,20 @@ static void MVFFFinish(Inst inst)
   Pool pool = MustBeA(AbstractPool, inst);
   MVFF mvff = MustBeA(MVFFPool, pool);
   Bool b;
+  Land totalLand;
 
   AVERT(MVFF, mvff);
   mvff->sig = SigInvalid;
 
-  b = LandIterateAndDelete(MVFFTotalLand(mvff), mvffFinishVisitor, pool);
+  totalLand = MVFFTotalLand(mvff);
+  b = LandIterateAndDelete(totalLand, mvffFinishVisitor, pool);
   AVER(b);
-  AVER(LandSize(MVFFTotalLand(mvff)) == 0);
+  AVER(LandSize(totalLand) == 0);
 
   LandFinish(MVFFFreeLand(mvff));
   LandFinish(MVFFFreeSecondary(mvff));
   LandFinish(MVFFFreePrimary(mvff));
-  LandFinish(MVFFTotalLand(mvff));
+  LandFinish(totalLand);
   PoolFinish(MVFFBlockPool(mvff));
   NextMethod(Inst, MVFFPool, finish)(inst);
 }
@@ -643,12 +655,14 @@ static PoolDebugMixin MVFFDebugMixin(Pool pool)
 static Size MVFFTotalSize(Pool pool)
 {
   MVFF mvff;
+  Land totalLand;
 
   AVERT(Pool, pool);
   mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
 
-  return LandSize(MVFFTotalLand(mvff));
+  totalLand = MVFFTotalLand(mvff);
+  return LandSize(totalLand);
 }
 
 
@@ -657,12 +671,14 @@ static Size MVFFTotalSize(Pool pool)
 static Size MVFFFreeSize(Pool pool)
 {
   MVFF mvff;
+  Land freeLand;
 
   AVERT(Pool, pool);
   mvff = PoolMVFF(pool);
   AVERT(MVFF, mvff);
 
-  return LandSize(MVFFFreeLand(mvff));
+  freeLand = MVFFFreeLand(mvff);
+  return LandSize(freeLand);
 }
 
 
@@ -787,9 +803,9 @@ static Bool MVFFCheck(MVFF mvff)
   CHECKD(CBS, &mvff->freeCBSStruct);
   CHECKD(Freelist, &mvff->flStruct);
   CHECKD(Failover, &mvff->foStruct);
-  CHECKL(LandSize(MVFFTotalLand(mvff)) >= LandSize(MVFFFreeLand(mvff)));
-  CHECKL(SizeIsAligned(LandSize(MVFFFreeLand(mvff)), PoolAlignment(MVFFPool(mvff))));
-  CHECKL(SizeIsArenaGrains(LandSize(MVFFTotalLand(mvff)), PoolArena(MVFFPool(mvff))));
+  CHECKL((LandSize)(MVFFTotalLand(mvff)) >= (LandSize)(MVFFFreeLand(mvff)));
+  CHECKL(SizeIsAligned((LandSize)(MVFFFreeLand(mvff)), PoolAlignment(MVFFPool(mvff))));
+  CHECKL(SizeIsArenaGrains((LandSize)(MVFFTotalLand(mvff)), PoolArena(MVFFPool(mvff))));
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;
