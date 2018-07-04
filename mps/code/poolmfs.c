@@ -166,16 +166,18 @@ static void MFSFinish(Inst inst)
 }
 
 
-void MFSExtend(Pool pool, Addr base, Size size)
+void MFSExtend(Pool pool, Addr base, Addr limit)
 {
   MFS mfs = MustBeA(MFSPool, pool);
   Word i, unitsPerExtent;
+  Size size;
   Size unitSize;
   Size ringSize;
   Header header = NULL;
   Ring mfsRing;
 
-  AVER(size == mfs->extendBy);
+  AVER(base < limit);
+  AVER(AddrOffset(base, limit) == mfs->extendBy);
 
   /* Ensure that the memory we're adding belongs to this pool.  This is
      automatic if it was allocated using ArenaAlloc, but if the memory is
@@ -193,7 +195,8 @@ void MFSExtend(Pool pool, Addr base, Size size)
 
   ringSize = SizeAlignUp(sizeof(RingStruct), MPS_PF_ALIGN);
   base = AddrAdd(base, ringSize);
-  size -= ringSize;
+  AVER(base < limit);
+  size = AddrOffset(base, limit);
 
   /* Update accounting */
   mfs->total += size;
@@ -255,7 +258,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     if(res != ResOK)
       return res;
 
-    MFSExtend(pool, base, mfs->extendBy);
+    MFSExtend(pool, base, AddrAdd(base, mfs->extendBy));
 
     /* The first unit in the region is now the head of the new free list. */
     f = mfs->freeList;
