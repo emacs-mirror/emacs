@@ -10,12 +10,9 @@
  *
  * .design: <design/poolmvff>
  *
- * NOTE
- *
- * There's potential for up to 4% speed improvement by calling Land
- * methods statically instead of indirectly via the Land abstraction
- * (thus, cbsInsert instead of LandInsert, and so on). See
- * <https://info.ravenbrook.com/mail/2014/05/13/16-38-50/0/>
+ * .critical: In manual-allocation-bound programs using MVFF, many of
+ * these functions are on the critical paths via mps_alloc (and then
+ * PoolAlloc, MVFFAlloc) and mps_free (and then PoolFree, MVFFFree).
  */
 
 #include "cbs.h"
@@ -104,16 +101,8 @@ static void MVFFReduce(MVFF mvff)
   RangeStruct freeRange, oldFreeRange;
   Align grainSize;
 
-  AVERT(MVFF, mvff);
+  AVERT_CRITICAL(MVFF, mvff);
   arena = PoolArena(MVFFPool(mvff));
-
-  /* NOTE: Memory is returned to the arena in the smallest units
-     possible (arena grains). There's a possibility that this could
-     lead to fragmentation in the arena (because allocation is in
-     multiples of mvff->extendBy). If so, try setting grainSize =
-     mvff->extendBy here. */
-
-  grainSize = ArenaGrainSize(arena);
 
   /* Try to return memory when the amount of free memory exceeds a
      threshold fraction of the total memory. */
@@ -122,6 +111,14 @@ static void MVFFReduce(MVFF mvff)
   freeSize = LandSize(MVFFFreeLand(mvff));
   if (freeSize < freeLimit)
     return;
+
+  /* NOTE: Memory is returned to the arena in the smallest units
+     possible (arena grains). There's a possibility that this could
+     lead to fragmentation in the arena (because allocation is in
+     multiples of mvff->extendBy). If so, try setting grainSize =
+     mvff->extendBy here. */
+
+  grainSize = ArenaGrainSize(arena);
 
   /* For hysteresis, return only a proportion of the free memory. */
 
@@ -269,12 +266,12 @@ static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
   RangeStruct oldRange;
   Land land;
 
-  AVER(rangeReturn != NULL);
-  AVERT(MVFF, mvff);
-  AVER(size > 0);
-  AVER(SizeIsAligned(size, PoolAlignment(MVFFPool(mvff))));
-  AVER(FUNCHECK(findMethod));
-  AVERT(FindDelete, findDelete);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVERT_CRITICAL(MVFF, mvff);
+  AVER_CRITICAL(size > 0);
+  AVER_CRITICAL(SizeIsAligned(size, PoolAlignment(MVFFPool(mvff))));
+  AVER_CRITICAL(FUNCHECK(findMethod));
+  AVERT_CRITICAL(FindDelete, findDelete);
 
   land = MVFFFreeLand(mvff);
   found = (*findMethod)(rangeReturn, &oldRange, land, size, findDelete);
@@ -288,20 +285,16 @@ static Res mvffFindFree(Range rangeReturn, MVFF mvff, Size size,
 
     /* We know that the found range must intersect the newly added
      * range. But it doesn't necessarily lie entirely within it. */
-    AVER(found);
-    AVER(RangesOverlap(rangeReturn, &newRange));
+    AVER_CRITICAL(found);
+    AVER_CRITICAL(RangesOverlap(rangeReturn, &newRange));
   }
-  AVER(found);
+  AVER_CRITICAL(found);
 
   return ResOK;
 }
 
 
-/* MVFFAlloc -- Allocate a block
- *
- * .alloc.critical: In manual-allocation-bound programs this is on the
- * critical path.
- */
+/* MVFFAlloc -- Allocate a block */
 
 static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
 {
@@ -331,11 +324,7 @@ static Res MVFFAlloc(Addr *aReturn, Pool pool, Size size)
 }
 
 
-/* MVFFFree -- free the given block
- *
- * .free.critical: In manual-allocation-bound programs this is on the
- * critical path.
- */
+/* MVFFFree -- free the given block */
 
 static void MVFFFree(Pool pool, Addr old, Size size)
 {
