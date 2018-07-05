@@ -25,6 +25,12 @@ New features
    .. _InitOnceExecuteOnce: https://docs.microsoft.com/en-us/windows/desktop/api/synchapi/nf-synchapi-initonceexecuteonce
 
 
+Interface changes
+.................
+
+#. The pool class :ref:`pool-mv` is now deprecated.
+
+
 .. _release-notes-1.116:
 
 Release 1.116.0
@@ -179,6 +185,8 @@ New features
 
 Interface changes
 .................
+
+#. The pool class :ref:`pool-mv` is no longer deprecated.
 
 #. The type of pool classes is now :c:type:`mps_pool_class_t`. The old
    name :c:type:`mps_class_t` is still available via a ``typedef``,
