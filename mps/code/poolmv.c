@@ -1,7 +1,7 @@
 /* poolmv.c: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * An observation: Freeing memory introduces more information
@@ -62,7 +62,7 @@ DECLARE_CLASS(Pool, MVDebugPool, MVPool);
 #define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)
 #define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
 
-#define MVPool(mv) RVALUE(&(mv)->poolStruct)
+#define MVPool(mv) (&(mv)->poolStruct)
 #define PoolMV(pool) PARENT(MVStruct, poolStruct, pool)
 
 
@@ -951,7 +951,7 @@ Bool MVCheck(MV mv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
