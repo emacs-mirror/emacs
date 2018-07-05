@@ -109,7 +109,7 @@ typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
 typedef struct StackContextStruct *StackContext;
 typedef struct RangeStruct *Range;      /* <design/range/> */
-typedef struct NodeStruct *Node;
+typedef struct RangeTreeStruct *RangeTree;
 typedef struct LandStruct *Land;        /* <design/land/> */
 typedef struct LandClassStruct *LandClass; /* <design/land/> */
 typedef unsigned FindDelete;            /* <design/land/> */

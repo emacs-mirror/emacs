@@ -187,7 +187,6 @@ MPMCOMMON = \
     mpm.c \
     mpsi.c \
     nailboard.c \
-    node.c \
     policy.c \
     pool.c \
     poolabs.c \
@@ -196,6 +195,7 @@ MPMCOMMON = \
     poolmv.c \
     protocol.c \
     range.c \
+    rangetree.c \
     ref.c \
     ring.c \
     root.c \
