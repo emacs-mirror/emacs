@@ -1,7 +1,7 @@
 /* traceanc.c: ANCILLARY SUPPORT FOR TRACER
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -437,11 +437,9 @@ void TracePostMessage(Trace trace)
 
 Bool TraceIdMessagesCheck(Arena arena, TraceId ti)
 {
-  CHECKL(!arena->tsMessage[ti]
-         || TraceStartMessageCheck(arena->tsMessage[ti]));
-  CHECKL(!arena->tMessage[ti]
-         || TraceMessageCheck(arena->tMessage[ti]));
-  CHECKL(! (arena->tsMessage[ti] && !arena->tMessage[ti]) );
+  CHECKL(!arena->tsMessage[ti] || TraceStartMessageCheck(arena->tsMessage[ti]));
+  CHECKL(!arena->tsMessage[ti] || arena->tMessage[ti]);
+  CHECKL(!arena->tMessage[ti] || TraceMessageCheck(arena->tMessage[ti]));
 
   return TRUE;
 }
@@ -854,7 +852,7 @@ static void arenaForgetProtection(Globals globals)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited
+ * Copyright (C) 2001-2018 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

@@ -254,6 +254,13 @@ sub get_parmdefs {
  local ($var, $missing, $val);
  $missing = "";
  %parmdefs = ();
+ if ($VARIETY eq "hot") {
+  $parmdefs{CONFIG_VAR_HOT} = 1;
+ } elsif ($VARIETY eq "cool") {
+  $parmdefs{CONFIG_VAR_COOL} = 1;
+ } elsif ($VARIETY eq "rash") {
+  $parmdefs{CONFIG_VAR_RASH} = 1;
+ }
  if (exists $test_header{"parameters"}) {
   foreach (split /\s+/, $test_header{"parameters"}) {
    ($_, $val) = split /=/, $_;

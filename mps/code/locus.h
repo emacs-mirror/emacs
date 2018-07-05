@@ -52,8 +52,6 @@ typedef struct GenDescStruct {
 
 /* PoolGen -- descriptor of a generation in a pool */
 
-typedef struct PoolGenStruct *PoolGen;
-
 #define PoolGenSig ((Sig)0x519B009E)  /* SIGnature POOl GEn */
 
 typedef struct PoolGenStruct {

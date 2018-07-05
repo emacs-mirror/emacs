@@ -11,13 +11,12 @@
 Debugging pools
 ===============
 
-Several :term:`pool classes` have debugging counterparts:
+Two :term:`pool classes` have debugging counterparts:
 
 =================  ==============================
 Pool class         Debugging counterpart
 =================  ==============================
 :ref:`pool-ams`    :c:func:`mps_class_ams_debug`
-:ref:`pool-mv`     :c:func:`mps_class_mv_debug`
 :ref:`pool-mvff`   :c:func:`mps_class_mvff_debug`
 =================  ==============================
 

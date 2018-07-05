@@ -57,7 +57,14 @@ static void inc(unsigned long i)
 #define COUNT 100000l
 static void *thread0(void *p)
 {
+  unsigned i;
   testlib_unused(p);
+  LockClaimGlobal();
+  LockReleaseGlobal();
+  for (i = 0; i < COUNT; ++i)
+    LockClaimGlobalRecursive();
+  for (i = 0; i < COUNT; ++i)
+    LockReleaseGlobalRecursive();
   inc(COUNT);
   return NULL;
 }

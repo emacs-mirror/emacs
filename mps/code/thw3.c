@@ -1,7 +1,7 @@
 /* thw3.c: WIN32 THREAD MANAGER
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * Implements thread registration, suspension, and stack and register
  * scanning. See <design/thread-manager/>.
@@ -55,7 +55,7 @@
 #include "mpm.h"
 
 #if !defined(MPS_OS_W3) /* .nt */
-#error "Compiling thw3 when MPS_OS_W3 not defined."
+#error "thw3.c is specific to MPS_OS_W3"
 #endif
 
 #include "prmcw3.h"
@@ -320,7 +320,7 @@ void ThreadSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
