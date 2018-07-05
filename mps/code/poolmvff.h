@@ -24,7 +24,7 @@ extern PoolClass PoolClassMVFF(void);
 
 extern Bool MVFFCheck(MVFF mvff);
 
-#define MVFFPool(mvff) RVALUE(&(mvff)->poolStruct)
+#define MVFFPool(mvff) (&(mvff)->poolStruct)
 
 
 #endif /* poolmvff_h */
