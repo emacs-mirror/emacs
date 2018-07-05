@@ -250,7 +250,7 @@ void (PoolFree)(Pool pool, Addr old, Size size)
   AVER(AddrIsAligned(old, pool->alignment));
   AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
 
-  Method(Pool, pool, free)(pool, old, size);
+  PoolFreeMacro(pool, old, size);
  
   EVENT3(PoolFree, pool, old, size);
 }

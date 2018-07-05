@@ -4,6 +4,13 @@
  * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .design: <design/land/>
+ *
+ * .critical.macros: In manual-allocation-bound programs using MVFF,
+ * the Land generic functions are on the critical path via mps_free.
+ * In non-checking varieties we provide macro alternatives (in mpm.h)
+ * to these functions that call the underlying methods directly,
+ * giving a few percent improvement in performance but skipping the
+ * re-entrancy checking provided by landEnter and landLeave.
  */
 
 #include "mpm.h"
@@ -143,9 +150,6 @@ void LandFinish(Land land)
 /* LandSize -- return the total size of ranges in land
  *
  * See <design/land/#function.size>
- *
- * .size.critical: In manual-allocation-bound programs using MVFF this
- * is on the critical path.
  */
 
 Size (LandSize)(Land land)
@@ -153,16 +157,13 @@ Size (LandSize)(Land land)
   /* .enter-leave.simple */
   AVERC(Land, land);
 
-  return Method(Land, land, sizeMethod)(land);
+  return LandSizeMacro(land);
 }
 
 
 /* LandInsert -- insert range of addresses into land
  *
  * See <design/land/#function.insert>
- *
- * .insert.critical: In manual-allocation-bound programs using MVFF
- * this is on the critical path.
  */
 
 Res (LandInsert)(Range rangeReturn, Land land, Range range)
@@ -176,7 +177,7 @@ Res (LandInsert)(Range rangeReturn, Land land, Range range)
   AVER(!RangeIsEmpty(range));
   landEnter(land);
 
-  res = Method(Land, land, insert)(rangeReturn, land, range);
+  res = LandInsertMacro(rangeReturn, land, range);
 
   landLeave(land);
   return res;
@@ -198,7 +199,7 @@ Res (LandDelete)(Range rangeReturn, Land land, Range range)
   AVER(RangeIsAligned(range, land->alignment));
   landEnter(land);
 
-  res = Method(Land, land, delete)(rangeReturn, land, range);
+  res = LandDeleteMacro(rangeReturn, land, range);
 
   landLeave(land);
   return res;
@@ -208,9 +209,6 @@ Res (LandDelete)(Range rangeReturn, Land land, Range range)
 /* LandIterate -- iterate over isolated ranges of addresses in land
  *
  * See <design/land/#function.iterate>
- *
- * .iterate.critical: In manual-allocation-bound programs using MVFF
- * this is on the critical path.
  */
 
 Bool (LandIterate)(Land land, LandVisitor visitor, void *closure)
@@ -220,7 +218,7 @@ Bool (LandIterate)(Land land, LandVisitor visitor, void *closure)
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  b = Method(Land, land, iterate)(land, visitor, closure);
+  b = LandIterateMacro(land, visitor, closure);
 
   landLeave(land);
   return b;
@@ -240,7 +238,7 @@ Bool (LandIterateAndDelete)(Land land, LandDeleteVisitor visitor, void *closure)
   AVER(FUNCHECK(visitor));
   landEnter(land);
 
-  b = Method(Land, land, iterateAndDelete)(land, visitor, closure);
+  b = LandIterateAndDeleteMacro(land, visitor, closure);
 
   landLeave(land);
   return b;
@@ -263,8 +261,7 @@ Bool (LandFindFirst)(Range rangeReturn, Range oldRangeReturn, Land land, Size si
   AVERT(FindDelete, findDelete);
   landEnter(land);
 
-  b = Method(Land, land, findFirst)(rangeReturn, oldRangeReturn, land, size,
-                                findDelete);
+  b = LandFindFirstMacro(rangeReturn, oldRangeReturn, land, size, findDelete);
 
   landLeave(land);
   return b;
@@ -287,8 +284,7 @@ Bool (LandFindLast)(Range rangeReturn, Range oldRangeReturn, Land land, Size siz
   AVERT(FindDelete, findDelete);
   landEnter(land);
 
-  b = Method(Land, land, findLast)(rangeReturn, oldRangeReturn, land, size,
-                               findDelete);
+  b = LandFindLastMacro(rangeReturn, oldRangeReturn, land, size, findDelete);
 
   landLeave(land);
   return b;
@@ -311,8 +307,7 @@ Bool (LandFindLargest)(Range rangeReturn, Range oldRangeReturn, Land land, Size 
   AVERT(FindDelete, findDelete);
   landEnter(land);
 
-  b = Method(Land, land, findLargest)(rangeReturn, oldRangeReturn, land, size,
-                                  findDelete);
+  b = LandFindLargestMacro(rangeReturn, oldRangeReturn, land, size, findDelete);
 
   landLeave(land);
   return b;
@@ -337,8 +332,8 @@ Res (LandFindInZones)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn
   AVERT(Bool, high);
   landEnter(land);
 
-  res = Method(Land, land, findInZones)(foundReturn, rangeReturn, oldRangeReturn,
-                                    land, size, zoneSet, high);
+  res = LandFindInZonesMacro(foundReturn, rangeReturn, oldRangeReturn,
+                             land, size, zoneSet, high);
 
   landLeave(land);
   return res;
@@ -400,7 +395,7 @@ Bool (LandFlush)(Land dest, Land src)
   AVERC(Land, dest);
   AVERC(Land, src);
 
-  return LandIterateAndDelete(src, LandFlushVisitor, dest);
+  return LandFlushMacro(dest, src);
 }
 
 
