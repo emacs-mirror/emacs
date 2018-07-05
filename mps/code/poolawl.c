@@ -111,10 +111,7 @@ typedef AWL AWLPool;
 DECLARE_CLASS(Pool, AWLPool, AbstractCollectPool);
 
 
-/* AWLSegStruct -- AWL segment subclass
- *
- * Subclass of GCSeg
- */
+/* AWLSegStruct -- AWL segment subclass */
 
 #define AWLSegSig ((Sig)0x519A3759) /* SIGnature AWL SeG */
 
@@ -134,7 +131,7 @@ typedef struct AWLSegStruct {
   Sig sig;                  /* <code/misc.h#sig> */
 } AWLSegStruct, *AWLSeg;
 
-DECLARE_CLASS(Seg, AWLSeg, GCSeg);
+DECLARE_CLASS(Seg, AWLSeg, MutatorSeg);
 
 ATTRIBUTE_UNUSED
 static Bool AWLSegCheck(AWLSeg awlseg)
@@ -277,7 +274,7 @@ static void AWLSegFinish(Inst inst)
 
 DEFINE_CLASS(Seg, AWLSeg, klass)
 {
-  INHERIT_CLASS(klass, AWLSeg, GCSeg);
+  INHERIT_CLASS(klass, AWLSeg, MutatorSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
   klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);

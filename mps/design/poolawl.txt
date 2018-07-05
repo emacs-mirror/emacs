@@ -112,9 +112,9 @@ _`.poolstruct`: The class specific pool structure is::
     }
 
 _`.awlseg`: The pool defines a segment class ``AWLSegClass``, which is
-a subclass of ``GCSegClass`` (see
-design.mps.seg.over.hierarchy.gcseg_). All segments allocated by the
-pool are instances of this class, and are of type ``AWLSeg``, for
+a subclass of ``MutatorSegClass`` (see
+design.mps.seg.over.hierarchy.mutatorseg_). All segments allocated by
+the pool are instances of this class, and are of type ``AWLSeg``, for
 which the structure is::
 
     struct AWLSegStruct {
@@ -132,7 +132,7 @@ which the structure is::
       Sig sig;                  /* <code/misc.h#sig> */
     }
 
-.. _design.mps.seg.over.hierarchy.gcseg: seg#over-hierarchy-gcseg
+.. _design.mps.seg.over.hierarchy.mutatorseg: seg#over-hierarchy-mutatorseg
 
 _`.awlseg.bt`: The ``mark``, ``alloc``, and ``scanned`` fields are
 bit-tables (see design.mps.bt_). Each bit in the table corresponds to

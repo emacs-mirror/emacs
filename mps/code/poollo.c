@@ -31,7 +31,7 @@ typedef struct LOStruct {
 typedef LO LOPool;
 #define LOPoolCheck LOCheck
 DECLARE_CLASS(Pool, LOPool, AbstractSegBufPool);
-DECLARE_CLASS(Seg, LOSeg, GCSeg);
+DECLARE_CLASS(Seg, LOSeg, MutatorSeg);
 
 
 /* forward declaration */
@@ -71,7 +71,7 @@ static void loSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
 
 DEFINE_CLASS(Seg, LOSeg, klass)
 {
-  INHERIT_CLASS(klass, LOSeg, GCSeg);
+  INHERIT_CLASS(klass, LOSeg, MutatorSeg);
   SegClassMixInNoSplitMerge(klass);
   klass->instClassStruct.finish = loSegFinish;
   klass->size = sizeof(LOSegStruct);

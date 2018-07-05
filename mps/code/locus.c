@@ -605,11 +605,11 @@ static void PoolGenAccountForAlloc(PoolGen pgen, Size size)
 
 /* PoolGenAlloc -- allocate a segment in a pool generation
  *
- * Allocate a GCSeg, attach it to the generation, and update the
- * accounting.
+ * Allocate a segment belong to klass (which must be GCSegClass or a
+ * subclass), attach it to the generation, and update the accounting.
  */
 
-Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
+Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass klass, Size size,
                  ArgList args)
 {
   LocusPrefStruct pref;
@@ -621,7 +621,8 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
 
   AVER(segReturn != NULL);
   AVERT(PoolGen, pgen);
-  AVERT(SegClass, class);
+  AVERT(SegClass, klass);
+  AVER(IsSubclass(klass, GCSeg));
   AVER(size > 0);
   AVERT(ArgList, args);
 
@@ -633,7 +634,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class, Size size,
   pref.high = FALSE;
   pref.zones = zones;
   pref.avoid = ZoneSetBlacklist(arena);
-  res = SegAlloc(&seg, class, &pref, size, pgen->pool, args);
+  res = SegAlloc(&seg, klass, &pref, size, pgen->pool, args);
   if (res != ResOK)
     return res;
 
