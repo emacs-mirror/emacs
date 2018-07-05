@@ -1,7 +1,7 @@
 /* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -495,7 +495,7 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
     rightMerge = FALSE;
   } else {
     rightCBS = cbsBlockOfTree(rightSplay);
-    if (rightCBS != NULL && limit > CBSBlockLimit(rightCBS)) {
+    if (rightCBS != NULL && limit > CBSBlockBase(rightCBS)) {
       res = ResFAIL;
       goto fail;
     }
@@ -1171,7 +1171,7 @@ DEFINE_CLASS(Land, CBSZoned, klass)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
