@@ -1,68 +1,68 @@
-/* node.c -- binary trees of address ranges
+/* rangetree.c -- binary trees of address ranges
  *
  * $Id$
  * Copyright (C) 2016 Ravenbrook Limited.  See end of file for license.
  */
 
-#include "node.h"
+#include "rangetree.h"
 #include "tree.h"
 #include "range.h"
 #include "mpm.h"
 
 
-void NodeInit(Node node, Addr base, Addr limit)
+void RangeTreeInit(RangeTree rangeTree, Addr base, Addr limit)
 {
-  AVER(node != NULL);
-  TreeInit(NodeTree(node));
-  RangeInit(NodeRange(node), base, limit);
-  AVERT(Node, node);
+  AVER(rangeTree != NULL);
+  TreeInit(RangeTreeTree(rangeTree));
+  RangeInit(RangeTreeRange(rangeTree), base, limit);
+  AVERT(RangeTree, rangeTree);
 }
 
 
-void NodeInitFromRange(Node node, Range range)
+void RangeTreeInitFromRange(RangeTree rangeTree, Range range)
 {
-  AVER(node != NULL);
-  TreeInit(NodeTree(node));
-  RangeCopy(NodeRange(node), range);
-  AVERT(Node, node);
+  AVER(rangeTree != NULL);
+  TreeInit(RangeTreeTree(rangeTree));
+  RangeCopy(RangeTreeRange(rangeTree), range);
+  AVERT(RangeTree, rangeTree);
 }
 
 
-Bool NodeCheck(Node node)
+Bool RangeTreeCheck(RangeTree rangeTree)
 {
-  CHECKL(node != NULL);
-  CHECKD_NOSIG(Tree, NodeTree(node));
-  CHECKD_NOSIG(Range, NodeRange(node));
+  CHECKL(rangeTree != NULL);
+  CHECKD_NOSIG(Tree, RangeTreeTree(rangeTree));
+  CHECKD_NOSIG(Range, RangeTreeRange(rangeTree));
   return TRUE;
 }
 
 
-void NodeFinish(Node node)
+void RangeTreeFinish(RangeTree rangeTree)
 {
-  AVERT(Node, node);
-  TreeFinish(NodeTree(node));
-  RangeFinish(NodeRange(node));
+  AVERT(RangeTree, rangeTree);
+  TreeFinish(RangeTreeTree(rangeTree));
+  RangeFinish(RangeTreeRange(rangeTree));
 }
 
 
-/* NodeCompare -- Compare key to [base,limit)
+/* RangeTreeCompare -- Compare key to [base,limit)
  *
  * See <design/splay/#type.splay.compare.method>
  */
 
-Compare NodeCompare(Tree tree, TreeKey key)
+Compare RangeTreeCompare(Tree tree, TreeKey key)
 {
   Addr base1, base2, limit2;
-  Node block;
+  RangeTree block;
 
   AVERT_CRITICAL(Tree, tree);
   AVER_CRITICAL(tree != TreeEMPTY);
   AVER_CRITICAL(key != NULL);
 
-  base1 = NodeBaseOfKey(key);
-  block = NodeOfTree(tree);
-  base2 = NodeBase(block);
-  limit2 = NodeLimit(block);
+  base1 = RangeTreeBaseOfKey(key);
+  block = RangeTreeOfTree(tree);
+  base2 = RangeTreeBase(block);
+  limit2 = RangeTreeLimit(block);
 
   if (base1 < base2)
     return CompareLESS;
@@ -72,9 +72,9 @@ Compare NodeCompare(Tree tree, TreeKey key)
     return CompareEQUAL;
 }
 
-TreeKey NodeKey(Tree tree)
+TreeKey RangeTreeKey(Tree tree)
 {
-  return NodeKeyOfBaseVar(NodeBase(NodeOfTree(tree)));
+  return RangeTreeKeyOfBaseVar(RangeTreeBase(RangeTreeOfTree(tree)));
 }
 
 

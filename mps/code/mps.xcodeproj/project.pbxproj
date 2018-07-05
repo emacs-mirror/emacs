@@ -1431,6 +1431,8 @@
 		2231BB6918CA983C002D6322 /* locusss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = locusss.c; sourceTree = "<group>"; };
 		223475CB194CA09500C69128 /* vm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vm.c; sourceTree = "<group>"; };
 		223475CC194CA09500C69128 /* vm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vm.h; sourceTree = "<group>"; };
+		2239BB4C20EE2E34007AC917 /* rangetree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rangetree.c; sourceTree = "<group>"; };
+		2239BB4D20EE2E4D007AC917 /* rangetree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rangetree.h; sourceTree = "<group>"; };
 		224CC799175E1821002FF81B /* fotest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = fotest; sourceTree = BUILT_PRODUCTS_DIR; };
 		224CC79E175E3202002FF81B /* fotest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fotest.c; sourceTree = "<group>"; };
 		22561A9618F4263300372C66 /* testthr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = testthr.h; sourceTree = "<group>"; };
@@ -2489,6 +2491,8 @@
 				311F2F7217398B7100C15B6A /* pthrdext.h */,
 				2291A5EB175CB53E001D4920 /* range.c */,
 				2291A5EC175CB53E001D4920 /* range.h */,
+				2239BB4C20EE2E34007AC917 /* rangetree.c */,
+				2239BB4D20EE2E4D007AC917 /* rangetree.h */,
 				31EEAC1B156AB2B200714D05 /* ref.c */,
 				31EEAC30156AB2F200714D05 /* ring.c */,
 				311F2F7317398B7100C15B6A /* ring.h */,

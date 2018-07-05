@@ -147,7 +147,6 @@ MPMCOMMON=\
     [mpm] \
     [mpsi] \
     [nailboard] \
-    [node] \
     [policy] \
     [pool] \
     [poolabs] \
@@ -157,6 +156,7 @@ MPMCOMMON=\
     [poolmv] \
     [protocol] \
     [range] \
+    [rangetree] \
     [ref] \
     [ring] \
     [root] \

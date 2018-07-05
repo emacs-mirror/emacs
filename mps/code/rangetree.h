@@ -1,56 +1,56 @@
-/* node.c -- binary trees of address ranges
+/* rangetree.c -- binary trees of address ranges
  *
  * $Id$
  * Copyright (C) 2016 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef node_h
-#define node_h
+#ifndef rangetree_h
+#define rangetree_h
 
 #include "mpmtypes.h"
 #include "range.h"
 #include "tree.h"
 
-#define NodeTree(node) (&(node)->treeStruct)
-#define NodeRange(node) (&(node)->rangeStruct)
-#define NodeOfTree(tree) PARENT(NodeStruct, treeStruct, tree)
-#define NodeOfRange(range) PARENT(NodeStruct, rangeStruct, range)
+#define RangeTreeTree(rangeTree) (&(rangeTree)->treeStruct)
+#define RangeTreeRange(rangeTree) (&(rangeTree)->rangeStruct)
+#define RangeTreeOfTree(tree) PARENT(RangeTreeStruct, treeStruct, tree)
+#define RangeTreeOfRange(range) PARENT(RangeTreeStruct, rangeStruct, range)
 
-#define NodeBase(block) RangeBase(NodeRange(block))
-#define NodeLimit(block) RangeLimit(NodeRange(block))
-#define NodeSetBase(block, addr) RangeSetBase(NodeRange(block), addr)
-#define NodeSetLimit(block, addr) RangeSetLimit(NodeRange(block), addr)
-#define NodeSize(block) RangeSize(NodeRange(block))
+#define RangeTreeBase(block) RangeBase(RangeTreeRange(block))
+#define RangeTreeLimit(block) RangeLimit(RangeTreeRange(block))
+#define RangeTreeSetBase(block, addr) RangeSetBase(RangeTreeRange(block), addr)
+#define RangeTreeSetLimit(block, addr) RangeSetLimit(RangeTreeRange(block), addr)
+#define RangeTreeSize(block) RangeSize(RangeTreeRange(block))
 
-extern void NodeInit(Node node, Addr base, Addr limit);
-extern void NodeInitFromRange(Node node, Range range);
-extern Bool NodeCheck(Node node);
-extern void NodeFinish(Node node);
+extern void RangeTreeInit(RangeTree rangeTree, Addr base, Addr limit);
+extern void RangeTreeInitFromRange(RangeTree rangeTree, Range range);
+extern Bool RangeTreeCheck(RangeTree rangeTree);
+extern void RangeTreeFinish(RangeTree rangeTree);
 
 
-/* Functions for nodes in trees
+/* Compare and key functions for use with TreeFind, TreeInsert, etc.
  *
- * We pass the node base directly as a TreeKey (void *) assuming that
- * Addr can be encoded, and possibly breaking <design/type/#addr.use>.
+ * We pass the rangeTree base directly as a TreeKey (void *) assuming
+ * that Addr can be encoded, possibly breaking <design/type/#addr.use>.
  * On an exotic platform where this isn't true, pass the address of
  * base: that is, add an &.
  */
 
-#define NodeKeyOfBaseVar(baseVar) ((TreeKey)(baseVar))
-#define NodeBaseOfKey(key)        ((Addr)(key))
+#define RangeTreeKeyOfBaseVar(baseVar) ((TreeKey)(baseVar))
+#define RangeTreeBaseOfKey(key)        ((Addr)(key))
 
-extern Compare NodeCompare(Tree tree, TreeKey key);
-extern TreeKey NodeKey(Tree tree);
+extern Compare RangeTreeCompare(Tree tree, TreeKey key);
+extern TreeKey RangeTreeKey(Tree tree);
 
 
-/* NodeStruct -- address range in a tree */
+/* RangeTreeStruct -- address range in a tree */
 
-typedef struct NodeStruct {
+typedef struct RangeTreeStruct {
   TreeStruct treeStruct;
   RangeStruct rangeStruct;
-} NodeStruct;
+} RangeTreeStruct;
 
-#endif /* node_h */
+#endif /* rangetree_h */
 
 /* C. COPYRIGHT AND LICENSE
  *
