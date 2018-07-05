@@ -237,10 +237,10 @@ poollo.c     :ref:`pool-lo` implementation.
 poolmfs.c    :ref:`pool-mfs` implementation.
 poolmfs.h    :ref:`pool-mfs` internal interface.
 poolmv.c     :ref:`pool-mv` implementation.
-poolmv.h     :ref:`pool-mv` internal interface.
 poolmv2.c    :ref:`pool-amc` implementation.
 poolmv2.h    :ref:`pool-mvt` internal interface.
 poolmvff.c   :ref:`pool-mvff` implementation.
+poolmvff.h   :ref:`pool-mvff` internal interface.
 poolsnc.c    :ref:`pool-snc` implementation.
 ===========  ==================================================================
 

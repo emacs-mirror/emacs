@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -24,7 +24,6 @@
 #include "bt.h"
 #include "poolmrg.h"
 #include "mps.h" /* finalization */
-#include "poolmv.h"
 #include "mpm.h"
 
 SRCID(global, "$Id$");
@@ -53,7 +52,9 @@ static void arenaReleaseRingLock(void)
 }
 
 
-/* GlobalsClaimAll -- claim all MPS locks <design/thread-safety/#fork.lock> */
+/* GlobalsClaimAll -- claim all MPS locks
+ * <design/thread-safety/#sol.fork.lock>
+ */
 
 void GlobalsClaimAll(void)
 {
@@ -536,10 +537,9 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   /* At this point the following pools still exist:
    * 0. arena->freeCBSBlockPoolStruct
    * 1. arena->controlPoolStruct
-   * 2. arena->controlPoolStruct.blockPoolStruct
-   * 3. arena->controlPoolStruct.spanPoolStruct
+   * 2. arena->controlPoolStruct.cbsBlockPoolStruct
    */
-  AVER(RingLength(&arenaGlobals->poolRing) == 4); /* <design/check/#.common> */
+  AVER(RingLength(&arenaGlobals->poolRing) == 3); /* <design/check/#.common> */
 }
 
 
@@ -674,7 +674,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
        * thread. */
       mode &= SegPM(seg);
       if (mode != AccessSetEMPTY) {
-        res = PoolAccess(SegPool(seg), seg, addr, mode, context);
+        res = SegAccess(seg, arena, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       } else {
         /* Protection was already cleared, for example by another thread
@@ -1132,7 +1132,7 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

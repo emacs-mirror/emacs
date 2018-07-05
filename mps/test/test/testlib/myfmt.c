@@ -5,7 +5,6 @@ myfmt.c
 
 #include "myfmt.h"
 #include <string.h>
-#include <stdio.h>
 
 enum {MCpadsingle, MCpadmany, MCheart, MCdata};
 
@@ -48,8 +47,25 @@ struct mps_fmt_A_s fmtA =
  &mypad
 };
 
-mycell *allocone(mps_ap_t ap, mps_word_t data,
- mycell *ref0, mycell *ref1, size_t size)
+void fmtargs(mps_arg_s args[MPS_ARGS_MAX])
+{
+  args[0].key = MPS_KEY_ALIGN;
+  args[0].val.align = MPS_PF_ALIGN;
+  args[1].key = MPS_KEY_FMT_SCAN;
+  args[1].val.fmt_scan = myscan;
+  args[2].key = MPS_KEY_FMT_SKIP;
+  args[2].val.fmt_skip = myskip;
+  args[3].key = MPS_KEY_FMT_FWD;
+  args[3].val.fmt_fwd = myfwd;
+  args[4].key = MPS_KEY_FMT_ISFWD;
+  args[4].val.fmt_isfwd = myisfwd;
+  args[5].key = MPS_KEY_FMT_PAD;
+  args[5].val.fmt_pad = mypad;
+  args[6].key = MPS_KEY_ARGS_END;
+}
+
+mycell *allocheader(mps_ap_t ap, mps_word_t data,
+ mycell *ref0, mycell *ref1, size_t size, size_t header)
 {
  mps_addr_t p;
  mycell *q;
@@ -63,12 +79,12 @@ mycell *allocone(mps_ap_t ap, mps_word_t data,
  }
 
 /* twiddle the value of size to make it aligned */
- size = (size+align-1) & ~(align-1);
+ size = (size+header+align-1) & ~(align-1);
 
  do
  {
   die(mps_reserve(&p, ap, size), "Reserve: ");
-  q=p;
+  q=(void *)((char *)p + header);
   q->tag = MCdata;
   q->data = data;
   q->size = size;
@@ -79,6 +95,12 @@ mycell *allocone(mps_ap_t ap, mps_word_t data,
  return q;
 }
 
+mycell *allocone(mps_ap_t ap, mps_word_t data,
+ mycell *ref0, mycell *ref1, size_t size)
+{
+  return allocheader(ap, data, ref0, ref1, size, 0);
+}
+
 mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
  MPS_SCAN_BEGIN(ss)
@@ -86,9 +108,10 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   while (base < limit)
   {
    mycell *obj = base;
+   unsigned long data = (unsigned long)obj->data;
    mps_res_t res;
 
-   if (formatcomments) printf("Scan %p.\n", (void *)base);
+   commentif(formatcomments, "scan %lu at %p", data, obj);
    switch (obj->tag)
    {
     case MCpadsingle:
@@ -102,7 +125,7 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 
      if (obj->ref[0] != NULL)
      {
-      if (formatcomments) printf("Fix: %p.\n", (void*)&(obj->ref[0]));
+      commentif(formatcomments, "fix %lu[0] -> %p", data, obj->ref[0]);
       res = MPS_FIX12(ss, (mps_addr_t *) &(obj->ref[0])); /* pun! */
       if (res != MPS_RES_OK)
       {
@@ -111,7 +134,7 @@ mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
      }
      if (obj->ref[1] != NULL)
      {
-      if (formatcomments) printf("Fix: %p.\n", (void*)&(obj->ref[1]));
+      commentif(formatcomments, "fix %lu[1] -> %p", data, obj->ref[1]);
       res = MPS_FIX12(ss, (mps_addr_t *) &(obj->ref[1])); /* pun! */
       if (res != MPS_RES_OK)
       {
@@ -154,7 +177,7 @@ void mycopy(mps_addr_t object, mps_addr_t to)
 /* mycell *toj = to;
 */
 
- if (formatcomments) printf("copy! %p -> %p\n", object, to);
+ commentif(formatcomments, "copy! %p -> %p\n", object, to);
 
 /* this line is bad, because the objects might overlap,
    and then C doesn't guarantee to do the right thing!
@@ -216,4 +239,3 @@ void myfwd(mps_addr_t object, mps_addr_t to)
  obj->tag = MCheart;
  obj->data = (mps_word_t) to;
 }
-

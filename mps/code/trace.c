@@ -1,7 +1,7 @@
 /* trace.c: GENERIC TRACER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -69,10 +69,10 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   AVERT(Rank, rank);
   /* white is arbitrary and can't be checked */
 
-  /* NOTE: We can only currently support scanning for a set of traces with
-     the same fix method and closure.  To remove this restriction,
-     it would be necessary to dispatch to the fix methods of sets of traces
-     in TraceFix. */
+  /* NOTE: We can only currently support scanning for a set of traces
+     with the same fix method. To remove this restriction, it would be
+     necessary to dispatch to the fix methods of sets of traces in
+     TraceFix. */
   ss->fix = NULL;
   ss->fixClosure = NULL;
   TRACE_SET_ITER(ti, trace, ts, arena) {
@@ -88,8 +88,8 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
 
   /* If the fix method is the normal GC fix, then we optimise the test for
      whether it's an emergency or not by updating the dispatch here, once. */
-  if (ss->fix == PoolFix && ArenaEmergency(arena))
-        ss->fix = PoolFixEmergency;
+  if (ss->fix == SegFix && ArenaEmergency(arena))
+        ss->fix = SegFixEmergency;
 
   ss->rank = rank;
   ss->traces = ts;
@@ -365,7 +365,7 @@ Res TraceAddWhite(Trace trace, Seg seg)
 
   /* Give the pool the opportunity to turn the segment white. */
   /* If it fails, unwind. */
-  res = PoolWhiten(pool, trace, seg);
+  res = SegWhiten(seg, trace);
   if(res != ResOK)
     return res;
 
@@ -669,7 +669,7 @@ found:
   trace->ti = ti;
   trace->state = TraceINIT;
   trace->band = RankMIN;
-  trace->fix = PoolFix;
+  trace->fix = SegFix;
   trace->fixClosure = NULL;
   trace->chain = NULL;
   STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
@@ -840,7 +840,7 @@ static void traceReclaim(Trace trace)
       if(TraceSetIsMember(SegWhite(seg), trace)) {
         AVER_CRITICAL(PoolHasAttr(pool, AttrGC));
         STATISTIC(++trace->reclaimCount);
-        PoolReclaim(pool, trace, seg);
+        SegReclaim(seg, trace);
 
         /* If the segment still exists, it should no longer be white. */
         /* Note that the seg returned by this SegOfAddr may not be */
@@ -1095,7 +1095,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
   /* Only scan a segment if it refers to the white set. */
   if(ZoneSetInter(white, SegSummary(seg)) == ZoneSetEMPTY) {
-    PoolBlacken(SegPool(seg), ts, seg);
+    SegBlacken(seg, ts);
     /* Setup result code to return later. */
     res = ResOK;
   } else {      /* scan it */
@@ -1105,7 +1105,7 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
     /* Expose the segment to make sure we can scan it. */
     ShieldExpose(arena, seg);
-    res = PoolScan(&wasTotal, ss, SegPool(seg), seg);
+    res = SegScan(&wasTotal, seg, ss);
     /* Cover, regardless of result */
     ShieldCover(arena, seg);
 
@@ -1288,7 +1288,6 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   Tract tract;
   Seg seg;
   Res res;
-  Pool pool;
 
   /* Special AVER macros are used on the critical path. */
   /* See <design/trace/#fix.noaver> */
@@ -1351,11 +1350,10 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   STATISTIC(++ss->whiteSegRefCount);
   EVENT1(TraceFixSeg, seg);
   EVENT0(TraceFixWhite);
-  pool = TractPool(tract);
-  res = (*ss->fix)(pool, ss, seg, &ref);
+  res = (*ss->fix)(seg, ss, &ref);
   if (res != ResOK) {
-    /* PoolFixEmergency must not fail. */
-    AVER_CRITICAL(ss->fix != PoolFixEmergency);
+    /* SegFixEmergency must not fail. */
+    AVER_CRITICAL(ss->fix != SegFixEmergency);
     /* Fix protocol (de facto): if Fix fails, ref must be unchanged
      * Justification for this restriction:
      * A: it simplifies;
@@ -1606,7 +1604,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
           /* Note: can a white seg get greyed as well?  At this point */
           /* we still assume it may.  (This assumption runs out in */
           /* PoolTrivGrey). */
-          PoolGrey(SegPool(seg), trace, seg);
+          SegGreyen(seg, trace);
           if(TraceSetIsMember(SegGrey(seg), trace)) {
             trace->foundation += size;
           }
@@ -1864,7 +1862,7 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited
+ * Copyright (C) 2001-2018 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

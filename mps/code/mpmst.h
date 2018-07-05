@@ -1,7 +1,7 @@
 /* mpmst.h: MEMORY POOL MANAGER DATA STRUCTURES
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -57,21 +57,13 @@ typedef struct mps_pool_class_s {
   PoolInitMethod init;          /* initialize the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
   PoolFreeMethod free;          /* free memory to pool */
+  PoolSegPoolGenMethod segPoolGen; /* get pool generation of segment */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
-  PoolAccessMethod access;      /* handles read/write accesses */
-  PoolWhitenMethod whiten;      /* whiten objects in a segment */
-  PoolGreyMethod grey;          /* grey non-white objects */
-  PoolBlackenMethod blacken;    /* blacken grey objects without scanning */
-  PoolScanMethod scan;          /* find references during tracing */
-  PoolFixMethod fix;            /* referent reachable during tracing */
-  PoolFixMethod fixEmergency;   /* as fix, no failure allowed */
-  PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */
   PoolFramePopMethod framePop;  /* pop an allocation frame */
-  PoolWalkMethod walk;          /* walk over a segment */
   PoolFreeWalkMethod freewalk;  /* walk over free blocks */
   PoolBufferClassMethod bufferClass; /* default BufferClass of pool */
   PoolDebugMixinMethod debugMixin; /* find the debug mixin, if any */
@@ -102,9 +94,9 @@ typedef struct mps_pool_s {     /* generic structure */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */
   Serial bufferSerial;          /* serial of next buffer */
   RingStruct segRing;           /* segs are attached to pool */
-  Align alignment;              /* alignment for units */
-  Format format;                /* format only if class->attr&AttrFMT */
-  PoolFixMethod fix;            /* fix method */
+  Align alignment;              /* alignment for grains */
+  Shift alignShift;             /* log2(alignment) */
+  Format format;                /* format or NULL */
 } PoolStruct;
 
 
@@ -130,33 +122,9 @@ typedef struct MFSStruct {      /* MFS outer structure */
   struct MFSHeaderStruct *freeList; /* head of the free list */
   Size total;                   /* total size allocated from arena */
   Size free;                    /* free space in pool */
-  Tract tractList;              /* the first tract */
+  RingStruct extentRing;        /* ring of extents in pool */
   Sig sig;                      /* <design/sig/> */
 } MFSStruct;
-
-
-/* MVStruct -- MV (Manual Variable) pool outer structure
- *
- * .mv: See <code/poolmv.c>, <design/poolmv/>.
- *
- * The MV pool outer structure is declared here because it is the
- * control pool structure which is inlined in the arena.  Normally,
- * pool outer structures are declared with the pools.  */
-
-#define MVSig           ((Sig)0x5193B999) /* SIGnature MV */
-
-typedef struct MVStruct {       /* MV pool outer structure */
-  PoolStruct poolStruct;        /* generic structure */
-  MFSStruct blockPoolStruct;    /* for managing block descriptors */
-  MFSStruct spanPoolStruct;     /* for managing span descriptors */
-  Size extendBy;                /* segment size to extend pool by */
-  Size avgSize;                 /* client estimate of allocation size */
-  Size maxSize;                 /* client estimate of maximum size */
-  Size free;                    /* free space in pool */
-  Size lost;                    /* <design/poolmv/#lost> */
-  RingStruct spans;             /* span chain */
-  Sig sig;                      /* <design/sig/> */
-} MVStruct;
 
 
 /* MessageClassStruct -- Message Class structure
@@ -229,6 +197,15 @@ typedef struct SegClassStruct {
   SegSetRankSummaryMethod setRankSummary; /* change rank set & summary */
   SegMergeMethod merge;         /* merge two adjacent segments */
   SegSplitMethod split;         /* split a segment into two */
+  SegAccessMethod access;       /* handles read/write accesses */
+  SegWhitenMethod whiten;       /* whiten objects */
+  SegGreyenMethod greyen;       /* greyen non-white objects */
+  SegBlackenMethod blacken;     /* blacken grey objects without scanning */
+  SegScanMethod scan;           /* find references during tracing */
+  SegFixMethod fix;             /* referent reachable during tracing */
+  SegFixMethod fixEmergency;    /* as fix, no failure allowed */
+  SegReclaimMethod reclaim;     /* reclaim dead objects after tracing */
+  SegWalkMethod walk;           /* walk over a segment */
   Sig sig;                      /* .class.end-sig */
 } SegClassStruct;
 
@@ -398,6 +375,11 @@ typedef struct mps_fmt_s {
  * through the MPS interface to optimise the critical path scan loop.
  * See ["The critical path through the MPS"](../design/critical-path.txt).
  *
+ * .ss.fix-closure: The fixClosure member allows the caller of the
+ * scanning protocol to pass data through to this fix function. This
+ * is not used in the public MPS, but is needed by the transforms
+ * extension.
+ *
  * .ss.zone: For binary compatibility, the zone shift is exported as
  * a word rather than a shift, so that the external mps_ss_s is a uniform
  * three-word structure.  See <code/mps.h#ss> and <design/interface-c>.
@@ -418,8 +400,8 @@ typedef struct ScanStateStruct {
   Sig sig;                      /* <design/sig/> */
   struct mps_ss_s ss_s;         /* .ss <http://bash.org/?400459> */
   Arena arena;                  /* owning arena */
-  PoolFixMethod fix;            /* third stage fix function */
-  void *fixClosure;             /* closure data for fix */
+  SegFixMethod fix;             /* third stage fix function */
+  void *fixClosure;             /* see .ss.fix-closure */
   TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
@@ -450,8 +432,8 @@ typedef struct TraceStruct {
   TraceState state;             /* current state of trace */
   Rank band;                    /* current band */
   Bool firstStretch;            /* in first stretch of band (see accessor) */
-  PoolFixMethod fix;            /* fix method to apply to references */
-  void *fixClosure;             /* closure information for fix method */
+  SegFixMethod fix;             /* fix method to apply to references */
+  void *fixClosure;             /* see .ss.fix-closure */
   Chain chain;                  /* chain being incrementally collected */
   STATISTIC_DECL(Size preTraceArenaReserved) /* ArenaReserved before this trace */
   Size condemned;               /* condemned bytes */
@@ -715,6 +697,35 @@ typedef struct HistoryStruct {
 } HistoryStruct;  
 
 
+/* MVFFStruct -- MVFF (Manual Variable First Fit) pool outer structure
+ *
+ * The signature is placed at the end, see
+ * <design/pool/#outer-structure.sig>
+ *
+ * The MVFF pool outer structure is declared here because it is the
+ * control pool structure which is inlined in the arena.  Normally,
+ * pool outer structures are declared with the pools.
+ */
+
+#define MVFFSig           ((Sig)0x5193FFF9) /* SIGnature MVFF */
+
+typedef struct MVFFStruct {     /* MVFF pool outer structure */
+  PoolStruct poolStruct;        /* generic structure */
+  LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
+  Size extendBy;                /* size to extend pool by */
+  Size avgSize;                 /* client estimate of allocation size */
+  double spare;                 /* spare space fraction, see MVFFReduce */
+  MFSStruct cbsBlockPoolStruct; /* stores blocks for CBSs */
+  CBSStruct totalCBSStruct;     /* all memory allocated from the arena */
+  CBSStruct freeCBSStruct;      /* free memory (primary) */
+  FreelistStruct flStruct;      /* free memory (secondary, for emergencies) */
+  FailoverStruct foStruct;      /* free memory (fail-over mechanism) */
+  Bool firstFit;                /* as opposed to last fit */
+  Bool slotHigh;                /* prefers high part of large block */
+  Sig sig;                      /* <design/sig/> */
+} MVFFStruct;
+
+
 /* ArenaStruct -- generic arena
  *
  * See <code/arena.c>.
@@ -729,7 +740,7 @@ typedef struct mps_arena_s {
   Serial serial;
 
   Bool poolReady;               /* <design/arena/#pool.ready> */
-  MVStruct controlPoolStruct;   /* <design/arena/#pool> */
+  MVFFStruct controlPoolStruct; /* <design/arena/#pool> */
 
   Size reserved;                /* total reserved address space */
   Size committed;               /* total committed memory */
@@ -819,7 +830,7 @@ typedef struct AllocPatternStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

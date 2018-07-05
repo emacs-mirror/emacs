@@ -1,12 +1,18 @@
 /* mpm.h: MEMORY POOL MANAGER DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .trans.bufferinit: The Buffer data structure has an Init field and
  * an Init method, there's a name clash.  We resolve this by calling the
  * accessor BufferGetInit.
+ *
+ * .critical.macros: In manual-allocation-bound programs using MVFF,
+ * PoolFree and the Land generic functions are on the critical path
+ * via mps_free. In non-checking varieties we provide macro
+ * alternatives to these functions that call the underlying methods
+ * directly, giving a few percent improvement in performance.
  */
 
 #ifndef mpm_h
@@ -204,6 +210,11 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream, Count depth);
 #define PoolArenaRing(pool) (&(pool)->arenaRing)
 #define PoolOfArenaRing(node) RING_ELT(Pool, arenaRing, node)
 #define PoolHasAttr(pool, Attr) ((ClassOfPoly(Pool, pool)->attr & (Attr)) != 0)
+#define PoolSizeGrains(pool, size) ((size) >> (pool)->alignShift)
+#define PoolGrainsSize(pool, grains) ((grains) << (pool)->alignShift)
+#define PoolIndexOfAddr(base, pool, p) \
+  (AddrOffset((base), (p)) >> (pool)->alignShift)
+#define PoolAddrOfIndex(base, pool, i) AddrAdd(base, PoolGrainsSize(pool, i))
 
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
@@ -219,19 +230,9 @@ extern Res PoolCreate(Pool *poolReturn, Arena arena, PoolClass klass,
 extern void PoolDestroy(Pool pool);
 extern BufferClass PoolDefaultBufferClass(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size);
-extern void PoolFree(Pool pool, Addr old, Size size);
+extern void (PoolFree)(Pool pool, Addr old, Size size);
+extern PoolGen PoolSegPoolGen(Pool pool, Seg seg);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
-extern Res PoolAccess(Pool pool, Seg seg, Addr addr,
-                      AccessSet mode, MutatorContext context);
-extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
-extern void PoolGrey(Pool pool, Trace trace, Seg seg);
-extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
-extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-extern Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
-extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
-extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                     void *v, size_t s);
 extern void PoolFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern Size PoolTotalSize(Pool pool);
 extern Size PoolFreeSize(Pool pool);
@@ -242,6 +243,7 @@ extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
 extern Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolNoFree(Pool pool, Addr old, Size size);
 extern void PoolTrivFree(Pool pool, Addr old, Size size);
+extern PoolGen PoolNoSegPoolGen(Pool pool, Seg seg);
 extern Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
                             Pool pool, Buffer buffer, Size size);
 extern Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
@@ -253,21 +255,7 @@ extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
 extern Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
-extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
-                        AccessSet mode, MutatorContext context);
-extern Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
-                         AccessSet mode, MutatorContext context);
-extern Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
-                            AccessSet mode, MutatorContext context);
-extern Res PoolNoWhiten(Pool pool, Trace trace, Seg seg);
-extern Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg);
-extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
-extern void PoolTrivGrey(Pool pool, Trace trace, Seg seg);
-extern void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg);
-extern void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
-extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
@@ -276,27 +264,27 @@ extern Res PoolNoFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf);
 extern Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame);
 extern Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame);
-extern void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                       void *p, size_t s);
 extern void PoolTrivFreeWalk(Pool pool, FreeBlockVisitor f, void *p);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 extern Size PoolNoSize(Pool pool);
 
+/* See .critical.macros. */
+#define PoolFreeMacro(pool, old, size) Method(Pool, pool, free)(pool, old, size)
+#if !defined(AVER_AND_CHECK_ALL)
+#define PoolFree(pool, old, size) PoolFreeMacro(pool, old, size)
+#endif /* !defined(AVER_AND_CHECK_ALL) */
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
 extern void PoolClassMixInBuffer(PoolClass klass);
-extern void PoolClassMixInScan(PoolClass klass);
-extern void PoolClassMixInFormat(PoolClass klass);
 extern void PoolClassMixInCollect(PoolClass klass);
 DECLARE_CLASS(Inst, PoolClass, InstClass);
 DECLARE_CLASS(Pool, AbstractPool, Inst);
 DECLARE_CLASS(Pool, AbstractBufferPool, AbstractPool);
 DECLARE_CLASS(Pool, AbstractSegBufPool, AbstractBufferPool);
-DECLARE_CLASS(Pool, AbstractScanPool, AbstractSegBufPool);
 typedef Pool AbstractCollectPool;
 #define AbstractCollectPoolCheck PoolCheck
-DECLARE_CLASS(Pool, AbstractCollectPool, AbstractScanPool);
+DECLARE_CLASS(Pool, AbstractCollectPool, AbstractSegBufPool);
 
 
 /* Message Interface -- see <design/message/> */
@@ -510,7 +498,7 @@ extern void GlobalsReinitializeAll(void);
 #define ArenaGreyRing(arena, rank) (&(arena)->greyRing[rank])
 #define ArenaPoolRing(arena) (&ArenaGlobals(arena)->poolRing)
 #define ArenaChunkTree(arena) RVALUE((arena)->chunkTree)
-#define ArenaChunkRing(arena) RVALUE(&(arena)->chunkRing)
+#define ArenaChunkRing(arena)   (&(arena)->chunkRing)
 #define ArenaShield(arena)      (&(arena)->shieldStruct)
 #define ArenaHistory(arena)     (&(arena)->historyStruct)
 
@@ -663,6 +651,21 @@ extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi);
 extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at);
+extern Res SegAccess(Seg seg, Arena arena, Addr addr,
+                     AccessSet mode, MutatorContext context);
+extern Res SegWholeAccess(Seg seg, Arena arena, Addr addr,
+                          AccessSet mode, MutatorContext context);
+extern Res SegSingleAccess(Seg seg, Arena arena, Addr addr,
+                           AccessSet mode, MutatorContext context);
+extern Res SegWhiten(Seg seg, Trace trace);
+extern void SegGreyen(Seg seg, Trace trace);
+extern void SegBlacken(Seg seg, TraceSet traceSet);
+extern Res SegScan(Bool *totalReturn, Seg seg, ScanState ss);
+extern Res SegFix(Seg seg, ScanState ss, Addr *refIO);
+extern Res SegFixEmergency(Seg seg, ScanState ss, Addr *refIO);
+extern void SegReclaim(Seg seg, Trace trace);
+extern void SegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                    void *v, size_t s);
 extern Res SegAbsDescribe(Inst seg, mps_lib_FILE *stream, Count depth);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream, Count depth);
 extern void SegSetSummary(Seg seg, RefSet summary);
@@ -697,7 +700,7 @@ extern Addr (SegLimit)(Seg seg);
 #define SegGrey(seg)            RVALUE((TraceSet)(seg)->grey)
 #define SegWhite(seg)           RVALUE((TraceSet)(seg)->white)
 #define SegNailed(seg)          RVALUE((TraceSet)(seg)->nailed)
-#define SegPoolRing(seg)        RVALUE(&(seg)->poolRing)
+#define SegPoolRing(seg)        (&(seg)->poolRing)
 #define SegOfPoolRing(node)     RING_ELT(Seg, poolRing, (node))
 #define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
@@ -967,22 +970,47 @@ extern Res RootsIterate(Globals arena, RootIterateFn f, void *p);
 extern Bool LandCheck(Land land);
 #define LandArena(land) ((land)->arena)
 #define LandAlignment(land) ((land)->alignment)
-extern Size LandSize(Land land);
+extern Size (LandSize)(Land land);
 extern Res LandInit(Land land, LandClass klass, Arena arena, Align alignment, void *owner, ArgList args);
 extern void LandFinish(Land land);
-extern Res LandInsert(Range rangeReturn, Land land, Range range);
-extern Res LandDelete(Range rangeReturn, Land land, Range range);
-extern Bool LandIterate(Land land, LandVisitor visitor, void *closure);
-extern Bool LandIterateAndDelete(Land land, LandDeleteVisitor visitor, void *closure);
-extern Bool LandFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
-extern Bool LandFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
-extern Bool LandFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
-extern Res LandFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
+extern Res (LandInsert)(Range rangeReturn, Land land, Range range);
+extern Res (LandDelete)(Range rangeReturn, Land land, Range range);
+extern Bool (LandIterate)(Land land, LandVisitor visitor, void *closure);
+extern Bool (LandIterateAndDelete)(Land land, LandDeleteVisitor visitor, void *closure);
+extern Bool (LandFindFirst)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Bool (LandFindLast)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Bool (LandFindLargest)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
+extern Res (LandFindInZones)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
 extern Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth);
-extern Bool LandFlush(Land dest, Land src);
-
+extern Bool LandFlushVisitor(Bool *deleteReturn, Land land, Range range, void *closure);
+extern Bool (LandFlush)(Land dest, Land src);
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass klass);
+
+/* See .critical.macros. */
+#define LandSizeMacro(land) Method(Land, land, sizeMethod)(land)
+#define LandInsertMacro(rangeReturn, land, range) Method(Land, land, insert)(rangeReturn, land, range)
+#define LandDeleteMacro(rangeReturn, land, range) Method(Land, land, delete)(rangeReturn, land, range)
+#define LandIterateMacro(land, visitor, closure) Method(Land, land, iterate)(land, visitor, closure)
+#define LandIterateAndDeleteMacro(land, visitor, closure) Method(Land, land, iterateAndDelete)(land, visitor, closure)
+#define LandFindFirstMacro(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findFirst)(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindLastMacro(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findLast)(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindLargestMacro(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findLargest)(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindInZonesMacro(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high) Method(Land, land, findInZones)(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high)
+#define LandFlushMacro(dest, src) LandIterateAndDelete(src, LandFlushVisitor, dest)
+#if !defined(AVER_AND_CHECK_ALL)
+#define LandSize(land) LandSizeMacro(land)
+#define LandInsert(rangeReturn, land, range) LandInsertMacro(rangeReturn, land, range)
+#define LandDelete(rangeReturn, land, range) LandDeleteMacro(rangeReturn, land, range)
+#define LandIterate(land, visitor, closure) LandIterateMacro(land, visitor, closure)
+#define LandIterateAndDelete(land, visitor, closure) LandIterateAndDeleteMacro(land, visitor, closure)
+#define LandFindFirst(rangeReturn, oldRangeReturn, land, size, findDelete) LandFindFirstMacro(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindLast(rangeReturn, oldRangeReturn, land, size, findDelete) LandFindLastMacro(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindLargest(rangeReturn, oldRangeReturn, land, size, findDelete) LandFindLargestMacro(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindInZones(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high) LandFindInZonesMacro(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high)
+#define LandFlush(dest, src) LandFlushMacro(dest, src)
+#endif /* !defined(AVER_AND_CHECK_ALL) */
+
 DECLARE_CLASS(Inst, LandClass, InstClass);
 DECLARE_CLASS(Land, Land, Inst);
 
@@ -1013,7 +1041,7 @@ DECLARE_CLASS(Land, Land, Inst);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -92,7 +92,7 @@ size, ``AMCBufferFill()`` fills any remainder with an large segment
 pad.
 
 _`.pad.reason.nmr`: Non-mobile reclaim (NMR) pads are made by
-``amcReclaimNailed()``, when performing reclaim on a non-mobile (that
+``amcSegReclaimNailed()``, when performing reclaim on a non-mobile (that
 is, either boarded or stuck) segment:
 
 The more common NMR scenario is reclaim of a boarded segment after a
@@ -117,7 +117,7 @@ not distinguishable because there is no nailboard. On reclaim, all
 objects except forwarding pointers are preserved; each forwarding
 object is replaced by an NMR pad.
 
-If ``amcReclaimNailed()`` finds no objects to be preserved then it
+If ``amcSegReclaimNailed()`` finds no objects to be preserved then it
 calls ``SegFree()`` (new with job001809_).
 
 
@@ -137,7 +137,7 @@ Retained pads could be a problem
 
 Retained pads are the NMR pads stuck in "from-space": non-mobile
 segments that were condemned but have preserved-in-place objects
-cannot be freed by ``amcReclaimNailed()``. The space around the
+cannot be freed by ``amcSegReclaimNailed()``. The space around the
 preserved objects is filled with NMR pads.
 
 In the worst case, retained pads could waste an enormous amount of
@@ -181,7 +181,7 @@ AMC might treat "Large" segments specially, in two ways:
   any) is immediately padded with an LSP pad.
 
 - _`.large.lsp-no-retain`: Nails to such an LSP pad do not cause
-  AMCReclaimNailed() to retain the segment.
+  ``amcSegReclaimNailed()`` to retain the segment.
 
 `.large.single-reserve`_ is implemented. See job001811_.
 
@@ -204,21 +204,21 @@ indistinguishable from a client object, so AMC has no direct way to
 detect, and safely ignore, the final LSP object in the seg. If AMC
 could *guarantee* that the single buffer reserve
 (`.large.single-reserve`_) is only used for a single *object*, then
-``AMCReclaimNailed()`` could honour a nail at the start of a large seg
-and ignore all others; this would be extremely simple to implement.
-But AMC cannot guarantee this, because in the MPS Allocation Point
-Protocol the client is permitted to make a large buffer reserve and
-then fill it with many small objects. In such a case, AMC must honour
-all nails (if the buffer reserve request was an exact multiple of the
-arena grain size), or all nails except to the last object (if there
-was a remainder filled with an LSP pad). Because an LSP pad cannot be
-distinguished from a client object, and the requested allocation size
-is not recorded, AMC cannot distinguish these two conditions at
-reclaim time. Therefore AMC must record whether or not the last object
-in the seg is a pad, in order to ignore nails to it. This could be
-done by adding a flag to ``AMCSegStruct``. (This can be done without
-increasing the structure size, by making the ``Bool new`` field
-smaller than its current 32 bits.)
+``amcSegReclaimNailed()`` could honour a nail at the start of a large
+seg and ignore all others; this would be extremely simple to
+implement. But AMC cannot guarantee this, because in the MPS
+Allocation Point Protocol the client is permitted to make a large
+buffer reserve and then fill it with many small objects. In such a
+case, AMC must honour all nails (if the buffer reserve request was an
+exact multiple of the arena grain size), or all nails except to the
+last object (if there was a remainder filled with an LSP pad). Because
+an LSP pad cannot be distinguished from a client object, and the
+requested allocation size is not recorded, AMC cannot distinguish
+these two conditions at reclaim time. Therefore AMC must record
+whether or not the last object in the seg is a pad, in order to ignore
+nails to it. This could be done by adding a flag to ``AMCSegStruct``.
+(This can be done without increasing the structure size, by making the
+``Bool new`` field smaller than its current 32 bits.)
 
 
 The LSP payoff calculation
@@ -442,8 +442,8 @@ segment to survive even though there are no surviving objects on it.
 Emergency tracing
 -----------------
 
-_`.emergency.fix`: ``AMCFixEmergency()`` is at the core of AMC's
-emergency tracing policy (unsurprisingly). ``AMCFixEmergency()``
+_`.emergency.fix`: ``amcSegFixEmergency()`` is at the core of AMC's
+emergency tracing policy (unsurprisingly). ``amcSegFixEmergency()``
 chooses exactly one of three options:
 
 #. use the existing nailboard structure to record the fix;
@@ -459,8 +459,8 @@ is used to snapout the pointer. Otherwise it is as for an
 
 _`.emergency.scan`: This is basically as before, the only complication
 is that when scanning a nailed segment we may need to do multiple
-passes, as ``FixEmergency()`` may introduce new marks into the nail
-board.
+passes, as ``amcSegFixEmergency()`` may introduce new marks into the
+nail board.
 
 
 Buffers
@@ -656,8 +656,9 @@ for small enough ramps.
 _`.ramp.begin.leave.ramping`: We enter the RAMPING state if a
 collection starts that condemns the ramp generation (pedantically when
 a new GC begins, and a segment in the ramp generation is condemned, we
-leave the BEGIN state, see AMCWhiten). At this point we switch the
-ramp generation to forward to itself (`.gen.ramp.ramping`_).
+leave the BEGIN state, see ``amcSegWhiten()``). At this point we
+switch the ramp generation to forward to itself
+(`.gen.ramp.ramping`_).
 
 _`.ramp.ramping.leave`: We leave the RAMPING state and go to the
 FINISH state when the ramp count goes back to zero. Thus, the FINISH
@@ -739,9 +740,9 @@ exposed, in which case the group attached to it should be exposed. See
 `.flush.cover`_.
 
 
-``Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
+``Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)``
 
-_`.fix`: Fix a reference to the pool.
+_`.fix`: Fix a reference to an AMC segment.
 
 Ambiguous references lock down an entire segment by removing it
 from old-space and also marking it grey for future scanning.
@@ -765,13 +766,13 @@ _`.fix.exact.grey`: The new copy must be at least as grey as the old
 as it may have been grey for some other collection.
 
 
-``Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)``
+``Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss1)``
 
 _`.scan`: Searches for a group which is grey for the trace and scans
 it. If there aren't any, it sets the finished flag to true.
 
 
-``void AMCReclaim(Pool pool, Trace trace, Seg seg)``
+``void amcSegReclaim(Seg seg, Trace trace)``
 
 _`.reclaim`: After a trace, destroy any groups which are still
 condemned for the trace, because they must be dead.

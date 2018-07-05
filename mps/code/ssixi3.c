@@ -39,8 +39,11 @@
  *
  */
 
-
 #include "mpm.h"
+
+#if (!defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)) || !defined(MPS_ARCH_I3)
+#error "ssixi3.c is specific to MPS_OS_FR, MPS_OS_LI or MPS_OS_XC, and MPS_ARCH_I3"
+#endif
 
 SRCID(ssixi3, "$Id$");
 
