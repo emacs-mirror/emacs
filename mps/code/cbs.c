@@ -413,12 +413,12 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
   }
 
   /* .insert.overlap: The two cases below are not quite symmetrical,
-     because base was passed into the call to SplayTreeNeighbours(), but
+     because base was passed into the call to SplayTreeNeighbours, but
      limit was not. So we know that if there is a left neighbour, then
-     RangeTreeLimit(leftBlock) <= base (this is ensured by RangeTreeCompare, which
-     is the comparison method on the tree). But if there is a right
-     neighbour, all we know is that base < RangeTreeBase(rightBlock). But for
-     the range to fit, we need limit <= RangeTreeBase(rightBlock) too. Hence
+     leftBlock's limit <= base (this is ensured by RangeTreeCompare,
+     which is the comparison method on the tree). But if there is a
+     right neighbour, all we know is that base < rightBlock's base. But
+     for the range to fit, we need limit <= rightBlock's base too. Hence
      the extra check and the possibility of failure in the second
      case. */
 
