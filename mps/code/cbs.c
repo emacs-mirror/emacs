@@ -6,8 +6,8 @@
  * .intro: This is a portable implementation of coalescing block
  * structures.
  *
- * .purpose: CBSs are used to manage potentially unbounded
- * collections of memory blocks.
+ * .purpose: CBSs are used to manage potentially unbounded collections
+ * of memory blocks.
  *
  * .sources: <design/cbs/>.
  */
@@ -25,13 +25,13 @@ SRCID(cbs, "$Id$");
 
 #define cbsOfLand(land) PARENT(CBSStruct, landStruct, land)
 #define cbsSplay(cbs) (&((cbs)->splayTreeStruct))
-#define cbsOfSplay(_splay) PARENT(CBSStruct, splayTreeStruct, _splay)
-#define cbsFastBlockOfTree(_tree) \
-  PARENT(CBSFastBlockStruct, nodeStruct, NodeOfTree(_tree))
-#define cbsFastBlockNode(_block) (&(_block)->nodeStruct)
-#define cbsZonedBlockOfTree(_tree) \
-  PARENT(CBSZonedBlockStruct, cbsFastBlockStruct, cbsFastBlockOfTree(_tree))
-#define cbsZonedBlockNode(_block) cbsFastBlockNode(&(_block)->cbsFastBlockStruct)
+#define cbsOfSplay(splay) PARENT(CBSStruct, splayTreeStruct, splay)
+#define cbsFastBlockOfTree(tree) \
+  PARENT(CBSFastBlockStruct, nodeStruct, NodeOfTree(tree))
+#define cbsFastBlockNode(block) (&(block)->nodeStruct)
+#define cbsZonedBlockOfTree(tree) \
+  PARENT(CBSZonedBlockStruct, cbsFastBlockStruct, cbsFastBlockOfTree(tree))
+#define cbsZonedBlockNode(block) cbsFastBlockNode(&(block)->cbsFastBlockStruct)
 #define cbsBlockPool(cbs) RVALUE((cbs)->blockPool)
 
 
@@ -405,22 +405,22 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
   limit = RangeLimit(range);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
-  b = SplayTreeNeighbours(&leftSplay, &rightSplay,
-                          cbsSplay(cbs), NodeKeyOfBaseVar(base));
+  b = SplayTreeNeighbours(&leftSplay, &rightSplay, cbsSplay(cbs),
+                          NodeKeyOfBaseVar(base));
   if (!b) {
     res = ResFAIL;
     goto fail;
   }
 
   /* .insert.overlap: The two cases below are not quite symmetrical,
-     because base was passed into the call to SplayTreeNeighbours(),
-     but limit was not.  So we know that if there is a left neighbour,
-     then leftBlock's limit <= base (this is ensured by NodeCompare,
-     which is the comparison method on the tree).  But if there is a
-     right neighbour, all we know is that base < rightBlock's
-     base. But for the range to fit, we need limit <= rightBlock's
-     base too. Hence the extra check and the possibility of failure in
-     the second case. */
+     because base was passed into the call to SplayTreeNeighbours(), but
+     limit was not. So we know that if there is a left neighbour, then
+     NodeLimit(leftBlock) <= base (this is ensured by NodeCompare, which
+     is the comparison method on the tree). But if there is a right
+     neighbour, all we know is that base < NodeBase(rightBlock). But for
+     the range to fit, we need limit <= NodeBase(rightBlock) too. Hence
+     the extra check and the possibility of failure in the second
+     case. */
 
   if (leftSplay == TreeEMPTY) {
     leftBlock = NULL;
@@ -436,7 +436,7 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
     rightMerge = FALSE;
   } else {
     rightBlock = NodeOfTree(rightSplay);
-    if (rightBlock != NULL && limit > NodeLimit(rightBlock)) {
+    if (rightBlock != NULL && limit > NodeBase(rightBlock)) {
       /* .insert.overlap */
       res = ResFAIL;
       goto fail;
@@ -861,7 +861,7 @@ static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
 
 /* cbsFindInZones -- find a block within a zone set
  *
- * Fins a block of at least the given size that lies entirely within a
+ * Finds a block of at least the given size that lies entirely within a
  * zone set. (The first such block, if high is FALSE, or the last, if
  * high is TRUE.)
  */
@@ -881,7 +881,8 @@ static Bool cbsTestNodeInZones(SplayTree splay, Tree tree,
   Node block = NodeOfTree(tree);
   cbsTestNodeInZonesClosure my = closure;
   RangeInZoneSet search;
-  
+
+  AVER_CRITICAL(closure != NULL);
   UNUSED(splay);
 
   search = my->high ? RangeInZoneSetLast : RangeInZoneSetFirst;
@@ -898,6 +899,7 @@ static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
   CBSZonedBlock zonedBlock = cbsZonedBlockOfTree(tree);
   cbsTestNodeInZonesClosure my = closure;
   
+  AVER_CRITICAL(closure != NULL);
   UNUSED(splay);
   
   return fastBlock->maxSize >= my->size

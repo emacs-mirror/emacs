@@ -40,6 +40,12 @@ extern void (RangeSetLimit)(Range range, Addr addr);
 extern Size (RangeSize)(Range range);
 extern void RangeCopy(Range to, Range from);
 
+/* RangeStruct -- address range */
+
+typedef struct RangeStruct {
+  Addr base;
+  Addr limit;
+} RangeStruct;
 
 #endif /* range_h */
 

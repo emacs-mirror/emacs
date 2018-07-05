@@ -12,6 +12,7 @@
 #include "arg.h"
 #include "mpmtypes.h"
 #include "mpmst.h"
+#include "node.h"
 #include "range.h"
 #include "splay.h"
 

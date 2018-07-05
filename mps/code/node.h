@@ -8,6 +8,7 @@
 #define node_h
 
 #include "mpmtypes.h"
+#include "range.h"
 #include "tree.h"
 
 #define NodeTree(node) (&(node)->treeStruct)
@@ -29,10 +30,10 @@ extern void NodeFinish(Node node);
 
 /* Functions for nodes in trees
  *
- * We pass the ndoe base directly as a TreeKey (void *) assuming that
+ * We pass the node base directly as a TreeKey (void *) assuming that
  * Addr can be encoded, and possibly breaking <design/type/#addr.use>.
  * On an exotic platform where this isn't true, pass the address of
- * base.  i.e. add an &
+ * base: that is, add an &.
  */
 
 #define NodeKeyOfBaseVar(baseVar) ((TreeKey)(baseVar))
@@ -41,6 +42,13 @@ extern void NodeFinish(Node node);
 extern Compare NodeCompare(Tree tree, TreeKey key);
 extern TreeKey NodeKey(Tree tree);
 
+
+/* NodeStruct -- address range in a tree */
+
+typedef struct NodeStruct {
+  TreeStruct treeStruct;
+  RangeStruct rangeStruct;
+} NodeStruct;
 
 #endif /* node_h */
 

@@ -111,7 +111,9 @@ following optional keyword arguments:
   the block descriptor pool automatically extends itself when out of
   space; if ``FALSE``, the pool returns ``ResLIMIT`` in this case.
   (This feature is used by the arena to bootstrap its own CBS of free
-  memory. See design.mps.bootstrap.land.sol.pool.)
+  memory. See design.mps.bootstrap.land.sol.pool_.)
+
+  .. _design.mps.bootstrap.land.sol.pool: bootstrap#land-sol-pool
 
 
 Limitations
@@ -238,10 +240,10 @@ this would make coalescence slightly less eager, by up to
 
 _`.future.iterate.and.delete`: It would be possible to provide an
 implementation for the ``LandIterateAndDelete()`` generic function
-using ``TreeTraverseAndDelete``, which calls ``TreeToVine()`` first,
+using ``TreeTraverseAndDelete()``, which calls ``TreeToVine()`` first,
 iterates over the vine (where deletion is straightforward), and then
-rebalances the tree.  Note that this is little better than using
-``SplayFirst`` and ``SplayNext``.
+rebalances the tree. Note that this is little better than using
+``SplayFirst()`` and ``SplayNext()``.
 
 _`.future.lazy-coalesce`: It's long been observed that small blocks
 are often freed and then reallocated, so that coalescing them is a
@@ -299,7 +301,7 @@ Document History
   Documented new keyword arguments.
 
 - 2016-03-27 RB_ Adding cross references to usage. Updating future
-  with reference to ``TreeTraverseAndDelete``. Adding future idea
+  with reference to ``TreeTraverseAndDelete()``. Adding future idea
   about lazy coalescing.
   
 .. _RB: http://www.ravenbrook.com/consultants/rb/
