@@ -74,7 +74,8 @@ typedef struct RefPartStruct {
 } RefPartStruct;
 
 
-/* MRGRefPartRef,MRGRefPartSetRef -- Peek and poke the reference
+/* MRGRefPartRef,MRGRefPartSetRef -- read and write the reference
+ * using the software barrier
  *
  * Might be more efficient to take a seg, rather than calculate it
  * every time.
@@ -87,7 +88,7 @@ static Ref MRGRefPartRef(Arena arena, RefPart refPart)
 
   AVER(refPart != NULL);
 
-  ref = ArenaPeek(arena, &refPart->ref);
+  ref = ArenaRead(arena, &refPart->ref);
   return ref;
 }
 
@@ -102,7 +103,7 @@ static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
 {
   AVER(refPart != NULL);
 
-  ArenaPoke(arena, &refPart->ref, ref);
+  ArenaWrite(arena, &refPart->ref, ref);
 }
 
 

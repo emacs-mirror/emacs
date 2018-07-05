@@ -172,7 +172,7 @@ DECLARE_CLASS(Pool, AMSPool, AbstractCollectPool);
 typedef AMS AMSDebugPool;
 DECLARE_CLASS(Pool, AMSDebugPool, AMSPool);
 
-DECLARE_CLASS(Seg, AMSSeg, GCSeg);
+DECLARE_CLASS(Seg, AMSSeg, MutatorSeg);
 
 
 #endif /* poolams_h */

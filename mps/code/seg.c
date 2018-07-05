@@ -7,15 +7,8 @@
  *
  * PURPOSE
  *
- * .purpose: This is the implementation of the generic segment interface.
- * It defines the interface functions and two useful segment classes:
- * .purpose.class.seg: Class Seg is a class which is as simple
- * as efficiency demands permit.  (It includes fields for storing colour
- * for efficiency).  It may be subclassed by clients of the module.
- * .purpose.class.seg-gc: Class GCSeg is a concrete class support all
- * all current GC features, and providing full backwards compatibility
- * with "old-style" segments.  It may be subclassed by clients of the
- * module.
+ * .purpose: This is the implementation of the generic segment
+ * interface and the segment classes Seg, GCSeg and MutatorSeg.
  */
 
 #include "tract.h"
@@ -113,7 +106,7 @@ void SegFree(Seg seg)
 
 /* SegInit -- initialize a segment */
 
-static Res SegAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
+static Res segAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   Arena arena;
   Addr addr, limit;
@@ -185,7 +178,7 @@ static Res SegInit(Seg seg, SegClass klass, Pool pool, Addr base, Size size, Arg
 
 /* SegFinish -- finish a segment */
 
-static void SegAbsFinish(Inst inst)
+static void segAbsFinish(Inst inst)
 {
   Seg seg = MustBeA(Seg, inst);
   Arena arena;
@@ -259,6 +252,22 @@ void SegSetGrey(Seg seg, TraceSet grey)
      greyness, or if the segment doesn't contain any references. */
   if (grey != SegGrey(seg) && SegRankSet(seg) != RankSetEMPTY)
     Method(Seg, seg, setGrey)(seg, grey);
+
+  EVENT3(SegSetGrey, PoolArena(SegPool(seg)), seg, grey);
+}
+
+
+/* SegFlip -- update barriers for trace that's about to flip */
+
+void SegFlip(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+
+  /* Don't dispatch to the class method unless the segment is grey for
+     the trace that's about to flip, and contains references. */
+  if (TraceSetIsMember(SegGrey(seg), trace) && SegRankSet(seg) != RankSetEMPTY)
+    Method(Seg, seg, flip)(seg, trace);
 }
 
 
@@ -385,7 +394,7 @@ Addr SegBufferScanLimit(Seg seg)
 
 /* SegDescribe -- describe a segment */
 
-Res SegAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
+static Res segAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
   Seg seg = CouldBeA(Seg, inst);
   Res res;
@@ -929,6 +938,16 @@ static void segNoSetGrey(Seg seg, TraceSet grey)
 }
 
 
+/* segTrivFlip -- ignore trace that's about to flip */
+
+static void segTrivFlip(Seg seg, Trace trace)
+{
+  AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  AVER(seg->rankSet != RankSetEMPTY);
+}
+
+
 /* segNoSetWhite -- non-method to change the whiteness of a segment */
 
 static void segNoSetWhite(Seg seg, TraceSet white)
@@ -1308,7 +1327,7 @@ static void segNoGreyen(Seg seg, Trace trace)
 }
 
 
-/* segNoGreyen -- blacken method for non-GC segs */
+/* segNoBlacken -- blacken method for non-GC segs */
 
 static void segNoBlacken(Seg seg, TraceSet traceSet)
 {
@@ -1369,9 +1388,7 @@ static void segTrivWalk(Seg seg, Format format, FormattedObjectsVisitor f,
 }
 
 
-/* Class GCSeg -- Segment class with GC support
- */
-
+/* Class GCSeg -- collectable segment class */
 
 /* GCSegCheck -- check the integrity of a GCSeg */
 
@@ -1520,31 +1537,39 @@ static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
 
 /* gcSegSetGrey -- GCSeg method to change the greyness of a segment
  *
- * Sets the segment greyness to the trace set grey and adjusts
- * the shielding on the segment appropriately.
+ * Sets the segment greyness to the trace set grey.
  */
 
 static void gcSegSetGrey(Seg seg, TraceSet grey)
 {
-  GCSeg gcseg;
+  AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
+  AVERT_CRITICAL(TraceSet, grey);      /* .seg.method.check */
+  AVER_CRITICAL(seg->rankSet != RankSetEMPTY);
+
+  gcSegSetGreyInternal(seg, seg->grey, grey); /* do the work */
+}
+
+
+/* mutatorSegSetGrey -- MutatorSeg method to change greyness of segment
+ *
+ * As gcSegSetGrey, but also raise or lower the read barrier.
+ */
+
+static void mutatorSegSetGrey(Seg seg, TraceSet grey)
+{
   TraceSet oldGrey, flippedTraces;
   Arena arena;
  
   AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
-  AVERT_CRITICAL(TraceSet, grey);      /* .seg.method.check */
-  AVER(seg->rankSet != RankSetEMPTY);
-  gcseg = SegGCSeg(seg);
-  AVERT_CRITICAL(GCSeg, gcseg);
-  AVER_CRITICAL(&gcseg->segStruct == seg);
-  UNUSED(gcseg);
 
-  arena = PoolArena(SegPool(seg));
   oldGrey = seg->grey;
-  gcSegSetGreyInternal(seg, oldGrey, grey); /* do the work */
+
+  NextMethod(Seg, MutatorSeg, setGrey)(seg, grey);
 
   /* The read barrier is raised when the segment is grey for */
   /* some _flipped_ trace, i.e., is grey for a trace for which */
   /* the mutator is black. */
+  arena = PoolArena(SegPool(seg));
   flippedTraces = arena->flippedTraces;
   if (TraceSetInter(oldGrey, flippedTraces) == TraceSetEMPTY) {
     if (TraceSetInter(grey, flippedTraces) != TraceSetEMPTY)
@@ -1553,8 +1578,31 @@ static void gcSegSetGrey(Seg seg, TraceSet grey)
     if (TraceSetInter(grey, flippedTraces) == TraceSetEMPTY)
       ShieldLower(arena, seg, AccessREAD);
   }
+}
 
-  EVENT3(SegSetGrey, arena, seg, grey);
+/* mutatorSegFlip -- update barriers for a trace that's about to flip */
+
+static void mutatorSegFlip(Seg seg, Trace trace)
+{
+  TraceSet flippedTraces;
+  Arena arena;
+
+  NextMethod(Seg, MutatorSeg, flip)(seg, trace);
+
+  arena = PoolArena(SegPool(seg));
+  flippedTraces = arena->flippedTraces;
+  AVER(!TraceSetIsMember(flippedTraces, trace));
+
+  /* Raise the read barrier if the segment was not grey for any
+     currently flipped trace. */
+  if (TraceSetInter(SegGrey(seg), flippedTraces) == TraceSetEMPTY) {
+    ShieldRaise(arena, seg, AccessREAD);
+  } else {
+    /* If the segment is grey for some currently flipped trace then
+       the read barrier must already have been raised, either in this
+       method or in mutatorSegSetGrey. */
+    AVER(SegSM(seg) & AccessREAD);
+  }
 }
 
 
@@ -1588,19 +1636,13 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
     AVER_CRITICAL(trseg == seg);
     TractSetWhite(tract, BS_BITFIELD(Trace, white));
   }
-  AVER(addr == limit);
+  AVER_CRITICAL(addr == limit);
 
   seg->white = BS_BITFIELD(Trace, white);
 }
 
 
 /* gcSegSetRankSet -- GCSeg method to set the rank set of a segment
- *
- * If the rank set is made non-empty then the segment's summary is
- * now a subset of the mutator's (which is assumed to be RefSetUNIV)
- * so the write barrier must be imposed on the segment.  If the
- * rank set is made empty then there are no longer any references
- * on the segment so the barrier is removed.
  *
  * The caller must set the summary to empty before setting the rank
  * set to empty.  The caller must set the rank set to non-empty before
@@ -1609,38 +1651,62 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
 
 static void gcSegSetRankSet(Seg seg, RankSet rankSet)
 {
-  GCSeg gcseg;
-  RankSet oldRankSet;
-  Arena arena;
-
   AVERT_CRITICAL(Seg, seg);                /* .seg.method.check */
   AVERT_CRITICAL(RankSet, rankSet);        /* .seg.method.check */
   AVER_CRITICAL(rankSet == RankSetEMPTY
                 || RankSetIsSingle(rankSet)); /* .seg.method.check */
-  gcseg = SegGCSeg(seg);
-  AVERT_CRITICAL(GCSeg, gcseg);
-  AVER_CRITICAL(&gcseg->segStruct == seg);
 
-  arena = PoolArena(SegPool(seg));
-  oldRankSet = seg->rankSet;
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
+}
+
+
+/* mutatorSegSetRankSet -- MutatorSeg method to set rank set of segment
+ *
+ * As gcSegSetRankSet, but also sets or clears the write barrier on
+ * the segment.
+ *
+ * If the rank set is made non-empty then the segment's summary is now
+ * a subset of the mutator's (which is assumed to be RefSetUNIV) so
+ * the write barrier must be imposed on the segment. If the rank set
+ * is made empty then there are no longer any references on the
+ * segment so the barrier is removed.
+ */
+
+static void mutatorSegSetRankSet(Seg seg, RankSet rankSet)
+{
+  RankSet oldRankSet;
+
+  AVERT_CRITICAL(Seg, seg);                /* .seg.method.check */
+  oldRankSet = seg->rankSet;
+
+  NextMethod(Seg, MutatorSeg, setRankSet)(seg, rankSet);
 
   if (oldRankSet == RankSetEMPTY) {
     if (rankSet != RankSetEMPTY) {
-      AVER(gcseg->summary == RefSetEMPTY);
-      ShieldRaise(arena, seg, AccessWRITE);
+      AVER_CRITICAL(SegGCSeg(seg)->summary == RefSetEMPTY);
+      ShieldRaise(PoolArena(SegPool(seg)), seg, AccessWRITE);
     }
   } else {
     if (rankSet == RankSetEMPTY) {
-      AVER(gcseg->summary == RefSetEMPTY);
-      ShieldLower(arena, seg, AccessWRITE);
+      AVER_CRITICAL(SegGCSeg(seg)->summary == RefSetEMPTY);
+      ShieldLower(PoolArena(SegPool(seg)), seg, AccessWRITE);
     }
   }
 }
 
 
-static void gcSegSyncWriteBarrier(Seg seg, Arena arena)
+/* mutatorSegSyncWriteBarrier -- raise or lower write barrier on segment
+ *
+ * We only need to raise the write barrier if the segment contains
+ * references, and its summary is strictly smaller than the summary of
+ * the unprotectable data (that is, the mutator). We don't maintain
+ * such a summary, assuming that the mutator can access all
+ * references, so its summary is RefSetUNIV.
+ */
+
+static void mutatorSegSyncWriteBarrier(Seg seg)
 {
+  Arena arena = PoolArena(SegPool(seg));
   /* Can't check seg -- this function enforces invariants tested by SegCheck. */
   if (SegSummary(seg) == RefSetUNIV)
     ShieldLower(arena, seg, AccessWRITE);
@@ -1649,32 +1715,34 @@ static void gcSegSyncWriteBarrier(Seg seg, Arena arena)
 }
 
 
-/* gcSegSetSummary -- GCSeg method to change the summary on a segment
- *
- * In fact, we only need to raise the write barrier if the
- * segment contains references, and its summary is strictly smaller
- * than the summary of the unprotectable data (i.e. the mutator).
- * We don't maintain such a summary, assuming that the mutator can
- * access all references, so its summary is RefSetUNIV.
- */
+/* gcSegSetSummary -- GCSeg method to change the summary on a segment */
 
 static void gcSegSetSummary(Seg seg, RefSet summary)
 {
   GCSeg gcseg;
-  Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                 /* .seg.method.check */
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
-  arena = PoolArena(SegPool(seg));
   gcseg->summary = summary;
 
-  AVER(seg->rankSet != RankSetEMPTY);
-
-  gcSegSyncWriteBarrier(seg, arena);
+  AVER_CRITICAL(seg->rankSet != RankSetEMPTY);
 }
+
+
+/* mutatorSegSetSummary -- MutatorSeg method to change summary on segment
+ *
+ * As gcSegSetSummary, but also raise or lower the write barrier.
+ */
+
+static void mutatorSegSetSummary(Seg seg, RefSet summary)
+{
+  NextMethod(Seg, MutatorSeg, setSummary)(seg, summary);
+  mutatorSegSyncWriteBarrier(seg);
+}
+
 
 
 /* gcSegSetRankSummary -- GCSeg method to set both rank set and summary */
@@ -1682,7 +1750,6 @@ static void gcSegSetSummary(Seg seg, RefSet summary)
 static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
   GCSeg gcseg;
-  Arena arena;
 
   AVERT_CRITICAL(Seg, seg);                    /* .seg.method.check */
   AVERT_CRITICAL(RankSet, rankSet);            /* .seg.method.check */
@@ -1693,15 +1760,17 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
   AVER_CRITICAL(&gcseg->segStruct == seg);
 
   /* rankSet == RankSetEMPTY implies summary == RefSetEMPTY */
-  AVER(rankSet != RankSetEMPTY || summary == RefSetEMPTY);
-
-  arena = PoolArena(SegPool(seg));
+  AVER_CRITICAL(rankSet != RankSetEMPTY || summary == RefSetEMPTY);
 
   seg->rankSet = BS_BITFIELD(Rank, rankSet);
   gcseg->summary = summary;
+}
 
+static void mutatorSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
+{
+  NextMethod(Seg, MutatorSeg, setRankSummary)(seg, rankSet, summary);
   if (rankSet != RankSetEMPTY)
-    gcSegSyncWriteBarrier(seg, arena);
+    mutatorSegSyncWriteBarrier(seg);
 }
 
 
@@ -1997,8 +2066,8 @@ Bool SegClassCheck(SegClass klass)
   CHECKL(FUNCHECK(klass->walk));
 
   /* Check that segment classes override sets of related methods. */
-  CHECKL((klass->init == SegAbsInit)
-         == (klass->instClassStruct.finish == SegAbsFinish));
+  CHECKL((klass->init == segAbsInit)
+         == (klass->instClassStruct.finish == segAbsFinish));
   CHECKL((klass->init == gcSegInit)
          == (klass->instClassStruct.finish == gcSegFinish));
   CHECKL((klass->merge == segTrivMerge) == (klass->split == segTrivSplit));
@@ -2021,15 +2090,16 @@ DEFINE_CLASS(Inst, SegClass, klass)
 DEFINE_CLASS(Seg, Seg, klass)
 {
   INHERIT_CLASS(&klass->instClassStruct, Seg, Inst);
-  klass->instClassStruct.describe = SegAbsDescribe;
-  klass->instClassStruct.finish = SegAbsFinish;
+  klass->instClassStruct.describe = segAbsDescribe;
+  klass->instClassStruct.finish = segAbsFinish;
   klass->size = sizeof(SegStruct);
-  klass->init = SegAbsInit;
+  klass->init = segAbsInit;
   klass->setSummary = segNoSetSummary; 
   klass->buffer = segNoBuffer; 
   klass->setBuffer = segNoSetBuffer;
   klass->unsetBuffer = segNoUnsetBuffer;
   klass->setGrey = segNoSetGrey;
+  klass->flip = segTrivFlip;
   klass->setWhite = segNoSetWhite;
   klass->setRankSet = segNoSetRankSet;
   klass->setRankSummary = segNoSetRankSummary;
@@ -2079,6 +2149,22 @@ DEFINE_CLASS(Seg, GCSeg, klass)
   klass->fixEmergency = segNoFix; /* no useful default method */
   klass->reclaim = segNoReclaim; /* no useful default method */
   klass->walk = segTrivWalk;
+  AVERT(SegClass, klass);
+}
+
+
+/* MutatorSegClass -- collectable mutator segment class definition */
+
+typedef SegClassStruct MutatorSegClassStruct;
+
+DEFINE_CLASS(Seg, MutatorSeg, klass)
+{
+  INHERIT_CLASS(klass, MutatorSeg, GCSeg);
+  klass->setSummary = mutatorSegSetSummary; 
+  klass->setGrey = mutatorSegSetGrey;
+  klass->flip = mutatorSegFlip;
+  klass->setRankSet = mutatorSegSetRankSet;
+  klass->setRankSummary = mutatorSegSetRankSummary;
   AVERT(SegClass, klass);
 }
 
