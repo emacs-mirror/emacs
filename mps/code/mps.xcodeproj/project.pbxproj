@@ -1693,7 +1693,7 @@
 		311F2F7717398B8E00C15B6A /* ss.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ss.h; sourceTree = "<group>"; };
 		311F2F7817398B8E00C15B6A /* th.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = th.h; sourceTree = "<group>"; };
 		311F2F7A17398B8E00C15B6A /* tract.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tract.h; sourceTree = "<group>"; };
-		311F2F7B17398E7600C15B6A /* poolmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolmv.h; sourceTree = "<group>"; };
+		311F2F7B17398E7600C15B6A /* poolmvff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolmvff.h; sourceTree = "<group>"; };
 		311F2F7C17398E9A00C15B6A /* mpscmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscmv.h; sourceTree = "<group>"; };
 		3124CAB8156BE3EC00753214 /* awlut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awlut; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAC2156BE40100753214 /* awlut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awlut.c; sourceTree = "<group>"; };
@@ -2550,8 +2550,8 @@
 				22FACEDC18880933000FDBC1 /* poolmfs.h */,
 				31EEAC2E156AB2F200714D05 /* poolmrg.c */,
 				22FACEDD18880933000FDBC1 /* poolmrg.h */,
-				31EEAC2F156AB2F200714D05 /* poolmv.c */,
-				311F2F7B17398E7600C15B6A /* poolmv.h */,
+				31EEAC5F156AB44D00714D05 /* poolmvff.c */,
+				311F2F7B17398E7600C15B6A /* poolmvff.h */,
 				22FACEDE18880933000FDBC1 /* pooln.c */,
 				22FACEDF18880933000FDBC1 /* pooln.h */,
 				2213454C1DB0386600E14202 /* prmc.h */,
@@ -2628,9 +2628,9 @@
 				31CD33BD173A9F1500524741 /* poolams.h */,
 				3124CACE156BE4CF00753214 /* poolawl.c */,
 				3124CACA156BE4A300753214 /* poollo.c */,
+				31EEAC2F156AB2F200714D05 /* poolmv.c */,
 				31D4D5FD1745058100BE84B5 /* poolmv2.c */,
 				2291A5A8175CAA51001D4920 /* poolmv2.h */,
-				31EEAC5F156AB44D00714D05 /* poolmvff.c */,
 				31EEAC5D156AB43F00714D05 /* poolsnc.c */,
 			);
 			name = "Extra pools";
