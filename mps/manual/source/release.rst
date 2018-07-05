@@ -31,6 +31,25 @@ Interface changes
 #. The pool class :ref:`pool-mv` is now deprecated.
 
 
+Other changes
+.............
+
+#. Creation of :term:`arenas` is now thread-safe on Windows. See
+   job004056_.
+
+   .. _job004056: https://www.ravenbrook.com/project/mps/issue/job004056/
+
+#. :ref:`pool-awl` and :ref:`pool-lo` pools now detect (and assert on)
+   invalid :term:`exact references`. See job004070_.
+
+   .. _job004070: https://www.ravenbrook.com/project/mps/issue/job004070/
+
+#. The MPS now compiles without warnings on GCC version 7 with
+   ``-Wextra``. See job004076_.
+
+   .. _job004076: https://www.ravenbrook.com/project/mps/issue/job004076/
+
+
 .. _release-notes-1.116:
 
 Release 1.116.0
