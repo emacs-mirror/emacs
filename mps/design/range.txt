@@ -81,14 +81,14 @@ there is a function too.)
 
 ``void RangeSetBase(Range range, Addr addr)``
 
-Set the base of the range.  ``addr`` must not be greater than the
-range limit.  To set them both at once, use ``RangeInit``.  (This is
+Set the base of the range. ``addr`` must not be greater than the range
+limit. To set them both at once, use ``RangeInit()``. (This is
 implemented as a macro, but there is a function too.)
 
 ``void RangeSetLimit(Range range, Addr addr)``
 
-Set the limit of the range.  ``addr`` must not be less than the range
-base.  To set the both at once, use ``RangeInit``.  (This is
+Set the limit of the range. ``addr`` must not be less than the range
+base. To set the both at once, use ``RangeInit()``. (This is
 implemented as a macro, but there's a function too.)
 
 ``Size RangeSize(Range range)``
@@ -129,8 +129,8 @@ Document history
 ----------------
 
 - 2013-05-21 GDR_ Created.
-- 2014-01-15 GDR_ Added ``RangeContains``.
-- 2016-03-27 RB_ Addded ``RangeSetBase`` and ``RangeSetLimit``.
+- 2014-01-15 GDR_ Added ``RangeContains()``.
+- 2016-03-27 RB_ Addded ``RangeSetBase()`` and ``RangeSetLimit()``.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 .. _RB: http://www.ravenbrook.com/consultants/rb/
