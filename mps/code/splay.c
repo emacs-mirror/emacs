@@ -12,6 +12,12 @@
  * .note.stack: It's important that the MPS have a bounded stack size,
  * and this is a problem for tree algorithms. Basically, we have to
  * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
+ *
+ * .critical: In manual-allocation-bound programs using MVFF, many of
+ * these functions are on the critical paths via mps_alloc (and then
+ * PoolAlloc, MVFFAlloc, failoverFind*, cbsFind*, SplayTreeFind*) and
+ * mps_free (and then MVFFFree, failoverInsert, cbsInsert,
+ * SplayTreeInsert).
  */
 
 
@@ -506,6 +512,7 @@ static Compare SplaySplitRev(SplayStateStruct *stateReturn,
                              SplayTree splay, TreeKey key,
                              TreeCompareFunction compare)
 {
+  SplayUpdateNodeFunction updateNode;
   Tree middle, leftLast, rightFirst;
   Compare cmp;
 
@@ -513,6 +520,7 @@ static Compare SplaySplitRev(SplayStateStruct *stateReturn,
   AVER_CRITICAL(FUNCHECK(compare));
   AVER_CRITICAL(!SplayTreeIsEmpty(splay));
   
+  updateNode = splay->updateNode;
   leftLast = TreeEMPTY;
   rightFirst = TreeEMPTY;
   middle = SplayTreeRoot(splay);
@@ -540,7 +548,7 @@ static Compare SplaySplitRev(SplayStateStruct *stateReturn,
         if (!TreeHasLeft(middle))
           goto stop;
         middle = SplayZigZigRev(middle, &rightFirst);
-        splay->updateNode(splay, TreeRight(rightFirst));
+        updateNode(splay, TreeRight(rightFirst));
         break;
       case CompareGREATER:
         if (!TreeHasRight(middle))
@@ -565,7 +573,7 @@ static Compare SplaySplitRev(SplayStateStruct *stateReturn,
         if (!TreeHasRight(middle))
           goto stop;
         middle = SplayZagZagRev(middle, &leftLast);
-        splay->updateNode(splay, TreeLeft(leftLast));
+        updateNode(splay, TreeLeft(leftLast));
         break;
       case CompareLESS:
         if (!TreeHasLeft(middle))
@@ -589,13 +597,17 @@ stop:
 
 static Tree SplayUpdateLeftSpine(SplayTree splay, Tree node, Tree child)
 {
+  SplayUpdateNodeFunction updateNode;
+
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, node);
   AVERT_CRITICAL(Tree, child);
+
+  updateNode = splay->updateNode;
   while(node != TreeEMPTY) {
     Tree parent = TreeLeft(node);
     TreeSetLeft(node, child); /* un-reverse pointer */
-    splay->updateNode(splay, node);
+    updateNode(splay, node);
     child = node;
     node = parent;
   }
@@ -606,13 +618,17 @@ static Tree SplayUpdateLeftSpine(SplayTree splay, Tree node, Tree child)
 
 static Tree SplayUpdateRightSpine(SplayTree splay, Tree node, Tree child)
 {
+  SplayUpdateNodeFunction updateNode;
+
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, node);
   AVERT_CRITICAL(Tree, child);
+
+  updateNode = splay->updateNode;
   while (node != TreeEMPTY) {
     Tree parent = TreeRight(node);
     TreeSetRight(node, child); /* un-reverse pointer */
-    splay->updateNode(splay, node);
+    updateNode(splay, node);
     child = node;
     node = parent;
   }
@@ -725,7 +741,6 @@ static Compare SplaySplay(SplayTree splay, TreeKey key,
 
 
 /* SplayTreeInsert -- insert a node into a splay tree
- *
  *
  * This function is used to insert a node into the tree.  Splays the
  * tree at the node's key.  If an attempt is made to insert a node that
@@ -915,10 +930,9 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   Count count = SplayDebugCount(splay);
 #endif
 
-
-  AVERT(SplayTree, splay);
-  AVER(leftReturn != NULL);
-  AVER(rightReturn != NULL);
+  AVERT_CRITICAL(SplayTree, splay);
+  AVER_CRITICAL(leftReturn != NULL);
+  AVER_CRITICAL(rightReturn != NULL);
 
   if (SplayTreeIsEmpty(splay)) {
     *leftReturn = *rightReturn = TreeEMPTY;
@@ -936,14 +950,14 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
     break;
 
   case CompareLESS:
-    AVER(!TreeHasLeft(stateStruct.middle));
+    AVER_CRITICAL(!TreeHasLeft(stateStruct.middle));
     *rightReturn = stateStruct.middle;
     *leftReturn = stateStruct.leftLast;
     found = TRUE;
     break;
 
   case CompareGREATER:
-    AVER(!TreeHasRight(stateStruct.middle));
+    AVER_CRITICAL(!TreeHasRight(stateStruct.middle));
     *leftReturn = stateStruct.middle;
     *rightReturn = stateStruct.rightFirst;
     found = TRUE;
@@ -1101,8 +1115,8 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
   void *testClosure;
   SplayTree splay;
 
-  AVERT(Tree, node);
-  AVER(key != NULL);
+  AVERT_CRITICAL(Tree, node);
+  AVER_CRITICAL(key != NULL);
 
   /* Lift closure values into variables so that they aren't aliased by
      calls to the test functions. */
@@ -1140,8 +1154,8 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
   void *testClosure;
   SplayTree splay;
 
-  AVERT(Tree, node);
-  AVER(key != NULL);
+  AVERT_CRITICAL(Tree, node);
+  AVER_CRITICAL(key != NULL);
 
   /* Lift closure values into variables so that they aren't aliased by
      calls to the test functions. */
@@ -1195,10 +1209,10 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
   SplayFindClosureStruct closureStruct;
   Bool found;
 
-  AVER(nodeReturn != NULL);
-  AVERT(SplayTree, splay);
-  AVER(FUNCHECK(testNode));
-  AVER(FUNCHECK(testTree));
+  AVER_CRITICAL(nodeReturn != NULL);
+  AVERT_CRITICAL(SplayTree, splay);
+  AVER_CRITICAL(FUNCHECK(testNode));
+  AVER_CRITICAL(FUNCHECK(testTree));
 
   if (SplayTreeIsEmpty(splay) ||
       !testTree(splay, SplayTreeRoot(splay), testClosure))
@@ -1258,10 +1272,10 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
   SplayFindClosureStruct closureStruct;
   Bool found;
 
-  AVER(nodeReturn != NULL);
-  AVERT(SplayTree, splay);
-  AVER(FUNCHECK(testNode));
-  AVER(FUNCHECK(testTree));
+  AVER_CRITICAL(nodeReturn != NULL);
+  AVERT_CRITICAL(SplayTree, splay);
+  AVER_CRITICAL(FUNCHECK(testNode));
+  AVER_CRITICAL(FUNCHECK(testTree));
 
   if (SplayTreeIsEmpty(splay) ||
       !testTree(splay, SplayTreeRoot(splay), testClosure))

@@ -10,6 +10,11 @@
  * collections of memory blocks.
  *
  * .sources: <design/cbs/>.
+ *
+ * .critical: In manual-allocation-bound programs using MVFF, many of
+ * these functions are on the critical paths via mps_alloc (and then
+ * PoolAlloc, MVFFAlloc, failoverFind*, cbsFind*) and mps_free (and
+ * then MVFFFree, failoverInsert, cbsInsert).
  */
 
 #include "cbs.h"
@@ -121,11 +126,11 @@ static Bool cbsTestNode(SplayTree splay, Tree tree, void *closure)
   CBSBlock block;
   Size *sizeP = closure;
 
-  AVERT(SplayTree, splay);
-  AVERT(Tree, tree);
-  AVER(sizeP != NULL);
-  AVER(*sizeP > 0);
-  AVER(IsA(CBSFast, cbsOfSplay(splay)));
+  AVERT_CRITICAL(SplayTree, splay);
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(sizeP != NULL);
+  AVER_CRITICAL(*sizeP > 0);
+  AVER_CRITICAL(IsA(CBSFast, cbsOfSplay(splay)));
 
   block = cbsBlockOfTree(tree);
 
@@ -138,11 +143,11 @@ static Bool cbsTestTree(SplayTree splay, Tree tree,
   CBSFastBlock block;
   Size *sizeP = closure;
 
-  AVERT(SplayTree, splay);
-  AVERT(Tree, tree);
-  AVER(sizeP != NULL);
-  AVER(*sizeP > 0);
-  AVER(IsA(CBSFast, cbsOfSplay(splay)));
+  AVERT_CRITICAL(SplayTree, splay);
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(sizeP != NULL);
+  AVER_CRITICAL(*sizeP > 0);
+  AVER_CRITICAL(IsA(CBSFast, cbsOfSplay(splay)));
 
   block = cbsFastBlockOfTree(tree);
 
@@ -313,7 +318,7 @@ static void cbsFinish(Inst inst)
 
 static Size cbsSize(Land land)
 {
-  CBS cbs = MustBeA(CBS, land);
+  CBS cbs = MustBeA_CRITICAL(CBS, land);
   return cbs->size;
 }
 
@@ -425,12 +430,12 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
 {
   Bool b;
 
-  AVERT(CBS, cbs);
-  AVERT(CBSBlock, block);
+  AVERT_CRITICAL(CBS, cbs);
+  AVERT_CRITICAL(CBSBlock, block);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   b = SplayTreeInsert(cbsSplay(cbs), cbsBlockTree(block));
-  AVER(b);
+  AVER_CRITICAL(b);
   STATISTIC(++cbs->treeSize);
   cbs->size += CBSBlockSize(block);
 }
@@ -442,14 +447,11 @@ static void cbsBlockInsert(CBS cbs, CBSBlock block)
  *
  * .insert.alloc: Will only allocate a block if the range does not
  * abut an existing range.
- *
- * .insert.critical: In manual-allocation-bound programs using MVFF
- * this is on the critical path.
  */
 
 static Res cbsInsert(Range rangeReturn, Land land, Range range)
 {
-  CBS cbs = MustBeA(CBS, land);
+  CBS cbs = MustBeA_CRITICAL(CBS, land);
   Bool b;
   Res res;
   Addr base, limit, newBase, newLimit;
@@ -486,7 +488,7 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
     leftMerge = FALSE;
   } else {
     leftCBS = cbsBlockOfTree(leftSplay);
-    AVER(leftCBS->limit <= base);
+    AVER_CRITICAL(leftCBS->limit <= base);
     leftMerge = leftCBS->limit == base;
   }
 
@@ -876,15 +878,15 @@ static void cbsFindDeleteRange(Range rangeReturn, Range oldRangeReturn,
 static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
                          Land land, Size size, FindDelete findDelete)
 {
-  CBS cbs = MustBeA(CBS, land);
+  CBS cbs = MustBeA_CRITICAL(CBS, land);
   Bool found;
   Tree tree;
 
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVER(size > 0);
-  AVER(SizeIsAligned(size, LandAlignment(land)));
-  AVERT(FindDelete, findDelete);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVER_CRITICAL(oldRangeReturn != NULL);
+  AVER_CRITICAL(size > 0);
+  AVER_CRITICAL(SizeIsAligned(size, LandAlignment(land)));
+  AVERT_CRITICAL(FindDelete, findDelete);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   found = SplayFindFirst(&tree, cbsSplay(cbs), &cbsTestNode,
@@ -893,9 +895,9 @@ static Bool cbsFindFirst(Range rangeReturn, Range oldRangeReturn,
     CBSBlock block;
     RangeStruct range;
     block = cbsBlockOfTree(tree);
-    AVER(CBSBlockSize(block) >= size);
+    AVER_CRITICAL(CBSBlockSize(block) >= size);
     RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
-    AVER(RangeSize(&range) >= size);
+    AVER_CRITICAL(RangeSize(&range) >= size);
     cbsFindDeleteRange(rangeReturn, oldRangeReturn, land, &range,
                        size, findDelete);
   }
@@ -952,15 +954,15 @@ static Bool cbsTestTreeInZones(SplayTree splay, Tree tree,
 static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
                         Land land, Size size, FindDelete findDelete)
 {
-  CBS cbs = MustBeA(CBSFast, land);
+  CBS cbs = MustBeA_CRITICAL(CBSFast, land);
   Bool found;
   Tree tree;
 
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVER(size > 0);
-  AVER(SizeIsAligned(size, LandAlignment(land)));
-  AVERT(FindDelete, findDelete);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVER_CRITICAL(oldRangeReturn != NULL);
+  AVER_CRITICAL(size > 0);
+  AVER_CRITICAL(SizeIsAligned(size, LandAlignment(land)));
+  AVERT_CRITICAL(FindDelete, findDelete);
 
   METER_ACC(cbs->treeSearch, cbs->treeSize);
   found = SplayFindLast(&tree, cbsSplay(cbs), &cbsTestNode,
@@ -969,9 +971,9 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
     CBSBlock block;
     RangeStruct range;
     block = cbsBlockOfTree(tree);
-    AVER(CBSBlockSize(block) >= size);
+    AVER_CRITICAL(CBSBlockSize(block) >= size);
     RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
-    AVER(RangeSize(&range) >= size);
+    AVER_CRITICAL(RangeSize(&range) >= size);
     cbsFindDeleteRange(rangeReturn, oldRangeReturn, land, &range,
                        size, findDelete);
   }
@@ -985,13 +987,13 @@ static Bool cbsFindLast(Range rangeReturn, Range oldRangeReturn,
 static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
                            Land land, Size size, FindDelete findDelete)
 {
-  CBS cbs = MustBeA(CBSFast, land);
+  CBS cbs = MustBeA_CRITICAL(CBSFast, land);
   Bool found = FALSE;
 
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVER(size > 0);
-  AVERT(FindDelete, findDelete);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVER_CRITICAL(oldRangeReturn != NULL);
+  AVER_CRITICAL(size > 0);
+  AVERT_CRITICAL(FindDelete, findDelete);
 
   if (!SplayTreeIsEmpty(cbsSplay(cbs))) {
     RangeStruct range;
@@ -1004,11 +1006,11 @@ static Bool cbsFindLargest(Range rangeReturn, Range oldRangeReturn,
       METER_ACC(cbs->treeSearch, cbs->treeSize);
       found = SplayFindFirst(&tree, cbsSplay(cbs), &cbsTestNode,
                              &cbsTestTree, &maxSize);
-      AVER(found); /* maxSize is exact, so we will find it. */
+      AVER_CRITICAL(found); /* maxSize is exact, so we will find it. */
       block = cbsBlockOfTree(tree);
-      AVER(CBSBlockSize(block) >= maxSize);
+      AVER_CRITICAL(CBSBlockSize(block) >= maxSize);
       RangeInit(&range, CBSBlockBase(block), CBSBlockLimit(block));
-      AVER(RangeSize(&range) >= maxSize);
+      AVER_CRITICAL(RangeSize(&range) >= maxSize);
       cbsFindDeleteRange(rangeReturn, oldRangeReturn, land, &range,
                          size, findDelete);
     }
@@ -1022,7 +1024,7 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
                           Range oldRangeReturn, Land land, Size size,
                           ZoneSet zoneSet, Bool high)
 {
-  CBS cbs = MustBeA(CBSZoned, land);
+  CBS cbs = MustBeA_CRITICAL(CBSZoned, land);
   CBSBlock block;
   Tree tree;
   cbsTestNodeInZonesClosureStruct closure;
@@ -1031,11 +1033,11 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
   SplayFindFunction splayFind;
   RangeStruct rangeStruct, oldRangeStruct;
   
-  AVER(foundReturn != NULL);
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  /* AVERT(ZoneSet, zoneSet); */
-  AVERT(Bool, high);
+  AVER_CRITICAL(foundReturn != NULL);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVER_CRITICAL(oldRangeReturn != NULL);
+  /* AVERT_CRITICAL(ZoneSet, zoneSet); */
+  AVERT_CRITICAL(Bool, high);
 
   landFind = high ? cbsFindLast : cbsFindFirst;
   splayFind = high ? SplayFindLast : SplayFindFirst;
@@ -1064,10 +1066,10 @@ static Res cbsFindInZones(Bool *foundReturn, Range rangeReturn,
 
   block = cbsBlockOfTree(tree);
 
-  AVER(CBSBlockBase(block) <= closure.base);
-  AVER(AddrOffset(closure.base, closure.limit) >= size);
-  AVER(ZoneSetSub(ZoneSetOfRange(LandArena(land), closure.base, closure.limit), zoneSet));
-  AVER(closure.limit <= CBSBlockLimit(block));
+  AVER_CRITICAL(CBSBlockBase(block) <= closure.base);
+  AVER_CRITICAL(AddrOffset(closure.base, closure.limit) >= size);
+  AVER_CRITICAL(ZoneSetSub(ZoneSetOfRange(LandArena(land), closure.base, closure.limit), zoneSet));
+  AVER_CRITICAL(closure.limit <= CBSBlockLimit(block));
 
   if (!high)
     RangeInit(&rangeStruct, closure.base, AddrAdd(closure.base, size));

@@ -210,7 +210,7 @@ BufferClass PoolDefaultBufferClass(Pool pool)
 /* PoolAlloc -- allocate a block of memory from a pool
  *
  * .alloc.critical: In manual-allocation-bound programs this is on the
- * critical path.
+ * critical path via mps_alloc.
  */
 
 Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
@@ -239,22 +239,18 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 }
 
 
-/* PoolFree -- deallocate a block of memory allocated from the pool
- *
- * .free.critical: In manual-allocation-bound programs this is on the
- * critical path.
- */
+/* PoolFree -- deallocate a block of memory allocated from the pool */
 
-void PoolFree(Pool pool, Addr old, Size size)
+void (PoolFree)(Pool pool, Addr old, Size size)
 {
-  AVERT_CRITICAL(Pool, pool);
-  AVER_CRITICAL(old != NULL);
+  AVERT(Pool, pool);
+  AVER(old != NULL);
   /* The pool methods should check that old is in pool. */
-  AVER_CRITICAL(size > 0);
-  AVER_CRITICAL(AddrIsAligned(old, pool->alignment));
-  AVER_CRITICAL(PoolHasRange(pool, old, AddrAdd(old, size)));
+  AVER(size > 0);
+  AVER(AddrIsAligned(old, pool->alignment));
+  AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
 
-  Method(Pool, pool, free)(pool, old, size);
+  PoolFreeMacro(pool, old, size);
  
   EVENT3(PoolFree, pool, old, size);
 }
