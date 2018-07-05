@@ -551,35 +551,30 @@ extern void ControlFree(Arena arena, void *base, size_t size);
 extern Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth);
 
 
-/* Peek/Poke
+/* Peek/Poke/Read/Write -- read/write possibly through barrier
  *
  * These are provided so that modules in the MPS can make occasional
- * access to client data.  They perform the appropriate shield and
- * summary manipulations that are necessary.
+ * access to client data, and to implement a software barrier for
+ * segments that are not handed out to the mutator. They protect the
+ * necessary colour, shield and summary invariants.
  *
- * Note that Peek and Poke can be called with address that may or
- * may not be in arena managed memory.  */
+ * Note that Peek and Poke can be called with an address that may or
+ * may not be in memory managed by arena, whereas Read and Write
+ * assert this is the case.
+ */
 
 /* Peek reads a value */
 extern Ref ArenaPeek(Arena arena, Ref *p);
+/* Same, but p known to be owned by arena */
+extern Ref ArenaRead(Arena arena, Ref *p);
 /* Same, but p must be in seg */
 extern Ref ArenaPeekSeg(Arena arena, Seg seg, Ref *p);
 /* Poke stores a value */
 extern void ArenaPoke(Arena arena, Ref *p, Ref ref);
+/* Same, but p known to be owned by arena */
+extern void ArenaWrite(Arena arena, Ref *p, Ref ref);
 /* Same, but p must be in seg */
 extern void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref);
-
-
-/* Read/Write
- *
- * These simulate mutator reads and writes to locations.
- * They are effectively a software barrier, and maintain the tricolor
- * invariant (hence performing any scanning or color manipulation
- * necessary).
- *
- * Only Read provided right now.  */
-
-Ref ArenaRead(Arena arena, Ref *p);
 
 
 extern Size ArenaReserved(Arena arena);
@@ -651,6 +646,7 @@ extern Bool SegNext(Seg *segReturn, Arena arena, Seg seg);
 extern Bool SegNextOfRing(Seg *segReturn, Arena arena, Pool pool, Ring next);
 extern void SegSetWhite(Seg seg, TraceSet white);
 extern void SegSetGrey(Seg seg, TraceSet grey);
+extern void SegFlip(Seg seg, Trace trace);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
 extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi);
@@ -684,6 +680,7 @@ extern Bool SegClassCheck(SegClass klass);
 DECLARE_CLASS(Inst, SegClass, InstClass);
 DECLARE_CLASS(Seg, Seg, Inst);
 DECLARE_CLASS(Seg, GCSeg, Seg);
+DECLARE_CLASS(Seg, MutatorSeg, GCSeg);
 #define SegGCSeg(seg) MustBeA(GCSeg, (seg))
 extern void SegClassMixInNoSplitMerge(SegClass klass);
 
