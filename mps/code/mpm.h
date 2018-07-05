@@ -7,6 +7,12 @@
  * .trans.bufferinit: The Buffer data structure has an Init field and
  * an Init method, there's a name clash.  We resolve this by calling the
  * accessor BufferGetInit.
+ *
+ * .critical.macros: In manual-allocation-bound programs using MVFF,
+ * PoolFree and the Land generic functions are on the critical path
+ * via mps_free. In non-checking varieties we provide macro
+ * alternatives to these functions that call the underlying methods
+ * directly, giving a few percent improvement in performance.
  */
 
 #ifndef mpm_h
@@ -263,8 +269,10 @@ extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 extern Size PoolNoSize(Pool pool);
 
+/* See .critical.macros. */
+#define PoolFreeMacro(pool, old, size) Method(Pool, pool, free)(pool, old, size)
 #if !defined(AVER_AND_CHECK_ALL)
-#define PoolFree(pool, old, size) Method(Pool, pool, free)(pool, old, size)
+#define PoolFree(pool, old, size) PoolFreeMacro(pool, old, size)
 #endif /* !defined(AVER_AND_CHECK_ALL) */
 
 /* Abstract Pool Classes Interface -- see <code/poolabs.c> */
@@ -982,17 +990,28 @@ extern Bool (LandFlush)(Land dest, Land src);
 extern Size LandSlowSize(Land land);
 extern Bool LandClassCheck(LandClass klass);
 
+/* See .critical.macros. */
+#define LandSizeMacro(land) Method(Land, land, sizeMethod)(land)
+#define LandInsertMacro(rangeReturn, land, range) Method(Land, land, insert)(rangeReturn, land, range)
+#define LandDeleteMacro(rangeReturn, land, range) Method(Land, land, delete)(rangeReturn, land, range)
+#define LandIterateMacro(land, visitor, closure) Method(Land, land, iterate)(land, visitor, closure)
+#define LandIterateAndDeleteMacro(land, visitor, closure) Method(Land, land, iterateAndDelete)(land, visitor, closure)
+#define LandFindFirstMacro(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findFirst)(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindLastMacro(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findLast)(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindLargestMacro(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findLargest)(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindInZonesMacro(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high) Method(Land, land, findInZones)(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high)
+#define LandFlushMacro(dest, src) LandIterateAndDelete(src, LandFlushVisitor, dest)
 #if !defined(AVER_AND_CHECK_ALL)
-#define LandSize(land) Method(Land, land, sizeMethod)(land)
-#define LandInsert(rangeReturn, land, range) Method(Land, land, insert)(rangeReturn, land, range)
-#define LandDelete(rangeReturn, land, range) Method(Land, land, delete)(rangeReturn, land, range)
-#define LandIterate(land, visitor, closure) Method(Land, land, iterate)(land, visitor, closure)
-#define LandIterateAndDelete(land, visitor, closure) Method(Land, land, iterateAndDelete)(land, visitor, closure)
-#define LandFindFirst(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findFirst)(rangeReturn, oldRangeReturn, land, size, findDelete)
-#define LandFindLast(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findLast)(rangeReturn, oldRangeReturn, land, size, findDelete)
-#define LandFindLargest(rangeReturn, oldRangeReturn, land, size, findDelete) Method(Land, land, findLargest)(rangeReturn, oldRangeReturn, land, size, findDelete)
-#define LandFindInZones(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high) Method(Land, land, findInZones)(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high)
-#define LandFlush(dest, src) LandIterateAndDelete(src, LandFlushVisitor, dest)
+#define LandSize(land) LandSizeMacro(land)
+#define LandInsert(rangeReturn, land, range) LandInsertMacro(rangeReturn, land, range)
+#define LandDelete(rangeReturn, land, range) LandDeleteMacro(rangeReturn, land, range)
+#define LandIterate(land, visitor, closure) LandIterateMacro(land, visitor, closure)
+#define LandIterateAndDelete(land, visitor, closure) LandIterateAndDeleteMacro(land, visitor, closure)
+#define LandFindFirst(rangeReturn, oldRangeReturn, land, size, findDelete) LandFindFirstMacro(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindLast(rangeReturn, oldRangeReturn, land, size, findDelete) LandFindLastMacro(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindLargest(rangeReturn, oldRangeReturn, land, size, findDelete) LandFindLargestMacro(rangeReturn, oldRangeReturn, land, size, findDelete)
+#define LandFindInZones(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high) LandFindInZonesMacro(foundReturn, rangeReturn, oldRangeReturn, land, size, zoneSet, high)
+#define LandFlush(dest, src) LandFlushMacro(dest, src)
 #endif /* !defined(AVER_AND_CHECK_ALL) */
 
 DECLARE_CLASS(Inst, LandClass, InstClass);
