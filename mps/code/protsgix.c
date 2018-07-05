@@ -1,7 +1,7 @@
 /* protsgix.c: PROTECTION (SIGNAL HANDLER) FOR POSIX
  *
  *  $Id$
- *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This implements protection exception handling using POSIX signals.
  * It is designed to run on any POSIX-compliant Unix.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 
 #if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
-#error "protsgix.c is Unix-specific, currently for MPS_OS_FR and MPS_OS_LI"
+#error "protsgix.c is specific to MPS_OS_FR or MPS_OS_LI"
 #endif
 
 #include "prmcix.h"
@@ -144,7 +144,7 @@ void ProtSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

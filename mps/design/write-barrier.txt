@@ -66,7 +66,7 @@ these must be balanced.  There is no point spending 1000 CPU units
 raising a write barrier to avoid 10 CPU units of scanning cost.
 Therefore we do not raise the write barrier immediately.
 
-_`.deferral.heuristic: We apply a simple heuristic`: A segment which was
+_`.deferral.heuristic`: We apply a simple heuristic: A segment which was
 found to be "interesting" while scanning is likely to be interesting
 again, and so raising the write barrier is not worthwhile.  If we scan
 a segment several times and find it "boring" then we raise the barrier
@@ -84,7 +84,7 @@ _`.deferral.count`: We store a deferral count with the segment.  The
 count is decremented after each boring scan (`.def.boring`_).  The write
 barrier is raised only when the count reaches zero.
 
-_`.deferral.reset: The count is reset after three events`:
+_`.deferral.reset`: The count is reset after three events:
 
   1. segment creation (``WB_DEFER_INIT``)
 

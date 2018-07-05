@@ -1,7 +1,7 @@
 /* thix.c: Threads Manager for Posix threads
  *
  *  $Id$
- *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
  * This implements <code/th.h>.
@@ -32,11 +32,16 @@
  * word-aligned at the time of reading the context of another thread.
  */
 
-#include "prmcix.h"
 #include "mpm.h"
 
-#include <pthread.h>
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
+#error "thix.c is specific to MPS_OS_FR or MPS_OS_LI"
+#endif
+
+#include "prmcix.h"
 #include "pthrdext.h"
+
+#include <pthread.h>
 
 SRCID(thix, "$Id$");
 
@@ -342,7 +347,7 @@ void ThreadSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
