@@ -110,7 +110,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   LOSeg loseg;
   Res res;
-  Size tablebytes;      /* # bytes in each control array */
+  Size tableSize;      /* # bytes in each control array */
   Arena arena = PoolArena(pool);
   /* number of bits needed in each control array */
   Count grains;
@@ -125,15 +125,12 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   grains = PoolSizeGrains(pool, size);
-  tablebytes = BTSize(grains);
-  res = ControlAlloc(&p, arena, tablebytes);
+  tableSize = BTSize(grains);
+  res = ControlAlloc(&p, arena, 2 * tableSize);
   if(res != ResOK)
-    goto failMarkTable;
+    goto failControlAlloc;
   loseg->mark = p;
-  res = ControlAlloc(&p, arena, tablebytes);
-  if(res != ResOK)
-    goto failAllocTable;
-  loseg->alloc = p;
+  loseg->alloc = PointerAdd(p, tableSize);
   BTResRange(loseg->alloc, 0, grains);
   BTSetRange(loseg->mark, 0, grains);
   loseg->freeGrains = grains;
@@ -147,9 +144,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
   return ResOK;
 
-failAllocTable:
-  ControlFree(arena, loseg->mark, tablebytes);
-failMarkTable:
+failControlAlloc:
   NextMethod(Inst, LOSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
@@ -172,8 +167,7 @@ static void loSegFinish(Inst inst)
 
   grains = loSegGrains(loseg);
   tablesize = BTSize(grains);
-  ControlFree(arena, loseg->alloc, tablesize);
-  ControlFree(arena, loseg->mark, tablesize);
+  ControlFree(arena, loseg->mark, 2 * tablesize);
 
   NextMethod(Inst, LOSeg, finish)(inst);
 }

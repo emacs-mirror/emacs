@@ -202,18 +202,12 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
   bits = PoolSizeGrains(pool, size);
   tableSize = BTSize(bits);
-  res = ControlAlloc(&v, arena, tableSize);
+  res = ControlAlloc(&v, arena, 3 * tableSize);
   if (res != ResOK)
-    goto failControlAllocMark;
+    goto failControlAlloc;
   awlseg->mark = v;
-  res = ControlAlloc(&v, arena, tableSize);
-  if (res != ResOK)
-    goto failControlAllocScanned;
-  awlseg->scanned = v;
-  res = ControlAlloc(&v, arena, tableSize);
-  if (res != ResOK)
-    goto failControlAllocAlloc;
-  awlseg->alloc = v;
+  awlseg->scanned = PointerAdd(v, tableSize);
+  awlseg->alloc = PointerAdd(v, 2 * tableSize);
   awlseg->grains = bits;
   BTResRange(awlseg->mark, 0, bits);
   BTResRange(awlseg->scanned, 0, bits);
@@ -232,11 +226,7 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
   return ResOK;
 
-failControlAllocAlloc:
-  ControlFree(arena, awlseg->scanned, tableSize);
-failControlAllocScanned:
-  ControlFree(arena, awlseg->mark, tableSize);
-failControlAllocMark:
+failControlAlloc:
   NextMethod(Inst, AWLSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
@@ -260,9 +250,7 @@ static void AWLSegFinish(Inst inst)
   segGrains = PoolSizeGrains(pool, SegSize(seg));
   AVER(segGrains == awlseg->grains);
   tableSize = BTSize(segGrains);
-  ControlFree(arena, awlseg->alloc, tableSize);
-  ControlFree(arena, awlseg->scanned, tableSize);
-  ControlFree(arena, awlseg->mark, tableSize);
+  ControlFree(arena, awlseg->mark, 3 * tableSize);
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
