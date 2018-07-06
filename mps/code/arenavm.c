@@ -528,6 +528,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, ArgList args)
     /* Make it easier to write portable programs by rounding up. */
     grainSize = pageSize;
   AVERT(ArenaGrainSize, grainSize);
+  AVER(sizeof(RingStruct) < grainSize); /* .spare-ring.at-base */
 
   if (ArgPick(&arg, args, MPS_KEY_ARENA_SIZE))
     size = arg.val.size;
@@ -764,19 +765,32 @@ static unsigned pageState(VMChunk vmChunk, Index pi)
 }
 
 
+/* sparePageRing -- get the spare ring node for a spare page
+ *
+ * .spare-ring.at-base: The spare ring node is stored at the base of
+ * the spare page. (Since it's spare, the memory is not needed for any
+ * other purpose.)
+ */
+
+#define sparePageRing(chunk, pi) ((Ring)PageIndexBase(chunk, pi))
+
+
 /* sparePageRelease -- releases a spare page
  *
  * Either to allocate it or to purge it.
- * Temporarily leaves it in an inconsistent state.
+ *
+ * Temporarily leaves the page table entry in an inconsistent state:
+ * the state is PageStateSPARE but the page is no longer on the spare
+ * ring.
  */
+
 static void sparePageRelease(VMChunk vmChunk, Index pi)
 {
   Chunk chunk = VMChunk2Chunk(vmChunk);
   Arena arena = ChunkArena(chunk);
-  Page page = ChunkPage(chunk, pi);
-  Ring spareRing = (Ring)PageIndexBase(chunk, pi);
+  Ring spareRing = sparePageRing(chunk, pi);
 
-  AVER(PageState(page) == PageStateSPARE);
+  AVER(PageState(ChunkPage(chunk, pi)) == PageStateSPARE);
   AVER(arena->spareCommitted >= ChunkPageSize(chunk));
   AVERT(Ring, spareRing);
 
@@ -975,6 +989,7 @@ static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
   Ring node;
   Size purged = 0;
   VMArena vmArena;
+  Chunk nodeChunk = NULL;
 
   AVERT(Arena, arena);
   vmArena = Arena2VMArena(arena);
@@ -984,25 +999,30 @@ static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
 
   /* Start by looking at the oldest page on the spare ring, to try to
      get some LRU behaviour from the spare pages cache. */
-  /* RING_FOR won't work here, because chunkUnmapAroundPage deletes many
-     entries from the spareRing, often including the "next" entry.  However,
-     it doesn't delete entries from other chunks, so we can use them to step
-     around the ring. */
+  /* RING_FOR won't work here, because chunkUnmapAroundPage deletes
+     and unmaps "next" and possibly many other entries from the
+     spareRing. However, we know that it won't delete "node", because
+     either "node" is &vmArena->spareRing (which is not in any chunk),
+     or else "node" and "next" are in different chunks (otherwise
+     "node" would have been deleted on the previous iteration). */
   node = &vmArena->spareRing;
   while (RingNext(node) != &vmArena->spareRing && purged < size) {
     Ring next = RingNext(node);
     Chunk chunk = NULL; /* suppress uninit warning */
-    Bool b = ChunkOfAddr(&chunk, arena, (Addr)next);
+    Bool b = ChunkOfAddr(&chunk, arena, (Addr)next); /* .spare-ring.at-base */
     AVER(b);
     if (filter == NULL || chunk == filter) {
       Index pi = IndexOfAddr(chunk, (Addr)next);
       Page page = ChunkPage(chunk, pi);
+      AVER(nodeChunk != chunk);
       purged += chunkUnmapAroundPage(chunk, size - purged, page);
       /* chunkUnmapAroundPage must delete the page it's passed from the ring,
          or we can't make progress and there will be an infinite loop */
       AVER(RingNext(node) != next);
-    } else
+    } else {
       node = next;
+      nodeChunk = chunk;
+    }
   }
 
   return purged;
@@ -1068,7 +1088,7 @@ static void VMFree(Addr base, Size size, Pool pool)
 
     PageSetPool(page, NULL);
     PageSetType(page, PageStateSPARE);
-    spareRing = (Ring)PageIndexBase(chunk, pi);
+    spareRing = sparePageRing(chunk, pi);
     RingInit(spareRing);
     RingAppend(&vmArena->spareRing, spareRing);
   }
