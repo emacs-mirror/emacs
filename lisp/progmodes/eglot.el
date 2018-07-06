@@ -1225,11 +1225,14 @@ DUMMY is ignored."
        (lambda (obj)
          (cl-destructuring-bind (&key detail documentation kind &allow-other-keys)
              (text-properties-at 0 obj)
-           (concat " " (propertize
-                        (or (and documentation
-                                 (replace-regexp-in-string "\n.*" "" documentation))
-                            detail (cdr (assoc kind eglot--kind-names)))
-                        'face 'font-lock-function-name-face))))
+           (let ((annotation
+                  (or (and documentation
+                           (replace-regexp-in-string "\n.*" "" documentation))
+                      detail
+                      (cdr (assoc kind eglot--kind-names)))))
+             (when annotation
+               (concat " " (propertize annotation
+                                       'face 'font-lock-function-name-face))))))
        :display-sort-function
        (lambda (items)
          (sort items (lambda (a b)
