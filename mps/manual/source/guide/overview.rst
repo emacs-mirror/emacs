@@ -43,19 +43,22 @@ for details.
    single: Memory Pool System; supported target platforms
    single: platforms; supported
 
+.. _guide-overview-platforms:
+
 Supported target platforms
 --------------------------
 
 The MPS is currently supported for deployment on:
 
-- Windows XP or later, on IA-32 and x86-64, using Microsoft Visual C/C++;
+- Windows Vista or later, on IA-32 and x86-64, using Microsoft Visual
+  C/C++;
 
-- Linux 2.4 or later, on IA-32 using GCC and on x86-64 using GCC or
+- Linux 2.6 or later, on IA-32 using GCC and on x86-64 using GCC or
   Clang/LLVM;
 
-- FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
+- FreeBSD 7 or later, on IA-32 and x86-64, using GCC or Clang/LLVM;
 
-- OS X 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
+- macOS 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
 
 The MPS is highly portable and has run on many other processors and
 operating systems in the past (see :ref:`guide-build`). Most of the

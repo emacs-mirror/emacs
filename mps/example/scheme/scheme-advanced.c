@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
  * language <http://en.wikipedia.org/wiki/Scheme_%28programming_language%29>.
@@ -4330,8 +4330,8 @@ static int start(int argc, char *argv[])
        topic/root. */
     symtab = NULL;
     res = mps_root_create_area(&symtab_root, arena, mps_rank_exact(), 0,
-			       &symtab, &symtab + 1,
-			       mps_scan_area, NULL);
+                               &symtab, &symtab + 1,
+                               mps_scan_area, NULL);
     if(res != MPS_RES_OK) error("Couldn't register symtab root");
 
     /* The symbol table is strong-key weak-value. */
@@ -4444,7 +4444,7 @@ static mps_gen_param_s obj_gen_params[] = {
 
 int main(int argc, char *argv[])
 {
-  size_t arenasize = 1024ul * 1024 * 1024;
+  size_t arenasize = 32ul * 1024 * 1024;
   mps_res_t res;
   mps_chain_t obj_chain;
   mps_fmt_t obj_fmt, buckets_fmt;
@@ -4619,7 +4619,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

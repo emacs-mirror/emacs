@@ -1,14 +1,14 @@
 /* mps.c: MEMORY POOL SYSTEM ALL-IN-ONE TRANSLATION UNIT
  *
  * $Id$
- * Copyright (C) 2012-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2012-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This file can be compiled to create the complete MPS library in
  * a single compilation, allowing the compiler to apply global optimizations
  * and inlining effectively.  On most modern compilers this is also faster
  * than compiling each file separately.
  *
- * .purpose.universal: This file also allows simple building of a Mac OS X
+ * .purpose.universal: This file also allows simple building of a macOS
  * "universal" (multiple architecture) binary when the set of source files
  * differs by architecture.  It may work for other platforms in a similar
  * manner.
@@ -106,35 +106,38 @@
 #include "than.c"       /* generic threads manager */
 #include "vman.c"       /* malloc-based pseudo memory mapping */
 #include "protan.c"     /* generic memory protection */
-#include "prmcan.c"     /* generic protection mutator context */
+#include "prmcan.c"     /* generic operating system mutator context */
+#include "prmcanan.c"   /* generic architecture mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssan.c"       /* generic stack scanner */
 
-/* Mac OS X on 32-bit Intel built with Clang or GCC */
+/* macOS on 32-bit Intel built with Clang or GCC */
 
 #elif defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "thxc.c"       /* OS X Mach threading */
+#include "thxc.c"       /* macOS Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protxc.c"     /* OS X Mach exception handling */
-#include "proti3.c"     /* 32-bit Intel mutator context decoding */
-#include "prmci3xc.c"   /* 32-bit Intel for Mac OS X mutator context */
+#include "protxc.c"     /* macOS Mach exception handling */
+#include "prmci3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmcxc.c"     /* macOS mutator context */
+#include "prmcxci3.c"   /* 32-bit Intel for macOS mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
-/* Mac OS X on 64-bit Intel build with Clang or GCC */
+/* macOS on 64-bit Intel build with Clang or GCC */
 
 #elif defined(MPS_PF_XCI6LL) || defined(MPS_PF_XCI6GC)
 
 #include "lockix.c"     /* Posix locks */
-#include "thxc.c"       /* OS X Mach threading */
+#include "thxc.c"       /* macOS Mach threading */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protxc.c"     /* OS X Mach exception handling */
-#include "proti6.c"     /* 64-bit Intel mutator context decoding */
-#include "prmci6xc.c"   /* 64-bit Intel for Mac OS X mutator context */
+#include "protxc.c"     /* macOS Mach exception handling */
+#include "prmci6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmcxc.c"     /* macOS mutator context */
+#include "prmcxci6.c"   /* 64-bit Intel for macOS mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
@@ -148,8 +151,9 @@
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
-#include "prmcan.c"     /* generic mutator context */
-#include "prmci3fr.c"   /* 32-bit Intel for FreeBSD mutator context */
+#include "prmcanan.c"   /* generic architecture mutator context */
+#include "prmcix.c"     /* Posix mutator context */
+#include "prmcfri3.c"   /* 32-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
@@ -163,8 +167,9 @@
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
 #include "protsgix.c"   /* Posix signal handling */
-#include "prmcan.c"     /* generic mutator context */
-#include "prmci6fr.c"   /* 64-bit Intel for FreeBSD mutator context */
+#include "prmcanan.c"   /* generic architecture mutator context */
+#include "prmcix.c"     /* Posix mutator context */
+#include "prmcfri6.c"   /* 64-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
@@ -172,14 +177,15 @@
 
 #elif defined(MPS_PF_LII3GC)
 
-#include "lockli.c"     /* Linux locks */
+#include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protli.c"     /* Linux protection */
-#include "proti3.c"     /* 32-bit Intel mutator context */
-#include "prmci3li.c"   /* 32-bit Intel for Linux mutator context */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmci3.c"     /* 32-bit Intel mutator context */
+#include "prmcix.c"     /* Posix mutator context */
+#include "prmclii3.c"   /* 32-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
@@ -187,14 +193,15 @@
 
 #elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
-#include "lockli.c"     /* Linux locks */
+#include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
 #include "pthrdext.c"   /* Posix thread extensions */
 #include "vmix.c"       /* Posix virtual memory */
 #include "protix.c"     /* Posix protection */
-#include "protli.c"     /* Linux protection */
-#include "proti6.c"     /* 64-bit Intel mutator context */
-#include "prmci6li.c"   /* 64-bit Intel for Linux mutator context */
+#include "protsgix.c"   /* Posix signal handling */
+#include "prmci6.c"     /* 64-bit Intel mutator context */
+#include "prmcix.c"     /* Posix mutator context */
+#include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
 #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
@@ -204,11 +211,11 @@
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
-#include "thw3i3.c"     /* Windows on 32-bit Intel thread stack scan */
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
-#include "proti3.c"     /* 32-bit Intel mutator context decoding */
-#include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
+#include "prmci3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmcw3.c"     /* Windows mutator context */
+#include "prmcw3i3.c"   /* Windows on 32-bit Intel mutator context */
 #include "ssw3i3mv.c"   /* Windows on 32-bit Intel stack scan for Microsoft C */
 #include "spw3i3.c"     /* Windows on 32-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
@@ -219,11 +226,11 @@
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
-#include "thw3i6.c"     /* Windows on 64-bit Intel thread stack scan */
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
-#include "proti6.c"     /* 64-bit Intel mutator context decoding */
-#include "prmci6w3.c"   /* Windows on 64-bit Intel mutator context */
+#include "prmci6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmcw3.c"     /* Windows mutator context */
+#include "prmcw3i6.c"   /* Windows on 64-bit Intel mutator context */
 #include "ssw3i6mv.c"   /* Windows on 64-bit Intel stack scan for Microsoft C */
 #include "spw3i6.c"     /* Windows on 64-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
@@ -234,11 +241,11 @@
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
-#include "thw3i3.c"     /* Windows on 32-bit Intel thread stack scan */
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
-#include "proti3.c"     /* 32-bit Intel mutator context decoding */
-#include "prmci3w3.c"   /* Windows on 32-bit Intel mutator context */
+#include "prmci3.c"     /* 32-bit Intel mutator context decoding */
+#include "prmcw3.c"     /* Windows mutator context */
+#include "prmcw3i3.c"   /* Windows on 32-bit Intel mutator context */
 #include "ssw3i3pc.c"   /* Windows on 32-bit stack scan for Pelles C */
 #include "spw3i3.c"     /* 32-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
@@ -249,11 +256,11 @@
 
 #include "lockw3.c"     /* Windows locks */
 #include "thw3.c"       /* Windows threading */
-#include "thw3i6.c"     /* Windows on 64-bit Intel thread stack scan */
 #include "vmw3.c"       /* Windows virtual memory */
 #include "protw3.c"     /* Windows protection */
-#include "proti6.c"     /* 64-bit Intel mutator context decoding */
-#include "prmci6w3.c"   /* Windows on 64-bit Intel mutator context */
+#include "prmci6.c"     /* 64-bit Intel mutator context decoding */
+#include "prmcw3.c"     /* Windows mutator context */
+#include "prmcw3i6.c"   /* Windows on 64-bit Intel mutator context */
 #include "ssw3i6pc.c"   /* Windows on 64-bit stack scan for Pelles C */
 #include "spw3i6.c"     /* 64-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
@@ -268,7 +275,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

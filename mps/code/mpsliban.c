@@ -1,7 +1,7 @@
 /* mpsliban.c: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: The purpose of this code is
@@ -81,8 +81,8 @@ static void mps_lib_assert_fail_default(const char *file, unsigned line,
 static mps_lib_assert_fail_t mps_lib_assert_handler = mps_lib_assert_fail_default;
 
 void mps_lib_assert_fail(const char *file,
-                         unsigned line,
-                         const char *condition)
+                          unsigned line,
+                          const char *condition)
 {
   mps_lib_assert_handler(file, line, condition);
 }
@@ -206,7 +206,7 @@ unsigned long mps_lib_telemetry_control(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
