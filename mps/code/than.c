@@ -142,6 +142,12 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 }
 
 
+void ThreadSetup(void)
+{
+  /* Nothing to do as ANSI platform does not have fork(). */
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
  * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.

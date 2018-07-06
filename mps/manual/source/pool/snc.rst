@@ -3,18 +3,13 @@
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/stack-alloc/>`_
 
 .. index::
-   single: SNC
+   single: SNC pool class
    single: pool class; SNC
 
 .. _pool-snc:
 
 SNC (Stack No Checking)
 =======================
-
-.. deprecated:: starting with version 1.111.
-
-    If you need special handling of stack-like allocation,
-    :ref:`contact us <contact>`.
 
 **SNC** is a :term:`manually managed <manual memory management>`
 :term:`pool class` that supports a stack-like protocol for allocation
@@ -23,14 +18,19 @@ points`. See :ref:`topic-frame`.
 
 If :c:func:`mps_ap_frame_pop` is used on an allocation point in an SNC
 pool (after a corresponding call to :c:func:`mps_ap_frame_push`), then
-the objects affected by the pop are effectively declared dead, and may
-be reclaimed by the collector. Extant references to such objects from
-reachable or *de facto* alive objects are safe, but such other objects
-should be dead; that is, such references must never be used.
+the objects affected by the pop are assumed to be dead, and are
+reclaimed by the collector without checking whether there are any
+references to them.
+
+This pool class is intended to be used to implement stack languages
+like Forth and PostScript, where some objects are allocated in stack
+frames and are known to be dead when the stack is popped, because the
+language can ensure that objects that are kept alive when the stack is
+popped are copied to the heap.
 
 
 .. index::
-   single: SNC; properties
+   single: SNC pool class; properties
 
 SNC properties
 --------------
@@ -81,7 +81,7 @@ SNC properties
 
 
 .. index::
-   single: SNC; interface
+   single: SNC pool class; interface
 
 SNC interface
 -------------

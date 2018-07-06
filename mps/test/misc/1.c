@@ -5,7 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o
 OUTPUT_SPEC
- memoryerror = true
+ abort = true
 END_HEADER
 */
 

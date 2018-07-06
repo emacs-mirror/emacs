@@ -1,7 +1,7 @@
 /* mpsicv.c: MPSI COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  */
 
@@ -338,7 +338,8 @@ static void *test(void *arg, size_t s)
   mps_arena_t arena;
   mps_fmt_t format;
   mps_chain_t chain;
-  mps_root_t exactRoot, ambigRoot, singleRoot, fmtRoot;
+  mps_root_t exactAreaRoot, exactTableRoot, ambigAreaRoot, ambigTableRoot,
+    singleRoot, fmtRoot;
   unsigned long i;
   /* Leave arena clamped until we have allocated this many objects.
      is 0 when arena has not been clamped. */
@@ -386,14 +387,29 @@ static void *test(void *arg, size_t s)
     ambigRoots[j] = rnd_addr();
   }
 
-  die(mps_root_create_table_masked(&exactRoot, arena,
+  die(mps_root_create_area_tagged(&exactAreaRoot, arena,
+                                  mps_rank_exact(), (mps_rm_t)0,
+                                  &exactRoots[0],
+                                  &exactRoots[exactRootsCOUNT / 2],
+                                  mps_scan_area_tagged,
+                                  MPS_WORD_CONST(1), 0),
+      "root_create_area_tagged(exact)");
+  die(mps_root_create_table_masked(&exactTableRoot, arena,
                                    mps_rank_exact(), (mps_rm_t)0,
-                                   &exactRoots[0], exactRootsCOUNT,
+                                   &exactRoots[exactRootsCOUNT / 2],
+                                   (exactRootsCOUNT + 1) / 2,
                                    MPS_WORD_CONST(1)),
-      "root_create_table(exact)");
-  die(mps_root_create_table(&ambigRoot, arena,
+      "root_create_table_masked(exact)");
+  die(mps_root_create_area(&ambigAreaRoot, arena,
+                           mps_rank_ambig(), (mps_rm_t)0,
+                           &ambigRoots[0],
+                           &ambigRoots[ambigRootsCOUNT / 2],
+                           mps_scan_area, NULL),
+      "root_create_area(ambig)");
+  die(mps_root_create_table(&ambigTableRoot, arena,
                             mps_rank_ambig(), (mps_rm_t)0,
-                            &ambigRoots[0], ambigRootsCOUNT),
+                            &ambigRoots[ambigRootsCOUNT / 2],
+                            (ambigRootsCOUNT + 1) / 2),
       "root_create_table(ambig)");
 
   obj = objNULL;
@@ -434,11 +450,13 @@ static void *test(void *arg, size_t s)
     mps_word_t c;
     size_t r;
 
+    Insist(!mps_arena_busy(arena));
+
     c = mps_collections(arena);
 
     if(collections != c) {
       collections = c;
-      printf("\nCollection %"PRIuLONGEST", %lu objects.\n", (ulongest_t)c, i);
+      printf("Collection %"PRIuLONGEST", %lu objects.\n", (ulongest_t)c, i);
       for(r = 0; r < exactRootsCOUNT; ++r) {
         cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
              "all roots check");
@@ -519,8 +537,10 @@ static void *test(void *arg, size_t s)
   mps_ap_destroy(ap);
   mps_root_destroy(fmtRoot);
   mps_root_destroy(singleRoot);
-  mps_root_destroy(exactRoot);
-  mps_root_destroy(ambigRoot);
+  mps_root_destroy(exactAreaRoot);
+  mps_root_destroy(exactTableRoot);
+  mps_root_destroy(ambigAreaRoot);
+  mps_root_destroy(ambigTableRoot);
   mps_pool_destroy(amcpool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
@@ -542,25 +562,48 @@ int main(int argc, char *argv[])
 
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), TEST_ARENA_SIZE),
-      "arena_create");
+  MPS_ARGS_BEGIN(args) {
+    /* Randomize pause time as a regression test for job004011. */
+    MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, rnd_pause_time());
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, TEST_ARENA_SIZE);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "arena_create");
+  } MPS_ARGS_END(args);
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
-  if (rnd() % 2) {
+  switch (rnd() % 3) {
+  default:
+  case 0:
     die(mps_root_create_reg(&reg_root, arena,
                             mps_rank_ambig(), (mps_rm_t)0,
                             thread, &mps_stack_scan_ambig,
                             marker, (size_t)0),
         "root_create_reg");
-  } else {
+    break;
+  case 1:
     die(mps_root_create_thread(&reg_root, arena, thread, marker),
         "root_create_thread");
+    break;
+  case 2:
+    die(mps_root_create_thread_scanned(&reg_root, arena, mps_rank_ambig(),
+                                       (mps_rm_t)0, thread, mps_scan_area,
+                                       NULL, marker),
+        "root_create_thread");
+    break;
   }
 
   mps_tramp(&r, test, arena, 0);
-  mps_root_destroy(reg_root);
-  mps_thread_dereg(thread);
-  mps_arena_destroy(arena);
+  switch (rnd() % 2) {
+  default:
+  case 0:
+    mps_root_destroy(reg_root);
+    mps_thread_dereg(thread);
+    mps_arena_destroy(arena);
+    break;
+  case 1:
+    mps_arena_postmortem(arena);
+    break;
+  }
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
@@ -569,7 +612,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

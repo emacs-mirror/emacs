@@ -55,19 +55,19 @@ write-protected segment. See ``TraceSegAccess()``.)
 Design
 ------
 
-_`.sol.sync`: If memory protection is not available, only way to meet
-`.req.consistent`_, is ensure that no protection is required,
-essentially by running the collector until it has no more incremental
-work to do. (This makes it impossible to meet real-time requirements
-on pause times, but may be the best that can be done.)
+_`.sol.sync`: If memory protection is not available, the only way to
+meet `.req.consistent`_ is to ensure that no protection is required,
+by running the collector until it has no more incremental work to do.
+(This makes it impossible to meet real-time requirements on pause
+times, but may be the best that can be done.)
 
 _`.sol.fault.handle`: The protection module handles protection faults
 by decoding the context of the fault (see
 design.mps.prmc.req.fault.addr_ and design.mps.prmc.req.fault.access_)
 and calling ``ArenaAccess()``.
 
-.. _design.mps.prmc.req.fault.addr: prmc#req.fault.addr
-.. _design.mps.prmc.req.fault.access: prmc#req.fault.access
+.. _design.mps.prmc.req.fault.addr: prmc#req-fault-addr
+.. _design.mps.prmc.req.fault.access: prmc#req-fault-access
 
 
 Interface
@@ -131,17 +131,15 @@ protection, otherwise there is an infinite loop here. This is
 therefore not compatible with implementations of the protection
 mutator context module that support single-stepping of accesses (see design.mps.prmc.req.fault.step_).
 
-.. _design.mps.prmc.req.fault.step: prmc#req.fault.step
+.. _design.mps.prmc.req.fault.step: prmc#req-fault-step
 
-_`.impl.ix`: POSIX implementation.
+_`.impl.ix`: POSIX implementation. See design.mps.protix_.
 
-_`.impl.li`: Linux implementation. See design.mps.protli_.
-
-.. _design.mps.protli: protli
+.. _design.mps.protix: protix
 
 _`.impl.w3`: Windows implementation.
 
-_`.impl.xc`: OS X implementation.
+_`.impl.xc`: macOS implementation.
 
 
 Document History
@@ -153,8 +151,8 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
-- 2014-10-23 GDR_ Move protection mutator context interface to
-  design.mps.prmc_. Bring design up to date.
+- 2014-10-23 GDR_ Move mutator context interface to design.mps.prmc_.
+  Bring design up to date.
 
   .. _design.mps.prmc: prmc
 
@@ -165,7 +163,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

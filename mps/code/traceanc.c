@@ -1,7 +1,7 @@
 /* traceanc.c: ANCILLARY SUPPORT FOR TRACER
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
@@ -45,7 +45,7 @@
  * See <design/message-gc/>.
  */
 
-#define TraceStartMessageSig ((Sig)0x51926535) /* SIG TRaceStartMeSsage */
+#define TraceStartMessageSig ((Sig)0x51926535) /* SIGnature TRaceStartMeSsage */
 
 /* .whybuf:
  * .whybuf.len: Length (in chars) of a char buffer used to store the 
@@ -274,7 +274,7 @@ void TracePostStartMessage(Trace trace)
 
 /* TraceMessage -- type of trace end messages */
 
-#define TraceMessageSig ((Sig)0x51926359)
+#define TraceMessageSig ((Sig)0x51926359) /* SIGnature TRace MeSsaGe */
 
 typedef struct TraceMessageStruct  {
   Sig sig;
@@ -437,11 +437,9 @@ void TracePostMessage(Trace trace)
 
 Bool TraceIdMessagesCheck(Arena arena, TraceId ti)
 {
-  CHECKL(!arena->tsMessage[ti]
-         || TraceStartMessageCheck(arena->tsMessage[ti]));
-  CHECKL(!arena->tMessage[ti]
-         || TraceMessageCheck(arena->tMessage[ti]));
-  CHECKL(! (arena->tsMessage[ti] && !arena->tMessage[ti]) );
+  CHECKL(!arena->tsMessage[ti] || TraceStartMessageCheck(arena->tsMessage[ti]));
+  CHECKL(!arena->tsMessage[ti] || arena->tMessage[ti]);
+  CHECKL(!arena->tMessage[ti] || TraceMessageCheck(arena->tMessage[ti]));
 
   return TRUE;
 }
@@ -530,12 +528,11 @@ void TraceIdMessagesDestroy(Arena arena, TraceId ti)
 
 
 
-/* --------  ArenaRelease, ArenaClamp, ArenaPark  -------- */
+/* -----  ArenaRelease, ArenaClamp, ArenaPark, ArenaPostmortem  ----- */
 
 
-/* ArenaRelease, ArenaClamp, ArenaPark -- allow/prevent collection work.
- *
- * These functions allow or prevent collection work.
+/* ArenaRelease, ArenaClamp, ArenaPark, ArenaPostmortem --
+ * allow/prevent collection work.
  */
 
 
@@ -595,6 +592,62 @@ void ArenaPark(Globals globals)
   /* All traces have finished so there must not be an emergency. */
   AVER(!ArenaEmergency(arena));
 }
+
+
+/* arenaExpose -- discard all protection from MPS-managed memory
+ * 
+ * This is called by ArenaPostmortem, which we expect only to be used
+ * after a fatal error. So we use the lowest-level description of the
+ * MPS-managed memory (the chunk ring page tables) to avoid the risk
+ * of higher-level structures (like the segments) having been
+ * corrupted.
+ *
+ * After calling this function memory may not be in a consistent
+ * state, so it is not safe to continue running the MPS. If you need
+ * to expose memory but continue running the MPS, use
+ * ArenaExposeRemember instead.
+ */
+
+static void arenaExpose(Arena arena)
+{
+  Ring node, next;
+  RING_FOR(node, &arena->chunkRing, next) {
+    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
+    Index i;
+    for (i = 0; i < chunk->pages; ++i) {
+      if (Method(Arena, arena, chunkPageMapped)(chunk, i)) {
+        ProtSet(PageIndexBase(chunk, i), PageIndexBase(chunk, i + 1),
+                AccessSetEMPTY);
+      }
+    }
+  }
+}
+
+
+/* ArenaPostmortem -- enter the postmortem state */
+
+void ArenaPostmortem(Globals globals)
+{
+  Arena arena = GlobalsArena(globals);
+
+  /* Ensure lock is released. */
+  while (LockIsHeld(globals->lock)) {
+    LockReleaseRecursive(globals->lock);
+  }
+
+  /* Remove the arena from the global arena ring so that it no longer
+   * handles protection faults. (Don't call arenaDenounce because that
+   * needs to claim the global ring lock, but that might already be
+   * held, for example if we are inside ArenaAccess.) */
+  RingRemove(&globals->globalRing);
+
+  /* Clamp the arena so that ArenaPoll does nothing. */
+  ArenaClamp(globals);
+
+  /* Remove all protection from mapped pages. */
+  arenaExpose(arena);
+}
+
 
 /* ArenaStartCollect -- start a collection of everything in the
  * arena; leave unclamped. */
@@ -723,7 +776,7 @@ void ArenaExposeRemember(Globals globals, Bool remember)
 
     do {
       base = SegBase(seg);
-      if(IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet())) {
+      if (IsA(GCSeg, seg)) {
         if(remember) {
           RefSet summary;
 
@@ -766,7 +819,7 @@ void ArenaRestoreProtection(Globals globals)
       }
       b = SegOfAddr(&seg, arena, block->the[i].base);
       if(b && SegBase(seg) == block->the[i].base) {
-        AVER(IsSubclassPoly(ClassOfSeg(seg), GCSegClassGet()));
+        AVER(IsA(GCSeg, seg));
         SegSetSummary(seg, block->the[i].summary);
       } else {
         /* Either seg has gone or moved, both of which are */
@@ -799,7 +852,7 @@ static void arenaForgetProtection(Globals globals)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited
+ * Copyright (C) 2001-2018 Ravenbrook Limited
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

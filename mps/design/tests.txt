@@ -56,6 +56,91 @@ _`.test.zcoll`: Collection scheduling, and collection feedback.
 _`.test.zmess`: Message lifecycle and finalization messages.
 
 
+Performance test
+----------------
+
+_`.test.ratio`: The ``testratio`` target checks that the hot variety
+is not too much slower than the rash variety. A failure of this test
+usually is expected to indicate that there are assertions on the
+critical path using ``AVER`` instead of ``AVER_CRITICAL`` (and so on).
+This works by running gcbench for the AMC pool class and djbench for
+the MVFF pool class, in the hot variety and the rash variety,
+computing the ratio of CPU time taken in the two varieties, and
+testing that this falls under an acceptable limit.
+
+Note that we don't use the elapsed time (as reported by the benchmark)
+because we want to be able to run this test on continuous integration
+machines that might be heavily loaded.
+
+This target is currently supported only on Unix platforms using GNU
+Makefiles.
+
+
+Adding a new smoke test
+-----------------------
+
+To add a new smoke test to the MPS, carry out the following steps.
+(The procedure uses the name "smoketest" throughout but you should of
+course replace this with the name of your test case.)
+
+_`.new.source`: Create a C source file in the code directory,
+typically named "smoketest.c". In additional to the usual copyright
+boilerplate, it should contain a call to ``testlib_init()`` (this
+ensures reproducibility of pseudo-random numbers), and a ``printf()``
+reporting the absence of defects (this output is recognized by the
+test runner)::
+
+    #include <stdio.h>
+    #include "testlib.h"
+
+    int main(int argc, char *argv[])
+    {
+      testlib_init(argc, argv);
+      /* test happens here */
+      printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
+      return 0;
+    }
+
+_`.new.unix`: If the test case builds on the Unix platforms (FreeBSD,
+Linux and macOS), edit code/comm.gmk adding the test case to the
+``TEST_TARGETS`` macro, and adding a rule describing how to build it,
+typically::
+
+    $(PFM)/$(VARIETY)/smoketest: $(PFM)/$(VARIETY)/smoketest.o \
+            $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+_`.new.windows`: If the test case builds on Windows, edit
+code/commpre.nmk adding the test case to the ``TEST_TARGETS`` macro,
+and edit code/commpost.nmk adding a rule describing how to build it,
+typically::
+
+    $(PFM)\$(VARIETY)\smoketest.exe: $(PFM)\$(VARIETY)\smoketest.obj \
+            $(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
+
+_`.new.macos`: If the test case builds on macOS, open
+code/mps.xcodeproj/project.pbxproj for edit and open this project in
+Xcode. If the project navigator is not visible at the left, select
+View → Navigators → Show Project Navigator (⌘1). Right click on the
+Tests folder and choose Add Files to "mps"…. Select code/smoketest.c
+and then click Add. Move the new file into alphabetical order in the
+Tests folder. Click on "mps" at the top of the project navigator to
+reveal the targets. Select a test target that is similar to the one
+you have just created. Right click on that target and select Duplicate
+(⌘D). Select the new target and change its name to "smoketest". Select
+the "Build Phases" tab and check that "Dependencies" contains the mps
+library, and that "Compile Sources" contains smoketest.c and
+testlib.c. Close the project.
+
+_`.new.database`: Edit tool/testcases.txt and add the new test case to
+the database. Use the appropriate flags to indicate the properties of
+the test case. These flags are used by the test runner to select the
+appropriate sets of test cases, for example tests marked ``=P``
+(Polling) can't be run on the protectionless build of the MPS.
+
+_`.new.manual`: Edit manual/source/code-index.rst and add the new test
+case to the "Automated test cases" section.
+
+
 Document History
 ----------------
 
@@ -69,6 +154,8 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
+- 2018-06-15 GDR_ Procedure for adding a new smoke test.
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
@@ -76,7 +163,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

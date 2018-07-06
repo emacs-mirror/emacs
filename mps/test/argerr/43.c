@@ -34,7 +34,8 @@ static void test(void)
   "create pool");
 
  mps_pool_destroy(pool);
-
+ mps_thread_dereg(thread);
+ mps_arena_destroy(arena);
 }
 
 int main(void)

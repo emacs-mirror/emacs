@@ -29,7 +29,7 @@ _`.other`: The thread manager module is responsible for scanning the
 control stack and registers of *other* threads. See
 design.mps.thread-manager.if.scan_.
 
-.. _design.mps.thread-manager.if.scan: thread-manager#if.scan
+.. _design.mps.thread-manager.if.scan: thread-manager#if-scan
 
 _`.origin`: This design was originally proposed in
 mail.richard.2012-08-03.14-36_.

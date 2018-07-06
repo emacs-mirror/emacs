@@ -2,8 +2,8 @@
 #
 # w3i6pc.nmk: NMAKE FILE FOR WINDOWS/x64/PELLES C
 #
-# $Id: //info.ravenbrook.com/project/mps/branch/2014-03-21/pellesc/code/w3i6pc.nmk#1 $
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# $Id$
+# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
 
 PFM = w3i6pc
 
@@ -12,12 +12,12 @@ CFLAGSTARGETPRE = /Tamd64-coff
 MPMPF = \
     [lockw3] \
     [mpsiw3] \
-    [prmci6w3] \
-    [proti6] \
+    [prmci6] \
+    [prmcw3] \
+    [prmcw3i6] \
     [protw3] \
     [spw3i6] \
     [thw3] \
-    [thw3i6] \
     [vmw3]
 
 !INCLUDE commpre.nmk
@@ -27,7 +27,7 @@ MPMPF = \
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

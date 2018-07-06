@@ -26,12 +26,6 @@
 #include <stdio.h> /* fflush, printf, puts, stdout */
 
 
-/* Forward declarations */
-
-extern SegClass AMSTSegClassGet(void);
-extern PoolClass AMSTPoolClassGet(void);
-
-
 /* Start by defining the AMST pool (AMS Test pool) */
 
 #define AMSTSig         ((Sig)0x519A3529) /* SIGnature AMST */
@@ -54,6 +48,12 @@ typedef struct AMSTStruct *AMST;
 
 #define PoolAMST(pool) PARENT(AMSTStruct, amsStruct, PARENT(AMSStruct, poolStruct, (pool)))
 #define AMST2AMS(amst)  (&(amst)->amsStruct)
+
+
+typedef AMST AMSTPool;
+#define AMSTPoolCheck AMSTCheck
+DECLARE_CLASS(Pool, AMSTPool, AMSPool);
+DECLARE_CLASS(Seg, AMSTSeg, AMSSeg);
 
 
 /* AMSTCheck -- the check method for an AMST */
@@ -113,28 +113,27 @@ static Bool AMSTSegCheck(AMSTSeg amstseg)
 
 static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   AMSTSeg amstseg;
   AMST amst;
   Res res;
 
-  AVERT(Seg, seg);
-  amstseg = Seg2AMSTSeg(seg);
+  /* Initialize the superclass fields first via next-method call */
+  res = NextMethod(Seg, AMSTSeg, init)(seg, pool, base, size, args);
+  if (res != ResOK)
+    return res;
+  amstseg = CouldBeA(AMSTSeg, seg);
+
   AVERT(Pool, pool);
   amst = PoolAMST(pool);
   AVERT(AMST, amst);
   /* no useful checks for base and size */
 
-  /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(AMSTSegClass);
-  res = super->init(seg, pool, base, size, args);
-  if (res != ResOK)
-    return res;
-
   amstseg->next = NULL;
   amstseg->prev = NULL;
+
+  SetClassOfPoly(seg, CLASS(AMSTSeg));
   amstseg->sig = AMSTSegSig;
-  AVERT(AMSTSeg, amstseg);
+  AVERC(AMSTSeg, amstseg);
 
   return ResOK;
 }
@@ -142,13 +141,11 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
 /* amstSegFinish -- Finish method for AMST segments */
 
-static void amstSegFinish(Seg seg)
+static void amstSegFinish(Inst inst)
 {
-  SegClass super;
-  AMSTSeg amstseg;
+  Seg seg = MustBeA(Seg, inst);
+  AMSTSeg amstseg = MustBeA(AMSTSeg, seg);
 
-  AVERT(Seg, seg);
-  amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
 
   if (amstseg->next != NULL)
@@ -158,8 +155,7 @@ static void amstSegFinish(Seg seg)
 
   amstseg->sig = SigInvalid;
   /* finish the superclass fields last */
-  super = SEG_SUPERCLASS(AMSTSegClass);
-  super->finish(seg);
+  NextMethod(Inst, AMSTSeg, finish)(inst);
 }
 
 
@@ -176,7 +172,6 @@ static void amstSegFinish(Seg seg)
 static Res amstSegMerge(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit)
 {
-  SegClass super;
   AMST amst;
   AMSTSeg amstseg, amstsegHi;
   Res res;
@@ -190,8 +185,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Merge the superclass fields via direct next-method call */
-  super = SEG_SUPERCLASS(AMSTSegClass);
-  res = super->merge(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSTSeg, merge)(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -210,7 +204,7 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method (see .fail) */
-  res = super->split(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSTSeg, split)(seg, segHi, base, mid, limit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -225,7 +219,6 @@ failSuper:
 static Res amstSegSplit(Seg seg, Seg segHi,
                         Addr base, Addr mid, Addr limit)
 {
-  SegClass super;
   AMST amst;
   AMSTSeg amstseg, amstsegHi;
   Res res;
@@ -238,8 +231,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
   amst = PoolAMST(SegPool(seg));
 
   /* Split the superclass fields via direct next-method call */
-  super = SEG_SUPERCLASS(AMSTSegClass);
-  res = super->split(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSTSeg, split)(seg, segHi, base, mid, limit);
   if (res != ResOK)
     goto failSuper;
 
@@ -262,7 +254,7 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 
 failDeliberate:
   /* Call the anti-method. (see .fail) */
-  res = super->merge(seg, segHi, base, mid, limit);
+  res = NextMethod(Seg, AMSTSeg, merge)(seg, segHi, base, mid, limit);
   AVER(res == ResOK);
   res = ResFAIL;
 failSuper:
@@ -273,16 +265,15 @@ failSuper:
 
 /* AMSTSegClass -- Class definition for AMST segments */
 
-DEFINE_SEG_CLASS(AMSTSegClass, class)
+DEFINE_CLASS(Seg, AMSTSeg, klass)
 {
-  INHERIT_CLASS(class, AMSSegClass);
-  class->name = "AMSTSEG";
-  class->size = sizeof(AMSTSegStruct);
-  class->init = amstSegInit;
-  class->finish = amstSegFinish;
-  class->split = amstSegSplit;
-  class->merge = amstSegMerge;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, AMSTSeg, AMSSeg);
+  klass->instClassStruct.finish = amstSegFinish;
+  klass->size = sizeof(AMSTSegStruct);
+  klass->init = amstSegInit;
+  klass->split = amstSegSplit;
+  klass->merge = amstSegMerge;
+  AVERT(SegClass, klass);
 }
 
 
@@ -320,34 +311,19 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 
 /* AMSTInit -- the pool class initialization method */
 
-static Res AMSTInit(Pool pool, ArgList args)
+static Res AMSTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  AMST amst; AMS ams;
-  Format format;
-  Chain chain;
+  AMST amst;
+  AMS ams;
   Res res;
-  unsigned gen = AMS_GEN_DEFAULT;
-  ArgStruct arg;
 
-  AVERT(Pool, pool);
-  AVERT(ArgList, args);
-
-  if (ArgPick(&arg, args, MPS_KEY_CHAIN))
-    chain = arg.val.chain;
-  else {
-    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
-    gen = 1; /* avoid the nursery of the default chain by default */
-  }
-  if (ArgPick(&arg, args, MPS_KEY_GEN))
-    gen = arg.val.u;
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
-  
-  res = AMSInitInternal(PoolAMS(pool), format, chain, gen, FALSE);
+  res = NextMethod(Pool, AMSTPool, init)(pool, arena, klass, args);
   if (res != ResOK)
     return res;
-  amst = PoolAMST(pool);
-  ams = PoolAMS(pool);
+
+  amst = CouldBeA(AMSTPool, pool);
+  ams = MustBeA(AMSPool, pool);
+
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = AMSTSegClassGet;
   amst->failSegs = TRUE;
@@ -357,21 +333,25 @@ static Res AMSTInit(Pool pool, ArgList args)
   amst->badMerges = 0;
   amst->bsplits = 0;
   amst->bmerges = 0;
+
+  SetClassOfPoly(pool, CLASS(AMSTPool));
   amst->sig = AMSTSig;
-  AVERT(AMST, amst);
+  AVERC(AMSTPool, amst);
+
   return ResOK;
 }
 
 
 /* AMSTFinish -- the pool class finish method */
 
-static void AMSTFinish(Pool pool)
+static void AMSTFinish(Inst inst)
 {
-  AMST amst;
+  Pool pool = MustBeA(AbstractPool, inst);
+  AMST amst = MustBeA(AMSTPool, pool);
 
-  AVERT(Pool, pool);
-  amst = PoolAMST(pool);
   AVERT(AMST, amst);
+
+  amst->sig = SigInvalid;
 
   printf("\nDestroying pool, having performed:\n");
   printf("    %"PRIuLONGEST" splits          (S)\n", (ulongest_t)amst->splits);
@@ -382,8 +362,7 @@ static void AMSTFinish(Pool pool)
   printf("    %"PRIuLONGEST" buffered splits (C)\n", (ulongest_t)amst->bsplits);
   printf("    %"PRIuLONGEST" buffered merges (J)\n", (ulongest_t)amst->bmerges);
 
-  AMSFinish(pool);
-  amst->sig = SigInvalid;
+  NextMethod(Inst, AMSTPool, finish)(inst);
 }
 
 
@@ -402,23 +381,14 @@ static Bool AMSSegIsFree(Seg seg)
 
 static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
 {
-  AMSSeg amsseg;
-  AMS ams;
-  Count bgrain, lgrain;
-  Addr sbase;
-
-  AVERT(Seg, seg);
-  amsseg = Seg2AMSSeg(seg);
-  sbase = SegBase(seg);
-  ams = PoolAMS(SegPool(seg));
-
-  bgrain = AMSGrains(ams, AddrOffset(sbase, base));
-  lgrain = AMSGrains(ams, AddrOffset(sbase, limit));
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  Index baseIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), base);
 
   if (amsseg->allocTableInUse) {
-    return BTIsResRange(amsseg->allocTable, bgrain, lgrain);
+    Index limitIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), limit);
+    return BTIsResRange(amsseg->allocTable, baseIndex, limitIndex);
   } else {
-    return amsseg->firstFree <= bgrain;
+    return amsseg->firstFree <= baseIndex;
   }
 }
 
@@ -432,12 +402,13 @@ static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
+  Count unallocatedGrains;
   /* parameters checked by caller */
 
   amsseg = Seg2AMSSeg(seg);
 
-  baseIndex = AMS_ADDR_INDEX(seg, base);
-  limitIndex = AMS_ADDR_INDEX(seg, limit);
+  baseIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), base);
+  limitIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), limit);
 
   if (amsseg->allocTableInUse) {
     /* check that it's allocated */
@@ -456,10 +427,14 @@ static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
       BTResRange(amsseg->allocTable, baseIndex, limitIndex);
     }
   }
-  amsseg->freeGrains += limitIndex - baseIndex;
-  AVER(amsseg->newGrains >= limitIndex - baseIndex);
-  amsseg->newGrains -= limitIndex - baseIndex;
-  PoolGenAccountForEmpty(&ams->pgen, AddrOffset(base, limit), FALSE);
+
+  unallocatedGrains = limitIndex - baseIndex;
+  AVER(amsseg->bufferedGrains >= unallocatedGrains);
+  amsseg->freeGrains += unallocatedGrains;
+  amsseg->bufferedGrains -= unallocatedGrains;
+  PoolGenAccountForEmpty(ams->pgen, 0,
+                         PoolGrainsSize(AMSPool(ams), unallocatedGrains),
+                         FALSE);
 }
 
 
@@ -472,12 +447,13 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
   AMSSeg amsseg;
   Index baseIndex, limitIndex;
+  Count allocatedGrains;
   /* parameters checked by caller */
 
   amsseg = Seg2AMSSeg(seg);
 
-  baseIndex = AMS_ADDR_INDEX(seg, base);
-  limitIndex = AMS_ADDR_INDEX(seg, limit);
+  baseIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), base);
+  limitIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), limit);
 
   if (amsseg->allocTableInUse) {
     /* check that it's not allocated */
@@ -496,10 +472,12 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
       BTSetRange(amsseg->allocTable, baseIndex, limitIndex);
     }
   }
-  AVER(amsseg->freeGrains >= limitIndex - baseIndex);
-  amsseg->freeGrains -= limitIndex - baseIndex;
-  amsseg->newGrains += limitIndex - baseIndex;
-  PoolGenAccountForFill(&ams->pgen, AddrOffset(base, limit), FALSE);
+
+  allocatedGrains = limitIndex - baseIndex;
+  AVER(amsseg->freeGrains >= allocatedGrains);
+  amsseg->freeGrains -= allocatedGrains;
+  amsseg->bufferedGrains += allocatedGrains;
+  PoolGenAccountForFill(ams->pgen, AddrOffset(base, limit));
 }
 
 
@@ -520,7 +498,6 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
                           Pool pool, Buffer buffer, Size size)
 {
-  PoolClass super;
   Addr base, limit;
   Arena arena;
   AMS ams;
@@ -539,8 +516,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   amst = PoolAMST(pool);
 
   /* call next method */
-  super = POOL_SUPERCLASS(AMSTPoolClass);
-  res = super->bufferFill(&base, &limit, pool, buffer, size);
+  res = NextMethod(Pool, AMSTPool, bufferFill)(&base, &limit, pool, buffer, size);
   if (res != ResOK)
     return res;
 
@@ -551,9 +527,9 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   if (SegLimit(seg) == limit && SegBase(seg) == base) {
     if (amstseg->prev != NULL) {
       Seg segLo = AMSTSeg2Seg(amstseg->prev);
-      if (SegBuffer(segLo) == NULL &&
-	  SegGrey(segLo) == SegGrey(seg) &&
-	  SegWhite(segLo) == SegWhite(seg)) {
+      if (!SegHasBuffer(segLo) &&
+          SegGrey(segLo) == SegGrey(seg) &&
+          SegWhite(segLo) == SegWhite(seg)) {
         /* .merge */
         Seg mergedSeg;
         Res mres;
@@ -614,10 +590,11 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
   AMST amst;
   Arena arena;
   Addr limit;
+  Buffer segBuf;
 
   AVERT(Seg, seg);
   AVERT(Buffer, buffer);
-  AVER(SegBuffer(seg) == buffer);
+  AVER(SegBuffer(&segBuf, seg) && segBuf == buffer);
   amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
   limit = BufferLimit(buffer);
@@ -663,16 +640,14 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
 
 /* AMSTPoolClass -- the pool class definition */
 
-DEFINE_POOL_CLASS(AMSTPoolClass, this)
+DEFINE_CLASS(Pool, AMSTPool, klass)
 {
-  INHERIT_CLASS(this, AMSPoolClass);
-  this->name = "AMST";
-  this->size = sizeof(AMSTStruct);
-  this->offset = offsetof(AMSTStruct, amsStruct) + offsetof(AMSStruct, poolStruct);
-  this->init = AMSTInit;
-  this->finish = AMSTFinish;
-  this->bufferFill = AMSTBufferFill;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, AMSTPool, AMSPool);
+  klass->instClassStruct.finish = AMSTFinish;
+  klass->size = sizeof(AMSTStruct);
+  klass->init = AMSTInit;
+  klass->bufferFill = AMSTBufferFill;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -696,7 +671,7 @@ static void mps_amst_ap_stress(mps_ap_t ap)
 
 static mps_pool_class_t mps_class_amst(void)
 {
-  return (mps_pool_class_t)AMSTPoolClassGet();
+  return (mps_pool_class_t)CLASS(AMSTPool);
 }
 
 
