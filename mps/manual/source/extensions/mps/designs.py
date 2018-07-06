@@ -20,19 +20,19 @@ TYPES = '''
 
     AccessSet Accumulation Addr Align AllocFrame AllocPattern AP Arg
     Arena Attr Bool BootBlock BT Buffer BufferMode Byte Chain Chunk
-    Clock Compare Count Epoch EventClock FindDelete Format FrameState
-    Fun GenDesc Globals Index Land LD Lock LocusPref LocusPrefKind
-    Message MessageType MutatorFaultContext Page Pointer Pool PoolGen
-    PThreadext Range Rank RankSet ReadonlyAddr Ref RefSet Res
-    Ring Root RootMode RootVar ScanState Seg SegBuf Serial
-    Shift Sig Size Space SplayNode SplayTree StackContext Thread Trace
-    TraceId TraceSet TraceStartWhy TraceState ULongest VM Word ZoneSet
+    Clock Compare Count Epoch EventClock FindDelete Format Fun GenDesc
+    Globals Index Land LD Lock LocusPref LocusPrefKind Message
+    MessageType MutatorContext MutatorContextVar Page Pointer Pool
+    PoolGen PThreadext Range Rank RankSet ReadonlyAddr Ref RefSet Res
+    Ring Root RootMode RootVar ScanState Seg SegBuf Serial Shift Sig
+    Size Space SplayNode SplayTree StackContext Thread Trace TraceId
+    TraceSet TraceStartWhy TraceState ULongest VM Word ZoneSet
 
 '''
 
 mode = re.compile(r'\.\. mode: .*\n')
 prefix = re.compile(r'^:Tag: ([a-z][a-z.0-9-]*[a-z0-9])$', re.MULTILINE)
-rst_tag = re.compile(r'^:(?:Author|Date|Status|Revision|Copyright|Organization|Format|Index terms):.*?$\n', re.MULTILINE | re.IGNORECASE)
+rst_tag = re.compile(r'^:(?:Author|Date|Status|Revision|Copyright|Organization|Format|Index terms|Readership):.*?$\n', re.MULTILINE | re.IGNORECASE)
 mps_tag = re.compile(r'_`\.([a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`:')
 mps_ref = re.compile(r'`(\.[a-z][A-Za-z.0-9_-]*[A-Za-z0-9])`_(?:        )?')
 funcdef = re.compile(r'^``([^`]*\([^`]*\))``$', re.MULTILINE)
@@ -43,7 +43,7 @@ func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
 typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*(?:Class|Struct|Method)|mps_[a-z_]+_[stu])``(?:      )?'
                       .format('|'.join(map(re.escape, TYPES.split()))))
 design_ref = re.compile(r'^( *\.\. _design\.mps\.(?:[^:\n]+): (?:[^#:\n]+))$', re.MULTILINE)
-design_frag_ref = re.compile(r'^( *\.\. _design\.mps\.([^:\n]+)\.([^:\n]+): (?:[^#:\n]+))#\3$', re.MULTILINE)
+design_frag_ref = re.compile(r'^( *\.\. _design\.mps\.([^:\n]+)\.([^:\n]+): (?:[^#:\n]+))#(.+)$', re.MULTILINE)
 history = re.compile(r'^Document History\n.*',
                      re.MULTILINE | re.IGNORECASE | re.DOTALL)
 
@@ -61,10 +61,10 @@ def secnum_sub(m):
 #     .. [THVV_1995] Tom Van Vleck. 1995. "`Structure Marking <http://www.multicians.org/thvv/marking.html>`__".
 citation = re.compile(
     r'''
-        ^\.\.\s+(?P<ref>\[.*?\])\s*
-        "(?P<title>[^"]*?)"\s*
-        ;\s*(?P<author>[^;]*?)\s*
-        (?:;\s*(?P<organization>[^;]*?)\s*)?
+        ^\.\.\s+(?P<ref>\[[^\n\]]+\])\s*
+        "(?P<title>[^"]+?)"\s*
+        ;\s*(?P<author>[^;]+?)\s*
+        (?:;\s*(?P<organization>[^;]+?)\s*)?
         ;\s*(?P<date>[0-9-]+)\s*
         (?:;\s*<\s*(?P<url>[^>]*?)\s*>\s*)?
         \.
@@ -72,21 +72,19 @@ citation = re.compile(
     re.VERBOSE | re.MULTILINE | re.IGNORECASE | re.DOTALL
 )
 def citation_sub(m):
-    groups = m.groupdict()
-    for key in groups:
-        if groups[key]:
-            groups[key] = re.sub(r'\s+', ' ', groups[key])
-    result = '.. {ref} {author}.'.format(**groups)
-    if groups.get('organization'):
-        result += ' {organization}.'.format(**groups)
-    result += ' {date}.'.format(**groups)
-    if groups.get('url'):
-        result += ' "`{title} <{url}>`__".'.format(**groups)
+    groups = {k: re.sub(r'\s+', ' ', v) for k, v in m.groupdict().items() if v}
+    fmt = '.. {ref} {author}.'
+    if 'organization' in groups:
+        fmt += ' {organization}.'
+    fmt += ' {date}.'
+    if 'url' in groups:
+        fmt += ' "`{title} <{url}>`__".'
     else:
-        result += ' "{title}".'.format(**groups)
-    return result
+        fmt += ' "{title}".'
+    return fmt.format(**groups)
 
-index = re.compile(r'^:Index\s+terms:(.*$\n(?:[ \t]+.*$\n)*)', re.MULTILINE | re.IGNORECASE)
+index = re.compile(r'^:Index\s+terms:(.*$\n(?:[ \t]+.*$\n)*)',
+                   re.MULTILINE | re.IGNORECASE)
 
 # <http://sphinx-doc.org/markup/misc.html#directive-index>
 index_term = re.compile(r'^\s*(\w+):\s*(.*?)\s*$', re.MULTILINE)

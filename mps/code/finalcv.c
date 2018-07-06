@@ -1,7 +1,7 @@
 /* finalcv.c: FINALIZATION COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * DESIGN
@@ -40,7 +40,7 @@
 #define finalizationRATE 6
 #define gcINTERVAL ((size_t)150 * 1024)
 #define collectionCOUNT 3
-#define messageCOUNT 3
+#define finalizationCOUNT 3
 
 /* 3 words:  wrapper  |  vector-len  |  first-slot */
 #define vectorSIZE (3*sizeof(mps_word_t))
@@ -110,11 +110,11 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
   mps_root_t mps_root[2];
   mps_addr_t nullref = NULL;
   int state[rootCOUNT];
-  mps_message_t message;
-  size_t messages = 0;
+  size_t finalizations = 0;
+  size_t collections = 0;
   void *p;
 
-  printf("---- finalcv: pool class %s ----\n", pool_class->name);
+  printf("---- finalcv: pool class %s ----\n", ClassName(pool_class));
 
   die(mps_fmt_create_A(&fmt, arena, dylan_fmt_A()), "fmt_create\n");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -143,15 +143,21 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
     /* store index in vector's slot */
     ((mps_word_t *)p)[vectorSLOT] = dylan_int(i);
 
+    /* mps_definalize fails when there have been no calls to mps_finalize
+       yet, or for an address that was not registered for finalization. */
+    Insist(mps_definalize(arena, &p) == MPS_RES_FAIL);
+
     die(mps_finalize(arena, &p), "finalize\n");
     root[i] = p; state[i] = rootSTATE;
   }
   p = NULL;
 
   mps_message_type_enable(arena, mps_message_type_finalization());
+  mps_message_type_enable(arena, mps_message_type_gc());
 
   /* <design/poolmrg/#test.promise.ut.churn> */
-  while (messages < messageCOUNT && mps_collections(arena) < collectionCOUNT) {
+  while (finalizations < finalizationCOUNT && collections < collectionCOUNT) {
+    mps_message_type_t type;
     
     /* Perhaps cause (minor) collection */
     churn(ap);
@@ -177,31 +183,37 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
       }
     }
 
-    /* Test any finalized objects, and perhaps resurrect some */
-    while (mps_message_poll(arena)) {
-      mps_word_t *obj;
-      mps_word_t objind;
-      mps_addr_t objaddr;
+    while (mps_message_queue_type(&type, arena)) {
+      mps_message_t message;
+      cdie(mps_message_get(&message, arena, type), "message_get");
+      if (type == mps_message_type_finalization()) {
+        /* Check finalized object, and perhaps resurrect it. */
+        mps_word_t *obj;
+        mps_word_t objind;
+        mps_addr_t objaddr;
 
-      /* <design/poolmrg/#test.promise.ut.message> */
-      cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
-           "get");
-      cdie(0 == mps_message_clock(arena, message),
-           "message clock should be 0 (unset) for finalization messages");
-      mps_message_finalization_ref(&objaddr, arena, message);
-      obj = objaddr;
-      objind = dylan_int_int(obj[vectorSLOT]);
-      printf("Finalizing: object %"PRIuLONGEST" at %p\n",
-             (ulongest_t)objind, objaddr);
-      /* <design/poolmrg/#test.promise.ut.final.check> */
-      cdie(root[objind] == NULL, "finalized live");
-      cdie(state[objind] == finalizableSTATE, "finalized dead");
-      state[objind] = finalizedSTATE;
-      /* sometimes resurrect */
-      if (rnd() % 2 == 0)
-        root[objind] = objaddr;
+        /* <design/poolmrg/#test.promise.ut.message> */
+        cdie(0 == mps_message_clock(arena, message),
+             "message clock should be 0 (unset) for finalization messages");
+        mps_message_finalization_ref(&objaddr, arena, message);
+        obj = objaddr;
+        objind = dylan_int_int(obj[vectorSLOT]);
+        printf("Finalizing: object %"PRIuLONGEST" at %p\n",
+               (ulongest_t)objind, objaddr);
+        /* <design/poolmrg/#test.promise.ut.final.check> */
+        cdie(root[objind] == NULL, "finalized live");
+        cdie(state[objind] == finalizableSTATE, "finalized dead");
+        state[objind] = finalizedSTATE;
+        /* sometimes resurrect */
+        if (rnd() % 2 == 0)
+          root[objind] = objaddr;
+        ++ finalizations;
+      } else if (type == mps_message_type_gc()) {
+        ++ collections;
+      } else {
+        error("Unexpected message type %lu.", (unsigned long)type);
+      }
       mps_message_discard(arena, message);
-      ++ messages;
     }
   }
 
@@ -238,7 +250,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -39,20 +39,28 @@ int main(int argc, char *argv[])
   Insist(b != NULL);
 
   LockInit(a);
+  Insist(!LockIsHeld(a));
   LockInit(b);
+  Insist(!LockIsHeld(b));
   LockClaimGlobal();
   LockClaim(a);
+  Insist(LockIsHeld(a));
   LockClaimRecursive(b);
+  Insist(LockIsHeld(b));
   LockClaimGlobalRecursive();
   LockReleaseGlobal();
   LockClaimGlobal();
   LockRelease(a);
+  Insist(!LockIsHeld(a));
   LockClaimGlobalRecursive();
   LockReleaseGlobal();
   LockClaimRecursive(b);
+  Insist(LockIsHeld(b));
   LockFinish(a);
   LockReleaseRecursive(b);
+  Insist(LockIsHeld(b));
   LockReleaseRecursive(b);
+  Insist(!LockIsHeld(b));
   LockFinish(b);
   LockInit(a);
   LockClaim(a);

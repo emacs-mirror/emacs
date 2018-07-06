@@ -1,75 +1,219 @@
 .. mode: -*- rst -*-
 
-Pool and pool class mechanisms
-==============================
+Pool classes
+============
 
 :Tag: design.mps.pool
 :Author: Richard Brooksby
-:Date: 1996-07-31
-:Status: incomplete document
+:Date: 1997-08-19
+:Status: incomplete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
-:Index terms: pair: pool class mechanism; design
+:Index terms:    pair: pool classes; design
 
 
-Definitions
------------
+Introduction
+-------------
 
-_`.def.outer-structure`: The "outer structure" (of a pool) is a C
-object of type ``PoolXXXStruct`` or the type ``struct PoolXXXStruct``
-itself.
-
-_`.def.generic-structure`: The "generic structure" is a C object of
-type ``PoolStruct`` (found embedded in the outer-structure) or the
-type ``struct PoolStruct`` itself.
+_`.intro`: This document describes the interface and protocols between
+the MPM and the pool classes.
 
 
-Defaults
---------
+Classes and structures
+----------------------
 
-_`.align`: When initialised, the pool gets the default alignment
-(``ARCH_ALIGN``).
+_`.class`: Each pool belongs to a *pool class*.
 
-_`.no`: If a pool class doesn't implement a method, and doesn't expect
-it to be called, it should use a non-method (``PoolNo*``) which will
-cause an assertion failure if they are reached.
+_`.class.name`: Each pool class has a short, pithy, cryptic name for
+the pool class. It should start with ``"A"`` (for "automatic") if
+memory is managed by the garbage collector, and ``"M"`` (for "manual")
+if memory is managed by alloc/free. For example, "AMC", "MV".
 
-_`.triv`: If a pool class supports a protocol but does not require any
-more than a trivial implementation, it should use a trivial method
-(``PoolTriv*``) which will do the trivial thing.
+_`.class.protocol`: Pool classes use the *protocol* mechanisms (see
+design.mps.protocol_) to implement class initialization and
+inheritance.
 
-_`.outer-structure.sig`: It is good practice to put the signature for
-the outer structure at the end (of the structure). This is because
-there's already one at the beginning (in the poolStruct) so putting it
+.. _design.mps.protocol: protocol
+
+_`.class.structure`: Each pool class has an associated *class
+structure*, which is a C object of type ``PoolClass``. This is
+initialized and accessed via the ``CLASS()`` macro, for example
+``CLASS(MRGPool)`` initializes and accesses the class structure for
+the MRG pool class.
+
+_`.struct.outer`: The *outer structure* of a pool belonging to the ABC
+pool class is a C object of type ``ABCPoolStruct``, which is a typedef
+for ``struct PoolABCStruct``.
+
+_`.stuct.outer.sig`: It is good practice to put the signature for the
+outer structure at the end (of the structure). This is because there's
+already one at the beginning (in the generic structure), so putting it
 at the end gives some extra fencepost checking.
 
-
-Requirements
-------------
-
-.. note::
-
-    Placeholder: must derive the requirements from the architecture.
-
-_`.req.fix`: ``PoolFix()`` must be fast.
+_`.struct.generic`: The *generic structure* of a pool is a C object of
+type ``PoolStruct`` (found embedded in the outer structure), which is
+a typedef for ``struct PoolStruct``.
 
 
-Other
------
+Fields
+------
 
-Interface in mpm.h
-Types in mpmst.h
-See also design.mps.poolclass
+_`.field`: These fields are provided by pool classes as part of the
+``PoolClass`` object (see `.class.structure`_). They form part of the
+interface which allows the MPM to treat pools in a uniform manner.
+
+_`.field.name`: The ``name`` field must be the pool class name
+(`.class.name`_).
+
+_`.field.size`: The ``size`` field is the size of the pool instance
+structure. For the ``PoolABC`` class this can reasonably be expected
+to be ``sizeof(PoolABCStruct)``.
+
+_`.field.attr`: The ``attr`` field must be a bitset of pool class
+attributes. See design.mps.type.attr_.
+
+.. _design.mps.type.attr: type#attr
+
+_`.field.alignShift`: The ``alignShift`` field is the ``SizeLog2`` of
+the pool's alignment. It is computed and initialised when a pool is
+created. Mark-and-sweep pool classes use it to compute the number of
+grains in a segment, which is the number of bits need in the segment's
+mark and alloc bit tables.
+
+_`.field.format`: The ``format`` field is used to refer to the object
+format. The object format is passed to the pool during pool creation.
 
 
-Document History
+Methods
+-------
+
+_`.method`: These methods are provided by pool classes as part of the
+``PoolClass`` object (see `.class.structure`_). They form part of the
+interface which allows the MPM to treat pools in a uniform manner.
+
+_`.method.unused`: If a pool class is not required to provide a
+certain method, the class should assign the appropriate ``PoolNo``
+method (which asserts) for that method to ensure that erroneous calls
+are detected. It is not acceptable to use ``NULL``.
+
+_`.method.trivial`: If a pool class if required to provide a certain
+method, but the class provides no special behaviour in this case, it
+should assign the appropriate ``PoolTriv`` method, which does nothing.
+
+_`.method.inst`: Pool classes may implement the generic instance
+methods (see design.mps.protocol.inst.method_). In particular:
+
+.. _design.mps.protocol.inst.method: inst#method
+
+- _`.method.inst.finish`: The ``finish`` method
+  (design.mps.protocol.inst.method.finish_) must finish the outer
+  structure and then call its superclass method via the
+  ``NextMethod()`` macro (thus calling ``PoolAbsFinish()`` which
+  finishes the generic structure).
+
+  .. _design.mps.protocol.inst.method.finish: inst#method.finish
+
+- _`.method.inst.describe`: The ``describe`` method
+  (design.mps.protocol.inst.method.describe_) should print a
+  description of the pool. Each line should begin with two spaces.
+  Classes are not required to provide this method.
+
+  .. _design.mps.protocol.inst.method.describe: inst#method.describe
+
+``typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs)``
+
+_`.method.varargs`: The ``varargs`` field decodes the variable
+arguments to the deprecated function ``mps_pool_create()`` and
+converts them to a list of keyword arguments (see
+design.mps.keyword-arguments_).
+
+.. _design.mps.keyword-arguments: keyword-arguments
+
+``typedef Res (*PoolInitMethod)(Pool pool, Arena arena, PoolClass klass, ArgList args)``
+
+_`.method.init`: The ``init`` method must call its superclass method
+via the ``NextMethod()`` macro (thus calling ``PoolAbsInit()`` which
+initializes the generic structure), and then initialize the outer
+structure. It is called via the generic function ``PoolInit()``.
+
+``typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size)``
+
+_`.method.alloc`: The ``alloc`` method manually allocates a block of
+at least ``size`` bytes. It should update ``*pReturn`` with a pointer
+to a fresh (that is, not overlapping with any other live object)
+object of the required size. Failure to allocate must be indicated by
+returning an appropriate error code, and in such a case, ``*pReturn``
+must not be updated. Pool classes are not required to provide this
+method. It is called via the generic function ``PoolAlloc()``.
+
+_`.method.alloc.size.align`: A pool class may allow an unaligned
+``size`` (rounding it up to the pool's alignment).
+
+``typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size)``
+
+_`.method.free`: The ``free`` method manually frees a block. The
+parameters are required to correspond to a previous allocation request
+(possibly via a buffer, not necessarily via ``PoolAlloc()``). It is an
+assertion by the client that the indicated object is no longer
+required and the resources associated with it can be recycled. Pool
+classes are not required to provide this method. It is called via the
+generic function ``PoolFree()``.
+
+_`.method.free.size.align`: A pool class may allow an unaligned
+``size`` (rounding it up to the pool's alignment).
+
+``typedef BufferClass (*PoolBufferClassMethod)(void)``
+
+_`.method.bufferClass`: The ``bufferClass`` method returns the class
+of buffers used by the pool. Pool classes are not required to provide
+this method. It is called via the generic function
+``PoolDefaultBufferClass()``.
+
+``typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn, Pool pool, Buffer buffer, Size size)``
+
+_`.method.bufferFill`: The ``bufferFill`` method should allocate a
+region of least ``size`` bytes of memory for attaching to ``buffer``.
+The buffer must be in the "reset" state (see
+design.mps.buffer.reset_). If successful, it must update
+``*baseReturn`` and ``*limitReturn`` to the base and limit of the
+allocated region and return ``ResOK``. Otherwise it must leave
+``*baseReturn`` and ``*limitReturn`` unchanged and return a non-OK
+result code. Pool classes are not required to provide this method.
+This method is called by the ``BufferFill()``.
+
+.. _design.mps.buffer.reset: buffer#reset
+
+``typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer, Addr init, Addr limit)``
+
+_`.method.bufferEmpty`: The ``bufferEmpty`` method indicates that the
+client program has finished with the unused part of the buffer (the
+part between init and limit). This method must be provided if and only
+if ``bufferFill`` is provided. This method is called by the generic
+function ``BufferDetach()``.
+
+``typedef Size (*PoolSizeMethod)(Pool pool)``
+
+_`.method.totalSize`: The ``totalSize`` method must return the total
+memory allocated from the arena and managed by the pool. This method
+is called by the generic function ``PoolTotalSize()``.
+
+_`.method.freeSize`: The ``freeSize`` method must return the free
+memory allocated from the arena and managed by the pool, but not in
+use by the client program. This method is called by the generic
+function ``PoolFreeSize()``.
+
+
+Document history
 ----------------
 
-- 1996-07-31 richard incomplete doc
+- 1997-08-19 RB_ Initial draft. David Jones added comments about how
+  accurate this document is.
 
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 
-- 2013-05-23 GDR_ Converted to reStructuredText.
+- 2013-03-12 GDR_ Converted to reStructuredText.
+
+- 2014-06-08 GDR_ Bring method descriptions up to date.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
@@ -78,7 +222,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

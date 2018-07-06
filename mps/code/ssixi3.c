@@ -1,14 +1,14 @@
-/* ssixi3.c: UNIX/INTEL STACK SCANNING
+/* ssixi3.c: STACK SCANNING (POSIX, IA-32)
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  *  This scans the stack and fixes the registers which may contain
  *  roots.  See <design/thread-manager/>
  *
  *  This code was originally developed and tested on Linux, and then
- *  copied to the FreeBSD and Darwin (OS X) operating systems where it
- *  also seems to work.  Note that on FreeBSD and Darwin it has not
+ *  copied to the FreeBSD and Darwin (macOS) operating systems where
+ *  it also seems to work. Note that on FreeBSD and Darwin it has not
  *  been indepently verified with respect to any ABI documentation.
  *
  *  This code is common to more than one Unix implementation on
@@ -39,8 +39,11 @@
  *
  */
 
-
 #include "mpm.h"
+
+#if (!defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)) || !defined(MPS_ARCH_I3)
+#error "ssixi3.c is specific to MPS_OS_FR, MPS_OS_LI or MPS_OS_XC, and MPS_ARCH_I3"
+#endif
 
 SRCID(ssixi3, "$Id$");
 
@@ -71,7 +74,7 @@ Res StackScan(ScanState ss, Word *stackCold,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,5 +1,5 @@
 .. index::
-   single: MFS
+   single: MFS pool class
    single: pool class; MFS
 
 .. _pool-mfs:
@@ -24,7 +24,7 @@ in the free block. :c:func:`mps_alloc` pops this stack and
 
 
 .. index::
-   single: MFS; properties
+   single: MFS pool class; properties
 
 MFS properties
 --------------
@@ -66,7 +66,7 @@ MFS properties
 
 
 .. index::
-   single: MFS; interface
+   single: MFS pool class; interface
 
 MFS interface
 -------------
@@ -91,11 +91,10 @@ MFS interface
     keyword argument:
 
     * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
-      default 65536) is the :term:`size` of block that the pool will
-      request from the :term:`arena`. It must be at least as big as
-      the unit size specified by the :c:macro:`MPS_KEY_MFS_UNIT_SIZE`
-      keyword argument. If this is not a multiple of the unit size,
-      there will be wasted space in each block.
+      default 65536) is the :term:`size` of extent that the pool will
+      request from the :term:`arena`. For efficiency, this should be
+      much larger than :c:macro:`MPS_KEY_MFS_UNIT_SIZE`, so that many
+      blocks fit into each extent.
 
     For example::
 

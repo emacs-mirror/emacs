@@ -37,8 +37,8 @@ This document is not confidential.
 `testrun.bat`_     Implements the ``testrun`` make target on Windows, where
                    it is invoked from ``commpost.nmk``.
 `testrun.sh`_      Implements the ``testrun`` make target on FreeBSD and
-                   Linux, it is invoked from ``comm.gmk``, and on OS X, where
-                   it is invoked from the Xcode project.
+                   Linux, it is invoked from ``comm.gmk``, and on macOS,
+                   where it is invoked from the Xcode project.
 =================  ==========================================================
 
 .. _branch: branch
@@ -75,7 +75,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2002-2014 Ravenbrook Limited. All rights reserved.
+Copyright © 2002-2018 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/> This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
