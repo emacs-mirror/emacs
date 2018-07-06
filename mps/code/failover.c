@@ -4,6 +4,11 @@
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
  * .design: <design/failover/>
+ *
+ * .critical: In manual-allocation-bound programs using MVFF, many of
+ * these functions are on the critical paths via mps_alloc (and then
+ * PoolAlloc, MVFFAlloc, failoverFind*) and mps_free (and then
+ * MVFFFree, failoverInsert).
  */
 
 #include "failover.h"
@@ -11,9 +16,6 @@
 #include "range.h"
 
 SRCID(failover, "$Id$");
-
-
-#define failoverOfLand(land) PARENT(FailoverStruct, landStruct, land)
 
 
 ARG_DEFINE_KEY(failover_primary, Pointer);
@@ -30,68 +32,54 @@ Bool FailoverCheck(Failover fo)
 }
 
 
-static Res failoverInit(Land land, ArgList args)
+static Res failoverInit(Land land, Arena arena, Align alignment, ArgList args)
 {
   Failover fo;
-  LandClass super;
-  Land primary, secondary;
   ArgStruct arg;
   Res res;
 
-  AVERT(Land, land);
-  super = LAND_SUPERCLASS(FailoverLandClass);
-  res = (*super->init)(land, args);
+  AVER(land != NULL);
+  res = NextMethod(Land, Failover, init)(land, arena, alignment, args);
   if (res != ResOK)
     return res;
+  fo = CouldBeA(Failover, land);
 
   ArgRequire(&arg, args, FailoverPrimary);
-  primary = arg.val.p;
+  fo->primary = arg.val.p;
   ArgRequire(&arg, args, FailoverSecondary);
-  secondary = arg.val.p;
+  fo->secondary = arg.val.p;
 
-  fo = failoverOfLand(land);
-  fo->primary = primary;
-  fo->secondary = secondary;
+  SetClassOfPoly(land, CLASS(Failover));
   fo->sig = FailoverSig;
-  AVERT(Failover, fo);
+  AVERC(Failover, fo);
+
   return ResOK;
 }
 
 
-static void failoverFinish(Land land)
+static void failoverFinish(Inst inst)
 {
-  Failover fo;
-
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-
+  Land land = MustBeA(Land, inst);
+  Failover fo = MustBeA(Failover, land);
   fo->sig = SigInvalid;
+  NextMethod(Inst, Failover, finish)(inst);
 }
 
 
 static Size failoverSize(Land land)
 {
-  Failover fo;
-
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-
+  Failover fo = MustBeA_CRITICAL(Failover, land);
   return LandSize(fo->primary) + LandSize(fo->secondary);
 }
 
 
 static Res failoverInsert(Range rangeReturn, Land land, Range range)
 {
-  Failover fo;
+  Failover fo = MustBeA_CRITICAL(Failover, land);
   Res res;
 
-  AVER(rangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-  AVERT(Range, range);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVERT_CRITICAL(Range, range);
 
   /* Provide more opportunities for coalescence. See
    * <design/failover/#impl.assume.flush>.
@@ -108,14 +96,11 @@ static Res failoverInsert(Range rangeReturn, Land land, Range range)
 
 static Res failoverDelete(Range rangeReturn, Land land, Range range)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
   Res res;
   RangeStruct oldRange, dummyRange, left, right;
 
   AVER(rangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   AVERT(Range, range);
 
   /* Prefer efficient search in the primary. See
@@ -170,7 +155,7 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
     }
   }
   if (res == ResOK) {
-    AVER(RangesNest(&oldRange, range));
+    AVER_CRITICAL(RangesNest(&oldRange, range));
     RangeCopy(rangeReturn, &oldRange);
   }
   return res;
@@ -179,11 +164,8 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
 
 static Bool failoverIterate(Land land, LandVisitor visitor, void *closure)
 {
-  Failover fo;
+  Failover fo = MustBeA(Failover, land);
 
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
   AVER(visitor != NULL);
 
   return LandIterate(fo->primary, visitor, closure)
@@ -193,14 +175,11 @@ static Bool failoverIterate(Land land, LandVisitor visitor, void *closure)
 
 static Bool failoverFindFirst(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Failover fo;
+  Failover fo = MustBeA_CRITICAL(Failover, land);
 
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-  AVERT(FindDelete, findDelete);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVER_CRITICAL(oldRangeReturn != NULL);
+  AVERT_CRITICAL(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
   (void)LandFlush(fo->primary, fo->secondary);
@@ -212,14 +191,11 @@ static Bool failoverFindFirst(Range rangeReturn, Range oldRangeReturn, Land land
 
 static Bool failoverFindLast(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Failover fo;
+  Failover fo = MustBeA_CRITICAL(Failover, land);
 
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-  AVERT(FindDelete, findDelete);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVER_CRITICAL(oldRangeReturn != NULL);
+  AVERT_CRITICAL(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
   (void)LandFlush(fo->primary, fo->secondary);
@@ -231,14 +207,11 @@ static Bool failoverFindLast(Range rangeReturn, Range oldRangeReturn, Land land,
 
 static Bool failoverFindLargest(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
 {
-  Failover fo;
+  Failover fo = MustBeA_CRITICAL(Failover, land);
 
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-  AVERT(FindDelete, findDelete);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVER_CRITICAL(oldRangeReturn != NULL);
+  AVERT_CRITICAL(FindDelete, findDelete);
 
   /* See <design/failover/#impl.assume.flush>. */
   (void)LandFlush(fo->primary, fo->secondary);
@@ -250,19 +223,16 @@ static Bool failoverFindLargest(Range rangeReturn, Range oldRangeReturn, Land la
 
 static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
 {
-  Failover fo;
+  Failover fo = MustBeA_CRITICAL(Failover, land);
   Bool found = FALSE;
   Res res;
 
-  AVER(FALSE); /* TODO: this code is completely untested! */
-  AVER(foundReturn != NULL);
-  AVER(rangeReturn != NULL);
-  AVER(oldRangeReturn != NULL);
-  AVERT(Land, land);
-  fo = failoverOfLand(land);
-  AVERT(Failover, fo);
-  /* AVERT(ZoneSet, zoneSet); */
-  AVERT(Bool, high);
+  AVER_CRITICAL(FALSE); /* TODO: this code is completely untested! */
+  AVER_CRITICAL(foundReturn != NULL);
+  AVER_CRITICAL(rangeReturn != NULL);
+  AVER_CRITICAL(oldRangeReturn != NULL);
+  /* AVERT_CRITICAL(ZoneSet, zoneSet); */
+  AVERT_CRITICAL(Bool, high);
 
   /* See <design/failover/#impl.assume.flush>. */
   (void)LandFlush(fo->primary, fo->secondary);
@@ -276,48 +246,52 @@ static Bool failoverFindInZones(Bool *foundReturn, Range rangeReturn, Range oldR
 }
 
 
-static Res failoverDescribe(Land land, mps_lib_FILE *stream, Count depth)
+static Res failoverDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  Failover fo;
+  Land land = CouldBeA(Land, inst);
+  Failover fo = CouldBeA(Failover, land);
+  LandClass primaryClass, secondaryClass;
   Res res;
 
-  if (!TESTT(Land, land))
-    return ResFAIL;
-  fo = failoverOfLand(land);
-  if (!TESTT(Failover, fo))
-    return ResFAIL;
+  if (!TESTC(Failover, fo))
+    return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
-  res = WriteF(stream, depth,
-               "Failover $P {\n", (WriteFP)fo,
-               "  primary = $P ($S)\n", (WriteFP)fo->primary,
-               (WriteFS)fo->primary->class->name,
-               "  secondary = $P ($S)\n", (WriteFP)fo->secondary,
-               (WriteFS)fo->secondary->class->name,
-               "}\n", NULL);
+  res = NextMethod(Inst, Failover, describe)(inst, stream, depth);
+  if (res != ResOK)
+    return res;
 
-  return res;
+  primaryClass = ClassOfPoly(Land, fo->primary);
+  secondaryClass = ClassOfPoly(Land, fo->secondary);
+
+  return WriteF(stream, depth + 2,
+                "primary = $P ($S)\n",
+                (WriteFP)fo->primary,
+                (WriteFS)ClassName(primaryClass),
+                "secondary = $P ($S)\n",
+                (WriteFP)fo->secondary,
+                (WriteFS)ClassName(secondaryClass),
+                NULL);
 }
 
 
-DEFINE_LAND_CLASS(FailoverLandClass, class)
+DEFINE_CLASS(Land, Failover, klass)
 {
-  INHERIT_CLASS(class, LandClass);
-  class->name = "FAILOVER";
-  class->size = sizeof(FailoverStruct);
-  class->init = failoverInit;
-  class->finish = failoverFinish;
-  class->sizeMethod = failoverSize;
-  class->insert = failoverInsert;
-  class->delete = failoverDelete;
-  class->iterate = failoverIterate;
-  class->findFirst = failoverFindFirst;
-  class->findLast = failoverFindLast;
-  class->findLargest = failoverFindLargest;
-  class->findInZones = failoverFindInZones;
-  class->describe = failoverDescribe;
-  AVERT(LandClass, class);
+  INHERIT_CLASS(klass, Failover, Land);
+  klass->instClassStruct.describe = failoverDescribe;
+  klass->instClassStruct.finish = failoverFinish;
+  klass->size = sizeof(FailoverStruct);
+  klass->init = failoverInit;
+  klass->sizeMethod = failoverSize;
+  klass->insert = failoverInsert;
+  klass->delete = failoverDelete;
+  klass->iterate = failoverIterate;
+  klass->findFirst = failoverFindFirst;
+  klass->findLast = failoverFindLast;
+  klass->findLargest = failoverFindLargest;
+  klass->findInZones = failoverFindInZones;
+  AVERT(LandClass, klass);
 }
 
 

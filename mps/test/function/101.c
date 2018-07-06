@@ -75,7 +75,7 @@ static void dt(int kind,
 
  for(hd=0; hd<number; hd++)
  {
-  size = ranrange(mins, maxs);
+  size = ranrange((unsigned long)mins, (unsigned long)maxs);
   if ((ranint(2) && (kind & 2)) || (kind==DUMMY))
   {
    queue[hd].addr=NULL;
@@ -105,7 +105,7 @@ static void dt(int kind,
       (int) mins, (int) maxs, number, iter);
     mps_free(pool, queue[hd].addr, queue[hd].size);
    }
-   size = ranrange(mins, maxs);
+   size = ranrange((unsigned long)mins, (unsigned long)maxs);
 
    if ((ranint(2) && (kind & 2)) || (kind==DUMMY))
    {

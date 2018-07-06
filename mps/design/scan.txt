@@ -36,9 +36,9 @@ There are two reasons that it is not an equality relation:
 
 The reason that ``ss.unfixedSummary`` is always a subset of the
 previous summary is due to an "optimization" which has not been made
-in ``TraceFix``. See design.mps.trace.fix.fixed.all_.
+in ``TraceFix()``. See design.mps.trace.fix.fixed.all_.
 
-.. _design.mps.trace.fix.fixed.all: trace#fix.fixed.all
+.. _design.mps.trace.fix.fixed.all: trace#fix-fixed-all
 
 
 Partial scans
@@ -77,12 +77,12 @@ of all scanned references in the segment. We don't know this
 accurately until we've scanned everything in the segment. So we add in
 the segment summary each time.
 
-_`.clever-summary.scan.fix`: TraceScan also expects the scan state
-fixed summary to include the post-scan summary of all references which
-were white. Since we don't scan all white references, we need to add
-in an approximation to the summary of all white references which we
-didn't scan. This is the intersection of the segment summary and the
-white summary.
+_`.clever-summary.scan.fix`: ``traceScanSeg()`` also expects the scan
+state fixed summary to include the post-scan summary of all references
+which were white. Since we don't scan all white references, we need to
+add in an approximation to the summary of all white references which
+we didn't scan. This is the intersection of the segment summary and
+the white summary.
 
 _`.clever-summary.wb`: If the cumulative summary is smaller than the
 mutator's summary, a write-barrier is needed to prevent the mutator

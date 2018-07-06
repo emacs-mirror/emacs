@@ -1,7 +1,7 @@
 /* mpslib.h: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS client application developers, MPS developers.
  * .sources: <design/lib/>
@@ -78,7 +78,7 @@ extern unsigned long mps_lib_telemetry_control(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

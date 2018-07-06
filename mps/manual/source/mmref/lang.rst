@@ -539,7 +539,7 @@ Memory management in various languages
 
         .. link::
 
-            `Borland Delphi Home Page <http://www.borland.com/delphi/>`_,
+            `Embarcadero (formely Borland) Delphi <https://www.embarcadero.com/products/delphi>`_,
             `Pascal standardization <http://www.open-std.org/JTC1/sc22/docs/oldwgs/wg2.html>`_.
 
     Perl

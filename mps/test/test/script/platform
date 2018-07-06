@@ -13,45 +13,41 @@
 # Set lots of variables correctly, depending on the platform
 # (which was determined in 'options')
 #
-# Currently, it should work correctly on NT, Solaris, Linux, MacOS X.
+# Currently, it should work correctly on Windows, Linux, macOS,
+# FreeBSD.
 #
 
 sub platform_settings {
-    if ($PLATFORM =~ "^nt_") {
-        &settings_nt();
-        if ($PLATFORM =~ "^nt_x86_cap") {
-            &settings_nt_cap();
-        } elsif ($PLATFORM =~ "^nt_x86_coff") {
-            &settings_nt_coff();
-        }
-    } elsif ($PLATFORM =~ "^SunOS") {
-        &settings_unix();
-        if ($PLATFORM =~ "sos8gp") {
-            &settings_gprof();
-        }
-    } elsif ($PLATFORM =~ "^Linux") {
-        &settings_unix();
-        &settings_linux();
-    } elsif ($PLATFORM =~ "^Mac_OS_10" || $PLATFORM =~ "^Darwin_") {
-        &settings_unix();
-        &settings_macosx();
-    } elsif ($PLATFORM =~ "__unix") {
-        &logcomment("I don't know anything specific about $PLATFORM --");
-        &logcomment("using generic unix/gcc settings.");
-        &settings_unix();
-    } else {
-        die "Sorry: I don't know how to use ".$PLATFORM."\n";
-    }
+ if ($PLATFORM =~ "^w3") {
+  &settings_nt();
+  &settings_nt_coff();
+ } elsif ($PLATFORM =~ "^li") {
+  &settings_unix();
+  &settings_linux();
+ } elsif ($PLATFORM =~ "^xc") {
+  &settings_unix();
+  &settings_macosx();
+ } elsif ($PLATFORM =~ "^fr") {
+  &settings_unix();
+  &settings_freebsd();
+ } else {
+  die "Sorry: I don't know how to use $PLATFORM.\n";
+ }
+ unless (defined $MPS_LINK_OBJ && $MPS_LINK_OBJ ne "") {
+  $MPS_LINK_OBJ = "$MPS_INCLUDE_DIR/$link_obj";
+ }
 }
 
 
 sub settings_nt {
- $dirsep = "\\";
+ $dirsep = "/";
+ $link_obj = "$PLATFORM/$VARIETY/mps.obj";
+ $make_command = "nmake /f $PLATFORM.nmk VARIETY=$VARIETY $link_obj";
+ $debug_command = "vsjitdebugger";
  $cc_command = "cl";
-# following line used to include /DMMQA_VERS_$MPS_INTERFACE_VERSION
- $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /MD /DMMQA_PROD_$MPS_PRODUCT";
+ $cc_opts = "/nologo /DWIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /W3 /Zi /Oy- /MD";
  $cc_link = "$obj_dir/platform.obj";
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:both /pdb:none /debug:full";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
  $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR /I$obj_dir";
  $cc_def = "/D";
  $cc_defeq = "=";
@@ -62,16 +58,16 @@ sub settings_nt {
  $cc_objandexe = 1;
  $obj_suffix = ".obj";
  $try_command = "";
- $catcommand = "$script_dir/ntx86bin/cat.exe";
+ $catcommand = "cat";
  $comwrap = "\"";
  $comwrapend = "\"";
  $stdout_red = ">";
- $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
+ $stdout_dup = "| tee";
  $stdin_red = "<";
  $stdboth_red = ">%s 2>&1";
  $quotestring = \&nt_quotestring;
  $platmailfile = \&nt_mailfile;
- $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c";
+ $stringscommand = "strings";
  $preprocommand = "$cc_command /nologo $cc_preonly";
  $exesuff = ".exe";
  %ignored_headers = ();
@@ -80,24 +76,34 @@ sub settings_nt {
 sub settings_nt_cap {
  $cc_opts = "$cc_opts /Gh";
  $cc_link = "$cc_link CAP.lib";
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug:full /debugtype:both /pdb:none";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
 }
 
 sub settings_nt_coff {
- $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debugtype:coff /debug:full";
+ $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:LIBCMTD /NODEFAULTLIB:LIBC /NODEFAULTLIB:LIBCD /NODEFAULTLIB:MSVCRTD /DEFAULTLIB:MSVCRT /debug";
 }
 
 
 sub settings_unix {
  $dirsep = "/";
+ $link_obj = "$PLATFORM/$VARIETY/mps.o";
+ $make_command = "make -B -f $PLATFORM.gmk VARIETY=$VARIETY $link_obj";
  $cc_link = "$obj_dir/platform.o -lm";
  $cc_link_opts = "-z muldefs";
- $cc_command = "gcc";
+ if ($PLATFORM =~ /ll$/) {
+  $cc_command = "clang";
+  $debug_command = "lldb";
+ } elsif ($PLATFORM =~ /gc$/) {
+  $cc_command = "gcc";
+  $debug_command = "gdb";
+ } else {
+  $cc_command = "cc";
+  $debug_command = "gdb";
+ }
  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
   "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
   "-Wshadow -Wmissing-prototypes -Wcast-align ".
-  "-O -g -ggdb3 ".
-  "-DMMQA_PROD_$MPS_PRODUCT";
+  "-O -g -ggdb3 ";
  $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR -I$obj_dir";
  $cc_def = "-D";
  $cc_defeq = "=";
@@ -109,8 +115,12 @@ sub settings_unix {
  $obj_suffix = ".o";
  $try_command = "sh -c ";
  $catcommand = "cat";
- $comwrap = "sh -c \"ulimit -c 0; ";
- $comwrapend = "\"";
+ $comwrap = "sh -c 'ulimit -c 0; ";
+ # The "true" after the test program forces the test program to be run
+ # inside the subshell (with "Segmentation fault" messages written to
+ # the pipe and captured) rather than in the parent shell (with
+ # "Segmentation fault" messages written to the terminal and so lost).
+ $comwrapend = "; true'";
  $stdout_red = ">";
  $stdout_dup = "| tee";
  $stdin_red = "<";
@@ -130,18 +140,31 @@ sub settings_gprof {
 
 
 sub settings_linux {
- $cc_link = $cc_link . " -lpthread";
+ $cc_link .= " -lpthread";
+}
+
+
+sub settings_freebsd {
+ $make_command = "gmake -B -f $PLATFORM.gmk VARIETY=$VARIETY $link_obj";
+ $cc_link .= " -lpthread";
 }
 
 
 sub settings_macosx {
-    $cc_command = "cc";
-    $cc_link = "$obj_dir/platform.o";
-    $cc_link_opts =~ s/-z muldefs//;
-    $cc_opts =~ s/-Wstrict-prototypes//;
-    $cc_opts .= " -Wno-unused -Wno-missing-prototypes";
-    $stdboth_red = ">&%s";
-    $preprocommand = "$cc_command $cc_preonly";
+ local $config = "Debug";
+ if ($VARIETY eq "hot") {
+  $config = "Release";
+ } elsif ($VARIETY eq "rash") {
+  $config = "Rash";
+ }
+ $link_obj = "xc/$config/libmps.a";
+ $make_command = "xcodebuild -project mps.xcodeproj -config $config -target mps";
+ $debug_command = "lldb";
+ $cc_command = "clang";
+ $cc_link = "$obj_dir/platform.o";
+ $cc_link_opts =~ s/-z muldefs//;
+ $cc_opts =~ s/-Wstrict-prototypes//;
+ $cc_opts .= " -Wno-unused -Wno-missing-prototypes";
 }
 
 
@@ -191,9 +214,9 @@ sub unix_mailfile {
 
 sub identify {
  %identify = ();
- if ($PLATFORM =~ /^nt/) {
+ if ($PLATFORM =~ /^w3/) {
   &identify_nt;
- } elsif ($PLATFORM =~ /__unix/) {
+ } elsif ($PLATFORM =~ /^(fr|li|xc)/) {
   &identify_unix;
  }
  $identify{"time"} = localtime;
@@ -237,7 +260,7 @@ sub identify_unix {
  if (exists $identify{"user"}) {
   $identify{"user"} =~ s/\s.*//;
  }
- &comvar("c_version", "gcc -v", "version");
+ &comvar("c_version", "$cc_command -v", "version");
  &comvar("OS", "uname", "");
  &comvar("arch", "uname -a", "");
 }

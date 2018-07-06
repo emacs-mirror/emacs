@@ -1,7 +1,7 @@
 /* mv2test.c: POOLMVT STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #include <math.h>
@@ -102,13 +102,15 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
 
   /* allocate a load of objects */
   for(i=0; i<TEST_SET_SIZE; ++i) {
+    mps_addr_t obj;
     ss[i] = (*size)(i);
-
-    res = make((mps_addr_t *)&ps[i], ap, ss[i], align);
-    if(res != MPS_RES_OK)
+    res = make(&obj, ap, ss[i], align);
+    if (res != MPS_RES_OK) {
       ss[i] = 0;
-    else
+    } else {
+      ps[i]= obj;
       *ps[i] = 1; /* Write something, so it gets swap. */
+    }
 
     if (verbose) {
       if (i && i%4==0)
@@ -146,10 +148,12 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
     }
     /* allocate some new objects */
     for(i=x; i<TEST_SET_SIZE; ++i) {
+      mps_addr_t obj;
       size_t s = (*size)(i);
-      res = make((mps_addr_t *)&ps[i], ap, s, align);
+      res = make(&obj, ap, s, align);
       if(res != MPS_RES_OK)
         break;
+      ps[i] = obj;      
       ss[i] = s;
      
       if (verbose) {
@@ -218,7 +222,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

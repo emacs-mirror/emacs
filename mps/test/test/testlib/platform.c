@@ -8,8 +8,7 @@
 
 LONG mySEHFilter(LPEXCEPTION_POINTERS info) {
  LPEXCEPTION_RECORD er;
- int write;
- unsigned long address;
+ ULONG_PTR write, address;
 
  er = info->ExceptionRecord;
 
@@ -23,6 +22,8 @@ LONG mySEHFilter(LPEXCEPTION_POINTERS info) {
    report("memoryop", "read");
   }
   report("memoryaddr", "%ld", address);
+  report("abort", "true");
+  report("assert_or_abort", "true");
   myabort();
  }
 

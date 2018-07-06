@@ -59,7 +59,7 @@ extern Bool PoolDebugOptionsCheck(PoolDebugOptions opt);
 
 extern Bool PoolDebugMixinCheck(PoolDebugMixin dbg);
 
-extern void PoolClassMixInDebug(PoolClass class);
+extern void PoolClassMixInDebug(PoolClass klass);
 
 extern void DebugPoolCheckFences(Pool pool);
 extern void DebugPoolCheckFreeSpace(Pool pool);
