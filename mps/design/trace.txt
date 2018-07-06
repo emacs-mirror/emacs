@@ -138,7 +138,7 @@ whether it points to a tract) in order to check the `.exact.legal`_
 condition.
 
 _`.fix.whiteseg`: The reason for looking up the tract is to determine
-whether the refernce is to a white segment.
+whether the reference is to a white segment.
 
 .. note::
 

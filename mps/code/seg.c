@@ -863,6 +863,26 @@ Bool SegCheck(Seg seg)
   /* Can't BoolCheck seg->queued because compilers warn about that on
      single-bit fields. */
 
+  /* Each tract of the segment must agree about the segment and its
+   * pool. Note that even if the CHECKs are compiled away there is
+   * still a significant cost in looping over the tracts, hence the
+   * guard. See job003778. */
+#if defined(AVER_AND_CHECK_ALL)
+  {
+    Tract tract;
+    Addr addr;
+    TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, seg->limit) {
+      Seg trseg = NULL; /* suppress compiler warning */
+
+      CHECKD_NOSIG(Tract, tract);
+      CHECKL(TRACT_SEG(&trseg, tract));
+      CHECKL(trseg == seg);
+      CHECKL(TractPool(tract) == pool);
+    }
+    CHECKL(addr == seg->limit);
+  }
+#endif  /* AVER_AND_CHECK_ALL */
+
   /* The segment must belong to some pool, so it should be on a */
   /* pool's segment ring.  (Actually, this isn't true just after */
   /* the segment is initialized.) */
@@ -1597,25 +1617,6 @@ static void gcSegSetWhite(Seg seg, TraceSet white)
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
-
-#if 0
-  Arena arena;
-  Tract tract;
-  Addr addr, limit;
-  arena = PoolArena(SegPool(seg));
-  AVERT_CRITICAL(Arena, arena);
-  limit = SegLimit(seg);
-  /* Each tract of the segment records white traces */
-  TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
-    Seg trseg = NULL; /* suppress compiler warning */
-
-    AVERT_CRITICAL(Tract, tract);
-    AVER_CRITICAL(TRACT_SEG(&trseg, tract));
-    AVER_CRITICAL(trseg == seg);
-    TractSetWhite(tract, BS_BITFIELD(Trace, white));
-  }
-  AVER_CRITICAL(addr == limit);
-#endif
 
   seg->white = BS_BITFIELD(Trace, white);
 }
