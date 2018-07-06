@@ -1,7 +1,7 @@
 /* version.c: VERSION INSPECTION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  
  * See end of file for license.
  *
  * PURPOSE
@@ -13,7 +13,8 @@
  *
  * .design: See <design/version-library>, but -- to let you in on a
  * secret -- it works by declaring a string with all the necessary info
- * in.  */
+ * in.
+ */
 
 #include "mpm.h"
 
@@ -38,7 +39,7 @@ SRCID(version, "$Id$");
  * .release.old: before 2006-02-01 the style was "release.epcore.chub".
  */
 
-#define MPS_RELEASE "release/1.115.0"
+#define MPS_RELEASE "release/1.117.0"
 
 
 /* MPSCopyrightNotice -- copyright notice for the binary
@@ -49,15 +50,15 @@ SRCID(version, "$Id$");
 
 extern char MPSCopyrightNotice[];
 char MPSCopyrightNotice[] =
-  "Portions copyright (c) 2010-2014 Ravenbrook Limited and Global Graphics Software.";
+  "Portions copyright (c) 2010-2018 Ravenbrook Limited and Global Graphics Software.";
 
 
 /* MPSVersion -- return version string
  *
  * The value of MPSVersion is a declared object comprising the
- * concatenation of all the version info.  The "@(#)" prefix 
- * is the convention used by the BSD Unix command what(1); 
- * see also guide.mps.version.
+ * concatenation of all the version info. The "@(#)" prefix is the
+ * convention used by the BSD Unix command what(1); see also
+ * design.mps.version.impl.tool.
  */
 
 extern char MPSVersionString[];
@@ -74,7 +75,7 @@ char *MPSVersion(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited 
+ * Copyright (C) 2001-2018 Ravenbrook Limited 
  * <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.

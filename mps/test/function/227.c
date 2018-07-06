@@ -58,11 +58,11 @@ static void alloc_back(void) {
 
 static void test(void) {
  long int i;
- long int rsize;
+ long int rsize = 0;
 
  int inramp;
 
- mycell *r1, *r2, *s1, *s2;
+ mycell *r1 = NULL, *r2 = NULL, *s1, *s2;
 
  cdie(mps_arena_create(&arena1, mps_arena_class_vm(),
    (size_t) 1024*1024*ARENALIMIT), "create arena");

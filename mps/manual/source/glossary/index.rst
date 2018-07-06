@@ -127,6 +127,7 @@ All
 :term:`client program <mutator>`
 :term:`closure`
 :term:`coalesce`
+:term:`cold end`
 :term:`collect`
 :term:`collection <collection cycle>`
 :term:`collection cycle`
@@ -169,7 +170,6 @@ All
 :term:`deferred reference counting`
 :term:`dependent object`
 :term:`derived pointer <interior pointer>`
-:term:`derived type`
 :term:`destructor (1)`
 :term:`destructor (2)`
 :term:`DGC <distributed garbage collection>`
@@ -264,6 +264,7 @@ All
 :term:`hit`
 :term:`hit rate`
 :term:`hot`
+:term:`hot end`
 :term:`huge page`
 
 :term:`immediate data`
@@ -411,6 +412,7 @@ All
 :term:`pointer`
 :term:`pool`
 :term:`pool class`
+:term:`postmortem state`
 :term:`precise garbage collection <exact garbage collection>`
 :term:`precise reference <exact reference>`
 :term:`precise root <exact root>`
@@ -420,6 +422,7 @@ All
 :term:`primary storage <main memory>`
 :term:`promotion`
 :term:`protectable root`
+:term:`protected`
 :term:`protection`
 :term:`protection exception <protection fault>`
 :term:`protection fault`
@@ -583,6 +586,7 @@ All
 :term:`unclamped state`
 :term:`undead`
 :term:`unmapped`
+:term:`unprotected`
 :term:`unreachable`
 :term:`unsure reference <ambiguous reference>`
 :term:`unwrapped`

@@ -22,24 +22,24 @@ argerr/15.c
 argerr/17.c
 argerr/18.c
 argerr/19.c
-argerr/20.c
+% argerr/20.c -- segfaults in hot variety (assertion is on the critical path)
 argerr/21.c
-argerr/22.c
+% argerr/22.c -- segfaults in hot variety (assertion is on the critical path)
 argerr/23.c
-argerr/24.c
+% argerr/24.c -- assertion in different place in the hot variety
 argerr/25.c
 argerr/26.c
 argerr/27.c
-argerr/28.c
-argerr/29.c
-argerr/30.c
-argerr/31.c
+% argerr/28.c -- segfaults in hot variety (assertion is on the critical path)
+% argerr/29.c -- fails in hot variety (assertion is on the critical path)
+% argerr/30.c -- assertion in different place in the hot variety
+% argerr/31.c -- assertion in different place in the hot variety
 argerr/32.c
-argerr/33.c
+% argerr/33.c -- assertion in different place in the hot variety
 argerr/34.c
-argerr/35.c
+% argerr/35.c -- assertion in different place in the hot variety
 argerr/36.c
-argerr/37.c
+% argerr/37.c -- assertion in different place in the hot variety
 argerr/38.c
 argerr/39.c
 argerr/40.c

@@ -34,55 +34,38 @@ short-lived objects.)
 First, the effect of varying the capacity of a chain with a single
 generation.
 
-========  =========  =========================
-Capacity  Mortality  Execution time (user+sys)
-========  =========  =========================
-100            0.80                      362.6
-200            0.80                      354.9
-400            0.80                      349.7
-800            0.80                      314.4
-1600           0.80                      215.7
-3200           0.80                       94.0
-6400           0.80                       53.5
-12800          0.80                       79.6
-25600          0.80                       77.6
-========  =========  =========================
+========  =========================
+Capacity  Execution time (user+sys)
+========  =========================
+100                           362.6
+200                           354.9
+400                           349.7
+800                           314.4
+1600                          215.7
+3200                           94.0
+6400                           53.5
+12800                          79.6
+25600                          77.6
+========  =========================
 
-Second, the effect of varying the mortality of a chain with a single
-generation.
-
-========  =========  =========================
-Capacity  Mortality  Execution time (user+sys)
-========  =========  =========================
-6400           0.20                       55.4
-6400           0.40                       54.0
-6400           0.60                       54.0
-6400           0.80                       53.5
-6400           0.99                       54.8
-========  =========  =========================
-
-Third, the effect of varying the number of generations (all
+Second, the effect of varying the number of generations (all
 generations being identical).
 
-===========  ========  =========  =========================
-Generations  Capacity  Mortality  Execution time (user+sys)
-===========  ========  =========  =========================
-1                6400       0.80                       53.5
-2                6400       0.80                       42.4
-3                6400       0.80                       42.1
-4                6400       0.80                       42.2
-5                6400       0.80                       42.2
-===========  ========  =========  =========================
+===========  ========  =========================
+Generations  Capacity  Execution time (user+sys)
+===========  ========  =========================
+1                6400                       53.5
+2                6400                       42.4
+3                6400                       42.1
+4                6400                       42.2
+5                6400                       42.2
+===========  ========  =========================
 
 These tables suggest that:
 
 #. The improvement in performance to be gained by getting generation
    sizes right is dramatic: much bigger than the small improvements to
    gained from other techniques.
-
-#. The predicted mortality doesn't make much difference to the overall
-   execution time (it does affect the distribution of pause times,
-   however: see :ref:`topic-collection-schedule`.)
 
 #. You can make generations too big as well as too small.
 
@@ -97,7 +80,7 @@ These tables suggest that:
 
 The table below shows the effect of varying the initial allocation of
 address space to the arena (using three generations each with capacity
-6400 kB, mortality 0.80).
+6400 kB).
 
 =============  ==========  ===========  =========================
 Address space  Extensions  Collections  Execution time (user+sys)

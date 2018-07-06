@@ -217,7 +217,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
      p = obj->data.assoc;
      if (p != NULL) {
       commentif(fixcomments, "fix %li[assoc]", obj->data.id);
-      res = MPS_FIX(ss, (mps_addr_t *) &p);
+      res = MPS_FIX12(ss, (mps_addr_t *) &p);
       if (res != MPS_RES_OK) return res;
       if (p == NULL) {
        commentif(deathcomments, "fixed %li[assoc] to NULL", obj->data.id);
@@ -236,7 +236,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        */
        commentif(fixcomments, "fix %li[%i] -> %li",
         obj->data.id, i, obj->data.ref[i].id);
-       res = MPS_FIX(ss, (mps_addr_t *) &p);
+       res = MPS_FIX12(ss, (mps_addr_t *) &p);
        if (p == NULL) {
         commentif(deathcomments, "fixed %li[%i] to NULL", obj->data.id, i);
         INCCOUNTIF(obj->data.countflag, DYING_REFERENCE_COUNT);

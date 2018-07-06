@@ -1,18 +1,11 @@
 /* event.c: EVENT LOGGING
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: mps.design.event
  *
  * TRANSGRESSIONS (rule.impl.trans)
- *
- * .trans.ref: The reference counting used to destroy the mps_io object
- * isn't right.
- *
- * .trans.log: The log file will be re-created if the lifetimes of
- * arenas don't overlap, but shared if they do.  mps_io_create cannot
- * be called twice, but EventInit avoids this anyway.
  *
  * .trans.ifdef: This file should logically be split into two, event.c
  * (which contains NOOP definitions, for general use) and eventdl.c, which
@@ -24,6 +17,7 @@
 #include "mpm.h"
 #include "event.h"
 #include "mpsio.h"
+#include "lock.h"
 
 SRCID(event, "$Id$");
 
@@ -34,7 +28,6 @@ SRCID(event, "$Id$");
 static Bool eventInited = FALSE;
 static Bool eventIOInited = FALSE;
 static mps_io_t eventIO;
-static Count eventUserCount;
 static Serial EventInternSerial;
 
 /* Buffers in which events are recorded, from the top down. */
@@ -207,25 +200,26 @@ void EventInit(void)
   AVER(EventBufferSIZE <= EventSizeMAX);
 
   /* Only if this is the first call. */
-  if(!eventInited) { /* See .trans.log */
-    EventKind kind;
-    for (kind = 0; kind < EventKindLIMIT; ++kind) {
-      AVER(EventLast[kind] == NULL);
-      AVER(EventWritten[kind] == NULL);
-      EventLast[kind] = EventWritten[kind] = EventBuffer[kind] + EventBufferSIZE;
+  if (!eventInited) { /* See .trans.log */
+    LockClaimGlobalRecursive();
+    if (!eventInited) {
+      EventKind kind;
+      for (kind = 0; kind < EventKindLIMIT; ++kind) {
+        AVER(EventLast[kind] == NULL);
+        AVER(EventWritten[kind] == NULL);
+        EventLast[kind] = EventWritten[kind] = EventBuffer[kind] + EventBufferSIZE;
+      }
+      eventInited = TRUE;
+      EventKindControl = (Word)mps_lib_telemetry_control();
+      EventInternSerial = (Serial)1; /* 0 is reserved */
+      (void)EventInternString(MPSVersion()); /* emit version */
+      EVENT7(EventInit, EVENT_VERSION_MAJOR, EVENT_VERSION_MEDIAN,
+             EVENT_VERSION_MINOR, EventCodeMAX, EventNameMAX, MPS_WORD_WIDTH,
+             mps_clocks_per_sec());
+      /* flush these initial events to get the first ClockSync out. */
+      EventSync();
     }
-    eventUserCount = (Count)1;
-    eventInited = TRUE;
-    EventKindControl = (Word)mps_lib_telemetry_control();
-    EventInternSerial = (Serial)1; /* 0 is reserved */
-    (void)EventInternString(MPSVersion()); /* emit version */
-    EVENT7(EventInit, EVENT_VERSION_MAJOR, EVENT_VERSION_MEDIAN,
-           EVENT_VERSION_MINOR, EventCodeMAX, EventNameMAX, MPS_WORD_WIDTH,
-           mps_clocks_per_sec());
-    /* flush these initial events to get the first ClockSync out. */
-    EventSync();
-  } else {
-    ++eventUserCount;
+    LockReleaseGlobalRecursive();
   }
 }
 
@@ -235,11 +229,8 @@ void EventInit(void)
 void EventFinish(void)
 {
   AVER(eventInited);
-  AVER(eventUserCount > 0);
 
   EventSync();
-
-  --eventUserCount;
 }
 
 
@@ -529,7 +520,7 @@ extern void EventDump(mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
