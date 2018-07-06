@@ -155,14 +155,14 @@ the branch pedictors) resulting in a slow down. Replacing the
 improves the overall speed of the Dylan compiler by as much as 9%. See
 `design.mps.critical_path`_.
 
-_`.fix.nocopy`: ``AMCFix()`` used to copy objects by using the format's
-copy method. This involved a function call (through an indirection)
-and in ``dylan_copy`` a call to ``dylan_skip`` (to recompute the
-length) and call to ``memcpy`` with general parameters. Replacing this
-with a direct call to ``memcpy`` removes these overheads and the call
-to ``memcpy`` now has aligned parameters. The call to ``memcpy`` is
-inlined by the C compiler. This change results in a 4–5% speed-up in
-the Dylan compiler.
+_`.fix.nocopy`: ``amcSegFix()`` used to copy objects by using the
+format's copy method. This involved a function call (through an
+indirection) and in ``dylan_copy`` a call to ``dylan_skip`` (to
+recompute the length) and call to ``memcpy`` with general parameters.
+Replacing this with a direct call to ``memcpy`` removes these
+overheads and the call to ``memcpy`` now has aligned parameters. The
+call to ``memcpy`` is inlined by the C compiler. This change results
+in a 4–5% speed-up in the Dylan compiler.
 
 _`.reclaim`: Because the reclaim phase of the trace (implemented by
 ``TraceReclaim()``) examines every segment it is fairly time

@@ -8,7 +8,7 @@ OUTPUT_SPEC
  count1 < 50
  count2 < 50
  collect = true
- collect_not_condemned = 0
+ collect_not_condemned <= 4096
  result = pass
 END_HEADER
 */

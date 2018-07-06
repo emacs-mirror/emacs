@@ -1,7 +1,7 @@
 /* ssw3i6pc.c: STACK SCANNING FOR WIN64 WITH PELLES C
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This scans the stack and fixes the registers which may contain roots.
  * See <design/thread-manager/>.
@@ -29,6 +29,11 @@
  */
 
 #include "mpm.h"
+
+#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I6) || !defined(MPS_BUILD_PC)
+#error "ssw3i3mv.c is specific to MPS_OS_W3, MPS_ARCH_I6 and MPS_BUILD_PC"
+#endif
+
 #include <setjmp.h>
 
 SRCID(ssw3i6pc, "$Id$");
@@ -106,7 +111,7 @@ Res StackScan(ScanState ss, Word *stackCold, Word mask, Word pattern)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

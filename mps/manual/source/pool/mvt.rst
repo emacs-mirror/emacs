@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolmvt/>`_
 
 .. index::
-   single: MVT
+   single: MVT pool class
    single: pool class; MVT
 
 .. _pool-mvt:
@@ -17,7 +17,7 @@ variable-sized, unformatted objects. It uses the :dfn:`temporal fit`
 
 
 .. index::
-   pair: MVT; temporal fit
+   pair: MVT pool class; temporal fit
    single: allocation policy; temporal fit
 
 Temporal fit
@@ -53,7 +53,7 @@ will pessimize the space performance of MVT.
 
 
 .. index::
-   single: MVT; properties
+   single: MVT pool class; properties
 
 MVT properties
 --------------
@@ -97,7 +97,7 @@ MVT properties
 
 
 .. index::
-   single: MVT; interface
+   single: MVT pool class; interface
 
 MVT interface
 -------------

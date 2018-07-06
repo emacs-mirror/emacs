@@ -1,133 +1,169 @@
+/* The class definition for the root of the hierarchy */
+
 /* pool.c: PROTOCOL IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * DESIGN
- *
- * .design: See <design/protocol/>
+ * See design.mps.protocol.
  */
 
 #include "mpm.h"
+#include "protocol.h"
 
 SRCID(protocol, "$Id$");
 
 
-/* ProtocolClassCheck -- check a protocol class */
+/* The class definitions for the root of the hierarchy */
 
-Bool ProtocolClassCheck(ProtocolClass class)
+static void InstClassInitInternal(InstClass klass);
+
+DEFINE_CLASS(Inst, Inst, klass)
 {
-  CHECKS(ProtocolClass, class);
-  CHECKU(ProtocolClass, class->superclass);
-  CHECKL(FUNCHECK(class->coerceInst));
-  CHECKL(FUNCHECK(class->coerceClass));
-  return TRUE;
+  InstClassInitInternal(klass);
+  klass->instStruct.klass = CLASS(InstClass);
+  AVERT(InstClass, klass);
+}
+
+DEFINE_CLASS(Inst, InstClass, klass)
+{
+  /* Can't use INHERIT_CLASS(klass, InstClass, Inst) here because it
+     causes infinite regression, so we have to set this one up by
+     hand. */
+  InstClassInitInternal(klass);
+  klass->superclass = &CLASS_STATIC(Inst);
+  klass->name = "InstClass";
+  klass->level = ClassLevelInstClass;
+  klass->display[ClassLevelInstClass] = CLASS_ID(InstClass);
+  AVERT(InstClass, klass);
+}
+
+static void InstClassInitInternal(InstClass klass)
+{
+  ClassLevel i;
+
+  klass->name = "Inst";
+  klass->superclass = NULL;
+  for (i = 0; i < ClassDEPTH; ++i)
+    klass->display[i] = NULL;
+  klass->level = 0;
+  klass->display[klass->level] = CLASS_ID(Inst);
+
+  /* Generic methods */
+  klass->describe = InstDescribe;
+  klass->finish = InstFinish;
+  klass->init = InstInit;
+
+  /* We can't call CLASS(InstClass) here because it causes a loop back
+     to here, so we have to tie this knot specially. */
+  klass->instStruct.klass = &CLASS_STATIC(InstClass);
+
+  klass->sig = InstClassSig;
+  AVERT(InstClass, klass);
 }
 
 
-/* ProtocolInstCheck -- check a protocol instance */
+/* InstClassCheck -- check a protocol class */
 
-Bool ProtocolInstCheck(ProtocolInst inst)
+Bool InstClassCheck(InstClass klass)
 {
-  CHECKS(ProtocolInst, inst);
-  CHECKD(ProtocolClass, inst->class);
-  return TRUE;
-}
-
-
-/* ProtocolIsSubclass -- a predicate for testing subclass relationships
- *
- * A protocol class is always a subclass of itself.  This is implemented
- * via the coerceClass method provided by each class.
- */
-Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super)
-{
-  ProtocolClass coerced;
-
-  AVERT(ProtocolClass, sub);
-  AVERT(ProtocolClass, super);
-
-  if (sub->coerceClass(&coerced, sub, super)) {
-    AVERT(ProtocolClass, coerced);
-    return TRUE;
-  } else {
-    return FALSE;
+  ClassLevel i;
+  CHECKS(InstClass, klass);
+  CHECKL(klass->name != NULL);
+  CHECKL(klass->level < ClassDEPTH);
+  for (i = 0; i <= klass->level; ++i) {
+    CHECKL(klass->display[i] != NULL);
   }
-}
-
-
-/* ProtocolCoerceClass -- the default method for coerceClass
- *
- * This default method must be inherited by any subclass
- * which does not perform a multiple inheritance.
- */
-static Bool ProtocolCoerceClass(ProtocolClass *coerceResult,
-                                ProtocolClass proClass,
-                                ProtocolClass super)
-{
-  ProtocolClass p = proClass;
-  ProtocolClass root = ProtocolClassGet();
-
-  AVERT(ProtocolClass, proClass);
-  AVERT(ProtocolClass, super);
-  AVERT(ProtocolClass, root);
-
-  while (p != super) {
-    AVERT(ProtocolClass, p);
-    if (p == root)
-      return FALSE;
-    p = p->superclass;
+  for (i = klass->level + 1; i < ClassDEPTH; ++i) {
+    CHECKL(klass->display[i] == NULL);
   }
-  *coerceResult = proClass;
+  CHECKL(FUNCHECK(klass->describe));
+  CHECKL(FUNCHECK(klass->finish));
+  CHECKL(FUNCHECK(klass->init));
   return TRUE;
 }
 
 
-/* ProtocolCoerceInst -- the default method for coerceInst
+/* InstInit -- initialize a protocol instance
  *
- * This default method must be inherited by any subclass
- * which does not perform a multiple inheritance.
+ * Initialisation makes the instance valid, so that it will pass
+ * InstCheck, and the instance can be specialized to be a member of a
+ * subclass.
  */
-static Bool ProtocolCoerceInst(ProtocolInst *coerceResult,
-                               ProtocolInst proInst,
-                               ProtocolClass super)
+
+void InstInit(Inst inst)
 {
-  ProtocolClass p = proInst->class;
-  ProtocolClass root = ProtocolClassGet();
+  AVER(inst != NULL);
+  inst->klass = CLASS(Inst);
+  AVERC(Inst, inst);
+}
 
-  AVERT(ProtocolInst, proInst);
-  AVERT(ProtocolClass, super);
-  AVERT(ProtocolClass, root);
 
-  while (p != super) {
-    AVERT(ProtocolClass, p);
-    if (p == root)
-      return FALSE;
-    p = p->superclass;
-  }
-  *coerceResult = proInst;
+/* InstFinish -- finish a protocol instance
+ *
+ * Finishing makes the instance invalid, so that it will fail
+ * InstCheck and can't be used.
+ */
+
+static InstClassStruct invalidClassStruct = {
+  /* .instStruct = */ {&invalidClassStruct},
+  /* .sig = */        SigInvalid,
+  /* .name = */       "Invalid",
+  /* .superclass = */ &invalidClassStruct,
+  /* .level = */      0,
+  /* .display = */    {(ClassId)&invalidClassStruct},
+  /* .describe = */   NULL,
+  /* .finish = */     NULL,
+  /* .init = */       NULL,
+};
+  
+void InstFinish(Inst inst)
+{
+  AVERC(Inst, inst);
+  inst->klass = &invalidClassStruct;
+}
+
+
+/* InstCheck -- check a protocol instance */
+
+Bool InstCheck(Inst inst)
+{
+  CHECKD(InstClass, inst->klass);
   return TRUE;
 }
 
 
-/* The class definition for the root of the hierarchy */
-
-DEFINE_CLASS(ProtocolClass, theClass)
+void ClassRegister(InstClass klass)
 {
-  theClass->sig = ProtocolClassSig;
-  theClass->superclass = theClass;
-  theClass->coerceInst = ProtocolCoerceInst;
-  theClass->coerceClass = ProtocolCoerceClass;
-  AVERT(ProtocolClass, theClass);
+  Word classId;
+
+  /* label the pool class with its name */
+  EventInit();
+  classId = EventInternString(ClassName(klass));
+  /* NOTE: this breaks <design/type/#addr.use> */
+  EventLabelAddr((Addr)klass, classId);
 }
 
 
+Res InstDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
+{
+  InstClass klass;
+  
+  if (!TESTC(Inst, inst))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
 
+  klass = ClassOfPoly(Inst, inst);
+  return WriteF(stream, depth,
+                "$S $P\n", (WriteFS)ClassName(klass), inst,
+                NULL);
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

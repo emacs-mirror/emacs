@@ -141,9 +141,9 @@ releasing the resource (here, the Scheme function
 
 But this raises the possibility that a port will be closed twice: once
 via ``close-input-port`` and a second time via finalization. So it's
-necessary to make ports robust against be closed multiple times. The
-toy Scheme interpreter does so by setting ``stream`` to ``NULL``: this
-ensures that the file handle won't be closed more than once.
+necessary to make ports robust against being closed multiple times.
+The toy Scheme interpreter does so by setting ``stream`` to ``NULL``:
+this ensures that the file handle won't be closed more than once.
 
 .. code-block:: c
     :emphasize-lines: 6

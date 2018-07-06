@@ -7,3 +7,6 @@ scheme-boehm
 scheme-boehm.dSYM
 scheme-malloc
 scheme-malloc.dSYM
+a.out
+*.o
+core

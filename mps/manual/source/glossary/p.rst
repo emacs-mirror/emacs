@@ -179,14 +179,15 @@ Memory Management Glossary: P
 
         .. mps:specific::
 
-            One of the three states an :term:`arena` can be in (the
-            others being the :term:`clamped state` and the
-            :term:`unclamped state`). In the parked state, no
-            :term:`garbage collection` is in progress, no object
-            motion occurs and the staleness of :term:`location
-            dependencies` does not change. Call
-            :c:func:`mps_arena_park` or :c:func:`mps_arena_collect` to
-            put an arena into the parked state.
+            One of the four states an :term:`arena` can be in (the
+            others being the :term:`clamped state`, the
+            :term:`postmortem state`, and the :term:`unclamped
+            state`). In the parked state, no :term:`garbage
+            collection` is in progress, no object motion occurs and
+            the staleness of :term:`location dependencies` does not
+            change. Call :c:func:`mps_arena_park` or
+            :c:func:`mps_arena_collect` to put an arena into the
+            parked state.
 
     perfect fit
 
@@ -402,6 +403,21 @@ Memory Management Glossary: P
             class of :term:`pools` that manage memory according to
             particular policy. See :ref:`pool`.
 
+    postmortem state
+
+        .. mps:specific::
+
+            One of the four states an :term:`arena` can be in (the
+            others being the :term:`unclamped state`, the
+            :term:`clamped state`, and the :term:`parked state`). In
+            the postmortem state, objects do not move in memory, the
+            staleness of :term:`location dependencies` does not
+            change, memory occupied by :term:`unreachable` objects is
+            not recycled, all memory protection is removed, and memory
+            may be in an inconsistent state. Call
+            :c:func:`mps_arena_postmortem` to put an arena into the
+            postmortem state.
+
     precise garbage collection
 
         .. see:: :term:`exact garbage collection`.
@@ -488,6 +504,13 @@ Memory Management Glossary: P
             root is created by specifying the :term:`root mode`
             :c:macro:`MPS_RM_PROT` when calling a registration
             function such as :c:func:`mps_root_create`.
+
+    protected
+
+        A region of :term:`memory (2)` is said to be protected if
+        there is a :term:`barrier (1)` on that region.
+
+        .. opposite:: :term:`unprotected`
 
     protection
 
