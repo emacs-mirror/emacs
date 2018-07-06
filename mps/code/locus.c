@@ -1,7 +1,7 @@
 /* locus.c: LOCUS MANAGER
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -340,6 +340,7 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
                 GenParamStruct *params)
 {
   size_t i;
+  Size size;
   Chain chain;
   GenDescStruct *gens;
   Res res;
@@ -350,27 +351,19 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
   AVER(genCount > 0);
   AVER(params != NULL);
 
-  res = ControlAlloc(&p, arena, genCount * sizeof(GenDescStruct));
+  size = sizeof(ChainStruct) + genCount * sizeof(GenDescStruct);
+  res = ControlAlloc(&p, arena, size);
   if (res != ResOK)
     return res;
-  gens = (GenDescStruct *)p;
+  chain = p;
+  gens = PointerAdd(p, sizeof(ChainStruct));
 
   for (i = 0; i < genCount; ++i)
     GenDescInit(&gens[i], &params[i]);
-
-  res = ControlAlloc(&p, arena, sizeof(ChainStruct));
-  if (res != ResOK)
-    goto failChainAlloc;
-  chain = (Chain)p;
-
   ChainInit(chain, arena, gens, genCount);
 
   *chainReturn = chain;
   return ResOK;
-
-failChainAlloc:
-  ControlFree(arena, gens, genCount * sizeof(GenDescStruct));
-  return res;
 }
 
 
@@ -397,6 +390,7 @@ Bool ChainCheck(Chain chain)
 void ChainDestroy(Chain chain)
 {
   Arena arena;
+  Size size;
   size_t genCount;
   size_t i;
 
@@ -412,8 +406,8 @@ void ChainDestroy(Chain chain)
 
   RingFinish(&chain->chainRing);
 
-  ControlFree(arena, chain->gens, genCount * sizeof(GenDescStruct));
-  ControlFree(arena, chain, sizeof(ChainStruct));
+  size = sizeof(ChainStruct) + genCount * sizeof(GenDescStruct);
+  ControlFree(arena, chain, size);
 }
 
 
@@ -920,7 +914,7 @@ Bool LocusCheck(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
