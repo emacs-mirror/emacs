@@ -5,7 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o
 OUTPUT_SPEC
- abort = true
+ assert_or_abort = true
 END_HEADER
 */
 
@@ -221,7 +221,9 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
           the pun would probably work fine almost everywhere)
        */
        comment("About to fix with null scan state...");
-       res = mps_fix(NULL, (mps_addr_t *) &p);
+       MPS_SCAN_BEGIN(ss) {
+         res = MPS_FIX12(NULL, (mps_addr_t *) &p);
+       } MPS_SCAN_END(ss);
        error("fix with NULL scan state");
        if (res != MPS_RES_OK) return res;
        obj->data.ref[i].addr = p;

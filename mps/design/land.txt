@@ -115,11 +115,6 @@ _`.function.create`: ``LandCreate()`` allocates memory for a land
 structure of the given class in ``arena``, and then passes all
 parameters to ``LandInit()``.
 
-``void LandDestroy(Land land)``
-
-_`.function.destroy`: ``LandDestroy()`` calls ``LandFinish()`` to
-finish the land structure, and then frees its memory.
-
 ``void LandFinish(Land land)``
 
 _`.function.finish`: ``LandFinish()`` finishes the land structure and

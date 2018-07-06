@@ -3,14 +3,15 @@
 # fri3ll.gmk: BUILD FOR FreeBSD/i386/GCC PLATFORM
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
 
 PFM = fri3ll
 
 MPMPF = \
     lockix.c \
-    prmcan.c \
-    prmci3fr.c \
+    prmcanan.c \
+    prmcfri3.c \
+    prmcix.c \
     protix.c \
     protsgix.c \
     pthrdext.c \
@@ -32,7 +33,7 @@ include comm.gmk
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

@@ -56,7 +56,7 @@ locell *alloclo(mps_ap_t ap, size_t bytes);
 
 long int getloid(locell *obj);
 long int getlocopycount(locell *obj);
-long int getlosize(locell *obj);
+size_t getlosize(locell *obj);
 
 #endif
 

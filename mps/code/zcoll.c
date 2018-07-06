@@ -804,8 +804,13 @@ static void testscriptA(const char *script)
   printf("  Create arena, size = %lu.\n", arenasize);
 
   /* arena */
-  die(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)arenasize),
-      "arena_create");
+  MPS_ARGS_BEGIN(args) {
+    /* Randomize pause time as a regression test for job004011. */
+    MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, rnd_pause_time());
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arenasize);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "arena_create\n");
+  } MPS_ARGS_END(args);
 
   /* thr: used to stop/restart multiple threads */
   die(mps_thread_reg(&thr, arena), "thread");

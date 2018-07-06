@@ -10,6 +10,7 @@ PFMDEFS = /DCONFIG_PF_ANSI /DCONFIG_THREAD_SINGLE
 MPMPF = \
     [lockan] \
     [prmcan] \
+    [prmcanan] \
     [protan] \
     [span] \
     [ssan] \

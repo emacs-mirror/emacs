@@ -1,7 +1,7 @@
 /* tract.h: PAGE TABLE INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  */
 
 
@@ -107,7 +107,7 @@ typedef union PageUnion {     /* page structure */
 #define PagePool(page)        RVALUE((page)->pool.pool)
 #define PageIsAllocated(page) RVALUE(PagePool(page) != NULL)
 #define PageState(page)       RVALUE((page)->pool.state)
-#define PageSpareRing(page)   RVALUE(&(page)->spare.spareRing)
+#define PageSpareRing(page)   (&(page)->spare.spareRing)
 #define PageOfSpareRing(node) PARENT(PageUnion, spare, RING_ELT(PageSpare, spareRing, node))
 
 #define PageSetPool(page, _pool) \
@@ -256,7 +256,7 @@ extern void PageFree(Chunk chunk, Index pi);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
