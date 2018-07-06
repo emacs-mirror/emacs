@@ -72,7 +72,7 @@ for useful advice.)
     If this preprocessor constant is defined, exclude the ANSI plinth
     (``mpsioan.c`` and ``mpsliban.c``) from the MPS. For example::
 
-        cc -DCONFIG_PLINTH_NONE -c mps.c        (Unix/OS X)
+        cc -DCONFIG_PLINTH_NONE -c mps.c        (Unix/macOS)
         cl /Gs /DCONFIG_PLINTH_NONE /c mps.c    (Windows)
 
     Having excluded the ANSI plinth, you must of course supply your
@@ -468,8 +468,8 @@ Library module
 
     A :term:`plinth` function to supply a default value for the
     :term:`telemetry filter` from the environment. See
-    :c:func:`mps_telemetry_control` for more information on the
-    significant of the value.
+    :envvar:`MPS_TELEMETRY_CONTROL` for more information on the
+    significance of the value.
 
     Returns the default value of the telemetry filter, as derived from
     the environment. It is recommended that the environment be

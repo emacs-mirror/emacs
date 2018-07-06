@@ -1,7 +1,7 @@
 /* landtest.c: LAND TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * Test all three Land implementations against duplicate operations on
  * a bit-table.
@@ -384,8 +384,6 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
       BTSetRange(state->allocTable, expectedBase, expectedLimit);
     }
   }
-
-  return;
 }
 
 static void test(TestState state, unsigned n) {
@@ -471,7 +469,7 @@ extern int main(int argc, char *argv[])
   /* 1. Test CBS */
 
   MPS_ARGS_BEGIN(args) {
-    die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, state.align,
+    die((mps_res_t)LandInit(cbs, CLASS(CBSFast), arena, state.align,
                             NULL, args),
         "failed to initialise CBS");
   } MPS_ARGS_END(args);
@@ -481,7 +479,7 @@ extern int main(int argc, char *argv[])
 
   /* 2. Test Freelist */
 
-  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, state.align,
+  die((mps_res_t)LandInit(fl, CLASS(Freelist), arena, state.align,
                           NULL, mps_args_none),
       "failed to initialise Freelist");
   state.land = fl;
@@ -503,18 +501,18 @@ extern int main(int argc, char *argv[])
 
       MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, CBSBlockPool, mfs);
-        die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, state.align,
+        die((mps_res_t)LandInit(cbs, CLASS(CBSFast), arena, state.align,
                                 NULL, args),
             "failed to initialise CBS");
       } MPS_ARGS_END(args);
 
-      die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, state.align,
+      die((mps_res_t)LandInit(fl, CLASS(Freelist), arena, state.align,
                               NULL, mps_args_none),
           "failed to initialise Freelist");
       MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, FailoverPrimary, cbs);
         MPS_ARGS_ADD(args, FailoverSecondary, fl);
-        die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, state.align,
+        die((mps_res_t)LandInit(fo, CLASS(Failover), arena, state.align,
                                 NULL, args),
             "failed to initialise Failover");
       } MPS_ARGS_END(args);
@@ -545,7 +543,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

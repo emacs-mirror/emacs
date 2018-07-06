@@ -72,6 +72,8 @@ extern Res ThreadScan(ScanState ss, Thread thread, void *stackCold,
                       mps_area_scan_t scan_area,
                       void *closure);
 
+extern void ThreadSetup(void);
+
 
 #endif /* th_h */
 

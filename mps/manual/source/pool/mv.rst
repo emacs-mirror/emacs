@@ -1,5 +1,5 @@
 .. index::
-   single: MV
+   single: MV pool class
    single: pool class; MV
 
 .. _pool-mv:
@@ -11,9 +11,13 @@ MV (Manual Variable)
 management>` :term:`pool class` that manages :term:`blocks` of
 variable size.
 
+.. deprecated:: starting with version 1.117.
+
+    Use :ref:`pool-mvff` instead.
+
 
 .. index::
-   single: MV; properties
+   single: MV pool class; properties
 
 MV properties
 -------------
@@ -49,68 +53,3 @@ MV properties
 * Blocks may not be registered for :term:`finalization`.
 
 * Blocks must not belong to an :term:`object format`.
-
-
-.. index::
-   single: MV; interface
-
-MV interface
-------------
-
-::
-
-   #include "mpscmv.h"
-
-.. c:function:: mps_pool_class_t mps_class_mv(void)
-
-    Return the :term:`pool class` for an MV (Manual Variable)
-    :term:`pool`.
-
-    When creating an MV pool, :c:func:`mps_pool_create_k` takes four
-    optional :term:`keyword arguments`:
-
-    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
-      :c:macro:`MPS_PF_ALIGN`) is the :term:`alignment` of the
-      addresses allocated (and freed) in the pool. The minimum
-      alignment supported by pools of this class is 1 (one)
-      and the maximum is the arena grain size
-      (see :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`).
-
-    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
-      default 65536) is the :term:`size` of block that the pool will
-      request from the :term:`arena`.
-
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32)
-      is the predicted mean size of blocks that will be allocated from
-      the pool. This value must be smaller than, or equal to, the
-      value for :c:macro:`MPS_KEY_EXTEND_BY`.
-
-    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`,
-      default 65536) is the predicted maximum size of blocks that will
-      be allocated from the pool. This value must be larger than, or
-      equal to, the value for :c:macro:`MPS_KEY_EXTEND_BY`.
-
-    The mean and maximum sizes are *hints* to the MPS: the pool will be
-    less efficient if these are wrong, but nothing will break.
-
-    For example::
-
-        MPS_ARGS_BEGIN(args) {
-            MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 32);
-            MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 1024);
-            MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 1024 * 1024);
-            res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
-        } MPS_ARGS_END(args);
-
-
-.. c:function:: mps_pool_class_t mps_class_mv_debug(void)
-
-    A :ref:`debugging <topic-debugging>` version of the MV pool
-    class.
-
-    When creating a debugging MV pool, :c:func:`mps_pool_create_k`
-    takes five optional keyword arguments: :c:macro:`MPS_KEY_ALIGN`,
-    :c:macro:`MPS_KEY_EXTEND_SIZE`, :c:macro:`MPS_KEY_MEAN_SIZE`,
-    :c:macro:`MPS_KEY_MAX_SIZE` are as described above, and
-    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
-    options. See :c:type:`mps_pool_debug_option_s`.

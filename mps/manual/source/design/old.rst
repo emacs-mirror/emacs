@@ -20,18 +20,14 @@ Old design
     bt
     buffer
     check
-    class-interface
     collection
     diag
-    finalize
     fix
     io
     lib
     locus
-    message
     message-gc
     object-debug
-    pool
     poolamc
     poolams
     poolawl
@@ -41,8 +37,6 @@ Old design
     poolmv
     poolmvt
     poolmvff
-    protli
-    protsu
     protocol
     pthreadext
     root
@@ -51,9 +45,4 @@ Old design
     strategy
     telemetry
     tests
-    thread-safety
     trace
-    version-library
-    version
-    vmo1
-    vmso

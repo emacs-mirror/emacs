@@ -1,7 +1,7 @@
 /* poolawl.c: AUTOMATIC WEAK LINKED POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  *
  * DESIGN
@@ -48,6 +48,17 @@ SRCID(poolawl, "$Id$");
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
+static Res awlSegAccess(Seg seg, Arena arena, Addr addr,
+                        AccessSet mode, MutatorContext context);
+static Res awlSegWhiten(Seg seg, Trace trace);
+static void awlSegGreyen(Seg seg, Trace trace);
+static void awlSegBlacken(Seg seg, TraceSet traceSet);
+static Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss);
+static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO);
+static void awlSegReclaim(Seg seg, Trace trace);
+static void awlSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s);
+
 
 /* awlStat* -- Statistics gathering about instruction emulation
  *
@@ -81,35 +92,26 @@ typedef Addr (*FindDependentFunction)(Addr object);
  * See <design/poolawl/#poolstruct>
  */
 
-typedef struct AWLStruct {
+typedef struct AWLPoolStruct {
   PoolStruct poolStruct;
-  Shift alignShift;
-  PoolGenStruct pgen;       /* generation representing the pool */
+  PoolGenStruct pgenStruct; /* generation representing the pool */
+  PoolGen pgen;             /* NULL or pointer to pgenStruct */
   Count succAccesses;       /* number of successive single accesses */
   FindDependentFunction findDependent; /*  to find a dependent object */
   awlStatTotalStruct stats;
-  Sig sig;
-} AWLStruct, *AWL;
-
-#define PoolAWL(pool) PARENT(AWLStruct, poolStruct, pool)
-#define AWLPool(awl) (&(awl)->poolStruct)
-#define AWLGrainsSize(awl, grains) ((grains) << (awl)->alignShift)
+  Sig sig;                  /* <code/misc.h#sig> */
+} AWLPoolStruct, *AWL;
 
 
 static Bool AWLCheck(AWL awl);
 
 
-/* Conversion between indexes and Addrs */
-#define awlIndexOfAddr(base, awl, p) \
-  (AddrOffset((base), (p)) >> (awl)->alignShift)
-#define awlAddrOfIndex(base, awl, i) \
-  AddrAdd(base, AWLGrainsSize(awl, i))
+typedef AWL AWLPool;
+#define AWLPoolCheck AWLCheck
+DECLARE_CLASS(Pool, AWLPool, AbstractCollectPool);
 
 
-/* AWLSegStruct -- AWL segment subclass
- *
- * Subclass of GCSeg
- */
+/* AWLSegStruct -- AWL segment subclass */
 
 #define AWLSegSig ((Sig)0x519A3759) /* SIGnature AWL SeG */
 
@@ -121,19 +123,15 @@ typedef struct AWLSegStruct {
   BT alloc;
   Count grains;
   Count freeGrains;         /* free grains */
-  Count oldGrains;          /* grains allocated prior to last collection */
+  Count bufferedGrains;     /* grains in buffers */
   Count newGrains;          /* grains allocated since last collection */
+  Count oldGrains;          /* grains allocated prior to last collection */
   Count singleAccesses;     /* number of accesses processed singly */
   awlStatSegStruct stats;
-  Sig sig;
+  Sig sig;                  /* <code/misc.h#sig> */
 } AWLSegStruct, *AWLSeg;
 
-#define Seg2AWLSeg(seg)             ((AWLSeg)(seg))
-#define AWLSeg2Seg(awlseg)          ((Seg)(awlseg))
-
-
-extern SegClass AWLSegClassGet(void);
-
+DECLARE_CLASS(Seg, AWLSeg, MutatorSeg);
 
 ATTRIBUTE_UNUSED
 static Bool AWLSegCheck(AWLSeg awlseg)
@@ -144,7 +142,8 @@ static Bool AWLSegCheck(AWLSeg awlseg)
   CHECKL(awlseg->scanned != NULL);
   CHECKL(awlseg->alloc != NULL);
   CHECKL(awlseg->grains > 0);
-  CHECKL(awlseg->grains == awlseg->freeGrains + awlseg->oldGrains + awlseg->newGrains);
+  CHECKL(awlseg->grains == awlseg->freeGrains + awlseg->bufferedGrains
+         + awlseg->newGrains + awlseg->oldGrains);
   return TRUE;
 }
 
@@ -174,9 +173,7 @@ ARG_DEFINE_KEY(awl_seg_rank_set, RankSet);
 
 static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   AWLSeg awlseg;
-  AWL awl;
   Arena arena;
   RankSet rankSet;
   Count bits;        /* number of grains */
@@ -185,11 +182,6 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   void *v;
   ArgStruct arg;
 
-  AVERT(Seg, seg);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(Pool, pool);
-  arena = PoolArena(pool);
-  /* no useful checks for base and size */
   ArgRequire(&arg, args, awlKeySegRankSet);
   rankSet = arg.val.u;
   AVERT(RankSet, rankSet);
@@ -197,102 +189,94 @@ static Res AWLSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   /* AWL only accepts two ranks */
   AVER(RankSetSingle(RankEXACT) == rankSet
        || RankSetSingle(RankWEAK) == rankSet);
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
 
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(AWLSegClass);
-  res = super->init(seg, pool, base, size, args);
+  res = NextMethod(Seg, AWLSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
-    return res;
+    goto failSuperInit;
+  awlseg = CouldBeA(AWLSeg, seg);
 
-  bits = size >> awl->alignShift;
+  AVERT(Pool, pool);
+  arena = PoolArena(pool);
+  /* no useful checks for base and size */
+
+  bits = PoolSizeGrains(pool, size);
   tableSize = BTSize(bits);
-  res = ControlAlloc(&v, arena, tableSize);
+  res = ControlAlloc(&v, arena, 3 * tableSize);
   if (res != ResOK)
-    goto failControlAllocMark;
+    goto failControlAlloc;
   awlseg->mark = v;
-  res = ControlAlloc(&v, arena, tableSize);
-  if (res != ResOK)
-    goto failControlAllocScanned;
-  awlseg->scanned = v;
-  res = ControlAlloc(&v, arena, tableSize);
-  if (res != ResOK)
-    goto failControlAllocAlloc;
-  awlseg->alloc = v;
+  awlseg->scanned = PointerAdd(v, tableSize);
+  awlseg->alloc = PointerAdd(v, 2 * tableSize);
   awlseg->grains = bits;
   BTResRange(awlseg->mark, 0, bits);
   BTResRange(awlseg->scanned, 0, bits);
   BTResRange(awlseg->alloc, 0, bits);
   SegSetRankAndSummary(seg, rankSet, RefSetUNIV);
   awlseg->freeGrains = bits;
-  awlseg->oldGrains = (Count)0;
+  awlseg->bufferedGrains = (Count)0;
   awlseg->newGrains = (Count)0;
+  awlseg->oldGrains = (Count)0;
   awlseg->singleAccesses = 0;
   awlStatSegInit(awlseg);
+
+  SetClassOfPoly(seg, CLASS(AWLSeg));
   awlseg->sig = AWLSegSig;
-  AVERT(AWLSeg, awlseg);
+  AVERC(AWLSeg, awlseg);
+
   return ResOK;
 
-failControlAllocAlloc:
-  ControlFree(arena, awlseg->scanned, tableSize);
-failControlAllocScanned:
-  ControlFree(arena, awlseg->mark, tableSize);
-failControlAllocMark:
-  super->finish(seg);
+failControlAlloc:
+  NextMethod(Inst, AWLSeg, finish)(MustBeA(Inst, seg));
+failSuperInit:
+  AVER(res != ResOK);
   return res;
 }
 
 
 /* AWLSegFinish -- Finish method for AWL segments */
 
-static void AWLSegFinish(Seg seg)
+static void AWLSegFinish(Inst inst)
 {
-  AWL awl;
-  AWLSeg awlseg;
-  SegClass super;
-  Pool pool;
+  Seg seg = MustBeA(Seg, inst);
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  Arena arena = PoolArena(pool);
   Size tableSize;
-  Arena arena;
   Count segGrains;
-
-  AVERT(Seg, seg);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
-  pool = SegPool(seg);
-  AVERT(Pool, pool);
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
 
   /* This is one of the few places where it is easy to check */
   /* awlseg->grains, so we do */
-  segGrains = SegSize(seg) >> awl->alignShift;
+  segGrains = PoolSizeGrains(pool, SegSize(seg));
   AVER(segGrains == awlseg->grains);
   tableSize = BTSize(segGrains);
-  ControlFree(arena, awlseg->alloc, tableSize);
-  ControlFree(arena, awlseg->scanned, tableSize);
-  ControlFree(arena, awlseg->mark, tableSize);
+  ControlFree(arena, awlseg->mark, 3 * tableSize);
   awlseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = SEG_SUPERCLASS(AWLSegClass);
-  super->finish(seg);
+  NextMethod(Inst, AWLSeg, finish)(inst);
 }
 
 
 /* AWLSegClass -- Class definition for AWL segments */
 
-DEFINE_SEG_CLASS(AWLSegClass, class)
+DEFINE_CLASS(Seg, AWLSeg, klass)
 {
-  INHERIT_CLASS(class, GCSegClass);
-  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->name = "AWLSEG";
-  class->size = sizeof(AWLSegStruct);
-  class->init = AWLSegInit;
-  class->finish = AWLSegFinish;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, AWLSeg, MutatorSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.finish = AWLSegFinish;
+  klass->size = sizeof(AWLSegStruct);
+  klass->init = AWLSegInit;
+  klass->access = awlSegAccess;
+  klass->whiten = awlSegWhiten;
+  klass->greyen = awlSegGreyen;
+  klass->blacken = awlSegBlacken;
+  klass->scan = awlSegScan;
+  klass->fix = awlSegFix;
+  klass->fixEmergency = awlSegFix;
+  klass->reclaim = awlSegReclaim;
+  klass->walk = awlSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -305,7 +289,7 @@ DEFINE_SEG_CLASS(AWLSegClass, class)
  * AWLSegSALimit is the number of accesses for a single segment in a GC cycle.
  * AWLTotalSALimit is the total number of accesses during a GC cycle.
  *
- * These should be set in config.h, but are here in static variables so that
+ * These should be set in config.h, but are here in global variables so that
  * it's possible to tweak them in a debugger.
  */
 
@@ -322,11 +306,12 @@ Bool AWLHaveTotalSALimit = AWL_HAVE_TOTAL_SA_LIMIT;
 
 /* Determine whether to permit scanning a single ref. */
 
-static Bool AWLCanTrySingleAccess(Arena arena, AWL awl, Seg seg, Addr addr)
+static Bool awlSegCanTrySingleAccess(Arena arena, Seg seg, Addr addr)
 {
   AWLSeg awlseg;
+  AWL awl;
 
-  AVERT(AWL, awl);
+  AVERT(Arena, arena);
   AVERT(Seg, seg);
   AVER(addr != NULL);
 
@@ -348,8 +333,8 @@ static Bool AWLCanTrySingleAccess(Arena arena, AWL awl, Seg seg, Addr addr)
   if (TraceRankForAccess(arena, seg) == RankWEAK)
     return FALSE;
 
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
+  awlseg = MustBeA(AWLSeg, seg);
+  awl = MustBeA(AWLPool, SegPool(seg));
 
   /* If there have been too many single accesses in a row then don't
      keep trying them, even if it means retaining objects. */
@@ -380,20 +365,19 @@ static Bool AWLCanTrySingleAccess(Arena arena, AWL awl, Seg seg, Addr addr)
 
 static void AWLNoteRefAccess(AWL awl, Seg seg, Addr addr)
 {
-  AWLSeg awlseg;
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
   AVERT(AWL, awl);
-  AVERT(Seg, seg);
   AVER(addr != NULL);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
 
   awlseg->singleAccesses++; /* increment seg count of ref accesses */
-  if (addr == awlseg->stats.lastAccess) {
-    /* If this is a repeated access, increment count  */
-    STATISTIC(awlseg->stats.sameAccesses++);
-  }
-  STATISTIC(awlseg->stats.lastAccess = addr);
+  STATISTIC({
+    if (addr == awlseg->stats.lastAccess) {
+      /* If this is a repeated access, increment count  */
+      ++ awlseg->stats.sameAccesses;
+    }
+    awlseg->stats.lastAccess = addr;
+  });
   awl->succAccesses++;  /* Note a new successive access */
 }
 
@@ -412,105 +396,61 @@ static void AWLNoteSegAccess(AWL awl, Seg seg, Addr addr)
 
 /* Record a scan of a segment which wasn't provoked by an access */
 
-static void AWLNoteScan(AWL awl, Seg seg, ScanState ss)
+static void AWLNoteScan(Seg seg, ScanState ss)
 {
-  AWLSeg awlseg;
-
-  AVERT(AWL, awl);
-  AVERT(Seg, seg);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  UNUSED(ss);
 
   /* .assume.mixedrank */
   /* .assume.samerank */
-  /* If this segment has any RankWEAK references, then  */
-  /* record statistics about whether weak splatting is being lost. */
   if (RankSetIsMember(SegRankSet(seg), RankWEAK)) {
-    if (RankWEAK == ss->rank) {
-      /* This is "successful" scan at proper rank. */
-      STATISTIC(awl->stats.goodScans++);
-      if (0 < awlseg->singleAccesses) {
-        /* Accesses have been proceesed singly */
-        /* Record that we genuinely did save a protection-provoked scan */
-        STATISTIC(awl->stats.savedScans++);
-        STATISTIC(awl->stats.savedAccesses += awlseg->singleAccesses);
+    STATISTIC({
+      /* If this segment has any RankWEAK references, then record
+       * statistics about whether weak splatting is being lost. */
+      AWL awl = MustBeA(AWLPool, SegPool(seg));
+      if (RankWEAK == ss->rank) {
+        /* This is "successful" scan at proper rank. */
+        ++ awl->stats.goodScans;
+        if (0 < awlseg->singleAccesses) {
+          /* Accesses have been proceesed singly. Record that we
+           * genuinely did save a protection-provoked scan */
+          ++ awl->stats.savedScans;
+          awl->stats.savedAccesses += awlseg->singleAccesses;
+        }
+      } else {
+        /* This is "failed" scan at improper rank. */
+        ++ awl->stats.badScans;
       }
-    } else {
-      /* This is "failed" scan at improper rank. */
-      STATISTIC(awl->stats.badScans++);
-    }
+      awlStatSegInit(awlseg);
+    });
     /* Reinitialize the segment statistics */
     awlseg->singleAccesses = 0;
-    STATISTIC(awlStatSegInit(awlseg));
   }
-}
-
-
-/* AWLSegCreate -- Create a new segment of at least given size */
-
-static Res AWLSegCreate(AWLSeg *awlsegReturn,
-                        RankSet rankSet, Pool pool, Size size)
-{
-  AWL awl;
-  Seg seg;
-  AWLSeg awlseg;
-  Res res;
-  Arena arena;
-
-  AVER(awlsegReturn != NULL);
-  AVERT(RankSet, rankSet);
-  AVERT(Pool, pool);
-  AVER(size > 0);
-
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
-
-  size = SizeArenaGrains(size, arena);
-  /* beware of large sizes overflowing upon rounding */
-  if (size == 0)
-    return ResMEMORY;
-  MPS_ARGS_BEGIN(args) {
-    MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, rankSet);
-    res = PoolGenAlloc(&seg, &awl->pgen, AWLSegClassGet(), size, args);
-  } MPS_ARGS_END(args);
-  if (res != ResOK)
-    return res;
-
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
-
-  *awlsegReturn = awlseg;
-  return ResOK;
 }
 
 
 /* AWLSegAlloc -- allocate an object in a given segment */
 
 static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
-                        AWLSeg awlseg, AWL awl, Size size)
+                        AWLSeg awlseg, Pool pool, Size size)
 {
   Count n;        /* number of grains equivalent to alloc size */
   Index i, j;
-  Seg seg;
+  Seg seg = MustBeA(Seg, awlseg);
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVERT(AWLSeg, awlseg);
-  AVERT(AWL, awl);
+  AVERT(Pool, pool);
   AVER(size > 0);
-  AVER(AWLGrainsSize(awl, size) >= size);
-  seg = AWLSeg2Seg(awlseg);
+  AVER(PoolGrainsSize(pool, size) >= size);
 
   if (size > SegSize(seg))
     return FALSE;
-  n = size >> awl->alignShift;
+  n = PoolSizeGrains(pool, size);
   if (!BTFindLongResRange(&i, &j, awlseg->alloc, 0, awlseg->grains, n))
     return FALSE;
-  *baseReturn = awlAddrOfIndex(SegBase(seg), awl, i);
-  *limitReturn = awlAddrOfIndex(SegBase(seg),awl, j);
+  *baseReturn = PoolAddrOfIndex(SegBase(seg), pool, i);
+  *limitReturn = PoolAddrOfIndex(SegBase(seg), pool, j);
   return TRUE;
 }
 
@@ -541,38 +481,40 @@ static Addr awlNoDependent(Addr addr)
 
 ARG_DEFINE_KEY(AWL_FIND_DEPENDENT, Fun);
 
-static Res AWLInit(Pool pool, ArgList args)
+static Res AWLInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   AWL awl;
-  Format format;
   FindDependentFunction findDependent = awlNoDependent;
   Chain chain;
   Res res;
   ArgStruct arg;
   unsigned gen = AWL_GEN_DEFAULT;
 
-  /* Weak check, as half-way through initialization. */
   AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
 
-  awl = PoolAWL(pool);
-  
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
   if (ArgPick(&arg, args, MPS_KEY_AWL_FIND_DEPENDENT))
     findDependent = (FindDependentFunction)arg.val.addr_method;
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else {
-    chain = ArenaGlobals(PoolArena(pool))->defaultChain;
+    chain = ArenaGlobals(arena)->defaultChain;
     gen = 1; /* avoid the nursery of the default chain by default */
   }
   if (ArgPick(&arg, args, MPS_KEY_GEN))
     gen = arg.val.u;
 
-  AVERT(Format, format);
-  AVER(FormatArena(format) == PoolArena(pool));
-  pool->format = format;
-  pool->alignment = format->alignment;
+  res = NextMethod(Pool, AWLPool, init)(pool, arena, klass, args);
+  if (res != ResOK)
+    goto failNextInit;
+  awl = CouldBeA(AWLPool, pool);
+
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
+  pool->alignment = pool->format->alignment;
+  pool->alignShift = SizeLog2(pool->alignment);
 
   AVER(FUNCHECK(findDependent));
   awl->findDependent = findDependent;
@@ -581,20 +523,27 @@ static Res AWLInit(Pool pool, ArgList args)
   AVER(gen <= ChainGens(chain));
   AVER(chain->arena == PoolArena(pool));
 
-  res = PoolGenInit(&awl->pgen, ChainGen(chain, gen), pool);
-  if (res != ResOK)
-    goto failGenInit;
+  awl->pgen = NULL;
 
-  awl->alignShift = SizeLog2(PoolAlignment(pool));
   awl->succAccesses = 0;
   awlStatTotalInit(awl);
-  awl->sig = AWLSig;
 
-  AVERT(AWL, awl);
-  EVENT2(PoolInitAWL, pool, format);
+  SetClassOfPoly(pool, CLASS(AWLPool));
+  awl->sig = AWLSig;
+  AVERC(AWLPool, awl);
+
+  res = PoolGenInit(&awl->pgenStruct, ChainGen(chain, gen), pool);
+  if (res != ResOK)
+    goto failGenInit;
+  awl->pgen = &awl->pgenStruct;
+
+  EVENT2(PoolInitAWL, pool, pool->format);
+
   return ResOK;
 
 failGenInit:
+  NextMethod(Inst, AWLPool, finish)(MustBeA(Inst, pool));
+failNextInit:
   AVER(res != ResOK);
   return res;
 }
@@ -602,29 +551,29 @@ failGenInit:
 
 /* AWLFinish -- finish an AWL pool */
 
-static void AWLFinish(Pool pool)
+static void AWLFinish(Inst inst)
 {
-  AWL awl;
+  Pool pool = MustBeA(AbstractPool, inst);
+  AWL awl = MustBeA(AWLPool, pool);
   Ring ring, node, nextNode;
-
-  AVERT(Pool, pool);
-
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
 
   ring = &pool->segRing;
   RING_FOR(node, ring, nextNode) {
     Seg seg = SegOfPoolRing(node);
-    AWLSeg awlseg = Seg2AWLSeg(seg);
+    AWLSeg awlseg = MustBeA(AWLSeg, seg);
+    AVER(!SegHasBuffer(seg));
     AVERT(AWLSeg, awlseg);
-    PoolGenFree(&awl->pgen, seg,
-                AWLGrainsSize(awl, awlseg->freeGrains),
-                AWLGrainsSize(awl, awlseg->oldGrains),
-                AWLGrainsSize(awl, awlseg->newGrains),
+    AVER(awlseg->bufferedGrains == 0);
+    PoolGenFree(awl->pgen, seg,
+                PoolGrainsSize(pool, awlseg->freeGrains),
+                PoolGrainsSize(pool, awlseg->oldGrains),
+                PoolGrainsSize(pool, awlseg->newGrains),
                 FALSE);
   }
   awl->sig = SigInvalid;
-  PoolGenFinish(&awl->pgen);
+  PoolGenFinish(awl->pgen);
+
+  NextMethod(Inst, AWLPool, finish)(inst);
 }
 
 
@@ -634,51 +583,49 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size)
 {
   Addr base, limit;
-  AWLSeg awlseg;
-  AWL awl;
   Res res;
   Ring node, nextNode;
+  Seg seg;
+  AWLSeg awlseg;
+  AWL awl = MustBeA(AWLPool, pool);
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVERT(Pool, pool);
-  AVERT(Buffer, buffer);
+  AVERC(Pool, pool);
+  AVERC(Buffer, buffer);
   AVER(size > 0);
 
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-
   RING_FOR(node, &pool->segRing, nextNode) {
-    Seg seg;
-
     seg = SegOfPoolRing(node);
-    AVERT(Seg, seg);
-    awlseg = Seg2AWLSeg(seg);
-    AVERT(AWLSeg, awlseg);
+    
+    awlseg = MustBeA(AWLSeg, seg);
 
     /* Only try to allocate in the segment if it is not already */
     /* buffered, and has the same ranks as the buffer. */
-    if (SegBuffer(seg) == NULL
+    if (!SegHasBuffer(seg)
         && SegRankSet(seg) == BufferRankSet(buffer)
-        && AWLGrainsSize(awl, awlseg->freeGrains) >= size
-        && AWLSegAlloc(&base, &limit, awlseg, awl, size))
+        && PoolGrainsSize(pool, awlseg->freeGrains) >= size
+        && AWLSegAlloc(&base, &limit, awlseg, pool, size))
       goto found;
   }
 
   /* No free space in existing awlsegs, so create new awlseg */
-
-  res = AWLSegCreate(&awlseg, BufferRankSet(buffer), pool, size);
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, BufferRankSet(buffer));
+    res = PoolGenAlloc(&seg, awl->pgen, CLASS(AWLSeg),
+                       SizeArenaGrains(size, PoolArena(pool)), args);
+  } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
-  base = SegBase(AWLSeg2Seg(awlseg));
-  limit = SegLimit(AWLSeg2Seg(awlseg));
+  awlseg = MustBeA(AWLSeg, seg);
+  base = SegBase(MustBeA(Seg, awlseg));
+  limit = SegLimit(MustBeA(Seg, awlseg));
 
 found:
   {
     Index i, j;
-    Seg seg = AWLSeg2Seg(awlseg);
-    i = awlIndexOfAddr(SegBase(seg), awl, base);
-    j = awlIndexOfAddr(SegBase(seg), awl, limit);
+    i = PoolIndexOfAddr(SegBase(seg), pool, base);
+    j = PoolIndexOfAddr(SegBase(seg), pool, limit);
     AVER(i < j);
     BTSetRange(awlseg->alloc, i, j);
     /* Objects are allocated black. */
@@ -687,8 +634,8 @@ found:
     BTSetRange(awlseg->scanned, i, j);
     AVER(awlseg->freeGrains >= j - i);
     awlseg->freeGrains -= j - i;
-    awlseg->newGrains += j - i;
-    PoolGenAccountForFill(&awl->pgen, AddrOffset(base, limit), FALSE);
+    awlseg->bufferedGrains += j - i;
+    PoolGenAccountForFill(awl->pgen, AddrOffset(base, limit));
   }
   *baseReturn = base;
   *limitReturn = limit;
@@ -700,45 +647,49 @@ found:
 
 static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 {
-  AWL awl;
-  AWLSeg awlseg;
-  Seg seg;
-  Addr segBase;
+  AWL awl = MustBeA(AWLPool, pool);
+  Seg seg = BufferSeg(buffer);
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Addr segBase = SegBase(seg);
   Index i, j;
+  Count usedGrains, unusedGrains;
 
-  AVERT(Pool, pool);
-  AVERT(Buffer, buffer);
-  seg = BufferSeg(buffer);
-  AVERT(Seg, seg);
   AVER(init <= limit);
 
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
-
-  segBase = SegBase(seg);
-
-  i = awlIndexOfAddr(segBase, awl, init);
-  j = awlIndexOfAddr(segBase, awl, limit);
+  i = PoolIndexOfAddr(segBase, pool, init);
+  j = PoolIndexOfAddr(segBase, pool, limit);
   AVER(i <= j);
-  if (i < j) {
+  if (i < j)
     BTResRange(awlseg->alloc, i, j);
-    AVER(awlseg->newGrains >= j - i);
-    awlseg->newGrains -= j - i;
-    awlseg->freeGrains += j - i;
-    PoolGenAccountForEmpty(&awl->pgen, AddrOffset(init, limit), FALSE);
-  }
+
+  unusedGrains = j - i;
+  AVER(awlseg->bufferedGrains >= unusedGrains);
+  usedGrains = awlseg->bufferedGrains - unusedGrains;
+  awlseg->freeGrains += unusedGrains;
+  awlseg->bufferedGrains = 0;
+  awlseg->newGrains += usedGrains;
+  PoolGenAccountForEmpty(awl->pgen, PoolGrainsSize(pool, usedGrains),
+                         PoolGrainsSize(pool, unusedGrains), FALSE);
 }
 
 
-/* AWLWhiten -- segment condemning method */
+/* awlSegPoolGen -- get pool generation for an AWL segment */
 
-/* awlRangeWhiten -- helper function that works on a range.
+static PoolGen awlSegPoolGen(Pool pool, Seg seg)
+{
+  AWL awl = MustBeA(AWLPool, pool);
+  AVERT(Seg, seg);
+  return awl->pgen;
+}
+
+
+/* awlSegWhiten -- segment condemning method */
+
+/* awlSegRangeWhiten -- helper function that works on a range.
  *
- * This function abstracts common code from AWLWhiten.
+ * This function abstracts common code from awlSegWhiten.
  */
-static void awlRangeWhiten(AWLSeg awlseg, Index base, Index limit)
+static void awlSegRangeWhiten(AWLSeg awlseg, Index base, Index limit)
 {
   if(base != limit) {
     AVER(base < limit);
@@ -748,36 +699,31 @@ static void awlRangeWhiten(AWLSeg awlseg, Index base, Index limit)
   }
 }
 
-static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
+static Res awlSegWhiten(Seg seg, Trace trace)
 {
-  AWL awl;
-  AWLSeg awlseg;
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  PoolGen pgen = PoolSegPoolGen(pool, seg);
   Buffer buffer;
-  Count uncondemned;
+  Count agedGrains, uncondemnedGrains;
 
-  /* All parameters checked by generic PoolWhiten. */
-
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
-  buffer = SegBuffer(seg);
+  /* All parameters checked by generic SegWhiten. */
 
   /* Can only whiten for a single trace, */
   /* see <design/poolawl/#fun.condemn> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  if(buffer == NULL) {
-    awlRangeWhiten(awlseg, 0, awlseg->grains);
-    uncondemned = (Count)0;
+  if (!SegBuffer(&buffer, seg)) {
+    awlSegRangeWhiten(awlseg, 0, awlseg->grains);
+    uncondemnedGrains = (Count)0;
   } else {
     /* Whiten everything except the buffer. */
     Addr base = SegBase(seg);
-    Index scanLimitIndex = awlIndexOfAddr(base, awl, BufferScanLimit(buffer));
-    Index limitIndex = awlIndexOfAddr(base, awl, BufferLimit(buffer));
-    uncondemned = limitIndex - scanLimitIndex;
-    awlRangeWhiten(awlseg, 0, scanLimitIndex);
-    awlRangeWhiten(awlseg, limitIndex, awlseg->grains);
+    Index scanLimitIndex = PoolIndexOfAddr(base, pool, BufferScanLimit(buffer));
+    Index limitIndex = PoolIndexOfAddr(base, pool, BufferLimit(buffer));
+    uncondemnedGrains = limitIndex - scanLimitIndex;
+    awlSegRangeWhiten(awlseg, 0, scanLimitIndex);
+    awlSegRangeWhiten(awlseg, limitIndex, awlseg->grains);
 
     /* Check the buffer is black. */
     /* This really ought to change when we have a non-trivial */
@@ -788,12 +734,18 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     }
   }
 
-  PoolGenAccountForAge(&awl->pgen, AWLGrainsSize(awl, awlseg->newGrains - uncondemned), FALSE);
-  awlseg->oldGrains += awlseg->newGrains - uncondemned;
-  awlseg->newGrains = uncondemned;
+  /* The unused part of the buffer remains buffered: the rest becomes old. */
+  AVER(awlseg->bufferedGrains >= uncondemnedGrains);
+  agedGrains = awlseg->bufferedGrains - uncondemnedGrains;
+  PoolGenAccountForAge(pgen, PoolGrainsSize(pool, agedGrains),
+                       PoolGrainsSize(pool, awlseg->newGrains), FALSE);
+  awlseg->oldGrains += agedGrains + awlseg->newGrains;
+  awlseg->bufferedGrains = uncondemnedGrains;
+  awlseg->newGrains = 0;
 
   if (awlseg->oldGrains > 0) {
-    trace->condemned += AWLGrainsSize(awl, awlseg->oldGrains);
+    GenDescCondemned(pgen->gen, trace,
+                     PoolGrainsSize(pool, awlseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
   
@@ -801,10 +753,10 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* AWLGrey -- Grey method for AWL pools */
+/* awlSegGreyen -- Greyen method for AWL segments */
 
-/* AWLRangeGrey -- subroutine for AWLGrey */
-static void AWLRangeGrey(AWLSeg awlseg, Index base, Index limit)
+/* awlSegRangeGreyen -- subroutine for awlSegGreyen */
+static void awlSegRangeGreyen(AWLSeg awlseg, Index base, Index limit)
 {
   /* AWLSeg not checked as that's already been done */
   AVER(limit <= awlseg->grains);
@@ -817,54 +769,43 @@ static void AWLRangeGrey(AWLSeg awlseg, Index base, Index limit)
   }
 }
 
-static void AWLGrey(Pool pool, Trace trace, Seg seg)
+static void awlSegGreyen(Seg seg, Trace trace)
 {
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
+  Buffer buffer;
+  Pool pool;
+
   AVERT(Seg, seg);
+  AVERT(Trace, trace);
+  pool = SegPool(seg);
+  AVER(PoolArena(pool) == trace->arena);
 
   if (!TraceSetIsMember(SegWhite(seg), trace)) {
-    AWL awl;
-    AWLSeg awlseg;
-
-    awl = PoolAWL(pool);
-    AVERT(AWL, awl);
-    awlseg = Seg2AWLSeg(seg);
-    AVERT(AWLSeg, awlseg);
+    AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace));
-    if (SegBuffer(seg) != NULL) {
+    if (SegBuffer(&buffer, seg)) {
       Addr base = SegBase(seg);
-      Buffer buffer = SegBuffer(seg);
 
-      AWLRangeGrey(awlseg,
-                   0,
-                   awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
-      AWLRangeGrey(awlseg,
-                   awlIndexOfAddr(base, awl, BufferLimit(buffer)),
-                   awlseg->grains);
+      awlSegRangeGreyen(awlseg,
+                        0,
+                        PoolIndexOfAddr(base, pool, BufferScanLimit(buffer)));
+      awlSegRangeGreyen(awlseg,
+                        PoolIndexOfAddr(base, pool, BufferLimit(buffer)),
+                        awlseg->grains);
     } else {
-      AWLRangeGrey(awlseg, 0, awlseg->grains);
+      awlSegRangeGreyen(awlseg, 0, awlseg->grains);
     }
   }
 }
 
 
-/* AWLBlacken -- Blacken method for AWL pools */
+/* awlSegBlacken -- Blacken method for AWL segments */
 
-static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
+static void awlSegBlacken(Seg seg, TraceSet traceSet)
 {
-  AWL awl;
-  AWLSeg awlseg;
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
 
-  AVERT(Pool, pool);
   AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
 
   BTSetRange(awlseg->scanned, 0, awlseg->grains);
 }
@@ -906,42 +847,29 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
 }
 
 
-/* awlScanSinglePass -- a single scan pass over a segment */
+/* awlSegScanSinglePass -- a single scan pass over a segment */
 
-static Res awlScanSinglePass(Bool *anyScannedReturn,
-                             ScanState ss, Pool pool,
-                             Seg seg, Bool scanAllObjects)
+static Res awlSegScanSinglePass(Bool *anyScannedReturn, ScanState ss,
+                                Seg seg, Bool scanAllObjects)
 {
-  Addr base, limit, bufferScanLimit;
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  AWL awl = MustBeA(AWLPool, pool);
+  Arena arena = PoolArena(pool);
+  Buffer buffer;
+  Format format = pool->format;
+  Addr base = SegBase(seg);
+  Addr limit = SegLimit(seg);
+  Addr bufferScanLimit;
   Addr p;
   Addr hp;
-  Arena arena;
-  AWL awl;
-  AWLSeg awlseg;
-  Buffer buffer;
-  Format format;
 
   AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
   AVERT(Bool, scanAllObjects);
 
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-  arena = PoolArena(pool);
-  AVERT(Arena, arena);
-
-  format = pool->format;
-  AVERT(Format, format);
-
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
   *anyScannedReturn = FALSE;
-  base = SegBase(seg);
-  limit = SegLimit(seg);
   p = base;
-  buffer = SegBuffer(seg);
-  if (buffer != NULL && BufferScanLimit(buffer) != BufferLimit(buffer))
+  if (SegBuffer(&buffer, seg) && BufferScanLimit(buffer) != BufferLimit(buffer))
     bufferScanLimit = BufferScanLimit(buffer);
   else
     bufferScanLimit = limit;
@@ -956,7 +884,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
       continue;
     }
 
-    i = awlIndexOfAddr(base, awl, p);
+    i = PoolIndexOfAddr(base, pool, p);
     if (!BTGet(awlseg->alloc, i)) {
       p = AddrAdd(p, PoolAlignment(pool));
       continue;
@@ -984,26 +912,17 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
 }
 
 
-/* AWLScan -- segment scan method for AWL */
+/* awlSegScan -- segment scan method for AWL */
 
-static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+static Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
-  AWL awl;
-  AWLSeg awlseg;
   Bool anyScanned;
   Bool scanAllObjects;
   Res res;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
-  AVERT(Pool, pool);
   AVERT(Seg, seg);
-
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
-
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
 
   /* If the scanner isn't going to scan all the objects then the */
   /* summary of the unscanned objects must be added into the scan */
@@ -1020,7 +939,7 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
     (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
 
   do {
-    res = awlScanSinglePass(&anyScanned, ss, pool, seg, scanAllObjects);
+    res = awlSegScanSinglePass(&anyScanned, ss, seg, scanAllObjects);
     if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
@@ -1031,100 +950,82 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   } while(!scanAllObjects && anyScanned);
 
   *totalReturn = scanAllObjects;
-  AWLNoteScan(awl, seg, ss);
+  AWLNoteScan(seg, ss);
   return ResOK;
 }
 
 
-/* AWLFix -- Fix method for AWL */
+/* awlSegFix -- Fix method for AWL segments */
 
-static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO)
 {
+  AWLSeg awlseg = MustBeA_CRITICAL(AWLSeg, seg);
+  Pool pool = SegPool(seg);
   Ref clientRef;
   Addr base;
   Index i;
-  AWL awl;
-  AWLSeg awlseg;
 
-  AVERT(Pool, pool);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  AVER(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
-  AVER(refIO != NULL);
-
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-  awlseg  = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
+  AVERT_CRITICAL(ScanState, ss);
+  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
+  AVER_CRITICAL(refIO != NULL);
 
   clientRef = *refIO;
-  ss->wasMarked = TRUE;
 
   base = AddrSub((Addr)clientRef, pool->format->headerSize);
-  /* can get an ambiguous reference to close to the base of the
-   * segment, so when we subtract the header we are not in the
-   * segment any longer.  This isn't a real reference,
-   * so we can just skip it.  */
+
+  /* Not a real reference if out of bounds. This can happen if an
+     ambiguous reference is closer to the base of the segment than the
+     header size. */
   if (base < SegBase(seg)) {
+    AVER(ss->rank == RankAMBIG);
     return ResOK;
   }
-  i = awlIndexOfAddr(SegBase(seg), awl, base);
 
-  switch(ss->rank) {
-  case RankAMBIG:
-    /* not a real pointer if not aligned or not allocated */
-    if (!AddrIsAligned(base, sizeof(void *)) || !BTGet(awlseg->alloc, i))
-      return ResOK;
-    /* falls through */
-  case RankEXACT:
-  case RankFINAL:
-  case RankWEAK:
-    if (!BTGet(awlseg->mark, i)) {
-      ss->wasMarked = FALSE;
-      if (ss->rank == RankWEAK) {
-        *refIO = (Ref)0;
-      } else {
-        BTSet(awlseg->mark, i);
-        SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
-      }
+  /* Not a real reference if unaligned. */
+  if (!AddrIsAligned(base, PoolAlignment(pool))) {
+    AVER(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  i = PoolIndexOfAddr(SegBase(seg), pool, base);
+
+  /* Not a real reference if unallocated. */
+  if (!BTGet(awlseg->alloc, i)) {
+    AVER(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  if (!BTGet(awlseg->mark, i)) {
+    ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
+    if (ss->rank == RankWEAK) {
+      *refIO = (Ref)0;
+    } else {
+      BTSet(awlseg->mark, i);
+      SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
     }
-    break;
-  default:
-    NOTREACHED;
-    return ResUNIMPL;
   }
 
   return ResOK;
 }
 
 
-/* AWLReclaim -- reclaim dead objects in an AWL segment */
+/* awlSegReclaim -- reclaim dead objects in an AWL segment */
 
-static void AWLReclaim(Pool pool, Trace trace, Seg seg)
+static void awlSegReclaim(Seg seg, Trace trace)
 {
-  Addr base;
-  AWL awl;
-  AWLSeg awlseg;
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  PoolGen pgen = PoolSegPoolGen(pool, seg);
+  Addr base = SegBase(seg);
   Buffer buffer;
-  Index i;
-  Format format;
+  Bool hasBuffer = SegBuffer(&buffer, seg);
+  Format format = pool->format;
   Count reclaimedGrains = (Count)0;
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
+  Index i;
 
-  AVERT(Pool, pool);
   AVERT(Trace, trace);
-  AVERT(Seg, seg);
-
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
-
-  format = pool->format;
-
-  base = SegBase(seg);
-  buffer = SegBuffer(seg);
 
   i = 0;
   while(i < awlseg->grains) {
@@ -1135,18 +1036,18 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       ++i;
       continue;
     }
-    p = awlAddrOfIndex(base, awl, i);
-    if (buffer != NULL
+    p = PoolAddrOfIndex(base, pool, i);
+    if (hasBuffer
         && p == BufferScanLimit(buffer)
         && BufferScanLimit(buffer) != BufferLimit(buffer))
     {
-      i = awlIndexOfAddr(base, awl, BufferLimit(buffer));
+      i = PoolIndexOfAddr(base, pool, BufferLimit(buffer));
       continue;
     }
     q = format->skip(AddrAdd(p, format->headerSize));
     q = AddrSub(q, format->headerSize);
     AVER(AddrIsAligned(q, PoolAlignment(pool)));
-    j = awlIndexOfAddr(base, awl, q);
+    j = PoolIndexOfAddr(base, pool, q);
     AVER(j <= awlseg->grains);
     if(BTGet(awlseg->mark, i)) {
       AVER(BTGet(awlseg->scanned, i));
@@ -1168,43 +1069,44 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AVER(awlseg->oldGrains >= reclaimedGrains);
   awlseg->oldGrains -= reclaimedGrains;
   awlseg->freeGrains += reclaimedGrains;
-  PoolGenAccountForReclaim(&awl->pgen, AWLGrainsSize(awl, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(pgen, PoolGrainsSize(pool, reclaimedGrains), FALSE);
 
-  trace->reclaimSize += AWLGrainsSize(awl, reclaimedGrains);
-  trace->preservedInPlaceCount += preservedInPlaceCount;
-  trace->preservedInPlaceSize += preservedInPlaceSize;
+  STATISTIC(trace->reclaimSize += PoolGrainsSize(pool, reclaimedGrains));
+  STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
+  GenDescSurvived(pgen->gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
-  if (awlseg->freeGrains == awlseg->grains && buffer == NULL)
+  if (awlseg->freeGrains == awlseg->grains && !hasBuffer) {
     /* No survivors */
-    PoolGenFree(&awl->pgen, seg,
-                AWLGrainsSize(awl, awlseg->freeGrains),
-                AWLGrainsSize(awl, awlseg->oldGrains),
-                AWLGrainsSize(awl, awlseg->newGrains),
+    AVER(awlseg->bufferedGrains == 0);
+    PoolGenFree(pgen, seg,
+                PoolGrainsSize(pool, awlseg->freeGrains),
+                PoolGrainsSize(pool, awlseg->oldGrains),
+                PoolGrainsSize(pool, awlseg->newGrains),
                 FALSE);
+  }
 }
 
 
-/* AWLAccess -- handle a barrier hit */
+/* awlSegAccess -- handle a barrier hit */
 
-static Res AWLAccess(Pool pool, Seg seg, Addr addr,
-                     AccessSet mode, MutatorFaultContext context)
+static Res awlSegAccess(Seg seg, Arena arena, Addr addr,
+                        AccessSet mode, MutatorContext context)
 {
   AWL awl;
   Res res;
 
-  AVERT(Pool, pool);
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
-  AVER(SegPool(seg) == pool);
   AVERT(AccessSet, mode);
-  
+  AVERT(MutatorContext, context);
+
+  awl = MustBeA(AWLPool, SegPool(seg));
+
   /* Attempt scanning a single reference if permitted */
-  if(AWLCanTrySingleAccess(PoolArena(pool), awl, seg, addr)) {
-    res = PoolSingleAccess(pool, seg, addr, mode, context);
+  if(awlSegCanTrySingleAccess(arena, seg, addr)) {
+    res = SegSingleAccess(seg, arena, addr, mode, context);
     switch(res) {
       case ResOK:
         AWLNoteRefAccess(awl, seg, addr);
@@ -1218,7 +1120,7 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
   }
 
   /* Have to scan the entire seg anyway. */
-  res = PoolSegAccess(pool, seg, addr, mode, context);
+  res = SegWholeAccess(seg, arena, addr, mode, context);
   if(ResOK == res) {
     AWLNoteSegAccess(awl, seg, addr);
   }
@@ -1227,27 +1129,18 @@ static Res AWLAccess(Pool pool, Seg seg, Addr addr,
 }
 
 
-/* AWLWalk -- walk all objects */
+/* awlSegWalk -- walk all objects */
 
-static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                    void *p, size_t s)
+static void awlSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s)
 {
-  AWL awl;
-  AWLSeg awlseg;
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
   Addr object, base, limit;
-  Format format;
 
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
-
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-  awlseg = Seg2AWLSeg(seg);
-  AVERT(AWLSeg, awlseg);
-
-  format = pool->format;
 
   base = SegBase(seg);
   object = base;
@@ -1258,9 +1151,9 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     /* free grain */
     Addr next;
     Index i;
+    Buffer buffer;
 
-    if (SegBuffer(seg) != NULL) {
-      Buffer buffer = SegBuffer(seg);
+    if (SegBuffer(&buffer, seg)) {
       if (object == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
@@ -1271,7 +1164,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
       /* either before the buffer, or after it, never in it */
       AVER(object < BufferGetInit(buffer) || BufferLimit(buffer) <= object);
     }
-    i = awlIndexOfAddr(base, awl, object);
+    i = PoolIndexOfAddr(base, pool, object);
     if (!BTGet(awlseg->alloc, i)) {
       /* This grain is free */
       object = AddrAdd(object, PoolAlignment(pool));
@@ -1289,66 +1182,47 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
 
 
 /* AWLTotalSize -- total memory allocated from the arena */
+/* TODO: This code is repeated in AMS */
 
 static Size AWLTotalSize(Pool pool)
 {
-  AWL awl;
-
-  AVERT(Pool, pool);
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-
-  return awl->pgen.totalSize;
+  AWL awl = MustBeA(AWLPool, pool);
+  return awl->pgen->totalSize;
 }
 
 
 /* AWLFreeSize -- free memory (unused by client program) */
+/* TODO: This code is repeated in AMS */
 
 static Size AWLFreeSize(Pool pool)
 {
-  AWL awl;
-
-  AVERT(Pool, pool);
-  awl = PoolAWL(pool);
-  AVERT(AWL, awl);
-
-  return awl->pgen.freeSize;
+  AWL awl = MustBeA(AWLPool, pool);
+  return awl->pgen->freeSize;
 }
 
 
 /* AWLPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(AWLPoolClass, this)
+DEFINE_CLASS(Pool, AWLPool, klass)
 {
-  INHERIT_CLASS(this, AbstractCollectPoolClass);
-  PoolClassMixInFormat(this);
-  this->name = "AWL";
-  this->size = sizeof(AWLStruct);
-  this->offset = offsetof(AWLStruct, poolStruct);
-  this->varargs = AWLVarargs;
-  this->init = AWLInit;
-  this->finish = AWLFinish;
-  this->bufferClass = RankBufClassGet;
-  this->bufferFill = AWLBufferFill;
-  this->bufferEmpty = AWLBufferEmpty;
-  this->access = AWLAccess;
-  this->whiten = AWLWhiten;
-  this->grey = AWLGrey;
-  this->blacken = AWLBlacken;
-  this->scan = AWLScan;
-  this->fix = AWLFix;
-  this->fixEmergency = AWLFix;
-  this->reclaim = AWLReclaim;
-  this->walk = AWLWalk;
-  this->totalSize = AWLTotalSize;
-  this->freeSize = AWLFreeSize;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, AWLPool, AbstractCollectPool);
+  klass->instClassStruct.finish = AWLFinish;
+  klass->size = sizeof(AWLPoolStruct);
+  klass->varargs = AWLVarargs;
+  klass->init = AWLInit;
+  klass->bufferClass = RankBufClassGet;
+  klass->bufferFill = AWLBufferFill;
+  klass->bufferEmpty = AWLBufferEmpty;
+  klass->segPoolGen = awlSegPoolGen;
+  klass->totalSize = AWLTotalSize;
+  klass->freeSize = AWLFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 
 mps_pool_class_t mps_class_awl(void)
 {
-  return (mps_pool_class_t)AWLPoolClassGet();
+  return (mps_pool_class_t)CLASS(AWLPool);
 }
 
 
@@ -1358,9 +1232,10 @@ ATTRIBUTE_UNUSED
 static Bool AWLCheck(AWL awl)
 {
   CHECKS(AWL, awl);
-  CHECKD(Pool, AWLPool(awl));
-  CHECKL(AWLPool(awl)->class == AWLPoolClassGet());
-  CHECKL(AWLGrainsSize(awl, (Count)1) == PoolAlignment(AWLPool(awl)));
+  CHECKC(AWLPool, awl);
+  CHECKD(Pool, CouldBeA(Pool, awl));
+  if (awl->pgen != NULL)
+    CHECKD(PoolGen, awl->pgen);
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */
@@ -1370,7 +1245,7 @@ static Bool AWLCheck(AWL awl)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
