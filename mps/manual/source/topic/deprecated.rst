@@ -19,11 +19,91 @@ supported interface.
     makes a difference if we know that someone is using a feature.
 
 
+
+
+.. index::
+   single: deprecated interfaces; in version 1.117
+
+Deprecated in version 1.117
+...........................
+
+.. c:function:: mps_pool_class_t mps_class_mv(void)
+
+    .. deprecated::
+
+        Use :c:func:`mps_class_mvff` instead.
+
+    Return the :term:`pool class` for an MV (Manual Variable)
+    :term:`pool`.
+
+    When creating an MV pool, :c:func:`mps_pool_create_k` takes four
+    optional :term:`keyword arguments`:
+
+    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
+      :c:macro:`MPS_PF_ALIGN`) is the :term:`alignment` of the
+      addresses allocated (and freed) in the pool. The minimum
+      alignment supported by pools of this class is 1 (one)
+      and the maximum is the arena grain size
+      (see :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`).
+
+    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
+      default 65536) is the :term:`size` of block that the pool will
+      request from the :term:`arena`.
+
+    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32)
+      is the predicted mean size of blocks that will be allocated from
+      the pool. This value must be smaller than, or equal to, the
+      value for :c:macro:`MPS_KEY_EXTEND_BY`.
+
+    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`,
+      default 65536) is the predicted maximum size of blocks that will
+      be allocated from the pool. This value must be larger than, or
+      equal to, the value for :c:macro:`MPS_KEY_EXTEND_BY`.
+
+    The mean and maximum sizes are *hints* to the MPS: the pool will be
+    less efficient if these are wrong, but nothing will break.
+
+    For example::
+
+        MPS_ARGS_BEGIN(args) {
+            MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 32);
+            MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 1024);
+            MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 1024 * 1024);
+            res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
+        } MPS_ARGS_END(args);
+
+
+.. c:function:: mps_pool_class_t mps_class_mv_debug(void)
+
+    .. deprecated::
+
+        Use :c:func:`mps_class_mvff_debug` instead.
+
+    A :ref:`debugging <topic-debugging>` version of the MV pool
+    class.
+
+    When creating a debugging MV pool, :c:func:`mps_pool_create_k`
+    takes five optional keyword arguments: :c:macro:`MPS_KEY_ALIGN`,
+    :c:macro:`MPS_KEY_EXTEND_SIZE`, :c:macro:`MPS_KEY_MEAN_SIZE`,
+    :c:macro:`MPS_KEY_MAX_SIZE` are as described above, and
+    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
+    options. See :c:type:`mps_pool_debug_option_s`.
+
+
 .. index::
    single: deprecated interfaces; in version 1.115
 
 Deprecated in version 1.115
 ...........................
+
+.. c:function:: mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
+
+    .. deprecated::
+
+        Identical to :c:func:`mps_ap_fill`, which should be used
+        instead. Formerly, this function gave the MPS permission to
+        draw on the ‘low-memory reservoir’, but this no longer exists.
+
 
 .. c:type:: typedef mps_pool_class_t mps_class_t
 
@@ -116,6 +196,41 @@ Deprecated in version 1.115
 
     Returns the total size of the pool, in :term:`bytes (1)`. This
     is the sum of allocated space and free space.
+
+
+.. c:function:: mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
+
+    .. deprecated::
+
+        Identical to :c:func:`mps_reserve`, which should be used
+        instead. Formerly, this function gave the MPS permission to
+        draw on the ‘low-memory reservoir’, but this no longer
+        exists.
+
+
+.. c:function:: void mps_reservoir_limit_set(mps_arena_t arena, size_t size)
+
+    .. deprecated::
+
+        Has no effect. Formerly, it updated the recommended size of
+        the ‘low-memory reservoir’, but this no longer exists.
+
+
+.. c:function:: size_t mps_reservoir_limit(mps_arena_t arena)
+
+    .. deprecated::
+
+        Returns zero. Formerly, it returned the recommended size of
+        the ‘low-memory reservoir’, but this no longer exists.
+
+
+.. c:function:: size_t mps_reservoir_available(mps_arena_t arena)
+
+    .. deprecated::
+
+        Returns zero. Formerly, it returned the size of the available
+        memory in the ‘low-memory reservoir’, but this no longer
+        exists.
 
 
 .. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)
@@ -274,16 +389,15 @@ Deprecated in version 1.115
 .. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
 
     .. deprecated::
-    
-        This function is equivalent to::
+
+        Use :c:func:`mps_root_create_area_tagged` instead, passing
+        zero for the ``pattern`` argument. This function is equivalent
+        to::
 
             mps_root_create_area_tagged(root_o, arena, rank, rm,
                                         base, base + size,
                                         mps_scan_area_tagged,
                                         mask, 0)
-					 
-        Use :c:func:`mps_root_create_area_masked` instead, passing
-        zero for the ``pattern`` argument.
 
     Register a :term:`root` that consists of a vector of :term:`tagged
     references` whose pattern is zero.
@@ -323,18 +437,12 @@ Deprecated in version 1.115
 
         :ref:`topic-scanning`.
 
-    .. note::
-
-        :term:`Client programs` are not expected to
-        write scanning functions of this type. The built-in MPS
-        function :c:func:`mps_stack_scan_ambig` must be used.
-
 
 .. c:function:: mps_reg_scan_t mps_stack_scan_ambig
 
     .. deprecated::
 
-        Use :c:func:`mps_root_create_thread` instead, passing
+        Use :c:func:`mps_root_create_thread_tagged` instead, passing
         ``sizeof(mps_word_t) - 1`` for the ``mask`` argument, and
         ``0`` for the ``pattern`` argument.
 

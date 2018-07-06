@@ -44,8 +44,7 @@ access that memory. This means that threads must be registered with
 the MPS by calling :c:func:`mps_thread_reg` (and thread roots created;
 see :ref:`topic-root-thread`).
 
-For simplicity, we recommend that a thread must be registered with an
-:term:`arena` if:
+A thread must be registered with an :term:`arena` if:
 
 * its :term:`control stack` and :term:`registers` form a root (this is
   enforced by :c:func:`mps_root_create_thread`); or
@@ -70,17 +69,30 @@ Signal and exception handling issues
 
 .. warning::
 
-    On Unix platforms (except OS X), the MPS suspends and resumes
-    threads by sending them signals. There's a shortage of available
-    signals that aren't already dedicated to other purposes (for
-    example, ValGrind uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses
-    ``SIGXCPU`` and ``SIGXFSZ``. This means that programs must not mask
-    these two signals.
+    On Linux and FreeBSD, the MPS suspends and resumes threads by
+    sending them signals. There's a shortage of available signals that
+    aren't already dedicated to other purposes (for example, ValGrind
+    uses ``SIGUSR1`` and ``SIGUSR2``), so the MPS uses ``SIGXCPU`` and
+    ``SIGXFSZ``. This means that programs must not mask or handle
+    either of these signals.
 
-    If your program needs to handle these signals, then it must
-    co-operate with the MPS. At present, there's no documented
-    mechanism for co-operating: if you are in this situation, please
-    :ref:`contact us <contact>`.
+    If your program needs to mask or handle either of these signals,
+    then you can configure the MPS to use another pair of signals of
+    your choosing, by defining these preprocessor constants:
+
+    .. c:macro:: CONFIG_PTHREADEXT_SIGSUSPEND
+
+        If this preprocessor constant is defined, its definition names
+        the signal used to suspend a thread. For example::
+
+            cc -DCONFIG_PTHREADEXT_SIGSUSPEND=SIGUSR1 -c mps.c
+
+    .. c:macro:: CONFIG_PTHREADEXT_SIGRESUME
+
+        If this preprocessor constant is defined, its definition names
+        the signal used to resume a thread. For example::
+
+            cc -DCONFIG_PTHREADEXT_SIGSUSPEND=SIGUSR2 -c mps.c
 
 .. warning::
 
@@ -92,13 +104,50 @@ Signal and exception handling issues
     
     * On Windows, you must not install a first-chance exception handler.
     
-    * On OS X, you must not install a thread-local Mach exception handler
+    * On macOS, you must not install a thread-local Mach exception handler
       for ``EXC_BAD_ACCESS`` exceptions.
 
     All of these things are, in fact, possible, but your program must
     co-operate with the MPS. At present, there's no documented mechanism
     for co-operating: if you are in this situation, please :ref:`contact
     us <contact>`.
+
+
+.. index::
+   single: fork safety
+
+.. _topic-thread-fork:
+
+Fork safety
+-----------
+
+On Linux, FreeBSD and macOS, the MPS makes a best-effort attempt to
+continue running in the child process after a call to :c:func:`fork`,
+even if the :term:`client program` was running multiple
+:term:`threads` at the point where the call is made to :c:func:`fork`.
+
+.. warning::
+
+    POSIX offers little or nothing in the way of guarantees about the
+    situation of a child process running after a multi-threaded parent
+    forked. The specification_ says:
+
+    .. _specification: http://pubs.opengroup.org/onlinepubs/9699919799/functions/fork.html
+
+        A process shall be created with a single thread. If a
+        multi-threaded process calls :c:func:`fork`, the new process shall
+        contain a replica of the calling thread and its entire address
+        space, possibly including the states of mutexes and other
+        resources. Consequently, to avoid errors, the child process may
+        only execute async-signal-safe operations until such time as one
+        of the :c:func:`exec` functions is called.
+
+.. note::
+
+    Although only one thread is created in the child process, any
+    threads in the parent process that were registered with the MPS by
+    calling :c:func:`mps_thread_reg` must still be deregistered, by
+    calling :c:func:`mps_thread_dereg`, before the arena is destroyed.
 
 
 .. index::

@@ -491,9 +491,10 @@ used in queries, for example:
     .. note::
 
         If the ``User`` event category is not turned on in the
-        :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
-        then the string is not sent to the telemetry stream. A label
-        is still returned in this case, but it is useless.
+        :term:`telemetry filter` (via :c:func:`mps_telemetry_set` or
+        :envvar:`MPS_TELEMETRY_CONTROL`) then the string is not sent
+        to the telemetry stream. A label is still returned in this
+        case, but it is useless.
 
 
 .. c:function:: void mps_telemetry_label(mps_addr_t addr, mps_label_t label)
@@ -512,8 +513,9 @@ used in queries, for example:
     .. note::
 
         If the ``User`` event category is not turned on in the
-        :term:`telemetry filter` (via :c:func:`mps_telemetry_control`)
-        then calling this function has no effect.
+        :term:`telemetry filter` (via :c:func:`mps_telemetry_set` or
+        :envvar:`MPS_TELEMETRY_CONTROL`) then calling this function
+        has no effect.
 
 
 .. index::

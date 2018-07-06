@@ -10,6 +10,7 @@
 #define poolams_h
 
 #include "mpmtypes.h"
+#include "mpm.h"
 #include "mpmst.h"
 #include "ring.h"
 #include "bt.h"
@@ -40,12 +41,10 @@ typedef Res (*AMSSegSizePolicyFunction)(Size *sizeReturn,
 
 typedef struct AMSStruct {
   PoolStruct poolStruct;       /* generic pool structure */
-  Shift grainShift;            /* log2 of grain size */
-  PoolGenStruct pgen;          /* generation representing the pool */
+  PoolGenStruct pgenStruct;    /* generation representing the pool */
+  PoolGen pgen;                /* NULL or pointer to pgenStruct field */
   Size size;                   /* total segment size of the pool */
   AMSSegSizePolicyFunction segSize; /* SegSize policy */
-  RingStruct segRing;          /* ring of segments in the pool */
-  AMSRingFunction allocRing;   /* fn to get the ring to allocate from */
   AMSSegsDestroyFunction segsDestroy;
   AMSSegClassFunction segClass;/* fn to get the class for segments */
   Bool shareAllocTable;        /* the alloc table is also used as white table */
@@ -56,11 +55,11 @@ typedef struct AMSStruct {
 typedef struct AMSSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   AMS ams;               /* owning ams */
-  RingStruct segRing;    /* ring that this seg belongs to */
   Count grains;          /* total grains */
   Count freeGrains;      /* free grains */
-  Count oldGrains;       /* grains allocated prior to last collection */
+  Count bufferedGrains;  /* grains in buffers */
   Count newGrains;       /* grains allocated since last collection */
+  Count oldGrains;       /* grains allocated prior to last collection */
   Bool allocTableInUse;  /* allocTable is used */
   Index firstFree;       /* 1st free grain, if allocTable is not used */
   BT allocTable;         /* set if grain is allocated */
@@ -81,22 +80,6 @@ typedef struct AMSSegStruct {
 
 #define PoolAMS(pool) PARENT(AMSStruct, poolStruct, pool)
 #define AMSPool(ams) (&(ams)->poolStruct)
-
-
-/* macros for abstracting index/address computations */
-/* <design/poolams/#addr-index.slow> */
-
-/* only use when size is a multiple of the grain size */
-#define AMSGrains(ams, size) ((size) >> (ams)->grainShift)
-
-#define AMSGrainsSize(ams, grains) ((grains) << (ams)->grainShift)
-
-#define AMSSegShift(seg) (Seg2AMSSeg(seg)->ams->grainShift)
-
-#define AMS_ADDR_INDEX(seg, addr) \
-  ((Index)(AddrOffset(SegBase(seg), addr) >> AMSSegShift(seg)))
-#define AMS_INDEX_ADDR(seg, index) \
-  AddrAdd(SegBase(seg), (Size)(index) << AMSSegShift(seg))
 
 
 /* colour ops */
@@ -166,12 +149,11 @@ typedef struct AMSSegStruct {
 
 /* the rest */
 
-extern Res AMSInitInternal(AMS ams, Format format, Chain chain, unsigned gen,
-                           Bool shareAllocTable);
-extern void AMSFinish(Pool pool);
+extern Res AMSInitInternal(AMS ams, Arena arena, PoolClass klass,
+                           Chain chain, unsigned gen,
+                           Bool shareAllocTable, ArgList args);
+extern void AMSFinish(Inst inst);
 extern Bool AMSCheck(AMS ams);
-
-extern Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 
 #define AMSChain(ams) ((ams)->chain)
 
@@ -179,18 +161,18 @@ extern void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockVisitor f, void *p);
 
 extern void AMSSegFreeCheck(AMSSeg amsseg);
 
-
-typedef SegClass AMSSegClass;
-typedef SegClassStruct AMSSegClassStruct;
-extern AMSSegClass AMSSegClassGet(void);
 extern Bool AMSSegCheck(AMSSeg seg);
 
 
-typedef PoolClass AMSPoolClass;
-typedef PoolClassStruct AMSPoolClassStruct;
+/* class declarations */
 
-extern AMSPoolClass AMSPoolClassGet(void);
-extern AMSPoolClass AMSDebugPoolClassGet(void);
+typedef AMS AMSPool;
+DECLARE_CLASS(Pool, AMSPool, AbstractCollectPool);
+
+typedef AMS AMSDebugPool;
+DECLARE_CLASS(Pool, AMSDebugPool, AMSPool);
+
+DECLARE_CLASS(Seg, AMSSeg, MutatorSeg);
 
 
 #endif /* poolams_h */

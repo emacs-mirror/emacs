@@ -182,7 +182,7 @@ extra field to the buffer. The convenience macro
 ``DEFINE_BUFFER_CLASS()`` may be used to define subclasses of buffer
 classes. See design.mps.protocol.int.define-special_.
 
-.. _design.mps.protocol.int.define-special: protocol#int.define-special
+.. _design.mps.protocol.int.define-special: protocol#int-define-special
 
 _`.replay`: To work with the allocation replayer (see
 design.mps.telemetry.replayer_), the buffer class has to emit an event
@@ -211,13 +211,6 @@ superclass method (via a next-method call) before performing any
 class-specific behaviour. _`.replay.init`: The ``init()`` method
 should emit a ``BufferInit<foo>`` event (if there aren't any extra
 parameters, ``<foo> = ""``).
-
-``typedef void (*BufferFinishMethod)(Buffer buffer)``
-
-_`.class.method.finish`: ``finish()`` is a class-specific finish
-method called from ``BufferFinish()``. Client-defined methods must
-call their superclass method (via a next-method call) after performing
-any class-specific behaviour.
 
 ``typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit, Addr init, Size size)``
 
@@ -255,13 +248,6 @@ _`.class.method.setRankSet`: ``setRankSet()`` is a class-specific
 setter method which sets the rank set of a buffer. It is called from
 ``BufferSetRankSet()``. Clients should not need to define their own
 methods for this.
-
-``typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count depth)``
-
-_`.class.method.describe`: ``describe()`` is a class-specific method
-called to describe a buffer, via ``BufferDescribe()``. Client-defined
-methods must call their superclass method (via a next-method call)
-before describing any class-specific state.
 
 
 Logging

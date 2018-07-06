@@ -4,6 +4,151 @@ Release notes
 =============
 
 
+.. _release-notes-1.117:
+
+Release 1.117.0
+---------------
+
+New features
+............
+
+#. On FreeBSD, Linux and macOS, the MPS is now able to run in the
+   child process after ``fork()``. See :ref:`topic-thread-fork`.
+
+#. The MPS now supports Windows Vista or later; it no longer supports
+   Windows XP. (Microsoft's own support for Windows XP `expired in
+   April 2014`_.) This is so that we can use |InitOnceExecuteOnce|_ to
+   ensure thread-safe initialization.
+
+   .. _expired in April 2014: https://www.microsoft.com/en-gb/windowsforbusiness/end-of-xp-support
+   .. |InitOnceExecuteOnce| replace:: ``InitOnceExecuteOnce()``
+   .. _InitOnceExecuteOnce: https://docs.microsoft.com/en-us/windows/desktop/api/synchapi/nf-synchapi-initonceexecuteonce
+
+
+Interface changes
+.................
+
+#. The pool class :ref:`pool-mv` is now deprecated.
+
+
+Other changes
+.............
+
+#. Creation of :term:`arenas` is now thread-safe on Windows. See
+   job004056_.
+
+   .. _job004056: https://www.ravenbrook.com/project/mps/issue/job004056/
+
+#. :ref:`pool-awl` and :ref:`pool-lo` pools now detect (and assert on)
+   invalid :term:`exact references`. See job004070_.
+
+   .. _job004070: https://www.ravenbrook.com/project/mps/issue/job004070/
+
+#. The MPS now compiles without warnings on GCC version 7 with
+   ``-Wextra``. See job004076_.
+
+   .. _job004076: https://www.ravenbrook.com/project/mps/issue/job004076/
+
+
+.. _release-notes-1.116:
+
+Release 1.116.0
+---------------
+
+New features
+............
+
+#. The MPS now measures the mortality of a :term:`generation` each
+   time it is :term:`collected`, and maintains a moving average. This
+   means that it is no longer important to provide an accurate
+   estimate of the mortality when creating a :term:`generation chain`
+   by calling :c:func:`mps_chain_create`.
+
+#. The MPS no longer supports Linux 2.4 and 2.5. (These versions used
+   LinuxThreads_ instead of POSIX threads; all major distributions
+   have long since ceased to support these versions and so it is no
+   longer convenient to test against them.) See
+   :ref:`guide-overview-platforms`.
+
+   .. _LinuxThreads: http://pauillac.inria.fr/~xleroy/linuxthreads/
+
+#. New function :c:func:`mps_arena_postmortem` assists with postmortem
+   debugging.
+
+#. New function :c:func:`mps_arena_busy` assists debugging of re-entry
+   errors in dynamic function table callbacks on Windows on x86-64.
+
+
+Interface changes
+.................
+
+#. The pool class :ref:`pool-snc` is no longer deprecated.
+
+#. Allocation frames are no longer deprecated. See :ref:`topic-frame`.
+
+#. On Linux and FreeBSD, it is now possible to configure the signals
+   used to suspend and resume threads. See :ref:`topic-thread-signal`.
+
+
+Other changes
+.............
+
+#. It is now possible to register a :term:`thread` with the MPS
+   multiple times on OS X, thus supporting the use case where a
+   program that does not use the MPS is calling into MPS-using code
+   from multiple threads. (This was already supported on other
+   platforms.) See job003559_.
+
+   .. _job003559: https://www.ravenbrook.com/project/mps/issue/job003559/
+
+#. The function :c:func:`mps_arena_formatted_objects_walk` walks the
+   :term:`formatted objects` in all :term:`pools`. Previously this was
+   not implemented for :ref:`pool-ams` pools. See job003738_.
+
+   .. _job003738: https://www.ravenbrook.com/project/mps/issue/job003738/
+
+#. Objects in :ref:`pool-snc` pools are no longer scanned after their
+   :term:`allocation frame` is popped, and so do not keep objects in
+   automatically managed pools alive. See job003883_.
+
+   .. _job003883: https://www.ravenbrook.com/project/mps/issue/job003883/
+
+#. When the MPS :term:`collects` a set of :term:`generations`, it
+   :term:`condemns <condemned set>` only the :term:`blocks` in those
+   generations. Previously, it also condemned blocks that happened to
+   share a region of memory with blocks currently or formerly
+   allocated in those generations. See job004000_.
+
+   .. _job004000: https://www.ravenbrook.com/project/mps/issue/job004000/
+
+#. Memory in :term:`allocation points` no longer contributes to the
+   decision to start a :term:`garbage collection`, avoiding wasted
+   work repeatedly collecting generations with very small capacities.
+   See job004007_.
+
+   .. _job004007: https://www.ravenbrook.com/project/mps/issue/job004007/
+
+#. The MPS no longer considers :term:`collecting <collect>` the world
+   again, without allowing the :term:`client program` to run first.
+   See job004011_.
+
+   .. _job004011: https://www.ravenbrook.com/project/mps/issue/job004011/
+
+#. :term:`Roots` created by :c:func:`mps_root_create_thread_scanned`
+   no longer cause an assertion failure. See job004036_.
+
+   .. _job004036: https://www.ravenbrook.com/project/mps/issue/job004036/
+
+#. The MPS test suite now compiles and passes with GCC 6.1. See job004037_.
+
+   .. _job004037: https://www.ravenbrook.com/project/mps/issue/job004037/
+
+#. The MPS no longer passes an uninitialized variable to
+   :c:func:`thread_swap_exception_ports` on OS X. See job004040_.
+
+   .. _job004040: https://www.ravenbrook.com/project/mps/issue/job004040/
+
+
 .. _release-notes-1.115:
 
 Release 1.115.0
@@ -60,6 +205,8 @@ New features
 Interface changes
 .................
 
+#. The pool class :ref:`pool-mv` is no longer deprecated.
+
 #. The type of pool classes is now :c:type:`mps_pool_class_t`. The old
    name :c:type:`mps_class_t` is still available via a ``typedef``,
    but is deprecated.
@@ -75,6 +222,18 @@ Interface changes
 
 #. The function :c:func:`mps_root_create_table_masked` is deprecated in
    favour of :c:func:`mps_root_create_table_tagged`.
+
+#. The :ref:`pool-snc` pool class now implements
+   :c:func:`mps_pool_total_size` and :c:func:`mps_pool_free_size`.
+
+#. The (undocumented) reservoir functions
+   :c:func:`mps_ap_fill_with_reservoir_permit`,
+   :c:func:`mps_reservoir_available`, :c:func:`mps_reservoir_limit`,
+   :c:func:`mps_reservoir_limit_set`, and
+   :c:func:`mps_reserve_with_reservoir_permit`, together with the
+   ``has_reservoir_permit`` arguments to :c:func:`mps_sac_alloc` and
+   :c:func:`MPS_SAC_ALLOC_FAST` are now deprecated.
+
 
 Other changes
 .............
@@ -101,6 +260,12 @@ Other changes
    works. See job003870_.
    
    .. _job003870: https://www.ravenbrook.com/project/mps/issue/job003870/
+
+#. In the :term:`hot` (production) variety,
+   :c:func:`mps_pool_free_size` now returns the correct result for
+   :ref:`pool-awl` and :ref:`pool-lo` pools. See job003884_.
+
+   .. _job003884: https://www.ravenbrook.com/project/mps/issue/job003884/
 
 #. When the arena is out of memory and cannot be extended without
    hitting the :term:`commit limit`, the MPS now returns
@@ -143,13 +308,13 @@ Other changes
 
 #. The MPS is less aggressive in its use of hardware memory protection
    to maintain :term:`write barrier` to speed up future collections.
-   This is particularly important for OS X, where memory protection is
-   poorly implemented.  See job003371_ and job003975_.
+   This is particularly important for OS X, where memory protection
+   operations are very expensive.  See job003371_ and job003975_.
 
 #. The MPS coalesces memory protection, reducing the number of system
-   calls. This drastically improves real run time on operating systems
-   where memory protection is poorly implemented, such as OS X, but
-   also has a significant effect on Linux. See job003371_ and
+   calls. This markedly improves real run time on operating systems
+   where memory protection operations are very expensive, such as OS
+   X, but also has a significant effect on Linux. See job003371_ and
    job003975_.
 
    .. _job003371: http://www.ravenbrook.com/project/mps/issue/job003371/

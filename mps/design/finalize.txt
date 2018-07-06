@@ -6,7 +6,7 @@ Finalization
 :Tag: design.mps.finalize
 :Author: David Jones
 :Date: 1997-02-14
-:Status: incomplete design
+:Status: complete design
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms: pair: finalization; design
@@ -15,67 +15,92 @@ Finalization
 Overview
 --------
 
-_`.overview`: Finalization is implemented internally using the
-Guardian pool class (design.mps.poolmrg_). Objects can be registered
-for finalization using ``mps_finalize()``. Notification of
-finalization is given to the client via the messaging interface. The
-Guardian pool class implements a ``Message`` subclass which implements
-the finalization messages.
+_`.overview`: Finalization is implemented internally using the MRG
+pool class (design.mps.poolmrg_). Objects can be registered for
+finalization by calling ``mps_finalize()``. Notification of
+finalization is given to the client via the messaging interface
+(design.mps.message_). The MRG pool class implements a ``Message``
+subclass which implements the finalization messages.
 
 .. _design.mps.poolmrg: poolmrg
+.. _design.mps.message: message
 
 
 Requirements
 ------------
 
 _`.req`: Historically only Dylan had requirements for finalization,
-see req.dylan.fun.final. Now (2003-02-19) Configura have requirements
+see req.dylan.fun.final_. Now (2003-02-19) Configura have requirements
 for finalization. Happily they are very similar.
 
-
-Architecture
-------------
-
-External interface
-..................
-
-_`.if.register`: ``mps_finalize()`` increases the number of times that
-an object has been registered for finalization by one. The object must
-have been allocated from the arena (space). Any finalization messages
-that are created for this object will appear on the arena's message
-queue. The MPS will attempt to finalize the object that number of
-times.
-
-_`.if.deregister`: ``mps_definalize()`` reduces the number of times that
-the object located at ``obj`` has been registered for finalization by
-one. It is an error to definalize an object that has not been
-registered for finalization.
-
-_`.if.deregister.not`: At the moment (1997-08-20) ``mps_definalize()``
-is not implemented.
-
-_`.if.get-ref`: ``mps_message_finalization_ref()`` returns the reference
-to the finalized object stored in the finalization message.
+.. _req.dylan.fun.final: https://info.ravenbrook.com/project/mps/import/2001-09-27/mminfo/doc/req/dylan
 
 
 Implementation
 --------------
 
-_`.int.over`: Registering an object for finalization corresponds to
+_`.impl.over`: Registering an object for finalization corresponds to
 allocating a reference of rank FINAL to that object. This reference is
-allocated in a guardian object in a pool of ``PoolClassMRG`` (see
-design.mps.poolmrg_).
+allocated in a guardian object in a pool belonging to the MRG pool
+class (see design.mps.poolmrg_).
 
 .. _design.mps.poolmrg: poolmrg
 
-_`.int.arena.struct`: The MRG pool used for managing final references
-is kept in the Arena (Space), referred to as the "final pool".
+_`.impl.arena.struct`: A single pool belonging to the MRG pool class
+and used for managing final references is kept in the arena and
+referred to as the "final pool".
 
-_`.int.arena.lazy`: The pool is lazily created. It will not be created
-until the first object is registered for finalization.
+_`.impl.arena.lazy`: The final pool is lazily created. It is not
+created until the first object is registered for finalization.
 
-_`.int.arena.flag`: There is a flag in the Arena that indicates
+_`.impl.arena.flag`: There is a flag in the Arena that indicates
 whether the final pool has been created yet or not.
+
+_`.impl.scan`: An object is determined to be finalizable if it is
+fixed at rank FINAL for a trace, and was not fixed at any lower rank
+for that trace. See design.mps.poolmrg.scan.wasold_.
+
+.. _design.mps.poolmrg.scan.wasold: poolmrg#scan-wasold
+
+_`.impl.message`: When an object is determined to be finalizable, a
+message for that object is posted to the arena's message queue.
+
+_`.impl.arena-destroy.empty`: ``ArenaDestroy()`` empties the message
+queue by calling ``MessageEmpty()``.
+
+_`.impl.arena-destroy.final-pool`: If the final pool has been created
+then ``ArenaDestroy()`` destroys the final pool.
+
+_`.impl.access`: ``mps_message_finalization_ref()`` needs to access
+the finalization message to retrieve the reference and then write it
+to where the client asks. This must be done carefully, in order to
+avoid invalidating collection invariants such as the segment summary.
+
+_`.impl.invariants`: We protect the invariants by using
+``ArenaRead()`` and ``ArenaWrite()`` to read and write the reference
+via the software barrier.
+
+
+External interface
+------------------
+
+_`.if.register`: ``mps_finalize()`` registers an object for
+finalization.
+
+_`.if.deregister`: ``mps_definalize()`` deregisters an object for
+finalization. It is an error to definalize an object that has not been
+registered for finalization.
+
+_`.if.get-ref`: ``mps_message_finalization_ref()`` returns the reference
+to the finalized object stored in the finalization message.
+
+_`.if.multiple`: The external interface allows an object to be
+registered multiple times, but does not specify the number of
+finalization messages that will be posted for that object.
+
+
+Internal interface
+------------------
 
 ``Res ArenaFinalize(Arena arena, Ref addr)``
 
@@ -84,43 +109,36 @@ created yet.
 
 _`.int.finalize.alloc`: Allocates a guardian in the final pool.
 
+_`.int.finalize.alloc.multiple`: A consequence of this implementation
+is that if an object is finalized multiple times, then multiple
+guardians are created in the final pool, and so multiple messages will
+be posted to the message queue when the object is determined to be
+finalizable. But this behaviour is not guaranteed by the
+documentation, leaving us free to change the iplementation.
+
 _`.int.finalize.write`: Writes a reference to the object into the
 guardian object.
 
 _`.int.finalize.all`: That's all.
 
 _`.int.finalize.error`: If either the creation of the pool or the
-allocation of the object fails then the error will be reported back to
-the caller.
+allocation of the object fails then the error is returned to the
+caller.
 
 _`.int.finalize.error.no-unwind`: This function does not need to do
 any unwinding in the error cases because the creation of the pool is
 not something that needs to be undone.
 
-_`.int.arena-destroy.empty`: ``ArenaDestroy()`` empties the message
-queue by calling ``MessageEmpty()``.
+``Res ArenaDefinalize(Arena arena, Ref obj)``
 
-_`.int.arena-destroy.final-pool`: If the final pool has been created
-then ``ArenaDestroy()`` destroys the final pool.
+_`.int.definalize.fail`: If the final pool has not been created,
+return ``ResFAIL`` immediately.
 
-_`.access`: ``mps_message_finalization_ref()`` needs to access the
-finalization message to retrieve the reference and then write it to
-where the client asks. This must be done carefully, in order to avoid
-breaking the invariants or creating a hidden root.
-
-_`.access.invariants`: We protect the invariants by using special
-routines ``ArenaRead()`` and ``ArenaPoke()`` to read and write the
-reference. This works as long as there's no write-barrier collection.
-
-.. note::
-
-    Instead of ``ArenaPoke()``, we could put in an ``ArenaWrite()``
-    that would be identical to ``ArenaPoke()``, except that it would
-    ``AVER()`` the invariant (or it can just ``AVER()`` that there are
-    no busy traces unflipped). When we get write-barrier collection,
-    we could change it to do the real thing, but in the absence of a
-    write-barrier, it's functionally identical to ``ArenaPoke()``.
-    Pekka P. Pirinen, 1997-12-09.
+_`.int.definalize.search`: Otherwise, search for a guardian in the
+final pool that refers to the object and which has not yet been
+finalized. If one is found, delete it and return ``ResOK``. Otherwise
+no guardians in the final pool refer to the object, so return
+``ResFAIL``.
 
 
 Document History
@@ -139,7 +157,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

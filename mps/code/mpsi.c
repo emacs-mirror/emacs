@@ -1,7 +1,7 @@
 /* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -202,8 +202,6 @@ void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
   ArenaEnter(arena);
   ArenaSetSpareCommitLimit(arena, limit);
   ArenaLeave(arena);
-
-  return;
 }
 
 size_t mps_arena_spare_commit_limit(mps_arena_t arena)
@@ -257,6 +255,15 @@ void mps_arena_park(mps_arena_t arena)
   ArenaEnter(arena);
   ArenaPark(ArenaGlobals(arena));
   ArenaLeave(arena);
+}
+
+
+void mps_arena_postmortem(mps_arena_t arena)
+{
+  /* Don't call ArenaEnter -- one of the purposes of this function is
+   * to release the arena lock if it's held */
+  AVER(TESTT(Arena, arena));
+  ArenaPostmortem(ArenaGlobals(arena));
 }
 
 
@@ -371,6 +378,17 @@ void mps_arena_destroy(mps_arena_t arena)
 {
   ArenaEnter(arena);
   ArenaDestroy(arena);
+}
+
+
+/* mps_arena_busy -- is the arena part way through an operation? */
+
+mps_bool_t mps_arena_busy(mps_arena_t arena)
+{
+  /* Don't call ArenaEnter -- the purpose of this function is to
+   * determine if the arena lock is held */
+  AVER(TESTT(Arena, arena));
+  return ArenaBusy(arena);
 }
 
 
@@ -745,18 +763,18 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
   Addr p;
   Res res;
 
-  AVER(TESTT(Pool, pool));
+  AVER_CRITICAL(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
 
   ArenaPoll(ArenaGlobals(arena)); /* .poll */
 
-  AVER(p_o != NULL);
-  AVERT(Pool, pool);
-  AVER(size > 0);
+  AVER_CRITICAL(p_o != NULL);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* <design/class-interface/#alloc.size.align>. */
+  /* <design/pool/#method.alloc.size.align>. */
   /* Rest ignored, see .varargs. */
 
   res = PoolAlloc(&p, pool, size);
@@ -787,15 +805,15 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
 {
   Arena arena;
 
-  AVER(TESTT(Pool, pool));
+  AVER_CRITICAL(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
 
-  AVERT(Pool, pool);
-  AVER(size > 0);
+  AVERT_CRITICAL(Pool, pool);
+  AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* <design/class-interface/#alloc.size.align>. */
+  /* <design/pool/#method.free.size.align>. */
 
   PoolFree(pool, (Addr)p, size);
   ArenaLeave(arena);
@@ -958,7 +976,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
     return MPS_RES_FAIL;
   }
 
-  if (!mps_ap->_lwpoppending) {
+  if (mps_ap->init < mps_ap->limit) {
     /* Valid state for a lightweight push */
     *frame_o = (mps_frame_t)mps_ap->init;
     return MPS_RES_OK;
@@ -991,6 +1009,9 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 
 mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 {
+  Buffer buf;
+  Pool pool;
+
   AVER(mps_ap != NULL);
   /* Can't check frame because it's an arbitrary value */
 
@@ -999,20 +1020,27 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
     return MPS_RES_FAIL;
   }
 
-  if (mps_ap->_enabled) {
-    /* Valid state for a lightweight pop */
-    mps_ap->_frameptr = (mps_addr_t)frame; /* record pending pop */
-    mps_ap->_lwpoppending = TRUE;
-    mps_ap->limit = (mps_addr_t)0; /* trap the buffer */
+  buf = BufferOfAP(mps_ap);
+  AVER(TESTT(Buffer, buf));
+  pool = buf->pool;
+  AVER(TESTT(Pool, pool));
+
+  /* It's not thread-safe to read BufferBase here in an automatically
+   * managed pool (see job003947), so test AttrGC first. */
+  if (!PoolHasAttr(pool, AttrGC)
+      && BufferBase(buf) <= (Addr)frame
+      && (mps_addr_t)frame < mps_ap->init)
+  {
+    /* Lightweight pop to earlier address in same buffer in a manually
+     * managed pool. */
+    mps_ap->init = mps_ap->alloc = (mps_addr_t)frame;
     return MPS_RES_OK;
 
   } else {
     /* Need a heavyweight pop */
-    Buffer buf = BufferOfAP(mps_ap);
     Arena arena;
     Res res;
 
-    AVER(TESTT(Buffer, buf));
     arena = BufferArena(buf);
 
     ArenaEnter(arena);
@@ -1050,7 +1078,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   AVER(p_o != NULL);
   AVERT(Buffer, buf);
   AVER(size > 0);
-  AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
+  AVER(SizeIsAligned(size, BufferPool(buf)->alignment)); /* <design/check/#.common> */
 
   res = BufferFill(&p, buf, size);
 
@@ -1669,7 +1697,7 @@ mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
   mps_res_t res;
 
   MPS_SCAN_BEGIN(mps_ss) {
-    res = MPS_FIX(mps_ss, ref_io);
+    res = MPS_FIX12(mps_ss, ref_io);
   } MPS_SCAN_END(mps_ss);
 
   return res;
@@ -2131,7 +2159,7 @@ void _mps_args_set_key(mps_arg_s args[MPS_ARGS_MAX], unsigned i,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

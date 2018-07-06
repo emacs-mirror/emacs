@@ -15,6 +15,7 @@ Design
     critical-path
     exec-env
     failover
+    finalize
     freelist
     guide.hex.trans
     guide.impl.c.format
@@ -24,9 +25,12 @@ Design
     keyword-arguments
     land
     lock
+    message
     nailboard
+    pool
     prmc
     prot
+    protix
     range
     ring
     shield
@@ -36,7 +40,9 @@ Design
     ss
     testthr
     thread-manager
+    thread-safety
     type
+    version-library
     vm
     write-barrier
     writef

@@ -8,16 +8,25 @@
 # Patch results
 *.orig
 *.rej
+# Autoconf and Automake output
 Makefile
 autom4te.cache
 config.log
 config.status
+.deps
+.dirstamp
+bin
+lib
+# Misc
 TAGS
 *.dSYM
-code/*/*/*.d
 *.pyc
 test/obj
 test/test/log
 test/test/obj
 ....gcda
 ....gcno
+\#*#
+*~
+.#.*
+core

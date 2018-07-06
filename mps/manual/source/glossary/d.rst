@@ -144,16 +144,6 @@ Memory Management Glossary: D
 
         .. see:: :term:`interior pointer`.
 
-    derived type
-
-        .. mps:specific::
-
-            In the MPS interface, a *derived type* is a type that is
-            neither an :term:`opaque type` nor a :term:`transparent
-            type`, but is instead a structure or function type based
-            on transparent and opaque types and on built-in C types.
-            See :ref:`topic-interface`.
-
     destructor (1)
 
         A destructor is a function or a method that performs the
