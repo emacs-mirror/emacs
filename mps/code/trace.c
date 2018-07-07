@@ -1330,7 +1330,9 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   tract = PageTract(&chunk->pageTable[i]);
   if (TraceSetInter(TractWhite(tract), ss->traces) == TraceSetEMPTY) {
     /* Reference points to a tract that is not white for any of the
-     * active traces. See <design/trace/#fix.tractofaddr> */
+       active traces. See <design/trace/#fix.tractofaddr>.
+       See also <walk.c#roots-walk.second-stage> for where we arrange
+       to fool this test when walking references in the roots. */
     STATISTIC({
       if (TRACT_SEG(&seg, tract)) {
         ++ss->segRefCount;
