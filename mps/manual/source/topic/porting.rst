@@ -198,6 +198,7 @@ For example::
     #include "protix.c"     /* Posix protection */
     #include "protsgix.c"   /* Posix signal handling */
     #include "prmci6.c"     /* 64-bit Intel mutator context */
+    #include "prmcix.c"     /* Posix mutator context */
     #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
     #include "span.c"       /* generic stack probe */
 
@@ -225,6 +226,7 @@ For example, ``lii6ll.gmk`` looks like this:
     MPMPF = \
         lockix.c \
         prmci6.c \
+        prmcix.c \
         prmclii6.c \
         protix.c \
         protsgix.c \
@@ -261,11 +263,11 @@ this:
         [lockw3] \
         [mpsiw3] \
         [prmci6] \
+        [prmcw3] \
         [prmcw3i6] \
         [protw3] \
         [spw3i6] \
         [thw3] \
-        [thw3i6] \
         [vmw3]
 
     !INCLUDE commpre.nmk

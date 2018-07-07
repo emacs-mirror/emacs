@@ -30,7 +30,7 @@ typedef struct StackContextStruct {
 
 /* StackHot -- capture a hot stack pointer
  *
- * Returns a stack pointer that includes the current frame.
+ * Sets *stackOut to a stack pointer that includes the current frame.
  */
 
 void StackHot(void **stackOut);
@@ -47,7 +47,7 @@ void StackHot(void **stackOut);
     BEGIN
 
 
-/* STACK_CONTEXT_END -- clear context and leave arena */
+/* STACK_CONTEXT_END -- clear context */
 
 #define STACK_CONTEXT_END(arena) \
     END; \
