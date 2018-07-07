@@ -2553,11 +2553,7 @@ the default language."
     (car r)))
 
 ;;;###autoload
-(define-derived-mode antlr-mode prog-mode
-  ;; FIXME: Since it uses cc-mode, it bumps into c-update-modeline's
-  ;; limitation to mode-name being a string.
-  ;; '("Antlr." (:eval (cadr (assq antlr-language antlr-language-alist))))
-  "Antlr"
+(define-derived-mode antlr-mode prog-mode "Antlr"
   "Major mode for editing ANTLR grammar files."
   :abbrev-table antlr-mode-abbrev-table
   (c-initialize-cc-mode)		; cc-mode is required
@@ -2567,10 +2563,9 @@ the default language."
   (unless antlr-language
     (set (make-local-variable 'antlr-language)
          (or (antlr-language-option t) (antlr-language-option nil))))
-  (if (stringp (cadr (assq antlr-language antlr-language-alist)))
-      (setq mode-name
-	    (concat "Antlr."
-		    (cadr (assq antlr-language antlr-language-alist)))))
+  (setq mode-name
+	'("Antlr." (:eval (cadr (assq antlr-language
+                                      antlr-language-alist)))))
   ;; indentation, for the C engine -------------------------------------------
   (setq c-buffer-is-cc-mode antlr-language)
   (cond ((fboundp 'c-init-language-vars-for) ; cc-mode 5.30.5+
