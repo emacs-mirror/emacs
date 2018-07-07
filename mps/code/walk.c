@@ -370,14 +370,16 @@ void mps_arena_roots_walk(mps_arena_t mps_arena, mps_roots_stepper_t f,
   Res res;
 
   ArenaEnter(arena);
-  AVER(FUNCHECK(f));
-  /* p and s are arbitrary closures, hence can't be checked */
+  STACK_CONTEXT_BEGIN(arena) {
+    AVER(FUNCHECK(f));
+    /* p and s are arbitrary closures, hence can't be checked */
 
-  AVER(ArenaGlobals(arena)->clamped);          /* .assume.parked */
-  AVER(arena->busyTraces == TraceSetEMPTY);    /* .assume.parked */
+    AVER(ArenaGlobals(arena)->clamped);          /* .assume.parked */
+    AVER(arena->busyTraces == TraceSetEMPTY);    /* .assume.parked */
 
-  res = ArenaRootsWalk(ArenaGlobals(arena), f, p, s);
-  AVER(res == ResOK);
+    res = ArenaRootsWalk(ArenaGlobals(arena), f, p, s);
+    AVER(res == ResOK);
+  } STACK_CONTEXT_END(arena);
   ArenaLeave(arena);
 }
 
