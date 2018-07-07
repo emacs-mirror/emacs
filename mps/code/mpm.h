@@ -83,8 +83,6 @@ extern Word (WordAlignDown)(Word word, Align align);
 
 #define PointerAlignUp(p, s) \
   ((void *)WordAlignUp((Word)(p), (Align)(s)))
-#define PointerAlignDown(p, s) \
-  ((void *)WordAlignDown((Word)(p), (Align)(s)))
 
 #define AddrAdd(p, s) ((Addr)PointerAdd((void *)(p), s))
 #define AddrSub(p, s) ((Addr)PointerSub((void *)(p), s))

@@ -42,13 +42,13 @@ Requirements
 
 _`.req.stack.hot`: Must locate the hot end of the mutator's stack. (This
 is needed for conservative garbage collection of uncooperative code,
-where references might be stored by mutator on its stack.)
+where references might be stored by the mutator on its stack.)
 
 _`.req.stack.cold.not`: There is no requirement to locate the cold end
 of the stack. (The mutator supplies this as an argument to
-``mps_root_create_reg()``.)
+``mps_root_create_thread()``.)
 
-_`.req.stack.platform`: Must implement the platform's stack
+_`.req.stack.platform`: Must support the platform's stack
 conventions.
 
 _`.req.stack.platform.full-empty`: The implementation must take into
@@ -75,20 +75,19 @@ unnecessary pinning and zone pollution; see job003525_.)
 .. _job003525: http://www.ravenbrook.com/project/mps/issue/job003525/
 
 _`.req.setjmp`: The implementation must follow the C Standard in its
-use of the ``setjmp`` macro. (So that it is reliable and portable.)
+use of the ``setjmp()`` macro. (So that it is reliable and portable.)
 
-_`.req.assembly`: The implementation should not use assembly language.
-(So that it can be developed in tools like Microsoft Visual Studio
-that don't support this.)
+_`.req.assembly.not`: The implementation should not use assembly
+language. (So that it can be developed in tools like Microsoft Visual
+Studio that don't support this.)
 
 
 Design
 ------
 
-_`.sol.entry-points`: To meet `.req.entry`_, the mutator's
-registers and stack must be recorded when the mutator enters the MPS,
-if there is a possibility that the MPS might need to know the mutator
-context.
+_`.sol.entry-points`: To meet `.req.entry`_, the mutator's registers
+and stack must be recorded when the mutator enters the MPS, if there
+is a possibility that the MPS might need to know the mutator context.
 
 _`.sol.entry-points.fragile`: The analysis of which entry points might
 need to save the context (see `.anal.entry-points`_ below) is fragile.
@@ -109,47 +108,50 @@ been spilled onto the stack by the time the MPS is entered, so will be
 scanned by the stack scan.
 
 _`.sol.setjmp`: The values in callee-save registers can be found by
-invoking ``setjmp``.  This forces any of the caller's callee-save
+invoking ``setjmp()``. This forces any of the caller's callee-save
 registers into either the ``jmp_buf`` or the current stack frame.
 
 _`.sol.setjmp.scan`: Although we might be able to decode the jump
 buffer in a platform-dependent way, it's hard to guarantee that an
 uncooperative compiler won't temporarily store a reference in any
-register or stack location.  We must conservatively scan the whole of
+register or stack location. We must conservatively scan the whole of
 both.
 
-_`.sol.setjmp.justify`: The C standard specifies that ``jmp_buf`` "is
-an array type suitable for holding the information needed to restore a
-calling environment. The environment of a call to the ``setjmp`` macro
-consists of information sufficient for a call to the ``longjmp``
-function to return execution to the correct block and invocation of
-that block, were it called recursively." We believe that any
-reasonable implementation of ``setjmp`` must copy the callee-save
-registers either into the ``jmp_buf`` or into the stack frame that
-invokes it in order to work as described.  Otherwise, once the
-callee-save registers have been overwritten by other function calls, a
-``longjmp`` would result in the callee-save registers having the wrong
-values.  A ``longjmp`` can come from anywhere, and so the function
-using ``setjmp`` can't rely on callee-save registers being saved by
-callees.
+_`.sol.setjmp.justify`: The [C1990]_ standard specifies that
+``jmp_buf``:
+
+    is an array type suitable for holding the information needed to
+    restore a calling environment. The environment of a call to the
+    ``setjmp()`` macro consists of information sufficient for a call
+    to the ``longjmp()`` function to return execution to the correct
+    block and invocation of that block, were it called recursively.
+
+We believe that any reasonable implementation of ``setjmp()`` must
+copy the callee-save registers either into the jump buffer or into the
+stack frame that invokes it in order to work as described. Otherwise,
+once the callee-save registers have been overwritten by other function
+calls, a ``longjmp()`` would result in the callee-save registers
+having the wrong values. A ``longjmp()`` can come from anywhere, and
+so the function using ``setjmp()`` can't rely on callee-save registers
+being saved by callees.
 
 _`.sol.stack.hot`: We could decode the frame of the function that
-invokes ``setjmp`` from the jump buffer in a platform-specific way,
-but we can do something simpler (if more hacky) by calling a stub
-function and taking the address of its argument.  On all supported
-platforms this will yield a pointer that is pretty much at the hot end
-of the frame.
+invokes ``setjmp()`` from the jump buffer in a platform-specific way,
+but we can do something simpler (if more hacky) by calling the stub
+function ``StackHot()`` which takes the address of its argument. On
+all supported platforms this will yield a pointer that is pretty much
+at the hot end of the frame.
 
 _`.sol.stack.nest`: We can take care of scanning the jump buffer
-itself by storing it in the same stack frame.  That way a scan from
-the hot end end determined by .sol.stack.hot to the cold end will
-contain all of the roots.
+itself by storing it in the same stack frame. That way a scan from the
+hot end determined by `.sol.stack.hot`_ to the cold end will contain
+all of the roots.
 
 _`.sol.stack.platform`: As of version 1.115, all supported platforms
-are *full* and *descending* so the implementation in ``StackScan``
+are *full* and *descending* so the implementation in ``StackScan()``
 assumes this. New platforms must check this assumption.
 
-_`.sol.xc.alternative`: On OS X, we could use ``getcontext()`` from
+_`.sol.xc.alternative`: On macOS, we could use ``getcontext()`` from
 libunwind (see here_), but that produces deprecation warnings and
 introduces a dependency on that library.
 
@@ -159,7 +161,7 @@ introduces a dependency on that library.
 Analysis
 --------
 
-_`.anal.setjmp`: The C90 Standard says:
+_`.anal.setjmp`: The [C1990]_ standard says:
 
     An invocation of the ``setjmp`` macro shall appear only in one of
     the following contexts:
@@ -179,7 +181,7 @@ _`.anal.setjmp`: The C90 Standard says:
     - the entire expression of an expression statement (possibly cast
       to ``void``).
 
-And C99 adds:
+And the [C1999]_ standard adds:
 
     If the invocation appears in any other context, the behavior is
     undefined.
@@ -190,39 +192,43 @@ sources at changelevel 189652) showing which entry points might call
 
     StackScan
      └ThreadScan
-       └RootScan
-         └traceScanRootRes
-           └traceScanRoot
-             └rootFlip
-               └traceFlip
-                 └TraceStart
-                   ├PolicyStartTrace
-                   │ └TracePoll
-                   │   ├ArenaStep
-                   │   │ └mps_arena_step
-                   │   └ArenaPoll
-                   │     ├mps_alloc
-                   │     ├mps_ap_fill
-                   │     ├mps_ap_fill_with_reservoir_permit
-                   │     ├mps_ap_alloc_pattern_end
-                   │     ├mps_ap_alloc_pattern_reset
-                   │     └ArenaRelease
-                   │       ├mps_arena_release
-                   │       └ArenaStartCollect
-                   │         ├mps_arena_start_collect
-                   │         └ArenaCollect
-                   │           └mps_arena_collect
-                   └TraceStartCollectAll
-                     ├ArenaStep [see above]
-                     ├ArenaStartCollect [see above]
-                     └PolicyStartTrace [see above]
+       ├RootScan
+       │ └traceScanRootRes
+       │   └traceScanRoot
+       │     └rootFlip
+       │       └traceFlip
+       │         └TraceStart
+       │           ├PolicyStartTrace
+       │           │ └TracePoll
+       │           │   ├ArenaStep
+       │           │   │ └mps_arena_step
+       │           │   └ArenaPoll
+       │           │     ├mps_alloc
+       │           │     ├mps_ap_fill
+       │           │     ├mps_ap_fill_with_reservoir_permit
+       │           │     ├mps_ap_alloc_pattern_end
+       │           │     ├mps_ap_alloc_pattern_reset
+       │           │     └ArenaRelease
+       │           │       ├mps_arena_release
+       │           │       └ArenaStartCollect
+       │           │         ├mps_arena_start_collect
+       │           │         └ArenaCollect
+       │           │           └mps_arena_collect
+       │           └TraceStartCollectAll
+       │             ├ArenaStep [see above]
+       │             ├ArenaStartCollect [see above]
+       │             └PolicyStartTrace [see above]
+       └rootsWalk
+         └ArenaRootsWalk
+           └mps_arena_roots_walk
+
 
 So the entry points that need to save the stack context are
 ``mps_arena_step()``, ``mps_alloc()``, ``mps_ap_fill()``,
 ``mps_ap_fill_with_reservoir_permit()``,
 ``mps_ap_alloc_pattern_end()``, ``mps_ap_alloc_pattern_reset()``,
-``mps_arena_release()``, ``mps_arena_start_collect()``, and
-``mps_arena_collect()``.
+``mps_arena_release()``, ``mps_arena_start_collect()``,
+``mps_arena_collect()``, and ``mps_arena_roots_walk()``.
 
 
 Interface
@@ -238,7 +244,7 @@ _`.if.scan`: Scan the stack of the current thread, between
 ``stackCold`` and the hot end of the mutator's stack that was recorded
 by ``STACK_CONTEXT_SAVE()`` when the arena was entered. This will
 include any roots which were in the mutator's callee-save registers on
-entry to the MPS (see .sol.setjmp and .sol.stack.nest).  Return
+entry to the MPS (see `.sol.setjmp`_ and `.sol.stack.nest`_). Return
 ``ResOK`` if successful, or another result code if not.
 
 _`.if.scan.begin-end`: This function must be called between
@@ -260,12 +266,14 @@ violation of design.mps.config.no-spaghetti_ in ss.h.
 ``STACK_CONTEXT_BEGIN(Arena arena)``
 
 _`.if.begin`: Start an MPS operation that may need to know the mutator
-context (see .sol.entry-points). This macro must be used like this::
+context (see `.sol.entry-points`_). This macro must be used like this::
 
     Res res;
+    ArenaEnter(arena);
     STACK_CONTEXT_BEGIN(arena) {
-      res = ArenaStartCollect(arena);
+      res = ArenaStartCollect(...);
     } STACK_CONTEXT_END(arena);
+    ArenaLeave(arena);
     return res;
 
 That is, it must be paired with ``STACK_CONTEXT_END()``, and there
@@ -273,7 +281,7 @@ must be no ``return`` between the two macro invocations.
 
 This macro stores the mutator context in a ``StackContext`` structure
 allocated on the stack, and sets ``arena->stackWarm`` to the hot end
-of the current frame (using .sol.stack.hot).
+of the current frame (using `.sol.stack.hot`_).
 
 ``STACK_CONTEXT_END(Arena arena)``
 
@@ -286,10 +294,10 @@ This macro sets ``arena->stackWarm`` to ``NULL``.
 Implementations
 ---------------
 
-_`.impl`: Generic implementation of ``StackScan`` in ``ss.c`` scans
+_`.impl`: Generic implementation of ``StackScan()`` in ``ss.c`` scans
 the whole area between ``arena->stackWarm`` and the cold end of the
-mutator's stack, implementing .sol.stack.nest and also the backup
-strategy in .sol.entry-points.fragile.
+mutator's stack, implementing `.sol.stack.nest`_ and also the backup
+strategy in `.sol.entry-points.fragile`_.
 
 .. figure:: stack-scan-areas.svg
     :align: center
@@ -299,17 +307,21 @@ strategy in .sol.entry-points.fragile.
 References
 ----------
 
+.. [C1990]
+   International Standard ISO/IEC 9899:1990. "Programming languages — C".
+
+.. [C1999]
+   International Standard ISO/IEC 9899:1999. "`Programming languages — C <http://www.open-std.org/jtc1/sc22/WG14/www/docs/n1256.pdf>`_".
+
 .. [Fog]
-   "Calling conventions for different C++ compilers and operating systems";
    Agner Fog;
+   "`Calling conventions for different C++ compilers and operating systems <http://agner.org/optimize/calling_conventions.pdf>`_";
    Copenhagen University College of Engineering;
-   2014-08-07;
-   <http://agner.org/optimize/calling_conventions.pdf>
+   2014-08-07.
 
 .. [x86_64_registers]
-   "Caller/Callee Saved Registers";
    Microsoft Corporation;
-   <https://msdn.microsoft.com/en-us/library/6t169e9c.aspx>
+   "`Caller/Callee Saved Registers <https://msdn.microsoft.com/en-us/library/6t169e9c.aspx>`_".
 
 
 Document History
@@ -317,8 +329,8 @@ Document History
 
 - 2014-10-22 GDR_ Initial draft.
 
-- 2016-03-03 RB_ Reorganised based mostly on the .sol.stack.hot and
-                 .sol.stack.nest.
+- 2016-03-03 RB_ Reorganised based mostly on `.sol.stack.hot`_ and
+  `.sol.stack.nest`_.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 .. _RB: http://www.ravenbrook.com/consultants/rb/

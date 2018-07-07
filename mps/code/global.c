@@ -250,8 +250,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
 
-  /* can't check arena->scAtArenaEnter */
-  
+  /* can't check arena->stackWarm */
+
   return TRUE;
 }
 
