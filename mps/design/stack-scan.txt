@@ -192,36 +192,35 @@ sources at changelevel 189652) showing which entry points might call
 
     StackScan
      └ThreadScan
-       ├RootScan
-       │ └traceScanRootRes
-       │   └traceScanRoot
-       │     └rootFlip
-       │       └traceFlip
-       │         └TraceStart
-       │           ├PolicyStartTrace
-       │           │ └TracePoll
-       │           │   ├ArenaStep
-       │           │   │ └mps_arena_step
-       │           │   └ArenaPoll
-       │           │     ├mps_alloc
-       │           │     ├mps_ap_fill
-       │           │     ├mps_ap_fill_with_reservoir_permit
-       │           │     ├mps_ap_alloc_pattern_end
-       │           │     ├mps_ap_alloc_pattern_reset
-       │           │     └ArenaRelease
-       │           │       ├mps_arena_release
-       │           │       └ArenaStartCollect
-       │           │         ├mps_arena_start_collect
-       │           │         └ArenaCollect
-       │           │           └mps_arena_collect
-       │           └TraceStartCollectAll
-       │             ├ArenaStep [see above]
-       │             ├ArenaStartCollect [see above]
-       │             └PolicyStartTrace [see above]
-       └rootsWalk
-         └ArenaRootsWalk
-           └mps_arena_roots_walk
-
+       └RootScan
+         ├traceScanRootRes
+         │ └traceScanRoot
+         │   └rootFlip
+         │     └traceFlip
+         │       └TraceStart
+         │         ├PolicyStartTrace
+         │         │ └TracePoll
+         │         │   ├ArenaStep
+         │         │   │ └mps_arena_step
+         │         │   └ArenaPoll
+         │         │     ├mps_alloc
+         │         │     ├mps_ap_fill
+         │         │     ├mps_ap_fill_with_reservoir_permit
+         │         │     ├mps_ap_alloc_pattern_end
+         │         │     ├mps_ap_alloc_pattern_reset
+         │         │     └ArenaRelease
+         │         │       ├mps_arena_release
+         │         │       └ArenaStartCollect
+         │         │         ├mps_arena_start_collect
+         │         │         └ArenaCollect
+         │         │           └mps_arena_collect
+         │         └TraceStartCollectAll
+         │           ├ArenaStep [see above]
+         │           ├ArenaStartCollect [see above]
+         │           └PolicyStartTrace [see above]
+         └rootsWalk
+           └ArenaRootsWalk
+             └mps_arena_roots_walk
 
 So the entry points that need to save the stack context are
 ``mps_arena_step()``, ``mps_alloc()``, ``mps_ap_fill()``,
