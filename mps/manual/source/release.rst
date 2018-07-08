@@ -34,6 +34,12 @@ Interface changes
 Other changes
 .............
 
+#. References from the MPS's own stack frames no longer :term:`pin
+   <pinning>` objects allocated by the :term:`client program` in
+   moving pools, which prevented them from moving. See job003525_.
+
+   .. _job003525: https://www.ravenbrook.com/project/mps/issue/job003525/
+
 #. Creation of :term:`arenas` is now thread-safe on Windows. See
    job004056_.
 
