@@ -1216,10 +1216,10 @@ DUMMY is ignored."
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (mapcar
              (jsonrpc-lambda (&rest all &key label insertText &allow-other-keys)
-                             (let ((insert (or insertText label)))
-                               (add-text-properties 0 1 all insert)
-                               (put-text-property 0 1 'eglot--lsp-completion all insert)
-                               insert))
+               (let ((insert (or insertText label)))
+                 (add-text-properties 0 1 all insert)
+                 (put-text-property 0 1 'eglot--lsp-completion all insert)
+                 insert))
              items))))
        :annotation-function
        (lambda (obj)
