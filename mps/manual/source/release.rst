@@ -49,6 +49,12 @@ Other changes
 
    .. _job004076: https://www.ravenbrook.com/project/mps/issue/job004076/
 
+#. Deprecated function :c:func:`mps_arena_roots_walk` no longer causes
+   :c:func:`mps_arena_formatted_objects_walk` to miss some objects. See
+   job004090_.
+
+   .. _job004090: https://www.ravenbrook.com/project/mps/issue/job004090/
+
 
 .. _release-notes-1.116:
 
