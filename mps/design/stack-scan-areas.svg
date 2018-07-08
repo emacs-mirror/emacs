@@ -8,9 +8,9 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.1"
-   viewBox="15 16 411.97247 421.15668"
-   width="411.97247pt"
-   height="421.15668pt"
+   viewBox="15 16 431.97247 441.15668"
+   width="431.97247pt"
+   height="441.15668pt"
    id="svg1343"
    sodipodi:docname="stack-scan-areas.svg"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06">
@@ -28,21 +28,21 @@
      id="namedview1345"
      showgrid="true"
      inkscape:zoom="1.1190476"
-     inkscape:cx="299.1406"
-     inkscape:cy="277.60706"
+     inkscape:cx="312.47393"
+     inkscape:cy="76.472346"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg1343"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0">
+     fit-margin-top="10"
+     fit-margin-left="10"
+     fit-margin-right="10"
+     fit-margin-bottom="10">
     <inkscape:grid
        type="xygrid"
        id="grid1444"
-       originx="103.97247"
-       originy="-12.294708" />
+       originx="113.97246"
+       originy="-2.2946769" />
   </sodipodi:namedview>
   <metadata
      id="metadata1223">
@@ -227,8 +227,8 @@
     </marker>
   </defs>
   <rect
-     x="148.97247"
-     y="21.951391"
+     x="158.97247"
+     y="31.951391"
      width="157.53847"
      height="120"
      id="rect1247"
@@ -236,19 +236,19 @@
   <text
      id="text1251"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-dasharray:none;stroke-opacity:1"
-     x="155.106"
-     y="75.419167">
+     x="165.106"
+     y="85.419167">
     <tspan
        font-size="12"
        font-weight="500"
-       x="185.15578"
-       y="86.419167"
+       x="195.15578"
+       y="96.419167"
        id="tspan1249"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000">mutator stack</tspan>
   </text>
   <rect
-     x="148.97247"
-     y="141.95139"
+     x="158.97247"
+     y="151.95139"
      width="157.53847"
      height="112.5"
      id="rect1255"
@@ -256,19 +256,19 @@
   <text
      id="text1259"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-dasharray:none;stroke-opacity:1"
-     x="157.16557"
-     y="190.58224">
+     x="167.16557"
+     y="200.58224">
     <tspan
        font-size="12"
        font-weight="500"
-       x="193.33253"
-       y="201.58224"
+       x="203.33253"
+       y="211.58224"
        id="tspan1257"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">mpsi frame</tspan>
   </text>
   <rect
-     x="156.47247"
-     y="96.951393"
+     x="166.47247"
+     y="106.95139"
      width="142.50002"
      height="14.650499"
      id="rect1261"
@@ -276,19 +276,19 @@
   <text
      id="text1265"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-dasharray:none;stroke-opacity:1"
-     x="170.76732"
-     y="97.788361">
+     x="180.76732"
+     y="107.78836">
     <tspan
        font-size="12"
        font-weight="500"
-       x="199.02785"
-       y="108.78836"
+       x="209.02785"
+       y="118.78836"
        id="tspan1263"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000">reference</tspan>
   </text>
   <g
      id="g1846"
-     transform="translate(103.97247,-7.5486107)">
+     transform="translate(113.97247,2.4513885)">
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="rect1267"
@@ -318,8 +318,8 @@
     </text>
   </g>
   <rect
-     x="156.47247"
-     y="231.95139"
+     x="166.47247"
+     y="241.95139"
      width="142.50002"
      height="14.436457"
      id="rect1277"
@@ -327,19 +327,19 @@
   <text
      id="text1281"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-dasharray:none;stroke-opacity:1"
-     x="164.15796"
-     y="231.48895">
+     x="174.15796"
+     y="241.48895">
     <tspan
        font-size="12"
        font-weight="500"
-       x="168.35402"
-       y="242.48895"
+       x="178.35402"
+       y="252.48895"
        id="tspan1279"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">callee-save register</tspan>
   </text>
   <rect
-     x="156.47247"
-     y="209.45139"
+     x="166.47247"
+     y="219.45139"
      width="142.50002"
      height="15.765894"
      id="rect1301"
@@ -347,19 +347,19 @@
   <text
      id="text1305"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-dasharray:none;stroke-opacity:1"
-     x="171.70482"
-     y="209.94661">
+     x="181.70482"
+     y="219.94661">
     <tspan
        font-size="12"
        font-weight="500"
-       x="202.62843"
-       y="220.94661"
+       x="212.62843"
+       y="230.94661"
        id="tspan1303"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">jmp_buf</tspan>
   </text>
   <g
      id="g2370"
-     transform="translate(103.97247,-7.5486107)">
+     transform="translate(113.97247,2.4513885)">
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.99999994;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="rect1309"
@@ -384,45 +384,45 @@
   <text
      id="text1317"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-dasharray:none;stroke-opacity:1"
-     x="118.53497"
-     y="14.117186">
+     x="128.53497"
+     y="24.117186">
     <tspan
        font-size="12"
        font-weight="500"
-       x="118.53497"
-       y="25.117188"
+       x="128.53497"
+       y="35.117188"
        id="tspan1315"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">cold</tspan>
   </text>
   <text
      id="text1321"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-dasharray:none;stroke-opacity:1"
-     x="108.97247"
-     y="246.37637">
+     x="118.97247"
+     y="256.37637">
     <tspan
        font-size="12"
        font-weight="500"
-       x="108.97247"
-       y="257.37637"
+       x="118.97247"
+       y="267.37637"
        id="tspan1319"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">warm</tspan>
   </text>
   <text
      id="text1325"
      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-dasharray:none;stroke-opacity:1"
-     x="122.41388"
-     y="425.97504">
+     x="132.41388"
+     y="435.97504">
     <tspan
        font-size="12"
        font-weight="500"
-       x="122.41388"
-       y="436.97504"
+       x="132.41388"
+       y="446.97504"
        id="tspan1323"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12px;font-family:Verdana;-inkscape-font-specification:'Verdana, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start">hot</tspan>
   </text>
   <g
      id="g2375"
-     transform="translate(103.97247,-7.5486107)">
+     transform="translate(113.97247,2.4513885)">
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        id="rect1327"
@@ -446,13 +446,13 @@
   </g>
   <path
      style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#DotL);marker-end:url(#Arrow1Lend)"
-     d="m 291.47247,104.45139 82.5,-7.500001"
+     d="m 301.47247,114.45139 82.5,-7.5"
      id="path1458"
      inkscape:connector-curvature="0"
      sodipodi:nodetypes="cc" />
   <g
      id="g1856"
-     transform="translate(103.97247,74.951389)">
+     transform="translate(113.97247,84.951388)">
     <rect
        x="270"
        y="52"
@@ -482,7 +482,7 @@
     </text>
   </g>
   <g
-     transform="translate(103.97247,157.45139)"
+     transform="translate(113.97247,167.45139)"
      id="g1866">
     <rect
        style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
@@ -516,17 +516,17 @@
      sodipodi:nodetypes="cc"
      inkscape:connector-curvature="0"
      id="path1880"
-     d="m 291.47247,216.95139 82.5,-37.5"
+     d="m 301.47247,226.95139 82.5,-37.5"
      style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#marker1884);marker-end:url(#marker1894)" />
   <path
      style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.75px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#marker2030);marker-end:url(#marker2040)"
-     d="m 291.47247,239.45139 82.5,22.5"
+     d="m 301.47247,249.45139 82.5,22.5"
      id="path2026"
      inkscape:connector-curvature="0"
      sodipodi:nodetypes="cc" />
   <g
      id="g2397"
-     transform="translate(126.47247,-7.5486107)">
+     transform="translate(136.47247,2.4513885)">
     <text
        y="145.04732"
        x="-62.570126"
