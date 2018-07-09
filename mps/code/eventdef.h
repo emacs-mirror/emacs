@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)2)
-#define EVENT_VERSION_MEDIAN ((unsigned)0)
+#define EVENT_VERSION_MEDIAN ((unsigned)1)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -67,7 +67,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x008E)
+#define EventCodeMAX ((EventCode)0x008F)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -200,7 +200,8 @@
   EVENT(X, ArenaPollEnd       , 0x008B,  TRUE, Arena) \
   EVENT(X, SegSetSummary      , 0x008C,  TRUE, Seg) \
   EVENT(X, GenInit            , 0x008D,  TRUE, Arena) \
-  EVENT(X, GenFinish          , 0x008E,  TRUE, Arena)
+  EVENT(X, GenFinish          , 0x008E,  TRUE, Arena) \
+  EVENT(X, TraceCondemnAll    , 0x008F,  TRUE, Trace)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -335,7 +336,8 @@
   PARAM(X,  1, W, stringId) /* string identifier of its label */
 
 #define EVENT_TraceDestroy_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, trace)
+  PARAM(X,  0, P, arena) /* arena owning trace */ \
+  PARAM(X,  1, P, trace) /* the trace */
 
 #define EVENT_SegSetGrey_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -609,9 +611,11 @@
 #define EVENT_MessagesExist_PARAMS(PARAM, X)
 
 #define EVENT_ChainCondemnAuto_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, chain) /* chain with gens being condemned */ \
-  PARAM(X,  1, W, topCondemnedGenIndex) /* condemned gens [0..this] */ \
-  PARAM(X,  2, W, genCount) /* total gens in chain */
+  PARAM(X,  0, P, arena) /* arena owning chain */ \
+  PARAM(X,  1, P, chain) /* chain with gens being condemned */ \
+  PARAM(X,  2, W, ti) /* index of trace for which gens condemned */ \
+  PARAM(X,  3, W, topCondemnedGenIndex) /* condemned gens [0..this] */ \
+  PARAM(X,  4, W, genCount) /* total gens in chain */
 
 #define EVENT_TraceFindGrey_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -746,6 +750,10 @@
   PARAM(X,  0, P, arena) /* arena owning generation */ \
   PARAM(X,  1, P, gen) /* the generation */ \
   PARAM(X,  2, U, serial) /* serial number within arena */
+
+#define EVENT_TraceCondemnAll_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena) /* arena owning trace */ \
+  PARAM(X,  1, W, ti) /* index of trace */
 
 #endif /* eventdef_h */
 

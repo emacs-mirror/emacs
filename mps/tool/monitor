@@ -351,6 +351,10 @@ class Arena(EventHandler):
         self.model.add_time_series(
             self, self._univ_ref_size, "bytes", "zone-univ.ref",
             "size of segments referencing the universe")
+        self._condemned_gens = TimeSeries()
+        self.model.add_time_series(
+            self, self._condemned_gens, "fraction", "condemned.gens",
+            "proportion of chain condemned by trace")
 
     @property
     def name(self):
@@ -421,6 +425,16 @@ class Arena(EventHandler):
 
     def ArenaPollEnd(self, t, event):
         self._poll.off(t)
+
+    def ChainCondemnAuto(self, t, event):
+        f = event.topCondemnedGenIndex / (event.genCount + 1)
+        self._condemned_gens.append(t, f)
+
+    def TraceCondemnAll(self, t, event):
+        self._condemned_gens.append(t, 1.0)
+
+    def TraceDestroy(self, t, event):
+        self._condemned_gens.append(t, 0.0)
 
     def TraceStart(self, t, event):
         for gen in self._gen.values():
@@ -582,14 +596,17 @@ class Model(EventHandler):
     ArenaFree = \
     ArenaPollBegin = \
     ArenaPollEnd = \
+    ChainCondemnAuto = \
     GenInit = \
     GenFinish = \
     GenZoneSet = \
     PoolFinish = \
     PoolInit = \
     SegSetSummary = \
-    TraceStart = \
+    TraceCondemnAll = \
+    TraceDestroy = \
     TraceEndGen = \
+    TraceStart = \
         delegate_to_arena
 
     def EventClockSync(self, t, event):
