@@ -756,7 +756,7 @@ static void traceDestroyCommon(Trace trace)
    * manually allocated objects that were freed). See job003999. */
   ArenaCompact(trace->arena, trace);
 
-  EVENT1(TraceDestroy, trace);
+  EVENT2(TraceDestroy, trace->arena, trace);
 
   /* Hopefully the trace reclaimed some memory, so clear any emergency.
    * Do this before removing the trace from busyTraces, to avoid
@@ -1510,6 +1510,8 @@ static Res traceCondemnAll(Trace trace)
 
   if (TraceIsEmpty(trace))
     return ResFAIL;
+
+  EVENT2(TraceCondemnAll, arena, trace->ti);
 
   return ResOK;
 
