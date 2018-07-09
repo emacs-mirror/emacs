@@ -355,6 +355,10 @@ class Arena(EventHandler):
         self.model.add_time_series(
             self, self._condemned_gens, "fraction", "condemned.gens",
             "proportion of chain condemned by trace")
+        self._condemned_size = TimeSeries()
+        self.model.add_time_series(
+            self, self._condemned_size, "bytes", "condemned.size",
+            "size of segments condemned by trace")
 
     @property
     def name(self):
@@ -427,7 +431,7 @@ class Arena(EventHandler):
         self._poll.off(t)
 
     def ChainCondemnAuto(self, t, event):
-        f = event.topCondemnedGenIndex / (event.genCount + 1)
+        f = (event.topCondemnedGenIndex + 1) / (event.genCount + 1)
         self._condemned_gens.append(t, f)
 
     def TraceCondemnAll(self, t, event):
@@ -435,10 +439,12 @@ class Arena(EventHandler):
 
     def TraceDestroy(self, t, event):
         self._condemned_gens.append(t, 0.0)
+        self._condemned_size.append(t, 0)
 
     def TraceStart(self, t, event):
         for gen in self._gen.values():
             gen.update_ref_size(t, self._seg_summary, self._seg_size)
+        self._condemned_size.append(t, event.condemned)
 
     def SegSetSummary(self, t, event):
         size = event.size
