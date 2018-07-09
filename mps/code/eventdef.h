@@ -716,7 +716,8 @@
   PARAM(X,  3, W, condemned)    /* bytes condemned in generation */ \
   PARAM(X,  4, W, forwarded)    /* bytes forwarded from generation */ \
   PARAM(X,  5, W, preservedInPlace) /* bytes preserved in generation */ \
-  PARAM(X,  6, D, mortality)    /* updated mortality */
+  PARAM(X,  6, D, mortalityTrace) /* mortality (in last trace only) */ \
+  PARAM(X,  7, D, mortalityAverage) /* mortality (moving average) */
 
 #define EVENT_LabelPointer_PARAMS(PARAM, X) \
   PARAM(X,  0, P, pointer) /* pointer */ \

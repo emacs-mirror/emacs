@@ -214,8 +214,9 @@ static void genDescEndTrace(GenDesc gen, Trace trace)
     double mortality = 1.0 - survived / (double)stats->condemned;
     double alpha = LocusMortalityALPHA;
     gen->mortality = gen->mortality * (1 - alpha) + mortality * alpha;
-    EVENT7(TraceEndGen, trace->arena, trace, gen, stats->condemned,
-           stats->forwarded, stats->preservedInPlace, gen->mortality);
+    EVENT8(TraceEndGen, trace->arena, trace, gen, stats->condemned,
+           stats->forwarded, stats->preservedInPlace, mortality,
+           gen->mortality);
   }
 }
 

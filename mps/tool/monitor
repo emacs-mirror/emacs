@@ -302,17 +302,22 @@ class Gen(EventHandler):
 
     def GenInit(self, t, event):
         self._serial = serial = event.serial
-        self._mortality = mortality = TimeSeries()
+        self._mortality_trace = mortality_trace = TimeSeries()
         self._model.add_time_series(
-            self, mortality, "fraction", f"mortality",
-            f"mortality of data in generation")
+            self, mortality_trace, "fraction", f"mortality.trace",
+            f"mortality of data in generation, per trace")
+        self._mortality_average = mortality_average = TimeSeries()
+        self._model.add_time_series(
+            self, mortality_average, "fraction", f"mortality.avg",
+            f"mortality of data in generation, moving average")
         self._ref_size = ref_size = TimeSeries()
         self._model.add_time_series(
             self, ref_size, "bytes", f"ref",
             f"size of segments referencing generation")
 
     def TraceEndGen(self, t, event):
-        self._mortality.append(t, event.mortality)
+        self._mortality_trace.append(t, event.mortalityTrace)
+        self._mortality_average.append(t, event.mortalityAverage)
 
 
 class Arena(EventHandler):
