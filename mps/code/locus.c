@@ -887,13 +887,16 @@ Res PoolGenDescribe(PoolGen pgen, mps_lib_FILE *stream, Count depth)
 void LocusInit(Arena arena)
 {
   GenParamStruct params;
+  GenDesc topGen;
 
   AVER(arena != NULL); /* not initialized yet. */
 
   params.capacity = 1; /* unused */
   params.mortality = 0.5;
 
-  GenDescInit(arena, &arena->topGen, &params);
+  topGen = &arena->topGen;
+  GenDescInit(arena, topGen, &params);
+  EventLabelPointer(topGen, EventInternString("TopGen"));
 }
 
 

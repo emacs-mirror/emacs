@@ -266,6 +266,55 @@ class Pool(EventHandler):
         self._serial = event.serial
 
 
+class Gen(EventHandler):
+    "Model of an MPS generation."
+    def __init__(self, arena, pointer):
+        self._arena = arena       # Owning arena.
+        self._model = arena.model # Owning model.
+        self._pointer = pointer   # Gen's pointer.
+        self._serial = None       # Gen's serial number.
+        self.zone_set = 0         # Gen's current zone set.
+
+    def update_ref_size(self, t, seg_summary, seg_size):
+        """Update the size of segments referencing this generation.
+        seg_summary must be a mapping from segment to its summary, and
+        seg_size a mapping from segment to its size in bytes.
+
+        """
+        ref_size = 0
+        for seg, summary in seg_summary.items():
+            if self.zone_set & summary:
+                ref_size += seg_size[seg]
+        self._ref_size.append(t, ref_size)
+
+    @property
+    def name(self):
+        name = self._model.label(self._pointer)
+        if not name:
+            if self._serial is not None:
+                name = f"gen-{self._serial}"
+            else:
+                name = f"gen-{self._pointer:x}"
+        return f"{self._arena.name}.{name}"
+
+    def GenZoneSet(self, t, event):
+        self.zone_set = event.zoneSet
+
+    def GenInit(self, t, event):
+        self._serial = serial = event.serial
+        self._mortality = mortality = TimeSeries()
+        self._model.add_time_series(
+            self, mortality, "fraction", f"mortality",
+            f"mortality of data in generation")
+        self._ref_size = ref_size = TimeSeries()
+        self._model.add_time_series(
+            self, ref_size, "bytes", f"ref",
+            f"size of segments referencing generation")
+
+    def TraceEndGen(self, t, event):
+        self._mortality.append(t, event.mortality)
+
+
 class Arena(EventHandler):
     "Model of an MPS arena."
     def __init__(self, model, pointer, t):
@@ -276,16 +325,14 @@ class Arena(EventHandler):
         self._serial = None      # Arena's serial number.
         self._pools = []         # List of Pools ever belonging to arena.
         self._pool = {}          # pointer -> Pool (for live pools)
+        self._gens = []          # List of Gens ever belonging to arena.
+        self._gen = {}           # pointer -> Gen (for live gens)
         self._poll = MovingAverageRatio(t)
         self.model.add_time_series(
             self, self._poll, "fraction", "poll",
             "polling time moving average")
         self._seg_size = {}      # segment pointer -> size
         self._seg_summary = {}   # segment pointer -> summary
-        self._gen_serial = {}    # generation pointer -> generation serial
-        self._gen_zoneset = {}   # generation serial -> current zoneset
-        self._gen_mortality = {} # generation serial -> mortality TimeSeries
-        self._gen_ref_size = {}  # generation serial -> refsize TimeSeries
         self._zone_ref_size = {} # zone -> refsize Accumulator
         self._univ_ref_size = Accumulator()
         self.model.add_time_series(
@@ -321,6 +368,21 @@ class Arena(EventHandler):
     PoolInit = \
         delegate_to_pool
 
+    def delegate_to_gen(self, t, event):
+        "Handle a telemetry event by delegating to the generation model."
+        pointer = event.gen
+        try:
+            gen = self._gen[pointer]
+        except KeyError:
+            self._gen[pointer] = gen = Gen(self, pointer)
+            self._gens.append(gen)
+        gen.handle(t, event)
+
+    GenInit = \
+    GenZoneSet = \
+    TraceEndGen = \
+        delegate_to_gen
+
     def ArenaCreateVM(self, t, event):
         self._arena_class = event.arenaClass
         self._serial = event.serial
@@ -330,40 +392,18 @@ class Arena(EventHandler):
     def PoolFinish(self, t, event):
         del self._pool[event.pool]
 
+    def GenFinish(self, t, event):
+        del self._gen[event.gen]
+
     def ArenaPollBegin(self, t, event):
         self._poll.on(t)
 
     def ArenaPollEnd(self, t, event):
         self._poll.off(t)
 
-    def GenZoneSet(self, t, event):
-        self._gen_zoneset[self._gen_serial[event.gen]] = event.zoneSet
-
-    def GenInit(self, t, event):
-        self._gen_serial[event.gen] = serial = event.serial
-        self._gen_mortality[serial] = mortality = TimeSeries()
-        self.model.add_time_series(
-            self, mortality, "fraction", f"gen-{serial}.mortality",
-            f"mortality of data in generation {serial}")
-        self._gen_ref_size[serial] = ref_size = TimeSeries()
-        self.model.add_time_series(
-            self, ref_size, "bytes", f"gen-{serial}.ref",
-            f"size of segments referencing generation {serial}")
-
-    def GenFinish(self, t, event):
-        self._gen_zoneset.pop(event.serial, None)
-
     def TraceStart(self, t, event):
-        for serial, zoneSet in self._gen_zoneset.items():
-            ref_size = 0
-            for seg, summary in self._seg_summary.items():
-                if zoneSet & summary:
-                    ref_size += self._seg_size[seg]
-            self._gen_ref_size[serial].append(t, ref_size)
-
-    def TraceEndGen(self, t, event):
-        self._gen_mortality[self._gen_serial[event.gen]].append(
-            t, event.mortality)
+        for gen in self._gen.values():
+            gen.update_ref_size(t, self._seg_summary, self._seg_size)
 
     def SegSetSummary(self, t, event):
         size = event.size
