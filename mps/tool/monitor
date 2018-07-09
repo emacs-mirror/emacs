@@ -317,6 +317,10 @@ class Gen(EventHandler):
 
 class Arena(EventHandler):
     "Model of an MPS arena."
+    # Number of pools that are internal to the arena; see the list in
+    # global.c:GlobalsPrepareToDestroy.
+    _internal_pools = 4
+
     def __init__(self, model, pointer, t):
         "Create Arena owned by model, at pointer, at time t."
         self.model = model       # Owning model.
@@ -327,6 +331,10 @@ class Arena(EventHandler):
         self._pool = {}          # pointer -> Pool (for live pools)
         self._gens = []          # List of Gens ever belonging to arena.
         self._gen = {}           # pointer -> Gen (for live gens)
+        self._alloc = Accumulator()
+        self.model.add_time_series(
+            self, self._alloc, "bytes", "alloc",
+            "total allocation by client pools")
         self._poll = MovingAverageRatio(t)
         self.model.add_time_series(
             self, self._poll, "fraction", "poll",
@@ -363,8 +371,16 @@ class Arena(EventHandler):
             self._pools.append(pool)
         pool.handle(t, event)
 
-    ArenaAlloc = \
-    ArenaFree = \
+    def ArenaAlloc(self, t, event):
+        self.delegate_to_pool(t, event)
+        if self._pool[event.pool]._serial >= self._internal_pools:
+            self._alloc.add(t, event.size)
+
+    def ArenaFree(self, t, event):
+        self.delegate_to_pool(t, event)
+        if self._pool[event.pool]._serial >= self._internal_pools:
+            self._alloc.sub(t, event.size)
+
     PoolInit = \
         delegate_to_pool
 
