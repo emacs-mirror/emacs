@@ -400,11 +400,25 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   arenaGlobals->lock = (Lock)p;
   LockInit(arenaGlobals->lock);
 
+  /* Create the arena's default generation chain. */
   {
     GenParamStruct params[] = ChainDEFAULT;
     res = ChainCreate(&arenaGlobals->defaultChain, arena, NELEMS(params), params);
     if (res != ResOK)
       goto failChainCreate;
+  }
+
+  /* Label generations in default generation chain, for telemetry. */
+  {
+    Chain chain = arenaGlobals->defaultChain;
+    char label[] = "DefGen-0";
+    char *gen_index = &label[(sizeof label) - 2];
+    size_t i;
+    AVER(*gen_index == '0');
+    for (i = 0; i < chain->genCount; ++i) {
+      *gen_index = "0123456789ABCDEF"[i % 16];
+      EventLabelPointer(&chain->gens[i], EventInternString(label));
+    }
   }
 
   arenaAnnounce(arena);
