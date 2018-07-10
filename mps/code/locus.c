@@ -123,6 +123,7 @@ static Bool GenParamCheck(GenParamStruct *params)
 {
   CHECKL(params != NULL);
   CHECKL(params->capacity > 0);
+  CHECKL(params->capacity <= SizeMAX / 1024);
   CHECKL(params->mortality >= 0.0);
   CHECKL(params->mortality <= 1.0);
   return TRUE;
@@ -139,13 +140,13 @@ static void GenDescInit(Arena arena, GenDesc gen, GenParamStruct *params)
   gen->serial = arena->genSerial;
   ++ arena->genSerial;
   gen->zones = ZoneSetEMPTY;
-  gen->capacity = params->capacity;
+  gen->capacity = params->capacity * 1024;
   gen->mortality = params->mortality;
   RingInit(&gen->locusRing);
   RingInit(&gen->segRing);
   gen->sig = GenDescSig;
   AVERT(GenDesc, gen);
-  EVENT3(GenInit, arena, gen, gen->serial);
+  EVENT5(GenInit, arena, gen, gen->serial, gen->capacity, gen->mortality);
 }
 
 
@@ -458,7 +459,7 @@ double ChainDeferral(Chain chain)
 
   if (chain->activeTraces == TraceSetEMPTY) {
     for (i = 0; i < chain->genCount; ++i) {
-      double genTime = chain->gens[i].capacity * 1024.0
+      double genTime = (double)chain->gens[i].capacity
         - (double)GenDescNewSize(&chain->gens[i]);
       if (genTime < time)
         time = genTime;

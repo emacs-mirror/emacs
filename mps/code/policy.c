@@ -232,7 +232,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
     gen = &chain->gens[topCondemnedGen];
     AVERT(GenDesc, gen);
     genNewSize = GenDescNewSize(gen);
-    if (genNewSize >= gen->capacity * (Size)1024)
+    if (genNewSize >= gen->capacity)
       break;
   }
 
