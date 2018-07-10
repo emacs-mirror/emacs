@@ -1,7 +1,7 @@
 /* rangetree.c -- binary trees of address ranges
  *
  * $Id$
- * Copyright (C) 2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2016-2018 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef rangetree_h
@@ -54,7 +54,7 @@ typedef struct RangeTreeStruct {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
