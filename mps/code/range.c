@@ -39,7 +39,8 @@ void RangeInitSize(Range range, Addr base, Size size)
 void RangeFinish(Range range)
 {
   AVERT(Range, range);
-  /* Make range invalid and recognisably so. */
+  /* Make range invalid and recognisably so, since Range doesn't have
+     a signature. */
   range->limit = (Addr)0;
   range->base = (Addr)0xF191583D; /* FINISHED */
 }
