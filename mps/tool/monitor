@@ -354,11 +354,13 @@ class Arena(EventHandler):
         self._condemned_gens = TimeSeries()
         self.model.add_time_series(
             self, self._condemned_gens, "fraction", "condemned.gens",
-            "proportion of chain condemned by trace")
+            "proportion of chain condemned by trace", marker='x',
+            linestyle='None')
         self._condemned_size = TimeSeries()
         self.model.add_time_series(
             self, self._condemned_size, "bytes", "condemned.size",
-            "size of segments condemned by trace")
+            "size of segments condemned by trace", marker='+',
+            linestyle='None')
 
     @property
     def name(self):
@@ -437,14 +439,11 @@ class Arena(EventHandler):
     def TraceCondemnAll(self, t, event):
         self._condemned_gens.append(t, 1.0)
 
-    def TraceDestroy(self, t, event):
-        self._condemned_gens.append(t, 0.0)
-        self._condemned_size.append(t, 0)
-
     def TraceStart(self, t, event):
-        for gen in self._gen.values():
-            gen.update_ref_size(t, self._seg_summary, self._seg_size)
         self._condemned_size.append(t, event.condemned)
+        if self._seg_summary:
+            for gen in self._gen.values():
+                gen.update_ref_size(t, self._seg_summary, self._seg_size)
 
     def SegSetSummary(self, t, event):
         size = event.size
@@ -475,7 +474,7 @@ class Line:
     colors = cycle('blue orange green red purple brown pink gray olive cyan'
                    .split())
 
-    def __init__(self, owner, series, unit, name, desc):
+    def __init__(self, owner, series, unit, name, desc, **kwargs):
         self.owner = owner      # Owning object.
         self.series = series    # Time series.
         self.unit = unit        # Unit.
@@ -485,6 +484,7 @@ class Line:
         self.color = next(self.colors)
         self.axes = None        # Currently plotted on axes.
         self.line = None        # Matplotlib Line2D object.
+        self._kwargs = kwargs   # Keyword arguments for Axes.plot.
 
     @property
     def name(self):
@@ -492,7 +492,7 @@ class Line:
 
     @property
     def ready(self):
-        return len(self.series.t) >= 2
+        return len(self.series.t) >= 1
 
     def unplot(self):
         if self.axes:
@@ -505,7 +505,8 @@ class Line:
         y = self.series.y
         if self.line is None:
             self.axes = axes
-            self.line, = axes.plot(x, y, color=self.color, label=self.name)
+            self.line, = axes.plot(x, y, color=self.color, label=self.name,
+                                   **self._kwargs)
         else:
             if self.axes != axes:
                 self.unplot()
@@ -532,9 +533,9 @@ class Model(EventHandler):
         self.lines = []         # All Lines available for plotting.
         self._needs_redraw = True # Plot needs redrawing?
 
-    def add_time_series(self, *args):
+    def add_time_series(self, *args, **kwargs):
         "Add a time series to the model."
-        line = Line(*args)
+        line = Line(*args, **kwargs)
         self.lines.append(line)
 
     def label(self, pointer):
@@ -557,8 +558,8 @@ class Model(EventHandler):
 
         # Assign units to axes.
         axes_iter = iter(axes_list)
-        lines_iter = iter(sorted(unit_lines.values(), key=len, reverse=True))
-        for lines, axes in zip(lines_iter, axes_iter):
+        lines_iter = iter(sorted(unit_lines.items()))
+        for (_, lines), axes in zip(lines_iter, axes_iter):
             axes.set_axis_on()
             axes.set_xlabel("time (seconds)")
             axes.set_ylabel(lines[0].unit)
@@ -610,7 +611,6 @@ class Model(EventHandler):
     PoolInit = \
     SegSetSummary = \
     TraceCondemnAll = \
-    TraceDestroy = \
     TraceEndGen = \
     TraceStart = \
         delegate_to_arena
