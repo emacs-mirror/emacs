@@ -183,6 +183,7 @@ lasted more than that many seconds."
              :documentHighlight  `(:dynamicRegistration :json-false)
              :codeAction         `(:dynamicRegistration :json-false)
              :formatting         `(:dynamicRegistration :json-false)
+             :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
              :publishDiagnostics `(:relatedInformation :json-false))
             :experimental (list))))
@@ -1227,17 +1228,35 @@ DUMMY is ignored."
 (defun eglot-format-buffer ()
   "Format contents of current buffer."
   (interactive)
-  (unless (eglot--server-capable :documentFormattingProvider)
-    (eglot--error "Server can't format!"))
-  (eglot--apply-text-edits
-   (jsonrpc-request
-    (eglot--current-server-or-lose)
-    :textDocument/formatting
-    (list :textDocument (eglot--TextDocumentIdentifier)
-          :options (list :tabSize tab-width
-                         :insertSpaces
-                         (if indent-tabs-mode :json-false t)))
-    :deferred :textDocument/formatting)))
+  (eglot-format nil nil))
+
+(defun eglot-format (&optional beg end)
+  "Format region BEG END.
+If either BEG or END is nil, format entire buffer.
+Interactively, format active region, or entire buffer if region
+is not active."
+  (interactive (and (region-active-p) (list (region-beginning) (region-end))))
+  (pcase-let ((`(,method ,cap ,args)
+               (cond
+                ((and beg end)
+                 `(:textDocument/rangeFormatting
+                   :documentRangeFormattingProvider
+                   (:range ,(list :start (eglot--pos-to-lsp-position beg)
+                                  :end (eglot--pos-to-lsp-position end)))))
+                (t
+                 '(:textDocument/formatting :documentFormattingProvider nil)))))
+    (unless (eglot--server-capable cap)
+      (eglot--error "Server can't format!"))
+    (eglot--apply-text-edits
+     (jsonrpc-request
+      (eglot--current-server-or-lose)
+      method
+      (cl-list*
+       :textDocument (eglot--TextDocumentIdentifier)
+       :options (list :tabSize tab-width
+                      :insertSpaces (if indent-tabs-mode :json-false t))
+       args)
+      :deferred method))))
 
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
