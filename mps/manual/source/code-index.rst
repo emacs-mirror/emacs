@@ -124,6 +124,8 @@ protocol.c    Inheritance protocol implementation. See design.mps.protocol_.
 protocol.h    Inheritance protocol interface. See design.mps.protocol_.
 range.c       Address ranges implementation. See design.mps.range_.
 range.h       Address ranges interface. See design.mps.range_.
+rangetree.c   Binary address-ordered range tree implementation.
+rangetree.h   Binary address-ordered range tree interface.
 ref.c         Ranks and zones implementation.
 ring.c        Ring implementation. See design.mps.ring_.
 ring.h        Ring interface. See design.mps.ring_.
