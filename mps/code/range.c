@@ -39,6 +39,10 @@ void RangeInitSize(Range range, Addr base, Size size)
 void RangeFinish(Range range)
 {
   AVERT(Range, range);
+  /* Make range invalid and recognisably so, since Range doesn't have
+     a signature. */
+  range->limit = (Addr)0;
+  range->base = (Addr)0xF191583D; /* FINISHED */
 }
 
 Res RangeDescribe(Range range, mps_lib_FILE *stream, Count depth)
@@ -102,6 +106,20 @@ Addr (RangeLimit)(Range range)
 {
   AVERT(Range, range);
   return RangeLimit(range);
+}
+
+void (RangeSetBase)(Range range, Addr addr)
+{
+  AVERT(Range, range);
+  AVER(addr >= RangeBase(range));
+  RangeSetBase(range, addr);
+}
+
+void (RangeSetLimit)(Range range, Addr addr)
+{
+  AVERT(Range, range);
+  AVER(addr <= RangeLimit(range));
+  RangeSetLimit(range, addr);
 }
 
 Size (RangeSize)(Range range)
