@@ -744,7 +744,9 @@
 #define EVENT_GenInit_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) /* arena owning generation */ \
   PARAM(X,  1, P, gen) /* the generation */ \
-  PARAM(X,  2, U, serial) /* serial number within arena */
+  PARAM(X,  2, U, serial) /* serial number within arena */ \
+  PARAM(X,  3, W, capacity) /* capacity in bytes */ \
+  PARAM(X,  4, D, mortality) /* initial mortality estimate */
 
 #define EVENT_GenFinish_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) /* arena owning generation */ \

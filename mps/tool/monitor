@@ -310,6 +310,7 @@ class Gen(EventHandler):
         self._model.add_time_series(
             self, mortality_average, "fraction", f"mortality.avg",
             f"mortality of data in generation, moving average")
+        mortality_average.append(t, event.mortality);
         self._ref_size = ref_size = TimeSeries()
         self._model.add_time_series(
             self, ref_size, "bytes", f"ref",
