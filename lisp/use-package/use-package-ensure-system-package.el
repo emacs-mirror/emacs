@@ -53,13 +53,20 @@
        (t
         (list (use-package-ensure-system-package-consify arg)))))))
 
+(defun use-package-ensure-system-package-exists? (file-or-exe)
+  "If variable is a string, ensure the file path exists.
+If it is a symbol, ensure the binary exist."
+  (if (stringp file-or-exe)
+      (file-exists-p file-or-exe)
+    (executable-find (symbol-name file-or-exe))))
+
 ;;;###autoload
 (defun use-package-handler/:ensure-system-package (name _keyword arg rest state)
   "Execute the handler for `:ensure-system-package' keyword in `use-package'."
   (let ((body (use-package-process-keywords name rest state)))
     (use-package-concat
      (mapcar #'(lambda (cons)
-                 `(unless (executable-find (symbol-name ',(car cons)))
+                 `(unless (use-package-ensure-system-package-exists? ',(car cons))
                     (async-shell-command ,(cdr cons)))) arg)
      body)))
 
