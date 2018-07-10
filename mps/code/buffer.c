@@ -281,15 +281,16 @@ void BufferDetach(Buffer buffer, Pool pool)
     Size spare;
 
     buffer->mode |= BufferModeTRANSITION;
-    init = buffer->ap_s.init;
-    limit = buffer->poolLimit;
+
     /* Ask the owning pool to do whatever it needs to before the */
     /* buffer is detached (e.g. copy buffer state into pool state). */
-    Method(Pool, pool, bufferEmpty)(pool, buffer, init, limit);
+    Method(Pool, pool, bufferEmpty)(pool, buffer);
 
     /* run any class-specific detachment method */
     Method(Buffer, buffer, detach)(buffer);
 
+    init = BufferGetInit(buffer);
+    limit = BufferLimit(buffer);
     spare = AddrOffset(init, limit);
     buffer->emptySize += spare;
     if (buffer->isMutator) {

@@ -233,6 +233,28 @@ of ``segLo`` and ``segHi``.
 Extensibility
 -------------
 
+Allocation
+..........
+
+``typedef Bool (*SegBufferFillMethod)(Addr *baseReturn, Addr *limitReturn, Seg seg, Size size, RankSet rankSet)``
+
+_`.method.buffer-fill`: Allocate a block in the segment, of at least
+``size`` bytes, with the given set of ranks. If successful, update
+``*baseReturn`` and ``*limitReturn`` to the block and return ``TRUE``.
+Otherwise, return ``FALSE``. The allocated block must be accounted as
+buffered (see design.mps.strategy.account.buffered_).
+
+.. _design.mps.strategy.account.buffered: strategy#account-buffered
+
+``typedef void (*SegBufferEmptyMethod)(Seg seg, Buffer buffer)``
+
+_`.method.buffer-empty`: Free the unused part of the buffer to the
+segment. Account the used part as new (see design.mps.strategy.account.new_) and the unused part as free (see design.mps.strategy.account.free_).
+
+.. _design.mps.strategy.account.new: strategy#account-new
+.. _design.mps.strategy.account.free: strategy#account-free
+
+
 Garbage collection
 ..................
 

@@ -392,6 +392,21 @@ Addr SegBufferScanLimit(Seg seg)
 }
 
 
+/* SegBufferFill -- allocate to a buffer from a segment */
+
+Bool SegBufferFill(Addr *baseReturn, Addr *limitReturn, Seg seg, Size size,
+                   RankSet rankSet)
+{
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVERT(Seg, seg);
+  AVER(size > 0);
+  AVERT(RankSet, rankSet);
+  return Method(Seg, seg, bufferFill)(baseReturn, limitReturn,
+                                      seg, size, rankSet);
+}
+
+
 /* SegDescribe -- describe a segment */
 
 static Res segAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
@@ -1018,6 +1033,30 @@ static void segNoUnsetBuffer(Seg seg)
   NOTREACHED;
 }
 
+
+/* segNoBufferFill -- non-method to fill buffer from segment */
+
+static Bool segNoBufferFill(Addr *baseReturn, Addr *limitReturn,
+                            Seg seg, Size size, RankSet rankSet)
+{
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVERT(Seg, seg);
+  AVER(size > 0);
+  AVERT(RankSet, rankSet);
+  NOTREACHED;
+  return FALSE;
+}
+
+
+/* segNoBufferEmpty -- non-method to empty buffer to segment */
+
+static void segNoBufferEmpty(Seg seg, Buffer buffer)
+{
+  AVERT(Seg, seg);
+  AVERT(Buffer, buffer);
+  NOTREACHED;
+}
 
 
 /* segNoMerge -- merge method for segs which don't support merge */
@@ -2049,6 +2088,12 @@ Bool SegClassCheck(SegClass klass)
   CHECKD(InstClass, &klass->instClassStruct);
   CHECKL(klass->size >= sizeof(SegStruct));
   CHECKL(FUNCHECK(klass->init));
+  CHECKL(FUNCHECK(klass->setSummary));
+  CHECKL(FUNCHECK(klass->buffer));
+  CHECKL(FUNCHECK(klass->setBuffer));
+  CHECKL(FUNCHECK(klass->unsetBuffer));
+  CHECKL(FUNCHECK(klass->bufferFill));
+  CHECKL(FUNCHECK(klass->bufferEmpty));
   CHECKL(FUNCHECK(klass->setGrey));
   CHECKL(FUNCHECK(klass->setWhite));
   CHECKL(FUNCHECK(klass->setRankSet));
@@ -2098,6 +2143,8 @@ DEFINE_CLASS(Seg, Seg, klass)
   klass->buffer = segNoBuffer; 
   klass->setBuffer = segNoSetBuffer;
   klass->unsetBuffer = segNoUnsetBuffer;
+  klass->bufferFill = segNoBufferFill;
+  klass->bufferEmpty = segNoBufferEmpty;
   klass->setGrey = segNoSetGrey;
   klass->flip = segTrivFlip;
   klass->setWhite = segNoSetWhite;

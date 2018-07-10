@@ -162,6 +162,9 @@ typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
 typedef Bool (*SegBufferMethod)(Buffer *bufferReturn, Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
 typedef void (*SegUnsetBufferMethod)(Seg seg);
+typedef Bool (*SegBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
+                                    Seg seg, Size size, RankSet rankSet);
+typedef void (*SegBufferEmptyMethod)(Seg seg, Buffer buffer);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
@@ -202,8 +205,7 @@ typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
 typedef PoolGen (*PoolSegPoolGenMethod)(Pool pool, Seg seg);
 typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size);
-typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,
-                                      Addr init, Addr limit);
+typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,

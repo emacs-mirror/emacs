@@ -156,9 +156,10 @@ found and set the corresponding bits in the scanned table.
 
 _`.awlseg.alloc`: The ``alloc`` bit table is used to record which
 portions of a segment have been allocated. Ranges of bits in this
-table are set when a buffer is attached to the segment. When a buffer
-is flushed (ie ``AWLBufferEmpty()`` is called) from the segment, the
-bits corresponding to the unused portion at the end of the buffer are
+table are set in ``awlSegBufferFill()`` when a buffer is attached to
+the segment. When a buffer is flushed (that is,
+``awlSegBufferEmpty()`` is called) from the segment, the bits
+corresponding to the unused portion at the end of the buffer are
 reset.
 
 _`.awlseg.alloc.invariant`: A bit is set in the alloc table if and
@@ -217,21 +218,13 @@ implement free.
 ``Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Pool pool, Buffer buffer, Size size)``
 
 _`.fun.fill`: This zips round all the the segments applying
-``AWLSegAlloc()`` to each segment that has the same rank as the
-buffer. ``AWLSegAlloc()`` attempts to find a free range, if it finds a
-range then it may be bigger than the actual request, in which case the
-remainder can be used to "fill" the rest of the buffer. If no free
-range can be found in an existing segment then a new segment will be
-created (which is at least large enough). The range of buffered
-addresses is marked as allocated in the segment's alloc table.
-
-``void AWLBufferEmpty(Pool pool, Buffer buffer)``
-
-_`.fun.empty`: Locates the free portion of the buffer, that is the
-memory between the init and the limit of the buffer and records these
-locations as being free in the relevant alloc table. The segment that
-the buffer is pointing at (which contains the alloc table that needs
-to be dinked with) is available via ``BufferSeg()``.
+``SegBufferFill()`` to each segment. ``awlSegBufferFill()`` attempts
+to find a large-enough free range; if it finds one then it may be
+bigger than the actual request, in which case the remainder can be
+used to "fill" the rest of the buffer. If no free range can be found
+in an existing segment then a new segment will be created (which is at
+least large enough). The range of buffered addresses is marked as
+allocated in the segment's alloc table.
 
 ``Res AWLDescribe(Pool pool, mps_lib_FILE *stream, Count depth)``
 
@@ -270,18 +263,24 @@ grains field is computed and stored.
 _`.fun.awlsegfinish`: Finish method for ``AWLSegClass``, called from
 ``SegFree()``. Will free the segment's tables (see `.awlseg.bt`_).
 
-``Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn, AWLSeg awlseg, AWL awl, Size size)``
+``Bool awlSegBufferFill(Addr *baseReturn, Addr *limitReturn, Seg seg, Size size, RankSet rankSet)``
 
-_`.fun.awlsegalloc`: Will search for a free block in the segment that
-is at least size bytes long. The base address of the block is returned
-in ``*baseReturn``, the limit of the entire free block (which must be
-at least as large size and may be bigger) is returned in
-``*limitReturn``. The requested size is converted to a number of
+_`.fun.seg.buffer-fill`: Searches for a free block in the segment that
+is at least ``size`` bytes long. The base address of the block is
+returned in ``*baseReturn``, the limit of the entire free block (which
+must be at least as large as ``size`` and may be bigger) is returned
+in ``*limitReturn``. The requested size is converted to a number of
 grains, ``BTFindResRange()`` is called to find a run of this length in
-the alloc bit-table (`.awlseg.alloc`_). The return results (if it is
+the alloc bit-table (`.awlseg.alloc`_). The results (if it is
 successful) from ``BTFindResRange()`` are in terms of grains, they are
 converted back to addresses before returning the relevant values from
 this function.
+
+``void awlSegBufferEmpty(Seg seg, Buffer buffer)``
+
+_`.fun.seg.buffer-empty`: Locates the free portion of the buffer, that
+is the memory between the init and the limit of the buffer and records
+these locations as being free in the alloc table.
 
 ``Res awlSegWhiten(Seg seg, Trace trace)``
 

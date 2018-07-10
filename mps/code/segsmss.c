@@ -396,7 +396,7 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
 /* AMSUnallocateRange -- set a range to be unallocated
  *
  * Used as a means of overriding the behaviour of AMSBufferFill.
- * The code is similar to AMSBufferEmpty.
+ * The code is similar to amsSegBufferEmpty.
  */
 static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 {
