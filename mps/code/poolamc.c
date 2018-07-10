@@ -23,6 +23,7 @@ typedef Bool (*amcPinnedFunction)(AMC amc, Nailboard board, Addr base, Addr limi
 
 /* forward declarations */
 
+static void amcSegBufferEmpty(Seg seg, Buffer buffer);
 static Res amcSegWhiten(Seg seg, Trace trace);
 static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static void amcSegReclaim(Seg seg, Trace trace);
@@ -38,7 +39,7 @@ static void amcSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
 
 typedef AMC AMCZPool;
 #define AMCZPoolCheck AMCCheck
-DECLARE_CLASS(Pool, AMCZPool, AbstractSegBufPool);
+DECLARE_CLASS(Pool, AMCZPool, AbstractCollectPool);
 
 typedef AMC AMCPool;
 DECLARE_CLASS(Pool, AMCPool, AMCZPool);
@@ -357,6 +358,7 @@ DEFINE_CLASS(Seg, amcSeg, klass)
   klass->instClassStruct.finish = amcSegFinish;
   klass->size = sizeof(amcSegStruct);
   klass->init = AMCSegInit;
+  klass->bufferEmpty = amcSegBufferEmpty;
   klass->whiten = amcSegWhiten;
   klass->scan = amcSegScan;
   klass->fix = amcSegFix;
@@ -1002,29 +1004,28 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 }
 
 
-/* amcBufferEmpty -- detach a buffer from a segment
+/* amcSegBufferEmpty -- free from buffer to segment
  *
  * See <design/poolamc/#flush>.
  */
-static void AMCBufferEmpty(Pool pool, Buffer buffer,
-                           Addr init, Addr limit)
+static void amcSegBufferEmpty(Seg seg, Buffer buffer)
 {
+  amcSeg amcseg = MustBeA(amcSeg, seg);
+  Pool pool = SegPool(seg);
+  Arena arena = PoolArena(pool);
   AMC amc = MustBeA(AMCZPool, pool);
-  Size size;
-  Arena arena;
-  Seg seg;
-  amcSeg amcseg;
+  Addr base, init, limit;
   TraceId ti;
   Trace trace;
 
-  AVERT(Buffer, buffer);
-  AVER(BufferIsReady(buffer));
-  seg = BufferSeg(buffer);
   AVERT(Seg, seg);
-  amcseg = MustBeA(amcSeg, seg);
+  AVERT(Buffer, buffer);
+  base = BufferBase(buffer);
+  init = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
+  AVER(SegBase(seg) <= base);
+  AVER(base <= init);
   AVER(init <= limit);
-
-  arena = BufferArena(buffer);
   if(SegSize(seg) < amc->largeSize) {
     /* Small or Medium segment: buffer had the entire seg. */
     AVER(limit == SegLimit(seg));
@@ -1034,10 +1035,9 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
   }
 
   /* <design/poolamc/#flush.pad> */
-  size = AddrOffset(init, limit);
-  if(size > 0) {
+  if (init < limit) {
     ShieldExpose(arena, seg);
-    (*pool->format->pad)(init, size);
+    (*pool->format->pad)(init, AddrOffset(init, limit));
     ShieldCover(arena, seg);
   }
 
@@ -1046,7 +1046,7 @@ static void AMCBufferEmpty(Pool pool, Buffer buffer,
    * traces for which this segment is white. */
   TRACE_SET_ITER(ti, trace, seg->white, arena)
     GenDescCondemned(amcseg->gen->pgen.gen, trace,
-                     AddrOffset(BufferBase(buffer), limit));
+                     AddrOffset(base, limit));
   TRACE_SET_ITER_END(ti, trace, seg->white, arena);
 
   if (amcseg->accountedAsBuffered) {
@@ -1212,7 +1212,7 @@ static Res amcSegWhiten(Seg seg, Trace trace)
         }
         /* Move the buffer's base up to the scan limit, so that we can
          * detect allocation that happens during the trace, and
-         * account for it correctly in AMCBufferEmpty and
+         * account for it correctly in amcSegBufferEmpty and
          * amcSegReclaimNailed. */
         buffer->base = bufferScanLimit;
         /* We didn't condemn the buffer, subtract it from the count. */
@@ -2012,8 +2012,7 @@ static Res AMCDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 
 DEFINE_CLASS(Pool, AMCZPool, klass)
 {
-  INHERIT_CLASS(klass, AMCZPool, AbstractSegBufPool);
-  PoolClassMixInCollect(klass);
+  INHERIT_CLASS(klass, AMCZPool, AbstractCollectPool);
   klass->instClassStruct.describe = AMCDescribe;
   klass->instClassStruct.finish = AMCFinish;
   klass->size = sizeof(AMCStruct);
@@ -2021,7 +2020,6 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->varargs = AMCVarargs;
   klass->init = AMCZInit;
   klass->bufferFill = AMCBufferFill;
-  klass->bufferEmpty = AMCBufferEmpty;
   klass->rampBegin = AMCRampBegin;
   klass->rampEnd = AMCRampEnd;
   klass->segPoolGen = amcSegPoolGen;
