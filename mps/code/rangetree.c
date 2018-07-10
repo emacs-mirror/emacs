@@ -1,63 +1,86 @@
-/* cbs.h: CBS -- Coalescing Block Structure
+/* rangetree.c -- binary trees of address ranges
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- *
- * .source: <design/cbs/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef cbs_h
-#define cbs_h
-
-#include "arg.h"
-#include "mpmtypes.h"
-#include "mpm.h"
-#include "mpmst.h"
 #include "rangetree.h"
-#include "splay.h"
-
-typedef struct CBSFastBlockStruct *CBSFastBlock;
-typedef struct CBSFastBlockStruct {
-  struct RangeTreeStruct rangeTreeStruct;
-  Size maxSize; /* accurate maximum block size of sub-tree */
-} CBSFastBlockStruct;
-
-typedef struct CBSZonedBlockStruct *CBSZonedBlock;
-typedef struct CBSZonedBlockStruct {
-  struct CBSFastBlockStruct cbsFastBlockStruct;
-  ZoneSet zones; /* union zone set of all ranges in sub-tree */
-} CBSZonedBlockStruct;
-
-typedef struct CBSStruct *CBS, *CBSFast, *CBSZoned;
-
-extern Bool CBSCheck(CBS cbs);
+#include "tree.h"
+#include "range.h"
+#include "mpm.h"
 
 
-/* CBSLand -- convert CBS to Land
+void RangeTreeInit(RangeTree rangeTree, Addr base, Addr limit)
+{
+  AVER(rangeTree != NULL);
+  TreeInit(RangeTreeTree(rangeTree));
+  RangeInit(RangeTreeRange(rangeTree), base, limit);
+  AVERT(RangeTree, rangeTree);
+}
+
+
+void RangeTreeInitFromRange(RangeTree rangeTree, Range range)
+{
+  AVER(rangeTree != NULL);
+  TreeInit(RangeTreeTree(rangeTree));
+  RangeCopy(RangeTreeRange(rangeTree), range);
+  AVERT(RangeTree, rangeTree);
+}
+
+
+Bool RangeTreeCheck(RangeTree rangeTree)
+{
+  CHECKL(rangeTree != NULL);
+  CHECKD_NOSIG(Tree, RangeTreeTree(rangeTree));
+  CHECKD_NOSIG(Range, RangeTreeRange(rangeTree));
+  return TRUE;
+}
+
+
+void RangeTreeFinish(RangeTree rangeTree)
+{
+  AVERT(RangeTree, rangeTree);
+  TreeFinish(RangeTreeTree(rangeTree));
+  RangeFinish(RangeTreeRange(rangeTree));
+}
+
+
+/* RangeTreeCompare -- Compare key to [base,limit)
  *
- * We would like to use MustBeA(Land, cbs) for this, but it produces
- * bogus warnings about strict aliasing from GCC 4.7 (and probably
- * 4.8).  We can abolish this macro when those are no longer in use in
- * MPS development.
+ * See <design/splay/#type.splay.compare.method>
  */
 
-#define CBSLand(cbs) (&(cbs)->landStruct)
+Compare RangeTreeCompare(Tree tree, TreeKey key)
+{
+  Addr base1, base2, limit2;
+  RangeTree block;
 
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(tree != TreeEMPTY);
+  AVER_CRITICAL(key != NULL);
 
-DECLARE_CLASS(Land, CBS, Land);
-DECLARE_CLASS(Land, CBSFast, CBS);
-DECLARE_CLASS(Land, CBSZoned, CBSFast);
+  base1 = RangeTreeBaseOfKey(key);
+  block = RangeTreeOfTree(tree);
+  base2 = RangeTreeBase(block);
+  limit2 = RangeTreeLimit(block);
 
-extern const struct mps_key_s _mps_key_cbs_block_pool;
-#define CBSBlockPool (&_mps_key_cbs_block_pool)
-#define CBSBlockPool_FIELD pool
+  if (base1 < base2)
+    return CompareLESS;
+  else if (base1 >= limit2)
+    return CompareGREATER;
+  else
+    return CompareEQUAL;
+}
 
-#endif /* cbs_h */
+TreeKey RangeTreeKey(Tree tree)
+{
+  return RangeTreeKeyOfBaseVar(RangeTreeBase(RangeTreeOfTree(tree)));
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

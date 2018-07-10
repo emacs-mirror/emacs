@@ -1,63 +1,60 @@
-/* cbs.h: CBS -- Coalescing Block Structure
+/* rangetree.c -- binary trees of address ranges
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
- *
- * .source: <design/cbs/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef cbs_h
-#define cbs_h
+#ifndef rangetree_h
+#define rangetree_h
 
-#include "arg.h"
 #include "mpmtypes.h"
-#include "mpm.h"
-#include "mpmst.h"
-#include "rangetree.h"
-#include "splay.h"
+#include "range.h"
+#include "tree.h"
 
-typedef struct CBSFastBlockStruct *CBSFastBlock;
-typedef struct CBSFastBlockStruct {
-  struct RangeTreeStruct rangeTreeStruct;
-  Size maxSize; /* accurate maximum block size of sub-tree */
-} CBSFastBlockStruct;
+#define RangeTreeTree(rangeTree) (&(rangeTree)->treeStruct)
+#define RangeTreeRange(rangeTree) (&(rangeTree)->rangeStruct)
+#define RangeTreeOfTree(tree) PARENT(RangeTreeStruct, treeStruct, tree)
+#define RangeTreeOfRange(range) PARENT(RangeTreeStruct, rangeStruct, range)
 
-typedef struct CBSZonedBlockStruct *CBSZonedBlock;
-typedef struct CBSZonedBlockStruct {
-  struct CBSFastBlockStruct cbsFastBlockStruct;
-  ZoneSet zones; /* union zone set of all ranges in sub-tree */
-} CBSZonedBlockStruct;
+#define RangeTreeBase(block) RangeBase(RangeTreeRange(block))
+#define RangeTreeLimit(block) RangeLimit(RangeTreeRange(block))
+#define RangeTreeSetBase(block, addr) RangeSetBase(RangeTreeRange(block), addr)
+#define RangeTreeSetLimit(block, addr) RangeSetLimit(RangeTreeRange(block), addr)
+#define RangeTreeSize(block) RangeSize(RangeTreeRange(block))
 
-typedef struct CBSStruct *CBS, *CBSFast, *CBSZoned;
-
-extern Bool CBSCheck(CBS cbs);
+extern void RangeTreeInit(RangeTree rangeTree, Addr base, Addr limit);
+extern void RangeTreeInitFromRange(RangeTree rangeTree, Range range);
+extern Bool RangeTreeCheck(RangeTree rangeTree);
+extern void RangeTreeFinish(RangeTree rangeTree);
 
 
-/* CBSLand -- convert CBS to Land
+/* Compare and key functions for use with TreeFind, TreeInsert, etc.
  *
- * We would like to use MustBeA(Land, cbs) for this, but it produces
- * bogus warnings about strict aliasing from GCC 4.7 (and probably
- * 4.8).  We can abolish this macro when those are no longer in use in
- * MPS development.
+ * We pass the rangeTree base directly as a TreeKey (void *) assuming
+ * that Addr can be encoded, possibly breaking <design/type/#addr.use>.
+ * On an exotic platform where this isn't true, pass the address of
+ * base: that is, add an &.
  */
 
-#define CBSLand(cbs) (&(cbs)->landStruct)
+#define RangeTreeKeyOfBaseVar(baseVar) ((TreeKey)(baseVar))
+#define RangeTreeBaseOfKey(key)        ((Addr)(key))
+
+extern Compare RangeTreeCompare(Tree tree, TreeKey key);
+extern TreeKey RangeTreeKey(Tree tree);
 
 
-DECLARE_CLASS(Land, CBS, Land);
-DECLARE_CLASS(Land, CBSFast, CBS);
-DECLARE_CLASS(Land, CBSZoned, CBSFast);
+/* RangeTreeStruct -- address range in a tree */
 
-extern const struct mps_key_s _mps_key_cbs_block_pool;
-#define CBSBlockPool (&_mps_key_cbs_block_pool)
-#define CBSBlockPool_FIELD pool
+typedef struct RangeTreeStruct {
+  TreeStruct treeStruct;
+  RangeStruct rangeStruct;
+} RangeTreeStruct;
 
-#endif /* cbs_h */
-
+#endif /* rangetree_h */
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
