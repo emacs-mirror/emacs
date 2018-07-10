@@ -1,7 +1,7 @@
 /* gcbench.c -- "GC" Benchmark on ANSI C library
  *
  * $Id$
- * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This is an allocation stress benchmark test for gc pools
  */
@@ -290,6 +290,7 @@ static struct {
 } pools[] = {
   {"amc", gc_tree, mps_class_amc},
   {"ams", gc_tree, mps_class_ams},
+  {"awl", gc_tree, mps_class_awl},
 };
 
 
@@ -477,7 +478,7 @@ int main(int argc, char *argv[]) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
