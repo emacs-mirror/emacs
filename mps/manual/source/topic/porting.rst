@@ -187,7 +187,7 @@ platform constant ``MPS_PF_OSARCT`` that is now defined in
 ``mpstd.h``, and then include all the module sources for the platform.
 For example::
 
-    /* Linux on 64-bit Intel with GCC or Clang */
+    /* Linux on x86-64 with GCC or Clang */
 
     #elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
@@ -197,9 +197,9 @@ For example::
     #include "vmix.c"       /* Posix virtual memory */
     #include "protix.c"     /* Posix protection */
     #include "protsgix.c"   /* Posix signal handling */
-    #include "prmci6.c"     /* 64-bit Intel mutator context */
+    #include "prmci6.c"     /* x86-64 mutator context */
     #include "prmcix.c"     /* Posix mutator context */
-    #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
+    #include "prmclii6.c"   /* x86-64 for Linux mutator context */
     #include "span.c"       /* generic stack probe */
 
 
