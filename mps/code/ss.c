@@ -32,6 +32,7 @@ SRCID(ss, "$Id$");
  * is a hot stack pointer.  See design.mps.ss.sol.stack.hot.
  */
 
+ATTRIBUTE_NOINLINE
 void StackHot(void **stackOut)
 {
   *stackOut = &stackOut;
