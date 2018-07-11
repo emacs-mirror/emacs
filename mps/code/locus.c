@@ -107,7 +107,7 @@ Bool GenDescCheck(GenDesc gen)
 {
   CHECKS(GenDesc, gen);
   /* nothing to check for zones */
-  /* nothing to check for capacity */
+  CHECKL(gen->capacity > 0);
   CHECKL(gen->mortality >= 0.0);
   CHECKL(gen->mortality <= 1.0);
   CHECKD_NOSIG(Ring, &gen->locusRing);
@@ -123,6 +123,7 @@ static Bool GenParamCheck(GenParamStruct *params)
 {
   CHECKL(params != NULL);
   CHECKL(params->capacity > 0);
+  CHECKL(params->capacity <= SizeMAX / 1024);
   CHECKL(params->mortality >= 0.0);
   CHECKL(params->mortality <= 1.0);
   return TRUE;
@@ -139,7 +140,7 @@ static void GenDescInit(GenDesc gen, GenParamStruct *params)
   AVER(GenParamCheck(params));
 
   gen->zones = ZoneSetEMPTY;
-  gen->capacity = params->capacity;
+  gen->capacity = params->capacity * 1024;
   gen->mortality = params->mortality;
   RingInit(&gen->locusRing);
   RingInit(&gen->segRing);
@@ -162,7 +163,7 @@ static void GenDescFinish(GenDesc gen)
   gen->sig = SigInvalid;
   RingFinish(&gen->locusRing);
   RingFinish(&gen->segRing);
-  AVER(gen->activeTraces == TraceSetEMPTY);
+  AVER(gen->activeTraces == TraceSetEMPTY); /* <design/check/#.common> */
   for (ti = 0; ti < TraceLIMIT; ++ti)
     RingFinish(&gen->trace[ti].traceRing);
 }
@@ -465,7 +466,7 @@ double ChainDeferral(Chain chain)
     GenDesc gen = &chain->gens[i];
     if (gen->activeTraces != TraceSetEMPTY)
       return DBL_MAX;
-    genTime = gen->capacity * 1024.0 - (double)GenDescNewSize(&chain->gens[i]);
+    genTime = (double)gen->capacity - (double)GenDescNewSize(&chain->gens[i]);
     if (genTime < time)
       time = genTime;
   }
@@ -864,7 +865,7 @@ void LocusInit(Arena arena)
 
   AVER(arena != NULL); /* not initialized yet. */
  
-  params.capacity = 1; /* unused */
+  params.capacity = 1; /* unused since top generation is not on any chain */
   params.mortality = 0.5;
  
   GenDescInit(&arena->topGen, &params);

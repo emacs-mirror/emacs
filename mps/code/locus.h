@@ -43,7 +43,7 @@ typedef struct GenDescStruct *GenDesc;
 typedef struct GenDescStruct {
   Sig sig;
   ZoneSet zones;        /* zoneset for this generation */
-  Size capacity;        /* capacity in kB */
+  Size capacity;        /* capacity in bytes */
   double mortality;     /* predicted mortality */
   RingStruct locusRing; /* Ring of all PoolGen's in this GenDesc (locus) */
   RingStruct segRing; /* Ring of GCSegs in this generation */

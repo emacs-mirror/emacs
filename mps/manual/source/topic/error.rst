@@ -324,7 +324,7 @@ this documentation.
     :term:`stepper functions`.
 
 
-``locus.c: chain->activeTraces == TraceSetEMPTY``
+``locus.c: gen->activeTraces == TraceSetEMPTY``
 
     The client program called :c:func:`mps_chain_destroy`, but there
     was a garbage collection in progress on that chain. Park the arena
