@@ -3,13 +3,20 @@
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- *  This is part of the code that scans the stack and fixes the registers
- *  that may contain roots.  See <design/thread-manager/>
+ * This scans the mutator's stack and fixes the registers that may
+ * contain roots. See <design/stack-scan/>.
  *
- *  Each platform ABI has a set of callee-save registers that may still
- *  contain roots.  The StackScan function is defined for each ABI in source
- *  files like ss*.c and ss*.asm.  That function saves the callee save
- *  registers in its frame, then calls StackScanInner to do the scanning.
+ * This is a generic implementation, but it makes assumptions that,
+ * while true on all the platforms we currently (version 1.115)
+ * support, may not be true on all platforms. See
+ * <design/stack-scan/#sol.platform>.
+ * 
+ * .assume.desc: The stack is descending (and so stackHot is a lower
+ * address than stackCold).
+ *
+ * .assume.full: The stack convention is "full" (and so we must scan
+ * the word pointed to by stackHot but not the word pointed to by
+ * stackCold).
  */
 
 #include "mpm.h"
@@ -17,58 +24,46 @@
 SRCID(ss, "$Id$");
 
 
-/* StackScanInner -- carry out stack scanning
+/* StackHot -- capture a hot stack pointer
  *
- * This function should be called by StackScan once it has saved the
- * callee-save registers for the platform ABI in order to do the actual
- * scanning.
+ * On all supported platforms, the arguments are pushed on to the
+ * stack by the caller below its other local data, so as long as
+ * it does not use something like alloca, the address of the argument
+ * is a hot stack pointer.  See design.mps.ss.sol.stack.hot.
  */
 
-Res StackScanInner(ScanState ss, Word *stackCold, Word *stackHot,
-                   Count nSavedRegs,
-                   mps_area_scan_t scan_area, void *closure)
+ATTRIBUTE_NOINLINE
+void StackHot(void **stackOut)
 {
+  *stackOut = &stackOut;
+}
+
+
+/* StackScan -- scan the mutator's stack and registers */
+
+Res StackScan(ScanState ss, void *stackCold,
+              mps_area_scan_t scan_area, void *closure)
+{
+  StackContextStruct scStruct;
   Arena arena;
-  Res res;
+  void *warmest;
 
   AVERT(ScanState, ss);
-  AVER(0 < nSavedRegs);
-  AVER(nSavedRegs < 128);       /* sanity check */
-
-  /* .assume.stack: This implementation assumes that the stack grows
-   * downwards, so that the address of the jmp_buf is the base of the
-   * part of the stack that needs to be scanned. (StackScanInner makes
-   * the same assumption.)
-   */
-  AVER(stackHot < stackCold);
 
   arena = ss->arena;
 
-  /* If a stack pointer was stored when we entered the arena (through the
-     MPS interface in mpsi*.c) then we scan just the saved registers and
-     the stack starting there, in order to avoid false ambiguous references
-     in the MPS stack.  This is particularly important for transforms
-     (trans.c).  Otherwise, scan the whole stack. */
-
-  if (arena->stackAtArenaEnter != NULL) {
-    AVER(stackHot < arena->stackAtArenaEnter); /* .assume.stack */
-    AVER(arena->stackAtArenaEnter < stackCold); /* .assume.stack */
-    res = TraceScanArea(ss, stackHot, stackHot + nSavedRegs,
-                        scan_area, closure);
-    if (res != ResOK)
-      return res;
-    res = TraceScanArea(ss, arena->stackAtArenaEnter, stackCold,
-                        scan_area, closure);
-    if (res != ResOK)
-      return res;
-  } else {
-    res = TraceScanArea(ss, stackHot, stackCold,
-                        scan_area, closure);
-    if (res != ResOK)
-      return res;
+  AVER(arena->stackWarm != NULL);
+  warmest = arena->stackWarm;
+  if (warmest == NULL) {
+    /* Somehow missed saving the context at the entry point (see
+       <design/stack-scan/#sol.entry-points.fragile>): do it now. */
+    STACK_CONTEXT_SAVE(&scStruct);
+    warmest = &scStruct;
   }
 
-  return ResOK;
+  AVER(warmest < stackCold);                            /* .assume.desc */
+
+  return TraceScanArea(ss, warmest, stackCold, scan_area, closure);
 }
 
 

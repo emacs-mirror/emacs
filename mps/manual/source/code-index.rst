@@ -199,15 +199,8 @@ sp.h          Stack probe interface. See design.mps.sp_.
 span.c        Stack probe implementation for standard C.
 spw3i3.c      Stack probe implementation for Windows, IA-32.
 spw3i6.c      Stack probe implementation for Windows, x86-64.
-ss.c          Stack scanning implementation (common part).
-ss.h          Stack scanning interface. See design.mps.ss_.
-ssan.c        Stack scanning implementation for standard C.
-ssixi3.c      Stack scanning implementation for POSIX, IA-32.
-ssixi6.c      Stack scanning implementation for POSIX, x86-64.
-ssw3i3mv.c    Stack scanning implementation for Windows, IA-32, Visual C.
-ssw3i3pc.c    Stack scanning implementation for Windows, IA-32, Pelles C.
-ssw3i6mv.c    Stack scanning implementation for Windows, x86-64, Visual C.
-ssw3i6pc.c    Stack scanning implementation for Windows, x86-64, Pelles C.
+ss.c          Stack scanning implementation.
+ss.h          Stack scanning interface. See design.mps.stack-scan_.
 th.h          Threads interface. See design.mps.thread-manager_.
 than.c        Threads implementation for standard C.
 thix.c        Threads implementation for POSIX.
@@ -408,6 +401,8 @@ w3i3pc.nmk     NMAKE file for platform W3I3PC.
 w3i6mv.nmk     NMAKE file for platform W3I6MV.
 w3i6pc.nmk     NMAKE file for platform W3I6PC.
 xci3gc.gmk     GNU makefile for platform XCI3GC.
+xci3ll.gmk     GNU makefile for platform XCI3LL.
+xci6gc.gmk     GNU makefile for platform XCI6GC.
 xci6ll.gmk     GNU makefile for platform XCI6LL.
 =============  ================================================================
 
@@ -438,7 +433,7 @@ xci6ll.gmk     GNU makefile for platform XCI6LL.
 .. _design.mps.shield: design/shield.html
 .. _design.mps.sp: design/sp.html
 .. _design.mps.splay: design/splay.html
-.. _design.mps.ss: design/ss.html
+.. _design.mps.stack-scan: design/stack-scan.html
 .. _design.mps.strategy: design/strategy.html
 .. _design.mps.tests: design/tests.html
 .. _design.mps.testthr: design/testthr.html

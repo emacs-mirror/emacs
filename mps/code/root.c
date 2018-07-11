@@ -52,7 +52,7 @@ typedef struct RootStruct {
       Thread thread;            /* passed to scan */
       mps_area_scan_t scan_area;/* area scanner for stack and registers */
       AreaScanUnion the;
-      Word *stackCold;          /* cold end of stack */
+      void *stackCold;          /* cold end of stack */
     } thread;
     struct {
       mps_fmt_scan_t scan;      /* format-like scanner */

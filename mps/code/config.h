@@ -278,8 +278,20 @@
 #define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #endif
 
+/* Attribute for functions that must not be inlined.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
+ * MSVC: <https://docs.microsoft.com/en-us/cpp/cpp/noinline>
+ */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define ATTRIBUTE_NOINLINE __attribute__((__noinline__))
+#elif defined(MPS_BUILD_MV)
+#define ATTRIBUTE_NOINLINE __declspec(noinline)
+#else
+#define ATTRIBUTE_NOINLINE
+#endif
+
 /* Attribute for functions that do not return.
- * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
  * Clang: <http://clang.llvm.org/docs/AttributeReference.html#id1>
  */
 #if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
@@ -289,7 +301,7 @@
 #endif
 
 /* Attribute for functions that may be unused in some build configurations.
- * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
  *
  * This attribute must be applied to all Check functions, otherwise
  * the RASH variety fails to compile with -Wunused-function. (It

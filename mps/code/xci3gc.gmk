@@ -17,18 +17,10 @@ MPMPF = \
     protix.c \
     protxc.c \
     span.c \
-    ssixi3.c \
     thxc.c \
     vmix.c
 
-LIBS =
-
-RANLIB=ranlib
-
 include gc.gmk
-
-CC = gcc -arch i386
-
 include comm.gmk
 
 
