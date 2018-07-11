@@ -210,11 +210,10 @@ Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
 
 static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
 {
-  Res res;
   size_t topCondemnedGen, i;
   GenDesc gen;
-  Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
 
+  AVER(mortalityReturn != NULL);
   AVERT(Chain, chain);
   AVERT(Trace, trace);
 
@@ -230,8 +229,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
     -- topCondemnedGen;
     gen = &chain->gens[topCondemnedGen];
     AVERT(GenDesc, gen);
-    genNewSize = GenDescNewSize(gen);
-    if (genNewSize >= gen->capacity * (Size)1024)
+    if (GenDescNewSize(gen) >= gen->capacity * (Size)1024)
       break;
   }
 
@@ -239,33 +237,12 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
    * lower generations. */
   TraceCondemnStart(trace);
   for (i = 0; i <= topCondemnedGen; ++i) {
-    Ring node, next;
     gen = &chain->gens[i];
     AVERT(GenDesc, gen);
-    RING_FOR(node, &gen->segRing, next) {
-      GCSeg gcseg = RING_ELT(GCSeg, genRing, node);
-      res = TraceAddWhite(trace, &gcseg->segStruct);
-      if (res != ResOK)
-        goto failBegin;
-    }
-    genTotalSize = GenDescTotalSize(gen);
-    genNewSize = GenDescNewSize(gen);
-    condemnedSize += genTotalSize;
-    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
-                    /* predict survivors will survive again */
-                    + (genTotalSize - genNewSize);
+    GenDescStartTrace(gen, trace);
   }
-  TraceCondemnEnd(trace);
-
   EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
-  
-  *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
-  return ResOK;
-
-failBegin:
-  AVER(TraceIsEmpty(trace));    /* See <code/trace.c#whiten.fail> */
-  TraceCondemnEnd(trace);
-  return res;
+  return TraceCondemnEnd(mortalityReturn, trace);
 }
 
 
@@ -287,6 +264,7 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
 {
   Res res;
   Trace trace;
+  double TraceWorkFactor = 0.25;
 
   AVER(traceReturn != NULL);
   AVERT(Arena, arena);
@@ -340,8 +318,6 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
 
       res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
       AVER(res == ResOK);
-      trace->chain = firstChain;
-      ChainStartTrace(firstChain, trace);
       res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
