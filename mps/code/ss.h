@@ -44,6 +44,7 @@ void StackHot(void **stackOut);
     STACK_CONTEXT_SAVE(&_sc); \
     AVER(arena->stackWarm == NULL); \
     StackHot(&arena->stackWarm); \
+    AVER(arena->stackWarm < (void *)&_sc); /* <code/ss.c#assume.desc> */ \
     BEGIN
 
 
