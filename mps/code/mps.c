@@ -110,7 +110,6 @@
 #include "prmcan.c"     /* generic operating system mutator context */
 #include "prmcanan.c"   /* generic architecture mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssan.c"       /* generic stack scanner */
 
 /* macOS on 32-bit Intel built with Clang or GCC */
 
@@ -125,7 +124,6 @@
 #include "prmcxc.c"     /* macOS mutator context */
 #include "prmcxci3.c"   /* 32-bit Intel for macOS mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
 /* macOS on 64-bit Intel build with Clang or GCC */
 
@@ -140,7 +138,6 @@
 #include "prmcxc.c"     /* macOS mutator context */
 #include "prmcxci6.c"   /* 64-bit Intel for macOS mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 /* FreeBSD on 32-bit Intel built with GCC or Clang */
 
@@ -156,7 +153,6 @@
 #include "prmcix.c"     /* Posix mutator context */
 #include "prmcfri3.c"   /* 32-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
 /* FreeBSD on 64-bit Intel built with GCC or Clang */
 
@@ -172,7 +168,6 @@
 #include "prmcix.c"     /* Posix mutator context */
 #include "prmcfri6.c"   /* 64-bit Intel for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 /* Linux on 32-bit Intel with GCC */
 
@@ -188,7 +183,6 @@
 #include "prmcix.c"     /* Posix mutator context */
 #include "prmclii3.c"   /* 32-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi3.c"     /* Posix on 32-bit Intel stack scan */
 
 /* Linux on 64-bit Intel with GCC or Clang */
 
@@ -204,7 +198,6 @@
 #include "prmcix.c"     /* Posix mutator context */
 #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
 #include "span.c"       /* generic stack probe */
-#include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 /* Windows on 32-bit Intel with Microsoft Visual Studio */
 
@@ -217,7 +210,6 @@
 #include "prmci3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmcw3.c"     /* Windows mutator context */
 #include "prmcw3i3.c"   /* Windows on 32-bit Intel mutator context */
-#include "ssw3i3mv.c"   /* Windows on 32-bit Intel stack scan for Microsoft C */
 #include "spw3i3.c"     /* Windows on 32-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
@@ -232,7 +224,6 @@
 #include "prmci6.c"     /* 64-bit Intel mutator context decoding */
 #include "prmcw3.c"     /* Windows mutator context */
 #include "prmcw3i6.c"   /* Windows on 64-bit Intel mutator context */
-#include "ssw3i6mv.c"   /* Windows on 64-bit Intel stack scan for Microsoft C */
 #include "spw3i6.c"     /* Windows on 64-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
@@ -247,7 +238,6 @@
 #include "prmci3.c"     /* 32-bit Intel mutator context decoding */
 #include "prmcw3.c"     /* Windows mutator context */
 #include "prmcw3i3.c"   /* Windows on 32-bit Intel mutator context */
-#include "ssw3i3pc.c"   /* Windows on 32-bit stack scan for Pelles C */
 #include "spw3i3.c"     /* 32-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 
@@ -262,7 +252,6 @@
 #include "prmci6.c"     /* 64-bit Intel mutator context decoding */
 #include "prmcw3.c"     /* Windows mutator context */
 #include "prmcw3i6.c"   /* Windows on 64-bit Intel mutator context */
-#include "ssw3i6pc.c"   /* Windows on 64-bit stack scan for Pelles C */
 #include "spw3i6.c"     /* 64-bit Intel stack probe */
 #include "mpsiw3.c"     /* Windows interface layer extras */
 

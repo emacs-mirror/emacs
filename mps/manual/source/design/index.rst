@@ -37,7 +37,7 @@ Design
     sig
     sp
     splay
-    ss
+    stack-scan
     testthr
     thread-manager
     thread-safety

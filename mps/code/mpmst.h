@@ -813,8 +813,9 @@ typedef struct mps_arena_s {
   
   Bool emergency;               /* garbage collect in emergency mode? */
 
-  Word *stackAtArenaEnter;  /* NULL or hot end of client stack, in the thread */
-                            /* that then entered the MPS. */
+  /* Stack scanning -- see design.mps.stack-scan */
+  void *stackWarm;               /* NULL or stack pointer warmer than
+                                    mutator state. */
 
   Sig sig;
 } ArenaStruct;
