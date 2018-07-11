@@ -446,6 +446,11 @@ INTERACTIVE is t if called interactively."
 
 (defvar eglot-connect-hook nil "Hook run after connecting in `eglot--connect'.")
 
+(defvar eglot-server-initialized-hook
+  '(eglot-signal-didChangeConfiguration)
+  "Hook run after server is successfully initialized.
+Each function is passed the server as an argument")
+
 (defun eglot--connect (managed-major-mode project class contact)
   "Connect to MANAGED-MAJOR-MODE, PROJECT, CLASS and CONTACT.
 This docstring appeases checkdoc, that's all."
@@ -514,6 +519,7 @@ This docstring appeases checkdoc, that's all."
             (with-current-buffer buffer
               (eglot--maybe-activate-editing-mode server)))
           (jsonrpc-notify server :initialized `(:__dummy__ t))
+          (run-hook-with-args 'eglot-server-initialized-hook server)
           (setf (eglot--inhibit-autoreconnect server)
                 (cond
                  ((booleanp eglot-autoreconnect) (not eglot-autoreconnect))
@@ -1032,6 +1038,22 @@ Records START, END and PRE-CHANGE-LENGTH locally."
                            (when (and eglot--managed-mode deferred)
                              (eglot--signal-textDocument/didChange))))
             '((name . eglot--signal-textDocument/didChange)))
+
+(defvar-local eglot-workspace-configuration ()
+  "Alist of (SETTING . VALUE) entries configuring the LSP server.
+Setting should be a keyword, value can be any value that can be
+converted to JSON.")
+
+(defun eglot-signal-didChangeConfiguration (server)
+  "Send a `:workspace/didChangeConfiguration' signal to SERVER.
+When called interactively, use the currently active server"
+  (interactive (list (eglot--current-server-or-lose)))
+  (jsonrpc-notify
+   server :workspace/didChangeConfiguration
+   (list
+    :settings
+    (cl-loop for (k . v) in eglot-workspace-configuration
+             collect k collect v))))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
