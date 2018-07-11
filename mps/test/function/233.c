@@ -15,7 +15,7 @@ static void test(void)
 {
   size_t i;
   for (i = 0; i < 20; ++i) {
-    size_t unitSize = 1 << i;
+    size_t unitSize = (size_t)1 << i;
     mps_arena_t arena;
     mps_pool_t pool;
     mps_addr_t p;
