@@ -15,7 +15,7 @@
  */
 
 #include "mpm.h"
-#include "poolmv.h"
+#include "poolmvff.h"
 #include "testlib.h"
 #include "mpslib.h"
 #include "mpsavm.h"
@@ -415,7 +415,7 @@ static void testPageTable(ArenaClass klass, Size size, Addr addr, Bool zoned)
     die(ArenaCreate(&arena, klass, args), "ArenaCreate");
   } MPS_ARGS_END(args);
 
-  die(PoolCreate(&pool, arena, PoolClassMV(), argsNone), "PoolCreate");
+  die(PoolCreate(&pool, arena, PoolClassMVFF(), argsNone), "PoolCreate");
 
   pageSize = ArenaGrainSize(arena);
   tractsPerPage = pageSize / sizeof(TractStruct);

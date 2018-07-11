@@ -231,7 +231,7 @@ macro doesn't just pick a name implicitly because of the danger of a
 name clash with other names used by the programmer). A call to the
 macro defines the ensure function for the class along with some static
 storage for the canonical class object, and some other things to
-ensure the class gets initialized exactly once.
+ensure the class gets initialized at most once.
 
 
 Class access
@@ -395,34 +395,35 @@ functions.
 
 ``SuperclassPoly(kind, class)``
 
-_`.if.superclass`: An introspection function which returns the direct
-superclass of class object ``class`` as a class of kind ``kind``.
-This may assert if the superclass is not (a subtype of) the kind
-requested.
+_`.if.superclass-poly`: An introspection function which returns the
+direct superclass of class object ``class`` as a class of kind
+``kind``. This may assert if the superclass is not (a subtype of) the
+kind requested.
 
 
 ``ClassOfPoly(kind, inst)``
 
-_`.if.class`: An introspection function which returns the class of
-which ``inst`` is a direct instance, as a class of kind ``kind``.
-This may assert if the class is not (a subtype of) the kind requested.
+_`.if.class-of-poly`: An introspection function which returns the
+class of which ``inst`` is a direct instance, as a class of kind
+``kind``. This may assert if the class is not (a subtype of) the kind
+requested.
 
 
 ``SetClassOfPoly(inst, class)``
 
-_`.if.set-class`: An initialization function that sets the class of
-``inst`` to be ``class``.  This is intended only for use in
+_`.if.set-class-of-poly`: An initialization function that sets the
+class of ``inst`` to be ``class``. This is intended only for use in
 initialization functions, to specialize the instance once its fields
-have been initialized.  Each Init function should call its superclass
+have been initialized. Each Init function should call its superclass
 init, finally reaching InstInit, and then, once it has set up its
 fields, use SetClassOfPoly to set the class and check the instance
-with its check method.  Compare with `design.mps.sig`_.
+with its check method. Compare with `design.mps.sig`_.
 
 .. _`design.mps.sig`: sig
 
 ``IsSubclass(sub, super)``
 
-_`.if.subclass`: An introspection function which returns a ``Bool``
+_`.if.is-subclass`: An introspection function which returns a ``Bool``
 indicating whether ``sub`` is a subclass of ``super``. That is, it is
 a predicate for testing subclass relationships.
 
@@ -543,6 +544,12 @@ anti-method to clean-up a subsequent failure. ::
 Implementation
 --------------
 
+_`.impl.define-class.lock`: The ``DEFINE_CLASS`` macro ensures that
+each class is initialized at most once (even in multi-threaded
+programs) by claiming the global recursive lock (see design.mps.thread-safety.arch.global.recursive_).
+
+.. _design.mps.thread-safety.arch.global.recursive: thread-safety#arch-global-recursive
+
 _`.impl.derived-names`: The ``DEFINE_CLASS()`` macro derives some
 additional names from the class name as part of it's implementation.
 These should not appear in the source code, but it may be useful to
@@ -554,7 +561,7 @@ following:
 
   The class ensure function. See `.overview.naming`_.  This function
   handles local static storage for the canonical class object and a
-  guardian to ensure the storage is initialized exactly once.  This
+  guardian to ensure the storage is initialized at most once.  This
   function is invoked by the ``CLASS`` macro (`.if.class`_).
 
 * ``static void SomeClassInit(SomeKind);``
@@ -576,6 +583,24 @@ id is the address of the canonical class object, so the test is fast
 and simple.
 
 .. _RB: http://www.ravenbrook.com/consultants/rb/
+
+
+Common instance methods
+-----------------------
+
+_`.method`: These methods are available on all instances.
+
+``typedef void (*FinishMethod)(Inst inst)``
+
+_`.method.finish`: The ``finish`` method should finish the instance
+data structure (releasing any resources that were acquired by the
+instance during its lifetime) and then call its superclass method via
+the ``NextMethod()`` macro.
+
+``typedef Res (*DescribeMethod)(Inst inst, mps_lib_FILE *stream, Count depth)``
+
+_`.method.describe`: The ``describe`` field should print out a
+description of the instance to ``stream`` (by calling ``WriteF()``).
 
 
 A. References
@@ -620,7 +645,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

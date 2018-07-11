@@ -6,7 +6,7 @@
  * .sources: <design/arena/> is the main design document.  */
 
 #include "tract.h"
-#include "poolmv.h"
+#include "poolmvff.h"
 #include "mpm.h"
 #include "cbs.h"
 #include "bt.h"
@@ -17,7 +17,7 @@
 SRCID(arena, "$Id$");
 
 
-#define ArenaControlPool(arena) MVPool(&(arena)->controlPoolStruct)
+#define ArenaControlPool(arena) MVFFPool(&(arena)->controlPoolStruct)
 #define ArenaCBSBlockPool(arena) MFSPool(&(arena)->freeCBSBlockPoolStruct)
 #define ArenaFreeLand(arena) CBSLand(&(arena)->freeLandStruct)
 
@@ -82,6 +82,14 @@ static Res ArenaNoPagesMarkAllocated(Arena arena, Chunk chunk,
   return ResUNIMPL;
 }
 
+static Bool ArenaNoChunkPageMapped(Chunk chunk, Index index)
+{
+  UNUSED(chunk);
+  UNUSED(index);
+  NOTREACHED;
+  return FALSE;
+}
+
 static Res ArenaNoCreate(Arena *arenaReturn, ArgList args)
 {
   UNUSED(arenaReturn);
@@ -99,6 +107,7 @@ static void ArenaNoDestroy(Arena arena)
 DEFINE_CLASS(Inst, ArenaClass, klass)
 {
   INHERIT_CLASS(klass, ArenaClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 
@@ -122,7 +131,9 @@ DEFINE_CLASS(Arena, AbstractArena, klass)
   klass->chunkFinish = ArenaNoChunkFinish;
   klass->compact = ArenaTrivCompact;
   klass->pagesMarkAllocated = ArenaNoPagesMarkAllocated;
+  klass->chunkPageMapped = ArenaNoChunkPageMapped;
   klass->sig = ArenaClassSig;
+  AVERT(ArenaClass, klass);
 }
 
 
@@ -144,6 +155,16 @@ Bool ArenaClassCheck(ArenaClass klass)
   CHECKL(FUNCHECK(klass->chunkFinish));
   CHECKL(FUNCHECK(klass->compact));
   CHECKL(FUNCHECK(klass->pagesMarkAllocated));
+  CHECKL(FUNCHECK(klass->chunkPageMapped));
+
+  /* Check that arena classes override sets of related methods. */
+  CHECKL((klass->init == ArenaAbsInit)
+         == (klass->instClassStruct.finish == ArenaAbsFinish));
+  CHECKL((klass->create == ArenaNoCreate)
+         == (klass->destroy == ArenaNoDestroy));
+  CHECKL((klass->chunkInit == ArenaNoChunkInit)
+         == (klass->chunkFinish == ArenaNoChunkFinish));
+
   CHECKS(ArenaClass, klass);
   return TRUE;
 }
@@ -158,7 +179,7 @@ Bool ArenaCheck(Arena arena)
 
   CHECKL(BoolCheck(arena->poolReady));
   if (arena->poolReady) { /* <design/arena/#pool.ready> */
-    CHECKD(MV, &arena->controlPoolStruct);
+    CHECKD(MVFF, &arena->controlPoolStruct);
   }
 
   /* .reserved.check: Would like to check that arena->committed <=
@@ -445,8 +466,8 @@ static void arenaFreeLandFinish(Arena arena)
 
   /* The CBS block pool can't free its own memory via ArenaFree because
    * that would use the free land. */
-  MFSFinishTracts(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
-                  UNUSED_POINTER);
+  MFSFinishExtents(ArenaCBSBlockPool(arena), arenaMFSPageFreeVisitor,
+                   UNUSED_POINTER);
 
   arena->hasFreeLand = FALSE;
   LandFinish(ArenaFreeLand(arena));
@@ -481,8 +502,8 @@ Res ControlInit(Arena arena)
   AVER(!arena->poolReady);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, CONTROL_EXTEND_BY);
-    res = PoolInit(MVPool(&arena->controlPoolStruct), arena,
-                   PoolClassMV(), args);
+    res = PoolInit(ArenaControlPool(arena), arena,
+                   PoolClassMVFF(), args);
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
@@ -498,7 +519,7 @@ void ControlFinish(Arena arena)
   AVERT(Arena, arena);
   AVER(arena->poolReady);
   arena->poolReady = FALSE;
-  PoolFinish(MVPool(&arena->controlPoolStruct));
+  PoolFinish(ArenaControlPool(arena));
 }
 
 
@@ -671,12 +692,15 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size)
 
 void ControlFree(Arena arena, void* base, size_t size)
 {
+  Pool pool;
+
   AVERT(Arena, arena);
   AVER(base != NULL);
   AVER(size > 0);
   AVER(arena->poolReady);
 
-  PoolFree(ArenaControlPool(arena), (Addr)base, (Size)size);
+  pool = ArenaControlPool(arena);
+  PoolFree(pool, (Addr)base, (Size)size);
 }
 
 
@@ -831,15 +855,16 @@ static void arenaFreePage(Arena arena, Addr base, Pool pool)
 
 static Res arenaExtendCBSBlockPool(Range pageRangeReturn, Arena arena)
 {
-  Addr pageBase;
+  Addr pageBase, pageLimit;
   Res res;
 
   res = arenaAllocPage(&pageBase, arena, ArenaCBSBlockPool(arena));
   if (res != ResOK)
     return res;
-  MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaGrainSize(arena));
+  pageLimit = AddrAdd(pageBase, ArenaGrainSize(arena));
+  MFSExtend(ArenaCBSBlockPool(arena), pageBase, pageLimit);
 
-  RangeInitSize(pageRangeReturn, pageBase, ArenaGrainSize(arena));
+  RangeInit(pageRangeReturn, pageBase, pageLimit);
   return ResOK;
 }
 
@@ -853,8 +878,9 @@ static void arenaExcludePage(Arena arena, Range pageRange)
 {
   RangeStruct oldRange;
   Res res;
+  Land land = ArenaFreeLand(arena);
 
-  res = LandDelete(&oldRange, ArenaFreeLand(arena), pageRange);
+  res = LandDelete(&oldRange, land, pageRange);
   AVER(res == ResOK); /* we just gave memory to the Land */
 }
 
@@ -874,12 +900,14 @@ static Res arenaFreeLandInsertExtend(Range rangeReturn, Arena arena,
                                      Range range)
 {
   Res res;
+  Land land;
   
   AVER(rangeReturn != NULL);
   AVERT(Arena, arena);
   AVERT(Range, range);
 
-  res = LandInsert(rangeReturn, ArenaFreeLand(arena), range);
+  land = ArenaFreeLand(arena);
+  res = LandInsert(rangeReturn, land, range);
 
   if (res == ResLIMIT) { /* CBS block pool ran out of blocks */
     RangeStruct pageRange;
@@ -888,7 +916,7 @@ static Res arenaFreeLandInsertExtend(Range rangeReturn, Arena arena,
       return res;
     /* .insert.exclude: Must insert before exclude so that we can
        bootstrap when the zoned CBS is empty. */
-    res = LandInsert(rangeReturn, ArenaFreeLand(arena), range);
+    res = LandInsert(rangeReturn, land, range);
     AVER(res == ResOK); /* we just gave memory to the CBS block pool */
     arenaExcludePage(arena, &pageRange);
   }
@@ -919,25 +947,28 @@ static void arenaFreeLandInsertSteal(Range rangeReturn, Arena arena,
   res = arenaFreeLandInsertExtend(rangeReturn, arena, rangeIO);
   
   if (res != ResOK) {
-    Addr pageBase;
+    Land land;
+    Addr pageBase, pageLimit;
     Tract tract;
     AVER(ResIsAllocFailure(res));
 
     /* Steal a page from the memory we're about to free. */
     AVER(RangeSize(rangeIO) >= ArenaGrainSize(arena));
     pageBase = RangeBase(rangeIO);
-    RangeInit(rangeIO, AddrAdd(pageBase, ArenaGrainSize(arena)),
-                       RangeLimit(rangeIO));
+    pageLimit = AddrAdd(pageBase, ArenaGrainSize(arena));
+    AVER(pageLimit <= RangeLimit(rangeIO));
+    RangeInit(rangeIO, pageLimit, RangeLimit(rangeIO));
 
     /* Steal the tract from its owning pool. */
     tract = TractOfBaseAddr(arena, pageBase);
     TractFinish(tract);
     TractInit(tract, ArenaCBSBlockPool(arena), pageBase);
   
-    MFSExtend(ArenaCBSBlockPool(arena), pageBase, ArenaGrainSize(arena));
+    MFSExtend(ArenaCBSBlockPool(arena), pageBase, pageLimit);
 
     /* Try again. */
-    res = LandInsert(rangeReturn, ArenaFreeLand(arena), rangeIO);
+    land = ArenaFreeLand(arena);
+    res = LandInsert(rangeReturn, land, rangeIO);
     AVER(res == ResOK); /* we just gave memory to the CBS block pool */
   }
 
@@ -993,9 +1024,11 @@ void ArenaFreeLandDelete(Arena arena, Addr base, Addr limit)
 {
   RangeStruct range, oldRange;
   Res res;
+  Land land;
 
   RangeInit(&range, base, limit);
-  res = LandDelete(&oldRange, ArenaFreeLand(arena), &range);
+  land = ArenaFreeLand(arena);
+  res = LandDelete(&oldRange, land, &range);
   
   /* Shouldn't be any other kind of failure because we were only deleting
      a non-coalesced block.  See .chunk.no-coalesce and
@@ -1023,6 +1056,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
   Index baseIndex;
   Count pages;
   Res res;
+  Land land;
   
   AVER(tractReturn != NULL);
   AVERT(Arena, arena);
@@ -1037,8 +1071,8 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
 
   /* Step 1. Find a range of address space. */
   
-  res = LandFindInZones(&found, &range, &oldRange, ArenaFreeLand(arena),
-                        size, zones, high);
+  land = ArenaFreeLand(arena);
+  res = LandFindInZones(&found, &range, &oldRange, land, size, zones, high);
 
   if (res == ResLIMIT) { /* found block, but couldn't store info */
     RangeStruct pageRange;
@@ -1046,8 +1080,7 @@ Res ArenaFreeLandAlloc(Tract *tractReturn, Arena arena, ZoneSet zones,
     if (res != ResOK) /* disastrously short on memory */
       return res;
     arenaExcludePage(arena, &pageRange);
-    res = LandFindInZones(&found, &range, &oldRange, ArenaFreeLand(arena),
-                          size, zones, high);
+    res = LandFindInZones(&found, &range, &oldRange, land, size, zones, high);
     AVER(res != ResLIMIT);
   }
 
@@ -1165,7 +1198,6 @@ void ArenaFree(Addr base, Size size, Pool pool)
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
   EVENT3(ArenaFree, arena, wholeBase, wholeSize);
-  return;
 }
 
 
@@ -1363,7 +1395,6 @@ static void ArenaTrivCompact(Arena arena, Trace trace)
 {
   UNUSED(arena);
   UNUSED(trace);
-  return;
 }
 
 
@@ -1375,26 +1406,6 @@ Bool ArenaHasAddr(Arena arena, Addr addr)
 
   AVERT(Arena, arena);
   return TractOfAddr(&tract, arena, addr);
-}
-
-
-/* ArenaAddrObject -- find client pointer to object containing addr
- * See job003589.
- */
-
-Res ArenaAddrObject(Addr *pReturn, Arena arena, Addr addr)
-{
-  Seg seg;
-  Pool pool;
-
-  AVER(pReturn != NULL);
-  AVERT(Arena, arena);
-  
-  if (!SegOfAddr(&seg, arena, addr)) {
-    return ResFAIL;
-  }
-  pool = SegPool(seg);
-  return PoolAddrObject(pReturn, pool, seg, addr);
 }
 
 

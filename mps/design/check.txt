@@ -126,12 +126,12 @@ Common assertions
 -----------------
 
 _`.common`: Some assertions are commonly triggered by mistakes in the
-:term:`client program`. These are listed in the section "Common
-assertions and their causes" in the MPS Reference, together with an
-explanation of their likely cause, and advice for fixing the problem.
-To assist with keeping the MPS Reference up to date, these assertions
-are marked with a cross-reference to this tag. When you update the
-assertion, you must also update the MPS Reference.
+client program. These are listed in the section "Common assertions and
+their causes" in the MPS Reference, together with an explanation of
+their likely cause, and advice for fixing the problem. To assist with
+keeping the MPS Reference up to date, these assertions are marked with
+a cross-reference to this tag. When you update the assertion, you must
+also update the MPS Reference.
 
 
 Document History

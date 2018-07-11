@@ -450,11 +450,13 @@ static void *test(void *arg, size_t s)
     mps_word_t c;
     size_t r;
 
+    Insist(!mps_arena_busy(arena));
+
     c = mps_collections(arena);
 
     if(collections != c) {
       collections = c;
-      printf("\nCollection %"PRIuLONGEST", %lu objects.\n", (ulongest_t)c, i);
+      printf("Collection %"PRIuLONGEST", %lu objects.\n", (ulongest_t)c, i);
       for(r = 0; r < exactRootsCOUNT; ++r) {
         cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
              "all roots check");
@@ -565,7 +567,7 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, rnd_pause_time());
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, TEST_ARENA_SIZE);
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
-        "arena_create\n");
+        "arena_create");
   } MPS_ARGS_END(args);
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
@@ -591,9 +593,17 @@ int main(int argc, char *argv[])
   }
 
   mps_tramp(&r, test, arena, 0);
-  mps_root_destroy(reg_root);
-  mps_thread_dereg(thread);
-  mps_arena_destroy(arena);
+  switch (rnd() % 2) {
+  default:
+  case 0:
+    mps_root_destroy(reg_root);
+    mps_thread_dereg(thread);
+    mps_arena_destroy(arena);
+    break;
+  case 1:
+    mps_arena_postmortem(arena);
+    break;
+  }
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;

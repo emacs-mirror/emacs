@@ -6,7 +6,7 @@
  *
  * DESIGN
  *
- * .design: See <design/class-interface/> and <design/pool/>.
+ * .design: See <design/pool/>.
  *
  * PURPOSE
  *
@@ -16,7 +16,7 @@
  * Pool and PoolClass objects (create, destroy, check, various
  * accessors, and other miscellaneous functions).
  * .purpose.dispatch: Dispatch functions that implement the generic
- * function dispatch mechanism for Pool Classes (PoolAlloc, PoolFix,
+ * function dispatch mechanism for Pool Classes (PoolAlloc, PoolFree,
  * etc.).
  *
  * SOURCES
@@ -45,23 +45,13 @@ Bool PoolClassCheck(PoolClass klass)
   CHECKL(FUNCHECK(klass->init));
   CHECKL(FUNCHECK(klass->alloc));
   CHECKL(FUNCHECK(klass->free));
+  CHECKL(FUNCHECK(klass->segPoolGen));
   CHECKL(FUNCHECK(klass->bufferFill));
   CHECKL(FUNCHECK(klass->bufferEmpty));
-  CHECKL(FUNCHECK(klass->access));
-  CHECKL(FUNCHECK(klass->whiten));
-  CHECKL(FUNCHECK(klass->grey));
-  CHECKL(FUNCHECK(klass->blacken));
-  CHECKL(FUNCHECK(klass->scan));
-  CHECKL(FUNCHECK(klass->fix));
-  CHECKL(FUNCHECK(klass->fixEmergency));
-  CHECKL(FUNCHECK(klass->reclaim));
-  CHECKL(FUNCHECK(klass->traceEnd));
   CHECKL(FUNCHECK(klass->rampBegin));
   CHECKL(FUNCHECK(klass->rampEnd));
   CHECKL(FUNCHECK(klass->framePush));
   CHECKL(FUNCHECK(klass->framePop));
-  CHECKL(FUNCHECK(klass->addrObject));
-  CHECKL(FUNCHECK(klass->walk));
   CHECKL(FUNCHECK(klass->freewalk));
   CHECKL(FUNCHECK(klass->bufferClass));
   CHECKL(FUNCHECK(klass->debugMixin));
@@ -77,15 +67,6 @@ Bool PoolClassCheck(PoolClass klass)
          (klass->framePop == PoolNoFramePop));
   CHECKL((klass->rampBegin == PoolNoRampBegin) ==
          (klass->rampEnd == PoolNoRampEnd));
-
-  /* Check that pool classes that set attributes also override the
-     methods they imply. */
-  CHECKL(((klass->attr & AttrFMT) == 0) == (klass->walk == PoolNoWalk));
-  if (klass != &CLASS_STATIC(AbstractCollectPool)) {
-    CHECKL(((klass->attr & AttrGC) == 0) == (klass->fix == PoolNoFix));
-    CHECKL(((klass->attr & AttrGC) == 0) == (klass->fixEmergency == PoolNoFix));
-    CHECKL(((klass->attr & AttrGC) == 0) == (klass->reclaim == PoolNoReclaim));
-  }
   
   CHECKS(PoolClass, klass);
   return TRUE;
@@ -110,9 +91,10 @@ Bool PoolCheck(Pool pool)
   /* Cannot check pool->bufferSerial */
   CHECKD_NOSIG(Ring, &pool->segRing);
   CHECKL(AlignCheck(pool->alignment));
-  /* Normally pool->format iff PoolHasAttr(pool, AttrFMT), but during
-     pool initialization the class may not yet be set. */
-  CHECKL(!PoolHasAttr(pool, AttrFMT) || pool->format != NULL);
+  CHECKL(ShiftCheck(pool->alignShift));
+  CHECKL(pool->alignment == PoolGrainsSize(pool, (Align)1));
+  if (pool->format != NULL)
+    CHECKD(Format, pool->format);
   return TRUE;
 }
 
@@ -228,7 +210,7 @@ BufferClass PoolDefaultBufferClass(Pool pool)
 /* PoolAlloc -- allocate a block of memory from a pool
  *
  * .alloc.critical: In manual-allocation-bound programs this is on the
- * critical path.
+ * critical path via mps_alloc.
  */
 
 Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
@@ -257,201 +239,31 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 }
 
 
-/* PoolFree -- deallocate a block of memory allocated from the pool
- *
- * .free.critical: In manual-allocation-bound programs this is on the
- * critical path.
- */
+/* PoolFree -- deallocate a block of memory allocated from the pool */
 
-void PoolFree(Pool pool, Addr old, Size size)
+void (PoolFree)(Pool pool, Addr old, Size size)
 {
-  AVERT_CRITICAL(Pool, pool);
-  AVER_CRITICAL(old != NULL);
+  AVERT(Pool, pool);
+  AVER(old != NULL);
   /* The pool methods should check that old is in pool. */
-  AVER_CRITICAL(size > 0);
-  AVER_CRITICAL(AddrIsAligned(old, pool->alignment));
-  AVER_CRITICAL(PoolHasRange(pool, old, AddrAdd(old, size)));
+  AVER(size > 0);
+  AVER(AddrIsAligned(old, pool->alignment));
+  AVER(PoolHasRange(pool, old, AddrAdd(old, size)));
 
-  Method(Pool, pool, free)(pool, old, size);
+  PoolFreeMacro(pool, old, size);
  
   EVENT3(PoolFree, pool, old, size);
 }
 
 
-Res PoolAccess(Pool pool, Seg seg, Addr addr,
-               AccessSet mode, MutatorFaultContext context)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  AVERT(AccessSet, mode);
-  /* Can't check MutatorFaultContext as there is no check method */
+/* PoolSegPoolGen -- get pool generation for a segment */
 
-  return Method(Pool, pool, access)(pool, seg, addr, mode, context);
-}
-
-
-/* PoolWhiten, PoolGrey, PoolBlacken -- change color of a segment in the pool */
-
-Res PoolWhiten(Pool pool, Trace trace, Seg seg)
+PoolGen PoolSegPoolGen(Pool pool, Seg seg)
 { 
   AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  AVER(PoolArena(pool) == trace->arena);
-  AVER(SegPool(seg) == pool);
-  return Method(Pool, pool, whiten)(pool, trace, seg);
-}
-
-void PoolGrey(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  AVER(pool->arena == trace->arena);
-  AVER(SegPool(seg) == pool);
-  Method(Pool, pool, grey)(pool, trace, seg);
-}
-
-void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-  AVER(SegPool(seg) == pool);
-  Method(Pool, pool, blacken)(pool, traceSet, seg);
-}
-
-
-/* PoolScan -- scan a segment in the pool */
-
-Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(ss->arena == pool->arena);
-
-  /* The segment must belong to the pool. */
-  AVER(pool == SegPool(seg));
-
-  /* We check that either ss->rank is in the segment's
-   * ranks, or that ss->rank is exact.  The check is more complicated if
-   * we actually have multiple ranks in a seg.
-   * See <code/trace.c#scan.conservative> */
-  AVER(ss->rank == RankEXACT || RankSetIsMember(SegRankSet(seg), ss->rank));
-
-  /* Should only scan segments which contain grey objects. */
-  AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
-
-  return Method(Pool, pool, scan)(totalReturn, ss, pool, seg);
-}
-
-
-/* PoolFix* -- fix a reference to an object in this pool
- *
- * See <design/pool/#req.fix>.
- */
-
-Res PoolFix(Pool pool, ScanState ss, Seg seg, Addr *refIO)
-{
-  AVERT_CRITICAL(Pool, pool);
-  AVERT_CRITICAL(ScanState, ss);
-  AVERT_CRITICAL(Seg, seg);
-  AVER_CRITICAL(pool == SegPool(seg));
-  AVER_CRITICAL(refIO != NULL);
-
-  /* Should only be fixing references to white segments. */
-  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
-
-  return pool->fix(pool, ss, seg, refIO);
-}
-
-Res PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO)
-{
-  Res res;
-
-  AVERT_CRITICAL(Pool, pool);
-  AVERT_CRITICAL(ScanState, ss);
-  AVERT_CRITICAL(Seg, seg);
-  AVER_CRITICAL(pool == SegPool(seg));
-  AVER_CRITICAL(refIO != NULL);
-
-  /* Should only be fixing references to white segments. */
-  AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
-
-  res = Method(Pool, pool, fixEmergency)(pool, ss, seg, refIO);
-  AVER_CRITICAL(res == ResOK);
-  return res;
-}
-
-
-/* PoolReclaim -- reclaim a segment in the pool */
-
-void PoolReclaim(Pool pool, Trace trace, Seg seg)
-{
-  AVERT_CRITICAL(Pool, pool);
-  AVERT_CRITICAL(Trace, trace);
-  AVERT_CRITICAL(Seg, seg);
-  AVER_CRITICAL(pool->arena == trace->arena);
-  AVER_CRITICAL(SegPool(seg) == pool);
-
-  /* There shouldn't be any grey things left for this trace. */
-  AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
-  /* Should only be reclaiming segments which are still white. */
-  AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
-
-  Method(Pool, pool, reclaim)(pool, trace, seg);
-}
-
-
-/* PoolTraceEnd -- do end-of-trace work
- *
- * This method is for a pool class to do final end-of-trace work, 
- * after all reclaiming is complete.  For example, emitting 
- * diagnostics about what happened during the trace.
- */
-
-void PoolTraceEnd(Pool pool, Trace trace)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVER(pool->arena == trace->arena);
-
-  Method(Pool, pool, traceEnd)(pool, trace);
-}
-
-
-/* PoolAddrObject -- find client pointer to object containing addr
- * See user documentation for mps_addr_object.
- * addr is known to belong to seg, which belongs to pool.
- * See job003589.
- */
-
-Res PoolAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
-{
-  AVER(pReturn != NULL);
-  AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(pool == SegPool(seg));
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  return Method(Pool, pool, addrObject)(pReturn, pool, seg, addr);
-}
-
-
-/* PoolWalk -- walk objects in this segment */
-
-void PoolWalk(Pool pool, Seg seg, FormattedObjectsVisitor f, void *p, size_t s)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(FUNCHECK(f));
-  /* p and s are arbitrary values, hence can't be checked. */
-
-  Method(Pool, pool, walk)(pool, seg, f, p, s);
+  return Method(Pool, pool, segPoolGen)(pool, seg);
 }
 
 

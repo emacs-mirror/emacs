@@ -1,10 +1,10 @@
-run tests from a test-set
+run tests from test-sets
 % $Id$
 
-Usage: qa runset [<options>] <testsetfile>
+Usage: qa runset [<options>] <testsetfile> [<testsetfile> ...]
 
 'runset' compiles the test libraries and then runs all the
-tests in a test-set.
+tests in the test-sets.
 
 A test-set is a file containing a list of tests, one test
 per line. Blank lines or those beginning with % are ignored.

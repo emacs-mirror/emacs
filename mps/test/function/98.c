@@ -1,11 +1,12 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = create arenas at once until an error results!
+ summary = fill address space with arenas until an error results!
  language = c
  link = testlib.o
+ parameters = ARENAS=10
 OUTPUT_SPEC
- arena > 10
+ arena >= 10
 END_HEADER
 */
 
@@ -14,22 +15,29 @@ END_HEADER
 
 static void test(void)
 {
- mps_arena_t arena;
+  mps_arena_t arena;
+  mps_res_t res;
+  int p;
 
- int p;
-
- p=0;
-
- while (1)
- {
-  die(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*10)), "create");
-  p = p+1;
+  for (p = 0;; ++p) {
+    MPS_ARGS_BEGIN(args) {
+      MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1);
+      res = mps_arena_create_k(&arena, mps_arena_class_vm(), args);
+    } MPS_ARGS_END(args);
+    if (res != MPS_RES_OK)
+      break;
+  }
+  asserts(res == MPS_RES_RESOURCE, "resource");
   report("arena", "%i", p);
- }
 }
 
 int main(void)
 {
- easy_tramp(test);
- return 0;
+  if (MPS_WORD_WIDTH <= 32) {
+    easy_tramp(test);
+  } else {
+    /* Can't exhaust 64-bit address space by allocating, so fake a pass. */
+    report("arena", "%d", ARENAS);
+  }
+  return 0;
 }

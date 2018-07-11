@@ -4,6 +4,58 @@ Release notes
 =============
 
 
+.. _release-notes-1.117:
+
+Release 1.117.0
+---------------
+
+New features
+............
+
+#. On FreeBSD, Linux and macOS, the MPS is now able to run in the
+   child process after ``fork()``. See :ref:`topic-thread-fork`.
+
+#. The MPS now supports Windows Vista or later; it no longer supports
+   Windows XP. (Microsoft's own support for Windows XP `expired in
+   April 2014`_.) This is so that we can use |InitOnceExecuteOnce|_ to
+   ensure thread-safe initialization.
+
+   .. _expired in April 2014: https://www.microsoft.com/en-gb/windowsforbusiness/end-of-xp-support
+   .. |InitOnceExecuteOnce| replace:: ``InitOnceExecuteOnce()``
+   .. _InitOnceExecuteOnce: https://docs.microsoft.com/en-us/windows/desktop/api/synchapi/nf-synchapi-initonceexecuteonce
+
+
+Interface changes
+.................
+
+#. The pool class :ref:`pool-mv` is now deprecated.
+
+
+Other changes
+.............
+
+#. References from the MPS's own stack frames no longer :term:`pin
+   <pinning>` objects allocated by the :term:`client program` in
+   moving pools, which prevented them from moving. See job003525_.
+
+   .. _job003525: https://www.ravenbrook.com/project/mps/issue/job003525/
+
+#. Creation of :term:`arenas` is now thread-safe on Windows. See
+   job004056_.
+
+   .. _job004056: https://www.ravenbrook.com/project/mps/issue/job004056/
+
+#. :ref:`pool-awl` and :ref:`pool-lo` pools now detect (and assert on)
+   invalid :term:`exact references`. See job004070_.
+
+   .. _job004070: https://www.ravenbrook.com/project/mps/issue/job004070/
+
+#. The MPS now compiles without warnings on GCC version 7 with
+   ``-Wextra``. See job004076_.
+
+   .. _job004076: https://www.ravenbrook.com/project/mps/issue/job004076/
+
+
 .. _release-notes-1.116:
 
 Release 1.116.0
@@ -21,9 +73,16 @@ New features
 #. The MPS no longer supports Linux 2.4 and 2.5. (These versions used
    LinuxThreads_ instead of POSIX threads; all major distributions
    have long since ceased to support these versions and so it is no
-   longer convenient to test against them.)
+   longer convenient to test against them.) See
+   :ref:`guide-overview-platforms`.
 
    .. _LinuxThreads: http://pauillac.inria.fr/~xleroy/linuxthreads/
+
+#. New function :c:func:`mps_arena_postmortem` assists with postmortem
+   debugging.
+
+#. New function :c:func:`mps_arena_busy` assists debugging of re-entry
+   errors in dynamic function table callbacks on Windows on x86-64.
 
 
 Interface changes
@@ -69,9 +128,9 @@ Other changes
    .. _job004000: https://www.ravenbrook.com/project/mps/issue/job004000/
 
 #. Memory in :term:`allocation points` no longer contributes to the
-   decision to start a :term:`collection`, avoiding wasted work
-   repeatedly collecting generations with very small capacities. See
-   job004007_.
+   decision to start a :term:`garbage collection`, avoiding wasted
+   work repeatedly collecting generations with very small capacities.
+   See job004007_.
 
    .. _job004007: https://www.ravenbrook.com/project/mps/issue/job004007/
 
@@ -151,6 +210,8 @@ New features
 
 Interface changes
 .................
+
+#. The pool class :ref:`pool-mv` is no longer deprecated.
 
 #. The type of pool classes is now :c:type:`mps_pool_class_t`. The old
    name :c:type:`mps_class_t` is still available via a ``typedef``,

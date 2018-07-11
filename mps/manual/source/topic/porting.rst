@@ -61,22 +61,22 @@ usable.
 
    See :ref:`design-prot` for the design, and ``prot.h`` for the
    interface. There are implementations for POSIX in ``protix.c`` plus
-   ``protsgix.c``, Linux in ``protli.c``, Windows in ``protw3.c``, and
-   OS X using Mach in ``protxc.c``.
+   ``protsgix.c``, Windows in ``protw3.c``, and macOS using Mach in
+   ``protix.c`` plus ``protxc.c``.
 
    There is a generic implementation in ``protan.c``, which can't
    provide memory protection, so it forces memory to be scanned until
    there is no further need to protect it. This means it can't support
    incremental collection, and has no control over pause times.
 
-#. The **protection mutator context** module figures out what the
-   :term:`mutator` was doing when it caused a :term:`protection
-   fault`, so that access to a protected region of memory can be
-   handled, or when a thread was suspended, so that its
-   :term:`registers` and :term:`control stack` can be scanned.
+#. The **mutator context** module figures out what the :term:`mutator`
+   was doing when it caused a :term:`protection fault`, so that access
+   to a protected region of memory can be handled, or when a thread
+   was suspended, so that its :term:`registers` and :term:`control
+   stack` can be scanned.
 
-   See :ref:`design-prmc` for the design, and ``prot.h`` for the
-   interface. There are implementations on Unix, Windows, and OS X for
+   See :ref:`design-prmc` for the design, and ``prmc.h`` for the
+   interface. There are implementations on Unix, Windows, and macOS for
    IA-32 and x86-64.
 
    There is a generic implementation in ``prmcan.c``, which can't
@@ -97,18 +97,14 @@ usable.
    call into the MPS from the handler.
 
 #. The **stack and register scanning** module :term:`scans` the
-   :term:`registers` and :term:`control stack` of a thread.
+   :term:`registers` and :term:`control stack` of the thread that
+   entered the MPS.
 
-   See :ref:`design-ss` for the design, and ``ss.h`` for the
-   interface. There are implementations for POSIX on IA-32 in
-   ``ssixi3.c`` and x86-64 in ``ssixi6.c``, and for Windows with
-   Microsoft Visual C/C++ on IA-32 in ``ssw3i3mv.c`` and x86-64 in
-   ``ssw3i6mv.c``.
-
-   There is a generic implementation in ``ssan.c``, which calls
-   :c:func:`setjmp` to spill the registers and scans the whole jump
-   buffer, thus overscanning compared to a platform-specific
-   implementation.
+   See :ref:`design-stack-scan` for the design, ``ss.h`` for the
+   interface, and ``ss.c`` for a generic implementation that makes
+   assumptions about the platform (in particular, that the stack grows
+   downwards and :c:func:`setjmp` reliably captures the registers; see
+   the design for details).
 
 #. The **thread manager** module suspends and resumes :term:`threads`,
    so that the MPS can gain exclusive access to :term:`memory (2)`,
@@ -117,7 +113,7 @@ usable.
 
    See :ref:`design-thread-manager` for the design, and ``th.h`` for
    the interface. There are implementations for POSIX in ``thix.c``
-   plus ``pthrdext.c``, OS X using Mach in ``thxc.c``, Windows in
+   plus ``pthrdext.c``, macOS using Mach in ``thxc.c``, Windows in
    ``thw3.c``.
 
    There is a generic implementation in ``than.c``, which necessarily
@@ -191,7 +187,7 @@ platform constant ``MPS_PF_OSARCT`` that is now defined in
 ``mpstd.h``, and then include all the module sources for the platform.
 For example::
 
-    /* Linux on 64-bit Intel with GCC or Clang */
+    /* Linux on x86-64 with GCC or Clang */
 
     #elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
@@ -200,11 +196,11 @@ For example::
     #include "pthrdext.c"   /* Posix thread extensions */
     #include "vmix.c"       /* Posix virtual memory */
     #include "protix.c"     /* Posix protection */
-    #include "protli.c"     /* Linux protection */
-    #include "proti6.c"     /* 64-bit Intel mutator context */
-    #include "prmci6li.c"   /* 64-bit Intel for Linux mutator context */
+    #include "protsgix.c"   /* Posix signal handling */
+    #include "prmci6.c"     /* x86-64 mutator context */
+    #include "prmcix.c"     /* Posix mutator context */
+    #include "prmclii6.c"   /* x86-64 for Linux mutator context */
     #include "span.c"       /* generic stack probe */
-    #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 
 Makefile
@@ -229,13 +225,13 @@ For example, ``lii6ll.gmk`` looks like this:
 
     MPMPF = \
         lockix.c \
-        prmci6li.c \
-        proti6.c \
+        prmci6.c \
+        prmcix.c \
+        prmclii6.c \
         protix.c \
-        protli.c \
+        protsgix.c \
         pthrdext.c \
         span.c \
-        ssixi6.c \
         thix.c \
         vmix.c
 
@@ -266,13 +262,12 @@ this:
     MPMPF = \
         [lockw3] \
         [mpsiw3] \
-        [prmci6w3] \
-        [proti6] \
+        [prmci6] \
+        [prmcw3] \
+        [prmcw3i6] \
         [protw3] \
         [spw3i6] \
-        [ssw3i6mv] \
         [thw3] \
-        [thw3i6] \
         [vmw3]
 
     !INCLUDE commpre.nmk

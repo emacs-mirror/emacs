@@ -1,7 +1,7 @@
 /* mpslib.h: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS client application developers, MPS developers.
  * .sources: <design/lib/>
@@ -44,7 +44,6 @@ extern int mps_lib_fputs(const char *, mps_lib_FILE *);
    environment it can return and the MPS will attempt to continue, though
    this may cause failure of the process soon after. */
 extern void mps_lib_assert_fail(const char *, unsigned, const char *);
-extern void *mps_lib_assert_fail_expr(const char *, unsigned, const char *, void *);
 
 /* The default ANSI plinth in mpsliban.c allows the assertion handler to be
    replaced by passing a replacement to `mps_lib_assert_fail_install`,
@@ -79,7 +78,7 @@ extern unsigned long mps_lib_telemetry_control(void);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
