@@ -1,7 +1,7 @@
 /* sacss.c: SAC MANUAL ALLOC STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  */
 
@@ -74,11 +74,12 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
 
   /* allocate a load of objects */
   for (i = 0; i < testSetSIZE; ++i) {
+    mps_addr_t obj;
     ss[i] = (*size)(i);
-
-    res = make((mps_addr_t *)&ps[i], sac, ss[i]);
+    res = make(&obj, sac, ss[i]);
     if (res != MPS_RES_OK)
       return res;
+    ps[i] = obj;
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
   }
@@ -113,17 +114,19 @@ static mps_res_t stress(mps_arena_t arena, mps_align_t align,
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
+      mps_addr_t obj;
       ss[i] = (*size)(i);
       switch (k % 2) {
       case 0:
-        res = make((mps_addr_t *)&ps[i], sac, ss[i]);
+        res = make(&obj, sac, ss[i]);
         break;
       default:
-        res = mps_sac_alloc((mps_addr_t *)&ps[i], sac, ss[i], FALSE);
+        res = mps_sac_alloc(&obj, sac, ss[i], FALSE);
         break;
       }
       if (res != MPS_RES_OK)
         return res;
+      ps[i] = obj;
     }
   }
    
@@ -247,7 +250,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -21,11 +21,8 @@ static void test(void)
 {
  mps_arena_t arena;
  mps_pool_t pool;
- mps_thr_t thread;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
-
- cdie(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
   mps_pool_create(
@@ -34,7 +31,7 @@ static void test(void)
   "create pool");
 
  mps_pool_destroy(pool);
-
+ mps_arena_destroy(arena);
 }
 
 int main(void)

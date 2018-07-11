@@ -321,9 +321,6 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
   mps_addr_t alloc;             /* limit of allocated memory */
   mps_addr_t limit;             /* limit of available memory */
-  mps_addr_t _frameptr;         /* lightweight frame pointer */
-  mps_bool_t _enabled;          /* lightweight frame status */
-  mps_bool_t _lwpoppending;     /* lightweight pop pending? */
 } mps_ap_s;
 
 
@@ -438,6 +435,7 @@ typedef struct mps_fmt_fixed_s {
 extern void mps_arena_clamp(mps_arena_t);
 extern void mps_arena_release(mps_arena_t);
 extern void mps_arena_park(mps_arena_t);
+extern void mps_arena_postmortem(mps_arena_t);
 extern void mps_arena_expose(mps_arena_t);
 extern void mps_arena_unsafe_expose_remember_protection(mps_arena_t);
 extern void mps_arena_unsafe_restore_protection(mps_arena_t);
@@ -463,6 +461,7 @@ extern size_t mps_arena_spare_commit_limit(mps_arena_t);
 extern double mps_arena_pause_time(mps_arena_t);
 extern void mps_arena_pause_time_set(mps_arena_t, double);
 
+extern mps_bool_t mps_arena_busy(mps_arena_t);
 extern mps_bool_t mps_arena_has_addr(mps_arena_t, mps_addr_t);
 extern mps_bool_t mps_addr_pool(mps_pool_t *, mps_arena_t, mps_addr_t);
 extern mps_bool_t mps_addr_fmt(mps_fmt_t *, mps_arena_t, mps_addr_t);

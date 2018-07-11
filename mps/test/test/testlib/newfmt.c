@@ -210,7 +210,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        */
        commentif(fixcomments, "fix %li[%i] -> %li",
         obj->data.id, i, obj->data.ref[i].id);
-       res = MPS_FIX(ss, (mps_addr_t *) &p);
+       res = MPS_FIX12(ss, (mps_addr_t *) &p);
        if (res != MPS_RES_OK) return res;
        obj->data.ref[i].addr = p;
       }

@@ -91,8 +91,33 @@ General debugging advice
    On these operating systems, you can add this command to your
    ``.gdbinit`` if you always want it to be run.
 
-   On OS X, barrier hits do not use signals and so do not enter the
+   On macOS, barrier hits do not use signals and so do not enter the
    debugger.
+
+#. .. index::
+       single: postmortem debugging
+       single: postmortem state
+
+   If the :term:`client program` is stopped in the debugger with the
+   MPS part of the way through execution of an operation in an
+   :term:`arena` (for example, a crash inside a :term:`scan method`),
+   it will not be possible to call introspection functions, such as
+   :c:func:`mps_arena_has_addr` or :c:func:`mps_addr_pool` (because
+   the MPS is not re-entrant), and it may not be possible to examine
+   some regions of memory (because they are :term:`protected` by the
+   MPS).
+
+   If you are in this situation and would like to be able to call MPS
+   functions or examine regions of memory from the debugger, then you
+   can put the arena into the :term:`postmortem state` by calling
+   :c:func:`mps_arena_postmortem` from the debugger. This unlocks the
+   arena and turns off protection.
+
+   .. warning:: 
+
+       After calling :c:func:`mps_arena_postmortem`, MPS-managed
+       memory is not in a consistent state, and so it is not safe to
+       continue running the client program.
 
 
 .. index::
@@ -130,7 +155,7 @@ program (data segment, text segment, stack and heap):
     }
 
 When ASLR is turned on, running this program outputs different
-addresses on each run. For example, here are four runs on OS X
+addresses on each run. For example, here are four runs on macOS
 10.9.3::
 
     data: 0x10a532020 text: 0x10a531ed0 stack: 0x7fff556ceb1c heap: 0x7f9f80c03980
@@ -171,7 +196,7 @@ Here's the situation on each of the operating systems supported by the MPS:
 
       $ setarch $(uname -m) -R ./myprogram
 
-* On **OS X** (10.7 or later), ASLR can be disabled for a single
+* On **macOS** (10.7 or later), ASLR can be disabled for a single
   process by starting the process using :c:func:`posix_spawn`, passing
   the undocumented attribute ``0x100``, like this:
 
@@ -188,7 +213,7 @@ Here's the situation on each of the operating systems supported by the MPS:
 
   The MPS provides the source code for a command-line tool
   implementing this (``tool/noaslr.c``). We've confirmed that this
-  works on OS X 10.9.3, but since the technique is undocumented, it
+  works on macOS 10.9.3, but since the technique is undocumented, it
   may well break in future releases. (If you know of a documented way
   to achieve this, please :ref:`contact us <contact>`.)
 

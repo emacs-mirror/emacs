@@ -544,7 +544,8 @@ Root interface
 
     ``base`` points to the first word to be scanned.
 
-    ``limit`` points to the location just beyond the end of the area to be scanned.
+    ``limit`` points to the location just beyond the end of the area
+    to be scanned.
 
     ``scan_area`` is an area scanning function, for example
     :c:func:`mps_scan_area`, or a similar user-defined function. See
@@ -578,7 +579,8 @@ Root interface
 
     ``base`` points to a vector of tagged references.
 
-    ``count`` is the number of tagged references in the vector.
+    ``limit`` points to the location just beyond the end of the vector
+    of tagged references.
 
     ``scan_area`` is an tagged area scanning function that will be
     used to scan the area, for example :c:func:`mps_scan_area_tagged`

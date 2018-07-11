@@ -49,7 +49,6 @@ bt_                     Bit tables
 buffer_                 Allocation buffers and allocation points
 cbs_                    Coalescing block structures
 check_                  Checking
-class-interface_        Pool class interface
 clock_                  Fast high-resolution clock
 collection_             Collection framework
 config_                 MPS configuration
@@ -75,7 +74,7 @@ message_                Client message protocol
 message-gc_             GC messages
 nailboard_              Nailboards for ambiguously referenced segments
 object-debug_           Debugging features for client objects
-pool_                   Pool and pool class mechanisms
+pool_                   Pool classes
 poolamc_                Automatic Mostly-Copying pool class
 poolams_                Automatic Mark-and-Sweep pool class
 poolawl_                Automatic Weak Linked pool class
@@ -84,11 +83,10 @@ poolmfs_                Manual Fixed Small pool class
 poolmrg_                Manual Rank Guardian pool class
 poolmvt_                Manual Variable Temporal pool class
 poolmvff_               Manual Variable First-Fit pool class
-prmc_                   Protection mutator context
+prmc_                   Mutator context
 prot_                   Memory protection
-protli_                 Linux implementation of protection module
+protix_                 POSIX implementation of protection module
 protocol_               Protocol inheritance
-protsu_                 SunOS 4 implementation of protection module
 pthreadext_             POSIX thread extensions
 range_                  Ranges of addresses
 ring_                   Ring data structure
@@ -99,8 +97,7 @@ shield_                 Shield
 sig_                    Signatures in the MPS
 sp_                     Stack probe
 splay_                  Splay trees
-ss_                     Stack and register scanning
-sso1al_                 Stack scanner for Digital Unix / Alpha systems
+stack-scan_             Stack and register scanning
 strategy_               Collection strategy
 telemetry_              Telemetry
 tests_                  Tests
@@ -110,10 +107,7 @@ thread-safety_          Thread safety in the MPS
 trace_                  Tracer
 type_                   General MPS types
 version-library_        Library version mechanism
-version_                Software versions
 vm_                     Virtual mapping
-vmo1_                   VM Module on DEC Unix
-vmso_                   VM Design for Solaris
 write-barrier_          Write Barrier
 writef_                 The WriteF function 
 ======================  ================================================
@@ -129,7 +123,6 @@ writef_                 The WriteF function
 .. _cbs: cbs
 .. _check: check
 .. _clock: clock
-.. _class-interface: class-interface
 .. _collection: collection
 .. _config: config
 .. _critical-path: critical-path
@@ -165,9 +158,8 @@ writef_                 The WriteF function
 .. _poolmvff: poolmvff
 .. _prmc: prmc
 .. _prot: prot
-.. _protli: protli
+.. _protix: protix
 .. _protocol: protocol
-.. _protsu: protsu
 .. _pthreadext: pthreadext
 .. _range: range
 .. _ring: ring
@@ -178,8 +170,7 @@ writef_                 The WriteF function
 .. _sig: sig
 .. _sp: sp
 .. _splay: splay
-.. _ss: ss
-.. _sso1al: sso1al
+.. _stack-scan: stack-scan
 .. _strategy: strategy
 .. _telemetry: telemetry
 .. _tests: tests
@@ -189,10 +180,7 @@ writef_                 The WriteF function
 .. _trace: trace
 .. _type: type
 .. _version-library: version-library
-.. _version: version
 .. _vm: vm
-.. _vmo1: vmo1
-.. _vmso: vmso
 .. _write-barrier: write-barrier
 .. _writef: writef
 
@@ -211,20 +199,20 @@ References
 Document History
 ----------------
 
-- 2002-05-23 	RB_ 	Created empty catalogue based on P4DTI design document catalogue.
-- 2002-06-07 	RB_ 	Added a bunch of design documents referenced by the source code.
-- 2002-06-21 	NB_ 	Remove P4DTI reference, which doesn't fit here. Maybe one day we'll have a corporate design document procedure.
-- 2002-06-24 	RB_ 	Added fix, object-debug, thread-manager, and thread-safety.
-- 2007-02-08 	RHSK 	Added message-gc and shield.
-- 2007-06-12 	RHSK 	Added cstyle.
-- 2007-06-28 	RHSK 	Added diag.
-- 2008-12-04 	RHSK 	Added tests.
-- 2008-12-10 	RHSK 	Correct description of message-gc: gc begin or end.
-- 2012-09-14 	RB_ 	Added link to critical-path
-- 2013-05-10 	RB_ 	Fixed link to sig and added guide.hex.trans
-- 2013-05-22 	GDR_ 	Add link to keyword-arguments.
-- 2013-05-25 	RB_ 	Replacing "cstyle" with reworked "guide.impl.c.format".
-- 2013-06-07	RB_	Converting to reST_.  Linking to [RB_2002-06-18]_.
+- 2002-05-23    RB_     Created empty catalogue based on P4DTI design document catalogue.
+- 2002-06-07    RB_     Added a bunch of design documents referenced by the source code.
+- 2002-06-21    NB_     Remove P4DTI reference, which doesn't fit here. Maybe one day we'll have a corporate design document procedure.
+- 2002-06-24    RB_     Added fix, object-debug, thread-manager, and thread-safety.
+- 2007-02-08    RHSK    Added message-gc and shield.
+- 2007-06-12    RHSK    Added cstyle.
+- 2007-06-28    RHSK    Added diag.
+- 2008-12-04    RHSK    Added tests.
+- 2008-12-10    RHSK    Correct description of message-gc: gc begin or end.
+- 2012-09-14    RB_     Added link to critical-path
+- 2013-05-10    RB_     Fixed link to sig and added guide.hex.trans
+- 2013-05-22    GDR_    Add link to keyword-arguments.
+- 2013-05-25    RB_     Replacing "cstyle" with reworked "guide.impl.c.format".
+- 2013-06-07    RB_     Converting to reST_.  Linking to [RB_2002-06-18]_.
 - 2014-01-29    RB_     The arena no longer manages generation zonesets.
 - 2014-01-17    GDR_    Add abq, nailboard, range.
 - 2016-03-22    RB_     Add write-barier.
