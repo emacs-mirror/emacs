@@ -22,15 +22,16 @@ typedef struct GenParamStruct {
 } GenParamStruct;
 
 
-/* GenTraceStats -- per-generation per-trace statistics */
+/* GenTrace -- per-generation per-trace structure */
 
-typedef struct GenTraceStatsStruct *GenTraceStats;
+typedef struct GenTraceStruct *GenTrace;
 
-typedef struct GenTraceStatsStruct {
+typedef struct GenTraceStruct {
+  RingStruct traceRing;  /* link in ring of generations condemned by trace */
   Size condemned;        /* size of objects condemned by the trace */
   Size forwarded;        /* size of objects that were forwarded by the trace */
   Size preservedInPlace; /* size of objects preserved in place by the trace */
-} GenTraceStatsStruct;
+} GenTraceStruct;
 
 
 /* GenDesc -- descriptor of a generation in a chain */
@@ -46,7 +47,8 @@ typedef struct GenDescStruct {
   double mortality;     /* predicted mortality */
   RingStruct locusRing; /* Ring of all PoolGen's in this GenDesc (locus) */
   RingStruct segRing; /* Ring of GCSegs in this generation */
-  GenTraceStatsStruct trace[TraceLIMIT];
+  TraceSet activeTraces; /* set of traces collecting this generation */
+  GenTraceStruct trace[TraceLIMIT];
 } GenDescStruct;
 
 
@@ -81,7 +83,6 @@ typedef struct mps_chain_s {
   Sig sig;
   Arena arena;
   RingStruct chainRing; /* list of chains in the arena */
-  TraceSet activeTraces; /* set of traces collecting this chain */
   size_t genCount; /* number of generations */
   GenDesc gens; /* the array of generations */
 } ChainStruct;
@@ -90,9 +91,12 @@ typedef struct mps_chain_s {
 extern Bool GenDescCheck(GenDesc gen);
 extern Size GenDescNewSize(GenDesc gen);
 extern Size GenDescTotalSize(GenDesc gen);
+extern void GenDescStartTrace(GenDesc gen, Trace trace);
+extern void GenDescEndTrace(GenDesc gen, Trace trace);
 extern void GenDescCondemned(GenDesc gen, Trace trace, Size size);
 extern void GenDescSurvived(GenDesc gen, Trace trace, Size forwarded, Size preservedInPlace);
 extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth);
+#define GenDescOfTraceRing(node, trace) PARENT(GenDescStruct, trace[trace->ti], RING_ELT(GenTrace, traceRing, node))
 
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
                        GenParam params);
@@ -100,8 +104,6 @@ extern void ChainDestroy(Chain chain);
 extern Bool ChainCheck(Chain chain);
 
 extern double ChainDeferral(Chain chain);
-extern void ChainStartTrace(Chain chain, Trace trace);
-extern void ChainEndTrace(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
 extern GenDesc ChainGen(Chain chain, Index gen);
 extern Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth);

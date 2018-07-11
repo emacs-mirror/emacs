@@ -387,7 +387,7 @@ Bool MFSCheck(MFS mfs)
   CHECKL(SizeIsArenaGrains(mfs->extendBy, arena));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, PoolAlignment(MFSPool(mfs))) ==
          mfs->unitSize);
-  CHECKL(RingCheck(&mfs->extentRing));
+  CHECKD_NOSIG(Ring, &mfs->extentRing);
   CHECKL(mfs->free <= mfs->total);
   CHECKL((mfs->total - mfs->free) % mfs->unitSize == 0);
   return TRUE;
