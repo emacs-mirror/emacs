@@ -3,19 +3,19 @@
 # lii6ll.gmk: BUILD FOR LINUX/x64/Clang PLATFORM
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
 
 PFM = lii6ll
 
 MPMPF = \
-    lockli.c \
-    prmci6li.c \
-    proti6.c \
+    lockix.c \
+    prmci6.c \
+    prmcix.c \
+    prmclii6.c \
     protix.c \
-    protli.c \
+    protsgix.c \
     pthrdext.c \
     span.c \
-    ssixi6.c \
     thix.c \
     vmix.c
 
@@ -27,7 +27,7 @@ include comm.gmk
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

@@ -3,7 +3,9 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * Provides a function for scanning the stack and registers
+ * This module saves the mutator context on entry to the MPS, and
+ * provides functions for decoding the context and scanning the root
+ * registers. See <design/stack-scan/>.
  */
 
 #ifndef ss_h
@@ -11,32 +13,79 @@
 
 #include "mpm.h"
 
-
-/* StackScan -- scan the current thread's stack
+     
+/* StackContext -- some of the mutator's state
  *
- * StackScan scans the stack of the current thread, Between stackCold
- * and the current hot end of the stack. It also fixes any roots which
- * may be in callee-save registers.
- *
- * See the specific implementation for the exact registers which are scanned.
- *
- * If a stack pointer has been stashed at arena entry (through the MPS
- * interface in mpsi*.c) then only the registers and the stack between
- * stackAtArenaEnter and stackCold is scanned, to avoid scanning false
- * ambiguous references on the MPS's own stack.  This is particularly
- * important for transforms (trans.c).
- *
- * The word pointed to by stackCold is fixed if the stack is by convention
- * empty, and not fixed if it is full.  Where empty means sp points to first
- * free word beyond the top of stack.  Full means sp points to the top of
- * stack itself.
+ * The jumpBuffer is used to capture most of the mutator's state on
+ * entry to the MPS, but can't capture it all.  See
+ * design.mps.stack-scan.sol.setjmp.scan.
  */
 
-extern Res StackScan(ScanState ss, Word *stackCold,
-                     mps_area_scan_t scan_area, void *closure);
-extern Res StackScanInner(ScanState ss, Word *stackCold, Word *stackHot,
-                          Count nSavedRegs,
-                          mps_area_scan_t scan_area, void *closure);
+#include <setjmp.h>
+
+typedef struct StackContextStruct {
+  jmp_buf jumpBuffer;
+} StackContextStruct;
+
+
+/* StackHot -- capture a hot stack pointer
+ *
+ * Sets *stackOut to a stack pointer that includes the current frame.
+ */
+
+void StackHot(void **stackOut);
+
+
+/* STACK_CONTEXT_BEGIN -- save context */
+
+#define STACK_CONTEXT_BEGIN(arena) \
+  BEGIN \
+    StackContextStruct _sc; \
+    STACK_CONTEXT_SAVE(&_sc); \
+    AVER(arena->stackWarm == NULL); \
+    StackHot(&arena->stackWarm); \
+    AVER(arena->stackWarm < (void *)&_sc); /* <code/ss.c#assume.desc> */ \
+    BEGIN
+
+
+/* STACK_CONTEXT_END -- clear context */
+
+#define STACK_CONTEXT_END(arena) \
+    END; \
+    AVER(arena->stackWarm != NULL); \
+    arena->stackWarm = NULL; \
+  END
+
+
+/* STACK_CONTEXT_SAVE -- save the callee-saves and stack pointer */
+
+#if defined(MPS_OS_XC)
+
+/* We call _setjmp rather than setjmp because we can be confident what
+ * it does via the source code at
+ * <http://www.opensource.apple.com/source/Libc/Libc-825.24/i386/sys/_setjmp.s>,
+ * and because _setjmp saves only the register set and the stack while
+ * setjmp also saves the signal mask, which we don't care about. See
+ * _setjmp(2). */
+
+#define STACK_CONTEXT_SAVE(sc) ((void)_setjmp((sc)->jumpBuffer))
+
+#else  /* other platforms */
+
+#define STACK_CONTEXT_SAVE(sc) ((void)setjmp((sc)->jumpBuffer))
+
+#endif /* platform defines */
+
+
+/* StackScan -- scan the mutator's stack and registers
+ *
+ * This must be called between STACK_CONTEXT_BEGIN and
+ * STACK_CONTEXT_END.
+ */
+
+extern Res StackScan(ScanState ss, void *stackCold,
+                      mps_area_scan_t scan_area, void *closure);
+
 
 #endif /* ss_h */
 

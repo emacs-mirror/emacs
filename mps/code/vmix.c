@@ -1,7 +1,7 @@
-/* vmix.c: VIRTUAL MEMORY MAPPING FOR UNIX (ISH)
+/* vmix.c: VIRTUAL MEMORY MAPPING (POSIX)
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the virtual memory mapping
  * interface (vm.h) for Unix-like operating systems.  It was created
@@ -10,7 +10,7 @@
  * copied from vli.c (Linux) which was itself copied from vmo1.c (OSF/1
  * / DIGITAL UNIX / Tru64).
  *
- * .deployed: Currently used on Darwin (OS X) and FreeBSD.
+ * .deployed: Currently used on Darwin (macOS) and FreeBSD.
  *
  * .design: See <design/vm/>.  .design.mmap: mmap(2) is used to
  * reserve address space by creating a mapping with page access none.
@@ -39,22 +39,17 @@
  */
 
 #include "mpm.h"
+
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
+#error "vmix.c is specific to MPS_OS_FR, MPS_OS_LI or MPS_OS_XC"
+#endif
+
 #include "vm.h"
 
-/* for mmap(2), munmap(2) */
-#include <sys/types.h>
+#include <errno.h> /* errno */
 #include <sys/mman.h> /* see .feature.li in config.h */
-
-/* for errno(2) */
-#include <errno.h>
-
-/* for getpagesize(3) */
-#include <unistd.h>
-
-
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_XC) && !defined(MPS_OS_LI)
-#error "vmix.c is Unix-like specific, currently MPS_OS_FR XC LI"
-#endif
+#include <sys/types.h> /* mmap, munmap */
+#include <unistd.h> /* getpagesize */
 
 SRCID(vmix, "$Id$");
 
@@ -225,7 +220,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

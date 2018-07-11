@@ -1,7 +1,7 @@
 /* mpmtypes.h: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2001 Global Graphics Software.
  *
  * .design: <design/type/>
@@ -62,26 +62,19 @@ typedef unsigned TraceSet;              /* <design/trace/> */
 typedef unsigned TraceState;            /* <design/trace/> */
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
-typedef int RootVar;                    /* <design/type/#rootvar> */
+typedef unsigned RootVar;               /* <design/type/#rootvar> */
 
 typedef Word *BT;                       /* <design/bt/> */
 typedef struct BootBlockStruct *BootBlock; /* <code/boot.c> */
 typedef struct BufferStruct *Buffer;    /* <design/buffer/> */
 typedef struct SegBufStruct *SegBuf;    /* <design/buffer/> */
 typedef struct BufferClassStruct *BufferClass; /* <design/buffer/> */
-typedef BufferClass SegBufClass;        /* <design/buffer/> */
-typedef BufferClass RankBufClass;       /* <design/buffer/> */
 typedef unsigned BufferMode;            /* <design/buffer/> */
-typedef unsigned FrameState;            /* <design/alloc-frame/> */
 typedef struct mps_fmt_s *Format;       /* design.mps.format */
 typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct mps_pool_s *Pool;        /* <design/pool/> */
+typedef Pool AbstractPool;
 typedef struct mps_pool_class_s *PoolClass;  /* <code/poolclas.c> */
-typedef PoolClass AbstractPoolClass;    /* <code/poolabs.c> */
-typedef PoolClass AbstractBufferPoolClass; /* <code/poolabs.c> */
-typedef PoolClass AbstractSegBufPoolClass; /* <code/poolabs.c> */
-typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
-typedef PoolClass AbstractCollectPoolClass; /* <code/poolabs.c> */
 typedef struct TraceStruct *Trace;      /* <design/trace/> */
 typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
 typedef struct mps_chain_s *Chain;      /* <design/trace/> */
@@ -92,35 +85,36 @@ typedef union PageUnion *Page;          /* <code/tract.c> */
 typedef struct SegStruct *Seg;          /* <code/seg.c> */
 typedef struct GCSegStruct *GCSeg;      /* <code/seg.c> */
 typedef struct SegClassStruct *SegClass; /* <code/seg.c> */
-typedef SegClass GCSegClass;            /* <code/seg.c> */
 typedef struct LocusPrefStruct *LocusPref; /* <design/locus/>, <code/locus.c> */
-typedef int LocusPrefKind;              /* <design/locus/>, <code/locus.c> */
+typedef unsigned LocusPrefKind;         /* <design/locus/>, <code/locus.c> */
 typedef struct mps_arena_class_s *ArenaClass; /* <design/arena/> */
-typedef ArenaClass AbstractArenaClass;  /* <code/arena.c> */
 typedef struct mps_arena_s *Arena;      /* <design/arena/> */
+typedef Arena AbstractArena;
 typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
 typedef struct VMStruct *VM;            /* <code/vm.c>* */
 typedef struct RootStruct *Root;        /* <code/root.c> */
 typedef struct mps_thr_s *Thread;       /* <code/th.c>* */
-typedef struct MutatorFaultContextStruct
-        *MutatorFaultContext;           /* <design/prot/> */
+typedef struct MutatorContextStruct *MutatorContext; /* <design/prmc/> */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
 typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
 typedef struct StackContextStruct *StackContext;
 typedef struct RangeStruct *Range;      /* <design/range/> */
+typedef struct RangeTreeStruct *RangeTree;
 typedef struct LandStruct *Land;        /* <design/land/> */
 typedef struct LandClassStruct *LandClass; /* <design/land/> */
 typedef unsigned FindDelete;            /* <design/land/> */
 typedef struct ShieldStruct *Shield; /* design.mps.shield */
+typedef struct HistoryStruct *History;  /* design.mps.arena.ld */
+typedef struct PoolGenStruct *PoolGen;  /* <design/strategy/> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
 
 typedef void (*ArenaVarargsMethod)(ArgStruct args[], va_list varargs);
-typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
-                               ArenaClass class, ArgList args);
-typedef void (*ArenaFinishMethod)(Arena arena);
+typedef Res (*ArenaCreateMethod)(Arena *arenaReturn, ArgList args);
+typedef void (*ArenaDestroyMethod)(Arena arena);
+typedef Res (*ArenaInitMethod)(Arena arena, Size grainSize, ArgList args);
 typedef Size (*ArenaPurgeSpareMethod)(Arena arena, Size size);
 typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaGrowMethod)(Arena arena, LocusPref pref, Size size);
@@ -128,10 +122,10 @@ typedef void (*ArenaFreeMethod)(Addr base, Size size, Pool pool);
 typedef Res (*ArenaChunkInitMethod)(Chunk chunk, BootBlock boot);
 typedef void (*ArenaChunkFinishMethod)(Chunk chunk);
 typedef void (*ArenaCompactMethod)(Arena arena, Trace trace);
-typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream, Count depth);
 typedef Res (*ArenaPagesMarkAllocatedMethod)(Arena arena, Chunk chunk,
                                              Index baseIndex, Count pages,
                                              Pool pool);
+typedef Bool (*ArenaChunkPageMappedMethod)(Chunk chunk, Index index);
 
 
 /* These are not generally exposed and public, but are part of a commercial
@@ -159,26 +153,36 @@ typedef void (*FreeBlockVisitor)(Addr base, Addr limit, Pool pool, void *p);
 
 typedef Res (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size,
                              ArgList args);
-typedef void (*SegFinishMethod)(Seg seg);
 typedef void (*SegSetGreyMethod)(Seg seg, TraceSet grey);
+typedef void (*SegFlipMethod)(Seg seg, Trace trace);
 typedef void (*SegSetWhiteMethod)(Seg seg, TraceSet white);
 typedef void (*SegSetRankSetMethod)(Seg seg, RankSet rankSet);
 typedef void (*SegSetRankSummaryMethod)(Seg seg, RankSet rankSet,
                                         RefSet summary);
 typedef void (*SegSetSummaryMethod)(Seg seg, RefSet summary);
-typedef Buffer (*SegBufferMethod)(Seg seg);
+typedef Bool (*SegBufferMethod)(Buffer *bufferReturn, Seg seg);
 typedef void (*SegSetBufferMethod)(Seg seg, Buffer buffer);
-typedef Res (*SegDescribeMethod)(Seg seg, mps_lib_FILE *stream, Count depth);
+typedef void (*SegUnsetBufferMethod)(Seg seg);
 typedef Res (*SegMergeMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
 typedef Res (*SegSplitMethod)(Seg seg, Seg segHi,
                               Addr base, Addr mid, Addr limit);
+typedef Res (*SegAccessMethod)(Seg seg, Arena arena, Addr addr,
+                               AccessSet mode, MutatorContext context);
+typedef Res (*SegWhitenMethod)(Seg seg, Trace trace);
+typedef void (*SegGreyenMethod)(Seg seg, Trace trace);
+typedef void (*SegBlackenMethod)(Seg seg, TraceSet traceSet);
+typedef Res (*SegScanMethod)(Bool *totalReturn, Seg seg, ScanState ss);
+typedef Res (*SegFixMethod)(Seg seg, ScanState ss, Ref *refIO);
+typedef void (*SegReclaimMethod)(Seg seg, Trace trace);
+typedef void (*SegWalkMethod)(Seg seg, Format format, FormattedObjectsVisitor f,
+                              void *v, size_t s);
+
 
 /* Buffer*Method -- see <design/buffer/> */
 
 typedef void (*BufferVarargsMethod)(ArgStruct args[], va_list varargs);
-typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, ArgList args);
-typedef void (*BufferFinishMethod)(Buffer buffer);
+typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, Bool isMutator, ArgList args);
 typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit,
                                    Addr init, Size size);
 typedef void (*BufferDetachMethod)(Buffer buffer);
@@ -186,51 +190,29 @@ typedef Seg (*BufferSegMethod)(Buffer buffer);
 typedef RankSet (*BufferRankSetMethod)(Buffer buffer);
 typedef void (*BufferSetRankSetMethod)(Buffer buffer, RankSet rankSet);
 typedef void (*BufferReassignSegMethod)(Buffer buffer, Seg seg);
-typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count depth);
 
 
-/* Pool*Method -- see <design/class-interface/> */
+/* Pool*Method -- see <design/pool/> */
 
 /* Order of types corresponds to PoolClassStruct in <code/mpmst.h> */
 
 typedef void (*PoolVarargsMethod)(ArgStruct args[], va_list varargs);
-typedef Res (*PoolInitMethod)(Pool pool, ArgList args);
-typedef void (*PoolFinishMethod)(Pool pool);
+typedef Res (*PoolInitMethod)(Pool pool, Arena arena, PoolClass klass, ArgList args);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
+typedef PoolGen (*PoolSegPoolGenMethod)(Pool pool, Seg seg);
 typedef Res (*PoolBufferFillMethod)(Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size);
 typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer,
                                       Addr init, Addr limit);
-typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
-typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
-                                AccessSet mode, MutatorFaultContext context);
-typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg);
-typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg);
-typedef void (*PoolBlackenMethod)(Pool pool, TraceSet traceSet, Seg seg);
-typedef Res (*PoolScanMethod)(Bool *totalReturn, ScanState ss,
-                              Pool pool, Seg seg);
-typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg,
-                             Ref *refIO);
-typedef Res (*PoolFixEmergencyMethod)(Pool pool, ScanState ss,
-                                      Seg seg, Ref *refIO);
-typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
-typedef void (*PoolTraceEndMethod)(Pool pool, Trace trace);
 typedef void (*PoolRampBeginMethod)(Pool pool, Buffer buf, Bool collectAll);
 typedef void (*PoolRampEndMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
                                    Pool pool, Buffer buf);
 typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
                                   AllocFrame frame);
-typedef void (*PoolFramePopPendingMethod)(Pool pool, Buffer buf,
-                                          AllocFrame frame);
-typedef Res (*PoolAddrObjectMethod)(Addr *pReturn,
-                                    Pool pool, Seg seg, Addr addr);
-typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                               void *v, size_t s);
 typedef void (*PoolFreeWalkMethod)(Pool pool, FreeBlockVisitor f, void *p);
 typedef BufferClass (*PoolBufferClassMethod)(void);
-typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream, Count depth);
 typedef PoolDebugMixin (*PoolDebugMixinMethod)(Pool pool);
 typedef Size (*PoolSizeMethod)(Pool pool);
 
@@ -262,8 +244,7 @@ typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 
 /* Land*Method -- see <design/land/> */
 
-typedef Res (*LandInitMethod)(Land land, ArgList args);
-typedef void (*LandFinishMethod)(Land land);
+typedef Res (*LandInitMethod)(Land land, Arena arena, Align alignment, ArgList args);
 typedef Size (*LandSizeMethod)(Land land);
 typedef Res (*LandInsertMethod)(Range rangeReturn, Land land, Range range);
 typedef Res (*LandDeleteMethod)(Range rangeReturn, Land land, Range range);
@@ -273,14 +254,13 @@ typedef Bool (*LandIterateMethod)(Land land, LandVisitor visitor, void *closure)
 typedef Bool (*LandIterateAndDeleteMethod)(Land land, LandDeleteVisitor visitor, void *closure);
 typedef Bool (*LandFindMethod)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete);
 typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high);
-typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 
 
 /* CONSTANTS */
 
 
-/* <design/sig/> SIGnature IS BAD */
-#define SigInvalid      ((Sig)0x51915BAD)
+/* <design/sig/>  */
+#define SigInvalid      ((Sig)0x51915BAD) /* SIGnature IS BAD */
 
 #define SizeMAX         ((Size)-1)
 #define AccessSetEMPTY  ((AccessSet)0) /* <design/type/#access-set> */
@@ -291,14 +271,14 @@ typedef Res (*LandDescribeMethod)(Land land, mps_lib_FILE *stream, Count depth);
 #define RefSetUNIV      BS_UNIV(RefSet)
 #define ZoneSetEMPTY    BS_EMPTY(ZoneSet)
 #define ZoneSetUNIV     BS_UNIV(ZoneSet)
+#define ZoneShiftUNSET  ((Shift)-1)  
 #define TraceSetEMPTY   BS_EMPTY(TraceSet)
 #define TraceSetUNIV    ((TraceSet)((1u << TraceLIMIT) - 1))
 #define RankSetEMPTY    BS_EMPTY(RankSet)
 #define RankSetUNIV     ((RankSet)((1u << RankLIMIT) - 1))
-#define AttrFMT         ((Attr)(1<<0))  /* <design/type/#attr> */
-#define AttrGC          ((Attr)(1<<1))
-#define AttrMOVINGGC    ((Attr)(1<<2))
-#define AttrMASK        (AttrFMT | AttrGC | AttrMOVINGGC)
+#define AttrGC          ((Attr)(1<<0))
+#define AttrMOVINGGC    ((Attr)(1<<1))
+#define AttrMASK        (AttrGC | AttrMOVINGGC)
 
 
 /* Locus preferences */
@@ -315,14 +295,6 @@ enum {
 #define BufferModeFLIPPED       ((BufferMode)(1<<1))
 #define BufferModeLOGGED        ((BufferMode)(1<<2))
 #define BufferModeTRANSITION    ((BufferMode)(1<<3))
-
-
-/* Buffer frame states. See <design/alloc-frame/#lw-frame.states> */
-enum {
-  BufferFrameVALID = 1,
-  BufferFramePOP_PENDING,
-  BufferFrameDISABLED
-};
 
 
 /* Rank constants -- see <design/type/#rank> */
@@ -440,14 +412,13 @@ typedef double WriteFD;
 /* STATISTIC_DECL -- declare a field to accumulate statistics in
  *
  * The argument is a field declaration (a struct-declaration minus the
- * semicolon) for a single field (no commas).  Currently, we always
- * leave them in, see design.mps.metrics.
+ * semicolon) for a single field (no commas).
  */
 
 #if defined(STATISTICS)
-#define STATISTIC_DECL(field) field
+#define STATISTIC_DECL(field) field;
 #elif defined(STATISTICS_NONE)
-#define STATISTIC_DECL(field) field
+#define STATISTIC_DECL(field)
 #else
 #error "No statistics configured."
 #endif
@@ -458,7 +429,7 @@ typedef double WriteFD;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

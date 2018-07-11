@@ -76,14 +76,14 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
 
   /* Plan C: Extend the arena, then try A and B again. */
   if (moreZones != ZoneSetEMPTY) {
-    res = arena->class->grow(arena, pref, size);
+    res = Method(Arena, arena, grow)(arena, pref, size);
     /* If we can't extend because we hit the commit limit, try purging
        some spare committed memory and try again.*/
     /* TODO: This would be a good time to *remap* VM instead of
        returning it to the OS. */
     if (res == ResCOMMIT_LIMIT) {
-      if (arena->class->purgeSpare(arena, size) >= size)
-        res = arena->class->grow(arena, pref, size);
+      if (Method(Arena, arena, purgeSpare)(arena, size) >= size)
+        res = Method(Arena, arena, grow)(arena, pref, size);
     }
     if (res == ResOK) {
       if (zones != ZoneSetEMPTY) {
@@ -213,7 +213,6 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
   Res res;
   size_t topCondemnedGen, i;
   GenDesc gen;
-  ZoneSet condemnedSet = ZoneSetEMPTY;
   Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
 
   AVERT(Chain, chain);
@@ -238,10 +237,17 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
 
   /* At this point, we've decided to condemn topCondemnedGen and all
    * lower generations. */
+  TraceCondemnStart(trace);
   for (i = 0; i <= topCondemnedGen; ++i) {
+    Ring node, next;
     gen = &chain->gens[i];
     AVERT(GenDesc, gen);
-    condemnedSet = ZoneSetUnion(condemnedSet, gen->zones);
+    RING_FOR(node, &gen->segRing, next) {
+      GCSeg gcseg = RING_ELT(GCSeg, genRing, node);
+      res = TraceAddWhite(trace, &gcseg->segStruct);
+      if (res != ResOK)
+        goto failBegin;
+    }
     genTotalSize = GenDescTotalSize(gen);
     genNewSize = GenDescNewSize(gen);
     condemnedSize += genTotalSize;
@@ -249,57 +255,69 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
                     /* predict survivors will survive again */
                     + (genTotalSize - genNewSize);
   }
-  
-  AVER(condemnedSet != ZoneSetEMPTY || condemnedSize == 0);
+  TraceCondemnEnd(trace);
+
   EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
   
-  /* Condemn everything in these zones. */
-  if (condemnedSet != ZoneSetEMPTY) {
-    res = TraceCondemnZones(trace, condemnedSet);
-    if (res != ResOK)
-      return res;
-  }
-
   *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
   return ResOK;
+
+failBegin:
+  AVER(TraceIsEmpty(trace));    /* See <code/trace.c#whiten.fail> */
+  TraceCondemnEnd(trace);
+  return res;
 }
 
 
 /* PolicyStartTrace -- consider starting a trace
  *
+ * If collectWorldAllowed is TRUE, consider starting a collection of
+ * the world. Otherwise, consider only starting collections of individual
+ * chains or generations.
+ *
+ * If a collection of the world was started, set *collectWorldReturn
+ * to TRUE. Otherwise leave it unchanged.
+ *
  * If a trace was started, update *traceReturn and return TRUE.
  * Otherwise, leave *traceReturn unchanged and return FALSE.
  */
 
-Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
+Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
+                      Arena arena, Bool collectWorldAllowed)
 {
   Res res;
   Trace trace;
-  Size sFoundation, sCondemned, sSurvivors, sConsTrace;
-  double tTracePerScan; /* tTrace/cScan */
-  double dynamicDeferral;
 
-  /* Compute dynamic criterion.  See strategy.lisp-machine. */
-  AVER(arena->topGen.mortality >= 0.0);
-  AVER(arena->topGen.mortality <= 1.0);
-  sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
-  /* @@@@ sCondemned should be scannable only */
-  sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-  sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
-  tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
-  AVER(TraceWorkFactor >= 0);
-  AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
-  sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
-  dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
+  AVER(traceReturn != NULL);
+  AVERT(Arena, arena);
 
-  if (dynamicDeferral < 0.0) {
-    /* Start full collection. */
-    res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
-    if (res != ResOK)
-      goto failStart;
-    *traceReturn = trace;
-    return TRUE;
-  } else {
+  if (collectWorldAllowed) {
+    Size sFoundation, sCondemned, sSurvivors, sConsTrace;
+    double tTracePerScan; /* tTrace/cScan */
+    double dynamicDeferral;
+
+    /* Compute dynamic criterion.  See strategy.lisp-machine. */
+    sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
+    /* @@@@ sCondemned should be scannable only */
+    sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+    sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
+    tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
+    AVER(TraceWorkFactor >= 0);
+    AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
+    sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
+    dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
+
+    if (dynamicDeferral < 0.0) {
+      /* Start full collection. */
+      res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
+      if (res != ResOK)
+        goto failStart;
+      *collectWorldReturn = TRUE;
+      *traceReturn = trace;
+      return TRUE;
+    }
+  }
+  {
     /* Find the chain most over its capacity. */
     Ring node, nextNode;
     double firstTime = 0.0;
@@ -322,13 +340,13 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
 
       res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
       AVER(res == ResOK);
+      trace->chain = firstChain;
+      ChainStartTrace(firstChain, trace);
       res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
       if (TraceIsEmpty(trace))
         goto nothingCondemned;
-      trace->chain = firstChain;
-      ChainStartGC(firstChain, trace);
       res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
       /* We don't expect normal GC traces to fail to start. */
       AVER(res == ResOK);

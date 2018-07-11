@@ -1,7 +1,7 @@
 /* pthreadext.h: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MM developers.
  *
@@ -32,7 +32,7 @@ typedef struct PThreadextStruct *PThreadext;
 typedef struct PThreadextStruct {
   Sig sig;                         /* <design/sig/> */
   pthread_t id;                    /* Thread ID */
-  MutatorFaultContext suspendedMFC; /* context if suspended */
+  MutatorContext context;          /* context if suspended */
   RingStruct threadRing;           /* ring of suspended threads */
   RingStruct idRing;               /* duplicate suspensions for id */
 } PThreadextStruct;
@@ -57,7 +57,7 @@ extern void PThreadextFinish(PThreadext pthreadext);
 /*  PThreadextSuspend -- Suspend a pthreadext and return its context. */
 
 extern Res PThreadextSuspend(PThreadext pthreadext,
-                             MutatorFaultContext *contextReturn);
+                             MutatorContext *contextReturn);
 
 
 /*  PThreadextResume --  Resume a suspended pthreadext */
@@ -70,7 +70,7 @@ extern Res PThreadextResume(PThreadext pthreadext);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
