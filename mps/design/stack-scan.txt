@@ -138,9 +138,17 @@ being saved by callees.
 _`.sol.stack.hot`: We could decode the frame of the function that
 invokes ``setjmp()`` from the jump buffer in a platform-specific way,
 but we can do something simpler (if more hacky) by calling the stub
-function ``StackHot()`` which takes the address of its argument. On
-all supported platforms this will yield a pointer that is pretty much
-at the hot end of the frame.
+function ``StackHot()`` which takes the address of its argument. So
+long as this stub function is not inlined into the caller, then on all
+supported platforms this yields a pointer that is pretty much at the
+hot end of the frame.
+
+_`.sol.stack.hot.noinline`: The reason that ``StackHot()`` must not be
+inlined is that after inlining, the compiler might place ``stackOut``
+at a colder stack address than the ``StackContextStruct``, causing the
+latter not to be scanned. See `mail.gdr.2018-07-11.09-48`_.
+
+.. _mail.gdr.2018-07-11.09-48: https://info.ravenbrook.com/mail/2018/07/11/09-48-49/0/
 
 _`.sol.stack.nest`: We can take care of scanning the jump buffer
 itself by storing it in the same stack frame. That way a scan from the
