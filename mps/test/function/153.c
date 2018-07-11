@@ -4,7 +4,7 @@ TEST_HEADER
  summary = SNC pop-to-NULL test parameterised (request.dylan.170602)
  language = c
  link = testlib.o rankfmt.o
- parameters = OBJSIZE=(1024) ITERATIONS=(1000)
+ parameters = OBJSIZE=1024 ITERATIONS=1000
 END_HEADER
 */
 

@@ -9,13 +9,13 @@ PFM = lii6gc
 
 MPMPF = \
     lockix.c \
-    prmci6li.c \
-    proti6.c \
+    prmci6.c \
+    prmcix.c \
+    prmclii6.c \
     protix.c \
-    protli.c \
+    protsgix.c \
     pthrdext.c \
     span.c \
-    ssixi6.c \
     thix.c \
     vmix.c
 

@@ -1,7 +1,7 @@
 /* messtest.c: MESSAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -82,7 +82,6 @@ static void postDummyMessage(Arena arena, MessageClass klass,
   message = (Message)p;
   MessageInit(arena, message, klass, type);
   MessagePost(arena, message);
-  return;
 }
 
 
@@ -277,7 +276,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

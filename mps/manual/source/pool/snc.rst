@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/stack-alloc/>`_
 
 .. index::
-   single: SNC
+   single: SNC pool class
    single: pool class; SNC
 
 .. _pool-snc:
@@ -30,7 +30,7 @@ popped are copied to the heap.
 
 
 .. index::
-   single: SNC; properties
+   single: SNC pool class; properties
 
 SNC properties
 --------------
@@ -81,7 +81,7 @@ SNC properties
 
 
 .. index::
-   single: SNC; interface
+   single: SNC pool class; interface
 
 SNC interface
 -------------

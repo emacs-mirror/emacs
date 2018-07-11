@@ -34,7 +34,7 @@ determine the address of allocated structures.
 There is currently no workaround for this issue. If this affects you,
 please :ref:`contact us <contact>`.
 
-Other supported platforms are unaffected by this issue: Linux and OS X
+Other supported platforms are unaffected by this issue: Linux and macOS
 randomize the addresses allocated by :c:func:`mmap`, and Windows
 randomizes the addresses allocated by :c:func:`VirtualAlloc`.
 
@@ -58,9 +58,9 @@ table`); guess a value for the address of the object; and arrange for
 that value to be scanned as an ambiguous reference (for example, by
 ensuring that it appears in :term:`registers` or on the :term:`control
 stack` of a :term:`thread`). If the guess was correct, the MPS keeps
-the object :term:`alive`; if incorrect, the object may :term:`die
-<dead>`. The attacker can then determine which of these was the case
-by examining the weak reference to see if it has been
+the object :term:`alive <live>`; if incorrect, the object may
+:term:`die <dead>`. The attacker can then determine which of these was
+the case by examining the weak reference to see if it has been
 :term:`splatted <splat>`.
 
 The attack was pointed out by `Dionysus Blazakis in 2012

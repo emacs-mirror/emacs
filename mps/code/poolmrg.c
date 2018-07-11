@@ -1,7 +1,7 @@
 /* poolmrg.c: MANUAL RANK GUARDIAN POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  * 
  * 
@@ -74,7 +74,8 @@ typedef struct RefPartStruct {
 } RefPartStruct;
 
 
-/* MRGRefPartRef,MRGRefPartSetRef -- Peek and poke the reference
+/* MRGRefPartRef,MRGRefPartSetRef -- read and write the reference
+ * using the software barrier
  *
  * Might be more efficient to take a seg, rather than calculate it
  * every time.
@@ -87,7 +88,7 @@ static Ref MRGRefPartRef(Arena arena, RefPart refPart)
 
   AVER(refPart != NULL);
 
-  ref = ArenaPeek(arena, &refPart->ref);
+  ref = ArenaRead(arena, &refPart->ref);
   return ref;
 }
 
@@ -102,7 +103,7 @@ static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
 {
   AVER(refPart != NULL);
 
-  ArenaPoke(arena, &refPart->ref, ref);
+  ArenaWrite(arena, &refPart->ref, ref);
 }
 
 
@@ -167,6 +168,7 @@ typedef struct MRGRefSegStruct {
 
 DECLARE_CLASS(Seg, MRGLinkSeg, Seg);
 DECLARE_CLASS(Seg, MRGRefSeg, GCSeg);
+static Res mrgRefSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 
 
 /* MRGLinkSegCheck -- check a link segment
@@ -233,6 +235,20 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
 }
 
 
+/* MRGLinkSegFinish -- finish a link segment */
+
+static void mrgLinkSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  MRGLinkSeg linkseg = MustBeA(MRGLinkSeg, seg);
+
+  linkseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, MRGLinkSeg, finish)(inst);
+}
+
+
 /* MRGRefSegInit -- initialise a ref segment */
 
 ARG_DEFINE_KEY(mrg_seg_link_seg, Pointer);
@@ -281,14 +297,30 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 }
 
 
+/* MRGRefSegFinish -- finish a ref segment */
+
+static void mrgRefSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  MRGRefSeg refseg = MustBeA(MRGRefSeg, seg);
+
+  refseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, MRGRefSeg, finish)(inst);
+}
+
+
 /* MRGLinkSegClass -- Class definition */
 
 DEFINE_CLASS(Seg, MRGLinkSeg, klass)
 {
   INHERIT_CLASS(klass, MRGLinkSeg, Seg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this */
+  klass->instClassStruct.finish = mrgLinkSegFinish;
   klass->size = sizeof(MRGLinkSegStruct);
   klass->init = MRGLinkSegInit;
+  AVERT(SegClass, klass);
 }
 
 
@@ -298,8 +330,11 @@ DEFINE_CLASS(Seg, MRGRefSeg, klass)
 {
   INHERIT_CLASS(klass, MRGRefSeg, GCSeg);
   SegClassMixInNoSplitMerge(klass);  /* no support for this */
+  klass->instClassStruct.finish = mrgRefSegFinish;
   klass->size = sizeof(MRGRefSegStruct);
   klass->init = MRGRefSegInit;
+  klass->scan = mrgRefSegScan;
+  AVERT(SegClass, klass);
 }
 
 
@@ -470,7 +505,6 @@ static void MRGSegPairDestroy(MRGRefSeg refseg)
 {
   RingRemove(&refseg->mrgRing);
   RingFinish(&refseg->mrgRing);
-  refseg->sig = SigInvalid;
   SegFree(MustBeA(Seg, refseg->linkSeg));
   SegFree(MustBeA(Seg, refseg));
 }
@@ -558,21 +592,22 @@ static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index indx)
 }
 
 
-static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
+static Res mrgRefSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
+  MRGRefSeg refseg = MustBeA(MRGRefSeg, seg);
+  Pool pool = SegPool(seg);
+  MRG mrg = MustBeA(MRGPool, pool);
+
   Res res;
   Arena arena;
   MRGLinkSeg linkseg;
-
   RefPart refPart;
   Index i;
   Count nGuardians;
 
   AVERT(ScanState, ss);
-  AVERT(MRGRefSeg, refseg);
-  AVERT(MRG, mrg);
 
-  arena = PoolArena(MustBeA(AbstractPool, mrg));
+  arena = PoolArena(pool);
   linkseg = refseg->linkSeg;
 
   nGuardians = MRGGuardiansPerSeg(mrg);
@@ -588,8 +623,10 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
         /* because we are in a scan and the shield is exposed. */
         if (TRACE_FIX1(ss, refPart->ref)) {
           res = TRACE_FIX2(ss, &(refPart->ref));
-          if (res != ResOK)
+          if (res != ResOK) {
+            *totalReturn = FALSE;
             return res;
+          }
 
           if (ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
             MRGFinalize(arena, linkseg, i);
@@ -600,6 +637,7 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
     }
   } TRACE_SCAN_END(ss);
 
+  *totalReturn = TRUE;
   return ResOK;
 }
 
@@ -616,10 +654,9 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   UNUSED(args);
   UNUSED(klass); /* used for debug pools only */
 
-  /* FIXME: These lines are often repeated */
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, MRGPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    return res;
+    goto failNextInit;
   mrg = CouldBeA(MRGPool, pool);
  
   RingInit(&mrg->entryRing);
@@ -632,6 +669,10 @@ static Res MRGInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVERC(MRGPool, mrg);
 
   return ResOK;
+
+failNextInit:
+  AVER(res != ResOK);
+  return res;
 }
 
 
@@ -818,27 +859,6 @@ static Res MRGDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 }
 
 
-static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  MRG mrg = MustBeA(MRGPool, pool);
-  MRGRefSeg refseg = MustBeA(MRGRefSeg, seg);
-  Res res;
-
-  AVERT(ScanState, ss);
-  AVER(SegRankSet(seg) == RankSetSingle(RankFINAL)); /* .improve.rank */
-  AVER(TraceSetInter(SegGrey(seg), ss->traces) != TraceSetEMPTY);
-
-  res = MRGRefSegScan(ss, refseg, mrg);
-  if (res != ResOK)  {
-    *totalReturn = FALSE;
-    return res;
-  }
-
-  *totalReturn = TRUE;
-  return ResOK;
-}
-
-
 DEFINE_CLASS(Pool, MRGPool, klass)
 {
   INHERIT_CLASS(klass, MRGPool, AbstractPool);
@@ -846,9 +866,7 @@ DEFINE_CLASS(Pool, MRGPool, klass)
   klass->instClassStruct.finish = MRGFinish;
   klass->size = sizeof(MRGStruct);
   klass->init = MRGInit;
-  klass->grey = PoolTrivGrey;
-  klass->blacken = PoolTrivBlacken;
-  klass->scan = MRGScan;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -860,7 +878,7 @@ PoolClass PoolClassMRG(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -5,7 +5,7 @@ TEST_HEADER
  language = c
  link = myfmt.o testlib.o
 OUTPUT_SPEC
- abort = true
+ assert_or_abort = true
 END_HEADER
 */
 

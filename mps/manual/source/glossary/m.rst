@@ -30,8 +30,8 @@ Memory Management Glossary: M
         but faster and more expensive than :term:`backing store`.
 
         It is common to refer only to the main memory of a computer;
-        for example, "This server has 128 GB of memory" and "OS X 10.8
-        requires at least 2 GB of memory".
+        for example, "This server has 128 GB of memory" and "macOS
+        High Sierra requires at least 2 GB of memory".
 
         .. historical::
 

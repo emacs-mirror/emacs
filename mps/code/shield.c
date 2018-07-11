@@ -1,7 +1,7 @@
 /* shield.c: SHIELD IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * See: idea.shield, design.mps.shield.
  *
@@ -226,7 +226,7 @@ static void shieldSync(Shield shield, Seg seg)
 }
 
 
-/* shieldSUspend -- suspend the mutator
+/* shieldSuspend -- suspend the mutator
  *
  * Called from inside impl.c.shield when any segment is not synced, in
  * order to provide exclusive access to the segment by the MPS.  See
@@ -381,7 +381,7 @@ static Compare shieldQueueEntryCompare(void *left, void *right, void *closure)
  *
  * Sort the shield queue into address order, then iterate over it
  * coalescing protection work, in order to reduce the number of system
- * calls to a minimum.  This is very important on OS X, where
+ * calls to a minimum.  This is very important on macOS, where
  * protection calls are extremely inefficient, but has no net gain on
  * Windows.
  *
@@ -762,7 +762,7 @@ void (ShieldCover)(Arena arena, Seg seg)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

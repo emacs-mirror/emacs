@@ -383,6 +383,20 @@ static Res ClientArenaPagesMarkAllocated(Arena arena, Chunk chunk,
 }
 
 
+/* ClientChunkPageMapped -- determine if a page is mapped */
+
+static Bool ClientChunkPageMapped(Chunk chunk, Index index)
+{
+  UNUSED(chunk);
+  UNUSED(index);
+
+  AVERT(Chunk, chunk);
+  AVER(index < chunk->pages);
+
+  return TRUE;
+}
+
+
 /* ClientArenaFree - free a region in the arena */
 
 static void ClientArenaFree(Addr base, Size size, Pool pool)
@@ -443,6 +457,8 @@ DEFINE_CLASS(Arena, ClientArena, klass)
   klass->free = ClientArenaFree;
   klass->chunkInit = ClientChunkInit;
   klass->chunkFinish = ClientChunkFinish;
+  klass->chunkPageMapped = ClientChunkPageMapped;
+  AVERT(ArenaClass, klass);
 }
 
 

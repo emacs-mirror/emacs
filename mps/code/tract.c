@@ -498,7 +498,6 @@ void PageFree(Chunk chunk, Index pi)
   AVER(BTGet(chunk->allocTable, pi));
 
   PageInit(chunk, pi);
-  return;
 }
 
 

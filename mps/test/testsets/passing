@@ -10,7 +10,7 @@ function/1.c
 function/5.c
 function/6.c
 function/7.c
-% function/8.c -- tries to exhaust memory by mps_arena_create
+function/8.c
 function/9.c
 function/10.c
 function/11.c
@@ -26,7 +26,7 @@ function/19.c
 function/20.c
 function/21.c
 function/22.c
-% function/23.c -- interactive test, can't run unattended
+% function/23.c -- infinite loop; also job003789
 function/24.c
 function/25.c
 function/26.c
@@ -88,7 +88,7 @@ function/83.c
 % 84-95 -- no such test
 function/96.c
 function/97.c
-% function/98.c -- tries to exhaust memory by mps_arena_create
+function/98.c
 function/99.c
 function/100.c
 function/101.c
@@ -172,3 +172,5 @@ function/228.c
 function/229.c
 function/231.c
 function/232.c
+function/233.c
+function/234.c

@@ -381,23 +381,14 @@ static Bool AMSSegIsFree(Seg seg)
 
 static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
 {
-  AMSSeg amsseg;
-  AMS ams;
-  Count bgrain, lgrain;
-  Addr sbase;
-
-  AVERT(Seg, seg);
-  amsseg = Seg2AMSSeg(seg);
-  sbase = SegBase(seg);
-  ams = PoolAMS(SegPool(seg));
-
-  bgrain = AMSGrains(ams, AddrOffset(sbase, base));
-  lgrain = AMSGrains(ams, AddrOffset(sbase, limit));
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  Index baseIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), base);
 
   if (amsseg->allocTableInUse) {
-    return BTIsResRange(amsseg->allocTable, bgrain, lgrain);
+    Index limitIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), limit);
+    return BTIsResRange(amsseg->allocTable, baseIndex, limitIndex);
   } else {
-    return amsseg->firstFree <= bgrain;
+    return amsseg->firstFree <= baseIndex;
   }
 }
 
@@ -416,8 +407,8 @@ static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 
   amsseg = Seg2AMSSeg(seg);
 
-  baseIndex = AMS_ADDR_INDEX(seg, base);
-  limitIndex = AMS_ADDR_INDEX(seg, limit);
+  baseIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), base);
+  limitIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), limit);
 
   if (amsseg->allocTableInUse) {
     /* check that it's allocated */
@@ -441,7 +432,8 @@ static void AMSUnallocateRange(AMS ams, Seg seg, Addr base, Addr limit)
   AVER(amsseg->bufferedGrains >= unallocatedGrains);
   amsseg->freeGrains += unallocatedGrains;
   amsseg->bufferedGrains -= unallocatedGrains;
-  PoolGenAccountForEmpty(ams->pgen, 0, AMSGrainsSize(ams, unallocatedGrains),
+  PoolGenAccountForEmpty(ams->pgen, 0,
+                         PoolGrainsSize(AMSPool(ams), unallocatedGrains),
                          FALSE);
 }
 
@@ -460,8 +452,8 @@ static void AMSAllocateRange(AMS ams, Seg seg, Addr base, Addr limit)
 
   amsseg = Seg2AMSSeg(seg);
 
-  baseIndex = AMS_ADDR_INDEX(seg, base);
-  limitIndex = AMS_ADDR_INDEX(seg, limit);
+  baseIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), base);
+  limitIndex = PoolIndexOfAddr(SegBase(seg), SegPool(seg), limit);
 
   if (amsseg->allocTableInUse) {
     /* check that it's not allocated */
@@ -655,6 +647,7 @@ DEFINE_CLASS(Pool, AMSTPool, klass)
   klass->size = sizeof(AMSTStruct);
   klass->init = AMSTInit;
   klass->bufferFill = AMSTBufferFill;
+  AVERT(PoolClass, klass);
 }
 
 

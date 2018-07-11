@@ -976,8 +976,8 @@ as a root by calling :c:func:`mps_root_create_thread`::
 
     void *marker = &marker;
     mps_root_t stack_root;
-    res = mps_root_create_thread(&reg_root, arena, thread, marker);
-    if (res != MPS_RES_OK) error("Couldn't create root");
+    res = mps_root_create_thread(&stack_root, arena, thread, marker);
+    if (res != MPS_RES_OK) error("Couldn't create stack root");
 
 In order to scan the control stack, the MPS needs to know where the
 :term:`cold end` of the stack is, and that's the role of the
@@ -1175,13 +1175,13 @@ before destroying the arena, and so on.
 
 For example::
 
-    mps_arena_park(arena);      /* ensure no collection is running */
-    mps_ap_destroy(obj_ap);     /* destroy ap before pool */
-    mps_pool_destroy(obj_pool); /* destroy pool before fmt */
-    mps_root_destroy(reg_root); /* destroy root before thread */
-    mps_thread_dereg(thread);   /* deregister thread before arena */
-    mps_fmt_destroy(obj_fmt);   /* destroy fmt before arena */
-    mps_arena_destroy(arena);   /* last of all */
+    mps_arena_park(arena);        /* ensure no collection is running */
+    mps_ap_destroy(obj_ap);       /* destroy ap before pool */
+    mps_pool_destroy(obj_pool);   /* destroy pool before fmt */
+    mps_root_destroy(stack_root); /* destroy root before thread */
+    mps_thread_dereg(thread);     /* deregister thread before arena */
+    mps_fmt_destroy(obj_fmt);     /* destroy fmt before arena */
+    mps_arena_destroy(arena);     /* last of all */
 
 
 What next?

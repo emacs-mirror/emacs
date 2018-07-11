@@ -7,7 +7,7 @@
     NB: `<https://info.ravenbrook.com/mail/2002/04/12/15-56-15/0.txt>`_
 
 .. index::
-   single: AWL
+   single: AWL pool class
    single: pool class; AWL
 
 .. _pool-awl:
@@ -49,7 +49,7 @@ the user guide for a detailed example of using this pool class.
 
 
 .. index::
-   single: AWL; properties
+   single: AWL pool class; properties
 
 AWL properties
 --------------
@@ -105,7 +105,7 @@ AWL properties
 
 
 .. index::
-   pair: AWL; dependent object
+   pair: AWL pool class; dependent object
 
 .. _pool-awl-dependent:
 
@@ -203,7 +203,7 @@ For example::
 
 
 .. index::
-   pair: AWL; protection faults
+   pair: AWL pool class; protection faults
 
 .. _pool-awl-barrier:
 
@@ -252,7 +252,7 @@ following are true:
 
 #. The MPS is running on Linux/IA-32 or Windows/IA-32. Extending this
    list to new (reasonable) operating systems should be tolerable (for
-   example, OS X/IA-32). Extending this to new processor architectures
+   example, macOS/IA-32). Extending this to new processor architectures
    requires more work.
 
 #. The processor instruction that is accessing the object is of a
@@ -267,7 +267,7 @@ memory access instructions.
 
 
 .. index::
-   pair: AWL; cautions
+   pair: AWL pool class; cautions
 
 .. _pool-awl-caution:
 
@@ -299,7 +299,7 @@ example <pool-awl-dependent>` above.
 
 
 .. index::
-   single: AWL; interface
+   single: AWL pool class; interface
 
 AWL interface
 -------------

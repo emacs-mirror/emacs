@@ -1,7 +1,7 @@
 /* lockix.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .posix: The implementation uses a POSIX interface, and should be reusable
  * for many Unix-like operating systems.
@@ -9,7 +9,7 @@
  * .freebsd: This implementation supports FreeBSD (platform
  * MPS_OS_FR).
  *
- * .darwin: This implementation supports Darwin (OS X) (platform
+ * .darwin: This implementation supports Darwin (macOS) (platform
  * MPS_OS_XC).
  *
  * .design: These locks are implemented using mutexes.
@@ -29,22 +29,21 @@
  * implementation (lockli.c).
  */
 
-#include "config.h"
+#include "mpm.h"
+
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
+#error "lockix.c is specific to MPS_OS_FR, MPS_OS_LI or MPS_OS_XC"
+#endif
+
+#include "lock.h"
 
 #include <pthread.h> /* see .feature.li in config.h */
 #include <semaphore.h>
 #include <errno.h>
 
-#include "lock.h"
-#include "mpmtypes.h"
-
-
-#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI) && !defined(MPS_OS_XC)
-#error "lockix.c is Unix specific."
-#endif
-
 SRCID(lockix, "$Id$");
 
+#if defined(LOCK)
 
 /* LockStruct -- the MPS lock structure
  *
@@ -160,8 +159,8 @@ void (LockClaimRecursive)(Lock lock)
   /* pthread_mutex_lock will return: */
   /*     0 if we have just claimed the lock */
   /*     EDEADLK if we own the lock already. */
-  AVER((res == 0 && lock->claims == 0)  ||
-       (res == EDEADLK && lock->claims > 0));
+  AVER((res == 0) == (lock->claims == 0));
+  AVER((res == EDEADLK) == (lock->claims > 0));
 
   ++lock->claims;
   AVER(lock->claims > 0);
@@ -185,6 +184,21 @@ void (LockReleaseRecursive)(Lock lock)
 }
 
 
+/* LockIsHeld -- test whether lock is held */
+
+Bool (LockIsHeld)(Lock lock)
+{
+  AVERT(Lock, lock);
+  if (pthread_mutex_trylock(&lock->mut) == 0) {
+    Bool claimed = lock->claims > 0;
+    int res = pthread_mutex_unlock(&lock->mut);
+    AVER(res == 0);
+    return claimed;
+  }
+  return TRUE;
+}
+
+
 /* Global locks
  *
  * .global: The two "global" locks are statically allocated normal locks.
@@ -196,7 +210,7 @@ static Lock globalLock = &globalLockStruct;
 static Lock globalRecLock = &globalRecLockStruct;
 static pthread_once_t isGlobalLockInit = PTHREAD_ONCE_INIT;
 
-static void globalLockInit(void)
+void LockInitGlobal(void)
 {
   LockInit(globalLock);
   LockInit(globalRecLock);
@@ -210,7 +224,7 @@ void (LockClaimGlobalRecursive)(void)
   int res;
 
   /* Ensure the global lock has been initialized */
-  res = pthread_once(&isGlobalLockInit, globalLockInit);
+  res = pthread_once(&isGlobalLockInit, LockInitGlobal);
   AVER(res == 0);
   LockClaimRecursive(globalRecLock);
 }
@@ -231,7 +245,7 @@ void (LockClaimGlobal)(void)
   int res;
 
   /* Ensure the global lock has been initialized */
-  res = pthread_once(&isGlobalLockInit, globalLockInit);
+  res = pthread_once(&isGlobalLockInit, LockInitGlobal);
   AVER(res == 0);
   LockClaim(globalLock);
 }
@@ -245,9 +259,26 @@ void (LockReleaseGlobal)(void)
 }
 
 
+/* LockSetup -- one-time lock initialization */
+
+void LockSetup(void)
+{
+  /* Claim all locks before a fork; release in the parent;
+     reinitialize in the child <design/thread-safety/#sol.fork.lock> */
+  pthread_atfork(GlobalsClaimAll, GlobalsReleaseAll, GlobalsReinitializeAll);
+}
+
+
+#elif defined(LOCK_NONE)
+#include "lockan.c"
+#else
+#error "No lock configuration."
+#endif
+
+
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
