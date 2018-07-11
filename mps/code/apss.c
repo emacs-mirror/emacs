@@ -1,7 +1,7 @@
 /* apss.c: AP MANUAL ALLOC STRESS TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  */
 
@@ -23,6 +23,7 @@
 #define testArenaSIZE   ((((size_t)3)<<24) - 4)
 #define testSetSIZE 200
 #define testLOOPS 10
+#define MAX_ALIGN 64 /* TODO: Make this test work up to arena_grain_size? */
 
 
 /* make -- allocate one object */
@@ -76,11 +77,12 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
 
   /* allocate a load of objects */
   for (i=0; i<testSetSIZE; ++i) {
+    mps_addr_t obj;
     ss[i] = (*size)(i, align);
-
-    res = make((mps_addr_t *)&ps[i], ap, ss[i]);
+    res = make(&obj, ap, ss[i]);
     if (res != MPS_RES_OK)
       goto allocFail;
+    ps[i] = obj;
     allocated += ss[i] + debugOverhead;
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
@@ -120,10 +122,12 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
     }
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
+      mps_addr_t obj;
       ss[i] = (*size)(i, align);
-      res = make((mps_addr_t *)&ps[i], ap, ss[i]);
+      res = make(&obj, ap, ss[i]);
       if (res != MPS_RES_OK)
         goto allocFail;
+      ps[i] = obj;
       allocated += ss[i] + debugOverhead;
     }
     check_allocated_size(pool, ap, allocated);
@@ -175,8 +179,10 @@ static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
   mps_arena_t arena;
   die(mps_arena_create_k(&arena, arena_class, arena_args), "mps_arena_create");
 
+  (void)arena_grain_size; /* TODO: test larger alignments up to this */
+
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
@@ -187,7 +193,7 @@ static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, NULL, align, randomSizeAligned, "MV",
                mps_class_mv(), args), "stress MV");
@@ -200,7 +206,7 @@ static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
   (void)options;
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
+    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, NULL, align, randomSizeAligned, "MVT",
                mps_class_mvt(), args), "stress MVT");
@@ -218,7 +224,7 @@ int main(int argc, char *argv[])
   
   testlib_init(argc, argv);
 
-  arena_grain_size = rnd_grain(2 * testArenaSIZE);
+  arena_grain_size = rnd_grain(testArenaSIZE);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 2 * testArenaSIZE);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
@@ -250,7 +256,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

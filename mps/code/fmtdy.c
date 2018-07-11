@@ -1,7 +1,7 @@
 /* fmtdy.c: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *  Portions copyright (c) 2002 Global Graphics Software.
  *
  * .readership: MPS developers, Dylan developers
@@ -96,7 +96,7 @@ int dylan_wrapper_check(mps_word_t *w)
   mps_word_t vh;
   mps_word_t version;
   mps_word_t reserved;
-  mps_word_t class;
+  mps_word_t klass;
   mps_word_t fh, fl, ff;
   mps_word_t vb, es, vf;
   mps_word_t vt, t;
@@ -129,8 +129,8 @@ int dylan_wrapper_check(mps_word_t *w)
   
   /* Unpack the wrapper. */
 
-  class = w[WC];         /* class */
-  unused(class);
+  klass = w[WC];         /* class */
+  unused(klass);
   fh = w[WF];            /* fixed part header word */
   fl = fh >> 2;         /* fixed part length */
   ff = fh & 3;          /* fixed part format code */
@@ -152,8 +152,8 @@ int dylan_wrapper_check(mps_word_t *w)
   /* The second word is the class of the wrapped object. */
   /* It would be good to check which pool this is in. */
 
-  assert(class != 0);                   /* class exists */
-  assert((class & 3) == 0);             /* class is aligned */
+  assert(klass != 0);                   /* class exists */
+  assert((klass & 3) == 0);             /* class is aligned */
 
   /* The third word contains the fixed part format and length. */
   /* The only illegal format is 3.  Anything else is possible, although */
@@ -407,8 +407,11 @@ extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
     return MPS_RES_OK;
   }
 
-  res = mps_fix(mps_ss, p);     /* fix the wrapper */
-  if ( res != MPS_RES_OK ) return res;
+  MPS_SCAN_BEGIN(mps_ss) {
+    res = MPS_FIX12(mps_ss, p); /* fix the wrapper */
+  } MPS_SCAN_END(mps_ss);
+  if (res != MPS_RES_OK)
+    return res;
   w = (mps_word_t *)p[0];       /* wrapper is header word */
   assert(dylan_wrapper_check(w));
 
@@ -567,8 +570,11 @@ extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
   assert((h & 3) == 0);
   unused(h);
   
-  res = mps_fix(mps_ss, p);
-  if ( res != MPS_RES_OK ) return res;
+  MPS_SCAN_BEGIN(mps_ss) {
+    res = MPS_FIX12(mps_ss, p);
+  } MPS_SCAN_END(mps_ss);
+  if (res != MPS_RES_OK)
+    return res;
 
   /* w points to wrapper */
   w = (mps_word_t *)p[0];
@@ -628,7 +634,7 @@ static mps_res_t dylan_scan_weak(mps_ss_t mps_ss,
   return MPS_RES_OK;
 }
 
-static mps_addr_t dylan_skip(mps_addr_t object)
+mps_addr_t dylan_skip(mps_addr_t object)
 {
   mps_addr_t *p;        /* cursor in object */
   mps_word_t *w;        /* wrapper cursor */
@@ -746,6 +752,14 @@ void dylan_pad(mps_addr_t addr, size_t size)
   }
 }
 
+mps_bool_t dylan_ispad(mps_addr_t addr)
+{
+  mps_word_t *p;
+
+  p = (mps_word_t *)addr;
+  return p[0] == 1 || p[0] == 2;
+}
+
 
 /* The dylan format structures */
 
@@ -844,7 +858,7 @@ mps_res_t dylan_fmt_weak(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

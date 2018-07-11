@@ -40,9 +40,7 @@ PARENT_FILESPEC_RE = r'{}({})(?:/|$)'.format(PROJECT_FILESPEC_RE, PARENT_RE)
 TASK_RE = r'[a-zA-Z][a-zA-Z0-9._-]*'
 TASK_BRANCH_RE = r'branch/(\d\d\d\d-\d\d-\d\d)/({})'.format(TASK_RE)
 VERSION_RE = r'\d+\.\d+'
-VERSION_BRANCH_RE = (r'(?:custom/({})/)?version/({})'
-                     .format(CUSTOMER_RE, VERSION_RE))
-CHILD_RE = r'(?:{}|{})$'.format(TASK_BRANCH_RE, VERSION_BRANCH_RE)
+CHILD_RE = r'(?:custom/({})/)?(?:{}|version/({}))$'.format(CUSTOMER_RE, TASK_BRANCH_RE, VERSION_RE)
 
 TASK_BRANCH_ENTRY = '''
   <tr valign="top">
@@ -57,7 +55,8 @@ TASK_BRANCH_ENTRY = '''
 VERSION_BRANCH_ENTRY = '''
   <tr valign="top">
     <td> <a href="{version}/">{version}</a> </td>
-    <td> None. </td>
+    <td>
+    </td>
     <td> <a href="https://info.ravenbrook.com/infosys/cgi/perfbrowse.cgi?@files+{depot}/project/{project}/{parent}/...@{changelevel}">{parent}/...@{changelevel}</a> </td>
     <td>
       {desc_html}
@@ -151,7 +150,10 @@ def main(argv):
     if args.task:
         if not re.match(TASK_RE, args.task):
             raise Error(fmt("Invalid task: {task}"))
-        args.child = fmt('branch/{date}/{task}')
+        if args.parent == 'master':
+            args.child = fmt('branch/{date}/{task}')
+        else:
+            args.child = fmt('custom/{customer}/branch/{date}/{task}')
         print(fmt("child={child}"))
     elif args.version:
         # Deduce version number from code/version.c.
@@ -170,9 +172,9 @@ def main(argv):
     m = re.match(CHILD_RE, args.child)
     if not m:
         raise Error(fmt("Invalid child: {child}"))
-    if not args.task and args.customer != m.group(3):
+    if args.customer != m.group(1):
         raise Error(fmt("Customer mismatch between {parent} and {child}."))
-    args.date, args.task, _, args.version = m.groups()
+    _, args.date, args.task, args.version = m.groups()
 
     if not args.description:
         args.description = fmt("Branching {parent} to {child}.")
@@ -254,8 +256,8 @@ def main(argv):
         return ''.join([d['data'] for d in p4.run('print', filespec)
                                   if d['code'] == 'text'])
 
-    if not args.version:
-        # Task branch
+    if not args.version and not args.customer:
+        # Public task branch
         register('{depot}/project/{project}/branch/index.html',
                  '(?=</table>\n)', TASK_BRANCH_ENTRY)
         args.git_name = fmt('{project}-{task}')
@@ -311,6 +313,8 @@ if __name__ == '__main__':
 # 2014-03-18 GDR Created based on [BRANCH-MERGE] and [VERSION-CREATE].
 #
 # 2016-02-13 RB  Adapting to Git Fusion 2.
+#
+# 2016-09-13 GDR Support for customer task branches.
 #
 #
 # C. COPYRIGHT AND LICENCE

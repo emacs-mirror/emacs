@@ -116,7 +116,7 @@ Arena ThreadArena(Thread thread)
 }
 
 
-Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
+Res ThreadScan(ScanState ss, Thread thread, void *stackCold,
                mps_area_scan_t scan_area,
                void *closure)
 {
@@ -139,6 +139,12 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
     return res;
 
   return ResOK;
+}
+
+
+void ThreadSetup(void)
+{
+  /* Nothing to do as ANSI platform does not have fork(). */
 }
 
 

@@ -135,8 +135,8 @@ Interface
 
 _`.if.pthreadext.abstract`: A thread is represented by the abstract
 type ``PThreadext``. A ``PThreadext`` object corresponds directly with
-a PThread (of type ``pthread_t``). There may be more than one
-``PThreadext`` object for the same PThread.
+a thread (of type ``pthread_t``). There may be more than one
+``PThreadext`` object for the same thread.
 
 _`.if.pthreadext.structure`: The structure definition of
 ``PThreadext`` (``PThreadextStruct``) is exposed by the interface so
@@ -163,16 +163,16 @@ _`.if.suspend`: Suspends a ``PThreadext`` object (puts it into a
 suspended state). Meets `.req.suspend`_. The object must not already
 be in a suspended state. If the function returns ``ResOK``, the
 context of the thread is returned in contextReturn, and the
-corresponding PThread will not make any progress until it is resumed:
+corresponding thread will not make any progress until it is resumed.
 
 ``Res PThreadextResume(PThreadext pthreadext)``
 
-_`.if.resume`: Resumes a ``PThreadext`` object. Meets
-`.req.resume`_. The object must already be in a suspended state.
-Puts the object into a non-suspended state. Permits the corresponding
-PThread to make progress again, (although that might not happen
-immediately if there is another suspended ``PThreadext`` object
-corresponding to the same thread):
+_`.if.resume`: Resumes a ``PThreadext`` object. Meets `.req.resume`_.
+The object must already be in a suspended state. Puts the object into
+a non-suspended state. Permits the corresponding thread to make
+progress again, although that might not happen immediately if there is
+another suspended ``PThreadext`` object corresponding to the same
+thread.
 
 ``void PThreadextFinish(PThreadext pthreadext)``
 
@@ -189,9 +189,9 @@ _`.impl.pthreadext`: The structure definition for a ``PThreadext``
 object is::
 
     struct PThreadextStruct {
-      Sig sig;                         /* design.mps.sig */
+      Sig sig;                         /* <design/sig/> */
       pthread_t id;                    /* Thread ID */
-      struct sigcontext *suspendedScp; /* sigcontext if suspended */
+      MutatorContext context;          /* context if suspended */
       RingStruct threadRing;           /* ring of suspended threads */
       RingStruct idRing;               /* duplicate suspensions for id */
     };
@@ -199,7 +199,7 @@ object is::
 _`.impl.field.id`: The ``id`` field shows which PThread the object
 corresponds to.
 
-_`.impl.field.scp`: The ``suspendedScp`` field contains the context
+_`.impl.field.context`: The ``context`` field contains the context
 when in a suspended state. Otherwise it is ``NULL``.
 
 _`.impl.field.threadring`: The ``threadRing`` field is used to chain
@@ -208,29 +208,30 @@ the object onto the suspend ring when it is in the suspended state
 this ring is single.
 
 _`.impl.field.idring`: The ``idRing`` field is used to group the
-object with other objects corresponding to the same PThread (same
+object with other objects corresponding to the same thread (same
 ``id`` field) when they are in the suspended state. When not in a
 suspended state, or when this is the only ``PThreadext`` object with
 this ``id`` in the suspended state, this ring is single.
 
-_`.impl.global.suspend-ring`: The module maintains a global
-suspend-ring -- a ring of ``PThreadext`` objects which are in a
+_`.impl.global.suspend-ring`: The module maintains a global varaible
+``suspendedRing``, a ring of ``PThreadext`` objects which are in a
 suspended state. This is primarily so that it's possible to determine
 whether a thread is curently suspended anyway because of another
 ``PThreadext`` object, when a suspend attempt is made.
 
-_`.impl.global.victim`: The module maintains a global variable which
-is used to indicate which ``PThreadext`` is the current victim during
-suspend operations. This is used to communicate information between
-the controlling thread and the thread being suspended (the victim).
-The variable has value ``NULL`` at other times.
+_`.impl.global.victim`: The module maintains a global variable
+``suspendingVictim`` which is used to indicate which ``PThreadext`` is
+the current victim during suspend operations. This is used to
+communicate information between the controlling thread and the thread
+being suspended (the victim). The variable has value ``NULL`` at other
+times.
 
 _`.impl.static.mutex`: We use a lock (mutex) around the suspend and
-resume operations. This protects the state data (the suspend-ring the
-victim: see `.impl.global.suspend-ring`_ and `.impl.global.victim`_
-respectively). Since only one thread can be suspended at a time,
-there's no possibility of two arenas suspending each other by
-concurrently suspending each other's threads.
+resume operations. This protects the state data (the suspend-ring and
+the victim: see `.impl.global.suspend-ring`_ and
+`.impl.global.victim`_ respectively). Since only one thread can be
+suspended at a time, there's no possibility of two arenas suspending
+each other by concurrently suspending each other's threads.
 
 _`.impl.static.semaphore`: We use a semaphore to synchronize between
 the controlling and victim threads during the suspend operation. See
@@ -324,10 +325,17 @@ likely to be generated and/or handled by other parts of the
 application and so should not be used (for example, ``SIGSEGV``). Some
 implementations of PThreads use some signals for themselves, so they
 may not be used; for example, LinuxThreads uses ``SIGUSR1`` and
-``SIGUSR2`` for its own purposes. The design abstractly names the
-signals ``PTHREADEXT_SIGSUSPEND`` and ``PTHREAD_SIGRESUME``, so that
-they may be easily mapped to appropriate real signal values. Candidate
-choices are ``SIGXFSZ`` and ``SIGPWR``.
+``SIGUSR2`` for its own purposes, and so do popular tools like
+Valgrind that we would like to be compatible with the MPS. The design
+therefore abstractly names the signals ``PTHREADEXT_SIGSUSPEND`` and
+``PTHREAD_SIGRESUME``, so that they may be easily mapped to
+appropriate real signal values. Candidate choices are ``SIGXFSZ`` and
+``SIGXCPU``.
+
+_`.impl.signals.config`: The identity of the signals used to suspend
+and resume threads can be configured at compilation time using the
+preprocessor constants ``CONFIG_PTHREADEXT_SIGSUSPEND`` and
+``CONFIG_PTHREADEXT_SIGRESUME`` respectively.
 
 
 Attachments
@@ -368,7 +376,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

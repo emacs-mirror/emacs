@@ -11,20 +11,14 @@
 
 #include "arg.h"
 #include "mpmtypes.h"
+#include "mpm.h"
 #include "mpmst.h"
-#include "range.h"
+#include "rangetree.h"
 #include "splay.h"
-
-typedef struct CBSBlockStruct *CBSBlock;
-typedef struct CBSBlockStruct {
-  TreeStruct treeStruct;
-  Addr base;
-  Addr limit;
-} CBSBlockStruct;
 
 typedef struct CBSFastBlockStruct *CBSFastBlock;
 typedef struct CBSFastBlockStruct {
-  struct CBSBlockStruct cbsBlockStruct;
+  struct RangeTreeStruct rangeTreeStruct;
   Size maxSize; /* accurate maximum block size of sub-tree */
 } CBSFastBlockStruct;
 
@@ -34,14 +28,25 @@ typedef struct CBSZonedBlockStruct {
   ZoneSet zones; /* union zone set of all ranges in sub-tree */
 } CBSZonedBlockStruct;
 
-typedef struct CBSStruct *CBS;
+typedef struct CBSStruct *CBS, *CBSFast, *CBSZoned;
 
 extern Bool CBSCheck(CBS cbs);
+
+
+/* CBSLand -- convert CBS to Land
+ *
+ * We would like to use MustBeA(Land, cbs) for this, but it produces
+ * bogus warnings about strict aliasing from GCC 4.7 (and probably
+ * 4.8).  We can abolish this macro when those are no longer in use in
+ * MPS development.
+ */
+
 #define CBSLand(cbs) (&(cbs)->landStruct)
 
-extern LandClass CBSLandClassGet(void);
-extern LandClass CBSFastLandClassGet(void);
-extern LandClass CBSZonedLandClassGet(void);
+
+DECLARE_CLASS(Land, CBS, Land);
+DECLARE_CLASS(Land, CBSFast, CBS);
+DECLARE_CLASS(Land, CBSZoned, CBSFast);
 
 extern const struct mps_key_s _mps_key_cbs_block_pool;
 #define CBSBlockPool (&_mps_key_cbs_block_pool)

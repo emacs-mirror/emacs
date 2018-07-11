@@ -17,9 +17,20 @@
 typedef struct GenParamStruct *GenParam;
 
 typedef struct GenParamStruct {
-  Size capacity; /* capacity in kB */
-  double mortality;
+  Size capacity;                /* capacity in kB */
+  double mortality;             /* predicted mortality */
 } GenParamStruct;
+
+
+/* GenTraceStats -- per-generation per-trace statistics */
+
+typedef struct GenTraceStatsStruct *GenTraceStats;
+
+typedef struct GenTraceStatsStruct {
+  Size condemned;        /* size of objects condemned by the trace */
+  Size forwarded;        /* size of objects that were forwarded by the trace */
+  Size preservedInPlace; /* size of objects preserved in place by the trace */
+} GenTraceStatsStruct;
 
 
 /* GenDesc -- descriptor of a generation in a chain */
@@ -30,16 +41,16 @@ typedef struct GenDescStruct *GenDesc;
 
 typedef struct GenDescStruct {
   Sig sig;
-  ZoneSet zones; /* zoneset for this generation */
-  Size capacity; /* capacity in kB */
-  double mortality;
+  ZoneSet zones;        /* zoneset for this generation */
+  Size capacity;        /* capacity in kB */
+  double mortality;     /* predicted mortality */
   RingStruct locusRing; /* Ring of all PoolGen's in this GenDesc (locus) */
+  RingStruct segRing; /* Ring of GCSegs in this generation */
+  GenTraceStatsStruct trace[TraceLIMIT];
 } GenDescStruct;
 
 
 /* PoolGen -- descriptor of a generation in a pool */
-
-typedef struct PoolGenStruct *PoolGen;
 
 #define PoolGenSig ((Sig)0x519B009E)  /* SIGnature POOl GEn */
 
@@ -51,13 +62,14 @@ typedef struct PoolGenStruct {
   RingStruct genRing;
 
   /* Accounting of memory in this generation for this pool */  
-  STATISTIC_DECL(Size segs);     /* number of segments */
-  Size totalSize;                /* total (sum of segment sizes) */
-  STATISTIC_DECL(Size freeSize); /* unused (free or lost to fragmentation) */
-  Size newSize;                  /* allocated since last collection */
-  STATISTIC_DECL(Size oldSize);  /* allocated prior to last collection */
-  Size newDeferredSize;          /* new (but deferred) */
-  STATISTIC_DECL(Size oldDeferredSize); /* old (but deferred) */
+  Size segs;              /* number of segments */
+  Size totalSize;         /* total (sum of segment sizes) */
+  Size freeSize;          /* unused (free or lost to fragmentation) */
+  Size bufferedSize;      /* held in buffers but not condemned yet */
+  Size newSize;           /* allocated since last collection */
+  Size oldSize;           /* allocated prior to last collection */
+  Size newDeferredSize;   /* new (but deferred) */
+  Size oldDeferredSize;   /* old (but deferred) */
 } PoolGenStruct;
 
 
@@ -78,6 +90,8 @@ typedef struct mps_chain_s {
 extern Bool GenDescCheck(GenDesc gen);
 extern Size GenDescNewSize(GenDesc gen);
 extern Size GenDescTotalSize(GenDesc gen);
+extern void GenDescCondemned(GenDesc gen, Trace trace, Size size);
+extern void GenDescSurvived(GenDesc gen, Trace trace, Size forwarded, Size preservedInPlace);
 extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth);
 
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
@@ -86,8 +100,8 @@ extern void ChainDestroy(Chain chain);
 extern Bool ChainCheck(Chain chain);
 
 extern double ChainDeferral(Chain chain);
-extern void ChainStartGC(Chain chain, Trace trace);
-extern void ChainEndGC(Chain chain, Trace trace);
+extern void ChainStartTrace(Chain chain, Trace trace);
+extern void ChainEndTrace(Chain chain, Trace trace);
 extern size_t ChainGens(Chain chain);
 extern GenDesc ChainGen(Chain chain, Index gen);
 extern Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth);
@@ -95,13 +109,13 @@ extern Res ChainDescribe(Chain chain, mps_lib_FILE *stream, Count depth);
 extern Bool PoolGenCheck(PoolGen pgen);
 extern Res PoolGenInit(PoolGen pgen, GenDesc gen, Pool pool);
 extern void PoolGenFinish(PoolGen pgen);
-extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass class,
+extern Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass klass,
                         Size size, ArgList args);
 extern void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,
                         Size newSize, Bool deferred);
-extern void PoolGenAccountForFill(PoolGen pgen, Size size, Bool deferred);
-extern void PoolGenAccountForEmpty(PoolGen pgen, Size unused, Bool deferred);
-extern void PoolGenAccountForAge(PoolGen pgen, Size aged, Bool deferred);
+extern void PoolGenAccountForFill(PoolGen pgen, Size size);
+extern void PoolGenAccountForEmpty(PoolGen pgen, Size used, Size unused, Bool deferred);
+extern void PoolGenAccountForAge(PoolGen pgen, Size wasBuffered, Size wasNew, Bool deferred);
 extern void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred);
 extern void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize);
 extern void PoolGenAccountForSegSplit(PoolGen pgen);

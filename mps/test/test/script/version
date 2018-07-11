@@ -33,4 +33,4 @@ $HARNESS_VERSION="3.5";
 #         3.3.1: fix bug in reporting compiler errors when compilation
 #                _succeeds_
 #  3.4 -- Added P= (pathname equality) operator
-#  3.5 -- Platform detection based on uname; Linux and Mac OS X stuff
+#  3.5 -- Platform detection based on uname; Linux and macOS stuff

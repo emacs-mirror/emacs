@@ -24,8 +24,10 @@ extern mps_res_t dylan_fmt_weak(mps_fmt_t *, mps_arena_t);
 
 extern mps_addr_t dylan_weak_dependent(mps_addr_t);
 
-extern void dylan_pad(mps_addr_t addr, size_t size);
-extern int dylan_wrapper_check(mps_word_t *w);
+extern mps_addr_t dylan_skip(mps_addr_t);
+extern void dylan_pad(mps_addr_t, size_t);
+extern mps_bool_t dylan_ispad(mps_addr_t);
+extern int dylan_wrapper_check(mps_word_t *);
 
 /* Constants describing wrappers. Used only for debugging / testing */
 #define WW 0    /* offset of Wrapper-Wrapper */

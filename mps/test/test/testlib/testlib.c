@@ -214,7 +214,9 @@ void asserts(int expr, const char *format, ...)
 
  if (!expr) {
   va_start(args, format);
-  fprintf(stdout, "%% ASSERTION FAILED \n!assert=true\n");
+  fprintf(stdout, "%% ASSERTION FAILED \n!"
+          "assert=true\n"
+          "assert_or_abort=true\n");
   fprintf(stdout, "!asserttext=");
   vfprintf(stdout, format, args);
   fprintf(stdout, "\n");
@@ -234,14 +236,15 @@ void asserts(int expr, const char *format, ...)
 static void mmqa_assert_handler(const char *cond, const char *id,
                               const char *file, unsigned line)
 {
+ comment("MPS ASSERTION FAILURE");
+ report("assert", "true");
+ report("assert_or_abort", "true");
  if (line == 0) {
 /* assertion condition contains condition, file, line, separated
    by newline characters
 */
   const char *val;
 
-  comment("MPS ASSERTION FAILURE");
-  report("assert", "true");
   report("assertid", "<no id supplied>");
 
   fprintf(stdout, "!assertcond=");
@@ -262,8 +265,6 @@ static void mmqa_assert_handler(const char *cond, const char *id,
   report("assertline", val);
   fflush(stdout);
  } else {
-  comment("MPS ASSERTION FAILURE");
-  report("assert", "true");
   report("assertid", id);
   report("assertfile", file);
   report("assertline", "%u", line);

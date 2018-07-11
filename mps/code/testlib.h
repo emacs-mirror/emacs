@@ -47,13 +47,9 @@
  */
 #define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
 
-/* GCC: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html */
-#define ATTRIBUTE_NOINLINE __attribute__((__noinline__))
-
 #else
 
 #define ATTRIBUTE_FORMAT(ARGLIST)
-#define ATTRIBUTE_NOINLINE
 
 #endif
 
@@ -263,6 +259,11 @@ extern size_t rnd_grain(size_t arena_size);
 /* rnd_align -- random alignment */
 
 extern size_t rnd_align(size_t min, size_t max);
+
+
+/* rnd_pause_time -- random pause time */
+
+extern double rnd_pause_time(void);
 
 
 /* randomize -- randomize the generator, or initialize to replay

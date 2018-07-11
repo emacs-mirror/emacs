@@ -193,14 +193,14 @@ Memory Management Glossary: C
 
         .. mps:specific::
 
-            One of the three states an :term:`arena` can be in (the
-            others being the :term:`unclamped state` and the
-            :term:`parked state`). In the clamped state, no object
-            motion occurs and the staleness of :term:`location
-            dependencies` does not change. However, a :term:`garbage
-            collection` may be in progress. Call
-            :c:func:`mps_arena_clamp` to put an arena into the clamped
-            state.
+            One of the four states an :term:`arena` can be in (the
+            others being the :term:`unclamped state`, the
+            :term:`parked state`, and the :term:`postmortem state`).
+            In the clamped state, no object motion occurs and the
+            staleness of :term:`location dependencies` does not
+            change. However, a :term:`garbage collection` may be in
+            progress. Call :c:func:`mps_arena_clamp` to put an arena
+            into the clamped state.
 
     client arena
 

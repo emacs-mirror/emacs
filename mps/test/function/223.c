@@ -60,12 +60,12 @@ static void alloc_back(void) {
 
 static void test(void) {
  long int i;
- long int rsize;
+ long int rsize = 0;
  mps_message_t message;
 
  int inramp;
 
- mycell *r, *s;
+ mycell *r = NULL, *s;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(),
    (size_t) 1024*1024*ARENALIMIT),
@@ -138,7 +138,7 @@ static void test(void) {
    }
   }
   if(mps_message_get(&message, arena, mps_message_type_gc())) {
-    unsigned long live, condemned, notCondemned;
+    size_t live, condemned, notCondemned;
     live = mps_message_gc_live_size(arena, message);
     condemned = mps_message_gc_condemned_size(arena, message);
     notCondemned = mps_message_gc_not_condemned_size(arena, message);
