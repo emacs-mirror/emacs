@@ -10,7 +10,7 @@ function/1.c
 function/5.c
 function/6.c
 function/7.c
-% function/8.c -- tries to exhaust memory by mps_arena_create
+function/8.c
 function/9.c
 function/10.c
 function/11.c
@@ -88,7 +88,7 @@ function/83.c
 % 84-95 -- no such test
 function/96.c
 function/97.c
-% function/98.c -- tries to exhaust memory by mps_arena_create
+function/98.c
 function/99.c
 function/100.c
 function/101.c
