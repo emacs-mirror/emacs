@@ -1,4 +1,4 @@
-% This testset contains all the "argerr" test cases that pass in
+% This testset contains all the "conerr" test cases that pass in
 % both the cool and hot varieties, together with comments explaining
 % why the other test cases fail.
 
@@ -67,3 +67,12 @@ conerr/56.c
 % conerr/57.c -- see <code/ld.c#.add.no-arena-check>
 % conerr/58.c -- see <code/ld.c#.stale.no-arena-check>
 conerr/59.c
+conerr/60.c
+conerr/61.c
+conerr/62.c
+conerr/63.c
+conerr/64.c
+conerr/65.c
+conerr/66.c
+conerr/67.c
+conerr/68.c

@@ -100,13 +100,13 @@ _`.mod`: This section lists the functional modules in the MPS.
 
 _`.mod.lock`: Locks. See design.mps.lock_.
 
-_`.mod.prmc`: Protection mutator context. See design.mps.prmc_.
+_`.mod.prmc`: Mutator context. See design.mps.prmc_.
 
 _`.mod.prot`: Memory protection. See design.mps.prot_.
 
-_`.mod.ss`: Stack and register scanning. See design.mps.ss_.
-
 _`.mod.sp`: Stack probe. See design.mps.sp_.
+
+_`.mod.ss`: Stack scanning. See design.mps.stack-scan_.
 
 _`.mod.th`: Thread manager. See design.mps.thread-manager_.
 
@@ -116,7 +116,7 @@ _`.mod.vm`: Virtual mapping. See design.mps.vm_.
 .. _design.mps.prot: prot
 .. _design.mps.prmc: prmc
 .. _design.mps.sp: sp
-.. _design.mps.ss: ss
+.. _design.mps.stack-scan: stack-scan
 .. _design.mps.thread-manager: thread-manager
 .. _design.mps.vm: vm
 
@@ -136,15 +136,15 @@ design.mps.prmc.impl.an.fault_) and requires a single-threaded mutator
 
 _`.lim.prot`: Does not support incremental collection (see
 design.mps.prot.impl.an.sync_) and is not compatible with
-implementations of the protection mutator context module that support
+implementations of the mutator context module that support
 single-stepping of accesses (see design.mps.prot.impl.an.sync.issue_).
 
 _`.lim.sp`: Only suitable for use with programs that do not handle
 stack overflow faults, or do not call into the MPS from the handler
 (see design.mps.sp.issue.an_).
 
-_`.lim.ss`: Overscans compared to a platform-specific implementation
-(see design.mps.ss.impl.an_).
+_`.lim.stack-scan`: Assumes that the stack grows downwards and that
+``setjmp()`` reliably captures the registers (see design.mps.stack-scan.sol.stack.platform_).
 
 _`.lim.th`: Requires a single-threaded mutator (see
 design.mps.thread-manager.impl.an.single_).
@@ -153,15 +153,15 @@ _`.lim.vm`: Maps all reserved addresses into main memory (see
 design.mps.vm.impl.an.reserve_), thus using more main memory than a
 platform-specific implementation.
 
-.. _design.mps.lock.impl.an: lock#impl.an
-.. _design.mps.prmc.impl.an.fault: prmc#impl.an.fault
-.. _design.mps.prmc.impl.an.suspend: prmc#impl.an.suspend
-.. _design.mps.prot.impl.an.sync: prot#impl.an.sync
-.. _design.mps.prot.impl.an.sync.issue: prot#impl.an.sync.issue
-.. _design.mps.sp.issue.an: sp#issue.an
-.. _design.mps.ss.impl.an: ss#impl.an
-.. _design.mps.thread-manager.impl.an.single: thread-manager#impl.an.single
-.. _design.mps.vm.impl.an.reserve: vm#impl.an.reserve
+.. _design.mps.lock.impl.an: lock#impl-an
+.. _design.mps.prmc.impl.an.fault: prmc#impl-an-fault
+.. _design.mps.prmc.impl.an.suspend: prmc#impl-an-suspend
+.. _design.mps.prot.impl.an.sync: prot#impl-an-sync
+.. _design.mps.prot.impl.an.sync.issue: prot#impl-an-sync.issue
+.. _design.mps.sp.issue.an: sp#issue-an
+.. _design.mps.stack-scan.sol.stack.platform: stack-scan#sol-stack-platform
+.. _design.mps.thread-manager.impl.an.single: thread-manager#impl-an-single
+.. _design.mps.vm.impl.an.reserve: vm#impl-an-reserve
 
 
 
@@ -176,7 +176,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

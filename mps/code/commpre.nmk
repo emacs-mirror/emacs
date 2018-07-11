@@ -157,6 +157,7 @@ MPMCOMMON=\
     [poolmv] \
     [protocol] \
     [range] \
+    [rangetree] \
     [ref] \
     [ring] \
     [root] \

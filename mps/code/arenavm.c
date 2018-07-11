@@ -932,6 +932,16 @@ static Res VMPagesMarkAllocated(Arena arena, Chunk chunk,
 }
 
 
+static Bool VMChunkPageMapped(Chunk chunk, Index index)
+{
+  VMChunk vmChunk;
+  AVERT(Chunk, chunk);
+  AVER(index < chunk->pages);
+  vmChunk = Chunk2VMChunk(chunk);
+  return BTGet(vmChunk->pages.mapped, index);
+}
+
+
 /* chunkUnmapAroundPage -- unmap spare pages in a chunk including this one
  *
  * Unmap the spare page passed, and possibly other pages in the chunk,
@@ -1208,6 +1218,8 @@ DEFINE_CLASS(Arena, VMArena, klass)
   klass->chunkFinish = VMChunkFinish;
   klass->compact = VMCompact;
   klass->pagesMarkAllocated = VMPagesMarkAllocated;
+  klass->chunkPageMapped = VMChunkPageMapped;
+  AVERT(ArenaClass, klass);
 }
 
 

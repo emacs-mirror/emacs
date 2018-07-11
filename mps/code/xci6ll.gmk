@@ -1,9 +1,9 @@
 # -*- makefile -*-
 #
-# xci6ll.gmk: BUILD FOR MAC OS X/x86_64/Clang PLATFORM
+# xci6ll.gmk: BUILD FOR macOS/x86-64/Clang/LLVM PLATFORM
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
 #
 # .prefer.xcode: The documented and preferred way to develop the MPS
 # for this platform is to use the Xcode project (mps.xcodeproj). This
@@ -15,12 +15,12 @@ PFM = xci6ll
 
 MPMPF = \
     lockix.c \
-    prmci6xc.c \
-    proti6.c \
+    prmci6.c \
+    prmcxc.c \
+    prmcxci6.c \
     protix.c \
     protxc.c \
     span.c \
-    ssixi6.c \
     thxc.c \
     vmix.c
 
@@ -30,7 +30,7 @@ include comm.gmk
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

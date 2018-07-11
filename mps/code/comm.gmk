@@ -195,6 +195,7 @@ MPMCOMMON = \
     poolmv.c \
     protocol.c \
     range.c \
+    rangetree.c \
     ref.c \
     ring.c \
     root.c \
@@ -266,6 +267,7 @@ TEST_TARGETS=\
     expt825 \
     finalcv \
     finaltest \
+    forktest \
     fotest \
     gcbench \
     landtest \
@@ -346,10 +348,8 @@ testratio: phony
 MMQA=perl test/qa -p $(PFM) -v $(VARIETY)
 
 $(PFM)/$(VARIETY)/testmmqa:
-	(if [ "$(VARIETY)" = "cool" ]; then cd ../test && $(MMQA) runset testsets/coolonly; fi)
-	(cd ../test && $(MMQA) runset testsets/argerr)
-	(cd ../test && $(MMQA) runset testsets/conerr)
-	(cd ../test && $(MMQA) runset testsets/passing)
+	if [ "$(VARIETY)" = "cool" ]; then (cd ../test && $(MMQA) runset testsets/coolonly); fi
+	(cd ../test && $(MMQA) runset testsets/argerr testsets/conerr testsets/passing)
 
 
 # == Toy Scheme interpreter ==
@@ -472,10 +472,10 @@ $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
-	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awluthe: $(PFM)/$(VARIETY)/awluthe.o \
-        $(FMTHETSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+        $(FMTHETSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/awlutth: $(PFM)/$(VARIETY)/awlutth.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(TESTTHROBJ) $(PFM)/$(VARIETY)/mps.a
@@ -500,6 +500,9 @@ $(PFM)/$(VARIETY)/finalcv: $(PFM)/$(VARIETY)/finalcv.o \
 
 $(PFM)/$(VARIETY)/finaltest: $(PFM)/$(VARIETY)/finaltest.o \
 	$(FMTDYTSTOBJ) $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
+
+$(PFM)/$(VARIETY)/forktest: $(PFM)/$(VARIETY)/forktest.o \
+	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 $(PFM)/$(VARIETY)/fotest: $(PFM)/$(VARIETY)/fotest.o \
 	$(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a

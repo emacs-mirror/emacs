@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -24,7 +24,6 @@
 #include "bt.h"
 #include "poolmrg.h"
 #include "mps.h" /* finalization */
-#include "poolmv.h"
 #include "mpm.h"
 
 SRCID(global, "$Id$");
@@ -50,6 +49,47 @@ static void arenaClaimRingLock(void)
 static void arenaReleaseRingLock(void)
 {
   LockReleaseGlobal();  /* release the global lock protecting arenaRing */
+}
+
+
+/* GlobalsClaimAll -- claim all MPS locks
+ * <design/thread-safety/#sol.fork.lock>
+ */
+
+void GlobalsClaimAll(void)
+{
+  LockClaimGlobalRecursive();
+  arenaClaimRingLock();
+  GlobalsArenaMap(ArenaEnter);
+}
+
+/* GlobalsReleaseAll -- release all MPS locks. GlobalsClaimAll must
+ * previously have been called. <design/thread-safety/#sol.fork.lock> */
+
+void GlobalsReleaseAll(void)
+{
+  GlobalsArenaMap(ArenaLeave);
+  arenaReleaseRingLock();
+  LockReleaseGlobalRecursive();
+}
+
+/* arenaReinitLock -- reinitialize the lock for an arena */
+
+static void arenaReinitLock(Arena arena)
+{
+  AVERT(Arena, arena);
+  ShieldLeave(arena);
+  LockInit(ArenaGlobals(arena)->lock);
+}
+
+/* GlobalsReinitializeAll -- reinitialize all MPS locks, and leave the
+ * shield for all arenas. GlobalsClaimAll must previously have been
+ * called. <design/thread-safety/#sol.fork.lock> */
+
+void GlobalsReinitializeAll(void)
+{
+  GlobalsArenaMap(arenaReinitLock);
+  LockInitGlobal();
 }
 
 
@@ -97,6 +137,21 @@ static void arenaDenounce(Arena arena)
   AVERT(Globals, arenaGlobals);
   RingRemove(&arenaGlobals->globalRing);
   arenaReleaseRingLock();
+}
+
+
+/* GlobalsArenaMap -- map a function over the arenas. The caller must
+ * have acquired the ring lock. */
+
+void GlobalsArenaMap(void (*func)(Arena arena))
+{
+  Ring node, nextNode;
+  AVERT(Ring, &arenaRing);
+  RING_FOR(node, &arenaRing, nextNode) {
+    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
+    Arena arena = GlobalsArena(arenaGlobals);
+    func(arena);
+  }
 }
 
 
@@ -195,8 +250,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
 
-  /* can't check arena->stackAtArenaEnter */
-  
+  /* can't check arena->stackWarm */
+
   return TRUE;
 }
 
@@ -221,7 +276,13 @@ Res GlobalsInit(Globals arenaGlobals)
     arenaRingInit = TRUE;
     RingInit(&arenaRing);
     arenaSerial = (Serial)0;
+    /* The setup functions call pthread_atfork (on the appropriate
+       platforms) and so must be called in the correct order. Here we
+       require the locks to be taken first in the "prepare" case and
+       released last in the "parent" and "child" cases. */
+    ThreadSetup();
     ProtSetup();
+    LockSetup();
   }
   arena = GlobalsArena(arenaGlobals);
   /* Ensure updates to arenaSerial do not race by doing the update
@@ -288,7 +349,7 @@ Res GlobalsInit(Globals arenaGlobals)
   
   arena->emergency = FALSE;
 
-  arena->stackAtArenaEnter = NULL;
+  arena->stackWarm = NULL;
   
   arenaGlobals->defaultChain = NULL;
 
@@ -476,10 +537,9 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   /* At this point the following pools still exist:
    * 0. arena->freeCBSBlockPoolStruct
    * 1. arena->controlPoolStruct
-   * 2. arena->controlPoolStruct.blockPoolStruct
-   * 3. arena->controlPoolStruct.spanPoolStruct
+   * 2. arena->controlPoolStruct.cbsBlockPoolStruct
    */
-  AVER(RingLength(&arenaGlobals->poolRing) == 4); /* <design/check/#.common> */
+  AVER(RingLength(&arenaGlobals->poolRing) == 3); /* <design/check/#.common> */
 }
 
 
@@ -493,10 +553,9 @@ Ring GlobalsRememberedSummaryRing(Globals global)
 
 /* ArenaEnter -- enter the state where you can look at the arena */
 
-void (ArenaEnter)(Arena arena)
+void ArenaEnter(Arena arena)
 {
-  AVERT(Arena, arena);
-  ArenaEnter(arena);
+  ArenaEnterLock(arena, FALSE);
 }
 
 /*  The recursive argument specifies whether to claim the lock
@@ -527,7 +586,6 @@ void ArenaEnterLock(Arena arena, Bool recursive)
   } else {
     ShieldEnter(arena);
   }
-  return;
 }
 
 /* Same as ArenaEnter, but for the few functions that need to be
@@ -541,10 +599,10 @@ void ArenaEnterRecursive(Arena arena)
 
 /* ArenaLeave -- leave the state where you can look at MPM data structures */
 
-void (ArenaLeave)(Arena arena)
+void ArenaLeave(Arena arena)
 {
   AVERT(Arena, arena);
-  ArenaLeave(arena);
+  ArenaLeaveLock(arena, FALSE);
 }
 
 void ArenaLeaveLock(Arena arena, Bool recursive)
@@ -566,7 +624,6 @@ void ArenaLeaveLock(Arena arena, Bool recursive)
   } else {
     LockRelease(lock);
   }
-  return;
 }
 
 void ArenaLeaveRecursive(Arena arena)
@@ -574,14 +631,10 @@ void ArenaLeaveRecursive(Arena arena)
   ArenaLeaveLock(arena, TRUE);
 }
 
-/* mps_exception_info -- pointer to exception info
- *
- * This is a hack to make exception info easier to find in a release
- * version.  The format is platform-specific.  We won't necessarily
- * publish this.  */
-
-extern MutatorFaultContext mps_exception_info;
-MutatorFaultContext mps_exception_info = NULL;
+Bool ArenaBusy(Arena arena)
+{
+  return LockIsHeld(ArenaGlobals(arena)->lock);
+}
 
 
 /* ArenaAccess -- deal with an access fault
@@ -590,7 +643,7 @@ MutatorFaultContext mps_exception_info = NULL;
  * corresponds to which mode flags need to be cleared in order for the
  * access to continue.  */
 
-Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
+Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
 {
   static Count count = 0;       /* used to match up ArenaAccess events */
   Seg seg;
@@ -598,7 +651,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   Res res;
 
   arenaClaimRingLock();    /* <design/arena/#lock.ring> */
-  mps_exception_info = context;
   AVERT(Ring, &arenaRing);
 
   RING_FOR(node, &arenaRing, nextNode) {
@@ -614,7 +666,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     /* protected root on a segment. */
     /* It is possible to overcome this restriction. */
     if (SegOfAddr(&seg, arena, addr)) {
-      mps_exception_info = NULL;
       arenaReleaseRingLock();
       /* An access in a different thread (or even in the same thread,
        * via a signal or exception handler) may have already caused
@@ -623,7 +674,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
        * thread. */
       mode &= SegPM(seg);
       if (mode != AccessSetEMPTY) {
-        res = PoolAccess(SegPool(seg), seg, addr, mode, context);
+        res = SegAccess(seg, arena, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       } else {
         /* Protection was already cleared, for example by another thread
@@ -633,7 +684,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       ArenaLeave(arena);
       return TRUE;
     } else if (RootOfAddr(&root, arena, addr)) {
-      mps_exception_info = NULL;
       arenaReleaseRingLock();
       mode &= RootPM(root);
       if (mode != AccessSetEMPTY)
@@ -651,7 +701,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     ArenaLeave(arena);
   }
 
-  mps_exception_info = NULL;
   arenaReleaseRingLock();
   return FALSE;
 }
@@ -822,7 +871,7 @@ Res ArenaDefinalize(Arena arena, Ref obj)
 }
 
 
-/* Peek / Poke */
+/* ArenaPeek -- read a single reference, possibly through a barrier */
 
 Ref ArenaPeek(Arena arena, Ref *p)
 {
@@ -830,6 +879,7 @@ Ref ArenaPeek(Arena arena, Ref *p)
   Ref ref;
 
   AVERT(Arena, arena);
+  /* Can't check p as it is arbitrary */
 
   if (SegOfAddr(&seg, arena, (Addr)p))
     ref = ArenaPeekSeg(arena, seg, p);
@@ -838,74 +888,19 @@ Ref ArenaPeek(Arena arena, Ref *p)
   return ref;
 }
 
+/* ArenaPeekSeg -- as ArenaPeek, but p must be in seg. */
+
 Ref ArenaPeekSeg(Arena arena, Seg seg, Ref *p)
 {
   Ref ref;
-
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-
-  AVER(SegBase(seg) <= (Addr)p);
-  AVER((Addr)p < SegLimit(seg));
-  /* TODO: Consider checking addr's alignment using seg->pool->alignment */
-
-  ShieldExpose(arena, seg);
-  ref = *p;
-  ShieldCover(arena, seg);
-  return ref;
-}
-
-void ArenaPoke(Arena arena, Ref *p, Ref ref)
-{
-  Seg seg;
-
-  AVERT(Arena, arena);
-  /* Can't check addr as it is arbitrary */
-  /* Can't check ref as it is arbitrary */
-
-  if (SegOfAddr(&seg, arena, (Addr)p))
-    ArenaPokeSeg(arena, seg, p, ref);
-  else
-    *p = ref;
-}
-
-void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
-{
-  RefSet summary;
-
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= (Addr)p);
-  AVER((Addr)p < SegLimit(seg));
-  /* TODO: Consider checking addr's alignment using seg->pool->alignment */
-  /* ref is arbitrary and can't be checked */
-
-  ShieldExpose(arena, seg);
-  *p = ref;
-  summary = SegSummary(seg);
-  summary = RefSetAdd(arena, summary, (Addr)ref);
-  SegSetSummary(seg, summary);
-  ShieldCover(arena, seg);
-}
-
-
-/* ArenaRead -- read a single reference, possibly through a barrier
- *
- * This forms part of a software barrier.  It provides fine-grain access
- * to single references in segments.
- * 
- * See also PoolSingleAccess and PoolSegAccess. */
-
-Ref ArenaRead(Arena arena, Ref *p)
-{
-  Bool b;
-  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Rank rank;
 
   AVERT(Arena, arena);
-
-  b = SegOfAddr(&seg, arena, (Addr)p);
-  AVER(b == TRUE);
+  AVERT(Seg, seg);
+  AVER(PoolArena(SegPool(seg)) == arena);
+  AVER(SegBase(seg) <= (Addr)p);
+  AVER((Addr)p < SegLimit(seg));
+  /* TODO: Consider checking p's alignment using seg->pool->alignment */
 
   /* .read.flipped: We AVER that the reference that we are reading */
   /* refers to an object for which all the traces that the object is */
@@ -927,9 +922,79 @@ Ref ArenaRead(Arena arena, Ref *p)
 
   /* We don't need to update the Seg Summary as in PoolSingleAccess
    * because we are not changing it after it has been scanned. */
+
+  ShieldExpose(arena, seg);
+  ref = *p;
+  ShieldCover(arena, seg);
+  return ref;
+}
+
+/* ArenaPoke -- write a single reference, possibly through a barrier */
+
+void ArenaPoke(Arena arena, Ref *p, Ref ref)
+{
+  Seg seg;
+
+  AVERT(Arena, arena);
+  /* Can't check p as it is arbitrary */
+  /* Can't check ref as it is arbitrary */
+
+  if (SegOfAddr(&seg, arena, (Addr)p))
+    ArenaPokeSeg(arena, seg, p, ref);
+  else
+    *p = ref;
+}
+
+/* ArenaPokeSeg -- as ArenaPoke, but p must be in seg. */
+
+void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
+{
+  RefSet summary;
+
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
+  AVER(PoolArena(SegPool(seg)) == arena);
+  AVER(SegBase(seg) <= (Addr)p);
+  AVER((Addr)p < SegLimit(seg));
+  /* TODO: Consider checking p's alignment using seg->pool->alignment */
+  /* ref is arbitrary and can't be checked */
+
+  ShieldExpose(arena, seg);
+  *p = ref;
+  summary = SegSummary(seg);
+  summary = RefSetAdd(arena, summary, (Addr)ref);
+  SegSetSummary(seg, summary);
+  ShieldCover(arena, seg);
+}
+
+/* ArenaRead -- like ArenaPeek, but reference known to be owned by arena */
+
+Ref ArenaRead(Arena arena, Ref *p)
+{
+  Bool b;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
+
+  AVERT(Arena, arena);
+
+  b = SegOfAddr(&seg, arena, (Addr)p);
+  AVER(b == TRUE);
   
-  /* get the possibly fixed reference */
   return ArenaPeekSeg(arena, seg, p);
+}
+
+/* ArenaWrite -- like ArenaPoke, but reference known to be owned by arena */
+
+void ArenaWrite(Arena arena, Ref *p, Ref ref)
+{
+  Bool b;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
+
+  AVERT(Arena, arena);
+
+  b = SegOfAddr(&seg, arena, (Addr)p);
+  AVER(b == TRUE);
+  
+  ArenaPokeSeg(arena, seg, p, ref);
 }
 
 
@@ -1067,7 +1132,7 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

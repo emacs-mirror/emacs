@@ -229,7 +229,8 @@ Chunks
 _`.chunk`: Each contiguous region of address space managed by the MPS
 is represented by a *chunk*.
 
-_`.chunk.tracts`: A chunk contains a table of tracts. See `.tract`_.
+_`.chunk.tracts`: A chunk contains a table of tracts. See
+`.tract.table`_.
 
 _`.chunk.lookup`: Looking of the chunk of an address is the first
 step in the second-stage fix operation, and so on the critical path.
@@ -308,7 +309,7 @@ If this field is ``TRUE``, then the value of ``p`` is a ``Seg``. See
 design.mps.type.bool.bitfield_ for why this is declared using the
 ``BOOLFIELD`` macro.
 
-.. _design.mps.type.bool.bitfield: type#bool.bitfield
+.. _design.mps.type.bool.bitfield: type#bool-bitfield
 
 _`.tract.field.base`: The base field contains the base address of the
 memory represented by the tract.
@@ -500,7 +501,7 @@ Implementation
 Tract cache
 ...........
 
-_`.tract.cache`: When tracts are allocated to pools by ``ArenaAlloc()``,
+_`.impl.tract.cache`: When tracts are allocated to pools by ``ArenaAlloc()``,
 the first tract of the block and it's base address are cached in arena
 fields ``lastTract`` and ``lastTractBase``. The function
 ``TractOfBaseAddr()`` (see design.mps.arena.tract-iter.if.block-base(0))
@@ -509,64 +510,64 @@ a cache miss. This optimizes for the common case where a pool
 allocates a block and then iterates over all its tracts (for example,
 to attach them to a segment).
 
-_`.tract.uncache`: When blocks of memory are freed by pools,
-``ArenaFree()`` checks to see if the cached value for the most recently
-allocated tract (see `.tract.cache`_) is being freed. If so, the cache
-is invalid, and must be reset. The ``lastTract`` and ``lastTractBase``
-fields are set to ``NULL``.
+_`.impl.tract.uncache`: When blocks of memory are freed by pools,
+``ArenaFree()`` checks to see if the cached value for the most
+recently allocated tract (see `.impl.tract.cache`_) is being freed. If
+so, the cache is invalid, and must be reset. The ``lastTract`` and
+``lastTractBase`` fields are set to ``NULL``.
 
 
 Control pool
 ............
 
-_`.pool.init`: The control pool is initialized by a call to
+_`.impl.pool.init`: The control pool is initialized by a call to
 ``PoolInit()`` during ``ArenaCreate()``.
 
-_`.pool.ready`: All the other fields in the arena are made checkable
-before calling ``PoolInit()``, so ``PoolInit()`` can call
+_`.impl.pool.ready`: All the other fields in the arena are made
+checkable before calling ``PoolInit()``, so ``PoolInit()`` can call
 ``ArenaCheck(arena)``. The pool itself is, of course, not checkable,
 so we have a field ``arena->poolReady``, which is false until after
-the return from ``PoolInit()``. ``ArenaCheck()`` only checks the pool if
-``poolReady``.
+the return from ``PoolInit()``. ``ArenaCheck()`` only checks the pool
+if ``poolReady``.
 
 
 Traces
 ......
 
-_`.trace`: ``arena->trace[ti]`` is valid if and only if
+_`.impl.trace`: ``arena->trace[ti]`` is valid if and only if
 ``TraceSetIsMember(arena->busyTraces, ti)``.
 
-_`.trace.create`: Since the arena created by ``ArenaCreate()`` has
-``arena->busyTraces = TraceSetEMPTY``, none of the traces are
+_`.impl.trace.create`: Since the arena created by ``ArenaCreate()``
+has ``arena->busyTraces = TraceSetEMPTY``, none of the traces are
 meaningful.
 
-_`.trace.invalid`: Invalid traces have signature ``SigInvalid``, which
-can be checked.
+_`.impl.trace.invalid`: Invalid traces have signature ``SigInvalid``,
+which can be checked.
 
 
 Polling
 .......
 
-_`.poll.fields`: There are three fields of a arena used for polling:
-``pollThreshold``, ``insidePoll``, and ``clamped`` (see above).
-``pollThreshold`` is the threshold for the next poll: it is set at the
-end of ``ArenaPoll()`` to the current polling time plus
+_`.impl.poll.fields`: There are three fields of a arena used for
+polling: ``pollThreshold``, ``insidePoll``, and ``clamped`` (see
+above). ``pollThreshold`` is the threshold for the next poll: it is
+set at the end of ``ArenaPoll()`` to the current polling time plus
 ``ARENA_POLL_MAX``.
 
 
 Location dependencies
 .....................
 
-_`.ld`: The ``historyStruct`` contains fields used to maintain a
+_`.impl.ld`: The ``historyStruct`` contains fields used to maintain a
 history of garbage collection and in particular object motion in order
 to implement location dependency.
 
-_`.ld.epoch`: The ``epoch`` is the "current epoch". This is the number
+_`.impl.ld.epoch`: The ``epoch`` is the "current epoch". This is the number
 of "flips" of traces, in which objects might have moved, in the arena
 since it was created. From the mutator's point of view, locations
 change atomically at flip.
 
-_`.ld.history`: The ``history`` is a circular buffer of
+_`.impl.ld.history`: The ``history`` is a circular buffer of
 ``LDHistoryLENGTH`` elements of type ``RefSet``. These are the
 summaries of moved objects since the last ``LDHistoryLENGTH`` epochs.
 If ``e`` is one of these recent epochs, then ::
@@ -576,7 +577,7 @@ If ``e`` is one of these recent epochs, then ::
 is a summary of (the original locations of) objects moved since epoch
 ``e``.
 
-_`.ld.prehistory`: The ``prehistory`` is a ``RefSet`` summarizing
+_`.impl.ld.prehistory`: The ``prehistory`` is a ``RefSet`` summarizing
 the original locations of all objects ever moved. When considering
 whether a really old location dependency is stale, it is compared with
 this summary.
@@ -585,7 +586,7 @@ this summary.
 Roots
 .....
 
-_`.root-ring`: The arena holds a member of a ring of roots in the
+_`.impl.root-ring`: The arena holds a member of a ring of roots in the
 arena. It holds an incremental serial which is the serial of the next
 root.
 
@@ -614,7 +615,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

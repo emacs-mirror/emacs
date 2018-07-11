@@ -1,7 +1,7 @@
 /* config.h: MPS CONFIGURATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -167,8 +167,9 @@
 /* CONFIG_THREAD_SINGLE -- support single-threaded execution only
  *
  * This symbol causes the MPS to be built for single-threaded
- * execution only, where locks are not needed and so lock operations
- * can be defined as no-ops by lock.h.
+ * execution only, where locks are not needed and so the generic
+ * ("ANSI") lock module lockan.c can be used instead of the
+ * platform-specific lock module.
  */
 
 #if !defined(CONFIG_THREAD_SINGLE)
@@ -277,8 +278,20 @@
 #define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #endif
 
+/* Attribute for functions that must not be inlined.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
+ * MSVC: <https://docs.microsoft.com/en-us/cpp/cpp/noinline>
+ */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define ATTRIBUTE_NOINLINE __attribute__((__noinline__))
+#elif defined(MPS_BUILD_MV)
+#define ATTRIBUTE_NOINLINE __declspec(noinline)
+#else
+#define ATTRIBUTE_NOINLINE
+#endif
+
 /* Attribute for functions that do not return.
- * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
  * Clang: <http://clang.llvm.org/docs/AttributeReference.html#id1>
  */
 #if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
@@ -288,7 +301,7 @@
 #endif
 
 /* Attribute for functions that may be unused in some build configurations.
- * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
  *
  * This attribute must be applied to all Check functions, otherwise
  * the RASH variety fails to compile with -Wunused-function. (It
@@ -316,14 +329,6 @@
 #else
 #define LIKELY(exp) ((exp) != 0)
 #endif
-
-
-/* EPVMDefaultSubsequentSegSIZE is a default for the alignment of
- * subsequent segments (non-initial at each save level) in EPVM.  See
- * design.mps.poolepvm.arch.segment.size.
- */
-
-#define EPVMDefaultSubsequentSegSIZE ((Size)64 * 1024)
 
 
 /* Buffer Configuration -- see <code/buffer.c> */
@@ -492,7 +497,7 @@
 /* Stack probe configuration -- see <code/sp*.c> */
 
 /* Currently StackProbe has a useful implementation only on Windows. */
-#if defined(MPS_OS_W3)
+#if defined(MPS_OS_W3) && !defined(CONFIG_PF_ANSI)
 /* See <design/sp/#sol.depth.analysis> for a justification of this value. */
 #define StackProbeDEPTH ((Size)500)
 #else
@@ -522,9 +527,9 @@
  * =========== ========================= ============= ====================
  * eventtxt.c  setenv                    <stdlib.h>    _GNU_SOURCE
  * lockix.c    pthread_mutexattr_settype <pthread.h>   _XOPEN_SOURCE >= 500
- * prmci3li.c  REG_EAX etc.              <ucontext.h>  _GNU_SOURCE
- * prmci6li.c  REG_RAX etc.              <ucontext.h>  _GNU_SOURCE
  * prmcix.h    stack_t, siginfo_t        <signal.h>    _XOPEN_SOURCE
+ * prmclii3.c  REG_EAX etc.              <ucontext.h>  _GNU_SOURCE
+ * prmclii6.c  REG_RAX etc.              <ucontext.h>  _GNU_SOURCE
  * pthrdext.c  sigaction etc.            <signal.h>    _XOPEN_SOURCE
  * vmix.c      MAP_ANON                  <sys/mman.h>  _GNU_SOURCE
  *
@@ -553,14 +558,14 @@
 #endif
 
 
-/* .feature.xc: OS X feature specification
+/* .feature.xc: macOS feature specification
  *
  * The MPS needs the following symbols which are not defined by default
  *
  * Source      Symbols                   Header        Feature
  * =========== ========================= ============= ====================
- * prmci3li.c  __eax etc.                <ucontext.h>  _XOPEN_SOURCE
- * prmci6li.c  __rax etc.                <ucontext.h>  _XOPEN_SOURCE
+ * prmclii3.c  __eax etc.                <ucontext.h>  _XOPEN_SOURCE
+ * prmclii6.c  __rax etc.                <ucontext.h>  _XOPEN_SOURCE
  *
  * It is not possible to localize these feature specifications around
  * the individual headers: all headers share a common set of features
@@ -574,21 +579,6 @@
 #define _XOPEN_SOURCE
 #endif
 
-#endif
-
-
-/* Protection Configuration see <code/prot*.c>
-
-   For each architecture/OS that uses protix.c or protsgix.c, we need to
-   define what signal number to use, and what si_code value to check.
-*/
-
-#if defined(MPS_OS_FR)
-#define PROT_SIGNAL (SIGSEGV)
-#endif
-
-#if defined(MPS_OS_FR)
-#define PROT_SIGINFO_GOOD(info) ((info)->si_code == SEGV_ACCERR)
 #endif
 
 
@@ -611,7 +601,7 @@
 
 #else
 
-#error "Unknown OS X architecture"
+#error "Unknown macOS architecture"
 
 #endif
 #endif
@@ -716,7 +706,7 @@
  *
  * TODO: These settings were determined by trial and error, but should
  * be based on measurement of the protection overhead on each
- * platform.  We know it's extremely different between OS X and
+ * platform.  We know it's extremely different between macOS and
  * Windows, for example.  See design.mps.write-barrier.improv.by-os.
  *
  * TODO: Consider basing the count on the amount of time that has
@@ -734,7 +724,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

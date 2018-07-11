@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -149,6 +149,7 @@ DEFINE_CLASS(Pool, MVTPool, klass)
   klass->bufferEmpty = MVTBufferEmpty;
   klass->totalSize = MVTTotalSize;
   klass->freeSize = MVTFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 /* Macros */
@@ -277,9 +278,9 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   if (abqDepth < 3)
     abqDepth = 3;
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, MVTPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    goto failAbsInit;
+    goto failNextInit;
   mvt = CouldBeA(MVTPool, pool);
 
   res = LandInit(MVTFreePrimary(mvt), CLASS(CBSFast), arena, align, mvt,
@@ -306,6 +307,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
     goto failABQInit;
 
   pool->alignment = align;
+  pool->alignShift = SizeLog2(pool->alignment);
   mvt->reuseSize = reuseSize;
   mvt->fillSize = fillSize;
   mvt->abqOverflow = FALSE;
@@ -377,7 +379,7 @@ failFreeSecondaryInit:
   LandFinish(MVTFreePrimary(mvt));
 failFreePrimaryInit:
   NextMethod(Inst, MVTPool, finish)(MustBeA(Inst, pool));
-failAbsInit:
+failNextInit:
   AVER(res != ResOK);
   return res;
 }
@@ -1030,7 +1032,7 @@ static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
   if (!TESTC(MVTPool, mvt))
     return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
   res = NextMethod(Inst, MVTPool, describe)(inst, stream, depth);
   if (res != ResOK)
@@ -1353,7 +1355,7 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -12,7 +12,9 @@
  "LOG_DIR"
 );
 
-$testset = $ARGV[0];
-
-&run_testset($testset, "$LOG_DIR/summ.log", "$LOG_DIR/res.log", "$LOG_DIR/full.log");
+@LOGS = ("$LOG_DIR/summ.log", "$LOG_DIR/res.log", "$LOG_DIR/full.log");
+unlink(@LOGS);
+foreach $testset (@ARGV) {
+ &run_testset($testset, @LOGS);
+}
 

@@ -362,7 +362,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
      if (p != NULL) {
       commentif(fixcomments, "fix %li[assoc]", obj->data.id);
       q = p;
-      res = MPS_FIX(ss, (mps_addr_t *) &p);
+      res = MPS_FIX12(ss, (mps_addr_t *) &p);
       if (res != MPS_RES_OK) return res;
       if (p == NULL) {
        asserts(rank == mps_rank_weak(),
@@ -387,7 +387,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        commentif(fixcomments, "fix %li[%i] -> %li",
                  obj->data.id, i, obj->data.ref[i].id);
        q = p;
-       res = MPS_FIX(ss, (mps_addr_t *) &p);
+       res = MPS_FIX12(ss, (mps_addr_t *) &p);
        if (p == NULL) {
         asserts(rank == mps_rank_weak(),
                 "non-weak reference fixed to NULL at %p[i]", obj);

@@ -22,10 +22,10 @@ TYPES = '''
     Arena Attr Bool BootBlock BT Buffer BufferMode Byte Chain Chunk
     Clock Compare Count Epoch EventClock FindDelete Format Fun GenDesc
     Globals Index Land LD Lock LocusPref LocusPrefKind Message
-    MessageType MutatorFaultContext Page Pointer Pool PoolGen
-    PThreadext Range Rank RankSet ReadonlyAddr Ref RefSet Res Ring
-    Root RootMode RootVar ScanState Seg SegBuf Serial Shift Sig Size
-    Space SplayNode SplayTree StackContext Thread Trace TraceId
+    MessageType MutatorContext MutatorContextVar Page Pointer Pool
+    PoolGen PThreadext Range Rank RankSet ReadonlyAddr Ref RefSet Res
+    Ring Root RootMode RootVar ScanState Seg SegBuf Serial Shift Sig
+    Size Space SplayNode SplayTree StackContext Thread Trace TraceId
     TraceSet TraceStartWhy TraceState ULongest VM Word ZoneSet
 
 '''
@@ -43,7 +43,7 @@ func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
 typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*(?:Class|Struct|Method)|mps_[a-z_]+_[stu])``(?:      )?'
                       .format('|'.join(map(re.escape, TYPES.split()))))
 design_ref = re.compile(r'^( *\.\. _design\.mps\.(?:[^:\n]+): (?:[^#:\n]+))$', re.MULTILINE)
-design_frag_ref = re.compile(r'^( *\.\. _design\.mps\.([^:\n]+)\.([^:\n]+): (?:[^#:\n]+))#\3$', re.MULTILINE)
+design_frag_ref = re.compile(r'^( *\.\. _design\.mps\.([^:\n]+)\.([^:\n]+): (?:[^#:\n]+))#(.+)$', re.MULTILINE)
 history = re.compile(r'^Document History\n.*',
                      re.MULTILINE | re.IGNORECASE | re.DOTALL)
 

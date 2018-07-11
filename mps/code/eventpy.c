@@ -1,7 +1,7 @@
 /* eventpy.c: GENERATE PYTHON INTERFACE TO EVENTS
  *
  * $Id$
- * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2016-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This command-line program emits Python data structures that can be
  * used to parse an event stream in text format (as output by the
@@ -22,37 +22,37 @@ int main(int argc, char *argv[])
   printf("__version__ = %d, %d, %d\n", EVENT_VERSION_MAJOR,
          EVENT_VERSION_MEDIAN, EVENT_VERSION_MINOR);
 
-  puts("EventKind = namedtuple('EventKind', 'name code doc')");
-  puts("class kind:");
+  puts("KindDesc = namedtuple('KindDesc', 'name code doc')");
+  puts("class Kind:");
 #define ENUM(_, NAME, DOC)                                              \
-  printf("    " #NAME " = EventKind('" #NAME "', %d, \"%s\")\n",        \
+  printf("    " #NAME " = KindDesc('" #NAME "', %d, \"%s\")\n",        \
          EventKind ## NAME, DOC);
   EventKindENUM(ENUM, _);
 #undef ENUM
 
-  puts("kinds = {");
+  puts("KIND = {");
 #define ENUM(_, NAME, _1) \
-  printf("    %d: kind." #NAME ",\n", EventKind ## NAME);
+  printf("    %d: Kind." #NAME ",\n", EventKind ## NAME);
   EventKindENUM(ENUM, _);
 #undef ENUM
   puts("}");
 
-  puts("EventParam = namedtuple('EventParam', 'sort, name')");
-  puts("Event = namedtuple('Event', 'name code always kind params')");
-  puts("class event:");
+  puts("EventParam = namedtuple('EventParam', 'sort name')");
+  puts("EventDesc = namedtuple('EventDesc', 'name code always kind params')");
+  puts("class Event:");
 #define EVENT_PARAM(X, INDEX, SORT, NAME)               \
   puts("        EventParam('" #SORT "', '" #NAME "'),");
 #define EVENT_DEFINE(X, NAME, CODE, ALWAYS, KIND)                       \
-  printf("    " #NAME " = Event('" #NAME "', %d, %s, kind." #KIND ", [\n", \
+  printf("    " #NAME " = EventDesc('" #NAME "', %d, %s, Kind." #KIND ", [\n", \
          CODE, ALWAYS ? "True" : "False");                              \
   EVENT_ ## NAME ## _PARAMS(EVENT_PARAM, X);                            \
-  puts("    ]);");
+  puts("    ])");
   EVENT_LIST(EVENT_DEFINE, 0);
 #undef EVENT
 
-  puts("events = {");
+  puts("EVENT = {");
 #define EVENT_ITEM(X, NAME, CODE, ALWAYS, KIND) \
-  printf("    %d: event." #NAME ",\n", CODE);
+  printf("    %d: Event." #NAME ",\n", CODE);
   EVENT_LIST(EVENT_ITEM, 0);
 #undef EVENT
   puts("}");
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

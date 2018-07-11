@@ -1,7 +1,7 @@
 /* pooln.c: NULL POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "pooln.h"
@@ -44,10 +44,9 @@ static Res NInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVERT(ArgList, args);
   UNUSED(klass); /* used for debug pools only */
 
-  /* FIXME: Reduce this boilerplate. */
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, NPool, init)(pool, arena, klass, args);
   if (res != ResOK)
-    goto failAbsInit;
+    goto failNextInit;
   poolN = CouldBeA(NPool, pool);
   
   /* Initialize pool-specific structures. */
@@ -57,7 +56,7 @@ static Res NInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 
   return ResOK;
 
-failAbsInit:
+failNextInit:
   AVER(res != ResOK);
   return res;
 }
@@ -157,101 +156,6 @@ static Res NDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* NWhiten -- condemn method for class N */
-
-static Res NWhiten(Pool pool, Trace trace, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
- 
-  NOTREACHED; /* pool doesn't have any actions */
-
-  return ResUNIMPL;
-}
-
-
-/* NGrey -- greyen method for class N */
-
-static void NGrey(Pool pool, Trace trace, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-}
-
-
-/* NBlacken -- blacken method for class N */
-
-static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-}
-
-
-/* NScan -- scan method for class N */
-
-static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-
-  return ResOK;
-}
-
-
-/* NFix -- fix method for class N */
-
-static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(ScanState, ss);
-  UNUSED(refIO);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-  NOTREACHED;  /* Since we don't allocate any objects, should never */
-               /* be called upon to fix a reference. */
-  return ResFAIL;
-}
-
-
-/* NReclaim -- reclaim method for class N */
-
-static void NReclaim(Pool pool, Trace trace, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-  /* all unmarked and white objects reclaimed */
-}
-
-
-/* NTraceEnd -- trace end method for class N */
-
-static void NTraceEnd(Pool pool, Trace trace)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  UNUSED(poolN);
-}
-
-
 /* NPoolClass -- pool class definition for N */
 
 DEFINE_CLASS(Pool, NPool, klass)
@@ -266,14 +170,6 @@ DEFINE_CLASS(Pool, NPool, klass)
   klass->free = NFree;
   klass->bufferFill = NBufferFill;
   klass->bufferEmpty = NBufferEmpty;
-  klass->whiten = NWhiten;
-  klass->grey = NGrey;
-  klass->blacken = NBlacken;
-  klass->scan = NScan;
-  klass->fix = NFix;
-  klass->fixEmergency = NFix;
-  klass->reclaim = NReclaim;
-  klass->traceEnd = NTraceEnd;
   AVERT(PoolClass, klass);
 }
 
@@ -301,7 +197,7 @@ Bool PoolNCheck(PoolN poolN)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

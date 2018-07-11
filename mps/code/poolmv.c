@@ -1,11 +1,8 @@
 /* poolmv.c: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
- *
- * **** RESTRICTION: This pool may not allocate from the arena control
- *                   pool, since it is used to implement that pool.
  *
  * An observation: Freeing memory introduces more information
  * into the system than allocating it.  This causes the problem
@@ -27,23 +24,45 @@
 
 #include "mpscmv.h"
 #include "dbgpool.h"
-#include "poolmv.h"
 #include "poolmfs.h"
 #include "mpscmvff.h"
 #include "mpm.h"
 
 SRCID(poolmv, "$Id$");
 
+/* MVStruct -- MV (Manual Variable) pool outer structure
+ *
+ * .mv: See <code/poolmv.c>, <design/poolmv/>.
+ *
+ * The signature is placed at the end, see
+ * <design/pool/#outer-structure.sig>
+ */
+
+#define MVSig           ((Sig)0x5193B999) /* SIGnature MV */
+
+typedef struct MVStruct *MV;
+typedef struct MVStruct {       /* MV pool outer structure */
+  PoolStruct poolStruct;        /* generic structure */
+  MFSStruct blockPoolStruct;    /* for managing block descriptors */
+  MFSStruct spanPoolStruct;     /* for managing span descriptors */
+  Size extendBy;                /* segment size to extend pool by */
+  Size avgSize;                 /* client estimate of allocation size */
+  Size maxSize;                 /* client estimate of maximum size */
+  Size free;                    /* free space in pool */
+  Size lost;                    /* <design/poolmv/#lost> */
+  RingStruct spans;             /* span chain */
+  Sig sig;                      /* <design/sig/> */
+} MVStruct;
+
 typedef MV MVPool;
 #define MVPoolCheck MVCheck
 DECLARE_CLASS(Pool, MVPool, AbstractBufferPool);
 DECLARE_CLASS(Pool, MVDebugPool, MVPool);
 
-
 #define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)
 #define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
 
-
+#define MVPool(mv) (&(mv)->poolStruct)
 #define PoolMV(pool) PARENT(MVStruct, poolStruct, pool)
 
 
@@ -133,6 +152,9 @@ typedef struct MVSpanStruct {
   AddrOffset((span)->base.base, (span)->limit.limit)
 #define SpanInsideSentinels(span) \
   AddrOffset((span)->base.limit, (span)->limit.base)
+
+
+Bool MVCheck(MV mv);
 
 
 /* MVSpanCheck -- check the consistency of a span structure */
@@ -254,12 +276,13 @@ static Res MVInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(maxSize > 0);
   AVER(extendBy <= maxSize);
 
-  res = PoolAbsInit(pool, arena, klass, args);
+  res = NextMethod(Pool, MVPool, init)(pool, arena, klass, args);
   if (res != ResOK)
     return res;
   mv = CouldBeA(MVPool, pool);
 
   pool->alignment = align;
+  pool->alignShift = SizeLog2(pool->alignment);
 
   /* At 100% fragmentation we will need one block descriptor for every other */
   /* allocated block, or (extendBy/avgSize)/2 descriptors.  See note 1. */
@@ -590,7 +613,8 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
     regionSize = SizeArenaGrains(size, arena);
     res = ArenaAlloc(&base, LocusPrefDefault(), regionSize, pool);
     if (res != ResOK) {
-      PoolFree(mvSpanPool(mv), (Addr)span, sizeof(MVSpanStruct));
+      Pool spanPool = mvSpanPool(mv);
+      PoolFree(spanPool, (Addr)span, sizeof(MVSpanStruct));
       return res;
     }
   }
@@ -679,6 +703,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   /* free space should be less than total space */
   AVER(span->free <= SpanInsideSentinels(span));
   if(span->free == SpanSize(span)) { /* the whole span is free */
+    Pool spanPool;
     AVER(span->blockCount == 2);
     /* both blocks are the trivial sentinel blocks */
     AVER(span->base.limit == span->base.base);
@@ -687,7 +712,8 @@ static void MVFree(Pool pool, Addr old, Size size)
     ArenaFree(TractBase(span->tract), span->size, pool);
     RingRemove(&span->spans);
     RingFinish(&span->spans);
-    PoolFree(mvSpanPool(mv), (Addr)span, sizeof(MVSpanStruct));
+    spanPool = mvSpanPool(mv);
+    PoolFree(spanPool, (Addr)span, sizeof(MVSpanStruct));
   }
 }
 
@@ -873,12 +899,7 @@ DEFINE_CLASS(Pool, MVPool, klass)
   klass->free = MVFree;
   klass->totalSize = MVTotalSize;
   klass->freeSize = MVFreeSize;
-}
-
-
-PoolClass PoolClassMV(void)
-{
-  return CLASS(MVPool);
+  AVERT(PoolClass, klass);
 }
 
 
@@ -891,6 +912,7 @@ DEFINE_CLASS(Pool, MVDebugPool, klass)
   klass->size = sizeof(MVDebugStruct);
   klass->varargs = MVDebugVarargs;
   klass->debugMixin = MVDebugMixin;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -929,7 +951,7 @@ Bool MVCheck(MV mv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

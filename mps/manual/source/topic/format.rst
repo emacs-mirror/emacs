@@ -228,7 +228,8 @@ Cautions
 
    Therefore, the format methods must be able to be run at any time,
    including asynchronously or in parallel with the rest of the
-   program.
+   program. On POSIX systems, this means that format methods must be
+   async-signal-safe.
 
 #. Format methods must be re-entrant.
 
