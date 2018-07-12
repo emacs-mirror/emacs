@@ -301,7 +301,7 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth,
                "GenDesc $P {\n", (WriteFP)gen,
                "  zones $B\n", (WriteFB)gen->zones,
-               "  capacity $W\n", (WriteFW)gen->capacity,
+               "  capacity $U\n", (WriteFW)gen->capacity,
                "  mortality $D\n", (WriteFD)gen->mortality,
                "  activeTraces $B\n", (WriteFB)gen->activeTraces,
                NULL);
@@ -311,10 +311,10 @@ Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth)
   for (i = 0; i < NELEMS(gen->trace); ++i) {
     GenTrace genTrace = &gen->trace[i];
     res = WriteF(stream, depth + 2,
-                 "trace $W {\n", (WriteFW)i,
-                 "  condemned $W\n", (WriteFW)genTrace->condemned,
-                 "  forwarded $W\n", (WriteFW)genTrace->forwarded,
-                 "  preservedInPlace $W\n", (WriteFW)genTrace->preservedInPlace,
+                 "trace $U {\n", (WriteFW)i,
+                 "  condemned $U\n", (WriteFW)genTrace->condemned,
+                 "  forwarded $U\n", (WriteFW)genTrace->forwarded,
+                 "  preservedInPlace $U\n", (WriteFW)genTrace->preservedInPlace,
                  "}\n", NULL);
     if (res != ResOK)
       return res;
