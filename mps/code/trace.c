@@ -861,25 +861,24 @@ void TraceDestroyFinished(Trace trace)
 static void traceReclaim(Trace trace)
 {
   Arena arena;
-  Seg seg;
+  Ring genNode, genNext;
 
   AVER(trace->state == TraceRECLAIM);
 
   EVENT1(TraceReclaim, trace);
-  arena = trace->arena;
-  if(SegFirst(&seg, arena)) {
-    Pool pool;
-    Ring next;
-    do {
-      Addr base = SegBase(seg);
-      pool = SegPool(seg);
-      next = RingNext(SegPoolRing(seg));
 
+  arena = trace->arena;
+  RING_FOR(genNode, &trace->genRing, genNext) {
+    Ring segNode, segNext;
+    GenDesc gen = GenDescOfTraceRing(genNode, trace);
+    AVERT(GenDesc, gen);
+    RING_FOR(segNode, &gen->segRing, segNext) {
+      GCSeg gcseg = RING_ELT(GCSeg, genRing, segNode);
+      Seg seg = &gcseg->segStruct;
       /* There shouldn't be any grey stuff left for this trace. */
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
-
-      if(TraceSetIsMember(SegWhite(seg), trace)) {
-        AVER_CRITICAL(PoolHasAttr(pool, AttrGC));
+      if (TraceSetIsMember(SegWhite(seg), trace)) {
+        AVER_CRITICAL(PoolHasAttr(SegPool(seg), AttrGC));
         STATISTIC(++trace->reclaimCount);
         SegReclaim(seg, trace);
 
@@ -892,12 +891,12 @@ static void traceReclaim(Trace trace)
         /* unwhiten the segment could in fact be moved here.   */
         {
           Seg nonWhiteSeg = NULL;       /* prevents compiler warning */
-          AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base)
-                          && TraceSetIsMember(SegWhite(nonWhiteSeg), trace)));
+          AVER_CRITICAL(!SegOfAddr(&nonWhiteSeg, arena, SegBase(seg))
+                        || !TraceSetIsMember(SegWhite(nonWhiteSeg), trace));
           UNUSED(nonWhiteSeg); /* <code/mpm.c#check.unused> */
         }
       }
-    } while(SegNextOfRing(&seg, arena, pool, next));
+    }
   }
 
   trace->state = TraceFINISHED;
