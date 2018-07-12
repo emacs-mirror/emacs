@@ -433,6 +433,7 @@ Res TraceCondemnEnd(double *mortalityReturn, Trace trace)
     AVERT(GenDesc, gen);
     RING_FOR(segNode, &gen->segRing, segNext) {
       GCSeg gcseg = RING_ELT(GCSeg, genRing, segNode);
+      AVERC(GCSeg, gcseg);
       res = TraceAddWhite(trace, &gcseg->segStruct);
       if (res != ResOK)
         goto failBegin;
@@ -771,7 +772,7 @@ found:
     traceCreatePoolGen(&arena->topGen);
   });
 
- *traceReturn = trace;
+  *traceReturn = trace;
   return ResOK;
 }
 
@@ -878,6 +879,7 @@ static void traceReclaim(Trace trace)
       /* There shouldn't be any grey stuff left for this trace. */
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
       if (TraceSetIsMember(SegWhite(seg), trace)) {
+        Addr base = SegBase(seg);
         AVER_CRITICAL(PoolHasAttr(SegPool(seg), AttrGC));
         STATISTIC(++trace->reclaimCount);
         SegReclaim(seg, trace);
@@ -891,7 +893,7 @@ static void traceReclaim(Trace trace)
         /* unwhiten the segment could in fact be moved here.   */
         {
           Seg nonWhiteSeg = NULL;       /* prevents compiler warning */
-          AVER_CRITICAL(!SegOfAddr(&nonWhiteSeg, arena, SegBase(seg))
+          AVER_CRITICAL(!SegOfAddr(&nonWhiteSeg, arena, base)
                         || !TraceSetIsMember(SegWhite(nonWhiteSeg), trace));
           UNUSED(nonWhiteSeg); /* <code/mpm.c#check.unused> */
         }
@@ -1843,8 +1845,9 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
                                (WriteFU)trace->segCopiedSize)
                "  forwardedSize $U\n", (WriteFU)trace->forwardedSize,
                "  preservedInPlaceSize $U\n", (WriteFU)trace->preservedInPlaceSize,
-               "} Trace $P\n", (WriteFP)trace,
                NULL);
+  if (res != ResOK)
+    return res;
 
   RING_FOR(node, &trace->genRing, next) {
     GenDesc gen = GenDescOfTraceRing(node, trace);
@@ -1853,6 +1856,9 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
       return res;
   }
 
+  res = WriteF(stream, depth,
+               "} Trace $P\n", (WriteFP)trace,
+               NULL);
   return res;
 }
 
