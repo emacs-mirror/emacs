@@ -213,7 +213,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
   Res res;
   size_t topCondemnedGen, i;
   GenDesc gen;
-  Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
+  Size casualtySize = 0;
 
   AVERT(Chain, chain);
   AVERT(Trace, trace);
@@ -230,8 +230,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
     -- topCondemnedGen;
     gen = &chain->gens[topCondemnedGen];
     AVERT(GenDesc, gen);
-    genNewSize = GenDescNewSize(gen);
-    if (genNewSize >= gen->capacity * (Size)1024)
+    if (GenDescNewSize(gen) >= gen->capacity * (Size)1024)
       break;
   }
 
@@ -239,27 +238,26 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
    * lower generations. */
   TraceCondemnStart(trace);
   for (i = 0; i <= topCondemnedGen; ++i) {
+    Size condemnedBefore, condemnedGen;
     Ring node, next;
     gen = &chain->gens[i];
     AVERT(GenDesc, gen);
-    genTotalSize = GenDescTotalSize(gen);
-    genNewSize = GenDescNewSize(gen);
-    condemnedSize += genTotalSize;
-    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
-                    /* predict survivors will survive again */
-                    + (genTotalSize - genNewSize);
+    condemnedBefore = trace->condemned;
     RING_FOR(node, &gen->segRing, next) {
       GCSeg gcseg = RING_ELT(GCSeg, genRing, node);
       res = TraceAddWhite(trace, &gcseg->segStruct);
       if (res != ResOK)
         goto failBegin;
     }
+    AVER(trace->condemned >= condemnedBefore);
+    condemnedGen = trace->condemned - condemnedBefore;
+    casualtySize += (Size)(condemnedGen * gen->mortality);
   }
   TraceCondemnEnd(trace);
 
   EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
-  
-  *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
+
+  *mortalityReturn = (double)casualtySize / trace->condemned;
   return ResOK;
 
 failBegin:
