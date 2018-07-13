@@ -249,7 +249,7 @@ tract containing the address in the tract table, which is a simple
 linear table indexed by the address shifted---a kind of flat page
 table. See ``TractOfAddr()``.
 
-If the pointer is in a tract allocated with garbage collected obejcts,
+If the pointer is in a tract allocated with garbage collected objects,
 then the table also contains a pointer to a "segment", which contains
 a bitfield representing the "white set"---the set of garbage
 collection traces for which the tract is "interesting". If a segment
