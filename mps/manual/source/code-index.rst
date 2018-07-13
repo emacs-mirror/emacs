@@ -363,7 +363,7 @@ sacss.c           :ref:`topic-cache` stress test.
 segsmss.c         Segment splitting and merging stress test.
 steptest.c        :c:func:`mps_arena_step` test.
 tagtest.c         Tagged pointer scanning test.
-walkt0.c          Formatted object walking test.
+walkt0.c          Roots and formatted objects walking test.
 zcoll.c           Garbage collection progress test.
 zmess.c           Garbage collection and finalization message test.
 ================  =============================================================

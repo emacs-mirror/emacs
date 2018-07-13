@@ -1333,6 +1333,8 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
     goto done;
   }
 
+  /* See <walk.c#roots-walk.second-stage> for where we arrange to fool
+     this test when walking references in the roots. */
   if (TraceSetInter(SegWhite(seg), ss->traces) == TraceSetEMPTY) {
     /* Reference points to a segment that is not white for any of the
      * active traces. See <design/trace/#fix.tractofaddr> */
