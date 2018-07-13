@@ -416,7 +416,7 @@ void TraceCondemnStart(Trace trace)
 
 Res TraceCondemnEnd(double *mortalityReturn, Trace trace)
 {
-  Size condemnedSize = 0, survivorSize = 0;
+  Size casualtySize = 0;
   Ring genNode, genNext;
   Res res;
 
@@ -427,16 +427,11 @@ Res TraceCondemnEnd(double *mortalityReturn, Trace trace)
 
   ShieldHold(trace->arena);
   RING_FOR(genNode, &trace->genRing, genNext) {
-    Size genNewSize, genTotalSize;
+    Size condemnedBefore, condemnedGen;
     Ring segNode, segNext;
     GenDesc gen = GenDescOfTraceRing(genNode, trace);
     AVERT(GenDesc, gen);
-    genTotalSize = GenDescTotalSize(gen);
-    genNewSize = GenDescNewSize(gen);
-    condemnedSize += genTotalSize;
-    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
-                    /* predict survivors will survive again */
-                    + (genTotalSize - genNewSize);
+    condemnedBefore = trace->condemned;
     RING_FOR(segNode, &gen->segRing, segNext) {
       GCSeg gcseg = RING_ELT(GCSeg, genRing, segNode);
       AVERC(GCSeg, gcseg);
@@ -444,13 +439,16 @@ Res TraceCondemnEnd(double *mortalityReturn, Trace trace)
       if (res != ResOK)
         goto failBegin;
     }
+    AVER(trace->condemned >= condemnedBefore);
+    condemnedGen = trace->condemned - condemnedBefore;
+    casualtySize += (Size)(condemnedGen * gen->mortality);
   }
   ShieldRelease(trace->arena);
 
   if (TraceIsEmpty(trace))
     return ResFAIL;
 
-  *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
+  *mortalityReturn = (double)casualtySize / trace->condemned;
   return ResOK;
 
 failBegin:
