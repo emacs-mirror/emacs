@@ -16,7 +16,6 @@
 #include "mpsclo.h"
 #include "mpscsnc.h"
 #include "mpsavm.h"
-#include "mpstd.h"
 #include "mps.h"
 #include "mpm.h"
 
@@ -77,7 +76,8 @@ static mps_addr_t make(void)
     return p;
 }
 
-/* A stepper function.  Passed to mps_arena_formatted_objects_walk.
+/* A formatted objects stepper function. Passed to
+ * mps_arena_formatted_objects_walk.
  *
  * Tests the (pool, format) values that MPS passes to it for each 
  * object, by...
@@ -93,19 +93,19 @@ static mps_addr_t make(void)
  *
  * ...3: accumulating the count and size of objects found
  */
-struct stepper_data {
+typedef struct object_stepper_data {
   mps_arena_t arena;
   mps_pool_t expect_pool;
   mps_fmt_t expect_fmt;
   size_t count;                 /* number of non-padding objects found */
   size_t objSize;               /* total size of non-padding objects */
   size_t padSize;               /* total size of padding objects */
-};
+} object_stepper_data_s, *object_stepper_data_t;
 
-static void stepper(mps_addr_t object, mps_fmt_t format,
-    mps_pool_t pool, void *p, size_t s)
+static void object_stepper(mps_addr_t object, mps_fmt_t format,
+                           mps_pool_t pool, void *p, size_t s)
 {
-    struct stepper_data *sd;
+    object_stepper_data_t sd;
     mps_arena_t arena;
     mps_bool_t b;
     mps_pool_t query_pool;
@@ -137,6 +137,25 @@ static void stepper(mps_addr_t object, mps_fmt_t format,
     }      
 }
 
+
+/* A roots stepper function. Passed to mps_arena_roots_walk. */
+
+typedef struct roots_stepper_data {
+  mps_root_t exactRoot;
+  size_t count;
+} roots_stepper_data_s, *roots_stepper_data_t;
+
+static void roots_stepper(mps_addr_t *ref, mps_root_t root, void *p, size_t s)
+{
+  roots_stepper_data_t data = p;
+  Insist(ref != NULL);
+  Insist(p != NULL);
+  Insist(s == sizeof *data);
+  Insist(root == data->exactRoot);
+  ++ data->count;
+}
+
+
 /* test -- the body of the test */
 
 static void test(mps_arena_t arena, mps_pool_class_t pool_class)
@@ -148,8 +167,8 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
     size_t i;
     size_t totalSize, freeSize, allocSize, bufferSize;
     unsigned long objs;
-    struct stepper_data sdStruct, *sd;
-    PoolClass class;
+    object_stepper_data_s objectStepperData, *sd;
+    roots_stepper_data_s rootsStepperData, *rsd;
 
     die(dylan_fmt(&format, arena), "fmt_create");
     die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
@@ -191,23 +210,29 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
 
     mps_arena_park(arena);
 
-    sd = &sdStruct;
+    rsd = &rootsStepperData;
+    rsd->exactRoot = exactRoot;
+    rsd->count = 0;
+    mps_arena_roots_walk(arena, roots_stepper, rsd, sizeof *rsd);
+    printf("%lu %lu\n", (unsigned long)rsd->count, (unsigned long)exactRootsCOUNT);
+    Insist(rsd->count == exactRootsCOUNT);
+
+    sd = &objectStepperData;
     sd->arena = arena;
     sd->expect_pool = pool;
     sd->expect_fmt = format;
     sd->count = 0;
     sd->objSize = 0;
     sd->padSize = 0;
-    mps_arena_formatted_objects_walk(arena, stepper, sd, sizeof *sd);
+    mps_arena_formatted_objects_walk(arena, object_stepper, sd, sizeof *sd);
     Insist(sd->count == objs);
 
     totalSize = mps_pool_total_size(pool);
     freeSize = mps_pool_free_size(pool);
     allocSize = totalSize - freeSize;
     bufferSize = AddrOffset(ap->init, ap->limit);
-    class = ClassOfPoly(Pool, pool);
     printf("%s: obj=%lu pad=%lu total=%lu free=%lu alloc=%lu buffer=%lu\n",
-           ClassName(class),
+           ClassName(pool_class),
            (unsigned long)sd->objSize,
            (unsigned long)sd->padSize,
            (unsigned long)totalSize,
