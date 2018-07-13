@@ -431,6 +431,12 @@ Res TraceCondemnEnd(double *mortalityReturn, Trace trace)
     Ring segNode, segNext;
     GenDesc gen = GenDescOfTraceRing(genNode, trace);
     AVERT(GenDesc, gen);
+    genTotalSize = GenDescTotalSize(gen);
+    genNewSize = GenDescNewSize(gen);
+    condemnedSize += genTotalSize;
+    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
+                    /* predict survivors will survive again */
+                    + (genTotalSize - genNewSize);
     RING_FOR(segNode, &gen->segRing, segNext) {
       GCSeg gcseg = RING_ELT(GCSeg, genRing, segNode);
       AVERC(GCSeg, gcseg);
@@ -438,12 +444,6 @@ Res TraceCondemnEnd(double *mortalityReturn, Trace trace)
       if (res != ResOK)
         goto failBegin;
     }
-    genTotalSize = GenDescTotalSize(gen);
-    genNewSize = GenDescNewSize(gen);
-    condemnedSize += genTotalSize;
-    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
-                    /* predict survivors will survive again */
-                    + (genTotalSize - genNewSize);
   }
   ShieldRelease(trace->arena);
 

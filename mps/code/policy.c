@@ -1,7 +1,7 @@
 /* policy.c: POLICY DECISIONS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This module collects the decision-making code for the MPS, so that
  * policy can be maintained and adjusted.
@@ -403,7 +403,7 @@ Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *
