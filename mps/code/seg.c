@@ -140,7 +140,6 @@ static Res segAbsInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
     AVER(TractP(tract) == NULL);
     AVER(!TractHasSeg(tract));
     AVER(TractPool(tract) == pool);
-    AVER(TractWhite(tract) == TraceSetEMPTY);
     TRACT_SET_SEG(tract, seg);
     if (addr == base) {
       AVER(seg->firstTract == NULL);
@@ -211,7 +210,6 @@ static void segAbsFinish(Inst inst)
   
   TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
     AVERT(Tract, tract);
-    TractSetWhite(tract, TraceSetEMPTY);
     TRACT_UNSET_SEG(tract);
   }
   AVER(addr == seg->limit);
@@ -865,10 +863,10 @@ Bool SegCheck(Seg seg)
   /* Can't BoolCheck seg->queued because compilers warn about that on
      single-bit fields. */
 
-  /* Each tract of the segment must agree about white traces. Note
-   * that even if the CHECKs are compiled away there is still a
-   * significant cost in looping over the tracts, hence the guard. See
-   * job003778. */
+  /* Each tract of the segment must agree about the segment and its
+   * pool. Note that even if the CHECKs are compiled away there is
+   * still a significant cost in looping over the tracts, hence the
+   * guard. See job003778. */
 #if defined(AVER_AND_CHECK_ALL)
   {
     Tract tract;
@@ -879,7 +877,6 @@ Bool SegCheck(Seg seg)
       CHECKD_NOSIG(Tract, tract);
       CHECKL(TRACT_SEG(&trseg, tract));
       CHECKL(trseg == seg);
-      CHECKL(TractWhite(tract) == seg->white);
       CHECKL(TractPool(tract) == pool);
     }
     CHECKL(addr == seg->limit);
@@ -1614,29 +1611,12 @@ static void mutatorSegFlip(Seg seg, Trace trace)
 static void gcSegSetWhite(Seg seg, TraceSet white)
 {
   GCSeg gcseg;
-  Tract tract;
-  Arena arena;
-  Addr addr, limit;
 
   AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
   AVERT_CRITICAL(TraceSet, white);     /* .seg.method.check */
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
-
-  arena = PoolArena(SegPool(seg));
-  AVERT_CRITICAL(Arena, arena);
-  limit = SegLimit(seg);
-  /* Each tract of the segment records white traces */
-  TRACT_TRACT_FOR(tract, addr, arena, seg->firstTract, limit) {
-    Seg trseg = NULL; /* suppress compiler warning */
-
-    AVERT_CRITICAL(Tract, tract);
-    AVER_CRITICAL(TRACT_SEG(&trseg, tract));
-    AVER_CRITICAL(trseg == seg);
-    TractSetWhite(tract, BS_BITFIELD(Trace, white));
-  }
-  AVER_CRITICAL(addr == limit);
 
   seg->white = BS_BITFIELD(Trace, white);
 }
