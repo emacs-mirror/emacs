@@ -47,10 +47,9 @@ size.
 
 _`.def.tract`: A tract is a data structure containing information
 about a region of address space: which pool it belongs to (if any),
-for which traces the contents is white, and so on. Tracts are the hook
-on which the segment module is implemented. Pools which don't use
-segments may use tracts for associating their own data with ranges of
-address.
+which segment contains it, and so on. Tracts are the hook on which the
+segment module is implemented. Pools which don't use segments may use
+tracts for associating their own data with ranges of address.
 
 
 
@@ -279,7 +278,6 @@ _`.tract.structure`: The tract structure definition looks like this::
       PagePoolUnion pool; /* MUST BE FIRST (design.mps.arena.tract.field.pool) */
       void *p;                    /* pointer for use of owning pool */
       Addr base;                  /* Base address of the tract */
-      TraceSet white : TRACE_MAX; /* traces for which tract is white */
       BOOLFIELD(hasSeg);          /* does tract have a seg in p? */
     } TractStruct;
 
@@ -313,13 +311,6 @@ design.mps.type.bool.bitfield_ for why this is declared using the
 
 _`.tract.field.base`: The base field contains the base address of the
 memory represented by the tract.
-
-_`.tract.field.white`: The white bit-field indicates for which traces
-the tract is white (`.req.fun.trans.white`_). This information is also
-stored in the segment, but is duplicated here for efficiency during a
-call to ``TraceFix()`` (see design.mps.trace.fix_).
-
-.. _design.mps.trace.fix: trace#fix
 
 _`.tract.limit`: The limit of the tract's memory may be determined by
 adding the arena grain size to the base address.
