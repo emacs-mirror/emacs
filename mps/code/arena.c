@@ -1,7 +1,7 @@
 /* arena.c: ARENA ALLOCATION FEATURES
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: <design/arena/> is the main design document.  */
 
@@ -726,7 +726,8 @@ Res ControlDescribe(Arena arena, mps_lib_FILE *stream, Count depth)
  * if not already set.
  */
 
-void ArenaChunkInsert(Arena arena, Chunk chunk) {
+void ArenaChunkInsert(Arena arena, Chunk chunk)
+{
   Bool inserted;
   Tree tree, updatedTree = NULL;
 
@@ -1411,7 +1412,7 @@ Bool ArenaHasAddr(Arena arena, Addr addr)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

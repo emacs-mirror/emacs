@@ -476,7 +476,8 @@ static void MVTFinish(Inst inst)
 
 /* MVTNoteFill -- record that a buffer fill has occurred */
 
-static void MVTNoteFill(MVT mvt, Addr base, Addr limit, Size minSize) {
+static void MVTNoteFill(MVT mvt, Addr base, Addr limit, Size minSize)
+{
   mvt->available -= AddrOffset(base, limit);
   mvt->allocated += AddrOffset(base, limit);
   AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);

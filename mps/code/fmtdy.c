@@ -236,7 +236,7 @@ static mps_res_t dylan_scan_contig(mps_ss_t mps_ss,
 /* dylan_weak_dependent -- returns the linked object, if any.
  */
 
-extern mps_addr_t dylan_weak_dependent(mps_addr_t parent)
+mps_addr_t dylan_weak_dependent(mps_addr_t parent)
 {
   mps_word_t *object;
   mps_word_t *wrapper;
@@ -366,7 +366,7 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
    (_vt) << ((_es) - FMTDY_WORD_SHIFT))
 
 
-extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
+mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
 {
   mps_addr_t *p;        /* cursor in object */
   mps_addr_t *q;        /* cursor limit for loops */
@@ -549,7 +549,7 @@ static mps_addr_t dylan_class(mps_addr_t obj)
     return (mps_addr_t)first_word;
 }
 
-extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
+mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 {
   mps_addr_t *assoc;
   mps_addr_t *base;
