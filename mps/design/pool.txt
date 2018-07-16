@@ -178,7 +178,7 @@ successful, it must update ``*baseReturn`` and ``*limitReturn`` to the
 base and limit of the allocated region and return ``ResOK``. Otherwise
 it must leave ``*baseReturn`` and ``*limitReturn`` unchanged and
 return a non-OK result code. Pool classes are not required to provide
-this method. This method is called by the ``BufferFill()``.
+this method. This method is called by ``BufferFill()``.
 
 .. _design.mps.buffer.reset: buffer#reset
 
