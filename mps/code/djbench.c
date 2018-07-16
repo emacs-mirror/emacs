@@ -1,7 +1,7 @@
 /* djbench.c -- "DJ" Benchmark on ANSI C library
  *
  * $Id$
- * Copyright (c) 2013-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This is an allocation stress benchmark test for manual variable pools
  * and also for stdlib malloc/free (for comparison).
@@ -240,7 +240,8 @@ static struct {
 
 /* Command-line driver */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   int ch;
   unsigned i;
   mps_bool_t seed_specified = FALSE;
@@ -385,7 +386,7 @@ int main(int argc, char *argv[]) {
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

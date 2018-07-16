@@ -1,7 +1,7 @@
 /* table.h: A dictionary mapping a Word to a void*
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .note.good-hash: As is common in hash table implementations, we
  * assume that the hash function is good.
@@ -220,13 +220,9 @@ Res TableGrow(Table table, Count extraCapacity)
 
 /* TableCreate -- makes a new table */
 
-extern Res TableCreate(Table *tableReturn,
-                       Count length,
-                       TableAllocFunction tableAlloc,
-                       TableFreeFunction tableFree,
-                       void *allocClosure,
-                       TableKey unusedKey,
-                       TableKey deletedKey)
+Res TableCreate(Table *tableReturn, Count length,
+                TableAllocFunction tableAlloc, TableFreeFunction tableFree,
+                void *allocClosure, TableKey unusedKey, TableKey deletedKey)
 {
   Table table;
   Res res;
@@ -263,7 +259,7 @@ extern Res TableCreate(Table *tableReturn,
 
 /* TableDestroy -- destroy a table */
 
-extern void TableDestroy(Table table)
+void TableDestroy(Table table)
 {
   AVER(table != NULL);
   if (table->length > 0) {
@@ -279,7 +275,7 @@ extern void TableDestroy(Table table)
 
 /* TableLookup -- look up */
 
-extern Bool TableLookup(TableValue *valueReturn, Table table, TableKey key)
+Bool TableLookup(TableValue *valueReturn, Table table, TableKey key)
 {
   TableEntry entry = tableFind(table, key, TRUE /* skip deleted */);
 
@@ -292,7 +288,7 @@ extern Bool TableLookup(TableValue *valueReturn, Table table, TableKey key)
 
 /* TableDefine -- add a new mapping */
 
-extern Res TableDefine(Table table, TableKey key, TableValue value)
+Res TableDefine(Table table, TableKey key, TableValue value)
 {
   TableEntry entry;
   
@@ -326,7 +322,7 @@ extern Res TableDefine(Table table, TableKey key, TableValue value)
 
 /* TableRedefine -- redefine an existing mapping */
 
-extern Res TableRedefine(Table table, TableKey key, TableValue value)
+Res TableRedefine(Table table, TableKey key, TableValue value)
 {
   TableEntry entry;
  
@@ -344,7 +340,7 @@ extern Res TableRedefine(Table table, TableKey key, TableValue value)
 
 /* TableRemove -- remove a mapping */
 
-extern Res TableRemove(Table table, TableKey key)
+Res TableRemove(Table table, TableKey key)
 {
   TableEntry entry;
 
@@ -362,9 +358,9 @@ extern Res TableRemove(Table table, TableKey key)
 
 /* TableMap -- apply a function to all the mappings */
 
-extern void TableMap(Table table,
-                     void (*fun)(void *closure, TableKey key, TableValue value),
-                     void *closure)
+void TableMap(Table table,
+              void (*fun)(void *closure, TableKey key, TableValue value),
+              void *closure)
 {
   Index i;
   for (i = 0; i < table->length; i++)
@@ -375,7 +371,7 @@ extern void TableMap(Table table,
 
 /* TableCount -- count the number of mappings in the table */
 
-extern Count TableCount(Table table)
+Count TableCount(Table table)
 {
   return table->count;
 }
@@ -383,7 +379,7 @@ extern Count TableCount(Table table)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

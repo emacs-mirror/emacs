@@ -1,7 +1,7 @@
 /* nailboardtest.c: NAILBOARD TEST
  *
  * $Id$
- * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2014-2018 Ravenbrook Limited.  See end of file for license.
  *
  */
 
@@ -54,7 +54,7 @@ static void test(mps_arena_t arena)
   die(NailboardDescribe(board, mps_lib_get_stdout(), 0), "NailboardDescribe");
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
   mps_arena_t arena;
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

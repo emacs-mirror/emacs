@@ -44,7 +44,6 @@ typedef struct TractStruct { /* Tract structure */
   PagePoolUnion pool; /* MUST BE FIRST (<design/arena/#tract.field> pool) */
   Seg seg;                     /* NULL or segment containing tract */
   Addr base;                   /* Base address of the tract */
-  TraceSet white : TraceLIMIT; /* traces for which tract is white */
 } TractStruct;
 
 
@@ -57,8 +56,6 @@ extern Addr TractLimit(Tract tract, Arena arena);
 #define TractPool(tract)         ((tract)->pool.pool)
 #define TractHasSeg(tract)       ((tract)->seg != NULL)
 #define TractSeg(tract)          ((tract)->seg)
-#define TractWhite(tract)        ((tract)->white)
-#define TractSetWhite(tract, w)  ((void)((tract)->white = (w)))
 
 extern Bool TractCheck(Tract tract);
 extern void TractInit(Tract tract, Pool pool, Addr base);

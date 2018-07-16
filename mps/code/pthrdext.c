@@ -159,7 +159,7 @@ static void PThreadextModuleInit(void)
 
 /* PThreadextCheck -- check the consistency of a PThreadext structure */
 
-extern Bool PThreadextCheck(PThreadext pthreadext)
+Bool PThreadextCheck(PThreadext pthreadext)
 {
   int status;
 
@@ -193,7 +193,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
 
 /*  PThreadextInit -- Initialize a pthreadext */
 
-extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
+void PThreadextInit(PThreadext pthreadext, pthread_t id)
 {
   int status;
 
@@ -215,7 +215,7 @@ extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
  * See <design/pthreadext/#impl.finish>
  */
 
-extern void PThreadextFinish(PThreadext pthreadext)
+void PThreadextFinish(PThreadext pthreadext)
 {
   int status;
 
