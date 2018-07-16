@@ -6,6 +6,7 @@ TEST_HEADER
  link = testlib.o
 OUTPUT_SPEC
  count < 10
+ errtext = alloc: COMMIT_LIMIT
 END_HEADER
 */
 

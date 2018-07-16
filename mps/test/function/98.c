@@ -39,5 +39,6 @@ int main(void)
     /* Can't exhaust 64-bit address space by allocating, so fake a pass. */
     report("arena", "%d", ARENAS);
   }
+  pass();
   return 0;
 }
