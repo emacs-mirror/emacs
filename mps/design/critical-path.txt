@@ -249,16 +249,15 @@ tract containing the address in the tract table, which is a simple
 linear table indexed by the address shifted---a kind of flat page
 table. See ``TractOfAddr()``.
 
-If the pointer is in an allocated tract, then the table also contains
-a cache of the "white set"---the set of garbage collection traces for
-which the tract is "interesting". If a tract isn't interesting, then
-we know that it contains no condemned objects, and we can filter out
-the pointer.
+If the pointer is in a tract allocated with garbage collected objects,
+then the table also contains a pointer to a "segment", which contains
+a bitfield representing the "white set"---the set of garbage
+collection traces for which the tract is "interesting". If a segment
+isn't interesting, then we know that it contains no condemned objects,
+and we can filter out the pointer.
 
-If the tract is interesting, then it's part of a segment containing
-objects that have been condemned. The MPM can't know anything about
-the internal layout of the segment, so at this point we dispatch to
-the third stage fix.
+The MPM can't know anything about the internal layout of the segment,
+so at this point we dispatch to the third stage fix.
 
 This dispatch is slightly subtle. We have a cache of the function to
 dispatch to in the scan state, which has recently been looked at and

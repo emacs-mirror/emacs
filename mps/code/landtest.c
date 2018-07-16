@@ -1,7 +1,7 @@
 /* landtest.c: LAND TEST
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * Test all three Land implementations against duplicate operations on
  * a bit-table.
@@ -62,7 +62,8 @@ static Index (indexOfAddr)(TestState state, Addr a)
 }
 
 
-static void describe(TestState state) {
+static void describe(TestState state)
+{
   die(LandDescribe(state->land, mps_lib_get_stdout(), 0), "LandDescribe");
 }
 
@@ -386,7 +387,8 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
   }
 }
 
-static void test(TestState state, unsigned n) {
+static void test(TestState state, unsigned n)
+{
   Addr base, limit;
   unsigned i;
   Size size;
@@ -427,7 +429,7 @@ static void test(TestState state, unsigned n) {
 
 #define testArenaSIZE   (((size_t)4)<<20)
 
-extern int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   mps_arena_t mpsArena;
   Arena arena;
@@ -543,7 +545,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
