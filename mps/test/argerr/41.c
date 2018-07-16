@@ -6,7 +6,7 @@ TEST_HEADER
  link = testlib.o
 OUTPUT_SPEC
  assert = true
- assertfile P= poolmv.c
+ assertfile P= poolmff.c
  assertcond = extendBy > 0
 END_HEADER
 */

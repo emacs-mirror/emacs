@@ -27,7 +27,7 @@ _`.class`: Each pool belongs to a *pool class*.
 _`.class.name`: Each pool class has a short, pithy, cryptic name for
 the pool class. It should start with ``"A"`` (for "automatic") if
 memory is managed by the garbage collector, and ``"M"`` (for "manual")
-if memory is managed by alloc/free. For example, "AMC", "MV".
+if memory is managed by alloc/free. For example, "AMC", "MVFF".
 
 _`.class.protocol`: Pool classes use the *protocol* mechanisms (see
 design.mps.protocol_) to implement class initialization and

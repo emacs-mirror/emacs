@@ -5,7 +5,6 @@
  */
 
 #include "mpscmvff.h"
-#include "mpscmv.h"
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "testlib.h"
@@ -169,7 +168,7 @@ static void testInArena(mps_arena_t arena,
                       FALSE, FALSE, TRUE),
       "Create LO MFFV");
 
-  die(mps_pool_create_k(&temppool, arena, mps_class_mv(),
+  die(mps_pool_create_k(&temppool, arena, mps_class_mvff(),
                         mps_args_none),
       "Create TEMP");
 
