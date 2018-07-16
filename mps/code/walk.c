@@ -229,16 +229,13 @@ static Res RootsWalkFix(Seg seg, ScanState ss, Ref *refIO)
   rootsStepClosure rsc;
   Ref ref;
 
+  AVERT(Seg, seg);
   AVERT(ScanState, ss);
   AVER(refIO != NULL);
   rsc = ScanState2rootsStepClosure(ss);
   AVERT(rootsStepClosure, rsc);
 
   ref = *refIO;
-
-  /* If the segment isn't GCable then the ref is not to the heap and */
-  /* shouldn't be passed to the client. */
-  AVER(PoolHasAttr(SegPool(seg), AttrGC));
 
   /* Call the client closure - .assume.rootaddr */
   rsc->f((mps_addr_t*)refIO, (mps_root_t)rsc->root, rsc->p, rsc->s);
@@ -312,15 +309,19 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   if (res != ResOK)
     return res;
 
-  /* ArenaRootsWalk only passes references to GCable pools to the client. */
-  /* NOTE: I'm not sure why this is. RB 2012-07-24 */
+  /* .roots-walk.first-stage: In order to fool MPS_FIX12 into calling
+     _mps_fix2 for a reference in a root, the reference must pass the
+     first-stage test (against the summary of the trace's white
+     set), so make the summary universal. */
+  trace->white = ZoneSetUNIV;
+
+  /* .roots-walk.second-stage: In order to fool _mps_fix2 into calling
+     our fix function (RootsWalkFix), the reference must be to a
+     segment that is white for the trace, so make all segments white
+     for the trace. */
   if (SegFirst(&seg, arena)) {
     do {
-      if (PoolHasAttr(SegPool(seg), AttrGC)) {
-        res = TraceAddWhite(trace, seg);
-        if (res != ResOK)
-          goto failBegin;
-      }
+      SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
     } while (SegNext(&seg, arena, seg));
   }
 
@@ -340,14 +341,10 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
       break;
   }
 
-failBegin:
   /* Turn segments black again. */
   if (SegFirst(&seg, arena)) {
     do {
-      if (PoolHasAttr(SegPool(seg), AttrGC)) {
-        SegSetGrey(seg, TraceSetDel(SegGrey(seg), trace));
-        SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
-      }
+      SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
     } while (SegNext(&seg, arena, seg));
   }
 

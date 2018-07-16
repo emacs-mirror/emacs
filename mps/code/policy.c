@@ -1,7 +1,7 @@
 /* policy.c: POLICY DECISIONS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This module collects the decision-making code for the MPS, so that
  * policy can be maintained and adjusted.
@@ -213,7 +213,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
   Res res;
   size_t topCondemnedGen, i;
   GenDesc gen;
-  Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
+  Size casualtySize = 0;
 
   AVERT(Chain, chain);
   AVERT(Trace, trace);
@@ -230,8 +230,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
     -- topCondemnedGen;
     gen = &chain->gens[topCondemnedGen];
     AVERT(GenDesc, gen);
-    genNewSize = GenDescNewSize(gen);
-    if (genNewSize >= gen->capacity * (Size)1024)
+    if (GenDescNewSize(gen) >= gen->capacity * (Size)1024)
       break;
   }
 
@@ -239,27 +238,26 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
    * lower generations. */
   TraceCondemnStart(trace);
   for (i = 0; i <= topCondemnedGen; ++i) {
+    Size condemnedBefore, condemnedGen;
     Ring node, next;
     gen = &chain->gens[i];
     AVERT(GenDesc, gen);
+    condemnedBefore = trace->condemned;
     RING_FOR(node, &gen->segRing, next) {
       GCSeg gcseg = RING_ELT(GCSeg, genRing, node);
       res = TraceAddWhite(trace, &gcseg->segStruct);
       if (res != ResOK)
         goto failBegin;
     }
-    genTotalSize = GenDescTotalSize(gen);
-    genNewSize = GenDescNewSize(gen);
-    condemnedSize += genTotalSize;
-    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
-                    /* predict survivors will survive again */
-                    + (genTotalSize - genNewSize);
+    AVER(trace->condemned >= condemnedBefore);
+    condemnedGen = trace->condemned - condemnedBefore;
+    casualtySize += (Size)(condemnedGen * gen->mortality);
   }
   TraceCondemnEnd(trace);
 
   EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
-  
-  *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
+
+  *mortalityReturn = (double)casualtySize / trace->condemned;
   return ResOK;
 
 failBegin:
@@ -427,7 +425,7 @@ Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

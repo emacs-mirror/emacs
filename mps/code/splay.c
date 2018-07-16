@@ -752,7 +752,8 @@ static Compare SplaySplay(SplayTree splay, TreeKey key,
  * a good thing for key neighbours to be tree neighbours.
  */
 
-Bool SplayTreeInsert(SplayTree splay, Tree node) {
+Bool SplayTreeInsert(SplayTree splay, Tree node)
+{
   Tree neighbour;
 
   AVERT(SplayTree, splay);
@@ -808,7 +809,8 @@ Bool SplayTreeInsert(SplayTree splay, Tree node) {
  * avoid a search for a replacement in more cases.
  */
 
-Bool SplayTreeDelete(SplayTree splay, Tree node) {
+Bool SplayTreeDelete(SplayTree splay, Tree node)
+{
   Tree leftLast;
   Compare cmp;
 
@@ -855,7 +857,8 @@ Bool SplayTreeDelete(SplayTree splay, Tree node) {
  * node in the tree, otherwise ``*nodeReturn`` will be set to the node.
  */
 
-Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key) {
+Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key)
+{
   AVERT(SplayTree, splay);
   AVER(nodeReturn != NULL);
 
@@ -876,7 +879,8 @@ Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key) {
  * in which case TreeEMPTY is returned, and the tree is unchanged.
  */
 
-static Tree SplayTreeSuccessor(SplayTree splay) {
+static Tree SplayTreeSuccessor(SplayTree splay)
+{
   Tree oldRoot, newRoot;
 
   AVERT(SplayTree, splay);
@@ -992,7 +996,8 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
  * shape caused by previous splays. Consider using TreeTraverse instead.
  */
 
-Tree SplayTreeFirst(SplayTree splay) {
+Tree SplayTreeFirst(SplayTree splay)
+{
   Tree node;
 
   AVERT(SplayTree, splay);
@@ -1008,7 +1013,8 @@ Tree SplayTreeFirst(SplayTree splay) {
   return node;
 }
 
-Tree SplayTreeNext(SplayTree splay, TreeKey oldKey) {
+Tree SplayTreeNext(SplayTree splay, TreeKey oldKey)
+{
   AVERT(SplayTree, splay);
 
   if (SplayTreeIsEmpty(splay))

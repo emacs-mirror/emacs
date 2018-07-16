@@ -1,7 +1,7 @@
 /* teletest.c: TELEMETRY TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .source: The command parser here was taken and adapted from bttest.c.
  */
@@ -191,7 +191,7 @@ static void obeyCommand(char *command)
 
 #define testArenaSIZE (((size_t)64)<<20)
 
-extern int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   testlib_init(argc, argv);
 
@@ -216,7 +216,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* tree.c: BINARY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (C) 2014-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (C) 2014-2018 Ravenbrook Limited.  See end of file for license.
  *
  * Simple binary trees with utilities, for use as building blocks.
  * Keep it simple, like Rings (see ring.h).
@@ -408,7 +408,8 @@ void TreeRotateLeft(Tree *treeIO)
  * ordering.
  */
 
-void TreeRotateRight(Tree *treeIO) {
+void TreeRotateRight(Tree *treeIO)
+{
   Tree tree, left;
 
   AVER(treeIO != NULL);
@@ -568,7 +569,7 @@ void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2014-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

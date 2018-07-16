@@ -1,7 +1,7 @@
 /* bttest.c: BIT TABLE TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  */
 
 
@@ -311,7 +311,8 @@ static void obeyCommand(const char *command)
 }
 
 
-static void showBT(void) {
+static void showBT(void)
+{
   Index i;
   char c;
   if (bt == NULL)
@@ -350,7 +351,7 @@ static void showBT(void) {
 
 #define testArenaSIZE (((size_t)64)<<20)
 
-extern int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   bt = NULL;
   btSize = 0;
@@ -376,7 +377,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* fbmtest.c: FREE BLOCK MANAGEMENT TEST
  *
  *  $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * The MPS contains two free block management modules:
  *
@@ -77,7 +77,8 @@ static Index (indexOfAddr)(FBMState state, Addr a)
 }
 
 
-static void describe(FBMState state) {
+static void describe(FBMState state)
+{
   switch (state->type) {
   case FBMTypeCBS:
     die(CBSDescribe(state->the.cbs, mps_lib_get_stdout(), 0),
@@ -506,7 +507,8 @@ static void find(FBMState state, Size size, Bool high, FindDelete findDelete)
   return;
 }
 
-static void test(FBMState state, unsigned n) {
+static void test(FBMState state, unsigned n)
+{
   Addr base, limit;
   unsigned i;
   Size size;
@@ -549,7 +551,7 @@ static void test(FBMState state, unsigned n) {
 
 #define testArenaSIZE   (((size_t)4)<<20)
 
-extern int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   mps_arena_t mpsArena;
   Arena arena; /* the ANSI arena which we use to allocate the BT */
@@ -620,7 +622,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
