@@ -6,7 +6,7 @@ TEST_HEADER
  link = testlib.o
 OUTPUT_SPEC
  assert = true
- assertfile P= poolmv.c
+ assertfile P= poolmvff.c
  assertcond = avgSize > 0
 END_HEADER
 */

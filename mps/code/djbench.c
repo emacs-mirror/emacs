@@ -232,8 +232,7 @@ static struct {
 } pools[] = {
   {"mvt",   arena_wrap, dj_reserve, mps_class_mvt},
   {"mvff",  arena_wrap, dj_reserve, mps_class_mvff},
-  {"mv",    arena_wrap, dj_alloc,   mps_class_mv},
-  {"mvb",   arena_wrap, dj_reserve, mps_class_mv}, /* mv with buffers */
+  {"mvffa", arena_wrap, dj_alloc,   mps_class_mvff}, /* mvff with alloc */
   {"an",    wrap,       dj_malloc,  dummy_class},
 };
 
