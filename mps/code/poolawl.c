@@ -638,6 +638,7 @@ static Res awlBufferFill(Addr *baseReturn, Addr *limitReturn,
   AWL awl = MustBeA(AWLPool, pool);
   Res res;
   Ring node, nextNode;
+  RankSet rankSet;
   Seg seg;
   Bool b;
 
@@ -648,10 +649,10 @@ static Res awlBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
+  rankSet = BufferRankSet(buffer);
   RING_FOR(node, &pool->segRing, nextNode) {
     seg = SegOfPoolRing(node);
-    if (SegBufferFill(baseReturn, limitReturn, seg, size,
-                      BufferRankSet(buffer)))
+    if (SegBufferFill(baseReturn, limitReturn, seg, size, rankSet))
       return ResOK;
   }
 
@@ -663,7 +664,7 @@ static Res awlBufferFill(Addr *baseReturn, Addr *limitReturn,
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
-  b = SegBufferFill(baseReturn, limitReturn, seg, size, BufferRankSet(buffer));
+  b = SegBufferFill(baseReturn, limitReturn, seg, size, rankSet);
   AVER(b);
   return ResOK;
 }
@@ -675,22 +676,23 @@ static void awlSegBufferEmpty(Seg seg, Buffer buffer)
 {
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
   Pool pool = SegPool(seg);
-  Addr base, init, limit;
+  Addr segBase, bufferBase, init, limit;
   Index initIndex, limitIndex;
   Count unusedGrains, usedGrains;
 
   AVERT(Seg, seg);
   AVERT(Buffer, buffer);
-  base = BufferBase(buffer);
+  segBase = SegBase(seg);
+  bufferBase = BufferBase(buffer);
   init = BufferGetInit(buffer);
   limit = BufferLimit(buffer);
-  AVER(SegBase(seg) <= base);
-  AVER(base <= init);
+  AVER(segBase <= bufferBase);
+  AVER(bufferBase <= init);
   AVER(init <= limit);
   AVER(limit <= SegLimit(seg));
 
-  initIndex = PoolIndexOfAddr(SegBase(seg), pool, init);
-  limitIndex = PoolIndexOfAddr(SegBase(seg), pool, limit);
+  initIndex = PoolIndexOfAddr(segBase, pool, init);
+  limitIndex = PoolIndexOfAddr(segBase, pool, limit);
 
   if (initIndex < limitIndex)
     BTResRange(awlseg->alloc, initIndex, limitIndex);
