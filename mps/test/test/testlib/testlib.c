@@ -195,11 +195,9 @@ void myabort(void) {
 
 void verror(const char *format, va_list args)
 {
- fprintf(stdout, "%% ERROR \n!error=true\n");
- fprintf(stdout, "!errtext=");
- vfprintf(stdout, format, args);
- fprintf(stdout, "\n");
- fflush(stdout);
+ comment("ERROR");
+ report("error", "true");
+ vreport("errtext", format, args);
  myabort();
 }
 
@@ -213,14 +211,11 @@ void asserts(int expr, const char *format, ...)
  va_list args;
 
  if (!expr) {
+  comment("TEST ASSERTION FAILURE");
+  report("assert", "true");
+  report("assert_or_abort", "true");
   va_start(args, format);
-  fprintf(stdout, "%% ASSERTION FAILED \n!"
-          "assert=true\n"
-          "assert_or_abort=true\n");
-  fprintf(stdout, "!asserttext=");
-  vfprintf(stdout, format, args);
-  fprintf(stdout, "\n");
-  fflush(stdout);
+  vreport("asserttext", format, args);
   va_end(args);
   myabort();
  }
