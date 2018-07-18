@@ -374,7 +374,7 @@ extern void TraceDestroyFinished(Trace trace);
 extern Bool TraceIsEmpty(Trace trace);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern void TraceCondemnStart(Trace trace);
-extern void TraceCondemnEnd(Trace trace);
+extern Res TraceCondemnEnd(double *mortalityReturn, Trace trace);
 extern Res TraceStart(Trace trace, double mortality, double finishingTime);
 extern Bool TracePoll(Work *workReturn, Bool *collectWorldReturn,
                       Globals globals, Bool collectWorldAllowed);
@@ -396,11 +396,6 @@ extern void TracePostMessage(Trace trace);  /* trace end */
 extern Bool TraceIdMessagesCheck(Arena arena, TraceId ti);
 extern Res TraceIdMessagesCreate(Arena arena, TraceId ti);
 extern void TraceIdMessagesDestroy(Arena arena, TraceId ti);
-
-/* Collection control parameters */
-
-extern double TraceWorkFactor;
-
 
 /* Equivalent to <code/mps.h> MPS_SCAN_BEGIN */
 
