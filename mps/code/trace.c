@@ -153,6 +153,7 @@ Bool TraceCheck(Trace trace)
   CHECKL(trace == &trace->arena->trace[trace->ti]);
   CHECKL(TraceSetIsMember(trace->arena->busyTraces, trace));
   CHECKL(ZoneSetSub(trace->mayMove, trace->white));
+  CHECKD_NOSIG(Ring, &trace->genRing);
   /* Use trace->state to check more invariants. */
   switch(trace->state) {
     case TraceINIT:
@@ -161,16 +162,20 @@ Bool TraceCheck(Trace trace)
       break;
 
     case TraceUNFLIPPED:
+      CHECKL(!RingIsSingle(&trace->genRing));
       CHECKL(!TraceSetIsMember(trace->arena->flippedTraces, trace));
       /* @@@@ Assert that mutator is grey for trace. */
       break;
 
     case TraceFLIPPED:
+      CHECKL(!RingIsSingle(&trace->genRing));
       CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
+      CHECKL(RankCheck(trace->band));
       /* @@@@ Assert that mutator is black for trace. */
       break;
 
     case TraceRECLAIM:
+      CHECKL(!RingIsSingle(&trace->genRing));
       CHECKL(TraceSetIsMember(trace->arena->flippedTraces, trace));
       /* @@@@ Assert that grey set is empty for trace. */
       break;
@@ -183,13 +188,6 @@ Bool TraceCheck(Trace trace)
     default:
       NOTREACHED;
       break;
-  }
-  /* Valid values for band depend on state. */
-  if(trace->state == TraceFLIPPED) {
-    CHECKL(RankCheck(trace->band));
-  }
-  if(trace->chain != NULL) {
-    CHECKU(Chain, trace->chain);
   }
   CHECKL(FUNCHECK(trace->fix));
   /* Can't check trace->fixClosure. */
@@ -389,7 +387,23 @@ Res TraceAddWhite(Trace trace, Seg seg)
 }
 
 
-/* TraceCondemnStart -- start condemning objects for a trace
+/* TraceCondemnStart -- start selecting generations to condemn for a trace */
+
+void TraceCondemnStart(Trace trace)
+{
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceINIT);
+  AVER(trace->white == ZoneSetEMPTY);
+  AVER(RingIsSingle(&trace->genRing));
+}
+
+
+/* TraceCondemnEnd -- condemn segments for trace
+ *
+ * Condemn the segments in the generations that were selected since
+ * TraceCondemnStart, and compute the predicted mortality of the
+ * condemned memory. If successful, update *mortalityReturn and return
+ * ResOK.
  *
  * We suspend the mutator threads so that the PoolWhiten methods can
  * calculate white sets without the mutator allocating in buffers
@@ -400,24 +414,54 @@ Res TraceAddWhite(Trace trace, Seg seg)
  * incremental condemn.
  */
 
-void TraceCondemnStart(Trace trace)
+Res TraceCondemnEnd(double *mortalityReturn, Trace trace)
 {
+  Size casualtySize = 0;
+  Ring genNode, genNext;
+  Res res;
+
+  AVER(mortalityReturn != NULL);
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
   AVER(trace->white == ZoneSetEMPTY);
 
   ShieldHold(trace->arena);
-}
-
-
-/* TraceCondemnEnd -- stop condemning objects for a trace */
-
-void TraceCondemnEnd(Trace trace)
-{
-  AVERT(Trace, trace);
-  AVER(trace->state == TraceINIT);
-
+  RING_FOR(genNode, &trace->genRing, genNext) {
+    Size condemnedBefore, condemnedGen;
+    Ring segNode, segNext;
+    GenDesc gen = GenDescOfTraceRing(genNode, trace);
+    AVERT(GenDesc, gen);
+    condemnedBefore = trace->condemned;
+    RING_FOR(segNode, &gen->segRing, segNext) {
+      GCSeg gcseg = RING_ELT(GCSeg, genRing, segNode);
+      AVERC(GCSeg, gcseg);
+      res = TraceAddWhite(trace, &gcseg->segStruct);
+      if (res != ResOK)
+        goto failBegin;
+    }
+    AVER(trace->condemned >= condemnedBefore);
+    condemnedGen = trace->condemned - condemnedBefore;
+    casualtySize += (Size)(condemnedGen * gen->mortality);
+  }
   ShieldRelease(trace->arena);
+
+  if (TraceIsEmpty(trace))
+    return ResFAIL;
+
+  *mortalityReturn = (double)casualtySize / trace->condemned;
+  return ResOK;
+
+failBegin:
+  /* If we successfully whitened one or more segments, but failed to
+     whiten them all, then the white sets would now be inconsistent.
+     This can't happen in practice (at time of writing) because all
+     PoolWhiten methods always succeed. If we ever have a pool class
+     that fails to whiten a segment, then this assertion will be
+     triggered. In that case, we'll have to recover here by blackening
+     the segments again. */
+  AVER(TraceIsEmpty(trace));
+  ShieldRelease(trace->arena);
+  return res;
 }
 
 
@@ -671,7 +715,7 @@ found:
   trace->band = RankMIN;
   trace->fix = SegFix;
   trace->fixClosure = NULL;
-  trace->chain = NULL;
+  RingInit(&trace->genRing);
   STATISTIC(trace->preTraceArenaReserved = ArenaReserved(arena));
   trace->condemned = (Size)0;   /* nothing condemned yet */
   trace->notCondemned = (Size)0;
@@ -735,17 +779,13 @@ found:
 
 static void traceDestroyCommon(Trace trace)
 {
-  Ring chainNode, nextChainNode;
+  Ring node, nextNode;
 
-  if (trace->chain != NULL) {
-    ChainEndTrace(trace->chain, trace);
-  } else {
-    /* Notify all the chains. */
-    RING_FOR(chainNode, &trace->arena->chainRing, nextChainNode) {
-      Chain chain = RING_ELT(Chain, chainRing, chainNode);
-      ChainEndTrace(chain, trace);
-    }
+  RING_FOR(node, &trace->genRing, nextNode) {
+    GenDesc gen = GenDescOfTraceRing(node, trace);
+    GenDescEndTrace(gen, trace);
   }
+  RingFinish(&trace->genRing);
 
   /* Ensure that address space is returned to the operating system for
    * traces that don't have any condemned objects (there might be
@@ -820,25 +860,25 @@ void TraceDestroyFinished(Trace trace)
 static void traceReclaim(Trace trace)
 {
   Arena arena;
-  Seg seg;
+  Ring genNode, genNext;
 
   AVER(trace->state == TraceRECLAIM);
 
   EVENT1(TraceReclaim, trace);
-  arena = trace->arena;
-  if(SegFirst(&seg, arena)) {
-    Pool pool;
-    Ring next;
-    do {
-      Addr base = SegBase(seg);
-      pool = SegPool(seg);
-      next = RingNext(SegPoolRing(seg));
 
+  arena = trace->arena;
+  RING_FOR(genNode, &trace->genRing, genNext) {
+    Ring segNode, segNext;
+    GenDesc gen = GenDescOfTraceRing(genNode, trace);
+    AVERT(GenDesc, gen);
+    RING_FOR(segNode, &gen->segRing, segNext) {
+      GCSeg gcseg = RING_ELT(GCSeg, genRing, segNode);
+      Seg seg = &gcseg->segStruct;
       /* There shouldn't be any grey stuff left for this trace. */
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
-
-      if(TraceSetIsMember(SegWhite(seg), trace)) {
-        AVER_CRITICAL(PoolHasAttr(pool, AttrGC));
+      if (TraceSetIsMember(SegWhite(seg), trace)) {
+        Addr base = SegBase(seg);
+        AVER_CRITICAL(PoolHasAttr(SegPool(seg), AttrGC));
         STATISTIC(++trace->reclaimCount);
         SegReclaim(seg, trace);
 
@@ -851,12 +891,12 @@ static void traceReclaim(Trace trace)
         /* unwhiten the segment could in fact be moved here.   */
         {
           Seg nonWhiteSeg = NULL;       /* prevents compiler warning */
-          AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base)
-                          && TraceSetIsMember(SegWhite(nonWhiteSeg), trace)));
+          AVER_CRITICAL(!SegOfAddr(&nonWhiteSeg, arena, base)
+                        || !TraceSetIsMember(SegWhite(nonWhiteSeg), trace));
           UNUSED(nonWhiteSeg); /* <code/mpm.c#check.unused> */
         }
       }
-    } while(SegNextOfRing(&seg, arena, pool, next));
+    }
   }
 
   trace->state = TraceFINISHED;
@@ -1466,65 +1506,6 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit,
 }
 
 
-/* traceCondemnAll -- condemn everything and notify all the chains */
-
-static Res traceCondemnAll(Trace trace)
-{
-  Res res;
-  Arena arena;
-  Ring poolNode, nextPoolNode;
-
-  arena = trace->arena;
-  AVERT(Arena, arena);
-
-  TraceCondemnStart(trace);
-
-  /* Condemn all segments in pools with the GC attribute. */
-  RING_FOR(poolNode, &ArenaGlobals(arena)->poolRing, nextPoolNode) {
-    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
-    AVERT(Pool, pool);
-
-    if (PoolHasAttr(pool, AttrGC)) {
-      Ring segNode, nextSegNode;
-      RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
-        Seg seg = SegOfPoolRing(segNode);
-
-        AVERT(Seg, seg);
-
-        res = TraceAddWhite(trace, seg);
-        if (res != ResOK)
-          goto failBegin;
-
-      }
-    }
-  }
-
-  TraceCondemnEnd(trace);
-
-  if (TraceIsEmpty(trace))
-    return ResFAIL;
-
-  return ResOK;
-
-failBegin:
-  /* .whiten.fail: If we successfully whitened one or more segments,
-   * but failed to whiten them all, then the white sets would now be
-   * inconsistent. This can't happen in practice (at time of writing)
-   * because all PoolWhiten methods always succeed. If we ever have a
-   * pool class that fails to whiten a segment, then this assertion
-   * will be triggered. In that case, we'll have to recover here by
-   * blackening the segments again. */
-  AVER(TraceIsEmpty(trace));
-  TraceCondemnEnd(trace);
-  return res;
-}
-
-
-/* Collection control parameters */
-
-double TraceWorkFactor = 0.25;
-
-
 /* TraceStart -- condemn a set of objects and start collection
  *
  * TraceStart should be passed a trace with state TraceINIT, i.e.,
@@ -1719,8 +1700,8 @@ Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
 {
   Trace trace = NULL;
   Res res;
-  double finishingTime;
-  Ring chainNode, nextChainNode;
+  double mortality, finishingTime;
+  Ring chainNode, chainNext;
 
   AVERT(Arena, arena);
   AVER(arena->busyTraces == TraceSetEMPTY);
@@ -1728,22 +1709,30 @@ Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
   res = TraceCreate(&trace, arena, why);
   AVER(res == ResOK); /* succeeds because no other trace is busy */
 
-  /* Notify all the chains. */
-  RING_FOR(chainNode, &arena->chainRing, nextChainNode) {
-    Chain chain = RING_ELT(Chain, chainRing, chainNode);
-    ChainStartTrace(chain, trace);
-  }
+  TraceCondemnStart(trace);
 
-  res = traceCondemnAll(trace);
+  /* Condemn all generations in all chains, plus the top generation. */
+  RING_FOR(chainNode, &arena->chainRing, chainNext) {
+    size_t i;
+    Chain chain = RING_ELT(Chain, chainRing, chainNode);
+    AVERT(Chain, chain);
+    for (i = 0; i < chain->genCount; ++i) {
+      GenDesc gen = &chain->gens[i];
+      AVERT(GenDesc, gen);
+      GenDescStartTrace(gen, trace);
+    }
+  }
+  GenDescStartTrace(&arena->topGen, trace);
+
+  res = TraceCondemnEnd(&mortality, trace);
   if(res != ResOK) /* should try some other trace, really @@@@ */
     goto failCondemn;
-  finishingTime = ArenaAvail(arena)
-                  - trace->condemned * (1.0 - arena->topGen.mortality);
+  finishingTime = ArenaAvail(arena) - trace->condemned * (1.0 - mortality);
   if(finishingTime < 0) {
     /* Run out of time, should really try a smaller collection. @@@@ */
     finishingTime = 0.0;
   }
-  res = TraceStart(trace, arena->topGen.mortality, finishingTime);
+  res = TraceStart(trace, mortality, finishingTime);
   if (res != ResOK)
     goto failStart;
   *traceReturn = trace;
@@ -1814,6 +1803,7 @@ Bool TracePoll(Work *workReturn, Bool *collectWorldReturn, Globals globals,
 
 Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
 {
+  Ring node, next;
   Res res;
   const char *state;
 
@@ -1840,7 +1830,6 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
                "  band $U\n", (WriteFU)trace->band,
                "  white   $B\n", (WriteFB)trace->white,
                "  mayMove $B\n", (WriteFB)trace->mayMove,
-               "  chain $P\n", (WriteFP)trace->chain,
                "  condemned $U\n", (WriteFU)trace->condemned,
                "  notCondemned $U\n", (WriteFU)trace->notCondemned,
                "  foundation $U\n", (WriteFU)trace->foundation,
@@ -1853,6 +1842,18 @@ Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth)
                                (WriteFU)trace->segCopiedSize)
                "  forwardedSize $U\n", (WriteFU)trace->forwardedSize,
                "  preservedInPlaceSize $U\n", (WriteFU)trace->preservedInPlaceSize,
+               NULL);
+  if (res != ResOK)
+    return res;
+
+  RING_FOR(node, &trace->genRing, next) {
+    GenDesc gen = GenDescOfTraceRing(node, trace);
+    res = GenDescDescribe(gen, stream, depth + 2);
+    if (res != ResOK)
+      return res;
+  }
+
+  res = WriteF(stream, depth,
                "} Trace $P\n", (WriteFP)trace,
                NULL);
   return res;
