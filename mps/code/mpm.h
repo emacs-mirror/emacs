@@ -248,10 +248,9 @@ extern Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
                             Pool pool, Buffer buffer, Size size);
 extern Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
                               Pool pool, Buffer buffer, Size size);
-extern void PoolNoBufferEmpty(Pool pool, Buffer buffer,
-                              Addr init, Addr limit);
-extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer,
-                                Addr init, Addr limit);
+extern void PoolNoBufferEmpty(Pool pool, Buffer buffer);
+extern void PoolSegBufferEmpty(Pool pool, Buffer buffer);
+extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer);
 extern Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
@@ -668,6 +667,8 @@ extern Bool SegHasBuffer(Seg seg);
 extern Bool SegBuffer(Buffer *bufferReturn, Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
 extern void SegUnsetBuffer(Seg seg);
+extern Bool SegBufferFill(Addr *baseReturn, Addr *limitReturn,
+                          Seg seg, Size size, RankSet rankSet);
 extern Addr SegBufferScanLimit(Seg seg);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);

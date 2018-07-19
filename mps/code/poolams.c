@@ -26,6 +26,9 @@ SRCID(poolams, "$Id$");
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
 #define AMSSegSig       ((Sig)0x519A3559) /* SIGnature AMS SeG */
 
+static Bool amsSegBufferFill(Addr *baseReturn, Addr *limitReturn,
+                             Seg seg, Size size, RankSet rankSet);
+static void amsSegBufferEmpty(Seg seg, Buffer buffer);
 static void amsSegBlacken(Seg seg, TraceSet traceSet);
 static Res amsSegWhiten(Seg seg, Trace trace);
 static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss);
@@ -620,6 +623,8 @@ DEFINE_CLASS(Seg, AMSSeg, klass)
   klass->instClassStruct.finish = AMSSegFinish;
   klass->size = sizeof(AMSSegStruct);
   klass->init = AMSSegInit;
+  klass->bufferFill = amsSegBufferFill;
+  klass->bufferEmpty = amsSegBufferEmpty;
   klass->merge = AMSSegMerge;
   klass->split = AMSSegSplit;
   klass->whiten = amsSegWhiten;
@@ -861,55 +866,81 @@ void AMSFinish(Inst inst)
 }
 
 
-/* amsSegAlloc -- try to allocate an area in the given segment
- *
- * Tries to find an area of at least the given size.  If successful,
- * returns its base and limit grain indices.
- */
-static Bool amsSegAlloc(Index *baseReturn, Index *limitReturn,
-                        Seg seg, Size size)
+/* amsSegBufferFill -- try filling buffer from segment */
+
+static Bool amsSegBufferFill(Addr *baseReturn, Addr *limitReturn,
+                             Seg seg, Size size, RankSet rankSet)
 {
-  Pool pool;
-  AMSSeg amsseg;
-  Size grains;
-  Bool canAlloc;      /* can we allocate in this segment? */
-  Index base, limit;
+  Index baseIndex, limitIndex;
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  Pool pool = SegPool(seg);
+  Count requestedGrains, segGrains, allocatedGrains;
+  Addr segBase, base, limit;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  /* seg has already been checked, in AMSBufferFill. */
-  amsseg = Seg2AMSSeg(seg);
-
-  pool = SegPool(seg);
-
-  AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
+  AVER(size > 0);
+  AVERT(RankSet, rankSet);
 
-  grains = PoolSizeGrains(pool, size);
-  AVER(grains > 0);
-  if (grains > amsseg->grains)
+  requestedGrains = PoolSizeGrains(pool, size);
+  if (amsseg->freeGrains < requestedGrains)
+    /* Not enough space to satisfy the request. */
     return FALSE;
 
-  if (amsseg->allocTableInUse) {
-    canAlloc = BTFindLongResRange(&base, &limit, amsseg->allocTable,
-                                  0, amsseg->grains, grains);
-    if (!canAlloc)
-      return FALSE;
-    BTSetRange(amsseg->allocTable, base, limit);
-  } else {
-    if (amsseg->firstFree > amsseg->grains - grains)
-      return FALSE;
-    base = amsseg->firstFree;
-    limit = amsseg->grains;
-    amsseg->firstFree = limit;
+  if (SegHasBuffer(seg))
+    /* Don't bother trying to allocate from a buffered segment */
+    return FALSE;
+
+  if (RefSetUnion(SegWhite(seg), SegGrey(seg)) != TraceSetEMPTY)
+    /* Can't use a white or grey segment, see design.mps.poolams.fill.colour */
+    return FALSE;
+
+  if (rankSet != SegRankSet(seg))
+    /* Can't satisfy required rank set. */
+    return FALSE;
+
+  segGrains = PoolSizeGrains(pool, SegSize(seg));
+  if (amsseg->freeGrains == segGrains) {
+    /* Whole segment is free: no need for a search. */
+    baseIndex = 0;
+    limitIndex = segGrains;
+    goto found;
   }
 
   /* We don't place buffers on white segments, so no need to adjust colour. */
   AVER(!amsseg->colourTablesInUse);
 
-  AVER(amsseg->freeGrains >= limit - base);
-  amsseg->freeGrains -= limit - base;
-  amsseg->bufferedGrains += limit - base;
+  if (amsseg->allocTableInUse) {
+    if (!BTFindLongResRange(&baseIndex, &limitIndex, amsseg->allocTable,
+                            0, segGrains, requestedGrains))
+      return FALSE;
+  } else {
+    if (amsseg->firstFree > segGrains - requestedGrains)
+      return FALSE;
+    baseIndex = amsseg->firstFree;
+    limitIndex = segGrains;
+  }
+
+found:
+  AVER(baseIndex < limitIndex);
+  if (amsseg->allocTableInUse) {
+    BTSetRange(amsseg->allocTable, baseIndex, limitIndex);
+  } else {
+    amsseg->firstFree = limitIndex;
+  }
+  allocatedGrains = limitIndex - baseIndex;
+  AVER(requestedGrains <= allocatedGrains);
+  AVER(amsseg->freeGrains >= allocatedGrains);
+  amsseg->freeGrains -= allocatedGrains;
+  amsseg->bufferedGrains += allocatedGrains;
+
+  segBase = SegBase(seg);
+  base = PoolAddrOfIndex(segBase, pool, baseIndex);
+  limit = PoolAddrOfIndex(segBase, pool, limitIndex);
+  PoolGenAccountForFill(PoolSegPoolGen(pool, seg), AddrOffset(base, limit));
+  DebugPoolFreeCheck(pool, base, limit);
+
   *baseReturn = base;
   *limitReturn = limit;
   return TRUE;
@@ -925,22 +956,15 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size)
 {
   Res res;
-  AMS ams;
-  Seg seg;
-  AMSSeg amsseg;
-  Ring node, ring, nextNode;    /* for iterating over the segments */
-  Index base = 0, limit = 0;    /* suppress "may be used uninitialized" */
-  Addr baseAddr, limitAddr;
+  Ring node, nextNode;
   RankSet rankSet;
-  Bool b;                       /* the return value of amsSegAlloc */
-  Size allocatedSize;
+  Seg seg;
+  Bool b;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVERT(Pool, pool);
-  ams = PoolAMS(pool);
-  AVERT(AMS, ams);
-  AVERT(Buffer, buffer);
+  AVERC(Buffer, buffer);
+  AVER(BufferIsReset(buffer));
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
@@ -948,80 +972,54 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* <design/poolams/#fill.colour>). */
   AVER(PoolArena(pool)->busyTraces == PoolArena(pool)->flippedTraces);
 
-  rankSet = BufferRankSet(buffer);
-  ring = PoolSegRing(AMSPool(ams));
   /* <design/poolams/#fill.slow> */
-  RING_FOR(node, ring, nextNode) {
+  rankSet = BufferRankSet(buffer);
+  RING_FOR(node, &pool->segRing, nextNode) {
     seg = SegOfPoolRing(node);
-    amsseg = Seg2AMSSeg(seg);
-    AVERT_CRITICAL(AMSSeg, amsseg);
-    if (amsseg->freeGrains >= PoolSizeGrains(pool, size)) {
-      if (SegRankSet(seg) == rankSet
-          && !SegHasBuffer(seg)
-          /* Can't use a white or grey segment, see d.m.p.fill.colour. */
-          && SegWhite(seg) == TraceSetEMPTY
-          && SegGrey(seg) == TraceSetEMPTY)
-      {
-        b = amsSegAlloc(&base, &limit, seg, size);
-        if (b)
-          goto found;
-      }
-    }
+    if (SegBufferFill(baseReturn, limitReturn, seg, size, rankSet))
+      return ResOK;
   }
 
-  /* No suitable segment found; make a new one. */
-  res = AMSSegCreate(&seg, pool, size, rankSet);
+  /* No segment had enough space, so make a new one. */
+  res = AMSSegCreate(&seg, pool, size, BufferRankSet(buffer));
   if (res != ResOK)
     return res;
-  b = amsSegAlloc(&base, &limit, seg, size);
-
-found:
+  b = SegBufferFill(baseReturn, limitReturn, seg, size, rankSet);
   AVER(b);
-  baseAddr = PoolAddrOfIndex(SegBase(seg), pool, base);
-  limitAddr = PoolAddrOfIndex(SegBase(seg), pool, limit);
-  DebugPoolFreeCheck(pool, baseAddr, limitAddr);
-  allocatedSize = AddrOffset(baseAddr, limitAddr);
-
-  PoolGenAccountForFill(ams->pgen, allocatedSize);
-
-  *baseReturn = baseAddr;
-  *limitReturn = limitAddr;
   return ResOK;
 }
 
 
-/* AMSBufferEmpty -- the pool class buffer empty method
+/* amsSegBufferEmpty -- empty buffer to segment
  *
  * Frees the unused part of the buffer.  The colour of the area doesn't
  * need to be changed.  See <design/poolams/#empty>.
  */
-static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
+static void amsSegBufferEmpty(Seg seg, Buffer buffer)
 {
-  AMS ams;
+  AMSSeg amsseg = MustBeA(AMSSeg, seg);
+  Pool pool = SegPool(seg);
+  Addr segBase, bufferBase, init, limit;
   Index initIndex, limitIndex;
-  Seg seg;
-  AMSSeg amsseg;
   Count usedGrains, unusedGrains;
 
-  AVERT(Pool, pool);
-  ams = PoolAMS(pool);
-  AVERT(AMS, ams);
-  AVERT(Buffer,buffer);
-  AVER(BufferIsReady(buffer));
-  seg = BufferSeg(buffer);
   AVERT(Seg, seg);
+  AVERT(Buffer, buffer);
+  segBase = SegBase(seg);
+  bufferBase = BufferBase(buffer);
+  init = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
+  AVER(segBase <= bufferBase);
+  AVER(bufferBase <= init);
   AVER(init <= limit);
-  AVER(AddrIsAligned(init, PoolAlignment(pool)));
-  AVER(AddrIsAligned(limit, PoolAlignment(pool)));
+  AVER(limit <= SegLimit(seg));
 
-  amsseg = Seg2AMSSeg(seg);
-  AVERT(AMSSeg, amsseg);
+  initIndex = PoolIndexOfAddr(segBase, pool, init);
+  limitIndex = PoolIndexOfAddr(segBase, pool, limit);
 
-  initIndex = PoolIndexOfAddr(SegBase(seg), pool, init);
-  limitIndex = PoolIndexOfAddr(SegBase(seg), pool, limit);
-  AVER(initIndex <= limitIndex);
+  if (initIndex < limitIndex) {
+    AMS ams = MustBeA(AMSPool, pool);
 
-  if (init < limit) {
     /* Tripped allocations might have scribbled on it, need to splat again. */
     DebugPoolFreeSplat(pool, init, limit);
 
@@ -1060,12 +1058,14 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
   }
 
   unusedGrains = limitIndex - initIndex;
-  AVER(amsseg->bufferedGrains >= unusedGrains);
+  AVER(unusedGrains <= amsseg->bufferedGrains);
   usedGrains = amsseg->bufferedGrains - unusedGrains;
   amsseg->freeGrains += unusedGrains;
   amsseg->bufferedGrains = 0;
   amsseg->newGrains += usedGrains;
-  PoolGenAccountForEmpty(ams->pgen, PoolGrainsSize(pool, usedGrains),
+
+  PoolGenAccountForEmpty(PoolSegPoolGen(pool, seg),
+                         PoolGrainsSize(pool, usedGrains),
                          PoolGrainsSize(pool, unusedGrains), FALSE);
 }
 
@@ -1780,7 +1780,6 @@ DEFINE_CLASS(Pool, AMSPool, klass)
   klass->init = AMSInit;
   klass->bufferClass = RankBufClassGet;
   klass->bufferFill = AMSBufferFill;
-  klass->bufferEmpty = AMSBufferEmpty;
   klass->segPoolGen = amsSegPoolGen;
   klass->freewalk = AMSFreeWalk;
   klass->totalSize = AMSTotalSize;

@@ -125,14 +125,11 @@ static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 /* NBufferEmpty -- buffer empty method for class N */
 
-static void NBufferEmpty(Pool pool, Buffer buffer,
-                         Addr init, Addr limit)
+static void NBufferEmpty(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
-  AVER(init <= limit);
-
   NOTREACHED;   /* can't create buffers, so they shouldn't trip */
 }
 
