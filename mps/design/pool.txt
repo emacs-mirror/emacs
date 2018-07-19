@@ -173,23 +173,25 @@ this method. It is called via the generic function
 
 _`.method.bufferFill`: The ``bufferFill`` method should allocate a
 region of least ``size`` bytes of memory for attaching to ``buffer``.
-The buffer must be in the "reset" state (see
-design.mps.buffer.reset_). If successful, it must update
-``*baseReturn`` and ``*limitReturn`` to the base and limit of the
-allocated region and return ``ResOK``. Otherwise it must leave
-``*baseReturn`` and ``*limitReturn`` unchanged and return a non-OK
-result code. Pool classes are not required to provide this method.
-This method is called by the ``BufferFill()``.
+The buffer is in the "reset" state (see design.mps.buffer.reset_). If
+successful, it must update ``*baseReturn`` and ``*limitReturn`` to the
+base and limit of the allocated region and return ``ResOK``. Otherwise
+it must leave ``*baseReturn`` and ``*limitReturn`` unchanged and
+return a non-OK result code. Pool classes are not required to provide
+this method. This method is called by ``BufferFill()``.
 
 .. _design.mps.buffer.reset: buffer#reset
 
-``typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer, Addr init, Addr limit)``
+``typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer)``
 
 _`.method.bufferEmpty`: The ``bufferEmpty`` method indicates that the
 client program has finished with the unused part of the buffer (the
-part between init and limit). This method must be provided if and only
-if ``bufferFill`` is provided. This method is called by the generic
+part between init and limit). The buffer is in the "ready" state (see
+design.mps.buffer.ready_). This method must be provided if and only if
+``bufferFill`` is provided. This method is called by the generic
 function ``BufferDetach()``.
+
+.. _design.mps.buffer.ready: buffer#ready
 
 ``typedef Size (*PoolSizeMethod)(Pool pool)``
 

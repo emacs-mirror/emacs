@@ -343,7 +343,7 @@ _`.fill.extend`: If there's no space in any existing segment, the
 allocate. If that fails, the code tries to allocate a segment that's
 just large enough to satisfy the request.
 
-_`.empty`: ``AMSBufferEmpty()`` makes the unused space free, since
+_`.empty`: ``amsSegBufferEmpty()`` makes the unused space free, since
 there's no reason not to. We have to adjust the colour tables as well,
 since these grains were black and now they need to be white (or at
 least encoded -G and W).

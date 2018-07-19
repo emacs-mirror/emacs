@@ -36,7 +36,7 @@ static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Inst inst);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize);
-static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
+static void MVTBufferEmpty(Pool pool, Buffer buffer);
 static void MVTFree(Pool pool, Addr base, Size size);
 static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 static Size MVTTotalSize(Pool pool);
@@ -883,18 +883,20 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
  *
  * See <design/poolmvt/#impl.c.ap.empty>
  */
-static void MVTBufferEmpty(Pool pool, Buffer buffer,
-                           Addr base, Addr limit)
+static void MVTBufferEmpty(Pool pool, Buffer buffer)
 {
   MVT mvt;
   Size size;
   Res res;
+  Addr base, limit;
 
   AVERT(Pool, pool);
   mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
+  base = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
   AVER(base <= limit);
 
   size = AddrOffset(base, limit);
