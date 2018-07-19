@@ -190,6 +190,8 @@ typedef struct SegClassStruct {
   SegBufferMethod buffer;       /* get the segment buffer  */
   SegSetBufferMethod setBuffer; /* set the segment buffer  */
   SegUnsetBufferMethod unsetBuffer; /* unset the segment buffer */
+  SegBufferFillMethod bufferFill; /* try filling buffer from segment */
+  SegBufferEmptyMethod bufferEmpty; /* empty buffer to segment */
   SegSetGreyMethod setGrey;     /* change greyness of segment */
   SegFlipMethod flip;           /* raise barrier for a flipped trace */
   SegSetWhiteMethod setWhite;   /* change whiteness of segment */

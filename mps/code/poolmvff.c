@@ -36,7 +36,7 @@ SRCID(poolmvff, "$Id$");
 
 typedef MVFF MVFFPool;
 #define MVFFPoolCheck MVFFCheck
-DECLARE_CLASS(Pool, MVFFPool, AbstractPool);
+DECLARE_CLASS(Pool, MVFFPool, AbstractBufferPool);
 DECLARE_CLASS(Pool, MVFFDebugPool, MVFFPool);
 
 
@@ -362,33 +362,6 @@ static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
 }
 
 
-/* MVFFBufferEmpty -- return unused portion of this buffer */
-
-static void MVFFBufferEmpty(Pool pool, Buffer buffer,
-                            Addr base, Addr limit)
-{
-  Res res;
-  MVFF mvff;
-  RangeStruct range, coalescedRange;
-  Land freeLand;
-
-  AVERT(Pool, pool);
-  mvff = PoolMVFF(pool);
-  AVERT(MVFF, mvff);
-  AVERT(Buffer, buffer);
-  AVER(BufferIsReady(buffer));
-  RangeInit(&range, base, limit);
-
-  if (RangeIsEmpty(&range))
-    return;
-
-  freeLand = MVFFFreeLand(mvff);
-  res = LandInsert(&coalescedRange, freeLand, &range);
-  AVER(res == ResOK);
-  MVFFReduce(mvff);
-}
-
-
 /* MVFFVarargs -- decode obsolete varargs */
 
 static void MVFFVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
@@ -708,8 +681,7 @@ static Res MVFFDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 
 DEFINE_CLASS(Pool, MVFFPool, klass)
 {
-  INHERIT_CLASS(klass, MVFFPool, AbstractPool);
-  PoolClassMixInBuffer(klass);
+  INHERIT_CLASS(klass, MVFFPool, AbstractBufferPool);
   klass->instClassStruct.describe = MVFFDescribe;
   klass->instClassStruct.finish = MVFFFinish;
   klass->size = sizeof(MVFFStruct);
@@ -718,7 +690,6 @@ DEFINE_CLASS(Pool, MVFFPool, klass)
   klass->alloc = MVFFAlloc;
   klass->free = MVFFFree;
   klass->bufferFill = MVFFBufferFill;
-  klass->bufferEmpty = MVFFBufferEmpty;
   klass->totalSize = MVFFTotalSize;
   klass->freeSize = MVFFFreeSize;
   AVERT(PoolClass, klass);

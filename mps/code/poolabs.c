@@ -188,6 +188,7 @@ DEFINE_CLASS(Pool, AbstractSegBufPool, klass)
 {
   INHERIT_CLASS(klass, AbstractSegBufPool, AbstractBufferPool);
   klass->bufferClass = SegBufClassGet;
+  klass->bufferEmpty = PoolSegBufferEmpty;
   AVERT(PoolClass, klass);
 }
 
@@ -280,24 +281,40 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
 }
 
 
-void PoolNoBufferEmpty(Pool pool, Buffer buffer,
-                       Addr init, Addr limit)
+void PoolNoBufferEmpty(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
-  AVER(init <= limit);
   NOTREACHED;
 }
 
-void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
+void PoolTrivBufferEmpty(Pool pool, Buffer buffer)
 {
+  Addr init, limit;
+
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
+
+  init = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
   AVER(init <= limit);
   if (limit > init)
     PoolFree(pool, init, AddrOffset(init, limit));
+}
+
+void PoolSegBufferEmpty(Pool pool, Buffer buffer)
+{
+  Seg seg;
+
+  AVERT(Pool, pool);
+  AVERT(Buffer, buffer);
+  AVER(BufferIsReady(buffer));
+  seg = BufferSeg(buffer);
+  AVERT(Seg, seg);
+
+  Method(Seg, seg, bufferEmpty)(seg, buffer);
 }
 
 

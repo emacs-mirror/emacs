@@ -48,6 +48,9 @@ SRCID(poolawl, "$Id$");
 
 #define AWLSig ((Sig)0x519B7A37) /* SIGnature PooL AWL */
 
+static Bool awlSegBufferFill(Addr *baseReturn, Addr *limitReturn,
+                             Seg seg, Size size, RankSet rankSet);
+static void awlSegBufferEmpty(Seg seg, Buffer buffer);
 static Res awlSegAccess(Seg seg, Arena arena, Addr addr,
                         AccessSet mode, MutatorContext context);
 static Res awlSegWhiten(Seg seg, Trace trace);
@@ -111,7 +114,14 @@ typedef AWL AWLPool;
 DECLARE_CLASS(Pool, AWLPool, AbstractCollectPool);
 
 
-/* AWLSegStruct -- AWL segment subclass */
+/* AWLSegStruct -- AWL segment subclass
+ *
+ * Colour is represented as follows:
+ * Black: +alloc +mark +scanned
+ * White: +alloc -mark -scanned
+ * Grey: +alloc +mark -scanned
+ * Free: -alloc ?mark ?scanned
+ */
 
 #define AWLSegSig ((Sig)0x519A3759) /* SIGnature AWL SeG */
 
@@ -267,6 +277,8 @@ DEFINE_CLASS(Seg, AWLSeg, klass)
   klass->instClassStruct.finish = AWLSegFinish;
   klass->size = sizeof(AWLSegStruct);
   klass->init = AWLSegInit;
+  klass->bufferFill = awlSegBufferFill;
+  klass->bufferEmpty = awlSegBufferEmpty;
   klass->access = awlSegAccess;
   klass->whiten = awlSegWhiten;
   klass->greyen = awlSegGreyen;
@@ -429,28 +441,69 @@ static void AWLNoteScan(Seg seg, ScanState ss)
 }
 
 
-/* AWLSegAlloc -- allocate an object in a given segment */
+/* awlSegBufferFill -- try filling buffer from segment */
 
-static Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn,
-                        AWLSeg awlseg, Pool pool, Size size)
+static Bool awlSegBufferFill(Addr *baseReturn, Addr *limitReturn,
+                             Seg seg, Size size, RankSet rankSet)
 {
-  Count n;        /* number of grains equivalent to alloc size */
-  Index i, j;
-  Seg seg = MustBeA(Seg, awlseg);
+  Index baseIndex, limitIndex;
+  AWLSeg awlseg = MustBeA(AWLSeg, seg);
+  Pool pool = SegPool(seg);
+  Count requestedGrains, segGrains, allocatedGrains;
+  Addr segBase, base, limit;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVERT(Pool, pool);
+  AVER(SizeIsAligned(size, PoolAlignment(pool)));
   AVER(size > 0);
-  AVER(PoolGrainsSize(pool, size) >= size);
+  AVERT(RankSet, rankSet);
 
-  if (size > SegSize(seg))
+  requestedGrains = PoolSizeGrains(pool, size);
+  if (awlseg->freeGrains < requestedGrains)
+    /* Not enough space to satisfy the request. */
     return FALSE;
-  n = PoolSizeGrains(pool, size);
-  if (!BTFindLongResRange(&i, &j, awlseg->alloc, 0, awlseg->grains, n))
+
+  if (SegHasBuffer(seg))
+    /* Don't bother trying to allocate from a buffered segment */
     return FALSE;
-  *baseReturn = PoolAddrOfIndex(SegBase(seg), pool, i);
-  *limitReturn = PoolAddrOfIndex(SegBase(seg), pool, j);
+
+  if (rankSet != SegRankSet(seg))
+    /* Can't satisfy required rank set. */
+    return FALSE;
+
+  segGrains = PoolSizeGrains(pool, SegSize(seg));
+  if (awlseg->freeGrains == segGrains) {
+    /* Whole segment is free: no need for a search. */
+    baseIndex = 0;
+    limitIndex = segGrains;
+    goto found;
+  }
+
+  if (!BTFindLongResRange(&baseIndex, &limitIndex, awlseg->alloc,
+                          0, segGrains, requestedGrains))
+    return FALSE;
+
+found:
+  AVER(baseIndex < limitIndex);
+  allocatedGrains = limitIndex - baseIndex;
+  AVER(requestedGrains <= allocatedGrains);
+  AVER(BTIsResRange(awlseg->alloc, baseIndex, limitIndex));
+  BTSetRange(awlseg->alloc, baseIndex, limitIndex);
+  /* Objects are allocated black. */
+  /* TODO: This should depend on trace phase. */
+  BTSetRange(awlseg->mark, baseIndex, limitIndex);
+  BTSetRange(awlseg->scanned, baseIndex, limitIndex);
+  AVER(awlseg->freeGrains >= allocatedGrains);
+  awlseg->freeGrains -= allocatedGrains;
+  awlseg->bufferedGrains += allocatedGrains;
+
+  segBase = SegBase(seg);
+  base = PoolAddrOfIndex(segBase, pool, baseIndex);
+  limit = PoolAddrOfIndex(segBase, pool, limitIndex);
+  PoolGenAccountForFill(PoolSegPoolGen(pool, seg), AddrOffset(base, limit));
+
+  *baseReturn = base;
+  *limitReturn = limit;
   return TRUE;
 }
 
@@ -577,39 +630,33 @@ static void AWLFinish(Inst inst)
 }
 
 
-/* AWLBufferFill -- BufferFill method for AWL */
+/* awlBufferFill -- BufferFill method for AWL */
 
-static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
+static Res awlBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size)
 {
-  Addr base, limit;
+  AWL awl = MustBeA(AWLPool, pool);
   Res res;
   Ring node, nextNode;
+  RankSet rankSet;
   Seg seg;
-  AWLSeg awlseg;
-  AWL awl = MustBeA(AWLPool, pool);
+  Bool b;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVERC(Pool, pool);
   AVERC(Buffer, buffer);
+  AVER(BufferIsReset(buffer));
   AVER(size > 0);
+  AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
+  rankSet = BufferRankSet(buffer);
   RING_FOR(node, &pool->segRing, nextNode) {
     seg = SegOfPoolRing(node);
-    
-    awlseg = MustBeA(AWLSeg, seg);
-
-    /* Only try to allocate in the segment if it is not already */
-    /* buffered, and has the same ranks as the buffer. */
-    if (!SegHasBuffer(seg)
-        && SegRankSet(seg) == BufferRankSet(buffer)
-        && PoolGrainsSize(pool, awlseg->freeGrains) >= size
-        && AWLSegAlloc(&base, &limit, awlseg, pool, size))
-      goto found;
+    if (SegBufferFill(baseReturn, limitReturn, seg, size, rankSet))
+      return ResOK;
   }
 
-  /* No free space in existing awlsegs, so create new awlseg */
+  /* No segment had enough space, so make a new one. */
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD_FIELD(args, awlKeySegRankSet, u, BufferRankSet(buffer));
     res = PoolGenAlloc(&seg, awl->pgen, CLASS(AWLSeg),
@@ -617,58 +664,48 @@ static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
   } MPS_ARGS_END(args);
   if (res != ResOK)
     return res;
-  awlseg = MustBeA(AWLSeg, seg);
-  base = SegBase(MustBeA(Seg, awlseg));
-  limit = SegLimit(MustBeA(Seg, awlseg));
-
-found:
-  {
-    Index i, j;
-    i = PoolIndexOfAddr(SegBase(seg), pool, base);
-    j = PoolIndexOfAddr(SegBase(seg), pool, limit);
-    AVER(i < j);
-    BTSetRange(awlseg->alloc, i, j);
-    /* Objects are allocated black. */
-    /* Shouldn't this depend on trace phase?  @@@@ */
-    BTSetRange(awlseg->mark, i, j);
-    BTSetRange(awlseg->scanned, i, j);
-    AVER(awlseg->freeGrains >= j - i);
-    awlseg->freeGrains -= j - i;
-    awlseg->bufferedGrains += j - i;
-    PoolGenAccountForFill(awl->pgen, AddrOffset(base, limit));
-  }
-  *baseReturn = base;
-  *limitReturn = limit;
+  b = SegBufferFill(baseReturn, limitReturn, seg, size, rankSet);
+  AVER(b);
   return ResOK;
 }
 
 
-/* AWLBufferEmpty -- BufferEmpty method for AWL */
+/* awlSegBufferEmpty -- empty buffer to segment */
 
-static void AWLBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
+static void awlSegBufferEmpty(Seg seg, Buffer buffer)
 {
-  AWL awl = MustBeA(AWLPool, pool);
-  Seg seg = BufferSeg(buffer);
   AWLSeg awlseg = MustBeA(AWLSeg, seg);
-  Addr segBase = SegBase(seg);
-  Index i, j;
-  Count usedGrains, unusedGrains;
+  Pool pool = SegPool(seg);
+  Addr segBase, bufferBase, init, limit;
+  Index initIndex, limitIndex;
+  Count unusedGrains, usedGrains;
 
+  AVERT(Seg, seg);
+  AVERT(Buffer, buffer);
+  segBase = SegBase(seg);
+  bufferBase = BufferBase(buffer);
+  init = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
+  AVER(segBase <= bufferBase);
+  AVER(bufferBase <= init);
   AVER(init <= limit);
+  AVER(limit <= SegLimit(seg));
 
-  i = PoolIndexOfAddr(segBase, pool, init);
-  j = PoolIndexOfAddr(segBase, pool, limit);
-  AVER(i <= j);
-  if (i < j)
-    BTResRange(awlseg->alloc, i, j);
+  initIndex = PoolIndexOfAddr(segBase, pool, init);
+  limitIndex = PoolIndexOfAddr(segBase, pool, limit);
 
-  unusedGrains = j - i;
-  AVER(awlseg->bufferedGrains >= unusedGrains);
+  if (initIndex < limitIndex)
+    BTResRange(awlseg->alloc, initIndex, limitIndex);
+
+  unusedGrains = limitIndex - initIndex;
+  AVER(unusedGrains <= awlseg->bufferedGrains);
   usedGrains = awlseg->bufferedGrains - unusedGrains;
   awlseg->freeGrains += unusedGrains;
   awlseg->bufferedGrains = 0;
   awlseg->newGrains += usedGrains;
-  PoolGenAccountForEmpty(awl->pgen, PoolGrainsSize(pool, usedGrains),
+
+  PoolGenAccountForEmpty(PoolSegPoolGen(pool, seg),
+                         PoolGrainsSize(pool, usedGrains),
                          PoolGrainsSize(pool, unusedGrains), FALSE);
 }
 
@@ -1211,8 +1248,7 @@ DEFINE_CLASS(Pool, AWLPool, klass)
   klass->varargs = AWLVarargs;
   klass->init = AWLInit;
   klass->bufferClass = RankBufClassGet;
-  klass->bufferFill = AWLBufferFill;
-  klass->bufferEmpty = AWLBufferEmpty;
+  klass->bufferFill = awlBufferFill;
   klass->segPoolGen = awlSegPoolGen;
   klass->totalSize = AWLTotalSize;
   klass->freeSize = AWLFreeSize;

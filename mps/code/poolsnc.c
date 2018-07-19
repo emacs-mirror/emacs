@@ -51,6 +51,7 @@ DECLARE_CLASS(Seg, SNCSeg, MutatorSeg);
 DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
+static void sncSegBufferEmpty(Seg seg, Buffer buffer);
 static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss);
 static void sncSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
                        void *p, size_t s);
@@ -252,6 +253,7 @@ DEFINE_CLASS(Seg, SNCSeg, klass)
   klass->instClassStruct.finish = sncSegFinish;
   klass->size = sizeof(SNCSegStruct);
   klass->init = sncSegInit;
+  klass->bufferEmpty = sncSegBufferEmpty;
   klass->scan = sncSegScan;
   klass->walk = sncSegWalk;
   AVERT(SegClass, klass);
@@ -475,29 +477,29 @@ found:
 }
 
 
-static void SNCBufferEmpty(Pool pool, Buffer buffer,
-                           Addr init, Addr limit)
+static void sncSegBufferEmpty(Seg seg, Buffer buffer)
 {
-  SNC snc;
-  Seg seg;
   Arena arena;
-  Size size;
+  Pool pool;
+  Addr base, init, limit;
 
-  AVERT(Pool, pool);
+  AVERT(Seg, seg);
   AVERT(Buffer, buffer);
-  seg = BufferSeg(buffer);
+  base = BufferBase(buffer);
+  init = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
+  AVER(SegBase(seg) <= base);
+  AVER(base <= init);
   AVER(init <= limit);
-  AVER(SegLimit(seg) == limit);
-  snc = PoolSNC(pool);
-  AVERT(SNC, snc);
+  AVER(limit <= SegLimit(seg));
 
-  arena = BufferArena(buffer);
+  pool = SegPool(seg);
+  arena = PoolArena(pool);
 
   /* Pad the unused space at the end of the segment */
-  size = AddrOffset(init, limit);
-  if (size > 0) {
+  if (init < limit) {
     ShieldExpose(arena, seg);
-    (*pool->format->pad)(init, size);
+    (*pool->format->pad)(init, AddrOffset(init, limit));
     ShieldCover(arena, seg);
   }
 }
@@ -692,7 +694,6 @@ DEFINE_CLASS(Pool, SNCPool, klass)
   klass->varargs = SNCVarargs;
   klass->init = SNCInit;
   klass->bufferFill = SNCBufferFill;
-  klass->bufferEmpty = SNCBufferEmpty;
   klass->framePush = SNCFramePush;
   klass->framePop = SNCFramePop;
   klass->bufferClass = SNCBufClassGet;

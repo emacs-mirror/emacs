@@ -75,11 +75,11 @@ fragment (BEF), large segment padding (LSP), and non-mobile reclaim
 (NMR). (Large segment pads were new with job001811_.)
 
 _`.pad.reason.bef`: Buffer empty fragment (BEF) pads are made by
-``AMCBufferEmpty()`` whenever it detaches a non-empty buffer from an
-AMC segment. Buffer detachment is most often caused because the buffer
-is too small for the current buffer reserve request (which may be
-either a client requested or a forwarding allocation). Detachment may
-happen for other reasons, such as trace flip.
+``amcSegBufferEmpty()`` whenever it detaches a non-empty buffer from
+an AMC segment. Buffer detachment is most often caused because the
+buffer is too small for the current buffer reserve request (which may
+be either a client requested or a forwarding allocation). Detachment
+may happen for other reasons, such as trace flip.
 
 _`.pad.reason.lsp`: Large segment padding (LSP) pads are made by
 ``AMCBufferFill()`` when the requested fill size is "large" (see `The
@@ -711,21 +711,19 @@ _`.finish.forward`: If the pool is being destroyed it is OK to destroy
 the forwarding buffers, as the condemned set is about to disappear.
 
 
-``void AMCBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)``
+``void amcSegBufferEmpty(Seg seg, Buffer buffer)``
 
-_`.flush`: Removes the connexion between a buffer and a group, so that
-the group is no longer buffered, and the buffer is reset and will
-cause a refill when next used.
+_`.flush`: Free the unused part of the buffer to the segment.
 
-_`.flush.pad`: The group is padded out with a dummy object so that it
-appears full.
+_`.flush.pad`: The segment is padded out with a dummy object so that
+it appears full.
 
-_`.flush.expose`: The buffer needs exposing before writing the padding
-object onto it. If the buffer is being used for forwarding it might
-already be exposed, in this case the segment attached to it must be
-covered when it leaves the buffer. See `.fill.expose`_.
+_`.flush.expose`: The segment needs exposing before writing the
+padding object onto it. If the segment is being used for forwarding it
+might already be exposed, in this case the segment attached to it must
+be covered when it leaves the buffer. See `.fill.expose`_.
 
-_`.flush.cover`: The buffer needs covering whether it was being used
+_`.flush.cover`: The segment needs covering whether it was being used
 for forwarding or not. See `.flush.expose`_.
 
 
