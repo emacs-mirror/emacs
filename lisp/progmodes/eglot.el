@@ -244,7 +244,7 @@ Don't leave this function with the server still running."
         (ignore-errors (jsonrpc-request server :exit nil :timeout 1)))
     ;; Turn off `eglot--managed-mode' where appropriate.
     (dolist (buffer (eglot--managed-buffers server))
-      (with-current-buffer buffer (eglot--managed-mode-onoff server -1)))
+      (eglot--with-live-buffer buffer (eglot--managed-mode-onoff server nil)))
     ;; Now ask jsonrpc.el to shutdown server (which in normal
     ;; conditions should return immediately).
     (jsonrpc-shutdown server)))
@@ -253,7 +253,7 @@ Don't leave this function with the server still running."
   "Called by jsonrpc.el when SERVER is already dead."
   ;; Turn off `eglot--managed-mode' where appropriate.
   (dolist (buffer (eglot--managed-buffers server))
-    (with-current-buffer buffer (eglot--managed-mode-onoff server -1)))
+    (eglot--with-live-buffer buffer (eglot--managed-mode-onoff server nil)))
   ;; Kill any expensive watches
   (maphash (lambda (_id watches)
              (mapcar #'file-notify-rm-watch watches))
@@ -691,11 +691,13 @@ If optional MARKERS, make markers."
     (add-hook 'before-change-functions 'eglot--before-change nil t)
     (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
+    (add-hook 'kill-buffer-hook 'eglot--managed-mode-onoff nil t)
     (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-save-hook 'eglot--signal-textDocument/willSave nil t)
     (add-hook 'after-save-hook 'eglot--signal-textDocument/didSave nil t)
     (add-hook 'xref-backend-functions 'eglot-xref-backend nil t)
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
+    (add-hook 'change-major-mode-hook 'eglot--managed-mode-onoff nil t)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'eglot-eldoc-function)
     (add-function :around (local 'imenu-create-index-function) #'eglot-imenu))
@@ -709,6 +711,7 @@ If optional MARKERS, make markers."
     (remove-hook 'after-save-hook 'eglot--signal-textDocument/didSave t)
     (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
+    (remove-hook 'change-major-mode-hook #'eglot--managed-mode-onoff t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
@@ -718,17 +721,22 @@ If optional MARKERS, make markers."
   "A cached reference to the current EGLOT server.
 Reset in `eglot--managed-mode-onoff'.")
 
-(defun eglot--managed-mode-onoff (server arg)
-  "Proxy for function `eglot--managed-mode' with ARG and SERVER."
-  (eglot--managed-mode arg)
+(defun eglot--managed-mode-onoff (&optional server turn-on)
+  "Proxy for function `eglot--managed-mode' with TURN-ON and SERVER."
   (let ((buf (current-buffer)))
-    (cond (eglot--managed-mode
+    (cond ((and server turn-on)
+           (eglot--managed-mode 1)
            (setq eglot--cached-current-server server)
            (cl-pushnew buf (eglot--managed-buffers server)))
           (t
-           (setq eglot--cached-current-server nil)
-           (setf (eglot--managed-buffers server)
-                 (delq buf (eglot--managed-buffers server)))))))
+           (eglot--managed-mode -1)
+           (let ((server
+                  (or server
+                      eglot--cached-current-server)))
+             (setq eglot--cached-current-server nil)
+             (when server
+               (setf (eglot--managed-buffers server)
+                     (delq buf (eglot--managed-buffers server)))))))))
 
 (add-hook 'eglot--managed-mode-hook 'flymake-mode)
 (add-hook 'eglot--managed-mode-hook 'eldoc-mode)
@@ -754,21 +762,24 @@ Reset in `eglot--managed-mode-onoff'.")
   "Maybe activate mode function `eglot--managed-mode'.
 If SERVER is supplied, do it only if BUFFER is managed by it.  In
 that case, also signal textDocument/didOpen."
-  (unless server
-    (when eglot--cached-current-server
-      (display-warning
-       :eglot "`eglot--cached-current-server' is non-nil, but it should be!\n\
+  (unless eglot--managed-mode
+    (unless server
+      (when eglot--cached-current-server
+        (display-warning
+         :eglot "`eglot--cached-current-server' is non-nil, but it shouldn't be!\n\
 Please report this as a possible bug.")
-      (setq eglot--cached-current-server nil)))
-  ;; Called even when revert-buffer-in-progress-p
-  (let* ((cur (and buffer-file-name (eglot--current-server)))
-         (server (or (and (null server) cur) (and server (eq server cur) cur))))
-    (when server
-      (setq eglot--unreported-diagnostics `(:just-opened . nil))
-      (eglot--managed-mode-onoff server 1)
-      (eglot--signal-textDocument/didOpen))))
+        (setq eglot--cached-current-server nil)))
+    ;; Called even when revert-buffer-in-progress-p
+    (let* ((cur (and buffer-file-name (eglot--current-server)))
+           (server (or (and (null server) cur) (and server (eq server cur) cur))))
+      (when server
+        (setq eglot--unreported-diagnostics `(:just-opened . nil))
+        (eglot--managed-mode-onoff server t)
+        (eglot--signal-textDocument/didOpen)))))
+
 
 (add-hook 'find-file-hook 'eglot--maybe-activate-editing-mode)
+(add-hook 'after-change-major-mode-hook 'eglot--maybe-activate-editing-mode)
 
 (defun eglot-clear-status (server)
   "Clear the last JSONRPC error for SERVER."
