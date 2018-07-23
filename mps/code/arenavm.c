@@ -1027,7 +1027,6 @@ static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
   VMArena vmArena = MustBeA(VMArena, arena);
   Ring node;
   Size purged = 0;
-  Chunk nodeChunk = NULL;
 
   if (filter != NULL)
     AVERT(Chunk, filter);
@@ -1038,8 +1037,9 @@ static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
      and unmaps "next" and possibly many other entries from the
      spareRing. However, we know that it won't delete "node", because
      either "node" is &vmArena->spareRing (which is not in any chunk),
-     or else "node" and "next" are in different chunks (otherwise
-     "node" would have been deleted on the previous iteration). */
+     or else "node" and "next" are in discontiguous spans of spare
+     pages (otherwise "node" would have been deleted on the previous
+     iteration). */
   node = &vmArena->spareRing;
   while (RingNext(node) != &vmArena->spareRing && purged < size) {
     Ring next = RingNext(node);
@@ -1049,14 +1049,12 @@ static Size arenaUnmapSpare(Arena arena, Size size, Chunk filter)
     if (filter == NULL || chunk == filter) {
       Index pi = IndexOfAddr(chunk, (Addr)next);
       Page page = ChunkPage(chunk, pi);
-      AVER(nodeChunk != chunk);
       purged += chunkUnmapAroundPage(chunk, size - purged, page);
       /* chunkUnmapAroundPage must delete the page it's passed from the ring,
          or we can't make progress and there will be an infinite loop */
       AVER(RingNext(node) != next);
     } else {
       node = next;
-      nodeChunk = chunk;
     }
   }
 
