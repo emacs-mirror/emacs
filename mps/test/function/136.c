@@ -5,6 +5,7 @@ TEST_HEADER
  language = c
  link = testlib.o
 OUTPUT_SPEC
+ assert = true
  limit < 160000
 END_HEADER
 */
@@ -31,7 +32,6 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscmvff.h"
-#include "mpscmv.h"
 #include "mpsavm.h"
 
 
@@ -73,15 +73,17 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
         "create MVFF pool");
   } MPS_ARGS_END(args);
 
-  die(mps_pool_create(&pool2, arena, mps_class_mv(),
-                      extendBy, avgSize, /* maxSize */ extendBy),
-      "create MV pool");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, extendBy);
+    die(mps_pool_create_k(&pool2, arena, mps_class_mvff(), args),
+        "create second MVFF pool");
+  } MPS_ARGS_END(args);
 
-  /* Allocate one small object in pool2 so that its block and span
-     pools get some initial memory. */
+  /* Allocate one small object in pool2 so that its CBS gets some
+     initial memory. */
   res = mps_alloc(&p, pool2, 8);
-  asserts(res == MPS_RES_OK, 
-          "Couldn't allocate one object of size %lu in second pool",
+  asserts(res == MPS_RES_OK,
+          "Couldn't allocate first object of size %lu in second pool",
           (unsigned long)8);
 
   /* First we allocate large objects until we run out of memory. */
@@ -129,6 +131,8 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   }
 
   /* MVFF should be failing over from the CBS to the freelist now. */
+  res = mps_alloc(&p, pool2, largeObjectSize);
+  asserts(res != MPS_RES_OK, "unexpectedly have some memory left");
 
   /* Then we free every other large object */
   for(i = 0; i < nLargeObjects; i += 2) {
@@ -139,7 +143,7 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   /* Then we allocate in another pool. */
   res = mps_alloc(&p, pool2, largeObjectSize);
   asserts(res == MPS_RES_OK, 
-          "Couldn't allocate one object of size %lu in second pool",
+          "Couldn't allocate second object of size %lu in second pool",
           (unsigned long)largeObjectSize);
 
  done:
@@ -152,14 +156,20 @@ static void test(void)
 {
   mps_thr_t thread;
   int symm;
+  size_t grainSize = 4096;
   size_t comlimit;
   mps_bool_t slotHigh, arenaHigh, firstFit;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)),
-      "create arena");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1024*1024*50);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, grainSize);
+    cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+         "create arena");
+  } MPS_ARGS_END(args);
+
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- for (comlimit = 512 * 1024; comlimit >= 148 * 1024; comlimit -= 4*1024) {
+ for (comlimit = 128 * grainSize; comlimit > 0; comlimit -= grainSize) {
    mps_arena_commit_limit_set(arena, comlimit);
    report("limit", "%d", comlimit);
    symm = ranint(8);
@@ -167,7 +177,7 @@ static void test(void)
    arenaHigh = (symm >> 1) & 1;
    firstFit = (symm & 1);
 
-   do_test(4096, 8, 8, slotHigh, arenaHigh, firstFit);
+   do_test(grainSize, 8, 8, slotHigh, arenaHigh, firstFit);
  }
 
  mps_thread_dereg(thread);

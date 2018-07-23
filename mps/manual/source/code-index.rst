@@ -23,7 +23,7 @@ mpscams.h    :ref:`pool-ams` pool class external interface.
 mpscawl.h    :ref:`pool-awl` pool class external interface.
 mpsclo.h     :ref:`pool-lo` pool class external interface.
 mpscmfs.h    :ref:`pool-mfs` pool class external interface.
-mpscmv.h     :ref:`pool-mv` pool class external interface.
+mpscmv.h     Deprecated MV (Manual Variable) pool class external interface.
 mpscmv2.h    Former (deprecated) :ref:`pool-mvt` pool class interface.
 mpscmvff.h   :ref:`pool-mvff` pool class external interface.
 mpscmvt.h    :ref:`pool-mvt` pool class external interface.
@@ -218,7 +218,7 @@ Pool classes
 ------------
 
 These files implement the supported :term:`pool classes`. Some of
-these (MFS, MV) are used internally by the MPS; the others are
+these (MFS, MVFF) are used internally by the MPS; the others are
 available for :term:`client programs` only. See :ref:`pool`.
 
 ===========  ==================================================================
@@ -231,7 +231,6 @@ poolawl.c    :ref:`pool-awl` implementation.
 poollo.c     :ref:`pool-lo` implementation.
 poolmfs.c    :ref:`pool-mfs` implementation.
 poolmfs.h    :ref:`pool-mfs` internal interface.
-poolmv.c     :ref:`pool-mv` implementation.
 poolmv2.c    :ref:`pool-amc` implementation.
 poolmv2.h    :ref:`pool-mvt` internal interface.
 poolmvff.c   :ref:`pool-mvff` implementation.

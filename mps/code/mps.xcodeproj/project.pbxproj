@@ -1670,7 +1670,6 @@
 		31160DB21899540D0071EB17 /* poollo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poollo.txt; path = ../design/poollo.txt; sourceTree = "<group>"; };
 		31160DB31899540D0071EB17 /* poolmfs.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmfs.txt; path = ../design/poolmfs.txt; sourceTree = "<group>"; };
 		31160DB41899540D0071EB17 /* poolmrg.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmrg.txt; path = ../design/poolmrg.txt; sourceTree = "<group>"; };
-		31160DB51899540D0071EB17 /* poolmv.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmv.txt; path = ../design/poolmv.txt; sourceTree = "<group>"; };
 		31160DB61899540D0071EB17 /* poolmvff.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmvff.txt; path = ../design/poolmvff.txt; sourceTree = "<group>"; };
 		31160DB71899540D0071EB17 /* poolmvt.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = poolmvt.txt; path = ../design/poolmvt.txt; sourceTree = "<group>"; };
 		31160DB81899540D0071EB17 /* prot.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = prot.txt; path = ../design/prot.txt; sourceTree = "<group>"; };
@@ -1820,7 +1819,6 @@
 		31EEAC2C156AB2F200714D05 /* message.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = message.c; sourceTree = "<group>"; };
 		31EEAC2D156AB2F200714D05 /* poolmfs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmfs.c; sourceTree = "<group>"; };
 		31EEAC2E156AB2F200714D05 /* poolmrg.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = poolmrg.c; sourceTree = "<group>"; };
-		31EEAC2F156AB2F200714D05 /* poolmv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = poolmv.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		31EEAC30156AB2F200714D05 /* ring.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ring.c; sourceTree = "<group>"; };
 		31EEAC31156AB2F200714D05 /* sac.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sac.c; sourceTree = "<group>"; };
 		31EEAC32156AB2F200714D05 /* shield.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = shield.c; sourceTree = "<group>"; };
@@ -2335,7 +2333,6 @@
 				31160DB21899540D0071EB17 /* poollo.txt */,
 				31160DB31899540D0071EB17 /* poolmfs.txt */,
 				31160DB41899540D0071EB17 /* poolmrg.txt */,
-				31160DB51899540D0071EB17 /* poolmv.txt */,
 				31160DB61899540D0071EB17 /* poolmvff.txt */,
 				31160DB71899540D0071EB17 /* poolmvt.txt */,
 				31942A9B1C8EC446001AAF32 /* prmc.txt */,

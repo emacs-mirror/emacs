@@ -59,7 +59,6 @@
 #include "message.c"
 #include "poolmrg.c"
 #include "poolmfs.c"
-#include "poolmv.c"
 #include "dbgpool.c"
 #include "dbgpooli.c"
 #include "boot.c"

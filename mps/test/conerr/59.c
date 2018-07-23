@@ -6,8 +6,8 @@ TEST_HEADER
  link = testlib.o
 OUTPUT_SPEC
  assert = true
- assertfile P= poolmv.c
- assertcond = unreachable code
+ assertfile P= poolmvff.c
+ assertcond = res == ResOK
 END_HEADER
 */
 
