@@ -802,7 +802,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 		 (zerop (nth 1 fsi))
 		 (zerop (nth 2 fsi))))))
 
-(ert-deftest tramp-archive-test43-auto-load ()
+(ert-deftest tramp-archive-test44-auto-load ()
   "Check that `tramp-archive' autoloads properly."
   (skip-unless tramp-archive-enabled)
   ;; Autoloading tramp-archive works since Emacs 27.1.
@@ -832,7 +832,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  (mapconcat 'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code file)))))))))
 
-(ert-deftest tramp-archive-test43-delay-load ()
+(ert-deftest tramp-archive-test44-delay-load ()
   "Check that `tramp-archive' is loaded lazily, only when needed."
   (skip-unless tramp-archive-enabled)
   ;; Autoloading tramp-archive works since Emacs 27.1.

@@ -795,6 +795,10 @@ current, and kill the buffer that visits the link."
 (defun vc-default-find-file-hook (_backend)
   nil)
 
+;;;###autoload
+(defvar vc-mutex (make-mutex "vc")
+  "Mutex for vc operations.")
+
 (defun vc-refresh-state ()
   "Refresh the VC state of the current buffer's file.
 
@@ -807,57 +811,76 @@ In the latter case, VC mode is deactivated for this buffer."
   (when vc-mode
     (setq vc-mode nil))
   (when buffer-file-name
-    (vc-file-clearprops buffer-file-name)
-    ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
-    (add-hook 'vc-mode-line-hook 'vc-mode-line nil t)
-    (let (backend)
-      (cond
-        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
-         ;; Let the backend setup any buffer-local things he needs.
-         (vc-call-backend backend 'find-file-hook)
-	;; Compute the state and put it in the mode line.
-	(vc-mode-line buffer-file-name backend)
-	(unless vc-make-backup-files
-	  ;; Use this variable, not make-backup-files,
-	  ;; because this is for things that depend on the file name.
-          (set (make-local-variable 'backup-inhibited) t)))
-       ((let* ((truename (and buffer-file-truename
-			      (expand-file-name buffer-file-truename)))
-	       (link-type (and truename
-			       (not (equal buffer-file-name truename))
-			       (vc-backend truename))))
-	  (cond ((not link-type) nil)	;Nothing to do.
-		((eq vc-follow-symlinks nil)
-		 (message
-		  "Warning: symbolic link to %s-controlled source file" link-type))
-		((or (not (eq vc-follow-symlinks 'ask))
-		     ;; Assume we cannot ask, default to yes.
-		     noninteractive
-		     ;; Copied from server-start.  Seems like there should
-		     ;; be a better way to ask "can we get user input?"...
-		     (and (daemonp)
-			  (null (cdr (frame-list)))
-			  (eq (selected-frame) terminal-frame))
-		     ;; If we already visited this file by following
-		     ;; the link, don't ask again if we try to visit
-		     ;; it again.  GUD does that, and repeated questions
-		     ;; are painful.
-		     (get-file-buffer
-		      (abbreviate-file-name
-		       (file-chase-links buffer-file-name))))
+    ;; Run it asynchronously.
+    (make-thread
+     (lambda ()
+       ;; Don't let the vc operations disturb each other.  Delay this
+       ;; after all find-file* operations have finished.
+       (with-mutex vc-mutex
+         (vc-file-clearprops buffer-file-name)
+         ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
+         (add-hook 'vc-mode-line-hook 'vc-mode-line nil t)
+         (let (backend)
+           (cond
+            ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
+             ;; Let the backend setup any buffer-local things he needs.
+             (vc-call-backend backend 'find-file-hook)
+	     ;; Compute the state and put it in the mode line.
+	     (vc-mode-line buffer-file-name backend)
+	     (unless vc-make-backup-files
+	       ;; Use this variable, not make-backup-files,
+	       ;; because this is for things that depend on the file name.
+               (set (make-local-variable 'backup-inhibited) t)))
+            ((let* ((truename (and buffer-file-truename
+			           (expand-file-name buffer-file-truename)))
+	            (link-type (and truename
+			            (not (equal buffer-file-name truename))
+			            (vc-backend truename))))
+	       (cond ((not link-type) nil)	;Nothing to do.
+		     ((eq vc-follow-symlinks nil)
+		      (message
+		       "Warning: symbolic link to %s-controlled source file"
+                       link-type))
+		     ((or (not (eq vc-follow-symlinks 'ask))
+		          ;; Assume we cannot ask, default to yes.
+		          noninteractive
+		          ;; Copied from server-start.  Seems like
+		          ;; there should be a better way to ask "can
+		          ;; we get user input?"...
+		          (and (daemonp)
+			       (null (cdr (frame-list)))
+			       (eq (selected-frame) terminal-frame))
+		          ;; If we already visited this file by
+		          ;; following the link, don't ask again if we
+		          ;; try to visit it again.  GUD does that,
+		          ;; and repeated questions are painful.
+		          (get-file-buffer
+		           (abbreviate-file-name
+		            (file-chase-links buffer-file-name))))
 
-		 (vc-follow-link)
-		 (message "Followed link to %s" buffer-file-name)
-		 (vc-refresh-state))
-		(t
-		 (if (yes-or-no-p (format
-				   "Symbolic link to %s-controlled source file; follow link? " link-type))
-		     (progn (vc-follow-link)
-			    (message "Followed link to %s" buffer-file-name)
-			    (vc-refresh-state))
-		   (message
-		    "Warning: editing through the link bypasses version control")
-		   )))))))))
+		      (vc-follow-link)
+		      (message "Followed link to %s" buffer-file-name)
+		      (vc-refresh-state))
+		     (t
+		      (if (yes-or-no-p
+                           (format
+                            (concat
+			     "Symbolic link to %s-controlled source file; "
+                             "follow link? ")
+                            link-type))
+		          (progn (vc-follow-link)
+			         (message
+                                  "Followed link to %s" buffer-file-name)
+			         (vc-refresh-state))
+		        (message
+                         (concat
+		          "Warning: editing through the link "
+                          "bypasses version control")))))))))))
+     ;; The thread name.
+     (concat "vc-refresh-state " buffer-file-name))
+
+    ;; Give other threads a chance to run.
+    (thread-yield)))
 
 (add-hook 'find-file-hook #'vc-refresh-state)
 (define-obsolete-function-alias 'vc-find-file-hook 'vc-refresh-state "25.1")

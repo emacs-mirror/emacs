@@ -407,7 +407,7 @@ started in February 2009.  Remote commands on MS Windows hosts since
 September 2011.  Ad-hoc multi-hop methods (with a changed syntax)
 re-enabled in November 2011.  In November 2012, added Juergen
 Hoetzel's @file{tramp-adb.el}.  Archive file names are supported since
-December 2017.
+December 2017.  @value{tramp} has been made thread-safe in July 2018.
 
 XEmacs support was stopped in January 2016.  Since March 2017,
 @value{tramp} syntax mandates a method.
