@@ -7,7 +7,7 @@ TEST_HEADER
 OUTPUT_SPEC
  assert = true
  assertfile P= poolmvff.c
- assertcond = unreachable code
+ assertcond = res == ResOK
 END_HEADER
 */
 
