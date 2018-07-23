@@ -27,7 +27,7 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpstd.h"
 
 #include <stdio.h> /* printf */
@@ -335,10 +335,9 @@ static void *go(void *p, size_t s)
   testlib_unused(p);
   testlib_unused(s);
 
-  die(mps_pool_create(&mpool, arena, mps_class_mv(),
-                      (size_t)65536, sizeof(QSCellStruct) * 1000,
-                      (size_t)65536),
-      "MVCreate");
+  die(mps_pool_create_k(&mpool, arena, mps_class_mvff(), mps_args_none),
+      "pool create");
+
   die(mps_fmt_create_A(&format, arena, &fmt_A_s), "FormatCreate");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),

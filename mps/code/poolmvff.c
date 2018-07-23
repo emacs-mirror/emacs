@@ -26,6 +26,7 @@
 #include "mpscmvff.h"
 #include "poolmvff.h"
 #include "mpscmfs.h"
+#include "mpscmv.h"
 #include "poolmfs.h"
 
 SRCID(poolmvff, "$Id$");
@@ -412,7 +413,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
-  UNUSED(klass); /* used for debug pools only */
+  AVERC(PoolClass, klass);
 
   /* .arg: class-specific additional arguments; see */
   /* <design/poolmvff/#method.init> */
@@ -753,6 +754,81 @@ Bool MVFFCheck(MVFF mvff)
   CHECKL(BoolCheck(mvff->slotHigh));
   CHECKL(BoolCheck(mvff->firstFit));
   return TRUE;
+}
+
+
+/* Replacement of the deprecated MV pool class.
+ *
+ * MVFF replaces MV, but these functions are provided for backward
+ * compatibility.  TODO: Remove these sometime after MPS 1.117.
+ */
+
+DECLARE_CLASS(Pool, MVPool, MVFFPool);
+DECLARE_CLASS(Pool, MVDebugPool, MVPool);
+
+static Res mvInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
+{
+  Index i;
+  
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERC(PoolClass, klass);
+  AVERT(ArgList, args);
+
+  /* MV allows arbitrary alignment but MVFF does not, so round up. */
+  for (i = 0; args[i].key != MPS_KEY_ARGS_END; ++i)
+    if (args[i].key == MPS_KEY_ALIGN
+        && args[i].val.align < FreelistMinimumAlignment)
+      args[i].val.align = FreelistMinimumAlignment;
+
+  return NextMethod(Pool, MVPool, init)(pool, arena, klass, args);
+}
+
+static void mvVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_EXTEND_BY;
+  args[0].val.size = va_arg(varargs, Size);
+  args[1].key = MPS_KEY_MEAN_SIZE;
+  args[1].val.size = va_arg(varargs, Size);
+  args[2].key = MPS_KEY_MAX_SIZE;
+  args[2].val.size = va_arg(varargs, Size);
+  args[3].key = MPS_KEY_ARGS_END;
+  AVERT(ArgList, args);
+}
+
+static void mvDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
+{
+  args[0].key = MPS_KEY_POOL_DEBUG_OPTIONS;
+  args[0].val.pool_debug_options = va_arg(varargs, mps_pool_debug_option_s *);
+  mvVarargs(args + 1, varargs);
+}
+
+DEFINE_CLASS(Pool, MVPool, klass)
+{
+  INHERIT_CLASS(klass, MVPool, MVFFPool);
+  klass->init = mvInit;
+  klass->varargs = mvVarargs;
+  AVERT(PoolClass, klass);
+}
+
+DEFINE_CLASS(Pool, MVDebugPool, klass)
+{
+  INHERIT_CLASS(klass, MVDebugPool, MVPool);
+  PoolClassMixInDebug(klass);
+  klass->size = sizeof(MVFFDebugStruct);
+  klass->varargs = mvDebugVarargs;
+  klass->debugMixin = MVFFDebugMixin;
+  AVERT(PoolClass, klass);
+}
+
+mps_pool_class_t mps_class_mv(void)
+{
+  return CLASS(MVPool);
+}
+
+mps_pool_class_t mps_class_mv_debug(void)
+{
+  return CLASS(MVDebugPool);
 }
 
 
