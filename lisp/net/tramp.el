@@ -1521,7 +1521,17 @@ version, the function does nothing."
       (format "*debug tramp/%s %s*" method host-port))))
 
 (defconst tramp-debug-outline-regexp
-  "[0-9]+:[0-9]+:[0-9]+\\.[0-9]+ [a-z0-9-]+ (\\([0-9]+\\)) #"
+  (concat
+   "[0-9]+:[0-9]+:[0-9]+\\.[0-9]+ " ;; Timestamp.
+   "\\(?:\\(#<thread .+>\\) \\)?"   ;; Thread.
+   "[a-z0-9-]+ (\\([0-9]+\\)) #")   ;; Function name, verbosity.
+  "Used for highlighting Tramp debug buffers in `outline-mode'.")
+
+(defconst tramp-debug-font-lock-keywords
+  '(list
+    (concat "^\\(?:" tramp-debug-outline-regexp "\\).+")
+    '(1 font-lock-warning-face t t)
+    '(0 (outline-font-lock-face) keep t))
   "Used for highlighting Tramp debug buffers in `outline-mode'.")
 
 (defun tramp-debug-outline-level ()
@@ -1529,7 +1539,7 @@ version, the function does nothing."
 Point must be at the beginning of a header line.
 
 The outline level is equal to the verbosity of the Tramp message."
-  (1+ (string-to-number (match-string 1))))
+  (1+ (string-to-number (match-string 2))))
 
 (defun tramp-get-debug-buffer (vec)
   "Get the debug buffer for VEC."
@@ -1542,13 +1552,13 @@ The outline level is equal to the verbosity of the Tramp message."
       ;; Activate `outline-mode'.  This runs `text-mode-hook' and
       ;; `outline-mode-hook'.  We must prevent that local processes
       ;; die.  Yes: I've seen `flyspell-mode', which starts "ispell".
-      ;; Furthermore, `outline-regexp' must have the correct value
-      ;; already, because it is used by `font-lock-compile-keywords'.
-      (let ((default-directory (tramp-compat-temporary-file-directory))
-	    (outline-regexp tramp-debug-outline-regexp))
+      (let ((default-directory (tramp-compat-temporary-file-directory)))
 	(outline-mode))
-      (set (make-local-variable 'outline-regexp) tramp-debug-outline-regexp)
       (set (make-local-variable 'outline-level) 'tramp-debug-outline-level)
+      (set (make-local-variable 'font-lock-keywords)
+	   `(t
+	     (eval ,tramp-debug-font-lock-keywords)
+	     ,(eval tramp-debug-font-lock-keywords)))
       ;; Do not edit the debug buffer.
       (set-keymap-parent (current-local-map) special-mode-map))
     (current-buffer)))
@@ -1576,6 +1586,9 @@ ARGUMENTS to actually emit the message (if applicable)."
     (let ((now (current-time)))
       (insert (format-time-string "%T." now))
       (insert (format "%06d " (nth 2 now))))
+    ;; Threads.
+    (unless (eq (tramp-compat-current-thread) tramp-compat-main-thread)
+      (insert (format "%s " (tramp-compat-current-thread))))
     ;; Calling Tramp function.  We suppress compat and trace functions
     ;; from being displayed.
     (let ((btn 1) btf fn)
@@ -1688,7 +1701,7 @@ function is meant for debugging purposes."
   "Emit an error.
 VEC-OR-PROC identifies the connection to use, SIGNAL is the
 signal identifier to be raised, remaining arguments passed to
-`tramp-message'.  Finally, signal SIGNAL is raised."
+`tramp-message'.  Finally, signal SIGNAL is raised to the main thread."
   (let (tramp-message-show-message)
     (tramp-backtrace vec-or-proc)
     (unless arguments
@@ -1704,7 +1717,8 @@ signal identifier to be raised, remaining arguments passed to
 	(list signal
 	      (get signal 'error-message)
 	      (apply #'format-message fmt-string arguments)))))
-    (signal signal (list (apply #'format-message fmt-string arguments)))))
+    (tramp-compat-signal
+     signal (list (apply #'format-message fmt-string arguments)))))
 
 (defsubst tramp-error-with-buffer
   (buf vec-or-proc signal fmt-string &rest arguments)
@@ -2197,6 +2211,7 @@ ARGS are the arguments OPERATION has been called with."
 (defmacro tramp-condition-case-unless-debug
   (var bodyform &rest handlers)
   "Like `condition-case-unless-debug' but `tramp-debug-on-error'."
+  (declare (indent 1) (debug t))
   `(let ((debug-on-error tramp-debug-on-error))
      (condition-case-unless-debug ,var ,bodyform ,@handlers)))
 
@@ -2227,108 +2242,134 @@ preventing reentrant calls of Tramp.")
 Together with `tramp-locked', this implements a locking mechanism
 preventing reentrant calls of Tramp.")
 
+;; Mutexes have entered Emacs 26.1.
+(defvar tramp-mutex (tramp-compat-funcall 'make-mutex "tramp")
+  "Global mutex for Tramp threads.")
+
+(defun tramp-get-mutex (vec)
+  "Return the mutex locking Tramp threads for VEC."
+  (let ((p (tramp-get-connection-process vec)))
+    (if p
+      (with-tramp-connection-property p "mutex"
+	(tramp-compat-funcall 'make-mutex (process-name p)))
+      tramp-mutex)))
+
 ;; Main function.
 (defun tramp-file-name-handler (operation &rest args)
   "Invoke Tramp file name handler.
-Falls back to normal file name handler if no Tramp file name handler exists."
+Falls back to normal file name handler if no Tramp file name handler exists.
+If Emacs is compiled --with-threads, the body is protected by a mutex."
   (let ((filename (apply 'tramp-file-name-for-operation operation args)))
     (if (tramp-tramp-file-p filename)
 	(save-match-data
           (setq filename (tramp-replace-environment-variables filename))
           (with-parsed-tramp-file-name filename nil
-            (let ((completion (tramp-completion-mode-p))
-		  (foreign
-		   (tramp-find-foreign-file-name-handler filename operation))
-		  result)
-	      ;; Call the backend function.
-	      (if foreign
-		  (tramp-condition-case-unless-debug err
-		    (let ((sf (symbol-function foreign)))
-		      ;; Some packages set the default directory to a
-		      ;; remote path, before respective Tramp packages
-		      ;; are already loaded.  This results in
-		      ;; recursive loading.  Therefore, we load the
-		      ;; Tramp packages locally.
-		      (when (autoloadp sf)
-			(let ((default-directory
-				(tramp-compat-temporary-file-directory)))
-			  (load (cadr sf) 'noerror 'nomessage)))
-;;		      (tramp-message
-;;		       v 4 "Running `%s'..." (cons operation args))
-		      ;; If `non-essential' is non-nil, Tramp shall
-		      ;; not open a new connection.
-		      ;; If Tramp detects that it shouldn't continue
-		      ;; to work, it throws the `suppress' event.
-		      ;; This could happen for example, when Tramp
-		      ;; tries to open the same connection twice in a
-		      ;; short time frame.
-		      ;; In both cases, we try the default handler then.
-		      (setq result
-			    (catch 'non-essential
-			      (catch 'suppress
-				(when (and tramp-locked (not tramp-locker))
-				  (setq tramp-locked nil)
-				  (tramp-error
-				   (car-safe tramp-current-connection)
-				   'file-error
-				   "Forbidden reentrant call of Tramp"))
-				(let ((tl tramp-locked))
-				  (setq tramp-locked t)
-				  (unwind-protect
-				      (let ((tramp-locker t))
-					(apply foreign operation args))
-				    (setq tramp-locked tl))))))
-;;		      (tramp-message
-;;		       v 4 "Running `%s'...`%s'" (cons operation args) result)
-		      (cond
-		       ((eq result 'non-essential)
-			(tramp-message
-			 v 5 "Non-essential received in operation %s"
-			 (cons operation args))
-			(tramp-run-real-handler operation args))
-		       ((eq result 'suppress)
-			(let (tramp-message-show-message)
+	    ;; Give other threads a chance.
+	    (tramp-compat-thread-yield)
+	    ;; The mutex allows concurrent run of operations.  It
+	    ;; guarantees, that the threads are not mixed.
+	    (tramp-compat-with-mutex (tramp-get-mutex v)
+	      (let ((completion (tramp-completion-mode-p))
+		    (foreign
+		     (tramp-find-foreign-file-name-handler filename operation))
+		    result)
+		;; Call the backend function.
+		(if foreign
+		    (tramp-condition-case-unless-debug err
+		      (let ((sf (symbol-function foreign))
+			    p)
+			;; Some packages set the default directory to
+			;; a remote path, before respective Tramp
+			;; packages are already loaded.  This results
+			;; in recursive loading.  Therefore, we load
+			;; the Tramp packages locally.
+			(when (autoloadp sf)
+			  (let ((default-directory
+				  (tramp-compat-temporary-file-directory)))
+			    (load (cadr sf) 'noerror 'nomessage)))
+			;; (tramp-message
+			;;  v 4 "Running `%s'..." (cons operation args))
+			;; Switch process thread.
+			(when (and tramp-mutex
+				   (setq p (tramp-get-connection-process v)))
+			  (tramp-compat-funcall
+			   'set-process-thread p (tramp-compat-current-thread)))
+			;; If `non-essential' is non-nil, Tramp shall
+			;; not open a new connection.
+			;; If Tramp detects that it shouldn't continue
+			;; to work, it throws the `suppress' event.
+			;; This could happen for example, when Tramp
+			;; tries to open the same connection twice in
+			;; a short time frame.
+			;; In both cases, we try the default handler
+			;; then.
+			(setq result
+			      (catch 'non-essential
+				(catch 'suppress
+				  (when (and tramp-locked (not tramp-locker))
+				    (setq tramp-locked nil)
+				    (tramp-error
+				     (car-safe tramp-current-connection)
+				     'file-error
+				     "Forbidden reentrant call of Tramp"))
+				  (let ((tl tramp-locked))
+				    (setq tramp-locked t)
+				    (unwind-protect
+					(let ((tramp-locker t))
+					  (apply foreign operation args))
+				      (setq tramp-locked tl))))))
+			;; (tramp-message
+			;;  v 4 "Running `%s'...`%s'" (cons operation args) result)
+			(cond
+			 ((eq result 'non-essential)
 			  (tramp-message
-			   v 1 "Suppress received in operation %s"
+			   v 5 "Non-essential received in operation %s"
 			   (cons operation args))
-			  (tramp-cleanup-connection v t)
-			  (tramp-run-real-handler operation args)))
-		       (t result)))
+			  (tramp-run-real-handler operation args))
+			 ((eq result 'suppress)
+			  (let (tramp-message-show-message)
+			    (tramp-message
+			     v 1 "Suppress received in operation %s"
+			     (cons operation args))
+			    (tramp-cleanup-connection v t)
+			    (tramp-run-real-handler operation args)))
+			 (t result)))
 
-		    ;; Trace that somebody has interrupted the operation.
-		    ((debug quit)
-		     (let (tramp-message-show-message)
-		       (tramp-message
-			v 1 "Interrupt received in operation %s"
-			(cons operation args)))
-		     ;; Propagate the quit signal.
-		     (signal (car err) (cdr err)))
+		      ;; Trace that somebody has interrupted the operation.
+		      ((debug quit)
+		       (let (tramp-message-show-message)
+			 (tramp-message
+			  v 1 "Interrupt received in operation %s"
+			  (cons operation args)))
+		       ;; Propagate the quit signal.
+		       (tramp-compat-signal (car err) (cdr err)))
 
-		    ;; When we are in completion mode, some failed
-		    ;; operations shall return at least a default
-		    ;; value in order to give the user a chance to
-		    ;; correct the file name in the minibuffer.
-		    ;; In order to get a full backtrace, one could apply
-		    ;;   (setq tramp-debug-on-error t)
-		    (error
-		     (cond
-		      ((and completion (zerop (length localname))
-			    (memq operation '(file-exists-p file-directory-p)))
-		       t)
-		      ((and completion (zerop (length localname))
-			    (memq operation
-				  '(expand-file-name file-name-as-directory)))
-		       filename)
-		      ;; Propagate the error.
-		      (t (signal (car err) (cdr err))))))
+		      ;; When we are in completion mode, some failed
+		      ;; operations shall return at least a default
+		      ;; value in order to give the user a chance to
+		      ;; correct the file name in the minibuffer.  In
+		      ;; order to get a full backtrace, one could
+		      ;; apply (setq tramp-debug-on-error t)
+		      (error
+		       (cond
+			((and completion (zerop (length localname))
+			      (memq operation
+				    '(file-exists-p file-directory-p)))
+			 t)
+			((and completion (zerop (length localname))
+			      (memq operation
+				    '(expand-file-name file-name-as-directory)))
+			 filename)
+			;; Propagate the error.
+			(t (tramp-compat-signal (car err) (cdr err))))))
 
-		;; Nothing to do for us.  However, since we are in
-		;; `tramp-mode', we must suppress the volume letter on
-		;; MS Windows.
-		(setq result (tramp-run-real-handler operation args))
-		(if (stringp result)
-		    (tramp-drop-volume-letter result)
-		  result)))))
+		  ;; Nothing to do for us.  However, since we are in
+		  ;; `tramp-mode', we must suppress the volume letter
+		  ;; on MS Windows.
+		  (setq result (tramp-run-real-handler operation args))
+		  (if (stringp result)
+		      (tramp-drop-volume-letter result)
+		    result))))))
 
       ;; When `tramp-mode' is not enabled, or the file name is quoted,
       ;; we don't do anything.

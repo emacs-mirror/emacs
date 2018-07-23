@@ -236,6 +236,38 @@ If NAME is a remote file name, the local part of NAME is unquoted."
 (defconst tramp-compat-use-url-tramp-p (fboundp 'temporary-file-directory)
   "Whether to use url-tramp.el.")
 
+;; Threads have entered Emacs 26.1, `main-thread' in Emacs 27.1.  But
+;; then, they might not exist when Emacs is configured
+;; --without-threads.
+(defconst tramp-compat-main-thread (bound-and-true-p main-thread)
+  "The main thread of Emacs, if compiled --with-threads.")
+
+(defsubst tramp-compat-current-thread ()
+  "The current thread, or nil if compiled --without-threads."
+  (tramp-compat-funcall 'current-thread))
+
+(defsubst tramp-compat-thread-yield ()
+  "Yield the CPU to another thread."
+  (tramp-compat-funcall 'thread-yield))
+
+(defsubst tramp-compat-signal (error-symbol data)
+  "Signal an error to the main thread."
+  (when tramp-compat-main-thread
+    (tramp-compat-funcall
+     'thread-signal tramp-compat-main-thread error-symbol data))
+  (signal error-symbol data))
+
+;; Mutexes have entered Emacs 26.1.  Once we use only Emacs 26+, we
+;; must check (mutexp mutex), because the other functions might still
+;; not exist when Emacs is configured --without-threads.
+(defmacro tramp-compat-with-mutex (mutex &rest body)
+  "Invoke BODY with MUTEX held, releasing MUTEX when done.
+This is the simplest safe way to acquire and release a mutex."
+  (declare (indent 1) (debug t))
+  `(if (fboundp 'with-mutex)
+       (with-mutex ,mutex ,@body)
+     ,@body))
+
 ;; `exec-path' is new in Emacs 27.1.
 (eval-and-compile
   (if (fboundp 'exec-path)

@@ -209,6 +209,14 @@ large files.  Now it also offers a third alternative: to visit the
 file literally, as in 'find-file-literally', which speeds up
 navigation and editing of large files.
 
+--- (Documentation to be added)
+** Files can be visited asynchronously.
+If the file visiting commands are prefixed like 'C-u C-x C-f ...', the
+files are loaded asynchronously into the respective buffers.  I.e.,
+Emacs is still responsive while loading the files, which is useful
+especially for remote files.  See the node "(emacs) Visiting" in the
+user manual for the supported commands..
+
 
 * Changes in Specialized Modes and Packages in Emacs 27.1
 
@@ -544,6 +552,9 @@ process.  It now accepts signals specified either by name or by its number.
 *** The Secret Service backend supports the :create key now.
 
 ** Tramp
+
+---
+*** Tramp is now thread-safe.
 
 +++
 *** New connection method "owncloud", which allows to access OwnCloud

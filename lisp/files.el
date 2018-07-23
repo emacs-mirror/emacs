@@ -1576,11 +1576,25 @@ rather than FUN itself, to `minibuffer-setup-hook'."
              ,@body)
          (remove-hook 'minibuffer-setup-hook ,hook)))))
 
-(defun find-file-read-args (prompt mustmatch)
-  (list (read-file-name prompt nil default-directory mustmatch)
-	t))
+(defun find-file-read-args (prompt mustmatch &optional wildcards)
+  "Return the interactive spec (<filename> <threads>).
+If WILDCARDS is non-nil. return the spec (<filename> t <threads>)."
+  (let ((filename (read-file-name prompt nil default-directory mustmatch))
+        (threads (and current-prefix-arg (featurep 'threads))))
+    (if wildcards `(,filename t ,threads) `(,filename ,threads))))
 
-(defun find-file (filename &optional wildcards)
+(defmacro find-file-with-threads (filename threads &rest body)
+  "Run BODY in an own thread, if THREADS is non-nil."
+  (declare (indent 2) (debug t))
+  `(if ,threads
+       (progn
+         (make-thread
+          (lambda () (with-mutex vc-mutex ,@body))
+          (concat "find-file " ,filename))
+         (thread-yield))
+     ,@body))
+
+(defun find-file (filename &optional wildcards threads)
   "Edit file FILENAME.
 Switch to a buffer visiting file FILENAME,
 creating one if none already exists.
@@ -1607,17 +1621,22 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  You can
 suppress wildcard expansion by setting `find-file-wildcards' to nil.
 
+If THREADS is non-nil, the file will be loaded into the buffer
+asynchronously.  Interactively, this is indicated by a prefix
+argument.
+
 To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
   (interactive
    (find-file-read-args "Find file: "
-                        (confirm-nonexistent-file-or-buffer)))
-  (let ((value (find-file-noselect filename nil nil wildcards)))
-    (if (listp value)
-	(mapcar 'pop-to-buffer-same-window (nreverse value))
-      (pop-to-buffer-same-window value))))
+                        (confirm-nonexistent-file-or-buffer) t))
+  (find-file-with-threads filename threads
+    (let ((value (find-file-noselect filename nil nil wildcards threads)))
+      (if (listp value)
+          (mapcar 'pop-to-buffer-same-window (nreverse value))
+        (pop-to-buffer-same-window value)))))
 
-(defun find-file-other-window (filename &optional wildcards)
+(defun find-file-other-window (filename &optional wildcards threads)
   "Edit file FILENAME, in another window.
 
 Like \\[find-file] (which see), but creates a new window or reuses
@@ -1636,20 +1655,25 @@ current directory to be available on first \\[next-history-element]
 request.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and visit multiple files."
+expand wildcards (if any) and visit multiple files.
+
+If THREADS is non-nil, the file will be loaded into the buffer
+asynchronously.  Interactively, this is indicated by a prefix
+argument."
   (interactive
    (find-file-read-args "Find file in other window: "
-                        (confirm-nonexistent-file-or-buffer)))
-  (let ((value (find-file-noselect filename nil nil wildcards)))
-    (if (listp value)
-	(progn
-	  (setq value (nreverse value))
-	  (switch-to-buffer-other-window (car value))
-	  (mapc 'switch-to-buffer (cdr value))
-	  value)
-      (switch-to-buffer-other-window value))))
+                        (confirm-nonexistent-file-or-buffer) t))
+  (find-file-with-threads filename threads
+    (let ((value (find-file-noselect filename nil nil wildcards threads)))
+      (if (listp value)
+	  (progn
+	    (setq value (nreverse value))
+	    (switch-to-buffer-other-window (car value))
+	    (mapc 'switch-to-buffer (cdr value))
+	    value)
+        (switch-to-buffer-other-window value)))))
 
-(defun find-file-other-frame (filename &optional wildcards)
+(defun find-file-other-frame (filename &optional wildcards threads)
   "Edit file FILENAME, in another frame.
 
 Like \\[find-file] (which see), but creates a new frame or reuses
@@ -1668,76 +1692,90 @@ current directory to be available on first \\[next-history-element]
 request.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and visit multiple files."
+expand wildcards (if any) and visit multiple files.
+
+If THREADS is non-nil, the file will be loaded into the buffer
+asynchronously.  Interactively, this is indicated by a prefix
+argument."
   (interactive
    (find-file-read-args "Find file in other frame: "
-                        (confirm-nonexistent-file-or-buffer)))
-  (let ((value (find-file-noselect filename nil nil wildcards)))
-    (if (listp value)
-	(progn
-	  (setq value (nreverse value))
-	  (switch-to-buffer-other-frame (car value))
-	  (mapc 'switch-to-buffer (cdr value))
-	  value)
-      (switch-to-buffer-other-frame value))))
+                        (confirm-nonexistent-file-or-buffer) t))
+  (find-file-with-threads filename threads
+    (let ((value (find-file-noselect filename nil nil wildcards threads)))
+      (if (listp value)
+	  (progn
+	    (setq value (nreverse value))
+	    (switch-to-buffer-other-frame (car value))
+	    (mapc 'switch-to-buffer (cdr value))
+	    value)
+        (switch-to-buffer-other-frame value)))))
 
-(defun find-file-existing (filename)
+(defun find-file-existing (filename &optional threads)
    "Edit the existing file FILENAME.
 Like \\[find-file], but only allow a file that exists, and do not allow
-file names with wildcards."
-   (interactive (nbutlast (find-file-read-args "Find existing file: " t)))
+file names with wildcards.
+
+If THREADS is non-nil, the file will be loaded into the buffer
+asynchronously.  Interactively, this is indicated by a prefix
+argument."
+   (interactive
+    (find-file-read-args "Find existing file: " t))
    (if (and (not (called-interactively-p 'interactive))
 	    (not (file-exists-p filename)))
        (error "%s does not exist" filename)
-     (find-file filename)
+     (find-file filename nil threads)
      (current-buffer)))
 
-(defun find-file--read-only (fun filename wildcards)
+(defun find-file--read-only (fun filename wildcards threads)
   (unless (or (and wildcards find-file-wildcards
 		   (not (file-name-quoted-p filename))
 		   (string-match "[[*?]" filename))
 	      (file-exists-p filename))
     (error "%s does not exist" filename))
-  (let ((value (funcall fun filename wildcards)))
+  (let ((value (funcall fun filename wildcards threads)))
     (mapc (lambda (b) (with-current-buffer b (read-only-mode 1)))
 	  (if (listp value) value (list value)))
     value))
 
-(defun find-file-read-only (filename &optional wildcards)
+(defun find-file-read-only (filename &optional wildcards threads)
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file], but marks buffer as read-only.
 Use \\[read-only-mode] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only: "
-                        (confirm-nonexistent-file-or-buffer)))
-  (find-file--read-only #'find-file filename wildcards))
+                        (confirm-nonexistent-file-or-buffer) t))
+  (find-file--read-only #'find-file filename wildcards threads))
 
-(defun find-file-read-only-other-window (filename &optional wildcards)
+(defun find-file-read-only-other-window (filename &optional wildcards threads)
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window], but marks buffer as read-only.
 Use \\[read-only-mode] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other window: "
-                        (confirm-nonexistent-file-or-buffer)))
-  (find-file--read-only #'find-file-other-window filename wildcards))
+                        (confirm-nonexistent-file-or-buffer) t))
+  (find-file--read-only #'find-file-other-window filename wildcards threads))
 
-(defun find-file-read-only-other-frame (filename &optional wildcards)
+(defun find-file-read-only-other-frame (filename &optional wildcards threads)
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame], but marks buffer as read-only.
 Use \\[read-only-mode] to permit editing."
   (interactive
    (find-file-read-args "Find file read-only other frame: "
-                        (confirm-nonexistent-file-or-buffer)))
-  (find-file--read-only #'find-file-other-frame filename wildcards))
+                        (confirm-nonexistent-file-or-buffer) t))
+  (find-file--read-only #'find-file-other-frame filename wildcards threads))
 
-(defun find-alternate-file-other-window (filename &optional wildcards)
+(defun find-alternate-file-other-window (filename &optional wildcards threads)
   "Find file FILENAME as a replacement for the file in the next window.
 This command does not select that window.
 
 See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and replace the file with multiple files."
+expand wildcards (if any) and replace the file with multiple files.
+
+If THREADS is non-nil, the file will be loaded into the buffer
+asynchronously.  Interactively, this is indicated by a prefix
+argument."
   (interactive
    (save-selected-window
      (other-window 1)
@@ -1750,12 +1788,12 @@ expand wildcards (if any) and replace the file with multiple files."
        (list (read-file-name
 	      "Find alternate file: " file-dir nil
               (confirm-nonexistent-file-or-buffer) file-name)
-	     t))))
+	     t (and current-prefix-arg (featurep 'threads))))))
   (if (one-window-p)
-      (find-file-other-window filename wildcards)
+      (find-file-other-window filename wildcards threads)
     (save-selected-window
       (other-window 1)
-      (find-alternate-file filename wildcards))))
+      (find-alternate-file filename wildcards threads))))
 
 ;; Defined and used in buffer.c, but not as a DEFVAR_LISP.
 (defvar kill-buffer-hook nil
@@ -1766,7 +1804,7 @@ See `kill-buffer'.
 Note: Be careful with let-binding this hook considering it is
 frequently used for cleanup.")
 
-(defun find-alternate-file (filename &optional wildcards)
+(defun find-alternate-file (filename &optional wildcards threads)
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
 \(presumably by mistake), use this command to visit the file you really want.
@@ -1775,6 +1813,10 @@ See \\[find-file] for the possible forms of the FILENAME argument.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files.
+
+If THREADS is non-nil, the file will be loaded into the buffer
+asynchronously.  Interactively, this is indicated by a prefix
+argument.
 
 If the current buffer is an indirect buffer, or the base buffer
 for one or more indirect buffers, the other buffer(s) are not
@@ -1789,7 +1831,7 @@ killed."
      (list (read-file-name
 	    "Find alternate file: " file-dir nil
             (confirm-nonexistent-file-or-buffer) file-name)
-	   t)))
+	   t (and current-prefix-arg (featurep 'threads)))))
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (user-error "Aborted"))
   (and (buffer-modified-p) buffer-file-name
@@ -1830,7 +1872,8 @@ killed."
           ;; Don't use `find-file' because it may end up using another window
           ;; in some corner cases, e.g. when the selected window is
           ;; softly-dedicated.
-	  (let ((newbuf (find-file-noselect filename wildcards)))
+	  (let ((newbuf
+                 (find-file-noselect filename nil nil wildcards threads)))
             (switch-to-buffer newbuf)))
       (when (eq obuf (current-buffer))
 	;; This executes if find-file gets an error
@@ -2102,7 +2145,7 @@ displayed on the minibuffer."
   (apply #'message format args)
   (when save-silently (message nil)))
 
-(defun find-file-noselect (filename &optional nowarn rawfile wildcards)
+(defun find-file-noselect (filename &optional nowarn rawfile wildcards threads)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
 verify that the file has not changed since visited or saved.
@@ -2112,7 +2155,11 @@ Optional third arg RAWFILE non-nil means the file is read literally.
 Optional fourth arg WILDCARDS non-nil means do wildcard processing
 and visit all the matching files.  When wildcards are actually
 used and expanded, return a list of buffers that are visiting
-the various files."
+the various files.
+
+If THREADS is non-nil, the file will be loaded into the buffer
+asynchronously.  When several files are loaded due to WILDCARDS,
+every file will be loaded in an own thread."
   (setq filename
 	(abbreviate-file-name
 	 (expand-file-name filename)))
@@ -2134,7 +2181,24 @@ the various files."
 	      (find-file-wildcards nil))
 	  (if (null files)
 	      (find-file-noselect filename)
-	    (mapcar #'find-file-noselect files)))
+
+            (if threads
+                (let (result)
+                  ;; Create one thread per file.
+                  (setq threads
+                        (mapcar
+                         (lambda (file)
+                           (make-thread
+                            (lambda () (find-file-noselect file))
+                            (concat "find-file-noselect " file)))
+                         files))
+                  ;; Collect the results.
+                  (thread-yield)
+                  (dolist (thread threads result)
+                    (setq result (cons (thread-join thread) result))))
+
+              (mapcar #'find-file-noselect files))))
+
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
 	     (attributes (file-attributes truename))
@@ -2397,7 +2461,7 @@ This has the `permanent-local' property, which takes effect if you
 make the variable buffer-local.")
 (put 'find-file-literally 'permanent-local t)
 
-(defun find-file-literally (filename)
+(defun find-file-literally (filename &optional threads)
   "Visit file FILENAME with no conversion of any kind.
 Format conversion and character code conversion are both disabled,
 and multibyte characters are disabled in the resulting buffer.
@@ -2408,6 +2472,10 @@ file due to `require-final-newline' is also disabled.
 
 If Emacs already has a buffer which is visiting the file,
 this command asks you whether to visit it literally instead.
+
+If THREADS is non-nil, the file will be loaded into the buffer
+asynchronously.  Interactively, this is indicated by a prefix
+argument.
 
 In non-interactive use, the value is the buffer where the file is
 visited literally.  If the file was visited in a buffer before
@@ -2420,10 +2488,10 @@ In a Lisp program, if you want to be sure of accessing a file's
 contents literally, you should create a temporary buffer and then read
 the file contents into it using `insert-file-contents-literally'."
   (interactive
-   (list (read-file-name
-  	  "Find file literally: " nil default-directory
-  	  (confirm-nonexistent-file-or-buffer))))
-  (switch-to-buffer (find-file-noselect filename nil t)))
+   (find-file-read-args "Find file literally: "
+                        (confirm-nonexistent-file-or-buffer)))
+  (find-file-with-threads filename threads
+    (switch-to-buffer (find-file-noselect filename nil t nil threads))))
 
 (defun after-find-file (&optional error warn noauto
 				  _after-find-file-from-revert-buffer
