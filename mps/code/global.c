@@ -1045,7 +1045,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = HistoryDescribe(ArenaHistory(arena), stream, depth);
+  res = HistoryDescribe(ArenaHistory(arena), stream, depth + 2);
   if (res != ResOK)
     return res;
 
