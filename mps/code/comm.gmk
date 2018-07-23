@@ -192,7 +192,6 @@ MPMCOMMON = \
     poolabs.c \
     poolmfs.c \
     poolmrg.c \
-    poolmv.c \
     protocol.c \
     range.c \
     rangetree.c \

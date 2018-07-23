@@ -9,7 +9,7 @@
 #include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "fmthe.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
@@ -96,9 +96,14 @@ static void alignmentTest(mps_arena_t arena)
   int dummy = 0;
   size_t j, size;
 
-  die(mps_pool_create(&pool, arena, mps_class_mv(),
-      (size_t)0x1000, (size_t)1024, (size_t)16384),
-      "alignment pool create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x1000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 16384);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args),
+        "alignment pool create");
+  } MPS_ARGS_END(args);
+  
   size = max(sizeof(double), sizeof(long));
 #ifdef HAS_LONG_LONG
   size = max(size, sizeof(long_long_t));
@@ -300,7 +305,7 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
  * incidentally tests:
  *   mps_alloc
  *   mps_arena_commit_limit_set
- *   mps_class_mv
+ *   mps_class_mvff
  *   mps_pool_create
  *   mps_pool_destroy
  */
@@ -314,9 +319,14 @@ static void arena_commit_test(mps_arena_t arena)
   void *p;
   mps_res_t res;
 
-  die(mps_pool_create(&pool, arena, mps_class_mv(),
-      (size_t)0x1000, (size_t)1024, (size_t)16384),
-      "commit pool create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x1000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 16384);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args),
+        "commit pool create");
+  } MPS_ARGS_END(args);
+  
   limit = mps_arena_commit_limit(arena);
   committed = mps_arena_committed(arena);
   reserved = mps_arena_reserved(arena);
@@ -370,9 +380,13 @@ static void *test(void *arg, size_t s)
 
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&mv, arena, mps_class_mv(),
-      (size_t)0x10000, (size_t)32, (size_t)0x10000),
-      "pool_create(mv)");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x10000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 32);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 0x10000);
+    die(mps_pool_create_k(&mv, arena, mps_class_mvff(), args),
+        "pool_create(mv)");
+  } MPS_ARGS_END(args);
 
   pool_create_v_test(arena, format, chain); /* creates amc pool */
 

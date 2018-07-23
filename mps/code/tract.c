@@ -47,7 +47,7 @@ Bool TractCheck(Tract tract)
     CHECKL(AddrIsArenaGrain(TractBase(tract), TractArena(tract)));
   }
   if (TractHasSeg(tract)) {
-    CHECKU(Seg, (Seg)TractP(tract));
+    CHECKU(Seg, TractSeg(tract));
   }
   return TRUE;
 }
@@ -62,8 +62,7 @@ void TractInit(Tract tract, Pool pool, Addr base)
 
   tract->pool.pool = pool;
   tract->base = base;
-  tract->p = NULL;
-  tract->hasSeg = FALSE;
+  tract->seg = NULL;
 
   AVERT(Tract, tract);
 

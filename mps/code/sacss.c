@@ -174,12 +174,13 @@ static mps_pool_debug_option_s debugOptions = {
 static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args)
 {
   mps_arena_t arena;
+  size_t arena_grain_size = 4096;
 
   die(mps_arena_create_k(&arena, arena_class, arena_args),
       "mps_arena_create");
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
@@ -189,7 +190,7 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args)
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
@@ -201,14 +202,14 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args)
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
+    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     die(stress(arena, align, randomSize, "MV", mps_class_mv(), args),
         "stress MV");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
+    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &debugOptions);
     die(stress(arena, align, randomSize, "MV debug",

@@ -28,7 +28,7 @@ New features
 Interface changes
 .................
 
-#. The pool class :ref:`pool-mv` is now deprecated.
+#. The pool class MV (Manual Variable) is now deprecated.
 
 
 Other changes
@@ -217,7 +217,7 @@ New features
 Interface changes
 .................
 
-#. The pool class :ref:`pool-mv` is no longer deprecated.
+#. The pool class MV (Manual Variable) is no longer deprecated.
 
 #. The type of pool classes is now :c:type:`mps_pool_class_t`. The old
    name :c:type:`mps_class_t` is still available via a ``typedef``,
@@ -293,8 +293,8 @@ Other changes
    .. _job003865: https://www.ravenbrook.com/project/mps/issue/job003865/
 
 #. :c:func:`mps_arena_has_addr` now returns the correct result for
-   objects allocated from the :ref:`pool-mfs`, :ref:`pool-mv`, and
-   :ref:`pool-mvff` pools. See job003866_.
+   objects allocated from the :ref:`pool-mfs`, MV (Manual Variable),
+   and :ref:`pool-mvff` pools. See job003866_.
 
    .. _job003866: https://www.ravenbrook.com/project/mps/issue/job003866/
 
@@ -402,8 +402,9 @@ Interface changes
    (meaning that there is no dependent object).
 
 #. It is now possible to configure the alignment of objects allocated
-   in a :ref:`pool-mv` pool, by passing the :c:macro:`MPS_KEY_ALIGN`
-   keyword argument to :c:func:`mps_pool_create_k`.
+   in an MV (Manual Variable) pool, by passing the
+   :c:macro:`MPS_KEY_ALIGN` keyword argument to
+   :c:func:`mps_pool_create_k`.
 
 #. The :ref:`pool-mvff` pool class takes a new keyword argument
    :c:macro:`MPS_KEY_SPARE`. This specifies the maximum proportion of
@@ -722,7 +723,7 @@ Interface changes
    :c:func:`mps_telemetry_control`, which is now deprecated. See
    :ref:`topic-telemetry`.
 
-#. The pool classes :ref:`pool-mv` and :ref:`pool-snc` are now
+#. The pool classes MV (Manual Variable) and :ref:`pool-snc` are now
    deprecated.
 
 #. Allocation frames are now deprecated. See :ref:`topic-frame`.
