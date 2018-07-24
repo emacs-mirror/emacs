@@ -104,7 +104,7 @@
   EVENT(X, SegSetGrey         , 0x001f,  TRUE, Seg) \
   EVENT(X, TraceFlipBegin     , 0x0020,  TRUE, Trace) \
   EVENT(X, TraceFlipEnd       , 0x0021,  TRUE, Trace) \
-  EVENT(X, TraceReclaim       , 0x0022,  TRUE, Seg) \
+  EVENT(X, TraceReclaim       , 0x0022,  TRUE, Trace) \
   /* EVENT(X, TraceScan          , 0x0023, TRUE, Seg) */ \
   EVENT(X, TraceAccess        , 0x0024,  TRUE, Seg) \
   /* TracePoll's kind isn't really Trace, but then it isn't Seg either */ \
