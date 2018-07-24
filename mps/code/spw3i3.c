@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-#if !defined(MPS_OS_W3) && !defined(MPS_ARCH_I3)
+#if !defined(MPS_OS_W3) || !defined(MPS_ARCH_I3)
 #error "spw3i3.c is specific to MPS_OS_W3 and MPS_ARCH_I3"
 #endif
 
