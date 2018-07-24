@@ -19,6 +19,7 @@ from struct import Struct
 import sys
 import threading
 import time
+import math
 
 from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 from matplotlib.backends.backend_qt5agg import (
@@ -27,6 +28,29 @@ from matplotlib.figure import Figure
 
 import mpsevent
 
+class YAxis:
+    "The Y-axis of a plot."
+    def __init__(self, label, fmt):
+        self._label = label
+        self.fmt = fmt
+
+    def label(self): return self._label
+
+def bytesFormat(y):
+    "Format a number of bytes as a string."
+    i = 0
+    while y > 10000:
+        y /= 1000
+        i += 1
+    if i == 0:
+        return '{:,.0f} bytes'.format(y)
+    else:
+        return '{:.2f} {}B'.format(y,' KMGTPE'[i])
+
+# The three y axes which we support
+bytesAxis = YAxis('bytes', bytesFormat)
+fractionAxis = YAxis('fraction', lambda v: f'{v:.5f}')
+traceAxis = YAxis('gens', lambda v: f'{v} gens')
 
 # Mapping from event code to a namedtuple for that event.
 EVENT_NAMEDTUPLE = {
@@ -78,9 +102,11 @@ def telemetry_decoder(read):
     Intern_namedtuple = event_namedtuple[Intern_code]
 
     batch = []                  # Current batch of (unordered) events.
-    eventclocks = deque(maxlen=2) # Eventclocks from last two EventClockSync.
-    clocks = deque(maxlen=2)    # Clocks from last two EventClockSync.
     clocks_per_sec = None       # CLOCKS_PER_SEC value from EventInit event.
+
+    # last two EventClockSync events with distinct clock values
+    eventclocks = deque(maxlen=2) # header clock values
+    clocks = deque(maxlen=2)    # clock values
 
     def key(event):
         # Key function for sorting events into time order.
@@ -116,10 +142,11 @@ def telemetry_decoder(read):
 
             batch.append(event)
             if event.header.code == EventClockSync_code:
-                # Events are output in batches terminated by an EventClockSync
-                # event. So when we see an EventClockSync event, we know that
-                # we've received all events up to that one and can sort and
-                # emit the batch.
+                # Events are output in batches terminated by an
+                # EventClockSync event. So when we see an
+                # EventClockSync event with a new clock value, we know
+                # that we've received all events up to that one and
+                # can sort and emit the batch.
                 #
                 # The Time Stamp Counter frequency can vary due to thermal
                 # throttling, turbo boost etc., so linearly interpolate within
@@ -132,14 +159,25 @@ def telemetry_decoder(read):
                 # 
                 # TODO: on 32-bit platforms at 1 MHz, clock values will wrap
                 # around in about 72 minutes and so this needs to be handled.
-                eventclocks.append(event.header.clock)
+                #
+                # TODO: reduce problems caused by discretized clock
+                # values. See job004100.
+                if clocks and event.clock == clocks[-1]:
+                    # The clock value hasn't changed since the last
+                    # EventClockSync (because clocks_per_sec isn't
+                    # high enough) so we disregard this event,
+                    # otherwise linearising gives us loads of events
+                    # with identical timestamps.
+                    continue
                 clocks.append(event.clock)
+                eventclocks.append(event.header.clock)
                 if len(clocks) == 2:
                     batch.sort(key=key)
-                    # Solve for: seconds = m * eventclocks + c
-                    m = ((clocks[1] - clocks[0])
-                         / ((eventclocks[1] - eventclocks[0]) * clocks_per_sec))
-                    c = clocks[0] / clocks_per_sec - m * eventclocks[0]
+                    dt = (clocks[1] - clocks[0]) / clocks_per_sec
+                    dTSC = eventclocks[1] - eventclocks[0]
+                    m = dt / dTSC # gradient
+                    t0 = clocks[0] / clocks_per_sec
+                    c = t0 - m * eventclocks[0] # y-intercept
                     yield [(m * e.header.clock + c, e) for e in batch]
                     batch.clear()
             elif event.header.code == EventInit_code:
@@ -196,25 +234,30 @@ class Accumulator(TimeSeries):
         self.append(t, self.value)
 
 
-class MovingAverageRatio(TimeSeries):
-    "Exponentially weighted moving average on/off ratio."
-    def __init__(self, t, alpha=0.99):
+class OnOffSeries(TimeSeries):
+    """Series of on/off events; can draw as an exponentially weighted moving
+average on/off ratio or (potentially) as shading bars."""
+    def __init__(self, t, k=1):
         super().__init__()
-        self._on = 0.0
-        self._off = 0.0
+        self._ons = []
         self._last = t
-        self._alpha = alpha
-        self._beta = 1 - alpha
+        self._k = k
+        self._ratio = 0.0
 
     def off(self, t):
-        self._on = self._on * self._alpha + (t - self._last) * self._beta
+        dt = t - self._last
+        f = math.exp(-self._k * dt)
+        self._ratio = 1 - f * (1 - self._ratio)
+        self._ons.append((self._last, t))
         self._last = t
-        self._ratio = self._on / (self._on + self._off)
         self.append(t, self._ratio)
 
     def on(self, t):
-        self._off = self._off * self._alpha + (t - self._last) * self._beta
+        dt = t - self._last
+        f = math.exp(-self._k * dt)
+        self._ratio = f * self._ratio
         self._last = t
+        self.append(t, self._ratio)
 
 
 class EventHandler:
@@ -241,8 +284,9 @@ class Pool(EventHandler):
         self._serial = None       # Pool's serial number within arena.
         self._alloc = Accumulator()
         self._model.add_time_series(
-            self, self._alloc, "bytes", "alloc",
-            "memory allocated by the pool from the arena")
+            self, self._alloc, bytesAxis, "alloc",
+            "memory allocated by the pool from the arena",
+            draw=False)
 
     @property
     def name(self):
@@ -303,17 +347,19 @@ class Gen(EventHandler):
     def GenInit(self, t, event):
         self._serial = serial = event.serial
         self._mortality_trace = mortality_trace = TimeSeries()
-        self._model.add_time_series(
-            self, mortality_trace, "fraction", f"mortality.trace",
-            f"mortality of data in generation, per trace")
+        per_trace_line = self._model.add_time_series(
+            self, mortality_trace, fractionAxis, f"mortality.trace",
+            f"mortality of data in generation, per trace",
+            draw=False, marker='+', linestyle='None')
         self._mortality_average = mortality_average = TimeSeries()
         self._model.add_time_series(
-            self, mortality_average, "fraction", f"mortality.avg",
-            f"mortality of data in generation, moving average")
+            self, mortality_average, fractionAxis, f"mortality.avg",
+            f"mortality of data in generation, moving average",
+            draw=False, color_as=per_trace_line)
         mortality_average.append(t, event.mortality);
         self._ref_size = ref_size = TimeSeries()
         self._model.add_time_series(
-            self, ref_size, "bytes", f"ref",
+            self, ref_size, bytesAxis, f"ref",
             f"size of segments referencing generation")
 
     def TraceEndGen(self, t, event):
@@ -339,27 +385,27 @@ class Arena(EventHandler):
         self._gen = {}           # pointer -> Gen (for live gens)
         self._alloc = Accumulator()
         self.model.add_time_series(
-            self, self._alloc, "bytes", "alloc",
+            self, self._alloc, bytesAxis, "alloc",
             "total allocation by client pools")
-        self._poll = MovingAverageRatio(t)
+        self._poll = OnOffSeries(t)
         self.model.add_time_series(
-            self, self._poll, "fraction", "poll",
+            self, self._poll, fractionAxis, "poll",
             "polling time moving average")
         self._seg_size = {}      # segment pointer -> size
         self._seg_summary = {}   # segment pointer -> summary
         self._zone_ref_size = {} # zone -> refsize Accumulator
         self._univ_ref_size = Accumulator()
         self.model.add_time_series(
-            self, self._univ_ref_size, "bytes", "zone-univ.ref",
+            self, self._univ_ref_size, bytesAxis, "zone-univ.ref",
             "size of segments referencing the universe")
         self._condemned_gens = TimeSeries()
         self.model.add_time_series(
-            self, self._condemned_gens, "fraction", "condemned.gens",
-            "proportion of chain condemned by trace", marker='x',
-            linestyle='None')
+            self, self._condemned_gens, traceAxis, "condemned.gens",
+            "proportion of chain condemned by trace", clickline=True,
+            marker='x', linestyle='None')
         self._condemned_size = TimeSeries()
         self.model.add_time_series(
-            self, self._condemned_size, "bytes", "condemned.size",
+            self, self._condemned_size, bytesAxis, "condemned.size",
             "size of segments condemned by trace", marker='+',
             linestyle='None')
 
@@ -434,11 +480,10 @@ class Arena(EventHandler):
         self._poll.off(t)
 
     def ChainCondemnAuto(self, t, event):
-        f = (event.topCondemnedGenIndex + 1) / (event.genCount + 1)
-        self._condemned_gens.append(t, f)
+        self._condemned_gens.append(t, event.topCondemnedGenIndex + 1)
 
     def TraceCondemnAll(self, t, event):
-        self._condemned_gens.append(t, 1.0)
+        self._condemned_gens.append(t, len(self._gen))
 
     def TraceStart(self, t, event):
         self._condemned_size.append(t, event.condemned)
@@ -465,24 +510,29 @@ class Arena(EventHandler):
             if zone not in self._zone_ref_size:
                 self._zone_ref_size[zone] = ref_size = Accumulator()
                 self.model.add_time_series(
-                    self, ref_size, "bytes", f"zone-{zone}.ref",
+                    self, ref_size, bytesAxis, f"zone-{zone}.ref",
                     f"size of segments referencing zone {zone}")
             self._zone_ref_size[zone].add(t, (new - old) * size)
-
 
 class Line:
     "A line in a Matplotlib plot wrapping a TimeSeries."
     colors = cycle('blue orange green red purple brown pink gray olive cyan'
                    .split())
 
-    def __init__(self, owner, series, unit, name, desc, **kwargs):
+    def __init__(self, owner, series, yaxis, name, desc,
+                 draw=True, color_as=None, clickline=False,
+                 **kwargs):
         self.owner = owner      # Owning object.
         self.series = series    # Time series.
-        self.unit = unit        # Unit.
+        self.yaxis = yaxis      # Y Axis
         self._name = name       # Brief description.
         self.desc = desc        # Brief description.
-        self.draw = True        # Plot this line?
-        self.color = next(self.colors)
+        self.draw = draw        # Plot this line?
+        self.clickline = clickline # should a click on a data point draw a vertical line on the axes?
+        if color_as:
+            self.color = color_as.color
+        else:
+            self.color = next(self.colors)
         self.axes = None        # Currently plotted on axes.
         self.line = None        # Matplotlib Line2D object.
         self._kwargs = kwargs   # Keyword arguments for Axes.plot.
@@ -521,6 +571,11 @@ class Line:
             return False, None
         return self.line.contains(event)
 
+    def drawline(self, index, axes_dict):
+        t = self.series.t[index]
+        # Could just draw on axes_dict[self.yaxis]
+        return [ax.axvline(t) for ax in axes_dict.values()]
+
 
 class Model(EventHandler):
     "Model of an application using the MPS."
@@ -538,40 +593,72 @@ class Model(EventHandler):
         "Add a time series to the model."
         line = Line(*args, **kwargs)
         self.lines.append(line)
+        return line
 
     def label(self, pointer):
         "Return string labelling address or pointer, or None if unlabelled."
         return self._intern.get(self._label.get(pointer))
 
-    def plot(self, axes_list):
+    def plot(self, axes_dict):
         "Draw time series on the given axes."
         if not self._needs_redraw:
             return
         self._needs_redraw = False
 
-        # Collate drawable lines by unit.
-        unit_lines = defaultdict(list)
+        # Collate drawable lines by y axis
+        yaxis_lines = defaultdict(list)
         for line in self.lines:
             if line.ready and line.draw:
-                unit_lines[line.unit].append(line)
+                yaxis_lines[line.yaxis].append(line)
             else:
                 line.unplot()
 
-        # Assign units to axes.
-        axes_iter = iter(axes_list)
-        lines_iter = iter(sorted(unit_lines.items()))
-        for (_, lines), axes in zip(lines_iter, axes_iter):
+        axes_used = set()
+        bounds_axes = defaultdict(list) # axes drawn in each area
+
+        # Draw the lines
+        for yax in yaxis_lines:
+            axes = axes_dict[yax]
+            axes_used.add(axes)
             axes.set_axis_on()
-            axes.set_xlabel("time (seconds)")
-            axes.set_ylabel(lines[0].unit)
-            for line in lines:
+            axes.set_ylabel(yax.label())
+            for line in yaxis_lines[yax]:
                 line.plot(axes)
             axes.relim()
             axes.autoscale_view()
+            bounds_axes[axes.bbox.bounds].append((axes, yax))
+
+        # Set the format_coord method for each axes
+        for bounds, ax_list in bounds_axes.items():
+            if len(ax_list) > 1:
+                # If format_coord iterates of ax_list, it may iterate
+                # over the wrong value of ax_list (the last value
+                # bound by the bounds_axes iteration). So build this
+                # separate yax_trans_list here.
+                yax_trans_list = [(yax, ax.transData)
+                                  for ax, yax in ax_list]
+                for ax, yax in ax_list:
+                    tData = ax.transData
+                    def format_coord(x, y):
+                        # x, y are data coordinates
+                        _, axy = tData.transform((0, y)) # y in display coordinates
+                        # Invert the transforms here. If you invert them at plotting time
+                        # and cache them so we don't have to invert them every time format_coord
+                        # is called, then you get the wrong answer.
+                        return (f'{x:f} s, ' +
+                                ', '.join(inner_yax.fmt(t.inverted().transform((0, axy))[1])
+                                          for inner_yax, t in yax_trans_list))
+                    ax.format_coord = format_coord
+            else:
+                ax, yax = ax_list[0]
+                def format_coord(x, y):
+                    return f'{x:f} s, {yax.fmt(y)}'
+                ax.format_coord = format_coord
 
         # Remaining axes are not needed.
-        for axes in axes_iter:
-            axes.set_axis_off()
+        for ax in axes_dict.values():
+            if ax not in axes_used:
+                axes.set_axis_off()
 
     def update(self):
         "Consume available telemetry events and update the model."
@@ -673,7 +760,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         main = QtWidgets.QWidget()
         self.setCentralWidget(main)
-        main_layout = QtWidgets.QHBoxLayout(main)
+        
+        # make a splitter and a layout to contain it
+        main_layout = QtWidgets.QHBoxLayout()
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        main_layout.addWidget(splitter)
+        main.setLayout(main_layout)
+
+        # Above the splitter, an hbox layout
+        upper = QtWidgets.QWidget()
+        upper_layout = QtWidgets.QHBoxLayout()
+        upper.setLayout(upper_layout)
+        splitter.addWidget(upper)
 
         # Scrollable list of checkboxes, one for each time series.
         self._lines = QtWidgets.QVBoxLayout()
@@ -685,26 +783,43 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         lines_layout.addStretch(1)
         self._lines_scroll.setWidget(self._lines_widget)
         self._lines_scroll.setWidgetResizable(True)
-        main_layout.addWidget(self._lines_scroll)
+        upper_layout.addWidget(self._lines_scroll)
 
         # Matplot canvas and toolbar.
         self._canvas = FigureCanvas(Figure(figsize=(10, 6)))
-        self._axes = self._canvas.figure.subplots()
-        self._axes2 = self._axes.twinx()
-        main_layout.addWidget(self._canvas)
+        bytes_axes, trace_axes = self._canvas.figure.subplots(nrows=2, sharex=True, gridspec_kw={'hspace':0, 'height_ratios':(5, 1)})
+        fraction_axes = bytes_axes.twinx()
+        self._axes_dict = {bytesAxis: bytes_axes,
+                           fractionAxis: fraction_axes,
+                           traceAxis: trace_axes}
+        trace_axes.set_xlabel("time (seconds)")
+        bytes_axes.set_xlabel("time (seconds)")
+        # trace_axes.set_yticks([])
+        # trace_axes.tick_params(axis='y', which='both', left=False)
+        upper_layout.addWidget(self._canvas)
         self._toolbar = ApplicationToolbar(self._canvas, self)
-        self.addToolBar(QtCore.Qt.BottomToolBarArea, self._toolbar)
+        self.addToolBar(QtCore.Qt.TopToolBarArea, self._toolbar)
+
+        # Below the splitter, a text box for logging
+        self._logbox = QtWidgets.QTextEdit()
+        self._logbox.setReadOnly(True)
+        self._logbox.setLineWrapMode(True)
+        splitter.addWidget(self._logbox)
 
         # Line annotations.
-        self._line_annotation = self._axes.annotate(
+        self._line_annotation = bytes_axes.annotate(
             "", xy=(0, 0), xytext=(-20, 20),
             textcoords='offset points',
             bbox=dict(boxstyle='round', fc='w'),
             arrowprops=dict(arrowstyle='->'),
+            annotation_clip=False,
             visible=False)
         self._line_annotation.get_bbox_patch().set_alpha(0.8)
         self._annotated_line = None
         self._canvas.mpl_connect("button_release_event", self._click)
+
+        # clicklines
+        self._clicklines = defaultdict(dict)
 
         # Call self._update in a loop forever.
         self._update()
@@ -715,6 +830,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         "Handle left mouse click by annotating line clicked on."
         if event.button != 1 or not event.inaxes:
             return
+        modifiers = QtGui.QGuiApplication.keyboardModifiers()
         a = self._line_annotation
         for line in self._model.lines:
             if not (line.ready and line.draw):
@@ -726,9 +842,25 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 a.remove()
                 line.axes.add_artist(a)
                 a.xy = x[i], y[i]
-                a.set_text(line.name)
+                text = [f"{line.name}",f"{x[i]:f} s",f"{line.yaxis.fmt(y[i])}"]
+                self._logbox.append(' '.join(text))
+                a.set_text('\n'.join(text))
                 a.set_visible(True)
                 self._annotated_line = line
+                if line.clickline:
+                    if i in self._clicklines[line]:
+                        for l in self._clicklines[line][i]:
+                            l.set_visible(False)
+                        del self._clicklines[line][i]
+                        break
+                    # if control not held down, make existing clicklines go away
+                    if not (modifiers & QtCore.Qt.ControlModifier):
+                        for cl in self._clicklines.values():
+                            for ls in cl.values():
+                                for l in ls:
+                                    l.set_visible(False)
+                        self._clicklines = defaultdict(dict)
+                    self._clicklines[line][i] = line.drawline(i, self._axes_dict)
                 break
         else:
             a.set_visible(False)
@@ -737,7 +869,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     @property
     def _limits(self):
         "Current x and y limits of the Matplotlib graph."
-        return self._axes.get_xlim(), self._axes.get_ylim()
+        ax = self._axes_dict[bytesAxis]
+        return ax.get_xlim(), ax.get_ylim()
 
     def _update(self):
         "Update the model and redraw if not paused."
@@ -749,7 +882,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self._home_limits = None
         self._model.update()
         if not self._toolbar.paused:
-            self._model.plot([self._axes, self._axes2])
+            self._model.plot(self._axes_dict)
             self._home_limits = self._limits
             self._canvas.draw()
 
@@ -771,8 +904,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 checkboxes_changed = True
                 checkbox = QtWidgets.QCheckBox(new_name)
                 self._line_checkbox[line] = checkbox
-                checkbox.setChecked(True)
-                checkbox.setToolTip(f"{line.desc} ({line.unit})")
+                checkbox.setChecked(line.draw)
+                checkbox.setToolTip(f"{line.desc} ({line.yaxis.label})")
                 self._lines.addWidget(checkbox)
                 def state_changed(state, line=line):
                     line.draw = bool(state)
