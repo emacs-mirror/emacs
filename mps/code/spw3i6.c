@@ -13,7 +13,7 @@
 #include "mpm.h"
 
 #if !defined(MPS_OS_W3)
-#error "spw3i3.c is specific to MPS_OS_W3"
+#error "spw3i6.c is specific to MPS_OS_W3"
 #endif
 
 #include <stdlib.h> /* _alloca */
@@ -21,7 +21,7 @@
 
 void StackProbe(Size depth)
 {
-  (void)_alloca(depth*sizeof(Word));
+  (void)_alloca(depth * sizeof(Word));
 }
 
 
