@@ -417,13 +417,12 @@ INTERACTIVE is t if called interactively."
           (remove-hook 'post-command-hook #'maybe-connect nil)
           (eglot--with-live-buffer buffer
             (if eglot--managed-mode
-                (eglot--message "%s is already managed by existing `%s'"
-                                buffer
+                (eglot--message "Buffer is already managed by existing `%s'"
                                 (eglot--project-nickname (eglot--current-server)))
               (let ((server (apply #'eglot--connect (eglot--guess-contact))))
                 (eglot--message
                  "Automatically started `%s' to manage `%s' buffers in project `%s'"
-                 (eglot--project-nickname server)
+                 (jsonrpc-name server)
                  major-mode
                  (eglot--project-nickname server)))))))
       (when buffer-file-name
