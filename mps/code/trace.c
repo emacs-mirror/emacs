@@ -793,10 +793,11 @@ void TraceDestroyInit(Trace trace)
 
 void TraceDestroyFinished(Trace trace)
 {
+  Arena arena;
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
 
-  Arena arena = trace->arena;
+  arena = trace->arena;
   STATISTIC(EVENT14(TraceStatScan, trace, arena,
                     trace->rootScanCount, trace->rootScanSize,
                     trace->rootCopiedSize,
