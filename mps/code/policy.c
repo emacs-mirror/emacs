@@ -258,7 +258,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
   }
   TraceCondemnEnd(trace);
 
-  EVENT5(ChainCondemnAuto, chain->arena, chain, trace->ti, topCondemnedGen,
+  EVENT5(ChainCondemnAuto, chain->arena, chain, trace, topCondemnedGen,
          chain->genCount);
   
   *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;

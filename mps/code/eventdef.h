@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)2)
-#define EVENT_VERSION_MEDIAN ((unsigned)1)
+#define EVENT_VERSION_MEDIAN ((unsigned)3)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -353,7 +353,8 @@
   PARAM(X,  1, P, arena)
 
 #define EVENT_TraceReclaim_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, trace)
+  PARAM(X,  0, P, trace) \
+  PARAM(X,  1, P, arena)
 
 #define EVENT_TraceAccess_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -457,35 +458,38 @@
 
 #define EVENT_TraceStatScan_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace) \
-  PARAM(X,  1, W, rootScanCount) \
-  PARAM(X,  2, W, rootScanSize) \
-  PARAM(X,  3, W, rootCopiedSize) \
-  PARAM(X,  4, W, segScanCount) \
-  PARAM(X,  5, W, segScanSize) \
-  PARAM(X,  6, W, segCopiedSize) \
-  PARAM(X,  7, W, singleScanCount) \
-  PARAM(X,  8, W, singleScanSize) \
-  PARAM(X,  9, W, singleCopiedSize) \
-  PARAM(X, 10, W, readBarrierHitCount) \
-  PARAM(X, 11, W, greySegMax) \
-  PARAM(X, 12, W, pointlessScanCount)
+  PARAM(X,  1, P, arena) \
+  PARAM(X,  2, W, rootScanCount) \
+  PARAM(X,  3, W, rootScanSize) \
+  PARAM(X,  4, W, rootCopiedSize) \
+  PARAM(X,  5, W, segScanCount) \
+  PARAM(X,  6, W, segScanSize) \
+  PARAM(X,  7, W, segCopiedSize) \
+  PARAM(X,  8, W, singleScanCount) \
+  PARAM(X,  9, W, singleScanSize) \
+  PARAM(X, 10, W, singleCopiedSize) \
+  PARAM(X, 11, W, readBarrierHitCount) \
+  PARAM(X, 12, W, greySegMax) \
+  PARAM(X, 13, W, pointlessScanCount)
 
 #define EVENT_TraceStatFix_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace) \
-  PARAM(X,  1, W, fixRefCount) \
-  PARAM(X,  2, W, segRefCount) \
-  PARAM(X,  3, W, whiteSegRefCount) \
-  PARAM(X,  4, W, nailCount) \
-  PARAM(X,  5, W, snapCount) \
-  PARAM(X,  6, W, forwardedCount) \
-  PARAM(X,  7, W, forwardedSize) \
-  PARAM(X,  8, W, preservedInPlaceCount) \
-  PARAM(X,  9, W, preservedInPlaceSize)
+  PARAM(X,  1, P, arena) \
+  PARAM(X,  2, W, fixRefCount) \
+  PARAM(X,  3, W, segRefCount) \
+  PARAM(X,  4, W, whiteSegRefCount) \
+  PARAM(X,  5, W, nailCount) \
+  PARAM(X,  6, W, snapCount) \
+  PARAM(X,  7, W, forwardedCount) \
+  PARAM(X,  8, W, forwardedSize) \
+  PARAM(X,  9, W, preservedInPlaceCount) \
+  PARAM(X, 10, W, preservedInPlaceSize)
 
 #define EVENT_TraceStatReclaim_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace) \
-  PARAM(X,  1, W, reclaimCount) \
-  PARAM(X,  2, W, reclaimSize)
+  PARAM(X,  1, P, arena) \
+  PARAM(X,  2, W, reclaimCount) \
+  PARAM(X,  3, W, reclaimSize)
 
 #define EVENT_PoolInitMVFF_PARAMS(PARAM, X) \
   PARAM(X,  0, P, pool) \
@@ -613,19 +617,19 @@
 #define EVENT_ChainCondemnAuto_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) /* arena owning chain */ \
   PARAM(X,  1, P, chain) /* chain with gens being condemned */ \
-  PARAM(X,  2, W, ti) /* index of trace for which gens condemned */ \
+  PARAM(X,  2, P, trace) /* trace for which gens condemned */ \
   PARAM(X,  3, W, topCondemnedGenIndex) /* condemned gens [0..this] */ \
   PARAM(X,  4, W, genCount) /* total gens in chain */
 
 #define EVENT_TraceFindGrey_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, ti) \
+  PARAM(X,  1, P, trace) \
   PARAM(X,  2, P, seg) \
   PARAM(X,  3, W, rank)
 
 #define EVENT_TraceBandAdvance_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, ti) \
+  PARAM(X,  1, P, trace) \
   PARAM(X,  2, W, rank)
 
 #define EVENT_AWLDeclineTotal_PARAMS(PARAM, X) \
@@ -755,7 +759,7 @@
 
 #define EVENT_TraceCondemnAll_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) /* arena owning trace */ \
-  PARAM(X,  1, W, ti) /* index of trace */
+  PARAM(X,  1, P, trace) /* trace */
 
 #endif /* eventdef_h */
 
