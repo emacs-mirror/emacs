@@ -235,7 +235,7 @@ Bool traceBandAdvance(Trace trace)
     trace->band = RankMIN;
     return FALSE;
   }
-  EVENT3(TraceBandAdvance, trace->arena, trace->ti, trace->band);
+  EVENT3(TraceBandAdvance, trace->arena, trace, trace->band);
   return TRUE;
 }
 
@@ -796,7 +796,8 @@ void TraceDestroyFinished(Trace trace)
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
 
-  STATISTIC(EVENT13(TraceStatScan, trace,
+  Arena arena = trace->arena;
+  STATISTIC(EVENT14(TraceStatScan, trace, arena,
                     trace->rootScanCount, trace->rootScanSize,
                     trace->rootCopiedSize,
                     trace->segScanCount, trace->segScanSize,
@@ -805,14 +806,14 @@ void TraceDestroyFinished(Trace trace)
                     trace->singleCopiedSize,
                     trace->readBarrierHitCount, trace->greySegMax,
                     trace->pointlessScanCount));
-  STATISTIC(EVENT10(TraceStatFix, trace,
+  STATISTIC(EVENT11(TraceStatFix, trace, arena,
                     trace->fixRefCount, trace->segRefCount,
                     trace->whiteSegRefCount,
                     trace->nailCount, trace->snapCount,
                     trace->forwardedCount, trace->forwardedSize,
                     trace->preservedInPlaceCount,
                     trace->preservedInPlaceSize));
-  STATISTIC(EVENT3(TraceStatReclaim, trace,
+  STATISTIC(EVENT4(TraceStatReclaim, trace, arena,
                    trace->reclaimCount, trace->reclaimSize));
 
   traceDestroyCommon(trace);
@@ -828,8 +829,8 @@ static void traceReclaim(Trace trace)
 
   AVER(trace->state == TraceRECLAIM);
 
-  EVENT1(TraceReclaim, trace);
   arena = trace->arena;
+  EVENT2(TraceReclaim, trace, arena);
   if(SegFirst(&seg, arena)) {
     Pool pool;
     Ring next;
@@ -1027,7 +1028,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
           }
           *segReturn = seg;
           *rankReturn = rank;
-          EVENT4(TraceFindGrey, arena, ti, seg, rank);
+          EVENT4(TraceFindGrey, arena, trace, seg, rank);
           return TRUE;
         }
       }
@@ -1511,7 +1512,7 @@ static Res traceCondemnAll(Trace trace)
   if (TraceIsEmpty(trace))
     return ResFAIL;
 
-  EVENT2(TraceCondemnAll, arena, trace->ti);
+  EVENT2(TraceCondemnAll, arena, trace);
 
   return ResOK;
 

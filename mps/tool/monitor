@@ -202,9 +202,11 @@ def bits_of_word(w, n):
 
 class TimeSeries:
     "Series of data points in time order."
-    def __init__(self):
+    def __init__(self, note=None, draw=None):
         self.t = []
         self.y = []
+        self.note = note
+        self.draw = draw
 
     def append(self, t, y):
         "Append data y at time t."
@@ -366,6 +368,106 @@ class Gen(EventHandler):
         self._mortality_trace.append(t, event.mortalityTrace)
         self._mortality_average.append(t, event.mortalityAverage)
 
+class Trace(EventHandler):
+    def __init__(self, arena, t, event):
+        self._arena = arena
+        self.create = t
+        self.why = event.why
+        self.gens = 'none'
+        self.times = [(t, event.header.clock, 'create')]
+        self.sizes = []
+        self.counts = []
+
+    def add_time(self, name, t, event):
+        self.times.append((t, event.header.clock, name))
+
+    def add_size(self, name, s):
+        self.sizes.append((name, s))
+
+    def add_count(self, name, c):
+        self.counts.append((name, c))
+
+    def TraceDestroy(self, t, event):
+        self.add_time("destroy", t, event)
+
+    def TraceStart(self, t, event):
+        self.add_time("start", t, event)
+        self.add_size("condemned", event.condemned)
+        self.add_size("notCondemned", event.notCondemned)
+        self.add_size("foundation", event.foundation)
+        self.whiteRefSet = event.white
+
+    def TraceFlipBegin(self, t, event):
+        self.add_time("flip begin", t, event)
+
+    def TraceFlipEnd(self, t, event):
+        self.add_time("flip end", t, event)
+
+    def TraceBandAdvance(self, t, event):
+        self.add_time(f"band advance {event.rank}", t, event)
+
+    def TraceReclaim(self, t, event):
+        self.add_time("reclaim", t, event)
+
+    def TraceStatScan(self, t, event):
+        self.add_count('roots scanned', event.rootScanCount)
+        self.add_size('roots scanned', event.rootScanSize)
+        self.add_size('copied during root scan', event.rootCopiedSize)
+        self.add_count('segments scanned', event.segScanCount)
+        self.add_size('segments scanned', event.segScanSize)
+        self.add_size('copied during segment scan', event.segCopiedSize)
+        self.add_count('single ref scan', event.singleScanCount)
+        self.add_size('single refs scanned', event.singleScanSize)
+        self.add_size('copied during scan of single refs', event.singleCopiedSize)
+        self.add_count('read barrier hits', event.readBarrierHitCount)
+        self.add_count('max grey segments', event.greySegMax)
+        self.add_count('segments scanned pointlessly', event.pointlessScanCount)
+
+    def TraceStatFix(self, t, event):
+        self.add_count('fixed refs', event.fixRefCount)
+        self.add_count('fixed refs referring to segs', event.segRefCount)
+        self.add_count('fixed white refs', event.whiteSegRefCount)
+        self.add_count('nails', event.nailCount)
+        self.add_count('snaps', event.snapCount)
+        self.add_count('forwarded', event.forwardedCount)
+        self.add_size('forwarded', event.forwardedSize)
+        self.add_count('preseved in place', event.preservedInPlaceCount)
+        self.add_size('preserved in place', event.preservedInPlaceSize)
+
+    def TraceStatReclaim(self, t, event):
+        self.add_count('segs reclaimed', event.reclaimCount)
+        self.add_size('reclaimed', event.reclaimSize)
+
+    def ChainCondemnAuto(self, t, event):
+        self.gens = event.topCondemnedGenIndex + 1
+
+    def TraceCondemnAll(self, t, event):
+        self.gens = "all"
+
+    def note(self):
+        log = f"Trace at {self.times[0][0]:f}:\nTimes: \n"
+        base_t, base_cycles, _ = self.times[0]
+        for (t,c,n) in self.times[1:]:
+            log += "  {}: {:f} ms ({:,d} cycles)\n".format(n, (t-base_t)*1000, c-base_cycles)
+        log += "Sizes:\n"
+        for (n, s) in self.sizes:
+            log += f"  {n}: {bytesFormat(s)}\n"
+        for (n, c) in self.counts:
+            log += f"  {n}: {c:,d}\n"
+        log += f"white ref set: {self.whiteRefSet:064b}"
+        
+        return f"trace\n{self.create:f} s\n{self.gens}", log
+    
+    def draw(self, axes_dict):
+        # uniquify axes based on bounding boxes
+        axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
+        drawn = ([ax.axvline(t)
+                  for ax in axes_to_draw
+                  for (t,_,_) in self.times] +
+                 [ax.axvspan(self.times[0][0], self.times[-1][0], alpha=0.5,facecolor='r')
+                  for ax in axes_to_draw])
+        return drawn
+        
 
 class Arena(EventHandler):
     "Model of an MPS arena."
@@ -398,10 +500,13 @@ class Arena(EventHandler):
         self.model.add_time_series(
             self, self._univ_ref_size, bytesAxis, "zone-univ.ref",
             "size of segments referencing the universe")
-        self._condemned_gens = TimeSeries()
+        self._live_traces = {} # trace pointer -> dictionary
+        self._all_traces = {} # start time -> dictionary
+        self._traces = TimeSeries(note=self.trace_note,
+                                  draw=self.trace_draw)
         self.model.add_time_series(
-            self, self._condemned_gens, traceAxis, "condemned.gens",
-            "proportion of chain condemned by trace", clickline=True,
+            self, self._traces, traceAxis, "trace",
+            "generations condemned by trace", clickdraw=True,
             marker='x', linestyle='None')
         self._condemned_size = TimeSeries()
         self.model.add_time_series(
@@ -479,18 +584,56 @@ class Arena(EventHandler):
     def ArenaPollEnd(self, t, event):
         self._poll.off(t)
 
+    def trace_note(self, t):
+        if t not in self._all_traces:
+            return f'no trace {t}', f'no trace {t}'
+        return self._all_traces[t].note()
+    
+    def trace_draw(self, t, axes_dict):
+        if t not in self._all_traces:
+            return []
+        return self._all_traces[t].draw(axes_dict)
+
+    def TraceCreate(self, t, event):
+        assert event.trace not in self._live_traces
+        assert t not in self._all_traces
+        trace = Trace(self, t, event)
+        self._live_traces[event.trace] = self._all_traces[t] = trace
+
+    def delegate_to_trace(self, t, event):
+        "Handle a telemetry event by delegating to the trace model."
+        trace = self._live_traces[event.trace]
+        trace.handle(t, event)
+        return trace
+
+    TraceFlipBegin = \
+    TraceFlipEnd = \
+    TraceBandAdvance = \
+    TraceReclaim = \
+    TraceStatScan = \
+    TraceStatFix = \
+    TraceStatReclaim = \
+        delegate_to_trace
+
     def ChainCondemnAuto(self, t, event):
-        self._condemned_gens.append(t, event.topCondemnedGenIndex + 1)
+        trace = self.delegate_to_trace(t, event)
+        self._traces.append(trace.create, event.topCondemnedGenIndex + 1)
 
     def TraceCondemnAll(self, t, event):
-        self._condemned_gens.append(t, len(self._gen))
+        trace = self.delegate_to_trace(t, event)
+        self._traces.append(trace.create, len(self._gens)) # TODO what's the right number here??!
+
+    def TraceDestroy(self, t, event):
+        self.delegate_to_trace(t, event)
+        del self._live_traces[event.trace]
 
     def TraceStart(self, t, event):
+        self.delegate_to_trace(t, event)
         self._condemned_size.append(t, event.condemned)
         if self._seg_summary:
             for gen in self._gen.values():
                 gen.update_ref_size(t, self._seg_summary, self._seg_size)
-
+    
     def SegSetSummary(self, t, event):
         size = event.size
         self._seg_summary[event.seg] = event.newSummary
@@ -520,7 +663,7 @@ class Line:
                    .split())
 
     def __init__(self, owner, series, yaxis, name, desc,
-                 draw=True, color_as=None, clickline=False,
+                 draw=True, color_as=None, clickdraw=False,
                  **kwargs):
         self.owner = owner      # Owning object.
         self.series = series    # Time series.
@@ -528,7 +671,7 @@ class Line:
         self._name = name       # Brief description.
         self.desc = desc        # Brief description.
         self.draw = draw        # Plot this line?
-        self.clickline = clickline # should a click on a data point draw a vertical line on the axes?
+        self.clickdraw = clickdraw # should a click on a data point draw something on the axes?
         if color_as:
             self.color = color_as.color
         else:
@@ -544,6 +687,9 @@ class Line:
     @property
     def ready(self):
         return len(self.series.t) >= 1
+
+    def count(self):
+        return len(self.series.t)
 
     def unplot(self):
         if self.axes:
@@ -571,11 +717,25 @@ class Line:
             return False, None
         return self.line.contains(event)
 
-    def drawline(self, index, axes_dict):
+    def note(self, index):
+        "Return annotation text and log box text for a selected point."
         t = self.series.t[index]
-        # Could just draw on axes_dict[self.yaxis]
-        return [ax.axvline(t) for ax in axes_dict.values()]
+        note = log = None
+        if self.series.note is not None:
+            return self.series.note(t)
+        return None, None
 
+    def drawPoint(self, index, axes_dict):
+        "Draw in response to a click on a data point, and return a list of drawn items."
+        t = self.series.t[index]
+        drawn = None
+        # Could just draw on axes_dict[self.yaxis] ??
+        if self.clickdraw:
+            if self.series.draw is None:
+                drawn = [ax.axvline(t) for ax in axes_dict.values()]
+            else:
+                drawn = self.series.draw(t, axes_dict)
+        return drawn
 
 class Model(EventHandler):
     "Model of an application using the MPS."
@@ -701,6 +861,16 @@ class Model(EventHandler):
     TraceCondemnAll = \
     TraceEndGen = \
     TraceStart = \
+    TraceCreate = \
+    TraceDestroy = \
+    TraceStart = \
+    TraceFlipBegin = \
+    TraceFlipEnd = \
+    TraceBandAdvance = \
+    TraceReclaim = \
+    TraceStatScan = \
+    TraceStatFix = \
+    TraceStatReclaim = \
         delegate_to_arena
 
     def EventClockSync(self, t, event):
@@ -757,6 +927,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Control-W (Command-W on macOS) shortcut for closing the window.
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self)
         shortcut.activated.connect(self.close)
+
+        # Arrow key shortcuts for moving along lines.
+        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Right"), self)
+        shortcut.activated.connect(self._rightArrow)
+        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Left"), self)
+        shortcut.activated.connect(self._leftArrow)
 
         main = QtWidgets.QWidget()
         self.setCentralWidget(main)
@@ -816,22 +992,59 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             visible=False)
         self._line_annotation.get_bbox_patch().set_alpha(0.8)
         self._annotated_line = None
+        self._annotated_point = None
         self._canvas.mpl_connect("button_release_event", self._click)
 
-        # clicklines
-        self._clicklines = defaultdict(dict)
+        # Things drawn in response to a click
+        self._clickdrawn = defaultdict(dict)
 
         # Call self._update in a loop forever.
         self._update()
         self._timer = self._canvas.new_timer(100, [(self._update, (), {})])
         self._timer.start()
 
+    def _rightArrow(self):
+        if self._annotated_line is None:
+            return
+        self.annotate_point(self._annotated_line, self._annotated_point+1)
+
+    def _leftArrow(self, *args, **kwArgs):
+        if self._annotated_line is None:
+            return
+        self.annotate_point(self._annotated_line, self._annotated_point-1)
+
+    def annotate_point(self, line, i):
+        if i < 0 or i > line.count():
+            return False
+        a = self._line_annotation
+        a.remove()
+        x, y = line.line.get_data()
+        note, log = line.note(i)
+        if note is None:
+            note = [f"{line.name}",f"{x[i]:f} s",f"{line.yaxis.fmt(y[i])}"]
+            log = ' '.join(note)
+            note = '\n'.join(note)
+        self._logbox.append(log)
+        line.axes.add_artist(a)
+        a.xy = x[i], y[i]
+        a.set_text(note)
+        a.set_visible(True)
+        self._annotated_line = line
+        self._annotated_point = i
+        return True
+
     def _click(self, event):
         "Handle left mouse click by annotating line clicked on."
         if event.button != 1 or not event.inaxes:
             return
         modifiers = QtGui.QGuiApplication.keyboardModifiers()
-        a = self._line_annotation
+        # if control not held down, make all existing clickdraws go away
+        if not (modifiers & QtCore.Qt.ControlModifier):
+            for cl in self._clickdrawn.values():
+                for ls in cl.values():
+                    for l in ls:
+                        l.set_visible(False)
+            self._clickdrawn = defaultdict(dict)
         for line in self._model.lines:
             if not (line.ready and line.draw):
                 continue
@@ -839,28 +1052,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             if contains:
                 x, y = line.line.get_data()
                 i = index['ind'][0]
-                a.remove()
-                line.axes.add_artist(a)
-                a.xy = x[i], y[i]
-                text = [f"{line.name}",f"{x[i]:f} s",f"{line.yaxis.fmt(y[i])}"]
-                self._logbox.append(' '.join(text))
-                a.set_text('\n'.join(text))
-                a.set_visible(True)
-                self._annotated_line = line
-                if line.clickline:
-                    if i in self._clicklines[line]:
-                        for l in self._clicklines[line][i]:
-                            l.set_visible(False)
-                        del self._clicklines[line][i]
-                        break
-                    # if control not held down, make existing clicklines go away
-                    if not (modifiers & QtCore.Qt.ControlModifier):
-                        for cl in self._clicklines.values():
-                            for ls in cl.values():
-                                for l in ls:
-                                    l.set_visible(False)
-                        self._clicklines = defaultdict(dict)
-                    self._clicklines[line][i] = line.drawline(i, self._axes_dict)
+                if i in self._clickdrawn[line]: # remove things previously drawn for this point
+                    for l in self._clickdrawn[line][i]:
+                        l.set_visible(False)
+                    del self._clickdrawn[line][i]
+                else:
+                    drawn = line.drawPoint(i, self._axes_dict)
+                    if drawn is not None:
+                        self._clickdrawn[line][i] = drawn
+                self.annotate_point(line, i)
                 break
         else:
             a.set_visible(False)
