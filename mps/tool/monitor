@@ -25,6 +25,7 @@ from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
+from matplotlib import ticker
 
 import mpsevent
 
@@ -38,20 +39,36 @@ class YAxis:
 
 def bytesFormat(y):
     "Format a number of bytes as a string."
+    return bytesTickFormatter(y, None) + (' bytes' if y < 10000 else 'B')
+
+def bytesTickFormatter(y, pos):
+    if y < 0:
+        return '-'+bytesTickFormatter(-y,pos)
     i = 0
-    while y > 10000:
+    while y >= 10000:
         y /= 1000
         i += 1
-    if i == 0:
-        return '{:,.0f} bytes'.format(y)
-    else:
-        return '{:.2f} {}B'.format(y,' KMGTPE'[i])
+    return '{:.0f} {}'.format(y,' KMGTPE'[i]).strip()
 
 # The three y axes which we support
 bytesAxis = YAxis('bytes', bytesFormat)
 fractionAxis = YAxis('fraction', lambda v: f'{v:.5f}')
 traceAxis = YAxis('gens', lambda v: f'{v} gens')
+countAxis = YAxis('count', lambda v: f'{v:,d}')
 
+# Names of scanning ranks
+rank_name = {0: 'Ambig',
+             1: 'Exact',
+             2: 'Final',
+             3: 'Weak',
+}
+
+# Names of access modes
+access_mode = {1: 'Read',
+               2: 'Write',
+               3: 'Read/Write',
+}
+               
 # Mapping from event code to a namedtuple for that event.
 EVENT_NAMEDTUPLE = {
     code: namedtuple(desc.name, ['header'] + [p.name for p in desc.params])
@@ -235,16 +252,31 @@ class Accumulator(TimeSeries):
         self.value -= delta
         self.append(t, self.value)
 
+class RateSeries(TimeSeries):
+    "Time series that counts events within consecutive periods."
+    def __init__(self, t, period=1):
+        super().__init__()
+        self._period = period
+        self._count = 0
+        self._limit = ((t // period) + 1) * period
+
+    def inc(self, t):
+        while t >= self._limit:
+            self.append(self._limit - self._period/2, self._count)
+            self._count = 0
+            self._limit += self._period
+        self._count += 1
 
 class OnOffSeries(TimeSeries):
     """Series of on/off events; can draw as an exponentially weighted moving
 average on/off ratio or (potentially) as shading bars."""
     def __init__(self, t, k=1):
-        super().__init__()
+        super().__init__(draw=self.draw)
         self._ons = []
-        self._last = t
+        self._start = self._last = t
         self._k = k
         self._ratio = 0.0
+        self.note = self._note
 
     def off(self, t):
         dt = t - self._last
@@ -261,6 +293,29 @@ average on/off ratio or (potentially) as shading bars."""
         self._last = t
         self.append(t, self._ratio)
 
+    def recompute(self, k):
+        self._k = k
+        self._last = self._start
+        self._ratio = 0.0
+        ts = self.t
+        self.t = []
+        self.y = []
+        self._ons = []
+        for i in range(len(ts) // 2):
+            self.on(ts[i*2])
+            self.off(ts[i*2+1])
+
+    def _note(self, line, t, index):
+        on = self._ons[index // 2]
+        l = on[1]-on[0]
+        note = f"{line.name}: {on[0]:.3f} + {l * 1000:.3f} ms"
+        return note, note
+        
+    def draw(self, line, t, index, axes_dict):
+        axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
+        on = self._ons[index // 2]
+        return [ax.axvspan(on[0], on[1], alpha=0.5, facecolor='g')
+                for ax in axes_to_draw]
 
 class EventHandler:
     """Object that handles a telemetry event by dispatching to the method
@@ -387,15 +442,13 @@ class Trace(EventHandler):
     def add_count(self, name, c):
         self.counts.append((name, c))
 
-    def TraceDestroy(self, t, event):
-        self.add_time("destroy", t, event)
-
     def TraceStart(self, t, event):
         self.add_time("start", t, event)
         self.add_size("condemned", event.condemned)
         self.add_size("notCondemned", event.notCondemned)
         self.add_size("foundation", event.foundation)
         self.whiteRefSet = event.white
+        self.whiteZones = bin(self.whiteRefSet).count('1')
 
     def TraceFlipBegin(self, t, event):
         self.add_time("flip begin", t, event)
@@ -404,10 +457,13 @@ class Trace(EventHandler):
         self.add_time("flip end", t, event)
 
     def TraceBandAdvance(self, t, event):
-        self.add_time(f"band advance {event.rank}", t, event)
+        self.add_time(f"band advance {rank_name[event.rank]}", t, event)
 
     def TraceReclaim(self, t, event):
         self.add_time("reclaim", t, event)
+
+    def TraceDestroy(self, t, event):
+        self.add_time("destroy", t, event)
 
     def TraceStatScan(self, t, event):
         self.add_count('roots scanned', event.rootScanCount)
@@ -427,7 +483,7 @@ class Trace(EventHandler):
         self.add_count('fixed refs', event.fixRefCount)
         self.add_count('fixed refs referring to segs', event.segRefCount)
         self.add_count('fixed white refs', event.whiteSegRefCount)
-        self.add_count('nails', event.nailCount)
+        self.add_count('nailboards', event.nailCount)
         self.add_count('snaps', event.snapCount)
         self.add_count('forwarded', event.forwardedCount)
         self.add_size('forwarded', event.forwardedSize)
@@ -445,29 +501,31 @@ class Trace(EventHandler):
         self.gens = "all"
 
     def note(self):
-        log = f"Trace at {self.times[0][0]:f}:\nTimes: \n"
         base_t, base_cycles, _ = self.times[0]
-        for (t,c,n) in self.times[1:]:
-            log += "  {}: {:f} ms ({:,d} cycles)\n".format(n, (t-base_t)*1000, c-base_cycles)
+        log = f"Trace at {base_t:.6f}:\nTimes: \n"
+        ot, oc = base_t, base_cycles
+        for t,c,n in self.times[1:]:
+            log += "  {:20} +{:.3f} ms (+{:,d} cycles): ({:.3f} ms, {:,d} c)\n".format(
+                n, (t-ot)*1000, c-oc, (t-base_t)*1000, c-base_cycles)
+            ot, oc = t, c
         log += "Sizes:\n"
         for (n, s) in self.sizes:
             log += f"  {n}: {bytesFormat(s)}\n"
+        log += "Counts:\n"
         for (n, c) in self.counts:
             log += f"  {n}: {c:,d}\n"
-        log += f"white ref set: {self.whiteRefSet:064b}"
+        log += f"white zones: {self.whiteZones} ({self.whiteRefSet:064b})"
         
         return f"trace\n{self.create:f} s\n{self.gens}", log
     
     def draw(self, axes_dict):
         # uniquify axes based on bounding boxes
         axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
-        drawn = ([ax.axvline(t)
-                  for ax in axes_to_draw
-                  for (t,_,_) in self.times] +
-                 [ax.axvspan(self.times[0][0], self.times[-1][0], alpha=0.5,facecolor='r')
-                  for ax in axes_to_draw])
-        return drawn
-        
+        return ([ax.axvline(t)
+                 for ax in axes_to_draw
+                 for (t,_,_) in self.times] +
+                [ax.axvspan(self.times[0][0], self.times[-1][0], alpha=0.5, facecolor='r')
+                 for ax in axes_to_draw])
 
 class Arena(EventHandler):
     "Model of an MPS arena."
@@ -492,7 +550,15 @@ class Arena(EventHandler):
         self._poll = OnOffSeries(t)
         self.model.add_time_series(
             self, self._poll, fractionAxis, "poll",
-            "polling time moving average")
+            "polling time moving average",
+            clickdraw=True)
+        self._access = {}
+        for am, name in sorted(access_mode.items()):
+            self._access[am] = RateSeries(t)
+            self.model.add_time_series(
+                self, self._access[am], countAxis, f"{name} barrier",
+                f"{name} barrier hits per second")
+        self._last_access = None
         self._seg_size = {}      # segment pointer -> size
         self._seg_summary = {}   # segment pointer -> summary
         self._zone_ref_size = {} # zone -> refsize Accumulator
@@ -584,12 +650,17 @@ class Arena(EventHandler):
     def ArenaPollEnd(self, t, event):
         self._poll.off(t)
 
-    def trace_note(self, t):
+    def ArenaAccess(self, t, event):
+        if event.count != self._last_access:
+            self._last_access = event.count
+            self._access[event.mode].inc(t)
+
+    def trace_note(self, line, t, index):
         if t not in self._all_traces:
             return f'no trace {t}', f'no trace {t}'
         return self._all_traces[t].note()
     
-    def trace_draw(self, t, axes_dict):
+    def trace_draw(self, line, t, index, axes_dict):
         if t not in self._all_traces:
             return []
         return self._all_traces[t].draw(axes_dict)
@@ -722,7 +793,7 @@ class Line:
         t = self.series.t[index]
         note = log = None
         if self.series.note is not None:
-            return self.series.note(t)
+            return self.series.note(self, t, index)
         return None, None
 
     def drawPoint(self, index, axes_dict):
@@ -734,7 +805,7 @@ class Line:
             if self.series.draw is None:
                 drawn = [ax.axvline(t) for ax in axes_dict.values()]
             else:
-                drawn = self.series.draw(t, axes_dict)
+                drawn = self.series.draw(self, t, index, axes_dict)
         return drawn
 
 class Model(EventHandler):
@@ -871,6 +942,7 @@ class Model(EventHandler):
     TraceStatScan = \
     TraceStatFix = \
     TraceStatReclaim = \
+    ArenaAccess = \
         delegate_to_arena
 
     def EventClockSync(self, t, event):
@@ -930,9 +1002,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         # Arrow key shortcuts for moving along lines.
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Right"), self)
-        shortcut.activated.connect(self._rightArrow)
+        shortcut.activated.connect(self._next_point)
         shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Left"), self)
-        shortcut.activated.connect(self._leftArrow)
+        shortcut.activated.connect(self._previous_point)
+        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("PgUp"), self)
+        shortcut.activated.connect(self._slower)
+        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("PgDown"), self)
+        shortcut.activated.connect(self._faster)
 
         main = QtWidgets.QWidget()
         self.setCentralWidget(main)
@@ -962,14 +1038,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         upper_layout.addWidget(self._lines_scroll)
 
         # Matplot canvas and toolbar.
-        self._canvas = FigureCanvas(Figure(figsize=(10, 6)))
-        bytes_axes, trace_axes = self._canvas.figure.subplots(nrows=2, sharex=True, gridspec_kw={'hspace':0, 'height_ratios':(5, 1)})
+        self._canvas = FigureCanvas(Figure(figsize=(10, 8)))
+        bytes_axes, trace_axes = self._canvas.figure.subplots(nrows=2, sharex=True, gridspec_kw={'hspace':0, 'height_ratios':(5, 2)})
         fraction_axes = bytes_axes.twinx()
+        count_axes = trace_axes.twinx()
         self._axes_dict = {bytesAxis: bytes_axes,
                            fractionAxis: fraction_axes,
-                           traceAxis: trace_axes}
+                           traceAxis: trace_axes,
+                           countAxis: count_axes}
         trace_axes.set_xlabel("time (seconds)")
         bytes_axes.set_xlabel("time (seconds)")
+        bytes_axes.ticklabel_format(style='plain')
+        bytes_axes.yaxis.set_major_formatter(ticker.FuncFormatter(bytesTickFormatter))
         # trace_axes.set_yticks([])
         # trace_axes.tick_params(axis='y', which='both', left=False)
         upper_layout.addWidget(self._canvas)
@@ -1003,21 +1083,37 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._timer = self._canvas.new_timer(100, [(self._update, (), {})])
         self._timer.start()
 
-    def _rightArrow(self):
+    def _next_point(self):
         if self._annotated_line is None:
             return
         self.annotate_point(self._annotated_line, self._annotated_point+1)
 
-    def _leftArrow(self, *args, **kwArgs):
+    def _previous_point(self):
         if self._annotated_line is None:
             return
         self.annotate_point(self._annotated_line, self._annotated_point-1)
+
+    def _recompute(self, factor):
+        for line in self._model.lines:
+            if line._name == "poll":
+                k = line.series._k
+                self._logbox.append(f'time constant: {1/k:.2f} -> {factor/k:.2f} ...')
+                line.series.recompute(k/factor)
+                self._logbox.append(f'... done')
+        self._model.needs_redraw()
+
+    def _slower(self):
+        self._recompute(2)
+
+    def _faster(self):
+        self._recompute(0.5)
 
     def annotate_point(self, line, i):
         if i < 0 or i > line.count():
             return False
         a = self._line_annotation
-        a.remove()
+        if a.figure is not None:
+            a.remove()
         x, y = line.line.get_data()
         note, log = line.note(i)
         if note is None:
@@ -1063,7 +1159,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self.annotate_point(line, i)
                 break
         else:
-            a.set_visible(False)
+            self._line_annotation.set_visible(False)
             self._annotated_line = None
 
     @property
