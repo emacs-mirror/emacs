@@ -740,11 +740,6 @@ of `array-rows-numbered'."
 	((> index limit) limit)
 	(t index)))
 
-(defun xor (pred1 pred2)
-  "Return the logical exclusive or of predicates PRED1 and PRED2."
-  (and (or pred1 pred2)
-       (not (and pred1 pred2))))
-
 (defun current-line ()
   "Return the current buffer line at point.  The first line is 0."
   (count-lines (point-min) (line-beginning-position)))

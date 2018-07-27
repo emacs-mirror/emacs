@@ -366,6 +366,11 @@ was called."
   (declare (compiler-macro (lambda (_) `(= 0 ,number))))
   (= 0 number))
 
+(defun xor (pred1 pred2)
+  "Return the logical exclusive or of predicates PRED1 and PRED2."
+  (and (or pred1 pred2)
+       (not (and pred1 pred2))))
+
 
 ;;;; List functions.
 
