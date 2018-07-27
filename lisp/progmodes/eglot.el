@@ -137,7 +137,7 @@ lasted more than that many seconds."
   :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
                  (integer :tag "Number of seconds")))
 
-
+
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
 (cl-defmacro eglot--with-live-buffer (buf &rest body)
@@ -225,7 +225,7 @@ lasted more than that many seconds."
   :documentation
   "Represents a server. Wraps a process for LSP communication.")
 
-
+
 ;;; Process management
 (defvar eglot--servers-by-project (make-hash-table :test #'equal)
   "Keys are projects.  Values are lists of processes.")
@@ -417,9 +417,7 @@ INTERACTIVE is t if called interactively."
           ()
           (remove-hook 'post-command-hook #'maybe-connect nil)
           (eglot--with-live-buffer buffer
-            (if eglot--managed-mode
-                (eglot--message "Buffer is already managed by existing `%s'"
-                                (eglot--project-nickname (eglot--current-server)))
+            (unless eglot--managed-mode
               (let ((server (apply #'eglot--connect (eglot--guess-contact))))
                 (eglot--message
                  "Automatically started `%s' to manage `%s' buffers in project `%s'"
