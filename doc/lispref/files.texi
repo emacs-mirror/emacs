@@ -96,7 +96,7 @@ not alter it, the fastest way is to use @code{insert-file-contents} in a
 temporary buffer.  Visiting the file is not necessary and takes longer.
 @xref{Reading from Files}.
 
-@deffn Command find-file filename &optional wildcards
+@deffn Command find-file filename &optional wildcards async
 This command selects a buffer visiting the file @var{filename},
 using an existing buffer if there is one, and otherwise creating a
 new buffer and reading the file into it.  It also returns that buffer.
@@ -105,7 +105,8 @@ Aside from some technical details, the body of the @code{find-file}
 function is basically equivalent to:
 
 @smallexample
-(switch-to-buffer (find-file-noselect filename nil nil wildcards))
+(switch-to-buffer
+  (find-file-noselect filename nil nil wildcards async))
 @end smallexample
 
 @noindent
@@ -115,21 +116,27 @@ If @var{wildcards} is non-@code{nil}, which is always true in an
 interactive call, then @code{find-file} expands wildcard characters in
 @var{filename} and visits all the matching files.
 
+If @var{async} is non-@code{nil}, the file will be loaded into the
+buffer asynchronously.  Interactively, this is indicated by either
+setting user option @code{find-file-asynchronously} to non-@code{nil},
+or by a prefix argument.
+
 When @code{find-file} is called interactively, it prompts for
 @var{filename} in the minibuffer.
 @end deffn
 
-@deffn Command find-file-literally filename
+@deffn Command find-file-literally filename &optional async
 This command visits @var{filename}, like @code{find-file} does, but it
 does not perform any format conversions (@pxref{Format Conversion}),
 character code conversions (@pxref{Coding Systems}), or end-of-line
 conversions (@pxref{Coding System Basics, End of line conversion}).
-The buffer visiting the file is made unibyte, and its major mode is
-Fundamental mode, regardless of the file name.  File local variable
-specifications  in the file (@pxref{File Local Variables}) are
-ignored, and automatic decompression and adding a newline at the end
-of the file due to @code{require-final-newline} (@pxref{Saving
-Buffers, require-final-newline}) are also disabled.
+If called interactively, the argument @var{async} is determined like
+in @code{find-file}.  The buffer visiting the file is made unibyte,
+and its major mode is Fundamental mode, regardless of the file name.
+File local variable specifications in the file (@pxref{File Local
+Variables}) are ignored, and automatic decompression and adding a
+newline at the end of the file due to @code{require-final-newline}
+(@pxref{Saving Buffers, require-final-newline}) are also disabled.
 
 Note that if Emacs already has a buffer visiting the same file
 non-literally, it will not visit the same file literally, but instead
@@ -139,7 +146,7 @@ buffer and then read the file contents into it using
 @code{insert-file-contents-literally} (@pxref{Reading from Files}).
 @end deffn
 
-@defun find-file-noselect filename &optional nowarn rawfile wildcards
+@defun find-file-noselect filename &optional nowarn rawfile wildcards async
 This function is the guts of all the file-visiting functions.  It
 returns a buffer visiting the file @var{filename}.  You may make the
 buffer current or display it in a window if you wish, but this
@@ -157,7 +164,9 @@ Reading the file involves decoding the file's contents (@pxref{Coding
 Systems}), including end-of-line conversion, and format conversion
 (@pxref{Format Conversion}).  If @var{wildcards} is non-@code{nil},
 then @code{find-file-noselect} expands wildcard characters in
-@var{filename} and visits all the matching files.
+@var{filename} and visits all the matching files.  If @var{async} is
+non-@code{nil} and there are several matching files due to expansion
+of wildcard characters, every file will be loaded in an own thread.
 
 This function displays warning or advisory messages in various peculiar
 cases, unless the optional argument @var{nowarn} is non-@code{nil}.  For
@@ -191,7 +200,7 @@ various files.
 @end example
 @end defun
 
-@deffn Command find-file-other-window filename &optional wildcards
+@deffn Command find-file-other-window filename &optional wildcards async
 This command selects a buffer visiting the file @var{filename}, but
 does so in a window other than the selected window.  It may use
 another existing window or split a window; see @ref{Switching
@@ -201,7 +210,7 @@ When this command is called interactively, it prompts for
 @var{filename}.
 @end deffn
 
-@deffn Command find-file-read-only filename &optional wildcards
+@deffn Command find-file-read-only filename &optional wildcards async
 This command selects a buffer visiting the file @var{filename}, like
 @code{find-file}, but it marks the buffer as read-only.  @xref{Read Only
 Buffers}, for related functions and variables.
@@ -217,6 +226,14 @@ match them (when invoked interactively or when their @var{wildcards}
 argument is non-@code{nil}).  If this option is @code{nil}, then
 the @code{find-file} commands ignore their @var{wildcards} argument
 and never treat wildcard characters specially.
+@end defopt
+
+@defopt find-file-asynchronously
+If this variable is non-@code{nil}, a file will be visited
+asynchronously when called interactively.  If it is a regular
+expression, it must match the file name to be visited.  This behavior
+is toggled by a prefix argument to the interactive call of the file
+visiting command.
 @end defopt
 
 @defopt find-file-hook

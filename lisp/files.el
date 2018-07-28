@@ -1629,7 +1629,7 @@ suppress wildcard expansion by setting `find-file-wildcards' to nil.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
 asynchronously.  Interactively, this is indicated by either
-setting `find-file-asynchronously' to nil, or by a prefix
+setting `find-file-asynchronously' to non-nil, or by a prefix
 argument.
 
 To visit a file without any kind of conversion and without
@@ -1665,7 +1665,8 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by a prefix
+asynchronously.  Interactively, this is indicated by either
+setting `find-file-asynchronously' to non-nil, or by a prefix
 argument."
   (interactive
    (find-file-read-args "Find file in other window: "
@@ -1702,7 +1703,8 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by a prefix
+asynchronously.  Interactively, this is indicated by either
+setting `find-file-asynchronously' to non-nil, or by a prefix
 argument."
   (interactive
    (find-file-read-args "Find file in other frame: "
@@ -1723,7 +1725,8 @@ Like \\[find-file], but only allow a file that exists, and do not allow
 file names with wildcards.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by a prefix
+asynchronously.  Interactively, this is indicated by either
+setting `find-file-asynchronously' to non-nil, or by a prefix
 argument."
    (interactive
     (find-file-read-args "Find existing file: " t))
@@ -1781,7 +1784,8 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by a prefix
+asynchronously.  Interactively, this is indicated by either
+setting `find-file-asynchronously' to non-nil, or by a prefix
 argument."
   (interactive
    (save-selected-window
@@ -1823,7 +1827,8 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by a prefix
+asynchronously.  Interactively, this is indicated by either
+setting `find-file-asynchronously' to non-nil, or by a prefix
 argument.
 
 If the current buffer is an indirect buffer, or the base buffer
@@ -2493,7 +2498,8 @@ If Emacs already has a buffer which is visiting the file,
 this command asks you whether to visit it literally instead.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by a prefix
+asynchronously.  Interactively, this is indicated by either
+setting `find-file-asynchronously' to non-nil, or by a prefix
 argument.
 
 In non-interactive use, the value is the buffer where the file is
