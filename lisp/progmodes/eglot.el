@@ -597,10 +597,10 @@ CONNECT-ARGS are passed as additional arguments to
 
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
-  (save-excursion
-    (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
-          :character (- (goto-char (or pos (point)))
-                        (line-beginning-position)))))
+  (eglot--widening
+   (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
+         :character (- (goto-char (or pos (point)))
+                       (line-beginning-position)))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
