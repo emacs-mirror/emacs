@@ -793,12 +793,10 @@ void TraceDestroyInit(Trace trace)
 
 void TraceDestroyFinished(Trace trace)
 {
-  Arena arena;
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
 
-  arena = trace->arena;
-  STATISTIC(EVENT14(TraceStatScan, trace, arena,
+  STATISTIC(EVENT14(TraceStatScan, trace, trace->arena,
                     trace->rootScanCount, trace->rootScanSize,
                     trace->rootCopiedSize,
                     trace->segScanCount, trace->segScanSize,
@@ -807,14 +805,14 @@ void TraceDestroyFinished(Trace trace)
                     trace->singleCopiedSize,
                     trace->readBarrierHitCount, trace->greySegMax,
                     trace->pointlessScanCount));
-  STATISTIC(EVENT11(TraceStatFix, trace, arena,
+  STATISTIC(EVENT11(TraceStatFix, trace, trace->arena,
                     trace->fixRefCount, trace->segRefCount,
                     trace->whiteSegRefCount,
                     trace->nailCount, trace->snapCount,
                     trace->forwardedCount, trace->forwardedSize,
                     trace->preservedInPlaceCount,
                     trace->preservedInPlaceSize));
-  STATISTIC(EVENT4(TraceStatReclaim, trace, arena,
+  STATISTIC(EVENT4(TraceStatReclaim, trace, trace->arena,
                    trace->reclaimCount, trace->reclaimSize));
 
   traceDestroyCommon(trace);
