@@ -1582,6 +1582,8 @@ If WILDCARDS is non-nil, return the spec (<filename> t <async>)."
   (let ((filename (read-file-name prompt nil default-directory mustmatch))
         (async (and (xor find-file-asynchronously current-prefix-arg)
                     (featurep 'threads))))
+    (when (and async (stringp find-file-asynchronously))
+      (setq async (string-match-p find-file-asynchronously filename)))
     (if wildcards `(,filename t ,async) `(,filename ,async))))
 
 (defmacro find-file-with-threads (filename async &rest body)
@@ -2069,10 +2071,12 @@ suppresses this warning."
 
 (defcustom find-file-asynchronously nil
   "Non-nil means visit file asynchronously when called interactively.
-This behavior is toggled by a prefix argument to the interactive call."
+If it is a regular expression, it must match the file name to be
+visited.  This behavior is toggled by a prefix argument to the
+interactive call."
   :group 'files
   :version "27.1"
-  :type 'boolean)
+  :type '(choice boolean regexp))
 
 (defcustom large-file-warning-threshold 10000000
   "Maximum size of file above which a confirmation is requested.
