@@ -1107,7 +1107,7 @@ When called interactively, use the currently active server"
     (when (eglot--server-capable :textDocumentSync :willSaveWaitUntil)
       (ignore-errors
         (eglot--apply-text-edits
-         (jsonrpc-request server :textDocument/willSaveWaituntil params
+         (jsonrpc-request server :textDocument/willSaveWaitUntil params
                           :timeout 0.5))))))
 
 (defun eglot--signal-textDocument/didSave ()
