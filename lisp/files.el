@@ -1591,12 +1591,7 @@ If WILDCARDS is non-nil, return the spec (<filename> t <async>)."
   (declare (indent 2) (debug t))
   `(if ,async
        (progn
-         (make-thread
-          ;; We use `vc-mutex' here in order to let all
-          ;; `vc-refresh-state' run after the file visiting
-          ;; operations.
-          (lambda () (with-mutex vc-mutex ,@body))
-          (concat "find-file " ,filename))
+         (make-thread (lambda () ,@body) (concat "find-file " ,filename))
          (thread-yield))
      ,@body))
 
@@ -2216,10 +2211,13 @@ every file will be loaded in an own thread."
                             (lambda () (find-file-noselect file))
                             (concat "find-file-noselect " file)))
                          files))
-                  ;; Collect the results.
-                  (thread-yield)
-                  (dolist (thread threads result)
-                    (setq result (cons (thread-join thread) result))))
+                  ;; Collect the results.  We use `vc-mutex' here in
+                  ;; order to let all `vc-refresh-state' threads run
+                  ;; after the file visiting operations.
+                  (with-mutex vc-mutex
+                    (thread-yield)
+                    (dolist (thread threads result)
+                      (setq result (cons (thread-join thread) result)))))
 
               (mapcar #'find-file-noselect files))))
 
