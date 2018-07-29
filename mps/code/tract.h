@@ -87,9 +87,15 @@ extern void TractFinish(Tract tract);
  * field of this union.  See <design/arena/#tract.field.pool>.
  */
 
+typedef struct PageSpareStruct {
+  PagePoolUnion pool;         /* spare tract, pool.state == PoolStateSPARE */
+  RingStruct spareRing;       /* link in arena spare ring, LRU order */
+} PageSpareStruct;
+
 typedef union PageUnion {     /* page structure */
   PagePoolUnion pool;         /* pool.state is the discriminator */
   TractStruct alloc;          /* allocated tract, pool.state == PoolStateALLOC */
+  PageSpareStruct spare;      /* spare page, pool.state == PoolStateSPARE */
 } PageUnion;
 
 
@@ -98,6 +104,8 @@ typedef union PageUnion {     /* page structure */
 #define PagePool(page)        RVALUE((page)->pool.pool)
 #define PageIsAllocated(page) RVALUE(PagePool(page) != NULL)
 #define PageState(page)       RVALUE((page)->pool.state)
+#define PageSpareRing(page)   (&(page)->spare.spareRing)
+#define PageOfSpareRing(node) PARENT(PageUnion, spare, RING_ELT(PageSpare, spareRing, node))
 
 #define PageSetPool(page, _pool) \
   BEGIN \
