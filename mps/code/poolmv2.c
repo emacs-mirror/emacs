@@ -574,7 +574,7 @@ static Bool MVTSplinterFill(Addr *baseReturn, Addr *limitReturn,
 static void MVTOneSegOnly(Addr *baseIO, Addr *limitIO, MVT mvt, Size minSize)
 {
   Addr base, limit, segLimit;
-  Seg seg;
+  Seg seg = NULL;           /* suppress "may be used uninitialized" */
   Arena arena;
   
   base = *baseIO;
@@ -979,7 +979,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   /* <design/poolmvt/#arch.ap.no-fit.oversize.policy> */
   /* Return exceptional blocks directly to arena */
   if (size > mvt->fillSize) {
-    Seg seg;
+    Seg seg = NULL;         /* suppress "may be used uninitialized" */
     SURELY(SegOfAddr(&seg, PoolArena(pool), base));
     AVER(base == SegBase(seg));
     AVER(limit <= SegLimit(seg));
@@ -1190,7 +1190,7 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
   limit = RangeLimit(range);
 
   while (base < limit) {
-    Seg seg;
+    Seg seg = NULL;         /* suppress "may be used uninitialized" */
     Addr segBase, segLimit;
     
     SURELY(SegOfAddr(&seg, arena, base));
@@ -1331,7 +1331,7 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
 
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 {
-  Seg seg;
+  Seg seg = NULL;           /* suppress "may be used uninitialized" */
   Addr segLimit;
 
   SURELY(SegOfAddr(&seg, arena, base));
