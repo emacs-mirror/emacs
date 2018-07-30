@@ -28,16 +28,15 @@ All relative paths are relative to
 ----------------
 
 #. Make sure you have a version branch from which to make the release.
-   If not, follow the `version creation procedure <version-create>`_
-   first.
+   If not, follow the `version creation procedure`_ first.
 
-   .. _version-create: version-create
+   .. _version creation procedure: version-create
 
-#. Make sure that you have rights to push to the ``mps``
-   repository on GitHub. If not, follow the `Becoming a Ravenbrook
-   team member procedure <git-fusion>`_ first.
+#. Make sure that you can authenticate to Git Fusion, and that you
+   have rights to push to the ``mps`` repository on GitHub. If not,
+   follow the `Git Fusion procedures`_ first.
 
-   .. _git-fusion: https://info.ravenbrook.com/procedure/git-fusion
+   .. _Git Fusion procedures: https://info.ravenbrook.com/procedure/git-fusion
 
 
 3. Setting up for release
