@@ -167,7 +167,7 @@ lasted more than that many seconds."
                         :applyEdit t
                         :executeCommand `(:dynamicRegistration :json-false)
                         :workspaceEdit `(:documentChanges :json-false)
-                        :didChangeWatchesFiles `(:dynamicRegistration t)
+                        :didChangeWatchedFiles `(:dynamicRegistration t)
                         :symbol `(:dynamicRegistration :json-false))
             :textDocument
             (list
