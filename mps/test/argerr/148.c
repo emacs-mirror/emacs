@@ -222,6 +222,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
        */
        comment("About to fix with null pointer...");
        MPS_SCAN_BEGIN(ss) {
+         (void)MPS_FIX1(ss, NULL);
          res = MPS_FIX2(ss, NULL);
        } MPS_SCAN_END(ss);
        error("fix with null pointer");
