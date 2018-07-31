@@ -258,10 +258,14 @@ void ChunkFinish(Chunk chunk)
   AVER(BTIsResRange(chunk->allocTable, 0, chunk->pages));
   arena = ChunkArena(chunk);
 
-  if (arena->hasFreeLand)
-    ArenaFreeLandDelete(arena,
-                        PageIndexBase(chunk, chunk->allocBase),
-                        chunk->limit);
+  if (arena->hasFreeLand) {
+    Res res = ArenaFreeLandDelete(arena,
+                                  PageIndexBase(chunk, chunk->allocBase),
+                                  chunk->limit);
+    /* Can't fail because the range can't split because we passed the
+       whole chunk and chunks never coalesce. */
+    AVER(res == ResOK);
+  }
 
   ArenaChunkRemoved(arena, chunk);
 
@@ -479,7 +483,6 @@ void PageInit(Chunk chunk, Index pi)
   BTRes(chunk->allocTable, pi);
   PageSetPool(page, NULL);
   PageSetType(page, PageStateFREE);
-  RingInit(PageSpareRing(page));
 }
 
 
