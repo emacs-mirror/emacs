@@ -308,6 +308,11 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->bufferLogging = FALSE;
   RingInit(&arenaGlobals->poolRing);
   arenaGlobals->poolSerial = (Serial)0;
+  /* The system pools are:
+     1. arena->freeCBSBlockPoolStruct
+     2. arena->controlPoolStruct
+     3. arena->controlPoolStruct.cbsBlockPoolStruct */
+  arenaGlobals->systemPools = (Count)3;
   RingInit(&arenaGlobals->rootRing);
   arenaGlobals->rootSerial = (Serial)0;
   RingInit(&arenaGlobals->rememberedSummaryRing);
@@ -533,13 +538,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   AVER(RingIsSingle(&arenaGlobals->rootRing)); /* <design/check/#.common> */
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
-
-  /* At this point the following pools still exist:
-   * 0. arena->freeCBSBlockPoolStruct
-   * 1. arena->controlPoolStruct
-   * 2. arena->controlPoolStruct.cbsBlockPoolStruct
-   */
-  AVER(RingLength(&arenaGlobals->poolRing) == 3); /* <design/check/#.common> */
+  AVER(RingLength(&arenaGlobals->poolRing) == arenaGlobals->systemPools); /* <design/check/#.common> */
 }
 
 

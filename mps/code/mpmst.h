@@ -528,6 +528,7 @@ typedef struct GlobalsStruct {
   /* pool fields (<code/pool.c>) */
   RingStruct poolRing;          /* ring of pools in arena */
   Serial poolSerial;            /* serial of next created pool */
+  Count systemPools;            /* count of pools remaining at ArenaDestroy */
 
   /* root fields (<code/root.c>) */
   RingStruct rootRing;          /* ring of roots attached to arena */
