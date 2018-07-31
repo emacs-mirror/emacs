@@ -1348,7 +1348,6 @@ void SplayNodeRefresh(SplayTree splay, Tree node)
   AVERT(SplayTree, splay);
   AVERT(Tree, node);
   AVER(!SplayTreeIsEmpty(splay)); /* must contain node, at least */
-  AVER(SplayHasUpdate(splay)); /* otherwise, why call? */
 
   cmp = SplaySplay(splay, splay->nodeKey(node), splay->compare);
   AVER(cmp == CompareEQUAL);
@@ -1366,7 +1365,6 @@ void SplayNodeInit(SplayTree splay, Tree node)
   AVERT(Tree, node);
   AVER(!TreeHasLeft(node)); /* otherwise, call SplayNodeRefresh */
   AVER(!TreeHasRight(node)); /* otherwise, call SplayNodeRefresh */
-  AVER(SplayHasUpdate(splay)); /* otherwise, why call? */
 
   splay->updateNode(splay, node);
 }

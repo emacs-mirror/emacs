@@ -387,7 +387,7 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
   }
 }
 
-static void test(TestState state, unsigned n)
+static void test(TestState state, unsigned n, unsigned operations)
 {
   Addr base, limit;
   unsigned i;
@@ -398,7 +398,7 @@ static void test(TestState state, unsigned n)
   BTSetRange(state->allocTable, 0, state->size); /* Initially all allocated */
   check(state);
   for(i = 0; i < n; i++) {
-    switch(fbmRnd(3)) {
+    switch (fbmRnd(operations)) {
     case 0:
       randomRange(&base, &limit, state);
       allocate(state, base, limit);
@@ -419,7 +419,7 @@ static void test(TestState state, unsigned n)
       find(state, size, high, findDelete);
       break;
     default:
-      cdie(0, "invalid rnd(3)");
+      cdie(0, "invalid operation");
       return;
     }
     if ((i + 1) % 1000 == 0)
@@ -431,6 +431,14 @@ static void test(TestState state, unsigned n)
 
 int main(int argc, char *argv[])
 {
+  static const struct {
+    LandClass (*klass)(void);
+    unsigned operations;
+  } cbsConfig[] = {
+    {CBSClassGet, 2},
+    {CBSFastClassGet, 3},
+    {CBSZonedClassGet, 3},
+  };
   mps_arena_t mpsArena;
   Arena arena;
   TestStateStruct state;
@@ -443,7 +451,7 @@ int main(int argc, char *argv[])
   Land fl = FreelistLand(&flStruct);
   Land fo = FailoverLand(&foStruct);
   Pool mfs = MFSPool(&blockPool);
-  int i;
+  size_t i;
 
   testlib_init(argc, argv);
   state.size = ArraySize;
@@ -470,14 +478,16 @@ int main(int argc, char *argv[])
 
   /* 1. Test CBS */
 
-  MPS_ARGS_BEGIN(args) {
-    die((mps_res_t)LandInit(cbs, CLASS(CBSFast), arena, state.align,
-                            NULL, args),
-        "failed to initialise CBS");
-  } MPS_ARGS_END(args);
-  state.land = cbs;
-  test(&state, nCBSOperations);
-  LandFinish(cbs);
+  for (i = 0; i < NELEMS(cbsConfig); ++i) {
+    MPS_ARGS_BEGIN(args) {
+      die((mps_res_t)LandInit(cbs, cbsConfig[i].klass(), arena, state.align,
+                              NULL, args),
+          "failed to initialise CBS");
+    } MPS_ARGS_END(args);
+    state.land = cbs;
+    test(&state, nCBSOperations, cbsConfig[i].operations);
+    LandFinish(cbs);
+  }
 
   /* 2. Test Freelist */
 
@@ -485,7 +495,7 @@ int main(int argc, char *argv[])
                           NULL, mps_args_none),
       "failed to initialise Freelist");
   state.land = fl;
-  test(&state, nFLOperations);
+  test(&state, nFLOperations, 3);
   LandFinish(fl);
 
   /* 3. Test CBS-failing-over-to-Freelist (always failing over on
@@ -497,7 +507,7 @@ int main(int argc, char *argv[])
       MPS_ARGS_BEGIN(piArgs) {
         MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSFastBlockStruct));
         MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaGrainSize(arena));
-        MPS_ARGS_ADD(piArgs, MFSExtendSelf, i);
+        MPS_ARGS_ADD(piArgs, MFSExtendSelf, i != 0);
         die(PoolInit(mfs, arena, PoolClassMFS(), piArgs), "PoolInit");
       } MPS_ARGS_END(piArgs);
 
@@ -520,7 +530,7 @@ int main(int argc, char *argv[])
       } MPS_ARGS_END(args);
 
       state.land = fo;
-      test(&state, nFOOperations);
+      test(&state, nFOOperations, 3);
       LandFinish(fo);
       LandFinish(fl);
       LandFinish(cbs);
