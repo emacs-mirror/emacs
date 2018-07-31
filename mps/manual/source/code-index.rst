@@ -340,7 +340,6 @@ awlutth.c         :ref:`pool-awl` unit test (using multiple threads).
 btcv.c            Bit table coverage test.
 exposet0.c        :c:func:`mps_arena_expose` test.
 expt825.c         Regression test for job000825_.
-fbmtest.c         Free block manager (CBS and Freelist) test.
 finalcv.c         :ref:`topic-finalization` coverage test.
 finaltest.c       :ref:`topic-finalization` test.
 forktest.c        :ref:`topic-thread-fork` test.
