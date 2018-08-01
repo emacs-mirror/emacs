@@ -249,13 +249,10 @@ These files implement auxiliary programs. See
 File         Description
 ===========  ==================================================================
 eventcnv.c   :ref:`telemetry-mpseventcnv`.
-eventrep.c   Event replaying implementation (broken).
-eventrep.h   Event replaying interface (broken).
 eventsql.c   :ref:`telemetry-mpseventsql`.
 eventtxt.c   :ref:`telemetry-mpseventtxt`.
 getopt.h     Command-line option interface. Adapted from FreeBSD.
 getoptl.c    Command-line option implementation. Adapted from FreeBSD.
-replay.c     Event replaying program (broken).
 table.c      Address-based hash table implementation.
 table.h      Address-based hash table interface.
 ===========  ==================================================================

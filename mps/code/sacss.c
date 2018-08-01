@@ -202,22 +202,6 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args)
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
-    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
-    die(stress(arena, align, randomSize, "MV", mps_class_mv(), args),
-        "stress MV");
-  } MPS_ARGS_END(args);
-
-  MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
-    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
-    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &debugOptions);
-    die(stress(arena, align, randomSize, "MV debug",
-               mps_class_mv_debug(), args),
-        "stress MV debug");
-  } MPS_ARGS_END(args);
-
-  MPS_ARGS_BEGIN(args) {
     fixedSizeSize = MPS_PF_ALIGN * (1 + rnd() % 100);
     MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, fixedSizeSize);
     die(stress(arena, fixedSizeSize, fixedSize, "MFS", mps_class_mfs(), args),

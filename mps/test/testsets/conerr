@@ -21,7 +21,7 @@ conerr/15.c
 conerr/16.c
 % conerr/17.c -- fails in hot variety (assertion is on the critical path)
 conerr/18.c
-conerr/19.c
+% conerr/19.c -- assertion in different place in the hot variety
 % conerr/20.c -- segfaults in hot variety (assertion is on the critical path)
 % conerr/21.c -- segfaults in hot variety (assertion is on the critical path)
 % conerr/22.c -- segfaults in hot variety (assertion is on the critical path)
