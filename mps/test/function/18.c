@@ -12,7 +12,7 @@ END_HEADER
 #include "testlib.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "newfmt.h"
 
 
@@ -47,9 +47,7 @@ static void test(void)
  die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
  die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- die(mps_pool_create(&pool, arena, mps_class_mv(),
-                     (size_t)(1024*32), (size_t)(1024*16), (size_t)(1024*256)),
-     "create MV pool");
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none), "pool");
 
  do {
   res = mps_alloc(&q, pool, 64*1024);
