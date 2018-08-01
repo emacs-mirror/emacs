@@ -4,6 +4,21 @@ Release notes
 =============
 
 
+.. _release-notes-1.118:
+
+Release 1.118.0
+---------------
+
+Interface changes
+.................
+
+#. The deprecated pool class MV (Manual Variable), and the deprecated
+   functions ``mps_mv_free_size`` and ``mps_mv_size`` have been
+   removed. Use :ref:`pool-mvff` and the generic functions
+   :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`
+   instead.
+
+
 .. _release-notes-1.117:
 
 Release 1.117.0
@@ -223,7 +238,7 @@ Interface changes
    name :c:type:`mps_class_t` is still available via a ``typedef``,
    but is deprecated.
 
-#. The functions :c:func:`mps_mv_free_size`, :c:func:`mps_mv_size`,
+#. The functions ``mps_mv_free_size``, ``mps_mv_size``,
    :c:func:`mps_mvff_free_size`, :c:func:`mps_mvff_size`,
    :c:func:`mps_mvt_free_size` and :c:func:`mps_mvt_size` are now
    deprecated in favour of the generic functions
