@@ -15,35 +15,33 @@ END_HEADER
 #include "mpscamc.h"
 #include "exfmt.h"
 
+void *stackpointer;
+
 #define genCOUNT (3)
 
 static mps_gen_param_s testChain[genCOUNT] = {
   { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
-void *stackpointer;
-mycell *z;
-
 static void test(void)
 {
  mps_arena_t arena;
  mps_pool_t pool;
- mps_thr_t thread;
  mps_root_t root;
 
  mps_chain_t chain;
  mps_fmt_t format;
  mps_ap_t ap;
 
- mycell *a, *b;
+ mycell *a[3], *bad;
+ int i;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_thread_reg(&thread, arena), "register thread");
+ /* Clamp the arena so that we can be sure that objects don't move. */
+ mps_arena_clamp(arena);
 
- cdie(
-  mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
+ cdie(mps_root_create_area(&root, arena, mps_rank_exact(), 0, &a[0], &a[3],
+                           mps_scan_area, NULL), "create area");
 
  cdie(
   mps_fmt_create_A(&format, arena, &fmtA),
@@ -59,22 +57,27 @@ static void test(void)
   mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
- a = allocone(ap, 1024, 1);
- z = a;
+ /* Remember the first allocation at a[0] (which is a root) and also
+  * at bad (which is not reachable). */
+ bad = a[0] = a[1] = allocone(ap, 1, 1);
+ for (i = 0; i < 1000; ++i) {
+  a[2] = allocone(ap, 1, 1);
+  setref(a[2], 0, a[1]);
+  a[1] = a[2];
+ }
 
- b = allocone(ap, 1024, 1);
- setref(b, 0, a);
-
- a = allocdumb(ap, 1024*64, 1);
- a = allocdumb(ap, 1024*64, 1);
-
+ /* The first collection will cause a[0] to move, but because bad
+  * isn't scanned it doesn't get updated, and ends up pointing to
+  * oldspace. */
  comment("Collecting...");
  mps_arena_collect(arena);
- asserts(z != a, "Didn't move!");
+ asserts(bad != a[0], "Didn't move!");
 
+ /* Write the bad pointer into a scannable part of the heap. The MPS
+  * should spot this when it collects. Note that we can't use setref
+  * here because we need to bypass the check. */
  comment("Writing bad pointer...");
-
- b->data.ref[0].addr = z;
+ a[0]->data.ref[0].addr = bad;
  mps_arena_collect(arena);
  comment("Bad pointer not spotted in collection");
 
@@ -95,9 +98,6 @@ static void test(void)
 
  mps_root_destroy(root);
  comment("Destroyed root.");
-
- mps_thread_dereg(thread);
- comment("Deregistered thread.");
 
  mps_arena_destroy(arena);
  comment("Destroyed arena.");

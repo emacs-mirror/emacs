@@ -43,6 +43,7 @@
 #include "fmtdytst.h"
 #include "mpstd.h"
 
+#include <math.h> /* HUGE_VAL */
 #include <stdio.h> /* fflush, printf, stdout */
 
 enum {
@@ -149,13 +150,15 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
   size_t finals = 0;
   size_t i;
   int object_alloc;
+  PoolClass klass = ClassOfPoly(Pool, pool);
 
   object_count = 0;
 
   printf("---- Mode %s, pool class %s, %s trees ----\n",
          mode == ModePARK ? "PARK" : "POLL",
-         pool->class->name, name);
+         ClassName(klass), name);
   mps_arena_park(arena);
+  mps_message_type_enable(arena, mps_message_type_gc());
 
   /* make some trees */
   for(i = 0; i < rootCOUNT; ++i) {
@@ -169,6 +172,7 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
   }
 
   while (finals < object_count && collections < collectionCOUNT) {
+    mps_message_type_t type;
     mps_word_t final_this_time = 0;
     switch (mode) {
     default:
@@ -188,30 +192,43 @@ static void test_trees(int mode, const char *name, mps_arena_t arena,
       printf(" Done.\n");
       break;
     }
-    ++ collections;
     {
       size_t live_size = (object_count - finals) * sizeof(void *) * 3;
-      size_t alloc_size = mps_pool_total_size(pool) - mps_pool_free_size(pool);
-      Insist(live_size <= alloc_size);
+      size_t total_size = mps_pool_total_size(pool);
+      size_t free_size = mps_pool_free_size(pool);
+      Insist(free_size <= total_size);
+      Insist(free_size + live_size <= total_size);
     }
-    while (mps_message_poll(arena)) {
+    while (mps_message_queue_type(&type, arena)) {
       mps_message_t message;
-      mps_addr_t objaddr;
-      cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
-           "message_get");
-      mps_message_finalization_ref(&objaddr, arena, message);
+      cdie(mps_message_get(&message, arena, type), "message_get");
+      if (type == mps_message_type_finalization()) {
+        mps_addr_t objaddr;
+        mps_message_finalization_ref(&objaddr, arena, message);
+        ++ final_this_time;
+      } else if (type == mps_message_type_gc()) {
+        ++ collections;
+      } else {
+        error("Unexpected message type %lu.", (unsigned long)type);
+      }
       mps_message_discard(arena, message);
-      ++ final_this_time;
     }
     finals += final_this_time;
     printf("%"PRIuLONGEST" objects finalized: total %"PRIuLONGEST
            " of %"PRIuLONGEST"\n", (ulongest_t)final_this_time,
            (ulongest_t)finals, (ulongest_t)object_count);
   }
-  if (finals != object_count)
+  
+  if (finals != object_count) {
+    PoolClass poolClass = ClassOfPoly(Pool, BufferOfAP(ap)->pool);
     error("Not all objects were finalized for %s in mode %s.",
-          BufferOfAP(ap)->pool->class->name,
+          ClassName(poolClass),
           mode == ModePOLL ? "POLL" : "PARK");
+  }
+
+  if (collections > collectionCOUNT)
+    error("Expected no more than %lu collections but got %lu.",
+          (unsigned long)collectionCOUNT, (unsigned long)collections);
 }
 
 static void test_pool(int mode, mps_arena_t arena, mps_chain_t chain,
@@ -270,8 +287,18 @@ int main(int argc, char *argv[])
 
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
-      "arena_create\n");
+  MPS_ARGS_BEGIN(args) {
+    /* Randomize pause time as a regression test for job004007. */
+    double t = rnd_double();
+    if (t == 0.0)
+      t = HUGE_VAL; /* Would prefer to use INFINITY but it's not in C89. */
+    else
+      t = 1 / t - 1;
+    MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, t);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "arena_create\n");
+  } MPS_ARGS_END(args);
   mps_message_type_enable(arena, mps_message_type_finalization());
   die(mps_thread_reg(&thread, arena), "thread_reg\n");
   for (i = 0; i < gens; ++i) {

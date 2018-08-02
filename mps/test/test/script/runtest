@@ -144,6 +144,10 @@ sub run_test {
 
   die "Don't know how to run tests in the $lang language.\n";
  }
+
+ if ($testconclusion eq "FAIL") {
+  $exitstatus = 1;
+ }
 }
 
 sub run_from_testset {
@@ -216,6 +220,10 @@ sub run_from_testset {
   close(LOG_VERBOSE);
   &mailfile("$LOG_DIR/last.log", "$MAIL_SUBJECT $testid $testconclusion");
  }
+
+ if ($testconclusion eq "FAIL") {
+  $exitstatus = 1;
+ }
 }
 
 sub run_testset {
@@ -228,9 +236,9 @@ sub run_testset {
 
  %testsetresults = ();
 
- open(LOG_SUMMARY, ">".$logsummfile);
- open(LOG_RESULTS, ">".$logresfile);
- open(LOG_FULL,    ">".$logfullfile);
+ open(LOG_SUMMARY, ">>".$logsummfile);
+ open(LOG_RESULTS, ">>".$logresfile);
+ open(LOG_FULL,    ">>".$logfullfile);
  &describe_settings(LOG_SUMMARY);
  @LOG_FILES = (STDOUT, LOG_SUMMARY, LOG_RESULTS, LOG_FULL);
  &logcomment("Test set $testsetfile");
@@ -261,3 +269,35 @@ sub missingTestSymbols {
  return &missingSymbols(&listFileSymbols($testfile));
 }
 
+
+sub debugtest {
+ local ($testfile,) = @_;
+
+ &readheader($testfile, 1);
+
+ unless (vleq($test_header{"harness"}, $HARNESS_VERSION)) {
+  die "This test requires version $test_header{\"harness\"} or later of the MMQA harness.
+(You are using version $HARNESS_VERSION.)\n";
+ }
+
+ for $lang ($test_header{"language"}) {
+  if ($lang =~ /^c$/) {
+   unless ($DANGEROUS eq "on") {
+    $_ = &test_clib();
+    if ($_) {
+     print "Warning: $_\n";
+     die "-- recompile test libraries (\"qa clib\") before debugging tests.\n";
+    }
+   }
+   $linkfiles = $test_header{"link"};
+   $objfile = "$obj_dir/tmp_test";
+   if (&compile_and_link($testfile, $objfile, $linkfiles)) {
+    mysystem("$debug_command $objfile")
+   } else {
+    die "compilation failed:\n$compoutput";
+   }
+  } else {
+   die "Don't know how to debug tests in the $lang language.\n";
+  }
+ }
+}

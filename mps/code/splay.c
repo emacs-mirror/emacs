@@ -1,7 +1,7 @@
 /* splay.c: SPLAY TREE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Splay trees are used to manage potentially unbounded
  * collections of ordered things.  In the MPS these are usually
@@ -12,6 +12,12 @@
  * .note.stack: It's important that the MPS have a bounded stack size,
  * and this is a problem for tree algorithms. Basically, we have to
  * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
+ *
+ * .critical: In manual-allocation-bound programs using MVFF, many of
+ * these functions are on the critical paths via mps_alloc (and then
+ * PoolAlloc, MVFFAlloc, failoverFind*, cbsFind*, SplayTreeFind*) and
+ * mps_free (and then MVFFFree, failoverInsert, cbsInsert,
+ * SplayTreeInsert).
  */
 
 
@@ -506,13 +512,15 @@ static Compare SplaySplitRev(SplayStateStruct *stateReturn,
                              SplayTree splay, TreeKey key,
                              TreeCompareFunction compare)
 {
+  SplayUpdateNodeFunction updateNode;
   Tree middle, leftLast, rightFirst;
   Compare cmp;
 
-  AVERT(SplayTree, splay);
-  AVER(FUNCHECK(compare));
-  AVER(!SplayTreeIsEmpty(splay));
+  AVERT_CRITICAL(SplayTree, splay);
+  AVER_CRITICAL(FUNCHECK(compare));
+  AVER_CRITICAL(!SplayTreeIsEmpty(splay));
   
+  updateNode = splay->updateNode;
   leftLast = TreeEMPTY;
   rightFirst = TreeEMPTY;
   middle = SplayTreeRoot(splay);
@@ -540,7 +548,7 @@ static Compare SplaySplitRev(SplayStateStruct *stateReturn,
         if (!TreeHasLeft(middle))
           goto stop;
         middle = SplayZigZigRev(middle, &rightFirst);
-        splay->updateNode(splay, TreeRight(rightFirst));
+        updateNode(splay, TreeRight(rightFirst));
         break;
       case CompareGREATER:
         if (!TreeHasRight(middle))
@@ -565,7 +573,7 @@ static Compare SplaySplitRev(SplayStateStruct *stateReturn,
         if (!TreeHasRight(middle))
           goto stop;
         middle = SplayZagZagRev(middle, &leftLast);
-        splay->updateNode(splay, TreeLeft(leftLast));
+        updateNode(splay, TreeLeft(leftLast));
         break;
       case CompareLESS:
         if (!TreeHasLeft(middle))
@@ -589,13 +597,17 @@ stop:
 
 static Tree SplayUpdateLeftSpine(SplayTree splay, Tree node, Tree child)
 {
+  SplayUpdateNodeFunction updateNode;
+
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, node);
   AVERT_CRITICAL(Tree, child);
+
+  updateNode = splay->updateNode;
   while(node != TreeEMPTY) {
     Tree parent = TreeLeft(node);
     TreeSetLeft(node, child); /* un-reverse pointer */
-    splay->updateNode(splay, node);
+    updateNode(splay, node);
     child = node;
     node = parent;
   }
@@ -606,13 +618,17 @@ static Tree SplayUpdateLeftSpine(SplayTree splay, Tree node, Tree child)
 
 static Tree SplayUpdateRightSpine(SplayTree splay, Tree node, Tree child)
 {
+  SplayUpdateNodeFunction updateNode;
+
   AVERT_CRITICAL(SplayTree, splay);
   AVERT_CRITICAL(Tree, node);
   AVERT_CRITICAL(Tree, child);
+
+  updateNode = splay->updateNode;
   while (node != TreeEMPTY) {
     Tree parent = TreeRight(node);
     TreeSetRight(node, child); /* un-reverse pointer */
-    splay->updateNode(splay, node);
+    updateNode(splay, node);
     child = node;
     node = parent;
   }
@@ -633,8 +649,8 @@ static void SplayAssembleRev(SplayTree splay, SplayState state)
 {
   Tree left, right;
 
-  AVERT(SplayTree, splay);
-  AVER(state->middle != TreeEMPTY);
+  AVERT_CRITICAL(SplayTree, splay);
+  AVER_CRITICAL(state->middle != TreeEMPTY);
   
   left = TreeLeft(state->middle);
   left = SplayUpdateRightSpine(splay, state->leftLast, left);
@@ -726,7 +742,6 @@ static Compare SplaySplay(SplayTree splay, TreeKey key,
 
 /* SplayTreeInsert -- insert a node into a splay tree
  *
- *
  * This function is used to insert a node into the tree.  Splays the
  * tree at the node's key.  If an attempt is made to insert a node that
  * compares ``CompareEQUAL`` to an existing node in the tree, then
@@ -737,7 +752,8 @@ static Compare SplaySplay(SplayTree splay, TreeKey key,
  * a good thing for key neighbours to be tree neighbours.
  */
 
-Bool SplayTreeInsert(SplayTree splay, Tree node) {
+Bool SplayTreeInsert(SplayTree splay, Tree node)
+{
   Tree neighbour;
 
   AVERT(SplayTree, splay);
@@ -753,7 +769,7 @@ Bool SplayTreeInsert(SplayTree splay, Tree node) {
   switch (SplaySplay(splay, splay->nodeKey(node), splay->compare)) {
   default:
     NOTREACHED;
-    /* defensive fall-through */
+    /* fall through */
   case CompareEQUAL: /* duplicate node */
     return FALSE;
     
@@ -793,7 +809,8 @@ Bool SplayTreeInsert(SplayTree splay, Tree node) {
  * avoid a search for a replacement in more cases.
  */
 
-Bool SplayTreeDelete(SplayTree splay, Tree node) {
+Bool SplayTreeDelete(SplayTree splay, Tree node)
+{
   Tree leftLast;
   Compare cmp;
 
@@ -840,7 +857,8 @@ Bool SplayTreeDelete(SplayTree splay, Tree node) {
  * node in the tree, otherwise ``*nodeReturn`` will be set to the node.
  */
 
-Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key) {
+Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key)
+{
   AVERT(SplayTree, splay);
   AVER(nodeReturn != NULL);
 
@@ -861,7 +879,8 @@ Bool SplayTreeFind(Tree *nodeReturn, SplayTree splay, TreeKey key) {
  * in which case TreeEMPTY is returned, and the tree is unchanged.
  */
 
-static Tree SplayTreeSuccessor(SplayTree splay) {
+static Tree SplayTreeSuccessor(SplayTree splay)
+{
   Tree oldRoot, newRoot;
 
   AVERT(SplayTree, splay);
@@ -915,10 +934,9 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   Count count = SplayDebugCount(splay);
 #endif
 
-
-  AVERT(SplayTree, splay);
-  AVER(leftReturn != NULL);
-  AVER(rightReturn != NULL);
+  AVERT_CRITICAL(SplayTree, splay);
+  AVER_CRITICAL(leftReturn != NULL);
+  AVER_CRITICAL(rightReturn != NULL);
 
   if (SplayTreeIsEmpty(splay)) {
     *leftReturn = *rightReturn = TreeEMPTY;
@@ -930,20 +948,20 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
   switch (cmp) {
   default:
     NOTREACHED;
-    /* defensive fall-through */
+    /* fall through */
   case CompareEQUAL:
     found = FALSE;
     break;
 
   case CompareLESS:
-    AVER(!TreeHasLeft(stateStruct.middle));
+    AVER_CRITICAL(!TreeHasLeft(stateStruct.middle));
     *rightReturn = stateStruct.middle;
     *leftReturn = stateStruct.leftLast;
     found = TRUE;
     break;
 
   case CompareGREATER:
-    AVER(!TreeHasRight(stateStruct.middle));
+    AVER_CRITICAL(!TreeHasRight(stateStruct.middle));
     *leftReturn = stateStruct.middle;
     *rightReturn = stateStruct.rightFirst;
     found = TRUE;
@@ -978,7 +996,8 @@ Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
  * shape caused by previous splays. Consider using TreeTraverse instead.
  */
 
-Tree SplayTreeFirst(SplayTree splay) {
+Tree SplayTreeFirst(SplayTree splay)
+{
   Tree node;
 
   AVERT(SplayTree, splay);
@@ -994,7 +1013,8 @@ Tree SplayTreeFirst(SplayTree splay) {
   return node;
 }
 
-Tree SplayTreeNext(SplayTree splay, TreeKey oldKey) {
+Tree SplayTreeNext(SplayTree splay, TreeKey oldKey)
+{
   AVERT(SplayTree, splay);
 
   if (SplayTreeIsEmpty(splay))
@@ -1005,7 +1025,7 @@ Tree SplayTreeNext(SplayTree splay, TreeKey oldKey) {
   switch (SplaySplay(splay, oldKey, splay->compare)) {
   default:
     NOTREACHED;
-    /* defensive fall-through */
+    /* fall through */
   case CompareLESS:
     return SplayTreeRoot(splay);
 
@@ -1088,38 +1108,35 @@ static Res SplayNodeDescribe(Tree node, mps_lib_FILE *stream,
 typedef struct SplayFindClosureStruct {
   SplayTestNodeFunction testNode;
   SplayTestTreeFunction testTree;
-  void *p;
-  Size s;
+  void *testClosure;
   SplayTree splay;
   Bool found;
 } SplayFindClosureStruct, *SplayFindClosure;
 
 static Compare SplayFindFirstCompare(Tree node, TreeKey key)
 {
-  SplayFindClosure closure;
-  void *closureP;
-  Size closureS;
+  SplayFindClosure my;
   SplayTestNodeFunction testNode;
   SplayTestTreeFunction testTree;
+  void *testClosure;
   SplayTree splay;
 
-  AVERT(Tree, node);
-  AVER(key != NULL);
+  AVERT_CRITICAL(Tree, node);
+  AVER_CRITICAL(key != NULL);
 
   /* Lift closure values into variables so that they aren't aliased by
      calls to the test functions. */
-  closure = (SplayFindClosure)key;
-  closureP = closure->p;
-  closureS = closure->s;
-  testNode = closure->testNode;
-  testTree = closure->testTree;
-  splay = closure->splay;
+  my = (SplayFindClosure)key;
+  testClosure = my->testClosure;
+  testNode = my->testNode;
+  testTree = my->testTree;
+  splay = my->splay;
   
   if (TreeHasLeft(node) &&
-     (*testTree)(splay, TreeLeft(node), closureP, closureS)) {
+      (*testTree)(splay, TreeLeft(node), testClosure)) {
     return CompareLESS;
-  } else if ((*testNode)(splay, node, closureP, closureS)) {
-    closure->found = TRUE;
+  } else if ((*testNode)(splay, node, testClosure)) {
+    my->found = TRUE;
     return CompareEQUAL;
   } else {
     /* If there's a right subtree but it doesn't satisfy the tree test
@@ -1127,8 +1144,8 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
        return TRUE, so the caller must check closure->found to find out
        whether the result node actually satisfies testNode. */
     if (TreeHasRight(node) &&
-        !(*testTree)(splay, TreeRight(node), closureP, closureS)) {
-      closure->found = FALSE;
+        !(*testTree)(splay, TreeRight(node), testClosure)) {
+      my->found = FALSE;
       return CompareEQUAL;
     }
     return CompareGREATER;
@@ -1137,36 +1154,34 @@ static Compare SplayFindFirstCompare(Tree node, TreeKey key)
 
 static Compare SplayFindLastCompare(Tree node, TreeKey key)
 {
-  SplayFindClosure closure;
-  void *closureP;
-  Size closureS;
+  SplayFindClosure my;
   SplayTestNodeFunction testNode;
   SplayTestTreeFunction testTree;
+  void *testClosure;
   SplayTree splay;
 
-  AVERT(Tree, node);
-  AVER(key != NULL);
+  AVERT_CRITICAL(Tree, node);
+  AVER_CRITICAL(key != NULL);
 
   /* Lift closure values into variables so that they aren't aliased by
      calls to the test functions. */
-  closure = (SplayFindClosure)key;
-  closureP = closure->p;
-  closureS = closure->s;
-  testNode = closure->testNode;
-  testTree = closure->testTree;
-  splay = closure->splay;
+  my = (SplayFindClosure)key;
+  testClosure = my->testClosure;
+  testNode = my->testNode;
+  testTree = my->testTree;
+  splay = my->splay;
 
   if (TreeHasRight(node) &&
-     (*testTree)(splay, TreeRight(node), closureP, closureS)) {
-     return CompareGREATER;
-  } else if ((*testNode)(splay, node, closureP, closureS)) {
-    closure->found = TRUE;
+      (*testTree)(splay, TreeRight(node), testClosure)) {
+    return CompareGREATER;
+  } else if ((*testNode)(splay, node, testClosure)) {
+    my->found = TRUE;
     return CompareEQUAL;
   } else {
     /* See SplayFindFirstCompare. */
     if (TreeHasLeft(node) &&
-        !(*testTree)(splay, TreeLeft(node), closureP, closureS)) {
-      closure->found = FALSE;
+        !(*testTree)(splay, TreeLeft(node), testClosure)) {
+      my->found = FALSE;
       return CompareEQUAL;
     }
     return CompareLESS;
@@ -1184,8 +1199,8 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
  * ``*nodeReturn`` is set to the node.
  *
  * The given callbacks testNode and testTree detect this property in
- * a single node or a sub-tree rooted at a node, and both receive the
- * arbitrary closures closureP and closureS.
+ * a single node or a sub-tree rooted at a node, and both receive an 
+ * arbitrary closure.
  *
  * TODO: This repeatedly splays failed matches to the root and rotates
  * them, so it could have quite an unbalancing effect if size is small.
@@ -1195,22 +1210,21 @@ static Compare SplayFindLastCompare(Tree node, TreeKey key)
 Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
                     SplayTestNodeFunction testNode,
                     SplayTestTreeFunction testTree,
-                    void *closureP, Size closureS)
+                    void *testClosure)
 {
   SplayFindClosureStruct closureStruct;
   Bool found;
 
-  AVER(nodeReturn != NULL);
-  AVERT(SplayTree, splay);
-  AVER(FUNCHECK(testNode));
-  AVER(FUNCHECK(testTree));
+  AVER_CRITICAL(nodeReturn != NULL);
+  AVERT_CRITICAL(SplayTree, splay);
+  AVER_CRITICAL(FUNCHECK(testNode));
+  AVER_CRITICAL(FUNCHECK(testTree));
 
   if (SplayTreeIsEmpty(splay) ||
-      !testTree(splay, SplayTreeRoot(splay), closureP, closureS))
+      !testTree(splay, SplayTreeRoot(splay), testClosure))
     return FALSE; /* no suitable nodes in tree */
 
-  closureStruct.p = closureP;
-  closureStruct.s = closureS;
+  closureStruct.testClosure = testClosure;
   closureStruct.testNode = testNode;
   closureStruct.testTree = testTree;
   closureStruct.splay = splay;
@@ -1227,7 +1241,7 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
     oldRoot = SplayTreeRoot(splay);
     newRoot = TreeRight(oldRoot);
 
-    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, closureP, closureS))
+    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, testClosure))
       return FALSE; /* no suitable nodes in the rest of the tree */
   
     /* Temporarily chop off the left half-tree, inclusive of root,
@@ -1259,22 +1273,21 @@ Bool SplayFindFirst(Tree *nodeReturn, SplayTree splay,
 Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
                    SplayTestNodeFunction testNode,
                    SplayTestTreeFunction testTree,
-                   void *closureP, Size closureS)
+                   void *testClosure)
 {
   SplayFindClosureStruct closureStruct;
   Bool found;
 
-  AVER(nodeReturn != NULL);
-  AVERT(SplayTree, splay);
-  AVER(FUNCHECK(testNode));
-  AVER(FUNCHECK(testTree));
+  AVER_CRITICAL(nodeReturn != NULL);
+  AVERT_CRITICAL(SplayTree, splay);
+  AVER_CRITICAL(FUNCHECK(testNode));
+  AVER_CRITICAL(FUNCHECK(testTree));
 
   if (SplayTreeIsEmpty(splay) ||
-      !testTree(splay, SplayTreeRoot(splay), closureP, closureS))
+      !testTree(splay, SplayTreeRoot(splay), testClosure))
     return FALSE; /* no suitable nodes in tree */
 
-  closureStruct.p = closureP;
-  closureStruct.s = closureS;
+  closureStruct.testClosure = testClosure;
   closureStruct.testNode = testNode;
   closureStruct.testTree = testTree;
   closureStruct.splay = splay;
@@ -1289,7 +1302,7 @@ Bool SplayFindLast(Tree *nodeReturn, SplayTree splay,
     oldRoot = SplayTreeRoot(splay);
     newRoot = TreeLeft(oldRoot);
 
-    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, closureP, closureS))
+    if (newRoot == TreeEMPTY || !(*testTree)(splay, newRoot, testClosure))
       return FALSE; /* no suitable nodes in the rest of the tree */
   
     /* Temporarily chop off the right half-tree, inclusive of root,
@@ -1335,7 +1348,6 @@ void SplayNodeRefresh(SplayTree splay, Tree node)
   AVERT(SplayTree, splay);
   AVERT(Tree, node);
   AVER(!SplayTreeIsEmpty(splay)); /* must contain node, at least */
-  AVER(SplayHasUpdate(splay)); /* otherwise, why call? */
 
   cmp = SplaySplay(splay, splay->nodeKey(node), splay->compare);
   AVER(cmp == CompareEQUAL);
@@ -1353,7 +1365,6 @@ void SplayNodeInit(SplayTree splay, Tree node)
   AVERT(Tree, node);
   AVER(!TreeHasLeft(node)); /* otherwise, call SplayNodeRefresh */
   AVER(!TreeHasRight(node)); /* otherwise, call SplayNodeRefresh */
-  AVER(SplayHasUpdate(splay)); /* otherwise, why call? */
 
   splay->updateNode(splay, node);
 }
@@ -1401,7 +1412,7 @@ Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

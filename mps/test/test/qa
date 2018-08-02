@@ -71,6 +71,7 @@ unless (-e "$script_dir/commands/".$qa_command) {
  die "Unknown command '".$qa_command."' -- 'qa help' for info.\n";
 }
 
+$exitstatus = 0;
 do "commands/".$qa_command;
 if ($@) {print $@};
-
+exit $exitstatus;

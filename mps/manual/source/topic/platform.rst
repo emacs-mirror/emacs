@@ -20,7 +20,7 @@ six-character code breaks down into three pairs of characters:
 ``fr``  FreeBSD           :c:macro:`MPS_OS_FR`
 ``li``  Linux             :c:macro:`MPS_OS_LI`
 ``w3``  Windows           :c:macro:`MPS_OS_W3`
-``xc``  OS X              :c:macro:`MPS_OS_XC`
+``xc``  macOS             :c:macro:`MPS_OS_XC`
 ======  ================  ====================
 
 The second pair of characters names the processor architecture:
@@ -126,7 +126,7 @@ Platform interface
 .. c:macro:: MPS_OS_XC
 
     A :term:`C` preprocessor macro that indicates, if defined, that
-    the MPS was compiled on an OS X operating system.
+    the MPS was compiled on an macOS operating system.
 
 
 .. c:macro:: MPS_PF_ALIGN
@@ -142,11 +142,25 @@ Platform interface
     IA-32 processor architecture, and the GCC compiler.
 
 
+.. c:macro:: MPS_PF_FRI3LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the FreeBSD operating system, the
+    IA-32 processor architecture, and the Clang/LLVM compiler.
+
+
 .. c:macro:: MPS_PF_FRI6GC
 
     A :term:`C` preprocessor macro that indicates, if defined, that
     the :term:`platform` consists of the FreeBSD operating system, the
     x86-64 processor architecture, and the GCC compiler.
+
+
+.. c:macro:: MPS_PF_FRI6LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the FreeBSD operating system, the
+    x86-64 processor architecture, and the Clang/LLVM compiler.
 
 
 .. c:macro:: MPS_PF_LII3GC
@@ -195,21 +209,28 @@ Platform interface
 .. c:macro:: MPS_PF_XCI3GC
 
     A :term:`C` preprocessor macro that indicates, if defined, that
-    the :term:`platform` consists of the OS X operating system, the
+    the :term:`platform` consists of the macOS operating system, the
     IA-32 processor architecture, and the GCC compiler.
 
 
 .. c:macro:: MPS_PF_XCI3LL
 
     A :term:`C` preprocessor macro that indicates, if defined, that
-    the :term:`platform` consists of the OS X operating system, the
+    the :term:`platform` consists of the macOS operating system, the
     IA-32 processor architecture, and the Clang/LLVM compiler.
+
+
+.. c:macro:: MPS_PF_XCI6GC
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the macOS operating system, the
+    x86-64 processor architecture, and the GCC compiler.
 
 
 .. c:macro:: MPS_PF_XCI6LL
 
     A :term:`C` preprocessor macro that indicates, if defined, that
-    the :term:`platform` consists of the OS X operating system, the
+    the :term:`platform` consists of the macOS operating system, the
     x86-64 processor architecture, and the Clang/LLVM compiler.
 
 
@@ -328,8 +349,10 @@ the Memory Pool System, with their current status.
 Platform    Status
 ==========  =======================
 ``fri3gc``  Supported
+``fri3ll``  Supported
 ``fri4gc``  Corrected to ``fri3gc``
 ``fri6gc``  Supported
+``fri6ll``  Supported
 ``i5m2cc``  *Not supported*
 ``iam4cc``  *Not supported*
 ``lii3eg``  *Not supported*
@@ -357,6 +380,7 @@ Platform    Status
 ``w3ppmv``  *Not supported*
 ``xci3gc``  *Not supported*
 ``xci3ll``  Supported
+``xci6gc``  *Not supported*
 ``xci6ll``  Supported
 ``xcppgc``  *Not supported*
 ==========  =======================

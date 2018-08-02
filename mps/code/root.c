@@ -52,7 +52,7 @@ typedef struct RootStruct {
       Thread thread;            /* passed to scan */
       mps_area_scan_t scan_area;/* area scanner for stack and registers */
       AreaScanUnion the;
-      Word *stackCold;          /* cold end of stack */
+      void *stackCold;          /* cold end of stack */
     } thread;
     struct {
       mps_fmt_scan_t scan;      /* format-like scanner */
@@ -129,6 +129,14 @@ Bool RootCheck(Root root)
        scan. */
     break;
 
+  case RootTHREAD:
+    CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
+    CHECKL(FUNCHECK(root->the.thread.scan_area));
+    /* Can't check anything about closure as it could mean anything to
+       scan_area. */
+    /* Can't check anything about stackCold. */
+    break;
+
   case RootTHREAD_TAGGED:
     CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
     CHECKL(FUNCHECK(root->the.thread.scan_area));
@@ -185,7 +193,7 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   AVERT(RootVar, type);
   globals = ArenaGlobals(arena);
 
-  res = ControlAlloc(&p, arena, sizeof(RootStruct), FALSE);
+  res = ControlAlloc(&p, arena, sizeof(RootStruct));
   if (res != ResOK)
     return res;
   root = (Root)p; /* Avoid pun */

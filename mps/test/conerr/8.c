@@ -12,14 +12,13 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
 
 static void test(void)
 {
  mps_arena_t arena;
  mps_fmt_t format;
 
- arena=malloc(64);
+ arena=malloc(4096);
 
  cdie(mps_fmt_create_k(&format, arena, mps_args_none), "create format");
 

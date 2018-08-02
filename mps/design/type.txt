@@ -97,8 +97,6 @@ are:
 ===================  ===================================================
 Attribute            Description
 ===================  ===================================================
-``AttrFMT``          Contains formatted objects.
-                     Used to decide which pools to walk.
 ``AttrGC``           Is garbage collecting, that is, parts may be
                      reclaimed. Used to decide which segments are
                      condemned.
@@ -108,9 +106,10 @@ Attribute            Description
 ===================  ===================================================
 
 There is an attribute field in the pool class (``PoolClassStruct``)
-which declares the attributes of that class. See design.mps.class-interface.field.attr_.
+which declares the attributes of that class. See
+design.mps.pool.field.attr_.
 
-.. _design.mps.class-interface.field.attr: class-interface
+.. _design.mps.pool.field.attr: pool#field-attr
 
 
 ``typedef int Bool``
@@ -277,29 +276,6 @@ Value                 Description
 ====================  ==================================================
 
 
-``typedef unsigned FrameState``
-
-_`.framestate`: ``FrameState`` represents the current state in a
-buffer frame's lifecycle. See design.mps.alloc-frame_. It takes one of
-the following values:
-
-.. _design.mps.alloc-frame: alloc-frame
-
-==========================  ============================================
-State                       Description
-==========================  ============================================
-``BufferFrameVALID``        Indicates that ``PushFrame()`` can be a
-                            lightweight operation and need not be
-                            synchronized.
-``BufferFramePOP_PENDING``  Indicates that there has been a
-                            ``PopFrame()`` operation that the pool
-                            must respond to.
-``BufferFrameDISABLED``     Indicates that the pool has disabled
-                            support for lightweight operations for
-                            this buffer.
-==========================  ============================================
-
-
 ``typedef void (*Fun)(void)``
 
 _`.fun`: ``Fun`` is the type of a pointer to a function about which
@@ -323,9 +299,9 @@ determined then the smallest unsigned integer with a large enough
 range may be used instead.
 
 
-``typedef int LocusPrefKind``
+``typedef unsigned LocusPrefKind``
 
-_`.segprefkind`: The type ``LocusPrefKind`` expresses a preference for
+_`.locusprefkind`: The type ``LocusPrefKind`` expresses a preference for
 addresses within an address space. It takes one of the following
 values:
 
@@ -488,19 +464,18 @@ Root mode                      Description
 =============================  =========================================
 
 _`.rootmode.const.unused`: ``RootModeCONSTANT`` has no effect. This
-mode was introduced in the hope of being able to maintain a
-:term:`remembered set` for the root without needing a :term:`write
-barrier`, but it can't work as described, since you can't reliably
-create a valid registered constant root that contains any references.
-(If you add the references before registering the root, they may have
-become invalid; but you can't add them afterwards because the root is
-supposed to be constant.)
+mode was introduced in the hope of being able to maintain a remembered
+set for the root without needing a write barrier, but it can't work as
+described, since you can't reliably create a valid registered constant
+root that contains any references. (If you add the references before
+registering the root, they may have become invalid; but you can't add
+them afterwards because the root is supposed to be constant.)
 
 _`.rootmode.conv.c`: ``RootMode`` is converted to ``mps_rm_t`` in the
 MPS C Interface.
 
 
-``typedef int RootVar``
+``typedef unsigned RootVar``
 
 _`.rootvar`: The type ``RootVar`` is the type of the discriminator for
 the union within ``RootStruct``.
@@ -576,7 +551,7 @@ _`.traceid`: A ``TraceId`` is an unsigned integer which is less than
 is used to index into the tables and bitfields that record the state
 of that trace. See design.mps.trace.instance.limit_.
 
-.. _design.mps.trace.instance.limit: trace#instance.limit
+.. _design.mps.trace.instance.limit: trace#instance-limit
 
 
 ``typedef unsigned TraceSet``
@@ -586,7 +561,9 @@ represented in the obvious way::
 
     member(ti, ts) ⇔ ((1<<ti) & ts) != 0
 
-``TraceSet`` is used to represent colour in the Tracer. See
+In the multiple-traces design, each region of memory may be a
+different colour for each trace. Thus the set of traces for which a
+segment is grey (say) is represented by a ``TraceSet``. See
 design.mps.trace_.
 
 .. _design.mps.trace: trace
@@ -655,13 +632,24 @@ _`.word.source`: ``Word`` is derived from the macro ``MPS_T_WORD``
 which is declared in impl.h.mpstd according to the target platform
 (design.mps.config.pf.word_).
 
-.. _design.mps.config.pf.word: config#pf.word
+.. _design.mps.config.pf.word: config#pf-word
 
 _`.word.conv.c`: ``Word`` is converted to ``mps_word_t`` in the MPS C
 Interface.
 
 _`.word.ops`: ``WordIsAligned()``, ``WordAlignUp()``,
 ``WordAlignDown()`` and ``WordRoundUp()``.
+
+
+``typedef MPS_T_WORD Work``
+
+_`.work`: ``Work`` is an unsigned integral type representing
+accumulated work done by the collector.
+
+_`.work.impl`: Work is implemented as a count of the bytes scanned by
+the collector in segments and roots. This is a very crude measure,
+because it depends on the scanning functions supplied by the mutator,
+which we know very little about.
 
 
 ``typedef Word ZoneSet``
@@ -679,10 +667,10 @@ pointers to structures. For example, ``Ring`` is a pointer to a
 
 ``AllocFrame``, ``AllocPattern``, ``AP``, ``Arena``, ``BootBlock``,
 ``Buffer``, ``Chain``, ``Chunk``, ``Format``, ``Globals``, ``Land``,
-``LD``, ``Lock``, ``LocusPref``, ``MutatorFaultContext``,
-``PoolClass``, ``Page``, ``Pool``, ``PoolDebugMixin``, ``Range``,
-``Reservoir``, ``Ring``, ``Root``, ``ScanState``, ``Seg``, ``SegBuf``,
-``StackContext``, ``Thread``, ``Trace``, ``VM``.
+``LD``, ``Lock``, ``LocusPref``, ``MutatorContext``, ``PoolClass``,
+``Page``, ``Pool``, ``PoolDebugMixin``, ``Range``, ``Ring``, ``Root``,
+``ScanState``, ``Seg``, ``SegBuf``, ``StackContext``, ``Thread``,
+``Trace``, ``VM``.
 
 ``typedef void *Pointer``
 
@@ -706,8 +694,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

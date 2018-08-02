@@ -13,21 +13,21 @@ CC = gcc
 CFLAGSDEBUG = -O -g3
 CFLAGSOPT = -O2 -g3
 CFLAGSCOMPILER := \
-	-Waggregate-return \
-	-Wall \
-	-Wcast-qual \
-	-Werror \
-	-Wextra \
-	-Winline \
-	-Wmissing-prototypes \
-	-Wnested-externs \
-	-Wpointer-arith \
-	-Wshadow \
-	-Wstrict-aliasing=2 \
-	-Wstrict-prototypes \
-	-Wswitch-default \
-	-Wwrite-strings
-CFLAGSCOMPILERSTRICT := -ansi -pedantic
+-Waggregate-return \
+-Wall \
+-Wcast-qual \
+-Werror \
+-Wextra \
+-Winline \
+-Wmissing-prototypes \
+-Wnested-externs \
+-Wpointer-arith \
+-Wshadow \
+-Wstrict-aliasing=2 \
+-Wstrict-prototypes \
+-Wswitch-default \
+-Wwrite-strings
+CFLAGSCOMPILERSTRICT := -std=c89 -pedantic
 
 # A different set of compiler flags for less strict compilation, for
 # instance when we need to #include a third-party header file that
@@ -41,9 +41,9 @@ CFLAGSCOMPILERLAX :=
 # If interrupted, this is liable to leave a zero-length file behind.
 
 define gendep
-	$(SHELL) -ec "$(CC) $(CFLAGSSTRICT) -MM $< | \
-		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
-	[ -s $@ ] || rm -f $@
+$(SHELL) -ec "$(CC) $(CFLAGSSTRICT) -MM $< | \
+	sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
+[ -s $@ ] || rm -f $@
 endef
 
 

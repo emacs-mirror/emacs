@@ -1,7 +1,7 @@
 /* dbgpool.c: POOL DEBUG MIXIN
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .source: design.mps.object-debug
@@ -87,7 +87,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
 
 /* DebugPoolDebugMixin -- gets the debug mixin, if any */
 
-#define DebugPoolDebugMixin(pool) (((pool)->class->debugMixin)(pool))
+#define DebugPoolDebugMixin(pool) (Method(Pool, pool, debugMixin)(pool))
 
 
 /* PoolNoDebugMixin -- debug mixin methods for pools with no mixin */
@@ -127,7 +127,7 @@ static PoolDebugOptionsStruct debugPoolOptionsDefault = {
   "POST", 4, "DEAD", 4,
 };
 
-static Res DebugPoolInit(Pool pool, ArgList args)
+static Res DebugPoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Res res;
   PoolDebugOptions options = &debugPoolOptionsDefault;
@@ -136,7 +136,10 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   Size tagSize;
   ArgStruct arg;
 
-  AVERT(Pool, pool);
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(PoolClass, klass);
+  AVERT(ArgList, args);
 
   if (ArgPick(&arg, args, MPS_KEY_POOL_DEBUG_OPTIONS))
     options = (PoolDebugOptions)arg.val.pool_debug_options;
@@ -147,10 +150,11 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   /* not been published yet. */
   tagInit = NULL; tagSize = 0;
 
-  res = SuperclassOfPool(pool)->init(pool, args);
+  res = SuperclassPoly(Pool, klass)->init(pool, arena, klass, args);
   if (res != ResOK)
     return res;
 
+  SetClassOfPoly(pool, klass);
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
 
@@ -202,7 +206,7 @@ static Res DebugPoolInit(Pool pool, ArgList args)
   return ResOK;
 
 tagFail:
-  SuperclassOfPool(pool)->finish(pool);
+  SuperclassPoly(Inst, klass)->finish(MustBeA(Inst, pool));
   AVER(res != ResOK);
   return res;
 }
@@ -210,9 +214,11 @@ tagFail:
 
 /* DebugPoolFinish -- finish method for a debug pool */
 
-static void DebugPoolFinish(Pool pool)
+static void DebugPoolFinish(Inst inst)
 {
+  Pool pool = MustBeA(AbstractPool, inst);
   PoolDebugMixin debug;
+  PoolClass klass;
 
   AVERT(Pool, pool);
 
@@ -223,7 +229,8 @@ static void DebugPoolFinish(Pool pool)
     SplayTreeFinish(&debug->index);
     PoolDestroy(debug->tagPool);
   }
-  SuperclassOfPool(pool)->finish(pool);
+  klass = ClassOfPoly(Pool, pool);
+  SuperclassPoly(Inst, klass)->finish(inst);
 }
 
 
@@ -397,14 +404,16 @@ static Bool freeCheck(PoolDebugMixin debug, Pool pool, Addr base, Addr limit)
 /* freeCheckAlloc -- allocation wrapper for free-checking */
 
 static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
-                          Size size, Bool withReservoir)
+                          Size size)
 {
   Res res;
   Addr new;
+  PoolClass klass;
 
   AVER(aReturn != NULL);
 
-  res = SuperclassOfPool(pool)->alloc(&new, pool, size, withReservoir);
+  klass = ClassOfPoly(Pool, pool);
+  res = SuperclassPoly(Pool, klass)->alloc(&new, pool, size);
   if (res != ResOK)
     return res;
   if (debug->freeSize != 0)
@@ -421,9 +430,11 @@ static Res freeCheckAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
 static void freeCheckFree(PoolDebugMixin debug,
                           Pool pool, Addr old, Size size)
 {
+  PoolClass klass;
   if (debug->freeSize != 0)
     freeSplat(debug, pool, old, AddrAdd(old, size));
-  SuperclassOfPool(pool)->free(pool, old, size);
+  klass = ClassOfPoly(Pool, pool);
+  SuperclassPoly(Pool, klass)->free(pool, old, size);
 }
 
 
@@ -445,7 +456,7 @@ static void freeCheckFree(PoolDebugMixin debug,
  */
 
 static Res fenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
-                      Size size, Bool withReservoir)
+                      Size size)
 {
   Res res;
   Addr obj, startFence, clientNew, clientLimit, limit;
@@ -458,8 +469,7 @@ static Res fenceAlloc(Addr *aReturn, PoolDebugMixin debug, Pool pool,
   alignedFenceSize = SizeAlignUp(debug->fenceSize, PoolAlignment(pool));
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
   res = freeCheckAlloc(&obj, debug, pool,
-                       alignedSize + 2 * alignedFenceSize,
-                       withReservoir);
+                       alignedSize + 2 * alignedFenceSize);
   if (res != ResOK)
     return res;
 
@@ -514,7 +524,7 @@ static void fenceFree(PoolDebugMixin debug,
 {
   Size alignedFenceSize, alignedSize;
 
-  ASSERT(fenceCheck(debug, pool, old, size), "fencepost check on free");
+  ASSERT(fenceCheck(debug, pool, old, size), "fencepost check on free"); /* <design/check/#.common> */
 
   alignedFenceSize = SizeAlignUp(debug->fenceSize, PoolAlignment(pool));
   alignedSize = SizeAlignUp(size, PoolAlignment(pool));
@@ -526,7 +536,7 @@ static void fenceFree(PoolDebugMixin debug,
 /* tagAlloc -- allocation wrapper for tagged pools */
 
 static Res tagAlloc(PoolDebugMixin debug,
-                    Pool pool, Addr new, Size size, Bool withReservoir)
+                    Pool pool, Addr new, Size size)
 {
   Tag tag;
   Res res;
@@ -534,15 +544,9 @@ static Res tagAlloc(PoolDebugMixin debug,
   Addr addr;
 
   UNUSED(pool);
-  res = PoolAlloc(&addr, debug->tagPool, debug->tagSize, FALSE);
-  if (res != ResOK) {
-    if (withReservoir) { /* <design/object-debug/#out-of-space */
-      debug->missingTags++;
-      return ResOK;
-    } else {
-      return res;
-    }
-  }
+  res = PoolAlloc(&addr, debug->tagPool, debug->tagSize);
+  if (res != ResOK)
+    return res;
   tag = (Tag)addr;
   tag->addr = new; tag->size = size;
   TreeInit(TagTree(tag));
@@ -585,8 +589,7 @@ static void tagFree(PoolDebugMixin debug, Pool pool, Addr old, Size size)
  * Eventually, tag init args will need to be handled somewhere here.
  */
 
-static Res DebugPoolAlloc(Addr *aReturn,
-                          Pool pool, Size size, Bool withReservoir)
+static Res DebugPoolAlloc(Addr *aReturn, Pool pool, Size size)
 {
   Res res;
   Addr new = NULL; /* suppress "may be used uninitialized" warning */
@@ -595,20 +598,19 @@ static Res DebugPoolAlloc(Addr *aReturn,
   AVER(aReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoir);
 
   debug = DebugPoolDebugMixin(pool);
   AVER(debug != NULL);
   AVERT(PoolDebugMixin, debug);
   if (debug->fenceSize != 0)
-    res = fenceAlloc(&new, debug, pool, size, withReservoir);
+    res = fenceAlloc(&new, debug, pool, size);
   else
-    res = freeCheckAlloc(&new, debug, pool, size, withReservoir);
+    res = freeCheckAlloc(&new, debug, pool, size);
   if (res != ResOK)
     return res;
   /* Allocate object first, so it fits even when the tag doesn't. */
   if (debug->tagInit != NULL) {
-    res = tagAlloc(debug, pool, new, size, withReservoir);
+    res = tagAlloc(debug, pool, new, size);
     if (res != ResOK)
       goto tagFail;
   }
@@ -737,7 +739,7 @@ void DebugPoolFreeCheck(Pool pool, Addr base, Addr limit)
     AVERT(PoolDebugMixin, debug);
     if (debug->freeSize != 0)
       ASSERT(freeCheck(debug, pool, base, limit),
-             "free space corrupted on release");
+             "free space corrupted on release"); /* <design/check/#.common> */
   }
 }
 
@@ -771,19 +773,19 @@ void DebugPoolCheckFreeSpace(Pool pool)
 
 /* PoolClassMixInDebug -- mix in the debug support for class init */
 
-void PoolClassMixInDebug(PoolClass class)
+void PoolClassMixInDebug(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->init = DebugPoolInit;
-  class->finish = DebugPoolFinish;
-  class->alloc = DebugPoolAlloc;
-  class->free = DebugPoolFree;
+  /* Can't check klass because it's not initialized yet */
+  klass->instClassStruct.finish = DebugPoolFinish;
+  klass->init = DebugPoolInit;
+  klass->alloc = DebugPoolAlloc;
+  klass->free = DebugPoolFree;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

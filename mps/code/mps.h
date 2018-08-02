@@ -189,6 +189,9 @@ extern const struct mps_key_s _mps_key_COMMIT_LIMIT;
 extern const struct mps_key_s _mps_key_SPARE_COMMIT_LIMIT;
 #define MPS_KEY_SPARE_COMMIT_LIMIT (&_mps_key_SPARE_COMMIT_LIMIT)
 #define MPS_KEY_SPARE_COMMIT_LIMIT_FIELD size
+extern const struct mps_key_s _mps_key_PAUSE_TIME;
+#define MPS_KEY_PAUSE_TIME      (&_mps_key_PAUSE_TIME)
+#define MPS_KEY_PAUSE_TIME_FIELD d
 
 extern const struct mps_key_s _mps_key_EXTEND_BY;
 #define MPS_KEY_EXTEND_BY       (&_mps_key_EXTEND_BY)
@@ -318,9 +321,6 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
   mps_addr_t alloc;             /* limit of allocated memory */
   mps_addr_t limit;             /* limit of available memory */
-  mps_addr_t _frameptr;         /* lightweight frame pointer */
-  mps_bool_t _enabled;          /* lightweight frame status */
-  mps_bool_t _lwpoppending;     /* lightweight pop pending? */
 } mps_ap_s;
 
 
@@ -435,6 +435,7 @@ typedef struct mps_fmt_fixed_s {
 extern void mps_arena_clamp(mps_arena_t);
 extern void mps_arena_release(mps_arena_t);
 extern void mps_arena_park(mps_arena_t);
+extern void mps_arena_postmortem(mps_arena_t);
 extern void mps_arena_expose(mps_arena_t);
 extern void mps_arena_unsafe_expose_remember_protection(mps_arena_t);
 extern void mps_arena_unsafe_restore_protection(mps_arena_t);
@@ -459,6 +460,10 @@ extern void mps_arena_spare_set(mps_arena_t, double);
 extern void mps_arena_spare_commit_limit_set(mps_arena_t, size_t);
 extern size_t mps_arena_spare_commit_limit(mps_arena_t);
 
+extern double mps_arena_pause_time(mps_arena_t);
+extern void mps_arena_pause_time_set(mps_arena_t, double);
+
+extern mps_bool_t mps_arena_busy(mps_arena_t);
 extern mps_bool_t mps_arena_has_addr(mps_arena_t, mps_addr_t);
 extern mps_bool_t mps_addr_pool(mps_pool_t *, mps_arena_t, mps_addr_t);
 extern mps_bool_t mps_addr_fmt(mps_fmt_t *, mps_arena_t, mps_addr_t);
@@ -529,6 +534,8 @@ extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);
 extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
 
 extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
+
+/* mps_ap_fill_with_reservoir_permit is deprecated */			      
 extern mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *,
                                                    mps_ap_t,
                                                    size_t);
@@ -611,7 +618,7 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
 #define MPS_SAC_FREE(sac, p, size) MPS_SAC_FREE_FAST(sac, p, size)
 
 
-/* Low memory reservoir */
+/* Low memory reservoir (deprecated) */
 
 extern void mps_reservoir_limit_set(mps_arena_t, size_t);
 extern size_t mps_reservoir_limit(mps_arena_t);
@@ -647,17 +654,7 @@ extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *,
   MPS_END
 
 
-#define MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(_res_v, _p_v, _mps_ap, _size) \
-  MPS_BEGIN \
-    char *_alloc = (char *)(_mps_ap)->alloc; \
-    char *_next = _alloc + (_size); \
-    if(_next > _alloc && _next <= (char *)(_mps_ap)->limit) { \
-      (_mps_ap)->alloc = (mps_addr_t)_next; \
-      (_p_v) = (_mps_ap)->init; \
-      (_res_v) = MPS_RES_OK; \
-    } else \
-      (_res_v) = mps_ap_fill_with_reservoir_permit(&(_p_v), _mps_ap, _size); \
-  MPS_END
+#define MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK MPS_RESERVE_BLOCK
 
 
 /* Commit Macros */

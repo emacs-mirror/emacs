@@ -13,7 +13,6 @@ CC = clang
 CFLAGSDEBUG = -O0 -g3
 CFLAGSOPT = -O2 -g3
 CFLAGSCOMPILER := \
-	-pedantic \
 	-Waggregate-return \
 	-Wall \
 	-Wcast-qual \
@@ -32,7 +31,7 @@ CFLAGSCOMPILER := \
 	-Wstrict-prototypes \
 	-Wunreachable-code \
 	-Wwrite-strings
-CFLAGSCOMPILERSTRICT :=
+CFLAGSCOMPILERSTRICT := -std=c89 -pedantic
 
 # A different set of compiler flags for less strict compilation, for
 # instance when we need to #include a third-party header file that

@@ -1,7 +1,7 @@
 /* poolsnc.c: STACK NO CHECKING POOL CLASS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * DESIGN
  *
@@ -43,10 +43,18 @@ typedef struct SNCStruct {
 
 /* Forward declarations */
 
-extern SegClass SNCSegClassGet(void);
-extern BufferClass SNCBufClassGet(void);
+typedef SNC SNCPool;
+#define SNCPoolCheck SNCCheck
+DECLARE_CLASS(Pool, SNCPool, AbstractSegBufPool);
+
+DECLARE_CLASS(Seg, SNCSeg, MutatorSeg);
+DECLARE_CLASS(Buffer, SNCBuf, RankBuf);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
+static void sncSegBufferEmpty(Seg seg, Buffer buffer);
+static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss);
+static void sncSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s);
 
 
 /* Management of segment chains
@@ -74,20 +82,13 @@ typedef struct SNCBufStruct {
 } SNCBufStruct;
 
 
-/* BufferSNCBuf -- convert generic Buffer to an SNCBuf */
-
-#define BufferSNCBuf(buffer) ((SNCBuf)(buffer))
-
-
 /* SNCBufCheck -- check consistency of an SNCBuf */
 
 ATTRIBUTE_UNUSED
 static Bool SNCBufCheck(SNCBuf sncbuf)
 {
-  SegBuf segbuf;
-
+  SegBuf segbuf = MustBeA(SegBuf, sncbuf);
   CHECKS(SNCBuf, sncbuf);
-  segbuf = &sncbuf->segBufStruct;
   CHECKD(SegBuf, segbuf);
   if (sncbuf->topseg != NULL) {
     CHECKD(Seg, sncbuf->topseg);
@@ -100,10 +101,7 @@ static Bool SNCBufCheck(SNCBuf sncbuf)
 
 static Seg sncBufferTopSeg(Buffer buffer)
 {
-  SNCBuf sncbuf;
-  AVERT(Buffer, buffer);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
   return sncbuf->topseg;
 }
 
@@ -112,85 +110,69 @@ static Seg sncBufferTopSeg(Buffer buffer)
 
 static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 {
-  SNCBuf sncbuf;
-  AVERT(Buffer, buffer);
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
   if (NULL != seg)
     AVERT(Seg, seg);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
   sncbuf->topseg = seg;
 }
 
 
 /* SNCBufInit -- Initialize an SNCBuf */
 
-static Res SNCBufInit(Buffer buffer, Pool pool, ArgList args)
+static Res SNCBufInit(Buffer buffer, Pool pool, Bool isMutator, ArgList args)
 {
   SNCBuf sncbuf;
   Res res;
-  BufferClass superclass;
-
-  AVERT(Buffer, buffer);
-  AVERT(Pool, pool);
 
   /* call next method */
-  superclass = BUFFER_SUPERCLASS(SNCBufClass);
-  res = (*superclass->init)(buffer, pool, args);
+  res = NextMethod(Buffer, SNCBuf, init)(buffer, pool, isMutator, args);
   if (res != ResOK)
     return res;
+  sncbuf = CouldBeA(SNCBuf, buffer);
 
-  sncbuf = BufferSNCBuf(buffer);
   sncbuf->topseg = NULL;
-  sncbuf->sig = SNCBufSig;
 
-  AVERT(SNCBuf, sncbuf);
+  SetClassOfPoly(buffer, CLASS(SNCBuf));
+  sncbuf->sig = SNCBufSig;
+  AVERC(SNCBuf, sncbuf);
+
   return ResOK;
 }
 
 
 /* SNCBufFinish -- Finish an SNCBuf */
 
-static void SNCBufFinish(Buffer buffer)
+static void SNCBufFinish(Inst inst)
 {
-  BufferClass super;
-  SNCBuf sncbuf;
-  SNC snc;
-  Pool pool;
+  Buffer buffer = MustBeA(Buffer, inst);
+  SNCBuf sncbuf = MustBeA(SNCBuf, buffer);
+  SNC snc = MustBeA(SNCPool, BufferPool(buffer));
 
-  AVERT(Buffer, buffer);
-  sncbuf = BufferSNCBuf(buffer);
-  AVERT(SNCBuf, sncbuf);
-  pool = BufferPool(buffer);
-
-  snc = PoolSNC(pool);
-  /* Put any segments which haven't bee popped onto the free list */
+  /* Put any segments which haven't been popped onto the free list */
   sncPopPartialSegChain(snc, buffer, NULL);
 
   sncbuf->sig = SigInvalid;
 
-  /* finish the superclass fields last */
-  super = BUFFER_SUPERCLASS(SNCBufClass);
-  super->finish(buffer);
+  NextMethod(Inst, SNCBuf, finish)(inst);
 }
 
 
 /* SNCBufClass -- The class definition */
 
-DEFINE_BUFFER_CLASS(SNCBufClass, class)
+DEFINE_CLASS(Buffer, SNCBuf, klass)
 {
-  INHERIT_CLASS(class, RankBufClass);
-  class->name = "SNCBUF";
-  class->size = sizeof(SNCBufStruct);
-  class->init = SNCBufInit;
-  class->finish = SNCBufFinish;
-  AVERT(BufferClass, class);
+  INHERIT_CLASS(klass, SNCBuf, RankBuf);
+  klass->instClassStruct.finish = SNCBufFinish;
+  klass->size = sizeof(SNCBufStruct);
+  klass->init = SNCBufInit;
+  AVERT(BufferClass, klass);
 }
 
 
 
 /* SNCSegStruct -- SNC segment subclass
  *
- * This subclass of GCSeg links segments in chains.
+ * This subclass of MutatorSeg links segments in chains.
  */
 
 #define SNCSegSig ((Sig)0x51954C59)    /* SIGSNCSeG */
@@ -206,9 +188,7 @@ typedef struct SNCSegStruct {
 #define SegSNCSeg(seg)             ((SNCSeg)(seg))
 #define SNCSegSeg(sncseg)          ((Seg)(sncseg))
 
-#define sncSegNext(seg) \
-  (SNCSegSeg(SegSNCSeg(seg)->next))
-
+#define sncSegNext(seg) RVALUE(SNCSegSeg(SegSNCSeg(seg)->next))
 #define sncSegSetNext(seg, nextseg) \
   ((void)(SegSNCSeg(seg)->next = SegSNCSeg(nextseg)))
 
@@ -226,42 +206,57 @@ static Bool SNCSegCheck(SNCSeg sncseg)
 
 /* sncSegInit -- Init method for SNC segments */
 
-static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
-                      Bool reservoirPermit, ArgList args)
+static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
-  SegClass super;
   SNCSeg sncseg;
   Res res;
 
-  AVERT(Seg, seg);
-  sncseg = SegSNCSeg(seg);
-  AVERT(Pool, pool);
-  /* no useful checks for base and size */
-  AVERT(Bool, reservoirPermit);
-
   /* Initialize the superclass fields first via next-method call */
-  super = SEG_SUPERCLASS(SNCSegClass);
-  res = super->init(seg, pool, base, size, reservoirPermit, args);
+  res = NextMethod(Seg, SNCSeg, init)(seg, pool, base, size, args);
   if (res != ResOK)
     return res;
+  sncseg = CouldBeA(SNCSeg, seg);
+
+  AVERT(Pool, pool);
+  /* no useful checks for base and size */
 
   sncseg->next = NULL;
+
+  SetClassOfPoly(seg, CLASS(SNCSeg));
   sncseg->sig = SNCSegSig;
-  AVERT(SNCSeg, sncseg);
+  AVERC(SNCSeg, sncseg);
+
   return ResOK;
+}
+
+
+/* sncSegFinish -- finish an SNC segment */
+
+static void sncSegFinish(Inst inst)
+{
+  Seg seg = MustBeA(Seg, inst);
+  SNCSeg sncseg = MustBeA(SNCSeg, seg);
+
+  sncseg->sig = SigInvalid;
+
+  /* finish the superclass fields last */
+  NextMethod(Inst, SNCSeg, finish)(inst);
 }
 
 
 /* SNCSegClass -- Class definition for SNC segments */
 
-DEFINE_SEG_CLASS(SNCSegClass, class)
+DEFINE_CLASS(Seg, SNCSeg, klass)
 {
-  INHERIT_CLASS(class, GCSegClass);
-  SegClassMixInNoSplitMerge(class);  /* no support for this (yet) */
-  class->name = "SNCSEG";
-  class->size = sizeof(SNCSegStruct);
-  class->init = sncSegInit;
-  AVERT(SegClass, class);
+  INHERIT_CLASS(klass, SNCSeg, MutatorSeg);
+  SegClassMixInNoSplitMerge(klass);  /* no support for this (yet) */
+  klass->instClassStruct.finish = sncSegFinish;
+  klass->size = sizeof(SNCSegStruct);
+  klass->init = sncSegInit;
+  klass->bufferEmpty = sncSegBufferEmpty;
+  klass->scan = sncSegScan;
+  klass->walk = sncSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -280,7 +275,7 @@ static void sncRecordAllocatedSeg(Buffer buffer, Seg seg)
 
 /* sncRecordFreeSeg  - stores a segment on the freelist */
 
-static void sncRecordFreeSeg(SNC snc, Seg seg)
+static void sncRecordFreeSeg(Arena arena, SNC snc, Seg seg)
 {
   AVERT(SNC, snc);
   AVERT(Seg, seg);
@@ -290,6 +285,11 @@ static void sncRecordFreeSeg(SNC snc, Seg seg)
   /* This means it won't be scanned */
   SegSetGrey(seg, TraceSetEMPTY);
   SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
+
+  /* Pad the whole segment so we don't try to walk it. */
+  ShieldExpose(arena, seg);
+  (*SNCPool(snc)->format->pad)(SegBase(seg), SegSize(seg));
+  ShieldCover(arena, seg);
 
   sncSegSetNext(seg, snc->freeSegs);
   snc->freeSegs = seg;
@@ -317,7 +317,7 @@ static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo)
     AVER(free != NULL);
     next = sncSegNext(free);
     sncSegSetNext(free, NULL);
-    sncRecordFreeSeg(snc, free);
+    sncRecordFreeSeg(BufferArena(buf), snc, free);
     free = next;
   }
   /* Make upTo the head of the buffer chain */
@@ -372,41 +372,50 @@ static void SNCVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* SNCInit -- initialize an SNC pool */
 
-static Res SNCInit(Pool pool, ArgList args)
+static Res SNCInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   SNC snc;
-  Format format;
-  ArgStruct arg;
+  Res res;
 
-  /* weak check, as half-way through initialization */
   AVER(pool != NULL);
+  AVERT(Arena, arena);
+  AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
 
-  snc = PoolSNC(pool);
+  res = NextMethod(Pool, SNCPool, init)(pool, arena, klass, args);
+  if (res != ResOK)
+    goto failNextInit;
+  snc = CouldBeA(SNCPool, pool);
 
-  ArgRequire(&arg, args, MPS_KEY_FORMAT);
-  format = arg.val.format;
+  /* Ensure a format was supplied in the argument list. */
+  AVER(pool->format != NULL);
 
-  AVERT(Format, format);
-  AVER(FormatArena(format) == PoolArena(pool));
-  pool->format = format;
+  pool->alignment = pool->format->alignment;
+  pool->alignShift = SizeLog2(pool->alignment);
   snc->freeSegs = NULL;
-  snc->sig = SNCSig;
 
-  AVERT(SNC, snc);
-  EVENT2(PoolInitSNC, pool, format);
+  SetClassOfPoly(pool, CLASS(SNCPool));
+  snc->sig = SNCSig;
+  AVERC(SNCPool, snc);
+
+  EVENT2(PoolInitSNC, pool, pool->format);
+
   return ResOK;
+
+failNextInit:
+  AVER(res != ResOK);
+  return res;
 }
 
 
 /* SNCFinish -- finish an SNC pool */
 
-static void SNCFinish(Pool pool)
+static void SNCFinish(Inst inst)
 {
-  SNC snc;
+  Pool pool = MustBeA(AbstractPool, inst);
+  SNC snc = MustBeA(SNCPool, pool);
   Ring ring, node, nextNode;
 
-  AVERT(Pool, pool);
-  snc = PoolSNC(pool);
   AVERT(SNC, snc);
 
   ring = &pool->segRing;
@@ -415,12 +424,13 @@ static void SNCFinish(Pool pool)
     AVERT(Seg, seg);
     SegFree(seg);
   }
+
+  NextMethod(Inst, SNCPool, finish)(inst);
 }
 
 
 static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size,
-                         Bool withReservoirPermit)
+                         Pool pool, Buffer buffer, Size size)
 {
   SNC snc;
   Arena arena;
@@ -433,7 +443,6 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   AVER(BufferIsReset(buffer));
 
   snc = PoolSNC(pool);
@@ -447,8 +456,8 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
   asize = SizeArenaGrains(size, arena);
-  res = SegAlloc(&seg, SNCSegClassGet(), LocusPrefDefault(),
-                 asize, pool, withReservoirPermit, argsNone);
+  res = SegAlloc(&seg, CLASS(SNCSeg), LocusPrefDefault(),
+                 asize, pool, argsNone);
   if (res != ResOK)
     return res;
 
@@ -462,70 +471,54 @@ found:
   AVERT(Seg, seg);
   /* put the segment on the buffer chain */
   sncRecordAllocatedSeg(buffer, seg);
-  /* Permit the use of lightweight frames - .lw-frame-state */
-  BufferFrameSetState(buffer, BufferFrameVALID);
   *baseReturn = SegBase(seg);
   *limitReturn = SegLimit(seg);
   return ResOK;
 }
 
 
-static void SNCBufferEmpty(Pool pool, Buffer buffer,
-                           Addr init, Addr limit)
+static void sncSegBufferEmpty(Seg seg, Buffer buffer)
 {
-  SNC snc;
-  Seg seg;
   Arena arena;
-  Size size;
+  Pool pool;
+  Addr base, init, limit;
 
-  AVERT(Pool, pool);
+  AVERT(Seg, seg);
   AVERT(Buffer, buffer);
-  seg = BufferSeg(buffer);
+  base = BufferBase(buffer);
+  init = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
+  AVER(SegBase(seg) <= base);
+  AVER(base <= init);
   AVER(init <= limit);
-  AVER(SegLimit(seg) == limit);
-  snc = PoolSNC(pool);
-  AVERT(SNC, snc);
-  AVER(BufferFrameState(buffer) == BufferFrameVALID);
-  /* .lw-frame-state */
-  BufferFrameSetState(buffer, BufferFrameDISABLED);
+  AVER(limit <= SegLimit(seg));
 
-  arena = BufferArena(buffer);
+  pool = SegPool(seg);
+  arena = PoolArena(pool);
 
-  /* Pad the end unused space at the end of the segment */
-  size = AddrOffset(init, limit);
-  if (size > 0) {
+  /* Pad the unused space at the end of the segment */
+  if (init < limit) {
     ShieldExpose(arena, seg);
-    (*pool->format->pad)(init, size);
+    (*pool->format->pad)(init, AddrOffset(init, limit));
     ShieldCover(arena, seg);
   }
 }
 
 
-static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
+static Res sncSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
   Addr base, limit;
   Format format;
-  SNC snc;
   Res res;
 
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
-  AVERT(Pool, pool);
-  snc = PoolSNC(pool);
-  AVERT(SNC, snc);
 
-  format = pool->format;
+  format = SegPool(seg)->format;
   base = SegBase(seg);
-   
-  /* If the segment is buffered, only walk as far as the end */
-  /* of the initialized objects.  */
-  if (SegBuffer(seg) != NULL) {
-    limit = BufferScanLimit(SegBuffer(seg));
-  } else {
-    limit = SegLimit(seg);
-  }
- 
+  limit = SegBufferScanLimit(seg);
+
   if (base < limit) {
     res = FormatScan(format, ss, base, limit);
     if (res != ResOK) {
@@ -544,43 +537,36 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 static Res SNCFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
 {
-  FrameState state;
   AVER(frameReturn != NULL);
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
 
-  state = BufferFrameState(buf);
-  /* Sould have been notified of pending pops before this */
-  AVER(state == BufferFrameVALID || state == BufferFrameDISABLED);
-  if (state == BufferFrameDISABLED) {
-    AVER(BufferIsReset(buf));  /* The buffer must be reset */
+  if (BufferIsReset(buf)) {
     AVER(sncBufferTopSeg(buf) == NULL);  /* The stack must be empty  */
     /* Use NULL to indicate an empty stack. .lw-frame-null */
     *frameReturn = NULL;
+  } else if (BufferGetInit(buf) < SegLimit(BufferSeg(buf))) {
+    /* Frame pointer is limit of initialized objects in buffer. */
+    *frameReturn = (AllocFrame)BufferGetInit(buf);
   } else {
-    /* Use the scan limit as the lightweight frame pointer */
-    *frameReturn = (AllocFrame)BufferScanLimit(buf);
+    /* Can't use the limit of initialized objects as the frame pointer
+     * because it's not in the segment (see job003882). Instead, refill
+     * the buffer and put the frame pointer at the beginning. */
+    Res res;
+    Addr base, limit;
+    BufferDetach(buf, pool);
+    res = SNCBufferFill(&base, &limit, pool, buf, PoolAlignment(pool));
+    if (res != ResOK)
+      return res;
+    BufferAttach(buf, base, limit, base, 0);
+    AVER(BufferGetInit(buf) < SegLimit(BufferSeg(buf)));    
+    *frameReturn = (AllocFrame)BufferGetInit(buf);
   }
   return ResOK;
 }
 
 
-
 static Res SNCFramePop(Pool pool, Buffer buf, AllocFrame frame)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buf);
-  /* Normally the Pop would be handled as a lightweight pop */
-  /* The only reason that might not happen is if the stack is empty */
-  AVER(sncBufferTopSeg(buf) == NULL);
-  /* The only valid frame must also be NULL - .lw-frame-null  */
-  AVER(frame == NULL);
-  /* Popping an empty frame is a NOOP */
-  return ResOK;
-}
-
-
-static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
 {
   Addr addr;
   SNC snc;
@@ -589,8 +575,6 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
   /* frame is an Addr and can't be directly checked */
   snc = PoolSNC(pool);
   AVERT(SNC, snc);
-
-  AVER(BufferFrameState(buf) == BufferFrameVALID);
  
   if (frame == NULL) {
     /* corresponds to a pop to bottom of stack. .lw-frame-null */
@@ -601,13 +585,15 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
     Arena arena;
     Seg seg = NULL;     /* suppress "may be used uninitialized" */
     Bool foundSeg;
+    Buffer segBuf;
 
     arena = PoolArena(pool);
     addr = (Addr)frame;
     foundSeg = SegOfAddr(&seg, arena, addr);
-    AVER(foundSeg);
+    AVER(foundSeg); /* <design/check/#.common> */
+    AVER(SegPool(seg) == pool);
 
-    if (SegBuffer(seg) == buf) {
+    if (SegBuffer(&segBuf, seg) && segBuf == buf) {
       /* don't need to change the segment - just the alloc pointers */
       AVER(addr <= BufferScanLimit(buf));  /* check direction of pop */
       BufferSetAllocAddr(buf, addr);
@@ -616,18 +602,18 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
       BufferDetach(buf, pool);
       sncPopPartialSegChain(snc, buf, seg);
       BufferAttach(buf, SegBase(seg), SegLimit(seg), addr, (Size)0);
-      /* Permit the use of lightweight frames - .lw-frame-state */
-      BufferFrameSetState(buf, BufferFrameVALID);
     }
   }
+
+  return ResOK;
 }
 
 
-static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                    void *p, size_t s)
+static void sncSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                       void *p, size_t s)
 {
-  AVERT(Pool, pool);
   AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
 
@@ -637,19 +623,9 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     Addr object = SegBase(seg);
     Addr nextObject;
     Addr limit;
-    SNC snc;
-    Format format;
+    Pool pool = SegPool(seg);
 
-    snc = PoolSNC(pool);
-    AVERT(SNC, snc);
-    format = pool->format;
-
-    /* If the segment is buffered, only walk as far as the end */
-    /* of the initialized objects.  Cf. SNCScan. */
-    if (SegBuffer(seg) != NULL)
-      limit = BufferScanLimit(SegBuffer(seg));
-    else
-      limit = SegLimit(seg);
+    limit = SegBufferScanLimit(seg);
 
     while(object < limit) {
       (*f)(object, format, pool, p, s);
@@ -662,33 +638,74 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
 }
 
 
+/* SNCTotalSize -- total memory allocated from the arena */
+
+static Size SNCTotalSize(Pool pool)
+{
+  SNC snc;
+  Ring ring, node, nextNode;
+  Size total = 0;
+
+  AVERT(Pool, pool);
+  snc = PoolSNC(pool);
+  AVERT(SNC, snc);
+
+  ring = &pool->segRing;
+  RING_FOR(node, ring, nextNode) {
+    Seg seg = SegOfPoolRing(node);
+    AVERT(Seg, seg);
+    total += SegSize(seg);
+  }
+
+  return total;
+}
+
+
+/* SNCFreeSize -- free memory (unused by client program) */
+
+static Size SNCFreeSize(Pool pool)
+{
+  SNC snc;
+  Seg seg;
+  Size free = 0;
+
+  AVERT(Pool, pool);
+  snc = PoolSNC(pool);
+  AVERT(SNC, snc);
+
+  seg = snc->freeSegs;
+  while (seg != NULL) {
+    AVERT(Seg, seg);
+    free += SegSize(seg);
+    seg = sncSegNext(seg);
+  }
+
+  return free;
+}
+
+
 /* SNCPoolClass -- the class definition */
 
-DEFINE_POOL_CLASS(SNCPoolClass, this)
+DEFINE_CLASS(Pool, SNCPool, klass)
 {
-  INHERIT_CLASS(this, AbstractScanPoolClass);
-  PoolClassMixInFormat(this);
-  this->name = "SNC";
-  this->size = sizeof(SNCStruct);
-  this->offset = offsetof(SNCStruct, poolStruct);
-  this->varargs = SNCVarargs;
-  this->init = SNCInit;
-  this->finish = SNCFinish;
-  this->bufferFill = SNCBufferFill;
-  this->bufferEmpty = SNCBufferEmpty;
-  this->scan = SNCScan;
-  this->framePush = SNCFramePush;
-  this->framePop = SNCFramePop;
-  this->framePopPending = SNCFramePopPending;
-  this->walk = SNCWalk;
-  this->bufferClass = SNCBufClassGet;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, SNCPool, AbstractSegBufPool);
+  klass->instClassStruct.finish = SNCFinish;
+  klass->size = sizeof(SNCStruct);
+  klass->varargs = SNCVarargs;
+  klass->init = SNCInit;
+  klass->bufferFill = SNCBufferFill;
+  klass->framePush = SNCFramePush;
+  klass->framePop = SNCFramePop;
+  klass->bufferClass = SNCBufClassGet;
+  klass->totalSize = SNCTotalSize;
+  klass->freeSize = SNCFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 
 mps_pool_class_t mps_class_snc(void)
 {
-  return (mps_pool_class_t)SNCPoolClassGet();
+  return (mps_pool_class_t)CLASS(SNCPool);
 }
 
 
@@ -698,8 +715,8 @@ ATTRIBUTE_UNUSED
 static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
+  CHECKC(SNCPool, snc);
   CHECKD(Pool, SNCPool(snc));
-  CHECKL(SNCPool(snc)->class == SNCPoolClassGet());
   if (snc->freeSegs != NULL) {
     CHECKD(Seg, snc->freeSegs);
   }
@@ -709,7 +726,7 @@ static Bool SNCCheck(SNC snc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

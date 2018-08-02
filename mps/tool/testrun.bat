@@ -1,5 +1,5 @@
 @rem $Id$
-@rem Copyright (c) 2013-2014 Ravenbrook Limited. See end of file for license.
+@rem Copyright (c) 2013-2016 Ravenbrook Limited. See end of file for license.
 @rem 
 @rem This program runs a series of test cases, capturing the output of
 @rem each one to a temporary file. In addition, the output of any test
@@ -30,6 +30,7 @@ set LOGDIR=%TMP%\mps-%PFM%-%VARIETY%-log
 echo MPS test suite
 echo Logging test output to %LOGDIR%
 echo Test directory: %PFM%\%VARIETY%
+echo Test case database: %TEST_CASE_DB%
 if exist %LOGDIR% rmdir /q /s %LOGDIR%
 mkdir %LOGDIR%
 
@@ -49,7 +50,7 @@ set FAIL_COUNT=0
 set SEPARATOR=----------------------------------------
 
 if "%EXCLUDE%"=="" goto :args
-for /f "tokens=1" %%T IN ('type %TEST_CASE_DB% ^|^
+for /f "tokens=1" %%T IN ('type "%TEST_CASE_DB%" ^|^
      findstr /b /r [abcdefghijklmnopqrstuvwxyz] ^|^
      findstr /v /r =[%EXCLUDE%]') do call :run_test %%T
 goto :done
@@ -87,7 +88,7 @@ exit /b
 
 @rem C. COPYRIGHT AND LICENSE
 @rem
-@rem Copyright (C) 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+@rem Copyright (C) 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
 @rem All rights reserved.  This is an open source license.  Contact
 @rem Ravenbrook for commercial licensing options.
 @rem 
