@@ -7,87 +7,16 @@ Deprecated interfaces
 =====================
 
 This chapter documents the public symbols in the MPS interface that
-are now deprecated. These symbols may be removed in any future release
-(see :ref:`topic-interface-support` for details). If you are using one
-of these symbols, then you should update your code to use the
-supported interface.
+are currently deprecated. These symbols may be removed in any future
+release (see :ref:`topic-interface-support` for details). If you are
+using one of these symbols, then you should update your code to use
+the supported interface.
 
 .. note::
 
     If you are relying on a deprecated interface, and there is no
     supported alternative, please :ref:`contact us <contact>`. It
     makes a difference if we know that someone is using a feature.
-
-
-
-
-.. index::
-   single: deprecated interfaces; in version 1.117
-
-Deprecated in version 1.117
-...........................
-
-.. c:function:: mps_pool_class_t mps_class_mv(void)
-
-    .. deprecated::
-
-        Use :c:func:`mps_class_mvff` instead.
-
-    Return the :term:`pool class` for an MV (Manual Variable)
-    :term:`pool`.
-
-    When creating an MV pool, :c:func:`mps_pool_create_k` takes four
-    optional :term:`keyword arguments`:
-
-    * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
-      :c:macro:`MPS_PF_ALIGN`) is the :term:`alignment` of the
-      addresses allocated (and freed) in the pool. The minimum
-      alignment supported by pools of this class is 1 (one)
-      and the maximum is the arena grain size
-      (see :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`).
-
-    * :c:macro:`MPS_KEY_EXTEND_BY` (type :c:type:`size_t`,
-      default 65536) is the :term:`size` of block that the pool will
-      request from the :term:`arena`.
-
-    * :c:macro:`MPS_KEY_MEAN_SIZE` (type :c:type:`size_t`, default 32)
-      is the predicted mean size of blocks that will be allocated from
-      the pool. This value must be smaller than, or equal to, the
-      value for :c:macro:`MPS_KEY_EXTEND_BY`.
-
-    * :c:macro:`MPS_KEY_MAX_SIZE` (type :c:type:`size_t`,
-      default 65536) is the predicted maximum size of blocks that will
-      be allocated from the pool. This value must be larger than, or
-      equal to, the value for :c:macro:`MPS_KEY_EXTEND_BY`.
-
-    The mean and maximum sizes are *hints* to the MPS: the pool will be
-    less efficient if these are wrong, but nothing will break.
-
-    For example::
-
-        MPS_ARGS_BEGIN(args) {
-            MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 32);
-            MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 1024);
-            MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 1024 * 1024);
-            res = mps_pool_create_k(&pool, arena, mps_class_mfs(), args);
-        } MPS_ARGS_END(args);
-
-
-.. c:function:: mps_pool_class_t mps_class_mv_debug(void)
-
-    .. deprecated::
-
-        Use :c:func:`mps_class_mvff_debug` instead.
-
-    A :ref:`debugging <topic-debugging>` version of the MV pool
-    class.
-
-    When creating a debugging MV pool, :c:func:`mps_pool_create_k`
-    takes five optional keyword arguments: :c:macro:`MPS_KEY_ALIGN`,
-    :c:macro:`MPS_KEY_EXTEND_SIZE`, :c:macro:`MPS_KEY_MEAN_SIZE`,
-    :c:macro:`MPS_KEY_MAX_SIZE` are as described above, and
-    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS` specifies the debugging
-    options. See :c:type:`mps_pool_debug_option_s`.
 
 
 .. index::
@@ -112,34 +41,6 @@ Deprecated in version 1.115
         The former name for :c:type:`mps_pool_class_t`, chosen when
         pools were the only objects in the MPS that belonged to
         classes.
-
-
-.. c:function:: size_t mps_mv_free_size(mps_pool_t pool)
-
-    .. deprecated::
-
-        Use the generic function :c:func:`mps_pool_free_size` instead.
-
-    Return the total amount of free space in an MV pool.
-
-    ``pool`` is the MV pool.
-
-    Returns the total free space in the pool, in :term:`bytes (1)`.
-
-
-.. c:function:: size_t mps_mv_size(mps_pool_t pool)
-
-    .. deprecated::
-
-        Use the generic function :c:func:`mps_pool_total_size`
-        instead.
-
-    Return the total size of an MV pool.
-
-    ``pool`` is the MV pool.
-
-    Returns the total size of the pool, in :term:`bytes (1)`. This
-    is the sum of allocated space and free space.
 
     
 .. c:function:: size_t mps_mvff_free_size(mps_pool_t pool)
@@ -590,30 +491,6 @@ Deprecated in version 1.112
                                   mps_pool_class_t mps_class_mfs(),
                                   size_t extend_by,
                                   size_t unit_size)
-
-    When creating a pool of class :c:func:`mps_class_mv`, pass the
-    values for the keyword arguments :c:macro:`MPS_KEY_EXTEND_BY`,
-    :c:macro:`MPS_KEY_MEAN_SIZE`, and :c:macro:`MPS_KEY_MAX_SIZE` like
-    this::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
-                                  mps_pool_class_t mps_class_mv(),
-                                  size_t extend_by,
-                                  size_t mean_size,
-                                  size_t max_size)
-
-    When creating a pool of class :c:func:`mps_class_mv_debug`, pass
-    the values for the keyword arguments
-    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`,
-    :c:macro:`MPS_KEY_EXTEND_BY`, :c:macro:`MPS_KEY_MEAN_SIZE` and
-    :c:macro:`MPS_KEY_MAX_SIZE` like this::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
-                                  mps_pool_class_t mps_class_mv_debug(),
-                                  mps_pool_debug_option_s *pool_debug_options,
-                                  size_t extend_by,
-                                  size_t mean_size,
-                                  size_t max_size)
 
     When creating a pool of class :c:func:`mps_class_mvff`, pass the
     values for the keyword arguments :c:macro:`MPS_KEY_EXTEND_BY`,

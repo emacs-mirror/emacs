@@ -6,7 +6,6 @@
  */
 
 
-#include "mpscmv.h"
 #include "mpscmvff.h"
 #include "mpscmvt.h"
 #include "mpslib.h"
@@ -192,17 +191,8 @@ static void test(mps_arena_class_t arena_class, mps_arg_s arena_args[],
                mps_class_mvff(), args), "stress MVFF");
   } MPS_ARGS_END(args);
 
-  MPS_ARGS_BEGIN(args) {
-    mps_align_t align = rnd_align(sizeof(void *), MAX_ALIGN);
-    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
-    die(stress(arena, NULL, align, randomSizeAligned, "MV",
-               mps_class_mv(), args), "stress MV");
-  } MPS_ARGS_END(args);
-
   /* IWBN to test MVFFDebug, but the MPS doesn't support debugging
-     APs, yet.  MV Debug used to work here, because it faked it
-     through PoolAlloc, but MV Debug is now deprecated and replaced by
-     MVFF Debug.  See job003995. */
+     allocation points. See job003995. */
   (void)options;
 
   MPS_ARGS_BEGIN(args) {

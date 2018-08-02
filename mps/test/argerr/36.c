@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = wrong size_t to free (MV)
+ summary = wrong size_t to free (MVFF debug)
  language = c
  link = testlib.o
 OUTPUT_SPEC
@@ -12,7 +12,7 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "arg.h"
 
 void *stackpointer;
@@ -29,7 +29,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_pool_create_k(&pool, arena, mps_class_mv_debug(), mps_args_none),
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mvff_debug(), mps_args_none),
       "create pool");
 
  die(mps_alloc(&a, pool, 8),
