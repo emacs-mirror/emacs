@@ -34,7 +34,7 @@ static void test(void)
 
  MPS_ARGS_BEGIN(args) {
    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &debugOpts);
-   die(mps_pool_create(&pool, arena, mps_class_mv_debug(), args),
+   die(mps_pool_create_k(&pool, arena, mps_class_mvff_debug(), args),
        "create MVFF pool");
  } MPS_ARGS_END(args);
 
