@@ -926,57 +926,6 @@ static Res arenaFreeLandInsertExtend(Range rangeReturn, Arena arena,
 }
 
 
-/* arenaFreeLandInsertSteal -- add range to arena's free land, maybe
- * stealing memory
- *
- * See arenaFreeLandInsertExtend. This function may only be applied to
- * mapped pages and may steal them to store Land nodes if it's unable
- * to allocate space for CBS blocks.
- *
- * IMPORTANT: May update rangeIO.
- */
-
-static void arenaFreeLandInsertSteal(Range rangeReturn, Arena arena,
-                                     Range rangeIO)
-{
-  Res res;
-  
-  AVER(rangeReturn != NULL);
-  AVERT(Arena, arena);
-  AVERT(Range, rangeIO);
-
-  res = arenaFreeLandInsertExtend(rangeReturn, arena, rangeIO);
-  
-  if (res != ResOK) {
-    Land land;
-    Addr pageBase, pageLimit;
-    Tract tract;
-    AVER(ResIsAllocFailure(res));
-
-    /* Steal a page from the memory we're about to free. */
-    AVER(RangeSize(rangeIO) >= ArenaGrainSize(arena));
-    pageBase = RangeBase(rangeIO);
-    pageLimit = AddrAdd(pageBase, ArenaGrainSize(arena));
-    AVER(pageLimit <= RangeLimit(rangeIO));
-    RangeInit(rangeIO, pageLimit, RangeLimit(rangeIO));
-
-    /* Steal the tract from its owning pool. */
-    tract = TractOfBaseAddr(arena, pageBase);
-    TractFinish(tract);
-    TractInit(tract, ArenaCBSBlockPool(arena), pageBase);
-  
-    MFSExtend(ArenaCBSBlockPool(arena), pageBase, pageLimit);
-
-    /* Try again. */
-    land = ArenaFreeLand(arena);
-    res = LandInsert(rangeReturn, land, rangeIO);
-    AVER(res == ResOK); /* we just gave memory to the CBS block pool */
-  }
-
-  AVER(res == ResOK); /* not expecting other kinds of error from the Land */
-}
-
-
 /* ArenaFreeLandInsert -- add range to arena's free land, maybe extending
  * block pool
  *
@@ -1166,10 +1115,12 @@ allocFail:
 void ArenaFree(Addr base, Size size, Pool pool)
 {
   Arena arena;
+  Land land;
   Addr limit;
   Addr wholeBase;
   Size wholeSize;
   RangeStruct range, oldRange;
+  Res res;
 
   AVERT(Pool, pool);
   AVER(base != NULL);
@@ -1191,9 +1142,12 @@ void ArenaFree(Addr base, Size size, Pool pool)
 
   RangeInit(&range, base, limit);
 
-  arenaFreeLandInsertSteal(&oldRange, arena, &range); /* may update range */
+  land = ArenaFreeLand(arena);
+  res = LandInsertSteal(&oldRange, land, &range); /* may update range */
+  AVER(res == ResOK);
 
-  Method(Arena, arena, free)(RangeBase(&range), RangeSize(&range), pool);
+  if (!RangeIsEmpty(&range))
+    Method(Arena, arena, free)(RangeBase(&range), RangeSize(&range), pool);
 
   /* Freeing memory might create spare pages, but not more than this. */
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
