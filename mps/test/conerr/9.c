@@ -10,7 +10,6 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
 
 static void test(void)
 {

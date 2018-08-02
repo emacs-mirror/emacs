@@ -9,7 +9,7 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 
 static void test(void) {
  mps_arena_t arena;
@@ -19,9 +19,7 @@ static void test(void) {
 
  die(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none), "create");
 
- die(mps_pool_create(&pool, arena, mps_class_mv(),
-                     (size_t)(32), (size_t)(16), (size_t)(256)),
-     "create MV pool");
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none), "pool");
 
  die(mps_alloc(&q, pool, 1024), "alloc");
 
