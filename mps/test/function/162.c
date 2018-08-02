@@ -31,16 +31,17 @@ static void test(void) {
 
  MPS_ARGS_BEGIN(args) {
    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &debugOpts);
-   die(mps_pool_create_k(&pool, arena, mps_class_mv_debug(), args),
+   MPS_ARGS_ADD(args, MPS_KEY_ALIGN, 8);
+   die(mps_pool_create_k(&pool, arena, mps_class_mvff_debug(), args),
        "create MVFF pool");
  } MPS_ARGS_END(args);
- die(mps_alloc(&a, pool, 63), "alloc a");
+ die(mps_alloc(&a, pool, 64), "alloc a");
  
  c = a;
- c += 63;
+ c += 64;
  *c = 0;
 
- mps_free(pool, a, 63);
+ mps_free(pool, a, 64);
 
  mps_pool_destroy(pool);
  mps_thread_dereg(thread);
