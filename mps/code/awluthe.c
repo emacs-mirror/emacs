@@ -14,6 +14,7 @@
 #include "fmthe.h"
 #include "fmtdy.h"
 #include "testlib.h"
+#include "testthr.h"
 #include "mpslib.h"
 #include "mps.h"
 #include "mpstd.h"
@@ -177,42 +178,79 @@ static void table_link(mps_word_t *t1, mps_word_t *t2)
 }
 
 
-static void test(mps_arena_t arena,
-                 mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
-                 mps_ap_t bogusap)
-{
+typedef struct tables_s {
+  mps_arena_t arena;
   mps_word_t *weaktable;
   mps_word_t *exacttable;
   mps_word_t *preserve[TABLE_SLOTS];    /* preserves objects in the weak */
                                         /* table by referring to them */
-  size_t i, j;
-  void *p;
+  mps_ap_t weakap, exactap, bogusap, leafap;
+} tables_s, *tables_t;
 
-  exacttable = alloc_table(TABLE_SLOTS, exactap);
-  weaktable = alloc_table(TABLE_SLOTS, weakap);
-  table_link(exacttable, weaktable);
+/* populate -- populate the weak table in a thread
+ *
+ * We use a thread to populate the table to avoid leaving any
+ * references to objects in the table in registers, so that we can
+ * test their weakness properly.
+ */
+
+static void *populate(void *state)
+{
+  tables_t tables = state;
+  size_t i;
+  mps_thr_t me;
+  mps_root_t root;
+
+  die(mps_thread_reg(&me, tables->arena), "mps_thread_reg(populate)");
+  die(mps_root_create_thread(&root, tables->arena, me, &state), "mps_root_create_thread(populate)");
+
+  tables->exacttable = alloc_table(TABLE_SLOTS, tables->exactap);
+  tables->weaktable = alloc_table(TABLE_SLOTS, tables->weakap);
+  table_link(tables->exacttable, tables->weaktable);
+
+  for(i = 0; i < TABLE_SLOTS; ++i) {
+    mps_word_t *string;
+    if (rnd() % 2 == 0) {
+      string = alloc_string("iamalive", tables->leafap);
+      tables->preserve[i] = string;
+    } else {
+      string = alloc_string("iamdead", tables->leafap);
+      tables->preserve[i] = 0;
+    }
+    set_table_slot(tables->weaktable, i, string);
+    string = alloc_string("iamexact", tables->leafap);
+    set_table_slot(tables->exacttable, i, string);
+  }
+
+  mps_root_destroy(root);
+  mps_thread_dereg(me);
+
+  return NULL;
+}
+
+static void test(mps_arena_t arena,
+                 mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
+                 mps_ap_t bogusap)
+{
+  tables_s tables;
+  size_t i, j;
+  testthr_t thr;
+  void *p;
 
   /* Leave bogusap between reserve and commit for the duration */
   die(mps_reserve(&p, bogusap, 64), "Reserve bogus");
 
-  for(i = 0; i < TABLE_SLOTS; ++i) {
-    mps_word_t *string;
-    /* Ensure that the last entry in the table is preserved, so that
-     * we don't get a false positive due to the local variable
-     * 'string' keeping this entry alive (see job003436).
-     */
-    if (rnd() % 2 == 0 || i + 1 == TABLE_SLOTS) {
-      string = alloc_string("iamalive", leafap);
-      preserve[i] = string;
-    } else {
-      string = alloc_string("iamdead", leafap);
-      preserve[i] = 0;
-    }
-    set_table_slot(weaktable, i, string);
-    string = alloc_string("iamexact", leafap);
-    set_table_slot(exacttable, i, string);
-  }
+  tables.arena = arena;
+  tables.exactap = exactap;
+  tables.weakap = weakap;
+  tables.leafap = leafap;
+  tables.bogusap = bogusap;
 
+  /* We using a thread for its pararallel execution, so just create
+     and wait for it to finish. */
+  testthr_create(&thr, populate, &tables);
+  testthr_join(&thr, NULL);
+  
   for(j = 0; j < ITERATIONS; ++j) {
     for(i = 0; i < TABLE_SLOTS; ++i) {
       (void)alloc_string("spong", leafap);
@@ -223,12 +261,12 @@ static void test(mps_arena_t arena,
   mps_arena_release(arena);
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
-    if (preserve[i] == 0) {
-      if (table_slot(weaktable, i)) {
+    if (tables.preserve[i] == 0) {
+      if (table_slot(tables.weaktable, i)) {
         error("Strongly unreachable weak table entry found, "
               "slot %"PRIuLONGEST".\n", (ulongest_t)i);
       } else {
-        if (table_slot(exacttable, i) != 0) {
+        if (table_slot(tables.exacttable, i) != 0) {
           error("Weak table entry deleted, but corresponding "
                 "exact table entry not deleted, slot %"PRIuLONGEST".\n",
                 (ulongest_t)i);

@@ -182,7 +182,7 @@ extra field to the buffer. The convenience macro
 ``DEFINE_BUFFER_CLASS()`` may be used to define subclasses of buffer
 classes. See design.mps.protocol.int.define-special_.
 
-.. _design.mps.protocol.int.define-special: protocol#int.define-special
+.. _design.mps.protocol.int.define-special: protocol#int-define-special
 
 _`.replay`: To work with the allocation replayer (see
 design.mps.telemetry.replayer_), the buffer class has to emit an event
@@ -211,13 +211,6 @@ superclass method (via a next-method call) before performing any
 class-specific behaviour. _`.replay.init`: The ``init()`` method
 should emit a ``BufferInit<foo>`` event (if there aren't any extra
 parameters, ``<foo> = ""``).
-
-``typedef void (*BufferFinishMethod)(Buffer buffer)``
-
-_`.class.method.finish`: ``finish()`` is a class-specific finish
-method called from ``BufferFinish()``. Client-defined methods must
-call their superclass method (via a next-method call) after performing
-any class-specific behaviour.
 
 ``typedef void (*BufferAttachMethod)(Buffer buffer, Addr base, Addr limit, Addr init, Size size)``
 
@@ -255,13 +248,6 @@ _`.class.method.setRankSet`: ``setRankSet()`` is a class-specific
 setter method which sets the rank set of a buffer. It is called from
 ``BufferSetRankSet()``. Clients should not need to define their own
 methods for this.
-
-``typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream, Count depth)``
-
-_`.class.method.describe`: ``describe()`` is a class-specific method
-called to describe a buffer, via ``BufferDescribe()``. Client-defined
-methods must call their superclass method (via a next-method call)
-before describing any class-specific state.
 
 
 Logging
@@ -623,7 +609,7 @@ design.mps.thread-safety_).
 
 Returns the pool to which a buffer is attached.
 
-``Res BufferReserve(Addr *pReturn, Buffer buffer, Size size, Bool withReservoirPermit)``
+``Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)``
 
 _`.method.reserve`: Reserves memory from an allocation buffer.
 
@@ -638,7 +624,7 @@ pool to which the buffer belongs) and then passed to the
 applied twice to a buffer without a ``BufferCommit()`` in-between. In
 other words, Reserve/Commit pairs do not nest.
 
-``Res BufferFill(Addr *pReturn, Buffer buffer, Size size, Bool withReservoirPermit)``
+``Res BufferFill(Addr *pReturn, Buffer buffer, Size size)``
 
 _`.method.fill`: Refills an empty buffer. If there is not enough space
 in a buffer to allocate in-line, ``BufferFill()`` must be called to
@@ -736,8 +722,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

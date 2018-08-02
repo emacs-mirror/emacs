@@ -10,7 +10,7 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 
 mps_arena_t arena;
 mps_pool_t pool;
@@ -19,8 +19,7 @@ mps_addr_t q;
 static mps_res_t trysize(size_t try) {
  mps_res_t res;
 
- die(mps_pool_create(&pool, arena, mps_class_mv(),
-  1024*32, 1024*16, 1024*256), "pool");
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none), "pool");
 
  comment("Trying %x", try);
 

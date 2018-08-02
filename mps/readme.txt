@@ -53,7 +53,7 @@ using it.  The basic case is straightforward on supported platforms
 (see below)::
 
     cd code
-    cc -O2 -c mps.c     Unix / Mac OS X (with Xcode command line)
+    cc -O2 -c mps.c     Unix / macOS (with Xcode command line)
     cl /O2 /c mps.c     Windows (with Microsoft SDK or Visual Studio 2010)
 
 This will produce an object file you can link with your project.  For
@@ -72,14 +72,15 @@ Supported target platforms
 
 The MPS is currently supported for deployment on:
 
-- Windows XP or later, on IA-32 and x86-64, using Microsoft Visual C/C++;
+- Windows Vista or later, on IA-32 and x86-64, using Microsoft Visual
+  C/C++;
 
-- Linux 2.4 or later, on IA-32 using GCC and on x86-64 using GCC or
+- Linux 2.6 or later, on IA-32 using GCC and on x86-64 using GCC or
   Clang/LLVM;
 
-- FreeBSD 7 or later, on IA-32 and x86-64, using GCC;
+- FreeBSD 7 or later, on IA-32 and x86-64, using GCC or Clang/LLVM;
 
-- OS X 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
+- macOS 10.4 or later, on IA-32 and x86-64, using Clang/LLVM.
 
 The MPS is highly portable and has run on many other processors and
 operating systems in the past (see `Building the MPS
@@ -132,6 +133,7 @@ Document History
                    brought to you in glorious reStructuredText.
 2014-01-13  GDR_   Updated supported platforms.
 2014-07-04  GDR_   Link to hotfix for WOW64 bug.
+2016-03-24  RB_    Adding support for FreeBSD with Clang/LLVM.
 ==========  =====  ======================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com
@@ -143,7 +145,7 @@ Document History
 Copyright and Licence
 ---------------------
 
-Copyright (C) 2001-2014 Ravenbrook Limited. All rights reserved. 
+Copyright (C) 2001-2018 Ravenbrook Limited. All rights reserved. 
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

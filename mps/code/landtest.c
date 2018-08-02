@@ -1,7 +1,7 @@
 /* landtest.c: LAND TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * Test all three Land implementations against duplicate operations on
  * a bit-table.
@@ -62,18 +62,18 @@ static Index (indexOfAddr)(TestState state, Addr a)
 }
 
 
-static void describe(TestState state) {
+static void describe(TestState state)
+{
   die(LandDescribe(state->land, mps_lib_get_stdout(), 0), "LandDescribe");
 }
 
 
-static Bool checkVisitor(Land land, Range range, void *closureP, Size closureS)
+static Bool checkVisitor(Land land, Range range, void *closure)
 {
   Addr base, limit;
-  CheckTestClosure cl = closureP;
+  CheckTestClosure cl = closure;
 
   testlib_unused(land);
-  Insist(closureS == UNUSED_SIZE);
   Insist(cl != NULL);
 
   base = RangeBase(range);
@@ -106,7 +106,7 @@ static void check(TestState state)
   closure.limit = addrOfIndex(state, state->size);
   closure.oldLimit = state->block;
 
-  b = LandIterate(state->land, checkVisitor, &closure, UNUSED_SIZE);
+  b = LandIterate(state->land, checkVisitor, &closure);
   Insist(b);
 
   if (closure.oldLimit == state->block)
@@ -385,11 +385,10 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
       BTSetRange(state->allocTable, expectedBase, expectedLimit);
     }
   }
-
-  return;
 }
 
-static void test(TestState state, unsigned n) {
+static void test(TestState state, unsigned n, unsigned operations)
+{
   Addr base, limit;
   unsigned i;
   Size size;
@@ -399,7 +398,7 @@ static void test(TestState state, unsigned n) {
   BTSetRange(state->allocTable, 0, state->size); /* Initially all allocated */
   check(state);
   for(i = 0; i < n; i++) {
-    switch(fbmRnd(3)) {
+    switch (fbmRnd(operations)) {
     case 0:
       randomRange(&base, &limit, state);
       allocate(state, base, limit);
@@ -420,7 +419,7 @@ static void test(TestState state, unsigned n) {
       find(state, size, high, findDelete);
       break;
     default:
-      cdie(0, "invalid rnd(3)");
+      cdie(0, "invalid operation");
       return;
     }
     if ((i + 1) % 1000 == 0)
@@ -430,8 +429,16 @@ static void test(TestState state, unsigned n) {
 
 #define testArenaSIZE   (((size_t)4)<<20)
 
-extern int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
+  static const struct {
+    LandClass (*klass)(void);
+    unsigned operations;
+  } cbsConfig[] = {
+    {CBSClassGet, 2},
+    {CBSFastClassGet, 3},
+    {CBSZonedClassGet, 3},
+  };
   mps_arena_t mpsArena;
   Arena arena;
   TestStateStruct state;
@@ -444,7 +451,7 @@ extern int main(int argc, char *argv[])
   Land fl = FreelistLand(&flStruct);
   Land fo = FailoverLand(&foStruct);
   Pool mfs = MFSPool(&blockPool);
-  int i;
+  size_t i;
 
   testlib_init(argc, argv);
   state.size = ArraySize;
@@ -460,8 +467,7 @@ extern int main(int argc, char *argv[])
   die((mps_res_t)BTCreate(&state.allocTable, arena, state.size),
       "failed to create alloc table");
 
-  die((mps_res_t)ControlAlloc(&p, arena, (state.size + 1) * state.align,
-                              /* withReservoirPermit */ FALSE),
+  die((mps_res_t)ControlAlloc(&p, arena, (state.size + 1) * state.align),
       "failed to allocate block");
   state.block = AddrAlignUp(p, state.align);
 
@@ -472,22 +478,24 @@ extern int main(int argc, char *argv[])
 
   /* 1. Test CBS */
 
-  MPS_ARGS_BEGIN(args) {
-    die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, state.align,
-                            NULL, args),
-        "failed to initialise CBS");
-  } MPS_ARGS_END(args);
-  state.land = cbs;
-  test(&state, nCBSOperations);
-  LandFinish(cbs);
+  for (i = 0; i < NELEMS(cbsConfig); ++i) {
+    MPS_ARGS_BEGIN(args) {
+      die((mps_res_t)LandInit(cbs, cbsConfig[i].klass(), arena, state.align,
+                              NULL, args),
+          "failed to initialise CBS");
+    } MPS_ARGS_END(args);
+    state.land = cbs;
+    test(&state, nCBSOperations, cbsConfig[i].operations);
+    LandFinish(cbs);
+  }
 
   /* 2. Test Freelist */
 
-  die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, state.align,
+  die((mps_res_t)LandInit(fl, CLASS(Freelist), arena, state.align,
                           NULL, mps_args_none),
       "failed to initialise Freelist");
   state.land = fl;
-  test(&state, nFLOperations);
+  test(&state, nFLOperations, 3);
   LandFinish(fl);
 
   /* 3. Test CBS-failing-over-to-Freelist (always failing over on
@@ -499,30 +507,30 @@ extern int main(int argc, char *argv[])
       MPS_ARGS_BEGIN(piArgs) {
         MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSFastBlockStruct));
         MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaGrainSize(arena));
-        MPS_ARGS_ADD(piArgs, MFSExtendSelf, i);
+        MPS_ARGS_ADD(piArgs, MFSExtendSelf, i != 0);
         die(PoolInit(mfs, arena, PoolClassMFS(), piArgs), "PoolInit");
       } MPS_ARGS_END(piArgs);
 
       MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, CBSBlockPool, mfs);
-        die((mps_res_t)LandInit(cbs, CBSFastLandClassGet(), arena, state.align,
+        die((mps_res_t)LandInit(cbs, CLASS(CBSFast), arena, state.align,
                                 NULL, args),
             "failed to initialise CBS");
       } MPS_ARGS_END(args);
 
-      die((mps_res_t)LandInit(fl, FreelistLandClassGet(), arena, state.align,
+      die((mps_res_t)LandInit(fl, CLASS(Freelist), arena, state.align,
                               NULL, mps_args_none),
           "failed to initialise Freelist");
       MPS_ARGS_BEGIN(args) {
         MPS_ARGS_ADD(args, FailoverPrimary, cbs);
         MPS_ARGS_ADD(args, FailoverSecondary, fl);
-        die((mps_res_t)LandInit(fo, FailoverLandClassGet(), arena, state.align,
+        die((mps_res_t)LandInit(fo, CLASS(Failover), arena, state.align,
                                 NULL, args),
             "failed to initialise Failover");
       } MPS_ARGS_END(args);
 
       state.land = fo;
-      test(&state, nFOOperations);
+      test(&state, nFOOperations, 3);
       LandFinish(fo);
       LandFinish(fl);
       LandFinish(cbs);
@@ -547,7 +555,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

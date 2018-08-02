@@ -21,26 +21,23 @@ interface also allows the value of such references to be changed (this
 is necessary in order to implement a moving memory manager).
 
 
-Architecture
--------------
+Was-marked protocol
+-------------------
 
-_`.protocol.was-marked`: The ``ScanState`` has a ``Bool``
-``wasMarked`` field. This is used for finalization.
+_`.was-marked`: The ``ScanState`` has a ``Bool wasMarked``
+field. This is used for finalization.
 
-_`.protocol.was-marked.set`: All pool-specific fix methods must set
-the ``wasMarked`` field in the ``ScanState`` that they are passed.
+_`.was-marked.not`: If a segment's fix method discovers that the
+object referred to by the ref (the one that it is supposed to be
+fixing) has not previously been marked (that is, this is the first
+reference to this object that has been fixed), and that the object was
+white (that is, in condemned space), it should (but need not) set the
+field to ``FALSE`` in the passed ``ScanState````wasMarked`` .
 
-_`.protocol.was-marked.meaning`: If the pool-specific fix method sets
-the ``wasMarked`` field to ``FALSE`` it is indicating the object
-referred to by the ref (the one that it is supposed to be fixing) has
-not previously been marked (ie, this is the first reference to this
-object that has been fixed), and that the object was white (in
-condemned space).
+_`.was-marked.otherwise`: Otherwise, the fix method must
+leave the ``wasMarked`` field unchanged.
 
-_`.protocol.was-marked.conservative`: It is always okay to set the
-``wasMarked`` field to ``TRUE``.
-
-_`.protocol.was-marked.finalizable`: The MRG pool (design.mps.poolmrg_)
+_`.was-marked.finalizable`: The MRG pool (design.mps.poolmrg_)
 uses the value of the ``wasMarked`` field to determine whether an
 object is finalizable.
 
@@ -66,6 +63,8 @@ Document History
 
 - 2013-04-14 GDR_ Converted to reStructuredText.
 
+- 2018-06-18 GDR_ Simplify the ``wasMarked`` protocol.
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
@@ -73,8 +72,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

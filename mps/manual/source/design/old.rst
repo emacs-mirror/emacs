@@ -20,43 +20,28 @@ Old design
     bt
     buffer
     check
-    class-interface
     collection
     diag
-    finalize
     fix
     io
     lib
     locus
-    message
     message-gc
     object-debug
-    pool
     poolamc
     poolams
     poolawl
     poollo
     poolmfs
     poolmrg
-    poolmv
     poolmvt
     poolmvff
-    protli
-    protsu
     protocol
     pthreadext
-    reservoir
     root
     scan
     seg
-    shield
-    sso1al
     strategy
     telemetry
     tests
-    thread-safety
     trace
-    version-library
-    version
-    vmo1
-    vmso

@@ -15,7 +15,7 @@
  */
 
 #include "mpm.h"
-#include "poolmv.h"
+#include "poolmvff.h"
 #include "testlib.h"
 #include "mpslib.h"
 #include "mpsavm.h"
@@ -161,7 +161,7 @@ static Res allocAsTract(AllocInfoStruct *aiReturn, LocusPref pref,
 {
   Res res;
   Addr base;
-  res = ArenaAlloc(&base, pref, size, pool, FALSE);
+  res = ArenaAlloc(&base, pref, size, pool);
   if (res == ResOK) {
     aiReturn->the.tractData.base = base;
     aiReturn->the.tractData.size = size;
@@ -249,7 +249,7 @@ static Res allocAsSeg(AllocInfoStruct *aiReturn, LocusPref pref,
 {
   Res res;
   Seg seg;
-  res = SegAlloc(&seg, SegClassGet(), pref, size, pool, FALSE, argsNone);
+  res = SegAlloc(&seg, CLASS(Seg), pref, size, pool, argsNone);
   if (res == ResOK) {
     aiReturn->the.segData.seg = seg;
   }
@@ -402,7 +402,7 @@ static void testAllocAndIterate(Arena arena, Pool pool,
 }
 
 
-static void testPageTable(ArenaClass class, Size size, Addr addr, Bool zoned)
+static void testPageTable(ArenaClass klass, Size size, Addr addr, Bool zoned)
 {
   Arena arena; Pool pool;
   Size pageSize;
@@ -412,10 +412,10 @@ static void testPageTable(ArenaClass class, Size size, Addr addr, Bool zoned)
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_CL_BASE, addr);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
-    die(ArenaCreate(&arena, class, args), "ArenaCreate");
+    die(ArenaCreate(&arena, klass, args), "ArenaCreate");
   } MPS_ARGS_END(args);
 
-  die(PoolCreate(&pool, arena, PoolClassMV(), argsNone), "PoolCreate");
+  die(PoolCreate(&pool, arena, PoolClassMVFF(), argsNone), "PoolCreate");
 
   pageSize = ArenaGrainSize(arena);
   tractsPerPage = pageSize / sizeof(TractStruct);
@@ -446,14 +446,14 @@ static void testPageTable(ArenaClass class, Size size, Addr addr, Bool zoned)
 
 static void testSize(Size size)
 {
-  ArenaClass class = (ArenaClass)mps_arena_class_vm();
+  ArenaClass klass = (ArenaClass)mps_arena_class_vm();
   Arena arena;
   Res res;
 
   do {
     MPS_ARGS_BEGIN(args) {
       MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, size);
-      res = ArenaCreate(&arena, class, args);
+      res = ArenaCreate(&arena, klass, args);
     } MPS_ARGS_END(args);
     if (res == ResOK)
       ArenaDestroy(arena);

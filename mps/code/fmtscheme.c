@@ -1,7 +1,7 @@
 /* fmtscheme.c: SCHEME OBJECT FORMAT IMPLEMENTATION
  *
- *  $Id: //info.ravenbrook.com/project/mps/branch/2014-01-15/nailboard/code/fmtdy.c#1 $
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  $Id$
+ *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  */
 
 #include <string.h>
@@ -460,7 +460,7 @@ void scheme_fmt(mps_fmt_t *fmt)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

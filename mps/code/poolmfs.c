@@ -1,21 +1,11 @@
 /* poolmfs.c: MANUAL FIXED SMALL UNIT POOL
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * This is the implementation of the MFS pool class.
  *
- * DESIGN
- *
- * .design.misplaced: This design is misplaced, it should be in a
- * separate document.
- *
- * MFS operates in a very simple manner: each region allocated from
- * the arena is divided into units.  Free units are kept on a linked
- * list using a header stored in the unit itself.  The linked list is
- * not ordered; allocation anddeallocation simply pop and push from
- * the head of the list.  This is fast, but successive allocations might
- * have poor locality if previous successive frees did.
+ * See design.mps.poolmfs.
  *
  * .restriction: This pool cannot allocate from the arena control
  * pool (as the control pool is an instance of PoolClassMV and MV uses
@@ -47,9 +37,6 @@ SRCID(poolmfs, "$Id$");
 #define ROUND(unit, n)  ((n)+(unit)-1 - ((n)+(unit)-1)%(unit))
 
 
-#define PoolPoolMFS(pool)       PARENT(MFSStruct, poolStruct, pool)
-
-
 /* HeaderStruct -- Freelist structure */
 
 typedef struct MFSHeaderStruct {
@@ -75,17 +62,19 @@ static void MFSVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 ARG_DEFINE_KEY(MFS_UNIT_SIZE, Size);
 ARG_DEFINE_KEY(MFSExtendSelf, Bool);
 
-static Res MFSInit(Pool pool, ArgList args)
+static Res MFSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
   Size extendBy = MFS_EXTEND_BY_DEFAULT;
   Bool extendSelf = TRUE;
-  Size unitSize;
+  Size unitSize, ringSize, minExtendBy;
   MFS mfs;
-  Arena arena;
   ArgStruct arg;
+  Res res;
 
   AVER(pool != NULL);
+  AVERT(Arena, arena);
   AVERT(ArgList, args);
+  UNUSED(klass); /* used for debug pools only */
   
   ArgRequire(&arg, args, MPS_KEY_MFS_UNIT_SIZE);
   unitSize = arg.val.size;
@@ -97,101 +86,117 @@ static Res MFSInit(Pool pool, ArgList args)
   AVER(unitSize > 0);
   AVER(extendBy > 0);
   AVERT(Bool, extendSelf);
- 
-  mfs = PoolPoolMFS(pool);
-  arena = PoolArena(pool);
+
+  res = NextMethod(Pool, MFSPool, init)(pool, arena, klass, args);
+  if (res != ResOK)
+    goto failNextInit;
+  mfs = CouldBeA(MFSPool, pool);
 
   mfs->unroundedUnitSize = unitSize;
 
   if (unitSize < UNIT_MIN)
     unitSize = UNIT_MIN;
   unitSize = SizeAlignUp(unitSize, MPS_PF_ALIGN);
-  if (extendBy < unitSize)
-    extendBy = unitSize;
+  ringSize = SizeAlignUp(sizeof(RingStruct), MPS_PF_ALIGN);
+  minExtendBy = ringSize + unitSize;
+  if (extendBy < minExtendBy)
+    extendBy = minExtendBy;
+
   extendBy = SizeArenaGrains(extendBy, arena);
 
   mfs->extendBy = extendBy;
   mfs->extendSelf = extendSelf;
   mfs->unitSize = unitSize;
   mfs->freeList = NULL;
-  mfs->tractList = NULL;
+  RingInit(&mfs->extentRing);
   mfs->total = 0;
   mfs->free = 0;
-  mfs->sig = MFSSig;
 
-  AVERT(MFS, mfs);
+  SetClassOfPoly(pool, CLASS(MFSPool));
+  mfs->sig = MFSSig;
+  AVERC(MFS, mfs);
+
   EVENT5(PoolInitMFS, pool, arena, extendBy, BOOLOF(extendSelf), unitSize);
   return ResOK;
+
+failNextInit:
+  AVER(res != ResOK);
+  return res;
 }
 
 
-void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
-                     void *closureP, Size closureS)
+void MFSFinishExtents(Pool pool, MFSExtentVisitor visitor,
+                      void *closure)
 {
-  MFS mfs;
+  MFS mfs = MustBeA(MFSPool, pool);
+  Ring ring, node, next;
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-  
-  while (mfs->tractList != NULL) {
-    Tract nextTract = (Tract)TractP(mfs->tractList);   /* .tract.chain */
-    visitor(pool, TractBase(mfs->tractList), mfs->extendBy, closureP, closureS);
-    mfs->tractList = nextTract;
+  AVER(FUNCHECK(visitor));
+  /* Can't check closure */
+
+  ring = &mfs->extentRing;
+  node = RingNext(ring);
+  RING_FOR(node, ring, next) {
+    Addr base = (Addr)node;     /* See .ring-node.at-base. */
+    RingRemove(node);
+    visitor(pool, base, mfs->extendBy, closure);
   }
 }
 
 
-static void MFSTractFreeVisitor(Pool pool, Addr base, Size size,
-                                void *closureP, Size closureS)
+static void MFSExtentFreeVisitor(Pool pool, Addr base, Size size,
+                                 void *closure)
 {
-  AVER(closureP == UNUSED_POINTER);
-  AVER(closureS == UNUSED_SIZE);
-  UNUSED(closureP);
-  UNUSED(closureS);
+  AVER(closure == UNUSED_POINTER);
+  UNUSED(closure);
   ArenaFree(base, size, pool);
 }
 
 
-static void MFSFinish(Pool pool)
+static void MFSFinish(Inst inst)
 {
-  MFS mfs;
+  Pool pool = MustBeA(AbstractPool, inst);
+  MFS mfs = MustBeA(MFSPool, pool);
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-
-  MFSFinishTracts(pool, MFSTractFreeVisitor, UNUSED_POINTER, UNUSED_SIZE);
+  MFSFinishExtents(pool, MFSExtentFreeVisitor, UNUSED_POINTER);
 
   mfs->sig = SigInvalid;
+
+  NextMethod(Inst, MFSPool, finish)(inst);
 }
 
 
-void MFSExtend(Pool pool, Addr base, Size size)
+void MFSExtend(Pool pool, Addr base, Addr limit)
 {
-  MFS mfs;
-  Tract tract;
+  MFS mfs = MustBeA(MFSPool, pool);
   Word i, unitsPerExtent;
+  Size size;
   Size unitSize;
+  Size ringSize;
   Header header = NULL;
+  Ring mfsRing;
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-  AVER(size == mfs->extendBy);
+  AVER(base < limit);
+  AVER(AddrOffset(base, limit) == mfs->extendBy);
 
   /* Ensure that the memory we're adding belongs to this pool.  This is
      automatic if it was allocated using ArenaAlloc, but if the memory is
      being inserted from elsewhere then it must have been set up correctly. */
   AVER(PoolHasAddr(pool, base));
-  
-  /* .tract.chain: chain first tracts through TractP(tract) */
-  tract = TractOfBaseAddr(PoolArena(pool), base);
 
-  AVER(TractPool(tract) == pool);
+  /* .ring-node.at-base: Store the extent ring node at the base of the
+     extent. This transgresses the rule that pools should allocate
+     control structures from another pool, because an MFS is required
+     during bootstrap when no other pools are available. See
+     <design/poolmfs/#impl.extent-ring.justify> */
+  mfsRing = (Ring)base;
+  RingInit(mfsRing);
+  RingAppend(&mfs->extentRing, mfsRing);
 
-  TractSetP(tract, (void *)mfs->tractList);
-  mfs->tractList = tract;
+  ringSize = SizeAlignUp(sizeof(RingStruct), MPS_PF_ALIGN);
+  base = AddrAdd(base, ringSize);
+  AVER(base < limit);
+  size = AddrOffset(base, limit);
 
   /* Update accounting */
   mfs->total += size;
@@ -227,20 +232,14 @@ void MFSExtend(Pool pool, Addr base, Size size)
  *  arena.
  */
 
-static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
-                    Bool withReservoirPermit)
+static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 {
+  MFS mfs = MustBeA(MFSPool, pool);
   Header f;
   Res res;
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
 
   AVER(pReturn != NULL);
   AVER(size == mfs->unroundedUnitSize);
-  AVERT(Bool, withReservoirPermit);
 
   f = mfs->freeList;
 
@@ -254,13 +253,12 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
     if (!mfs->extendSelf)
       return ResLIMIT;
 
-    /* Create a new region and attach it to the pool. */
-    res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool,
-                     withReservoirPermit);
+    /* Create a new extent and attach it to the pool. */
+    res = ArenaAlloc(&base, LocusPrefDefault(), mfs->extendBy, pool);
     if(res != ResOK)
       return res;
 
-    MFSExtend(pool, base, mfs->extendBy);
+    MFSExtend(pool, base, AddrAdd(base, mfs->extendBy));
 
     /* The first unit in the region is now the head of the new free list. */
     f = mfs->freeList;
@@ -287,12 +285,8 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
 
 static void MFSFree(Pool pool, Addr old, Size size)
 {
+  MFS mfs = MustBeA(MFSPool, pool);
   Header h;
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
 
   AVER(old != (Addr)0);
   AVER(size == mfs->unroundedUnitSize);
@@ -309,12 +303,7 @@ static void MFSFree(Pool pool, Addr old, Size size)
 
 static Size MFSTotalSize(Pool pool)
 {
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-
+  MFS mfs = MustBeA(MFSPool, pool);
   return mfs->total;
 }
 
@@ -323,65 +312,57 @@ static Size MFSTotalSize(Pool pool)
 
 static Size MFSFreeSize(Pool pool)
 {
-  MFS mfs;
-
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
-
+  MFS mfs = MustBeA(MFSPool, pool);
   return mfs->free;
 }
 
 
-static Res MFSDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+static Res MFSDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 {
-  MFS mfs;
+  Pool pool = CouldBeA(AbstractPool, inst);
+  MFS mfs = CouldBeA(MFSPool, pool);
   Res res;
 
-  AVERT(Pool, pool);
-  mfs = PoolPoolMFS(pool);
-  AVERT(MFS, mfs);
+  if (!TESTC(MFSPool, mfs))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
 
-  AVER(stream != NULL);
-
-  res = WriteF(stream, depth,
-               "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
-               "extendBy $W\n", (WriteFW)mfs->extendBy,
-               "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
-               "unitSize $W\n", (WriteFW)mfs->unitSize,
-               "freeList $P\n", (WriteFP)mfs->freeList,
-               "total $W\n", (WriteFW)mfs->total,
-               "free $W\n", (WriteFW)mfs->free,
-               "tractList $P\n", (WriteFP)mfs->tractList,
-               NULL);
+  res = NextMethod(Inst, MFSPool, describe)(inst, stream, depth);
   if (res != ResOK)
     return res;
 
-  return ResOK;
+  return WriteF(stream, depth + 2,
+                "unroundedUnitSize $W\n", (WriteFW)mfs->unroundedUnitSize,
+                "extendBy $W\n", (WriteFW)mfs->extendBy,
+                "extendSelf $S\n", WriteFYesNo(mfs->extendSelf),
+                "unitSize $W\n", (WriteFW)mfs->unitSize,
+                "freeList $P\n", (WriteFP)mfs->freeList,
+                "total $W\n", (WriteFW)mfs->total,
+                "free $W\n", (WriteFW)mfs->free,
+                NULL);
 }
 
 
-DEFINE_POOL_CLASS(MFSPoolClass, this)
+DEFINE_CLASS(Pool, MFSPool, klass)
 {
-  INHERIT_CLASS(this, AbstractPoolClass);
-  this->name = "MFS";
-  this->size = sizeof(MFSStruct);
-  this->offset = offsetof(MFSStruct, poolStruct);
-  this->varargs = MFSVarargs;
-  this->init = MFSInit;
-  this->finish = MFSFinish;
-  this->alloc = MFSAlloc;
-  this->free = MFSFree;
-  this->totalSize = MFSTotalSize;
-  this->freeSize = MFSFreeSize;  
-  this->describe = MFSDescribe;
-  AVERT(PoolClass, this);
+  INHERIT_CLASS(klass, MFSPool, AbstractPool);
+  klass->instClassStruct.describe = MFSDescribe;
+  klass->instClassStruct.finish = MFSFinish;
+  klass->size = sizeof(MFSStruct);
+  klass->varargs = MFSVarargs;
+  klass->init = MFSInit;
+  klass->alloc = MFSAlloc;
+  klass->free = MFSFree;
+  klass->totalSize = MFSTotalSize;
+  klass->freeSize = MFSFreeSize;  
+  AVERT(PoolClass, klass);
 }
 
 
 PoolClass PoolClassMFS(void)
 {
-  return EnsureMFSPoolClass();
+  return CLASS(MFSPool);
 }
 
 
@@ -396,8 +377,9 @@ Bool MFSCheck(MFS mfs)
   Arena arena;
 
   CHECKS(MFS, mfs);
+  CHECKC(MFSPool, mfs);
   CHECKD(Pool, MFSPool(mfs));
-  CHECKL(MFSPool(mfs)->class == EnsureMFSPoolClass());
+  CHECKC(MFSPool, mfs);
   CHECKL(mfs->unitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   CHECKL(BoolCheck(mfs->extendSelf));
@@ -405,9 +387,7 @@ Bool MFSCheck(MFS mfs)
   CHECKL(SizeIsArenaGrains(mfs->extendBy, arena));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, PoolAlignment(MFSPool(mfs))) ==
          mfs->unitSize);
-  if(mfs->tractList != NULL) {
-    CHECKD_NOSIG(Tract, mfs->tractList);
-  }
+  CHECKD_NOSIG(Ring, &mfs->extentRing);
   CHECKL(mfs->free <= mfs->total);
   CHECKL((mfs->total - mfs->free) % mfs->unitSize == 0);
   return TRUE;
@@ -416,7 +396,7 @@ Bool MFSCheck(MFS mfs)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* <code/eventdef.h> -- Event Logging Definitions
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .source: <design/telemetry/>
  *
@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)1)
-#define EVENT_VERSION_MEDIAN ((unsigned)5)
+#define EVENT_VERSION_MEDIAN ((unsigned)7)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -67,7 +67,7 @@
  */
  
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x0086)
+#define EventCodeMAX ((EventCode)0x0088)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -93,8 +93,8 @@
   EVENT(X, SegFree            , 0x0014,  TRUE, Seg) \
   EVENT(X, PoolInit           , 0x0015,  TRUE, Pool) \
   EVENT(X, PoolFinish         , 0x0016,  TRUE, Pool) \
-  EVENT(X, PoolAlloc          , 0x0017,  TRUE, Object) \
-  EVENT(X, PoolFree           , 0x0018,  TRUE, Object) \
+  EVENT(X, PoolAlloc          , 0x0017, FALSE, Object) \
+  EVENT(X, PoolFree           , 0x0018, FALSE, Object) \
   EVENT(X, LandInit           , 0x0019,  TRUE, Pool) \
   EVENT(X, Intern             , 0x001a,  TRUE, User) \
   EVENT(X, Label              , 0x001b,  TRUE, User) \
@@ -138,7 +138,7 @@
   EVENT(X, TraceScanSeg       , 0x003C,  TRUE, Seg) \
   /* TraceScanSingleRef abuses kind, see .kind.abuse */ \
   EVENT(X, TraceScanSingleRef , 0x003D,  TRUE, Seg) \
-  EVENT(X, TraceStatCondemn   , 0x003E,  TRUE, Trace) \
+  /* EVENT(X, TraceStatCondemn   , 0x003E,  TRUE, Trace) */ \
   EVENT(X, TraceStatScan      , 0x003F,  TRUE, Trace) \
   EVENT(X, TraceStatFix       , 0x0040,  TRUE, Trace) \
   EVENT(X, TraceStatReclaim   , 0x0041,  TRUE, Trace) \
@@ -160,7 +160,7 @@
   /* PoolPush/Pop go under Object, because they're user ops. */ \
   /* EVENT(X, PoolPush           , 0x0060,  TRUE, Object) */ \
   /* EVENT(X, PoolPop            , 0x0061,  TRUE, Object) */ \
-  EVENT(X, ReservoirLimitSet  , 0x0062,  TRUE, Arena) \
+  /* EVENT(X, ReservoirLimitSet  , 0x0062,  TRUE, Arena) */ \
   EVENT(X, CommitLimitSet     , 0x0063,  TRUE, Arena) \
   EVENT(X, ArenaSetSpare      , 0x0064,  TRUE, Arena) \
   EVENT(X, ArenaAlloc         , 0x0065,  TRUE, Arena) \
@@ -186,13 +186,15 @@
   EVENT(X, ArenaSetEmergency  , 0x0078,  TRUE, Arena) \
   EVENT(X, VMCompact          , 0x0079,  TRUE, Arena) \
   EVENT(X, amcScanNailed      , 0x0080,  TRUE, Seg) \
-  EVENT(X, AMCTraceEnd        , 0x0081,  TRUE, Trace) \
+  /* EVENT(X, AMCTraceEnd        , 0x0081,  TRUE, Trace) */ \
   EVENT(X, TraceCreatePoolGen , 0x0082,  TRUE, Trace) \
   /* new events for performance analysis of large heaps. */ \
-  EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) \
+  /* EVENT(X, TraceCondemnZones  , 0x0083,  TRUE, Trace) */ \
   EVENT(X, ArenaGenZoneAdd    , 0x0084,  TRUE, Arena) \
   EVENT(X, ArenaUseFreeZone   , 0x0085,  TRUE, Arena) \
-  /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */
+  /* EVENT(X, ArenaBlacklistZone , 0x0086,  TRUE, Arena) */ \
+  EVENT(X, PauseTimeSet       , 0x0087,  TRUE, Arena) \
+  EVENT(X, TraceEndGen        , 0x0088,  TRUE, Trace)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above! 
@@ -442,15 +444,6 @@
   PARAM(X,  2, P, arena) \
   PARAM(X,  3, A, refIO)
 
-#define EVENT_TraceStatCondemn_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, trace) \
-  PARAM(X,  1, W, condemned) \
-  PARAM(X,  2, W, notCondemned) \
-  PARAM(X,  3, W, foundation) \
-  PARAM(X,  4, W, rate) \
-  PARAM(X,  5, D, mortality) \
-  PARAM(X,  6, D, finishingTime)
-
 #define EVENT_TraceStatScan_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace) \
   PARAM(X,  1, W, rootScanCount) \
@@ -551,10 +544,6 @@
   PARAM(X,  2, B, isMutator) \
   PARAM(X,  3, U, rank)
 
-#define EVENT_ReservoirLimitSet_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, size)
-
 #define EVENT_CommitLimitSet_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, limit) \
@@ -583,8 +572,7 @@
 
 #define EVENT_SegMerge_PARAMS(PARAM, X) \
   PARAM(X,  0, P, segLo) \
-  PARAM(X,  1, P, segHi) \
-  PARAM(X,  2, B, withReservoirPermit)
+  PARAM(X,  1, P, segHi)
 
 #define EVENT_SegSplit_PARAMS(PARAM, X) \
   PARAM(X,  0, P, seg) \
@@ -655,7 +643,7 @@
 #define EVENT_ArenaPoll_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
   PARAM(X,  1, W, start) \
-  PARAM(X,  2, W, quanta)
+  PARAM(X,  2, B, workWasDone)
 
 #define EVENT_ArenaSetEmergency_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -674,7 +662,7 @@
   PARAM(X,  4, W, notCondemned) /* collectible but not condemned bytes */ \
   PARAM(X,  5, W, foundation)   /* foundation size */ \
   PARAM(X,  6, W, white)        /* white reference set */ \
-  PARAM(X,  7, W, rate)         /* segs to scan per increment */
+  PARAM(X,  7, W, quantumWork)  /* tracing work to be done in each poll */
 
 #define EVENT_VMCompact_PARAMS(PARAM, X) \
   PARAM(X,  0, W, vmem0)        /* pre-collection reserved size */ \
@@ -689,30 +677,6 @@
   PARAM(X,  4, W, fixed)        /* scan state fixed summary */ \
   PARAM(X,  5, W, refset)       /* scan state refset */
 
-#define EVENT_AMCTraceEnd_PARAMS(PARAM, X) \
-  PARAM(X,  0, W, epoch)        /* current arena epoch */ \
-  PARAM(X,  1, U, why)          /* reason trace started */ \
-  PARAM(X,  2, W, grainSize)    /* arena grain size */ \
-  PARAM(X,  3, W, large)        /* AMC large size */ \
-  PARAM(X,  4, W, pRetMin)      /* threshold for event */ \
-  /* remaining parameters are copy of PageRetStruct, which see */ \
-  PARAM(X,  5, W, pCond) \
-  PARAM(X,  6, W, pRet) \
-  PARAM(X,  7, W, pCS) \
-  PARAM(X,  8, W, pRS) \
-  PARAM(X,  9, W, sCM) \
-  PARAM(X, 10, W, pCM) \
-  PARAM(X, 11, W, sRM) \
-  PARAM(X, 12, W, pRM) \
-  PARAM(X, 13, W, pRM1) \
-  PARAM(X, 14, W, pRMrr) \
-  PARAM(X, 15, W, pRMr1) \
-  PARAM(X, 16, W, sCL) \
-  PARAM(X, 17, W, pCL) \
-  PARAM(X, 18, W, sRL) \
-  PARAM(X, 19, W, pRL) \
-  PARAM(X, 20, W, pRLr)
-
 #define EVENT_TraceCreatePoolGen_PARAMS(PARAM, X) \
   PARAM(X,  0, P, gendesc)      /* generation description */ \
   PARAM(X,  1, W, capacity)     /* capacity of generation */ \
@@ -726,11 +690,6 @@
   PARAM(X,  9, W, newDeferredSize) /* new size (deferred) of pool gen */ \
   PARAM(X, 10, W, oldDeferredSize) /* old size (deferred) of pool gen */
 
-#define EVENT_TraceCondemnZones_PARAMS(PARAM, X) \
-  PARAM(X,  0, P, trace)        /* the trace */ \
-  PARAM(X,  1, W, condemnedSet) /* the condemned zoneSet */ \
-  PARAM(X,  2, W, white)        /* the trace's white zoneSet */
-
 #define EVENT_ArenaGenZoneAdd_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)        /* the arena */ \
   PARAM(X,  1, P, gendesc)      /* the generation description */ \
@@ -740,12 +699,24 @@
   PARAM(X,  0, P, arena)        /* the arena */ \
   PARAM(X,  1, W, zoneSet)      /* zones that aren't free any longer */
 
+#define EVENT_PauseTimeSet_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, arena)        /* the arena */ \
+  PARAM(X,  1, D, pauseTime)    /* the new maximum pause time, in seconds */
+
+#define EVENT_TraceEndGen_PARAMS(PARAM, X) \
+  PARAM(X,  0, P, trace)        /* the trace */ \
+  PARAM(X,  1, P, gen)          /* the generation */ \
+  PARAM(X,  2, W, condemned)    /* bytes condemned in generation */ \
+  PARAM(X,  3, W, forwarded)    /* bytes forwarded from generation */ \
+  PARAM(X,  4, W, preservedInPlace) /* bytes preserved in generation */ \
+  PARAM(X,  5, D, mortality)    /* updated mortality */
+
 
 #endif /* eventdef_h */
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

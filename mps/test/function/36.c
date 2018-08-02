@@ -40,10 +40,6 @@ static void test(void)
  int j;
  int k,z;
 
- alloccomments = 1;
- skipcomments = 1;
- formatcomments = 1;
-
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
       "create arena");
 
@@ -76,7 +72,7 @@ static void test(void)
 
  for(i=0; i<10000; i++) {
   j = ranint(100);
-  k = 5 + ranint(500);
+  k = 5 + ranint(100);
   if (ranint(2)==1) {
    apran = apawl;
   } else {

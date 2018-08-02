@@ -1,9 +1,10 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = create 1000 spaces and destroy each one just after the next is created
+ summary = create many arenas and destroy each one just after the next is created
  language = c
  link = testlib.o
+ parameters = ARENAS=1000
 END_HEADER
 */
 
@@ -16,15 +17,14 @@ static void test(void)
 
  int p;
 
- die(mps_arena_create(&arena1, mps_arena_class_vm(), mmqaArenaSIZE), "create");
-
- for (p=0; p<1000; p++)
+ for (p=0; p<ARENAS; p++)
  {
-  die(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
-  comment("%i", p);
-  mps_arena_destroy(arena1);
+  die(mps_arena_create(&arena, mps_arena_class_vm(), mps_args_none), "create");
+  if (p > 0)
+   mps_arena_destroy(arena1);
   arena1=arena;
  }
+ mps_arena_destroy(arena1);
 }
 
 int main(void)

@@ -1,7 +1,7 @@
 /* testlib.c: TEST LIBRARY
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -12,7 +12,7 @@
 #include "mps.h"
 #include "misc.h" /* for NOOP */
 
-#include <math.h> /* fmod, log */
+#include <math.h> /* fmod, log, HUGE_VAL */
 #include <stdio.h> /* fflush, printf, stderr, sscanf, vfprintf */
 #include <stdlib.h> /* abort, exit, getenv */
 #include <time.h> /* time */
@@ -220,14 +220,39 @@ double rnd_double(void)
   return rnd() / R_m_float;
 }
 
+static unsigned sizelog2(size_t size)
+{
+  return (unsigned)(log((double)size) / log(2.0));
+}
+
 size_t rnd_grain(size_t arena_size)
 {
   /* The grain size must be small enough to allow for a complete set
-   * of zones in the initial chunk. */
-  size_t s = (size_t)(log((double)arena_size) / log(2.0));
-  size_t shift = MPS_WORD_SHIFT;
-  Insist(s > shift);
-  return (size_t)1 << (rnd() % (s - shift));
+     of zones in the initial chunk, but bigger than one word. */
+  Insist(arena_size >> MPS_WORD_SHIFT >= sizeof(void *));
+  return rnd_align(sizeof(void *), (size_t)1 << sizelog2(arena_size >> MPS_WORD_SHIFT));
+}
+
+size_t rnd_align(size_t min, size_t max)
+{
+  unsigned log2min = sizelog2(min);
+  unsigned log2max = sizelog2(max);
+  Insist(min <= max);
+  Insist((size_t)1 << log2min == min);
+  Insist((size_t)1 << log2max == max);
+  if (log2min < log2max)
+    return min << (rnd() % (log2max - log2min + 1));
+  else
+    return min;
+}
+
+double rnd_pause_time(void)
+{
+  double t = rnd_double();
+  if (t == 0.0)
+    return HUGE_VAL; /* Would prefer to use INFINITY but it's not in C89. */
+  else
+    return 1 / t - 1;
 }
 
 rnd_state_t rnd_seed(void)
@@ -363,7 +388,7 @@ void error(const char *format, ...)
 
  va_start(args, format);
  verror(format, args);
- va_end(args);
+ /* va_end(args); */ /* provokes "unreachable code" error from MSVC */
 }
 
 
@@ -417,7 +442,7 @@ void testlib_init(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

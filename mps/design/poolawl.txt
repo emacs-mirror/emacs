@@ -103,104 +103,62 @@ _`.poolstruct`: The class specific pool structure is::
 
     struct AWLStruct {
       PoolStruct poolStruct;
-      Format format;
-      Shift alignShift;
-      ActionStruct actionStruct;
-      double lastCollected;
-      Serial gen;
-      Sig sig;
+      PoolGenStruct pgenStruct; /* pool generation */
+      PoolGen pgen;             /* NULL or pointer to pgenStruct */
+      Count succAccesses;       /* number of successive single accesses */
+      FindDependentFunction findDependent; /*  to find a dependent object */
+      awlStatTotalStruct stats;
+      Sig sig;                  /* <code/misc.h#sig> */
     }
 
-_`.poolstruct.format`: The format field is used to refer to the object
-format. The object format is passed to the pool during pool creation.
-
-_`.poolstruct.alignshift`: The ``alignShift`` field is the
-``SizeLog2`` of the pool's alignment. It is computed and initialised
-when a pool is created. It is used to compute the number of alignment
-grains in a segment which is the number of bits need in the segment's
-mark and alloc bit table (see `.awlseg.bt`_, `.awlseg.mark`_, and
-`.awlseg.alloc`_ below).
-
-.. note::
-
-    Clarify this.
-
-_`.poolstruct.actionStruct`: Contains an Action which is used to
-participate in the collection benefit protocol. See ``AWLBenefit()``
-below for a description of the algorithm used for determining when to
-collect.
-
-_`.poolstruct.lastCollected`: Records the time (using the mutator
-total allocation clock, ie that returned by
-``ArenaMutatorAllocSize()``) of the most recent call to either
-``AWLInit()`` or ``AWLTraceBegin()`` for this pool. So this is the
-time of the beginning of the last collection of this pool. Actually
-this isn't true because the pool can be collected without
-``AWLTraceBegin()`` being called (I think) as it will get collected by
-being in the same zone as another pool/generation that is being
-collected (which it does arrange to be, see the use of the gen field
-in `.poolstruct.gen`_ below and `.fun.awlsegcreate.where`_ below).
-
-_`.poolstruct.gen`: This part of the mechanism by which the pool
-arranges to be in a particular zone and arranges to be collected
-simultaneously with other cohorts in the system. ``gen`` is the
-generation that is used in expressing a generation preference when
-allocating a segment. The intention is that this pool will get
-collected simultaneously with any other segments that are also
-allocated using this generation preference (when using the VM arena,
-generation preferences get mapped more or less to zones, each
-generation to a unique set of zones in the ideal case). Whilst AWL is
-not generational it is expected that this mechanism will arrange for
-it to be collected simultaneously with some particular generation of
-AMC.
-
-_`.poolstruct.gen.1`: At the moment the ``gen`` field is set for all
-AWL pools to be 1.
-
 _`.awlseg`: The pool defines a segment class ``AWLSegClass``, which is
-a subclass of ``GCSegClass`` (see
-design.mps.seg.over.hierarchy.gcseg_). All segments allocated by the
-pool are instances of this class, and are of type ``AWLSeg``, for
+a subclass of ``MutatorSegClass`` (see
+design.mps.seg.over.hierarchy.mutatorseg_). All segments allocated by
+the pool are instances of this class, and are of type ``AWLSeg``, for
 which the structure is::
 
     struct AWLSegStruct {
-      GCSegStruct gcSegStruct; 
+      GCSegStruct gcSegStruct;  /* superclass fields must come first */
       BT mark;
       BT scanned;
       BT alloc;
       Count grains;
-      Count free;
-      Count singleAccesses;
-      AWLStatSegStruct stats;
-      Sig sig;
+      Count freeGrains;         /* free grains */
+      Count bufferedGrains;     /* grains in buffers */
+      Count newGrains;          /* grains allocated since last collection */
+      Count oldGrains;          /* grains allocated prior to last collection */
+      Count singleAccesses;     /* number of accesses processed singly */
+      awlStatSegStruct stats;
+      Sig sig;                  /* <code/misc.h#sig> */
     }
 
-.. _design.mps.seg.over.hierarchy.gcseg: seg#over.hierarchy.gcseg
+.. _design.mps.seg.over.hierarchy.mutatorseg: seg#over-hierarchy-mutatorseg
 
-_`.awlseg.bt`: The mark, alloc, and scanned fields are bit-tables (see
-design.mps.bt_). Each bit in the table corresponds to a a single
-alignment grain in the pool.
+_`.awlseg.bt`: The ``mark``, ``alloc``, and ``scanned`` fields are
+bit-tables (see design.mps.bt_). Each bit in the table corresponds to
+a a single alignment grain in the pool.
 
 .. _design.mps.bt: bt
 
-_`.awlseg.mark`: The mark bit table is used to record mark bits during
-a trace. ``AWLCondemn()`` (see `.fun.condemn`_ below) sets all the
-bits of this table to zero. Fix will read and set bits in this table.
-Currently there is only one mark bit table. This means that the pool
-can only be condemned for one trace.
+_`.awlseg.mark`: The ``mark`` bit table is used to record mark bits
+during a trace. ``awlSegWhiten()`` (see `.fun.whiten`_ below) sets all
+the bits of this table to zero. Fix will read and set bits in this
+table. Currently there is only one mark bit table. This means that the
+pool can only be condemned for one trace.
 
 _`.awlseg.mark.justify`: This is simple, and can be improved later
 when we want to run more than one trace.
 
-_`.awlseg.scanned`: The scanned bit-table is used to note which
+_`.awlseg.scanned`: The ``scanned`` bit-table is used to note which
 objects have been scanned. Scanning (see `.fun.scan`_ below) a segment
 will find objects that are marked but not scanned, scan each object
 found and set the corresponding bits in the scanned table.
 
-_`.awlseg.alloc`: The alloc bit table is used to record which portions
-of a segment have been allocated. Ranges of bits in this table are set
-when a buffer is attached to the segment. When a buffer is flushed (ie
-``AWLBufferEmpty()`` is called) from the segment, the bits
+_`.awlseg.alloc`: The ``alloc`` bit table is used to record which
+portions of a segment have been allocated. Ranges of bits in this
+table are set in ``awlSegBufferFill()`` when a buffer is attached to
+the segment. When a buffer is flushed (that is,
+``awlSegBufferEmpty()`` is called) from the segment, the bits
 corresponding to the unused portion at the end of the buffer are
 reset.
 
@@ -208,16 +166,16 @@ _`.awlseg.alloc.invariant`: A bit is set in the alloc table if and
 only if the corresponding address is currently being buffered, or the
 corresponding address lies within the range of an allocated object.
 
-_`.awlseg.grains`: The grains field is the number of grains that fit
-in the segment. Strictly speaking this is not necessary as it can be
-computed from ``SegSize`` and AWL's alignment, however, precalculating
-it and storing it in the segment makes the code simpler by avoiding
-lots of repeated calculations.
+_`.awlseg.grains`: The ``grains`` field is the number of grains that
+fit in the segment. Strictly speaking this is not necessary as it can
+be computed from ``SegSize`` and AWL's alignment, however,
+precalculating it and storing it in the segment makes the code simpler
+by avoiding lots of repeated calculations.
 
-_`.awlseg.free`: A conservative estimate of the number of free grains
-in the segment. It is always guaranteed to be greater than or equal to
-the number of free grains in the segment, hence can be used during
-allocation to quickly pass over a segment.
+_`.awlseg.freeGrains`: A conservative estimate of the number of free
+grains in the segment. It is always guaranteed to be greater than or
+equal to the number of free grains in the segment, hence can be used
+during allocation to quickly pass over a segment.
 
 .. note::
 
@@ -241,12 +199,6 @@ _`.fun.init`: ``AWLStruct`` has four fields, each one needs initializing.
 _`.fun.init.poolstruct`: The ``poolStruct`` field has already been
 initialized by generic code (impl.c.pool).
 
-_`.fun.init.format`: The format will be copied from the argument list,
-checked, and written into this field.
-
-_`.fun.init.alignshift`: The ``alignShift`` will be computed from the
-pool alignment and written into this field.
-
 _`.fun.init.sig`: The ``sig`` field will be initialized with the
 signature for this pool.
 
@@ -266,48 +218,86 @@ implement free.
 ``Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Pool pool, Buffer buffer, Size size)``
 
 _`.fun.fill`: This zips round all the the segments applying
-``AWLSegAlloc()`` to each segment that has the same rank as the
-buffer. ``AWLSegAlloc()`` attempts to find a free range, if it finds a
-range then it may be bigger than the actual request, in which case the
-remainder can be used to "fill" the rest of the buffer. If no free
-range can be found in an existing segment then a new segment will be
-created (which is at least large enough). The range of buffered
-addresses is marked as allocated in the segment's alloc table.
+``SegBufferFill()`` to each segment. ``awlSegBufferFill()`` attempts
+to find a large-enough free range; if it finds one then it may be
+bigger than the actual request, in which case the remainder can be
+used to "fill" the rest of the buffer. If no free range can be found
+in an existing segment then a new segment will be created (which is at
+least large enough). The range of buffered addresses is marked as
+allocated in the segment's alloc table.
 
-``void AWLBufferEmpty(Pool pool, Buffer buffer)``
+``Res AWLDescribe(Pool pool, mps_lib_FILE *stream, Count depth)``
 
-_`.fun.empty`: Locates the free portion of the buffer, that is the
-memory between the init and the limit of the buffer and records these
-locations as being free in the relevant alloc table. The segment that
-the buffer is pointing at (which contains the alloc table that needs
-to be dinked with) is available via ``BufferSeg()``.
+_`.fun.describe`:
 
-_`.fun.benefit`: The benefit returned is the total amount of mutator
-allocation minus the ``lastRembemberedSize`` minus 10 MiB, so the pool
-becomes an increasingly good candidate for collection at a constant
-(mutator allocation) rate, crossing the 0 line when there has been
-10 MiB of allocation since the (beginning of the) last collection. So
-it gets collected approximately every 10 MiB of allocation. Note that
-it will also get collected by virtue of being in the same zone as some
-AMC generation (assuming there are instantiated AMC pools), see
-`.poolstruct.gen`_ above.
 
-``Res AWLCondemn(Pool pool, Trace trace, Seg seg)``
+Internal
+........
 
-_`.fun.condemn`: The current design only permits each segment to be
+``Res AWLSegCreate(AWLSeg *awlsegReturn, Size size)``
+
+_`.fun.awlsegcreate`: Creates a segment of class ``AWLSegClass`` of size at least ``size``.
+
+_`.fun.awlsegcreate.size.round`: ``size`` is rounded up to the arena
+grain size before requesting the segment.
+
+_`.fun.awlsegcreate.size.round.justify`: The arena requires that all
+segment sizes are rounded up to the arena grain size.
+
+_`.fun.awlsegcreate.where`: The segment is allocated using a
+generation preference, using the generation number stored in the
+``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
+
+``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)``
+
+_`.fun.awlseginit`: Init method for ``AWLSegClass``, called for
+``SegAlloc()`` whenever an ``AWLSeg`` is created (see
+`.fun.awlsegcreate`_ above).
+
+_`.fun.awlseginit.tables`: The segment's mark scanned and alloc tables
+(see `.awlseg.bt`_ above) are allocated and initialised. The segment's
+grains field is computed and stored.
+
+``void awlSegFinish(Seg seg)``
+
+_`.fun.awlsegfinish`: Finish method for ``AWLSegClass``, called from
+``SegFree()``. Will free the segment's tables (see `.awlseg.bt`_).
+
+``Bool awlSegBufferFill(Addr *baseReturn, Addr *limitReturn, Seg seg, Size size, RankSet rankSet)``
+
+_`.fun.seg.buffer-fill`: Searches for a free block in the segment that
+is at least ``size`` bytes long. The base address of the block is
+returned in ``*baseReturn``, the limit of the entire free block (which
+must be at least as large as ``size`` and may be bigger) is returned
+in ``*limitReturn``. The requested size is converted to a number of
+grains, ``BTFindResRange()`` is called to find a run of this length in
+the alloc bit-table (`.awlseg.alloc`_). The results (if it is
+successful) from ``BTFindResRange()`` are in terms of grains, they are
+converted back to addresses before returning the relevant values from
+this function.
+
+``void awlSegBufferEmpty(Seg seg, Buffer buffer)``
+
+_`.fun.seg.buffer-empty`: Locates the free portion of the buffer, that
+is the memory between the init and the limit of the buffer and records
+these locations as being free in the alloc table.
+
+``Res awlSegWhiten(Seg seg, Trace trace)``
+
+_`.fun.whiten`: The current design only permits each segment to be
 condemned for one trace (see `.awlseg.mark`_). This function checks
-that the segment is not condemned for any trace (``seg->white ==
+that the segment is not white for any trace (``seg->white ==
 TraceSetEMPTY``). The segment's mark bit-table is reset, and the
 whiteness of the seg (``seg->white``) has the current trace added to
 it.
 
-``void AWLGrey(Pool pool, Trace trace, Seg seg)``
+``void awlSegGreyen(Seg seg, Trace trace)``
 
-_`.fun.grey`: If the segment is not condemned for this trace the
+_`.fun.grey`: If the segment is not white for this trace, the
 segment's mark table is set to all 1s and the segment is recorded as
 being grey.
 
-``Res AWLScan(ScanState ss, Pool pool, Seg seg)``
+``Res awlSegScan(Bool *totalReturn, Seg seg, ScanState ss)``
 
 _`.fun.scan`:
 
@@ -406,38 +396,31 @@ _`.fun.scan.pass.more`: At the end of a pass the finished flag is
 examined.
 
 _`.fun.scan.pass.more.not`: If the finished flag is set then we are
-done (see `.fun.scan.overview.finished-flag`_ above), ``AWLScan()``
+done (see `.fun.scan.overview.finished-flag`_ above), ``awlSegScan()``
 returns.
 
 _`.fun.scan.pass.more.so`: Otherwise (the finished flag is reset) we
 perform another pass (see `.fun.scan.pass`_ above).
 
-``Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
+``Res awlSegFix(Seg seg, ScanState ss, Ref *refIO)``
 
-_`.fun.fix`: ``ss->wasMarked`` is set to ``TRUE`` (clear compliance
-with design.mps.fix.protocol.was-marked.conservative_).
-
-.. _design.mps.fix.protocol.was-marked.conservative: fix#protocol.was-marked.conservative
-
-If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
-immediately unless the reference is aligned to the pool alignment.
-
-If the rank (``ss->rank``) is ``RankAMBIG`` then fix returns
-immediately unless the referenced grain is allocated.
+_`.fun.fix`: If the rank (``ss->rank``) is ``RankAMBIG`` then fix
+returns immediately unless the reference is in the segment bounds,
+aligned to the pool alignment, and allocated.
 
 The bit in the marked table corresponding to the referenced grain will
 be read. If it is already marked then fix returns. Otherwise (the
-grain is unmarked), ``ss->wasMarked`` is set to ``FALSE``, the
-remaining actions depend on whether the rank (``ss->rank``) is
-``RankWEAK`` or not. If the rank is weak then the reference is
-adjusted to 0 (see design.mps.weakness) and fix returns. If the rank
-is something else then the mark bit corresponding to the referenced
-grain is set, and the segment is greyed using ``TraceSegGreyen()``.
+grain is unmarked), ``ss->wasMarked`` is set to ``FALSE`` (see
+design.mps.fix.was-marked.not_), the remaining actions depend on
+whether the rank (``ss->rank``) is ``RankWEAK`` or not. If the rank is
+weak then the reference is adjusted to 0 (see design.mps.weakness) and
+fix returns. If the rank is something else then the mark bit
+corresponding to the referenced grain is set, and the segment is
+greyed using ``SegSetGrey()``.
 
-Fix returns.
+.. _design.mps.fix.was-marked.not: fix#was-marked-not
 
-
-``void AWLReclaim(Pool pool, Trace trace, Seg seg)``
+``void awlSegReclaim(Seg seg, Trace trace)``
 
 _`.fun.reclaim`: This iterates over all allocated objects in the
 segment and frees objects that are not marked. When this iteration is
@@ -458,56 +441,6 @@ _`.fun.reclaim.improve.pad`: Consider filling free ranges with padding
 objects. Now reclaim doesn't need to check that the objects are
 allocated before skipping them. There may be a corresponding change
 for scan as well.
-
-``Res AWLDescribe(Pool pool, mps_lib_FILE *stream, Count depth)``
-
-_`.fun.describe`:
-
-
-Internal
-........
-
-``Res AWLSegCreate(AWLSeg *awlsegReturn, Size size)``
-
-_`.fun.awlsegcreate`: Creates a segment of class ``AWLSegClass`` of size at least ``size``.
-
-_`.fun.awlsegcreate.size.round`: ``size`` is rounded up to the arena
-grain size before requesting the segment.
-
-_`.fun.awlsegcreate.size.round.justify`: The arena requires that all
-segment sizes are rounded up to the arena grain size.
-
-_`.fun.awlsegcreate.where`: The segment is allocated using a
-generation preference, using the generation number stored in the
-``AWLStruct`` (the ``gen`` field), see `.poolstruct.gen`_ above.
-
-``Res awlSegInit(Seg seg, Pool pool, Addr base, Size size, Bool reservoirPermit, va_list args)``
-
-_`.fun.awlseginit`: Init method for ``AWLSegClass``, called for
-``SegAlloc()`` whenever an ``AWLSeg`` is created (see
-`.fun.awlsegcreate`_ above).
-
-_`.fun.awlseginit.tables`: The segment's mark scanned and alloc tables
-(see `.awlseg.bt`_ above) are allocated and initialised. The segment's
-grains field is computed and stored.
-
-``void awlSegFinish(Seg seg)``
-
-_`.fun.awlsegfinish`: Finish method for ``AWLSegClass``, called from
-``SegFree()``. Will free the segment's tables (see `.awlseg.bt`_).
-
-``Bool AWLSegAlloc(Addr *baseReturn, Addr *limitReturn, AWLSeg awlseg, AWL awl, Size size)``
-
-_`.fun.awlsegalloc`: Will search for a free block in the segment that
-is at least size bytes long. The base address of the block is returned
-in ``*baseReturn``, the limit of the entire free block (which must be
-at least as large size and may be bigger) is returned in
-``*limitReturn``. The requested size is converted to a number of
-grains, ``BTFindResRange()`` is called to find a run of this length in
-the alloc bit-table (`.awlseg.alloc`_). The return results (if it is
-successful) from ``BTFindResRange()`` are in terms of grains, they are
-converted back to addresses before returning the relevant values from
-this function.
 
 ``Bool AWLDependentObject(Addr *objReturn, Addr parent)``
 
@@ -565,8 +498,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

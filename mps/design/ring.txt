@@ -112,7 +112,7 @@ additionally checks that ``ring`` is a singleton (see
 _`.is.single`: Return ``TRUE`` if ``ring`` is a singleton (see
 `.def.singleton`_).
 
-``Size RingLength(Ring ring)``
+``Count RingLength(Ring ring)``
 
 _`.length`: Return the number of elements in the ring, not counting
 ``ring`` itself. This therefore returns 0 for singleton rings, and for

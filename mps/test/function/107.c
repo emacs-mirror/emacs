@@ -4,6 +4,7 @@ TEST_HEADER
  summary = big allocation with an AMCZ pool
  language = c
  link = lofmt.o testlib.o
+ parameters = ITERATIONS=10000
 END_HEADER
 */
 
@@ -13,8 +14,6 @@ END_HEADER
 #include <string.h>
 #include "mpsavm.h"
 
-
-#define MAXLEN 1000000;
 
 #define genCOUNT (3)
 
@@ -97,7 +96,7 @@ static void test(void)
  (void)string_ch("Wibble wobble foo");
  (void)string_ch("Ba ");
 
- for (i=0; i<10000; i++) {
+ for (i=0; i<ITERATIONS; i++) {
   a = conc(string_ch("B"), a);
   (void)conc(string_ch("Hello there"), string_ch(" folks!"));
   (void)alloclo(ap, 0x4000);

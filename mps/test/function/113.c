@@ -4,6 +4,7 @@ TEST_HEADER
  summary = AWL and AWL performance
  language = c
  link = testlib.o fastfmt.o
+ parameters = ITERATIONS=10
 END_HEADER
 */
 
@@ -73,9 +74,9 @@ static void test(void)
 
  b = allocone(apamc, 1, mps_rank_exact());
 
- for (j=1; j<=10; j++)
+ for (j=1; j<=ITERATIONS; j++)
  {
-  comment("%i of 10.", j);
+  comment("%i of %i.", j, ITERATIONS);
   a = allocone(apamc, 5, mps_rank_exact());
   b = a;
   c = a;
@@ -84,7 +85,7 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i=1; i<5000; i++)
+  for (i=1; i<=1000; i++)
   {
    c = allocone(apamc, 20, mps_rank_exact());
    d = allocone(apawl, 20, mps_rank_exact());

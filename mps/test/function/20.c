@@ -11,7 +11,7 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscamc.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "newfmt.h"
 
 void *stackpointer;
@@ -32,9 +32,7 @@ static void test(void) {
  die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
   mps_stack_scan_ambig, stackpointer, 0), "create root");
 
- die(mps_pool_create(&pool, arena, mps_class_mv(),
-                     (size_t)(1024*32), (size_t)(1024*16), (size_t)(1024*256)),
-     "create MV pool");
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none), "pool");
 
  while (mps_alloc(&q, pool, 64*1024)==MPS_RES_OK);
  p=0;

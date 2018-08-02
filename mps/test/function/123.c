@@ -35,7 +35,7 @@ static void test(void)
  mps_fmt_t format;
  mps_ap_t apamc, apawl;
 
- unsigned int i, c;
+ mps_word_t i, c;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (60ul*1024*1024)), "create arena");
 

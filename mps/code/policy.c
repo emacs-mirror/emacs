@@ -1,7 +1,7 @@
 /* policy.c: POLICY DECISIONS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This module collects the decision-making code for the MPS, so that
  * policy can be maintained and adjusted.
@@ -76,14 +76,14 @@ Res PolicyAlloc(Tract *tractReturn, Arena arena, LocusPref pref,
 
   /* Plan C: Extend the arena, then try A and B again. */
   if (moreZones != ZoneSetEMPTY) {
-    res = arena->class->grow(arena, pref, size);
+    res = Method(Arena, arena, grow)(arena, pref, size);
     /* If we can't extend because we hit the commit limit, try purging
        some spare committed memory and try again.*/
     /* TODO: This would be a good time to *remap* VM instead of
        returning it to the OS. */
     if (res == ResCOMMIT_LIMIT) {
-      if (arena->class->purgeSpare(arena, size) >= size)
-        res = arena->class->grow(arena, pref, size);
+      if (Method(Arena, arena, purgeSpare)(arena, size) >= size)
+        res = Method(Arena, arena, grow)(arena, pref, size);
     }
     if (res == ResOK) {
       if (zones != ZoneSetEMPTY) {
@@ -144,9 +144,8 @@ static double policyCollectionTime(Arena arena)
   collectableSize = ArenaCollectable(arena);
   /* The condition arena->tracedTime >= 1.0 ensures that the division
    * can't overflow. */
-  if (arena->tracedSize >= ARENA_MINIMUM_COLLECTABLE_SIZE
-      && arena->tracedTime >= 1.0)
-    collectionRate = arena->tracedSize / arena->tracedTime;
+  if (arena->tracedTime >= 1.0)
+    collectionRate = arena->tracedWork / arena->tracedTime;
   else
     collectionRate = ARENA_DEFAULT_COLLECTION_RATE;
   collectionTime = collectableSize / collectionRate;
@@ -161,37 +160,41 @@ static double policyCollectionTime(Arena arena)
  * Return TRUE if we should try collecting the world now, FALSE if
  * not.
  *
- * This is the policy behind mps_arena_step, and so there the client
- * must have provided us with be enough time to collect the world, and
+ * This is the policy behind mps_arena_step, and so the client
+ * must have provided us with enough time to collect the world, and
  * enough time must have passed since the last time we did that
  * opportunistically.
  */
 
-Bool PolicyShouldCollectWorld(Arena arena, double interval, double multiplier,
+Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
                               Clock now, Clock clocks_per_sec)
 {
-  /* don't collect the world if we're not given any time */
-  if ((interval > 0.0) && (multiplier > 0.0)) {
-    /* don't collect the world if we're already collecting. */
-    if (arena->busyTraces == TraceSetEMPTY) {
-      /* don't collect the world if it's very small */
-      Size collectableSize = ArenaCollectable(arena);
-      if (collectableSize > ARENA_MINIMUM_COLLECTABLE_SIZE) {
-        /* how long would it take to collect the world? */
-        double collectionTime = policyCollectionTime(arena);
+  Size collectableSize;
+  double collectionTime, sinceLastWorldCollect;
 
-        /* how long since we last collected the world? */
-        double sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                                        (double) clocks_per_sec);
-        /* have to be offered enough time, and it has to be a long time
-         * since we last did it. */
-        if ((interval * multiplier > collectionTime) &&
-            sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION)
-          return TRUE;
-      }
-    }
-  }
-  return FALSE;
+  AVERT(Arena, arena);
+  /* Can't collect the world if we're already collecting. */
+  AVER(arena->busyTraces == TraceSetEMPTY);
+
+  if (availableTime <= 0.0)
+    /* Can't collect the world if we're not given any time. */
+    return FALSE;
+
+  /* Don't collect the world if it's very small. */
+  collectableSize = ArenaCollectable(arena);
+  if (collectableSize < ARENA_MINIMUM_COLLECTABLE_SIZE)
+    return FALSE;
+
+  /* How long would it take to collect the world? */
+  collectionTime = policyCollectionTime(arena);
+
+  /* How long since we last collected the world? */
+  sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
+                           (double) clocks_per_sec);
+
+  /* Offered enough time, and long enough since we last did it? */
+  return availableTime > collectionTime
+    && sinceLastWorldCollect > collectionTime / ARENA_MAX_COLLECT_FRACTION;
 }
 
 
@@ -207,12 +210,10 @@ Bool PolicyShouldCollectWorld(Arena arena, double interval, double multiplier,
 
 static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
 {
-  Res res;
   size_t topCondemnedGen, i;
   GenDesc gen;
-  ZoneSet condemnedSet = ZoneSetEMPTY;
-  Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
 
+  AVER(mortalityReturn != NULL);
   AVERT(Chain, chain);
   AVERT(Trace, trace);
 
@@ -228,75 +229,78 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
     -- topCondemnedGen;
     gen = &chain->gens[topCondemnedGen];
     AVERT(GenDesc, gen);
-    genNewSize = GenDescNewSize(gen);
-    if (genNewSize >= gen->capacity * (Size)1024)
+    if (GenDescNewSize(gen) >= gen->capacity)
       break;
   }
 
   /* At this point, we've decided to condemn topCondemnedGen and all
    * lower generations. */
+  TraceCondemnStart(trace);
   for (i = 0; i <= topCondemnedGen; ++i) {
     gen = &chain->gens[i];
     AVERT(GenDesc, gen);
-    condemnedSet = ZoneSetUnion(condemnedSet, gen->zones);
-    genTotalSize = GenDescTotalSize(gen);
-    genNewSize = GenDescNewSize(gen);
-    condemnedSize += genTotalSize;
-    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
-                    /* predict survivors will survive again */
-                    + (genTotalSize - genNewSize);
+    GenDescStartTrace(gen, trace);
   }
-  
-  AVER(condemnedSet != ZoneSetEMPTY || condemnedSize == 0);
   EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
-  
-  /* Condemn everything in these zones. */
-  if (condemnedSet != ZoneSetEMPTY) {
-    res = TraceCondemnZones(trace, condemnedSet);
-    if (res != ResOK)
-      return res;
-  }
-
-  *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
-  return ResOK;
+  return TraceCondemnEnd(mortalityReturn, trace);
 }
 
 
 /* PolicyStartTrace -- consider starting a trace
  *
+ * If collectWorldAllowed is TRUE, consider starting a collection of
+ * the world. Otherwise, consider only starting collections of individual
+ * chains or generations.
+ *
+ * If a collection of the world was started, set *collectWorldReturn
+ * to TRUE. Otherwise leave it unchanged.
+ *
  * If a trace was started, update *traceReturn and return TRUE.
  * Otherwise, leave *traceReturn unchanged and return FALSE.
  */
 
-Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
+Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
+                      Arena arena, Bool collectWorldAllowed)
 {
   Res res;
   Trace trace;
-  Size sFoundation, sCondemned, sSurvivors, sConsTrace;
-  double tTracePerScan; /* tTrace/cScan */
-  double dynamicDeferral;
+  double TraceWorkFactor = 0.25;
+  /* Fix the mortality of the world to avoid runaway feedback between the
+     dynamic criterion and the mortality of the arena's top generation,
+     leading to all traces collecting the world. This is a (hopefully)
+     temporary hack, pending an improved scheduling algorithm. */
+  double TraceWorldMortality = 0.5;
 
-  /* Compute dynamic criterion.  See strategy.lisp-machine. */
-  AVER(arena->topGen.mortality >= 0.0);
-  AVER(arena->topGen.mortality <= 1.0);
-  sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
-  /* @@@@ sCondemned should be scannable only */
-  sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-  sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
-  tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
-  AVER(TraceWorkFactor >= 0);
-  AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
-  sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
-  dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
+  AVER(traceReturn != NULL);
+  AVERT(Arena, arena);
 
-  if (dynamicDeferral < 0.0) {
-    /* Start full collection. */
-    res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
-    if (res != ResOK)
-      goto failStart;
-    *traceReturn = trace;
-    return TRUE;
-  } else {
+  if (collectWorldAllowed) {
+    Size sFoundation, sCondemned, sSurvivors, sConsTrace;
+    double tTracePerScan; /* tTrace/cScan */
+    double dynamicDeferral;
+
+    /* Compute dynamic criterion.  See strategy.lisp-machine. */
+    sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
+    /* @@@@ sCondemned should be scannable only */
+    sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
+    sSurvivors = (Size)(sCondemned * (1 - TraceWorldMortality));
+    tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
+    AVER(TraceWorkFactor >= 0);
+    AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
+    sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
+    dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
+
+    if (dynamicDeferral < 0.0) {
+      /* Start full collection. */
+      res = TraceStartCollectAll(&trace, arena, TraceStartWhyDYNAMICCRITERION);
+      if (res != ResOK)
+        goto failStart;
+      *collectWorldReturn = TRUE;
+      *traceReturn = trace;
+      return TRUE;
+    }
+  }
+  {
     /* Find the chain most over its capacity. */
     Ring node, nextNode;
     double firstTime = 0.0;
@@ -322,8 +326,8 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
       res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
-      trace->chain = firstChain;
-      ChainStartGC(firstChain, trace);
+      if (TraceIsEmpty(trace))
+        goto nothingCondemned;
       res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
       /* We don't expect normal GC traces to fail to start. */
       AVER(res == ResOK);
@@ -333,11 +337,9 @@ Bool PolicyStartTrace(Trace *traceReturn, Arena arena)
   } /* (dynamicDeferral > 0.0) */
   return FALSE;
 
+nothingCondemned:
 failCondemn:
-  TraceDestroy(trace);
-  /* This is an unlikely case, but clear the emergency flag so the next attempt
-     starts normally. */
-  ArenaSetEmergency(arena, FALSE);
+  TraceDestroyInit(trace);
 failStart:
   return FALSE;
 }
@@ -364,37 +366,49 @@ Bool PolicyPoll(Arena arena)
  * should return to the mutator.
  *
  * start is the clock time when the MPS was entered.
- * tracedSize is the amount of work done by the last call to TracePoll.
+ * moreWork and tracedWork are the results of the last call to TracePoll.
  */
 
-Bool PolicyPollAgain(Arena arena, Clock start, Size tracedSize)
+Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)
 {
+  Bool moreTime;
   Globals globals;
   double nextPollThreshold;
 
   AVERT(Arena, arena);
+  UNUSED(tracedWork);
+
+  if (ArenaEmergency(arena))
+    return TRUE;
+
+  /* Is there more work to do and more time to do it in? */
+  moreTime = (ClockNow() - start) < ArenaPauseTime(arena) * ClocksPerSec();
+  if (moreWork && moreTime)
+    return TRUE;
+
+  /* We're not going to do more work now, so calculate when to come back. */
+
   globals = ArenaGlobals(arena);
-  UNUSED(start);
-  
-  if (tracedSize == 0) {
-    /* No work was done.  Sleep until NOW + a bit. */
-    nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
-  } else {
+
+  if (moreWork) {
     /* We did one quantum of work; consume one unit of 'time'. */
     nextPollThreshold = globals->pollThreshold + ArenaPollALLOCTIME;
+  } else {
+    /* No more work to do.  Sleep until NOW + a bit. */
+    nextPollThreshold = globals->fillMutatorSize + ArenaPollALLOCTIME;
   }
 
   /* Advance pollThreshold; check: enough precision? */
   AVER(nextPollThreshold > globals->pollThreshold);
   globals->pollThreshold = nextPollThreshold;
 
-  return PolicyPoll(arena);
+  return FALSE;
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

@@ -1,7 +1,7 @@
 /* messtest.c: MESSAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "mpm.h"
@@ -71,18 +71,17 @@ static void topMessageType(MessageType *typeReturn, Arena arena)
 
 /* postDummyMessage -- post a dummy message */
 
-static void postDummyMessage(Arena arena, MessageClass class,
+static void postDummyMessage(Arena arena, MessageClass klass,
                              MessageType type)
 {
   void *p;
   Message message;
 
-  die((mps_res_t)ControlAlloc(&p, arena, sizeof(MessageStruct), FALSE),
+  die((mps_res_t)ControlAlloc(&p, arena, sizeof(MessageStruct)),
       "AllocMessage");
   message = (Message)p;
-  MessageInit(arena, message, class, type);
+  MessageInit(arena, message, klass, type);
   MessagePost(arena, message);
-  return;
 }
 
 
@@ -255,7 +254,7 @@ static void testGetEmpty(Arena arena)
 
 #define testArenaSIZE (((size_t)64)<<20)
 
-extern int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   mps_arena_t mpsArena;
   Arena arena;
@@ -277,7 +276,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

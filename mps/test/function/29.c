@@ -4,6 +4,7 @@ TEST_HEADER
  summary = big allocation with an LO pool
  language = c
  link = lofmt.o testlib.o
+ parameters = ITERATIONS=10000
 END_HEADER
 */
 
@@ -14,8 +15,6 @@ END_HEADER
 
 void *stackpointer;
 mps_ap_t ap;
-
-#define MAXLEN 1000000;
 
 
 static locell *string_ch(char* x) {
@@ -88,7 +87,7 @@ static void test(void) {
  (void)string_ch("Wibble wobble foo");
  (void)string_ch("Ba ");
 
- for (i=0; i<10000; i++) {
+ for (i=0; i<ITERATIONS; i++) {
   a = conc(string_ch("B"), a);
   (void)conc(string_ch("Hello there"), string_ch(" folks!"));
   (void)alloclo(ap, 0x4000);

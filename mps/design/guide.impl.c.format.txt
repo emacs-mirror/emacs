@@ -25,10 +25,10 @@ _`.readership`: This document is intended for anyone working on or with the
 C source code.
 
 
-General Formatting Conventions
+General formatting conventions
 ------------------------------
 
-Line Width
+Line width
 ..........
 
 _`.width`: Lines should be no wider than 72 characters. _`.width.why`: Many
@@ -37,11 +37,12 @@ placed side by side. Restricting lines to 72 characters allows line
 numbering to be used (in vi for example) and also allows diffs to be
 displayed without overflowing the terminal.
 
-White Space
+White space
 ...........
 
 _`.space.notab`: No tab characters should appear in the source files.
 Ordinary spaces should be used to indent and format the sources.
+
 _`.space.notab.why`: Tab characters are displayed differently on different
 platforms, and sometimes translated back and forth, destroying layout
 information.
@@ -55,15 +56,18 @@ sub-expressions more tightly. For example::
 
     foo = x + y*z;
 
-_`.space.control`: One space between the keyword, ``switch``, ``while``,
-``for`` and the following paren.  _`.space.control.why`: This distinguishes
-control statements lexically from function calls, making it easier to
-distinguish them visually and when searching with tools like grep.
+_`.space.control`: One space between a control-flow keyword
+(``switch``, ``while``, ``for``, ``if``) and the following opening
+parenthesis.
 
-_`.space.function.not`: No space between a function name and the following
-paren beginning its argument list.
+_`.space.control.why`: This distinguishes control statements lexically
+from function calls, making it easier to distinguish them visually and
+when searching with tools like ``grep``.
 
-Sections and Paragraphs
+_`.space.function.not`: No space between a function name and the opening
+parenthesis beginning its argument list.
+
+Sections and paragraphs
 .......................
 
 _`.section`: Source files can be thought of as breaking down into
@@ -74,7 +78,7 @@ _`.section.space`: Precede sections by two blank lines (except the first
 one in the file, which should be the leader comment in any case).
 
 _`.section.comment`: Each section should start with a banner comment (see
-.comment.banner) describing what the section contains.
+`.comment.banner`_) describing what the section contains.
 
 _`.para`: Within sections, code often breaks down into natural units called
 "paragraphs". A paragraph might be a set of strongly related
@@ -149,9 +153,7 @@ Some examples::
 
 _`.indent.goto-label`: Place each goto-label on a line of its own,
 outdented to the same level as the surrounding block. Then indent the
-non-label part of the statement normally.
-
-::
+non-label part of the statement normally. ::
 
     result foo(void)
     {
@@ -177,22 +179,22 @@ _`.indent.cont.parens`: if you break a statement inside a parameter list or
 other parenthesized expression, indent so that the continuation lines up
 just after the open parenthesis. For example::
 
-    PoolClassInit(&PoolClassMVStruct,
-                  "MV", init, finish, allocP, freeP,
-                  NULL, NULL, describe, isValid);
+    res = ChunkInit(chunk, arena, alignedBase,
+                    AddrAlignDown(limit, ArenaGrainSize(arena)),
+                    AddrOffset(base, limit), boot);
 
 _`.indent.cont.expr`: Note that when breaking an expression it is clearer
 to place the operator at the start of the continuation line::
 
-    CHECKL(AddrAdd((Addr)chunk->pageTableMapped,
-                   BTSize(chunk->pageTablePages))
-           <= AddrAdd(chunk->base, chunk->ullageSize));
+    CHECKL(AddrAdd((Addr)chunk->allocTable, BTSize(chunk->pages))
+           <= PageIndexBase(chunk, chunk->allocBase));
 
 This is particularly useful in long conditional expressions that use &&
 and ||. For example::
 
-    } while(trace->state != TraceFINISHED
-            && (trace->emergency || traceWorkClock(trace) < pollEnd));
+    if (BufferRankSet(buffer) != RankSetEMPTY
+        && (buffer->mode & BufferModeFLIPPED) == 0
+        && !BufferIsReset(buffer))
 
 _`.indent.hint`: Usually, it is possible to determine the correct
 indentation for a line by looking to see if the previous line ends with
@@ -200,7 +202,7 @@ a semicolon. If it does, indent to the same amount, otherwise indent by
 two more spaces. The main exceptions are lines starting with a close
 brace, goto-labels, and line-breaks between parentheses.
 
-Positioning of Braces
+Positioning of braces
 .....................
 
 _`.brace.otb`: Use the "One True Brace" (or OTB) style. This places the
@@ -208,21 +210,13 @@ open brace after the control word or expression, separated by a space,
 and when there is an else, places that after the close brace. For
 example::
 
-    if(isBase) {
-      new->base = limit;
-      new->limit = block->limit;
-      block->limit = base;
-      new->next = block->next;
-      block->next = new;
+    if (buffer->mode & BufferModeFLIPPED) {
+      return buffer->initAtFlip;
     } else {
-      new->base = block->base;
-      new->limit = base;
-      block->base = limit;
-      new->next = block;
-      *prev = new;
+      return buffer->ap_s.init;
     }
 
-The same applies to struct, enum, union.
+The same applies to ``struct``, ``enum``, and ``union``.
 
 _`.brace.otb.function.not`: OTB is never used for function definitions.
 
@@ -239,54 +233,46 @@ this will be a ``goto`` or an assignment. For example::
 Note in particular that an ``if`` with an ``else`` must have braces on both
 paths.
 
-Switch Statements
+Switch statements
 .................
 
 _`.switch`: format switch statements like this::
 
-    switch (action) {
-    case WIBBLE:
-    case WOBBLE:
-      {
-        int angle;
-        err = move(plate, action, &angle);
-      }
-      break;
-
-    case QUIET:
-      drop();
-      /* fall-through */
-
-    case QUIESCENT:
-      err = 0;
-      break;
-
+    switch (SplaySplay(splay, oldKey, splay->compare)) {
     default:
       NOTREACHED;
-      break;
+      /* fall through */
+    case CompareLESS:
+      return SplayTreeRoot(splay);
+
+    case CompareGREATER:
+    case CompareEQUAL:
+      return SplayTreeSuccessor(splay);
     }
 
 The component rules that result in this style are:
 
 _`.switch.break`: The last line of every case-clause body must be an
 unconditional jump statement (usually ``break``, but may be ``goto``,
-``continue``, or ``return``), or if a fall-through is intended, the comment
-``/* fall-through */``. (Note: if the unconditional jump should never be
-taken, because of previous conditional jumps, use ``NOTREACHED`` on the
-line before it). This rule is to prevent accidental fall-throughs, even
-if someone makes a editing mistake that causes a conditional jump to be
-missed.
+``continue``, or ``return``), or if a fall-through is intended, the
+comment ``/* fall through */``. (Note: if the unconditional jump
+should never be taken, because of previous conditional jumps, use
+``NOTREACHED`` on the line before it.) This rule is to prevent
+accidental fall-throughs, even if someone makes a editing mistake that
+causes a conditional jump to be missed. This rule is automatically
+checked by GCC and Clang with the ``-Wimplicit-fallthrough`` option.
 
-_`.switch.default`: It is usually a good idea to have a default-clause,
-even if all it contains is ``NOTREACHED`` and ``break``.  Remember that
-``NOTREACHED`` doesn't stop the process in all build varieties.
+_`.switch.default`: It is usually a good idea to have a
+default-clause, even if all it contains is ``NOTREACHED`` and
+``break`` or ``/* fall through */``. Remember that ``NOTREACHED``
+doesn't stop the process in all build varieties.
 
 
-Formatting Comments
-...................
+Comments
+........
 
 _`.comment`: There are three types of comments: banners, paragraph
-comments, and columnar comments.
+comments, and column comments.
 
 _`.comment.banner`: Banner comments come at the start of sections. A banner
 comment consists of a heading usually composed of a symbol, an em-dash
@@ -307,19 +293,18 @@ the banner comment and the section it comments. For example::
  
     typedef struct BlockStruct {
 
-_`.comment.para`: Paragraph comments come at the start of paragraphs in the
-code. A paragraph comment consists of formatted English text, with each
-line wrapped by the open and close comment tokens (``/*`` and ``*/``).
-(This avoids problems when cutting and pasting comments.) For example::
+_`.comment.para`: Paragraph comments come at the start of paragraphs
+in the code. A paragraph comment consists of formatted English text.
+For example::
 
-      /* If the freed area is in the base sentinel then insert */
-      /* the new descriptor after it, otherwise insert before. */
-      if(isBase) {
+      /* If the freed area is in the base sentinel then insert
+         the new descriptor after it, otherwise insert before. */
+      if (isBase) {
 
 _`.comment.para.precede`: Paragraph comments, even one-liners, precede the
 code to which they apply.
 
-_`.comment.column`: Columnar comments appear in a column to the right of
+_`.comment.column`: Column comments appear in a column to the right of
 the code. They should be used sparingly, since they clutter the code and
 make it hard to edit. Use them on variable declarations and structure,
 union, or enum declarations. They should start at least at column 32
@@ -327,16 +312,22 @@ union, or enum declarations. They should start at least at column 32
 descriptive text. Abandon English sentence structure if this makes the
 comment clearer. Don't write more than one line. Here's an example::
 
-      typedef struct PoolMVStruct {
-        Pool blockPool;           /* for block descriptors */
-        Pool spanPool;            /* for span descriptors */
-        size_t extendBy;          /* size to extend pool by */
-        size_t avgSize;           /* estimate of allocation size */
-        size_t maxSize;           /* estimate of maximum size */
-        Addr space;               /* total free space in pool */
-        Addr lost;                /* lost when free can't allocate */
-        struct SpanStruct *spans; /* span chain */
-      } PoolMVStruct;
+    typedef struct MVFFStruct {     /* MVFF pool outer structure */
+      PoolStruct poolStruct;        /* generic structure */
+      LocusPrefStruct locusPrefStruct; /* the preferences for allocation */
+      Size extendBy;                /* size to extend pool by */
+      Size avgSize;                 /* client estimate of allocation size */
+      double spare;                 /* spare space fraction, see MVFFReduce */
+      MFSStruct cbsBlockPoolStruct; /* stores blocks for CBSs */
+      CBSStruct totalCBSStruct;     /* all memory allocated from the arena */
+      CBSStruct freeCBSStruct;      /* free memory (primary) */
+      FreelistStruct flStruct;      /* free memory (secondary, for emergencies) */
+      FailoverStruct foStruct;      /* free memory (fail-over mechanism) */
+      Bool firstFit;                /* as opposed to last fit */
+      Bool slotHigh;                /* prefers high part of large block */
+      Sig sig;                      /* <design/sig/> */
+    } MVFFStruct;
+
 
 Macros
 ......

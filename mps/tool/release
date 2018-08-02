@@ -2,9 +2,9 @@
 #
 #                     RELEASE -- MAKE A RELEASE
 #             Gareth Rees, Ravenbrook Limited, 2014-03-18
-# 
+#
 # $Id$
-# Copyright (c) 2014 Ravenbrook Limited. See end of file for license.
+# Copyright (c) 2014-2018 Ravenbrook Limited. See end of file for license.
 #
 #
 # 1. INTRODUCTION
@@ -64,8 +64,8 @@ RELEASE_ENTRY = '''
 </tr>
 '''
 
-VERSION_ENTRY = '''    <a href="/project/{project}/release/{release}/">{release}</a>
-'''
+VERSION_ENTRY = '''
+      <a href="/project/{project}/release/{release}/">{release}</a>'''
 
 def main(argv):
     parser = argparse.ArgumentParser()
@@ -202,12 +202,12 @@ def main(argv):
         register('{depot}/project/{project}/release/index.html',
                  '(?<=<tbody>\n)', RELEASE_ENTRY)
         register('{depot}/project/{project}/version/index.html',
-                 (r'(?<=<td><a href="{0}/">{0}</a></td>\n  <td>\n)'
-                  .format(re.escape(args.version), re.escape(args.project))),
+                 (r'(?<=<td> <a href="{0}/">{0}</a> </td>\n    <td>)'
+                  .format(re.escape(args.version))),
                  VERSION_ENTRY)
         register('{depot}/project/{project}/index.rst',
                  r'release/\d+\.\d+\.\d+', 'release/{release}')
-             
+
 
 if __name__ == '__main__':
     main(sys.argv)

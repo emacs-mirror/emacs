@@ -4,6 +4,7 @@ TEST_HEADER
  summary =  provoke segsummary assertion (request.dylan.170450)
  language = c
  link = testlib.o awlfmt.o
+ parameters = ITERATIONS=10
 END_HEADER
 */
 
@@ -67,9 +68,9 @@ static void test(void)
   mps_ap_create(&ap, pool, mps_rank_exact()),
   "create ap");
 
- for (j=1; j<100; j++)
+ for (j=1; j<=ITERATIONS; j++)
  {
-  comment("%i of 100.", j);
+  comment("%i of %i.", j, ITERATIONS);
   UC;
   *a = allocone(ap, 5, 1);
   *b = *a;

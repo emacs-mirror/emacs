@@ -116,21 +116,17 @@ _`.poolstruct`: The class specific pool structure is::
 
     typedef struct LOStruct {
       PoolStruct poolStruct;        /* generic pool structure */
-      Format format;                /* format for allocated objects */
-      Shift alignShift;
-      Sig sig;                      /* impl.h.misc.sig */
+      PoolGenStruct pgenStruct;     /* pool generation */
+      PoolGen pgen;                 /* NULL or pointer to pgenStruct */
+      Sig sig;                      /* <code/misc.h#sig> */
     } LOStruct;
 
-_`.poolstruct.format`: This is the format of the objects that are
-allocated in the pool.
+_`.loseg`: Every segment is an instance of segment class
+``LOSegClass``, a subclass of ``MutatorSegClass`` (see
+design.mps.seg.over.hierarchy.mutatorseg_), and is an object of type
+``LOSegStruct``.
 
-_`.poolstruct.alignShift`: This is shift used in alignment
-computations. It is ``SizeLog2(pool->alignment).`` It can be used on
-the right of a shift operator (``<<`` or ``>>``) to convert between a
-number of bytes and a number of grains.
-
-_`.loseg`: Every segment is an instance of segment class ``LOSegClass``, a
-subclass of ``GCSegClass``, and is an object of type ``LOSegStruct``.
+.. _design.mps.seg.over.hierarchy.mutatorseg: seg#over-hierarchy-mutatorseg
 
 _`.loseg.purpose`: The purpose of the ``LOSeg`` structure is to
 associate the bit tables used for recording allocation and mark
@@ -140,11 +136,13 @@ _`.loseg.decl`: The declaration of the structure is as follows::
 
     typedef struct LOSegStruct {
       GCSegStruct gcSegStruct;  /* superclass fields must come first */
-      LO lo;                    /* owning LO */
       BT mark;                  /* mark bit table */
       BT alloc;                 /* alloc bit table */
-      Count free;               /* number of free grains */
-      Sig sig;                  /* impl.h.misc.sig */
+      Count freeGrains;         /* free grains */
+      Count bufferedGrains;     /* grains in buffers */
+      Count newGrains;          /* grains allocated since last collection */
+      Count oldGrains;          /* grains allocated prior to last collection */
+      Sig sig;                  /* <code/misc.h#sig> */
     } LOSegStruct;
 
 _`.loseg.sig`: The signature for a loseg is 0x519705E9 (SIGLOSEG).
@@ -160,7 +158,7 @@ but might be inefficient in terms of space in some circumstances.
 
 _`.loseg.mark`: This is a Bit Table that is used to mark objects
 during a trace. Each grain in the segment is associated with 1 bit in
-this table. When ``LOFix()`` (see `.fun.fix`_ below) is called the
+this table. When ``loSegFix()`` (see `.fun.fix`_ below) is called the
 address is converted to a grain within the segment and the
 corresponding bit in this table is set.
 
@@ -198,7 +196,11 @@ _`.fun.buffer-empty`:
 
 _`.fun.condemn`:
 
-``Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
+
+Internal
+........
+
+``Res loSegFix(Seg seg, ScanState ss, Ref *refIO)``
 
 _`.fun.fix`: Fix treats references of most ranks much the same. There
 is one mark table that records all marks. A reference of rank
@@ -213,16 +215,7 @@ been marked otherwise nothing happens. Note that there is no check
 that the reference refers to a valid object boundary (which wouldn't
 be a valid check in the case of ambiguous references anyway).
 
-``void LOReclaim(Pool pool, Trace trace, Seg seg)``
-
-_`.fun.reclaim`: Derives the loseg from the seg, and calls
-``loSegReclaim()`` (see `.fun.segreclaim`_ below).
-
-
-Internal
-........
-
-``void loSegReclaim(LOSeg loseg, Trace trace)``
+``void loSegReclaim(Seg seg, Trace trace)``
 
 _`.fun.segreclaim`: For all the contiguous allocated regions in the
 segment it locates the boundaries of all the objects in that region by
@@ -231,7 +224,7 @@ of the region (the beginning of the region is guaranteed to coincide
 with the beginning of an object). For each object it examines the bit
 in the mark bit table that corresponds to the beginning of the object.
 If that bit is set then the object has been marked as a result of a
-previous call to ``LOFix()``, the object is preserved by doing
+previous call to ``loSegFix()``, the object is preserved by doing
 nothing. If that bit is not set then the object has not been marked
 and should be reclaimed; the object is reclaimed by resetting the
 appropriate range of bits in the segment's free bit table.
@@ -265,8 +258,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

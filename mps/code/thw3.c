@@ -1,12 +1,10 @@
-/* thw3i3.c: WIN32 THREAD MANAGER
+/* thw3.c: WIN32 THREAD MANAGER
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
- * Implements thread registration, suspension, and stack
- * scanning.  See <design/thread-manager/>.
- *
- * This supports the <code/th.h> along with <code/thw3i3.c> or <code/thw3i6.c>
+ * Implements thread registration, suspension, and stack and register
+ * scanning. See <design/thread-manager/>.
  *
  * .thread.id: The thread id is used to identify the current thread.
  * .thread.handle: The thread handle needs the enough access to
@@ -28,6 +26,19 @@
  * .error.suspend: SuspendThread is assumed to succeed unless the thread
  * has been destroyed.
  *
+ * .stack.full-descend: assumes full descending stack, that is, stack
+ * pointer points to the last allocated location and stack grows
+ * downwards.
+ *
+ * .stack.below-bottom: it's legal for the stack pointer to be at a
+ * higher address than the registered bottom of stack. This might
+ * happen if the stack of another thread doesn't contain any frames
+ * belonging to the client language. In this case, the stack should
+ * not be scanned.
+ *
+ * .stack.align: assume roots on the stack are always word-aligned,
+ * but don't assume that the stack pointer is necessarily word-aligned
+ * at the time of reading the context of another thread.
  *
  * .nt: uses Win32 specific stuff
  * HANDLE
@@ -39,20 +50,30 @@
  * CloseHandle
  * SuspendThread
  * ResumeThread
- *
  */
 
 #include "mpm.h"
 
 #if !defined(MPS_OS_W3) /* .nt */
-#error "Compiling thw3 when MPS_OS_W3 not defined."
+#error "thw3.c is specific to MPS_OS_W3"
 #endif
 
-#include "thw3.h"
-
+#include "prmcw3.h"
 #include "mpswin.h"
 
 SRCID(thw3, "$Id$");
+
+
+typedef struct mps_thr_s {      /* Win32 thread structure */
+  Sig sig;                      /* <design/sig/> */
+  Serial serial;                /* from arena->threadSerial */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* threads attached to arena */
+  Bool alive;                   /* thread believed to be alive? */
+  HANDLE handle;                /* Handle of thread, see
+                                 * <code/thw3.c#thread.handle> */
+  DWORD id;                     /* Thread id of thread */
+} ThreadStruct;
 
 
 Bool ThreadCheck(Thread thread)
@@ -83,8 +104,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   AVER(threadReturn != NULL);
   AVERT(Arena, arena);
 
-  res = ControlAlloc(&p, arena, sizeof(ThreadStruct),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(ThreadStruct));
   if(res != ResOK)
     return res;
   thread = (Thread)p; /* avoid pun */
@@ -239,9 +259,68 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 }
 
 
+Res ThreadScan(ScanState ss, Thread thread, Word *stackCold,
+               mps_area_scan_t scan_area, void *closure)
+{
+  DWORD id;
+  Res res;
+
+  id = GetCurrentThreadId();
+
+  if (id != thread->id) { /* .thread.id */
+    MutatorContextStruct context;
+    Word *stackBase, *stackLimit;
+    Addr stackPtr;
+
+    /* scan stack and register roots in other threads */
+    /* .thread.handle.get-context */
+    res = MutatorContextInitThread(&context, thread->handle);
+    if (res != ResOK) {
+      /* .error.get-context */
+      /* We assume that the thread must have been destroyed. */
+      /* We ignore the situation by returning immediately. */
+      return ResOK;
+    }
+
+    stackPtr = MutatorContextSP(&context);
+    /* .stack.align */
+    stackBase  = (Word *)AddrAlignUp(stackPtr, sizeof(Word));
+    stackLimit = stackCold;
+    if (stackBase >= stackLimit)
+      return ResOK;    /* .stack.below-bottom */
+
+    /* scan stack inclusive of current sp and exclusive of
+     * stackCold (.stack.full-descend)
+     */
+    res = TraceScanArea(ss, stackBase, stackLimit,
+                        scan_area, closure);
+    if (res != ResOK)
+      return res;
+
+    /* Scan registers. */
+    res = MutatorContextScan(ss, &context, scan_area, closure);
+    if (res != ResOK)
+      return res;
+
+  } else { /* scan this thread's stack */
+    res = StackScan(ss, stackCold, scan_area, closure);
+    if (res != ResOK)
+      return res;
+  }
+
+  return ResOK;
+}
+
+
+void ThreadSetup(void)
+{
+  /* Nothing to do as MPS does not support fork() on Windows. */
+}
+
+
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

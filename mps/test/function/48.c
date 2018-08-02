@@ -41,7 +41,7 @@ static void test(void)
 
  RC;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), 1ul<<30),
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
@@ -73,7 +73,7 @@ static void test(void)
 
  b = allocone(apamc, 1, 1);
 
- for (j=1; j<10; j++) {
+ for (j=1; j<=10; j++) {
   comment("%i of 10.", j);
   UC;
   a = allocone(apawl, 5, mps_rank_exact());
@@ -85,14 +85,14 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i=1; i<1000; i++) {
+  for (i=1; i<=1000; i++) {
    UC;
    if (ranint(3) == 0) {
-   c = allocone(apawl, 500, mps_rank_exact());
+   c = allocone(apawl, 100, mps_rank_exact());
    } else if (ranint(2) == 0) {
-   c = allocone(apweak, 500, mps_rank_weak());
+   c = allocone(apweak, 100, mps_rank_weak());
    } else {
-   c = allocone(apamc, 500, mps_rank_exact());
+   c = allocone(apamc, 100, mps_rank_exact());
    }
    if (ranint(8) == 0) d = c;
    if (ranint(8) == 0) e = c;

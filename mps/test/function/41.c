@@ -71,7 +71,7 @@ static void test(void)
 
  b = allocone(apamc, 1, 1);
 
- for (j=1; j<10; j++) {
+ for (j=1; j<=10; j++) {
   comment("%i of 10.", j);
   UC;
   a = allocone(apawl, 5, 1);
@@ -84,10 +84,10 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i=1; i<1000; i++) {
+  for (i=0; i<100; i++) {
    UC;
-   c = allocone(apamc, 10000, 1);
-   c = allocone(apawl, 10000, 1);
+   c = allocone(apamc, 1000, 1);
+   c = allocone(apawl, 1000, 1);
    c->data.assoc = stackpointer;
    if (ranint(8) == 0) d = c;
    if (ranint(8) == 0) e = c;

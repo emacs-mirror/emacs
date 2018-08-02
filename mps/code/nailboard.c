@@ -127,7 +127,7 @@ Res NailboardCreate(Nailboard *boardReturn, Arena arena, Align alignment,
   alignShift = SizeLog2((Size)alignment);
   nails = AddrOffset(base, limit) >> alignShift;
   levels = nailboardLevels(nails);
-  res = ControlAlloc(&p, arena, nailboardSize(nails, levels), FALSE);
+  res = ControlAlloc(&p, arena, nailboardSize(nails, levels));
   if (res != ResOK)
     return res;
 

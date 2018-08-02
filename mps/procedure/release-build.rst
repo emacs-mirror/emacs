@@ -28,16 +28,15 @@ All relative paths are relative to
 ----------------
 
 #. Make sure you have a version branch from which to make the release.
-   If not, follow the `version creation procedure <version-create>`_
-   first.
+   If not, follow the `version creation procedure`_ first.
 
-   .. _version-create: version-create
+   .. _version creation procedure: version-create
 
-#. Make sure that you have rights to push to the ``mps``
-   repository on GitHub. If not, follow the `Becoming a Ravenbrook
-   team member procedure <git-fusion>`_ first.
+#. Make sure that you can authenticate to Git Fusion, and that you
+   have rights to push to the ``mps`` repository on GitHub. If not,
+   follow the `Git Fusion procedures`_ first.
 
-   .. _git-fusion: https://info.ravenbrook.com/procedure/git-fusion
+   .. _Git Fusion procedures: https://info.ravenbrook.com/procedure/git-fusion
 
 
 3. Setting up for release
@@ -79,14 +78,24 @@ All relative paths are relative to
    procedure::
 
         p4 opened version/$VERSION/...
-        # should output "version/$VERSION/... - file(s) not opened on this client."
+
+   This should output "version/$VERSION/... - file(s) not opened on
+   this client." But if there are opened files, then::
+
         p4 revert version/$VERSION/...
+
+   Next::
+
+	p4 update version/$VERSION/...@$CHANGELEVEL
+	p4 status version/$VERSION/...
+
+   This should output "version/$VERSION/... - no file(s) to
+   reconcile." But if there are discrepancies, then::
+
         rm -rf version/$VERSION
         p4 sync -f version/$VERSION/...@$CHANGELEVEL
 
-   Note that the ``revert`` and ``sync -f`` are necessary, otherwise
-   opened files may be left in place, or writeable-on-client files may
-   be omitted; see [RHSK_2008-10-16]_.
+   See [RHSK_2008-10-16]_.
 
 #. Run the test suite::
 
@@ -98,9 +107,11 @@ All relative paths are relative to
    commands to run the test suite are::
 
         cd version\$VERSION\code
-        nmake /f w3i6mv.nmk testrun
-
-   On other platforms they are as shown above.
+        nmake /f w3i6mv.nmk clean testci
+        nmake /f ananmv.nmk clean testansi
+        nmake /f ananmv.nmk CFLAGS="-DCONFIG_POLL_NONE" clean testpollnone
+        cd ../test
+        perl test/qa runset testsets/{coolonly,argerr,conerr,passing}
 
 #. Check that there are no performance regressions by comparing the
    benchmarks (``djbench`` and ``gcbench``) for the last release and
@@ -122,7 +133,7 @@ If omitted, the project and branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the branch. A typical invocation looks like this::
 
-    tool/release -b version/1.113 -d "Improved interface to generation chains." -y
+    tool/release -b version/$VERSION -d "Improved interface to generation chains." -y
 
 
 6. Making the release (manual procedure)
@@ -134,7 +145,7 @@ the branch. A typical invocation looks like this::
    release name according to the variant, for example,
    ``mps-cet-1.110.0.zip``
 
-On a Unix (including OS X) machine:
+On a Unix (including macOS) machine:
 
 #. Create a fresh Perforce client workspace::
 
@@ -212,11 +223,12 @@ On a Unix (including OS X) machine:
 
 #. Make a git tag for the release::
 
-        git clone git-fusion@raven.ravenbrook.com:mps-version-$VERSION
-        cd mps-version-$VERSION
+        git clone ssh://git@perforce.ravenbrook.com:1622/mps-public
+        cd mps-public
+        git checkout -b version/$VERSION origin/version/$VERSION
         git tag -a release-$RELEASE -F - <<END
         Memory Pool System Kit release $RELEASE.
-        See <http://www.ravenbrook.com/project/mps/release/>.
+        See <https://www.ravenbrook.com/project/mps/release/>.
         END
         git push --tags git@github.com:Ravenbrook/mps.git
 
@@ -260,6 +272,7 @@ B. Document History
 2013-03-20  GDR_   Ensure that manual HTML is up to date before making a release.
 2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of release 1.112.0.
 2016-01-28  RB_    Git repository renamed from mps-temporary to mps.
+2018-07-30  GDR_   Git Fusion moved to perforce.ravenbrook.com.
 ==========  =====  ==========================================================
 
 .. _RB: mailto:rb@ravenbrook.com

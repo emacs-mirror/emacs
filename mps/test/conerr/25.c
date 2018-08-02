@@ -30,13 +30,13 @@ static void test(void)
 
  cdie(mps_ap_create(&ap, pool), "create ap");
 
- cdie(mps_reserve(&obj, ap, 152), "reserve");
- (void)mps_commit(ap, &obj, 152);
+ cdie(mps_reserve(&obj, ap, 256), "reserve");
+ (void)mps_commit(ap, &obj, 256);
 
- mps_free(pool, obj, 152);
+ mps_free(pool, obj, 256);
  comment("Freed.");
 
- mps_free(pool, obj, 152);
+ mps_free(pool, obj, 256);
  comment("Freed again.");
 
  mps_pool_destroy(pool);

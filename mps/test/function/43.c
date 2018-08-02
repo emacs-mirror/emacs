@@ -73,7 +73,7 @@ static void test(void)
 
  b = allocone(apamc, 1, 1);
 
- for (j=1; j<10; j++) {
+ for (j=1; j<=10; j++) {
   comment("%i of 10.", j);
   UC;
   a = allocone(apexact, 5, 1);
@@ -85,13 +85,13 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i=1; i<1000; i++) {
+  for (i=0; i<1000; i++) {
    UC;
-   c = allocone(apamc, 1000, 0);
+   c = allocone(apamc, 50, 0);
    if (ranint(2) == 0) {
-    c = allocone(apweak, 100, 1);
+    c = allocone(apweak, 50, 1);
    } else {
-    c = allocone(apexact, 100, 1);
+    c = allocone(apexact, 50, 1);
    }
    if (ranint(8) == 0) d = c;
    if (ranint(8) == 0) e = c;

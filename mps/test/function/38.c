@@ -9,7 +9,7 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscawl.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "rankfmt.h"
@@ -52,7 +52,7 @@ static void checklds(void)
 
 static void test(void)
 {
- mps_pool_t poolmv, poolawl, poolamc;
+ mps_pool_t poolmvff, poolawl, poolamc;
  mps_thr_t thread;
  mps_root_t root0, root1, root2;
 
@@ -91,8 +91,8 @@ static void test(void)
  cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format, getassociated),
       "create awl pool");
 
- cdie(mps_pool_create(&poolmv, arena, mps_class_mv(), 0x4000, 128, 0x4000),
-      "create mv pool");
+ cdie(mps_pool_create_k(&poolmvff, arena, mps_class_mvff(), mps_args_none),
+      "create MVFF pool");
 
  cdie(mps_ap_create(&apawl, poolawl, mps_rank_exact()),
       "create ap");
@@ -104,7 +104,7 @@ static void test(void)
 
  for (i=0; i < MAXLDS; i++) {
   comment("%d", i);
-  mps_alloc(&p, poolmv, sizeof(mps_ld_s));
+  mps_alloc(&p, poolmvff, sizeof(mps_ld_s));
   a = allocone(apawl, 5, mps_rank_exact());
   setref(a, 0, b);
   b = a;
@@ -154,7 +154,7 @@ static void test(void)
  mps_arena_park(arena);
  mps_ap_destroy(apawl);
  mps_ap_destroy(apamc);
- mps_pool_destroy(poolmv);
+ mps_pool_destroy(poolmvff);
  mps_pool_destroy(poolamc);
  mps_pool_destroy(poolawl);
  comment("Destroyed pools.");

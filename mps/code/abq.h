@@ -24,7 +24,7 @@
 
 typedef struct ABQStruct *ABQ;
 typedef Res (*ABQDescribeElement)(void *element, mps_lib_FILE *stream, Count depth);
-typedef Bool (*ABQVisitor)(Bool *deleteReturn, void *element, void *closureP, Size closureS);
+typedef Bool (*ABQVisitor)(Bool *deleteReturn, void *element, void *closure);
 
 extern Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize);
 extern Bool ABQCheck(ABQ abq);
@@ -36,7 +36,7 @@ extern Res ABQDescribe(ABQ abq, ABQDescribeElement describeElement, mps_lib_FILE
 extern Bool ABQIsEmpty(ABQ abq);
 extern Bool ABQIsFull(ABQ abq);
 extern Count ABQDepth(ABQ abq);
-extern void ABQIterate(ABQ abq, ABQVisitor visitor, void *closureP, Size closureS);
+extern void ABQIterate(ABQ abq, ABQVisitor visitor, void *closure);
 
 
 /* Types */
@@ -50,10 +50,10 @@ typedef struct ABQStruct
   void *queue;
 
   /* Meter queue depth at each operation */
-  METER_DECL(push);
-  METER_DECL(pop);
-  METER_DECL(peek);
-  METER_DECL(delete);
+  METER_DECL(push)
+  METER_DECL(pop)
+  METER_DECL(peek)
+  METER_DECL(delete)
  
   Sig sig;
 } ABQStruct;
