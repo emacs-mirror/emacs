@@ -1312,6 +1312,7 @@ is not active."
                            :documentation)))))
            (when documentation
              (with-current-buffer (get-buffer-create " *eglot doc*")
+               (erase-buffer)
                (insert (eglot--format-markup documentation))
                (current-buffer)))))
        :exit-function (lambda (_string _status)
