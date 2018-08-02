@@ -5,7 +5,6 @@
  * Portions copyright (C) 2002 Global Graphics Software.
  */
 
-#include "mpscmv.h"
 #include "mpscmvff.h"
 #include "mpscmfs.h"
 #include "mpslib.h"
