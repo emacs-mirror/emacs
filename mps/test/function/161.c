@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = MV fenceposting check: subfree
+ summary = MVFF debug fenceposting check: subfree
  language = c
  link = testlib.o
 OUTPUT_SPEC
@@ -12,7 +12,7 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpsavm.h"
 
 
@@ -32,9 +32,11 @@ static void test(void)
   (size_t) (1024*1024*50)), "create arena");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- die(mps_pool_create(&pool, arena, mps_class_mv_debug(), &debugOpts,
-                     (size_t)8192, (size_t)8, (size_t)65536),
-     "create MVFF pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, &debugOpts);
+   die(mps_pool_create(&pool, arena, mps_class_mv_debug(), args),
+       "create MVFF pool");
+ } MPS_ARGS_END(args);
 
  die(mps_alloc(&a, pool, 64), "alloc a");
  

@@ -26,7 +26,6 @@
 #include "mpscmvff.h"
 #include "poolmvff.h"
 #include "mpscmfs.h"
-#include "mpscmv.h"
 #include "poolmfs.h"
 
 SRCID(poolmvff, "$Id$");
