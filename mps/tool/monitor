@@ -20,8 +20,10 @@ import sys
 import threading
 import time
 import math
+import bisect
 
 from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
+from matplotlib.backend_bases import key_press_handler
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
@@ -39,16 +41,22 @@ class YAxis:
 
 def bytesFormat(y):
     "Format a number of bytes as a string."
-    return bytesTickFormatter(y, None) + (' bytes' if y < 10000 else 'B')
+    return with_SI_prefix(y) + (' bytes' if y < 10000 else 'B')
 
-def bytesTickFormatter(y, pos):
+def with_SI_prefix(y,unit=''):
     if y < 0:
-        return '-'+bytesTickFormatter(-y,pos)
+        return '-'+with_SI_prefix(-y)
     i = 0
     while y >= 10000:
         y /= 1000
         i += 1
-    return '{:.0f} {}'.format(y,' KMGTPE'[i]).strip()
+    return ('{:.0f} {}'.format(y,' KMGTPE'[i])+unit).strip()
+
+def bytesTickFormatter(y,pos):
+    return with_SI_prefix(y)
+
+def cyc(n):
+    return with_SI_prefix(n, unit='c')
 
 # The three y axes which we support
 bytesAxis = YAxis('bytes', bytesFormat)
@@ -69,6 +77,15 @@ access_mode = {1: 'Read',
                3: 'Read/Write',
 }
                
+trace_why = {1: 'gen 0 capacity',
+             2: 'dynamic criterion',
+             3: 'opportunitism',
+             4: 'full incremental',
+             5: 'full',
+             6: 'walking',
+             7: 'extension'
+}
+
 # Mapping from event code to a namedtuple for that event.
 EVENT_NAMEDTUPLE = {
     code: namedtuple(desc.name, ['header'] + [p.name for p in desc.params])
@@ -225,11 +242,25 @@ class TimeSeries:
         self.note = note
         self.draw = draw
 
+    def __len__(self):
+        return len(self.t)
+
+    # Doesn't handle slices
+    def __getitem__(self, key):
+        return (self.t[key], self.y[key])
+
     def append(self, t, y):
         "Append data y at time t."
         assert not self.t or t >= self.t[-1]
         self.t.append(t)
         self.y.append(y)
+
+    def closest(self, t):
+        i = bisect.bisect(self.t, t)
+        if (i == len(self) or
+            (i > 0 and (self.t[i] - t) > (t - self.t[i-1]))):
+            i = i-1
+        return i
 
 
 class Accumulator(TimeSeries):
@@ -261,11 +292,14 @@ class RateSeries(TimeSeries):
         self._limit = ((t // period) + 1) * period
 
     def inc(self, t):
+        self.null(t)
+        self._count += 1
+
+    def null(self, t):
         while t >= self._limit:
             self.append(self._limit - self._period/2, self._count)
             self._count = 0
             self._limit += self._period
-        self._count += 1
 
 class OnOffSeries(TimeSeries):
     """Series of on/off events; can draw as an exponentially weighted moving
@@ -305,7 +339,7 @@ average on/off ratio or (potentially) as shading bars."""
             self.on(ts[i*2])
             self.off(ts[i*2+1])
 
-    def _note(self, line, t, index):
+    def _note(self, line, t, index, verbose=False):
         on = self._ons[index // 2]
         l = on[1]-on[0]
         note = f"{line.name}: {on[0]:.3f} + {l * 1000:.3f} ms"
@@ -427,11 +461,15 @@ class Trace(EventHandler):
     def __init__(self, arena, t, event):
         self._arena = arena
         self.create = t
-        self.why = event.why
+        self.pauses = (0, 0, 0)
+        self.why = trace_why[event.why]
         self.gens = 'none'
         self.times = [(t, event.header.clock, 'create')]
         self.sizes = []
         self.counts = []
+        self.accesses = defaultdict(int)
+        self.pause_start = None
+        self.begin_pause(t, event)
 
     def add_time(self, name, t, event):
         self.times.append((t, event.header.clock, name))
@@ -441,6 +479,17 @@ class Trace(EventHandler):
 
     def add_count(self, name, c):
         self.counts.append((name, c))
+
+    def begin_pause(self, t, event):
+        assert self.pause_start is None
+        self.pause_start = (t, event.header.clock)
+
+    def end_pause(self, t, event):
+        assert self.pause_start is not None
+        st, sc = self.pause_start
+        tn, tt, tc = self.pauses
+        self.pauses = (tn+1, tt + t-st, tc + event.header.clock-sc)
+        self.pause_start = None
 
     def TraceStart(self, t, event):
         self.add_time("start", t, event)
@@ -464,6 +513,7 @@ class Trace(EventHandler):
 
     def TraceDestroy(self, t, event):
         self.add_time("destroy", t, event)
+        self.end_pause(t, event)
 
     def TraceStatScan(self, t, event):
         self.add_count('roots scanned', event.rootScanCount)
@@ -477,7 +527,7 @@ class Trace(EventHandler):
         self.add_size('copied during scan of single refs', event.singleCopiedSize)
         self.add_count('read barrier hits', event.readBarrierHitCount)
         self.add_count('max grey segments', event.greySegMax)
-        self.add_count('segments scanned pointlessly', event.pointlessScanCount)
+        self.add_count('segments scanned without finding refs to white segments', event.pointlessScanCount)
 
     def TraceStatFix(self, t, event):
         self.add_count('fixed refs', event.fixRefCount)
@@ -500,22 +550,43 @@ class Trace(EventHandler):
     def TraceCondemnAll(self, t, event):
         self.gens = "all"
 
-    def note(self):
+    def ArenaAccess(self, t, event):
+        self.accesses[event.mode] += 1
+
+    def ArenaPollBegin(self, t, event):
+        self.begin_pause(t, event)
+
+    def ArenaPollEnd(self, t, event):
+        self.end_pause(t, event)
+
+    def note(self, verbose=False):
         base_t, base_cycles, _ = self.times[0]
-        log = f"Trace at {base_t:.6f}:\nTimes: \n"
-        ot, oc = base_t, base_cycles
-        for t,c,n in self.times[1:]:
-            log += "  {:20} +{:.3f} ms (+{:,d} cycles): ({:.3f} ms, {:,d} c)\n".format(
-                n, (t-ot)*1000, c-oc, (t-base_t)*1000, c-base_cycles)
-            ot, oc = t, c
-        log += "Sizes:\n"
-        for (n, s) in self.sizes:
-            log += f"  {n}: {bytesFormat(s)}\n"
-        log += "Counts:\n"
-        for (n, c) in self.counts:
-            log += f"  {n}: {c:,d}\n"
-        log += f"white zones: {self.whiteZones} ({self.whiteRefSet:064b})"
-        
+        if verbose:
+            log = f"Trace of {self.gens} gens at {base_t:.6f} ({self.why}):\nTimes: \n"
+            ot, oc = base_t, base_cycles
+            for t,c,n in self.times[1:]:
+                log += "  {:20} +{:.3f} ms ({}): ({:.3f} ms, {})\n".format(
+                    n, (t-ot)*1000, cyc(c-oc), (t-base_t)*1000, cyc(c-base_cycles))
+                ot, oc = t, c
+            final_t, final_cycles,_ = self.times[-1]
+            elapsed_t = final_t - base_t
+            elapsed_cycles = final_cycles - base_cycles
+            pn, pt, pc = self.pauses
+            if pc < elapsed_cycles:
+                log += f"{pn:,d} Pauses ({pt*1000:,.3f} ms, {cyc(pc)}). Mark/space: {pt/elapsed_t:,.3f}/{pc/elapsed_cycles:,.3f}\n"
+            log += "Sizes:\n"
+            for (n, s) in self.sizes:
+                log += f"  {n}: {bytesFormat(s)}\n"
+            log += "Counts:\n"
+            for (n, c) in self.counts:
+                log += f"  {n}: {c:,d}\n"
+            for (mode, count) in sorted(self.accesses.items()):
+                log += f"  {access_mode[mode]} barrier hits: {count:,d}\n"
+            log += f"white zones: {self.whiteZones}: "
+            log += ' '.join(f'{((self.whiteRefSet >> (64-8*i)) & 255):08b}'
+                            for i in range(1,9))
+        else:
+            log = f"Trace of {self.gens} gens at {base_t:.6f} ({self.why})"
         return f"trace\n{self.create:f} s\n{self.gens}", log
     
     def draw(self, axes_dict):
@@ -557,7 +628,8 @@ class Arena(EventHandler):
             self._access[am] = RateSeries(t)
             self.model.add_time_series(
                 self, self._access[am], countAxis, f"{name} barrier",
-                f"{name} barrier hits per second")
+                f"{name} barrier hits per second",
+                marker='x')
         self._last_access = None
         self._seg_size = {}      # segment pointer -> size
         self._seg_summary = {}   # segment pointer -> summary
@@ -645,20 +717,32 @@ class Arena(EventHandler):
         del self._gen[event.gen]
 
     def ArenaPollBegin(self, t, event):
+        for trace in self._live_traces.values():
+            trace.ArenaPollBegin(t, event)
         self._poll.on(t)
 
     def ArenaPollEnd(self, t, event):
+        for trace in self._live_traces.values():
+            trace.ArenaPollEnd(t, event)
         self._poll.off(t)
 
     def ArenaAccess(self, t, event):
         if event.count != self._last_access:
             self._last_access = event.count
             self._access[event.mode].inc(t)
+            for trace in self._live_traces.values():
+                trace.ArenaAccess(t, event)
 
-    def trace_note(self, line, t, index):
+    def null(self, t):
+        """Update anything in the model which depends on the passage of time,
+        such as anything tracking rates."""
+        for series in self._access.values():
+            series.null(t)
+
+    def trace_note(self, line, t, index, verbose=False):
         if t not in self._all_traces:
             return f'no trace {t}', f'no trace {t}'
-        return self._all_traces[t].note()
+        return self._all_traces[t].note(verbose=verbose)
     
     def trace_draw(self, line, t, index, axes_dict):
         if t not in self._all_traces:
@@ -670,6 +754,8 @@ class Arena(EventHandler):
         assert t not in self._all_traces
         trace = Trace(self, t, event)
         self._live_traces[event.trace] = self._all_traces[t] = trace
+        # seems like a reasonable time to call this
+        self.null(t)
 
     def delegate_to_trace(self, t, event):
         "Handle a telemetry event by delegating to the trace model."
@@ -751,16 +837,20 @@ class Line:
         self.line = None        # Matplotlib Line2D object.
         self._kwargs = kwargs   # Keyword arguments for Axes.plot.
 
+    def __len__(self):
+        return len(self.series)
+
+    # doesn't handle slices
+    def __getitem__(self, key):
+        return self.series[key]
+
     @property
     def name(self):
         return f"{self.owner.name}.{self._name}"
 
     @property
     def ready(self):
-        return len(self.series.t) >= 1
-
-    def count(self):
-        return len(self.series.t)
+        return len(self) >= 1
 
     def unplot(self):
         if self.axes:
@@ -788,18 +878,30 @@ class Line:
             return False, None
         return self.line.contains(event)
 
-    def note(self, index):
+    def dispxy(self, i):
+        t, y = self[i]
+        return self.line.axes.transData.transform((t,y))
+
+    def closest(self, t, dispx, range=10):
+        if self.draw and self.ready:
+            i = self.series.closest(t)
+            dx, _ = self.dispxy(i)
+            if abs(dispx-dx) < range:
+                return i
+        return None
+
+    def note(self, index, verbose=False):
         "Return annotation text and log box text for a selected point."
-        t = self.series.t[index]
+        t, _ = self.series[index]
         note = log = None
         if self.series.note is not None:
-            return self.series.note(self, t, index)
+            return self.series.note(self, t, index, verbose=verbose)
         return None, None
 
     def drawPoint(self, index, axes_dict):
         "Draw in response to a click on a data point, and return a list of drawn items."
-        t = self.series.t[index]
-        drawn = None
+        t,_ = self.series[index]
+        drawn = []
         # Could just draw on axes_dict[self.yaxis] ??
         if self.clickdraw:
             if self.series.draw is None:
@@ -844,15 +946,12 @@ class Model(EventHandler):
             else:
                 line.unplot()
 
-        axes_used = set()
         bounds_axes = defaultdict(list) # axes drawn in each area
 
         # Draw the lines
         for yax in yaxis_lines:
             axes = axes_dict[yax]
-            axes_used.add(axes)
             axes.set_axis_on()
-            axes.set_ylabel(yax.label())
             for line in yaxis_lines[yax]:
                 line.plot(axes)
             axes.relim()
@@ -885,11 +984,6 @@ class Model(EventHandler):
                 def format_coord(x, y):
                     return f'{x:f} s, {yax.fmt(y)}'
                 ax.format_coord = format_coord
-
-        # Remaining axes are not needed.
-        for ax in axes_dict.values():
-            if ax not in axes_used:
-                axes.set_axis_off()
 
     def update(self):
         "Consume available telemetry events and update the model."
@@ -995,21 +1089,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._line_checkbox = {} # Line -> QCheckbox
 
         self.setWindowTitle(title)
-
-        # Control-W (Command-W on macOS) shortcut for closing the window.
-        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+W"), self)
-        shortcut.activated.connect(self.close)
-
-        # Arrow key shortcuts for moving along lines.
-        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Right"), self)
-        shortcut.activated.connect(self._next_point)
-        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Left"), self)
-        shortcut.activated.connect(self._previous_point)
-        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("PgUp"), self)
-        shortcut.activated.connect(self._slower)
-        shortcut = QtWidgets.QShortcut(QtGui.QKeySequence("PgDown"), self)
-        shortcut.activated.connect(self._faster)
-
         main = QtWidgets.QWidget()
         self.setCentralWidget(main)
         
@@ -1037,22 +1116,28 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._lines_scroll.setWidgetResizable(True)
         upper_layout.addWidget(self._lines_scroll)
 
-        # Matplot canvas and toolbar.
+        # Matplot canvas.
         self._canvas = FigureCanvas(Figure(figsize=(10, 8)))
-        bytes_axes, trace_axes = self._canvas.figure.subplots(nrows=2, sharex=True, gridspec_kw={'hspace':0, 'height_ratios':(5, 2)})
+        upper_layout.addWidget(self._canvas)
+
+        # Create all axes, set up tickmarks etc
+        bytes_axes, trace_axes = self._canvas.figure.subplots(nrows=2, sharex=True,
+                                                              gridspec_kw={'hspace':0,
+                                                                           'height_ratios':(5, 2)})
         fraction_axes = bytes_axes.twinx()
         count_axes = trace_axes.twinx()
         self._axes_dict = {bytesAxis: bytes_axes,
                            fractionAxis: fraction_axes,
                            traceAxis: trace_axes,
                            countAxis: count_axes}
-        trace_axes.set_xlabel("time (seconds)")
-        bytes_axes.set_xlabel("time (seconds)")
+        for yax in self._axes_dict:
+            self._axes_dict[yax].set_ylabel(yax.label())
+            self._axes_dict[yax].set_xlabel("time (seconds)")
+        # bytes tick labels in megabytes etc.
         bytes_axes.ticklabel_format(style='plain')
         bytes_axes.yaxis.set_major_formatter(ticker.FuncFormatter(bytesTickFormatter))
-        # trace_axes.set_yticks([])
-        # trace_axes.tick_params(axis='y', which='both', left=False)
-        upper_layout.addWidget(self._canvas)
+
+        # make a toolbar and put it on the top of the whole layout.
         self._toolbar = ApplicationToolbar(self._canvas, self)
         self.addToolBar(QtCore.Qt.TopToolBarArea, self._toolbar)
 
@@ -1071,35 +1156,161 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             annotation_clip=False,
             visible=False)
         self._line_annotation.get_bbox_patch().set_alpha(0.8)
-        self._annotated_line = None
-        self._annotated_point = None
         self._canvas.mpl_connect("button_release_event", self._click)
 
-        # Things drawn in response to a click
-        self._clickdrawn = defaultdict(dict)
+        # points close to time of most recent selection, on each line, in increasing y order
+        # (line, index, ...)
+        self._close_points = None
+        # Map from line to index into self._close_points
+        self._close_line = None
+        # index of currently selected point in self._close_points
+        self._selected = None
+        # Things drawn for the current selection
+        self._drawn = []
+
+        # pass all keystrokes to on_key_press, where we can capture them or pass them on to
+        # the toolbar.
+        self._canvas.mpl_connect('key_press_event', self._on_key_press)
+        self._canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self._canvas.setFocus()
+
+        # keyboard shortcuts (see on_key_press()).
+        self._shortcuts = {'ctrl+W': self.close,
+                           'right': self._next_point,
+                           'left': self._previous_point,
+                           'up': self._up_line,
+                           'down': self._down_line,
+                           'pageup': self._slower,
+                           'pagedown': self._faster,
+                           'pause': self._toolbar.pause,
+                           'i': self._info,
+        }
 
         # Call self._update in a loop forever.
         self._update()
         self._timer = self._canvas.new_timer(100, [(self._update, (), {})])
         self._timer.start()
 
+    def _log(self, msg):
+        "Append msg to the log box."
+        self._logbox.append(msg)
+
+    def _on_key_press(self, event):
+        """Handle a keyboard event, either one of our shortcuts or something for the
+        navigation toolbar."""
+        if event.key in self._shortcuts:
+            self._shortcuts[event.key]()
+        else:
+            key_press_handler(event, self._canvas, self._toolbar)
+
     def _next_point(self):
-        if self._annotated_line is None:
+        """Select the next point on the selected line."""
+        if self._close_points is None:
             return
-        self.annotate_point(self._annotated_line, self._annotated_point+1)
+        for d in self._drawn:
+            d.set_visible(False)
+        line, index = self._close_points[self._selected]
+        self._select(line, index + 1)
 
     def _previous_point(self):
-        if self._annotated_line is None:
+        """Select the previous point on the selected line."""
+        if self._close_points is None:
             return
-        self.annotate_point(self._annotated_line, self._annotated_point-1)
+        for d in self._drawn:
+            d.set_visible(False)
+        line, index = self._close_points[self._selected]
+        self._select(line, index - 1)
+
+    def _up_line(self):
+        """Select the point on the line above the currently selected point."""
+        if self._selected is None:
+            return
+        self._annotate(self._selected + 1)
+
+    def _down_line(self):
+        """Select the point on the line below the currently selected point."""
+        if self._selected is None:
+            return
+        self._annotate(self._selected - 1)
+
+    def _select(self, line, index):
+        """Select the point with index `index` on `line`, if it exists."""
+        if index < 0 or index >= len(line):
+            return
+        t, y = line[index]
+        dispx, _ = line.dispxy(index)
+        self._find_close(t, dispx, on_line=line, index=index)
+        self._annotate(self._close_line[line])
+
+    def _clear(self, line=None):
+        "If `line` is currently selected, remove annotations."
+        if line:
+            if self._selected is None:
+                return
+            selected_line, index = self._close_points[self._selected]
+            if line != selected_line:
+                return
+        self._line_annotation.set_visible(False)
+        self._selected = self._close_points = None
+        for d in self._drawn:
+            d.set_visible(False)
+        self._drawn = []
+        
+    def _annotate(self, line_index):
+        "Select the closest point on line `line_index`."
+        if line_index < 0 or line_index > len(self._close_points):
+            return
+        self._selected = line_index
+        line, index = self._close_points[self._selected]
+        x, y = line[index]
+        note, log = line.note(index)
+        if note is None:
+            note = [f"{line.name}",f"{x:f} s",f"{line.yaxis.fmt(y)}"]
+            log = ' '.join(note)
+            note = '\n'.join(note)
+        self._log(log)
+        a = self._line_annotation
+        if a.figure is not None:
+            a.remove()
+        line.axes.add_artist(a)
+        a.xy = x, y
+        a.set_text(note)
+        a.set_visible(True)
+        self._drawn += line.drawPoint(index, self._axes_dict)
+
+    def _info(self):
+        "Report more information about the currently selected point."
+        if self._close_points is None:
+            return
+        line, index = self._close_points[self._selected]
+        note, log = line.note(index, verbose=True)
+        if log is not None:
+            self._log(log)
+
+    def _find_close(self, t, dispx, on_line=None, index=None):
+        "Find all the points at times close to `t`, so we can select one."
+        pts = []
+        for line in self._model.lines:
+            if line == on_line:
+                closest = index
+            else:
+                closest = line.closest(t, dispx)
+            if closest:
+                _, dispy = line.dispxy(closest)
+                pts.append((dispy, line, closest))
+        self._close_points = []
+        self._close_line = {}
+        for dispy, line, index in sorted(pts):
+            self._close_line[line] = len(self._close_points)
+            self._close_points.append((line, index))
 
     def _recompute(self, factor):
         for line in self._model.lines:
             if line._name == "poll":
                 k = line.series._k
-                self._logbox.append(f'time constant: {1/k:.2f} -> {factor/k:.2f} ...')
+                self._log(f'time constant: {1/k:.2f} -> {factor/k:.2f} ...')
                 line.series.recompute(k/factor)
-                self._logbox.append(f'... done')
+                self._log(f'... done')
         self._model.needs_redraw()
 
     def _slower(self):
@@ -1108,59 +1319,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def _faster(self):
         self._recompute(0.5)
 
-    def annotate_point(self, line, i):
-        if i < 0 or i > line.count():
-            return False
-        a = self._line_annotation
-        if a.figure is not None:
-            a.remove()
-        x, y = line.line.get_data()
-        note, log = line.note(i)
-        if note is None:
-            note = [f"{line.name}",f"{x[i]:f} s",f"{line.yaxis.fmt(y[i])}"]
-            log = ' '.join(note)
-            note = '\n'.join(note)
-        self._logbox.append(log)
-        line.axes.add_artist(a)
-        a.xy = x[i], y[i]
-        a.set_text(note)
-        a.set_visible(True)
-        self._annotated_line = line
-        self._annotated_point = i
-        return True
-
     def _click(self, event):
         "Handle left mouse click by annotating line clicked on."
         if event.button != 1 or not event.inaxes:
-            return
-        modifiers = QtGui.QGuiApplication.keyboardModifiers()
-        # if control not held down, make all existing clickdraws go away
-        if not (modifiers & QtCore.Qt.ControlModifier):
-            for cl in self._clickdrawn.values():
-                for ls in cl.values():
-                    for l in ls:
-                        l.set_visible(False)
-            self._clickdrawn = defaultdict(dict)
+            return 
+        # if we want control-click, shift-click, and so on:
+        # modifiers = QtGui.QGuiApplication.keyboardModifiers()
+        # if (modifiers & QtCore.Qt.ControlModifier): ...
         for line in self._model.lines:
             if not (line.ready and line.draw):
                 continue
             contains, index = line.contains(event)
             if contains:
-                x, y = line.line.get_data()
                 i = index['ind'][0]
-                if i in self._clickdrawn[line]: # remove things previously drawn for this point
-                    for l in self._clickdrawn[line][i]:
-                        l.set_visible(False)
-                    del self._clickdrawn[line][i]
-                else:
-                    drawn = line.drawPoint(i, self._axes_dict)
-                    if drawn is not None:
-                        self._clickdrawn[line][i] = drawn
-                self.annotate_point(line, i)
+                t, y = line[i]
+                dispx, _ = line.dispxy(i)
+                self._find_close(t, dispx)
+                self._annotate(self._close_line[line])
                 break
         else:
-            self._line_annotation.set_visible(False)
-            self._annotated_line = None
+            self._clear()
 
     @property
     def _limits(self):
@@ -1201,12 +1379,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 checkbox = QtWidgets.QCheckBox(new_name)
                 self._line_checkbox[line] = checkbox
                 checkbox.setChecked(line.draw)
-                checkbox.setToolTip(f"{line.desc} ({line.yaxis.label})")
+                checkbox.setToolTip(f"{line.desc} ({line.yaxis.label()})")
                 self._lines.addWidget(checkbox)
                 def state_changed(state, line=line):
+                    self._clear(line)
                     line.draw = bool(state)
-                    if line == self._annotated_line:
-                        self._line_annotation.set_visible(False)
                     self._model.needs_redraw()
                 checkbox.stateChanged.connect(state_changed)
                 checkbox.setStyleSheet(f"color:{line.color}")
