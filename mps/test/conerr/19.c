@@ -5,36 +5,23 @@ TEST_HEADER
  language = c
  link = testlib.o
 OUTPUT_SPEC
- abort = true
+ assert = true
+ assertfile P= mpsi.c
+ assertcond = TESTT(Pool, pool)
 END_HEADER
 */
 
+#include <stdlib.h>
+
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 
 static void test(void)
 {
- mps_arena_t arena;
- mps_pool_t pool = (mps_pool_t)1;
-
+ mps_pool_t pool = malloc(4096);
  mps_addr_t obj;
 
- cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
-
-/*
- cdie(
-  mps_pool_create(&pool, arena, mps_class_mv(),
-   extendBy, avgSize, maxSize),
-  "create pool");
-*/
-
  cdie(mps_alloc(&obj, pool, 152), "allocate");
-
- mps_pool_destroy(pool);
- comment("Destroyed pool");
-
- mps_arena_destroy(arena);
- comment("Destroyed arena.");
 }
 
 int main(void)

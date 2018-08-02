@@ -12,7 +12,6 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
 
 void *stackpointer;
 

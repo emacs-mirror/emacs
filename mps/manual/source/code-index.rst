@@ -23,7 +23,6 @@ mpscams.h    :ref:`pool-ams` pool class external interface.
 mpscawl.h    :ref:`pool-awl` pool class external interface.
 mpsclo.h     :ref:`pool-lo` pool class external interface.
 mpscmfs.h    :ref:`pool-mfs` pool class external interface.
-mpscmv.h     Deprecated MV (Manual Variable) pool class external interface.
 mpscmv2.h    Former (deprecated) :ref:`pool-mvt` pool class interface.
 mpscmvff.h   :ref:`pool-mvff` pool class external interface.
 mpscmvt.h    :ref:`pool-mvt` pool class external interface.
@@ -249,13 +248,10 @@ These files implement auxiliary programs. See
 File         Description
 ===========  ==================================================================
 eventcnv.c   :ref:`telemetry-mpseventcnv`.
-eventrep.c   Event replaying implementation (broken).
-eventrep.h   Event replaying interface (broken).
 eventsql.c   :ref:`telemetry-mpseventsql`.
 eventtxt.c   :ref:`telemetry-mpseventtxt`.
 getopt.h     Command-line option interface. Adapted from FreeBSD.
 getoptl.c    Command-line option implementation. Adapted from FreeBSD.
-replay.c     Event replaying program (broken).
 table.c      Address-based hash table implementation.
 table.h      Address-based hash table interface.
 ===========  ==================================================================

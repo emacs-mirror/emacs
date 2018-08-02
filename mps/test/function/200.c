@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = new MV allocation test
+ summary = new MVFF allocation test
  language = c
  link = testlib.o
  parameters = ITERATIONS=10000
@@ -10,7 +10,7 @@ END_HEADER
 
 #include <time.h>
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpsavm.h"
 
 #define MAXNUMBER 1000000
@@ -56,7 +56,7 @@ static int chkobj(mps_addr_t a, size_t size, unsigned char val)
 }
 
 static void dt(int kind,
-   size_t extendBy, size_t avgSize, size_t maxSize,
+   size_t extendBy, size_t avgSize,
    unsigned long mins, unsigned long maxs, int number, int iter)
 {
  mps_pool_t pool;
@@ -70,10 +70,11 @@ static void dt(int kind,
  time0 = clock();
  asserts(time0 != -1, "processor time not available");
 
- die(
-  mps_pool_create(&pool, arena, mps_class_mv(),
-                  extendBy, avgSize, maxSize),
-  "create MV pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, extendBy);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, avgSize);
+   cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), args), "pool");
+ } MPS_ARGS_END(args);
 
  for(hd=0; hd<number; hd++)
  {
@@ -101,9 +102,9 @@ static void dt(int kind,
    if (queue[hd].addr != NULL)
    {
     asserts(chkobj(queue[hd].addr, queue[hd].size, (unsigned char) (hd%256)),
-      "corrupt at %x (%s: %x, %x, %x, %lx, %lx, %i, %i)",
+      "corrupt at %x (%s: %x, %x, %lx, %lx, %i, %i)",
       queue[hd].addr,
-      tdesc[kind], (int) extendBy, (int) avgSize, (int) maxSize,
+      tdesc[kind], (int) extendBy, (int) avgSize,
       mins, maxs, number, iter);
     mps_free(pool, queue[hd].addr, queue[hd].size);
    }
@@ -126,8 +127,8 @@ static void dt(int kind,
  time1=clock();
  secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %lx, %lx, %i, %i) in %.2f s",
-  tdesc[kind], (int) extendBy, (int) avgSize, (int) maxSize,
+ comment("%s test (%x, %x, %lx, %lx, %i, %i) in %.2f s",
+  tdesc[kind], (int) extendBy, (int) avgSize,
   mins, maxs, number, iter, secs);
 }
 
@@ -141,26 +142,26 @@ static void test(void)
 
  mins = sizeof(int);
 
- dt(SEQ, 4096, 32, 64*1024, 8, 9, 5, ITERATIONS);
- dt(RANGAP, 64, 64, 64, 8, 128, 100, ITERATIONS);
+ dt(SEQ, 4096, 32, 8, 9, 5, ITERATIONS);
+ dt(RANGAP, 64, 64, 8, 128, 100, ITERATIONS);
 
- dt(DUMMY, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
- dt(SEQ, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
- dt(RAN, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
- dt(SEQGAP, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
- dt(RANGAP, 4096, 32, 64*1024, 8, 64, 1000, ITERATIONS);
+ dt(DUMMY, 4096, 32, 8, 64, 1000, ITERATIONS);
+ dt(SEQ, 4096, 32, 8, 64, 1000, ITERATIONS);
+ dt(RAN, 4096, 32, 8, 64, 1000, ITERATIONS);
+ dt(SEQGAP, 4096, 32, 8, 64, 1000, ITERATIONS);
+ dt(RANGAP, 4096, 32, 8, 64, 1000, ITERATIONS);
 
- dt(DUMMY, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
- dt(SEQ, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
- dt(RAN, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
- dt(SEQGAP, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
- dt(RANGAP, 4096, 1024, 64*1024, 100, 132, 1000, ITERATIONS);
+ dt(DUMMY, 4096, 1024, 100, 132, 1000, ITERATIONS);
+ dt(SEQ, 4096, 1024, 100, 132, 1000, ITERATIONS);
+ dt(RAN, 4096, 1024, 100, 132, 1000, ITERATIONS);
+ dt(SEQGAP, 4096, 1024, 100, 132, 1000, ITERATIONS);
+ dt(RANGAP, 4096, 1024, 100, 132, 1000, ITERATIONS);
 
- dt(DUMMY, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
- dt(SEQ, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
- dt(RAN, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
- dt(SEQGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
- dt(RANGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(DUMMY, 128*1024, 64*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(SEQ, 128*1024, 64*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(RAN, 128*1024, 64*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(SEQGAP, 128*1024, 64*1024, mins, 128*1024, 100, ITERATIONS);
+ dt(RANGAP, 128*1024, 64*1024, mins, 128*1024, 100, ITERATIONS);
 
  mps_thread_dereg(thread);
  mps_arena_destroy(arena);
