@@ -23,7 +23,6 @@ mpscams.h    :ref:`pool-ams` pool class external interface.
 mpscawl.h    :ref:`pool-awl` pool class external interface.
 mpsclo.h     :ref:`pool-lo` pool class external interface.
 mpscmfs.h    :ref:`pool-mfs` pool class external interface.
-mpscmv.h     Deprecated MV (Manual Variable) pool class external interface.
 mpscmv2.h    Former (deprecated) :ref:`pool-mvt` pool class interface.
 mpscmvff.h   :ref:`pool-mvff` pool class external interface.
 mpscmvt.h    :ref:`pool-mvt` pool class external interface.

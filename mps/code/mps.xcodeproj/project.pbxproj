@@ -1713,7 +1713,6 @@
 		311F2F5817398AE900C15B6A /* event.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = event.h; sourceTree = "<group>"; };
 		311F2F5917398AE900C15B6A /* eventcom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventcom.h; sourceTree = "<group>"; };
 		311F2F5A17398AE900C15B6A /* eventdef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventdef.h; sourceTree = "<group>"; };
-		311F2F5C17398AE900C15B6A /* eventrep.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = eventrep.h; sourceTree = "<group>"; };
 		311F2F5E17398B0E00C15B6A /* lock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lock.h; sourceTree = "<group>"; };
 		311F2F5F17398B0E00C15B6A /* meter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = meter.h; sourceTree = "<group>"; };
 		311F2F6017398B0E00C15B6A /* misc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = misc.h; sourceTree = "<group>"; };
@@ -1737,7 +1736,6 @@
 		311F2F7817398B8E00C15B6A /* th.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = th.h; sourceTree = "<group>"; };
 		311F2F7A17398B8E00C15B6A /* tract.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tract.h; sourceTree = "<group>"; };
 		311F2F7B17398E7600C15B6A /* poolmvff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = poolmvff.h; sourceTree = "<group>"; };
-		311F2F7C17398E9A00C15B6A /* mpscmv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mpscmv.h; sourceTree = "<group>"; };
 		3124CAB8156BE3EC00753214 /* awlut */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = awlut; sourceTree = BUILT_PRODUCTS_DIR; };
 		3124CAC2156BE40100753214 /* awlut.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = awlut.c; sourceTree = "<group>"; };
 		3124CAC6156BE48D00753214 /* fmtdy.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fmtdy.c; sourceTree = "<group>"; };
@@ -2552,7 +2550,6 @@
 				311F2F5817398AE900C15B6A /* event.h */,
 				311F2F5917398AE900C15B6A /* eventcom.h */,
 				311F2F5A17398AE900C15B6A /* eventdef.h */,
-				311F2F5C17398AE900C15B6A /* eventrep.h */,
 				22C5C99A18EC6AEC004C63D4 /* failover.c */,
 				22C5C99B18EC6AEC004C63D4 /* failover.h */,
 				31EEAC1A156AB2B200714D05 /* format.c */,
@@ -2576,7 +2573,6 @@
 				311F2F6517398B3B00C15B6A /* mpsacl.h */,
 				311F2F6617398B3B00C15B6A /* mpsavm.h */,
 				22FACEDB188808D5000FDBC1 /* mpscmfs.h */,
-				311F2F7C17398E9A00C15B6A /* mpscmv.h */,
 				31EEABF5156AAF7C00714D05 /* mpsi.c */,
 				311F2F6717398B3B00C15B6A /* mpsio.h */,
 				311F2F6817398B3B00C15B6A /* mpslib.h */,
