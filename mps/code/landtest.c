@@ -5,6 +5,8 @@
  *
  * Test all three Land implementations against duplicate operations on
  * a bit-table.
+ *
+ * Test the "steal" operations on a CBS.
  */
 
 #include "cbs.h"
@@ -429,7 +431,7 @@ static void test(TestState state, unsigned n, unsigned operations)
 
 #define testArenaSIZE   (((size_t)4)<<20)
 
-int main(int argc, char *argv[])
+static void test_land(void)
 {
   static const struct {
     LandClass (*klass)(void);
@@ -453,7 +455,6 @@ int main(int argc, char *argv[])
   Pool mfs = MFSPool(&blockPool);
   size_t i;
 
-  testlib_init(argc, argv);
   state.size = ArraySize;
   state.align = (1 << rnd() % 4) * MPS_PF_ALIGN;
 
@@ -540,7 +541,7 @@ int main(int argc, char *argv[])
   ControlFree(arena, p, (state.size + 1) * state.align);
   mps_arena_destroy(arena);
 
-  printf("\nNumber of allocations attempted: %"PRIuLONGEST"\n",
+  printf("Number of allocations attempted: %"PRIuLONGEST"\n",
          (ulongest_t)NAllocateTried);
   printf("Number of allocations succeeded: %"PRIuLONGEST"\n",
          (ulongest_t)NAllocateSucceeded);
@@ -548,6 +549,102 @@ int main(int argc, char *argv[])
          (ulongest_t)NDeallocateTried);
   printf("Number of deallocations succeeded: %"PRIuLONGEST"\n",
          (ulongest_t)NDeallocateSucceeded);
+}
+
+static void shuffle(Addr *addr, size_t n)
+{
+  size_t i;
+  for (i = 0; i < n; ++i) {
+    size_t j = rnd() % (n - i);
+    Addr tmp = addr[j];
+    addr[j] = addr[i];
+    addr[i] = tmp;
+  }
+}
+
+static void test_steal(void)
+{
+  mps_arena_t mpsArena;
+  Arena arena;
+  MFSStruct mfs;                /* stores blocks for the CBS */
+  Pool pool = MFSPool(&mfs);
+  CBSStruct cbs;                /* allocated memory land */
+  Land land = CBSLand(&cbs);
+  Addr base;
+  Addr addr[4096];
+  Size grainSize;
+  size_t i, n = NELEMS(addr), stolenInsert = 0, missingDelete = 0;
+
+  MPS_ARGS_BEGIN(args) {
+    die(mps_arena_create_k(&mpsArena, mps_arena_class_vm(), args), "arena");
+  } MPS_ARGS_END(args);
+  arena = (Arena)mpsArena; /* avoid pun */
+  grainSize = ArenaGrainSize(arena);
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, sizeof(RangeTreeStruct));
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, grainSize);
+    MPS_ARGS_ADD(args, MFSExtendSelf, FALSE);
+    die(PoolInit(pool, arena, CLASS(MFSPool), args), "pool");
+  } MPS_ARGS_END(args);
+  
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, CBSBlockPool, pool);
+    die(LandInit(land, CLASS(CBS), arena, grainSize, NULL, args),
+        "land");
+  } MPS_ARGS_END(args);
+
+  /* Allocate a range of grains. */
+  die(ArenaAlloc(&base, LocusPrefDefault(), grainSize * n, pool), "alloc");
+  for (i = 0; i < n; ++i)
+    addr[i] = AddrAdd(base, i * grainSize);
+
+  /* Shuffle the grains. */
+  shuffle(addr, n);
+
+  /* Insert grains into the land in shuffled order. */
+  for (i = 0; i < n; ++i) {
+    RangeStruct range, origRange, containingRange;
+    RangeInitSize(&range, addr[i], grainSize);
+    RangeCopy(&origRange, &range);
+    die(LandInsertSteal(&containingRange, land, &range), "steal");
+    if (!RangesEqual(&origRange, &range))
+      ++ stolenInsert;
+  }
+
+  /* Shuffle grains again. */
+  shuffle(addr, n);
+
+  /* Delete unstolen grains from the land in shuffled order. */
+  for (i = 0; i < n; ++i) {
+    RangeStruct range, containingRange;
+    Res res;
+    RangeInitSize(&range, addr[i], grainSize);
+    res = LandDeleteSteal(&containingRange, land, &range);
+    if (res == ResOK) {
+      ArenaFree(addr[i], grainSize, pool);
+    } else {
+      Insist(res == ResFAIL);     /* grain was stolen */
+      ++ missingDelete;
+    }
+  }
+
+  Insist(LandSize(land) == 0);
+  LandFinish(land);
+  Insist(PoolFreeSize(pool) == PoolTotalSize(pool));
+  PoolFinish(pool);
+  mps_arena_destroy(arena);
+  Insist(stolenInsert <= missingDelete);
+  Insist(missingDelete < n);
+  printf("Stolen on insert: %"PRIuLONGEST"\n", (ulongest_t)stolenInsert);
+  printf("Missing on delete: %"PRIuLONGEST"\n", (ulongest_t)missingDelete);
+}
+
+int main(int argc, char *argv[])
+{
+  testlib_init(argc, argv);
+  test_land();
+  test_steal();
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
