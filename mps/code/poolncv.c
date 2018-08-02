@@ -13,17 +13,17 @@
 #include <stdio.h> /* printf */
 
 
-static void testit(ArenaClass class, ArgList args)
+static void testit(ArenaClass klass, ArgList args)
 {
   Arena arena;
   Pool pool;
   Res res;
   Addr p;
 
-  die(ArenaCreate(&arena, class, args), "ArenaCreate");
+  die(ArenaCreate(&arena, klass, args), "ArenaCreate");
 
   die(PoolCreate(&pool, arena, PoolClassN(), argsNone), "PoolNCreate");
-  res = PoolAlloc(&p, pool, 1, /* withReservoirPermit */ FALSE);
+  res = PoolAlloc(&p, pool, 1);
   if (res == ResOK) {
     error("Error: Unexpectedly succeeded in"
           "allocating block from PoolN\n");

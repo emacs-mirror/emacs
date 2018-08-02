@@ -1,7 +1,7 @@
 /* mpsicv.c: MPSI COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  */
 
@@ -9,7 +9,7 @@
 #include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "fmthe.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
@@ -96,9 +96,14 @@ static void alignmentTest(mps_arena_t arena)
   int dummy = 0;
   size_t j, size;
 
-  die(mps_pool_create(&pool, arena, mps_class_mv(),
-      (size_t)0x1000, (size_t)1024, (size_t)16384),
-      "alignment pool create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x1000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 16384);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args),
+        "alignment pool create");
+  } MPS_ARGS_END(args);
+  
   size = max(sizeof(double), sizeof(long));
 #ifdef HAS_LONG_LONG
   size = max(size, sizeof(long_long_t));
@@ -132,31 +137,6 @@ static mps_addr_t make(void)
     MPS_RESERVE_BLOCK(res, pMps, ap, sizeMps);
     if (res != MPS_RES_OK)
       die(res, "MPS_RESERVE_BLOCK");
-    HeaderInit(pMps);
-    pCli = PtrMps2Cli(pMps);
-    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
-    if (res != MPS_RES_OK)
-      die(res, "dylan_init");
-  } while(!mps_commit(ap, pMps, sizeMps));
-
-  return pCli;
-}
-
-
-/* make_with_permit -- allocate an object, with reservoir permit */
-
-static mps_addr_t make_with_permit(void)
-{
-  size_t length = rnd() % 20;
-  size_t sizeCli = (length+2)*sizeof(mps_word_t);
-  size_t sizeMps = SizeCli2Mps(sizeCli);
-  mps_addr_t pMps, pCli;
-  mps_res_t res;
-
-  do {
-    MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, pMps, ap, sizeMps);
-    if (res != MPS_RES_OK)
-      die(res, "MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK");
     HeaderInit(pMps);
     pCli = PtrMps2Cli(pMps);
     res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
@@ -325,7 +305,7 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
  * incidentally tests:
  *   mps_alloc
  *   mps_arena_commit_limit_set
- *   mps_class_mv
+ *   mps_class_mvff
  *   mps_pool_create
  *   mps_pool_destroy
  */
@@ -339,9 +319,14 @@ static void arena_commit_test(mps_arena_t arena)
   void *p;
   mps_res_t res;
 
-  die(mps_pool_create(&pool, arena, mps_class_mv(),
-      (size_t)0x1000, (size_t)1024, (size_t)16384),
-      "commit pool create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x1000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 16384);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args),
+        "commit pool create");
+  } MPS_ARGS_END(args);
+  
   limit = mps_arena_commit_limit(arena);
   committed = mps_arena_committed(arena);
   reserved = mps_arena_reserved(arena);
@@ -358,36 +343,13 @@ static void arena_commit_test(mps_arena_t arena)
 }
 
 
-/* reservoir_test -- Test the reservoir interface
- *
- * This has not been tuned to actually dip into the reservoir.  See
- * QA test 132 for that.
- */
-
-#define reservoirSIZE ((size_t)128 * 1024)
-
-static void reservoir_test(mps_arena_t arena)
-{
-  (void)make_with_permit();
-  cdie(mps_reservoir_available(arena) == 0, "empty reservoir");
-  cdie(mps_reservoir_limit(arena) == 0, "no reservoir");
-  mps_reservoir_limit_set(arena, reservoirSIZE);
-  cdie(mps_reservoir_limit(arena) >= reservoirSIZE, "reservoir limit set");
-  cdie(mps_reservoir_available(arena) >= reservoirSIZE, "got reservoir");
-  (void)make_with_permit();
-  mps_reservoir_limit_set(arena, 0);
-  cdie(mps_reservoir_available(arena) == 0, "empty reservoir");
-  cdie(mps_reservoir_limit(arena) == 0, "no reservoir");
-  (void)make_with_permit();
-}
-
-
 static void *test(void *arg, size_t s)
 {
   mps_arena_t arena;
   mps_fmt_t format;
   mps_chain_t chain;
-  mps_root_t exactRoot, ambigRoot, singleRoot, fmtRoot;
+  mps_root_t exactAreaRoot, exactTableRoot, ambigAreaRoot, ambigTableRoot,
+    singleRoot, fmtRoot;
   unsigned long i;
   /* Leave arena clamped until we have allocated this many objects.
      is 0 when arena has not been clamped. */
@@ -418,9 +380,13 @@ static void *test(void *arg, size_t s)
 
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&mv, arena, mps_class_mv(),
-      (size_t)0x10000, (size_t)32, (size_t)0x10000),
-      "pool_create(mv)");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x10000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 32);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 0x10000);
+    die(mps_pool_create_k(&mv, arena, mps_class_mvff(), args),
+        "pool_create(mv)");
+  } MPS_ARGS_END(args);
 
   pool_create_v_test(arena, format, chain); /* creates amc pool */
 
@@ -435,14 +401,29 @@ static void *test(void *arg, size_t s)
     ambigRoots[j] = rnd_addr();
   }
 
-  die(mps_root_create_table_masked(&exactRoot, arena,
+  die(mps_root_create_area_tagged(&exactAreaRoot, arena,
+                                  mps_rank_exact(), (mps_rm_t)0,
+                                  &exactRoots[0],
+                                  &exactRoots[exactRootsCOUNT / 2],
+                                  mps_scan_area_tagged,
+                                  MPS_WORD_CONST(1), 0),
+      "root_create_area_tagged(exact)");
+  die(mps_root_create_table_masked(&exactTableRoot, arena,
                                    mps_rank_exact(), (mps_rm_t)0,
-                                   &exactRoots[0], exactRootsCOUNT,
+                                   &exactRoots[exactRootsCOUNT / 2],
+                                   (exactRootsCOUNT + 1) / 2,
                                    MPS_WORD_CONST(1)),
-      "root_create_table(exact)");
-  die(mps_root_create_table(&ambigRoot, arena,
+      "root_create_table_masked(exact)");
+  die(mps_root_create_area(&ambigAreaRoot, arena,
+                           mps_rank_ambig(), (mps_rm_t)0,
+                           &ambigRoots[0],
+                           &ambigRoots[ambigRootsCOUNT / 2],
+                           mps_scan_area, NULL),
+      "root_create_area(ambig)");
+  die(mps_root_create_table(&ambigTableRoot, arena,
                             mps_rank_ambig(), (mps_rm_t)0,
-                            &ambigRoots[0], ambigRootsCOUNT),
+                            &ambigRoots[ambigRootsCOUNT / 2],
+                            (ambigRootsCOUNT + 1) / 2),
       "root_create_table(ambig)");
 
   obj = objNULL;
@@ -483,11 +464,13 @@ static void *test(void *arg, size_t s)
     mps_word_t c;
     size_t r;
 
+    Insist(!mps_arena_busy(arena));
+
     c = mps_collections(arena);
 
     if(collections != c) {
       collections = c;
-      printf("\nCollection %"PRIuLONGEST", %lu objects.\n", (ulongest_t)c, i);
+      printf("Collection %"PRIuLONGEST", %lu objects.\n", (ulongest_t)c, i);
       for(r = 0; r < exactRootsCOUNT; ++r) {
         cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
              "all roots check");
@@ -555,7 +538,6 @@ static void *test(void *arg, size_t s)
   }
 
   arena_commit_test(arena);
-  reservoir_test(arena);
   alignmentTest(arena);
 
   die(mps_arena_collect(arena), "collect");
@@ -569,8 +551,10 @@ static void *test(void *arg, size_t s)
   mps_ap_destroy(ap);
   mps_root_destroy(fmtRoot);
   mps_root_destroy(singleRoot);
-  mps_root_destroy(exactRoot);
-  mps_root_destroy(ambigRoot);
+  mps_root_destroy(exactAreaRoot);
+  mps_root_destroy(exactTableRoot);
+  mps_root_destroy(ambigAreaRoot);
+  mps_root_destroy(ambigTableRoot);
   mps_pool_destroy(amcpool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(format);
@@ -592,25 +576,48 @@ int main(int argc, char *argv[])
 
   testlib_init(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), TEST_ARENA_SIZE),
-      "arena_create");
+  MPS_ARGS_BEGIN(args) {
+    /* Randomize pause time as a regression test for job004011. */
+    MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, rnd_pause_time());
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, TEST_ARENA_SIZE);
+    die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
+        "arena_create");
+  } MPS_ARGS_END(args);
   die(mps_thread_reg(&thread, arena), "thread_reg");
 
-  if (rnd() % 2) {
+  switch (rnd() % 3) {
+  default:
+  case 0:
     die(mps_root_create_reg(&reg_root, arena,
                             mps_rank_ambig(), (mps_rm_t)0,
                             thread, &mps_stack_scan_ambig,
                             marker, (size_t)0),
         "root_create_reg");
-  } else {
+    break;
+  case 1:
     die(mps_root_create_thread(&reg_root, arena, thread, marker),
         "root_create_thread");
+    break;
+  case 2:
+    die(mps_root_create_thread_scanned(&reg_root, arena, mps_rank_ambig(),
+                                       (mps_rm_t)0, thread, mps_scan_area,
+                                       NULL, marker),
+        "root_create_thread");
+    break;
   }
 
   mps_tramp(&r, test, arena, 0);
-  mps_root_destroy(reg_root);
-  mps_thread_dereg(thread);
-  mps_arena_destroy(arena);
+  switch (rnd() % 2) {
+  default:
+  case 0:
+    mps_root_destroy(reg_root);
+    mps_thread_dereg(thread);
+    mps_arena_destroy(arena);
+    break;
+  case 1:
+    mps_arena_postmortem(arena);
+    break;
+  }
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
@@ -619,7 +626,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

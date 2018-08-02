@@ -6,7 +6,7 @@ Client message protocol
 :Tag: design.mps.message
 :Author: David Jones
 :Date: 1997-02-13
-:Status: incomplete document
+:Status: complete document
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms:
@@ -18,24 +18,16 @@ Introduction
 ------------
 
 _`.intro`: The client message protocol provides a means by which
-clients can receive messages from the MPS asynchronously. Typical
-messages may be low memory notification (or in general low utility),
-finalization notification, soft-failure notification. There is a
-general assumption that it should not be disastrous for the MPS client
-to ignore messages, but that it is probably in the clients best
-interest to not ignore messages. The justification for this is that
-the MPS cannot force the MPS client to read and act on messages, so no
-message should be critical.
+clients can receive messages from the MPS. The motivating use case is
+finalization notification (see design.mps.finalize_), but the
+mechanism is also used for feedback about collections.
 
-.. note::
-
-    Bogus, since we cannot force clients to check error codes either.
-    Pekka P. Pirinen, 1997-09-17.
+.. _design.mps.finalize: finalize
 
 _`.contents`: This document describes the design of the external and
 internal interfaces and concludes with a sketch of an example design
 of an internal client. The example is that of implementing
-finalization using ``PoolMRG``.
+finalization using the MRG pool.
 
 _`.readership`: Any MPS developer.
 
@@ -43,20 +35,57 @@ _`.readership`: Any MPS developer.
 Requirements
 ------------
 
-_`.req`: The client message protocol will be used for implementing
-finalization (see design.mps.finalize_ and req.dylan.fun.final). It
-will also be used for implementing the notification of various
-conditions (possibly req.dylan.prot.consult is relevant here).
+_`.req.synchronous`: The message protocol must be synchronous with the
+client program: that is, the client program must be able to choose
+when to collect and act on messages. Justification: [Boehm_2002]_
+shows that asynchronous finalization is impossible to implement
+correctly.
 
-.. _design.mps.finalize: finalize
+_`.req.reliable`: Posting a message must be reliable: that is, it must
+not fail for a dynamic reason such as running out memory to store the
+message. Justification: messages can't be used to implement
+finalization unless the messages can be delivered reliably.
+
+_`.req.extensible.types`: The message mechanism must be extensible
+with new types of message in future versions of the MPS, without
+breaking client programs that do not receive those types of message.
+
+_`.req.resources`: It follows from `.req.extensible.types`_ that
+messages must not use resources unless the client program has
+requested them (otherwise resources would leak in client programs that
+have not been updated to handle new types of message).
+
+_`.req.extensible.fields`: It must be possible to add new fields to
+existing types of message in future versions of the MPS, without
+breaking client programs that do not receive those types of message.
+
+
+Design
+------
+
+_`.sol.synchronous`: Messages are stored on a ring belonging to the
+arena. An interface is provided that allows the client program to
+collect messages from the ring at a time of its choosing.
+
+_`.sol.reliable`: The memory needed for the message is allocated at an
+earlier point in time, when it possible to communicate an allocation
+failure via a result code. In particular, space for a finalization
+message is allocated when the client program calls ``mps_finalize()``,
+and space for trace messages is allocated in the arena (there can be
+at most one instance of each message per trace, and the maximum number
+of traces is known statically).
+
+_`.sol.resources`: Messages are not posted unless they belong to a
+type that has been enabled by the client program calling
+``mps_message_enable()``. This means that message types that are not
+understood by the client program are not posted and use no resources.
+
+_`.sol.extensible.fields`: Message fields are retrieved by calling
+accessor functions.
 
 
 External interface
 ------------------
-
-_`.if.queue`: Messages are presented as a single queue per arena.
-Various functions are provided to inspect the queue and inspect
-messages in it (see below).
 
 
 Functions
@@ -73,12 +102,7 @@ messages of a certain type. The queue of messages of a arena will
 contain only messages whose types have been enabled. Initially all
 message types are disabled. Effectively this function allows the
 client to declare to the MPS what message types the client
-understands. The MPS does not generate any messages of a type that
-hasn't been enabled. This allows the MPS to add new message types (in
-subsequent releases of a memory manager) without confusing the client.
-The client will only be receiving the messages if they have explicitly
-enabled them (and the client presumably only enables message types
-when they have written the code to handle them).
+understands.
 
 _`.if.fun.disable`: ``mps_message_type_disable()`` disables the flow
 of messages of a certain type. The antidote to
@@ -122,10 +146,10 @@ Types of messages
 
 _`.type`: The type governs the "shape" and meaning of the message.
 
-_`.type.int`: Types themselves will just be a scalar quantity, an
-integer.
+_`.type.int`: A message type is an integer belonging to the
+``MessageType`` enumeration.
 
-_`.type.semantics`: A type indicates the semantics of the message.  
+_`.type.semantics`: A type indicates the semantics of the message.
 
 _`.type.semantics.interpret`: The semantics of a message are
 interpreted by the client by calling various accessor methods on the
@@ -134,42 +158,22 @@ message.
 _`.type.accessor`: The type of a message governs which accessor
 methods are legal to apply to the message.
 
-_`.type.example`: Some example types:
-
-_`.type.finalization`: There will be a finalization type. The type is
-abstractly: ``FinalizationMessage(Ref)``.
+_`.type.finalization`: There is a finalization type,
+``MessageTypeFINALIZATION``.
 
 _`.type.finalization.semantics`: A finalization message indicates that
 an object has been discovered to be finalizable (see
 design.mps.poolmrg.def.final.object_ for a definition of finalizable).
 
-.. _design.mps.poolmrg.def.final.object: poolmrg#def.final.object
+.. _design.mps.poolmrg.def.final.object: poolmrg#def-final-object
 
-_`.type.finalization.ref`: There is an accessor to get the reference
-of the finalization message (i.e. a reference to the object which is
-finalizable) called ``mps_message_finalization_ref()``.
+_`.type.finalization.ref`: The accessor function
+``mps_message_finalization_ref()`` retrieves the reference to the
+object which is finalizable.
 
 _`.type.finalization.ref.scan`: Note that the reference returned
-should be stored in scanned memory.
+must be stored in scanned memory.
 
-
-Compatibility issues
-....................
-
-_`.compatibility`: The following issues affect future compatibility of
-the interface:
-
-_`.compatibility.future.type-new`: Notice that message of a type that
-the client doesn't understand are not placed on the queue, therefore
-the MPS can introduce new types of message and existing client will
-still function and will not leak resources. This has been achieved by
-getting the client to declare the types that the client understands
-(with ``mps_message_type_enable()``, `.if.fun.enable`_).
-
-_`.compatibility.future.type-extend`: The information available in a
-message of a given type can be extended by providing more accessor
-methods. Old clients won't get any of this information but that's
-okay.
 
 
 Internal interface
@@ -183,8 +187,6 @@ Types
 _`.message.type`: ``Message`` is the type of messages.
 
 _`.message.instance`: Messages are instances of Message Classes.
-
-``typedef struct MessageStruct *MessageStruct``
 
 _`.message.concrete`: Concretely a message is represented by a
 ``MessageStruct``. A ``MessageStruct`` has the usual signature field
@@ -201,13 +203,13 @@ that specific type of message.
 
 _`.message.struct`: The structure is declared as follows::
 
-    struct MessageStruct {
-      Sig sig;
-      MessageType type;
-      MessageClass class;
-      RingStruct node;
+    typedef struct mps_message_s {
+      Sig sig;                      /* <design/sig/> */
+      Arena arena;                  /* owning arena */
+      MessageClass klass;           /* Message Class Structure */
+      Clock postedClock;            /* mps_clock() at post time, or 0 */
+      RingStruct queueRing;         /* Message queue ring */
     } MessageStruct;
-
 
 ``typedef struct MessageClassStruct *MessageClass``
 
@@ -239,22 +241,26 @@ _`.class.methods.generic`: The generic methods are as follows:
 _`.class.methods.specific`: The type specific methods are:
 
 _`.class.methods.specific.finalization`: Specific to
-``MessageTypeFinalization``:
+``MessageTypeFINALIZATION``:
 
 * ``finalizationRef`` -- returns a reference to the finalizable object
   represented by this message.
 
-_`.class.methods.specific.collectionstats`: Specific to ``MessageTypeCollectionStats``:
+_`.class.methods.specific.gc`: Specific to ``MessageTypeGC``:
 
-* ``collectionStatsLiveSize`` -- returns the number of bytes (of
-  objects) that were condemned but survived.
+* ``gcLiveSize`` -- returns the number of bytes (of objects) that were
+  condemned by the trace but survived.
 
-* ``collectionStatsCondemnedSize`` -- returns the number of bytes
-  condemned in the collection.
+* ``gcCondemnedSize`` -- returns the number of bytes condemned by the
+  trace.
 
-* ``collectionStatsNotCondemnedSize`` -- returns the the number of
-  bytes (of objects) that are subject to a GC policy (that is,
-  collectable) but were not condemned in the collection.
+* ``gcNotCondemnedSize`` -- returns the the number of bytes (of
+  objects) that are collectable but were not condemned by the trace.
+
+_`.class.methods.specific.gcstart`: Specific to ``MessageTypeGCSTART``:
+
+* ``gcStartWhy`` -- returns an English-language description of the
+  reason why the trace was started.
 
 _`.class.sig.double`: The ``MessageClassStruct`` has a signature field
 at both ends. This is so that if the ``MessageClassStruct`` changes
@@ -266,23 +272,27 @@ signature) unless the static initializers are changed as well.
 _`.class.struct`: The structure is declared as follows::
 
     typedef struct MessageClassStruct {
-      Sig sig;                      /* design.mps.sig */
+      Sig sig;                      /* <design/sig/> */
       const char *name;             /* Human readable Class name */
+
+      MessageType type;             /* Message Type */
 
       /* generic methods */
       MessageDeleteMethod delete;   /* terminates a message */
 
-      /* methods specific to MessageTypeFinalization */
-      MessageFinalizationRefMethod finalizationRef;
+      /* methods specific to MessageTypeFINALIZATION */
+      MessageFinalizationRefMethod finalizationRef;       
 
-      /* methods specific to MessageTypeCollectionStats */
-      MessageCollectionStatsLiveSizeMethod collectionStatsLiveSize;
-      MessageCollectionStatsCondemnedSizeMethod collectionStatsCondemnedSize;
-      MessageCollectionStatsNotCondemnedSizeMethod collectionStatsNotCondemnedSize;
+      /* methods specific to MessageTypeGC */
+      MessageGCLiveSizeMethod gcLiveSize;
+      MessageGCCondemnedSizeMethod gcCondemnedSize;
+      MessageGCNotCondemnedSizeMethod gcNotCondemnedSize;
 
-      Sig endSig;                   /* design.mps.message.class.sig.double */
+      /* methods specific to MessageTypeGCSTART */
+      MessageGCStartWhyMethod gcStartWhy;
+
+      Sig endSig;                   /* <design/message/#class.sig.double> */
     } MessageClassStruct;
-
 
 _`.space.queue`: The arena structure is augmented with a structure for
 managing for queue of pending messages. This is a ring in the
@@ -299,7 +309,7 @@ managing for queue of pending messages. This is a ring in the
 Functions
 .........
 
-``void MessageInit(Arena arena, Message message, MessageClass class)``
+``void MessageInit(Arena arena, Message message, MessageClass klass, MessageType type)``
 
 _`.fun.init`: Initializes the ``MessageStruct`` pointed to by
 ``message``. The caller of this function is expected to manage the
@@ -315,12 +325,15 @@ store for the ``MessageStruct``.
 
 _`.fun.post`: Places a message on the queue of an arena.
 
-_`.fun.post.precondition`: Prior to calling the function, the node
-field of the message must be a singleton. After the call to the
-function the message will be available for MPS client to access. After
-the call to the function the message fields must not be manipulated
-except from the message's class's method functions (that is, you
-mustn't poke about with the node field in particular).
+_`.fun.post.precondition`: Prior to calling the function, the
+``queueRing`` field of the message must be a singleton
+(design.mps.ring.def.singleton_). After the call to the function the
+message will be available for MPS client to access. After the call to
+the function the message fields must not be manipulated except from
+the message's class's method functions (that is, you mustn't poke
+about with the ``queueRing`` field in particular).
+
+.. _design.mps.ring.def.singleton: ring#def-singleton
 
 ``void MessageEmpty(Arena arena)``
 
@@ -336,51 +349,35 @@ the future.
 Message life cycle
 ------------------
 
-_`.life`: A message will be allocated by a client of the message
-module, it will be initialised by calling ``MessageInit()``. The
-client will eventually post the message on the external queue (in fact
-most clients will create a message and then immediately post it). The
-message module may then apply any of the methods to the message. The
-message module will eventually destroy the message by applying the
-``delete`` method to it.
+_`.life.alloc`: Space for the message structure is allocated at the
+earliest point in time when the MPS knows that the message might be
+needed.
+
+_`.life.init`: The message structure is initialized by calling
+``MessageInit()``.
+
+_`.life.post`: The message is posted on the arena's message queue by
+calling ``MessagePost()``.
+
+_`.life.get`: The client program retrieves the message by calling ``mps_message_get()``.
+
+_`.life.discard`: The client program indicates that it is finished
+with the message by calling ``mps_message_discard()``.
+
+_`.life.reuse`: The MPS may reuse the message structure, in which case
+the lifecycle continues from `.life.post`_.
+
+_`.life.delete`: When the MPS no longer needs the message structure,
+its ``delete`` method is called.
 
 
-Examples
---------
+References
+----------
 
-Finalization
-............
-
-.. note::
-
-    Possibly out of date, see design.mps.finalize_ and
-    design.mps.poolmrg_ instead. David Jones, 1997-08-28.
-
-    .. _design.mps.poolmrg: poolmrg
-    .. _design.mps.finalize: finalize
-
-This subsection is a sketch of how PoolMRG will use Messages for
-finalization (see design.mps.poolmrg_).
-
-PoolMRG has guardians (see design.mps.poolmrg.guardian_). Guardians
-are used to manage final references and detect when an object is
-finalizable.
-
-.. _design.mps.poolmrg.guardian: poolmrg#guardian
-
-The link part of a guardian will include a ``MessageStruct``.
-
-The ``MessageStruct`` is allocated when the final reference is created
-(which is when the referred to object is registered for finalization).
-This avoids allocating at the time when the message gets posted (which
-might be a tricky, undesirable, or impossible, time to allocate).
-
-PoolMRG has two queues: the entry queue, and the exit queue. The entry
-queue will use a ring; the exit queue of MRG will simply be the
-external message queue.
-
-The ``delete`` method frees both the link part and the reference part
-of the guardian.
+.. [Boehm_2002] Hans-J. Boehm. 2002. "`Destructors, Finalizers, and
+   Synchronization
+   <http://www.hpl.hp.com/techreports/2002/HPL-2002-335.html>`_". HP
+   Labs technical report HPL-2002-335.
 
 
 Document History
@@ -407,8 +404,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

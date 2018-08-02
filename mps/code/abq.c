@@ -1,7 +1,7 @@
 /* abq.c: QUEUE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A fixed-length FIFO queue.
  *
@@ -41,8 +41,7 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count elements, Size elementSize)
      "empty" from "full" */
   elements = elements + 1;
 
-  res = ControlAlloc(&p, arena, ABQQueueSize(elements, elementSize),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, ABQQueueSize(elements, elementSize));
   if (res != ResOK)
     return res;
 
@@ -232,7 +231,7 @@ Count ABQDepth(ABQ abq)
 
 
 /* ABQIterate -- call 'visitor' for each element in an ABQ */
-void ABQIterate(ABQ abq, ABQVisitor visitor, void *closureP, Size closureS)
+void ABQIterate(ABQ abq, ABQVisitor visitor, void *closure)
 {
   Index copy, index, in;
 
@@ -247,7 +246,7 @@ void ABQIterate(ABQ abq, ABQVisitor visitor, void *closureP, Size closureS)
     void *element = ABQElement(abq, index);
     Bool delete = FALSE;
     Bool cont;
-    cont = (*visitor)(&delete, element, closureP, closureS);
+    cont = (*visitor)(&delete, element, closure);
     AVERT(Bool, cont);
     AVERT(Bool, delete);
     if (!delete) {
@@ -295,14 +294,15 @@ static Index ABQNextIndex(ABQ abq, Index index)
 
 /* ABQElement -- return pointer to the index'th element in the queue
    vector. */
-static void *ABQElement(ABQ abq, Index index) {
+static void *ABQElement(ABQ abq, Index index)
+{
   return PointerAdd(abq->queue, index * abq->elementSize);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

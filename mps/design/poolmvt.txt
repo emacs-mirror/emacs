@@ -28,11 +28,9 @@ _`.readership`: MM developers
 
 _`.source`: req.dylan(6), req.epcore(16), req.product(2)
 
-_`.background`: design.mps.poolmv_, design.mps.poolepdl(0),
+_`.background`: design.mps.poolmv, design.mps.poolepdl(0),
 design.product.soft.drop(0), paper.wil95(1), paper.vo96(0),
 paper.grun92(1), paper.beck82(0), `mail.ptw.1998-02-25.22-18`_.
-
-.. _design.mps.poolmv: poolmv
 
 .. _mail.ptw.1998-02-25.22-18: https://info.ravenbrook.com/project/mps/mail/1998/02/25/22-18/0.txt
 
@@ -793,8 +791,8 @@ attempts to flush blocks from the free list back to the CBS. See
 design.mps.freelist_ for the design and implementation of the free
 list.
 
-.. _design.mps.cbs.function.cbs.delete.fail: cbs#function.cbs.delete.fail
-.. _design.mps.cbs.function.cbs.insert.fail: cbs#function.cbs.insert.fail
+.. _design.mps.cbs.function.cbs.delete.fail: cbs#function-cbs-delete-fail
+.. _design.mps.cbs.function.cbs.insert.fail: cbs#function-cbs-insert-fail
 .. _design.mps.freelist: freelist
 
 
@@ -956,11 +954,9 @@ _`.test.component`: Components `.impl.c.splay`_, `.impl.c.cbs`_, and
 `.impl.c.abq`_ will be subjected to individual component tests to
 verify their functionality.
 
-_`.test.regression`: All tests applied to MV (design.mps.poolmv_) and
+_`.test.regression`: All tests applied to MV (design.mps.poolmv) and
 EPDL (design.mps.poolepdl(0)) will be applied to poolmvt to ensure
 that mvt is at least as functional as the pools it is replacing.
-
-.. _design.mps.poolmv: poolmv
 
 _`.test.qa`: Once poolmvt is integrated into the MPS, the standard MPS
 QA tests will be applied to poolmvt prior to each release.

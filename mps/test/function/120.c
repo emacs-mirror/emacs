@@ -21,7 +21,7 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpsavm.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 
 void *stackpointer;
 
@@ -34,7 +34,6 @@ static void test(void) {
  int i;
  mps_addr_t a;
  mps_res_t res;
- size_t committed;
  
  /* Create an arena with a commit limit that's too small for the
   * essential MPS internal data structures -- this must fail with
@@ -60,7 +59,7 @@ static void test(void) {
 
 /* create a pool */
 
- cdie(mps_pool_create(&pool, arena, mps_class_mv(), (size_t) 64, (size_t) 64, (size_t) 64), "pool create");
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none), "pool");
  
  for (i=0; i<100; i++) {
   die(mps_alloc(&a, pool, (size_t) 64), "alloc");
@@ -110,7 +109,7 @@ static void test(void) {
  i = 0;
 
  while (i < sizeof pools / sizeof pools[0]) {
-  res = mps_pool_create(&pools[i], arena, mps_class_mv(), (size_t) 64, (size_t) 64, (size_t) 64);
+  res = mps_pool_create_k(&pools[i], arena, mps_class_mvff(), mps_args_none);
   if (res == MPS_RES_OK) {
     i++;
   } else {

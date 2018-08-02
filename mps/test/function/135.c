@@ -6,12 +6,13 @@ TEST_HEADER
  link = testlib.o
 OUTPUT_SPEC
  count < 10
+ errtext = alloc: COMMIT_LIMIT
 END_HEADER
 */
 
 #include "testlib.h"
 #include "mpsavm.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 
 void *stackpointer;
 
@@ -38,7 +39,7 @@ static void test(void) {
 
 /* create a pool */
 
- cdie(mps_pool_create(&pool, arena, mps_class_mv(), (size_t) 64, (size_t) 64, (size_t) 64), "pool create");
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none), "pool");
  
  for (i=0; i<200; i++) {
   report("count", "%i", i);

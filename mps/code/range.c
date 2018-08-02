@@ -1,7 +1,7 @@
 /* range.c: ADDRESS RANGE IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .design: <design/range/>
  */
@@ -39,6 +39,10 @@ void RangeInitSize(Range range, Addr base, Size size)
 void RangeFinish(Range range)
 {
   AVERT(Range, range);
+  /* Make range invalid and recognisably so, since Range doesn't have
+     a signature. */
+  range->limit = (Addr)0;
+  range->base = (Addr)(Word)0xF191583D; /* FINISHED */
 }
 
 Res RangeDescribe(Range range, mps_lib_FILE *stream, Count depth)
@@ -104,6 +108,20 @@ Addr (RangeLimit)(Range range)
   return RangeLimit(range);
 }
 
+void (RangeSetBase)(Range range, Addr addr)
+{
+  AVERT(Range, range);
+  AVER(addr >= RangeBase(range));
+  RangeSetBase(range, addr);
+}
+
+void (RangeSetLimit)(Range range, Addr addr)
+{
+  AVERT(Range, range);
+  AVER(addr <= RangeLimit(range));
+  RangeSetLimit(range, addr);
+}
+
 Size (RangeSize)(Range range)
 {
   AVERT(Range, range);
@@ -119,7 +137,7 @@ void RangeCopy(Range to, Range from)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

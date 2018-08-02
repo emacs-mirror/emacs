@@ -3,7 +3,7 @@
     `<https://info.ravenbrook.com/project/mps/master/design/poolmvff/>`_
 
 .. index::
-   single: MVFF
+   single: MVFF pool class
    single: pool class; MVFF
 
 .. _pool-mvff:
@@ -44,7 +44,7 @@ need both forms of allocation, use two separate pools.
 
 
 .. index::
-   single: MVFF; properties
+   single: MVFF pool class; properties
 
 MVFF properties
 ---------------
@@ -88,7 +88,7 @@ MVFF properties
 
 
 .. index::
-   single: MVFF; interface
+   single: MVFF pool class; interface
 
 MVFF interface
 --------------
@@ -115,12 +115,11 @@ MVFF interface
       efficient if this is wrong, but nothing will break.
 
     * :c:macro:`MPS_KEY_ALIGN` (type :c:type:`mps_align_t`, default is
-      :c:macro:`MPS_PF_ALIGN`) is the
-      :term:`alignment` of addresses for allocation (and freeing) in
-      the pool. If an unaligned size is passed to :c:func:`mps_alloc`
-      or :c:func:`mps_free`, it will be rounded up to the pool's
-      alignment. The minimum alignment supported by pools of this
-      class is ``sizeof(void *)``.
+      :c:macro:`MPS_PF_ALIGN`) is the :term:`alignment` of the
+      addresses allocated (and freed) in the pool. The minimum
+      alignment supported by pools of this class is ``sizeof(void *)``
+      and the maximum is the arena grain size
+      (see :c:macro:`MPS_KEY_ARENA_GRAIN_SIZE`).
 
     * :c:macro:`MPS_KEY_SPARE` (type :c:type:`double`, default 0.75)
       is the maximum proportion of memory that the pool will keep

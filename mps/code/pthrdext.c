@@ -1,7 +1,7 @@
 /* pthreadext.c: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Provides extension to Pthreads.
  *
@@ -12,29 +12,23 @@
  * (<David.Butenhof@compaq.com>, <rlau@csc.com>).
  */
 
-
 #include "mpm.h"
 
-#include <pthread.h>
-#include <sched.h>
-#include <signal.h> /* see .feature.li in config.h */
-#include <semaphore.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
+#error "protsgix.c is specific to MPS_OS_FR or MPS_OS_LI"
+#endif
 
 #include "pthrdext.h"
 
+#include <errno.h>
+#include <pthread.h>
+#include <sched.h>
+#include <semaphore.h>
+#include <signal.h> /* see .feature.li in config.h */
+#include <stdio.h>
+#include <stdlib.h>
+
 SRCID(pthreadext, "$Id$");
-
-
-/* PTHREADEXT_SIGSUSPEND, PTHREADEXT_SIGRESUME -- signals used
- *
- * See <design/pthreadext/#impl.signals>
- */
-
-#define PTHREADEXT_SIGSUSPEND SIGXFSZ
-#define PTHREADEXT_SIGRESUME SIGXCPU
 
 
 /* Static data initialized on first use of the module
@@ -64,8 +58,6 @@ static RingStruct suspendedRing;            /* PThreadext suspend ring */
  *
  * See <design/pthreadext/#impl.suspend-handler>
  *
- * The interface for determining the MFC might be platform specific.
- *
  * Handle PTHREADEXT_SIGSUSPEND in the target thread, to suspend it until
  * receiving PTHREADEXT_SIGRESUME (resume). Note that this is run with both
  * PTHREADEXT_SIGSUSPEND and PTHREADEXT_SIGRESUME blocked. Having
@@ -77,11 +69,11 @@ static RingStruct suspendedRing;            /* PThreadext suspend ring */
 
 static void suspendSignalHandler(int sig,
                                  siginfo_t *info,
-                                 void *context)
+                                 void *uap)
 {
     sigset_t signal_set;
     ucontext_t ucontext;
-    MutatorFaultContextStruct mfContext;
+    MutatorContextStruct context;
 
     AVER(sig == PTHREADEXT_SIGSUSPEND);
     UNUSED(sig);
@@ -90,9 +82,9 @@ static void suspendSignalHandler(int sig,
     AVER(suspendingVictim != NULL);
     /* copy the ucontext structure so we definitely have it on our stack,
      * not (e.g.) shared with other threads. */
-    ucontext = *(ucontext_t *)context;
-    mfContext.ucontext = &ucontext;
-    suspendingVictim->suspendedMFC = &mfContext;
+    ucontext = *(ucontext_t *)uap;
+    MutatorContextInitThread(&context, &ucontext);
+    suspendingVictim->context = &context;
     /* Block all signals except PTHREADEXT_SIGRESUME while suspended. */
     sigfillset(&signal_set);
     sigdelset(&signal_set, PTHREADEXT_SIGRESUME);
@@ -100,7 +92,6 @@ static void suspendSignalHandler(int sig,
     sigsuspend(&signal_set);
 
     /* Once here, the resume signal handler has run to completion. */
-    return;
 }
 
 
@@ -113,7 +104,6 @@ static void resumeSignalHandler(int sig)
 {
     AVER(sig == PTHREADEXT_SIGRESUME);
     UNUSED(sig);
-    return;
 }
 
 /* PThreadextModuleInit -- Initialize the PThreadext module
@@ -169,7 +159,7 @@ static void PThreadextModuleInit(void)
 
 /* PThreadextCheck -- check the consistency of a PThreadext structure */
 
-extern Bool PThreadextCheck(PThreadext pthreadext)
+Bool PThreadextCheck(PThreadext pthreadext)
 {
   int status;
 
@@ -180,7 +170,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
   /* can't check ID */
   CHECKD_NOSIG(Ring, &pthreadext->threadRing);
   CHECKD_NOSIG(Ring, &pthreadext->idRing);
-  if (pthreadext->suspendedMFC == NULL) {
+  if (pthreadext->context == NULL) {
     /* not suspended */
     CHECKL(RingIsSingle(&pthreadext->threadRing));
     CHECKL(RingIsSingle(&pthreadext->idRing));
@@ -191,7 +181,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
     RING_FOR(node, &pthreadext->idRing, next) {
       PThreadext pt = RING_ELT(PThreadext, idRing, node);
       CHECKL(pt->id == pthreadext->id);
-      CHECKL(pt->suspendedMFC == pthreadext->suspendedMFC);
+      CHECKL(pt->context == pthreadext->context);
     }
   }
   status = pthread_mutex_unlock(&pthreadextMut);
@@ -203,7 +193,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
 
 /*  PThreadextInit -- Initialize a pthreadext */
 
-extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
+void PThreadextInit(PThreadext pthreadext, pthread_t id)
 {
   int status;
 
@@ -212,7 +202,7 @@ extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
   AVER(status == 0);
 
   pthreadext->id = id;
-  pthreadext->suspendedMFC = NULL;
+  pthreadext->context = NULL;
   RingInit(&pthreadext->threadRing);
   RingInit(&pthreadext->idRing);
   pthreadext->sig = PThreadextSig;
@@ -225,7 +215,7 @@ extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
  * See <design/pthreadext/#impl.finish>
  */
 
-extern void PThreadextFinish(PThreadext pthreadext)
+void PThreadextFinish(PThreadext pthreadext)
 {
   int status;
 
@@ -234,7 +224,7 @@ extern void PThreadextFinish(PThreadext pthreadext)
   status = pthread_mutex_lock(&pthreadextMut);
   AVER(status == 0);
 
-  if(pthreadext->suspendedMFC == NULL) {
+  if(pthreadext->context == NULL) {
     AVER(RingIsSingle(&pthreadext->threadRing));
     AVER(RingIsSingle(&pthreadext->idRing));
   } else {
@@ -259,7 +249,7 @@ extern void PThreadextFinish(PThreadext pthreadext)
  * See <design/pthreadext/#impl.suspend>
  */
 
-Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
+Res PThreadextSuspend(PThreadext target, MutatorContext *contextReturn)
 {
   Ring node, next;
   Res res;
@@ -267,7 +257,7 @@ Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
 
   AVERT(PThreadext, target);
   AVER(contextReturn != NULL);
-  AVER(target->suspendedMFC == NULL); /* multiple suspends illegal */
+  AVER(target->context == NULL); /* multiple suspends illegal */
 
   /* Serialize access to suspend, makes life easier */
   status = pthread_mutex_lock(&pthreadextMut);
@@ -281,7 +271,7 @@ Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
     PThreadext alreadySusp = RING_ELT(PThreadext, threadRing, node);
     if (alreadySusp->id == target->id) {
       RingAppend(&alreadySusp->idRing, &target->idRing);
-      target->suspendedMFC = alreadySusp->suspendedMFC;
+      target->context = alreadySusp->context;
       goto noteSuspended;
     }
   }
@@ -303,9 +293,9 @@ Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
   }
 
 noteSuspended:
-  AVER(target->suspendedMFC != NULL);
+  AVER(target->context != NULL);
   RingAppend(&suspendedRing, &target->threadRing);
-  *contextReturn = target->suspendedMFC;
+  *contextReturn = target->context;
   res = ResOK;
 
 unlock:
@@ -328,7 +318,7 @@ Res PThreadextResume(PThreadext target)
 
   AVERT(PThreadext, target);
   AVER(pthreadextModuleInitialized);  /* must have been a prior suspend */
-  AVER(target->suspendedMFC != NULL);
+  AVER(target->context != NULL);
 
   /* Serialize access to suspend, makes life easier. */
   status = pthread_mutex_lock(&pthreadextMut);
@@ -354,7 +344,7 @@ Res PThreadextResume(PThreadext target)
 noteResumed:
   /* Remove the thread from the suspended ring */
   RingRemove(&target->threadRing);
-  target->suspendedMFC = NULL;
+  target->context = NULL;
   res = ResOK;
 
 unlock:
@@ -366,7 +356,7 @@ unlock:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

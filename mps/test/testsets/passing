@@ -10,7 +10,7 @@ function/1.c
 function/5.c
 function/6.c
 function/7.c
-% function/8.c -- tries to exhaust memory by mps_arena_create
+function/8.c
 function/9.c
 function/10.c
 function/11.c
@@ -26,7 +26,7 @@ function/19.c
 function/20.c
 function/21.c
 function/22.c
-% function/23.c -- interactive test, can't run unattended
+% function/23.c -- infinite loop; also job003789
 function/24.c
 function/25.c
 function/26.c
@@ -71,7 +71,7 @@ function/66.c
 function/67.c
 % function/68.c -- infinite loop
 function/69.c
-function/70.c
+% function/70.c -- interactive test, no point in running unattended
 function/71.c
 % function/72.c -- fails in hot variety (assertion is on the critical path)
 function/73.c
@@ -88,7 +88,7 @@ function/83.c
 % 84-95 -- no such test
 function/96.c
 function/97.c
-% function/98.c -- tries to exhaust memory by mps_arena_create
+function/98.c
 function/99.c
 function/100.c
 function/101.c
@@ -121,8 +121,7 @@ function/128.c
 function/129.c
 % function/130.c -- job003789
 % function/131.c -- job003789
-% function/132.c -- job003869
-function/133.c
+% 132-133 -- no such test
 function/134.c
 function/135.c
 function/136.c
@@ -135,7 +134,7 @@ function/144.c
 % 145-146 -- no such test
 function/147.c
 % function/148.c -- failed on inc4: wanted = 1, was 0 @@@@
-function/149.c
+% 149 -- no such test
 function/150.c
 function/151.c
 function/152.c
@@ -172,3 +171,6 @@ function/227.c
 function/228.c
 function/229.c
 function/231.c
+function/232.c
+function/233.c
+function/234.c

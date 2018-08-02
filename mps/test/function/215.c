@@ -4,6 +4,7 @@ TEST_HEADER
  summary = test of ramp allocation
  language = c
  link = testlib.o rankfmt.o
+ parameters = ITERATIONS=10000
 OUTPUT_SPEC
  result = pass
 END_HEADER
@@ -16,15 +17,13 @@ END_HEADER
 
 #define ARENALIMIT (200)
 
-#define TABSIZE (50000)
-#define ENTERRAMP (30000)
-#define LEAVERAMP (100000)
+#define TABSIZE (ITERATIONS * 5 / 10)
+#define ENTERRAMP (ITERATIONS * 3 / 100)
+#define LEAVERAMP (ITERATIONS / 10)
 
 #define BACKSIZE (128)
 #define BACKITER (32)
 #define RAMPSIZE (128)
-
-#define ITERATIONS (1000000ul)
 
 #define RAMP_INTERFACE
 /*
@@ -61,12 +60,12 @@ static void alloc_back(void) {
 
 static void test(void) {
  long int i;
- long int rsize;
+ long int rsize = 0;
  mps_message_t message;
 
  int inramp;
 
- mycell *r, *s;
+ mycell *r = NULL, *s;
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(),
    (size_t) 1024*1024*ARENALIMIT),
@@ -102,7 +101,7 @@ static void test(void) {
  inramp = 0;
 
  for (i = 0; i < ITERATIONS; i++) {
-  if (i % 10000 == 0) {
+  if (i * 10 % ITERATIONS == 0) {
    comment("%ld of %ld", i, ITERATIONS);
   }
   alloc_back();
@@ -139,7 +138,7 @@ static void test(void) {
    }
   }
   if(mps_message_get(&message, arena, mps_message_type_gc())) {
-    unsigned long live, condemned, notCondemned;
+    size_t live, condemned, notCondemned;
     live = mps_message_gc_live_size(arena, message);
     condemned = mps_message_gc_condemned_size(arena, message);
     notCondemned = 

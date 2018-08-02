@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = MV functional tests  allocate and free in manual variable pool
+ summary = MVFF allocate and free
  language = c
  link = testlib.o
 END_HEADER
@@ -9,7 +9,7 @@ END_HEADER
 
 #include <time.h>
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 
 #define MAXNUMBER 1000000
 
@@ -54,28 +54,29 @@ static int chkobj(mps_addr_t a, size_t size, unsigned char val)
 }
 
 static void dt(int kind,
-   size_t extendBy, size_t avgSize, size_t maxSize,
+   size_t extendBy, size_t avgSize,
    size_t mins, size_t maxs, int number, int iter)
 {
  mps_pool_t pool;
  int i, hd;
  clock_t time0, time1;
  size_t size;
- int secs;
+ double secs;
 
  asserts(number <= MAXNUMBER, "number too big");
 
  time0 = clock();
  asserts(time0 != -1, "processor time not available");
 
- die(
-  mps_pool_create(&pool, arena, mps_class_mv(),
-                  extendBy, avgSize, maxSize),
-  "create pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, extendBy);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, avgSize);
+   cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), args), "pool");
+ } MPS_ARGS_END(args);
 
  for(hd=0; hd<number; hd++)
  {
-  size = ranrange(mins, maxs);
+  size = ranrange((unsigned long)mins, (unsigned long)maxs);
   if ((ranint(2) && (kind & 2)) || (kind==DUMMY))
   {
    queue[hd].addr=NULL;
@@ -99,13 +100,13 @@ static void dt(int kind,
    if (queue[hd].addr != NULL)
    {
     asserts(chkobj(queue[hd].addr, queue[hd].size, hd%256),
-      "corrupt at %x (%s: %x, %x, %x, %x, %x, %i, %i)",
+      "corrupt at %x (%s: %x, %x, %x, %x, %i, %i)",
       queue[hd].addr,
-      tdesc[kind], (int) extendBy, (int) avgSize, (int) maxSize,
+      tdesc[kind], (int) extendBy, (int) avgSize,
       (int) mins, (int) maxs, number, iter);
     mps_free(pool, queue[hd].addr, queue[hd].size);
    }
-   size = ranrange(mins, maxs);
+   size = ranrange((unsigned long)mins, (unsigned long)maxs);
 
    if ((ranint(2) && (kind & 2)) || (kind==DUMMY))
    {
@@ -122,10 +123,10 @@ static void dt(int kind,
  mps_pool_destroy(pool);
 
  time1=clock();
- secs=(int) 100*(time1-time0)/CLOCKS_PER_SEC;
+ secs=(time1-time0)/(double)CLOCKS_PER_SEC;
 
- comment("%s test (%x, %x, %x, %x, %x, %i, %i) in %i centisecs",
-  tdesc[kind], (int) extendBy, (int) avgSize, (int) maxSize,
+ comment("%s test (%x, %x, %x, %x, %i, %i) in %.2f s",
+  tdesc[kind], (int) extendBy, (int) avgSize,
   (int) mins, (int) maxs, number, iter, secs);
 }
 
@@ -139,26 +140,26 @@ static void test(void)
 
  mins = sizeof(int);
 
- dt(SEQ, 4096, 32, 64*1024, 8, 9, 5, 10);
- dt(RANGAP, 64, 64, 64, 8, 128, 100, 1000);
+ dt(SEQ, 4096, 32, 8, 9, 5, 10);
+ dt(RANGAP, 64, 64, 8, 128, 100, 1000);
 
- dt(DUMMY, 4096, 32, 64*1024, 8, 64, 1000, 10000);
- dt(SEQ, 4096, 32, 64*1024, 8, 64, 1000, 10000);
- dt(RAN, 4096, 32, 64*1024, 8, 64, 1000, 10000);
- dt(SEQGAP, 4096, 32, 64*1024, 8, 64, 1000, 10000);
- dt(RANGAP, 4096, 32, 64*1024, 8, 64, 1000, 10000);
+ dt(DUMMY, 4096, 32, 8, 64, 1000, 10000);
+ dt(SEQ, 4096, 32, 8, 64, 1000, 10000);
+ dt(RAN, 4096, 32, 8, 64, 1000, 10000);
+ dt(SEQGAP, 4096, 32, 8, 64, 1000, 10000);
+ dt(RANGAP, 4096, 32, 8, 64, 1000, 10000);
 
- dt(DUMMY, 4096, 1024, 64*1024, 100, 132, 1000, 10000);
- dt(SEQ, 4096, 1024, 64*1024, 100, 132, 1000, 10000);
- dt(RAN, 4096, 1024, 64*1024, 100, 132, 1000, 10000);
- dt(SEQGAP, 4096, 1024, 64*1024, 100, 132, 1000, 10000);
- dt(RANGAP, 4096, 1024, 64*1024, 100, 132, 1000, 10000);
+ dt(DUMMY, 4096, 1024, 100, 132, 1000, 10000);
+ dt(SEQ, 4096, 1024, 100, 132, 1000, 10000);
+ dt(RAN, 4096, 1024, 100, 132, 1000, 10000);
+ dt(SEQGAP, 4096, 1024, 100, 132, 1000, 10000);
+ dt(RANGAP, 4096, 1024, 100, 132, 1000, 10000);
 
- dt(DUMMY, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
- dt(SEQ, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
- dt(RAN, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
- dt(SEQGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
- dt(RANGAP, 128*1024, 64*1024, 6400*1024, mins, 128*1024, 100, 10000);
+ dt(DUMMY, 128*1024, 64*1024, mins, 128*1024, 100, 10000);
+ dt(SEQ, 128*1024, 64*1024, mins, 128*1024, 100, 10000);
+ dt(RAN, 128*1024, 64*1024, mins, 128*1024, 100, 10000);
+ dt(SEQGAP, 128*1024, 64*1024, mins, 128*1024, 100, 10000);
+ dt(RANGAP, 128*1024, 64*1024, mins, 128*1024, 100, 10000);
 
  mps_thread_dereg(thread);
  mps_arena_destroy(arena);

@@ -1,7 +1,7 @@
 /* format.c: OBJECT FORMATS
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * DESIGN
@@ -32,7 +32,7 @@ Bool FormatCheck(Format format)
   CHECKL(FUNCHECK(format->move));
   CHECKL(FUNCHECK(format->isMoved));
   CHECKL(FUNCHECK(format->pad));
-  CHECKL(FUNCHECK(format->class));
+  CHECKL(FUNCHECK(format->klass));
 
   return TRUE;
 }
@@ -133,14 +133,14 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
   if (ArgPick(&arg, args, MPS_KEY_FMT_CLASS))
     fmtClass = arg.val.fmt_class;
 
-  res = ControlAlloc(&p, arena, sizeof(FormatStruct),
-                     /* withReservoirPermit */ FALSE);
+  res = ControlAlloc(&p, arena, sizeof(FormatStruct));
   if(res != ResOK)
     return res;
   format = (Format)p; /* avoid pun */
 
   format->arena = arena;
   RingInit(&format->arenaRing);
+  format->poolCount = 0;
   format->alignment = fmtAlign;
   format->headerSize = fmtHeaderSize;
   format->scan = fmtScan;
@@ -148,7 +148,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
   format->move = fmtFwd;
   format->isMoved = fmtIsfwd;
   format->pad = fmtPad;
-  format->class = fmtClass;
+  format->klass = fmtClass;
 
   format->sig = FormatSig;
   format->serial = arena->formatSerial;
@@ -168,6 +168,7 @@ Res FormatCreate(Format *formatReturn, Arena arena, ArgList args)
 void FormatDestroy(Format format)
 {
   AVERT(Format, format);
+  AVER(format->poolCount == 0); /* <design/check/#.common> */
 
   RingRemove(&format->arenaRing);
 
@@ -230,6 +231,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
                "Format $P ($U) {\n", (WriteFP)format, (WriteFU)format->serial,
                "  arena $P ($U)\n",
                (WriteFP)format->arena, (WriteFU)format->arena->serial,
+               "  poolCount $U\n", (WriteFU)format->poolCount,
                "  alignment $W\n", (WriteFW)format->alignment,
                "  scan $F\n", (WriteFF)format->scan,
                "  skip $F\n", (WriteFF)format->skip,
@@ -248,7 +250,7 @@ Res FormatDescribe(Format format, mps_lib_FILE *stream, Count depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

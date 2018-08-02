@@ -7,10 +7,10 @@ Deprecated interfaces
 =====================
 
 This chapter documents the public symbols in the MPS interface that
-are now deprecated. These symbols may be removed in any future release
-(see :ref:`topic-interface-support` for details). If you are using one
-of these symbols, then you should update your code to use the
-supported interface.
+are currently deprecated. These symbols may be removed in any future
+release (see :ref:`topic-interface-support` for details). If you are
+using one of these symbols, then you should update your code to use
+the supported interface.
 
 .. note::
 
@@ -19,20 +19,12 @@ supported interface.
     makes a difference if we know that someone is using a feature.
 
 
+
 .. index::
-   single: deprecated interfaces; in version 1.115
+   single: deprecated interfaces; in version 1.118
 
-Deprecated in version 1.115
+Deprecated in version 1.118
 ...........................
-
-.. c:type:: typedef mps_pool_class_t mps_class_t
-
-    .. deprecated::
-
-        The former name for :c:type:`mps_pool_class_t`, chosen when
-        pools were the only objects in the MPS that belonged to
-        classes.
-
 
 .. c:function:: size_t mps_arena_spare_commit_limit(mps_arena_t arena)
 
@@ -48,39 +40,35 @@ Deprecated in version 1.115
 
     .. deprecated::
 
-        Use: :c:func:`mps_arena_spare_set` instead.
+        Use :c:func:`mps_arena_spare_set` instead.
 
     Change the :term:`spare commit limit` for an :term:`arena` in
     terms of :term:`bytes (1)` relative to the current
     :term:`committed <mapped>` memory.
 
 
-.. c:function:: size_t mps_mv_free_size(mps_pool_t pool)
+.. index::
+   single: deprecated interfaces; in version 1.115
+
+Deprecated in version 1.115
+...........................
+
+.. c:function:: mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 
     .. deprecated::
 
-        Use the generic function :c:func:`mps_pool_free_size` instead.
-
-    Return the total amount of free space in an MV pool.
-
-    ``pool`` is the MV pool.
-
-    Returns the total free space in the pool, in :term:`bytes (1)`.
+        Identical to :c:func:`mps_ap_fill`, which should be used
+        instead. Formerly, this function gave the MPS permission to
+        draw on the ‘low-memory reservoir’, but this no longer exists.
 
 
-.. c:function:: size_t mps_mv_size(mps_pool_t pool)
+.. c:type:: typedef mps_pool_class_t mps_class_t
 
     .. deprecated::
 
-        Use the generic function :c:func:`mps_pool_total_size`
-        instead.
-
-    Return the total size of an MV pool.
-
-    ``pool`` is the MV pool.
-
-    Returns the total size of the pool, in :term:`bytes (1)`. This
-    is the sum of allocated space and free space.
+        The former name for :c:type:`mps_pool_class_t`, chosen when
+        pools were the only objects in the MPS that belonged to
+        classes.
 
     
 .. c:function:: size_t mps_mvff_free_size(mps_pool_t pool)
@@ -137,6 +125,41 @@ Deprecated in version 1.115
 
     Returns the total size of the pool, in :term:`bytes (1)`. This
     is the sum of allocated space and free space.
+
+
+.. c:function:: mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
+
+    .. deprecated::
+
+        Identical to :c:func:`mps_reserve`, which should be used
+        instead. Formerly, this function gave the MPS permission to
+        draw on the ‘low-memory reservoir’, but this no longer
+        exists.
+
+
+.. c:function:: void mps_reservoir_limit_set(mps_arena_t arena, size_t size)
+
+    .. deprecated::
+
+        Has no effect. Formerly, it updated the recommended size of
+        the ‘low-memory reservoir’, but this no longer exists.
+
+
+.. c:function:: size_t mps_reservoir_limit(mps_arena_t arena)
+
+    .. deprecated::
+
+        Returns zero. Formerly, it returned the recommended size of
+        the ‘low-memory reservoir’, but this no longer exists.
+
+
+.. c:function:: size_t mps_reservoir_available(mps_arena_t arena)
+
+    .. deprecated::
+
+        Returns zero. Formerly, it returned the size of the available
+        memory in the ‘low-memory reservoir’, but this no longer
+        exists.
 
 
 .. c:function:: mps_res_t mps_root_create_reg(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_thr_t thr, mps_reg_scan_t reg_scan, void *p, size_t s)
@@ -295,16 +318,15 @@ Deprecated in version 1.115
 .. c:function:: mps_res_t mps_root_create_table_masked(mps_root_t *root_o, mps_arena_t arena, mps_rank_t rank, mps_rm_t rm, mps_addr_t *base, size_t count, mps_word_t mask)
 
     .. deprecated::
-    
-        This function is equivalent to::
+
+        Use :c:func:`mps_root_create_area_tagged` instead, passing
+        zero for the ``pattern`` argument. This function is equivalent
+        to::
 
             mps_root_create_area_tagged(root_o, arena, rank, rm,
                                         base, base + size,
                                         mps_scan_area_tagged,
                                         mask, 0)
-					 
-        Use :c:func:`mps_root_create_area_masked` instead, passing
-        zero for the ``pattern`` argument.
 
     Register a :term:`root` that consists of a vector of :term:`tagged
     references` whose pattern is zero.
@@ -344,18 +366,12 @@ Deprecated in version 1.115
 
         :ref:`topic-scanning`.
 
-    .. note::
-
-        :term:`Client programs` are not expected to
-        write scanning functions of this type. The built-in MPS
-        function :c:func:`mps_stack_scan_ambig` must be used.
-
 
 .. c:function:: mps_reg_scan_t mps_stack_scan_ambig
 
     .. deprecated::
 
-        Use :c:func:`mps_root_create_thread` instead, passing
+        Use :c:func:`mps_root_create_thread_tagged` instead, passing
         ``sizeof(mps_word_t) - 1`` for the ``mask`` argument, and
         ``0`` for the ``pattern`` argument.
 
@@ -503,30 +519,6 @@ Deprecated in version 1.112
                                   mps_pool_class_t mps_class_mfs(),
                                   size_t extend_by,
                                   size_t unit_size)
-
-    When creating a pool of class :c:func:`mps_class_mv`, pass the
-    values for the keyword arguments :c:macro:`MPS_KEY_EXTEND_BY`,
-    :c:macro:`MPS_KEY_MEAN_SIZE`, and :c:macro:`MPS_KEY_MAX_SIZE` like
-    this::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
-                                  mps_pool_class_t mps_class_mv(),
-                                  size_t extend_by,
-                                  size_t mean_size,
-                                  size_t max_size)
-
-    When creating a pool of class :c:func:`mps_class_mv_debug`, pass
-    the values for the keyword arguments
-    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`,
-    :c:macro:`MPS_KEY_EXTEND_BY`, :c:macro:`MPS_KEY_MEAN_SIZE` and
-    :c:macro:`MPS_KEY_MAX_SIZE` like this::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
-                                  mps_pool_class_t mps_class_mv_debug(),
-                                  mps_pool_debug_option_s *pool_debug_options,
-                                  size_t extend_by,
-                                  size_t mean_size,
-                                  size_t max_size)
 
     When creating a pool of class :c:func:`mps_class_mvff`, pass the
     values for the keyword arguments :c:macro:`MPS_KEY_EXTEND_BY`,

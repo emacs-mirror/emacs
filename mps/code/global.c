@@ -1,7 +1,7 @@
 /* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
@@ -24,7 +24,6 @@
 #include "bt.h"
 #include "poolmrg.h"
 #include "mps.h" /* finalization */
-#include "poolmv.h"
 #include "mpm.h"
 
 SRCID(global, "$Id$");
@@ -50,6 +49,47 @@ static void arenaClaimRingLock(void)
 static void arenaReleaseRingLock(void)
 {
   LockReleaseGlobal();  /* release the global lock protecting arenaRing */
+}
+
+
+/* GlobalsClaimAll -- claim all MPS locks
+ * <design/thread-safety/#sol.fork.lock>
+ */
+
+void GlobalsClaimAll(void)
+{
+  LockClaimGlobalRecursive();
+  arenaClaimRingLock();
+  GlobalsArenaMap(ArenaEnter);
+}
+
+/* GlobalsReleaseAll -- release all MPS locks. GlobalsClaimAll must
+ * previously have been called. <design/thread-safety/#sol.fork.lock> */
+
+void GlobalsReleaseAll(void)
+{
+  GlobalsArenaMap(ArenaLeave);
+  arenaReleaseRingLock();
+  LockReleaseGlobalRecursive();
+}
+
+/* arenaReinitLock -- reinitialize the lock for an arena */
+
+static void arenaReinitLock(Arena arena)
+{
+  AVERT(Arena, arena);
+  ShieldLeave(arena);
+  LockInit(ArenaGlobals(arena)->lock);
+}
+
+/* GlobalsReinitializeAll -- reinitialize all MPS locks, and leave the
+ * shield for all arenas. GlobalsClaimAll must previously have been
+ * called. <design/thread-safety/#sol.fork.lock> */
+
+void GlobalsReinitializeAll(void)
+{
+  GlobalsArenaMap(arenaReinitLock);
+  LockInitGlobal();
 }
 
 
@@ -100,6 +140,21 @@ static void arenaDenounce(Arena arena)
 }
 
 
+/* GlobalsArenaMap -- map a function over the arenas. The caller must
+ * have acquired the ring lock. */
+
+void GlobalsArenaMap(void (*func)(Arena arena))
+{
+  Ring node, nextNode;
+  AVERT(Ring, &arenaRing);
+  RING_FOR(node, &arenaRing, nextNode) {
+    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
+    Arena arena = GlobalsArena(arenaGlobals);
+    func(arena);
+  }
+}
+
+
 /* GlobalsCheck -- check the arena globals */
 
 Bool GlobalsCheck(Globals arenaGlobals)
@@ -107,9 +162,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
   Arena arena;
   TraceId ti;
   Trace trace;
-  Index i;
-  Size depth;
-  RefSet rs;
   Rank rank;
 
   CHECKS(Globals, arenaGlobals);
@@ -155,20 +207,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKD_NOSIG(Ring, &arena->threadRing);
   CHECKD_NOSIG(Ring, &arena->deadRing);
 
-  CHECKL(BoolCheck(arena->insideShield));
-  CHECKL(arena->shCacheLimit <= ShieldCacheSIZE);
-  CHECKL(arena->shCacheI < arena->shCacheLimit);
-  CHECKL(BoolCheck(arena->suspended));
-
-  depth = 0;
-  for (i = 0; i < arena->shCacheLimit; ++i) {
-    Seg seg = arena->shCache[i];
-    if (seg != NULL) {
-      CHECKD(Seg, seg);
-      depth += SegDepth(seg);
-    }
-  }
-  CHECKL(depth <= arena->shDepth);
+  CHECKD(Shield, ArenaShield(arena));
 
   CHECKL(TraceSetCheck(arena->busyTraces));
   CHECKL(TraceSetCheck(arena->flippedTraces));
@@ -190,23 +229,12 @@ Bool GlobalsCheck(Globals arenaGlobals)
     CHECKD_NOSIG(Ring, &arena->greyRing[rank]);
   CHECKD_NOSIG(Ring, &arena->chainRing);
 
-  CHECKL(arena->tracedSize >= 0.0);
+  CHECKL(arena->tracedWork >= 0.0);
   CHECKL(arena->tracedTime >= 0.0);
   /* no check for arena->lastWorldCollect (Clock) */
 
   /* can't write a check for arena->epoch */
-
-  /* check that each history entry is a subset of the next oldest */
-  rs = RefSetEMPTY;
-  /* note this loop starts from 1; there is no history age 0 */
-  for (i=1; i <= LDHistoryLENGTH; ++ i) {
-    /* check history age 'i'; 'j' is the history index. */
-    Index j = (arena->epoch + LDHistoryLENGTH - i) % LDHistoryLENGTH;
-    CHECKL(RefSetSub(rs, arena->history[j]));
-    rs = arena->history[j];
-  }
-  /* the oldest history entry must be a subset of the prehistory */
-  CHECKL(RefSetSub(rs, arena->prehistory));
+  CHECKD(History, ArenaHistory(arena));
 
   /* we also check the statics now. <design/arena/#static.check> */
   CHECKL(BoolCheck(arenaRingInit));
@@ -215,12 +243,15 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(RingCheck(&arenaRing));
 
   CHECKL(BoolCheck(arena->emergency));
+  /* .emergency.invariant: There can only be an emergency when a trace
+   * is busy. */
+  CHECKL(!arena->emergency || arena->busyTraces != TraceSetEMPTY);
   
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
 
-  /* can't check arena->stackAtArenaEnter */
-  
+  /* can't check arena->stackWarm */
+
   return TRUE;
 }
 
@@ -230,7 +261,6 @@ Bool GlobalsCheck(Globals arenaGlobals)
 Res GlobalsInit(Globals arenaGlobals)
 {
   Arena arena;
-  Index i;
   Rank rank;
   TraceId ti;
 
@@ -246,7 +276,13 @@ Res GlobalsInit(Globals arenaGlobals)
     arenaRingInit = TRUE;
     RingInit(&arenaRing);
     arenaSerial = (Serial)0;
+    /* The setup functions call pthread_atfork (on the appropriate
+       platforms) and so must be called in the correct order. Here we
+       require the locks to be taken first in the "prepare" case and
+       released last in the "parent" and "child" cases. */
+    ThreadSetup();
     ProtSetup();
+    LockSetup();
   }
   arena = GlobalsArena(arenaGlobals);
   /* Ensure updates to arenaSerial do not race by doing the update
@@ -272,6 +308,11 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->bufferLogging = FALSE;
   RingInit(&arenaGlobals->poolRing);
   arenaGlobals->poolSerial = (Serial)0;
+  /* The system pools are:
+     1. arena->freeCBSBlockPoolStruct
+     2. arena->controlPoolStruct
+     3. arena->controlPoolStruct.cbsBlockPoolStruct */
+  arenaGlobals->systemPools = (Count)3;
   RingInit(&arenaGlobals->rootRing);
   arenaGlobals->rootSerial = (Serial)0;
   RingInit(&arenaGlobals->rememberedSummaryRing);
@@ -289,16 +330,10 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->finalPool = NULL;
   arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
   arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
-  arena->tracedSize = 0.0;
+  arena->tracedWork = 0.0;
   arena->tracedTime = 0.0;
   arena->lastWorldCollect = ClockNow();
-  arena->insideShield = FALSE;          /* <code/shield.c> */
-  arena->shCacheI = (Size)0;
-  arena->shCacheLimit = (Size)1;
-  arena->shDepth = (Size)0;
-  arena->suspended = FALSE;
-  for(i = 0; i < ShieldCacheSIZE; i++)
-    arena->shCache[i] = NULL;
+  ShieldInit(ArenaShield(arena));
 
   for (ti = 0; ti < TraceLIMIT; ++ti) {
     /* <design/arena/#trace.invalid> */
@@ -315,14 +350,11 @@ Res GlobalsInit(Globals arenaGlobals)
   STATISTIC(arena->writeBarrierHitCount = 0);
   RingInit(&arena->chainRing);
 
-  arena->epoch = (Epoch)0;              /* <code/ld.c> */
-  arena->prehistory = RefSetEMPTY;
-  for(i = 0; i < LDHistoryLENGTH; ++i)
-    arena->history[i] = RefSetEMPTY;
-
+  HistoryInit(ArenaHistory(arena));
+  
   arena->emergency = FALSE;
 
-  arena->stackAtArenaEnter = NULL;
+  arena->stackWarm = NULL;
   
   arenaGlobals->defaultChain = NULL;
 
@@ -352,7 +384,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   {
     void *v;
 
-    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
+    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT));
     if (res != ResOK)
       return res;
     arena->enabledMessageTypes = v;
@@ -366,7 +398,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
       return res;
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
 
-  res = ControlAlloc(&p, arena, LockSize(), FALSE);
+  res = ControlAlloc(&p, arena, LockSize());
   if (res != ResOK)
     return res;
   arenaGlobals->lock = (Lock)p;
@@ -398,11 +430,12 @@ void GlobalsFinish(Globals arenaGlobals)
   arena = GlobalsArena(arenaGlobals);
   AVERT(Globals, arenaGlobals);
 
-  STATISTIC_STAT(EVENT2(ArenaWriteFaults, arena,
-                        arena->writeBarrierHitCount));
+  STATISTIC(EVENT2(ArenaWriteFaults, arena, arena->writeBarrierHitCount));
 
   arenaGlobals->sig = SigInvalid;
 
+  ShieldFinish(ArenaShield(arena));
+  HistoryFinish(ArenaHistory(arena));
   RingFinish(&arena->formatRing);
   RingFinish(&arena->chainRing);
   RingFinish(&arena->messageRing);
@@ -435,6 +468,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   ArenaPark(arenaGlobals);
 
   arena = GlobalsArena(arenaGlobals);
+
   arenaDenounce(arena);
 
   defaultChain = arenaGlobals->defaultChain;
@@ -486,6 +520,8 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     PoolDestroy(pool);
   }
 
+  ShieldDestroyQueue(ArenaShield(arena), arena);
+
   /* Check that the tear-down is complete: that the client has
    * destroyed all data structures associated with the arena. We do
    * this here rather than in GlobalsFinish because by the time that
@@ -494,23 +530,15 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
    * and so RingCheck dereferences a pointer into that unmapped memory
    * and we get a crash instead of an assertion. See job000652.
    */
-  AVER(RingIsSingle(&arena->formatRing));
-  AVER(RingIsSingle(&arena->chainRing));
+  AVER(RingIsSingle(&arena->formatRing)); /* <design/check/#.common> */
+  AVER(RingIsSingle(&arena->chainRing)); /* <design/check/#.common> */
   AVER(RingIsSingle(&arena->messageRing));
-  AVER(RingIsSingle(&arena->threadRing));
+  AVER(RingIsSingle(&arena->threadRing)); /* <design/check/#.common> */
   AVER(RingIsSingle(&arena->deadRing));
-  AVER(RingIsSingle(&arenaGlobals->rootRing));
+  AVER(RingIsSingle(&arenaGlobals->rootRing)); /* <design/check/#.common> */
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
-
-  /* At this point the following pools still exist:
-   * 0. arena->freeCBSBlockPoolStruct
-   * 1. arena->reservoirStruct
-   * 2. arena->controlPoolStruct
-   * 3. arena->controlPoolStruct.blockPoolStruct
-   * 4. arena->controlPoolStruct.spanPoolStruct
-   */
-  AVER(RingLength(&arenaGlobals->poolRing) == 5);
+  AVER(RingLength(&arenaGlobals->poolRing) == arenaGlobals->systemPools); /* <design/check/#.common> */
 }
 
 
@@ -524,10 +552,9 @@ Ring GlobalsRememberedSummaryRing(Globals global)
 
 /* ArenaEnter -- enter the state where you can look at the arena */
 
-void (ArenaEnter)(Arena arena)
+void ArenaEnter(Arena arena)
 {
-  AVERT(Arena, arena);
-  ArenaEnter(arena);
+  ArenaEnterLock(arena, FALSE);
 }
 
 /*  The recursive argument specifies whether to claim the lock
@@ -558,7 +585,6 @@ void ArenaEnterLock(Arena arena, Bool recursive)
   } else {
     ShieldEnter(arena);
   }
-  return;
 }
 
 /* Same as ArenaEnter, but for the few functions that need to be
@@ -572,10 +598,10 @@ void ArenaEnterRecursive(Arena arena)
 
 /* ArenaLeave -- leave the state where you can look at MPM data structures */
 
-void (ArenaLeave)(Arena arena)
+void ArenaLeave(Arena arena)
 {
   AVERT(Arena, arena);
-  ArenaLeave(arena);
+  ArenaLeaveLock(arena, FALSE);
 }
 
 void ArenaLeaveLock(Arena arena, Bool recursive)
@@ -597,7 +623,6 @@ void ArenaLeaveLock(Arena arena, Bool recursive)
   } else {
     LockRelease(lock);
   }
-  return;
 }
 
 void ArenaLeaveRecursive(Arena arena)
@@ -605,14 +630,10 @@ void ArenaLeaveRecursive(Arena arena)
   ArenaLeaveLock(arena, TRUE);
 }
 
-/* mps_exception_info -- pointer to exception info
- *
- * This is a hack to make exception info easier to find in a release
- * version.  The format is platform-specific.  We won't necessarily
- * publish this.  */
-
-extern MutatorFaultContext mps_exception_info;
-MutatorFaultContext mps_exception_info = NULL;
+Bool ArenaBusy(Arena arena)
+{
+  return LockIsHeld(ArenaGlobals(arena)->lock);
+}
 
 
 /* ArenaAccess -- deal with an access fault
@@ -621,7 +642,7 @@ MutatorFaultContext mps_exception_info = NULL;
  * corresponds to which mode flags need to be cleared in order for the
  * access to continue.  */
 
-Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
+Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
 {
   static Count count = 0;       /* used to match up ArenaAccess events */
   Seg seg;
@@ -629,7 +650,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   Res res;
 
   arenaClaimRingLock();    /* <design/arena/#lock.ring> */
-  mps_exception_info = context;
   AVERT(Ring, &arenaRing);
 
   RING_FOR(node, &arenaRing, nextNode) {
@@ -645,7 +665,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     /* protected root on a segment. */
     /* It is possible to overcome this restriction. */
     if (SegOfAddr(&seg, arena, addr)) {
-      mps_exception_info = NULL;
       arenaReleaseRingLock();
       /* An access in a different thread (or even in the same thread,
        * via a signal or exception handler) may have already caused
@@ -654,7 +673,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
        * thread. */
       mode &= SegPM(seg);
       if (mode != AccessSetEMPTY) {
-        res = PoolAccess(SegPool(seg), seg, addr, mode, context);
+        res = SegAccess(seg, arena, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       } else {
         /* Protection was already cleared, for example by another thread
@@ -664,7 +683,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
       ArenaLeave(arena);
       return TRUE;
     } else if (RootOfAddr(&root, arena, addr)) {
-      mps_exception_info = NULL;
       arenaReleaseRingLock();
       mode &= RootPM(root);
       if (mode != AccessSetEMPTY)
@@ -682,7 +700,6 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     ArenaLeave(arena);
   }
 
-  mps_exception_info = NULL;
   arenaReleaseRingLock();
   return FALSE;
 }
@@ -708,8 +725,9 @@ void (ArenaPoll)(Globals globals)
 {
   Arena arena;
   Clock start;
-  Count quanta;
-  Size tracedSize;
+  Bool worldCollected = FALSE;
+  Bool moreWork, workWasDone = FALSE;
+  Work tracedWork;
 
   AVERT(Globals, globals);
 
@@ -725,35 +743,34 @@ void (ArenaPoll)(Globals globals)
 
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
   start = ClockNow();
-  quanta = 0;
 
-  EVENT3(ArenaPoll, arena, start, 0);
+  EVENT3(ArenaPoll, arena, start, FALSE);
 
   do {
-    tracedSize = TracePoll(globals);
-    if (tracedSize > 0) {
-      quanta += 1;
-      arena->tracedSize += tracedSize;
+    moreWork = TracePoll(&tracedWork, &worldCollected, globals,
+                         !worldCollected);
+    if (moreWork) {
+      workWasDone = TRUE;
     }
-  } while (PolicyPollAgain(arena, start, tracedSize));
+  } while (PolicyPollAgain(arena, start, moreWork, tracedWork));
 
   /* Don't count time spent checking for work, if there was no work to do. */
-  if(quanta > 0) {
-    arena->tracedTime += (ClockNow() - start) / (double) ClocksPerSec();
+  if (workWasDone) {
+    ArenaAccumulateTime(arena, start, ClockNow());
   }
 
-  AVER(!PolicyPoll(arena));
-
-  EVENT3(ArenaPoll, arena, start, quanta);
+  EVENT3(ArenaPoll, arena, start, BOOLOF(workWasDone));
 
   globals->insidePoll = FALSE;
 }
 
+
+/* ArenaStep -- use idle time for collection work */
+
 Bool ArenaStep(Globals globals, double interval, double multiplier)
 {
-  Size scanned;
-  Bool stepped;
-  Clock start, end, now;
+  Bool workWasDone = FALSE;
+  Clock start, intervalEnd, availableEnd, now;
   Clock clocks_per_sec;
   Arena arena;
 
@@ -764,39 +781,46 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   arena = GlobalsArena(globals);
   clocks_per_sec = ClocksPerSec();
 
-  start = ClockNow();
-  end = start + (Clock)(interval * clocks_per_sec);
-  AVER(end >= start);
-
-  stepped = FALSE;
-
-  if (PolicyShouldCollectWorld(arena, interval, multiplier,
-                               start, clocks_per_sec))
-  {
-    Res res;
-    Trace trace;
-    res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
-    if (res == ResOK) {
-      arena->lastWorldCollect = start;
-      stepped = TRUE;
-    }
-  }
+  start = now = ClockNow();
+  intervalEnd = start + (Clock)(interval * clocks_per_sec);
+  AVER(intervalEnd >= start);
+  availableEnd = start + (Clock)(interval * multiplier * clocks_per_sec);
+  AVER(availableEnd >= start);
 
   /* loop while there is work to do and time on the clock. */
   do {
-    scanned = TracePoll(globals);
-    now = ClockNow();
-    if (scanned > 0) {
-      stepped = TRUE;
-      arena->tracedSize += scanned;
+    Trace trace;
+    if (arena->busyTraces != TraceSetEMPTY) {
+      trace = ArenaTrace(arena, (TraceId)0);
+    } else {
+      /* No traces are running: consider collecting the world. */
+      if (PolicyShouldCollectWorld(arena, (double)(availableEnd - now), now,
+                                   clocks_per_sec))
+      {
+        Res res;
+        res = TraceStartCollectAll(&trace, arena, TraceStartWhyOPPORTUNISM);
+        if (res != ResOK)
+          break;
+        arena->lastWorldCollect = now;
+      } else {
+        /* Not worth collecting the world; consider starting a trace. */
+        Bool worldCollected;
+        if (!PolicyStartTrace(&trace, &worldCollected, arena, FALSE))
+          break;
+      }
     }
-  } while ((scanned > 0) && (now < end));
+    TraceAdvance(trace);
+    if (trace->state == TraceFINISHED)
+      TraceDestroyFinished(trace);
+    workWasDone = TRUE;
+    now = ClockNow();
+  } while (now < intervalEnd);
 
-  if (stepped) {
-    arena->tracedTime += (now - start) / (double) clocks_per_sec;
+  if (workWasDone) {
+    ArenaAccumulateTime(arena, start, now);
   }
 
-  return stepped;
+  return workWasDone;
 }
 
 /* ArenaFinalize -- registers an object for finalization
@@ -846,7 +870,7 @@ Res ArenaDefinalize(Arena arena, Ref obj)
 }
 
 
-/* Peek / Poke */
+/* ArenaPeek -- read a single reference, possibly through a barrier */
 
 Ref ArenaPeek(Arena arena, Ref *p)
 {
@@ -854,6 +878,7 @@ Ref ArenaPeek(Arena arena, Ref *p)
   Ref ref;
 
   AVERT(Arena, arena);
+  /* Can't check p as it is arbitrary */
 
   if (SegOfAddr(&seg, arena, (Addr)p))
     ref = ArenaPeekSeg(arena, seg, p);
@@ -862,74 +887,19 @@ Ref ArenaPeek(Arena arena, Ref *p)
   return ref;
 }
 
+/* ArenaPeekSeg -- as ArenaPeek, but p must be in seg. */
+
 Ref ArenaPeekSeg(Arena arena, Seg seg, Ref *p)
 {
   Ref ref;
-
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-
-  AVER(SegBase(seg) <= (Addr)p);
-  AVER((Addr)p < SegLimit(seg));
-  /* TODO: Consider checking addr's alignment using seg->pool->alignment */
-
-  ShieldExpose(arena, seg);
-  ref = *p;
-  ShieldCover(arena, seg);
-  return ref;
-}
-
-void ArenaPoke(Arena arena, Ref *p, Ref ref)
-{
-  Seg seg;
-
-  AVERT(Arena, arena);
-  /* Can't check addr as it is arbitrary */
-  /* Can't check ref as it is arbitrary */
-
-  if (SegOfAddr(&seg, arena, (Addr)p))
-    ArenaPokeSeg(arena, seg, p, ref);
-  else
-    *p = ref;
-}
-
-void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
-{
-  RefSet summary;
-
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= (Addr)p);
-  AVER((Addr)p < SegLimit(seg));
-  /* TODO: Consider checking addr's alignment using seg->pool->alignment */
-  /* ref is arbitrary and can't be checked */
-
-  ShieldExpose(arena, seg);
-  *p = ref;
-  summary = SegSummary(seg);
-  summary = RefSetAdd(arena, summary, (Addr)ref);
-  SegSetSummary(seg, summary);
-  ShieldCover(arena, seg);
-}
-
-
-/* ArenaRead -- read a single reference, possibly through a barrier
- *
- * This forms part of a software barrier.  It provides fine-grain access
- * to single references in segments.
- * 
- * See also PoolSingleAccess and PoolSegAccess. */
-
-Ref ArenaRead(Arena arena, Ref *p)
-{
-  Bool b;
-  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Rank rank;
 
   AVERT(Arena, arena);
-
-  b = SegOfAddr(&seg, arena, (Addr)p);
-  AVER(b == TRUE);
+  AVERT(Seg, seg);
+  AVER(PoolArena(SegPool(seg)) == arena);
+  AVER(SegBase(seg) <= (Addr)p);
+  AVER((Addr)p < SegLimit(seg));
+  /* TODO: Consider checking p's alignment using seg->pool->alignment */
 
   /* .read.flipped: We AVER that the reference that we are reading */
   /* refers to an object for which all the traces that the object is */
@@ -951,9 +921,79 @@ Ref ArenaRead(Arena arena, Ref *p)
 
   /* We don't need to update the Seg Summary as in PoolSingleAccess
    * because we are not changing it after it has been scanned. */
+
+  ShieldExpose(arena, seg);
+  ref = *p;
+  ShieldCover(arena, seg);
+  return ref;
+}
+
+/* ArenaPoke -- write a single reference, possibly through a barrier */
+
+void ArenaPoke(Arena arena, Ref *p, Ref ref)
+{
+  Seg seg;
+
+  AVERT(Arena, arena);
+  /* Can't check p as it is arbitrary */
+  /* Can't check ref as it is arbitrary */
+
+  if (SegOfAddr(&seg, arena, (Addr)p))
+    ArenaPokeSeg(arena, seg, p, ref);
+  else
+    *p = ref;
+}
+
+/* ArenaPokeSeg -- as ArenaPoke, but p must be in seg. */
+
+void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
+{
+  RefSet summary;
+
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
+  AVER(PoolArena(SegPool(seg)) == arena);
+  AVER(SegBase(seg) <= (Addr)p);
+  AVER((Addr)p < SegLimit(seg));
+  /* TODO: Consider checking p's alignment using seg->pool->alignment */
+  /* ref is arbitrary and can't be checked */
+
+  ShieldExpose(arena, seg);
+  *p = ref;
+  summary = SegSummary(seg);
+  summary = RefSetAdd(arena, summary, (Addr)ref);
+  SegSetSummary(seg, summary);
+  ShieldCover(arena, seg);
+}
+
+/* ArenaRead -- like ArenaPeek, but reference known to be owned by arena */
+
+Ref ArenaRead(Arena arena, Ref *p)
+{
+  Bool b;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
+
+  AVERT(Arena, arena);
+
+  b = SegOfAddr(&seg, arena, (Addr)p);
+  AVER(b == TRUE);
   
-  /* get the possibly fixed reference */
   return ArenaPeekSeg(arena, seg, p);
+}
+
+/* ArenaWrite -- like ArenaPoke, but reference known to be owned by arena */
+
+void ArenaWrite(Arena arena, Ref *p, Ref ref)
+{
+  Bool b;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
+
+  AVERT(Arena, arena);
+
+  b = SegOfAddr(&seg, arena, (Addr)p);
+  AVER(b == TRUE);
+  
+  ArenaPokeSeg(arena, seg, p, ref);
 }
 
 
@@ -964,7 +1004,6 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   Res res;
   Arena arena;
   Ring node, nextNode;
-  Index i;
   TraceId ti;
   Trace trace;
 
@@ -973,8 +1012,12 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   if (stream == NULL)
     return ResFAIL;
 
+  res = WriteF(stream, depth, "Globals\n", NULL);
+  if (res != ResOK)
+    return res;  
+
   arena = GlobalsArena(arenaGlobals);
-  res = WriteF(stream, depth,
+  res = WriteF(stream, depth + 2,
                "mpsVersion $S\n", (WriteFS)arenaGlobals->mpsVersionString,
                "lock $P\n", (WriteFP)arenaGlobals->lock,
                "pollThreshold $U kB\n",
@@ -995,70 +1038,55 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
                "rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
                "formatSerial $U\n", (WriteFU)arena->formatSerial,
                "threadSerial $U\n", (WriteFU)arena->threadSerial,
-               arena->insideShield ? "inside" : "outside", " shield\n",
                "busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "flippedTraces $B\n", (WriteFB)arena->flippedTraces,
-               "epoch $U\n", (WriteFU)arena->epoch,
-               "prehistory = $B\n", (WriteFB)arena->prehistory,
-               "history {\n",
-               "  [note: indices are raw, not rotated]\n",
                NULL);
   if (res != ResOK)
     return res;
 
-  for(i=0; i < LDHistoryLENGTH; ++ i) {
-    res = WriteF(stream, depth + 2,
-                 "[$U] = $B\n", (WriteFU)i, (WriteFB)arena->history[i],
-                 NULL);
-    if (res != ResOK)
-      return res;
-  }
-
-  res = WriteF(stream, depth,
-               "} history\n",
-               "suspended $S\n", WriteFYesNo(arena->suspended),
-               "shDepth $U\n", (WriteFU)arena->shDepth,
-               "shCacheI $U\n", (WriteFU)arena->shCacheI,
-               /* @@@@ should SegDescribe the cached segs? */
-               NULL);
+  res = HistoryDescribe(ArenaHistory(arena), stream, depth + 2);
   if (res != ResOK)
     return res;
 
-  res = RootsDescribe(arenaGlobals, stream, depth);
+  res = ShieldDescribe(ArenaShield(arena), stream, depth + 2);
+  if (res != ResOK)
+    return res;
+
+  res = RootsDescribe(arenaGlobals, stream, depth + 2);
   if (res != ResOK)
     return res;
 
   RING_FOR(node, &arenaGlobals->poolRing, nextNode) {
     Pool pool = RING_ELT(Pool, arenaRing, node);
-    res = PoolDescribe(pool, stream, depth);
+    res = PoolDescribe(pool, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->formatRing, nextNode) {
     Format format = RING_ELT(Format, arenaRing, node);
-    res = FormatDescribe(format, stream, depth);
+    res = FormatDescribe(format, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->threadRing, nextNode) {
     Thread thread = ThreadRingThread(node);
-    res = ThreadDescribe(thread, stream, depth);
+    res = ThreadDescribe(thread, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   RING_FOR(node, &arena->chainRing, nextNode) {
     Chain chain = RING_ELT(Chain, chainRing, node);
-    res = ChainDescribe(chain, stream, depth);
+    res = ChainDescribe(chain, stream, depth + 2);
     if (res != ResOK)
       return res;
   }
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
     if (TraceSetIsMember(arena->busyTraces, trace)) {
-      res = TraceDescribe(trace, stream, depth);
+      res = TraceDescribe(trace, stream, depth + 2);
       if (res != ResOK)
         return res;
     }
@@ -1103,7 +1131,7 @@ Bool ArenaEmergency(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

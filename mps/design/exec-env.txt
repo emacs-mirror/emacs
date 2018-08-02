@@ -78,9 +78,9 @@ and not library calls. We assume that we may not make use of
 definitions in any other headers in freestanding parts of the system.
 
 _`.int.free.term`: We may not terminate the program in a freestanding
-environment, and therefore we may not call :c:func:`abort`. We can't
-call :c:func:`abort` anyway, because it's not defined in the headers
-listed above (`.int.free.lib`_).
+environment, and therefore we may not call ``abort()``. We can't call
+``abort()`` anyway, because it's not defined in the headers listed
+above (`.int.free.lib`_).
 
 _`.int.free.term.own`: We can add an interface for asserting, that is,
 reporting an error and not returning, for use in debugging builds
@@ -112,10 +112,10 @@ The core must be freestanding.
 
 _`.arch.platform`: The *platform* provides the core with interfaces to
 features of the operating system and processor (locks, memory
-protection, protection mutator context, stack probing, stack and
-register scanning, thread management, and virtual memory). The
-platform is specialized to a particular environment and so can safely
-use whatever features are available in that environment.
+protection, mutator context, stack probing, stack and register
+scanning, thread management, and virtual memory). The platform is
+specialized to a particular environment and so can safely use whatever
+features are available in that environment.
 
 _`.arch.plinth`: The *plinth* provides the core with interfaces to
 features of the user environment (time, assertions, and logging). See
@@ -149,8 +149,8 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 1996-2015 Ravenbrook Limited. All rights reserved.
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+Copyright © 1996-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

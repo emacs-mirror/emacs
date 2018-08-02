@@ -1,7 +1,7 @@
 /* tagtest.c: TAGGED POINTER TEST
  *
  * $Id$
- * Copyright (c) 2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2015-2016 Ravenbrook Limited.  See end of file for license.
  *
  * .overview: This test case checks that the MPS correctly handles
  * tagged pointers via the object format and tagged area scanning.
@@ -77,9 +77,12 @@ static void pad(mps_addr_t addr, size_t size)
   }
 }
 
+static mps_arena_t arena;
+
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base,
                       mps_addr_t limit)
 {
+  Insist(mps_arena_busy(arena));
   MPS_SCAN_BEGIN(ss) {
     mps_word_t *p = base;
     while (p < (mps_word_t *)limit) {
@@ -106,7 +109,7 @@ static mps_addr_t skip(mps_addr_t addr)
 }
 
 
-static void collect(mps_arena_t arena, size_t expected)
+static void collect(size_t expected)
 {
   size_t finalized = 0;
   mps_arena_collect(arena);
@@ -148,7 +151,6 @@ static const char *mode_name[] = {
 
 static void test(int mode)
 {
-  mps_arena_t arena;
   mps_thr_t thread;
   mps_root_t root;
   mps_fmt_t fmt;
@@ -214,7 +216,7 @@ static void test(int mode)
     die(mps_finalize(arena, &addr), "finalize");
   }
 
-  collect(arena, expected);
+  collect(expected);
 
   mps_arena_park(arena);
   mps_ap_destroy(ap);
@@ -267,7 +269,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2015-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

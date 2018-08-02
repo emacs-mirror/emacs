@@ -45,6 +45,20 @@ Manual allocation
     unaligned, it will be rounded up to the pool's :term:`alignment`
     (unless the pool documentation says otherwise).
 
+    .. note::
+
+        It is tempting to call :c:func:`mps_alloc` with a cast from
+        the desired pointer type to ``mps_addr_t *``, like this::
+
+            my_object *obj;
+            res = mps_alloc((mps_addr_t *)&obj, pool, sizeof *obj);
+            if (res != MPS_RES_OK)
+                error(...);
+
+        but this is :term:`type punning`, and its behaviour is not
+        defined in ANSI/ISO Standard C. See :ref:`topic-interface-pun`
+        for more details.
+
 
 .. c:function:: void mps_free(mps_pool_t pool, mps_addr_t addr, size_t size)
 
@@ -633,7 +647,6 @@ never fails).
              mps_addr_t init;
              mps_addr_t alloc;
              mps_addr_t limit;
-             /* ... private fields ... */
          } mps_ap_s;
 
     ``init`` is the limit of initialized memory.

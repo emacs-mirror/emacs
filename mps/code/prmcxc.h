@@ -1,7 +1,7 @@
-/* prmcxc.h: PROTECTION MUTATOR CONTEXT FOR OS X MACH
+/* prmcxc.h: MUTATOR CONTEXT (macOS)
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */
@@ -14,20 +14,25 @@
 #include <mach/mach_types.h>
 #include <mach/i386/thread_status.h>
 
-typedef struct MutatorFaultContextStruct { /* Protection fault context data */
-  Addr address;
+typedef struct MutatorContextStruct {
+  Sig sig;                      /* <design/sig/> */
+  MutatorContextVar var;        /* Discriminator. */
+  Addr address;                 /* Fault address, if stopped by protection
+                                 * fault; NULL if stopped by thread manager. */
   THREAD_STATE_S *threadState;
   /* FIXME: Might need to get the floats in case the compiler stashes
      intermediate values in them. */
-} MutatorFaultContextStruct;
+} MutatorContextStruct;
 
+extern void MutatorContextInitFault(MutatorContext context, Addr address, THREAD_STATE_S *threadState);
+extern void MutatorContextInitThread(MutatorContext context, THREAD_STATE_S *threadState);
 
 #endif /* prmcxc_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -1,7 +1,7 @@
 /* poolabs.c: ABSTRACT POOL CLASSES
  *
  * $Id$
- * Copyright (c) 2001-2015 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * PURPOSE
@@ -20,20 +20,12 @@
  *    AbstractPoolClass     - implements init, finish, describe
  *     AbstractBufferPoolClass - implements the buffer protocol
  *      AbstractSegBufPoolClass - uses SegBuf buffer class
- *       AbstractScanPoolClass - implements basic scanning
- *        AbstractCollectPoolClass - implements basic GC
+ *       AbstractCollectPoolClass - implements basic GC
  */
 
 #include "mpm.h"
 
 SRCID(poolabs, "$Id$");
-
-
-typedef PoolClassStruct AbstractPoolClassStruct;
-typedef PoolClassStruct AbstractBufferPoolClassStruct;
-typedef PoolClassStruct AbstractSegBufPoolClassStruct;
-typedef PoolClassStruct AbstractScanPoolClassStruct;
-typedef PoolClassStruct AbstractCollectPoolClassStruct;
 
 
 /* Mixins:
@@ -49,130 +41,162 @@ typedef PoolClassStruct AbstractCollectPoolClassStruct;
 
 /* PoolClassMixInBuffer -- mix in the protocol for buffer reserve / commit */
 
-void PoolClassMixInBuffer(PoolClass class)
+void PoolClassMixInBuffer(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->bufferFill = PoolTrivBufferFill;
-  class->bufferEmpty = PoolTrivBufferEmpty;
+  /* Can't check klass because it's not initialized yet */
+  klass->bufferFill = PoolTrivBufferFill;
+  klass->bufferEmpty = PoolTrivBufferEmpty;
   /* By default, buffered pools treat frame operations as NOOPs */
-  class->framePush = PoolTrivFramePush;
-  class->framePop = PoolTrivFramePop;
-  class->framePopPending = PoolTrivFramePopPending;
-  class->bufferClass = BufferClassGet;
-}
-
-
-/* PoolClassMixInScan -- mix in the protocol for scanning */
-
-void PoolClassMixInScan(PoolClass class)
-{
-  /* Can't check class because it's not initialized yet */
-  class->access = PoolSegAccess;
-  class->blacken = PoolTrivBlacken;
-  class->grey = PoolTrivGrey;
-  /* scan is part of the scanning protocol, but there is no useful
-   * default method.
-   */
-  class->scan = NULL;
-}
-
-
-/* PoolClassMixInFormat -- mix in the protocol for formatted pools */
-
-void PoolClassMixInFormat(PoolClass class)
-{
-  /* Can't check class because it's not initialized yet */
-  class->attr |= AttrFMT;
-  /* walk is part of the format protocol, but there is no useful
-   * default method.
-   */
-  class->walk = NULL;
+  klass->framePush = PoolTrivFramePush;
+  klass->framePop = PoolTrivFramePop;
+  klass->bufferClass = BufferClassGet;
 }
 
 
 /* PoolClassMixInCollect -- mix in the protocol for GC */
 
-void PoolClassMixInCollect(PoolClass class)
+void PoolClassMixInCollect(PoolClass klass)
 {
-  /* Can't check class because it's not initialized yet */
-  class->attr |= AttrGC;
-  class->whiten = PoolTrivWhiten;
-  /* fix, fixEmergency and reclaim are part of the collection
-   * protocol, but there are no useful default methods for them.
-   */
-  class->fix = NULL;
-  class->fixEmergency = NULL;
-  class->reclaim = NULL;
-  class->rampBegin = PoolTrivRampBegin;
-  class->rampEnd = PoolTrivRampEnd;
+  /* Can't check klass because it's not initialized yet */
+  klass->attr |= AttrGC;
+  klass->rampBegin = PoolTrivRampBegin;
+  klass->rampEnd = PoolTrivRampEnd;
 }
 
 
 /* Classes */
 
 
-DEFINE_CLASS(AbstractPoolClass, class)
+/* PoolAbsInit -- initialize an abstract pool instance */
+
+Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
 {
-  INHERIT_CLASS(&class->protocol, ProtocolClass);
-  class->name = "ABSTRACT";
-  class->size = 0;
-  class->offset = 0;
-  class->attr = 0;
-  class->varargs = ArgTrivVarargs;
-  class->init = PoolTrivInit;
-  class->finish = PoolTrivFinish;
-  class->alloc = PoolNoAlloc;
-  class->free = PoolNoFree;
-  class->bufferFill = PoolNoBufferFill;
-  class->bufferEmpty = PoolNoBufferEmpty;
-  class->access = PoolNoAccess;
-  class->whiten = PoolNoWhiten;
-  class->grey = PoolNoGrey;
-  class->blacken = PoolNoBlacken;
-  class->scan = PoolNoScan;
-  class->fix = PoolNoFix;
-  class->fixEmergency = PoolNoFix;
-  class->reclaim = PoolNoReclaim;
-  class->traceEnd = PoolTrivTraceEnd;
-  class->rampBegin = PoolNoRampBegin;
-  class->rampEnd = PoolNoRampEnd;
-  class->framePush = PoolNoFramePush;
-  class->framePop = PoolNoFramePop;
-  class->framePopPending = PoolNoFramePopPending;
-  class->addrObject = PoolNoAddrObject;
-  class->walk = PoolNoWalk;
-  class->freewalk = PoolTrivFreeWalk;
-  class->bufferClass = PoolNoBufferClass;
-  class->describe = PoolTrivDescribe;
-  class->debugMixin = PoolNoDebugMixin;
-  class->totalSize = PoolNoSize;
-  class->freeSize = PoolNoSize;
-  class->labelled = FALSE;
-  class->sig = PoolClassSig;
+  ArgStruct arg;
+  
+  AVER(pool != NULL);
+  AVERT(Arena, arena);
+  UNUSED(args);
+  UNUSED(klass); /* used for debug pools only */
+  
+  /* Superclass init */
+  InstInit(CouldBeA(Inst, pool));
+
+  pool->arena = arena;
+  RingInit(&pool->arenaRing);
+  RingInit(&pool->bufferRing);
+  RingInit(&pool->segRing);
+  pool->bufferSerial = (Serial)0;
+  pool->alignment = MPS_PF_ALIGN;
+  pool->alignShift = SizeLog2(pool->alignment);
+  pool->format = NULL;
+
+  if (ArgPick(&arg, args, MPS_KEY_FORMAT)) {
+    Format format = arg.val.format;
+    AVERT(Format, format);
+    AVER(FormatArena(format) == arena);
+    pool->format = format;
+    /* .init.format: Increment reference count on the format for
+       consistency checking.  See .finish.format. */
+    ++pool->format->poolCount;
+  } else {
+    pool->format = NULL;
+  }
+
+  pool->serial = ArenaGlobals(arena)->poolSerial;
+  ++ArenaGlobals(arena)->poolSerial;
+
+  /* Initialise signature last; see <design/sig/> */
+  SetClassOfPoly(pool, CLASS(AbstractPool));
+  pool->sig = PoolSig;
+  AVERT(Pool, pool);
+
+  /* Add initialized pool to list of pools in arena. */
+  RingAppend(ArenaPoolRing(arena), PoolArenaRing(pool));
+
+  return ResOK;
 }
 
-DEFINE_CLASS(AbstractBufferPoolClass, class)
+
+/* PoolAbsFinish -- finish an abstract pool instance */
+
+void PoolAbsFinish(Inst inst)
 {
-  INHERIT_CLASS(class, AbstractPoolClass);
-  PoolClassMixInBuffer(class);
+  Pool pool = MustBeA(AbstractPool, inst);
+  
+  /* Detach the pool from the arena and format, and unsig it. */
+  RingRemove(PoolArenaRing(pool));
+
+  /* .finish.format: Decrement the reference count on the format for
+     consistency checking.  See .format.init. */
+  if (pool->format) {
+    AVER(pool->format->poolCount > 0);
+    --pool->format->poolCount;
+    pool->format = NULL;
+  }
+
+  pool->sig = SigInvalid;
+  InstFinish(CouldBeA(Inst, pool));
+ 
+  RingFinish(&pool->segRing);
+  RingFinish(&pool->bufferRing);
+  RingFinish(&pool->arenaRing);
+ 
+  EVENT1(PoolFinish, pool);
 }
 
-DEFINE_CLASS(AbstractSegBufPoolClass, class)
+DEFINE_CLASS(Inst, PoolClass, klass)
 {
-  INHERIT_CLASS(class, AbstractBufferPoolClass);
-  class->bufferClass = SegBufClassGet;
+  INHERIT_CLASS(klass, PoolClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
-DEFINE_CLASS(AbstractScanPoolClass, class)
+DEFINE_CLASS(Pool, AbstractPool, klass)
 {
-  INHERIT_CLASS(class, AbstractSegBufPoolClass);
-  PoolClassMixInScan(class);
+  INHERIT_CLASS(&klass->instClassStruct, AbstractPool, Inst);
+  klass->instClassStruct.describe = PoolAbsDescribe;
+  klass->instClassStruct.finish = PoolAbsFinish;
+  klass->size = sizeof(PoolStruct);
+  klass->attr = 0;
+  klass->varargs = ArgTrivVarargs;
+  klass->init = PoolAbsInit;
+  klass->alloc = PoolNoAlloc;
+  klass->free = PoolNoFree;
+  klass->bufferFill = PoolNoBufferFill;
+  klass->bufferEmpty = PoolNoBufferEmpty;
+  klass->rampBegin = PoolNoRampBegin;
+  klass->rampEnd = PoolNoRampEnd;
+  klass->framePush = PoolNoFramePush;
+  klass->framePop = PoolNoFramePop;
+  klass->segPoolGen = PoolNoSegPoolGen;
+  klass->freewalk = PoolTrivFreeWalk;
+  klass->bufferClass = PoolNoBufferClass;
+  klass->debugMixin = PoolNoDebugMixin;
+  klass->totalSize = PoolNoSize;
+  klass->freeSize = PoolNoSize;
+  klass->sig = PoolClassSig;
+  AVERT(PoolClass, klass);
 }
 
-DEFINE_CLASS(AbstractCollectPoolClass, class)
+DEFINE_CLASS(Pool, AbstractBufferPool, klass)
 {
-  INHERIT_CLASS(class, AbstractScanPoolClass);
-  PoolClassMixInCollect(class);
+  INHERIT_CLASS(klass, AbstractBufferPool, AbstractPool);
+  PoolClassMixInBuffer(klass);
+  AVERT(PoolClass, klass);
+}
+
+DEFINE_CLASS(Pool, AbstractSegBufPool, klass)
+{
+  INHERIT_CLASS(klass, AbstractSegBufPool, AbstractBufferPool);
+  klass->bufferClass = SegBufClassGet;
+  klass->bufferEmpty = PoolSegBufferEmpty;
+  AVERT(PoolClass, klass);
+}
+
+DEFINE_CLASS(Pool, AbstractCollectPool, klass)
+{
+  INHERIT_CLASS(klass, AbstractCollectPool, AbstractSegBufPool);
+  PoolClassMixInCollect(klass);
+  AVERT(PoolClass, klass);
 }
 
 
@@ -181,39 +205,20 @@ DEFINE_CLASS(AbstractCollectPoolClass, class)
  * See <design/pool/#no> and <design/pool/#triv>
  */
 
-
-void PoolTrivFinish(Pool pool)
-{
-  AVERT(Pool, pool);
-  NOOP;
-}
-
-Res PoolTrivInit(Pool pool, ArgList args)
-{
-  AVERT(Pool, pool);
-  AVERT(ArgList, args);
-  UNUSED(args);
-  return ResOK;
-}
-
-Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
-                Bool withReservoirPermit)
+Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResUNIMPL;
 }
 
-Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size,
-                  Bool withReservoirPermit)
+Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   return ResLIMIT;
 }
 
@@ -233,24 +238,29 @@ void PoolTrivFree(Pool pool, Addr old, Size size)
   NOOP;                         /* trivial free has no effect */
 }
 
+PoolGen PoolNoSegPoolGen(Pool pool, Seg seg)
+{
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(pool == SegPool(seg));
+  NOTREACHED;
+  return NULL;
+}
 
 Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
-                     Pool pool, Buffer buffer, Size size,
-                     Bool withReservoirPermit)
+                     Pool pool, Buffer buffer, Size size)
 {
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
   NOTREACHED;
   return ResUNIMPL;
 }
 
 Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
-                       Pool pool, Buffer buffer, Size size,
-                       Bool withReservoirPermit)
+                       Pool pool, Buffer buffer, Size size)
 {
   Res res;
   Addr p;
@@ -260,9 +270,8 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
-  AVERT(Bool, withReservoirPermit);
 
-  res = PoolAlloc(&p, pool, size, withReservoirPermit);
+  res = PoolAlloc(&p, pool, size);
   if (res != ResOK)
     return res;
  
@@ -272,34 +281,82 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
 }
 
 
-void PoolNoBufferEmpty(Pool pool, Buffer buffer,
-                       Addr init, Addr limit)
+void PoolNoBufferEmpty(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
-  AVER(init <= limit);
   NOTREACHED;
 }
 
-void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
+void PoolTrivBufferEmpty(Pool pool, Buffer buffer)
 {
+  Addr init, limit;
+
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
+
+  init = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
   AVER(init <= limit);
   if (limit > init)
     PoolFree(pool, init, AddrOffset(init, limit));
 }
 
-
-Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream, Count depth)
+void PoolSegBufferEmpty(Pool pool, Buffer buffer)
 {
+  Seg seg;
+
   AVERT(Pool, pool);
-  AVER(stream != NULL);
-  return WriteF(stream, depth,
-                "No class-specific description available.\n",
-                NULL);
+  AVERT(Buffer, buffer);
+  AVER(BufferIsReady(buffer));
+  seg = BufferSeg(buffer);
+  AVERT(Seg, seg);
+
+  Method(Seg, seg, bufferEmpty)(seg, buffer);
+}
+
+
+Res PoolAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
+{
+  Pool pool = CouldBeA(AbstractPool, inst);
+  Res res;
+  Ring node, nextNode;
+
+  if (!TESTC(AbstractPool, pool))
+    return ResPARAM;
+  if (stream == NULL)
+    return ResPARAM;
+
+  res = InstDescribe(CouldBeA(Inst, pool), stream, depth);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, depth + 2,
+               "serial $U\n", (WriteFU)pool->serial,
+               "arena $P ($U)\n",
+               (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
+               "alignment $W\n", (WriteFW)pool->alignment,
+               "alignShift $W\n", (WriteFW)pool->alignShift,
+               NULL);
+  if (res != ResOK)
+    return res;
+
+  if (pool->format != NULL) {
+    res = FormatDescribe(pool->format, stream, depth + 2);
+    if (res != ResOK)
+      return res;
+  }
+
+  RING_FOR(node, &pool->bufferRing, nextNode) {
+    Buffer buffer = RING_ELT(Buffer, poolRing, node);
+    res = BufferDescribe(buffer, stream, depth + 2);
+    if (res != ResOK)
+      return res;
+  }
+
+  return ResOK;
 }
 
 
@@ -319,231 +376,6 @@ Res PoolTrivTraceBegin(Pool pool, Trace trace)
   AVER(PoolArena(pool) == trace->arena);
   return ResOK;
 }
-
-/* NoAccess
- *
- * Should be used (for the access method) by Pool Classes which do
- * not expect to ever have pages which the mutator will fault on.
- * That is, no protected pages, or only pages which are inaccessible
- * by the mutator are protected.
- */
-Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
-                 AccessSet mode, MutatorFaultContext context)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  AVERT(AccessSet, mode);
-  /* can't check context as there is no Check method */
-  UNUSED(mode);
-  UNUSED(context);
-
-  NOTREACHED;
-  return ResUNIMPL;
-}
-
-
-/* SegAccess
- *
- * See also PoolSingleAccess
- *
- * Should be used (for the access method) by Pool Classes which intend
- * to handle page faults by scanning the entire segment and lowering
- * the barrier.
- */
-Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
-                  AccessSet mode, MutatorFaultContext context)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  AVER(SegPool(seg) == pool);
-  AVERT(AccessSet, mode);
-  /* can't check context as there is no Check method */
-
-  UNUSED(addr);
-  UNUSED(context);
-  TraceSegAccess(PoolArena(pool), seg, mode);
-  return ResOK;
-}
-
-
-/* SingleAccess
- *
- * See also ArenaRead, and PoolSegAccess.
- *
- * Handles page faults by attempting emulation.  If the faulting
- * instruction cannot be emulated then this function returns ResFAIL.
- *
- * Due to the assumptions made below, pool classes should only use
- * this function if all words in an object are tagged or traceable.
- *
- * .single-access.assume.ref: It currently assumes that the address
- * being faulted on contains a plain reference or a tagged non-reference.
- * .single-access.improve.format: Later this will be abstracted
- * through the cleint object format interface, so that
- * no such assumption is necessary.
- */
-Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
-                     AccessSet mode, MutatorFaultContext context)
-{
-  Arena arena;
-
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  AVER(SegPool(seg) == pool);
-  AVERT(AccessSet, mode);
-  /* can't check context as there is no Check method */
-
-  arena = PoolArena(pool);
-
-  if(ProtCanStepInstruction(context)) {
-    Ref ref;
-    Res res;
-
-    ShieldExpose(arena, seg);
-
-    if(mode & SegSM(seg) & AccessREAD) {
-      /* Read access. */
-      /* .single-access.assume.ref */
-      /* .single-access.improve.format */
-      ref = *(Ref *)addr;
-      /* .tagging: Check that the reference is aligned to a word boundary */
-      /* (we assume it is not a reference otherwise). */
-      if(WordIsAligned((Word)ref, sizeof(Word))) {
-        Rank rank;
-        /* See the note in TraceRankForAccess */
-        /* (<code/trace.c#scan.conservative>). */
-        
-        rank = TraceRankForAccess(arena, seg);
-        TraceScanSingleRef(arena->flippedTraces, rank, arena,
-                           seg, (Ref *)addr);
-      }
-    }
-    res = ProtStepInstruction(context);
-    AVER(res == ResOK);
-
-    /* Update SegSummary according to the possibly changed reference. */
-    ref = *(Ref *)addr;
-    /* .tagging: ought to check the reference for a tag.  But
-     * this is conservative. */
-    SegSetSummary(seg, RefSetAdd(arena, SegSummary(seg), ref));
-
-    ShieldCover(arena, seg);
-
-    return ResOK;
-  } else {
-    /* couldn't single-step instruction */
-    return ResFAIL;
-  }
-}
-
-
-Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-
-  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
-
-  return ResOK;
-}
-
-Res PoolNoWhiten(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  NOTREACHED;
-  return ResUNIMPL;
-}
-
-
-void PoolNoGrey(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  NOTREACHED;
-}
-
-void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-
-  /* If we had a (partially) white seg, then other parts of the */
-  /* same seg might need to get greyed. In fact, all current pools */
-  /* only ever Whiten a whole seg, so we never need to Greyen any */
-  /* part of an already Whitened seg.  So we hereby exclude white */
-  /* segs. */
-  /* @@@@ This should not really be called 'trivial'! */
-  if(!TraceSetIsMember(SegWhite(seg), trace))
-    SegSetGrey(seg, TraceSetSingle(trace));
-}
-
-
-void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-  NOTREACHED;
-}
-
-void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-
-  /* The trivial blacken method does nothing; for pool classes which do */
-  /* not keep additional colour information. */
-  NOOP;
-}
-
-
-Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  NOTREACHED;
-  return ResUNIMPL;
-}
-
-Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
-{
-  AVERT(Pool, pool);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  AVER(refIO != NULL);
-  NOTREACHED;
-  return ResUNIMPL;
-}
-
-void PoolNoReclaim(Pool pool, Trace trace, Seg seg)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  NOTREACHED;
-}
-
-void PoolTrivTraceEnd(Pool pool, Trace trace)
-{
-  AVERT(Pool, pool);
-  AVERT(Trace, trace);
-  NOOP;
-}
-
 
 void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll)
 {
@@ -598,16 +430,6 @@ Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame)
 }
 
 
-void PoolNoFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buf);
-  /* frame is of an abstract type & can't be checked */
-  UNUSED(frame);
-  NOTREACHED;
-}
-
-
 Res PoolTrivFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
 {
   AVER(frameReturn != NULL);
@@ -624,41 +446,6 @@ Res PoolTrivFramePop(Pool pool, Buffer buf, AllocFrame frame)
   /* frame is of an abstract type & can't be checked */
   UNUSED(frame);
   return ResOK;
-}
-
-
-void PoolTrivFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
-{
-  AVERT(Pool, pool);
-  AVERT(Buffer, buf);
-  /* frame is of an abstract type & can't be checked */
-  UNUSED(frame);
-  NOOP;
-}
-
-
-Res PoolNoAddrObject(Addr *pReturn, Pool pool, Seg seg, Addr addr)
-{
-  AVER(pReturn != NULL);
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegPool(seg) == pool);
-  AVER(SegBase(seg) <= addr);
-  AVER(addr < SegLimit(seg));
-  return ResUNIMPL;
-}
-
-void PoolNoWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                void *p, size_t s)
-{
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(FUNCHECK(f));
-  /* p and s are arbitrary, hence can't be checked */
-  UNUSED(p);
-  UNUSED(s);
-
-  NOTREACHED;
 }
 
 
@@ -691,7 +478,7 @@ Size PoolNoSize(Pool pool)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

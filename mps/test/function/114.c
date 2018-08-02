@@ -84,7 +84,7 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i=1; i<5000; i++)
+  for (i=0; i<1000; i++)
   {
    c = allocone(apamc, 20, mps_rank_exact());
    d = allocone(apawl, 20, mps_rank_exact());
