@@ -237,10 +237,10 @@ def bits_of_word(w, n):
 class TimeSeries:
     "Series of data points in time order."
     def __init__(self, note=None, draw=None):
+        self._note_fn = note
+        self._draw_fn = draw
         self.t = []
         self.y = []
-        self.note = note
-        self.draw = draw
 
     def __len__(self):
         return len(self.t)
@@ -262,6 +262,18 @@ class TimeSeries:
             i = i-1
         return i
 
+    def recompute(self, f):
+        pass
+
+    def note(self, line, t, index, verbose=False):
+        if self._note_fn:
+            return self._note_fn(line, t, index, verbose=verbose)
+        return None, None
+
+    def draw(self, line, t, index, axes_dict):
+        if self._draw_fn:
+            return self._draw_fn(line, t, index, axes_dict)
+        return None
 
 class Accumulator(TimeSeries):
     "Time series that is always non-negative and updates by accumulation."
@@ -289,10 +301,13 @@ class RateSeries(TimeSeries):
         super().__init__()
         self._period = period
         self._count = 0
+        self._start = t
+        self.ts=[]
         self._limit = ((t // period) + 1) * period
 
     def inc(self, t):
         self.null(t)
+        self.ts.append(t)
         self._count += 1
 
     def null(self, t):
@@ -300,17 +315,23 @@ class RateSeries(TimeSeries):
             self.append(self._limit - self._period/2, self._count)
             self._count = 0
             self._limit += self._period
+    
+    def recompute(self, f):
+        ts = self.ts
+        self.__init__(self._start, self._period * f)
+        for t in ts:
+            self.inc(t)
+        return f'period {self._period:.3f} s'
 
 class OnOffSeries(TimeSeries):
     """Series of on/off events; can draw as an exponentially weighted moving
 average on/off ratio or (potentially) as shading bars."""
     def __init__(self, t, k=1):
-        super().__init__(draw=self.draw)
+        super().__init__()
         self._ons = []
         self._start = self._last = t
         self._k = k
         self._ratio = 0.0
-        self.note = self._note
 
     def off(self, t):
         dt = t - self._last
@@ -327,19 +348,15 @@ average on/off ratio or (potentially) as shading bars."""
         self._last = t
         self.append(t, self._ratio)
 
-    def recompute(self, k):
-        self._k = k
-        self._last = self._start
-        self._ratio = 0.0
+    def recompute(self, f):
         ts = self.t
-        self.t = []
-        self.y = []
-        self._ons = []
+        self.__init__(self._start, self._k / f)
         for i in range(len(ts) // 2):
             self.on(ts[i*2])
             self.off(ts[i*2+1])
+        return f'time constant: {1/self._k:.3f} s'
 
-    def _note(self, line, t, index, verbose=False):
+    def note(self, line, t, index, verbose=False):
         on = self._ons[index // 2]
         l = on[1]-on[0]
         note = f"{line.name}: {on[0]:.3f} + {l * 1000:.3f} ms"
@@ -628,8 +645,7 @@ class Arena(EventHandler):
             self._access[am] = RateSeries(t)
             self.model.add_time_series(
                 self, self._access[am], countAxis, f"{name} barrier",
-                f"{name} barrier hits per second",
-                marker='x')
+                f"{name} barrier hits per second")
         self._last_access = None
         self._seg_size = {}      # segment pointer -> size
         self._seg_summary = {}   # segment pointer -> summary
@@ -727,8 +743,8 @@ class Arena(EventHandler):
         self._poll.off(t)
 
     def ArenaAccess(self, t, event):
-        if event.count != self._last_access:
-            self._last_access = event.count
+        if self._last_access is None or event.count != self._last_access.count:
+            self._last_access = event
             self._access[event.mode].inc(t)
             for trace in self._live_traces.values():
                 trace.ArenaAccess(t, event)
@@ -836,6 +852,7 @@ class Line:
         self.axes = None        # Currently plotted on axes.
         self.line = None        # Matplotlib Line2D object.
         self._kwargs = kwargs   # Keyword arguments for Axes.plot.
+        self._marker = 'marker' in self._kwargs
 
     def __len__(self):
         return len(self.series)
@@ -863,6 +880,12 @@ class Line:
         y = self.series.y
         if self.line is None:
             self.axes = axes
+            # lines without markers should have markers if they have a singleton point.
+            if not self._marker:
+                if len(self) == 1:
+                    self._kwargs['marker']='x'
+                else:
+                    self._kwargs.pop('marker',None)
             self.line, = axes.plot(x, y, color=self.color, label=self.name,
                                    **self._kwargs)
         else:
@@ -893,22 +916,22 @@ class Line:
     def note(self, index, verbose=False):
         "Return annotation text and log box text for a selected point."
         t, _ = self.series[index]
-        note = log = None
-        if self.series.note is not None:
-            return self.series.note(self, t, index, verbose=verbose)
-        return None, None
+        return self.series.note(self, t, index, verbose=verbose)
 
     def drawPoint(self, index, axes_dict):
         "Draw in response to a click on a data point, and return a list of drawn items."
         t,_ = self.series[index]
-        drawn = []
+        drawn = self.series.draw(self, t, index, axes_dict)
         # Could just draw on axes_dict[self.yaxis] ??
-        if self.clickdraw:
-            if self.series.draw is None:
+        if drawn is None:
+            if self.clickdraw:
                 drawn = [ax.axvline(t) for ax in axes_dict.values()]
             else:
-                drawn = self.series.draw(self, t, index, axes_dict)
+                drawn = []
         return drawn
+
+    def recompute(self, f):
+        return self.series.recompute(f)
 
 class Model(EventHandler):
     "Model of an application using the MPS."
@@ -932,7 +955,7 @@ class Model(EventHandler):
         "Return string labelling address or pointer, or None if unlabelled."
         return self._intern.get(self._label.get(pointer))
 
-    def plot(self, axes_dict):
+    def plot(self, axes_dict, keep_limits=False):
         "Draw time series on the given axes."
         if not self._needs_redraw:
             return
@@ -954,8 +977,9 @@ class Model(EventHandler):
             axes.set_axis_on()
             for line in yaxis_lines[yax]:
                 line.plot(axes)
-            axes.relim()
-            axes.autoscale_view()
+            if not keep_limits:
+                axes.relim()
+                axes.autoscale_view()
             bounds_axes[axes.bbox.bounds].append((axes, yax))
 
         # Set the format_coord method for each axes
@@ -1242,23 +1266,24 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._find_close(t, dispx, on_line=line, index=index)
         self._annotate(self._close_line[line])
 
-    def _clear(self, line=None):
-        "If `line` is currently selected, remove annotations."
-        if line:
-            if self._selected is None:
-                return
-            selected_line, index = self._close_points[self._selected]
-            if line != selected_line:
-                return
+    def _clear(self):
+        "Remove annotations."
         self._line_annotation.set_visible(False)
-        self._selected = self._close_points = None
         for d in self._drawn:
             d.set_visible(False)
         self._drawn = []
-        
+
+    def _unselect(self, line=None):
+        "Undo selection. If `line` is currently selected, remove annotations."
+        if self._selected is not None and line is not None:
+            selected_line, index = self._close_points[self._selected]
+            if line == selected_line:
+                self._clear()
+        self._selected = self._close_points = None
+
     def _annotate(self, line_index):
         "Select the closest point on line `line_index`."
-        if line_index < 0 or line_index > len(self._close_points):
+        if line_index < 0 or line_index >= len(self._close_points):
             return
         self._selected = line_index
         line, index = self._close_points[self._selected]
@@ -1269,6 +1294,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             log = ' '.join(note)
             note = '\n'.join(note)
         self._log(log)
+        self._clear()
         a = self._line_annotation
         if a.figure is not None:
             a.remove()
@@ -1295,7 +1321,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 closest = index
             else:
                 closest = line.closest(t, dispx)
-            if closest:
+            if closest is not None:
                 _, dispy = line.dispxy(closest)
                 pts.append((dispy, line, closest))
         self._close_points = []
@@ -1305,12 +1331,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self._close_points.append((line, index))
 
     def _recompute(self, factor):
+        self._log(f'Scaling time constants by a factor {factor}:...')
         for line in self._model.lines:
-            if line._name == "poll":
-                k = line.series._k
-                self._log(f'time constant: {1/k:.2f} -> {factor/k:.2f} ...')
-                line.series.recompute(k/factor)
-                self._log(f'... done')
+            log = line.recompute(factor)
+            if log:
+                self._log(f'  {line.name}: {log}')
         self._model.needs_redraw()
 
     def _slower(self):
@@ -1338,6 +1363,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self._annotate(self._close_line[line])
                 break
         else:
+            self._unselect()
             self._clear()
 
     @property
@@ -1350,15 +1376,16 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         "Update the model and redraw if not paused."
         if (not self._toolbar.paused
             and self._home_limits not in (None, self._limits)):
-            # Limits changed (for example, because user zoomed in), so pause
-            # further updates to give user a chance to explore.
+            # Limits changed (for example, because user zoomed in), so
+            # pause further updates to the limits of all axes, to give
+            # user a chance to explore.
             self._toolbar.pause()
             self._home_limits = None
         self._model.update()
+        self._model.plot(self._axes_dict, keep_limits = self._toolbar.paused)
         if not self._toolbar.paused:
-            self._model.plot(self._axes_dict)
             self._home_limits = self._limits
-            self._canvas.draw()
+        self._canvas.draw()
 
         # Find new time series and create corresponding checkboxes.
         checkboxes_changed = False
@@ -1382,7 +1409,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 checkbox.setToolTip(f"{line.desc} ({line.yaxis.label()})")
                 self._lines.addWidget(checkbox)
                 def state_changed(state, line=line):
-                    self._clear(line)
+                    self._unselect(line)
                     line.draw = bool(state)
                     self._model.needs_redraw()
                 checkbox.stateChanged.connect(state_changed)
