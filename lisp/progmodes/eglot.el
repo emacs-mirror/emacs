@@ -872,12 +872,12 @@ Uses THING, FACE, DEFS and PREPEND."
 ;;; Protocol implementation (Requests, notifications, etc)
 ;;;
 (cl-defmethod eglot-handle-notification
-  (_server method &key)
+  (_server method &key &allow-other-keys)
   "Handle unknown notification"
   (eglot--warn "Server sent unknown notification method `%s'" method))
 
 (cl-defmethod eglot-handle-request
-  (_server method &key)
+  (_server method &key &allow-other-keys)
   "Handle unknown request"
   (jsonrpc-error "Unknown request method `%s'" method))
 
