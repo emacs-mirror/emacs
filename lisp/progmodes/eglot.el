@@ -929,8 +929,8 @@ Uses THING, FACE, DEFS and PREPEND."
                          (let* ((st (plist-get range :start))
                                 (diag-region
                                  (flymake-diag-region
-                                  (current-buffer) (plist-get st :line)
-                                  (1- (plist-get st :character)))))
+                                  (current-buffer) (1+ (plist-get st :line))
+                                  (plist-get st :character))))
                            (setq beg (car diag-region)
                                  end (cdr diag-region))))
                      (eglot--make-diag (current-buffer) beg end
