@@ -1576,14 +1576,56 @@ rather than FUN itself, to `minibuffer-setup-hook'."
              ,@body)
          (remove-hook 'minibuffer-setup-hook ,hook)))))
 
+(defun universal-async-argument (async)
+  "Execute an interactive command using the ASYNC argument.
+For file visiting and saving commands, this toggles the meaning
+of `execute-file-commands-asynchronously'."
+  (interactive
+   (list (and (featurep 'threads) (not execute-file-commands-asynchronously))))
+  (let* ((execute-file-commands-asynchronously async)
+         (keyseq (read-key-sequence nil))
+	 (cmd (key-binding keyseq))
+	 prefix)
+    ;; `read-key-sequence' ignores quit, so make an explicit check.
+    (if (equal last-input-event (nth 3 (current-input-mode)))
+	(keyboard-quit))
+    (when (memq cmd '(universal-argument digit-argument))
+      (call-interactively cmd)
+
+      ;; Process keys bound in `universal-argument-map'.
+      (while (progn
+	       (setq keyseq (read-key-sequence nil t)
+		     cmd (key-binding keyseq t))
+	       (not (eq cmd 'universal-argument-other-key)))
+	(let ((current-prefix-arg prefix-arg)
+	      ;; Have to bind `last-command-event' here so that
+	      ;; `digit-argument', for instance, can compute the
+	      ;; `prefix-arg'.
+	      (last-command-event (aref keyseq 0)))
+	  (call-interactively cmd)))
+
+      ;; This is the final call to `universal-argument-other-key', which
+      ;; sets the final `prefix-arg'.
+      (let ((current-prefix-arg prefix-arg))
+	(call-interactively cmd))
+
+      ;; Read the command to execute with the given `prefix-arg'.
+      (setq prefix prefix-arg
+	    keyseq (read-key-sequence nil t)
+	    cmd (key-binding keyseq)))
+
+    (let ((current-prefix-arg prefix))
+      (message "")
+      (call-interactively cmd))))
+
+(define-key ctl-x-map "&" 'universal-async-argument)
+
 (defun find-file-read-args (prompt mustmatch &optional wildcards)
   "Return the interactive spec (<filename> <async>).
 If WILDCARDS is non-nil, return the spec (<filename> t <async>)."
   (let ((filename (read-file-name prompt nil default-directory mustmatch))
-        (async (and (xor find-file-asynchronously current-prefix-arg)
-                    (featurep 'threads))))
-    (when (and async (stringp find-file-asynchronously))
-      (setq async (string-match-p find-file-asynchronously filename)))
+        (async (and (featurep 'threads) execute-file-commands-asynchronously)))
+    (when (stringp async) (setq async (string-match-p async filename)))
     (if wildcards `(,filename t ,async) `(,filename ,async))))
 
 (defmacro find-file-with-threads (filename async &rest body)
@@ -1623,9 +1665,10 @@ expand wildcards (if any) and visit multiple files.  You can
 suppress wildcard expansion by setting `find-file-wildcards' to nil.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by either
-setting `find-file-asynchronously' to non-nil, or by a prefix
-argument.
+asynchronously.  Interactively, this is indicated by setting
+`execute-file-commands-asynchronously' to a proper non-nil value.
+This behavior can be toggled by the key sequence \\[universal-async-argument]
+prior the command invocation.
 
 To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
@@ -1660,9 +1703,10 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by either
-setting `find-file-asynchronously' to non-nil, or by a prefix
-argument."
+asynchronously.  Interactively, this is indicated by setting
+`execute-file-commands-asynchronously' to a proper non-nil value.
+This behavior can be toggled by the key sequence \\[universal-async-argument]
+prior the command invocation."
   (interactive
    (find-file-read-args "Find file in other window: "
                         (confirm-nonexistent-file-or-buffer) t))
@@ -1698,9 +1742,10 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by either
-setting `find-file-asynchronously' to non-nil, or by a prefix
-argument."
+asynchronously.  Interactively, this is indicated by setting
+`execute-file-commands-asynchronously' to a proper non-nil value.
+This behavior can be toggled by the key sequence \\[universal-async-argument]
+prior the command invocation."
   (interactive
    (find-file-read-args "Find file in other frame: "
                         (confirm-nonexistent-file-or-buffer) t))
@@ -1720,9 +1765,10 @@ Like \\[find-file], but only allow a file that exists, and do not allow
 file names with wildcards.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by either
-setting `find-file-asynchronously' to non-nil, or by a prefix
-argument."
+asynchronously.  Interactively, this is indicated by setting
+`execute-file-commands-asynchronously' to a proper non-nil value.
+This behavior can be toggled by the key sequence \\[universal-async-argument]
+prior the command invocation."
    (interactive
     (find-file-read-args "Find existing file: " t))
    (if (and (not (called-interactively-p 'interactive))
@@ -1779,9 +1825,10 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by either
-setting `find-file-asynchronously' to non-nil, or by a prefix
-argument."
+asynchronously.  Interactively, this is indicated by setting
+`execute-file-commands-asynchronously' to a proper non-nil value.
+This behavior can be toggled by the key sequence \\[universal-async-argument]
+prior the command invocation."
   (interactive
    (save-selected-window
      (other-window 1)
@@ -1794,8 +1841,9 @@ argument."
        (list (read-file-name
 	      "Find alternate file: " file-dir nil
               (confirm-nonexistent-file-or-buffer) file-name)
-	     t (and (xor find-file-asynchronously current-prefix-arg)
-                    (featurep 'threads))))))
+	     t
+             (and (featurep 'threads) execute-file-commands-asynchronously)))))
+  (when (stringp async) (setq async (string-match-p async filename)))
   (if (one-window-p)
       (find-file-other-window filename wildcards async)
     (save-selected-window
@@ -1822,9 +1870,10 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and replace the file with multiple files.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by either
-setting `find-file-asynchronously' to non-nil, or by a prefix
-argument.
+asynchronously.  Interactively, this is indicated by setting
+`execute-file-commands-asynchronously' to a proper non-nil value.
+This behavior can be toggled by the key sequence \\[universal-async-argument]
+prior the command invocation.
 
 If the current buffer is an indirect buffer, or the base buffer
 for one or more indirect buffers, the other buffer(s) are not
@@ -1839,8 +1888,8 @@ killed."
      (list (read-file-name
 	    "Find alternate file: " file-dir nil
             (confirm-nonexistent-file-or-buffer) file-name)
-	   t (and (xor find-file-asynchronously current-prefix-arg)
-                  (featurep 'threads)))))
+	   t (and (featurep 'threads) execute-file-commands-asynchronously))))
+  (when (stringp async) (setq async (string-match-p async filename)))
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (user-error "Aborted"))
   (and (buffer-modified-p) buffer-file-name
@@ -2069,12 +2118,12 @@ suppresses this warning."
   :version "21.1"
   :type 'boolean)
 
-(defcustom find-file-asynchronously nil
+(defcustom execute-file-commands-asynchronously nil
   "Non-nil means visit file asynchronously when called interactively.
 If it is a regular expression, it must match the file name to be
-visited.  This behavior is toggled by a prefix argument to the
-interactive call."
-  :group 'files
+visited.  This behavior is toggled by the key sequence \\[universal-async-argument]
+prior the command invocation."
+:group 'files
   :version "27.1"
   :type '(choice boolean regexp))
 
@@ -2496,9 +2545,10 @@ If Emacs already has a buffer which is visiting the file,
 this command asks you whether to visit it literally instead.
 
 If ASYNC is non-nil, the file will be loaded into the buffer
-asynchronously.  Interactively, this is indicated by either
-setting `find-file-asynchronously' to non-nil, or by a prefix
-argument.
+asynchronously.  Interactively, this is indicated by setting
+`execute-file-commands-asynchronously' to a proper non-nil value.
+This behavior can be toggled by the key sequence \\[universal-async-argument]
+prior the command invocation.
 
 In non-interactive use, the value is the buffer where the file is
 visited literally.  If the file was visited in a buffer before

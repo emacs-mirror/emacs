@@ -814,7 +814,7 @@ In the latter case, VC mode is deactivated for this buffer."
     ;; Run it asynchronously.
     (make-thread
      (lambda ()
-       ;; Wait, until the file visitng function tells us so.
+       ;; Wait, until the file visiting function tells us so.
        (with-mutex vc-mutex)
        (vc-file-clearprops buffer-file-name)
        ;; FIXME: Why use a hook?  Why pass it buffer-file-name?

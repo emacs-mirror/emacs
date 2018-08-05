@@ -13,7 +13,7 @@ See files NEWS.26, NEWS.25, ..., NEWS.18, and NEWS.1-17 for changes
 in older Emacs versions.
 
 You can narrow news to a specific version by calling 'view-emacs-news'
-with a prefix argument or by typing C-u C-h C-n.
+with a prefix argument or by typing 'C-u C-h C-n'.
 
 Temporary note:
 +++ indicates that all necessary documentation updates are complete.
@@ -211,12 +211,12 @@ navigation and editing of large files.
 
 +++
 ** Files can be visited asynchronously.
-If the new user option 'find-file-asynchronously' has a proper non-nil
-value, interactive file visiting commands load the file asynchronously
-into the respective buffer.  I.e., Emacs is still responsive while
-loading the files, which is useful especially for remote files.  See
-the node "(emacs) Visiting" in the user manual for the supported
-commands.
+If the new user option 'execute-file-commands-asynchronously' has a
+proper non-nil value, interactive file visiting commands load the file
+asynchronously into the respective buffer.  I.e., Emacs is still
+responsive while loading the files, which is useful especially for
+remote files.  See the node "(emacs) Visiting" in the user manual for
+the supported commands.
 
 
 * Changes in Specialized Modes and Packages in Emacs 27.1

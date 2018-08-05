@@ -118,8 +118,8 @@ interactive call, then @code{find-file} expands wildcard characters in
 
 If @var{async} is non-@code{nil}, the file will be loaded into the
 buffer asynchronously.  Interactively, this is indicated by either
-setting user option @code{find-file-asynchronously} to non-@code{nil},
-or by a prefix argument.
+setting user option @code{execute-file-commands-asynchronously} to
+non-@code{nil}, or by the key sequence @kbd{C-x &} prior the command.
 
 When @code{find-file} is called interactively, it prompts for
 @var{filename} in the minibuffer.
@@ -228,12 +228,12 @@ the @code{find-file} commands ignore their @var{wildcards} argument
 and never treat wildcard characters specially.
 @end defopt
 
-@defopt find-file-asynchronously
+@defopt execute-file-commands-asynchronously
 If this variable is non-@code{nil}, a file will be visited
 asynchronously when called interactively.  If it is a regular
 expression, it must match the file name to be visited.  This behavior
-is toggled by a prefix argument to the interactive call of the file
-visiting command.
+is toggled by the key sequence @kbd{C-x &} prior to the interactive
+call of the file visiting command.
 @end defopt
 
 @defopt find-file-hook

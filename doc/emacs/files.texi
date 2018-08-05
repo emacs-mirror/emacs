@@ -229,14 +229,14 @@ actually contains wildcard characters.  You can disable the wildcard
 feature by customizing @code{find-file-wildcards}.
 
 @cindex visiting files asynchronously
-@vindex find-file-asynchronously
+@vindex execute-file-commands-asynchronously
   Sometimes, it is handy to visit a file asynchronously.  This means,
 while loading the file into its buffer Emacs keeps responsive, and you
 can continue to edit other files, or call commands.  This is
-controlled by the user option @code{find-file-asynchronously}.  If
-this option is @code{nil} (the default), visiting a file is performed
-synchronously.  A regexp value let files, which name matches the
-regexp, being visited asynchronously, and synchronously otherwise.
+controlled by the user option @code{execute-file-commands-asynchronously}.
+If this option is @code{nil} (the default), visiting a file is
+performed synchronously.  A regexp value let files, which name matches
+the regexp, being visited asynchronously, and synchronously otherwise.
 The value @code{t} forces asynchronous visiting of files
 unconditionally.
 
@@ -245,16 +245,16 @@ If you want to visit all remote files asynchronously, you should set
 @example
 @group
 (customize-set-variable
-  'find-file-asynchronously tramp-file-name-regexp
+  'execute-file-commands-asynchronously tramp-file-name-regexp
   "Visit remote files asynchronously")
 @end group
 @end example
 
-  With a prefix argument @kbd{C-u}, the meaning of
-@code{find-file-asynchronously} will be reverted.  If this user option
-is @code{nil}, visiting a file is performed asynchronously.  Contrary,
-if this user option is non-@code{nil}, visiting a file is performed
-synchronously.
+  With the key sequence @kbd{C-x &} prior the file visiting command,
+the meaning of @code{execute-file-commands-asynchronously} will be
+reverted.  If this user option is @code{nil}, visiting a file is
+performed asynchronously.  Contrary, if this user option is
+non-@code{nil}, visiting a file is performed synchronously.
 
 @kindex C-x C-v
 @findex find-alternate-file
