@@ -355,7 +355,8 @@ meanings of these arguments."
 		     (:iso-revision-number "ISO revision number: "
 					   number-to-string)
 		     (:supplementary-p
-		      "Used only as a parent of some other charset." nil)))
+		      "Used only as a parent or a subset of some other charset,
+or provided just for backward compatibility." nil)))
 	(let ((val (get-charset-property charset (car elt))))
 	  (when val
 	    (if (cadr elt) (insert (cadr elt)))

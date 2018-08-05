@@ -3373,10 +3373,10 @@ occur.  That is useful, because normally you don't want to track the
 mouse forever---only until some other event, such as the release of a
 button.
 
-@defspec track-mouse body@dots{}
-This special form executes @var{body}, with generation of mouse motion
-events enabled.  Typically, @var{body} would use @code{read-event} to
-read the motion events and modify the display accordingly.  @xref{Motion
+@defmac track-mouse body@dots{}
+This macro executes @var{body}, with generation of mouse motion events
+enabled.  Typically, @var{body} would use @code{read-event} to read
+the motion events and modify the display accordingly.  @xref{Motion
 Events}, for the format of mouse motion events.
 
 The value of @code{track-mouse} is that of the last form in @var{body}.
@@ -3396,7 +3396,7 @@ on (@pxref{Pointer Shape}).  Therefore, Lisp programs that need the
 mouse pointer to retain its original shape during dragging should bind
 @code{track-mouse} to the value @code{dragging} at the beginning of
 their @var{body}.
-@end defspec
+@end defmac
 
 The usual purpose of tracking mouse motion is to indicate on the screen
 the consequences of pushing or releasing a button at the current

@@ -507,9 +507,6 @@ Emacs Lisp with a reference to where each is described.
 @item setq-default
 @pxref{Creating Buffer-Local}
 
-@item track-mouse
-@pxref{Mouse Tracking}
-
 @item unwind-protect
 @pxref{Nonlocal Exits}
 

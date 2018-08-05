@@ -35,7 +35,7 @@ GNULIB_MODULES='
   fcntl fcntl-h fdatasync fdopendir
   filemode filevercmp flexmember fpieee fstatat fsusage fsync
   getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
-  ignore-value intprops largefile lstat
+  ieee754-h ignore-value intprops largefile lstat
   manywarnings memrchr minmax mkostemp mktime nstrftime
   pipe2 pselect pthread_sigmask putenv qcopy-acl readlink readlinkat
   sig2str socklen stat-time std-gnu11 stdalign stddef stdio

@@ -2019,6 +2019,10 @@ all of which are called before Emacs is actually killed.  */
 {
   int exit_code;
 
+#ifdef HAVE_LIBSYSTEMD
+  sd_notify(0, "STOPPING=1");
+#endif /* HAVE_LIBSYSTEMD */
+
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
   waiting_for_input = 0;
@@ -2478,6 +2482,13 @@ from the parent process and its tty file descriptors.  */)
   if (NILP (Vafter_init_time))
     error ("This function can only be called after loading the init files");
 #ifndef WINDOWSNT
+
+  if (daemon_type == 1)
+    {
+#ifdef HAVE_LIBSYSTEMD
+      sd_notify(0, "READY=1");
+#endif /* HAVE_LIBSYSTEMD */
+    }
 
   if (daemon_type == 2)
     {

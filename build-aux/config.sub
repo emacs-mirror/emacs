@@ -2,7 +2,7 @@
 # Configuration validation subroutine script.
 #   Copyright 1992-2018 Free Software Foundation, Inc.
 
-timestamp='2018-07-13'
+timestamp='2018-07-25'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -307,7 +307,7 @@ case $1 in
 				os=mach
 				;;
 			vsta)
-				basic_machine=i386-unknown
+				basic_machine=i386-pc
 				os=vsta
 				;;
 			isi68 | isi)
@@ -371,7 +371,7 @@ case $1 in
 				os=sysv4
 				;;
 			netbsd386)
-				basic_machine=i386-unknown
+				basic_machine=i386-pc
 				os=netbsd
 				;;
 			netwinder)

@@ -257,10 +257,15 @@ C-g to quit (cancel the whole command);
 ;; either long or short answers.
 
 ;; For backward compatibility check if short y/n answers are preferred.
-(defcustom read-answer-short (eq (symbol-function 'yes-or-no-p) 'y-or-n-p)
-  "If non-nil, accept short answers to the question."
-  :type 'boolean
-  :version "27.1"
+(defcustom read-answer-short 'auto
+  "If non-nil, `read-answer' accepts single-character answers.
+If t, accept short (single key-press) answers to the question.
+If nil, require long answers.  If `auto', accept short answers if
+the function cell of `yes-or-no-p' is set to `y-or-on-p'."
+  :type '(choice (const :tag "Accept short answers" t)
+                 (const :tag "Require long answer" nil)
+                 (const :tag "Guess preference" auto))
+  :version "26.2"
   :group 'minibuffer)
 
 (defconst read-answer-map--memoize (make-hash-table :weakness 'key :test 'equal))
@@ -290,8 +295,9 @@ When `read-answer-short' is non-nil, accept short answers.
 Return a long answer even in case of accepting short ones.
 
 When `use-dialog-box' is t, pop up a dialog window to get user input."
-  (custom-reevaluate-setting 'read-answer-short)
-  (let* ((short read-answer-short)
+  (let* ((short (if (eq read-answer-short 'auto)
+                    (eq (symbol-function 'yes-or-no-p) 'y-or-n-p)
+                  read-answer-short))
          (answers-with-help
           (if (assoc "help" answers)
               answers

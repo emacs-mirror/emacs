@@ -81,14 +81,24 @@ work right without some adjustment:
 - you can use the new 'package-quickstart' so activation of packages does not
   need to pay attention to 'package-load-list' or 'package-user-dir' any more.
 
+---
+** Emacs now notifies systemd when startup finishes or shutdown begins.
+Units that are ordered after 'emacs.service' will only be started
+after Emacs has finished initialization and is ready for use.
+(If your Emacs is installed in a non-standard location and you copied the
+emacs.service file to eg ~/.config/systemd/user/, you will need to copy
+the new version of the file again.)
+
 
 * Changes in Emacs 27.1
+
++++
+** The function 'read-passwd' uses '*' as default character to hide passwords.
 
 ---
 ** New variable 'xft-ignore-color-fonts'.
 Default t means don't try to load color fonts when using Xft, as they
 often cause crashes.  Set it to nil if you really need those fonts.
-(Bug#30874)
 
 ---
 ** The new option 'tooltip-resize-echo-area' avoids truncating tooltip text
@@ -175,6 +185,9 @@ This triggers to search the program on the remote host as indicated by
 
 * Editing Changes in Emacs 27.1
 
++++
+** New command 'make-empty-file'.
+
 ---
 ** New variable 'x-wait-for-event-timeout'.
 This controls how long Emacs will wait for updates to the graphical
@@ -220,6 +233,11 @@ the supported commands.
 
 
 * Changes in Specialized Modes and Packages in Emacs 27.1
+
++++
+** Dired
+
+*** New command 'dired-create-empty-file'.
 
 ** Change Logs and VC
 
@@ -267,6 +285,11 @@ the Nth argument counting from the last one.  Thus 'C-c .' can now
 better emulate 'M-.' in both Bash and zsh, since the former counts
 from the beginning of the arguments, while the latter counts from the
 end.
+
+** Term
+
+---
+*** 'term-read-noecho' is now obsolete, use 'read-passwd' instead.
 
 ** Flymake
 
@@ -452,6 +475,14 @@ the shift key.
 *** Isearch now remembers the regexp-based search mode for words/symbols
 and case-sensitivity together with search strings in the search ring.
 
+** Debugger
+
++++
+*** The Lisp Debugger is now based on 'backtrace-mode'.
+Backtrace mode adds fontification and commands for changing the
+appearance of backtrace frames.  See the node "Backtraces" in the Elisp
+manual for documentation of the new mode and its commands.
+
 ** Edebug
 
 +++
@@ -461,13 +492,26 @@ using the new variables 'edebug-behavior-alist',
 'edebug-new-definition-function'.  Edebug's behavior can be changed
 globally or for individual definitions.
 
++++
+*** Edebug's backtrace buffer now uses 'backtrace-mode'.
+Backtrace mode adds fontification, links and commands for changing the
+appearance of backtrace frames.  See the node "Backtraces" in the Elisp
+manual for documentation of the new mode and its commands.
+
+The binding of 'd' in Edebug's keymap is now 'edebug-pop-to-backtrace'
+which replaces 'edebug-backtrace'.  Consequently Edebug's backtrace
+windows now behave like those of the Lisp Debugger and of ERT, in that
+when they appear they will be the selected window.
+
+The new 'backtrace-goto-source' command, bound to 's', works in
+Edebug's backtraces on backtrace frames whose source code has
+been instrumented by Edebug.
+
 ** Enhanced xterm support
 
 *** New variable 'xterm-set-window-title' controls whether Emacs sets
 the XTerm window title.  This feature is experimental and is disabled
 by default.
-
-** Gamegrid
 
 ** grep
 
@@ -484,6 +528,14 @@ The abbreviation can be disabled by the new option
 +++
 *** New variable 'ert-quiet' allows to make ERT output in batch mode
 less verbose by removing non-essential information.
+
++++
+*** ERT's backtrace buffer now uses 'backtrace-mode'.
+Backtrace mode adds fontification and commands for changing the
+appearance of backtrace frames.  See the node "Backtraces" in the Elisp
+manual for documentation of the new mode and its commands.
+
+** Gamegrid
 
 ---
 *** Gamegrid now determines its default glyph size based on display
@@ -558,7 +610,7 @@ process.  It now accepts signals specified either by name or by its number.
 *** Tramp is now thread-safe.
 
 +++
-*** New connection method "owncloud", which allows to access OwnCloud
+*** New connection method "nextcloud", which allows to access OwnCloud
 or NextCloud hosted files and directories.
 
 +++
@@ -658,6 +710,13 @@ transport strategies as well as a separate API to use them.  A
 transport implementation for process-based communication, such as is
 used by the Language Server Protocol (LSP), is readily available.
 
++++
+** Backtrace mode improves viewing of Elisp backtraces.
+Backtrace mode adds pretty printing, fontification and ellipsis
+expansion to backtrace buffers produced by the Lisp debugger, Edebug
+and ERT.  See the node "Backtraces" in the Elisp manual for
+documentation of the new mode and its commands.
+
 
 * Incompatible Lisp Changes in Emacs 27.1
 
@@ -698,7 +757,7 @@ as new-style, bind the new variable 'force-new-style-backquotes' to t.
 
 ** When formatting a floating-point number as an octal or hexadecimal
 integer, Emacs now signals an error if the number is too large for the
-implementation to format (Bug#30408).
+implementation to format.
 
 +++
 ** The Lisp reader now signals an overflow for plain decimal integers
@@ -707,7 +766,7 @@ reader silently converted them to floating-point numbers, and signaled
 overflow only for integers with a radix that are outside machine range.
 To get the old behavior, set the new, experimental variable
 read-integer-overflow-as-float to t and please email
-30408@debbugs.gnu.org if you need that.  (Bug#30408).
+30408@debbugs.gnu.org if you need that.
 
 ---
 ** Some functions and variables obsolete since Emacs 22 have been removed:
@@ -817,6 +876,15 @@ between two strings.
 ** 'print-quoted' now defaults to t, so if you want to see
 (quote x) instead of 'x you will have to bind it to nil where applicable.
 
++++
+** Numbers formatted via %o or %x may now be formatted as signed integers.
+This avoids problems in calls like (read (format "#x%x" -1)), and is
+more compatible with bignums, a planned feature.  To get this
+behavior, set the experimental variable binary-as-unsigned to nil,
+and if the new behavior breaks your code please email
+32252@debbugs.gnu.org.  Because %o and %x can now format signed
+integers, they now support the + and space flags.
+
 ** To avoid confusion caused by "smart quotes", the reader signals an
 error when reading Lisp symbols which begin with one of the following
 quotation characters: ‘’‛“”‟〞＂＇.  A symbol beginning with such a
@@ -841,12 +909,12 @@ The new variable 'comment-use-syntax-ppss' can be set to nil to recover the old
 behavior if needed.
 
 ** The 'server-name' and 'server-socket-dir' variables are set when a
-socket has been passed to Emacs (Bug#24218).
+socket has been passed to Emacs.
 
 ---
 ** The 'file-system-info' function is now available on all platforms.
 instead of just Microsoft platforms.  This fixes a 'get-free-disk-space'
-bug on OS X 10.8 and later (Bug#28639).
+bug on OS X 10.8 and later.
 
 +++
 ** 'memory-limit' now returns a better estimate of memory consumption.
@@ -868,6 +936,9 @@ Formerly, some of these functions ignored signs and significands of
 NaNs.  Now, all these functions treat NaN signs and significands as
 significant.  For example, (eql 0.0e+NaN -0.0e+NaN) now returns nil
 because the two NaNs have different signs; formerly it returned t.
+Also, Emacs now reads and prints NaN significands; e.g., if X is a
+NaN, (format "%s" X) now returns "0.0e+NaN", "1.0e+NaN", etc.,
+depending on X's significand.
 
 +++
 ** The function 'make-string' accepts an additional optional argument.
@@ -875,7 +946,7 @@ If the optional third argument is non-nil, 'make-string' will produce
 a multibyte string even if its second argument is an ASCII character.
 
 ** (format "%d" X) no longer mishandles a floating-point number X that
-does not fit in a machine integer (Bug#30408).
+does not fit in a machine integer.
 
 ** New JSON parsing and serialization functions 'json-serialize',
 'json-insert', 'json-parse-string', and 'json-parse-buffer'.  These
@@ -909,10 +980,6 @@ higher-level functions.
 *** image-mode started using ImageMagick by default for all images
 some years back.  It now respects 'imagemagick-types-inhibit' as a way
 to disable that.
-
-+++
-** The new function 'read-answer' accepts either long or short answers
-depending on the new customizable variable 'read-answer-short'.
 
 ** The function 'load' now behaves correctly when loading modules.
 Specifically, it puts the module name into 'load-history', prints

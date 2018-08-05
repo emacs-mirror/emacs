@@ -60,6 +60,7 @@
 (require 'cl-lib)
 (require 'button)
 (require 'debug)
+(require 'backtrace)
 (require 'easymenu)
 (require 'ewoc)
 (require 'find-func)
@@ -677,13 +678,6 @@ and is displayed in front of the value of MESSAGE-FORM."
 (cl-defstruct (ert-test-aborted-with-non-local-exit
                (:include ert-test-result)))
 
-(defun ert--print-backtrace (backtrace do-xrefs)
-  "Format the backtrace BACKTRACE to the current buffer."
-  (let ((print-escape-newlines t)
-        (print-level 8)
-        (print-length 50))
-    (debugger-insert-backtrace backtrace do-xrefs)))
-
 ;; A container for the state of the execution of a single test and
 ;; environment data needed during its execution.
 (cl-defstruct ert--test-execution-info
@@ -732,7 +726,7 @@ run.  ARGS are the arguments to `debugger'."
               ;; use.
               ;;
               ;; Grab the frames above the debugger.
-              (backtrace (cdr (backtrace-frames debugger)))
+              (backtrace (cdr (backtrace-get-frames debugger)))
               (infos (reverse ert--infos)))
          (setf (ert--test-execution-info-result info)
                (cl-ecase type
@@ -1406,9 +1400,8 @@ Returns the stats object."
               (ert-test-result-with-condition
                (message "Test %S backtrace:" (ert-test-name test))
                (with-temp-buffer
-                 (ert--print-backtrace
-                  (ert-test-result-with-condition-backtrace result)
-                  nil)
+                 (insert (backtrace-to-string
+                          (ert-test-result-with-condition-backtrace result)))
                  (if (not ert-batch-backtrace-right-margin)
                      (message "%s"
                               (buffer-substring-no-properties (point-min)
@@ -2450,20 +2443,20 @@ To be used in the ERT results buffer."
     (cl-etypecase result
       (ert-test-passed (error "Test passed, no backtrace available"))
       (ert-test-result-with-condition
-       (let ((backtrace (ert-test-result-with-condition-backtrace result))
-             (buffer (get-buffer-create "*ERT Backtrace*")))
+       (let ((buffer (get-buffer-create "*ERT Backtrace*")))
          (pop-to-buffer buffer)
-         (let ((inhibit-read-only t))
-           (buffer-disable-undo)
-           (erase-buffer)
-           (ert-simple-view-mode)
-           (set-buffer-multibyte t)     ; mimic debugger-setup-buffer
-           (setq truncate-lines t)
-           (ert--print-backtrace backtrace t)
-           (goto-char (point-min))
-           (insert (substitute-command-keys "Backtrace for test `"))
-           (ert-insert-test-name-button (ert-test-name test))
-           (insert (substitute-command-keys "':\n"))))))))
+         (unless (derived-mode-p 'backtrace-mode)
+           (backtrace-mode))
+         (setq backtrace-insert-header-function
+               (lambda () (ert--insert-backtrace-header (ert-test-name test)))
+               backtrace-frames (ert-test-result-with-condition-backtrace result))
+         (backtrace-print)
+         (goto-char (point-min)))))))
+
+(defun ert--insert-backtrace-header (name)
+  (insert (substitute-command-keys "Backtrace for test `"))
+  (ert-insert-test-name-button name)
+  (insert (substitute-command-keys "':\n")))
 
 (defun ert-results-pop-to-messages-for-test-at-point ()
   "Display the part of the *Messages* buffer generated during the test at point.

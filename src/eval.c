@@ -1732,28 +1732,12 @@ xsignal3 (Lisp_Object error_symbol, Lisp_Object arg1, Lisp_Object arg2, Lisp_Obj
 }
 
 /* Signal `error' with message S, and additional arg ARG.
-   If ARG is not a genuine list, make it a one-element list.  */
+   If ARG is not a proper list, make it a one-element list.  */
 
 void
 signal_error (const char *s, Lisp_Object arg)
 {
-  Lisp_Object tortoise, hare;
-
-  hare = tortoise = arg;
-  while (CONSP (hare))
-    {
-      hare = XCDR (hare);
-      if (!CONSP (hare))
-	break;
-
-      hare = XCDR (hare);
-      tortoise = XCDR (tortoise);
-
-      if (EQ (hare, tortoise))
-	break;
-    }
-
-  if (!NILP (hare))
+  if (NILP (Fproper_list_p (arg)))
     arg = list1 (arg);
 
   xsignal (Qerror, Fcons (build_string (s), arg));

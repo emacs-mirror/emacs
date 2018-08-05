@@ -334,6 +334,7 @@ instead."
     (apply 'eshell-do-ls args)))
 
 (put 'eshell/ls 'eshell-no-numeric-conversions t)
+(put 'eshell/ls 'eshell-filename-arguments t)
 
 (declare-function eshell-glob-regexp "em-glob" (pattern))
 

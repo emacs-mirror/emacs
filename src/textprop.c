@@ -1350,6 +1350,7 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
 {
   register INTERVAL i;
   Lisp_Object ostart, oend;
+  bool first_time = true;
 
   ostart = start;
   oend = end;
@@ -1372,6 +1373,7 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
       return Qt;
     }
 
+ retry:
   i = validate_interval_range (object, &start, &end, soft);
 
   if (!i)
@@ -1391,8 +1393,22 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
 	return Qnil;
     }
 
-  if (BUFFERP (object) && !NILP (coherent_change_p))
-    modify_text_properties (object, start, end);
+  if (BUFFERP (object) && !NILP (coherent_change_p) && first_time)
+    {
+      ptrdiff_t prev_length = LENGTH (i);
+      ptrdiff_t prev_pos = i->position;
+
+      modify_text_properties (object, start, end);
+      /* If someone called us recursively as a side effect of
+	 modify_text_properties, and changed the intervals behind our
+	 back, we cannot continue with I, because its data changed.
+	 So we restart the interval analysis anew.  */
+      if (LENGTH (i) != prev_length || i->position != prev_pos)
+	{
+	  first_time = false;
+	  goto retry;
+	}
+    }
 
   set_text_properties_1 (start, end, properties, object, i);
 

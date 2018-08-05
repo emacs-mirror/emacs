@@ -407,6 +407,7 @@ in the minibuffer:
 	nil))))
 
 (put 'eshell/cd 'eshell-no-numeric-conversions t)
+(put 'eshell/cd 'eshell-filename-arguments t)
 
 (defun eshell-add-to-dir-ring (path)
   "Add PATH to the last-dir-ring, if applicable."
@@ -470,6 +471,7 @@ in the minibuffer:
   nil)
 
 (put 'eshell/pushd 'eshell-no-numeric-conversions t)
+(put 'eshell/pushd 'eshell-filename-arguments t)
 
 ;;; popd [+n]
 (defun eshell/popd (&rest args)
@@ -500,6 +502,7 @@ in the minibuffer:
   nil)
 
 (put 'eshell/popd 'eshell-no-numeric-conversions t)
+(put 'eshell/pop 'eshell-filename-arguments t)
 
 (defun eshell/dirs (&optional if-verbose)
   "Implementation of dirs in Lisp."

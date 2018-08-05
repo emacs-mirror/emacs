@@ -357,6 +357,8 @@ Arguments are IGNORED (for `revert-buffer')."
              (yes-or-no-p "Undo all commands in folder? "))
          (setq mh-delete-list nil
                mh-refile-list nil
+               mh-blacklist nil
+               mh-whitelist nil
                mh-seq-list nil
                mh-next-direction 'forward)
          (with-mh-folder-updating (nil)

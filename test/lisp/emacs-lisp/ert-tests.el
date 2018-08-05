@@ -376,7 +376,7 @@ This macro is used to test if macroexpansion in `should' works."
          (test (make-ert-test :body test-body))
          (result (ert-run-test test)))
     (should (ert-test-failed-p result))
-    (should (eq (nth 1 (car (ert-test-failed-backtrace result)))
+    (should (eq (backtrace-frame-fun (car (ert-test-failed-backtrace result)))
                 'signal))))
 
 (ert-deftest ert-test-messages ()

@@ -307,6 +307,7 @@ Remove (unlink) the FILE(s).")
    nil))
 
 (put 'eshell/rm 'eshell-no-numeric-conversions t)
+(put 'eshell/rm 'eshell-filename-arguments t)
 
 (defun eshell/mkdir (&rest args)
   "Implementation of mkdir in Lisp."
@@ -324,6 +325,7 @@ Create the DIRECTORY(ies), if they do not already exist.")
    nil))
 
 (put 'eshell/mkdir 'eshell-no-numeric-conversions t)
+(put 'eshell/mkdir 'eshell-filename-arguments t)
 
 (defun eshell/rmdir (&rest args)
   "Implementation of rmdir in Lisp."
@@ -340,6 +342,7 @@ Remove the DIRECTORY(ies), if they are empty.")
    nil))
 
 (put 'eshell/rmdir 'eshell-no-numeric-conversions t)
+(put 'eshell/rmdir 'eshell-filename-arguments t)
 
 (defvar no-dereference)
 
@@ -524,6 +527,7 @@ Rename SOURCE to DEST, or move SOURCE(s) to DIRECTORY.
 			     eshell-mv-overwrite-files))))
 
 (put 'eshell/mv 'eshell-no-numeric-conversions t)
+(put 'eshell/mv 'eshell-filename-arguments t)
 
 (defun eshell/cp (&rest args)
   "Implementation of cp in Lisp."
@@ -561,6 +565,7 @@ Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY.")
 			   eshell-cp-overwrite-files preserve)))
 
 (put 'eshell/cp 'eshell-no-numeric-conversions t)
+(put 'eshell/cp 'eshell-filename-arguments t)
 
 (defun eshell/ln (&rest args)
   "Implementation of ln in Lisp."
@@ -593,6 +598,7 @@ with `--symbolic'.  When creating hard links, each TARGET must exist.")
 			     eshell-ln-overwrite-files))))
 
 (put 'eshell/ln 'eshell-no-numeric-conversions t)
+(put 'eshell/ln 'eshell-filename-arguments t)
 
 (defun eshell/cat (&rest args)
   "Implementation of cat in Lisp.
@@ -645,6 +651,7 @@ Concatenate FILE(s), or standard input, to standard output.")
      (setq eshell-ensure-newline-p nil))))
 
 (put 'eshell/cat 'eshell-no-numeric-conversions t)
+(put 'eshell/cat 'eshell-filename-arguments t)
 
 ;; special front-end functions for compilation-mode buffers
 
@@ -927,6 +934,8 @@ Summarize disk usage of each FILE, recursively for directories.")
 	     (eshell-print (concat (eshell-du-size-string size)
 				   "total\n"))))))))
 
+(put 'eshell/du 'eshell-filename-arguments t)
+
 (defvar eshell-time-start nil)
 
 (defun eshell-show-elapsed-time ()
@@ -1029,6 +1038,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
   nil)
 
 (put 'eshell/diff 'eshell-no-numeric-conversions t)
+(put 'eshell/diff 'eshell-filename-arguments t)
 
 (defvar locate-history-list)
 

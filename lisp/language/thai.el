@@ -36,7 +36,7 @@
   "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)."
   :coding-type 'charset
   :mnemonic ?T
-  :charset-list '(tis620-2533))
+  :charset-list '(thai-iso8859-11))
 
 (define-coding-system-alias 'th-tis620 'thai-tis620)
 (define-coding-system-alias 'tis620 'thai-tis620)
@@ -47,7 +47,7 @@
 	  (charset thai-tis620)
 	  (coding-system thai-tis620 iso-8859-11 cp874)
 	  (coding-priority thai-tis620)
-	  (nonascii-translation . tis620-2533)
+	  (nonascii-translation . iso-8859-11)
 	  (input-method . "thai-kesmanee")
 	  (unibyte-display . thai-tis620)
 	  (features thai-util)

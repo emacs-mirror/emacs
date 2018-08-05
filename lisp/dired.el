@@ -1802,6 +1802,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate create-directory]
       '(menu-item "Create Directory..." dired-create-directory
 		  :help "Create a directory"))
+    (define-key map [menu-bar immediate create-empty-file]
+      '(menu-item "Create Empty file..." dired-create-empty-file
+		  :help "Create an empty file"))
     (define-key map [menu-bar immediate wdired-mode]
       '(menu-item "Edit File Names" wdired-change-to-wdired-mode
 		  :help "Put a Dired buffer in a mode in which filenames are editable"

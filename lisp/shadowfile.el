@@ -231,12 +231,12 @@ information defining the cluster.  For interactive use, call
 
 (defun shadow-site-name (site)
   "Return name if SITE has the form \"/name:\", otherwise SITE."
-  (if (string-match "\\`/\\(\\w+\\):\\'" site)
+  (if (string-match "\\`/\\([-.[:word:]]+\\):\\'" site)
       (match-string 1 site) site))
 
 (defun shadow-name-site (name)
   "Return \"/name:\" if NAME has word syntax, otherwise NAME."
-  (if (string-match "\\`\\w+\\'" name)
+  (if (string-match "\\`[-.[:word:]]+\\'" name)
       (format "/%s:"name) name))
 
 (defun shadow-site-primary (site)
@@ -307,14 +307,7 @@ Replace HOST, and NAME when non-nil."
     (if (null (tramp-file-name-method hup))
 	(format
 	 "/%s:%s" (tramp-file-name-host hup) (tramp-file-name-localname hup))
-      (tramp-make-tramp-file-name
-       (tramp-file-name-method hup)
-       (tramp-file-name-user hup)
-       (tramp-file-name-domain hup)
-       (tramp-file-name-host hup)
-       (tramp-file-name-port hup)
-       (tramp-file-name-localname hup)
-       (tramp-file-name-hop hup)))))
+      (tramp-make-tramp-file-name hup))))
 
 (defun shadow-replace-name-component (fullname newname)
   "Return FULLNAME with the name component changed to NEWNAME."
@@ -635,17 +628,26 @@ Consider them as regular expressions if third arg REGEXP is true."
 
 (defun shadow-add-to-todo ()
   "If current buffer has shadows, add them to the list needing to be copied."
+  (message "shadow-add-to-todo 1 %s" (current-buffer))
+  (message "shadow-add-to-todo 2 %s" (buffer-file-name))
+  (message "shadow-add-to-todo 3 %s" (shadow-expand-file-name (buffer-file-name  (current-buffer))))
+  (message "shadow-add-to-todo 4 %s" (shadow-shadows-of (shadow-expand-file-name (buffer-file-name (current-buffer)))))
   (let ((shadows (shadow-shadows-of
 		  (shadow-expand-file-name
 		   (buffer-file-name (current-buffer))))))
     (when shadows
+      (message "shadow-add-to-todo 5 %s" shadows)
+      (message "shadow-add-to-todo 6 %s" shadow-files-to-copy)
+      (message "shadow-add-to-todo 7 %s" (shadow-union shadows shadow-files-to-copy))
       (setq shadow-files-to-copy
 	    (shadow-union shadows shadow-files-to-copy))
       (when (not shadow-inhibit-message)
 	(message "%s" (substitute-command-keys
 		       "Use \\[shadow-copy-files] to update shadows."))
 	(sit-for 1))
-      (shadow-write-todo-file)))
+      (message "shadow-add-to-todo 8")
+      (shadow-write-todo-file)
+      (message "shadow-add-to-todo 9")))
   nil)     ; Return nil for write-file-functions
 
 (defun shadow-remove-from-todo (pair)
@@ -712,18 +714,26 @@ defined, the old hashtable info is invalid."
   "Write out information to `shadow-todo-file'.
 With non-nil argument also saves the buffer."
   (save-excursion
+    (message "shadow-write-todo-file 1 %s" shadow-todo-buffer)
     (if (not shadow-todo-buffer)
 	(setq shadow-todo-buffer (find-file-noselect shadow-todo-file)))
+    (message "shadow-write-todo-file 2 %s" shadow-todo-buffer)
     (set-buffer shadow-todo-buffer)
+    (message "shadow-write-todo-file 3 %s" shadow-todo-buffer)
     (setq buffer-read-only nil)
     (delete-region (point-min) (point-max))
+    (message "shadow-write-todo-file 4 %s" shadow-todo-buffer)
     (shadow-insert-var 'shadow-files-to-copy)
-    (if save (shadow-save-todo-file))))
+    (message "shadow-write-todo-file 5 %s" save)
+    (if save (shadow-save-todo-file))
+    (message "shadow-write-todo-file 6 %s" save)))
 
 (defun shadow-save-todo-file ()
+  (message "shadow-save-todo-file 1 %s" shadow-todo-buffer)
   (if (and shadow-todo-buffer (buffer-modified-p shadow-todo-buffer))
       (with-current-buffer shadow-todo-buffer
-	(condition-case nil		; have to continue even in case of
+        (message "shadow-save-todo-file 2 %s" shadow-todo-buffer)
+        (condition-case nil		; have to continue even in case of
 	    (basic-save-buffer)		; error, otherwise kill-emacs might
 	  (error			; not work!
 	   (message "WARNING: Can't save shadow todo file; it is locked!")

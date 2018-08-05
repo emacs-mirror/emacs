@@ -2547,7 +2547,11 @@ The method used must be an out-of-band method."
   "Like `make-directory' for Tramp files."
   (setq dir (expand-file-name dir))
   (with-parsed-tramp-file-name dir nil
-    (tramp-flush-directory-properties v (file-name-directory localname))
+    ;; When PARENTS is non-nil, DIR could be a chain of non-existent
+    ;; directories a/b/c/...  Instead of checking, we simply flush the
+    ;; whole cache.
+    (tramp-flush-directory-properties
+     v (if parents "/" (file-name-directory localname)))
     (save-excursion
       (tramp-barf-unless-okay
        v (format "%s %s"

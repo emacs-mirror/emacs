@@ -132,6 +132,33 @@ valid header field."
       'mh-identity-handler-default))
 
 ;;;###mh-autoload
+(defun mh-select-identity (default)
+  "Prompt for and return an identity.
+If DEFAULT is non-nil, it will be used if the user doesn't enter a
+different identity.
+
+See `mh-identity-list'."
+  (let (identity)
+    (setq identity
+          (completing-read
+           "Identity: "
+           (cons '("None")
+                 (mapcar 'list (mapcar 'car mh-identity-list)))
+           nil t default nil default))
+    (if (eq identity "None")
+        nil
+      identity)))
+
+;;;###mh-autoload
+(defun mh-identity-field (identity field)
+  "Return the specified FIELD of the given IDENTITY.
+
+See `mh-identity-list'."
+  (let* ((pers-list (cadr (assoc identity mh-identity-list)))
+         (value (cdr (assoc field pers-list))))
+    value))
+
+;;;###mh-autoload
 (defun mh-insert-identity (identity &optional maybe-insert)
   "Insert fields specified by given IDENTITY.
 

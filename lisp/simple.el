@@ -8346,14 +8346,12 @@ LSHIFTBY is the numeric value of this modifier, in keyboard events.
 PREFIX is the string that represents this modifier in an event type symbol."
   (if (numberp event)
       (cond ((eq symbol 'control)
-	     (if (and (<= (downcase event) ?z)
-		      (>= (downcase event) ?a))
-		 (- (downcase event) ?a -1)
-	       (if (and (<= (downcase event) ?Z)
-			(>= (downcase event) ?A))
-		   (- (downcase event) ?A -1)
-		 (logior (lsh 1 lshiftby) event))))
+	     (if (<= 64 (upcase event) 95)
+		 (- (upcase event) 64)
+	       (logior (lsh 1 lshiftby) event)))
 	    ((eq symbol 'shift)
+             ;; FIXME: Should we also apply this "upcase" behavior of shift
+             ;; to non-ascii letters?
 	     (if (and (<= (downcase event) ?z)
 		      (>= (downcase event) ?a))
 		 (upcase event)

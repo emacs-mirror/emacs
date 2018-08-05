@@ -2182,7 +2182,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (unwind-protect
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
-	      (unless (tramp--test-owncloud-p)
+	      (unless (tramp--test-nextcloud-p)
 		(write-region "foo" nil source)
 		(should (file-exists-p source))
 		(make-directory target)
@@ -2205,7 +2205,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (unwind-protect
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
-	      (unless (and (tramp--test-owncloud-p)
+	      (unless (and (tramp--test-nextcloud-p)
 			   (or (not (file-remote-p source))
 			       (not (file-remote-p target))))
 		(make-directory source)
@@ -2231,7 +2231,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
 	      (unless
-		  (and (tramp--test-owncloud-p) (not (file-remote-p source)))
+		  (and (tramp--test-nextcloud-p) (not (file-remote-p source)))
 		(make-directory source)
 		(should (file-directory-p source))
 		(write-region "foo" nil (expand-file-name "foo" source))
@@ -2320,7 +2320,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (unwind-protect
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
-	      (unless (tramp--test-owncloud-p)
+	      (unless (tramp--test-nextcloud-p)
 		(make-directory source)
 		(should (file-directory-p source))
 		(write-region "foo" nil (expand-file-name "foo" source))
@@ -2344,7 +2344,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (unwind-protect
 	      ;; FIXME: This fails on my QNAP server, see
 	      ;; /share/Web/owncloud/data/owncloud.log
-	      (unless (tramp--test-owncloud-p)
+	      (unless (tramp--test-nextcloud-p)
 		(make-directory source)
 		(should (file-directory-p source))
 		(write-region "foo" nil (expand-file-name "foo" source))
@@ -4427,10 +4427,10 @@ This does not support external Emacs calls."
   (string-equal
    "mock" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
-(defun tramp--test-owncloud-p ()
-  "Check, whether the owncloud method is used."
+(defun tramp--test-nextcloud-p ()
+  "Check, whether the nextcloud method is used."
   (string-equal
-   "owncloud" (file-remote-p tramp-test-temporary-file-directory 'method)))
+   "nextcloud" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
 (defun tramp--test-rsync-p ()
   "Check, whether the rsync method is used.

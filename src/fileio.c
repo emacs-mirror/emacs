@@ -2296,6 +2296,21 @@ The arg must be a string.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_name_case_insensitive_p, filename);
 
+  /* If the file doesn't exist, move up the filesystem tree until we
+     reach an existing directory or the root.  */
+  if (NILP (Ffile_exists_p (filename)))
+    {
+      filename = Ffile_name_directory (filename);
+      while (NILP (Ffile_exists_p (filename)))
+	{
+	  Lisp_Object newname = expand_and_dir_to_file (filename);
+	  /* Avoid infinite loop if the root is reported as non-existing
+	     (impossible?).  */
+	  if (!NILP (Fstring_equal (newname, filename)))
+	    break;
+	  filename = newname;
+	}
+    }
   filename = ENCODE_FILE (filename);
   return file_name_case_insensitive_p (SSDATA (filename)) ? Qt : Qnil;
 }

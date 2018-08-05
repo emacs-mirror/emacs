@@ -72,6 +72,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define file_tell ftell
 #endif
 
+#if IEEE_FLOATING_POINT
+# include <ieee754.h>
+#endif
+
 /* The objects or placeholders read with the #n=object form.
 
    A hash table maps a number to either a placeholder (while the
@@ -3752,14 +3756,18 @@ string_to_number (char const *string, int base, int flags)
 	      cp += 3;
 	      value = INFINITY;
 	    }
+#if IEEE_FLOATING_POINT
 	  else if (cp[-1] == '+'
 		   && cp[0] == 'N' && cp[1] == 'a' && cp[2] == 'N')
 	    {
 	      state |= E_EXP;
 	      cp += 3;
-	      /* NAN is a "positive" NaN on all known Emacs hosts.  */
-	      value = NAN;
+	      union ieee754_double u
+		= { .ieee_nan = { .exponent = -1, .quiet_nan = 1,
+				  .mantissa0 = n >> 31 >> 1, .mantissa1 = n }};
+	      value = u.d;
 	    }
+#endif
 	  else
 	    cp = ecp;
 	}

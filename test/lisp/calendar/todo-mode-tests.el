@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'todo-mode)
 
 (defvar todo-test-data-dir
@@ -561,11 +562,12 @@ source file is different."
      ;; Headers in the todo file are still hidden.
      (should (equal (overlay-get (todo-get-overlay 'header) 'display) "")))))
 
-(defun todo-test--insert-item (item &optional priority)
+(defun todo-test--insert-item (item &optional priority
+                                    _arg diary-type date-type time where)
   "Insert string ITEM into current category with priority PRIORITY.
-Use defaults for all other item insertion parameters.  This
-provides a noninteractive API for todo-insert-item for use in
-automatic testing."
+The remaining arguments (except _ARG, which is ignored) specify
+item insertion parameters.  This provides a noninteractive API
+for todo-insert-item for use in automatic testing."
   (cl-letf (((symbol-function 'read-from-minibuffer)
              (lambda (_prompt) item))
             ((symbol-function 'read-number) ; For todo-set-item-priority
@@ -580,6 +582,186 @@ automatic testing."
    (let ((item "Test display of hidden item header under todo-insert-item."))
      (todo-test--insert-item item 1)
      (should (equal (overlay-get (todo-get-overlay 'header) 'display) "")))))
+
+(defun todo-test--done-items-separator (&optional eol)
+  "Set up test of command interaction with done items separator.
+With non-nil argument EOL, return the position at the end of the
+separator, otherwise, return the position at the beginning."
+  (todo-test--show 1)
+  (goto-char (point-max))
+  ;; See comment about recentering in todo-test-raise-lower-priority.
+  (set-window-buffer nil (current-buffer))
+  (todo-toggle-view-done-items)
+  ;; FIXME: Point should now be on the first done item, and in batch
+  ;; testing it is, so we have to move back one line to the done items
+  ;; separator; but for some reason, in the graphical test
+  ;; environment, it stays on the last empty line of the todo items
+  ;; section, so there we have to advance one character to the done
+  ;; items separator.
+  (if (display-graphic-p)
+      (forward-char)
+    (forward-line -1))
+  (if eol (forward-char)))
+
+(ert-deftest todo-test-done-items-separator01-bol ()
+  "Test item copying and here insertion at BOL of separator.
+Both should be user errors."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (let* ((copy-err "Item copying is not valid here")
+          (here-err "Item insertion is not valid here")
+          (insert-item-test (lambda (where)
+                              (should-error (todo-insert-item--basic
+                                             nil nil nil nil where)))))
+     (should (string= copy-err (cadr (funcall insert-item-test 'copy))))
+     (should (string= here-err (cadr (funcall insert-item-test 'here)))))))
+
+(ert-deftest todo-test-done-items-separator01-eol ()
+  "Test item copying and here insertion at EOL of separator.
+Both should be user errors."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (let* ((copy-err "Item copying is not valid here")
+          (here-err "Item insertion is not valid here")
+          (insert-item-test (lambda (where)
+                              (should-error (todo-insert-item--basic
+                                             nil nil nil nil where)))))
+     (should (string= copy-err (cadr (funcall insert-item-test 'copy))))
+     (should (string= here-err (cadr (funcall insert-item-test 'here)))))))
+
+(ert-deftest todo-test-done-items-separator02-bol ()
+  "Test item editing commands at BOL of done items separator.
+They should all be noops."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (should-not (todo-item-done))
+   (should-not (todo-raise-item-priority))
+   (should-not (todo-lower-item-priority))
+   (should-not (called-interactively-p #'todo-set-item-priority))
+   (should-not (called-interactively-p #'todo-move-item))
+   (should-not (called-interactively-p #'todo-delete-item))
+   (should-not (called-interactively-p #'todo-edit-item))))
+
+(ert-deftest todo-test-done-items-separator02-eol ()
+  "Test item editing command at EOL of done items separator.
+They should all be noops."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (should-not (todo-item-done))
+   (should-not (todo-raise-item-priority))
+   (should-not (todo-lower-item-priority))
+   (should-not (called-interactively-p #'todo-set-item-priority))
+   (should-not (called-interactively-p #'todo-move-item))
+   (should-not (called-interactively-p #'todo-delete-item))
+   (should-not (called-interactively-p #'todo-edit-item))))
+
+(ert-deftest todo-test-done-items-separator03-bol ()
+  "Test item marking at BOL of done items separator.
+This should be a noop, adding no marks to the category."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (call-interactively #'todo-toggle-mark-item)
+   (should-not (assoc (todo-current-category) todo-categories-with-marks))))
+
+(ert-deftest todo-test-done-items-separator03-eol ()
+  "Test item marking at EOL of done items separator.
+This should be a noop, adding no marks to the category."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (call-interactively #'todo-toggle-mark-item)
+   (should-not (assoc (todo-current-category) todo-categories-with-marks))))
+
+(ert-deftest todo-test-done-items-separator04-bol ()
+  "Test moving to previous item from BOL of done items separator.
+This should move point to the last not done todo item."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (let ((last-item (save-excursion
+                      ;; Move to empty line after last todo item.
+                      (forward-line -1)
+                      (todo-previous-item)
+                      (todo-item-string))))
+     (should (string= last-item (save-excursion
+                                  (todo-previous-item)
+                                  (todo-item-string)))))))
+
+(ert-deftest todo-test-done-items-separator04-eol ()
+  "Test moving to previous item from EOL of done items separator.
+This should move point to the last not done todo item."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (let ((last-item (save-excursion
+                      ;; Move to empty line after last todo item.
+                      (forward-line -1)
+                      (todo-previous-item)
+                      (todo-item-string))))
+     (should (string= last-item (save-excursion
+                                  (todo-previous-item)
+                                  (todo-item-string)))))))
+
+(ert-deftest todo-test-done-items-separator05-bol ()
+  "Test moving to next item from BOL of done items separator.
+This should move point to the first done todo item."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (let ((first-done (save-excursion
+                      ;; Move to empty line after last todo item.
+                      (forward-line -1)
+                      (todo-next-item)
+                      (todo-item-string))))
+     (should (string= first-done (save-excursion
+                                  (todo-next-item)
+                                  (todo-item-string)))))))
+
+(ert-deftest todo-test-done-items-separator05-eol ()
+  "Test moving to next item from EOL of done items separator.
+This should move point to the first done todo item."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (let ((first-done (save-excursion
+                      ;; Move to empty line after last todo item.
+                      (forward-line -1)
+                      (todo-next-item)
+                      (todo-item-string))))
+     (should (string= first-done (save-excursion
+                                  (todo-next-item)
+                                  (todo-item-string)))))))
+
+;; Item highlighting uses hl-line-mode, which enables highlighting in
+;; post-command-hook.  For some reason, in the test environment, the
+;; hook function is not automatically run, so after enabling item
+;; highlighting, use ert-simulate-command around the next command,
+;; which explicitly runs the hook function.
+(ert-deftest todo-test-done-items-separator06-bol ()
+  "Test enabling item highlighting at BOL of done items separator.
+Subsequently moving to an item should show it highlighted."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (call-interactively #'todo-toggle-item-highlighting)
+   (ert-simulate-command '(todo-previous-item))
+   (should (eq 'hl-line (get-char-property (point) 'face)))))
+
+(ert-deftest todo-test-done-items-separator06-eol ()
+  "Test enabling item highlighting at EOL of done items separator.
+Subsequently moving to an item should show it highlighted."
+  (with-todo-test
+   (todo-test--done-items-separator 'eol)
+   (todo-toggle-item-highlighting)
+   (forward-line -1)
+   (ert-simulate-command '(todo-previous-item))
+   (should (eq 'hl-line (get-char-property (point) 'face)))))
+
+(ert-deftest todo-test-done-items-separator07 ()
+  "Test item highlighting when crossing done items separator.
+The highlighting should remain enabled."
+  (with-todo-test
+   (todo-test--done-items-separator)
+   (todo-previous-item)
+   (todo-toggle-item-highlighting)
+   (todo-next-item)               ; Now on empty line above separator.
+   (forward-line)                 ; Now on separator.
+   (ert-simulate-command '(forward-line)) ; Now on first done item.
+   (should (eq 'hl-line (get-char-property (point) 'face)))))
 
 
 (provide 'todo-mode-tests)

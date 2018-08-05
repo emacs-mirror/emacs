@@ -432,9 +432,11 @@ test and possibly others should be updated."
     (verify-keybinding "P" 'edebug-view-outside) ;; same as v
     (verify-keybinding "W" 'edebug-toggle-save-windows)
     (verify-keybinding "?" 'edebug-help)
-    (verify-keybinding "d" 'edebug-backtrace)
+    (verify-keybinding "d" 'edebug-pop-to-backtrace)
     (verify-keybinding "-" 'negative-argument)
-    (verify-keybinding "=" 'edebug-temp-display-freq-count)))
+    (verify-keybinding "=" 'edebug-temp-display-freq-count)
+    (should (eq (lookup-key backtrace-mode-map "n") 'backtrace-forward-frame))
+    (should (eq (lookup-key backtrace-mode-map "s") 'backtrace-goto-source))))
 
 (ert-deftest edebug-tests-stop-point-at-start-of-first-instrumented-function ()
   "Edebug stops at the beginning of an instrumented function."
@@ -912,6 +914,29 @@ test and possibly others should be updated."
     (edebug-tests-should-match-result-in-messages "3 (#o3, #x3, ?\\C-c)")
     "g"
     (should (equal edebug-tests-@-result 5)))))
+
+(ert-deftest edebug-tests-cl-macrolet ()
+  "Edebug can instrument `cl-macrolet' expressions. (Bug#29919)"
+  (edebug-tests-with-normal-env
+   (edebug-tests-setup-@ "use-cl-macrolet" '(10) t)
+   (edebug-tests-run-kbd-macro
+    "@ SPC SPC"
+    (edebug-tests-should-be-at "use-cl-macrolet" "func")
+    (edebug-tests-should-match-result-in-messages "+")
+    "g"
+    (should (equal edebug-tests-@-result "The result of applying + to (1 x) is 11")))))
+
+(ert-deftest edebug-tests-backtrace-goto-source ()
+  "Edebug can jump to instrumented source from its *Edebug-Backtrace* buffer."
+  (edebug-tests-with-normal-env
+   (edebug-tests-setup-@ "range" '(2) t)
+   (edebug-tests-run-kbd-macro
+    "@ SPC SPC"
+    (edebug-tests-should-be-at "range" "lt")
+    "dns"  ; Pop to backtrace, next frame, goto source.
+    (edebug-tests-should-be-at "range" "start")
+    "g"
+    (should (equal edebug-tests-@-result '(0 1))))))
 
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here

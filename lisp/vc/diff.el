@@ -226,8 +226,9 @@ With prefix arg, prompt for diff switches."
   "View the differences between BUFFER and its associated file.
 This requires the external program `diff' to be in your `exec-path'."
   (interactive "bBuffer: ")
-  (with-current-buffer (get-buffer (or buffer (current-buffer)))
-    (diff buffer-file-name (current-buffer) nil 'noasync)))
+  (let ((buf (get-buffer (or buffer (current-buffer)))))
+    (with-current-buffer (or (buffer-base-buffer buf) buf)
+      (diff buffer-file-name (current-buffer) nil 'noasync))))
 
 (provide 'diff)
 

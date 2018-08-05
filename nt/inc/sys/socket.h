@@ -49,6 +49,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define timeval ws_timeval
 #endif
 
+#if defined __MINGW32_VERSION && __MINGW32_VERSION >= 5000002L
+/* Need winerror.h before winsock2.h with mingw.org's MinGW 5.x,
+   otherwise some error codes are not defined.  */
+# include <winerror.h>
+#endif
 #include <winsock2.h>
 #include <ws2tcpip.h>
 /* process.c uses uint16_t (from C99) for IPv6, but

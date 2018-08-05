@@ -110,9 +110,7 @@ called a `subword'.  Here are some examples:
   NSGraphicsContext  =>  \"NS\", \"Graphics\" and \"Context\"
 
 This mode changes the definition of a word so that word commands
-treat nomenclature boundaries as word boundaries.
-
-\\{subword-mode-map}"
+treat nomenclature boundaries as word boundaries."
     :lighter " ,"
     (when subword-mode (superword-mode -1))
     (subword-setup-buffer))

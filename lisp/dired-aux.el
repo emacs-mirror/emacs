@@ -1989,6 +1989,19 @@ Optional arg HOW-TO determines how to treat the target.
       dired-dirs)))
 
 
+
+;; We use this function in `dired-create-directory' and
+;; `dired-create-empty-file'; the return value is the new entry
+;; in the updated Dired buffer.
+(defun dired--find-topmost-parent-dir (filename)
+  "Return the topmost nonexistent parent dir of FILENAME.
+FILENAME is a full file name."
+  (let ((try filename) new)
+    (while (and try (not (file-exists-p try)) (not (equal new try)))
+      (setq new try
+	    try (directory-file-name (file-name-directory try))))
+    new))
+
 ;;;###autoload
 (defun dired-create-directory (directory)
   "Create a directory called DIRECTORY.
@@ -1997,14 +2010,28 @@ If DIRECTORY already exists, signal an error."
   (interactive
    (list (read-file-name "Create directory: " (dired-current-directory))))
   (let* ((expanded (directory-file-name (expand-file-name directory)))
-	 (try expanded) new)
+	 new)
     (if (file-exists-p expanded)
 	(error "Cannot create directory %s: file exists" expanded))
-    ;; Find the topmost nonexistent parent dir (variable `new')
-    (while (and try (not (file-exists-p try)) (not (equal new try)))
-      (setq new try
-	    try (directory-file-name (file-name-directory try))))
+    (setq new (dired--find-topmost-parent-dir expanded))
     (make-directory expanded t)
+    (when new
+      (dired-add-file new)
+      (dired-move-to-filename))))
+
+;;;###autoload
+(defun dired-create-empty-file (file)
+  "Create an empty file called FILE.
+ Add a new entry for the new file in the Dired buffer.
+ Parent directories of FILE are created as needed.
+ If FILE already exists, signal an error."
+  (interactive (list (read-file-name "Create empty file: ")))
+  (let* ((expanded (expand-file-name file))
+         new)
+    (if (file-exists-p expanded)
+        (error "Cannot create file %s: file exists" expanded))
+    (setq new (dired--find-topmost-parent-dir expanded))
+    (make-empty-file file 'parents)
     (when new
       (dired-add-file new)
       (dired-move-to-filename))))

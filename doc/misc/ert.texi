@@ -273,9 +273,11 @@ moving point to it and typing @kbd{@key{RET}} jumps to its definition.
 @cindex backtrace of a failed test
 Pressing @kbd{r} re-runs the test near point on its own.  Pressing
 @kbd{d} re-runs it with the debugger enabled.  @kbd{.} jumps to the
-definition of the test near point (@kbd{@key{RET}} has the same effect if
-point is on the name of the test).  On a failed test, @kbd{b} shows
-the backtrace of the failure.
+definition of the test near point (@kbd{@key{RET}} has the same effect
+if point is on the name of the test).  On a failed test, @kbd{b} shows
+the backtrace of the failure.  @xref{Debugging,, Backtraces, elisp,
+GNU Emacs Lisp Reference Manual}, for more information about
+backtraces.
 
 @kindex l@r{, in ert results buffer}
 @kbd{l} shows the list of @code{should} forms executed in the test.

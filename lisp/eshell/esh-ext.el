@@ -259,6 +259,7 @@ Adds the given PATH to $PATH.")
        (eshell-printn dir)))))
 
 (put 'eshell/addpath 'eshell-no-numeric-conversions t)
+(put 'eshell/addpath 'eshell-filename-arguments t)
 
 (defun eshell-script-interpreter (file)
   "Extract the script to run from FILE, if it has #!<interp> in it.

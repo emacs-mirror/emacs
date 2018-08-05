@@ -891,9 +891,9 @@ delivered."
 
 	    ;; Modify file.  We wait for two seconds, in order to
 	    ;; have another timestamp.  One second seems to be too
-            ;; short.
+            ;; short.  And Cygwin sporadically requires more than two.
             (ert-with-message-capture captured-messages
-              (sleep-for 2)
+              (sleep-for (if (eq system-type 'cygwin) 3 2))
               (write-region
                "foo bla" nil file-notify--test-tmpfile nil 'no-message)
 

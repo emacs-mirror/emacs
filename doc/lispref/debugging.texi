@@ -81,7 +81,8 @@ debugger recursively.  @xref{Recursive Editing}.
 * Function Debugging::    Entering it when a certain function is called.
 * Variable Debugging::    Entering it when a variable is modified.
 * Explicit Debug::        Entering it at a certain point in the program.
-* Using Debugger::        What the debugger does; what you see while in it.
+* Using Debugger::        What the debugger does.
+* Backtraces::            What you see while in the debugger.
 * Debugger Commands::     Commands used while in the debugger.
 * Invoking the Debugger:: How to call the function @code{debug}.
 * Internals of Debugger:: Subroutines of the debugger, and global variables.
@@ -392,32 +393,82 @@ this is not what you want, you can either set
 @code{eval-expression-debug-on-error} to @code{nil}, or set
 @code{debug-on-error} to @code{nil} in @code{debugger-mode-hook}.
 
-@cindex current stack frame
-  The backtrace buffer shows you the functions that are executing and
-their argument values.  It also allows you to specify a stack frame by
-moving point to the line describing that frame.  (A stack frame is the
-place where the Lisp interpreter records information about a particular
-invocation of a function.)  The frame whose line point is on is
-considered the @dfn{current frame}.  Some of the debugger commands
-operate on the current frame.  If a line starts with a star, that means
-that exiting that frame will call the debugger again.  This is useful
-for examining the return value of a function.
-
-  If a function name is underlined, that means the debugger knows
-where its source code is located.  You can click with the mouse on
-that name, or move to it and type @key{RET}, to visit the source code.
-
   The debugger itself must be run byte-compiled, since it makes
-assumptions about how many stack frames are used for the debugger
-itself.  These assumptions are false if the debugger is running
-interpreted.
+assumptions about the state of the Lisp interpreter.  These
+assumptions are false if the debugger is running interpreted.
+
+@node Backtraces
+@subsection Backtraces
+@cindex backtrace buffer
+
+Debugger mode is derived from Backtrace mode, which is also used to
+show backtraces by Edebug and ERT.  (@pxref{Edebug}, and @ref{Top,the
+ERT manual,, ert, ERT: Emacs Lisp Regression Testing}.)
+
+@cindex stack frame
+The backtrace buffer shows you the functions that are executing and
+their argument values.  When a backtrace buffer is created, it shows
+each stack frame on one, possibly very long, line.  (A stack frame is
+the place where the Lisp interpreter records information about a
+particular invocation of a function.)  The most recently called
+function will be at the top.
+
+@cindex current stack frame
+In a backtrace you can specify a stack frame by moving point to a line
+describing that frame.  The frame whose line point is on is considered
+the @dfn{current frame}.
+
+If a function name is underlined, that means Emacs knows where its
+source code is located.  You can click with the mouse on that name, or
+move to it and type @key{RET}, to visit the source code.  You can also
+type @key{RET} while point is on any name of a function or variable
+which is not underlined, to see help information for that symbol in a
+help buffer, if any exists.  The @code{xref-find-definitions} command,
+bound to @key{M-.}, can also be used on any identifier in a backtrace
+(@pxref{Looking Up Identifiers,,,emacs, The GNU Emacs Manual}).
+
+In backtraces, the tails of long lists and the ends of long strings,
+vectors or structures, as well as objects which are deeply nested,
+will be printed as underlined ``...''.  You can click with the mouse
+on a ``...'', or type @key{RET} while point is on it, to show the part
+of the object that was hidden.  To control how much abbreviation is
+done, customize @code{backtrace-line-length}.
+
+Here is a list of commands for navigating and viewing backtraces:
+
+@table @kbd
+@item v
+Toggle the display of local variables of the current stack frame.
+
+@item p
+Move to the beginning of the frame, or to the beginning
+of the previous frame.
+
+@item n
+Move to the beginning of the next frame.
+
+@item +
+Add line breaks and indentation to the top-level Lisp form at point to
+make it more readable.
+
+@item -
+Collapse the top-level Lisp form at point back to a single line.
+
+@item #
+Toggle @code{print-circle} for the frame at point.
+
+@item .
+Expand all the forms abbreviated with ``...'' in the frame at point.
+
+@end table
 
 @node Debugger Commands
 @subsection Debugger Commands
 @cindex debugger command list
 
   The debugger buffer (in Debugger mode) provides special commands in
-addition to the usual Emacs commands.  The most important use of
+addition to the usual Emacs commands and to the Backtrace mode commands
+described in the previous section.  The most important use of
 debugger commands is for stepping through code, so that you can see
 how control flows.  The debugger can step through the control
 structures of an interpreted function, but cannot do so in a
@@ -426,6 +477,11 @@ byte-compiled function, replace it with an interpreted definition of
 the same function.  (To do this, visit the source for the function and
 type @kbd{C-M-x} on its definition.)  You cannot use the Lisp debugger
 to step through a primitive function.
+
+Some of the debugger commands operate on the current frame.  If a
+frame starts with a star, that means that exiting that frame will call the
+debugger again.  This is useful for examining the return value of a
+function.
 
 @c FIXME: Add @findex for the following commands?  --xfq
   Here is a list of Debugger mode commands:
@@ -502,8 +558,6 @@ Display a list of functions that will invoke the debugger when called.
 This is a list of functions that are set to break on entry by means of
 @code{debug-on-entry}.
 
-@item v
-Toggle the display of local variables of the current stack frame.
 @end table
 
 @node Invoking the Debugger
@@ -624,20 +678,19 @@ of @code{debug} (@pxref{Invoking the Debugger}).
 @cindex run time stack
 @cindex call stack
 This function prints a trace of Lisp function calls currently active.
-This is the function used by @code{debug} to fill up the
-@file{*Backtrace*} buffer.  It is written in C, since it must have access
-to the stack to determine which function calls are active.  The return
-value is always @code{nil}.
+The trace is identical to the one that @code{debug} would show in the
+@file{*Backtrace*} buffer.  The return value is always nil.
 
 In the following example, a Lisp expression calls @code{backtrace}
 explicitly.  This prints the backtrace to the stream
 @code{standard-output}, which, in this case, is the buffer
 @samp{backtrace-output}.
 
-Each line of the backtrace represents one function call.  The line shows
-the values of the function's arguments if they are all known; if they
-are still being computed, the line says so.  The arguments of special
-forms are elided.
+Each line of the backtrace represents one function call.  The line
+shows the function followed by a list of the values of the function's
+arguments if they are all known; if they are still being computed, the
+line consists of a list containing the function and its unevaluated
+arguments.  Long lists or deeply nested structures may be elided.
 
 @smallexample
 @group
@@ -654,7 +707,7 @@ forms are elided.
 @group
 ----------- Buffer: backtrace-output ------------
   backtrace()
-  (list ...computing arguments...)
+  (list 'testing (backtrace))
 @end group
   (progn ...)
   eval((progn (1+ var) (list 'testing (backtrace))))
@@ -685,7 +738,7 @@ example would look as follows:
 @group
 ----------- Buffer: backtrace-output ------------
   (backtrace)
-  (list ...computing arguments...)
+  (list 'testing (backtrace))
 @end group
   (progn ...)
   (eval (progn (1+ var) (list 'testing (backtrace))))

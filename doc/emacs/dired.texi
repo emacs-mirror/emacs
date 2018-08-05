@@ -1468,6 +1468,11 @@ rotation is lossless, and uses an external utility called
 directory's name, and creates that directory.  It signals an error if
 the directory already exists.
 
+@findex dired-create-empty-file
+  The command (@code{dired-create-empty-file}) reads a
+file name, and creates that file.  It signals an error if
+the file already exists.
+
 @cindex searching multiple files via Dired
 @kindex M-s a C-s @r{(Dired)}
 @kindex M-s a M-C-s @r{(Dired)}

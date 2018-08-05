@@ -156,12 +156,19 @@ system encodes the character safely and with a single byte
 (@pxref{Coding Systems}).  If the character's encoding is longer than
 one byte, Emacs shows @samp{file ...}.
 
-  As a special case, if the character lies in the range 128 (0200
-octal) through 159 (0237 octal), it stands for a raw byte that
-does not correspond to any specific displayable character.  Such a
-character lies within the @code{eight-bit-control} character set,
-and is displayed as an escaped octal character code.  In this case,
-@kbd{C-x =} shows @samp{part of display ...} instead of @samp{file}.
+@cindex eight-bit character set
+@cindex raw bytes
+  On rare occasions, Emacs encounters @dfn{raw bytes}: single bytes
+whose values are in the range 128 (0200 octal) through 255 (0377
+octal), which Emacs cannot interpret as part of a known encoding of
+some non-ASCII character.  Such raw bytes are treated as if they
+belonged to a special character set @code{eight-bit}; Emacs displays
+them as escaped octal codes (this can be customized; @pxref{Display
+Custom}).  In this case, @kbd{C-x =} shows @samp{raw-byte} instead of
+@samp{file}.  In addition, @kbd{C-x =} shows the character codes of
+raw bytes as if they were in the range @code{#x3FFF80..#x3FFFFF},
+which is where Emacs maps them to distinguish them from Unicode
+characters in the range @code{#x0080..#x00FF}.
 
 @cindex character set of character at point
 @cindex font of character at point

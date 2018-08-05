@@ -2083,10 +2083,7 @@ This is like `cl-flet', but for macros instead of functions.
 
 \(fn ((NAME ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug
-            ((&rest (&define name (&rest arg) cl-declarations-or-string
-                             def-body))
-             cl-declarations body)))
+           (debug (cl-macrolet-expr)))
   (if (cdr bindings)
       `(cl-macrolet (,(car bindings)) (cl-macrolet ,(cdr bindings) ,@body))
     (if (null bindings) (macroexp-progn body)

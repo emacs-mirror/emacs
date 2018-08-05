@@ -300,8 +300,7 @@ wrong, use this command again to toggle back to the right mode."
 	 (cmd (key-binding keyseq))
 	 prefix)
     ;; read-key-sequence ignores quit, so make an explicit check.
-    ;; Like many places, this assumes quit == C-g, but it need not be.
-    (if (equal last-input-event ?\C-g)
+    (if (equal last-input-event (nth 3 (current-input-mode)))
 	(keyboard-quit))
     (when (memq cmd '(universal-argument digit-argument))
       (call-interactively cmd)
@@ -314,16 +313,16 @@ wrong, use this command again to toggle back to the right mode."
 	(let ((current-prefix-arg prefix-arg)
 	      ;; Have to bind `last-command-event' here so that
 	      ;; `digit-argument', for instance, can compute the
-	      ;; prefix arg.
+	      ;; `prefix-arg'.
 	      (last-command-event (aref keyseq 0)))
 	  (call-interactively cmd)))
 
       ;; This is the final call to `universal-argument-other-key', which
-      ;; set's the final `prefix-arg.
+      ;; sets the final `prefix-arg'.
       (let ((current-prefix-arg prefix-arg))
 	(call-interactively cmd))
 
-      ;; Read the command to execute with the given prefix arg.
+      ;; Read the command to execute with the given `prefix-arg'.
       (setq prefix prefix-arg
 	    keyseq (read-key-sequence nil t)
 	    cmd (key-binding keyseq)))

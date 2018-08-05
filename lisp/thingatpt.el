@@ -484,7 +484,7 @@ looks like an email address, \"ftp://\" if it starts with
 
 (put 'url 'end-op (lambda () (end-of-thing 'url)))
 
-(put 'url 'beginning-op (lambda () (end-of-thing 'url)))
+(put 'url 'beginning-op (lambda () (beginning-of-thing 'url)))
 
 ;; The normal thingatpt mechanism doesn't work for complex regexps.
 ;; This should work for almost any regexp wherever we are in the

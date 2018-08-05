@@ -255,6 +255,7 @@ See `wdired-mode'."
   (setq buffer-read-only nil)
   (dired-unadvertise default-directory)
   (add-hook 'kill-buffer-hook 'wdired-check-kill-buffer nil t)
+  (add-hook 'after-change-functions 'wdired--restore-dired-filename-prop nil t)
   (setq major-mode 'wdired-mode)
   (setq mode-name "Editable Dired")
   (setq revert-buffer-function 'wdired-revert)
@@ -363,6 +364,7 @@ non-nil means return old filename."
   (setq mode-name "Dired")
   (dired-advertise)
   (remove-hook 'kill-buffer-hook 'wdired-check-kill-buffer t)
+  (remove-hook 'after-change-functions 'wdired--restore-dired-filename-prop t)
   (set (make-local-variable 'revert-buffer-function) 'dired-revert))
 
 
@@ -381,7 +383,6 @@ non-nil means return old filename."
 (defun wdired-finish-edit ()
   "Actually rename files based on your editing in the Dired buffer."
   (interactive)
-  (wdired-change-to-dired-mode)
   (let ((changes nil)
 	(errors 0)
 	files-deleted
@@ -423,6 +424,11 @@ non-nil means return old filename."
 	(forward-line -1)))
     (when files-renamed
       (setq errors (+ errors (wdired-do-renames files-renamed))))
+    ;; We have to be in wdired-mode when wdired-do-renames is executed
+    ;; so that wdired--restore-dired-filename-prop runs, but we have
+    ;; to change back to dired-mode before reverting the buffer to
+    ;; avoid using wdired-revert, which changes back to wdired-mode.
+    (wdired-change-to-dired-mode)
     (if changes
 	(progn
 	  ;; If we are displaying a single file (rather than the
@@ -543,19 +549,25 @@ and proceed depending on the answer."
     (goto-char (point-max))
     (forward-line -1)
     (let ((done nil)
+          (failed t)
 	  curr-filename)
       (while (and (not done) (not (bobp)))
         (setq curr-filename (wdired-get-filename nil t))
         (if (equal curr-filename filename-ori)
-            (progn
-              (setq done t)
-              (let ((inhibit-read-only t))
-                (dired-move-to-filename)
-                (search-forward (wdired-get-filename t) nil t)
-                (replace-match (file-name-nondirectory filename-ori) t t))
-              (dired-do-create-files-regexp
-               (function dired-rename-file)
-               "Move" 1 ".*" filename-new nil t))
+            (unwind-protect
+                (progn
+                  (setq done t)
+                  (let ((inhibit-read-only t))
+                    (dired-move-to-filename)
+                    (search-forward (wdired-get-filename t) nil t)
+                    (replace-match (file-name-nondirectory filename-ori) t t))
+                  (dired-do-create-files-regexp
+                   (function dired-rename-file)
+                   "Move" 1 ".*" filename-new nil t)
+                  (setq failed nil))
+              ;; If user types C-g when prompted to change the file
+              ;; name, make sure we return to dired-mode.
+              (when failed (wdired-change-to-dired-mode)))
 	  (forward-line -1))))))
 
 ;; marks a list of files for deletion
@@ -585,6 +597,25 @@ Optional arguments are ignored."
        (buffer-modified-p)
        (not (y-or-n-p "Buffer changed. Discard changes and kill buffer? ")))
       (error "Error")))
+
+;; Added to after-change-functions in wdired-change-to-wdired-mode to
+;; ensure that, on editing a file name, new characters get the
+;; dired-filename text property, which allows functions that look for
+;; this property (e.g. dired-isearch-filenames) to work in wdired-mode
+;; and also avoids an error with non-nil wdired-use-interactive-rename
+;; (bug#32173).
+(defun wdired--restore-dired-filename-prop (beg end _len)
+  (save-match-data
+    (save-excursion
+      (beginning-of-line)
+      (when (re-search-forward directory-listing-before-filename-regexp
+                               (line-end-position) t)
+        (setq beg (point)
+              end (if (and (file-symlink-p (dired-get-filename))
+                           (search-forward " -> " (line-end-position) t))
+                      (goto-char (match-beginning 0))
+                    (line-end-position)))
+        (put-text-property beg end 'dired-filename t)))))
 
 (defun wdired-next-line (arg)
   "Move down lines then position at filename or the current column.

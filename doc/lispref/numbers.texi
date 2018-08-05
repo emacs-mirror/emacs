@@ -241,7 +241,7 @@ A NaN is never numerically equal to any value, not even to itself.
 NaNs carry a sign and a significand, and non-numeric functions treat
 two NaNs as equal when their
 signs and significands agree.  Significands of NaNs are
-machine-dependent and are not directly visible to Emacs Lisp.
+machine-dependent, as are the digits in their string representation.
 
   When NaNs and signed zeros are involved, non-numeric functions like
 @code{eql}, @code{equal}, @code{sxhash-eql}, @code{sxhash-equal} and

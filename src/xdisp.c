@@ -265,7 +265,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    character to be delivered is a composed character, the iteration
    calls composition_reseat_it and next_element_from_composition.  If
    they succeed to compose the character with one or more of the
-   following characters, the whole sequence of characters that where
+   following characters, the whole sequence of characters that were
    composed is recorded in the `struct composition_it' object that is
    part of the buffer iterator.  The composed sequence could produce
    one or more font glyphs (called "grapheme clusters") on the screen.
@@ -16916,6 +16916,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       /* We used to issue a CHECK_MARGINS argument to try_window here,
 	 but this causes scrolling to fail when point begins inside
 	 the scroll margin (bug#148) -- cyd  */
+      clear_glyph_matrix (w->desired_matrix);
       if (!try_window (window, startp, 0))
 	{
 	  w->force_start = true;

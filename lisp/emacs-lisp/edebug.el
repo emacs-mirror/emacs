@@ -52,6 +52,7 @@
 
 ;;; Code:
 
+(require 'backtrace)
 (require 'macroexp)
 (require 'cl-lib)
 (eval-when-compile (require 'pcase))
@@ -206,8 +207,7 @@ Use this with caution since it is not debugged."
   "Non-nil if Edebug should unwrap results of expressions.
 That is, Edebug will try to remove its own instrumentation from the result.
 This is useful when debugging macros where the results of expressions
-are instrumented expressions.  But don't do this when results might be
-circular or an infinite loop will result."
+are instrumented expressions."
   :type 'boolean
   :group 'edebug)
 
@@ -1198,6 +1198,8 @@ purpose by adding an entry to this alist, and setting
 (defvar edebug-inside-func)  ;; whether code is inside function context.
 ;; Currently def-form sets this to nil; def-body sets it to t.
 
+(defvar edebug--cl-macrolet-defs) ;; Fully defined below.
+
 (defun edebug-interactive-p-name ()
   ;; Return a unique symbol for the variable used to store the
   ;; status of interactive-p for this function.
@@ -1263,25 +1265,59 @@ purpose by adding an entry to this alist, and setting
 (defun edebug-unwrap (sexp)
   "Return the unwrapped SEXP or return it as is if it is not wrapped.
 The SEXP might be the result of wrapping a body, which is a list of
-expressions; a `progn' form will be returned enclosing these forms."
-  (if (consp sexp)
-      (cond
-       ((eq 'edebug-after (car sexp))
-	(nth 3 sexp))
-       ((eq 'edebug-enter (car sexp))
-        (macroexp-progn (nthcdr 2 (nth 1 (nth 3 sexp)))))
-       (t sexp);; otherwise it is not wrapped, so just return it.
-       )
-    sexp))
+expressions; a `progn' form will be returned enclosing these forms.
+Does not unwrap inside vectors, records, structures, or hash tables."
+  (pcase sexp
+    (`(edebug-after ,_before-form ,_after-index ,form)
+     form)
+    (`(lambda ,args (edebug-enter ',_sym ,_arglist
+				   (function (lambda nil . ,body))))
+     `(lambda ,args ,@body))
+    (`(closure ,env ,args (edebug-enter ',_sym ,_arglist
+					 (function (lambda nil . ,body))))
+     `(closure ,env ,args ,@body))
+    (`(edebug-enter ',_sym ,_args (function (lambda nil . ,body)))
+     (macroexp-progn body))
+    (_ sexp)))
 
 (defun edebug-unwrap* (sexp)
   "Return the SEXP recursively unwrapped."
+  (let ((ht (make-hash-table :test 'eq)))
+    (edebug--unwrap1 sexp ht)))
+
+(defun edebug--unwrap1 (sexp hash-table)
+  "Unwrap SEXP using HASH-TABLE of things already unwrapped.
+HASH-TABLE contains the results of unwrapping cons cells within
+SEXP, which are reused to avoid infinite loops when SEXP is or
+contains a circular object."
   (let ((new-sexp (edebug-unwrap sexp)))
     (while (not (eq sexp new-sexp))
       (setq sexp new-sexp
 	    new-sexp (edebug-unwrap sexp)))
     (if (consp new-sexp)
-	(mapcar #'edebug-unwrap* new-sexp)
+	(let ((result (gethash new-sexp hash-table nil)))
+	  (unless result
+	    (let ((remainder new-sexp)
+		  current)
+	      (setq result (cons nil nil)
+		    current result)
+	      (while
+		  (progn
+		    (puthash remainder current hash-table)
+		    (setf (car current)
+			  (edebug--unwrap1 (car remainder) hash-table))
+		    (setq remainder (cdr remainder))
+		    (cond
+		     ((atom remainder)
+		      (setf (cdr current)
+			    (edebug--unwrap1 remainder hash-table))
+		      nil)
+		     ((gethash remainder hash-table nil)
+		      (setf (cdr current) (gethash remainder hash-table nil))
+		      nil)
+		     (t (setq current
+			      (setf (cdr current) (cons nil nil)))))))))
+	  result)
       new-sexp)))
 
 
@@ -1463,6 +1499,11 @@ expressions; a `progn' form will be returned enclosing these forms."
   ;; Helper for edebug-list-form
   (let ((spec (get-edebug-spec head)))
     (cond
+     ;; Treat cl-macrolet bindings like macros with no spec.
+     ((member head edebug--cl-macrolet-defs)
+      (if edebug-eval-macro-args
+	  (edebug-forms cursor)
+	(edebug-sexps cursor)))
      (spec
       (cond
        ((consp spec)
@@ -1651,6 +1692,9 @@ expressions; a `progn' form will be returned enclosing these forms."
 		;; (function . edebug-match-function)
 		(lambda-expr . edebug-match-lambda-expr)
                 (cl-generic-method-args . edebug-match-cl-generic-method-args)
+                (cl-macrolet-expr . edebug-match-cl-macrolet-expr)
+                (cl-macrolet-name . edebug-match-cl-macrolet-name)
+                (cl-macrolet-body . edebug-match-cl-macrolet-body)
 		(&not . edebug-match-&not)
 		(&key . edebug-match-&key)
 		(place . edebug-match-place)
@@ -1953,6 +1997,43 @@ expressions; a `progn' form will be returned enclosing these forms."
           (intern (format "%s %s" edebug-def-name args)))
     (edebug-move-cursor cursor)
     (list args)))
+
+(defvar edebug--cl-macrolet-defs nil
+  "List of symbols found within the bindings of enclosing `cl-macrolet' forms.")
+(defvar edebug--current-cl-macrolet-defs nil
+  "List of symbols found within the bindings of the current `cl-macrolet' form.")
+
+(defun edebug-match-cl-macrolet-expr (cursor)
+  "Match a `cl-macrolet' form at CURSOR."
+  (let (edebug--current-cl-macrolet-defs)
+    (edebug-match cursor
+                  '((&rest (&define cl-macrolet-name cl-macro-list
+                                    cl-declarations-or-string
+                                    def-body))
+                    cl-declarations cl-macrolet-body))))
+
+(defun edebug-match-cl-macrolet-name (cursor)
+  "Match the name in a `cl-macrolet' binding at CURSOR.
+Collect the names in `edebug--cl-macrolet-defs' where they
+will be checked by `edebug-list-form-args' and treated as
+macros without a spec."
+  (let ((name (edebug-top-element-required cursor "Expected name")))
+    (when (not (symbolp name))
+      (edebug-no-match cursor "Bad name:" name))
+    ;; Change edebug-def-name to avoid conflicts with
+    ;; names at global scope.
+    (setq edebug-def-name (gensym "edebug-anon"))
+    (edebug-move-cursor cursor)
+    (push name edebug--current-cl-macrolet-defs)
+    (list name)))
+
+(defun edebug-match-cl-macrolet-body (cursor)
+  "Match the body of a `cl-macrolet' expression at CURSOR.
+Put the definitions collected in `edebug--current-cl-macrolet-defs'
+into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
+  (let ((edebug--cl-macrolet-defs (nconc edebug--current-cl-macrolet-defs
+                                         edebug--cl-macrolet-defs)))
+    (edebug-match-body cursor)))
 
 (defun edebug-match-arg (cursor)
   ;; set the def-args bound in edebug-defining-form
@@ -3611,7 +3692,7 @@ be installed in `emacs-lisp-mode-map'.")
 
     ;; misc
     (define-key map "?" 'edebug-help)
-    (define-key map "d" 'edebug-backtrace)
+    (define-key map "d" 'edebug-pop-to-backtrace)
 
     (define-key map "-" 'negative-argument)
 
@@ -3869,8 +3950,10 @@ Global commands prefixed by `global-edebug-prefix':
 ;; (setq debugger 'debug)  ; use the standard debugger
 
 ;; Note that debug and its utilities must be byte-compiled to work,
-;; since they depend on the backtrace looking a certain way.  But
-;; edebug is not dependent on this, yet.
+;; since they depend on the backtrace looking a certain way.  Edebug
+;; will work if not byte-compiled, but it will not be able correctly
+;; remove its instrumentation from backtraces unless it is
+;; byte-compiled.
 
 (defun edebug (&optional arg-mode &rest args)
   "Replacement for `debug'.
@@ -3900,49 +3983,136 @@ Otherwise call `debug' normally."
     (apply #'debug arg-mode args)
     ))
 
+;;; Backtrace buffer
 
-(defun edebug-backtrace ()
-  "Display a non-working backtrace.  Better than nothing..."
+(defvar-local edebug-backtrace-frames nil
+  "Stack frames of the current Edebug Backtrace buffer without instrumentation.
+This should be a list of `edebug---frame' objects.")
+(defvar-local edebug-instrumented-backtrace-frames nil
+  "Stack frames of the current Edebug Backtrace buffer with instrumentation.
+This should be a list of `edebug---frame' objects.")
+
+;; Data structure for backtrace frames with information
+;; from Edebug instrumentation found in the backtrace.
+(cl-defstruct
+    (edebug--frame
+     (:constructor edebug--make-frame)
+     (:include backtrace-frame))
+  def-name before-index after-index)
+
+(defun edebug-pop-to-backtrace ()
+  "Display the current backtrace in a `backtrace-mode' window."
   (interactive)
   (if (or (not edebug-backtrace-buffer)
 	  (null (buffer-name edebug-backtrace-buffer)))
       (setq edebug-backtrace-buffer
-	    (generate-new-buffer "*Backtrace*"))
+	    (generate-new-buffer "*Edebug Backtrace*"))
     ;; Else, could just display edebug-backtrace-buffer.
     )
-  (with-output-to-temp-buffer (buffer-name edebug-backtrace-buffer)
-    (setq edebug-backtrace-buffer standard-output)
-    (let ((print-escape-newlines t)
-	  (print-length 50)	; FIXME cf edebug-safe-prin1-to-string
-	  last-ok-point)
-      (backtrace)
+  (pop-to-buffer edebug-backtrace-buffer)
+  (unless (derived-mode-p 'backtrace-mode)
+    (backtrace-mode)
+    (add-hook 'backtrace-goto-source-functions 'edebug--backtrace-goto-source))
+  (setq edebug-instrumented-backtrace-frames
+        (backtrace-get-frames 'edebug-debugger
+                              :constructor #'edebug--make-frame)
+        edebug-backtrace-frames (edebug--strip-instrumentation
+                                 edebug-instrumented-backtrace-frames)
+        backtrace-frames edebug-backtrace-frames)
+  (backtrace-print)
+  (goto-char (point-min)))
 
-      ;; Clean up the backtrace.
-      ;; Not quite right for current edebug scheme.
-      (set-buffer edebug-backtrace-buffer)
-      (setq truncate-lines t)
-      (goto-char (point-min))
-      (setq last-ok-point (point))
-      (if t (progn
+(defun edebug--strip-instrumentation (frames)
+  "Return a new list of backtrace frames with instrumentation removed.
+Remove frames for Edebug's functions and the lambdas in
+`edebug-enter' wrappers.  Fill in the def-name, before-index
+and after-index fields in both FRAMES and the returned list
+of deinstrumented frames, for those frames where the source
+code location is known."
+  (let (skip-next-lambda def-name before-index after-index results
+        (index (length frames)))
+    (dolist (frame (reverse frames))
+      (let ((new-frame (copy-edebug--frame frame))
+            (fun (edebug--frame-fun frame))
+            (args (edebug--frame-args frame)))
+        (cl-decf index)
+        (pcase fun
+          ('edebug-enter
+	   (setq skip-next-lambda t
+                 def-name (nth 0 args)))
+          ('edebug-after
+           (setq before-index (if (consp (nth 0 args))
+                                  (nth 1 (nth 0 args))
+                                (nth 0 args))
+                 after-index (nth 1 args)))
+          ((pred edebug--symbol-not-prefixed-p)
+           (edebug--unwrap-frame new-frame)
+           (edebug--add-source-info new-frame def-name before-index after-index)
+           (edebug--add-source-info frame def-name before-index after-index)
+           (push new-frame results)
+           (setq before-index nil
+                 after-index nil))
+          (`(,(or 'lambda 'closure) . ,_)
+	   (unless skip-next-lambda
+             (edebug--unwrap-frame new-frame)
+             (edebug--add-source-info frame def-name before-index after-index)
+             (edebug--add-source-info new-frame def-name before-index after-index)
+             (push new-frame results))
+	   (setq before-index nil
+                 after-index nil
+                 skip-next-lambda nil)))))
+    results))
 
-      ;; Delete interspersed edebug internals.
-      (while (re-search-forward "^  (?edebug" nil t)
-	(beginning-of-line)
-	(cond
-	 ((looking-at "^  (edebug-after")
-	  ;; Previous lines may contain code, so just delete this line.
-	  (setq last-ok-point (point))
-	  (forward-line 1)
-	  (delete-region last-ok-point (point)))
+(defun edebug--symbol-not-prefixed-p (sym)
+  "Return non-nil if SYM is a symbol not prefixed by \"edebug-\"."
+  (and (symbolp sym)
+       (not (string-prefix-p "edebug-" (symbol-name sym)))))
 
-	 ((looking-at (if debugger-stack-frame-as-list
-                          "^  (edebug"
-                        "^  edebug"))
-	  (forward-line 1)
-	  (delete-region last-ok-point (point))
-	  )))
-      )))))
+(defun edebug--unwrap-frame (frame)
+  "Remove Edebug's instrumentation from FRAME.
+Strip it from the function and any unevaluated arguments."
+  (setf (edebug--frame-fun frame) (edebug-unwrap* (edebug--frame-fun frame)))
+  (unless (edebug--frame-evald frame)
+    (let (results)
+      (dolist (arg (edebug--frame-args frame))
+        (push (edebug-unwrap* arg) results))
+      (setf (edebug--frame-args frame) (nreverse results)))))
 
+(defun edebug--add-source-info (frame def-name before-index after-index)
+  "Update FRAME with the additional info needed by an edebug--frame.
+Save DEF-NAME, BEFORE-INDEX and AFTER-INDEX in FRAME."
+  (when (and before-index def-name)
+    (setf (edebug--frame-flags frame)
+          (plist-put (copy-sequence (edebug--frame-flags frame))
+                     :source-available t)))
+  (setf (edebug--frame-def-name frame) (and before-index def-name))
+  (setf (edebug--frame-before-index frame) before-index)
+  (setf (edebug--frame-after-index frame) after-index))
+
+(defun edebug--backtrace-goto-source ()
+  (let* ((index (backtrace-get-index))
+         (frame (nth index backtrace-frames)))
+    (when (edebug--frame-def-name frame)
+      (let* ((data (get (edebug--frame-def-name frame) 'edebug))
+             (marker (nth 0 data))
+             (offsets (nth 2 data)))
+        (pop-to-buffer (marker-buffer marker))
+        (goto-char (+ (marker-position marker)
+                      (aref offsets (edebug--frame-before-index frame))))))))
+
+(defun edebug-backtrace-show-instrumentation ()
+  "Show Edebug's instrumentation in an Edebug Backtrace buffer."
+  (interactive)
+  (unless (eq backtrace-frames edebug-instrumented-backtrace-frames)
+    (setq backtrace-frames edebug-instrumented-backtrace-frames)
+    (revert-buffer)))
+
+(defun edebug-backtrace-hide-instrumentation ()
+  "Hide Edebug's instrumentation in an Edebug Backtrace buffer."
+  (interactive)
+  (unless (eq backtrace-frames edebug-backtrace-frames)
+    (setq backtrace-frames edebug-backtrace-frames)
+    (revert-buffer)))
 
 ;;; Trace display
 
@@ -4116,7 +4286,7 @@ It is removed when you hit any char."
      ["Bounce to Current Point" edebug-bounce-point t]
      ["View Outside Windows" edebug-view-outside t]
      ["Previous Result" edebug-previous-result t]
-     ["Show Backtrace" edebug-backtrace t]
+     ["Show Backtrace" edebug-pop-to-backtrace t]
      ["Display Freq Count" edebug-display-freq-count t])
 
     ("Eval"

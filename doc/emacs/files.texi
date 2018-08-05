@@ -909,6 +909,8 @@ You can answer ``no'' to bypass copying of this file, this time.  If
 you want to cancel the shadowing permanently for a certain file, use
 @w{@kbd{M-x shadow-cancel}} to eliminate or change the shadow file group.
 
+File Shadowing is not available on MS Windows.
+
 @node Time Stamps
 @subsection Updating Time Stamps Automatically
 @cindex time stamps

@@ -165,10 +165,12 @@
                 :type 'overflow-error)
   (should-error (read (substring (format "%d" most-negative-fixnum) 1))
                 :type 'overflow-error)
-  (should-error (read (format "#x%x" most-negative-fixnum))
-                :type 'overflow-error)
-  (should-error (read (format "#o%o" most-negative-fixnum))
-                :type 'overflow-error)
+  (let ((binary-as-unsigned nil))
+    (dolist (fmt '("%d" "%s" "#o%o" "#x%x"))
+      (dolist (val (list most-negative-fixnum (1+ most-negative-fixnum)
+                         -1 0 1
+                         (1- most-positive-fixnum) most-positive-fixnum))
+        (should (eq val (read (format fmt val)))))))
   (should-error (read (format "#32rG%x" most-positive-fixnum))
                 :type 'overflow-error))
 

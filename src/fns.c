@@ -144,6 +144,28 @@ which is at least the number of distinct elements.  */)
   return make_fixnum_or_float (len);
 }
 
+DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
+       doc: /* Return OBJECT's length if it is a proper list, nil otherwise.
+A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */
+       attributes: const)
+  (Lisp_Object object)
+{
+  intptr_t len = 0;
+  Lisp_Object last_tail = object;
+  Lisp_Object tail = object;
+  FOR_EACH_TAIL_SAFE (tail)
+    {
+      len++;
+      rarely_quit (len);
+      last_tail = XCDR (tail);
+    }
+  if (!NILP (last_tail))
+    return Qnil;
+  if (MOST_POSITIVE_FIXNUM < len)
+    xsignal0 (Qoverflow_error);
+  return make_number (len);
+}
+
 DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0,
        doc: /* Return the number of bytes in STRING.
 If STRING is multibyte, this may be greater than the length of STRING.  */)
@@ -5295,6 +5317,7 @@ this variable.  */);
   defsubr (&Srandom);
   defsubr (&Slength);
   defsubr (&Ssafe_length);
+  defsubr (&Sproper_list_p);
   defsubr (&Sstring_bytes);
   defsubr (&Sstring_distance);
   defsubr (&Sstring_equal);

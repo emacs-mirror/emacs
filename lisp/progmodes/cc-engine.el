@@ -12607,7 +12607,11 @@ comment at the start of cc-engine.el for more info."
 		 (= (point) containing-sexp)))
 	  (if (eq (point) (c-point 'boi))
 	      (c-add-syntax 'brace-list-close (point))
-	    (setq lim (c-most-enclosing-brace state-cache (point)))
+	    (setq lim (or (save-excursion
+			    (and
+			     (c-back-over-member-initializers)
+			     (point)))
+			  (c-most-enclosing-brace state-cache (point))))
 	    (c-beginning-of-statement-1 lim nil nil t)
 	    (c-add-stmt-syntax 'brace-list-close nil t lim paren-state)))
 
@@ -12636,7 +12640,11 @@ comment at the start of cc-engine.el for more info."
 	      (goto-char containing-sexp))
 	    (if (eq (point) (c-point 'boi))
 		(c-add-syntax 'brace-list-intro (point))
-	      (setq lim (c-most-enclosing-brace state-cache (point)))
+	      (setq lim (or (save-excursion
+			      (and
+			       (c-back-over-member-initializers)
+			       (point)))
+			    (c-most-enclosing-brace state-cache (point))))
 	      (c-beginning-of-statement-1 lim)
 	      (c-add-stmt-syntax 'brace-list-intro nil t lim paren-state)))
 

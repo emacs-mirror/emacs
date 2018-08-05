@@ -201,6 +201,7 @@
 ;; plus nbsp
 (define-iso-single-byte-charset 'iso-8859-11 'thai-iso8859-11
   "ISO/IEC 8859/11" "Latin/Thai" 166 ?T nil "8859-11")
+(define-charset-alias 'tis620-2533 'thai-iso8859-11)
 
 ;; 8859-12 doesn't (yet?) exist.
 
@@ -228,14 +229,6 @@
   :emacs-mule-id 133
   :code-space [32 127]
   :code-offset #x0E00)
-
-;; Fixme: doc for this, c.f. above
-(define-charset 'tis620-2533
-  "TIS620.2533"
-  :short-name "TIS620.2533"
-  :ascii-compatible-p t
-  :code-space [0 255]
-  :superset '(ascii eight-bit-control (thai-tis620 . 128)))
 
 (define-charset 'jisx0201
   "JISX0201"

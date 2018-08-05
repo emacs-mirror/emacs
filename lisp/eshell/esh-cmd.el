@@ -1304,27 +1304,36 @@ messages, and errors."
   "Insert Lisp OBJECT, using ARGS if a function."
   (catch 'eshell-external               ; deferred to an external command
     (let* ((eshell-ensure-newline-p (eshell-interactive-output-p))
-	   (result
-	    (if (functionp object)
-		(progn
-		  (setq eshell-last-arguments args
-			eshell-last-command-name
-			(concat "#<function " (symbol-name object) ">"))
-		  ;; if any of the arguments are flagged as numbers
-		  ;; waiting for conversion, convert them now
-		  (unless (get object 'eshell-no-numeric-conversions)
-		    (while args
-		      (let ((arg (car args)))
-			(if (and (stringp arg)
-				 (> (length arg) 0)
-				 (not (text-property-not-all
-				       0 (length arg) 'number t arg)))
-			    (setcar args (string-to-number arg))))
-		      (setq args (cdr args))))
-		  (eshell-apply object eshell-last-arguments))
-	      (setq eshell-last-arguments args
-		    eshell-last-command-name "#<Lisp object>")
-	      (eshell-eval object))))
+           (result
+            (if (functionp object)
+                (progn
+                  (setq eshell-last-arguments args
+                        eshell-last-command-name
+                        (concat "#<function " (symbol-name object) ">"))
+                  (let ((numeric (not (get object
+                                           'eshell-no-numeric-conversions)))
+                        (fname-args (get object 'eshell-filename-arguments)))
+                    (when (or numeric fname-args)
+                      (while args
+                        (let ((arg (car args)))
+                          (cond ((and numeric (stringp arg) (> (length arg) 0)
+                                      (text-property-any 0 (length arg)
+                                                         'number t arg))
+                                 ;; If any of the arguments are
+                                 ;; flagged as numbers waiting for
+                                 ;; conversion, convert them now.
+                                 (setcar args (string-to-number arg)))
+                                ((and fname-args (stringp arg)
+                                      (string-equal arg "~"))
+                                 ;; If any of the arguments match "~",
+                                 ;; prepend "./" to treat it as a
+                                 ;; regular file name.
+                                 (setcar args (concat "./" arg)))))
+                        (setq args (cdr args)))))
+                  (eshell-apply object eshell-last-arguments))
+              (setq eshell-last-arguments args
+                    eshell-last-command-name "#<Lisp object>")
+              (eshell-eval object))))
       (if (and eshell-ensure-newline-p
 	       (save-excursion
 		 (goto-char eshell-last-output-end)

@@ -2812,10 +2812,6 @@ arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args)
   return val;
 }
 
-#ifndef isnan
-# define isnan(x) ((x) != (x))
-#endif
-
 static Lisp_Object
 float_arith_driver (double accum, ptrdiff_t argnum, enum arithop code,
 		    ptrdiff_t nargs, Lisp_Object *args)

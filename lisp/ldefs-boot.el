@@ -176,12 +176,18 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'.
 \(fn &optional FILE-NAME BUFFER-FILE)" nil nil)
 
 (autoload 'add-change-log-entry "add-log" "\
-Find change log file, and add an entry for today and an item for this file.
-Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
-name and email (stored in `add-log-full-name' and `add-log-mailing-address').
+Find ChangeLog buffer, add an entry for today and an item for this file.
+Optional arg WHOAMI (interactive prefix) non-nil means prompt for
+user name and email (stored in `add-log-full-name'
+and `add-log-mailing-address').
 
-Second arg FILE-NAME is file name of the change log.
-If nil, use the value of `change-log-default-name'.
+Second arg CHANGELOG-FILE-NAME is the file name of the change log.
+If nil, use the value of `change-log-default-name'.  If the file
+thus named exists, it is used for the new entry.  If it doesn't
+exist, it is created, unless `add-log-dont-create-changelog-file' is t,
+in which case a suitably named buffer that doesn't visit any file
+is used for keeping entries pertaining to CHANGELOG-FILE-NAME's
+directory.
 
 Third arg OTHER-WINDOW non-nil means visit in other window.
 
@@ -204,7 +210,7 @@ notices.
 Today's date is calculated according to `add-log-time-zone-rule' if
 non-nil, otherwise in local time.
 
-\(fn &optional WHOAMI FILE-NAME OTHER-WINDOW NEW-ENTRY PUT-NEW-ENTRY-ON-NEW-LINE)" t nil)
+\(fn &optional WHOAMI CHANGELOG-FILE-NAME OTHER-WINDOW NEW-ENTRY PUT-NEW-ENTRY-ON-NEW-LINE)" t nil)
 
 (autoload 'add-change-log-entry-other-window "add-log" "\
 Find change log file in other window and add entry and item.
@@ -577,9 +583,11 @@ Return t if `allout-mode' is active in current buffer.
 
 (autoload 'allout-mode "allout" "\
 Toggle Allout outline mode.
-With a prefix argument ARG, enable Allout outline mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Allout mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \\<allout-mode-map-value>
 Allout outline mode is a minor mode that provides extensive
@@ -890,9 +898,11 @@ See `allout-widgets-mode' for allout widgets mode features.")
 
 (autoload 'allout-widgets-mode "allout-widgets" "\
 Toggle Allout Widgets mode.
-With a prefix argument ARG, enable Allout Widgets mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Allout-Widgets mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Allout Widgets mode is an extension of Allout mode that provides
 graphical decoration of outline structure.  It is meant to
@@ -1300,7 +1310,12 @@ Entering array mode calls the function `array-mode-hook'.
 
 (autoload 'artist-mode "artist" "\
 Toggle Artist mode.
-With argument ARG, turn Artist mode on if ARG is positive.
+
+If called interactively, enable Artist mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 Artist lets you draw lines, squares, rectangles and poly-lines,
 ellipses and circles with your mouse and/or keyboard.
 
@@ -1571,9 +1586,6 @@ for a description of this minor mode.")
 
 (autoload 'autoarg-mode "autoarg" "\
 Toggle Autoarg mode, a global minor mode.
-With a prefix argument ARG, enable Autoarg mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 \\<autoarg-mode-map>
 In Autoarg mode, digits are bound to `digit-argument', i.e. they
@@ -1607,9 +1619,11 @@ or call the function `autoarg-kp-mode'.")
 
 (autoload 'autoarg-kp-mode "autoarg" "\
 Toggle Autoarg-KP mode, a global minor mode.
-With a prefix argument ARG, enable Autoarg-KP mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Autoarg-Kp mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \\<autoarg-kp-mode-map>
 This is similar to `autoarg-mode' but rebinds the keypad keys
@@ -1663,9 +1677,11 @@ or call the function `auto-insert-mode'.")
 
 (autoload 'auto-insert-mode "autoinsert" "\
 Toggle Auto-insert mode, a global minor mode.
-With a prefix argument ARG, enable Auto-insert mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Auto-Insert mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Auto-insert mode is enabled, when new files are created you can
 insert a template for the file depending on the mode of the buffer.
@@ -1735,9 +1751,11 @@ should be non-nil).
 
 (autoload 'auto-revert-mode "autorevert" "\
 Toggle reverting buffer when the file changes (Auto-Revert Mode).
-With a prefix argument ARG, enable Auto-Revert Mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Auto-Revert mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Auto-Revert Mode is a minor mode that affects only the current
 buffer.  When enabled, it reverts the buffer when the file on
@@ -1762,9 +1780,11 @@ This function is designed to be added to hooks, for example:
 
 (autoload 'auto-revert-tail-mode "autorevert" "\
 Toggle reverting tail of buffer when the file grows.
-With a prefix argument ARG, enable Auto-Revert Tail Mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Auto-Revert-Tail mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Auto-Revert Tail Mode is enabled, the tail of the file is
 constantly followed, as with the shell command `tail -f'.  This
@@ -1803,9 +1823,11 @@ or call the function `global-auto-revert-mode'.")
 
 (autoload 'global-auto-revert-mode "autorevert" "\
 Toggle Global Auto-Revert Mode.
-With a prefix argument ARG, enable Global Auto-Revert Mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Global Auto-Revert mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Global Auto-Revert Mode is a global minor mode that reverts any
 buffer associated with a file when the file changes on disk.  Use
@@ -1921,9 +1943,11 @@ or call the function `display-battery-mode'.")
 
 (autoload 'display-battery-mode "battery" "\
 Toggle battery status display in mode line (Display Battery mode).
-With a prefix argument ARG, enable Display Battery mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Display-Battery mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 The text displayed in the mode line is controlled by
 `battery-mode-line-format' and `battery-status-function'.
@@ -2331,7 +2355,7 @@ BOOKMARK is usually a bookmark name (a string).  It can also be a
 bookmark record, but this is usually only done by programmatic callers.
 
 If DISPLAY-FUNC is non-nil, it is a function to invoke to display the
-bookmark.  It defaults to `switch-to-buffer'.  A typical value for
+bookmark.  It defaults to `pop-to-buffer-same-window'.  A typical value for
 DISPLAY-FUNC would be `switch-to-buffer-other-window'.
 
 \(fn BOOKMARK &optional DISPLAY-FUNC)" t nil)
@@ -2897,14 +2921,21 @@ columns on its right towards the left.
 
 (autoload 'bug-reference-mode "bug-reference" "\
 Toggle hyperlinking bug references in the buffer (Bug Reference mode).
-With a prefix argument ARG, enable Bug Reference mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Bug-Reference mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'bug-reference-prog-mode "bug-reference" "\
 Like `bug-reference-mode', but only buttonize in comments and strings.
+
+If called interactively, enable Bug-Reference-Prog mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -4691,9 +4722,11 @@ Prefix argument is the same as for `checkdoc-defun'
 
 (autoload 'checkdoc-minor-mode "checkdoc" "\
 Toggle automatic docstring checking (Checkdoc minor mode).
-With a prefix argument ARG, enable Checkdoc minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Checkdoc minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 In Checkdoc minor mode, the usual bindings for `eval-defun' which is
 bound to \\<checkdoc-minor-mode-map>\\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
@@ -4933,6 +4966,11 @@ This can be needed when using code byte-compiled using the old
 macro-expansion of `cl-defstruct' that used vectors objects instead
 of record objects.
 
+If called interactively, enable Cl-Old-Struct-Compat mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cl-lib" '("cl-")))
@@ -5150,7 +5188,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use.
 
 \(fn PROCESS COMMAND REGEXP REGEXP-GROUP)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "comint" '("comint-" "send-invisible" "shell-strip-ctrl-m")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "comint" '("comint-")))
 
 ;;;***
 
@@ -5346,9 +5384,11 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
 
 (autoload 'compilation-shell-minor-mode "compile" "\
 Toggle Compilation Shell minor mode.
-With a prefix argument ARG, enable Compilation Shell minor mode
-if ARG is positive, and disable it otherwise.  If called from
-Lisp, enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Compilation-Shell minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Compilation Shell minor mode is enabled, all the
 error-parsing commands of the Compilation major mode are
@@ -5359,9 +5399,11 @@ See `compilation-mode'.
 
 (autoload 'compilation-minor-mode "compile" "\
 Toggle Compilation minor mode.
-With a prefix argument ARG, enable Compilation minor mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Compilation minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Compilation minor mode is enabled, all the error-parsing
 commands of Compilation major mode are available.  See
@@ -5394,9 +5436,11 @@ or call the function `dynamic-completion-mode'.")
 
 (autoload 'dynamic-completion-mode "completion" "\
 Toggle dynamic word-completion on or off.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Dynamic-Completion mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -5959,9 +6003,11 @@ or call the function `cua-mode'.")
 
 (autoload 'cua-mode "cua-base" "\
 Toggle Common User Access style editing (CUA mode).
-With a prefix argument ARG, enable CUA mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Cua mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 CUA mode is a global minor mode.  When enabled, typed text
 replaces the active selection, and you can use C-z, C-x, C-c, and
@@ -6006,6 +6052,11 @@ Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings.
 Toggle the region as rectangular.
 Activates the region if needed.  Only lasts until the region is deactivated.
 
+If called interactively, enable Cua-Rectangle-Mark mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cua-rect" '("cua-")))
@@ -6021,6 +6072,11 @@ Activates the region if needed.  Only lasts until the region is deactivated.
 (autoload 'cursor-intangible-mode "cursor-sensor" "\
 Keep cursor outside of any `cursor-intangible' text property.
 
+If called interactively, enable Cursor-Intangible mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'cursor-sensor-mode "cursor-sensor" "\
@@ -6030,6 +6086,11 @@ of the cursor.  They're called with three arguments (WINDOW OLDPOS DIR)
 where WINDOW is the affected window, OLDPOS is the last known position of
 the cursor and DIR can be `entered' or `left' depending on whether the cursor
 is entering the area covered by the text-property property or leaving it.
+
+If called interactively, enable Cursor-Sensor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -6421,15 +6482,16 @@ Mode used for cvs status output.
 (autoload 'cwarn-mode "cwarn" "\
 Minor mode that highlights suspicious C and C++ constructions.
 
+If called interactively, enable Cwarn mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 Suspicious constructs are highlighted using `font-lock-warning-face'.
 
 Note, in addition to enabling this minor mode, the major mode must
 be included in the variable `cwarn-configuration'.  By default C and
 C++ modes are included.
-
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
 
 \(fn &optional ARG)" t nil)
 
@@ -6849,12 +6911,11 @@ or call the function `delete-selection-mode'.")
 
 (autoload 'delete-selection-mode "delsel" "\
 Toggle Delete Selection mode.
-Interactively, with a prefix argument, enable
-Delete Selection mode if the prefix argument is positive,
-and disable it otherwise.  If called from Lisp, toggle
-the mode if ARG is `toggle', disable the mode if ARG is
-a non-positive integer, and enable the mode otherwise
-\(including if ARG is omitted or nil or a positive integer).
+
+If called interactively, enable Delete-Selection mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Delete Selection mode is enabled, typed text replaces the selection
 if the selection is active.  Otherwise, typed text is just inserted at
@@ -7006,9 +7067,11 @@ or call the function `desktop-save-mode'.")
 
 (autoload 'desktop-save-mode "desktop" "\
 Toggle desktop saving (Desktop Save mode).
-With a prefix argument ARG, enable Desktop Save mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode if ARG
-is omitted or nil.
+
+If called interactively, enable Desktop-Save mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Desktop Save mode is enabled, the state of Emacs is saved from
 one session to another.  In particular, Emacs will save the desktop when
@@ -7371,9 +7434,11 @@ a diff with \\[diff-reverse-direction].
 
 (autoload 'diff-minor-mode "diff-mode" "\
 Toggle Diff minor mode.
-With a prefix argument ARG, enable Diff minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Diff minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \\{diff-minor-mode-map}
 
@@ -7549,9 +7614,11 @@ Keybindings:
 
 (autoload 'dirtrack-mode "dirtrack" "\
 Toggle directory tracking in shell buffers (Dirtrack mode).
-With a prefix argument ARG, enable Dirtrack mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Dirtrack mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 This method requires that your shell prompt contain the current
 working directory at all times, and that you set the variable
@@ -7723,6 +7790,11 @@ in `.emacs'.
 Toggle display of line numbers in the buffer.
 This uses `display-line-numbers' internally.
 
+If called interactively, enable Display-Line-Numbers mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 To change the type of line numbers displayed by default,
 customize `display-line-numbers-type'.  To change the type while
 the mode is on, set `display-line-numbers' directly.
@@ -7856,9 +7928,11 @@ to the next best mode.
 
 (autoload 'doc-view-minor-mode "doc-view" "\
 Toggle displaying buffer via Doc View (Doc View minor mode).
-With a prefix argument ARG, enable Doc View minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Doc-View minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 See the command `doc-view-mode' for more information on this mode.
 
@@ -7918,9 +7992,11 @@ Switch to *doctor* buffer and start giving psychotherapy.
 
 (autoload 'double-mode "double" "\
 Toggle special insertion on double keypresses (Double mode).
-With a prefix argument ARG, enable Double mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Double mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Double mode is enabled, some keys will insert different
 strings when pressed twice.  See `double-map' for details.
@@ -7975,7 +8051,9 @@ non-positive integer, and enables the mode otherwise (including
 if the argument is omitted or nil or a positive integer).
 
 If DOC is nil, give the mode command a basic doc-string
-documenting what its argument does.
+documenting what its argument does.  If the word \"ARG\" does not
+appear in DOC, a paragraph is added to DOC explaining
+usage of the mode argument.
 
 Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the mode line when the mode is on.
@@ -8785,9 +8863,11 @@ or call the function `global-ede-mode'.")
 
 (autoload 'global-ede-mode "ede" "\
 Toggle global EDE (Emacs Development Environment) mode.
-With a prefix argument ARG, enable global EDE mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Global Ede mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 This global minor mode enables `ede-minor-mode' in all buffers in
 an EDE controlled project.
@@ -9797,9 +9877,11 @@ or call the function `electric-pair-mode'.")
 
 (autoload 'electric-pair-mode "elec-pair" "\
 Toggle automatic parens pairing (Electric Pair mode).
-With a prefix argument ARG, enable Electric Pair mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Electric-Pair mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Electric Pair mode is a global minor mode.  When enabled, typing
 an open parenthesis automatically inserts the corresponding
@@ -9813,6 +9895,11 @@ To toggle the mode in a single buffer, use `electric-pair-local-mode'.
 
 (autoload 'electric-pair-local-mode "elec-pair" "\
 Toggle `electric-pair-mode' only in this buffer.
+
+If called interactively, enable Electric-Pair-Local mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -10053,9 +10140,7 @@ displayed.
 (autoload 'emacs-lock-mode "emacs-lock" "\
 Toggle Emacs Lock mode in the current buffer.
 If called with a plain prefix argument, ask for the locking mode
-to be used.  With any other prefix ARG, turn mode on if ARG is
-positive, off otherwise.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+to be used.
 
 Initially, if the user does not pass an explicit locking mode, it
 defaults to `emacs-lock-default-locking-mode' (which see);
@@ -10069,6 +10154,9 @@ When called from Elisp code, ARG can be any locking mode:
  all    -- the buffer is locked against both actions
 
 Other values are interpreted as usual.
+
+See also `emacs-lock-unlockable-modes', which exempts buffers under
+some major modes from being locked under some circumstances.
 
 \(fn &optional ARG)" t nil)
 
@@ -10161,9 +10249,10 @@ Minor mode for editing text/enriched files.
 These are files with embedded formatting information in the MIME standard
 text/enriched format.
 
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+If called interactively, enable Enriched mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Turning the mode on or off runs `enriched-mode-hook'.
 
@@ -10432,9 +10521,11 @@ Encrypt marked files.
 
 (autoload 'epa-mail-mode "epa-mail" "\
 A minor-mode for composing encrypted/clearsigned mails.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable epa-mail mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -10497,9 +10588,11 @@ or call the function `epa-global-mail-mode'.")
 
 (autoload 'epa-global-mail-mode "epa-mail" "\
 Minor mode to hook EasyPG into Mail mode.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Epa-Global-Mail mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -10545,8 +10638,13 @@ Return a list of internal configuration parameters of `epg-gpg-program'.
 
 (autoload 'epg-check-configuration "epg-config" "\
 Verify that a sufficient version of GnuPG is installed.
+CONFIG should be a `epg-configuration' object (a plist).
+REQ-VERSIONS should be a list with elements of the form (MIN
+. MAX) where MIN and MAX are version strings indicating a
+semi-open range of acceptable versions.  REQ-VERSIONS may also be
+a single minimum version string.
 
-\(fn CONFIG &optional MINIMUM-VERSION)" nil nil)
+\(fn CONFIG &optional REQ-VERSIONS)" nil nil)
 
 (autoload 'epg-expand-group "epg-config" "\
 Look at CONFIG and try to expand GROUP.
@@ -12087,10 +12185,14 @@ a top-level keymap, `text-scale-increase' or
 
 (autoload 'buffer-face-mode "face-remap" "\
 Minor mode for a buffer-specific default face.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.  When enabled, the face specified by the
-variable `buffer-face-mode-face' is used to display the buffer text.
+
+If called interactively, enable Buffer-Face mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
+When enabled, the face specified by the variable
+`buffer-face-mode-face' is used to display the buffer text.
 
 \(fn &optional ARG)" t nil)
 
@@ -12972,9 +13074,11 @@ region is invalid.
 
 (autoload 'flymake-mode "flymake" "\
 Toggle Flymake mode on or off.
-With a prefix argument ARG, enable Flymake mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
+
+If called interactively, enable Flymake mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Flymake is an Emacs minor mode for on-the-fly syntax checking.
 Flymake collects diagnostic information from multiple sources,
@@ -13060,9 +13164,11 @@ Turn on `flyspell-mode' for comments and strings.
 
 (autoload 'flyspell-mode "flyspell" "\
 Toggle on-the-fly spell checking (Flyspell mode).
-With a prefix argument ARG, enable Flyspell mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Flyspell mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Flyspell mode is a buffer-local minor mode.  When enabled, it
 spawns a single Ispell process and checks each word.  The default
@@ -13110,6 +13216,9 @@ Turn Flyspell mode off.
 (autoload 'flyspell-region "flyspell" "\
 Flyspell text between BEG and END.
 
+Make sure `flyspell-mode' is turned on if you want the highlight
+of a misspelled word removed when you've corrected it.
+
 \(fn BEG END)" t nil)
 
 (autoload 'flyspell-buffer "flyspell" "\
@@ -13144,9 +13253,11 @@ Turn off Follow mode.  Please see the function `follow-mode'.
 
 (autoload 'follow-mode "follow" "\
 Toggle Follow mode.
-With a prefix argument ARG, enable Follow mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Follow mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Follow mode is a minor mode that combines windows into one tall
 virtual window.  This is accomplished by two main techniques:
@@ -13267,9 +13378,11 @@ selected if the original window is the first one in the frame.
 
 (autoload 'footnote-mode "footnote" "\
 Toggle Footnote mode.
-With a prefix argument ARG, enable Footnote mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Footnote mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Footnote mode is a buffer-local minor mode.  If enabled, it
 provides footnote support for `message-mode'.  To get started,
@@ -13691,6 +13804,11 @@ being transferred.  This list may grow up to a size of
 `gdb-debug-log-max' after which the oldest element (at the end of
 the list) is deleted every time a new one is added (at the front).
 
+If called interactively, enable Gdb-Enable-Debug mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'gdb "gdb-mi" "\
@@ -13859,10 +13977,14 @@ regular expression that can be used as an element of
 
 (autoload 'glasses-mode "glasses" "\
 Minor mode for making identifiers likeThis readable.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.  When this mode is active, it tries to
-add virtual separators (like underscores) at places they belong to.
+
+If called interactively, enable Glasses mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
+When this mode is active, it tries to add virtual
+separators (like underscores) at places they belong to.
 
 \(fn &optional ARG)" t nil)
 
@@ -14469,6 +14591,11 @@ If FORCE is non-nil, replace the old ones.
 (autoload 'gnus-mailing-list-mode "gnus-ml" "\
 Minor mode for providing mailing-list commands.
 
+If called interactively, enable Gnus-Mailing-List mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \\{gnus-mailing-list-mode-map}
 
 \(fn &optional ARG)" t nil)
@@ -14889,7 +15016,14 @@ number with fewer than this number of bits, the handshake is
 rejected.  (The smaller the prime number, the less secure the
 key exchange is against man-in-the-middle attacks.)
 
-A value of nil says to use the default GnuTLS value.")
+A value of nil says to use the default GnuTLS value.
+
+The default value of this variable is such that virtually any
+connection can be established, whether this connection can be
+considered cryptographically \"safe\" or not.  However, Emacs
+network security is handled at a higher level via
+`open-network-stream' and the Network Security Manager.  See Info
+node `(emacs) Network Security'.")
 
 (custom-autoload 'gnutls-min-prime-bits "gnutls" t)
 
@@ -14951,14 +15085,21 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 (autoload 'goto-address-mode "goto-addr" "\
 Minor mode to buttonize URLs and e-mail addresses in the current buffer.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Goto-Address mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
 (autoload 'goto-address-prog-mode "goto-addr" "\
 Like `goto-address-mode', but only for comments and strings.
+
+If called interactively, enable Goto-Address-Prog mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -15017,7 +15158,7 @@ List of hook functions run by `grep-process-setup' (see `run-hooks').")
 
 (custom-autoload 'grep-setup-hook "grep" t)
 
-(defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face 'grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face 'grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1)) "\
+(defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:" "\\(?:[a-zA-Z]:\\)?" "[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face 'grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face 'grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1)) "\
 Regexp used to match grep hits.
 See `compilation-error-regexp-alist' for format details.")
 
@@ -15259,9 +15400,11 @@ or call the function `gud-tooltip-mode'.")
 
 (autoload 'gud-tooltip-mode "gud" "\
 Toggle the display of GUD tooltips.
-With a prefix argument ARG, enable the feature if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-it if ARG is omitted or nil.
+
+If called interactively, enable Gud-Tooltip mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -15944,9 +16087,11 @@ This discards the buffer's undo information.
 
 (autoload 'hi-lock-mode "hi-lock" "\
 Toggle selective highlighting of patterns (Hi Lock mode).
-With a prefix argument ARG, enable Hi Lock mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Hi-Lock mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Hi Lock mode is automatically enabled when you invoke any of the
 highlighting commands listed below, such as \\[highlight-regexp].
@@ -16114,9 +16259,11 @@ be found in variable `hi-lock-interactive-patterns'.
 
 (autoload 'hide-ifdef-mode "hideif" "\
 Toggle features to hide/show #ifdef blocks (Hide-Ifdef mode).
-With a prefix argument ARG, enable Hide-Ifdef mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Hide-Ifdef mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Hide-Ifdef mode is a buffer-local minor mode for use with C and
 C-like major modes.  When enabled, code within #ifdef constructs
@@ -16191,9 +16338,11 @@ whitespace.  Case does not matter.")
 
 (autoload 'hs-minor-mode "hideshow" "\
 Minor mode to selectively hide/show code and comment blocks.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Hs minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
@@ -16227,9 +16376,11 @@ Unconditionally turn off `hs-minor-mode'.
 
 (autoload 'highlight-changes-mode "hilit-chg" "\
 Toggle highlighting changes in this buffer (Highlight Changes mode).
-With a prefix argument ARG, enable Highlight Changes mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Highlight-Changes mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Highlight Changes is enabled, changes are marked with a text
 property.  Normally they are displayed in a distinctive face, but
@@ -16250,9 +16401,11 @@ buffer with the contents of a file
 
 (autoload 'highlight-changes-visible-mode "hilit-chg" "\
 Toggle visibility of highlighting due to Highlight Changes mode.
-With a prefix argument ARG, enable Highlight Changes Visible mode
-if ARG is positive, and disable it otherwise.  If called from
-Lisp, enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Highlight-Changes-Visible mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Highlight Changes Visible mode only has an effect when Highlight
 Changes mode is on.  When enabled, the changed text is displayed
@@ -16395,9 +16548,11 @@ argument VERBOSE non-nil makes the function verbose.
 
 (autoload 'hl-line-mode "hl-line" "\
 Toggle highlighting of the current line (Hl-Line mode).
-With a prefix argument ARG, enable Hl-Line mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Hl-Line mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Hl-Line mode is a buffer-local minor mode.  If
 `hl-line-sticky-flag' is non-nil, Hl-Line mode highlights the
@@ -16425,9 +16580,11 @@ or call the function `global-hl-line-mode'.")
 
 (autoload 'global-hl-line-mode "hl-line" "\
 Toggle line highlighting in all buffers (Global Hl-Line mode).
-With a prefix argument ARG, enable Global Hl-Line mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Global Hl-Line mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 If `global-hl-line-sticky-flag' is non-nil, Global Hl-Line mode
 highlights the line about the current buffer's point in all live
@@ -16841,9 +16998,11 @@ or call the function `icomplete-mode'.")
 
 (autoload 'icomplete-mode "icomplete" "\
 Toggle incremental minibuffer completion (Icomplete mode).
-With a prefix argument ARG, enable Icomplete mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Icomplete mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When this global minor mode is enabled, typing in the minibuffer
 continuously displays a list of possible completions that match
@@ -17392,10 +17551,11 @@ DEF, if non-nil, is the default value.
 
 (autoload 'ielm "ielm" "\
 Interactively evaluate Emacs Lisp expressions.
-Switches to the buffer `*ielm*', or creates it if it does not exist.
+Switches to the buffer named BUF-NAME if provided (`*ielm*' by default),
+or creates it if it does not exist.
 See `inferior-emacs-lisp-mode' for details.
 
-\(fn)" t nil)
+\(fn &optional BUF-NAME)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "ielm" '("ielm-" "inferior-emacs-lisp-mode")))
 
@@ -17415,9 +17575,12 @@ See `inferior-emacs-lisp-mode' for details.
 
 (autoload 'iimage-mode "iimage" "\
 Toggle Iimage mode on or off.
-With a prefix argument ARG, enable Iimage mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
+
+If called interactively, enable Iimage mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \\{iimage-mode-map}
 
 \(fn &optional ARG)" t nil)
@@ -17710,6 +17873,11 @@ Setup easy-to-use keybindings for the commands to be used in dired mode.
 Note that n, p and <down> and <up> will be hijacked and bound to
 `image-dired-dired-x-line'.
 
+If called interactively, enable Image-Dired minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (define-obsolete-function-alias 'image-dired-setup-dired-keybindings 'image-dired-minor-mode "26.1")
@@ -17813,9 +17981,11 @@ or call the function `auto-image-file-mode'.")
 
 (autoload 'auto-image-file-mode "image-file" "\
 Toggle visiting of image files as images (Auto Image File mode).
-With a prefix argument ARG, enable Auto Image File mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Auto-Image-File mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 An image file is one whose name has an extension in
 `image-file-name-extensions', or matches a regexp in
@@ -17842,9 +18012,11 @@ Key bindings:
 
 (autoload 'image-minor-mode "image-mode" "\
 Toggle Image minor mode in this buffer.
-With a prefix argument ARG, enable Image minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Image minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Image minor mode provides the key \\<image-mode-map>\\[image-toggle-display],
 to switch back to `image-mode' and display an image file as the
@@ -17907,9 +18079,9 @@ string (which specifies the title of a submenu into which the
 matches are put).
 REGEXP is a regular expression matching a definition construct
 which is to be displayed in the menu.  REGEXP may also be a
-function, called without arguments.  It is expected to search
-backwards.  It must return true and set `match-data' if it finds
-another element.
+function of no arguments.  If REGEXP is a function, it is
+expected to search backwards, return non-nil if it finds a
+definition construct, and set `match-data' for that construct.
 INDEX is an integer specifying which subexpression of REGEXP
 matches the definition's name; this subexpression is displayed as
 the menu item.
@@ -18824,9 +18996,11 @@ available on the net.
 
 (autoload 'ispell-minor-mode "ispell" "\
 Toggle last-word spell checking (Ispell minor mode).
-With a prefix argument ARG, enable Ispell minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable ISpell minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Ispell minor mode is a buffer-local minor mode.  When enabled,
 typing SPC or RET warns you if the previous word is incorrectly
@@ -19510,9 +19684,11 @@ generations (this defaults to 1).
 
 (autoload 'linum-mode "linum" "\
 Toggle display of line numbers in the left margin (Linum mode).
-With a prefix argument ARG, enable Linum mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Linum mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Linum mode is a buffer-local minor mode.
 
@@ -20085,9 +20261,11 @@ or call the function `mail-abbrevs-mode'.")
 
 (autoload 'mail-abbrevs-mode "mailabbrev" "\
 Toggle abbrev expansion of mail aliases (Mail Abbrevs mode).
-With a prefix argument ARG, enable Mail Abbrevs mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Mail-Abbrevs mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Mail Abbrevs mode is a global minor mode.  When enabled,
 abbrev-like expansion is performed when editing certain mail
@@ -20431,9 +20609,11 @@ Default bookmark handler for Man buffers.
 
 (autoload 'master-mode "master" "\
 Toggle Master mode.
-With a prefix argument ARG, enable Master mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Master mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Master mode is enabled, you can scroll the slave buffer
 using the following commands:
@@ -20465,9 +20645,11 @@ or call the function `minibuffer-depth-indicate-mode'.")
 
 (autoload 'minibuffer-depth-indicate-mode "mb-depth" "\
 Toggle Minibuffer Depth Indication mode.
-With a prefix argument ARG, enable Minibuffer Depth Indication
-mode if ARG is positive, and disable it otherwise.  If called
-from Lisp, enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Minibuffer-Depth-Indicate mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Minibuffer Depth Indication mode is a global minor mode.  When
 enabled, any recursive use of the minibuffer will show the
@@ -21095,6 +21277,11 @@ or call the function `midnight-mode'.")
 (autoload 'midnight-mode "midnight" "\
 Non-nil means run `midnight-hook' at midnight.
 
+If called interactively, enable Midnight mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'clean-buffer-list "midnight" "\
@@ -21137,9 +21324,11 @@ or call the function `minibuffer-electric-default-mode'.")
 
 (autoload 'minibuffer-electric-default-mode "minibuf-eldef" "\
 Toggle Minibuffer Electric Default mode.
-With a prefix argument ARG, enable Minibuffer Electric Default
-mode if ARG is positive, and disable it otherwise.  If called
-from Lisp, enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Minibuffer-Electric-Default mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Minibuffer Electric Default mode is a global minor mode.  When
 enabled, minibuffer prompts that show a default value only show
@@ -21722,9 +21911,11 @@ or call the function `msb-mode'.")
 
 (autoload 'msb-mode "msb" "\
 Toggle Msb mode.
-With a prefix argument ARG, enable Msb mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Msb mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
 different buffer menu using the function `msb'.
@@ -23390,6 +23581,11 @@ modes.  The following keys behave as if Org mode were active, if
 the cursor is on a headline, or on a plain list item (both as
 defined by Org mode).
 
+If called interactively, enable OrgStruct mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'turn-on-orgstruct "org" "\
@@ -24302,9 +24498,11 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 
 (autoload 'outline-minor-mode "outline" "\
 Toggle Outline minor mode.
-With a prefix argument ARG, enable Outline minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Outline minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 See the command `outline-mode' for more information on this mode.
 
@@ -24579,9 +24777,11 @@ or call the function `show-paren-mode'.")
 
 (autoload 'show-paren-mode "paren" "\
 Toggle visualization of matching parens (Show Paren mode).
-With a prefix argument ARG, enable Show Paren mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Show-Paren mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Show Paren mode is a global minor mode.  When enabled, any
 matching parenthesis is highlighted in `show-paren-style' after
@@ -25300,9 +25500,11 @@ or call the function `pixel-scroll-mode'.")
 
 (autoload 'pixel-scroll-mode "pixel-scroll" "\
 A minor mode to scroll text pixel-by-pixel.
-With a prefix argument ARG, enable Pixel Scroll mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable Pixel Scroll mode
-if ARG is omitted or nil.
+
+If called interactively, enable Pixel-Scroll mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -26959,9 +27161,11 @@ or call the function `rcirc-track-minor-mode'.")
 
 (autoload 'rcirc-track-minor-mode "rcirc" "\
 Global minor mode for tracking activity in rcirc buffers.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Rcirc-Track minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -27005,9 +27209,11 @@ or call the function `recentf-mode'.")
 
 (autoload 'recentf-mode "recentf" "\
 Toggle \"Open Recent\" menu (Recentf mode).
-With a prefix argument ARG, enable Recentf mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-Recentf mode if ARG is omitted or nil.
+
+If called interactively, enable Recentf mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Recentf mode is enabled, a \"Open Recent\" submenu is
 displayed in the \"File\" menu, containing a list of files that
@@ -27157,6 +27363,12 @@ with a prefix argument, prompt for START-AT and FORMAT.
 
 (autoload 'rectangle-mark-mode "rect" "\
 Toggle the region as rectangular.
+
+If called interactively, enable Rectangle-Mark mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 Activates the region if needed.  Only lasts until the region is deactivated.
 
 \(fn &optional ARG)" t nil)
@@ -27184,9 +27396,11 @@ Activates the region if needed.  Only lasts until the region is deactivated.
 
 (autoload 'refill-mode "refill" "\
 Toggle automatic refilling (Refill mode).
-With a prefix argument ARG, enable Refill mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Refill mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Refill mode is a buffer-local minor mode.  When enabled, the
 current paragraph is refilled as you edit.  Self-inserting
@@ -27215,6 +27429,11 @@ Turn on RefTeX mode.
 
 (autoload 'reftex-mode "reftex" "\
 Minor mode with distinct support for \\label, \\ref and \\cite in LaTeX.
+
+If called interactively, enable Reftex mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \\<reftex-mode-map>A Table of Contents of the entire (multifile) document with browsing
 capabilities is available with `\\[reftex-toc]'.
@@ -27560,9 +27779,11 @@ first comment line visible (if point is in a comment).
 
 (autoload 'reveal-mode "reveal" "\
 Toggle uncloaking of invisible text near point (Reveal mode).
-With a prefix argument ARG, enable Reveal mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-Reveal mode if ARG is omitted or nil.
+
+If called interactively, enable Reveal mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Reveal mode is a buffer-local minor mode.  When enabled, it
 reveals invisible text around point.
@@ -27583,9 +27804,10 @@ or call the function `global-reveal-mode'.")
 Toggle Reveal mode in all buffers (Global Reveal mode).
 Reveal mode renders invisible text around point visible again.
 
-With a prefix argument ARG, enable Global Reveal mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+If called interactively, enable Global Reveal mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -28303,9 +28525,11 @@ highlighting.
 
 (autoload 'rst-minor-mode "rst" "\
 Toggle ReST minor mode.
-With a prefix argument ARG, enable ReST minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Rst minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When ReST minor mode is enabled, the ReST mode keybindings
 are installed on top of the major mode bindings.  Use this
@@ -28352,9 +28576,11 @@ Use the command `ruler-mode' to change this variable.")
 
 (autoload 'ruler-mode "ruler-mode" "\
 Toggle display of ruler in header line (Ruler mode).
-With a prefix argument ARG, enable Ruler mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Ruler mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -28738,9 +28964,11 @@ or call the function `savehist-mode'.")
 
 (autoload 'savehist-mode "savehist" "\
 Toggle saving of minibuffer history (Savehist mode).
-With a prefix argument ARG, enable Savehist mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Savehist mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Savehist mode is enabled, minibuffer history is saved
 periodically and when exiting Emacs.  When Savehist mode is
@@ -28775,6 +29003,11 @@ Non-nil means automatically save place in each file.
 This means when you visit a file, point goes to the last place
 where it was when you previously visited the same file.
 
+If called interactively, enable Save-Place mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \(fn &optional ARG)" t nil)
 
 (autoload 'save-place-local-mode "saveplace" "\
@@ -28783,8 +29016,10 @@ If this mode is enabled, point is recorded when you kill the buffer
 or exit Emacs.  Visiting this file again will go to that position,
 even in a later Emacs session.
 
-If called with a prefix arg, the mode is enabled if and only if
-the argument is positive.
+If called interactively, enable Save-Place-Local mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 To save places automatically in all files, put this in your init
 file:
@@ -28875,9 +29110,11 @@ or call the function `scroll-all-mode'.")
 
 (autoload 'scroll-all-mode "scroll-all" "\
 Toggle shared scrolling in same-frame windows (Scroll-All mode).
-With a prefix argument ARG, enable Scroll-All mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Scroll-All mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Scroll-All mode is enabled, scrolling commands invoked in
 one window apply to all visible windows in the same frame.
@@ -28900,12 +29137,16 @@ one window apply to all visible windows in the same frame.
 
 (autoload 'scroll-lock-mode "scroll-lock" "\
 Buffer-local minor mode for pager-like scrolling.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.  When enabled, keys that normally move
-point by line or paragraph will scroll the buffer by the
-respective amount of lines instead and point will be kept
-vertically fixed relative to window boundaries during scrolling.
+
+If called interactively, enable Scroll-Lock mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
+When enabled, keys that normally move point by line or paragraph
+will scroll the buffer by the respective amount of lines instead
+and point will be kept vertically fixed relative to window
+boundaries during scrolling.
 
 \(fn &optional ARG)" t nil)
 
@@ -28964,9 +29205,11 @@ or call the function `semantic-mode'.")
 
 (autoload 'semantic-mode "semantic" "\
 Toggle parser features (Semantic mode).
-With a prefix argument ARG, enable Semantic mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-Semantic mode if ARG is omitted or nil.
+
+If called interactively, enable Semantic mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 In Semantic mode, Emacs parses the buffers you visit for their
 semantic content.  This information is used by a variety of
@@ -29925,9 +30168,11 @@ or call the function `server-mode'.")
 
 (autoload 'server-mode "server" "\
 Toggle Server mode.
-With a prefix argument ARG, enable Server mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-Server mode if ARG is omitted or nil.
+
+If called interactively, enable Server mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Server mode runs a process that accepts commands from the
 `emacsclient' program.  See Info node `Emacs server' and
@@ -30550,9 +30795,12 @@ buffer names.
 
 (autoload 'smerge-mode "smerge-mode" "\
 Minor mode to simplify editing output from the diff3 program.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Smerge mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 \\{smerge-mode-map}
 
 \(fn &optional ARG)" t nil)
@@ -31865,9 +32113,11 @@ or call the function `strokes-mode'.")
 
 (autoload 'strokes-mode "strokes" "\
 Toggle Strokes mode, a global minor mode.
-With a prefix argument ARG, enable Strokes mode if ARG is
-positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
+
+If called interactively, enable Strokes mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \\<strokes-mode-map>
 Strokes are pictographic mouse gestures which invoke commands.
@@ -31934,9 +32184,11 @@ Studlify-case the current buffer.
 
 (autoload 'subword-mode "subword" "\
 Toggle subword movement and editing (Subword mode).
-With a prefix argument ARG, enable Subword mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Subword mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Subword mode is a buffer-local minor mode.  Enabling it changes
 the definition of a word so that word-based commands stop inside
@@ -31955,8 +32207,6 @@ called a `subword'.  Here are some examples:
 
 This mode changes the definition of a word so that word commands
 treat nomenclature boundaries as word boundaries.
-
-\\{subword-mode-map}
 
 \(fn &optional ARG)" t nil)
 
@@ -31984,9 +32234,11 @@ See `subword-mode' for more information on Subword mode.
 
 (autoload 'superword-mode "subword" "\
 Toggle superword movement and editing (Superword mode).
-With a prefix argument ARG, enable Superword mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Superword mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Superword mode is a buffer-local minor mode.  Enabling it changes
 the definition of words such that symbols characters are treated
@@ -32081,9 +32333,11 @@ or call the function `gpm-mouse-mode'.")
 
 (autoload 'gpm-mouse-mode "t-mouse" "\
 Toggle mouse support in GNU/Linux consoles (GPM Mouse mode).
-With a prefix argument ARG, enable GPM Mouse mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Gpm-Mouse mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 This allows the use of the mouse when operating on a GNU/Linux console,
 in the same way as you can use the mouse under X11.
@@ -32480,6 +32734,11 @@ long to fit in a cell is chopped into multiple lines.  The chopped
 location is indicated by `table-word-continuation-char'.  This
 variable's value can be toggled by \\[table-fixed-width-mode] at
 run-time.
+
+If called interactively, enable Table-Fixed-Width mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -33667,6 +33926,11 @@ This function is meant to be used as a `post-self-insert-hook'.
 (autoload 'tildify-mode "tildify" "\
 Adds electric behavior to space character.
 
+If called interactively, enable Tildify mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 When space is inserted into a buffer in a position where hard space is required
 instead (determined by `tildify-space-pattern' and `tildify-space-predicates'),
 that space character is replaced by a hard space specified by
@@ -33712,9 +33976,11 @@ or call the function `display-time-mode'.")
 
 (autoload 'display-time-mode "time" "\
 Toggle display of time, load level, and mail flag in mode lines.
-With a prefix argument ARG, enable Display Time mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-it if ARG is omitted or nil.
+
+If called interactively, enable Display-Time mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When Display Time mode is enabled, it updates every minute (you
 can control the number of seconds between updates by customizing
@@ -34571,6 +34837,11 @@ or call the function `type-break-mode'.")
 Enable or disable typing-break mode.
 This is a minor mode, but it is global to all buffers by default.
 
+If called interactively, enable Type-Break mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
+
 When this mode is enabled, the user is encouraged to take typing breaks at
 appropriate intervals; either after a specified amount of time or when the
 user has exceeded a keystroke threshold.  When the time arrives, the user
@@ -34578,9 +34849,6 @@ is asked to take a break.  If the user refuses at that time, Emacs will ask
 again in a short period of time.  The idea is to give the user enough time
 to find a good breaking point in his or her work, but be sufficiently
 annoying to discourage putting typing breaks off indefinitely.
-
-A negative prefix argument disables this mode.
-No argument or any non-negative argument enables it.
 
 The user may enable or disable this mode by setting the variable of the
 same name, though setting it in that way doesn't reschedule a break or
@@ -35105,9 +35373,11 @@ or call the function `url-handler-mode'.")
 
 (autoload 'url-handler-mode "url-handlers" "\
 Toggle using `url' library for URL filenames (URL Handler mode).
-With a prefix argument ARG, enable URL Handler mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Url-Handler mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -37252,9 +37522,11 @@ own View-like bindings.
 
 (autoload 'view-mode "view" "\
 Toggle View mode, a minor mode for viewing text but not editing it.
-With a prefix argument ARG, enable View mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable View mode
-if ARG is omitted or nil.
+
+If called interactively, enable View mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 When View mode is enabled, commands that do not change the buffer
 contents are available as usual.  Kill commands insert text in
@@ -37628,9 +37900,11 @@ or call the function `which-function-mode'.")
 
 (autoload 'which-function-mode "which-func" "\
 Toggle mode line display of current function (Which Function mode).
-With a prefix argument ARG, enable Which Function mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Which-Function mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Which Function mode is a global minor mode.  When enabled, the
 current function name is continuously displayed in the mode line,
@@ -37648,11 +37922,11 @@ in certain major modes.
 
 (autoload 'whitespace-mode "whitespace" "\
 Toggle whitespace visualization (Whitespace mode).
-With a prefix argument ARG, enable Whitespace mode if ARG is
-positive, and disable it otherwise.
 
-If called from Lisp, also enables the mode if ARG is omitted or nil,
-and toggles it if ARG is `toggle'.
+If called interactively, enable Whitespace mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'.
@@ -37661,11 +37935,11 @@ See also `whitespace-style', `whitespace-newline' and
 
 (autoload 'whitespace-newline-mode "whitespace" "\
 Toggle newline visualization (Whitespace Newline mode).
-With a prefix argument ARG, enable Whitespace Newline mode if ARG
-is positive, and disable it otherwise.
 
-If called from Lisp, also enables the mode if ARG is omitted or nil,
-and toggles it if ARG is `toggle'.
+If called interactively, enable Whitespace-Newline mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Use `whitespace-newline-mode' only for NEWLINE visualization
 exclusively.  For other visualizations, including NEWLINE
@@ -37688,11 +37962,11 @@ or call the function `global-whitespace-mode'.")
 
 (autoload 'global-whitespace-mode "whitespace" "\
 Toggle whitespace visualization globally (Global Whitespace mode).
-With a prefix argument ARG, enable Global Whitespace mode if ARG
-is positive, and disable it otherwise.
 
-If called from Lisp, also enables the mode if ARG is omitted or nil,
-and toggles it if ARG is `toggle'.
+If called interactively, enable Global Whitespace mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'.
@@ -37711,11 +37985,11 @@ or call the function `global-whitespace-newline-mode'.")
 
 (autoload 'global-whitespace-newline-mode "whitespace" "\
 Toggle global newline visualization (Global Whitespace Newline mode).
-With a prefix argument ARG, enable Global Whitespace Newline mode
-if ARG is positive, and disable it otherwise.
 
-If called from Lisp, also enables the mode if ARG is omitted or nil,
-and toggles it if ARG is `toggle'.
+If called interactively, enable Global Whitespace-Newline mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Use `global-whitespace-newline-mode' only for NEWLINE
 visualization exclusively.  For other visualizations, including
@@ -38037,9 +38311,11 @@ Show widget browser for WIDGET in other window.
 
 (autoload 'widget-minor-mode "wid-browse" "\
 Minor mode for traversing widgets.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
+
+If called interactively, enable Widget minor mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 \(fn &optional ARG)" t nil)
 
@@ -38161,9 +38437,11 @@ or call the function `winner-mode'.")
 
 (autoload 'winner-mode "winner" "\
 Toggle Winner mode on or off.
-With a prefix argument ARG, enable Winner mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
+
+If called interactively, enable Winner mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Winner mode is a global minor mode that records the changes in
 the window configuration (i.e. how the frames are partitioned
@@ -38373,6 +38651,12 @@ With prefix argument, prompt for the identifier.
 
 \(fn IDENTIFIER)" t nil)
 
+(autoload 'xref-find-definitions-at-mouse "xref" "\
+Find the definition of identifier at or around mouse click.
+This command is intended to be bound to a mouse event.
+
+\(fn EVENT)" t nil)
+
 (autoload 'xref-find-apropos "xref" "\
 Find all meaningful symbols that match PATTERN.
 The argument has the same meaning as in `apropos'.
@@ -38425,9 +38709,11 @@ or call the function `xterm-mouse-mode'.")
 
 (autoload 'xterm-mouse-mode "xt-mouse" "\
 Toggle XTerm mouse mode.
-With a prefix argument ARG, enable XTerm mouse mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
+
+If called interactively, enable Xterm-Mouse mode if ARG is positive, and
+disable it if ARG is zero or negative.  If called from Lisp,
+also enable the mode if ARG is omitted or nil, and toggle it
+if ARG is `toggle'; disable the mode otherwise.
 
 Turn it on to use Emacs mouse commands, and off to use xterm mouse commands.
 This works in terminal emulators compatible with xterm.  It only

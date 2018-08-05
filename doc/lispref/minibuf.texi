@@ -2199,7 +2199,7 @@ function @code{read-passwd}.
 @defun read-passwd prompt &optional confirm default
 This function reads a password, prompting with @var{prompt}.  It does
 not echo the password as the user types it; instead, it echoes
-@samp{.}  for each character in the password.  If you want to apply
+@samp{*}  for each character in the password.  If you want to apply
 another character to hide the password, let-bind the variable
 @code{read-hide-char} with that character.
 

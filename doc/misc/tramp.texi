@@ -544,9 +544,9 @@ file system), @file{@trampfn{dav,user@@host,/path/to/file}} and
 @cindex method @option{gdrive}
 @cindex @option{gdrive} method
 @cindex google drive
-@cindex method @option{owncloud}
-@cindex @option{owncloud} method
-@cindex nextcloud
+@cindex method @option{nextcloud}
+@cindex @option{nextcloud} method
+@cindex owncloud
 
 GVFS-based methods include also @acronym{GNOME} Online Accounts, which
 support the @option{Files} service.  These are the Google Drive file
@@ -554,7 +554,7 @@ system, and the OwnCloud/NextCloud file system.  The file name syntax
 is here always
 @file{@trampfn{gdrive,john.doe@@gmail.com,/path/to/file}}
 (@samp{john.doe@@gmail.com} stands here for your Google Drive
-account), or @file{@trampfn{owncloud,user@@host#8081,/path/to/file}}
+account), or @file{@trampfn{nextcloud,user@@host#8081,/path/to/file}}
 (@samp{8081} stands for the port number) for OwnCloud/NextCloud files.
 
 
@@ -1096,7 +1096,7 @@ but with SSL encryption.  Both methods support the port numbers.
 
 Paths being part of the WebDAV volume to be mounted by GVFS, as it is
 common for OwnCloud or NextCloud file names, are not supported by
-these methods.  See method @option{owncloud} for handling them.
+these methods.  See method @option{nextcloud} for handling them.
 
 @item @option{gdrive}
 @cindex method @option{gdrive}
@@ -1114,13 +1114,13 @@ Since Google Drive uses cryptic blob file names internally,
 could produce unexpected behavior in case two files in the same
 directory have the same @code{display-name}, such a situation must be avoided.
 
-@item @option{owncloud}
+@item @option{nextcloud}
 @cindex @acronym{GNOME} Online Accounts
-@cindex method @option{owncloud}
-@cindex @option{owncloud} method
-@cindex nextcloud
+@cindex method @option{nextcloud}
+@cindex @option{nextcloud} method
+@cindex owncloud
 
-As the name indicates, the method @option{owncloud} allows you to
+As the name indicates, the method @option{nextcloud} allows you to
 access OwnCloud or NextCloud hosted files and directories.  Like the
 @option{gdrive} method, your credentials must be populated in your
 @command{Online Accounts} application outside Emacs. The method
@@ -1139,7 +1139,7 @@ that for security reasons refuse @command{ssh} connections.
 @defopt tramp-gvfs-methods
 This user option is a list of external methods for GVFS@.  By default,
 this list includes @option{afp}, @option{dav}, @option{davs},
-@option{gdrive}, @option{owncloud} and @option{sftp}.  Other methods
+@option{gdrive}, @option{nextcloud} and @option{sftp}.  Other methods
 to include are @option{ftp}, @option{http}, @option{https} and
 @option{smb}.  These methods are not intended to be used directly as
 GVFS based method.  Instead, they are added here for the benefit of
@@ -1242,7 +1242,7 @@ improvement is not always true.
 @cindex default user
 
 @defopt tramp-default-user
-@value{tramp} file name can omit the user name part since
+A @value{tramp} file name can omit the user name part since
 @value{tramp} substitutes the currently logged-in user name.  However
 this substitution can be overridden with @code{tramp-default-user}.
 For example:
@@ -1457,7 +1457,7 @@ support this command.
 
 @subsection Tunneling with ssh
 
-With ssh, you could use the @code{ProxyCommand} entry in the
+With ssh, you could use the @code{ProxyCommand} entry in
 @file{~/.ssh/config}:
 
 @example
@@ -1593,12 +1593,12 @@ A function dedicated to @file{/etc/hosts} for host names.
 @item @code{tramp-parse-passwd}
 @findex tramp-parse-passwd
 
-A function which parses @file{/etc/passwd} files for user names.
+A function which parses @file{/etc/passwd} for user names.
 
 @item @code{tramp-parse-etc-group}
 @findex tramp-parse-etc-group
 
-A function which parses @file{/etc/group} files for group names.
+A function which parses @file{/etc/group} for group names.
 
 @item @code{tramp-parse-netrc}
 @findex tramp-parse-netrc
@@ -2198,7 +2198,7 @@ of the secretfile is now owned by the user logged in from
 When @code{backup-directory-alist} is @code{nil} (the default), such
 problems do not occur.
 
-To ``turn off'' the backup feature for @value{tramp} files and stop
+To ``turn off'' the backup feature for remote files and stop
 @value{tramp} from saving to the backup directory, use this:
 
 @lisp
@@ -2260,12 +2260,11 @@ The backup file name of
 
 @vindex auto-save-file-name-transforms
 Just as for backup files, similar issues of file naming affect
-auto-saving @value{tramp} files.  Auto-saved files are saved in the
-directory specified by the user option
-@code{auto-save-file-name-transforms}.  By default this is set to
-the local temporary directory.  But in some versions of Debian
-GNU/Linux, this points to the source directory where the Emacs was
-compiled.  Reset such values to a valid directory.
+auto-saving remote files.  Auto-saved files are saved in the directory
+specified by the user option @code{auto-save-file-name-transforms}.
+By default this is set to the local temporary directory.  But in some
+versions of Debian GNU/Linux, this points to the source directory
+where the Emacs was compiled.  Reset such values to a valid directory.
 
 Set @code{auto-save-file-name-transforms} to @code{nil} to save
 auto-saved files to the same directory as the original file.
@@ -2769,8 +2768,8 @@ hard-coded, fixed name.  Note that using @code{:0} for X11 display name
 here will not work as expected.
 
 An alternate approach is specify @code{ForwardX11 yes} or
-@code{ForwardX11Trusted yes} in the file @file{~/.ssh/config} on the
-local host.
+@code{ForwardX11Trusted yes} in @file{~/.ssh/config} on the local
+host.
 
 
 @subsection Running @code{shell} on a remote host
@@ -3450,6 +3449,19 @@ source "$@{HOME@}/.iterm2_shell_integration.bash"
 @end group
 @end example
 
+And finally, bash's readline should not use key bindings like
+@samp{C-j} to commands.  Disable this in your @file{~/.inputrc}:
+
+@example
+@group
+$if term=dumb
+# Don't bind Control-J or it messes up @value{tramp}.
+$else
+"\C-j": next-history
+$endif
+@end group
+@end example
+
 @item
 Echoed characters after login
 
@@ -3586,13 +3598,13 @@ When testing, ensure the remote shell is the same shell
 How to get notified after @value{tramp} completes file transfers?
 
 Make Emacs beep after reading from or writing to the remote host with
-the following code in @file{~/.emacs} file.
+the following code in @file{~/.emacs}.
 
 @lisp
 @group
 (defadvice tramp-handle-write-region
   (after tramp-write-beep-advice activate)
-  "Make tramp beep after writing a file."
+  "Make @value{tramp} beep after writing a file."
   (interactive)
   (beep))
 @end group
@@ -3600,7 +3612,7 @@ the following code in @file{~/.emacs} file.
 @group
 (defadvice tramp-handle-do-copy-or-rename-file
   (after tramp-copy-beep-advice activate)
-  "Make tramp beep after copying a file."
+  "Make @value{tramp} beep after copying a file."
   (interactive)
   (beep))
 @end group
@@ -3608,7 +3620,7 @@ the following code in @file{~/.emacs} file.
 @group
 (defadvice tramp-handle-insert-file-contents
   (after tramp-insert-beep-advice activate)
-  "Make tramp beep after inserting a file."
+  "Make @value{tramp} beep after inserting a file."
   (interactive)
   (beep))
 @end group
@@ -3646,7 +3658,7 @@ then set them with a hook as follows:
 
 
 @item
-Why is @file{~/.sh_history} file on the remote host growing?
+Why is @file{~/.sh_history} on the remote host growing?
 
 @vindex tramp-histfile-override
 @vindex HISTFILE@r{, environment variable}
@@ -3667,7 +3679,7 @@ undesired results when using @command{bash} as remote shell.
 Another approach is to disable @value{tramp}'s handling of the
 @env{HISTFILE} at all by setting @code{tramp-histfile-override} to
 @code{nil}.  In this case, saving history could be turned off by
-putting this shell code in the @file{.bashrc} or @file{.kshrc} file:
+putting this shell code in @file{.bashrc} or @file{.kshrc}:
 
 @example
 @group
@@ -3684,7 +3696,7 @@ fi
 @end example
 
 For @option{ssh}-based method, add the following line to your
-@file{~/.ssh/environment} file:
+@file{~/.ssh/environment}:
 
 @example
 HISTFILE=/dev/null

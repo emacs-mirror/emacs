@@ -34,6 +34,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # ifdef __MINGW64_VERSION_MAJOR
 #  define MINGW_W64
 # endif
+# if defined __MINGW32_VERSION && __MINGW32_VERSION >= 5001000L
+/* Avoid warnings about gettimeofday being deprecated.  */
+#  undef __POSIX_2008_DEPRECATED
+#  define __POSIX_2008_DEPRECATED
+# endif
 #endif
 
 /* #undef const */
@@ -455,7 +460,12 @@ extern char *get_emacs_configuration_options (void);
    windows.h.  For this to have proper effect, config.h must always be
    included before windows.h.  */
 #define _WINSOCKAPI_    1
-#define _WINSOCK_H
+#if !(defined __MINGW32_VERSION && __MINGW32_VERSION >= 5000002L)
+/* mingw.org's MinGW 5.x changed how it includes winsock.h and time.h,
+   and now defining _WINSOCK_H skips the definition of struct timeval,
+   which we don't want.  */
+# define _WINSOCK_H
+#endif
 
 /* Defines size_t and alloca ().  */
 #include <stdlib.h>

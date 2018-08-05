@@ -3022,8 +3022,14 @@ This command creates a directory named @var{dirname}.  If
 @var{parents} is non-@code{nil}, as is always the case in an
 interactive call, that means to create the parent directories first,
 if they don't already exist.
-
 @code{mkdir} is an alias for this.
+@end deffn
+
+@deffn Command make-empty-file filename &optional parents
+This command creates an empty file named @var{filename}.
+As @code{make-directory}, this command creates parent directories
+if @var{parents} is non-@code{nil}.
+If @var{filename} already exists, this command signals an error.
 @end deffn
 
 @deffn Command copy-directory dirname newname &optional keep-time parents copy-contents

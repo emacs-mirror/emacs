@@ -95,6 +95,7 @@
 #  gettime \
 #  gettimeofday \
 #  gitlog-to-changelog \
+#  ieee754-h \
 #  ignore-value \
 #  intprops \
 #  largefile \
@@ -220,6 +221,7 @@ GL_GENERATE_ALLOCA_H = @GL_GENERATE_ALLOCA_H@
 GL_GENERATE_BYTESWAP_H = @GL_GENERATE_BYTESWAP_H@
 GL_GENERATE_ERRNO_H = @GL_GENERATE_ERRNO_H@
 GL_GENERATE_EXECINFO_H = @GL_GENERATE_EXECINFO_H@
+GL_GENERATE_IEEE754_H = @GL_GENERATE_IEEE754_H@
 GL_GENERATE_LIMITS_H = @GL_GENERATE_LIMITS_H@
 GL_GENERATE_STDALIGN_H = @GL_GENERATE_STDALIGN_H@
 GL_GENERATE_STDDEF_H = @GL_GENERATE_STDDEF_H@
@@ -646,6 +648,7 @@ HAVE_WINSOCK2_H = @HAVE_WINSOCK2_H@
 HAVE_XSERVER = @HAVE_XSERVER@
 HAVE__EXIT = @HAVE__EXIT@
 HYBRID_MALLOC = @HYBRID_MALLOC@
+IEEE754_H = @IEEE754_H@
 IMAGEMAGICK_CFLAGS = @IMAGEMAGICK_CFLAGS@
 IMAGEMAGICK_LIBS = @IMAGEMAGICK_LIBS@
 INCLUDE_NEXT = @INCLUDE_NEXT@
@@ -1786,6 +1789,32 @@ EXTRA_libgnu_a_SOURCES += group-member.c
 
 endif
 ## end   gnulib module group-member
+
+## begin gnulib module ieee754-h
+ifeq (,$(OMIT_GNULIB_MODULE_ieee754-h))
+
+BUILT_SOURCES += $(IEEE754_H)
+
+# We need the following in order to create <ieee754.h> when the system
+# doesn't have one that works with the given compiler.
+ifneq (,$(GL_GENERATE_IEEE754_H))
+ieee754.h: ieee754.in.h $(top_builddir)/config.status
+	$(AM_V_GEN)rm -f $@-t && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  sed -e 's/ifndef _GL_GNULIB_HEADER/if 0/g' \
+	    $(srcdir)/ieee754.in.h; \
+	} > $@-t && \
+	mv -f $@-t $@
+else
+ieee754.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+MOSTLYCLEANFILES += ieee754.h ieee754.h-t
+
+EXTRA_DIST += ieee754.in.h
+
+endif
+## end   gnulib module ieee754-h
 
 ## begin gnulib module ignore-value
 ifeq (,$(OMIT_GNULIB_MODULE_ignore-value))

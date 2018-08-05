@@ -30,8 +30,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "ntlib.h"
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0501	/* for getaddrinfo stuff */
-#include <winsock2.h>
-#include <ws2tcpip.h>
+#if defined __MINGW32_VERSION && __MINGW32_VERSION >= 5000002L
+# include <windows.h>
+#else
+# include <winsock2.h>
+#endif
+# include <ws2tcpip.h>
 #undef getaddrinfo
 #define getaddrinfo  sys_getaddrinfo
 #undef freeaddrinfo

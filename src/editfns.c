@@ -3256,21 +3256,9 @@ differences between the two buffers.  */)
      Instead, we announce a single modification for the entire
      modified region.  But don't do that if the caller inhibited
      modification hooks, because then they don't want that.  */
-  ptrdiff_t from, to;
   if (!inhibit_modification_hooks)
     {
-      ptrdiff_t k, l;
-
-      /* Find the first character position to be changed.  */
-      for (k = 0; k < size_a && !bit_is_set (ctx.deletions, k); k++)
-	;
-      from = BEGV + k;
-
-      /* Find the last character position to be changed.  */
-      for (l = size_a; l > 0 && !bit_is_set (ctx.deletions, l - 1); l--)
-	;
-      to = BEGV + l;
-      prepare_to_modify_buffer (from, to, NULL);
+      prepare_to_modify_buffer (BEGV, ZV, NULL);
       specbind (Qinhibit_modification_hooks, Qt);
       modification_hooks_inhibited = true;
     }
@@ -3322,9 +3310,8 @@ differences between the two buffers.  */)
 
   if (modification_hooks_inhibited)
     {
-      ptrdiff_t updated_to = to + ZV - BEGV - size_a;
-      signal_after_change (from, to - from, updated_to - from);
-      update_compositions (from, updated_to, CHECK_INSIDE);
+      signal_after_change (BEGV, size_a, ZV - BEGV);
+      update_compositions (BEGV, ZV, CHECK_INSIDE);
     }
 
   return Qnil;
@@ -4196,13 +4183,13 @@ contain either numbered or unnumbered %-sequences but not both, except
 that %% can be mixed with numbered %-sequences.
 
 The + flag character inserts a + before any nonnegative number, while a
-space inserts a space before any nonnegative number; these flags only
-affect %d, %e, %f, and %g sequences, and the + flag takes precedence.
+space inserts a space before any nonnegative number; these flags
+affect only numeric %-sequences, and the + flag takes precedence.
 The - and 0 flags affect the width specifier, as described below.
 
 The # flag means to use an alternate display form for %o, %x, %X, %e,
 %f, and %g sequences: for %o, it ensures that the result begins with
-\"0\"; for %x and %X, it prefixes the result with \"0x\" or \"0X\";
+\"0\"; for %x and %X, it prefixes nonzero results with \"0x\" or \"0X\";
 for %e and %f, it causes a decimal point to be included even if the
 precision is zero; for %g, it causes a decimal point to be
 included even if the precision is zero, and also forces trailing
@@ -4736,10 +4723,22 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		}
 	      else
 		{
-		  /* Don't sign-extend for octal or hex printing.  */
 		  uprintmax_t x;
+		  bool negative;
 		  if (INTEGERP (arg))
-		    x = XUINT (arg);
+		    {
+		      if (binary_as_unsigned)
+			{
+			  x = XUINT (arg);
+			  negative = false;
+			}
+		      else
+			{
+			  EMACS_INT i = XINT (arg);
+			  negative = i < 0;
+			  x = negative ? -i : i;
+			}
+		    }
 		  else
 		    {
 		      double d = XFLOAT_DATA (arg);
@@ -4747,8 +4746,13 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		      if (! (0 <= d && d < uprintmax + 1))
 			xsignal1 (Qoverflow_error, arg);
 		      x = d;
+		      negative = false;
 		    }
-		  sprintf_bytes = sprintf (sprintf_buf, convspec, prec, x);
+		  sprintf_buf[0] = negative ? '-' : plus_flag ? '+' : ' ';
+		  bool signedp = negative | plus_flag | space_flag;
+		  sprintf_bytes = sprintf (sprintf_buf + signedp,
+					   convspec, prec, x);
+		  sprintf_bytes += signedp;
 		}
 
 	      /* Now the length of the formatted item is known, except it omits
@@ -5557,6 +5561,22 @@ functions if all the text being accessed has this property.  */);
 
   DEFVAR_LISP ("operating-system-release", Voperating_system_release,
 	       doc: /* The release of the operating system Emacs is running on.  */);
+
+  DEFVAR_BOOL ("binary-as-unsigned",
+	       binary_as_unsigned,
+	       doc: /* Non-nil means `format' %x and %o treat integers as unsigned.
+This has machine-dependent results.  Nil means to treat integers as
+signed, which is portable; for example, if N is a negative integer,
+(read (format "#x%x") N) returns N only when this variable is nil.
+
+This variable is experimental; email 32252@debbugs.gnu.org if you need
+it to be non-nil.  */);
+  /* For now, default to true if bignums exist, false in traditional Emacs.  */
+#ifdef lisp_h_FIXNUMP
+  binary_as_unsigned = false;
+#else
+  binary_as_unsigned = true;
+#endif
 
   defsubr (&Spropertize);
   defsubr (&Schar_equal);

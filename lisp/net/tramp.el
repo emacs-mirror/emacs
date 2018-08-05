@@ -3608,16 +3608,20 @@ support symbolic links."
     ;; First, we must replace environment variables.
     (setq filename (tramp-replace-environment-variables filename))
     (with-parsed-tramp-file-name filename nil
-      ;; We do not want to replace environment variables, again.
+      ;; We do not want to replace environment variables, again.  "//"
+      ;; has a special meaning at the beginning of a file name on
+      ;; Cygwin and MS-Windows, we must remove it.
       (let (process-environment)
 	;; Ignore in LOCALNAME everything before "//" or "/~".
 	(when (stringp localname)
 	  (if (string-match "//\\(/\\|~\\)" localname)
-	      (setq filename (substitute-in-file-name localname))
+	      (setq filename
+                    (replace-regexp-in-string
+                     "\\`/+" "/" (substitute-in-file-name localname)))
 	    (setq filename
 		  (concat (file-remote-p filename)
-			  (tramp-run-real-handler
-			   'substitute-in-file-name (list localname)))))))
+			  (replace-regexp-in-string
+                           "\\`/+" "/" (substitute-in-file-name localname)))))))
       ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
       (if (and (stringp localname) (string-equal "~" localname))
 	  (concat filename "/")

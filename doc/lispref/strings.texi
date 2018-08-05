@@ -922,7 +922,8 @@ Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 @item %o
 @cindex integer to octal
 Replace the specification with the base-eight representation of an
-unsigned integer.  The object can also be a nonnegative floating-point
+integer.  Negative integers are formatted in a platform-dependent
+way.  The object can also be a nonnegative floating-point
 number that is formatted as an integer, dropping any fraction, if the
 integer does not exceed machine limits.
 
@@ -935,7 +936,8 @@ formatted as an integer, dropping any fraction.
 @itemx %X
 @cindex integer to hexadecimal
 Replace the specification with the base-sixteen representation of an
-unsigned integer.  @samp{%x} uses lower case and @samp{%X} uses upper
+integer.  Negative integers are formatted in a platform-dependent
+way.  @samp{%x} uses lower case and @samp{%X} uses upper
 case.  The object can also be a nonnegative floating-point number that
 is formatted as an integer, dropping any fraction, if the integer does
 not exceed machine limits.
@@ -1025,7 +1027,7 @@ both flags are used, @samp{+} takes precedence.
 
   The flag @samp{#} specifies an alternate form which depends on
 the format in use.  For @samp{%o}, it ensures that the result begins
-with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes the result
+with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes nonzero results
 with @samp{0x} or @samp{0X}.  For @samp{%e} and @samp{%f}, the
 @samp{#} flag means include a decimal point even if the precision is
 zero.  For @samp{%g}, it always includes a decimal point, and also
@@ -1107,6 +1109,17 @@ shows only the first three characters of the representation for
 @var{object}.  For other specification characters, the effect of
 precision is what the local library functions of the @code{printf}
 family produce.
+
+@cindex formatting numbers for rereading later
+  If you plan to use @code{read} later on the formatted string to
+retrieve a copy of the formatted value, use a specification that lets
+@code{read} reconstruct the value.  To format numbers in this
+reversible way you can use @samp{%s} and @samp{%S}, to format just
+integers you can also use @samp{%d}, and to format just nonnegative
+integers you can also use @samp{#x%x} and @samp{#o%o}.  Other formats
+may be problematic; for example, @samp{%d} and @samp{%g} can mishandle
+NaNs and can lose precision and type, and @samp{#x%x} and @samp{#o%o}
+can mishandle negative integers.  @xref{Input Functions}.
 
 @node Case Conversion
 @section Case Conversion in Lisp

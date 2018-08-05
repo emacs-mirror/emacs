@@ -442,8 +442,16 @@ Redisplay the most recently known expression result in the echo area
 Display a backtrace, excluding Edebug's own functions for clarity
 (@code{edebug-backtrace}).
 
-You cannot use debugger commands in the backtrace buffer in Edebug as
-you would in the standard debugger.
+@xref{Backtraces}, for a description of backtraces
+and the commands which work on them.
+
+If you would like to see Edebug's functions in the backtrace,
+use @kbd{M-x edebug-backtrace-show-instrumentation}.  To hide them
+again use @kbd{M-x edebug-backtrace-hide-instrumentation}.
+
+If a backtrace frame starts with @samp{>} that means that Edebug knows
+where the source code for the frame is located.  Use @kbd{s} to jump
+to the source code for the current frame.
 
 The backtrace buffer is killed automatically when you continue
 execution.

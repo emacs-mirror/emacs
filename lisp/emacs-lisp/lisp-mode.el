@@ -517,6 +517,16 @@ This will generate compile-time constants from BINDINGS."
 (defvar lisp-cl-font-lock-keywords lisp-cl-font-lock-keywords-1
   "Default expressions to highlight in Lisp modes.")
 
+;; Support backtrace mode.
+(defconst lisp-el-font-lock-keywords-for-backtraces lisp-el-font-lock-keywords
+  "Default highlighting from Emacs Lisp mod used in Backtrace mode.")
+(defconst lisp-el-font-lock-keywords-for-backtraces-1 lisp-el-font-lock-keywords-1
+  "Subdued highlighting from Emacs Lisp mode used in Backtrace mode.")
+(defconst lisp-el-font-lock-keywords-for-backtraces-2
+  (remove (assoc 'lisp--match-hidden-arg lisp-el-font-lock-keywords-2)
+          lisp-el-font-lock-keywords-2)
+  "Gaudy highlighting from Emacs Lisp mode used in Backtrace mode.")
+
 (defun lisp-string-in-doc-position-p (listbeg startpos)
    "Return true if a doc string may occur at STARTPOS inside a list.
 LISTBEG is the position of the start of the innermost list
@@ -1196,7 +1206,21 @@ ENDPOS is encountered."
                   (if endpos endpos
                     ;; Get error now if we don't have a complete sexp
                     ;; after point.
-                    (save-excursion (forward-sexp 1) (point)))))
+                    (save-excursion
+                      (let ((eol (line-end-position)))
+                        (forward-sexp 1)
+                        ;; We actually look for a sexp which ends
+                        ;; after the current line so that we properly
+                        ;; indent things like #s(...).  This might not
+                        ;; be needed if Bug#15998 is fixed.
+                        (condition-case ()
+                            (while (and (< (point) eol) (not (eobp)))
+                              (forward-sexp 1))
+                          ;; But don't signal an error for incomplete
+                          ;; sexps following the first complete sexp
+                          ;; after point.
+                          (scan-error nil)))
+                      (point)))))
     (save-excursion
       (while (let ((indent (lisp-indent-calc-next parse-state))
                    (ppss (lisp-indent-state-ppss parse-state)))

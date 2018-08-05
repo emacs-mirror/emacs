@@ -47,13 +47,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <count-leading-zeros.h>
 
-#ifndef isfinite
-# define isfinite(x) ((x) - (x) == 0)
-#endif
-#ifndef isnan
-# define isnan(x) ((x) != (x))
-#endif
-
 /* Check that X is a floating point number.  */
 
 static void
