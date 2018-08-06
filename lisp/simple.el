@@ -4214,6 +4214,52 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
                            (t
                             digit))))
   (universal-argument--mode))
+
+(defvar universal-async-argument nil
+  "Non-nil indicates a command to run asynchronously when called interactively.
+The semantics depend on the command.  This variable should not be
+set globally, it should be used in let-bindings only.")
+
+(defun universal-async-argument ()
+  "Execute an interactive command asynchronously."
+  (interactive)
+  (let* ((universal-async-argument (not universal-async-argument))
+         (keyseq (read-key-sequence nil t))
+	 (cmd (key-binding keyseq))
+	 prefix)
+    ;; `read-key-sequence' ignores quit, so make an explicit check.
+    (if (equal last-input-event (nth 3 (current-input-mode)))
+	(keyboard-quit))
+    (when (memq cmd '(universal-argument digit-argument))
+      (call-interactively cmd)
+
+      ;; Process keys bound in `universal-argument-map'.
+      (while (progn
+	       (setq keyseq (read-key-sequence nil t)
+		     cmd (key-binding keyseq t))
+	       (not (eq cmd 'universal-argument-other-key)))
+	(let ((current-prefix-arg prefix-arg)
+	      ;; Have to bind `last-command-event' here so that
+	      ;; `digit-argument', for instance, can compute the
+	      ;; `prefix-arg'.
+	      (last-command-event (aref keyseq 0)))
+	  (call-interactively cmd)))
+
+      ;; This is the final call to `universal-argument-other-key', which
+      ;; sets the final `prefix-arg'.
+      (let ((current-prefix-arg prefix-arg))
+	(call-interactively cmd))
+
+      ;; Read the command to execute with the given `prefix-arg'.
+      (setq prefix prefix-arg
+	    keyseq (read-key-sequence nil t)
+	    cmd (key-binding keyseq)))
+
+    (let ((current-prefix-arg prefix))
+      (message "")
+      (call-interactively cmd))))
+
+(define-key ctl-x-map "&" 'universal-async-argument)
 
 
 (defvar filter-buffer-substring-functions nil

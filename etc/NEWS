@@ -997,6 +997,13 @@ where there's no better alternative.  We believe that the incorrect
 uses of this function all but disappeared by now, so we are
 un-obsoleting it.
 
+--- (Needs better documentation)
+** There is a new command 'universal-async-argument', bound to 'C-x &'.
+If this command precedes another command, the value of variable
+'universal-async-argument' will be toggled.  This indicates, that the
+following command shall be executed asynchronously.  For example,
+file visiting commands would load files into buffers asynchronously.
+
 
 * Changes in Emacs 27.1 on Non-Free Operating Systems
 

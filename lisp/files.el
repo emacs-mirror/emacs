@@ -1576,55 +1576,13 @@ rather than FUN itself, to `minibuffer-setup-hook'."
              ,@body)
          (remove-hook 'minibuffer-setup-hook ,hook)))))
 
-(defun universal-async-argument (async)
-  "Execute an interactive command using the ASYNC argument.
-For file visiting and saving commands, this toggles the meaning
-of `execute-file-commands-asynchronously'."
-  (interactive
-   (list (and (featurep 'threads) (not execute-file-commands-asynchronously))))
-  (let* ((execute-file-commands-asynchronously async)
-         (keyseq (read-key-sequence nil))
-	 (cmd (key-binding keyseq))
-	 prefix)
-    ;; `read-key-sequence' ignores quit, so make an explicit check.
-    (if (equal last-input-event (nth 3 (current-input-mode)))
-	(keyboard-quit))
-    (when (memq cmd '(universal-argument digit-argument))
-      (call-interactively cmd)
-
-      ;; Process keys bound in `universal-argument-map'.
-      (while (progn
-	       (setq keyseq (read-key-sequence nil t)
-		     cmd (key-binding keyseq t))
-	       (not (eq cmd 'universal-argument-other-key)))
-	(let ((current-prefix-arg prefix-arg)
-	      ;; Have to bind `last-command-event' here so that
-	      ;; `digit-argument', for instance, can compute the
-	      ;; `prefix-arg'.
-	      (last-command-event (aref keyseq 0)))
-	  (call-interactively cmd)))
-
-      ;; This is the final call to `universal-argument-other-key', which
-      ;; sets the final `prefix-arg'.
-      (let ((current-prefix-arg prefix-arg))
-	(call-interactively cmd))
-
-      ;; Read the command to execute with the given `prefix-arg'.
-      (setq prefix prefix-arg
-	    keyseq (read-key-sequence nil t)
-	    cmd (key-binding keyseq)))
-
-    (let ((current-prefix-arg prefix))
-      (message "")
-      (call-interactively cmd))))
-
-(define-key ctl-x-map "&" 'universal-async-argument)
-
 (defun find-file-read-args (prompt mustmatch &optional wildcards)
   "Return the interactive spec (<filename> <async>).
 If WILDCARDS is non-nil, return the spec (<filename> t <async>)."
   (let ((filename (read-file-name prompt nil default-directory mustmatch))
-        (async (and (featurep 'threads) execute-file-commands-asynchronously)))
+        (async (and (featurep 'threads)
+                    (xor universal-async-argument
+                         execute-file-commands-asynchronously))))
     (when (stringp async) (setq async (string-match-p async filename)))
     (if wildcards `(,filename t ,async) `(,filename ,async))))
 
@@ -1841,8 +1799,9 @@ prior the command invocation."
        (list (read-file-name
 	      "Find alternate file: " file-dir nil
               (confirm-nonexistent-file-or-buffer) file-name)
-	     t
-             (and (featurep 'threads) execute-file-commands-asynchronously)))))
+	     t (and (featurep 'threads)
+                    (xor universal-async-argument
+                         execute-file-commands-asynchronously))))))
   (when (stringp async) (setq async (string-match-p async filename)))
   (if (one-window-p)
       (find-file-other-window filename wildcards async)
@@ -1888,7 +1847,9 @@ killed."
      (list (read-file-name
 	    "Find alternate file: " file-dir nil
             (confirm-nonexistent-file-or-buffer) file-name)
-	   t (and (featurep 'threads) execute-file-commands-asynchronously))))
+	   t (and (featurep 'threads)
+                  (xor universal-async-argument
+                       execute-file-commands-asynchronously)))))
   (when (stringp async) (setq async (string-match-p async filename)))
   (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
     (user-error "Aborted"))
