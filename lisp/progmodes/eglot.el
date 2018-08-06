@@ -1062,7 +1062,10 @@ When called interactively, use the currently active server"
    (list
     :settings
     (cl-loop for (k . v) in eglot-workspace-configuration
-             collect k collect v))))
+             collect (if (keywordp k)
+                         k
+                       (intern (format ":%s" k)))
+             collect v))))
 
 (defun eglot--signal-textDocument/didChange ()
   "Send textDocument/didChange to server."
