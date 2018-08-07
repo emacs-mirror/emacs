@@ -234,11 +234,11 @@ feature by customizing @code{find-file-wildcards}.
 while loading the file into its buffer Emacs keeps responsive, and you
 can continue to edit other files, or call commands.  This is
 controlled by the user option @code{execute-file-commands-asynchronously}.
-If this option is @code{nil} (the default), visiting a file is
-performed synchronously.  A regexp value lets files, which name
-matches the regexp, being visited asynchronously, and synchronously
-otherwise.  The value @code{t} forces asynchronous visiting of files
-unconditionally.
+If this option is @code{nil} (the default), visiting a file is a
+synchronous operation.  If the value is a regexp, this allows
+asynchronously visiting files whose name matches the regexp, otherwise
+synchronously.  If the value is @code{t}, visiting files is
+unconditionally asynchronous.
 
 If you want to visit all remote files asynchronously, you should set
 
