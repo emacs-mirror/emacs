@@ -6401,7 +6401,7 @@ add_regex (char *regexp_pattern, language *lang)
   *patbuf = zeropattern;
   if (ignore_case)
     {
-      static char lc_trans[UCHAR_MAX + 1];
+      static unsigned char lc_trans[UCHAR_MAX + 1];
       int i;
       for (i = 0; i < UCHAR_MAX + 1; i++)
 	lc_trans[i] = c_tolower (i);

@@ -1,4 +1,4 @@
-;;; regex-tests.el --- tests for regex.c functions -*- lexical-binding: t -*-
+;;; regex-emacs-tests.el --- tests for regex-emacs.c -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
 
@@ -24,7 +24,7 @@
 (defvar regex-tests--resources-dir
   (concat (concat (file-name-directory (or load-file-name buffer-file-name))
                   "/regex-resources/"))
-  "Path to regex-resources directory next to the \"regex-tests.el\" file.")
+  "Path to regex-resources directory next to the \"regex-emacs-tests.el\" file.")
 
 (ert-deftest regex-word-cc-fallback-test ()
   "Test that \"[[:cc:]]*x\" matches \"x\" (bug#24020).
@@ -683,4 +683,4 @@ This evaluates the TESTS test cases from glibc."
   (should-not (string-match "\\`x\\{65535\\}" (make-string 65534 ?x)))
   (should-error (string-match "\\`x\\{65536\\}" "X") :type 'invalid-regexp))
 
-;;; regex-tests.el ends here
+;;; regex-emacs-tests.el ends here

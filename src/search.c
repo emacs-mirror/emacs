@@ -30,7 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "intervals.h"
 
-#include "regex.h"
+#include "regex-emacs.h"
 
 #define REGEXP_CACHE_SIZE 20
 
@@ -59,8 +59,8 @@ static struct regexp_cache searchbufs[REGEXP_CACHE_SIZE];
 static struct regexp_cache *searchbuf_head;
 
 
-/* Every call to re_match, etc., must pass &search_regs as the regs
-   argument unless you can show it is unnecessary (i.e., if re_match
+/* Every call to re_search, etc., must pass &search_regs as the regs
+   argument unless you can show it is unnecessary (i.e., if re_search
    is certainly going to be called again before region-around-match
    can be called).
 
@@ -132,7 +132,7 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern,
 
   eassert (!cp->busy);
   cp->regexp = Qnil;
-  cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
+  cp->buf.translate = translate;
   cp->posix = posix;
   cp->buf.multibyte = STRING_MULTIBYTE (pattern);
   cp->buf.charset_unibyte = charset_unibyte;
@@ -238,7 +238,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
           && !cp->busy
 	  && STRING_MULTIBYTE (cp->regexp) == STRING_MULTIBYTE (pattern)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
-	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
+	  && EQ (cp->buf.translate, translate)
 	  && cp->posix == posix
 	  && (EQ (cp->syntax_table, Qt)
 	      || EQ (cp->syntax_table, BVAR (current_buffer, syntax_table)))
@@ -290,7 +290,8 @@ looking_at_1 (Lisp_Object string, bool posix)
   if (running_asynch_code)
     save_search_regs ();
 
-  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  /* This is so set_image_of_range_1 in regex-emacs.c can find the EQV
+     table.  */
   set_char_table_extras (BVAR (current_buffer, case_canon_table), 2,
 			 BVAR (current_buffer, case_eqv_table));
 
@@ -410,7 +411,8 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start,
       pos_byte = string_char_to_byte (string, pos);
     }
 
-  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  /* This is so set_image_of_range_1 in regex-emacs.c can find the EQV
+     table.  */
   set_char_table_extras (BVAR (current_buffer, case_canon_table), 2,
 			 BVAR (current_buffer, case_eqv_table));
 
@@ -1062,7 +1064,8 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
 	lim_byte = CHAR_TO_BYTE (lim);
     }
 
-  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  /* This is so set_image_of_range_1 in regex-emacs.c can find the EQV
+     table.  */
   set_char_table_extras (BVAR (current_buffer, case_canon_table), 2,
 			 BVAR (current_buffer, case_eqv_table));
 
@@ -2186,8 +2189,8 @@ set_search_regs (ptrdiff_t beg_byte, ptrdiff_t nbytes)
      the match position.  */
   if (search_regs.num_regs == 0)
     {
-      search_regs.start = xmalloc (2 * sizeof (regoff_t));
-      search_regs.end = xmalloc (2 * sizeof (regoff_t));
+      search_regs.start = xmalloc (2 * sizeof *search_regs.start);
+      search_regs.end = xmalloc (2 * sizeof *search_regs.end);
       search_regs.num_regs = 2;
     }
 
@@ -2998,9 +3001,9 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 	  memory_full (SIZE_MAX);
 	search_regs.start =
 	  xpalloc (search_regs.start, &num_regs, length - num_regs,
-		   min (PTRDIFF_MAX, UINT_MAX), sizeof (regoff_t));
+		   min (PTRDIFF_MAX, UINT_MAX), sizeof *search_regs.start);
 	search_regs.end =
-	  xrealloc (search_regs.end, num_regs * sizeof (regoff_t));
+	  xrealloc (search_regs.end, num_regs * sizeof *search_regs.end);
 
 	for (i = search_regs.num_regs; i < num_regs; i++)
 	  search_regs.start[i] = -1;
@@ -3055,12 +3058,9 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 	      XSETFASTINT (marker, 0);
 
 	    CHECK_NUMBER_COERCE_MARKER (marker);
-	    if ((XINT (from) < 0
-		 ? TYPE_MINIMUM (regoff_t) <= XINT (from)
-		 : XINT (from) <= TYPE_MAXIMUM (regoff_t))
-		&& (XINT (marker) < 0
-		    ? TYPE_MINIMUM (regoff_t) <= XINT (marker)
-		    : XINT (marker) <= TYPE_MAXIMUM (regoff_t)))
+	    if (PTRDIFF_MIN <= XINT (from) && XINT (from) <= PTRDIFF_MAX
+		&& PTRDIFF_MIN <= XINT (marker)
+		&& XINT (marker) <= PTRDIFF_MAX)
 	      {
 		search_regs.start[i] = XINT (from);
 		search_regs.end[i] = XINT (marker);

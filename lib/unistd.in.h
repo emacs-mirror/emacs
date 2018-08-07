@@ -432,12 +432,12 @@ extern char **environ;
 #elif defined GNULIB_POSIXCHECK
 # if HAVE_RAW_DECL_ENVIRON
 _GL_UNISTD_INLINE char ***
+_GL_WARN_ON_USE_ATTRIBUTE ("environ is unportable - "
+                           "use gnulib module environ for portability")
 rpl_environ (void)
 {
   return &environ;
 }
-_GL_WARN_ON_USE (rpl_environ, "environ is unportable - "
-                 "use gnulib module environ for portability");
 #  undef environ
 #  define environ (*rpl_environ ())
 # endif

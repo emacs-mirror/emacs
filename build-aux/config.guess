@@ -2,7 +2,7 @@
 # Attempt to guess a canonical system name.
 #   Copyright 1992-2018 Free Software Foundation, Inc.
 
-timestamp='2018-07-18'
+timestamp='2018-08-02'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ set_cc_for_build() {
 
 # This is needed to find uname on a Pyramid OSx when run in the BSD universe.
 # (ghazi@noc.rutgers.edu 1994-08-24)
-if (test -f /.attbin/uname) >/dev/null 2>&1 ; then
+if test -f /.attbin/uname ; then
 	PATH=$PATH:/.attbin ; export PATH
 fi
 

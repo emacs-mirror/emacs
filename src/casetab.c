@@ -144,7 +144,8 @@ set_case_table (Lisp_Object table, bool standard)
       set_char_table_extras (table, 2, eqv);
     }
 
-  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  /* This is so set_image_of_range_1 in regex-emacs.c can find the EQV
+     table.  */
   set_char_table_extras (canon, 2, eqv);
 
   if (standard)

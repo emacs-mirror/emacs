@@ -84,7 +84,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "dispextern.h"
 #include "ptr-bounds.h"
-#include "regex.h"
+#include "regex-emacs.h"
 #include "sheap.h"
 #include "syntax.h"
 #include "sysselect.h"
@@ -846,9 +846,9 @@ main (int argc, char **argv)
     {
       rlim_t lim = rlim.rlim_cur;
 
-      /* Approximate the amount regex.c needs per unit of
+      /* Approximate the amount regex-emacs.c needs per unit of
 	 emacs_re_max_failures, then add 33% to cover the size of the
-	 smaller stacks that regex.c successively allocates and
+	 smaller stacks that regex-emacs.c successively allocates and
 	 discards on its way to the maximum.  */
       int min_ratio = 20 * sizeof (char *);
       int ratio = min_ratio + min_ratio / 3;
@@ -887,7 +887,7 @@ main (int argc, char **argv)
 		lim = newlim;
 	    }
 	}
-      /* If the stack is big enough, let regex.c more of it before
+      /* If the stack is big enough, let regex-emacs.c more of it before
          falling back to heap allocation.  */
       emacs_re_safe_alloca = max
         (min (lim - extra, SIZE_MAX) * (min_ratio / ratio),

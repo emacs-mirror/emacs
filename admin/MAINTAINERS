@@ -37,7 +37,7 @@ Kenichi Handa
 	Mule
 
 Stefan Monnier
-	src/regex.c
+	src/regex-emacs.c
 	src/syntax.c
 	src/keymap.c
 	font-lock/jit-lock/syntax

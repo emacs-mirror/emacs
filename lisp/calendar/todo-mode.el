@@ -863,6 +863,7 @@ category is the first)."
                   (not (zerop (todo-get-count 'archived))))
         (setq todo-category-number (funcall setcatnum))))
     (todo-category-select)
+    (if transient-mark-mode (deactivate-mark))
     (goto-char (point-min))))
 
 (defun todo-backward-category ()
@@ -928,12 +929,13 @@ Categories mode."
         (when goto-archive (todo-archive-mode))
         (set-window-buffer (selected-window)
                            (set-buffer (find-buffer-visiting file0)))
+        (if transient-mark-mode (deactivate-mark))
         (unless todo-global-current-todo-file
           (setq todo-global-current-todo-file todo-current-todo-file))
         (todo-category-number category)
         (todo-category-select)
         (goto-char (point-min))
-	(if (and (boundp 'hl-line-mode) hl-line-mode) (hl-line-highlight))
+	(if (bound-and-true-p hl-line-mode) (hl-line-highlight))
         (when add-item (todo-insert-item--basic))))))
 
 (defun todo-next-item (&optional count)
@@ -1019,15 +1021,17 @@ empty line above the done items separator."
 	  (setq shown (progn
 			(goto-char (point-min))
 			(re-search-forward todo-done-string-start nil t)))
-	  (if (not (pos-visible-in-window-p shown))
-	      (recenter)
-	    (goto-char opoint)))))))
+	  (if (pos-visible-in-window-p shown)
+	      (goto-char opoint)
+	    (recenter)
+            (if transient-mark-mode (deactivate-mark))))))))
 
 (defun todo-toggle-view-done-only ()
   "Switch between displaying only done or only todo items."
   (interactive)
   (setq todo-show-done-only (not todo-show-done-only))
-  (todo-category-select))
+  (todo-category-select)
+  (if transient-mark-mode (deactivate-mark)))
 
 (defun todo-toggle-item-highlighting ()
   "Highlight or unhighlight the todo item the cursor is on."
@@ -2230,7 +2234,8 @@ made in the number or names of categories."
 	  (insert item))
 	(kill-buffer)
 	(unless (eq (current-buffer) buf)
-	  (set-window-buffer (selected-window) (set-buffer buf))))
+	  (set-window-buffer (selected-window) (set-buffer buf)))
+        (if transient-mark-mode (deactivate-mark)))
     ;; We got here via `F e'.
     (when (todo-check-format)
       ;; FIXME: separate out sexp check?
@@ -3839,6 +3844,7 @@ face."
     (goto-char (point-min))
     (while (not (eobp))
       (setq match (re-search-forward regex nil t))
+      (if (and match transient-mark-mode) (deactivate-mark))
       (goto-char (line-beginning-position))
       (unless (or (equal (point) 1)
 		  (looking-at (concat "^" (regexp-quote todo-category-beg))))
@@ -4037,20 +4043,22 @@ regexp items."
   (interactive "P")
   (todo-filter-items 'regexp arg t))
 
+(defvar todo--fifiles-history nil
+  "List of short file names used by todo-find-filtered-items-file.")
+
 (defun todo-find-filtered-items-file ()
   "Choose a filtered items file and visit it."
   (interactive)
   (let ((files (directory-files todo-directory t "\\.tod[rty]$" t))
-	falist sfnlist file)
+	falist file)
     (dolist (f files)
       (let ((sf-name (todo-short-file-name f))
             (type (cond ((equal (file-name-extension f) "todr") "regexp")
 			((equal (file-name-extension f) "todt") "top")
 			((equal (file-name-extension f) "tody") "diary"))))
 	(push (cons (concat sf-name " (" type ")") f) falist)))
-    (setq sfnlist (mapcar #'car falist))
-    (setq file (completing-read "Choose a filtered items file: "
-				falist nil t nil 'sfnlist (caar falist)))
+    (setq file (completing-read "Choose a filtered items file: " falist nil t nil
+                                'todo--fifiles-history (caar falist)))
     (setq file (cdr (assoc-string file falist)))
     (find-file file)
     (unless (derived-mode-p 'todo-filtered-items-mode)
@@ -4079,6 +4087,7 @@ regexp items."
                                         t
                                       todo-show-with-done)))
           (todo-category-select))
+        (if transient-mark-mode (deactivate-mark))
         (goto-char (car found))))))
 
 (defvar todo-multiple-filter-files nil
@@ -5312,6 +5321,7 @@ Overrides `diary-goto-entry'."
                               nil t)
 	  (todo-category-number (match-string 1))
 	  (todo-category-select)
+          (if transient-mark-mode (deactivate-mark))
 	  (goto-char opoint))))))
 
 (add-function :override diary-goto-entry-function #'todo-diary-goto-entry)

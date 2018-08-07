@@ -34,13 +34,19 @@
 #  --no-libtool \
 #  --macro-prefix=gl \
 #  --no-vc-files \
+#  --avoid=btowc \
 #  --avoid=close \
 #  --avoid=dup \
 #  --avoid=fchdir \
 #  --avoid=fstat \
+#  --avoid=langinfo \
+#  --avoid=lock \
 #  --avoid=malloc-posix \
+#  --avoid=mbrtowc \
+#  --avoid=mbsinit \
 #  --avoid=msvc-inval \
 #  --avoid=msvc-nothrow \
+#  --avoid=nl_langinfo \
 #  --avoid=openat-die \
 #  --avoid=opendir \
 #  --avoid=raise \
@@ -56,6 +62,9 @@
 #  --avoid=unsetenv \
 #  --avoid=utime \
 #  --avoid=utime-h \
+#  --avoid=wchar \
+#  --avoid=wcrtomb \
+#  --avoid=wctype-h \
 #  alloca-opt \
 #  binary-io \
 #  byteswap \
@@ -113,6 +122,7 @@
 #  qcopy-acl \
 #  readlink \
 #  readlinkat \
+#  regex \
 #  sig2str \
 #  socklen \
 #  stat-time \
@@ -216,6 +226,7 @@ GETOPT_CDEFS_H = @GETOPT_CDEFS_H@
 GETOPT_H = @GETOPT_H@
 GFILENOTIFY_CFLAGS = @GFILENOTIFY_CFLAGS@
 GFILENOTIFY_LIBS = @GFILENOTIFY_LIBS@
+GLIBC21 = @GLIBC21@
 GL_COND_LIBTOOL = @GL_COND_LIBTOOL@
 GL_GENERATE_ALLOCA_H = @GL_GENERATE_ALLOCA_H@
 GL_GENERATE_BYTESWAP_H = @GL_GENERATE_BYTESWAP_H@
@@ -1024,6 +1035,7 @@ gameuser = @gameuser@
 gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7 = @gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7@
 gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9 = @gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9@
 gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b = @gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b@
+gl_GNULIB_ENABLED_37f71b604aa9c54446783d80f42fe547 = @gl_GNULIB_ENABLED_37f71b604aa9c54446783d80f42fe547@
 gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31 = @gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31@
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c = @gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c@
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec = @gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec@
@@ -2094,6 +2106,17 @@ EXTRA_libgnu_a_SOURCES += at-func.c readlinkat.c
 
 endif
 ## end   gnulib module readlinkat
+
+## begin gnulib module regex
+ifeq (,$(OMIT_GNULIB_MODULE_regex))
+
+
+EXTRA_DIST += regcomp.c regex.c regex.h regex_internal.c regex_internal.h regexec.c
+
+EXTRA_libgnu_a_SOURCES += regcomp.c regex.c regex_internal.c regexec.c
+
+endif
+## end   gnulib module regex
 
 ## begin gnulib module root-uid
 ifeq (,$(OMIT_GNULIB_MODULE_root-uid))

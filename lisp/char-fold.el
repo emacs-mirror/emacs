@@ -214,7 +214,7 @@ from which to start."
     (when (> spaces 0)
       (push (char-fold--make-space-string spaces) out))
     (let ((regexp (apply #'concat (nreverse out))))
-      ;; Limited by `MAX_BUF_SIZE' in `regex.c'.
+      ;; Limited by `MAX_BUF_SIZE' in `regex-emacs.c'.
       (if (> (length regexp) 5000)
           (regexp-quote string)
         regexp))))

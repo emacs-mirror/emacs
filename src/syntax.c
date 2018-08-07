@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
-#include "regex.h"
+#include "regex-emacs.h"
 #include "syntax.h"
 #include "intervals.h"
 #include "category.h"
@@ -267,9 +267,10 @@ SETUP_SYNTAX_TABLE (ptrdiff_t from, ptrdiff_t count)
    If it is t (which is only used in fast_c_string_match_ignore_case),
    ignore properties altogether.
 
-   This is meant for regex.c to use.  For buffers, regex.c passes arguments
-   to the UPDATE_SYNTAX_TABLE functions which are relative to BEGV.
-   So if it is a buffer, we set the offset field to BEGV.  */
+   This is meant for regex-emacs.c to use.  For buffers, regex-emacs.c
+   passes arguments to the UPDATE_SYNTAX_TABLE functions which are
+   relative to BEGV.  So if it is a buffer, we set the offset field to
+   BEGV.  */
 
 void
 SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
@@ -3729,7 +3730,7 @@ syms_of_syntax (void)
   staticpro (&gl_state.current_syntax_table);
   staticpro (&gl_state.old_prop);
 
-  /* Defined in regex.c.  */
+  /* Defined in regex-emacs.c.  */
   staticpro (&re_match_object);
 
   DEFSYM (Qscan_error, "scan-error");

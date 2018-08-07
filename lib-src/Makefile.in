@@ -361,13 +361,9 @@ TAGS: etags${EXEEXT} ${tagsfiles}
 ../lib/libgnu.a: $(config_h)
 	$(MAKE) -C ../lib all
 
-regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
-	$(AM_V_CC)$(CC) -c $(CPP_CFLAGS) $<
-
-
-etags_deps = ${srcdir}/etags.c regex.o $(NTLIB) $(config_h)
+etags_deps = ${srcdir}/etags.c $(NTLIB) $(config_h)
 etags_cflags = -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" -o $@
-etags_libs = regex.o $(NTLIB) $(LOADLIBES)
+etags_libs = $(NTLIB) $(LOADLIBES)
 
 etags${EXEEXT}: ${etags_deps}
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $(etags_cflags) $< $(etags_libs)

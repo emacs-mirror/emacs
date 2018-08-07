@@ -71,7 +71,7 @@ cmds.o: cmds.c syntax.h buffer.h character.h commands.h window.h lisp.h \
 pre-crt0.o: pre-crt0.c
 dbusbind.o: dbusbind.c termhooks.h frame.h keyboard.h lisp.h $(config_h)
 dired.o: dired.c commands.h buffer.h lisp.h $(config_h) character.h charset.h \
-   coding.h regex.h systime.h blockinput.h atimer.h composite.h \
+   coding.h regex-emacs.h systime.h blockinput.h atimer.h composite.h \
    ../lib/filemode.h ../lib/unistd.h globals.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h coding.h \
    window.h buffer.h termchar.h termopts.h termhooks.h cm.h \
@@ -169,20 +169,21 @@ process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    blockinput.h atimer.h coding.h msdos.h nsterm.h composite.h \
    keyboard.h lisp.h globals.h $(config_h) character.h xgselect.h sysselect.h \
    ../lib/unistd.h gnutls.h
-regex.o: regex.c syntax.h buffer.h lisp.h globals.h $(config_h) regex.h \
+regex-emacs.o: regex-emacs.c syntax.h buffer.h lisp.h globals.h \
+   $(config_h) regex-emacs.h \
    category.h character.h
 region-cache.o: region-cache.c buffer.h region-cache.h \
    lisp.h globals.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h msdos.h keyboard.h \
    termhooks.h lisp.h globals.h $(config_h) systime.h coding.h composite.h \
    window.h
-search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
+search.o: search.c regex-emacs.h commands.h buffer.h region-cache.h syntax.h \
    blockinput.h atimer.h systime.h category.h character.h charset.h \
    $(INTERVALS_H) lisp.h globals.h $(config_h)
 sound.o: sound.c dispextern.h syssignal.h lisp.h globals.h $(config_h) \
    atimer.h systime.h ../lib/unistd.h msdos.h
 syntax.o: syntax.c syntax.h buffer.h commands.h category.h character.h \
-   keymap.h regex.h $(INTERVALS_H) lisp.h globals.h $(config_h)
+   keymap.h regex-emacs.h $(INTERVALS_H) lisp.h globals.h $(config_h)
 sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    process.h dispextern.h termhooks.h termchar.h termopts.h coding.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h lisp.h \
