@@ -236,8 +236,9 @@ def bits_of_word(w, n):
 
 class TimeSeries:
     "Series of data points in time order."
-    def __init__(self, note=None, draw=None):
+    def __init__(self, note=None, zoom=None, draw=None):
         self._note_fn = note
+        self._zoom_fn = zoom
         self._draw_fn = draw
         self.t = []
         self.y = []
@@ -269,6 +270,11 @@ class TimeSeries:
         if self._note_fn:
             return self._note_fn(line, t, index, verbose=verbose)
         return None, None
+
+    def zoom(self, line, t, index):
+        if self._zoom_fn:
+            return self._zoom_fn(line, t, index)
+        return None
 
     def draw(self, line, t, index, axes_dict):
         if self._draw_fn:
@@ -361,6 +367,10 @@ average on/off ratio or (potentially) as shading bars."""
         l = on[1]-on[0]
         note = f"{line.name}: {on[0]:.3f} + {l * 1000:.3f} ms"
         return note, note
+        
+    def zoom(self, line, t, index):
+        on = self._ons[index // 2]
+        return (on[0], on[1])
         
     def draw(self, line, t, index, axes_dict):
         axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
@@ -606,6 +616,9 @@ class Trace(EventHandler):
             log = f"Trace of {self.gens} gens at {base_t:.6f} ({self.why})"
         return f"trace\n{self.create:f} s\n{self.gens}", log
     
+    def zoom(self):
+        return (self.times[0][0], self.times[-1][0])
+    
     def draw(self, axes_dict):
         # uniquify axes based on bounding boxes
         axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
@@ -657,6 +670,7 @@ class Arena(EventHandler):
         self._live_traces = {} # trace pointer -> dictionary
         self._all_traces = {} # start time -> dictionary
         self._traces = TimeSeries(note=self.trace_note,
+                                  zoom=self.trace_zoom,
                                   draw=self.trace_draw)
         self.model.add_time_series(
             self, self._traces, traceAxis, "trace",
@@ -764,6 +778,11 @@ class Arena(EventHandler):
         if t not in self._all_traces:
             return []
         return self._all_traces[t].draw(axes_dict)
+
+    def trace_zoom(self, line, t, index):
+        if t not in self._all_traces:
+            return None
+        return self._all_traces[t].zoom()
 
     def TraceCreate(self, t, event):
         assert event.trace not in self._live_traces
@@ -918,6 +937,11 @@ class Line:
         t, _ = self.series[index]
         return self.series.note(self, t, index, verbose=verbose)
 
+    def zoom(self, index):
+        "Return (low, high) limits for the point of interest, or None."
+        t, _ = self.series[index]
+        return self.series.zoom(self, t, index)
+
     def drawPoint(self, index, axes_dict):
         "Draw in response to a click on a data point, and return a list of drawn items."
         t,_ = self.series[index]
@@ -978,7 +1002,7 @@ class Model(EventHandler):
             for line in yaxis_lines[yax]:
                 line.plot(axes)
             if not keep_limits:
-                axes.relim()
+                axes.relim(visible_only=True)
                 axes.autoscale_view()
             bounds_axes[axes.bbox.bounds].append((axes, yax))
 
@@ -1207,6 +1231,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                            'pageup': self._slower,
                            'pagedown': self._faster,
                            'pause': self._toolbar.pause,
+                           '+': self._zoom_in,
+                           '-': self._zoom_out,
+                           'z': self._zoom,
                            'i': self._info,
         }
 
@@ -1262,6 +1289,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if index < 0 or index >= len(line):
             return
         t, y = line[index]
+        self._recentre(mid=t)
         dispx, _ = line.dispxy(index)
         self._find_close(t, dispx, on_line=line, index=index)
         self._annotate(self._close_line[line])
@@ -1307,6 +1335,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def _info(self):
         "Report more information about the currently selected point."
         if self._close_points is None:
+            self._log('No selected data point')
             return
         line, index = self._close_points[self._selected]
         note, log = line.note(index, verbose=True)
@@ -1326,7 +1355,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 pts.append((dispy, line, closest))
         self._close_points = []
         self._close_line = {}
-        for dispy, line, index in sorted(pts):
+        for dispy, line, index in sorted(pts, key=lambda pt:pt[0]):
             self._close_line[line] = len(self._close_points)
             self._close_points.append((line, index))
 
@@ -1365,6 +1394,38 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         else:
             self._unselect()
             self._clear()
+
+    def _zoom_in(self):
+        self._recentre(zoom=2)
+
+    def _zoom_out(self):
+        self._recentre(zoom=0.5)
+
+    def _zoom(self):
+        if self._close_points is None:
+            self._log('No selected data point')
+            return
+        line, index = self._close_points[self._selected]
+        lim = line.zoom(index)
+        if lim is None:
+            self._recentre(zoom=2, mid=line[index][0])
+        else: # make a bit of slack
+            lo, hi = lim
+            width = hi-lo
+            self._zoom_to(lo - width/4, hi + width/4)
+
+    def _recentre(self, zoom=1.0, mid=None):
+        xlim, _ = self._limits
+        lo, hi = xlim
+        if mid is None:
+            mid = (hi+lo)/2
+        half_width = (hi-lo)/2
+        newlo, newhi = mid- half_width/zoom, mid + half_width/zoom
+        self._zoom_to(newlo, newhi)
+
+    def _zoom_to(self, lo, hi):
+        ax = self._axes_dict[bytesAxis]
+        ax.set_xlim(lo, hi)
 
     @property
     def _limits(self):
