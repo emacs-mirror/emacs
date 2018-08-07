@@ -1663,7 +1663,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   "Passes through required cquery initialization options"
   (let* ((root (car (project-roots (eglot--project server))))
          (cache (expand-file-name ".cquery_cached_index/" root)))
-    (list :cacheDirectory (file-name-as-directory cache)Ini
+    (list :cacheDirectory (file-name-as-directory cache)
           :progressReportFrequencyMs -1)))
 
 
