@@ -2084,7 +2084,7 @@ suppresses this warning."
 If it is a regular expression, it must match the file name to be
 visited.  This behavior is toggled by \\[universal-async-argument]
 prior the command invocation."
-:group 'files
+  :group 'files
   :version "27.1"
   :type '(choice boolean regexp))
 

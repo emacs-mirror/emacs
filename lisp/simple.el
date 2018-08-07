@@ -4230,7 +4230,7 @@ set globally, it should be used in let-bindings only.")
     ;; `read-key-sequence' ignores quit, so make an explicit check.
     (if (equal last-input-event (nth 3 (current-input-mode)))
 	(keyboard-quit))
-    (when (memq cmd '(universal-argument digit-argument))
+    (when (memq cmd '(universal-argument digit-argument negative-argument))
       (call-interactively cmd)
 
       ;; Process keys bound in `universal-argument-map'.
