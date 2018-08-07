@@ -1625,7 +1625,7 @@ suppress wildcard expansion by setting `find-file-wildcards' to nil.
 If ASYNC is non-nil, the file will be loaded into the buffer
 asynchronously.  Interactively, this is indicated by setting
 `execute-file-commands-asynchronously' to a proper non-nil value.
-This behavior can be toggled by the key sequence \\[universal-async-argument]
+This behavior can be toggled by \\[universal-async-argument]
 prior the command invocation.
 
 To visit a file without any kind of conversion and without
@@ -1663,7 +1663,7 @@ expand wildcards (if any) and visit multiple files.
 If ASYNC is non-nil, the file will be loaded into the buffer
 asynchronously.  Interactively, this is indicated by setting
 `execute-file-commands-asynchronously' to a proper non-nil value.
-This behavior can be toggled by the key sequence \\[universal-async-argument]
+This behavior can be toggled by \\[universal-async-argument]
 prior the command invocation."
   (interactive
    (find-file-read-args "Find file in other window: "
@@ -1702,7 +1702,7 @@ expand wildcards (if any) and visit multiple files.
 If ASYNC is non-nil, the file will be loaded into the buffer
 asynchronously.  Interactively, this is indicated by setting
 `execute-file-commands-asynchronously' to a proper non-nil value.
-This behavior can be toggled by the key sequence \\[universal-async-argument]
+This behavior can be toggled by \\[universal-async-argument]
 prior the command invocation."
   (interactive
    (find-file-read-args "Find file in other frame: "
@@ -1725,7 +1725,7 @@ file names with wildcards.
 If ASYNC is non-nil, the file will be loaded into the buffer
 asynchronously.  Interactively, this is indicated by setting
 `execute-file-commands-asynchronously' to a proper non-nil value.
-This behavior can be toggled by the key sequence \\[universal-async-argument]
+This behavior can be toggled by \\[universal-async-argument]
 prior the command invocation."
    (interactive
     (find-file-read-args "Find existing file: " t))
@@ -1785,7 +1785,7 @@ expand wildcards (if any) and replace the file with multiple files.
 If ASYNC is non-nil, the file will be loaded into the buffer
 asynchronously.  Interactively, this is indicated by setting
 `execute-file-commands-asynchronously' to a proper non-nil value.
-This behavior can be toggled by the key sequence \\[universal-async-argument]
+This behavior can be toggled by \\[universal-async-argument]
 prior the command invocation."
   (interactive
    (save-selected-window
@@ -1831,7 +1831,7 @@ expand wildcards (if any) and replace the file with multiple files.
 If ASYNC is non-nil, the file will be loaded into the buffer
 asynchronously.  Interactively, this is indicated by setting
 `execute-file-commands-asynchronously' to a proper non-nil value.
-This behavior can be toggled by the key sequence \\[universal-async-argument]
+This behavior can be toggled by \\[universal-async-argument]
 prior the command invocation.
 
 If the current buffer is an indirect buffer, or the base buffer
@@ -2082,7 +2082,7 @@ suppresses this warning."
 (defcustom execute-file-commands-asynchronously nil
   "Non-nil means visit file asynchronously when called interactively.
 If it is a regular expression, it must match the file name to be
-visited.  This behavior is toggled by the key sequence \\[universal-async-argument]
+visited.  This behavior is toggled by \\[universal-async-argument]
 prior the command invocation."
 :group 'files
   :version "27.1"
@@ -2508,7 +2508,7 @@ this command asks you whether to visit it literally instead.
 If ASYNC is non-nil, the file will be loaded into the buffer
 asynchronously.  Interactively, this is indicated by setting
 `execute-file-commands-asynchronously' to a proper non-nil value.
-This behavior can be toggled by the key sequence \\[universal-async-argument]
+This behavior can be toggled by \\[universal-async-argument]
 prior the command invocation.
 
 In non-interactive use, the value is the buffer where the file is

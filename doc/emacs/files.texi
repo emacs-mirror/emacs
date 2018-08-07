@@ -250,11 +250,13 @@ If you want to visit all remote files asynchronously, you should set
 @end group
 @end example
 
-  With the key sequence @kbd{C-x &} prior the file visiting command,
-the meaning of @code{execute-file-commands-asynchronously} will be
-reverted.  If this user option is @code{nil}, visiting a file is
-performed asynchronously.  Contrary, if this user option is
-non-@code{nil}, visiting a file is performed synchronously.
+@kindex C-x &
+  If you type @kbd{C-x &} (@code{universal-async-argument}) prior the
+file visiting command, the meaning of
+@code{execute-file-commands-asynchronously} will be reverted.  If this
+user option is @code{nil}, visiting a file is performed
+asynchronously.  Contrary, if this user option is non-@code{nil},
+visiting a file is performed synchronously.
 
 @kindex C-x C-v
 @findex find-alternate-file
