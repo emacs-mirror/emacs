@@ -1984,6 +1984,11 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                   "-configuration" config
                   "-data" workspace)))))
 
+(cl-defmethod eglot-execute-command
+  ((_server eglot-eclipse-jdt) (_cmd (eql java.apply.workspaceEdit)) arguments)
+  "Eclipse JDT breaks spec and replies with edits as arguments."
+  (mapc #'eglot--apply-workspace-edit arguments))
+
 
 ;; FIXME: A horrible hack of Flymake's insufficient API that must go
 ;; into Emacs master, or better, 26.2
