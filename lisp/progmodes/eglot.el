@@ -158,6 +158,9 @@ lasted more than that many seconds."
 (cl-defgeneric eglot-handle-notification (server method id &rest params)
   "Handle SERVER's METHOD notification with PARAMS.")
 
+(cl-defgeneric eglot-execute-command (server command arguments)
+  "Execute on SERVER COMMAND with ARGUMENTS.")
+
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'"
   (:method (_s) nil)) ; blank default
@@ -886,6 +889,14 @@ Uses THING, FACE, DEFS and PREPEND."
   "Handle unknown request"
   (jsonrpc-error "Unknown request method `%s'" method))
 
+(cl-defmethod eglot-execute-command
+  (server command arguments)
+  "Execute command by making a :workspace/executeCommand request."
+  (jsonrpc-request
+   server
+   :workspace/executeCommand
+   `(:command ,command :arguments ,arguments)))
+
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql window/showMessage)) &key type message)
   "Handle notification window/showMessage"
@@ -1576,7 +1587,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                        (keyboard-quit)
                      retval))))))
     (if command-and-args
-        (jsonrpc-request server :workspace/executeCommand command-and-args)
+        (eglot-execute-command server (plist-get command-and-args :command)
+                               (plist-get command-and-args :arguments))
       (eglot--message "No code actions here"))))
 
 
