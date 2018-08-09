@@ -4216,7 +4216,8 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (universal-argument--mode))
 
 (defvar universal-async-argument nil
-  "Non-nil indicates a command to run asynchronously when called interactively.
+  "Non-nil means a command invoked interactively can run asynchronously.
+It is run asynchronously only if the command also allows that.
 The semantics depend on the command.  This variable should not be
 set globally, it should be used in let-bindings only.")
 
