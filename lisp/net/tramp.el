@@ -1587,7 +1587,8 @@ ARGUMENTS to actually emit the message (if applicable)."
       (insert (format-time-string "%T." now))
       (insert (format "%06d " (nth 2 now))))
     ;; Threads.
-    (unless (eq (tramp-compat-current-thread) tramp-compat-main-thread)
+    (unless (or (null tramp-compat-main-thread)
+		(eq (tramp-compat-current-thread) tramp-compat-main-thread))
       (insert (format "%s " (tramp-compat-current-thread))))
     ;; Calling Tramp function.  We suppress compat and trace functions
     ;; from being displayed.
