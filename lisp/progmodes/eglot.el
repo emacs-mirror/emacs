@@ -124,8 +124,14 @@ of those modes.  CONTACT can be:
   `jsonrpc-process-connection', which you should see for the
   semantics of the mandatory :PROCESS argument.
 
-* A function of no arguments producing any of the above values
-  for CONTACT.")
+* A function of a single argument producing any of the above
+  values for CONTACT.  The argument's value is non-nil if the
+  connection was requested interactively (e.g. from the `eglot'
+  command), and nil if it wasn't (e.g. from `eglot-ensure').  If
+  the call is interactive, the function can ask the user for
+  hints on finding the required programs, etc.  Otherwise, it
+  should not ask the user for any input, and return nil or signal
+  an error if it can't produce a valid CONTACT.")
 
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
@@ -353,7 +359,9 @@ be guessed."
                             (lambda (m1 m2)
                               (or (eq m1 m2)
                                   (and (listp m1) (memq m2 m1)))))))
-         (guess (if (functionp guess) (funcall guess) guess))
+         (guess (if (functionp guess)
+                    (funcall guess interactive)
+                  guess))
          (class (or (and (consp guess) (symbolp (car guess))
                          (prog1 (car guess) (setq guess (cdr guess))))
                     'eglot-lsp-server))
