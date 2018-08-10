@@ -202,7 +202,8 @@ let the buffer grow forever."
              :synchronization (list
                                :dynamicRegistration :json-false
                                :willSave t :willSaveWaitUntil t :didSave t)
-             :completion         `(:dynamicRegistration :json-false)
+             :completion      (list :dynamicRegistration :json-false
+                                    :completionItem `(:snippetSupport t))
              :hover              `(:dynamicRegistration :json-false)
              :signatureHelp      `(:dynamicRegistration :json-false)
              :references         `(:dynamicRegistration :json-false)
@@ -956,13 +957,15 @@ Uses THING, FACE, DEFS and PREPEND."
 (defalias 'eglot--make-diag 'flymake-make-diagnostic)
 (defalias 'eglot--diag-data 'flymake-diagnostic-data)
 
-(dolist (type '(eglot-error eglot-warning eglot-note))
-  (put type 'flymake-overlay-control
-       `((mouse-face . highlight)
-         (keymap . ,(let ((map (make-sparse-keymap)))
-                      (define-key map [mouse-1]
-                        (eglot--mouse-call 'eglot-code-actions))
-                      map)))))
+(cl-loop for i from 1
+         for type in '(eglot-note eglot-warning eglot-error )
+         do (put type 'flymake-overlay-control
+                 `((mouse-face . highlight)
+                   (priority . ,(+ 50 i))
+                   (keymap . ,(let ((map (make-sparse-keymap)))
+                                (define-key map [mouse-1]
+                                  (eglot--mouse-call 'eglot-code-actions))
+                                map)))))
 
 
 ;;; Protocol implementation (Requests, notifications, etc)
@@ -1384,7 +1387,7 @@ is not active."
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (mapcar
              (jsonrpc-lambda (&rest all &key label insertText &allow-other-keys)
-               (let ((insert (or insertText label)))
+               (let ((insert (or insertText (string-trim-left label))))
                  (add-text-properties 0 1 all insert)
                  (put-text-property 0 1 'eglot--lsp-completion all insert)
                  insert))
@@ -1425,9 +1428,17 @@ is not active."
                (erase-buffer)
                (insert (eglot--format-markup documentation))
                (current-buffer)))))
-       :exit-function (lambda (_string _status)
-                        (eglot--signal-textDocument/didChange)
-                        (eglot-eldoc-function))))))
+       :exit-function (lambda (obj _status)
+                        (cl-destructuring-bind (&key insertTextFormat
+                                                     insertText
+                                                     &allow-other-keys)
+                            (text-properties-at 0 obj)
+                          (when (and (eql insertTextFormat 2)
+                                     (fboundp 'yas-expand-snippet))
+                            (delete-region (- (point) (length obj)) (point))
+                            (funcall 'yas-expand-snippet insertText))
+                          (eglot--signal-textDocument/didChange)
+                          (eglot-eldoc-function)))))))
 
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
