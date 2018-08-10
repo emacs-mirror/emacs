@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.0"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -1275,12 +1275,13 @@ is not active."
       (list
        (or (car bounds) (point))
        (or (cdr bounds) (point))
-       (completion-table-with-cache
+       (completion-table-dynamic
         (lambda (_ignored)
           (let* ((resp (jsonrpc-request server
                                         :textDocument/completion
                                         (eglot--TextDocumentPositionParams)
-                                        :deferred :textDocument/completion))
+                                        :deferred :textDocument/completion
+                                        :cancel-on-input t))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (mapcar
              (jsonrpc-lambda (&rest all &key label insertText &allow-other-keys)
@@ -1317,7 +1318,8 @@ is not active."
                           (plist-get
                            (jsonrpc-request server :completionItem/resolve
                                             (get-text-property
-                                             0 'eglot--lsp-completion obj))
+                                             0 'eglot--lsp-completion obj)
+                                            :cancel-on-input t)
                            :documentation)))))
            (when documentation
              (with-current-buffer (get-buffer-create " *eglot doc*")
