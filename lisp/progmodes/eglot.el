@@ -1048,7 +1048,8 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 ;; bad idea, since that might lead to the request never having a
 ;; chance to run, because `jsonrpc-connection-ready-p'.
 (advice-add #'jsonrpc-request :before
-            (cl-function (lambda (_proc _method _params &key deferred _timeout)
+            (cl-function (lambda (_proc _method _params &key
+                                        deferred &allow-other-keys)
                            (when (and eglot--managed-mode deferred)
                              (eglot--signal-textDocument/didChange))))
             '((name . eglot--signal-textDocument/didChange)))
