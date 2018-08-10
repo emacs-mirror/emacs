@@ -1661,7 +1661,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
 ;;; cquery-specific
 ;;;
 (defclass eglot-cquery (eglot-lsp-server) ()
-  :documentation "cquery's C/C++ langserver.")
+  :documentation "Cquery's C/C++ langserver.")
 
 (cl-defmethod eglot-initialization-options ((server eglot-cquery))
   "Passes through required cquery initialization options"
