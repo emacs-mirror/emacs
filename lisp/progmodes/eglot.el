@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.2"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -237,11 +237,14 @@ lasted more than that many seconds."
 (defvar eglot--servers-by-project (make-hash-table :test #'equal)
   "Keys are projects.  Values are lists of processes.")
 
-(defun eglot-shutdown (server &optional _interactive timeout)
+(defun eglot-shutdown (server &optional _interactive timeout preserve-buffers)
   "Politely ask SERVER to quit.
 Forcefully quit it if it doesn't respond within TIMEOUT seconds.
-Don't leave this function with the server still running."
-  (interactive (list (eglot--current-server-or-lose) t))
+If PRESERVE-BUFFERS is non-nil (interactively, when called with a
+prefix argument), do not kill events and output buffers of
+SERVER.  Don't leave this function with the server still
+running."
+  (interactive (list (eglot--current-server-or-lose) t nil current-prefix-arg))
   (eglot--message "Asking %s politely to terminate" (jsonrpc-name server))
   (unwind-protect
       (progn
@@ -253,9 +256,12 @@ Don't leave this function with the server still running."
     ;; Turn off `eglot--managed-mode' where appropriate.
     (dolist (buffer (eglot--managed-buffers server))
       (eglot--with-live-buffer buffer (eglot--managed-mode-onoff server nil)))
-    ;; Now ask jsonrpc.el to shutdown server (which in normal
+    ;; Now ask jsonrpc.el to shut down the server (which under normal
     ;; conditions should return immediately).
-    (jsonrpc-shutdown server)))
+    (jsonrpc-shutdown server (not preserve-buffers))
+    (unless preserve-buffers
+      (mapc #'kill-buffer
+            `(,(jsonrpc-events-buffer server) ,(jsonrpc-stderr-buffer server))))))
 
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
@@ -408,7 +414,7 @@ managing `%s' buffers in project `%s'."
 INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-server-or-lose) t))
   (when (jsonrpc-running-p server)
-    (ignore-errors (eglot-shutdown server interactive)))
+    (ignore-errors (eglot-shutdown server interactive nil 'preserve-buffers)))
   (eglot--connect (eglot--major-mode server)
                   (eglot--project server)
                   (eieio-object-class-name server)
