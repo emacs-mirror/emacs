@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.5"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.6"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -140,6 +140,19 @@ lasted more than that many seconds."
   :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
                  (integer :tag "Number of seconds")))
 
+(defcustom eglot-connect-timeout 30
+  "Number of seconds before timing out LSP connection attempts.
+If nil, never time out."
+  :type 'number)
+
+(defcustom eglot-sync-connect 3
+  "Control blocking of LSP connection attempts.
+If t, block for `eglot-connect-timeout' seconds.  A positive
+integer number means block for that many seconds, and then wait
+for the connection in the background.  nil has the same meaning
+as 0, i.e. don't block at all."
+  :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
+                 (integer :tag "Number of seconds")))
 
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
@@ -259,9 +272,7 @@ running."
     ;; Now ask jsonrpc.el to shut down the server (which under normal
     ;; conditions should return immediately).
     (jsonrpc-shutdown server (not preserve-buffers))
-    (unless preserve-buffers
-      (mapc #'kill-buffer
-            `(,(jsonrpc-events-buffer server) ,(jsonrpc-stderr-buffer server))))))
+    (unless preserve-buffers (kill-buffer (jsonrpc-events-buffer server)))))
 
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
@@ -399,15 +410,7 @@ INTERACTIVE is t if called interactively."
              (y-or-n-p "[eglot] Live process found, reconnect instead? "))
         (eglot-reconnect current-server interactive)
       (when live-p (ignore-errors (eglot-shutdown current-server)))
-      (let ((server (eglot--connect managed-major-mode
-                                    project
-                                    class
-                                    contact)))
-        (eglot--message "Connected! Process `%s' now \
-managing `%s' buffers in project `%s'."
-                        (jsonrpc-name server) managed-major-mode
-                        (eglot--project-nickname server))
-        server))))
+      (eglot--connect managed-major-mode project class contact))))
 
 (defun eglot-reconnect (server &optional interactive)
   "Reconnect to SERVER.
@@ -432,12 +435,7 @@ INTERACTIVE is t if called interactively."
           (remove-hook 'post-command-hook #'maybe-connect nil)
           (eglot--with-live-buffer buffer
             (unless eglot--managed-mode
-              (let ((server (apply #'eglot--connect (eglot--guess-contact))))
-                (eglot--message
-                 "Automatically started `%s' to manage `%s' buffers in project `%s'"
-                 (jsonrpc-name server)
-                 major-mode
-                 (eglot--project-nickname server)))))))
+              (apply #'eglot--connect (eglot--guess-contact))))))
       (when buffer-file-name
         (add-hook 'post-command-hook #'maybe-connect 'append nil)))))
 
@@ -508,42 +506,84 @@ This docstring appeases checkdoc, that's all."
            :request-dispatcher (funcall spread #'eglot-handle-request)
            :on-shutdown #'eglot--on-shutdown
            initargs))
-         success)
+         (cancelled nil)
+         (tag (make-symbol "connected-catch-tag")))
     (setf (eglot--saved-initargs server) initargs)
     (setf (eglot--project server) project)
     (setf (eglot--project-nickname server) nickname)
     (setf (eglot--major-mode server) managed-major-mode)
     (setf (eglot--inferior-process server) autostart-inferior-process)
-    (push server (gethash project eglot--servers-by-project))
-    (run-hook-with-args 'eglot-connect-hook server)
+    ;; Now start the handshake.  To honour `eglot-sync-connect'
+    ;; maybe-sync-maybe-async semantics we use `jsonrpc-async-request'
+    ;; and mimic most of `jsonrpc-request'.
     (unwind-protect
-        (cl-destructuring-bind (&key capabilities)
-            (jsonrpc-request
-             server
-             :initialize
-             (list :processId (unless (eq (jsonrpc-process-type server) 'network)
-                                (emacs-pid))
-                   :rootPath (expand-file-name default-directory)
-                   :rootUri (eglot--path-to-uri default-directory)
-                   :initializationOptions (eglot-initialization-options server)
-                   :capabilities (eglot-client-capabilities server)))
-          (setf (eglot--capabilities server) capabilities)
-          (dolist (buffer (buffer-list))
-            (with-current-buffer buffer
-              (eglot--maybe-activate-editing-mode server)))
-          (jsonrpc-notify server :initialized `(:__dummy__ t))
-          (run-hook-with-args 'eglot-server-initialized-hook server)
-          (setf (eglot--inhibit-autoreconnect server)
-                (cond
-                 ((booleanp eglot-autoreconnect) (not eglot-autoreconnect))
-                 ((cl-plusp eglot-autoreconnect)
-                  (run-with-timer eglot-autoreconnect nil
-                                  (lambda ()
-                                    (setf (eglot--inhibit-autoreconnect server)
-                                          (null eglot-autoreconnect)))))))
-          (setq success server))
-      (when (and (not success) (jsonrpc-running-p server))
-        (eglot-shutdown server)))))
+        (condition-case _quit
+            (let ((retval
+                   (catch tag
+                     (jsonrpc-async-request
+                      server
+                      :initialize
+                      (list :processId (unless (eq (jsonrpc-process-type server)
+                                                   'network)
+                                         (emacs-pid))
+                            :rootPath (expand-file-name default-directory)
+                            :rootUri (eglot--path-to-uri default-directory)
+                            :initializationOptions (eglot-initialization-options
+                                                    server)
+                            :capabilities (eglot-client-capabilities server))
+                      :success-fn
+                      (jsonrpc-lambda (&key capabilities)
+                        (unless cancelled
+                          (push server
+                                (gethash project eglot--servers-by-project))
+                          (setf (eglot--capabilities server) capabilities)
+                          (dolist (buffer (buffer-list))
+                            (with-current-buffer buffer
+                              (eglot--maybe-activate-editing-mode server)))
+                          (jsonrpc-notify server :initialized `(:__dummy__ t))
+                          (setf (eglot--inhibit-autoreconnect server)
+                                (cond
+                                 ((booleanp eglot-autoreconnect)
+                                  (not eglot-autoreconnect))
+                                 ((cl-plusp eglot-autoreconnect)
+                                  (run-with-timer
+                                   eglot-autoreconnect nil
+                                   (lambda ()
+                                     (setf (eglot--inhibit-autoreconnect server)
+                                           (null eglot-autoreconnect)))))))
+                          (run-hook-with-args 'eglot-connect-hook server)
+                          (run-hook-with-args 'eglot-server-initialized-hook server)
+                          (eglot--message
+                           "Connected! Server `%s' now managing `%s' buffers \
+in project `%s'."
+                           (jsonrpc-name server) managed-major-mode
+                           (eglot--project-nickname server))
+                          (when tag (throw tag t))))
+                      :timeout eglot-connect-timeout
+                      :error-fn (jsonrpc-lambda (&key code message _data)
+                                  (unless cancelled
+                                    (jsonrpc-shutdown server)
+                                    (let ((msg (format "%s: %s" code message)))
+                                      (if tag (throw tag `(error . ,msg))
+                                        (eglot--error msg)))))
+                      :timeout-fn (lambda ()
+                                    (unless cancelled
+                                      (jsonrpc-shutdown server)
+                                      (let ((msg (format "Timed out")))
+                                        (if tag (throw tag `(error . ,msg))
+                                          (eglot--error msg))))))
+                     (cond ((numberp eglot-sync-connect)
+                            (accept-process-output nil eglot-sync-connect))
+                           (eglot-sync-connect
+                            (while t (accept-process-output nil 30)))))))
+              (pcase retval
+                (`(error . ,msg) (eglot--error msg))
+                (`nil (eglot--message "Waiting in background for server `%s'"
+                                      (jsonrpc-name server))
+                      nil)
+                (_ server)))
+          (quit (jsonrpc-shutdown server) (setq cancelled 'quit)))
+      (setq tag nil))))
 
 (defun eglot--inferior-bootstrap (name contact &optional connect-args)
   "Use CONTACT to start a server, then connect to it.
