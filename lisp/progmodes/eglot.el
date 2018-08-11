@@ -159,7 +159,7 @@ lasted more than that many seconds."
   "Handle SERVER's METHOD notification with PARAMS.")
 
 (cl-defgeneric eglot-execute-command (server command arguments)
-  "Execute on SERVER COMMAND with ARGUMENTS.")
+  "Ask SERVER to execute COMMAND with ARGUMENTS.")
 
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'"
@@ -891,11 +891,10 @@ Uses THING, FACE, DEFS and PREPEND."
 
 (cl-defmethod eglot-execute-command
   (server command arguments)
-  "Execute command by making a :workspace/executeCommand request."
-  (jsonrpc-request
-   server
-   :workspace/executeCommand
-   `(:command ,command :arguments ,arguments)))
+  "Execute COMMAND on SERVER with `:workspace/executeCommand'.
+COMMAND is a symbol naming the command."
+  (jsonrpc-request server :workspace/executeCommand
+                   `(:command ,(format "%s" command) :arguments ,arguments)))
 
 (cl-defmethod eglot-handle-notification
   (_server (_method (eql window/showMessage)) &key type message)
@@ -1586,10 +1585,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                    (if (eq (setq retval (tmm-prompt menu)) never-mind)
                        (keyboard-quit)
                      retval))))))
-    (if command-and-args
-        (eglot-execute-command server (plist-get command-and-args :command)
-                               (plist-get command-and-args :arguments))
-      (eglot--message "No code actions here"))))
+    (cl-destructuring-bind (&key _title command arguments) command-and-args
+      (if command
+          (eglot-execute-command server (intern command) arguments)
+        (eglot--message "No code actions here")))))
 
 
 
