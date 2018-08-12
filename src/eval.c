@@ -30,6 +30,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "buffer.h"
 
+#ifdef HAVE_LIBJIT
+#include <jit/jit.h>
+#endif
+
 /* CACHEABLE is ordinarily nothing, except it is 'volatile' if
    necessary to cajole GCC into not warning incorrectly that a
    variable should be volatile.  */
@@ -2230,14 +2234,14 @@ eval_sub (Lisp_Object form)
 
       check_cons_list ();
 
-      if (XFIXNUM (numargs) < XSUBR (fun)->min_args
-	  || (XSUBR (fun)->max_args >= 0
-	      && XSUBR (fun)->max_args < XFIXNUM (numargs)))
+      if (XFIXNUM (numargs) < XSUBR (fun)->function.min_args
+	  || (XSUBR (fun)->function.max_args >= 0
+	      && XSUBR (fun)->function.max_args < XFIXNUM (numargs)))
 	xsignal2 (Qwrong_number_of_arguments, original_fun, numargs);
 
-      else if (XSUBR (fun)->max_args == UNEVALLED)
-	val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
-      else if (XSUBR (fun)->max_args == MANY)
+      else if (XSUBR (fun)->function.max_args == UNEVALLED)
+	val = (XSUBR (fun)->function.function.aUNEVALLED) (args_left);
+      else if (XSUBR (fun)->function.max_args == MANY)
 	{
 	  /* Pass a vector of evaluated arguments.  */
 	  Lisp_Object *vals;
@@ -2255,7 +2259,7 @@ eval_sub (Lisp_Object form)
 
 	  set_backtrace_args (specpdl + count, vals, argnum);
 
-	  val = XSUBR (fun)->function.aMANY (argnum, vals);
+	  val = XSUBR (fun)->function.function.aMANY (argnum, vals);
 
 	  check_cons_list ();
 	  lisp_eval_depth--;
@@ -2268,7 +2272,7 @@ eval_sub (Lisp_Object form)
 	}
       else
 	{
-	  int i, maxargs = XSUBR (fun)->max_args;
+	  int i, maxargs = XSUBR (fun)->function.max_args;
 
 	  for (i = 0; i < maxargs; i++)
 	    {
@@ -2281,40 +2285,40 @@ eval_sub (Lisp_Object form)
 	  switch (i)
 	    {
 	    case 0:
-	      val = (XSUBR (fun)->function.a0 ());
+	      val = (XSUBR (fun)->function.function.a0 ());
 	      break;
 	    case 1:
-	      val = (XSUBR (fun)->function.a1 (argvals[0]));
+	      val = (XSUBR (fun)->function.function.a1 (argvals[0]));
 	      break;
 	    case 2:
-	      val = (XSUBR (fun)->function.a2 (argvals[0], argvals[1]));
+	      val = (XSUBR (fun)->function.function.a2 (argvals[0], argvals[1]));
 	      break;
 	    case 3:
-	      val = (XSUBR (fun)->function.a3
+	      val = (XSUBR (fun)->function.function.a3
 		     (argvals[0], argvals[1], argvals[2]));
 	      break;
 	    case 4:
-	      val = (XSUBR (fun)->function.a4
+	      val = (XSUBR (fun)->function.function.a4
 		     (argvals[0], argvals[1], argvals[2], argvals[3]));
 	      break;
 	    case 5:
-	      val = (XSUBR (fun)->function.a5
+	      val = (XSUBR (fun)->function.function.a5
 		     (argvals[0], argvals[1], argvals[2], argvals[3],
 		      argvals[4]));
 	      break;
 	    case 6:
-	      val = (XSUBR (fun)->function.a6
+	      val = (XSUBR (fun)->function.function.a6
 		     (argvals[0], argvals[1], argvals[2], argvals[3],
 		      argvals[4], argvals[5]));
 	      break;
 	    case 7:
-	      val = (XSUBR (fun)->function.a7
+	      val = (XSUBR (fun)->function.function.a7
 		     (argvals[0], argvals[1], argvals[2], argvals[3],
 		      argvals[4], argvals[5], argvals[6]));
 	      break;
 
 	    case 8:
-	      val = (XSUBR (fun)->function.a8
+	      val = (XSUBR (fun)->function.function.a8
 		     (argvals[0], argvals[1], argvals[2], argvals[3],
 		      argvals[4], argvals[5], argvals[6], argvals[7]));
 	      break;
@@ -2411,16 +2415,16 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 	fun = args[0];
     }
 
-  if (SUBRP (fun) && XSUBR (fun)->max_args > numargs
+  if (SUBRP (fun) && XSUBR (fun)->function.max_args > numargs
       /* Don't hide an error by adding missing arguments.  */
-      && numargs >= XSUBR (fun)->min_args)
+      && numargs >= XSUBR (fun)->function.min_args)
     {
       /* Avoid making funcall cons up a yet another new vector of arguments
 	 by explicitly supplying nil's for optional values.  */
-      SAFE_ALLOCA_LISP (funcall_args, 1 + XSUBR (fun)->max_args);
+      SAFE_ALLOCA_LISP (funcall_args, 1 + XSUBR (fun)->function.max_args);
       memclear (funcall_args + numargs + 1,
-		(XSUBR (fun)->max_args - numargs) * word_size);
-      funcall_nargs = 1 + XSUBR (fun)->max_args;
+		(XSUBR (fun)->function.max_args - numargs) * word_size);
+      funcall_nargs = 1 + XSUBR (fun)->function.max_args;
     }
   else
     { /* We add 1 to numargs because funcall_args includes the
@@ -2764,7 +2768,7 @@ FUNCTIONP (Lisp_Object object)
     }
 
   if (SUBRP (object))
-    return XSUBR (object)->max_args != UNEVALLED;
+    return XSUBR (object)->function.max_args != UNEVALLED;
   else if (COMPILEDP (object) || MODULE_FUNCTIONP (object))
     return true;
   else if (CONSP (object))
@@ -2819,7 +2823,12 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
-    val = funcall_subr (XSUBR (fun), numargs, args + 1);
+    val = funcall_subr (fun, &XSUBR (fun)->function, numargs, args + 1);
+  else if (COMPILEDP (fun)
+	   && XVECTOR (fun)->contents[COMPILED_JIT_CODE] != NULL)
+    val = funcall_subr (fun,
+			(struct subr_function *) XVECTOR (fun)->contents[COMPILED_JIT_CODE],
+			numargs, args + 1);
   else if (COMPILEDP (fun) || MODULE_FUNCTIONP (fun))
     val = funcall_lambda (fun, numargs, args + 1);
   else
@@ -2856,28 +2865,19 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
    and return the result of evaluation.  */
 
 Lisp_Object
-funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
+funcall_subr (Lisp_Object error_obj, struct subr_function *subr,
+	      ptrdiff_t numargs, Lisp_Object *args)
 {
   if (numargs < subr->min_args
       || (subr->max_args >= 0 && subr->max_args < numargs))
-    {
-      Lisp_Object fun;
-      XSETSUBR (fun, subr);
-      xsignal2 (Qwrong_number_of_arguments, fun, make_fixnum (numargs));
-    }
-
+    xsignal2 (Qwrong_number_of_arguments, error_obj, make_fixnum (numargs));
   else if (subr->max_args == UNEVALLED)
-    {
-      Lisp_Object fun;
-      XSETSUBR (fun, subr);
-      xsignal1 (Qinvalid_function, fun);
-    }
-
+    xsignal1 (Qinvalid_function, error_obj);
   else if (subr->max_args == MANY)
     return (subr->function.aMANY) (numargs, args);
   else
     {
-      Lisp_Object internal_argbuf[8];
+      Lisp_Object internal_argbuf[SUBR_MAX_ARGS];
       Lisp_Object *internal_args;
       if (subr->max_args > numargs)
         {
@@ -3020,6 +3020,22 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	     and constants vector yet, fetch them from the file.  */
 	  if (CONSP (AREF (fun, COMPILED_BYTECODE)))
 	    Ffetch_bytecode (fun);
+
+#ifdef HAVE_LIBJIT
+	  if (initialized)
+	    {
+	      struct Lisp_Vector *vec = XVECTOR (fun);
+
+	      if (vec->contents[COMPILED_JIT_CODE] == NULL)
+		emacs_jit_compile (fun);
+
+	      if (vec->contents[COMPILED_JIT_CODE] != NULL)
+		return funcall_subr (fun,
+				     (struct subr_function *) vec->contents[COMPILED_JIT_CODE],
+				     nargs, arg_vector);
+	    }
+#endif /* HAVE_LIBJIT */
+
 	  return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
 				 AREF (fun, COMPILED_CONSTANTS),
 				 AREF (fun, COMPILED_STACK_DEPTH),

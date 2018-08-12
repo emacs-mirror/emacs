@@ -1643,6 +1643,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_json ();
 #endif
 
+#ifdef HAVE_LIBJIT
+      syms_of_jit ();
+#endif
+
       keys_of_casefiddle ();
       keys_of_cmds ();
       keys_of_buffer ();
@@ -1662,6 +1666,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #if defined WINDOWSNT || defined HAVE_NTGUI
       globals_of_w32select ();
+#endif
+
+#ifdef HAVE_LIBJIT
+      init_jit ();
 #endif
     }
 

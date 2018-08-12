@@ -866,8 +866,8 @@ function with `&rest' args, or `unevalled' for a special form.  */)
 {
   short minargs, maxargs;
   CHECK_SUBR (subr);
-  minargs = XSUBR (subr)->min_args;
-  maxargs = XSUBR (subr)->max_args;
+  minargs = XSUBR (subr)->function.min_args;
+  maxargs = XSUBR (subr)->function.max_args;
   return Fcons (make_fixnum (minargs),
 		maxargs == MANY ?        Qmany
 		: maxargs == UNEVALLED ? Qunevalled
@@ -1571,7 +1571,8 @@ notify_variable_watchers (Lisp_Object symbol,
       if (SUBRP (watcher))
         {
           Lisp_Object args[] = { symbol, newval, operation, where };
-          funcall_subr (XSUBR (watcher), ARRAYELTS (args), args);
+          funcall_subr (watcher, &XSUBR (watcher)->function,
+			ARRAYELTS (args), args);
         }
       else
         CALLN (Ffuncall, watcher, symbol, newval, operation, where);

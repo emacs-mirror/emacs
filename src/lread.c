@@ -2948,8 +2948,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  vec = XVECTOR (tmp);
 	  if (vec->header.size == 0)
 	    invalid_syntax ("Empty byte-code object");
-	  make_byte_code (vec);
-	  return tmp;
+	  return Fmake_byte_code (vec->header.size, vec->contents);
 	}
       if (c == '(')
 	{
