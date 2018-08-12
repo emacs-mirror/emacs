@@ -4819,7 +4819,6 @@ binding slots have been popped."
   (setq byte-compile-output (cons tag byte-compile-output))
   (if (cdr (cdr tag))
       (progn
-	;; ## remove this someday
 	(and byte-compile-depth
              (not (= (cdr (cdr tag)) byte-compile-depth))
              (error "Compiler bug: depth conflict at tag %d" (car (cdr tag))))
