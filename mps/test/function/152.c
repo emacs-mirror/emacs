@@ -56,6 +56,7 @@ static void test(void)
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)ARENA_SIZE),
       "create arena");
+ mps_arena_spare_set(arena, 0.0);
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
@@ -81,13 +82,12 @@ static void test(void)
  q = allocdumb(ap, BIGSIZE, mps_rank_exact());
  setref(p, 0, q);
  q = allocdumb(ap, SMALLSIZE, mps_rank_exact());
- report("com", "%ld", mps_arena_committed(arena));
  comment("collect...");
  mps_arena_collect(arena);
  com1 = mps_arena_committed(arena);
  mps_arena_release(arena);
- report("com", "%ld", com1);
- report("inc1", "%d", (com1-com)/BIGSIZE);
+ report("com1", "%lu", (unsigned long)com1);
+ report("inc1", "%ld", ((long)com1-(long)com)/(long)BIGSIZE);
 
  /* pop, check object isn't scanned */
 
@@ -97,8 +97,8 @@ static void test(void)
  mps_arena_collect(arena);
  com1 = mps_arena_committed(arena);
  mps_arena_release(arena);
- report("com", "%ld", com1);
- report("inc2", "%ld", (com1-com)/BIGSIZE);
+ report("com2", "%lu", (unsigned long)com1);
+ report("inc2", "%ld", ((long)com1-(long)com)/(long)BIGSIZE);
 
  mps_arena_park(arena);
  mps_ap_destroy(ap);
