@@ -399,6 +399,7 @@ static Res cbsInsert(Range rangeReturn, Land land, Range range)
 
   AVER_CRITICAL(rangeReturn != NULL);
   AVERT_CRITICAL(Range, range);
+  AVER_CRITICAL(!RangeIsEmpty(range));
   AVER_CRITICAL(RangeIsAligned(range, LandAlignment(land)));
 
   base = RangeBase(range);
@@ -484,6 +485,67 @@ fail:
 }
 
 
+/* cbsExtendBlockPool -- extend block pool with memory */
+
+static void cbsExtendBlockPool(CBS cbs, Addr base, Addr limit)
+{
+  Tract tract;
+  Addr addr;
+
+  AVERC(CBS, cbs);
+  AVER(base < limit);
+
+  /* Steal tracts from their owning pool */
+  TRACT_FOR(tract, addr, CBSLand(cbs)->arena, base, limit) {
+    TractFinish(tract);
+    TractInit(tract, cbs->blockPool, addr);
+  }
+
+  /* Extend the block pool with the stolen memory. */
+  MFSExtend(cbs->blockPool, base, limit);
+}
+
+
+/* cbsInsertSteal -- Insert a range into the CBS, possibly stealing
+ * memory for the block pool
+ */
+
+static Res cbsInsertSteal(Range rangeReturn, Land land, Range rangeIO)
+{
+  CBS cbs = MustBeA(CBS, land);
+  Arena arena = land->arena;
+  Size grainSize = ArenaGrainSize(arena);
+  Res res;
+
+  AVER(rangeReturn != NULL);
+  AVER(rangeReturn != rangeIO);
+  AVERT(Range, rangeIO);
+  AVER(!RangeIsEmpty(rangeIO));
+  AVER(RangeIsAligned(rangeIO, LandAlignment(land)));
+  AVER(AlignIsAligned(LandAlignment(land), grainSize));
+
+  res = cbsInsert(rangeReturn, land, rangeIO);
+  if (res != ResOK && res != ResFAIL) {
+    /* Steal an arena grain and use it to extend the block pool. */
+    Addr stolenBase = RangeBase(rangeIO);
+    Addr stolenLimit = AddrAdd(stolenBase, grainSize);
+    cbsExtendBlockPool(cbs, stolenBase, stolenLimit);
+
+    /* Update the inserted range and try again. */
+    RangeSetBase(rangeIO, stolenLimit);
+    AVERT(Range, rangeIO);
+    if (RangeIsEmpty(rangeIO)) {
+      RangeCopy(rangeReturn, rangeIO);
+      res = ResOK;
+    } else {
+      res = cbsInsert(rangeReturn, land, rangeIO);
+      AVER(res == ResOK);  /* since we just extended the block pool */
+    }
+  }
+  return res;
+}
+
+
 /* cbsDelete -- Remove a range from a CBS
  *
  * See <design/land/#function.delete>.
@@ -503,6 +565,7 @@ static Res cbsDelete(Range rangeReturn, Land land, Range range)
 
   AVER(rangeReturn != NULL);
   AVERT(Range, range);
+  AVER(!RangeIsEmpty(range));
   AVER(RangeIsAligned(range, LandAlignment(land)));
 
   base = RangeBase(range);
@@ -564,6 +627,43 @@ failAlloc:
 failLimitCheck:
 failSplayTreeSearch:
   AVER(res != ResOK);
+  return res;
+}
+
+
+static Res cbsDeleteSteal(Range rangeReturn, Land land, Range range)
+{
+  CBS cbs = MustBeA(CBS, land);
+  Arena arena = land->arena;
+  Size grainSize = ArenaGrainSize(arena);
+  RangeStruct containingRange;
+  Res res;
+
+  AVER(rangeReturn != NULL);
+  AVERT(Range, range);
+  AVER(!RangeIsEmpty(range));
+  AVER(RangeIsAligned(range, LandAlignment(land)));
+  AVER(AlignIsAligned(LandAlignment(land), grainSize));
+
+  res = cbsDelete(&containingRange, land, range);
+  if (res == ResOK) {
+    RangeCopy(rangeReturn, &containingRange);
+  } else if (res != ResFAIL) {
+    /* Steal an arena grain from the base of the containing range and
+       use it to extend the block pool. */
+    Addr stolenBase = RangeBase(&containingRange);
+    Addr stolenLimit = AddrAdd(stolenBase, grainSize);
+    RangeStruct stolenRange;
+    AVER(stolenLimit <= RangeBase(range));
+    RangeInit(&stolenRange, stolenBase, stolenLimit);
+    res = cbsDelete(&containingRange, land, &stolenRange);
+    AVER(res == ResOK);  /* since this does not split any range */
+    cbsExtendBlockPool(cbs, stolenBase, stolenLimit);
+
+    /* Try again with original range. */
+    res = cbsDelete(rangeReturn, land, range);
+    AVER(res == ResOK);  /* since we just extended the block pool */
+  }
   return res;
 }
 
@@ -1091,7 +1191,9 @@ DEFINE_CLASS(Land, CBS, klass)
   klass->init = cbsInit;
   klass->sizeMethod = cbsSize;
   klass->insert = cbsInsert;
+  klass->insertSteal = cbsInsertSteal;
   klass->delete = cbsDelete;
+  klass->deleteSteal = cbsDeleteSteal;
   klass->iterate = cbsIterate;
   klass->iterateAndDelete = cbsIterateAndDelete;
   klass->findFirst = cbsFindFirst;

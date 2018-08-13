@@ -94,6 +94,26 @@ static Res failoverInsert(Range rangeReturn, Land land, Range range)
 }
 
 
+static Res failoverInsertSteal(Range rangeReturn, Land land, Range rangeIO)
+{
+  Failover fo = MustBeA(Failover, land);
+  Res res;
+
+  AVER(rangeReturn != NULL);
+  AVER(rangeReturn != rangeIO);
+  AVERT(Range, rangeIO);
+
+  /* Provide more opportunities for coalescence. See
+   * <design/failover/#impl.assume.flush>.
+   */
+  (void)LandFlush(fo->primary, fo->secondary);
+
+  res = LandInsertSteal(rangeReturn, fo->primary, rangeIO);
+  AVER(res == ResOK || res == ResFAIL);
+  return res;
+}
+
+
 static Res failoverDelete(Range rangeReturn, Land land, Range range)
 {
   Failover fo = MustBeA(Failover, land);
@@ -158,6 +178,28 @@ static Res failoverDelete(Range rangeReturn, Land land, Range range)
     AVER_CRITICAL(RangesNest(&oldRange, range));
     RangeCopy(rangeReturn, &oldRange);
   }
+  return res;
+}
+
+
+static Res failoverDeleteSteal(Range rangeReturn, Land land, Range range)
+{
+  Failover fo = MustBeA(Failover, land);
+  Res res;
+
+  AVER(rangeReturn != NULL);
+  AVERT(Range, range);
+
+  /* Prefer efficient search in the primary. See
+   * <design/failover/#impl.assume.flush>.
+   */
+  (void)LandFlush(fo->primary, fo->secondary);
+
+  res = LandDeleteSteal(rangeReturn, fo->primary, range);
+  if (res == ResFAIL)
+    /* Not found in primary: try secondary. */
+    res = LandDeleteSteal(rangeReturn, fo->secondary, range);
+  AVER(res == ResOK || res == ResFAIL);
   return res;
 }
 
@@ -285,7 +327,9 @@ DEFINE_CLASS(Land, Failover, klass)
   klass->init = failoverInit;
   klass->sizeMethod = failoverSize;
   klass->insert = failoverInsert;
+  klass->insertSteal = failoverInsertSteal;
   klass->delete = failoverDelete;
+  klass->deleteSteal = failoverDeleteSteal;
   klass->iterate = failoverIterate;
   klass->findFirst = failoverFindFirst;
   klass->findLast = failoverFindLast;
