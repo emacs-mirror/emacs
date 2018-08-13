@@ -159,7 +159,7 @@ argerr/154.c
 argerr/155.c
 argerr/156.c
 argerr/157.c
-argerr/158.c
+% argerr/158.c -- assertion in different place in the hot variety
 argerr/159.c
-argerr/160.c
+% argerr/160.c -- AVERT only checks the signature in the hot variety
 argerr/161.c
