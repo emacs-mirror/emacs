@@ -371,11 +371,11 @@ Arena properties
         MPS. The :term:`spare committed memory` (that is, memory
         committed by the MPS but not currently in use, neither by the
         :term:`client program`, or by the MPS itself) can be limited
-        separately; see :c:func:`mps_arena_spare_committed`. Note that
-        "spare committed" memory is subject to both limits; there
-        cannot be more spare committed memory than the spare commit
-        limit, and there can't be so much spare committed memory that
-        there is more committed memory than the commit limit.
+        separately; see :c:func:`mps_arena_spare`. Note that "spare
+        committed" memory is subject to both limits; the proportion of
+        spare committed memory can't exceed the spare commit limit,
+        and there can't be so much spare committed memory that there
+        is more committed memory than the commit limit.
 
 
 .. c:function:: mps_res_t mps_arena_commit_limit_set(mps_arena_t arena, size_t limit)
@@ -389,7 +389,7 @@ Arena properties
     Returns :c:macro:`MPS_RES_OK` if successful, or another
     :term:`result code` if not.
 
-    See :c:func:`mps_arena_spare_commit_limit` for details.
+    See :c:func:`mps_arena_spare` for details.
 
 
 .. c:function:: size_t mps_arena_committed(mps_arena_t arena)
@@ -551,16 +551,16 @@ Arena properties
     the MPS is allowed to have.
 
     For example, setting the :term:`spare commit limit` to 0.5 will
-    allow the arena to retain a 50% overhead in addition to its
-    :term:`committed memory` as :term:`spare committed memory`.
+    allow the arena to retain up to 50% of :term:`committed memory` as
+    :term:`spare committed memory`.
 
     The spare commit limit can be set by passing the
     :c:macro:`MPS_KEY_SPARE` :term:`keyword argument` to
     :c:func:`mps_arena_create_k`. It can be changed by calling
-    :c:func:`mps_arena_spare_set`.  Setting it to a value lower than
+    :c:func:`mps_arena_spare_set`. Setting it to a value lower than
     the current fraction of spare committed memory causes spare
     committed memory to be uncommitted so as to bring the value under
-    the limit. In particular, setting it to 0 will mean that the MPS
+    the limit. In particular, setting it to 0.0 will mean that the MPS
     will have no spare committed memory.
 
 
@@ -604,7 +604,8 @@ Arena properties
     ``arena`` is the arena to change the spare commit limit for.
 
     ``spare`` is the new spare commit limit as a fraction of
-    :term:`committed <mapped>` memory.
+    :term:`committed <mapped>` memory. It must be between 0.0 and 1.0
+    inclusive.
 
     Non-virtual-memory arena classes (for example, a :term:`client
     arena`) do not have spare committed memory. For these arenas, this

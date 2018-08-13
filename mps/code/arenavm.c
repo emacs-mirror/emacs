@@ -1068,6 +1068,7 @@ static void VMFree(Addr base, Size size, Pool pool)
   Count pages;
   Index pi, piBase, piLimit;
   Bool foundChunk;
+  Size spareCommitted;
 
   AVER(base != NULL);
   AVER(size > (Size)0);
@@ -1110,12 +1111,13 @@ static void VMFree(Addr base, Size size, Pool pool)
   /* Consider returning memory to the OS. */
   /* Purging spare memory can cause page descriptors to be unmapped,
      causing ArenaCommitted to fall, so we can't be sure to unmap
-     enough in one pass.  This somewhat contradicts the goal of having
+     enough in one pass. This somewhat contradicts the goal of having
      spare committed memory, which is to reduce the amount of mapping
-     and unmapping, but if we don't do it now it'll just happen on
-     the next VMFree anyway. */
-  while (ArenaSpareCommitted(arena) > ArenaSpareCommitLimit(arena)) {
-    Size toPurge = ArenaSpareCommitted(arena) - ArenaSpareCommitLimit(arena);
+     and unmapping, but we need to do this in order to be able to
+     check the spare committed invariant. */
+  spareCommitted = ArenaSpareCommitted(arena);
+  while (spareCommitted > ArenaSpareCommitLimit(arena)) {
+    Size toPurge = spareCommitted - ArenaSpareCommitLimit(arena);
     /* Purge at least half of the spare memory, not just the extra
        sliver, so that we return a reasonable amount of memory in one
        go, and avoid lots of small unmappings, each of which has an
@@ -1123,9 +1125,13 @@ static void VMFree(Addr base, Size size, Pool pool)
     /* TODO: Consider making this time-based. */
     /* TODO: Consider making this smarter about the overheads tradeoff. */
     Size minPurge = ArenaSpareCommitted(arena) / 2;
+    Size newSpareCommitted;
     if (toPurge < minPurge)
       toPurge = minPurge;
     VMPurgeSpare(arena, toPurge);
+    newSpareCommitted = ArenaSpareCommitted(arena);
+    AVER(newSpareCommitted < spareCommitted);
+    spareCommitted = newSpareCommitted;
   }
   AVER(ArenaCurrentSpare(arena) <= ArenaSpare(arena));
 
