@@ -184,6 +184,33 @@ Res (LandInsert)(Range rangeReturn, Land land, Range range)
 }
 
 
+/* LandInsertSteal -- insert range of addresses into land, possibly
+ * stealing some of the inserted memory to allocate internal data
+ * structures.
+ *
+ * See <design/land/#function.insert-steal>
+ */
+
+Res LandInsertSteal(Range rangeReturn, Land land, Range rangeIO)
+{
+  Res res;
+
+  AVER(rangeReturn != NULL);
+  AVERC(Land, land);
+  AVER(rangeReturn != rangeIO);
+  AVERT(Range, rangeIO);
+  AVER(RangeIsAligned(rangeIO, land->alignment));
+  AVER(!RangeIsEmpty(rangeIO));
+
+  landEnter(land);
+
+  res = Method(Land, land, insertSteal)(rangeReturn, land, rangeIO);
+
+  landLeave(land);
+  return res;
+}
+
+
 /* LandDelete -- delete range of addresses from land
  *
  * See <design/land/#function.delete>
@@ -196,10 +223,36 @@ Res (LandDelete)(Range rangeReturn, Land land, Range range)
   AVER(rangeReturn != NULL);
   AVERC(Land, land);
   AVERT(Range, range);
+  AVER(!RangeIsEmpty(range));
   AVER(RangeIsAligned(range, land->alignment));
   landEnter(land);
 
   res = LandDeleteMacro(rangeReturn, land, range);
+
+  landLeave(land);
+  return res;
+}
+
+
+/* LandDeleteSteal -- delete range of addresses from land, possibly
+ * stealing some memory from the land to allocate internal data
+ * structures.
+ *
+ * See <design/land/#function.delete-steal>
+ */
+
+Res LandDeleteSteal(Range rangeReturn, Land land, Range range)
+{
+  Res res;
+
+  AVER(rangeReturn != NULL);
+  AVERC(Land, land);
+  AVERT(Range, range);
+  AVER(!RangeIsEmpty(range));
+  AVER(RangeIsAligned(range, land->alignment));
+  landEnter(land);
+
+  res = Method(Land, land, deleteSteal)(rangeReturn, land, range);
 
   landLeave(land);
   return res;
@@ -549,7 +602,9 @@ DEFINE_CLASS(Land, Land, klass)
   klass->init = LandAbsInit;
   klass->sizeMethod = landNoSize;
   klass->insert = landNoInsert;
+  klass->insertSteal = landNoInsert;
   klass->delete = landNoDelete;
+  klass->deleteSteal = landNoDelete;
   klass->iterate = landNoIterate;
   klass->iterateAndDelete = landNoIterateAndDelete;
   klass->findFirst = landNoFind;

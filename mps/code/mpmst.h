@@ -558,7 +558,9 @@ typedef struct LandClassStruct {
   LandSizeMethod sizeMethod;    /* total size of ranges in land */
   LandInitMethod init;          /* initialize the land */
   LandInsertMethod insert;      /* insert a range into the land */
+  LandInsertMethod insertSteal; /* insert a range, possibly stealing memory */
   LandDeleteMethod delete;      /* delete a range from the land */
+  LandDeleteMethod deleteSteal; /* delete a range, possibly stealing memory */
   LandIterateMethod iterate;    /* iterate over ranges in the land */
   LandIterateAndDeleteMethod iterateAndDelete; /* iterate and maybe delete */
   LandFindMethod findFirst;     /* find first range of given size */
