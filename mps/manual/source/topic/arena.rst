@@ -551,8 +551,8 @@ Arena properties
     the MPS is allowed to have.
 
     For example, setting the :term:`spare commit limit` to 0.5 will
-    allow the arena to retain up to 50% of :term:`committed memory` as
-    :term:`spare committed memory`.
+    allow the arena to retain up to 50% of :term:`committed <mapped>`
+    memory as :term:`spare committed memory`.
 
     The spare commit limit can be set by passing the
     :c:macro:`MPS_KEY_SPARE` :term:`keyword argument` to
