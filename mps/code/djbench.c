@@ -55,6 +55,7 @@ static unsigned rmax = 10;        /* maximum recursion depth */
 static mps_bool_t zoned = TRUE;   /* arena allocates using zones */
 static size_t arena_size = 256ul * 1024 * 1024; /* arena size */
 static size_t arena_grain_size = 1; /* arena grain size */
+static double spare = ARENA_SPARE_DEFAULT; /* spare commit fraction */
 
 #define DJRUN(fname, alloc, free) \
   static unsigned fname##_inner(mps_ap_t ap, unsigned depth, unsigned r) { \
@@ -188,6 +189,7 @@ static void arena_wrap(dj_t dj, mps_pool_class_t pool_class, const char *name)
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, arena_size);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_ZONED, zoned);
+    MPS_ARGS_ADD(args, MPS_KEY_SPARE, spare);
     DJMUST(mps_arena_create_k(&arena, mps_arena_class_vm(), args));
   } MPS_ARGS_END(args);
   DJMUST(mps_pool_create_k(&pool, arena, pool_class, mps_args_none));
@@ -213,6 +215,7 @@ static struct option longopts[] = {
   {"arena-size",       required_argument, NULL, 'm'},
   {"arena-grain-size", required_argument, NULL, 'a'},
   {"arena-unzoned",    no_argument,       NULL, 'z'},
+  {"spare",            required_argument, NULL, 'S'},
   {NULL,               0,                 NULL, 0  }
 };
 
@@ -247,7 +250,8 @@ int main(int argc, char *argv[])
 
   seed = rnd_seed();
   
-  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:c:r:d:m:a:x:z", longopts, NULL)) != -1)
+  while ((ch = getopt_long(argc, argv, "ht:i:p:b:s:c:r:d:m:a:x:zS:",
+                           longopts, NULL)) != -1)
     switch (ch) {
     case 't':
       nthreads = (unsigned)strtoul(optarg, NULL, 10);
@@ -308,6 +312,9 @@ int main(int argc, char *argv[])
         }
       }
       break;
+    case 'S':
+      spare = strtod(optarg, NULL);
+      break;
     default:
       /* This is printed in parts to keep within the 509 character
          limit for string literals in portable standard C. */
@@ -346,15 +353,19 @@ int main(int argc, char *argv[])
               "    Random number seed (default from entropy).\n"
               "  -z, --arena-unzoned\n"
               "    Disabled zoned allocation in the arena\n"
+              "  -S f, --spare\n"
+              "    Maximum spare committed fraction (default %f)\n",
+              pact,
+              rinter,
+              rmax,
+              spare);
+      fprintf(stderr,
               "Tests:\n"
               "  mvt   pool class MVT\n"
               "  mvff  pool class MVFF\n"
               "  mv    pool class MV\n"
               "  mvb   pool class MV with buffers\n"
-              "  an    malloc\n",
-              pact,
-              rinter,
-              rmax);
+              "  an    malloc\n");
       return EXIT_FAILURE;
     }
   argc -= optind;
