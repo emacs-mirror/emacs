@@ -575,13 +575,12 @@ extern Size ArenaReserved(Arena arena);
 extern Size ArenaCommitted(Arena arena);
 extern Size ArenaSpareCommitted(Arena arena);
 extern double ArenaSpare(Arena arena);
-#define ArenaAllocated(arena) (ArenaCommitted(arena) - ArenaSpareCommitted(arena))
-#define ArenaSpareCommitLimit(arena) ((Size)(ArenaAllocated(arena) * ArenaSpare(arena)))
-#define ArenaCurrentSpare(arena) ((double)ArenaSpareCommitted(arena) / ArenaAllocated(arena))
+extern void ArenaSetSpare(Arena arena, double spare);
+#define ArenaSpareCommitLimit(arena) ((Size)(ArenaCommitted(arena) * ArenaSpare(arena)))
+#define ArenaCurrentSpare(arena) ((double)ArenaSpareCommitted(arena) / ArenaCommitted(arena))
 
 extern Size ArenaCommitLimit(Arena arena);
 extern Res ArenaSetCommitLimit(Arena arena, Size limit);
-extern void ArenaSetSpare(Arena arena, double spare);
 extern double ArenaPauseTime(Arena arena);
 extern void ArenaSetPauseTime(Arena arena, double pauseTime);
 extern Size ArenaNoPurgeSpare(Arena arena, Size size);

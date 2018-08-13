@@ -190,6 +190,8 @@ Bool ArenaCheck(Arena arena)
    */
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
+  CHECKL(0.0 <= arena->spare);
+  CHECKL(arena->spare <= 1.0);
   CHECKL(0.0 <= arena->pauseTime);
 
   CHECKL(arena->zoneShift == ZoneShiftUNSET
@@ -1199,7 +1201,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
   Method(Arena, arena, free)(RangeBase(&range), RangeSize(&range), pool);
 
   /* Freeing memory might create spare pages, but not more than this. */
-  CHECKL((double)arena->spareCommitted / (arena->committed - arena->spareCommitted) <= arena->spare);
+  AVER(arena->spareCommitted <= ArenaSpareCommitLimit(arena));
 
   EVENT3(ArenaFree, arena, wholeBase, wholeSize);
 }
@@ -1234,12 +1236,13 @@ void ArenaSetSpare(Arena arena, double spare)
   Size spareMax;
 
   AVERT(Arena, arena);
-  AVER(spare >= 0);
+  AVER(0.0 <= spare);
+  AVER(spare <= 1.0);
 
   arena->spare = spare;
   EVENT2(ArenaSetSpare, arena, spare);
 
-  spareMax = (Size)(arena->committed * arena->spare);
+  spareMax = ArenaSpareCommitLimit(arena);
   if (arena->spareCommitted > spareMax) {
     Size excess = arena->spareCommitted - spareMax;
     (void)Method(Arena, arena, purgeSpare)(arena, excess);
