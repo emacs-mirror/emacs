@@ -1115,10 +1115,6 @@ allocFail:
 void ArenaFree(Addr base, Size size, Pool pool)
 {
   Arena arena;
-  Land land;
-  Addr limit;
-  Addr wholeBase;
-  Size wholeSize;
   RangeStruct range, oldRange;
   Res res;
 
@@ -1130,29 +1126,30 @@ void ArenaFree(Addr base, Size size, Pool pool)
   AVER(AddrIsArenaGrain(base, arena));
   AVER(SizeIsArenaGrains(size, arena));
 
+  RangeInitSize(&range, base, size);
+
   /* uncache the tract if in range - <design/arena/#tract.uncache> */
-  limit = AddrAdd(base, size);
-  if ((arena->lastTractBase >= base) && (arena->lastTractBase < limit)) {
+  if (base <= arena->lastTractBase && arena->lastTractBase < RangeLimit(&range))
+  {
     arena->lastTract = NULL;
     arena->lastTractBase = (Addr)0;
   }
   
-  wholeBase = base;
-  wholeSize = size;
+  res = arenaFreeLandInsertExtend(&oldRange, arena, &range);
+  if (res != ResOK) {
+    Land land = ArenaFreeLand(arena);
+    res = LandInsertSteal(&oldRange, land, &range); /* may update range */
+    AVER(res == ResOK);
+    if (RangeIsEmpty(&range))
+      goto done;
+  }
+  Method(Arena, arena, free)(RangeBase(&range), RangeSize(&range), pool);
 
-  RangeInit(&range, base, limit);
-
-  land = ArenaFreeLand(arena);
-  res = LandInsertSteal(&oldRange, land, &range); /* may update range */
-  AVER(res == ResOK);
-
-  if (!RangeIsEmpty(&range))
-    Method(Arena, arena, free)(RangeBase(&range), RangeSize(&range), pool);
-
+done:
   /* Freeing memory might create spare pages, but not more than this. */
   CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
 
-  EVENT3(ArenaFree, arena, wholeBase, wholeSize);
+  EVENT3(ArenaFree, arena, base, size);
 }
 
 
