@@ -315,19 +315,19 @@ int main(int argc, char *argv[])
               "Usage: %s [option...] [test...]\n"
               "Options:\n"
               "  -m n, --arena-size=n[KMG]?\n"
-              "    Initial size of arena (default %lu).\n"
+              "    Initial size of arena (default %lu)\n"
               "  -g n, --arena-grain-size=n[KMG]?\n"
-              "    Arena grain size (default %lu).\n"
+              "    Arena grain size (default %lu)\n"
               "  -t n, --nthreads=n\n"
               "    Launch n threads each running the test\n"
               "  -i n, --niter=n\n"
-              "    Iterate each test n times (default %u).\n"
+              "    Iterate each test n times (default %u)\n"
               "  -p n, --npass=n\n"
-              "    Pass over the block array n times (default %u).\n"
+              "    Pass over the block array n times (default %u)\n"
               "  -b n, --nblocks=n\n"
-              "    Length of the block array (default %u).\n"
+              "    Length of the block array (default %u)\n"
               "  -s n, --sshift=n\n"
-              "    Log2 max block size in words (default %u).\n",
+              "    Log2 max block size in words (default %u)\n",
               argv[0],
               (unsigned long)arena_size,
               (unsigned long)arena_grain_size,
@@ -337,20 +337,19 @@ int main(int argc, char *argv[])
               sshift);
       fprintf(stderr,
               "  -c p, --pact=p\n"
-              "    Probability of acting on a block (default %g).\n"
+              "    Probability of acting on a block (default %g)\n"
               "  -r n, --rinter=n\n"
-              "    Recurse every n passes if n > 0 (default %u).\n"
+              "    Recurse every n passes if n > 0 (default %u)\n"
               "  -d n, --rmax=n\n"
-              "    Maximum recursion depth (default %u).\n"
+              "    Maximum recursion depth (default %u)\n"
               "  -x n, --seed=n\n"
-              "    Random number seed (default from entropy).\n"
+              "    Random number seed (default from entropy)\n"
               "  -z, --arena-unzoned\n"
               "    Disabled zoned allocation in the arena\n"
               "Tests:\n"
               "  mvt   pool class MVT\n"
-              "  mvff  pool class MVFF\n"
-              "  mv    pool class MV\n"
-              "  mvb   pool class MV with buffers\n"
+              "  mvff  pool class MVFF (buffer interface)\n"
+              "  mvffa pool class MVFF (alloc interface)\n"
               "  an    malloc\n",
               pact,
               rinter,
