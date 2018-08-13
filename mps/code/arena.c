@@ -247,11 +247,14 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
     zoned = arg.val.b;
   if (ArgPick(&arg, args, MPS_KEY_COMMIT_LIMIT))
     commitLimit = arg.val.size;
+  /* MPS_KEY_SPARE_COMMIT_LIMIT is deprecated */
+  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT)) {
+    spare = (double)arg.val.size / (double)commitLimit;
+    if (spare > 1.0)
+      spare = 1.0;
+  }
   if (ArgPick(&arg, args, MPS_KEY_SPARE))
     spare = arg.val.d;
-  /* MPS_KEY_SPARE_COMMIT_LIMIT is deprecated */
-  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT))
-    spare = (double)arg.val.size / (double)commitLimit;
   if (ArgPick(&arg, args, MPS_KEY_PAUSE_TIME))
     pauseTime = arg.val.d;
 
