@@ -154,6 +154,14 @@ as 0, i.e. don't block at all."
   :type '(choice (boolean :tag "Whether to inhibit autoreconnection")
                  (integer :tag "Number of seconds")))
 
+(defcustom eglot-events-buffer-size 2000000
+  "Control the size of the Eglot events buffer.
+If a number, don't let the buffer grow larger than that many
+characters.  If 0, don't use an event's buffer at all.  If nil,
+let the buffer grow forever."
+  :type '(choice (const :tag "No limit" nil)
+                 (integer :tag "Number of characters")))
+
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
 (cl-defmacro eglot--with-live-buffer (buf &rest body)
@@ -502,6 +510,7 @@ This docstring appeases checkdoc, that's all."
           (apply
            #'make-instance class
            :name readable-name
+           :events-buffer-scrollback-size eglot-events-buffer-size
            :notification-dispatcher (funcall spread #'eglot-handle-notification)
            :request-dispatcher (funcall spread #'eglot-handle-request)
            :on-shutdown #'eglot--on-shutdown
