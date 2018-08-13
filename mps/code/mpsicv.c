@@ -302,6 +302,9 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
  *   mps_arena_commit_limit_set
  *   mps_arena_committed
  *   mps_arena_reserved
+ *   mps_arena_spare
+ *   mps_arena_spare_committed
+ *   mps_arena_spare_set
  * incidentally tests:
  *   mps_alloc
  *   mps_arena_commit_limit_set
@@ -315,7 +318,9 @@ static void arena_commit_test(mps_arena_t arena)
   mps_pool_t pool;
   size_t committed;
   size_t reserved;
+  size_t spare_committed;
   size_t limit;
+  double spare;
   void *p;
   mps_res_t res;
 
@@ -329,8 +334,15 @@ static void arena_commit_test(mps_arena_t arena)
   
   limit = mps_arena_commit_limit(arena);
   committed = mps_arena_committed(arena);
+  spare = mps_arena_spare(arena);
+  spare_committed = mps_arena_spare_committed(arena);
   reserved = mps_arena_reserved(arena);
-  cdie(reserved >= committed, "reserved < committed");
+  Insist(0.0 <= spare);
+  Insist(spare <= 1.0);
+  Insist(spare_committed <= spare * committed);
+  Insist(spare_committed < committed);
+  Insist(committed <= reserved);
+  Insist(committed <= limit);
   die(mps_arena_commit_limit_set(arena, committed), "commit_limit_set before");
   do {
     res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
@@ -339,6 +351,9 @@ static void arena_commit_test(mps_arena_t arena)
   die(mps_arena_commit_limit_set(arena, limit), "commit_limit_set after");
   res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
   die_expect(res, MPS_RES_OK, "Allocation failed after raising commit_limit");
+  mps_arena_spare_set(arena, 0.0);
+  Insist(mps_arena_spare(arena) == 0.0);
+  Insist(mps_arena_spare_committed(arena) == 0);
   mps_pool_destroy(pool);
 }
 
@@ -580,6 +595,7 @@ int main(int argc, char *argv[])
     /* Randomize pause time as a regression test for job004011. */
     MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, rnd_pause_time());
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, TEST_ARENA_SIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_SPARE, rnd_double());
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "arena_create");
   } MPS_ARGS_END(args);
