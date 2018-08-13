@@ -217,9 +217,13 @@ double mps_arena_spare(mps_arena_t arena)
 
 void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
 {
+  double spare;
   /* Can't check limit, as all possible values are allowed. */
   ArenaEnter(arena);
-  ArenaSetSpare(arena, (double)limit / (double)ArenaCommitted(arena));
+  spare = (double)limit / (double)ArenaCommitted(arena);
+  if (spare > 1.0)
+    spare = 1.0;
+  ArenaSetSpare(arena, spare);
   ArenaLeave(arena);
 }
 
