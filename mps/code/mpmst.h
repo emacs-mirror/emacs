@@ -749,9 +749,9 @@ typedef struct mps_arena_s {
   Size committed;               /* total committed memory */
   Size commitLimit;             /* client-configurable commit limit */
 
-  Size spareCommitted;          /* Amount of memory in hysteresis fund */
-  Size spareCommitLimit;        /* Limit on spareCommitted */
-  double pauseTime;             /* Maximum pause time, in seconds. */
+  Size spareCommitted;          /* amount of memory in hysteresis fund */
+  double spare;                 /* maximum spareCommitted/committed */
+  double pauseTime;             /* maximum pause time, in seconds */
 
   Shift zoneShift;              /* see also <code/ref.c> */
   Size grainSize;               /* <design/arena/#grain> */
