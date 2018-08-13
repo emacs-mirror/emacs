@@ -1555,7 +1555,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                       (progress-reporter-update reporter (cl-incf done)))))))
             (mapcar (jsonrpc-lambda (&key range newText)
                       (cons newText (eglot--range-region range 'markers)))
-                    edits))
+                    (reverse edits)))
       (undo-amalgamate-change-group change-group)
       (progress-reporter-done reporter))))
 
