@@ -127,8 +127,8 @@ stored in the land.
 
 ``Res LandInsert(Range rangeReturn, Land land, Range range)``
 
-_`.function.insert`: If any part of ``range`` is already in the
-land, then leave it unchanged and return ``ResFAIL``. Otherwise,
+_`.function.insert`: If any part of ``range`` is already in the land,
+then leave the land unchanged and return ``ResFAIL``. Otherwise,
 attempt to insert ``range`` into the land. If the insertion succeeds,
 then update ``rangeReturn`` to describe the contiguous isolated range
 containing the inserted range (this may differ from ``range`` if there
@@ -142,6 +142,32 @@ structure to represent it failed.
 
 _`.function.insert.alias`: It is acceptable for ``rangeReturn`` and
 ``range`` to share storage.
+
+``Res LandInsertSteal(Range rangeReturn, Land land, Range rangeIO)``
+
+_`.function.insert-steal`: If any part of ``rangeIO`` is already in
+the land, then leave the land unchanged and return ``ResFAIL``.
+Otherwise, insert ``rangeIO`` into the land, update ``rangeReturn`` to
+describe the contiguous isolated range containing the inserted range
+(this may differ from ``range`` if there was coalescence on either
+side), and return ``ResOK``.
+
+_`.function.insert-steal.steal`: If insertion requires allocation for
+the land's internal data structures, steal some of the memory in
+``rangeIO``, use it to satisfy the allocation, update ``rangeIO`` so
+that it describes the remaining part of of the range, and insert the
+remainder into the land as described above.
+
+_`.function.insert-steal.allocated`: In order for stealing to work,
+the inserted range must be allocated from the arena to some pool or
+pools.
+
+_`.function.insert-steal.empty`: After stealing memory, ``rangeIO``
+might be empty, in which case ``rangeReturn`` will be a copy of
+``rangeIO``.
+
+_`.function.insert-steal.alias.not`: It is not acceptable for
+``rangeReturn`` and ``rangeIO`` to share storage.
 
 ``Res LandDelete(Range rangeReturn, Land land, Range range)``
 
@@ -166,6 +192,27 @@ strategy.
 
 _`.function.delete.alias`: It is acceptable for ``rangeReturn`` and
 ``range`` to share storage.
+
+``Res LandDeleteSteal(Range rangeReturn, Land land, Range range)``
+
+_`.function.delete-steal`: If any part of the range is not in the
+land, then leave the land unchanged and return ``ResFAIL``. Otherwise,
+update ``rangeReturn`` to describe the contiguous isolated range that
+contains ``range`` (this may differ from ``range`` if there are
+fragments on either side), delete the range from the land, and return
+``ResOK``.
+
+_`.function.delete-steal.steal`: If deletion requires allocation for
+the land's internal data structures, steal some of the memory in the
+contiguous isolated range that contains ``range``, and use it to
+satisfy the allocation.
+
+_`.function.delete-steal.allocated`: In order for stealing to work,
+the addresses stored in the land must be allocated from the arena to
+some pool or pools.
+
+_`.function.delete-steal.alias`: It is acceptable for ``rangeReturn``
+and ``range`` to share storage.
 
 ``Bool LandIterate(Land land, LandVisitor visitor, void *closure)``
 
