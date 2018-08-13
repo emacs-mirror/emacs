@@ -261,12 +261,18 @@ let the buffer grow forever."
 
 (defun eglot-shutdown (server &optional _interactive timeout preserve-buffers)
   "Politely ask SERVER to quit.
+Interactively, read SERVER from the minibuffer unless there is
+only one and it's managing the current buffer.
+
 Forcefully quit it if it doesn't respond within TIMEOUT seconds.
+Don't leave this function with the server still running.
+
 If PRESERVE-BUFFERS is non-nil (interactively, when called with a
 prefix argument), do not kill events and output buffers of
-SERVER.  Don't leave this function with the server still
-running."
-  (interactive (list (eglot--current-server-or-lose) t nil current-prefix-arg))
+SERVER.  ."
+  (interactive (list (eglot--read-server "Shutdown which server"
+                                         (eglot--current-server))
+                     t nil current-prefix-arg))
   (eglot--message "Asking %s politely to terminate" (jsonrpc-name server))
   (unwind-protect
       (progn
@@ -736,6 +742,32 @@ If optional MARKERS, make markers."
          (beg (eglot--lsp-position-to-point st markers))
          (end (eglot--lsp-position-to-point (plist-get range :end) markers)))
     (cons beg end)))
+
+(defun eglot--read-server (prompt &optional dont-if-just-the-one)
+  "Read a running Eglot server from minibuffer using PROMPT.
+If DONT-IF-JUST-THE-ONE and there's only one server, don't prompt
+and just return it.  PROMPT shouldn't end with a question mark."
+  (let ((servers (cl-loop for servers
+                          being hash-values of eglot--servers-by-project
+                          append servers))
+        (name (lambda (srv)
+                (format "%s/%s" (eglot--project-nickname srv)
+                        (eglot--major-mode srv)))))
+    (cond ((null servers)
+           (eglot--error "No servers!"))
+          ((or (cdr servers) (not dont-if-just-the-one))
+           (let* ((default (when-let ((current (eglot--current-server)))
+                             (funcall name current)))
+                  (read (completing-read
+                         (if default
+                             (format "%s (default %s)? " prompt default)
+                           (concat prompt "? "))
+                         (mapcar name servers)
+                         nil t
+                         nil nil
+                         default)))
+             (cl-find read servers :key name :test #'equal)))
+          (t (car servers)))))
 
 
 ;;; Minor modes
