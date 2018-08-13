@@ -414,15 +414,15 @@ int main(int argc, char *argv[])
               "Usage: %s [option...] [test...]\n"
               "Options:\n"
               "  -m n, --arena-size=n[KMG]?\n"
-              "    Initial size of arena (default %lu).\n"
+              "    Initial size of arena (default %lu)\n"
               "  -a n, --arena-grain-size=n[KMG]?\n"
-              "    Arena grain size (default %lu).\n"
+              "    Arena grain size (default %lu)\n"
               "  -t n, --nthreads=n\n"
-              "    Launch n threads each running the test (default %u).\n"
+              "    Launch n threads each running the test (default %u)\n"
               "  -i n, --niter=n\n"
-              "    Iterate each test n times (default %u).\n"
+              "    Iterate each test n times (default %u)\n"
               "  -p n, --npass=n\n"
-              "    Pass over the tree n times (default %u).\n",
+              "    Pass over the tree n times (default %u)\n",
               argv[0],
               (unsigned long)arena_size,
               (unsigned long)arena_grain_size,
@@ -432,7 +432,7 @@ int main(int argc, char *argv[])
       fprintf(stderr,
               "  -g c,m, --gen=c[KMG],m\n"
               "    Generation with capacity c (in Kb) and mortality m\n"
-              "    Use multiple times for multiple generations.\n"
+              "    Use multiple times for multiple generations\n"
               "  -w n, --width=n\n"
               "    Width of tree nodes made (default %lu)\n"
               "  -d n, --depth=n\n"
@@ -442,7 +442,7 @@ int main(int argc, char *argv[])
               "  -u p, --pupdate=p\n"
               "    Probability of updating a node (default %g)\n"
               "  -l --pin-leaf\n"
-              "    Make a pinned object to use for leaves.\n"
+              "    Make a pinned object to use for leaves\n"
               "  -x n, --seed=n\n"
               "    Random number seed (default from entropy)\n",
               (unsigned long)width,
@@ -456,7 +456,8 @@ int main(int argc, char *argv[])
               "    Maximum pause time in seconds (default %f) \n"
               "Tests:\n"
               "  amc   pool class AMC\n"
-              "  ams   pool class AMS\n",
+              "  ams   pool class AMS\n"
+              "  awl   pool class AWL\n",
               pause_time);
       return EXIT_FAILURE;
     }
