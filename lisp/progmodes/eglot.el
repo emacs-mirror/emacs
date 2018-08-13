@@ -90,7 +90,8 @@
                                     :autoport))
                                 (php-mode . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php"))
-                                (haskell-mode . ("hie-wrapper")))
+                                (haskell-mode . ("hie-wrapper"))
+                                (kotlin-mode . ("kotlin-language-server")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 is a mode symbol, or a list of mode symbols.  The associated
