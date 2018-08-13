@@ -19,6 +19,50 @@ the supported interface.
     makes a difference if we know that someone is using a feature.
 
 
+
+.. index::
+   single: deprecated interfaces; in version 1.118
+
+Deprecated in version 1.118
+...........................
+
+.. c:macro:: MPS_KEY_SPARE_COMMIT_LIMIT
+
+    .. deprecated::
+
+        Use :c:macro:`MPS_KEY_SPARE` instead.
+
+    When supplied as a :term:`keyword argument` to
+    :c:func:`mps_arena_create_k`, specifies the initial :term:`spare
+    commit limit` in :term:`bytes (1)` relative to the arena's
+    :term:`commit limit`. If the value is greater than the arena's
+    commit limit then the spare commit limit is set to 1.0 exactly.
+
+
+.. c:function:: size_t mps_arena_spare_commit_limit(mps_arena_t arena)
+
+    .. deprecated::
+
+        Use :c:func:`mps_arena_spare` instead.
+
+    Return the current :term:`spare commit limit` for an :term:`arena`
+    in :term:`bytes (1)`, that is, the product of the :term:`committed
+    <mapped>` memory and the spare fraction.
+
+
+.. c:function:: void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
+
+    .. deprecated::
+
+        Use :c:func:`mps_arena_spare_set` instead.
+
+    Change the :term:`spare commit limit` for an :term:`arena` in
+    terms of :term:`bytes (1)` relative to the current
+    :term:`committed <mapped>` memory. If the ``limit`` argument is
+    greater than the current committed memory then the spare commit
+    limit is set to 1.0 exactly.
+
+
 .. index::
    single: deprecated interfaces; in version 1.115
 

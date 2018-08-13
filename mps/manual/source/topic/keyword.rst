@@ -117,7 +117,7 @@ now :c:macro:`MPS_KEY_ARGS_END`.
     :c:macro:`MPS_KEY_PAUSE_TIME`            :c:type:`double`                  ``d``                   :c:func:`mps_arena_class_vm`, :c:func:`mps_arena_class_cl`
     :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`    :c:type:`mps_pool_debug_option_s` ``*pool_debug_options`` :c:func:`mps_class_ams_debug`, :c:func:`mps_class_mv_debug`, :c:func:`mps_class_mvff_debug`
     :c:macro:`MPS_KEY_RANK`                  :c:type:`mps_rank_t`              ``rank``                :c:func:`mps_class_ams`, :c:func:`mps_class_awl`, :c:func:`mps_class_snc`
-    :c:macro:`MPS_KEY_SPARE`                 :c:type:`double`                  ``d``                   :c:func:`mps_class_mvff`
+    :c:macro:`MPS_KEY_SPARE`                 :c:type:`double`                  ``d``                   :c:func:`mps_arena_class_vm`, :c:func:`mps_class_mvff`
     :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT`    :c:type:`size_t`                  ``size``                :c:func:`mps_arena_class_vm`
     :c:macro:`MPS_KEY_VMW3_TOP_DOWN`         :c:type:`mps_bool_t`              ``b``                   :c:func:`mps_arena_class_vm`
     ======================================== ========================================================= ==========================================================

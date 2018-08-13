@@ -190,6 +190,8 @@ Bool ArenaCheck(Arena arena)
    */
   CHECKL(arena->committed <= arena->commitLimit);
   CHECKL(arena->spareCommitted <= arena->committed);
+  CHECKL(0.0 <= arena->spare);
+  CHECKL(arena->spare <= 1.0);
   CHECKL(0.0 <= arena->pauseTime);
 
   CHECKL(arena->zoneShift == ZoneShiftUNSET
@@ -234,7 +236,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
   Res res;
   Bool zoned = ARENA_DEFAULT_ZONED;
   Size commitLimit = ARENA_DEFAULT_COMMIT_LIMIT;
-  Size spareCommitLimit = ARENA_DEFAULT_SPARE_COMMIT_LIMIT;
+  double spare = ARENA_SPARE_DEFAULT;
   double pauseTime = ARENA_DEFAULT_PAUSE_TIME;
   mps_arg_s arg;
 
@@ -245,8 +247,14 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
     zoned = arg.val.b;
   if (ArgPick(&arg, args, MPS_KEY_COMMIT_LIMIT))
     commitLimit = arg.val.size;
-  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT))
-    spareCommitLimit = arg.val.size;
+  /* MPS_KEY_SPARE_COMMIT_LIMIT is deprecated */
+  if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT)) {
+    spare = (double)arg.val.size / (double)commitLimit;
+    if (spare > 1.0)
+      spare = 1.0;
+  }
+  if (ArgPick(&arg, args, MPS_KEY_SPARE))
+    spare = arg.val.d;
   if (ArgPick(&arg, args, MPS_KEY_PAUSE_TIME))
     pauseTime = arg.val.d;
 
@@ -257,7 +265,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
   arena->committed = (Size)0;
   arena->commitLimit = commitLimit;
   arena->spareCommitted = (Size)0;
-  arena->spareCommitLimit = spareCommitLimit;
+  arena->spare = spare;
   arena->pauseTime = pauseTime;
   arena->grainSize = grainSize;
   /* zoneShift must be overridden by arena class init */
@@ -552,7 +560,7 @@ static Res ArenaAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
                "committed        $W\n", (WriteFW)arena->committed,
                "commitLimit      $W\n", (WriteFW)arena->commitLimit,
                "spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
-               "spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
+               "spare            $D\n", (WriteFD)arena->spare,
                "zoneShift        $U\n", (WriteFU)arena->zoneShift,
                "grainSize        $W\n", (WriteFW)arena->grainSize,
                "lastTract        $P\n", (WriteFP)arena->lastTract,
@@ -1196,7 +1204,7 @@ void ArenaFree(Addr base, Size size, Pool pool)
   Method(Arena, arena, free)(RangeBase(&range), RangeSize(&range), pool);
 
   /* Freeing memory might create spare pages, but not more than this. */
-  CHECKL(arena->spareCommitted <= arena->spareCommitLimit);
+  AVER(arena->spareCommitted <= ArenaSpareCommitLimit(arena));
 
   EVENT3(ArenaFree, arena, wholeBase, wholeSize);
 }
@@ -1220,25 +1228,29 @@ Size ArenaSpareCommitted(Arena arena)
   return arena->spareCommitted;
 }
 
-Size ArenaSpareCommitLimit(Arena arena)
+double ArenaSpare(Arena arena)
 {
   AVERT(Arena, arena);
-  return arena->spareCommitLimit;
+  return arena->spare;
 }
 
-void ArenaSetSpareCommitLimit(Arena arena, Size limit)
+void ArenaSetSpare(Arena arena, double spare)
 {
-  AVERT(Arena, arena);
-  /* Can't check limit, as all possible values are allowed. */
+  Size spareMax;
 
-  arena->spareCommitLimit = limit;
-  if (arena->spareCommitLimit < arena->spareCommitted) {
-    Size excess = arena->spareCommitted - arena->spareCommitLimit;
+  AVERT(Arena, arena);
+  AVER(0.0 <= spare);
+  AVER(spare <= 1.0);
+
+  arena->spare = spare;
+  EVENT2(ArenaSetSpare, arena, spare);
+
+  spareMax = ArenaSpareCommitLimit(arena);
+  if (arena->spareCommitted > spareMax) {
+    Size excess = arena->spareCommitted - spareMax;
     (void)Method(Arena, arena, purgeSpare)(arena, excess);
   }
-
-  EVENT2(SpareCommitLimitSet, arena, limit);
-}
+}  
 
 double ArenaPauseTime(Arena arena)
 {

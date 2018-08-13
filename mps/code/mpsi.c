@@ -197,10 +197,33 @@ mps_res_t mps_arena_commit_limit_set(mps_arena_t arena, size_t limit)
   return (mps_res_t)res;
 }
 
-void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
+void mps_arena_spare_set(mps_arena_t arena, double spare)
 {
   ArenaEnter(arena);
-  ArenaSetSpareCommitLimit(arena, limit);
+  ArenaSetSpare(arena, spare);
+  ArenaLeave(arena);
+}
+
+double mps_arena_spare(mps_arena_t arena)
+{
+  double spare;
+
+  ArenaEnter(arena);
+  spare = ArenaSpare(arena);
+  ArenaLeave(arena);
+
+  return spare;
+}
+
+void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
+{
+  double spare;
+  /* Can't check limit, as all possible values are allowed. */
+  ArenaEnter(arena);
+  spare = (double)limit / (double)ArenaCommitted(arena);
+  if (spare > 1.0)
+    spare = 1.0;
+  ArenaSetSpare(arena, spare);
   ArenaLeave(arena);
 }
 
