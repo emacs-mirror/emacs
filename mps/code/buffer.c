@@ -1,7 +1,7 @@
 /* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -143,8 +143,8 @@ static Res BufferAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
                 (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
                 (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
                 (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
-                "fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
-                "emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+                "fillSize $U\n",    (WriteFU)buffer->fillSize,
+                "emptySize $U\n",   (WriteFU)buffer->emptySize,
                 "alignment $W\n",   (WriteFW)buffer->alignment,
                 "base $A\n",        (WriteFA)buffer->base,
                 "initAtFlip $A\n",  (WriteFA)buffer->initAtFlip,
@@ -1321,7 +1321,7 @@ DEFINE_CLASS(Buffer, RankBuf, klass)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
