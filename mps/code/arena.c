@@ -249,8 +249,9 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
     commitLimit = arg.val.size;
   /* MPS_KEY_SPARE_COMMIT_LIMIT is deprecated */
   if (ArgPick(&arg, args, MPS_KEY_SPARE_COMMIT_LIMIT)) {
-    spare = (double)arg.val.size / (double)commitLimit;
-    if (spare > 1.0)
+    if (0 < commitLimit && commitLimit <= arg.val.size)
+      spare = (double)arg.val.size / (double)commitLimit;
+    else
       spare = 1.0;
   }
   if (ArgPick(&arg, args, MPS_KEY_SPARE))
