@@ -1,7 +1,7 @@
 /* poolmrg.c: MANUAL RANK GUARDIAN POOL
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  * 
  * 
@@ -84,19 +84,9 @@ typedef struct RefPartStruct {
  */
 static Ref MRGRefPartRef(Arena arena, RefPart refPart)
 {
-  Ref ref;
-
   AVER(refPart != NULL);
 
-  ref = ArenaRead(arena, &refPart->ref);
-  return ref;
-}
-
-static Ref *MRGRefPartRefAddr(RefPart refPart)
-{
-  AVER(refPart != NULL);
-
-  return &refPart->ref;
+  return ArenaRead(arena, &refPart->ref);
 }
 
 static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
@@ -457,7 +447,6 @@ static void MRGMessageDelete(Message message)
 static void MRGMessageFinalizationRef(Ref *refReturn,
                                       Arena arena, Message message)
 {
-  Ref *refp;
   Link link;
   Ref ref;
   RefPart refPart;
@@ -472,11 +461,7 @@ static void MRGMessageFinalizationRef(Ref *refReturn,
   AVER(link->state == MRGGuardianFINAL);
   refPart = MRGRefPartOfLink(link, arena);
 
-  refp = MRGRefPartRefAddr(refPart);
-
-  /* ensure that the reference is not (white and flipped) */
-  ref = ArenaRead(arena, refp);
-
+  ref = MRGRefPartRef(arena, refPart);
   AVER(ref != 0);
   *refReturn = ref;
 }
@@ -878,7 +863,7 @@ PoolClass PoolClassMRG(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
