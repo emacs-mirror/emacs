@@ -1732,8 +1732,9 @@ prior the command invocation."
    (if (and (not (called-interactively-p 'interactive))
 	    (not (file-exists-p filename)))
        (error "%s does not exist" filename)
-     (find-file filename nil async)
-     (current-buffer)))
+     (find-file-with-threads filename async
+       (find-file filename)
+       (current-buffer))))
 
 (defun find-file--read-only (fun filename wildcards async)
   (unless (or (and wildcards find-file-wildcards
@@ -1741,10 +1742,11 @@ prior the command invocation."
 		   (string-match "[[*?]" filename))
 	      (file-exists-p filename))
     (error "%s does not exist" filename))
-  (let ((value (funcall fun filename wildcards async)))
-    (mapc (lambda (b) (with-current-buffer b (read-only-mode 1)))
-	  (if (listp value) value (list value)))
-    value))
+  (find-file-with-threads filename async
+    (let ((value (funcall fun filename wildcards)))
+      (mapc (lambda (b) (with-current-buffer b (read-only-mode 1)))
+	    (if (listp value) value (list value)))
+      value)))
 
 (defun find-file-read-only (filename &optional wildcards async)
   "Edit file FILENAME but don't allow changes.
