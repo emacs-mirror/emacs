@@ -2082,8 +2082,8 @@ suppresses this warning."
   :type 'boolean)
 
 (defcustom execute-file-commands-asynchronously nil
-  "Non-nil means visit file asynchronously when called interactively.
-If it is a regular expression, it must match the file name to be
+  "Non-nil means visit files asynchronously when called interactively.
+If it is a regular expression, it must match the file names to be
 visited.  This behavior is toggled by \\[universal-async-argument]
 prior the command invocation."
   :group 'files
