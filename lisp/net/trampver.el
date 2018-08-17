@@ -7,7 +7,7 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.4.0
+;; Version: 2.4.1-pre
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 ;; should be changed only there.
 
 ;;;###tramp-autoload
-(defconst tramp-version "2.4.0"
+(defconst tramp-version "2.4.1-pre"
   "This version of Tramp.")
 
 ;;;###tramp-autoload
@@ -55,7 +55,7 @@
 ;; Check for Emacs version.
 (let ((x (if (>= emacs-major-version 24)
     "ok"
-  (format "Tramp 2.4.0 is not fit for %s"
+  (format "Tramp 2.4.1-pre is not fit for %s"
 	  (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
