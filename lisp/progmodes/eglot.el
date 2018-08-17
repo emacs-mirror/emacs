@@ -728,12 +728,12 @@ under cursor."
                    feats)
     (cl-loop for caps = (eglot--capabilities (eglot--current-server-or-lose))
              then (cadr probe)
-             for feat in feats
+             for (feat . more) on feats
              for probe = (plist-member caps feat)
              if (not probe) do (cl-return nil)
              if (eq (cadr probe) :json-false) do (cl-return nil)
-             if (not (listp (cadr probe))) do (cl-return (cadr probe))
-             finally (cl-return (or probe t)))))
+             if (not (listp (cadr probe))) do (cl-return (if more nil (cadr probe)))
+             finally (cl-return (or (cadr probe) t)))))
 
 (defun eglot--range-region (range &optional markers)
   "Return region (BEG . END) that represents LSP RANGE.
