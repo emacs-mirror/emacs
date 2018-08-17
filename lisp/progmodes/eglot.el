@@ -1446,8 +1446,7 @@ is not active."
   (let ((heading (and range (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                               (concat (buffer-substring beg end)  ": "))))
         (body (mapconcat #'eglot--format-markup
-                         (append (cond ((vectorp contents) contents)
-                                       ((stringp contents) (list contents)))) "\n")))
+                         (if (vectorp contents) contents (list contents)) "\n")))
     (when (or heading (cl-plusp (length body))) (concat heading body))))
 
 (defun eglot--sig-info (sigs active-sig active-param)
