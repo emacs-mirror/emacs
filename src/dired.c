@@ -671,15 +671,15 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
       /* Reject entries where the encoded strings match, but the
          decoded don't.  For example, "a" should not match "a-ring" on
          file systems that store decomposed characters. */
-      Lisp_Object zero = make_number (0);
+      Lisp_Object zero = make_fixnum (0);
 
       if (check_decoded && SCHARS (file) <= SCHARS (name))
 	{
 	  /* FIXME: This is a copy of the code below.  */
 	  ptrdiff_t compare = SCHARS (file);
 	  Lisp_Object cmp
-	    = Fcompare_strings (name, zero, make_number (compare),
-				file, zero, make_number (compare),
+	    = Fcompare_strings (name, zero, make_fixnum (compare),
+				file, zero, make_fixnum (compare),
 				completion_ignore_case ? Qt : Qnil);
 	  if (!EQ (cmp, Qt))
 	    continue;
@@ -701,10 +701,10 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	  /* FIXME: This is a copy of the code in Ftry_completion.  */
 	  ptrdiff_t compare = min (bestmatchsize, SCHARS (name));
 	  Lisp_Object cmp
-	    = Fcompare_strings (bestmatch, zero, make_number (compare),
-				name, zero, make_number (compare),
+	    = Fcompare_strings (bestmatch, zero, make_fixnum (compare),
+				name, zero, make_fixnum (compare),
 				completion_ignore_case ? Qt : Qnil);
-	  ptrdiff_t matchsize = EQ (cmp, Qt) ? compare : eabs (XINT (cmp)) - 1;
+	  ptrdiff_t matchsize = EQ (cmp, Qt) ? compare : eabs (XFIXNUM (cmp)) - 1;
 
 	  if (completion_ignore_case)
 	    {
@@ -729,13 +729,13 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 		    ==
 		    (matchsize + directoryp == SCHARS (bestmatch)))
 		   && (cmp = Fcompare_strings (name, zero,
-					       make_number (SCHARS (file)),
+					       make_fixnum (SCHARS (file)),
 					       file, zero,
 					       Qnil,
 					       Qnil),
 		       EQ (Qt, cmp))
 		   && (cmp = Fcompare_strings (bestmatch, zero,
-					       make_number (SCHARS (file)),
+					       make_fixnum (SCHARS (file)),
 					       file, zero,
 					       Qnil,
 					       Qnil),
@@ -769,8 +769,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
      it does not require any change to be made.  */
   if (matchcount == 1 && !NILP (Fequal (bestmatch, file)))
     return Qt;
-  bestmatch = Fsubstring (bestmatch, make_number (0),
-			  make_number (bestmatchsize));
+  bestmatch = Fsubstring (bestmatch, make_fixnum (0),
+			  make_fixnum (bestmatchsize));
   return bestmatch;
 }
 
@@ -1009,7 +1009,7 @@ file_attributes (int fd, char const *name,
 
   return CALLN (Flist,
 		file_type,
-		make_number (s.st_nlink),
+		make_fixnum (s.st_nlink),
 		(uname
 		 ? DECODE_SYSTEM (build_unibyte_string (uname))
 		 : make_fixnum_or_float (s.st_uid)),

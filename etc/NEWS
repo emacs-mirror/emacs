@@ -24,6 +24,12 @@ When you add a new item, use the appropriate mark if you are sure it applies,
 
 * Installation Changes in Emacs 27.1
 
+** Emacs now uses GMP, the GNU Multiple Precision library.
+By default, if 'configure' does not find a suitable libgmp, it
+arranges for the included mini-gmp library to be built and used.
+The new 'configure' option --without-libgmp uses mini-gmp even if a
+suitable libgmp is available.
+
 ** The new configure option '--with-json' adds support for JSON using
 the Jansson library.  It is on by default; use 'configure
 --with-json=no' to build without Jansson support.  The new JSON
@@ -52,6 +58,18 @@ catch typos and support -fcheck-pointer-bounds.  The 'configure'
 option --enable-check-lisp-object-type is therefore no longer as
 useful and so is no longer enabled by default in developer builds,
 to reduce differences between developer and production builds.
+
+** Ibuffer
+
+---
+*** New toggle 'ibuffer-do-toggle-lock', bound to 'L'.
+
+** Gnus
+
++++
+*** The nnimap backend now has support for IMAP namespaces.
+This feature can be enabled by setting the new 'nnimap-use-namespaces'
+server variable to non-nil.
 
 
 * Startup Changes in Emacs 27.1
@@ -188,6 +206,11 @@ from a remote host.
 ** The function 'executable-find' supports an optional argument REMOTE.
 This triggers to search the program on the remote host as indicated by
 'default-directory'.
+
++++
+** New variable 'auto-save-no-message'.
+When set to t, no message will be shown when auto-saving (default
+value: nil).
 
 
 * Editing Changes in Emacs 27.1
@@ -380,6 +403,10 @@ buffer with the article(s) attached.
 ---
 *** 'erc-button-google-url' has been renamed 'erc-button-search-url'
 and its value has been changed to Duck Duck Go.
+
+** EUDC
+
+*** XEmacs support has been removed.
 
 ** eww/shr
 
@@ -700,6 +727,19 @@ to signal the main thread, e.g., when they encounter an error.
 +++
 *** 'thread-join' returns the result of the finished thread now.
 
+---
+** thingatpt.el supports a new "thing" called 'uuid'.
+A symbol 'uuid' can be passed to thing-at-point and it returns the
+UUID at point.
+
+
+** Interactive automatic highlighting
+
++++
+*** 'highlight-regexp' can now highlight subexpressions.
+The now command accepts a prefix numeric argument to choose the
+subexpression.
+
 
 * New Modes and Packages in Emacs 27.1
 
@@ -767,15 +807,6 @@ as new-style, bind the new variable 'force-new-style-backquotes' to t.
 integer, Emacs now signals an error if the number is too large for the
 implementation to format.
 
-+++
-** The Lisp reader now signals an overflow for plain decimal integers
-that do not end in '.' and are outside Emacs range.  Formerly the Lisp
-reader silently converted them to floating-point numbers, and signaled
-overflow only for integers with a radix that are outside machine range.
-To get the old behavior, set the new, experimental variable
-read-integer-overflow-as-float to t and please email
-30408@debbugs.gnu.org if you need that.
-
 ---
 ** Some functions and variables obsolete since Emacs 22 have been removed:
 archive-mouse-extract, assoc-ignore-case, assoc-ignore-representation,
@@ -824,6 +855,12 @@ is backwards-compatible with versions of Emacs in which the old function
 exists.  See the node "Displaying Buffers in Side Windows" in the ELisp
 manual for more details.
 
+** garbage collection no longer treats miscellaneous objects specially;
+they are now allocated like any other pseudovector.  As a result, the
+'garbage-collect' and 'memory-use-count' functions no longer return a
+'misc' component, and the 'misc-objects-consed' variable has been
+removed.
+
 
 * Lisp Changes in Emacs 27.1
 
@@ -832,6 +869,11 @@ manual for more details.
 Given a proper list as argument, this predicate returns its length;
 otherwise, it returns nil.  'format-proper-list-p' is now an obsolete
 alias for the new function.
+
++++
+** Emacs Lisp integers can be of arbitrary precision.  The new
+predicates 'bignump' and 'fixnump' can be used to distinguish between
+the types of integers.
 
 ** define-minor-mode automatically documents the meaning of ARG
 

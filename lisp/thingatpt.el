@@ -61,7 +61,7 @@
   "Move forward to the end of the Nth next THING.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'."
   (let ((forward-op (or (get thing 'forward-op)
 			(intern-soft (format "forward-%s" thing)))))
@@ -76,7 +76,7 @@ Possibilities include `symbol', `list', `sexp', `defun',
   "Determine the start and end buffer locations for the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'.
 
 See the file `thingatpt.el' for documentation on how to define a
@@ -134,7 +134,7 @@ positions of the thing found."
   "Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', `number', and `page'.
 
 When the optional argument NO-PROPERTIES is non-nil,
@@ -563,6 +563,24 @@ with angle brackets.")
 
 (put 'buffer 'end-op (lambda () (goto-char (point-max))))
 (put 'buffer 'beginning-op (lambda () (goto-char (point-min))))
+
+;; UUID
+
+(defconst thing-at-point-uuid-regexp
+  (rx bow
+      (repeat 8 hex-digit) "-"
+      (repeat 4 hex-digit) "-"
+      (repeat 4 hex-digit) "-"
+      (repeat 4 hex-digit) "-"
+      (repeat 12 hex-digit)
+      eow)
+  "A regular expression matching a UUID.
+See RFC 4122 for the description of the format.")
+
+(put 'uuid 'bounds-of-thing-at-point
+     (lambda ()
+       (when (thing-at-point-looking-at thing-at-point-uuid-regexp 36)
+         (cons (match-beginning 0) (match-end 0)))))
 
 ;;  Aliases
 

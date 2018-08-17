@@ -692,24 +692,26 @@ visiting FILE.
 If BACKEND is passed use it as the VC backend when computing the result."
   (interactive (list buffer-file-name))
   (setq backend (or backend (vc-backend file)))
-  (if (not backend)
-      (setq vc-mode nil)
+  (cond
+   ((not backend)
+    (setq vc-mode nil))
+   ((null vc-display-status)
+    (setq vc-mode (concat " " (symbol-name backend))))
+   (t
     (let* ((ml-string (vc-call-backend backend 'mode-line-string file))
 	   (ml-echo (get-text-property 0 'help-echo ml-string)))
       (setq vc-mode
 	    (concat
 	     " "
-	     (if (null vc-display-status)
-		 (symbol-name backend)
-	       (propertize
-		ml-string
-		'mouse-face 'mode-line-highlight
-		'help-echo
-		(concat (or ml-echo
-			    (format "File under the %s version control system"
-				    backend))
-			"\nmouse-1: Version Control menu")
-		'local-map vc-mode-line-map)))))
+	     (propertize
+	      ml-string
+	      'mouse-face 'mode-line-highlight
+	      'help-echo
+	      (concat (or ml-echo
+			  (format "File under the %s version control system"
+				  backend))
+		      "\nmouse-1: Version Control menu")
+	      'local-map vc-mode-line-map))))
     ;; If the user is root, and the file is not owner-writable,
     ;; then pretend that we can't write it
     ;; even though we can (because root can write anything).
@@ -718,7 +720,7 @@ If BACKEND is passed use it as the VC backend when computing the result."
 	 (not buffer-read-only)
 	 (zerop (user-real-uid))
 	 (zerop (logand (file-modes buffer-file-name) 128))
-	 (setq buffer-read-only t)))
+	 (setq buffer-read-only t))))
   (force-mode-line-update)
   backend)
 

@@ -377,7 +377,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
             {
 	      string = AREF (items, 4*i+1);
 
-              if (EQ (string, make_number (0))) // FIXME: Why???  --Stef
+              if (EQ (string, make_fixnum (0))) // FIXME: Why???  --Stef
                 continue;
               if (NILP (string))
                 {

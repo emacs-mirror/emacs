@@ -55,7 +55,7 @@ make_log (EMACS_INT heap_size, EMACS_INT max_stack_depth)
   ptrdiff_t i = ASIZE (h->key_and_value) >> 1;
   while (i > 0)
     set_hash_key_slot (h, --i,
-		       Fmake_vector (make_number (max_stack_depth), Qnil));
+		       Fmake_vector (make_fixnum (max_stack_depth), Qnil));
   return log;
 }
 
@@ -80,12 +80,12 @@ static EMACS_INT approximate_median (log_t *log,
 {
   eassert (size > 0);
   if (size < 2)
-    return XINT (HASH_VALUE (log, start));
+    return XFIXNUM (HASH_VALUE (log, start));
   if (size < 3)
     /* Not an actual median, but better for our application than
        choosing either of the two numbers.  */
-    return ((XINT (HASH_VALUE (log, start))
-	     + XINT (HASH_VALUE (log, start + 1)))
+    return ((XFIXNUM (HASH_VALUE (log, start))
+	     + XFIXNUM (HASH_VALUE (log, start + 1)))
 	    / 2);
   else
     {
@@ -110,7 +110,7 @@ static void evict_lower_half (log_t *log)
   for (i = 0; i < size; i++)
     /* Evict not only values smaller but also values equal to the median,
        so as to make sure we evict something no matter what.  */
-    if (XINT (HASH_VALUE (log, i)) <= median)
+    if (XFIXNUM (HASH_VALUE (log, i)) <= median)
       {
 	Lisp_Object key = HASH_KEY (log, i);
 	{ /* FIXME: we could make this more efficient.  */
@@ -156,15 +156,15 @@ record_backtrace (log_t *log, EMACS_INT count)
     ptrdiff_t j = hash_lookup (log, backtrace, &hash);
     if (j >= 0)
       {
-	EMACS_INT old_val = XINT (HASH_VALUE (log, j));
+	EMACS_INT old_val = XFIXNUM (HASH_VALUE (log, j));
 	EMACS_INT new_val = saturated_add (old_val, count);
-	set_hash_value_slot (log, j, make_number (new_val));
+	set_hash_value_slot (log, j, make_fixnum (new_val));
       }
     else
       { /* BEWARE!  hash_put in general can allocate memory.
 	   But currently it only does that if log->next_free is -1.  */
 	eassert (0 <= log->next_free);
-	ptrdiff_t j = hash_put (log, backtrace, make_number (count), hash);
+	ptrdiff_t j = hash_put (log, backtrace, make_fixnum (count), hash);
 	/* Let's make sure we've put `backtrace' right where it
 	   already was to start with.  */
 	eassert (index == j);
@@ -266,14 +266,14 @@ setup_cpu_timer (Lisp_Object sampling_interval)
   struct timespec interval;
   int billion = 1000000000;
 
-  if (! RANGED_INTEGERP (1, sampling_interval,
+  if (! RANGED_FIXNUMP (1, sampling_interval,
 			 (TYPE_MAXIMUM (time_t) < EMACS_INT_MAX / billion
 			  ? ((EMACS_INT) TYPE_MAXIMUM (time_t) * billion
 			     + (billion - 1))
 			  : EMACS_INT_MAX)))
     return -1;
 
-  current_sampling_interval = XINT (sampling_interval);
+  current_sampling_interval = XFIXNUM (sampling_interval);
   interval = make_timespec (current_sampling_interval / billion,
 			    current_sampling_interval % billion);
   emacs_sigaction_init (&action, deliver_profiler_signal);
@@ -422,8 +422,8 @@ Before returning, a new log is allocated for future samples.  */)
   cpu_log = (profiler_cpu_running
 	     ? make_log (profiler_log_size, profiler_max_stack_depth)
 	     : Qnil);
-  Fputhash (Fmake_vector (make_number (1), QAutomatic_GC),
-	    make_number (cpu_gc_count),
+  Fputhash (Fmake_vector (make_fixnum (1), QAutomatic_GC),
+	    make_fixnum (cpu_gc_count),
 	    result);
   cpu_gc_count = 0;
   return result;

@@ -302,15 +302,15 @@ module_make_global_ref (emacs_env *env, emacs_value ref)
   if (i >= 0)
     {
       Lisp_Object value = HASH_VALUE (h, i);
-      EMACS_INT refcount = XFASTINT (value) + 1;
+      EMACS_INT refcount = XFIXNAT (value) + 1;
       if (MOST_POSITIVE_FIXNUM < refcount)
 	xsignal0 (Qoverflow_error);
-      value = make_natnum (refcount);
+      value = make_fixed_natnum (refcount);
       set_hash_value_slot (h, i, value);
     }
   else
     {
-      hash_put (h, new_obj, make_natnum (1), hashcode);
+      hash_put (h, new_obj, make_fixed_natnum (1), hashcode);
     }
 
   return lisp_to_value (module_assertions ? global_env : env, new_obj);
@@ -329,9 +329,9 @@ module_free_global_ref (emacs_env *env, emacs_value ref)
 
   if (i >= 0)
     {
-      EMACS_INT refcount = XFASTINT (HASH_VALUE (h, i)) - 1;
+      EMACS_INT refcount = XFIXNAT (HASH_VALUE (h, i)) - 1;
       if (refcount > 0)
-        set_hash_value_slot (h, i, make_natnum (refcount));
+        set_hash_value_slot (h, i, make_fixed_natnum (refcount));
       else
         {
           eassert (refcount == 0);
@@ -441,7 +441,7 @@ module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
 	     ? (min_arity <= MOST_POSITIVE_FIXNUM
 		&& max_arity == emacs_variadic_function)
 	     : min_arity <= max_arity && max_arity <= MOST_POSITIVE_FIXNUM)))
-    xsignal2 (Qinvalid_arity, make_number (min_arity), make_number (max_arity));
+    xsignal2 (Qinvalid_arity, make_fixnum (min_arity), make_fixnum (max_arity));
 
   struct Lisp_Module_Function *function = allocate_module_function ();
   function->min_arity = min_arity;
@@ -518,17 +518,32 @@ module_extract_integer (emacs_env *env, emacs_value n)
 {
   MODULE_FUNCTION_BEGIN (0);
   Lisp_Object l = value_to_lisp (n);
-  CHECK_NUMBER (l);
-  return XINT (l);
+  CHECK_INTEGER (l);
+  if (BIGNUMP (l))
+    {
+      if (!mpz_fits_slong_p (XBIGNUM (l)->value))
+	xsignal1 (Qoverflow_error, l);
+      return mpz_get_si (XBIGNUM (l)->value);
+    }
+  return XFIXNUM (l);
 }
 
 static emacs_value
 module_make_integer (emacs_env *env, intmax_t n)
 {
+  Lisp_Object obj;
   MODULE_FUNCTION_BEGIN (module_nil);
   if (FIXNUM_OVERFLOW_P (n))
-    xsignal0 (Qoverflow_error);
-  return lisp_to_value (env, make_number (n));
+    {
+      mpz_t val;
+      mpz_init (val);
+      mpz_set_intmax (val, n);
+      obj = make_number (val);
+      mpz_clear (val);
+    }
+  else
+    obj = make_fixnum (n);
+  return lisp_to_value (env, obj);
 }
 
 static double
@@ -640,7 +655,7 @@ check_vec_index (Lisp_Object lvec, ptrdiff_t i)
   CHECK_VECTOR (lvec);
   if (! (0 <= i && i < ASIZE (lvec)))
     args_out_of_range_3 (make_fixnum_or_float (i),
-			 make_number (0), make_number (ASIZE (lvec) - 1));
+			 make_fixnum (0), make_fixnum (ASIZE (lvec) - 1));
 }
 
 static void
@@ -749,7 +764,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
     {
       if (FIXNUM_OVERFLOW_P (r))
         xsignal0 (Qoverflow_error);
-      xsignal2 (Qmodule_init_failed, file, make_number (r));
+      xsignal2 (Qmodule_init_failed, file, make_fixnum (r));
     }
 
   module_signal_or_throw (&env_priv);
@@ -763,7 +778,7 @@ funcall_module (Lisp_Object function, ptrdiff_t nargs, Lisp_Object *arglist)
   eassume (0 <= func->min_arity);
   if (! (func->min_arity <= nargs
 	 && (func->max_arity < 0 || nargs <= func->max_arity)))
-    xsignal2 (Qwrong_number_of_arguments, function, make_number (nargs));
+    xsignal2 (Qwrong_number_of_arguments, function, make_fixnum (nargs));
 
   emacs_env pub;
   struct emacs_env_private priv;
@@ -802,8 +817,8 @@ module_function_arity (const struct Lisp_Module_Function *const function)
 {
   ptrdiff_t minargs = function->min_arity;
   ptrdiff_t maxargs = function->max_arity;
-  return Fcons (make_number (minargs),
-		maxargs == MANY ? Qmany : make_number (maxargs));
+  return Fcons (make_fixnum (minargs),
+		maxargs == MANY ? Qmany : make_fixnum (maxargs));
 }
 
 
@@ -991,7 +1006,7 @@ lisp_to_value_bits (Lisp_Object o)
 
   /* Compress O into the space of a pointer, possibly losing information.  */
   EMACS_UINT u = XLI (o);
-  if (INTEGERP (o))
+  if (FIXNUMP (o))
     {
       uintptr_t i = (u << VALBITS) + XTYPE (o);
       return (emacs_value) i;

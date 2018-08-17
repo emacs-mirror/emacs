@@ -88,7 +88,21 @@
            (format "%-10s" (concat (propertize "01" 'face 'bold)
                                    (propertize "23" 'face 'underline)
                                    (propertize "45" 'face 'italic)))
-           #("012345    " 0 2 (face bold) 2 4 (face underline) 4 10 (face italic)))))
+           #("012345    "
+             0 2 (face bold) 2 4 (face underline) 4 10 (face italic))))
+  ;; Bug #32404
+  (should (ert-equal-including-properties
+           (format (concat (propertize "%s" 'face 'bold)
+                           ""
+                           (propertize "%s" 'face 'error))
+                   "foo" "bar")
+           #("foobar" 0 3 (face bold) 3 6 (face error))))
+  (should (ert-equal-including-properties
+           (format (concat "%s" (propertize "%s" 'face 'error)) "foo" "bar")
+           #("foobar" 3 6 (face error))))
+  (should (ert-equal-including-properties
+           (format (concat "%s " (propertize "%s" 'face 'error)) "foo" "bar")
+           #("foo bar" 4 7 (face error)))))
 
 ;; Tests for bug#5131.
 (defun transpose-test-reverse-word (start end)
@@ -159,20 +173,23 @@
   (should-error (format "%x" 18446744073709551616.0)
                 :type 'overflow-error))
 (ert-deftest read-large-integer ()
-  (should-error (read (format "%d0" most-negative-fixnum))
-                :type 'overflow-error)
-  (should-error (read (format "%+d" (* -8.0 most-negative-fixnum)))
-                :type 'overflow-error)
-  (should-error (read (substring (format "%d" most-negative-fixnum) 1))
-                :type 'overflow-error)
+  (should (eq (type-of (read (format "%d0" most-negative-fixnum))) 'integer))
+  (should (eq (type-of (read (format "%+d" (* -8.0 most-negative-fixnum))))
+              'integer))
+  (should (eq (type-of (read (substring (format "%d" most-negative-fixnum) 1)))
+              'integer))
+  (should (eq (type-of (read (format "#x%x" most-negative-fixnum)))
+              'integer))
+  (should (eq (type-of (read (format "#o%o" most-negative-fixnum)))
+              'integer))
+  (should (eq (type-of (read (format "#32rG%x" most-positive-fixnum)))
+              'integer))
   (let ((binary-as-unsigned nil))
     (dolist (fmt '("%d" "%s" "#o%o" "#x%x"))
       (dolist (val (list most-negative-fixnum (1+ most-negative-fixnum)
                          -1 0 1
                          (1- most-positive-fixnum) most-positive-fixnum))
-        (should (eq val (read (format fmt val)))))))
-  (should-error (read (format "#32rG%x" most-positive-fixnum))
-                :type 'overflow-error))
+        (should (eq val (read (format fmt val))))))))
 
 (ert-deftest format-%o-invalid-float ()
   (should-error (format "%o" -1e-37)
@@ -359,5 +376,15 @@
     (should (eq (type-of (car (nth 3 buffer-undo-list))) 'marker))
     (should (eq (type-of (car (nth 4 buffer-undo-list))) 'marker))
     (garbage-collect)))
+
+(ert-deftest format-bignum ()
+  (let* ((s1 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+         (v1 (read (concat "#x" s1)))
+         (s2 "99999999999999999999999999999999")
+         (v2 (read s2)))
+    (should (> v1 most-positive-fixnum))
+    (should (equal (format "%X" v1) s1))
+    (should (> v2 most-positive-fixnum))
+    (should (equal (format "%d" v2) s2))))
 
 ;;; editfns-tests.el ends here

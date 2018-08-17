@@ -699,7 +699,7 @@ fset_desired_tool_bar_string (struct frame *f, Lisp_Object val)
 INLINE double
 NUMVAL (Lisp_Object x)
 {
-  return NUMBERP (x) ? XFLOATINT (x) : -1;
+  return FIXED_OR_FLOATP (x) ? XFLOATINT (x) : -1;
 }
 
 INLINE double
@@ -1360,16 +1360,16 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
    canonical char width is to be used.  X must be a Lisp integer or
    float.  Value is a C integer.  */
 #define FRAME_PIXEL_X_FROM_CANON_X(F, X)		\
-  (INTEGERP (X)						\
-   ? XINT (X) * FRAME_COLUMN_WIDTH (F)			\
+  (FIXNUMP (X)						\
+   ? XFIXNUM (X) * FRAME_COLUMN_WIDTH (F)			\
    : (int) (XFLOAT_DATA (X) * FRAME_COLUMN_WIDTH (F)))
 
 /* Convert canonical value Y to pixels.  F is the frame whose
    canonical character height is to be used.  X must be a Lisp integer
    or float.  Value is a C integer.  */
 #define FRAME_PIXEL_Y_FROM_CANON_Y(F, Y)		\
-  (INTEGERP (Y)						\
-   ? XINT (Y) * FRAME_LINE_HEIGHT (F)			\
+  (FIXNUMP (Y)						\
+   ? XFIXNUM (Y) * FRAME_LINE_HEIGHT (F)			\
    : (int) (XFLOAT_DATA (Y) * FRAME_LINE_HEIGHT (F)))
 
 /* Convert pixel-value X to canonical units.  F is the frame whose
@@ -1379,7 +1379,7 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 #define FRAME_CANON_X_FROM_PIXEL_X(F, X)			\
   ((X) % FRAME_COLUMN_WIDTH (F) != 0				\
    ? make_float ((double) (X) / FRAME_COLUMN_WIDTH (F))		\
-   : make_number ((X) / FRAME_COLUMN_WIDTH (F)))
+   : make_fixnum ((X) / FRAME_COLUMN_WIDTH (F)))
 
 /* Convert pixel-value Y to canonical units.  F is the frame whose
    canonical character height is to be used.  Y is a C integer.
@@ -1388,7 +1388,7 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 #define FRAME_CANON_Y_FROM_PIXEL_Y(F, Y)			\
   ((Y) % FRAME_LINE_HEIGHT (F)					\
    ? make_float ((double) (Y) / FRAME_LINE_HEIGHT (F))		\
-   : make_number ((Y) / FRAME_LINE_HEIGHT (F)))
+   : make_fixnum ((Y) / FRAME_LINE_HEIGHT (F)))
 
 
 

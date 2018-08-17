@@ -2850,8 +2850,8 @@ serial_configure (struct Lisp_Process *p,
     tem = Fplist_get (contact, QCspeed);
   else
     tem = Fplist_get (p->childp, QCspeed);
-  CHECK_NUMBER (tem);
-  err = cfsetspeed (&attr, XINT (tem));
+  CHECK_FIXNUM (tem);
+  err = cfsetspeed (&attr, XFIXNUM (tem));
   if (err != 0)
     report_file_error ("Failed cfsetspeed", tem);
   childp2 = Fplist_put (childp2, QCspeed, tem);
@@ -2862,17 +2862,17 @@ serial_configure (struct Lisp_Process *p,
   else
     tem = Fplist_get (p->childp, QCbytesize);
   if (NILP (tem))
-    tem = make_number (8);
-  CHECK_NUMBER (tem);
-  if (XINT (tem) != 7 && XINT (tem) != 8)
+    tem = make_fixnum (8);
+  CHECK_FIXNUM (tem);
+  if (XFIXNUM (tem) != 7 && XFIXNUM (tem) != 8)
     error (":bytesize must be nil (8), 7, or 8");
-  summary[0] = XINT (tem) + '0';
+  summary[0] = XFIXNUM (tem) + '0';
 #if defined (CSIZE) && defined (CS7) && defined (CS8)
   attr.c_cflag &= ~CSIZE;
-  attr.c_cflag |= ((XINT (tem) == 7) ? CS7 : CS8);
+  attr.c_cflag |= ((XFIXNUM (tem) == 7) ? CS7 : CS8);
 #else
   /* Don't error on bytesize 8, which should be set by cfmakeraw.  */
-  if (XINT (tem) != 8)
+  if (XFIXNUM (tem) != 8)
     error ("Bytesize cannot be changed");
 #endif
   childp2 = Fplist_put (childp2, QCbytesize, tem);
@@ -2916,18 +2916,18 @@ serial_configure (struct Lisp_Process *p,
   else
     tem = Fplist_get (p->childp, QCstopbits);
   if (NILP (tem))
-    tem = make_number (1);
-  CHECK_NUMBER (tem);
-  if (XINT (tem) != 1 && XINT (tem) != 2)
+    tem = make_fixnum (1);
+  CHECK_FIXNUM (tem);
+  if (XFIXNUM (tem) != 1 && XFIXNUM (tem) != 2)
     error (":stopbits must be nil (1 stopbit), 1, or 2");
-  summary[2] = XINT (tem) + '0';
+  summary[2] = XFIXNUM (tem) + '0';
 #if defined (CSTOPB)
   attr.c_cflag &= ~CSTOPB;
-  if (XINT (tem) == 2)
+  if (XFIXNUM (tem) == 2)
     attr.c_cflag |= CSTOPB;
 #else
   /* Don't error on 1 stopbit, which should be set by cfmakeraw.  */
-  if (XINT (tem) != 1)
+  if (XFIXNUM (tem) != 1)
     error ("Stopbits cannot be configured");
 #endif
   childp2 = Fplist_put (childp2, QCstopbits, tem);
@@ -3239,7 +3239,7 @@ system_process_attributes (Lisp_Object pid)
   struct group *gr;
   long clocks_per_sec;
   char *procfn_end;
-  char procbuf[1025], *p, *q;
+  char procbuf[1025], *p, *q UNINIT;
   int fd;
   ssize_t nread;
   static char const default_cmd[] = "???";
@@ -3261,7 +3261,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object decoded_cmd;
   ptrdiff_t count;
 
-  CHECK_NUMBER_OR_FLOAT (pid);
+  CHECK_FIXNUM_OR_FLOAT (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
   sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
@@ -3369,8 +3369,8 @@ system_process_attributes (Lisp_Object pid)
 				ltime_from_jiffies (cstime + cutime,
 						    clocks_per_sec)),
 			 attrs);
-	  attrs = Fcons (Fcons (Qpri, make_number (priority)), attrs);
-	  attrs = Fcons (Fcons (Qnice, make_number (niceness)), attrs);
+	  attrs = Fcons (Fcons (Qpri, make_fixnum (priority)), attrs);
+	  attrs = Fcons (Fcons (Qnice, make_fixnum (niceness)), attrs);
 	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount)),
 			 attrs);
 	  tnow = current_timespec ();
@@ -3495,7 +3495,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object decoded_cmd;
   ptrdiff_t count;
 
-  CHECK_NUMBER_OR_FLOAT (pid);
+  CHECK_FIXNUM_OR_FLOAT (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
   sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
@@ -3563,8 +3563,8 @@ system_process_attributes (Lisp_Object pid)
 
       attrs = Fcons (Fcons (Qtime, make_lisp_time (pinfo.pr_time)), attrs);
       attrs = Fcons (Fcons (Qctime, make_lisp_time (pinfo.pr_ctime)), attrs);
-      attrs = Fcons (Fcons (Qpri, make_number (pinfo.pr_lwp.pr_pri)), attrs);
-      attrs = Fcons (Fcons (Qnice, make_number (pinfo.pr_lwp.pr_nice)), attrs);
+      attrs = Fcons (Fcons (Qpri, make_fixnum (pinfo.pr_lwp.pr_pri)), attrs);
+      attrs = Fcons (Fcons (Qnice, make_fixnum (pinfo.pr_lwp.pr_nice)), attrs);
       attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (pinfo.pr_nlwp)),
 		     attrs);
 
@@ -3630,7 +3630,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_comm;
 
-  CHECK_NUMBER_OR_FLOAT (pid);
+  CHECK_FIXNUM_OR_FLOAT (pid);
   CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
@@ -3697,8 +3697,8 @@ system_process_attributes (Lisp_Object pid)
   attrs = Fcons (Fcons (Qtpgid,   make_fixnum_or_float (proc.ki_tpgid)), attrs);
   attrs = Fcons (Fcons (Qminflt,  make_fixnum_or_float (proc.ki_rusage.ru_minflt)), attrs);
   attrs = Fcons (Fcons (Qmajflt,  make_fixnum_or_float (proc.ki_rusage.ru_majflt)), attrs);
-  attrs = Fcons (Fcons (Qcminflt, make_number (proc.ki_rusage_ch.ru_minflt)), attrs);
-  attrs = Fcons (Fcons (Qcmajflt, make_number (proc.ki_rusage_ch.ru_majflt)), attrs);
+  attrs = Fcons (Fcons (Qcminflt, make_fixnum (proc.ki_rusage_ch.ru_minflt)), attrs);
+  attrs = Fcons (Fcons (Qcmajflt, make_fixnum (proc.ki_rusage_ch.ru_majflt)), attrs);
 
   attrs = Fcons (Fcons (Qutime, make_lisp_timeval (proc.ki_rusage.ru_utime)),
 		 attrs);
@@ -3720,11 +3720,11 @@ system_process_attributes (Lisp_Object pid)
 
   attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (proc.ki_numthreads)),
 		 attrs);
-  attrs = Fcons (Fcons (Qpri,   make_number (proc.ki_pri.pri_native)), attrs);
-  attrs = Fcons (Fcons (Qnice,  make_number (proc.ki_nice)), attrs);
+  attrs = Fcons (Fcons (Qpri,   make_fixnum (proc.ki_pri.pri_native)), attrs);
+  attrs = Fcons (Fcons (Qnice,  make_fixnum (proc.ki_nice)), attrs);
   attrs = Fcons (Fcons (Qstart, make_lisp_timeval (proc.ki_start)), attrs);
-  attrs = Fcons (Fcons (Qvsize, make_number (proc.ki_size >> 10)), attrs);
-  attrs = Fcons (Fcons (Qrss,   make_number (proc.ki_rssize * pagesize >> 10)),
+  attrs = Fcons (Fcons (Qvsize, make_fixnum (proc.ki_size >> 10)), attrs);
+  attrs = Fcons (Fcons (Qrss,   make_fixnum (proc.ki_rssize * pagesize >> 10)),
 		 attrs);
 
   now = current_timespec ();
@@ -3810,7 +3810,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_comm;
 
-  CHECK_NUMBER_OR_FLOAT (pid);
+  CHECK_FIXNUM_OR_FLOAT (pid);
   CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
@@ -3900,7 +3900,7 @@ system_process_attributes (Lisp_Object pid)
     }
 
   starttime = proc.kp_proc.p_starttime;
-  attrs = Fcons (Fcons (Qnice,  make_number (proc.kp_proc.p_nice)), attrs);
+  attrs = Fcons (Fcons (Qnice,  make_fixnum (proc.kp_proc.p_nice)), attrs);
   attrs = Fcons (Fcons (Qstart, make_lisp_timeval (starttime)), attrs);
 
   now = current_timespec ();

@@ -201,7 +201,6 @@
 ;; plus nbsp
 (define-iso-single-byte-charset 'iso-8859-11 'thai-iso8859-11
   "ISO/IEC 8859/11" "Latin/Thai" 166 ?T nil "8859-11")
-(define-charset-alias 'tis620-2533 'thai-iso8859-11)
 
 ;; 8859-12 doesn't (yet?) exist.
 
@@ -223,12 +222,19 @@
 ;; Can this be shared with 8859-11?
 ;; N.b. not all of these are defined in Unicode.
 (define-charset 'thai-tis620
-  "TIS620.2533"
+  "MULE charset for TIS620.2533"
   :short-name "TIS620.2533"
   :iso-final-char ?T
   :emacs-mule-id 133
   :code-space [32 127]
   :code-offset #x0E00)
+
+(define-charset 'tis620-2533
+  "TIS620.2533, a.k.a. TIS-620.  Like `thai-iso8859-11', but without NBSP."
+  :short-name "TIS620.2533"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :superset '(ascii (thai-tis620 . 128)))
 
 (define-charset 'jisx0201
   "JISX0201"

@@ -1895,7 +1895,7 @@ killed."
           ;; softly-dedicated.
 	  (let ((newbuf
                  (find-file-noselect filename nil nil wildcards async)))
-            (switch-to-buffer newbuf)))
+            (switch-to-buffer (if (consp newbuf) (car newbuf) newbuf))))
       (when (eq obuf (current-buffer))
 	;; This executes if find-file gets an error
 	;; and does not really find anything.

@@ -345,6 +345,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; keyboard.c
 	     (meta-prefix-char keyboard character)
 	     (auto-save-interval auto-save integer)
+             (auto-save-no-message auto-save boolean "27.1")
 	     (auto-save-timeout auto-save (choice (const :tag "off" nil)
 						  (integer :format "%v")))
 	     (echo-keystrokes minibuffer number)

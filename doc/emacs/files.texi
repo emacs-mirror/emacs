@@ -1051,13 +1051,16 @@ separate file, without altering the file you actually use.  This is
 called @dfn{auto-saving}.  It prevents you from losing more than a
 limited amount of work if the system crashes.
 
+@vindex auto-save-no-message
   When Emacs determines that it is time for auto-saving, it considers
 each buffer, and each is auto-saved if auto-saving is enabled for it
-and it has been changed since the last time it was auto-saved.  The
-message @samp{Auto-saving...} is displayed in the echo area during
-auto-saving, if any files are actually auto-saved.  Errors occurring
-during auto-saving are caught so that they do not interfere with the
-execution of commands you have been typing.
+and it has been changed since the last time it was auto-saved.  When
+the @code{auto-save-no-message} variable is set to @code{nil} (the
+default), the message @samp{Auto-saving...} is displayed in the echo
+area during auto-saving, if any files are actually auto-saved; to
+disable these messages, customize the variable to a non-@code{nil}
+value.  Errors occurring during auto-saving are caught so that they do
+not interfere with the execution of commands you have been typing.
 
 @menu
 * Files: Auto Save Files.       The file where auto-saved changes are

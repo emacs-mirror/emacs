@@ -60,7 +60,7 @@ CHECK_FLOAT (Lisp_Object x)
 double
 extract_float (Lisp_Object num)
 {
-  CHECK_NUMBER_OR_FLOAT (num);
+  CHECK_NUMBER (num);
   return XFLOATINT (num);
 }
 
@@ -178,7 +178,7 @@ If X is zero, both parts (SGNFCAND and EXP) are zero.  */)
   double f = extract_float (x);
   int exponent;
   double sgnfcand = frexp (f, &exponent);
-  return Fcons (make_float (sgnfcand), make_number (exponent));
+  return Fcons (make_float (sgnfcand), make_fixnum (exponent));
 }
 
 DEFUN ("ldexp", Fldexp, Sldexp, 2, 2, 0,
@@ -186,8 +186,8 @@ DEFUN ("ldexp", Fldexp, Sldexp, 2, 2, 0,
 EXPONENT must be an integer.   */)
   (Lisp_Object sgnfcand, Lisp_Object exponent)
 {
-  CHECK_NUMBER (exponent);
-  int e = min (max (INT_MIN, XINT (exponent)), INT_MAX);
+  CHECK_FIXNUM (exponent);
+  int e = min (max (INT_MIN, XFIXNUM (exponent)), INT_MAX);
   return make_float (ldexp (extract_float (sgnfcand), e));
 }
 
@@ -204,18 +204,18 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
        doc: /* Return the exponential ARG1 ** ARG2.  */)
   (Lisp_Object arg1, Lisp_Object arg2)
 {
-  CHECK_NUMBER_OR_FLOAT (arg1);
-  CHECK_NUMBER_OR_FLOAT (arg2);
-  if (INTEGERP (arg1)     /* common lisp spec */
-      && INTEGERP (arg2)   /* don't promote, if both are ints, and */
-      && XINT (arg2) >= 0) /* we are sure the result is not fractional */
+  CHECK_FIXNUM_OR_FLOAT (arg1);
+  CHECK_FIXNUM_OR_FLOAT (arg2);
+  if (FIXNUMP (arg1)     /* common lisp spec */
+      && FIXNUMP (arg2)   /* don't promote, if both are ints, and */
+      && XFIXNUM (arg2) >= 0) /* we are sure the result is not fractional */
     {				/* this can be improved by pre-calculating */
       EMACS_INT y;		/* some binary powers of x then accumulating */
       EMACS_UINT acc, x;  /* Unsigned so that overflow is well defined.  */
       Lisp_Object val;
 
-      x = XINT (arg1);
-      y = XINT (arg2);
+      x = XFIXNUM (arg1);
+      y = XFIXNUM (arg2);
       acc = (y & 1 ? x : 1);
 
       while ((y >>= 1) != 0)
@@ -268,12 +268,28 @@ DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
        doc: /* Return the absolute value of ARG.  */)
   (register Lisp_Object arg)
 {
-  CHECK_NUMBER_OR_FLOAT (arg);
+  CHECK_NUMBER (arg);
 
-  if (FLOATP (arg))
+  if (BIGNUMP (arg))
+    {
+      mpz_t val;
+      mpz_init (val);
+      mpz_abs (val, XBIGNUM (arg)->value);
+      arg = make_number (val);
+      mpz_clear (val);
+    }
+  else if (FIXNUMP (arg) && XFIXNUM (arg) == MOST_NEGATIVE_FIXNUM)
+    {
+      mpz_t val;
+      mpz_init (val);
+      mpz_set_intmax (val, - MOST_NEGATIVE_FIXNUM);
+      arg = make_number (val);
+      mpz_clear (val);
+    }
+  else if (FLOATP (arg))
     arg = make_float (fabs (XFLOAT_DATA (arg)));
-  else if (XINT (arg) < 0)
-    XSETINT (arg, - XINT (arg));
+  else if (XFIXNUM (arg) < 0)
+    XSETINT (arg, - XFIXNUM (arg));
 
   return arg;
 }
@@ -282,10 +298,12 @@ DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
        doc: /* Return the floating point number equal to ARG.  */)
   (register Lisp_Object arg)
 {
-  CHECK_NUMBER_OR_FLOAT (arg);
+  CHECK_NUMBER (arg);
 
-  if (INTEGERP (arg))
-    return make_float ((double) XINT (arg));
+  if (BIGNUMP (arg))
+    return make_float (mpz_get_d (XBIGNUM (arg)->value));
+  if (FIXNUMP (arg))
+    return make_float ((double) XFIXNUM (arg));
   else				/* give 'em the same float back */
     return arg;
 }
@@ -304,7 +322,7 @@ This is the same as the exponent of a float.  */)
   (Lisp_Object arg)
 {
   EMACS_INT value;
-  CHECK_NUMBER_OR_FLOAT (arg);
+  CHECK_NUMBER (arg);
 
   if (FLOATP (arg))
     {
@@ -321,15 +339,18 @@ This is the same as the exponent of a float.  */)
       else
 	value = MOST_POSITIVE_FIXNUM;
     }
+  else if (BIGNUMP (arg))
+    value = mpz_sizeinbase (XBIGNUM (arg)->value, 2) - 1;
   else
     {
-      EMACS_INT i = eabs (XINT (arg));
+      eassert (FIXNUMP (arg));
+      EMACS_INT i = eabs (XFIXNUM (arg));
       value = (i == 0
 	       ? MOST_NEGATIVE_FIXNUM
 	       : EMACS_UINT_WIDTH - 1 - ecount_leading_zeros (i));
     }
 
-  return make_number (value);
+  return make_fixnum (value);
 }
 
 
@@ -341,7 +362,7 @@ rounding_driver (Lisp_Object arg, Lisp_Object divisor,
 		 EMACS_INT (*int_round2) (EMACS_INT, EMACS_INT),
 		 const char *name)
 {
-  CHECK_NUMBER_OR_FLOAT (arg);
+  CHECK_FIXNUM_OR_FLOAT (arg);
 
   double d;
   if (NILP (divisor))
@@ -352,16 +373,16 @@ rounding_driver (Lisp_Object arg, Lisp_Object divisor,
     }
   else
     {
-      CHECK_NUMBER_OR_FLOAT (divisor);
+      CHECK_FIXNUM_OR_FLOAT (divisor);
       if (!FLOATP (arg) && !FLOATP (divisor))
 	{
-	  if (XINT (divisor) == 0)
+	  if (XFIXNUM (divisor) == 0)
 	    xsignal0 (Qarith_error);
-	  return make_number (int_round2 (XINT (arg), XINT (divisor)));
+	  return make_fixnum (int_round2 (XFIXNUM (arg), XFIXNUM (divisor)));
 	}
 
-      double f1 = FLOATP (arg) ? XFLOAT_DATA (arg) : XINT (arg);
-      double f2 = FLOATP (divisor) ? XFLOAT_DATA (divisor) : XINT (divisor);
+      double f1 = FLOATP (arg) ? XFLOAT_DATA (arg) : XFIXNUM (arg);
+      double f2 = FLOATP (divisor) ? XFLOAT_DATA (divisor) : XFIXNUM (divisor);
       if (! IEEE_FLOATING_POINT && f2 == 0)
 	xsignal0 (Qarith_error);
       d = f1 / f2;
@@ -376,7 +397,7 @@ rounding_driver (Lisp_Object arg, Lisp_Object divisor,
     {
       EMACS_INT ir = dr;
       if (! FIXNUM_OVERFLOW_P (ir))
-	return make_number (ir);
+	return make_fixnum (ir);
     }
   xsignal2 (Qrange_error, build_string (name), arg);
 }
@@ -482,8 +503,8 @@ fmod_float (Lisp_Object x, Lisp_Object y)
 {
   double f1, f2;
 
-  f1 = FLOATP (x) ? XFLOAT_DATA (x) : XINT (x);
-  f2 = FLOATP (y) ? XFLOAT_DATA (y) : XINT (y);
+  f1 = FLOATP (x) ? XFLOAT_DATA (x) : XFIXNUM (x);
+  f2 = FLOATP (y) ? XFLOAT_DATA (y) : XFIXNUM (y);
 
   f1 = fmod (f1, f2);
 

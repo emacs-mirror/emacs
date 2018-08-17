@@ -30,6 +30,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <float.h>
 #include <inttypes.h>
 #include <limits.h>
+#ifdef HAVE_GMP
+#include <gmp.h>
+#else
+#include "mini-gmp.h"
+#endif
 
 #include <intprops.h>
 #include <verify.h>
@@ -352,16 +357,14 @@ typedef EMACS_INT Lisp_Word;
 # endif
 #endif
 
-#define lisp_h_CHECK_NUMBER(x) CHECK_TYPE (INTEGERP (x), Qintegerp, x)
+#define lisp_h_CHECK_FIXNUM(x) CHECK_TYPE (FIXNUMP (x), Qfixnump, x)
 #define lisp_h_CHECK_SYMBOL(x) CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
 #define lisp_h_CHECK_TYPE(ok, predicate, x) \
    ((ok) ? (void) 0 : wrong_type_argument (predicate, x))
 #define lisp_h_CONSP(x) (XTYPE (x) == Lisp_Cons)
 #define lisp_h_EQ(x, y) (XLI (x) == XLI (y))
 #define lisp_h_FLOATP(x) (XTYPE (x) == Lisp_Float)
-#define lisp_h_INTEGERP(x) ((XTYPE (x) & (Lisp_Int0 | ~Lisp_Int1)) == Lisp_Int0)
-#define lisp_h_MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
-#define lisp_h_MISCP(x) (XTYPE (x) == Lisp_Misc)
+#define lisp_h_FIXNUMP(x) ((XTYPE (x) & (Lisp_Int0 | ~Lisp_Int1)) == Lisp_Int0)
 #define lisp_h_NILP(x) EQ (x, Qnil)
 #define lisp_h_SET_SYMBOL_VAL(sym, v) \
    (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), \
@@ -377,15 +380,15 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_XCDR(c) XCONS (c)->u.s.u.cdr
 #define lisp_h_XCONS(a) \
    (eassert (CONSP (a)), XUNTAG (a, Lisp_Cons, struct Lisp_Cons))
-#define lisp_h_XHASH(a) XUINT (a)
+#define lisp_h_XHASH(a) XUFIXNUM (a)
 #ifndef GC_CHECK_CONS_LIST
 # define lisp_h_check_cons_list() ((void) 0)
 #endif
 #if USE_LSB_TAG
-# define lisp_h_make_number(n) \
+# define lisp_h_make_fixnum(n) \
     XIL ((EMACS_INT) (((EMACS_UINT) (n) << INTTYPEBITS) + Lisp_Int0))
-# define lisp_h_XFASTINT(a) XINT (a)
-# define lisp_h_XINT(a) (XLI (a) >> INTTYPEBITS)
+# define lisp_h_XFIXNAT(a) XFIXNUM (a)
+# define lisp_h_XFIXNUM(a) (XLI (a) >> INTTYPEBITS)
 # ifdef __CHKP__
 #  define lisp_h_XSYMBOL(a) \
     (eassert (SYMBOLP (a)), \
@@ -418,15 +421,13 @@ typedef EMACS_INT Lisp_Word;
 # define XIL(i) lisp_h_XIL (i)
 # define XLP(o) lisp_h_XLP (o)
 # define XPL(p) lisp_h_XPL (p)
-# define CHECK_NUMBER(x) lisp_h_CHECK_NUMBER (x)
+# define CHECK_FIXNUM(x) lisp_h_CHECK_FIXNUM (x)
 # define CHECK_SYMBOL(x) lisp_h_CHECK_SYMBOL (x)
 # define CHECK_TYPE(ok, predicate, x) lisp_h_CHECK_TYPE (ok, predicate, x)
 # define CONSP(x) lisp_h_CONSP (x)
 # define EQ(x, y) lisp_h_EQ (x, y)
 # define FLOATP(x) lisp_h_FLOATP (x)
-# define INTEGERP(x) lisp_h_INTEGERP (x)
-# define MARKERP(x) lisp_h_MARKERP (x)
-# define MISCP(x) lisp_h_MISCP (x)
+# define FIXNUMP(x) lisp_h_FIXNUMP (x)
 # define NILP(x) lisp_h_NILP (x)
 # define SET_SYMBOL_VAL(sym, v) lisp_h_SET_SYMBOL_VAL (sym, v)
 # define SYMBOL_CONSTANT_P(sym) lisp_h_SYMBOL_CONSTANT_P (sym)
@@ -442,9 +443,9 @@ typedef EMACS_INT Lisp_Word;
 #  define check_cons_list() lisp_h_check_cons_list ()
 # endif
 # if USE_LSB_TAG
-#  define make_number(n) lisp_h_make_number (n)
-#  define XFASTINT(a) lisp_h_XFASTINT (a)
-#  define XINT(a) lisp_h_XINT (a)
+#  define make_fixnum(n) lisp_h_make_fixnum (n)
+#  define XFIXNAT(a) lisp_h_XFIXNAT (a)
+#  define XFIXNUM(a) lisp_h_XFIXNUM (a)
 #  define XSYMBOL(a) lisp_h_XSYMBOL (a)
 #  define XTYPE(a) lisp_h_XTYPE (a)
 # endif
@@ -477,11 +478,9 @@ enum Lisp_Type
     /* Symbol.  XSYMBOL (object) points to a struct Lisp_Symbol.  */
     Lisp_Symbol = 0,
 
-    /* Miscellaneous.  XMISC (object) points to a union Lisp_Misc,
-       whose first member indicates the subtype.  */
-    Lisp_Misc = 1,
+    /* Type 1 is currently unused.  */
 
-    /* Integer.  XINT (obj) is the integer value.  */
+    /* Fixnum.  XFIXNUM (obj) is the integer value.  */
     Lisp_Int0 = 2,
     Lisp_Int1 = USE_LSB_TAG ? 6 : 3,
 
@@ -501,25 +500,6 @@ enum Lisp_Type
     Lisp_Float = 7
   };
 
-/* This is the set of data types that share a common structure.
-   The first member of the structure is a type code from this set.
-   The enum values are arbitrary, but we'll use large numbers to make it
-   more likely that we'll spot the error if a random word in memory is
-   mistakenly interpreted as a Lisp_Misc.  */
-enum Lisp_Misc_Type
-  {
-    Lisp_Misc_Free = 0x5eab,
-    Lisp_Misc_Marker,
-    Lisp_Misc_Overlay,
-    Lisp_Misc_Finalizer,
-    Lisp_Misc_Ptr,
-#ifdef HAVE_MODULES
-    Lisp_Misc_User_Ptr,
-#endif
-    /* This is not a type code.  It is for range checking.  */
-    Lisp_Misc_Limit
-  };
-
 /* These are the types of forwarding objects used in the value slot
    of symbols for special built-in variables whose value is stored in
    C variables.  */
@@ -533,14 +513,12 @@ enum Lisp_Fwd_Type
   };
 
 /* If you want to define a new Lisp data type, here are some
-   instructions.  See the thread at
-   https://lists.gnu.org/r/emacs-devel/2012-10/msg00561.html
-   for more info.
+   instructions.
 
    First, there are already a couple of Lisp types that can be used if
    your new type does not need to be exposed to Lisp programs nor
-   displayed to users.  These are Lisp_Misc_Ptr, a Lisp_Misc
-   subtype; and PVEC_OTHER, a kind of vectorlike object.  The former
+   displayed to users.  These are Lisp_Misc_Ptr and PVEC_OTHER,
+   which are both vectorlike objects.  The former
    is suitable for stashing a pointer in a Lisp object; the pointer
    might be to some low-level C object that contains auxiliary
    information.  The latter is useful for vector-like Lisp objects
@@ -551,29 +529,13 @@ enum Lisp_Fwd_Type
    These two types don't look pretty when printed, so they are
    unsuitable for Lisp objects that can be exposed to users.
 
-   To define a new data type, add one more Lisp_Misc subtype or one
-   more pseudovector subtype.  Pseudovectors are more suitable for
-   objects with several slots that need to support fast random access,
-   while Lisp_Misc types are for everything else.  A pseudovector object
-   provides one or more slots for Lisp objects, followed by struct
-   members that are accessible only from C.  A Lisp_Misc object is a
-   wrapper for a C struct that can contain anything you like.
+   To define a new data type, add a pseudovector subtype by extending
+   the pvec_type enumeration.  A pseudovector provides one or more
+   slots for Lisp objects, followed by struct members that are
+   accessible only from C.
 
    There is no way to explicitly free a Lisp Object; only the garbage
    collector frees them.
-
-   To add a new pseudovector type, extend the pvec_type enumeration;
-   to add a new Lisp_Misc, extend the Lisp_Misc_Type enumeration.
-
-   For a Lisp_Misc, you will also need to add your entry to union
-   Lisp_Misc, but make sure the first word has the same structure as
-   the others, starting with a 16-bit member of the Lisp_Misc_Type
-   enumeration and a 1-bit GC markbit.  Also make sure the overall
-   size of the union is not increased by your addition.  The latter
-   requirement is to keep Lisp_Misc objects small enough, so they
-   are handled faster: since all Lisp_Misc types use the same space,
-   enlarging any of them will affect all the rest.  If you really
-   need a larger object, it is best to use Lisp_Vectorlike instead.
 
    For a new pseudovector, it's highly desirable to limit the size
    of your data type by VBLOCK_BYTES_MAX bytes (defined in alloc.c).
@@ -887,6 +849,8 @@ union vectorlike_header
 	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
 	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
     ptrdiff_t size;
+    /* Align the union so that there is no padding after it.  */
+    Lisp_Object align;
     GCALIGNED_UNION
   };
 verify (alignof (union vectorlike_header) % GCALIGNMENT == 0);
@@ -967,6 +931,14 @@ enum pvec_type
 {
   PVEC_NORMAL_VECTOR,
   PVEC_FREE,
+  PVEC_BIGNUM,
+  PVEC_MARKER,
+  PVEC_OVERLAY,
+  PVEC_FINALIZER,
+  PVEC_MISC_PTR,
+#ifdef HAVE_MODULES
+  PVEC_USER_PTR,
+#endif
   PVEC_PROCESS,
   PVEC_FRAME,
   PVEC_WINDOW,
@@ -1026,21 +998,21 @@ enum More_Lisp_Bits
 #if USE_LSB_TAG
 
 INLINE Lisp_Object
-(make_number) (EMACS_INT n)
+(make_fixnum) (EMACS_INT n)
 {
-  return lisp_h_make_number (n);
+  return lisp_h_make_fixnum (n);
 }
 
 INLINE EMACS_INT
-(XINT) (Lisp_Object a)
+(XFIXNUM) (Lisp_Object a)
 {
-  return lisp_h_XINT (a);
+  return lisp_h_XFIXNUM (a);
 }
 
 INLINE EMACS_INT
-(XFASTINT) (Lisp_Object a)
+(XFIXNAT) (Lisp_Object a)
 {
-  EMACS_INT n = lisp_h_XFASTINT (a);
+  EMACS_INT n = lisp_h_XFIXNAT (a);
   eassume (0 <= n);
   return n;
 }
@@ -1054,7 +1026,7 @@ INLINE EMACS_INT
 /* Make a Lisp integer representing the value of the low order
    bits of N.  */
 INLINE Lisp_Object
-make_number (EMACS_INT n)
+make_fixnum (EMACS_INT n)
 {
   EMACS_INT int0 = Lisp_Int0;
   if (USE_LSB_TAG)
@@ -1073,7 +1045,7 @@ make_number (EMACS_INT n)
 
 /* Extract A's value as a signed integer.  */
 INLINE EMACS_INT
-XINT (Lisp_Object a)
+XFIXNUM (Lisp_Object a)
 {
   EMACS_INT i = XLI (a);
   if (! USE_LSB_TAG)
@@ -1084,14 +1056,14 @@ XINT (Lisp_Object a)
   return i >> INTTYPEBITS;
 }
 
-/* Like XINT (A), but may be faster.  A must be nonnegative.
+/* Like XFIXNUM (A), but may be faster.  A must be nonnegative.
    If ! USE_LSB_TAG, this takes advantage of the fact that Lisp
    integers have zero-bits in their tags.  */
 INLINE EMACS_INT
-XFASTINT (Lisp_Object a)
+XFIXNAT (Lisp_Object a)
 {
   EMACS_INT int0 = Lisp_Int0;
-  EMACS_INT n = USE_LSB_TAG ? XINT (a) : XLI (a) - (int0 << VALBITS);
+  EMACS_INT n = USE_LSB_TAG ? XFIXNUM (a) : XLI (a) - (int0 << VALBITS);
   eassume (0 <= n);
   return n;
 }
@@ -1100,14 +1072,14 @@ XFASTINT (Lisp_Object a)
 
 /* Extract A's value as an unsigned integer.  */
 INLINE EMACS_UINT
-XUINT (Lisp_Object a)
+XUFIXNUM (Lisp_Object a)
 {
   EMACS_UINT i = XLI (a);
   return USE_LSB_TAG ? i >> INTTYPEBITS : i & INTMASK;
 }
 
-/* Return A's (Lisp-integer sized) hash.  Happens to be like XUINT
-   right now, but XUINT should only be applied to objects we know are
+/* Return A's (Lisp-integer sized) hash.  Happens to be like XUFIXNUM
+   right now, but XUFIXNUM should only be applied to objects we know are
    integers.  */
 
 INLINE EMACS_INT
@@ -1116,13 +1088,13 @@ INLINE EMACS_INT
   return lisp_h_XHASH (a);
 }
 
-/* Like make_number (N), but may be faster.  N must be in nonnegative range.  */
+/* Like make_fixnum (N), but may be faster.  N must be in nonnegative range.  */
 INLINE Lisp_Object
-make_natnum (EMACS_INT n)
+make_fixed_natnum (EMACS_INT n)
 {
   eassert (0 <= n && n <= MOST_POSITIVE_FIXNUM);
   EMACS_INT int0 = Lisp_Int0;
-  return USE_LSB_TAG ? make_number (n) : XIL (n + (int0 << VALBITS));
+  return USE_LSB_TAG ? make_fixnum (n) : XIL (n + (int0 << VALBITS));
 }
 
 /* Return true if X and Y are the same object.  */
@@ -1155,19 +1127,18 @@ make_lisp_ptr (void *ptr, enum Lisp_Type type)
 }
 
 INLINE bool
-(INTEGERP) (Lisp_Object x)
+(FIXNUMP) (Lisp_Object x)
 {
-  return lisp_h_INTEGERP (x);
+  return lisp_h_FIXNUMP (x);
 }
 
-#define XSETINT(a, b) ((a) = make_number (b))
-#define XSETFASTINT(a, b) ((a) = make_natnum (b))
+#define XSETINT(a, b) ((a) = make_fixnum (b))
+#define XSETFASTINT(a, b) ((a) = make_fixed_natnum (b))
 #define XSETCONS(a, b) ((a) = make_lisp_ptr (b, Lisp_Cons))
 #define XSETVECTOR(a, b) ((a) = make_lisp_ptr (b, Lisp_Vectorlike))
 #define XSETSTRING(a, b) ((a) = make_lisp_ptr (b, Lisp_String))
 #define XSETSYMBOL(a, b) ((a) = make_lisp_symbol (b))
 #define XSETFLOAT(a, b) ((a) = make_lisp_ptr (b, Lisp_Float))
-#define XSETMISC(a, b) ((a) = make_lisp_ptr (b, Lisp_Misc))
 
 /* Pseudovector types.  */
 
@@ -1212,16 +1183,23 @@ INLINE bool
    bits set, which makes this conversion inherently unportable.  */
 
 INLINE void *
-XINTPTR (Lisp_Object a)
+XFIXNUMPTR (Lisp_Object a)
 {
   return XUNTAG (a, Lisp_Int0, char);
 }
 
 INLINE Lisp_Object
-make_pointer_integer (void *p)
+make_pointer_integer_unsafe (void *p)
 {
   Lisp_Object a = TAG_PTR (Lisp_Int0, p);
-  eassert (INTEGERP (a) && XINTPTR (a) == p);
+  return a;
+}
+
+INLINE Lisp_Object
+make_pointer_integer (void *p)
+{
+  Lisp_Object a = make_pointer_integer_unsafe (p);
+  eassert (FIXNUMP (a) && XFIXNUMPTR (a) == p);
   return a;
 }
 
@@ -1606,6 +1584,7 @@ enum
     bool_header_size = offsetof (struct Lisp_Bool_Vector, data),
     word_size = sizeof (Lisp_Object)
   };
+verify (header_size == sizeof (union vectorlike_header));
 
 /* The number of data words and bytes in a bool vector with SIZE bits.  */
 
@@ -2267,46 +2246,10 @@ SXHASH_REDUCE (EMACS_UINT x)
   return (x ^ x >> (EMACS_INT_WIDTH - FIXNUM_BITS)) & INTMASK;
 }
 
-/* These structures are used for various misc types.  */
-
-struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
-{
-  ENUM_BF (Lisp_Misc_Type) type : 16;		/* = Lisp_Misc_??? */
-  bool_bf gcmarkbit : 1;
-  unsigned spacer : 15;
-};
-
-INLINE bool
-(MISCP) (Lisp_Object x)
-{
-  return lisp_h_MISCP (x);
-}
-
-INLINE struct Lisp_Misc_Any *
-XMISCANY (Lisp_Object a)
-{
-  eassert (MISCP (a));
-  return XUNTAG (a, Lisp_Misc, struct Lisp_Misc_Any);
-}
-
-INLINE enum Lisp_Misc_Type
-XMISCTYPE (Lisp_Object a)
-{
-  return XMISCANY (a)->type;
-}
-
 struct Lisp_Marker
 {
-  ENUM_BF (Lisp_Misc_Type) type : 16;		/* = Lisp_Misc_Marker */
-  bool_bf gcmarkbit : 1;
-  unsigned spacer : 13;
-  /* This flag is temporarily used in the functions
-     decode/encode_coding_object to record that the marker position
-     must be adjusted after the conversion.  */
-  bool_bf need_adjustment : 1;
-  /* True means normal insertion at the marker's position
-     leaves the marker after the inserted text.  */
-  bool_bf insertion_type : 1;
+  union vectorlike_header header;
+
   /* This is the buffer that the marker points into, or 0 if it points nowhere.
      Note: a chain of markers can contain markers pointing into different
      buffers (the chain is per buffer_text rather than per buffer, so it's
@@ -2319,11 +2262,21 @@ struct Lisp_Marker
      */
   struct buffer *buffer;
 
+  /* This flag is temporarily used in the functions
+     decode/encode_coding_object to record that the marker position
+     must be adjusted after the conversion.  */
+  bool_bf need_adjustment : 1;
+  /* True means normal insertion at the marker's position
+     leaves the marker after the inserted text.  */
+  bool_bf insertion_type : 1;
+
   /* The remaining fields are meaningless in a marker that
      does not point anywhere.  */
 
   /* For markers that point somewhere,
-     this is used to chain of all the markers in a given buffer.  */
+     this is used to chain of all the markers in a given buffer.
+     The chain does not preserve markers from garbage collection;
+     instead, markers are removed from the chain when freed by GC.  */
   /* We could remove it and use an array in buffer_text instead.
      That would also allow us to preserve it ordered.  */
   struct Lisp_Marker *next;
@@ -2351,20 +2304,16 @@ struct Lisp_Overlay
    I.e. 9words plus 2 bits, 3words of which are for external linked lists.
 */
   {
-    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Overlay */
-    bool_bf gcmarkbit : 1;
-    unsigned spacer : 15;
-    struct Lisp_Overlay *next;
+    union vectorlike_header header;
     Lisp_Object start;
     Lisp_Object end;
     Lisp_Object plist;
+    struct Lisp_Overlay *next;
   };
 
 struct Lisp_Misc_Ptr
   {
-    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Ptr */
-    bool_bf gcmarkbit : 1;
-    unsigned spacer : 15;
+    union vectorlike_header header;
     void *pointer;
   };
 
@@ -2372,48 +2321,45 @@ extern Lisp_Object make_misc_ptr (void *);
 
 /* A mint_ptr object OBJ represents a C-language pointer P efficiently.
    Preferably (and typically), OBJ is a Lisp integer I such that
-   XINTPTR (I) == P, as this represents P within a single Lisp value
+   XFIXNUMPTR (I) == P, as this represents P within a single Lisp value
    without requiring any auxiliary memory.  However, if P would be
    damaged by being tagged as an integer and then untagged via
-   XINTPTR, then OBJ is a Lisp_Misc_Ptr with pointer component P.
+   XFIXNUMPTR, then OBJ is a Lisp_Misc_Ptr with pointer component P.
 
    mint_ptr objects are efficiency hacks intended for C code.
    Although xmint_ptr can be given any mint_ptr generated by non-buggy
    C code, it should not be given a mint_ptr generated from Lisp code
    as that would allow Lisp code to coin pointers from integers and
    could lead to crashes.  To package a C pointer into a Lisp-visible
-   object you can put the pointer into a Lisp_Misc object instead; see
+   object you can put the pointer into a pseudovector instead; see
    Lisp_User_Ptr for an example.  */
 
 INLINE Lisp_Object
 make_mint_ptr (void *a)
 {
   Lisp_Object val = TAG_PTR (Lisp_Int0, a);
-  return INTEGERP (val) && XINTPTR (val) == a ? val : make_misc_ptr (a);
+  return FIXNUMP (val) && XFIXNUMPTR (val) == a ? val : make_misc_ptr (a);
 }
 
 INLINE bool
 mint_ptrp (Lisp_Object x)
 {
-  return INTEGERP (x) || (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Ptr);
+  return FIXNUMP (x) || PSEUDOVECTORP (x, PVEC_MISC_PTR);
 }
 
 INLINE void *
 xmint_pointer (Lisp_Object a)
 {
   eassert (mint_ptrp (a));
-  if (INTEGERP (a))
-    return XINTPTR (a);
-  return XUNTAG (a, Lisp_Misc, struct Lisp_Misc_Ptr)->pointer;
+  if (FIXNUMP (a))
+    return XFIXNUMPTR (a);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Misc_Ptr)->pointer;
 }
 
 #ifdef HAVE_MODULES
 struct Lisp_User_Ptr
 {
-  ENUM_BF (Lisp_Misc_Type) type : 16;	     /* = Lisp_Misc_User_Ptr */
-  bool_bf gcmarkbit : 1;
-  unsigned spacer : 15;
-
+  union vectorlike_header header;
   void (*finalizer) (void *);
   void *p;
 };
@@ -2422,102 +2368,96 @@ struct Lisp_User_Ptr
 /* A finalizer sentinel.  */
 struct Lisp_Finalizer
   {
-    struct Lisp_Misc_Any base;
-
-    /* Circular list of all active weak references.  */
-    struct Lisp_Finalizer *prev;
-    struct Lisp_Finalizer *next;
+    union vectorlike_header header;
 
     /* Call FUNCTION when the finalizer becomes unreachable, even if
        FUNCTION contains a reference to the finalizer; i.e., call
        FUNCTION when it is reachable _only_ through finalizers.  */
     Lisp_Object function;
+
+    /* Circular list of all active weak references.  */
+    struct Lisp_Finalizer *prev;
+    struct Lisp_Finalizer *next;
   };
 
 INLINE bool
 FINALIZERP (Lisp_Object x)
 {
-  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Finalizer;
+  return PSEUDOVECTORP (x, PVEC_FINALIZER);
 }
 
 INLINE struct Lisp_Finalizer *
 XFINALIZER (Lisp_Object a)
 {
   eassert (FINALIZERP (a));
-  return XUNTAG (a, Lisp_Misc, struct Lisp_Finalizer);
-}
-
-/* A miscellaneous object, when it's on the free list.  */
-struct Lisp_Free
-  {
-    ENUM_BF (Lisp_Misc_Type) type : 16;	/* = Lisp_Misc_Free */
-    bool_bf gcmarkbit : 1;
-    unsigned spacer : 15;
-    union Lisp_Misc *chain;
-  };
-
-/* To get the type field of a union Lisp_Misc, use XMISCTYPE.
-   It uses one of these struct subtypes to get the type field.  */
-
-union Lisp_Misc
-  {
-    struct Lisp_Misc_Any u_any;	   /* Supertype of all Misc types.  */
-    struct Lisp_Free u_free;
-    struct Lisp_Marker u_marker;
-    struct Lisp_Overlay u_overlay;
-    struct Lisp_Finalizer u_finalizer;
-    struct Lisp_Misc_Ptr u_misc_ptr;
-#ifdef HAVE_MODULES
-    struct Lisp_User_Ptr u_user_ptr;
-#endif
-  };
-
-INLINE union Lisp_Misc *
-XMISC (Lisp_Object a)
-{
-  return XUNTAG (a, Lisp_Misc, union Lisp_Misc);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Finalizer);
 }
 
 INLINE bool
-(MARKERP) (Lisp_Object x)
+MARKERP (Lisp_Object x)
 {
-  return lisp_h_MARKERP (x);
+  return PSEUDOVECTORP (x, PVEC_MARKER);
 }
 
 INLINE struct Lisp_Marker *
 XMARKER (Lisp_Object a)
 {
   eassert (MARKERP (a));
-  return XUNTAG (a, Lisp_Misc, struct Lisp_Marker);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Marker);
 }
 
 INLINE bool
 OVERLAYP (Lisp_Object x)
 {
-  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay;
+  return PSEUDOVECTORP (x, PVEC_OVERLAY);
 }
 
 INLINE struct Lisp_Overlay *
 XOVERLAY (Lisp_Object a)
 {
   eassert (OVERLAYP (a));
-  return XUNTAG (a, Lisp_Misc, struct Lisp_Overlay);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Overlay);
 }
 
 #ifdef HAVE_MODULES
 INLINE bool
 USER_PTRP (Lisp_Object x)
 {
-  return MISCP (x) && XMISCTYPE (x) == Lisp_Misc_User_Ptr;
+  return PSEUDOVECTORP (x, PVEC_USER_PTR);
 }
 
 INLINE struct Lisp_User_Ptr *
 XUSER_PTR (Lisp_Object a)
 {
   eassert (USER_PTRP (a));
-  return XUNTAG (a, Lisp_Misc, struct Lisp_User_Ptr);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_User_Ptr);
 }
 #endif
+
+struct Lisp_Bignum
+{
+  union vectorlike_header header;
+  mpz_t value;
+};
+
+INLINE bool
+BIGNUMP (Lisp_Object x)
+{
+  return PSEUDOVECTORP (x, PVEC_BIGNUM);
+}
+
+INLINE struct Lisp_Bignum *
+XBIGNUM (Lisp_Object a)
+{
+  eassert (BIGNUMP (a));
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Bignum);
+}
+
+INLINE bool
+INTEGERP (Lisp_Object x)
+{
+  return FIXNUMP (x) || BIGNUMP (x);
+}
 
 
 /* Forwarding pointer to an int variable.
@@ -2556,7 +2496,7 @@ struct Lisp_Buffer_Objfwd
   {
     enum Lisp_Fwd_Type type;	/* = Lisp_Fwd_Buffer_Obj */
     int offset;
-    /* One of Qnil, Qintegerp, Qsymbolp, Qstringp, Qfloatp or Qnumberp.  */
+    /* One of Qnil, Qfixnump, Qsymbolp, Qstringp, Qfloatp or Qnumberp.  */
     Lisp_Object predicate;
   };
 
@@ -2722,26 +2662,38 @@ enum char_bits
 /* Data type checking.  */
 
 INLINE bool
-NUMBERP (Lisp_Object x)
+FIXED_OR_FLOATP (Lisp_Object x)
 {
-  return INTEGERP (x) || FLOATP (x);
+  return FIXNUMP (x) || FLOATP (x);
+}
+INLINE bool
+FIXNATP (Lisp_Object x)
+{
+  return FIXNUMP (x) && 0 <= XFIXNUM (x);
 }
 INLINE bool
 NATNUMP (Lisp_Object x)
 {
-  return INTEGERP (x) && 0 <= XINT (x);
+  if (BIGNUMP (x))
+    return mpz_sgn (XBIGNUM (x)->value) >= 0;
+  return FIXNUMP (x) && 0 <= XFIXNUM (x);
+}
+INLINE bool
+NUMBERP (Lisp_Object x)
+{
+  return INTEGERP (x) || FLOATP (x);
 }
 
 INLINE bool
-RANGED_INTEGERP (intmax_t lo, Lisp_Object x, intmax_t hi)
+RANGED_FIXNUMP (intmax_t lo, Lisp_Object x, intmax_t hi)
 {
-  return INTEGERP (x) && lo <= XINT (x) && XINT (x) <= hi;
+  return FIXNUMP (x) && lo <= XFIXNUM (x) && XFIXNUM (x) <= hi;
 }
 
-#define TYPE_RANGED_INTEGERP(type, x) \
-  (INTEGERP (x)			      \
-   && (TYPE_SIGNED (type) ? TYPE_MINIMUM (type) <= XINT (x) : 0 <= XINT (x)) \
-   && XINT (x) <= TYPE_MAXIMUM (type))
+#define TYPE_RANGED_FIXNUMP(type, x) \
+  (FIXNUMP (x)			      \
+   && (TYPE_SIGNED (type) ? TYPE_MINIMUM (type) <= XFIXNUM (x) : 0 <= XFIXNUM (x)) \
+   && XFIXNUM (x) <= TYPE_MAXIMUM (type))
 
 INLINE bool
 AUTOLOADP (Lisp_Object x)
@@ -2809,9 +2761,9 @@ CHECK_LIST_END (Lisp_Object x, Lisp_Object y)
 }
 
 INLINE void
-(CHECK_NUMBER) (Lisp_Object x)
+(CHECK_FIXNUM) (Lisp_Object x)
 {
-  lisp_h_CHECK_NUMBER (x);
+  lisp_h_CHECK_FIXNUM (x);
 }
 
 INLINE void
@@ -2835,21 +2787,21 @@ CHECK_ARRAY (Lisp_Object x, Lisp_Object predicate)
   CHECK_TYPE (ARRAYP (x), predicate, x);
 }
 INLINE void
-CHECK_NATNUM (Lisp_Object x)
+CHECK_FIXNAT (Lisp_Object x)
 {
-  CHECK_TYPE (NATNUMP (x), Qwholenump, x);
+  CHECK_TYPE (FIXNATP (x), Qwholenump, x);
 }
 
 #define CHECK_RANGED_INTEGER(x, lo, hi)					\
   do {									\
-    CHECK_NUMBER (x);							\
-    if (! ((lo) <= XINT (x) && XINT (x) <= (hi)))			\
+    CHECK_FIXNUM (x);							\
+    if (! ((lo) <= XFIXNUM (x) && XFIXNUM (x) <= (hi)))			\
       args_out_of_range_3						\
 	(x,								\
-	 make_number ((lo) < 0 && (lo) < MOST_NEGATIVE_FIXNUM		\
+	 make_fixnum ((lo) < 0 && (lo) < MOST_NEGATIVE_FIXNUM		\
 		      ? MOST_NEGATIVE_FIXNUM				\
 		      : (lo)),						\
-	 make_number (min (hi, MOST_POSITIVE_FIXNUM)));			\
+	 make_fixnum (min (hi, MOST_POSITIVE_FIXNUM)));			\
   } while (false)
 #define CHECK_TYPE_RANGED_INTEGER(type, x) \
   do {									\
@@ -2859,27 +2811,49 @@ CHECK_NATNUM (Lisp_Object x)
       CHECK_RANGED_INTEGER (x, 0, TYPE_MAXIMUM (type));			\
   } while (false)
 
-#define CHECK_NUMBER_COERCE_MARKER(x)					\
+#define CHECK_FIXNUM_COERCE_MARKER(x)					\
   do {									\
     if (MARKERP ((x)))							\
       XSETFASTINT (x, marker_position (x));				\
     else								\
-      CHECK_TYPE (INTEGERP (x), Qinteger_or_marker_p, x);		\
+      CHECK_TYPE (FIXNUMP (x), Qinteger_or_marker_p, x);		\
   } while (false)
 
 INLINE double
 XFLOATINT (Lisp_Object n)
 {
-  return FLOATP (n) ? XFLOAT_DATA (n) : XINT (n);
+  if (BIGNUMP (n))
+    return mpz_get_d (XBIGNUM (n)->value);
+  return FLOATP (n) ? XFLOAT_DATA (n) : XFIXNUM (n);
 }
 
 INLINE void
-CHECK_NUMBER_OR_FLOAT (Lisp_Object x)
+CHECK_FIXNUM_OR_FLOAT (Lisp_Object x)
+{
+  CHECK_TYPE (FIXED_OR_FLOATP (x), Qnumberp, x);
+}
+
+INLINE void
+CHECK_NUMBER (Lisp_Object x)
 {
   CHECK_TYPE (NUMBERP (x), Qnumberp, x);
 }
 
-#define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x)				\
+INLINE void
+CHECK_INTEGER (Lisp_Object x)
+{
+  CHECK_TYPE (INTEGERP (x), Qnumberp, x);
+}
+
+#define CHECK_FIXNUM_OR_FLOAT_COERCE_MARKER(x)				\
+  do {									\
+    if (MARKERP (x))							\
+      XSETFASTINT (x, marker_position (x));				\
+    else								\
+      CHECK_TYPE (FIXED_OR_FLOATP (x), Qnumber_or_marker_p, x);		\
+  } while (false)
+
+#define CHECK_NUMBER_COERCE_MARKER(x)					\
   do {									\
     if (MARKERP (x))							\
       XSETFASTINT (x, marker_position (x));				\
@@ -2887,21 +2861,29 @@ CHECK_NUMBER_OR_FLOAT (Lisp_Object x)
       CHECK_TYPE (NUMBERP (x), Qnumber_or_marker_p, x);			\
   } while (false)
 
+#define CHECK_INTEGER_COERCE_MARKER(x)					\
+  do {									\
+    if (MARKERP (x))							\
+      XSETFASTINT (x, marker_position (x));				\
+    else								\
+      CHECK_TYPE (INTEGERP (x), Qnumber_or_marker_p, x);		\
+  } while (false)
+
 /* Since we can't assign directly to the CAR or CDR fields of a cons
    cell, use these when checking that those fields contain numbers.  */
 INLINE void
-CHECK_NUMBER_CAR (Lisp_Object x)
+CHECK_FIXNUM_CAR (Lisp_Object x)
 {
   Lisp_Object tmp = XCAR (x);
-  CHECK_NUMBER (tmp);
+  CHECK_FIXNUM (tmp);
   XSETCAR (x, tmp);
 }
 
 INLINE void
-CHECK_NUMBER_CDR (Lisp_Object x)
+CHECK_FIXNUM_CDR (Lisp_Object x)
 {
   Lisp_Object tmp = XCDR (x);
-  CHECK_NUMBER (tmp);
+  CHECK_FIXNUM (tmp);
   XSETCDR (x, tmp);
 }
 
@@ -3324,7 +3306,7 @@ extern Lisp_Object arithcompare (Lisp_Object num1, Lisp_Object num2,
    I should not have side effects.  */
 #define INTEGER_TO_CONS(i)					    \
   (! FIXNUM_OVERFLOW_P (i)					    \
-   ? make_number (i)						    \
+   ? make_fixnum (i)						    \
    : EXPR_SIGNED (i) ? intbig_to_lisp (i) : uintbig_to_lisp (i))
 extern Lisp_Object intbig_to_lisp (intmax_t);
 extern Lisp_Object uintbig_to_lisp (uintmax_t);
@@ -3574,25 +3556,41 @@ extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 enum constype {CONSTYPE_HEAP, CONSTYPE_PURE};
 extern Lisp_Object listn (enum constype, ptrdiff_t, Lisp_Object, ...);
 
+extern Lisp_Object make_bignum_str (const char *num, int base);
+extern Lisp_Object make_number (mpz_t value);
+extern void mpz_set_intmax_slow (mpz_t result, intmax_t v);
+
+INLINE void
+mpz_set_intmax (mpz_t result, intmax_t v)
+{
+  /* mpz_set_si works in terms of long, but Emacs may use a wider
+     integer type, and so sometimes will have to construct the mpz_t
+     by hand.  */
+  if (sizeof (intmax_t) > sizeof (long) && (long) v != v)
+    mpz_set_intmax_slow (result, v);
+  else
+    mpz_set_si (result, v);
+}
+
 /* Build a frequently used 2/3/4-integer lists.  */
 
 INLINE Lisp_Object
 list2i (EMACS_INT x, EMACS_INT y)
 {
-  return list2 (make_number (x), make_number (y));
+  return list2 (make_fixnum (x), make_fixnum (y));
 }
 
 INLINE Lisp_Object
 list3i (EMACS_INT x, EMACS_INT y, EMACS_INT w)
 {
-  return list3 (make_number (x), make_number (y), make_number (w));
+  return list3 (make_fixnum (x), make_fixnum (y), make_fixnum (w));
 }
 
 INLINE Lisp_Object
 list4i (EMACS_INT x, EMACS_INT y, EMACS_INT w, EMACS_INT h)
 {
-  return list4 (make_number (x), make_number (y),
-		make_number (w), make_number (h));
+  return list4 (make_fixnum (x), make_fixnum (y),
+		make_fixnum (w), make_fixnum (h));
 }
 
 extern Lisp_Object make_uninit_bool_vector (EMACS_INT);
@@ -3786,7 +3784,7 @@ LOADHIST_ATTACH (Lisp_Object x)
 }
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
                   Lisp_Object *, Lisp_Object, bool);
-enum { S2N_IGNORE_TRAILING = 1, S2N_OVERFLOW_TO_FLOAT = 2 };
+enum { S2N_IGNORE_TRAILING = 1 };
 extern Lisp_Object string_to_number (char const *, int, int);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);
@@ -4486,7 +4484,7 @@ extern void init_system_name (void);
    in a Lisp fixnum.  */
 
 #define make_fixnum_or_float(val) \
-   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_number (val))
+   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_fixnum (val))
 
 /* SAFE_ALLOCA normally allocates memory on the stack, but if size is
    larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.  */

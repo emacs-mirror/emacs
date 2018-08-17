@@ -1173,17 +1173,17 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
      items in x-display-monitor-attributes-list. */
   workarea = call3 (Qframe_monitor_workarea,
                     Qnil,
-                    make_number (data->x),
-                    make_number (data->y));
+                    make_fixnum (data->x),
+                    make_fixnum (data->y));
 
   if (CONSP (workarea))
     {
       int min_x, min_y;
 
-      min_x = XINT (XCAR (workarea));
-      min_y = XINT (Fnth (make_number (1), workarea));
-      max_x = min_x + XINT (Fnth (make_number (2), workarea));
-      max_y = min_y + XINT (Fnth (make_number (3), workarea));
+      min_x = XFIXNUM (XCAR (workarea));
+      min_y = XFIXNUM (Fnth (make_fixnum (1), workarea));
+      max_x = min_x + XFIXNUM (Fnth (make_fixnum (2), workarea));
+      max_y = min_y + XFIXNUM (Fnth (make_fixnum (3), workarea));
     }
 
   if (max_x < 0 || max_y < 0)
@@ -2043,9 +2043,9 @@ menu_help_callback (char const *help_string, int pane, int item)
     pane_name = first_item[MENU_ITEMS_ITEM_NAME];
 
   /* (menu-item MENU-NAME PANE-NUMBER)  */
-  menu_object = list3 (Qmenu_item, pane_name, make_number (pane));
+  menu_object = list3 (Qmenu_item, pane_name, make_fixnum (pane));
   show_help_echo (help_string ? build_string (help_string) : Qnil,
- 		  Qnil, menu_object, make_number (item));
+ 		  Qnil, menu_object, make_fixnum (item));
 }
 
 struct pop_down_menu

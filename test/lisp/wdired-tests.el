@@ -116,13 +116,13 @@ wdired-mode."
 	    (kill-region (point) (progn (search-forward ".")
 					(forward-char -1) (point)))
 	    (insert replace)
-	    (should (equal (dired-get-filename) new-file))))
+	    (should (equal (dired-get-filename) new-file)))
 	(when buf
 	  (with-current-buffer buf
             ;; Prevent kill-buffer-query-functions from chiming in.
 	    (set-buffer-modified-p nil)
 	    (kill-buffer buf)))
-	(delete-directory test-dir t))))
+	(delete-directory test-dir t)))))
 
 
 (provide 'wdired-tests)

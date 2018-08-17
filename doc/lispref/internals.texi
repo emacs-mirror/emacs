@@ -246,8 +246,8 @@ of 8k bytes, and small vectors are packed into blocks of 4k bytes).
 
 @cindex vector-like objects, storage
 @cindex storage of vector-like Lisp objects
-  Beyond the basic vector, a lot of objects like window, buffer, and
-frame are managed as if they were vectors.  The corresponding C data
+  Beyond the basic vector, a lot of objects like markers, overlays and
+buffers are managed as if they were vectors.  The corresponding C data
 structures include the @code{union vectorlike_header} field whose
 @code{size} member contains the subtype enumerated by @code{enum pvec_type}
 and an information about how many @code{Lisp_Object} fields this structure
@@ -318,7 +318,6 @@ future allocations.  So an overall result is:
 @example
 ((@code{conses} @var{cons-size} @var{used-conses} @var{free-conses})
  (@code{symbols} @var{symbol-size} @var{used-symbols} @var{free-symbols})
- (@code{miscs} @var{misc-size} @var{used-miscs} @var{free-miscs})
  (@code{strings} @var{string-size} @var{used-strings} @var{free-strings})
  (@code{string-bytes} @var{byte-size} @var{used-bytes})
  (@code{vectors} @var{vector-size} @var{used-vectors})
@@ -334,7 +333,7 @@ Here is an example:
 @example
 (garbage-collect)
       @result{} ((conses 16 49126 8058) (symbols 48 14607 0)
-                 (miscs 40 34 56) (strings 32 2942 2607)
+                 (strings 32 2942 2607)
                  (string-bytes 1 78607) (vectors 16 7247)
                  (vector-slots 8 341609 29474) (floats 8 71 102)
                  (intervals 56 27 26) (buffers 944 8)
@@ -365,19 +364,6 @@ The number of symbols in use.
 @item free-symbols
 The number of symbols for which space has been obtained from
 the operating system, but that are not currently being used.
-
-@item misc-size
-Internal size of a miscellaneous entity, i.e.,
-@code{sizeof (union Lisp_Misc)}, which is a size of the
-largest type enumerated in @code{enum Lisp_Misc_Type}.
-
-@item used-miscs
-The number of miscellaneous objects in use.  These include markers
-and overlays, plus certain objects not visible to users.
-
-@item free-miscs
-The number of miscellaneous objects for which space has been obtained
-from the operating system, but that are not currently being used.
 
 @item string-size
 Internal size of a string header, i.e., @code{sizeof (struct Lisp_String)}.
@@ -593,6 +579,8 @@ in this Emacs session.
 @defvar vector-cells-consed
 The total number of vector cells that have been allocated so far
 in this Emacs session.
+This includes vector-like objects such as markers and overlays, plus
+certain objects not visible to users.
 @end defvar
 
 @defvar symbols-consed
@@ -603,12 +591,6 @@ in this Emacs session.
 @defvar string-chars-consed
 The total number of string characters that have been allocated so far
 in this session.
-@end defvar
-
-@defvar misc-objects-consed
-The total number of miscellaneous objects that have been allocated so
-far in this session.  These include markers and overlays, plus
-certain objects not visible to users.
 @end defvar
 
 @defvar intervals-consed
@@ -1001,7 +983,7 @@ a special type to represent the pointers to all of them, which is known as
   In C, the tagged pointer is an object of type @code{Lisp_Object}.  Any
 initialized variable of such a type always holds the value of one of the
 following basic data types: integer, symbol, string, cons cell, float,
-vectorlike or miscellaneous object.  Each of these data types has the
+or vectorlike object.  Each of these data types has the
 corresponding tag value.  All tags are enumerated by @code{enum Lisp_Type}
 and placed into a 3-bit bitfield of the @code{Lisp_Object}.  The rest of the
 bits is the value itself.  Integers are immediate, i.e., directly
@@ -1033,18 +1015,13 @@ Symbol, the unique-named entity commonly used as an identifier.
 
 @item struct Lisp_Float
 Floating-point value.
-
-@item union Lisp_Misc
-Miscellaneous kinds of objects which don't fit into any of the above.
 @end table
 
   These types are the first-class citizens of an internal type system.
-Since the tag space is limited, all other types are the subtypes of either
-@code{Lisp_Vectorlike} or @code{Lisp_Misc}.  Vector subtypes are enumerated
+Since the tag space is limited, all other types are the subtypes of
+@code{Lisp_Vectorlike}.  Vector subtypes are enumerated
 by @code{enum pvec_type}, and nearly all complex objects like windows, buffers,
-frames, and processes fall into this category.  The rest of special types,
-including markers and overlays, are enumerated by @code{enum Lisp_Misc_Type}
-and form the set of subtypes of @code{Lisp_Misc}.
+frames, and processes fall into this category.
 
   Below there is a description of a few subtypes of @code{Lisp_Vectorlike}.
 Buffer object represents the text to display and edit.  Window is the part

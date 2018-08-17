@@ -493,7 +493,7 @@ w32con_set_terminal_modes (struct terminal *t)
 
   /* Initialize input mode: interrupt_input off, no flow control, allow
      8 bit character input, standard quit char.  */
-  Fset_input_mode (Qnil, Qnil, make_number (2), Qnil);
+  Fset_input_mode (Qnil, Qnil, make_fixnum (2), Qnil);
 }
 
 /* hmmm... perhaps these let us bracket screen changes so that we can flush
@@ -791,7 +791,7 @@ DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
 Arguments should be indices between 0 and 15, see w32console.el.  */)
   (Lisp_Object foreground, Lisp_Object background)
 {
-  char_attr_normal = XFASTINT (foreground) + (XFASTINT (background) << 4);
+  char_attr_normal = XFIXNAT (foreground) + (XFIXNAT (background) << 4);
 
   Frecenter (Qnil, Qt);
   return Qt;
@@ -805,8 +805,8 @@ See w32console.el and `tty-defined-color-alist' for mapping of indices
 to colors.  */)
   (void)
 {
-  return Fcons (make_number (char_attr_normal & 0x000f),
-		Fcons (make_number ((char_attr_normal >> 4) & 0x000f), Qnil));
+  return Fcons (make_fixnum (char_attr_normal & 0x000f),
+		Fcons (make_fixnum ((char_attr_normal >> 4) & 0x000f), Qnil));
 }
 
 DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
@@ -814,7 +814,7 @@ DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
   (Lisp_Object size)
 {
   CONSOLE_CURSOR_INFO cci;
-  cci.dwSize = XFASTINT (size);
+  cci.dwSize = XFIXNAT (size);
   cci.bVisible = TRUE;
   (void) SetConsoleCursorInfo (cur_screen, &cci);
 

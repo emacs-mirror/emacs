@@ -6066,7 +6066,7 @@ into account variable-width characters and line continuation.
 If nil, `line-move' moves point by logical lines.
 A non-nil setting of `goal-column' overrides the value of this variable
 and forces movement by logical lines.
-A window that is  horizontally scrolled also forces movement by logical
+A window that is horizontally scrolled also forces movement by logical
 lines."
   :type 'boolean
   :group 'editing-basics

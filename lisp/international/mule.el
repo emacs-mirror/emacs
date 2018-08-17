@@ -2545,7 +2545,17 @@ This function is intended to be added to `auto-coding-functions'."
       (let* ((match (match-string 2))
 	     (sym (intern (downcase match))))
 	(if (coding-system-p sym)
-	    sym
+            ;; If the encoding tag is UTF-8 and the buffer's
+            ;; encoding is one of the variants of UTF-8, use the
+            ;; buffer's encoding.  This allows, e.g., saving an
+            ;; HTML file as UTF-8 with BOM when the tag says UTF-8.
+            (let ((sym-type (coding-system-type sym))
+                  (bfcs-type
+                   (coding-system-type buffer-file-coding-system)))
+              (if (and (coding-system-equal 'utf-8 sym-type)
+                       (coding-system-equal 'utf-8 bfcs-type))
+                  buffer-file-coding-system
+		sym))
 	  (message "Warning: unknown coding system \"%s\"" match)
 	  nil)))))
 

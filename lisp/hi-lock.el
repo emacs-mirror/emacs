@@ -429,10 +429,12 @@ highlighting will not update as you type."
 ;;;###autoload
 (defalias 'highlight-regexp 'hi-lock-face-buffer)
 ;;;###autoload
-(defun hi-lock-face-buffer (regexp &optional face)
+(defun hi-lock-face-buffer (regexp &optional face subexp)
   "Set face of each match of REGEXP to FACE.
 Interactively, prompt for REGEXP using `read-regexp', then FACE.
-Use the global history list for FACE.
+Use the global history list for FACE.  Limit face setting to the
+corresponding SUBEXP (interactively, the prefix argument) of REGEXP.
+If SUBEXP is omitted or nil, the entire REGEXP is highlighted.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
@@ -441,10 +443,11 @@ highlighting will not update as you type."
    (list
     (hi-lock-regexp-okay
      (read-regexp "Regexp to highlight" 'regexp-history-last))
-    (hi-lock-read-face-name)))
+    (hi-lock-read-face-name)
+    current-prefix-arg))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
-  (hi-lock-set-pattern regexp face))
+  (hi-lock-set-pattern regexp face subexp))
 
 ;;;###autoload
 (defalias 'highlight-phrase 'hi-lock-face-phrase-buffer)
@@ -686,11 +689,14 @@ with completion and history."
       (add-to-list 'hi-lock-face-defaults face t))
     (intern face)))
 
-(defun hi-lock-set-pattern (regexp face)
-  "Highlight REGEXP with face FACE."
+(defun hi-lock-set-pattern (regexp face &optional subexp)
+  "Highlight SUBEXP of REGEXP with face FACE.
+If omitted or nil, SUBEXP defaults to zero, i.e. the entire
+REGEXP is highlighted."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
-  (let ((pattern (list regexp (list 0 (list 'quote face) 'prepend)))
+  (setq subexp (or subexp 0))
+  (let ((pattern (list regexp (list subexp (list 'quote face) 'prepend)))
         (no-matches t))
     ;; Refuse to highlight a text that is already highlighted.
     (if (assoc regexp hi-lock-interactive-patterns)
@@ -712,7 +718,8 @@ with completion and history."
             (goto-char search-start)
             (while (re-search-forward regexp search-end t)
               (when no-matches (setq no-matches nil))
-              (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
+              (let ((overlay (make-overlay (match-beginning subexp)
+                                           (match-end subexp))))
                 (overlay-put overlay 'hi-lock-overlay t)
                 (overlay-put overlay 'hi-lock-overlay-regexp regexp)
                 (overlay-put overlay 'face face))

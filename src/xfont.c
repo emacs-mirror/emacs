@@ -190,7 +190,7 @@ xfont_chars_supported (Lisp_Object chars, XFontStruct *xfont,
     {
       for (; CONSP (chars); chars = XCDR (chars))
 	{
-	  int c = XINT (XCAR (chars));
+	  int c = XFIXNUM (XCAR (chars));
 	  unsigned code = ENCODE_CHAR (charset, c);
 	  XChar2b char2b;
 
@@ -213,7 +213,7 @@ xfont_chars_supported (Lisp_Object chars, XFontStruct *xfont,
 
       for (i = ASIZE (chars) - 1; i >= 0; i--)
 	{
-	  int c = XINT (AREF (chars, i));
+	  int c = XFIXNUM (AREF (chars, i));
 	  unsigned code = ENCODE_CHAR (charset, c);
 	  XChar2b char2b;
 
@@ -376,18 +376,18 @@ xfont_list_pattern (Display *display, const char *pattern,
 	      continue;
 	    ASET (entity, FONT_TYPE_INDEX, Qx);
 	    /* Avoid auto-scaled fonts.  */
-	    if (INTEGERP (AREF (entity, FONT_DPI_INDEX))
-		&& INTEGERP (AREF (entity, FONT_AVGWIDTH_INDEX))
-		&& XINT (AREF (entity, FONT_DPI_INDEX)) != 0
-		&& XINT (AREF (entity, FONT_AVGWIDTH_INDEX)) == 0)
+	    if (FIXNUMP (AREF (entity, FONT_DPI_INDEX))
+		&& FIXNUMP (AREF (entity, FONT_AVGWIDTH_INDEX))
+		&& XFIXNUM (AREF (entity, FONT_DPI_INDEX)) != 0
+		&& XFIXNUM (AREF (entity, FONT_AVGWIDTH_INDEX)) == 0)
 	      continue;
 	    /* Avoid not-allowed scalable fonts.  */
 	    if (NILP (Vscalable_fonts_allowed))
 	      {
 		int size = 0;
 
-		if (INTEGERP (AREF (entity, FONT_SIZE_INDEX)))
-		  size = XINT (AREF (entity, FONT_SIZE_INDEX));
+		if (FIXNUMP (AREF (entity, FONT_SIZE_INDEX)))
+		  size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
 		else if (FLOATP (AREF (entity, FONT_SIZE_INDEX)))
 		  size = XFLOAT_DATA (AREF (entity, FONT_SIZE_INDEX));
 		if (size == 0 && i_pass == 0)
@@ -672,8 +672,8 @@ xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
       return Qnil;
     }
 
-  if (XINT (AREF (entity, FONT_SIZE_INDEX)) != 0)
-    pixel_size = XINT (AREF (entity, FONT_SIZE_INDEX));
+  if (XFIXNUM (AREF (entity, FONT_SIZE_INDEX)) != 0)
+    pixel_size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
   else if (pixel_size == 0)
     {
       if (FRAME_FONT (f))
@@ -811,8 +811,8 @@ xfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 	font->space_width = 0;
 
       val = Ffont_get (font_object, QCavgwidth);
-      if (INTEGERP (val))
-	font->average_width = XINT (val) / 10;
+      if (FIXNUMP (val))
+	font->average_width = XFIXNUM (val) / 10;
       if (font->average_width < 0)
 	font->average_width = - font->average_width;
       else
@@ -1101,6 +1101,6 @@ syms_of_xfont (void)
   staticpro (&xfont_scripts_cache);
   xfont_scripts_cache = CALLN (Fmake_hash_table, QCtest, Qequal);
   staticpro (&xfont_scratch_props);
-  xfont_scratch_props = Fmake_vector (make_number (8), Qnil);
+  xfont_scratch_props = Fmake_vector (make_fixnum (8), Qnil);
   register_font_driver (&xfont_driver, NULL);
 }

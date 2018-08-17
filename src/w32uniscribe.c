@@ -460,21 +460,21 @@ uniscribe_shape (Lisp_Object lgstring)
 			     the direction, the Hebrew point HOLAM is
 			     drawn above the right edge of the base
 			     consonant, instead of above the left edge.  */
-			  ASET (vec, 0, make_number (-offsets[j].du
+			  ASET (vec, 0, make_fixnum (-offsets[j].du
 						     + adj_offset));
 			  /* Update the adjustment value for the width
 			     advance of the glyph we just emitted.  */
 			  adj_offset -= 2 * advances[j];
 			}
 		      else
-			ASET (vec, 0, make_number (offsets[j].du + adj_offset));
+			ASET (vec, 0, make_fixnum (offsets[j].du + adj_offset));
 		      /* In the font definition coordinate system, the
 			 Y coordinate points up, while in our screen
 			 coordinates Y grows downwards.  So we need to
 			 reverse the sign of Y-OFFSET here.  */
-		      ASET (vec, 1, make_number (-offsets[j].dv));
+		      ASET (vec, 1, make_fixnum (-offsets[j].dv));
 		      /* Based on what ftfont.c does... */
-		      ASET (vec, 2, make_number (advances[j]));
+		      ASET (vec, 2, make_fixnum (advances[j]));
 		      LGLYPH_SET_ADJUSTMENT (lglyph, vec);
 		    }
 		  else
@@ -502,7 +502,7 @@ uniscribe_shape (Lisp_Object lgstring)
   if (NILP (lgstring))
     return Qnil;
   else
-    return make_number (done_glyphs);
+    return make_fixnum (done_glyphs);
 }
 
 /* Uniscribe implementation of encode_char for font backend.
@@ -879,7 +879,7 @@ uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec)
   int i, retval = 0;
 
   /* Check the spec is in the right format.  */
-  if (!CONSP (otf_spec) || XINT (Flength (otf_spec)) < 3)
+  if (!CONSP (otf_spec) || XFIXNUM (Flength (otf_spec)) < 3)
     return 0;
 
   /* Break otf_spec into its components.  */

@@ -536,7 +536,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	    message3 (make_unibyte_string (system_error_msg, sizeof (system_error_msg) - 1));
 	    break;
 	}
-      sit_for (make_number (2), 0, 2);
+      sit_for (make_fixnum (2), 0, 2);
     }
 
  done:

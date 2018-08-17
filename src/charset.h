@@ -355,7 +355,7 @@ set_charset_attr (struct charset *charset, enum charset_attr_index idx,
 									\
     if (! SYMBOLP (x) || (idx = CHARSET_SYMBOL_HASH_INDEX (x)) < 0)	\
       wrong_type_argument (Qcharsetp, (x));				\
-    id = XINT (AREF (HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), idx), \
+    id = XFIXNUM (AREF (HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), idx), \
 		     charset_id));					\
   } while (false)
 
@@ -416,7 +416,7 @@ extern Lisp_Object Vchar_charset_set;
    : (charset)->method == CHARSET_METHOD_MAP				\
    ? (((charset)->code_linear_p						\
        && VECTORP (CHARSET_DECODER (charset)))				\
-      ? XINT (AREF (CHARSET_DECODER (charset),				\
+      ? XFIXNUM (AREF (CHARSET_DECODER (charset),				\
 		    (code) - (charset)->min_code))			\
       : decode_char ((charset), (code)))				\
    : decode_char ((charset), (code)))
@@ -447,7 +447,7 @@ extern Lisp_Object charset_work;
 	? (charset_work = CHAR_TABLE_REF (CHARSET_ENCODER (charset), c), \
 	   (NILP (charset_work)						\
 	    ? (charset)->invalid_code					\
-	    : (unsigned) XFASTINT (charset_work)))			\
+	    : (unsigned) XFIXNAT (charset_work)))			\
 	: encode_char (charset, c))					\
      : encode_char (charset, c))))
 

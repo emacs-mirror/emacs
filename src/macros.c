@@ -97,9 +97,9 @@ macro before appending to it.  */)
       for (i = 0; i < len; i++)
 	{
 	  Lisp_Object c;
-	  c = Faref (KVAR (current_kboard, Vlast_kbd_macro), make_number (i));
-	  if (cvt && NATNUMP (c) && (XFASTINT (c) & 0x80))
-	    XSETFASTINT (c, CHAR_META | (XFASTINT (c) & ~0x80));
+	  c = Faref (KVAR (current_kboard, Vlast_kbd_macro), make_fixnum (i));
+	  if (cvt && FIXNATP (c) && (XFIXNAT (c) & 0x80))
+	    XSETFASTINT (c, CHAR_META | (XFIXNAT (c) & ~0x80));
 	  current_kboard->kbd_macro_buffer[i] = c;
 	}
 
@@ -110,7 +110,7 @@ macro before appending to it.  */)
 	 for consistency of behavior.  */
       if (NILP (no_exec))
 	Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
-			    make_number (1), Qnil);
+			    make_fixnum (1), Qnil);
 
       message1 ("Appending to kbd macro...");
     }
@@ -154,7 +154,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   if (NILP (repeat))
     XSETFASTINT (repeat, 1);
   else
-    CHECK_NUMBER (repeat);
+    CHECK_FIXNUM (repeat);
 
   if (!NILP (KVAR (current_kboard, defining_kbd_macro)))
     {
@@ -162,11 +162,11 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
       message1 ("Keyboard macro defined");
     }
 
-  if (XFASTINT (repeat) == 0)
+  if (XFIXNAT (repeat) == 0)
     Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro), repeat, loopfunc);
-  else if (XINT (repeat) > 1)
+  else if (XFIXNUM (repeat) > 1)
     {
-      XSETINT (repeat, XINT (repeat) - 1);
+      XSETINT (repeat, XFIXNUM (repeat) - 1);
       Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
 			  repeat, loopfunc);
     }
@@ -267,7 +267,7 @@ pop_kbd_macro (Lisp_Object info)
   Lisp_Object tem;
   Vexecuting_kbd_macro = XCAR (info);
   tem = XCDR (info);
-  executing_kbd_macro_index = XINT (XCAR (tem));
+  executing_kbd_macro_index = XFIXNUM (XCAR (tem));
   Vreal_this_command = XCDR (tem);
   run_hook (Qkbd_macro_termination_hook);
 }
@@ -293,7 +293,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   if (!NILP (count))
     {
       count = Fprefix_numeric_value (count);
-      repeat = XINT (count);
+      repeat = XFIXNUM (count);
     }
 
   final = indirect_function (macro);
@@ -301,7 +301,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
     error ("Keyboard macros must be strings or vectors");
 
   tem = Fcons (Vexecuting_kbd_macro,
-	       Fcons (make_number (executing_kbd_macro_index),
+	       Fcons (make_fixnum (executing_kbd_macro_index),
 		      Vreal_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 

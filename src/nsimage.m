@@ -85,10 +85,10 @@ ns_load_image (struct frame *f, struct image *img,
   eassert (valid_image_p (img->spec));
 
   lisp_index = Fplist_get (XCDR (img->spec), QCindex);
-  index = INTEGERP (lisp_index) ? XFASTINT (lisp_index) : 0;
+  index = FIXNUMP (lisp_index) ? XFIXNAT (lisp_index) : 0;
 
   lisp_rotation = Fplist_get (XCDR (img->spec), QCrotation);
-  rotation = NUMBERP (lisp_rotation) ? XFLOATINT (lisp_rotation) : 0;
+  rotation = FIXED_OR_FLOATP (lisp_rotation) ? XFLOATINT (lisp_rotation) : 0;
 
   if (STRINGP (spec_file))
     {
@@ -113,7 +113,7 @@ ns_load_image (struct frame *f, struct image *img,
   if (![eImg setFrame: index])
     {
       add_to_log ("Unable to set index %d for image %s",
-                  make_number (index), img->spec);
+                  make_fixnum (index), img->spec);
       return 0;
     }
 
@@ -495,7 +495,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
                       floatValue];
 
       if (frames > 1)
-        metadata = Fcons (Qcount, Fcons (make_number (frames), metadata));
+        metadata = Fcons (Qcount, Fcons (make_fixnum (frames), metadata));
       if (delay > 0)
         metadata = Fcons (Qdelay, Fcons (make_float (delay), metadata));
     }
@@ -532,19 +532,19 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   double width = -1, height = -1, max_width = -1, max_height = -1;
 
   value = Fplist_get (spec, QCscale);
-  if (NUMBERP (value))
+  if (FIXED_OR_FLOATP (value))
     scale = XFLOATINT (value) ;
 
   value = Fplist_get (spec, QCmax_width);
-  if (NUMBERP (value))
+  if (FIXED_OR_FLOATP (value))
     max_width = XFLOATINT (value);
 
   value = Fplist_get (spec, QCmax_height);
-  if (NUMBERP (value))
+  if (FIXED_OR_FLOATP (value))
     max_height = XFLOATINT (value);
 
   value = Fplist_get (spec, QCwidth);
-  if (NUMBERP (value))
+  if (FIXED_OR_FLOATP (value))
     {
       width = XFLOATINT (value) * scale;
       /* :width overrides :max-width. */
@@ -552,7 +552,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     }
 
   value = Fplist_get (spec, QCheight);
-  if (NUMBERP (value))
+  if (FIXED_OR_FLOATP (value))
     {
       height = XFLOATINT (value) * scale;
       /* :height overrides :max-height. */

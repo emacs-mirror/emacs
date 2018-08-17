@@ -917,8 +917,8 @@ x_set_frame_alpha (struct frame *f)
 
   if (FLOATP (Vframe_alpha_lower_limit))
     alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
-  else if (INTEGERP (Vframe_alpha_lower_limit))
-    alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
+  else if (FIXNUMP (Vframe_alpha_lower_limit))
+    alpha_min = (XFIXNUM (Vframe_alpha_lower_limit)) / 100.0;
 
   if (alpha < 0.0)
     return;
@@ -3106,14 +3106,14 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->face->id == TOOL_BAR_FACE_ID)
     {
       if (CONSP (Vtool_bar_button_margin)
-	  && INTEGERP (XCAR (Vtool_bar_button_margin))
-	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
+	  && FIXNUMP (XCAR (Vtool_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtool_bar_button_margin)))
 	{
-	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
-	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
+	  extra_x = XFIXNUM (XCAR (Vtool_bar_button_margin));
+	  extra_y = XFIXNUM (XCDR (Vtool_bar_button_margin));
 	}
-      else if (INTEGERP (Vtool_bar_button_margin))
-	extra_x = extra_y = XINT (Vtool_bar_button_margin);
+      else if (FIXNUMP (Vtool_bar_button_margin))
+	extra_x = extra_y = XFIXNUM (Vtool_bar_button_margin);
     }
 
   top_p = bot_p = left_p = right_p = false;
@@ -3704,8 +3704,8 @@ x_draw_glyph_string (struct glyph_string *s)
 		  Lisp_Object val
 		    = buffer_local_value (Qunderline_minimum_offset,
 					  s->w->contents);
-		  if (INTEGERP (val))
-		    minimum_offset = XFASTINT (val);
+		  if (FIXNUMP (val))
+		    minimum_offset = XFIXNAT (val);
 		  else
 		    minimum_offset = 1;
 		  val = buffer_local_value (Qx_underline_at_descent_line,
@@ -4824,15 +4824,15 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
   Lisp_Object tem;
 
   tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_ctrl = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_ctrl = XFIXNUM (tem) & INT_MAX;
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_alt = XFIXNUM (tem) & INT_MAX;
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_meta = XFIXNUM (tem) & INT_MAX;
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_hyper = XFIXNUM (tem) & INT_MAX;
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_super = XFIXNUM (tem) & INT_MAX;
 
   return (  ((state & (ShiftMask | dpyinfo->shift_lock_mask)) ? shift_modifier : 0)
             | ((state & ControlMask)			? mod_ctrl	: 0)
@@ -4854,15 +4854,15 @@ x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, EMACS_INT state)
   Lisp_Object tem;
 
   tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_ctrl = XINT (tem);
+  if (FIXNUMP (tem)) mod_ctrl = XFIXNUM (tem);
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XINT (tem);
+  if (FIXNUMP (tem)) mod_alt = XFIXNUM (tem);
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XINT (tem);
+  if (FIXNUMP (tem)) mod_meta = XFIXNUM (tem);
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XINT (tem);
+  if (FIXNUMP (tem)) mod_hyper = XFIXNUM (tem);
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XINT (tem);
+  if (FIXNUMP (tem)) mod_super = XFIXNUM (tem);
 
 
   return (  ((state & mod_alt)		? dpyinfo->alt_mod_mask   : 0)
@@ -5511,8 +5511,8 @@ x_scroll_bar_to_input_event (const XEvent *event,
 #endif
   ievent->code = 0;
   ievent->part = ev->data.l[2];
-  ievent->x = make_number (ev->data.l[3]);
-  ievent->y = make_number (ev->data.l[4]);
+  ievent->x = make_fixnum (ev->data.l[3]);
+  ievent->y = make_fixnum (ev->data.l[4]);
   ievent->modifiers = 0;
 }
 
@@ -5546,8 +5546,8 @@ x_horizontal_scroll_bar_to_input_event (const XEvent *event,
 #endif
   ievent->code = 0;
   ievent->part = ev->data.l[2];
-  ievent->x = make_number (ev->data.l[3]);
-  ievent->y = make_number (ev->data.l[4]);
+  ievent->x = make_fixnum (ev->data.l[3]);
+  ievent->y = make_fixnum (ev->data.l[4]);
   ievent->modifiers = 0;
 }
 
@@ -8201,7 +8201,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
-      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+      if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
 #if ! defined (USE_GTK)
 	  && (f == 0
 	      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
@@ -8358,15 +8358,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  /* Now non-ASCII.  */
 	  if (HASH_TABLE_P (Vx_keysym_table)
-	      && (c = Fgethash (make_number (keysym),
+	      && (c = Fgethash (make_fixnum (keysym),
 				Vx_keysym_table,
 				Qnil),
-		  NATNUMP (c)))
+		  FIXNATP (c)))
  	    {
- 	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
+	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFIXNAT (c))
                               ? ASCII_KEYSTROKE_EVENT
                               : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
- 	      inev.ie.code = XFASTINT (c);
+	      inev.ie.code = XFIXNAT (c);
  	      goto done_keysym;
  	    }
 
@@ -9853,7 +9853,7 @@ For details, see etc/PROBLEMS.\n",
   if (terminal_list == 0)
     {
       fprintf (stderr, "%s\n", error_msg);
-      Fkill_emacs (make_number (70));
+      Fkill_emacs (make_fixnum (70));
       /* NOTREACHED */
     }
 
@@ -9935,7 +9935,6 @@ x_io_error_quitter (Display *display)
   snprintf (buf, sizeof buf, "Connection lost to X server '%s'",
 	    DisplayString (display));
   x_connection_closed (display, buf, true);
-  assume (false);
 }
 
 /* Changing the font of the frame.  */
@@ -10254,8 +10253,8 @@ x_calc_absolute_position (struct frame *f)
 	  XSETFRAME (frame, f);
 	  edges = Fx_frame_edges (frame, Qouter_edges);
 	  if (!NILP (edges))
-	    width = (XINT (Fnth (make_number (2), edges))
-		     - XINT (Fnth (make_number (0), edges)));
+	    width = (XFIXNUM (Fnth (make_fixnum (2), edges))
+		     - XFIXNUM (Fnth (make_fixnum (0), edges)));
 	}
 
       if (p)
@@ -10296,8 +10295,8 @@ x_calc_absolute_position (struct frame *f)
 	  if (NILP (edges))
 	    edges = Fx_frame_edges (frame, Qouter_edges);
 	  if (!NILP (edges))
-	    height = (XINT (Fnth (make_number (3), edges))
-		      - XINT (Fnth (make_number (1), edges)));
+	    height = (XFIXNUM (Fnth (make_fixnum (3), edges))
+		      - XFIXNUM (Fnth (make_fixnum (1), edges)));
 	}
 
       if (p)
@@ -10501,12 +10500,12 @@ set_wm_state (Lisp_Object frame, bool add, Atom atom, Atom value)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (XFRAME (frame));
 
-  x_send_client_event (frame, make_number (0), frame,
+  x_send_client_event (frame, make_fixnum (0), frame,
                        dpyinfo->Xatom_net_wm_state,
-                       make_number (32),
+                       make_fixnum (32),
                        /* 1 = add, 0 = remove */
                        Fcons
-                       (make_number (add),
+                       (make_fixnum (add),
                         Fcons
                         (make_fixnum_or_float (atom),
                          (value != 0
@@ -10638,7 +10637,7 @@ get_current_wm_state (struct frame *f,
 #ifdef USE_XCB
   xcb_get_property_cookie_t prop_cookie;
   xcb_get_property_reply_t *prop;
-  xcb_atom_t *reply_data;
+  xcb_atom_t *reply_data UNINIT;
 #else
   Display *dpy = FRAME_X_DISPLAY (f);
   unsigned long bytes_remaining;
@@ -11139,8 +11138,8 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_1, width, height,
-	 list2 (make_number (old_height),
-		make_number (pixelheight + FRAME_MENUBAR_HEIGHT (f))));
+	 list2 (make_fixnum (old_height),
+		make_fixnum (pixelheight + FRAME_MENUBAR_HEIGHT (f))));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     old_width, pixelheight + FRAME_MENUBAR_HEIGHT (f));
@@ -11149,7 +11148,7 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_2, width, height,
-	 list2 (make_number (old_width), make_number (pixelwidth)));
+	 list2 (make_fixnum (old_width), make_fixnum (pixelwidth)));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     pixelwidth, old_height);
@@ -11159,10 +11158,10 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_3, width, height,
-	 list3 (make_number (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
-		make_number (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+	 list3 (make_fixnum (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
+		make_fixnum (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
 			     + FRAME_MENUBAR_HEIGHT (f)),
-		make_number (FRAME_MENUBAR_HEIGHT (f))));
+		make_fixnum (FRAME_MENUBAR_HEIGHT (f))));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     pixelwidth, pixelheight + FRAME_MENUBAR_HEIGHT (f));
@@ -11346,9 +11345,9 @@ x_ewmh_activate_frame (struct frame *f)
     {
       Lisp_Object frame;
       XSETFRAME (frame, f);
-      x_send_client_event (frame, make_number (0), frame,
+      x_send_client_event (frame, make_fixnum (0), frame,
 			   dpyinfo->Xatom_net_active_window,
-			   make_number (32),
+			   make_fixnum (32),
 			   list2i (1, dpyinfo->last_user_time));
     }
 }
@@ -13324,15 +13323,15 @@ With MS Windows or Nextstep, the value is t.  */);
 
   DEFSYM (Qmodifier_value, "modifier-value");
   DEFSYM (Qctrl, "ctrl");
-  Fput (Qctrl, Qmodifier_value, make_number (ctrl_modifier));
+  Fput (Qctrl, Qmodifier_value, make_fixnum (ctrl_modifier));
   DEFSYM (Qalt, "alt");
-  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
+  Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   DEFSYM (Qhyper, "hyper");
-  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
+  Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));
   DEFSYM (Qmeta, "meta");
-  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
+  Fput (Qmeta, Qmodifier_value, make_fixnum (meta_modifier));
   DEFSYM (Qsuper, "super");
-  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+  Fput (Qsuper, Qmodifier_value, make_fixnum (super_modifier));
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* Which keys Emacs uses for the ctrl modifier.

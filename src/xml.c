@@ -187,8 +187,8 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url,
 
   validate_region (&start, &end);
 
-  istart = XINT (start);
-  iend = XINT (end);
+  istart = XFIXNUM (start);
+  iend = XFIXNUM (end);
   istart_byte = CHAR_TO_BYTE (istart);
   iend_byte = CHAR_TO_BYTE (iend);
 

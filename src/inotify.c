@@ -176,7 +176,7 @@ inotifyevent_to_event (Lisp_Object watch, struct inotify_event const *ev)
 {
   Lisp_Object name;
   uint32_t mask;
-  CONS_TO_INTEGER (Fnth (make_number (3), watch), uint32_t, mask);
+  CONS_TO_INTEGER (Fnth (make_fixnum (3), watch), uint32_t, mask);
 
   if (! (mask & ev->mask))
     return Qnil;
@@ -194,7 +194,7 @@ inotifyevent_to_event (Lisp_Object watch, struct inotify_event const *ev)
                        mask_to_aspects (ev->mask),
                        name,
 		       INTEGER_TO_CONS (ev->cookie)),
-		Fnth (make_number (2), watch));
+		Fnth (make_fixnum (2), watch));
 }
 
 /* Add a new watch to watch-descriptor WD watching FILENAME and using
@@ -220,7 +220,7 @@ add_watch (int wd, Lisp_Object filename,
       /* Assign a watch ID that is not already in use, by looking
 	 for a gap in the existing sorted list.  */
       for (; ! NILP (XCDR (tail)); tail = XCDR (tail), id++)
-	if (!EQ (XCAR (XCAR (XCDR (tail))), make_number (id)))
+	if (!EQ (XCAR (XCAR (XCDR (tail))), make_fixnum (id)))
 	  break;
       if (MOST_POSITIVE_FIXNUM < id)
 	emacs_abort ();
@@ -229,7 +229,7 @@ add_watch (int wd, Lisp_Object filename,
   /* Insert the newly-assigned ID into the previously-discovered gap,
      which is possibly at the end of the list.  Inserting it there
      keeps the list sorted.  */
-  watch_id = make_number (id);
+  watch_id = make_fixnum (id);
   watch = list4 (watch_id, filename, callback, mask);
   XSETCDR (tail, Fcons (watch, XCDR (tail)));
 
@@ -446,12 +446,12 @@ static bool
 valid_watch_descriptor (Lisp_Object wd)
 {
   return (CONSP (wd)
-	  && (RANGED_INTEGERP (0, XCAR (wd), INT_MAX)
+	  && (RANGED_FIXNUMP (0, XCAR (wd), INT_MAX)
 	      || (CONSP (XCAR (wd))
-		  && RANGED_INTEGERP ((MOST_POSITIVE_FIXNUM >> 16) + 1,
+		  && RANGED_FIXNUMP ((MOST_POSITIVE_FIXNUM >> 16) + 1,
 				      XCAR (XCAR (wd)), INT_MAX >> 16)
-		  && RANGED_INTEGERP (0, XCDR (XCAR (wd)), (1 << 16) - 1)))
-	  && NATNUMP (XCDR (wd)));
+		  && RANGED_FIXNUMP (0, XCDR (XCAR (wd)), (1 << 16) - 1)))
+	  && FIXNATP (XCDR (wd)));
 }
 
 DEFUN ("inotify-rm-watch", Finotify_rm_watch, Sinotify_rm_watch, 1, 1, 0,

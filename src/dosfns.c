@@ -66,33 +66,33 @@ REGISTERS should be a vector produced by `make-register' and
   int no;
   union REGS inregs, outregs;
 
-  CHECK_NUMBER (interrupt);
-  no = (unsigned long) XINT (interrupt);
+  CHECK_FIXNUM (interrupt);
+  no = (unsigned long) XFIXNUM (interrupt);
   CHECK_VECTOR (registers);
   if (no < 0 || no > 0xff || ASIZE (registers) != 8)
     return Qnil;
   for (i = 0; i < 8; i++)
-    CHECK_NUMBER (AREF (registers, i));
+    CHECK_FIXNUM (AREF (registers, i));
 
-  inregs.x.ax    = (unsigned long) XFASTINT (AREF (registers, 0));
-  inregs.x.bx    = (unsigned long) XFASTINT (AREF (registers, 1));
-  inregs.x.cx    = (unsigned long) XFASTINT (AREF (registers, 2));
-  inregs.x.dx    = (unsigned long) XFASTINT (AREF (registers, 3));
-  inregs.x.si    = (unsigned long) XFASTINT (AREF (registers, 4));
-  inregs.x.di    = (unsigned long) XFASTINT (AREF (registers, 5));
-  inregs.x.cflag = (unsigned long) XFASTINT (AREF (registers, 6));
-  inregs.x.flags = (unsigned long) XFASTINT (AREF (registers, 7));
+  inregs.x.ax    = (unsigned long) XFIXNAT (AREF (registers, 0));
+  inregs.x.bx    = (unsigned long) XFIXNAT (AREF (registers, 1));
+  inregs.x.cx    = (unsigned long) XFIXNAT (AREF (registers, 2));
+  inregs.x.dx    = (unsigned long) XFIXNAT (AREF (registers, 3));
+  inregs.x.si    = (unsigned long) XFIXNAT (AREF (registers, 4));
+  inregs.x.di    = (unsigned long) XFIXNAT (AREF (registers, 5));
+  inregs.x.cflag = (unsigned long) XFIXNAT (AREF (registers, 6));
+  inregs.x.flags = (unsigned long) XFIXNAT (AREF (registers, 7));
 
   int86 (no, &inregs, &outregs);
 
-  ASET (registers, 0, make_number (outregs.x.ax));
-  ASET (registers, 1, make_number (outregs.x.bx));
-  ASET (registers, 2, make_number (outregs.x.cx));
-  ASET (registers, 3, make_number (outregs.x.dx));
-  ASET (registers, 4, make_number (outregs.x.si));
-  ASET (registers, 5, make_number (outregs.x.di));
-  ASET (registers, 6, make_number (outregs.x.cflag));
-  ASET (registers, 7, make_number (outregs.x.flags));
+  ASET (registers, 0, make_fixnum (outregs.x.ax));
+  ASET (registers, 1, make_fixnum (outregs.x.bx));
+  ASET (registers, 2, make_fixnum (outregs.x.cx));
+  ASET (registers, 3, make_fixnum (outregs.x.dx));
+  ASET (registers, 4, make_fixnum (outregs.x.si));
+  ASET (registers, 5, make_fixnum (outregs.x.di));
+  ASET (registers, 6, make_fixnum (outregs.x.cflag));
+  ASET (registers, 7, make_fixnum (outregs.x.flags));
 
   return registers;
 }
@@ -106,8 +106,8 @@ Return the updated VECTOR.  */)
   int offs, len;
   char *buf;
 
-  CHECK_NUMBER (address);
-  offs = (unsigned long) XINT (address);
+  CHECK_FIXNUM (address);
+  offs = (unsigned long) XFIXNUM (address);
   CHECK_VECTOR (vector);
   len = ASIZE (vector);
   if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
@@ -116,7 +116,7 @@ Return the updated VECTOR.  */)
   dosmemget (offs, len, buf);
 
   for (i = 0; i < len; i++)
-    ASET (vector, i, make_number (buf[i]));
+    ASET (vector, i, make_fixnum (buf[i]));
 
   return vector;
 }
@@ -129,8 +129,8 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   int offs, len;
   char *buf;
 
-  CHECK_NUMBER (address);
-  offs = (unsigned long) XINT (address);
+  CHECK_FIXNUM (address);
+  offs = (unsigned long) XFIXNUM (address);
   CHECK_VECTOR (vector);
   len = ASIZE (vector);
   if (len < 1 || len > 2048 || offs < 0 || offs > 0xfffff - len)
@@ -139,8 +139,8 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
 
   for (i = 0; i < len; i++)
     {
-      CHECK_NUMBER (AREF (vector, i));
-      buf[i] = (unsigned char) XFASTINT (AREF (vector, i)) & 0xFF;
+      CHECK_FIXNUM (AREF (vector, i));
+      buf[i] = (unsigned char) XFIXNAT (AREF (vector, i)) & 0xFF;
     }
 
   dosmemput (buf, len, offs);
@@ -154,8 +154,8 @@ all keys; otherwise it is only used when the ALT key is pressed.
 The current keyboard layout is available in dos-keyboard-code.  */)
   (Lisp_Object country_code, Lisp_Object allkeys)
 {
-  CHECK_NUMBER (country_code);
-  if (!dos_set_keyboard (XINT (country_code), !NILP (allkeys)))
+  CHECK_FIXNUM (country_code);
+  if (!dos_set_keyboard (XFIXNUM (country_code), !NILP (allkeys)))
     return Qnil;
   return Qt;
 }
@@ -280,7 +280,7 @@ init_dosfns (void)
 
   regs.x.ax = 0x3000;
   intdos (&regs, &regs);
-  Vdos_version = Fcons (make_number (regs.h.al), make_number (regs.h.ah));
+  Vdos_version = Fcons (make_fixnum (regs.h.al), make_fixnum (regs.h.ah));
 
   /* Obtain the country code via DPMI, use DJGPP transfer buffer.  */
   dpmiregs.x.ax = 0x3800;
@@ -341,7 +341,7 @@ init_dosfns (void)
     {
       dos_windows_version = dpmiregs.x.ax;
       Vdos_windows_version =
-	Fcons (make_number (dpmiregs.h.al), make_number (dpmiregs.h.ah));
+	Fcons (make_fixnum (dpmiregs.h.al), make_fixnum (dpmiregs.h.ah));
 
       /* Save the current title of this virtual machine, so we can restore
 	 it before exiting.  Otherwise, Windows 95 will continue to use
@@ -520,8 +520,8 @@ system_process_attributes (Lisp_Object pid)
   int proc_id;
   Lisp_Object attrs = Qnil;
 
-  CHECK_NUMBER_OR_FLOAT (pid);
-  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+  CHECK_FIXNUM_OR_FLOAT (pid);
+  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XFIXNUM (pid);
 
   if (proc_id == getpid ())
     {
@@ -555,13 +555,13 @@ system_process_attributes (Lisp_Object pid)
 						  Vlocale_coding_system, 0);
       attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
       /* Pretend we have 0 as PPID.  */
-      attrs = Fcons (Fcons (Qppid, make_number (0)), attrs);
+      attrs = Fcons (Fcons (Qppid, make_fixnum (0)), attrs);
       attrs = Fcons (Fcons (Qpgrp, pid), attrs);
       attrs = Fcons (Fcons (Qttname, build_string ("/dev/tty")), attrs);
       /* We are never idle!  */
       tem = Fget_internal_run_time ();
       attrs = Fcons (Fcons (Qtime, tem), attrs);
-      attrs = Fcons (Fcons (Qthcount, make_number (1)), attrs);
+      attrs = Fcons (Fcons (Qthcount, make_fixnum (1)), attrs);
       attrs = Fcons (Fcons (Qstart,
 			    Fsymbol_value (intern ("before-init-time"))),
 		     attrs);

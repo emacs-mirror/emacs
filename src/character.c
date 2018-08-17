@@ -207,7 +207,7 @@ translate_char (Lisp_Object table, int c)
 
       ch = CHAR_TABLE_REF (table, c);
       if (CHARACTERP (ch))
-	c = XINT (ch);
+	c = XFIXNUM (ch);
     }
   else
     {
@@ -234,7 +234,7 @@ DEFUN ("max-char", Fmax_char, Smax_char, 0, 0, 0,
        attributes: const)
   (void)
 {
-  return make_number (MAX_CHAR);
+  return make_fixnum (MAX_CHAR);
 }
 
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
@@ -245,11 +245,11 @@ DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
   int c;
 
   CHECK_CHARACTER (ch);
-  c = XFASTINT (ch);
+  c = XFIXNAT (ch);
   if (c >= 0x100)
     error ("Not a unibyte character: %d", c);
   MAKE_CHAR_MULTIBYTE (c);
-  return make_number (c);
+  return make_fixnum (c);
 }
 
 DEFUN ("multibyte-char-to-unibyte", Fmultibyte_char_to_unibyte,
@@ -261,7 +261,7 @@ If the multibyte character does not represent a byte, return -1.  */)
   int cm;
 
   CHECK_CHARACTER (ch);
-  cm = XFASTINT (ch);
+  cm = XFIXNAT (ch);
   if (cm < 256)
     /* Can't distinguish a byte read from a unibyte buffer from
        a latin1 char, so let's let it slide.  */
@@ -269,7 +269,7 @@ If the multibyte character does not represent a byte, return -1.  */)
   else
     {
       int cu = CHAR_TO_BYTE_SAFE (cm);
-      return make_number (cu);
+      return make_fixnum (cu);
     }
 }
 
@@ -294,7 +294,7 @@ char_width (int c, struct Lisp_Char_Table *dp)
 	    if (GLYPH_CODE_P (ch))
 	      c = GLYPH_CODE_CHAR (ch);
 	    else if (CHARACTERP (ch))
-	      c = XFASTINT (ch);
+	      c = XFIXNUM (ch);
 	    if (c >= 0)
 	      {
 		int w = CHARACTER_WIDTH (c);
@@ -318,9 +318,9 @@ usage: (char-width CHAR)  */)
   ptrdiff_t width;
 
   CHECK_CHARACTER (ch);
-  c = XINT (ch);
+  c = XFIXNUM (ch);
   width = char_width (c, buffer_display_table ());
-  return make_number (width);
+  return make_fixnum (width);
 }
 
 /* Return width of string STR of length LEN when displayed in the
@@ -861,7 +861,7 @@ usage: (string &rest CHARACTERS)  */)
   for (i = 0; i < n; i++)
     {
       CHECK_CHARACTER (args[i]);
-      c = XINT (args[i]);
+      c = XFIXNUM (args[i]);
       p += CHAR_STRING (c, p);
     }
 
@@ -884,7 +884,7 @@ usage: (unibyte-string &rest BYTES)  */)
   for (i = 0; i < n; i++)
     {
       CHECK_RANGED_INTEGER (args[i], 0, 255);
-      *p++ = XINT (args[i]);
+      *p++ = XFIXNUM (args[i]);
     }
 
   str = make_string_from_bytes ((char *) buf, n, p - buf);
@@ -902,9 +902,9 @@ usage: (char-resolve-modifiers CHAR)  */)
 {
   EMACS_INT c;
 
-  CHECK_NUMBER (character);
-  c = XINT (character);
-  return make_number (char_resolve_modifier_mask (c));
+  CHECK_FIXNUM (character);
+  c = XFIXNUM (character);
+  return make_fixnum (char_resolve_modifier_mask (c));
 }
 
 DEFUN ("get-byte", Fget_byte, Sget_byte, 0, 2, 0,
@@ -931,14 +931,14 @@ character is not ASCII nor 8-bit character, an error is signaled.  */)
 	}
       else
 	{
-	  CHECK_NUMBER_COERCE_MARKER (position);
-	  if (XINT (position) < BEGV || XINT (position) >= ZV)
-	    args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
-	  pos = XFASTINT (position);
+	  CHECK_FIXNUM_COERCE_MARKER (position);
+	  if (XFIXNUM (position) < BEGV || XFIXNUM (position) >= ZV)
+	    args_out_of_range_3 (position, make_fixnum (BEGV), make_fixnum (ZV));
+	  pos = XFIXNAT (position);
 	  p = CHAR_POS_ADDR (pos);
 	}
       if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	return make_number (*p);
+	return make_fixnum (*p);
     }
   else
     {
@@ -949,21 +949,21 @@ character is not ASCII nor 8-bit character, an error is signaled.  */)
 	}
       else
 	{
-	  CHECK_NATNUM (position);
-	  if (XINT (position) >= SCHARS (string))
+	  CHECK_FIXNAT (position);
+	  if (XFIXNUM (position) >= SCHARS (string))
 	    args_out_of_range (string, position);
-	  pos = XFASTINT (position);
+	  pos = XFIXNAT (position);
 	  p = SDATA (string) + string_char_to_byte (string, pos);
 	}
       if (! STRING_MULTIBYTE (string))
-	return make_number (*p);
+	return make_fixnum (*p);
     }
   c = STRING_CHAR (p);
   if (CHAR_BYTE8_P (c))
     c = CHAR_TO_BYTE8 (c);
   else if (! ASCII_CHAR_P (c))
     error ("Not an ASCII nor an 8-bit character: %d", c);
-  return make_number (c);
+  return make_fixnum (c);
 }
 
 /* Return true if C is an alphabetic character.  */
@@ -971,9 +971,9 @@ bool
 alphabeticp (int c)
 {
   Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
-  if (! INTEGERP (category))
+  if (! FIXNUMP (category))
     return false;
-  EMACS_INT gen_cat = XINT (category);
+  EMACS_INT gen_cat = XFIXNUM (category);
 
   /* See UTS #18.  There are additional characters that should be
      here, those designated as Other_uppercase, Other_lowercase,
@@ -994,9 +994,9 @@ bool
 alphanumericp (int c)
 {
   Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
-  if (! INTEGERP (category))
+  if (! FIXNUMP (category))
     return false;
-  EMACS_INT gen_cat = XINT (category);
+  EMACS_INT gen_cat = XFIXNUM (category);
 
   /* See UTS #18.  Same comment as for alphabeticp applies.  FIXME. */
   return (gen_cat == UNICODE_CATEGORY_Lu
@@ -1016,9 +1016,9 @@ bool
 graphicp (int c)
 {
   Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
-  if (! INTEGERP (category))
+  if (! FIXNUMP (category))
     return false;
-  EMACS_INT gen_cat = XINT (category);
+  EMACS_INT gen_cat = XFIXNUM (category);
 
   /* See UTS #18.  */
   return (!(gen_cat == UNICODE_CATEGORY_Zs /* space separator */
@@ -1034,9 +1034,9 @@ bool
 printablep (int c)
 {
   Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
-  if (! INTEGERP (category))
+  if (! FIXNUMP (category))
     return false;
-  EMACS_INT gen_cat = XINT (category);
+  EMACS_INT gen_cat = XFIXNUM (category);
 
   /* See UTS #18.  */
   return (!(gen_cat == UNICODE_CATEGORY_Cc /* control */
@@ -1050,10 +1050,10 @@ bool
 blankp (int c)
 {
   Lisp_Object category = CHAR_TABLE_REF (Vunicode_category_table, c);
-  if (! INTEGERP (category))
+  if (! FIXNUMP (category))
     return false;
 
-  return XINT (category) == UNICODE_CATEGORY_Zs; /* separator, space */
+  return XFIXNUM (category) == UNICODE_CATEGORY_Zs; /* separator, space */
 }
 
 
@@ -1124,7 +1124,7 @@ syms_of_character (void)
 Vector recording all translation tables ever defined.
 Each element is a pair (SYMBOL . TABLE) relating the table to the
 symbol naming it.  The ID of a translation table is an index into this vector.  */);
-  Vtranslation_table_vector = Fmake_vector (make_number (16), Qnil);
+  Vtranslation_table_vector = Fmake_vector (make_fixnum (16), Qnil);
 
   DEFVAR_LISP ("auto-fill-chars", Vauto_fill_chars,
 	       doc: /*
@@ -1137,26 +1137,26 @@ Such characters have value t in this table.  */);
   DEFVAR_LISP ("char-width-table", Vchar_width_table,
 	       doc: /*
 A char-table for width (columns) of each character.  */);
-  Vchar_width_table = Fmake_char_table (Qnil, make_number (1));
-  char_table_set_range (Vchar_width_table, 0x80, 0x9F, make_number (4));
+  Vchar_width_table = Fmake_char_table (Qnil, make_fixnum (1));
+  char_table_set_range (Vchar_width_table, 0x80, 0x9F, make_fixnum (4));
   char_table_set_range (Vchar_width_table, MAX_5_BYTE_CHAR + 1, MAX_CHAR,
-			make_number (4));
+			make_fixnum (4));
 
   DEFVAR_LISP ("printable-chars", Vprintable_chars,
 	       doc: /* A char-table for each printable character.  */);
   Vprintable_chars = Fmake_char_table (Qnil, Qnil);
   Fset_char_table_range (Vprintable_chars,
-			 Fcons (make_number (32), make_number (126)), Qt);
+			 Fcons (make_fixnum (32), make_fixnum (126)), Qt);
   Fset_char_table_range (Vprintable_chars,
-			 Fcons (make_number (160),
-				make_number (MAX_5_BYTE_CHAR)), Qt);
+			 Fcons (make_fixnum (160),
+				make_fixnum (MAX_5_BYTE_CHAR)), Qt);
 
   DEFVAR_LISP ("char-script-table", Vchar_script_table,
 	       doc: /* Char table of script symbols.
 It has one extra slot whose value is a list of script symbols.  */);
 
   DEFSYM (Qchar_script_table, "char-script-table");
-  Fput (Qchar_script_table, Qchar_table_extra_slots, make_number (1));
+  Fput (Qchar_script_table, Qchar_table_extra_slots, make_fixnum (1));
   Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);
 
   DEFVAR_LISP ("script-representative-chars", Vscript_representative_chars,

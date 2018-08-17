@@ -1117,7 +1117,9 @@ find_tty (const char **tty_type, const char **tty_name, int noabort)
 	}
     }
 
-  if (strcmp (type, "eterm") == 0)
+  const char *inside_emacs = egetenv ("INSIDE_EMACS");
+  if (inside_emacs && strstr (inside_emacs, ",term:")
+      && strprefix ("eterm", type))
     {
       if (noabort)
 	return 0;

@@ -763,6 +763,47 @@ The highlighting should remain enabled."
    (ert-simulate-command '(forward-line)) ; Now on first done item.
    (should (eq 'hl-line (get-char-property (point) 'face)))))
 
+(ert-deftest todo-test-current-file-in-edit-mode ()
+  "Test the value of todo-current-todo-file in todo-edit-mode."
+  (with-todo-test
+   (todo-test--show 1)
+   ;; The preceding call todo-mode but does not run pre-command-hook
+   ;; in the test environment, thus failing to set
+   ;; todo-global-current-todo-file, which is needed for the test
+   ;; after todo-edit-item--text.  So force the hook function to run.
+   (ert-simulate-command '(todo-mode))
+   (let ((curfile todo-current-todo-file))
+     (should (equal curfile todo-test-file-1))
+     (todo-edit-item--text 'multiline)
+     (should (equal todo-current-todo-file curfile))
+     (todo-edit-quit)
+     (todo-edit-file)
+     (should (equal todo-current-todo-file curfile))
+     (todo-edit-quit))
+   (todo-find-archive)
+   (let ((curfile todo-current-todo-file))
+     (should (equal curfile todo-test-archive-1))
+     (todo-edit-file)
+     (should (equal todo-current-todo-file curfile)))))
+
+(ert-deftest todo-test-edit-quit ()
+  "Test result of exiting todo-edit-mode on a whole file.
+Exiting should return to the same todo-mode or todo-archive-mode
+buffer from which the editing command was invoked."
+  (with-todo-test
+   (todo-test--show 1)
+   (let ((buf (current-buffer)))
+     (todo-edit-file)
+     (todo-edit-quit)
+     (should (eq (current-buffer) buf))
+     (should (eq major-mode 'todo-mode))
+   (todo-find-archive)
+   (let ((buf (current-buffer)))
+     (todo-edit-file)
+     (todo-edit-quit)
+     (should (eq (current-buffer) buf))
+     (should (eq major-mode 'todo-archive-mode))))))
+
 
 (provide 'todo-mode-tests)
 ;;; todo-mode-tests.el ends here

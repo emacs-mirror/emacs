@@ -604,4 +604,24 @@
   (should (equal 1 (string-distance "ab" "a我b")))
   (should (equal 1 (string-distance "我" "她"))))
 
+(ert-deftest test-bignum-eql ()
+  "Test that `eql' works for bignums."
+  (let ((x (+ most-positive-fixnum 1))
+        (y (+ most-positive-fixnum 1)))
+    (should (eq x x))
+    (should (eql x y))
+    (should (equal x y))
+    (should-not (eql x 0.0e+NaN))))
+
+(ert-deftest test-bignum-hash ()
+  "Test that hash tables work for bignums."
+  ;; Make two bignums that are eql but not eq.
+  (let ((b1 (1+ most-positive-fixnum))
+        (b2 (1+ most-positive-fixnum)))
+    (dolist (test '(eq eql equal))
+      (let ((hash (make-hash-table :test test)))
+        (puthash b1 t hash)
+        (should (eq (gethash b2 hash)
+                    (funcall test b1 b2)))))))
+
 (provide 'fns-tests)

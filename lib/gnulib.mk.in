@@ -238,6 +238,8 @@ GL_GENERATE_STDALIGN_H = @GL_GENERATE_STDALIGN_H@
 GL_GENERATE_STDDEF_H = @GL_GENERATE_STDDEF_H@
 GL_GENERATE_STDINT_H = @GL_GENERATE_STDINT_H@
 GMALLOC_OBJ = @GMALLOC_OBJ@
+GMP_LIB = @GMP_LIB@
+GMP_OBJ = @GMP_OBJ@
 GNULIB_ALPHASORT = @GNULIB_ALPHASORT@
 GNULIB_ATOLL = @GNULIB_ATOLL@
 GNULIB_CALLOC_POSIX = @GNULIB_CALLOC_POSIX@
@@ -1720,7 +1722,7 @@ BUILT_SOURCES += $(GETOPT_H) $(GETOPT_CDEFS_H)
 
 # We need the following in order to create <getopt.h> when the system
 # doesn't have one that works with the given compiler.
-getopt.h: getopt.in.h $(top_builddir)/config.status
+getopt.h: getopt.in.h $(top_builddir)/config.status $(ARG_NONNULL_H)
 	$(AM_V_GEN)rm -f $@-t $@ && \
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \

@@ -7042,8 +7042,8 @@ system_process_attributes (Lisp_Object pid)
   double pcpu;
   BOOL result = FALSE;
 
-  CHECK_NUMBER_OR_FLOAT (pid);
-  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XINT (pid);
+  CHECK_FIXNUM_OR_FLOAT (pid);
+  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XFIXNUM (pid);
 
   h_snapshot = create_toolhelp32_snapshot (TH32CS_SNAPPROCESS, 0);
 
@@ -7074,7 +7074,7 @@ system_process_attributes (Lisp_Object pid)
 	      attrs = Fcons (Fcons (Qppid,
 				    make_fixnum_or_float (pe.th32ParentProcessID)),
 			     attrs);
-	      attrs = Fcons (Fcons (Qpri, make_number (pe.pcPriClassBase)),
+	      attrs = Fcons (Fcons (Qpri, make_fixnum (pe.pcPriClassBase)),
 			     attrs);
 	      attrs = Fcons (Fcons (Qthcount,
 				    make_fixnum_or_float (pe.cntThreads)),
@@ -9214,7 +9214,7 @@ network_interface_get_info (Lisp_Object ifname)
 			 res);
 	  else if (strcmp (namebuf, SSDATA (ifname)) == 0)
 	    {
-	      Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
+	      Lisp_Object hwaddr = Fmake_vector (make_fixnum (6), Qnil);
 	      register struct Lisp_Vector *p = XVECTOR (hwaddr);
 	      Lisp_Object flags = Qnil;
 	      int n;
@@ -9243,11 +9243,11 @@ network_interface_get_info (Lisp_Object ifname)
 
 	      /* Hardware address and its family.  */
 	      for (n = 0; n < adapter->AddressLength; n++)
-		p->contents[n] = make_number ((int) adapter->Address[n]);
+		p->contents[n] = make_fixnum ((int) adapter->Address[n]);
 	      /* Windows does not support AF_LINK or AF_PACKET family
 		 of addresses.  Use an arbitrary family number that is
 		 identical to what GNU/Linux returns.  */
-	      res = Fcons (Fcons (make_number (1), hwaddr), res);
+	      res = Fcons (Fcons (make_fixnum (1), hwaddr), res);
 
 	      /* Network mask.  */
 	      sa.sin_family = AF_INET;
@@ -9309,9 +9309,9 @@ network_interface_get_info (Lisp_Object ifname)
 					 Fcons (intern ("up"), Qnil))), Qnil);
 	      /* 772 is what 3 different GNU/Linux systems report for
 		 the loopback interface.  */
-	      res = Fcons (Fcons (make_number (772),
-				  Fmake_vector (make_number (6),
-						make_number (0))),
+	      res = Fcons (Fcons (make_fixnum (772),
+				  Fmake_vector (make_fixnum (6),
+						make_fixnum (0))),
 			   res);
 	      sa.sin_addr.s_addr = sys_inet_addr ("255.0.0.0");
 	      res = Fcons (conv_sockaddr_to_lisp ((struct sockaddr *) &sa,
@@ -9358,7 +9358,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
   DWORD vsize, vtype;
   LPBYTE pvalue;
   Lisp_Object val, retval;
-  const char *key, *value_name;
+  const char *key, *value_name = NULL;
   /* The following sizes are according to size limitations
      documented in MSDN.  */
   wchar_t key_w[255+1];
@@ -9456,7 +9456,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
 
 	  val = make_uninit_vector (vsize);
 	  for (i = 0; i < vsize; i++)
-	    ASET (val, i, make_number (dbuf[i]));
+	    ASET (val, i, make_fixnum (dbuf[i]));
 
 	  retval = val;
 	  break;
@@ -10106,8 +10106,8 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
     tem = Fplist_get (contact, QCspeed);
   else
     tem = Fplist_get (p->childp, QCspeed);
-  CHECK_NUMBER (tem);
-  dcb.BaudRate = XINT (tem);
+  CHECK_FIXNUM (tem);
+  dcb.BaudRate = XFIXNUM (tem);
   childp2 = Fplist_put (childp2, QCspeed, tem);
 
   /* Configure bytesize.  */
@@ -10116,12 +10116,12 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   else
     tem = Fplist_get (p->childp, QCbytesize);
   if (NILP (tem))
-    tem = make_number (8);
-  CHECK_NUMBER (tem);
-  if (XINT (tem) != 7 && XINT (tem) != 8)
+    tem = make_fixnum (8);
+  CHECK_FIXNUM (tem);
+  if (XFIXNUM (tem) != 7 && XFIXNUM (tem) != 8)
     error (":bytesize must be nil (8), 7, or 8");
-  dcb.ByteSize = XINT (tem);
-  summary[0] = XINT (tem) + '0';
+  dcb.ByteSize = XFIXNUM (tem);
+  summary[0] = XFIXNUM (tem) + '0';
   childp2 = Fplist_put (childp2, QCbytesize, tem);
 
   /* Configure parity.  */
@@ -10160,14 +10160,14 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   else
     tem = Fplist_get (p->childp, QCstopbits);
   if (NILP (tem))
-    tem = make_number (1);
-  CHECK_NUMBER (tem);
-  if (XINT (tem) != 1 && XINT (tem) != 2)
+    tem = make_fixnum (1);
+  CHECK_FIXNUM (tem);
+  if (XFIXNUM (tem) != 1 && XFIXNUM (tem) != 2)
     error (":stopbits must be nil (1 stopbit), 1, or 2");
-  summary[2] = XINT (tem) + '0';
-  if (XINT (tem) == 1)
+  summary[2] = XFIXNUM (tem) + '0';
+  if (XFIXNUM (tem) == 1)
     dcb.StopBits = ONESTOPBIT;
-  else if (XINT (tem) == 2)
+  else if (XFIXNUM (tem) == 2)
     dcb.StopBits = TWOSTOPBITS;
   childp2 = Fplist_put (childp2, QCstopbits, tem);
 

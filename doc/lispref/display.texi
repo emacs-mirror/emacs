@@ -3498,11 +3498,15 @@ cons @code{(@var{from} . @var{to})}, where @var{from} and @var{to} are
 character codepoints.  In that case, use @var{font-spec} for all the
 characters in the range @var{from} and @var{to} (inclusive).
 
-@var{character} may be a charset.  In that case, use
-@var{font-spec} for all character in the charsets.
+@var{character} may be a charset (@pxref{Character Sets}).  In that
+case, use @var{font-spec} for all the characters in the charset.
 
-@var{character} may be a script name.  In that case, use
-@var{font-spec} for all character in the charsets.
+@var{character} may be a script name (@pxref{Character Properties}).
+In that case, use @var{font-spec} for all the characters belonging to
+the script.
+
+@var{character} may be @code{nil}, which means to use @var{font-spec}
+for any character which no font-spec is specified.
 
 @var{font-spec} may be a font-spec object created by the function
 @code{font-spec} (@pxref{Low-Level Font}).
@@ -3512,7 +3516,7 @@ where @var{family} is a family name of a font (possibly including a
 foundry name at the head), @var{registry} is a registry name of a font
 (possibly including an encoding name at the tail).
 
-@var{font-spec} may be a font name string.
+@var{font-spec} may be a font name, a string.
 
 @var{font-spec} may be @code{nil}, which explicitly specifies that
 there's no font for the specified @var{character}.  This is useful,

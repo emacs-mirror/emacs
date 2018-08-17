@@ -691,7 +691,7 @@ This function does not grok magic file names.  */)
   memset (data + prefix_len, 'X', nX);
   memcpy (data + prefix_len + nX, SSDATA (encoded_suffix), suffix_len);
   int kind = (NILP (dir_flag) ? GT_FILE
-	      : EQ (dir_flag, make_number (0)) ? GT_NOCREATE
+	      : EQ (dir_flag, make_fixnum (0)) ? GT_NOCREATE
 	      : GT_DIR);
   int fd = gen_tempname (data, suffix_len, O_BINARY | O_CLOEXEC, kind);
   bool failed = fd < 0;
@@ -732,7 +732,7 @@ later creating the file, which opens all kinds of security holes.
 For that reason, you should normally use `make-temp-file' instead.  */)
   (Lisp_Object prefix)
 {
-  return Fmake_temp_file_internal (prefix, make_number (0),
+  return Fmake_temp_file_internal (prefix, make_fixnum (0),
 				   empty_unibyte_string, Qnil);
 }
 
@@ -1945,9 +1945,9 @@ permissions.  */)
 
 #ifdef WINDOWSNT
   if (NILP (ok_if_already_exists)
-      || INTEGERP (ok_if_already_exists))
+      || FIXNUMP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, false, "copy to it",
-				  INTEGERP (ok_if_already_exists), false);
+				  FIXNUMP (ok_if_already_exists), false);
 
   result = w32_copy_file (SSDATA (encoded_file), SSDATA (encoded_newname),
 			  !NILP (keep_time), !NILP (preserve_uid_gid),
@@ -2002,9 +2002,9 @@ permissions.  */)
 		    new_mask);
   if (ofd < 0 && errno == EEXIST)
     {
-      if (NILP (ok_if_already_exists) || INTEGERP (ok_if_already_exists))
+      if (NILP (ok_if_already_exists) || FIXNUMP (ok_if_already_exists))
 	barf_or_query_if_file_exists (newname, true, "copy to it",
-				      INTEGERP (ok_if_already_exists), false);
+				      FIXNUMP (ok_if_already_exists), false);
       already_exists = true;
       ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY, 0);
     }
@@ -2365,7 +2365,7 @@ This is what happens in interactive use with M-x.  */)
 
   bool plain_rename = (case_only_rename
 		       || (!NILP (ok_if_already_exists)
-			   && !INTEGERP (ok_if_already_exists)));
+			   && !FIXNUMP (ok_if_already_exists)));
   int rename_errno UNINIT;
   if (!plain_rename)
     {
@@ -2383,7 +2383,7 @@ This is what happens in interactive use with M-x.  */)
 #endif
 	  barf_or_query_if_file_exists (newname, rename_errno == EEXIST,
 					"rename to it",
-					INTEGERP (ok_if_already_exists),
+					FIXNUMP (ok_if_already_exists),
 					false);
 	  plain_rename = true;
 	  break;
@@ -2476,9 +2476,9 @@ This is what happens in interactive use with M-x.  */)
   if (errno == EEXIST)
     {
       if (NILP (ok_if_already_exists)
-	  || INTEGERP (ok_if_already_exists))
+	  || FIXNUMP (ok_if_already_exists))
 	barf_or_query_if_file_exists (newname, true, "make it a new name",
-				      INTEGERP (ok_if_already_exists), false);
+				      FIXNUMP (ok_if_already_exists), false);
       unlink (SSDATA (newname));
       if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) == 0)
 	return Qnil;
@@ -2504,12 +2504,12 @@ This happens for interactive use with M-x.  */)
   Lisp_Object encoded_target, encoded_linkname;
 
   CHECK_STRING (target);
-  if (INTEGERP (ok_if_already_exists))
+  if (FIXNUMP (ok_if_already_exists))
     {
       if (SREF (target, 0) == '~')
 	target = Fexpand_file_name (target, Qnil);
       else if (SREF (target, 0) == '/' && SREF (target, 1) == ':')
-	target = Fsubstring_no_properties (target, make_number (2), Qnil);
+	target = Fsubstring_no_properties (target, make_fixnum (2), Qnil);
     }
   linkname = expand_cp_target (target, linkname);
 
@@ -2533,9 +2533,9 @@ This happens for interactive use with M-x.  */)
   if (errno == EEXIST)
     {
       if (NILP (ok_if_already_exists)
-	  || INTEGERP (ok_if_already_exists))
+	  || FIXNUMP (ok_if_already_exists))
 	barf_or_query_if_file_exists (linkname, true, "make it a link",
-				      INTEGERP (ok_if_already_exists), false);
+				      FIXNUMP (ok_if_already_exists), false);
       unlink (SSDATA (encoded_linkname));
       if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) == 0)
 	return Qnil;
@@ -3191,7 +3191,7 @@ Return nil, if file does not exist or is not accessible.  */)
   if (stat (SSDATA (absname), &st) < 0)
     return Qnil;
 
-  return make_number (st.st_mode & 07777);
+  return make_fixnum (st.st_mode & 07777);
 }
 
 DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
@@ -3208,7 +3208,7 @@ symbolic notation, like the `chmod' command from GNU Coreutils.  */)
   Lisp_Object handler;
 
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
-  CHECK_NUMBER (mode);
+  CHECK_FIXNUM (mode);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -3218,7 +3218,7 @@ symbolic notation, like the `chmod' command from GNU Coreutils.  */)
 
   encoded_absname = ENCODE_FILE (absname);
 
-  if (chmod (SSDATA (encoded_absname), XINT (mode) & 07777) < 0)
+  if (chmod (SSDATA (encoded_absname), XFIXNUM (mode) & 07777) < 0)
     report_file_error ("Doing chmod", absname);
 
   return Qnil;
@@ -3239,9 +3239,9 @@ by having the corresponding bit in the mask reset.  */)
   (Lisp_Object mode)
 {
   mode_t oldrealmask, oldumask, newumask;
-  CHECK_NUMBER (mode);
+  CHECK_FIXNUM (mode);
   oldrealmask = realmask;
-  newumask = ~ XINT (mode) & 0777;
+  newumask = ~ XFIXNUM (mode) & 0777;
 
   block_input ();
   realmask = newumask;
@@ -3401,12 +3401,12 @@ verify (alignof (union read_non_regular) % GCALIGNMENT == 0);
 static Lisp_Object
 read_non_regular (Lisp_Object state)
 {
-  union read_non_regular *data = XINTPTR (state);
+  union read_non_regular *data = XFIXNUMPTR (state);
   int nbytes = emacs_read_quit (data->s.fd,
 				((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
 				 + data->s.inserted),
 				data->s.trytry);
-  return make_number (nbytes);
+  return make_fixnum (nbytes);
 }
 
 
@@ -3424,8 +3424,8 @@ read_non_regular_quit (Lisp_Object ignore)
 static off_t
 file_offset (Lisp_Object val)
 {
-  if (RANGED_INTEGERP (0, val, TYPE_MAXIMUM (off_t)))
-    return XINT (val);
+  if (RANGED_FIXNUMP (0, val, TYPE_MAXIMUM (off_t)))
+    return XFIXNUM (val);
 
   if (FLOATP (val))
     {
@@ -3484,16 +3484,16 @@ restore_window_points (Lisp_Object window_markers, ptrdiff_t inserted,
 	Lisp_Object car = XCAR (window_markers);
 	Lisp_Object marker = XCAR (car);
 	Lisp_Object oldpos = XCDR (car);
-	if (MARKERP (marker) && INTEGERP (oldpos)
-	    && XINT (oldpos) > same_at_start
-	    && XINT (oldpos) < same_at_end)
+	if (MARKERP (marker) && FIXNUMP (oldpos)
+	    && XFIXNUM (oldpos) > same_at_start
+	    && XFIXNUM (oldpos) < same_at_end)
 	  {
 	    ptrdiff_t oldsize = same_at_end - same_at_start;
 	    ptrdiff_t newsize = inserted;
 	    double growth = newsize / (double)oldsize;
 	    ptrdiff_t newpos
-	      = same_at_start + growth * (XINT (oldpos) - same_at_start);
-	    Fset_marker (marker, make_number (newpos), Qnil);
+	      = same_at_start + growth * (XFIXNUM (oldpos) - same_at_start);
+	    Fset_marker (marker, make_fixnum (newpos), Qnil);
 	  }
       }
 }
@@ -3606,8 +3606,8 @@ by calling `format-decode', which see.  */)
       val = call6 (handler, Qinsert_file_contents, filename,
 		   visit, beg, end, replace);
       if (CONSP (val) && CONSP (XCDR (val))
-	  && RANGED_INTEGERP (0, XCAR (XCDR (val)), ZV - PT))
-	inserted = XINT (XCAR (XCDR (val)));
+	  && RANGED_FIXNUMP (0, XCAR (XCDR (val)), ZV - PT))
+	inserted = XFIXNUM (XCAR (XCDR (val)));
       goto handled;
     }
 
@@ -3792,7 +3792,7 @@ by calling `format-decode', which see.  */)
 		  insert_1_both ((char *) read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 		  coding_system = call2 (Vset_auto_coding_function,
-					 filename, make_number (nread));
+					 filename, make_fixnum (nread));
 		  set_buffer_internal (prev);
 
 		  /* Discard the unwind protect for recovering the
@@ -4271,7 +4271,7 @@ by calling `format-decode', which see.  */)
 		break;
 	      }
 
-	    this = XINT (nbytes);
+	    this = XFIXNUM (nbytes);
 	  }
 	else
 	  {
@@ -4367,7 +4367,7 @@ by calling `format-decode', which see.  */)
 	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
 	    {
 	      coding_system = call2 (Vset_auto_coding_function,
-				     filename, make_number (inserted));
+				     filename, make_fixnum (inserted));
 	    }
 
 	  if (NILP (coding_system))
@@ -4486,13 +4486,13 @@ by calling `format-decode', which see.  */)
 
   if (! NILP (Ffboundp (Qafter_insert_file_set_coding)))
     {
-      insval = call2 (Qafter_insert_file_set_coding, make_number (inserted),
+      insval = call2 (Qafter_insert_file_set_coding, make_fixnum (inserted),
 		      visit);
       if (! NILP (insval))
 	{
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 	    wrong_type_argument (intern ("inserted-chars"), insval);
-	  inserted = XFASTINT (insval);
+	  inserted = XFIXNAT (insval);
 	}
     }
 
@@ -4512,10 +4512,10 @@ by calling `format-decode', which see.  */)
       if (NILP (replace))
 	{
 	  insval = call3 (Qformat_decode,
-			  Qnil, make_number (inserted), visit);
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+			  Qnil, make_fixnum (inserted), visit);
+	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 	    wrong_type_argument (intern ("inserted-chars"), insval);
-	  inserted = XFASTINT (insval);
+	  inserted = XFIXNAT (insval);
 	}
       else
 	{
@@ -4535,8 +4535,8 @@ by calling `format-decode', which see.  */)
 
 	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
 	  insval = call3 (Qformat_decode,
-			  Qnil, make_number (oinserted), visit);
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+			  Qnil, make_fixnum (oinserted), visit);
+	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 	    wrong_type_argument (intern ("inserted-chars"), insval);
 	  if (ochars_modiff == CHARS_MODIFF)
 	    /* format_decode didn't modify buffer's characters => move
@@ -4546,7 +4546,7 @@ by calling `format-decode', which see.  */)
 	  else
 	    /* format_decode modified buffer's characters => consider
 	       entire buffer changed and leave point at point-min.  */
-	    inserted = XFASTINT (insval);
+	    inserted = XFIXNAT (insval);
 	}
 
       /* For consistency with format-decode call these now iff inserted > 0
@@ -4556,12 +4556,12 @@ by calling `format-decode', which see.  */)
 	{
 	  if (NILP (replace))
 	    {
-	      insval = call1 (XCAR (p), make_number (inserted));
+	      insval = call1 (XCAR (p), make_fixnum (inserted));
 	      if (!NILP (insval))
 		{
-		  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+		  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 		    wrong_type_argument (intern ("inserted-chars"), insval);
-		  inserted = XFASTINT (insval);
+		  inserted = XFIXNAT (insval);
 		}
 	    }
 	  else
@@ -4574,10 +4574,10 @@ by calling `format-decode', which see.  */)
 	      EMACS_INT ochars_modiff = CHARS_MODIFF;
 
 	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
-	      insval = call1 (XCAR (p), make_number (oinserted));
+	      insval = call1 (XCAR (p), make_fixnum (oinserted));
 	      if (!NILP (insval))
 		{
-		  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+		  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 		    wrong_type_argument (intern ("inserted-chars"), insval);
 		  if (ochars_modiff == CHARS_MODIFF)
 		    /* after_insert_file_functions didn't modify
@@ -4589,7 +4589,7 @@ by calling `format-decode', which see.  */)
 		    /* after_insert_file_functions did modify buffer's
 	               characters => consider entire buffer changed and
 	               leave point at point-min.  */
-		    inserted = XFASTINT (insval);
+		    inserted = XFIXNAT (insval);
 		}
 	    }
 
@@ -4605,10 +4605,10 @@ by calling `format-decode', which see.  */)
 	      /* Adjust the last undo record for the size change during
 		 the format conversion.  */
 	      Lisp_Object tem = XCAR (old_undo);
-	      if (CONSP (tem) && INTEGERP (XCAR (tem))
-		  && INTEGERP (XCDR (tem))
-		  && XFASTINT (XCDR (tem)) == PT + old_inserted)
-		XSETCDR (tem, make_number (PT + inserted));
+	      if (CONSP (tem) && FIXNUMP (XCAR (tem))
+		  && FIXNUMP (XCDR (tem))
+		  && XFIXNAT (XCDR (tem)) == PT + old_inserted)
+		XSETCDR (tem, make_fixnum (PT + inserted));
 	    }
 	}
       else
@@ -4643,7 +4643,7 @@ by calling `format-decode', which see.  */)
 
   /* Retval needs to be dealt with in all cases consistently.  */
   if (NILP (val))
-    val = list2 (orig_filename, make_number (inserted));
+    val = list2 (orig_filename, make_fixnum (inserted));
 
   return unbind_to (count, val);
 }
@@ -4946,7 +4946,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   fn = SSDATA (encoded_filename);
   open_flags = O_WRONLY | O_CREAT;
   open_flags |= EQ (mustbenew, Qexcl) ? O_EXCL : !NILP (append) ? 0 : O_TRUNC;
-  if (NUMBERP (append))
+  if (FIXED_OR_FLOATP (append))
     offset = file_offset (append);
   else if (!NILP (append))
     open_flags |= O_APPEND;
@@ -4971,7 +4971,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       record_unwind_protect_int (close_file_unwind, desc);
     }
 
-  if (NUMBERP (append))
+  if (FIXED_OR_FLOATP (append))
     {
       off_t ret = lseek (desc, offset, SEEK_SET);
       if (ret < 0)
@@ -4985,14 +4985,14 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 
   if (STRINGP (start))
     ok = a_write (desc, start, 0, SCHARS (start), &annotations, &coding);
-  else if (XINT (start) != XINT (end))
-    ok = a_write (desc, Qnil, XINT (start), XINT (end) - XINT (start),
+  else if (XFIXNUM (start) != XFIXNUM (end))
+    ok = a_write (desc, Qnil, XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
 		  &annotations, &coding);
   else
     {
       /* If file was empty, still need to write the annotations.  */
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      ok = a_write (desc, Qnil, XINT (end), 0, &annotations, &coding);
+      ok = a_write (desc, Qnil, XFIXNUM (end), 0, &annotations, &coding);
     }
   save_errno = errno;
 
@@ -5154,7 +5154,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
     }
 
   if (!auto_saving && !noninteractive)
-    message_with_string ((NUMBERP (append)
+    message_with_string ((FIXED_OR_FLOATP (append)
 			  ? "Updated %s"
 			  : ! NILP (append)
 			  ? "Added to %s"
@@ -5239,7 +5239,7 @@ build_annotations (Lisp_Object start, Lisp_Object end)
          has written annotations to a temporary buffer, which is now
          current.  */
       res = call5 (Qformat_annotate_function, XCAR (p), start, end,
-		   original_buffer, make_number (i));
+		   original_buffer, make_fixnum (i));
       if (current_buffer != given_buffer)
 	{
 	  XSETFASTINT (start, BEGV);
@@ -5278,8 +5278,8 @@ a_write (int desc, Lisp_Object string, ptrdiff_t pos,
     {
       tem = Fcar_safe (Fcar (*annot));
       nextpos = pos - 1;
-      if (INTEGERP (tem))
-	nextpos = XFASTINT (tem);
+      if (FIXNUMP (tem))
+	nextpos = XFIXNAT (tem);
 
       /* If there are no more annotations in this range,
 	 output the rest of the range all at once.  */
@@ -5460,7 +5460,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
 {
   int ns = current_buffer->modtime.tv_nsec;
   if (ns < 0)
-    return make_number (UNKNOWN_MODTIME_NSECS - ns);
+    return make_fixnum (UNKNOWN_MODTIME_NSECS - ns);
   return make_lisp_time (current_buffer->modtime);
 }
 
@@ -5478,10 +5478,10 @@ An argument specifies the modification time value to use
   if (!NILP (time_flag))
     {
       struct timespec mtime;
-      if (INTEGERP (time_flag))
+      if (FIXNUMP (time_flag))
 	{
 	  CHECK_RANGED_INTEGER (time_flag, -1, 0);
-	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - XINT (time_flag));
+	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - XFIXNUM (time_flag));
 	}
       else
 	mtime = lisp_time_argument (time_flag);
@@ -5547,9 +5547,9 @@ auto_save_1 (void)
 	/* But make sure we can overwrite it later!  */
 	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
       else if (modes = Ffile_modes (BVAR (current_buffer, filename)),
-	       INTEGERP (modes))
+	       FIXNUMP (modes))
 	/* Remote files don't cooperate with stat.  */
-	auto_save_mode_bits = (XINT (modes) | 0600) & 0777;
+	auto_save_mode_bits = (XFIXNUM (modes) | 0600) & 0777;
     }
 
   return
@@ -5716,7 +5716,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
 	    && BUF_AUTOSAVE_MODIFF (b) < BUF_MODIFF (b)
 	    /* -1 means we've turned off autosaving for a while--see below.  */
-	    && XINT (BVAR (b, save_length)) >= 0
+	    && XFIXNUM (BVAR (b, save_length)) >= 0
 	    && (do_handled_files
 		|| NILP (Ffind_file_name_handler (BVAR (b, auto_save_file_name),
 						  Qwrite_region))))
@@ -5731,11 +5731,11 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 
 	    set_buffer_internal (b);
 	    if (NILP (Vauto_save_include_big_deletions)
-		&& (XFASTINT (BVAR (b, save_length)) * 10
+		&& (XFIXNAT (BVAR (b, save_length)) * 10
 		    > (BUF_Z (b) - BUF_BEG (b)) * 13)
 		/* A short file is likely to change a large fraction;
 		   spare the user annoying messages.  */
-		&& XFASTINT (BVAR (b, save_length)) > 5000
+		&& XFIXNAT (BVAR (b, save_length)) > 5000
 		/* These messages are frequent and annoying for `*mail*'.  */
 		&& !NILP (BVAR (b, filename))
 		&& NILP (no_message))
@@ -5748,7 +5748,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		/* Turn off auto-saving until there's a real save,
 		   and prevent any more warnings.  */
 		XSETINT (BVAR (b, save_length), -1);
-		Fsleep_for (make_number (1), Qnil);
+		Fsleep_for (make_fixnum (1), Qnil);
 		continue;
 	      }
 	    if (!auto_saved && NILP (no_message))
@@ -5777,7 +5777,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	{
 	  /* If we are going to restore an old message,
 	     give time to read ours.  */
-	  sit_for (make_number (1), 0, 0);
+	  sit_for (make_fixnum (1), 0, 0);
 	  restore_message ();
 	}
       else if (!auto_save_error_occurred)

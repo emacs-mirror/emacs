@@ -72,14 +72,14 @@ extern struct Lisp_Char_Table *buffer_display_table (void);
 /* Given BASE and LEN returned by the two previous macros,
    return nonzero if GLYPH code G is aliased to a different code.  */
 #define GLYPH_ALIAS_P(base,len,g) \
-  (GLYPH_FACE (g) == DEFAULT_FACE_ID && GLYPH_CHAR (g) < (len) && INTEGERP (base[GLYPH_CHAR (g)]))
+  (GLYPH_FACE (g) == DEFAULT_FACE_ID && GLYPH_CHAR (g) < (len) && FIXNUMP (base[GLYPH_CHAR (g)]))
 
 /* Follow all aliases for G in the glyph table given by (BASE,
    LENGTH), and set G to the final glyph.  */
 #define GLYPH_FOLLOW_ALIASES(base, length, g)			\
   do {								\
     while (GLYPH_ALIAS_P ((base), (length), (g)))		\
-      SET_GLYPH_CHAR ((g), XINT ((base)[GLYPH_CHAR (g)]));	\
+      SET_GLYPH_CHAR ((g), XFIXNUM ((base)[GLYPH_CHAR (g)]));	\
     if (!GLYPH_CHAR_VALID_P (g))				\
       SET_GLYPH_CHAR (g, ' ');					\
   } while (false)

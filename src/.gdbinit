@@ -649,17 +649,13 @@ define xtype
   xgettype $
   output $type
   echo \n
-  if $type == Lisp_Misc
-    xmisctype
-  else
-    if $type == Lisp_Vectorlike
-      xvectype
-    end
+  if $type == Lisp_Vectorlike
+    xvectype
   end
 end
 document xtype
 Print the type of $, assuming it is an Emacs Lisp value.
-If the first type printed is Lisp_Vector or Lisp_Misc,
+If the first type printed is Lisp_Vectorlike,
 a second line gives the more precise type.
 end
 
@@ -711,15 +707,6 @@ Print the size of $
 This command assumes that $ is a Lisp_Object.
 end
 
-define xmisctype
-  xgetptr $
-  output (enum Lisp_Misc_Type) (((struct Lisp_Free *) $ptr)->type)
-  echo \n
-end
-document xmisctype
-Assume that $ is some misc type and print its specific type.
-end
-
 define xint
   xgetint $
   print $int
@@ -752,15 +739,6 @@ end
 document xoverlay
 Print $ as a overlay pointer.
 This command assumes that $ is an Emacs Lisp overlay value.
-end
-
-define xmiscfree
-  xgetptr $
-  print (struct Lisp_Free *) $ptr
-end
-document xmiscfree
-Print $ as a misc free-cell pointer.
-This command assumes that $ is an Emacs Lisp Misc value.
 end
 
 define xsymbol
@@ -1015,24 +993,18 @@ define xpr
   if $type == Lisp_Float
     xfloat
   end
-  if $type == Lisp_Misc
-    set $misc = (enum Lisp_Misc_Type) (((struct Lisp_Free *) $ptr)->type)
-    if $misc == Lisp_Misc_Free
-      xmiscfree
-    end
-    if $misc == Lisp_Misc_Marker
-      xmarker
-    end
-    if $misc == Lisp_Misc_Overlay
-      xoverlay
-    end
-  end
   if $type == Lisp_Vectorlike
     set $size = ((struct Lisp_Vector *) $ptr)->header.size
     if ($size & PSEUDOVECTOR_FLAG)
       set $vec = (enum pvec_type) (($size & PVEC_TYPE_MASK) >> PSEUDOVECTOR_AREA_BITS)
       if $vec == PVEC_NORMAL_VECTOR
 	xvector
+      end
+      if $vec == PVEC_MARKER
+        xmarker
+      end
+      if $vec == PVEC_OVERLAY
+        xoverlay
       end
       if $vec == PVEC_PROCESS
 	xprocess

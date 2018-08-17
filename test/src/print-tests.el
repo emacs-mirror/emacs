@@ -98,5 +98,11 @@ otherwise, use a different charset."
   (let ((sym '\’bar))
     (should (eq (read (prin1-to-string sym)) sym))))
 
+(ert-deftest print-bignum ()
+  (let* ((str "999999999999999999999999999999999")
+         (val (read str)))
+    (should (> val most-positive-fixnum))
+    (should (equal (prin1-to-string val) str))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here

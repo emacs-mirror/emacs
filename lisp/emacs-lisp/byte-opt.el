@@ -1195,14 +1195,14 @@
 	 window-width zerop))
       (side-effect-and-error-free-fns
        '(arrayp atom
-	 bobp bolp bool-vector-p
+	 bignump bobp bolp bool-vector-p
 	 buffer-end buffer-list buffer-size buffer-string bufferp
 	 car-safe case-table-p cdr-safe char-or-string-p characterp
 	 charsetp commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps current-time
 	 eobp eolp eq equal eventp
-	 floatp following-char framep
+	 fixnump floatp following-char framep
 	 get-largest-window get-lru-window
 	 hash-table-p
 	 identity ignore integerp integer-or-marker-p interactive-p

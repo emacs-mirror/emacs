@@ -137,7 +137,7 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   FT_UInt size;
 
   block_input ();
-  size = XINT (AREF (entity, FONT_SIZE_INDEX));
+  size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
   font_object = font_build_object (VECSIZE (struct ftcrfont_info),

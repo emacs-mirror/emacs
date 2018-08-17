@@ -851,7 +851,7 @@ macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
                                            * ((point->y - (point - 1)->y)
                                               / (point->x - (point - 1)->x)));
               FONT_SET_STYLE (spec_or_entity, numeric_traits[i].index,
-                              make_number (lround (floatval)));
+                              make_fixnum (lround (floatval)));
             }
         }
 
@@ -864,16 +864,16 @@ macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
           cfnumber_get_font_symbolic_traits_value (num, &sym_traits);
           spacing = (sym_traits & kCTFontTraitMonoSpace
                      ? FONT_SPACING_MONO : FONT_SPACING_PROPORTIONAL);
-          ASET (spec_or_entity, FONT_SPACING_INDEX, make_number (spacing));
+          ASET (spec_or_entity, FONT_SPACING_INDEX, make_fixnum (spacing));
         }
 
       CFRelease (dict);
     }
   num = CTFontDescriptorCopyAttribute (desc, kCTFontSizeAttribute);
   if (num && CFNumberGetValue (num, kCFNumberCGFloatType, &floatval))
-    ASET (spec_or_entity, FONT_SIZE_INDEX, make_number (floatval));
+    ASET (spec_or_entity, FONT_SIZE_INDEX, make_fixnum (floatval));
   else
-    ASET (spec_or_entity, FONT_SIZE_INDEX, make_number (0));
+    ASET (spec_or_entity, FONT_SIZE_INDEX, make_fixnum (0));
   if (num)
     CFRelease (num);
 }
@@ -903,22 +903,22 @@ macfont_descriptor_entity (CTFontDescriptorRef desc, Lisp_Object extra,
         cfnumber_get_font_symbolic_traits_value (num, &sym_traits);
       CFRelease (dict);
     }
-  if (EQ (AREF (entity, FONT_SIZE_INDEX), make_number (0)))
-    ASET (entity, FONT_AVGWIDTH_INDEX, make_number (0));
+  if (EQ (AREF (entity, FONT_SIZE_INDEX), make_fixnum (0)))
+    ASET (entity, FONT_AVGWIDTH_INDEX, make_fixnum (0));
   ASET (entity, FONT_EXTRA_INDEX, Fcopy_sequence (extra));
   name = CTFontDescriptorCopyAttribute (desc, kCTFontNameAttribute);
   font_put_extra (entity, QCfont_entity,
 		  Fcons (make_mint_ptr ((void *) name),
-			 make_number (sym_traits)));
+			 make_fixnum (sym_traits)));
   if (synth_sym_traits & kCTFontTraitItalic)
     FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
-                    make_number (FONT_SLANT_SYNTHETIC_ITALIC));
+                    make_fixnum (FONT_SLANT_SYNTHETIC_ITALIC));
   if (synth_sym_traits & kCTFontTraitBold)
     FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
-                    make_number (FONT_WEIGHT_SYNTHETIC_BOLD));
+                    make_fixnum (FONT_WEIGHT_SYNTHETIC_BOLD));
   if (synth_sym_traits & kCTFontTraitMonoSpace)
     ASET (entity, FONT_SPACING_INDEX,
-          make_number (FONT_SPACING_SYNTHETIC_MONO));
+          make_fixnum (FONT_SPACING_SYNTHETIC_MONO));
 
   return entity;
 }
@@ -1798,9 +1798,9 @@ macfont_get_open_type_spec (Lisp_Object otf_spec)
         continue;
       len = Flength (val);
       spec->features[i] =
-        (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < XINT (len)
+        (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < XFIXNUM (len)
          ? 0
-         : malloc (XINT (len) * sizeof *spec->features[i]));
+         : malloc (XFIXNUM (len) * sizeof *spec->features[i]));
       if (! spec->features[i])
         {
           if (i > 0 && spec->features[0])
@@ -1940,9 +1940,9 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
               {
                 UniChar unichars[2];
                 CFIndex count =
-                  macfont_store_utf32char_to_unichars (XFASTINT (XCAR (chars)),
+                  macfont_store_utf32char_to_unichars (XFIXNAT (XCAR (chars)),
                                                        unichars);
-                CFRange range = CFRangeMake (XFASTINT (XCAR (chars)), 1);
+                CFRange range = CFRangeMake (XFIXNAT (XCAR (chars)), 1);
 
                 CFStringAppendCharacters (string, unichars, count);
                 CFCharacterSetAddCharactersInRange (cs, range);
@@ -1981,10 +1981,10 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
   for (i = 0; i < ARRAYELTS (numeric_traits); i++)
     {
       tmp = AREF (spec, numeric_traits[i].index);
-      if (INTEGERP (tmp))
+      if (FIXNUMP (tmp))
         {
           CGPoint *point = numeric_traits[i].points;
-          CGFloat floatval = (XINT (tmp) >> 8); // XXX
+          CGFloat floatval = (XFIXNUM (tmp) >> 8); // XXX
           CFNumberRef num;
 
           while (point->y < floatval)
@@ -2069,9 +2069,9 @@ macfont_supports_charset_and_languages_p (CTFontDescriptorRef desc,
               ptrdiff_t j;
 
               for (j = 0; j < ASIZE (chars); j++)
-                if (TYPE_RANGED_INTEGERP (UTF32Char, AREF (chars, j))
+                if (TYPE_RANGED_FIXNUMP (UTF32Char, AREF (chars, j))
                     && CFCharacterSetIsLongCharacterMember (desc_charset,
-                                                            XFASTINT (AREF (chars, j))))
+                                                            XFIXNAT (AREF (chars, j))))
                   break;
               if (j == ASIZE (chars))
                 result = false;
@@ -2161,8 +2161,8 @@ macfont_list (struct frame *f, Lisp_Object spec)
 
   languages = CFDictionaryGetValue (attributes, kCTFontLanguagesAttribute);
 
-  if (INTEGERP (AREF (spec, FONT_SPACING_INDEX)))
-    spacing = XINT (AREF (spec, FONT_SPACING_INDEX));
+  if (FIXNUMP (AREF (spec, FONT_SPACING_INDEX)))
+    spacing = XFIXNUM (AREF (spec, FONT_SPACING_INDEX));
 
   traits = ((CFMutableDictionaryRef)
             CFDictionaryGetValue (attributes, kCTFontTraitsAttribute));
@@ -2532,9 +2532,9 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
       || ! CONSP (XCDR (val)))
     return Qnil;
   font_name = xmint_pointer (XCAR (XCDR (val)));
-  sym_traits = XINT (XCDR (XCDR (val)));
+  sym_traits = XFIXNUM (XCDR (XCDR (val)));
 
-  size = XINT (AREF (entity, FONT_SIZE_INDEX));
+  size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
 
@@ -2563,7 +2563,7 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
   macfont_info->cgfont = CTFontCopyGraphicsFont (macfont, NULL);
 
   val = assq_no_quit (QCdestination, AREF (entity, FONT_EXTRA_INDEX));
-  if (CONSP (val) && EQ (XCDR (val), make_number (1)))
+  if (CONSP (val) && EQ (XCDR (val), make_fixnum (1)))
     macfont_info->screen_font = mac_screen_font_create_with_name (font_name,
                                                                   size);
   else
@@ -2584,8 +2584,8 @@ macfont_open (struct frame * f, Lisp_Object entity, int pixel_size)
     macfont_info->synthetic_bold_p = 1;
   if (sym_traits & kCTFontTraitMonoSpace)
     macfont_info->spacing = MACFONT_SPACING_MONO;
-  else if (INTEGERP (AREF (entity, FONT_SPACING_INDEX))
-           && (XINT (AREF (entity, FONT_SPACING_INDEX))
+  else if (FIXNUMP (AREF (entity, FONT_SPACING_INDEX))
+           && (XFIXNUM (AREF (entity, FONT_SPACING_INDEX))
                == FONT_SPACING_SYNTHETIC_MONO))
     macfont_info->spacing = MACFONT_SPACING_SYNTHETIC_MONO;
   if (macfont_info->synthetic_italic_p || macfont_info->synthetic_bold_p)
@@ -2992,7 +2992,7 @@ macfont_shape (Lisp_Object lgstring)
 
       if (NILP (lglyph))
         {
-          lglyph = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
+          lglyph = Fmake_vector (make_fixnum (LGLYPH_SIZE), Qnil);
           LGSTRING_SET_GLYPH (lgstring, i, lglyph);
         }
 
@@ -3046,17 +3046,17 @@ macfont_shape (Lisp_Object lgstring)
         {
           Lisp_Object vec;
 
-          vec = Fmake_vector (make_number (3), Qnil);
-          ASET (vec, 0, make_number (xoff));
-          ASET (vec, 1, make_number (yoff));
-          ASET (vec, 2, make_number (wadjust));
+          vec = Fmake_vector (make_fixnum (3), Qnil);
+          ASET (vec, 0, make_fixnum (xoff));
+          ASET (vec, 1, make_fixnum (yoff));
+          ASET (vec, 2, make_fixnum (wadjust));
           LGLYPH_SET_ADJUSTMENT (lglyph, vec);
         }
     }
 
   unblock_input ();
 
-  return make_number (used);
+  return make_fixnum (used);
 }
 
 /* Structures for the UVS subtable (format 14) in the cmap table.  */

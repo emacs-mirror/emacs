@@ -159,7 +159,12 @@ init_json_functions (void)
    than PTRDIFF_MAX.  Such objects wouldn't play well with the rest of
    Emacs's codebase, which generally uses ptrdiff_t for sizes and
    indices.  The other functions in this file also generally assume
-   that size_t values never exceed PTRDIFF_MAX.  */
+   that size_t values never exceed PTRDIFF_MAX.
+
+   In addition, we need to use a custom allocator because on
+   MS-Windows we replace malloc/free with our own functions, see
+   w32heap.c, so we must force the library to use our allocator, or
+   else we won't be able to free storage allocated by the library.  */
 
 static void *
 json_malloc (size_t size)
@@ -284,8 +289,8 @@ json_parse_error (const json_error_t *error)
 #endif
   xsignal (symbol,
            list5 (json_build_string (error->text),
-                  json_build_string (error->source), make_natnum (error->line),
-                  make_natnum (error->column), make_natnum (error->position)));
+                  json_build_string (error->source), make_fixed_natnum (error->line),
+                  make_fixed_natnum (error->column), make_fixed_natnum (error->position)));
 }
 
 static void
@@ -482,10 +487,10 @@ lisp_to_json (Lisp_Object lisp, struct json_configuration *conf)
     return json_check (json_false ());
   else if (EQ (lisp, Qt))
     return json_check (json_true ());
-  else if (INTEGERP (lisp))
+  else if (FIXNUMP (lisp))
     {
       CHECK_TYPE_RANGED_INTEGER (json_int_t, lisp);
-      return json_check (json_integer (XINT (lisp)));
+      return json_check (json_integer (XFIXNUM (lisp)));
     }
   else if (FLOATP (lisp))
     return json_check (json_real (XFLOAT_DATA (lisp)));
@@ -605,7 +610,7 @@ usage: (json-serialize OBJECT &rest ARGS)  */)
   char *string = json_dumps (json, JSON_COMPACT);
   if (string == NULL)
     json_out_of_memory ();
-  record_unwind_protect_ptr (free, string);
+  record_unwind_protect_ptr (json_free, string);
 
   return unbind_to (count, json_build_string (string));
 }
@@ -735,7 +740,7 @@ json_to_lisp (json_t *json, struct json_configuration *conf)
         size_t size = json_array_size (json);
         if (FIXNUM_OVERFLOW_P (size))
           xsignal0 (Qoverflow_error);
-        Lisp_Object result = Fmake_vector (make_natnum (size), Qunbound);
+        Lisp_Object result = Fmake_vector (make_fixed_natnum (size), Qunbound);
         for (ptrdiff_t i = 0; i < size; ++i)
           ASET (result, i,
                 json_to_lisp (json_array_get (json, i), conf));
@@ -755,7 +760,7 @@ json_to_lisp (json_t *json, struct json_configuration *conf)
               if (FIXNUM_OVERFLOW_P (size))
                 xsignal0 (Qoverflow_error);
               result = CALLN (Fmake_hash_table, QCtest, Qequal, QCsize,
-                              make_natnum (size));
+                              make_fixed_natnum (size));
               struct Lisp_Hash_Table *h = XHASH_TABLE (result);
               const char *key_str;
               json_t *value;

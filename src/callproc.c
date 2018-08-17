@@ -83,7 +83,7 @@ static pid_t synch_process_pid;
 #ifdef MSDOS
 static Lisp_Object synch_process_tempfile;
 #else
-# define synch_process_tempfile make_number (0)
+# define synch_process_tempfile make_fixnum (0)
 #endif
 
 /* Indexes of file descriptors that need closing on call_process_kill.  */
@@ -324,7 +324,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 #ifndef subprocesses
   /* Without asynchronous processes we cannot have BUFFER == 0.  */
   if (nargs >= 3
-      && (INTEGERP (CONSP (args[2]) ? XCAR (args[2]) : args[2])))
+      && (FIXNUMP (CONSP (args[2]) ? XCAR (args[2]) : args[2])))
     error ("Operating system cannot handle asynchronous subprocesses");
 #endif /* subprocesses */
 
@@ -403,7 +403,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	  buffer = Qnil;
 	}
 
-      if (! (NILP (buffer) || EQ (buffer, Qt) || INTEGERP (buffer)))
+      if (! (NILP (buffer) || EQ (buffer, Qt) || FIXNUMP (buffer)))
 	{
 	  Lisp_Object spec_buffer;
 	  spec_buffer = buffer;
@@ -431,7 +431,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   for (i = 0; i < CALLPROC_FDS; i++)
     callproc_fd[i] = -1;
 #ifdef MSDOS
-  synch_process_tempfile = make_number (0);
+  synch_process_tempfile = make_fixnum (0);
 #endif
   record_unwind_protect_ptr (call_process_kill, callproc_fd);
 
@@ -440,7 +440,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     int ok;
 
     ok = openp (Vexec_path, args[0], Vexec_suffixes, &path,
-		make_number (X_OK), false);
+		make_fixnum (X_OK), false);
     if (ok < 0)
       report_file_error ("Searching for program", args[0]);
   }
@@ -471,7 +471,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   path = ENCODE_FILE (path);
   new_argv[0] = SSDATA (path);
 
-  discard_output = INTEGERP (buffer) || (NILP (buffer) && NILP (output_file));
+  discard_output = FIXNUMP (buffer) || (NILP (buffer) && NILP (output_file));
 
 #ifdef MSDOS
   if (! discard_output && ! STRINGP (output_file))
@@ -670,7 +670,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     {
       synch_process_pid = pid;
 
-      if (INTEGERP (buffer))
+      if (FIXNUMP (buffer))
 	{
 	  if (tempfile_index < 0)
 	    record_deleted_pid (pid, Qnil);
@@ -703,7 +703,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 #endif /* not MSDOS */
 
-  if (INTEGERP (buffer))
+  if (FIXNUMP (buffer))
     return unbind_to (count, Qnil);
 
   if (BUFFERP (buffer))
@@ -870,7 +870,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	 coding-system used to decode the process output.  */
       if (inherit_process_coding_system)
 	call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
-	       make_number (total_read));
+	       make_fixnum (total_read));
     }
 
   bool wait_ok = true;
@@ -903,7 +903,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     }
 
   eassert (WIFEXITED (status));
-  return make_number (WEXITSTATUS (status));
+  return make_fixnum (WEXITSTATUS (status));
 }
 
 /* Create a temporary file suitable for storing the input data of
@@ -1066,7 +1066,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
       validate_region (&args[0], &args[1]);
       start = args[0];
       end = args[1];
-      empty_input = XINT (start) == XINT (end);
+      empty_input = XFIXNUM (start) == XFIXNUM (end);
     }
 
   if (!empty_input)
@@ -1644,7 +1644,7 @@ syms_of_callproc (void)
   staticpro (&Vtemp_file_name_pattern);
 
 #ifdef MSDOS
-  synch_process_tempfile = make_number (0);
+  synch_process_tempfile = make_fixnum (0);
   staticpro (&synch_process_tempfile);
 #endif
 

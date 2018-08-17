@@ -1987,9 +1987,14 @@ Restart one of the last 2 commands above, from the current location of point.
 
 @kindex M-?
 @findex xref-find-references
-  @kbd{M-?} finds all the references for the identifier at point.  If
-there's no identifier at point, or when invoked with a prefix
-argument, the command prompts for the identifier, with completion.  It
+  @kbd{M-?} finds all the references for the identifier at point,
+prompting for the identifier as needed, with completion.  Depending on
+the current backend (@pxref{Xref}), the command may prompt even if it
+finds a valid identifier at point.  When invoked with a prefix
+argument, it always prompts for the identifier.  (If you want it to
+prompt always, customize the value of the variable
+@code{xref-prompt-for-identifier} to @code{t}; or set it to @code{nil}
+to prompt only if there's no usable identifier at point.)  The command
 then presents the @file{*xref*} buffer with all the references to the
 identifier, showing the file name and the line where the identifier is
 referenced.  The XREF mode commands are available in this buffer, see

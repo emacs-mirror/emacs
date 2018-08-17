@@ -1173,6 +1173,12 @@ dictionary from that list was found."
     ;; Parse and set values for default dictionary.
     (setq hunspell-default-dict (or hunspell-multi-dict
 				    (car hunspell-default-dict)))
+    ;; If hunspell-default-dict is nil, ispell-parse-hunspell-affix-file
+    ;; will barf with an error message that doesn't help users figure
+    ;; out what is wrong.  Produce an error message that points to the
+    ;; root cause of the problem.
+    (or hunspell-default-dict
+        (error "Can't find Hunspell dictionary with a .aff affix file"))
     (setq hunspell-default-dict-entry
 	  (ispell-parse-hunspell-affix-file hunspell-default-dict))
     ;; Create an alist of found dicts with only names, except for default dict.

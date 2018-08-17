@@ -149,8 +149,8 @@ This function can be called only in unibyte buffers.  */)
 
   /* This is a unibyte buffer, so character positions and bytes are
      the same.  */
-  istart = XINT (start);
-  iend = XINT (end);
+  istart = XFIXNUM (start);
+  iend = XFIXNUM (end);
 
   /* Do the following before manipulating the gap. */
   modify_text (istart, iend);

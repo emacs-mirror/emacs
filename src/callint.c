@@ -200,8 +200,8 @@ fix_command (Lisp_Object input, Lisp_Object values)
 		  carelt = XCAR (elt);
 		  /* If it is (if X Y), look at Y.  */
 		  if (EQ (carelt, Qif)
-		      && NILP (Fnthcdr (make_number (3), elt)))
-		    elt = Fnth (make_number (2), elt);
+		      && NILP (Fnthcdr (make_fixnum (3), elt)))
+		    elt = Fnth (make_fixnum (2), elt);
 		  /* If it is (when ... Y), look at Y.  */
 		  else if (EQ (carelt, Qwhen))
 		    {
@@ -479,8 +479,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
         case 'c':		/* Character.  */
 	  /* Prompt in `minibuffer-prompt' face.  */
-	  Fput_text_property (make_number (0),
-			      make_number (SCHARS (callint_message)),
+	  Fput_text_property (make_fixnum (0),
+			      make_fixnum (SCHARS (callint_message)),
 			      Qface, Qminibuffer_prompt, callint_message);
 	  args[i] = Fread_char (callint_message, Qnil, Qnil);
 	  message1_nolog (0);
@@ -531,8 +531,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    /* Prompt in `minibuffer-prompt' face.  */
-	    Fput_text_property (make_number (0),
-				make_number (SCHARS (callint_message)),
+	    Fput_text_property (make_fixnum (0),
+				make_fixnum (SCHARS (callint_message)),
 				Qface, Qminibuffer_prompt, callint_message);
 	    args[i] = Fread_key_sequence (callint_message,
 					  Qnil, Qnil, Qnil, Qnil);
@@ -542,7 +542,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    /* If the key sequence ends with a down-event,
 	       discard the following up-event.  */
 	    Lisp_Object teml
-	      = Faref (args[i], make_number (XINT (Flength (args[i])) - 1));
+	      = Faref (args[i], make_fixnum (XFIXNUM (Flength (args[i])) - 1));
 	    if (CONSP (teml))
 	      teml = XCAR (teml);
 	    if (SYMBOLP (teml))
@@ -561,8 +561,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    /* Prompt in `minibuffer-prompt' face.  */
-	    Fput_text_property (make_number (0),
-				make_number (SCHARS (callint_message)),
+	    Fput_text_property (make_fixnum (0),
+				make_fixnum (SCHARS (callint_message)),
 				Qface, Qminibuffer_prompt, callint_message);
 	    args[i] = Fread_key_sequence_vector (callint_message,
 						 Qnil, Qt, Qnil, Qnil);
@@ -572,7 +572,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    /* If the key sequence ends with a down-event,
 	       discard the following up-event.  */
 	    Lisp_Object teml
-	      = Faref (args[i], make_number (XINT (Flength (args[i])) - 1));
+	      = Faref (args[i], make_fixnum (XFIXNUM (Flength (args[i])) - 1));
 	    if (CONSP (teml))
 	      teml = XCAR (teml);
 	    if (SYMBOLP (teml))
@@ -589,7 +589,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'U':		/* Up event from last k or K.  */
 	  if (!NILP (up_event))
 	    {
-	      args[i] = Fmake_vector (make_number (1), up_event);
+	      args[i] = Fmake_vector (make_fixnum (1), up_event);
 	      up_event = Qnil;
 	      visargs[i] = Fkey_description (args[i], Qnil);
 	    }
@@ -795,9 +795,9 @@ Its numeric meaning is what you would get from `(interactive "p")'.  */)
     XSETFASTINT (val, 1);
   else if (EQ (raw, Qminus))
     XSETINT (val, -1);
-  else if (CONSP (raw) && INTEGERP (XCAR (raw)))
-    XSETINT (val, XINT (XCAR (raw)));
-  else if (INTEGERP (raw))
+  else if (CONSP (raw) && FIXNUMP (XCAR (raw)))
+    XSETINT (val, XFIXNUM (XCAR (raw)));
+  else if (FIXNUMP (raw))
     val = raw;
   else
     XSETFASTINT (val, 1);

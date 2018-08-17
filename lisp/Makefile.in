@@ -341,7 +341,7 @@ compile-clean:
 	  if test -f "$$el" || test ! -f "$${el}c"; then :; else \
 	    echo rm "$${el}c"; \
 	    rm "$${el}c"; \
-	  fi \
+	  fi; \
 	done
 
 .PHONY: gen-lisp leim semantic

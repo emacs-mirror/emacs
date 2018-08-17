@@ -5155,6 +5155,8 @@ process sentinels.  They shall not disturb each other."
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test44-auto-load ()
   "Check that Tramp autoloads properly."
+  (skip-unless (tramp--test-enabled))
+
   (let ((default-directory (expand-file-name temporary-file-directory))
 	(code
 	 (format
@@ -5265,42 +5267,52 @@ Since it unloads Tramp, it shall be the last test to run."
   ;; cannot test older Emacsen, therefore.
   (skip-unless (tramp--test-emacs26-p))
 
-  (when (featurep 'tramp)
-    (unload-feature 'tramp 'force)
-    ;; No Tramp feature must be left.
-    (should-not (featurep 'tramp))
-    (should-not (all-completions "tramp" (delq 'tramp-tests features)))
-    ;; `file-name-handler-alist' must be clean.
-    (should-not (all-completions "tramp" (mapcar 'cdr file-name-handler-alist)))
-    ;; There shouldn't be left a bound symbol, except buffer-local
-    ;; variables, and autoload functions.  We do not regard our test
-    ;; symbols, and the Tramp unload hooks.
-    (mapatoms
-     (lambda (x)
-       (and (or (and (boundp x) (null (local-variable-if-set-p x)))
-		(and (functionp x) (null (autoloadp (symbol-function x)))))
-	    (string-match "^tramp" (symbol-name x))
-	    (not (string-match "^tramp--?test" (symbol-name x)))
-	    (not (string-match "unload-hook$" (symbol-name x)))
-	    (ert-fail (format "`%s' still bound" x)))))
-    ;; The defstruct `tramp-file-name' and all its internal functions
-    ;; shall be purged.
-    (should-not (cl--find-class 'tramp-file-name))
-    (mapatoms
-     (lambda (x)
-       (and (functionp x)
-            (string-match "tramp-file-name" (symbol-name x))
-            (ert-fail (format "Structure function `%s' still exists" x)))))
-    ;; There shouldn't be left a hook function containing a Tramp
-    ;; function.  We do not regard the Tramp unload hooks.
-    (mapatoms
-     (lambda (x)
-       (and (boundp x)
-	    (string-match "-\\(hook\\|function\\)s?$" (symbol-name x))
-	    (not (string-match "unload-hook$" (symbol-name x)))
-	    (consp (symbol-value x))
-	    (ignore-errors (all-completions "tramp" (symbol-value x)))
-	    (ert-fail (format "Hook `%s' still contains Tramp function" x)))))))
+  ;; We have autoloaded objects from tramp.el and tramp-archive.el.
+  ;; In order to remove them, we first need to load both packages.
+  (require 'tramp)
+  (require 'tramp-archive)
+  (should (featurep 'tramp))
+  (should (featurep 'tramp-archive))
+  ;; This unloads also tramp-archive.el and tramp-theme.el if needed.
+  (unload-feature 'tramp 'force)
+  ;; No Tramp feature must be left.
+  (should-not (featurep 'tramp))
+  (should-not (featurep 'tramp-archive))
+  (should-not (featurep 'tramp-theme))
+  (should-not
+   (all-completions
+    "tramp" (delq 'tramp-tests (delq 'tramp-archive-tests features))))
+  ;; `file-name-handler-alist' must be clean.
+  (should-not (all-completions "tramp" (mapcar 'cdr file-name-handler-alist)))
+  ;; There shouldn't be left a bound symbol, except buffer-local
+  ;; variables, and autoload functions.  We do not regard our test
+  ;; symbols, and the Tramp unload hooks.
+  (mapatoms
+   (lambda (x)
+     (and (or (and (boundp x) (null (local-variable-if-set-p x)))
+	      (and (functionp x) (null (autoloadp (symbol-function x)))))
+	  (string-match "^tramp" (symbol-name x))
+	  (not (string-match "^tramp\\(-archive\\)?--?test" (symbol-name x)))
+	  (not (string-match "unload-hook$" (symbol-name x)))
+	  (ert-fail (format "`%s' still bound" x)))))
+  ;; The defstruct `tramp-file-name' and all its internal functions
+  ;; shall be purged.
+  (should-not (cl--find-class 'tramp-file-name))
+  (mapatoms
+   (lambda (x)
+     (and (functionp x)
+          (string-match "tramp-file-name" (symbol-name x))
+          (ert-fail (format "Structure function `%s' still exists" x)))))
+  ;; There shouldn't be left a hook function containing a Tramp
+  ;; function.  We do not regard the Tramp unload hooks.
+  (mapatoms
+   (lambda (x)
+     (and (boundp x)
+	  (string-match "-\\(hook\\|function\\)s?$" (symbol-name x))
+	  (not (string-match "unload-hook$" (symbol-name x)))
+	  (consp (symbol-value x))
+	  (ignore-errors (all-completions "tramp" (symbol-value x)))
+	  (ert-fail (format "Hook `%s' still contains Tramp function" x))))))
 
 (defun tramp-test-all (&optional interactive)
   "Run all tests for \\[tramp]."
@@ -5321,7 +5333,7 @@ Since it unloads Tramp, it shall be the last test to run."
 ;; * Fix `tramp-test05-expand-file-name-relative' in `expand-file-name'.
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
 ;; * Investigate, why `tramp-test11-copy-file' and `tramp-test12-rename-file'
-;;   do not work properly for `owncloud'.
+;;   do not work properly for `nextcloud'.
 ;; * Fix `tramp-test29-start-file-process' on MS Windows (`process-send-eof'?).
 ;; * Fix `tramp-test30-interrupt-process', timeout doesn't work reliably.
 ;; * Fix Bug#16928 in `tramp-test42-asynchronous-requests'.

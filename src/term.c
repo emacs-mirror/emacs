@@ -1359,7 +1359,7 @@ term_get_fkeys_1 (void)
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
 	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
-		     Fmake_vector (make_number (1),
+		     Fmake_vector (make_fixnum (1),
 				   intern (keys[i].name)));
     }
 
@@ -1379,13 +1379,13 @@ term_get_fkeys_1 (void)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
 	  Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
-		       Fmake_vector (make_number (1), intern ("f0")));
+		       Fmake_vector (make_fixnum (1), intern ("f0")));
 	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k_semi),
-		     Fmake_vector (make_number (1), intern ("f10")));
+		     Fmake_vector (make_fixnum (1), intern ("f10")));
       }
     else if (k0)
       Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
-		   Fmake_vector (make_number (1), intern (k0_name)));
+		   Fmake_vector (make_fixnum (1), intern (k0_name)));
   }
 
   /* Set up cookies for numbered function keys above f10. */
@@ -1408,7 +1408,7 @@ term_get_fkeys_1 (void)
 	    {
 	      sprintf (fkey, "f%d", i);
 	      Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
-			   Fmake_vector (make_number (1),
+			   Fmake_vector (make_fixnum (1),
 					 intern (fkey)));
 	    }
 	}
@@ -1425,7 +1425,7 @@ term_get_fkeys_1 (void)
 	  char *sequence = tgetstr (cap2, address);			\
 	  if (sequence)                                                 \
 	    Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence), \
-			 Fmake_vector (make_number (1),                 \
+			 Fmake_vector (make_fixnum (1),                 \
 				       intern (sym)));                  \
 	}
 
@@ -2050,7 +2050,7 @@ TERMINAL does not refer to a text terminal.  */)
 {
   struct terminal *t = decode_tty_terminal (terminal);
 
-  return make_number (t ? t->display_info.tty->TN_max_colors : 0);
+  return make_fixnum (t ? t->display_info.tty->TN_max_colors : 0);
 }
 
 #ifndef DOS_NT
@@ -2137,7 +2137,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
   tem = assq_no_quit (Qtty_color_mode, f->param_alist);
   val = CONSP (tem) ? XCDR (tem) : Qnil;
 
-  if (INTEGERP (val))
+  if (FIXNUMP (val))
     color_mode = val;
   else if (SYMBOLP (tty_color_mode_alist))
     {
@@ -2147,7 +2147,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
   else
     color_mode = Qnil;
 
-  mode = TYPE_RANGED_INTEGERP (int, color_mode) ? XINT (color_mode) : 0;
+  mode = TYPE_RANGED_FIXNUMP (int, color_mode) ? XFIXNUM (color_mode) : 0;
 
   if (mode != tty->previous_color_mode)
     {
@@ -2805,8 +2805,8 @@ mouse_get_xy (int *x, int *y)
 						 &time_dummy);
   if (!NILP (lmx))
     {
-      *x = XINT (lmx);
-      *y = XINT (lmy);
+      *x = XFIXNUM (lmx);
+      *y = XFIXNUM (lmy);
     }
 }
 
@@ -3403,9 +3403,9 @@ tty_menu_help_callback (char const *help_string, int pane, int item)
     pane_name = first_item[MENU_ITEMS_ITEM_NAME];
 
   /* (menu-item MENU-NAME PANE-NUMBER)  */
-  menu_object = list3 (Qmenu_item, pane_name, make_number (pane));
+  menu_object = list3 (Qmenu_item, pane_name, make_fixnum (pane));
   show_help_echo (help_string ? build_string (help_string) : Qnil,
- 		  Qnil, menu_object, make_number (item));
+ 		  Qnil, menu_object, make_fixnum (item));
 }
 
 struct tty_pop_down_menu
@@ -3477,7 +3477,7 @@ tty_menu_new_item_coords (struct frame *f, int which, int *x, int *y)
 	  pos = AREF (items, i + 3);
 	  if (NILP (str))
 	    return;
-	  ix = XINT (pos);
+	  ix = XFIXNUM (pos);
 	  if (ix <= *x
 	      /* We use <= so the blank between 2 items on a TTY is
 		 considered part of the previous item.  */
@@ -3488,14 +3488,14 @@ tty_menu_new_item_coords (struct frame *f, int which, int *x, int *y)
 	      if (which == TTYM_NEXT)
 		{
 		  if (i < last_i)
-		    *x = XINT (AREF (items, i + 4 + 3));
+		    *x = XFIXNUM (AREF (items, i + 4 + 3));
 		  else
 		    *x = 0;	/* Wrap around to the first item.  */
 		}
 	      else if (prev_x < 0)
 		{
 		  /* Wrap around to the last item.  */
-		  *x = XINT (AREF (items, last_i + 3));
+		  *x = XFIXNUM (AREF (items, last_i + 3));
 		}
 	      else
 		*x = prev_x;
@@ -3754,7 +3754,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
     case TTYM_NEXT:
     case TTYM_PREV:
       tty_menu_new_item_coords (f, status, &item_x, &item_y);
-      entry = Fcons (make_number (item_x), make_number (item_y));
+      entry = Fcons (make_fixnum (item_x), make_fixnum (item_y));
       break;
 
     case TTYM_FAILURE:

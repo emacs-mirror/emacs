@@ -816,7 +816,7 @@ gnutls_make_error (int err)
     }
 
   check_memory_full (err);
-  return make_number (err);
+  return make_fixnum (err);
 }
 
 static void
@@ -893,7 +893,7 @@ See also `gnutls-boot'.  */)
 {
   CHECK_PROCESS (proc);
 
-  return make_number (GNUTLS_INITSTAGE (proc));
+  return make_fixnum (GNUTLS_INITSTAGE (proc));
 }
 
 DEFUN ("gnutls-errorp", Fgnutls_errorp, Sgnutls_errorp, 1, 1, 0,
@@ -923,7 +923,7 @@ Usage: (gnutls-error-fatalp ERROR)  */)
   if (SYMBOLP (err))
     {
       code = Fget (err, Qgnutls_code);
-      if (NUMBERP (code))
+      if (FIXED_OR_FLOATP (code))
 	{
 	  err = code;
 	}
@@ -933,10 +933,10 @@ Usage: (gnutls-error-fatalp ERROR)  */)
 	}
     }
 
-  if (! TYPE_RANGED_INTEGERP (int, err))
+  if (! TYPE_RANGED_FIXNUMP (int, err))
     error ("Not an error symbol or code");
 
-  if (0 == gnutls_error_is_fatal (XINT (err)))
+  if (0 == gnutls_error_is_fatal (XFIXNUM (err)))
     return Qnil;
 
   return Qt;
@@ -955,7 +955,7 @@ usage: (gnutls-error-string ERROR)  */)
   if (SYMBOLP (err))
     {
       code = Fget (err, Qgnutls_code);
-      if (NUMBERP (code))
+      if (FIXED_OR_FLOATP (code))
 	{
 	  err = code;
 	}
@@ -965,10 +965,10 @@ usage: (gnutls-error-string ERROR)  */)
 	}
     }
 
-  if (! TYPE_RANGED_INTEGERP (int, err))
+  if (! TYPE_RANGED_FIXNUMP (int, err))
     return build_string ("Not an error symbol or code");
 
-  return build_string (emacs_gnutls_strerror (XINT (err)));
+  return build_string (emacs_gnutls_strerror (XFIXNUM (err)));
 }
 
 DEFUN ("gnutls-deinit", Fgnutls_deinit, Sgnutls_deinit, 1, 1, 0,
@@ -1012,7 +1012,7 @@ gnutls_certificate_details (gnutls_x509_crt_t cert)
     check_memory_full (version);
     if (version >= GNUTLS_E_SUCCESS)
       res = nconc2 (res, list2 (intern (":version"),
-				make_number (version)));
+				make_fixnum (version)));
   }
 
   /* Serial. */
@@ -1296,7 +1296,7 @@ returned as the :certificate entry.  */)
     check_memory_full (bits);
     if (bits > 0)
       result = nconc2 (result, list2 (intern (":diffie-hellman-prime-bits"),
-				      make_number (bits)));
+				      make_fixnum (bits)));
   }
 
   /* Key exchange. */
@@ -1650,14 +1650,14 @@ one trustfile (usually a CA bundle).  */)
 
   state = XPROCESS (proc)->gnutls_state;
 
-  if (TYPE_RANGED_INTEGERP (int, loglevel))
+  if (TYPE_RANGED_FIXNUMP (int, loglevel))
     {
       gnutls_global_set_log_function (gnutls_log_function);
 # ifdef HAVE_GNUTLS3
       gnutls_global_set_audit_log_function (gnutls_audit_log_function);
 # endif
-      gnutls_global_set_log_level (XINT (loglevel));
-      max_log_level = XINT (loglevel);
+      gnutls_global_set_log_level (XFIXNUM (loglevel));
+      max_log_level = XFIXNUM (loglevel);
       XPROCESS (proc)->gnutls_log_level = max_log_level;
     }
 
@@ -1690,9 +1690,9 @@ one trustfile (usually a CA bundle).  */)
       XPROCESS (proc)->gnutls_x509_cred = x509_cred;
 
       verify_flags = Fplist_get (proplist, QCverify_flags);
-      if (TYPE_RANGED_INTEGERP (unsigned int, verify_flags))
+      if (TYPE_RANGED_FIXNUMP (unsigned int, verify_flags))
 	{
-	  gnutls_verify_flags = XFASTINT (verify_flags);
+	  gnutls_verify_flags = XFIXNAT (verify_flags);
 	  GNUTLS_LOG (2, max_log_level, "setting verification flags");
 	}
       else if (NILP (verify_flags))
@@ -1851,8 +1851,8 @@ one trustfile (usually a CA bundle).  */)
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_PRIORITY;
 
-  if (INTEGERP (prime_bits))
-    gnutls_dh_set_prime_bits (state, XUINT (prime_bits));
+  if (FIXNUMP (prime_bits))
+    gnutls_dh_set_prime_bits (state, XUFIXNUM (prime_bits));
 
   ret = EQ (type, Qgnutls_x509pki)
     ? gnutls_credentials_set (state, GNUTLS_CRD_CERTIFICATE, x509_cred)
@@ -1937,19 +1937,19 @@ The alist key is the cipher name. */)
 
       Lisp_Object cp
 	= listn (CONSTYPE_HEAP, 15, cipher_symbol,
-		 QCcipher_id, make_number (gca),
+		 QCcipher_id, make_fixnum (gca),
 		 QCtype, Qgnutls_type_cipher,
 		 QCcipher_aead_capable, cipher_tag_size == 0 ? Qnil : Qt,
-		 QCcipher_tagsize, make_number (cipher_tag_size),
+		 QCcipher_tagsize, make_fixnum (cipher_tag_size),
 
 		 QCcipher_blocksize,
-		 make_number (gnutls_cipher_get_block_size (gca)),
+		 make_fixnum (gnutls_cipher_get_block_size (gca)),
 
 		 QCcipher_keysize,
-		 make_number (gnutls_cipher_get_key_size (gca)),
+		 make_fixnum (gnutls_cipher_get_key_size (gca)),
 
 		 QCcipher_ivsize,
-		 make_number (gnutls_cipher_get_iv_size (gca)));
+		 make_fixnum (gnutls_cipher_get_iv_size (gca)));
 
       ciphers = Fcons (cp, ciphers);
     }
@@ -2079,16 +2079,16 @@ gnutls_symmetric (bool encrypting, Lisp_Object cipher,
 		  cipher);
       info = XCDR (info);
     }
-  else if (TYPE_RANGED_INTEGERP (gnutls_cipher_algorithm_t, cipher))
-    gca = XINT (cipher);
+  else if (TYPE_RANGED_FIXNUMP (gnutls_cipher_algorithm_t, cipher))
+    gca = XFIXNUM (cipher);
   else
     info = cipher;
 
   if (!NILP (info) && CONSP (info))
     {
       Lisp_Object v = Fplist_get (info, QCcipher_id);
-      if (TYPE_RANGED_INTEGERP (gnutls_cipher_algorithm_t, v))
-        gca = XINT (v);
+      if (TYPE_RANGED_FIXNUMP (gnutls_cipher_algorithm_t, v))
+        gca = XFIXNUM (v);
     }
 
   ptrdiff_t key_size = gnutls_cipher_get_key_size (gca);
@@ -2268,17 +2268,17 @@ name. */)
       nonce_size = gnutls_mac_get_nonce_size (gma);
 #endif
       Lisp_Object mp = listn (CONSTYPE_HEAP, 11, gma_symbol,
-			      QCmac_algorithm_id, make_number (gma),
+			      QCmac_algorithm_id, make_fixnum (gma),
 			      QCtype, Qgnutls_type_mac_algorithm,
 
                               QCmac_algorithm_length,
-                              make_number (gnutls_hmac_get_len (gma)),
+                              make_fixnum (gnutls_hmac_get_len (gma)),
 
                               QCmac_algorithm_keysize,
-                              make_number (gnutls_mac_get_key_size (gma)),
+                              make_fixnum (gnutls_mac_get_key_size (gma)),
 
                               QCmac_algorithm_noncesize,
-			      make_number (nonce_size));
+			      make_fixnum (nonce_size));
       mac_algorithms = Fcons (mp, mac_algorithms);
     }
 
@@ -2303,11 +2303,11 @@ method name. */)
       Lisp_Object gda_symbol = intern (gnutls_digest_get_name (gda));
 
       Lisp_Object mp = listn (CONSTYPE_HEAP, 7, gda_symbol,
-			      QCdigest_algorithm_id, make_number (gda),
+			      QCdigest_algorithm_id, make_fixnum (gda),
 			      QCtype, Qgnutls_type_digest_algorithm,
 
                               QCdigest_algorithm_length,
-                              make_number (gnutls_hash_get_len (gda)));
+                              make_fixnum (gnutls_hash_get_len (gda)));
 
       digest_algorithms = Fcons (mp, digest_algorithms);
     }
@@ -2358,16 +2358,16 @@ itself. */)
 		  hash_method);
       info = XCDR (info);
     }
-  else if (TYPE_RANGED_INTEGERP (gnutls_mac_algorithm_t, hash_method))
-    gma = XINT (hash_method);
+  else if (TYPE_RANGED_FIXNUMP (gnutls_mac_algorithm_t, hash_method))
+    gma = XFIXNUM (hash_method);
   else
     info = hash_method;
 
   if (!NILP (info) && CONSP (info))
     {
       Lisp_Object v = Fplist_get (info, QCmac_algorithm_id);
-      if (TYPE_RANGED_INTEGERP (gnutls_mac_algorithm_t, v))
-        gma = XINT (v);
+      if (TYPE_RANGED_FIXNUMP (gnutls_mac_algorithm_t, v))
+        gma = XFIXNUM (v);
     }
 
   ptrdiff_t digest_length = gnutls_hmac_get_len (gma);
@@ -2448,16 +2448,16 @@ the number itself. */)
 		  digest_method);
       info = XCDR (info);
     }
-  else if (TYPE_RANGED_INTEGERP (gnutls_digest_algorithm_t, digest_method))
-    gda = XINT (digest_method);
+  else if (TYPE_RANGED_FIXNUMP (gnutls_digest_algorithm_t, digest_method))
+    gda = XFIXNUM (digest_method);
   else
     info = digest_method;
 
   if (!NILP (info) && CONSP (info))
     {
       Lisp_Object v = Fplist_get (info, QCdigest_algorithm_id);
-      if (TYPE_RANGED_INTEGERP (gnutls_digest_algorithm_t, v))
-        gda = XINT (v);
+      if (TYPE_RANGED_FIXNUMP (gnutls_digest_algorithm_t, v))
+        gda = XFIXNUM (v);
     }
 
   ptrdiff_t digest_length = gnutls_hash_get_len (gda);
@@ -2571,11 +2571,11 @@ syms_of_gnutls (void)
   DEFSYM (Qlibgnutls_version, "libgnutls-version");
   Fset (Qlibgnutls_version,
 #ifdef HAVE_GNUTLS
-	make_number (GNUTLS_VERSION_MAJOR * 10000
+	make_fixnum (GNUTLS_VERSION_MAJOR * 10000
 		     + GNUTLS_VERSION_MINOR * 100
 		     + GNUTLS_VERSION_PATCH)
 #else
-	make_number (-1)
+	make_fixnum (-1)
 #endif
         );
 #ifdef HAVE_GNUTLS
@@ -2619,19 +2619,19 @@ syms_of_gnutls (void)
 
   DEFSYM (Qgnutls_e_interrupted, "gnutls-e-interrupted");
   Fput (Qgnutls_e_interrupted, Qgnutls_code,
-	make_number (GNUTLS_E_INTERRUPTED));
+	make_fixnum (GNUTLS_E_INTERRUPTED));
 
   DEFSYM (Qgnutls_e_again, "gnutls-e-again");
   Fput (Qgnutls_e_again, Qgnutls_code,
-	make_number (GNUTLS_E_AGAIN));
+	make_fixnum (GNUTLS_E_AGAIN));
 
   DEFSYM (Qgnutls_e_invalid_session, "gnutls-e-invalid-session");
   Fput (Qgnutls_e_invalid_session, Qgnutls_code,
-	make_number (GNUTLS_E_INVALID_SESSION));
+	make_fixnum (GNUTLS_E_INVALID_SESSION));
 
   DEFSYM (Qgnutls_e_not_ready_for_handshake, "gnutls-e-not-ready-for-handshake");
   Fput (Qgnutls_e_not_ready_for_handshake, Qgnutls_code,
-	make_number (GNUTLS_E_APPLICATION_ERROR_MIN));
+	make_fixnum (GNUTLS_E_APPLICATION_ERROR_MIN));
 
   defsubr (&Sgnutls_get_initstage);
   defsubr (&Sgnutls_asynchronous_parameters);

@@ -1424,10 +1424,20 @@ determined by `flyspell-large-region'."
 The list of incorrect words should be in `flyspell-external-ispell-buffer'.
 \(We finish by killing that buffer and setting the variable to nil.)
 The buffer to mark them in is `flyspell-large-region-buffer'."
-  (let (words-not-found
-	(ispell-otherchars (ispell-get-otherchars))
-	(buffer-scan-pos flyspell-large-region-beg)
-	case-fold-search)
+  (let* (words-not-found
+         (flyspell-casechars (flyspell-get-casechars))
+         (ispell-otherchars (ispell-get-otherchars))
+         (ispell-many-otherchars-p (ispell-get-many-otherchars-p))
+         (word-chars (concat flyspell-casechars
+                             "+\\("
+                             (if (not (string= "" ispell-otherchars))
+                                 (concat ispell-otherchars "?"))
+                             flyspell-casechars
+                             "+\\)"
+                             (if ispell-many-otherchars-p
+                                 "*" "?")))
+         (buffer-scan-pos flyspell-large-region-beg)
+         case-fold-search)
     (with-current-buffer flyspell-external-ispell-buffer
       (goto-char (point-min))
       ;; Loop over incorrect words, in the order they were reported,
@@ -1457,11 +1467,18 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			      ;; Move back into the match
 			      ;; so flyspell-get-word will find it.
 			      (forward-char -1)
-			      (flyspell-get-word)))
+                              ;; Is this a word that matches the
+                              ;; current dictionary?
+                              (if (looking-at word-chars)
+			          (flyspell-get-word))))
 			   (found (car found-list))
 			   (found-length (length found))
 			   (misspell-length (length word)))
 		      (when (or
+                             ;; Misspelled word is not from the
+                             ;; language supported by the current
+                             ;; dictionary.
+                             (null found)
 			     ;; Size matches, we really found it.
 			     (= found-length misspell-length)
 			     ;; Matches as part of a boundary-char separated
@@ -1483,13 +1500,21 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			     ;; backslash) and none of the previous
 			     ;; conditions match.
 			     (and (not ispell-really-aspell)
+                                  (not ispell-really-hunspell)
+                                  (not ispell-really-enchant)
 				  (save-excursion
 				    (goto-char (- (nth 1 found-list) 1))
 				    (if (looking-at "[\\]" )
 					t
 				      nil))))
 			(setq keep nil)
-			(flyspell-word nil t)
+                        ;; Don't try spell-checking words whose
+                        ;; characters don't match CASECHARS, because
+                        ;; flyspell-word will then consider as
+                        ;; misspelling the preceding word that matches
+                        ;; CASECHARS.
+                        (or (null found)
+			    (flyspell-word nil t))
 			;; Search for next misspelled word will begin from
 			;; end of last validated match.
 			(setq buffer-scan-pos (point))))

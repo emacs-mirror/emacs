@@ -186,24 +186,24 @@ ns_descriptor_to_entity (NSFontDescriptor *desc,
     FONT_SET_STYLE (font_entity, FONT_WEIGHT_INDEX,
 		    traits & NSFontBoldTrait ? Qbold : Qmedium);
 /*    FONT_SET_STYLE (font_entity, FONT_WEIGHT_INDEX,
-		    make_number (100 + 100
+		    make_fixnum (100 + 100
 			* ns_attribute_fvalue (desc, NSFontWeightTrait)));*/
     FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX,
 		    traits & NSFontItalicTrait ? Qitalic : Qnormal);
 /*    FONT_SET_STYLE (font_entity, FONT_SLANT_INDEX,
-		    make_number (100 + 100
+		    make_fixnum (100 + 100
 			 * ns_attribute_fvalue (desc, NSFontSlantTrait)));*/
     FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
                     traits & NSFontCondensedTrait ? Qcondensed :
                     traits & NSFontExpandedTrait ? Qexpanded : Qnormal);
 /*    FONT_SET_STYLE (font_entity, FONT_WIDTH_INDEX,
-		    make_number (100 + 100
+		    make_fixnum (100 + 100
 			 * ns_attribute_fvalue (desc, NSFontWidthTrait)));*/
 
-    ASET (font_entity, FONT_SIZE_INDEX, make_number (0));
-    ASET (font_entity, FONT_AVGWIDTH_INDEX, make_number (0));
+    ASET (font_entity, FONT_SIZE_INDEX, make_fixnum (0));
+    ASET (font_entity, FONT_AVGWIDTH_INDEX, make_fixnum (0));
     ASET (font_entity, FONT_SPACING_INDEX,
-	  make_number([desc symbolicTraits] & NSFontMonoSpaceTrait
+	  make_fixnum([desc symbolicTraits] & NSFontMonoSpaceTrait
 	      ? FONT_SPACING_MONO : FONT_SPACING_PROPORTIONAL));
 
     ASET (font_entity, FONT_EXTRA_INDEX, extra);
@@ -445,8 +445,8 @@ static NSCharacterSet
 	  {
 	    for (; CONSP (range_list); range_list = XCDR (range_list))
 	      {
-		int start = XINT (XCAR (XCAR (range_list)));
-		int end = XINT (XCDR (XCAR (range_list)));
+		int start = XFIXNUM (XCAR (XCAR (range_list)));
+		int end = XFIXNUM (XCDR (XCAR (range_list)));
 		if (NSFONT_TRACE)
 		    debug_print (XCAR (range_list));
 		if (end < 0x10000)
@@ -576,7 +576,7 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 
     /* Add synthItal member if needed.  */
     family = [fdesc objectForKey: NSFontFamilyAttribute];
-    if (family != nil && !foundItal && XINT (Flength (list)) > 0)
+    if (family != nil && !foundItal && XFIXNUM (Flength (list)) > 0)
       {
         NSFontDescriptor *s1 = [NSFontDescriptor new];
         NSFontDescriptor *sDesc
@@ -596,7 +596,7 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 
     if (NSFONT_TRACE)
 	fprintf (stderr, "    Returning %"pI"d entities.\n",
-                 XINT (Flength (list)));
+                 XFIXNUM (Flength (list)));
 
     return list;
 }
@@ -668,7 +668,7 @@ nsfont_list_family (struct frame *f)
 
   if (NSFONT_TRACE)
     fprintf (stderr, "nsfont: list families returning %"pI"d entries\n",
-	     XINT (Flength (list)));
+	     XFIXNUM (Flength (list)));
 
   unblock_input ();
   return list;
@@ -705,7 +705,7 @@ nsfont_open (struct frame *f, Lisp_Object font_entity, int pixel_size)
     {
       /* try to get it out of frame params */
         Lisp_Object tem = get_frame_param (f, Qfontsize);
-        pixel_size = NILP (tem) ? 0 : XFASTINT (tem);
+        pixel_size = NILP (tem) ? 0 : XFIXNAT (tem);
     }
 
   tem = AREF (font_entity, FONT_ADSTYLE_INDEX);

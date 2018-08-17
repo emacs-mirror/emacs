@@ -14320,6 +14320,12 @@ fetch all textual parts, while leaving the rest on the server.
 If non-@code{nil}, record all @acronym{IMAP} commands in the
 @samp{"*imap log*"} buffer.
 
+@item nnimap-use-namespaces
+If non-@code{nil}, omit the IMAP namespace prefix in nnimap group
+names.  If your IMAP mailboxes are called something like @samp{INBOX}
+and @samp{INBOX.Lists.emacs}, but you'd like the nnimap group names to
+be @samp{INBOX} and @samp{Lists.emacs}, you should enable this option.
+
 @end table
 
 

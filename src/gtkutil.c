@@ -963,7 +963,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_1, width, height,
-	 list2 (make_number (gheight), make_number (totalheight)));
+	 list2 (make_fixnum (gheight), make_fixnum (totalheight)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 gwidth, totalheight);
@@ -972,7 +972,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_2, width, height,
-	 list2 (make_number (gwidth), make_number (totalwidth)));
+	 list2 (make_fixnum (gwidth), make_fixnum (totalwidth)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, gheight);
@@ -981,7 +981,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_3, width, height,
-	 list2 (make_number (totalwidth), make_number (totalheight)));
+	 list2 (make_fixnum (totalwidth), make_fixnum (totalheight)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, totalheight);
@@ -4279,7 +4279,7 @@ draw_page (GtkPrintOperation *operation, GtkPrintContext *context,
 	   gint page_nr, gpointer user_data)
 {
   Lisp_Object frames = *((Lisp_Object *) user_data);
-  struct frame *f = XFRAME (Fnth (make_number (page_nr), frames));
+  struct frame *f = XFRAME (Fnth (make_fixnum (page_nr), frames));
   cairo_t *cr = gtk_print_context_get_cairo_context (context);
 
   x_cr_draw_frame (cr, f);
@@ -4296,7 +4296,7 @@ xg_print_frames_dialog (Lisp_Object frames)
     gtk_print_operation_set_print_settings (print, print_settings);
   if (page_setup != NULL)
     gtk_print_operation_set_default_page_setup (print, page_setup);
-  gtk_print_operation_set_n_pages (print, XINT (Flength (frames)));
+  gtk_print_operation_set_n_pages (print, XFIXNUM (Flength (frames)));
   g_signal_connect (print, "draw-page", G_CALLBACK (draw_page), &frames);
   res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
                                  NULL, NULL);
@@ -4889,18 +4889,18 @@ update_frame_tool_bar (struct frame *f)
 
   block_input ();
 
-  if (RANGED_INTEGERP (1, Vtool_bar_button_margin, INT_MAX))
+  if (RANGED_FIXNUMP (1, Vtool_bar_button_margin, INT_MAX))
     {
-      hmargin = XFASTINT (Vtool_bar_button_margin);
-      vmargin = XFASTINT (Vtool_bar_button_margin);
+      hmargin = XFIXNAT (Vtool_bar_button_margin);
+      vmargin = XFIXNAT (Vtool_bar_button_margin);
     }
   else if (CONSP (Vtool_bar_button_margin))
     {
-      if (RANGED_INTEGERP (1, XCAR (Vtool_bar_button_margin), INT_MAX))
-        hmargin = XFASTINT (XCAR (Vtool_bar_button_margin));
+      if (RANGED_FIXNUMP (1, XCAR (Vtool_bar_button_margin), INT_MAX))
+        hmargin = XFIXNAT (XCAR (Vtool_bar_button_margin));
 
-      if (RANGED_INTEGERP (1, XCDR (Vtool_bar_button_margin), INT_MAX))
-        vmargin = XFASTINT (XCDR (Vtool_bar_button_margin));
+      if (RANGED_FIXNUMP (1, XCDR (Vtool_bar_button_margin), INT_MAX))
+        vmargin = XFIXNAT (XCDR (Vtool_bar_button_margin));
     }
 
   /* The natural size (i.e. when GTK uses 0 as margin) looks best,

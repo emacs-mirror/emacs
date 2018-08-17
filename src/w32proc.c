@@ -1766,7 +1766,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     {
       program = build_string (cmdname);
       full = Qnil;
-      openp (Vexec_path, program, Vexec_suffixes, &full, make_number (X_OK), 0);
+      openp (Vexec_path, program, Vexec_suffixes, &full, make_fixnum (X_OK), 0);
       if (NILP (full))
 	{
 	  errno = EINVAL;
@@ -1889,8 +1889,8 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       do_quoting = 1;
       /* Override escape char by binding w32-quote-process-args to
 	 desired character, or use t for auto-selection.  */
-      if (INTEGERP (Vw32_quote_process_args))
-	escape_char = XINT (Vw32_quote_process_args);
+      if (FIXNUMP (Vw32_quote_process_args))
+	escape_char = XFIXNUM (Vw32_quote_process_args);
       else
 	escape_char = (is_cygnus_app || is_msys_app) ? '"' : '\\';
     }
@@ -3017,13 +3017,13 @@ If successful, the return value is t, otherwise nil.  */)
       DWORD pid;
       child_process *cp;
 
-      CHECK_NUMBER (process);
+      CHECK_FIXNUM (process);
 
       /* Allow pid to be an internally generated one, or one obtained
 	 externally.  This is necessary because real pids on Windows 95 are
 	 negative.  */
 
-      pid = XINT (process);
+      pid = XFIXNUM (process);
       cp = find_child_pid (pid);
       if (cp != NULL)
 	pid = cp->procinfo.dwProcessId;
@@ -3186,14 +3186,14 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
   char abbrev_name[32] = { 0 };
   char full_name[256] = { 0 };
 
-  CHECK_NUMBER (lcid);
+  CHECK_FIXNUM (lcid);
 
-  if (!IsValidLocale (XINT (lcid), LCID_SUPPORTED))
+  if (!IsValidLocale (XFIXNUM (lcid), LCID_SUPPORTED))
     return Qnil;
 
   if (NILP (longform))
     {
-      got_abbrev = GetLocaleInfo (XINT (lcid),
+      got_abbrev = GetLocaleInfo (XFIXNUM (lcid),
 				  LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
 				  abbrev_name, sizeof (abbrev_name));
       if (got_abbrev)
@@ -3201,16 +3201,16 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
     }
   else if (EQ (longform, Qt))
     {
-      got_full = GetLocaleInfo (XINT (lcid),
+      got_full = GetLocaleInfo (XFIXNUM (lcid),
 				LOCALE_SLANGUAGE | LOCALE_USE_CP_ACP,
 				full_name, sizeof (full_name));
       if (got_full)
 	return DECODE_SYSTEM (build_string (full_name));
     }
-  else if (NUMBERP (longform))
+  else if (FIXED_OR_FLOATP (longform))
     {
-      got_full = GetLocaleInfo (XINT (lcid),
-				XINT (longform),
+      got_full = GetLocaleInfo (XFIXNUM (lcid),
+				XFIXNUM (longform),
 				full_name, sizeof (full_name));
       /* GetLocaleInfo's return value includes the terminating null
 	 character, when the returned information is a string, whereas
@@ -3231,7 +3231,7 @@ This is a numerical value; use `w32-get-locale-info' to convert to a
 human-readable form.  */)
   (void)
 {
-  return make_number (GetThreadLocale ());
+  return make_fixnum (GetThreadLocale ());
 }
 
 static DWORD
@@ -3260,7 +3260,7 @@ static BOOL CALLBACK ALIGN_STACK
 enum_locale_fn (LPTSTR localeNum)
 {
   DWORD id = int_from_hex (localeNum);
-  Vw32_valid_locale_ids = Fcons (make_number (id), Vw32_valid_locale_ids);
+  Vw32_valid_locale_ids = Fcons (make_fixnum (id), Vw32_valid_locale_ids);
   return TRUE;
 }
 
@@ -3289,8 +3289,8 @@ human-readable form.  */)
   (Lisp_Object userp)
 {
   if (NILP (userp))
-    return make_number (GetSystemDefaultLCID ());
-  return make_number (GetUserDefaultLCID ());
+    return make_fixnum (GetSystemDefaultLCID ());
+  return make_fixnum (GetUserDefaultLCID ());
 }
 
 
@@ -3299,20 +3299,20 @@ DEFUN ("w32-set-current-locale", Fw32_set_current_locale, Sw32_set_current_local
 If successful, the new locale id is returned, otherwise nil.  */)
   (Lisp_Object lcid)
 {
-  CHECK_NUMBER (lcid);
+  CHECK_FIXNUM (lcid);
 
-  if (!IsValidLocale (XINT (lcid), LCID_SUPPORTED))
+  if (!IsValidLocale (XFIXNUM (lcid), LCID_SUPPORTED))
     return Qnil;
 
-  if (!SetThreadLocale (XINT (lcid)))
+  if (!SetThreadLocale (XFIXNUM (lcid)))
     return Qnil;
 
   /* Need to set input thread locale if present.  */
   if (dwWindowsThreadId)
     /* Reply is not needed.  */
-    PostThreadMessage (dwWindowsThreadId, WM_EMACS_SETLOCALE, XINT (lcid), 0);
+    PostThreadMessage (dwWindowsThreadId, WM_EMACS_SETLOCALE, XFIXNUM (lcid), 0);
 
-  return make_number (GetThreadLocale ());
+  return make_fixnum (GetThreadLocale ());
 }
 
 
@@ -3324,7 +3324,7 @@ static BOOL CALLBACK ALIGN_STACK
 enum_codepage_fn (LPTSTR codepageNum)
 {
   DWORD id = atoi (codepageNum);
-  Vw32_valid_codepages = Fcons (make_number (id), Vw32_valid_codepages);
+  Vw32_valid_codepages = Fcons (make_fixnum (id), Vw32_valid_codepages);
   return TRUE;
 }
 
@@ -3347,7 +3347,7 @@ DEFUN ("w32-get-console-codepage", Fw32_get_console_codepage,
        doc: /* Return current Windows codepage for console input.  */)
   (void)
 {
-  return make_number (GetConsoleCP ());
+  return make_fixnum (GetConsoleCP ());
 }
 
 
@@ -3358,15 +3358,15 @@ This codepage setting affects keyboard input in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
   (Lisp_Object cp)
 {
-  CHECK_NUMBER (cp);
+  CHECK_FIXNUM (cp);
 
-  if (!IsValidCodePage (XINT (cp)))
+  if (!IsValidCodePage (XFIXNUM (cp)))
     return Qnil;
 
-  if (!SetConsoleCP (XINT (cp)))
+  if (!SetConsoleCP (XFIXNUM (cp)))
     return Qnil;
 
-  return make_number (GetConsoleCP ());
+  return make_fixnum (GetConsoleCP ());
 }
 
 
@@ -3375,7 +3375,7 @@ DEFUN ("w32-get-console-output-codepage", Fw32_get_console_output_codepage,
        doc: /* Return current Windows codepage for console output.  */)
   (void)
 {
-  return make_number (GetConsoleOutputCP ());
+  return make_fixnum (GetConsoleOutputCP ());
 }
 
 
@@ -3386,15 +3386,15 @@ This codepage setting affects display in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
   (Lisp_Object cp)
 {
-  CHECK_NUMBER (cp);
+  CHECK_FIXNUM (cp);
 
-  if (!IsValidCodePage (XINT (cp)))
+  if (!IsValidCodePage (XFIXNUM (cp)))
     return Qnil;
 
-  if (!SetConsoleOutputCP (XINT (cp)))
+  if (!SetConsoleOutputCP (XFIXNUM (cp)))
     return Qnil;
 
-  return make_number (GetConsoleOutputCP ());
+  return make_fixnum (GetConsoleOutputCP ());
 }
 
 
@@ -3412,17 +3412,17 @@ yield nil.  */)
   CHARSETINFO info;
   DWORD_PTR dwcp;
 
-  CHECK_NUMBER (cp);
+  CHECK_FIXNUM (cp);
 
-  if (!IsValidCodePage (XINT (cp)))
+  if (!IsValidCodePage (XFIXNUM (cp)))
     return Qnil;
 
   /* Going through a temporary DWORD_PTR variable avoids compiler warning
      about cast to pointer from integer of different size, when
      building --with-wide-int or building for 64bit.  */
-  dwcp = XINT (cp);
+  dwcp = XFIXNUM (cp);
   if (TranslateCharsetInfo ((DWORD *) dwcp, &info, TCI_SRCCODEPAGE))
-    return make_number (info.ciCharset);
+    return make_fixnum (info.ciCharset);
 
   return Qnil;
 }
@@ -3444,8 +3444,8 @@ The return value is a list of pairs of language id and layout id.  */)
 	{
 	  HKL kl = layouts[num_layouts];
 
-	  obj = Fcons (Fcons (make_number (LOWORD (kl)),
-			      make_number (HIWORD (kl))),
+	  obj = Fcons (Fcons (make_fixnum (LOWORD (kl)),
+			      make_fixnum (HIWORD (kl))),
 		       obj);
 	}
     }
@@ -3462,8 +3462,8 @@ The return value is the cons of the language id and the layout id.  */)
 {
   HKL kl = GetKeyboardLayout (dwWindowsThreadId);
 
-  return Fcons (make_number (LOWORD (kl)),
-		make_number (HIWORD (kl)));
+  return Fcons (make_fixnum (LOWORD (kl)),
+		make_fixnum (HIWORD (kl)));
 }
 
 
@@ -3477,11 +3477,11 @@ If successful, the new layout id is returned, otherwise nil.  */)
   HKL kl;
 
   CHECK_CONS (layout);
-  CHECK_NUMBER_CAR (layout);
-  CHECK_NUMBER_CDR (layout);
+  CHECK_FIXNUM_CAR (layout);
+  CHECK_FIXNUM_CDR (layout);
 
-  kl = (HKL) (UINT_PTR) ((XINT (XCAR (layout)) & 0xffff)
-			 | (XINT (XCDR (layout)) << 16));
+  kl = (HKL) (UINT_PTR) ((XFIXNUM (XCAR (layout)) & 0xffff)
+			 | (XFIXNUM (XCDR (layout)) << 16));
 
   /* Synchronize layout with input thread.  */
   if (dwWindowsThreadId)

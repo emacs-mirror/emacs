@@ -20,9 +20,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Put the code here rather than in configure.ac using AH_BOTTOM.
    This way, the code does not get processed by autoheader.  For
-   example, undefs here are not commented out.
+   example, undefs here are not commented out.  */
 
-   To help make dependencies clearer elsewhere, this file typically
+/* Disable 'assert' unless enabling checking.  Do this early, in
+   case some misguided implementation depends on NDEBUG in some
+   include file other than assert.h.  */
+#if !defined ENABLE_CHECKING && !defined NDEBUG
+# define NDEBUG
+#endif
+
+/* To help make dependencies clearer elsewhere, this file typically
    does not #include other files.  The exceptions are first stdbool.h
    because it is unlikely to interfere with configuration and bool is
    such a core part of the C language, and second ms-w32.h (DOS_NT
@@ -200,6 +207,13 @@ extern void _DebPrint (const char *fmt, ...);
 #ifndef strnicmp
 #define strnicmp strncasecmp
 #endif
+#endif
+
+#ifdef emacs /* Don't do this for lib-src.  */
+/* Tell regex.c to use a type compatible with Emacs.  */
+#define RE_TRANSLATE_TYPE Lisp_Object
+#define RE_TRANSLATE(TBL, C) char_table_translate (TBL, C)
+#define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_fixnum (0)))
 #endif
 
 /* Tell time_rz.c to use Emacs's getter and setter for TZ.

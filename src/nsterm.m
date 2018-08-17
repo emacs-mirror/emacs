@@ -1913,11 +1913,11 @@ x_set_window_size (struct frame *f,
 
  frame_size_history_add
    (f, Qx_set_window_size_1, width, height,
-    list5 (Fcons (make_number (pixelwidth), make_number (pixelheight)),
-	   Fcons (make_number (wr.size.width), make_number (wr.size.height)),
-	   make_number (f->border_width),
-	   make_number (FRAME_NS_TITLEBAR_HEIGHT (f)),
-	   make_number (FRAME_TOOLBAR_HEIGHT (f))));
+    list5 (Fcons (make_fixnum (pixelwidth), make_fixnum (pixelheight)),
+	   Fcons (make_fixnum (wr.size.width), make_fixnum (wr.size.height)),
+	   make_fixnum (f->border_width),
+	   make_fixnum (FRAME_NS_TITLEBAR_HEIGHT (f)),
+	   make_fixnum (FRAME_TOOLBAR_HEIGHT (f))));
 
   [window setFrame: wr display: YES];
 
@@ -2480,8 +2480,8 @@ x_set_frame_alpha (struct frame *f)
 
   if (FLOATP (Vframe_alpha_lower_limit))
     alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
-  else if (INTEGERP (Vframe_alpha_lower_limit))
-    alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
+  else if (FIXNUMP (Vframe_alpha_lower_limit))
+    alpha_min = (XFIXNUM (Vframe_alpha_lower_limit)) / 100.0;
 
   if (alpha < 0.0)
     return;
@@ -3520,8 +3520,8 @@ ns_draw_text_decoration (struct glyph_string *s, struct face *face,
               BOOL underline_at_descent_line, use_underline_position_properties;
               Lisp_Object val = buffer_local_value (Qunderline_minimum_offset,
                                                     s->w->contents);
-              if (INTEGERP (val))
-                minimum_offset = XFASTINT (val);
+              if (FIXNUMP (val))
+                minimum_offset = XFIXNAT (val);
               else
                 minimum_offset = 1;
               val = buffer_local_value (Qx_underline_at_descent_line,
@@ -5342,7 +5342,7 @@ ns_term_init (Lisp_Object display_name)
           {
             color = XCAR (color_map);
             name = SSDATA (XCAR (color));
-            c = XINT (XCDR (color));
+            c = XFIXNUM (XCDR (color));
             [cl setColor:
                   [NSColor colorForEmacsRed: RED_FROM_ULONG (c) / 255.0
                                       green: GREEN_FROM_ULONG (c) / 255.0
@@ -6155,7 +6155,7 @@ not_in_argv (NSString *arg)
       emacs_event->code = KEY_NS_CHANGE_FONT;
 
       size = [newFont pointSize];
-      ns_input_fontsize = make_number (lrint (size));
+      ns_input_fontsize = make_fixnum (lrint (size));
       ns_input_font = build_string ([[newFont familyName] UTF8String]);
       EV_TRAILER (e);
     }
@@ -6234,7 +6234,7 @@ not_in_argv (NSString *arg)
 
   [NSCursor setHiddenUntilMouseMoves: YES];
 
-  if (hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+  if (hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight))
     {
       clear_mouse_face (hlinfo);
       hlinfo->mouse_face_hidden = 1;
@@ -6684,8 +6684,8 @@ not_in_argv (NSString *arg)
               static int totalDeltaX, totalDeltaY;
               int lineHeight;
 
-              if (NUMBERP (ns_mwheel_line_height))
-                lineHeight = XINT (ns_mwheel_line_height);
+              if (FIXED_OR_FLOATP (ns_mwheel_line_height))
+                lineHeight = XFIXNUM (ns_mwheel_line_height);
               else
                 {
                   /* FIXME: Use actual line height instead of the default.  */
@@ -6754,7 +6754,7 @@ not_in_argv (NSString *arg)
             return;
 
           emacs_event->kind = horizontal ? HORIZ_WHEEL_EVENT : WHEEL_EVENT;
-          emacs_event->arg = (make_number (lines));
+          emacs_event->arg = (make_fixnum (lines));
 
           emacs_event->code = 0;
           emacs_event->modifiers = EV_MODIFIERS (theEvent) |
@@ -9341,11 +9341,11 @@ syms_of_nsterm (void)
   DEFSYM (Qfile, "file");
   DEFSYM (Qurl, "url");
 
-  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
-  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
+  Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
+  Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));
+  Fput (Qmeta, Qmodifier_value, make_fixnum (meta_modifier));
+  Fput (Qsuper, Qmodifier_value, make_fixnum (super_modifier));
+  Fput (Qcontrol, Qmodifier_value, make_fixnum (ctrl_modifier));
 
   DEFVAR_LISP ("ns-input-file", ns_input_file,
               "The file specified in the last NS event.");

@@ -1754,6 +1754,15 @@ if it is still empty."
       (indirect indirect-deps)
       (t        (delete-dups (append direct-deps indirect-deps))))))
 
+(defun package--user-installed-p (package)
+  "Return non-nil if PACKAGE is a user-installed package.
+PACKAGE is the package name, a symbol.  Check whether the package
+was installed into `package-user-dir' where we assume to have
+control over."
+  (let* ((pkg-desc (cadr (assq package package-alist)))
+         (dir (package-desc-dir pkg-desc)))
+    (file-in-directory-p dir package-user-dir)))
+
 (defun package--removable-packages ()
   "Return a list of names of packages no longer needed.
 These are packages which are neither contained in
@@ -1763,7 +1772,9 @@ These are packages which are neither contained in
                          ;; `p' and its dependencies are needed.
                          append (cons p (package--get-deps p)))))
     (cl-loop for p in (mapcar #'car package-alist)
-             unless (memq p needed)
+             unless (or (memq p needed)
+                        ;; Do not auto-remove external packages.
+                        (not (package--user-installed-p p)))
              collect p)))
 
 (defun package--used-elsewhere-p (pkg-desc &optional pkg-list all)

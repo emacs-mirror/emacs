@@ -90,20 +90,20 @@ static Lisp_Object
 clean_local_selection_data (Lisp_Object obj)
 {
   if (CONSP (obj)
-      && INTEGERP (XCAR (obj))
+      && FIXNUMP (XCAR (obj))
       && CONSP (XCDR (obj))
-      && INTEGERP (XCAR (XCDR (obj)))
+      && FIXNUMP (XCAR (XCDR (obj)))
       && NILP (XCDR (XCDR (obj))))
     obj = Fcons (XCAR (obj), XCDR (obj));
 
   if (CONSP (obj)
-      && INTEGERP (XCAR (obj))
-      && INTEGERP (XCDR (obj)))
+      && FIXNUMP (XCAR (obj))
+      && FIXNUMP (XCDR (obj)))
     {
-      if (XINT (XCAR (obj)) == 0)
+      if (XFIXNUM (XCAR (obj)) == 0)
         return XCDR (obj);
-      if (XINT (XCAR (obj)) == -1)
-        return make_number (- XINT (XCDR (obj)));
+      if (XFIXNUM (XCAR (obj)) == -1)
+        return make_fixnum (- XFIXNUM (XCDR (obj)));
     }
 
   if (VECTORP (obj))

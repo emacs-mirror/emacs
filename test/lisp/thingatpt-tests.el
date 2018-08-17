@@ -65,7 +65,10 @@
     ("http://example.com/ab)c" 4 url "http://example.com/ab)c")
     ;; URL markup, lacking schema
     ("<url:foo@example.com>" 1 url "mailto:foo@example.com")
-    ("<url:ftp.example.net/abc/>" 1 url "ftp://ftp.example.net/abc/"))
+    ("<url:ftp.example.net/abc/>" 1 url "ftp://ftp.example.net/abc/")
+    ;; UUID, only hex is allowed
+    ("01234567-89ab-cdef-ABCD-EF0123456789" 1 uuid "01234567-89ab-cdef-ABCD-EF0123456789")
+    ("01234567-89ab-cdef-ABCD-EF012345678G" 1 uuid nil))
   "List of thing-at-point tests.
 Each list element should have the form
 

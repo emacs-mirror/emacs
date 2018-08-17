@@ -85,7 +85,9 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #  define DEBUG true
 #else
 #  define DEBUG  false
-#  define NDEBUG		/* disable assert */
+#  ifndef NDEBUG
+#   define NDEBUG		/* disable assert */
+#  endif
 #endif
 
 #include <config.h>

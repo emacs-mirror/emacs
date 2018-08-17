@@ -551,10 +551,10 @@ calculate_glyph_code_table (struct terminal *t)
       struct unimapdesc unimapdesc = { entry_ct, entries };
       if (ioctl (fd, GIO_UNIMAP, &unimapdesc) == 0)
 	{
-	  glyphtab = Fmake_char_table (Qnil, make_number (-1));
+	  glyphtab = Fmake_char_table (Qnil, make_fixnum (-1));
 	  for (int i = 0; i < unimapdesc.entry_ct; i++)
 	    char_table_set (glyphtab, entries[i].unicode,
-			    make_number (entries[i].fontpos));
+			    make_fixnum (entries[i].fontpos));
 	  break;
 	}
       if (errno != ENOMEM)

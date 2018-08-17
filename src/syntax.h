@@ -118,7 +118,7 @@ INLINE int
 syntax_property_with_flags (int c, bool via_property)
 {
   Lisp_Object ent = syntax_property_entry (c, via_property);
-  return CONSP (ent) ? XINT (XCAR (ent)) : Swhitespace;
+  return CONSP (ent) ? XFIXNUM (XCAR (ent)) : Swhitespace;
 }
 INLINE int
 SYNTAX_WITH_FLAGS (int c)

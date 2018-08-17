@@ -920,7 +920,7 @@ w32font_open_internal (struct frame *f, Lisp_Object font_entity,
   if (!EQ (val, Qraster))
     logfont.lfOutPrecision = OUT_TT_PRECIS;
 
-  size = XINT (AREF (font_entity, FONT_SIZE_INDEX));
+  size = XFIXNUM (AREF (font_entity, FONT_SIZE_INDEX));
   if (!size)
     size = pixel_size;
 
@@ -1096,9 +1096,9 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
   ASET (entity, FONT_ADSTYLE_INDEX, tem);
 
   if (physical_font->ntmTm.tmPitchAndFamily & 0x01)
-    ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_PROPORTIONAL));
+    ASET (entity, FONT_SPACING_INDEX, make_fixnum (FONT_SPACING_PROPORTIONAL));
   else
-    ASET (entity, FONT_SPACING_INDEX, make_number (FONT_SPACING_CHARCELL));
+    ASET (entity, FONT_SPACING_INDEX, make_fixnum (FONT_SPACING_CHARCELL));
 
   if (requested_font->lfQuality != DEFAULT_QUALITY)
     {
@@ -1109,19 +1109,19 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
 	intern_font_name (lf->lfFaceName));
 
   FONT_SET_STYLE (entity, FONT_WEIGHT_INDEX,
-		  make_number (w32_decode_weight (lf->lfWeight)));
+		  make_fixnum (w32_decode_weight (lf->lfWeight)));
   FONT_SET_STYLE (entity, FONT_SLANT_INDEX,
-		  make_number (lf->lfItalic ? 200 : 100));
+		  make_fixnum (lf->lfItalic ? 200 : 100));
   /* TODO: PANOSE struct has this info, but need to call GetOutlineTextMetrics
      to get it.  */
-  FONT_SET_STYLE (entity, FONT_WIDTH_INDEX, make_number (100));
+  FONT_SET_STYLE (entity, FONT_WIDTH_INDEX, make_fixnum (100));
 
   if (font_type & RASTER_FONTTYPE)
     ASET (entity, FONT_SIZE_INDEX,
-          make_number (physical_font->ntmTm.tmHeight
+          make_fixnum (physical_font->ntmTm.tmHeight
                        + physical_font->ntmTm.tmExternalLeading));
   else
-    ASET (entity, FONT_SIZE_INDEX, make_number (0));
+    ASET (entity, FONT_SIZE_INDEX, make_fixnum (0));
 
   /* Cache Unicode codepoints covered by this font, as there is no other way
      of getting this information easily.  */
@@ -1229,9 +1229,9 @@ font_matches_spec (DWORD type, NEWTEXTMETRICEX *font,
 
   /* Check spacing */
   val = AREF (spec, FONT_SPACING_INDEX);
-  if (INTEGERP (val))
+  if (FIXNUMP (val))
     {
-      int spacing = XINT (val);
+      int spacing = XFIXNUM (val);
       int proportional = (spacing < FONT_SPACING_MONO);
 
       if ((proportional && !(font->ntmTm.tmPitchAndFamily & 0x01))
@@ -1822,8 +1822,8 @@ w32_to_x_charset (int fncharset, char *matching)
         /* Look for Same charset and a valid codepage (or non-int
            which means ignore).  */
         if (EQ (w32_charset, charset_type)
-            && (!INTEGERP (codepage) || XINT (codepage) == CP_DEFAULT
-                || IsValidCodePage (XINT (codepage))))
+            && (!FIXNUMP (codepage) || XFIXNUM (codepage) == CP_DEFAULT
+                || IsValidCodePage (XFIXNUM (codepage))))
           {
             /* If we don't have a match already, then this is the
                best.  */
@@ -1955,9 +1955,9 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
   int dpi = FRAME_RES_Y (f);
 
   tmp = AREF (font_spec, FONT_DPI_INDEX);
-  if (INTEGERP (tmp))
+  if (FIXNUMP (tmp))
     {
-      dpi = XINT (tmp);
+      dpi = XFIXNUM (tmp);
     }
   else if (FLOATP (tmp))
     {
@@ -1966,8 +1966,8 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
 
   /* Height  */
   tmp = AREF (font_spec, FONT_SIZE_INDEX);
-  if (INTEGERP (tmp))
-    logfont->lfHeight = -1 * XINT (tmp);
+  if (FIXNUMP (tmp))
+    logfont->lfHeight = -1 * XFIXNUM (tmp);
   else if (FLOATP (tmp))
     logfont->lfHeight = (int) (-1.0 *  dpi * XFLOAT_DATA (tmp) / 72.27 + 0.5);
 
@@ -1977,12 +1977,12 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
 
   /* Weight  */
   tmp = AREF (font_spec, FONT_WEIGHT_INDEX);
-  if (INTEGERP (tmp))
+  if (FIXNUMP (tmp))
     logfont->lfWeight = w32_encode_weight (FONT_WEIGHT_NUMERIC (font_spec));
 
   /* Italic  */
   tmp = AREF (font_spec, FONT_SLANT_INDEX);
-  if (INTEGERP (tmp))
+  if (FIXNUMP (tmp))
     {
       int slant = FONT_SLANT_NUMERIC (font_spec);
       logfont->lfItalic = slant > 150 ? 1 : 0;
@@ -2036,9 +2036,9 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
 
   /* Set pitch based on the spacing property.  */
   tmp = AREF (font_spec, FONT_SPACING_INDEX);
-  if (INTEGERP (tmp))
+  if (FIXNUMP (tmp))
     {
-      int spacing = XINT (tmp);
+      int spacing = XFIXNUM (tmp);
       if (spacing < FONT_SPACING_MONO)
 	logfont->lfPitchAndFamily
 	  = (logfont->lfPitchAndFamily & 0xF0) | VARIABLE_PITCH;

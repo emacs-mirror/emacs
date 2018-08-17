@@ -14,9 +14,9 @@
 fractional parts, such as @minus{}4.5, 0.0, and 2.71828.  They can
 also be expressed in exponential notation: @samp{1.5e2} is the same as
 @samp{150.0}; here, @samp{e2} stands for ten to the second power, and
-that is multiplied by 1.5.  Integer computations are exact, though
-they may overflow.  Floating-point computations often involve rounding
-errors, as the numbers have a fixed amount of precision.
+that is multiplied by 1.5.  Integer computations are exact.
+Floating-point computations often involve rounding errors, as the
+numbers have a fixed amount of precision.
 
 @menu
 * Integer Basics::            Representation and range of integers.
@@ -34,7 +34,15 @@ errors, as the numbers have a fixed amount of precision.
 @node Integer Basics
 @section Integer Basics
 
-  The range of values for an integer depends on the machine.  The
+  Integers in Emacs Lisp can have arbitrary precision.
+
+  Under the hood, though, there are two kinds of integers: smaller
+ones, called @dfn{fixnums}, and larger ones, called @dfn{bignums}
+Some functions in Emacs only accept fixnums.  Also, while fixnums can
+always be compared for equality with @code{eq}, bignums require the
+use of @code{eql}.
+
+  The range of values for a fixnum depends on the machine.  The
 minimum range is @minus{}536,870,912 to 536,870,911 (30 bits; i.e.,
 @ifnottex
 @minus{}2**29
@@ -49,9 +57,7 @@ to
 @tex
 @math{2^{29}-1}),
 @end tex
-but many machines provide a wider range.  Many examples in this
-chapter assume the minimum integer width of 30 bits.
-@cindex overflow
+but many machines provide a wider range.
 
   The Lisp reader reads an integer as a nonempty sequence
 of decimal digits with optional initial sign and optional
@@ -91,14 +97,8 @@ For example:
 #24r1k @result{} 44
 @end example
 
-  If an integer is outside the Emacs range, the Lisp reader ordinarily
-signals an overflow.  However, if a too-large plain integer ends in a
-period, the Lisp reader treats it as a floating-point number instead.
-This lets an Emacs Lisp program specify a large integer that is
-quietly approximated by a floating-point number on machines with
-limited word width.  For example, @samp{536870912.} is a
-floating-point number if Emacs integers are only 30 bits wide and is
-an integer otherwise.
+  An integer is read as a fixnum if it is in the correct range.
+Otherwise, it will be read as a bignum.
 
   To understand how various functions work on integers, especially the
 bitwise operators (@pxref{Bitwise Operations}), it is often helpful to
@@ -141,16 +141,6 @@ In binary, the decimal integer 4 is 100.  Consequently,
 0111...111111 (30 bits total)
 @end example
 
-  Since the arithmetic functions do not check whether integers go
-outside their range, when you add 1 to 536,870,911, the value is the
-negative integer @minus{}536,870,912:
-
-@example
-(+ 1 536870911)
-     @result{} -536870912
-     @result{} 1000...000000 (30 bits total)
-@end example
-
   Many of the functions described in this chapter accept markers for
 arguments in place of numbers.  (@xref{Markers}.)  Since the actual
 arguments to such functions may be either numbers or markers, we often
@@ -160,8 +150,8 @@ value is a marker, its position value is used and its buffer is ignored.
 @cindex largest Lisp integer
 @cindex maximum Lisp integer
 @defvar most-positive-fixnum
-The value of this variable is the largest integer that Emacs Lisp can
-handle.  Typical values are
+The value of this variable is the largest ``small'' integer that Emacs
+Lisp can handle.  Typical values are
 @ifnottex
 2**29 @minus{} 1
 @end ifnottex
@@ -181,8 +171,8 @@ on 64-bit platforms.
 @cindex smallest Lisp integer
 @cindex minimum Lisp integer
 @defvar most-negative-fixnum
-The value of this variable is the smallest integer that Emacs Lisp can
-handle.  It is negative.  Typical values are
+The value of this variable is the smallest small integer that Emacs
+Lisp can handle.  It is negative.  Typical values are
 @ifnottex
 @minus{}2**29
 @end ifnottex
@@ -327,6 +317,18 @@ use otherwise), but the @code{zerop} predicate requires a number as
 its argument.  See also @code{integer-or-marker-p} and
 @code{number-or-marker-p}, in @ref{Predicates on Markers}.
 
+@defun bignump object
+This predicate tests whether its argument is a large integer, and
+returns @code{t} if so, @code{nil} otherwise.  Unlike small integers,
+large integers can be @code{=} or @code{eql} even if they are not @code{eq}.
+@end defun
+
+@defun fixnump object
+This predicate tests whether its argument is a small integer, and
+returns @code{t} if so, @code{nil} otherwise.  Small integers can be
+compared with @code{eq}.
+@end defun
+
 @defun floatp object
 This predicate tests whether its argument is floating point
 and returns @code{t} if so, @code{nil} otherwise.
@@ -367,17 +369,17 @@ if so, @code{nil} otherwise.  The argument must be a number.
 
   To test numbers for numerical equality, you should normally use
 @code{=} instead of non-numeric comparison predicates like @code{eq},
-@code{eql} and @code{equal}.  Distinct floating-point objects can be
-numerically equal.  If you use @code{eq} to compare them, you test
-whether they are the same @emph{object}; if you use @code{eql} or
-@code{equal}, you test whether their values are
+@code{eql} and @code{equal}.  Distinct floating-point and large
+integer objects can be numerically equal.  If you use @code{eq} to
+compare them, you test whether they are the same @emph{object}; if you
+use @code{eql} or @code{equal}, you test whether their values are
 @emph{indistinguishable}.  In contrast, @code{=} uses numeric
 comparison, and sometimes returns @code{t} when a non-numeric
 comparison would return @code{nil} and vice versa.  @xref{Float
 Basics}.
 
-  In Emacs Lisp, each integer is a unique Lisp object.
-Therefore, @code{eq} is equivalent to @code{=} where integers are
+  In Emacs Lisp, each small integer is a unique Lisp object.
+Therefore, @code{eq} is equivalent to @code{=} where small integers are
 concerned.  It is sometimes convenient to use @code{eq} for comparing
 an unknown value with an integer, because @code{eq} does not report an
 error if the unknown value is not a number---it accepts arguments of
@@ -405,15 +407,6 @@ Here's a function to do this:
          fuzz-factor)))
 @end example
 
-@cindex CL note---integers vrs @code{eq}
-@quotation
-@b{Common Lisp note:} Comparing numbers in Common Lisp always requires
-@code{=} because Common Lisp implements multi-word integers, and two
-distinct integer objects can have the same numeric value.  Emacs Lisp
-can have just one integer object for any given value because it has a
-limited range of integers.
-@end quotation
-
 @defun = number-or-marker &rest number-or-markers
 This function tests whether all its arguments are numerically equal,
 and returns @code{t} if so, @code{nil} otherwise.
@@ -423,7 +416,8 @@ and returns @code{t} if so, @code{nil} otherwise.
 This function acts like @code{eq} except when both arguments are
 numbers.  It compares numbers by type and numeric value, so that
 @code{(eql 1.0 1)} returns @code{nil}, but @code{(eql 1.0 1.0)} and
-@code{(eql 1 1)} both return @code{t}.
+@code{(eql 1 1)} both return @code{t}.  This can be used to compare
+large integers as well as small ones.
 @end defun
 
 @defun /= number-or-marker1 number-or-marker2
@@ -582,10 +576,6 @@ remainder and modulus functions, and functions to add or subtract 1.
 Except for @code{%}, each of these functions accepts both integer and
 floating-point arguments, and returns a floating-point number if any
 argument is floating point.
-
-  Emacs Lisp arithmetic functions do not check for integer overflow.
-Thus @code{(1+ 536870911)} may evaluate to
-@minus{}536870912, depending on your hardware.
 
 @defun 1+ number-or-marker
 This function returns @var{number-or-marker} plus 1.
@@ -912,35 +902,6 @@ On the other hand, shifting one place to the right looks like this:
 @noindent
 As the example illustrates, shifting one place to the right divides the
 value of a positive integer by two, rounding downward.
-
-The function @code{lsh}, like all Emacs Lisp arithmetic functions, does
-not check for overflow, so shifting left can discard significant bits
-and change the sign of the number.  For example, left shifting
-536,870,911 produces @minus{}2 in the 30-bit implementation:
-
-@example
-(lsh 536870911 1)          ; @r{left shift}
-     @result{} -2
-@end example
-
-In binary, the argument looks like this:
-
-@example
-@group
-;; @r{Decimal 536,870,911}
-0111...111111 (30 bits total)
-@end group
-@end example
-
-@noindent
-which becomes the following when left shifted:
-
-@example
-@group
-;; @r{Decimal @minus{}2}
-1111...111110 (30 bits total)
-@end group
-@end example
 @end defun
 
 @defun ash integer1 count
@@ -964,19 +925,6 @@ looks like this:
 1111...111010 (30 bits total)
      @result{}
 1111...111101 (30 bits total)
-@end group
-@end example
-
-In contrast, shifting the pattern of bits one place to the right with
-@code{lsh} looks like this:
-
-@example
-@group
-(lsh -6 -1) @result{} 536870909
-;; @r{Decimal @minus{}6 becomes decimal 536,870,909.}
-1111...111010 (30 bits total)
-     @result{}
-0111...111101 (30 bits total)
 @end group
 @end example
 

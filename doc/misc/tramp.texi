@@ -3290,7 +3290,9 @@ When including @value{tramp}'s messages in the bug report, increase
 the verbosity level to 6 (@pxref{Traces and Profiles, Traces}) in the
 @file{~/.emacs} file before repeating steps to the bug.  Include the
 contents of the @file{*tramp/foo*} and @file{*debug tramp/foo*}
-buffers with the bug report.
+buffers with the bug report.  Both buffers could contain
+non-@acronym{ASCII} characters which are relevant for analysis, append
+the buffers as attachments to the bug report.
 
 @strong{Note} that a verbosity level greater than 6 is not necessary
 at this stage.  Also note that a verbosity level of 6 or greater, the
@@ -4019,6 +4021,15 @@ wrapper script:
 @example
 export EDITOR=/path/to/emacsclient.sh
 @end example
+
+
+@item
+How to determine wheter a buffer is remote?
+
+The buffer-local variable @code{default-directory} tells this.  If the
+form @code{(file-remote-p default-directory)} returns non-@code{nil},
+the buffer is remote.  See the optional arguments of
+@code{file-remote-p} for determining details of the remote connection.
 
 
 @item

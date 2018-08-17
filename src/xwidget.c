@@ -79,16 +79,16 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
    Lisp_Object arguments, Lisp_Object buffer)
 {
   CHECK_SYMBOL (type);
-  CHECK_NATNUM (width);
-  CHECK_NATNUM (height);
+  CHECK_FIXNAT (width);
+  CHECK_FIXNAT (height);
 
   struct xwidget *xw = allocate_xwidget ();
   Lisp_Object val;
   xw->type = type;
   xw->title = title;
   xw->buffer = NILP (buffer) ? Fcurrent_buffer () : Fget_buffer_create (buffer);
-  xw->height = XFASTINT (height);
-  xw->width = XFASTINT (width);
+  xw->height = XFIXNAT (height);
+  xw->width = XFIXNAT (width);
   xw->kill_without_query = false;
   XSETXWIDGET (val, xw);
   Vxwidget_list = Fcons (val, Vxwidget_list);
@@ -294,7 +294,7 @@ webkit_js_to_lisp (JSContextRef context, JSValueRef value)
     case kJSTypeBoolean:
       return (JSValueToBoolean (context, value)) ? Qt : Qnil;
     case kJSTypeNumber:
-      return make_number (JSValueToNumber (context, value, NULL));
+      return make_fixnum (JSValueToNumber (context, value, NULL));
     case kJSTypeObject:
       {
         if (JSValueIsArray (context, value))
@@ -713,7 +713,7 @@ save_script_callback (struct xwidget *xw, Lisp_Object script, Lisp_Object fun)
 {
   Lisp_Object cbs = xw->script_callbacks;
   if (NILP (cbs))
-    xw->script_callbacks = cbs = Fmake_vector (make_number (32), Qnil);
+    xw->script_callbacks = cbs = Fmake_vector (make_fixnum (32), Qnil);
 
   /* Find first free index.  */
   ptrdiff_t idx;
@@ -767,8 +767,8 @@ DEFUN ("xwidget-resize", Fxwidget_resize, Sxwidget_resize, 3, 3, 0,
   CHECK_RANGED_INTEGER (new_width, 0, INT_MAX);
   CHECK_RANGED_INTEGER (new_height, 0, INT_MAX);
   struct xwidget *xw = XXWIDGET (xwidget);
-  int w = XFASTINT (new_width);
-  int h = XFASTINT (new_height);
+  int w = XFIXNAT (new_width);
+  int h = XFIXNAT (new_height);
 
   xw->width = w;
   xw->height = h;
@@ -811,8 +811,8 @@ Emacs allocated area accordingly.  */)
   CHECK_XWIDGET (xwidget);
   GtkRequisition requisition;
   gtk_widget_size_request (XXWIDGET (xwidget)->widget_osr, &requisition);
-  return list2 (make_number (requisition.width),
-		make_number (requisition.height));
+  return list2 (make_fixnum (requisition.width),
+		make_fixnum (requisition.height));
 }
 
 DEFUN ("xwidgetp",
@@ -843,7 +843,7 @@ Currently [TYPE TITLE WIDTH HEIGHT].  */)
   CHECK_XWIDGET (xwidget);
   struct xwidget *xw = XXWIDGET (xwidget);
   return CALLN (Fvector, xw->type, xw->title,
-		make_natnum (xw->width), make_natnum (xw->height));
+		make_fixed_natnum (xw->width), make_fixed_natnum (xw->height));
 }
 
 DEFUN ("xwidget-view-info",
@@ -855,9 +855,9 @@ Currently [X Y CLIP_RIGHT CLIP_BOTTOM CLIP_TOP CLIP_LEFT].  */)
 {
   CHECK_XWIDGET_VIEW (xwidget_view);
   struct xwidget_view *xv = XXWIDGET_VIEW (xwidget_view);
-  return CALLN (Fvector, make_number (xv->x), make_number (xv->y),
-		make_number (xv->clip_right), make_number (xv->clip_bottom),
-		make_number (xv->clip_top), make_number (xv->clip_left));
+  return CALLN (Fvector, make_fixnum (xv->x), make_fixnum (xv->y),
+		make_fixnum (xv->clip_right), make_fixnum (xv->clip_bottom),
+		make_fixnum (xv->clip_top), make_fixnum (xv->clip_left));
 }
 
 DEFUN ("xwidget-view-model",
