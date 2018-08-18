@@ -58,7 +58,7 @@ static jit_type_t ptrdiff_t_type;
 
 /* Make a pointer constant.  */
 #define CONSTANT(FUNC, VAL) \
-  jit_value_create_long_constant (FUNC, jit_type_void_ptr, (jit_long) (VAL))
+  jit_value_create_long_constant (FUNC, jit_type_void_ptr, (jit_long) (uintptr_t) (VAL))
 
 /* Fetch the next byte from the bytecode stream.  */
 
@@ -1318,9 +1318,15 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 
 	    /* FIXME probably should be using the same as the rest of
 	       emacs.  */
+#ifdef HAVE__SETJMP
+	    cond = jit_insn_call_native (func, "sys_setjmp", _setjmp,
+					 setjmp_signature,
+					 &jmp, 1, JIT_CALL_NOTHROW);
+#else
 	    cond = jit_insn_call_native (func, "sys_setjmp", setjmp,
 					 setjmp_signature,
 					 &jmp, 1, JIT_CALL_NOTHROW);
+#endif
 	    PUSH_PC (pc);
 	    jit_insn_branch_if_not (func, cond, &labels[pc]);
 
@@ -2232,24 +2238,24 @@ DEFUN ("jit-disassemble-to-string", Fjit_disassemble_to_string,
        doc: /* Disassemble a JIT-compiled function and return a string with the disassembly.  */)
   (Lisp_Object func)
 {
-  char *buffer = NULL;
-  size_t size = 0;
   FILE *stream;
-  Lisp_Object str;
   struct Lisp_Vector *vec;
   jit_function_t cfunc;
   struct subr_function *sfunc;
 
   if (!COMPILEDP (func))
     error ("Not a byte-compiled function");
-
-#ifdef HAVE_OPEN_MEMSTREAM
   vec = XVECTOR (func);
   sfunc = (struct subr_function *) vec->contents[COMPILED_JIT_CODE];
   if (sfunc == NULL)
     error ("Not JIT-compiled");
 
   cfunc = jit_function_from_closure (emacs_jit_context, sfunc->function.a0);
+
+#ifdef HAVE_OPEN_MEMSTREAM
+  Lisp_Object str;
+  char *buffer = NULL;
+  size_t size = 0;
   stream = open_memstream (&buffer, &size);
   jit_dump_function (stream, cfunc, "Function");
   fclose (stream);
