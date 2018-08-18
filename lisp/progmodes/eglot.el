@@ -1512,7 +1512,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          :success-fn (jsonrpc-lambda (&key contents range)
                        (unless sig-showing
                          (when-buffer-window
-                          (when-let (info (eglot--hover-info contents range))
+                          (when-let (info (and contents
+                                               (eglot--hover-info contents
+                                                                  range)))
                             (eldoc-message info)))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
