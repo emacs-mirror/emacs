@@ -25,6 +25,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "bytecode.h"
 #include "window.h"
 
+#ifndef HAVE_OPEN_MEMSTREAM
+#include "sysstdio.h"
+#endif
+
 #include <stdio.h>
 #include <jit/jit.h>
 #include <jit/jit-dump.h>
@@ -2238,7 +2242,10 @@ DEFUN ("jit-disassemble-to-string", Fjit_disassemble_to_string,
        doc: /* Disassemble a JIT-compiled function and return a string with the disassembly.  */)
   (Lisp_Object func)
 {
+  char *buffer = NULL;
+  size_t size = 0;
   FILE *stream;
+  Lisp_Object str;
   struct Lisp_Vector *vec;
   jit_function_t cfunc;
   struct subr_function *sfunc;
@@ -2253,9 +2260,6 @@ DEFUN ("jit-disassemble-to-string", Fjit_disassemble_to_string,
   cfunc = jit_function_from_closure (emacs_jit_context, sfunc->function.a0);
 
 #ifdef HAVE_OPEN_MEMSTREAM
-  Lisp_Object str;
-  char *buffer = NULL;
-  size_t size = 0;
   stream = open_memstream (&buffer, &size);
   jit_dump_function (stream, cfunc, "Function");
   fclose (stream);
@@ -2265,7 +2269,32 @@ DEFUN ("jit-disassemble-to-string", Fjit_disassemble_to_string,
   xfree (buffer);
   return str;
 #else
-  error ("Cannot disassemble JIT code in this build: open_memstream missing");
+  static const char fname[] = "emacs-jit-disassemble.txt";
+  stream = emacs_fopen (fname, "w");
+  jit_dump_function (stream, cfunc, "Function");
+  fclose (stream);
+  struct stat st;
+  int fd;
+  if (stat (fname, &st) == 0
+      && (fd = emacs_open (fname, O_RDONLY | O_TEXT, S_IRUSR)) >= 0)
+    {
+      buffer = xmalloc (st.st_size + 1);
+      ptrdiff_t nread = emacs_read (fd, buffer, st.st_size);
+      if (nread > 0)
+	{
+	  size = nread;
+	  buffer[size] = '\0';
+	  str = make_string (buffer, size);
+	  emacs_close (fd);
+	  unlink (fname);
+	}
+      else
+	str = empty_unibyte_string;
+      xfree (buffer);
+      return str;
+    }
+  else
+    error ("jit-disassemble file could not be found");
 #endif
 }
 
