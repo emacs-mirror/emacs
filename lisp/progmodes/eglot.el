@@ -204,7 +204,11 @@ let the buffer grow forever."
                                :dynamicRegistration :json-false
                                :willSave t :willSaveWaitUntil t :didSave t)
              :completion      (list :dynamicRegistration :json-false
-                                    :completionItem `(:snippetSupport t))
+                                    :completionItem
+                                    `(:snippetSupport
+                                      ,(if (eglot--snippet-expansion-fn)
+                                           t
+                                         :json-false)))
              :hover              `(:dynamicRegistration :json-false)
              :signatureHelp      `(:dynamicRegistration :json-false)
              :references         `(:dynamicRegistration :json-false)
@@ -697,6 +701,13 @@ If optional MARKER, return a marker instead"
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
   (let ((retval (url-filename (url-generic-parse-url (url-unhex-string uri)))))
     (if (eq system-type 'windows-nt) (substring retval 1) retval)))
+
+(defun eglot--snippet-expansion-fn ()
+  "Compute a function to expand snippets.
+Doubles as an indicator of snippet support."
+  (and (boundp 'yas-minor-mode)
+       (symbol-value 'yas-minor-mode)
+       'yas-expand-snippet))
 
 (defconst eglot--kind-names
   `((1 . "Text") (2 . "Method") (3 . "Function") (4 . "Constructor")
@@ -1387,25 +1398,36 @@ is not active."
                                         :cancel-on-input t))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
             (mapcar
-             (jsonrpc-lambda (&rest all &key label insertText &allow-other-keys)
-               (let ((insert (or insertText (string-trim-left label))))
-                 (add-text-properties 0 1 all insert)
-                 (put-text-property 0 1 'eglot--lsp-completion all insert)
-                 insert))
+             (jsonrpc-lambda (&rest all &key label insertText insertTextFormat
+                                    &allow-other-keys)
+               (let ((completion
+                      (cond ((and (eql insertTextFormat 2)
+                                  (eglot--snippet-expansion-fn))
+                             (string-trim-left label))
+                            (t
+                             (or insertText (string-trim-left label))))))
+                 (add-text-properties 0 1 all completion)
+                 (put-text-property 0 1 'eglot--lsp-completion all completion)
+                 completion))
              items))))
        :annotation-function
        (lambda (obj)
-         (cl-destructuring-bind (&key detail documentation kind &allow-other-keys)
+         (cl-destructuring-bind (&key detail kind insertTextFormat
+                                      &allow-other-keys)
              (text-properties-at 0 obj)
-           (let ((annotation
-                  (or (and documentation
-                           (replace-regexp-in-string
-                            "\n.*" "" (eglot--format-markup documentation)))
-                      detail
-                      (cdr (assoc kind eglot--kind-names)))))
+           (let* ((detail (and (stringp detail)
+                               (not (string= detail ""))
+                               detail))
+                  (annotation
+                   (or detail
+                       (cdr (assoc kind eglot--kind-names)))))
              (when annotation
-               (concat " " (propertize annotation
-                                       'face 'font-lock-function-name-face))))))
+               (concat " "
+                       (propertize annotation
+                                   'face 'font-lock-function-name-face)
+                       (and (eql insertTextFormat 2)
+                            (eglot--snippet-expansion-fn)
+                            " (snippet)"))))))
        :display-sort-function
        (lambda (items)
          (sort items (lambda (a b)
@@ -1434,10 +1456,10 @@ is not active."
                                                      insertText
                                                      &allow-other-keys)
                             (text-properties-at 0 obj)
-                          (when (and (eql insertTextFormat 2)
-                                     (fboundp 'yas-expand-snippet))
-                            (delete-region (- (point) (length obj)) (point))
-                            (funcall 'yas-expand-snippet insertText))
+                          (when-let ((fn (and (eql insertTextFormat 2)
+                                              (eglot--snippet-expansion-fn))))
+                            (delete-region (car bounds) (point))
+                            (funcall fn insertText))
                           (eglot--signal-textDocument/didChange)
                           (eglot-eldoc-function)))))))
 
