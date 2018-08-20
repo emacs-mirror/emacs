@@ -1464,7 +1464,7 @@ is not active."
                             (text-properties-at 0 obj)
                           (when-let ((fn (and (eql insertTextFormat 2)
                                               (eglot--snippet-expansion-fn))))
-                            (delete-region (car bounds) (point))
+                            (delete-region (- (point) (length obj)) (point))
                             (funcall fn insertText))
                           (eglot--signal-textDocument/didChange)
                           (eglot-eldoc-function)))))))
