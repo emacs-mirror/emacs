@@ -1036,7 +1036,8 @@ COMMAND is a symbol naming the command."
         (cl-loop
          for diag-spec across diagnostics
          collect (cl-destructuring-bind (&key range ((:severity sev)) _group
-                                              _code source message)
+                                              _code source message
+                                              &allow-other-keys)
                      diag-spec
                    (setq message (concat source ": " message))
                    (pcase-let
