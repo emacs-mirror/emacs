@@ -1384,8 +1384,9 @@ is not active."
 (defun eglot-completion-at-point ()
   "EGLOT's `completion-at-point' function."
   (let ((bounds (bounds-of-thing-at-point 'symbol))
-        (server (eglot--current-server-or-lose)))
-    (when (eglot--server-capable :completionProvider)
+        (server (eglot--current-server-or-lose))
+        (completion-capability (eglot--server-capable :completionProvider)))
+    (when completion-capability
       (list
        (or (car bounds) (point))
        (or (cdr bounds) (point))
@@ -1451,6 +1452,10 @@ is not active."
                (erase-buffer)
                (insert (eglot--format-markup documentation))
                (current-buffer)))))
+       :company-prefix-length
+       (cl-some #'looking-back
+                (mapcar #'regexp-quote
+                        (plist-get completion-capability :triggerCharacters)))
        :exit-function (lambda (obj _status)
                         (cl-destructuring-bind (&key insertTextFormat
                                                      insertText
