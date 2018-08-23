@@ -3555,7 +3555,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
     p->contents[i] = Qnil;
 
   /* Not really a Lisp_Object.  */
-  p->contents[COMPILED_JIT_CODE] = (Lisp_Object) NULL;
+  p->contents[COMPILED_JIT_CODE] = XPL (NULL);
 
   if (STRINGP (p->contents[COMPILED_BYTECODE])
       && STRING_MULTIBYTE (p->contents[COMPILED_BYTECODE]))

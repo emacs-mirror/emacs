@@ -2825,9 +2825,9 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   if (SUBRP (fun))
     val = funcall_subr (fun, &XSUBR (fun)->function, numargs, args + 1);
   else if (COMPILEDP (fun)
-	   && XVECTOR (fun)->contents[COMPILED_JIT_CODE] != NULL)
+	   && XLP (XVECTOR (fun)->contents[COMPILED_JIT_CODE]) != NULL)
     val = funcall_subr (fun,
-			(struct subr_function *) XVECTOR (fun)->contents[COMPILED_JIT_CODE],
+			(struct subr_function *) XLP (XVECTOR (fun)->contents[COMPILED_JIT_CODE]),
 			numargs, args + 1);
   else if (COMPILEDP (fun) || MODULE_FUNCTIONP (fun))
     val = funcall_lambda (fun, numargs, args + 1);
@@ -3026,12 +3026,12 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	    {
 	      struct Lisp_Vector *vec = XVECTOR (fun);
 
-	      if (vec->contents[COMPILED_JIT_CODE] == NULL)
+	      if (XLP (vec->contents[COMPILED_JIT_CODE]) == NULL)
 		emacs_jit_compile (fun);
 
-	      if (vec->contents[COMPILED_JIT_CODE] != NULL)
+	      if (XLP (vec->contents[COMPILED_JIT_CODE]) != NULL)
 		return funcall_subr (fun,
-				     (struct subr_function *) vec->contents[COMPILED_JIT_CODE],
+				     (struct subr_function *) XLP (vec->contents[COMPILED_JIT_CODE]),
 				     nargs, arg_vector);
 	    }
 #endif /* HAVE_LIBJIT */

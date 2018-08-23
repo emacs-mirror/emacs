@@ -1464,6 +1464,12 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   xputenv ("LANG=C");
 #endif
 
+#ifdef HAVE_LIBJIT
+  /* This is here because init_buffer can already call Lisp.  */
+  if (initialized)
+    init_jit ();
+#endif
+
   /* Init buffer storage and default directory of main buffer.  */
   init_buffer (initialized);
 
@@ -1666,10 +1672,6 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
 #if defined WINDOWSNT || defined HAVE_NTGUI
       globals_of_w32select ();
-#endif
-
-#ifdef HAVE_LIBJIT
-      init_jit ();
 #endif
     }
 

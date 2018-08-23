@@ -3534,6 +3534,10 @@ if test "${with_libjit}" != "no"; then
   EMACS_CHECK_MODULES([LIBJIT], [$LIBJIT_MODULES])
   if test "${HAVE_LIBJIT}" = "yes"; then
     AC_DEFINE([HAVE_LIBJIT], 1, [Define to 1 if you have the libjit library (-ljit).])
+    ### mingw32 doesn't use -ljit, since it loads the library dynamically.
+    if test "${opsys}" = "mingw32"; then
+       LIBJIT_LIBS=
+    fi
   fi
 fi
 

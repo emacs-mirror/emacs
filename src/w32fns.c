@@ -10258,6 +10258,7 @@ syms_of_w32fns (void)
   DEFSYM (Qzlib, "zlib");
   DEFSYM (Qlcms2, "lcms2");
   DEFSYM (Qjson, "json");
+  DEFSYM (Qlibjit, "libjit");
 
   Fput (Qundefined_color, Qerror_conditions,
 	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));

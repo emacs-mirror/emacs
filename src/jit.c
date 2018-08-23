@@ -33,6 +33,299 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <jit/jit.h>
 #include <jit/jit-dump.h>
 
+#ifdef WINDOWSNT
+# include <windows.h>
+# include "w32common.h"
+# include "w32.h"
+
+/* Define a variable that will be loaded from a DLL.  */
+#define DEF_DLL_VAR(type, var) static type *pv_##var
+
+/* Load a variable from the DLL.  */
+#define LOAD_DLL_VAR(lib, var)						\
+  do									\
+    {									\
+      pv_##var = (void *) GetProcAddress (lib, #var);			\
+      if (!pv_##var)							\
+	return false;							\
+    }									\
+  while (false)
+
+
+DEF_DLL_FN (jit_value_t, jit_value_create_nint_constant,
+	    (jit_function_t, jit_type_t, jit_nint));
+# if EMACS_INT_MAX > LONG_MAX
+DEF_DLL_FN (jit_value_t, jit_value_create_long_constant,
+	    (jit_function_t, jit_type_t, jit_long));
+# endif
+DEF_DLL_FN (void, jit_insn_store, (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_and,
+	    (jit_function_t, jit_value_t, jit_value_t));
+# if !USE_LSB_TAG
+DEF_DLL_FN (jit_value_t, jit_insn_ushr,
+	    (jit_function_t, jit_value_t, jit_value_t));
+# endif
+DEF_DLL_FN (jit_value_t, jit_insn_sub,
+	    (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_sshr,
+	    (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_eq,
+	    (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (int, jit_insn_branch_if_not,
+	    (jit_function_t, jit_value_t, jit_label_t *));
+DEF_DLL_FN (int, jit_insn_branch_if,
+	    (jit_function_t, jit_value_t, jit_label_t *));
+DEF_DLL_FN (int, jit_insn_branch, (jit_function_t, jit_label_t *));
+DEF_DLL_FN (void, jit_insn_label, (jit_function_t, jit_label_t *));
+DEF_DLL_FN (jit_value_t, jit_insn_call_native,
+	    (jit_function_t, const char *, void *, jit_type_t, jit_value_t *,
+	     unsigned, int));
+DEF_DLL_FN (jit_value_t, jit_insn_shl,
+	    (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_add,
+	    (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_load_relative,
+	    (jit_function_t, jit_value_t, jit_nint, jit_type_t));
+DEF_DLL_FN (jit_value_t, jit_insn_neg, (jit_function_t, jit_value_t));
+DEF_DLL_FN (int, jit_insn_store_relative,
+	    (jit_function_t, jit_value_t, jit_nint, jit_value_t));
+DEF_DLL_FN (jit_function_t, jit_function_create, (jit_context_t, jit_type_t));
+DEF_DLL_FN (int, jit_function_set_meta,
+	    (jit_function_t, int, void *, jit_meta_free_func, int));
+DEF_DLL_FN (jit_value_t, jit_value_create, (jit_function_t, jit_type_t));
+DEF_DLL_FN (jit_value_t, jit_value_get_param, (jit_function_t, unsigned));
+DEF_DLL_FN (jit_value_t, jit_insn_gt,
+	    (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_lt,
+	    (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_le,
+	    (jit_function_t, jit_value_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_load_elem_address,
+	    (jit_function_t, jit_value_t, jit_value_t, jit_type_t));
+DEF_DLL_FN (int, jit_insn_return, (jit_function_t, jit_value_t));
+DEF_DLL_FN (jit_value_t, jit_insn_add_relative,
+	    (jit_function_t, jit_value_t, jit_nint));
+DEF_DLL_FN (jit_label_t, jit_function_reserve_label, (jit_function_t));
+DEF_DLL_FN (int, jit_insn_jump_table,
+	    (jit_function_t, jit_value_t, jit_label_t *, unsigned));
+DEF_DLL_FN (jit_value_t, jit_insn_alloca, (jit_function_t, jit_value_t));
+DEF_DLL_FN (int, jit_insn_move_blocks_to_start,
+	    (jit_function_t, jit_label_t, jit_label_t));
+DEF_DLL_FN (int, jit_function_compile, (jit_function_t));
+DEF_DLL_FN (void, jit_function_abandon, (jit_function_t));
+DEF_DLL_FN (void *, jit_function_to_closure, (jit_function_t));
+DEF_DLL_FN (void, jit_context_build_start, (jit_context_t));
+DEF_DLL_FN (void, jit_context_build_end, (jit_context_t));
+DEF_DLL_FN (jit_function_t, jit_function_from_closure, (jit_context_t, void *));
+DEF_DLL_FN (void, jit_dump_function, (FILE *, jit_function_t, const char *));
+DEF_DLL_FN (void, jit_init, (void));
+DEF_DLL_FN (jit_context_t, jit_context_create, (void));
+DEF_DLL_FN (jit_type_t, jit_type_create_signature,
+	    (jit_abi_t, jit_type_t, jit_type_t *, unsigned, int));
+
+DEF_DLL_VAR (jit_type_t, jit_type_void_ptr);
+DEF_DLL_VAR (jit_type_t, jit_type_uint);
+DEF_DLL_VAR (jit_type_t, jit_type_nint);
+DEF_DLL_VAR (jit_type_t, jit_type_sys_int);
+DEF_DLL_VAR (jit_type_t, jit_type_int);
+DEF_DLL_VAR (jit_type_t, jit_type_void);
+# if EMACS_INT_MAX > LONG_MAX
+DEF_DLL_VAR (jit_type_t, jit_type_sys_longlong);
+DEF_DLL_VAR (jit_type_t, jit_type_long);
+# endif
+DEF_DLL_VAR (jit_type_t, jit_type_ulong);
+
+static bool
+init_libjit_functions (void)
+{
+  HMODULE library = w32_delayed_load (Qlibjit);
+
+  if (!library)
+    return false;
+
+  LOAD_DLL_FN (library, jit_value_create_nint_constant);
+# if EMACS_INT_MAX > LONG_MAX
+  LOAD_DLL_FN (library, jit_value_create_long_constant);
+# endif
+  LOAD_DLL_FN (library, jit_insn_store);
+  LOAD_DLL_FN (library, jit_insn_and);
+# if !USE_LSB_TAG
+  LOAD_DLL_FN (library, jit_insn_ushr);
+# endif
+  LOAD_DLL_FN (library, jit_insn_sub);
+  LOAD_DLL_FN (library, jit_insn_sshr);
+  LOAD_DLL_FN (library, jit_insn_eq);
+  LOAD_DLL_FN (library, jit_insn_branch_if_not);
+  LOAD_DLL_FN (library, jit_insn_branch_if);
+  LOAD_DLL_FN (library, jit_insn_branch);
+  LOAD_DLL_FN (library, jit_insn_label);
+  LOAD_DLL_FN (library, jit_insn_call_native);
+  LOAD_DLL_FN (library, jit_insn_shl);
+  LOAD_DLL_FN (library, jit_insn_add);
+  LOAD_DLL_FN (library, jit_insn_load_relative);
+  LOAD_DLL_FN (library, jit_insn_neg);
+  LOAD_DLL_FN (library, jit_insn_store_relative);
+  LOAD_DLL_FN (library, jit_function_create);
+  LOAD_DLL_FN (library, jit_function_set_meta);
+  LOAD_DLL_FN (library, jit_value_create);
+  LOAD_DLL_FN (library, jit_value_get_param);
+  LOAD_DLL_FN (library, jit_insn_gt);
+  LOAD_DLL_FN (library, jit_insn_lt);
+  LOAD_DLL_FN (library, jit_insn_le);
+  LOAD_DLL_FN (library, jit_insn_load_elem_address);
+  LOAD_DLL_FN (library, jit_insn_return);
+  LOAD_DLL_FN (library, jit_insn_add_relative);
+  LOAD_DLL_FN (library, jit_function_reserve_label);
+  LOAD_DLL_FN (library, jit_insn_jump_table);
+  LOAD_DLL_FN (library, jit_insn_alloca);
+  LOAD_DLL_FN (library, jit_insn_move_blocks_to_start);
+  LOAD_DLL_FN (library, jit_function_compile);
+  LOAD_DLL_FN (library, jit_function_abandon);
+  LOAD_DLL_FN (library, jit_function_to_closure);
+  LOAD_DLL_FN (library, jit_context_build_start);
+  LOAD_DLL_FN (library, jit_context_build_end);
+  LOAD_DLL_FN (library, jit_function_from_closure);
+  LOAD_DLL_FN (library, jit_dump_function);
+  LOAD_DLL_FN (library, jit_init);
+  LOAD_DLL_FN (library, jit_context_create);
+  LOAD_DLL_FN (library, jit_type_create_signature);
+
+  LOAD_DLL_VAR (library, jit_type_void_ptr);
+  LOAD_DLL_VAR (library, jit_type_uint);
+  LOAD_DLL_VAR (library, jit_type_nint);
+  LOAD_DLL_VAR (library, jit_type_sys_int);
+  LOAD_DLL_VAR (library, jit_type_int);
+  LOAD_DLL_VAR (library, jit_type_void);
+# if EMACS_INT_MAX > LONG_MAX
+  LOAD_DLL_VAR (library, jit_type_sys_longlong);
+  LOAD_DLL_VAR (library, jit_type_long);
+# endif
+  LOAD_DLL_VAR (library, jit_type_ulong);
+
+  return true;
+}
+
+
+# undef jit_value_create_nint_constant
+# if EMACS_INT_MAX > LONG_MAX
+#  undef jit_value_create_long_constant
+# endif
+# undef jit_insn_store
+# undef jit_insn_and
+# if !USE_LSB_TAG
+#  undef jit_insn_ushr
+# endif
+# undef jit_insn_sub
+# undef jit_insn_sshr
+# undef jit_insn_eq
+# undef jit_insn_branch_if_not
+# undef jit_insn_branch_if
+# undef jit_insn_branch
+# undef jit_insn_label
+# undef jit_insn_call_native
+# undef jit_insn_shl
+# undef jit_insn_add
+# undef jit_insn_load_relative
+# undef jit_insn_neg
+# undef jit_insn_store_relative
+# undef jit_function_create
+# undef jit_function_set_meta
+# undef jit_value_create
+# undef jit_value_get_param
+# undef jit_insn_gt
+# undef jit_insn_lt
+# undef jit_insn_le
+# undef jit_insn_load_elem_address
+# undef jit_insn_return
+# undef jit_insn_add_relative
+# undef jit_function_reserve_label
+# undef jit_insn_jump_table
+# undef jit_insn_alloca
+# undef jit_insn_move_blocks_to_start
+# undef jit_function_compile
+# undef jit_function_abandon
+# undef jit_function_to_closure
+# undef jit_context_build_start
+# undef jit_context_build_end
+# undef jit_function_from_closure
+# undef jit_dump_function
+# undef jit_init
+# undef jit_context_create
+# undef jit_type_create_signature
+
+# define jit_value_create_nint_constant fn_jit_value_create_nint_constant
+# if EMACS_INT_MAX > LONG_MAX
+#  define jit_value_create_long_constant fn_jit_value_create_long_constant
+# endif
+# define jit_insn_store fn_jit_insn_store
+# define jit_insn_and fn_jit_insn_and
+# if !USE_LSB_TAG
+#  define jit_insn_ushr fn_jit_insn_ushr
+# endif
+# define jit_insn_sub fn_jit_insn_sub
+# define jit_insn_sshr fn_jit_insn_sshr
+# define jit_insn_eq fn_jit_insn_eq
+# define jit_insn_branch_if_not fn_jit_insn_branch_if_not
+# define jit_insn_branch_if fn_jit_insn_branch_if
+# define jit_insn_branch fn_jit_insn_branch
+# define jit_insn_label fn_jit_insn_label
+# define jit_insn_call_native fn_jit_insn_call_native
+# define jit_insn_shl fn_jit_insn_shl
+# define jit_insn_add fn_jit_insn_add
+# define jit_insn_load_relative fn_jit_insn_load_relative
+# define jit_insn_neg fn_jit_insn_neg
+# define jit_insn_store_relative fn_jit_insn_store_relative
+# define jit_function_create fn_jit_function_create
+# define jit_function_set_meta fn_jit_function_set_meta
+# define jit_value_create fn_jit_value_create
+# define jit_value_get_param fn_jit_value_get_param
+# define jit_insn_gt fn_jit_insn_gt
+# define jit_insn_lt fn_jit_insn_lt
+# define jit_insn_le fn_jit_insn_le
+# define jit_insn_load_elem_address fn_jit_insn_load_elem_address
+# define jit_insn_return fn_jit_insn_return
+# define jit_insn_add_relative fn_jit_insn_add_relative
+# define jit_function_reserve_label fn_jit_function_reserve_label
+# define jit_insn_jump_table fn_jit_insn_jump_table
+# define jit_insn_alloca fn_jit_insn_alloca
+# define jit_insn_move_blocks_to_start fn_jit_insn_move_blocks_to_start
+# define jit_function_compile fn_jit_function_compile
+# define jit_function_abandon fn_jit_function_abandon
+# define jit_function_to_closure fn_jit_function_to_closure
+# define jit_context_build_start fn_jit_context_build_start
+# define jit_context_build_end fn_jit_context_build_end
+# define jit_function_from_closure fn_jit_function_from_closure
+# define jit_dump_function fn_jit_dump_function
+# define jit_init fn_jit_init
+# define jit_context_create fn_jit_context_create
+# define jit_type_create_signature fn_jit_type_create_signature
+
+# undef jit_type_void_ptr
+# undef jit_type_uint
+# undef jit_type_nint
+# undef jit_type_sys_int
+# undef jit_type_int
+# undef jit_type_void
+# if EMACS_INT_MAX > LONG_MAX
+#  undef jit_type_sys_longlong
+#  undef jit_type_long
+# endif
+# undef jit_type_ulong
+
+# define jit_type_void_ptr *pv_jit_type_void_ptr
+# define jit_type_uint *pv_jit_type_uint
+# define jit_type_nint *pv_jit_type_nint
+# define jit_type_sys_int *pv_jit_type_sys_int
+# define jit_type_int *pv_jit_type_int
+# define jit_type_void *pv_jit_type_void
+# if EMACS_INT_MAX > LONG_MAX
+#  define jit_type_sys_longlong *pv_jit_type_sys_longlong
+#  define jit_type_long *pv_jit_type_long
+# endif
+# define jit_type_ulong *pv_jit_type_ulong
+
+#endif	/* WINDOWSNT */
+
 static bool emacs_jit_initialized;
 
 jit_context_t emacs_jit_context;
@@ -52,6 +345,7 @@ static jit_type_t specbind_signature;
 static jit_type_t record_unwind_protect_excursion_signature;
 static jit_type_t record_unwind_protect_signature;
 static jit_type_t void_void_signature;
+static jit_type_t lisp_void_signature;
 static jit_type_t push_handler_signature;
 static jit_type_t setjmp_signature;
 
@@ -61,8 +355,13 @@ static jit_type_t ptrdiff_t_type;
 
 
 /* Make a pointer constant.  */
+#if EMACS_INT_MAX == INT_MAX
 #define CONSTANT(FUNC, VAL) \
-  jit_value_create_long_constant (FUNC, jit_type_void_ptr, (jit_long) (uintptr_t) (VAL))
+  jit_value_create_nint_constant (FUNC, jit_type_nint, XLI (VAL))
+#else
+#define CONSTANT(FUNC, VAL) \
+  jit_value_create_long_constant (FUNC, jit_type_long, (jit_long) XLI (VAL))
+#endif
 
 /* Fetch the next byte from the bytecode stream.  */
 
@@ -110,7 +409,11 @@ untag (jit_function_t func, jit_value_t val, EMACS_UINT utype)
 
   utype = utype << (USE_LSB_TAG ? 0 : VALBITS);
 
+#if EMACS_INT_MAX <= LONG_MAX
   tem = jit_value_create_nint_constant (func, jit_type_void_ptr, utype);
+#else
+  tem = jit_value_create_long_constant (func, jit_type_ulong, (jit_ulong)utype);
+#endif
   return jit_insn_sub (func, val, tem);
 }
 
@@ -314,9 +617,15 @@ compile_make_natnum (jit_function_t func, jit_value_t untagged_int)
     = jit_value_create_nint_constant (func, jit_type_void_ptr, Lisp_Int0);
   return jit_insn_add (func, val, tag);
 #else /* USE_LSB_TAG */
+# if EMACS_INT_MAX <= LONG_MAX
   jit_value_t tag
     = jit_value_create_nint_constant (func, jit_type_void_ptr,
 				      ((EMACS_INT) Lisp_Int0) << VALBITS);
+# else
+  jit_value_t tag
+    = jit_value_create_long_constant (func, jit_type_ulong,
+				      ((EMACS_INT) Lisp_Int0) << VALBITS);
+# endif
   return jit_insn_add (func, untagged_int, tag);
 #endif /* not USE_LSB_TAG */
 }
@@ -332,11 +641,19 @@ compile_make_number (jit_function_t func, jit_value_t untagged_int)
     = jit_value_create_nint_constant (func, jit_type_void_ptr, Lisp_Int0);
   return jit_insn_add (func, val, tag);
 #else /* USE_LSB_TAG */
+# if EMACS_INT_MAX <= LONG_MAX
   jit_value_t mask
     = jit_value_create_nint_constant (func, jit_type_void_ptr, INTMASK);
   jit_value_t tag
     = jit_value_create_nint_constant (func, jit_type_void_ptr,
 				      ((EMACS_INT) Lisp_Int0) << VALBITS);
+# else
+  jit_value_t mask
+    = jit_value_create_long_constant (func, jit_type_ulong, INTMASK);
+  jit_value_t tag
+    = jit_value_create_long_constant (func, jit_type_ulong,
+				      ((EMACS_INT) Lisp_Int0) << VALBITS);
+# endif
   jit_value_t val = jit_insn_and (func, untagged_int, mask);
   return jit_insn_add (func, val, tag);
 #endif /* not USE_LSB_TAG */
@@ -345,7 +662,9 @@ compile_make_number (jit_function_t func, jit_value_t untagged_int)
 static jit_value_t
 compile_current_thread (jit_function_t func)
 {
-  jit_value_t thread_ptr = CONSTANT (func, &current_thread);
+  jit_value_t thread_ptr =
+    jit_value_create_nint_constant (func, jit_type_void_ptr,
+				    (jit_nint) &current_thread);
   return jit_insn_load_relative (func, thread_ptr, 0, jit_type_void_ptr);
 }
 
@@ -487,8 +806,13 @@ unary_intmath (jit_function_t func, jit_value_t val, enum math_op op,
     {
     case SUB1:
       /* Don't allow (1- most-negative-fixnum).  */
+#if EMACS_INT_MAX <= LONG_MAX
       tem = jit_value_create_nint_constant (func, jit_type_sys_int,
 					    MOST_NEGATIVE_FIXNUM);
+#else
+      tem = jit_value_create_long_constant (func, jit_type_sys_longlong,
+					    MOST_NEGATIVE_FIXNUM);
+#endif
       compare = jit_insn_eq (func, result, tem);
       jit_insn_branch_if (func, compare, &not_an_int);
 
@@ -498,8 +822,13 @@ unary_intmath (jit_function_t func, jit_value_t val, enum math_op op,
 
     case ADD1:
       /* Don't allow (1+ most-positive-fixnum).  */
+#if EMACS_INT_MAX <= LONG_MAX
       tem = jit_value_create_nint_constant (func, jit_type_sys_int,
 					    MOST_POSITIVE_FIXNUM);
+#else
+      tem = jit_value_create_long_constant (func, jit_type_sys_longlong,
+					    MOST_POSITIVE_FIXNUM);
+#endif
       compare = jit_insn_eq (func, result, tem);
       jit_insn_branch_if (func, compare, &not_an_int);
 
@@ -509,8 +838,13 @@ unary_intmath (jit_function_t func, jit_value_t val, enum math_op op,
 
     case NEGATE:
       /* Don't allow (- most-negative-fixnum).  */
+#if EMACS_INT_MAX <= LONG_MAX
       tem = jit_value_create_nint_constant (func, jit_type_sys_int,
 					    MOST_NEGATIVE_FIXNUM);
+#else
+      tem = jit_value_create_long_constant (func, jit_type_sys_longlong,
+					    MOST_NEGATIVE_FIXNUM);
+#endif
       compare = jit_insn_eq (func, result, tem);
       jit_insn_branch_if (func, compare, &not_an_int);
 
@@ -794,7 +1128,7 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	  ptrdiff_t nonrest = at >> 8;
 
 	  mandatory_val
-	    = jit_value_create_long_constant (func, ptrdiff_t_type, mandatory);
+	    = jit_value_create_nint_constant (func, ptrdiff_t_type, mandatory);
 	  nonrest_val
 	    = jit_value_create_nint_constant (func, ptrdiff_t_type, nonrest);
 
@@ -1268,10 +1602,11 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	  {
 	    jit_value_t vals[2];
 
-	    vals[0] = CONSTANT (func, save_restriction_restore);
+	    vals[0] = jit_value_create_nint_constant (func, jit_type_void_ptr,
+						      (jit_nint) save_restriction_restore);
 	    vals[1] = jit_insn_call_native (func, "save_restriction_save",
 					    (void *) save_restriction_save,
-					    void_void_signature,
+					    lisp_void_signature,
 					    NULL, 0, JIT_CALL_NOTHROW);
 	    jit_insn_call_native (func, "record_unwind_protect",
 				  (void *) record_unwind_protect,
@@ -1284,7 +1619,8 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	  {
 	    jit_value_t args[3];
 
-	    args[1] = CONSTANT (func, eval_sub);
+	    args[1] = jit_value_create_nint_constant (func, jit_type_void_ptr,
+						      (jit_nint) eval_sub);
 	    args[2] = POP;
 	    args[0] = POP;
 
@@ -1360,7 +1696,8 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	  {
 	    jit_value_t args[2];
 
-	    args[0] = CONSTANT (func, bcall0);
+	    args[0] = jit_value_create_nint_constant (func, jit_type_void_ptr,
+						      (jit_nint) bcall0);
 	    args[1] = POP;
 	    jit_insn_call_native (func, "record_unwind_protect",
 				  (void *) record_unwind_protect,
@@ -2187,7 +2524,7 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 void
 emacs_jit_compile (Lisp_Object func)
 {
-  if (!emacs_jit_initialized)
+  if (!emacs_jit_initialized || jit_disable)
     return;
 
   Lisp_Object bytestr = AREF (func, COMPILED_BYTECODE);
@@ -2215,7 +2552,7 @@ emacs_jit_compile (Lisp_Object func)
 					vectorp, ASIZE (vector),
 					AREF (func, COMPILED_ARGLIST));
 
-  XVECTOR (func)->contents[COMPILED_JIT_CODE] = (Lisp_Object) subr;
+  XVECTOR (func)->contents[COMPILED_JIT_CODE] = XPL (subr);
 
   jit_context_build_end (emacs_jit_context);
 }
@@ -2231,7 +2568,7 @@ DEFUN ("jit-compile", Fjit_compile, Sjit_compile,
     error ("Not a byte-compiled function");
 
   vec = XVECTOR (func);
-  if (vec->contents[COMPILED_JIT_CODE] == NULL)
+  if (XLP (vec->contents[COMPILED_JIT_CODE]) == NULL)
     emacs_jit_compile (func);
 
   return Qnil;
@@ -2253,7 +2590,7 @@ DEFUN ("jit-disassemble-to-string", Fjit_disassemble_to_string,
   if (!COMPILEDP (func))
     error ("Not a byte-compiled function");
   vec = XVECTOR (func);
-  sfunc = (struct subr_function *) vec->contents[COMPILED_JIT_CODE];
+  sfunc = (struct subr_function *) XLP (vec->contents[COMPILED_JIT_CODE]);
   if (sfunc == NULL)
     error ("Not JIT-compiled");
 
@@ -2304,6 +2641,10 @@ syms_of_jit (void)
   defsubr (&Sjit_compile);
   defsubr (&Sjit_disassemble_to_string);
   DEFSYM (Qinteractive_p, "interactive-p");
+
+  DEFVAR_BOOL ("jit-disable", jit_disable,
+    doc: /* Non-nil means disable JIT compilation even if supported.  */);
+  jit_disable = 0;
 }
 
 void
@@ -2311,8 +2652,22 @@ init_jit (void)
 {
 #define LEN SUBR_MAX_ARGS
 
-  jit_type_t params[LEN];
+  jit_type_t params[LEN], lisp_object_type;
   int i;
+
+#ifdef WINDOWSNT
+  if (!init_libjit_functions ())
+    return;
+  Vlibrary_cache = Fcons (Fcons (Qlibjit, Qt), Vlibrary_cache);
+#endif
+
+#if EMACS_INT_MAX <= LONG_MAX
+  /* 32-bit builds without wide ints, 64-bit builds on Posix hosts.  */
+  lisp_object_type = jit_type_void_ptr;
+#else
+  /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.  */
+  lisp_object_type = jit_type_sys_longlong;
+#endif
 
   jit_init ();
   emacs_jit_context = jit_context_create ();
@@ -2326,51 +2681,56 @@ init_jit (void)
     }
 
   for (i = 0; i < LEN; ++i)
-    params[i] = jit_type_void_ptr;
+    params[i] = lisp_object_type;
 
   for (i = 0; i < SUBR_MAX_ARGS; ++i)
     subr_signature[i] = jit_type_create_signature (jit_abi_cdecl,
-						   jit_type_void_ptr,
+						   lisp_object_type,
 						   params, i, 1);
 
   nullary_signature = jit_type_create_signature (jit_abi_cdecl,
-						 jit_type_void_ptr, params, 0,
+						 lisp_object_type, params, 0,
 						 1);
   unary_signature = jit_type_create_signature (jit_abi_cdecl,
-					       jit_type_void_ptr, params, 1,
+					       lisp_object_type, params, 1,
 					       1);
   binary_signature = jit_type_create_signature (jit_abi_cdecl,
-						jit_type_void_ptr, params, 2,
+						lisp_object_type, params, 2,
 						1);
   ternary_signature = jit_type_create_signature (jit_abi_cdecl,
-						 jit_type_void_ptr, params, 3,
+						 lisp_object_type, params, 3,
 						 1);
   specbind_signature = jit_type_create_signature (jit_abi_cdecl,
 						  jit_type_void, params, 2, 1);
   record_unwind_protect_excursion_signature
-    = jit_type_create_signature (jit_abi_cdecl, jit_type_void_ptr, NULL, 0, 1);
-  record_unwind_protect_signature
-    = jit_type_create_signature (jit_abi_cdecl, jit_type_void, params, 2, 1);
+    = jit_type_create_signature (jit_abi_cdecl, jit_type_void, NULL, 0, 1);
+  lisp_void_signature = jit_type_create_signature (jit_abi_cdecl,
+						   lisp_object_type, NULL, 0, 1);
   void_void_signature = jit_type_create_signature (jit_abi_cdecl,
 						   jit_type_void, NULL, 0, 1);
 
   temp_output_buffer_show_signature
-    = jit_type_create_signature (jit_abi_cdecl, jit_type_void_ptr,
-				 params, 1, 1);
+    = jit_type_create_signature (jit_abi_cdecl, jit_type_void, params, 1, 1);
 
+  params[0] = jit_type_void_ptr;
+  record_unwind_protect_signature
+    = jit_type_create_signature (jit_abi_cdecl, jit_type_void, params, 2, 1);
+
+  params[0] = lisp_object_type;
   params[2] = jit_type_sys_int;
   arithcompare_signature = jit_type_create_signature (jit_abi_cdecl,
-						      jit_type_void_ptr,
+						      lisp_object_type,
 						      params, 3, 1);
 
   params[0] = jit_type_sys_int;
   unbind_n_signature = jit_type_create_signature (jit_abi_cdecl,
-						  jit_type_void_ptr, params, 1,
+						  lisp_object_type, params, 1,
 						  1);
 
   params[0] = ptrdiff_t_type;
+  params[1] = jit_type_void_ptr;
   callN_signature = jit_type_create_signature (jit_abi_cdecl,
-					       jit_type_void_ptr, params, 2,
+					       lisp_object_type, params, 2,
 					       1);
   compiled_signature = callN_signature;
 
@@ -2380,9 +2740,9 @@ init_jit (void)
   wrong_number_of_arguments_signature
     = jit_type_create_signature (jit_abi_cdecl, jit_type_void, params, 3, 1);
 
-  params[0] = jit_type_void_ptr;
-  params[1] = jit_type_void_ptr;
-  params[2] = jit_type_void_ptr;
+  params[0] = lisp_object_type;
+  params[1] = lisp_object_type;
+  params[2] = lisp_object_type;
   params[3] = jit_type_sys_int;
   set_internal_signature
     = jit_type_create_signature (jit_abi_cdecl, jit_type_void, params, 4, 1);

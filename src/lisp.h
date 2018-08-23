@@ -4631,8 +4631,13 @@ safe_free_unbind_to (ptrdiff_t count, ptrdiff_t sa_count, Lisp_Object val)
    Build with CPPFLAGS='-DUSE_STACK_LISP_OBJECTS=0' to disable it.  */
 
 #if (!defined USE_STACK_LISP_OBJECTS \
-     && defined __GNUC__ && !defined __clang__ && ! GNUC_PREREQ (4, 3, 2))
-  /* Work around GCC bugs 36584 and 35271, which were fixed in GCC 4.3.2.  */
+     && defined __GNUC__ && !defined __clang__				\
+     && (! GNUC_PREREQ (4, 3, 2)					\
+	 || (defined __MINGW32__ && INTPTR_MAX <= INT_MAX && HAVE_LIBJIT)))
+  /* Work around GCC bugs 36584 and 35271, which were fixed in GCC 4.3.2.
+     Using libjit in 32-bit MS-Windows builds cannot ensure proper stack
+     alignment when JIT code calls back into Emacs, so disable stack-based
+     objects.  */
 # define USE_STACK_LISP_OBJECTS false
 #endif
 #ifndef USE_STACK_LISP_OBJECTS
