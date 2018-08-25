@@ -26,6 +26,7 @@ are done, and the subroutines that allow Lisp programs to do them.
 * Waiting::             Waiting for user input or elapsed time.
 * Quitting::            How @kbd{C-g} works.  How to catch or defer quitting.
 * Prefix Command Arguments::    How the commands to set prefix args work.
+* Prefix Commands::     A way to dispatch commands with an option.
 * Recursive Editing::   Entering a recursive edit,
                           and why you usually shouldn't.
 * Disabling Commands::  How the command loop handles disabled commands.
@@ -3297,6 +3298,39 @@ This command adds to the numeric argument for the next command.  The
 argument @var{arg} is the raw prefix argument as it was before this
 command; its value is negated to form the new prefix argument.  Don't
 call this command yourself unless you know what you are doing.
+@end deffn
+
+@node Prefix Commands
+@section Prefix Commands
+@cindex prefix command
+
+  A @dfn{prefix command} is a command which precedes another command.
+It dispatches the @emph{next} command by toggling a controlling
+variable's value, which could be taken into account then by that next
+command.  Whether the following command cares about the controlling
+variable is up to that command.
+
+Emacs knows of two prefix commands, @code{universal-async-argument}
+(@pxref{Visiting,,, emacs, The GNU Emacs Manual}) and
+@code{universal-coding-system-argument} (@pxref{Text Coding,,, emacs,
+The GNU Emacs Manual}).
+
+@deffn Command universal-async-argument
+This prefix command indicates the next command to run asynchronously.
+It is up to that next command to decide what asynchronously means, or
+to ignore the prefix command.
+@end deffn
+
+@defvar universal-async-argument
+This is the controlling variable toggled by the
+@code{universal-async-argument} command.  If a command supports
+asynchronous behavior, it should check whether the value of this
+variable is non-@code{nil}.
+@end defvar
+
+@deffn Command universal-coding-system-argument
+This prefix command determines the coding system to be used by the
+next I/O command.
 @end deffn
 
 @node Recursive Editing

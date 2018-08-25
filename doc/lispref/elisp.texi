@@ -762,6 +762,7 @@ Command Loop
 * Waiting::             Waiting for user input or elapsed time.
 * Quitting::            How @kbd{C-g} works.  How to catch or defer quitting.
 * Prefix Command Arguments::    How the commands to set prefix args work.
+* Prefix Commands::     A way to dispatch commands with an option.
 * Recursive Editing::   Entering a recursive edit,
                           and why you usually shouldn't.
 * Disabling Commands::  How the command loop handles disabled commands.
