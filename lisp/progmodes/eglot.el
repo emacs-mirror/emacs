@@ -513,6 +513,7 @@ This docstring appeases checkdoc, that's all."
                                 :command contact
                                 :connection-type 'pipe
                                 :coding 'utf-8-emacs-unix
+                                :noquery t
                                 :stderr (get-buffer-create
                                          (format "*%s stderr*" readable-name))))))))
          (spread
@@ -627,6 +628,7 @@ CONNECT-ARGS are passed as additional arguments to
                 (make-process
                  :name (format "autostart-inferior-%s" name)
                  :stderr (format "*%s stderr*" name)
+                 :noquery t
                  :command (cl-subst
                            (format "%s" port-number) :autoport contact)))
           (setq connection
