@@ -49,6 +49,7 @@
     - [[#god-mode][God-mode]]
   - [[#more-examples][More Examples]]
     - [[#nice-display-with-split-frame][Nice Display with Split Frame]]
+  - [[#known-issues][Known Issues]]
   - [[#thanks][Thanks]]
 
 ** Install
@@ -508,7 +509,9 @@
     
     #+CAPTION: which-key in a frame with 2 vertical splits
     [[./img/which-key-bottom-split.png]]
-    
+** Known Issues
+   - A few users have reported crashes related to which-key popups when quitting
+     a key sequence with =C-g=. A possible fix is discussed in [[https://github.com/justbur/emacs-which-key/issues/130][this issue]].
 ** Thanks
    Special thanks to
    - [[https://github.com/bmag][@bmag]] for helping with the initial development and finding many bugs.
