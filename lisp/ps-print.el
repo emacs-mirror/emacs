@@ -6299,7 +6299,7 @@ If FACE is not a valid face name, use default face."
        (ps-font-number 'ps-font-for-text
 		       (or (aref ps-font-type (logand effect 3))
 			   face))
-       fg-color bg-color (lsh effect -2)))))
+       fg-color bg-color (ash effect -2)))))
   (goto-char to))
 
 

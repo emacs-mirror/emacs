@@ -269,7 +269,7 @@ returned unaltered."
 			(car where)
 			(if (zerop (cdr where))
 			    (logior (logand tem 65280) value)
-			  (logior (logand tem 255) (lsh value 8))))))
+			  (logior (logand tem 255) (ash value 8))))))
 	       ((numberp where)
 		(aset regs where (logand value 65535))))))
   regs)

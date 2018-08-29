@@ -156,9 +156,8 @@ dynlib_addr (void *addr, const char **fname, const char **symname)
 	     address we pass to it is not an address of a string, but
 	     an address of a function.  So we don't care about the
 	     Unicode version.  */
-	  s_pfn_Get_Module_HandleExA =
-	    (GetModuleHandleExA_Proc) GetProcAddress (hm_kernel32,
-						      "GetModuleHandleExA");
+	  s_pfn_Get_Module_HandleExA = (GetModuleHandleExA_Proc)
+            get_proc_addr (hm_kernel32, "GetModuleHandleExA");
 	}
       if (s_pfn_Get_Module_HandleExA)
 	{

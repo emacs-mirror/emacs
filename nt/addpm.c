@@ -38,9 +38,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <malloc.h>
 
-/* MinGW64 barfs if _WIN32_IE is defined to anything below 0x500.  */
+/* MinGW64 barfs if _WIN32_IE is defined to anything below 0x0500.  */
 #ifndef MINGW_W64
-#define _WIN32_IE 0x400
+# ifdef _WIN32_IE
+#  undef _WIN32_IE
+# endif
+#define _WIN32_IE 0x0400
 #endif
 /* Request C Object macros for COM interfaces.  */
 #define COBJMACROS 1

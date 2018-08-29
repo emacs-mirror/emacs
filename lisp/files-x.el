@@ -377,7 +377,9 @@ from the -*- line ignoring the input argument VALUE."
 	   ((eq variable 'mode) (goto-char beg))
 	   ((null replaced-pos) (goto-char end))
 	   (replaced-pos (goto-char replaced-pos)))
-	  (if (and (not (eq (char-before) ?\;))
+          (if (and (save-excursion
+                     (skip-chars-backward " \t")
+                     (not (eq (char-before) ?\;)))
 		   (not (equal (point) (marker-position beg)))
 		   ;; When existing `-*- -*-' is empty, beg > end.
 		   (not (> (marker-position beg) (marker-position end))))

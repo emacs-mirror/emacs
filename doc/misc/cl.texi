@@ -784,7 +784,7 @@ default.  Some examples:
 (cl-deftype null () '(satisfies null))    ; predefined
 (cl-deftype list () '(or null cons))      ; predefined
 (cl-deftype unsigned-byte (&optional bits)
-  (list 'integer 0 (if (eq bits '*) bits (1- (lsh 1 bits)))))
+  (list 'integer 0 (if (eq bits '*) bits (1- (ash 1 bits)))))
 (unsigned-byte 8)  @equiv{}  (integer 0 255)
 (unsigned-byte)  @equiv{}  (integer 0 *)
 unsigned-byte  @equiv{}  (integer 0 *)

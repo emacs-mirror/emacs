@@ -5564,7 +5564,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
   ;; Instead we use this randomly inited counter.
   (setq message-unique-id-char
 	(% (1+ (or message-unique-id-char
-		   (logand (random most-positive-fixnum) (1- (lsh 1 20)))))
+		   (random (ash 1 20))))
 	   ;; (current-time) returns 16-bit ints,
 	   ;; and 2^16*25 just fits into 4 digits i base 36.
 	   (* 25 25)))
@@ -5579,9 +5579,9 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 	   user)
        (message-number-base36 (user-uid) -1))
      (message-number-base36 (+ (car tm)
-			       (lsh (% message-unique-id-char 25) 16)) 4)
+			       (ash (% message-unique-id-char 25) 16)) 4)
      (message-number-base36 (+ (nth 1 tm)
-			       (lsh (/ message-unique-id-char 25) 16)) 4)
+			       (ash (/ message-unique-id-char 25) 16)) 4)
      ;; Append a given name, because while the generated ID is unique
      ;; to this newsreader, other newsreaders might otherwise generate
      ;; the same ID via another algorithm.

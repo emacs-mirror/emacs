@@ -265,6 +265,12 @@ Visiting" in the user manual for the supported commands.
 
 * Changes in Specialized Modes and Packages in Emacs 27.1
 
+---
+** bibtex
+*** New commands 'bibtex-next-entry' and 'bibtex-previous-entry'.
+In bibtex-mode-map, forward-paragraph and backward-paragraph are
+remapped to these, respectively.
+
 +++
 ** Dired
 
@@ -282,10 +288,10 @@ previous behavior of always creating a buffer that visits a ChangeLog
 file.
 
 ** diff-mode
-*** Hunks are now automatically refined by default
+*** Hunks are now automatically refined by default.
 To disable it, set the new defcustom 'diff-font-lock-refine' to nil.
 
-*** File headers can be shortened, mimicking Magit's diff format
+*** File headers can be shortened, mimicking Magit's diff format.
 To enable it, set the new defcustom 'diff-font-lock-prettify to t.
 
 ** Browse-url
@@ -297,7 +303,7 @@ shown in the currently selected window.
 ** Comint
 
 +++
-*** 'send-invisible' is now an obsolete alias for `comint-send-invisible'
+*** 'send-invisible' is now an obsolete alias for `comint-send-invisible'.
 Also, 'shell-strip-ctrl-m' is declared obsolete.
 
 +++
@@ -325,20 +331,20 @@ end.
 ** Flymake
 
 +++
-*** The variable 'flymake-diagnostic-types-alist' is obsolete
+*** The variable 'flymake-diagnostic-types-alist' is obsolete.
 You should instead set properties on known diagnostic symbols, like
 ':error' and ':warning', as demonstrated in the Flymake manual.
 
-*** New customizable variable 'flymake-start-on-save-buffer'
+*** New customizable variable 'flymake-start-on-save-buffer'.
 Control whether Flymake starts checking the buffer on save.
 
-*** Flymake and backend functions may exchange hints about buffer changes
+*** Flymake and backend functions may exchange hints about buffer changes.
 This enables more efficient backends.  See the docstring of
 'flymake-diagnostic-functions' or the Flymake manual for details.
 
 ** Package
 
-*** New 'package-quickstart' feature
+*** New 'package-quickstart' feature.
 When 'package-quickstart' is non-nil, package.el precomputes a big autoloads
 file so that activation of packages can be done much faster, which can speed up
 your startup significantly.
@@ -369,13 +375,13 @@ mouse click event, and is intended to be bound to a mouse event.
 *** The ecomplete sorting has changed to a decay-based algorithm.
 This can be controlled by the new 'ecomplete-sort-predicate' variable.
 
-*** The 'ecompleterc' file is now placed in ~/.emacs.d/ecompleterc by default
+*** The 'ecompleterc' file is now placed in ~/.emacs.d/ecompleterc by default.
 Of course it will still find it if you have it in ~/.ecompleterc
 
 ** Gnus
 
 +++
-*** A prefix argument to 'gnus-summary-limit-to-score' will limit reverse
+*** A prefix argument to 'gnus-summary-limit-to-score' will limit reverse.
 Limit to articles with score at below.
 
 *** The function 'gnus-score-find-favorite-words' has been renamed
@@ -386,8 +392,8 @@ from 'gnus-score-find-favourite-words'.
 has a search engine.
 
 +++
-*** Splitting mail on common mailing list headers has been added.  See
-the concept index in the Gnus manual for the 'match-list' entry.
+*** Splitting mail on common mailing list headers has been added.
+See the concept index in the Gnus manual for the 'match-list' entry.
 
 +++
 *** nil is no longer an allowed value for 'mm-text-html-renderer'.
@@ -415,6 +421,11 @@ and its value has been changed to Duck Duck Go.
 'shr-selected-link' face to give the user feedback that the command
 has been executed.
 
++++
+*** New option 'shr-discard-aria-hidden'.
+If set, shr will not render tags with attribute 'aria-hidden="true"'.
+This attribute is meant to tell screen readers to ignore a tag.
+
 ** Htmlfontify
 
 *** The functions 'hfy-color', 'hfy-color-vals' and
@@ -431,6 +442,7 @@ saved with the charset properties, and those properties will be
 restored when the file is visited.
 
 ** Smtpmail
+
 Authentication mechanisms can be added via external packages, by
 defining new cl-defmethod of smtpmail-try-auth-method.
 
@@ -785,6 +797,7 @@ The variable 'custom--inhibit-theme-enable' controls this behavior;
 its default value changed in Emacs 27.1.
 
 ** The 'repetitions' argument of 'benchmark-run' can now also be a variable.
+
 ** The FILENAME argument to 'file-name-base' is now mandatory and no
 longer defaults to 'buffer-file-name'.
 
@@ -795,9 +808,10 @@ them through 'format' first.  Even that is discouraged: for ElDoc
 support, you should set 'eldoc-documentation-function' instead of
 calling 'eldoc-message' directly.
 
-** Old-style backquotes now generate an error.  They have been
-generating warnings for a decade.  To interpret old-style backquotes
-as new-style, bind the new variable 'force-new-style-backquotes' to t.
+** Old-style backquotes now generate an error.
+They have been generating warnings for a decade.  To interpret
+old-style backquotes as new-style, bind the new variable
+'force-new-style-backquotes' to t.
 
 ** Defining a Common Lisp structure using 'cl-defstruct' or
 'cl-struct-define' whose name clashes with a builtin type (e.g.,
@@ -871,11 +885,34 @@ otherwise, it returns nil.  'format-proper-list-p' is now an obsolete
 alias for the new function.
 
 +++
-** Emacs Lisp integers can be of arbitrary precision.  The new
-predicates 'bignump' and 'fixnump' can be used to distinguish between
-the types of integers.
+** Emacs Lisp integers can now be of arbitrary size.
+Emacs uses the GNU Multiple Precision (GMP) library to support
+integers whose size is too large to support natively.  The integers
+supported natively are known as "fixnums", while the larger ones are
+"bignums".  The new predicates 'bignump' and 'fixnump' can be used to
+distinguish between these two types of integers.
 
-** define-minor-mode automatically documents the meaning of ARG
+All the arithmetic, comparison, and logical (a.k.a. "bitwise")
+operations where bignums make sense now support both fixnums and
+bignums.  However, note that unlike fixnums, bignums will not compare
+equal with 'eq', you must use 'eql' instead.  (Numerical comparison
+with '=' works on both, of course.)
+
+Since large bignums consume a lot of memory, Emacs limits the size of
+the largest bignum a Lisp program is allowed to create.  The
+nonnegative value of the new variable 'integer-width' specifies the
+maximum number of bits allowed in a bignum.  Emacs signals an integer
+overflow error if this limit is exceeded.
+
+Several primitive functions formerly returned floats or lists of
+integers to represent integers that did not fit into fixnums.  These
+functions now simply return integers instead.  Affected functions
+include functions like encode-char that compute code-points, functions
+like file-attributes that compute file sizes and other attributes,
+functions like process-id that compute process IDs, and functions like
+user-uid and group-gid that compute user and group IDs.
+
+** define-minor-mode automatically documents the meaning of ARG.
 
 +++
 ** The function 'recenter' now accepts an additional optional argument.

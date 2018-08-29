@@ -241,17 +241,4 @@ extern ssize_t emacs_gnutls_push (gnutls_transport_ptr_t p,
                                   const void* buf, size_t sz);
 #endif /* HAVE_GNUTLS */
 
-/* Definine a function that will be loaded from a DLL.  */
-#define DEF_DLL_FN(type, func, args) static type (FAR CDECL *fn_##func) args
-
-/* Load a function from the DLL.  */
-#define LOAD_DLL_FN(lib, func)						\
-  do									\
-    {									\
-      fn_##func = (void *) GetProcAddress (lib, #func);			\
-      if (!fn_##func)							\
-	return false;							\
-    }									\
-  while (false)
-
 #endif /* EMACS_W32_H */

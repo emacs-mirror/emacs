@@ -77,6 +77,7 @@ typedef struct x_bitmap_record Bitmap_Record;
 
 /* We need (or want) w32.h only when we're _not_ compiling for Cygwin.  */
 #ifdef WINDOWSNT
+# include "w32common.h"
 # include "w32.h"
 #endif
 
@@ -799,7 +800,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  return 0;
 
 	case IMAGE_NUMBER_VALUE:
-	  if (! FIXED_OR_FLOATP (value))
+	  if (! NUMBERP (value))
 	    return 0;
 	  break;
 
@@ -4928,20 +4929,20 @@ x_edge_detection (struct frame *f, struct image *img, Lisp_Object matrix,
   if (CONSP (matrix))
     {
       for (i = 0;
-	   i < 9 && CONSP (matrix) && FIXED_OR_FLOATP (XCAR (matrix));
+	   i < 9 && CONSP (matrix) && NUMBERP (XCAR (matrix));
 	   ++i, matrix = XCDR (matrix))
 	trans[i] = XFLOATINT (XCAR (matrix));
     }
   else if (VECTORP (matrix) && ASIZE (matrix) >= 9)
     {
-      for (i = 0; i < 9 && FIXED_OR_FLOATP (AREF (matrix, i)); ++i)
+      for (i = 0; i < 9 && NUMBERP (AREF (matrix, i)); ++i)
 	trans[i] = XFLOATINT (AREF (matrix, i));
     }
 
   if (NILP (color_adjust))
     color_adjust = make_fixnum (0xffff / 2);
 
-  if (i == 9 && FIXED_OR_FLOATP (color_adjust))
+  if (i == 9 && NUMBERP (color_adjust))
     x_detect_edges (f, img, trans, XFLOATINT (color_adjust));
 }
 
@@ -5734,7 +5735,7 @@ DEF_DLL_FN (void, png_read_end, (png_structp, png_infop));
 DEF_DLL_FN (void, png_error, (png_structp, png_const_charp));
 
 #  if (PNG_LIBPNG_VER >= 10500)
-DEF_DLL_FN (void, png_longjmp, (png_structp, int)) PNG_NORETURN;
+DEF_DLL_FN (void, png_longjmp, (png_structp, int) PNG_NORETURN);
 DEF_DLL_FN (jmp_buf *, png_set_longjmp_fn,
 	    (png_structp, png_longjmp_ptr, size_t));
 #  endif /* libpng version >= 1.5 */
@@ -8102,7 +8103,7 @@ compute_image_size (size_t width, size_t height,
   double scale = 1;
 
   value = image_spec_value (spec, QCscale, NULL);
-  if (FIXED_OR_FLOATP (value))
+  if (NUMBERP (value))
     scale = XFLOATINT (value);
 
   value = image_spec_value (spec, QCmax_width, NULL);
@@ -8272,11 +8273,20 @@ imagemagick_image_p (Lisp_Object object)
 /* The GIF library also defines DrawRectangle, but its never used in Emacs.
    Therefore rename the function so it doesn't collide with ImageMagick.  */
 #define DrawRectangle DrawRectangleGif
-#include <wand/MagickWand.h>
+
+#ifdef HAVE_IMAGEMAGICK7
+# include <MagickWand/MagickWand.h>
+# include <MagickCore/version.h>
+/* ImageMagick 7 compatibility definitions.  */
+# define PixelSetMagickColor PixelSetPixelColor
+typedef PixelInfo MagickPixelPacket;
+#else
+# include <wand/MagickWand.h>
+# include <magick/version.h>
+#endif
 
 /* ImageMagick 6.5.3 through 6.6.5 hid PixelGetMagickColor for some reason.
    Emacs seems to work fine with the hidden version, so unhide it.  */
-#include <magick/version.h>
 #if 0x653 <= MagickLibVersion && MagickLibVersion <= 0x665
 extern WandExport void PixelGetMagickColor (const PixelWand *,
 					    MagickPixelPacket *);
@@ -8814,7 +8824,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 #endif /* HAVE_MAGICKEXPORTIMAGEPIXELS */
     {
       size_t image_height;
-      MagickRealType color_scale = 65535.0 / QuantumRange;
+      MagickRealType color_scale = 65535.0 / (MagickRealType) QuantumRange;
 #ifdef USE_CAIRO
       data = xmalloc (width * height * 4);
       color_scale /= 256;

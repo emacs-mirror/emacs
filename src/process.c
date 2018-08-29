@@ -1025,7 +1025,7 @@ static Lisp_Object deleted_pid_list;
 void
 record_deleted_pid (pid_t pid, Lisp_Object filename)
 {
-  deleted_pid_list = Fcons (Fcons (make_fixnum_or_float (pid), filename),
+  deleted_pid_list = Fcons (Fcons (INT_TO_INTEGER (pid), filename),
 			    /* GC treated elements set to nil.  */
 			    Fdelq (Qnil, deleted_pid_list));
 
@@ -1164,7 +1164,7 @@ For a network, serial, and pipe connections, this value is nil.  */)
 
   CHECK_PROCESS (process);
   pid = XPROCESS (process)->pid;
-  return (pid ? make_fixnum_or_float (pid) : Qnil);
+  return pid ? INT_TO_INTEGER (pid) : Qnil;
 }
 
 DEFUN ("process-name", Fprocess_name, Sprocess_name, 1, 1, 0,
@@ -6850,13 +6850,13 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
 	tem = string_to_number (SSDATA (process), 10, 0);
       process = tem;
     }
-  else if (!FIXED_OR_FLOATP (process))
+  else if (!NUMBERP (process))
     process = get_process (process);
 
   if (NILP (process))
     return process;
 
-  if (FIXED_OR_FLOATP (process))
+  if (NUMBERP (process))
     CONS_TO_INTEGER (process, pid_t, pid);
   else
     {
@@ -7053,13 +7053,10 @@ handle_child_signal (int sig)
       if (! CONSP (head))
 	continue;
       xpid = XCAR (head);
-      if (all_pids_are_fixnums ? FIXNUMP (xpid) : FIXED_OR_FLOATP (xpid))
+      if (all_pids_are_fixnums ? FIXNUMP (xpid) : INTEGERP (xpid))
 	{
-	  pid_t deleted_pid;
-	  if (FIXNUMP (xpid))
-	    deleted_pid = XFIXNUM (xpid);
-	  else
-	    deleted_pid = XFLOAT_DATA (xpid);
+	  pid_t deleted_pid = (FIXNUMP (xpid) ? XFIXNUM (xpid)
+			       : bignum_to_intmax (xpid));
 	  if (child_status_changed (deleted_pid, 0, 0))
 	    {
 	      if (STRINGP (XCDR (head)))

@@ -547,7 +547,7 @@ doubt, use whitespace."
                                                        ?\M-\^@ ?\s-\^@ ?\S-\^@)
                                           when (/= (logand ch bit) 0)
                                           concat (format "%c-" pf))
-				 (let ((ch2 (logand ch (1- (lsh 1 18)))))
+				 (let ((ch2 (logand ch (1- (ash 1 18)))))
 				   (cond ((<= ch2 32)
 					  (pcase ch2
 					    (0 "NUL") (9 "TAB") (10 "LFD")

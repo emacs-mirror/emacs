@@ -1135,7 +1135,7 @@ is running.  If gnome-settings-daemon is not running, Emacs receives
 input through XIM without any problem.  Furthermore, this seems only
 to happen in *.UTF-8 locales; zh_CN.GB2312 and zh_CN.GBK locales, for
 example, work fine.  A bug report has been filed in the Gnome
-bugzilla: http://bugzilla.gnome.org/show_bug.cgi?id=357032
+bugzilla: https://bugzilla.gnome.org/show_bug.cgi?id=357032
 
 *** Gnome: GPaste clipboard manager causes erratic behavior of 'yank'
 

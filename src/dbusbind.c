@@ -378,7 +378,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
     case DBUS_TYPE_INT32:
     case DBUS_TYPE_INT64:
     case DBUS_TYPE_DOUBLE:
-      CHECK_FIXNUM_OR_FLOAT (object);
+      CHECK_NUMBER (object);
       sprintf (signature, "%c", dtype);
       break;
 
@@ -519,13 +519,13 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
 static intmax_t
 xd_extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 {
-  CHECK_FIXNUM_OR_FLOAT (x);
+  CHECK_NUMBER (x);
   if (FIXNUMP (x))
     {
       if (lo <= XFIXNUM (x) && XFIXNUM (x) <= hi)
 	return XFIXNUM (x);
     }
-  else
+  else if (FLOATP (x))
     {
       double d = XFLOAT_DATA (x);
       if (lo <= d && d < 1.0 + hi)
@@ -535,25 +535,30 @@ xd_extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 	    return n;
 	}
     }
+  else if (! (MOST_NEGATIVE_FIXNUM <= lo && hi <= MOST_POSITIVE_FIXNUM))
+    {
+      intmax_t i = bignum_to_intmax (x);
+      if (i != 0 && lo <= i && i <= hi)
+	return i;
+    }
+
   if (xd_in_read_queued_messages)
     Fthrow (Qdbus_error, Qnil);
   else
-    args_out_of_range_3 (x,
-			 make_fixnum_or_float (lo),
-			 make_fixnum_or_float (hi));
+    args_out_of_range_3 (x, INT_TO_INTEGER (lo), INT_TO_INTEGER (hi));
 }
 
 /* Convert X to an unsigned integer with bounds 0 and HI.  */
 static uintmax_t
 xd_extract_unsigned (Lisp_Object x, uintmax_t hi)
 {
-  CHECK_FIXNUM_OR_FLOAT (x);
+  CHECK_NUMBER (x);
   if (FIXNUMP (x))
     {
       if (0 <= XFIXNUM (x) && XFIXNUM (x) <= hi)
 	return XFIXNUM (x);
     }
-  else
+  else if (FLOATP (x))
     {
       double d = XFLOAT_DATA (x);
       if (0 <= d && d < 1.0 + hi)
@@ -563,10 +568,17 @@ xd_extract_unsigned (Lisp_Object x, uintmax_t hi)
 	    return n;
 	}
     }
+  else if (! (hi <= MOST_POSITIVE_FIXNUM))
+    {
+      uintmax_t i = bignum_to_uintmax (x);
+      if (i != 0 && i <= hi)
+	return i;
+    }
+
   if (xd_in_read_queued_messages)
     Fthrow (Qdbus_error, Qnil);
   else
-    args_out_of_range_3 (x, make_fixnum (0), make_fixnum_or_float (hi));
+    args_out_of_range_3 (x, make_fixnum (0), INT_TO_INTEGER (hi));
 }
 
 /* Append C value, extracted from Lisp OBJECT, to iteration ITER.
@@ -848,7 +860,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %d", dtype, pval);
-	return make_fixnum_or_float (val);
+	return INT_TO_INTEGER (val);
       }
 
     case DBUS_TYPE_UINT32:
@@ -861,7 +873,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %u", dtype, pval);
-	return make_fixnum_or_float (val);
+	return INT_TO_INTEGER (val);
       }
 
     case DBUS_TYPE_INT64:
@@ -871,7 +883,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %"pMd, dtype, pval);
-	return make_fixnum_or_float (val);
+	return INT_TO_INTEGER (val);
       }
 
     case DBUS_TYPE_UINT64:
@@ -881,7 +893,7 @@ xd_retrieve_arg (int dtype, DBusMessageIter *iter)
 	dbus_message_iter_get_basic (iter, &val);
 	pval = val;
 	XD_DEBUG_MESSAGE ("%c %"pMu, dtype, pval);
-	return make_fixnum_or_float (val);
+	return INT_TO_INTEGER (val);
       }
 
     case DBUS_TYPE_DOUBLE:
@@ -1454,7 +1466,7 @@ usage: (dbus-message-internal &rest REST)  */)
 
       /* The result is the key in Vdbus_registered_objects_table.  */
       serial = dbus_message_get_serial (dmessage);
-      result = list3 (QCserial, bus, make_fixnum_or_float (serial));
+      result = list3 (QCserial, bus, INT_TO_INTEGER (serial));
 
       /* Create a hash table entry.  */
       Fputhash (result, handler, Vdbus_registered_objects_table);
@@ -1541,7 +1553,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	   || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     {
       /* Search for a registered function of the message.  */
-      key = list3 (QCserial, bus, make_fixnum_or_float (serial));
+      key = list3 (QCserial, bus, INT_TO_INTEGER (serial));
       value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
       /* There shall be exactly one entry.  Construct an event.  */
@@ -1608,7 +1620,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 		     event.arg);
   event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
 		     event.arg);
-  event.arg = Fcons (make_fixnum_or_float (serial), event.arg);
+  event.arg = Fcons (INT_TO_INTEGER (serial), event.arg);
   event.arg = Fcons (make_fixnum (mtype), event.arg);
 
   /* Add the bus symbol to the event.  */

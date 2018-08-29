@@ -1605,7 +1605,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
       for (i = 0; i < h && j < fb.height; i++)
 	{
 	  Lisp_Object elt = Faref (bits, make_fixnum (i));
-	  b[j++] = FIXED_OR_FLOATP (elt) ? XFIXNUM (elt) : 0;
+	  b[j++] = FIXNUMP (elt) ? XFIXNUM (elt) : 0;
 	}
       for (i = 0; i < fill2 && j < fb.height; i++)
 	b[j++] = 0;

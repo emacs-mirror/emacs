@@ -1039,16 +1039,12 @@ preprocessing token"
 (defun hif-shiftleft (a b)
   (setq a (hif-mathify a))
   (setq b (hif-mathify b))
-  (if (< a 0)
-      (ash a b)
-    (lsh a b)))
+  (ash a b))
 
 (defun hif-shiftright (a b)
   (setq a (hif-mathify a))
   (setq b (hif-mathify b))
-  (if (< a 0)
-      (ash a (- b))
-    (lsh a (- b))))
+  (ash a (- b)))
 
 
 (defalias 'hif-multiply      (hif-mathify-binop *))

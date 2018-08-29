@@ -829,18 +829,18 @@ two functions support these conversions.
 This function decodes a character that is assigned a @var{code-point}
 in @var{charset}, to the corresponding Emacs character, and returns
 it.  If @var{charset} doesn't contain a character of that code point,
-the value is @code{nil}.  If @var{code-point} doesn't fit in a Lisp
-integer (@pxref{Integer Basics, most-positive-fixnum}), it can be
+the value is @code{nil}.
+
+For backward compatibility, if @var{code-point} doesn't fit in a Lisp
+fixnum (@pxref{Integer Basics, most-positive-fixnum}), it can be
 specified as a cons cell @code{(@var{high} . @var{low})}, where
 @var{low} are the lower 16 bits of the value and @var{high} are the
-high 16 bits.
+high 16 bits.  This usage is obsolescent.
 @end defun
 
 @defun encode-char char charset
 This function returns the code point assigned to the character
-@var{char} in @var{charset}.  If the result does not fit in a Lisp
-integer, it is returned as a cons cell @code{(@var{high} . @var{low})}
-that fits the second argument of @code{decode-char} above.  If
+@var{char} in @var{charset}.  If
 @var{charset} doesn't have a codepoint for @var{char}, the value is
 @code{nil}.
 @end defun

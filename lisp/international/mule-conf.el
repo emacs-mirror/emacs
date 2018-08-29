@@ -1304,6 +1304,11 @@ is treated as a character."
   :bom '(utf-8-with-signature . utf-8))
 
 (define-coding-system-alias 'mule-utf-8 'utf-8)
+;; See this page:
+;; https://docs.microsoft.com/en-us/windows/desktop/intl/code-page-identifiers
+;; Starting with Windows 10, people are trying to set their systems to
+;; use UTF-8 , so we had better recognized this alias:
+(define-coding-system-alias 'cp65001 'utf-8)
 
 (define-coding-system 'utf-8-emacs
   "Support for all Emacs characters (including non-Unicode characters)."

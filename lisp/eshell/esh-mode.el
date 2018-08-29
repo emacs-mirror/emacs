@@ -182,10 +182,11 @@ inserted.  They return the string as it should be inserted."
   :group 'eshell-mode)
 
 (defcustom eshell-password-prompt-regexp
-  (format "\\(%s\\).*:\\s *\\'" (regexp-opt password-word-equivalents))
+  (format "\\(%s\\)[^:：៖]*[:：៖]\\s *\\'" (regexp-opt password-word-equivalents))
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
+  :version "27.1"
   :group 'eshell-mode)
 
 (defcustom eshell-skip-prompt-function nil

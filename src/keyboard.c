@@ -1298,7 +1298,7 @@ command_loop_1 (void)
       if (minibuf_level
 	  && !NILP (echo_area_buffer[0])
 	  && EQ (minibuf_window, echo_area_window)
-	  && FIXED_OR_FLOATP (Vminibuffer_message_timeout))
+	  && NUMBERP (Vminibuffer_message_timeout))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
@@ -5834,7 +5834,7 @@ make_lispy_event (struct input_event *event)
 				      ASIZE (wheel_syms));
 	}
 
-        if (FIXED_OR_FLOATP (event->arg))
+        if (NUMBERP (event->arg))
           return list4 (head, position, make_fixnum (double_click_count),
                         event->arg);
 	else if (event->modifiers & (double_modifier | triple_modifier))

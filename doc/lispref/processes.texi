@@ -2075,8 +2075,6 @@ attribute and @var{value} is the value of that attribute.  The various
 attribute @var{key}s that this function can return are listed below.
 Not all platforms support all of these attributes; if an attribute is
 not supported, its association will not appear in the returned alist.
-Values that are numbers can be either integer or floating point,
-depending on the magnitude of the value.
 
 @table @code
 @item euid

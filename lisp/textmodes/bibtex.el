@@ -457,7 +457,7 @@ INIT is either the initial content of the field or a function,
 which is called to determine the initial content of the field.
 ALTERNATIVE if non-nil is an integer that numbers sets of
 alternatives, starting from zero."
-  :group 'BibTeX
+  :group 'bibtex
   :version "26.1"                       ; add Conference
   :type 'bibtex-entry-alist)
 (put 'bibtex-BibTeX-entry-alist 'risky-local-variable t)
@@ -1356,6 +1356,8 @@ Set this variable before loading BibTeX mode."
     ;; The Key `C-c&' is reserved for reftex.el
     (define-key km "\t" 'bibtex-find-text)
     (define-key km "\n" 'bibtex-next-field)
+    (define-key km [remap forward-paragraph] 'bibtex-next-entry)
+    (define-key km [remap backward-paragraph] 'bibtex-previous-entry)
     (define-key km "\M-\t" 'completion-at-point)
     (define-key km "\C-c\"" 'bibtex-remove-delimiters)
     (define-key km "\C-c{" 'bibtex-remove-delimiters)
@@ -1415,6 +1417,8 @@ Set this variable before loading BibTeX mode."
     ("Moving inside an Entry"
      ["End of Field" bibtex-find-text t]
      ["Next Field" bibtex-next-field t]
+     ["Next entry" bibtex-next-entry t]
+     ["Previous entry" bibtex-previous-entry t]
      ["Beginning of Entry" bibtex-beginning-of-entry t]
      ["End of Entry" bibtex-end-of-entry t]
     "--"
@@ -4451,6 +4455,24 @@ is as in `bibtex-enclosing-field'.  It is t for interactive calls."
              (re-search-forward bibtex-any-entry-maybe-empty-head nil t))
       (goto-char (match-beginning 0)))
     (bibtex-find-text begin nil bibtex-help-message)))
+
+(defun bibtex-next-entry (&optional arg)
+  "Move point ARG entries forward.
+ARG defaults to one.  Called interactively, ARG is the prefix
+argument."
+  (interactive "p")
+  (bibtex-end-of-entry)
+  (when (re-search-forward bibtex-entry-maybe-empty-head nil t (or arg 1))
+    (goto-char (match-beginning 0))))
+
+(defun bibtex-previous-entry (&optional arg)
+  "Move point ARG entries backward.
+ARG defaults to one.  Called interactively, ARG is the prefix
+argument."
+  (interactive "p")
+  (bibtex-beginning-of-entry)
+  (when (re-search-backward bibtex-entry-maybe-empty-head nil t (or arg 1))
+    (goto-char (match-beginning 0))))
 
 (defun bibtex-find-text (&optional begin noerror help comma)
   "Move point to end of text of current BibTeX field or entry head.

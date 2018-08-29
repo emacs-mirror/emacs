@@ -350,9 +350,13 @@ frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal,
   int retval;
 
   if ((!NILP (horizontal)
-       && FIXED_OR_FLOATP (par_size = get_frame_param (f, Qmin_width)))
+       && RANGED_FIXNUMP (INT_MIN,
+			  par_size = get_frame_param (f, Qmin_width),
+			  INT_MAX))
       || (NILP (horizontal)
-	  && FIXED_OR_FLOATP (par_size = get_frame_param (f, Qmin_height))))
+	  && RANGED_FIXNUMP (INT_MIN,
+			     par_size = get_frame_param (f, Qmin_height),
+			     INT_MAX)))
     {
       int min_size = XFIXNUM (par_size);
 
@@ -3974,8 +3978,8 @@ x_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
   if ((!NILP (left) || !NILP (top))
       && ! (left_no_change && top_no_change)
-      && ! (FIXED_OR_FLOATP (left) && XFIXNUM (left) == f->left_pos
-	    && FIXED_OR_FLOATP (top) && XFIXNUM (top) == f->top_pos))
+      && ! (FIXNUMP (left) && XFIXNUM (left) == f->left_pos
+	    && FIXNUMP (top) && XFIXNUM (top) == f->top_pos))
     {
       int leftpos = 0;
       int toppos = 0;
@@ -4208,7 +4212,7 @@ x_set_screen_gamma (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
 
   if (NILP (new_value))
     f->gamma = 0;
-  else if (FIXED_OR_FLOATP (new_value) && XFLOATINT (new_value) > 0)
+  else if (NUMBERP (new_value) && XFLOATINT (new_value) > 0)
     /* The value 0.4545 is the normal viewing gamma.  */
     f->gamma = 1.0 / (0.4545 * XFLOATINT (new_value));
   else

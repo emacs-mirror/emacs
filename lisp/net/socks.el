@@ -420,7 +420,7 @@
 		     (unibyte-string
 		      version             ; version
 		      command             ; command
-		      (lsh port -8)       ; port, high byte
+		      (ash port -8)       ; port, high byte
 		      (logand port #xff)) ; port, low byte
 		     addr                 ; address
 		     (user-full-name)     ; username
@@ -434,7 +434,7 @@
 		      atype)		; address type
 		     addr		; address
 		     (unibyte-string
-                      (lsh port -8)          ; port, high byte
+                      (ash port -8)          ; port, high byte
 		      (logand port #xff))))) ; port, low byte
      (t
       (error "Unknown protocol version: %d" version)))

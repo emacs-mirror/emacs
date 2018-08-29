@@ -367,8 +367,8 @@ in the order given by 'git status'."
 
 (defun vc-git-file-type-as-string (old-perm new-perm)
   "Return a string describing the file type based on its permissions."
-  (let* ((old-type (lsh (or old-perm 0) -9))
-	 (new-type (lsh (or new-perm 0) -9))
+  (let* ((old-type (ash (or old-perm 0) -9))
+	 (new-type (ash (or new-perm 0) -9))
 	 (str (pcase new-type
 		(?\100  ;; File.
 		 (pcase old-type

@@ -10214,7 +10214,7 @@ usage: (define-coding-system-internal ...)  */)
 	      tmp = AREF (val, i);
 	      if (NILP (tmp))
 		tmp = XCAR (tail);
-	      else if (FIXED_OR_FLOATP (tmp))
+	      else if (FIXNATP (tmp))
 		{
 		  dim2 = CHARSET_DIMENSION (CHARSET_FROM_ID (XFIXNAT (tmp)));
 		  if (dim < dim2)

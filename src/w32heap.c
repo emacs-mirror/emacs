@@ -250,7 +250,9 @@ init_heap (void)
 #ifndef MINGW_W64
       /* Set the low-fragmentation heap for OS before Vista.  */
       HMODULE hm_kernel32dll = LoadLibrary ("kernel32.dll");
-      HeapSetInformation_Proc s_pfn_Heap_Set_Information = (HeapSetInformation_Proc) GetProcAddress (hm_kernel32dll, "HeapSetInformation");
+      HeapSetInformation_Proc s_pfn_Heap_Set_Information =
+        (HeapSetInformation_Proc) get_proc_addr (hm_kernel32dll,
+                                                        "HeapSetInformation");
       if (s_pfn_Heap_Set_Information != NULL)
 	{
 	  if (s_pfn_Heap_Set_Information ((PVOID) heap,
@@ -281,7 +283,7 @@ init_heap (void)
          in ntdll.dll since XP.  */
       HMODULE hm_ntdll = LoadLibrary ("ntdll.dll");
       RtlCreateHeap_Proc s_pfn_Rtl_Create_Heap
-	= (RtlCreateHeap_Proc) GetProcAddress (hm_ntdll, "RtlCreateHeap");
+	= (RtlCreateHeap_Proc) get_proc_addr (hm_ntdll, "RtlCreateHeap");
       /* Specific parameters for the private heap.  */
       RTL_HEAP_PARAMETERS params;
       ZeroMemory (&params, sizeof(params));

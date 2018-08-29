@@ -1383,8 +1383,8 @@ If they are in the windows's left or right marginal areas, `left-margin'\n\
   CHECK_CONS (coordinates);
   lx = Fcar (coordinates);
   ly = Fcdr (coordinates);
-  CHECK_FIXNUM_OR_FLOAT (lx);
-  CHECK_FIXNUM_OR_FLOAT (ly);
+  CHECK_NUMBER (lx);
+  CHECK_NUMBER (ly);
   x = FRAME_PIXEL_X_FROM_CANON_X (f, lx) + FRAME_INTERNAL_BORDER_WIDTH (f);
   y = FRAME_PIXEL_Y_FROM_CANON_Y (f, ly) + FRAME_INTERNAL_BORDER_WIDTH (f);
 
@@ -1533,9 +1533,8 @@ column 0.  */)
 {
   struct frame *f = decode_live_frame (frame);
 
-  /* Check that arguments are integers or floats.  */
-  CHECK_FIXNUM_OR_FLOAT (x);
-  CHECK_FIXNUM_OR_FLOAT (y);
+  CHECK_NUMBER (x);
+  CHECK_NUMBER (y);
 
   return window_from_coordinates (f,
 				  (FRAME_PIXEL_X_FROM_CANON_X (f, x)
@@ -1972,7 +1971,7 @@ though when run from an idle timer with a delay of zero seconds.  */)
     row = (NILP (body)
 	   ? MATRIX_ROW (w->current_matrix, 0)
 	   : MATRIX_FIRST_TEXT_ROW (w->current_matrix));
-  else if (FIXED_OR_FLOATP (first))
+  else if (FIXNUMP (first))
     {
       CHECK_RANGED_INTEGER (first, 0, w->current_matrix->nrows);
       row = MATRIX_ROW (w->current_matrix, XFIXNUM (first));
@@ -1985,7 +1984,7 @@ though when run from an idle timer with a delay of zero seconds.  */)
     end_row = (NILP (body)
 	       ? MATRIX_ROW (w->current_matrix, w->current_matrix->nrows)
 	       : MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w));
-  else if (FIXED_OR_FLOATP (last))
+  else if (FIXNUMP (last))
     {
       CHECK_RANGED_INTEGER (last, 0, w->current_matrix->nrows);
       end_row = MATRIX_ROW (w->current_matrix, XFIXNUM (last));
@@ -3994,7 +3993,7 @@ window_resize_apply (struct window *w, bool horflag)
     {
       w->pixel_width = XFIXNAT (w->new_pixel);
       w->total_cols = w->pixel_width / unit;
-      if (FIXED_OR_FLOATP (w->new_normal))
+      if (NUMBERP (w->new_normal))
 	wset_normal_cols (w, w->new_normal);
 
       edge = w->pixel_left;
@@ -4003,7 +4002,7 @@ window_resize_apply (struct window *w, bool horflag)
     {
       w->pixel_height = XFIXNAT (w->new_pixel);
       w->total_lines = w->pixel_height / unit;
-      if (FIXED_OR_FLOATP (w->new_normal))
+      if (NUMBERP (w->new_normal))
 	wset_normal_lines (w, w->new_normal);
 
       edge = w->pixel_top;
@@ -7360,7 +7359,7 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
   struct window *w = decode_live_window (window);
   struct frame *f = XFRAME (w->frame);
 
-  CHECK_FIXNUM_OR_FLOAT (vscroll);
+  CHECK_NUMBER (vscroll);
 
   if (FRAME_WINDOW_P (f))
     {

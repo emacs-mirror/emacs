@@ -4856,7 +4856,7 @@ table is cleared once the synchronization is complete."
 (defun org-element--cache-generate-key (lower upper)
   "Generate a key between LOWER and UPPER.
 
-LOWER and UPPER are integers or lists, possibly empty.
+LOWER and UPPER are fixnums or lists of same, possibly empty.
 
 If LOWER and UPPER are equals, return LOWER.  Otherwise, return
 a unique key, as an integer or a list of integers, according to

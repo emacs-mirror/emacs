@@ -769,9 +769,9 @@ from the document.")
 
 (defun nndoc-read-little-endian ()
   (+ (prog1 (char-after) (forward-char 1))
-     (lsh (prog1 (char-after) (forward-char 1)) 8)
-     (lsh (prog1 (char-after) (forward-char 1)) 16)
-     (lsh (prog1 (char-after) (forward-char 1)) 24)))
+     (ash (prog1 (char-after) (forward-char 1)) 8)
+     (ash (prog1 (char-after) (forward-char 1)) 16)
+     (ash (prog1 (char-after) (forward-char 1)) 24)))
 
 (defun nndoc-oe-dbx-decode-block ()
   (list

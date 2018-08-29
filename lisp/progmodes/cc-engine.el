@@ -12280,7 +12280,18 @@ comment at the start of cc-engine.el for more info."
 			 ;; The '}' is unbalanced.
 			 nil
 		       (c-end-of-decl-1)
-		       (>= (point) indent-point))))))
+		       (>= (point) indent-point))))
+		 ;; Check that we only have one brace block here, i.e. that we
+		 ;; don't have something like a function with a struct
+		 ;; declaration as its type.
+		 (save-excursion
+		   (or (not (and state-cache (consp (car state-cache))))
+		       ;; The above probably can't happen.
+		       (progn
+			 (goto-char placeholder)
+			 (and (c-syntactic-re-search-forward
+			       "{" indent-point t)
+			      (eq (1- (point)) (caar state-cache))))))))
 	  (goto-char placeholder)
 	  (c-add-stmt-syntax 'topmost-intro-cont nil nil
 			     containing-sexp paren-state))

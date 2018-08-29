@@ -224,14 +224,6 @@ which is big-endian."
       (setq i (1- i)))
     str))
 
-(defconst erc-most-positive-int-bytes
-  (ceiling (/ (ceiling (/ (log most-positive-fixnum) (log 2))) 8.0))
-  "Maximum number of bytes for a fixnum.")
-
-(defconst erc-most-positive-int-msb
-  (lsh most-positive-fixnum (- 0 (* 8 (1- erc-most-positive-int-bytes))))
-  "Content of the most significant byte of most-positive-fixnum.")
-
 (defun erc-unpack-int (str)
   "Unpack a packed string into an integer."
   (let ((len (length str)))
@@ -242,16 +234,11 @@ which is big-endian."
       (when (> start 0)
         (setq str (substring str start))
         (setq len (- len start))))
-    ;; make sure size is not larger than Emacs can handle
-    (when (or (> len (min 4 erc-most-positive-int-bytes))
-              (and (eq len erc-most-positive-int-bytes)
-                   (> (aref str 0) erc-most-positive-int-msb)))
-      (error "ERC-DCC (erc-unpack-int): packet to send is too large"))
     ;; unpack
     (let ((num 0)
           (count 0))
       (while (< count len)
-        (setq num (+ num (lsh (aref str (- len count 1)) (* 8 count))))
+        (setq num (+ num (ash (aref str (- len count 1)) (* 8 count))))
         (setq count (1+ count)))
       num)))
 

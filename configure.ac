@@ -2516,11 +2516,15 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}"
       export PKG_CONFIG_PATH="$PKG_CONFIG_PATH$PATH_SEPARATOR`$BREW --prefix imagemagick@6 2>/dev/null`/lib/pkgconfig"
     fi
 
-    ## 6.3.5 is the earliest version known to work; see Bug#17339.
-    ## 6.8.2 makes Emacs crash; see Bug#13867.
-    ## 7 and later have not been ported to; See Bug#25967.
-    IMAGEMAGICK_MODULE="Wand >= 6.3.5 Wand != 6.8.2 Wand < 7"
-    EMACS_CHECK_MODULES([IMAGEMAGICK], [$IMAGEMAGICK_MODULE])
+    EMACS_CHECK_MODULES([IMAGEMAGICK7], [MagickWand >= 7])
+    if test $HAVE_IMAGEMAGICK7 = yes; then
+       AC_DEFINE([HAVE_IMAGEMAGICK7], 1, [Define to 1 if using ImageMagick7.])
+       HAVE_IMAGEMAGICK = yes
+    else
+       ## 6.3.5 is the earliest version known to work; see Bug#17339.
+       ## 6.8.2 makes Emacs crash; see Bug#13867.
+       EMACS_CHECK_MODULES([IMAGEMAGICK], [Wand >= 6.3.5 Wand != 6.8.2])
+    fi
 
     if test $HAVE_IMAGEMAGICK = yes; then
       OLD_CFLAGS=$CFLAGS
@@ -2540,6 +2544,8 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}"
     fi
     if test $HAVE_IMAGEMAGICK = yes; then
       AC_DEFINE([HAVE_IMAGEMAGICK], 1, [Define to 1 if using ImageMagick.])
+      AC_DEFINE_UNQUOTED([IMAGEMAGICK_MAJOR], [$IMAGEMAGICK_MAJOR],
+                         [ImageMagick major version number (from configure).])
     else
       IMAGEMAGICK_CFLAGS=
       IMAGEMAGICK_LIBS=
@@ -5460,7 +5466,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}
   Does Emacs use cairo?                                   ${HAVE_CAIRO}
   Does Emacs use -llcms2?                                 ${HAVE_LCMS2}
-  Does Emacs use imagemagick (version 6)?                 ${HAVE_IMAGEMAGICK}
+  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}
   Does Emacs support sound?                               ${HAVE_SOUND}
   Does Emacs use -lgpm?                                   ${HAVE_GPM}
   Does Emacs use -ldbus?                                  ${HAVE_DBUS}

@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include "lisp.h"
+#include "bignum.h"
 #include "dynlib.h"
 #include "coding.h"
 #include "keyboard.h"
@@ -344,20 +345,20 @@ module_free_global_ref (emacs_env *env, emacs_value ref)
       Lisp_Object globals = global_env_private.values;
       Lisp_Object prev = Qnil;
       ptrdiff_t count = 0;
-      for (Lisp_Object tail = global_env_private.values; CONSP (tail);
+      for (Lisp_Object tail = globals; CONSP (tail);
            tail = XCDR (tail))
         {
-          emacs_value global = xmint_pointer (XCAR (globals));
+          emacs_value global = xmint_pointer (XCAR (tail));
           if (global == ref)
             {
               if (NILP (prev))
                 global_env_private.values = XCDR (globals);
               else
-                XSETCDR (prev, XCDR (globals));
+                XSETCDR (prev, XCDR (tail));
               return;
             }
           ++count;
-          prev = globals;
+          prev = tail;
         }
       module_abort ("Global value was not found in list of %"pD"d globals",
                     count);
@@ -521,6 +522,8 @@ module_extract_integer (emacs_env *env, emacs_value n)
   CHECK_INTEGER (l);
   if (BIGNUMP (l))
     {
+      /* FIXME: This can incorrectly signal overflow on platforms
+	 where long is narrower than intmax_t.  */
       if (!mpz_fits_slong_p (XBIGNUM (l)->value))
 	xsignal1 (Qoverflow_error, l);
       return mpz_get_si (XBIGNUM (l)->value);
@@ -531,19 +534,8 @@ module_extract_integer (emacs_env *env, emacs_value n)
 static emacs_value
 module_make_integer (emacs_env *env, intmax_t n)
 {
-  Lisp_Object obj;
   MODULE_FUNCTION_BEGIN (module_nil);
-  if (FIXNUM_OVERFLOW_P (n))
-    {
-      mpz_t val;
-      mpz_init (val);
-      mpz_set_intmax (val, n);
-      obj = make_number (val);
-      mpz_clear (val);
-    }
-  else
-    obj = make_fixnum (n);
-  return lisp_to_value (env, obj);
+  return lisp_to_value (env, make_int (n));
 }
 
 static double
@@ -654,7 +646,7 @@ check_vec_index (Lisp_Object lvec, ptrdiff_t i)
 {
   CHECK_VECTOR (lvec);
   if (! (0 <= i && i < ASIZE (lvec)))
-    args_out_of_range_3 (make_fixnum_or_float (i),
+    args_out_of_range_3 (INT_TO_INTEGER (i),
 			 make_fixnum (0), make_fixnum (ASIZE (lvec) - 1));
 }
 

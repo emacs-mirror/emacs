@@ -34,6 +34,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 # include <windows.h>
+# include "w32common.h"
 # include "w32.h"
 
 DEF_DLL_FN (void, json_set_alloc_funcs,
@@ -708,7 +709,7 @@ usage: (json-insert OBJECT &rest ARGS)  */)
 
 /* Convert a JSON object to a Lisp object.  */
 
-static _GL_ARG_NONNULL ((1)) Lisp_Object
+static Lisp_Object ARG_NONNULL ((1))
 json_to_lisp (json_t *json, struct json_configuration *conf)
 {
   switch (json_typeof (json))
@@ -720,14 +721,10 @@ json_to_lisp (json_t *json, struct json_configuration *conf)
     case JSON_TRUE:
       return Qt;
     case JSON_INTEGER:
-      /* Return an integer if possible, a floating-point number
-         otherwise.  This loses precision for integers with large
-         magnitude; however, such integers tend to be nonportable
-         anyway because many JSON implementations use only 64-bit
-                      floating-point numbers with 53 mantissa bits.  See
-                      https://tools.ietf.org/html/rfc7159#section-6 for some
-      discussion.  */
-      return make_fixnum_or_float (json_integer_value (json));
+      {
+	json_int_t i = json_integer_value (json);
+	return INT_TO_INTEGER (i);
+      }
     case JSON_REAL:
       return make_float (json_real_value (json));
     case JSON_STRING:

@@ -509,7 +509,7 @@ list_system_processes (void)
 {
   Lisp_Object proclist = Qnil;
 
-  proclist = Fcons (make_fixnum_or_float (getpid ()), proclist);
+  proclist = Fcons (INT_TO_INTEGER (getpid ()), proclist);
 
   return proclist;
 }
@@ -520,8 +520,8 @@ system_process_attributes (Lisp_Object pid)
   int proc_id;
   Lisp_Object attrs = Qnil;
 
-  CHECK_FIXNUM_OR_FLOAT (pid);
-  proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XFIXNUM (pid);
+  CHECK_NUMBER (pid);
+  proc_id = XFLOATINT (pid);
 
   if (proc_id == getpid ())
     {
@@ -539,12 +539,12 @@ system_process_attributes (Lisp_Object pid)
 #endif
 
       uid = getuid ();
-      attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
+      attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (uid)), attrs);
       usr = getlogin ();
       if (usr)
 	attrs = Fcons (Fcons (Quser, build_string (usr)), attrs);
       gid = getgid ();
-      attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
+      attrs = Fcons (Fcons (Qegid, INT_TO_INTEGER (gid)), attrs);
       gr = getgrgid (gid);
       if (gr)
 	attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
@@ -566,7 +566,7 @@ system_process_attributes (Lisp_Object pid)
 			    Fsymbol_value (intern ("before-init-time"))),
 		     attrs);
       attrs = Fcons (Fcons (Qvsize,
-			    make_fixnum_or_float ((unsigned long)sbrk (0)/1024)),
+			    INT_TO_INTEGER ((unsigned long) sbrk (0) / 1024)),
 		     attrs);
       attrs = Fcons (Fcons (Qetime, tem), attrs);
 #ifndef SYSTEM_MALLOC

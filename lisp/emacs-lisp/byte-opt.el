@@ -1283,7 +1283,7 @@
 		  (setq bytedecomp-ptr (1+ bytedecomp-ptr))
 		  (+ (aref bytes bytedecomp-ptr)
 		     (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-			    (lsh (aref bytes bytedecomp-ptr) 8))))
+			    (ash (aref bytes bytedecomp-ptr) 8))))
 		 (t tem))))		;Offset was in opcode.
 	((>= bytedecomp-op byte-constant)
 	 (prog1 (- bytedecomp-op byte-constant)	;Offset in opcode.
@@ -1297,7 +1297,7 @@
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr))
 	 (+ (aref bytes bytedecomp-ptr)
 	    (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-		   (lsh (aref bytes bytedecomp-ptr) 8))))
+		   (ash (aref bytes bytedecomp-ptr) 8))))
 	((and (>= bytedecomp-op byte-listN)
 	      (<= bytedecomp-op byte-discardN))
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr)) ;Offset in next byte.

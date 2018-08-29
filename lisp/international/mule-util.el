@@ -342,7 +342,7 @@ per-character basis, this may not be accurate."
   (let ((eol-offset 0)
         ;; Make sure we terminate, even if BYTE falls right in the middle
         ;; of a CRLF or some other weird corner case.
-        (omin 0) (omax most-positive-fixnum)
+        (omin 0) omax
         pos lines)
     (while
         (progn
@@ -355,9 +355,9 @@ per-character basis, this may not be accurate."
               (setq pos (point-max))))
           ;; Adjust POS for DOS EOL format.
           (setq lines (1- (line-number-at-pos pos)))
-          (and (not (= lines eol-offset)) (> omax omin)))
+          (and (not (= lines eol-offset)) (or (not omax) (> omax omin))))
       (if (> lines eol-offset)
-          (setq omax (min (1- omax) lines)
+          (setq omax (if omax (min (1- omax) lines) lines)
                 eol-offset omax)
         (setq omin (max (1+ omin) lines)
               eol-offset omin)))

@@ -88,7 +88,7 @@ ns_load_image (struct frame *f, struct image *img,
   index = FIXNUMP (lisp_index) ? XFIXNAT (lisp_index) : 0;
 
   lisp_rotation = Fplist_get (XCDR (img->spec), QCrotation);
-  rotation = FIXED_OR_FLOATP (lisp_rotation) ? XFLOATINT (lisp_rotation) : 0;
+  rotation = NUMBERP (lisp_rotation) ? XFLOATINT (lisp_rotation) : 0;
 
   if (STRINGP (spec_file))
     {
@@ -532,19 +532,19 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   double width = -1, height = -1, max_width = -1, max_height = -1;
 
   value = Fplist_get (spec, QCscale);
-  if (FIXED_OR_FLOATP (value))
+  if (NUMBERP (value))
     scale = XFLOATINT (value) ;
 
   value = Fplist_get (spec, QCmax_width);
-  if (FIXED_OR_FLOATP (value))
+  if (NUMBERP (value))
     max_width = XFLOATINT (value);
 
   value = Fplist_get (spec, QCmax_height);
-  if (FIXED_OR_FLOATP (value))
+  if (NUMBERP (value))
     max_height = XFLOATINT (value);
 
   value = Fplist_get (spec, QCwidth);
-  if (FIXED_OR_FLOATP (value))
+  if (NUMBERP (value))
     {
       width = XFLOATINT (value) * scale;
       /* :width overrides :max-width. */
@@ -552,7 +552,7 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
     }
 
   value = Fplist_get (spec, QCheight);
-  if (FIXED_OR_FLOATP (value))
+  if (NUMBERP (value))
     {
       height = XFLOATINT (value) * scale;
       /* :height overrides :max-height. */

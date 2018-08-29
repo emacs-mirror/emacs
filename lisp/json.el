@@ -370,7 +370,7 @@ representation will be parsed correctly."
 
 (defun json--decode-utf-16-surrogates (high low)
   "Return the code point represented by the UTF-16 surrogates HIGH and LOW."
-  (+ (lsh (- high #xD800) 10) (- low #xDC00) #x10000))
+  (+ (ash (- high #xD800) 10) (- low #xDC00) #x10000))
 
 (defun json-read-escaped-char ()
   "Read the JSON string escaped character at point."

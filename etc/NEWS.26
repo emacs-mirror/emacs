@@ -19,7 +19,7 @@ with a prefix argument or by typing C-u C-h C-n.
 * Installation Changes in Emacs 26.2
 
 ---
-** Building Emacs with the '--with-xwidgets' option now requires WebKit2
+** Building Emacs with the '--with-xwidgets' option now requires WebKit2.
 To build Emacs with xwidgets support, you will need to install the
 webkit2gtk-4.0 package; version 2.12 or later is required.
 (This change was actually made in Emacs 26.1, but was not called out
@@ -132,17 +132,17 @@ now the default in developer builds.  As before, use
 ** When GCC warnings are enabled, '--enable-check-lisp-object-type' is
 now enabled by default when configuring.
 
-** The Emacs server now has socket-launching support.  This allows
-socket based activation, where an external process like systemd can
-invoke the Emacs server process upon a socket connection event and
-hand the socket over to Emacs.  Emacs uses this socket to service
-emacsclient commands.  This new functionality can be disabled with the
-configure option '--disable-libsystemd'.
+** The Emacs server now has socket-launching support.
+This allows socket based activation, where an external process like
+systemd can invoke the Emacs server process upon a socket connection
+event and hand the socket over to Emacs.  Emacs uses this socket to
+service emacsclient commands.  This new functionality can be disabled
+with the configure option '--disable-libsystemd'.
 
-** A systemd user unit file is provided.  Use it in the standard way:
-'systemctl --user enable emacs'.
-(If your Emacs is installed in a non-standard location, you may
-need to copy the emacs.service file to eg ~/.config/systemd/user/)
+** A systemd user unit file is provided.
+Use it in the standard way: 'systemctl --user enable emacs'.  (If your
+Emacs is installed in a non-standard location, you may need to copy
+the emacs.service file to eg ~/.config/systemd/user/)
 
 ** New configure option '--disable-build-details' attempts to build an
 Emacs that is more likely to be reproducible; that is, if you build
@@ -153,7 +153,6 @@ following variables nil: 'emacs-build-system', 'emacs-build-time',
 'erc-emacs-build-time'.
 
 ** Emacs can now be built with support for Little CMS.
-
 If the lcms2 library is installed, Emacs will enable features built on
 top of that library.  The new configure option '--without-lcms2' can
 be used to build without lcms2 support even if it is installed.  Emacs
@@ -196,9 +195,9 @@ The effect is similar to that of "toolBar" resource on the tool bar.
 
 * Changes in Emacs 26.1
 
-** Option 'buffer-offer-save' can be set to new value, 'always'.  When
-set to 'always', the command 'save-some-buffers' will always offer
-this buffer for saving.
+** Option 'buffer-offer-save' can be set to new value, 'always'.
+When set to 'always', the command 'save-some-buffers' will always
+offer this buffer for saving.
 
 ** Security vulnerability related to Enriched Text mode is removed.
 
@@ -684,7 +683,7 @@ This can be customized via the 'info-menu' category in
 A new option 'ediff-show-ancestor' and a new toggle
 'ediff-toggle-show-ancestor'.
 
-** TeX: Add luatex and xetex as alternatives to pdftex
+** TeX: Add luatex and xetex as alternatives to pdftex.
 
 ** Electric-Buffer-menu
 
@@ -1088,7 +1087,6 @@ to a format suitable for reverse lookup zone files.
 ** Ispell
 
 *** Enchant is now supported as a spell-checker.
-
 Enchant is a meta-spell-checker that uses providers such as Hunspell
 to do the actual checking.  With it, users can use spell-checkers not
 directly supported by Emacs, such as Voikko, Hspell and AppleSpell,
@@ -1098,8 +1096,7 @@ configure different spelling-checkers for different languages.
 
 ** Flymake
 
-*** Flymake has been completely redesigned
-
+*** Flymake has been completely redesigned.
 Flymake now annotates arbitrary buffer regions, not just lines.  It
 supports arbitrary diagnostic types, not just errors and warnings (see
 variable 'flymake-diagnostic-types-alist').
@@ -1115,7 +1112,6 @@ backend", which has been updated to benefit from the new UI features.
 ** Term
 
 *** 'term-char-mode' now makes its buffer read-only.
-
 The buffer is made read-only to prevent changes from being made by
 anything other than the process filter; and movements of point away
 from the process mark are counter-acted so that the cursor is in the
@@ -1131,7 +1127,6 @@ the previous behavior.
 ** Xref
 
 *** When an *xref* buffer is needed, 'TAB' quits and jumps to an xref.
-
 A new command 'xref-quit-and-goto-xref', bound to 'TAB' in *xref*
 buffers, quits the window before jumping to the destination.  In many
 situations, the intended window configuration is restored, just as if
@@ -1227,11 +1222,11 @@ change FOO, respectively.  The exhaustive list of removed variables is:
 
 *** Many variables obsoleted in 22.1 referring to face symbols.
 
-** The variable 'text-quoting-style' is now a customizable option.  It
-controls whether to and how to translate ASCII quotes in messages and
-help output.  Its possible values and their semantics remain unchanged
-from Emacs 25.  In particular, when this variable's value is 'grave',
-all quotes in formats are output as-is.
+** The variable 'text-quoting-style' is now a customizable option.
+It controls whether to and how to translate ASCII quotes in messages
+and help output.  Its possible values and their semantics remain
+unchanged from Emacs 25.  In particular, when this variable's value is
+'grave', all quotes in formats are output as-is.
 
 ** Functions like 'check-declare-file' and 'check-declare-directory'
 now generate less chatter and more-compact diagnostics.  The auxiliary
@@ -1495,10 +1490,11 @@ to provide region boundaries (for rectangular regions more than one)
 to an interactively callable function as a single argument instead of
 two separate arguments 'region-beginning' and 'region-end'.
 
-** 'parse-partial-sexp' state has a new element.  Element 10 is
-non-nil when the last character scanned might be the first character
-of a two character construct, i.e., a comment delimiter or escaped
-character.  Its value is the syntax of that last character.
+** 'parse-partial-sexp' state has a new element.
+Element 10 is non-nil when the last character scanned might be the
+first character of a two character construct, i.e., a comment
+delimiter or escaped character.  Its value is the syntax of that last
+character.
 
 ** 'parse-partial-sexp's state, element 9, has now been confirmed as
 permanent and documented, and may be used by Lisp programs.  Its value
@@ -1762,8 +1758,9 @@ the ELisp manual.
 *** 'select-frame-by-name' now may return a frame on another display
 if it does not find a suitable one on the current display.
 
-** 'tcl-auto-fill-mode' is now declared obsolete.  Its functionality
-can be replicated simply by setting 'comment-auto-fill-only-comments'.
+** 'tcl-auto-fill-mode' is now declared obsolete.
+Its functionality can be replicated simply by setting
+'comment-auto-fill-only-comments'.
 
 ** New pcase pattern 'rx' to match against an rx-style regular expression.
 For details, see the doc string of 'rx--pcase-macroexpander'.

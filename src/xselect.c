@@ -321,7 +321,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
     Lisp_Object prev_value;
 
     selection_data = list4 (selection_name, selection_value,
-			    INTEGER_TO_CONS (timestamp), frame);
+			    INT_TO_INTEGER (timestamp), frame);
     prev_value = LOCAL_SELECTION (selection_name, dpyinfo);
 
     tset_selection_alist
@@ -401,16 +401,16 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   if (STRINGP (check)
       || VECTORP (check)
       || SYMBOLP (check)
-      || FIXNUMP (check)
+      || INTEGERP (check)
       || NILP (value))
     return value;
   /* Check for a value that CONS_TO_INTEGER could handle.  */
   else if (CONSP (check)
-	   && FIXNUMP (XCAR (check))
-	   && (FIXNUMP (XCDR (check))
+	   && INTEGERP (XCAR (check))
+	   && (INTEGERP (XCDR (check))
 	       ||
 	       (CONSP (XCDR (check))
-		&& FIXNUMP (XCAR (XCDR (check)))
+		&& INTEGERP (XCAR (XCDR (check)))
 		&& NILP (XCDR (XCDR (check))))))
     return value;
 
@@ -1620,9 +1620,9 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
   else if (format == 32 && size == sizeof (int))
     {
       if (type == XA_INTEGER)
-        return INTEGER_TO_CONS (((int *) data) [0]);
+        return INT_TO_INTEGER (((int *) data) [0]);
       else
-        return INTEGER_TO_CONS (((unsigned int *) data) [0]);
+        return INT_TO_INTEGER (((unsigned int *) data) [0]);
     }
   else if (format == 16 && size == sizeof (short))
     {
@@ -1668,7 +1668,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
           for (i = 0; i < size / X_LONG_SIZE; i++)
             {
               int j = ((int *) data) [i];
-              ASET (v, i, INTEGER_TO_CONS (j));
+              ASET (v, i, INT_TO_INTEGER (j));
             }
         }
       else
@@ -1676,7 +1676,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
           for (i = 0; i < size / X_LONG_SIZE; i++)
             {
               unsigned int j = ((unsigned int *) data) [i];
-              ASET (v, i, INTEGER_TO_CONS (j));
+              ASET (v, i, INT_TO_INTEGER (j));
             }
         }
       return v;
@@ -1693,7 +1693,7 @@ static unsigned long
 cons_to_x_long (Lisp_Object obj)
 {
   if (X_ULONG_MAX <= INTMAX_MAX
-      || XFIXNUM (FIXNUMP (obj) ? obj : XCAR (obj)) < 0)
+      || NILP (Fnatnump (CONSP (obj) ? XCAR (obj) : obj)))
     return cons_to_signed (obj, X_LONG_MIN, min (X_ULONG_MAX, INTMAX_MAX));
   else
     return cons_to_unsigned (obj, X_ULONG_MAX);
@@ -1759,8 +1759,8 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
       *short_ptr = XFIXNUM (obj);
       if (NILP (type)) type = QINTEGER;
     }
-  else if (FIXNUMP (obj)
-	   || (CONSP (obj) && FIXNUMP (XCAR (obj))
+  else if (INTEGERP (obj)
+	   || (CONSP (obj) && INTEGERP (XCAR (obj))
 	       && (FIXNUMP (XCDR (obj))
 		   || (CONSP (XCDR (obj))
 		       && FIXNUMP (XCAR (XCDR (obj)))))))
@@ -1846,19 +1846,19 @@ static Lisp_Object
 clean_local_selection_data (Lisp_Object obj)
 {
   if (CONSP (obj)
-      && FIXNUMP (XCAR (obj))
+      && INTEGERP (XCAR (obj))
       && CONSP (XCDR (obj))
       && FIXNUMP (XCAR (XCDR (obj)))
       && NILP (XCDR (XCDR (obj))))
     obj = Fcons (XCAR (obj), XCDR (obj));
 
   if (CONSP (obj)
-      && FIXNUMP (XCAR (obj))
+      && INTEGERP (XCAR (obj))
       && FIXNUMP (XCDR (obj)))
     {
-      if (XFIXNUM (XCAR (obj)) == 0)
+      if (EQ (XCAR (obj), make_fixnum (0)))
 	return XCDR (obj);
-      if (XFIXNUM (XCAR (obj)) == -1)
+      if (EQ (XCAR (obj), make_fixnum (-1)))
 	return make_fixnum (- XFIXNUM (XCDR (obj)));
     }
   if (VECTORP (obj))
@@ -2264,10 +2264,10 @@ x_check_property_data (Lisp_Object data)
     {
       Lisp_Object o = XCAR (iter);
 
-      if (! FIXED_OR_FLOATP (o) && ! STRINGP (o) && ! CONSP (o))
+      if (! NUMBERP (o) && ! STRINGP (o) && ! CONSP (o))
         return -1;
       else if (CONSP (o) &&
-               (! FIXED_OR_FLOATP (XCAR (o)) || ! FIXED_OR_FLOATP (XCDR (o))))
+               (! NUMBERP (XCAR (o)) || ! NUMBERP (XCDR (o))))
         return -1;
       if (size == INT_MAX)
 	return -1;
@@ -2303,7 +2303,7 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
     {
       Lisp_Object o = XCAR (iter);
 
-      if (FIXED_OR_FLOATP (o) || CONSP (o))
+      if (NUMBERP (o) || CONSP (o))
         {
           if (CONSP (o)
 	      && RANGED_FIXNUMP (X_LONG_MIN >> 16, XCAR (o), X_LONG_MAX >> 16)
@@ -2580,7 +2580,7 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
       else
         error ("DEST as a string must be one of PointerWindow or InputFocus");
     }
-  else if (FIXED_OR_FLOATP (dest) || CONSP (dest))
+  else if (NUMBERP (dest) || CONSP (dest))
     CONS_TO_INTEGER (dest, Window, wdest);
   else
     error ("DEST must be a frame, nil, string, number or cons");

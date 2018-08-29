@@ -867,7 +867,7 @@ Elements of the attribute list are:
  0. t for directory, string (name linked to) for symbolic link, or nil.
  1. Number of links to file.
  2. File uid as a string or a number.  If a string value cannot be
-  looked up, a numeric value, either an integer or a float, is returned.
+  looked up, an integer value is returned.
  3. File gid, likewise.
  4. Last access time, as a list of integers (HIGH LOW USEC PSEC) in the
   same style as (current-time).
@@ -877,7 +877,6 @@ Elements of the attribute list are:
  6. Last status change time, likewise.  This is the time of last change
   to the file's attributes: owner and group, access mode bits, etc.
  7. Size in bytes.
-  This is a floating point number if the size is too large for an integer.
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. An unspecified value, present only for backward compatibility.
 10. inode number.  If it is larger than what an Emacs integer can hold,
@@ -1012,10 +1011,10 @@ file_attributes (int fd, char const *name,
 		make_fixnum (s.st_nlink),
 		(uname
 		 ? DECODE_SYSTEM (build_unibyte_string (uname))
-		 : make_fixnum_or_float (s.st_uid)),
+		 : INT_TO_INTEGER (s.st_uid)),
 		(gname
 		 ? DECODE_SYSTEM (build_unibyte_string (gname))
-		 : make_fixnum_or_float (s.st_gid)),
+		 : INT_TO_INTEGER (s.st_gid)),
 		make_lisp_time (get_stat_atime (&s)),
 		make_lisp_time (get_stat_mtime (&s)),
 		make_lisp_time (get_stat_ctime (&s)),
@@ -1024,14 +1023,14 @@ file_attributes (int fd, char const *name,
 		   files of sizes in the 2-4 GiB range wrap around to
 		   negative values, as this is a common bug on older
 		   32-bit platforms.  */
-		make_fixnum_or_float (sizeof (s.st_size) == 4
-				      ? s.st_size & 0xffffffffu
-				      : s.st_size),
+		INT_TO_INTEGER (sizeof (s.st_size) == 4
+			    ? s.st_size & 0xffffffffu
+			    : s.st_size),
 
 		make_string (modes, 10),
 		Qt,
-		INTEGER_TO_CONS (s.st_ino),
-		INTEGER_TO_CONS (s.st_dev));
+		INT_TO_INTEGER (s.st_ino),
+		INT_TO_INTEGER (s.st_dev));
 }
 
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,

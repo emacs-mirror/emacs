@@ -830,10 +830,10 @@ DISPLAY can be a display name or a frame, and defaults to the
 selected frame's display.
 If DISPLAY is not on a 24-but TTY terminal, return nil."
   (when (and rgb (= (display-color-cells display) 16777216))
-    (let ((r (lsh (car rgb) -8))
-	  (g (lsh (cadr rgb) -8))
-	  (b (lsh (nth 2 rgb) -8)))
-      (logior (lsh r 16) (lsh g 8) b))))
+    (let ((r (ash (car rgb) -8))
+	  (g (ash (cadr rgb) -8))
+	  (b (ash (nth 2 rgb) -8)))
+      (logior (ash r 16) (ash g 8) b))))
 
 (defun tty-color-define (name index &optional rgb frame)
   "Specify a tty color by its NAME, terminal INDEX and RGB values.
@@ -895,9 +895,9 @@ FRAME defaults to the selected frame."
 	;; never consider it for approximating another color.
 	(if try-rgb
 	    (progn
-	      (setq try-r (lsh (car try-rgb) -8)
-		    try-g (lsh (cadr try-rgb) -8)
-		    try-b (lsh (nth 2 try-rgb) -8))
+	      (setq try-r (ash (car try-rgb) -8)
+		    try-g (ash (cadr try-rgb) -8)
+		    try-b (ash (nth 2 try-rgb) -8))
 	      (setq dif-r (- r try-r)
 		    dif-g (- g try-g)
 		    dif-b (- b try-b))
@@ -938,13 +938,13 @@ should be the same regardless of what display is being used."
 		  (i2 (+ i1 ndig))
 		  (i3 (+ i2 ndig)))
 	     (list
-	      (lsh
+	      (ash
 	       (string-to-number (substring color i1 i2) 16)
 	       (* 4 (- 4 ndig)))
-	      (lsh
+	      (ash
 	       (string-to-number (substring color i2 i3) 16)
 	       (* 4 (- 4 ndig)))
-	      (lsh
+	      (ash
 	       (string-to-number (substring color i3) 16)
 	       (* 4 (- 4 ndig))))))
 	  ((and (>= len 9) ;; X-style RGB:xx/yy/zz color spec

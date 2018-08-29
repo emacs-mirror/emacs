@@ -1226,10 +1226,10 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   /* Read comment about this code in corresponding place in xfns.c.  */
   tem = x_get_arg (dpyinfo, parms, Qmin_width, NULL, NULL, RES_TYPE_NUMBER);
-  if (FIXED_OR_FLOATP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_width, tem);
   tem = x_get_arg (dpyinfo, parms, Qmin_height, NULL, NULL, RES_TYPE_NUMBER);
-  if (FIXED_OR_FLOATP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_height, tem);
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1,

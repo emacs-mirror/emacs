@@ -638,7 +638,7 @@ color.  The function should accept a single argument, the color name."
 	(insert " ")
 	(insert (propertize
 		 (apply 'format "#%02x%02x%02x"
-			(mapcar (lambda (c) (lsh c -8))
+			(mapcar (lambda (c) (ash c -8))
 				color-values))
 		 'mouse-face 'highlight
 		 'help-echo

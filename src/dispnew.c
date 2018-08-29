@@ -5773,6 +5773,15 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
 	return Qt;
       nsec = 0;
     }
+  else if (BIGNUMP (timeout))
+    {
+      if (NILP (Fnatnump (timeout)))
+	return Qt;
+      sec = bignum_to_intmax (timeout);
+      if (sec == 0)
+	sec = WAIT_READING_MAX;
+      nsec = 0;
+    }
   else if (FLOATP (timeout))
     {
       double seconds = XFLOAT_DATA (timeout);

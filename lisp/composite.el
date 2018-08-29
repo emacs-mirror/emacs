@@ -119,7 +119,7 @@ RULE is a cons of global and new reference point symbols
 	      (setq nref (cdr (assq nref reference-point-alist))))
 	  (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
 	      (error "Invalid composition rule: %S" rule))
-	  (logior (lsh xoff 16) (lsh yoff 8) (+ (* gref 12) nref)))
+	  (logior (ash xoff 16) (ash yoff 8) (+ (* gref 12) nref)))
       (error "Invalid composition rule: %S" rule))))
 
 ;; Decode encoded composition rule RULE-CODE.  The value is a cons of
@@ -130,8 +130,8 @@ RULE is a cons of global and new reference point symbols
 (defun decode-composition-rule (rule-code)
   (or (and (natnump rule-code) (< rule-code #x1000000))
       (error "Invalid encoded composition rule: %S" rule-code))
-  (let ((xoff (lsh rule-code -16))
-	(yoff (logand (lsh rule-code -8) #xFF))
+  (let ((xoff (ash rule-code -16))
+	(yoff (logand (ash rule-code -8) #xFF))
 	gref nref)
     (setq rule-code (logand rule-code #xFF)
 	  gref (car (rassq (/ rule-code 12) reference-point-alist))

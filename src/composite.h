@@ -294,7 +294,7 @@ enum lglyph_indices
 /* Callers must assure that VAL is not negative!  */
 #define LGLYPH_SET_CODE(g, val)						\
   ASET (g, LGLYPH_IX_CODE,						\
-	val == FONT_INVALID_CODE ? Qnil : INTEGER_TO_CONS (val))
+	val == FONT_INVALID_CODE ? Qnil : INT_TO_INTEGER (val))
 
 #define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_fixnum (val))
 #define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_fixnum (val))

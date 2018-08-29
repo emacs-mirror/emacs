@@ -1607,9 +1607,13 @@ globals_of_w32menu (void)
 #ifndef NTGUI_UNICODE
   /* See if Get/SetMenuItemInfo functions are available.  */
   HMODULE user32 = GetModuleHandle ("user32.dll");
-  get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
-  set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
-  unicode_append_menu = (AppendMenuW_Proc) GetProcAddress (user32, "AppendMenuW");
-  unicode_message_box = (MessageBoxW_Proc) GetProcAddress (user32, "MessageBoxW");
+  get_menu_item_info = (GetMenuItemInfoA_Proc)
+    get_proc_addr (user32, "GetMenuItemInfoA");
+  set_menu_item_info = (SetMenuItemInfoA_Proc)
+    get_proc_addr (user32, "SetMenuItemInfoA");
+  unicode_append_menu = (AppendMenuW_Proc)
+    get_proc_addr (user32, "AppendMenuW");
+  unicode_message_box = (MessageBoxW_Proc)
+    get_proc_addr (user32, "MessageBoxW");
 #endif /* !NTGUI_UNICODE */
 }

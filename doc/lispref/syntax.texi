@@ -1014,13 +1014,13 @@ corresponds to each syntax flag.
 @item
 @i{Prefix} @tab @i{Flag} @tab @i{Prefix} @tab @i{Flag}
 @item
-@samp{1} @tab @code{(lsh 1 16)} @tab @samp{p} @tab @code{(lsh 1 20)}
+@samp{1} @tab @code{(ash 1 16)} @tab @samp{p} @tab @code{(ash 1 20)}
 @item
-@samp{2} @tab @code{(lsh 1 17)} @tab @samp{b} @tab @code{(lsh 1 21)}
+@samp{2} @tab @code{(ash 1 17)} @tab @samp{b} @tab @code{(ash 1 21)}
 @item
-@samp{3} @tab @code{(lsh 1 18)} @tab @samp{n} @tab @code{(lsh 1 22)}
+@samp{3} @tab @code{(ash 1 18)} @tab @samp{n} @tab @code{(ash 1 22)}
 @item
-@samp{4} @tab @code{(lsh 1 19)} @tab @samp{c} @tab @code{(lsh 1 23)}
+@samp{4} @tab @code{(ash 1 19)} @tab @samp{c} @tab @code{(ash 1 23)}
 @end multitable
 
 @defun string-to-syntax desc

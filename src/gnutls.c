@@ -58,6 +58,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 # ifdef WINDOWSNT
 #  include <windows.h>
+#  include "w32common.h"
 #  include "w32.h"
 # endif
 
@@ -923,7 +924,7 @@ Usage: (gnutls-error-fatalp ERROR)  */)
   if (SYMBOLP (err))
     {
       code = Fget (err, Qgnutls_code);
-      if (FIXED_OR_FLOATP (code))
+      if (NUMBERP (code))
 	{
 	  err = code;
 	}
@@ -955,7 +956,7 @@ usage: (gnutls-error-string ERROR)  */)
   if (SYMBOLP (err))
     {
       code = Fget (err, Qgnutls_code);
-      if (FIXED_OR_FLOATP (code))
+      if (NUMBERP (code))
 	{
 	  err = code;
 	}

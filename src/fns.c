@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <errno.h>
 
 #include "lisp.h"
+#include "bignum.h"
 #include "character.h"
 #include "coding.h"
 #include "composite.h"
@@ -56,15 +57,12 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
 }
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
-       doc: /* Return a pseudo-random number.
-All integers representable in Lisp, i.e. between `most-negative-fixnum'
-and `most-positive-fixnum', inclusive, are equally likely.
-
-With positive integer LIMIT, return random number in interval [0,LIMIT).
+       doc: /* Return a pseudo-random integer.
+By default, return a fixnum; all fixnums are equally likely.
+With positive fixnum LIMIT, return random integer in interval [0,LIMIT).
 With argument t, set the random number seed from the system's entropy
 pool if available, otherwise from less-random volatile data such as the time.
 With a string argument, set the seed based on the string's contents.
-Other values of LIMIT are ignored.
 
 See Info node `(elisp)Random Numbers' for more details.  */)
   (Lisp_Object limit)
@@ -134,14 +132,14 @@ To get the number of bytes, use `string-bytes'.  */)
 DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
        doc: /* Return the length of a list, but avoid error or infinite loop.
 This function never gets an error.  If LIST is not really a list,
-it returns 0.  If LIST is circular, it returns a finite value
-which is at least the number of distinct elements.  */)
+it returns 0.  If LIST is circular, it returns an integer that is at
+least the number of distinct elements.  */)
   (Lisp_Object list)
 {
   intptr_t len = 0;
   FOR_EACH_TAIL_SAFE (list)
     len++;
-  return make_fixnum_or_float (len);
+  return INT_TO_INTEGER (len);
 }
 
 DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
@@ -1405,15 +1403,91 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
        doc: /* Take cdr N times on LIST, return the result.  */)
   (Lisp_Object n, Lisp_Object list)
 {
-  CHECK_FIXNUM (n);
   Lisp_Object tail = list;
-  for (EMACS_INT num = XFIXNUM (n); 0 < num; num--)
+
+  CHECK_INTEGER (n);
+
+  /* A huge but in-range EMACS_INT that can be substituted for a
+     positive bignum while counting down.  It does not introduce
+     miscounts because a list or cycle cannot possibly be this long,
+     and any counting error is fixed up later.  */
+  EMACS_INT large_num = EMACS_INT_MAX;
+
+  EMACS_INT num;
+  if (FIXNUMP (n))
     {
-      if (! CONSP (tail))
+      num = XFIXNUM (n);
+
+      /* Speed up small lists by omitting circularity and quit checking.  */
+      if (num <= SMALL_LIST_LEN_MAX)
 	{
-	  CHECK_LIST_END (tail, list);
-	  return Qnil;
+	  for (; 0 < num; num--, tail = XCDR (tail))
+	    if (! CONSP (tail))
+	      {
+		CHECK_LIST_END (tail, list);
+		return Qnil;
+	      }
+	  return tail;
 	}
+    }
+  else
+    {
+      if (mpz_sgn (XBIGNUM (n)->value) < 0)
+	return tail;
+      num = large_num;
+    }
+
+  EMACS_INT tortoise_num = num;
+  Lisp_Object saved_tail = tail;
+  FOR_EACH_TAIL_SAFE (tail)
+    {
+      /* If the tortoise just jumped (which is rare),
+	 update TORTOISE_NUM accordingly.  */
+      if (EQ (tail, li.tortoise))
+	tortoise_num = num;
+
+      saved_tail = XCDR (tail);
+      num--;
+      if (num == 0)
+	return saved_tail;
+      rarely_quit (num);
+    }
+
+  tail = saved_tail;
+  if (! CONSP (tail))
+    {
+      CHECK_LIST_END (tail, list);
+      return Qnil;
+    }
+
+  /* TAIL is part of a cycle.  Reduce NUM modulo the cycle length to
+     avoid going around this cycle repeatedly.  */
+  intptr_t cycle_length = tortoise_num - num;
+  if (! FIXNUMP (n))
+    {
+      /* Undo any error introduced when LARGE_NUM was substituted for
+	 N, by adding N - LARGE_NUM to NUM, using arithmetic modulo
+	 CYCLE_LENGTH.  */
+      mpz_t z; /* N mod CYCLE_LENGTH.  */
+      mpz_init (z);
+      if (cycle_length <= ULONG_MAX)
+	num += mpz_mod_ui (z, XBIGNUM (n)->value, cycle_length);
+      else
+	{
+	  mpz_set_intmax (z, cycle_length);
+	  mpz_mod (z, XBIGNUM (n)->value, z);
+	  intptr_t iz;
+	  mpz_export (&iz, NULL, -1, sizeof iz, 0, 0, z);
+	  num += iz;
+	}
+      mpz_clear (z);
+      num += cycle_length - large_num % cycle_length;
+    }
+  num %= cycle_length;
+
+  /* One last time through the cycle.  */
+  for (; 0 < num; num--)
+    {
       tail = XCDR (tail);
       rarely_quit (num);
     }
@@ -1430,9 +1504,8 @@ N counts from zero.  If LIST is not that long, nil is returned.  */)
 
 DEFUN ("elt", Felt, Selt, 2, 2, 0,
        doc: /* Return element of SEQUENCE at index N.  */)
-  (register Lisp_Object sequence, Lisp_Object n)
+  (Lisp_Object sequence, Lisp_Object n)
 {
-  CHECK_FIXNUM (n);
   if (CONSP (sequence) || NILP (sequence))
     return Fcar (Fnthcdr (n, sequence));
 

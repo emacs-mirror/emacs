@@ -3427,6 +3427,13 @@ file_offset (Lisp_Object val)
   if (RANGED_FIXNUMP (0, val, TYPE_MAXIMUM (off_t)))
     return XFIXNUM (val);
 
+  if (BIGNUMP (val))
+    {
+      intmax_t v = bignum_to_intmax (val);
+      if (0 < v && v <= TYPE_MAXIMUM (off_t))
+	return v;
+    }
+
   if (FLOATP (val))
     {
       double v = XFLOAT_DATA (val);
@@ -4946,7 +4953,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   fn = SSDATA (encoded_filename);
   open_flags = O_WRONLY | O_CREAT;
   open_flags |= EQ (mustbenew, Qexcl) ? O_EXCL : !NILP (append) ? 0 : O_TRUNC;
-  if (FIXED_OR_FLOATP (append))
+  if (NUMBERP (append))
     offset = file_offset (append);
   else if (!NILP (append))
     open_flags |= O_APPEND;
@@ -4971,7 +4978,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
       record_unwind_protect_int (close_file_unwind, desc);
     }
 
-  if (FIXED_OR_FLOATP (append))
+  if (NUMBERP (append))
     {
       off_t ret = lseek (desc, offset, SEEK_SET);
       if (ret < 0)
@@ -5154,7 +5161,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
     }
 
   if (!auto_saving && !noninteractive)
-    message_with_string ((FIXED_OR_FLOATP (append)
+    message_with_string ((NUMBERP (append)
 			  ? "Updated %s"
 			  : ! NILP (append)
 			  ? "Added to %s"

@@ -288,28 +288,6 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
    or convert between a byte position and an address.
    These macros do not check that the position is in range.  */
 
-/* Access a Lisp position value in POS,
-   and store the charpos in CHARPOS and the bytepos in BYTEPOS.  */
-
-#define DECODE_POSITION(charpos, bytepos, pos)				\
-  do									\
-    {									\
-      Lisp_Object __pos = (pos);					\
-      if (FIXED_OR_FLOATP (__pos))						\
-	{								\
-	  charpos = __pos;						\
-	  bytepos = buf_charpos_to_bytepos (current_buffer, __pos);	\
-	}								\
-      else if (MARKERP (__pos))						\
-	{								\
-	  charpos = marker_position (__pos);				\
-	  bytepos = marker_byte_position (__pos);			\
-	}								\
-      else								\
-	wrong_type_argument (Qinteger_or_marker_p, __pos);		\
-    }									\
-  while (false)
-
 /* Maximum number of bytes in a buffer.
    A buffer cannot contain more bytes than a 1-origin fixnum can represent,
    nor can it be so large that C pointer arithmetic stops working.

@@ -98,7 +98,7 @@ letters, digits, plus or minus signs or colons."
   `(((6) parse-time-weekdays)
     ((3) (1 31))
     ((4) parse-time-months)
-    ((5) (100 ,most-positive-fixnum))
+    ((5) (100))
     ((2 1 0)
      ,#'(lambda () (and (stringp parse-time-elt)
 			(= (length parse-time-elt) 8)
@@ -170,7 +170,9 @@ any values that are unknown are returned as nil."
 						  'lambda)))
 				    (and (numberp parse-time-elt)
 					 (<= (car predicate) parse-time-elt)
-					 (<= parse-time-elt (cadr predicate))
+					 (or (not (cdr predicate))
+					     (<= parse-time-elt
+						 (cadr predicate)))
 					 parse-time-elt))
 				   ((symbolp predicate)
 				    (cdr (assoc parse-time-elt

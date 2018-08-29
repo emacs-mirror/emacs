@@ -2787,10 +2787,7 @@ the only argument."
   "RPL_WHOISIDLE"
   (let* ((nick (nth 1 args))
          (idle-secs (string-to-number (nth 2 args)))
-         (idle-string
-          (if (< idle-secs most-positive-fixnum)
-              (format-seconds "%yy %dd %hh %mm %z%ss" idle-secs)
-            "a very long time"))
+         (idle-string (format-seconds "%yy %dd %hh %mm %z%ss" idle-secs))
          (signon-time (seconds-to-time (string-to-number (nth 3 args))))
          (signon-string (format-time-string "%c" signon-time))
          (message (format "%s idle for %s, signed on %s"

@@ -794,8 +794,8 @@ Default for SITEMAP-FILENAME is `sitemap.org'."
 		((or `anti-chronologically `chronologically)
 		 (let* ((adate (org-publish-find-date a project))
 			(bdate (org-publish-find-date b project))
-			(A (+ (lsh (car adate) 16) (cadr adate)))
-			(B (+ (lsh (car bdate) 16) (cadr bdate))))
+			(A (+ (ash (car adate) 16) (cadr adate)))
+			(B (+ (ash (car bdate) 16) (cadr bdate))))
 		   (setq retval
 			 (if (eq sort-files 'chronologically)
 			     (<= A B)
@@ -1348,7 +1348,7 @@ does not exist."
 	       (expand-file-name (or (file-symlink-p file) file)
 				 (file-name-directory file)))))
     (if (not attr) (error "No such file: \"%s\"" file)
-      (+ (lsh (car (nth 5 attr)) 16)
+      (+ (ash (car (nth 5 attr)) 16)
 	 (cadr (nth 5 attr))))))
 
 

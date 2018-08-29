@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "coding.h"	/* for ENCODE_SYSTEM, DECODE_SYSTEM */
 #include "w32font.h"
 #ifdef WINDOWSNT
+#include "w32common.h"
 #include "w32.h"
 #endif
 
@@ -153,7 +154,7 @@ get_outline_metrics_w(HDC hdc, UINT cbData, LPOUTLINETEXTMETRICW lpotmw)
       hm_unicows = w32_load_unicows_or_gdi32 ();
       if (hm_unicows)
 	s_pfn_Get_Outline_Text_MetricsW = (GetOutlineTextMetricsW_Proc)
-	  GetProcAddress (hm_unicows, "GetOutlineTextMetricsW");
+	  get_proc_addr (hm_unicows, "GetOutlineTextMetricsW");
     }
   eassert (s_pfn_Get_Outline_Text_MetricsW != NULL);
   return s_pfn_Get_Outline_Text_MetricsW (hdc, cbData, lpotmw);
@@ -170,7 +171,7 @@ get_text_metrics_w(HDC hdc, LPTEXTMETRICW lptmw)
       hm_unicows = w32_load_unicows_or_gdi32 ();
       if (hm_unicows)
 	s_pfn_Get_Text_MetricsW = (GetTextMetricsW_Proc)
-	  GetProcAddress (hm_unicows, "GetTextMetricsW");
+	  get_proc_addr (hm_unicows, "GetTextMetricsW");
     }
   eassert (s_pfn_Get_Text_MetricsW != NULL);
   return s_pfn_Get_Text_MetricsW (hdc, lptmw);
@@ -188,7 +189,7 @@ get_glyph_outline_w (HDC hdc, UINT uChar, UINT uFormat, LPGLYPHMETRICS lpgm,
       hm_unicows = w32_load_unicows_or_gdi32 ();
       if (hm_unicows)
 	s_pfn_Get_Glyph_OutlineW = (GetGlyphOutlineW_Proc)
-	  GetProcAddress (hm_unicows, "GetGlyphOutlineW");
+	  get_proc_addr (hm_unicows, "GetGlyphOutlineW");
     }
   eassert (s_pfn_Get_Glyph_OutlineW != NULL);
   return s_pfn_Get_Glyph_OutlineW (hdc, uChar, uFormat, lpgm, cbBuffer,
@@ -206,7 +207,7 @@ get_char_width_32_w (HDC hdc, UINT uFirstChar, UINT uLastChar, LPINT lpBuffer)
       hm_unicows = w32_load_unicows_or_gdi32 ();
       if (hm_unicows)
 	s_pfn_Get_Char_Width_32W = (GetCharWidth32W_Proc)
-	  GetProcAddress (hm_unicows, "GetCharWidth32W");
+	  get_proc_addr (hm_unicows, "GetCharWidth32W");
     }
   eassert (s_pfn_Get_Char_Width_32W != NULL);
   return s_pfn_Get_Char_Width_32W (hdc, uFirstChar, uLastChar, lpBuffer);

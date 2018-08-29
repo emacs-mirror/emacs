@@ -1660,7 +1660,7 @@ to turn the character that follows into a Hyper character:
 (defun hyperify (prompt)
   (let ((e (read-event)))
     (vector (if (numberp e)
-                (logior (lsh 1 24) e)
+                (logior (ash 1 24) e)
               (if (memq 'hyper (event-modifiers e))
                   e
                 (add-event-modifier "H-" e))))))

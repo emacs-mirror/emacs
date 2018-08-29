@@ -401,7 +401,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
       (if (consp range)
 	  (if val
 	      (set-char-table-range table range val))
-	(let* ((start (lsh (lsh range -7) 7))
+	(let* ((start (ash (ash range -7) 7))
 	       (limit (+ start 127))
 	       first-index last-index)
 	  (fillarray vec 0)
@@ -548,7 +548,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 		(if (< from (logand to #x1FFF80))
 		    (setq from (logand to #x1FFF80)))
 		(setq prev-range-data (cons (cons from to) val-code)))))
-	(let* ((start (lsh (lsh range -7) 7))
+	(let* ((start (ash (ash range -7) 7))
 	       (limit (+ start 127))
 	       str count new-val from to vcode)
 	  (fillarray vec (car default-value))
@@ -761,7 +761,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
    ((stringp val)
     (if (> (aref val 0) 0)
 	val
-      (let* ((first-char (lsh (lsh char -7) 7))
+      (let* ((first-char (ash (ash char -7) 7))
 	     (word-table (aref (char-table-extra-slot table 4) 0))
 	     (i 1)
 	     (len (length val))
@@ -865,7 +865,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
    ((stringp val)
     (if (> (aref val 0) 0)
 	val
-      (let* ((first-char (lsh (lsh char -7) 7))
+      (let* ((first-char (ash (ash char -7) 7))
 	     (word-table (char-table-extra-slot table 4))
 	     (i 1)
 	     (len (length val))
@@ -982,7 +982,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 		(if slot
 		    (nconc slot (list range))
 		  (push (list val range) block-list))))
-	(let* ((start (lsh (lsh range -7) 7))
+	(let* ((start (ash (ash range -7) 7))
 	       (limit (+ start 127))
 	       (first tail)
 	       (vec (make-vector 128 nil))

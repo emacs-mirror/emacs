@@ -53,10 +53,10 @@
 	       (replace-regexp-in-string "\n" "" (buffer-string))))))))
 
 ;; Check for Emacs version.
-(let ((x (if (>= emacs-major-version 24)
-    "ok"
-  (format "Tramp 2.4.1-pre is not fit for %s"
-	  (replace-regexp-in-string "\n" "" (emacs-version))))))
+(let ((x   (if (not (string-lessp emacs-version "24.1"))
+      "ok"
+    (format "Tramp 2.4.1-pre is not fit for %s"
+            (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
 ;; Tramp versions integrated into Emacs.

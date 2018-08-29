@@ -1858,7 +1858,7 @@ non-nil, a caret is prepended to invert the set."
 	(setq entry (get-char-table ?a table)))
        ;; incompatible
        (t (error "CC Mode is incompatible with this version of Emacs")))
-      (setq list (cons (if (= (logand (lsh entry -16) 255) 255)
+      (setq list (cons (if (= (logand (ash entry -16) 255) 255)
 			   '8-bit
 			 '1-bit)
 		       list)))

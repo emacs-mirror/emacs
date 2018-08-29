@@ -472,7 +472,7 @@ Optional second arg STATE is a random-state object."
 	   (n (logand 8388607 (aset vec i (- (aref vec i) (aref vec j))))))
       (if (integerp lim)
 	  (if (<= lim 512) (% n lim)
-	    (if (> lim 8388607) (setq n (+ (lsh n 9) (cl-random 512 state))))
+	    (if (> lim 8388607) (setq n (+ (ash n 9) (cl-random 512 state))))
 	    (let ((mask 1023))
 	      (while (< mask (1- lim)) (setq mask (1+ (+ mask mask))))
 	      (if (< (setq n (logand n mask)) lim) n (cl-random lim state))))

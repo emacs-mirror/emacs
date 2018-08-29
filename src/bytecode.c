@@ -832,13 +832,14 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	CASE (Bnth):
 	  {
 	    Lisp_Object v2 = POP, v1 = TOP;
-	    CHECK_FIXNUM (v1);
-	    for (EMACS_INT n = XFIXNUM (v1); 0 < n && CONSP (v2); n--)
+	    if (RANGED_FIXNUMP (0, v1, SMALL_LIST_LEN_MAX))
 	      {
-		v2 = XCDR (v2);
-		rarely_quit (n);
+		for (EMACS_INT n = XFIXNUM (v1); 0 < n && CONSP (v2); n--)
+		  v2 = XCDR (v2);
+		TOP = CAR (v2);
 	      }
-	    TOP = CAR (v2);
+	    else
+	      TOP = Fnth (v1, v2);
 	    NEXT;
 	  }
 
@@ -985,15 +986,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Beqlsign):
 	  {
-	    Lisp_Object v2 = POP, v1 = TOP;
-	    if (FLOATP (v1) || FLOATP (v2))
-	      TOP = arithcompare (v1, v2, ARITH_EQUAL);
-	    else
-	      {
-		CHECK_FIXNUM_OR_FLOAT_COERCE_MARKER (v1);
-		CHECK_FIXNUM_OR_FLOAT_COERCE_MARKER (v2);
-		TOP = EQ (v1, v2) ? Qt : Qnil;
-	      }
+	    Lisp_Object v1 = POP;
+	    TOP = arithcompare (TOP, v1, ARITH_EQUAL);
 	    NEXT;
 	  }
 
@@ -1264,23 +1258,16 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
 	CASE (Belt):
 	  {
-	    if (CONSP (TOP))
+	    Lisp_Object v2 = POP, v1 = TOP;
+	    if (CONSP (v1) && RANGED_FIXNUMP (0, v2, SMALL_LIST_LEN_MAX))
 	      {
-		/* Exchange args and then do nth.  */
-		Lisp_Object v2 = POP, v1 = TOP;
-		CHECK_FIXNUM (v2);
+		/* Like the fast case for Bnth, but with args reversed.  */
 		for (EMACS_INT n = XFIXNUM (v2); 0 < n && CONSP (v1); n--)
-		  {
-		    v1 = XCDR (v1);
-		    rarely_quit (n);
-		  }
+		  v1 = XCDR (v1);
 		TOP = CAR (v1);
 	      }
 	    else
-	      {
-		Lisp_Object v1 = POP;
-		TOP = Felt (TOP, v1);
-	      }
+	      TOP = Felt (v1, v2);
 	    NEXT;
 	  }
 

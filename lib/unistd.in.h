@@ -935,6 +935,36 @@ _GL_WARN_ON_USE (getpagesize, "getpagesize is unportable - "
 #endif
 
 
+#if @GNULIB_GETPASS@
+/* Function getpass() from module 'getpass':
+     Read a password from /dev/tty or stdin.
+   Function getpass() from module 'getpass-gnu':
+     Read a password of arbitrary length from /dev/tty or stdin.  */
+# if @REPLACE_GETPASS@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef getpass
+#   define getpass rpl_getpass
+#  endif
+_GL_FUNCDECL_RPL (getpass, char *, (const char *prompt)
+                                   _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (getpass, char *, (const char *prompt));
+# else
+#  if !@HAVE_GETPASS@
+_GL_FUNCDECL_SYS (getpass, char *, (const char *prompt)
+                                   _GL_ARG_NONNULL ((1)));
+#  endif
+_GL_CXXALIAS_SYS (getpass, char *, (const char *prompt));
+# endif
+_GL_CXXALIASWARN (getpass);
+#elif defined GNULIB_POSIXCHECK
+# undef getpass
+# if HAVE_RAW_DECL_GETPASS
+_GL_WARN_ON_USE (getpass, "getpass is unportable - "
+                 "use gnulib module getpass or getpass-gnu for portability");
+# endif
+#endif
+
+
 #if @GNULIB_GETUSERSHELL@
 /* Return the next valid login shell on the system, or NULL when the end of
    the list has been reached.  */

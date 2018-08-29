@@ -145,7 +145,7 @@ See the documentation of the function `bdf-read-font-info' for more detail."
   (if (or (< code (aref code-range 4))
 	  (> code (aref code-range 5)))
       (setq code (aref code-range 6)))
-  (+ (* (- (lsh code -8) (aref code-range 0))
+  (+ (* (- (ash code -8) (aref code-range 0))
 	(1+ (- (aref code-range 3) (aref code-range 2))))
      (- (logand code 255) (aref code-range 2))))
 
@@ -262,7 +262,7 @@ CODE, where N and CODE are in the following relation:
 	      (setq code (read (current-buffer)))
 	      (if (< code 0)
 		  (search-forward "ENDCHAR")
-		(setq code0 (lsh code -8)
+		(setq code0 (ash code -8)
 		      code1 (logand code 255)
 		      min-code (min min-code code)
 		      max-code (max max-code code)

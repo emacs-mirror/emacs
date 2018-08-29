@@ -34,13 +34,21 @@ numbers have a fixed amount of precision.
 @node Integer Basics
 @section Integer Basics
 
-  Integers in Emacs Lisp can have arbitrary precision.
+  Integers in Emacs Lisp are not limited to the machine word size.
 
   Under the hood, though, there are two kinds of integers: smaller
-ones, called @dfn{fixnums}, and larger ones, called @dfn{bignums}
-Some functions in Emacs only accept fixnums.  Also, while fixnums can
-always be compared for equality with @code{eq}, bignums require the
-use of @code{eql}.
+ones, called @dfn{fixnums}, and larger ones, called @dfn{bignums}.
+Some functions in Emacs accept only fixnums.  Also, while fixnums can
+always be compared for numeric equality with @code{eq}, bignums
+require more-heavyweight equality predicates like @code{eql}.
+
+  The range of values for bignums is limited by the amount of main
+memory, by machine characteristics such as the size of the word used
+to represent a bignum's exponent, and by the @code{integer-width}
+variable.  These limits are typically much more generous than the
+limits for fixnums.  A bignum is never numerically equal to a fixnum;
+if Emacs computes an integer in fixnum range, it represents the
+integer as a fixnum, not a bignum.
 
   The range of values for a fixnum depends on the machine.  The
 minimum range is @minus{}536,870,912 to 536,870,911 (30 bits; i.e.,
@@ -97,33 +105,30 @@ For example:
 #24r1k @result{} 44
 @end example
 
-  An integer is read as a fixnum if it is in the correct range.
-Otherwise, it will be read as a bignum.
-
   To understand how various functions work on integers, especially the
 bitwise operators (@pxref{Bitwise Operations}), it is often helpful to
 view the numbers in their binary form.
 
-  In 30-bit binary, the decimal integer 5 looks like this:
+  In binary, the decimal integer 5 looks like this:
 
 @example
-0000...000101 (30 bits total)
+@dots{}000101
 @end example
 
 @noindent
-(The @samp{...} stands for enough bits to fill out a 30-bit word; in
-this case, @samp{...} stands for twenty 0 bits.  Later examples also
-use the @samp{...} notation to make binary integers easier to read.)
+(The ellipsis @samp{@dots{}} stands for a conceptually infinite number
+of bits that match the leading bit; here, an infinite number of 0
+bits.  Later examples also use this @samp{@dots{}} notation.)
 
   The integer @minus{}1 looks like this:
 
 @example
-1111...111111 (30 bits total)
+@dots{}111111
 @end example
 
 @noindent
 @cindex two's complement
-@minus{}1 is represented as 30 ones.  (This is called @dfn{two's
+@minus{}1 is represented as all ones.  (This is called @dfn{two's
 complement} notation.)
 
   Subtracting 4 from @minus{}1 returns the negative integer @minus{}5.
@@ -131,14 +136,7 @@ In binary, the decimal integer 4 is 100.  Consequently,
 @minus{}5 looks like this:
 
 @example
-1111...111011 (30 bits total)
-@end example
-
-  In this implementation, the largest 30-bit binary integer is
-536,870,911 in decimal.  In binary, it looks like this:
-
-@example
-0111...111111 (30 bits total)
+@dots{}111011
 @end example
 
   Many of the functions described in this chapter accept markers for
@@ -147,10 +145,10 @@ arguments to such functions may be either numbers or markers, we often
 give these arguments the name @var{number-or-marker}.  When the argument
 value is a marker, its position value is used and its buffer is ignored.
 
-@cindex largest Lisp integer
-@cindex maximum Lisp integer
+@cindex largest fixnum
+@cindex maximum fixnum
 @defvar most-positive-fixnum
-The value of this variable is the largest ``small'' integer that Emacs
+The value of this variable is the greatest ``small'' integer that Emacs
 Lisp can handle.  Typical values are
 @ifnottex
 2**29 @minus{} 1
@@ -168,11 +166,11 @@ on 32-bit and
 on 64-bit platforms.
 @end defvar
 
-@cindex smallest Lisp integer
-@cindex minimum Lisp integer
+@cindex smallest fixnum
+@cindex minimum fixnum
 @defvar most-negative-fixnum
-The value of this variable is the smallest small integer that Emacs
-Lisp can handle.  It is negative.  Typical values are
+The value of this variable is the numerically least ``small'' integer
+that Emacs Lisp can handle.  It is negative.  Typical values are
 @ifnottex
 @minus{}2**29
 @end ifnottex
@@ -187,6 +185,26 @@ on 32-bit and
 @math{-2^{61}}
 @end tex
 on 64-bit platforms.
+@end defvar
+
+@cindex bignum range
+@cindex integer range
+@cindex number of bignum bits, limit on
+@defvar integer-width
+The value of this variable is a nonnegative integer that is an upper
+bound on the number of bits in a bignum.  Integers outside the fixnum
+range are limited to absolute values less than
+@ifnottex
+2**@var{n},
+@end ifnottex
+@tex
+@math{2^{n}},
+@end tex
+where @var{n} is this variable's value.  Attempts to create bignums outside
+this range signal a range error.  Setting this variable
+to zero disables creation of bignums; setting it to a large number can
+cause Emacs to consume large quantities of memory if a computation
+creates huge integers.
 @end defvar
 
   In Emacs Lisp, text characters are represented by integers.  Any
@@ -378,17 +396,17 @@ comparison, and sometimes returns @code{t} when a non-numeric
 comparison would return @code{nil} and vice versa.  @xref{Float
 Basics}.
 
-  In Emacs Lisp, each small integer is a unique Lisp object.
-Therefore, @code{eq} is equivalent to @code{=} where small integers are
-concerned.  It is sometimes convenient to use @code{eq} for comparing
-an unknown value with an integer, because @code{eq} does not report an
+  In Emacs Lisp, if two fixnums are numerically equal, they are the
+same Lisp object.  That is, @code{eq} is equivalent to @code{=} on
+fixnums.  It is sometimes convenient to use @code{eq} for comparing
+an unknown value with a fixnum, because @code{eq} does not report an
 error if the unknown value is not a number---it accepts arguments of
 any type.  By contrast, @code{=} signals an error if the arguments are
 not numbers or markers.  However, it is better programming practice to
 use @code{=} if you can, even for comparing integers.
 
-  Sometimes it is useful to compare numbers with @code{equal}, which
-treats two numbers as equal if they have the same data type (both
+  Sometimes it is useful to compare numbers with @code{eql} or @code{equal},
+which treat two numbers as equal if they have the same data type (both
 integers, or both floating point) and the same value.  By contrast,
 @code{=} can treat an integer and a floating-point number as equal.
 @xref{Equality Predicates}.
@@ -830,139 +848,119 @@ Rounding a value equidistant between two integers returns the even integer.
 @cindex logical arithmetic
 
   In a computer, an integer is represented as a binary number, a
-sequence of @dfn{bits} (digits which are either zero or one).  A bitwise
+sequence of @dfn{bits} (digits which are either zero or one).
+Conceptually the bit sequence is infinite on the left, with the
+most-significant bits being all zeros or all ones.  A bitwise
 operation acts on the individual bits of such a sequence.  For example,
 @dfn{shifting} moves the whole sequence left or right one or more places,
 reproducing the same pattern moved over.
 
   The bitwise operations in Emacs Lisp apply only to integers.
 
+@defun ash integer1 count
+@cindex arithmetic shift
+@code{ash} (@dfn{arithmetic shift}) shifts the bits in @var{integer1}
+to the left @var{count} places, or to the right if @var{count} is
+negative.  Left shifts introduce zero bits on the right; right shifts
+discard the rightmost bits.  Considered as an integer operation,
+@code{ash} multiplies @var{integer1} by
+@ifnottex
+2**@var{count},
+@end ifnottex
+@tex
+@math{2^{count}},
+@end tex
+and then converts the result to an integer by rounding downward, toward
+minus infinity.
+
+Here are examples of @code{ash}, shifting a pattern of bits one place
+to the left and to the right.  These examples show only the low-order
+bits of the binary pattern; leading bits all agree with the
+highest-order bit shown.  As you can see, shifting left by one is
+equivalent to multiplying by two, whereas shifting right by one is
+equivalent to dividing by two and then rounding toward minus infinity.
+
+@example
+@group
+(ash 7 1) @result{} 14
+;; @r{Decimal 7 becomes decimal 14.}
+@dots{}000111
+     @result{}
+@dots{}001110
+@end group
+
+@group
+(ash 7 -1) @result{} 3
+@dots{}000111
+     @result{}
+@dots{}000011
+@end group
+
+@group
+(ash -7 1) @result{} -14
+@dots{}111001
+     @result{}
+@dots{}110010
+@end group
+
+@group
+(ash -7 -1) @result{} -4
+@dots{}111001
+     @result{}
+@dots{}111100
+@end group
+@end example
+
+Here are examples of shifting left or right by two bits:
+
+@smallexample
+@group
+                  ;  @r{       binary values}
+(ash 5 2)         ;   5  =  @r{@dots{}000101}
+     @result{} 20         ;      =  @r{@dots{}010100}
+(ash -5 2)        ;  -5  =  @r{@dots{}111011}
+     @result{} -20        ;      =  @r{@dots{}101100}
+@end group
+@group
+(ash 5 -2)
+     @result{} 1          ;      =  @r{@dots{}000001}
+@end group
+@group
+(ash -5 -2)
+     @result{} -2         ;      =  @r{@dots{}111110}
+@end group
+@end smallexample
+@end defun
+
 @defun lsh integer1 count
 @cindex logical shift
 @code{lsh}, which is an abbreviation for @dfn{logical shift}, shifts the
 bits in @var{integer1} to the left @var{count} places, or to the right
 if @var{count} is negative, bringing zeros into the vacated bits.  If
-@var{count} is negative, @code{lsh} shifts zeros into the leftmost
-(most-significant) bit, producing a nonnegative result even if
-@var{integer1} is negative.  Contrast this with @code{ash}, below.
+@var{count} is negative, then @var{integer1} must be either a fixnum
+or a positive bignum, and @code{lsh} treats a negative fixnum as if it
+were unsigned by subtracting twice @code{most-negative-fixnum} before
+shifting, producing a nonnegative result.  This quirky behavior dates
+back to when Emacs supported only fixnums; nowadays @code{ash} is a
+better choice.
 
-Here are two examples of @code{lsh}, shifting a pattern of bits one
-place to the left.  We show only the low-order eight bits of the binary
-pattern; the rest are all zero.
+As @code{lsh} behaves like @code{ash} except when @var{integer1} and
+@var{count1} are both negative, the following examples focus on these
+exceptional cases.  These examples assume 30-bit fixnums.
 
-@example
-@group
-(lsh 5 1)
-     @result{} 10
-;; @r{Decimal 5 becomes decimal 10.}
-00000101 @result{} 00001010
-
-(lsh 7 1)
-     @result{} 14
-;; @r{Decimal 7 becomes decimal 14.}
-00000111 @result{} 00001110
-@end group
-@end example
-
-@noindent
-As the examples illustrate, shifting the pattern of bits one place to
-the left produces a number that is twice the value of the previous
-number.
-
-Shifting a pattern of bits two places to the left produces results
-like this (with 8-bit binary numbers):
-
-@example
-@group
-(lsh 3 2)
-     @result{} 12
-;; @r{Decimal 3 becomes decimal 12.}
-00000011 @result{} 00001100
-@end group
-@end example
-
-On the other hand, shifting one place to the right looks like this:
-
-@example
-@group
-(lsh 6 -1)
-     @result{} 3
-;; @r{Decimal 6 becomes decimal 3.}
-00000110 @result{} 00000011
-@end group
-
-@group
-(lsh 5 -1)
-     @result{} 2
-;; @r{Decimal 5 becomes decimal 2.}
-00000101 @result{} 00000010
-@end group
-@end example
-
-@noindent
-As the example illustrates, shifting one place to the right divides the
-value of a positive integer by two, rounding downward.
-@end defun
-
-@defun ash integer1 count
-@cindex arithmetic shift
-@code{ash} (@dfn{arithmetic shift}) shifts the bits in @var{integer1}
-to the left @var{count} places, or to the right if @var{count}
-is negative.
-
-@code{ash} gives the same results as @code{lsh} except when
-@var{integer1} and @var{count} are both negative.  In that case,
-@code{ash} puts ones in the empty bit positions on the left, while
-@code{lsh} puts zeros in those bit positions.
-
-Thus, with @code{ash}, shifting the pattern of bits one place to the right
-looks like this:
-
-@example
-@group
-(ash -6 -1) @result{} -3
-;; @r{Decimal @minus{}6 becomes decimal @minus{}3.}
-1111...111010 (30 bits total)
-     @result{}
-1111...111101 (30 bits total)
-@end group
-@end example
-
-Here are other examples:
-
-@c !!! Check if lined up in smallbook format!  XDVI shows problem
-@c     with smallbook but not with regular book! --rjc 16mar92
 @smallexample
 @group
-                   ;  @r{       30-bit binary values}
-
-(lsh 5 2)          ;   5  =  @r{0000...000101}
-     @result{} 20         ;      =  @r{0000...010100}
+                 ; @r{     binary values}
+(ash -7 -1)      ; -7 = @r{@dots{}111111111111111111111111111001}
+     @result{} -4        ;    = @r{@dots{}111111111111111111111111111100}
+(lsh -7 -1)
+     @result{} 536870908 ;    = @r{@dots{}011111111111111111111111111100}
 @end group
 @group
-(ash 5 2)
-     @result{} 20
-(lsh -5 2)         ;  -5  =  @r{1111...111011}
-     @result{} -20        ;      =  @r{1111...101100}
-(ash -5 2)
-     @result{} -20
-@end group
-@group
-(lsh 5 -2)         ;   5  =  @r{0000...000101}
-     @result{} 1          ;      =  @r{0000...000001}
-@end group
-@group
-(ash 5 -2)
-     @result{} 1
-@end group
-@group
-(lsh -5 -2)        ;  -5  =  @r{1111...111011}
-     @result{} 268435454
-                   ;      =  @r{0011...111110}
-@end group
-@group
-(ash -5 -2)        ;  -5  =  @r{1111...111011}
-     @result{} -2         ;      =  @r{1111...111110}
+(ash -5 -2)      ; -5 = @r{@dots{}111111111111111111111111111011}
+     @result{} -2        ;    = @r{@dots{}111111111111111111111111111110}
+(lsh -5 -2)
+     @result{} 268435454 ;    = @r{@dots{}001111111111111111111111111110}
 @end group
 @end smallexample
 @end defun
@@ -996,23 +994,23 @@ because its binary representation consists entirely of ones.  If
 
 @smallexample
 @group
-                   ; @r{       30-bit binary values}
+                   ; @r{       binary values}
 
-(logand 14 13)     ; 14  =  @r{0000...001110}
-                   ; 13  =  @r{0000...001101}
-     @result{} 12         ; 12  =  @r{0000...001100}
+(logand 14 13)     ; 14  =  @r{@dots{}001110}
+                   ; 13  =  @r{@dots{}001101}
+     @result{} 12         ; 12  =  @r{@dots{}001100}
 @end group
 
 @group
-(logand 14 13 4)   ; 14  =  @r{0000...001110}
-                   ; 13  =  @r{0000...001101}
-                   ;  4  =  @r{0000...000100}
-     @result{} 4          ;  4  =  @r{0000...000100}
+(logand 14 13 4)   ; 14  =  @r{@dots{}001110}
+                   ; 13  =  @r{@dots{}001101}
+                   ;  4  =  @r{@dots{}000100}
+     @result{} 4          ;  4  =  @r{@dots{}000100}
 @end group
 
 @group
 (logand)
-     @result{} -1         ; -1  =  @r{1111...111111}
+     @result{} -1         ; -1  =  @r{@dots{}111111}
 @end group
 @end smallexample
 @end defun
@@ -1026,18 +1024,18 @@ passed just one argument, it returns that argument.
 
 @smallexample
 @group
-                   ; @r{       30-bit binary values}
+                   ; @r{       binary values}
 
-(logior 12 5)      ; 12  =  @r{0000...001100}
-                   ;  5  =  @r{0000...000101}
-     @result{} 13         ; 13  =  @r{0000...001101}
+(logior 12 5)      ; 12  =  @r{@dots{}001100}
+                   ;  5  =  @r{@dots{}000101}
+     @result{} 13         ; 13  =  @r{@dots{}001101}
 @end group
 
 @group
-(logior 12 5 7)    ; 12  =  @r{0000...001100}
-                   ;  5  =  @r{0000...000101}
-                   ;  7  =  @r{0000...000111}
-     @result{} 15         ; 15  =  @r{0000...001111}
+(logior 12 5 7)    ; 12  =  @r{@dots{}001100}
+                   ;  5  =  @r{@dots{}000101}
+                   ;  7  =  @r{@dots{}000111}
+     @result{} 15         ; 15  =  @r{@dots{}001111}
 @end group
 @end smallexample
 @end defun
@@ -1051,18 +1049,18 @@ result is 0, which is an identity element for this operation.  If
 
 @smallexample
 @group
-                   ; @r{       30-bit binary values}
+                   ; @r{       binary values}
 
-(logxor 12 5)      ; 12  =  @r{0000...001100}
-                   ;  5  =  @r{0000...000101}
-     @result{} 9          ;  9  =  @r{0000...001001}
+(logxor 12 5)      ; 12  =  @r{@dots{}001100}
+                   ;  5  =  @r{@dots{}000101}
+     @result{} 9          ;  9  =  @r{@dots{}001001}
 @end group
 
 @group
-(logxor 12 5 7)    ; 12  =  @r{0000...001100}
-                   ;  5  =  @r{0000...000101}
-                   ;  7  =  @r{0000...000111}
-     @result{} 14         ; 14  =  @r{0000...001110}
+(logxor 12 5 7)    ; 12  =  @r{@dots{}001100}
+                   ;  5  =  @r{@dots{}000101}
+                   ;  7  =  @r{@dots{}000111}
+     @result{} 14         ; 14  =  @r{@dots{}001110}
 @end group
 @end smallexample
 @end defun
@@ -1075,9 +1073,9 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @example
 (lognot 5)
      @result{} -6
-;;  5  =  @r{0000...000101} (30 bits total)
+;;  5  =  @r{@dots{}000101}
 ;; @r{becomes}
-;; -6  =  @r{1111...111010} (30 bits total)
+;; -6  =  @r{@dots{}111010}
 @end example
 @end defun
 
@@ -1092,9 +1090,9 @@ its two's complement binary representation.  The result is always
 nonnegative.
 
 @example
-(logcount 43)     ; 43 = #b101011
+(logcount 43)     ;  43 = @r{@dots{}000101011}
      @result{} 4
-(logcount -43)    ; -43 = #b111...1010101
+(logcount -43)    ; -43 = @r{@dots{}111010101}
      @result{} 3
 @end example
 @end defun
@@ -1182,7 +1180,7 @@ returns a NaN.
 @defun expt x y
 This function returns @var{x} raised to power @var{y}.  If both
 arguments are integers and @var{y} is nonnegative, the result is an
-integer; in this case, overflow causes truncation, so watch out.
+integer; in this case, overflow signals an error, so watch out.
 If @var{x} is a finite negative number and @var{y} is a finite
 non-integer, @code{expt} returns a NaN.
 @end defun
@@ -1233,11 +1231,10 @@ other strings to choose various seed values.
 This function returns a pseudo-random integer.  Repeated calls return a
 series of pseudo-random integers.
 
-If @var{limit} is a positive integer, the value is chosen to be
+If @var{limit} is a positive fixnum, the value is chosen to be
 nonnegative and less than @var{limit}.  Otherwise, the value might be
-any integer representable in Lisp, i.e., an integer between
-@code{most-negative-fixnum} and @code{most-positive-fixnum}
-(@pxref{Integer Basics}).
+any fixnum, i.e., any integer from @code{most-negative-fixnum} through
+@code{most-positive-fixnum} (@pxref{Integer Basics}).
 
 If @var{limit} is @code{t}, it means to choose a new seed as if Emacs
 were restarting, typically from the system entropy.  On systems

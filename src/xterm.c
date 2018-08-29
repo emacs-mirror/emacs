@@ -10507,9 +10507,9 @@ set_wm_state (Lisp_Object frame, bool add, Atom atom, Atom value)
                        Fcons
                        (make_fixnum (add),
                         Fcons
-                        (make_fixnum_or_float (atom),
+                        (INT_TO_INTEGER (atom),
                          (value != 0
-			  ? list1 (make_fixnum_or_float (value))
+			  ? list1 (INT_TO_INTEGER (value))
 			  : Qnil))));
 }
 

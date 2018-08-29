@@ -37,18 +37,9 @@
 
   ;; shift right -ve                    -5628     #x3fffffffffffea04
   (should (= (ash -5628 -8)               -22)) ; #x3fffffffffffffea
-
-  ;; shift right                       -5628      #x3fffffffffffea04
-  (cond
-   ((fboundp 'bignump)
-    (should (= (lsh -5628 -8)            -22))) ; #x3fffffffffffffea  bignum
-   ((= (logb most-negative-fixnum) 61)
-    (should (= (lsh -5628 -8)
-               (string-to-number
-                "18014398509481962"))))         ; #x003fffffffffffea  master (64bit)
-   ((= (logb most-negative-fixnum) 29)
-    (should (= (lsh -5628 -8)        4194282))) ; #x003fffea          master (32bit)
-   ))
+  (should (= (lsh -5628 -8)
+             (ash (- -5628 (ash most-negative-fixnum 1)) -8)
+             (ash (logand (ash -5628 -1) most-positive-fixnum) -7))))
 
 ;; CCl program from `pgg-parse-crc24' in lisp/obsolete/pgg-parse.el
 (defconst prog-pgg-source
@@ -177,11 +168,11 @@ At EOF:
      82169 240 2555 18 128 81943 15 276 529 305 81 -17660 -17916 22])
 
 (defconst prog-midi-dump
-"Out-buffer must be 2 times bigger than in-buffer.
+(concat "Out-buffer must be 2 times bigger than in-buffer.
 Main-body:
     2:[read-jump-cond-expr-const] read r0, if !(r0 < 128), jump to 22(+20)
     5:[branch] jump to array[r3] of length 4
-	11 12 15 18 22 
+	11 12 15 18 22 ""
    11:[jump] jump to 2(-9)
    12:[set-register] r1 = r0
    13:[set-register] r0 = r4
@@ -227,7 +218,7 @@ Main-body:
    71:[jump] jump to 2(-69)
 At EOF:
    72:[end] end
-")
+"))
 
 (ert-deftest ccl-compile-midi ()
   (should (equal (ccl-compile prog-midi-source) prog-midi-code)))

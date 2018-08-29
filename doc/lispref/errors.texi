@@ -159,6 +159,11 @@ The message is @samp{No catch for tag}.  @xref{Catch and Throw}.
 The message is @samp{Attempt to modify a protected file}.
 @end ignore
 
+@item range-error
+The message is @code{Arithmetic range error}.
+This can happen with integers exceeding the @code{integer-width} limit.
+@xref{Integer Basics}.
+
 @item scan-error
 The message is @samp{Scan error}.  This happens when certain
 syntax-parsing functions find invalid syntax or mismatched
@@ -222,9 +227,6 @@ The message is @samp{Arithmetic domain error}.
 @item overflow-error
 The message is @samp{Arithmetic overflow error}.  This is a subcategory
 of @code{domain-error}.
-
-@item range-error
-The message is @code{Arithmetic range error}.
 
 @item singularity-error
 The message is @samp{Arithmetic singularity error}.  This is a

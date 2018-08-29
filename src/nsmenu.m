@@ -1632,24 +1632,24 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   int row = 0;
   int buttons = 0, btnnr = 0;
 
-  for (; XTYPE (lst) == Lisp_Cons; lst = XCDR (lst))
+  for (; CONSP (lst); lst = XCDR (lst))
     {
       item = XCAR (list);
-      if (XTYPE (item) == Lisp_Cons)
+      if (CONSP (item))
         ++buttons;
     }
 
   if (buttons > 0)
     button_values = xmalloc (buttons * sizeof *button_values);
 
-  for (; XTYPE (list) == Lisp_Cons; list = XCDR (list))
+  for (; CONSP (list); list = XCDR (list))
     {
       item = XCAR (list);
-      if (XTYPE (item) == Lisp_String)
+      if (STRINGP (item))
         {
           [self addString: SSDATA (item) row: row++];
         }
-      else if (XTYPE (item) == Lisp_Cons)
+      else if (CONSP (item))
         {
           button_values[btnnr] = XCDR (item);
           [self addButton: SSDATA (XCAR (item)) value: btnnr row: row++];
@@ -1726,7 +1726,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   Lisp_Object head;
   [super init];
 
-  if (XTYPE (contents) == Lisp_Cons)
+  if (CONSP (contents))
     {
       head = Fcar (contents);
       [self process_dialog: Fcdr (contents)];
@@ -1734,7 +1734,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   else
     head = contents;
 
-  if (XTYPE (head) == Lisp_String)
+  if (STRINGP (head))
       [title setStringValue:
                  [NSString stringWithUTF8String: SSDATA (head)]];
   else if (isQ == YES)

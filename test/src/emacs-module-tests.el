@@ -148,6 +148,9 @@ changes."
     (garbage-collect) ;; XXX: not enough to really test but it's something..
     (should (string= ref-str mod-str))))
 
+(ert-deftest mod-test-globref-free-test ()
+  (should (eq (mod-test-globref-free 1 'a "test" 'b) 'ok)))
+
 (ert-deftest mod-test-string-a-to-b-test ()
   (should (string= (mod-test-string-a-to-b "aaa") "bbb")))
 

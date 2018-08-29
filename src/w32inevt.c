@@ -181,7 +181,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	     Space which we will ignore.  */
 	  if ((mod_key_state & LEFT_WIN_PRESSED) == 0)
 	    {
-	      if (FIXED_OR_FLOATP (Vw32_phantom_key_code))
+	      if (FIXNUMP (Vw32_phantom_key_code))
 		faked_key = XUFIXNUM (Vw32_phantom_key_code) & 255;
 	      else
 		faked_key = VK_SPACE;
@@ -198,7 +198,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	{
 	  if ((mod_key_state & RIGHT_WIN_PRESSED) == 0)
 	    {
-	      if (FIXED_OR_FLOATP (Vw32_phantom_key_code))
+	      if (FIXNUMP (Vw32_phantom_key_code))
 		faked_key = XUFIXNUM (Vw32_phantom_key_code) & 255;
 	      else
 		faked_key = VK_SPACE;

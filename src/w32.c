@@ -576,8 +576,8 @@ open_process_token (HANDLE ProcessHandle,
     {
       g_b_init_open_process_token = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Open_Process_Token =
-        (OpenProcessToken_Proc) GetProcAddress (hm_advapi32, "OpenProcessToken");
+      s_pfn_Open_Process_Token = (OpenProcessToken_Proc)
+        get_proc_addr (hm_advapi32, "OpenProcessToken");
     }
   if (s_pfn_Open_Process_Token == NULL)
     {
@@ -608,8 +608,8 @@ get_token_information (HANDLE TokenHandle,
     {
       g_b_init_get_token_information = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Token_Information =
-        (GetTokenInformation_Proc) GetProcAddress (hm_advapi32, "GetTokenInformation");
+      s_pfn_Get_Token_Information = (GetTokenInformation_Proc)
+        get_proc_addr (hm_advapi32, "GetTokenInformation");
     }
   if (s_pfn_Get_Token_Information == NULL)
     {
@@ -644,8 +644,8 @@ lookup_account_sid (LPCTSTR lpSystemName,
     {
       g_b_init_lookup_account_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Lookup_Account_Sid =
-        (LookupAccountSid_Proc) GetProcAddress (hm_advapi32, LookupAccountSid_Name);
+      s_pfn_Lookup_Account_Sid = (LookupAccountSid_Proc)
+        get_proc_addr (hm_advapi32, LookupAccountSid_Name);
     }
   if (s_pfn_Lookup_Account_Sid == NULL)
     {
@@ -677,9 +677,8 @@ get_sid_sub_authority (PSID pSid, DWORD n)
     {
       g_b_init_get_sid_sub_authority = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Sid_Sub_Authority =
-        (GetSidSubAuthority_Proc) GetProcAddress (
-            hm_advapi32, "GetSidSubAuthority");
+      s_pfn_Get_Sid_Sub_Authority = (GetSidSubAuthority_Proc)
+        get_proc_addr (hm_advapi32, "GetSidSubAuthority");
     }
   if (s_pfn_Get_Sid_Sub_Authority == NULL)
     {
@@ -702,9 +701,8 @@ get_sid_sub_authority_count (PSID pSid)
     {
       g_b_init_get_sid_sub_authority_count = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Sid_Sub_Authority_Count =
-        (GetSidSubAuthorityCount_Proc) GetProcAddress (
-            hm_advapi32, "GetSidSubAuthorityCount");
+      s_pfn_Get_Sid_Sub_Authority_Count = (GetSidSubAuthorityCount_Proc)
+        get_proc_addr (hm_advapi32, "GetSidSubAuthorityCount");
     }
   if (s_pfn_Get_Sid_Sub_Authority_Count == NULL)
     {
@@ -733,9 +731,8 @@ get_security_info (HANDLE handle,
     {
       g_b_init_get_security_info = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Security_Info =
-        (GetSecurityInfo_Proc) GetProcAddress (
-            hm_advapi32, "GetSecurityInfo");
+      s_pfn_Get_Security_Info = (GetSecurityInfo_Proc)
+        get_proc_addr (hm_advapi32, "GetSecurityInfo");
     }
   if (s_pfn_Get_Security_Info == NULL)
     {
@@ -769,9 +766,8 @@ get_file_security (const char *lpFileName,
 	{
 	  g_b_init_get_file_security_w = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Get_File_SecurityW =
-	    (GetFileSecurityW_Proc) GetProcAddress (hm_advapi32,
-						   "GetFileSecurityW");
+	  s_pfn_Get_File_SecurityW = (GetFileSecurityW_Proc)
+            get_proc_addr (hm_advapi32, "GetFileSecurityW");
 	}
       if (s_pfn_Get_File_SecurityW == NULL)
 	{
@@ -791,9 +787,8 @@ get_file_security (const char *lpFileName,
 	{
 	  g_b_init_get_file_security_a = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Get_File_SecurityA =
-	    (GetFileSecurityA_Proc) GetProcAddress (hm_advapi32,
-						   "GetFileSecurityA");
+	  s_pfn_Get_File_SecurityA = (GetFileSecurityA_Proc)
+            get_proc_addr (hm_advapi32, "GetFileSecurityA");
 	}
       if (s_pfn_Get_File_SecurityA == NULL)
 	{
@@ -828,9 +823,8 @@ set_file_security (const char *lpFileName,
 	{
 	  g_b_init_set_file_security_w = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Set_File_SecurityW =
-	    (SetFileSecurityW_Proc) GetProcAddress (hm_advapi32,
-						    "SetFileSecurityW");
+	  s_pfn_Set_File_SecurityW = (SetFileSecurityW_Proc)
+            get_proc_addr (hm_advapi32, "SetFileSecurityW");
 	}
       if (s_pfn_Set_File_SecurityW == NULL)
 	{
@@ -849,9 +843,8 @@ set_file_security (const char *lpFileName,
 	{
 	  g_b_init_set_file_security_a = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Set_File_SecurityA =
-	    (SetFileSecurityA_Proc) GetProcAddress (hm_advapi32,
-						    "SetFileSecurityA");
+	  s_pfn_Set_File_SecurityA = (SetFileSecurityA_Proc)
+            get_proc_addr (hm_advapi32, "SetFileSecurityA");
 	}
       if (s_pfn_Set_File_SecurityA == NULL)
 	{
@@ -889,9 +882,8 @@ set_named_security_info (LPCTSTR lpObjectName,
 	{
 	  g_b_init_set_named_security_info_w = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Set_Named_Security_InfoW =
-	    (SetNamedSecurityInfoW_Proc) GetProcAddress (hm_advapi32,
-							 "SetNamedSecurityInfoW");
+	  s_pfn_Set_Named_Security_InfoW = (SetNamedSecurityInfoW_Proc)
+            get_proc_addr (hm_advapi32, "SetNamedSecurityInfoW");
 	}
       if (s_pfn_Set_Named_Security_InfoW == NULL)
 	{
@@ -911,9 +903,8 @@ set_named_security_info (LPCTSTR lpObjectName,
 	{
 	  g_b_init_set_named_security_info_a = 1;
 	  hm_advapi32 = LoadLibrary ("Advapi32.dll");
-	  s_pfn_Set_Named_Security_InfoA =
-	    (SetNamedSecurityInfoA_Proc) GetProcAddress (hm_advapi32,
-							 "SetNamedSecurityInfoA");
+	  s_pfn_Set_Named_Security_InfoA = (SetNamedSecurityInfoA_Proc)
+            get_proc_addr (hm_advapi32, "SetNamedSecurityInfoA");
 	}
       if (s_pfn_Set_Named_Security_InfoA == NULL)
 	{
@@ -943,9 +934,8 @@ get_security_descriptor_owner (PSECURITY_DESCRIPTOR pSecurityDescriptor,
     {
       g_b_init_get_security_descriptor_owner = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Security_Descriptor_Owner =
-        (GetSecurityDescriptorOwner_Proc) GetProcAddress (
-            hm_advapi32, "GetSecurityDescriptorOwner");
+      s_pfn_Get_Security_Descriptor_Owner = (GetSecurityDescriptorOwner_Proc)
+        get_proc_addr (hm_advapi32, "GetSecurityDescriptorOwner");
     }
   if (s_pfn_Get_Security_Descriptor_Owner == NULL)
     {
@@ -972,9 +962,8 @@ get_security_descriptor_group (PSECURITY_DESCRIPTOR pSecurityDescriptor,
     {
       g_b_init_get_security_descriptor_group = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Security_Descriptor_Group =
-        (GetSecurityDescriptorGroup_Proc) GetProcAddress (
-            hm_advapi32, "GetSecurityDescriptorGroup");
+      s_pfn_Get_Security_Descriptor_Group = (GetSecurityDescriptorGroup_Proc)
+        get_proc_addr (hm_advapi32, "GetSecurityDescriptorGroup");
     }
   if (s_pfn_Get_Security_Descriptor_Group == NULL)
     {
@@ -1002,9 +991,8 @@ get_security_descriptor_dacl (PSECURITY_DESCRIPTOR pSecurityDescriptor,
     {
       g_b_init_get_security_descriptor_dacl = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Security_Descriptor_Dacl =
-        (GetSecurityDescriptorDacl_Proc) GetProcAddress (
-            hm_advapi32, "GetSecurityDescriptorDacl");
+      s_pfn_Get_Security_Descriptor_Dacl = (GetSecurityDescriptorDacl_Proc)
+        get_proc_addr (hm_advapi32, "GetSecurityDescriptorDacl");
     }
   if (s_pfn_Get_Security_Descriptor_Dacl == NULL)
     {
@@ -1029,9 +1017,8 @@ is_valid_sid (PSID sid)
     {
       g_b_init_is_valid_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Is_Valid_Sid =
-        (IsValidSid_Proc) GetProcAddress (
-            hm_advapi32, "IsValidSid");
+      s_pfn_Is_Valid_Sid = (IsValidSid_Proc)
+        get_proc_addr (hm_advapi32, "IsValidSid");
     }
   if (s_pfn_Is_Valid_Sid == NULL)
     {
@@ -1053,9 +1040,8 @@ equal_sid (PSID sid1, PSID sid2)
     {
       g_b_init_equal_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Equal_Sid =
-        (EqualSid_Proc) GetProcAddress (
-            hm_advapi32, "EqualSid");
+      s_pfn_Equal_Sid = (EqualSid_Proc)
+        get_proc_addr (hm_advapi32, "EqualSid");
     }
   if (s_pfn_Equal_Sid == NULL)
     {
@@ -1077,9 +1063,8 @@ get_length_sid (PSID sid)
     {
       g_b_init_get_length_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Get_Length_Sid =
-        (GetLengthSid_Proc) GetProcAddress (
-            hm_advapi32, "GetLengthSid");
+      s_pfn_Get_Length_Sid = (GetLengthSid_Proc)
+        get_proc_addr (hm_advapi32, "GetLengthSid");
     }
   if (s_pfn_Get_Length_Sid == NULL)
     {
@@ -1101,9 +1086,8 @@ copy_sid (DWORD destlen, PSID dest, PSID src)
     {
       g_b_init_copy_sid = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Copy_Sid =
-        (CopySid_Proc) GetProcAddress (
-            hm_advapi32, "CopySid");
+      s_pfn_Copy_Sid = (CopySid_Proc)
+        get_proc_addr (hm_advapi32, "CopySid");
     }
   if (s_pfn_Copy_Sid == NULL)
     {
@@ -1127,9 +1111,9 @@ get_native_system_info (LPSYSTEM_INFO lpSystemInfo)
       if (g_b_init_get_native_system_info == 0)
 	{
 	  g_b_init_get_native_system_info = 1;
-	  s_pfn_Get_Native_System_Info =
-	    (GetNativeSystemInfo_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						      "GetNativeSystemInfo");
+	  s_pfn_Get_Native_System_Info = (GetNativeSystemInfo_Proc)
+            get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                  "GetNativeSystemInfo");
 	}
       if (s_pfn_Get_Native_System_Info != NULL)
 	s_pfn_Get_Native_System_Info (lpSystemInfo);
@@ -1151,9 +1135,9 @@ get_system_times (LPFILETIME lpIdleTime,
   if (g_b_init_get_system_times == 0)
     {
       g_b_init_get_system_times = 1;
-      s_pfn_Get_System_times =
-	(GetSystemTimes_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-					     "GetSystemTimes");
+      s_pfn_Get_System_times = (GetSystemTimes_Proc)
+        get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "GetSystemTimes");
     }
   if (s_pfn_Get_System_times == NULL)
     return FALSE;
@@ -1181,9 +1165,9 @@ create_symbolic_link (LPCSTR lpSymlinkFilename,
       if (g_b_init_create_symbolic_link_w == 0)
 	{
 	  g_b_init_create_symbolic_link_w = 1;
-	  s_pfn_Create_Symbolic_LinkW =
-	    (CreateSymbolicLinkW_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						     "CreateSymbolicLinkW");
+	  s_pfn_Create_Symbolic_LinkW = (CreateSymbolicLinkW_Proc)
+            get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                  "CreateSymbolicLinkW");
 	}
       if (s_pfn_Create_Symbolic_LinkW == NULL)
 	{
@@ -1216,9 +1200,9 @@ create_symbolic_link (LPCSTR lpSymlinkFilename,
       if (g_b_init_create_symbolic_link_a == 0)
 	{
 	  g_b_init_create_symbolic_link_a = 1;
-	  s_pfn_Create_Symbolic_LinkA =
-	    (CreateSymbolicLinkA_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-						     "CreateSymbolicLinkA");
+	  s_pfn_Create_Symbolic_LinkA = (CreateSymbolicLinkA_Proc)
+            get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                  "CreateSymbolicLinkA");
 	}
       if (s_pfn_Create_Symbolic_LinkA == NULL)
 	{
@@ -1261,9 +1245,9 @@ is_valid_security_descriptor (PSECURITY_DESCRIPTOR pSecurityDescriptor)
   if (g_b_init_is_valid_security_descriptor == 0)
     {
       g_b_init_is_valid_security_descriptor = 1;
-      s_pfn_Is_Valid_Security_Descriptor_Proc =
-	(IsValidSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-							"IsValidSecurityDescriptor");
+      s_pfn_Is_Valid_Security_Descriptor_Proc = (IsValidSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "IsValidSecurityDescriptor");
     }
   if (s_pfn_Is_Valid_Security_Descriptor_Proc == NULL)
     {
@@ -1295,12 +1279,14 @@ convert_sd_to_sddl (PSECURITY_DESCRIPTOR SecurityDescriptor,
       g_b_init_convert_sd_to_sddl = 1;
 #ifdef _UNICODE
       s_pfn_Convert_SD_To_SDDL =
-	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-										  "ConvertSecurityDescriptorToStringSecurityDescriptorW");
+	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "ConvertSecurityDescriptorToStringSecurityDescriptorW");
 #else
       s_pfn_Convert_SD_To_SDDL =
-	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-										  "ConvertSecurityDescriptorToStringSecurityDescriptorA");
+	(ConvertSecurityDescriptorToStringSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "ConvertSecurityDescriptorToStringSecurityDescriptorA");
 #endif
     }
   if (s_pfn_Convert_SD_To_SDDL == NULL)
@@ -1338,12 +1324,14 @@ convert_sddl_to_sd (LPCTSTR StringSecurityDescriptor,
       g_b_init_convert_sddl_to_sd = 1;
 #ifdef _UNICODE
       s_pfn_Convert_SDDL_To_SD =
-	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-										  "ConvertStringSecurityDescriptorToSecurityDescriptorW");
+	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "ConvertStringSecurityDescriptorToSecurityDescriptorW");
 #else
       s_pfn_Convert_SDDL_To_SD =
-	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)GetProcAddress (GetModuleHandle ("Advapi32.dll"),
-										  "ConvertStringSecurityDescriptorToSecurityDescriptorA");
+	(ConvertStringSecurityDescriptorToSecurityDescriptor_Proc)
+        get_proc_addr (GetModuleHandle ("Advapi32.dll"),
+                              "ConvertStringSecurityDescriptorToSecurityDescriptorA");
 #endif
     }
   if (s_pfn_Convert_SDDL_To_SD == NULL)
@@ -1375,7 +1363,7 @@ get_adapters_info (PIP_ADAPTER_INFO pAdapterInfo, PULONG pOutBufLen)
       hm_iphlpapi = LoadLibrary ("Iphlpapi.dll");
       if (hm_iphlpapi)
 	s_pfn_Get_Adapters_Info = (GetAdaptersInfo_Proc)
-	  GetProcAddress (hm_iphlpapi, "GetAdaptersInfo");
+	  get_proc_addr (hm_iphlpapi, "GetAdaptersInfo");
     }
   if (s_pfn_Get_Adapters_Info == NULL)
     return ERROR_NOT_SUPPORTED;
@@ -1398,7 +1386,7 @@ reg_open_key_ex_w (HKEY hkey, LPCWSTR lpSubKey, DWORD ulOptions,
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
       if (hm_advapi32)
 	s_pfn_Reg_Open_Key_Ex_w = (RegOpenKeyExW_Proc)
-	  GetProcAddress (hm_advapi32, "RegOpenKeyExW");
+	  get_proc_addr (hm_advapi32, "RegOpenKeyExW");
     }
   if (s_pfn_Reg_Open_Key_Ex_w == NULL)
     return ERROR_NOT_SUPPORTED;
@@ -1422,7 +1410,7 @@ reg_query_value_ex_w (HKEY hkey, LPCWSTR lpValueName, LPDWORD lpReserved,
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
       if (hm_advapi32)
 	s_pfn_Reg_Query_Value_Ex_w = (RegQueryValueExW_Proc)
-	  GetProcAddress (hm_advapi32, "RegQueryValueExW");
+	  get_proc_addr (hm_advapi32, "RegQueryValueExW");
     }
   if (s_pfn_Reg_Query_Value_Ex_w == NULL)
     return ERROR_NOT_SUPPORTED;
@@ -1445,7 +1433,7 @@ expand_environment_strings_w (LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
       hm_kernel32 = LoadLibrary ("Kernel32.dll");
       if (hm_kernel32)
 	s_pfn_Expand_Environment_Strings_w = (ExpandEnvironmentStringsW_Proc)
-	  GetProcAddress (hm_kernel32, "ExpandEnvironmentStringsW");
+	  get_proc_addr (hm_kernel32, "ExpandEnvironmentStringsW");
     }
   if (s_pfn_Expand_Environment_Strings_w == NULL)
     {
@@ -2807,7 +2795,8 @@ init_environment (char ** argv)
 	   MSIE 5.  */
 	ShGetFolderPath_fn get_folder_path;
 	get_folder_path = (ShGetFolderPath_fn)
-	  GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
+	  get_proc_addr (GetModuleHandle ("shell32.dll"),
+                                "SHGetFolderPathA");
 
 	if (get_folder_path != NULL)
 	  {
@@ -6639,8 +6628,8 @@ create_toolhelp32_snapshot (DWORD Flags, DWORD Ignored)
     {
       g_b_init_create_toolhelp32_snapshot = 1;
       s_pfn_Create_Toolhelp32_Snapshot = (CreateToolhelp32Snapshot_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"CreateToolhelp32Snapshot");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "CreateToolhelp32Snapshot");
     }
   if (s_pfn_Create_Toolhelp32_Snapshot == NULL)
     {
@@ -6658,8 +6647,8 @@ process32_first (HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
     {
       g_b_init_process32_first = 1;
       s_pfn_Process32_First = (Process32First_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"Process32First");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "Process32First");
     }
   if (s_pfn_Process32_First == NULL)
     {
@@ -6677,8 +6666,8 @@ process32_next (HANDLE hSnapshot, LPPROCESSENTRY32 lppe)
     {
       g_b_init_process32_next = 1;
       s_pfn_Process32_Next = (Process32Next_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"Process32Next");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "Process32Next");
     }
   if (s_pfn_Process32_Next == NULL)
     {
@@ -6704,8 +6693,8 @@ open_thread_token (HANDLE ThreadHandle,
     {
       g_b_init_open_thread_token = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Open_Thread_Token =
-        (OpenThreadToken_Proc) GetProcAddress (hm_advapi32, "OpenThreadToken");
+      s_pfn_Open_Thread_Token = (OpenThreadToken_Proc)
+        get_proc_addr (hm_advapi32, "OpenThreadToken");
     }
   if (s_pfn_Open_Thread_Token == NULL)
     {
@@ -6734,8 +6723,8 @@ impersonate_self (SECURITY_IMPERSONATION_LEVEL ImpersonationLevel)
     {
       g_b_init_impersonate_self = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Impersonate_Self =
-        (ImpersonateSelf_Proc) GetProcAddress (hm_advapi32, "ImpersonateSelf");
+      s_pfn_Impersonate_Self = (ImpersonateSelf_Proc)
+        get_proc_addr (hm_advapi32, "ImpersonateSelf");
     }
   if (s_pfn_Impersonate_Self == NULL)
     {
@@ -6757,8 +6746,8 @@ revert_to_self (void)
     {
       g_b_init_revert_to_self = 1;
       hm_advapi32 = LoadLibrary ("Advapi32.dll");
-      s_pfn_Revert_To_Self =
-        (RevertToSelf_Proc) GetProcAddress (hm_advapi32, "RevertToSelf");
+      s_pfn_Revert_To_Self = (RevertToSelf_Proc)
+        get_proc_addr (hm_advapi32, "RevertToSelf");
     }
   if (s_pfn_Revert_To_Self == NULL)
     {
@@ -6784,7 +6773,7 @@ get_process_memory_info (HANDLE h_proc,
       hm_psapi = LoadLibrary ("Psapi.dll");
       if (hm_psapi)
 	s_pfn_Get_Process_Memory_Info = (GetProcessMemoryInfo_Proc)
-	  GetProcAddress (hm_psapi, "GetProcessMemoryInfo");
+	  get_proc_addr (hm_psapi, "GetProcessMemoryInfo");
     }
   if (s_pfn_Get_Process_Memory_Info == NULL)
     {
@@ -6809,8 +6798,8 @@ get_process_working_set_size (HANDLE h_proc,
     {
       g_b_init_get_process_working_set_size = 1;
       s_pfn_Get_Process_Working_Set_Size = (GetProcessWorkingSetSize_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"GetProcessWorkingSetSize");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "GetProcessWorkingSetSize");
     }
   if (s_pfn_Get_Process_Working_Set_Size == NULL)
     {
@@ -6832,8 +6821,8 @@ global_memory_status (MEMORYSTATUS *buf)
     {
       g_b_init_global_memory_status = 1;
       s_pfn_Global_Memory_Status = (GlobalMemoryStatus_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"GlobalMemoryStatus");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "GlobalMemoryStatus");
     }
   if (s_pfn_Global_Memory_Status == NULL)
     {
@@ -6855,8 +6844,8 @@ global_memory_status_ex (MEMORY_STATUS_EX *buf)
     {
       g_b_init_global_memory_status_ex = 1;
       s_pfn_Global_Memory_Status_Ex = (GlobalMemoryStatusEx_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			"GlobalMemoryStatusEx");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                              "GlobalMemoryStatusEx");
     }
   if (s_pfn_Global_Memory_Status_Ex == NULL)
     {
@@ -6884,7 +6873,7 @@ list_system_processes (void)
 	   res = process32_next  (h_snapshot, &proc_entry))
 	{
 	  proc_id = proc_entry.th32ProcessID;
-	  proclist = Fcons (make_fixnum_or_float (proc_id), proclist);
+	  proclist = Fcons (INT_TO_INTEGER (proc_id), proclist);
 	}
 
       CloseHandle (h_snapshot);
@@ -7042,7 +7031,7 @@ system_process_attributes (Lisp_Object pid)
   double pcpu;
   BOOL result = FALSE;
 
-  CHECK_FIXNUM_OR_FLOAT (pid);
+  CHECK_NUMBER (pid);
   proc_id = FLOATP (pid) ? XFLOAT_DATA (pid) : XFIXNUM (pid);
 
   h_snapshot = create_toolhelp32_snapshot (TH32CS_SNAPPROCESS, 0);
@@ -7072,12 +7061,12 @@ system_process_attributes (Lisp_Object pid)
 		}
 	      attrs = Fcons (Fcons (Qcomm, decoded_cmd), attrs);
 	      attrs = Fcons (Fcons (Qppid,
-				    make_fixnum_or_float (pe.th32ParentProcessID)),
+				    INT_TO_INTEGER (pe.th32ParentProcessID)),
 			     attrs);
 	      attrs = Fcons (Fcons (Qpri, make_fixnum (pe.pcPriClassBase)),
 			     attrs);
 	      attrs = Fcons (Fcons (Qthcount,
-				    make_fixnum_or_float (pe.cntThreads)),
+				    INT_TO_INTEGER (pe.cntThreads)),
 			     attrs);
 	      found_proc = 1;
 	      break;
@@ -7225,12 +7214,12 @@ system_process_attributes (Lisp_Object pid)
 	CloseHandle (token);
     }
 
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (euid)), attrs);
+  attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (euid)), attrs);
   tem = make_unibyte_string (uname, ulength);
   attrs = Fcons (Fcons (Quser,
 			 code_convert_string_norecord (tem, Vlocale_coding_system, 0)),
 		 attrs);
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (egid)), attrs);
+  attrs = Fcons (Fcons (Qegid, INT_TO_INTEGER (egid)), attrs);
   tem = make_unibyte_string (gname, glength);
   attrs = Fcons (Fcons (Qgroup,
 			 code_convert_string_norecord (tem, Vlocale_coding_system, 0)),
@@ -7260,12 +7249,12 @@ system_process_attributes (Lisp_Object pid)
       SIZE_T rss = mem_ex.WorkingSetSize / 1024;
 
       attrs = Fcons (Fcons (Qmajflt,
-			    make_fixnum_or_float (mem_ex.PageFaultCount)),
+			    INT_TO_INTEGER (mem_ex.PageFaultCount)),
 		     attrs);
       attrs = Fcons (Fcons (Qvsize,
-			    make_fixnum_or_float (mem_ex.PrivateUsage / 1024)),
+			    INT_TO_INTEGER (mem_ex.PrivateUsage / 1024)),
 		     attrs);
-      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (rss)), attrs);
+      attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (rss)), attrs);
       if (totphys)
 	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
     }
@@ -7275,9 +7264,9 @@ system_process_attributes (Lisp_Object pid)
       SIZE_T rss = mem_ex.WorkingSetSize / 1024;
 
       attrs = Fcons (Fcons (Qmajflt,
-			    make_fixnum_or_float (mem.PageFaultCount)),
+			    INT_TO_INTEGER (mem.PageFaultCount)),
 		     attrs);
-      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (rss)), attrs);
+      attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (rss)), attrs);
       if (totphys)
 	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
     }
@@ -7286,7 +7275,7 @@ system_process_attributes (Lisp_Object pid)
     {
       DWORD rss = maxrss / 1024;
 
-      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (maxrss / 1024)), attrs);
+      attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (maxrss / 1024)), attrs);
       if (totphys)
 	attrs = Fcons (Fcons (Qpmem, make_float (100. * rss / totphys)), attrs);
     }
@@ -7428,8 +7417,8 @@ init_winsock (int load_now)
     return TRUE;
 
   pfn_SetHandleInformation
-    = (void *) GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			       "SetHandleInformation");
+    = (void *) get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                     "SetHandleInformation");
 
   winsock_lib = LoadLibrary ("Ws2_32.dll");
 
@@ -7438,7 +7427,7 @@ init_winsock (int load_now)
       /* dynamically link to socket functions */
 
 #define LOAD_PROC(fn) \
-      if ((pfn_##fn = (void *) GetProcAddress (winsock_lib, #fn)) == NULL) \
+      if ((pfn_##fn = (void *) get_proc_addr (winsock_lib, #fn)) == NULL) \
         goto fail;
 
       LOAD_PROC (WSAStartup);
@@ -7473,8 +7462,8 @@ init_winsock (int load_now)
 #undef LOAD_PROC
 
       /* Try loading functions not available before XP.  */
-      pfn_getaddrinfo = (void *) GetProcAddress (winsock_lib, "getaddrinfo");
-      pfn_freeaddrinfo = (void *) GetProcAddress (winsock_lib, "freeaddrinfo");
+      pfn_getaddrinfo = (void *) get_proc_addr (winsock_lib, "getaddrinfo");
+      pfn_freeaddrinfo = (void *) get_proc_addr (winsock_lib, "freeaddrinfo");
       /* Paranoia: these two functions should go together, so if one
 	 is absent, we cannot use the other.  */
       if (pfn_getaddrinfo == NULL)
@@ -9444,10 +9433,10 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
 	retval = Qt;
 	break;
       case REG_DWORD:
-	retval = INTEGER_TO_CONS (*((DWORD *)pvalue));
+	retval = INT_TO_INTEGER (*((DWORD *)pvalue));
 	break;
       case REG_QWORD:
-	retval = INTEGER_TO_CONS (*((long long *)pvalue));
+	retval = INT_TO_INTEGER (*((long long *)pvalue));
 	break;
       case REG_BINARY:
 	{
@@ -9892,10 +9881,10 @@ maybe_load_unicows_dll (void)
 	     pointers, and assign the correct addresses to these
 	     pointers at program startup (see emacs.c, which calls
 	     this function early on).  */
-	  pMultiByteToWideChar =
-	    (MultiByteToWideChar_Proc)GetProcAddress (ret, "MultiByteToWideChar");
-	  pWideCharToMultiByte =
-	    (WideCharToMultiByte_Proc)GetProcAddress (ret, "WideCharToMultiByte");
+	  pMultiByteToWideChar = (MultiByteToWideChar_Proc)
+            get_proc_addr (ret, "MultiByteToWideChar");
+	  pWideCharToMultiByte = (WideCharToMultiByte_Proc)
+            get_proc_addr (ret, "WideCharToMultiByte");
           multiByteToWideCharFlags = MB_ERR_INVALID_CHARS;
 	  return ret;
 	}
@@ -9946,7 +9935,7 @@ globals_of_w32 (void)
   HMODULE kernel32 = GetModuleHandle ("kernel32.dll");
 
   get_process_times_fn = (GetProcessTimes_Proc)
-    GetProcAddress (kernel32, "GetProcessTimes");
+    get_proc_addr (kernel32, "GetProcessTimes");
 
   DEFSYM (QCloaded_from, ":loaded-from");
 

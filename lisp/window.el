@@ -3084,11 +3084,12 @@ already set by this routine."
 	(while (and best-window (not (zerop delta)))
 	  (setq sub last)
 	  (setq best-window nil)
-	  (setq best-value most-negative-fixnum)
+	  (setq best-value nil)
 	  (while sub
 	    (when (and (consp (window-new-normal sub))
 		       (not (<= (car (window-new-normal sub)) 0))
-		       (> (cdr (window-new-normal sub)) best-value))
+		       (or (not best-value)
+			   (> (cdr (window-new-normal sub)) best-value)))
 	      (setq best-window sub)
 	      (setq best-value (cdr (window-new-normal sub))))
 
@@ -3113,10 +3114,11 @@ already set by this routine."
 	(while (and best-window (not (zerop delta)))
 	  (setq sub last)
 	  (setq best-window nil)
-	  (setq best-value most-positive-fixnum)
+	  (setq best-value nil)
 	  (while sub
 	    (when (and (numberp (window-new-normal sub))
-		       (< (window-new-normal sub) best-value))
+		       (or (not best-value)
+		           (< (window-new-normal sub) best-value)))
 	      (setq best-window sub)
 	      (setq best-value (window-new-normal sub)))
 

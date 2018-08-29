@@ -894,8 +894,7 @@ circular objects.  Let `read' read everything else."
         (while (and (>= (following-char) ?0) (<= (following-char) ?9))
           (forward-char 1))
         (let ((n (string-to-number (buffer-substring start (point)))))
-          (when (and read-circle
-                     (<= n most-positive-fixnum))
+          (when read-circle
             (cond
              ((eq ?= (following-char))
               ;; Make a placeholder for #n# to use temporarily.
@@ -910,7 +909,7 @@ circular objects.  Let `read' read everything else."
                   (throw 'return (setf (cdr elem) obj)))))
              ((eq ?# (following-char))
               ;; #n# returns a previously read object.
-              (let ((elem (assq n edebug-read-objects)))
+              (let ((elem (assoc n edebug-read-objects)))
                 (when (consp elem)
                   (forward-char 1)
                   (throw 'return (cdr elem))))))))))

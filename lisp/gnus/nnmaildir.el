@@ -651,7 +651,7 @@ This variable is set by `nnmaildir-request-article'.")
 	  (funcall func (cdr entry)))))))
 
 (defun nnmaildir--up2-1 (n)
-  (if (zerop n) 1 (1- (lsh 1 (1+ (logb n))))))
+  (if (zerop n) 1 (1- (ash 1 (1+ (logb n))))))
 
 (defun nnmaildir--system-name ()
   (replace-regexp-in-string

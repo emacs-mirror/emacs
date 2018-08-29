@@ -140,23 +140,36 @@ w32con_clear_frame (struct frame *f)
 }
 
 
-static struct glyph glyph_base[256];
+static struct glyph glyph_base[80];
+static struct glyph *glyphs = glyph_base;
+static size_t glyphs_len = ARRAYELTS (glyph_base);
 static BOOL  ceol_initialized = FALSE;
 
 /* Clear from Cursor to end (what's "standout marker"?).  */
 static void
 w32con_clear_end_of_line (struct frame *f, int end)
 {
+  /* Time to reallocate our "empty row"?  With today's large screens,
+     it is not unthinkable to see TTY frames well in excess of
+     80-character width.  */
+  if (end - cursor_coords.X > glyphs_len)
+    {
+      if (glyphs == glyph_base)
+	glyphs = NULL;
+      glyphs = xrealloc (glyphs, FRAME_COLS (f) * sizeof (struct glyph));
+      glyphs_len = FRAME_COLS (f);
+      ceol_initialized = FALSE;
+    }
   if (!ceol_initialized)
     {
       int i;
-      for (i = 0; i < 256; i++)
+      for (i = 0; i < glyphs_len; i++)
         {
-	  memcpy (&glyph_base[i], &space_glyph, sizeof (struct glyph));
+	  memcpy (&glyphs[i], &space_glyph, sizeof (struct glyph));
         }
       ceol_initialized = TRUE;
     }
-  w32con_write_glyphs (f, glyph_base, end - cursor_coords.X);	/* fencepost ?	*/
+  w32con_write_glyphs (f, glyphs, end - cursor_coords.X);
 }
 
 /* Insert n lines at vpos. if n is negative delete -n lines.  */
@@ -770,6 +783,15 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
       *height = 1 + info.srWindow.Bottom - info.srWindow.Top;
       /* Characters per line.  Use buffer coords instead of buffer size.  */
       *width = 1 + info.srWindow.Right - info.srWindow.Left;
+    }
+
+  /* Force reinitialization of the "empty row" buffer, in case they
+     dumped from a running session.  */
+  if (glyphs != glyph_base)
+    {
+      glyphs = NULL;
+      glyphs_len = 0;
+      ceol_initialized = FALSE;
     }
 
   if (os_subtype == OS_NT)

@@ -665,7 +665,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
   delayed_switch_frame = Qnil;
 
   /* Compute timeout.  */
-  if (FIXED_OR_FLOATP (seconds))
+  if (NUMBERP (seconds))
     {
       double duration = XFLOATINT (seconds);
       struct timespec wait_time = dtotimespec (duration);
@@ -676,7 +676,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
  retry:
   do
     val = read_char (0, Qnil, (input_method ? Qnil : Qt), 0,
-		     FIXED_OR_FLOATP (seconds) ? &end_time : NULL);
+		     NUMBERP (seconds) ? &end_time : NULL);
   while (FIXNUMP (val) && XFIXNUM (val) == -2); /* wrong_kboard_jmpbuf */
 
   if (BUFFERP (val))
@@ -695,7 +695,7 @@ read_filtered_event (bool no_switch_frame, bool ascii_required,
       goto retry;
     }
 
-  if (ascii_required && !(FIXED_OR_FLOATP (seconds) && NILP (val)))
+  if (ascii_required && !(NUMBERP (seconds) && NILP (val)))
     {
       /* Convert certain symbols to their ASCII equivalents.  */
       if (SYMBOLP (val))
@@ -3161,7 +3161,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		      /* If it can be recursive, remember it for
 			 future substitutions.  */
 		      if (! SYMBOLP (tem)
-			  && ! FIXED_OR_FLOATP (tem)
+			  && ! NUMBERP (tem)
 			  && ! (STRINGP (tem) && !string_intervals (tem)))
 			{
 			  struct Lisp_Hash_Table *h2
@@ -3616,7 +3616,7 @@ substitute_object_recurse (struct subst *subst, Lisp_Object subtree)
      bother looking them up; we're done.  */
   if (SYMBOLP (subtree)
       || (STRINGP (subtree) && !string_intervals (subtree))
-      || FIXED_OR_FLOATP (subtree))
+      || NUMBERP (subtree))
     return subtree;
 
   /* If we've been to this node before, don't explore it again.  */
@@ -3710,8 +3710,9 @@ string_to_number (char const *string, int base, int flags)
      IEEE floating point hosts, and works around a formerly-common bug where
      atof ("-0.0") drops the sign.  */
   bool negative = *cp == '-';
+  bool positive = *cp == '+';
 
-  bool signedp = negative || *cp == '+';
+  bool signedp = negative | positive;
   cp += signedp;
 
   enum { INTOVERFLOW = 1, LEAD_INT = 2, DOT_CHAR = 4, TRAIL_INT = 8,
@@ -3732,6 +3733,7 @@ string_to_number (char const *string, int base, int flags)
 	  n += digit;
 	}
     }
+  char const *after_digits = cp;
   if (*cp == '.')
     {
       state |= DOT_CHAR;
@@ -3807,10 +3809,19 @@ string_to_number (char const *string, int base, int flags)
 	  return make_fixnum (negative ? -signed_n : signed_n);
 	}
 
-      /* Skip a leading "+".  */
-      if (signedp && !negative)
-	++string;
-      return make_bignum_str (string, base);
+      /* Trim any leading "+" and trailing nondigits, then convert to
+	 bignum.  */
+      string += positive;
+      if (!*after_digits)
+	return make_bignum_str (string, base);
+      ptrdiff_t trimmed_len = after_digits - string;
+      USE_SAFE_ALLOCA;
+      char *trimmed = SAFE_ALLOCA (trimmed_len + 1);
+      memcpy (trimmed, string, trimmed_len);
+      trimmed[trimmed_len] = '\0';
+      Lisp_Object result = make_bignum_str (trimmed, base);
+      SAFE_FREE ();
+      return result;
     }
 
   /* Either the number uses float syntax, or it does not fit into a fixnum.

@@ -107,7 +107,7 @@ The most significant byte comes first."
   (let (result)
     (dotimes (i size)
       (push (logand value #xff) result)
-      (setq value (lsh value -8)))
+      (setq value (ash value -8)))
     result))
 
 (defun uvs-insert-fields-as-bytes (fields &rest values)

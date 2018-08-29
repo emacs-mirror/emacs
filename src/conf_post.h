@@ -277,6 +277,7 @@ extern int emacs_setenv_TZ (char const *);
 #define ATTRIBUTE_FORMAT_PRINTF(string_index, first_to_check) \
   ATTRIBUTE_FORMAT ((PRINTF_ARCHETYPE, string_index, first_to_check))
 
+#define ARG_NONNULL _GL_ARG_NONNULL
 #define ATTRIBUTE_CONST _GL_ATTRIBUTE_CONST
 #define ATTRIBUTE_UNUSED _GL_UNUSED
 

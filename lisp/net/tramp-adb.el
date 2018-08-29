@@ -265,12 +265,12 @@ pass to the OPERATION."
 		       "[[:space:]]+\\([[:digit:]]+\\)"))
 	  ;; The values are given as 1k numbers, so we must change
 	  ;; them to number of bytes.
-	  (list (* 1024 (string-to-number (concat (match-string 1) "e0")))
+	  (list (* 1024 (string-to-number (match-string 1)))
 		;; The second value is the used size.  We need the
 		;; free size.
-		(* 1024 (- (string-to-number (concat (match-string 1) "e0"))
-			   (string-to-number (concat (match-string 2) "e0"))))
-		(* 1024 (string-to-number (concat (match-string 3) "e0")))))))))
+		(* 1024 (- (string-to-number (match-string 1))
+			   (string-to-number (match-string 2))))
+		(* 1024 (string-to-number (match-string 3)))))))))
 
 ;; This is derived from `tramp-sh-handle-file-truename'.  Maybe the
 ;; code could be shared?

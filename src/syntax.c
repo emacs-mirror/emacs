@@ -614,7 +614,7 @@ find_defun_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 	error ("syntax-ppss modified the buffer!");
       TEMP_SET_PT_BOTH (opoint, opoint_byte);
       Lisp_Object boc = Fnth (make_fixnum (8), ppss);
-      if (FIXED_OR_FLOATP (boc))
+      if (FIXNUMP (boc))
         {
           find_start_value = XFIXNUM (boc);
           find_start_value_byte = CHAR_TO_BYTE (find_start_value);

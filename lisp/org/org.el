@@ -10058,7 +10058,7 @@ Note: this function also decodes single byte encodings like
 		  (cons 6 128))))
 	  (when (>= val 192) (setq eat (car shift-xor)))
 	  (setq val (logxor val (cdr shift-xor)))
-	  (setq sum (+ (lsh sum (car shift-xor)) val))
+	  (setq sum (+ (ash sum (car shift-xor)) val))
 	  (when (> eat 0) (setq eat (- eat 1)))
 	  (cond
 	   ((= 0 eat)			;multi byte

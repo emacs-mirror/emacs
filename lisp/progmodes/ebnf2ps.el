@@ -5130,7 +5130,7 @@ killed after process termination."
 (defsubst ebnf-font-background (font) (nth 3 font))
 (defsubst ebnf-font-list (font) (nthcdr 4 font))
 (defsubst ebnf-font-attributes (font)
-  (lsh (ps-extension-bit (cdr font)) -2))
+  (ash (ps-extension-bit (cdr font)) -2))
 
 
 (defconst ebnf-font-name-select

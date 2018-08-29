@@ -636,7 +636,7 @@ or new, let the user edit the definition of the footnote."
   (let* ((all (org-footnote-all-labels))
 	 (label
 	  (if (eq org-footnote-auto-label 'random)
-	      (format "%x" (random most-positive-fixnum))
+	      (format "%x" (abs (random)))
 	    (org-footnote-normalize-label
 	     (let ((propose (org-footnote-unique-label all)))
 	       (if (eq org-footnote-auto-label t) propose

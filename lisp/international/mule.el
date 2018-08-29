@@ -911,7 +911,7 @@ non-ASCII files.  This attribute is meaningful only when
 		(i 0))
 	    (dolist (elt coding-system-iso-2022-flags)
 	      (if (memq elt flags)
-		  (setq bits (logior bits (lsh 1 i))))
+		  (setq bits (logior bits (ash 1 i))))
 	      (setq i (1+ i)))
 	    (setcdr (assq :flags spec-attrs) bits))))
 

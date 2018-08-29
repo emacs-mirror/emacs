@@ -1152,9 +1152,9 @@ is a list of CCL-BLOCKs."
 	      (progn
 		(insert (logand code #xFFFFFF))
 		(setq i (1+ i)))
-	    (insert (format "%c" (lsh code -16)))
+	    (insert (format "%c" (ash code -16)))
 	    (if (< (1+ i) len)
-		(insert (format "%c" (logand (lsh code -8) 255))))
+		(insert (format "%c" (logand (ash code -8) 255))))
 	    (if (< (+ i 2) len)
 		(insert (format "%c" (logand code 255))))
 	    (setq i (+ i 3)))))

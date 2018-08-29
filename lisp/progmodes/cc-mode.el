@@ -11,6 +11,8 @@
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
 ;; Keywords:   c languages
+;; The version header below is used for ELPA packaging.
+;; Version: 5.33.1
 
 ;; This file is part of GNU Emacs.
 

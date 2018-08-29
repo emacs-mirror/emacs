@@ -583,15 +583,14 @@ back to running Mercurial directly."
 
 (defsubst vc-hg--read-u8 ()
   "Read and advance over an unsigned byte.
-Return a fixnum."
+Return the byte's value as an integer."
   (prog1 (char-after)
     (forward-char)))
 
 (defsubst vc-hg--read-u32-be ()
-  "Read and advance over a big-endian unsigned 32-bit integer.
-Return a fixnum; on overflow, result is undefined."
+  "Read and advance over a big-endian unsigned 32-bit integer."
   ;; Because elisp bytecode has an instruction for multiply and
-  ;; doesn't have one for lsh, it's somewhat counter-intuitively
+  ;; doesn't have one for shift, it's somewhat counter-intuitively
   ;; faster to multiply than to shift.
   (+ (* (vc-hg--read-u8) (* 256 256 256))
      (* (vc-hg--read-u8) (* 256 256))
@@ -627,9 +626,7 @@ Return a fixnum; on overflow, result is undefined."
       ;; hundreds of thousands of times, so performance is important
       ;; here
       (while (< (point) search-limit)
-        ;; 1+4*4 is the length of the dirstate item header, which we
-        ;; spell as a literal for performance, since the elisp
-        ;; compiler lacks constant propagation
+        ;; 1+4*4 is the length of the dirstate item header.
         (forward-char (1+ (* 3 4)))
         (let ((this-flen (vc-hg--read-u32-be)))
           (if (and (or (eq this-flen flen)
@@ -917,7 +914,7 @@ FILENAME must be the file's true absolute name."
       (setf ignored (string-match (pop patterns) filename)))
     ignored))
 
-(defun vc-hg--time-to-fixnum (ts)
+(defun vc-hg--time-to-integer (ts)
   (+ (* 65536 (car ts)) (cadr ts)))
 
 (defvar vc-hg--cached-ignore-patterns nil
@@ -1016,8 +1013,6 @@ hg binary."
          (not (vc-hg--requirements-understood-p repo))
          ;; Dirstate too small to be valid
          (< (nth 7 dirstate-attr) 40)
-         ;; We want to store 32-bit unsigned values in fixnums.
-         (zerop (lsh -1 32))
          (progn
            (setf repo-relative-filename
                  (file-relative-name truename repo))
@@ -1042,7 +1037,7 @@ hg binary."
                (let ((vc-hg-size (nth 2 dirstate-entry))
                      (vc-hg-mtime (nth 3 dirstate-entry))
                      (fs-size (nth 7 stat))
-                     (fs-mtime (vc-hg--time-to-fixnum (nth 5 stat))))
+                     (fs-mtime (vc-hg--time-to-integer (nth 5 stat))))
                  (if (and (eql vc-hg-size fs-size) (eql vc-hg-mtime fs-mtime))
                      'up-to-date
                    'edited)))

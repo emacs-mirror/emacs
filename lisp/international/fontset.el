@@ -487,7 +487,7 @@
 	 (data (list (vconcat (mapcar 'car cjk))))
 	 (i 0))
     (dolist (elt cjk)
-      (let ((mask (lsh 1 i)))
+      (let ((mask (ash 1 i)))
 	(map-charset-chars
 	 #'(lambda (range _arg)
 	     (let ((from (car range)) (to (cdr range)))
@@ -867,7 +867,7 @@
 	    (spec (cdr target-spec)))
 	(if (integerp spec)
 	    (dotimes (i (length registries))
-	      (if (> (logand spec (lsh 1 i)) 0)
+	      (if (> (logand spec (ash 1 i)) 0)
 		  (set-fontset-font "fontset-default" target
 				    (cons nil (aref registries i))
 				    nil 'append)))

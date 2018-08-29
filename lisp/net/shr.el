@@ -68,6 +68,13 @@ fit these criteria."
   :group 'shr
   :type 'boolean)
 
+(defcustom shr-discard-aria-hidden nil
+  "If non-nil, don't render tags with `aria-hidden=\"true\"'.
+This attribute is meant to tell screen readers to ignore a tag."
+  :version "27.1"
+  :group 'shr
+  :type 'boolean)
+
 (defcustom shr-use-colors t
   "If non-nil, respect color specifications in the HTML."
   :version "26.1"
@@ -509,7 +516,9 @@ size, and full-buffer size."
 					shr-stylesheet))
 	  (setq style nil)))
       ;; If we have a display:none, then just ignore this part of the DOM.
-      (unless (equal (cdr (assq 'display shr-stylesheet)) "none")
+      (unless (or (equal (cdr (assq 'display shr-stylesheet)) "none")
+                  (and shr-discard-aria-hidden
+                       (equal (dom-attr dom 'aria-hidden) "true")))
         ;; We don't use shr-indirect-call here, since shr-descend is
         ;; the central bit of shr.el, and should be as fast as
         ;; possible.  Having one more level of indirection with its

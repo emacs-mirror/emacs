@@ -317,7 +317,7 @@ build_wcs_upper_buffer (re_string_t *pstr)
 	  mbclen = __mbrtowc (&wc,
 			      ((const char *) pstr->raw_mbs + pstr->raw_mbs_idx
 			       + byte_idx), remain_len, &pstr->cur_state);
-	  if (BE (mbclen < (size_t) -2, 1))
+	  if (BE (0 < mbclen && mbclen < (size_t) -2, 1))
 	    {
 	      wchar_t wcu = __towupper (wc);
 	      if (wcu != wc)
@@ -386,7 +386,7 @@ build_wcs_upper_buffer (re_string_t *pstr)
 	else
 	  p = (const char *) pstr->raw_mbs + pstr->raw_mbs_idx + src_idx;
 	mbclen = __mbrtowc (&wc, p, remain_len, &pstr->cur_state);
-	if (BE (mbclen < (size_t) -2, 1))
+	if (BE (0 < mbclen && mbclen < (size_t) -2, 1))
 	  {
 	    wchar_t wcu = __towupper (wc);
 	    if (wcu != wc)

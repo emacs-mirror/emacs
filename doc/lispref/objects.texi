@@ -190,9 +190,10 @@ but many machines provide a wider range.
 fixnum will return a bignum instead.
 
   Fixnums can be compared with @code{eq}, but bignums require
-@code{eql} or @code{=}.  The @code{fixnump} predicate can be used to
-detect such small integers, and @code{bignump} can be used to detect
-large integers.
+@code{eql} or @code{=}.  To test whether an integer is a fixnum or a
+bignum, you can compare it to @code{most-negative-fixnum} and
+@code{most-positive-fixnum}, or you can use the convenience predicates
+@code{fixnump} and @code{bignump} on any object.
 
   The read syntax for integers is a sequence of (base ten) digits with an
 optional sign at the beginning and an optional period at the end.  The

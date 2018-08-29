@@ -1279,8 +1279,8 @@ for this to be permanent."
   ;; Format a timestamp as 11 octal digits.  Ghod, I hope this works...
   (let ((hibits (car timeval)) (lobits (car (cdr timeval))))
     (format "%05o%01o%05o"
-	    (lsh hibits -2)
-	    (logior (lsh (logand 3 hibits) 1)
+	    (ash hibits -2)
+	    (logior (ash (logand 3 hibits) 1)
 		    (if (> (logand lobits 32768) 0) 1 0))
 	    (logand 32767 lobits)
 	    )))

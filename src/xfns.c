@@ -3866,10 +3866,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
      Also process `min-width' and `min-height' parameters right here
      because `frame-windows-min-size' needs them.  */
   tem = x_get_arg (dpyinfo, parms, Qmin_width, NULL, NULL, RES_TYPE_NUMBER);
-  if (FIXED_OR_FLOATP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_width, tem);
   tem = x_get_arg (dpyinfo, parms, Qmin_height, NULL, NULL, RES_TYPE_NUMBER);
-  if (FIXED_OR_FLOATP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_height, tem);
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, true,

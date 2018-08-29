@@ -30,11 +30,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <float.h>
 #include <inttypes.h>
 #include <limits.h>
-#ifdef HAVE_GMP
-#include <gmp.h>
-#else
-#include "mini-gmp.h"
-#endif
 
 #include <intprops.h>
 #include <verify.h>
@@ -361,10 +356,13 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_CHECK_SYMBOL(x) CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
 #define lisp_h_CHECK_TYPE(ok, predicate, x) \
    ((ok) ? (void) 0 : wrong_type_argument (predicate, x))
-#define lisp_h_CONSP(x) (XTYPE (x) == Lisp_Cons)
+#define lisp_h_CONSP(x) TAGGEDP (x, Lisp_Cons)
 #define lisp_h_EQ(x, y) (XLI (x) == XLI (y))
-#define lisp_h_FLOATP(x) (XTYPE (x) == Lisp_Float)
-#define lisp_h_FIXNUMP(x) ((XTYPE (x) & (Lisp_Int0 | ~Lisp_Int1)) == Lisp_Int0)
+#define lisp_h_FIXNUMP(x) \
+   (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) \
+	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG)) \
+       & ((1 << INTTYPEBITS) - 1)))
+#define lisp_h_FLOATP(x) TAGGEDP (x, Lisp_Float)
 #define lisp_h_NILP(x) EQ (x, Qnil)
 #define lisp_h_SET_SYMBOL_VAL(sym, v) \
    (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), \
@@ -374,8 +372,12 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_SYMBOL_TRAPPED_WRITE_P(sym) (XSYMBOL (sym)->u.s.trapped_write)
 #define lisp_h_SYMBOL_VAL(sym) \
    (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), (sym)->u.s.val.value)
-#define lisp_h_SYMBOLP(x) (XTYPE (x) == Lisp_Symbol)
-#define lisp_h_VECTORLIKEP(x) (XTYPE (x) == Lisp_Vectorlike)
+#define lisp_h_SYMBOLP(x) TAGGEDP (x, Lisp_Symbol)
+#define lisp_h_TAGGEDP(a, tag) \
+   (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
+	- (unsigned) (tag)) \
+       & ((1 << GCTYPEBITS) - 1)))
+#define lisp_h_VECTORLIKEP(x) TAGGEDP (x, Lisp_Vectorlike)
 #define lisp_h_XCAR(c) XCONS (c)->u.s.car
 #define lisp_h_XCDR(c) XCONS (c)->u.s.u.cdr
 #define lisp_h_XCONS(a) \
@@ -434,6 +436,7 @@ typedef EMACS_INT Lisp_Word;
 # define SYMBOL_TRAPPED_WRITE_P(sym) lisp_h_SYMBOL_TRAPPED_WRITE_P (sym)
 # define SYMBOL_VAL(sym) lisp_h_SYMBOL_VAL (sym)
 # define SYMBOLP(x) lisp_h_SYMBOLP (x)
+# define TAGGEDP(a, tag) lisp_h_TAGGEDP (a, tag)
 # define VECTORLIKEP(x) lisp_h_VECTORLIKEP (x)
 # define XCAR(c) lisp_h_XCAR (c)
 # define XCDR(c) lisp_h_XCDR (c)
@@ -580,6 +583,11 @@ enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = false };
 INLINE void set_sub_char_table_contents (Lisp_Object, ptrdiff_t,
 					      Lisp_Object);
 
+/* Defined in bignum.c.  */
+extern double bignum_to_double (Lisp_Object);
+extern Lisp_Object make_bigint (intmax_t);
+extern Lisp_Object make_biguint (uintmax_t);
+
 /* Defined in chartab.c.  */
 extern Lisp_Object char_table_ref (Lisp_Object, int);
 extern void char_table_set (Lisp_Object, int, Lisp_Object);
@@ -644,6 +652,15 @@ INLINE enum Lisp_Type
   EMACS_UINT i = XLI (a);
   return USE_LSB_TAG ? i & ~VALMASK : i >> VALBITS;
 #endif
+}
+
+/* True if A has type tag TAG.
+   Equivalent to XTYPE (a) == TAG, but often faster.  */
+
+INLINE bool
+(TAGGEDP) (Lisp_Object a, enum Lisp_Type tag)
+{
+  return lisp_h_TAGGEDP (a, tag);
 }
 
 INLINE void
@@ -1122,7 +1139,7 @@ INLINE Lisp_Object
 make_lisp_ptr (void *ptr, enum Lisp_Type type)
 {
   Lisp_Object a = TAG_PTR (type, ptr);
-  eassert (XTYPE (a) == type && XUNTAG (a, type, char) == ptr);
+  eassert (TAGGEDP (a, type) && XUNTAG (a, type, char) == ptr);
   return a;
 }
 
@@ -1355,7 +1372,7 @@ verify (alignof (struct Lisp_String) % GCALIGNMENT == 0);
 INLINE bool
 STRINGP (Lisp_Object x)
 {
-  return XTYPE (x) == Lisp_String;
+  return TAGGEDP (x, Lisp_String);
 }
 
 INLINE void
@@ -2434,23 +2451,10 @@ XUSER_PTR (Lisp_Object a)
 }
 #endif
 
-struct Lisp_Bignum
-{
-  union vectorlike_header header;
-  mpz_t value;
-};
-
 INLINE bool
 BIGNUMP (Lisp_Object x)
 {
   return PSEUDOVECTORP (x, PVEC_BIGNUM);
-}
-
-INLINE struct Lisp_Bignum *
-XBIGNUM (Lisp_Object a)
-{
-  eassert (BIGNUMP (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Bignum);
 }
 
 INLINE bool
@@ -2458,6 +2462,22 @@ INTEGERP (Lisp_Object x)
 {
   return FIXNUMP (x) || BIGNUMP (x);
 }
+
+/* Return a Lisp integer with value taken from n.  */
+INLINE Lisp_Object
+make_int (intmax_t n)
+{
+  return FIXNUM_OVERFLOW_P (n) ? make_bigint (n) : make_fixnum (n);
+}
+INLINE Lisp_Object
+make_uint (uintmax_t n)
+{
+  return FIXNUM_OVERFLOW_P (n) ? make_biguint (n) : make_fixnum (n);
+}
+
+/* Return a Lisp integer equal to the value of the C integer EXPR.  */
+#define INT_TO_INTEGER(expr) \
+  (EXPR_SIGNED (expr) ? make_int (expr) : make_uint (expr))
 
 
 /* Forwarding pointer to an int variable.
@@ -2662,20 +2682,8 @@ enum char_bits
 /* Data type checking.  */
 
 INLINE bool
-FIXED_OR_FLOATP (Lisp_Object x)
-{
-  return FIXNUMP (x) || FLOATP (x);
-}
-INLINE bool
 FIXNATP (Lisp_Object x)
 {
-  return FIXNUMP (x) && 0 <= XFIXNUM (x);
-}
-INLINE bool
-NATNUMP (Lisp_Object x)
-{
-  if (BIGNUMP (x))
-    return mpz_sgn (XBIGNUM (x)->value) >= 0;
   return FIXNUMP (x) && 0 <= XFIXNUM (x);
 }
 INLINE bool
@@ -2822,15 +2830,9 @@ CHECK_FIXNAT (Lisp_Object x)
 INLINE double
 XFLOATINT (Lisp_Object n)
 {
-  if (BIGNUMP (n))
-    return mpz_get_d (XBIGNUM (n)->value);
-  return FLOATP (n) ? XFLOAT_DATA (n) : XFIXNUM (n);
-}
-
-INLINE void
-CHECK_FIXNUM_OR_FLOAT (Lisp_Object x)
-{
-  CHECK_TYPE (FIXED_OR_FLOATP (x), Qnumberp, x);
+  return (FIXNUMP (n) ? XFIXNUM (n)
+	  : FLOATP (n) ? XFLOAT_DATA (n)
+	  : bignum_to_double (n));
 }
 
 INLINE void
@@ -2844,14 +2846,6 @@ CHECK_INTEGER (Lisp_Object x)
 {
   CHECK_TYPE (INTEGERP (x), Qnumberp, x);
 }
-
-#define CHECK_FIXNUM_OR_FLOAT_COERCE_MARKER(x)				\
-  do {									\
-    if (MARKERP (x))							\
-      XSETFASTINT (x, marker_position (x));				\
-    else								\
-      CHECK_TYPE (FIXED_OR_FLOATP (x), Qnumber_or_marker_p, x);		\
-  } while (false)
 
 #define CHECK_NUMBER_COERCE_MARKER(x)					\
   do {									\
@@ -3284,6 +3278,13 @@ set_sub_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
   XSUB_CHAR_TABLE (table)->contents[idx] = val;
 }
 
+/* Defined in bignum.c.  */
+extern intmax_t bignum_to_intmax (Lisp_Object);
+extern uintmax_t bignum_to_uintmax (Lisp_Object);
+extern Lisp_Object bignum_to_string (Lisp_Object, int);
+extern Lisp_Object make_bignum_str (char const *, int);
+extern Lisp_Object double_to_bignum (double);
+
 /* Defined in data.c.  */
 extern _Noreturn void wrong_choice (Lisp_Object, Lisp_Object);
 extern void notify_variable_watchers (Lisp_Object, Lisp_Object,
@@ -3300,16 +3301,6 @@ enum Arith_Comparison {
 };
 extern Lisp_Object arithcompare (Lisp_Object num1, Lisp_Object num2,
                                  enum Arith_Comparison comparison);
-
-/* Convert the integer I to an Emacs representation, either the integer
-   itself, or a cons of two or three integers, or if all else fails a float.
-   I should not have side effects.  */
-#define INTEGER_TO_CONS(i)					    \
-  (! FIXNUM_OVERFLOW_P (i)					    \
-   ? make_fixnum (i)						    \
-   : EXPR_SIGNED (i) ? intbig_to_lisp (i) : uintbig_to_lisp (i))
-extern Lisp_Object intbig_to_lisp (intmax_t);
-extern Lisp_Object uintbig_to_lisp (uintmax_t);
 
 /* Convert the Emacs representation CONS back to an integer of type
    TYPE, storing the result the variable VAR.  Signal an error if CONS
@@ -3337,7 +3328,7 @@ extern void set_internal (Lisp_Object, Lisp_Object, Lisp_Object,
                           enum Set_Internal_Bind);
 extern void set_default_internal (Lisp_Object, Lisp_Object,
                                   enum Set_Internal_Bind bindflag);
-
+extern Lisp_Object expt_integer (Lisp_Object, Lisp_Object);
 extern void syms_of_data (void);
 extern void swap_in_global_binding (struct Lisp_Symbol *);
 
@@ -3556,22 +3547,6 @@ extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 enum constype {CONSTYPE_HEAP, CONSTYPE_PURE};
 extern Lisp_Object listn (enum constype, ptrdiff_t, Lisp_Object, ...);
 
-extern Lisp_Object make_bignum_str (const char *num, int base);
-extern Lisp_Object make_number (mpz_t value);
-extern void mpz_set_intmax_slow (mpz_t result, intmax_t v);
-
-INLINE void
-mpz_set_intmax (mpz_t result, intmax_t v)
-{
-  /* mpz_set_si works in terms of long, but Emacs may use a wider
-     integer type, and so sometimes will have to construct the mpz_t
-     by hand.  */
-  if (sizeof (intmax_t) > sizeof (long) && (long) v != v)
-    mpz_set_intmax_slow (result, v);
-  else
-    mpz_set_si (result, v);
-}
-
 /* Build a frequently used 2/3/4-integer lists.  */
 
 INLINE Lisp_Object
@@ -3699,6 +3674,7 @@ extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
+extern _Noreturn void range_error (void);
 extern void init_alloc_once (void);
 extern void init_alloc (void);
 extern void syms_of_alloc (void);
@@ -4480,12 +4456,6 @@ extern void init_system_name (void);
    because 'abs' is reserved by the C standard.  */
 #define eabs(x)         ((x) < 0 ? -(x) : (x))
 
-/* Return a fixnum or float, depending on whether the integer VAL fits
-   in a Lisp fixnum.  */
-
-#define make_fixnum_or_float(val) \
-   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_fixnum (val))
-
 /* SAFE_ALLOCA normally allocates memory on the stack, but if size is
    larger than MAX_ALLOCA, use xmalloc to avoid overflowing the stack.  */
 
@@ -4683,6 +4653,11 @@ enum
 	((&(struct Lisp_String) {{{len, -1, 0, (unsigned char *) (str)}}}), \
 	 Lisp_String))							\
      : make_unibyte_string (str, len))
+
+/* The maximum length of "small" lists, as a heuristic.  These lists
+   are so short that code need not check for cycles or quits while
+   traversing.  */
+enum { SMALL_LIST_LEN_MAX = 127 };
 
 /* Loop over conses of the list TAIL, signaling if a cycle is found,
    and possibly quitting after each loop iteration.  In the loop body,

@@ -117,7 +117,7 @@ updated.  Set this variable to t to disable the check.")
 	length)
     (while (not ended)
       (setq length (dns-read-bytes 1))
-      (if (= 192 (logand length (lsh 3 6)))
+      (if (= 192 (logand length (ash 3 6)))
 	  (let ((offset (+ (* (logand 63 length) 256)
 			   (dns-read-bytes 1))))
 	    (save-excursion
@@ -144,17 +144,17 @@ If TCP-P, the first two bytes of the package with be the length field."
     (dns-write-bytes (dns-get 'id spec) 2)
     (dns-write-bytes
      (logior
-      (lsh (if (dns-get 'response-p spec) 1 0) -7)
-      (lsh
+      (ash (if (dns-get 'response-p spec) 1 0) 7)
+      (ash
        (cond
 	((eq (dns-get 'opcode spec) 'query) 0)
 	((eq (dns-get 'opcode spec) 'inverse-query) 1)
 	((eq (dns-get 'opcode spec) 'status) 2)
 	(t (error "No such opcode: %s" (dns-get 'opcode spec))))
-       -3)
-      (lsh (if (dns-get 'authoritative-p spec) 1 0) -2)
-      (lsh (if (dns-get 'truncated-p spec) 1 0) -1)
-      (lsh (if (dns-get 'recursion-desired-p spec) 1 0) 0)))
+       3)
+      (ash (if (dns-get 'authoritative-p spec) 1 0) 2)
+      (ash (if (dns-get 'truncated-p spec) 1 0) 1)
+      (ash (if (dns-get 'recursion-desired-p spec) 1 0) 0)))
     (dns-write-bytes
      (cond
       ((eq (dns-get 'response-code spec) 'no-error) 0)
@@ -198,20 +198,20 @@ If TCP-P, the first two bytes of the package with be the length field."
       (goto-char (point-min))
       (push (list 'id (dns-read-bytes 2)) spec)
       (let ((byte (dns-read-bytes 1)))
-        (push (list 'response-p (if (zerop (logand byte (lsh 1 7))) nil t))
+        (push (list 'response-p (if (zerop (logand byte (ash 1 7))) nil t))
               spec)
-        (let ((opcode (logand byte (lsh 7 3))))
+        (let ((opcode (logand byte (ash 7 3))))
           (push (list 'opcode
                       (cond ((eq opcode 0) 'query)
                             ((eq opcode 1) 'inverse-query)
                             ((eq opcode 2) 'status)))
                 spec))
-        (push (list 'authoritative-p (if (zerop (logand byte (lsh 1 2)))
+        (push (list 'authoritative-p (if (zerop (logand byte (ash 1 2)))
                                          nil t)) spec)
-        (push (list 'truncated-p (if (zerop (logand byte (lsh 1 2))) nil t))
+        (push (list 'truncated-p (if (zerop (logand byte (ash 1 2))) nil t))
               spec)
         (push (list 'recursion-desired-p
-                    (if (zerop (logand byte (lsh 1 0))) nil t)) spec))
+                    (if (zerop (logand byte (ash 1 0))) nil t)) spec))
       (let ((rc (logand (dns-read-bytes 1) 15)))
         (push (list 'response-code
                     (cond

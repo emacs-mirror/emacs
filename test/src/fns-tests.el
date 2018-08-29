@@ -624,4 +624,25 @@
         (should (eq (gethash b2 hash)
                     (funcall test b1 b2)))))))
 
+(ert-deftest test-nthcdr-simple ()
+  (should (eq (nthcdr 0 'x) 'x))
+  (should (eq (nthcdr 1 '(x . y)) 'y))
+  (should (eq (nthcdr 2 '(x y . z)) 'z)))
+
+(ert-deftest test-nthcdr-circular ()
+  (dolist (len '(1 2 5 37 120 997 1024))
+    (let ((cycle (make-list len nil)))
+      (setcdr (last cycle) cycle)
+      (dolist (n (list (1- most-negative-fixnum) most-negative-fixnum
+                       -1 0 1
+                       (1- len) len (1+ len)
+                       most-positive-fixnum (1+ most-positive-fixnum)
+                       (* 2 most-positive-fixnum)
+                       (* most-positive-fixnum most-positive-fixnum)
+                       (ash 1 12345)))
+        (let ((a (nthcdr n cycle))
+              (b (if (<= n 0) cycle (nthcdr (mod n len) cycle))))
+          (should (equal (list (eq a b) n len)
+                         (list t n len))))))))
+
 (provide 'fns-tests)

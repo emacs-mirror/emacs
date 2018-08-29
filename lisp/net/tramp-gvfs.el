@@ -1273,10 +1273,9 @@ file-notify events."
 	   (used (cdr (assoc "filesystem::used" attr)))
 	   (free (cdr (assoc "filesystem::free" attr))))
       (when (and (stringp size) (stringp used) (stringp free))
-	(list (string-to-number (concat size "e0"))
-	      (- (string-to-number (concat size "e0"))
-		 (string-to-number (concat used "e0")))
-	      (string-to-number (concat free "e0")))))))
+	(list (string-to-number size)
+	      (- (string-to-number size) (string-to-number used))
+	      (string-to-number free))))))
 
 (defun tramp-gvfs-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."

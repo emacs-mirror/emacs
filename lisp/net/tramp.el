@@ -7,6 +7,8 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
+;; Version: 2.4.1-pre
+;; Package-Requires: ((emacs "24.1"))
 
 ;; This file is part of GNU Emacs.
 
@@ -34,8 +36,6 @@
 ;;
 ;; Notes:
 ;; -----
-;;
-;; This package only works for Emacs 24.1 and higher.
 ;;
 ;; Also see the todo list at the bottom of this file.
 ;;
@@ -4150,13 +4150,13 @@ This is used to map a mode number to a permission string.")
 (defun tramp-file-mode-from-int (mode)
   "Turn an integer representing a file mode into an ls(1)-like string."
   (let ((type	(cdr
-		 (assoc (logand (lsh mode -12) 15) tramp-file-mode-type-map)))
-	(user	(logand (lsh mode -6) 7))
-	(group	(logand (lsh mode -3) 7))
-	(other	(logand (lsh mode -0) 7))
-	(suid	(> (logand (lsh mode -9) 4) 0))
-	(sgid	(> (logand (lsh mode -9) 2) 0))
-	(sticky	(> (logand (lsh mode -9) 1) 0)))
+		 (assoc (logand (ash mode -12) 15) tramp-file-mode-type-map)))
+	(user	(logand (ash mode -6) 7))
+	(group	(logand (ash mode -3) 7))
+	(other	(logand (ash mode -0) 7))
+	(suid	(> (logand (ash mode -9) 4) 0))
+	(sgid	(> (logand (ash mode -9) 2) 0))
+	(sticky	(> (logand (ash mode -9) 1) 0)))
     (setq user  (tramp-file-mode-permissions user  suid "s"))
     (setq group (tramp-file-mode-permissions group sgid "s"))
     (setq other (tramp-file-mode-permissions other sticky "t"))

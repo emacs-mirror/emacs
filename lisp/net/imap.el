@@ -1696,18 +1696,6 @@ MAILBOX specifies a mailbox on the server in BUFFER."
 		  (concat "UID STORE " articles
 			  " +FLAGS" (if silent ".SILENT") " (" flags ")"))))))
 
-;; Cf. http://thread.gmane.org/gmane.emacs.gnus.general/65317/focus=65343
-;; Signal an error if we'd get an integer overflow.
-;;
-;; FIXME: Identify relevant calls to `string-to-number' and replace them with
-;; `imap-string-to-integer'.
-(defun imap-string-to-integer (string &optional base)
-  (let ((number (string-to-number string base)))
-    (if (> number most-positive-fixnum)
-	(error
-	 (format "String %s cannot be converted to a Lisp integer" number))
-      number)))
-
 (defun imap-fetch-safe (uids props &optional receive nouidfetch buffer)
   "Like `imap-fetch', but DTRT with Exchange 2007 bug.
 However, UIDS here is a cons, where the car is the canonical form

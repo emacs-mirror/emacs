@@ -32717,7 +32717,7 @@ create an intermediate set.
     (while (> n 0)
       (if (oddp n)
           (setq count (1+ count)))
-      (setq n (lsh n -1)))
+      (setq n (ash n -1)))
     count))
 @end smallexample
 
@@ -32761,7 +32761,7 @@ routines are especially fast when dividing by an integer less than
   (let ((count 0))
     (while (> n 0)
       (setq count (+ count (logand n 1))
-            n (lsh n -1)))
+            n (ash n -1)))
     count))
 @end smallexample
 
@@ -32774,7 +32774,7 @@ uses.
 
 The @code{idivmod} function does an integer division, returning both
 the quotient and the remainder at once.  Again, note that while it
-might seem that @samp{(logand n 511)} and @samp{(lsh n -9)} are
+might seem that @samp{(logand n 511)} and @samp{(ash n -9)} are
 more efficient ways to split off the bottom nine bits of @code{n},
 actually they are less efficient because each operation is really
 a division by 512 in disguise; @code{idivmod} allows us to do the
@@ -33275,19 +33275,18 @@ prefer them, or if you are calling these functions from regular Lisp.
 
 The functions described here are scattered throughout the various
 Calc component files.  Note that @file{calc.el} includes @code{autoload}s
-for only a few component files; when Calc wants to call an advanced
-function it calls @samp{(calc-extensions)} first; this function
-autoloads @file{calc-ext.el}, which in turn autoloads all the functions
-in the remaining component files.
+for only a few component files; to get autoloads of the more advanced
+function, one needs to load @file{calc-ext.el}, which in turn
+autoloads all the functions in the remaining component files.
 
 Because @code{defmath} itself uses the extensions, user-written code
 generally always executes with the extensions already loaded, so
 normally you can use any Calc function and be confident that it will
 be autoloaded for you when necessary.  If you are doing something
 special, check carefully to make sure each function you are using is
-from @file{calc.el} or its components, and call @samp{(calc-extensions)}
-before using any function based in @file{calc-ext.el} if you can't
-prove this file will already be loaded.
+from @file{calc.el} or its components, and use @w{@code{(require
+'calc-ext)}} before using any function based in @file{calc-ext.el} if
+you can't prove this file will already be loaded.
 
 @menu
 * Data Type Formats::

@@ -2135,9 +2135,9 @@ It must accept a buffer as its only required argument.")
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
                (let ((i 0)
-                     (limit (if (and (integerp buffers-menu-max-size)
-                                     (> buffers-menu-max-size 1))
-                                buffers-menu-max-size most-positive-fixnum))
+		     (limit (and (integerp buffers-menu-max-size)
+				 (> buffers-menu-max-size 1)
+				 buffers-menu-max-size))
                      alist)
 		 ;; Put into each element of buffer-list
 		 ;; the name for actual display,
@@ -2161,7 +2161,7 @@ It must accept a buffer as its only required argument.")
                              alist)
                        ;; If requested, list only the N most recently
                        ;; selected buffers.
-                       (when (= limit (setq i (1+ i)))
+                       (when (eql limit (setq i (1+ i)))
                          (setq buffers nil)))))
 		 (list (menu-bar-buffer-vector alist))))
 

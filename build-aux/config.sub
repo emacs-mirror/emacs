@@ -2,7 +2,7 @@
 # Configuration validation subroutine script.
 #   Copyright 1992-2018 Free Software Foundation, Inc.
 
-timestamp='2018-07-25'
+timestamp='2018-08-24'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -149,29 +149,39 @@ case $1 in
 		esac
 		;;
 	*-*)
-		# Second component is usually, but not always the OS
-		case $field2 in
-			# Prevent following clause from handling this valid os
-			sun*os*)
-				basic_machine=$field1
-				os=$field2
-				;;
-			# Manufacturers
-			dec* | mips* | sequent* | encore* | pc532* | sgi* | sony* \
-			| att* | 7300* | 3300* | delta* | motorola* | sun[234]* \
-			| unicom* | ibm* | next | hp | isi* | apollo | altos* \
-			| convergent* | ncr* | news | 32* | 3600* | 3100* | hitachi* \
-			| c[123]* | convex* | sun | crds | omron* | dg | ultra | tti* \
-			| harris | dolphin | highlevel | gould | cbm | ns | masscomp \
-			| apple | axis | knuth | cray | microblaze* \
-			| sim | cisco | oki | wec | wrs | winbond)
-				basic_machine=$field1-$field2
+		# A lone config we happen to match not fitting any patern
+		case $field1-$field2 in
+			decstation-3100)
+				basic_machine=mips-dec
 				os=
 				;;
-			*)
-				basic_machine=$field1
-				os=$field2
-				;;
+			*-*)
+				# Second component is usually, but not always the OS
+				case $field2 in
+					# Prevent following clause from handling this valid os
+					sun*os*)
+						basic_machine=$field1
+						os=$field2
+						;;
+					# Manufacturers
+					dec* | mips* | sequent* | encore* | pc533* | sgi* | sony* \
+					| att* | 7300* | 3300* | delta* | motorola* | sun[234]* \
+					| unicom* | ibm* | next | hp | isi* | apollo | altos* \
+					| convergent* | ncr* | news | 32* | 3600* | 3100* \
+					| hitachi* | c[123]* | convex* | sun | crds | omron* | dg \
+					| ultra | tti* | harris | dolphin | highlevel | gould \
+					| cbm | ns | masscomp | apple | axis | knuth | cray \
+					| microblaze* | sim | cisco \
+					| oki | wec | wrs | winbond)
+						basic_machine=$field1-$field2
+						os=
+						;;
+					*)
+						basic_machine=$field1
+						os=$field2
+						;;
+				esac
+			;;
 		esac
 		;;
 	*)
@@ -190,6 +200,14 @@ case $1 in
 				basic_machine=m68010-adobe
 				os=scout
 				;;
+			alliant)
+				basic_machine=fx80-alliant
+				os=
+				;;
+			altos | altos3068)
+				basic_machine=m68k-altos
+				os=
+				;;
 			am29k)
 				basic_machine=a29k-none
 				os=bsd
@@ -197,6 +215,10 @@ case $1 in
 			amdahl)
 				basic_machine=580-amdahl
 				os=sysv
+				;;
+			amiga)
+				basic_machine=m68k-unknown
+				os=
 				;;
 			amigaos | amigados)
 				basic_machine=m68k-unknown
@@ -234,13 +256,41 @@ case $1 in
 				basic_machine=arm-unknown
 				os=cegcc
 				;;
+			convex-c1)
+				basic_machine=c1-convex
+				os=bsd
+				;;
+			convex-c2)
+				basic_machine=c2-convex
+				os=bsd
+				;;
+			convex-c32)
+				basic_machine=c32-convex
+				os=bsd
+				;;
+			convex-c34)
+				basic_machine=c34-convex
+				os=bsd
+				;;
+			convex-c38)
+				basic_machine=c38-convex
+				os=bsd
+				;;
 			cray)
 				basic_machine=j90-cray
 				os=unicos
 				;;
-			craynv)
-				basic_machine=craynv-cray
-				os=unicosmp
+			crds | unos)
+				basic_machine=m68k-crds
+				os=
+				;;
+			da30)
+				basic_machine=m68k-da30
+				os=
+				;;
+			decstation | pmax | pmin | dec3100 | decstatn)
+				basic_machine=mips-dec
+				os=
 				;;
 			delta88)
 				basic_machine=m88k-motorola
@@ -285,6 +335,9 @@ case $1 in
 			harris)
 				basic_machine=m88k-harris
 				os=sysv3
+				;;
+			hp300)
+				basic_machine=m68k-hp
 				;;
 			hp300bsd)
 				basic_machine=m68k-hp
@@ -454,13 +507,25 @@ case $1 in
 				basic_machine=mips-sei
 				os=seiux
 				;;
+			sequent)
+				basic_machine=i386-sequent
+				os=
+				;;
 			sps7)
 				basic_machine=m68k-bull
 				os=sysv2
 				;;
+			st2000)
+				basic_machine=m68k-tandem
+				os=
+				;;
 			stratus)
 				basic_machine=i860-stratus
 				os=sysv4
+				;;
+			sun2)
+				basic_machine=m68000-sun
+				os=
 				;;
 			sun2os3)
 				basic_machine=m68000-sun
@@ -470,6 +535,10 @@ case $1 in
 				basic_machine=m68000-sun
 				os=sunos4
 				;;
+			sun3)
+				basic_machine=m68k-sun
+				os=
+				;;
 			sun3os3)
 				basic_machine=m68k-sun
 				os=sunos3
@@ -477,6 +546,10 @@ case $1 in
 			sun3os4)
 				basic_machine=m68k-sun
 				os=sunos4
+				;;
+			sun4)
+				basic_machine=sparc-sun
+				os=
 				;;
 			sun4os3)
 				basic_machine=sparc-sun
@@ -489,6 +562,10 @@ case $1 in
 			sun4sol2)
 				basic_machine=sparc-sun
 				os=solaris2
+				;;
+			sun386 | sun386i | roadrunner)
+				basic_machine=i386-sun
+				os=
 				;;
 			sv1)
 				basic_machine=sv1-cray
@@ -564,234 +641,67 @@ esac
 
 # Decode aliases for certain CPU-COMPANY combinations.
 case $basic_machine in
-	# Recognize the basic CPU types without company name.
-	# Some are omitted here because they have special meanings below.
-	1750a | 580 \
-	| a29k \
-	| aarch64 | aarch64_be \
-	| abacus \
-	| alpha | alphaev[4-8] | alphaev56 | alphaev6[78] | alphapca5[67] \
-	| alpha64 | alpha64ev[4-8] | alpha64ev56 | alpha64ev6[78] | alpha64pca5[67] \
-	| am33_2.0 \
-	| arc | arceb \
-	| arm | arm[bl]e | arme[lb] | armv[2-8] | armv[3-8][lb] | armv6m | armv[78][arm] \
-	| avr | avr32 \
-	| asmjs \
-	| ba \
-	| be32 | be64 \
-	| bfin \
-	| c4x | c8051 | clipper | csky \
-	| d10v | d30v | dlx | dsp16xx \
-	| e2k | epiphany \
-	| fido | fr30 | frv | ft32 \
-	| h8300 | h8500 | hppa | hppa1.[01] | hppa2.0 | hppa2.0[nw] | hppa64 \
-	| hexagon \
-	| i370 | i860 | i960 | ia16 | ia64 \
-	| ip2k | iq2000 \
-	| k1om \
-	| le32 | le64 \
-	| lm32 \
-	| m32c | m32r | m32rle | m68000 | m68k | m88k \
-	| maxq | mb | microblaze | microblazeel | mcore | mep | metag \
-	| mips | mipsbe | mipseb | mipsel | mipsle \
-	| mips16 \
-	| mips64 | mips64el \
-	| mips64octeon | mips64octeonel \
-	| mips64orion | mips64orionel \
-	| mips64r5900 | mips64r5900el \
-	| mips64vr | mips64vrel \
-	| mips64vr4100 | mips64vr4100el \
-	| mips64vr4300 | mips64vr4300el \
-	| mips64vr5000 | mips64vr5000el \
-	| mips64vr5900 | mips64vr5900el \
-	| mipsisa32 | mipsisa32el \
-	| mipsisa32r2 | mipsisa32r2el \
-	| mipsisa32r6 | mipsisa32r6el \
-	| mipsisa64 | mipsisa64el \
-	| mipsisa64r2 | mipsisa64r2el \
-	| mipsisa64r6 | mipsisa64r6el \
-	| mipsisa64sb1 | mipsisa64sb1el \
-	| mipsisa64sr71k | mipsisa64sr71kel \
-	| mipsr5900 | mipsr5900el \
-	| mipstx39 | mipstx39el \
-	| mn10200 | mn10300 \
-	| moxie \
-	| mt \
-	| msp430 \
-	| nds32 | nds32le | nds32be \
-	| nfp \
-	| nios | nios2 | nios2eb | nios2el \
-	| ns16k | ns32k \
-	| open8 | or1k | or1knd | or32 \
-	| pdp10 | pj | pjl \
-	| powerpc | powerpc64 | powerpc64le | powerpcle \
-	| pru \
-	| pyramid \
-	| riscv | riscv32 | riscv64 \
-	| rl78 | rx \
-	| score \
-	| sh | sh[1234] | sh[24]a | sh[24]aeb | sh[23]e | sh[234]eb | sheb | shbe | shle | sh[1234]le | sh[23]ele \
-	| sh64 | sh64le \
-	| sparc | sparc64 | sparc64b | sparc64v | sparc86x | sparclet | sparclite \
-	| sparcv8 | sparcv9 | sparcv9b | sparcv9v \
-	| spu \
-	| tahoe | tic4x | tic54x | tic55x | tic6x | tic80 | tron \
-	| ubicom32 \
-	| v850 | v850e | v850e1 | v850e2 | v850es | v850e2v3 \
-	| visium \
-	| wasm32 \
-	| x86 | xc16x | xstormy16 | xtensa \
-	| z8k | z80)
-		basic_machine=$basic_machine-unknown
+	# Here we handle the default manufacturer of certain CPU types.  It is in
+	# some cases the only manufacturer, in others, it is the most popular.
+	craynv)
+		basic_machine=craynv-cray
+		os=${os:-unicosmp}
 		;;
-	c54x)
-		basic_machine=tic54x-unknown
+	fx80)
+		basic_machine=fx80-alliant
 		;;
-	c55x)
-		basic_machine=tic55x-unknown
+	w89k)
+		basic_machine=hppa1.1-winbond
 		;;
-	c6x)
-		basic_machine=tic6x-unknown
+	op50n)
+		basic_machine=hppa1.1-oki
 		;;
-	leon|leon[3-9])
-		basic_machine=sparc-$basic_machine
+	op60c)
+		basic_machine=hppa1.1-oki
 		;;
-	m6811-* | m68hc11-* | m6812-* | m68hc12-* | m68hcs12x-* | nvptx-* | picochip-*)
+	romp)
+		basic_machine=romp-ibm
 		;;
-	m6811 | m68hc11 | m6812 | m68hc12 | m68hcs12x | nvptx | picochip)
-		basic_machine=$basic_machine-unknown
+	mmix)
+		basic_machine=mmix-knuth
 		;;
-	m88110 | m680[12346]0 | m683?2 | m68360 | m5200 | v70 | w65)
+	rs6000)
+		basic_machine=rs6000-ibm
 		;;
-	m9s12z | m68hcs12z | hcs12z | s12z)
-		basic_machine=s12z-unknown
+	vax)
+		basic_machine=vax-dec
 		;;
-	m9s12z-* | m68hcs12z-* | hcs12z-* | s12z-*)
-		basic_machine=s12z-`echo "$basic_machine" | sed 's/^[^-]*-//'`
+	pdp11)
+		basic_machine=pdp11-dec
 		;;
-	ms1)
-		basic_machine=mt-unknown
+	we32k)
+		basic_machine=we32k-att
 		;;
-	strongarm | thumb | xscale)
-		basic_machine=arm-unknown
+	cydra)
+		basic_machine=cydra-cydrome
 		;;
-	xgate)
-		basic_machine=$basic_machine-unknown
+	i370-ibm* | ibm*)
+		basic_machine=i370-ibm
 		;;
-	xgate-*)
+	orion)
+		basic_machine=orion-highlevel
 		;;
-	xscaleeb)
-		basic_machine=armeb-unknown
+	orion105)
+		basic_machine=clipper-highlevel
+		;;
+	mac | mpw | mac-mpw)
+		basic_machine=m68k-apple
+		;;
+	microblaze | microblazeel)
+		basic_machine=$basic_machine-xilinx
+		;;
+	pmac | pmac-mpw)
+		basic_machine=powerpc-apple
+		;;
+	xps | xps100)
+		basic_machine=xps100-honeywell
 		;;
 
-	xscaleel)
-		basic_machine=armel-unknown
-		;;
-
-	# We use `pc' rather than `unknown'
-	# because (1) that's what they normally are, and
-	# (2) the word "unknown" tends to confuse beginning users.
-	i*86 | x86_64)
-	  basic_machine=$basic_machine-pc
-	  ;;
-	# Recognize the basic CPU types with company name.
-	1750a-* | 580-* \
-	| a29k-* \
-	| aarch64-* | aarch64_be-* \
-	| abacus-* \
-	| alpha-* | alphaev[4-8]-* | alphaev56-* | alphaev6[78]-* \
-	| alpha64-* | alpha64ev[4-8]-* | alpha64ev56-* | alpha64ev6[78]-* \
-	| alphapca5[67]-* | alpha64pca5[67]-* \
-	| am33_2.0-* \
-	| arc-* | arceb-* \
-	| arm-*  | arm[lb]e-* | arme[lb]-* | armv*-* \
-	| avr-* | avr32-* \
-	| asmjs-* \
-	| ba-* \
-	| be32-* | be64-* \
-	| bfin-* | bs2000-* \
-	| c[123]* | c30-* | [cjt]90-* | c4x-* \
-	| c8051-* | clipper-* | craynv-* | csky-* | cydra-* \
-	| d10v-* | d30v-* | dlx-* | dsp16xx-* \
-	| e2k-* | elxsi-* | epiphany-* \
-	| f30[01]-* | f700-* | fido-* | fr30-* | frv-* | ft32-* | fx80-* \
-	| h8300-* | h8500-* \
-	| hppa-* | hppa1.[01]-* | hppa2.0-* | hppa2.0[nw]-* | hppa64-* \
-	| hexagon-* \
-	| i*86-* | i860-* | i960-* | ia16-* | ia64-* \
-	| ip2k-* | iq2000-* \
-	| k1om-* \
-	| le32-* | le64-* \
-	| lm32-* \
-	| m32c-* | m32r-* | m32rle-* \
-	| m5200-* | m68000-* | m680[012346]0-* | m68360-* | m683?2-* | m68k-* | v70-* | w65-* \
-	| m88110-* | m88k-* | maxq-* | mb-* | mcore-* | mep-* | metag-* \
-	| microblaze-* | microblazeel-* \
-	| mips-* | mipsbe-* | mipseb-* | mipsel-* | mipsle-* \
-	| mips16-* \
-	| mips64-* | mips64el-* \
-	| mips64octeon-* | mips64octeonel-* \
-	| mips64orion-* | mips64orionel-* \
-	| mips64r5900-* | mips64r5900el-* \
-	| mips64vr-* | mips64vrel-* \
-	| mips64vr4100-* | mips64vr4100el-* \
-	| mips64vr4300-* | mips64vr4300el-* \
-	| mips64vr5000-* | mips64vr5000el-* \
-	| mips64vr5900-* | mips64vr5900el-* \
-	| mipsisa32-* | mipsisa32el-* \
-	| mipsisa32r2-* | mipsisa32r2el-* \
-	| mipsisa32r6-* | mipsisa32r6el-* \
-	| mipsisa64-* | mipsisa64el-* \
-	| mipsisa64r2-* | mipsisa64r2el-* \
-	| mipsisa64r6-* | mipsisa64r6el-* \
-	| mipsisa64sb1-* | mipsisa64sb1el-* \
-	| mipsisa64sr71k-* | mipsisa64sr71kel-* \
-	| mipsr5900-* | mipsr5900el-* \
-	| mipstx39-* | mipstx39el-* \
-	| mmix-* \
-	| mn10200-* | mn10300-* \
-	| moxie-* \
-	| mt-* \
-	| msp430-* \
-	| nds32-* | nds32le-* | nds32be-* \
-	| nfp-* \
-	| nios-* | nios2-* | nios2eb-* | nios2el-* \
-	| none-* | np1-* | ns16k-* | ns32k-* \
-	| open8-* \
-	| or1k*-* \
-	| or32-* \
-	| orion-* \
-	| pdp10-* | pdp11-* | pj-* | pjl-* | pn-* | power-* \
-	| powerpc-* | powerpc64-* | powerpc64le-* | powerpcle-* \
-	| pru-* \
-	| pyramid-* \
-	| riscv-* | riscv32-* | riscv64-* \
-	| rl78-* | romp-* | rs6000-* | rx-* \
-	| score-* \
-	| sh-* | sh[1234]-* | sh[24]a-* | sh[24]ae[lb]-* | sh[23]e-* | she[lb]-* | sh[lb]e-* \
-	| sh[1234]e[lb]-* |  sh[12345][lb]e-* | sh[23]ele-* | sh64-* | sh64le-* \
-	| sparc-* | sparc64-* | sparc64b-* | sparc64v-* | sparc86x-* | sparclet-* \
-	| sparclite-* \
-	| sparcv8-* | sparcv9-* | sparcv9b-* | sparcv9v-* | sv1-* | sx*-* \
-	| spu-* \
-	| tahoe-* \
-	| tic30-* | tic4x-* | tic54x-* | tic55x-* | tic6x-* | tic80-* \
-	| tron-* \
-	| ubicom32-* \
-	| v850-* | v850e-* | v850e1-* | v850es-* | v850e2-* | v850e2v3-* \
-	| vax-* \
-	| visium-* \
-	| wasm32-* \
-	| we32k-* \
-	| x86-* | x86_64-* | xc16x-* | xps100-* \
-	| xstormy16-* | xtensa*-* \
-	| ymp-* \
-	| z8k-* | z80-*)
-		;;
-	# Recognize the basic CPU types without company name, with glob match.
-	xtensa*)
-		basic_machine=$basic_machine-unknown
-		;;
 	# Recognize the various machine names and aliases which stand
 	# for a CPU type and a company and sometimes even an OS.
 	3b1 | 7300 | 7300-att | att-7300 | pc7300 | safari | unixpc)
@@ -799,21 +709,6 @@ case $basic_machine in
 		;;
 	3b*)
 		basic_machine=we32k-att
-		;;
-	alliant | fx80)
-		basic_machine=fx80-alliant
-		;;
-	altos | altos3068)
-		basic_machine=m68k-altos
-		;;
-	amd64)
-		basic_machine=x86_64-pc
-		;;
-	amd64-*)
-		basic_machine=x86_64-`echo "$basic_machine" | sed 's/^[^-]*-//'`
-		;;
-	amiga | amiga-*)
-		basic_machine=m68k-unknown
 		;;
 	blackfin-*)
 		basic_machine=bfin-`echo "$basic_machine" | sed 's/^[^-]*-//'`
@@ -835,49 +730,6 @@ case $basic_machine in
 	c90)
 		basic_machine=c90-cray
 		os=${os:-unicos}
-		;;
-	convex-c1)
-		basic_machine=c1-convex
-		os=bsd
-		;;
-	convex-c2)
-		basic_machine=c2-convex
-		os=bsd
-		;;
-	convex-c32)
-		basic_machine=c32-convex
-		os=bsd
-		;;
-	convex-c34)
-		basic_machine=c34-convex
-		os=bsd
-		;;
-	convex-c38)
-		basic_machine=c38-convex
-		os=bsd
-		;;
-	cr16 | cr16-*)
-		basic_machine=cr16-unknown
-		os=${os:-elf}
-		;;
-	crds | unos)
-		basic_machine=m68k-crds
-		;;
-	crisv32 | crisv32-* | etraxfs*)
-		basic_machine=crisv32-axis
-		;;
-	cris | cris-* | etrax*)
-		basic_machine=cris-axis
-		;;
-	crx)
-		basic_machine=crx-unknown
-		os=${os:-elf}
-		;;
-	da30 | da30-*)
-		basic_machine=m68k-da30
-		;;
-	decstation | decstation-3100 | pmax | pmax-* | pmin | dec3100 | decstatn)
-		basic_machine=mips-dec
 		;;
 	decsystem10* | dec10*)
 		basic_machine=pdp10-dec
@@ -924,9 +776,6 @@ case $basic_machine in
 		basic_machine=hppa1.1-hitachi
 		os=hiuxwe2
 		;;
-	hp300-*)
-		basic_machine=m68k-hp
-		;;
 	hp3k9[0-9][0-9] | hp9[0-9][0-9])
 		basic_machine=hppa1.0-hp
 		;;
@@ -955,9 +804,6 @@ case $basic_machine in
 		;;
 	hp9k8[0-9][0-9] | hp8[0-9][0-9])
 		basic_machine=hppa1.0-hp
-		;;
-	i370-ibm* | ibm*)
-		basic_machine=i370-ibm
 		;;
 	i*86v32)
 		basic_machine=`echo "$1" | sed -e 's/86.*/86-pc/'`
@@ -996,9 +842,6 @@ case $basic_machine in
 		basic_machine=m68k-`echo "$basic_machine" | sed 's/^[^-]*-//'`
 		os=linux
 		;;
-	microblaze*)
-		basic_machine=microblaze-xilinx
-		;;
 	miniframe)
 		basic_machine=m68000-convergent
 		;;
@@ -1035,21 +878,6 @@ case $basic_machine in
 	np1)
 		basic_machine=np1-gould
 		;;
-	neo-tandem)
-		basic_machine=neo-tandem
-		;;
-	nse-tandem)
-		basic_machine=nse-tandem
-		;;
-	nsr-tandem)
-		basic_machine=nsr-tandem
-		;;
-	nsv-tandem)
-		basic_machine=nsv-tandem
-		;;
-	nsx-tandem)
-		basic_machine=nsx-tandem
-		;;
 	op50n-* | op60c-*)
 		basic_machine=hppa1.1-oki
 		os=proelf
@@ -1073,9 +901,6 @@ case $basic_machine in
 		;;
 	pc532 | pc532-*)
 		basic_machine=ns32k-pc532
-		;;
-	pc98)
-		basic_machine=i386-pc
 		;;
 	pc98-*)
 		basic_machine=i386-`echo "$basic_machine" | sed 's/^[^-]*-//'`
@@ -1139,12 +964,6 @@ case $basic_machine in
 	rtpc | rtpc-*)
 		basic_machine=romp-ibm
 		;;
-	s390 | s390-*)
-		basic_machine=s390-ibm
-		;;
-	s390x | s390x-*)
-		basic_machine=s390x-ibm
-		;;
 	sb1)
 		basic_machine=mipsisa64sb1-unknown
 		;;
@@ -1154,9 +973,6 @@ case $basic_machine in
 	sde)
 		basic_machine=mipsisa32-sde
 		os=${os:-elf}
-		;;
-	sequent)
-		basic_machine=i386-sequent
 		;;
 	sh5el)
 		basic_machine=sh5le-unknown
@@ -1171,29 +987,8 @@ case $basic_machine in
 	spur)
 		basic_machine=spur-unknown
 		;;
-	st2000)
-		basic_machine=m68k-tandem
-		;;
 	strongarm-* | thumb-*)
 		basic_machine=arm-`echo "$basic_machine" | sed 's/^[^-]*-//'`
-		;;
-	sun2)
-		basic_machine=m68000-sun
-		;;
-	sun3 | sun3-*)
-		basic_machine=m68k-sun
-		;;
-	sun4)
-		basic_machine=sparc-sun
-		;;
-	sun386 | sun386i | roadrunner)
-		basic_machine=i386-sun
-		;;
-	tile*-*)
-		;;
-	tile*)
-		basic_machine=$basic_machine-unknown
-		os=${os:-linux-gnu}
 		;;
 	tx39)
 		basic_machine=mipstx39-unknown
@@ -1207,19 +1002,12 @@ case $basic_machine in
 	vpp*|vx|vx-*)
 		basic_machine=f301-fujitsu
 		;;
-	w65*)
+	w65)
 		basic_machine=w65-wdc
-		os=none
 		;;
 	w89k-*)
 		basic_machine=hppa1.1-winbond
 		os=proelf
-		;;
-	x64)
-		basic_machine=x86_64-pc
-		;;
-	xps | xps100)
-		basic_machine=xps100-honeywell
 		;;
 	xscale-* | xscalee[bl]-*)
 		basic_machine=`echo "$basic_machine" | sed 's/^xscale/arm/'`
@@ -1228,50 +1016,288 @@ case $basic_machine in
 		basic_machine=none-none
 		;;
 
-# Here we handle the default manufacturer of certain CPU types.  It is in
-# some cases the only manufacturer, in others, it is the most popular.
-	w89k)
-		basic_machine=hppa1.1-winbond
+	c54x)
+		basic_machine=tic54x-unknown
 		;;
-	op50n)
-		basic_machine=hppa1.1-oki
+	c55x)
+		basic_machine=tic55x-unknown
 		;;
-	op60c)
-		basic_machine=hppa1.1-oki
+	c6x)
+		basic_machine=tic6x-unknown
 		;;
-	romp)
-		basic_machine=romp-ibm
+	leon | leon[3-9])
+		basic_machine=sparc-$basic_machine
 		;;
-	mmix)
-		basic_machine=mmix-knuth
+	m88110 | m680[12346]0 | m683?2 | m68360 | m5200 | v70)
 		;;
-	rs6000)
-		basic_machine=rs6000-ibm
+	ms1)
+		basic_machine=mt-unknown
 		;;
-	vax)
-		basic_machine=vax-dec
+	strongarm | thumb | xscale)
+		basic_machine=arm-unknown
 		;;
-	pdp11)
-		basic_machine=pdp11-dec
+	xscaleeb)
+		basic_machine=armeb-unknown
 		;;
-	we32k)
-		basic_machine=we32k-att
+
+	xscaleel)
+		basic_machine=armel-unknown
 		;;
-	cydra)
-		basic_machine=cydra-cydrome
+
+	# We use `pc' rather than `unknown'
+	# because (1) that's what they normally are, and
+	# (2) the word "unknown" tends to confuse beginning users.
+	i*86 | x86_64)
+		basic_machine=$basic_machine-pc
 		;;
-	orion)
-		basic_machine=orion-highlevel
+	# These rules are duplicated from below for sake of the special case above;
+	# i.e. things that normalized to x86 arches should also default to "pc"
+	pc98)
+		basic_machine=i386-pc
 		;;
-	orion105)
-		basic_machine=clipper-highlevel
+	x64 | amd64)
+		basic_machine=x86_64-pc
 		;;
-	mac | mpw | mac-mpw)
-		basic_machine=m68k-apple
+
+	# Recognize the cannonical CPU Types that limit and/or modify the
+	# company names they are paired with.
+	amd64-*)
+		basic_machine=x86_64-`echo "$basic_machine" | sed 's/^[^-]*-//'`
 		;;
-	pmac | pmac-mpw)
-		basic_machine=powerpc-apple
+	cr16)
+		basic_machine=cr16-unknown
+		os=${os:-elf}
 		;;
+	cr16-*)
+		os=${os:-elf}
+		;;
+	crisv32 | crisv32-* | etraxfs*)
+		basic_machine=crisv32-axis
+		;;
+	cris | cris-* | etrax*)
+		basic_machine=cris-axis
+		;;
+	crx-*)
+		os=${os:-elf}
+		;;
+	crx)
+		basic_machine=crx-unknown
+		os=${os:-elf}
+		;;
+	m9s12z | m68hcs12z | hcs12z | s12z)
+		basic_machine=s12z-unknown
+		;;
+	m9s12z-* | m68hcs12z-* | hcs12z-* | s12z-*)
+		basic_machine=s12z-`echo "$basic_machine" | sed 's/^[^-]*-//'`
+		;;
+	neo-tandem)
+		basic_machine=neo-tandem
+		;;
+	nse-tandem)
+		basic_machine=nse-tandem
+		;;
+	nsr-tandem)
+		basic_machine=nsr-tandem
+		;;
+	nsv-tandem)
+		basic_machine=nsv-tandem
+		;;
+	nsx-tandem)
+		basic_machine=nsx-tandem
+		;;
+	s390 | s390-*)
+		basic_machine=s390-ibm
+		;;
+	s390x | s390x-*)
+		basic_machine=s390x-ibm
+		;;
+	tile*-*)
+		os=${os:-linux-gnu}
+		;;
+	tile*)
+		basic_machine=$basic_machine-unknown
+		os=${os:-linux-gnu}
+		;;
+
+	# Recognize the cannonical CPU types that are allowed with any
+	# company name.
+	1750a-* | 580-* \
+	| a29k-* \
+	| aarch64-* | aarch64_be-* \
+	| abacus-* \
+	| alpha-* | alphaev[4-8]-* | alphaev56-* | alphaev6[78]-* \
+	| alpha64-* | alpha64ev[4-8]-* | alpha64ev56-* | alpha64ev6[78]-* \
+	| alphapca5[67]-* | alpha64pca5[67]-* \
+	| am33_2.0-* \
+	| arc-* | arceb-* \
+	| arm-*  | arm[lb]e-* | arme[lb]-* | armv*-* \
+	| avr-* | avr32-* \
+	| asmjs-* \
+	| ba-* \
+	| be32-* | be64-* \
+	| bfin-* | bs2000-* \
+	| c[123]* | c30-* | [cjt]90-* | c4x-* \
+	| c8051-* | clipper-* | craynv-* | csky-* | cydra-* \
+	| d10v-* | d30v-* | dlx-* | dsp16xx-* \
+	| e2k-* | elxsi-* | epiphany-* \
+	| f30[01]-* | f700-* | fido-* | fr30-* | frv-* | ft32-* | fx80-* \
+	| h8300-* | h8500-* \
+	| hppa-* | hppa1.[01]-* | hppa2.0-* | hppa2.0[nw]-* | hppa64-* \
+	| hexagon-* \
+	| i370-* | i*86-* | i860-* | i960-* | ia16-* | ia64-* \
+	| ip2k-* | iq2000-* \
+	| k1om-* \
+	| le32-* | le64-* \
+	| lm32-* \
+	| m32c-* | m32r-* | m32rle-* \
+	| m5200-* | m68000-* | m680[012346]0-* | m68360-* | m683?2-* | m68k-* | v70-* | w65-* \
+	| m6811-* | m68hc11-* | m6812-* | m68hc12-* | m68hcs12x-* | nvptx-* | picochip-* \
+	| m88110-* | m88k-* | maxq-* | mb-* | mcore-* | mep-* | metag-* \
+	| microblaze-* | microblazeel-* \
+	| mips-* | mipsbe-* | mipseb-* | mipsel-* | mipsle-* \
+	| mips16-* \
+	| mips64-* | mips64el-* \
+	| mips64octeon-* | mips64octeonel-* \
+	| mips64orion-* | mips64orionel-* \
+	| mips64r5900-* | mips64r5900el-* \
+	| mips64vr-* | mips64vrel-* \
+	| mips64vr4100-* | mips64vr4100el-* \
+	| mips64vr4300-* | mips64vr4300el-* \
+	| mips64vr5000-* | mips64vr5000el-* \
+	| mips64vr5900-* | mips64vr5900el-* \
+	| mipsisa32-* | mipsisa32el-* \
+	| mipsisa32r2-* | mipsisa32r2el-* \
+	| mipsisa32r6-* | mipsisa32r6el-* \
+	| mipsisa64-* | mipsisa64el-* \
+	| mipsisa64r2-* | mipsisa64r2el-* \
+	| mipsisa64r6-* | mipsisa64r6el-* \
+	| mipsisa64sb1-* | mipsisa64sb1el-* \
+	| mipsisa64sr71k-* | mipsisa64sr71kel-* \
+	| mipsr5900-* | mipsr5900el-* \
+	| mipstx39-* | mipstx39el-* \
+	| mmix-* \
+	| mn10200-* | mn10300-* \
+	| moxie-* \
+	| mt-* \
+	| msp430-* \
+	| nds32-* | nds32le-* | nds32be-* \
+	| nfp-* \
+	| nios-* | nios2-* | nios2eb-* | nios2el-* \
+	| none-* | np1-* | ns16k-* | ns32k-* \
+	| open8-* \
+	| or1k*-* \
+	| or32-* \
+	| orion-* \
+	| pdp10-* | pdp11-* | pj-* | pjl-* | pn-* | power-* \
+	| powerpc-* | powerpc64-* | powerpc64le-* | powerpcle-* | powerpcspe-* \
+	| pru-* \
+	| pyramid-* \
+	| riscv-* | riscv32-* | riscv64-* \
+	| rl78-* | romp-* | rs6000-* | rx-* \
+	| score-* \
+	| sh-* | sh[1234]-* | sh[24]a-* | sh[24]ae[lb]-* | sh[23]e-* | she[lb]-* | sh[lb]e-* \
+	| sh[1234]e[lb]-* |  sh[12345][lb]e-* | sh[23]ele-* | sh64-* | sh64le-* \
+	| sparc-* | sparc64-* | sparc64b-* | sparc64v-* | sparc86x-* | sparclet-* \
+	| sparclite-* \
+	| sparcv8-* | sparcv9-* | sparcv9b-* | sparcv9v-* | sv1-* | sx*-* \
+	| spu-* \
+	| tahoe-* \
+	| tic30-* | tic4x-* | tic54x-* | tic55x-* | tic6x-* | tic80-* \
+	| tron-* \
+	| ubicom32-* \
+	| v850-* | v850e-* | v850e1-* | v850es-* | v850e2-* | v850e2v3-* \
+	| vax-* \
+	| visium-* \
+	| wasm32-* \
+	| we32k-* \
+	| x86-* | x86_64-* | xc16x-* | xgate-* | xps100-* \
+	| xstormy16-* | xtensa*-* \
+	| ymp-* \
+	| z8k-* | z80-*)
+		;;
+
+	# Recognize the basic CPU types without company name.
+	# Some are omitted here because they have special meanings below.
+	1750a | 580 \
+	| a29k \
+	| aarch64 | aarch64_be \
+	| abacus \
+	| alpha | alphaev[4-8] | alphaev56 | alphaev6[78] | alphapca5[67] \
+	| alpha64 | alpha64ev[4-8] | alpha64ev56 | alpha64ev6[78] | alpha64pca5[67] \
+	| am33_2.0 \
+	| arc | arceb \
+	| arm | arm[bl]e | arme[lb] | armv[2-8] | armv[3-8][lb] | armv6m | armv[78][arm] \
+	| avr | avr32 \
+	| asmjs \
+	| ba \
+	| be32 | be64 \
+	| bfin \
+	| c4x | c8051 | clipper | csky \
+	| d10v | d30v | dlx | dsp16xx \
+	| e2k | epiphany \
+	| fido | fr30 | frv | ft32 \
+	| h8300 | h8500 | hppa | hppa1.[01] | hppa2.0 | hppa2.0[nw] | hppa64 \
+	| hexagon \
+	| i370 | i860 | i960 | ia16 | ia64 \
+	| ip2k | iq2000 \
+	| k1om \
+	| le32 | le64 \
+	| lm32 \
+	| m32c | m32r | m32rle | m68000 | m68k | m88k \
+	| m6811 | m68hc11 | m6812 | m68hc12 | m68hcs12x | nvptx | picochip \
+	| maxq | mb | mcore | mep | metag \
+	| mips | mipsbe | mipseb | mipsel | mipsle \
+	| mips16 \
+	| mips64 | mips64el \
+	| mips64octeon | mips64octeonel \
+	| mips64orion | mips64orionel \
+	| mips64r5900 | mips64r5900el \
+	| mips64vr | mips64vrel \
+	| mips64vr4100 | mips64vr4100el \
+	| mips64vr4300 | mips64vr4300el \
+	| mips64vr5000 | mips64vr5000el \
+	| mips64vr5900 | mips64vr5900el \
+	| mipsisa32 | mipsisa32el \
+	| mipsisa32r2 | mipsisa32r2el \
+	| mipsisa32r6 | mipsisa32r6el \
+	| mipsisa64 | mipsisa64el \
+	| mipsisa64r2 | mipsisa64r2el \
+	| mipsisa64r6 | mipsisa64r6el \
+	| mipsisa64sb1 | mipsisa64sb1el \
+	| mipsisa64sr71k | mipsisa64sr71kel \
+	| mipsr5900 | mipsr5900el \
+	| mipstx39 | mipstx39el \
+	| mn10200 | mn10300 \
+	| moxie \
+	| mt \
+	| msp430 \
+	| nds32 | nds32le | nds32be \
+	| nfp \
+	| nios | nios2 | nios2eb | nios2el \
+	| ns16k | ns32k \
+	| open8 | or1k | or1knd | or32 \
+	| pdp10 | pj | pjl \
+	| powerpc | powerpc64 | powerpc64le | powerpcle | powerpcspe \
+	| pru \
+	| pyramid \
+	| riscv | riscv32 | riscv64 \
+	| rl78 | rx \
+	| score \
+	| sh | sh[1234] | sh[24]a | sh[24]aeb | sh[23]e | sh[234]eb | sheb | shbe | shle | sh[1234]le | sh[23]ele \
+	| sh64 | sh64le \
+	| sparc | sparc64 | sparc64b | sparc64v | sparc86x | sparclet | sparclite \
+	| sparcv8 | sparcv9 | sparcv9b | sparcv9v \
+	| spu \
+	| tahoe | tic4x | tic54x | tic55x | tic6x | tic80 | tron \
+	| ubicom32 \
+	| v850 | v850e | v850e1 | v850e2 | v850es | v850e2v3 \
+	| visium \
+	| wasm32 \
+	| x86 | xc16x | xstormy16 | xgate | xtensa* \
+	| z8k | z80)
+		basic_machine=$basic_machine-unknown
+		;;
+
 	*)
 		echo Invalid configuration \`"$1"\': machine \`"$basic_machine"\' not recognized 1>&2
 		exit 1

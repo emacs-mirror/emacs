@@ -2294,14 +2294,14 @@ calc-kill calc-kill-region calc-yank))))
 	 (let ((a (math-trunc a)))
 	   (if (integerp a)
 	       a
-	     (if (or (Math-lessp (lsh -1 -1) a)
-		     (Math-lessp a (- (lsh -1 -1))))
+	     (if (or (Math-lessp most-positive-fixnum a)
+		     (Math-lessp a (- most-positive-fixnum)))
 		 (math-reject-arg a 'fixnump)
 	       (math-fixnum a)))))
 	((and allow-inf (equal a '(var inf var-inf)))
-	 (lsh -1 -1))
+	 most-positive-fixnum)
 	((and allow-inf (equal a '(neg (var inf var-inf))))
-	 (- (lsh -1 -1)))
+	 (- most-positive-fixnum))
 	(t (math-reject-arg a 'fixnump))))
 
 ;;; Verify that A is an integer >= 0 and return A in integer form.  [I N; - x]

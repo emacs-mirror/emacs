@@ -190,10 +190,10 @@ inotifyevent_to_event (Lisp_Object watch, struct inotify_event const *ev)
   else
     name = XCAR (XCDR (watch));
 
-  return list2 (list4 (Fcons (INTEGER_TO_CONS (ev->wd), XCAR (watch)),
+  return list2 (list4 (Fcons (INT_TO_INTEGER (ev->wd), XCAR (watch)),
                        mask_to_aspects (ev->mask),
                        name,
-		       INTEGER_TO_CONS (ev->cookie)),
+		       INT_TO_INTEGER (ev->cookie)),
 		Fnth (make_fixnum (2), watch));
 }
 
@@ -204,10 +204,10 @@ static Lisp_Object
 add_watch (int wd, Lisp_Object filename,
 	   uint32_t imask, Lisp_Object callback)
 {
-  Lisp_Object descriptor = INTEGER_TO_CONS (wd);
+  Lisp_Object descriptor = INT_TO_INTEGER (wd);
   Lisp_Object tail = assoc_no_quit (descriptor, watch_list);
   Lisp_Object watch, watch_id;
-  Lisp_Object mask = INTEGER_TO_CONS (imask);
+  Lisp_Object mask = INT_TO_INTEGER (imask);
 
   EMACS_INT id = 0;
   if (NILP (tail))
@@ -332,7 +332,7 @@ inotify_callback (int fd, void *_)
   for (ssize_t i = 0; i < n; )
     {
       struct inotify_event *ev = (struct inotify_event *) &buffer[i];
-      Lisp_Object descriptor = INTEGER_TO_CONS (ev->wd);
+      Lisp_Object descriptor = INT_TO_INTEGER (ev->wd);
       Lisp_Object prevtail = find_descriptor (descriptor);
 
       if (! NILP (prevtail))

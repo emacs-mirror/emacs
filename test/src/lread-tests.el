@@ -209,4 +209,13 @@ literals (Bug#20852)."
   (should-error
    (let ((load-force-doc-strings t)) (read "#[0 \"\"]"))))
 
+(ert-deftest lread-string-to-number-trailing-dot ()
+  (dolist (n (list (* most-negative-fixnum most-negative-fixnum)
+                   (1- most-negative-fixnum) most-negative-fixnum
+                   (1+ most-negative-fixnum) -1 0 1
+                   (1- most-positive-fixnum) most-positive-fixnum
+                   (1+ most-positive-fixnum)
+                   (* most-positive-fixnum most-positive-fixnum)))
+    (should (= n (string-to-number (format "%d." n))))))
+
 ;;; lread-tests.el ends here

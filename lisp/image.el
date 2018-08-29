@@ -261,7 +261,7 @@ We accept the tag Exif because that is the same format."
 	  (setq i (1+ i))
 	  (when (>= (+ i 2) len)
 	    (throw 'jfif nil))
-	  (let ((nbytes (+ (lsh (aref data (+ i 1)) 8)
+	  (let ((nbytes (+ (ash (aref data (+ i 1)) 8)
 			   (aref data (+ i 2))))
 		(code (aref data i)))
 	    (when (and (>= code #xe0) (<= code #xef))

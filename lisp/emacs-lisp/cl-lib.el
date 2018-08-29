@@ -531,8 +531,9 @@ If ALIST is non-nil, the new pairs are prepended to it."
 ;; Some more Emacs-related place types.
 (gv-define-simple-setter buffer-file-name set-visited-file-name t)
 (gv-define-setter buffer-modified-p (flag &optional buf)
-  `(with-current-buffer ,buf
-     (set-buffer-modified-p ,flag)))
+  (macroexp-let2 nil buffer `(or ,buf (current-buffer))
+    `(with-current-buffer ,buffer
+       (set-buffer-modified-p ,flag))))
 (gv-define-simple-setter buffer-name rename-buffer t)
 (gv-define-setter buffer-string (store)
   `(insert (prog1 ,store (erase-buffer))))

@@ -6684,7 +6684,7 @@ not_in_argv (NSString *arg)
               static int totalDeltaX, totalDeltaY;
               int lineHeight;
 
-              if (FIXED_OR_FLOATP (ns_mwheel_line_height))
+              if (FIXNUMP (ns_mwheel_line_height))
                 lineHeight = XFIXNUM (ns_mwheel_line_height);
               else
                 {

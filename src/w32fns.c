@@ -2027,7 +2027,7 @@ x_set_undecorated (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
   if (!NILP (new_value) && !FRAME_UNDECORATED (f))
     {
       dwStyle = ((dwStyle & ~WS_THICKFRAME & ~WS_CAPTION)
-		 | ((FIXED_OR_FLOATP (border_width) && (XFIXNUM (border_width) > 0))
+		 | ((FIXNUMP (border_width) && (XFIXNUM (border_width) > 0))
 		    ? WS_BORDER : false));
       SetWindowLong (hwnd, GWL_STYLE, dwStyle);
       SetWindowPos (hwnd, HWND_TOP, 0, 0, 0, 0,
@@ -2334,7 +2334,7 @@ w32_createwindow (struct frame *f, int *coords)
       if (FRAME_UNDECORATED (f))
 	{
 	  /* If we want a thin border, specify it here.  */
-	  if (FIXED_OR_FLOATP (border_width) && (XFIXNUM (border_width) > 0))
+	  if (FIXNUMP (border_width) && (XFIXNUM (border_width) > 0))
 	    f->output_data.w32->dwStyle |= WS_BORDER;
 	}
       else
@@ -2350,7 +2350,7 @@ w32_createwindow (struct frame *f, int *coords)
       f->output_data.w32->dwStyle = WS_POPUP;
 
       /* If we want a thin border, specify it here.  */
-      if (FIXED_OR_FLOATP (border_width) && (XFIXNUM (border_width) > 0))
+      if (FIXNUMP (border_width) && (XFIXNUM (border_width) > 0))
 	f->output_data.w32->dwStyle |= WS_BORDER;
     }
   else
@@ -2640,7 +2640,7 @@ setup_w32_kbdhook (void)
   if (w32_kbdhook_active)
     {
       IsDebuggerPresent_Proc is_debugger_present = (IsDebuggerPresent_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"), "IsDebuggerPresent");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"), "IsDebuggerPresent");
       if (is_debugger_present && is_debugger_present ())
 	return;
     }
@@ -2655,7 +2655,7 @@ setup_w32_kbdhook (void)
 	 (https://support.microsoft.com/en-us/kb/124103) is used for
 	 NT 4 systems.  */
       GetConsoleWindow_Proc get_console = (GetConsoleWindow_Proc)
-	GetProcAddress (GetModuleHandle ("kernel32.dll"), "GetConsoleWindow");
+	get_proc_addr (GetModuleHandle ("kernel32.dll"), "GetConsoleWindow");
 
       if (get_console != NULL)
 	kbdhook.console = get_console ();
@@ -4199,7 +4199,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		 press of Space which we will ignore.  */
 	      if (GetAsyncKeyState (wParam) & 1)
 		{
-		  if (FIXED_OR_FLOATP (Vw32_phantom_key_code))
+		  if (FIXNUMP (Vw32_phantom_key_code))
 		    key = XUFIXNUM (Vw32_phantom_key_code) & 255;
 		  else
 		    key = VK_SPACE;
@@ -4215,7 +4215,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	    {
 	      if (GetAsyncKeyState (wParam) & 1)
 		{
-		  if (FIXED_OR_FLOATP (Vw32_phantom_key_code))
+		  if (FIXNUMP (Vw32_phantom_key_code))
 		    key = XUFIXNUM (Vw32_phantom_key_code) & 255;
 		  else
 		    key = VK_SPACE;
@@ -5921,11 +5921,11 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
      because `frame-windows-min-size' needs them.  */
   tem = x_get_arg (dpyinfo, parameters, Qmin_width, NULL, NULL,
 		   RES_TYPE_NUMBER);
-  if (FIXED_OR_FLOATP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_width, tem);
   tem = x_get_arg (dpyinfo, parameters, Qmin_height, NULL, NULL,
 		   RES_TYPE_NUMBER);
-  if (FIXED_OR_FLOATP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_height, tem);
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, true,
@@ -7430,7 +7430,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   /* Show tooltip frame.  */
   {
     RECT rect;
-    int pad = (FIXED_OR_FLOATP (Vw32_tooltip_extra_pixels)
+    int pad = (FIXNUMP (Vw32_tooltip_extra_pixels)
 	       ? max (0, XFIXNUM (Vw32_tooltip_extra_pixels))
 	       : FRAME_COLUMN_WIDTH (tip_f));
 
@@ -9117,9 +9117,9 @@ DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
   {
     HMODULE hKernel = GetModuleHandle ("kernel32");
     GetDiskFreeSpaceExW_Proc pfn_GetDiskFreeSpaceExW =
-      (GetDiskFreeSpaceExW_Proc) GetProcAddress (hKernel, "GetDiskFreeSpaceExW");
+      (GetDiskFreeSpaceExW_Proc) get_proc_addr (hKernel, "GetDiskFreeSpaceExW");
     GetDiskFreeSpaceExA_Proc pfn_GetDiskFreeSpaceExA =
-      (GetDiskFreeSpaceExA_Proc) GetProcAddress (hKernel, "GetDiskFreeSpaceExA");
+      (GetDiskFreeSpaceExA_Proc) get_proc_addr (hKernel, "GetDiskFreeSpaceExA");
     bool have_pfn_GetDiskFreeSpaceEx =
       ((w32_unicode_filenames && pfn_GetDiskFreeSpaceExW)
        || (!w32_unicode_filenames && pfn_GetDiskFreeSpaceExA));
@@ -9431,7 +9431,7 @@ w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state)
   int cur_state = (GetKeyState (vk_code) & 1);
 
   if (NILP (new_state)
-      || (FIXED_OR_FLOATP (new_state)
+      || (FIXNUMP (new_state)
 	  && ((XUFIXNUM (new_state)) & 1) != cur_state))
     {
 #ifdef WINDOWSNT
@@ -9694,8 +9694,8 @@ get_dll_version (const char *dll_name)
 
   if (hdll)
     {
-      DLLGETVERSIONPROC pDllGetVersion
-	= (DLLGETVERSIONPROC) GetProcAddress (hdll, "DllGetVersion");
+      DLLGETVERSIONPROC pDllGetVersion = (DLLGETVERSIONPROC)
+        get_proc_addr (hdll, "DllGetVersion");
 
       if (pDllGetVersion)
 	{
@@ -10125,7 +10125,7 @@ to be converted to forward slashes by the caller.  */)
   CHECK_STRING (key);
   CHECK_STRING (name);
 
-  HKEY rootkey;
+  HKEY rootkey = HKEY_CURRENT_USER;
   if (EQ (root, QHKCR))
     rootkey = HKEY_CLASSES_ROOT;
   else if (EQ (root, QHKCU))
@@ -10139,10 +10139,7 @@ to be converted to forward slashes by the caller.  */)
   else if (!NILP (root))
     error ("unknown root key: %s", SDATA (SYMBOL_NAME (root)));
 
-  Lisp_Object val = w32_read_registry (NILP (root)
-				       ? HKEY_CURRENT_USER
-				       : rootkey,
-				       key, name);
+  Lisp_Object val = w32_read_registry (rootkey, key, name);
   if (NILP (val) && NILP (root))
     val = w32_read_registry (HKEY_LOCAL_MACHINE, key, name);
 
@@ -10662,9 +10659,8 @@ void
 w32_reset_stack_overflow_guard (void)
 {
   if (resetstkoflw == NULL)
-    resetstkoflw =
-      (_resetstkoflw_proc)GetProcAddress (GetModuleHandle ("msvcrt.dll"),
-					  "_resetstkoflw");
+    resetstkoflw = (_resetstkoflw_proc)
+      get_proc_addr (GetModuleHandle ("msvcrt.dll"), "_resetstkoflw");
   /* We ignore the return value.  If _resetstkoflw fails, the next
      stack overflow will crash the program.  */
   if (resetstkoflw != NULL)
@@ -10738,9 +10734,8 @@ w32_backtrace (void **buffer, int limit)
   if (!s_pfn_CaptureStackBackTrace)
     {
       hm_kernel32 = LoadLibrary ("Kernel32.dll");
-      s_pfn_CaptureStackBackTrace =
-	(CaptureStackBackTrace_proc) GetProcAddress (hm_kernel32,
-						     "RtlCaptureStackBackTrace");
+      s_pfn_CaptureStackBackTrace = (CaptureStackBackTrace_proc)
+        get_proc_addr (hm_kernel32, "RtlCaptureStackBackTrace");
     }
   if (s_pfn_CaptureStackBackTrace)
     return s_pfn_CaptureStackBackTrace (0, min (BACKTRACE_LIMIT_MAX, limit),
@@ -10873,29 +10868,29 @@ globals_of_w32fns (void)
     it dynamically.  Do it once, here, instead of every time it is used.
   */
   track_mouse_event_fn = (TrackMouseEvent_Proc)
-    GetProcAddress (user32_lib, "TrackMouseEvent");
+    get_proc_addr (user32_lib, "TrackMouseEvent");
 
   monitor_from_point_fn = (MonitorFromPoint_Proc)
-    GetProcAddress (user32_lib, "MonitorFromPoint");
+    get_proc_addr (user32_lib, "MonitorFromPoint");
   get_monitor_info_fn = (GetMonitorInfo_Proc)
-    GetProcAddress (user32_lib, "GetMonitorInfoA");
+    get_proc_addr (user32_lib, "GetMonitorInfoA");
   monitor_from_window_fn = (MonitorFromWindow_Proc)
-    GetProcAddress (user32_lib, "MonitorFromWindow");
+    get_proc_addr (user32_lib, "MonitorFromWindow");
   enum_display_monitors_fn = (EnumDisplayMonitors_Proc)
-    GetProcAddress (user32_lib, "EnumDisplayMonitors");
+    get_proc_addr (user32_lib, "EnumDisplayMonitors");
   get_title_bar_info_fn = (GetTitleBarInfo_Proc)
-    GetProcAddress (user32_lib, "GetTitleBarInfo");
+    get_proc_addr (user32_lib, "GetTitleBarInfo");
 
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
     get_composition_string_fn = (ImmGetCompositionString_Proc)
-      GetProcAddress (imm32_lib, "ImmGetCompositionStringW");
+      get_proc_addr (imm32_lib, "ImmGetCompositionStringW");
     get_ime_context_fn = (ImmGetContext_Proc)
-      GetProcAddress (imm32_lib, "ImmGetContext");
+      get_proc_addr (imm32_lib, "ImmGetContext");
     release_ime_context_fn = (ImmReleaseContext_Proc)
-      GetProcAddress (imm32_lib, "ImmReleaseContext");
+      get_proc_addr (imm32_lib, "ImmReleaseContext");
     set_ime_composition_window_fn = (ImmSetCompositionWindow_Proc)
-      GetProcAddress (imm32_lib, "ImmSetCompositionWindow");
+      get_proc_addr (imm32_lib, "ImmSetCompositionWindow");
   }
 
   except_code = 0;

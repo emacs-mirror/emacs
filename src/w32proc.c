@@ -548,9 +548,8 @@ init_timers (void)
      through a pointer.  */
   s_pfn_Get_Thread_Times = NULL; /* in case dumped Emacs comes with a value */
   if (os_subtype != OS_9X)
-    s_pfn_Get_Thread_Times =
-      (GetThreadTimes_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-					   "GetThreadTimes");
+    s_pfn_Get_Thread_Times = (GetThreadTimes_Proc)
+      get_proc_addr (GetModuleHandle ("kernel32.dll"), "GetThreadTimes");
 
   /* Make sure we start with zeroed out itimer structures, since
      dumping may have left there traces of threads long dead.  */
@@ -2691,8 +2690,8 @@ sys_kill (pid_t pid, int sig)
 	{
 	  g_b_init_debug_break_process = 1;
 	  s_pfn_Debug_Break_Process = (DebugBreakProcess_Proc)
-	    GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			    "DebugBreakProcess");
+	    get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                  "DebugBreakProcess");
 	}
 
       if (s_pfn_Debug_Break_Process == NULL)
@@ -3207,7 +3206,7 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
       if (got_full)
 	return DECODE_SYSTEM (build_string (full_name));
     }
-  else if (FIXED_OR_FLOATP (longform))
+  else if (FIXNUMP (longform))
     {
       got_full = GetLocaleInfo (XFIXNUM (lcid),
 				XFIXNUM (longform),
@@ -3608,9 +3607,9 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
     {
       if (os_subtype == OS_9X)
 	{
-	  pCompareStringW =
-            (CompareStringW_Proc) GetProcAddress (LoadLibrary ("Unicows.dll"),
-                                                  "CompareStringW");
+	  pCompareStringW = (CompareStringW_Proc)
+            get_proc_addr (LoadLibrary ("Unicows.dll"),
+                                  "CompareStringW");
 	  if (!pCompareStringW)
 	    {
 	      errno = EINVAL;

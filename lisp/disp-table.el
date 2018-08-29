@@ -226,7 +226,7 @@ X frame."
       char
     (let ((fid (face-id face)))
       (if (< fid 64) ; we have 32 - 3(LSB) - 1(SIGN) - 22(CHAR) = 6 bits for face id
-	  (logior char (lsh fid 22))
+	  (logior char (ash fid 22))
 	(cons char fid)))))
 
 ;;;###autoload
@@ -239,7 +239,7 @@ X frame."
 ;;;###autoload
 (defun glyph-face (glyph)
   "Return the face of glyph code GLYPH, or nil if glyph has default face."
-  (let ((face-id (if (consp glyph) (cdr glyph) (lsh glyph -22))))
+  (let ((face-id (if (consp glyph) (cdr glyph) (ash glyph -22))))
     (and (> face-id 0)
 	 (catch 'face
 	   (dolist (face (face-list))

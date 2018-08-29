@@ -1197,24 +1197,19 @@ Titles}).
 @cindex UID
 @defun user-real-uid
 This function returns the real @acronym{UID} of the user.
-The value may be floating point, in the (unlikely) event that
-the UID is too large to fit in a Lisp integer.
 @end defun
 
 @defun user-uid
 This function returns the effective @acronym{UID} of the user.
-The value may be floating point.
 @end defun
 
 @cindex GID
 @defun group-gid
 This function returns the effective @acronym{GID} of the Emacs process.
-The value may be floating point.
 @end defun
 
 @defun group-real-gid
 This function returns the real @acronym{GID} of the Emacs process.
-The value may be floating point.
 @end defun
 
 @defun system-users
@@ -1681,10 +1676,6 @@ You can also specify the field width by following the @samp{%} with a
 number; shorter numbers will be padded with blanks.  An optional
 period before the width requests zero-padding instead.  For example,
 @code{"%.3Y"} might produce @code{"004 years"}.
-
-@emph{Warning:} This function works only with values of @var{seconds}
-that don't exceed @code{most-positive-fixnum} (@pxref{Integer Basics,
-most-positive-fixnum}).
 @end defun
 
 @node Processor Run Time

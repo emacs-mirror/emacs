@@ -149,7 +149,10 @@
 /* Rename to standard API for using out of glibc.  */
 #ifndef _LIBC
 # undef __wctype
+# undef __iswalnum
 # undef __iswctype
+# undef __towlower
+# undef __towupper
 # define __wctype wctype
 # define __iswalnum iswalnum
 # define __iswctype iswctype

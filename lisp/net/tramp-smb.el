@@ -959,18 +959,15 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		 (concat "[[:space:]]*\\([[:digit:]]+\\)"
 			 " blocks of size \\([[:digit:]]+\\)"
 			 "\\. \\([[:digit:]]+\\) blocks available"))
-	    (setq blocksize (string-to-number (concat (match-string 2) "e0"))
-		  total (* blocksize
-			   (string-to-number (concat (match-string 1) "e0")))
-		  avail (* blocksize
-			   (string-to-number (concat (match-string 3) "e0")))))
+	    (setq blocksize (string-to-number (match-string 2))
+		  total (* blocksize (string-to-number (match-string 1)))
+		  avail (* blocksize (string-to-number (match-string 3)))))
 	  (forward-line)
 	  (when (looking-at "Total number of bytes: \\([[:digit:]]+\\)")
 	    ;; The used number of bytes is not part of the result.  As
 	    ;; side effect, we store it as file property.
 	    (tramp-set-file-property
-	     v localname "used-bytes"
-	     (string-to-number (concat (match-string 1) "e0"))))
+	     v localname "used-bytes" (string-to-number (match-string 1))))
 	  ;; Result.
 	  (when (and total avail)
 	    (list total (- total avail) avail)))))))

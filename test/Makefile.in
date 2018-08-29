@@ -246,12 +246,14 @@ else
 FPIC_CFLAGS = -fPIC
 endif
 
+# Note: emacs-module.h is generated from emacs-module.h.in, hence we
+# look in ../src, not $(srcdir)/../src.
 MODULE_CFLAGS = -I../src $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 
 test_module = $(test_module_dir)/mod-test${SO}
 src/emacs-module-tests.log: $(test_module)
-$(test_module): $(test_module:${SO}=.c) $(srcdir)/../src/emacs-module.h
+$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
 	$(AM_V_at)${MKDIR_P} $(dir $@)
 	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
 	  -o $@ $<

@@ -329,7 +329,7 @@ init_editfns (bool dumping)
   else
     {
       uid_t euid = geteuid ();
-      tem = make_fixnum_or_float (euid);
+      tem = INT_TO_INTEGER (euid);
     }
   Vuser_full_name = Fuser_full_name (tem);
 
@@ -1338,7 +1338,7 @@ This is based on the effective uid, not the real uid.
 Also, if the environment variables LOGNAME or USER are set,
 that determines the value of this function.
 
-If optional argument UID is an integer or a float, return the login name
+If optional argument UID is an integer, return the login name
 of the user with that uid, or nil if there is no such user.  */)
   (Lisp_Object uid)
 {
@@ -1377,39 +1377,35 @@ This ignores the environment variables LOGNAME and USER, so it differs from
 }
 
 DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
-       doc: /* Return the effective uid of Emacs.
-Value is an integer or a float, depending on the value.  */)
+       doc: /* Return the effective uid of Emacs.  */)
   (void)
 {
   uid_t euid = geteuid ();
-  return make_fixnum_or_float (euid);
+  return INT_TO_INTEGER (euid);
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
-       doc: /* Return the real uid of Emacs.
-Value is an integer or a float, depending on the value.  */)
+       doc: /* Return the real uid of Emacs.  */)
   (void)
 {
   uid_t uid = getuid ();
-  return make_fixnum_or_float (uid);
+  return INT_TO_INTEGER (uid);
 }
 
 DEFUN ("group-gid", Fgroup_gid, Sgroup_gid, 0, 0, 0,
-       doc: /* Return the effective gid of Emacs.
-Value is an integer or a float, depending on the value.  */)
+       doc: /* Return the effective gid of Emacs.  */)
   (void)
 {
   gid_t egid = getegid ();
-  return make_fixnum_or_float (egid);
+  return INT_TO_INTEGER (egid);
 }
 
 DEFUN ("group-real-gid", Fgroup_real_gid, Sgroup_real_gid, 0, 0, 0,
-       doc: /* Return the real gid of Emacs.
-Value is an integer or a float, depending on the value.  */)
+       doc: /* Return the real gid of Emacs.  */)
   (void)
 {
   gid_t gid = getgid ();
-  return make_fixnum_or_float (gid);
+  return INT_TO_INTEGER (gid);
 }
 
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
@@ -1417,7 +1413,7 @@ DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
 If the full name corresponding to Emacs's userid is not known,
 return "unknown".
 
-If optional argument UID is an integer or float, return the full name
+If optional argument UID is an integer, return the full name
 of the user with that uid, or nil if there is no such user.
 If UID is a string, return the full name of the user with that login
 name, or nil if there is no such user.  */)
@@ -1429,7 +1425,7 @@ name, or nil if there is no such user.  */)
 
   if (NILP (uid))
     return Vuser_full_name;
-  else if (FIXED_OR_FLOATP (uid))
+  else if (NUMBERP (uid))
     {
       uid_t u;
       CONS_TO_INTEGER (uid, uid_t, u);
@@ -1489,7 +1485,7 @@ DEFUN ("emacs-pid", Femacs_pid, Semacs_pid, 0, 0, 0,
   (void)
 {
   pid_t pid = getpid ();
-  return make_fixnum_or_float (pid);
+  return INT_TO_INTEGER (pid);
 }
 
 
@@ -4491,9 +4487,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      else if (conversion == 'X')
 		base = -16;
 
-	      char *str = mpz_get_str (NULL, base, XBIGNUM (arg)->value);
-	      arg = make_unibyte_string (str, strlen (str));
-	      xfree (str);
+	      arg = bignum_to_string (arg, base);
 	      conversion = 's';
 	    }
 
@@ -4614,17 +4608,6 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	    {
 	      enum
 	      {
-		/* Lower bound on the number of bits per
-		   base-FLT_RADIX digit.  */
-		DIG_BITS_LBOUND = FLT_RADIX < 16 ? 1 : 4,
-
-		/* 1 if integers should be formatted as long doubles,
-		   because they may be so large that there is a rounding
-		   error when converting them to double, and long doubles
-		   are wider than doubles.  */
-		INT_AS_LDBL = (DIG_BITS_LBOUND * DBL_MANT_DIG < FIXNUM_BITS - 1
-			       && DBL_MANT_DIG < LDBL_MANT_DIG),
-
 		/* Maximum precision for a %f conversion such that the
 		   trailing output digit might be nonzero.  Any precision
 		   larger than this will not yield useful information.  */
@@ -4655,7 +4638,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		 with "L" possibly inserted for floating-point formats,
 		 and with pM inserted for integer formats.
 		 At most two flags F can be specified at once.  */
-	      char convspec[sizeof "%FF.*d" + max (INT_AS_LDBL, pMlen)];
+	      char convspec[sizeof "%FF.*d" + max (sizeof "L" - 1, pMlen)];
 	      char *f = convspec;
 	      *f++ = '%';
 	      /* MINUS_FLAG and ZERO_FLAG are dealt with later.  */
@@ -4664,15 +4647,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      *f = '#'; f += sharp_flag;
 	      *f++ = '.';
 	      *f++ = '*';
-	      if (float_conversion)
-		{
-		  if (INT_AS_LDBL)
-		    {
-		      *f = 'L';
-		      f += FIXNUMP (arg);
-		    }
-		}
-	      else if (conversion != 'c')
+	      if (! (float_conversion || conversion == 'c'))
 		{
 		  memcpy (f, pMd, pMlen);
 		  f += pMlen;
@@ -4700,17 +4675,66 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      ptrdiff_t sprintf_bytes;
 	      if (float_conversion)
 		{
-		  if (INT_AS_LDBL && FIXNUMP (arg))
+		  /* Format as a long double if the arg is an integer
+		     that would lose less information than when formatting
+		     it as a double.  Otherwise, format as a double;
+		     this is likely to be faster and better-tested.  */
+
+		  bool format_as_long_double = false;
+		  double darg;
+		  long double ldarg;
+
+		  if (FLOATP (arg))
+		    darg = XFLOAT_DATA (arg);
+		  else
 		    {
-		      /* Although long double may have a rounding error if
-			 DIG_BITS_LBOUND * LDBL_MANT_DIG < FIXNUM_BITS - 1,
-			 it is more accurate than plain 'double'.  */
-		      long double x = XFIXNUM (arg);
-		      sprintf_bytes = sprintf (sprintf_buf, convspec, prec, x);
+		      bool format_bignum_as_double = false;
+		      if (LDBL_MANT_DIG <= DBL_MANT_DIG)
+			{
+			  if (FIXNUMP (arg))
+			    darg = XFIXNUM (arg);
+			  else
+			    format_bignum_as_double = true;
+			}
+		      else
+			{
+			  if (FIXNUMP (arg))
+			    ldarg = XFIXNUM (arg);
+			  else
+			    {
+			      intmax_t iarg = bignum_to_intmax (arg);
+			      if (iarg != 0)
+				ldarg = iarg;
+			      else
+				{
+				  uintmax_t uarg = bignum_to_uintmax (arg);
+				  if (uarg != 0)
+				    ldarg = uarg;
+				  else
+				    format_bignum_as_double = true;
+				}
+			    }
+			  if (!format_bignum_as_double)
+			    {
+			      darg = ldarg;
+			      format_as_long_double = darg != ldarg;
+			    }
+			}
+		      if (format_bignum_as_double)
+			darg = bignum_to_double (arg);
+		    }
+
+		  if (format_as_long_double)
+		    {
+		      f[-1] = 'L';
+		      *f++ = conversion;
+		      *f = '\0';
+		      sprintf_bytes = sprintf (sprintf_buf, convspec, prec,
+					       ldarg);
 		    }
 		  else
 		    sprintf_bytes = sprintf (sprintf_buf, convspec, prec,
-					     XFLOATINT (arg));
+					     darg);
 		}
 	      else if (conversion == 'c')
 		{
@@ -4746,7 +4770,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		{
 		  uprintmax_t x;
 		  bool negative;
-		  if (INTEGERP (arg))
+		  if (FIXNUMP (arg))
 		    {
 		      if (binary_as_unsigned)
 			{

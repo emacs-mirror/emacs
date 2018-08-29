@@ -3045,9 +3045,9 @@ list_system_processes (void)
   for (i = 0; i < len; i++)
     {
 #ifdef DARWIN_OS
-      proclist = Fcons (make_fixnum_or_float (procs[i].kp_proc.p_pid), proclist);
+      proclist = Fcons (INT_TO_INTEGER (procs[i].kp_proc.p_pid), proclist);
 #else
-      proclist = Fcons (make_fixnum_or_float (procs[i].ki_pid), proclist);
+      proclist = Fcons (INT_TO_INTEGER (procs[i].ki_pid), proclist);
 #endif
     }
 
@@ -3261,7 +3261,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object decoded_cmd;
   ptrdiff_t count;
 
-  CHECK_FIXNUM_OR_FLOAT (pid);
+  CHECK_NUMBER (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
   sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
@@ -3269,7 +3269,7 @@ system_process_attributes (Lisp_Object pid)
 
   /* euid egid */
   uid = st.st_uid;
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
+  attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (uid)), attrs);
   block_input ();
   pw = getpwuid (uid);
   unblock_input ();
@@ -3277,7 +3277,7 @@ system_process_attributes (Lisp_Object pid)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
   gid = st.st_gid;
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
+  attrs = Fcons (Fcons (Qegid, INT_TO_INTEGER (gid)), attrs);
   block_input ();
   gr = getgrgid (gid);
   unblock_input ();
@@ -3335,17 +3335,15 @@ system_process_attributes (Lisp_Object pid)
 	  state_str[0] = c;
 	  state_str[1] = '\0';
 	  attrs = Fcons (Fcons (Qstate, build_string (state_str)), attrs);
-	  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (ppid)), attrs);
-	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pgrp)), attrs);
-	  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (sess)), attrs);
+	  attrs = Fcons (Fcons (Qppid, INT_TO_INTEGER (ppid)), attrs);
+	  attrs = Fcons (Fcons (Qpgrp, INT_TO_INTEGER (pgrp)), attrs);
+	  attrs = Fcons (Fcons (Qsess, INT_TO_INTEGER (sess)), attrs);
 	  attrs = Fcons (Fcons (Qttname, procfs_ttyname (tty)), attrs);
-	  attrs = Fcons (Fcons (Qtpgid, make_fixnum_or_float (tpgid)), attrs);
-	  attrs = Fcons (Fcons (Qminflt, make_fixnum_or_float (minflt)), attrs);
-	  attrs = Fcons (Fcons (Qmajflt, make_fixnum_or_float (majflt)), attrs);
-	  attrs = Fcons (Fcons (Qcminflt, make_fixnum_or_float (cminflt)),
-			 attrs);
-	  attrs = Fcons (Fcons (Qcmajflt, make_fixnum_or_float (cmajflt)),
-			 attrs);
+	  attrs = Fcons (Fcons (Qtpgid, INT_TO_INTEGER (tpgid)), attrs);
+	  attrs = Fcons (Fcons (Qminflt, INT_TO_INTEGER (minflt)), attrs);
+	  attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (majflt)), attrs);
+	  attrs = Fcons (Fcons (Qcminflt, INT_TO_INTEGER (cminflt)), attrs);
+	  attrs = Fcons (Fcons (Qcmajflt, INT_TO_INTEGER (cmajflt)), attrs);
 	  clocks_per_sec = sysconf (_SC_CLK_TCK);
 	  if (clocks_per_sec < 0)
 	    clocks_per_sec = 100;
@@ -3371,17 +3369,15 @@ system_process_attributes (Lisp_Object pid)
 			 attrs);
 	  attrs = Fcons (Fcons (Qpri, make_fixnum (priority)), attrs);
 	  attrs = Fcons (Fcons (Qnice, make_fixnum (niceness)), attrs);
-	  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (thcount)),
-			 attrs);
+	  attrs = Fcons (Fcons (Qthcount, INT_TO_INTEGER (thcount)), attrs);
 	  tnow = current_timespec ();
 	  telapsed = get_up_time ();
 	  tboot = timespec_sub (tnow, telapsed);
 	  tstart = time_from_jiffies (start, clocks_per_sec);
 	  tstart = timespec_add (tboot, tstart);
 	  attrs = Fcons (Fcons (Qstart, make_lisp_time (tstart)), attrs);
-	  attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (vsize / 1024)),
-			 attrs);
-	  attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (4 * rss)), attrs);
+	  attrs = Fcons (Fcons (Qvsize, INT_TO_INTEGER (vsize / 1024)), attrs);
+	  attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (4 * rss)), attrs);
 	  telapsed = timespec_sub (tnow, tstart);
 	  attrs = Fcons (Fcons (Qetime, make_lisp_time (telapsed)), attrs);
 	  us_time = time_from_jiffies (u_time + s_time, clocks_per_sec);
@@ -3495,7 +3491,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object decoded_cmd;
   ptrdiff_t count;
 
-  CHECK_FIXNUM_OR_FLOAT (pid);
+  CHECK_NUMBER (pid);
   CONS_TO_INTEGER (pid, pid_t, proc_id);
   sprintf (procfn, "/proc/%"pMd, proc_id);
   if (stat (procfn, &st) < 0)
@@ -3503,7 +3499,7 @@ system_process_attributes (Lisp_Object pid)
 
   /* euid egid */
   uid = st.st_uid;
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
+  attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (uid)), attrs);
   block_input ();
   pw = getpwuid (uid);
   unblock_input ();
@@ -3511,7 +3507,7 @@ system_process_attributes (Lisp_Object pid)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
   gid = st.st_gid;
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
+  attrs = Fcons (Fcons (Qegid, INT_TO_INTEGER (gid)), attrs);
   block_input ();
   gr = getgrgid (gid);
   unblock_input ();
@@ -3533,9 +3529,9 @@ system_process_attributes (Lisp_Object pid)
 
   if (nread == sizeof pinfo)
     {
-      attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (pinfo.pr_ppid)), attrs);
-      attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pinfo.pr_pgid)), attrs);
-      attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (pinfo.pr_sid)), attrs);
+      attrs = Fcons (Fcons (Qppid, INT_TO_INTEGER (pinfo.pr_ppid)), attrs);
+      attrs = Fcons (Fcons (Qpgrp, INT_TO_INTEGER (pinfo.pr_pgid)), attrs);
+      attrs = Fcons (Fcons (Qsess, INT_TO_INTEGER (pinfo.pr_sid)), attrs);
 
       {
 	char state_str[2];
@@ -3565,14 +3561,11 @@ system_process_attributes (Lisp_Object pid)
       attrs = Fcons (Fcons (Qctime, make_lisp_time (pinfo.pr_ctime)), attrs);
       attrs = Fcons (Fcons (Qpri, make_fixnum (pinfo.pr_lwp.pr_pri)), attrs);
       attrs = Fcons (Fcons (Qnice, make_fixnum (pinfo.pr_lwp.pr_nice)), attrs);
-      attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (pinfo.pr_nlwp)),
-		     attrs);
+      attrs = Fcons (Fcons (Qthcount, INT_TO_INTEGER (pinfo.pr_nlwp)), attrs);
 
       attrs = Fcons (Fcons (Qstart, make_lisp_time (pinfo.pr_start)), attrs);
-      attrs = Fcons (Fcons (Qvsize, make_fixnum_or_float (pinfo.pr_size)),
-		     attrs);
-      attrs = Fcons (Fcons (Qrss, make_fixnum_or_float (pinfo.pr_rssize)),
-		     attrs);
+      attrs = Fcons (Fcons (Qvsize, INT_TO_INTEGER (pinfo.pr_size)), attrs);
+      attrs = Fcons (Fcons (Qrss, INT_TO_INTEGER (pinfo.pr_rssize)), attrs);
 
       /* pr_pctcpu and pr_pctmem are unsigned integers in the
 	 range 0 .. 2**15, representing 0.0 .. 1.0.  */
@@ -3630,14 +3623,14 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_comm;
 
-  CHECK_FIXNUM_OR_FLOAT (pid);
+  CHECK_NUMBER (pid);
   CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
   if (sysctl (mib, 4, &proc, &proclen, NULL, 0) != 0)
     return attrs;
 
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (proc.ki_uid)), attrs);
+  attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (proc.ki_uid)), attrs);
 
   block_input ();
   pw = getpwuid (proc.ki_uid);
@@ -3645,7 +3638,7 @@ system_process_attributes (Lisp_Object pid)
   if (pw)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (proc.ki_svgid)), attrs);
+  attrs = Fcons (Fcons (Qegid, INT_TO_INTEGER (proc.ki_svgid)), attrs);
 
   block_input ();
   gr = getgrgid (proc.ki_svgid);
@@ -3684,9 +3677,9 @@ system_process_attributes (Lisp_Object pid)
     attrs = Fcons (Fcons (Qstate, build_string (state)), attrs);
   }
 
-  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (proc.ki_ppid)), attrs);
-  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (proc.ki_pgid)), attrs);
-  attrs = Fcons (Fcons (Qsess, make_fixnum_or_float (proc.ki_sid)),  attrs);
+  attrs = Fcons (Fcons (Qppid, INT_TO_INTEGER (proc.ki_ppid)), attrs);
+  attrs = Fcons (Fcons (Qpgrp, INT_TO_INTEGER (proc.ki_pgid)), attrs);
+  attrs = Fcons (Fcons (Qsess, INT_TO_INTEGER (proc.ki_sid)),  attrs);
 
   block_input ();
   ttyname = proc.ki_tdev == NODEV ? NULL : devname (proc.ki_tdev, S_IFCHR);
@@ -3694,9 +3687,11 @@ system_process_attributes (Lisp_Object pid)
   if (ttyname)
     attrs = Fcons (Fcons (Qtty, build_string (ttyname)), attrs);
 
-  attrs = Fcons (Fcons (Qtpgid,   make_fixnum_or_float (proc.ki_tpgid)), attrs);
-  attrs = Fcons (Fcons (Qminflt,  make_fixnum_or_float (proc.ki_rusage.ru_minflt)), attrs);
-  attrs = Fcons (Fcons (Qmajflt,  make_fixnum_or_float (proc.ki_rusage.ru_majflt)), attrs);
+  attrs = Fcons (Fcons (Qtpgid,   INT_TO_INTEGER (proc.ki_tpgid)), attrs);
+  attrs = Fcons (Fcons (Qminflt,  INT_TO_INTEGER (proc.ki_rusage.ru_minflt)),
+		 attrs);
+  attrs = Fcons (Fcons (Qmajflt,  INT_TO_INTEGER (proc.ki_rusage.ru_majflt)),
+		 attrs);
   attrs = Fcons (Fcons (Qcminflt, make_fixnum (proc.ki_rusage_ch.ru_minflt)), attrs);
   attrs = Fcons (Fcons (Qcmajflt, make_fixnum (proc.ki_rusage_ch.ru_majflt)), attrs);
 
@@ -3718,8 +3713,7 @@ system_process_attributes (Lisp_Object pid)
 		    timeval_to_timespec (proc.ki_rusage_ch.ru_stime));
   attrs = Fcons (Fcons (Qctime, make_lisp_time (t)), attrs);
 
-  attrs = Fcons (Fcons (Qthcount, make_fixnum_or_float (proc.ki_numthreads)),
-		 attrs);
+  attrs = Fcons (Fcons (Qthcount, INT_TO_INTEGER (proc.ki_numthreads)), attrs);
   attrs = Fcons (Fcons (Qpri,   make_fixnum (proc.ki_pri.pri_native)), attrs);
   attrs = Fcons (Fcons (Qnice,  make_fixnum (proc.ki_nice)), attrs);
   attrs = Fcons (Fcons (Qstart, make_lisp_timeval (proc.ki_start)), attrs);
@@ -3741,7 +3735,7 @@ system_process_attributes (Lisp_Object pid)
       	{
       	  pcpu = (100.0 * proc.ki_pctcpu / fscale
 		  / (1 - exp (proc.ki_swtime * log ((double) ccpu / fscale))));
-  	  attrs = Fcons (Fcons (Qpcpu, make_fixnum_or_float (pcpu)), attrs);
+	  attrs = Fcons (Fcons (Qpcpu, INT_TO_INTEGER (pcpu)), attrs);
       	}
     }
 
@@ -3751,7 +3745,7 @@ system_process_attributes (Lisp_Object pid)
       double pmem = (proc.ki_flag & P_INMEM
 		     ? 100.0 * proc.ki_rssize / npages
 		     : 0);
-      attrs = Fcons (Fcons (Qpmem, make_fixnum_or_float (pmem)), attrs);
+      attrs = Fcons (Fcons (Qpmem, INT_TO_INTEGER (pmem)), attrs);
     }
 
   mib[2] = KERN_PROC_ARGS;
@@ -3810,7 +3804,7 @@ system_process_attributes (Lisp_Object pid)
   Lisp_Object attrs = Qnil;
   Lisp_Object decoded_comm;
 
-  CHECK_FIXNUM_OR_FLOAT (pid);
+  CHECK_NUMBER (pid);
   CONS_TO_INTEGER (pid, int, proc_id);
   mib[3] = proc_id;
 
@@ -3818,7 +3812,7 @@ system_process_attributes (Lisp_Object pid)
     return attrs;
 
   uid = proc.kp_eproc.e_ucred.cr_uid;
-  attrs = Fcons (Fcons (Qeuid, make_fixnum_or_float (uid)), attrs);
+  attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (uid)), attrs);
 
   block_input ();
   pw = getpwuid (uid);
@@ -3827,7 +3821,7 @@ system_process_attributes (Lisp_Object pid)
     attrs = Fcons (Fcons (Quser, build_string (pw->pw_name)), attrs);
 
   gid = proc.kp_eproc.e_pcred.p_svgid;
-  attrs = Fcons (Fcons (Qegid, make_fixnum_or_float (gid)), attrs);
+  attrs = Fcons (Fcons (Qegid, INT_TO_INTEGER (gid)), attrs);
 
   block_input ();
   gr = getgrgid (gid);
@@ -3867,10 +3861,8 @@ system_process_attributes (Lisp_Object pid)
     attrs = Fcons (Fcons (Qstate, build_string (state)), attrs);
   }
 
-  attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (proc.kp_eproc.e_ppid)),
-		 attrs);
-  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (proc.kp_eproc.e_pgid)),
-		 attrs);
+  attrs = Fcons (Fcons (Qppid, INT_TO_INTEGER (proc.kp_eproc.e_ppid)), attrs);
+  attrs = Fcons (Fcons (Qpgrp, INT_TO_INTEGER (proc.kp_eproc.e_pgid)), attrs);
 
   tdev = proc.kp_eproc.e_tdev;
   block_input ();
@@ -3879,15 +3871,15 @@ system_process_attributes (Lisp_Object pid)
   if (ttyname)
     attrs = Fcons (Fcons (Qtty, build_string (ttyname)), attrs);
 
-  attrs = Fcons (Fcons (Qtpgid,   make_fixnum_or_float (proc.kp_eproc.e_tpgid)),
+  attrs = Fcons (Fcons (Qtpgid, INT_TO_INTEGER (proc.kp_eproc.e_tpgid)),
 		 attrs);
 
   rusage = proc.kp_proc.p_ru;
   if (rusage)
     {
-      attrs = Fcons (Fcons (Qminflt,  make_fixnum_or_float (rusage->ru_minflt)),
+      attrs = Fcons (Fcons (Qminflt, INT_TO_INTEGER (rusage->ru_minflt)),
 		     attrs);
-      attrs = Fcons (Fcons (Qmajflt,  make_fixnum_or_float (rusage->ru_majflt)),
+      attrs = Fcons (Fcons (Qmajflt, INT_TO_INTEGER (rusage->ru_majflt)),
 		     attrs);
 
       attrs = Fcons (Fcons (Qutime, make_lisp_timeval (rusage->ru_utime)),

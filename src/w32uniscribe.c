@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "font.h"
 #include "w32font.h"
+#include "w32common.h"
 
 struct uniscribe_font_info
 {
@@ -1194,11 +1195,11 @@ syms_of_w32uniscribe (void)
   register_font_driver (&uniscribe_font_driver, NULL);
 
   script_get_font_scripts_fn = (ScriptGetFontScriptTags_Proc)
-    GetProcAddress (uniscribe, "ScriptGetFontScriptTags");
+    get_proc_addr (uniscribe, "ScriptGetFontScriptTags");
   script_get_font_languages_fn = (ScriptGetFontLanguageTags_Proc)
-    GetProcAddress (uniscribe, "ScriptGetFontLanguageTags");
+    get_proc_addr (uniscribe, "ScriptGetFontLanguageTags");
   script_get_font_features_fn = (ScriptGetFontFeatureTags_Proc)
-    GetProcAddress (uniscribe, "ScriptGetFontFeatureTags");
+    get_proc_addr (uniscribe, "ScriptGetFontFeatureTags");
   if (script_get_font_scripts_fn
       && script_get_font_languages_fn
       && script_get_font_features_fn)

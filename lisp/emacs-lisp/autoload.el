@@ -768,7 +768,7 @@ FILE's modification time."
                                      "define-erc-module"
                                      "define-erc-response-handler"
                                      "defun-rcirc-command"))))
-                    (push (match-string 2) defs))
+                    (push (match-string-no-properties 2) defs))
                             (forward-sexp 1)
                             (forward-line 1)))))))
 

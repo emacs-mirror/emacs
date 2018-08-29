@@ -929,8 +929,8 @@ usage: (define-charset-internal ...)  */)
 
       if (code < charset.min_code
 	  || code > charset.max_code)
-	args_out_of_range_3 (make_fixnum_or_float (charset.min_code),
-			     make_fixnum_or_float (charset.max_code), val);
+	args_out_of_range_3 (INT_TO_INTEGER (charset.min_code),
+			     INT_TO_INTEGER (charset.max_code), val);
       charset.char_index_offset = CODE_POINT_TO_INDEX (&charset, code);
       charset.min_code = code;
     }
@@ -942,8 +942,8 @@ usage: (define-charset-internal ...)  */)
 
       if (code < charset.min_code
 	  || code > charset.max_code)
-	args_out_of_range_3 (make_fixnum_or_float (charset.min_code),
-			     make_fixnum_or_float (charset.max_code), val);
+	args_out_of_range_3 (INT_TO_INTEGER (charset.min_code),
+			     INT_TO_INTEGER (charset.max_code), val);
       charset.max_code = code;
     }
 
@@ -1852,7 +1852,8 @@ DEFUN ("decode-char", Fdecode_char, Sdecode_char, 2, 2, 0,
        doc: /* Decode the pair of CHARSET and CODE-POINT into a character.
 Return nil if CODE-POINT is not valid in CHARSET.
 
-CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).  */)
+CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE),
+although this usage is obsolescent.  */)
   (Lisp_Object charset, Lisp_Object code_point)
 {
   int c, id;
@@ -1883,7 +1884,7 @@ Return nil if CHARSET doesn't include CH.  */)
   code = ENCODE_CHAR (charsetp, c);
   if (code == CHARSET_INVALID_CODE (charsetp))
     return Qnil;
-  return INTEGER_TO_CONS (code);
+  return INT_TO_INTEGER (code);
 }
 
 

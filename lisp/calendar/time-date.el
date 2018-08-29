@@ -175,8 +175,7 @@ If DATE lacks timezone information, GMT is assumed."
 ;;;###autoload
 (defun days-to-time (days)
   "Convert DAYS into a time value."
-  (let ((time (condition-case nil (seconds-to-time (* 86400.0 days))
-		(range-error (list most-positive-fixnum 65535)))))
+  (let ((time (seconds-to-time (* 86400 days))))
     (if (integerp days)
 	(setcdr (cdr time) nil))
     time))
@@ -277,9 +276,7 @@ return something of the form \"001 year\".
 
 The \"%z\" specifier does not print anything.  When it is used, specifiers
 must be given in order of decreasing size.  To the left of \"%z\", nothing
-is output until the first non-zero unit is encountered.
-
-This function does not work for SECONDS greater than `most-positive-fixnum'."
+is output until the first non-zero unit is encountered."
   (let ((start 0)
         (units '(("y" "year"   31536000)
                  ("d" "day"       86400)
@@ -306,6 +303,7 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
         (push match usedunits)))
     (and zeroflag larger
          (error "Units are not in decreasing order of size"))
+    (setq seconds (floor seconds))
     (dolist (u units)
       (setq spec (car u)
             name (cadr u)

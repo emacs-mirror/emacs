@@ -262,6 +262,16 @@ contrast.  If that is still too low for you, you can customize the
 variables @code{shr-color-visible-distance-min} and
 @code{shr-color-visible-luminance-min} to get a better contrast.
 
+@vindex shr-discard-aria-hidden
+@cindex @code{aria-hidden}, HTML attribute
+  The HTML attribute @code{aria-hidden} is meant to tell screen
+readers to ignore a tag's contents.  You can customize the variable
+@code{shr-discard-aria-hidden} to tell @code{shr} to ignore such tags.
+This can be useful when using a screen reader on the output of
+@code{shr} (e.g., on EWW buffer text).  It can be useful even when not
+using a screen reader, since web authors often put this attribute on
+non-essential decorative elements.
+
 @cindex Desktop Support
 @cindex Saving Sessions
   In addition to maintaining the history at run-time, EWW will also
