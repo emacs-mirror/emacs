@@ -348,10 +348,11 @@ static jit_type_t void_void_signature;
 static jit_type_t lisp_void_signature;
 static jit_type_t push_handler_signature;
 static jit_type_t setjmp_signature;
+static jit_type_t internal_catch_signature;
 
 static jit_type_t subr_signature[SUBR_MAX_ARGS];
 
-static jit_type_t ptrdiff_t_type;
+static jit_type_t ptrdiff_t_type, lisp_object_type;
 
 
 /* Make a pointer constant.  */
@@ -717,7 +718,7 @@ car_or_cdr (jit_function_t func, jit_value_t val, off_t offset,
   /* Is a cons.  */
   tem = untag (func, val, Lisp_Cons);
   tem = jit_insn_load_relative (func, tem, offset,
-				jit_type_void_ptr);
+				lisp_object_type);
   jit_insn_store (func, val, tem);
   jit_insn_branch (func, next_insn);
 
@@ -1086,19 +1087,19 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
     }
 
   for (int i = 0; i < stack_depth; ++i)
-    stack[i] = jit_value_create (func, jit_type_void_ptr);
+    stack[i] = jit_value_create (func, lisp_object_type);
 
   /* This is a placeholder; once we know how much space we'll need, we
      will allocate it and move it into place at the start of the
      function.  */
-  jit_value_t scratch = jit_value_create (func, jit_type_void_ptr);
+  jit_value_t scratch = jit_value_create (func, lisp_object_type);
   int scratch_slots_needed = 0;
 
   /* State needed if we need to emit a call to
      wrong_type_argument.  */
   bool called_wtype = false;
   jit_label_t wtype_label = jit_label_undefined;
-  jit_value_t wtype_arg = jit_value_create (func, jit_type_void_ptr);
+  jit_value_t wtype_arg = jit_value_create (func, lisp_object_type);
 
   jit_label_t argfail = jit_label_undefined;
   bool need_argfail = false;
@@ -1148,7 +1149,7 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	    {
 	      jit_value_t loaded
 		= jit_insn_load_relative (func, arg_vec, i * sizeof (Lisp_Object),
-					  jit_type_void_ptr);
+					  lisp_object_type);
 	      jit_insn_store (func, stack[i], loaded);
 	    }
 
@@ -1177,7 +1178,7 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 		  jit_value_t loaded
 		    = jit_insn_load_relative (func, arg_vec,
 					      i * sizeof (Lisp_Object),
-					      jit_type_void_ptr);
+					      lisp_object_type);
 		  jit_insn_store (func, stack[i], loaded);
 		}
 
@@ -1204,7 +1205,7 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 
 	      jit_value_t vec_addr
 		= jit_insn_load_elem_address (func, arg_vec, nonrest_val,
-					      jit_type_void_ptr);
+					      lisp_object_type);
 	      jit_value_t new_args
 		= jit_insn_sub (func, n_args, nonrest_val);
 
@@ -1627,7 +1628,7 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	    /* FIXME this lies about the signature.  */
 	    jit_value_t result = jit_insn_call_native (func, "internal_catch",
 						       internal_catch,
-						       ternary_signature,
+						       internal_catch_signature,
 						       args, 3,
 						       JIT_CALL_NOTHROW);
 	    PUSH (result);
@@ -1676,7 +1677,7 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	    jit_value_t val
 	      = jit_insn_load_relative (func, hlist,
 					offsetof (struct handler, val),
-					jit_type_void_ptr);
+					lisp_object_type);
 
 	    PUSH (val);
 	    PUSH_PC (handler_pc);
@@ -2652,7 +2653,7 @@ init_jit (void)
 {
 #define LEN SUBR_MAX_ARGS
 
-  jit_type_t params[LEN], lisp_object_type;
+  jit_type_t params[LEN];
   int i;
 
 #ifdef WINDOWSNT
@@ -2755,6 +2756,11 @@ init_jit (void)
   push_handler_signature = jit_type_create_signature (jit_abi_cdecl,
 						      jit_type_void_ptr,
 						      params, 2, 1);
+
+  params[1] = jit_type_void_ptr;
+  internal_catch_signature = jit_type_create_signature (jit_abi_cdecl,
+							lisp_object_type,
+							params, 3, 1);
 
   emacs_jit_initialized = true;
 }
