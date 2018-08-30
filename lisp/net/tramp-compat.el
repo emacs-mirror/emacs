@@ -250,13 +250,6 @@ If NAME is a remote file name, the local part of NAME is unquoted."
   "Yield the CPU to another thread."
   (tramp-compat-funcall 'thread-yield))
 
-(defsubst tramp-compat-signal (error-symbol data)
-  "Signal an error to the main thread."
-  (when tramp-compat-main-thread
-    (tramp-compat-funcall
-     'thread-signal tramp-compat-main-thread error-symbol data))
-  (signal error-symbol data))
-
 ;; Mutexes have entered Emacs 26.1.  Once we use only Emacs 26+, we
 ;; must check (mutexp mutex), because the other functions might still
 ;; not exist when Emacs is configured --without-threads.

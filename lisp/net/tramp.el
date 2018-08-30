@@ -1702,7 +1702,7 @@ function is meant for debugging purposes."
   "Emit an error.
 VEC-OR-PROC identifies the connection to use, SIGNAL is the
 signal identifier to be raised, remaining arguments passed to
-`tramp-message'.  Finally, signal SIGNAL is raised to the main thread."
+`tramp-message'.  Finally, signal SIGNAL is raised."
   (let (tramp-message-show-message)
     (tramp-backtrace vec-or-proc)
     (unless arguments
@@ -1718,8 +1718,7 @@ signal identifier to be raised, remaining arguments passed to
 	(list signal
 	      (get signal 'error-message)
 	      (apply #'format-message fmt-string arguments)))))
-    (tramp-compat-signal
-     signal (list (apply #'format-message fmt-string arguments)))))
+    (signal signal (list (apply #'format-message fmt-string arguments)))))
 
 (defsubst tramp-error-with-buffer
   (buf vec-or-proc signal fmt-string &rest arguments)
@@ -2342,8 +2341,8 @@ If Emacs is compiled --with-threads, the body is protected by a mutex."
 			 (tramp-message
 			  v 1 "Interrupt received in operation %s"
 			  (cons operation args)))
-		       ;; Propagate the quit signal.
-		       (tramp-compat-signal (car err) (cdr err)))
+		       ;; Propagate the signal.
+		       (signal (car err) (cdr err)))
 
 		      ;; When we are in completion mode, some failed
 		      ;; operations shall return at least a default
@@ -2362,7 +2361,7 @@ If Emacs is compiled --with-threads, the body is protected by a mutex."
 				    '(expand-file-name file-name-as-directory)))
 			 filename)
 			;; Propagate the error.
-			(t (tramp-compat-signal (car err) (cdr err))))))
+			(t (signal (car err) (cdr err))))))
 
 		  ;; Nothing to do for us.  However, since we are in
 		  ;; `tramp-mode', we must suppress the volume letter

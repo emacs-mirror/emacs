@@ -2229,7 +2229,8 @@ every file will be loaded in an own thread."
                   (with-mutex vc-mutex
                     (thread-yield)
                     (dolist (thread threads result)
-                      (setq result (cons (thread-join thread) result)))))
+                      (setq result (with-demoted-errors
+                                       (cons (thread-join thread) result))))))
 
               (mapcar #'find-file-noselect files))))
 
