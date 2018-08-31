@@ -363,7 +363,7 @@ OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
-OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
+OPTION_DEFAULT_ON([xim],[at runtime, default X11 XIM to off])
 AC_ARG_WITH([ns],[AS_HELP_STRING([--with-ns],
 [use Nextstep (macOS Cocoa or GNUstep) windowing system.
 On by default on macOS.])],[],[with_ns=maybe])
@@ -1557,7 +1557,6 @@ case $opsys in
     LIB_MATH=
     SYSTEM_TYPE=windows-nt
     ;;
-  dnl NB this may be adjusted below.
   netbsd | openbsd )
     SYSTEM_TYPE=berkeley-unix
     ;;
@@ -2516,10 +2515,9 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}"
       export PKG_CONFIG_PATH="$PKG_CONFIG_PATH$PATH_SEPARATOR`$BREW --prefix imagemagick@6 2>/dev/null`/lib/pkgconfig"
     fi
 
-    EMACS_CHECK_MODULES([IMAGEMAGICK7], [MagickWand >= 7])
-    if test $HAVE_IMAGEMAGICK7 = yes; then
+    EMACS_CHECK_MODULES([IMAGEMAGICK], [MagickWand >= 7])
+    if test $HAVE_IMAGEMAGICK = yes; then
        AC_DEFINE([HAVE_IMAGEMAGICK7], 1, [Define to 1 if using ImageMagick7.])
-       HAVE_IMAGEMAGICK = yes
     else
        ## 6.3.5 is the earliest version known to work; see Bug#17339.
        ## 6.8.2 makes Emacs crash; see Bug#13867.
@@ -2544,8 +2542,6 @@ if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes" || test "${HAVE_W32}"
     fi
     if test $HAVE_IMAGEMAGICK = yes; then
       AC_DEFINE([HAVE_IMAGEMAGICK], 1, [Define to 1 if using ImageMagick.])
-      AC_DEFINE_UNQUOTED([IMAGEMAGICK_MAJOR], [$IMAGEMAGICK_MAJOR],
-                         [ImageMagick major version number (from configure).])
     else
       IMAGEMAGICK_CFLAGS=
       IMAGEMAGICK_LIBS=
@@ -3170,11 +3166,12 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 	 AC_DEFINE(HAVE_XIM, 1, [Define to 1 if XIM is available])],
 	 HAVE_XIM=no)
 
-dnl '--with-xim' now controls only the initial value of use_xim at run time.
-
+dnl Note this is non-standard.  --with-xim does not control whether
+dnl XIM support is compiled in, it only affects the runtime default of
+dnl use_xim in xterm.c.
 if test "${with_xim}" != "no"; then
   AC_DEFINE(USE_XIM, 1,
-	    [Define to 1 if we should use XIM, if it is available.])
+	    [Define to 1 to default runtime use of XIM to on.])
 fi
 
 
@@ -5429,12 +5426,13 @@ Configured for '${canonical}'.
 optsep=
 emacs_config_features=
 for opt in XAW3D XPM JPEG TIFF GIF PNG RSVG CAIRO IMAGEMAGICK SOUND GPM DBUS \
-  GCONF GSETTINGS NOTIFY ACL LIBSELINUX GNUTLS LIBXML2 FREETYPE M17N_FLT \
-  LIBOTF XFT ZLIB TOOLKIT_SCROLL_BARS X_TOOLKIT OLDXMENU X11 NS MODULES \
-  THREADS XWIDGETS LIBSYSTEMD JSON CANNOT_DUMP LCMS2 GMP; do
+  GCONF GSETTINGS GLIB NOTIFY ACL LIBSELINUX GNUTLS LIBXML2 FREETYPE M17N_FLT \
+  LIBOTF XFT ZLIB TOOLKIT_SCROLL_BARS X_TOOLKIT OLDXMENU X11 XDBE XIM \
+  NS MODULES THREADS XWIDGETS LIBSYSTEMD JSON CANNOT_DUMP LCMS2 GMP; do
 
     case $opt in
       CANNOT_DUMP) eval val=\${$opt} ;;
+      GLIB) val=${emacs_cv_links_glib} ;;
       NOTIFY|ACL) eval val=\${${opt}_SUMMARY} ;;
       TOOLKIT_SCROLL_BARS|X_TOOLKIT) eval val=\${USE_$opt} ;;
       THREADS) val=${threads_enabled} ;;

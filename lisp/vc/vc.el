@@ -2268,11 +2268,11 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
 			       setup-buttons-func
 			       goto-location-func
 			       rev-buff-func)
-  (let (retval)
-    (with-current-buffer (get-buffer-create buffer-name)
+  (let (retval (buffer (get-buffer-create buffer-name)))
+    (with-current-buffer buffer
       (set (make-local-variable 'vc-log-view-type) type))
     (setq retval (funcall backend-func backend buffer-name type files))
-    (with-current-buffer (get-buffer buffer-name)
+    (with-current-buffer buffer
       (let ((inhibit-read-only t))
 	;; log-view-mode used to be called with inhibit-read-only bound
 	;; to t, so let's keep doing it, just in case.
@@ -2283,7 +2283,7 @@ earlier revisions.  Show up to LIMIT entries (non-nil means unlimited)."
 	     rev-buff-func)))
     ;; Display after setting up major-mode, so display-buffer-alist can know
     ;; the major-mode.
-    (pop-to-buffer buffer-name)
+    (pop-to-buffer buffer)
     (vc-run-delayed
      (let ((inhibit-read-only t))
        (funcall setup-buttons-func backend files retval)

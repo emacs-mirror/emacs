@@ -21185,8 +21185,12 @@ maybe_produce_line_number (struct it *it)
      an L2R paragraph.  */
   tem_it.bidi_it.resolved_level = 2;
 
+  /* We must leave space for 2 glyphs for continuation and truncation,
+     and at least one glyph for buffer text.  */
+  int width_limit =
+    tem_it.last_visible_x - tem_it.first_visible_x
+    - 3 * FRAME_COLUMN_WIDTH (it->f);
   /* Produce glyphs for the line number in a scratch glyph_row.  */
-  int n_glyphs_before;
   for (const char *p = lnum_buf; *p; p++)
     {
       /* For continuation lines and lines after ZV, instead of a line
@@ -21210,18 +21214,18 @@ maybe_produce_line_number (struct it *it)
       else
 	tem_it.c = tem_it.char_to_display = *p;
       tem_it.len = 1;
-      n_glyphs_before = scratch_glyph_row.used[TEXT_AREA];
       /* Make sure these glyphs will have a "position" of -1.  */
       SET_TEXT_POS (tem_it.position, -1, -1);
       PRODUCE_GLYPHS (&tem_it);
 
-      /* Stop producing glyphs if we don't have enough space on
-	 this line.  FIXME: should we refrain from producing the
-	 line number at all in that case?  */
-      if (tem_it.current_x > tem_it.last_visible_x)
+      /* Stop producing glyphs, and refrain from producing the line
+	 number, if we don't have enough space on this line.  */
+      if (tem_it.current_x >= width_limit)
 	{
-	  scratch_glyph_row.used[TEXT_AREA] = n_glyphs_before;
-	  break;
+	  it->lnum_width = 0;
+	  it->lnum_pixel_width = 0;
+	  bidi_unshelve_cache (itdata, false);
+	  return;
 	}
     }
 

@@ -739,6 +739,13 @@ to signal the main thread, e.g., when they encounter an error.
 +++
 *** 'thread-join' returns the result of the finished thread now.
 
++++
+*** 'thread-signal' does not propagate errors to the main thread.
+Instead, error messages are just printed in the main thread.
+
+---
+*** 'thread-alive-p' is now obsolete, use 'thread-live-p' instead.
+
 ---
 ** thingatpt.el supports a new "thing" called 'uuid'.
 A symbol 'uuid' can be passed to thing-at-point and it returns the
@@ -877,6 +884,8 @@ removed.
 
 
 * Lisp Changes in Emacs 27.1
+
+** lookup-key can take a list of keymaps as argument.
 
 +++
 ** New function 'proper-list-p'.

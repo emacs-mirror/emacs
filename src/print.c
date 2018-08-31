@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "sysstdio.h"
 
 #include "lisp.h"
-#include "bignum.h"
 #include "character.h"
 #include "coding.h"
 #include "buffer.h"
@@ -1370,11 +1369,11 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
     {
     case PVEC_BIGNUM:
       {
+	ptrdiff_t size = bignum_bufsize (obj, 10);
 	USE_SAFE_ALLOCA;
-	char *str = SAFE_ALLOCA (mpz_sizeinbase (XBIGNUM (obj)->value, 10)
-				 + 2);
-	mpz_get_str (str, 10, XBIGNUM (obj)->value);
-	print_c_string (str, printcharfun);
+	char *str = SAFE_ALLOCA (size);
+	ptrdiff_t len = bignum_to_c_string (str, size, obj, 10);
+	strout (str, len, len, printcharfun);
 	SAFE_FREE ();
       }
       break;

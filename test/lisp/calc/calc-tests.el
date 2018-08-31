@@ -86,6 +86,13 @@ An existing calc stack is reused, otherwise a new one is created."
 					       (math-read-expr "1m") "cm")
 			    '(* -100 (var cm var-cm)))))
 
+(ert-deftest calc-imaginary-i ()
+  "Test `math-imaginary-i' for non-special-const values."
+  (let ((var-i (calcFunc-polar (calcFunc-sqrt -1))))
+    (should (math-imaginary-i)))
+  (let ((var-i (calcFunc-sqrt -1)))
+    (should (math-imaginary-i))))
+
 (ert-deftest test-calc-23889 ()
   "Test for https://debbugs.gnu.org/23889 and 25652."
   (skip-unless (>= math-bignum-digit-length 9))

@@ -983,6 +983,9 @@ the execution time.  If you find that one particular function is
 responsible for a significant portion of the execution time, you can
 start looking for ways to optimize that piece.
 
+@findex profiler-start
+@findex profiler-report
+@findex profiler-stop
 Emacs has built-in support for this.  To begin profiling, type
 @kbd{M-x profiler-start}.  You can choose to profile by processor
 usage, memory usage, or both.  Then run the code you'd like to speed

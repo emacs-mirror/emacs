@@ -2828,6 +2828,9 @@ read_char (int commandflag, Lisp_Object map,
 #ifdef USE_FILE_NOTIFY
 	      || EQ (XCAR (c), Qfile_notify)
 #endif
+#ifdef THREADS_ENABLED
+	      || EQ (XCAR (c), Qthread_event)
+#endif
 	      || EQ (XCAR (c), Qconfig_changed_event))
           && !end_time)
 	/* We stopped being idle for this event; undo that.  This
@@ -3739,7 +3742,7 @@ kbd_buffer_get_event (KBOARD **kbp,
     }
 #endif	/* subprocesses */
 
-#if !defined HAVE_DBUS && !defined USE_FILE_NOTIFY
+#if !defined HAVE_DBUS && !defined USE_FILE_NOTIFY && !defined THREADS_ENABLED
   if (noninteractive
       /* In case we are running as a daemon, only do this before
 	 detaching from the terminal.  */
@@ -3750,7 +3753,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       *kbp = current_kboard;
       return obj;
     }
-#endif	/* !defined HAVE_DBUS && !defined USE_FILE_NOTIFY  */
+#endif	/* !defined HAVE_DBUS && !defined USE_FILE_NOTIFY && !defined THREADS_ENABLED  */
 
   /* Wait until there is input available.  */
   for (;;)
@@ -3899,6 +3902,9 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
 #ifdef HAVE_DBUS
       case DBUS_EVENT:
+#endif
+#ifdef THREADS_ENABLED
+      case THREAD_EVENT:
 #endif
 #ifdef HAVE_XWIDGETS
       case XWIDGET_EVENT:
@@ -5982,6 +5988,13 @@ make_lispy_event (struct input_event *event)
 	return Fcons (Qdbus_event, event->arg);
       }
 #endif /* HAVE_DBUS */
+
+#ifdef THREADS_ENABLED
+    case THREAD_EVENT:
+      {
+	return Fcons (Qthread_event, event->arg);
+      }
+#endif /* THREADS_ENABLED */
 
 #ifdef HAVE_XWIDGETS
     case XWIDGET_EVENT:
@@ -11078,6 +11091,10 @@ syms_of_keyboard (void)
   DEFSYM (Qdbus_event, "dbus-event");
 #endif
 
+#ifdef THREADS_ENABLED
+  DEFSYM (Qthread_event, "thread-event");
+#endif
+
 #ifdef HAVE_XWIDGETS
   DEFSYM (Qxwidget_event, "xwidget-event");
 #endif
@@ -11927,6 +11944,12 @@ keys_of_keyboard (void)
      functions.  */
   initial_define_lispy_key (Vspecial_event_map, "dbus-event",
 			    "dbus-handle-event");
+#endif
+
+#ifdef THREADS_ENABLED
+  /* Define a special event which is raised for thread signals.  */
+  initial_define_lispy_key (Vspecial_event_map, "thread-event",
+			    "thread-handle-event");
 #endif
 
 #ifdef USE_FILE_NOTIFY

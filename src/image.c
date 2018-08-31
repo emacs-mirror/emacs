@@ -8824,7 +8824,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
 #endif /* HAVE_MAGICKEXPORTIMAGEPIXELS */
     {
       size_t image_height;
-      MagickRealType color_scale = 65535.0 / (MagickRealType) QuantumRange;
+      double quantum_range = QuantumRange;
+      MagickRealType color_scale = 65535.0 / quantum_range;
 #ifdef USE_CAIRO
       data = xmalloc (width * height * 4);
       color_scale /= 256;

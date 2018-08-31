@@ -222,6 +222,10 @@ enum event_kind
   , DBUS_EVENT
 #endif
 
+#ifdef THREADS_ENABLED
+  , THREAD_EVENT
+#endif
+
   , CONFIG_CHANGED_EVENT
 
 #ifdef HAVE_NTGUI

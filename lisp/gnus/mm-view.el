@@ -452,7 +452,7 @@
   "Insert HANDLE inline fontifying with MODE.
 If MODE is not set, try to find mode automatically."
   (let ((charset (mail-content-type-get (mm-handle-type handle) 'charset))
-	text coding-system)
+	text coding-system ovs)
     (unless (eq charset 'gnus-decoded)
       (mm-with-unibyte-buffer
 	(mm-insert-part handle)
@@ -498,10 +498,18 @@ If MODE is not set, try to find mode automatically."
 		      (eq major-mode 'fundamental-mode))
 	    (font-lock-ensure))))
       (setq text (buffer-string))
+      (when (eq mode 'diff-mode)
+	(setq ovs (mapcar (lambda (ov) (list ov (overlay-start ov)
+	                                        (overlay-end ov)))
+	                  (overlays-in (point-min) (point-max)))))
       ;; Set buffer unmodified to avoid confirmation when killing the
       ;; buffer.
       (set-buffer-modified-p nil))
-    (mm-insert-inline handle text)))
+    (let ((b (1- (point))))
+      (mm-insert-inline handle text)
+      (dolist (ov ovs)
+	(move-overlay (nth 0 ov) (+ (nth 1 ov) b)
+	                         (+ (nth 2 ov) b) (current-buffer))))))
 
 ;; Shouldn't these functions check whether the user even wants to use
 ;; font-lock?  Also, it would be nice to change for the size of the

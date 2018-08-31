@@ -99,6 +99,11 @@ option 'vc-hg-symbolic-revision-styles' to the value '("{rev}")'.
 Existing files "~/.emacs.d/shadows" and "~/.emacs.d/shadow_todo" must
 be removed prior using the changed 'shadow-*' commands.
 
++++
+** 'thread-alive-p' has been renamed to 'thread-live-p'.
+The old name is an alias of the new name.  Future Emacs version will
+obsolete it.
+
 
 * Lisp Changes in Emacs 26.2
 

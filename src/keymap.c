@@ -1186,7 +1186,7 @@ number or marker, in which case the keymap properties at the specified
 buffer position instead of point are used.  The KEYMAPS argument is
 ignored if POSITION is non-nil.
 
-If the optional argument KEYMAPS is non-nil, it should be a list of
+If the optional argument KEYMAPS is non-nil, it should be a keymap or list of
 keymaps to search for command remapping.  Otherwise, search for the
 remapping in all currently active keymaps.  */)
   (Lisp_Object command, Lisp_Object position, Lisp_Object keymaps)
@@ -1199,8 +1199,7 @@ remapping in all currently active keymaps.  */)
   if (NILP (keymaps))
     command = Fkey_binding (command_remapping_vector, Qnil, Qt, position);
   else
-    command = Flookup_key (Fcons (Qkeymap, keymaps),
-			   command_remapping_vector, Qnil);
+    command = Flookup_key (keymaps, command_remapping_vector, Qnil);
   return FIXNUMP (command) ? Qnil : command;
 }
 
@@ -1208,7 +1207,7 @@ remapping in all currently active keymaps.  */)
 /* GC is possible in this function.  */
 
 DEFUN ("lookup-key", Flookup_key, Slookup_key, 2, 3, 0,
-       doc: /* In keymap KEYMAP, look up key sequence KEY.  Return the definition.
+       doc: /* Look up key sequence KEY in KEYMAP.  Return the definition.
 A value of nil means undefined.  See doc of `define-key'
 for kinds of definitions.
 
@@ -1217,6 +1216,7 @@ that is, characters or symbols in it except for the last one
 fail to be a valid sequence of prefix characters in KEYMAP.
 The number is how many characters at the front of KEY
 it takes to reach a non-prefix key.
+KEYMAP can also be a list of keymaps.
 
 Normally, `lookup-key' ignores bindings for t, which act as default
 bindings, used when nothing else in the keymap applies; this makes it
@@ -1231,7 +1231,8 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   ptrdiff_t length;
   bool t_ok = !NILP (accept_default);
 
-  keymap = get_keymap (keymap, 1, 1);
+  if (!CONSP (keymap) && !NILP (keymap))
+    keymap = get_keymap (keymap, true, true);
 
   length = CHECK_VECTOR_OR_STRING (key);
   if (length == 0)
@@ -1664,7 +1665,7 @@ specified buffer position instead of point are used.
 	}
     }
 
-  value = Flookup_key (Fcons (Qkeymap, Fcurrent_active_maps (Qt, position)),
+  value = Flookup_key (Fcurrent_active_maps (Qt, position),
 		       key, accept_default);
 
   if (NILP (value) || FIXNUMP (value))
@@ -2359,39 +2360,24 @@ preferred_sequence_p (Lisp_Object seq)
 static void where_is_internal_1 (Lisp_Object key, Lisp_Object binding,
                                  Lisp_Object args, void *data);
 
-/* Like Flookup_key, but uses a list of keymaps SHADOW instead of a single map.
-   Returns the first non-nil binding found in any of those maps.
-   If REMAP is true, pass the result of the lookup through command
-   remapping before returning it.  */
+/* Like Flookup_key, but with command remapping; just returns nil
+   if the key sequence is too long.  */
 
 static Lisp_Object
-shadow_lookup (Lisp_Object shadow, Lisp_Object key, Lisp_Object flag,
+shadow_lookup (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default,
 	       bool remap)
 {
-  Lisp_Object tail, value;
+  Lisp_Object value = Flookup_key (keymap, key, accept_default);
 
-  for (tail = shadow; CONSP (tail); tail = XCDR (tail))
+  if (FIXNATP (value))          /* `key' is too long!  */
+    return Qnil;
+  else if (!NILP (value) && remap && SYMBOLP (value))
     {
-      value = Flookup_key (XCAR (tail), key, flag);
-      if (FIXNATP (value))
-	{
-	  value = Flookup_key (XCAR (tail),
-			       Fsubstring (key, make_fixnum (0), value), flag);
-	  if (!NILP (value))
-	    return Qnil;
-	}
-      else if (!NILP (value))
-	{
-	  Lisp_Object remapping;
-	  if (remap && SYMBOLP (value)
-	      && (remapping = Fcommand_remapping (value, Qnil, shadow),
-		  !NILP (remapping)))
-	    return remapping;
-	  else
-	    return value;
-	}
+      Lisp_Object remapping = Fcommand_remapping (value, Qnil, keymap);
+      return (!NILP (remapping) ? remapping : value);
     }
-  return Qnil;
+  else
+    return value;
 }
 
 static Lisp_Object Vmouse_events;
@@ -2565,7 +2551,7 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
     keymaps = Fcurrent_active_maps (Qnil, Qnil);
 
   tem = Fcommand_remapping (definition, Qnil, keymaps);
-  /* If `definition' is remapped to tem', then OT1H no key will run
+  /* If `definition' is remapped to `tem', then OT1H no key will run
      that command (since they will run `tem' instead), so we should
      return nil; but OTOH all keys bound to `definition' (or to `tem')
      will run the same command.
@@ -2587,6 +2573,8 @@ The optional 5th arg NO-REMAP alters how command remapping is handled:
       && !NILP (tem = Fget (definition, QCadvertised_binding)))
     {
       /* We have a list of advertised bindings.  */
+      /* FIXME: Not sure why we use false for shadow_lookup's remapping,
+         nor why we use `EQ' here but `Fequal' in the call further down.  */
       while (CONSP (tem))
 	if (EQ (shadow_lookup (keymaps, XCAR (tem), Qnil, 0), definition))
 	  return XCAR (tem);
@@ -2992,38 +2980,17 @@ key             binding\n\
       elt = XCAR (maps);
       elt_prefix = Fcar (elt);
 
-      sub_shadows = Qnil;
-
-      for (tail = shadow; CONSP (tail); tail = XCDR (tail))
-	{
-	  Lisp_Object shmap;
-
-	  shmap = XCAR (tail);
-
-	  /* If the sequence by which we reach this keymap is zero-length,
-	     then the shadow map for this keymap is just SHADOW.  */
-	  if ((STRINGP (elt_prefix) && SCHARS (elt_prefix) == 0)
-	      || (VECTORP (elt_prefix) && ASIZE (elt_prefix) == 0))
-	    ;
-	  /* If the sequence by which we reach this keymap actually has
-	     some elements, then the sequence's definition in SHADOW is
-	     what we should use.  */
-	  else
-	    {
-	      shmap = Flookup_key (shmap, Fcar (elt), Qt);
-	      if (FIXNUMP (shmap))
-		shmap = Qnil;
-	    }
-
-	  /* If shmap is not nil and not a keymap,
+      sub_shadows = Flookup_key (shadow, elt_prefix, Qt);
+      if (FIXNATP (sub_shadows))
+        sub_shadows = Qnil;
+      else if (!KEYMAPP (sub_shadows)
+               && !NILP (sub_shadows)
+               && !(CONSP (sub_shadows)
+                    && KEYMAPP (XCAR (sub_shadows))))
+	  /* If elt_prefix is bound to something that's not a keymap,
 	     it completely shadows this map, so don't
 	     describe this map at all.  */
-	  if (!NILP (shmap) && !KEYMAPP (shmap))
-	    goto skip;
-
-	  if (!NILP (shmap))
-	    sub_shadows = Fcons (shmap, sub_shadows);
-	}
+        goto skip;
 
       /* Maps we have already listed in this loop shadow this map.  */
       for (tail = orig_maps; !EQ (tail, maps); tail = XCDR (tail))

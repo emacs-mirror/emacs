@@ -1290,7 +1290,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   if (INTEGERP (val))
     {
       intmax_t v = FIXNUMP (val) ? XFIXNUM (val) : bignum_to_intmax (val);
-      if (! (0 <= v && v <= TYPE_MAXIMUM (uprintmax_t)))
+      if (! (0 < v && v <= TYPE_MAXIMUM (uprintmax_t)))
 	v = pixel_size;
       if (v > 0)
 	{

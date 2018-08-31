@@ -3278,9 +3278,12 @@ set_sub_char_table_contents (Lisp_Object table, ptrdiff_t idx, Lisp_Object val)
   XSUB_CHAR_TABLE (table)->contents[idx] = val;
 }
 
-/* Defined in bignum.c.  */
+/* Defined in bignum.c.  This part of bignum.c's API does not require
+   the caller to access bignum internals; see bignum.h for that.  */
 extern intmax_t bignum_to_intmax (Lisp_Object);
 extern uintmax_t bignum_to_uintmax (Lisp_Object);
+extern ptrdiff_t bignum_bufsize (Lisp_Object, int);
+extern ptrdiff_t bignum_to_c_string (char *, ptrdiff_t, Lisp_Object, int);
 extern Lisp_Object bignum_to_string (Lisp_Object, int);
 extern Lisp_Object make_bignum_str (char const *, int);
 extern Lisp_Object double_to_bignum (double);

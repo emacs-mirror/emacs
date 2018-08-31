@@ -88,14 +88,8 @@ If @var{thread} was blocked by a call to @code{mutex-lock},
 @code{condition-wait}, or @code{thread-join}; @code{thread-signal}
 will unblock it.
 
-Since signal handlers in Emacs are located in the main thread, a
-signal must be propagated there in order to become visible.  The
-second @code{signal} call let the thread die:
-
-@example
-(thread-signal main-thread 'error data)
-(signal 'error data)
-@end example
+If @var{thread} is the main thread, the signal is not propagated
+there.  Instead, it is shown as message in the main thread.
 @end defun
 
 @defun thread-yield
@@ -106,7 +100,7 @@ Yield execution to the next runnable thread.
 Return the name of @var{thread}, as specified to @code{make-thread}.
 @end defun
 
-@defun thread-alive-p thread
+@defun thread-live-p thread
 Return @code{t} if @var{thread} is alive, or @code{nil} if it is not.
 A thread is alive as long as its function is still executing.
 @end defun

@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
+#include <stdlib.h>
+
 /* Return the value of the Lisp bignum N, as a double.  */
 double
 bignum_to_double (Lisp_Object n)
@@ -223,18 +225,39 @@ bignum_to_uintmax (Lisp_Object x)
   return v;
 }
 
-/* Convert NUM to a base-BASE Lisp string.  */
+/* Yield an upper bound on the buffer size needed to contain a C
+   string representing the bignum NUM in base BASE.  This includes any
+   preceding '-' and the terminating null.  */
+ptrdiff_t
+bignum_bufsize (Lisp_Object num, int base)
+{
+  return mpz_sizeinbase (XBIGNUM (num)->value, base) + 2;
+}
+
+/* Store into BUF (of size SIZE) the value of NUM as a base-BASE string.
+   If BASE is negative, use upper-case digits in base -BASE.
+   Return the string's length.
+   SIZE must equal bignum_bufsize (NUM, abs (BASE)).  */
+ptrdiff_t
+bignum_to_c_string (char *buf, ptrdiff_t size, Lisp_Object num, int base)
+{
+  eassert (bignum_bufsize (num, abs (base)) == size);
+  mpz_get_str (buf, base, XBIGNUM (num)->value);
+  ptrdiff_t n = size - 2;
+  return !buf[n - 1] ? n - 1 : n + !!buf[n];
+}
+
+/* Convert NUM to a base-BASE Lisp string.
+   If BASE is negative, use upper-case digits in base -BASE.  */
 
 Lisp_Object
 bignum_to_string (Lisp_Object num, int base)
 {
-  ptrdiff_t n = mpz_sizeinbase (XBIGNUM (num)->value, base) - 1;
+  ptrdiff_t size = bignum_bufsize (num, abs (base));
   USE_SAFE_ALLOCA;
-  char *str = SAFE_ALLOCA (n + 3);
-  mpz_get_str (str, base, XBIGNUM (num)->value);
-  while (str[n])
-    n++;
-  Lisp_Object result = make_unibyte_string (str, n);
+  char *str = SAFE_ALLOCA (size);
+  ptrdiff_t len = bignum_to_c_string (str, size, num, base);
+  Lisp_Object result = make_unibyte_string (str, len);
   SAFE_FREE ();
   return result;
 }

@@ -1837,7 +1837,7 @@ Replace with \"%s\"? " original replace)
 		 (if (checkdoc-autofix-ask-replace
 		      (match-beginning 1) (+ (match-beginning 1)
 					     (length ms))
-		      msg (format-message "`%s'" ms) t)
+		      msg (format "`%s'" ms) t)
 		     (setq msg nil)
 		   (setq msg
 			 (format-message

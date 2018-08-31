@@ -3254,8 +3254,7 @@ sweep_vectors (void)
 
   for (block = vector_blocks; block; block = *bprev)
     {
-      bool free_this_block = 0;
-      ptrdiff_t nbytes;
+      bool free_this_block = false;
 
       for (vector = (struct Lisp_Vector *) block->data;
 	   VECTOR_IN_BLOCK (vector, block); vector = next)
@@ -3264,31 +3263,26 @@ sweep_vectors (void)
 	    {
 	      VECTOR_UNMARK (vector);
 	      total_vectors++;
-	      nbytes = vector_nbytes (vector);
+	      ptrdiff_t nbytes = vector_nbytes (vector);
 	      total_vector_slots += nbytes / word_size;
 	      next = ADVANCE (vector, nbytes);
 	    }
 	  else
 	    {
-	      ptrdiff_t total_bytes;
-
-	      cleanup_vector (vector);
-	      nbytes = vector_nbytes (vector);
-	      total_bytes = nbytes;
-	      next = ADVANCE (vector, nbytes);
+	      ptrdiff_t total_bytes = 0;
 
 	      /* While NEXT is not marked, try to coalesce with VECTOR,
 		 thus making VECTOR of the largest possible size.  */
 
-	      while (VECTOR_IN_BLOCK (next, block))
+	      next = vector;
+	      do
 		{
-		  if (VECTOR_MARKED_P (next))
-		    break;
 		  cleanup_vector (next);
-		  nbytes = vector_nbytes (next);
+		  ptrdiff_t nbytes = vector_nbytes (next);
 		  total_bytes += nbytes;
 		  next = ADVANCE (next, nbytes);
 		}
+	      while (VECTOR_IN_BLOCK (next, block) && !VECTOR_MARKED_P (next));
 
 	      eassert (total_bytes % roundup_size == 0);
 
@@ -3296,7 +3290,7 @@ sweep_vectors (void)
 		  && !VECTOR_IN_BLOCK (next, block))
 		/* This block should be freed because all of its
 		   space was coalesced into the only free vector.  */
-		free_this_block = 1;
+		free_this_block = true;
 	      else
 		setup_on_free_list (vector, total_bytes);
 	    }

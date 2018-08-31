@@ -205,6 +205,26 @@ result in an endless loop.
 If you need Emacs to be able to recover from closing displays, compile
 it with the Lucid toolkit instead of GTK.
 
+** Emacs compiled with GTK+ 3 crashes when run under some X servers.
+This happens when the X server does not provide certain display
+features that the underlying GTK+ 3 toolkit assumes.  For example, this
+issue has been seen with remote X servers like X2Go.  The symptoms
+are an Emacs crash, possibly triggered by the mouse entering the Emacs
+window, or an attempt to resize the Emacs window.  The crash backtrace
+contains a call to XQueryPointer.
+
+This issue was fixed in the GTK+ 3 toolkit in commit 4b1c0256 in February 2018.
+
+If your GTK+ 3 is still affected, you can avoid the issue by recompiling
+Emacs with a different X toolkit, eg --with-toolkit=gtk2.
+
+References:
+https://gitlab.gnome.org/GNOME/gtk/commit/4b1c02560f0d8097bf5a11932e52fb72f3e9e94b
+https://debbugs.gnu.org/24280
+https://bugs.debian.org/901038
+https://bugzilla.redhat.com/1483942
+https://access.redhat.com/solutions/3410101
+
 ** Emacs compiled with GTK crashes at startup due to X protocol error.
 
 This is known to happen on elementary OS GNU/Linux systems.

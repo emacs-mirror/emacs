@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 
 #include "lisp.h"
-#include "bignum.h"
 #include "dynlib.h"
 #include "coding.h"
 #include "keyboard.h"
@@ -522,11 +521,10 @@ module_extract_integer (emacs_env *env, emacs_value n)
   CHECK_INTEGER (l);
   if (BIGNUMP (l))
     {
-      /* FIXME: This can incorrectly signal overflow on platforms
-	 where long is narrower than intmax_t.  */
-      if (!mpz_fits_slong_p (XBIGNUM (l)->value))
+      intmax_t i = bignum_to_intmax (l);
+      if (i == 0)
 	xsignal1 (Qoverflow_error, l);
-      return mpz_get_si (XBIGNUM (l)->value);
+      return i;
     }
   return XFIXNUM (l);
 }
