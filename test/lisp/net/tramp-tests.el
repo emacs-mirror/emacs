@@ -5096,7 +5096,7 @@ process sentinels.  They shall not disturb each other."
 	  "thread1"))
 
 	(should (threadp tmp-thread1))
-	(should (thread-alive-p tmp-thread1))
+	(should (thread-live-p tmp-thread1))
 
 	;; This thread renames `tmp-name2' to `tmp-name1' twice.
 	(setq
@@ -5118,13 +5118,13 @@ process sentinels.  They shall not disturb each other."
 	  "thread2"))
 
 	(should (threadp tmp-thread2))
-	(should (thread-alive-p tmp-thread2))
+	(should (thread-live-p tmp-thread2))
 	(should (= (length (all-threads)) 3))
 
 	;; Wait for thread1.
 	(thread-join tmp-thread1)
 	;; Checks.
-	(should-not (thread-alive-p tmp-thread1))
+	(should-not (thread-live-p tmp-thread1))
 	(should (= (length (all-threads)) 2))
 	(should-not (thread-last-error))
 	(should (file-exists-p tmp-name2))
@@ -5137,7 +5137,7 @@ process sentinels.  They shall not disturb each other."
 	;; Wait for thread2.
 	(thread-join tmp-thread2)
 	;; Checks.
-	(should-not (thread-alive-p tmp-thread2))
+	(should-not (thread-live-p tmp-thread2))
 	(should (= (length (all-threads)) 1))
 	(should-not (thread-last-error))
 	(should (file-exists-p tmp-name1))
