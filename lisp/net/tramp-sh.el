@@ -1256,18 +1256,17 @@ component is used as the target of the symlink."
       (with-parsed-tramp-file-name (expand-file-name filename) nil
 	(with-tramp-file-property
 	    v localname (format "file-attributes-%s" id-format)
-	  (save-excursion
-	    (tramp-convert-file-attributes
-	     v
-	     (or
-	      (cond
-	       ((tramp-get-remote-stat v)
-		(tramp-do-file-attributes-with-stat v localname id-format))
-	       ((tramp-get-remote-perl v)
-		(tramp-do-file-attributes-with-perl v localname id-format))
-	       (t nil))
-	      ;; The scripts could fail, for example with huge file size.
-	      (tramp-do-file-attributes-with-ls v localname id-format)))))))))
+	  (tramp-convert-file-attributes
+	   v
+	   (or
+	    (cond
+	     ((tramp-get-remote-stat v)
+	      (tramp-do-file-attributes-with-stat v localname id-format))
+	     ((tramp-get-remote-perl v)
+	      (tramp-do-file-attributes-with-perl v localname id-format))
+	     (t nil))
+	    ;; The scripts could fail, for example with huge file size.
+	    (tramp-do-file-attributes-with-ls v localname id-format))))))))
 
 (defun tramp-sh--quoting-style-options (vec)
   (or
@@ -1671,16 +1670,12 @@ be non-negative integers."
 ;; something smarter about it.
 (defun tramp-sh-handle-file-newer-than-file-p (file1 file2)
   "Like `file-newer-than-file-p' for Tramp files."
-  (cond ((not (file-exists-p file1))
-         nil)
-        ((not (file-exists-p file2))
-         t)
-        ;; We are sure both files exist at this point.
-        (t
-         (save-excursion
-	   ;; We try to get the mtime of both files.  If they are not
-	   ;; equal to the "dont-know" value, then we subtract the times
-	   ;; and obtain the result.
+  (cond ((not (file-exists-p file1)) nil)
+        ((not (file-exists-p file2)) t)
+        (t ;; We are sure both files exist at this point.  We try to
+           ;; get the mtime of both files.  If they are not equal to
+           ;; the "dont-know" value, then we subtract the times and
+           ;; obtain the result.
 	   (let ((fa1 (file-attributes file1))
 		 (fa2 (file-attributes file2)))
 	     (if (and
@@ -1707,7 +1702,7 @@ be non-negative integers."
 		    file1 file2)))
 	       (with-parsed-tramp-file-name file1 nil
 		 (tramp-run-test2
-		  (tramp-get-test-nt-command v) file1 file2))))))))
+		  (tramp-get-test-nt-command v) file1 file2)))))))
 
 ;; Functions implemented using the basic functions above.
 
@@ -1764,20 +1759,17 @@ be non-negative integers."
 	       (with-tramp-file-property
 		   v localname
 		   (format "directory-files-and-attributes-%s" id-format)
-		 (save-excursion
-		   (mapcar
-		    (lambda (x)
-		      (cons (car x)
-			    (tramp-convert-file-attributes v (cdr x))))
-		    (or
-		     (cond
-		      ((tramp-get-remote-stat v)
-		       (tramp-do-directory-files-and-attributes-with-stat
-			v localname id-format))
-		      ((tramp-get-remote-perl v)
-		       (tramp-do-directory-files-and-attributes-with-perl
-			v localname id-format))
-		      (t nil)))))))))
+		 (mapcar
+		  (lambda (x)
+		    (cons (car x) (tramp-convert-file-attributes v (cdr x))))
+		  (cond
+		   ((tramp-get-remote-stat v)
+		    (tramp-do-directory-files-and-attributes-with-stat
+		     v localname id-format))
+		   ((tramp-get-remote-perl v)
+		    (tramp-do-directory-files-and-attributes-with-perl
+		     v localname id-format))
+		   (t nil)))))))
 	   result item)
 
       (while temp
@@ -2551,12 +2543,11 @@ The method used must be an out-of-band method."
     ;; whole cache.
     (tramp-flush-directory-properties
      v (if parents "/" (file-name-directory localname)))
-    (save-excursion
-      (tramp-barf-unless-okay
-       v (format "%s %s"
-		 (if parents "mkdir -p" "mkdir")
-		 (tramp-shell-quote-argument localname))
-       "Couldn't make directory %s" dir))))
+    (tramp-barf-unless-okay
+     v (format "%s %s"
+	       (if parents "mkdir -p" "mkdir")
+	       (tramp-shell-quote-argument localname))
+     "Couldn't make directory %s" dir)))
 
 (defun tramp-sh-handle-delete-directory (directory &optional recursive trash)
   "Like `delete-directory' for Tramp files."
@@ -2590,41 +2581,39 @@ The method used must be an out-of-band method."
   ;; Code stolen mainly from dired-aux.el.
   (with-parsed-tramp-file-name file nil
     (tramp-flush-file-properties v localname)
-    (save-excursion
-      (let ((suffixes dired-compress-file-suffixes)
-	    suffix)
-	;; See if any suffix rule matches this file name.
-	(while suffixes
-	  (let (case-fold-search)
-	    (if (string-match (car (car suffixes)) localname)
-		(setq suffix (car suffixes) suffixes nil))
-	    (setq suffixes (cdr suffixes))))
+    (let ((suffixes dired-compress-file-suffixes)
+	  suffix)
+      ;; See if any suffix rule matches this file name.
+      (while suffixes
+	(let (case-fold-search)
+	  (if (string-match (car (car suffixes)) localname)
+	      (setq suffix (car suffixes) suffixes nil))
+	  (setq suffixes (cdr suffixes))))
 
-	(cond ((file-symlink-p file)
-	       nil)
-	      ((and suffix (nth 2 suffix))
-	       ;; We found an uncompression rule.
-	       (with-tramp-progress-reporter
-                   v 0 (format "Uncompressing %s" file)
-		 (when (tramp-send-command-and-check
-			v (concat (nth 2 suffix) " "
-				  (tramp-shell-quote-argument localname)))
-		   (dired-remove-file file)
-		   (string-match (car suffix) file)
-		   (concat (substring file 0 (match-beginning 0))))))
-	      (t
-	       ;; We don't recognize the file as compressed, so compress it.
-	       ;; Try gzip.
-	       (with-tramp-progress-reporter v 0 (format "Compressing %s" file)
-		 (when (tramp-send-command-and-check
-			v (concat "gzip -f "
-				  (tramp-shell-quote-argument localname)))
-		   (dired-remove-file file)
-		   (cond ((file-exists-p (concat file ".gz"))
-			  (concat file ".gz"))
-			 ((file-exists-p (concat file ".z"))
-			  (concat file ".z"))
-			 (t nil))))))))))
+      (cond ((file-symlink-p file) nil)
+	    ((and suffix (nth 2 suffix))
+	     ;; We found an uncompression rule.
+	     (with-tramp-progress-reporter
+                 v 0 (format "Uncompressing %s" file)
+	       (when (tramp-send-command-and-check
+		      v (concat (nth 2 suffix) " "
+				(tramp-shell-quote-argument localname)))
+		 (dired-remove-file file)
+		 (string-match (car suffix) file)
+		 (concat (substring file 0 (match-beginning 0))))))
+	    (t
+	     ;; We don't recognize the file as compressed, so compress it.
+	     ;; Try gzip.
+	     (with-tramp-progress-reporter v 0 (format "Compressing %s" file)
+	       (when (tramp-send-command-and-check
+		      v (concat "gzip -f "
+				(tramp-shell-quote-argument localname)))
+		 (dired-remove-file file)
+		 (cond ((file-exists-p (concat file ".gz"))
+			(concat file ".gz"))
+		       ((file-exists-p (concat file ".z"))
+			(concat file ".z"))
+		       (t nil)))))))))
 
 (defun tramp-sh-handle-insert-directory
   (filename switches &optional wildcard full-directory-p)
@@ -3120,50 +3109,49 @@ the result will be a local, non-Tramp, file name."
 
 	   ;; Use inline encoding for file transfer.
 	   (rem-enc
-	    (save-excursion
-	      (with-tramp-progress-reporter
-	       v 3
-	       (format-message "Encoding remote file `%s' with `%s'"
-                               filename rem-enc)
-	       (tramp-barf-unless-okay
-		v (format rem-enc (tramp-shell-quote-argument localname))
-		"Encoding remote file failed"))
+	    (with-tramp-progress-reporter
+		v 3
+		(format-message
+		 "Encoding remote file `%s' with `%s'" filename rem-enc)
+	      (tramp-barf-unless-okay
+	       v (format rem-enc (tramp-shell-quote-argument localname))
+	       "Encoding remote file failed"))
 
-	      (with-tramp-progress-reporter
-		  v 3 (format-message "Decoding local file `%s' with `%s'"
-				      tmpfile loc-dec)
-		(if (functionp loc-dec)
-		    ;; If local decoding is a function, we call it.
-		    ;; We must disable multibyte, because
-		    ;; `uudecode-decode-region' doesn't handle it
-		    ;; correctly.  Unset `file-name-handler-alist'.
-		    ;; Otherwise, epa-file gets confused.
-		    (let (file-name-handler-alist
-			  (coding-system-for-write 'binary))
-		      (with-temp-file tmpfile
-			(set-buffer-multibyte nil)
-			(insert-buffer-substring (tramp-get-buffer v))
-			(funcall loc-dec (point-min) (point-max))))
+	    (with-tramp-progress-reporter
+		v 3 (format-message
+		     "Decoding local file `%s' with `%s'" tmpfile loc-dec)
+	      (if (functionp loc-dec)
+		  ;; If local decoding is a function, we call it.  We
+		  ;; must disable multibyte, because
+		  ;; `uudecode-decode-region' doesn't handle it
+		  ;; correctly.  Unset `file-name-handler-alist'.
+		  ;; Otherwise, epa-file gets confused.
+		  (let (file-name-handler-alist
+			(coding-system-for-write 'binary))
+		    (with-temp-file tmpfile
+		      (set-buffer-multibyte nil)
+		      (insert-buffer-substring (tramp-get-buffer v))
+		      (funcall loc-dec (point-min) (point-max))))
 
-		  ;; If tramp-decoding-function is not defined for this
-		  ;; method, we invoke tramp-decoding-command instead.
-		  (let ((tmpfile2 (tramp-compat-make-temp-file filename)))
-		    ;; Unset `file-name-handler-alist'.  Otherwise,
-		    ;; epa-file gets confused.
-		    (let (file-name-handler-alist
-			  (coding-system-for-write 'binary))
-		      (with-current-buffer (tramp-get-buffer v)
-			(write-region
-			 (point-min) (point-max) tmpfile2 nil 'no-message)))
-		    (unwind-protect
-			(tramp-call-local-coding-command
-			 loc-dec tmpfile2 tmpfile)
-		      (delete-file tmpfile2)))))
+		;; If tramp-decoding-function is not defined for this
+		;; method, we invoke tramp-decoding-command instead.
+		(let ((tmpfile2 (tramp-compat-make-temp-file filename)))
+		  ;; Unset `file-name-handler-alist'.  Otherwise,
+		  ;; epa-file gets confused.
+		  (let (file-name-handler-alist
+			(coding-system-for-write 'binary))
+		    (with-current-buffer (tramp-get-buffer v)
+		      (write-region
+		       (point-min) (point-max) tmpfile2 nil 'no-message)))
+		  (unwind-protect
+		      (tramp-call-local-coding-command
+		       loc-dec tmpfile2 tmpfile)
+		    (delete-file tmpfile2)))))
 
-	      ;; Set proper permissions.
-	      (set-file-modes tmpfile (tramp-default-file-modes filename))
-	      ;; Set local user ownership.
-	      (tramp-set-file-uid-gid tmpfile)))
+	    ;; Set proper permissions.
+	    (set-file-modes tmpfile (tramp-default-file-modes filename))
+	    ;; Set local user ownership.
+	    (tramp-set-file-uid-gid tmpfile))
 
 	   ;; Oops, I don't know what to do.
 	   (t (tramp-error
@@ -4378,16 +4366,14 @@ Goes through the list `tramp-local-coding-commands' and
 		 vec 5 "Checking local encoding function `%s'" loc-enc)
 	      (tramp-message
 	       vec 5 "Checking local encoding command `%s' for sanity" loc-enc)
-	      (unless (zerop (tramp-call-local-coding-command
-			      loc-enc nil nil))
+	      (unless (zerop (tramp-call-local-coding-command loc-enc nil nil))
 		(throw 'wont-work-local nil)))
 	    (if (not (stringp loc-dec))
 		(tramp-message
 		 vec 5 "Checking local decoding function `%s'" loc-dec)
 	      (tramp-message
 	       vec 5 "Checking local decoding command `%s' for sanity" loc-dec)
-	      (unless (zerop (tramp-call-local-coding-command
-			      loc-dec nil nil))
+	      (unless (zerop (tramp-call-local-coding-command loc-dec nil nil))
 		(throw 'wont-work-local nil)))
 	    ;; Search for remote coding commands with the same format
 	    (while (and remote-commands (not found))
@@ -5098,82 +5084,85 @@ raises an error."
 Convert file mode bits to string and set virtual device number.
 Return ATTR."
   (when attr
-    ;; Remove color escape sequences from symlink.
-    (when (stringp (car attr))
-      (while (string-match tramp-display-escape-sequence-regexp (car attr))
-	(setcar attr (replace-match "" nil nil (car attr)))))
-    ;; Convert uid and gid.  Use `tramp-unknown-id-integer' as
-    ;; indication of unusable value.
-    (when (and (numberp (nth 2 attr)) (< (nth 2 attr) 0))
-      (setcar (nthcdr 2 attr) tramp-unknown-id-integer))
-    (when (and (floatp (nth 2 attr))
-               (<= (nth 2 attr) most-positive-fixnum))
-      (setcar (nthcdr 2 attr) (round (nth 2 attr))))
-    (when (and (numberp (nth 3 attr)) (< (nth 3 attr) 0))
-      (setcar (nthcdr 3 attr) tramp-unknown-id-integer))
-    (when (and (floatp (nth 3 attr))
-               (<= (nth 3 attr) most-positive-fixnum))
-      (setcar (nthcdr 3 attr) (round (nth 3 attr))))
-    ;; Convert last access time.
-    (unless (listp (nth 4 attr))
-      (setcar (nthcdr 4 attr) (seconds-to-time (nth 4 attr))))
-    ;; Convert last modification time.
-    (unless (listp (nth 5 attr))
-      (setcar (nthcdr 5 attr) (seconds-to-time (nth 5 attr))))
-    ;; Convert last status change time.
-    (unless (listp (nth 6 attr))
-      (setcar (nthcdr 6 attr) (seconds-to-time (nth 6 attr))))
-    ;; Convert file size.
-    (when (< (nth 7 attr) 0)
-      (setcar (nthcdr 7 attr) -1))
-    (when (and (floatp (nth 7 attr))
-               (<= (nth 7 attr) most-positive-fixnum))
-      (setcar (nthcdr 7 attr) (round (nth 7 attr))))
-    ;; Convert file mode bits to string.
-    (unless (stringp (nth 8 attr))
-      (setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr)))
+    (save-match-data
+      ;; Remove color escape sequences from symlink.
       (when (stringp (car attr))
-        (aset (nth 8 attr) 0 ?l)))
-    ;; Convert directory indication bit.
-    (when (string-match "^d" (nth 8 attr))
-      (setcar attr t))
-    ;; Convert symlink from `tramp-do-file-attributes-with-stat'.
-    ;; Decode also multibyte string.
-    (when (consp (car attr))
-      (setcar attr
-	      (and (stringp (caar attr))
-		   (string-match ".+ -> .\\(.+\\)." (caar attr))
-		   (decode-coding-string (match-string 1 (caar attr)) 'utf-8))))
-    ;; Set file's gid change bit.
-    (setcar (nthcdr 9 attr)
-            (if (numberp (nth 3 attr))
-                (not (= (nth 3 attr)
-                        (tramp-get-remote-gid vec 'integer)))
-              (not (string-equal
-                    (nth 3 attr)
-                    (tramp-get-remote-gid vec 'string)))))
-    ;; Convert inode.
-    (when (floatp (nth 10 attr))
-      (setcar (nthcdr 10 attr)
-              (condition-case nil
-                  (let ((high (nth 10 attr))
-                        middle low)
-                    (if (<= high most-positive-fixnum)
-                        (floor high)
-                      ;; The low 16 bits.
-                      (setq low (mod high #x10000)
-                            high (/ high #x10000))
+	(while (string-match tramp-display-escape-sequence-regexp (car attr))
+	  (setcar attr (replace-match "" nil nil (car attr)))))
+      ;; Convert uid and gid.  Use `tramp-unknown-id-integer' as
+      ;; indication of unusable value.
+      (when (and (numberp (nth 2 attr)) (< (nth 2 attr) 0))
+	(setcar (nthcdr 2 attr) tramp-unknown-id-integer))
+      (when (and (floatp (nth 2 attr))
+		 (<= (nth 2 attr) most-positive-fixnum))
+	(setcar (nthcdr 2 attr) (round (nth 2 attr))))
+      (when (and (numberp (nth 3 attr)) (< (nth 3 attr) 0))
+	(setcar (nthcdr 3 attr) tramp-unknown-id-integer))
+      (when (and (floatp (nth 3 attr))
+		 (<= (nth 3 attr) most-positive-fixnum))
+	(setcar (nthcdr 3 attr) (round (nth 3 attr))))
+      ;; Convert last access time.
+      (unless (listp (nth 4 attr))
+	(setcar (nthcdr 4 attr) (seconds-to-time (nth 4 attr))))
+      ;; Convert last modification time.
+      (unless (listp (nth 5 attr))
+	(setcar (nthcdr 5 attr) (seconds-to-time (nth 5 attr))))
+      ;; Convert last status change time.
+      (unless (listp (nth 6 attr))
+	(setcar (nthcdr 6 attr) (seconds-to-time (nth 6 attr))))
+      ;; Convert file size.
+      (when (< (nth 7 attr) 0)
+	(setcar (nthcdr 7 attr) -1))
+      (when (and (floatp (nth 7 attr))
+		 (<= (nth 7 attr) most-positive-fixnum))
+	(setcar (nthcdr 7 attr) (round (nth 7 attr))))
+      ;; Convert file mode bits to string.
+      (unless (stringp (nth 8 attr))
+	(setcar (nthcdr 8 attr) (tramp-file-mode-from-int (nth 8 attr)))
+	(when (stringp (car attr))
+          (aset (nth 8 attr) 0 ?l)))
+      ;; Convert directory indication bit.
+      (when (string-match "^d" (nth 8 attr))
+	(setcar attr t))
+      ;; Convert symlink from `tramp-do-file-attributes-with-stat'.
+      ;; Decode also multibyte string.
+      (when (consp (car attr))
+	(setcar attr
+		(and (stringp (caar attr))
+		     (string-match ".+ -> .\\(.+\\)." (caar attr))
+		     (decode-coding-string
+		      (match-string 1 (caar attr)) 'utf-8))))
+      ;; Set file's gid change bit.
+      (setcar (nthcdr 9 attr)
+              (if (numberp (nth 3 attr))
+                  (not (= (nth 3 attr)
+                          (tramp-get-remote-gid vec 'integer)))
+		(not (string-equal
+                      (nth 3 attr)
+                      (tramp-get-remote-gid vec 'string)))))
+      ;; Convert inode.
+      (when (floatp (nth 10 attr))
+	(setcar (nthcdr 10 attr)
+		(condition-case nil
+                    (let ((high (nth 10 attr))
+                          middle low)
                       (if (<= high most-positive-fixnum)
-                          (cons (floor high) (floor low))
-                        ;; The middle 24 bits.
-                        (setq middle (mod high #x1000000)
-                              high (/ high #x1000000))
-                        (cons (floor high) (cons (floor middle) (floor low))))))
-                ;; Inodes can be incredible huge.  We must hide this.
-                (error (tramp-get-inode vec)))))
-    ;; Set virtual device number.
-    (setcar (nthcdr 11 attr)
-            (tramp-get-device vec))
+                          (floor high)
+			;; The low 16 bits.
+			(setq low (mod high #x10000)
+                              high (/ high #x10000))
+			(if (<= high most-positive-fixnum)
+                            (cons (floor high) (floor low))
+                          ;; The middle 24 bits.
+                          (setq middle (mod high #x1000000)
+				high (/ high #x1000000))
+                          (cons (floor high)
+				(cons (floor middle) (floor low))))))
+                  ;; Inodes can be incredible huge.  We must hide this.
+                  (error (tramp-get-inode vec)))))
+      ;; Set virtual device number.
+      (setcar (nthcdr 11 attr)
+              (tramp-get-device vec)))
     attr))
 
 (defun tramp-shell-case-fold (string)
