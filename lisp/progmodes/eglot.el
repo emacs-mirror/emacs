@@ -987,7 +987,7 @@ Uses THING, FACE, DEFS and PREPEND."
 (cl-defmethod eglot-handle-notification
   (_server method &key &allow-other-keys)
   "Handle unknown notification"
-  (unless (string-prefix-p "$" method)
+  (unless (string-prefix-p "$" (format "%s" method))
     (eglot--warn "Server sent unknown notification method `%s'" method)))
 
 (cl-defmethod eglot-handle-request
