@@ -83,8 +83,7 @@
                                   js2-mode
                                   rjsx-mode) . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
-                                ((c++-mode
-                                  c-mode) . (eglot-cquery "cquery"))
+                                ((c++-mode c-mode) . ("ccls"))
                                 (ruby-mode
                                  . ("solargraph" "socket" "--port"
                                     :autoport))
