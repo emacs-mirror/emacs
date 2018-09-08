@@ -1323,6 +1323,12 @@ DUMMY is ignored."
                      ;; F!@(#*&#$)CKING OFF-BY-ONE again
                      (1+ line) character))))
 
+(defun eglot--sort-xrefs (xrefs)
+  (sort xrefs
+        (lambda (a b)
+          (< (xref-location-line (xref-item-location a))
+             (xref-location-line (xref-item-location b))))))
+
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
   (when (eglot--server-capable :documentSymbolProvider)
     (let ((server (eglot--current-server-or-lose))
@@ -1363,9 +1369,10 @@ DUMMY is ignored."
                              :textDocument/definition
                              (get-text-property
                               0 :textDocumentPositionParams identifier)))))
-    (mapcar (jsonrpc-lambda (&key uri range)
-              (eglot--xref-make identifier uri (plist-get range :start)))
-            location-or-locations)))
+    (eglot--sort-xrefs
+     (mapcar (jsonrpc-lambda (&key uri range)
+               (eglot--xref-make identifier uri (plist-get range :start)))
+             location-or-locations))))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
   (unless (eglot--server-capable :referencesProvider)
@@ -1376,25 +1383,27 @@ DUMMY is ignored."
                (and rich (get-text-property 0 :textDocumentPositionParams rich))))))
     (unless params
       (eglot--error "Don' know where %s is in the workspace!" identifier))
-    (mapcar
-     (jsonrpc-lambda (&key uri range)
-       (eglot--xref-make identifier uri (plist-get range :start)))
-     (jsonrpc-request (eglot--current-server-or-lose)
-                      :textDocument/references
-                      (append
-                       params
-                       (list :context
-                             (list :includeDeclaration t)))))))
+    (eglot--sort-xrefs
+     (mapcar
+      (jsonrpc-lambda (&key uri range)
+        (eglot--xref-make identifier uri (plist-get range :start)))
+      (jsonrpc-request (eglot--current-server-or-lose)
+                       :textDocument/references
+                       (append
+                        params
+                        (list :context
+                              (list :includeDeclaration t))))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
-    (mapcar
-     (jsonrpc-lambda (&key name location &allow-other-keys)
-       (cl-destructuring-bind (&key uri range) location
-         (eglot--xref-make name uri (plist-get range :start))))
-     (jsonrpc-request (eglot--current-server-or-lose)
-                      :workspace/symbol
-                      `(:query ,pattern)))))
+    (eglot--sort-xrefs
+     (mapcar
+      (jsonrpc-lambda (&key name location &allow-other-keys)
+        (cl-destructuring-bind (&key uri range) location
+          (eglot--xref-make name uri (plist-get range :start))))
+      (jsonrpc-request (eglot--current-server-or-lose)
+                       :workspace/symbol
+                       `(:query ,pattern))))))
 
 (defun eglot-format-buffer ()
   "Format contents of current buffer."
