@@ -1080,14 +1080,21 @@ COMMAND is a symbol naming the command."
                        ((`(,beg . ,end) (eglot--range-region range)))
                      ;; Fallback to `flymake-diag-region' if server
                      ;; botched the range
-                     (if (= beg end)
-                         (let* ((st (plist-get range :start))
-                                (diag-region
-                                 (flymake-diag-region
-                                  (current-buffer) (1+ (plist-get st :line))
-                                  (plist-get st :character))))
-                           (setq beg (car diag-region)
-                                 end (cdr diag-region))))
+                     (when (= beg end)
+                       (if-let* ((st (plist-get range :start))
+                                 (diag-region
+                                  (flymake-diag-region
+                                   (current-buffer) (1+ (plist-get st :line))
+                                   (plist-get st :character))))
+                           (setq beg (car diag-region) end (cdr diag-region))
+                         (eglot--widening
+                          (goto-char (point-min))
+                          (setq beg
+                                (point-at-bol
+                                 (1+ (plist-get (plist-get range :start) :line))))
+                          (setq end
+                                (point-at-eol
+                                 (1+ (plist-get (plist-get range :end) :line)))))))
                      (eglot--make-diag (current-buffer) beg end
                                        (cond ((<= sev 1) 'eglot-error)
                                              ((= sev 2)  'eglot-warning)
