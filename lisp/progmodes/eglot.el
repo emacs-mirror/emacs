@@ -559,10 +559,10 @@ This docstring appeases checkdoc, that's all."
                           (push server
                                 (gethash project eglot--servers-by-project))
                           (setf (eglot--capabilities server) capabilities)
+                          (jsonrpc-notify server :initialized `(:__dummy__ t))
                           (dolist (buffer (buffer-list))
                             (with-current-buffer buffer
                               (eglot--maybe-activate-editing-mode server)))
-                          (jsonrpc-notify server :initialized `(:__dummy__ t))
                           (setf (eglot--inhibit-autoreconnect server)
                                 (cond
                                  ((booleanp eglot-autoreconnect)
