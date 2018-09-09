@@ -397,7 +397,7 @@ get_type (jit_function_t func, jit_value_t val)
 						     ~VALMASK);
   return jit_insn_and (func, val, mask);
 #else /* USE_LSB_TAG */
-  jit_value_t shift = jit_value_create_nint_constant (func, jit_type_uint,
+  jit_value_t shift = jit_value_create_nint_constant (func, jit_type_void_ptr,
 						      VALBITS);
   return jit_insn_ushr (func, val, shift);
 #endif /* not USE_LSB_TAG */
@@ -755,8 +755,7 @@ compile_wrong_type_argument (jit_function_t func, jit_label_t *label,
   jit_insn_label (func, label);
   jit_insn_call_native (func, "wrong_type_argument",
 			(void *) wrong_type_argument,
-			/* FIXME incorrect signature.  */
-			binary_signature, args, 2,
+			specbind_signature, args, 2,
 			JIT_CALL_NORETURN);
 }
 
@@ -1625,7 +1624,6 @@ compile (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	    args[2] = POP;
 	    args[0] = POP;
 
-	    /* FIXME this lies about the signature.  */
 	    jit_value_t result = jit_insn_call_native (func, "internal_catch",
 						       internal_catch,
 						       internal_catch_signature,
