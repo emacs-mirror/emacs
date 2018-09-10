@@ -3470,8 +3470,8 @@ run_window_size_change_functions (Lisp_Object frame)
 	     with FRAME as its argument and as such oblivious to the
 	     window checked below.  */
 	  if (window_size_changed (XWINDOW (window))
-	      && !Fmemq (buffer, buffers)
-	      && Flocal_variable_p (Qwindow_size_change_functions, buffer))
+	      && NILP (Fmemq (buffer, buffers))
+	      && !NILP (Flocal_variable_p (Qwindow_size_change_functions, buffer)))
 	    {
 	      Lisp_Object locals
 		= Fbuffer_local_value (Qwindow_size_change_functions, buffer);
