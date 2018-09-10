@@ -520,12 +520,13 @@ static intmax_t
 xd_extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 {
   CHECK_NUMBER (x);
-  if (FIXNUMP (x))
+  if (INTEGERP (x))
     {
-      if (lo <= XFIXNUM (x) && XFIXNUM (x) <= hi)
-	return XFIXNUM (x);
+      intmax_t i;
+      if (integer_to_intmax (x, &i) && lo <= i && i <= hi)
+	return i;
     }
-  else if (FLOATP (x))
+  else
     {
       double d = XFLOAT_DATA (x);
       if (lo <= d && d < 1.0 + hi)
@@ -534,12 +535,6 @@ xd_extract_signed (Lisp_Object x, intmax_t lo, intmax_t hi)
 	  if (n == d)
 	    return n;
 	}
-    }
-  else if (! (MOST_NEGATIVE_FIXNUM <= lo && hi <= MOST_POSITIVE_FIXNUM))
-    {
-      intmax_t i = bignum_to_intmax (x);
-      if (i != 0 && lo <= i && i <= hi)
-	return i;
     }
 
   if (xd_in_read_queued_messages)
@@ -553,12 +548,13 @@ static uintmax_t
 xd_extract_unsigned (Lisp_Object x, uintmax_t hi)
 {
   CHECK_NUMBER (x);
-  if (FIXNUMP (x))
+  if (INTEGERP (x))
     {
-      if (0 <= XFIXNUM (x) && XFIXNUM (x) <= hi)
-	return XFIXNUM (x);
+      uintmax_t i;
+      if (integer_to_uintmax (x, &i) && i <= hi)
+	return i;
     }
-  else if (FLOATP (x))
+  else
     {
       double d = XFLOAT_DATA (x);
       if (0 <= d && d < 1.0 + hi)
@@ -567,12 +563,6 @@ xd_extract_unsigned (Lisp_Object x, uintmax_t hi)
 	  if (n == d)
 	    return n;
 	}
-    }
-  else if (! (hi <= MOST_POSITIVE_FIXNUM))
-    {
-      uintmax_t i = bignum_to_uintmax (x);
-      if (i != 0 && i <= hi)
-	return i;
     }
 
   if (xd_in_read_queued_messages)

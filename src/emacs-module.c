@@ -519,14 +519,10 @@ module_extract_integer (emacs_env *env, emacs_value n)
   MODULE_FUNCTION_BEGIN (0);
   Lisp_Object l = value_to_lisp (n);
   CHECK_INTEGER (l);
-  if (BIGNUMP (l))
-    {
-      intmax_t i = bignum_to_intmax (l);
-      if (i == 0)
-	xsignal1 (Qoverflow_error, l);
-      return i;
-    }
-  return XFIXNUM (l);
+  intmax_t i;
+  if (! integer_to_intmax (l, &i))
+    xsignal1 (Qoverflow_error, l);
+  return i;
 }
 
 static emacs_value

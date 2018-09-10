@@ -1297,7 +1297,7 @@ The following commands are accepted by the client:
 
             (server-execute-continuation proc))))
     ;; condition-case
-    (error (server-return-error proc err))))
+    (t (server-return-error proc err))))
 
 (defun server-execute (proc files nowait commands dontkill create-frame-func tty-name)
   ;; This is run from timers and process-filters, i.e. "asynchronously".

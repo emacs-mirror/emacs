@@ -655,7 +655,8 @@ The Lisp Debugger
 * Function Debugging::      Entering it when a certain function is called.
 * Variable Debugging::      Entering it when a variable is modified.
 * Explicit Debug::          Entering it at a certain point in the program.
-* Using Debugger::          What the debugger does; what you see while in it.
+* Using Debugger::          What the debugger does.
+* Backtraces::              What you see while in the debugger.
 * Debugger Commands::       Commands used while in the debugger.
 * Invoking the Debugger::   How to call the function @code{debug}.
 * Internals of Debugger::   Subroutines of the debugger, and global variables.
@@ -1346,6 +1347,7 @@ Threads
 * Basic Thread Functions::  Basic thread functions.
 * Mutexes::                 Mutexes allow exclusive access to data.
 * Condition Variables::     Inter-thread events.
+* The Thread List::         Show the active threads.
 
 Processes
 

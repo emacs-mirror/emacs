@@ -867,7 +867,8 @@ Elements of the attribute list are:
  0. t for directory, string (name linked to) for symbolic link, or nil.
  1. Number of links to file.
  2. File uid as a string or a number.  If a string value cannot be
-  looked up, an integer value is returned.
+  looked up, an integer value is returned, which could be a fixnum,
+  if it's small enough, otherwise a bignum.
  3. File gid, likewise.
  4. Last access time, as a list of integers (HIGH LOW USEC PSEC) in the
   same style as (current-time).
@@ -876,16 +877,14 @@ Elements of the attribute list are:
   change to the file's contents.
  6. Last status change time, likewise.  This is the time of last change
   to the file's attributes: owner and group, access mode bits, etc.
- 7. Size in bytes.
+ 7. Size in bytes, which could be a fixnum, if it's small enough,
+  otherwise a bignum.
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. An unspecified value, present only for backward compatibility.
-10. inode number.  If it is larger than what an Emacs integer can hold,
-  this is of the form (HIGH . LOW): first the high bits, then the low 16 bits.
-  If even HIGH is too large for an Emacs integer, this is instead of the form
-  (HIGH MIDDLE . LOW): first the high bits, then the middle 24 bits,
-  and finally the low 16 bits.
-11. Filesystem device number.  If it is larger than what the Emacs
-  integer can hold, this is a cons cell, similar to the inode number.
+10. inode number, which could be a fixnum, if it's small enough,
+  otherwise a bignum.
+11. Filesystem device number.  If it is larger than what a fixnum
+  can hold, it is a bignum.
 
 On most filesystems, the combination of the inode and the device
 number uniquely identifies the file.

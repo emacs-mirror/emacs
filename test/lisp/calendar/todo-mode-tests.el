@@ -603,7 +603,7 @@ separator, otherwise, return the position at the beginning."
     (forward-line -1))
   (if eol (forward-char)))
 
-(ert-deftest todo-test-done-items-separator01-bol ()
+(ert-deftest todo-test-done-items-separator01-bol () ; bug#32343
   "Test item copying and here insertion at BOL of separator.
 Both should be user errors."
   (with-todo-test
@@ -616,7 +616,7 @@ Both should be user errors."
      (should (string= copy-err (cadr (funcall insert-item-test 'copy))))
      (should (string= here-err (cadr (funcall insert-item-test 'here)))))))
 
-(ert-deftest todo-test-done-items-separator01-eol ()
+(ert-deftest todo-test-done-items-separator01-eol () ; bug#32343
   "Test item copying and here insertion at EOL of separator.
 Both should be user errors."
   (with-todo-test
@@ -629,7 +629,7 @@ Both should be user errors."
      (should (string= copy-err (cadr (funcall insert-item-test 'copy))))
      (should (string= here-err (cadr (funcall insert-item-test 'here)))))))
 
-(ert-deftest todo-test-done-items-separator02-bol ()
+(ert-deftest todo-test-done-items-separator02-bol () ; bug#32343
   "Test item editing commands at BOL of done items separator.
 They should all be noops."
   (with-todo-test
@@ -642,7 +642,7 @@ They should all be noops."
    (should-not (called-interactively-p #'todo-delete-item))
    (should-not (called-interactively-p #'todo-edit-item))))
 
-(ert-deftest todo-test-done-items-separator02-eol ()
+(ert-deftest todo-test-done-items-separator02-eol () ; bug#32343
   "Test item editing command at EOL of done items separator.
 They should all be noops."
   (with-todo-test
@@ -655,7 +655,7 @@ They should all be noops."
    (should-not (called-interactively-p #'todo-delete-item))
    (should-not (called-interactively-p #'todo-edit-item))))
 
-(ert-deftest todo-test-done-items-separator03-bol ()
+(ert-deftest todo-test-done-items-separator03-bol () ; bug#32343
   "Test item marking at BOL of done items separator.
 This should be a noop, adding no marks to the category."
   (with-todo-test
@@ -663,7 +663,7 @@ This should be a noop, adding no marks to the category."
    (call-interactively #'todo-toggle-mark-item)
    (should-not (assoc (todo-current-category) todo-categories-with-marks))))
 
-(ert-deftest todo-test-done-items-separator03-eol ()
+(ert-deftest todo-test-done-items-separator03-eol () ; bug#32343
   "Test item marking at EOL of done items separator.
 This should be a noop, adding no marks to the category."
   (with-todo-test
@@ -671,7 +671,7 @@ This should be a noop, adding no marks to the category."
    (call-interactively #'todo-toggle-mark-item)
    (should-not (assoc (todo-current-category) todo-categories-with-marks))))
 
-(ert-deftest todo-test-done-items-separator04-bol ()
+(ert-deftest todo-test-done-items-separator04-bol () ; bug#32343
   "Test moving to previous item from BOL of done items separator.
 This should move point to the last not done todo item."
   (with-todo-test
@@ -685,7 +685,7 @@ This should move point to the last not done todo item."
                                   (todo-previous-item)
                                   (todo-item-string)))))))
 
-(ert-deftest todo-test-done-items-separator04-eol ()
+(ert-deftest todo-test-done-items-separator04-eol () ; bug#32343
   "Test moving to previous item from EOL of done items separator.
 This should move point to the last not done todo item."
   (with-todo-test
@@ -699,7 +699,7 @@ This should move point to the last not done todo item."
                                   (todo-previous-item)
                                   (todo-item-string)))))))
 
-(ert-deftest todo-test-done-items-separator05-bol ()
+(ert-deftest todo-test-done-items-separator05-bol () ; bug#32343
   "Test moving to next item from BOL of done items separator.
 This should move point to the first done todo item."
   (with-todo-test
@@ -713,7 +713,7 @@ This should move point to the first done todo item."
                                   (todo-next-item)
                                   (todo-item-string)))))))
 
-(ert-deftest todo-test-done-items-separator05-eol ()
+(ert-deftest todo-test-done-items-separator05-eol () ; bug#32343
   "Test moving to next item from EOL of done items separator.
 This should move point to the first done todo item."
   (with-todo-test
@@ -732,7 +732,7 @@ This should move point to the first done todo item."
 ;; hook function is not automatically run, so after enabling item
 ;; highlighting, use ert-simulate-command around the next command,
 ;; which explicitly runs the hook function.
-(ert-deftest todo-test-done-items-separator06-bol ()
+(ert-deftest todo-test-done-items-separator06-bol () ; bug#32343
   "Test enabling item highlighting at BOL of done items separator.
 Subsequently moving to an item should show it highlighted."
   (with-todo-test
@@ -741,7 +741,7 @@ Subsequently moving to an item should show it highlighted."
    (ert-simulate-command '(todo-previous-item))
    (should (eq 'hl-line (get-char-property (point) 'face)))))
 
-(ert-deftest todo-test-done-items-separator06-eol ()
+(ert-deftest todo-test-done-items-separator06-eol () ; bug#32343
   "Test enabling item highlighting at EOL of done items separator.
 Subsequently moving to an item should show it highlighted."
   (with-todo-test
@@ -751,7 +751,7 @@ Subsequently moving to an item should show it highlighted."
    (ert-simulate-command '(todo-previous-item))
    (should (eq 'hl-line (get-char-property (point) 'face)))))
 
-(ert-deftest todo-test-done-items-separator07 ()
+(ert-deftest todo-test-done-items-separator07 () ; bug#32343
   "Test item highlighting when crossing done items separator.
 The highlighting should remain enabled."
   (with-todo-test
@@ -763,11 +763,11 @@ The highlighting should remain enabled."
    (ert-simulate-command '(forward-line)) ; Now on first done item.
    (should (eq 'hl-line (get-char-property (point) 'face)))))
 
-(ert-deftest todo-test-current-file-in-edit-mode ()
+(ert-deftest todo-test-current-file-in-edit-mode () ; bug#32437
   "Test the value of todo-current-todo-file in todo-edit-mode."
   (with-todo-test
    (todo-test--show 1)
-   ;; The preceding call todo-mode but does not run pre-command-hook
+   ;; The preceding calls todo-mode but does not run pre-command-hook
    ;; in the test environment, thus failing to set
    ;; todo-global-current-todo-file, which is needed for the test
    ;; after todo-edit-item--text.  So force the hook function to run.
@@ -786,7 +786,7 @@ The highlighting should remain enabled."
      (todo-edit-file)
      (should (equal todo-current-todo-file curfile)))))
 
-(ert-deftest todo-test-edit-quit ()
+(ert-deftest todo-test-edit-quit () ; bug#32437
   "Test result of exiting todo-edit-mode on a whole file.
 Exiting should return to the same todo-mode or todo-archive-mode
 buffer from which the editing command was invoked."
@@ -803,6 +803,50 @@ buffer from which the editing command was invoked."
      (todo-edit-quit)
      (should (eq (current-buffer) buf))
      (should (eq major-mode 'todo-archive-mode))))))
+
+(defun todo-test--add-file (file cat)
+  "Add file FILE with category CAT to todo-files and show it.
+This provides a noninteractive API for todo-add-file for use in
+automatic testing."
+  (let ((file0 (file-truename (concat todo-test-data-dir file ".todo")))
+        todo-add-item-if-new-category)  ; Don't need an item in cat.
+    (cl-letf (((symbol-function 'todo-read-file-name)
+               (lambda (_prompt) file0))
+              ((symbol-function 'todo-read-category)
+               (lambda (_prompt &optional _match-type _file) (cons cat file0))))
+      (call-interactively 'todo-add-file) ; Interactive to call todo-show.
+      (todo-add-category file0 cat))))
+
+(defun todo-test--delete-file ()
+  "Delete current todo file without prompting."
+  (cl-letf (((symbol-function 'yes-or-no-p)
+             (lambda (_prompt) t)))
+    (todo-delete-file)))
+
+(ert-deftest todo-test-add-and-delete-file () ; bug#32627
+  "Test adding a new todo file and then deleting it.
+Calling todo-show should display the last current todo file, not
+necessarily the new file.  After deleting the new file, todo-show
+should display the previously current (or default) todo file."
+  (with-todo-test
+   (todo-show)
+   (should (equal todo-current-todo-file todo-test-file-1))
+   (let* ((file (concat todo-directory "todo-test-2.todo"))
+          (file-nb (file-name-base file))
+          (cat "cat21"))
+     (todo-test--add-file file-nb cat)  ; Add new file and show it.
+     (should (equal todo-current-todo-file file))
+     (todo-quit)   ; Quitting todo-mode displays previous buffer.
+     (should (equal todo-current-todo-file todo-test-file-1))
+     (switch-to-buffer "*scratch*")
+     (todo-show)   ; Show the last current todo-file (not the new one).
+     (should (equal todo-current-todo-file todo-test-file-1))
+     (switch-to-buffer (get-file-buffer file)) ; Back to new file.
+     (should (equal todo-current-todo-file file))
+     (todo-test--delete-file)
+     (todo-show)                        ; Back to old file.
+     (should (equal todo-current-todo-file todo-test-file-1))
+     (delete-file (concat file "~")))))
 
 
 (provide 'todo-mode-tests)

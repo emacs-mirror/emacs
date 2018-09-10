@@ -382,7 +382,7 @@ This is used for convenience and equals to @code{sizeof (char)}.
 The total size of all string data in bytes.
 
 @item vector-size
-Internal size of a vector header, i.e., @code{sizeof (struct Lisp_Vector)}.
+Size in bytes of a vector of length 1, including its header.
 
 @item used-vectors
 The number of vector headers allocated from the vector blocks.
@@ -392,6 +392,8 @@ Internal size of a vector slot, always equal to @code{sizeof (Lisp_Object)}.
 
 @item used-slots
 The number of slots in all used vectors.
+Slot counts might include some or all overhead from vector headers,
+depending on the platform.
 
 @item free-slots
 The number of free slots in all vector blocks.

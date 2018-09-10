@@ -445,6 +445,8 @@ Display a backtrace, excluding Edebug's own functions for clarity
 @xref{Backtraces}, for a description of backtraces
 and the commands which work on them.
 
+@findex edebug-backtrace-show-instrumentation
+@findex edebug-backtrace-hide-instrumentation
 If you would like to see Edebug's functions in the backtrace,
 use @kbd{M-x edebug-backtrace-show-instrumentation}.  To hide them
 again use @kbd{M-x edebug-backtrace-hide-instrumentation}.

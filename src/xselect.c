@@ -1536,16 +1536,9 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
 	ATOM	32	> 1		Vector of Symbols
 	*	16	1		Integer
 	*	16	> 1		Vector of Integers
-	*	32	1		if <=16 bits: Integer
-					if > 16 bits: Cons of top16, bot16
+	*	32	1		if small enough: fixnum
+					otherwise: bignum
 	*	32	> 1		Vector of the above
-
-   When converting a Lisp number to C, it is assumed to be of format 16 if
-   it is an integer, and of format 32 if it is a cons of two integers.
-
-   When converting a vector of numbers from Lisp to C, it is assumed to be
-   of format 16 if every element in the vector is an integer, and is assumed
-   to be of format 32 if any element is a cons of two integers.
 
    When converting an object to C, it may be of the form (SYMBOL . <data>)
    where SYMBOL is what we should claim that the type is.  Format and
@@ -1611,8 +1604,8 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
     }
 
   /* Convert a single 16-bit number or a small 32-bit number to a Lisp_Int.
-     If the number is 32 bits and won't fit in a Lisp_Int,
-     convert it to a cons of integers, 16 bits in each half.
+     If the number is 32 bits and won't fit in a Lisp_Int, convert it
+     to a bignum.
 
      INTEGER is a signed type, CARDINAL is unsigned.
      Assume any other types are unsigned as well.

@@ -102,14 +102,14 @@ fire each time Emacs is idle for that many seconds."
   "Yield the next value after TIME that is an integral multiple of SECS.
 More precisely, the next value, after TIME, that is an integral multiple
 of SECS seconds since the epoch.  SECS may be a fraction."
-  (let* ((trillion 1e12)
+  (let* ((trillion 1000000000000)
 	 (time-sec (+ (nth 1 time)
-		      (* 65536.0 (nth 0 time))))
+		      (* 65536 (nth 0 time))))
 	 (delta-sec (mod (- time-sec) secs))
-	 (next-sec (+ time-sec (ffloor delta-sec)))
-	 (next-sec-psec (ffloor (* trillion (mod delta-sec 1))))
+	 (next-sec (+ time-sec (floor delta-sec)))
+	 (next-sec-psec (floor (* trillion (mod delta-sec 1))))
 	 (sub-time-psec (+ (or (nth 3 time) 0)
-			   (* 1e6 (nth 2 time))))
+			   (* 1000000 (nth 2 time))))
 	 (psec-diff (- sub-time-psec next-sec-psec)))
     (if (and (<= next-sec time-sec) (< 0 psec-diff))
 	(setq next-sec-psec (+ sub-time-psec

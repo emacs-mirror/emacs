@@ -167,6 +167,7 @@ This expects `auto-revert--messages' to be bound by
           (write-region "any text" nil tmpfile nil 'no-message)
 	  (setq buf (find-file-noselect tmpfile))
 	  (with-current-buffer buf
+            (should-not auto-revert-notify-watch-descriptor)
             (should (string-equal (buffer-string) "any text"))
             ;; `buffer-stale--default-function' checks for
             ;; `verify-visited-file-modtime'.  We must ensure that

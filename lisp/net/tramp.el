@@ -4664,8 +4664,10 @@ Only works for Bourne-like shells."
 (defun tramp-eshell-directory-change ()
   "Set `eshell-path-env' to $PATH of the host related to `default-directory'."
   ;; Remove last element of `(exec-path)', which is `exec-directory'.
+  ;; Use `path-separator' as it does eshell.
   (setq eshell-path-env
-	(mapconcat 'identity (butlast (tramp-compat-exec-path)) ":")))
+	(mapconcat
+	 'identity (butlast (tramp-compat-exec-path)) path-separator)))
 
 (eval-after-load "esh-util"
   '(progn

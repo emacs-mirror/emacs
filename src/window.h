@@ -400,7 +400,7 @@ struct window
     /* Z_BYTE - buffer position of the last glyph in the current matrix of W.
        Should be nonnegative, and only valid if window_end_valid is true.  */
     ptrdiff_t window_end_bytepos;
-  };
+  } GCALIGNED_STRUCT;
 
 INLINE bool
 WINDOWP (Lisp_Object a)

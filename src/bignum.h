@@ -39,9 +39,12 @@ struct Lisp_Bignum
 {
   union vectorlike_header header;
   mpz_t value;
-};
+} GCALIGNED_STRUCT;
 
-extern Lisp_Object make_integer (mpz_t const) ARG_NONNULL ((1));
+extern mpz_t mpz[4];
+
+extern void init_bignum (void);
+extern Lisp_Object make_integer_mpz (void);
 extern void mpz_set_intmax_slow (mpz_t, intmax_t) ARG_NONNULL ((1));
 
 INLINE_HEADER_BEGIN
@@ -63,6 +66,20 @@ mpz_set_intmax (mpz_t result, intmax_t v)
     mpz_set_si (result, v);
   else
     mpz_set_intmax_slow (result, v);
+}
+
+/* Return a pointer to an mpz_t that is equal to the Lisp integer I.
+   If I is a bignum this returns a pointer to I's representation;
+   otherwise this sets *TMP to I's value and returns TMP.  */
+INLINE mpz_t *
+bignum_integer (mpz_t *tmp, Lisp_Object i)
+{
+  if (FIXNUMP (i))
+    {
+      mpz_set_intmax (*tmp, XFIXNUM (i));
+      return tmp;
+    }
+  return &XBIGNUM (i)->value;
 }
 
 INLINE_HEADER_END

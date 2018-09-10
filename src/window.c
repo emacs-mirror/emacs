@@ -3442,7 +3442,11 @@ run_window_size_change_functions (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
   struct window *r = XWINDOW (FRAME_ROOT_WINDOW (f));
-  Lisp_Object functions = Vwindow_size_change_functions;
+
+  if (NILP (Vrun_hooks)
+      || !(f->can_x_set_window_size)
+      || !(f->after_make_frame))
+    return;
 
   if (FRAME_WINDOW_CONFIGURATION_CHANGED (f)
       /* Here we implicitly exclude the possibility that the height of
@@ -3450,11 +3454,44 @@ run_window_size_change_functions (Lisp_Object frame)
 	 of FRAME's root window alone.  */
       || window_size_changed (r))
     {
-      while (CONSP (functions))
+      Lisp_Object globals = Fdefault_value (Qwindow_size_change_functions);
+      Lisp_Object windows = Fwindow_list (frame, Qlambda, Qnil);
+      /* The buffers for which the local hook was already run.  */
+      Lisp_Object buffers = Qnil;
+
+      for (; CONSP (windows); windows = XCDR (windows))
 	{
-	  if (!EQ (XCAR (functions), Qt))
-	    safe_call1 (XCAR (functions), frame);
-	  functions = XCDR (functions);
+	  Lisp_Object window = XCAR (windows);
+	  Lisp_Object buffer = Fwindow_buffer (window);
+
+	  /* Run a buffer-local value only once for that buffer and
+	     only if at least one window showing that buffer on FRAME
+	     actually changed its size.  Note that the function is run
+	     with FRAME as its argument and as such oblivious to the
+	     window checked below.  */
+	  if (window_size_changed (XWINDOW (window))
+	      && !Fmemq (buffer, buffers)
+	      && Flocal_variable_p (Qwindow_size_change_functions, buffer))
+	    {
+	      Lisp_Object locals
+		= Fbuffer_local_value (Qwindow_size_change_functions, buffer);
+
+	      while (CONSP (locals))
+		{
+		  if (!EQ (XCAR (locals), Qt))
+		    safe_call1 (XCAR (locals), frame);
+		  locals = XCDR (locals);
+		}
+
+	      buffers = Fcons (buffer, buffers);
+	    }
+	}
+
+      while (CONSP (globals))
+	{
+	  if (!EQ (XCAR (globals), Qt))
+	    safe_call1 (XCAR (globals), frame);
+	  globals = XCDR (globals);
 	}
 
       window_set_before_size_change_sizes (r);
@@ -6268,7 +6305,7 @@ struct save_window_data
     /* These are currently unused.  We need them as soon as we convert
        to pixels.  */
     int frame_menu_bar_height, frame_tool_bar_height;
-  };
+  } GCALIGNED_STRUCT;
 
 /* This is saved as a Lisp_Vector.  */
 struct saved_window
@@ -7556,6 +7593,7 @@ syms_of_window (void)
   Fput (Qscroll_down, Qscroll_command, Qt);
 
   DEFSYM (Qwindow_configuration_change_hook, "window-configuration-change-hook");
+  DEFSYM (Qwindow_size_change_functions, "window-size-change-functions");
   DEFSYM (Qwindowp, "windowp");
   DEFSYM (Qwindow_configuration_p, "window-configuration-p");
   DEFSYM (Qwindow_live_p, "window-live-p");

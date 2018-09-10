@@ -287,6 +287,10 @@ still be used if it exists.)  Set the variable to nil to get the
 previous behavior of always creating a buffer that visits a ChangeLog
 file.
 
+*** New customizable variable 'vc-git-grep-template'.
+This new variable allows customizing the default arguments passed to
+git-grep when 'vc-git-grep' is used.
+
 ** diff-mode
 *** Hunks are now automatically refined by default.
 To disable it, set the new defcustom 'diff-font-lock-refine' to nil.
@@ -746,6 +750,13 @@ Instead, error messages are just printed in the main thread.
 ---
 *** 'thread-alive-p' is now obsolete, use 'thread-live-p' instead.
 
++++
+*** New command 'list-threads' shows Lisp threads.
+See the current list of live threads in a tabulated-list buffer which
+automatically updates.  In the buffer, you can use 's q' or 's e' to
+signal a thread with quit or error respectively, or get a snapshot
+backtrace with 'b'.
+
 ---
 ** thingatpt.el supports a new "thing" called 'uuid'.
 A symbol 'uuid' can be passed to thing-at-point and it returns the
@@ -888,6 +899,9 @@ removed.
 ** lookup-key can take a list of keymaps as argument.
 
 +++
+** 'condition-case' now accepts 't' to match any error symbol.
+
++++
 ** New function 'proper-list-p'.
 Given a proper list as argument, this predicate returns its length;
 otherwise, it returns nil.  'format-proper-list-p' is now an obsolete
@@ -961,6 +975,11 @@ Face specifications (of the kind used in 'face-remapping-alist')
 now support filters, allowing faces to vary between different windows
 displaying the same buffer.  See the Info node "Face Remapping" of the
 Emacs Lisp Reference manual for more detail.
+
++++
+** Special handling of buffer-local 'window-size-change-functions'.
+A buffer-local value of this hook is now run only if at least one
+window showing the buffer has changed its size.
 
 +++
 ** New function assoc-delete-all.

@@ -4677,8 +4677,7 @@ scrolling (struct frame *frame)
 	{
 	  /* This line cannot be redrawn, so don't let scrolling mess it.  */
 	  new_hash[i] = old_hash[i];
-#define INFINITY 1000000	/* Taken from scroll.c */
-	  draw_cost[i] = INFINITY;
+	  draw_cost[i] = SCROLL_INFINITY;
 	}
       else
 	{
@@ -5766,20 +5765,20 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
   if (display_option > 1)
     redisplay_preserve_echo_area (2);
 
-  if (FIXNUMP (timeout))
+  if (INTEGERP (timeout))
     {
-      sec = XFIXNUM (timeout);
-      if (sec <= 0)
-	return Qt;
-      nsec = 0;
-    }
-  else if (BIGNUMP (timeout))
-    {
-      if (NILP (Fnatnump (timeout)))
-	return Qt;
-      sec = bignum_to_intmax (timeout);
-      if (sec == 0)
-	sec = WAIT_READING_MAX;
+      if (integer_to_intmax (timeout, &sec))
+	{
+	  if (sec <= 0)
+	    return Qt;
+	  sec = min (sec, WAIT_READING_MAX);
+	}
+      else
+	{
+	  if (NILP (Fnatnump (timeout)))
+	    return Qt;
+	  sec = WAIT_READING_MAX;
+	}
       nsec = 0;
     }
   else if (FLOATP (timeout))

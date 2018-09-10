@@ -282,11 +282,10 @@ See `eshell-needs-pipe'."
 	    (let ((process-connection-type
 		   (unless (eshell-needs-pipe-p command)
 		     process-connection-type))
-		  (command (file-local-name command)))
+		  ;; `start-process' can't deal with relative filenames.
+		  (command (file-local-name (expand-file-name command))))
 	      (apply 'start-file-process
-		     (file-name-nondirectory command) nil
-		     ;; `start-process' can't deal with relative filenames.
-		     (append (list (expand-file-name command)) args))))
+		     (file-name-nondirectory command) nil command args)))
       (eshell-record-process-object proc)
       (set-process-buffer proc (current-buffer))
       (if (eshell-interactive-output-p)

@@ -61,7 +61,7 @@ struct xwidget
 
   /* Kill silently if Emacs is exited.  */
   bool_bf kill_without_query : 1;
-};
+} GCALIGNED_STRUCT;
 
 struct xwidget_view
 {
@@ -88,7 +88,7 @@ struct xwidget_view
   int clip_left;
 
   long handler_id;
-};
+} GCALIGNED_STRUCT;
 #endif
 
 /* Test for xwidget pseudovector.  */

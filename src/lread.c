@@ -3762,6 +3762,7 @@ string_to_number (char const *string, int base, int flags)
 		cp++;
 	      while ('0' <= *cp && *cp <= '9');
 	    }
+#if IEEE_FLOATING_POINT
 	  else if (cp[-1] == '+'
 		   && cp[0] == 'I' && cp[1] == 'N' && cp[2] == 'F')
 	    {
@@ -3769,7 +3770,6 @@ string_to_number (char const *string, int base, int flags)
 	      cp += 3;
 	      value = INFINITY;
 	    }
-#if IEEE_FLOATING_POINT
 	  else if (cp[-1] == '+'
 		   && cp[0] == 'N' && cp[1] == 'a' && cp[2] == 'N')
 	    {

@@ -1289,8 +1289,9 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 				  1 + DBL_MAX_10_EXP + 1)];
   if (INTEGERP (val))
     {
-      intmax_t v = FIXNUMP (val) ? XFIXNUM (val) : bignum_to_intmax (val);
-      if (! (0 < v && v <= TYPE_MAXIMUM (uprintmax_t)))
+      intmax_t v;
+      if (! (integer_to_intmax (val, &v)
+	     && 0 < v && v <= TYPE_MAXIMUM (uprintmax_t)))
 	v = pixel_size;
       if (v > 0)
 	{
@@ -4484,7 +4485,8 @@ Each element of the value is a cons (VARIATION-SELECTOR . GLYPH-ID),
 where
   VARIATION-SELECTOR is a character code of variation selection
     (#xFE00..#xFE0F or #xE0100..#xE01EF)
-  GLYPH-ID is a glyph code of the corresponding variation glyph.  */)
+  GLYPH-ID is a glyph code of the corresponding variation glyph,
+a fixnum, if it's small enough, otherwise a bignum.  */)
   (Lisp_Object font_object, Lisp_Object character)
 {
   unsigned variations[256];
@@ -4521,7 +4523,8 @@ where
    that apply to POSITION.  POSITION may be nil, in which case,
    FONT-SPEC is the font for displaying the character CH with the
    default face.  GLYPH-CODE is the glyph code in the font to use for
-   the character.
+   the character, it is a fixnum, if it is small enough, otherwise a
+   bignum.
 
    For a text terminal, return a nonnegative integer glyph code for
    the character, or a negative integer if the character is not
@@ -4747,16 +4750,10 @@ DEFUN ("open-font", Fopen_font, Sopen_font, 1, 3, 0,
   else
     {
       CHECK_NUMBER (size);
-      if (BIGNUMP (size))
-	{
-	  isize = bignum_to_intmax (size);
-	  if (isize == 0)
-	    args_out_of_range (font_entity, size);
-	}
-      else
-	isize = (FLOATP (size)
-		 ? POINT_TO_PIXEL (XFLOAT_DATA (size), FRAME_RES_Y (f))
-		 : XFIXNUM (size));
+      if (FLOATP (size))
+	isize = POINT_TO_PIXEL (XFLOAT_DATA (size), FRAME_RES_Y (f));
+      else if (! integer_to_intmax (size, &isize))
+	args_out_of_range (font_entity, size);
       if (! (INT_MIN <= isize && isize <= INT_MAX))
 	args_out_of_range (font_entity, size);
       if (isize == 0)

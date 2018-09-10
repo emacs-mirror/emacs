@@ -1256,6 +1256,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_alloc ();
+  init_bignum ();
   init_threads ();
 
   if (do_initial_setlocale)

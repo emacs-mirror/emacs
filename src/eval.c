@@ -204,6 +204,10 @@ bool
 backtrace_p (union specbinding *pdl)
 { return pdl >= specpdl; }
 
+static bool
+backtrace_thread_p (struct thread_state *tstate, union specbinding *pdl)
+{ return pdl >= tstate->m_specpdl; }
+
 union specbinding *
 backtrace_top (void)
 {
@@ -213,11 +217,29 @@ backtrace_top (void)
   return pdl;
 }
 
+static union specbinding *
+backtrace_thread_top (struct thread_state *tstate)
+{
+  union specbinding *pdl = tstate->m_specpdl_ptr - 1;
+  while (backtrace_thread_p (tstate, pdl) && pdl->kind != SPECPDL_BACKTRACE)
+    pdl--;
+  return pdl;
+}
+
 union specbinding *
 backtrace_next (union specbinding *pdl)
 {
   pdl--;
   while (backtrace_p (pdl) && pdl->kind != SPECPDL_BACKTRACE)
+    pdl--;
+  return pdl;
+}
+
+static union specbinding *
+backtrace_thread_next (struct thread_state *tstate, union specbinding *pdl)
+{
+  pdl--;
+  while (backtrace_thread_p (tstate, pdl) && pdl->kind != SPECPDL_BACKTRACE)
     pdl--;
   return pdl;
 }
@@ -1215,9 +1237,9 @@ Executes BODYFORM and returns its value if no error happens.
 Each element of HANDLERS looks like (CONDITION-NAME BODY...)
 where the BODY is made of Lisp expressions.
 
-A handler is applicable to an error
-if CONDITION-NAME is one of the error's condition names.
-If an error happens, the first applicable handler is run.
+A handler is applicable to an error if CONDITION-NAME is one of the
+error's condition names.  A CONDITION-NAME of t applies to any error
+symbol.  If an error happens, the first applicable handler is run.
 
 The car of a handler may be a list of condition names instead of a
 single condition name; then it handles all of them.  If the special
@@ -1854,7 +1876,9 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions)
   for (h = handlers; CONSP (h); h = XCDR (h))
     {
       Lisp_Object handler = XCAR (h);
-      if (!NILP (Fmemq (handler, conditions)))
+      if (!NILP (Fmemq (handler, conditions))
+          /* t is also used as a catch-all by Lisp code.  */
+          || EQ (handler, Qt))
 	return handlers;
     }
 
@@ -3728,6 +3752,42 @@ Return the result of FUNCTION, or nil if no matching frame could be found. */)
   return backtrace_frame_apply (function, get_backtrace_frame (nframes, base));
 }
 
+DEFUN ("backtrace--frames-from-thread", Fbacktrace_frames_from_thread,
+       Sbacktrace_frames_from_thread, 1, 1, NULL,
+       doc: /* Return the list of backtrace frames from current execution point in THREAD.
+If a frame has not evaluated the arguments yet (or is a special form),
+the value of the list element is (nil FUNCTION ARG-FORMS...).
+If a frame has evaluated its arguments and called its function already,
+the value of the list element is (t FUNCTION ARG-VALUES...).
+A &rest arg is represented as the tail of the list ARG-VALUES.
+FUNCTION is whatever was supplied as car of evaluated list,
+or a lambda expression for macro calls.  */)
+     (Lisp_Object thread)
+{
+  struct thread_state *tstate;
+  CHECK_THREAD (thread);
+  tstate = XTHREAD (thread);
+
+  union specbinding *pdl = backtrace_thread_top (tstate);
+  Lisp_Object list = Qnil;
+
+  while (backtrace_thread_p (tstate, pdl))
+    {
+      Lisp_Object frame;
+      if (backtrace_nargs (pdl) == UNEVALLED)
+	frame = Fcons (Qnil,
+		      Fcons (backtrace_function (pdl), *backtrace_args (pdl)));
+      else
+	{
+	  Lisp_Object tem = Flist (backtrace_nargs (pdl), backtrace_args (pdl));
+	  frame = Fcons (Qt, Fcons (backtrace_function (pdl), tem));
+	}
+      list = Fcons (frame, list);
+      pdl = backtrace_thread_next (tstate, pdl);
+    }
+  return Fnreverse (list);
+}
+
 /* For backtrace-eval, we want to temporarily unwind the last few elements of
    the specpdl stack, and then rewind them.  We store the pre-unwind values
    directly in the pre-existing specpdl elements (i.e. we swap the current
@@ -4203,6 +4263,7 @@ alist of active lexical bindings.  */);
   DEFSYM (QCdebug_on_exit, ":debug-on-exit");
   defsubr (&Smapbacktrace);
   defsubr (&Sbacktrace_frame_internal);
+  defsubr (&Sbacktrace_frames_from_thread);
   defsubr (&Sbacktrace_eval);
   defsubr (&Sbacktrace__locals);
   defsubr (&Sspecial_variable_p);

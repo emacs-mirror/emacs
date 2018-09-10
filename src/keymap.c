@@ -554,9 +554,9 @@ union map_keymap
     Lisp_Object args;
     void *data;
   } s;
-  GCALIGNED_UNION
+  GCALIGNED_UNION_MEMBER
 };
-verify (alignof (union map_keymap) % GCALIGNMENT == 0);
+verify (GCALIGNED (union map_keymap));
 
 static void
 map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)

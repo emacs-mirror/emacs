@@ -133,7 +133,8 @@ DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
        doc: /* Return the length of a list, but avoid error or infinite loop.
 This function never gets an error.  If LIST is not really a list,
 it returns 0.  If LIST is circular, it returns an integer that is at
-least the number of distinct elements.  */)
+least the number of distinct elements.
+Value is a fixnum, if it's small enough, otherwise a bignum.  */)
   (Lisp_Object list)
 {
   intptr_t len = 0;
@@ -1468,19 +1469,17 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
       /* Undo any error introduced when LARGE_NUM was substituted for
 	 N, by adding N - LARGE_NUM to NUM, using arithmetic modulo
 	 CYCLE_LENGTH.  */
-      mpz_t z; /* N mod CYCLE_LENGTH.  */
-      mpz_init (z);
+      /* Add N mod CYCLE_LENGTH to NUM.  */
       if (cycle_length <= ULONG_MAX)
-	num += mpz_mod_ui (z, XBIGNUM (n)->value, cycle_length);
+	num += mpz_tdiv_ui (XBIGNUM (n)->value, cycle_length);
       else
 	{
-	  mpz_set_intmax (z, cycle_length);
-	  mpz_mod (z, XBIGNUM (n)->value, z);
+	  mpz_set_intmax (mpz[0], cycle_length);
+	  mpz_tdiv_r (mpz[0], XBIGNUM (n)->value, mpz[0]);
 	  intptr_t iz;
-	  mpz_export (&iz, NULL, -1, sizeof iz, 0, 0, z);
+	  mpz_export (&iz, NULL, -1, sizeof iz, 0, 0, mpz[0]);
 	  num += iz;
 	}
-      mpz_clear (z);
       num += cycle_length - large_num % cycle_length;
     }
   num %= cycle_length;

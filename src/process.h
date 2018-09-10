@@ -203,7 +203,7 @@ struct Lisp_Process
     bool_bf gnutls_p : 1;
     bool_bf gnutls_complete_negotiation_p : 1;
 #endif
-};
+  } GCALIGNED_STRUCT;
 
 INLINE bool
 PROCESSP (Lisp_Object a)

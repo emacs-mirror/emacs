@@ -1106,7 +1106,9 @@ Noninteractively, return the name of the new file."
 	(progn
 	  (set-window-buffer (selected-window)
 			     (set-buffer (find-file-noselect file)))
-	  (setq todo-current-todo-file file)
+	  ;; Since buffer is not yet in todo-mode, we need to
+	  ;; explicitly make todo-current-todo-file buffer local.
+          (setq-local todo-current-todo-file file)
 	  (todo-show))
       file)))
 

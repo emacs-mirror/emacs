@@ -5205,6 +5205,14 @@ whether a specific window has changed size, compare the return values of
 @code{window-pixel-height-before-size-change} and
 @code{window-pixel-height} for that window (@pxref{Window Sizes}).
 
+The buffer-local value of this hook is run once for the buffer and the
+frame in question, provided at least one window showing the buffer on
+that frame has changed its size.  As it still receives the frame as
+its sole argument, any function called on a buffer-local basis will be
+oblivious to which window(s) showing the buffer changed its (their)
+size and has to check out these windows by using the method described
+in the previous paragraph.
+
 These function are usually only called when at least one window was
 added or has changed size since the last time this hook was run for the
 associated frame.  In some rare cases this hook also runs when a window

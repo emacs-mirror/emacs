@@ -270,11 +270,8 @@ DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
     {
       if (mpz_sgn (XBIGNUM (arg)->value) < 0)
 	{
-	  mpz_t val;
-	  mpz_init (val);
-	  mpz_neg (val, XBIGNUM (arg)->value);
-	  arg = make_integer (val);
-	  mpz_clear (val);
+	  mpz_neg (mpz[0], XBIGNUM (arg)->value);
+	  arg = make_integer_mpz ();
 	}
     }
 
@@ -342,6 +339,7 @@ static Lisp_Object
 rounding_driver (Lisp_Object arg, Lisp_Object divisor,
 		 double (*double_round) (double),
 		 void (*int_divide) (mpz_t, mpz_t const, mpz_t const),
+		 EMACS_INT (*fixnum_divide) (EMACS_INT, EMACS_INT),
 		 const char *name)
 {
   CHECK_NUMBER (arg);
@@ -358,28 +356,27 @@ rounding_driver (Lisp_Object arg, Lisp_Object divisor,
       CHECK_NUMBER (divisor);
       if (!FLOATP (arg) && !FLOATP (divisor))
 	{
-	  if (EQ (divisor, make_fixnum (0)))
-	    xsignal0 (Qarith_error);
-	  mpz_t d, q;
-	  mpz_init (d);
-	  mpz_init (q);
-	  int_divide (q,
-		      (FIXNUMP (arg)
-		       ? (mpz_set_intmax (q, XFIXNUM (arg)), q)
-		       : XBIGNUM (arg)->value),
-		      (FIXNUMP (divisor)
-		       ? (mpz_set_intmax (d, XFIXNUM (divisor)), d)
-		       : XBIGNUM (divisor)->value));
-	  Lisp_Object result = make_integer (q);
-	  mpz_clear (d);
-	  mpz_clear (q);
-	  return result;
+	  /* Divide as integers.  Converting to double might lose
+	     info, even for fixnums; also see the FIXME below.  */
+	  if (FIXNUMP (divisor))
+	    {
+	      if (XFIXNUM (divisor) == 0)
+		xsignal0 (Qarith_error);
+	      if (FIXNUMP (arg))
+		return make_int (fixnum_divide (XFIXNUM (arg),
+						XFIXNUM (divisor)));
+	    }
+	  int_divide (mpz[0],
+		      *bignum_integer (&mpz[0], arg),
+		      *bignum_integer (&mpz[1], divisor));
+	  return make_integer_mpz ();
 	}
 
-      double f1 = FLOATP (arg) ? XFLOAT_DATA (arg) : XFIXNUM (arg);
-      double f2 = FLOATP (divisor) ? XFLOAT_DATA (divisor) : XFIXNUM (divisor);
+      double f1 = XFLOATINT (arg);
+      double f2 = XFLOATINT (divisor);
       if (! IEEE_FLOATING_POINT && f2 == 0)
 	xsignal0 (Qarith_error);
+      /* FIXME: This division rounds, so the result is double-rounded.  */
       d = f1 / f2;
     }
 
@@ -397,40 +394,56 @@ rounding_driver (Lisp_Object arg, Lisp_Object divisor,
   return double_to_bignum (dr);
 }
 
+static EMACS_INT
+ceiling2 (EMACS_INT n, EMACS_INT d)
+{
+  return n / d + ((n % d != 0) & ((n < 0) == (d < 0)));
+}
+
+static EMACS_INT
+floor2 (EMACS_INT n, EMACS_INT d)
+{
+  return n / d - ((n % d != 0) & ((n < 0) != (d < 0)));
+}
+
+static EMACS_INT
+truncate2 (EMACS_INT n, EMACS_INT d)
+{
+  return n / d;
+}
+
+static EMACS_INT
+round2 (EMACS_INT n, EMACS_INT d)
+{
+  /* The C language's division operator gives us the remainder R
+     corresponding to truncated division, but we want the remainder R1
+     on the other side of 0 if R1 is closer to 0 than R is; because we
+     want to round to even, we also want R1 if R and R1 are the same
+     distance from 0 and if the truncated quotient is odd.  */
+  EMACS_INT q = n / d;
+  EMACS_INT r = n % d;
+  bool neg_d = d < 0;
+  bool neg_r = r < 0;
+  EMACS_INT abs_r = eabs (r);
+  EMACS_INT abs_r1 = eabs (d) - abs_r;
+  if (abs_r1 < abs_r + (q & 1))
+    q += neg_d == neg_r ? 1 : -1;
+  return q;
+}
+
 static void
 rounddiv_q (mpz_t q, mpz_t const n, mpz_t const d)
 {
-  /* mpz_tdiv_qr gives us one remainder R, but we want the remainder
-     R1 on the other side of 0 if R1 is closer to 0 than R is; because
-     we want to round to even, we also want R1 if R and R1 are the
-     same distance from 0 and if the quotient is odd.
-
-     If we were using EMACS_INT arithmetic instead of bignums,
-     the following code could look something like this:
-
-     q = n / d;
-     r = n % d;
-     neg_d = d < 0;
-     neg_r = r < 0;
-     abs_r = eabs (r);
-     abs_r1 = eabs (d) - abs_r;
-     if (abs_r1 < abs_r + (q & 1))
-       q += neg_d == neg_r ? 1 : -1;  */
-
-  mpz_t r, abs_r1;
-  mpz_init (r);
-  mpz_init (abs_r1);
-  mpz_tdiv_qr (q, r, n, d);
+  /* Mimic the source code of round2, using mpz_t instead of EMACS_INT.  */
+  mpz_t *r = &mpz[2], *abs_r = r, *abs_r1 = &mpz[3];
+  mpz_tdiv_qr (q, *r, n, d);
   bool neg_d = mpz_sgn (d) < 0;
-  bool neg_r = mpz_sgn (r) < 0;
-  mpz_t *abs_r = &r;
-  mpz_abs (*abs_r, r);
-  mpz_abs (abs_r1, d);
-  mpz_sub (abs_r1, abs_r1, *abs_r);
-  if (mpz_cmp (abs_r1, *abs_r) < (mpz_odd_p (q) != 0))
+  bool neg_r = mpz_sgn (*r) < 0;
+  mpz_abs (*abs_r, *r);
+  mpz_abs (*abs_r1, d);
+  mpz_sub (*abs_r1, *abs_r1, *abs_r);
+  if (mpz_cmp (*abs_r1, *abs_r) < (mpz_odd_p (q) != 0))
     (neg_d == neg_r ? mpz_add_ui : mpz_sub_ui) (q, q, 1);
-  mpz_clear (r);
-  mpz_clear (abs_r1);
 }
 
 /* The code uses emacs_rint, so that it works to undefine HAVE_RINT
@@ -461,7 +474,7 @@ This rounds the value towards +inf.
 With optional DIVISOR, return the smallest integer no less than ARG/DIVISOR.  */)
   (Lisp_Object arg, Lisp_Object divisor)
 {
-  return rounding_driver (arg, divisor, ceil, mpz_cdiv_q, "ceiling");
+  return rounding_driver (arg, divisor, ceil, mpz_cdiv_q, ceiling2, "ceiling");
 }
 
 DEFUN ("floor", Ffloor, Sfloor, 1, 2, 0,
@@ -470,7 +483,7 @@ This rounds the value towards -inf.
 With optional DIVISOR, return the largest integer no greater than ARG/DIVISOR.  */)
   (Lisp_Object arg, Lisp_Object divisor)
 {
-  return rounding_driver (arg, divisor, floor, mpz_fdiv_q, "floor");
+  return rounding_driver (arg, divisor, floor, mpz_fdiv_q, floor2, "floor");
 }
 
 DEFUN ("round", Fround, Sround, 1, 2, 0,
@@ -483,7 +496,8 @@ your machine.  For example, (round 2.5) can return 3 on some
 systems, but 2 on others.  */)
   (Lisp_Object arg, Lisp_Object divisor)
 {
-  return rounding_driver (arg, divisor, emacs_rint, rounddiv_q, "round");
+  return rounding_driver (arg, divisor, emacs_rint, rounddiv_q, round2,
+			  "round");
 }
 
 /* Since rounding_driver truncates anyway, no need to call 'trunc'.  */
@@ -499,7 +513,8 @@ Rounds ARG toward zero.
 With optional DIVISOR, truncate ARG/DIVISOR.  */)
   (Lisp_Object arg, Lisp_Object divisor)
 {
-  return rounding_driver (arg, divisor, identity, mpz_tdiv_q, "truncate");
+  return rounding_driver (arg, divisor, identity, mpz_tdiv_q, truncate2,
+			  "truncate");
 }
 
 

@@ -3394,9 +3394,9 @@ union read_non_regular
     int fd;
     ptrdiff_t inserted, trytry;
   } s;
-  GCALIGNED_UNION
+  GCALIGNED_UNION_MEMBER
 };
-verify (alignof (union read_non_regular) % GCALIGNMENT == 0);
+verify (GCALIGNED (union read_non_regular));
 
 static Lisp_Object
 read_non_regular (Lisp_Object state)
@@ -3424,17 +3424,13 @@ read_non_regular_quit (Lisp_Object ignore)
 static off_t
 file_offset (Lisp_Object val)
 {
-  if (RANGED_FIXNUMP (0, val, TYPE_MAXIMUM (off_t)))
-    return XFIXNUM (val);
-
-  if (BIGNUMP (val))
+  if (INTEGERP (val))
     {
-      intmax_t v = bignum_to_intmax (val);
-      if (0 < v && v <= TYPE_MAXIMUM (off_t))
+      intmax_t v;
+      if (integer_to_intmax (val, &v) && 0 <= v && v <= TYPE_MAXIMUM (off_t))
 	return v;
     }
-
-  if (FLOATP (val))
+  else if (FLOATP (val))
     {
       double v = XFLOAT_DATA (val);
       if (0 <= v && v < 1.0 + TYPE_MAXIMUM (off_t))

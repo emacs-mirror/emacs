@@ -578,7 +578,7 @@ struct frame
   enum ns_appearance_type ns_appearance;
   bool_bf ns_transparent_titlebar;
 #endif
-};
+} GCALIGNED_STRUCT;
 
 /* Most code should use these functions to set Lisp fields in struct frame.  */
 

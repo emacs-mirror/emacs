@@ -10100,19 +10100,16 @@ the return value depends on the type of the data stored in Registry:
 
   If the data type is REG_NONE, the function returns t.
   If the data type is REG_DWORD or REG_QWORD, the function returns
-    its integer value.  If the value is too large for a Lisp integer,
-    the function returns a cons (HIGH . LOW) of 2 integers, with LOW
-    the low 16 bits and HIGH the high bits.  If HIGH is too large for
-    a Lisp integer, the function returns (HIGH MIDDLE . LOW), first
-    the high bits, then the middle 24 bits, and finally the low 16 bits.
+    its integer value.  If the value is too large for a fixnum,
+    the function returns a bignum.
   If the data type is REG_BINARY, the function returns a vector whose
     elements are individual bytes of the value.
   If the data type is REG_SZ, the function returns a string.
-  If the data type REG_EXPAND_SZ, the function returns a string with
-    all the %..% references to environment variables replaced by the
-    values of those variables.  If the expansion fails, or some
-    variables are not defined in the environment, some or all of
-    the environment variables will remain unexpanded.
+  If the data type is REG_EXPAND_SZ, the function returns a string
+    with all the %..% references to environment variables replaced
+    by the values of those variables.  If the expansion fails, or
+    some variables are not defined in the environment, some or all
+    of the environment variables will remain unexpanded.
   If the data type is REG_MULTI_SZ, the function returns a list whose
     elements are the individual strings.
 

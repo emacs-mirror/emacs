@@ -1900,6 +1900,21 @@ definition of \"random distance\".)
 
 ;;;***
 
+;;;### (autoloads nil "backtrace" "emacs-lisp/backtrace.el" (0 0
+;;;;;;  0 0))
+;;; Generated autoloads from emacs-lisp/backtrace.el
+(push (purecopy '(backtrace 1 0)) package--builtin-versions)
+
+(autoload 'backtrace "backtrace" "\
+Print a trace of Lisp function calls currently active.
+Output stream used is value of `standard-output'.
+
+\(fn)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "backtrace" '("backtrace-")))
+
+;;;***
+
 ;;;### (autoloads nil "bat-mode" "progmodes/bat-mode.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/bat-mode.el
 
@@ -3850,6 +3865,7 @@ the absolute file name of the file if STYLE-NAME is nil.
 
 ;;;### (autoloads nil "cc-mode" "progmodes/cc-mode.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/cc-mode.el
+(push (purecopy '(cc-mode 5 33 1)) package--builtin-versions)
 
 (autoload 'c-initialize-cc-mode "cc-mode" "\
 Initialize CC Mode for use in the current buffer.
@@ -4998,6 +5014,13 @@ call other entry points instead, such as `cl-prin1'.
 
 \(fn OBJECT STREAM)" nil nil)
 
+(autoload 'cl-print-expand-ellipsis "cl-print" "\
+Print the expansion of an ellipsis to STREAM.
+VALUE should be the value of the `cl-print-ellipsis' text property
+which was attached to the ellipsis by `cl-prin1'.
+
+\(fn VALUE STREAM)" nil nil)
+
 (autoload 'cl-prin1 "cl-print" "\
 Print OBJECT on STREAM according to its type.
 Output is further controlled by the variables
@@ -5011,6 +5034,24 @@ node `(elisp)Output Variables'.
 Return a string containing the `cl-prin1'-printed representation of OBJECT.
 
 \(fn OBJECT)" nil nil)
+
+(autoload 'cl-print-to-string-with-limit "cl-print" "\
+Return a string containing a printed representation of VALUE.
+Attempt to get the length of the returned string under LIMIT
+characters with appropriate settings of `print-level' and
+`print-length.'  Use PRINT-FUNCTION to print, which should take
+the arguments VALUE and STREAM and which should respect
+`print-length' and `print-level'.  LIMIT may be nil or zero in
+which case PRINT-FUNCTION will be called with `print-level' and
+`print-length' bound to nil.
+
+Use this function with `cl-prin1' to print an object,
+abbreviating it with ellipses to fit within a size limit.  Use
+this function with `cl-prin1-expand-ellipsis' to expand an
+ellipsis, abbreviating the expansion to stay within a size
+limit.
+
+\(fn PRINT-FUNCTION VALUE LIMIT)" nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "cl-print" '("cl-print-" "help-byte-code")))
 
@@ -11725,7 +11766,9 @@ This does nothing except loading eudc by autoload side-effect.
 
 \(fn)" t nil)
 
-(cond ((not (featurep 'xemacs)) (defvar eudc-tools-menu (let ((map (make-sparse-keymap "Directory Servers"))) (define-key map [phone] `(menu-item ,(purecopy "Get Phone") eudc-get-phone :help ,(purecopy "Get the phone field of name from the directory server"))) (define-key map [email] `(menu-item ,(purecopy "Get Email") eudc-get-email :help ,(purecopy "Get the email field of NAME from the directory server"))) (define-key map [separator-eudc-email] menu-bar-separator) (define-key map [expand-inline] `(menu-item ,(purecopy "Expand Inline Query") eudc-expand-inline :help ,(purecopy "Query the directory server, and expand the query string before point"))) (define-key map [query] `(menu-item ,(purecopy "Query with Form") eudc-query-form :help ,(purecopy "Display a form to query the directory server"))) (define-key map [separator-eudc-query] menu-bar-separator) (define-key map [new] `(menu-item ,(purecopy "New Server") eudc-set-server :help ,(purecopy "Set the directory server to SERVER using PROTOCOL"))) (define-key map [load] `(menu-item ,(purecopy "Load Hotlist of Servers") eudc-load-eudc :help ,(purecopy "Load the Emacs Unified Directory Client"))) map)) (fset 'eudc-tools-menu (symbol-value 'eudc-tools-menu))) (t (let ((menu '("Directory Servers" ["Load Hotlist of Servers" eudc-load-eudc t] ["New Server" eudc-set-server t] ["---" nil nil] ["Query with Form" eudc-query-form t] ["Expand Inline Query" eudc-expand-inline t] ["---" nil nil] ["Get Email" eudc-get-email t] ["Get Phone" eudc-get-phone t]))) (if (not (featurep 'eudc-autoloads)) (if (featurep 'xemacs) (if (and (featurep 'menubar) (not (featurep 'infodock))) (add-submenu '("Tools") menu)) (require 'easymenu) (cond ((fboundp 'easy-menu-add-item) (easy-menu-add-item nil '("tools") (easy-menu-create-menu (car menu) (cdr menu)))) ((fboundp 'easy-menu-create-keymaps) (define-key global-map [menu-bar tools eudc] (cons "Directory Servers" (easy-menu-create-keymaps "Directory Servers" (cdr menu)))))))))))
+(defvar eudc-tools-menu (let ((map (make-sparse-keymap "Directory Servers"))) (define-key map [phone] `(menu-item ,(purecopy "Get Phone") eudc-get-phone :help ,(purecopy "Get the phone field of name from the directory server"))) (define-key map [email] `(menu-item ,(purecopy "Get Email") eudc-get-email :help ,(purecopy "Get the email field of NAME from the directory server"))) (define-key map [separator-eudc-email] menu-bar-separator) (define-key map [expand-inline] `(menu-item ,(purecopy "Expand Inline Query") eudc-expand-inline :help ,(purecopy "Query the directory server, and expand the query string before point"))) (define-key map [query] `(menu-item ,(purecopy "Query with Form") eudc-query-form :help ,(purecopy "Display a form to query the directory server"))) (define-key map [separator-eudc-query] menu-bar-separator) (define-key map [new] `(menu-item ,(purecopy "New Server") eudc-set-server :help ,(purecopy "Set the directory server to SERVER using PROTOCOL"))) (define-key map [load] `(menu-item ,(purecopy "Load Hotlist of Servers") eudc-load-eudc :help ,(purecopy "Load the Emacs Unified Directory Client"))) map))
+
+(fset 'eudc-tools-menu (symbol-value 'eudc-tools-menu))
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "eudc" '("eudc-")))
 
@@ -16192,13 +16235,15 @@ highlighting will not update as you type.
 (autoload 'hi-lock-face-buffer "hi-lock" "\
 Set face of each match of REGEXP to FACE.
 Interactively, prompt for REGEXP using `read-regexp', then FACE.
-Use the global history list for FACE.
+Use the global history list for FACE.  Limit face setting to the
+corresponding SUBEXP (interactively, the prefix argument) of REGEXP.
+If SUBEXP is omitted or nil, the entire REGEXP is highlighted.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
 highlighting will not update as you type.
 
-\(fn REGEXP &optional FACE)" t nil)
+\(fn REGEXP &optional FACE SUBEXP)" t nil)
 
 (defalias 'highlight-phrase 'hi-lock-face-phrase-buffer)
 
@@ -19201,7 +19246,7 @@ locally, like so:
 
 ;;;### (autoloads nil "jsonrpc" "jsonrpc.el" (0 0 0 0))
 ;;; Generated autoloads from jsonrpc.el
-(push (purecopy '(jsonrpc 1 0 0)) package--builtin-versions)
+(push (purecopy '(jsonrpc 1 0 6)) package--builtin-versions)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "jsonrpc" '("jrpc-default-request-timeout" "jsonrpc-")))
 
@@ -33694,7 +33739,7 @@ Compose Thai characters in the current buffer.
 Move forward to the end of the Nth next THING.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'.
 
 \(fn THING &optional N)" nil nil)
@@ -33703,7 +33748,7 @@ Possibilities include `symbol', `list', `sexp', `defun',
 Determine the start and end buffer locations for the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'.
 
 See the file `thingatpt.el' for documentation on how to define a
@@ -33718,7 +33763,7 @@ positions of the thing found.
 Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', `number', and `page'.
 
 When the optional argument NO-PROPERTIES is non-nil,
@@ -33750,6 +33795,18 @@ Return the Lisp list at point, or nil if none is found.
 \(fn)" nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "thingatpt" '("beginning-of-thing" "define-thing-chars" "end-of-thing" "filename" "form-at-point" "in-string-p" "sentence-at-point" "thing-at-point-" "word-at-point")))
+
+;;;***
+
+;;;### (autoloads nil "thread" "emacs-lisp/thread.el" (0 0 0 0))
+;;; Generated autoloads from emacs-lisp/thread.el
+
+(autoload 'thread-handle-event "thread" "\
+Handle thread events, propagated by `thread-signal'.
+An EVENT has the format
+  (thread-event THREAD ERROR-SYMBOL DATA)
+
+\(fn EVENT)" t nil)
 
 ;;;***
 
@@ -34099,8 +34156,6 @@ return something of the form \"001 year\".
 The \"%z\" specifier does not print anything.  When it is used, specifiers
 must be given in order of decreasing size.  To the left of \"%z\", nothing
 is output until the first non-zero unit is encountered.
-
-This function does not work for SECONDS greater than `most-positive-fixnum'.
 
 \(fn STRING SECONDS)" nil nil)
 
@@ -34569,6 +34624,7 @@ the output buffer or changing the window configuration.
 
 ;;;### (autoloads nil "tramp" "net/tramp.el" (0 0 0 0))
 ;;; Generated autoloads from net/tramp.el
+(push (purecopy '(tramp 2 4 1 -1)) package--builtin-versions)
 
 (defvar tramp-mode t "\
 Whether Tramp is enabled.
@@ -34719,7 +34775,6 @@ Reenable Ange-FTP, when Tramp is unloaded.
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
-(push (purecopy '(tramp 2 4 0)) package--builtin-versions)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "trampver" '("tramp-")))
 
@@ -38647,7 +38702,11 @@ Like `xref-find-definitions' but switch to the other frame.
 
 (autoload 'xref-find-references "xref" "\
 Find references to the identifier at point.
-With prefix argument, prompt for the identifier.
+This command might prompt for the identifier as needed, perhaps
+offering the symbol at point as the default.
+With prefix argument, or if `xref-prompt-for-identifier' is t,
+always prompt for the identifier.  If `xref-prompt-for-identifier'
+is nil, prompt only if there's no usable symbol at point.
 
 \(fn IDENTIFIER)" t nil)
 

@@ -108,8 +108,7 @@ message(s) as specified by the option `mh-junk-disposition'."
     (mh-iterate-on-range msg range
       (message "Blacklisting message %d..." msg)
       (funcall (symbol-function blacklist-func) msg)
-      (message "Blacklisting message %d...done" msg))
-    (mh-next-msg)))
+      (message "Blacklisting message %d...done" msg))))
 
 ;;;###mh-autoload
 (defun mh-junk-whitelist (range)
@@ -164,8 +163,7 @@ classified as spam (see the option `mh-junk-program')."
     (mh-iterate-on-range msg range
       (message "Whitelisting message %d..." msg)
       (funcall (symbol-function whitelist-func) msg)
-      (message "Whitelisting message %d...done" msg))
-    (mh-next-msg)))
+      (message "Whitelisting message %d...done" msg))))
 
 
 

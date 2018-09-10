@@ -1878,9 +1878,10 @@ error occurs during @var{protected-form}.
 Each of the @var{handlers} is a list of the form @code{(@var{conditions}
 @var{body}@dots{})}.  Here @var{conditions} is an error condition name
 to be handled, or a list of condition names (which can include @code{debug}
-to allow the debugger to run before the handler); @var{body} is one or more
-Lisp expressions to be executed when this handler handles an error.
-Here are examples of handlers:
+to allow the debugger to run before the handler).  A condition name of
+@code{t} matches any condition.  @var{body} is one or more Lisp
+expressions to be executed when this handler handles an error.  Here
+are examples of handlers:
 
 @example
 @group

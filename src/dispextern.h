@@ -3569,6 +3569,10 @@ extern void create_tty_output (struct frame *);
 extern struct terminal *init_tty (const char *, const char *, bool);
 extern void tty_append_glyph (struct it *);
 
+/* All scrolling costs measured in characters.
+   So no cost can exceed the area of a frame, measured in characters.
+   Let's hope this is never more than 1000000 characters.  */
+enum { SCROLL_INFINITY = 1000000 };
 
 /* Defined in scroll.c */
 

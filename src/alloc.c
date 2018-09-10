@@ -641,9 +641,11 @@ buffer_memory_full (ptrdiff_t nbytes)
    implement Lisp objects; since pseudovectors can contain any C type,
    this is max_align_t.  On recent GNU/Linux x86 and x86-64 this can
    often waste up to 8 bytes, since alignof (max_align_t) is 16 but
-   typical vectors need only an alignment of 8.  However, it is not
-   worth the hassle to avoid this waste.  */
-enum { LISP_ALIGNMENT = alignof (union { max_align_t x; GCALIGNED_UNION }) };
+   typical vectors need only an alignment of 8.  Although shrinking
+   the alignment to 8 would save memory, it cost a 20% hit to Emacs
+   CPU performance on Fedora 28 x86-64 when compiled with gcc -m32.  */
+enum { LISP_ALIGNMENT = alignof (union { max_align_t x;
+					 GCALIGNED_UNION_MEMBER }) };
 verify (LISP_ALIGNMENT % GCALIGNMENT == 0);
 
 /* True if malloc (N) is known to return storage suitably aligned for
@@ -7126,18 +7128,6 @@ range_error (void)
   xsignal0 (Qrange_error);
 }
 
-static void *
-xrealloc_for_gmp (void *ptr, size_t ignore, size_t size)
-{
-  return xrealloc (ptr, size);
-}
-
-static void
-xfree_for_gmp (void *ptr, size_t ignore)
-{
-  xfree (ptr);
-}
-
 /* Initialization.  */
 
 void
@@ -7171,10 +7161,6 @@ init_alloc_once (void)
 void
 init_alloc (void)
 {
-  eassert (mp_bits_per_limb == GMP_NUMB_BITS);
-  integer_width = 1 << 16;
-  mp_set_memory_functions (xmalloc, xrealloc_for_gmp, xfree_for_gmp);
-
   Vgc_elapsed = make_float (0.0);
   gcs_done = 0;
 

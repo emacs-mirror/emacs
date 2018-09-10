@@ -134,22 +134,7 @@ This requires either the macOS \"open\" command, or the freedesktop
            os))
         ((eq system-type 'windows-nt)
          (or report-emacs-bug--os-description
-             (setq
-              report-emacs-bug--os-description
-              (let (os)
-                (with-temp-buffer
-                  ;; Seems like this command can be slow, because it
-                  ;; unconditionally queries a bunch of other stuff
-                  ;; we don't care about.
-                  (when (eq 0 (ignore-errors
-                                (call-process "systeminfo" nil '(t nil) nil)))
-                    (dolist (s '("OS Name" "OS Version"))
-                      (goto-char (point-min))
-                      (if (re-search-forward
-                           (format "^%s\\s-*:\\s-+\\(.*\\)$" s)
-                           nil t)
-                          (setq os (concat os " " (match-string 1)))))))
-                os))))
+             (setq report-emacs-bug--os-description (w32--os-description))))
         ((eq system-type 'berkeley-unix)
          (with-temp-buffer
            (when
