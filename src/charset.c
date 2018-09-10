@@ -1886,6 +1886,13 @@ Return nil if CHARSET doesn't support CH.  */)
   code = ENCODE_CHAR (charsetp, c);
   if (code == CHARSET_INVALID_CODE (charsetp))
     return Qnil;
+  /* There are much fewer codepoints in the world than we have positive
+     fixnums, so it could be argued that we never really need a bignum,
+     e.g. Unicode codepoints only need 21bit, and China's GB-10830
+     can fit in 22bit.  Yet we encode GB-10830's chars in a sparse way
+     (we just take the 4byte sequences as a 32bit int), so some
+     GB-10830 chars (such as 0x81308130 in etc/charsets/gb108304.map) end
+     up represented as bignums here.  */
   return INT_TO_INTEGER (code);
 }
 
