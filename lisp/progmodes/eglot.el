@@ -1959,8 +1959,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
               ((string= system-type "darwin") "config_mac")
               ((string= system-type "windows-nt") "config_win")
               (t "config_linux"))))
+           (project (or (project-current) `(transient . ,default-directory)))
            (workspace
-            (expand-file-name (md5 (car (project-roots (project-current))))
+            (expand-file-name (md5 (car (project-roots project)))
                               (concat user-emacs-directory
                                       "eglot-eclipse-jdt-cache"))))
       (unless jar
