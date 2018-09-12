@@ -5,7 +5,7 @@
 ;; Author: Justin Talbott <justin@waymondo.com>
 ;; Keywords: convenience, tools, extensions
 ;; URL: https://github.com/waymondo/use-package-ensure-system-package
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((use-package "2.1") (system-packages "1.0.4"))
 ;; Filename: use-package-ensure-system-package.el
 ;; License: GNU General Public License version 3, or (at your option) any later version
@@ -25,22 +25,23 @@
 (eval-when-compile
   (declare-function system-packages-get-command "system-packages"))
 
-(defun use-package-ensure-system-package-install-command (pack)
-  "Return the default install command for PACK."
-  (system-packages-get-command 'install pack))
 
 (defun use-package-ensure-system-package-consify (arg)
   "Turn `arg' into a cons of (`package-name' . `install-command')."
   (cond
    ((stringp arg)
-    (cons arg (use-package-ensure-system-package-install-command arg)))
+    (cons arg `(system-packages-install ,arg)))
    ((symbolp arg)
-    (cons arg (use-package-ensure-system-package-install-command (symbol-name arg))))
+    (cons arg `(system-packages-install ,(symbol-name arg))))
    ((consp arg)
-    (if (stringp (cdr arg))
-        arg
+    (cond
+     ((not (cdr arg))
+      (use-package-ensure-system-package-consify (car arg)))
+     ((stringp (cdr arg))
+      (cons (car arg) `(async-shell-command ,(cdr arg))))
+     (t
       (cons (car arg)
-            (use-package-ensure-system-package-install-command (symbol-name (cdr arg))))))))
+	    `(system-packages-install ,(symbol-name (cdr arg)))))))))
 
 ;;;###autoload
 (defun use-package-normalize/:ensure-system-package (_name-symbol keyword args)
@@ -60,6 +61,7 @@ If it is a symbol, ensure the binary exist."
       (file-exists-p file-or-exe)
     (executable-find (symbol-name file-or-exe))))
 
+
 ;;;###autoload
 (defun use-package-handler/:ensure-system-package (name _keyword arg rest state)
   "Execute the handler for `:ensure-system-package' keyword in `use-package'."
@@ -67,7 +69,7 @@ If it is a symbol, ensure the binary exist."
     (use-package-concat
      (mapcar #'(lambda (cons)
                  `(unless (use-package-ensure-system-package-exists? ',(car cons))
-                    (async-shell-command ,(cdr cons)))) arg)
+		    ,(cdr cons))) arg)
      body)))
 
 (add-to-list 'use-package-keywords :ensure-system-package t)
