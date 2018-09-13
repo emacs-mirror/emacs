@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
   EVENT_ANY_FIELDS(EVENT_FIELD)
 #undef EVENT_FIELD
   puts("')\nHeaderDesc.__doc__ = '''");
-#define EVENT_FIELD(TYPE, NAME, DOC) printf("  %s -- %s\n", #NAME, DOC);
+#define EVENT_FIELD(TYPE, NAME, DOC) printf("%s -- %s\n", #NAME, DOC);
   EVENT_ANY_FIELDS(EVENT_FIELD)
 #undef EVENT_FIELD
   puts("'''");
@@ -168,6 +168,29 @@ int main(int argc, char *argv[])
 #undef EVENT_FIELD
   PAD_TO(sizeof(EventAnyStruct));
   puts("'");
+
+  puts("\n# Mapping from access mode to its name.");
+  puts("ACCESS_MODE = {");
+  printf("    %u: \"READ\",\n", (unsigned)AccessREAD);
+  printf("    %u: \"WRITE\",\n", (unsigned)AccessWRITE);
+  printf("    %u: \"READ/WRITE\",\n",
+         (unsigned)BS_UNION(AccessREAD, AccessWRITE));
+  puts("}");
+
+  puts("\n# Mapping from rank to its name.");
+  puts("RANK = {");
+#define X(RANK) printf("    %u: \"%s\",\n", (unsigned)Rank ## RANK, #RANK);
+  RANK_LIST(X)
+#undef X
+  puts("}");
+
+  puts("\n# Mapping from trace start reason to its short decription.");
+  puts("TRACE_START_WHY = {");
+#define X(WHY, SHORT, LONG) \
+  printf("    %u: \"%s\",\n", (unsigned)TraceStartWhy ## WHY, SHORT);
+  TRACE_START_WHY_LIST(X)
+#undef X
+  puts("}");
 
   return 0;
 }
