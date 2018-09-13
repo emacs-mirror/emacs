@@ -648,7 +648,7 @@ static void traceCreatePoolGen(GenDesc gen)
   }
 }
 
-Res TraceCreate(Trace *traceReturn, Arena arena, int why)
+Res TraceCreate(Trace *traceReturn, Arena arena, TraceStartWhy why)
 {
   TraceId ti;
   Trace trace;
@@ -1723,7 +1723,7 @@ void TraceAdvance(Trace trace)
  * "why" is a TraceStartWhy* enum member that specifies why the
  * collection is starting. */
 
-Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
+Res TraceStartCollectAll(Trace *traceReturn, Arena arena, TraceStartWhy why)
 {
   Trace trace = NULL;
   Res res;

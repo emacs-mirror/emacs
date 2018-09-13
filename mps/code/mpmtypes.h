@@ -60,6 +60,7 @@ typedef Size Epoch;                     /* design.mps.ld */
 typedef unsigned TraceId;               /* <design/trace/> */
 typedef unsigned TraceSet;              /* <design/trace/> */
 typedef unsigned TraceState;            /* <design/trace/> */
+typedef unsigned TraceStartWhy;
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
 typedef int RootVar;                    /* <design/type/#rootvar> */
@@ -298,13 +299,14 @@ enum {
 /* These definitions must match <code/mps.h#rank>. */
 /* This is checked by <code/mpsi.c#check>. */
 
+#define RANK_LIST(X) X(AMBIG) X(EXACT) X(FINAL) X(WEAK)
+
 enum {
-  RankMIN = 0,
-  RankAMBIG = 0,
-  RankEXACT = 1,
-  RankFINAL = 2,
-  RankWEAK = 3,
-  RankLIMIT
+#define X(RANK) Rank ## RANK,
+  RANK_LIST(X)
+#undef X
+  RankLIMIT,
+  RankMIN = 0
 };
 
 
@@ -356,16 +358,29 @@ enum {
 /* TODO: A better way for MPS extensions to extend the list of reasons
    instead of the catch-all TraceStartWhyEXTENSION. */
 
+#define TRACE_START_WHY_LIST(X)                                         \
+  X(CHAIN_GEN0CAP, "gen 0 capacity",                                    \
+    "Generation 0 of a chain has reached capacity: start a minor "      \
+    "collection.")                                                      \
+  X(DYNAMICCRITERION, "dynamic criterion",                              \
+    "Need to start full collection now, or there won't be enough "      \
+    "memory (ArenaAvail) to complete it.")                              \
+  X(OPPORTUNISM, "opportunism",                                         \
+    "Opportunism: client predicts plenty of idle time, so start full "  \
+    "collection.")                                                      \
+  X(CLIENTFULL_INCREMENTAL, "full incremental", \
+    "Client requests: start incremental full collection now.")          \
+  X(CLIENTFULL_BLOCK, "full", \
+    "Client requests: immediate full collection.")                      \
+  X(WALK, "walk", "Walking all live objects.")                          \
+  X(EXTENSION, "extension", \
+    "Extension: an MPS extension started the trace.")
+
 enum {
-  TraceStartWhyBASE = 1, /* not a reason, the base of the enum. */
-  TraceStartWhyCHAIN_GEN0CAP = TraceStartWhyBASE,  /* start minor */
-  TraceStartWhyDYNAMICCRITERION, /* start full */
-  TraceStartWhyOPPORTUNISM,      /* start full */
-  TraceStartWhyCLIENTFULL_INCREMENTAL,   /* start full */
-  TraceStartWhyCLIENTFULL_BLOCK, /* do full */
-  TraceStartWhyWALK,            /* walking references -- see walk.c */
-  TraceStartWhyEXTENSION,       /* MPS extension using traces */
-  TraceStartWhyLIMIT /* not a reason, the limit of the enum. */
+#define X(WHY, SHORT, LONG) TraceStartWhy ## WHY,
+  TRACE_START_WHY_LIST(X)
+#undef X
+  TraceStartWhyLIMIT
 };
 
 

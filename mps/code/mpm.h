@@ -379,7 +379,7 @@ extern RefSet ScanStateSummary(ScanState ss);
 extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
-extern Res TraceCreate(Trace *traceReturn, Arena arena, int why);
+extern Res TraceCreate(Trace *traceReturn, Arena arena, TraceStartWhy why);
 extern void TraceDestroyInit(Trace trace);
 extern void TraceDestroyFinished(Trace trace);
 
@@ -395,13 +395,13 @@ extern Rank TraceRankForAccess(Arena arena, Seg seg);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 
 extern void TraceAdvance(Trace trace);
-extern Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why);
+extern Res TraceStartCollectAll(Trace *traceReturn, Arena arena, TraceStartWhy why);
 extern Res TraceDescribe(Trace trace, mps_lib_FILE *stream, Count depth);
 
 /* traceanc.c -- Trace Ancillary */
 
 extern Bool TraceStartMessageCheck(TraceStartMessage message);
-extern const char *TraceStartWhyToString(int why);
+extern const char *TraceStartWhyToString(TraceStartWhy why);
 extern void TracePostStartMessage(Trace trace);
 extern Bool TraceMessageCheck(TraceMessage message);  /* trace end */
 extern void TracePostMessage(Trace trace);  /* trace end */
@@ -545,8 +545,8 @@ extern void ArenaPark(Globals globals);
 extern void ArenaPostmortem(Globals globals);
 extern void ArenaExposeRemember(Globals globals, Bool remember);
 extern void ArenaRestoreProtection(Globals globals);
-extern Res ArenaStartCollect(Globals globals, int why);
-extern Res ArenaCollect(Globals globals, int why);
+extern Res ArenaStartCollect(Globals globals, TraceStartWhy why);
+extern Res ArenaCollect(Globals globals, TraceStartWhy why);
 extern Bool ArenaBusy(Arena arena);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);
 extern void ArenaChunkInsert(Arena arena, Chunk chunk);
