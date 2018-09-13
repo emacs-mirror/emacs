@@ -9,22 +9,24 @@
 # 
 # Requirements: Python 3.6, Matplotlib, PyQt5.
 
+
 import argparse
+import bisect
 from collections import defaultdict, deque, namedtuple
+from contextlib import redirect_stdout, ContextDecorator
+import decimal
 from itertools import count, cycle
+import math
 import os
 import queue
 from struct import Struct
 import sys
 import threading
 import time
-import math
-import bisect
 import traceback
-from contextlib import redirect_stdout, ContextDecorator
 
-from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 from matplotlib.backend_bases import key_press_handler
+from matplotlib.backends.qt_compat import QtCore, QtGui, QtWidgets
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
@@ -32,92 +34,6 @@ from matplotlib import ticker
 
 import mpsevent
 
-class YAxis:
-    "The Y-axis of a plot."
-    def __init__(self, label, fmt):
-        self._label = label
-        self.fmt = fmt
-
-    def label(self): return self._label
-
-def with_SI_prefix(y, precision=5, unit=None):
-    "Turn the number `y` into a string using SI prefixes followed by `unit`"
-    if y < 0:
-        return '-'+with_SI_prefix(-y, precision, unit)
-    elif y == 0:
-        s = '0 '
-    else:
-        l = math.floor(math.log(y, 1000))
-        if l < 0:
-            smalls = 'munpfazy'
-            if l < -len(smalls):
-                l = -len(smalls)
-            f = 1000 ** l
-            m = y / f
-            if l > -len(smalls) and m < 10: # up to 4 digits before the decimal
-                m *= 1000
-                l -= 1
-            s = f'{m:.{precision}g} {smalls[-l-1]}'
-        elif y > 10000:
-            bigs = 'kMGTPEZY'
-            if l > len(bigs):
-                l = len(bigs)
-            f = 1000 ** l
-            m = y / f
-            if m < 10: # up to 4 digits before the decimal
-                m *= 1000
-                l -= 1
-            s = f'{m:.{precision}g} {bigs[l-1]}'
-        else: # l = 0
-            s = f'{y:.{precision}g} '
-    if unit:
-        s += unit
-    return s.strip()
-
-def bytesFormat(y):
-    "Format a number of bytes as a string."
-    return with_SI_prefix(y) + (' bytes' if y < 10000 else 'B')
-
-def bytesTickFormatter(y,pos):
-    "A tick formatter for matplotlib, for a number of bytes."
-    return with_SI_prefix(y)
-
-def cyc(n):
-    "Format a number of clock cycles as a string."
-    return with_SI_prefix(n, unit='c')
-
-def dur(t):
-    "Format a duration in seconds as a string."
-    return with_SI_prefix(t, unit='s')
-
-# The y axes which we support
-bytesAxis = YAxis('bytes', bytesFormat)
-fractionAxis = YAxis('fraction', lambda v: f'{v:.5f}')
-traceAxis = YAxis('gens', lambda v: f'{v:,.2f} gens')
-countAxis = YAxis('count', lambda v: f'{v:,.0f}')
-
-# Names of scanning ranks
-rank_name = {0: 'Ambig',
-             1: 'Exact',
-             2: 'Final',
-             3: 'Weak',
-}
-
-# Names of access modes
-access_mode = {1: 'Read',
-               2: 'Write',
-               3: 'Read/Write',
-}
-               
-# Names of reasons for traces
-trace_why = {1: 'gen 0 capacity',
-             2: 'dynamic criterion',
-             3: 'opportunitism',
-             4: 'full incremental',
-             5: 'full',
-             6: 'walking',
-             7: 'extension'
-}
 
 # Mapping from event code to a namedtuple for that event.
 EVENT_NAMEDTUPLE = {
@@ -171,9 +87,9 @@ def telemetry_decoder(read):
     batch = []                  # Current batch of (unordered) events.
     clocks_per_sec = None       # CLOCKS_PER_SEC value from EventInit event.
 
-    # last two EventClockSync events with distinct clock values
-    eventclocks = deque(maxlen=2) # header clock values
-    clocks = deque(maxlen=2)    # clock values
+    # Last two EventClockSync events with distinct clock values.
+    eventclocks = deque(maxlen=2) # Eventclock values.
+    clocks = deque([float('-inf')] * 2, maxlen=2) # Corresponding clock values.
 
     def key(event):
         # Key function for sorting events into time order.
@@ -209,11 +125,10 @@ def telemetry_decoder(read):
 
             batch.append(event)
             if event.header.code == EventClockSync_code:
-                # Events are output in batches terminated by an
-                # EventClockSync event. So when we see an
-                # EventClockSync event with a new clock value, we know
-                # that we've received all events up to that one and
-                # can sort and emit the batch.
+                # Events are output in batches terminated by an EventClockSync
+                # event. So when we see an EventClockSync event with a new
+                # clock value, we know that we've received all events up to
+                # that one and can sort and emit the batch.
                 #
                 # The Time Stamp Counter frequency can vary due to thermal
                 # throttling, turbo boost etc., so linearly interpolate within
@@ -223,26 +138,26 @@ def telemetry_decoder(read):
                 # In theory the Time Stamp Counter can wrap around, but it is
                 # a 64-bit register even on IA-32, and at 2.5 GHz it will take
                 # hundreds of years to do so, so we ignore this possibility.
-                # 
+                #
                 # TODO: on 32-bit platforms at 1 MHz, clock values will wrap
                 # around in about 72 minutes and so this needs to be handled.
                 #
                 # TODO: reduce problems caused by discretized clock
                 # values. See job004100.
-                if clocks and event.clock == clocks[-1]:
+                if event.clock == clocks[-1]:
                     # The clock value hasn't changed since the last
-                    # EventClockSync (because clocks_per_sec isn't
-                    # high enough) so we disregard this event,
-                    # otherwise linearising gives us loads of events
-                    # with identical timestamps.
+                    # EventClockSync (because clocks_per_sec isn't high
+                    # enough) so we disregard this event, otherwise
+                    # linearising gives us loads of events with identical
+                    # timestamps.
                     continue
                 clocks.append(event.clock)
                 eventclocks.append(event.header.clock)
-                if len(clocks) == 2:
+                if len(eventclocks) == 2:
                     batch.sort(key=key)
                     dt = (clocks[1] - clocks[0]) / clocks_per_sec
-                    dTSC = eventclocks[1] - eventclocks[0]
-                    m = dt / dTSC # gradient
+                    d_eventclock = eventclocks[1] - eventclocks[0]
+                    m = dt / d_eventclock # gradient
                     t0 = clocks[0] / clocks_per_sec
                     c = t0 - m * eventclocks[0] # y-intercept
                     yield [(m * e.header.clock + c, e) for e in batch]
@@ -260,11 +175,62 @@ def telemetry_decoder(read):
     return decoder
 
 
+# SI_PREFIX[i] is the SI prefix for 10 to the power of 3(i-8).
+SI_PREFIX = list('yzafpnµm kMGTPEZY')
+SI_PREFIX[8] = ''
+
+def with_SI_prefix(y, precision=5, unit=''):
+    """Turn the number y into a string using SI prefixes followed by unit."""
+    if y < 0:
+        return '-' + with_SI_prefix(-y, precision, unit)
+    y = decimal.Context(prec=precision).create_decimal(y)
+    e = y.adjusted()            # exponent of leading digit
+    if e:
+        e -= 1 + (e - 1) % 3    # make exponent a multiple of 3
+    prefixed_unit = SI_PREFIX[e // 3 + 8] + unit
+    return f"{y.scaleb(-e):f}" + " " * bool(prefixed_unit) + prefixed_unit
+
+
+def format_bytes(y):
+    "Format a number of bytes as a string."
+    return with_SI_prefix(y) + (' bytes' if y < 10000 else 'B')
+
+
+@ticker.FuncFormatter
+def format_tick_bytes(y, pos):
+    "A tick formatter for matplotlib, for a number of bytes."
+    return with_SI_prefix(y)
+
+
+def format_cycles(n):
+    "Format a number of clock cycles as a string."
+    return with_SI_prefix(n, unit='c')
+
+
+def format_seconds(t):
+    "Format a duration in seconds as a string."
+    return with_SI_prefix(t, unit='s')
+
+
 def bits_of_word(w, n):
     "Generate the bits in the word w, which has n bits."
     for _ in range(n):
         w, bit = divmod(w, 2)
         yield bit
+
+
+AxisDesc = namedtuple('AxisDesc', 'label format')
+AxisDesc.__doc__ = """Description of how to format an axis of a plot.
+label: str -- label for the whole axis.
+format -- function taking a value and returning it as a readable string.
+"""
+
+
+# The y-axes which we support.
+BYTES_AXIS = AxisDesc('bytes', format_bytes)
+FRACTION_AXIS = AxisDesc('fraction', '{:.5f}'.format)
+TRACE_AXIS = AxisDesc('gens', '{:,.2f} gens'.format)
+COUNT_AXIS = AxisDesc('count', '{:,.0f}'.format)
 
 
 class TimeSeries:
@@ -281,7 +247,7 @@ class TimeSeries:
 
     # Doesn't handle slices
     def __getitem__(self, key):
-        return (self.t[key], self.y[key])
+        return self.t[key], self.y[key]
 
     def append(self, t, y):
         "Append data y at time t."
@@ -291,11 +257,10 @@ class TimeSeries:
 
     def closest(self, t):
         "Return the index of the closest point in the series to time `t`."
-
         i = bisect.bisect(self.t, t)
         if (i == len(self) or
-            (i > 0 and (self.t[i] - t) > (t - self.t[i-1]))):
-            i = i-1
+            (i > 0 and (self.t[i] - t) > (t - self.t[i - 1]))):
+            i -= 1
         return i
 
     def recompute(self, f):
@@ -304,16 +269,9 @@ class TimeSeries:
     def note(self, line, t, index, verbose=False):
         """Return text for a tooltip, and for the log pane, describing the
         data point at time `t` (which has index `index`), or None,
-        None if there is nothing to say. Subclasses should override
-        `series_note` rather than this.
+        None if there is nothing to say.
+
         """
-
-        if self._note_fn:
-            return self._note_fn(line, t, index, verbose=verbose)
-        return self.series_note(line, t, index, verbose=verbose)
-
-    def series_note(self, line, t, index, verbose=False):
-        """As for `note`. Subclasses should override this rather than `note`."""
         return None, None
 
     def zoom(self, line, t, index):
@@ -321,29 +279,18 @@ class TimeSeries:
         point at time `t` (which has index `index`), or None if
         there's no particular range. Subclasses should override
         `series_zoom` rather than this.
+
         """
-
-        if self._zoom_fn:
-            return self._zoom_fn(line, t, index)
-        return self.series_zoom(line, t, index)
-
-    def series_zoom(self, line, t, index):
-        """As for `zoom`. Subclasses should override this rather than `zoom`."""
         return None
 
     def draw(self, line, t, index, axes_dict):
         """Draw something on the axes in `axes_dict` when the data point at
-        time `t` (which has inddex `index`) is selected.  Subclasses
+        time `t` (which has inddex `index`) is selected. Subclasses
         should override `series_zoom` rather than this.
+
         """
-
-        if self._draw_fn:
-            return self._draw_fn(line, t, index, axes_dict)
-        return self.series_draw(line, t, index, axes_dict)
-
-    def series_draw(self, line, t, index, axes_dict):
-        """As for `draw`. Subclasses should override this rather than `draw`."""
         return None
+
 
 class Accumulator(TimeSeries):
     "Time series that is always non-negative and updates by accumulation."
@@ -365,60 +312,73 @@ class Accumulator(TimeSeries):
         self.value -= delta
         self.append(t, self.value)
 
+
 class RateSeries(TimeSeries):
-    "Time series that counts events within consecutive periods."
+    "Time series of periodized counts of events."
     def __init__(self, t, period=1):
+        """Create a RateSeries. Argument t gives the start time, and period
+        the length of periods in seconds (default 1).
+
+        """
         super().__init__()
         self._period = period
-        self._count = 0
-        # Consider a series starting near the beginning of time to be starting at zero.
-        if t < period/16:
+        self._count = 0         # Count of events within current period.
+        # Consider a series starting near the beginning of time to be
+        # starting at zero.
+        if t < period / 16:
             self._start = 0
         else:
             self._start = t
-        self.ts=[]
-        self._limit = ((t // period) + 1) * period
+        self._event_t = []      # Timestamps of the individual events.
+        self._limit = ((t // period) + 1) * period # End of current period.
 
     def inc(self, t):
         "A counted event took place."
-        self.null(t)
-        self.ts.append(t)
+        self.update_to(t)
+        self._event_t.append(t)
         self._count += 1
 
-    def null(self, t):
+    def update_to(self, t):
+        """Bring series up to timestamp t, possibly completing one or more
+        periods.
+
+        """
         while t >= self._limit:
-            self.append(self._limit - self._period/2, self._count)
+            self.append(self._limit - self._period / 2, self._count)
             self._count = 0
             self._limit += self._period
     
     def recompute(self, f):
         "Recompute the series with a different period."
-        ts = self.ts
+        event_t = self._event_t
         self.__init__(self._start, self._period * f)
-        for t in ts:
+        for t in event_t:
             self.inc(t)
-        return f'period {dur(self._period)}'
+        return f'period {format_seconds(self._period)}'
 
-    def series_note(self, line, t, index, verbose=False):
+    def note(self, line, t, index, verbose=False):
         start = self._start + self._period * index
         end = start + self._period
-        note = f'{line.name}\n {dur(start)}-{dur(end)}\n{line.yaxis.fmt(self.y[index])}'
+        note = f'{line.name}\n {format_seconds(start)}-{format_seconds(end)}\n{line.yaxis.format(self.y[index])}'
         return note, note.replace('\n', ' ')
 
-    def series_zoom(self, line, t, index):
+    def zoom(self, line, t, index):
         start = self._start + self._period * index
         end = start + self._period
         return start, end
 
-    def series_draw(self, line, t, index, axes_dict):
+    def draw(self, line, t, index, axes_dict):
         ax = axes_dict[line.yaxis]
         start = self._start + self._period * index
         end = start + self._period
         return [ax.axvspan(start, end, alpha=0.5, facecolor=line.color)]
 
+
 class OnOffSeries(TimeSeries):
-    """Series of on/off events; can draw as an exponentially weighted moving
-average on/off ratio or (potentially) as shading bars."""
+    """Series of on/off events; can draw as an exponentially weighted
+    moving average on/off ratio or (potentially) as shading bars.
+
+    """
     def __init__(self, t, k=1):
         super().__init__()
         self._ons = []
@@ -447,25 +407,53 @@ average on/off ratio or (potentially) as shading bars."""
         ts = self.t
         self.__init__(self._start, self._k / f)
         for i in range(len(ts) // 2):
-            self.on(ts[i*2])
-            self.off(ts[i*2+1])
-        return f'time constant: {dur(1/self._k)}'
+            self.on(ts[i * 2])
+            self.off(ts[i * 2 + 1])
+        return f'time constant: {format_seconds(1 / self._k)}'
 
-    def series_note(self, line, t, index, verbose=False):
+    def note(self, line, t, index, verbose=False):
         on = self._ons[index // 2]
-        l = on[1]-on[0]
-        note = f"{line.name}: {dur(on[0])} + {dur(l)}"
+        l = on[1] - on[0]
+        note = f"{line.name}: {format_seconds(on[0])} + {format_seconds(l)}"
         return note, note
         
-    def series_zoom(self, line, t, index):
+    def zoom(self, line, t, index):
         on = self._ons[index // 2]
         return (on[0], on[1])
         
-    def series_draw(self, line, t, index, axes_dict):
+    def draw(self, line, t, index, axes_dict):
         axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
         on = self._ons[index // 2]
         return [ax.axvspan(on[0], on[1], alpha=0.5, facecolor=line.color)
                 for ax in axes_to_draw]
+
+
+class TraceSeries(TimeSeries):
+    "Time series of traces."
+    def __init__(self, traces):
+        """Create a time series of traces. The argument traces must be a
+        mapping from start time to the Trace object that started at
+        that time.
+
+        """
+        super().__init__()
+        self._traces = traces
+
+    def note(self, line, t, index, verbose=False):
+        if t not in self._traces:
+            return f'no trace {t}', f'no trace {t}'
+        return self._traces[t].note(verbose=verbose)
+
+    def zoom(self, line, t, index):
+        if t not in self._traces:
+            return None
+        return self._traces[t].zoom()
+
+    def draw(self, line, t, index, axes_dict):
+        if t not in self._traces:
+            return []
+        return self._traces[t].draw(axes_dict)
+
 
 class EventHandler:
     """Object that handles a telemetry event by dispatching to the method
@@ -491,7 +479,7 @@ class Pool(EventHandler):
         self._serial = None       # Pool's serial number within arena.
         self._alloc = Accumulator()
         self._model.add_time_series(
-            self, self._alloc, bytesAxis, "alloc",
+            self, self._alloc, BYTES_AXIS, "alloc",
             "memory allocated by the pool from the arena",
             draw=False)
 
@@ -555,23 +543,24 @@ class Gen(EventHandler):
         self._serial = serial = event.serial
         self._mortality_trace = mortality_trace = TimeSeries()
         per_trace_line = self._model.add_time_series(
-            self, mortality_trace, fractionAxis, f"mortality.trace",
+            self, mortality_trace, FRACTION_AXIS, f"mortality.trace",
             f"mortality of data in generation, per trace",
             draw=False, marker='+', linestyle='None')
         self._mortality_average = mortality_average = TimeSeries()
         self._model.add_time_series(
-            self, mortality_average, fractionAxis, f"mortality.avg",
+            self, mortality_average, FRACTION_AXIS, f"mortality.avg",
             f"mortality of data in generation, moving average",
             draw=False, color_as=per_trace_line)
         mortality_average.append(t, event.mortality);
         self._ref_size = ref_size = TimeSeries()
         self._model.add_time_series(
-            self, ref_size, bytesAxis, f"ref",
+            self, ref_size, BYTES_AXIS, f"ref",
             f"size of segments referencing generation")
 
     def TraceEndGen(self, t, event):
         self._mortality_trace.append(t, event.mortalityTrace)
         self._mortality_average.append(t, event.mortalityAverage)
+
 
 class Trace(EventHandler):
     "Model of an MPS Trace."
@@ -579,14 +568,14 @@ class Trace(EventHandler):
         self._arena = arena
         self.create = t
         self.pauses = (0, 0, 0)
-        self.why = trace_why[event.why]
+        self.why = mpsevent.TRACE_START_WHY[event.why]
         self.gens = 'none'
         self.times = [(t, event.header.clock, 'create')]
         self.sizes = []
         self.counts = []
         self.accesses = defaultdict(int)
         self.pause_start = None
-        self.begin_pause(t, event)
+        self.pause_begin(t, event)
 
     def add_time(self, name, t, event):
         "Log a particular event for this trace, e.g. beginning or end of a phase."
@@ -600,17 +589,23 @@ class Trace(EventHandler):
         "Log a count related to this trace, so all counts can be reported together."
         self.counts.append((name, c))
 
-    def begin_pause(self, t, event):
-        "Log the start of some MPS activity during this trace, so we can compute mark/space etc."
+    def pause_begin(self, t, event):
+        """Log the start of some MPS activity during this trace, so we can
+        compute mark/space etc.
+
+        """
         assert self.pause_start is None
         self.pause_start = (t, event.header.clock)
 
-    def end_pause(self, t, event):
-        "Log the end of some MPS activity during this trace, so we can compute mark/space etc."
+    def pause_end(self, t, event):
+        """Log the end of some MPS activity during this trace, so we can
+        compute mark/space etc.
+
+        """
         assert self.pause_start is not None
         st, sc = self.pause_start
         tn, tt, tc = self.pauses
-        self.pauses = (tn+1, tt + t-st, tc + event.header.clock-sc)
+        self.pauses = (tn + 1, tt + t - st, tc + event.header.clock - sc)
         self.pause_start = None
 
     def TraceStart(self, t, event):
@@ -628,14 +623,14 @@ class Trace(EventHandler):
         self.add_time("flip end", t, event)
 
     def TraceBandAdvance(self, t, event):
-        self.add_time(f"{rank_name[event.rank]} band", t, event)
+        self.add_time(f"{mpsevent.RANK[event.rank]} band", t, event)
 
     def TraceReclaim(self, t, event):
         self.add_time("reclaim", t, event)
 
     def TraceDestroy(self, t, event):
         self.add_time("destroy", t, event)
-        self.end_pause(t, event)
+        self.pause_end(t, event)
 
     def TraceStatScan(self, t, event):
         self.add_count('roots scanned', event.rootScanCount)
@@ -676,39 +671,39 @@ class Trace(EventHandler):
         self.accesses[event.mode] += 1
 
     def ArenaPollBegin(self, t, event):
-        self.begin_pause(t, event)
+        self.pause_begin(t, event)
 
     def ArenaPollEnd(self, t, event):
-        self.end_pause(t, event)
+        self.pause_end(t, event)
 
     def note(self, verbose=False):
         "Describe this trace for tooltip and the log pane."
         base_t, base_cycles, _ = self.times[0]
         if verbose:
-            log = f"Trace of {self.gens} gens at {dur(base_t)} ({self.why}):\nTimes: \n"
+            log = f"Trace of {self.gens} gens at {format_seconds(base_t)} ({self.why}):\nTimes: \n"
             ot, oc = base_t, base_cycles
-            for t,c,n in self.times[1:]:
-                log += f"  {n:20} +{dur(t-ot)} ({cyc(c-oc)}): ({dur(t-base_t)}, {cyc(c-base_cycles)})\n"
+            for t, c, n in self.times[1:]:
+                log += f"  {n:20} +{format_seconds(t - ot)} ({format_cycles(c - oc)}): ({format_seconds(t - base_t)}, {format_cycles(c - base_cycles)})\n"
                 ot, oc = t, c
-            final_t, final_cycles,_ = self.times[-1]
+            final_t, final_cycles, _ = self.times[-1]
             elapsed_t = final_t - base_t
             elapsed_cycles = final_cycles - base_cycles
             pn, pt, pc = self.pauses
             if pc < elapsed_cycles:
-                log += f"{pn:,d} Pauses ({dur(pt)}, {cyc(pc)}). Mark/space: {pt/elapsed_t:,.3f}/{pc/elapsed_cycles:,.3f}\n"
+                log += f"{pn:,d} Pauses ({format_seconds(pt)}, {format_cycles(pc)}). Mark/space: {pt / elapsed_t:,.3f}/{pc / elapsed_cycles:,.3f}\n"
             log += "Sizes:\n"
             for (n, s) in self.sizes:
-                log += f"  {n}: {bytesFormat(s)}\n"
+                log += f"  {n}: {format_bytes(s)}\n"
             log += "Counts:\n"
             for (n, c) in self.counts:
                 log += f"  {n}: {c:,d}\n"
             for (mode, count) in sorted(self.accesses.items()):
-                log += f"  {access_mode[mode]} barrier hits: {count:,d}\n"
+                log += f"  {mpsevent.ACCESS_MODE[mode]} barrier hits: {count:,d}\n"
             log += f"white zones: {self.whiteZones}: "
-            log += ' '.join(f'{((self.whiteRefSet >> (64-8*i)) & 255):08b}'
-                            for i in range(1,9))
+            log += ' '.join(f'{((self.whiteRefSet >> (64 - 8 * i)) & 255):08b}'
+                            for i in range(1, 9))
         else:
-            log = f"Trace of {self.gens} gens at {dur(base_t)} ({self.why})"
+            log = f"Trace of {self.gens} gens at {format_seconds(base_t)} ({self.why})"
         return f"trace\n{self.create:f} s\n{self.gens} gens", log
     
     def zoom(self):
@@ -723,9 +718,10 @@ class Trace(EventHandler):
         axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
         return ([ax.axvline(t)
                  for ax in axes_to_draw
-                 for (t,_,_) in self.times] +
+                 for t, _, _ in self.times] +
                 [ax.axvspan(self.times[0][0], self.times[-1][0], alpha=0.5, facecolor='r')
                  for ax in axes_to_draw])
+
 
 class Arena(EventHandler):
     "Model of an MPS arena."
@@ -745,18 +741,18 @@ class Arena(EventHandler):
         self._gen = {}           # pointer -> Gen (for live gens)
         self._alloc = Accumulator()
         self.model.add_time_series(
-            self, self._alloc, bytesAxis, "alloc",
+            self, self._alloc, BYTES_AXIS, "alloc",
             "total allocation by client pools")
         self._poll = OnOffSeries(t)
         self.model.add_time_series(
-            self, self._poll, fractionAxis, "poll",
+            self, self._poll, FRACTION_AXIS, "poll",
             "polling time moving average",
             clickdraw=True)
         self._access = {}
-        for am, name in sorted(access_mode.items()):
+        for am, name in sorted(mpsevent.ACCESS_MODE.items()):
             self._access[am] = RateSeries(t)
             self.model.add_time_series(
-                self, self._access[am], countAxis, f"{name} barrier",
+                self, self._access[am], COUNT_AXIS, f"{name} barrier",
                 f"{name} barrier hits per second")
         self._last_access = None
         self._seg_size = {}      # segment pointer -> size
@@ -764,20 +760,18 @@ class Arena(EventHandler):
         self._zone_ref_size = {} # zone -> refsize Accumulator
         self._univ_ref_size = Accumulator()
         self.model.add_time_series(
-            self, self._univ_ref_size, bytesAxis, "zone-univ.ref",
+            self, self._univ_ref_size, BYTES_AXIS, "zone-univ.ref",
             "size of segments referencing the universe")
-        self._live_traces = {} # trace pointer -> dictionary
-        self._all_traces = {} # start time -> dictionary
-        self._traces = TimeSeries(note=self.trace_note,
-                                  zoom=self.trace_zoom,
-                                  draw=self.trace_draw)
+        self._live_traces = {} # trace pointer -> Trace
+        self._all_traces = {} # start time -> Trace
+        self._traces = TraceSeries(self._all_traces)
         self.model.add_time_series(
-            self, self._traces, traceAxis, "trace",
+            self, self._traces, TRACE_AXIS, "trace",
             "generations condemned by trace", clickdraw=True,
             marker='x', linestyle='None')
         self._condemned_size = TimeSeries()
         self.model.add_time_series(
-            self, self._condemned_size, bytesAxis, "condemned.size",
+            self, self._condemned_size, BYTES_AXIS, "condemned.size",
             "size of segments condemned by trace", marker='+',
             linestyle='None')
 
@@ -862,26 +856,13 @@ class Arena(EventHandler):
             for trace in self._live_traces.values():
                 trace.ArenaAccess(t, event)
 
-    def null(self, t):
+    def update_to(self, t):
         """Update anything in the model which depends on the passage of time,
-        such as anything tracking rates."""
+        such as anything tracking rates.
+
+        """
         for series in self._access.values():
-            series.null(t)
-
-    def trace_note(self, line, t, index, verbose=False):
-        if t not in self._all_traces:
-            return f'no trace {t}', f'no trace {t}'
-        return self._all_traces[t].note(verbose=verbose)
-    
-    def trace_draw(self, line, t, index, axes_dict):
-        if t not in self._all_traces:
-            return []
-        return self._all_traces[t].draw(axes_dict)
-
-    def trace_zoom(self, line, t, index):
-        if t not in self._all_traces:
-            return None
-        return self._all_traces[t].zoom()
+            series.update_to(t)
 
     def TraceCreate(self, t, event):
         assert event.trace not in self._live_traces
@@ -889,7 +870,7 @@ class Arena(EventHandler):
         trace = Trace(self, t, event)
         self._live_traces[event.trace] = self._all_traces[t] = trace
         # seems like a reasonable time to call this
-        self.null(t)
+        self.update_to(t)
 
     def delegate_to_trace(self, t, event):
         "Handle a telemetry event by delegating to the trace model."
@@ -897,13 +878,13 @@ class Arena(EventHandler):
         trace.handle(t, event)
         return trace
 
+    TraceBandAdvance = \
     TraceFlipBegin = \
     TraceFlipEnd = \
-    TraceBandAdvance = \
     TraceReclaim = \
-    TraceStatScan = \
     TraceStatFix = \
     TraceStatReclaim = \
+    TraceStatScan = \
         delegate_to_trace
 
     def ChainCondemnAuto(self, t, event):
@@ -944,9 +925,10 @@ class Arena(EventHandler):
             if zone not in self._zone_ref_size:
                 self._zone_ref_size[zone] = ref_size = Accumulator()
                 self.model.add_time_series(
-                    self, ref_size, bytesAxis, f"zone-{zone}.ref",
+                    self, ref_size, BYTES_AXIS, f"zone-{zone}.ref",
                     f"size of segments referencing zone {zone}")
             self._zone_ref_size[zone].add(t, (new - old) * size)
+
 
 class Line:
     "A line in a Matplotlib plot wrapping a TimeSeries."
@@ -1001,9 +983,9 @@ class Line:
             # lines without markers should have markers if they have a singleton point.
             if not self._marker:
                 if len(self) == 1:
-                    self._kwargs['marker']='x'
+                    self._kwargs['marker'] = 'x'
                 else:
-                    self._kwargs.pop('marker',None)
+                    self._kwargs.pop('marker', None)
             self.line, = axes.plot(x, y, color=self.color, label=self.name,
                                    **self._kwargs)
         else:
@@ -1022,7 +1004,7 @@ class Line:
     def dispxy(self, i):
         "Return the display coordinates of the point with index `i`."
         t, y = self[i]
-        return self.line.axes.transData.transform((t,y))
+        return self.line.axes.transData.transform((t, y))
 
     def closest(self, t, dispx, range=10):
         """Return the index of the point closest to time `t`, if within
@@ -1031,7 +1013,7 @@ class Line:
         if self.draw and self.ready:
             i = self.series.closest(t)
             dx, _ = self.dispxy(i)
-            if abs(dispx-dx) < range:
+            if abs(dispx - dx) < range:
                 return i
         return None
 
@@ -1047,7 +1029,7 @@ class Line:
 
     def drawPoint(self, index, axes_dict):
         "Draw in response to a click on a data point, and return a list of drawn items."
-        t,_ = self.series[index]
+        t, _ = self.series[index]
         drawn = self.series.draw(self, t, index, axes_dict)
         # Could just draw on axes_dict[self.yaxis] ??
         if drawn is None:
@@ -1059,6 +1041,7 @@ class Line:
 
     def recompute(self, f):
         return self.series.recompute(f)
+
 
 class Model(EventHandler):
     "Model of an application using the MPS."
@@ -1120,15 +1103,15 @@ class Model(EventHandler):
                         # Invert the transforms here. If you invert them at plotting time
                         # and cache them so we don't have to invert them every time format_coord
                         # is called, then you get the wrong answer. We don't know why.
-                        return (f'{dur(x)}, ' +
-                                ', '.join(yax.fmt(ax.transData.inverted().transform((0, axy))
+                        return (f'{format_seconds(x)}, ' +
+                                ', '.join(yax.format(ax.transData.inverted().transform((0, axy))
                                                   [1])
                                           for ax, yax in ax_list))
                     ax.format_coord = format_coord
             else:
                 ax, yax = ax_list[0]
                 def format_coord(x, y):
-                    return f'{dur(x)}, {yax.fmt(y)}'
+                    return f'{format_seconds(x)}, {yax.format(y)}'
                 ax.format_coord = format_coord
 
     def update(self):
@@ -1156,6 +1139,7 @@ class Model(EventHandler):
             self.arenas.append(arena)
         arena.handle(t, event)
 
+    ArenaAccess = \
     ArenaAlloc = \
     ArenaCreateCL = \
     ArenaCreateVM = \
@@ -1163,26 +1147,25 @@ class Model(EventHandler):
     ArenaPollBegin = \
     ArenaPollEnd = \
     ChainCondemnAuto = \
-    GenInit = \
     GenFinish = \
+    GenInit = \
     GenZoneSet = \
     PoolFinish = \
     PoolInit = \
     SegSetSummary = \
+    TraceBandAdvance = \
     TraceCondemnAll = \
-    TraceEndGen = \
-    TraceStart = \
     TraceCreate = \
     TraceDestroy = \
-    TraceStart = \
+    TraceEndGen = \
     TraceFlipBegin = \
     TraceFlipEnd = \
-    TraceBandAdvance = \
     TraceReclaim = \
-    TraceStatScan = \
+    TraceStart = \
+    TraceStart = \
     TraceStatFix = \
     TraceStatReclaim = \
-    ArenaAccess = \
+    TraceStatScan = \
         delegate_to_arena
 
     def EventClockSync(self, t, event):
@@ -1207,10 +1190,8 @@ class Model(EventHandler):
 class ApplicationToolbar(NavigationToolbar):
     "Subclass of Matplotlib's navigation toolbar adding a pause button."
     def __init__(self, canvas, app):
-        #     def __init__(self, *args):
         self.toolitems += (('Pause', 'Pause', PAUSE_ICON, 'pause'),)
         super().__init__(canvas, app)
-        # super().__init__(*args)
         self._actions['pause'].setCheckable(True)
         self._app = app
         self.paused = False
@@ -1223,6 +1204,7 @@ class ApplicationToolbar(NavigationToolbar):
     def empty(self):
         "Is the stack of views empty?"
         return self._nav_stack.empty()
+
 
 class ErrorReporter(ContextDecorator):
     """Context manager which reports the traceback of any exception to the
@@ -1242,6 +1224,7 @@ class ErrorReporter(ContextDecorator):
     def __exit__(self, ty, val, tb):
         if ty is not None:
             traceback.print_exception(ty, val, tb, file=self._f)
+
 
 # All keyboard shortcuts. Each one is a triple:
 # `(iterable, method name, documentation)`.
@@ -1268,10 +1251,10 @@ class ErrorReporter(ContextDecorator):
 # None/None or with our own binding. While the monitor is in active
 # development this flexibility is good.
 
-shortcuts = [
+SHORTCUTS = [
     # first the shortcuts which come with the MPL navigation toolbar.
     (None, None, 'Navigation bar shortcuts:'),
-    (('h','r', 'Home'),
+    (('h', 'r', 'Home'),
      'mpl_key', '"home": zoom out to the whole dataset'),
     (('c', 'Backspace', 'Left'),
      'mpl_key', '"back": go back to the previous view'),
@@ -1330,16 +1313,17 @@ shortcuts = [
      'help', 'report help'),
 ]
 
-# The set of keyboard modifiers, which we need to know so we avoid
-# reporting their presses in the log pane.
 
-modifiers = (
+# Set of keys whose presses are not logged.
+IGNORED_KEYS = {
     'shift',
     'control',
     'alt',
-    'super', # Windows key on my keyboard
-    'ctrl+alt' # AltGr on my keyboard
-)
+    'super',                    # Windows key
+    'ctrl+alt',                 # AltGr key
+    'cmd',
+}
+
 
 class ApplicationWindow(QtWidgets.QMainWindow):
     """PyQt5 application displaying time series derived from MPS telemetry
@@ -1395,17 +1379,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                                                                            'height_ratios':(5, 2)})
         fraction_axes = bytes_axes.twinx()
         count_axes = trace_axes.twinx()
-        self._axes_dict = {bytesAxis: bytes_axes,
-                           fractionAxis: fraction_axes,
-                           traceAxis: trace_axes,
-                           countAxis: count_axes}
+        self._axes_dict = {
+            BYTES_AXIS: bytes_axes,
+            FRACTION_AXIS: fraction_axes,
+            TRACE_AXIS: trace_axes,
+            COUNT_AXIS: count_axes,
+        }
         for yax in self._axes_dict:
-            self._axes_dict[yax].set_ylabel(yax.label())
+            self._axes_dict[yax].set_ylabel(yax.label)
             self._axes_dict[yax].set_xlabel("time (seconds)")
             self._axes_dict[yax].set_yscale('linear')
         # bytes tick labels in megabytes etc.
         bytes_axes.ticklabel_format(style='plain')
-        bytes_axes.yaxis.set_major_formatter(ticker.FuncFormatter(bytesTickFormatter))
+        bytes_axes.yaxis.set_major_formatter(format_tick_bytes)
         self._log_scale = False
 
         # make a toolbar and put it on the top of the whole layout.
@@ -1441,7 +1427,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         # shortcuts
         self._shortcuts = {}
-        for kl, method, doc in shortcuts:
+        for kl, method, doc in SHORTCUTS:
             if kl is None:
                 continue
             for k in kl:
@@ -1450,7 +1436,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if method is None:
                     self._shortcuts.pop(k, None)
                 else:
-                    self._shortcuts[k] = getattr(self,'_'+method), doc
+                    self._shortcuts[k] = getattr(self, '_' + method), doc
 
         # pass all keystrokes to on_key_press, where we can capture them or pass them on to
         # the toolbar.
@@ -1480,7 +1466,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         with ErrorReporter(self):
             if event.key in self._shortcuts:
                 self._shortcuts[event.key][0](event)
-            elif event.key not in modifiers:
+            elif event.key not in IGNORED_KEYS:
                 self._log(f"Unknown key '{event.key}'")
 
     def _mpl_key(self, event):
@@ -1490,14 +1476,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def _help(self, event):
         """Report keyboard help to the log pane."""
         self._log('Keyboard shortcuts:')
-        for kl, method, doc in shortcuts:
+        for kl, method, doc in SHORTCUTS:
             if kl is None:
                 self._log(doc)
                 continue
             if doc is not None:
                 ks = '/'.join(k for k in kl
                               if self._shortcuts.get(k if len(k) == 1 else k.lower(),
-                                                     (None,None))[1] == doc)
+                                                     (None, None))[1] == doc)
                 if ks:
                     self._log(f'  {ks}\t{doc}')
 
@@ -1512,8 +1498,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def _toggle_log_linear(self, event):
         """Toggle the bytes axis between log and linear scales."""
         yscale = 'linear' if self._log_scale else 'log'
-        self._axes_dict[bytesAxis].set_yscale(yscale)
-        self._axes_dict[bytesAxis].yaxis.set_major_formatter(ticker.FuncFormatter(bytesTickFormatter))
+        self._axes_dict[BYTES_AXIS].set_yscale(yscale)
+        self._axes_dict[BYTES_AXIS].yaxis.set_major_formatter(
+            format_tick_bytes)
         self._log_scale = not self._log_scale
         self._log(f'Switched bytes axis to {yscale} scale.')
 
@@ -1577,7 +1564,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         x, y = line[index]
         note, log = line.note(index)
         if note is None:
-            note = [f"{line.name}",f"{dur(x)}",f"{line.yaxis.fmt(y)}"]
+            note = [f"{line.name}",f"{format_seconds(x)}",f"{line.yaxis.format(y)}"]
             log = ' '.join(note)
             note = '\n'.join(note)
         self._log(log)
@@ -1681,8 +1668,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self._recentre(zoom=2, mid=line[index][0])
         else: # make a bit of slack
             lo, hi = lim
-            width = hi-lo
-            self._zoom_to(lo - width/8, hi + width/8)
+            width = hi - lo
+            self._zoom_to(lo - width / 8, hi + width / 8)
 
     def _recentre(self, zoom=1.0, mid=None, force=True):
         """Recentre on `mid`, if given, and zoom in or out by factor `zoom`.
@@ -1691,26 +1678,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         xlim, _ = self._limits
         tmin, tmax = self._time_range
         lo, hi = xlim
-        half_width = (hi-lo)/2/zoom
+        half_width = (hi - lo) / (2 * zoom)
         if mid is None:
-            mid = (hi+lo)/2
+            mid = (hi + lo) / 2
         elif not force:
-            if mid-lo > half_width/4 and hi-mid > half_width/4:
+            if mid - lo > half_width / 4 and hi - mid > half_width / 4:
                 # if data point is in centre half, don't shift
                 return
-            if mid < lo + half_width/4 and tmin > lo:
+            if mid < lo + half_width / 4 and tmin > lo:
                 # don't shift left if lowest T is already displayed
                 return
-            if mid > hi - half_width/4 and tmax < hi:
+            if mid > hi - half_width / 4 and tmax < hi:
                 # don't shift right if highest T is already displayed
                 return
-        newlo = max(tmin - (tmax-tmin)/16, mid- half_width)
-        newhi = min(tmax + (tmax-tmin)/16, mid + half_width)
+        newlo = max(tmin - (tmax - tmin) / 16, mid - half_width)
+        newhi = min(tmax + (tmax - tmin) / 16, mid + half_width)
         self._zoom_to(newlo, newhi)
 
     def _zoom_to(self, lo, hi):
         """Redraw with new limits on the time axis."""
-        ax = self._axes_dict[bytesAxis]
+        ax = self._axes_dict[BYTES_AXIS]
         if self._toolbar.empty():
             self._toolbar.push_current()
         ax.set_xlim(lo, hi)
@@ -1724,7 +1711,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     @property
     def _limits(self):
         "Current x and y limits of the Matplotlib graph."
-        ax = self._axes_dict[bytesAxis]
+        ax = self._axes_dict[BYTES_AXIS]
         return ax.get_xlim(), ax.get_ylim()
 
     def _update(self):
@@ -1762,7 +1749,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     checkbox = QtWidgets.QCheckBox(new_name)
                     self._line_checkbox[line] = checkbox
                     checkbox.setChecked(line.draw)
-                    checkbox.setToolTip(f"{line.desc} ({line.yaxis.label()})")
+                    checkbox.setToolTip(f"{line.desc} ({line.yaxis.label})")
                     self._lines.addWidget(checkbox)
                     def state_changed(state, line=line):
                         self._unselect(line)
