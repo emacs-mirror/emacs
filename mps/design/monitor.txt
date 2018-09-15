@@ -1,0 +1,193 @@
+.. mode: -*- rst -*-
+
+Monitor
+=======
+
+:Tag: design.mps.monitor
+:Author: Gareth Rees
+:Date: 2018-09-15
+:Status: draft design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: monitor; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the MPS monitor, a graphical user
+interface for inspecting the behaviour of the MPS in a client program
+by collating the program's telemetry output.
+
+_`.readership`: This document is intended for any MPS user.
+
+
+Requirements
+------------
+
+It should be possible to analyze the behaviour of the
+MPS in a client program:
+
+_`.req.state.running`: that is currently running; or
+
+_`.req.state.stopped`: that has finished running.
+
+It should be possible to see:
+
+_`.req.memory.total`: the total memory in use by the client program;
+
+_`.req.memory.pool`: the memory in use by each pool;
+
+_`.req.trace`: when traces take place;
+
+_`.req.trace.generation`: which generations get collected by each trace;
+
+_`.req.time-fraction`: the fraction of time spent in collections;
+
+_`.req.barriers`: the rate of barrier hits, to indicate how the barriers
+are working.
+
+
+
+Installation and usage
+----------------------
+
+These are placeholder instructions, to be revised when we figure out
+the best way to automate them.
+
+#. Build the ``mpseventpy`` program::
+
+        cd code
+        nmake /f w3i6mv.nmk VARIETY=cool mpseventpy.exe # Windows
+        make -f xci6ll.gmk VARIETY=cool mpseventpy # macOS
+        make -f lii6ll.gmk VARIETY=cool mpseventpy # Linux
+
+#. Run ``mpseventpy`` program and redirect the output to ``tool/mpsevent.py``::
+
+        w3i6mv/cool/mpseventpy.exe > ../tool/mpsevent.py # Windows
+        xci6ll/cool/mpseventpy > ../tool/mpsevent.py # macOS
+        lii6ll/cool/mpseventpy > ../tool/mpsevent.py # Linux
+
+#. Install Python 3.6 (or later). On Windows, there are installers_
+   named like ``python-3.6.6-amd64.exe``. On other platforms, you
+   probably want to use your package manager, for example::
+
+        sudo port install python36 # macPorts
+        sudo apt install python3.6 # Linux
+
+   .. _installers: https://www.python.org/ftp/python/3.6.5/python-3.6.5-amd64.exe
+
+#. On Windows, you’ll want to edit the system environment variables to
+   put Python 3.6 on the path.
+
+#. Install Matplotlib and PyQt5. On Windows, the easiest way to do
+   this is to launch a command prompt (possibly as administrator, if
+   you installed Python somewhere like ``C:/Program Files``) and
+   then::
+
+        python -m ensurepip
+        python -m pip install matplotlib pyqt5
+
+   On other platforms, you’ll want to use the package manager, for example::
+
+        sudo port install py36-matplotlib py36-pyqt5 # macPorts
+        sudo apt install python3-matplotlib python3-pyqt5 # Linux
+
+#. Now, from the ``tool`` subdirectory, you should be able to run the
+   monitor::
+
+        cd tool
+        ./monitor [FILENAME]
+
+   where FILENAME defaults to mpsio.log. So for example, you could
+   compile the ``amcss`` smoke test::
+
+        cd code
+        nmake /f w3i6mv.nmk VARIETY=cool amcss.exe # Windows
+        make -f xci6ll.gmk VARIETY=cool amcss # macOS
+        make -f lli6ll.gmk VARIETY=cool amcss # Linux
+
+   and then run ``amcss`` generating telemetry output::
+
+        cd tool
+        MPS_TELEMETRY_FILENAME=mpsio.log MPS_TELEMETRY_CONTROL="arena pool user” ../code/w3i6mv/cool/amcss.exe > /dev/null # Windows
+        MPS_TELEMETRY_FILENAME=mpsio.log MPS_TELEMETRY_CONTROL="arena pool user" ../code/xci6ll/cool/amcss > /dev/null # macOS
+        MPS_TELEMETRY_FILENAME=mpsio.log MPS_TELEMETRY_CONTROL="arena pool user" ../code/lli6ll/cool/amcss > /dev/null # Linux
+
+   and then launch the monitor on the file you just created::
+
+        cd tool
+        ./monitor
+
+   which should show you something like this (the exact graphs will
+   depend on the random choices made by ``amcss``):
+
+   .. figure:: monitor.png
+       :align: center
+       :alt: Screenshot of the MPS monitor showing a run of the amcss smoke test.
+
+#. The monitor is capable of monitoring an application in real-time.
+   The pause button on the toolbar pauses the updating of the display
+   (but not the application). The zoom and pan tools automatically
+   pause the updating too, so after zooming you’ll need to unpause in
+   order to resume updating the display.
+
+
+References
+----------
+
+.. [GDR_2018-06-27]
+   "Setting up and running the monitor"; Gareth Rees;
+   Ravenbrook Limited; 2018-06-27;
+   <https://info.ravenbrook.com/mail/2018/06/27/10-51-04/0/>.
+
+
+Document History
+----------------
+
+- 2018-09-14 GDR_ Created based on [GDR_2018-06-27]_.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**
