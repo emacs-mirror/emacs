@@ -1,32 +1,86 @@
-/* eventrep.h: Allocation replayer interface
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+/* rangetree.c -- binary trees of address ranges
  *
  * $Id$
+ * Copyright (C) 2016-2018 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef eventrep_h
-#define eventrep_h
-
-#include "config.h"
-/* override variety setting for EVENT */
-#define EVENT
-
-#include "eventcom.h"
-#include "mpmtypes.h"
+#include "rangetree.h"
+#include "tree.h"
+#include "range.h"
+#include "mpm.h"
 
 
-extern Res EventRepInit(Bool partial);
-extern void EventRepFinish(void);
+void RangeTreeInit(RangeTree rangeTree, Addr base, Addr limit)
+{
+  AVER(rangeTree != NULL);
+  TreeInit(RangeTreeTree(rangeTree));
+  RangeInit(RangeTreeRange(rangeTree), base, limit);
+  AVERT(RangeTree, rangeTree);
+}
 
-extern void EventReplay(Event event, Word etime);
+
+void RangeTreeInitFromRange(RangeTree rangeTree, Range range)
+{
+  AVER(rangeTree != NULL);
+  TreeInit(RangeTreeTree(rangeTree));
+  RangeCopy(RangeTreeRange(rangeTree), range);
+  AVERT(RangeTree, rangeTree);
+}
 
 
-#endif /* eventrep_h */
+Bool RangeTreeCheck(RangeTree rangeTree)
+{
+  CHECKL(rangeTree != NULL);
+  CHECKD_NOSIG(Tree, RangeTreeTree(rangeTree));
+  CHECKD_NOSIG(Range, RangeTreeRange(rangeTree));
+  return TRUE;
+}
+
+
+void RangeTreeFinish(RangeTree rangeTree)
+{
+  AVERT(RangeTree, rangeTree);
+  TreeFinish(RangeTreeTree(rangeTree));
+  RangeFinish(RangeTreeRange(rangeTree));
+}
+
+
+/* RangeTreeCompare -- Compare key to [base,limit)
+ *
+ * See <design/splay/#type.splay.compare.method>
+ */
+
+Compare RangeTreeCompare(Tree tree, TreeKey key)
+{
+  Addr base1, base2, limit2;
+  RangeTree block;
+
+  AVERT_CRITICAL(Tree, tree);
+  AVER_CRITICAL(tree != TreeEMPTY);
+  AVER_CRITICAL(key != NULL);
+
+  base1 = RangeTreeBaseOfKey(key);
+  block = RangeTreeOfTree(tree);
+  base2 = RangeTreeBase(block);
+  limit2 = RangeTreeLimit(block);
+
+  if (base1 < base2)
+    return CompareLESS;
+  else if (base1 >= limit2)
+    return CompareGREATER;
+  else
+    return CompareEQUAL;
+}
+
+TreeKey RangeTreeKey(Tree tree)
+{
+  return RangeTreeKeyOfBaseVar(RangeTreeBase(RangeTreeOfTree(tree)));
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

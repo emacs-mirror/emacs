@@ -21,7 +21,7 @@ conerr/15.c
 conerr/16.c
 % conerr/17.c -- fails in hot variety (assertion is on the critical path)
 conerr/18.c
-conerr/19.c
+% conerr/19.c -- assertion in different place in the hot variety
 % conerr/20.c -- segfaults in hot variety (assertion is on the critical path)
 % conerr/21.c -- segfaults in hot variety (assertion is on the critical path)
 % conerr/22.c -- segfaults in hot variety (assertion is on the critical path)
@@ -66,4 +66,13 @@ conerr/55.c
 conerr/56.c
 % conerr/57.c -- see <code/ld.c#.add.no-arena-check>
 % conerr/58.c -- see <code/ld.c#.stale.no-arena-check>
-conerr/59.c
+% conerr/59.c -- assertion is on critical path
+conerr/60.c
+conerr/61.c
+conerr/62.c
+conerr/63.c
+conerr/64.c
+conerr/65.c
+conerr/66.c
+conerr/67.c
+conerr/68.c

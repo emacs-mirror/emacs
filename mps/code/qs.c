@@ -1,7 +1,7 @@
 /* qs.c: QUICKSORT
  *
  *  $Id$
- *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  *  The purpose of this program is to act as a "real" client of the MM.
  *  It is a test, but (hopefully) less contrived than some of the other
@@ -27,7 +27,7 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscamc.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpstd.h"
 
 #include <stdio.h> /* printf */
@@ -335,10 +335,9 @@ static void *go(void *p, size_t s)
   testlib_unused(p);
   testlib_unused(s);
 
-  die(mps_pool_create(&mpool, arena, mps_class_mv(),
-                      (size_t)65536, sizeof(QSCellStruct) * 1000,
-                      (size_t)65536),
-      "MVCreate");
+  die(mps_pool_create_k(&mpool, arena, mps_class_mvff(), mps_args_none),
+      "pool create");
+
   die(mps_fmt_create_A(&format, arena, &fmt_A_s), "FormatCreate");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
   die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
@@ -415,7 +414,7 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
       if(res != MPS_RES_OK)
         return res;
       cell->value = addr;
-    /* fall */
+    /* fall through */
 
     case QSInt:
     fixTail:
@@ -538,7 +537,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

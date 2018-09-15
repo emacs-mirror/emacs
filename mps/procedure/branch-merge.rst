@@ -34,13 +34,14 @@ Run the script ``tool/branch``, passing the options:
 * ``-C CHANGELEVEL`` — changelevel at which to make the branch
 * ``-t TASK`` — task name: for example ``lii6ll``
 * ``-d "DESCRIPTION"`` — the description of the branch
+* ``-g`` - push this branch to GitHub.
 * ``-y`` — yes, really create the branch
 
 If omitted, the project and parent branch are deduced from the current
 directory, and the changelevel defaults to the most recent change on
 the parent branch. So a typical invocation looks like this::
 
-    tool/branch -p master -t lii6ll -d "Adding new supported platform lii6ll (job003596)." -y
+    tool/branch -p master -t lii6ll -d "Adding new supported platform lii6ll (job003596)." -g -y
 
 
 4. Creating a development branch (manual procedure)
@@ -161,6 +162,7 @@ B. Document History
 ==========  =====  ==================================================
 2014-01-09  GDR_   Created.
 2014-03-19  GDR_   Describe automated procedure.
+2018-08-18  DL     Added github flag reflecting current practice.
 ==========  =====  ==================================================
 
 .. _GDR: mailto:gdr@ravenbrook.com

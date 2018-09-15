@@ -1,7 +1,7 @@
 /* tract.h: PAGE TABLE INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  */
 
 
@@ -42,10 +42,8 @@ typedef union PagePoolUnion {
 
 typedef struct TractStruct { /* Tract structure */
   PagePoolUnion pool; /* MUST BE FIRST (<design/arena/#tract.field> pool) */
-  void *p;                     /* pointer for use of owning pool */
+  Seg seg;                     /* NULL or segment containing tract */
   Addr base;                   /* Base address of the tract */
-  TraceSet white : TraceLIMIT; /* traces for which tract is white */
-  BOOLFIELD(hasSeg);           /* does tract have a seg in p? */
 } TractStruct;
 
 
@@ -56,12 +54,8 @@ extern Addr TractLimit(Tract tract, Arena arena);
 #define TractHasPool(tract) \
   ((tract)->pool.state == PageStateALLOC && TractPool(tract))
 #define TractPool(tract)         ((tract)->pool.pool)
-#define TractP(tract)            ((tract)->p)
-#define TractSetP(tract, pp)     ((void)((tract)->p = (pp)))
-#define TractHasSeg(tract)       ((Bool)(tract)->hasSeg)
-#define TractSetHasSeg(tract, b) ((void)((tract)->hasSeg = (b)))
-#define TractWhite(tract)        ((tract)->white)
-#define TractSetWhite(tract, w)  ((void)((tract)->white = (w)))
+#define TractHasSeg(tract)       ((tract)->seg != NULL)
+#define TractSeg(tract)          ((tract)->seg)
 
 extern Bool TractCheck(Tract tract);
 extern void TractInit(Tract tract, Pool pool, Addr base);
@@ -74,13 +68,13 @@ extern void TractFinish(Tract tract);
  */
 
 #define TRACT_SEG(segReturn, tract) \
-  (TractHasSeg(tract) && ((*(segReturn) = (Seg)TractP(tract)), TRUE))
+  (TractHasSeg(tract) && ((*(segReturn) = (tract)->seg), TRUE))
 
-#define TRACT_SET_SEG(tract, seg) \
-  (TractSetHasSeg(tract, TRUE), TractSetP(tract, seg))
+#define TRACT_SET_SEG(tract, _seg) \
+  BEGIN (tract)->seg = (_seg); END
 
 #define TRACT_UNSET_SEG(tract) \
-  (TractSetHasSeg(tract, FALSE), TractSetP(tract, NULL))
+  BEGIN (tract)->seg = NULL; END
 
 
 /* PageUnion -- page descriptor
@@ -110,7 +104,7 @@ typedef union PageUnion {     /* page structure */
 #define PagePool(page)        RVALUE((page)->pool.pool)
 #define PageIsAllocated(page) RVALUE(PagePool(page) != NULL)
 #define PageState(page)       RVALUE((page)->pool.state)
-#define PageSpareRing(page)   RVALUE(&(page)->spare.spareRing)
+#define PageSpareRing(page)   (&(page)->spare.spareRing)
 #define PageOfSpareRing(node) PARENT(PageUnion, spare, RING_ELT(PageSpare, spareRing, node))
 
 #define PageSetPool(page, _pool) \
@@ -259,7 +253,7 @@ extern void PageFree(Chunk chunk, Index pi);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

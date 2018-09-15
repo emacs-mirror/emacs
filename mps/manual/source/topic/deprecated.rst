@@ -7,16 +7,60 @@ Deprecated interfaces
 =====================
 
 This chapter documents the public symbols in the MPS interface that
-are now deprecated. These symbols may be removed in any future release
-(see :ref:`topic-interface-support` for details). If you are using one
-of these symbols, then you should update your code to use the
-supported interface.
+are currently deprecated. These symbols may be removed in any future
+release (see :ref:`topic-interface-support` for details). If you are
+using one of these symbols, then you should update your code to use
+the supported interface.
 
 .. note::
 
     If you are relying on a deprecated interface, and there is no
     supported alternative, please :ref:`contact us <contact>`. It
     makes a difference if we know that someone is using a feature.
+
+
+
+.. index::
+   single: deprecated interfaces; in version 1.118
+
+Deprecated in version 1.118
+...........................
+
+.. c:macro:: MPS_KEY_SPARE_COMMIT_LIMIT
+
+    .. deprecated::
+
+        Use :c:macro:`MPS_KEY_SPARE` instead.
+
+    When supplied as a :term:`keyword argument` to
+    :c:func:`mps_arena_create_k`, specifies the initial :term:`spare
+    commit limit` in :term:`bytes (1)` relative to the arena's
+    :term:`commit limit`. If the value is greater than the arena's
+    commit limit then the spare commit limit is set to 1.0 exactly.
+
+
+.. c:function:: size_t mps_arena_spare_commit_limit(mps_arena_t arena)
+
+    .. deprecated::
+
+        Use :c:func:`mps_arena_spare` instead.
+
+    Return the current :term:`spare commit limit` for an :term:`arena`
+    in :term:`bytes (1)`, that is, the product of the :term:`committed
+    <mapped>` memory and the spare fraction.
+
+
+.. c:function:: void mps_arena_spare_commit_limit_set(mps_arena_t arena, size_t limit)
+
+    .. deprecated::
+
+        Use :c:func:`mps_arena_spare_set` instead.
+
+    Change the :term:`spare commit limit` for an :term:`arena` in
+    terms of :term:`bytes (1)` relative to the current
+    :term:`committed <mapped>` memory. If the ``limit`` argument is
+    greater than the current committed memory then the spare commit
+    limit is set to 1.0 exactly.
 
 
 .. index::
@@ -41,34 +85,6 @@ Deprecated in version 1.115
         The former name for :c:type:`mps_pool_class_t`, chosen when
         pools were the only objects in the MPS that belonged to
         classes.
-
-
-.. c:function:: size_t mps_mv_free_size(mps_pool_t pool)
-
-    .. deprecated::
-
-        Use the generic function :c:func:`mps_pool_free_size` instead.
-
-    Return the total amount of free space in an MV pool.
-
-    ``pool`` is the MV pool.
-
-    Returns the total free space in the pool, in :term:`bytes (1)`.
-
-
-.. c:function:: size_t mps_mv_size(mps_pool_t pool)
-
-    .. deprecated::
-
-        Use the generic function :c:func:`mps_pool_total_size`
-        instead.
-
-    Return the total size of an MV pool.
-
-    ``pool`` is the MV pool.
-
-    Returns the total size of the pool, in :term:`bytes (1)`. This
-    is the sum of allocated space and free space.
 
     
 .. c:function:: size_t mps_mvff_free_size(mps_pool_t pool)
@@ -519,30 +535,6 @@ Deprecated in version 1.112
                                   mps_pool_class_t mps_class_mfs(),
                                   size_t extend_by,
                                   size_t unit_size)
-
-    When creating a pool of class :c:func:`mps_class_mv`, pass the
-    values for the keyword arguments :c:macro:`MPS_KEY_EXTEND_BY`,
-    :c:macro:`MPS_KEY_MEAN_SIZE`, and :c:macro:`MPS_KEY_MAX_SIZE` like
-    this::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
-                                  mps_pool_class_t mps_class_mv(),
-                                  size_t extend_by,
-                                  size_t mean_size,
-                                  size_t max_size)
-
-    When creating a pool of class :c:func:`mps_class_mv_debug`, pass
-    the values for the keyword arguments
-    :c:macro:`MPS_KEY_POOL_DEBUG_OPTIONS`,
-    :c:macro:`MPS_KEY_EXTEND_BY`, :c:macro:`MPS_KEY_MEAN_SIZE` and
-    :c:macro:`MPS_KEY_MAX_SIZE` like this::
-
-        mps_res_t mps_pool_create(mps_pool_t *pool_o, mps_arena_t arena,
-                                  mps_pool_class_t mps_class_mv_debug(),
-                                  mps_pool_debug_option_s *pool_debug_options,
-                                  size_t extend_by,
-                                  size_t mean_size,
-                                  size_t max_size)
 
     When creating a pool of class :c:func:`mps_class_mvff`, pass the
     values for the keyword arguments :c:macro:`MPS_KEY_EXTEND_BY`,

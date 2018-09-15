@@ -300,7 +300,7 @@ this documentation.
     It is necessary to call :c:func:`mps_thread_dereg` first.
 
 
-``global.c: RingLength(&arenaGlobals->poolRing) == 4``
+``global.c: RingLength(&arenaGlobals->poolRing) == arenaGlobals->systemPools``
 
     The client program called :c:func:`mps_arena_destroy` without
     destroying all the :term:`pools` belonging to the arena.
@@ -324,7 +324,7 @@ this documentation.
     :term:`stepper functions`.
 
 
-``locus.c: chain->activeTraces == TraceSetEMPTY``
+``locus.c: gen->activeTraces == TraceSetEMPTY``
 
     The client program called :c:func:`mps_chain_destroy`, but there
     was a garbage collection in progress on that chain. Park the arena

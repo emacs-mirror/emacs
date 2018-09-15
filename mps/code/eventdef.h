@@ -93,8 +93,8 @@
   EVENT(X, SegFree            , 0x0014,  TRUE, Seg) \
   EVENT(X, PoolInit           , 0x0015,  TRUE, Pool) \
   EVENT(X, PoolFinish         , 0x0016,  TRUE, Pool) \
-  EVENT(X, PoolAlloc          , 0x0017,  TRUE, Object) \
-  EVENT(X, PoolFree           , 0x0018,  TRUE, Object) \
+  EVENT(X, PoolAlloc          , 0x0017, FALSE, Object) \
+  EVENT(X, PoolFree           , 0x0018, FALSE, Object) \
   EVENT(X, LandInit           , 0x0019,  TRUE, Pool) \
   EVENT(X, Intern             , 0x001a,  TRUE, User) \
   EVENT(X, Label              , 0x001b,  TRUE, User) \
@@ -162,7 +162,7 @@
   /* EVENT(X, PoolPop            , 0x0061,  TRUE, Object) */ \
   /* EVENT(X, ReservoirLimitSet  , 0x0062,  TRUE, Arena) */ \
   EVENT(X, CommitLimitSet     , 0x0063,  TRUE, Arena) \
-  EVENT(X, SpareCommitLimitSet, 0x0064,  TRUE, Arena) \
+  EVENT(X, ArenaSetSpare      , 0x0064,  TRUE, Arena) \
   EVENT(X, ArenaAlloc         , 0x0065,  TRUE, Arena) \
   EVENT(X, ArenaFree          , 0x0066,  TRUE, Arena) \
   EVENT(X, ArenaAllocFail     , 0x0067,  TRUE, Arena) \
@@ -564,9 +564,9 @@
   PARAM(X,  1, W, limit) \
   PARAM(X,  2, B, OK)
 
-#define EVENT_SpareCommitLimitSet_PARAMS(PARAM, X) \
+#define EVENT_ArenaSetSpare_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
-  PARAM(X,  1, W, limit)
+  PARAM(X,  1, D, spare)
 
 #define EVENT_ArenaAlloc_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) /* the arena */ \

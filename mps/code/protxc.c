@@ -56,13 +56,13 @@
  */
 
 #include "mpm.h"
+
+#if !defined(MPS_OS_XC)
+#error "protxc.c is specific to MPS_OS_XC"
+#endif
+
 #include "prmcxc.h"
 #include "protxc.h"
-
-#include <stdlib.h> /* see .trans.stdlib */
-#include <stdio.h> /* see .trans.stdlib */
-
-#include <pthread.h>
 
 #include <mach/mach_port.h>
 #include <mach/mach_init.h>
@@ -72,10 +72,9 @@
 #include <mach/mach_error.h>
 #include <mach/i386/thread_status.h>
 #include <mach/exc.h>
-
-#if !defined(MPS_OS_XC)
-#error "protxc.c is macOS specific"
-#endif
+#include <pthread.h>
+#include <stdlib.h> /* see .trans.stdlib */
+#include <stdio.h> /* see .trans.stdlib */
 
 SRCID(protxc, "$Id$");
 
@@ -279,7 +278,8 @@ static void protCatchOne(void)
  */
 
 ATTRIBUTE_NORETURN
-static void *protCatchThread(void *p) {
+static void *protCatchThread(void *p)
+{
   UNUSED(p);
   for (;;)
     protCatchOne();
@@ -288,7 +288,7 @@ static void *protCatchThread(void *p) {
 
 /* ProtThreadRegister -- register a thread for protection exception handling */
 
-extern void ProtThreadRegister(void)
+void ProtThreadRegister(void)
 {
   kern_return_t kr;
   mach_msg_type_number_t old_exception_count = 1;

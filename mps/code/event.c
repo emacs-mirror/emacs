@@ -1,7 +1,7 @@
 /* event.c: EVENT LOGGING
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .sources: mps.design.event
  *
@@ -528,7 +528,7 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 }
 
 
-extern void EventDump(mps_lib_FILE *stream)
+void EventDump(mps_lib_FILE *stream)
 {
   UNUSED(stream);
 }
@@ -539,7 +539,7 @@ extern void EventDump(mps_lib_FILE *stream)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
