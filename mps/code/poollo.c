@@ -23,25 +23,29 @@ typedef struct LOStruct *LO;
 
 typedef struct LOStruct {
   PoolStruct poolStruct;        /* generic pool structure */
-  Shift alignShift;             /* log_2 of pool alignment */
   PoolGenStruct pgenStruct;     /* generation representing the pool */
   PoolGen pgen;                 /* NULL or pointer to pgenStruct */
-  Sig sig;
+  Sig sig;                      /* <code/misc.h#sig> */
 } LOStruct;
-
-#define LOGrainsSize(lo, grains) ((grains) << (lo)->alignShift)
 
 typedef LO LOPool;
 #define LOPoolCheck LOCheck
-DECLARE_CLASS(Pool, LOPool, AbstractSegBufPool);
-DECLARE_CLASS(Seg, LOSeg, GCSeg);
+DECLARE_CLASS(Pool, LOPool, AbstractCollectPool);
+DECLARE_CLASS(Seg, LOSeg, MutatorSeg);
 
 
 /* forward declaration */
 static Bool LOCheck(LO lo);
 
 
-/* LOGSegStruct -- LO segment structure */
+/* LOGSegStruct -- LO segment structure
+ *
+ * Colour is represented as follows:
+ * Black: +alloc +mark
+ * White: +alloc -mark
+ * Grey: objects have no references so can't be grey
+ * Free: -alloc ?mark
+ */
 
 typedef struct LOSegStruct *LOSeg;
 
@@ -63,17 +67,33 @@ typedef struct LOSegStruct {
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args);
 static void loSegFinish(Inst inst);
 static Count loSegGrains(LOSeg loseg);
+static Bool loSegBufferFill(Addr *baseReturn, Addr *limitReturn,
+                            Seg seg, Size size, RankSet rankSet);
+static void loSegBufferEmpty(Seg seg, Buffer buffer);
+static Res loSegWhiten(Seg seg, Trace trace);
+static Res loSegFix(Seg seg, ScanState ss, Ref *refIO);
+static void loSegReclaim(Seg seg, Trace trace);
+static void loSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                      void *p, size_t s);
 
 
 /* LOSegClass -- Class definition for LO segments */
 
 DEFINE_CLASS(Seg, LOSeg, klass)
 {
-  INHERIT_CLASS(klass, LOSeg, GCSeg);
+  INHERIT_CLASS(klass, LOSeg, MutatorSeg);
   SegClassMixInNoSplitMerge(klass);
   klass->instClassStruct.finish = loSegFinish;
   klass->size = sizeof(LOSegStruct);
   klass->init = loSegInit;
+  klass->bufferFill = loSegBufferFill;
+  klass->bufferEmpty = loSegBufferEmpty;
+  klass->whiten = loSegWhiten;
+  klass->fix = loSegFix;
+  klass->fixEmergency = loSegFix;
+  klass->reclaim = loSegReclaim;
+  klass->walk = loSegWalk;
+  AVERT(SegClass, klass);
 }
 
 
@@ -83,7 +103,7 @@ ATTRIBUTE_UNUSED
 static Bool LOSegCheck(LOSeg loseg)
 {
   Seg seg = MustBeA(Seg, loseg);
-  LO lo = MustBeA(LOPool, SegPool(seg));
+  Pool pool = SegPool(seg);
   CHECKS(LOSeg, loseg);
   CHECKD(GCSeg, &loseg->gcSegStruct);
   CHECKL(loseg->mark != NULL);
@@ -91,7 +111,7 @@ static Bool LOSegCheck(LOSeg loseg)
   /* Could check exactly how many bits are set in the alloc table. */
   CHECKL(loseg->freeGrains + loseg->bufferedGrains + loseg->newGrains
          + loseg->oldGrains
-         == SegSize(seg) >> lo->alignShift);
+         == PoolSizeGrains(pool, SegSize(seg)));
   return TRUE;
 }
 
@@ -101,9 +121,8 @@ static Bool LOSegCheck(LOSeg loseg)
 static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 {
   LOSeg loseg;
-  LO lo = MustBeA(LOPool, pool);
   Res res;
-  Size tablebytes;      /* # bytes in each control array */
+  Size tableSize;      /* # bytes in each control array */
   Arena arena = PoolArena(pool);
   /* number of bits needed in each control array */
   Count grains;
@@ -117,18 +136,14 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  grains = size >> lo->alignShift;
-  tablebytes = BTSize(grains);
-  res = ControlAlloc(&p, arena, tablebytes);
+  grains = PoolSizeGrains(pool, size);
+  tableSize = BTSize(grains);
+  res = ControlAlloc(&p, arena, 2 * tableSize);
   if(res != ResOK)
-    goto failMarkTable;
+    goto failControlAlloc;
   loseg->mark = p;
-  res = ControlAlloc(&p, arena, tablebytes);
-  if(res != ResOK)
-    goto failAllocTable;
-  loseg->alloc = p;
+  loseg->alloc = PointerAdd(p, tableSize);
   BTResRange(loseg->alloc, 0, grains);
-  BTSetRange(loseg->mark, 0, grains);
   loseg->freeGrains = grains;
   loseg->bufferedGrains = (Count)0;
   loseg->newGrains = (Count)0;
@@ -140,9 +155,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
 
   return ResOK;
 
-failAllocTable:
-  ControlFree(arena, loseg->mark, tablebytes);
-failMarkTable:
+failControlAlloc:
   NextMethod(Inst, LOSeg, finish)(MustBeA(Inst, seg));
 failSuperInit:
   AVER(res != ResOK);
@@ -165,8 +178,7 @@ static void loSegFinish(Inst inst)
 
   grains = loSegGrains(loseg);
   tablesize = BTSize(grains);
-  ControlFree(arena, loseg->alloc, tablesize);
-  ControlFree(arena, loseg->mark, tablesize);
+  ControlFree(arena, loseg->mark, 2 * tablesize);
 
   NextMethod(Inst, LOSeg, finish)(inst);
 }
@@ -176,105 +188,111 @@ ATTRIBUTE_UNUSED
 static Count loSegGrains(LOSeg loseg)
 {
   Seg seg = MustBeA(Seg, loseg);
-  LO lo = MustBeA(LOPool, SegPool(seg));
+  Pool pool = SegPool(seg);
   Size size = SegSize(seg);
-  return size >> lo->alignShift;
+  return PoolSizeGrains(pool, size);
 }
 
 
-/* Conversion between indexes and Addrs */
-#define loIndexOfAddr(base, lo, p) \
-  (AddrOffset((base), (p)) >> (lo)->alignShift)
+/* loSegBufferFill -- try filling buffer from segment */
 
-#define loAddrOfIndex(base, lo, i) \
-  (AddrAdd((base), LOGrainsSize((lo), (i))))
-
-
-/* loSegFree -- mark block from baseIndex to limitIndex free */
-
-static void loSegFree(LOSeg loseg, Index baseIndex, Index limitIndex)
-{
-  AVERT(LOSeg, loseg);
-  AVER(baseIndex < limitIndex);
-  AVER(limitIndex <= loSegGrains(loseg));
-
-  AVER(BTIsSetRange(loseg->alloc, baseIndex, limitIndex));
-  BTResRange(loseg->alloc, baseIndex, limitIndex);
-  BTSetRange(loseg->mark, baseIndex, limitIndex);
-}
-
-
-/* Find a free block of size size in the segment.
- * Return pointer to base and limit of block (which may be
- * bigger than the requested size to accommodate buffering).
- */
-static Bool loSegFindFree(Addr *bReturn, Addr *lReturn,
-                          LOSeg loseg, Size size)
+static Bool loSegBufferFill(Addr *baseReturn, Addr *limitReturn,
+                            Seg seg, Size size, RankSet rankSet)
 {
   Index baseIndex, limitIndex;
-  Seg seg = MustBeA(Seg, loseg);
+  LOSeg loseg = MustBeA_CRITICAL(LOSeg, seg);
   Pool pool = SegPool(seg);
-  LO lo = MustBeA(LOPool, pool);
-  Count agrains;
-  Count grains;
-  Addr segBase;
+  Count requestedGrains, segGrains, allocatedGrains;
+  Addr segBase, base, limit;
 
-  AVER(bReturn != NULL);
-  AVER(lReturn != NULL);
-  AVERT(LOSeg, loseg);
+  AVER_CRITICAL(baseReturn != NULL);
+  AVER_CRITICAL(limitReturn != NULL);
+  AVER_CRITICAL(SizeIsAligned(size, PoolAlignment(pool)));
+  AVER_CRITICAL(size > 0);
+  AVER_CRITICAL(rankSet == RankSetEMPTY);
 
-  AVER(SizeIsAligned(size, PoolAlignment(pool)));
-
-  /* agrains is the number of grains corresponding to the size */
-  /* of the allocation request */
-  agrains = size >> lo->alignShift;
-  AVER(agrains >= 1);
-  AVER(agrains <= loseg->freeGrains);
-  AVER(size <= SegSize(seg));
+  requestedGrains = PoolSizeGrains(pool, size);
+  if (loseg->freeGrains < requestedGrains)
+    /* Not enough space to satisfy the request. */
+    return FALSE;
 
   if (SegHasBuffer(seg))
     /* Don't bother trying to allocate from a buffered segment */
     return FALSE;
 
-  grains = loSegGrains(loseg);
-  if(!BTFindLongResRange(&baseIndex, &limitIndex, loseg->alloc,
-                     0, grains, agrains)) {
-    return FALSE;
+  segGrains = PoolSizeGrains(pool, SegSize(seg));
+  if (loseg->freeGrains == segGrains) {
+    /* Whole segment is free: no need for a search. */
+    baseIndex = 0;
+    limitIndex = segGrains;
+    goto found;
   }
 
-  /* check that BTFindLongResRange really did find enough space */
-  AVER(baseIndex < limitIndex);
-  AVER(LOGrainsSize(lo, limitIndex - baseIndex) >= size);
-  segBase = SegBase(seg);
-  *bReturn = loAddrOfIndex(segBase, lo, baseIndex);
-  *lReturn = loAddrOfIndex(segBase, lo, limitIndex);
+  if (!BTFindLongResRange(&baseIndex, &limitIndex, loseg->alloc,
+                          0, segGrains, requestedGrains))
+    return FALSE;
 
+found:
+  AVER(baseIndex < limitIndex);
+  allocatedGrains = limitIndex - baseIndex;
+  AVER(requestedGrains <= allocatedGrains);
+  AVER(BTIsResRange(loseg->alloc, baseIndex, limitIndex));
+  /* Objects are allocated black. */
+  /* TODO: This should depend on trace phase. */
+  BTSetRange(loseg->alloc, baseIndex, limitIndex);
+  BTSetRange(loseg->mark, baseIndex, limitIndex);
+  AVER(loseg->freeGrains >= allocatedGrains);
+  loseg->freeGrains -= allocatedGrains;
+  loseg->bufferedGrains += allocatedGrains;
+
+  segBase = SegBase(seg);
+  base = PoolAddrOfIndex(segBase, pool, baseIndex);
+  limit = PoolAddrOfIndex(segBase, pool, limitIndex);
+  PoolGenAccountForFill(PoolSegPoolGen(pool, seg), AddrOffset(base, limit));
+
+  *baseReturn = base;
+  *limitReturn = limit;
   return TRUE;
 }
 
 
-/* loSegCreate -- Creates a segment of size at least size.
- *
- * Segments will be multiples of ArenaGrainSize.
- */
+/* loSegBufferEmpty -- empty buffer to segment */
 
-static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size)
+static void loSegBufferEmpty(Seg seg, Buffer buffer)
 {
-  LO lo = MustBeA(LOPool, pool);
-  Seg seg;
-  Res res;
+  LOSeg loseg = MustBeA(LOSeg, seg);
+  Pool pool = SegPool(seg);
+  Addr segBase, bufferBase, init, limit;
+  Index initIndex, limitIndex;
+  Count unusedGrains, usedGrains;
 
-  AVER(loSegReturn != NULL);
-  AVER(size > 0);
+  AVERT(Seg, seg);
+  AVERT(Buffer, buffer);
+  segBase = SegBase(seg);
+  bufferBase = BufferBase(buffer);
+  init = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
+  AVER(segBase <= bufferBase);
+  AVER(bufferBase <= init);
+  AVER(init <= limit);
+  AVER(limit <= SegLimit(seg));
 
-  res = PoolGenAlloc(&seg, lo->pgen, CLASS(LOSeg),
-                     SizeArenaGrains(size, PoolArena(pool)),
-                     argsNone);
-  if (res != ResOK)
-    return res;
+  initIndex = PoolIndexOfAddr(segBase, pool, init);
+  limitIndex = PoolIndexOfAddr(segBase, pool, limit);
 
-  *loSegReturn = MustBeA(LOSeg, seg);
-  return ResOK;
+  if (initIndex < limitIndex)
+    BTResRange(loseg->alloc, initIndex, limitIndex);
+
+  unusedGrains = limitIndex - initIndex;
+  AVER(unusedGrains <= loseg->bufferedGrains);
+  usedGrains = loseg->bufferedGrains - unusedGrains;
+  loseg->freeGrains += unusedGrains;
+  loseg->bufferedGrains = 0;
+  loseg->newGrains += usedGrains;
+
+  PoolGenAccountForEmpty(PoolSegPoolGen(pool, seg),
+                         PoolGrainsSize(pool, usedGrains),
+                         PoolGrainsSize(pool, unusedGrains), FALSE);
 }
 
 
@@ -283,25 +301,24 @@ static Res loSegCreate(LOSeg *loSegReturn, Pool pool, Size size)
  * Could consider implementing this using Walk.
  */
 
-static void loSegReclaim(LOSeg loseg, Trace trace)
+static void loSegReclaim(Seg seg, Trace trace)
 {
-  Addr p, base, limit;
-  Bool marked;
-  Count reclaimedGrains = (Count)0;
-  Seg seg = MustBeA(Seg, loseg);
+  LOSeg loseg = MustBeA(LOSeg, seg);
   Pool pool = SegPool(seg);
-  LO lo = MustBeA(LOPool, pool);
+  PoolGen pgen = PoolSegPoolGen(pool, seg);
+  Addr p, base, limit;
+  Buffer buffer;
+  Bool hasBuffer = SegBuffer(&buffer, seg);
+  Count reclaimedGrains = (Count)0;
   Format format = NULL; /* supress "may be used uninitialized" warning */
   Count preservedInPlaceCount = (Count)0;
   Size preservedInPlaceSize = (Size)0;
   Bool b;
 
-  AVERT(LOSeg, loseg);
   AVERT(Trace, trace);
 
   base = SegBase(seg);
   limit = SegLimit(seg);
-  marked = FALSE;
 
   b = PoolFormat(&format, pool);
   AVER(b);
@@ -313,13 +330,10 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
    */
   p = base;
   while(p < limit) {
-    Buffer buffer;
-    Bool hasBuffer = SegBuffer(&buffer, seg);
     Addr q;
     Index i;
 
     if (hasBuffer) {
-      marked = TRUE;
       if (p == BufferScanLimit(buffer)
           && BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
@@ -330,7 +344,7 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
       /* either before the buffer, or after it, never in it */
       AVER(p < BufferGetInit(buffer) || BufferLimit(buffer) <= p);
     }
-    i = loIndexOfAddr(base, lo, p);
+    i = PoolIndexOfAddr(base, pool, p);
     if(!BTGet(loseg->alloc, i)) {
       /* This grain is free */
       p = AddrAdd(p, pool->alignment);
@@ -339,13 +353,12 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
     q = (*format->skip)(AddrAdd(p, format->headerSize));
     q = AddrSub(q, format->headerSize);
     if(BTGet(loseg->mark, i)) {
-      marked = TRUE;
       ++preservedInPlaceCount;
       preservedInPlaceSize += AddrOffset(p, q);
     } else {
-      Index j = loIndexOfAddr(base, lo, q);
+      Index j = PoolIndexOfAddr(base, pool, q);
       /* This object is not marked, so free it */
-      loSegFree(loseg, i, j);
+      BTResRange(loseg->alloc, i, j);
       reclaimedGrains += j - i;
     }
     p = q;
@@ -356,43 +369,38 @@ static void loSegReclaim(LOSeg loseg, Trace trace)
   AVER(loseg->oldGrains >= reclaimedGrains);
   loseg->oldGrains -= reclaimedGrains;
   loseg->freeGrains += reclaimedGrains;
-  PoolGenAccountForReclaim(lo->pgen, LOGrainsSize(lo, reclaimedGrains), FALSE);
+  PoolGenAccountForReclaim(pgen, PoolGrainsSize(pool, reclaimedGrains), FALSE);
 
-  STATISTIC(trace->reclaimSize += LOGrainsSize(lo, reclaimedGrains));
+  STATISTIC(trace->reclaimSize += PoolGrainsSize(pool, reclaimedGrains));
   STATISTIC(trace->preservedInPlaceCount += preservedInPlaceCount);
-  GenDescSurvived(lo->pgen->gen, trace, 0, preservedInPlaceSize);
+  GenDescSurvived(pgen->gen, trace, 0, preservedInPlaceSize);
   SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
 
-  if (!marked) {
+  if (loseg->freeGrains == PoolSizeGrains(pool, SegSize(seg)) && !hasBuffer) {
     AVER(loseg->bufferedGrains == 0);
-    PoolGenFree(lo->pgen, seg,
-                LOGrainsSize(lo, loseg->freeGrains),
-                LOGrainsSize(lo, loseg->oldGrains),
-                LOGrainsSize(lo, loseg->newGrains),
+    PoolGenFree(pgen, seg,
+                PoolGrainsSize(pool, loseg->freeGrains),
+                PoolGrainsSize(pool, loseg->oldGrains),
+                PoolGrainsSize(pool, loseg->newGrains),
                 FALSE);
   }
 }
 
-/* This walks over _all_ objects in the heap, whether they are */
-/* black or white, they are still validly formatted as this is */
-/* a leaf pool, so there can't be any dangling references */
-static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
-                   void *p, size_t s)
+/* Walks over _all_ objects in the segnent: whether they are black or
+ * white, they are still validly formatted as this is a leaf pool, so
+ * there can't be any dangling references.
+ */
+static void loSegWalk(Seg seg, Format format, FormattedObjectsVisitor f,
+                      void *p, size_t s)
 {
   Addr base;
-  LO lo = MustBeA(LOPool, pool);
   LOSeg loseg = MustBeA(LOSeg, seg);
+  Pool pool = SegPool(seg);
   Index i, grains;
-  Format format = NULL; /* suppress "may be used uninitialized" warning */
-  Bool b;
 
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
+  AVERT(Format, format);
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures and can't be checked */
-
-  b = PoolFormat(&format, pool);
-  AVER(b);
 
   base = SegBase(seg);
   grains = loSegGrains(loseg);
@@ -401,7 +409,7 @@ static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
   while(i < grains) {
     /* object is a slight misnomer because it might point to a */
     /* free grain */
-    Addr object = loAddrOfIndex(base, lo, i);
+    Addr object = PoolAddrOfIndex(base, pool, i);
     Addr next;
     Index j;
     Buffer buffer;
@@ -411,7 +419,7 @@ static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
          BufferScanLimit(buffer) != BufferLimit(buffer)) {
         /* skip over buffered area */
         object = BufferLimit(buffer);
-        i = loIndexOfAddr(base, lo, object);
+        i = PoolIndexOfAddr(base, pool, object);
         continue;
       }
       /* since we skip over the buffered area we are always */
@@ -426,7 +434,7 @@ static void LOWalk(Pool pool, Seg seg, FormattedObjectsVisitor f,
     object = AddrAdd(object, format->headerSize);
     next = (*format->skip)(object);
     next = AddrSub(next, format->headerSize);
-    j = loIndexOfAddr(base, lo, next);
+    j = PoolIndexOfAddr(base, pool, next);
     AVER(i < j);
     (*f)(object, pool->format, pool, p, s);
     i = j;
@@ -484,7 +492,7 @@ static Res LOInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(chain->arena == arena);
 
   pool->alignment = pool->format->alignment;
-  lo->alignShift = SizeLog2((Size)PoolAlignment(pool));
+  pool->alignShift = SizeLog2(pool->alignment);
 
   lo->pgen = NULL;
 
@@ -524,9 +532,9 @@ static void LOFinish(Inst inst)
     AVERT(LOSeg, loseg);
     AVER(loseg->bufferedGrains == 0);
     PoolGenFree(lo->pgen, seg,
-                LOGrainsSize(lo, loseg->freeGrains),
-                LOGrainsSize(lo, loseg->oldGrains),
-                LOGrainsSize(lo, loseg->newGrains),
+                PoolGrainsSize(pool, loseg->freeGrains),
+                PoolGrainsSize(pool, loseg->oldGrains),
+                PoolGrainsSize(pool, loseg->newGrains),
                 FALSE);
   }
   PoolGenFinish(lo->pgen);
@@ -541,117 +549,61 @@ static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn,
                         Pool pool, Buffer buffer,
                         Size size)
 {
+  LO lo = MustBeA(LOPool, pool);
   Res res;
   Ring node, nextNode;
-  LO lo = MustBeA(LOPool, pool);
-  LOSeg loseg;
-  Addr base, limit;
+  RankSet rankSet;
   Seg seg;
+  Bool b;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
-  AVERT(Buffer, buffer);
+  AVERC(Buffer, buffer);
   AVER(BufferIsReset(buffer));
   AVER(BufferRankSet(buffer) == RankSetEMPTY);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
   /* Try to find a segment with enough space already. */
+  rankSet = BufferRankSet(buffer);
   RING_FOR(node, PoolSegRing(pool), nextNode) {
     seg = SegOfPoolRing(node);
-    loseg = MustBeA(LOSeg, seg);
-    AVERT(LOSeg, loseg);
-    if(LOGrainsSize(lo, loseg->freeGrains) >= size
-       && loSegFindFree(&base, &limit, loseg, size))
-      goto found;
+    if (SegBufferFill(baseReturn, limitReturn, seg, size, rankSet))
+      return ResOK;
   }
 
   /* No segment had enough space, so make a new one. */
-  res = loSegCreate(&loseg, pool, size);
-  if(res != ResOK)
+  res = PoolGenAlloc(&seg, lo->pgen, CLASS(LOSeg),
+                     SizeArenaGrains(size, PoolArena(pool)),
+                     argsNone);
+  if (res != ResOK)
     return res;
-  seg = MustBeA(Seg, loseg);
-  base = SegBase(seg);
-  limit = SegLimit(seg);
-
-found:
-  {
-    Index baseIndex, limitIndex;
-    Addr segBase;
-
-    segBase = SegBase(seg);
-    /* mark the newly buffered region as allocated */
-    baseIndex = loIndexOfAddr(segBase, lo, base);
-    limitIndex = loIndexOfAddr(segBase, lo, limit);
-    AVER(BTIsResRange(loseg->alloc, baseIndex, limitIndex));
-    AVER(BTIsSetRange(loseg->mark, baseIndex, limitIndex));
-    BTSetRange(loseg->alloc, baseIndex, limitIndex);
-    AVER(loseg->freeGrains >= limitIndex - baseIndex);
-    loseg->freeGrains -= limitIndex - baseIndex;
-    loseg->bufferedGrains += limitIndex - baseIndex;
-  }
-
-  PoolGenAccountForFill(lo->pgen, AddrOffset(base, limit));
-
-  *baseReturn = base;
-  *limitReturn = limit;
+  b = SegBufferFill(baseReturn, limitReturn, seg, size, rankSet);
+  AVER(b);
   return ResOK;
 }
 
 
 /* Synchronise the buffer with the alloc Bit Table in the segment. */
 
-static void LOBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
+
+/* loSegPoolGen -- get pool generation for an LO segment */
+
+static PoolGen loSegPoolGen(Pool pool, Seg seg)
 {
   LO lo = MustBeA(LOPool, pool);
-  Addr base, segBase;
-  Seg seg;
-  LOSeg loseg;
-  Index initIndex, limitIndex;
-  Count usedGrains, unusedGrains;
-
-  AVERT(Buffer, buffer);
-  AVER(BufferIsReady(buffer));
-  seg = BufferSeg(buffer);
   AVERT(Seg, seg);
-  AVER(init <= limit);
-
-  loseg = MustBeA(LOSeg, seg);
-
-  base = BufferBase(buffer);
-  segBase = SegBase(seg);
-
-  AVER(AddrIsAligned(base, PoolAlignment(pool)));
-  AVER(segBase <= base);
-  AVER(base < SegLimit(seg));
-  AVER(segBase <= init);
-  AVER(init <= SegLimit(seg));
-
-  /* convert base, init, and limit, to quantum positions */
-  initIndex = loIndexOfAddr(segBase, lo, init);
-  limitIndex = loIndexOfAddr(segBase, lo, limit);
-
-  AVER(initIndex <= limitIndex);
-  if (initIndex < limitIndex)
-    loSegFree(loseg, initIndex, limitIndex);
-
-  unusedGrains = limitIndex - initIndex;
-  AVER(loseg->bufferedGrains >= unusedGrains);
-  usedGrains = loseg->bufferedGrains - unusedGrains;
-  loseg->freeGrains += unusedGrains;
-  loseg->bufferedGrains = 0;
-  loseg->newGrains += usedGrains;
-  PoolGenAccountForEmpty(lo->pgen, LOGrainsSize(lo, usedGrains),
-                         LOGrainsSize(lo, unusedGrains), FALSE);
+  return lo->pgen;
 }
 
 
-/* LOWhiten -- whiten a segment */
+/* loSegWhiten -- whiten a segment */
 
-static Res LOWhiten(Pool pool, Trace trace, Seg seg)
+static Res loSegWhiten(Seg seg, Trace trace)
 {
-  LO lo = MustBeA(LOPool, pool);
   LOSeg loseg = MustBeA(LOSeg, seg);
+  Pool pool = SegPool(seg);
+  PoolGen pgen = PoolSegPoolGen(pool, seg);
   Buffer buffer;
   Count grains, agedGrains, uncondemnedGrains;
 
@@ -663,8 +615,8 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   /* Whiten allocated objects; leave free areas black. */
   if (SegBuffer(&buffer, seg)) {
     Addr base = SegBase(seg);
-    Index scanLimitIndex = loIndexOfAddr(base, lo, BufferScanLimit(buffer));
-    Index limitIndex = loIndexOfAddr(base, lo, BufferLimit(buffer));
+    Index scanLimitIndex = PoolIndexOfAddr(base, pool, BufferScanLimit(buffer));
+    Index limitIndex = PoolIndexOfAddr(base, pool, BufferLimit(buffer));
     uncondemnedGrains = limitIndex - scanLimitIndex;
     if (0 < scanLimitIndex)
       BTCopyInvertRange(loseg->alloc, loseg->mark, 0, scanLimitIndex);
@@ -678,14 +630,15 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
   /* The unused part of the buffer remains buffered: the rest becomes old. */
   AVER(loseg->bufferedGrains >= uncondemnedGrains);
   agedGrains = loseg->bufferedGrains - uncondemnedGrains;
-  PoolGenAccountForAge(lo->pgen, LOGrainsSize(lo, agedGrains),
-                       LOGrainsSize(lo, loseg->newGrains), FALSE);
+  PoolGenAccountForAge(pgen, PoolGrainsSize(pool, agedGrains),
+                       PoolGrainsSize(pool, loseg->newGrains), FALSE);
   loseg->oldGrains += agedGrains + loseg->newGrains;
   loseg->bufferedGrains = uncondemnedGrains;
   loseg->newGrains = 0;
 
   if (loseg->oldGrains > 0) {
-    GenDescCondemned(lo->pgen->gen, trace, LOGrainsSize(lo, loseg->oldGrains));
+    GenDescCondemned(pgen->gen, trace,
+                     PoolGrainsSize(pool, loseg->oldGrains));
     SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
   }
 
@@ -693,12 +646,13 @@ static Res LOWhiten(Pool pool, Trace trace, Seg seg)
 }
 
 
-static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res loSegFix(Seg seg, ScanState ss, Ref *refIO)
 {
-  LO lo = MustBeA_CRITICAL(LOPool, pool);
   LOSeg loseg = MustBeA_CRITICAL(LOSeg, seg);
+  Pool pool = SegPool(seg);
   Ref clientRef;
   Addr base;
+  Index i;
 
   AVERT_CRITICAL(ScanState, ss);
   AVER_CRITICAL(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
@@ -706,54 +660,39 @@ static Res LOFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
   clientRef = *refIO;
   base = AddrSub((Addr)clientRef, pool->format->headerSize);
-  /* can get an ambiguous reference to close to the base of the
-   * segment, so when we subtract the header we are not in the
-   * segment any longer.  This isn't a real reference,
-   * so we can just skip it.  */
+
+  /* Not a real reference if out of bounds. This can happen if an
+     ambiguous reference is closer to the base of the segment than the
+     header size. */
   if (base < SegBase(seg)) {
+    AVER(ss->rank == RankAMBIG);
     return ResOK;
   }
 
-  switch(ss->rank) {
-  case RankAMBIG:
-    if(!AddrIsAligned(base, PoolAlignment(pool))) {
-      return ResOK;
+  /* Not a real reference if unaligned. */
+  if (!AddrIsAligned(base, PoolAlignment(pool))) {
+    AVER(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  i = PoolIndexOfAddr(SegBase(seg), pool, base);
+
+  /* Not a real reference if unallocated. */
+  if (!BTGet(loseg->alloc, i)) {
+    AVER(ss->rank == RankAMBIG);
+    return ResOK;
+  }
+
+  if(!BTGet(loseg->mark, i)) {
+    ss->wasMarked = FALSE;  /* <design/fix/#was-marked.not> */
+    if(ss->rank == RankWEAK) {
+      *refIO = (Addr)0;
+    } else {
+      BTSet(loseg->mark, i);
     }
-  /* fall through */
-
-  case RankEXACT:
-  case RankFINAL:
-  case RankWEAK: {
-    Size i = AddrOffset(SegBase(seg), base) >> lo->alignShift;
-
-    if(!BTGet(loseg->mark, i)) {
-      ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
-      if(ss->rank == RankWEAK) {
-        *refIO = (Addr)0;
-      } else {
-        BTSet(loseg->mark, i);
-      }
-    }
-  } break;
-
-  default:
-    NOTREACHED;
-    break;
   }
 
   return ResOK;
-}
-
-
-static void LOReclaim(Pool pool, Trace trace, Seg seg)
-{
-  LOSeg loseg = MustBeA(LOSeg, seg);
-
-  AVERT(Trace, trace);
-  AVER(TraceSetIsMember(SegWhite(seg), trace));
-  UNUSED(pool);
-
-  loSegReclaim(loseg, trace);
 }
 
 
@@ -781,22 +720,16 @@ static Size LOFreeSize(Pool pool)
 
 DEFINE_CLASS(Pool, LOPool, klass)
 {
-  INHERIT_CLASS(klass, LOPool, AbstractSegBufPool);
-  PoolClassMixInFormat(klass);
-  PoolClassMixInCollect(klass);
+  INHERIT_CLASS(klass, LOPool, AbstractCollectPool);
   klass->instClassStruct.finish = LOFinish;
   klass->size = sizeof(LOStruct);
   klass->varargs = LOVarargs;
   klass->init = LOInit;
   klass->bufferFill = LOBufferFill;
-  klass->bufferEmpty = LOBufferEmpty;
-  klass->whiten = LOWhiten;
-  klass->fix = LOFix;
-  klass->fixEmergency = LOFix;
-  klass->reclaim = LOReclaim;
-  klass->walk = LOWalk;
+  klass->segPoolGen = loSegPoolGen;
   klass->totalSize = LOTotalSize;
   klass->freeSize = LOFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 
@@ -817,8 +750,6 @@ static Bool LOCheck(LO lo)
   CHECKC(LOPool, lo);
   CHECKD(Pool, &lo->poolStruct);
   CHECKC(LOPool, lo);
-  CHECKL(ShiftCheck(lo->alignShift));
-  CHECKL(LOGrainsSize(lo, (Count)1) == PoolAlignment(MustBeA(AbstractPool, lo)));
   if (lo->pgen != NULL) {
     CHECKL(lo->pgen == &lo->pgenStruct);
     CHECKD(PoolGen, lo->pgen);

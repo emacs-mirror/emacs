@@ -9,7 +9,7 @@
 #include "mpslib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "fmthe.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
@@ -96,9 +96,14 @@ static void alignmentTest(mps_arena_t arena)
   int dummy = 0;
   size_t j, size;
 
-  die(mps_pool_create(&pool, arena, mps_class_mv(),
-      (size_t)0x1000, (size_t)1024, (size_t)16384),
-      "alignment pool create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x1000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 16384);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args),
+        "alignment pool create");
+  } MPS_ARGS_END(args);
+  
   size = max(sizeof(double), sizeof(long));
 #ifdef HAS_LONG_LONG
   size = max(size, sizeof(long_long_t));
@@ -297,10 +302,13 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
  *   mps_arena_commit_limit_set
  *   mps_arena_committed
  *   mps_arena_reserved
+ *   mps_arena_spare
+ *   mps_arena_spare_committed
+ *   mps_arena_spare_set
  * incidentally tests:
  *   mps_alloc
  *   mps_arena_commit_limit_set
- *   mps_class_mv
+ *   mps_class_mvff
  *   mps_pool_create
  *   mps_pool_destroy
  */
@@ -310,17 +318,31 @@ static void arena_commit_test(mps_arena_t arena)
   mps_pool_t pool;
   size_t committed;
   size_t reserved;
+  size_t spare_committed;
   size_t limit;
+  double spare;
   void *p;
   mps_res_t res;
 
-  die(mps_pool_create(&pool, arena, mps_class_mv(),
-      (size_t)0x1000, (size_t)1024, (size_t)16384),
-      "commit pool create");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x1000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 1024);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 16384);
+    die(mps_pool_create_k(&pool, arena, mps_class_mvff(), args),
+        "commit pool create");
+  } MPS_ARGS_END(args);
+  
   limit = mps_arena_commit_limit(arena);
   committed = mps_arena_committed(arena);
+  spare = mps_arena_spare(arena);
+  spare_committed = mps_arena_spare_committed(arena);
   reserved = mps_arena_reserved(arena);
-  cdie(reserved >= committed, "reserved < committed");
+  Insist(0.0 <= spare);
+  Insist(spare <= 1.0);
+  Insist(spare_committed <= spare * committed);
+  Insist(spare_committed < committed);
+  Insist(committed <= reserved);
+  Insist(committed <= limit);
   die(mps_arena_commit_limit_set(arena, committed), "commit_limit_set before");
   do {
     res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
@@ -329,6 +351,9 @@ static void arena_commit_test(mps_arena_t arena)
   die(mps_arena_commit_limit_set(arena, limit), "commit_limit_set after");
   res = mps_alloc(&p, pool, FILLER_OBJECT_SIZE);
   die_expect(res, MPS_RES_OK, "Allocation failed after raising commit_limit");
+  mps_arena_spare_set(arena, 0.0);
+  Insist(mps_arena_spare(arena) == 0.0);
+  Insist(mps_arena_spare_committed(arena) == 0);
   mps_pool_destroy(pool);
 }
 
@@ -370,9 +395,13 @@ static void *test(void *arg, size_t s)
 
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
-  die(mps_pool_create(&mv, arena, mps_class_mv(),
-      (size_t)0x10000, (size_t)32, (size_t)0x10000),
-      "pool_create(mv)");
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, 0x10000);
+    MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, 32);
+    MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, 0x10000);
+    die(mps_pool_create_k(&mv, arena, mps_class_mvff(), args),
+        "pool_create(mv)");
+  } MPS_ARGS_END(args);
 
   pool_create_v_test(arena, format, chain); /* creates amc pool */
 
@@ -566,6 +595,7 @@ int main(int argc, char *argv[])
     /* Randomize pause time as a regression test for job004011. */
     MPS_ARGS_ADD(args, MPS_KEY_PAUSE_TIME, rnd_pause_time());
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, TEST_ARENA_SIZE);
+    MPS_ARGS_ADD(args, MPS_KEY_SPARE, rnd_double());
     die(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "arena_create");
   } MPS_ARGS_END(args);

@@ -45,12 +45,12 @@ extern const struct mps_key_s _mps_key_MFSExtendSelf;
 #define MFSExtendSelf (&_mps_key_MFSExtendSelf)
 #define MFSExtendSelf_FIELD b
 
-extern void MFSExtend(Pool pool, Addr base, Size size);
+extern void MFSExtend(Pool pool, Addr base, Addr limit);
 
-typedef void MFSTractVisitor(Pool pool, Addr base, Size size,
+typedef void MFSExtentVisitor(Pool pool, Addr base, Size size,
+                              void *closure);
+extern void MFSFinishExtents(Pool pool, MFSExtentVisitor visitor,
                              void *closure);
-extern void MFSFinishTracts(Pool pool, MFSTractVisitor visitor,
-                            void *closure);
 
 #endif /* poolmfs_h */
 

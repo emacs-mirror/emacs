@@ -1,7 +1,7 @@
 /* buffer.c: ALLOCATION BUFFER IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -143,8 +143,8 @@ static Res BufferAbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
                 (WriteFC)((buffer->mode & BufferModeLOGGED)     ? 'l' : '_'),
                 (WriteFC)((buffer->mode & BufferModeFLIPPED)    ? 'f' : '_'),
                 (WriteFC)((buffer->mode & BufferModeATTACHED)   ? 'a' : '_'),
-                "fillSize $UKb\n",  (WriteFU)(buffer->fillSize / 1024),
-                "emptySize $UKb\n", (WriteFU)(buffer->emptySize / 1024),
+                "fillSize $U\n",    (WriteFU)buffer->fillSize,
+                "emptySize $U\n",   (WriteFU)buffer->emptySize,
                 "alignment $W\n",   (WriteFW)buffer->alignment,
                 "base $A\n",        (WriteFA)buffer->base,
                 "initAtFlip $A\n",  (WriteFA)buffer->initAtFlip,
@@ -281,15 +281,16 @@ void BufferDetach(Buffer buffer, Pool pool)
     Size spare;
 
     buffer->mode |= BufferModeTRANSITION;
-    init = buffer->ap_s.init;
-    limit = buffer->poolLimit;
+
     /* Ask the owning pool to do whatever it needs to before the */
     /* buffer is detached (e.g. copy buffer state into pool state). */
-    Method(Pool, pool, bufferEmpty)(pool, buffer, init, limit);
+    Method(Pool, pool, bufferEmpty)(pool, buffer);
 
     /* run any class-specific detachment method */
     Method(Buffer, buffer, detach)(buffer);
 
+    init = BufferGetInit(buffer);
+    limit = BufferLimit(buffer);
     spare = AddrOffset(init, limit);
     buffer->emptySize += spare;
     if (buffer->isMutator) {
@@ -1014,6 +1015,13 @@ Bool BufferClassCheck(BufferClass klass)
   CHECKL(FUNCHECK(klass->rankSet));
   CHECKL(FUNCHECK(klass->setRankSet));
   CHECKL(FUNCHECK(klass->reassignSeg));
+
+  /* Check that buffer classes override sets of related methods. */
+  CHECKL((klass->init == BufferAbsInit)
+         == (klass->instClassStruct.finish == BufferAbsFinish));
+  CHECKL((klass->attach == bufferTrivAttach)
+         == (klass->detach == bufferTrivDetach));
+
   CHECKS(BufferClass, klass);
   return TRUE;
 }
@@ -1026,6 +1034,7 @@ Bool BufferClassCheck(BufferClass klass)
 DEFINE_CLASS(Inst, BufferClass, klass)
 {
   INHERIT_CLASS(klass, BufferClass, InstClass);
+  AVERT(InstClass, klass);
 }
 
 DEFINE_CLASS(Buffer, Buffer, klass)
@@ -1043,6 +1052,7 @@ DEFINE_CLASS(Buffer, Buffer, klass)
   klass->setRankSet = bufferNoSetRankSet;
   klass->reassignSeg = bufferNoReassignSeg;
   klass->sig = BufferClassSig;
+  AVERT(BufferClass, klass);
 }
 
 
@@ -1248,6 +1258,7 @@ DEFINE_CLASS(Buffer, SegBuf, klass)
   klass->rankSet = segBufRankSet;
   klass->setRankSet = segBufSetRankSet;
   klass->reassignSeg = segBufReassignSeg;
+  AVERT(BufferClass, klass);
 }
 
 
@@ -1304,12 +1315,13 @@ DEFINE_CLASS(Buffer, RankBuf, klass)
   INHERIT_CLASS(klass, RankBuf, SegBuf);
   klass->varargs = rankBufVarargs;
   klass->init = rankBufInit;
+  AVERT(BufferClass, klass);
 }
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

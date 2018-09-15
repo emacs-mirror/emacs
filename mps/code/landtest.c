@@ -1,10 +1,12 @@
 /* landtest.c: LAND TEST
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * Test all three Land implementations against duplicate operations on
  * a bit-table.
+ *
+ * Test the "steal" operations on a CBS.
  */
 
 #include "cbs.h"
@@ -62,7 +64,8 @@ static Index (indexOfAddr)(TestState state, Addr a)
 }
 
 
-static void describe(TestState state) {
+static void describe(TestState state)
+{
   die(LandDescribe(state->land, mps_lib_get_stdout(), 0), "LandDescribe");
 }
 
@@ -386,7 +389,8 @@ static void find(TestState state, Size size, Bool high, FindDelete findDelete)
   }
 }
 
-static void test(TestState state, unsigned n) {
+static void test(TestState state, unsigned n, unsigned operations)
+{
   Addr base, limit;
   unsigned i;
   Size size;
@@ -396,7 +400,7 @@ static void test(TestState state, unsigned n) {
   BTSetRange(state->allocTable, 0, state->size); /* Initially all allocated */
   check(state);
   for(i = 0; i < n; i++) {
-    switch(fbmRnd(3)) {
+    switch (fbmRnd(operations)) {
     case 0:
       randomRange(&base, &limit, state);
       allocate(state, base, limit);
@@ -417,7 +421,7 @@ static void test(TestState state, unsigned n) {
       find(state, size, high, findDelete);
       break;
     default:
-      cdie(0, "invalid rnd(3)");
+      cdie(0, "invalid operation");
       return;
     }
     if ((i + 1) % 1000 == 0)
@@ -427,8 +431,16 @@ static void test(TestState state, unsigned n) {
 
 #define testArenaSIZE   (((size_t)4)<<20)
 
-extern int main(int argc, char *argv[])
+static void test_land(void)
 {
+  static const struct {
+    LandClass (*klass)(void);
+    unsigned operations;
+  } cbsConfig[] = {
+    {CBSClassGet, 2},
+    {CBSFastClassGet, 3},
+    {CBSZonedClassGet, 3},
+  };
   mps_arena_t mpsArena;
   Arena arena;
   TestStateStruct state;
@@ -441,9 +453,8 @@ extern int main(int argc, char *argv[])
   Land fl = FreelistLand(&flStruct);
   Land fo = FailoverLand(&foStruct);
   Pool mfs = MFSPool(&blockPool);
-  int i;
+  size_t i;
 
-  testlib_init(argc, argv);
   state.size = ArraySize;
   state.align = (1 << rnd() % 4) * MPS_PF_ALIGN;
 
@@ -468,14 +479,16 @@ extern int main(int argc, char *argv[])
 
   /* 1. Test CBS */
 
-  MPS_ARGS_BEGIN(args) {
-    die((mps_res_t)LandInit(cbs, CLASS(CBSFast), arena, state.align,
-                            NULL, args),
-        "failed to initialise CBS");
-  } MPS_ARGS_END(args);
-  state.land = cbs;
-  test(&state, nCBSOperations);
-  LandFinish(cbs);
+  for (i = 0; i < NELEMS(cbsConfig); ++i) {
+    MPS_ARGS_BEGIN(args) {
+      die((mps_res_t)LandInit(cbs, cbsConfig[i].klass(), arena, state.align,
+                              NULL, args),
+          "failed to initialise CBS");
+    } MPS_ARGS_END(args);
+    state.land = cbs;
+    test(&state, nCBSOperations, cbsConfig[i].operations);
+    LandFinish(cbs);
+  }
 
   /* 2. Test Freelist */
 
@@ -483,7 +496,7 @@ extern int main(int argc, char *argv[])
                           NULL, mps_args_none),
       "failed to initialise Freelist");
   state.land = fl;
-  test(&state, nFLOperations);
+  test(&state, nFLOperations, 3);
   LandFinish(fl);
 
   /* 3. Test CBS-failing-over-to-Freelist (always failing over on
@@ -495,7 +508,7 @@ extern int main(int argc, char *argv[])
       MPS_ARGS_BEGIN(piArgs) {
         MPS_ARGS_ADD(piArgs, MPS_KEY_MFS_UNIT_SIZE, sizeof(CBSFastBlockStruct));
         MPS_ARGS_ADD(piArgs, MPS_KEY_EXTEND_BY, ArenaGrainSize(arena));
-        MPS_ARGS_ADD(piArgs, MFSExtendSelf, i);
+        MPS_ARGS_ADD(piArgs, MFSExtendSelf, i != 0);
         die(PoolInit(mfs, arena, PoolClassMFS(), piArgs), "PoolInit");
       } MPS_ARGS_END(piArgs);
 
@@ -518,7 +531,7 @@ extern int main(int argc, char *argv[])
       } MPS_ARGS_END(args);
 
       state.land = fo;
-      test(&state, nFOOperations);
+      test(&state, nFOOperations, 3);
       LandFinish(fo);
       LandFinish(fl);
       LandFinish(cbs);
@@ -528,7 +541,7 @@ extern int main(int argc, char *argv[])
   ControlFree(arena, p, (state.size + 1) * state.align);
   mps_arena_destroy(arena);
 
-  printf("\nNumber of allocations attempted: %"PRIuLONGEST"\n",
+  printf("Number of allocations attempted: %"PRIuLONGEST"\n",
          (ulongest_t)NAllocateTried);
   printf("Number of allocations succeeded: %"PRIuLONGEST"\n",
          (ulongest_t)NAllocateSucceeded);
@@ -536,6 +549,102 @@ extern int main(int argc, char *argv[])
          (ulongest_t)NDeallocateTried);
   printf("Number of deallocations succeeded: %"PRIuLONGEST"\n",
          (ulongest_t)NDeallocateSucceeded);
+}
+
+static void shuffle(Addr *addr, size_t n)
+{
+  size_t i;
+  for (i = 0; i < n; ++i) {
+    size_t j = rnd() % (n - i);
+    Addr tmp = addr[j];
+    addr[j] = addr[i];
+    addr[i] = tmp;
+  }
+}
+
+static void test_steal(void)
+{
+  mps_arena_t mpsArena;
+  Arena arena;
+  MFSStruct mfs;                /* stores blocks for the CBS */
+  Pool pool = MFSPool(&mfs);
+  CBSStruct cbs;                /* allocated memory land */
+  Land land = CBSLand(&cbs);
+  Addr base;
+  Addr addr[4096];
+  Size grainSize;
+  size_t i, n = NELEMS(addr), stolenInsert = 0, missingDelete = 0;
+
+  MPS_ARGS_BEGIN(args) {
+    die(mps_arena_create_k(&mpsArena, mps_arena_class_vm(), args), "arena");
+  } MPS_ARGS_END(args);
+  arena = (Arena)mpsArena; /* avoid pun */
+  grainSize = ArenaGrainSize(arena);
+
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, sizeof(RangeTreeStruct));
+    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, grainSize);
+    MPS_ARGS_ADD(args, MFSExtendSelf, FALSE);
+    die(PoolInit(pool, arena, CLASS(MFSPool), args), "pool");
+  } MPS_ARGS_END(args);
+  
+  MPS_ARGS_BEGIN(args) {
+    MPS_ARGS_ADD(args, CBSBlockPool, pool);
+    die(LandInit(land, CLASS(CBS), arena, grainSize, NULL, args),
+        "land");
+  } MPS_ARGS_END(args);
+
+  /* Allocate a range of grains. */
+  die(ArenaAlloc(&base, LocusPrefDefault(), grainSize * n, pool), "alloc");
+  for (i = 0; i < n; ++i)
+    addr[i] = AddrAdd(base, i * grainSize);
+
+  /* Shuffle the grains. */
+  shuffle(addr, n);
+
+  /* Insert grains into the land in shuffled order. */
+  for (i = 0; i < n; ++i) {
+    RangeStruct range, origRange, containingRange;
+    RangeInitSize(&range, addr[i], grainSize);
+    RangeCopy(&origRange, &range);
+    die(LandInsertSteal(&containingRange, land, &range), "steal");
+    if (!RangesEqual(&origRange, &range))
+      ++ stolenInsert;
+  }
+
+  /* Shuffle grains again. */
+  shuffle(addr, n);
+
+  /* Delete unstolen grains from the land in shuffled order. */
+  for (i = 0; i < n; ++i) {
+    RangeStruct range, containingRange;
+    Res res;
+    RangeInitSize(&range, addr[i], grainSize);
+    res = LandDeleteSteal(&containingRange, land, &range);
+    if (res == ResOK) {
+      ArenaFree(addr[i], grainSize, pool);
+    } else {
+      Insist(res == ResFAIL);     /* grain was stolen */
+      ++ missingDelete;
+    }
+  }
+
+  Insist(LandSize(land) == 0);
+  LandFinish(land);
+  Insist(PoolFreeSize(pool) == PoolTotalSize(pool));
+  PoolFinish(pool);
+  mps_arena_destroy(arena);
+  Insist(stolenInsert <= missingDelete);
+  Insist(missingDelete < n);
+  printf("Stolen on insert: %"PRIuLONGEST"\n", (ulongest_t)stolenInsert);
+  printf("Missing on delete: %"PRIuLONGEST"\n", (ulongest_t)missingDelete);
+}
+
+int main(int argc, char *argv[])
+{
+  testlib_init(argc, argv);
+  test_land();
+  test_steal();
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
   return 0;
 }
@@ -543,7 +652,7 @@ extern int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

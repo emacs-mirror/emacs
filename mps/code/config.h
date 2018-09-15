@@ -278,8 +278,20 @@
 #define ATTRIBUTE_NO_SANITIZE_ADDRESS
 #endif
 
+/* Attribute for functions that must not be inlined.
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
+ * MSVC: <https://docs.microsoft.com/en-us/cpp/cpp/noinline>
+ */
+#if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
+#define ATTRIBUTE_NOINLINE __attribute__((__noinline__))
+#elif defined(MPS_BUILD_MV)
+#define ATTRIBUTE_NOINLINE __declspec(noinline)
+#else
+#define ATTRIBUTE_NOINLINE
+#endif
+
 /* Attribute for functions that do not return.
- * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
  * Clang: <http://clang.llvm.org/docs/AttributeReference.html#id1>
  */
 #if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
@@ -289,7 +301,7 @@
 #endif
 
 /* Attribute for functions that may be unused in some build configurations.
- * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html>
+ * GCC: <http://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html>
  *
  * This attribute must be applied to all Check functions, otherwise
  * the RASH variety fails to compile with -Wunused-function. (It
@@ -364,14 +376,6 @@
 #define LO_GEN_DEFAULT       0
 
 
-/* Pool MV Configuration -- see <code/poolmv.c> */
-
-#define MV_ALIGN_DEFAULT      MPS_PF_ALIGN
-#define MV_EXTEND_BY_DEFAULT  ((Size)65536)
-#define MV_AVG_SIZE_DEFAULT   ((Size)32)
-#define MV_MAX_SIZE_DEFAULT   ((Size)65536)
-
-
 /* Pool MFS Configuration -- see <code/poolmfs.c> */
 
 #define MFS_EXTEND_BY_DEFAULT ((Size)65536)
@@ -411,10 +415,7 @@
 
 #define ARENA_DEFAULT_COMMIT_LIMIT ((Size)-1)
 
-/* TODO: This should be proportional to the memory usage of the MPS, not
- * a constant.  That will require design, and then some interface and
- * documentation changes. */
-#define ARENA_DEFAULT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
+#define ARENA_SPARE_DEFAULT     0.75
 
 /* ARENA_DEFAULT_PAUSE_TIME is the maximum time (in seconds) that
  * operations within the arena may pause the mutator for.  The default

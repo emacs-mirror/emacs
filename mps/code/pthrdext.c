@@ -1,7 +1,7 @@
 /* pthreadext.c: POSIX THREAD EXTENSIONS
  *
  *  $Id$
- *  Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ *  Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: Provides extension to Pthreads.
  *
@@ -12,18 +12,21 @@
  * (<David.Butenhof@compaq.com>, <rlau@csc.com>).
  */
 
-
 #include "mpm.h"
 
-#include <pthread.h>
-#include <sched.h>
-#include <signal.h> /* see .feature.li in config.h */
-#include <semaphore.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
+#if !defined(MPS_OS_FR) && !defined(MPS_OS_LI)
+#error "protsgix.c is specific to MPS_OS_FR or MPS_OS_LI"
+#endif
 
 #include "pthrdext.h"
+
+#include <errno.h>
+#include <pthread.h>
+#include <sched.h>
+#include <semaphore.h>
+#include <signal.h> /* see .feature.li in config.h */
+#include <stdio.h>
+#include <stdlib.h>
 
 SRCID(pthreadext, "$Id$");
 
@@ -156,7 +159,7 @@ static void PThreadextModuleInit(void)
 
 /* PThreadextCheck -- check the consistency of a PThreadext structure */
 
-extern Bool PThreadextCheck(PThreadext pthreadext)
+Bool PThreadextCheck(PThreadext pthreadext)
 {
   int status;
 
@@ -190,7 +193,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
 
 /*  PThreadextInit -- Initialize a pthreadext */
 
-extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
+void PThreadextInit(PThreadext pthreadext, pthread_t id)
 {
   int status;
 
@@ -212,7 +215,7 @@ extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
  * See <design/pthreadext/#impl.finish>
  */
 
-extern void PThreadextFinish(PThreadext pthreadext)
+void PThreadextFinish(PThreadext pthreadext)
 {
   int status;
 
@@ -353,7 +356,7 @@ unlock:
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

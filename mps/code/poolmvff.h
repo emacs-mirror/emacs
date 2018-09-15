@@ -1,56 +1,38 @@
-/* ssw3i3mv.c: STACK SCANNING FOR WIN32 WITH MICROSOFT C
+/* poolmvff.h: First Fit Manual Variable Pool
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
+ * Portions copyright (C) 2002 Global Graphics Software.
  *
- * This scans the stack and fixes the registers which may contain roots.
- * See <design/thread-manager/>.
+ * .purpose: This is a pool class for manually managed objects of
+ * variable size where address-ordered first (or last) fit is an
+ * appropriate policy.
  *
- * REFERENCES
- *
- * "Argument Passing and Naming Conventions"; MSDN; Microsoft Corporation;
- * <http://msdn.microsoft.com/en-us/library/984x0h58%28v=vs.100%29.aspx>.
- *
- * "Calling conventions for different C++ compilers and operating systems";
- * Agner Fog; Copenhagen University College of Engineering; 2012-02-29;
- * <http://agner.org./optimize/calling_conventions.pdf>.
+ * .design: See <design/poolmvff/>
  */
 
-#include "mpm.h"
-#include <setjmp.h>
-
-SRCID(ssw3i3mv, "$Id$");
+#ifndef poolmvff_h
+#define poolmvff_h
 
 
-Res StackScan(ScanState ss, Word *stackCold,
-              mps_area_scan_t scan_area,
-              void *closure)
-{
-  jmp_buf jb;
+#include "mpmtypes.h"
+#include "mpscmvff.h"
 
-  /* We rely on the fact that Microsoft C's setjmp stores the callee-save
-     registers in the jmp_buf. */
-  (void)setjmp(jb);
+typedef struct MVFFStruct *MVFF;
 
-  /* These checks will just serve to warn us at compile-time if the
-     setjmp.h header changes to indicate that the registers we want aren't
-     saved any more. */
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Ebx) == sizeof(Word));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Edi) == sizeof(Word));
-  AVER(sizeof(((_JUMP_BUFFER *)jb)->Esi) == sizeof(Word));
+extern PoolClass PoolClassMVFF(void);
 
-  /* Ensure that the callee-save registers will be found by
-     StackScanInner when it's passed the address of the Ebx field. */
-  AVER(offsetof(_JUMP_BUFFER, Edi) == offsetof(_JUMP_BUFFER, Ebx) + 4);
-  AVER(offsetof(_JUMP_BUFFER, Esi) == offsetof(_JUMP_BUFFER, Ebx) + 8);
+extern Bool MVFFCheck(MVFF mvff);
 
-  return StackScanInner(ss, stackCold, (Word *)&((_JUMP_BUFFER *)jb)->Ebx, 3,
-                        scan_area, closure);
-}
+#define MVFFPool(mvff) (&(mvff)->poolStruct)
+
+
+#endif /* poolmvff_h */
+
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

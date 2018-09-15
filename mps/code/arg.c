@@ -1,7 +1,7 @@
 /* arg.c: ARGUMENT LISTS
  *
  * $Id$
- * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2013-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .source: See <design/keyword-arguments.rst>.
  */
@@ -20,86 +20,102 @@ SRCID(arg, "$Id$");
  * that don't have any meaningful checking they can do.
  */
 
-Bool ArgCheckCant(Arg arg) {
+Bool ArgCheckCant(Arg arg)
+{
   UNUSED(arg);
   return TRUE;
 }
 
-static Bool ArgCheckShouldnt(Arg arg) {
+static Bool ArgCheckShouldnt(Arg arg)
+{
   UNUSED(arg);
   NOTREACHED;
   return FALSE;
 }
 
-Bool ArgCheckFormat(Arg arg) {
+Bool ArgCheckFormat(Arg arg) 
+{
   CHECKD(Format, arg->val.format);
   return TRUE;
 }
 
-Bool ArgCheckChain(Arg arg) {
+Bool ArgCheckChain(Arg arg)
+{
   CHECKD(Chain, arg->val.chain);
   return TRUE;
 }
 
-Bool ArgCheckSize(Arg arg) {
+Bool ArgCheckSize(Arg arg)
+{
   UNUSED(arg); /* TODO: Add and call SizeCheck */
   return TRUE;
 }
 
-Bool ArgCheckAddr(Arg arg) {
+Bool ArgCheckAddr(Arg arg)
+{
   UNUSED(arg); /* TODO: Add and call AddrCheck */
   return TRUE;
 }
 
-Bool ArgCheckPoolDebugOptions(Arg arg) {
+Bool ArgCheckPoolDebugOptions(Arg arg)
+{
   CHECKD_NOSIG(PoolDebugOptions, (PoolDebugOptions)arg->val.pool_debug_options);
   return TRUE;
 }
 
-Bool ArgCheckFun(Arg arg) {
+Bool ArgCheckFun(Arg arg)
+{
   CHECKL(FUNCHECK(arg->val.addr_method)); /* FIXME: Potential pun here */
   return TRUE;
 }
 
-Bool ArgCheckAlign(Arg arg) {
+Bool ArgCheckAlign(Arg arg)
+{
   CHECKL(AlignCheck(arg->val.align));
   return TRUE;
 }
 
-Bool ArgCheckBool(Arg arg) {
+Bool ArgCheckBool(Arg arg)
+{
   CHECKL(BoolCheck(arg->val.b));
   return TRUE;
 }
 
-Bool ArgCheckCount(Arg arg) {
+Bool ArgCheckCount(Arg arg)
+{
   UNUSED(arg); /* TODO: Add and call CountCheck */
   return TRUE;
 }
 
-Bool ArgCheckPointer(Arg arg) {
+Bool ArgCheckPointer(Arg arg)
+{
   CHECKL(arg != NULL);
   return TRUE;
 }
 
-Bool ArgCheckRankSet(Arg arg) {
+Bool ArgCheckRankSet(Arg arg)
+{
   CHECKL(COMPATTYPE(RankSet, unsigned));
   CHECKL(RankSetCheck(arg->val.u));
   return TRUE;
 }
 
-Bool ArgCheckRank(Arg arg) {
+Bool ArgCheckRank(Arg arg)
+{
   CHECKL(RankCheck(arg->val.rank));
   return TRUE;
 }
 
-Bool ArgCheckdouble(Arg arg) {
+Bool ArgCheckdouble(Arg arg)
+{
   /* Don't call isfinite() here because it's not in C89, and because
      infinity is a valid value for MPS_KEY_PAUSE_TIME. */
   UNUSED(arg);
   return TRUE;
 }
 
-Bool ArgCheckPool(Arg arg) {
+Bool ArgCheckPool(Arg arg)
+{
   CHECKD(Pool, arg->val.pool);
   return TRUE;
 }
@@ -146,7 +162,8 @@ Bool ArgListCheck(ArgList args)
 
 /* ArgPick -- try to pick an argument out of the argument list by keyword */
 
-Bool ArgPick(ArgStruct *argOut, ArgList args, Key key) {
+Bool ArgPick(ArgStruct *argOut, ArgList args, Key key)
+{
   Index i;
   
   AVER(argOut != NULL);
@@ -173,7 +190,8 @@ found:
 
 /* ArgRequire -- take a required argument out of the argument list by keyword */
 
-void ArgRequire(ArgStruct *argOut, ArgList args, Key key) {
+void ArgRequire(ArgStruct *argOut, ArgList args, Key key)
+{
   Bool b = ArgPick(argOut, args, key);
   ASSERT(b, key->name);
 }
@@ -192,7 +210,7 @@ void ArgTrivVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

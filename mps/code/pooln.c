@@ -125,14 +125,11 @@ static Res NBufferFill(Addr *baseReturn, Addr *limitReturn,
 
 /* NBufferEmpty -- buffer empty method for class N */
 
-static void NBufferEmpty(Pool pool, Buffer buffer,
-                         Addr init, Addr limit)
+static void NBufferEmpty(Pool pool, Buffer buffer)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
-  AVER(init <= limit);
-
   NOTREACHED;   /* can't create buffers, so they shouldn't trip */
 }
 
@@ -156,90 +153,6 @@ static Res NDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 }
 
 
-/* NWhiten -- condemn method for class N */
-
-static Res NWhiten(Pool pool, Trace trace, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
- 
-  NOTREACHED; /* pool doesn't have any actions */
-
-  return ResUNIMPL;
-}
-
-
-/* NGrey -- greyen method for class N */
-
-static void NGrey(Pool pool, Trace trace, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-}
-
-
-/* NBlacken -- blacken method for class N */
-
-static void NBlacken(Pool pool, TraceSet traceSet, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(TraceSet, traceSet);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-}
-
-
-/* NScan -- scan method for class N */
-
-static Res NScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVER(totalReturn != NULL);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-
-  return ResOK;
-}
-
-
-/* NFix -- fix method for class N */
-
-static Res NFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(ScanState, ss);
-  UNUSED(refIO);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-  NOTREACHED;  /* Since we don't allocate any objects, should never */
-               /* be called upon to fix a reference. */
-  return ResFAIL;
-}
-
-
-/* NReclaim -- reclaim method for class N */
-
-static void NReclaim(Pool pool, Trace trace, Seg seg)
-{
-  PoolN poolN = MustBeA(NPool, pool);
-
-  AVERT(Trace, trace);
-  AVERT(Seg, seg);
-  UNUSED(poolN);
-  /* all unmarked and white objects reclaimed */
-}
-
-
 /* NPoolClass -- pool class definition for N */
 
 DEFINE_CLASS(Pool, NPool, klass)
@@ -254,13 +167,6 @@ DEFINE_CLASS(Pool, NPool, klass)
   klass->free = NFree;
   klass->bufferFill = NBufferFill;
   klass->bufferEmpty = NBufferEmpty;
-  klass->whiten = NWhiten;
-  klass->grey = NGrey;
-  klass->blacken = NBlacken;
-  klass->scan = NScan;
-  klass->fix = NFix;
-  klass->fixEmergency = NFix;
-  klass->reclaim = NReclaim;
   AVERT(PoolClass, klass);
 }
 

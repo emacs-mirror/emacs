@@ -47,13 +47,9 @@
  */
 #define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
 
-/* GCC: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html */
-#define ATTRIBUTE_NOINLINE __attribute__((__noinline__))
-
 #else
 
 #define ATTRIBUTE_FORMAT(ARGLIST)
-#define ATTRIBUTE_NOINLINE
 
 #endif
 

@@ -9,7 +9,6 @@
 #include "mps.h"
 #include "mpsavm.h"
 #include "mpscmfs.h"
-#include "mpscmv.h"
 #include "mpscmvff.h"
 #include "mpslib.h"
 #include "mpslib.h"
@@ -37,9 +36,9 @@ static void check_allocated_size(mps_pool_t pool, size_t allocated)
 /* stress -- create a pool of the requested type and allocate in it */
 
 static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
-                        size_t (*size)(size_t i), mps_align_t align,
-                        const char *name, mps_pool_class_t pool_class,
-                        mps_arg_s *args)
+                        size_t (*size)(size_t i, mps_align_t align),
+                        mps_align_t align, const char *name,
+                        mps_pool_class_t pool_class, mps_arg_s *args)
 {
   mps_res_t res;
   mps_pool_t pool;
@@ -58,7 +57,7 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
   /* allocate a load of objects */
   for (i=0; i<testSetSIZE; ++i) {
     mps_addr_t obj;
-    ss[i] = (*size)(i);
+    ss[i] = (*size)(i, align);
     res = mps_alloc(&obj, pool, ss[i]);
     if (res != MPS_RES_OK)
       return res;
@@ -84,7 +83,7 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
     }
     /* free half of the objects */
     /* upper half, as when allocating them again we want smaller objects */
-    /* see randomSize() */
+    /* see randomSizeAligned() */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       mps_free(pool, (mps_addr_t)ps[i], ss[i]);
       /* if (i == testSetSIZE/2) */
@@ -95,7 +94,7 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
     /* allocate some new objects */
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       mps_addr_t obj;
-      ss[i] = (*size)(i);
+      ss[i] = (*size)(i, align);
       res = mps_alloc(&obj, pool, ss[i]);
       if (res != MPS_RES_OK)
         return res;
@@ -112,25 +111,13 @@ static mps_res_t stress(mps_arena_t arena, mps_pool_debug_option_s *options,
 }
 
 
-/* randomSize -- produce sizes both large and small */
+/* randomSizeAligned -- produce sizes both large and small */
 
-static size_t randomSize(size_t i)
-{
-  /* Make the range large enough to span three pages in the segment table: */
-  /* 160 segments/page, page size max 0x2000. */
-  size_t maxSize = 2 * 160 * 0x2000;
-  /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
-  return rnd() % max((maxSize >> (i / 10)), 2) + 1;
-}
-
-
-/* randomSize8 -- produce sizes both large and small, 8-byte aligned */
-
-static size_t randomSize8(size_t i)
+static size_t randomSizeAligned(size_t i, mps_align_t align)
 {
   size_t maxSize = 2 * 160 * 0x2000;
   /* Reduce by a factor of 2 every 10 cycles.  Total allocation about 40 MB. */
-  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, 8);
+  return alignUp(rnd() % max((maxSize >> (i / 10)), 2) + 1, align);
 }
 
 
@@ -138,9 +125,10 @@ static size_t randomSize8(size_t i)
 
 static size_t fixedSizeSize = 0;
 
-static size_t fixedSize(size_t i)
+static size_t fixedSize(size_t i, mps_align_t align)
 {
   testlib_unused(i);
+  testlib_unused(align);
   return fixedSizeSize;
 }
 
@@ -161,8 +149,8 @@ static mps_pool_debug_option_s fenceOptions = {
 
 /* testInArena -- test all the pool classes in the given arena */
 
-static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args,
-                        mps_pool_debug_option_s *options)
+static void testInArena(mps_arena_class_t arena_class, size_t arena_grain_size,
+                        mps_arg_s *arena_args, mps_pool_debug_option_s *options)
 {
   mps_arena_t arena;
 
@@ -170,41 +158,26 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args,
       "mps_arena_create");
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_SPARE, rnd_double());
-    die(stress(arena, NULL, randomSize8, align, "MVFF",
+    die(stress(arena, NULL, randomSizeAligned, align, "MVFF",
                mps_class_mvff(), args), "stress MVFF");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
-    mps_align_t align = sizeof(void *) << (rnd() % 4);
+    mps_align_t align = rnd_align(sizeof(void *), arena_grain_size);
     MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, TRUE);
     MPS_ARGS_ADD(args, MPS_KEY_SPARE, rnd_double());
     MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
-    die(stress(arena, options, randomSize8, align, "MVFF debug",
+    die(stress(arena, options, randomSizeAligned, align, "MVFF debug",
                mps_class_mvff_debug(), args), "stress MVFF debug");
-  } MPS_ARGS_END(args);
-
-  MPS_ARGS_BEGIN(args) {
-    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
-    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
-    die(stress(arena, NULL, randomSize, align, "MV",
-               mps_class_mv(), args), "stress MV");
-  } MPS_ARGS_END(args);
-
-  MPS_ARGS_BEGIN(args) {
-    mps_align_t align = (mps_align_t)1 << (rnd() % 6);
-    MPS_ARGS_ADD(args, MPS_KEY_ALIGN, align);
-    MPS_ARGS_ADD(args, MPS_KEY_POOL_DEBUG_OPTIONS, options);
-    die(stress(arena, options, randomSize, align, "MV debug",
-               mps_class_mv_debug(), args), "stress MV debug");
   } MPS_ARGS_END(args);
 
   MPS_ARGS_BEGIN(args) {
@@ -223,18 +196,22 @@ static void testInArena(mps_arena_class_t arena_class, mps_arg_s *arena_args,
 
 int main(int argc, char *argv[])
 {
+  size_t arena_grain_size;
+  
   testlib_init(argc, argv);
 
+  arena_grain_size = rnd_grain(testArenaSIZE);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, testArenaSIZE);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(testArenaSIZE));
-    testInArena(mps_arena_class_vm(), args, &bothOptions);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
+    testInArena(mps_arena_class_vm(), arena_grain_size, args, &bothOptions);
   } MPS_ARGS_END(args);
 
+  arena_grain_size = rnd_grain(smallArenaSIZE);
   MPS_ARGS_BEGIN(args) {
     MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, smallArenaSIZE);
-    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, rnd_grain(smallArenaSIZE));
-    testInArena(mps_arena_class_vm(), args, &fenceOptions);
+    MPS_ARGS_ADD(args, MPS_KEY_ARENA_GRAIN_SIZE, arena_grain_size);
+    testInArena(mps_arena_class_vm(), arena_grain_size, args, &fenceOptions);
   } MPS_ARGS_END(args);
 
   printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);

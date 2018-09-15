@@ -12,6 +12,15 @@ Release 1.118.0
 New features
 ............
 
+#. The arena's :term:`spare commit limit` is now expressed as a
+   fraction of the :term:`committed <mapped>` memory (rather than a
+   fixed size, as previously). This allows the :term:`spare committed
+   memory` to scale with the :term:`working set` size. Set the spare
+   commit limit using the keyword argument :c:macro:`MPS_KEY_SPARE` to
+   :c:func:`mps_arena_create_k`, or the function
+   :c:func:`mps_arena_spare_set`, and query it using the function
+   :c:func:`mps_arena_spare`.
+
 #. A new support tool, the **monitor**, implements a graphical user
    interface for analysis of :ref:`topic-telemetry`. This is
    experimental: the implementation is likely to change in future
@@ -20,6 +29,19 @@ New features
 
 Interface changes
 .................
+
+#. The deprecated pool class MV (Manual Variable), and the deprecated
+   functions ``mps_mv_free_size`` and ``mps_mv_size`` have been
+   removed. Use :ref:`pool-mvff` and the generic functions
+   :c:func:`mps_pool_free_size` and :c:func:`mps_pool_total_size`
+   instead.
+
+#. The keyword argument ``MPS_KEY_SPARE_COMMIT_LIMIT`` to
+   :c:func:`mps_arena_create_k`, and the functions
+   :c:func:`mps_arena_spare_commit_limit` and
+   :c:func:`mps_arena_spare_commit_limit_set` are now deprecated. Use
+   :c:macro:`MPS_KEY_SPARE`, :c:func:`mps_arena_spare` and
+   :c:func:`mps_arena_spare_set` instead.
 
 #. The format of :term:`telemetry` events has changed: Booleans are no
    longer packed into bitfields, but are emitted as unsigned bytes.
@@ -40,6 +62,52 @@ New features
 
 #. On FreeBSD, Linux and macOS, the MPS is now able to run in the
    child process after ``fork()``. See :ref:`topic-thread-fork`.
+
+#. The MPS now supports Windows Vista or later; it no longer supports
+   Windows XP. (Microsoft's own support for Windows XP `expired in
+   April 2014`_.) This is so that we can use |InitOnceExecuteOnce|_ to
+   ensure thread-safe initialization.
+
+   .. _expired in April 2014: https://www.microsoft.com/en-gb/windowsforbusiness/end-of-xp-support
+   .. |InitOnceExecuteOnce| replace:: ``InitOnceExecuteOnce()``
+   .. _InitOnceExecuteOnce: https://docs.microsoft.com/en-us/windows/desktop/api/synchapi/nf-synchapi-initonceexecuteonce
+
+
+Interface changes
+.................
+
+#. The pool class MV (Manual Variable) is now deprecated.
+
+
+Other changes
+.............
+
+#. References from the MPS's own stack frames no longer :term:`pin
+   <pinning>` objects allocated by the :term:`client program` in
+   moving pools, which prevented them from moving. See job003525_.
+
+   .. _job003525: https://www.ravenbrook.com/project/mps/issue/job003525/
+
+#. Creation of :term:`arenas` is now thread-safe on Windows. See
+   job004056_.
+
+   .. _job004056: https://www.ravenbrook.com/project/mps/issue/job004056/
+
+#. :ref:`pool-awl` and :ref:`pool-lo` pools now detect (and assert on)
+   invalid :term:`exact references`. See job004070_.
+
+   .. _job004070: https://www.ravenbrook.com/project/mps/issue/job004070/
+
+#. The MPS now compiles without warnings on GCC version 7 with
+   ``-Wextra``. See job004076_.
+
+   .. _job004076: https://www.ravenbrook.com/project/mps/issue/job004076/
+
+#. Deprecated function :c:func:`mps_arena_roots_walk` no longer causes
+   :c:func:`mps_arena_formatted_objects_walk` to miss some objects. See
+   job004090_.
+
+   .. _job004090: https://www.ravenbrook.com/project/mps/issue/job004090/
 
 
 .. _release-notes-1.116:
@@ -172,7 +240,7 @@ New features
 #. The function :c:func:`mps_arena_create_k` accepts two new
    :term:`keyword arguments`. :c:macro:`MPS_KEY_COMMIT_LIMIT`
    sets the :term:`commit limit` for the arena, and
-   :c:macro:`MPS_KEY_SPARE_COMMIT_LIMIT` sets the :term:`spare
+   ``MPS_KEY_SPARE_COMMIT_LIMIT`` sets the :term:`spare
    commit limit` for the arena.
 
 #. New area scanning functions :c:func:`mps_scan_area`,
@@ -197,11 +265,13 @@ New features
 Interface changes
 .................
 
+#. The pool class MV (Manual Variable) is no longer deprecated.
+
 #. The type of pool classes is now :c:type:`mps_pool_class_t`. The old
    name :c:type:`mps_class_t` is still available via a ``typedef``,
    but is deprecated.
 
-#. The functions :c:func:`mps_mv_free_size`, :c:func:`mps_mv_size`,
+#. The functions ``mps_mv_free_size``, ``mps_mv_size``,
    :c:func:`mps_mvff_free_size`, :c:func:`mps_mvff_size`,
    :c:func:`mps_mvt_free_size` and :c:func:`mps_mvt_size` are now
    deprecated in favour of the generic functions
@@ -271,8 +341,8 @@ Other changes
    .. _job003865: https://www.ravenbrook.com/project/mps/issue/job003865/
 
 #. :c:func:`mps_arena_has_addr` now returns the correct result for
-   objects allocated from the :ref:`pool-mfs`, :ref:`pool-mv`, and
-   :ref:`pool-mvff` pools. See job003866_.
+   objects allocated from the :ref:`pool-mfs`, MV (Manual Variable),
+   and :ref:`pool-mvff` pools. See job003866_.
 
    .. _job003866: https://www.ravenbrook.com/project/mps/issue/job003866/
 
@@ -380,8 +450,9 @@ Interface changes
    (meaning that there is no dependent object).
 
 #. It is now possible to configure the alignment of objects allocated
-   in a :ref:`pool-mv` pool, by passing the :c:macro:`MPS_KEY_ALIGN`
-   keyword argument to :c:func:`mps_pool_create_k`.
+   in an MV (Manual Variable) pool, by passing the
+   :c:macro:`MPS_KEY_ALIGN` keyword argument to
+   :c:func:`mps_pool_create_k`.
 
 #. The :ref:`pool-mvff` pool class takes a new keyword argument
    :c:macro:`MPS_KEY_SPARE`. This specifies the maximum proportion of
@@ -700,7 +771,7 @@ Interface changes
    :c:func:`mps_telemetry_control`, which is now deprecated. See
    :ref:`topic-telemetry`.
 
-#. The pool classes :ref:`pool-mv` and :ref:`pool-snc` are now
+#. The pool classes MV (Manual Variable) and :ref:`pool-snc` are now
    deprecated.
 
 #. Allocation frames are now deprecated. See :ref:`topic-frame`.

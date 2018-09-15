@@ -787,13 +787,16 @@ DEFINE_CLASS(Land, Freelist, klass)
   klass->init = freelistInit;
   klass->sizeMethod = freelistSize;
   klass->insert = freelistInsert;
+  klass->insertSteal = freelistInsert; /* doesn't need to allocate */
   klass->delete = freelistDelete;
+  klass->deleteSteal = freelistDelete; /* doesn't need to allocate */
   klass->iterate = freelistIterate;
   klass->iterateAndDelete = freelistIterateAndDelete;
   klass->findFirst = freelistFindFirst;
   klass->findLast = freelistFindLast;
   klass->findLargest = freelistFindLargest;
   klass->findInZones = freelistFindInZones;
+  AVERT(LandClass, klass);
 }
 
 

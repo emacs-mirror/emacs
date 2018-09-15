@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = ensure allocation in MV pool causes collection
+ summary = ensure allocation in MVFF pool causes collection
  language = c
  link = newfmt.o testlib.o
 OUTPUT_SPEC
@@ -14,7 +14,7 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "newfmt.h"
@@ -34,7 +34,7 @@ void *stackpointer;
 static void test(void)
 {
  mps_arena_t arena;
- mps_pool_t poolMV, poolAMC;
+ mps_pool_t poolMVFF, poolAMC;
  mps_thr_t thread;
 
  mps_fmt_t format;
@@ -67,33 +67,43 @@ static void test(void)
 
  comment("Sizes in megabytes:");
 
- die(mps_pool_create(&poolMV, arena, mps_class_mv(),
-                     EXTEND_BY, MEAN_SIZE, MAX_SIZE),
-     "create MV pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, EXTEND_BY);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, MEAN_SIZE);
+   cdie(mps_pool_create_k(&poolMVFF, arena, mps_class_mvff(), args),
+        "create MVFF pool");
+ } MPS_ARGS_END(args);
  i = 0;
- while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;
+ while ((r=mps_alloc(&p, poolMVFF, 1024*1024)) == 0) i++;
  report("refuse1", "%s", err_text(r));
  report("size1", "%i", i);
  s1 = i;
- mps_pool_destroy(poolMV);
+ mps_pool_destroy(poolMVFF);
 
- die(mps_pool_create(&poolMV, arena, mps_class_mv(),
-                     EXTEND_BY, MEAN_SIZE, MAX_SIZE),
-     "create MV pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, EXTEND_BY);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, MEAN_SIZE);
+   cdie(mps_pool_create_k(&poolMVFF, arena, mps_class_mvff(), args),
+        "create MVFF pool");
+ } MPS_ARGS_END(args);
  i = 0;
- while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;
+ while ((r=mps_alloc(&p, poolMVFF, 1024*1024)) == 0) i++;
  report("refuse2", "%s", err_text(r));
  report("size2", "%i", i);
  s2 = i;
- mps_pool_destroy(poolMV);
+ mps_pool_destroy(poolMVFF);
 
  a = allocdumb(ap, 1024*1024*30); /* allocate 30 M object */
 
- die(mps_pool_create(&poolMV, arena, mps_class_mv(),
-                     EXTEND_BY, MEAN_SIZE, MAX_SIZE),
-     "create MV pool");
+
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, EXTEND_BY);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, MEAN_SIZE);
+   cdie(mps_pool_create_k(&poolMVFF, arena, mps_class_mvff(), args),
+        "create MVFF pool");
+ } MPS_ARGS_END(args);
  i=0;
- while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;
+ while ((r=mps_alloc(&p, poolMVFF, 1024*1024)) == 0) i++;
  report("refuse3", "%s", err_text(r));
  report("size3", "%i", i);
  s3 = i;
@@ -102,12 +112,12 @@ static void test(void)
  report("diff23", "%i", s2-s3);
 
  for(i = 0; i < 10; i++) {
-  r = mps_alloc(&p, poolMV, 1024*1024);
+  r = mps_alloc(&p, poolMVFF, 1024*1024);
   report("refuse4", "%s", err_text(r));
  }
 
  mps_arena_park(arena);
- mps_pool_destroy(poolMV);
+ mps_pool_destroy(poolMVFF);
 
  mps_ap_destroy(ap);
 

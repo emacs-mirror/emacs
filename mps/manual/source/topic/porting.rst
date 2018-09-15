@@ -97,18 +97,14 @@ usable.
    call into the MPS from the handler.
 
 #. The **stack and register scanning** module :term:`scans` the
-   :term:`registers` and :term:`control stack` of a thread.
+   :term:`registers` and :term:`control stack` of the thread that
+   entered the MPS.
 
-   See :ref:`design-ss` for the design, and ``ss.h`` for the
-   interface. There are implementations for POSIX on IA-32 in
-   ``ssixi3.c`` and x86-64 in ``ssixi6.c``, and for Windows with
-   Microsoft Visual C/C++ on IA-32 in ``ssw3i3mv.c`` and x86-64 in
-   ``ssw3i6mv.c``.
-
-   There is a generic implementation in ``ssan.c``, which calls
-   :c:func:`setjmp` to spill the registers and scans the whole jump
-   buffer, thus overscanning compared to a platform-specific
-   implementation.
+   See :ref:`design-stack-scan` for the design, ``ss.h`` for the
+   interface, and ``ss.c`` for a generic implementation that makes
+   assumptions about the platform (in particular, that the stack grows
+   downwards and :c:func:`setjmp` reliably captures the registers; see
+   the design for details).
 
 #. The **thread manager** module suspends and resumes :term:`threads`,
    so that the MPS can gain exclusive access to :term:`memory (2)`,
@@ -191,7 +187,7 @@ platform constant ``MPS_PF_OSARCT`` that is now defined in
 ``mpstd.h``, and then include all the module sources for the platform.
 For example::
 
-    /* Linux on 64-bit Intel with GCC or Clang */
+    /* Linux on x86-64 with GCC or Clang */
 
     #elif defined(MPS_PF_LII6GC) || defined(MPS_PF_LII6LL)
 
@@ -201,10 +197,10 @@ For example::
     #include "vmix.c"       /* Posix virtual memory */
     #include "protix.c"     /* Posix protection */
     #include "protsgix.c"   /* Posix signal handling */
-    #include "prmci6.c"     /* 64-bit Intel mutator context */
-    #include "prmclii6.c"   /* 64-bit Intel for Linux mutator context */
+    #include "prmci6.c"     /* x86-64 mutator context */
+    #include "prmcix.c"     /* Posix mutator context */
+    #include "prmclii6.c"   /* x86-64 for Linux mutator context */
     #include "span.c"       /* generic stack probe */
-    #include "ssixi6.c"     /* Posix on 64-bit Intel stack scan */
 
 
 Makefile
@@ -230,12 +226,12 @@ For example, ``lii6ll.gmk`` looks like this:
     MPMPF = \
         lockix.c \
         prmci6.c \
+        prmcix.c \
         prmclii6.c \
         protix.c \
         protsgix.c \
         pthrdext.c \
         span.c \
-        ssixi6.c \
         thix.c \
         vmix.c
 
@@ -267,12 +263,11 @@ this:
         [lockw3] \
         [mpsiw3] \
         [prmci6] \
+        [prmcw3] \
         [prmcw3i6] \
         [protw3] \
         [spw3i6] \
-        [ssw3i6mv] \
         [thw3] \
-        [thw3i6] \
         [vmw3]
 
     !INCLUDE commpre.nmk

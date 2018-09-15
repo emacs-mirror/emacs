@@ -27,7 +27,7 @@ _`.class`: Each pool belongs to a *pool class*.
 _`.class.name`: Each pool class has a short, pithy, cryptic name for
 the pool class. It should start with ``"A"`` (for "automatic") if
 memory is managed by the garbage collector, and ``"M"`` (for "manual")
-if memory is managed by alloc/free. For example, "AMC", "MV".
+if memory is managed by alloc/free. For example, "AMC", "MVFF".
 
 _`.class.protocol`: Pool classes use the *protocol* mechanisms (see
 design.mps.protocol_) to implement class initialization and
@@ -73,6 +73,15 @@ _`.field.attr`: The ``attr`` field must be a bitset of pool class
 attributes. See design.mps.type.attr_.
 
 .. _design.mps.type.attr: type#attr
+
+_`.field.alignShift`: The ``alignShift`` field is the ``SizeLog2`` of
+the pool's alignment. It is computed and initialised when a pool is
+created. Mark-and-sweep pool classes use it to compute the number of
+grains in a segment, which is the number of bits need in the segment's
+mark and alloc bit tables.
+
+_`.field.format`: The ``format`` field is used to refer to the object
+format. The object format is passed to the pool during pool creation.
 
 
 Methods
@@ -164,136 +173,25 @@ this method. It is called via the generic function
 
 _`.method.bufferFill`: The ``bufferFill`` method should allocate a
 region of least ``size`` bytes of memory for attaching to ``buffer``.
-The buffer must be in the "reset" state (see
-design.mps.buffer.reset_). If successful, it must update
-``*baseReturn`` and ``*limitReturn`` to the base and limit of the
-allocated region and return ``ResOK``. Otherwise it must leave
-``*baseReturn`` and ``*limitReturn`` unchanged and return a non-OK
-result code. Pool classes are not required to provide this method.
-This method is called by the ``BufferFill()``.
+The buffer is in the "reset" state (see design.mps.buffer.reset_). If
+successful, it must update ``*baseReturn`` and ``*limitReturn`` to the
+base and limit of the allocated region and return ``ResOK``. Otherwise
+it must leave ``*baseReturn`` and ``*limitReturn`` unchanged and
+return a non-OK result code. Pool classes are not required to provide
+this method. This method is called by ``BufferFill()``.
 
 .. _design.mps.buffer.reset: buffer#reset
 
-``typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer, Addr init, Addr limit)``
+``typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer)``
 
 _`.method.bufferEmpty`: The ``bufferEmpty`` method indicates that the
 client program has finished with the unused part of the buffer (the
-part between init and limit). This method must be provided if and only
-if ``bufferFill`` is provided. This method is called by the generic
+part between init and limit). The buffer is in the "ready" state (see
+design.mps.buffer.ready_). This method must be provided if and only if
+``bufferFill`` is provided. This method is called by the generic
 function ``BufferDetach()``.
 
-``typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr, AccessSet mode, MutatorContext context)``
-
-_`.method.access`: The ``access`` method indicates that the client
-program attempted to access the address ``addr``, but has been denied
-due to a protection fault. The ``mode`` indicates whether the client
-program was trying to read (``AccessREAD``) or write (``AccessWRITE``)
-the address. If this can't be determined, ``mode`` is ``AccessREAD |
-AccessWRITE``. The pool should perform any work necessary to remove
-the protection whilst still preserving appropriate invariants (this
-might scanning the region containing ``addr``). Pool classes are not
-required to provide this method, and not doing so indicates they never
-protect any memory managed by the pool. This method is called via the
-generic function ``PoolAccess()``.
-
-``typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg)``
-
-_`.method.whiten`: The ``whiten`` method requests that the pool to
-condemn (a subset of, but typically all) the objects in the segment
-``seg`` for the trace ``trace``. That is, prepare them for
-participation in the trace to determine their liveness. The pool
-should expect fix requests (`.method.fix`_) during the trace and a
-reclaim request (`.method.reclaim`_) at the end of the trace. Pool
-classes that automatically reclaim dead objects must provide this
-method, and must additionally set the ``AttrGC`` attribute. This
-method is called via the generic function ``PoolWhiten()``.
-
-``typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg)``
-
-_`.method.grey`: The ``grey`` method requires the pool to colour the
-objects in the segment ``seg`` grey for the trace ``trace`` (excepting
-objects that were already condemned for this trace). That is, make
-them ready for scanning by the trace ``trace``. The pool must arrange
-that any appropriate invariants are preserved, possibly by using the
-protection interface (see design.mps.prot_). Pool classes are not
-required to provide this method, and not doing so indicates that all
-instances of this class will have no fixable or traceable references
-in them.
-
-.. _design.mps.prot: prot
-
-``typedef void (*PoolBlackenMethod)(Pool pool, TraceSet traceSet, Seg seg)``
-
-_`.method.blacken`: The ``blacken`` method is called if it is known
-that the segment ``seg`` cannot refer to the white set for any of the
-traces in ``traceSet``. The pool must blacken all grey objects in the
-segment for those traces. Pool classes are not required to provide
-this method, and not doing so indicates that all instances of this
-class will have no fixable or traceable references in them. This
-method is called via the generic function ``PoolBlacken()``.
-
-``typedef Res (*PoolScanMethod)(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)``
-
-_`.method.scan`: The ``scan`` method requires that the pool scan all
-the grey objects on the segment ``seg``, passing the scan state ``ss``
-to ``FormatScan``. The pool may additionally accumulate a summary of
-*all* the objects on the segment. If it succeeds in accumulating such
-a summary it must indicate that it has done so by setting the
-``*totalReturn`` parameter to ``TRUE``. Otherwise it must set
-``*totalReturn`` to ``FALSE``. Pool classes are not required to
-provide this method, and not doing so indicates that all instances of
-this class will have no fixable or traceable references in them. This
-method is called via the generic function ``PoolScan()``.
-
-``typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg, Ref *refIO)``
-
-_`.method.fix`: The ``fix`` method indicates that the reference
-``*refIO`` has been discovered at rank ``ss->rank`` by the traces in
-``ss->traces``, and the pool must handle this discovery according to
-the fix protocol (design.mps.fix_). If the pool moves the object, it
-must update ``*refIO`` to refer to the new location of the object. If
-the pool determines that the referenced object died (for example,
-because the highest-ranking references to the object were weak), it
-must update ``*refIO`` to ``NULL``. Pool classes that automatically
-reclaim dead objects must provide this method, and must additionally
-set the ``AttrGC`` attribute. Pool classes that may move objects must
-also set the ``AttrMOVINGGC`` attribute. The ``fix`` method is on the
-critical path (see design.mps.critical-path_) and so must be fast.
-This method is called via the function ``TraceFix()``.
-
-.. _design.mps.fix: fix
-.. _design.mps.critical-path: critical-path
-
-_`.method.fixEmergency`: The ``fixEmergency`` method is used to
-perform fixing in "emergency" situations. Its specification is
-identical to the ``fix`` method, but it must complete its work without
-allocating memory (perhaps by using some approximation, or by running
-more slowly). Pool classes must provide this method if and only if
-they provide the ``fix`` method. If the ``fix`` method does not need
-to allocate memory, then it is acceptable for ``fix`` and
-``fixEmergency`` to be the same.
-
-``typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg)``
-
-_`.method.reclaim`: The ``reclaim`` method indicates that any
-remaining white objects in the segment ``seg`` have now been proved
-unreachable by the trace ``trace``, and so are dead. The pool should
-reclaim the resources associated with the dead objects. Pool classes
-are not required to provide this method. If they do, they must set the
-``AttrGC`` attribute. This method is called via the generic function
-``PoolReclaim()``.
-
-``typedef void (*PoolWalkMethod)(Pool pool, Seg seg, FormattedObjectsVisitor f, void *v, size_t s)``
-
-_`.method.walk`: The ``walk`` method must call the visitor function
-``f`` (along with its closure parameters ``v`` and ``s`` and the
-appropriate object format) once for each of the *black* objects in the
-segment ``seg``. Padding objects may or may not be included in the
-walk, at the pool's discretion: it is the responsibility of the client
-program to handle them. Forwarding objects must not be included in the
-walk. Pool classes need not provide this method. If they do, they must
-set the ``AttrFMT`` attribute. This method is called by the heap
-walker ``mps_arena_formatted_objects_walk()``.
+.. _design.mps.buffer.ready: buffer#ready
 
 ``typedef Size (*PoolSizeMethod)(Pool pool)``
 

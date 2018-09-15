@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = more low memory tests with AMC (using MV)
+ summary = more low memory tests with AMC (using MVFF)
  language = c
  link = testlib.o rankfmt.o
 END_HEADER
@@ -9,7 +9,7 @@ END_HEADER
 
 #include "testlib.h"
 #include "mpscamc.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 #include "mpsavm.h"
 #include "rankfmt.h"
 
@@ -22,7 +22,7 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 void *stackpointer;
 
-mps_pool_t poolmv;
+mps_pool_t poolmvff;
 mps_arena_t arena;
 
 
@@ -32,12 +32,11 @@ static void fillup(void)
  mps_addr_t a;
  char *b;
 
- die(mps_pool_create(&poolmv, arena, mps_class_mv(),
-                     (size_t)64, (size_t)64, (size_t)64),
-     "mps_pool_create");
+ cdie(mps_pool_create_k(&poolmvff, arena, mps_class_mvff(), mps_args_none),
+      "pool create");
  size=1024ul*1024ul;
  while (size) {
-  while (mps_alloc(&a, poolmv, size)==MPS_RES_OK) {
+  while (mps_alloc(&a, poolmvff, size)==MPS_RES_OK) {
    for(b=a; b<(char *)a+size; b++) {
     *b = 97;
    }
@@ -49,7 +48,7 @@ static void fillup(void)
 
 static void empty(void)
 {
- mps_pool_destroy(poolmv);
+ mps_pool_destroy(poolmvff);
 }
 
 

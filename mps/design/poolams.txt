@@ -255,9 +255,9 @@ there are grey objects in the segment, because the grey objects might
 have been subsequently scanned and blackened.
 
 _`.marked.fix`: The ``marksChanged`` flag is set ``TRUE`` by
-``AMSFix()`` when an object is made grey.
+``amsSegFix()`` when an object is made grey.
 
-_`.marked.scan`: ``AMSScan()`` must blacken all grey objects on the
+_`.marked.scan`: ``amsSegScan()`` must blacken all grey objects on the
 segment, so it must iterate over the segment until all grey objects
 have been seen. Scanning an object in the segment might grey another
 one (`.marked.fix`_), so the scanner iterates until this flag is
@@ -285,9 +285,9 @@ nothing marked as grey, so the ``marksChanged`` flag must already be
 ``FALSE``.
 
 _`.marked.blacken`: When the tracer decides not to scan, but to call
-``PoolBlacken()``, we know that any greyness can be removed.
-``AMSBlacken()`` does this and resets the ``marksChanged`` flag, if it
-finds that the segment has been condemned.
+``SegBlacken()``, we know that any greyness can be removed.
+``amsSegBlacken()`` does this and resets the ``marksChanged`` flag, if
+it finds that the segment has been condemned.
 
 _`.marked.clever`: AMS could be clever about not setting the
 ``marksChanged`` flag, if the fixed object is ahead of the current
@@ -325,7 +325,7 @@ current (2002-01) implementation of buffers assumes buffers are black,
 so they'd better.
 
 _`.fill.colour.reclaim`: In fact, putting a buffer on a condemned
-segment will screw up the accounting in ``AMCReclaim()``, so it's
+segment will screw up the accounting in ``amsSegReclaim()``, so it's
 disallowed.
 
 _`.fill.slow`: ``AMSBufferFill()`` gets progressively slower as more
@@ -343,7 +343,7 @@ _`.fill.extend`: If there's no space in any existing segment, the
 allocate. If that fails, the code tries to allocate a segment that's
 just large enough to satisfy the request.
 
-_`.empty`: ``AMSBufferEmpty()`` makes the unused space free, since
+_`.empty`: ``amsSegBufferEmpty()`` makes the unused space free, since
 there's no reason not to. We have to adjust the colour tables as well,
 since these grains were black and now they need to be white (or at
 least encoded -G and W).
@@ -462,10 +462,10 @@ index in a segment uses macros such as ``AMS_INDEX`` and
 every translation -- we could cache that.
 
 _`.grey-mutator`: To enforce the restriction set in `.not-req.grey`_
-we check that all the traces are flipped in ``AMSScan()``. It would be
-good to check in ``AMSFix()`` as well, but we can't do that, because
-it's called during the flip, and we can't tell the difference between
-the flip and the grey mutator phases with the current tracer
+we check that all the traces are flipped in ``amsSegScan()``. It would
+be good to check in ``amsSegFix()`` as well, but we can't do that,
+because it's called during the flip, and we can't tell the difference
+between the flip and the grey mutator phases with the current tracer
 interface.
 
 

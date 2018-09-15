@@ -18,6 +18,8 @@
 
 #define RangeBase(range) ((range)->base)
 #define RangeLimit(range) ((range)->limit)
+#define RangeSetBase(range, addr) BEGIN ((range)->base = (addr)); END
+#define RangeSetLimit(range, addr) BEGIN ((range)->limit = (addr)); END
 #define RangeSize(range) (AddrOffset(RangeBase(range), RangeLimit(range)))
 #define RangeContains(range, addr) ((range)->base <= (addr) && (addr) < (range)->limit)
 #define RangeIsEmpty(range) (RangeSize(range) == 0)
@@ -33,11 +35,12 @@ extern Bool RangesNest(Range outer, Range inner);
 extern Bool RangesEqual(Range range1, Range range2);
 extern Addr (RangeBase)(Range range);
 extern Addr (RangeLimit)(Range range);
+extern void (RangeSetBase)(Range range, Addr addr);
+extern void (RangeSetLimit)(Range range, Addr addr);
 extern Size (RangeSize)(Range range);
 extern void RangeCopy(Range to, Range from);
 
-
-/* Types */
+/* RangeStruct -- address range */
 
 typedef struct RangeStruct {
   Addr base;

@@ -1069,6 +1069,7 @@ static void VMFree(Addr base, Size size, Pool pool)
   Count pages;
   Index pi, piBase, piLimit;
   Bool foundChunk;
+  Size spareCommitted;
 
   AVER(base != NULL);
   AVER(size > (Size)0);
@@ -1109,18 +1110,35 @@ static void VMFree(Addr base, Size size, Pool pool)
   BTResRange(chunk->allocTable, piBase, piLimit);
 
   /* Consider returning memory to the OS. */
+  /* Purging spare memory can cause page descriptors to be unmapped,
+     causing ArenaCommitted to fall, so we can't be sure to unmap
+     enough in one pass. This somewhat contradicts the goal of having
+     spare committed memory, which is to reduce the amount of mapping
+     and unmapping, but we need to do this in order to be able to
+     check the spare committed invariant. */
+  spareCommitted = ArenaSpareCommitted(arena);
+  while (spareCommitted > ArenaSpareCommitLimit(arena)) {
+    Size toPurge = spareCommitted - ArenaSpareCommitLimit(arena);
+    /* Purge at least half of the spare memory, not just the extra
+       sliver, so that we return a reasonable amount of memory in one
+       go, and avoid lots of small unmappings, each of which has an
+       overhead. */
+    /* TODO: Consider making this time-based. */
+    /* TODO: Consider making this smarter about the overheads tradeoff. */
+    Size minPurge = ArenaSpareCommitted(arena) / 2;
+    Size newSpareCommitted;
+    if (toPurge < minPurge)
+      toPurge = minPurge;
+    VMPurgeSpare(arena, toPurge);
+    newSpareCommitted = ArenaSpareCommitted(arena);
+    AVER(newSpareCommitted < spareCommitted);
+    spareCommitted = newSpareCommitted;
+  }
+  AVER(ArenaCurrentSpare(arena) <= ArenaSpare(arena));
+
   /* TODO: Chunks are only destroyed when ArenaCompact is called, and
      that is only called from traceReclaim. Should consider destroying
      chunks here. See job003815. */
-  if (arena->spareCommitted > arena->spareCommitLimit) {
-    /* Purge half of the spare memory, not just the extra sliver, so
-       that we return a reasonable amount of memory in one go, and avoid
-       lots of small unmappings, each of which has an overhead. */
-    /* TODO: Consider making this time-based. */
-    /* TODO: Consider making this smarter about the overheads tradeoff. */
-    Size toPurge = arena->spareCommitted - arena->spareCommitLimit / 2;
-    (void)VMPurgeSpare(arena, toPurge);
-  }
 }
 
 
@@ -1220,6 +1238,7 @@ DEFINE_CLASS(Arena, VMArena, klass)
   klass->compact = VMCompact;
   klass->pagesMarkAllocated = VMPagesMarkAllocated;
   klass->chunkPageMapped = VMChunkPageMapped;
+  AVERT(ArenaClass, klass);
 }
 
 

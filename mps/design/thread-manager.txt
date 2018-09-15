@@ -85,7 +85,7 @@ guarantee behaviour in this case. For example, POSIX_ says, "A
 conforming implementation is free to reuse a thread ID after its
 lifetime has ended. If an application attempts to use a thread ID
 whose lifetime has ended, the behavior is undefined." For this reason,
-the documentation for ``mps_thread_dereg()`` specifies that it is an
+the documentation for ``mps_thread_reg()`` specifies that it is an
 error if a thread dies while registered.
 
 .. _POSIX: http://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_09_02

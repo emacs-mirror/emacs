@@ -41,7 +41,6 @@ typedef Res (*AMSSegSizePolicyFunction)(Size *sizeReturn,
 
 typedef struct AMSStruct {
   PoolStruct poolStruct;       /* generic pool structure */
-  Shift grainShift;            /* log2 of grain size */
   PoolGenStruct pgenStruct;    /* generation representing the pool */
   PoolGen pgen;                /* NULL or pointer to pgenStruct field */
   Size size;                   /* total segment size of the pool */
@@ -81,22 +80,6 @@ typedef struct AMSSegStruct {
 
 #define PoolAMS(pool) PARENT(AMSStruct, poolStruct, pool)
 #define AMSPool(ams) (&(ams)->poolStruct)
-
-
-/* macros for abstracting index/address computations */
-/* <design/poolams/#addr-index.slow> */
-
-/* only use when size is a multiple of the grain size */
-#define AMSGrains(ams, size) ((size) >> (ams)->grainShift)
-
-#define AMSGrainsSize(ams, grains) ((grains) << (ams)->grainShift)
-
-#define AMSSegShift(seg) (Seg2AMSSeg(seg)->ams->grainShift)
-
-#define AMS_ADDR_INDEX(seg, addr) \
-  ((Index)(AddrOffset(SegBase(seg), addr) >> AMSSegShift(seg)))
-#define AMS_INDEX_ADDR(seg, index) \
-  AddrAdd(SegBase(seg), (Size)(index) << AMSSegShift(seg))
 
 
 /* colour ops */
@@ -172,8 +155,6 @@ extern Res AMSInitInternal(AMS ams, Arena arena, PoolClass klass,
 extern void AMSFinish(Inst inst);
 extern Bool AMSCheck(AMS ams);
 
-extern Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
-
 #define AMSChain(ams) ((ams)->chain)
 
 extern void AMSSegFreeWalk(AMSSeg amsseg, FreeBlockVisitor f, void *p);
@@ -191,7 +172,7 @@ DECLARE_CLASS(Pool, AMSPool, AbstractCollectPool);
 typedef AMS AMSDebugPool;
 DECLARE_CLASS(Pool, AMSDebugPool, AMSPool);
 
-DECLARE_CLASS(Seg, AMSSeg, GCSeg);
+DECLARE_CLASS(Seg, AMSSeg, MutatorSeg);
 
 
 #endif /* poolams_h */

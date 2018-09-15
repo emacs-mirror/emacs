@@ -459,6 +459,7 @@ DEFINE_CLASS(Arena, ClientArena, klass)
   klass->chunkInit = ClientChunkInit;
   klass->chunkFinish = ClientChunkFinish;
   klass->chunkPageMapped = ClientChunkPageMapped;
+  AVERT(ArenaClass, klass);
 }
 
 

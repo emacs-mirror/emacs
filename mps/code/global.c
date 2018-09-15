@@ -24,7 +24,6 @@
 #include "bt.h"
 #include "poolmrg.h"
 #include "mps.h" /* finalization */
-#include "poolmv.h"
 #include "mpm.h"
 
 SRCID(global, "$Id$");
@@ -251,8 +250,8 @@ Bool GlobalsCheck(Globals arenaGlobals)
   if (arenaGlobals->defaultChain != NULL)
     CHECKD(Chain, arenaGlobals->defaultChain);
 
-  /* can't check arena->stackAtArenaEnter */
-  
+  /* can't check arena->stackWarm */
+
   return TRUE;
 }
 
@@ -309,6 +308,11 @@ Res GlobalsInit(Globals arenaGlobals)
   arenaGlobals->bufferLogging = FALSE;
   RingInit(&arenaGlobals->poolRing);
   arenaGlobals->poolSerial = (Serial)0;
+  /* The system pools are:
+     1. arena->freeCBSBlockPoolStruct
+     2. arena->controlPoolStruct
+     3. arena->controlPoolStruct.cbsBlockPoolStruct */
+  arenaGlobals->systemPools = (Count)3;
   RingInit(&arenaGlobals->rootRing);
   arenaGlobals->rootSerial = (Serial)0;
   RingInit(&arenaGlobals->rememberedSummaryRing);
@@ -350,7 +354,7 @@ Res GlobalsInit(Globals arenaGlobals)
   
   arena->emergency = FALSE;
 
-  arena->stackAtArenaEnter = NULL;
+  arena->stackWarm = NULL;
   
   arenaGlobals->defaultChain = NULL;
 
@@ -548,14 +552,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
   AVER(RingIsSingle(&arenaGlobals->rootRing)); /* <design/check/#.common> */
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     AVER(RingIsSingle(&arena->greyRing[rank]));
-
-  /* At this point the following pools still exist:
-   * 0. arena->freeCBSBlockPoolStruct
-   * 1. arena->controlPoolStruct
-   * 2. arena->controlPoolStruct.blockPoolStruct
-   * 3. arena->controlPoolStruct.spanPoolStruct
-   */
-  AVER(RingLength(&arenaGlobals->poolRing) == 4); /* <design/check/#.common> */
+  AVER(RingLength(&arenaGlobals->poolRing) == arenaGlobals->systemPools); /* <design/check/#.common> */
 }
 
 
@@ -690,7 +687,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
        * thread. */
       mode &= SegPM(seg);
       if (mode != AccessSetEMPTY) {
-        res = PoolAccess(SegPool(seg), seg, addr, mode, context);
+        res = SegAccess(seg, arena, addr, mode, context);
         AVER(res == ResOK); /* Mutator can't continue unless this succeeds */
       } else {
         /* Protection was already cleared, for example by another thread
@@ -887,7 +884,7 @@ Res ArenaDefinalize(Arena arena, Ref obj)
 }
 
 
-/* Peek / Poke */
+/* ArenaPeek -- read a single reference, possibly through a barrier */
 
 Ref ArenaPeek(Arena arena, Ref *p)
 {
@@ -904,74 +901,19 @@ Ref ArenaPeek(Arena arena, Ref *p)
   return ref;
 }
 
+/* ArenaPeekSeg -- as ArenaPeek, but p must be in seg. */
+
 Ref ArenaPeekSeg(Arena arena, Seg seg, Ref *p)
 {
   Ref ref;
-
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-
-  AVER(SegBase(seg) <= (Addr)p);
-  AVER((Addr)p < SegLimit(seg));
-  /* TODO: Consider checking p's alignment using seg->pool->alignment */
-
-  ShieldExpose(arena, seg);
-  ref = *p;
-  ShieldCover(arena, seg);
-  return ref;
-}
-
-void ArenaPoke(Arena arena, Ref *p, Ref ref)
-{
-  Seg seg;
-
-  AVERT(Arena, arena);
-  /* Can't check p as it is arbitrary */
-  /* Can't check ref as it is arbitrary */
-
-  if (SegOfAddr(&seg, arena, (Addr)p))
-    ArenaPokeSeg(arena, seg, p, ref);
-  else
-    *p = ref;
-}
-
-void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
-{
-  RefSet summary;
-
-  AVERT(Arena, arena);
-  AVERT(Seg, seg);
-  AVER(SegBase(seg) <= (Addr)p);
-  AVER((Addr)p < SegLimit(seg));
-  /* TODO: Consider checking p's alignment using seg->pool->alignment */
-  /* ref is arbitrary and can't be checked */
-
-  ShieldExpose(arena, seg);
-  *p = ref;
-  summary = SegSummary(seg);
-  summary = RefSetAdd(arena, summary, (Addr)ref);
-  SegSetSummary(seg, summary);
-  ShieldCover(arena, seg);
-}
-
-
-/* ArenaRead -- read a single reference, possibly through a barrier
- *
- * This forms part of a software barrier.  It provides fine-grain access
- * to single references in segments.
- * 
- * See also PoolSingleAccess and PoolSegAccess. */
-
-Ref ArenaRead(Arena arena, Ref *p)
-{
-  Bool b;
-  Seg seg = NULL;       /* suppress "may be used uninitialized" */
   Rank rank;
 
   AVERT(Arena, arena);
-
-  b = SegOfAddr(&seg, arena, (Addr)p);
-  AVER(b == TRUE);
+  AVERT(Seg, seg);
+  AVER(PoolArena(SegPool(seg)) == arena);
+  AVER(SegBase(seg) <= (Addr)p);
+  AVER((Addr)p < SegLimit(seg));
+  /* TODO: Consider checking p's alignment using seg->pool->alignment */
 
   /* .read.flipped: We AVER that the reference that we are reading */
   /* refers to an object for which all the traces that the object is */
@@ -993,9 +935,79 @@ Ref ArenaRead(Arena arena, Ref *p)
 
   /* We don't need to update the Seg Summary as in PoolSingleAccess
    * because we are not changing it after it has been scanned. */
+
+  ShieldExpose(arena, seg);
+  ref = *p;
+  ShieldCover(arena, seg);
+  return ref;
+}
+
+/* ArenaPoke -- write a single reference, possibly through a barrier */
+
+void ArenaPoke(Arena arena, Ref *p, Ref ref)
+{
+  Seg seg;
+
+  AVERT(Arena, arena);
+  /* Can't check p as it is arbitrary */
+  /* Can't check ref as it is arbitrary */
+
+  if (SegOfAddr(&seg, arena, (Addr)p))
+    ArenaPokeSeg(arena, seg, p, ref);
+  else
+    *p = ref;
+}
+
+/* ArenaPokeSeg -- as ArenaPoke, but p must be in seg. */
+
+void ArenaPokeSeg(Arena arena, Seg seg, Ref *p, Ref ref)
+{
+  RefSet summary;
+
+  AVERT(Arena, arena);
+  AVERT(Seg, seg);
+  AVER(PoolArena(SegPool(seg)) == arena);
+  AVER(SegBase(seg) <= (Addr)p);
+  AVER((Addr)p < SegLimit(seg));
+  /* TODO: Consider checking p's alignment using seg->pool->alignment */
+  /* ref is arbitrary and can't be checked */
+
+  ShieldExpose(arena, seg);
+  *p = ref;
+  summary = SegSummary(seg);
+  summary = RefSetAdd(arena, summary, (Addr)ref);
+  SegSetSummary(seg, summary);
+  ShieldCover(arena, seg);
+}
+
+/* ArenaRead -- like ArenaPeek, but reference known to be owned by arena */
+
+Ref ArenaRead(Arena arena, Ref *p)
+{
+  Bool b;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
+
+  AVERT(Arena, arena);
+
+  b = SegOfAddr(&seg, arena, (Addr)p);
+  AVER(b == TRUE);
   
-  /* get the possibly fixed reference */
   return ArenaPeekSeg(arena, seg, p);
+}
+
+/* ArenaWrite -- like ArenaPoke, but reference known to be owned by arena */
+
+void ArenaWrite(Arena arena, Ref *p, Ref ref)
+{
+  Bool b;
+  Seg seg = NULL;       /* suppress "may be used uninitialized" */
+
+  AVERT(Arena, arena);
+
+  b = SegOfAddr(&seg, arena, (Addr)p);
+  AVER(b == TRUE);
+  
+  ArenaPokeSeg(arena, seg, p, ref);
 }
 
 
@@ -1022,20 +1034,14 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   res = WriteF(stream, depth + 2,
                "mpsVersion $S\n", (WriteFS)arenaGlobals->mpsVersionString,
                "lock $P\n", (WriteFP)arenaGlobals->lock,
-               "pollThreshold $U kB\n",
-               (WriteFU)(arenaGlobals->pollThreshold / 1024),
+               "pollThreshold $U\n", (WriteFU)arenaGlobals->pollThreshold,
                arenaGlobals->insidePoll ? "inside" : "outside", " poll\n",
                arenaGlobals->clamped ? "clamped\n" : "released\n",
-               "fillMutatorSize $U kB\n",
-               (WriteFU)(arenaGlobals->fillMutatorSize / 1024),
-               "emptyMutatorSize $U kB\n",
-               (WriteFU)(arenaGlobals->emptyMutatorSize / 1024),
-               "allocMutatorSize $U kB\n",
-               (WriteFU)(arenaGlobals->allocMutatorSize / 1024),
-               "fillInternalSize $U kB\n",
-               (WriteFU)(arenaGlobals->fillInternalSize / 1024),
-               "emptyInternalSize $U kB\n",
-               (WriteFU)(arenaGlobals->emptyInternalSize / 1024),
+               "fillMutatorSize $U\n", (WriteFU)arenaGlobals->fillMutatorSize,
+               "emptyMutatorSize $U\n", (WriteFU)arenaGlobals->emptyMutatorSize,
+               "allocMutatorSize $U\n", (WriteFU)arenaGlobals->allocMutatorSize,
+               "fillInternalSize $U\n", (WriteFU)arenaGlobals->fillInternalSize,
+               "emptyInternalSize $U\n", (WriteFU)arenaGlobals->emptyInternalSize,
                "poolSerial $U\n", (WriteFU)arenaGlobals->poolSerial,
                "rootSerial $U\n", (WriteFU)arenaGlobals->rootSerial,
                "formatSerial $U\n", (WriteFU)arena->formatSerial,
@@ -1046,7 +1052,7 @@ Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream, Count depth)
   if (res != ResOK)
     return res;
 
-  res = HistoryDescribe(ArenaHistory(arena), stream, depth);
+  res = HistoryDescribe(ArenaHistory(arena), stream, depth + 2);
   if (res != ResOK)
     return res;
 
