@@ -4,6 +4,32 @@ Release notes
 =============
 
 
+.. _release-notes-1.118:
+
+Release 1.118.0
+---------------
+
+New features
+............
+
+#. A new support tool, the **monitor**, implements a graphical user
+   interface for analysis of :ref:`topic-telemetry`. This is
+   experimental: the implementation is likely to change in future
+   versions of the MPS. See :ref:`design-monitor`.
+
+
+Interface changes
+.................
+
+#. The format of :term:`telemetry` events has changed: Booleans are no
+   longer packed into bitfields, but are emitted as unsigned bytes.
+   This makes it possible to decode telemetry events using Python's
+   |struct|_.
+
+   .. |struct| replace:: ``struct.unpack``
+   .. _struct: https://docs.python.org/3/library/struct.html#struct.unpack
+
+
 .. _release-notes-1.117:
 
 Release 1.117.0
