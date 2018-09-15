@@ -8,12 +8,15 @@
 #
 
 from __future__ import unicode_literals
+
+import glob
+from itertools import chain
 import os
 import os.path
-import glob
 import re
 import shutil
 import sys
+
 from sphinx.util.console import bold
 
 TYPES = '''
@@ -147,8 +150,9 @@ def convert_updated(app):
         if newer(design, converted):
             app.info('converting design %s' % name)
             convert_file(name, design, converted)
-    for diagram in glob.iglob('../design/*.svg'):
+    diagrams = chain(*[glob.iglob('../design/*.' + ext)
+                       for ext in 'png svg'.split()])
+    for diagram in diagrams:
         target = os.path.join('source/design/', os.path.basename(diagram))
         if newer(diagram, target):
             shutil.copyfile(diagram, target)
-
