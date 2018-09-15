@@ -1,7 +1,7 @@
 /* policy.c: POLICY DECISIONS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This module collects the decision-making code for the MPS, so that
  * policy can be maintained and adjusted.
@@ -210,11 +210,10 @@ Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
 
 static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
 {
-  Res res;
   size_t topCondemnedGen, i;
   GenDesc gen;
-  Size condemnedSize = 0, survivorSize = 0, genNewSize, genTotalSize;
 
+  AVER(mortalityReturn != NULL);
   AVERT(Chain, chain);
   AVERT(Trace, trace);
   AVER(chain->arena == trace->arena);
@@ -231,8 +230,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
     -- topCondemnedGen;
     gen = &chain->gens[topCondemnedGen];
     AVERT(GenDesc, gen);
-    genNewSize = GenDescNewSize(gen);
-    if (genNewSize >= gen->capacity)
+    if (GenDescNewSize(gen) >= gen->capacity)
       break;
   }
 
@@ -240,34 +238,13 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
    * lower generations. */
   TraceCondemnStart(trace);
   for (i = 0; i <= topCondemnedGen; ++i) {
-    Ring node, next;
     gen = &chain->gens[i];
     AVERT(GenDesc, gen);
-    RING_FOR(node, &gen->segRing, next) {
-      GCSeg gcseg = RING_ELT(GCSeg, genRing, node);
-      res = TraceAddWhite(trace, &gcseg->segStruct);
-      if (res != ResOK)
-        goto failBegin;
-    }
-    genTotalSize = GenDescTotalSize(gen);
-    genNewSize = GenDescNewSize(gen);
-    condemnedSize += genTotalSize;
-    survivorSize += (Size)(genNewSize * (1.0 - gen->mortality))
-                    /* predict survivors will survive again */
-                    + (genTotalSize - genNewSize);
+    GenDescStartTrace(gen, trace);
   }
-  TraceCondemnEnd(trace);
-
   EVENT5(ChainCondemnAuto, chain->arena, chain, trace, topCondemnedGen,
          chain->genCount);
-  
-  *mortalityReturn = 1.0 - (double)survivorSize / condemnedSize;
-  return ResOK;
-
-failBegin:
-  AVER(TraceIsEmpty(trace));    /* See <code/trace.c#whiten.fail> */
-  TraceCondemnEnd(trace);
-  return res;
+  return TraceCondemnEnd(mortalityReturn, trace);
 }
 
 
@@ -289,6 +266,12 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
 {
   Res res;
   Trace trace;
+  double TraceWorkFactor = 0.25;
+  /* Fix the mortality of the world to avoid runaway feedback between the
+     dynamic criterion and the mortality of the arena's top generation,
+     leading to all traces collecting the world. This is a (hopefully)
+     temporary hack, pending an improved scheduling algorithm. */
+  double TraceWorldMortality = 0.5;
 
   AVER(traceReturn != NULL);
   AVERT(Arena, arena);
@@ -302,7 +285,7 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
     sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
     /* @@@@ sCondemned should be scannable only */
     sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-    sSurvivors = (Size)(sCondemned * (1 - arena->topGen.mortality));
+    sSurvivors = (Size)(sCondemned * (1 - TraceWorldMortality));
     tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
     AVER(TraceWorkFactor >= 0);
     AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
@@ -342,8 +325,6 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
 
       res = TraceCreate(&trace, arena, TraceStartWhyCHAIN_GEN0CAP);
       AVER(res == ResOK);
-      trace->chain = firstChain;
-      ChainStartTrace(firstChain, trace);
       res = policyCondemnChain(&mortality, firstChain, trace);
       if (res != ResOK) /* should try some other trace, really @@@@ */
         goto failCondemn;
@@ -429,7 +410,7 @@ Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

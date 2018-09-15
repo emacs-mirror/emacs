@@ -7,9 +7,17 @@ TEST_HEADER
  harness = 2.0
  parameters = EXTEND=65536 AVGSIZE=32 BIGSIZE=5000000;
 OUTPUT_SPEC
+ spare_committed0 = 0
+ spare0 = 0.000000
  reduce1 > 4000000
+ spare_committed1 = 0
+ spare1 = 0.000000
  reduce2 <= 0
+ spare_committed2 > 4000000
+ spare2 = 1.000000
  reduce3 > 3000000
+ spare_committed3 < 50000
+ spare3 = 0.010000
  completed = yes
 END_HEADER
 */
@@ -38,9 +46,12 @@ static void test(void)
  MPS_ARGS_BEGIN(args) {
    MPS_ARGS_ADD(args, MPS_KEY_ARENA_SIZE, 1024*1024*40);
    MPS_ARGS_ADD(args, MPS_KEY_COMMIT_LIMIT, 1024ul*1024ul*100ul);
+   MPS_ARGS_ADD(args, MPS_KEY_SPARE, 0.0);
    cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), args),
         "create arena");
  } MPS_ARGS_END(args);
+ report("spare_committed0", "%lu", (unsigned long)mps_arena_spare_committed(arena));
+ report("spare0", "%f", mps_arena_spare(arena));
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
@@ -57,9 +68,6 @@ static void test(void)
         "create low pool");
  } MPS_ARGS_END(args);
 
-/* Set the spare commit limit to 0MB */
-
- mps_arena_spare_commit_limit_set(arena, (size_t) 0);
  die(mps_alloc(&objs[0], pool, BIGSIZE), "alloc");
  com0 = mps_arena_committed(arena);
  mps_free(pool, objs[0], BIGSIZE);
@@ -67,11 +75,12 @@ static void test(void)
 
 /* the free should have reduced the total amount committed */
  report("reduce1", "%ld", com0-com1);
+ report("spare_committed1", "%lu", (unsigned long)mps_arena_spare_committed(arena));
+ report("spare1", "%f", mps_arena_spare(arena));
 
 /* Try again but with arena hysteresis */
-
-/* nb. size_t unsigned, therefore (size_t)-1 is the maximum limit */
- mps_arena_spare_commit_limit_set(arena, (size_t)-1);
+ mps_arena_spare_set(arena, 1.0);
+ asserts(mps_arena_spare(arena) <= 1.0, "spare");
  die(mps_alloc(&objs[0], pool, BIGSIZE), "alloc");
  com0 = mps_arena_committed(arena);
  mps_free(pool, objs[0], BIGSIZE);
@@ -79,23 +88,19 @@ static void test(void)
 
 /* This time the free shouldn't make any difference */
  report("reduce2", "%ld", com0-com1);
+ report("spare_committed2", "%lu", (unsigned long)mps_arena_spare_committed(arena));
+ report("spare2", "%f", mps_arena_spare(arena));
 
 /* Reducing the spare committed limit should return most of the spare */
- mps_arena_spare_commit_limit_set(arena, (size_t)(1024*1024));
+ mps_arena_spare_set(arena, 0.01);
  com2 = mps_arena_committed(arena);
  report("reduce3", "%ld", com0-com2);
-
- comment("Finishing off.");
+ report("spare_committed3", "%lu", (unsigned long)mps_arena_spare_committed(arena));
+ report("spare3", "%f", mps_arena_spare(arena));
 
  mps_pool_destroy(pool);
- comment("Destroyed pool.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
  mps_arena_destroy(arena);
- comment("Destroyed arena.");
-
 }
 
 int main(void)
@@ -104,4 +109,3 @@ int main(void)
  pass();
  return 0;
 }
-

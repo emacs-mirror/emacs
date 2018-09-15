@@ -27,7 +27,7 @@ Was-marked protocol
 _`.was-marked`: The ``ScanState`` has a ``Bool wasMarked``
 field. This is used for finalization.
 
-_`.was-marked.not`: If a pool's fix method discovers that the
+_`.was-marked.not`: If a segment's fix method discovers that the
 object referred to by the ref (the one that it is supposed to be
 fixing) has not previously been marked (that is, this is the first
 reference to this object that has been fixed), and that the object was

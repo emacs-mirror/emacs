@@ -1,40 +1,60 @@
-/* poolmv.h: MANUAL VARIABLE POOL
+/* rangetree.c -- binary trees of address ranges
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
- * Portions copyright (C) 2002 Global Graphics Software.
- *
- * .purpose: This is the interface to the manual-variable pool class.
- *
- * .mv: Manual-variable pools manage variably-sized blocks of memory
- * in a flexible manner. They have higher overheads than a fixed-size
- * pool.
- *
- * .design: See <design/poolmv/>
+ * Copyright (C) 2016-2018 Ravenbrook Limited.  See end of file for license.
  */
 
-#ifndef poolmv_h
-#define poolmv_h
-
+#ifndef rangetree_h
+#define rangetree_h
 
 #include "mpmtypes.h"
-#include "mpscmv.h"
+#include "range.h"
+#include "tree.h"
 
-typedef struct MVStruct *MV;
+#define RangeTreeTree(rangeTree) (&(rangeTree)->treeStruct)
+#define RangeTreeRange(rangeTree) (&(rangeTree)->rangeStruct)
+#define RangeTreeOfTree(tree) PARENT(RangeTreeStruct, treeStruct, tree)
+#define RangeTreeOfRange(range) PARENT(RangeTreeStruct, rangeStruct, range)
 
-extern PoolClass PoolClassMV(void);
+#define RangeTreeBase(block) RangeBase(RangeTreeRange(block))
+#define RangeTreeLimit(block) RangeLimit(RangeTreeRange(block))
+#define RangeTreeSetBase(block, addr) RangeSetBase(RangeTreeRange(block), addr)
+#define RangeTreeSetLimit(block, addr) RangeSetLimit(RangeTreeRange(block), addr)
+#define RangeTreeSize(block) RangeSize(RangeTreeRange(block))
 
-extern Bool MVCheck(MV mv);
+extern void RangeTreeInit(RangeTree rangeTree, Addr base, Addr limit);
+extern void RangeTreeInitFromRange(RangeTree rangeTree, Range range);
+extern Bool RangeTreeCheck(RangeTree rangeTree);
+extern void RangeTreeFinish(RangeTree rangeTree);
 
-#define MVPool(mv) (&(mv)->poolStruct)
+
+/* Compare and key functions for use with TreeFind, TreeInsert, etc.
+ *
+ * We pass the rangeTree base directly as a TreeKey (void *) assuming
+ * that Addr can be encoded, possibly breaking <design/type/#addr.use>.
+ * On an exotic platform where this isn't true, pass the address of
+ * base: that is, add an &.
+ */
+
+#define RangeTreeKeyOfBaseVar(baseVar) ((TreeKey)(baseVar))
+#define RangeTreeBaseOfKey(key)        ((Addr)(key))
+
+extern Compare RangeTreeCompare(Tree tree, TreeKey key);
+extern TreeKey RangeTreeKey(Tree tree);
 
 
-#endif /* poolmv_h */
+/* RangeTreeStruct -- address range in a tree */
 
+typedef struct RangeTreeStruct {
+  TreeStruct treeStruct;
+  RangeStruct rangeStruct;
+} RangeTreeStruct;
+
+#endif /* rangetree_h */
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

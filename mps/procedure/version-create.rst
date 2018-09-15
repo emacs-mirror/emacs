@@ -74,9 +74,9 @@ evolution. A version has these parts:
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #. Are you an authenticated Git Fusion user? If not, follow the
-   git-fusion_ procedure.
+   follow the `Git Fusion procedures`_ first.
 
-   .. _git-fusion: /procedure/git-fusion
+   .. _Git Fusion procedures: https://info.ravenbrook.com/procedure/git-fusion
 
 #. Does ``code/version.c`` in the master sources contain the correct
    value for the ``MPS_RELEASE`` macro? It should be the name of the
@@ -191,7 +191,7 @@ B. Document History
 C. Copyright and License
 ------------------------
 
-Copyright © 2002-2016 Ravenbrook Limited. All rights reserved.
+Copyright © 2002-2018 Ravenbrook Limited. All rights reserved.
 <http://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

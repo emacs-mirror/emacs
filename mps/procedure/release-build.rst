@@ -28,16 +28,15 @@ All relative paths are relative to
 ----------------
 
 #. Make sure you have a version branch from which to make the release.
-   If not, follow the `version creation procedure <version-create>`_
-   first.
+   If not, follow the `version creation procedure`_ first.
 
-   .. _version-create: version-create
+   .. _version creation procedure: version-create
 
-#. Make sure that you have rights to push to the ``mps``
-   repository on GitHub. If not, follow the `Becoming a Ravenbrook
-   team member procedure <git-fusion>`_ first.
+#. Make sure that you can authenticate to Git Fusion, and that you
+   have rights to push to the ``mps`` repository on GitHub. If not,
+   follow the `Git Fusion procedures`_ first.
 
-   .. _git-fusion: https://info.ravenbrook.com/procedure/git-fusion
+   .. _Git Fusion procedures: https://info.ravenbrook.com/procedure/git-fusion
 
 
 3. Setting up for release
@@ -224,11 +223,12 @@ On a Unix (including macOS) machine:
 
 #. Make a git tag for the release::
 
-        git clone git-fusion@raven.ravenbrook.com:mps-version-$VERSION
-        cd mps-version-$VERSION
+        git clone ssh://git@perforce.ravenbrook.com:1622/mps-public
+        cd mps-public
+        git checkout -b version/$VERSION origin/version/$VERSION
         git tag -a release-$RELEASE -F - <<END
         Memory Pool System Kit release $RELEASE.
-        See <http://www.ravenbrook.com/project/mps/release/>.
+        See <https://www.ravenbrook.com/project/mps/release/>.
         END
         git push --tags git@github.com:Ravenbrook/mps.git
 
@@ -272,6 +272,7 @@ B. Document History
 2013-03-20  GDR_   Ensure that manual HTML is up to date before making a release.
 2014-01-13  GDR_   Make procedure less error-prone by giving exact sequence of commands (where possible) based on experience of release 1.112.0.
 2016-01-28  RB_    Git repository renamed from mps-temporary to mps.
+2018-07-30  GDR_   Git Fusion moved to perforce.ravenbrook.com.
 ==========  =====  ==========================================================
 
 .. _RB: mailto:rb@ravenbrook.com

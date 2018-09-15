@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = spare_commit_limit tests
+ summary = spare commit limit tests
  language = c
  link = testlib.o rankfmt.o
  harness = 2.1
@@ -48,8 +48,8 @@ mps_addr_t objlo, objhi;
 #define DIFF_SIZE  65536
 #define HUGE (size_t)(1024ul*1024ul*100)
 
-#define SPARE_LIMIT HUGE
-#define SPARE_ZERO 0
+#define SPARE_LIMIT 1.0
+#define SPARE_ZERO 0.0
 
 
 static void t_alloc(int spare, int spare_total, int commit, int obj_size) { 
@@ -136,8 +136,8 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
 
  /* flush hysteresis fund, then set limit */
 
- mps_arena_spare_commit_limit_set(arena, SPARE_ZERO);
- mps_arena_spare_commit_limit_set(arena, SPARE_LIMIT);
+ mps_arena_spare_set(arena, SPARE_ZERO);
+ mps_arena_spare_set(arena, SPARE_LIMIT);
 
  /* allocate something in each pool (to reduce risk of subsidiary
     allocation being needed later) */

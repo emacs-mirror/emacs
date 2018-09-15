@@ -13,19 +13,12 @@
 #include "mpmtypes.h"
 #include "mpm.h"
 #include "mpmst.h"
-#include "range.h"
+#include "rangetree.h"
 #include "splay.h"
-
-typedef struct CBSBlockStruct *CBSBlock;
-typedef struct CBSBlockStruct {
-  TreeStruct treeStruct;
-  Addr base;
-  Addr limit;
-} CBSBlockStruct;
 
 typedef struct CBSFastBlockStruct *CBSFastBlock;
 typedef struct CBSFastBlockStruct {
-  struct CBSBlockStruct cbsBlockStruct;
+  struct RangeTreeStruct rangeTreeStruct;
   Size maxSize; /* accurate maximum block size of sub-tree */
 } CBSFastBlockStruct;
 

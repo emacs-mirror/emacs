@@ -1,7 +1,7 @@
 /* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
@@ -36,7 +36,7 @@ static Bool MVTCheck(MVT mvt);
 static void MVTFinish(Inst inst);
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize);
-static void MVTBufferEmpty(Pool pool, Buffer buffer, Addr base, Addr limit);
+static void MVTBufferEmpty(Pool pool, Buffer buffer);
 static void MVTFree(Pool pool, Addr base, Size size);
 static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth);
 static Size MVTTotalSize(Pool pool);
@@ -149,6 +149,7 @@ DEFINE_CLASS(Pool, MVTPool, klass)
   klass->bufferEmpty = MVTBufferEmpty;
   klass->totalSize = MVTTotalSize;
   klass->freeSize = MVTFreeSize;
+  AVERT(PoolClass, klass);
 }
 
 /* Macros */
@@ -306,6 +307,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
     goto failABQInit;
 
   pool->alignment = align;
+  pool->alignShift = SizeLog2(pool->alignment);
   mvt->reuseSize = reuseSize;
   mvt->fillSize = fillSize;
   mvt->abqOverflow = FALSE;
@@ -474,7 +476,8 @@ static void MVTFinish(Inst inst)
 
 /* MVTNoteFill -- record that a buffer fill has occurred */
 
-static void MVTNoteFill(MVT mvt, Addr base, Addr limit, Size minSize) {
+static void MVTNoteFill(MVT mvt, Addr base, Addr limit, Size minSize)
+{
   mvt->available -= AddrOffset(base, limit);
   mvt->allocated += AddrOffset(base, limit);
   AVER(mvt->size == mvt->allocated + mvt->available + mvt->unavailable);
@@ -571,7 +574,7 @@ static Bool MVTSplinterFill(Addr *baseReturn, Addr *limitReturn,
 static void MVTOneSegOnly(Addr *baseIO, Addr *limitIO, MVT mvt, Size minSize)
 {
   Addr base, limit, segLimit;
-  Seg seg;
+  Seg seg = NULL;           /* suppress "may be used uninitialized" */
   Arena arena;
   
   base = *baseIO;
@@ -880,18 +883,20 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
  *
  * See <design/poolmvt/#impl.c.ap.empty>
  */
-static void MVTBufferEmpty(Pool pool, Buffer buffer,
-                           Addr base, Addr limit)
+static void MVTBufferEmpty(Pool pool, Buffer buffer)
 {
   MVT mvt;
   Size size;
   Res res;
+  Addr base, limit;
 
   AVERT(Pool, pool);
   mvt = PoolMVT(pool);
   AVERT(MVT, mvt);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
+  base = BufferGetInit(buffer);
+  limit = BufferLimit(buffer);
   AVER(base <= limit);
 
   size = AddrOffset(base, limit);
@@ -974,7 +979,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   /* <design/poolmvt/#arch.ap.no-fit.oversize.policy> */
   /* Return exceptional blocks directly to arena */
   if (size > mvt->fillSize) {
-    Seg seg;
+    Seg seg = NULL;         /* suppress "may be used uninitialized" */
     SURELY(SegOfAddr(&seg, PoolArena(pool), base));
     AVER(base == SegBase(seg));
     AVER(limit <= SegLimit(seg));
@@ -1030,7 +1035,7 @@ static Res MVTDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
   if (!TESTC(MVTPool, mvt))
     return ResPARAM;
   if (stream == NULL)
-    return ResFAIL;
+    return ResPARAM;
 
   res = NextMethod(Inst, MVTPool, describe)(inst, stream, depth);
   if (res != ResOK)
@@ -1185,7 +1190,7 @@ static Bool MVTReturnSegs(MVT mvt, Range range, Arena arena)
   limit = RangeLimit(range);
 
   while (base < limit) {
-    Seg seg;
+    Seg seg = NULL;         /* suppress "may be used uninitialized" */
     Addr segBase, segLimit;
     
     SURELY(SegOfAddr(&seg, arena, base));
@@ -1326,7 +1331,7 @@ static Bool MVTContingencySearch(Addr *baseReturn, Addr *limitReturn,
 
 static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 {
-  Seg seg;
+  Seg seg = NULL;           /* suppress "may be used uninitialized" */
   Addr segLimit;
 
   SURELY(SegOfAddr(&seg, arena, base));
@@ -1353,7 +1358,7 @@ static Bool MVTCheckFit(Addr base, Addr limit, Size min, Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

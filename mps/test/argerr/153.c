@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = very large number as third argument to mps_alloc (MV)
+ summary = very large number as third argument to mps_alloc (MVFF)
  language = c
  link = testlib.o
 OUTPUT_SPEC
@@ -11,7 +11,7 @@ END_HEADER
 */
 
 #include "testlib.h"
-#include "mpscmv.h"
+#include "mpscmvff.h"
 
 static void test(void) {
  mps_arena_t arena;
@@ -20,8 +20,7 @@ static void test(void) {
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
 
- cdie(mps_pool_create(&pool, arena, mps_class_mv(),
-  1024*32, 1024*16, 1024*256), "pool");
+ cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none), "pool");
 
  cdie(mps_alloc(&q, pool, (size_t)-1 - mmqaArenaSIZE), "alloc");
 

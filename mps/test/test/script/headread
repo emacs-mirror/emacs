@@ -111,6 +111,19 @@ sub readheader {
   delete $spec_output{"result"};
   delete $spec_rel{"result"};
  }
+ # If the test case specifies neither completion nor failure, assume
+ # completion is intended.
+ my @expected_keys = qw(completed assert abort assert_or_abort errtext);
+ my $have_expected = 0;
+ foreach $key (@expected_keys) {
+  if (exists $spec_output{$key}) {
+   $have_expected = 1;
+  }
+ }
+ if (!$have_expected) {
+  $spec_output{"completed"} = "yes";
+  $spec_rel{"completed"} = "=";
+ }
 }
 
 sub readvals {
@@ -254,6 +267,13 @@ sub get_parmdefs {
  local ($var, $missing, $val);
  $missing = "";
  %parmdefs = ();
+ if ($VARIETY eq "hot") {
+  $parmdefs{CONFIG_VAR_HOT} = 1;
+ } elsif ($VARIETY eq "cool") {
+  $parmdefs{CONFIG_VAR_COOL} = 1;
+ } elsif ($VARIETY eq "rash") {
+  $parmdefs{CONFIG_VAR_RASH} = 1;
+ }
  if (exists $test_header{"parameters"}) {
   foreach (split /\s+/, $test_header{"parameters"}) {
    ($_, $val) = split /=/, $_;

@@ -45,7 +45,7 @@ static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
   AVERT(Pool, pool);
   c = p;
   AVERT(FormattedObjectsStepClosure, c);
-  AVER(s == 0);
+  AVER(s == UNUSED_SIZE);
 
   (*c->f)((mps_addr_t)object, (mps_fmt_t)format, (mps_pool_t)pool,
           c->p, c->s);
@@ -61,26 +61,22 @@ static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsVisitor f,
 {
   Seg seg;
   FormattedObjectsStepClosure c;
+  Format format;
 
   AVERT(Arena, arena);
   AVER(FUNCHECK(f));
   AVER(f == ArenaFormattedObjectsStep);
-  /* p and s are arbitrary closures. */
   /* Know that p is a FormattedObjectsStepClosure  */
-  /* Know that s is 0 */
-  AVER(p != NULL);
-  AVER(s == 0);
-
   c = p;
   AVERT(FormattedObjectsStepClosure, c);
+  /* Know that s is UNUSED_SIZE */
+  AVER(s == UNUSED_SIZE);
 
   if (SegFirst(&seg, arena)) {
     do {
-      Pool pool;
-      pool = SegPool(seg);
-      if (PoolHasAttr(pool, AttrFMT)) {
+      if (PoolFormat(&format, SegPool(seg))) {
         ShieldExpose(arena, seg);
-        PoolWalk(pool, seg, f, p, s);
+        SegWalk(seg, format, f, p, s);
         ShieldCover(arena, seg);
       }
     } while(SegNext(&seg, arena, seg));
@@ -107,7 +103,7 @@ void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
   c.f = f;
   c.p = p;
   c.s = s;
-  ArenaFormattedObjectsWalk(arena, ArenaFormattedObjectsStep, &c, 0);
+  ArenaFormattedObjectsWalk(arena, ArenaFormattedObjectsStep, &c, UNUSED_SIZE);
   ArenaLeave(arena);
 }
 
@@ -184,7 +180,7 @@ static Bool rootsStepClosureCheck(rootsStepClosure rsc)
 
 static void rootsStepClosureInit(rootsStepClosure rsc,
                                  Globals arena, Trace trace,
-                                 PoolFixMethod rootFix,
+                                 SegFixMethod rootFix,
                                  mps_roots_stepper_t f, void *p, size_t s)
 {
   ScanState ss;
@@ -228,23 +224,18 @@ static void rootsStepClosureFinish(rootsStepClosure rsc)
  * This doesn't cause further scanning of transitive references, it just
  * calls the client closure.  */
 
-static Res RootsWalkFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
+static Res RootsWalkFix(Seg seg, ScanState ss, Ref *refIO)
 {
   rootsStepClosure rsc;
   Ref ref;
-        
-  UNUSED(pool);
 
+  AVERT(Seg, seg);
   AVERT(ScanState, ss);
   AVER(refIO != NULL);
   rsc = ScanState2rootsStepClosure(ss);
   AVERT(rootsStepClosure, rsc);
 
   ref = *refIO;
-
-  /* If the segment isn't GCable then the ref is not to the heap and */
-  /* shouldn't be passed to the client. */
-  AVER(PoolHasAttr(SegPool(seg), AttrGC));
 
   /* Call the client closure - .assume.rootaddr */
   rsc->f((mps_addr_t*)refIO, (mps_root_t)rsc->root, rsc->p, rsc->s);
@@ -318,15 +309,19 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
   if (res != ResOK)
     return res;
 
-  /* ArenaRootsWalk only passes references to GCable pools to the client. */
-  /* NOTE: I'm not sure why this is. RB 2012-07-24 */
+  /* .roots-walk.first-stage: In order to fool MPS_FIX12 into calling
+     _mps_fix2 for a reference in a root, the reference must pass the
+     first-stage test (against the summary of the trace's white
+     set), so make the summary universal. */
+  trace->white = ZoneSetUNIV;
+
+  /* .roots-walk.second-stage: In order to fool _mps_fix2 into calling
+     our fix function (RootsWalkFix), the reference must be to a
+     segment that is white for the trace, so make all segments white
+     for the trace. */
   if (SegFirst(&seg, arena)) {
     do {
-      if (PoolHasAttr(SegPool(seg), AttrGC)) {
-        res = TraceAddWhite(trace, seg);
-        if (res != ResOK)
-          goto failBegin;
-      }
+      SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace));
     } while (SegNext(&seg, arena, seg));
   }
 
@@ -346,14 +341,10 @@ static Res ArenaRootsWalk(Globals arenaGlobals, mps_roots_stepper_t f,
       break;
   }
 
-failBegin:
   /* Turn segments black again. */
   if (SegFirst(&seg, arena)) {
     do {
-      if (PoolHasAttr(SegPool(seg), AttrGC)) {
-        SegSetGrey(seg, TraceSetDel(SegGrey(seg), trace));
-        SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
-      }
+      SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace));
     } while (SegNext(&seg, arena, seg));
   }
 
@@ -376,14 +367,16 @@ void mps_arena_roots_walk(mps_arena_t mps_arena, mps_roots_stepper_t f,
   Res res;
 
   ArenaEnter(arena);
-  AVER(FUNCHECK(f));
-  /* p and s are arbitrary closures, hence can't be checked */
+  STACK_CONTEXT_BEGIN(arena) {
+    AVER(FUNCHECK(f));
+    /* p and s are arbitrary closures, hence can't be checked */
 
-  AVER(ArenaGlobals(arena)->clamped);          /* .assume.parked */
-  AVER(arena->busyTraces == TraceSetEMPTY);    /* .assume.parked */
+    AVER(ArenaGlobals(arena)->clamped);          /* .assume.parked */
+    AVER(arena->busyTraces == TraceSetEMPTY);    /* .assume.parked */
 
-  res = ArenaRootsWalk(ArenaGlobals(arena), f, p, s);
-  AVER(res == ResOK);
+    res = ArenaRootsWalk(ArenaGlobals(arena), f, p, s);
+    AVER(res == ResOK);
+  } STACK_CONTEXT_END(arena);
   ArenaLeave(arena);
 }
 
