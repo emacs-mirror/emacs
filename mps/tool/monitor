@@ -6,7 +6,7 @@
 # Read a telemetry stream from a program using the MPS, construct a
 # model of the MPS data structures in the progam, and display selected
 # time series from the model in a graphical user interface.
-# 
+#
 # Requirements: Python 3.6, Matplotlib, PyQt5.
 
 
@@ -15,7 +15,7 @@ import bisect
 from collections import defaultdict, deque, namedtuple
 from contextlib import redirect_stdout, ContextDecorator
 import decimal
-from itertools import count, cycle
+from itertools import count, cycle, product
 import math
 import os
 import queue
@@ -157,9 +157,9 @@ def telemetry_decoder(read):
                     batch.sort(key=key)
                     dt = (clocks[1] - clocks[0]) / clocks_per_sec
                     d_eventclock = eventclocks[1] - eventclocks[0]
-                    m = dt / d_eventclock # gradient
+                    m = dt / d_eventclock # Gradient.
                     t0 = clocks[0] / clocks_per_sec
-                    c = t0 - m * eventclocks[0] # y-intercept
+                    c = t0 - m * eventclocks[0] # Y-intercept.
                     yield [(m * e.header.clock + c, e) for e in batch]
                     batch.clear()
             elif event.header.code == EventInit_code:
@@ -184,9 +184,9 @@ def with_SI_prefix(y, precision=5, unit=''):
     if y < 0:
         return '-' + with_SI_prefix(-y, precision, unit)
     y = decimal.Context(prec=precision).create_decimal(y)
-    e = y.adjusted()            # exponent of leading digit
+    e = y.adjusted()            # Exponent of leading digit.
     if e:
-        e -= 1 + (e - 1) % 3    # make exponent a multiple of 3
+        e -= 1 + (e - 1) % 3    # Make exponent a multiple of 3.
     prefixed_unit = SI_PREFIX[e // 3 + 8] + unit
     return f"{y.scaleb(-e):f}" + " " * bool(prefixed_unit) + prefixed_unit
 
@@ -235,10 +235,7 @@ COUNT_AXIS = AxisDesc('count', '{:,.0f}'.format)
 
 class TimeSeries:
     "Series of data points in time order."
-    def __init__(self, note=None, zoom=None, draw=None):
-        self._note_fn = note
-        self._zoom_fn = zoom
-        self._draw_fn = draw
+    def __init__(self):
         self.t = []
         self.y = []
 
@@ -266,27 +263,25 @@ class TimeSeries:
     def recompute(self, f):
         "Recompute the time series with a time constant changed by factor `f`"
 
-    def note(self, line, t, index, verbose=False):
-        """Return text for a tooltip, and for the log pane, describing the
-        data point at time `t` (which has index `index`), or None,
-        None if there is nothing to say.
+    def note(self, line, index):
+        "Return list of lines briefly describing the data point at index."
+        t, y = self[index]
+        return [line.name, format_seconds(t), line.yaxis.format(y)]
 
-        """
-        return None, None
+    def info(self, line, index):
+        "Return list of lines describing the data point at index in detail."
+        return self.note(line, index)
 
-    def zoom(self, line, t, index):
+    def zoom(self, line, index):
         """Return minimum and maximum times for a zoom range around the data
-        point at time `t` (which has index `index`), or None if
-        there's no particular range. Subclasses should override
-        `series_zoom` rather than this.
+        point at the given index, or None if there's no particular range.
 
         """
         return None
 
-    def draw(self, line, t, index, axes_dict):
+    def draw(self, line, index, axes_dict):
         """Draw something on the axes in `axes_dict` when the data point at
-        time `t` (which has inddex `index`) is selected. Subclasses
-        should override `series_zoom` rather than this.
+        the given index is selected.
 
         """
         return None
@@ -347,7 +342,7 @@ class RateSeries(TimeSeries):
             self.append(self._limit - self._period / 2, self._count)
             self._count = 0
             self._limit += self._period
-    
+
     def recompute(self, f):
         "Recompute the series with a different period."
         event_t = self._event_t
@@ -356,18 +351,18 @@ class RateSeries(TimeSeries):
             self.inc(t)
         return f'period {format_seconds(self._period)}'
 
-    def note(self, line, t, index, verbose=False):
+    def note(self, line, index):
         start = self._start + self._period * index
         end = start + self._period
-        note = f'{line.name}\n {format_seconds(start)}-{format_seconds(end)}\n{line.yaxis.format(self.y[index])}'
-        return note, note.replace('\n', ' ')
+        return [line.name, f"{format_seconds(start)} -- {format_seconds(end)}", 
+                line.yaxis.format(self.y[index])]
 
-    def zoom(self, line, t, index):
+    def zoom(self, line, index):
         start = self._start + self._period * index
         end = start + self._period
         return start, end
 
-    def draw(self, line, t, index, axes_dict):
+    def draw(self, line, index, axes_dict):
         ax = axes_dict[line.yaxis]
         start = self._start + self._period * index
         end = start + self._period
@@ -411,17 +406,16 @@ class OnOffSeries(TimeSeries):
             self.off(ts[i * 2 + 1])
         return f'time constant: {format_seconds(1 / self._k)}'
 
-    def note(self, line, t, index, verbose=False):
+    def note(self, line, index):
         on = self._ons[index // 2]
-        l = on[1] - on[0]
-        note = f"{line.name}: {format_seconds(on[0])} + {format_seconds(l)}"
-        return note, note
-        
-    def zoom(self, line, t, index):
+        return [f"{line.name}",
+                f"{format_seconds(on[0])} + {format_seconds(on[1] - on[0])}"]
+
+    def zoom(self, line, index):
         on = self._ons[index // 2]
-        return (on[0], on[1])
-        
-    def draw(self, line, t, index, axes_dict):
+        return on[0], on[1]
+
+    def draw(self, line, index, axes_dict):
         axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
         on = self._ons[index // 2]
         return [ax.axvspan(on[0], on[1], alpha=0.5, facecolor=line.color)
@@ -439,25 +433,21 @@ class TraceSeries(TimeSeries):
         super().__init__()
         self._traces = traces
 
-    def note(self, line, t, index, verbose=False):
-        if t not in self._traces:
-            return f'no trace {t}', f'no trace {t}'
-        return self._traces[t].note(verbose=verbose)
+    def delegate_to_trace(name):
+        def wrapped(self, line, index, *args):
+            t, _ = self[index]
+            return getattr(self._traces[t], name)(*args)
+        return wrapped
 
-    def zoom(self, line, t, index):
-        if t not in self._traces:
-            return None
-        return self._traces[t].zoom()
-
-    def draw(self, line, t, index, axes_dict):
-        if t not in self._traces:
-            return []
-        return self._traces[t].draw(axes_dict)
+    note = delegate_to_trace('note')
+    info = delegate_to_trace('info')
+    zoom = delegate_to_trace('zoom')
+    draw = delegate_to_trace('draw')
 
 
 class EventHandler:
-    """Object that handles a telemetry event by dispatching to the method
-    with the same name as the event.
+    """Model of an MPS data structure that handles a telemetry event by
+    dispatching to the method with the same name as the event.
 
     """
     def ignore(self, t, event):
@@ -550,7 +540,7 @@ class Gen(EventHandler):
         self._model.add_time_series(
             self, mortality_average, FRACTION_AXIS, f"mortality.avg",
             f"mortality of data in generation, moving average",
-            draw=False, color_as=per_trace_line)
+            draw=False, color=per_trace_line.color)
         mortality_average.append(t, event.mortality);
         self._ref_size = ref_size = TimeSeries()
         self._model.add_time_series(
@@ -623,7 +613,7 @@ class Trace(EventHandler):
         self.add_time("flip end", t, event)
 
     def TraceBandAdvance(self, t, event):
-        self.add_time(f"{mpsevent.RANK[event.rank]} band", t, event)
+        self.add_time(f"{mpsevent.RANK[event.rank].lower()} band", t, event)
 
     def TraceReclaim(self, t, event):
         self.add_time("reclaim", t, event)
@@ -676,51 +666,56 @@ class Trace(EventHandler):
     def ArenaPollEnd(self, t, event):
         self.pause_end(t, event)
 
-    def note(self, verbose=False):
-        "Describe this trace for tooltip and the log pane."
+    def note(self):
+        return ["trace", format_seconds(self.create), f"{self.gens} gens"]
+
+    def info(self):
+        info = []
+        log = info.append
         base_t, base_cycles, _ = self.times[0]
-        if verbose:
-            log = f"Trace of {self.gens} gens at {format_seconds(base_t)} ({self.why}):\nTimes: \n"
-            ot, oc = base_t, base_cycles
-            for t, c, n in self.times[1:]:
-                log += f"  {n:20} +{format_seconds(t - ot)} ({format_cycles(c - oc)}): ({format_seconds(t - base_t)}, {format_cycles(c - base_cycles)})\n"
-                ot, oc = t, c
-            final_t, final_cycles, _ = self.times[-1]
-            elapsed_t = final_t - base_t
-            elapsed_cycles = final_cycles - base_cycles
-            pn, pt, pc = self.pauses
-            if pc < elapsed_cycles:
-                log += f"{pn:,d} Pauses ({format_seconds(pt)}, {format_cycles(pc)}). Mark/space: {pt / elapsed_t:,.3f}/{pc / elapsed_cycles:,.3f}\n"
-            log += "Sizes:\n"
-            for (n, s) in self.sizes:
-                log += f"  {n}: {format_bytes(s)}\n"
-            log += "Counts:\n"
-            for (n, c) in self.counts:
-                log += f"  {n}: {c:,d}\n"
-            for (mode, count) in sorted(self.accesses.items()):
-                log += f"  {mpsevent.ACCESS_MODE[mode]} barrier hits: {count:,d}\n"
-            log += f"white zones: {self.whiteZones}: "
-            log += ' '.join(f'{((self.whiteRefSet >> (64 - 8 * i)) & 255):08b}'
-                            for i in range(1, 9))
-        else:
-            log = f"Trace of {self.gens} gens at {format_seconds(base_t)} ({self.why})"
-        return f"trace\n{self.create:f} s\n{self.gens} gens", log
-    
+        log(f"Trace of {self.gens} gens at {format_seconds(base_t)}")
+        log(f"Why: {self.why}")
+        log("Times:")
+        ot, oc = base_t, base_cycles
+        for t, c, n in self.times[1:]:
+            log(f"  {n}\t+{format_seconds(t - ot)} "
+                f"({format_cycles(c - oc)})"
+                f"\t{format_seconds(t - base_t)} "
+                f"({format_cycles(c - base_cycles)})")
+            ot, oc = t, c
+        final_t, final_cycles, _ = self.times[-1]
+        elapsed_t = final_t - base_t
+        elapsed_cycles = final_cycles - base_cycles
+        pn, pt, pc = self.pauses
+        if pc < elapsed_cycles:
+            log(f"{pn:,d} Pauses ({format_seconds(pt)}, {format_cycles(pc)}). "
+                f"Mark/space: {pt / elapsed_t:,.3f}/{pc / elapsed_cycles:,.3f}")
+        log("Sizes:")
+        for n, s in self.sizes:
+            log(f"  {n}: {format_bytes(s)}")
+        log("Counts:")
+        for n, c in self.counts:
+            log(f"  {n}: {c:,d}")
+        for mode, count in sorted(self.accesses.items()):
+            log(f"  {mpsevent.ACCESS_MODE[mode]} barrier hits: {count:,d}")
+        zones = " ".join(f"{((self.whiteRefSet >> (64 - 8 * i)) & 255):08b}"
+                         for i in range(1, 9))
+        log(f"white zones: {self.whiteZones}: {zones}")
+        return info
+
     def zoom(self):
         "Return the period of interest for this trace."
-        if self._zoom_fn:
-            return self._zoom_fn(line, t, index)
-        return (self.times[0][0], self.times[-1][0])
-    
+        return self.times[0][0], self.times[-1][0]
+
     def draw(self, axes_dict):
         "Draw things related to the trace on all the axes."
-        # uniquify axes based on bounding boxes
-        axes_to_draw = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
-        return ([ax.axvline(t)
-                 for ax in axes_to_draw
-                 for t, _, _ in self.times] +
-                [ax.axvspan(self.times[0][0], self.times[-1][0], alpha=0.5, facecolor='r')
-                 for ax in axes_to_draw])
+        # Uniquify axes based on bounding boxes.
+        axes = {ax.bbox.bounds: ax for ax in axes_dict.values()}.values()
+        return [
+            ax.axvline(t) for ax, (t, _, _) in product(axes, self.times)
+        ] + [
+            ax.axvspan(*self.zoom(), alpha=0.5, facecolor='r') for ax in axes
+        ]
 
 
 class Arena(EventHandler):
@@ -736,9 +731,9 @@ class Arena(EventHandler):
         self._arena_class = None # Arena's class pointer.
         self._serial = None      # Arena's serial number.
         self._pools = []         # List of Pools ever belonging to arena.
-        self._pool = {}          # pointer -> Pool (for live pools)
+        self._pool = {}          # Pointer -> Pool (for live pools).
         self._gens = []          # List of Gens ever belonging to arena.
-        self._gen = {}           # pointer -> Gen (for live gens)
+        self._gen = {}           # Pointer -> Gen (for live gens).
         self._alloc = Accumulator()
         self.model.add_time_series(
             self, self._alloc, BYTES_AXIS, "alloc",
@@ -747,7 +742,7 @@ class Arena(EventHandler):
         self.model.add_time_series(
             self, self._poll, FRACTION_AXIS, "poll",
             "polling time moving average",
-            clickdraw=True)
+            click_axis_draw=True)
         self._access = {}
         for am, name in sorted(mpsevent.ACCESS_MODE.items()):
             self._access[am] = RateSeries(t)
@@ -755,19 +750,19 @@ class Arena(EventHandler):
                 self, self._access[am], COUNT_AXIS, f"{name} barrier",
                 f"{name} barrier hits per second")
         self._last_access = None
-        self._seg_size = {}      # segment pointer -> size
-        self._seg_summary = {}   # segment pointer -> summary
-        self._zone_ref_size = {} # zone -> refsize Accumulator
+        self._seg_size = {}      # Segment pointer -> size.
+        self._seg_summary = {}   # Segment pointer -> summary.
+        self._zone_ref_size = {} # Zone -> refsize Accumulator.
         self._univ_ref_size = Accumulator()
         self.model.add_time_series(
             self, self._univ_ref_size, BYTES_AXIS, "zone-univ.ref",
             "size of segments referencing the universe")
-        self._live_traces = {} # trace pointer -> Trace
-        self._all_traces = {} # start time -> Trace
+        self._live_traces = {}   # Trace pointer -> Trace.
+        self._all_traces = {}    # Start time -> Trace.
         self._traces = TraceSeries(self._all_traces)
         self.model.add_time_series(
             self, self._traces, TRACE_AXIS, "trace",
-            "generations condemned by trace", clickdraw=True,
+            "generations condemned by trace", click_axis_draw=True,
             marker='x', linestyle='None')
         self._condemned_size = TimeSeries()
         self.model.add_time_series(
@@ -869,7 +864,7 @@ class Arena(EventHandler):
         assert t not in self._all_traces
         trace = Trace(self, t, event)
         self._live_traces[event.trace] = self._all_traces[t] = trace
-        # seems like a reasonable time to call this
+        # Seems like a reasonable time to call this.
         self.update_to(t)
 
     def delegate_to_trace(self, t, event):
@@ -905,7 +900,7 @@ class Arena(EventHandler):
         if self._seg_summary:
             for gen in self._gen.values():
                 gen.update_ref_size(t, self._seg_summary, self._seg_size)
-    
+
     def SegSetSummary(self, t, event):
         size = event.size
         self._seg_summary[event.seg] = event.newSummary
@@ -932,34 +927,59 @@ class Arena(EventHandler):
 
 class Line:
     "A line in a Matplotlib plot wrapping a TimeSeries."
-    colors = cycle('blue orange green red purple brown pink gray olive cyan'
+    COLORS = cycle('blue orange green red purple brown pink gray olive cyan'
                    .split())
 
     def __init__(self, owner, series, yaxis, name, desc,
-                 draw=True, color_as=None, clickdraw=False,
-                 **kwargs):
-        self.owner = owner      # Owning object.
-        self.series = series    # Time series.
-        self.yaxis = yaxis      # Y Axis
-        self._name = name       # Brief description.
-        self.desc = desc        # Brief description.
-        self.draw = draw        # Plot this line?
-        self.clickdraw = clickdraw # should a click on a data point draw something on the axes?
-        if color_as:
-            self.color = color_as.color
-        else:
-            self.color = next(self.colors)
+                 draw=True, color=None, click_axis_draw=False,
+                 marker=None, **kwargs):
+        """Create a Line.
+
+        Arguments:
+        owner -- owning object (whose name prefixes the name of the line).
+        series: TimeSeries -- object whose data is to be drawn.
+        yaxis: AxisDesc -- description of Y-axis for the line.
+        name: str -- short name of line.
+        desc: str -- description of line (for tooltip).
+        draw: bool -- plot this line?
+        color: str -- Matplotlib name of color for line.
+        click_axis_draw: bool -- should a click on a data point draw
+            something on the axes?
+        marker -- Matplotlib marker style.
+        
+        The remaining keyword arguments are passed to Axes.plot when
+        the line is plotted.
+
+        """
+        self.owner = owner
+        self.series = series
+        self.yaxis = yaxis
+        self._name = name
+        self.desc = desc
+        self.draw = draw
+        self.click_axis_draw = click_axis_draw
+        self.color = color or next(self.COLORS)
+        self._marker = marker
         self.axes = None        # Currently plotted on axes.
         self.line = None        # Matplotlib Line2D object.
-        self._kwargs = kwargs   # Keyword arguments for Axes.plot.
-        self._marker = 'marker' in self._kwargs
+        self._kwargs = kwargs
 
     def __len__(self):
         return len(self.series)
 
-    # doesn't handle slices
+    # Doesn't handle slices.
     def __getitem__(self, key):
         return self.series[key]
+
+    @property
+    def marker(self):
+        "Return current Matplotlib marker style for line."
+        if self._marker:
+            return self._marker
+        elif len(self) == 1:
+            return 'x'
+        else:
+            return None
 
     @property
     def name(self):
@@ -980,14 +1000,8 @@ class Line:
         y = self.series.y
         if self.line is None:
             self.axes = axes
-            # lines without markers should have markers if they have a singleton point.
-            if not self._marker:
-                if len(self) == 1:
-                    self._kwargs['marker'] = 'x'
-                else:
-                    self._kwargs.pop('marker', None)
             self.line, = axes.plot(x, y, color=self.color, label=self.name,
-                                   **self._kwargs)
+                                   marker=self.marker, **self._kwargs)
         else:
             if self.axes != axes:
                 self.unplot()
@@ -995,13 +1009,19 @@ class Line:
                 self.axes = axes
             self.line.set_data(x, y)
             self.line.set_label(self.name)
+            self.line.set_marker(self.marker)
 
     def contains(self, event):
+        """Test whether the event occurred within the pick radius of the line,
+        returning a pair (False, None) if not, or (True, {'ind': set
+        of points within the radius}) if so.
+
+        """
         if self.line is None:
             return False, None
         return self.line.contains(event)
 
-    def dispxy(self, i):
+    def display_coords(self, i):
         "Return the display coordinates of the point with index `i`."
         t, y = self[i]
         return self.line.axes.transData.transform((t, y))
@@ -1012,34 +1032,31 @@ class Line:
 
         if self.draw and self.ready:
             i = self.series.closest(t)
-            dx, _ = self.dispxy(i)
+            dx, _ = self.display_coords(i)
             if abs(dispx - dx) < range:
                 return i
         return None
 
-    def note(self, index, verbose=False):
-        "Return annotation text and log pane text for a selected point."
-        t, _ = self.series[index]
-        return self.series.note(self, t, index, verbose=verbose)
+    def draw_point(self, index, axes_dict):
+        """Draw in response to a click on a data point, and return a list of
+        drawn items.
 
-    def zoom(self, index):
-        "Return (low, high) limits for the point of interest, or None."
-        t, _ = self.series[index]
-        return self.series.zoom(self, t, index)
-
-    def drawPoint(self, index, axes_dict):
-        "Draw in response to a click on a data point, and return a list of drawn items."
-        t, _ = self.series[index]
-        drawn = self.series.draw(self, t, index, axes_dict)
+        """
+        drawn = self.series.draw(self, index, axes_dict)
         # Could just draw on axes_dict[self.yaxis] ??
         if drawn is None:
-            if self.clickdraw:
+            if self.click_axis_draw:
+                t, _ = self[index]
                 drawn = [ax.axvline(t) for ax in axes_dict.values()]
             else:
                 drawn = []
         return drawn
 
     def recompute(self, f):
+        """Recompute the line's time series with a time constant changed by
+        factor `f`.
+
+        """
         return self.series.recompute(f)
 
 
@@ -1071,7 +1088,7 @@ class Model(EventHandler):
             return
         self._needs_redraw = False
 
-        # Collate drawable lines by y axis
+        # Collate drawable lines by y-axis.
         yaxis_lines = defaultdict(list)
         for line in self.lines:
             if line.ready and line.draw:
@@ -1079,9 +1096,9 @@ class Model(EventHandler):
             else:
                 line.unplot()
 
-        bounds_axes = defaultdict(list) # axes drawn in each area
+        bounds_axes = defaultdict(list) # Axes drawn in each area.
 
-        # Draw the lines
+        # Draw the lines.
         for yax in yaxis_lines:
             axes = axes_dict[yax]
             axes.set_axis_on()
@@ -1092,20 +1109,22 @@ class Model(EventHandler):
                 axes.autoscale_view()
             bounds_axes[axes.bbox.bounds].append((axes, yax))
 
-        # Set the format_coord method for each axes
+        # Set the format_coord method for each axis.
         for bounds, ax_list in bounds_axes.items():
             if len(ax_list) > 1:
                 for ax, yax in ax_list:
-                    # capture the current values of ax_list and tData here
+                    # Capture the current values of ax_list and tData here.
                     def format_coord(x, y, ax_list=ax_list, tData=ax.transData):
-                        # x, y are data coordinates
-                        _, axy = tData.transform((0, y)) # y in display coordinates
-                        # Invert the transforms here. If you invert them at plotting time
-                        # and cache them so we don't have to invert them every time format_coord
-                        # is called, then you get the wrong answer. We don't know why.
-                        return (f'{format_seconds(x)}, ' +
-                                ', '.join(yax.format(ax.transData.inverted().transform((0, axy))
-                                                  [1])
+                        # x, y are data coordinates.
+                        # axy is corresponding display coordinate.
+                        _, axy = tData.transform((0, y))
+                        # Invert the transforms here. If you invert them at
+                        # plotting time and cache them so we don't have to
+                        # invert them every time format_coord is called, then
+                        # you get the wrong answer. We don't know why.
+                        return (f"{format_seconds(x)}, " +
+                                ", ".join(yax.format(ax.transData.inverted()
+                                                     .transform((0, axy))[1])
                                           for ax, yax in ax_list))
                     ax.format_coord = format_coord
             else:
@@ -1208,38 +1227,35 @@ class ApplicationToolbar(NavigationToolbar):
 
 class ErrorReporter(ContextDecorator):
     """Context manager which reports the traceback of any exception to the
-    stream provided to its constructor. Useful when exceptions are
+    function provided to its constructor. Useful when exceptions are
     otherwise silently ignored or reported to a stream which is not
     promptly flushed.
 
     May also be used as a decorator.
 
     """
-    def __init__(self, f):
-        self._f = f
+    def __init__(self, writelines):
+        self._writelines = writelines
 
     def __enter__(self):
         return self
 
     def __exit__(self, ty, val, tb):
         if ty is not None:
-            traceback.print_exception(ty, val, tb, file=self._f)
+            self._writelines(traceback.format_exception(ty, val, tb))
 
 
 # All keyboard shortcuts. Each one is a triple:
 # `(iterable, method name, documentation)`.
 #
-# If `iterable` is None, `documentation` is a string output as part of
+# If `iterable` is empty, `documentation` is a string output as part of
 # help documentation.
-# 
-# Otherwise the members of `iterable` must match `event.key` for an
-# MPL key press event. So `iterable` may be a single character, or a
-# short string, or an iterable of strings.
-# 
-# If a member has length > 1, it is downcased before matching against
-# `event.key`. This is a hack to improve the help documentation, and
-# may be a bad idea. Note that some length-1 keybindings are
-# upper case.
+#
+# Otherwise the members of `iterable` are presentation names of key
+# presses. After convertion via the event_key function, they are matched
+# against `event.key` for MPL key press events. So `iterable` may be a
+# single character, or a short string (whose individual characters are
+# the keys), or an iterable of strings.
 #
 # `method_name` should be the name of a method on ApplicationWindow,
 # without the preceding underscore.
@@ -1252,77 +1268,66 @@ class ErrorReporter(ContextDecorator):
 # development this flexibility is good.
 
 SHORTCUTS = [
-    # first the shortcuts which come with the MPL navigation toolbar.
-    (None, None, 'Navigation bar shortcuts:'),
-    (('h', 'r', 'Home'),
-     'mpl_key', '"home": zoom out to the whole dataset'),
-    (('c', 'Backspace', 'Left'),
-     'mpl_key', '"back": go back to the previous view'),
-    (('v', 'Right'),
-     'mpl_key', '"forward": go forward to the next view'),
-    ('p',
-     'mpl_key', '"pan/zoom": select the pan/zoom tool'),
-     ('o',
-     'mpl_key', '"zoom": select the zoom-to-rectangle tool'),
-    (('Ctrl+S',),
-     'mpl_key', '"save": save the current view as a PNG file'),
-    ('g',
-     'mpl_key', 'show major grid lines'),
-    ('G',
-     'mpl_key', 'show minor grid lines'),
-    ('Lk',
-     'mpl_key', 'toggle log/linear on time axis'),
-    (('Ctrl+F',),
-     'mpl_key', 'toggle full-screen mode'),
+    # First the shortcuts which come with the MPL navigation toolbar.
+    ((), None, 'Navigation bar shortcuts:'),
+    (('h', 'r', 'Home'), 'mpl_key', "Zoom out to the whole dataset"),
+    (('c', 'Backspace', 'Left'), 'mpl_key', "Back to the previous view"),
+    (('v', 'Right'), 'mpl_key', "Forward to the next view"),
+    ('p', 'mpl_key', "Select the pan/zoom tool"),
+    ('o', 'mpl_key', "Select the zoom-to-rectangle tool"),
+    (('Ctrl+S', 'Cmd+S'), 'mpl_key', "Save the current view as a PNG file"),
+    ('g', 'mpl_key', "Show major grid lines"),
+    ('G', 'mpl_key', "Show minor grid lines"),
+    ('Lk', 'mpl_key', "Toggle log/linear on time axis"),
+    (('Ctrl+F', 'Ctrl+Alt+F'), 'mpl_key', "Toggle full-screen mode"),
 
-    # Now, disabling some of the MPL's shortcuts
-    (('Ctrl+F',), None, None), # full-screen doesn't work
-    ('g', None, None), # no major grids
-    ('G', None, None), # no useful minor grids
-    ('L', None, None), # log time axis not useful
-    ('k', None, None), # log time axis not useful
-    # Now, our own shortcuts, some of which over-ride MPL ones.
-    (None, None, 'Other shortcuts:'),
-    (('Ctrl+W',),
-     'close', 'Close the monitor'),
-     ('l',
-     'toggle_log_linear', 'Toggle log/linear byte scale'),
-    (('Right',),
-     'next_point', 'Select next point of selected series'),
-    (('Left',),
-     'previous_point', 'Select previous point of selected series'),
-    (('Up',),
-     'up_line', 'Select point on higher line'),
-    (('Down',),
-     'down_line', 'Select point on lower line'),
-    (('PageUp',),
-     'slower', 'Double time constant for time-dependent series'),
-    (('PageDown',),
-     'faster', 'Halve time constant for time-dependent series'),
-    (('Pause',),
-     'pause', 'Freeze/thaw axis limits'),
-    ('+',
-     'zoom_in', 'Zoom in'),
-    ('-',
-     'zoom_out', 'Zoom out'),
-    ('z',
-     'zoom', 'Zoom in to selected point'),
-    ('i',
-     'info', 'report detailed info on selected point'),
-    ('?h',
-     'help', 'report help'),
+    # Disable some of the MPL's shortcuts.
+    (('Ctrl+F',), None, None),  # Full-screen doesn't work.
+    ('g', None, None),          # No major grids.
+    ('G', None, None),          # No useful minor grids.
+    ('L', None, None),          # Log time axis not useful.
+    ('k', None, None),          # Log time axis not useful.
+
+    # Our own shortcuts, some of which over-ride MPL ones.
+    ((), None, "Other shortcuts:"),
+    (('Ctrl+W', 'Cmd+W'), 'close', "Close the monitor"),
+     ('l', 'toggle_log_linear', "Toggle log/linear byte scale"),
+    (('Right',), 'next_point', "Select next point of selected series"),
+    (('Left',), 'previous_point', "Select previous point of selected series"),
+    (('Up',), 'up_line', "Select point on higher series"),
+    (('Down',), 'down_line', "Select point on lower series"),
+    (('PageUp',), 'slower', "Double time constant for time-dependent series"),
+    (('PageDown',), 'faster', "Halve time constant for time-dependent series"),
+    (('Pause',), 'pause', "Freeze/thaw axis limits"),
+    ('+', 'zoom_in', "Zoom in"),
+    ('-', 'zoom_out', "Zoom out"),
+    ('z', 'zoom', "Zoom in to selected point"),
+    ('i', 'info', "Show detail on selected point"),
+    ('?h', 'help', "Show help"),
 ]
 
 
 # Set of keys whose presses are not logged.
 IGNORED_KEYS = {
-    'shift',
-    'control',
     'alt',
-    'super',                    # Windows key
-    'ctrl+alt',                 # AltGr key
     'cmd',
+    'control',
+    'ctrl',
+    'shift',
+    'super', # Windows key
 }
+
+
+def event_key(key):
+    """Convert presentation name of key to a string that can be matched
+    against a Matplotlib event.key. Names of length 1 are unchanged, but
+    longer names are converted to lower case.
+
+    """
+    if len(key) <= 1:
+        return key
+    else:
+        return key.lower()
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
@@ -1339,19 +1344,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self._model = model      # The MPS model.
         self._home_limits = None # Limits of the graph in "home" position.
-        self._line_checkbox = {} # Line -> QCheckbox
+        self._line_checkbox = {} # Line -> QCheckbox.
 
         self.setWindowTitle(title)
         main = QtWidgets.QWidget()
         self.setCentralWidget(main)
-        
-        # make a splitter and a layout to contain it
+
+        # Make a splitter and a layout to contain it.
         main_layout = QtWidgets.QHBoxLayout()
         splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
         main_layout.addWidget(splitter)
         main.setLayout(main_layout)
 
-        # Above the splitter, an hbox layout
+        # Above the splitter, an hbox layout.
         upper = QtWidgets.QWidget()
         upper_layout = QtWidgets.QHBoxLayout()
         upper.setLayout(upper_layout)
@@ -1369,14 +1374,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._lines_scroll.setWidgetResizable(True)
         upper_layout.addWidget(self._lines_scroll)
 
-        # Matplot canvas.
+        # Matplotlib canvas.
         self._canvas = FigureCanvas(Figure(figsize=(10, 8)))
         upper_layout.addWidget(self._canvas)
 
         # Create all axes, set up tickmarks etc
-        bytes_axes, trace_axes = self._canvas.figure.subplots(nrows=2, sharex=True,
-                                                              gridspec_kw={'hspace':0,
-                                                                           'height_ratios':(5, 2)})
+        bytes_axes, trace_axes = self._canvas.figure.subplots(
+            nrows=2, sharex=True,
+            gridspec_kw={'hspace': 0, 'height_ratios': (5, 2)})
         fraction_axes = bytes_axes.twinx()
         count_axes = trace_axes.twinx()
         self._axes_dict = {
@@ -1389,16 +1394,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self._axes_dict[yax].set_ylabel(yax.label)
             self._axes_dict[yax].set_xlabel("time (seconds)")
             self._axes_dict[yax].set_yscale('linear')
-        # bytes tick labels in megabytes etc.
+
+        # Bytes tick labels in megabytes etc.
         bytes_axes.ticklabel_format(style='plain')
         bytes_axes.yaxis.set_major_formatter(format_tick_bytes)
         self._log_scale = False
 
-        # make a toolbar and put it on the top of the whole layout.
+        # Make a toolbar and put it on the top of the whole layout.
         self._toolbar = ApplicationToolbar(self._canvas, self)
         self.addToolBar(QtCore.Qt.TopToolBarArea, self._toolbar)
 
-        # Below the splitter, a logging pane
+        # Below the splitter, a logging pane.
         self._logbox = QtWidgets.QTextEdit()
         self._logbox.setReadOnly(True)
         self._logbox.setLineWrapMode(True)
@@ -1415,31 +1421,29 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._line_annotation.get_bbox_patch().set_alpha(0.8)
         self._canvas.mpl_connect("button_release_event", self._click)
 
-        # points close in time to the most recent selection, on each
-        # line, in increasing y order (line, index, ...)
+        # Points close in time to the most recent selection, on each line, in
+        # increasing y order (line, index, ...).
         self._close_points = None
-        # Map from line to index into self._close_points
+        # Map from line to index into self._close_points.
         self._close_line = None
-        # index of currently selected point in self._close_points
+        # Index of currently selected point in self._close_points.
         self._selected = None
-        # Things drawn for the current selection
+        # Things drawn for the current selection.
         self._drawn = []
 
-        # shortcuts
+        # Mapping from event key to (method, presentation name,
+        # documentation) for keyboard shortcuts.
         self._shortcuts = {}
-        for kl, method, doc in SHORTCUTS:
-            if kl is None:
-                continue
-            for k in kl:
-                if len(k) > 1:
-                    k = k.lower()
+        for keys, method, doc in SHORTCUTS:
+            for key in keys:
                 if method is None:
-                    self._shortcuts.pop(k, None)
+                    self._shortcuts.pop(event_key(key), None)
                 else:
-                    self._shortcuts[k] = getattr(self, '_' + method), doc
+                    self._shortcuts[event_key(key)] = getattr(
+                        self, '_' + method), key, doc
 
-        # pass all keystrokes to on_key_press, where we can capture them or pass them on to
-        # the toolbar.
+        # Pass all keystrokes to on_key_press, where we can capture them or
+        # pass them on to the toolbar.
         self._canvas.mpl_connect('key_press_event', self._on_key_press)
         self._canvas.setFocusPolicy(QtCore.Qt.StrongFocus)
         self._canvas.setFocus()
@@ -1449,25 +1453,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._timer = self._canvas.new_timer(100, [(self._update, (), {})])
         self._timer.start()
 
-    def _log(self, msg):
-        "Append msg to the log box."
-        if msg:
-            self._logbox.append(msg)
+    def _log(self, message):
+        "Append message to the log box."
+        self._logbox.append(message.rstrip("\n"))
 
-    # this pair of methods should let us redirect stdout to self,
-    # useful when debugging (see also ErrorReporter).
-    def write(self, msg):
-        self._log(msg.rstrip('\n'))
-    def flush(self):
-        pass
+    def _log_lines(self, messages):
+        "Append messages to the log box."
+        for message in messages:
+            self._log(message)
 
     def _on_key_press(self, event):
         """Handle a keyboard event."""
-        with ErrorReporter(self):
+        with ErrorReporter(self._log_lines):
             if event.key in self._shortcuts:
                 self._shortcuts[event.key][0](event)
-            elif event.key not in IGNORED_KEYS:
-                self._log(f"Unknown key '{event.key}'")
+            elif not set(event.key.split('+')).issubset(IGNORED_KEYS):
+                self._log(f"Unknown key {event.key!r}")
 
     def _mpl_key(self, event):
         """Hand a key-press even on to the toolbar."""
@@ -1475,17 +1476,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def _help(self, event):
         """Report keyboard help to the log pane."""
-        self._log('Keyboard shortcuts:')
-        for kl, method, doc in SHORTCUTS:
-            if kl is None:
+        # Collate shortcut keys by their documentation string.
+        doc_keys = defaultdict(list)
+        for _, key, doc in self._shortcuts.values():
+            doc_keys[doc].append(key)
+        for keys, method, doc in SHORTCUTS:
+            if not keys:
                 self._log(doc)
-                continue
-            if doc is not None:
-                ks = '/'.join(k for k in kl
-                              if self._shortcuts.get(k if len(k) == 1 else k.lower(),
-                                                     (None, None))[1] == doc)
-                if ks:
-                    self._log(f'  {ks}\t{doc}')
+            elif doc in doc_keys:
+                self._log(f"\t{'/'.join(doc_keys[doc])}\t{doc}")
 
     def _pause(self, event):
         """Toggle pausing of axis limit updates."""
@@ -1536,7 +1535,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             return
         t, y = line[index]
         self._recentre(mid=t, force=False)
-        dispx, _ = line.dispxy(index)
+        dispx, _ = line.display_coords(index)
         self._find_close(t, dispx, on_line=line, index=index)
         self._annotate(self._close_line[line])
 
@@ -1561,22 +1560,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             return
         self._selected = line_index
         line, index = self._close_points[self._selected]
-        x, y = line[index]
-        note, log = line.note(index)
-        if note is None:
-            note = [f"{line.name}",f"{format_seconds(x)}",f"{line.yaxis.format(y)}"]
-            log = ' '.join(note)
-            note = '\n'.join(note)
-        self._log(log)
+        note = line.series.note(line, index)
+        self._log_lines(note)
         self._clear()
         a = self._line_annotation
         if a.figure is not None:
             a.remove()
         line.axes.add_artist(a)
-        a.xy = x, y
-        a.set_text(note)
+        a.xy = line[index]
+        a.set_text("\n".join(note))
         a.set_visible(True)
-        self._drawn += line.drawPoint(index, self._axes_dict)
+        self._drawn += line.draw_point(index, self._axes_dict)
 
     def _info(self, event):
         "Report more information about the currently selected point."
@@ -1584,9 +1578,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self._log('No selected data point')
             return
         line, index = self._close_points[self._selected]
-        note, log = line.note(index, verbose=True)
-        if log is not None:
-            self._log(log)
+        self._log_lines(line.series.info(line, index))
 
     def _find_close(self, t, dispx, on_line=None, index=None):
         "Find all the points at times close to `t`, so we can select one."
@@ -1597,7 +1589,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             else:
                 closest = line.closest(t, dispx)
             if closest is not None:
-                _, dispy = line.dispxy(closest)
+                _, dispy = line.display_coords(closest)
                 pts.append((dispy, line, closest))
         self._close_points = []
         self._close_line = {}
@@ -1628,8 +1620,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def _click(self, event):
         "Handle left mouse click by annotating line clicked on."
         if event.button != 1 or not event.inaxes:
-            return 
-        # if we want control-click, shift-click, and so on:
+            return
+        # If we want control-click, shift-click, and so on:
         # modifiers = QtGui.QGuiApplication.keyboardModifiers()
         # if (modifiers & QtCore.Qt.ControlModifier): ...
         for line in self._model.lines:
@@ -1639,7 +1631,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             if contains:
                 i = index['ind'][0]
                 t, y = line[i]
-                dispx, _ = line.dispxy(i)
+                dispx, _ = line.display_coords(i)
                 self._find_close(t, dispx)
                 self._annotate(self._close_line[line])
                 break
@@ -1657,24 +1649,29 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def _zoom(self, event):
         """Zoom in to current data point, by a factor of two or to the point's
-        natural limits. If there's no current point, zoom in by a factor of 2."""
+        natural limits. If there's no current point, zoom in by a
+        factor of 2.
 
+        """
         if self._close_points is None:
             self._zoom_in(event)
             return
         line, index = self._close_points[self._selected]
-        lim = line.zoom(index)
+        lim = line.series.zoom(line, index)
         if lim is None:
             self._recentre(zoom=2, mid=line[index][0])
-        else: # make a bit of slack
+        else: # Make a bit of slack.
             lo, hi = lim
             width = hi - lo
             self._zoom_to(lo - width / 8, hi + width / 8)
 
     def _recentre(self, zoom=1.0, mid=None, force=True):
         """Recentre on `mid`, if given, and zoom in or out by factor `zoom`.
-        If `force` is false, and `mid` is near the middle of the resulting box,
-        or near the lowest time, or near the highest time, don't do it."""
+        If `force` is false, and `mid` is near the middle of the
+        resulting box, or near the lowest time, or near the highest
+        time, don't do it.
+
+        """
         xlim, _ = self._limits
         tmin, tmax = self._time_range
         lo, hi = xlim
@@ -1683,13 +1680,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             mid = (hi + lo) / 2
         elif not force:
             if mid - lo > half_width / 4 and hi - mid > half_width / 4:
-                # if data point is in centre half, don't shift
+                # If data point is in centre half, don't shift.
                 return
             if mid < lo + half_width / 4 and tmin > lo:
-                # don't shift left if lowest T is already displayed
+                # Don't shift left if lowest T is already displayed.
                 return
             if mid > hi - half_width / 4 and tmax < hi:
-                # don't shift right if highest T is already displayed
+                # Don't shift right if highest T is already displayed.
                 return
         newlo = max(tmin - (tmax - tmin) / 16, mid - half_width)
         newhi = min(tmax + (tmax - tmin) / 16, mid + half_width)
@@ -1705,8 +1702,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     @property
     def _time_range(self):
+        "Pair (minimum time, maximum time) for any data point."
         return (min(line[0][0] for line in self._model.lines if line.ready),
-                max(line[0][0] for line in self._model.lines if line.ready))
+                max(line[-1][0] for line in self._model.lines if line.ready))
 
     @property
     def _limits(self):
@@ -1715,8 +1713,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         return ax.get_xlim(), ax.get_ylim()
 
     def _update(self):
-        with ErrorReporter(self):
-            "Update the model and redraw if not paused."
+        "Update the model and redraw if not paused."
+        with ErrorReporter(self._log_lines):
             if (not self._toolbar.paused
                 and self._home_limits not in (None, self._limits)):
                 # Limits changed (for example, because user zoomed in), so
@@ -1725,7 +1723,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self._toolbar.pause()
                 self._home_limits = None
             self._model.update()
-            self._model.plot(self._axes_dict, keep_limits = self._toolbar.paused)
+            self._model.plot(self._axes_dict, keep_limits=self._toolbar.paused)
             if not self._toolbar.paused:
                 self._home_limits = self._limits
             self._canvas.draw()
@@ -1737,9 +1735,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     continue
                 new_name = line.name
                 if line in self._line_checkbox:
-                    # A line's name can change dynamically (for example, because
-                    # of the creation of a second arena, or a Label event), so
-                    # ensure that it is up to date.
+                    # A line's name can change dynamically (for example,
+                    # because of the creation of a second arena, or a Label
+                    # event), so ensure that it is up to date.
                     old_name = self._line_checkbox[line].text()
                     if old_name != new_name:
                         self._line_checkbox[line].setText(new_name)
@@ -1767,6 +1765,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     self._lines.addWidget(checkbox)
                 self._lines_scroll.setFixedWidth(
                     self._lines_widget.sizeHint().width())
+
 
 def main():
     parser = argparse.ArgumentParser(description="Memory Pool System Monitor.")
