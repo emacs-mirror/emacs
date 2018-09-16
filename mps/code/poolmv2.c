@@ -267,7 +267,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(meanSize <= maxSize);
   AVER(reserveDepth > 0);
   AVER(fragLimit <= 100);
-  /* TODO: More sanity checks possible? */
+  /* TODO: More parameter checks possible? */
 
   /* see <design/poolmvt/#arch.parameters> */
   fillSize = SizeArenaGrains(maxSize, arena);
