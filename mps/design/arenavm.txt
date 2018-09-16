@@ -59,10 +59,11 @@ Notes
 -----
 
 _`.note.refset`: Some of this document simply assumes that RefSets
-(see the horribly incomplete design.mps.refset) have been chosen as
-the solution for design.mps.arena.req.fun.set_. It's a lot simpler
-that way. Both to write and understand.
+(see design.mps.collections.refsets_) have been chosen as the solution for
+design.mps.arena.req.fun.set_. It's a lot simpler that way. Both to
+write and understand.
 
+.. _design.mps.collections.refsets: collections#refsets
 .. _design.mps.arena.req.fun.set: arena#req-fun-set
 
 

@@ -391,7 +391,9 @@ intended.
 ``typedef Word RefSet``
 
 _`.refset`: ``RefSet`` is a conservative approximation to a set of
-references. See design.mps.refset.
+references. See design.mps.collection.refsets_.
+
+.. _design.mps.collection.refsets: collection#refsets
 
 
 ``typedef int Res``
@@ -655,7 +657,7 @@ which we know very little about.
 ``typedef Word ZoneSet``
 
 _`.zoneset`: ``ZoneSet`` is a conservative approximation to a set of
-zones. See design.mps.refset.
+zones. See design.mps.collection.refsets_.
 
 
 Abstract types

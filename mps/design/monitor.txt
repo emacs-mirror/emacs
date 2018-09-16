@@ -34,7 +34,7 @@ _`.req.state.stopped`: that has finished running.
 
 It should be possible to see:
 
-_`.req.memory.total`: the total memory in use by the client program;
+_`.req.memory.total`: the total memory in use by the client program [GR_2004-12-02]_;
 
 _`.req.memory.pool`: the memory in use by each pool;
 
@@ -42,7 +42,7 @@ _`.req.trace`: when traces take place;
 
 _`.req.trace.generation`: which generations get collected by each trace;
 
-_`.req.time-fraction`: the fraction of time spent in collections;
+_`.req.time-fraction`: the fraction of runtime spent in collections;
 
 _`.req.barriers`: the rate of barrier hits, to indicate how the barriers
 are working.
@@ -140,6 +140,11 @@ References
    "Setting up and running the monitor"; Gareth Rees;
    Ravenbrook Limited; 2018-06-27;
    <https://info.ravenbrook.com/mail/2018/06/27/10-51-04/0/>.
+
+.. [GR_2004-12-02]
+   "RE: MPS, working set, and address space"; Göran Rydqvist;
+   Configura Sverige AB; 2004-12-02;
+   <http://info.ravenbrook.com/mail/2004/12/02/07-53-32/0/>.
 
 
 Document History
