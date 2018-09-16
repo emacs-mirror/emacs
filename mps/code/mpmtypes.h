@@ -51,16 +51,16 @@ typedef mps_arg_s *Arg;
 typedef mps_arg_s *ArgList;
 typedef mps_key_t Key;
 
-typedef Word RefSet;                    /* design.mps.refset */
-typedef Word ZoneSet;                   /* design.mps.refset */
-typedef unsigned Rank;
-typedef unsigned RankSet;
-typedef unsigned RootMode;
-typedef Size Epoch;                     /* design.mps.ld */
-typedef unsigned TraceId;               /* <design/trace/> */
-typedef unsigned TraceSet;              /* <design/trace/> */
-typedef unsigned TraceState;            /* <design/trace/> */
-typedef unsigned TraceStartWhy;
+typedef Word RefSet;                    /* <design/collection/#refsets> */
+typedef Word ZoneSet;                   /* <design/collection/#refsets> */
+typedef unsigned Rank;                  /* <design/type/#rank> */
+typedef unsigned RankSet;               /* <design/type/#rankset> */
+typedef unsigned RootMode;              /* <design/type/#rootmode> */
+typedef Size Epoch;                     /* <design/type/#epoch> */
+typedef unsigned TraceId;               /* <design/type/#traceid> */
+typedef unsigned TraceSet;              /* <design/type/#traceset> */
+typedef unsigned TraceState;            /* <design/type/#tracestate> */
+typedef unsigned TraceStartWhy;         /* <design/type/#tracestartwhy> */
 typedef unsigned AccessSet;             /* <design/type/#access-set> */
 typedef unsigned Attr;                  /* <design/type/#attr> */
 typedef unsigned RootVar;               /* <design/type/#rootvar> */

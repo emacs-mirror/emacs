@@ -180,7 +180,7 @@ SI_PREFIX = list('yzafpnµm kMGTPEZY')
 SI_PREFIX[8] = ''
 
 def with_SI_prefix(y, precision=5, unit=''):
-    """Turn the number y into a string using SI prefixes followed by unit."""
+    "Turn the number y into a string using SI prefixes followed by unit."
     if y < 0:
         return '-' + with_SI_prefix(-y, precision, unit)
     y = decimal.Context(prec=precision).create_decimal(y)
@@ -1463,7 +1463,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self._log(message)
 
     def _on_key_press(self, event):
-        """Handle a keyboard event."""
+        "Handle a keyboard event."
         with ErrorReporter(self._log_lines):
             if event.key in self._shortcuts:
                 self._shortcuts[event.key][0](event)
@@ -1471,11 +1471,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self._log(f"Unknown key {event.key!r}")
 
     def _mpl_key(self, event):
-        """Hand a key-press even on to the toolbar."""
+        "Pass a key-press event to the toolbar."
         key_press_handler(event, self._canvas, self._toolbar)
 
     def _help(self, event):
-        """Report keyboard help to the log pane."""
+        "Report keyboard help to the log pane."
         # Collate shortcut keys by their documentation string.
         doc_keys = defaultdict(list)
         for _, key, doc in self._shortcuts.values():
@@ -1487,15 +1487,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 self._log(f"\t{'/'.join(doc_keys[doc])}\t{doc}")
 
     def _pause(self, event):
-        """Toggle pausing of axis limit updates."""
+        "Toggle pausing of axis limit updates."
         self._toolbar.pause()
 
     def _close(self, event):
-        """Close the monitor application."""
+        "Close the monitor application."
         self.close()
 
     def _toggle_log_linear(self, event):
-        """Toggle the bytes axis between log and linear scales."""
+        "Toggle the bytes axis between log and linear scales."
         yscale = 'linear' if self._log_scale else 'log'
         self._axes_dict[BYTES_AXIS].set_yscale(yscale)
         self._axes_dict[BYTES_AXIS].yaxis.set_major_formatter(
@@ -1504,33 +1504,33 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._log(f'Switched bytes axis to {yscale} scale.')
 
     def _next_point(self, event):
-        """Select the next point on the selected line."""
+        "Select the next point on the selected line."
         if self._close_points is None:
             return
         line, index = self._close_points[self._selected]
         self._select(line, index + 1)
 
     def _previous_point(self, event):
-        """Select the previous point on the selected line."""
+        "Select the previous point on the selected line."
         if self._close_points is None:
             return
         line, index = self._close_points[self._selected]
         self._select(line, index - 1)
 
     def _up_line(self, event):
-        """Select the point on the line above the currently selected point."""
+        "Select the point on the line above the currently selected point."
         if self._selected is None:
             return
         self._annotate(self._selected + 1)
 
     def _down_line(self, event):
-        """Select the point on the line below the currently selected point."""
+        "Select the point on the line below the currently selected point."
         if self._selected is None:
             return
         self._annotate(self._selected - 1)
 
     def _select(self, line, index):
-        """Select the point with index `index` on `line`, if it exists."""
+        "Select the point with index `index` on `line`, if it exists."
         if index < 0 or index >= len(line):
             return
         t, y = line[index]
@@ -1693,7 +1693,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self._zoom_to(newlo, newhi)
 
     def _zoom_to(self, lo, hi):
-        """Redraw with new limits on the time axis."""
+        "Redraw with new limits on the time axis."
         ax = self._axes_dict[BYTES_AXIS]
         if self._toolbar.empty():
             self._toolbar.push_current()
