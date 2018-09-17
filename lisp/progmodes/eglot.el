@@ -1223,9 +1223,11 @@ When called interactively, use the currently active server"
 
 (defun eglot--signal-textDocument/didClose ()
   "Send textDocument/didClose to server."
-  (jsonrpc-notify
-   (eglot--current-server-or-lose)
-   :textDocument/didClose `(:textDocument ,(eglot--TextDocumentIdentifier))))
+  (with-demoted-errors
+      "[eglot] error sending textDocument/didClose: %s"
+    (jsonrpc-notify
+     (eglot--current-server-or-lose)
+     :textDocument/didClose `(:textDocument ,(eglot--TextDocumentIdentifier)))))
 
 (defun eglot--signal-textDocument/willSave ()
   "Send textDocument/willSave to server."
