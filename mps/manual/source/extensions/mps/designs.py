@@ -40,7 +40,9 @@ macrodef = re.compile(r'^``([A-Z][A-Z0-9_]+)``$', re.MULTILINE)
 macro = re.compile(r'``([A-Z][A-Z0-9_]+)``(?:       )?')
 typedef = re.compile(r'^``typedef ([^`]*)``$', re.MULTILINE) 
 func = re.compile(r'``([A-Za-z][A-Za-z0-9_]+\(\))``')
-typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*(?:Class|Struct|Method)|mps_[a-z_]+_[stu])``(?:      )?'
+typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*'
+                      r'(?:Class|Function|Method|Struct)|'
+                      r'mps_[a-z_]+_[stu])``(?:      )?'
                       .format('|'.join(map(re.escape, TYPES.split()))))
 design_ref = re.compile(r'^( *\.\. _design\.mps\.(?:[^:\n]+): (?:[^#:\n]+))$', re.MULTILINE)
 design_frag_ref = re.compile(r'^( *\.\. _design\.mps\.([^:\n]+)\.([^:\n]+): (?:[^#:\n]+))#(.+)$', re.MULTILINE)
