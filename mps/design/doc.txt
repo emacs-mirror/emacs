@@ -85,8 +85,179 @@ complete.
 Implementation
 --------------
 
-TODO
+_`.impl.rst`: Documents are written in reStructuredText_ (RST).
 
+_`.impl.design`: Design documents are written in plain RST (with no
+custom directives) to meet `.req.design.standalone`_.
+
+_`.impl.design.pelican`: Design documents are converted to HTML using
+|RstReader|_.
+
+.. |RstReader| replace:: ``pelican.readers.RstReader``
+.. _RstReader: https://fossies.org/dox/pelican-3.7.1/classpelican_1_1readers_1_1RstReader.html
+
+_`.impl.manual`: The manual is written in RST using Sphinx_ extensions
+and custom manual extensions (see `.ext`_).
+
+.. _Sphinx: http://www.sphinx-doc.org/en/master/
+
+_`.impl.manual.sphinx`: The manual is converted to HTML using the
+Sphinx_ documentation generator.
+
+_`.impl.manual.design`: Design documents are automatically processed
+for inclusion in the manual using a set of formatting conventions (see
+`.fmt`_).
+
+
+Manual extensions
+-----------------
+
+_`.ext`: These are reStructuredText directives and roles used by the
+MPS manual. See manual/source/extensions/mps/__init__.py.
+
+_`.ext.aka`: The ``aka`` directive generates an "Also known as"
+section. This should be used in a glossary entry, and should contain a
+comma-separated list of glossary entries (in italics) that are
+synonyms for this glossary entry.
+
+_`.ext.bibref`: The ``bibref`` directive generates a "Related
+publication" or "Related publications" section. This should be used in
+a glossary entry, and should contain a comma-separated list of
+``:ref:`` roles referring to entries in the bibliography.
+
+_`.ext.deprecated`: The ``deprecated`` directive generates a
+"Deprecated" section. It should be used in a description of a public
+interface in the MPS Reference, and describe the first version in
+which the interface was deprecated, and the interface that should be
+used instead. There may be an initial "starting with version 1.115"
+paragraph, but this is unnecessary if the directive is used in the
+"Deprecated interfaces" chapter.
+
+_`.ext.historical`: The ``historical`` directive generates a
+"Historical note" section. This should be used in a glossary entry,
+and should contain material of historical interest, for example the
+origin of the term, or ways in which it was formerly used.
+
+_`.ext.link`: The ``link`` directive generates a "Related link" or
+"Related links" section. This should be used in a glossary entry, and
+should contain a comma-separated list of references to URLs.
+
+_`.ext.note`: The ``note`` directive generates a "Note" or "Notes"
+section. This should consist of a paragraph or a numbered list
+containing especially important information about an interface that a
+user should be aware of when using it.
+
+_`.ext.opposite`: The ``opposite`` directive generates an "Opposite
+term" or "Opposite terms" section. This should be used in a glossary
+entry, and should contain a comma-separated list of ``:term:`` roles
+referring to glossary entries with opposite meaning.
+
+_`.ext.relevance`: The ``relevance`` directive generates a "Relevance
+to memory management" section. This should be used in a glossary
+entry, and should contain an explanation of how the term relates to
+memory management, if this is not obvious.
+
+_`.ext.see`: The ``see`` directive generates a "See also" section.
+This should be used in a glossary entry, and should contain a
+comma-separated list of ``:term:`` roles referring to glossary entries
+that relate to the entry but are neither synonyms for it
+(`.ext.aka`_), nor opposites (`.ext.opposite`_), nor similar
+(`.ext.similar`_).
+
+_`.ext.similar`: The ``similar`` directive generates a "Similar term"
+or "Similar terms" section. This should be used in a glossary entry,
+and should contain a comma-separated list of ``:term:`` roles
+referring to glossary entries with similar meaning to the entry but
+which are not synonyms for it (`.ext.aka`_).
+
+_`.ext.specific`: The ``mps:specific`` directive an "In the MPS"
+section. This should be used in a glossary entry, and should contain
+an explanation of how the glossary entry pertains to the MPS. If the
+term is idiosyncratic to the MPS, for example "spare committed memory"
+then the entire glossary entry should consist of a single
+``mps:specific`` directive to make it clear that the term is not in
+general use.
+
+
+Design formatting conventions
+-----------------------------
+
+_`.fmt`: This section lists formatting conventions used in the design
+documentation that are used to generate extended markup when the
+design document is converted for use in the MPS manual. See
+manual/source/extensions/mps/designs.py.
+
+_`.fmt.function-decl`: A paragraph consisting of a function
+declaration on a single line formatted as code, for example::
+
+    ``void LandFinish(Land land)``
+
+is translated into a ``c:function`` directive::
+
+    .. c:function:: void LandFinish(Land land)
+
+_`.fmt.type-def`: A paragraph consisting of a type definition on a
+single line formatted as code, for example::
+
+    ``typedef LandStruct *Land``
+
+is translated into a ``c:type`` directive::
+
+    .. c:type:: LandStruct *Land
+
+_`.fmt.function-ref`: A word formatted as code and suffixed by ``()``,
+for example::
+
+    This saves a separate call to ``LandDelete()``, and uses the
+    knowledge of exactly where we found the range.
+
+is translated into a ``:c:func:`` role::
+
+    This saves a separate call to :c:func:`LandDelete()`, and uses the
+    knowledge of exactly where we found the range.
+
+_`.fmt.type-ref`: The name of an MPS type formatted as code, for
+example::
+
+    The function must return a ``Bool`` indicating whether to continue
+    with the iteration.
+
+is translated into a ``:c:type:`` role::
+
+    The function must return a :c:type:`Bool` indicating whether to
+    continue with the iteration.
+
+The list of MPS types thus converted is given by the ``TYPES`` global
+in designs.py, plus any word matching ``mps_.*_[stu]``, plus any word
+ending ``Class``, ``Function``, ``Method``, or ``Struct``.
+
+_`.fmt.tag`: A paragraph starting with an MPS tag, for example::
+
+    _`.type.land`: The type of a generic land instance.
+
+is translated into an ``:mps:tag`` role::
+
+    :mps:tag:`type.land` The type of a generic land instance.
+
+_`.fmt.history`: The section "Document History" is removed.
+
+_`.fmt.copyright`: The section "Copyright and License" is removed.
+
+_`.fmt.metadata`: Metadata roles are removed, except for:
+
+_`.fmt.metadata.tag`: The metadata role ``:Tag:`` is translated into an
+``mps:prefix`` directive.
+
+_`.fmt.metadata.index`: The metadata role ``:Index Terms:`` is
+translated into an ``index`` directive.
+
+_`.fmt.citation`: Citations are translated from design style::
+
+    [Citation] "Title"; Author; Date; <URL>.
+
+into manual style::
+
+    [Citation] Author. Date. "`Title` <URL>`__".
 
 
 References
