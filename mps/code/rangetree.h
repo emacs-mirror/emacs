@@ -22,8 +22,7 @@
 #define RangeTreeSetLimit(block, addr) RangeSetLimit(RangeTreeRange(block), addr)
 #define RangeTreeSize(block) RangeSize(RangeTreeRange(block))
 
-extern void RangeTreeInit(RangeTree rangeTree, Addr base, Addr limit);
-extern void RangeTreeInitFromRange(RangeTree rangeTree, Range range);
+extern void RangeTreeInit(RangeTree rangeTree, Range range);
 extern Bool RangeTreeCheck(RangeTree rangeTree);
 extern void RangeTreeFinish(RangeTree rangeTree);
 
