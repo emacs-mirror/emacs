@@ -43,5 +43,4 @@ Old design
     seg
     strategy
     telemetry
-    tests
     trace
