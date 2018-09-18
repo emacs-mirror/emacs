@@ -297,6 +297,8 @@ PC at the Ravenbrook office) runs the ``testci`` target on platforms
 w3i3mv and w3i6mv whenever there is a commit to the `mps GitHub
 repository`_.
 
+.. _Jenkins: https://jenkins.io
+
 _`.ci.jenkins.config`: There are instructions for installing and
 configuring Jenkins in [GDR_2016-04-14]_, [GDR_2016-04-15]_ and
 [GDR_2016-04-20]_.
