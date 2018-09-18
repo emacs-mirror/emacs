@@ -1,6 +1,6 @@
 /* scheme.c -- SCHEME INTERPRETER EXAMPLE FOR THE MEMORY POOL SYSTEM
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
  * language <http://en.wikipedia.org/wiki/Scheme_%28programming_language%29>.
@@ -1260,20 +1260,20 @@ static obj_t read_string(FILE *stream, int c)
 }
 
 
-static obj_t read(FILE *stream);
+static obj_t read_(FILE *stream);
 
 
 static obj_t read_quote(FILE *stream, int c)
 {
   UNUSED(c);
-  return make_pair(obj_quote, make_pair(read(stream), obj_empty));
+  return make_pair(obj_quote, make_pair(read_(stream), obj_empty));
 }
 
 
 static obj_t read_quasiquote(FILE *stream, int c)
 {
   UNUSED(c);
-  return make_pair(obj_quasiquote, make_pair(read(stream), obj_empty));
+  return make_pair(obj_quasiquote, make_pair(read_(stream), obj_empty));
 }
 
 
@@ -1281,9 +1281,9 @@ static obj_t read_unquote(FILE *stream, int c)
 {
   c = getc(stream);
   if(c == '@')
-    return make_pair(obj_unquote_splic, make_pair(read(stream), obj_empty));
+    return make_pair(obj_unquote_splic, make_pair(read_(stream), obj_empty));
   ungetc(c, stream);
-  return make_pair(obj_unquote, make_pair(read(stream), obj_empty));
+  return make_pair(obj_unquote, make_pair(read_(stream), obj_empty));
 }
 
 
@@ -1298,7 +1298,7 @@ static obj_t read_list(FILE *stream, int c)
     c = getnbc(stream);
     if(c == ')' || c == '.' || c == EOF) break;
     ungetc(c, stream);
-    new = make_pair(read(stream), obj_empty);
+    new = make_pair(read_(stream), obj_empty);
     if(list == obj_empty) {
       list = new;
       end = new;
@@ -1311,7 +1311,7 @@ static obj_t read_list(FILE *stream, int c)
   if(c == '.') {
     if(list == obj_empty)
       error("read: unexpected dot");
-    CDR(end) = read(stream);
+    CDR(end) = read_(stream);
     c = getnbc(stream);
   }
 
@@ -1371,7 +1371,7 @@ static obj_t read_special(FILE *stream, int c)
 }
 
 
-static obj_t read(FILE *stream)
+static obj_t read_(FILE *stream)
 {
   int c;
 
@@ -1534,7 +1534,7 @@ static obj_t load(obj_t env, obj_t op_env, obj_t filename) {
   for(;;) {
     obj_t obj;
     mps_chat();
-    obj = read(stream);
+    obj = read_(stream);
     if(obj == obj_eof) break;
     result = eval(env, op_env, obj);
   }
@@ -4336,7 +4336,7 @@ static int start(int argc, char *argv[])
       printf("%lu, %lu> ", (unsigned long)total,
              (unsigned long)mps_collections(arena));
       fflush(stdout);
-      obj = read(input);
+      obj = read_(input);
       if(obj == obj_eof) break;
       obj = eval(env, op_env, obj);
       if(obj != obj_undefined) {
@@ -4507,7 +4507,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
