@@ -1,7 +1,7 @@
 # commpost.nmk: SECOND COMMON FRAGMENT FOR PLATFORMS USING NMAKE -*- makefile -*-
 #
 # $Id$
-# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -57,7 +57,7 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !ENDIF
 
 # testrun testci testall testansi testpollnone
-# Runs automated test cases.
+# Runs automated test cases. See design.mps.tests.target.
 
 testrun testci testall testansi testpollnone: $(TEST_TARGETS)
 !IFDEF VARIETY
@@ -391,7 +391,7 @@ $(PFM)\$(VARIETY)\sqlite3.obj:
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
