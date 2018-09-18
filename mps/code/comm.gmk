@@ -3,7 +3,7 @@
 # comm.gmk: COMMON GNUMAKEFILE FRAGMENT
 #
 # $Id$
-# Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
 #
 # DESCRIPTION
 #
@@ -308,11 +308,7 @@ all: $(ALL_TARGETS)
 
 # == Automated test suites ==
 #
-# testrun = "smoke test", fast enough to run before every commit
-# testci = continuous integration tests, must be known good
-# testall = all test cases, for ensuring quality of a release
-# testansi = tests that run on the generic ("ANSI") platform
-# testpollnone = tests that run on the generic platform with CONFIG_POLL_NONE
+# See design.mps.tests.target.
 
 TEST_SUITES=testrun testci testall testansi testpollnone
 
@@ -714,7 +710,7 @@ find-puns: phony
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (c) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 

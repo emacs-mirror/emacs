@@ -54,11 +54,13 @@ collection_             Collection framework
 config_                 MPS configuration
 critical-path_          The critical path through the MPS
 diag_                   Diagnostic feedback
+doc_                    Documentation
 exec-env_               Execution environment
 failover_               Fail-over allocator
 finalize_               Finalization
 fix_                    The generic fix function
 freelist_               Free list allocator
+guide.developer_        Guide for new developers
 guide.hex.trans_        Transliterating the alphabet into hexadecimal
 guide.impl.c.format_    Coding standard: conventions for the general format of C source code in the MPS
 guide.impl.c.naming_    Coding standard: conventions for internal names
@@ -127,11 +129,13 @@ writef_                 The WriteF function
 .. _config: config
 .. _critical-path: critical-path
 .. _diag: diag
+.. _doc: doc
 .. _exec-env: exec-env
 .. _failover: failover
 .. _finalize: finalize
 .. _fix: fix
 .. _freelist: freelist
+.. _guide.developer: guide.developer
 .. _guide.hex.trans: guide.hex.trans
 .. _guide.impl.c.format: guide.impl.c.format
 .. _guide.impl.c.naming: guide.impl.c.naming
@@ -227,7 +231,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2002-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2002-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

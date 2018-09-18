@@ -1,0 +1,149 @@
+.. mode: -*- rst -*-
+
+Documentation
+=============
+
+:Tag: design.mps.doc
+:Author: Gareth Rees
+:Date: 2018-09-18
+:Status: draft design
+:Revision: $Id$
+:Copyright: See section `Copyright and License`_.
+:Index terms: pair: documentation; design
+
+
+Introduction
+------------
+
+_`.intro`: This is the design of the documentation system for the
+Memory Pool System.
+
+_`.readership`: This document is intended for any MPS developer.
+
+
+Types
+-----
+
+_`.type`: The MPS has multiple types of documentation, suitable for
+different audiences.
+
+_`.type.comment`: Comments in the code provide information that is
+required in order for developers to make correct edits to nearby code.
+(Audience: MPS developers editing nearby code.)
+
+_`.type.design`: Design documentation lists requirements and explains
+how the code meets the requirements. (Audience: MPS developers working
+on a subsystem.)
+
+_`.type.devguide`: Developer guides provide general guidance for
+developers, not specific to any particular subsystem. (Audience: MPS
+developers generally.)
+
+_`.type.procedure`: Procedures list the steps for carrying out
+development tasks. (Audience: MPS developers who need to carry out
+particular tasks reliably.)
+
+_`.type.tutorial`: Tutorials describe how to use the MPS to meet
+client program requirements. (Audience: beginner client program
+developers.)
+
+_`.type.reference`: Reference documentation specifies the public
+features of the MPS. (Audience: expert client program developers.)
+
+_`.type.mmref`: The Memory Management Reference describes general
+principles of memory management, with cross-references to the MPS
+documentation. (Audience: the world.)
+
+
+Requirements
+------------
+
+_`.req.source`: Derived from [RB_2013-05-09]_.
+
+_`.req.easy`: It must be easy to read and write documentation must
+using standard text editors. Barriers to documentation must be low.
+
+_`.req.presentation`: It must be possible to process documentation
+into presentation formats, for example web pages.
+
+_`.req.single-source`: Documents must have a single source. Processing
+into other formats must be automatic and not depend on hand editing or
+maintaining parallel versions.
+
+_`.req.durable`: The format of documents should be supported for the
+foreseeable future. It must not require continual updating to keep up
+with changes to processing software.
+
+_`.req.design.ref`: It must be easy to reference points made in design
+documents from the code.
+
+_`.req.design.standalone`: Design documents must stand alone: they
+must not require particular software to make them readable or
+complete.
+
+
+Implementation
+--------------
+
+TODO
+
+
+
+References
+----------
+
+.. [RB_2013-05-09]
+   "MPS design document format and process";
+   Richard Brooksby; Ravenbrook Limited; 2013-05-09;
+   <https://info.ravenbrook.com/mail/2013/05/09/14-54-55/0/>.
+
+
+Document History
+----------------
+
+- 2018-09-18 GDR_ Created based on [RB_2013-05-09]_.
+
+.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+
+
+Copyright and License
+---------------------
+
+Copyright © 2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved. This is an open source license. Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+#. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+#. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+#. Redistributions in any form must be accompanied by information on how
+   to obtain complete source code for this software and any
+   accompanying software that uses this software.  The source code must
+   either be included in the distribution or be available for no more than
+   the cost of distribution plus a nominal fee, and must be freely
+   redistributable under reasonable conditions.  For an executable file,
+   complete source code means the source code for all modules it contains.
+   It does not include source code for modules or files that typically
+   accompany the major components of the operating system on which the
+   executable file runs.
+
+**This software is provided by the copyright holders and contributors
+"as is" and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability, fitness for a
+particular purpose, or non-infringement, are disclaimed.  In no event
+shall the copyright holders and contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or
+services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising in
+any way out of the use of this software, even if advised of the
+possibility of such damage.**

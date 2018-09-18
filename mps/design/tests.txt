@@ -21,27 +21,100 @@ tests.
 _`.readership`: This document is intended for any MPS developer.
 
 
-Smoke tests
------------
+Running tests
+-------------
 
-_`.smoke`: The "smoke tests" provide quick checks that the MPS is
-working. They run quickly enough for it to be practical to run them
-every time the MPS is built.
+_`.run`: Run these commands::
+
+    cd code
+    make -f <makefile> VARIETY=<variety> <target>  # Unix
+    nmake /f <makefile> VARIETY=<variety> <target> # Windows
+
+where ``<makefile>`` is the appropriate makefile for the platform (see
+manual/build.txt_), ``<variety>`` is the variety (see
+design.mps.config.var_) and ``<target>`` is the collection of tests
+(see `.target`_ below). For example::
+
+    make -f lii6ll VARIETY=cool testrun
+
+If ``<variety>`` is omitted, tests are run in both the cool and hot
+varieties.
+
+.. _design.mps.config.var: config#var
+.. _manual/build.txt: https://www.ravenbrook.com/project/mps/master/manual/build.txt
+
+
+Test targets
+------------
+
+_`.target`: The makefiles provide the following targets for common
+sets of tests:
+
+_`.target.testall`: The ``testall`` target runs all test cases (even
+if known to fail).
+
+_`.target.testrun`: The ``testrun`` target runs the "smoke tests".
+This subset of tests are quick checks that the MPS is working. They
+run quickly enough for it to be practical to run them every time the
+MPS is built.
+
+_`.target.testci`: The ``testci`` target runs the continuous
+integration tests (all tests that are known good according to the test database).
+
+_`.target.testansi`: The ``testansi`` target runs the subset of the
+smoke tests that can pass in the generic ("ANSI") build configuration
+(see design.mps.config.opt.ansi_).
+
+_`.target.testpollnone`: The ``testpollnone`` target runs the subset
+of the smoke tests that can pass in the generic ("ANSI") build
+configuration (see design.mps.config.opt.ansi_) with the option
+``CONFIG_POLL_NONE`` (see design.mps.config.opt.poll_).
+
+_`.target.testratio`: The ``testratio`` target compares the
+performance of the HOT and RASH varieties. See `.ratio`_.
+
+.. _design.mps.config.opt.ansi: config#opt.ansi
+.. _design.mps.config.opt.poll: config#opt.poll
+
+
+Test features
+-------------
 
 _`.randomize`: Each time a test case is run, it randomly chooses some
 of its parameters (for example, the sizes of objects, or how many
 links to create in a graph of references). This allows a fast test
 to cover many cases over time.
 
-_`.randomize.repeatable`: The random numbers are chosen
+_`.randomize.seed`: The random numbers are chosen
 pseudo-randomly based on a seed initialized from environmental data
 (the time and the processor cycle count). The seed is reported at test
-startup. Each test can be run with a specified seed. This ensures
-that the deterministic tests are repeatable.
+startup, for example::
+
+    $ xci6ll/cool/apss
+    xci6ll/cool/apss: randomize(): choosing initial state (v3): 2116709187.
+    ...
+    xci6ll/cool/apss: Conclusion: Failed to find any defects.
+
+Here, the number 2116709187 is the random seed.
+
+_`.randomize.specific-seed` Each test can be run with a specified seed
+by passing the seed on the command line, for example::
+
+    code$ xci6ll/cool/apss 2116709187
+    xci6ll/cool/apss: randomize(): resetting initial state (v3) to: 2116709187.
+    ...
+    xci6ll/cool/apss: Conclusion: Failed to find any defects.
+
+_`.randomize.repeatable`: This ensures that the deterministic tests
+are repeatable.
 
 
-Smoke test list
-...............
+Test list
+---------
+
+See `manual/code-index`_ for the full list of automated test cases.
+
+.. _manual/code-index: https://www.ravenbrook.com/project/mps/master/manual/html/code-index.html
 
 _`.test.finalcv`: Registers objects for finalization, makes them
 unreachable, deregisters them, etc. Churns to provoke minor (nursery)
@@ -56,10 +129,53 @@ _`.test.zcoll`: Collection scheduling, and collection feedback.
 _`.test.zmess`: Message lifecycle and finalization messages.
 
 
+Test database
+-------------
+
+_`.db`: The automated tests are described in the test database
+(tool/testcases.txt).
+
+_`.db.format`: This is a self-documenting plain-text database which
+gives for each test case its name and an optional set of features. For
+example the feature ``P`` means that the test case requires polling to
+succeed, and therefore is expected to fail in build configurations
+without polling (see design.mps.config.opt.poll_).
+
+_`.db.format.simple`: The format must be very simple because the test
+runner on Windows is written as a batch file (.bat), in order to avoid
+having to depend on any tools that are not standard with the operating
+system, and batch files are inflexible.
+
+_`.db.testrun`: The test runner (tool/testrun.sh on Unix or
+tool/testrun.bat on Windows) parses the test database to work out
+which tests to run according to the target. For example the
+``testpollnone`` target must skip all test cases with the ``P``
+feature.
+
+
+Test runner
+-----------
+
+_`.runner.req.automated`: The test runner must execute without user
+interaction, so that it can be used for continuous integration.
+
+_`.runner.req.output.pass`: Test cases are expected to pass nearly all the
+time, and in these cases we almost never want to see the output, so
+the test runner must suppress the output for passing tests.
+
+_`.runner.req.output.fail`: However, if a test case fails then the
+test runner must preserve the output from the failing test, including
+the random seed (see `.randomize.seed`_), so that this can be analyzed
+and the test repeated. Moreover, it must print the output from the
+failing test, so that if the test is being run on a continuous
+integration system like Travis, then the output of the failing tests
+is included in the failure report.
+
+
 Performance test
 ----------------
 
-_`.test.ratio`: The ``testratio`` target checks that the hot variety
+_`.ratio`: The ``testratio`` target checks that the hot variety
 is not too much slower than the rash variety. A failure of this test
 usually is expected to indicate that there are assertions on the
 critical path using ``AVER`` instead of ``AVER_CRITICAL`` (and so on).
@@ -68,12 +184,13 @@ the MVFF pool class, in the hot variety and the rash variety,
 computing the ratio of CPU time taken in the two varieties, and
 testing that this falls under an acceptable limit.
 
-Note that we don't use the elapsed time (as reported by the benchmark)
-because we want to be able to run this test on continuous integration
-machines that might be heavily loaded.
+_`.ratio.cpu-time`: Note that we use the CPU time (reported by
+``/usr/bin/time``) and not the elapsed time (as reported by the
+benchmark) because we want to be able to run this test on continuous
+integration machines that might be heavily loaded.
 
-This target is currently supported only on Unix platforms using GNU
-Makefiles.
+_`.ratio.platform`: This target is currently supported only on Unix
+platforms using GNU Makefiles.
 
 
 Adding a new smoke test
@@ -139,6 +256,54 @@ appropriate sets of test cases, for example tests marked ``=P``
 
 _`.new.manual`: Edit manual/source/code-index.rst and add the new test
 case to the "Automated test cases" section.
+
+
+Continuous integration
+----------------------
+
+_`.ci`: The MPS uses the following systems for continuous integration:
+
+_`.ci.travis`: The commercial Travis_ continuous integration service
+runs ``./configure && make install && make test`` (which exercises the
+``testci`` target for platforms lii6gc, lii6ll, xci6ll, and
+``testansi`` and ``testpollnone`` for platforms anangc and ananll)
+whenever there is a commit to the `mps GitHub repository`_. See the
+`Ravenbrook/mps`_ project on Travis for a build history.
+
+.. _mps GitHub repository: https://github.com/ravenbrook/mps
+.. _Travis: https://travis-ci.org
+.. _Ravenbrook/mps: https://travis-ci.org/Ravenbrook/mps
+
+_`.ci.travis.config`: Travis is configured using the .travis.yml file
+at top level of the project.
+
+_`.ci.jenkins`: An instance of Jenkins_ running on "gannet" (a Windows
+PC at the Ravenbrook office) runs the ``testci`` target on platforms
+w3i3mv and w3i6mv whenever there is a commit to the `mps GitHub
+repository`_.
+
+_`.ci.jenkins.config`: There are instructions for installing and
+configuring Jenkins in [GDR_2016-04-14]_, [GDR_2016-04-15]_ and
+[GDR_2016-04-20]_.
+
+
+References
+----------
+
+.. [GDR_2016-04-14]
+   "Jenkins setup and configuration procedure";
+   Gareth Rees; Ravenbrook Limited; 2016-04-14;
+   <https://info.ravenbrook.com/mail/2016/04/14/17-19-08/0/>.
+
+.. [GDR_2016-04-15]
+   "Re: Jenkins setup and configuration procedure";
+   Gareth Rees; Ravenbrook Limited; 2016-04-15;
+   <https://info.ravenbrook.com/mail/2016/04/15/09-03-53/0/>.
+
+.. [GDR_2016-04-20]
+   "Re: Jenkins setup and configuration procedure";
+   Gareth Rees; Ravenbrook Limited; 2016-04-20;
+   <https://info.ravenbrook.com/mail/2016/04/20/13-26-33/0/>.
 
 
 Document History
