@@ -73,6 +73,9 @@ configuration (see design.mps.config.opt.ansi_) with the option
 _`.target.testratio`: The ``testratio`` target compares the
 performance of the HOT and RASH varieties. See `.ratio`_.
 
+_`.target.testmmqa`: The ``testmmqa`` target runs the tests in the
+MMQA test suite. See test/README.
+
 .. _design.mps.config.opt.ansi: config#opt.ansi
 .. _design.mps.config.opt.poll: config#opt.poll
 
@@ -85,10 +88,10 @@ of its parameters (for example, the sizes of objects, or how many
 links to create in a graph of references). This allows a fast test
 to cover many cases over time.
 
-_`.randomize.seed`: The random numbers are chosen
-pseudo-randomly based on a seed initialized from environmental data
-(the time and the processor cycle count). The seed is reported at test
-startup, for example::
+_`.randomize.seed`: The random numbers are chosen pseudo-randomly
+based on a seed initialized from environmental data (the time and the
+processor cycle count). The seed is reported at test startup, for
+example::
 
     $ xci6ll/cool/apss
     xci6ll/cool/apss: randomize(): choosing initial state (v3): 2116709187.
@@ -169,7 +172,9 @@ the random seed (see `.randomize.seed`_), so that this can be analyzed
 and the test repeated. Moreover, it must print the output from the
 failing test, so that if the test is being run on a continuous
 integration system like Travis, then the output of the failing tests
-is included in the failure report.
+is included in the failure report. (See job003489_.)
+
+.. _job003489: https://www.ravenbrook.com/project/mps/issue/job003489/
 
 
 Performance test
