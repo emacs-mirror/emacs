@@ -12,10 +12,6 @@ Release 1.118.0
 New features
 ............
 
-#. The MPS now supports macOS 10.6 (Snow Leopard) or later; it no
-   longer supports 10.4 (Tiger) and 10.5 (Leopard). This is because
-   Xcode 10.0 no longer supports these versions.
-
 #. The MPS no longer supports building for the xci3ll platform (macOS,
    IA-32, Clang/LLVM) using Xcode. This is because Xcode 10.0 no
    longer supports this platform. The platform is still supported via
