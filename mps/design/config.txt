@@ -164,9 +164,7 @@ predefined when compiling the module sources::
 
     CONFIG_VAR_<variety-code>
 
-The variety-codes are the letter code that appears after "variety." in
-the tag of the relevant variety document (see variety.*) converted to
-upper case. Currently (2012-09-03):
+_`.var`: The variety codes are as follows:
 
 _`.var.hot`: ``HOT``
 
@@ -621,7 +619,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
