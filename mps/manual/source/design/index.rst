@@ -13,10 +13,12 @@ Design
     clock
     config
     critical-path
+    doc
     exec-env
     failover
     finalize
     freelist
+    guide.developer
     guide.hex.trans
     guide.impl.c.format
     guide.impl.c.naming
