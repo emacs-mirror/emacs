@@ -195,7 +195,7 @@ To build just one target, run one of these commands::
     nmake /f w3i3mv.nmk <target>         (32-bit)
     nmake /f w3i6mv.nmk <target>         (64-bit)
 
-On macOS, you can build from the command line with::
+On macOS (64-bit only), you can build from the command line with::
 
     xcodebuild
 
