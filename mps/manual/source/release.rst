@@ -12,6 +12,10 @@ Release 1.118.0
 New features
 ............
 
+#. The MPS now supports macOS 10.6 (Snow Leopard) or later; it no
+   longer supports 10.4 (Tiger) and 10.5 (Leopard). This is because
+   Xcode 10.0 no longer supports these versions.
+
 #. The arena's :term:`spare commit limit` is now expressed as a
    fraction of the :term:`committed <mapped>` memory (rather than a
    fixed size, as previously). This allows the :term:`spare committed
