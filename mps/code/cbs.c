@@ -348,7 +348,7 @@ static Res cbsBlockAlloc(RangeTree *blockReturn, CBS cbs, Range range)
     goto failPoolAlloc;
   block = (RangeTree)p;
 
-  RangeTreeInitFromRange(block, range);
+  RangeTreeInit(block, range);
 
   SplayNodeInit(cbsSplay(cbs), RangeTreeTree(block));
 
