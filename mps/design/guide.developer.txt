@@ -52,7 +52,7 @@ References
 Document History
 ----------------
 
-2018-09-18  GDR_  Created based on [APT_22018-09-17]_.
+2018-09-18  GDR_  Created based on [APT_2018-09-17]_.
 
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
@@ -60,7 +60,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2015-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2015-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
