@@ -87,6 +87,8 @@ Implementation
 
 _`.impl.rst`: Documents are written in reStructuredText_ (RST).
 
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
+
 _`.impl.design`: Design documents are written in plain RST (with no
 custom directives) to meet `.req.design.standalone`_.
 
