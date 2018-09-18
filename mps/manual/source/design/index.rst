@@ -40,6 +40,7 @@ Design
     sp
     splay
     stack-scan
+    tests
     testthr
     thread-manager
     thread-safety
