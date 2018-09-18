@@ -318,7 +318,7 @@ $(addprefix $(PFM)/$(VARIETY)/,$(TEST_SUITES)): $(TEST_TARGETS)
 
 # == Automated performance testing ==
 # 
-# testratio = measure performance ratio of hot variety versus rash
+# See design.mps.tests.target.testratio.
 
 TESTRATIO_SEED = 1564912146
 
