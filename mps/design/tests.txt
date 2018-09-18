@@ -31,7 +31,7 @@ _`.run`: Run these commands::
     nmake /f <makefile> VARIETY=<variety> <target> # Windows
 
 where ``<makefile>`` is the appropriate makefile for the platform (see
-manual/build.txt_), ``<variety>`` is the variety (see
+`manual/build.txt`_), ``<variety>`` is the variety (see
 design.mps.config.var_) and ``<target>`` is the collection of tests
 (see `.target`_ below). For example::
 
@@ -59,25 +59,29 @@ run quickly enough for it to be practical to run them every time the
 MPS is built.
 
 _`.target.testci`: The ``testci`` target runs the continuous
-integration tests (all tests that are known good according to the test database).
+integration tests, the subset of tests that are expected to pass in
+full-featured build configurations.
 
 _`.target.testansi`: The ``testansi`` target runs the subset of the
-smoke tests that can pass in the generic ("ANSI") build configuration
-(see design.mps.config.opt.ansi_).
+tests that are expected to pass in the generic ("ANSI") build
+configuration (see design.mps.config.opt.ansi_).
 
 _`.target.testpollnone`: The ``testpollnone`` target runs the subset
-of the smoke tests that can pass in the generic ("ANSI") build
+of the tests that are expected to pass in the generic ("ANSI") build
 configuration (see design.mps.config.opt.ansi_) with the option
 ``CONFIG_POLL_NONE`` (see design.mps.config.opt.poll_).
+
+.. _design.mps.config.opt.ansi: config#opt.ansi
+.. _design.mps.config.opt.poll: config#opt.poll
 
 _`.target.testratio`: The ``testratio`` target compares the
 performance of the HOT and RASH varieties. See `.ratio`_.
 
-_`.target.testmmqa`: The ``testmmqa`` target runs the tests in the
-MMQA test suite. See test/README.
+_`.target.testscheme`: The ``testscheme`` target builds the example
+Scheme interpreter (example/scheme) and runs its test suite.
 
-.. _design.mps.config.opt.ansi: config#opt.ansi
-.. _design.mps.config.opt.poll: config#opt.poll
+_`.target.testmmqa`: The ``testmmqa`` target runs the tests in the
+MMQA test suite. See `.mmqa`_.
 
 
 Test features
@@ -93,7 +97,7 @@ based on a seed initialized from environmental data (the time and the
 processor cycle count). The seed is reported at test startup, for
 example::
 
-    $ xci6ll/cool/apss
+    code$ xci6ll/cool/apss
     xci6ll/cool/apss: randomize(): choosing initial state (v3): 2116709187.
     ...
     xci6ll/cool/apss: Conclusion: Failed to find any defects.
@@ -108,8 +112,11 @@ by passing the seed on the command line, for example::
     ...
     xci6ll/cool/apss: Conclusion: Failed to find any defects.
 
-_`.randomize.repeatable`: This ensures that the deterministic tests
-are repeatable.
+_`.randomize.repeatable`: This ensures that the single-threaded tests
+are repeatable. (Multi-threaded tests are not repeatable even if the
+same seed is used; see job003719_.)
+
+.. _job003719: https://www.ravenbrook.com/project/mps/issue/job003719/
 
 
 Test list
@@ -140,14 +147,16 @@ _`.db`: The automated tests are described in the test database
 
 _`.db.format`: This is a self-documenting plain-text database which
 gives for each test case its name and an optional set of features. For
-example the feature ``P`` means that the test case requires polling to
-succeed, and therefore is expected to fail in build configurations
+example the feature ``=P`` means that the test case requires polling
+to succeed, and therefore is expected to fail in build configurations
 without polling (see design.mps.config.opt.poll_).
 
 _`.db.format.simple`: The format must be very simple because the test
 runner on Windows is written as a batch file (.bat), in order to avoid
-having to depend on any tools that are not standard with the operating
-system, and batch files are inflexible.
+having to depend on any tools that are did not come as standard with
+Windows XP, and batch files are inflexible. (But note that we no
+longer support Windows XP, so it would now be possible to rewrite the
+test runner in PowerShell if we thought that made sense.)
 
 _`.db.testrun`: The test runner (tool/testrun.sh on Unix or
 tool/testrun.bat on Windows) parses the test database to work out
@@ -198,15 +207,15 @@ _`.ratio.platform`: This target is currently supported only on Unix
 platforms using GNU Makefiles.
 
 
-Adding a new smoke test
------------------------
+Adding a new test
+-----------------
 
-To add a new smoke test to the MPS, carry out the following steps.
-(The procedure uses the name "smoketest" throughout but you should of
+To add a new test to the MPS, carry out the following steps. (The
+procedure uses the name "newtest" throughout but you should of
 course replace this with the name of your test case.)
 
 _`.new.source`: Create a C source file in the code directory,
-typically named "smoketest.c". In additional to the usual copyright
+typically named "newtest.c". In additional to the usual copyright
 boilerplate, it should contain a call to ``testlib_init()`` (this
 ensures reproducibility of pseudo-random numbers), and a ``printf()``
 reporting the absence of defects (this output is recognized by the
@@ -228,7 +237,7 @@ Linux and macOS), edit code/comm.gmk adding the test case to the
 ``TEST_TARGETS`` macro, and adding a rule describing how to build it,
 typically::
 
-    $(PFM)/$(VARIETY)/smoketest: $(PFM)/$(VARIETY)/smoketest.o \
+    $(PFM)/$(VARIETY)/newtest: $(PFM)/$(VARIETY)/newtest.o \
             $(TESTLIBOBJ) $(PFM)/$(VARIETY)/mps.a
 
 _`.new.windows`: If the test case builds on Windows, edit
@@ -236,28 +245,29 @@ code/commpre.nmk adding the test case to the ``TEST_TARGETS`` macro,
 and edit code/commpost.nmk adding a rule describing how to build it,
 typically::
 
-    $(PFM)\$(VARIETY)\smoketest.exe: $(PFM)\$(VARIETY)\smoketest.obj \
+    $(PFM)\$(VARIETY)\newtest.exe: $(PFM)\$(VARIETY)\newtest.obj \
             $(PFM)\$(VARIETY)\mps.lib $(FMTTESTOBJ) $(TESTLIBOBJ)
 
 _`.new.macos`: If the test case builds on macOS, open
 code/mps.xcodeproj/project.pbxproj for edit and open this project in
 Xcode. If the project navigator is not visible at the left, select
 View → Navigators → Show Project Navigator (⌘1). Right click on the
-Tests folder and choose Add Files to "mps"…. Select code/smoketest.c
+Tests folder and choose Add Files to "mps"…. Select code/newtest.c
 and then click Add. Move the new file into alphabetical order in the
 Tests folder. Click on "mps" at the top of the project navigator to
 reveal the targets. Select a test target that is similar to the one
 you have just created. Right click on that target and select Duplicate
-(⌘D). Select the new target and change its name to "smoketest". Select
+(⌘D). Select the new target and change its name to "newtest". Select
 the "Build Phases" tab and check that "Dependencies" contains the mps
-library, and that "Compile Sources" contains smoketest.c and
+library, and that "Compile Sources" contains newtest.c and
 testlib.c. Close the project.
 
 _`.new.database`: Edit tool/testcases.txt and add the new test case to
 the database. Use the appropriate flags to indicate the properties of
 the test case. These flags are used by the test runner to select the
-appropriate sets of test cases, for example tests marked ``=P``
-(Polling) can't be run on the protectionless build of the MPS.
+appropriate sets of test cases. For example tests marked ``=P`` are
+expected to fail in build configurations without polling (see
+design.mps.config.opt.poll_).
 
 _`.new.manual`: Edit manual/source/code-index.rst and add the new test
 case to the "Automated test cases" section.
@@ -292,8 +302,42 @@ configuring Jenkins in [GDR_2016-04-14]_, [GDR_2016-04-15]_ and
 [GDR_2016-04-20]_.
 
 
+MMQA tests
+----------
+
+_`.mmqa`: The Memory Management Quality Assurance test suite is
+another suite of test cases.
+
+_`.mmqa.why`: The existence of two test suites originates in the
+departmental structure at Harlequin Ltd where the MPS was originally
+developed. Tests written by members of the Memory Management Group
+went into the code directory along with the MPS itself, while tests
+written by members of the Quality Assurance Group went into the test
+directory. (Conway's Law states that "organizations which design
+systems … are constrained to produce designs which are copies of the
+communication structures of these organizations" [Conway_1968]_.)
+
+_`.mmqa.run`: See test/README for how to run the MMQA tests.
+
+
+Other tests
+-----------
+
+_`.coverage`: The program tool/testcoverage compiles the MPS with
+coverage enabled, runs the smoke tests (`.target.testrun`_) and
+outputs a coverage report.
+
+_`.opendylan`: The program tool/testopendylan pulls Open Dylan from
+GitHub and builds it against the MPS.
+
+
 References
 ----------
+
+.. [Conway_1968]
+   "How do Committees Invent?";
+   Melvin E. Conway; *Datamation* 14:5, pp. 28–31; April 1968;
+   <http://www.melconway.com/Home/Committees_Paper.html>
 
 .. [GDR_2016-04-14]
    "Jenkins setup and configuration procedure";
