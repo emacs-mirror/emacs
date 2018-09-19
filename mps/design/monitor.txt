@@ -28,24 +28,30 @@ Requirements
 It should be possible to analyze the behaviour of the
 MPS in a client program:
 
-_`.req.state.running`: that is currently running; or
+_`.req.state.running`: that is currently running (job003960_); or
+
+.. _job003960: https://www.ravenbrook.com/project/mps/issue/job003960/
 
 _`.req.state.stopped`: that has finished running.
 
 It should be possible to see:
 
-_`.req.memory.total`: the total memory in use by the client program [GR_2004-12-02]_;
+_`.req.memory.total`: the total memory in use by the client program
+[GR_2004-12-02]_;
 
-_`.req.memory.pool`: the memory in use by each pool;
+_`.req.memory.pool`: the memory in use by each pool (job003960_);
 
-_`.req.trace`: when traces take place;
+_`.req.trace`: when traces take place (job003960_);
 
-_`.req.trace.generation`: which generations get collected by each trace;
+_`.req.trace.generation`: which generations get collected by each
+trace (job003960_);
 
 _`.req.time-fraction`: the fraction of runtime spent in collections;
 
 _`.req.barriers`: the rate of barrier hits, to indicate how the barriers
-are working.
+are working (job003921_).
+
+.. _job003921: https://www.ravenbrook.com/project/mps/issue/job003921/
 
 
 
