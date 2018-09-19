@@ -29,21 +29,30 @@ This document is not confidential.
 `branch`_          Make a version or development branch.
 `gcovfmt`_         Formats the output of the ``gcov`` coverage tool into a
                    summary table.
+`noaslr.c`_        Run a program on macOS with address space layout
+                   randomization (ASLR) disabled.
+`p4-bisect`_       Find, by binary search, the Perforce change that introduced
+                   a feature or bug.
 `release`_         Make a product release.
+`testaslr.c`_      Print addresses from different parts of address space in
+                   order to detect whether address space layout
+                   randomization (ASLR) is in force.
+`testcases.txt`_   MPS test case database.
 `testcoverage`_    Instrument the test suite for coverage, run it, and output
                    a coverage report.
 `testopendylan`_   Download the latest version of Open Dylan and build it
                    against the MPS sources.
-`testrun.bat`_     Implements the ``testrun`` make target on Windows, where
-                   it is invoked from ``commpost.nmk``.
-`testrun.sh`_      Implements the ``testrun`` make target on FreeBSD and
-                   Linux, it is invoked from ``comm.gmk``, and on macOS,
-                   where it is invoked from the Xcode project.
+`testrun.bat`_     Test case runner on Windows.
+`testrun.sh`_      Test case runner on Unix.
 =================  ==========================================================
 
 .. _branch: branch
 .. _gcovfmt: gcovfmt
+.. _noaslr.c: noaslr.c
+.. _p4-bisect: p4-bisect
 .. _release: release
+.. _testaslr.c: testaslr.c
+.. _testcases.txt: testcases.txt
 .. _testcoverage: testcoverage
 .. _testopendylan: testopendylan
 .. _testrun.bat: testrun.bat
