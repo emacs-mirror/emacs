@@ -230,28 +230,41 @@ is translated into a ``:c:type:`` role::
     continue with the iteration.
 
 The list of MPS types thus converted is given by the ``TYPES`` global
-in designs.py, plus any word matching ``mps_.*_[stu]``, plus any word
-ending ``Class``, ``Function``, ``Method``, or ``Struct``.
+in designs.py, plus any word matching ``mps_[a-z_]+_[stu]``, plus any
+word ending ``Class``, ``Function``, ``Method``, ``Struct``, or
+``Union``.
 
 _`.fmt.tag`: A paragraph starting with an MPS tag, for example::
 
     _`.type.land`: The type of a generic land instance.
 
-is translated into an ``:mps:tag`` role::
+is translated into an ``:mps:tag:`` role::
 
     :mps:tag:`type.land` The type of a generic land instance.
+
+_`.fmt.ref`: Cross-references to tags, for example::
+
+    A *node* is used in the typical data structure sense to mean an
+    element of a tree (see also `.type.tree`_).
+
+is translated into an ``:mps:ref:`` role::
+
+    A *node* is used in the typical data structure sense to mean an
+    element of a tree (see also :mps:ref:`.type.tree`).
 
 _`.fmt.history`: The section "Document History" is removed.
 
 _`.fmt.copyright`: The section "Copyright and License" is removed.
 
+_`.fmt.sections`: Section numbers are removed.
+
 _`.fmt.metadata`: Metadata roles are removed, except for:
 
-_`.fmt.metadata.tag`: The metadata role ``:Tag:`` is translated into an
-``mps:prefix`` directive.
+_`.fmt.metadata.tag`: ``:Tag:``, which is translated into an
+``mps:prefix`` directive; and
 
-_`.fmt.metadata.index`: The metadata role ``:Index Terms:`` is
-translated into an ``index`` directive.
+_`.fmt.metadata.index`: ``:Index Terms:``, which is is translated into
+an ``index`` directive.
 
 _`.fmt.citation`: Citations are translated from design style::
 
@@ -259,7 +272,7 @@ _`.fmt.citation`: Citations are translated from design style::
 
 into manual style::
 
-    [Citation] Author. Date. "`Title` <URL>`__".
+    [Citation] Author. Date. "`Title <URL>`__".
 
 
 References
