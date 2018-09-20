@@ -71,7 +71,7 @@ Memory Management Glossary: N
         around memory, the free blocks touched are those
         least-recently used).
 
-        .. seealso:: :term:`first fit`, :term:`allocation mechanism`.
+        .. seealso:: :term:`allocation mechanism`, :term:`first fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 

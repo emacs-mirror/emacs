@@ -18,7 +18,7 @@ Memory Management Glossary: A
 
     activation record
 
-        .. aka:: *function record*, *activation frame*.
+        .. aka:: *activation frame*, *function record*.
 
         An activation or function record is a data structure,
         associated with the invocation of a function, procedure, or
@@ -101,7 +101,7 @@ Memory Management Glossary: A
         :term:`mapped` at any given time. The mapped part of the
         address space may be discontiguous or sparse.
 
-        .. seealso:: :term:`virtual address space`, :term:`physical address space`.
+        .. seealso:: :term:`physical address space`, :term:`virtual address space`.
 
     address space layout randomization
 
@@ -497,6 +497,6 @@ Memory Management Glossary: A
         function is entered, and :term:`deallocated <free (1)>` when
         it returns.
 
-        .. similar:: :term:`stack allocation`, :term:`dynamic extent`.
+        .. similar:: :term:`dynamic extent`, :term:`stack allocation`.
 
         .. opposite:: :term:`static storage duration`.
