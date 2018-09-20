@@ -58,7 +58,8 @@ Memory Management Glossary: V
 
             A behaviour of the MPS that must be selected at
             compilation time. There are three varieties: :term:`cool`,
-            :term:`hot` and :term:`rash`. See :ref:`guide-build`.
+            :term:`hot` and :term:`rash`. See
+            :ref:`topic-error-variety`.
 
     vector data type
 
