@@ -130,7 +130,7 @@ Memory Management Glossary: W
         weak references are enqueued, if they were registered with a
         queue.
 
-        .. seealso:: :term:`reachability <reachable>`, :term:`phantom reachable`.
+        .. seealso:: :term:`phantom reachable`, :term:`reachability <reachable>`.
 
         .. link::
 
@@ -147,7 +147,7 @@ Memory Management Glossary: W
         same applies for :term:`coalescing <coalesce>`. This gives
         this system more flexibility than a regular buddy system.
 
-        .. seealso:: :term:`buddy system`, :term:`allocation mechanism`, :term:`binary buddies`.
+        .. seealso:: :term:`allocation mechanism`, :term:`binary buddies`, :term:`buddy system`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
@@ -184,7 +184,7 @@ Memory Management Glossary: W
         complete, white objects will be subject to :term:`reclamation
         <reclaim>`.
 
-        .. opposite:: :term:`gray`, :term:`black`.
+        .. opposite:: :term:`black`, :term:`gray`.
 
     word
 
@@ -223,7 +223,7 @@ Memory Management Glossary: W
         should fit in the storage level; otherwise the system may
         :term:`thrash`.
 
-        .. seealso:: :term:`resident set`, :term:`cache (2)`, :term:`storage hierarchy`.
+        .. seealso:: :term:`cache (2)`, :term:`resident set`, :term:`storage hierarchy`.
 
         .. bibref:: :ref:`Denning & Schwartz (1972) <DS72>`.
 
@@ -236,7 +236,7 @@ Memory Management Glossary: W
         In practice, this tends to work quite badly because it
         eliminates all large blocks, so large requests cannot be met.
 
-        .. seealso:: :term:`allocation policy`, :term:`first fit`, :term:`best fit`.
+        .. seealso:: :term:`allocation policy`, :term:`best fit`, :term:`first fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
@@ -246,7 +246,7 @@ Memory Management Glossary: W
 
         .. opposite:: :term:`unwrapped`.
 
-        .. seealso:: :term:`wrapper`, :term:`boxed`, :term:`tag`.
+        .. seealso:: :term:`boxed`, :term:`tag`, :term:`wrapper`.
 
         .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
@@ -273,7 +273,7 @@ Memory Management Glossary: W
         pointer; when the cons cell is passed as a function argument,
         just the pointer is passed.
 
-        .. seealso:: :term:`wrapped`, :term:`boxed`.
+        .. seealso:: :term:`boxed`, :term:`wrapped`.
 
         .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 

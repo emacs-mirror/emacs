@@ -51,7 +51,7 @@ Memory Management Glossary: T
         *discriminator*, and is a form of tag. Analogues occur in
         other languages, sometimes with compiler or run-time support.
 
-        .. seealso:: :term:`tagged architecture`, :term:`in-band header`.
+        .. seealso:: :term:`in-band header`, :term:`tagged architecture`.
 
         .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
@@ -235,7 +235,7 @@ Memory Management Glossary: T
     translation buffer
     translation lookaside buffer
 
-        .. aka:: , *address translation cache*, *ATC*, *TB*.
+        .. aka:: *address translation cache*, *ATC*, *TB*.
 
         The *translation lookaside buffer* or *address translation
         cache* is small piece of associative :term:`memory (1)` within

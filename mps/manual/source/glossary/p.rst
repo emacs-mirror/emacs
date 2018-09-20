@@ -56,7 +56,7 @@ Memory Management Glossary: P
         sometimes also used to mean :term:`invalid page fault` or
         :term:`protection fault`.
 
-        .. seealso:: :term:`paging`, :term:`paged in`, :term:`paged out`, :term:`read fault`, :term:`write fault`.
+        .. seealso:: :term:`paged in`, :term:`paged out`, :term:`paging`, :term:`read fault`, :term:`write fault`.
 
     page marking
 
@@ -196,7 +196,7 @@ Memory Management Glossary: P
         :term:`fragmentation`, this is said to be a :term:`perfect
         fit`.
 
-        .. seealso:: :term:`free block`, :term:`allocation mechanism`, :term:`best fit`.
+        .. seealso:: :term:`allocation mechanism`, :term:`best fit`, :term:`free block`.
 
     phantom reachable
     phantomly reachable
@@ -379,7 +379,7 @@ Memory Management Glossary: P
         information. For example, when the referent is smaller than a
         :term:`word`, an offset within the word might be needed.
 
-        .. similar:: :term:`reference`, :term:`address`.
+        .. similar:: :term:`address`, :term:`reference`.
 
         .. seealso:: :term:`tag`.
 
@@ -555,7 +555,7 @@ Memory Management Glossary: P
             Some :term:`garbage collectors` use handlers for
             protection faults to provide :term:`barriers (1)`.
 
-        .. seealso:: :term:`segmentation violation`, :term:`General Protection Fault`.
+        .. seealso:: :term:`General Protection Fault`, :term:`segmentation violation`.
 
     protection violation
 

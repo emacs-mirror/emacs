@@ -20,7 +20,7 @@ Memory Management Glossary: I
 
         .. similar:: :term:`unboxed`.
 
-        .. opposite:: :term:`boxed`, :term:`reference`, :term:`pointer`.
+        .. opposite:: :term:`boxed`, :term:`pointer`, :term:`reference`.
 
     immune set
 
@@ -78,7 +78,7 @@ Memory Management Glossary: I
 
         .. opposite:: :term:`out-of-band header`.
 
-        .. seealso:: :term:`stack frame`, :term:`activation frame`.
+        .. seealso:: :term:`activation frame`, :term:`stack frame`.
 
         .. mps:specific::
 
@@ -129,7 +129,7 @@ Memory Management Glossary: I
 
         .. opposite:: :term:`stop-and-copy collection`.
 
-        .. seealso:: :term:`tri-color marking`, :term:`barrier (1)`.
+        .. seealso:: :term:`barrier (1)`, :term:`tri-color marking`.
 
         .. bibref:: :ref:`Appel et al. (1988) <AEL88>`, :ref:`Boehm et al. (1991) <BDS91>`.
 
@@ -174,7 +174,7 @@ Memory Management Glossary: I
 
         .. opposite:: :term:`snapshot at the beginning`.
 
-        .. seealso:: :term:`tri-color marking`, :term:`strong tri-color invariant`, :term:`barrier (1)`.
+        .. seealso:: :term:`barrier (1)`, :term:`strong tri-color invariant`, :term:`tri-color marking`.
 
         .. bibref:: :ref:`Wilson (1994) <WIL94>`, :ref:`Pirinen (1998) <PIRINEN98>`.
 
@@ -206,7 +206,7 @@ Memory Management Glossary: I
         block size may be used to implement the :term:`best fit`
         policy.
 
-        .. seealso:: :term:`allocation mechanism`, :term:`allocation policy`, :term:`sequential fit`, :term:`bitmapped fit`.
+        .. seealso:: :term:`allocation mechanism`, :term:`allocation policy`, :term:`bitmapped fit`, :term:`sequential fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 

@@ -120,7 +120,7 @@ Memory Management Glossary: L
         smaller objects are allocated, the free block chain fills up
         with fragments a little smaller than the large object size.
 
-        .. seealso:: :term:`FIFO-ordered first fit`, :term:`address-ordered first fit`.
+        .. seealso:: :term:`address-ordered first fit`, :term:`FIFO-ordered first fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
@@ -160,7 +160,7 @@ Memory Management Glossary: L
 
     live
 
-        .. aka:: *alive*, *active*.
+        .. aka:: *active*, *alive*.
 
         :term:`Memory (2)` or an :term:`object` is live if the program
         will read from it in future. The term is often used more
