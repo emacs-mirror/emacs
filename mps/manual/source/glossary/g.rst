@@ -211,7 +211,7 @@ Memory Management Glossary: G
         mechanism`), so some implementors approximate it, choosing a
         block which is close in size to the allocation request.
 
-        .. seealso:: :term:`best fit`, :term:`allocation policy`, :term:`next fit`, :term:`worst fit`.
+        .. seealso:: :term:`allocation policy`, :term:`best fit`, :term:`next fit`, :term:`worst fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 

@@ -41,7 +41,7 @@ Memory Management Glossary: S
             ``int`` type in :term:`C` is defined to have a magnitude
             that can be represented by a :term:`word`.
 
-        .. seealso:: :term:`vector data type`, :term:`algebraic data type`, :term:`value object`, :term:`leaf object`.
+        .. seealso:: :term:`algebraic data type`, :term:`leaf object`, :term:`value object`, :term:`vector data type`.
 
     scan
 
@@ -163,7 +163,7 @@ Memory Management Glossary: S
 
         This implements a :term:`good fit` :term:`allocation policy`.
 
-        .. seealso:: :term:`segregated free list`, :term:`allocation mechanism`, :term:`free list`, :term:`exact segregated fit`, :term:`strict segregated fit`.
+        .. seealso:: :term:`allocation mechanism`, :term:`exact segregated fit`, :term:`free list`, :term:`segregated free list`, :term:`strict segregated fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
@@ -193,7 +193,7 @@ Memory Management Glossary: S
 
     semi-conservative garbage collection
 
-        .. aka:: *mostly-precise garbage collection*, *mostly-exact garbage collection*.
+        .. aka:: *mostly-exact garbage collection*, *mostly-precise garbage collection*.
 
         A variant of :term:`conservative garbage collection` which
         deals with :term:`exact references` as well
@@ -409,7 +409,7 @@ Memory Management Glossary: S
 
         .. opposite:: :term:`incremental update`.
 
-        .. seealso:: :term:`tri-color marking`, :term:`weak tri-color invariant`, :term:`barrier (1)`.
+        .. seealso:: :term:`barrier (1)`, :term:`tri-color marking`, :term:`weak tri-color invariant`.
 
         .. bibref:: :ref:`Wilson (1994) <WIL94>`, :ref:`Pirinen (1998) <PIRINEN98>`.
 
@@ -448,7 +448,7 @@ Memory Management Glossary: S
         :term:`reference objects` which are registered with a queue
         are enqueued.
 
-        .. seealso:: :term:`reachability <reachable>`, :term:`weakly reachable`, :term:`phantom reachable`.
+        .. seealso:: :term:`phantom reachable`, :term:`reachability <reachable>`, :term:`weakly reachable`.
 
         .. link::
 
@@ -506,7 +506,7 @@ Memory Management Glossary: S
 
         .. opposite:: :term:`coalesce`.
 
-        .. seealso:: :term:`coalesce`, :term:`allocation policy`, :term:`free block`.
+        .. seealso:: :term:`allocation policy`, :term:`coalesce`, :term:`free block`.
 
     SRAM
 
@@ -547,7 +547,7 @@ Memory Management Glossary: S
 
         .. similar:: :term:`control stack`.
 
-        .. seealso:: :term:`data stack`, :term:`cactus stack`.
+        .. seealso:: :term:`cactus stack`, :term:`data stack`.
 
     stack allocation
 
@@ -578,7 +578,7 @@ Memory Management Glossary: S
 
         .. opposite:: :term:`heap allocation`, :term:`static allocation`.
 
-        .. seealso:: :term:`region inference`, :term:`dynamic extent`.
+        .. seealso:: :term:`dynamic extent`, :term:`region inference`.
 
     stack frame
 
@@ -630,13 +630,13 @@ Memory Management Glossary: S
 
         .. similar:: :term:`static storage duration`.
 
-        .. opposite:: :term:`stack allocation`, :term:`heap allocation`.
+        .. opposite:: :term:`heap allocation`, :term:`stack allocation`.
 
         .. seealso:: :term:`region inference`, :term:`static memory (2)`.
 
     static memory (1)
 
-        .. aka:: *static RAM*, *SRAM*.
+        .. aka:: *SRAM*, *static RAM*.
 
         Static :term:`memory (2)` or static RAM (SRAM) is a type of
         :term:`physical memory (2)` that does not need to be refreshed
@@ -723,7 +723,7 @@ Memory Management Glossary: S
 
             Stop-and-copy in a :term:`two-space collector`.
 
-        .. opposite:: :term:`incremental garbage collection`,  :term:`parallel garbage collection`.
+        .. opposite:: :term:`incremental garbage collection`, :term:`parallel garbage collection`.
 
     storage
 
@@ -815,7 +815,7 @@ Memory Management Glossary: S
         system>` are a special case of strict segregated fit
         allocators.
 
-        .. seealso:: :term:`buddy system`, :term:`segregated fit`, :term:`segregated free list`, :term:`allocation mechanism`.
+        .. seealso:: :term:`allocation mechanism`, :term:`buddy system`, :term:`segregated fit`, :term:`segregated free list`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
@@ -883,7 +883,7 @@ Memory Management Glossary: S
         only :term:`strong references`, that is,
         contains no :term:`reference objects`.
 
-        .. seealso:: :term:`reachability <reachable>`, :term:`softly reachable`, :term:`weakly reachable`, :term:`phantom reachable`.
+        .. seealso:: :term:`phantom reachable`, :term:`reachability <reachable>`, :term:`softly reachable`, :term:`weakly reachable`.
 
         .. link::
 
@@ -930,7 +930,7 @@ Memory Management Glossary: S
 
         :term:`Backing store` used by a :term:`swapping` system.
 
-        .. seealso:: :term:`swapping`, :term:`backing store`.
+        .. seealso:: :term:`backing store`, :term:`swapping`.
 
     swapped in
 

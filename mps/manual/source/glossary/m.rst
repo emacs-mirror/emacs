@@ -38,7 +38,7 @@ Memory Management Glossary: M
             Main memory used to be called :term:`core`, and is now
             likewise often called :term:`RAM`.
 
-        .. similar:: :term:`RAM`, :term:`core`, :term:`physical memory (1)`.
+        .. similar:: :term:`core`, :term:`physical memory (1)`, :term:`RAM`.
 
     malloc
 
@@ -213,7 +213,7 @@ Memory Management Glossary: M
         set`. An alternative is to store the mark bits separately:
         see :term:`bitmap marking`.
 
-        .. seealso:: :term:`sweep <sweeping>`, :term:`compact <compaction>`.
+        .. seealso:: :term:`compact <compaction>`, :term:`sweep <sweeping>`.
 
     MB
 
@@ -519,7 +519,7 @@ Memory Management Glossary: M
         generation of various exceptions. Not all processors have an
         MMU.
 
-        .. seealso:: :term:`virtual memory`, :term:`page fault`, :term:`segmentation violation`.
+        .. seealso:: :term:`page fault`, :term:`segmentation violation`, :term:`virtual memory`.
 
     mostly-copying garbage collection
 

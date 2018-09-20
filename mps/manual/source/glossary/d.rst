@@ -62,7 +62,7 @@ Memory Management Glossary: D
 
         .. opposite:: :term:`live`.
 
-        .. seealso:: :term:`garbage`, :term:`undead`, :term:`free (3)`.
+        .. seealso:: :term:`free (3)`, :term:`garbage`, :term:`undead`.
 
     deallocate
 
@@ -295,7 +295,7 @@ Memory Management Glossary: D
 
     dynamic memory
 
-        .. aka:: *dynamic RAM*, *DRAM*.
+        .. aka:: *DRAM*, *dynamic RAM*.
 
         Dynamic memory, or dynamic RAM (DRAM, pronounced "dee ram"),
         is a type of :term:`RAM`.
@@ -310,7 +310,7 @@ Memory Management Glossary: D
         relatively fast memory, such as the :term:`main memory` of
         PCs. Dynamic memory often comes packaged in SIMMs or DIMMs.
 
-        .. seealso:: :term:`static memory (1)`, :term:`SDRAM`.
+        .. seealso:: :term:`SDRAM`, :term:`static memory (1)`.
 
     dynamic RAM
 

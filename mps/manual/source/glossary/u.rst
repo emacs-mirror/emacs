@@ -98,9 +98,9 @@ Memory Management Glossary: U
 
         .. similar:: :term:`dead`.
 
-        .. opposite:: :term:`reachable`, :term:`live`.
+        .. opposite:: :term:`live`, :term:`reachable`.
 
-        .. seealso:: :term:`reachable`, :term:`garbage collection`.
+        .. seealso:: :term:`garbage collection`.
 
     unsure reference
 

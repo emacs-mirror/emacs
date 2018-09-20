@@ -119,13 +119,14 @@ MPS manual. See manual/source/extensions/mps/__init__.py.
 
 _`.ext.aka`: The ``aka`` directive generates an "Also known as"
 section. This should be used in a glossary entry, and should contain a
-comma-separated list of glossary entries (in italics) that are
-synonyms for this glossary entry.
+comma-separated, alphabetically ordered, list of glossary entries (in
+italics) that are synonyms for this glossary entry.
 
 _`.ext.bibref`: The ``bibref`` directive generates a "Related
 publication" or "Related publications" section. This should be used in
-a glossary entry, and should contain a comma-separated list of
-``:ref:`` roles referring to entries in the bibliography.
+a glossary entry, and should contain a comma-separated, alphabetically
+ordered, list of ``:ref:`` roles referring to entries in the
+bibliography.
 
 _`.ext.deprecated`: The ``deprecated`` directive generates a
 "Deprecated" section. It should be used in a description of a public
@@ -151,26 +152,32 @@ user should be aware of when using it.
 
 _`.ext.opposite`: The ``opposite`` directive generates an "Opposite
 term" or "Opposite terms" section. This should be used in a glossary
-entry, and should contain a comma-separated list of ``:term:`` roles
-referring to glossary entries with opposite meaning.
+entry, and should contain a comma-separated, alphabetically ordered,
+list of ``:term:`` roles referring to glossary entries with opposite
+meaning.
 
 _`.ext.relevance`: The ``relevance`` directive generates a "Relevance
 to memory management" section. This should be used in a glossary
 entry, and should contain an explanation of how the term relates to
 memory management, if this is not obvious.
 
-_`.ext.see`: The ``see`` directive generates a "See also" section.
-This should be used in a glossary entry, and should contain a
-comma-separated list of ``:term:`` roles referring to glossary entries
-that relate to the entry but are neither synonyms for it
-(`.ext.aka`_), nor opposites (`.ext.opposite`_), nor similar
-(`.ext.similar`_).
+_`.ext.see`: The ``see`` directive generates a "See" section. This
+should be used in a glossary entry, and should contain a single
+``:term:`` role referring to the entry for which the currente entry is
+a synonym.
+
+_`.ext.seealso`: The ``seealso`` directive generates a "See also"
+section. This should be used in a glossary entry, and should contain a
+comma-separated, alphabetically ordered, list of ``:term:`` roles
+referring to glossary entries that relate to the entry but are neither
+synonyms for it (`.ext.aka`_), nor opposites (`.ext.opposite`_), nor
+similar (`.ext.similar`_).
 
 _`.ext.similar`: The ``similar`` directive generates a "Similar term"
 or "Similar terms" section. This should be used in a glossary entry,
-and should contain a comma-separated list of ``:term:`` roles
-referring to glossary entries with similar meaning to the entry but
-which are not synonyms for it (`.ext.aka`_).
+and should contain a comma-separated, alphabetically ordered, list of
+``:term:`` roles referring to glossary entries with similar meaning to
+the entry but which are not synonyms for it (`.ext.aka`_).
 
 _`.ext.specific`: The ``mps:specific`` directive an "In the MPS"
 section. This should be used in a glossary entry, and should contain

@@ -47,7 +47,7 @@ Memory Management Glossary: E
         hardware; other :term:`generational <generational garbage
         collection>` collectors generally use :term:`remembered sets`.
 
-        .. seealso:: :term:`generational garbage collection`, :term:`exit table`.
+        .. seealso:: :term:`exit table`, :term:`generational garbage collection`.
 
         .. bibref:: :ref:`Lieberman & Hewitt (1983) <LH83>`.
 
@@ -64,7 +64,7 @@ Memory Management Glossary: E
 
         .. similar:: :term:`remembered set`.
 
-        .. seealso:: :term:`generational garbage collection`, :term:`exit table`.
+        .. seealso:: :term:`exit table`, :term:`generational garbage collection`.
 
     exact garbage collection
 
@@ -114,7 +114,7 @@ Memory Management Glossary: E
         The array of free lists may be represented sparsely. Large
         blocks may be treated separately.
 
-        .. seealso:: :term:`segregated fit`, :term:`segregated free list`, :term:`allocation mechanism`.
+        .. seealso:: :term:`allocation mechanism`, :term:`segregated fit`, :term:`segregated free list`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 

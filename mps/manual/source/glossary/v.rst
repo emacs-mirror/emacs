@@ -63,12 +63,11 @@ Memory Management Glossary: V
 
     vector data type
 
-        A vector data type is an aggregate type of more than one
-        dimension whose objects have a value for each dimension, where
-        each dimension is of the same type.
+        A vector data type is an aggregate type whose elements belong
+        to the same type and are indexed by integers or tuples of
+        integers.
 
-        Examples of vector data types include: strings, arrays, and
-        lists.
+        Examples of vector data types include strings and arrays.
 
         .. relevance::
 
@@ -78,9 +77,9 @@ Memory Management Glossary: V
             they are an aggregate of a type that can be represented by
             :term:`value objects`. :term:`Scanning
             <scan>` information for vectors can be compactly encoded
-            in terms of the aggregated type and the vector dimension.
+            in terms of the aggregated type and the vector size.
 
-        .. seealso:: :term:`scalar data type`, :term:`algebraic data type`, :term:`value object`, :term:`leaf object`.
+        .. seealso:: :term:`algebraic data type`, :term:`scalar data type`, :term:`leaf object`, :term:`value object`.
 
     virtual address
 
@@ -151,7 +150,7 @@ Memory Management Glossary: V
 
         .. opposite:: :term:`real memory (1)`.
 
-        .. seealso:: :term:`paging`, :term:`paged in`, :term:`paged out`, :term:`swapping`, :term:`swap space`, :term:`mapped`, :term:`reserved`, :term:`unmapped`, :term:`shared memory`.
+        .. seealso:: :term:`mapped`, :term:`paging`, :term:`paged in`, :term:`paged out`, :term:`reserved`, :term:`shared memory`, :term:`swapping`, :term:`swap space`, :term:`unmapped`.
 
     virtual memory arena
 

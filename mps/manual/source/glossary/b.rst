@@ -157,7 +157,7 @@ Memory Management Glossary: B
         objects are often not a good fit for power-of-two sized
         blocks.
 
-        .. seealso:: :term:`buddy system`, :term:`allocation mechanism`.
+        .. seealso:: :term:`allocation mechanism`, :term:`buddy system`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
@@ -211,7 +211,7 @@ Memory Management Glossary: B
         reference`, as they avoid examining :term:`in-band headers`
         when allocating.
 
-        .. seealso:: :term:`allocation mechanism`, :term:`sequential fit`, :term:`indexed fit`.
+        .. seealso:: :term:`allocation mechanism`, :term:`indexed fit`, :term:`sequential fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 
@@ -234,7 +234,7 @@ Memory Management Glossary: B
         with them and need not visit them again (for the purposes of
         :term:`tracing <trace>`).
 
-        .. opposite:: :term:`white`, :term:`gray`.
+        .. opposite:: :term:`gray`, :term:`white`.
 
     blacklisting
     black-listing
@@ -280,7 +280,7 @@ Memory Management Glossary: B
 
         .. opposite:: :term:`unboxed`.
 
-        .. seealso:: :term:`tag`, :term:`BIBOP`.
+        .. seealso:: :term:`BIBOP`, :term:`tag`.
 
         .. bibref:: :ref:`Gudeman (1993) <GUDEMAN93>`.
 
@@ -338,7 +338,7 @@ Memory Management Glossary: B
         :term:`generations` by the age of the
         :term:`object`. These divisions are known as buckets.
 
-        .. seealso:: :term:`generational garbage collection`, :term:`aging space`, :term:`creation space`.
+        .. seealso:: :term:`aging space`, :term:`creation space`, :term:`generational garbage collection`.
 
     buddy system
 
@@ -370,7 +370,7 @@ Memory Management Glossary: B
         :term:`Fibonacci buddies`, :term:`weighted buddies`, and
         :term:`double buddies`.
 
-        .. seealso:: :term:`allocation mechanism`, :term:`segregated free lists`, :term:`segregated fit`, :term:`strict segregated fit`.
+        .. seealso:: :term:`allocation mechanism`, :term:`segregated fit`, :term:`segregated free lists`, :term:`strict segregated fit`.
 
         .. bibref:: :ref:`Wilson et al. (1995) <WIL95>`.
 

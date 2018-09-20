@@ -17,7 +17,7 @@ Memory Management Glossary: R
 
         .. similar:: :term:`main memory`.
 
-        .. seealso:: :term:`ROM`, :term:`static RAM`, :term:`dynamic RAM`.
+        .. seealso:: :term:`dynamic RAM`, :term:`ROM`, :term:`static RAM`.
 
     random access memory
 
@@ -313,7 +313,7 @@ Memory Management Glossary: R
             This feature was introduced in Java 1.2 (confusingly, part
             of the Java 2 Platform).
 
-        .. seealso:: :term:`soft reference`, :term:`weak reference (2)`, :term:`phantom reference`.
+        .. seealso:: :term:`phantom reference`, :term:`soft reference`, :term:`weak reference (2)`.
 
         .. link::
 
@@ -448,7 +448,7 @@ Memory Management Glossary: R
         objects. The collector uses a :term:`write barrier` to
         replicate the writes to the new copies.
 
-        .. seealso:: :term:`copying garbage collection`, :term:`broken heart`.
+        .. seealso:: :term:`broken heart`, :term:`copying garbage collection`.
 
         .. bibref:: :ref:`Nettles et al. (1992) <NOPH92>`, :ref:`Nettles & O'Toole (1993) <NO93>`, :ref:`Nettles & O'Toole (1993a) <NO93A>`, :ref:`O'Toole & Nettles (1994) <ON94>`.
 
@@ -482,7 +482,7 @@ Memory Management Glossary: R
         which currently has a copy in the cache is called *resident*.
         Ideally, the :term:`working set` should be resident.
 
-        .. seealso:: :term:`cache (2)`, :term:`storage hierarchy`, :term:`resident set`.
+        .. seealso:: :term:`cache (2)`, :term:`resident set`, :term:`storage hierarchy`.
 
     resident set
 
@@ -545,7 +545,7 @@ Memory Management Glossary: R
         :term:`static <static allocation>` data, and the
         :term:`control stack`.
 
-        .. seealso:: :term:`weak root`, :term:`strong root`, :term:`ambiguous root`, :term:`exact root`.
+        .. seealso:: :term:`ambiguous root`, :term:`exact root`, :term:`strong root`, :term:`weak root`.
 
         .. mps:specific:: See :ref:`topic-root`.
 

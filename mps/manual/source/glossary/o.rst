@@ -59,9 +59,9 @@ Memory Management Glossary: O
         which are :term:`free (3)`. :ref:`Baker (1992c) <BAKER92C>`
         used the term *ecru*.
 
-        .. opposite:: :term:`white`, :term:`gray`, :term:`black`.
+        .. opposite:: :term:`black`, :term:`gray`, :term:`white`.
 
-        .. seealso:: :term:`treadmill`, :term:`color`.
+        .. seealso:: :term:`color`, :term:`treadmill`.
 
     old space
     oldspace
