@@ -176,8 +176,7 @@ def telemetry_decoder(read):
 
 
 # SI_PREFIX[i] is the SI prefix for 10 to the power of 3(i-8).
-SI_PREFIX = list('yzafpnµm kMGTPEZY')
-SI_PREFIX[8] = ''
+SI_PREFIX = list('yzafpnµm') + [''] + list('kMGTPEZY')
 
 def with_SI_prefix(y, precision=5, unit=''):
     "Turn the number y into a string using SI prefixes followed by unit."
