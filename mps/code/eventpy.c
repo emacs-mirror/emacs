@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 #undef X
   puts("}");
 
-  puts("\n# Mapping from trace start reason to its short decription.");
+  puts("\n# Mapping from trace start reason to its short description.");
   puts("TRACE_START_WHY = {");
 #define X(WHY, SHORT, LONG) \
   printf("    %u: \"%s\",\n", (unsigned)TraceStartWhy ## WHY, SHORT);
