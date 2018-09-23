@@ -420,7 +420,6 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 
 void EventDump(mps_lib_FILE *stream)
 {
-  Event event;
   EventKind kind;
 
   AVER(stream != NULL);
@@ -433,13 +432,15 @@ void EventDump(mps_lib_FILE *stream)
   }
 
   for (kind = 0; kind < EventKindLIMIT; ++kind) {
-    for (event = (void *)EventLast[kind];
-         (char *)event < EventBuffer[kind] + EventBufferSIZE;
-         event = PointerAdd(event, event->any.size)) {
-      /* Try to keep going even if there's an error, because this is used as a
-         backtrace and we'll take what we can get. */
+    char *cursor = EventLast[kind];
+    const char *end = EventBuffer[kind] + EventBufferSIZE;
+    while (cursor < end) {
+      Event event = (void *)cursor;
+      /* Try to keep going even if there's an error, because this is
+         used for debugging and we'll take what we can get. */
       (void)EventWrite(event, stream);
       (void)WriteF(stream, 0, "\n", NULL);
+      cursor += event->any.size;
     }
   }
 }
