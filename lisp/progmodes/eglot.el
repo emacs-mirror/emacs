@@ -446,6 +446,7 @@ INTERACTIVE is t if called interactively."
 
 (defvar eglot--managed-mode) ; forward decl
 
+;;;###autoload
 (defun eglot-ensure ()
   "Start Eglot session for current buffer if there isn't one."
   (let ((buffer (current-buffer)))
