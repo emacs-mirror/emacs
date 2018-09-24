@@ -718,6 +718,17 @@ Doubles as an indicator of snippet support."
     (13 . "Enum") (14 . "Keyword") (15 . "Snippet") (16 . "Color")
     (17 . "File") (18 . "Reference")))
 
+(defconst eglot--symbol-kind-names
+  `((1 . "File") (2 . "Module")
+    (3 . "Namespace") (4 . "Package") (5 . "Class")
+    (6 . "Method") (7 . "Property") (8 . "Field")
+    (9 . "Constructor") (10 . "Enum") (11 . "Interface")
+    (12 . "Function") (13 . "Variable") (14 . "Constant")
+    (15 . "String") (16 . "Number") (17 . "Boolean")
+    (18 . "Array") (19 . "Object") (20 . "Key")
+    (21 . "Null") (22 . "EnumMember") (23 . "Struct")
+    (24 . "Event") (25 . "Operator") (26 . "TypeParameter")))
+
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
   (pcase-let ((`(,string ,mode)
@@ -1580,7 +1591,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
              (mapcar
               (jsonrpc-lambda
                   (&key name kind location _containerName)
-                (cons (propertize name :kind (cdr (assoc kind eglot--kind-names)))
+                (cons (propertize name :kind (cdr (assoc kind eglot--symbol-kind-names)))
                       (eglot--lsp-position-to-point
                        (plist-get (plist-get location :range) :start))))
               (jsonrpc-request (eglot--current-server-or-lose)
