@@ -4101,6 +4101,12 @@ dump_anonymous_allocate_w32 (void *base,
 #endif
 }
 
+/* Old versions of macOS only define MAP_ANON, not MAP_ANONYMOUS.
+   FIXME: This probably belongs elsewhere (gnulib/autoconf?)  */
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+
 static void *
 dump_anonymous_allocate_posix (void *base,
                                size_t size,
