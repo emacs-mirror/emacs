@@ -25,10 +25,10 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(eval-when-compile (require 'cl-lib))
 (require 'backtrace)
-(require 'pcase)
-(require 'subr-x)
+(eval-when-compile (require 'pcase))
+(eval-when-compile (require 'subr-x))
 
 ;;;###autoload
 (defun thread-handle-event (event)

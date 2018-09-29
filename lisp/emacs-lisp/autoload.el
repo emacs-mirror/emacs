@@ -813,7 +813,8 @@ FILE's modification time."
                          (marker-buffer other-output-start)
                          "actual autoloads are elsewhere" load-name relfile
 			 (if autoload-timestamps
-			     (nth 5 (file-attributes absfile))
+			     (file-attribute-modification-time
+			      (file-attributes absfile))
 			   autoload--non-timestamp))
                         (insert ";;; Generated autoloads from " relfile "\n")))
                     (insert generate-autoload-section-trailer)))))))
@@ -849,7 +850,8 @@ FILE's modification time."
                                       ;; `emacs-internal' instead.
                                       nil nil 'emacs-mule-unix)
                                (if autoload-timestamps
-                                   (nth 5 (file-attributes relfile))
+                                   (file-attribute-modification-time
+				    (file-attributes relfile))
                                  autoload--non-timestamp)))
                             (insert ";;; Generated autoloads from " relfile "\n")))
                         (insert generate-autoload-section-trailer))))
@@ -862,7 +864,7 @@ FILE's modification time."
                   ;; If the entries were added to some other buffer, then the file
                   ;; doesn't add entries to OUTFILE.
                   otherbuf))
-          (nth 5 (file-attributes absfile))))
+          (file-attribute-modification-time (file-attributes absfile))))
     (error
      ;; Probably unbalanced parens in forward-sexp. In that case, the
      ;; condition is scan-error, and the signal data includes point
@@ -943,7 +945,8 @@ removes any prior now out-of-date autoload entries."
            (existing-buffer (if buffer-file-name buf))
            (output-file (autoload-generated-file))
            (output-time (if (file-exists-p output-file)
-                            (nth 5 (file-attributes output-file))))
+                            (file-attribute-modification-time
+			     (file-attributes output-file))))
            (found nil))
       (with-current-buffer (autoload-find-generated-file)
         ;; This is to make generated-autoload-file have Unix EOLs, so
@@ -965,7 +968,8 @@ removes any prior now out-of-date autoload entries."
                    ;; Check if it is up to date.
                    (let ((begin (match-beginning 0))
                          (last-time (nth 4 form))
-                         (file-time (nth 5 (file-attributes file))))
+                         (file-time (file-attribute-modification-time
+				     (file-attributes file))))
                      (if (and (or (null existing-buffer)
                                   (not (buffer-modified-p existing-buffer)))
                               (cond
@@ -1058,7 +1062,8 @@ write its autoloads into the specified file instead."
 	    generated-autoload-file))
 	 (output-time
 	  (if (file-exists-p generated-autoload-file)
-	      (nth 5 (file-attributes generated-autoload-file)))))
+	      (file-attribute-modification-time
+	       (file-attributes generated-autoload-file)))))
 
     (with-current-buffer (autoload-find-generated-file)
       (save-excursion
@@ -1079,7 +1084,8 @@ write its autoloads into the specified file instead."
 		   (if (member last-time (list t autoload--non-timestamp))
 		       (setq last-time output-time))
 		   (dolist (file file)
-		     (let ((file-time (nth 5 (file-attributes file))))
+		     (let ((file-time (file-attribute-modification-time
+				       (file-attributes file))))
 		       (when (and file-time
 				  (not (time-less-p last-time file-time)))
 			 ;; file unchanged
@@ -1098,7 +1104,8 @@ write its autoloads into the specified file instead."
 						    t autoload--non-timestamp))
 					   output-time
 					 oldtime))
-                                     (nth 5 (file-attributes file))))
+                                     (file-attribute-modification-time
+				      (file-attributes file))))
 		   ;; File hasn't changed.
 		   nil)
 		  (t

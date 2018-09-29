@@ -40,8 +40,8 @@
       (should (debug-timer-check)) t))
 
 (ert-deftest timer-test-multiple-of-time ()
-  (should (equal
-           (timer-next-integral-multiple-of-time '(0 0 0 1) (1+ (ash 1 53)))
-           (list (ash 1 (- 53 16)) 1 0 0))))
+  (should (time-equal-p
+	   (timer-next-integral-multiple-of-time '(0 0 0 1) (1+ (ash 1 53)))
+	   (list (ash 1 (- 53 16)) 1))))
 
 ;;; timer-tests.el ends here

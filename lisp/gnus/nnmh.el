@@ -210,8 +210,10 @@ as unread by Gnus.")
 	min rdir num subdirectoriesp file)
     ;; Recurse down directories.
     (setq subdirectoriesp
-	  ;; nth 1 of file-attributes always 1 on MS Windows :(
-	  (/= (nth 1 (file-attributes (file-truename dir))) 2))
+	  ;; link number always 1 on MS Windows :(
+	  (/= (file-attribute-link-number
+	       (file-attributes (file-truename dir)))
+	      2))
     (dolist (rdir files)
       (if (or (not subdirectoriesp)
 	      (file-regular-p rdir))
@@ -263,7 +265,8 @@ as unread by Gnus.")
 
     (while (and articles is-old)
       (setq article (concat dir (int-to-string (car articles))))
-      (when (setq mod-time (nth 5 (file-attributes article)))
+      (when (setq mod-time (file-attribute-modification-time
+			    (file-attributes article)))
 	(if (and (nnmh-deletable-article-p newsgroup (car articles))
 		 (setq is-old
 		       (nnmail-expired-article-p newsgroup mod-time force)))
@@ -534,8 +537,8 @@ as unread by Gnus.")
 	  art)
       (while (setq art (pop arts))
 	(when (not (equal
-		    (nth 5 (file-attributes
-			    (concat dir (int-to-string (car art)))))
+		    (file-attribute-modification-time
+		     (file-attributes (concat dir (int-to-string (car art)))))
 		    (cdr art)))
 	  (setq articles (delq art articles))
 	  (push (car art) new))))
@@ -546,8 +549,9 @@ as unread by Gnus.")
 		 (mapcar
 		  (lambda (art)
 		    (cons art
-			  (nth 5 (file-attributes
-				  (concat dir (int-to-string art))))))
+			  (file-attribute-modification-time
+			   (file-attributes
+			    (concat dir (int-to-string art))))))
 		  new)))
     ;; Make Gnus mark all new articles as unread.
     (when new

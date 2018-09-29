@@ -748,7 +748,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	  (unwind-protect
 	      (progn
 		(setq com
-		      (key-binding (setq key (viper-read-key-sequence nil))))
+		      (key-binding (setq key (read-key-sequence nil))))
 		;; In case of binding indirection--chase definitions.
 		;; Have to do it here because we execute this command under
 		;; different keymaps, so command-execute may not do the
@@ -2449,7 +2449,7 @@ These keys are ESC, RET, and LineFeed."
     (if (eq this-command 'viper-intercept-ESC-key)
 	(setq com 'viper-exit-insert-state)
       (viper-set-unread-command-events last-input-event)
-      (setq com (key-binding (viper-read-key-sequence nil))))
+      (setq com (key-binding (read-key-sequence nil))))
 
     (condition-case conds
 	(command-execute com)

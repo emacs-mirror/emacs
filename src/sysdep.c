@@ -3078,16 +3078,15 @@ time_from_jiffies (unsigned long long tval, long hz)
 
   if (TYPE_MAXIMUM (time_t) < s)
     time_overflow ();
-  if (LONG_MAX - 1 <= ULLONG_MAX / TIMESPEC_RESOLUTION
-      || frac <= ULLONG_MAX / TIMESPEC_RESOLUTION)
-    ns = frac * TIMESPEC_RESOLUTION / hz;
+  if (LONG_MAX - 1 <= ULLONG_MAX / TIMESPEC_HZ
+      || frac <= ULLONG_MAX / TIMESPEC_HZ)
+    ns = frac * TIMESPEC_HZ / hz;
   else
     {
       /* This is reachable only in the unlikely case that HZ * HZ
 	 exceeds ULLONG_MAX.  It calculates an approximation that is
 	 guaranteed to be in range.  */
-      long hz_per_ns = (hz / TIMESPEC_RESOLUTION
-			+ (hz % TIMESPEC_RESOLUTION != 0));
+      long hz_per_ns = hz / TIMESPEC_HZ + (hz % TIMESPEC_HZ != 0);
       ns = frac / hz_per_ns;
     }
 
@@ -3112,27 +3111,26 @@ get_up_time (void)
 
   if (fup)
     {
-      unsigned long long upsec, upfrac, idlesec, idlefrac;
-      int upfrac_start, upfrac_end, idlefrac_start, idlefrac_end;
+      unsigned long long upsec, upfrac;
+      int upfrac_start, upfrac_end;
 
-      if (fscanf (fup, "%llu.%n%llu%n %llu.%n%llu%n",
-		  &upsec, &upfrac_start, &upfrac, &upfrac_end,
-		  &idlesec, &idlefrac_start, &idlefrac, &idlefrac_end)
-	  == 4)
+      if (fscanf (fup, "%llu.%n%llu%n",
+		  &upsec, &upfrac_start, &upfrac, &upfrac_end)
+	  == 2)
 	{
 	  if (TYPE_MAXIMUM (time_t) < upsec)
 	    {
 	      upsec = TYPE_MAXIMUM (time_t);
-	      upfrac = TIMESPEC_RESOLUTION - 1;
+	      upfrac = TIMESPEC_HZ - 1;
 	    }
 	  else
 	    {
 	      int upfraclen = upfrac_end - upfrac_start;
-	      for (; upfraclen < LOG10_TIMESPEC_RESOLUTION; upfraclen++)
+	      for (; upfraclen < LOG10_TIMESPEC_HZ; upfraclen++)
 		upfrac *= 10;
-	      for (; LOG10_TIMESPEC_RESOLUTION < upfraclen; upfraclen--)
+	      for (; LOG10_TIMESPEC_HZ < upfraclen; upfraclen--)
 		upfrac /= 10;
-	      upfrac = min (upfrac, TIMESPEC_RESOLUTION - 1);
+	      upfrac = min (upfrac, TIMESPEC_HZ - 1);
 	    }
 	  up = make_timespec (upsec, upfrac);
 	}

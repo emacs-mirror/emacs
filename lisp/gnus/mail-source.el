@@ -602,7 +602,8 @@ If CONFIRM is non-nil, ask for confirmation before removing a file."
       (let* ((ffile (car files))
 	     (bfile (replace-regexp-in-string "\\`.*/\\([^/]+\\)\\'" "\\1"
 					      ffile))
-	     (filetime (nth 5 (file-attributes ffile))))
+	     (filetime (file-attribute-modification-time
+			(file-attributes ffile))))
 	(setq files (cdr files))
 	(when (and (> (time-to-number-of-days (time-subtract now filetime))
 		      diff)
@@ -618,7 +619,8 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 (defun mail-source-callback (callback info)
   "Call CALLBACK on the mail file.  Pass INFO on to CALLBACK."
   (if (or (not (file-exists-p mail-source-crash-box))
-	  (zerop (nth 7 (file-attributes mail-source-crash-box))))
+	  (zerop (file-attribute-size
+		  (file-attributes mail-source-crash-box))))
       (progn
 	(when (file-exists-p mail-source-crash-box)
 	  (delete-file mail-source-crash-box))
@@ -670,7 +672,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
        ((not (file-exists-p from))
 	;; There is no inbox.
 	(setq to nil))
-       ((zerop (nth 7 (file-attributes from)))
+       ((zerop (file-attribute-size (file-attributes from)))
 	;; Empty file.
 	(setq to nil))
        (t

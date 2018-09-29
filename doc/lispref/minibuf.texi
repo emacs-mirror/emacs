@@ -26,7 +26,7 @@ argument.
 * Initial Input::             Specifying initial contents for the minibuffer.
 * Completion::                How to invoke and customize completion.
 * Yes-or-No Queries::         Asking a question with a simple answer.
-* Multiple Queries::          Asking a series of similar questions.
+* Multiple Queries::          Asking complex questions.
 * Reading a Password::        Reading a password from the terminal.
 * Minibuffer Commands::       Commands used as key bindings in minibuffers.
 * Minibuffer Windows::        Operating on the special minibuffer windows.
@@ -1776,12 +1776,9 @@ flag may be one of the following values.
 @table @code
 @item nil
 This specifies a @code{try-completion} operation.  The function should
-return @code{t} if the specified string is a unique and exact match;
-if there is more than one match, it should return the common substring
-of all matches (if the string is an exact match for one completion
-alternative but also matches other longer alternatives, the return
-value is the string); if there are no matches, it should return
-@code{nil}.
+return @code{nil} if there are no matches; it should return @code{t}
+if the specified string is a unique and exact match; and it should
+return the longest common prefix substring of all matches otherwise.
 
 @item t
 This specifies an @code{all-completions} operation.  The function
@@ -2093,9 +2090,12 @@ Do you really want to remove everything? (yes or no)
 @end defun
 
 @node Multiple Queries
-@section Asking Multiple Y-or-N Questions
-@cindex multiple yes-or-no questions
+@section Asking Multiple-Choice Questions
 
+  This section describes facilities for asking the user more complex
+questions or several similar questions.
+
+@cindex multiple yes-or-no questions
   When you have a series of similar questions to ask, such as ``Do you
 want to save this buffer?'' for each buffer in turn, you should use
 @code{map-y-or-n-p} to ask the collection of questions, rather than
@@ -2188,6 +2188,52 @@ The return value of @code{map-y-or-n-p} is the number of objects acted on.
 @end defun
 @c FIXME  An example of this would be more useful than all the
 @c preceding examples of simple things.
+
+If you need to ask the user a question that might have more than just
+2 answers, use @code{read-answer}.
+
+@defun read-answer question answers
+@vindex read-answer-short
+This function prompts the user with text in @var{question}, which
+should end in the @samp{SPC} character.  The function includes in the
+prompt the possible responses in @var{answers} by appending them to
+the end of @var{question}.  The possible responses are provided in
+@var{answers} as an alist whose elements are of the following form:
+
+@lisp
+(@var{long-answer} @var{short-answer} @var{help-message})
+@end lisp
+
+@noindent
+where @var{long-answer} is the complete text of the user response, a
+string; @var{short-answer} is a short form of the same response, a
+single character; and @var{help-message} is the text that describes
+the meaning of the answer.  If the variable @code{read-answer-short}
+is non-@code{nil}, the prompt will show the short variants of the
+possible answers and the user is expected to type the single
+characters shown in the prompt; otherwise the prompt will show the
+long variants of the answers, and the user is expected to type the
+full text of one of the answers and end by pressing @key{RET}.  If
+@code{use-dialog-box} is non-@code{nil}, and this function was invoked
+by mouse events, the question and the answers will be displayed in a
+GUI dialog box.
+
+The function returns the text of the @var{long-answer} selected by the
+user, regardless of whether long or short answers were shown in the
+prompt and typed by the user.
+
+Here is an example of using this function:
+
+@lisp
+(let ((read-answer-short t))
+  (read-answer "Foo "
+     '(("yes"  ?y "perform the action")
+       ("no"   ?n "skip to the next")
+       ("all"  ?! "perform for the rest without more questions")
+       ("help" ?h "show help")
+       ("quit" ?q "exit"))))
+@end lisp
+@end defun
 
 @node Reading a Password
 @section Reading a Password

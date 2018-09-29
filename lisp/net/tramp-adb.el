@@ -411,9 +411,9 @@ pass to the OPERATION."
 		 ;; no way to handle numeric ids in Androids ash
 		 (if (eq id-format 'integer) 0 uid)
 		 (if (eq id-format 'integer) 0 gid)
-		 '(0 0)			; atime
+		 tramp-time-dont-know   ; atime
 		 (date-to-time date)	; mtime
-		 '(0 0)			; ctime
+		 tramp-time-dont-know   ; ctime
 		 size
 		 mod-string
 		 ;; fake
@@ -725,7 +725,9 @@ But handle the case, if the \"test\" command is not available."
   (with-parsed-tramp-file-name filename nil
     (tramp-flush-file-properties v (file-name-directory localname))
     (tramp-flush-file-properties v localname)
-    (let ((time (if (or (null time) (equal time '(0 0)))
+    (let ((time (if (or (null time)
+			(tramp-compat-time-equal-p time tramp-time-doesnt-exist)
+			(tramp-compat-time-equal-p time tramp-time-dont-know))
 		    (current-time)
 		  time)))
       (tramp-adb-send-command-and-check

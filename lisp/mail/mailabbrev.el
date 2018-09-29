@@ -163,7 +163,8 @@ no aliases, which is represented by this being a table with no entries.)")
 (defun mail-abbrevs-sync-aliases ()
   (when mail-personal-alias-file
     (if (file-exists-p mail-personal-alias-file)
-	(let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+	(let ((modtime (file-attribute-modification-time
+			(file-attributes mail-personal-alias-file))))
 	  (if (not (equal mail-abbrev-modtime modtime))
 	      (progn
 		(setq mail-abbrev-modtime modtime)
@@ -176,7 +177,8 @@ no aliases, which is represented by this being a table with no entries.)")
 	   (file-exists-p mail-personal-alias-file))
       (progn
 	(setq mail-abbrev-modtime
-	      (nth 5 (file-attributes mail-personal-alias-file)))
+	      (file-attribute-modification-time
+	       (file-attributes mail-personal-alias-file)))
 	(build-mail-abbrevs)))
   (mail-abbrevs-sync-aliases)
   (add-function :around (local 'abbrev-expand-function)

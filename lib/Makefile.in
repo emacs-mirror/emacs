@@ -118,7 +118,7 @@ TAGS: $(ETAGS) $(tagsfiles)
 .PHONY: $(ETAGS) tags
 
 clean:
-	rm -f *.[ao] *-t \#* $(DEPDIR)/*
+	rm -f ./*.[ao] ./*-t \#* $(DEPDIR)/*
 mostlyclean: clean
 	rm -f $(filter-out %-t,$(MOSTLYCLEANFILES))
 distclean bootstrap-clean: mostlyclean

@@ -2407,7 +2407,7 @@ static void
 emacs_mpz_mul (mpz_t rop, mpz_t const op1, mpz_t const op2)
 {
   if (NLIMBS_LIMIT - emacs_mpz_size (op1) < emacs_mpz_size (op2))
-    range_error ();
+    overflow_error ();
   mpz_mul (rop, op1, op2);
 }
 
@@ -2421,7 +2421,7 @@ emacs_mpz_mul_2exp (mpz_t rop, mpz_t const op1, mp_bitcnt_t op2)
 
   mp_bitcnt_t op2limbs = op2 / GMP_NUMB_BITS;
   if (lim - emacs_mpz_size (op1) < op2limbs)
-    range_error ();
+    overflow_error ();
   mpz_mul_2exp (rop, op1, op2);
 }
 
@@ -2435,7 +2435,7 @@ emacs_mpz_pow_ui (mpz_t rop, mpz_t const base, unsigned long exp)
 
   int nbase = emacs_mpz_size (base), n;
   if (INT_MULTIPLY_WRAPV (nbase, exp, &n) || lim < n)
-    range_error ();
+    overflow_error ();
   mpz_pow_ui (rop, base, exp);
 }
 
@@ -2920,8 +2920,8 @@ bignum_arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args,
       val = args[argnum];
       CHECK_NUMBER_COERCE_MARKER (val);
       if (FLOATP (val))
-	float_arith_driver (code, nargs, args, argnum,
-			    mpz_get_d (*accum), val);
+	return float_arith_driver (code, nargs, args, argnum,
+				   mpz_get_d_rounded (*accum), val);
     }
 }
 
@@ -3292,7 +3292,7 @@ expt_integer (Lisp_Object x, Lisp_Object y)
 	   && mpz_fits_ulong_p (XBIGNUM (y)->value))
     exp = mpz_get_ui (XBIGNUM (y)->value);
   else
-    range_error ();
+    overflow_error ();
 
   emacs_mpz_pow_ui (mpz[0], *bignum_integer (&mpz[0], x), exp);
   return make_integer_mpz ();

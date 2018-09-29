@@ -278,5 +278,13 @@ Test with both unibyte and multibyte strings."
        :type 'no-catch)
       (should (equal calls 1)))))
 
+(ert-deftest json-serialize/bignum ()
+  (skip-unless (fboundp 'json-serialize))
+  (should (equal (json-serialize (vector (1+ most-positive-fixnum)
+                                         (1- most-negative-fixnum)))
+                 (format "[%d,%d]"
+                         (1+ most-positive-fixnum)
+                         (1- most-negative-fixnum)))))
+
 (provide 'json-tests)
 ;;; json-tests.el ends here

@@ -2675,7 +2675,8 @@ the score file and its full name, including the directory.")
 		(gnus-file-newer-than gnus-kill-files-directory
 				      (car gnus-score-file-list)))
 	(setq gnus-score-file-list
-	      (cons (nth 5 (file-attributes gnus-kill-files-directory))
+	      (cons (file-attribute-modification-time
+		     (file-attributes gnus-kill-files-directory))
 		    (nreverse
 		     (directory-files
 		      gnus-kill-files-directory t

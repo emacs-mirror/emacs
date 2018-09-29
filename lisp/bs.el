@@ -1159,7 +1159,7 @@ and move point to current buffer."
   (bs-mode)
   (let* ((inhibit-read-only t)
 	 (map-fun (lambda (entry)
-		    (length (buffer-name entry))))
+		    (string-width (buffer-name entry))))
 	 (max-length-of-names (apply 'max
 				     (cons 0 (mapcar map-fun list))))
 	 (name-entry-length (min bs-maximal-buffer-name-column
@@ -1371,7 +1371,7 @@ normally *buffer-selection*."
 							  apply-args)
 					   (nth 3 column)                ; align
 					   (- min to-much)))
-	       (len (length new-string)))
+	       (len (string-width new-string)))
 	  (setq string (concat string new-string))
 	  (when (> len min)
 	    (setq to-much (- len min))))))

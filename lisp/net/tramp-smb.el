@@ -817,18 +817,18 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	    ;; Check result.
 	    (when entry
 	      (list (and (string-match "d" (nth 1 entry))
-			 t)        ;0 file type
-		    -1	           ;1 link count
-		    uid	           ;2 uid
-		    gid	           ;3 gid
-		    '(0 0)	   ;4 atime
-		    (nth 3 entry)  ;5 mtime
-		    '(0 0)	   ;6 ctime
-		    (nth 2 entry)  ;7 size
-		    (nth 1 entry)  ;8 mode
-		    nil	           ;9 gid weird
-		    inode	   ;10 inode number
-		    device)))))))) ;11 file system number
+			 t)              ;0 file type
+		    -1	                 ;1 link count
+		    uid	                 ;2 uid
+		    gid	                 ;3 gid
+		    tramp-time-dont-know ;4 atime
+		    (nth 3 entry)        ;5 mtime
+		    tramp-time-dont-know ;6 ctime
+		    (nth 2 entry)        ;7 size
+		    (nth 1 entry)        ;8 mode
+		    nil	                 ;9 gid weird
+		    inode	         ;10 inode number
+		    device))))))))       ;11 file system number
 
 (defun tramp-smb-do-file-attributes-with-stat (vec &optional id-format)
   "Implement `file-attributes' for Tramp files using stat command."
@@ -1085,8 +1085,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (or (tramp-compat-file-attribute-group-id attr) "nogroup")
 		     (or (tramp-compat-file-attribute-size attr) (nth 2 x))
 		     (format-time-string
-		      (if (time-less-p (time-subtract (current-time) (nth 3 x))
-			   tramp-half-a-year)
+		      (if (time-less-p
+			   ;; Half a year.
+			   (time-since (nth 3 x)) (days-to-time 183))
 			  "%b %e %R"
 			"%b %e  %Y")
 		      (nth 3 x))))) ; date
@@ -1816,7 +1817,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 		 sec min hour day
 		 (cdr (assoc (downcase month) parse-time-months))
 		 year)
-	      '(0 0)))
+	      tramp-time-dont-know))
       (list localname mode size mtime))))
 
 (defun tramp-smb-get-cifs-capabilities (vec)

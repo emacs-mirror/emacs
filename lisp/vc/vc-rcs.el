@@ -955,11 +955,10 @@ Uses `rcs2log' which only works for RCS and CVS."
   "Return non-nil if FILE is newer than its RCS master.
 This likely means that FILE has been changed with respect
 to its master version."
-  (let ((file-time (nth 5 (file-attributes file)))
-	(master-time (nth 5 (file-attributes (vc-master-name file)))))
-    (or (> (nth 0 file-time) (nth 0 master-time))
-	(and (= (nth 0 file-time) (nth 0 master-time))
-	     (> (nth 1 file-time) (nth 1 master-time))))))
+  (let ((file-time (file-attribute-modification-time (file-attributes file)))
+	(master-time (file-attribute-modification-time
+		      (file-attributes (vc-master-name file)))))
+    (time-less-p master-time file-time)))
 
 (defun vc-rcs-find-most-recent-rev (branch)
   "Find most recent revision on BRANCH."

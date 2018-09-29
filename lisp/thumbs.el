@@ -210,7 +210,9 @@ reached."
 	   (mapcar
 	    (lambda (f)
 	      (let ((fattribs-list (file-attributes f)))
-		`(,(nth 4 fattribs-list) ,(nth 7 fattribs-list) ,f)))
+		`(,(file-attribute-access-time fattribs-list)
+		  ,(file-attribute-size fattribs-list)
+		  ,f)))
 	    (directory-files (thumbs-thumbsdir) t (image-file-name-regexp)))
 	   (lambda (l1 l2) (time-less-p (car l1) (car l2)))))
 	 (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files-list))))

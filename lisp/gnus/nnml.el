@@ -344,7 +344,8 @@ non-nil.")
     (while (and articles is-old)
       (if (and (setq article (nnml-article-to-file
 			      (setq number (pop articles))))
-	       (setq mod-time (nth 5 (file-attributes article)))
+	       (setq mod-time (file-attribute-modification-time
+			       (file-attributes article)))
 	       (nnml-deletable-article-p group number)
 	       (setq is-old (nnmail-expired-article-p group mod-time force
 						      nnml-inhibit-expiry)))

@@ -658,7 +658,7 @@ Before doing that, check if there are any old backups and get rid of them."
       ;; If the file was saved in the same second in which it was
       ;; checked out, clear the checkout-time to avoid confusion.
       (if (equal (vc-file-getprop file 'vc-checkout-time)
-		 (nth 5 (file-attributes file)))
+		 (file-attribute-modification-time (file-attributes file)))
 	  (vc-file-setprop file 'vc-checkout-time nil))
       (if (vc-state-refresh file backend)
 	  (vc-mode-line file backend)))

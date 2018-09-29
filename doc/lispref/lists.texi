@@ -1755,7 +1755,7 @@ alist
 @defun assoc-delete-all key alist &optional test
 This function is like @code{assq-delete-all} except that it accepts
 an optional argument @var{test}, a predicate function to compare the
-keys in @var{alist}. If omitted or @code{nil}, @var{test} defaults to
+keys in @var{alist}.  If omitted or @code{nil}, @var{test} defaults to
 @code{equal}.  As @code{assq-delete-all}, this function often modifies
 the original list structure of @var{alist}.
 @end defun

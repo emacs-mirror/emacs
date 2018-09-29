@@ -161,8 +161,8 @@ See the documentation for `list-load-path-shadows' for further information."
 	     (or (equal (file-truename f1) (file-truename f2))
 		 ;; As a quick test, avoiding spawning a process, compare file
 		 ;; sizes.
-		 (and (= (nth 7 (file-attributes f1))
-			 (nth 7 (file-attributes f2)))
+		 (and (= (file-attribute-size (file-attributes f1))
+			 (file-attribute-size (file-attributes f2)))
 		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
 
 (defvar load-path-shadows-font-lock-keywords

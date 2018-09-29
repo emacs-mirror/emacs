@@ -480,12 +480,6 @@ Legal values:
 
 ;; Keyboard
 
-(defcustom prolog-hungry-delete-key-flag nil
-  "Non-nil means delete key consumes all preceding spaces."
-  :version "24.1"
-  :group 'prolog-keyboard
-  :type 'boolean)
-
 (defcustom prolog-electric-dot-flag nil
   "Non-nil means make dot key electric.
 Electric dot appends newline or inserts head of a new clause.

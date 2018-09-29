@@ -304,8 +304,9 @@ Only the value `maybe' can be trusted :-(."
 		;; Buh?  Unexpected format.
 		'edited
 	      (let ((ats (file-attributes file)))
-		(if (and (eq (nth 7 ats) (string-to-number (match-string 2)))
-			 (equal (format-time-string "%s" (nth 5 ats))
+		(if (and (eq (file-attribute-size ats) (string-to-number (match-string 2)))
+			 (equal (format-time-string
+				 "%s" (file-attribute-modification-time ats))
 				(match-string 1)))
 		    'up-to-date
 		  'edited)))))))))
@@ -402,7 +403,7 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 
 (defun vc-arch-diff3-rej-p (rej)
   (let ((attrs (file-attributes rej)))
-    (and attrs (< (nth 7 attrs) 60)
+    (and attrs (< (file-attribute-size attrs) 60)
 	 (with-temp-buffer
 	   (insert-file-contents rej)
 	   (goto-char (point-min))

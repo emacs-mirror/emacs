@@ -88,9 +88,11 @@ If nil, `dired-listing-switches' is used."
 
 (defcustom dired-use-ls-dired 'unspecified
   "Non-nil means Dired should pass the \"--dired\" option to \"ls\".
-The special value of `unspecified' means to check explicitly, and
-save the result in this variable.  This is performed the first
-time `dired-insert-directory' is called.
+If nil, don't pass \"--dired\" to \"ls\".
+The special value of `unspecified' means to check whether \"ls\"
+supports the \"--dired\" option, and save the result in this
+variable.  This is performed the first time `dired-insert-directory'
+is invoked.
 
 Note that if you set this option to nil, either through choice or
 because your \"ls\" program does not support \"--dired\", Dired
@@ -104,9 +106,10 @@ This is used by default on MS Windows, which does not have an \"ls\" program.
 Note that `ls-lisp' does not support as many options as GNU ls, though.
 For more details, see Info node `(emacs)ls in Lisp'."
   :group 'dired
-  :type '(choice (const :tag "Check for --dired support" unspecified)
+  :type '(choice (const :tag
+                        "Use --dired only if 'ls' supports it" unspecified)
                  (const :tag "Do not use --dired" nil)
-                 (other :tag "Use --dired" t)))
+                 (other :tag "Always use --dired" t)))
 
 (defcustom dired-chmod-program "chmod"
   "Name of chmod command (usually `chmod')."
@@ -847,8 +850,8 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
   (not (let ((attributes (file-attributes dirname))
 	     (modtime (visited-file-modtime)))
 	 (or (eq modtime 0)
-	     (not (eq (car attributes) t))
-	     (equal (nth 5 attributes) modtime)))))
+	     (not (eq (file-attribute-type attributes) t))
+	     (equal (file-attribute-modification-time attributes) modtime)))))
 
 (defvar auto-revert-remote-files)
 
@@ -1089,7 +1092,8 @@ wildcards, erases the buffer, and builds the subdir-alist anew
       (dired-build-subdir-alist)
       (let ((attributes (file-attributes dirname)))
 	(if (eq (car attributes) t)
-	    (set-visited-file-modtime (nth 5 attributes))))
+	    (set-visited-file-modtime (file-attribute-modification-time
+                                       attributes))))
       (set-buffer-modified-p nil)
       ;; No need to narrow since the whole buffer contains just
       ;; dired-readin's output, nothing else.  The hook can

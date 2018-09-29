@@ -45,6 +45,25 @@ with parameters from the *Messages* buffer modification."
             (should (eq buf (current-buffer))))
         (when msg-ov (delete-overlay msg-ov))))))
 
+(ert-deftest overlay-modification-hooks-deleted-overlay ()
+  "Test for bug#30823."
+  (let ((check-point nil)
+	(ov-delete nil)
+	(ov-set nil))
+    (with-temp-buffer
+      (insert "abc")
+      (setq ov-set (make-overlay 1 3))
+      (overlay-put ov-set 'modification-hooks
+		   (list (lambda (_o after &rest _args)
+			   (and after (setq check-point t)))))
+      (setq ov-delete (make-overlay 1 3))
+      (overlay-put ov-delete 'modification-hooks
+		   (list (lambda (o after &rest _args)
+			   (and (not after) (delete-overlay o)))))
+      (goto-char 2)
+      (insert "1")
+      (should (eq check-point t)))))
+
 (ert-deftest test-generate-new-buffer-name-bug27966 ()
   (should-not (string-equal "nil"
                             (progn (get-buffer-create "nil")

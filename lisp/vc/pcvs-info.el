@@ -451,7 +451,8 @@ DIR can also be a file."
 	       ((not (file-exists-p (concat dir f))) (setq type 'MISSING))
 	       ((equal rev "0") (setq type 'ADDED rev nil))
 	       ((equal date "Result of merge") (setq subtype 'MERGED))
-	       ((let ((mtime (nth 5 (file-attributes (concat dir f))))
+	       ((let ((mtime (file-attribute-modification-time
+			      (file-attributes (concat dir f))))
 		      (system-time-locale "C"))
 		  (setq timestamp (format-time-string "%c" mtime t))
 		  ;; Solaris sometimes uses "Wed Sep 05", not "Wed Sep  5".

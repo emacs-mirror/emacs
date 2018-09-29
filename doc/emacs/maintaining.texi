@@ -1981,7 +1981,7 @@ table.
 @item M-x tags-query-replace @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Perform a @code{query-replace-regexp} on each file in the selected tags table.
 
-@item M-x tags-loop-continue
+@item M-x multifile-continue
 Restart one of the last 2 commands above, from the current location of point.
 @end table
 
@@ -2017,9 +2017,9 @@ you can follow its progress.  As soon as it finds an occurrence,
 @code{tags-search} returns.  This command requires tags tables to be
 available (@pxref{Tags Tables}).
 
-@findex tags-loop-continue
+@findex multifile-continue
   Having found one match with @code{tags-search}, you probably want to
-find all the rest.  @kbd{M-x tags-loop-continue} resumes the
+find all the rest.  @kbd{M-x multifile-continue} resumes the
 @code{tags-search}, finding one more match.  This searches the rest of
 the current buffer, followed by the remaining files of the tags table.
 
@@ -2042,10 +2042,10 @@ default is to use the same setting as the value of
 single invocation of @kbd{M-x tags-query-replace}.  But often it is
 useful to exit temporarily, which you can do with any input event that
 has no special query replace meaning.  You can resume the query
-replace subsequently by typing @kbd{M-x tags-loop-continue}; this
+replace subsequently by typing @kbd{M-x multifile-continue}; this
 command resumes the last tags search or replace command that you did.
 For instance, to skip the rest of the current file, you can type
-@w{@kbd{M-> M-x tags-loop-continue}}.
+@w{@kbd{M-> M-x multifile-continue}}.
 
   Note that the commands described above carry out much broader
 searches than the @code{xref-find-definitions} family.  The
@@ -2077,7 +2077,7 @@ Display a list of all known identifiers matching @var{regexp}.
 Display a list of the identifiers defined in the program file
 @var{file}.
 
-@item M-x next-file
+@item M-x tags-next-file
 Visit files recorded in the selected tags table.
 @end table
 
@@ -2116,8 +2116,8 @@ variable @code{tags-apropos-additional-actions}; see its documentation
 for details.
 @end ignore
 
-@findex next-file
-  @kbd{M-x next-file} visits files covered by the selected tags table.
+@findex tags-next-file
+  @kbd{M-x tags-next-file} visits files covered by the selected tags table.
 The first time it is called, it visits the first file covered by the
 table.  Each subsequent call visits the next covered file, unless a
 prefix argument is supplied, in which case it returns to the first

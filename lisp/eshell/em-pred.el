@@ -89,10 +89,12 @@ ordinary strings."
     (?t . (eshell-pred-file-mode 1000)) ; sticky bit
     (?U . #'(lambda (file)                   ; owned by effective uid
               (if (file-exists-p file)
-                  (= (nth 2 (file-attributes file)) (user-uid)))))
+                  (= (file-attribute-user-id (file-attributes file))
+		     (user-uid)))))
     ;; (?G . #'(lambda (file)               ; owned by effective gid
     ;;          (if (file-exists-p file)
-    ;;              (= (nth 2 (file-attributes file)) (user-uid)))))
+    ;;              (= (file-attribute-user-id (file-attributes file))
+    ;;                 (user-uid)))))
     (?* . #'(lambda (file)
               (and (file-regular-p file)
                    (not (file-symlink-p file))
@@ -460,7 +462,7 @@ that `ls -l' will show in the first column of its display. "
   `(lambda (file)
      (let ((attrs (eshell-file-attributes (directory-file-name file))))
        (if attrs
-	   (memq (aref (nth 8 attrs) 0)
+	   (memq (aref (file-attribute-modes attrs) 0)
 		 ,(if (eq type ?%)
 		      '(?b ?c)
 		    (list 'quote (list type))))))))
@@ -489,7 +491,8 @@ that `ls -l' will show in the first column of its display. "
 		   '<
 		 (if (eq qual ?+)
 		     '>
-		   '=)) (nth 1 attrs) ,amount))))))
+		   '=))
+	      (file-attribute-link-number attrs) ,amount))))))
 
 (defun eshell-pred-file-size ()
   "Return a predicate to test whether a file is of a given size."
@@ -518,7 +521,8 @@ that `ls -l' will show in the first column of its display. "
 		   '<
 		 (if (eq qual ?+)
 		     '>
-		   '=)) (nth 7 attrs) ,amount))))))
+		   '=))
+	      (file-attribute-size attrs) ,amount))))))
 
 (defun eshell-pred-substitute (&optional repeat)
   "Return a modifier function that will substitute matches."

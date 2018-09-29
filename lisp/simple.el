@@ -385,7 +385,11 @@ select the source buffer."
   (interactive "p")
   (let ((next-error-highlight next-error-highlight-no-select))
     (next-error n))
-  (pop-to-buffer next-error-last-buffer))
+  (let ((display-buffer-overriding-action '(display-buffer-reuse-window)))
+    ;; Override user customization such as display-buffer-same-window
+    ;; and use display-buffer-reuse-window to ensure next-error-last-buffer
+    ;; is displayed somewhere, not necessarily in the same window (bug#32607).
+    (pop-to-buffer next-error-last-buffer)))
 
 (defun previous-error-no-select (&optional n)
   "Move point to the previous error in the `next-error' buffer and highlight match.
@@ -3823,7 +3827,8 @@ interactively, this is t."
             ;; No output; error?
               (let ((output
                      (if (and error-file
-                              (< 0 (nth 7 (file-attributes error-file))))
+                              (< 0 (file-attribute-size
+				    (file-attributes error-file))))
                          (format "some error output%s"
                                  (if shell-command-default-error-buffer
                                      (format " to the \"%s\" buffer"
@@ -3846,7 +3851,7 @@ interactively, this is t."
               )))))
 
     (when (and error-file (file-exists-p error-file))
-      (if (< 0 (nth 7 (file-attributes error-file)))
+      (if (< 0 (file-attribute-size (file-attributes error-file)))
 	  (with-current-buffer (get-buffer-create error-buffer)
 	    (let ((pos-from-end (- (point-max) (point))))
 	      (or (bobp)
@@ -4394,7 +4399,7 @@ ring directly.")
 A non-nil value ensures that Emacs kill operations do not
 irrevocably overwrite existing clipboard text by saving it to the
 `kill-ring' prior to the kill.  Such text can subsequently be
-retrieved via \\[yank] \\[yank-pop]]."
+retrieved via \\[yank] \\[yank-pop]."
   :type 'boolean
   :group 'killing
   :version "23.2")

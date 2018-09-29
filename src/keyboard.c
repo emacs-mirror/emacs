@@ -4377,8 +4377,8 @@ timer_check (void)
 
 DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
        doc: /* Return the current length of Emacs idleness, or nil.
-The value when Emacs is idle is a list of four integers (HIGH LOW USEC PSEC)
-in the same style as (current-time).
+The value when Emacs is idle is a Lisp timestamp in the style of
+`current-time'.
 
 The value when Emacs is not idle is nil.
 

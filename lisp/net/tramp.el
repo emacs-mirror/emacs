@@ -1968,7 +1968,6 @@ For definition of that list see `tramp-set-completion-function'."
    ;; The method related defaults.
    (cdr (assoc method tramp-completion-function-alist))))
 
-
 ;;; Fontification of `read-file-name':
 
 (defvar tramp-rfn-eshadow-overlay)
@@ -1978,11 +1977,11 @@ For definition of that list see `tramp-set-completion-function'."
   "Set up a minibuffer for `file-name-shadow-mode'.
 Adds another overlay hiding filename parts according to Tramp's
 special handling of `substitute-in-file-name'."
-  (when (symbol-value 'minibuffer-completing-file-name)
+  (when minibuffer-completing-file-name
     (setq tramp-rfn-eshadow-overlay
 	  (make-overlay (minibuffer-prompt-end) (minibuffer-prompt-end)))
     ;; Copy rfn-eshadow-overlay properties.
-    (let ((props (overlay-properties (symbol-value 'rfn-eshadow-overlay))))
+    (let ((props (overlay-properties rfn-eshadow-overlay)))
       (while props
  	;; The `field' property prevents correct minibuffer
  	;; completion; we exclude it.
@@ -2000,6 +1999,13 @@ special handling of `substitute-in-file-name'."
 (defun tramp-rfn-eshadow-update-overlay-regexp ()
   (format "[^%s/~]*\\(/\\|~\\)" tramp-postfix-host-format))
 
+;; Package rfn-eshadow is preloaded in Emacs, but for some reason,
+;; it only did (defvar rfn-eshadow-overlay) without giving it a global
+;; value, so it was only declared as dynamically-scoped within the
+;; rfn-eshadow.el file.  This is now fixed in Emacs>26.1 but we still need
+;; this defvar here for older releases.
+(defvar rfn-eshadow-overlay)
+
 (defun tramp-rfn-eshadow-update-overlay ()
   "Update `rfn-eshadow-overlay' to cover shadowed part of minibuffer input.
 This is intended to be used as a minibuffer `post-command-hook' for
@@ -2007,26 +2013,25 @@ This is intended to be used as a minibuffer `post-command-hook' for
 been set up by `rfn-eshadow-setup-minibuffer'."
   ;; In remote files name, there is a shadowing just for the local part.
   (ignore-errors
-    (let ((end (or (overlay-end (symbol-value 'rfn-eshadow-overlay))
+    (let ((end (or (overlay-end rfn-eshadow-overlay)
 		   (minibuffer-prompt-end)))
 	  ;; We do not want to send any remote command.
 	  (non-essential t))
       (when
 	  (tramp-tramp-file-p
 	   (buffer-substring-no-properties end (point-max)))
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region
-	     (1+ (or (string-match
-		      (tramp-rfn-eshadow-update-overlay-regexp)
-		      (buffer-string) end)
-		     end))
-	     (point-max))
-	    (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
-		  (rfn-eshadow-update-overlay-hook nil)
-		  file-name-handler-alist)
-	      (move-overlay rfn-eshadow-overlay (point-max) (point-max))
-	      (rfn-eshadow-update-overlay))))))))
+	(save-restriction
+	  (narrow-to-region
+	   (1+ (or (string-match
+		    (tramp-rfn-eshadow-update-overlay-regexp)
+		    (buffer-string) end)
+		   end))
+	   (point-max))
+	  (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
+		(rfn-eshadow-update-overlay-hook nil)
+		file-name-handler-alist)
+	    (move-overlay rfn-eshadow-overlay (point-max) (point-max))
+	    (rfn-eshadow-update-overlay)))))))
 
 (add-hook 'rfn-eshadow-update-overlay-hook
 	  'tramp-rfn-eshadow-update-overlay)
@@ -3621,7 +3626,11 @@ support symbolic links."
 	    (setq filename
 		  (concat (file-remote-p filename)
 			  (replace-regexp-in-string
-                           "\\`/+" "/" (substitute-in-file-name localname)))))))
+                           "\\`/+" "/"
+			   ;; We must disable cygwin-mount file name
+			   ;; handlers and alike.
+			   (tramp-run-real-handler
+			    'substitute-in-file-name (list localname))))))))
       ;; "/m:h:~" does not work for completion.  We use "/m:h:~/".
       (if (and (stringp localname) (string-equal "~" localname))
 	  (concat filename "/")
@@ -3634,13 +3643,11 @@ support symbolic links."
 	   (buffer-name)))
   (unless time-list
     (let ((remote-file-name-inhibit-cache t))
-      ;; '(-1 65535) means file doesn't exists yet.
       (setq time-list
 	    (or (tramp-compat-file-attribute-modification-time
 		 (file-attributes (buffer-file-name)))
-		'(-1 65535)))))
-  ;; We use '(0 0) as a don't-know value.
-  (unless (equal time-list '(0 0))
+		tramp-time-doesnt-exist))))
+  (unless (tramp-compat-time-equal-p time-list tramp-time-dont-know)
     (tramp-run-real-handler 'set-visited-file-modtime (list time-list))))
 
 (defun tramp-handle-verify-visited-file-modtime (&optional buf)
@@ -3666,21 +3673,14 @@ of."
 
 	  (cond
 	   ;; File exists, and has a known modtime.
-	   ((and attr (not (equal modtime '(0 0))))
-	    (< (abs (tramp-time-diff
-		     modtime
-		     ;; For compatibility, deal with both the old
-		     ;; (HIGH . LOW) and the new (HIGH LOW) return
-		     ;; values of `visited-file-modtime'.
-		     (if (atom (cdr mt))
-			 (list (car mt) (cdr mt))
-		       mt)))
-	       2))
+	   ((and attr
+		 (not (tramp-compat-time-equal-p modtime tramp-time-dont-know)))
+	    (< (abs (tramp-time-diff modtime mt)) 2))
 	   ;; Modtime has the don't know value.
 	   (attr t)
 	   ;; If file does not exist, say it is not modified if and
 	   ;; only if that agrees with the buffer's record.
-	   (t (equal mt '(-1 65535)))))))))
+	   (t (tramp-compat-time-equal-p mt tramp-time-doesnt-exist))))))))
 
 ;; This is used in tramp-gvfs.el and tramp-sh.el.
 (defconst tramp-gio-events
@@ -4563,17 +4563,19 @@ Invokes `password-read' if available, `read-passwd' else."
        :host ,host-port :port ,method))
     (password-cache-remove (tramp-make-tramp-file-name vec 'noloc 'nohop))))
 
-;; Snarfed code from time-date.el.
+;;;###tramp-autoload
+(defconst tramp-time-dont-know '(0 0 0 1000)
+  "An invalid time value, used as \"Don’t know\" value.")
 
-(defconst tramp-half-a-year '(241 17024)
-"Evaluated by \"(days-to-time 183)\".")
+;;;###tramp-autoload
+(defconst tramp-time-doesnt-exist '(-1 65535)
+  "An invalid time value, used as \"Doesn’t exist\" value.")
 
 ;;;###tramp-autoload
 (defun tramp-time-diff (t1 t2)
   "Return the difference between the two times, in seconds.
 T1 and T2 are time values (as returned by `current-time' for example)."
-  ;; Starting with Emacs 25.1, we could change this to use `time-subtract'.
-  (float-time (tramp-compat-funcall 'subtract-time t1 t2)))
+  (float-time (time-subtract t1 t2)))
 
 (defun tramp-unquote-shell-quote-argument (s)
   "Remove quotation prefix \"/:\" from string S, and quote it then for shell."
@@ -4706,8 +4708,6 @@ Only works for Bourne-like shells."
 ;; * Better error checking.  At least whenever we see something
 ;;   strange when doing zerop, we should kill the process and start
 ;;   again.  (Greg Stark)
-;;
-;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
 ;;
 ;; * I was wondering if it would be possible to use tramp even if I'm
 ;;   actually using sshfs.  But when I launch a command I would like

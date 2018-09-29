@@ -120,7 +120,7 @@ function in various versions of Emacs.
       (delete-file input-file))
 
     (when (and error-file (file-exists-p error-file))
-      (when (< 0 (nth 7 (file-attributes error-file)))
+      (when (< 0 (file-attribute-size (file-attributes error-file)))
 	(with-current-buffer (get-buffer-create error-buffer)
 	  (let ((pos-from-end (- (point-max) (point))))
 	    (or (bobp)

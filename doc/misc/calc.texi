@@ -35724,19 +35724,12 @@ The default value of @code{calc-gregorian-switch} is @code{nil}.
 @appendix Reporting Bugs
 
 @noindent
-If you find a bug in Calc, send e-mail to Jay Belanger,
-
-@example
-jay.p.belanger@@gmail.com
-@end example
-
-@noindent
-There is an automatic command @kbd{M-x report-calc-bug} which helps
+If you find a bug in Calc, send e-mail to @email{bug-gnu-emacs@@gnu.org}.
+There is an automatic command @kbd{M-x report-emacs-bug} which helps
 you to report bugs.  This command prompts you for a brief subject
 line, then leaves you in a mail editing buffer.  Type @kbd{C-c C-c} to
 send your mail.  Make sure your subject line indicates that you are
-reporting a Calc bug; this command sends mail to the maintainer's
-regular mailbox.
+reporting a Calc bug.
 
 If you have suggestions for additional features for Calc, please send
 them.  Some have dared to suggest that Calc is already top-heavy with
@@ -35745,7 +35738,7 @@ them right in.
 
 At the front of the source file, @file{calc.el}, is a list of ideas for
 future work.  If any enthusiastic souls wish to take it upon themselves
-to work on these, please send a message (using @kbd{M-x report-calc-bug})
+to work on these, please send a message (using @kbd{M-x report-emacs-bug})
 so any efforts can be coordinated.
 
 The latest version of Calc is available from Savannah, in the Emacs
@@ -36256,7 +36249,7 @@ keystrokes are not listed in this summary.
 @c
 @r{       @:      j +   @:formula      @:    27  @:calc-sel-add-both-sides@:}
 @r{       @:      j -   @:formula      @:    27  @:calc-sel-sub-both-sides@:}
-@r{       @:      j *   @:formula      @:    27  @:calc-sel-mul-both-sides@:}
+@r{       @:      j *   @:formula      @:    27  @:calc-sel-mult-both-sides@:}
 @r{       @:      j /   @:formula      @:    27  @:calc-sel-div-both-sides@:}
 @r{       @:      j &   @:             @:    27  @:calc-sel-invert@:}
 

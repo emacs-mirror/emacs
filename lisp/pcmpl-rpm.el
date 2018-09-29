@@ -71,7 +71,8 @@
   "Return a list of all installed rpm packages."
   (if (and pcmpl-rpm-cache
            pcmpl-rpm-cache-time
-           (let ((mtime (nth 5 (file-attributes pcmpl-rpm-cache-stamp-file))))
+           (let ((mtime (file-attribute-modification-time
+                         (file-attributes pcmpl-rpm-cache-stamp-file))))
              (and mtime (not (time-less-p pcmpl-rpm-cache-time mtime)))))
       pcmpl-rpm-packages
     (message "Getting list of installed rpms...")

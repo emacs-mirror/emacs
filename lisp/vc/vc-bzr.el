@@ -268,8 +268,8 @@ in the repository root directory of FILE."
                  ;; If file is in dirstate, can only be added (b#8025).
                  ((or (not (match-beginning 4))
                       (eq (char-after (match-beginning 4)) ?a)) 'added)
-                 ((or (and (eq (string-to-number (match-string 3))
-                               (nth 7 (file-attributes file)))
+                 ((or (and (eql (string-to-number (match-string 3))
+				(file-attribute-size (file-attributes file)))
                            (equal (match-string 5)
                                   (save-match-data (vc-bzr-sha1 file)))
                            ;; For a file, does the executable state match?
@@ -281,7 +281,8 @@ in the repository root directory of FILE."
                                        ?x
                                        (mapcar
                                         'identity
-                                        (nth 8 (file-attributes file))))))
+					(file-attribute-modes
+					 (file-attributes file))))))
                                  (if (eq (char-after (match-beginning 7))
                                          ?y)
                                      exe
@@ -291,8 +292,8 @@ in the repository root directory of FILE."
                        ;; checkouts \2 is empty and we need to
                        ;; look for size in \6.
                        (eq (match-beginning 2) (match-end 2))
-                       (eq (string-to-number (match-string 6))
-                           (nth 7 (file-attributes file)))
+                       (eql (string-to-number (match-string 6))
+                            (file-attribute-size (file-attributes file)))
                        (equal (match-string 5)
                               (vc-bzr-sha1 file))))
                   'up-to-date)
@@ -694,7 +695,6 @@ or a superior directory.")
 (defvar log-view-message-re)
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
-(defvar log-view-current-tag-function)
 (defvar log-view-per-file-logs)
 (defvar log-view-expanded-log-entry-function)
 

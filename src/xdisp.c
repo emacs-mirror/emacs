@@ -10417,6 +10417,13 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 	  ptrdiff_t this_bol, this_bol_byte, prev_bol, prev_bol_byte;
 	  printmax_t dups;
 
+          /* Since we call del_range_both passing false for PREPARE,
+             we aren't prepared to run modification hooks (we could
+             end up calling modification hooks from another buffer and
+             only with AFTER=t, Bug#21824).  */
+          ptrdiff_t count = SPECPDL_INDEX ();
+          specbind (Qinhibit_modification_hooks, Qt);
+
 	  insert_1_both ("\n", 1, 1, true, false, false);
 
 	  scan_newline (Z, Z_BYTE, BEG, BEG_BYTE, -2, false);
@@ -10462,6 +10469,8 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
 			    -XFIXNAT (Vmessage_log_max) - 1, false);
 	      del_range_both (BEG, BEG_BYTE, PT, PT_BYTE, false);
 	    }
+
+          unbind_to (count, Qnil);
 	}
       BEGV = marker_position (oldbegv);
       BEGV_BYTE = marker_byte_position (oldbegv);

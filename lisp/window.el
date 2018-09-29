@@ -201,7 +201,7 @@ argument replaces this)."
 
 (defmacro with-current-buffer-window (buffer-or-name action quit-function &rest body)
   "Evaluate BODY with a buffer BUFFER-OR-NAME current and show that buffer.
-This construct is like `with-temp-buffer-window' but unlike that
+This construct is like `with-temp-buffer-window' but unlike that,
 makes the buffer specified by BUFFER-OR-NAME current for running
 BODY."
   (declare (debug t))
@@ -224,7 +224,7 @@ BODY."
 
 (defmacro with-displayed-buffer-window (buffer-or-name action quit-function &rest body)
   "Show a buffer BUFFER-OR-NAME and evaluate BODY in that buffer.
-This construct is like `with-current-buffer-window' but unlike that
+This construct is like `with-current-buffer-window' but unlike that,
 displays the buffer specified by BUFFER-OR-NAME before running BODY."
   (declare (debug t))
   (let ((buffer (make-symbol "buffer"))
@@ -992,16 +992,16 @@ and may be called only if no window on SIDE exists yet."
 ALIST is an association list of symbols and values.  The
 following special symbols can be used in ALIST.
 
-`side' denotes the side of the frame where the new window shall
-  be located.  Valid values are `bottom', `right', `top' and
-  `left'.  The default is `bottom'.
+ `side' denotes the side of the frame where the new window shall
+   be located.  Valid values are `bottom', `right', `top' and
+   `left'.  The default is `bottom'.
 
-`slot' if non-nil, specifies the window slot where to display
-  BUFFER.  A value of zero or nil means use the middle slot on
-  the specified side.  A negative value means use a slot
-  preceding (that is, above or on the left of) the middle slot.
-  A positive value means use a slot following (that is, below or
-  on the right of) the middle slot.  The default is zero.
+ `slot' if non-nil, specifies the window slot where to display
+   BUFFER.  A value of zero or nil means use the middle slot on
+   the specified side.  A negative value means use a slot
+   preceding (that is, above or on the left of) the middle slot.
+   A positive value means use a slot following (that is, below or
+   on the right of) the middle slot.  The default is zero.
 
 If the current frame size or the settings of `window-sides-slots'
 do not permit making a new window, a suitable existing window may
@@ -6384,7 +6384,7 @@ See also `same-window-buffer-names'."
   :group 'windows)
 
 (defun same-window-p (buffer-name)
-  "Return non-nil if a buffer named BUFFER-NAME would be shown in the \"same\" window.
+  "Return non-nil if buffer BUFFER-NAME would be shown in the \"same\" window.
 This function returns non-nil if `display-buffer' or
 `pop-to-buffer' would show a buffer named BUFFER-NAME in the
 selected rather than (as usual) some other window.  See
@@ -6822,16 +6822,22 @@ The actual non-nil value of this variable will be copied to the
   "Custom type for `display-buffer' actions.")
 
 (defvar display-buffer-overriding-action '(nil . nil)
-  "Overriding action to perform to display a buffer.
-It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
-function or a list of functions.  Each function should accept two
-arguments: a buffer to display and an alist similar to ALIST.
+  "User-defined overriding action to perform to display a buffer.
+This action overrides all the other actions in the action variables
+and arguments passed to `display-buffer'.
+Value should be a cons cell (FUNCTION . ALIST), where FUNCTION is
+a function or a list of functions.  Each function should accept
+two arguments: a buffer to display and an alist similar to ALIST.
+The default value is empty.
 See `display-buffer' for details.")
 (put 'display-buffer-overriding-action 'risky-local-variable t)
 
 (defcustom display-buffer-alist nil
-  "Alist of conditional actions for `display-buffer'.
-This is a list of elements (CONDITION . ACTION), where:
+  "Alist of uder-defined conditional actions for `display-buffer'.
+Its value takes effect before `display-buffer-base-action'
+and `display-buffer-fallback-action', but after
+`display-buffer-overriding-action', which see.
+If non-nil, this is a list of elements (CONDITION . ACTION), where:
 
  CONDITION is either a regexp matching buffer names, or a
   function that takes two arguments - a buffer name and the
@@ -6857,9 +6863,13 @@ associated action to the list of actions it will try."
 
 (defcustom display-buffer-base-action '(nil . nil)
   "User-specified default action for `display-buffer'.
+This is the default action used by `display-buffer' if no other
+actions are specified or all fail, before falling back on
+`display-buffer-fallback-action'.
 It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
 function or a list of functions.  Each function should accept two
 arguments: a buffer to display and an alist similar to ALIST.
+The default value is empty.
 See `display-buffer' for details."
   :type display-buffer--action-custom-type
   :risky t
@@ -6877,12 +6887,16 @@ See `display-buffer' for details."
   "Default fallback action for `display-buffer'.
 This is the action used by `display-buffer' if no other actions
 specified, e.g. by the user options `display-buffer-alist' or
-`display-buffer-base-action'.  See `display-buffer'.")
+`display-buffer-base-action', or they all fail.  See `display-buffer'.")
 (put 'display-buffer-fallback-action 'risky-local-variable t)
 
 (defun display-buffer-assq-regexp (buffer-name alist action)
   "Retrieve ALIST entry corresponding to BUFFER-NAME.
-ACTION is the action argument passed to `display-buffer'."
+This returns the cdr of the ALIST entry if either its key is a
+string that matches BUFFER-NAME, as reported by `string-match-p';
+or if the key is a function that returns a non-nil when called
+with 3 arguments: the ALIST key, BUFFER-NAME, and ACTION.
+ACTION should have the form of the action argument passed to `display-buffer'."
   (catch 'match
     (dolist (entry alist)
       (let ((key (car entry)))
@@ -6895,7 +6909,8 @@ ACTION is the action argument passed to `display-buffer'."
 (defvar display-buffer--same-window-action
   '(display-buffer-same-window
     (inhibit-same-window . nil))
-  "A `display-buffer' action for displaying in the same window.")
+  "A `display-buffer' action for displaying in the same window.
+Specifies to call `display-buffer-same-window'.")
 (put 'display-buffer--same-window-action 'risky-local-variable t)
 
 (defvar display-buffer--other-frame-action
@@ -6903,7 +6918,9 @@ ACTION is the action argument passed to `display-buffer'."
      display-buffer-pop-up-frame)
     (reusable-frames . 0)
     (inhibit-same-window . t))
-  "A `display-buffer' action for displaying in another frame.")
+  "A `display-buffer' action for displaying in another frame.
+Specifies to call `display-buffer-reuse-window', and if that
+fails, call `display-buffer-pop-up-frame'.")
 (put 'display-buffer--other-frame-action 'risky-local-variable t)
 
 (defun display-buffer (buffer-or-name &optional action frame)
@@ -6924,7 +6941,7 @@ If ACTION is non-nil, it should have the form (FUNCTION . ALIST),
 where FUNCTION is either a function or a list of functions, and
 ALIST is an arbitrary association list (alist).
 
-Each such FUNCTION should accept two arguments: the buffer to
+Each such function should accept two arguments: the buffer to
 display and an alist.  Based on those arguments, it should
 display the buffer and return the window.  If the caller is
 prepared to handle the case of not displaying the buffer
@@ -7048,6 +7065,9 @@ argument, ACTION is t."
 
 (defun display-buffer-other-frame (buffer)
   "Display buffer BUFFER preferably in another frame.
+This function attempts to look for a window displaying BUFFER,
+on all the frames on the current terminal, skipping the selected
+window; if that fails, it pops up a new frame.
 This uses the function `display-buffer' as a subroutine; see
 its documentation for additional customization information."
   (interactive "BDisplay buffer in other frame: ")
@@ -7091,10 +7111,10 @@ that allows the selected frame)."
 
 (defun display-buffer-same-window (buffer alist)
   "Display BUFFER in the selected window.
-This fails if ALIST has a non-nil `inhibit-same-window' entry, or
-if the selected window is a minibuffer window or is dedicated to
-another buffer; in that case, return nil.  Otherwise, return the
-selected window."
+This fails if ALIST has an `inhibit-same-window' element whose
+value is non-nil, or if the selected window is a minibuffer
+window or is dedicated to another buffer; in that case, return nil.
+Otherwise, return the selected window."
   (unless (or (cdr (assq 'inhibit-same-window alist))
 	      (window-minibuffer-p)
 	      (window-dedicated-p))
@@ -7581,7 +7601,12 @@ Optional argument NORECORD, if non-nil means do not put this
 buffer at the front of the list of recently selected ones.
 
 Unlike `pop-to-buffer', this function prefers using the selected
-window over popping up a new window or frame."
+window over popping up a new window or frame.  Specifically, if
+the selected window is neither a minibuffer window (as reported
+by `window-minibuffer-p'), nor is dedicated to another buffer
+(see `window-dedicated-p'), BUFFER will be displayed in the
+currently selected window; otherwise it will be displayed in
+another window."
   (pop-to-buffer buffer display-buffer--same-window-action norecord))
 
 (defun read-buffer-to-switch (prompt)

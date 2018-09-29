@@ -645,12 +645,12 @@ ns-app: emacs$(EXEEXT)
 .PHONY: versionclean extraclean
 
 mostlyclean:
-	rm -f temacs$(EXEEXT) core *.core \#* *.o
+	rm -f temacs$(EXEEXT) core ./*.core \#* ./*.o
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
 	rm -f globals.h gl-stamp
-	rm -f *.res *.tmp
+	rm -f ./*.res ./*.tmp
 clean: mostlyclean
 	rm -f emacs-*.*.*[0-9]$(EXEEXT) emacs$(EXEEXT) $(DEPDIR)/*
 
@@ -674,7 +674,7 @@ maintainer-clean: distclean
 versionclean:
 	-rm -f emacs$(EXEEXT) emacs-*.*.*[0-9]$(EXEEXT) ../etc/DOC*
 extraclean: distclean
-	-rm -f *~ \#*
+	-rm -f ./*~ \#*
 
 
 ETAGS = ../lib-src/etags${EXEEXT}

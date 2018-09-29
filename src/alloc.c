@@ -2425,7 +2425,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
 DEFUN ("bool-vector", Fbool_vector, Sbool_vector, 0, MANY, 0,
        doc: /* Return a new bool-vector with specified arguments as elements.
-Any number of arguments, even zero arguments, are allowed.
+Allows any number of arguments, including zero.
 usage: (bool-vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -2872,7 +2872,7 @@ listn (enum constype type, ptrdiff_t count, Lisp_Object arg, ...)
 
 DEFUN ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
-Any number of arguments, even zero arguments, are allowed.
+Allows any number of arguments, including zero.
 usage: (list &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -3497,7 +3497,7 @@ See also the function `vector'.  */)
 
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
-Any number of arguments, even zero arguments, are allowed.
+Allows any number of arguments, including zero.
 usage: (vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
@@ -3729,7 +3729,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
    elements.  If all the arguments are characters that can fit
    in a string of events, make a string; otherwise, make a vector.
 
-   Any number of arguments, even zero arguments, are allowed.  */
+   Allows any number of arguments, including zero.  */
 
 Lisp_Object
 make_event_array (ptrdiff_t nargs, Lisp_Object *args)
@@ -7119,14 +7119,6 @@ verify_alloca (void)
 #define verify_alloca() ((void) 0)
 
 #endif /* ENABLE_CHECKING && USE_STACK_LISP_OBJECTS */
-
-/* Memory allocation for GMP.  */
-
-void
-range_error (void)
-{
-  xsignal0 (Qrange_error);
-}
 
 /* Initialization.  */
 

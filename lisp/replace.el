@@ -1206,9 +1206,34 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 	    (move-to-column col)))))))
 
 
+(defun occur--parse-occur-buffer()
+  "Retrieve a list of the form (BEG END ORIG-LINE BUFFER).
+BEG and END define the region.
+ORIG-LINE and BUFFER are the line and the buffer from which
+the user called `occur'."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((buffer (get-text-property (point) 'occur-title))
+          (beg-pos (get-text-property (point) 'region-start))
+          (end-pos (get-text-property (point) 'region-end))
+          (orig-line (get-text-property (point) 'current-line)))
+      (list beg-pos end-pos orig-line buffer))))
+
 (defun occur-revert-function (_ignore1 _ignore2)
   "Handle `revert-buffer' for Occur mode buffers."
-  (apply 'occur-1 (append occur-revert-arguments (list (buffer-name)))))
+  (if (cdr (nth 2 occur-revert-arguments)) ; multi-occur
+      (apply 'occur-1 (append occur-revert-arguments (list (buffer-name))))
+    (pcase-let ((`(,region-start ,region-end ,orig-line ,buffer)
+                 (occur--parse-occur-buffer))
+                (regexp (car occur-revert-arguments)))
+      (with-current-buffer buffer
+        (when (wholenump orig-line)
+          (goto-char (point-min))
+          (forward-line (1- orig-line)))
+        (save-excursion
+          (if (or region-start region-end)
+              (occur regexp nil (list (cons region-start region-end)))
+            (apply 'occur-1 (append occur-revert-arguments (list (buffer-name))))))))))
 
 (defun occur-mode-find-occurrence ()
   (let ((pos (get-text-property (point) 'occur-target)))
@@ -1651,7 +1676,7 @@ See also `multi-occur'."
 		(matches 0)             ;; count of matches
 		(curr-line              ;; line count
 		 (or occur--region-start-line 1))
-		(orig-line occur--orig-line)
+		(orig-line (or occur--orig-line 1))
 		(orig-line-shown-p)
 		(prev-line nil)         ;; line number of prev match endpt
 		(prev-after-lines nil)  ;; context lines of prev match
@@ -1701,6 +1726,8 @@ See also `multi-occur'."
 			  (setq matches (1+ matches)))
 			(when (and list-matching-lines-jump-to-current-line
 				   (not multi-occur-p))
+			  (or orig-line (setq orig-line 1))
+			  (or nlines (setq nlines (line-number-at-pos (point-max))))
 			  (when (= curr-line orig-line)
 			    (add-face-text-property
 			     0 len list-matching-lines-current-line-face nil curstring)
@@ -1859,7 +1886,9 @@ See also `multi-occur'."
 				       ""))
 			     'read-only t))
 		    (setq end (point))
-		    (add-text-properties beg end `(occur-title ,buf))
+		    (add-text-properties beg end `(occur-title ,buf current-line ,orig-line
+							       region-start ,occur--region-start
+							       region-end ,occur--region-end))
 		    (when title-face
 		      (add-face-text-property beg end title-face))
 		    (goto-char (if (and list-matching-lines-jump-to-current-line

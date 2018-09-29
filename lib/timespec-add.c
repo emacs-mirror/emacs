@@ -18,7 +18,7 @@
 /* Written by Paul Eggert.  */
 
 /* Return the sum of two timespec values A and B.  On overflow, return
-   an extremal value.  This assumes 0 <= tv_nsec < TIMESPEC_RESOLUTION.  */
+   an extremal value.  This assumes 0 <= tv_nsec < TIMESPEC_HZ.  */
 
 #include <config.h>
 #include "timespec.h"
@@ -31,7 +31,7 @@ timespec_add (struct timespec a, struct timespec b)
   time_t rs = a.tv_sec;
   time_t bs = b.tv_sec;
   int ns = a.tv_nsec + b.tv_nsec;
-  int nsd = ns - TIMESPEC_RESOLUTION;
+  int nsd = ns - TIMESPEC_HZ;
   int rns = ns;
   time_t tmin = TYPE_MINIMUM (time_t);
   time_t tmax = TYPE_MAXIMUM (time_t);
@@ -63,7 +63,7 @@ timespec_add (struct timespec a, struct timespec b)
         {
         high_overflow:
           rs = tmax;
-          rns = TIMESPEC_RESOLUTION - 1;
+          rns = TIMESPEC_HZ - 1;
         }
     }
 

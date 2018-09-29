@@ -1892,7 +1892,7 @@ Return nil if CHARSET doesn't support CH.  */)
      can fit in 22bit.  Yet we encode GB-10830's chars in a sparse way
      (we just take the 4byte sequences as a 32bit int), so some
      GB-10830 chars (such as 0x81308130 in etc/charsets/gb108304.map) end
-     up represented as bignums here.  */
+     up represented as bignums if EMACS_INT is 32 bits.  */
   return INT_TO_INTEGER (code);
 }
 

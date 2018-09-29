@@ -295,7 +295,9 @@ Results are cached in `xdg-mime-table'."
               (files ()))
     (let ((mtim1 (get 'xdg-mime-table 'mtime))
           (mtim2 (cl-loop for f in caches when (file-readable-p f)
-                          maximize (float-time (nth 5 (file-attributes f))))))
+                          maximize (float-time
+				    (file-attribute-modification-time
+				     (file-attributes f))))))
       ;; If one of the MIME/Desktop cache files has been modified:
       (when (or (null mtim1) (time-less-p mtim1 mtim2))
         (setq xdg-mime-table nil)))

@@ -567,8 +567,11 @@ modified copy."
            (unless ,normal-exit-symbol
              ,@unwind-forms))))))
 
-(put 'iter-end-of-sequence 'error-conditions '(iter-end-of-sequence))
-(put 'iter-end-of-sequence 'error-message "iteration terminated")
+(define-error 'iter-end-of-sequence "Iteration terminated"
+  ;; FIXME: This was not defined originally as an `error' condition, so
+  ;; we reproduce this by passing itself as the parent, which avoids the
+  ;; default `error' parent.  Maybe it *should* be in the `error' category?
+  'iter-end-of-sequence)
 
 (defun cps--make-close-iterator-form (terminal-state)
   (if cps--cleanup-table-symbol
@@ -699,6 +702,14 @@ of values.  Callers can retrieve each value using `iter-next'."
   (cl-assert lexical-binding)
   `(lambda ,arglist
      ,(cps-generate-evaluator body)))
+
+(defmacro iter-make (&rest body)
+  "Return a new iterator."
+  (declare (debug t))
+  (cps-generate-evaluator body))
+
+(defconst iter-empty (lambda (_op _val) (signal 'iter-end-of-sequence nil))
+  "Trivial iterator that always signals the end of sequence.")
 
 (defun iter-next (iterator &optional yield-result)
   "Extract a value from an iterator.

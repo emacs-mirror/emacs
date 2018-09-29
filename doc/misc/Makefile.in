@@ -224,13 +224,13 @@ ${buildinfodir}/tramp.info tramp.html: ${srcdir}/trampver.texi
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 mostlyclean:
-	rm -f *.aux *.log *.toc *.c[mp] *.c[mp]s *.fn *.fns \
-	  *.ky *.kys *.op *.ops *.p[gj] *.p[gj]s *.sc *.scs *.ss \
-	  *.t[gp] *.t[gp]s *.vr *.vrs
+	rm -f ./*.aux ./*.log ./*.toc ./*.c[mp] ./*.c[mp]s ./*.fn ./*.fns \
+	  ./*.ky ./*.kys ./*.op ./*.ops ./*.p[gj] ./*.p[gj]s ./*.sc ./*.scs ./*.ss \
+	  ./*.t[gp] ./*.t[gp]s ./*.vr ./*.vrs
 	rm -f gnustmp*
 
 clean: mostlyclean
-	rm -f *.dvi *.html *.pdf *.ps
+	rm -f ./*.dvi ./*.html ./*.pdf ./*.ps
 
 distclean: clean
 	rm -f Makefile

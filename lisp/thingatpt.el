@@ -222,17 +222,15 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 
 (defun thing-at-point-bounds-of-list-at-point ()
   "Return the bounds of the list at point.
+Prefer the enclosing list with fallback on sexp at point.
 \[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
-    (let* ((st (parse-partial-sexp (point-min) (point)))
-           (beg (or (and (eq 4 (car (syntax-after (point))))
-                         (not (nth 8 st))
-                         (point))
-                    (nth 1 st))))
-      (when beg
-        (goto-char beg)
-        (forward-sexp)
-        (cons beg (point))))))
+    (if (ignore-errors (up-list -1))
+	(ignore-errors (cons (point) (progn (forward-sexp) (point))))
+      (let ((bound (bounds-of-thing-at-point 'sexp)))
+	(and bound
+	     (<= (car bound) (point)) (< (point) (cdr bound))
+	     bound)))))
 
 ;; Defuns
 
@@ -636,8 +634,13 @@ Signal an error if the entire string was not used."
 
 (put 'number 'thing-at-point 'number-at-point)
 ;;;###autoload
-(defun list-at-point ()
-  "Return the Lisp list at point, or nil if none is found."
-  (form-at-point 'list 'listp))
+(defun list-at-point (&optional ignore-comment-or-string)
+  "Return the Lisp list at point, or nil if none is found.
+If IGNORE-COMMENT-OR-STRING is non-nil comments and strings are
+treated as white space."
+  (let ((ppss (and ignore-comment-or-string (syntax-ppss))))
+    (save-excursion
+      (goto-char (or (nth 8 ppss) (point)))
+      (form-at-point 'list 'listp))))
 
 ;;; thingatpt.el ends here

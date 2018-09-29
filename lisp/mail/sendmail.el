@@ -561,7 +561,8 @@ This also saves the value of `send-mail-function' via Customize."
 
 (defun sendmail-sync-aliases ()
   (when mail-personal-alias-file
-    (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+    (let ((modtime (file-attribute-modification-time
+		    (file-attributes mail-personal-alias-file))))
       (or (equal mail-alias-modtime modtime)
 	  (setq mail-alias-modtime modtime
 		mail-aliases t)))))

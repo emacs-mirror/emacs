@@ -2,7 +2,7 @@
 # Attempt to guess a canonical system name.
 #   Copyright 1992-2018 Free Software Foundation, Inc.
 
-timestamp='2018-08-02'
+timestamp='2018-08-29'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -838,7 +838,7 @@ EOF
     *:BSD/OS:*:*)
 	echo "$UNAME_MACHINE"-unknown-bsdi"$UNAME_RELEASE"
 	exit ;;
-    arm*:FreeBSD:*:*)
+    arm:FreeBSD:*:*)
 	UNAME_PROCESSOR=`uname -p`
 	set_cc_for_build
 	if echo __ARM_PCS_VFP | $CC_FOR_BUILD -E - 2>/dev/null \

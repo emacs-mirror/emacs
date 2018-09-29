@@ -342,7 +342,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	       w32-direct-print-region-use-command-dot-com
 	       ;; file-attributes fails on LPT ports on Windows 9x but
 	       ;; not on NT, so handle both cases for safety.
-	       (eq (or (nth 7 (file-attributes printer)) 0) 0))
+	       (eq (or (file-attribute-size (file-attributes printer)) 0) 0))
 	  (write-region start end tempfile nil 0)
 	  (let ((w32-quote-process-args nil))
 	    (call-process "command.com" nil errbuf nil "/c"

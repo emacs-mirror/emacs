@@ -132,9 +132,7 @@ system, `file-name-shadow-properties' is used instead."
 
 ;; An overlay covering the shadowed part of the filename (local to the
 ;; minibuffer).
-(defvar rfn-eshadow-overlay)
-(make-variable-buffer-local 'rfn-eshadow-overlay)
-
+(defvar-local rfn-eshadow-overlay nil)
 
 ;;; Hook functions
 

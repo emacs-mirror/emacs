@@ -370,12 +370,14 @@ Remove the DIRECTORY(ies), if they are empty.")
 	     (or (not (eshell-under-windows-p))
 		 (eq system-type 'ms-dos))
 	     (setq attr (eshell-file-attributes (car files)))
-	     (nth 10 attr-target) (nth 10 attr)
-	     ;; Use equal, not -, since the inode and the device could
-	     ;; cons cells.
-	     (equal (nth 10 attr-target) (nth 10 attr))
-	     (nth 11 attr-target) (nth 11 attr)
-	     (equal (nth 11 attr-target) (nth 11 attr)))
+	     (file-attribute-inode-number attr-target)
+	     (file-attribute-inode-number attr)
+	     (equal (file-attribute-inode-number attr-target)
+		    (file-attribute-inode-number attr))
+	     (file-attribute-device-number attr-target)
+	     (file-attribute-device-number attr)
+	     (equal (file-attribute-device-number attr-target)
+		    (file-attribute-device-number attr)))
 	(eshell-error (format-message "%s: `%s' and `%s' are the same file\n"
 				      command (car files) target)))
        (t
@@ -397,16 +399,16 @@ Remove the DIRECTORY(ies), if they are empty.")
 		(let (eshell-warn-dot-directories)
 		  (if (and (not deep)
 			   (eq func 'rename-file)
-			   ;; Use equal, since the device might be a
-			   ;; cons cell.
-			   (equal (nth 11 (eshell-file-attributes
-					   (file-name-directory
-					    (directory-file-name
-					     (expand-file-name source)))))
-				  (nth 11 (eshell-file-attributes
-					   (file-name-directory
-					    (directory-file-name
-					     (expand-file-name target)))))))
+			   (equal (file-attribute-device-number
+				   (eshell-file-attributes
+				    (file-name-directory
+				     (directory-file-name
+				      (expand-file-name source)))))
+				  (file-attribute-device-number
+				   (eshell-file-attributes
+				    (file-name-directory
+				     (directory-file-name
+				      (expand-file-name target)))))))
 		      (apply 'eshell-funcalln func source target args)
 		  (unless (file-directory-p target)
 		    (if em-verbose
@@ -612,7 +614,8 @@ symlink, then revert to the system's definition of cat."
 			       (> (length arg) 0)
 			       (eq (aref arg 0) ?-))
 			  (let ((attrs (eshell-file-attributes arg)))
-			    (and attrs (memq (aref (nth 8 attrs) 0)
+			    (and attrs
+				 (memq (aref (file-attribute-modes attrs) 0)
 					     '(?d ?l ?-)))))
 		(throw 'special t)))))
       (let ((ext-cat (eshell-search-path "cat")))
@@ -656,7 +659,8 @@ Concatenate FILE(s), or standard input, to standard output.")
 ;; special front-end functions for compilation-mode buffers
 
 (defun eshell/make (&rest args)
-  "Use `compile' to do background makes."
+  "Use `compile' to do background makes.
+Fallback to standard make when called synchronously."
   (if (and eshell-current-subjob-p
 	   (eshell-interactive-output-p))
       (let ((compilation-process-setup-function
@@ -842,19 +846,19 @@ external command."
       (unless (string-match "\\`\\.\\.?\\'" (caar entries))
 	(let* ((entry (concat path "/"
 			      (caar entries)))
-	       (symlink (and (stringp (cadr (car entries)))
-			     (cadr (car entries)))))
+	       (symlink (and (stringp (file-attribute-type (cdar entries)))
+			     (file-attribute-type (cdar entries)))))
 	  (unless (or (and symlink (not dereference-links))
 		      (and only-one-filesystem
 			   (/= only-one-filesystem
-			       (nth 12 (car entries)))))
+			       (file-attribute-device-number (cdar entries)))))
 	    (if symlink
 		(setq entry symlink))
 	    (setq size
 		  (+ size
-		     (if (eq t (cadr (car entries)))
+		     (if (eq t (car (cdar entries)))
 			 (eshell-du-sum-directory entry (1+ depth))
-		       (let ((file-size (nth 8 (car entries))))
+		       (let ((file-size (file-attribute-size (cdar entries))))
 			 (prog1
 			     file-size
 			   (if show-all
@@ -925,7 +929,7 @@ Summarize disk usage of each FILE, recursively for directories.")
 	 (while args
 	   (if only-one-filesystem
 	       (setq only-one-filesystem
-		     (nth 11 (eshell-file-attributes
+		     (file-attribute-device-number (eshell-file-attributes
 			      (file-name-as-directory (car args))))))
 	   (setq size (+ size (eshell-du-sum-directory
 			       (directory-file-name (car args)) 0)))

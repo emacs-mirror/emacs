@@ -301,7 +301,7 @@ into a buffer, and then deletes the temporary file.
 
 @item
 Edit, modify, change the buffer contents as normal, and then save the
-buffer wth @kbd{C-x C-s}.
+buffer with @kbd{C-x C-s}.
 
 @item
 @value{tramp} transfers the buffer contents to the remote host in

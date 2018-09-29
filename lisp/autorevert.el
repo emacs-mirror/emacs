@@ -321,7 +321,7 @@ the list of old buffers.")
 
 (defun auto-revert-find-file-function ()
   (setq-local auto-revert-tail-pos
-              (nth 7 (file-attributes buffer-file-name))))
+              (file-attribute-size (file-attributes buffer-file-name))))
 
 (add-hook 'find-file-hook
 	  #'auto-revert-find-file-function)
@@ -434,7 +434,8 @@ Perform a full revert? ")
       (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode 0)) nil t)
       (or (local-variable-p 'auto-revert-tail-pos) ; don't lose prior position
 	  (setq-local auto-revert-tail-pos
-                      (nth 7 (file-attributes buffer-file-name))))
+                      (file-attribute-size
+                       (file-attributes buffer-file-name))))
       ;; let auto-revert-mode set up the mechanism for us if it isn't already
       (or auto-revert-mode
 	  (let ((auto-revert-tail-mode t))
@@ -656,8 +657,8 @@ This is an internal function used by Auto-Revert Mode."
                        (and (file-readable-p buffer-file-name)
                             (/= auto-revert-tail-pos
                                 (setq size
-                                      (nth 7 (file-attributes
-                                              buffer-file-name)))))
+                                      (file-attribute-size
+                                       (file-attributes buffer-file-name)))))
                      (funcall (or buffer-stale-function
                                   #'buffer-stale--default-function)
                               t)))

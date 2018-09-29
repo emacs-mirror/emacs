@@ -486,8 +486,8 @@ to be identified as that note."
   "Face used to show the selected portion of a formula."
   :group 'calc)
 
-(defvar calc-bug-address "emacs-devel@gnu.org"
-  "Address of the maintainer of Calc, for use by `report-calc-bug'.")
+(define-obsolete-variable-alias 'calc-bug-address 'report-emacs-bug-address
+  "26.2")
 
 (defvar calc-scan-for-dels t
   "If t, scan keymaps to find all DEL-like keys.

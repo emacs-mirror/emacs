@@ -1238,8 +1238,10 @@ Each element of HANDLERS looks like (CONDITION-NAME BODY...)
 where the BODY is made of Lisp expressions.
 
 A handler is applicable to an error if CONDITION-NAME is one of the
-error's condition names.  A CONDITION-NAME of t applies to any error
-symbol.  If an error happens, the first applicable handler is run.
+error's condition names.  Handlers may also apply when non-error
+symbols are signaled (e.g., `quit').  A CONDITION-NAME of t applies to
+any symbol, including non-error symbols.  If multiple handlers are
+applicable, only the first one runs.
 
 The car of a handler may be a list of condition names instead of a
 single condition name; then it handles all of them.  If the special
@@ -1763,6 +1765,14 @@ signal_error (const char *s, Lisp_Object arg)
     arg = list1 (arg);
 
   xsignal (Qerror, Fcons (build_string (s), arg));
+}
+
+/* Use this for arithmetic overflow, e.g., when an integer result is
+   too large even for a bignum.  */
+void
+overflow_error (void)
+{
+  xsignal0 (Qoverflow_error);
 }
 
 

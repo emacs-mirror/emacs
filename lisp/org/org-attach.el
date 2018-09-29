@@ -352,7 +352,7 @@ This checks for the existence of a \".git\" directory in that directory."
                   (shell-command-to-string
                    "git ls-files -zmo --exclude-standard") "\0" t))
           (if (and use-annex
-                   (>= (nth 7 (file-attributes new-or-modified))
+                   (>= (file-attribute-size (file-attributes new-or-modified))
                        org-attach-git-annex-cutoff))
               (call-process "git" nil nil nil "annex" "add" new-or-modified)
             (call-process "git" nil nil nil "add" new-or-modified))

@@ -183,9 +183,9 @@ really need to stick around for very long."
   "The face used for highlighting junk file names.")
 
 (defsubst eshell-ls-filetype-p (attrs type)
-  "Test whether ATTRS specifies a directory."
-  (if (nth 8 attrs)
-      (eq (aref (nth 8 attrs) 0) type)))
+  "Test whether ATTRS specifies a file of type TYPE."
+  (if (file-attribute-modes attrs)
+      (eq (aref (file-attribute-modes attrs) 0) type)))
 
 (defmacro eshell-ls-applicable (attrs index func file)
   "Test whether, for ATTRS, the user can do what corresponds to INDEX.
@@ -193,8 +193,8 @@ ATTRS is a string of file modes.  See `file-attributes'.
 If we cannot determine the answer using ATTRS (e.g., if we need
 to know what group the user is in), compute the return value by
 calling FUNC with FILE as an argument."
-  `(let ((owner (nth 2 ,attrs))
-	 (modes (nth 8 ,attrs)))
+  `(let ((owner (file-attribute-user-id ,attrs))
+	 (modes (file-attribute-modes ,attrs)))
      (cond ((cond ((numberp owner)
 		   (= owner (user-uid)))
 		  ((stringp owner)
@@ -437,7 +437,7 @@ Sort entries alphabetically across.")
 
 (defsubst eshell-ls-size-string (attrs size-width)
   "Return the size string for ATTRS length, using SIZE-WIDTH."
-  (let* ((str (eshell-ls-printable-size (nth 7 attrs) t))
+  (let* ((str (eshell-ls-printable-size (file-attribute-size attrs) t))
 	 (len (length str)))
     (if (< len size-width)
 	(concat (make-string (- size-width len) ? ) str)
@@ -503,19 +503,19 @@ whose cdr is the list of file attributes."
 		 (if numeric-uid-gid
 		     "%s%4d %-8s %-8s "
 		   "%s%4d %-14s %-8s ")
-		 (or (nth 8 attrs) "??????????")
-		 (or (nth 1 attrs) 0)
-		 (or (let ((user (nth 2 attrs)))
+		 (or (file-attribute-modes attrs) "??????????")
+		 (or (file-attribute-link-number attrs) 0)
+		 (or (let ((user (file-attribute-user-id attrs)))
 		       (and (stringp user)
 			    (eshell-substring user 14)))
-		     (nth 2 attrs)
+		     (file-attribute-user-id attrs)
 		     "")
-		 (or (let ((group (nth 3 attrs)))
+		 (or (let ((group (file-attribute-group-id attrs)))
 		       (and (stringp group)
 			    (eshell-substring group 8)))
-		     (nth 3 attrs)
+		     (file-attribute-group-id attrs)
 		     ""))
-		(let* ((str (eshell-ls-printable-size (nth 7 attrs)))
+		(let* ((str (eshell-ls-printable-size (file-attribute-size attrs)))
 		       (len (length str)))
 		  ;; Let file sizes shorter than 9 align neatly.
 		  (if (< len (or size-width 8))
@@ -585,12 +585,12 @@ relative to that directory."
 	    (let ((total 0.0))
 	      (setq size-width 0)
 	      (dolist (e entries)
-		(if (nth 7 (cdr e))
-		    (setq total (+ total (nth 7 (cdr e)))
+		(if (file-attribute-size (cdr e))
+		    (setq total (+ total (file-attribute-size (cdr e)))
 			  size-width
 			  (max size-width
 			       (length (eshell-ls-printable-size
-					(nth 7 (cdr e))
+					(file-attribute-size (cdr e))
 					(not
 					 ;; If we are under -l, count length
 					 ;; of sizes in bytes, not in blocks.
@@ -700,7 +700,7 @@ Each member of FILES is either a string or a cons cell of the form
       (if (not show-size)
 	  (setq display-files (mapcar 'eshell-ls-annotate files))
 	(dolist (file files)
-	  (let* ((str (eshell-ls-printable-size (nth 7 (cdr file)) t))
+	  (let* ((str (eshell-ls-printable-size (file-attribute-size (cdr file)) t))
 		 (len (length str)))
 	    (if (< len size-width)
 		(setq str (concat (make-string (- size-width len) ? ) str)))
@@ -766,14 +766,14 @@ need to be printed."
 		    (if show-size
 			(max size-width
 			     (length (eshell-ls-printable-size
-				      (nth 7 (cdr entry)) t))))))
+				      (file-attribute-size (cdr entry)) t))))))
 	    (setq dirs (cons entry dirs)))
 	(setq files (cons entry files)
 	      size-width
 	      (if show-size
 		  (max size-width
 		       (length (eshell-ls-printable-size
-				(nth 7 (cdr entry)) t)))))))
+				(file-attribute-size (cdr entry)) t)))))))
     (when files
       (eshell-ls-files (eshell-ls-sort-entries files)
 		       size-width show-recursive)

@@ -23,12 +23,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 INLINE_HEADER_BEGIN
 
-#ifdef emacs
-# ifdef HAVE_X_WINDOWS
-#  include <X11/X.h>
-# else
+#ifdef HAVE_X_WINDOWS
+# include <X11/X.h>
+#else
 typedef unsigned long Time;
-# endif
 #endif
 
 /* On some configurations (hpux8.0, X11R4), sys/time.h and X11/Xos.h
@@ -58,21 +56,12 @@ invalid_timespec (void)
 }
 
 /* Return true if TIME is a valid timespec.  This currently doesn't worry
-   about whether tv_nsec is less than TIMESPEC_RESOLUTION; leap seconds
-   might cause a problem if it did.  */
+   about whether tv_nsec is less than TIMESPEC_HZ; leap seconds might
+   cause a problem if it did.  */
 INLINE bool
 timespec_valid_p (struct timespec t)
 {
   return t.tv_nsec >= 0;
-}
-
-/* Return current system time.  */
-INLINE struct timespec
-current_timespec (void)
-{
-  struct timespec r;
-  gettime (&r);
-  return r;
 }
 
 /* defined in sysdep.c */
@@ -81,10 +70,6 @@ extern struct timeval make_timeval (struct timespec) ATTRIBUTE_CONST;
 
 /* defined in keyboard.c */
 extern void set_waiting_for_input (struct timespec *);
-
-/* When lisp.h is not included Lisp_Object is not defined (this can
-   happen when this file is used outside the src directory).  */
-#ifdef emacs
 
 /* Emacs uses the integer list (HI LO US PS) to represent the time
    (HI << LO_TIME_BITS) + LO + US / 1e6 + PS / 1e12.  */
@@ -103,7 +88,6 @@ extern int decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
 				   Lisp_Object, struct lisp_time *, double *);
 extern struct timespec lisp_to_timespec (struct lisp_time);
 extern struct timespec lisp_time_argument (Lisp_Object);
-#endif
 
 INLINE_HEADER_END
 

@@ -61,6 +61,18 @@
                      (quote
                       (0 font-lock-keyword-face))))))))
 
+(ert-deftest provided-mode-derived-p ()
+  ;; base case: `derived-mode' directly derives `prog-mode'
+  (should (progn
+            (define-derived-mode derived-mode prog-mode "test")
+            (provided-mode-derived-p 'derived-mode 'prog-mode)))
+  ;; edge case: `derived-mode' derives an alias of `prog-mode'
+  (should (progn
+            (defalias 'parent-mode
+              (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
+            (define-derived-mode derived-mode parent-mode "test")
+            (provided-mode-derived-p 'derived-mode 'prog-mode))))
+
 (ert-deftest number-sequence-test ()
   (should (= (length
               (number-sequence (1- most-positive-fixnum) most-positive-fixnum))

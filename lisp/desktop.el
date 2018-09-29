@@ -1031,7 +1031,8 @@ without further confirmation."
   (setq desktop-dirname (file-name-as-directory (expand-file-name dirname)))
   (save-excursion
     (let ((eager desktop-restore-eager)
-	  (new-modtime (nth 5 (file-attributes (desktop-full-file-name)))))
+	  (new-modtime (file-attribute-modification-time
+			(file-attributes (desktop-full-file-name)))))
       (when
 	  (or (not new-modtime)		; nothing to overwrite
 	      (equal desktop-file-modtime new-modtime)
@@ -1134,7 +1135,9 @@ without further confirmation."
 		(write-region (point-min) (point-max) (desktop-full-file-name) nil 'nomessage))
 	      (setq desktop-file-checksum checksum)
 	      ;; We remember when it was modified (which is presumably just now).
-	      (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name)))))))))))
+	      (setq desktop-file-modtime (file-attribute-modification-time
+					  (file-attributes
+					   (desktop-full-file-name)))))))))))
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -1238,7 +1241,9 @@ Using it may cause conflicts.  Use it anyway? " owner)))))
                           'window-configuration-change-hook)))
 	    (desktop-auto-save-disable)
 	    ;; Evaluate desktop buffer and remember when it was modified.
-	    (setq desktop-file-modtime (nth 5 (file-attributes (desktop-full-file-name))))
+	    (setq desktop-file-modtime (file-attribute-modification-time
+					(file-attributes
+					 (desktop-full-file-name))))
 	    (load (desktop-full-file-name) t t t)
 	    ;; If it wasn't already, mark it as in-use, to bother other
 	    ;; desktop instances.

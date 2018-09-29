@@ -113,7 +113,7 @@ of the anchor file for the project."
 	(if ede--disable-inode
 	    (ede--put-inode-dir-hash dir 0)
 	  (let ((fattr (file-attributes dir)))
-	    (ede--put-inode-dir-hash dir (nth 10 fattr))
+	    (ede--put-inode-dir-hash dir (file-attribute-inode-number fattr))
 	    )))))
 
 (cl-defmethod ede--project-inode ((proj ede-project-placeholder))

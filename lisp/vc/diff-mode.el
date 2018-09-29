@@ -1450,7 +1450,7 @@ modified lines of the diff."
   ;; can just remove the file altogether.  Very handy for .rej files if we
   ;; remove hunks as we apply them.
   (when (and buffer-file-name
-	     (eq 0 (nth 7 (file-attributes buffer-file-name))))
+	     (eq 0 (file-attribute-size (file-attributes buffer-file-name))))
     (delete-file buffer-file-name)))
 
 (defun diff-delete-empty-files ()

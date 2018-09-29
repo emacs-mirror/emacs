@@ -1059,6 +1059,10 @@ local variable specifications; it automatically makes these variables
 local to the buffer, and sets them to the values specified in the
 file.
 
+  File local variables override directory local variables
+(@pxref{Directory Variables}), if any are specified for a file's
+directory.
+
 @menu
 * Specifying File Variables:: Specifying file local variables.
 * Safe File Variables::       Making sure file local variables are safe.
@@ -1309,7 +1313,12 @@ confirmation about processing @code{eval} variables.
   Sometimes, you may wish to define the same set of local variables to
 all the files in a certain directory and its subdirectories, such as
 the directory tree of a large software project.  This can be
-accomplished with @dfn{directory-local variables}.
+accomplished with @dfn{directory-local variables}.  File local
+variables override directory local variables, so if some of the files
+in a directory need specialized settings, you can specify the settings
+for the majority of the directory's files in directory variables, and
+then define file local variables in a few files which need the general
+settings overridden.
 
 @cindex @file{.dir-locals.el} file
   The usual way to define directory-local variables is to put a file

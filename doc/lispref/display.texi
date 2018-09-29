@@ -5442,7 +5442,8 @@ Specifies a rotation angle in degrees.
 
 SVG (Scalable Vector Graphics) is an XML format for specifying images.
 If your Emacs build has SVG support, you can create and manipulate
-these images with the following functions.
+these images with the following functions from the @file{svg.el}
+library.
 
 @defun svg-create width height &rest args
 Create a new, empty SVG image with the specified dimensions.
@@ -5456,8 +5457,11 @@ The default width (in pixels) of any lines created.
 The default stroke color on any lines created.
 @end table
 
-This function returns an SVG structure, and all the following functions
-work on that structure.
+@cindex SVG object
+This function returns an @dfn{SVG object}, a Lisp data structure that
+specifies an SVG image, and all the following functions work on that
+structure.  The argument @var{svg} in the following functions
+specifies such an SVG object.
 @end defun
 
 @defun svg-gradient svg id type stops
@@ -5501,8 +5505,8 @@ gradient object.
 @end table
 
 @defun svg-rectangle svg x y width height &rest args
-Add a rectangle to @var{svg} where the upper left corner is at
-position @var{x}/@var{y} and is of size @var{width}/@var{height}.
+Add to @var{svg} a rectangle whose upper left corner is at
+position @var{x}/@var{y} and whose size is @var{width}/@var{height}.
 
 @lisp
 (svg-rectangle svg 100 100 500 500 :gradient "gradient1")
@@ -5510,24 +5514,24 @@ position @var{x}/@var{y} and is of size @var{width}/@var{height}.
 @end defun
 
 @defun svg-circle svg x y radius &rest args
-Add a circle to @var{svg} where the center is at @var{x}/@var{y}
-and the radius is @var{radius}.
+Add to @var{svg} a circle whose center is at @var{x}/@var{y} and whose
+radius is @var{radius}.
 @end defun
 
 @defun svg-ellipse svg x y x-radius y-radius &rest args
-Add a circle to @var{svg} where the center is at @var{x}/@var{y} and
-the horizontal radius is @var{x-radius} and the vertical radius is
+Add to @var{svg} an ellipse whose center is at @var{x}/@var{y}, and
+whose horizontal radius is @var{x-radius} and the vertical radius is
 @var{y-radius}.
 @end defun
 
 @defun svg-line svg x1 y1 x2 y2 &rest args
-Add a line to @var{svg} that starts at @var{x1}/@var{y1} and extends
+Add to @var{svg} a line that starts at @var{x1}/@var{y1} and extends
 to @var{x2}/@var{y2}.
 @end defun
 
 @defun svg-polyline svg points &rest args
-Add a multiple segment line to @var{svg} that goes through
-@var{points}, which is a list of X/Y position pairs.
+Add to @var{svg} a multiple-segment line (a.k.a.@: ``polyline'') that
+goes through @var{points}, which is a list of X/Y position pairs.
 
 @lisp
 (svg-polyline svg '((200 . 100) (500 . 450) (80 . 100))
@@ -5541,12 +5545,12 @@ that describe the outer circumference of the polygon.
 
 @lisp
 (svg-polygon svg '((100 . 100) (200 . 150) (150 . 90))
-             :stroke-color "blue" :fill-color "red"")
+             :stroke-color "blue" :fill-color "red")
 @end lisp
 @end defun
 
 @defun svg-text svg text &rest args
-Add a text to @var{svg}.
+Add the specified @var{text} to @var{svg}.
 
 @lisp
 (svg-text
@@ -5565,9 +5569,9 @@ Add a text to @var{svg}.
 
 @defun svg-embed svg image image-type datap &rest args
 Add an embedded (raster) image to @var{svg}.  If @var{datap} is
-@code{nil}, @var{IMAGE} should be a file name; if not, it should be a
-binary string containing the image data.  @var{image-type} should be a
-@acronym{MIME} image type, for instance @samp{"image/jpeg"}.
+@code{nil}, @var{image} should be a file name; otherwise it should be a
+string containing the image data as raw bytes.  @var{image-type} should be a
+@acronym{MIME} image type, for instance @code{"image/jpeg"}.
 
 @lisp
 (svg-embed svg "~/rms.jpg" "image/jpeg" nil
@@ -5580,10 +5584,14 @@ binary string containing the image data.  @var{image-type} should be a
 Remove the element with identifier @code{id} from the @code{svg}.
 @end defun
 
-Finally, the @code{svg-image} takes an SVG object as its parameter and
+@defun svg-image svg
+Finally, the @code{svg-image} takes an SVG object as its argument and
 returns an image object suitable for use in functions like
-@code{insert-image}.  Here's a complete example that creates and
-inserts an image with a circle:
+@code{insert-image}.
+@end defun
+
+Here's a complete example that creates and inserts an image with a
+circle:
 
 @lisp
 (let ((svg (svg-create 400 400 :stroke-width 10)))

@@ -449,15 +449,14 @@ those other variables already have their intended values.
   It is useful to specify the @code{:require} keyword for an option
 that turns on a certain feature.  This causes Emacs to load the
 feature, if it is not already loaded, whenever the option is set.
-@xref{Common Keywords}.  Here is an example, from the library
-@file{saveplace.el}:
+@xref{Common Keywords}.  Here is an example:
 
 @example
-(defcustom save-place nil
-  "Non-nil means automatically save place in each file..."
+(defcustom frobnicate-automatically nil
+  "Non-nil means automatically frobnicate all buffers."
   :type 'boolean
-  :require 'saveplace
-  :group 'save-place)
+  :require 'frobnicate-mode
+  :group 'frobnicate)
 @end example
 
 If a customization item has a type such as @code{hook} or

@@ -111,7 +111,7 @@ $(globals_h):
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 clean mostlyclean:
-	rm -f *.o liblw.a \#* $(DEPDIR)/*
+	rm -f ./*.o liblw.a \#* $(DEPDIR)/*
 
 distclean: clean
 	rm -f Makefile

@@ -63,12 +63,14 @@
 			"port"))
 	      alist elem result pair)
           (if (and netrc-cache
-		   (equal (car netrc-cache) (nth 5 (file-attributes file))))
+		   (equal (car netrc-cache) (file-attribute-modification-time
+                                             (file-attributes file))))
 	      (insert (base64-decode-string (rot13-string (cdr netrc-cache))))
 	    (insert-file-contents file)
 	    (when (string-match "\\.gpg\\'" file)
 	      ;; Store the contents of the file heavily encrypted in memory.
-	      (setq netrc-cache (cons (nth 5 (file-attributes file))
+	      (setq netrc-cache (cons (file-attribute-modification-time
+                                       (file-attributes file))
 				      (rot13-string
 				       (base64-encode-string
 					(buffer-string)))))))

@@ -896,24 +896,22 @@ is not undone."
 
 (defun abbrev--write (sym)
   "Write the abbrev in a `read'able form.
-Only writes the non-system abbrevs.
 Presumes that `standard-output' points to `current-buffer'."
-  (unless (or (null (symbol-value sym)) (abbrev-get sym :system))
-    (insert "    (")
-    (prin1 (symbol-name sym))
-    (insert " ")
-    (prin1 (symbol-value sym))
-    (insert " ")
-    (prin1 (symbol-function sym))
-    (insert " :count ")
-    (prin1 (abbrev-get sym :count))
-    (when (abbrev-get sym :case-fixed)
-      (insert " :case-fixed ")
-      (prin1 (abbrev-get sym :case-fixed)))
-    (when (abbrev-get sym :enable-function)
-      (insert " :enable-function ")
-      (prin1 (abbrev-get sym :enable-function)))
-    (insert ")\n")))
+  (insert "    (")
+  (prin1 (symbol-name sym))
+  (insert " ")
+  (prin1 (symbol-value sym))
+  (insert " ")
+  (prin1 (symbol-function sym))
+  (insert " :count ")
+  (prin1 (abbrev-get sym :count))
+  (when (abbrev-get sym :case-fixed)
+    (insert " :case-fixed ")
+    (prin1 (abbrev-get sym :case-fixed)))
+  (when (abbrev-get sym :enable-function)
+    (insert " :enable-function ")
+    (prin1 (abbrev-get sym :enable-function)))
+  (insert ")\n"))
 
 (defun abbrev--describe (sym)
   (when (symbol-value sym)
@@ -934,31 +932,38 @@ Presumes that `standard-output' points to `current-buffer'."
   "Insert before point a full description of abbrev table named NAME.
 NAME is a symbol whose value is an abbrev table.
 If optional 2nd arg READABLE is non-nil, a human-readable description
-is inserted.  Otherwise the description is an expression,
-a call to `define-abbrev-table', which would
-define the abbrev table NAME exactly as it is currently defined.
+is inserted.
 
-Abbrevs marked as \"system abbrevs\" are omitted."
+If READABLE is nil, an expression is inserted.  The expression is
+a call to `define-abbrev-table' that when evaluated will define
+the abbrev table NAME exactly as it is currently defined.
+Abbrevs marked as \"system abbrevs\" are ignored.  If the
+resulting expression would not define any abbrevs, nothing is
+inserted."
   (let ((table (symbol-value name))
         (symbols ()))
-    (mapatoms (lambda (sym) (if (symbol-value sym) (push sym symbols))) table)
-    (setq symbols (sort symbols 'string-lessp))
-    (let ((standard-output (current-buffer)))
-      (if readable
-	  (progn
-	    (insert "(")
-	    (prin1 name)
-	    (insert ")\n\n")
-	    (mapc 'abbrev--describe symbols)
-	    (insert "\n\n"))
-	(insert "(define-abbrev-table '")
-	(prin1 name)
-	(if (null symbols)
-	    (insert " '())\n\n")
-	  (insert "\n  '(\n")
-	  (mapc 'abbrev--write symbols)
-	  (insert "   ))\n\n")))
-      nil)))
+    (mapatoms (lambda (sym)
+                (if (and (symbol-value sym) (or readable (not (abbrev-get sym :system))))
+                    (push sym symbols)))
+              table)
+    (when symbols
+      (setq symbols (sort symbols 'string-lessp))
+      (let ((standard-output (current-buffer)))
+        (if readable
+            (progn
+              (insert "(")
+              (prin1 name)
+              (insert ")\n\n")
+              (mapc 'abbrev--describe symbols)
+              (insert "\n\n"))
+          (insert "(define-abbrev-table '")
+          (prin1 name)
+          (if (null symbols)
+              (insert " '())\n\n")
+            (insert "\n  '(\n")
+            (mapc 'abbrev--write symbols)
+            (insert "   ))\n\n")))
+        nil))))
 
 (defun define-abbrev-table (tablename definitions
                                       &optional docstring &rest props)

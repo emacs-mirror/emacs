@@ -547,6 +547,16 @@ comparing the subr with a much slower lisp implementation."
     (should (<= b-1 b0))
     (should (<= b-1 b-1))
 
+    (should (= (+ f0 b0) (+ b0 f0)))
+    (should (= (+ f0 b-1) (+ b-1 f0)))
+    (should (= (+ f-1 b0) (+ b0 f-1)))
+    (should (= (+ f-1 b-1) (+ b-1 f-1)))
+
+    (should (= (* f0 b0) (* b0 f0)))
+    (should (= (* f0 b-1) (* b-1 f0)))
+    (should (= (* f-1 b0) (* b0 f-1)))
+    (should (= (* f-1 b-1) (* b-1 f-1)))
+
     (should (= b0 f0))
     (should (= b0 b0))
 

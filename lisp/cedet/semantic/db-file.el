@@ -307,8 +307,8 @@ Argument OBJ is the object to write."
     ;; Make sure that the file size and other attributes are
     ;; up to date.
     (let ((fattr (file-attributes (semanticdb-full-filename obj))))
-      (oset obj fsize (nth 7 fattr))
-      (oset obj lastmodtime (nth 5 fattr))
+      (oset obj fsize (file-attribute-size fattr))
+      (oset obj lastmodtime (file-attribute-modification-time fattr))
       )
 
     ;; Do it!

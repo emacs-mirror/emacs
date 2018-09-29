@@ -347,7 +347,7 @@ DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
        doc: /* Return a list of names of files and their attributes in DIRECTORY.
 Value is a list of the form:
 
-  ((FILE1 FILE1-ATTRS) (FILE2 FILE2-ATTRS) ...)
+  ((FILE1 . FILE1-ATTRS) (FILE2 . FILE2-ATTRS) ...)
 
 where each FILEn-ATTRS is the attributes of FILEn as returned
 by `file-attributes'.
@@ -866,26 +866,22 @@ provided: `file-attribute-type', `file-attribute-link-number',
 Elements of the attribute list are:
  0. t for directory, string (name linked to) for symbolic link, or nil.
  1. Number of links to file.
- 2. File uid as a string or a number.  If a string value cannot be
-  looked up, an integer value is returned, which could be a fixnum,
-  if it's small enough, otherwise a bignum.
+ 2. File uid as a string or (if ID-FORMAT is `integer' or a string value
+  cannot be looked up) as an integer.
  3. File gid, likewise.
- 4. Last access time, as a list of integers (HIGH LOW USEC PSEC) in the
-  same style as (current-time).
+ 4. Last access time, in the style of `current-time'.
   (See a note below about access time on FAT-based filesystems.)
  5. Last modification time, likewise.  This is the time of the last
   change to the file's contents.
  6. Last status change time, likewise.  This is the time of last change
   to the file's attributes: owner and group, access mode bits, etc.
- 7. Size in bytes, which could be a fixnum, if it's small enough,
-  otherwise a bignum.
+ 7. Size in bytes, as an integer.
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. An unspecified value, present only for backward compatibility.
-10. inode number, which could be a fixnum, if it's small enough,
-  otherwise a bignum.
-11. Filesystem device number.  If it is larger than what a fixnum
-  can hold, it is a bignum.
+10. inode number, as a nonnegative integer.
+11. Filesystem device number, as an integer.
 
+Large integers are bignums, so `eq' might not work on them.
 On most filesystems, the combination of the inode and the device
 number uniquely identifies the file.
 

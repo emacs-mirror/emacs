@@ -791,7 +791,7 @@ Here are some important details about that usage.
 
 @enumerate
 @item When @var{symbol} occurs more than once in @var{seqpat},
-the second and subsequent occurances do not expand to re-binding,
+the second and subsequent occurrences do not expand to re-binding,
 but instead expand to an equality test using @code{eq}.
 
 The following example features a @code{pcase} form

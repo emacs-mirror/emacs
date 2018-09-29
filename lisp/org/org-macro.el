@@ -159,7 +159,8 @@ function installs the following ones: \"property\",
 			  (format "(eval (format-time-string \"$1\" (or (and (org-string-nw-p \"$2\") (org-macro--vc-modified-time %s)) '%s)))"
 				  (prin1-to-string visited-file)
 				  (prin1-to-string
-				   (nth 5 (file-attributes visited-file)))))))))
+				   (file-attribute-modification-time
+				    (file-attributes visited-file)))))))))
     ;; Initialize and install "n" macro.
     (org-macro--counter-initialize)
     (funcall update-templates

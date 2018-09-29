@@ -2957,6 +2957,15 @@ as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out(5).
 
+* 'make check' failures
+
+** emacs-module-tests fail on Ubuntu 16.04
+
+This is due to a bug in GCC that was fixed in 2015; see
+<https://lists.gnu.org/r/emacs-devel/2018-09/msg00548.html>.
+You can work around the problem by using a later version of GCC or of
+Ubuntu, or by configuring without modules.
+
 * Problems on legacy systems
 
 This section covers bugs reported on very old hardware or software.

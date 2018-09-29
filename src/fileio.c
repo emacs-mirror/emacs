@@ -5454,10 +5454,9 @@ See Info node `(elisp)Modification Time' for more details.  */)
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
-The value is a list of the form (HIGH LOW USEC PSEC), like the time values that
-`file-attributes' returns.  If the current buffer has no recorded file
-modification time, this function returns 0.  If the visited file
-doesn't exist, return -1.
+Return a Lisp timestamp (as in `current-time') if the current buffer
+has a recorded file modification time, 0 if it doesn't, and -1 if the
+visited file doesn't exist.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
@@ -5473,9 +5472,8 @@ DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
 Useful if the buffer was not read from the file normally
 or if the file itself has been changed for some known benign reason.
 An argument specifies the modification time value to use
-\(instead of that of the visited file), in the form of a list
-\(HIGH LOW USEC PSEC) or an integer flag as returned by
-`visited-file-modtime'.  */)
+\(instead of that of the visited file), in the form of a time value as
+in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
   (Lisp_Object time_flag)
 {
   if (!NILP (time_flag))

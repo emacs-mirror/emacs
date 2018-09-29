@@ -277,10 +277,7 @@ Symbols are also allowed; their print names are used instead."
 ;;; Time functions.
 
 (defun gnus-file-newer-than (file date)
-  (let ((fdate (nth 5 (file-attributes file))))
-    (or (> (car fdate) (car date))
-	(and (= (car fdate) (car date))
-	     (> (nth 1 fdate) (nth 1 date))))))
+  (time-less-p date (file-attribute-modification-time (file-attributes file))))
 
 ;;; Keymap macros.
 
@@ -1434,7 +1431,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 
 (defun gnus-cache-file-contents (file variable function)
   "Cache the contents of FILE in VARIABLE.  The contents come from FUNCTION."
-  (let ((time (nth 5 (file-attributes file)))
+  (let ((time (file-attribute-modification-time (file-attributes file)))
 	contents value)
     (if (or (null (setq value (symbol-value variable)))
 	    (not (equal (car value) file))

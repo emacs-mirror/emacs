@@ -4457,7 +4457,7 @@ generated.  It may be used to modify the buffer in some strange,
 unnatural way.
 
 @item gnus-group-prepared-hook
-@vindex gnus-group-prepare-hook
+@vindex gnus-group-prepared-hook
 is called as the very last thing after the group buffer has been
 generated.  It may be used to move point around, for instance.
 
@@ -25889,13 +25889,13 @@ Reset: (setq spam-stat (make-hash-table :test 'equal))
 Learn spam: (spam-stat-process-spam-directory "~/Mail/mail/spam")
 Learn non-spam: (spam-stat-process-non-spam-directory "~/Mail/mail/misc")
 Save table: (spam-stat-save)
-File size: (nth 7 (file-attributes spam-stat-file))
+File size: (file-attribute-size (file-attributes spam-stat-file))
 Number of words: (hash-table-count spam-stat)
 Test spam: (spam-stat-test-directory "~/Mail/mail/spam")
 Test non-spam: (spam-stat-test-directory "~/Mail/mail/misc")
 Reduce table size: (spam-stat-reduce-size)
 Save table: (spam-stat-save)
-File size: (nth 7 (file-attributes spam-stat-file))
+File size: (file-attribute-size (file-attributes spam-stat-file))
 Number of words: (hash-table-count spam-stat)
 Test spam: (spam-stat-test-directory "~/Mail/mail/spam")
 Test non-spam: (spam-stat-test-directory "~/Mail/mail/misc")

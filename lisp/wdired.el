@@ -607,15 +607,22 @@ Optional arguments are ignored."
 (defun wdired--restore-dired-filename-prop (beg end _len)
   (save-match-data
     (save-excursion
-      (beginning-of-line)
-      (when (re-search-forward directory-listing-before-filename-regexp
-                               (line-end-position) t)
-        (setq beg (point)
-              end (if (and (file-symlink-p (dired-get-filename))
-                           (search-forward " -> " (line-end-position) t))
-                      (goto-char (match-beginning 0))
-                    (line-end-position)))
-        (put-text-property beg end 'dired-filename t)))))
+      (let ((lep (line-end-position)))
+        (beginning-of-line)
+        (when (re-search-forward
+               directory-listing-before-filename-regexp lep t)
+          (setq beg (point)
+                ;; If the file is a symlink, put the dired-filename
+                ;; property only on the link name.  (Using
+                ;; (file-symlink-p (dired-get-filename)) fails in
+                ;; wdired-mode, bug#32673.)
+                end (if (and (re-search-backward
+                              dired-permission-flags-regexp nil t)
+                             (looking-at "l")
+                             (search-forward " -> " lep t))
+                        (goto-char (match-beginning 0))
+                      lep))
+          (put-text-property beg end 'dired-filename t))))))
 
 (defun wdired-next-line (arg)
   "Move down lines then position at filename or the current column.

@@ -37,6 +37,11 @@ in its NEWS.)
 
 * Changes in Specialized Modes and Packages in Emacs 26.2
 
+** Imenu
+
+---
+*** The value for 'imenu-auto-rescan-maxout' has been increased to 600000.
+
 ** Gnus
 
 ---
@@ -60,6 +65,7 @@ in its NEWS.)
 
 ** VC
 
+---
 *** VC support for Mercurial was improved.
 Emacs now avoids invoking 'hg' as much as possible, for faster operation.
 (This and the following changes were actually made in Emacs 26.1, but

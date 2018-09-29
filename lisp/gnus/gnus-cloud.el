@@ -339,7 +339,8 @@ Use old data if FORCE-OLDER is not nil."
   (format-time-string "%FT%T%z" time))
 
 (defun gnus-cloud-file-new-p (file full)
-  (let ((timestamp (gnus-cloud-timestamp (nth 5 (file-attributes file))))
+  (let ((timestamp (gnus-cloud-timestamp (file-attribute-modification-time
+					  (file-attributes file))))
         (old (cadr (assoc file gnus-cloud-file-timestamps))))
     (when (or full
               (null old)

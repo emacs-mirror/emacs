@@ -178,8 +178,9 @@ handle it later if need be."
 	    (let ((fattr (file-attributes
 			  (semanticdb-full-filename
 			   semanticdb-current-table))))
-	      (oset semanticdb-current-table fsize (nth 7 fattr))
-	      (oset semanticdb-current-table lastmodtime (nth 5 fattr))
+	      (oset semanticdb-current-table fsize (file-attribute-size fattr))
+	      (oset semanticdb-current-table lastmodtime
+		    (file-attribute-modification-time fattr))
 	      (oset semanticdb-current-table buffer nil)
 	      ))
 	;; If this messes up, just clear the system

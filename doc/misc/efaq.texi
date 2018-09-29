@@ -3392,8 +3392,9 @@ and binaries, and how to install Emacs on those systems.
 
 Most GNU/Linux distributions provide pre-built Emacs packages.
 If Emacs is not installed already, you can install it by running (as
-root) a command such as @samp{yum install emacs} (Red Hat and
-derivatives) or @samp{apt-get install emacs} (Debian and derivatives).
+root) a command such as @samp{dnf install emacs} (Red Hat and
+derivatives; use @samp{yum} in older distributions) or
+@samp{apt-get install emacs} (Debian and derivatives).
 
 If you want to compile Emacs yourself, read the file @file{INSTALL} in
 the source distribution.  In brief:

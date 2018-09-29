@@ -181,7 +181,10 @@ This expects `auto-revert--messages' to be bound by
             ;; modifying `before-revert-hook'.
             (add-hook
              'before-revert-hook
-             (lambda () (delete-file buffer-file-name))
+             (lambda ()
+               ;; Temporarily.
+               (message "%s deleted" buffer-file-name)
+               (delete-file buffer-file-name))
              nil t)
 
             (ert-with-message-capture auto-revert--messages

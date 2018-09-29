@@ -294,18 +294,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (abort-recursive-edit)))
 
 (define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-ns-map "\C-g" 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-completion-map "\C-g" 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-must-match-map "\C-g" 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-isearch-map "\C-g" 'minibuffer-keyboard-quit)
 
 (defun delsel-unload-function ()
   "Unload the Delete Selection library."
   (define-key minibuffer-local-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-ns-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-completion-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit)
   (dolist (sym '(self-insert-command insert-char quoted-insert yank
                  clipboard-yank insert-register newline-and-indent
                  reindent-then-newline-and-indent newline open-line))

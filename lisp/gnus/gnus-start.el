@@ -2822,7 +2822,8 @@ If FORCE is non-nil, the .newsrc file is read."
           ;; Check timestamp of `gnus-current-startup-file'.eld against
           ;; `gnus-save-newsrc-file-last-timestamp'.
 	  (if (let* ((checkfile (concat gnus-current-startup-file ".eld"))
-                     (mtime (nth 5 (file-attributes checkfile))))
+		     (mtime (file-attribute-modification-time
+			     (file-attributes checkfile))))
 		(and gnus-save-newsrc-file-last-timestamp
                      (time-less-p gnus-save-newsrc-file-last-timestamp
                                   mtime)
@@ -2843,7 +2844,8 @@ If FORCE is non-nil, the .newsrc file is read."
                   (gnus-run-hooks 'gnus-save-quick-newsrc-hook)
                   (save-buffer)
                   (setq gnus-save-newsrc-file-last-timestamp
-                        (nth 5 (file-attributes buffer-file-name))))
+			(file-attribute-modification-time
+			 (file-attributes buffer-file-name))))
               (let ((coding-system-for-write gnus-ding-file-coding-system)
                     (version-control gnus-backup-startup-file)
                     (startup-file (concat gnus-current-startup-file ".eld"))
@@ -2880,7 +2882,8 @@ If FORCE is non-nil, the .newsrc file is read."
 			(rename-file working-file startup-file t)
 			(gnus-set-file-modes startup-file setmodes)
 			(setq gnus-save-newsrc-file-last-timestamp
-                              (nth 5 (file-attributes startup-file)))))
+			      (file-attribute-modification-time
+			       (file-attributes startup-file)))))
                   (condition-case nil
                       (delete-file working-file)
                     (file-error nil)))))
@@ -3053,11 +3056,12 @@ If FORCE is non-nil, the .newsrc file is read."
       (with-current-buffer (gnus-get-buffer-create " *gnus slave*")
 	(setq slave-files
 	      (sort (mapcar (lambda (file)
-			      (list (nth 5 (file-attributes file)) file))
+			      (list (file-attribute-modification-time
+				     (file-attributes file))
+				    file))
 			    slave-files)
 		    (lambda (f1 f2)
-		      (or (< (caar f1) (caar f2))
-			  (< (nth 1 (car f1)) (nth 1 (car f2)))))))
+		      (time-less-p (car f1) (car f2)))))
 	(while slave-files
 	  (erase-buffer)
 	  (setq file (nth 1 (car slave-files)))

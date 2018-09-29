@@ -346,8 +346,9 @@ Alias to Emacs's @code{locate} function, which simply runs the external
 
 @item make
 @cmindex make
-Run @command{make} through @code{compile}.
-@xref{Compilation, , , emacs, The GNU Emacs Manual}.
+Run @command{make} through @code{compile} when run asynchronously
+(e.g., @samp{make &}).  @xref{Compilation, , , emacs, The GNU Emacs
+Manual}.  Otherwise call the external @command{make} command.
 
 @item occur
 @cmindex occur
@@ -850,7 +851,7 @@ since.
 
 Make it so that the Lisp command on the right of the pipe is repeatedly
 called with the input strings as arguments.  This will require changing
-@code{eshell-do-pipeline} to handle non-process targets.
+@code{eshell-do-pipelines} to handle non-process targets.
 
 @item Input redirection is not supported
 

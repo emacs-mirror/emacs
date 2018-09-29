@@ -1347,13 +1347,10 @@ component is used as the target of the symlink."
            res-uid
            ;; 3. File gid.
            res-gid
-           ;; 4. Last access time, as a list of integers.  Normally
-           ;; this would be in the same format as `current-time', but
-           ;; the subseconds part is not currently implemented, and
-	   ;; (0 0) denotes an unknown time.
-           ;; 5. Last modification time, likewise.
-           ;; 6. Last status change time, likewise.
-           '(0 0) '(0 0) '(0 0)		;CCC how to find out?
+           ;; 4. Last access time.
+           ;; 5. Last modification time.
+           ;; 6. Last status change time.
+           tramp-time-dont-know tramp-time-dont-know tramp-time-dont-know
            ;; 7. Size in bytes (-1, if number is out of range).
            res-size
            ;; 8. File modes, as a string of ten letters or dashes as in ls -l.
@@ -1419,13 +1416,10 @@ component is used as the target of the symlink."
       (with-parsed-tramp-file-name f nil
 	(let* ((remote-file-name-inhibit-cache t)
 	       (attr (file-attributes f))
-	       ;; '(-1 65535) means file doesn't exists yet.
 	       (modtime (or (tramp-compat-file-attribute-modification-time attr)
-			    '(-1 65535))))
+			    tramp-time-doesnt-exist)))
 	  (setq coding-system-used last-coding-system-used)
-	  ;; We use '(0 0) as a don't-know value.  See also
-	  ;; `tramp-do-file-attributes-with-ls'.
-	  (if (not (equal modtime '(0 0)))
+	  (if (not (tramp-compat-time-equal-p modtime tramp-time-dont-know))
 	      (tramp-run-real-handler 'set-visited-file-modtime (list modtime))
 	    (progn
 	      (tramp-send-command
@@ -1454,7 +1448,7 @@ of."
       ;; recorded last modification time, or there is no established
       ;; connection.
       (if (or (not f)
-	      (eq (visited-file-modtime) 0)
+	      (zerop (visited-file-modtime))
 	      (not (file-remote-p f nil 'connected)))
 	  t
 	(with-parsed-tramp-file-name f nil
@@ -1465,16 +1459,10 @@ of."
 
 	    (cond
 	     ;; File exists, and has a known modtime.
-	     ((and attr (not (equal modtime '(0 0))))
-	      (< (abs (tramp-time-diff
-		       modtime
-		       ;; For compatibility, deal with both the old
-		       ;; (HIGH . LOW) and the new (HIGH LOW) return
-		       ;; values of `visited-file-modtime'.
-		       (if (atom (cdr mt))
-			   (list (car mt) (cdr mt))
-			 mt)))
-		 2))
+	     ((and attr
+		   (not
+		    (tramp-compat-time-equal-p modtime tramp-time-dont-know)))
+	      (< (abs (tramp-time-diff modtime mt)) 2))
 	     ;; Modtime has the don't know value.
 	     (attr
 	      (tramp-send-command
@@ -1490,7 +1478,7 @@ of."
 		v localname "visited-file-modtime-ild" "")))
 	     ;; If file does not exist, say it is not modified if and
 	     ;; only if that agrees with the buffer's record.
-	     (t (equal mt '(-1 65535))))))))))
+	     (t (tramp-compat-time-equal-p mt tramp-time-doesnt-exist)))))))))
 
 (defun tramp-sh-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for Tramp files."
@@ -1509,9 +1497,12 @@ of."
     (when (tramp-get-remote-touch v)
       (tramp-flush-file-properties v (file-name-directory localname))
       (tramp-flush-file-properties v localname)
-      (let ((time (if (or (null time) (equal time '(0 0)))
-		      (current-time)
-		    time)))
+      (let ((time
+	     (if (or (null time)
+		     (tramp-compat-time-equal-p time tramp-time-doesnt-exist)
+		     (tramp-compat-time-equal-p time tramp-time-dont-know))
+		 (current-time)
+	       time)))
 	(tramp-send-command-and-check
 	 v (format
 	    "env TZ=UTC %s %s %s"
@@ -1680,11 +1671,13 @@ be non-negative integers."
 		 (fa2 (file-attributes file2)))
 	     (if (and
 		  (not
-		   (equal (tramp-compat-file-attribute-modification-time fa1)
-			  '(0 0)))
+		   (tramp-compat-time-equal-p
+		    (tramp-compat-file-attribute-modification-time fa1)
+		    tramp-time-dont-know))
 		  (not
-		   (equal (tramp-compat-file-attribute-modification-time fa2)
-			  '(0 0))))
+		   (tramp-compat-time-equal-p
+		    (tramp-compat-file-attribute-modification-time fa2)
+		    tramp-time-dont-know)))
 		 (> 0 (tramp-time-diff
 		       (tramp-compat-file-attribute-modification-time fa2)
 		       (tramp-compat-file-attribute-modification-time fa1)))

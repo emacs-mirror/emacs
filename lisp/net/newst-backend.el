@@ -1800,7 +1800,8 @@ download it from URL first."
   (let ((image-name (concat directory feed-name)))
     (if (and (file-exists-p image-name)
              (time-less-p nil
-                          (time-add (nth 5 (file-attributes image-name))
+                          (time-add (file-attribute-modification-time
+				     (file-attributes image-name))
                                     (seconds-to-time 86400))))
         (newsticker--debug-msg "%s: Getting image for %s skipped"
                                (format-time-string "%A, %H:%M")

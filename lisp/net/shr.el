@@ -321,9 +321,9 @@ under point instead."
 
 (defun shr-copy-url (url)
   "Copy the URL under point to the kill ring.
-If IMAGE-URL (the prefix) is non-nil, or there is no link under
-point, but there is an image under point then copy the URL of the
-image under point instead."
+With a prefix argument, or if there is no link under point, but
+there is an image under point then copy the URL of the image
+under point instead."
   (interactive (list (shr-url-at-point current-prefix-arg)))
   (if (not url)
       (message "No URL under point")

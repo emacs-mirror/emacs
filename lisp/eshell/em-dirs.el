@@ -314,16 +314,18 @@ Thus, this does not include the current directory.")
       path)))
 
 (defun eshell-expand-multiple-dots (path)
+  ;; FIXME: This advice recommendation is rather odd: it's somewhat
+  ;; dangerous and it claims not to work with minibuffer-completion, which
+  ;; makes it much less interesting.
   "Convert `...' to `../..', `....' to `../../..', etc..
 
 With the following piece of advice, you can make this functionality
 available in most of Emacs, with the exception of filename completion
 in the minibuffer:
 
-  (defadvice expand-file-name
-    (before translate-multiple-dots
-	    (filename &optional directory) activate)
-    (setq filename (eshell-expand-multiple-dots filename)))"
+    (advice-add 'expand-file-name :around #'my-expand-multiple-dots)
+    (defun my-expand-multiple-dots (orig-fun filename &rest args)
+      (apply orig-fun (eshell-expand-multiple-dots filename) args))"
   (while (string-match "\\(?:^\\|/\\)\\.\\.\\(\\.+\\)\\(?:$\\|/\\)" path)
     (let* ((extra-dots (match-string 1 path))
 	   (len (length extra-dots))

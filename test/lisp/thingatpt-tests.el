@@ -87,41 +87,43 @@ position to retrieve THING.")
       (goto-char (nth 1 test))
       (should (equal (thing-at-point (nth 2 test)) (nth 3 test))))))
 
-;; These tests reflect the actual behavior of
-;; `thing-at-point-bounds-of-list-at-point'.
-(ert-deftest thing-at-point-bug24627 ()
-  "Test for https://debbugs.gnu.org/24627 ."
-  (let ((string-result '(("(a \"b\" c)" . (a "b" c))
-                         (";(a \"b\" c)")
-                         ("(a \"b\" c\n)" . (a "b" c))
-                         ("\"(a b c)\"")
-                         ("(a ;(b c d)\ne)" . (a e))
-                         ("(foo\n(a ;(b c d)\ne) bar)" . (a e))
-                         ("(foo\na ;(b c d)\ne bar)" . (foo a e bar))
-                         ("(foo\n(a \"(b c d)\"\ne) bar)" . (a "(b c d)" e))
-                         ("(b\n(a ;(foo c d)\ne) bar)" . (a e))
-                         ("(princ \"(a b c)\")" . (princ "(a b c)"))
-                         ("(defun foo ()\n  \"Test function.\"\n  ;;(a b)\n  nil)" . (defun foo nil "Test function." nil))))
-        (file
-         (expand-file-name "lisp/thingatpt.el" source-directory))
-        buf)
-    ;; Test for `thing-at-point'.
-    (when (file-exists-p file)
-      (unwind-protect
-          (progn
-            (setq buf (find-file file))
-            (goto-char (point-max))
-            (forward-line -1)
-            (should-not (thing-at-point 'list)))
-        (kill-buffer buf)))
-    ;; Tests for `list-at-point'.
-    (dolist (str-res string-result)
-      (with-temp-buffer
-        (emacs-lisp-mode)
-        (insert (car str-res))
-        (re-search-backward "\\((a\\|^a\\)")
-        (should (equal (list-at-point)
-                       (cdr str-res)))))))
+;; See bug#24627 and bug#31772.
+(ert-deftest thing-at-point-bounds-of-list-at-point ()
+  (cl-macrolet ((with-test-buffer (str &rest body)
+                  `(with-temp-buffer
+                     (emacs-lisp-mode)
+                     (insert ,str)
+                     (search-backward "|")
+                     (delete-char 1)
+                     ,@body)))
+    (let ((tests1
+           '(("|(a \"b\" c)" (a "b" c))
+             (";|(a \"b\" c)" (a "b" c) nil)
+             ("|(a \"b\" c\n)" (a "b" c))
+             ("\"|(a b c)\"" (a b c) nil)
+             ("|(a ;(b c d)\ne)" (a e))
+             ("(foo\n|(a ;(b c d)\ne) bar)" (foo (a e) bar))
+             ("(foo\n|a ;(b c d)\ne bar)" (foo a e bar))
+             ("(foo\n|(a \"(b c d)\"\ne) bar)" (foo (a "(b c d)" e) bar))
+             ("(b\n|(a ;(foo c d)\ne) bar)" (b (a e) bar))
+             ("(princ \"|(a b c)\")" (a b c) (princ "(a b c)"))
+             ("(defun foo ()\n  \"Test function.\"\n  ;;|(a b)\n  nil)"
+              (defun foo nil "Test function." nil)
+              (defun foo nil "Test function." nil))))
+          (tests2
+           '(("|list-at-point" . "list-at-point")
+             ("list-|at-point" . "list-at-point")
+             ("list-at-point|" . nil)
+             ("|(a b c)" . "(a b c)")
+             ("(a b c)|" . nil))))
+      (dolist (test tests1)
+        (with-test-buffer (car test)
+          (should (equal (list-at-point) (cl-second test)))
+          (when (cddr test)
+            (should (equal (list-at-point t) (cl-third test))))))
+      (dolist (test tests2)
+        (with-test-buffer (car test)
+          (should (equal (thing-at-point 'list) (cdr test))))))))
 
 (ert-deftest thing-at-point-url-in-comment ()
   (with-temp-buffer

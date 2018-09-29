@@ -1392,7 +1392,6 @@ Packing and Unpacking Byte Arrays
 
 * Bindat Spec::             Describing data layout.
 * Bindat Functions::        Doing the unpacking and packing.
-* Bindat Examples::         Samples of what bindat.el can do for you!
 
 Emacs Display
 

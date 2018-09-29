@@ -1319,28 +1319,27 @@ Alternate names, also known as hard links, can be created by using the
 @item
 The file's @acronym{UID}, normally as a string
 (@code{file-attribute-user-id}).  However, if it does not correspond
-to a named user, the value is a number.
+to a named user, the value is an integer.
 
 @item
 The file's @acronym{GID}, likewise (@code{file-attribute-group-id}).
 
 @item
-The time of last access, as a list of four integers
-@code{(@var{sec-high} @var{sec-low} @var{microsec} @var{picosec})}
-(@code{file-attribute-access-time}).  (This is similar to the value of
-@code{current-time}; see @ref{Time of Day}.)  The value is truncated
+The time of last access as a Lisp timestamp
+(@code{file-attribute-status-change-time}).  The timestamp is in the
+style of @code{current-time} (@pxref{Time of Day}) and is truncated
 to that of the filesystem's timestamp resolution; for example, on some
 FAT-based filesystems, only the date of last access is recorded, so
 this time will always hold the midnight of the day of the last access.
 
 @cindex modification time of file
 @item
-The time of last modification as a list of four integers (as above)
+The time of last modification as a Lisp timestamp
 (@code{file-attribute-modification-time}).  This is the last time when
 the file's contents were modified.
 
 @item
-The time of last status change as a list of four integers (as above)
+The time of last status change as a Lisp timestamp
 (@code{file-attribute-status-change-time}).  This is the time of the
 last change to the file's access mode bits, its owner and group, and
 other information recorded in the filesystem for the file, beyond the
@@ -1357,11 +1356,12 @@ The file's modes, as a string of ten letters or dashes, as in
 An unspecified value, present for backward compatibility.
 
 @item
-The file's inode number (@code{file-attribute-inode-number}).
+The file's inode number (@code{file-attribute-inode-number}),
+a nonnegative integer.
 
 @item
 The filesystem number of the device that the file is on
-@code{file-attribute-device-number}).
+@code{file-attribute-device-number}), an integer.
 This element and the file's inode number
 together give enough information to distinguish any two files on the
 system---no two files can have the same values for both of these
@@ -2938,7 +2938,7 @@ are included.
 This is similar to @code{directory-files} in deciding which files
 to report on and how to report their names.  However, instead
 of returning a list of file names, it returns for each file a
-list @code{(@var{filename} @var{attributes})}, where @var{attributes}
+list @code{(@var{filename} . @var{attributes})}, where @var{attributes}
 is what @code{file-attributes} returns for that file.
 The optional argument @var{id-format} has the same meaning as the
 corresponding argument to @code{file-attributes} (@pxref{Definition
@@ -3430,8 +3430,9 @@ between consecutive checks.  For example:
   (let ((remote-file-name-inhibit-cache
          (- display-time-interval 5)))
     (and (file-exists-p file)
-         (< 0 (nth 7 (file-attributes
-                       (file-chase-links file)))))))
+         (< 0 (file-attribute-size
+               (file-attributes
+                (file-chase-links file)))))))
 @end example
 @end defopt
 

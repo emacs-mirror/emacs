@@ -46,6 +46,7 @@ extern mpz_t mpz[4];
 extern void init_bignum (void);
 extern Lisp_Object make_integer_mpz (void);
 extern void mpz_set_intmax_slow (mpz_t, intmax_t) ARG_NONNULL ((1));
+extern double mpz_get_d_rounded (mpz_t const);
 
 INLINE_HEADER_BEGIN
 

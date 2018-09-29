@@ -1535,7 +1535,7 @@ Here's a bunch of time/date/second/day examples:
 
 @example
 (parse-time-string "Sat Sep 12 12:21:54 1998 +0200")
-@result{} (54 21 12 12 9 1998 6 nil 7200)
+@result{} (54 21 12 12 9 1998 6 -1 7200)
 
 (date-to-time "Sat Sep 12 12:21:54 1998 +0200")
 @result{} (13818 19266)
@@ -1559,6 +1559,9 @@ Here's a bunch of time/date/second/day examples:
 @result{} (6797 9607 984839 247000)
 
 (time-less-p '(13818 19266) '(13818 19145))
+@result{} nil
+
+(time-equal-p '(13818 19266) '(13818 19145))
 @result{} nil
 
 (time-subtract '(13818 19266) '(13818 19145))
@@ -1640,6 +1643,10 @@ return a ``zero'' time.
 @item time-less-p
 Take two times and say whether the first time is less (i.e., earlier)
 than the second time.  (This is a built-in function.)
+
+@item time-equal-p
+Check, whether two time values are equal.  The time values must not be
+in the same format.  (This is a built-in function.)
 
 @item time-since
 Take a time and return a time saying how long it was since that time.

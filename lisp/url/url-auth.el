@@ -192,7 +192,9 @@ key cache `url-digest-auth-storage'."
 (defun url-digest-auth-make-cnonce ()
   "Compute a new unique client nonce value."
   (base64-encode-string
-   (apply 'format "%016x%04x%04x%05x%05x" (random) (current-time)) t))
+   (apply #'format "%016x%08x%08x" (random)
+	  (read (format-time-string "(%s %N)")))
+   t))
 
 (defun url-digest-auth-nonce-count (_nonce)
   "The number requests sent to server with the given NONCE.

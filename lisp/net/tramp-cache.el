@@ -118,9 +118,8 @@ Returns DEFAULT if not set."
 	(and (consp value)
 	     (or (null remote-file-name-inhibit-cache)
 		 (and (integerp remote-file-name-inhibit-cache)
-		      (<=
-		       (tramp-time-diff (current-time) (car value))
-		       remote-file-name-inhibit-cache))
+		      (<= (tramp-time-diff (current-time) (car value))
+			  remote-file-name-inhibit-cache))
 		 (and (consp remote-file-name-inhibit-cache)
 		      (time-less-p
 		       remote-file-name-inhibit-cache (car value)))))

@@ -125,7 +125,8 @@ and subsequent calls on the same file won't go to disk."
   (setq phrase-file (cookie-check-file phrase-file))
   (let ((sym (intern-soft phrase-file cookie-cache)))
     (and sym (not (equal (symbol-function sym)
-			 (nth 5 (file-attributes phrase-file))))
+			 (file-attribute-modification-time
+                          (file-attributes phrase-file))))
 	 (yes-or-no-p (concat phrase-file
 			      " has changed.  Read new contents? "))
 	 (setq sym nil))
@@ -133,7 +134,8 @@ and subsequent calls on the same file won't go to disk."
 	(symbol-value sym)
       (setq sym (intern phrase-file cookie-cache))
       (if startmsg (message "%s" startmsg))
-      (fset sym (nth 5 (file-attributes phrase-file)))
+      (fset sym (file-attribute-modification-time
+                 (file-attributes phrase-file)))
       (let (result)
 	(with-temp-buffer
 	  (insert-file-contents (expand-file-name phrase-file))

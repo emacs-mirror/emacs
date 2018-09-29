@@ -650,7 +650,7 @@ Return nil for null BYTE-ARRAY."
   (cond
    ((and (consp message) (characterp (car message)))
     (format "%S" (tramp-gvfs-dbus-byte-array-to-string message)))
-   ((and (consp message) (not (consp (cdr message))))
+   ((and (consp message) (atom (cdr message)))
     (cons (tramp-gvfs-stringify-dbus-message (car message))
 	  (tramp-gvfs-stringify-dbus-message (cdr message))))
    ((consp message)

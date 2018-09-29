@@ -189,6 +189,18 @@ to find the list of ignores for each directory."
 (cl-defmethod project-roots ((project (head transient)))
   (list (cdr project)))
 
+(cl-defgeneric project-files (project &optional dirs)
+  "Return a list of files in directories DIRS in PROJECT.
+DIRS is a list of absolute directories; it should be some
+subset of the project roots and external roots."
+  ;; This default implementation only works if project-file-completion-table
+  ;; returns a "flat" completion table.
+  ;; FIXME: Maybe we should do the reverse: implement the default
+  ;; `project-file-completion-table' on top of `project-files'.
+  (all-completions
+   "" (project-file-completion-table
+       project (or dirs (project-roots project)))))
+
 (defgroup project-vc nil
   "Project implementation using the VC package."
   :version "25.1"
@@ -389,18 +401,48 @@ recognized."
   ;; removing it when it has no matches.  Neither seems natural
   ;; enough.  Removal is confusing; early expansion makes the prompt
   ;; too long.
-  (let* ((new-prompt (if default
+  (let* (;; (initial-input
+         ;;  (let ((common-prefix (try-completion "" collection)))
+         ;;    (if (> (length common-prefix) 0)
+         ;;        (file-name-directory common-prefix))))
+         (new-prompt (if default
                          (format "%s (default %s): " prompt default)
                        (format "%s: " prompt)))
          (res (completing-read new-prompt
                                collection predicate t
-                               nil hist default inherit-input-method)))
+                               nil ;; initial-input
+                               hist default inherit-input-method)))
     (if (and (equal res default)
              (not (test-completion res collection predicate)))
         (completing-read (format "%s: " prompt)
                          collection predicate t res hist nil
                          inherit-input-method)
       res)))
+
+(declare-function multifile-continue "multifile" ())
+
+;;;###autoload
+(defun project-search (regexp)
+  "Search for REGEXP in all the files of the project.
+Stops when a match is found.
+To continue searching for next match, use command \\[multifile-continue]."
+  (interactive "sSearch (regexp): ")
+  (multifile-initialize-search
+   regexp (project-files (project-current t)) 'default)
+  (multifile-continue))
+
+;;;###autoload
+(defun project-query-replace (from to)
+  "Search for REGEXP in all the files of the project.
+Stops when a match is found.
+To continue searching for next match, use command \\[multifile-continue]."
+  (interactive
+   (pcase-let ((`(,from ,to)
+                (query-replace-read-args "Query replace (regexp)" t t)))
+     (list from to)))
+  (multifile-initialize-replace
+   from to (project-files (project-current t)) 'default)
+  (multifile-continue))
 
 (provide 'project)
 ;;; project.el ends here

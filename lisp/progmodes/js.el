@@ -2368,23 +2368,22 @@ i.e., customize JSX element indentation with `sgml-basic-offset',
 
 ;; FIXME: Such redefinitions are bad style.  We should try and use some other
 ;; way to get the same result.
-(defadvice c-forward-sws (around js-fill-paragraph activate)
-  (if js--filling-paragraph
-      (setq ad-return-value (js--forward-syntactic-ws (ad-get-arg 0)))
-    ad-do-it))
+(defun js--fill-c-advice (js-fun)
+  (lambda (orig-fun &rest args)
+    (if js--filling-paragraph
+        (funcall js-fun (car args))
+      (apply orig-fun args))))
 
-(defadvice c-backward-sws (around js-fill-paragraph activate)
-  (if js--filling-paragraph
-      (setq ad-return-value (js--backward-syntactic-ws (ad-get-arg 0)))
-    ad-do-it))
+(advice-add 'c-forward-sws
+            :around (js--fill-c-advice #'js--forward-syntactic-ws))
+(advice-add 'c-backward-sws
+            :around (js--fill-c-advice #'js--backward-syntactic-ws))
+(advice-add 'c-beginning-of-macro
+            :around (js--fill-c-advice #'js--beginning-of-macro))
 
-(defadvice c-beginning-of-macro (around js-fill-paragraph activate)
-  (if js--filling-paragraph
-      (setq ad-return-value (js--beginning-of-macro (ad-get-arg 0)))
-    ad-do-it))
-
-(defun js-c-fill-paragraph (&optional justify)
-  "Fill the paragraph with `c-fill-paragraph'."
+(define-obsolete-function-alias 'js-c-fill-paragraph #'js-fill-paragraph "27.1")
+(defun js-fill-paragraph (&optional justify)
+  "Fill the paragraph for Javascript code."
   (interactive "*P")
   (let ((js--filling-paragraph t)
         (fill-paragraph-function #'c-fill-paragraph))
@@ -3875,7 +3874,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; Comments
   (setq-local comment-start "// ")
   (setq-local comment-end "")
-  (setq-local fill-paragraph-function #'js-c-fill-paragraph)
+  (setq-local fill-paragraph-function #'js-fill-paragraph)
   (setq-local normal-auto-fill-function #'js-do-auto-fill)
 
   ;; Parse cache

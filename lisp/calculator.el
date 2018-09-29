@@ -627,7 +627,7 @@ Here are the editing keys:
 
 These operators are pre-defined:
 * `+' `-' `*' `/' the common binary operators
-* `\\' `%'         integer division and reminder
+* `\\' `%'         integer division and remainder
 * `_' `;'         postfix unary negation and reciprocal
 * `^' `L'         binary operators for x^y and log(x) in base y
 * `Q' `!'         unary square root and factorial

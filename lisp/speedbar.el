@@ -1466,9 +1466,10 @@ Return nil if not applicable.  If FILENAME, then use that
 instead of reading it from the speedbar buffer."
   (let* ((item (or filename (speedbar-line-file)))
 	 (attr (if item (file-attributes item) nil)))
-    (if (and item attr) (dframe-message "%s %-6d %s" (nth 8 attr)
-					  (nth 7 attr) item)
-      nil)))
+    (if (and item attr)
+	(dframe-message "%s %-6d %s"
+			(file-attribute-modes attr)
+			(file-attribute-size attr) item))))
 
 (defun speedbar-item-info-tag-helper ()
   "Display info about a tag that is on the current line.
@@ -3008,13 +3009,13 @@ the file being checked."
 					      (cdr (car oa))))))
 	  nil
 	;; Find out if the object is out of date or not.
-	(let ((date1 (nth 5 (file-attributes fulln)))
-	      (date2 (nth 5 (file-attributes (concat
-					      (file-name-sans-extension fulln)
-                                              (cdr (car oa)))))))
-	  (if (or (< (car date1) (car date2))
-		  (and (= (car date1) (car date2))
-		       (< (nth 1 date1) (nth 1 date2))))
+	(let ((date1 (file-attribute-modification-time
+		      (file-attributes fulln)))
+	      (date2 (file-attribute-modification-time
+		      (file-attributes (concat
+					(file-name-sans-extension fulln)
+					(cdr (car oa)))))))
+	  (if (time-less-p date1 date2)
 	      (car speedbar-obj-indicator)
 	    (cdr speedbar-obj-indicator)))))))
 

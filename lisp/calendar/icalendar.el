@@ -1016,9 +1016,7 @@ current iCalendar object, as a string.  Increase
       (setq icalendar--uid-count (1+ icalendar--uid-count))
       (setq uid (replace-regexp-in-string
                  "%t"
-                 (format "%d%d%d" (car (current-time))
-                         (cadr (current-time))
-                         (car (cddr (current-time))))
+                 (format-time-string "%s%N")
                  uid t t))
       (setq uid (replace-regexp-in-string
                  "%h"

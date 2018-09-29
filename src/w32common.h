@@ -55,6 +55,7 @@ typedef void (* VOIDFNPTR) (void);
 /* Load a function address from a DLL.  Cast the result via VOIDFNPTR
    to pacify -Wcast-function-type in GCC 8.1.  The return value must
    be cast to the correct function pointer type.  */
+INLINE VOIDFNPTR get_proc_addr (HINSTANCE, LPCSTR);
 INLINE VOIDFNPTR
 get_proc_addr (HINSTANCE handle, LPCSTR fname)
 {

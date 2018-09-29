@@ -274,6 +274,10 @@ Rescanning happens automatically if you set @code{imenu-auto-rescan} to
 a non-@code{nil} value.  There is no need to rescan because of small
 changes in the text.
 
+@vindex imenu-auto-rescan-maxout
+  @code{imenu-auto-rescan} will be disabled in buffers that are larger
+than @code{imenu-auto-rescan-maxout} in bytes.
+
 @vindex imenu-sort-function
   You can customize the way the menus are sorted by setting the
 variable @code{imenu-sort-function}.  By default, names are ordered as

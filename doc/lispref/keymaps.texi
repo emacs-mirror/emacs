@@ -2443,7 +2443,7 @@ Next we define the menu items:
 
 @smallexample
 (define-key menu-bar-replace-menu [tags-repl-continue]
-  '(menu-item "Continue Replace" tags-loop-continue
+  '(menu-item "Continue Replace" multifile-continue
               :help "Continue last tags replace operation"))
 (define-key menu-bar-replace-menu [tags-repl]
   '(menu-item "Replace in tagged files" tags-query-replace

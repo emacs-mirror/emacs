@@ -29,8 +29,9 @@
 
 ;; `parse-time-string' parses a time in a string and returns a list of 9
 ;; values, just like `decode-time', where unspecified elements in the
-;; string are returned as nil.  `encode-time' may be applied on these
-;; values to obtain an internal time value.
+;; string are returned as nil (except unspecfied DST is returned as -1).
+;; `encode-time' may be applied on these values to obtain an internal
+;; time value.
 
 ;;; Code:
 
@@ -151,8 +152,9 @@ STRING should be on something resembling an RFC2822 string, a la
 somewhat liberal in what format it accepts, and will attempt to
 return a \"likely\" value even for somewhat malformed strings.
 The values returned are identical to those of `decode-time', but
-any values that are unknown are returned as nil."
-  (let ((time (list nil nil nil nil nil nil nil nil nil))
+any unknown values other than DST are returned as nil, and an
+unknown DST value is returned as -1."
+  (let ((time (list nil nil nil nil nil nil nil -1 nil))
 	(temp (parse-time-tokenize (downcase string))))
     (while temp
       (let ((parse-time-elt (pop temp))

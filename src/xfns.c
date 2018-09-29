@@ -5075,7 +5075,7 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   int menu_bar_height = 0, menu_bar_width = 0;
   int tool_bar_height = 0, tool_bar_width = 0;
 
-  if (FRAME_INITIAL_P (f) || !FRAME_X_P (f))
+  if (FRAME_INITIAL_P (f) || !FRAME_X_P (f) || !FRAME_OUTER_WINDOW (f))
     return Qnil;
 
   block_input ();

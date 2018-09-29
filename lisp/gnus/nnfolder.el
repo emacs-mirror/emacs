@@ -862,7 +862,7 @@ deleted.  Point is left where the deleted region was."
     (mm-enable-multibyte) ;; Use multibyte buffer for future copying.
     (buffer-disable-undo)
     (if (equal (cadr (assoc group nnfolder-scantime-alist))
-	       (nth 5 (file-attributes file)))
+	       (file-attribute-modification-time (file-attributes file)))
 	;; This looks up-to-date, so we don't do any scanning.
 	(if (file-exists-p file)
 	    buffer

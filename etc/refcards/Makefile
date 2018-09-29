@@ -311,7 +311,7 @@ viperCard.dvi: $(vipercard_deps)
 .PHONY: clean
 
 clean:
-	-rm -f *.dvi *.log *.aux
+	-rm -f ./*.dvi ./*.log ./*.aux
 
 distclean: clean
 

@@ -1,4 +1,4 @@
-;;; viper-keym.el --- Viper keymaps
+;;; viper-keym.el --- Viper keymaps  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1994-1997, 2000-2018 Free Software Foundation, Inc.
 
@@ -81,10 +81,6 @@ major mode in effect."
 (defvar viper-vi-intercept-map (make-sparse-keymap))
 (defvar viper-insert-intercept-map (make-sparse-keymap))
 (defvar viper-emacs-intercept-map (make-sparse-keymap))
-
-;; keymap used to zap all keymaps other than function-key-map,
-;; device-function-key-map, etc.
-(defvar viper-overriding-map (make-sparse-keymap))
 
 (viper-deflocalvar viper-vi-local-user-map (make-sparse-keymap)
   "Keymap for user-defined local bindings.

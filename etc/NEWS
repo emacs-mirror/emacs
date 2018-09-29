@@ -62,6 +62,11 @@ to reduce differences between developer and production builds.
 ** Ibuffer
 
 ---
+*** All mode filters can now accept a list of symbols.
+This means you can now easily filter several major modes, as well
+as a single mode.
+
+---
 *** New toggle 'ibuffer-do-toggle-lock', bound to 'L'.
 
 ** Gnus
@@ -196,6 +201,9 @@ regular expression was previously invalid, but is now accepted:
 ---
 ** The German prefix and postfix input methods now support Capital sharp S.
 
+---
+** New input methods hawaiian-postfix and hawaiian-prefix.
+
 +++
 ** New function 'exec-path'.
 This function by default returns the value of the corresponding
@@ -232,9 +240,22 @@ typographic quotes, “like this”, in text modes, and in comments in
 non-text modes.
 
 ---
+** New user option 'flyspell-case-fold-duplications'.
+This option controls whether Flyspell mode considers consecutive words
+to be duplicates if they are not in the same case.  If non-nil, the
+default, words are considered to be duplicates even if their letters'
+case does not match.
+
+---
 ** 'write-abbrev-file' now includes special properties.
 'write-abbrev-file' now writes special properties like ':case-fixed'
 for abbrevs that have them.
+
++++
+** 'insert-abbrev-table-description' skips empty tables.
+'insert-abbrev-table-description' skips inserting empty tables when
+inserting non-readable tables.  By extension, this makes
+'write-abbrev-file' skip writing empty tables.
 
 +++
 ** The new functions and commands 'text-property-search-forward' and
@@ -262,8 +283,25 @@ remote files.  If the value is a regular expression, files matching
 this expression are loaded asynchronously.  See the node "(emacs)
 Visiting" in the user manual for the supported commands.
 
+---
+** add-dir-local-variable now uses dotted pair notation syntax
+to write alists of variables to .dir-locals.el.  This is the same
+syntax that you can see in the example of a .dir-locals.el file
+in (info "(emacs) Directory Variables")
+
 
 * Changes in Specialized Modes and Packages in Emacs 27.1
+
+** project.el
+*** New commands project-search and project-query-replace
+
+** Etags
++++
+*** 'next-file' is now an obsolete alias of tags-next-file
+*** tags-loop-revert-buffers is an obsolete alias of multifile-revert-buffers
+*** The tags-loop-continue function along with the tags-loop-operate and
+tags-loop-scan variables are now obsolete; use the new multifile-initialize and
+multifile-continue functions instead.
 
 ---
 ** bibtex
@@ -773,6 +811,8 @@ subexpression.
 
 * New Modes and Packages in Emacs 27.1
 
+** multifile.el lets one setup multifile operations like search&replace
+
 +++
 ** Emacs can now visit files in archives as if they were directories.
 This feature uses Tramp and works only on systems which support GVFS,
@@ -935,6 +975,14 @@ like file-attributes that compute file sizes and other attributes,
 functions like process-id that compute process IDs, and functions like
 user-uid and group-gid that compute user and group IDs.
 
++++
+** 'time-add', 'time-subtract', and 'time-less-p' now accept
+infinities and NaNs too, and propagate them or return nil like
+floating-point operators do.
+
++++
+** New function 'time-equal-p' compares time values for equality.
+
 ** define-minor-mode automatically documents the meaning of ARG.
 
 +++
@@ -957,6 +1005,11 @@ This works like 'dolist', but reports progress similar to
 ** New hook 'after-delete-frame-functions'.
 This works like 'delete-frame-functions', but runs after the frame to
 be deleted has been made dead and removed from the frame list.
+
+---
+** The function 'provided-mode-derived-p' was extended to support aliases.
+The function now returns non-nil when the argument MODE is derived
+from any alias of any of MODES.
 
 +++
 ** New frame focus state inspection interface.
@@ -982,7 +1035,7 @@ A buffer-local value of this hook is now run only if at least one
 window showing the buffer has changed its size.
 
 +++
-** New function assoc-delete-all.
+** The function assoc-delete-all now takes an optional predicate argument.
 
 +++
 ** New function 'string-distance' to calculate the Levenshtein distance
@@ -1062,6 +1115,14 @@ a multibyte string even if its second argument is an ASCII character.
 
 ** (format "%d" X) no longer mishandles a floating-point number X that
 does not fit in a machine integer.
+
++++
+** In the DST slot, encode-time and parse-time-string now return -1
+if it is not known whether daylight saving time is in effect.
+Formerly they were inconsistent: encode-time returned t in this
+situation, whereas parse-time-string returned nil.  Now they
+consistently use use nil to mean that DST is not in effect, and use -1
+to mean that it is not known whether DST is in effect.
 
 ** New JSON parsing and serialization functions 'json-serialize',
 'json-insert', 'json-parse-string', and 'json-parse-buffer'.  These

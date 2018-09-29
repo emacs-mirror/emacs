@@ -307,7 +307,7 @@ endif
 
 mostlyclean:
 	-@for f in ${LOGFILES}; do test ! -f $$f || mv $$f $$f~; done
-	rm -f *.tmp
+	rm -f ./*.tmp
 
 clean:
 	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)

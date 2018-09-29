@@ -10340,16 +10340,19 @@ latter case, they will be copied into the relevant groups."
 	    (unless (re-search-forward "^date:" nil t)
 	      (goto-char (point-max))
 	      (setq atts (file-attributes file))
-	      (insert "Date: " (message-make-date (nth 5 atts)) "\n")))
+	      (insert "Date: " (message-make-date
+				(file-attribute-modification-time atts))
+		      "\n")))
        ;; This doesn't look like an article, so we fudge some headers.
 	(setq atts (file-attributes file)
 	      lines (count-lines (point-min) (point-max)))
 	(insert "From: " (read-string "From: ") "\n"
 		"Subject: " (read-string "Subject: ") "\n"
-		"Date: " (message-make-date (nth 5 atts)) "\n"
+		"Date: " (message-make-date
+			  (file-attribute-modification-time atts)) "\n"
 		"Message-ID: " (message-make-message-id) "\n"
 		"Lines: " (int-to-string lines) "\n"
-		"Chars: " (int-to-string (nth 7 atts)) "\n\n"))
+		"Chars: " (int-to-string (file-attribute-size atts)) "\n\n"))
       (setq group-art (gnus-request-accept-article group nil t))
       (kill-buffer (current-buffer)))
     (setq gnus-newsgroup-active (gnus-activate-group group))

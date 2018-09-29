@@ -896,7 +896,7 @@ without formatting."
 
 (defun nnheader-file-size (file)
   "Return the file size of FILE or 0."
-  (or (nth 7 (file-attributes file)) 0))
+  (or (file-attribute-size (file-attributes file)) 0))
 
 (defun nnheader-find-etc-directory (package &optional file first)
   "Go through `load-path' and find the \"../etc/PACKAGE\" directory.
@@ -951,7 +951,7 @@ find-file-hook, etc.
     (mm-insert-file-contents filename visit beg end replace)))
 
 (defun nnheader-insert-nov-file (file first)
-  (let ((size (nth 7 (file-attributes file)))
+  (let ((size (file-attribute-size (file-attributes file)))
 	(cutoff (* 32 1024)))
     (when size
       (if (< size cutoff)

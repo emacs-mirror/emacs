@@ -956,7 +956,8 @@ Note that the MAX parameter is used so we can exit the parse early."
 
           (if (and (functionp cached-secrets)
                    (equal cached-mtime
-                          (nth 5 (file-attributes file))))
+                          (file-attribute-modification-time
+                           (file-attributes file))))
               (progn
                 (auth-source-do-trivia
                  "auth-source-netrc-parse: using CACHED file data for %s"
@@ -968,7 +969,8 @@ Note that the MAX parameter is used so we can exit the parse early."
             ;; (note for the irony-impaired: they are just obfuscated)
             (auth-source--aput
              auth-source-netrc-cache file
-             (list :mtime (nth 5 (file-attributes file))
+             (list :mtime (file-attribute-modification-time
+                           (file-attributes file))
                    :secret (let ((v (mapcar #'1+ (buffer-string))))
                              (lambda () (apply #'string (mapcar #'1- v)))))))
           (goto-char (point-min))

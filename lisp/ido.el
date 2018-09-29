@@ -1518,9 +1518,7 @@ Removes badly formatted data and ignored directories."
 			     (consp time)
 			     (cond
 			      ((integerp (car time))
-			       (and (/= (car time) 0)
-				    (integerp (car (cdr time)))
-				    (/= (car (cdr time)) 0)
+			       (and (not (zerop (float-time time)))
 				    (ido-may-cache-directory dir)))
 			      ((eq (car time) 'ftp)
 			       (and (numberp (cdr time))
@@ -1750,7 +1748,8 @@ is enabled then some keybindings are changed in the keymap."
 	 (ido-final-slash dir)
 	 (not (ido-is-unc-host dir))
 	 (file-directory-p dir)
-	 (> (nth 7 (file-attributes (file-truename dir))) ido-max-directory-size))))
+	 (> (file-attribute-size (file-attributes (file-truename dir)))
+	    ido-max-directory-size))))
 
 (defun ido-set-current-directory (dir &optional subdir no-merge)
   ;; Set ido's current directory to DIR or DIR/SUBDIR
@@ -3610,7 +3609,7 @@ Uses and updates `ido-dir-file-cache'."
 	     (ftp (ido-is-ftp-directory dir))
 	     (unc (ido-is-unc-host dir))
 	     (attr (if (or ftp unc) nil (file-attributes dir)))
-	     (mtime (nth 5 attr))
+	     (mtime (file-attribute-modification-time attr))
 	     valid)
 	(when cached 	    ; should we use the cached entry ?
 	  (cond

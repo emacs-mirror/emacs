@@ -833,7 +833,7 @@ if we don't understand a construct, we signal
     (with-temp-buffer
       (let ((attr (file-attributes hgignore)))
         (when attr (insert-file-contents hgignore))
-        (push (list hgignore (nth 5 attr) (nth 7 attr))
+        (push (list hgignore (file-attribute-modification-time attr) (file-attribute-size attr))
               vc-hg--hgignore-filenames))
       (while (not (eobp))
         ;; This list of pattern-file commands isn't complete, but it
@@ -897,8 +897,8 @@ REPO must be the directory name of an hg repository."
              (saved-mtime (nth 1 fs))
              (saved-size (nth 2 fs))
              (attr (file-attributes (nth 0 fs)))
-             (current-mtime (nth 5 attr))
-             (current-size (nth 7 attr)))
+             (current-mtime (file-attribute-modification-time attr))
+             (current-size (file-attribute-size attr)))
         (unless (and (equal saved-mtime current-mtime)
                      (equal saved-size current-size))
           (setf valid nil))))
@@ -968,8 +968,8 @@ Avoids the need to repeatedly scan dirstate on repeated calls to
 `vc-hg-state', as we see during registration queries.")
 
 (defun vc-hg--cached-dirstate-search (dirstate dirstate-attr ascii-fname)
-  (let* ((mtime (nth 5 dirstate-attr))
-         (size (nth 7 dirstate-attr))
+  (let* ((mtime (file-attribute-modification-time dirstate-attr))
+         (size (file-attribute-size dirstate-attr))
          (cache vc-hg--dirstate-scan-cache)
          )
     (if (and cache
@@ -1012,7 +1012,7 @@ hg binary."
          ;; Repository must be in an understood format
          (not (vc-hg--requirements-understood-p repo))
          ;; Dirstate too small to be valid
-         (< (nth 7 dirstate-attr) 40)
+         (< (file-attribute-size dirstate-attr) 40)
          (progn
            (setf repo-relative-filename
                  (file-relative-name truename repo))
@@ -1036,8 +1036,9 @@ hg binary."
               ((eq state ?n)
                (let ((vc-hg-size (nth 2 dirstate-entry))
                      (vc-hg-mtime (nth 3 dirstate-entry))
-                     (fs-size (nth 7 stat))
-                     (fs-mtime (vc-hg--time-to-integer (nth 5 stat))))
+                     (fs-size (file-attribute-size stat))
+                     (fs-mtime (vc-hg--time-to-integer
+				(file-attribute-modification-time stat))))
                  (if (and (eql vc-hg-size fs-size) (eql vc-hg-mtime fs-mtime))
                      'up-to-date
                    'edited)))

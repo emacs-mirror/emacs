@@ -78,7 +78,8 @@ If ARG is non-nil, set timestamp with the current time."
                     (function
                      (lambda (file)
                        (when (and file (file-exists-p file))
-                         (setq stamp (nth 5 (file-attributes file)))
+                         (setq stamp (file-attribute-modification-time
+				      (file-attributes file)))
                          (or (> (car stamp) (car mh-alias-tstamp))
                              (and (= (car stamp) (car mh-alias-tstamp))
                                   (> (cadr stamp) (cadr mh-alias-tstamp)))))))

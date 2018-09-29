@@ -4618,7 +4618,7 @@ return the string to insert into the buffer.
 
 @defopt reftex-cite-prompt-optional-args
 Non-@code{nil} means, prompt for empty optional arguments in cite macros.
-When an entry in @code{reftex-cite-format} ist given with square brackets to
+When an entry in @code{reftex-cite-format} is given with square brackets to
 indicate optional arguments (for example @samp{\\cite[][]@{%l@}}), RefTeX can
 prompt for values.  Possible values are:
 @example

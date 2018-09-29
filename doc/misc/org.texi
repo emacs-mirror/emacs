@@ -17991,7 +17991,7 @@ supports Imenu menus.  Enable it with a mode hook as follows:
 @end lisp
 @vindex org-imenu-depth
 By default the Imenu index is two levels deep.  Change the index depth using
-thes variable, @code{org-imenu-depth}.
+the variable @code{org-imenu-depth}.
 @item @file{speedbar.el} by Eric M. Ludlam
 @cindex @file{speedbar.el}
 @cindex Ludlam, Eric M.
@@ -18065,7 +18065,7 @@ different replacement keys, look at the variable @code{org-disputed-keys}.
 @cindex @file{ecomplete.el}
 
 Ecomplete provides ``electric'' address completion in address header
-lines in message buffers.  Sadly Orgtbl mode cuts ecompletes power
+lines in message buffers.  Sadly Orgtbl mode cuts ecomplete's power
 supply: No completion happens when Orgtbl mode is enabled in message
 buffers while entering text in address header lines.  If one wants to
 use ecomplete one should @emph{not} follow the advice to automagically

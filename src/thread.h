@@ -30,7 +30,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #include "sysselect.h"		/* FIXME */
-#include "systime.h"		/* FIXME */
 #include "systhread.h"
 
 struct thread_state

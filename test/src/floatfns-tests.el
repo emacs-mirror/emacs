@@ -35,6 +35,12 @@
   (should-error (fround 0) :type 'wrong-type-argument))
 
 (ert-deftest bignum-to-float ()
+  ;; 122 because we want to go as big as possible to provoke a rounding error,
+  ;; but not too big: 2**122 < 10**37 < 2**123, and the C standard says
+  ;; 10**37 <= DBL_MAX so 2**122 cannot overflow as a double.
+  (let ((a (1- (ash 1 122))))
+    (should (or (eql a (1- (floor (float a))))
+                (eql a (floor (float a))))))
   (should (eql (float (+ most-positive-fixnum 1))
                (+ (float most-positive-fixnum) 1))))
 
@@ -93,5 +99,24 @@
                         (= 0 cdelta fdelta rdelta)
                       (or (/= cdelta fdelta)
                           (zerop (% (round n d) 2)))))))))))
+
+(ert-deftest special-round ()
+  (let ((ns '(-1e+INF 1e+INF -1 1 -1e+NaN 1e+NaN)))
+    (dolist (n ns)
+      (unless (<= (abs n) 1)
+        (should-error (ceiling n))
+        (should-error (floor n))
+        (should-error (round n))
+        (should-error (truncate n)))
+      (dolist (d ns)
+        (unless (<= (abs (/ n d)) 1)
+          (should-error (ceiling n d))
+          (should-error (floor n d))
+          (should-error (round n d))
+          (should-error (truncate n d)))))))
+
+(ert-deftest big-round ()
+  (should (= (floor 54043195528445955 3)
+             (floor 54043195528445955 3.0))))
 
 (provide 'floatfns-tests)

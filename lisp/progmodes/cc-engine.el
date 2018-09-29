@@ -4295,6 +4295,41 @@ comment at the start of cc-engine.el for more info."
       "\\w\\|\\s_\\|\\s\"\\|\\s|"
     "\\w\\|\\s_\\|\\s\""))
 
+(defun c-forward-over-token (&optional balanced)
+  "Move forward over a token.
+Return t if we moved, nil otherwise (i.e. we were at EOB, or a
+non-token or BALANCED is non-nil and we can't move).  If we
+are at syntactic whitespace, move over this in place of a token.
+
+If BALANCED is non-nil move over any balanced parens we are at, and never move
+out of an enclosing paren."
+  (let ((jump-syntax (if balanced
+			 c-jump-syntax-balanced
+		       c-jump-syntax-unbalanced))
+	(here (point)))
+    (condition-case nil
+	(cond
+	 ((/= (point)
+	      (progn (c-forward-syntactic-ws) (point)))
+	  ;; If we're at whitespace, count this as the token.
+	  t)
+	 ((eobp) nil)
+	 ((looking-at jump-syntax)
+	  (goto-char (scan-sexps (point) 1))
+	  t)
+	 ((looking-at c-nonsymbol-token-regexp)
+	  (goto-char (match-end 0))
+	  t)
+	 ((save-restriction
+	    (widen)
+	    (looking-at c-nonsymbol-token-regexp))
+	  nil)
+	 (t
+	  (forward-char)
+	  t))
+      (error (goto-char here)
+	     nil))))
+
 (defun c-forward-over-token-and-ws (&optional balanced)
   "Move forward over a token and any following whitespace
 Return t if we moved, nil otherwise (i.e. we were at EOB, or a
@@ -4306,35 +4341,8 @@ out of an enclosing paren.
 
 This function differs from `c-forward-token-2' in that it will move forward
 over the final token in a buffer, up to EOB."
-  (let ((jump-syntax (if balanced
-			 c-jump-syntax-balanced
-		       c-jump-syntax-unbalanced))
-	(here (point)))
-    (when
-	(condition-case nil
-	    (cond
-	     ((/= (point)
-		  (progn (c-forward-syntactic-ws) (point)))
-	      ;; If we're at whitespace, count this as the token.
-	      t)
-	     ((eobp) nil)
-	     ((looking-at jump-syntax)
-	      (goto-char (scan-sexps (point) 1))
-	      t)
-	     ((looking-at c-nonsymbol-token-regexp)
-	      (goto-char (match-end 0))
-	      t)
-	     ((save-restriction
-		(widen)
-		(looking-at c-nonsymbol-token-regexp))
-	      nil)
-	     (t
-	      (forward-char)
-	      t))
-	  (error (goto-char here)
-		 nil))
-      (c-forward-syntactic-ws)
-      t)))
+  (prog1 (c-forward-over-token balanced)
+    (c-forward-syntactic-ws)))
 
 (defun c-forward-token-2 (&optional count balanced limit)
   "Move forward by tokens.
@@ -7662,7 +7670,7 @@ comment at the start of cc-engine.el for more info."
 		     (c-record-type-id id-range))
 		   (unless res
 		     (setq res 'found)))
-	       (setq res (if (c-check-type id-start id-end)
+	       (setq res (if (c-check-qualified-type id-start)
 			     ;; It's an identifier that has been used as
 			     ;; a type somewhere else.
 			     'found
@@ -7674,7 +7682,7 @@ comment at the start of cc-engine.el for more info."
 	     (c-forward-syntactic-ws)
 	     (setq res
 		   (if (eq (char-after) ?\()
-		       (if (c-check-type id-start id-end)
+		       (if (c-check-qualified-type id-start)
 			   ;; It's an identifier that has been used as
 			   ;; a type somewhere else.
 			   'found
@@ -7799,6 +7807,37 @@ comment at the start of cc-engine.el for more info."
      (prog1 (car ,ps)
        (setq ,ps (cdr ,ps)))))
 
+(defun c-forward-over-compound-identifier ()
+  ;; Go over a possibly compound identifier, such as C++'s Foo::Bar::Baz,
+  ;; returning that identifier (with any syntactic WS removed).  Return nil if
+  ;; we're not at an identifier.
+  (when (c-on-identifier)
+    (let ((consolidated "") (consolidated-:: "")
+	  start end)
+      (while
+       (progn
+	 (setq start (point))
+	 (c-forward-over-token)
+	 (setq consolidated
+	       (concat consolidated-::
+		       (buffer-substring-no-properties start (point))))
+	 (c-forward-syntactic-ws)
+	 (and c-opt-identifier-concat-key
+	      (looking-at c-opt-identifier-concat-key)
+	      (progn
+		(setq start (point))
+		(c-forward-over-token)
+		(setq end (point))
+		(c-forward-syntactic-ws)
+		(and
+		 (c-on-identifier)
+		 (setq consolidated-::
+		       (concat consolidated
+			       (buffer-substring-no-properties start end))))))))
+      (if (equal consolidated "")
+	  nil
+	consolidated))))
+
 (defun c-back-over-compound-identifier ()
   ;; Point is putatively just after a "compound identifier", i.e. something
   ;; looking (in C++) like this "FQN::of::base::Class".  Move to the start of
@@ -7822,6 +7861,21 @@ comment at the start of cc-engine.el for more info."
 	(setq end (point)))
       (goto-char end)
       t)))
+
+(defun c-check-qualified-type (from)
+  ;; Look up successive tails of a (possibly) qualified type in
+  ;; `c-found-types'.  If one of them matches, return it, else return nil.
+  (save-excursion
+    (goto-char from)
+    (let ((compound (c-forward-over-compound-identifier)))
+      (when compound
+	(while (and c-opt-identifier-concat-key
+		    (> (length compound) 0)
+		    (not (gethash compound c-found-types))
+		    (string-match c-opt-identifier-concat-key compound))
+	  (setq compound (substring compound (match-end 0))))
+	 (and (gethash compound c-found-types)
+	      compound)))))
 
 (defun c-back-over-member-initializer-braces ()
   ;; Point is just after a closing brace/parenthesis.  Try to parse this as a

@@ -327,7 +327,7 @@ This command must be bound to a mouse click."
 (define-obsolete-function-alias 'mouse-tear-off-window 'tear-off-window "24.4")
 (defun tear-off-window (click)
   "Delete the selected window, and create a new frame displaying its buffer."
-  (interactive "e")
+  (interactive (list last-nonmenu-event))
   (mouse-minibuffer-check click)
   (let* ((window (posn-window (event-start click)))
 	 (buf (window-buffer window))

@@ -127,7 +127,7 @@ bindings to manage Sieve scripts remotely. @xref{Managing Sieve}.
 @kindex C-c RET
 @findex sieve-manage
 @cindex manage remote sieve script
-Open a connection to a remote server using the Managesieve protocol.
+Open a connection to a remote server using the Manage Sieve protocol.
 
 @item C-c C-l
 @kindex C-c C-l

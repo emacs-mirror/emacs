@@ -299,8 +299,12 @@ It is run after `gnus-article-prepare-hook'."
     ;; it. Calling `gnus-article-prepare-display' on an already
     ;; prepared article removes all MIME parts.  I'm unsure whether
     ;; this is a bug or not.
-    (gnus-article-highlight t)
-    (gnus-treat-article nil)
+    (save-excursion
+      (save-restriction
+	(widen)
+	(article-goto-body)
+	(narrow-to-region (point) (point-max))
+	(gnus-treat-article nil)))
     (gnus-run-hooks 'gnus-article-prepare-hook
 		    'gnus-outlook-display-hook)))
 

@@ -2216,10 +2216,12 @@ push_key_description (EMACS_INT ch, char *p)
 
 DEFUN ("single-key-description", Fsingle_key_description,
        Ssingle_key_description, 1, 2, 0,
-       doc: /* Return a pretty description of command character KEY.
+       doc: /* Return a pretty description of a character event KEY.
 Control characters turn into C-whatever, etc.
 Optional argument NO-ANGLES non-nil means don't put angle brackets
-around function keys and event symbols.  */)
+around function keys and event symbols.
+
+See `text-char-description' for describing character codes.  */)
   (Lisp_Object key, Lisp_Object no_angles)
 {
   USE_SAFE_ALLOCA;
@@ -2293,11 +2295,13 @@ push_text_char_description (register unsigned int c, register char *p)
 /* This function cannot GC.  */
 
 DEFUN ("text-char-description", Ftext_char_description, Stext_char_description, 1, 1, 0,
-       doc: /* Return a pretty description of file-character CHARACTER.
-Control characters turn into "^char", etc.  This differs from
-`single-key-description' which turns them into "C-char".
-Also, this function recognizes the 2**7 bit as the Meta character,
-whereas `single-key-description' uses the 2**27 bit for Meta.
+       doc: /* Return the description of CHARACTER in standard Emacs notation.
+CHARACTER must be a valid character code that passes the `characterp' test.
+Control characters turn into "^char", and characters with Meta and other
+modifiers signal an error, as they are not valid character codes.
+This differs from `single-key-description' which accepts character events,
+and thus doesn't enforce the `characterp' condition, turns control
+characters into "C-char", and uses the 2**27 bit for Meta.
 See Info node `(elisp)Describing Characters' for examples.  */)
   (Lisp_Object character)
 {

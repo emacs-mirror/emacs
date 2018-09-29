@@ -144,7 +144,7 @@ use in place of \"-ls\" as the final argument."
     ;; Check that it's really a directory.
     (or (file-directory-p dir)
 	(error "find-dired needs a directory: %s" dir))
-    (switch-to-buffer (get-buffer-create "*Find*"))
+    (pop-to-buffer-same-window (get-buffer-create "*Find*"))
 
     ;; See if there's still a `find' running, and offer to kill
     ;; it first, if it is.

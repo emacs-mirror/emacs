@@ -1667,7 +1667,7 @@ If CHARSET is nil then use UTF-8."
 (defun eww-read-bookmarks ()
   (let ((file (expand-file-name "eww-bookmarks" eww-bookmarks-directory)))
     (setq eww-bookmarks
-	  (unless (zerop (or (nth 7 (file-attributes file)) 0))
+	  (unless (zerop (or (file-attribute-size (file-attributes file)) 0))
 	    (with-temp-buffer
 	      (insert-file-contents file)
 	      (read (current-buffer)))))))

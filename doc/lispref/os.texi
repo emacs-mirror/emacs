@@ -1423,7 +1423,8 @@ The year, an integer typically greater than 1900.
 The day of week, as an integer between 0 and 6, where 0 stands for
 Sunday.
 @item dst
-@code{t} if daylight saving time is effect, otherwise @code{nil}.
+@code{t} if daylight saving time is effect, @code{nil} if it is not
+in effect, and @minus{}1 if this information is not available.
 @item utcoff
 An integer indicating the Universal Time offset in seconds, i.e., the number of
 seconds east of Greenwich.
@@ -1735,17 +1736,26 @@ integer number stands for the number of seconds since the epoch.
 @defun time-less-p t1 t2
 This returns @code{t} if time value @var{t1} is less than time value
 @var{t2}.
+The result is @code{nil} if either argument is a NaN.
+@end defun
+
+@defun time-equal-p t1 t2
+This returns @code{t} if @var{t1} and @var{t2} are equal time values.
+The result is @code{nil} if either argument is a NaN.
 @end defun
 
 @defun time-subtract t1 t2
 This returns the time difference @var{t1} @minus{} @var{t2} between
-two time values, as a time value.  If you need the difference in units
+two time values, as a time value.  However, the result is a float
+if either argument is a float infinity or NaN@.
+If you need the difference in units
 of elapsed seconds, use @code{float-time} (@pxref{Time of Day,
 float-time}) to convert the result into seconds.
 @end defun
 
 @defun time-add t1 t2
 This returns the sum of two time values, as a time value.
+However, the result is a float if either argument is a float infinity or NaN@.
 One argument should represent a time difference rather than a point in time,
 either as a list or as a single number of elapsed seconds.
 Here is how to add a number of seconds to a time value:
@@ -1990,8 +2000,7 @@ the idleness time, as described below.
 
 @defun current-idle-time
 If Emacs is idle, this function returns the length of time Emacs has
-been idle, as a list of four integers: @code{(@var{sec-high}
-@var{sec-low} @var{microsec} @var{picosec})}, using the same format as
+been idle, using the same format as
 @code{current-time} (@pxref{Time of Day}).
 
 When Emacs is not idle, @code{current-idle-time} returns @code{nil}.
@@ -3030,7 +3039,7 @@ Although Emacs normally respects access permissions of the underlying
 operating system, in some cases it handles accesses specially.  For
 example, file names can have handlers that treat the files specially,
 with their own access checking.  @xref{Magic File Names}.  Also, a
-buffer can be read-only even if the corresponding file is writeable,
+buffer can be read-only even if the corresponding file is writable,
 and vice versa, which can result in messages such as @samp{File passwd
 is write-protected; try to save anyway? (yes or no)}.  @xref{Read Only
 Buffers}.

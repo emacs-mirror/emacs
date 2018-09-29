@@ -192,7 +192,7 @@ x_default_search_path=@x_default_search_path@
 desktopdir=$(datarootdir)/applications
 
 # Where the etc/emacs.appdata.xml file is to be installed.
-appdatadir=$(datarootdir)/appdata
+appdatadir=$(datarootdir)/metainfo
 
 # Where the etc/emacs.service file is to be installed.
 # The system value (typically /usr/lib/systemd/user) can be
@@ -839,7 +839,7 @@ $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 clean: $(clean_dirs:=_clean)
 	$(MAKE) -C admin/charsets $@
 	[ ! -d test ] || $(MAKE) -C test $@
-	-rm -f *.tmp etc/*.tmp*
+	-rm -f ./*.tmp etc/*.tmp*
 	-rm -rf info-dir.*
 
 ### 'bootclean'
@@ -926,7 +926,7 @@ $(foreach dir,$(extraclean_dirs),$(eval $(call submake_template,$(dir),extraclea
 extraclean: $(extraclean_dirs:=_extraclean)
 	${top_maintainer_clean}
 	-rm -f config-tmp-*
-	-rm -f *~ \#*
+	-rm -f ./*~ \#*
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.

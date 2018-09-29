@@ -323,21 +323,23 @@ backward."
 (defcustom xref-prompt-for-identifier '(not xref-find-definitions
                                             xref-find-definitions-other-window
                                             xref-find-definitions-other-frame)
-  "When t, always prompt for the identifier name.
+  "If non-nil, prompt for the identifier to find.
+
+When t, always prompt for the identifier name.
 
 When nil, prompt only when there's no value at point we can use,
 or when the command has been called with the prefix argument.
 
-Otherwise, it's a list of xref commands which will prompt
-anyway (the value at point, if any, will be used as the default).
-
+Otherwise, it's a list of xref commands which will always prompt,
+with the identifier at point, if any, used as the default.
 If the list starts with `not', the meaning of the rest of the
-elements is negated."
-  :type '(choice (const :tag "always" t)
-                 (const :tag "auto" nil)
-                 (set :menu-tag "command specific" :tag "commands"
+elements is negated: these commands will NOT prompt."
+  :type '(choice (const :tag "Always prompt for identifier" t)
+                 (const :tag "Prompt if no identifier at point" nil)
+                 (set :menu-tag "Prompt according to command"
+                      :tag "Prompt according to command"
 		      :value (not)
-		      (const :tag "Except" not)
+		      (const :tag "Except for commands listed below" not)
 		      (repeat :inline t (symbol :tag "command")))))
 
 (defcustom xref-after-jump-hook '(recenter

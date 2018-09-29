@@ -608,7 +608,9 @@ callback data (if any)."
     ;; for more details.
     (when (and agent-info (string-match "\\(.*\\):[0-9]+:[0-9]+" agent-info))
       (setq agent-file (match-string 1 agent-info)
-	    agent-mtime (or (nth 5 (file-attributes agent-file)) '(0 0 0 0))))
+	    agent-mtime (or (file-attribute-modification-time
+			     (file-attributes agent-file))
+			    '(0 0 0 0))))
     (if epg-debug
 	(save-excursion
 	  (unless epg-debug-buffer
@@ -735,7 +737,9 @@ callback data (if any)."
   (if (with-current-buffer (process-buffer (epg-context-process context))
 	(and epg-agent-file
 	     (time-less-p epg-agent-mtime
-			  (or (nth 5 (file-attributes epg-agent-file)) 0))))
+			  (or (file-attribute-modification-time
+			       (file-attributes epg-agent-file))
+			      0))))
       (redraw-frame))
   (epg-context-set-result-for
    context 'error

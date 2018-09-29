@@ -28,35 +28,51 @@
 
 (ert-deftest parse-time-tests ()
   (should (equal (parse-time-string "Mon, 22 Feb 2016 19:35:42 +0100")
-                 '(42 35 19 22 2 2016 1 nil 3600)))
+                 '(42 35 19 22 2 2016 1 -1 3600)))
   (should (equal (parse-time-string "22 Feb 2016 19:35:42 +0100")
-                 '(42 35 19 22 2 2016 nil nil 3600)))
+                 '(42 35 19 22 2 2016 nil -1 3600)))
   (should (equal (parse-time-string "22 Feb 2016 +0100")
-                 '(nil nil nil 22 2 2016 nil nil 3600)))
+                 '(nil nil nil 22 2 2016 nil -1 3600)))
   (should (equal (parse-time-string "Mon, 22 Feb 16 19:35:42 +0100")
-                 '(42 35 19 22 2 2016 1 nil 3600)))
+                 '(42 35 19 22 2 2016 1 -1 3600)))
   (should (equal (parse-time-string "Mon, 22 February 2016 19:35:42 +0100")
-                 '(42 35 19 22 2 2016 1 nil 3600)))
+                 '(42 35 19 22 2 2016 1 -1 3600)))
   (should (equal (parse-time-string "Mon, 22 feb 2016 19:35:42 +0100")
-                 '(42 35 19 22 2 2016 1 nil 3600)))
+                 '(42 35 19 22 2 2016 1 -1 3600)))
   (should (equal (parse-time-string "Monday, 22 february 2016 19:35:42 +0100")
-                 '(42 35 19 22 2 2016 1 nil 3600)))
-  (should (equal (parse-time-string "Monday, 22 february 2016 19:35:42 PDT")
-                 '(42 35 19 22 2 2016 1 t -25200)))
-  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54-0200")
-                 '(13818 33666)))
-  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54-0230")
-                 '(13818 35466)))
-  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54-02:00")
-                 '(13818 33666)))
-  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54-02")
-                 '(13818 33666)))
-  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54+0230")
-                 '(13818 17466)))
-  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54+02")
-                 '(13818 19266)))
-  (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54Z")
-                 '(13818 26466)))
+                 '(42 35 19 22 2 2016 1 -1 3600)))
+  (should (equal (parse-time-string "Monday, 22 february 2016 19:35:42 PST")
+                 '(42 35 19 22 2 2016 1 nil -28800)))
+  (should (equal (parse-time-string "Friday, 21 Sep 2018 13:47:58 PDT")
+                 '(58 47 13 21 9 2018 5 t -25200)))
+  (should (equal (format-time-string
+		  "%Y-%m-%d %H:%M:%S"
+		  (parse-iso8601-time-string "1998-09-12T12:21:54-0200") t)
+		 "1998-09-12 14:21:54"))
+  (should (equal (format-time-string
+		  "%Y-%m-%d %H:%M:%S"
+		  (parse-iso8601-time-string "1998-09-12T12:21:54-0230") t)
+		 "1998-09-12 14:51:54"))
+  (should (equal (format-time-string
+		  "%Y-%m-%d %H:%M:%S"
+		  (parse-iso8601-time-string "1998-09-12T12:21:54-02:00") t)
+		 "1998-09-12 14:21:54"))
+  (should (equal (format-time-string
+		  "%Y-%m-%d %H:%M:%S"
+		  (parse-iso8601-time-string "1998-09-12T12:21:54-02") t)
+		 "1998-09-12 14:21:54"))
+  (should (equal (format-time-string
+		  "%Y-%m-%d %H:%M:%S"
+		  (parse-iso8601-time-string "1998-09-12T12:21:54+0230") t)
+		 "1998-09-12 09:51:54"))
+  (should (equal (format-time-string
+		  "%Y-%m-%d %H:%M:%S"
+		  (parse-iso8601-time-string "1998-09-12T12:21:54+02") t)
+		 "1998-09-12 10:21:54"))
+  (should (equal (format-time-string
+		  "%Y-%m-%d %H:%M:%S"
+		  (parse-iso8601-time-string "1998-09-12T12:21:54Z") t)
+		 "1998-09-12 12:21:54"))
   (should (equal (parse-iso8601-time-string "1998-09-12T12:21:54")
                  (encode-time 54 21 12 12 9 1998))))
 

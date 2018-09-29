@@ -1589,13 +1589,21 @@ time_subtract (struct lisp_time ta, struct lisp_time tb)
 }
 
 static Lisp_Object
-time_arith (Lisp_Object a, Lisp_Object b,
-	    struct lisp_time (*op) (struct lisp_time, struct lisp_time))
+time_arith (Lisp_Object a, Lisp_Object b, bool subtract)
 {
+  if (FLOATP (a) && !isfinite (XFLOAT_DATA (a)))
+    {
+      double da = XFLOAT_DATA (a);
+      double db = XFLOAT_DATA (Ffloat_time (b));
+      return make_float (subtract ? da - db : da + db);
+    }
+  if (FLOATP (b) && !isfinite (XFLOAT_DATA (b)))
+    return subtract ? make_float (-XFLOAT_DATA (b)) : b;
+
   int alen, blen;
   struct lisp_time ta = lisp_time_struct (a, &alen);
   struct lisp_time tb = lisp_time_struct (b, &blen);
-  struct lisp_time t = op (ta, tb);
+  struct lisp_time t = (subtract ? time_subtract : time_add) (ta, tb);
   if (FIXNUM_OVERFLOW_P (t.hi))
     time_overflow ();
   Lisp_Object val = Qnil;
@@ -1623,7 +1631,7 @@ A nil value for either argument stands for the current time.
 See `current-time-string' for the various forms of a time value.  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  return time_arith (a, b, time_add);
+  return time_arith (a, b, false);
 }
 
 DEFUN ("time-subtract", Ftime_subtract, Stime_subtract, 2, 2, 0,
@@ -1633,7 +1641,30 @@ A nil value for either argument stands for the current time.
 See `current-time-string' for the various forms of a time value.  */)
   (Lisp_Object a, Lisp_Object b)
 {
-  return time_arith (a, b, time_subtract);
+  return time_arith (a, b, true);
+}
+
+/* Return negative, 0, positive if a < b, a == b, a > b respectively.
+   Return positive if either a or b is a NaN; this is good enough
+   for the current callers.  */
+static int
+time_cmp (Lisp_Object a, Lisp_Object b)
+{
+  if ((FLOATP (a) && !isfinite (XFLOAT_DATA (a)))
+      || (FLOATP (b) && !isfinite (XFLOAT_DATA (b))))
+    {
+      double da = FLOATP (a) ? XFLOAT_DATA (a) : 0;
+      double db = FLOATP (b) ? XFLOAT_DATA (b) : 0;
+      return da < db ? -1 : da != db;
+    }
+
+  int alen, blen;
+  struct lisp_time ta = lisp_time_struct (a, &alen);
+  struct lisp_time tb = lisp_time_struct (b, &blen);
+  return (ta.hi != tb.hi ? (ta.hi < tb.hi ? -1 : 1)
+	  : ta.lo != tb.lo ? (ta.lo < tb.lo ? -1 : 1)
+	  : ta.us != tb.us ? (ta.us < tb.us ? -1 : 1)
+	  : ta.ps < tb.ps ? -1 : ta.ps != tb.ps);
 }
 
 DEFUN ("time-less-p", Ftime_less_p, Stime_less_p, 2, 2, 0,
@@ -1642,22 +1673,23 @@ A nil value for either argument stands for the current time.
 See `current-time-string' for the various forms of a time value.  */)
   (Lisp_Object t1, Lisp_Object t2)
 {
-  int t1len, t2len;
-  struct lisp_time a = lisp_time_struct (t1, &t1len);
-  struct lisp_time b = lisp_time_struct (t2, &t2len);
-  return ((a.hi != b.hi ? a.hi < b.hi
-	   : a.lo != b.lo ? a.lo < b.lo
-	   : a.us != b.us ? a.us < b.us
-	   : a.ps < b.ps)
-	  ? Qt : Qnil);
+  return time_cmp (t1, t2) < 0 ? Qt : Qnil;
+}
+
+DEFUN ("time-equal-p", Ftime_equal_p, Stime_equal_p, 2, 2, 0,
+       doc: /* Return non-nil if T1 and T2 are equal time values.
+A nil value for either argument stands for the current time.
+See `current-time-string' for the various forms of a time value.  */)
+  (Lisp_Object t1, Lisp_Object t2)
+{
+  return time_cmp (t1, t2) == 0 ? Qt : Qnil;
 }
 
 
 DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
        0, 0, 0,
        doc: /* Return the current run time used by Emacs.
-The time is returned as a list (HIGH LOW USEC PSEC), using the same
-style as (current-time).
+The time is returned as in the style of `current-time'.
 
 On systems that can't determine the run time, `get-internal-run-time'
 does the same thing as `current-time'.  */)
@@ -2165,7 +2197,8 @@ between 0 and 23.  DAY is an integer between 1 and 31.  MONTH is an
 integer between 1 and 12.  YEAR is an integer indicating the
 four-digit year.  DOW is the day of week, an integer between 0 and 6,
 where 0 is Sunday.  DST is t if daylight saving time is in effect,
-otherwise nil.  UTCOFF is an integer indicating the UTC offset in
+nil if it is not in effect, and -1 if this information is
+not available.  UTCOFF is an integer indicating the UTC offset in
 seconds, i.e., the number of seconds east of Greenwich.  (Note that
 Common Lisp has different meanings for DOW and UTCOFF.)
 
@@ -2194,7 +2227,8 @@ usage: (decode-time &optional TIME ZONE)  */)
 		make_fixnum (local_tm.tm_mon + 1),
 		make_fixnum (local_tm.tm_year + tm_year_base),
 		make_fixnum (local_tm.tm_wday),
-		local_tm.tm_isdst ? Qt : Qnil,
+		(local_tm.tm_isdst < 0 ? make_fixnum (-1)
+		 : local_tm.tm_isdst == 0 ? Qnil : Qt),
 		(HAVE_TM_GMTOFF
 		 ? make_fixnum (tm_gmtoff (&local_tm))
 		 : gmtime_r (&time_spec, &gmt_tm)
@@ -4657,7 +4691,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 
 	      /* Characters to be inserted after spaces and before
 		 leading zeros.  This can occur with bignums, since
-		 string_to_bignum does only leading '-'.  */
+		 bignum_to_string does only leading '-'.  */
 	      char prefix[sizeof "-0x" - 1];
 	      int prefixlen = 0;
 
@@ -5733,6 +5767,7 @@ it to be non-nil.  */);
   defsubr (&Scurrent_time);
   defsubr (&Stime_add);
   defsubr (&Stime_subtract);
+  defsubr (&Stime_equal_p);
   defsubr (&Stime_less_p);
   defsubr (&Sget_internal_run_time);
   defsubr (&Sformat_time_string);

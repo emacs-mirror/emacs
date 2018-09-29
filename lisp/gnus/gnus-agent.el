@@ -1603,7 +1603,8 @@ downloaded into the agent."
 					   (number-to-string have-this)))
 			(size-file
 			 (float (or (and gnus-agent-total-fetched-hashtb
-					 (nth 7 (file-attributes file-name)))
+					 (file-attribute-size
+					  (file-attributes file-name)))
 				    0)))
 			(file-name-coding-system
 			 nnmail-pathname-coding-system))
@@ -2096,12 +2097,16 @@ doesn't exist, to valid the overview buffer."
 	   (let* (alist
 		  (file-name-coding-system nnmail-pathname-coding-system)
 		  (file-attributes (directory-files-and-attributes
-				    (gnus-agent-article-name ""
-							     gnus-agent-read-agentview) nil "^[0-9]+$" t)))
+				    (gnus-agent-article-name
+				     "" gnus-agent-read-agentview)
+				    nil "^[0-9]+$" t)))
 	     (while file-attributes
 	       (let ((fa (pop file-attributes)))
-		 (unless (nth 1 fa)
-		   (push (cons (string-to-number (nth 0 fa)) (time-to-days (nth 5 fa))) alist))))
+		 (unless (file-attribute-type (cdr fa))
+		   (push (cons (string-to-number (car fa))
+			       (time-to-days
+				(file-attribute-access-time (cdr fa))))
+			 alist))))
 	     alist)
 	 (file-error nil))))))
 
@@ -3347,7 +3352,8 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 		     (ignore-errors	; Just being paranoid.
 		       (let* ((file-name (nnheader-concat dir (number-to-string
 							       article-number)))
-			      (size (float (nth 7 (file-attributes file-name)))))
+			      (size (float (file-attribute-size
+					    (file-attributes file-name)))))
 			 (cl-incf bytes-freed size)
 			 (cl-incf size-files-deleted size)
 			 (cl-incf files-deleted)
@@ -3800,7 +3806,7 @@ has been fetched."
            (buffer-read-only nil)
 	   (file-name-coding-system nnmail-pathname-coding-system))
       (when (and (file-exists-p file)
-                 (> (nth 7 (file-attributes file)) 0))
+                 (> (file-attribute-size (file-attributes file)) 0))
         (erase-buffer)
         (gnus-kill-all-overlays)
         (let ((coding-system-for-read gnus-cache-coding-system))
@@ -3945,9 +3951,11 @@ If REREAD is not nil, downloaded articles are marked as unread."
 		 ;; This entry in the overview has been downloaded
 		 (push (cons (car downloaded)
 			     (time-to-days
-			      (nth 5 (file-attributes
-				      (concat dir (number-to-string
-						   (car downloaded))))))) alist)
+			      (file-attribute-modification-time
+			       (file-attributes
+				(concat dir (number-to-string
+					     (car downloaded)))))))
+		       alist)
 		 (setq downloaded (cdr downloaded))
 		 (setq nov-arts (cdr nov-arts)))
 		(t
@@ -4105,19 +4113,21 @@ agent has fetched."
 	       (let ((sum 0.0)
 		     file)
 		 (while (setq file (pop delta))
-		   (cl-incf sum (float (or (nth 7 (file-attributes
-						(nnheader-concat
-						 path
-						 (if (numberp file)
-						     (number-to-string file)
-						   file)))) 0))))
+		   (cl-incf sum (float (or (file-attribute-size
+					    (file-attributes
+					     (nnheader-concat
+					      path
+					      (if (numberp file)
+						  (number-to-string file)
+						file))))
+					   0))))
 		 (setq delta sum))
 	     (let ((sum (- (nth 2 entry)))
 		   (info (directory-files-and-attributes
 			  path nil "^-?[0-9]+$" t))
 		   file)
 	       (while (setq file (pop info))
-		 (cl-incf sum (float (or (nth 8 file) 0))))
+		 (cl-incf sum (float (or (file-attribute-size (cdr file)) 0))))
 	       (setq delta sum))))
 
 	 (setq gnus-agent-need-update-total-fetched-for t)
@@ -4138,11 +4148,11 @@ modified."
 		       (gnus-sethash path (make-list 3 0)
 				     gnus-agent-total-fetched-hashtb)))
 	    (file-name-coding-system nnmail-pathname-coding-system)
-	    (size (or (nth 7 (file-attributes
-			      (nnheader-concat
-			       path (if agent-over
-					".overview"
-				      ".agentview"))))
+	    (size (or (file-attribute-size (file-attributes
+					    (nnheader-concat
+					     path (if agent-over
+						      ".overview"
+						    ".agentview"))))
 		      0)))
        (setq gnus-agent-need-update-total-fetched-for t)
        (setf (nth (if agent-over 1 0) entry) size)))))

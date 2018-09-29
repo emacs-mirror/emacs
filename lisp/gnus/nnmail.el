@@ -1534,7 +1534,8 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	    (and (setq file (ignore-errors
 			      (symbol-value (intern (format "%s-active-file"
 							    backend)))))
-		 (setq file-time (nth 5 (file-attributes file)))
+		 (setq file-time (file-attribute-modification-time
+				  (file-attributes file)))
 		 (or (not
 		      (setq timestamp
 			    (condition-case ()

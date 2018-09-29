@@ -96,11 +96,11 @@ This might not yet be honored by all index-building functions."
   :type 'boolean
   :group 'imenu)
 
-(defcustom imenu-auto-rescan-maxout 60000
-  "Imenu auto-rescan is disabled in buffers larger than this size (in bytes).
-This variable is buffer-local."
+(defcustom imenu-auto-rescan-maxout 600000
+  "Imenu auto-rescan is disabled in buffers larger than this size (in bytes)."
   :type 'integer
-  :group 'imenu)
+  :group 'imenu
+  :version "26.2")
 
 (defcustom imenu-use-popup-menu 'on-mouse
   "Use a popup menu rather than a minibuffer prompt.

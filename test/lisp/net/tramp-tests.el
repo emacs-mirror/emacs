@@ -2882,16 +2882,17 @@ This tests also `file-readable-p', `file-regular-p' and
 	    ;; able to return the date correctly.  They say "don't know".
 	    (dolist (elt attr)
 	      (unless
-		  (equal
+		  (tramp-compat-time-equal-p
 		   (nth
 		    5 (file-attributes (expand-file-name (car elt) tmp-name2)))
-		   '(0 0))
+		   tramp-time-dont-know)
 		(should
 		 (equal (file-attributes (expand-file-name (car elt) tmp-name2))
 			(cdr elt)))))
 	    (setq attr (directory-files-and-attributes tmp-name2 'full))
 	    (dolist (elt attr)
-	      (unless (equal (nth 5 (file-attributes (car elt))) '(0 0))
+	      (unless (tramp-compat-time-equal-p
+		       (nth 5 (file-attributes (car elt))) tramp-time-dont-know)
 		(should
 		 (equal (file-attributes (car elt)) (cdr elt)))))
 	    (setq attr (directory-files-and-attributes tmp-name2 nil "^b"))
@@ -3215,14 +3216,13 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (write-region "foo" nil tmp-name1)
 	    (should (file-exists-p tmp-name1))
 	    (should (consp (nth 5 (file-attributes tmp-name1))))
-	    ;; '(0 0) means don't know, and will be replaced by
-	    ;; `current-time'.  Therefore, we use '(0 1).  We skip the
-	    ;; test, if the remote handler is not able to set the
-	    ;; correct time.
+	    ;; Skip the test, if the remote handler is not able to set
+	    ;; the correct time.
 	    (skip-unless (set-file-times tmp-name1 (seconds-to-time 1)))
 	    ;; Dumb remote shells without perl(1) or stat(1) are not
 	    ;; able to return the date correctly.  They say "don't know".
-	    (unless (equal (nth 5 (file-attributes tmp-name1)) '(0 0))
+	    (unless (tramp-compat-time-equal-p
+		     (nth 5 (file-attributes tmp-name1)) tramp-time-dont-know)
 	      (should
 	       (equal (nth 5 (file-attributes tmp-name1)) (seconds-to-time 1)))
 	      (write-region "bla" nil tmp-name2)
@@ -3250,9 +3250,17 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-temp-buffer
 	      (insert-file-contents tmp-name)
 	      (should (verify-visited-file-modtime))
-	      (set-visited-file-modtime '(0 1))
+              (set-visited-file-modtime (seconds-to-time 1))
 	      (should (verify-visited-file-modtime))
-	      (should (equal (visited-file-modtime) '(0 1 0 0)))))
+	      (should (= 1 (float-time (visited-file-modtime))))
+
+	      ;; Checks with deleted file.
+	      (delete-file tmp-name)
+	      (dired-uncache tmp-name)
+	      (should (verify-visited-file-modtime))
+              (set-visited-file-modtime (seconds-to-time 1))
+	      (should (verify-visited-file-modtime))
+	      (should (= 1 (float-time (visited-file-modtime))))))
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name))))))

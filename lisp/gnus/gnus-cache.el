@@ -642,7 +642,8 @@ $ emacs -batch -l ~/.emacs -l gnus -f gnus-jog-cache"
   "Read the cache active file."
   (gnus-make-directory gnus-cache-directory)
   (if (or (not (file-exists-p gnus-cache-active-file))
-	  (zerop (nth 7 (file-attributes gnus-cache-active-file)))
+	  (zerop (file-attribute-size
+		  (file-attributes gnus-cache-active-file)))
 	  force)
       ;; There is no active file, so we generate one.
       (gnus-cache-generate-active)
@@ -854,7 +855,7 @@ supported."
 	    size)
 
        (if file
-	   (setq size (or (nth 7 (file-attributes file)) 0))
+	   (setq size (or (file-attribute-size (file-attributes file)) 0))
 	 (let* ((file-name-coding-system nnmail-pathname-coding-system)
 		(files (directory-files (gnus-cache-file-name group "")
 					t nil t))
@@ -862,8 +863,8 @@ supported."
 	   (setq size 0.0)
 	   (while (setq file (pop files))
 	     (setq attrs (file-attributes file))
-	     (unless (nth 0 attrs)
-	       (cl-incf size (float (nth 7 attrs)))))))
+	     (unless (file-attribute-type attrs)
+	       (cl-incf size (float (file-attribute-size attrs)))))))
 
        (setq gnus-cache-need-update-total-fetched-for t)
 
@@ -877,7 +878,7 @@ supported."
 		       (gnus-sethash group (make-list 2 0)
 				     gnus-cache-total-fetched-hashtb)))
 	    (file-name-coding-system nnmail-pathname-coding-system)
-	    (size (or (nth 7 (file-attributes
+	    (size (or (file-attribute-size (file-attributes
 			      (or file
 				  (gnus-cache-file-name group ".overview"))))
 		      0)))

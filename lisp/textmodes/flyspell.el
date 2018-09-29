@@ -68,6 +68,12 @@ Detection of repeated words is not implemented in
   :group 'flyspell
   :type 'boolean)
 
+(defcustom flyspell-case-fold-duplications t
+  "Non-nil means Flyspell matches duplicate words case-insensitively."
+  :group 'flyspell
+  :type 'boolean
+  :version "27.1")
+
 (defcustom flyspell-mark-duplications-exceptions
   '((nil . ("that" "had")) ; Common defaults for English.
     ("\\`francais" . ("nous" "vous")))
@@ -1154,7 +1160,8 @@ spell-check."
 			      (- (save-excursion
                                    (skip-chars-backward " \t\n\f")))))
 			  (p (when (>= bound (point-min))
-			       (flyspell-word-search-backward word bound t))))
+			       (flyspell-word-search-backward
+                                word bound flyspell-case-fold-duplications))))
 		     (and p (/= p start)))))
 	    ;; yes, this is a doublon
 	    (flyspell-highlight-incorrect-region start end 'doublon)

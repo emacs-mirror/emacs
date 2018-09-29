@@ -122,7 +122,9 @@ System abbrevs are listed and identified as such.  Otherwise the
 description is a Lisp expression---a call to @code{define-abbrev-table}
 that would define @var{name} as it is currently defined, but without
 the system abbrevs.  (The mode or package using @var{name} is supposed
-to add these to @var{name} separately.)
+to add these to @var{name} separately.)  If the Lisp expression would
+not define any abbrevs (i.e.@: it defines an empty abbrev table), this
+function inserts nothing.
 @end defun
 
 @node Defining Abbrevs

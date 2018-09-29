@@ -329,6 +329,12 @@ rpl_fcntl (int fd, int action, /* arg */...)
         result = dupfd (fd, target, O_CLOEXEC);
         break;
 #else /* HAVE_FCNTL */
+# if defined __HAIKU__
+        /* On Haiku, the system fcntl (fd, F_DUPFD_CLOEXEC, target) sets
+           the FD_CLOEXEC flag on fd, not on target.  Therefore avoid the
+           system fcntl in this case.  */
+#  define have_dupfd_cloexec -1
+# else
         /* Try the system call first, if the headers claim it exists
            (that is, if GNULIB_defined_F_DUPFD_CLOEXEC is 0), since we
            may be running with a glibc that has the macro but with an
@@ -343,10 +349,10 @@ rpl_fcntl (int fd, int action, /* arg */...)
             if (0 <= result || errno != EINVAL)
               {
                 have_dupfd_cloexec = 1;
-# if REPLACE_FCHDIR
+#  if REPLACE_FCHDIR
                 if (0 <= result)
                   result = _gl_register_dup (fd, result);
-# endif
+#  endif
               }
             else
               {
@@ -357,6 +363,7 @@ rpl_fcntl (int fd, int action, /* arg */...)
               }
           }
         else
+# endif
           result = rpl_fcntl (fd, F_DUPFD, target);
         if (0 <= result && have_dupfd_cloexec == -1)
           {
@@ -405,8 +412,183 @@ rpl_fcntl (int fd, int action, /* arg */...)
     default:
       {
 #if HAVE_FCNTL
-        void *p = va_arg (arg, void *);
-        result = fcntl (fd, action, p);
+        switch (action)
+          {
+          #ifdef F_BARRIERFSYNC                  /* macOS */
+          case F_BARRIERFSYNC:
+          #endif
+          #ifdef F_CHKCLEAN                      /* macOS */
+          case F_CHKCLEAN:
+          #endif
+          #ifdef F_CLOSEM                        /* NetBSD, HP-UX */
+          case F_CLOSEM:
+          #endif
+          #ifdef F_FLUSH_DATA                    /* macOS */
+          case F_FLUSH_DATA:
+          #endif
+          #ifdef F_FREEZE_FS                     /* macOS */
+          case F_FREEZE_FS:
+          #endif
+          #ifdef F_FULLFSYNC                     /* macOS */
+          case F_FULLFSYNC:
+          #endif
+          #ifdef F_GETCONFINED                   /* macOS */
+          case F_GETCONFINED:
+          #endif
+          #ifdef F_GETDEFAULTPROTLEVEL           /* macOS */
+          case F_GETDEFAULTPROTLEVEL:
+          #endif
+          #ifdef F_GETFD                         /* POSIX */
+          case F_GETFD:
+          #endif
+          #ifdef F_GETFL                         /* POSIX */
+          case F_GETFL:
+          #endif
+          #ifdef F_GETLEASE                      /* Linux */
+          case F_GETLEASE:
+          #endif
+          #ifdef F_GETNOSIGPIPE                  /* macOS */
+          case F_GETNOSIGPIPE:
+          #endif
+          #ifdef F_GETOWN                        /* POSIX */
+          case F_GETOWN:
+          #endif
+          #ifdef F_GETPIPE_SZ                    /* Linux */
+          case F_GETPIPE_SZ:
+          #endif
+          #ifdef F_GETPROTECTIONCLASS            /* macOS */
+          case F_GETPROTECTIONCLASS:
+          #endif
+          #ifdef F_GETPROTECTIONLEVEL            /* macOS */
+          case F_GETPROTECTIONLEVEL:
+          #endif
+          #ifdef F_GET_SEALS                     /* Linux */
+          case F_GET_SEALS:
+          #endif
+          #ifdef F_GETSIG                        /* Linux */
+          case F_GETSIG:
+          #endif
+          #ifdef F_MAXFD                         /* NetBSD */
+          case F_MAXFD:
+          #endif
+          #ifdef F_RECYCLE                       /* macOS */
+          case F_RECYCLE:
+          #endif
+          #ifdef F_SETFIFOENH                    /* HP-UX */
+          case F_SETFIFOENH:
+          #endif
+          #ifdef F_THAW_FS                       /* macOS */
+          case F_THAW_FS:
+          #endif
+            /* These actions take no argument.  */
+            result = fcntl (fd, action);
+            break;
+
+          #ifdef F_ADD_SEALS                     /* Linux */
+          case F_ADD_SEALS:
+          #endif
+          #ifdef F_BADFD                         /* Solaris */
+          case F_BADFD:
+          #endif
+          #ifdef F_CHECK_OPENEVT                 /* macOS */
+          case F_CHECK_OPENEVT:
+          #endif
+          #ifdef F_DUP2FD                        /* FreeBSD, AIX, Solaris */
+          case F_DUP2FD:
+          #endif
+          #ifdef F_DUP2FD_CLOEXEC                /* FreeBSD, Solaris */
+          case F_DUP2FD_CLOEXEC:
+          #endif
+          #ifdef F_DUP2FD_CLOFORK                /* Solaris */
+          case F_DUP2FD_CLOFORK:
+          #endif
+          #ifdef F_DUPFD                         /* POSIX */
+          case F_DUPFD:
+          #endif
+          #ifdef F_DUPFD_CLOEXEC                 /* POSIX */
+          case F_DUPFD_CLOEXEC:
+          #endif
+          #ifdef F_DUPFD_CLOFORK                 /* Solaris */
+          case F_DUPFD_CLOFORK:
+          #endif
+          #ifdef F_GETXFL                        /* Solaris */
+          case F_GETXFL:
+          #endif
+          #ifdef F_GLOBAL_NOCACHE                /* macOS */
+          case F_GLOBAL_NOCACHE:
+          #endif
+          #ifdef F_MAKECOMPRESSED                /* macOS */
+          case F_MAKECOMPRESSED:
+          #endif
+          #ifdef F_MOVEDATAEXTENTS               /* macOS */
+          case F_MOVEDATAEXTENTS:
+          #endif
+          #ifdef F_NOCACHE                       /* macOS */
+          case F_NOCACHE:
+          #endif
+          #ifdef F_NODIRECT                      /* macOS */
+          case F_NODIRECT:
+          #endif
+          #ifdef F_NOTIFY                        /* Linux */
+          case F_NOTIFY:
+          #endif
+          #ifdef F_OPLKACK                       /* IRIX */
+          case F_OPLKACK:
+          #endif
+          #ifdef F_OPLKREG                       /* IRIX */
+          case F_OPLKREG:
+          #endif
+          #ifdef F_RDAHEAD                       /* macOS */
+          case F_RDAHEAD:
+          #endif
+          #ifdef F_SETBACKINGSTORE               /* macOS */
+          case F_SETBACKINGSTORE:
+          #endif
+          #ifdef F_SETCONFINED                   /* macOS */
+          case F_SETCONFINED:
+          #endif
+          #ifdef F_SETFD                         /* POSIX */
+          case F_SETFD:
+          #endif
+          #ifdef F_SETFL                         /* POSIX */
+          case F_SETFL:
+          #endif
+          #ifdef F_SETLEASE                      /* Linux */
+          case F_SETLEASE:
+          #endif
+          #ifdef F_SETNOSIGPIPE                  /* macOS */
+          case F_SETNOSIGPIPE:
+          #endif
+          #ifdef F_SETOWN                        /* POSIX */
+          case F_SETOWN:
+          #endif
+          #ifdef F_SETPIPE_SZ                    /* Linux */
+          case F_SETPIPE_SZ:
+          #endif
+          #ifdef F_SETPROTECTIONCLASS            /* macOS */
+          case F_SETPROTECTIONCLASS:
+          #endif
+          #ifdef F_SETSIG                        /* Linux */
+          case F_SETSIG:
+          #endif
+          #ifdef F_SINGLE_WRITER                 /* macOS */
+          case F_SINGLE_WRITER:
+          #endif
+            /* These actions take an 'int' argument.  */
+            {
+              int x = va_arg (arg, int);
+              result = fcntl (fd, action, x);
+            }
+            break;
+
+          default:
+            /* Other actions take a pointer argument.  */
+            {
+              void *p = va_arg (arg, void *);
+              result = fcntl (fd, action, p);
+            }
+            break;
+          }
 #else
         errno = EINVAL;
 #endif

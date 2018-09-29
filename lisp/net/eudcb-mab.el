@@ -53,7 +53,8 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 
   (let ((fmt-string "%ln:%fn:%p:%e")
 	(mab-buffer (get-buffer-create " *mab contacts*"))
-	(modified (nth 5 (file-attributes eudc-contacts-file)))
+	(modified (file-attribute-modification-time
+		   (file-attributes eudc-contacts-file)))
 	result)
     (with-current-buffer mab-buffer
       (make-local-variable 'eudc-buffer-time)

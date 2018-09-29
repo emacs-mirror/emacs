@@ -70,7 +70,7 @@ to them."
 	    buff func
 	    func args
 	    args efs))
-  (let ((size (nth 7 (file-attributes name))))
+  (let ((size (file-attribute-size (file-attributes name))))
     (with-current-buffer buff
       (goto-char (point-max))
       (if (/= -1 size)

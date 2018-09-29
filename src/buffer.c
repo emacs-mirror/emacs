@@ -4516,23 +4516,6 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
     Lisp_Object *copy;
     ptrdiff_t i;
 
-    if (size)
-      {
-	Lisp_Object ovl
-	  = XVECTOR (last_overlay_modification_hooks)->contents[1];
-
-	/* If the buffer of the first overlay in the array doesn't
-	   match the current buffer, then these modification hooks
-	   should not be run in this buffer.  This could happen when
-	   some code calls some insdel functions, such as del_range_1,
-	   with the PREPARE argument false -- in that case this
-	   function is never called to record the overlay modification
-	   hook functions in the last_overlay_modification_hooks
-	   array, so anything we find there is not ours.  */
-	if (XMARKER (OVERLAY_START (ovl))->buffer != current_buffer)
-	  return;
-      }
-
     USE_SAFE_ALLOCA;
     SAFE_ALLOCA_LISP (copy, size);
     memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
@@ -4543,7 +4526,12 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, bool after,
 	Lisp_Object prop_i, overlay_i;
 	prop_i = copy[i++];
 	overlay_i = copy[i++];
-	call_overlay_mod_hooks (prop_i, overlay_i, after, arg1, arg2, arg3);
+	/* It is possible that the recorded overlay has been deleted
+	   (which makes it's markers' buffers be nil), or that (due to
+	   some bug) it belongs to a different buffer.  Only run this
+	   hook if the overlay belongs to the current buffer.  */
+	if (XMARKER (OVERLAY_START (overlay_i))->buffer == current_buffer)
+	  call_overlay_mod_hooks (prop_i, overlay_i, after, arg1, arg2, arg3);
       }
 
     SAFE_FREE ();
@@ -6022,11 +6010,11 @@ An entry (TEXT . POSITION) represents the deletion of the string TEXT
 from (abs POSITION).  If POSITION is positive, point was at the front
 of the text being deleted; if negative, point was at the end.
 
-An entry (t HIGH LOW USEC PSEC) indicates that the buffer was previously
-unmodified; (HIGH LOW USEC PSEC) is in the same style as (current-time)
-and is the visited file's modification time, as of that time.  If the
-modification time of the most recent save is different, this entry is
-obsolete.
+An entry (t . TIMESTAMP), where TIMESTAMP is in the style of
+`current-time', indicates that the buffer was previously unmodified;
+TIMESTAMP is the visited file's modification time, as of that time.
+If the modification time of the most recent save is different, this
+entry is obsolete.
 
 An entry (t . 0) means the buffer was previously unmodified but
 its time stamp was unknown because it was not associated with a file.

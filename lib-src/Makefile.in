@@ -334,7 +334,7 @@ uninstall:
 	fi
 
 mostlyclean:
-	rm -f core *.o *.res
+	rm -f core ./*.o ./*.res
 
 clean: mostlyclean
 	rm -f ${EXE_FILES}
@@ -345,7 +345,7 @@ distclean: clean
 bootstrap-clean maintainer-clean: distclean
 
 extraclean: maintainer-clean
-	rm -f *~ \#*
+	rm -f ./*~ \#*
 
 ## Test the contents of the directory.
 check:

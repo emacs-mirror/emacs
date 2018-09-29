@@ -242,8 +242,7 @@ key is supported."
 (defun filesets-set-config (fileset var val)
   "Set-default wrapper function."
   (filesets-reset-fileset fileset)
-  (set-default var val))
-;  (customize-set-variable var val))
+  (customize-set-variable var val))
 ;  (filesets-build-menu))
 
 ;; It seems this is a workaround for the XEmacs issue described in the

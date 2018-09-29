@@ -447,7 +447,7 @@ list."
 	  (not (symbol-value timestamp-var))
 	  (time-less-p
 	   (symbol-value timestamp-var)
-	   (nth 5 (file-attributes file))))
+	   (file-attribute-modification-time (file-attributes file))))
       (progn
 	(set result-var (eshell-read-passwd-file file))
 	(set timestamp-var (current-time))))
@@ -501,7 +501,7 @@ list."
 	  (not (symbol-value timestamp-var))
 	  (time-less-p
 	   (symbol-value timestamp-var)
-	   (nth 5 (file-attributes file))))
+	   (file-attribute-modification-time (file-attributes file))))
       (progn
 	(set result-var (eshell-read-hosts-file file))
 	(set timestamp-var (current-time))))

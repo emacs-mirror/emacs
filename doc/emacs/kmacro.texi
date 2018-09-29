@@ -49,15 +49,19 @@ intelligent or general.  For such things, Lisp must be used.
 
 @table @kbd
 @item @key{F3}
+@itemx C-x (
 Start defining a keyboard macro
 (@code{kmacro-start-macro-or-insert-counter}).
 @item @key{F4}
+@itemx C-x e
 If a keyboard macro is being defined, end the definition; otherwise,
 execute the most recent keyboard macro
 (@code{kmacro-end-or-call-macro}).
 @item C-u @key{F3}
+@itemx C-u C-x (
 Re-execute last keyboard macro, then append keys to its definition.
 @item C-u C-u @key{F3}
+@itemx C-u C-u C-x (
 Append keys to the last keyboard macro without re-executing it.
 @item C-x C-k r
 Run the last keyboard macro on each line that begins in the region
