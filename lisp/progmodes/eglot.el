@@ -745,7 +745,29 @@ Doubles as an indicator of snippet support."
 You could add, for instance, the symbol
 `:documentHighlightProvider' to prevent automatic highlighting
 under cursor."
-  :type '(repeat symbol))
+  :type '(repeat
+          (choice
+           (symbol :tag "Other")
+           (const :tag "Documentation on hover" :hoverProvider)
+           (const :tag "Code completion" :completionProvider)
+           (const :tag "Function signature help" :signatureHelpProvider)
+           (const :tag "Go to definition" :definitionProvider)
+           (const :tag "Go to type definition" :typeDefinitionProvider)
+           (const :tag "Go to implementation" :implementationProvider)
+           (const :tag "Find references" :referencesProvider)
+           (const :tag "Highlight symbols automatically" :documentHighlightProvider)
+           (const :tag "List symbols in buffer" :documentSymbolProvider)
+           (const :tag "List symbols in workspace" :workspaceSymbolProvider)
+           (const :tag "Execute code actions" :codeActionProvider)
+           (const :tag "Code lens" :codeLensProvider)
+           (const :tag "Format buffer" :documentFormattingProvider)
+           (const :tag "Format portion of buffer" :documentRangeFormattingProvider)
+           (const :tag "On-type formatting" :documentOnTypeFormattingProvider)
+           (const :tag "Rename symbol" :renameProvider)
+           (const :tag "Highlight links in document" :documentLinkProvider)
+           (const :tag "Decorate color references" :colorProvider)
+           (const :tag "Fold regions of buffer" :foldingRangeProvider)
+           (const :tag "Execute custom commands" :executeCommandProvider))))
 
 (defun eglot--server-capable (&rest feats)
   "Determine if current server is capable of FEATS."
