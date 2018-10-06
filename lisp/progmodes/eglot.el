@@ -1537,23 +1537,41 @@ is not active."
 (defun eglot--sig-info (sigs active-sig active-param)
   (cl-loop
    for (sig . moresigs) on (append sigs nil) for i from 0
-   concat (cl-destructuring-bind (&key label _documentation parameters) sig
-            (let (active-doc)
-              (concat
-               (propertize (replace-regexp-in-string "(.*$" "(" label)
-                           'face 'font-lock-function-name-face)
-               (cl-loop
-                for (param . moreparams) on (append parameters nil) for j from 0
-                concat (cl-destructuring-bind (&key label documentation) param
-                         (when (and (eql j active-param) (eql i active-sig))
-                           (setq label (propertize
-                                        label
-                                        'face 'eldoc-highlight-function-argument))
-                           (when documentation
-                             (setq active-doc (concat label ": " documentation))))
-                         label)
-                if moreparams concat ", " else concat ")")
-               (when active-doc (concat "\n" active-doc)))))
+   concat (cl-destructuring-bind (&key label documentation parameters) sig
+            (with-temp-buffer
+              (save-excursion (insert label))
+              (when (looking-at "\\([^(]+\\)(")
+                (add-face-text-property (match-beginning 1) (match-end 1)
+                                        'font-lock-function-name-face))
+
+              (when (and (stringp documentation) (eql i active-sig)
+                         (string-match "[[:space:]]*\\([^.\r\n]+[.]?\\)"
+                                       documentation))
+                (setq documentation (match-string 1 documentation))
+                (unless (string-prefix-p (string-trim documentation) label)
+                  (goto-char (point-max))
+                  (insert ": " documentation)))
+              (when (and (eql i active-sig) active-param
+                         (< -1 active-param (length parameters)))
+                (cl-destructuring-bind (&key label documentation)
+                    (aref parameters active-param)
+                  (goto-char (point-min))
+                  (let ((case-fold-search nil))
+                    (cl-loop for nmatches from 0
+                             while (and (not (string-empty-p label))
+                                        (search-forward label nil t))
+                             finally do
+                             (when (= 1 nmatches)
+                               (add-face-text-property
+                                (- (point) (length label)) (point)
+                                'eldoc-highlight-function-argument))))
+                  (when documentation
+                    (goto-char (point-max))
+                    (insert "\n"
+                            (propertize
+                             label 'face 'eldoc-highlight-function-argument)
+                            ": " documentation))))
+              (buffer-string)))
    when moresigs concat "\n"))
 
 (defun eglot-help-at-point ()
