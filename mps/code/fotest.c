@@ -67,29 +67,18 @@ static Bool is_failure_our_problem = FALSE;
 
 static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
 {
-  MFS mfs = MustBeA(MFSPool, pool);
-  UNUSED(pReturn);
-  UNUSED(size);
-  if (mfs->extendSelf) {
-    /* This is the MFS block pool belonging to the CBS belonging to
-     * the MVFF or MVT pool under test. */
-    if (is_failure_our_problem) {
-      /* Simulate a failure to enforce the fail-over behaviour. */
-      switch (rnd() % 3) {
-      case 0:
-        return ResRESOURCE;
-      case 1:
-        return ResMEMORY;
-      default:
-        return ResCOMMIT_LIMIT;
-      }
-    } else {
-      /* Failure here is allowed, so succeed (see job004104). */
-      return mfs_alloc(pReturn, pool, size);
+  if (is_failure_our_problem) {
+    /* Simulate a failure to enforce the fail-over behaviour. */
+    switch (rnd() % 3) {
+    case 0:
+      return ResRESOURCE;
+    case 1:
+      return ResMEMORY;
+    default:
+      return ResCOMMIT_LIMIT;
     }
   } else {
-    /* This is the MFS block pool belonging to the arena's free land,
-     * so succeed here (see job004041). */
+    /* Failure here is allowed, so succeed (see job4041 and job004104). */
     return mfs_alloc(pReturn, pool, size);
   }
 }
