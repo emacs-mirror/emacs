@@ -54,10 +54,15 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 /* The original alloc method on the MFS pool. */
 static PoolAllocMethod mfs_alloc;
 
+/* Are we currently in a part of the test that is allowed to fail in the case
+ * where we run out of memory? This controls the behaviour of oomAlloc.
+ */
+static Bool is_failure_our_problem = FALSE;
 
-/* oomAlloc -- allocation function that always fails
+/* oomAlloc -- allocation function that reliably fails
  *
- * Returns a randomly chosen memory error code.
+ * Returns a randomly chosen memory error code if `is_failure_our_problem`.
+ * The point is to verify that none of these errors affects the caller.
  */
 
 static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
@@ -67,15 +72,20 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
   UNUSED(size);
   if (mfs->extendSelf) {
     /* This is the MFS block pool belonging to the CBS belonging to
-     * the MVFF or MVT pool under test, so simulate a failure to
-     * enforce the fail-over behaviour. */
-    switch (rnd() % 3) {
-    case 0:
-      return ResRESOURCE;
-    case 1:
-      return ResMEMORY;
-    default:
-      return ResCOMMIT_LIMIT;
+     * the MVFF or MVT pool under test. */
+    if (is_failure_our_problem) {
+      /* Simulate a failure to enforce the fail-over behaviour. */
+      switch (rnd() % 3) {
+      case 0:
+        return ResRESOURCE;
+      case 1:
+        return ResMEMORY;
+      default:
+        return ResCOMMIT_LIMIT;
+      }
+    } else {
+      /* Failure here is allowed, so succeed (see job004104). */
+      return mfs_alloc(pReturn, pool, size);
     }
   } else {
     /* This is the MFS block pool belonging to the arena's free land,
@@ -124,12 +134,14 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
     /* free half of the objects */
     /* upper half, as when allocating them again we want smaller objects */
     /* see randomSize() */
+    is_failure_our_problem = TRUE;
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       mps_free(pool, (mps_addr_t)ps[i], ss[i]);
       /* if (i == testSetSIZE/2) */
       /*   PoolDescribe((Pool)pool, mps_lib_stdout); */
     }
     /* allocate some new objects */
+    is_failure_our_problem = FALSE;
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       mps_addr_t obj;
       ss[i] = (*size)(i, alignment);
