@@ -736,7 +736,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
     return res;
   chunkSize = vmArena->extendBy;
 
-  EVENT3(vmArenaExtendStart, size, chunkSize, ArenaReserved(arena));
+  EVENT3(VMArenaExtendStart, size, chunkSize, ArenaReserved(arena));
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   {
@@ -758,7 +758,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
       /* remove slices, down to chunkHalf but no further */
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
         if(chunkSize < chunkMin) {
-          EVENT2(vmArenaExtendFail, chunkMin, ArenaReserved(arena));
+          EVENT2(VMArenaExtendFail, chunkMin, ArenaReserved(arena));
           return res;
         }
         res = VMChunkCreate(&newChunk, vmArena, chunkSize);
@@ -769,7 +769,7 @@ static Res VMArenaGrow(Arena arena, LocusPref pref, Size size)
   }
   
 vmArenaGrow_Done:
-  EVENT2(vmArenaExtendDone, chunkSize, ArenaReserved(arena));
+  EVENT2(VMArenaExtendDone, chunkSize, ArenaReserved(arena));
   vmArena->extended(arena,
                     newChunk->base,
                     AddrOffset(newChunk->base, newChunk->limit));

@@ -1385,7 +1385,7 @@ static Res amcSegScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
     refset = ScanStateSummary(ss);
 
     /* A rare event, which might prompt a rare defect to appear. */
-    EVENT6(amcScanNailed, loops, SegSummary(seg), ScanStateWhite(ss), 
+    EVENT6(AMCScanNailed, loops, SegSummary(seg), ScanStateWhite(ss), 
            ScanStateUnfixedSummary(ss), ss->fixedSummary, refset);
   
     ScanStateSetSummary(ss, refset);
