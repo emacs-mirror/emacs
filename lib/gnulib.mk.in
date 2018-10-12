@@ -44,6 +44,7 @@
 #  --avoid=malloc-posix \
 #  --avoid=mbrtowc \
 #  --avoid=mbsinit \
+#  --avoid=mkdir \
 #  --avoid=msvc-inval \
 #  --avoid=msvc-nothrow \
 #  --avoid=nl_langinfo \

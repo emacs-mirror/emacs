@@ -834,6 +834,12 @@ See `run-hooks'."
   :type 'hook
   :group 'vc)
 
+(defcustom vc-retrieve-tag-hook nil
+  "Normal hook (list of functions) run after retrieving a tag."
+  :type 'hook
+  :group 'vc
+  :version "27.1")
+
 (defcustom vc-revert-show-diff t
   "If non-nil, `vc-revert' shows a `vc-diff' buffer before querying."
   :type 'boolean
@@ -1536,8 +1542,7 @@ The optional argument REV may be a string specifying the new revision
 level (only supported for some older VCSes, like RCS and CVS).
 
 Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
-  (when vc-before-checkin-hook
-    (run-hooks 'vc-before-checkin-hook))
+  (run-hooks 'vc-before-checkin-hook)
   (vc-start-logentry
    files comment initial-contents
    "Enter a change comment."
@@ -2154,7 +2159,8 @@ otherwise use the repository root of the current buffer.
 If NAME is empty, it refers to the latest revisions of the current branch.
 If locking is used for the files in DIR, then there must not be any
 locked files at or below DIR (but if NAME is empty, locked files are
-allowed and simply skipped)."
+allowed and simply skipped).
+This function runs the hook `vc-retrieve-tag-hook' when finished."
   (interactive
    (let* ((granularity
            (vc-call-backend (vc-responsible-backend default-directory)
@@ -2181,6 +2187,7 @@ allowed and simply skipped)."
     (vc-call-backend (vc-responsible-backend dir)
 		     'retrieve-tag dir name update)
     (vc-resynch-buffer dir t t t)
+    (run-hooks 'vc-retrieve-tag-hook)
     (message "%s" (concat msg "done"))))
 
 

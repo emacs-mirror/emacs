@@ -2354,12 +2354,14 @@ character_name_to_code (char const *name, ptrdiff_t name_len)
 {
   /* For "U+XXXX", pass the leading '+' to string_to_number to reject
      monstrosities like "U+-0000".  */
+  ptrdiff_t len = name_len - 1;
   Lisp_Object code
     = (name[0] == 'U' && name[1] == '+'
-       ? string_to_number (name + 1, 16, 0)
+       ? string_to_number (name + 1, 16, &len)
        : call2 (Qchar_from_name, make_unibyte_string (name, name_len), Qt));
 
   if (! RANGED_FIXNUMP (0, code, MAX_UNICODE_CHAR)
+      || len != name_len - 1
       || char_surrogate_p (XFIXNUM (code)))
     {
       AUTO_STRING (format, "\\N{%s}");
@@ -3531,12 +3533,14 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		   || strchr ("\"';()[]#`,", c) == NULL));
 
 	*p = 0;
+	ptrdiff_t nbytes = p - read_buffer;
 	UNREAD (c);
 
 	if (!quoted && !uninterned_symbol)
 	  {
-	    Lisp_Object result = string_to_number (read_buffer, 10, 0);
-	    if (! NILP (result))
+	    ptrdiff_t len;
+	    Lisp_Object result = string_to_number (read_buffer, 10, &len);
+	    if (! NILP (result) && len == nbytes)
 	      return unbind_to (count, result);
 	  }
         if (!quoted && multibyte)
@@ -3548,7 +3552,6 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
           }
 	{
 	  Lisp_Object result;
-	  ptrdiff_t nbytes = p - read_buffer;
 	  ptrdiff_t nchars
 	    = (multibyte
 	       ? multibyte_chars_in_text ((unsigned char *) read_buffer,
@@ -3700,18 +3703,18 @@ substitute_in_interval (INTERVAL interval, void *arg)
 }
 
 
-/* Convert STRING to a number, assuming base BASE.  When STRING has
-   floating point syntax and BASE is 10, return a nearest float.  When
-   STRING has integer syntax, return a fixnum if the integer fits, or
-   else a bignum.  Otherwise, return nil.  If FLAGS &
-   S2N_IGNORE_TRAILING is nonzero, consider just the longest prefix of
-   STRING that has valid syntax.  */
+/* Convert the initial prefix of STRING to a number, assuming base BASE.
+   If the prefix has floating point syntax and BASE is 10, return a
+   nearest float; otherwise, if the prefix has integer syntax, return
+   the integer; otherwise, return nil.  If PLEN, set *PLEN to the
+   length of the numeric prefix if there is one, otherwise *PLEN is
+   unspecified.  */
 
 Lisp_Object
-string_to_number (char const *string, int base, int flags)
+string_to_number (char const *string, int base, ptrdiff_t *plen)
 {
   char const *cp = string;
-  bool float_syntax = 0;
+  bool float_syntax = false;
   double value = 0;
 
   /* Negate the value ourselves.  This treats 0, NaNs, and infinity properly on
@@ -3797,49 +3800,46 @@ string_to_number (char const *string, int base, int flags)
 		      || (state & ~INTOVERFLOW) == (LEAD_INT|E_EXP));
     }
 
-  /* Return nil if the number uses invalid syntax.  If FLAGS &
-     S2N_IGNORE_TRAILING, accept any prefix that matches.  Otherwise,
-     the entire string must match.  */
-  if (! (flags & S2N_IGNORE_TRAILING
-	 ? ((state & LEAD_INT) != 0 || float_syntax)
-	 : (!*cp && ((state & ~(INTOVERFLOW | DOT_CHAR)) == LEAD_INT
-		     || float_syntax))))
-    return Qnil;
+  if (plen)
+    *plen = cp - string;
 
-  /* If the number uses integer and not float syntax, and is in C-language
-     range, use its value, preferably as a fixnum.  */
-  if (leading_digit >= 0 && ! float_syntax)
+  /* Return a float if the number uses float syntax.  */
+  if (float_syntax)
     {
-      if ((state & INTOVERFLOW) == 0
-	  && n <= (negative ? -MOST_NEGATIVE_FIXNUM : MOST_POSITIVE_FIXNUM))
-	{
-	  EMACS_INT signed_n = n;
-	  return make_fixnum (negative ? -signed_n : signed_n);
-	}
-
-      /* Trim any leading "+" and trailing nondigits, then convert to
-	 bignum.  */
-      string += positive;
-      if (!*after_digits)
-	return make_bignum_str (string, base);
-      ptrdiff_t trimmed_len = after_digits - string;
-      USE_SAFE_ALLOCA;
-      char *trimmed = SAFE_ALLOCA (trimmed_len + 1);
-      memcpy (trimmed, string, trimmed_len);
-      trimmed[trimmed_len] = '\0';
-      Lisp_Object result = make_bignum_str (trimmed, base);
-      SAFE_FREE ();
-      return result;
+      /* Convert to floating point, unless the value is already known
+	 because it is infinite or a NaN.  */
+      if (! value)
+	value = atof (string + signedp);
+      return make_float (negative ? -value : value);
     }
 
-  /* Either the number uses float syntax, or it does not fit into a fixnum.
-     Convert it from string to floating point, unless the value is already
-     known because it is an infinity, a NAN, or its absolute value fits in
-     uintmax_t.  */
-  if (! value)
-    value = atof (string + signedp);
+  /* Return nil if the number uses invalid syntax.  */
+  if (! (state & LEAD_INT))
+    return Qnil;
 
-  return make_float (negative ? -value : value);
+  /* Fast path if the integer (san sign) fits in uintmax_t.  */
+  if (! (state & INTOVERFLOW))
+    {
+      if (!negative)
+	return make_uint (n);
+      if (-MOST_NEGATIVE_FIXNUM < n)
+	return make_neg_biguint (n);
+      EMACS_INT signed_n = n;
+      return make_fixnum (-signed_n);
+    }
+
+  /* Trim any leading "+" and trailing nondigits, then return a bignum.  */
+  string += positive;
+  if (!*after_digits)
+    return make_bignum_str (string, base);
+  ptrdiff_t trimmed_len = after_digits - string;
+  USE_SAFE_ALLOCA;
+  char *trimmed = SAFE_ALLOCA (trimmed_len + 1);
+  memcpy (trimmed, string, trimmed_len);
+  trimmed[trimmed_len] = '\0';
+  Lisp_Object result = make_bignum_str (trimmed, base);
+  SAFE_FREE ();
+  return result;
 }
 
 

@@ -332,13 +332,17 @@ pass to the OPERATION."
 	      (tramp-archive-run-real-handler operation args)))))))
 
 ;;;###autoload
+(defalias
+  'tramp-archive-autoload-file-name-handler 'tramp-autoload-file-name-handler)
+
+;;;###autoload
 (progn (defun tramp-register-archive-file-name-handler ()
   "Add archive file name handler to `file-name-handler-alist'."
   (when tramp-archive-enabled
     (add-to-list 'file-name-handler-alist
 	         (cons (tramp-archive-autoload-file-name-regexp)
-		       'tramp-autoload-file-name-handler))
-    (put 'tramp-archive-file-name-handler 'safe-magic t))))
+		       'tramp-archive-autoload-file-name-handler))
+    (put 'tramp-archive-autoload-file-name-handler 'safe-magic t))))
 
 ;;;###autoload
 (progn

@@ -17,11 +17,13 @@ one comes earlier in the text; each time you move point, the region
 changes.
 
 @cindex active region
+@cindex activating the mark
   Setting the mark at a position in the text also @dfn{activates} it.
 When the mark is active, we say also that the region is active; Emacs
 indicates its extent by highlighting the text within it, using the
 @code{region} face (@pxref{Face Customization}).
 
+@cindex deactivating the mark
   After certain non-motion commands, including any command that
 changes the text in the buffer, Emacs automatically @dfn{deactivates}
 the mark; this turns off the highlighting.  You can also explicitly

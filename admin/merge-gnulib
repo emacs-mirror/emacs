@@ -47,7 +47,7 @@ GNULIB_MODULES='
 
 AVOIDED_MODULES='
   btowc close dup fchdir fstat langinfo lock
-  malloc-posix mbrtowc mbsinit msvc-inval msvc-nothrow nl_langinfo
+  malloc-posix mbrtowc mbsinit mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir raise
   save-cwd select setenv sigprocmask stat stdarg stdbool
   threadlib tzset unsetenv utime utime-h

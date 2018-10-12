@@ -57,17 +57,11 @@
 
 (defun timer--time-setter (timer time)
   (timer--check timer)
-  (setf (timer--high-seconds timer) (pop time))
-  (let ((low time) (usecs 0) (psecs 0))
-    (when (consp time)
-      (setq low (pop time))
-      (when time
-        (setq usecs (pop time))
-        (when time
-          (setq psecs (car time)))))
-    (setf (timer--low-seconds timer) low)
-    (setf (timer--usecs timer) usecs)
-    (setf (timer--psecs timer) psecs)
+  (let ((lt (encode-time time 'list)))
+    (setf (timer--high-seconds timer) (nth 0 lt))
+    (setf (timer--low-seconds timer) (nth 1 lt))
+    (setf (timer--usecs timer) (nth 2 lt))
+    (setf (timer--psecs timer) (nth 3 lt))
     time))
 
 ;; Pseudo field `time'.
@@ -102,24 +96,14 @@ fire each time Emacs is idle for that many seconds."
   "Yield the next value after TIME that is an integral multiple of SECS.
 More precisely, the next value, after TIME, that is an integral multiple
 of SECS seconds since the epoch.  SECS may be a fraction."
-  (let* ((trillion 1000000000000)
-	 (time-sec (+ (nth 1 time)
-		      (* 65536 (nth 0 time))))
-	 (delta-sec (mod (- time-sec) secs))
-	 (next-sec (+ time-sec (floor delta-sec)))
-	 (next-sec-psec (floor (* trillion (mod delta-sec 1))))
-	 (sub-time-psec (+ (or (nth 3 time) 0)
-			   (* 1000000 (nth 2 time))))
-	 (psec-diff (- sub-time-psec next-sec-psec)))
-    (if (and (<= next-sec time-sec) (< 0 psec-diff))
-	(setq next-sec-psec (+ sub-time-psec
-			       (mod (- psec-diff) (* trillion secs)))))
-    (setq next-sec (+ next-sec (floor next-sec-psec trillion)))
-    (setq next-sec-psec (mod next-sec-psec trillion))
-    (list (floor next-sec 65536)
-	  (floor (mod next-sec 65536))
-	  (floor next-sec-psec 1000000)
-	  (floor (mod next-sec-psec 1000000)))))
+  (let* ((ticks-hz (if (and (consp time) (integerp (car time))
+			    (integerp (cdr time)) (< 0 (cdr time)))
+		       time
+		     (encode-time time 1000000000000)))
+	 (hz (cdr ticks-hz))
+	 (s-ticks (* secs hz))
+	 (more-ticks (+ (car ticks-hz) s-ticks)))
+    (encode-time (cons (- more-ticks (% more-ticks s-ticks)) hz))))
 
 (defun timer-relative-time (time secs &optional usecs psecs)
   "Advance TIME by SECS seconds and optionally USECS microseconds

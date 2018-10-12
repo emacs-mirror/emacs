@@ -83,7 +83,6 @@
 expiring.  Overrides `password-cache-expiry' through a
 let-binding."
   :version "24.1"
-  :group 'auth-source
   :type '(choice (const :tag "Never" nil)
                  (const :tag "All Day" 86400)
                  (const :tag "2 Hours" 7200)
@@ -139,7 +138,6 @@ let-binding."
                                    (smtp "smtp" "25"))
   "List of authentication protocols and their names"
 
-  :group 'auth-source
   :version "23.2" ;; No Gnus
   :type '(repeat :tag "Authentication Protocols"
                  (cons :tag "Protocol Entry"
@@ -168,7 +166,6 @@ let-binding."
 
 (defcustom auth-source-save-behavior 'ask
   "If set, auth-source will respect it for save behavior."
-  :group 'auth-source
   :version "23.2" ;; No Gnus
   :type `(choice
           :tag "auth-source new token save behavior"
@@ -183,7 +180,6 @@ let-binding."
   "Set this to tell auth-source when to create GPG password
 tokens in netrc files.  It's either an alist or `never'.
 Note that if EPA/EPG is not available, this should NOT be used."
-  :group 'auth-source
   :version "23.2" ;; No Gnus
   :type `(choice
           (const :tag "Always use GPG password tokens" (t gpg))
@@ -203,7 +199,6 @@ Note that if EPA/EPG is not available, this should NOT be used."
 
 (defcustom auth-source-do-cache t
   "Whether auth-source should cache information with `password-cache'."
-  :group 'auth-source
   :version "23.2" ;; No Gnus
   :type `boolean)
 
@@ -218,7 +213,6 @@ for passwords).
 
 If the value is a function, debug messages are logged by calling
  that function using the same arguments as `message'."
-  :group 'auth-source
   :version "23.2" ;; No Gnus
   :type `(choice
           :tag "auth-source debugging mode"
@@ -241,7 +235,6 @@ for details.
 
 It's best to customize this with `\\[customize-variable]' because the choices
 can get pretty complex."
-  :group 'auth-source
   :version "26.1" ; neither new nor changed default
   :type `(repeat :tag "Authentication Sources"
                  (choice
@@ -311,7 +304,6 @@ can get pretty complex."
 (defcustom auth-source-gpg-encrypt-to t
   "List of recipient keys that `authinfo.gpg' encrypted to.
 If the value is not a list, symmetric encryption will be used."
-  :group 'auth-source
   :version "24.1" ;; No Gnus
   :type '(choice (const :tag "Symmetric encryption" t)
                  (repeat :tag "Recipient public keys"
@@ -363,10 +355,9 @@ soon as a function returns non-nil.")
 (defun auth-source-backend-parse (entry)
   "Create an auth-source-backend from an ENTRY in `auth-sources'."
 
-  (let (backend)
-    (cl-dolist (f auth-source-backend-parser-functions)
-      (when (setq backend (funcall f entry))
-        (cl-return)))
+  (let ((backend
+         (run-hook-with-args-until-success 'auth-source-backend-parser-functions
+                                           entry)))
 
     (unless backend
       ;; none of the parsers worked
@@ -416,7 +407,7 @@ soon as a function returns non-nil.")
          :create-function #'auth-source-netrc-create))))))
 
 ;; Note this function should be last in the parser functions, so we add it first
-(add-hook 'auth-source-backend-parser-functions 'auth-source-backends-parser-file)
+(add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-file)
 
 (defun auth-source-backends-parser-macos-keychain (entry)
   ;; take macos-keychain-{internet,generic}:XYZ and use it as macOS
@@ -463,7 +454,7 @@ soon as a function returns non-nil.")
        :search-function #'auth-source-macos-keychain-search
        :create-function #'auth-source-macos-keychain-create)))))
 
-(add-hook 'auth-source-backend-parser-functions 'auth-source-backends-parser-macos-keychain)
+(add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-macos-keychain)
 
 (defun auth-source-backends-parser-secrets (entry)
   ;; take secrets:XYZ and use it as Secrets API collection "XYZ"
@@ -510,7 +501,7 @@ soon as a function returns non-nil.")
          :source ""
          :type 'ignore))))))
 
-(add-hook 'auth-source-backend-parser-functions 'auth-source-backends-parser-secrets)
+(add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-secrets)
 
 (defun auth-source-backend-parse-parameters (entry backend)
   "Fills in the extra auth-source-backend parameters of ENTRY.
@@ -528,7 +519,7 @@ parameters."
       (oset backend port val)))
   backend)
 
-;; (mapcar 'auth-source-backend-parse auth-sources)
+;; (mapcar #'auth-source-backend-parse auth-sources)
 
 (cl-defun auth-source-search (&rest spec
                               &key max require create delete
@@ -2176,8 +2167,8 @@ entries for git.gnus.org:
         (plstore-save (oref backend data)))))
 
 ;;; Backend specific parsing: JSON backend
-;;; (auth-source-search :max 1 :machine "imap.gmail.com")
-;;; (auth-source-search :max 1 :host '("my-gmail" "imap.gmail.com") :port '(993 "imaps" "imap" "993" "143") :user nil :require '(:user :secret))
+;; (auth-source-search :max 1 :machine "imap.gmail.com")
+;; (auth-source-search :max 1 :host '("my-gmail" "imap.gmail.com") :port '(993 "imaps" "imap" "993" "143") :user nil :require '(:user :secret))
 
 (defun auth-source-json-check (host user port require item)
   (and item

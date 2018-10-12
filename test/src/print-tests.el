@@ -95,8 +95,20 @@ otherwise, use a different charset."
                      "--------\n"))))
 
 (ert-deftest print-read-roundtrip ()
-  (let ((sym '\’bar))
-    (should (eq (read (prin1-to-string sym)) sym))))
+  (let ((syms (list '## '& '* '+ '- '/ '0E '0e '< '= '> 'E 'E0 'NaN '\"
+                    '\# '\#x0 '\' '\'\' '\( '\) '\+00 '\, '\-0 '\. '\.0
+                    '\0 '\0.0 '\0E0 '\0e0 '\1E+ '\1E+NaN '\1e+ '\1e+NaN
+                    '\; '\? '\[ '\\ '\] '\` '_ 'a 'e 'e0 'x
+                    '{ '| '} '~ : '\’ '\’bar
+                    (intern "\t") (intern "\n") (intern " ")
+                    (intern "\N{NO-BREAK SPACE}")
+                    (intern "\N{ZERO WIDTH SPACE}")
+                    (intern "\0"))))
+    (dolist (sym syms)
+      (should (eq (read (prin1-to-string sym)) sym))
+      (dolist (sym1 syms)
+        (let ((sym2 (intern (concat (symbol-name sym) (symbol-name sym1)))))
+          (should (eq (read (prin1-to-string sym2)) sym2)))))))
 
 (ert-deftest print-bignum ()
   (let* ((str "999999999999999999999999999999999")

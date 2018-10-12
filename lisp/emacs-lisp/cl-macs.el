@@ -1779,7 +1779,24 @@ such that COMBO is equivalent to (and . CLAUSES)."
 
 ;;;###autoload
 (defmacro cl-do (steps endtest &rest body)
-  "The Common Lisp `do' loop.
+  "Bind variables and run BODY forms until END-TEST returns non-nil.
+First, each VAR is bound to the associated INIT value as if by a `let' form.
+Then, in each iteration of the loop, the END-TEST is evaluated; if true,
+the loop is finished.  Otherwise, the BODY forms are evaluated, then each
+VAR is set to the associated STEP expression (as if by a `cl-psetq' form)
+and the next iteration begins.
+
+Once the END-TEST becomes true, the RESULT forms are evaluated (with
+the VARs still bound to their values) to produce the result
+returned by `cl-do'.
+
+Note that the entire loop is enclosed in an implicit `nil' block, so
+that you can use `cl-return' to exit at any time.
+
+Also note that END-TEST is checked before evaluating BODY.  If END-TEST
+is initially non-nil, `cl-do' will exit without running BODY.
+
+For more details, see `cl-do' description in Info node `(cl) Iteration'.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (declare (indent 2)
@@ -1791,7 +1808,25 @@ such that COMBO is equivalent to (and . CLAUSES)."
 
 ;;;###autoload
 (defmacro cl-do* (steps endtest &rest body)
-  "The Common Lisp `do*' loop.
+  "Bind variables and run BODY forms until END-TEST returns non-nil.
+First, each VAR is bound to the associated INIT value as if by a `let*' form.
+Then, in each iteration of the loop, the END-TEST is evaluated; if true,
+the loop is finished.  Otherwise, the BODY forms are evaluated, then each
+VAR is set to the associated STEP expression (as if by a `setq'
+form) and the next iteration begins.
+
+Once the END-TEST becomes true, the RESULT forms are evaluated (with
+the VARs still bound to their values) to produce the result
+returned by `cl-do*'.
+
+Note that the entire loop is enclosed in an implicit `nil' block, so
+that you can use `cl-return' to exit at any time.
+
+Also note that END-TEST is checked before evaluating BODY.  If END-TEST
+is initially non-nil, `cl-do*' will exit without running BODY.
+
+This is to `cl-do' what `let*' is to `let'.
+For more details, see `cl-do*' description in Info node `(cl) Iteration'.
 
 \(fn ((VAR INIT [STEP])...) (END-TEST [RESULT...]) BODY...)"
   (declare (indent 2) (debug cl-do))

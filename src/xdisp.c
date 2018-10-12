@@ -842,7 +842,7 @@ static Lisp_Object redisplay_window_1 (Lisp_Object);
 static bool set_cursor_from_row (struct window *, struct glyph_row *,
 				 struct glyph_matrix *, ptrdiff_t, ptrdiff_t,
 				 int, int);
-static bool cursor_row_fully_visible_p (struct window *, bool, bool);
+static bool cursor_row_fully_visible_p (struct window *, bool, bool, bool);
 static bool update_menu_bar (struct frame *, bool, bool);
 static bool try_window_reusing_current_matrix (struct window *);
 static int try_window_id (struct window *);
@@ -14346,7 +14346,7 @@ redisplay_internal (void)
 	      eassert (this_line_vpos == it.vpos);
 	      eassert (this_line_y == it.current_y);
 	      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-	      if (cursor_row_fully_visible_p (w, false, true))
+	      if (cursor_row_fully_visible_p (w, false, true, false))
 		{
 #ifdef GLYPH_DEBUG
 		  *w->desired_matrix->method = 0;
@@ -15628,19 +15628,46 @@ run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
    window's current glyph matrix; otherwise use the desired glyph
    matrix.
 
+   If JUST_TEST_USER_PREFERENCE_P, just test what the value of
+   make-cursor-row-fully-visible requires, don't test the actual
+   cursor position.  The assumption is that in that case the caller
+   performs the necessary testing of the cursor position.
+
    A value of false means the caller should do scrolling
    as if point had gone off the screen.  */
 
 static bool
 cursor_row_fully_visible_p (struct window *w, bool force_p,
-			    bool current_matrix_p)
+			    bool current_matrix_p,
+			    bool just_test_user_preference_p)
 {
   struct glyph_matrix *matrix;
   struct glyph_row *row;
   int window_height;
+  Lisp_Object mclfv_p =
+    buffer_local_value (Qmake_cursor_line_fully_visible, w->contents);
 
-  if (!make_cursor_line_fully_visible_p)
+  /* If no local binding, use the global value.  */
+  if (EQ (mclfv_p, Qunbound))
+    mclfv_p = Vmake_cursor_line_fully_visible;
+  /* Follow mode sets the variable to a Lisp function in buffers that
+     are under Follow mode.  */
+  if (FUNCTIONP (mclfv_p))
+    {
+      Lisp_Object window;
+      XSETWINDOW (window, w);
+      /* Implementation note: if the function we call here signals an
+	 error, we will NOT scroll when the cursor is partially-visible.  */
+      Lisp_Object val = safe_call1 (mclfv_p, window);
+      if (NILP (val))
+	return true;
+      else if (just_test_user_preference_p)
+	return false;
+    }
+  else if (NILP (mclfv_p))
     return true;
+  else if (just_test_user_preference_p)
+    return false;
 
   /* It's not always possible to find the cursor, e.g, when a window
      is full of overlay strings.  Don't do anything in that case.  */
@@ -16002,7 +16029,7 @@ try_scrolling (Lisp_Object window, bool just_this_one_p,
       /* If cursor ends up on a partially visible line,
 	 treat that as being off the bottom of the screen.  */
       if (! cursor_row_fully_visible_p (w, extra_scroll_margin_lines <= 1,
-					false)
+					false, false)
 	  /* It's possible that the cursor is on the first line of the
 	     buffer, which is partially obscured due to a vscroll
 	     (Bug#7537).  In that case, avoid looping forever. */
@@ -16367,7 +16394,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 	      /* Make sure this isn't a header line by any chance, since
 		 then MATRIX_ROW_PARTIALLY_VISIBLE_P might yield true.  */
 	      && !row->mode_line_p
-	      && make_cursor_line_fully_visible_p)
+	      && !cursor_row_fully_visible_p (w, true, true, true))
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
 		  && !row->ends_at_zv_p
@@ -16385,7 +16412,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
 	      else
 		{
 		  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-		  if (!cursor_row_fully_visible_p (w, false, true))
+		  if (!cursor_row_fully_visible_p (w, false, true, false))
 		    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 		  else
 		    rc = CURSOR_MOVEMENT_SUCCESS;
@@ -16964,7 +16991,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	    new_vpos = window_box_height (w) / 2;
 	}
 
-      if (!cursor_row_fully_visible_p (w, false, false))
+      if (!cursor_row_fully_visible_p (w, false, false, false))
 	{
 	  /* Point does appear, but on a line partly visible at end of window.
 	     Move it back to a fully-visible line.  */
@@ -17059,7 +17086,8 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 		goto need_larger_matrices;
 	    }
 	}
-      if (w->cursor.vpos < 0 || !cursor_row_fully_visible_p (w, false, false))
+      if (w->cursor.vpos < 0
+	  || !cursor_row_fully_visible_p (w, false, false, false))
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  goto try_to_scroll;
@@ -17206,7 +17234,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 	    /* Forget any recorded base line for line number display.  */
 	    w->base_line_number = 0;
 
-	  if (!cursor_row_fully_visible_p (w, true, false))
+	  if (!cursor_row_fully_visible_p (w, true, false, false))
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      last_line_misfit = true;
@@ -17502,7 +17530,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
       set_cursor_from_row (w, row, matrix, 0, 0, 0, 0);
     }
 
-  if (!cursor_row_fully_visible_p (w, false, false))
+  if (!cursor_row_fully_visible_p (w, false, false, false))
     {
       /* If vscroll is enabled, disable it and try again.  */
       if (w->vscroll)
@@ -19068,9 +19096,10 @@ try_window_id (struct window *w)
 	 && CHARPOS (start) > BEGV)
 	/* Old redisplay didn't take scroll margin into account at the bottom,
 	   but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
-	|| (w->cursor.y + (make_cursor_line_fully_visible_p
-			   ? cursor_height + this_scroll_margin
-			   : 1)) > it.last_visible_y)
+	|| (w->cursor.y
+	    + (cursor_row_fully_visible_p (w, false, true, true)
+	       ? 1
+	       : cursor_height + this_scroll_margin)) > it.last_visible_y)
       {
 	w->cursor.vpos = -1;
 	clear_glyph_matrix (w->desired_matrix);
@@ -32903,9 +32932,15 @@ automatically; to decrease the tool-bar height, use \\[recenter].  */);
     doc: /* Non-nil means raise tool-bar buttons when the mouse moves over them.  */);
   auto_raise_tool_bar_buttons_p = true;
 
-  DEFVAR_BOOL ("make-cursor-line-fully-visible", make_cursor_line_fully_visible_p,
-    doc: /* Non-nil means to scroll (recenter) cursor line if it is not fully visible.  */);
-  make_cursor_line_fully_visible_p = true;
+  DEFVAR_LISP ("make-cursor-line-fully-visible", Vmake_cursor_line_fully_visible,
+    doc: /* Whether to scroll the window if the cursor line is not fully visible.
+If the value is non-nil, Emacs scrolls or recenters the window to make
+the cursor line fully visible.  The value could also be a function, which
+is called with a single argument, the window to be scrolled, and should
+return non-nil if the partially-visible cursor requires scrolling the
+window, nil if it's okay to leave the cursor partially-visible.  */);
+  Vmake_cursor_line_fully_visible = Qt;
+  DEFSYM (Qmake_cursor_line_fully_visible, "make-cursor-line-fully-visible");
 
   DEFVAR_LISP ("tool-bar-border", Vtool_bar_border,
     doc: /* Border below tool-bar in pixels.

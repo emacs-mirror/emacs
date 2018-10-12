@@ -251,7 +251,8 @@ have been saved."
 		     (lambda (s1 s2)
 		       (string< (symbol-name s1)
 				(symbol-name s2)))))
-	(insert-abbrev-table-description table nil))
+	(if (abbrev--table-symbols table)
+            (insert-abbrev-table-description table nil)))
       (when (unencodable-char-position (point-min) (point-max) 'utf-8)
 	(setq coding-system-for-write
 	      (if (> emacs-major-version 24)
@@ -937,33 +938,38 @@ is inserted.
 If READABLE is nil, an expression is inserted.  The expression is
 a call to `define-abbrev-table' that when evaluated will define
 the abbrev table NAME exactly as it is currently defined.
-Abbrevs marked as \"system abbrevs\" are ignored.  If the
-resulting expression would not define any abbrevs, nothing is
-inserted."
+Abbrevs marked as \"system abbrevs\" are ignored."
+  (let ((table (symbol-value name))
+        (symbols (abbrev--table-symbols name readable)))
+    (setq symbols (sort symbols 'string-lessp))
+    (let ((standard-output (current-buffer)))
+      (if readable
+          (progn
+            (insert "(")
+            (prin1 name)
+            (insert ")\n\n")
+            (mapc 'abbrev--describe symbols)
+            (insert "\n\n"))
+        (insert "(define-abbrev-table '")
+        (prin1 name)
+        (if (null symbols)
+            (insert " '())\n\n")
+          (insert "\n  '(\n")
+          (mapc 'abbrev--write symbols)
+          (insert "   ))\n\n")))
+      nil)))
+
+(defun abbrev--table-symbols (name &optional system)
+  "Return the user abbrev symbols in the abbrev table named NAME.
+NAME is a symbol whose value is an abbrev table.  System abbrevs
+are omitted unless SYSTEM is non-nil."
   (let ((table (symbol-value name))
         (symbols ()))
     (mapatoms (lambda (sym)
-                (if (and (symbol-value sym) (or readable (not (abbrev-get sym :system))))
+                (if (and (symbol-value sym) (or system (not (abbrev-get sym :system))))
                     (push sym symbols)))
               table)
-    (when symbols
-      (setq symbols (sort symbols 'string-lessp))
-      (let ((standard-output (current-buffer)))
-        (if readable
-            (progn
-              (insert "(")
-              (prin1 name)
-              (insert ")\n\n")
-              (mapc 'abbrev--describe symbols)
-              (insert "\n\n"))
-          (insert "(define-abbrev-table '")
-          (prin1 name)
-          (if (null symbols)
-              (insert " '())\n\n")
-            (insert "\n  '(\n")
-            (mapc 'abbrev--write symbols)
-            (insert "   ))\n\n")))
-        nil))))
+    symbols))
 
 (defun define-abbrev-table (tablename definitions
                                       &optional docstring &rest props)

@@ -6833,7 +6833,7 @@ See `display-buffer' for details.")
 (put 'display-buffer-overriding-action 'risky-local-variable t)
 
 (defcustom display-buffer-alist nil
-  "Alist of uder-defined conditional actions for `display-buffer'.
+  "Alist of user-defined conditional actions for `display-buffer'.
 Its value takes effect before `display-buffer-base-action'
 and `display-buffer-fallback-action', but after
 `display-buffer-overriding-action', which see.

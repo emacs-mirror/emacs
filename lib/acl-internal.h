@@ -30,7 +30,8 @@
 # define GETACLCNT ACL_CNT
 #endif
 
-/* On Linux, additional ACL related API is available in <acl/libacl.h>.  */
+/* On Linux and Cygwin >= 2.5, additional ACL related API is available in
+   <acl/libacl.h>.  */
 #ifdef HAVE_ACL_LIBACL_H
 # include <acl/libacl.h>
 #endif
@@ -72,7 +73,7 @@ _GL_INLINE_HEADER_BEGIN
 
 # if HAVE_ACL_GET_FILE
 /* POSIX 1003.1e (draft 17 -- abandoned) specific version.  */
-/* Linux, FreeBSD, Mac OS X, IRIX, Tru64 */
+/* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
 
 #  ifndef MIN_ACL_ENTRIES
 #   define MIN_ACL_ENTRIES 4
@@ -122,7 +123,10 @@ rpl_acl_set_fd (int fd, acl_t acl)
 #  endif
 
 /* Linux-specific */
-#  ifndef HAVE_ACL_EXTENDED_FILE
+/* Cygwin >= 2.5 implements this function, but it returns 1 for all
+   directories, thus is unusable.  */
+#  if !defined HAVE_ACL_EXTENDED_FILE || defined __CYGWIN__
+#   undef HAVE_ACL_EXTENDED_FILE
 #   define HAVE_ACL_EXTENDED_FILE false
 #   define acl_extended_file(name) (-1)
 #  endif
@@ -163,7 +167,7 @@ extern int acl_access_nontrivial (acl_t);
 extern int acl_default_nontrivial (acl_t);
 #  endif
 
-# elif HAVE_FACL && defined GETACL /* Solaris, Cygwin, not HP-UX */
+# elif HAVE_FACL && defined GETACL /* Solaris, Cygwin < 2.5, not HP-UX */
 
 /* Set to 0 if a file's mode is stored independently from the ACL.  */
 #  if defined __CYGWIN__ /* Cygwin */
@@ -256,14 +260,14 @@ extern int acl_nontrivial (int count, struct acl *entries);
 struct permission_context {
   mode_t mode;
 #if USE_ACL
-# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64 */
+# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
   acl_t acl;
 #  if !HAVE_ACL_TYPE_EXTENDED
   acl_t default_acl;
 #  endif
   bool acls_not_supported;
 
-# elif defined GETACL /* Solaris, Cygwin */
+# elif defined GETACL /* Solaris, Cygwin < 2.5 */
   int count;
   aclent_t *entries;
 #  ifdef ACE_GETACL

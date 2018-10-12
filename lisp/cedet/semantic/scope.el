@@ -140,7 +140,7 @@ Saves scoping information between runs of the analyzer.")
 (cl-defmethod semantic-scope-set-typecache ((cache semantic-scope-cache)
 					 types-in-scope)
   "Set the :typescope property on CACHE to some types.
-TYPES-IN-SCOPE is a list of type tags whos members are
+TYPES-IN-SCOPE is a list of type tags whose members are
 currently in scope.  For each type in TYPES-IN-SCOPE,
 add those members to the types list.
 If nil, then the typescope is reset."

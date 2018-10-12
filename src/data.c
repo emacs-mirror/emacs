@@ -336,8 +336,6 @@ DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0,
   return Qnil;
 }
 
-/* Define this in C to avoid unnecessarily consing up the symbol
-   name.  */
 DEFUN ("keywordp", Fkeywordp, Skeywordp, 1, 1, 0,
        doc: /* Return t if OBJECT is a keyword.
 This means that it is a symbol with a print name beginning with `:'
@@ -2798,7 +2796,7 @@ If the base used is not 10, STRING is always parsed as an integer.  */)
   while (*p == ' ' || *p == '\t')
     p++;
 
-  Lisp_Object val = string_to_number (p, b, S2N_IGNORE_TRAILING);
+  Lisp_Object val = string_to_number (p, b, 0);
   return NILP (val) ? make_fixnum (0) : val;
 }
 

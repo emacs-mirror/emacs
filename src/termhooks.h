@@ -733,6 +733,7 @@ extern struct terminal *get_named_terminal (const char *);
 extern struct terminal *create_terminal (enum output_method,
 					 struct redisplay_interface *);
 extern void delete_terminal (struct terminal *);
+extern void delete_terminal_internal (struct terminal *);
 extern Lisp_Object terminal_glyph_code (struct terminal *, int);
 
 /* The initial terminal device, created by initial_term_init.  */

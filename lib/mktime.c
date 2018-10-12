@@ -78,7 +78,7 @@
 
 #include "mktime-internal.h"
 
-#ifndef _LIBC
+#if !defined _LIBC && (NEED_MKTIME_WORKING || NEED_MKTIME_WINDOWS)
 static void
 my_tzset (void)
 {
@@ -527,7 +527,7 @@ mktime (struct tm *tp)
      be set as if the tzset() function had been called.  */
   __tzset ();
 
-# if defined __LIBC || NEED_MKTIME_WORKING
+# if defined _LIBC || NEED_MKTIME_WORKING
   static mktime_offset_t localtime_offset;
   return __mktime_internal (tp, __localtime_r, &localtime_offset);
 # else

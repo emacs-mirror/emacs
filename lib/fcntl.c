@@ -27,10 +27,10 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-#if !HAVE_FCNTL
-# define rpl_fcntl fcntl
+#ifdef __KLIBC__
+# define INCL_DOS
+# include <os2.h>
 #endif
-#undef fcntl
 
 #if defined _WIN32 && ! defined __CYGWIN__
 /* Get declarations of the native Windows API functions.  */
@@ -166,92 +166,17 @@ dupfd (int oldfd, int newfd, int flags)
 }
 #endif /* W32 */
 
+/* Forward declarations, because we '#undef fcntl' in the middle of this
+   compilation unit.  */
+/* Our implementation of fcntl (fd, F_DUPFD, target).  */
+static int rpl_fcntl_DUPFD (int fd, int target);
+/* Our implementation of fcntl (fd, F_DUPFD_CLOEXEC, target).  */
+static int rpl_fcntl_DUPFD_CLOEXEC (int fd, int target);
 #ifdef __KLIBC__
-
-# define INCL_DOS
-# include <os2.h>
-
-static int
-klibc_fcntl (int fd, int action, /* arg */...)
-{
-  va_list arg_ptr;
-  int arg;
-  struct stat sbuf;
-  int result = -1;
-
-  va_start (arg_ptr, action);
-  arg = va_arg (arg_ptr, int);
-  result = fcntl (fd, action, arg);
-  /* EPERM for F_DUPFD, ENOTSUP for others */
-  if (result == -1 && (errno == EPERM || errno == ENOTSUP)
-      && !fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
-  {
-    ULONG ulMode;
-
-    switch (action)
-      {
-      case F_DUPFD:
-        /* Find available fd */
-        while (fcntl (arg, F_GETFL) != -1 || errno != EBADF)
-          arg++;
-
-        result = dup2 (fd, arg);
-        break;
-
-      /* Using underlying APIs is right ? */
-      case F_GETFD:
-        if (DosQueryFHState (fd, &ulMode))
-          break;
-
-        result = (ulMode & OPEN_FLAGS_NOINHERIT) ? FD_CLOEXEC : 0;
-        break;
-
-      case F_SETFD:
-        if (arg & ~FD_CLOEXEC)
-          break;
-
-        if (DosQueryFHState (fd, &ulMode))
-          break;
-
-        if (arg & FD_CLOEXEC)
-          ulMode |= OPEN_FLAGS_NOINHERIT;
-        else
-          ulMode &= ~OPEN_FLAGS_NOINHERIT;
-
-        /* Filter supported flags.  */
-        ulMode &= (OPEN_FLAGS_WRITE_THROUGH | OPEN_FLAGS_FAIL_ON_ERROR
-                   | OPEN_FLAGS_NO_CACHE | OPEN_FLAGS_NOINHERIT);
-
-        if (DosSetFHState (fd, ulMode))
-          break;
-
-        result = 0;
-        break;
-
-      case F_GETFL:
-        result = 0;
-        break;
-
-      case F_SETFL:
-        if (arg != 0)
-          break;
-
-        result = 0;
-        break;
-
-      default :
-        errno = EINVAL;
-        break;
-      }
-  }
-
-  va_end (arg_ptr);
-
-  return result;
-}
-
-# define fcntl klibc_fcntl
+/* Adds support for fcntl on directories.  */
+static int klibc_fcntl (int fd, int action, /* arg */...);
 #endif
+
 
 /* Perform the specified ACTION on the file descriptor FD, possibly
    using the argument ARG further described below.  This replacement
@@ -273,112 +198,30 @@ klibc_fcntl (int fd, int action, /* arg */...)
    return -1 and set errno.  */
 
 int
-rpl_fcntl (int fd, int action, /* arg */...)
+fcntl (int fd, int action, /* arg */...)
+#undef fcntl
+#ifdef __KLIBC__
+# define fcntl klibc_fcntl
+#endif
 {
   va_list arg;
   int result = -1;
   va_start (arg, action);
   switch (action)
     {
-
-#if !HAVE_FCNTL
     case F_DUPFD:
       {
         int target = va_arg (arg, int);
-        result = dupfd (fd, target, 0);
+        result = rpl_fcntl_DUPFD (fd, target);
         break;
       }
-#elif FCNTL_DUPFD_BUGGY || REPLACE_FCHDIR
-    case F_DUPFD:
-      {
-        int target = va_arg (arg, int);
-        /* Detect invalid target; needed for cygwin 1.5.x.  */
-        if (target < 0 || getdtablesize () <= target)
-          errno = EINVAL;
-        else
-          {
-            /* Haiku alpha 2 loses fd flags on original.  */
-            int flags = fcntl (fd, F_GETFD);
-            if (flags < 0)
-              {
-                result = -1;
-                break;
-              }
-            result = fcntl (fd, action, target);
-            if (0 <= result && fcntl (fd, F_SETFD, flags) == -1)
-              {
-                int saved_errno = errno;
-                close (result);
-                result = -1;
-                errno = saved_errno;
-              }
-# if REPLACE_FCHDIR
-            if (0 <= result)
-              result = _gl_register_dup (fd, result);
-# endif
-          }
-        break;
-      } /* F_DUPFD */
-#endif /* FCNTL_DUPFD_BUGGY || REPLACE_FCHDIR */
 
     case F_DUPFD_CLOEXEC:
       {
         int target = va_arg (arg, int);
-
-#if !HAVE_FCNTL
-        result = dupfd (fd, target, O_CLOEXEC);
+        result = rpl_fcntl_DUPFD_CLOEXEC (fd, target);
         break;
-#else /* HAVE_FCNTL */
-# if defined __HAIKU__
-        /* On Haiku, the system fcntl (fd, F_DUPFD_CLOEXEC, target) sets
-           the FD_CLOEXEC flag on fd, not on target.  Therefore avoid the
-           system fcntl in this case.  */
-#  define have_dupfd_cloexec -1
-# else
-        /* Try the system call first, if the headers claim it exists
-           (that is, if GNULIB_defined_F_DUPFD_CLOEXEC is 0), since we
-           may be running with a glibc that has the macro but with an
-           older kernel that does not support it.  Cache the
-           information on whether the system call really works, but
-           avoid caching failure if the corresponding F_DUPFD fails
-           for any reason.  0 = unknown, 1 = yes, -1 = no.  */
-        static int have_dupfd_cloexec = GNULIB_defined_F_DUPFD_CLOEXEC ? -1 : 0;
-        if (0 <= have_dupfd_cloexec)
-          {
-            result = fcntl (fd, action, target);
-            if (0 <= result || errno != EINVAL)
-              {
-                have_dupfd_cloexec = 1;
-#  if REPLACE_FCHDIR
-                if (0 <= result)
-                  result = _gl_register_dup (fd, result);
-#  endif
-              }
-            else
-              {
-                result = rpl_fcntl (fd, F_DUPFD, target);
-                if (result < 0)
-                  break;
-                have_dupfd_cloexec = -1;
-              }
-          }
-        else
-# endif
-          result = rpl_fcntl (fd, F_DUPFD, target);
-        if (0 <= result && have_dupfd_cloexec == -1)
-          {
-            int flags = fcntl (result, F_GETFD);
-            if (flags < 0 || fcntl (result, F_SETFD, flags | FD_CLOEXEC) == -1)
-              {
-                int saved_errno = errno;
-                close (result);
-                errno = saved_errno;
-                result = -1;
-              }
-          }
-        break;
-#endif /* HAVE_FCNTL */
-      } /* F_DUPFD_CLOEXEC */
+      }
 
 #if !HAVE_FCNTL
     case F_GETFD:
@@ -598,3 +441,186 @@ rpl_fcntl (int fd, int action, /* arg */...)
   va_end (arg);
   return result;
 }
+
+static int
+rpl_fcntl_DUPFD (int fd, int target)
+{
+  int result;
+#if !HAVE_FCNTL
+  result = dupfd (fd, target, 0);
+#elif FCNTL_DUPFD_BUGGY || REPLACE_FCHDIR
+  /* Detect invalid target; needed for cygwin 1.5.x.  */
+  if (target < 0 || getdtablesize () <= target)
+    {
+      result = -1;
+      errno = EINVAL;
+    }
+  else
+    {
+      /* Haiku alpha 2 loses fd flags on original.  */
+      int flags = fcntl (fd, F_GETFD);
+      if (flags < 0)
+        result = -1;
+      else
+        {
+          result = fcntl (fd, F_DUPFD, target);
+          if (0 <= result && fcntl (fd, F_SETFD, flags) == -1)
+            {
+              int saved_errno = errno;
+              close (result);
+              result = -1;
+              errno = saved_errno;
+            }
+# if REPLACE_FCHDIR
+          if (0 <= result)
+            result = _gl_register_dup (fd, result);
+# endif
+        }
+    }
+#else
+  result = fcntl (fd, F_DUPFD, target);
+#endif
+  return result;
+}
+
+static int
+rpl_fcntl_DUPFD_CLOEXEC (int fd, int target)
+{
+  int result;
+#if !HAVE_FCNTL
+  result = dupfd (fd, target, O_CLOEXEC);
+#else /* HAVE_FCNTL */
+# if defined __HAIKU__
+  /* On Haiku, the system fcntl (fd, F_DUPFD_CLOEXEC, target) sets
+     the FD_CLOEXEC flag on fd, not on target.  Therefore avoid the
+     system fcntl in this case.  */
+#  define have_dupfd_cloexec -1
+# else
+  /* Try the system call first, if the headers claim it exists
+     (that is, if GNULIB_defined_F_DUPFD_CLOEXEC is 0), since we
+     may be running with a glibc that has the macro but with an
+     older kernel that does not support it.  Cache the
+     information on whether the system call really works, but
+     avoid caching failure if the corresponding F_DUPFD fails
+     for any reason.  0 = unknown, 1 = yes, -1 = no.  */
+  static int have_dupfd_cloexec = GNULIB_defined_F_DUPFD_CLOEXEC ? -1 : 0;
+  if (0 <= have_dupfd_cloexec)
+    {
+      result = fcntl (fd, F_DUPFD_CLOEXEC, target);
+      if (0 <= result || errno != EINVAL)
+        {
+          have_dupfd_cloexec = 1;
+#  if REPLACE_FCHDIR
+          if (0 <= result)
+            result = _gl_register_dup (fd, result);
+#  endif
+        }
+      else
+        {
+          result = rpl_fcntl_DUPFD (fd, target);
+          if (result >= 0)
+            have_dupfd_cloexec = -1;
+        }
+    }
+  else
+# endif
+    result = rpl_fcntl_DUPFD (fd, target);
+  if (0 <= result && have_dupfd_cloexec == -1)
+    {
+      int flags = fcntl (result, F_GETFD);
+      if (flags < 0 || fcntl (result, F_SETFD, flags | FD_CLOEXEC) == -1)
+        {
+          int saved_errno = errno;
+          close (result);
+          errno = saved_errno;
+          result = -1;
+        }
+    }
+#endif /* HAVE_FCNTL */
+  return result;
+}
+
+#undef fcntl
+
+#ifdef __KLIBC__
+
+static int
+klibc_fcntl (int fd, int action, /* arg */...);
+{
+  va_list arg_ptr;
+  int arg;
+  struct stat sbuf;
+  int result;
+
+  va_start (arg_ptr, action);
+  arg = va_arg (arg_ptr, int);
+  result = fcntl (fd, action, arg);
+  /* EPERM for F_DUPFD, ENOTSUP for others */
+  if (result == -1 && (errno == EPERM || errno == ENOTSUP)
+      && !fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
+    {
+      ULONG ulMode;
+
+      switch (action)
+        {
+        case F_DUPFD:
+          /* Find available fd */
+          while (fcntl (arg, F_GETFL) != -1 || errno != EBADF)
+            arg++;
+
+          result = dup2 (fd, arg);
+          break;
+
+        /* Using underlying APIs is right ? */
+        case F_GETFD:
+          if (DosQueryFHState (fd, &ulMode))
+            break;
+
+          result = (ulMode & OPEN_FLAGS_NOINHERIT) ? FD_CLOEXEC : 0;
+          break;
+
+        case F_SETFD:
+          if (arg & ~FD_CLOEXEC)
+            break;
+
+          if (DosQueryFHState (fd, &ulMode))
+            break;
+
+          if (arg & FD_CLOEXEC)
+            ulMode |= OPEN_FLAGS_NOINHERIT;
+          else
+            ulMode &= ~OPEN_FLAGS_NOINHERIT;
+
+          /* Filter supported flags.  */
+          ulMode &= (OPEN_FLAGS_WRITE_THROUGH | OPEN_FLAGS_FAIL_ON_ERROR
+                     | OPEN_FLAGS_NO_CACHE | OPEN_FLAGS_NOINHERIT);
+
+          if (DosSetFHState (fd, ulMode))
+            break;
+
+          result = 0;
+          break;
+
+        case F_GETFL:
+          result = 0;
+          break;
+
+        case F_SETFL:
+          if (arg != 0)
+            break;
+
+          result = 0;
+          break;
+
+        default:
+          errno = EINVAL;
+          break;
+        }
+    }
+
+  va_end (arg_ptr);
+
+  return result;
+}
+
+#endif

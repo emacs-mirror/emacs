@@ -1448,7 +1448,7 @@ of."
       ;; recorded last modification time, or there is no established
       ;; connection.
       (if (or (not f)
-	      (zerop (visited-file-modtime))
+	      (zerop (float-time (visited-file-modtime)))
 	      (not (file-remote-p f nil 'connected)))
 	  t
 	(with-parsed-tramp-file-name f nil

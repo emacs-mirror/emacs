@@ -2058,8 +2058,11 @@ properties.  */);
 
   DEFVAR_LISP ("read-hide-char", Vread_hide_char,
 	       doc: /* Whether to hide input characters in noninteractive mode.
-It must be a character, which will be used to mask the input
-characters.  This variable should never be set globally.  */);
+If non-nil, it must be a character, which will be used to mask the
+input characters.  This variable should never be set globally.
+
+This variable also overrides the default character that `read-passwd'
+uses to hide passwords.  */);
   Vread_hide_char = Qnil;
 
   defsubr (&Sactive_minibuffer_window);

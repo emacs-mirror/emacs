@@ -187,8 +187,8 @@
 ;; Implementation:
 ;;
 ;; The main method by which Follow mode aligns windows is via the
-;; function `follow-post-command-hook', which is run after each
-;; command.  This "fixes up" the alignment of other windows which are
+;; function `follow-pre-redisplay-function', which is run before each
+;; redisplay.  This "fixes up" the alignment of other windows which are
 ;; showing the same Follow mode buffer, on the same frame as the
 ;; selected window.  It does not try to deal with buffers other than
 ;; the buffer of the selected frame, or windows on other frames.
@@ -418,7 +418,7 @@ Keys specific to Follow mode:
   (if follow-mode
       (progn
 	(add-hook 'compilation-filter-hook 'follow-align-compilation-windows t t)
-	(add-hook 'post-command-hook 'follow-post-command-hook t)
+        (add-function :before pre-redisplay-function 'follow-pre-redisplay-function)
 	(add-hook 'window-size-change-functions 'follow-window-size-change t)
         (add-hook 'after-change-functions 'follow-after-change nil t)
         (add-hook 'isearch-update-post-hook 'follow-post-command-hook nil t)
@@ -445,7 +445,7 @@ Keys specific to Follow mode:
 	(setq following (buffer-local-value 'follow-mode (car buffers))
 	      buffers (cdr buffers)))
       (unless following
-	(remove-hook 'post-command-hook 'follow-post-command-hook)
+        (remove-function pre-redisplay-function 'follow-pre-redisplay-function)
 	(remove-hook 'window-size-change-functions 'follow-window-size-change)))
 
     (kill-local-variable 'move-to-window-group-line-function)
@@ -1260,10 +1260,27 @@ non-first windows in Follow mode."
 	    (not (eq win top))))  ;; Loop while this is true.
       (set-buffer orig-buffer))))
 
+;;; Pre Display Function
+
+;; This function is added to `pre-display-function' and is thus called
+;; before each redisplay operation.  It supersedes (2018-09) the
+;; former use of the post command hook, and now does the right thing
+;; when a program calls `redisplay' or `sit-for'.
+
+(defun follow-pre-redisplay-function (wins)
+  (if (or (eq wins t)
+          (null wins)
+          (and (listp wins)
+               (memq (selected-window) wins)))
+      (follow-post-command-hook)))
+
 ;;; Post Command Hook
 
-;; The magic little box. This function is called after every command.
-
+;; The magic little box. This function was formerly called after every
+;; command.  It is now called before each redisplay operation (see
+;; `follow-pre-redisplay-function' above), and at the end of several
+;; search/replace commands.  It retains its historical name.
+;;
 ;; This is not as complicated as it seems. It is simply a list of common
 ;; display situations and the actions to take, plus commands for redrawing
 ;; the screen if it should be unaligned.
@@ -1283,6 +1300,12 @@ non-first windows in Follow mode."
 		     (get this-command 'follow-mode-use-cache))
 	  (setq follow-windows-start-end-cache nil))
         (follow-adjust-window win)))))
+
+;; NOTE: to debug follow-mode with edebug, it is helpful to add
+;; `follow-post-command-hook' to `post-command-hook' temporarily.  Do
+;; this locally to the target buffer with, say,:
+;; M-: (add-hook 'post-command-hook 'follow-post-command-hook t t)
+;; .
 
 (defun follow-adjust-window (win)
   ;; Adjust the window WIN and its followers.

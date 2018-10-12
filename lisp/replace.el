@@ -1099,10 +1099,9 @@ a previously found match."
     map)
   "Keymap for `occur-mode'.")
 
-(defvar occur-revert-arguments nil
+(defvar-local occur-revert-arguments nil
   "Arguments to pass to `occur-1' to revert an Occur mode buffer.
 See `occur-revert-function'.")
-(make-variable-buffer-local 'occur-revert-arguments)
 (put 'occur-revert-arguments 'permanent-local t)
 
 (defcustom occur-mode-hook '(turn-on-font-lock)
@@ -1122,6 +1121,11 @@ for this is to reveal context in an outline-mode when the occurrence is hidden."
   :type 'hook
   :group 'matching)
 
+(defun occur--garbage-collect-revert-args ()
+  (dolist (boo (nth 2 occur-revert-arguments))
+    (when (overlayp boo) (delete-overlay boo)))
+  (kill-local-variable 'occur-revert-arguments))
+
 (put 'occur-mode 'mode-class 'special)
 (define-derived-mode occur-mode special-mode "Occur"
   "Major mode for output from \\[occur].
@@ -1130,8 +1134,9 @@ for this is to reveal context in an outline-mode when the occurrence is hidden."
 Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 \\{occur-mode-map}"
-  (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
-  (setq next-error-function 'occur-next-error))
+  (setq-local revert-buffer-function #'occur-revert-function)
+  (add-hook 'kill-buffer-hook #'occur--garbage-collect-revert-args nil t)
+  (setq next-error-function #'occur-next-error))
 
 
 ;;; Occur Edit mode
@@ -1154,7 +1159,7 @@ the originating buffer.
 
 To return to ordinary Occur mode, use \\[occur-cease-edit]."
   (setq buffer-read-only nil)
-  (add-hook 'after-change-functions 'occur-after-change-function nil t)
+  (add-hook 'after-change-functions #'occur-after-change-function nil t)
   (message (substitute-command-keys
 	    "Editing: Type \\[occur-cease-edit] to return to Occur mode.")))
 
@@ -1206,34 +1211,9 @@ To return to ordinary Occur mode, use \\[occur-cease-edit]."
 	    (move-to-column col)))))))
 
 
-(defun occur--parse-occur-buffer()
-  "Retrieve a list of the form (BEG END ORIG-LINE BUFFER).
-BEG and END define the region.
-ORIG-LINE and BUFFER are the line and the buffer from which
-the user called `occur'."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((buffer (get-text-property (point) 'occur-title))
-          (beg-pos (get-text-property (point) 'region-start))
-          (end-pos (get-text-property (point) 'region-end))
-          (orig-line (get-text-property (point) 'current-line)))
-      (list beg-pos end-pos orig-line buffer))))
-
 (defun occur-revert-function (_ignore1 _ignore2)
   "Handle `revert-buffer' for Occur mode buffers."
-  (if (cdr (nth 2 occur-revert-arguments)) ; multi-occur
-      (apply 'occur-1 (append occur-revert-arguments (list (buffer-name))))
-    (pcase-let ((`(,region-start ,region-end ,orig-line ,buffer)
-                 (occur--parse-occur-buffer))
-                (regexp (car occur-revert-arguments)))
-      (with-current-buffer buffer
-        (when (wholenump orig-line)
-          (goto-char (point-min))
-          (forward-line (1- orig-line)))
-        (save-excursion
-          (if (or region-start region-end)
-              (occur regexp nil (list (cons region-start region-end)))
-            (apply 'occur-1 (append occur-revert-arguments (list (buffer-name))))))))))
+  (apply #'occur-1 (append occur-revert-arguments (list (buffer-name)))))
 
 (defun occur-mode-find-occurrence ()
   (let ((pos (get-text-property (point) 'occur-target)))
@@ -1437,10 +1417,6 @@ invoke `occur'."
                    (or unique-p (not interactive-p)))))
 
 ;; Region limits when `occur' applies on a region.
-(defvar occur--region-start nil)
-(defvar occur--region-end nil)
-(defvar occur--region-start-line nil)
-(defvar occur--orig-line nil)
 (defvar occur--final-pos nil)
 
 (defun occur (regexp &optional nlines region)
@@ -1487,23 +1463,14 @@ is not modified."
           (and (use-region-p) (list (region-bounds)))))
   (let* ((start (and (caar region) (max (caar region) (point-min))))
          (end (and (cdar region) (min (cdar region) (point-max))))
-         (in-region-p (or start end)))
-    (when in-region-p
-      (or start (setq start (point-min)))
-      (or end (setq end (point-max))))
-    (let ((occur--region-start start)
-          (occur--region-end end)
-          (occur--region-start-line
-           (and in-region-p
-                (line-number-at-pos (min start end))))
-          (occur--orig-line
-           (line-number-at-pos (point))))
-      (save-excursion ; If no matches `occur-1' doesn't restore the point.
-        (and in-region-p (narrow-to-region
-                          (save-excursion (goto-char start) (line-beginning-position))
-                          (save-excursion (goto-char end) (line-end-position))))
-        (occur-1 regexp nlines (list (current-buffer)))
-        (and in-region-p (widen))))))
+         (in-region (or start end))
+         (bufs (if (not in-region) (list (current-buffer))
+                 (let ((ol (make-overlay
+                            (or start (point-min))
+                            (or end (point-max)))))
+                   (overlay-put ol 'occur--orig-point (point))
+                   (list ol)))))
+    (occur-1 regexp nlines bufs)))
 
 (defvar ido-ignore-item-temp-list)
 
@@ -1574,17 +1541,27 @@ See also `multi-occur'."
             (query-replace-descr regexp))))
 
 (defun occur-1 (regexp nlines bufs &optional buf-name)
+  ;; BUFS is a list of buffer-or-overlay!
   (unless (and regexp (not (equal regexp "")))
     (error "Occur doesn't work with the empty regexp"))
   (unless buf-name
     (setq buf-name "*Occur*"))
   (let (occur-buf
-	(active-bufs (delq nil (mapcar #'(lambda (buf)
-					   (when (buffer-live-p buf) buf))
-				       bufs))))
+	(active-bufs
+         (delq nil (mapcar (lambda (boo)
+			       (when (or (buffer-live-p boo)
+                                         (and (overlayp boo)
+                                              (overlay-buffer boo)))
+                                 boo))
+			   bufs))))
     ;; Handle the case where one of the buffers we're searching is the
     ;; output buffer.  Just rename it.
-    (when (member buf-name (mapcar 'buffer-name active-bufs))
+    (when (member buf-name
+                  ;; FIXME: Use cl-exists.
+                  (mapcar
+                   (lambda (boo)
+                     (buffer-name (if (overlayp boo) (overlay-buffer boo) boo)))
+                   active-bufs))
       (with-current-buffer (get-buffer buf-name)
 	(rename-uniquely)))
 
@@ -1604,22 +1581,24 @@ See also `multi-occur'."
 	(let ((count
 	       (if (stringp nlines)
                    ;; Treat nlines as a regexp to collect.
-		   (let ((bufs active-bufs)
-			 (count 0))
-		     (while bufs
-		       (with-current-buffer (car bufs)
+		   (let ((count 0))
+		     (dolist (boo active-bufs)
+		       (with-current-buffer
+                           (if (overlayp boo) (overlay-buffer boo) boo)
 			 (save-excursion
-			   (goto-char (point-min))
-			   (while (re-search-forward regexp nil t)
-                             ;; Insert the replacement regexp.
-			     (let ((str (match-substitute-replacement nlines)))
-			       (if str
-				   (with-current-buffer occur-buf
-				     (insert str)
-				     (setq count (1+ count))
-				     (or (zerop (current-column))
-					 (insert "\n"))))))))
-                       (setq bufs (cdr bufs)))
+			   (goto-char
+                            (if (overlayp boo) (overlay-start boo) (point-min)))
+                           (let ((end (if (overlayp boo) (overlay-end boo))))
+			     (while (re-search-forward regexp end t)
+                               ;; Insert the replacement regexp.
+			       (let ((str (match-substitute-replacement
+                                           nlines)))
+			         (if str
+				     (with-current-buffer occur-buf
+				       (insert str)
+				       (setq count (1+ count))
+				       (or (zerop (current-column))
+					   (insert "\n"))))))))))
                      count)
 		 ;; Perform normal occur.
 		 (occur-engine
@@ -1647,6 +1626,7 @@ See also `multi-occur'."
 			       42)
 			    (window-width))
 			 "" (occur-regexp-descr regexp))))
+          (occur--garbage-collect-revert-args)
 	  (setq occur-revert-arguments (list regexp nlines bufs))
           (if (= count 0)
               (kill-buffer occur-buf)
@@ -1662,49 +1642,55 @@ See also `multi-occur'."
 
 (defun occur-engine (regexp buffers out-buf nlines case-fold
 			    title-face prefix-face match-face keep-props)
+  ;; BUFFERS is a list of buffer-or-overlay!
   (with-current-buffer out-buf
     (let ((global-lines 0)    ;; total count of matching lines
 	  (global-matches 0)  ;; total count of matches
 	  (coding nil)
 	  (case-fold-search case-fold)
-	  (in-region-p (and occur--region-start occur--region-end))
 	  (multi-occur-p (cdr buffers)))
       ;; Map over all the buffers
-      (dolist (buf buffers)
-	(when (buffer-live-p buf)
-	  (let ((lines 0)               ;; count of matching lines
-		(matches 0)             ;; count of matches
-		(curr-line              ;; line count
-		 (or occur--region-start-line 1))
-		(orig-line (or occur--orig-line 1))
-		(orig-line-shown-p)
-		(prev-line nil)         ;; line number of prev match endpt
-		(prev-after-lines nil)  ;; context lines of prev match
-		(matchbeg 0)
-		(origpt nil)
-		(begpt nil)
-		(endpt nil)
-		(marker nil)
-		(curstring "")
-		(ret nil)
-		(inhibit-field-text-motion t)
-		(headerpt (with-current-buffer out-buf (point))))
-	    (with-current-buffer buf
-	      ;; The following binding is for when case-fold-search
-	      ;; has a local binding in the original buffer, in which
-	      ;; case we cannot bind it globally and let that have
-	      ;; effect in every buffer we search.
-	      (let ((case-fold-search case-fold))
-	        (or coding
-		    ;; Set CODING only if the current buffer locally
-		    ;; binds buffer-file-coding-system.
-		    (not (local-variable-p 'buffer-file-coding-system))
-		    (setq coding buffer-file-coding-system))
-	        (save-excursion
-		  (goto-char (point-min)) ;; begin searching in the buffer
-		  (while (not (eobp))
+      (dolist (boo buffers)
+	(when (if (overlayp boo) (overlay-buffer boo) (buffer-live-p boo))
+	  (with-current-buffer (if (overlayp boo) (overlay-buffer boo) boo)
+            (let ((inhibit-field-text-motion t)
+                  (lines 0)               ; count of matching lines
+	          (matches 0)             ; count of matches
+		  (headerpt (with-current-buffer out-buf (point)))
+                  )
+	      (save-excursion
+                ;; begin searching in the buffer
+		(goto-char (if (overlayp boo) (overlay-start boo) (point-min)))
+                (forward-line 0)
+	        (let* ((limit (if (overlayp boo) (overlay-end boo) (point-max)))
+                       (start-line (line-number-at-pos))
+		       (curr-line start-line) ; line count
+		       (orig-line (if (not (overlayp boo)) 1
+                                    (line-number-at-pos
+                                     (overlay-get boo 'occur--orig-point))))
+		       (orig-line-shown-p)
+		       (prev-line nil)        ; line number of prev match endpt
+		       (prev-after-lines nil) ; context lines of prev match
+		       (matchbeg 0)
+		       (origpt nil)
+		       (begpt nil)
+		       (endpt nil)
+		       (marker nil)
+		       (curstring "")
+		       (ret nil)
+	               ;; The following binding is for when case-fold-search
+	               ;; has a local binding in the original buffer, in which
+	               ;; case we cannot bind it globally and let that have
+	               ;; effect in every buffer we search.
+                       (case-fold-search case-fold))
+	          (or coding
+		      ;; Set CODING only if the current buffer locally
+		      ;; binds buffer-file-coding-system.
+		      (not (local-variable-p 'buffer-file-coding-system))
+		      (setq coding buffer-file-coding-system))
+		  (while (< (point) limit)
 		    (setq origpt (point))
-		    (when (setq endpt (re-search-forward regexp nil t))
+		    (when (setq endpt (re-search-forward regexp limit t))
 		      (setq lines (1+ lines)) ;; increment matching lines count
 		      (setq matchbeg (match-beginning 0))
 		      ;; Get beginning of first match line and end of the last.
@@ -1810,7 +1796,7 @@ See also `multi-occur'."
 				(setq orig-line-shown-p t)
 				(save-excursion
 				  (goto-char (point-min))
-				  (forward-line (- orig-line (or occur--region-start-line 1)))
+				  (forward-line (- orig-line start-line 1))
 				  (occur-engine-line (line-beginning-position)
 						     (line-end-position) keep-props)))))
 		        ;; Actually insert the match display data
@@ -1848,7 +1834,7 @@ See also `multi-occur'."
 		    (let ((orig-line-str
 			   (save-excursion
 			     (goto-char (point-min))
-			     (forward-line (- orig-line (or occur--region-start-line 1)))
+			     (forward-line (- orig-line start-line 1))
 			     (occur-engine-line (line-beginning-position)
 						(line-end-position) keep-props))))
 		      (add-face-text-property
@@ -1878,17 +1864,14 @@ See also `multi-occur'."
 				     ;; Don't display regexp for multi-buffer.
 				     (if (> (length buffers) 1)
 				         "" (occur-regexp-descr regexp))
-				     (buffer-name buf)
-				     (if in-region-p
+				     (buffer-name (if (overlayp boo) (overlay-buffer boo) boo))
+				     (if (overlayp boo)
 					 (format " within region: %d-%d"
-						 occur--region-start
-						 occur--region-end)
+						 (overlay-start boo)
+						 (overlay-end boo))
 				       ""))
 			     'read-only t))
 		    (setq end (point))
-		    (add-text-properties beg end `(occur-title ,buf current-line ,orig-line
-							       region-start ,occur--region-start
-							       region-end ,occur--region-end))
 		    (when title-face
 		      (add-face-text-property beg end title-face))
 		    (goto-char (if (and list-matching-lines-jump-to-current-line
@@ -2425,7 +2408,7 @@ characters."
 
          (message
           (if query-flag
-              (apply 'propertize
+              (apply #'propertize
                      (concat "Query replacing "
                              (if backward "backward " "")
                              (if delimited-flag
@@ -2880,10 +2863,11 @@ characters."
 		 (if (= replace-count 1) "" "s")
 		 (if (> (+ skip-read-only-count
 			   skip-filtered-count
-			   skip-invisible-count) 0)
+			   skip-invisible-count)
+                        0)
 		     (format " (skipped %s)"
 			     (mapconcat
-			      'identity
+			      #'identity
 			      (delq nil (list
 					 (if (> skip-read-only-count 0)
 					     (format "%s read-only"

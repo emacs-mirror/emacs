@@ -532,7 +532,7 @@ DIR is the directory to apply to new targets."
 		     (project-rescan tmp)
 		     (setq ntargets (cons tmp ntargets)))
 		   (makefile-macro-file-list macro))
-	   ;; Non-indirect will have a target whos sources
+	   ;; Non-indirect will have a target whose sources
 	   ;; are actual files, not names of other targets.
 	   (let ((files (makefile-macro-file-list macro)))
 	     (when files

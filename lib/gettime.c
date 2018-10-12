@@ -30,8 +30,6 @@ gettime (struct timespec *ts)
 {
 #if defined CLOCK_REALTIME && HAVE_CLOCK_GETTIME
   clock_gettime (CLOCK_REALTIME, ts);
-#elif HAVE_NANOTIME
-  nanotime (ts);
 #else
   struct timeval tv;
   gettimeofday (&tv, NULL);

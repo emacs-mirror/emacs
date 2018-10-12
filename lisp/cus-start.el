@@ -547,7 +547,12 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "Respect `truncate-lines'" nil)
 		      (other :tag "Truncate if not full-width" t))
 	      "23.1")
-	     (make-cursor-line-fully-visible windows boolean)
+	     (make-cursor-line-fully-visible
+              windows
+              (choice
+               (const :tag "Make cursor always fully visible" t)
+               (const :tag "Allow cursor to be partially-visible" nil)
+               (function :tag "User-defined function")))
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer

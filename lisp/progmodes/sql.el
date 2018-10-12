@@ -213,7 +213,7 @@
 ;; Drew Adams <drew.adams@oracle.com> -- Emacs 20 support
 ;; Harald Maier <maierh@myself.com> -- sql-send-string
 ;; Stefan Monnier <monnier@iro.umontreal.ca> -- font-lock corrections;
-;;      code polish
+;;      code polish; on-going guidance and mentorship
 ;; Paul Sleigh <bat@flurf.net> -- MySQL keyword enhancement
 ;; Andrew Schein <andrew@andrewschein.com> -- sql-port bug
 ;; Ian Bjorhovde <idbjorh@dataproxy.com> -- db2 escape newlines
@@ -222,6 +222,7 @@
 ;; Mark Wilkinson <wilkinsonmr@gmail.com> -- file-local variables ignored
 ;; Simen Heggestøyl <simenheg@gmail.com> -- Postgres database completion
 ;; Robert Cochran <robert-emacs@cochranmail.com> -- MariaDB support
+;; Alex Harsanyi <alexharsanyi@gmail.com> -- sql-indent package and support
 ;;
 
 
@@ -723,6 +724,30 @@ This allows highlighting buffers properly when you open them."
   :group 'SQL
   :safe 'symbolp)
 
+;; SQL indent support
+
+(defcustom sql-use-indent-support t
+  "If non-nil then use the SQL indent support features of sql-indent.
+The `sql-indent' package in ELPA provides indentation support for
+SQL statements with easy customizations to support varied layout
+requirements.
+
+The package must be available to be loaded and activated."
+  :group 'SQL
+  :link '(url-link "https://elpa.gnu.org/packages/sql-indent.html")
+  :type 'booleanp
+  :version "27.1")
+
+(defun sql-is-indent-available ()
+  "Check if sql-indent module is available."
+  (when (locate-library "sql-indent")
+    (fboundp 'sqlind-minor-mode)))
+
+(defun sql-indent-enable ()
+  "Enable `sqlind-minor-mode' if available and requested."
+  (when (sql-is-indent-available)
+    (sqlind-minor-mode (if sql-use-indent-support +1 -1))))
+
 ;; misc customization of sql.el behavior
 
 (defcustom sql-electric-stuff nil
@@ -850,15 +875,17 @@ commands when the input history is read, as if you had set
 
 ;; The usual hooks
 
-(defcustom sql-interactive-mode-hook '()
+(defcustom sql-interactive-mode-hook '(sql-indent-enable)
   "Hook for customizing `sql-interactive-mode'."
   :type 'hook
-  :group 'SQL)
+  :group 'SQL
+  :version "27.1")
 
-(defcustom sql-mode-hook '()
+(defcustom sql-mode-hook '(sql-indent-enable)
   "Hook for customizing `sql-mode'."
   :type 'hook
-  :group 'SQL)
+  :group 'SQL
+  :version "27.1")
 
 (defcustom sql-set-sqli-hook '()
   "Hook for reacting to changes of `sql-buffer'.

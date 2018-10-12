@@ -359,6 +359,52 @@ Each element has the format:
 (dotimes (i (length replace-occur-tests))
   (replace-occur-test-create i))
 
+(ert-deftest replace-occur-revert-bug32543 ()
+  "Test `occur-revert' with non-nil `list-matching-lines-jump-to-current-line'."
+  (let ((temp-buffer (get-buffer-create " *test-occur*")))
+    (unwind-protect
+        (save-window-excursion
+          (with-current-buffer temp-buffer
+            (erase-buffer)
+            (setq list-matching-lines-jump-to-current-line t)
+            (insert
+";; This buffer is for text that is not saved, and for Lisp evaluation.
+;; To create a file, visit it with C-x C-f and enter text in its buffer.
+
+")
+            (occur "and")
+            (with-current-buffer "*Occur*"
+              (revert-buffer)
+              (goto-char (point-min))
+              (should (string-match "\\`2 matches for \"and\" in buffer: "
+                                    (buffer-substring-no-properties
+                                     (point) (line-end-position)))))))
+      (and (buffer-name temp-buffer)
+           (kill-buffer temp-buffer)))))
+
+(ert-deftest replace-occur-revert-bug32987 ()
+  "Test `occur-revert' with non-nil `list-matching-lines-jump-to-current-line'."
+  (let ((temp-buffer (get-buffer-create " *test-occur*")))
+    (unwind-protect
+        (save-window-excursion
+          (with-current-buffer temp-buffer
+            (erase-buffer)
+            (setq list-matching-lines-jump-to-current-line nil)
+            (insert
+";; This buffer is for text that is not saved, and for Lisp evaluation.
+;; To create a file, visit it with C-x C-f and enter text in its buffer.
+
+")
+            (occur "and")
+            (with-current-buffer "*Occur*"
+              (revert-buffer)
+              (goto-char (point-min))
+              (should (string-match "\\`2 matches for \"and\" in buffer: "
+                                    (buffer-substring-no-properties
+                                     (point) (line-end-position)))))))
+      (and (buffer-name temp-buffer)
+           (kill-buffer temp-buffer)))))
+
 
 ;;; Tests for `query-replace' undo feature.
 
@@ -453,6 +499,5 @@ Return the last evalled form in BODY."
      (replace-tests-with-undo
       input "a" "B" ((?\s . (1 2 3)) (?E . (4)) (?U . (5))) ?q
       (string= input (buffer-string))))))
-
 
 ;;; replace-tests.el ends here

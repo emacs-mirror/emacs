@@ -2158,19 +2158,17 @@ faults for all the child processes of the given process.
 
 @item utime
 Time spent by the process in the user context, for running the
-application's code.  The corresponding @var{value} is in the
-@w{@code{(@var{high} @var{low} @var{microsec} @var{picosec})}} format, the same
-format used by functions @code{current-time} (@pxref{Time of Day,
-current-time}) and @code{file-attributes} (@pxref{File Attributes}).
+application's code.  The corresponding @var{value} is a Lisp
+timestamp (@pxref{Time of Day}).
 
 @item stime
 Time spent by the process in the system (kernel) context, for
-processing system calls.  The corresponding @var{value} is in the same
-format as for @code{utime}.
+processing system calls.  The corresponding @var{value} is a Lisp
+timestamp.
 
 @item time
 The sum of @code{utime} and @code{stime}.  The corresponding
-@var{value} is in the same format as for @code{utime}.
+@var{value} is a Lisp timestamp.
 
 @item cutime
 @itemx cstime
@@ -2189,13 +2187,10 @@ nice values get scheduled more favorably.)
 The number of threads in the process.
 
 @item start
-The time when the process was started, in the same
-@code{(@var{high} @var{low} @var{microsec} @var{picosec})} format used by
-@code{file-attributes} and @code{current-time}.
+The time when the process was started, as a Lisp timestamp.
 
 @item etime
-The time elapsed since the process started, in the format @code{(@var{high}
-@var{low} @var{microsec} @var{picosec})}.
+The time elapsed since the process started, as a Lisp timestamp.
 
 @item vsize
 The virtual memory size of the process, measured in kilobytes.

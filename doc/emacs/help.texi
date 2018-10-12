@@ -523,13 +523,17 @@ currently in use.  @xref{Coding Systems}.
 @section Other Help Commands
 
 @kindex C-h i
+@kindex C-h 4 i
 @findex info
+@findex info-other-window
 @cindex Info
 @cindex manuals, included
   @kbd{C-h i} (@code{info}) runs the Info program, which browses
-structured documentation files.  The entire Emacs manual is available
-within Info, along with many other manuals for the GNU system.  Type
-@kbd{h} after entering Info to run a tutorial on using Info.
+structured documentation files.  @kbd{C-h 4 i}
+(@code{info-other-window}) does the same, but shows the Info buffer in
+another window.  The entire Emacs manual is available within Info,
+along with many other manuals for the GNU system.  Type @kbd{h} after
+entering Info to run a tutorial on using Info.
 
 @cindex find Info manual by its file name
   With a numeric argument @var{n}, @kbd{C-h i} selects the Info buffer

@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef EMACS_SYSTIME_H
 #define EMACS_SYSTIME_H
 
+#include "lisp.h"
 #include <timespec.h>
 
 INLINE_HEADER_BEGIN
@@ -66,7 +67,6 @@ timespec_valid_p (struct timespec t)
 
 /* defined in sysdep.c */
 extern int set_file_times (int, const char *, struct timespec, struct timespec);
-extern struct timeval make_timeval (struct timespec) ATTRIBUTE_CONST;
 
 /* defined in keyboard.c */
 extern void set_waiting_for_input (struct timespec *);
@@ -75,19 +75,26 @@ extern void set_waiting_for_input (struct timespec *);
    (HI << LO_TIME_BITS) + LO + US / 1e6 + PS / 1e12.  */
 enum { LO_TIME_BITS = 16 };
 
-/* A Lisp time (HI LO US PS), sans the cons cells.  */
+/* Components of a new-format Lisp timestamp.  */
 struct lisp_time
 {
-  EMACS_INT hi;
-  int lo, us, ps;
+  /* Clock count as a Lisp integer.  */
+  Lisp_Object ticks;
+
+  /* Clock frequency (ticks per second) as a positive Lisp integer.
+     (TICKS . HZ) is a valid Lisp timestamp unless HZ < 65536.  */
+  Lisp_Object hz;
 };
 
-/* defined in editfns.c */
+/* defined in timefns.c */
+extern struct timeval make_timeval (struct timespec) ATTRIBUTE_CONST;
 extern Lisp_Object make_lisp_time (struct timespec);
-extern int decode_time_components (Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object, struct lisp_time *, double *);
-extern struct timespec lisp_to_timespec (struct lisp_time);
+extern bool list4_to_timespec (Lisp_Object, Lisp_Object, Lisp_Object,
+			       Lisp_Object, struct timespec *);
 extern struct timespec lisp_time_argument (Lisp_Object);
+extern _Noreturn void time_overflow (void);
+extern void init_timefns (bool);
+extern void syms_of_timefns (void);
 
 INLINE_HEADER_END
 

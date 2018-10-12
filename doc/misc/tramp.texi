@@ -12,16 +12,6 @@
 @c This is *so* much nicer :)
 @footnotestyle end
 
-@c Macro for formatting a file name according to the respective
-@c syntax.  Macro arguments should not have any leading or trailing
-@c whitespace.  Not very elegant, but I don't know it better.
-
-@macro trampfn {method, userhost, localname}
-@value{prefix}@c
-\method\@value{postfixhop}@c
-\userhost\@value{postfix}\localname\
-@end macro
-
 @copying
 Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
 
@@ -83,9 +73,9 @@ Savannah Project Page}.
 @end ifhtml
 
 There is a mailing list for @value{tramp}, available at
-@email{tramp-devel@@gnu.org}, and archived at
-@uref{https://lists.gnu.org/r/tramp-devel/, the
-@value{tramp} Mail Archive}.
+@email{@value{tramp-bug-report-address}}, and archived at
+@uref{https://lists.gnu.org/r/tramp-devel/, the @value{tramp} Mail
+Archive}.
 
 @page
 @insertcopying
@@ -122,8 +112,11 @@ For the developer:
  --- The Detailed Node Listing ---
 @c
 @ifset installchapter
+
 Installing @value{tramp} with your Emacs
 
+* System Requirements::         Prerequisites for :@value{tramp} installation.
+* Basic Installation::          Installation steps.:
 * Installation parameters::     Parameters in order to control installation.
 * Testing::                     A test suite for @value{tramp}.
 * Load paths::                  How to plug-in @value{tramp} into your environment.
@@ -1646,7 +1639,7 @@ the need.
 The package @file{auth-source.el}, originally developed for No Gnus,
 reads passwords from different sources, @xref{Help for users, ,
 auth-source, auth}.  The default authentication file is
-@file{~/.authinfo.gpg}, but this can be changed via the variable
+@file{~/.authinfo.gpg}, but this can be changed via the user option
 @code{auth-sources}.
 
 @noindent
@@ -1670,7 +1663,7 @@ If there doesn't exist a proper entry, the password is read
 interactively.  After successful login (verification of the password),
 it is offered to save a corresponding entry for further use by
 @code{auth-source} backends which support this.  This could be changed
-by setting the variable @code{auth-source-save-behavior} to @code{nil}.
+by setting the user option @code{auth-source-save-behavior} to @code{nil}.
 
 @vindex auth-source-debug
 Set @code{auth-source-debug} to @code{t} to debug messages.
@@ -2031,10 +2024,10 @@ shell-specific config files.  For example, bash can use
 parsing.  This redefinition affects the looks of a prompt in an
 interactive remote shell through commands, such as @kbd{M-x shell
 @key{RET}}.  Such prompts, however, can be reset to something more
-readable and recognizable using these @value{tramp} variables.
+readable and recognizable using these environment variables.
 
-@value{tramp} sets the @env{INSIDE_EMACS} variable in the startup
-script file @file{~/.emacs_SHELLNAME}.
+@value{tramp} sets the @env{INSIDE_EMACS} environment variable in the
+startup script file @file{~/.emacs_SHELLNAME}.
 
 @env{SHELLNAME} is @code{bash} or equivalent shell names.  Change it by
 setting the environment variable @env{ESHELL} in the @file{.emacs} as
@@ -3254,9 +3247,9 @@ discussing, and general discussions about @value{tramp}.
 post for moderator approval.  Sometimes this approval step may take as
 long as 48 hours due to public holidays.
 
-@email{tramp-devel@@gnu.org} is the mailing list.  Messages sent to
-this address go to all the subscribers.  This is @emph{not} the
-address to send subscription requests to.
+@email{@value{tramp-bug-report-address}} is the mailing list.
+Messages sent to this address go to all the subscribers.  This is
+@emph{not} the address to send subscription requests to.
 
 To subscribe to the mailing list, visit:
 @uref{https://lists.gnu.org/mailman/listinfo/tramp-devel/, the
@@ -3671,7 +3664,7 @@ Due to the remote shell saving tilde expansions triggered by
 @value{tramp} can suppress this behavior with the user option
 @code{tramp-histfile-override}.  When set to @code{t}, environment
 variable @env{HISTFILE} is unset, and environment variables
-@env{HISTFILESIZE} @env{HISTSIZE} are set to 0.
+@env{HISTFILESIZE} and @env{HISTSIZE} are set to 0.
 
 Alternatively, @code{tramp-histfile-override} could be a string.
 Environment variable @env{HISTFILE} is set to this file name then.  Be
@@ -4107,7 +4100,7 @@ Unloading @value{tramp} resets Ange FTP plugins also.
 
 @c For the developer
 @node Files directories and localnames
-@chapter How file names, directories and localnames are mangled and managed.
+@chapter How file names, directories and localnames are mangled and managed
 
 @menu
 * Localname deconstruction::    Splitting a localname into its component parts.
@@ -4133,6 +4126,7 @@ handlers.
 @section Integrating with external Lisp packages
 @subsection File name completion.
 
+@vindex non-essential
 Sometimes, it is not convenient to open a new connection to a remote
 host, including entering the password and alike.  For example, this is
 nasty for packages providing file name completion. Such a package

@@ -1019,9 +1019,10 @@ AS_IF([test $gl_gcc_warnings = no],
   gl_WARN_ADD([-Wno-unused-parameter]) # Too many warnings for now
   gl_WARN_ADD([-Wno-format-nonliteral])
 
-  # clang is unduly picky about braces.
+  # clang is unduly picky about some things.
   if test "$emacs_cv_clang" = yes; then
     gl_WARN_ADD([-Wno-missing-braces])
+    gl_WARN_ADD([-Wno-null-pointer-arithmetic])
   fi
 
   # This causes too much noise in the MinGW build

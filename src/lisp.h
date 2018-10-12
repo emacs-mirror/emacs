@@ -236,12 +236,14 @@ enum Lisp_Bits
     /* Number of bits in a Lisp_Object value, not counting the tag.  */
     VALBITS = EMACS_INT_WIDTH - GCTYPEBITS,
 
-    /* Number of bits in a Lisp fixnum tag.  */
-    INTTYPEBITS = GCTYPEBITS - 1,
-
     /* Number of bits in a Lisp fixnum value, not counting the tag.  */
     FIXNUM_BITS = VALBITS + 1
   };
+
+/* Number of bits in a Lisp fixnum tag; can be used in #if.  */
+DEFINE_GDB_SYMBOL_BEGIN (int, INTTYPEBITS)
+#define INTTYPEBITS (GCTYPEBITS - 1)
+DEFINE_GDB_SYMBOL_END (INTTYPEBITS)
 
 /* The maximum value that can be stored in a EMACS_INT, assuming all
    bits other than the type bits contribute to a nonnegative signed value.
@@ -1034,7 +1036,7 @@ enum More_Lisp_Bits
    that cons.  */
 
 /* Largest and smallest representable fixnum values.  These are the C
-   values.  They are macros for use in static initializers.  */
+   values.  They are macros for use in #if and static initializers.  */
 #define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
 #define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
 
@@ -2504,7 +2506,7 @@ INTEGERP (Lisp_Object x)
   return FIXNUMP (x) || BIGNUMP (x);
 }
 
-/* Return a Lisp integer with value taken from n.  */
+/* Return a Lisp integer with value taken from N.  */
 INLINE Lisp_Object
 make_int (intmax_t n)
 {
@@ -3327,6 +3329,7 @@ extern ptrdiff_t bignum_bufsize (Lisp_Object, int);
 extern ptrdiff_t bignum_to_c_string (char *, ptrdiff_t, Lisp_Object, int);
 extern Lisp_Object bignum_to_string (Lisp_Object, int);
 extern Lisp_Object make_bignum_str (char const *, int);
+extern Lisp_Object make_neg_biguint (uintmax_t);
 extern Lisp_Object double_to_integer (double);
 
 /* Converthe integer NUM to *N.  Return true if successful, false
@@ -3837,7 +3840,7 @@ LOADHIST_ATTACH (Lisp_Object x)
 extern int openp (Lisp_Object, Lisp_Object, Lisp_Object,
                   Lisp_Object *, Lisp_Object, bool);
 enum { S2N_IGNORE_TRAILING = 1 };
-extern Lisp_Object string_to_number (char const *, int, int);
+extern Lisp_Object string_to_number (char const *, int, ptrdiff_t *);
 extern void map_obarray (Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
                          Lisp_Object);
 extern void dir_warning (const char *, Lisp_Object);
@@ -4014,11 +4017,10 @@ extern void save_excursion_save (union specbinding *);
 extern void save_excursion_restore (Lisp_Object, Lisp_Object);
 extern Lisp_Object save_restriction_save (void);
 extern void save_restriction_restore (Lisp_Object);
-extern _Noreturn void time_overflow (void);
 extern Lisp_Object make_buffer_string (ptrdiff_t, ptrdiff_t, bool);
 extern Lisp_Object make_buffer_string_both (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 					    ptrdiff_t, bool);
-extern void init_editfns (bool);
+extern void init_editfns (void);
 extern void syms_of_editfns (void);
 
 /* Defined in buffer.c.  */
@@ -4355,6 +4357,7 @@ extern ptrdiff_t emacs_write_quit (int, void const *, ptrdiff_t);
 extern void emacs_perror (char const *);
 extern int renameat_noreplace (int, char const *, int, char const *);
 extern int str_collate (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
+extern void syms_of_sysdep (void);
 
 /* Defined in filelock.c.  */
 extern void lock_file (Lisp_Object);

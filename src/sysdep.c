@@ -91,13 +91,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <fcntl.h>
 
+#include "syssignal.h"
+#include "systime.h"
 #include "systty.h"
 #include "syswait.h"
 
+#ifdef HAVE_SYS_RESOURCE_H
+# include <sys/resource.h>
+#endif
+
 #ifdef HAVE_SYS_UTSNAME_H
-#include <sys/utsname.h>
-#include <memory.h>
-#endif /* HAVE_SYS_UTSNAME_H */
+# include <sys/utsname.h>
+# include <memory.h>
+#endif
 
 #include "keyboard.h"
 #include "frame.h"
@@ -118,17 +124,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef WINDOWSNT
-#include <direct.h>
+# include <direct.h>
 /* In process.h which conflicts with the local copy.  */
-#define _P_WAIT 0
+# define _P_WAIT 0
 int _cdecl _spawnlp (int, const char *, const char *, ...);
 /* The following is needed for O_CLOEXEC, F_SETFD, FD_CLOEXEC, and
    several prototypes of functions called below.  */
-#include <sys/socket.h>
+# include <sys/socket.h>
 #endif
-
-#include "syssignal.h"
-#include "systime.h"
 
 /* ULLONG_MAX is missing on Red Hat Linux 7.3; see Bug#11781.  */
 #ifndef ULLONG_MAX
@@ -2704,30 +2707,6 @@ emacs_perror (char const *message)
   errno = err;
 }
 
-/* Return a struct timeval that is roughly equivalent to T.
-   Use the least timeval not less than T.
-   Return an extremal value if the result would overflow.  */
-struct timeval
-make_timeval (struct timespec t)
-{
-  struct timeval tv;
-  tv.tv_sec = t.tv_sec;
-  tv.tv_usec = t.tv_nsec / 1000;
-
-  if (t.tv_nsec % 1000 != 0)
-    {
-      if (tv.tv_usec < 999999)
-	tv.tv_usec++;
-      else if (tv.tv_sec < TYPE_MAXIMUM (time_t))
-	{
-	  tv.tv_sec++;
-	  tv.tv_usec = 0;
-	}
-    }
-
-  return tv;
-}
-
 /* Set the access and modification time stamps of FD (a.k.a. FILE) to be
    ATIME and MTIME, respectively.
    FD must be either negative -- in which case it is ignored --
@@ -3067,6 +3046,22 @@ list_system_processes (void)
 }
 
 #endif /* !defined (WINDOWSNT) */
+
+
+#if defined __FreeBSD__ || defined DARWIN_OS
+
+static struct timespec
+timeval_to_timespec (struct timeval t)
+{
+  return make_timespec (t.tv_sec, t.tv_usec * 1000);
+}
+static Lisp_Object
+make_lisp_timeval (struct timeval t)
+{
+  return make_lisp_time (timeval_to_timespec (t));
+}
+
+#endif
 
 #if defined GNU_LINUX && defined HAVE_LONG_LONG_INT
 static struct timespec
@@ -3588,18 +3583,6 @@ system_process_attributes (Lisp_Object pid)
 
 #elif defined __FreeBSD__
 
-static struct timespec
-timeval_to_timespec (struct timeval t)
-{
-  return make_timespec (t.tv_sec, t.tv_usec * 1000);
-}
-
-static Lisp_Object
-make_lisp_timeval (struct timeval t)
-{
-  return make_lisp_time (timeval_to_timespec (t));
-}
-
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
@@ -3769,18 +3752,6 @@ system_process_attributes (Lisp_Object pid)
 
 #elif defined DARWIN_OS
 
-static struct timespec
-timeval_to_timespec (struct timeval t)
-{
-  return make_timespec (t.tv_sec, t.tv_usec * 1000);
-}
-
-static Lisp_Object
-make_lisp_timeval (struct timeval t)
-{
-  return make_lisp_time (timeval_to_timespec (t));
-}
-
 Lisp_Object
 system_process_attributes (Lisp_Object pid)
 {
@@ -3911,6 +3882,42 @@ system_process_attributes (Lisp_Object pid)
 }
 
 #endif	/* !defined (WINDOWSNT) */
+
+DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
+       0, 0, 0,
+       doc: /* Return the current run time used by Emacs.
+The time is returned as in the style of `current-time'.
+
+On systems that can't determine the run time, `get-internal-run-time'
+does the same thing as `current-time'.  */)
+  (void)
+{
+#ifdef HAVE_GETRUSAGE
+  struct rusage usage;
+  time_t secs;
+  int usecs;
+
+  if (getrusage (RUSAGE_SELF, &usage) < 0)
+    /* This shouldn't happen.  What action is appropriate?  */
+    xsignal0 (Qerror);
+
+  /* Sum up user time and system time.  */
+  secs = usage.ru_utime.tv_sec + usage.ru_stime.tv_sec;
+  usecs = usage.ru_utime.tv_usec + usage.ru_stime.tv_usec;
+  if (usecs >= 1000000)
+    {
+      usecs -= 1000000;
+      secs++;
+    }
+  return make_lisp_time (make_timespec (secs, usecs * 1000));
+#else /* ! HAVE_GETRUSAGE  */
+#ifdef WINDOWSNT
+  return w32_get_internal_run_time ();
+#else /* ! WINDOWSNT  */
+  return Fcurrent_time ();
+#endif /* WINDOWSNT  */
+#endif /* HAVE_GETRUSAGE  */
+}
 
 /* Wide character string collation.  */
 
@@ -4116,3 +4123,9 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
   return res;
 }
 #endif	/* WINDOWSNT */
+
+void
+syms_of_sysdep (void)
+{
+  defsubr (&Sget_internal_run_time);
+}

@@ -64,6 +64,14 @@
     (should (= (length table) obarray-default-size))
     (should (eq (abbrev-table-get table 'foo) 'bar))))
 
+(ert-deftest abbrev--table-symbols-test ()
+  (let ((ert-test-abbrevs (setup-test-abbrev-table)))
+    (define-abbrev ert-test-abbrevs "sys" "system abbrev" nil :system t)
+    (should (equal (mapcar #'symbol-name (abbrev--table-symbols 'ert-test-abbrevs))
+                   '("a-e-t")))
+    (should (equal (mapcar #'symbol-name (abbrev--table-symbols 'ert-test-abbrevs t))
+                   '("a-e-t" "sys")))))
+
 (ert-deftest abbrev-table-get-put-test ()
   (let ((table (make-abbrev-table)))
     (should-not (abbrev-table-get table 'foo))

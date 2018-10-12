@@ -6626,7 +6626,7 @@ buffers accepted by the function pointed out by variable
 `dabbrev-friend-buffer-function', if `dabbrev-check-other-buffers'
 says so.  Then, if `dabbrev-check-all-buffers' is non-nil, look in
 all the other buffers, subject to constraints specified
-by `dabbrev-ignored-buffer-names' and `dabbrev-ignored-regexps'.
+by `dabbrev-ignored-buffer-names' and `dabbrev-ignored-buffer-regexps'.
 
 A positive prefix argument, N, says to take the Nth backward *distinct*
 possibility.  A negative argument says search forward.
@@ -11451,7 +11451,9 @@ See documentation of variable `tags-file-name'.
 
 (defalias 'pop-tag-mark 'xref-pop-marker-stack)
 
-(autoload 'next-file "etags" "\
+(defalias 'next-file 'tags-next-file)
+
+(autoload 'tags-next-file "etags" "\
 Select next file among files in current tags table.
 
 A first argument of t (prefix arg, if interactive) initializes to the
@@ -11471,40 +11473,32 @@ Continue last \\[tags-search] or \\[tags-query-replace] command.
 Used noninteractively with non-nil argument to begin such a command (the
 argument is passed to `next-file', which see).
 
-Two variables control the processing we do on each file: the value of
-`tags-loop-scan' is a form to be executed on each file to see if it is
-interesting (it returns non-nil if so) and `tags-loop-operate' is a form to
-evaluate to operate on an interesting file.  If the latter evaluates to
-nil, we exit; otherwise we scan the next file.
-
 \(fn &optional FIRST-TIME)" t nil)
+
+(make-obsolete 'tags-loop-continue 'multifile-continue '"27.1")
 
 (autoload 'tags-search "etags" "\
 Search through all files listed in tags table for match for REGEXP.
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue].
 
-If FILE-LIST-FORM is non-nil, it should be a form that, when
-evaluated, will return a list of file names.  The search will be
-restricted to these files.
+If FILES if non-nil should be a list or an iterator returning the files to search.
+The search will be restricted to these files.
 
 Also see the documentation of the `tags-file-name' variable.
 
-\(fn REGEXP &optional FILE-LIST-FORM)" t nil)
+\(fn REGEXP &optional FILES)" t nil)
 
 (autoload 'tags-query-replace "etags" "\
 Do `query-replace-regexp' of FROM with TO on all files listed in tags table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
-Fourth arg FILE-LIST-FORM non-nil means initialize the replacement loop.
+For non-interactive use, superceded by `multifile-initialize-replace'.
 
-If FILE-LIST-FORM is non-nil, it is a form to evaluate to
-produce the list of files to search.
+\(fn FROM TO &optional DELIMITED FILES)" t nil)
 
-See also the documentation of the variable `tags-file-name'.
-
-\(fn FROM TO &optional DELIMITED FILE-LIST-FORM)" t nil)
+(set-advertised-calling-convention 'tags-query-replace '(from to &optional delimited) '"27.1")
 
 (autoload 'list-tags "etags" "\
 Display list of tags in file FILE.
@@ -11541,7 +11535,7 @@ for \\[find-tag] (which see).
 
 \(fn)" nil nil)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "etags" '("default-tags-table-function" "etags-" "file-of-tag" "find-tag-" "goto-tag-location-function" "initialize-new-tags-table" "last-tag" "list-tags-function" "next-file-list" "select-tags-table-" "snarf-tag-function" "tag" "verify-tags-table-function" "xref-")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "etags" '("default-tags-table-function" "etags-" "file-of-tag" "find-tag-" "goto-tag-location-function" "initialize-new-tags-table" "last-tag" "list-tags-function" "select-tags-table-" "snarf-tag-function" "tag" "verify-tags-table-function" "xref-")))
 
 ;;;***
 
@@ -12631,7 +12625,7 @@ Execute BODY, and unwind connection-local variables.
 
 (function-put 'with-connection-local-profiles 'lisp-indent-function '1)
 
-(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "files-x" '("connection-local-" "hack-connection-local-variables" "modify-" "read-file-local-variable")))
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "files-x" '("connection-local-" "dir-locals-to-string" "hack-connection-local-variables" "modify-" "read-file-local-variable")))
 
 ;;;***
 
@@ -16909,6 +16903,9 @@ Define a filter named NAME.
 DOCUMENTATION is the documentation of the function.
 READER is a form which should read a qualifier from the user.
 DESCRIPTION is a short string describing the filter.
+ACCEPT-LIST is a boolean; if non-nil, the filter accepts either
+a single condition or a list of them; in the latter
+case the filter is the `or' composition of the conditions.
 
 BODY should contain forms which will be evaluated to test whether or
 not a particular buffer should be displayed or not.  The forms in BODY
@@ -17152,7 +17149,7 @@ See also the variable `idlwave-shell-prompt-pattern'.
 
 \(Type \\[describe-mode] in the shell buffer for a list of commands.)
 
-\(fn &optional ARG QUICK)" t nil)
+\(fn &optional ARG)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "idlw-shell" '("idlwave-")))
 
@@ -22269,6 +22266,41 @@ QUALITY can be:
 
 ;;;***
 
+;;;### (autoloads nil "multifile" "multifile.el" (0 0 0 0))
+;;; Generated autoloads from multifile.el
+
+(autoload 'multifile-initialize "multifile" "\
+Initialize a new round of operation on several files.
+FILES can be either a list of file names, or an iterator (used with `iter-next')
+which returns a file name at each step.
+SCAN-FUNCTION is a function called with no argument inside a buffer
+and it should return non-nil if that buffer has something on which to operate.
+OPERATE-FUNCTION is a function called with no argument; it is expected
+to perform the operation on the current file buffer and when done
+should return non-nil to mean that we should immediately continue
+operating on the next file and nil otherwise.
+
+\(fn FILES SCAN-FUNCTION OPERATE-FUNCTION)" nil nil)
+
+(autoload 'multifile-initialize-search "multifile" "\
+
+
+\(fn REGEXP FILES CASE-FOLD)" nil nil)
+
+(autoload 'multifile-initialize-replace "multifile" "\
+Initialize a new round of query&replace on several files.
+FROM is a regexp and TO is the replacement to use.
+FILES describes the file, as in `multifile-initialize'.
+CASE-FOLD can be t, nil, or `default', the latter one meaning to obey
+the default setting of `case-fold-search'.
+DELIMITED if non-nil means replace only word-delimited matches.
+
+\(fn FROM TO FILES CASE-FOLD &optional DELIMITED)" nil nil)
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "multifile" '("multifile-")))
+
+;;;***
+
 ;;;### (autoloads nil "mwheel" "mwheel.el" (0 0 0 0))
 ;;; Generated autoloads from mwheel.el
 
@@ -24850,7 +24882,8 @@ STRING should be on something resembling an RFC2822 string, a la
 somewhat liberal in what format it accepts, and will attempt to
 return a \"likely\" value even for somewhat malformed strings.
 The values returned are identical to those of `decode-time', but
-any values that are unknown are returned as nil.
+any unknown values other than DST are returned as nil, and an
+unknown DST value is returned as -1.
 
 \(fn STRING)" nil nil)
 
@@ -26353,6 +26386,20 @@ The completion default is the filename at point, if one is
 recognized.
 
 \(fn)" t nil)
+
+(autoload 'project-search "project" "\
+Search for REGEXP in all the files of the project.
+Stops when a match is found.
+To continue searching for next match, use command \\[multifile-continue].
+
+\(fn REGEXP)" t nil)
+
+(autoload 'project-query-replace "project" "\
+Search for REGEXP in all the files of the project.
+Stops when a match is found.
+To continue searching for next match, use command \\[multifile-continue].
+
+\(fn FROM TO)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "project" '("project-")))
 
@@ -33791,15 +33838,17 @@ Return the number at point, or nil if none is found.
 
 (autoload 'list-at-point "thingatpt" "\
 Return the Lisp list at point, or nil if none is found.
+If IGNORE-COMMENT-OR-STRING is non-nil comments and strings are
+treated as white space.
 
-\(fn)" nil nil)
+\(fn &optional IGNORE-COMMENT-OR-STRING)" nil nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "thingatpt" '("beginning-of-thing" "define-thing-chars" "end-of-thing" "filename" "form-at-point" "in-string-p" "sentence-at-point" "thing-at-point-" "word-at-point")))
 
 ;;;***
 
-;;;### (autoloads nil "thread" "emacs-lisp/thread.el" (0 0 0 0))
-;;; Generated autoloads from emacs-lisp/thread.el
+;;;### (autoloads nil "thread" "thread.el" (0 0 0 0))
+;;; Generated autoloads from thread.el
 
 (autoload 'thread-handle-event "thread" "\
 Handle thread events, propagated by `thread-signal'.
@@ -33807,6 +33856,14 @@ An EVENT has the format
   (thread-event THREAD ERROR-SYMBOL DATA)
 
 \(fn EVENT)" t nil)
+
+(autoload 'list-threads "thread" "\
+Display a list of threads.
+
+\(fn)" t nil)
+ (put 'list-threads 'disabled "Beware: manually canceling threads can ruin your Emacs session.")
+
+(if (fboundp 'register-definition-prefixes) (register-definition-prefixes "thread" '("thread-list-")))
 
 ;;;***
 

@@ -2017,21 +2017,20 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 		   (minibuffer-prompt-end)))
 	  ;; We do not want to send any remote command.
 	  (non-essential t))
-      (when
-	  (tramp-tramp-file-p
-	   (buffer-substring-no-properties end (point-max)))
-	(save-restriction
-	  (narrow-to-region
-	   (1+ (or (string-match
-		    (tramp-rfn-eshadow-update-overlay-regexp)
-		    (buffer-string) end)
-		   end))
-	   (point-max))
-	  (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
-		(rfn-eshadow-update-overlay-hook nil)
-		file-name-handler-alist)
-	    (move-overlay rfn-eshadow-overlay (point-max) (point-max))
-	    (rfn-eshadow-update-overlay)))))))
+      (when (tramp-tramp-file-p (buffer-substring end (point-max)))
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region
+	     (1+ (or (string-match
+		      (tramp-rfn-eshadow-update-overlay-regexp)
+		      (buffer-string) end)
+		     end))
+	     (point-max))
+	    (let ((rfn-eshadow-overlay tramp-rfn-eshadow-overlay)
+		  (rfn-eshadow-update-overlay-hook nil)
+		  file-name-handler-alist)
+	      (move-overlay rfn-eshadow-overlay (point-max) (point-max))
+	      (rfn-eshadow-update-overlay))))))))
 
 (add-hook 'rfn-eshadow-update-overlay-hook
 	  'tramp-rfn-eshadow-update-overlay)
@@ -2153,7 +2152,7 @@ ARGS are the arguments OPERATION has been called with."
       default-directory))
    ;; FILE DIRECTORY resp FILE1 FILE2.
    ((member operation
-	    '(add-name-to-file copy-directory copy-file expand-file-name
+	    '(add-name-to-file copy-directory copy-file
 	      file-equal-p file-in-directory-p
 	      file-name-all-completions file-name-completion
 	      ;; Starting with Emacs 26.1, just the 2nd argument of
@@ -2165,6 +2164,13 @@ ARGS are the arguments OPERATION has been called with."
     (save-match-data
       (cond
        ((tramp-tramp-file-p (nth 0 args)) (nth 0 args))
+       ((tramp-tramp-file-p (nth 1 args)) (nth 1 args))
+       (t default-directory))))
+   ;; FILE DIRECTORY resp FILE1 FILE2.
+   ((eq operation 'expand-file-name)
+    (save-match-data
+      (cond
+       ((file-name-absolute-p (nth 0 args)) (nth 0 args))
        ((tramp-tramp-file-p (nth 1 args)) (nth 1 args))
        (t default-directory))))
    ;; START END FILE.
@@ -2290,7 +2296,8 @@ If Emacs is compiled --with-threads, the body is protected by a mutex."
 			;; the Tramp packages locally.
 			(when (autoloadp sf)
 			  (let ((default-directory
-				  (tramp-compat-temporary-file-directory)))
+				  (tramp-compat-temporary-file-directory))
+			        file-name-handler-alist)
 			    (load (cadr sf) 'noerror 'nomessage)))
 			;; (tramp-message
 			;;  v 4 "Running `%s'..." (cons operation args))
@@ -2391,10 +2398,10 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 ;;;###autoload
 (progn (defun tramp-autoload-file-name-handler (operation &rest args)
   "Load Tramp file name handler, and perform OPERATION."
+  (tramp-unload-file-name-handlers)
   (if tramp-mode
       (let ((default-directory temporary-file-directory))
-	(load "tramp" 'noerror 'nomessage))
-    (tramp-unload-file-name-handlers))
+	(load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
 
 ;; `tramp-autoload-file-name-handler' must be registered before
@@ -2438,15 +2445,8 @@ remote file names."
 (defun tramp-register-file-name-handlers ()
   "Add Tramp file name handlers to `file-name-handler-alist'."
   ;; Remove autoloaded handlers from file name handler alist.  Useful,
-  ;; if `tramp-syntax' has been changed.  We cannot call
-  ;; `tramp-unload-file-name-handlers', this would result in recursive
-  ;; loading of Tramp.
-  (dolist (fnh '(tramp-file-name-handler
-		 tramp-completion-file-name-handler
-		 tramp-archive-file-name-handler
-		 tramp-autoload-file-name-handler))
-    (let ((a1 (rassq fnh file-name-handler-alist)))
-      (setq file-name-handler-alist (delq a1 file-name-handler-alist))))
+  ;; if `tramp-syntax' has been changed.
+  (tramp-unload-file-name-handlers)
 
   ;; Add the handlers.  We do not add anything to the `operations'
   ;; property of `tramp-file-name-handler' and
@@ -2521,12 +2521,10 @@ Add operations defined in `HANDLER-alist' to `tramp-file-name-handler'."
 ;;;###autoload
 (progn (defun tramp-unload-file-name-handlers ()
   "Unload Tramp file name handlers from `file-name-handler-alist'."
-  (dolist (fnh '(tramp-file-name-handler
-		 tramp-completion-file-name-handler
-		 tramp-archive-file-name-handler
-		 tramp-autoload-file-name-handler))
-    (let ((a1 (rassq fnh file-name-handler-alist)))
-      (setq file-name-handler-alist (delq a1 file-name-handler-alist))))))
+  (dolist (fnh file-name-handler-alist)
+    (when (and (symbolp (cdr fnh))
+	       (string-prefix-p "tramp-" (symbol-name (cdr fnh))))
+      (setq file-name-handler-alist (delq fnh file-name-handler-alist))))))
 
 (add-hook 'tramp-unload-hook 'tramp-unload-file-name-handlers)
 

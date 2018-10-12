@@ -304,7 +304,7 @@ write-date, checksum, link-type, and link-name."
            (tar-parse-octal-integer string tar-uid-offset tar-gid-offset)
            (tar-parse-octal-integer string tar-gid-offset tar-size-offset)
            (tar-parse-octal-integer string tar-size-offset tar-time-offset)
-           (tar-parse-octal-long-integer string tar-time-offset tar-chk-offset)
+           (tar-parse-octal-integer string tar-time-offset tar-chk-offset)
            (tar-parse-octal-integer string tar-chk-offset tar-linkp-offset)
            link-p
            linkname
@@ -342,20 +342,8 @@ write-date, checksum, link-type, and link-name."
 	      start (1+ start)))
       n)))
 
-(defun tar-parse-octal-long-integer (string &optional start end)
-  (if (null start) (setq start 0))
-  (if (null end) (setq end (length string)))
-  (if (= (aref string start) 0)
-      (list 0 0)
-    (let ((lo 0)
-	  (hi 0))
-      (while (< start end)
-	(if (>= (aref string start) ?0)
-	    (setq lo (+ (* lo 8) (- (aref string start) ?0))
-		  hi (+ (* hi 8) (ash lo -16))
-		  lo (logand lo 65535)))
-	(setq start (1+ start)))
-      (list hi lo))))
+(define-obsolete-function-alias 'tar-parse-octal-long-integer
+  'tar-parse-octal-integer "27.1")
 
 (defun tar-parse-octal-integer-safe (string)
   (if (zerop (length string)) (error "empty string"))
@@ -1276,14 +1264,8 @@ for this to be permanent."
 
 
 (defun tar-octal-time (timeval)
-  ;; Format a timestamp as 11 octal digits.  Ghod, I hope this works...
-  (let ((hibits (car timeval)) (lobits (car (cdr timeval))))
-    (format "%05o%01o%05o"
-	    (ash hibits -2)
-	    (logior (ash (logand 3 hibits) 1)
-		    (if (> (logand lobits 32768) 0) 1 0))
-	    (logand 32767 lobits)
-	    )))
+  ;; Format a timestamp as 11 octal digits.
+  (format "%011o" (encode-time timeval 'integer)))
 
 (defun tar-subfile-save-buffer ()
   "In tar subfile mode, save this buffer into its parent tar-file buffer.

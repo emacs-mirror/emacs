@@ -3575,7 +3575,7 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
 ;; Don't throw `throw-on-input' on those events by default.
 (setq while-no-input-ignore-events
       '(focus-in focus-out help-echo iconify-frame
-        make-frame-visible selection-request))
+        make-frame-visible selection-request buffer-switch))
 
 (defmacro while-no-input (&rest body)
   "Execute BODY only as long as there's no pending input.

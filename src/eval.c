@@ -1591,7 +1591,7 @@ DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
 This function does not return.
 
 An error symbol is a symbol with an `error-conditions' property
-that is a list of condition names.
+that is a list of condition names.  The symbol should be non-nil.
 A handler for any of those names will get to handle this signal.
 The symbol `error' should normally be one of them.
 
@@ -1603,6 +1603,9 @@ See also the function `condition-case'.  */
        attributes: noreturn)
   (Lisp_Object error_symbol, Lisp_Object data)
 {
+  /* If they call us with nonsensical arguments, produce "peculiar error".  */
+  if (NILP (error_symbol) && NILP (data))
+    error_symbol = Qerror;
   signal_or_quit (error_symbol, data, false);
   eassume (false);
 }

@@ -41,13 +41,13 @@ struct matrix_elt
     int deletecost;
     /* Number of inserts so far in this run of inserts,
        for the cost in insertcost.  */
-    unsigned char insertcount;
+    int insertcount;
     /* Number of deletes so far in this run of deletes,
        for the cost in deletecost.  */
-    unsigned char deletecount;
+    int deletecount;
     /* Number of writes so far since the last insert
        or delete for the cost in writecost. */
-    unsigned char writecount;
+    int writecount;
   };
 
 static void do_direct_scrolling (struct frame *,
@@ -186,13 +186,13 @@ calculate_scrolling (struct frame *frame,
 	else
 	  {
 	    cost = p1->writecost + first_insert_cost[i];
-	    if ((int) p1->insertcount > i)
+	    if (p1->insertcount > i)
 	      emacs_abort ();
 	    cost1 = p1->insertcost + next_insert_cost[i - p1->insertcount];
 	  }
 	p->insertcost = min (cost, cost1) + draw_cost[i] + extra_cost;
 	p->insertcount = (cost < cost1) ? 1 : p1->insertcount + 1;
-	if ((int) p->insertcount > i)
+	if (p->insertcount > i)
 	  emacs_abort ();
 
 	/* Calculate the cost if we do a delete line after

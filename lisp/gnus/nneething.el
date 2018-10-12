@@ -123,7 +123,7 @@ included.")
 	 (file-exists-p file)		; The file exists.
 	 (not (file-directory-p file))	; It's not a dir.
 	 (save-excursion
-	   (let ((nnmail-file-coding-system 'binary))
+	   (let ((nnmail-file-coding-system 'raw-text))
 	     (nnmail-find-file file))	; Insert the file in the nntp buf.
 	   (unless (nnheader-article-p)	; Either it's a real article...
 	     (let ((type

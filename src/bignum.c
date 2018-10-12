@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    storage is exhausted.  Admittedly this is not ideal.  An mpz value
    in a temporary is made permanent by mpz_swapping it with a bignum's
    value.  Although typically at most two temporaries are needed,
-   rounding_driver and rounddiv_q need four altogther.  */
+   time_arith, rounddiv_q and rounding_driver each need four.  */
 
 mpz_t mpz[4];
 
@@ -101,18 +101,6 @@ make_bignum (void)
   return make_bignum_bits (mpz_sizeinbase (mpz[0], 2));
 }
 
-static void mpz_set_uintmax_slow (mpz_t, uintmax_t);
-
-/* Set RESULT to V.  */
-static void
-mpz_set_uintmax (mpz_t result, uintmax_t v)
-{
-  if (v <= ULONG_MAX)
-    mpz_set_ui (result, v);
-  else
-    mpz_set_uintmax_slow (result, v);
-}
-
 /* Return a Lisp integer equal to N, which must not be in fixnum range.  */
 Lisp_Object
 make_bigint (intmax_t n)
@@ -126,6 +114,16 @@ make_biguint (uintmax_t n)
 {
   eassert (FIXNUM_OVERFLOW_P (n));
   mpz_set_uintmax (mpz[0], n);
+  return make_bignum ();
+}
+
+/* Return a Lisp integer equal to -N, which must not be in fixnum range.  */
+Lisp_Object
+make_neg_biguint (uintmax_t n)
+{
+  eassert (-MOST_NEGATIVE_FIXNUM < n);
+  mpz_set_uintmax (mpz[0], n);
+  mpz_neg (mpz[0], mpz[0]);
   return make_bignum ();
 }
 
@@ -183,7 +181,7 @@ mpz_set_intmax_slow (mpz_t result, intmax_t v)
 
   mpz_limbs_finish (result, negative ? -n : n);
 }
-static void
+void
 mpz_set_uintmax_slow (mpz_t result, uintmax_t v)
 {
   int maxlimbs = (UINTMAX_WIDTH + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS;
@@ -200,13 +198,13 @@ mpz_set_uintmax_slow (mpz_t result, uintmax_t v)
   mpz_limbs_finish (result, n);
 }
 
-/* Return the value of the bignum X if it fits, 0 otherwise.
-   A bignum cannot be zero, so 0 indicates failure reliably.  */
-intmax_t
-bignum_to_intmax (Lisp_Object x)
+/* If Z fits into *PI, store its value there and return true.
+   Return false otherwise.  */
+bool
+mpz_to_intmax (mpz_t const z, intmax_t *pi)
 {
-  ptrdiff_t bits = mpz_sizeinbase (XBIGNUM (x)->value, 2);
-  bool negative = mpz_sgn (XBIGNUM (x)->value) < 0;
+  ptrdiff_t bits = mpz_sizeinbase (z, 2);
+  bool negative = mpz_sgn (z) < 0;
 
   if (bits < INTMAX_WIDTH)
     {
@@ -215,39 +213,60 @@ bignum_to_intmax (Lisp_Object x)
 
       do
 	{
-	  intmax_t limb = mpz_getlimbn (XBIGNUM (x)->value, i++);
+	  intmax_t limb = mpz_getlimbn (z, i++);
 	  v += limb << shift;
 	  shift += GMP_NUMB_BITS;
 	}
       while (shift < bits);
 
-      return negative ? -v : v;
+      *pi = negative ? -v : v;
+      return true;
     }
-  return ((bits == INTMAX_WIDTH && INTMAX_MIN < -INTMAX_MAX && negative
-	   && mpz_scan1 (XBIGNUM (x)->value, 0) == INTMAX_WIDTH - 1)
-	  ? INTMAX_MIN : 0);
+  if (bits == INTMAX_WIDTH && INTMAX_MIN < -INTMAX_MAX && negative
+      && mpz_scan1 (z, 0) == INTMAX_WIDTH - 1)
+    {
+      *pi = INTMAX_MIN;
+      return true;
+    }
+  return false;
+}
+bool
+mpz_to_uintmax (mpz_t const z, uintmax_t *pi)
+{
+  if (mpz_sgn (z) < 0)
+    return false;
+  ptrdiff_t bits = mpz_sizeinbase (z, 2);
+  if (UINTMAX_WIDTH < bits)
+    return false;
+
+  uintmax_t v = 0;
+  int i = 0, shift = 0;
+
+  do
+    {
+      uintmax_t limb = mpz_getlimbn (z, i++);
+      v += limb << shift;
+      shift += GMP_NUMB_BITS;
+    }
+  while (shift < bits);
+
+  *pi = v;
+  return true;
+}
+
+/* Return the value of the bignum X if it fits, 0 otherwise.
+   A bignum cannot be zero, so 0 indicates failure reliably.  */
+intmax_t
+bignum_to_intmax (Lisp_Object x)
+{
+  intmax_t i;
+  return mpz_to_intmax (XBIGNUM (x)->value, &i) ? i : 0;
 }
 uintmax_t
 bignum_to_uintmax (Lisp_Object x)
 {
-  uintmax_t v = 0;
-  if (0 <= mpz_sgn (XBIGNUM (x)->value))
-    {
-      ptrdiff_t bits = mpz_sizeinbase (XBIGNUM (x)->value, 2);
-      if (bits <= UINTMAX_WIDTH)
-	{
-	  int i = 0, shift = 0;
-
-	  do
-	    {
-	      uintmax_t limb = mpz_getlimbn (XBIGNUM (x)->value, i++);
-	      v += limb << shift;
-	      shift += GMP_NUMB_BITS;
-	    }
-	  while (shift < bits);
-	}
-    }
-  return v;
+  uintmax_t i;
+  return mpz_to_uintmax (XBIGNUM (x)->value, &i) ? i : 0;
 }
 
 /* Yield an upper bound on the buffer size needed to contain a C

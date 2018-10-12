@@ -1679,7 +1679,9 @@ Note: The interactive spec of @var{function} will apply to the combined
 function and should hence obey the calling convention of the combined function
 rather than that of @var{function}.  In many cases, it makes no difference
 since they are identical, but it does matter for @code{:around},
-@code{:filter-args}, and @code{filter-return}, where @var{function}.
+@code{:filter-args}, and @code{:filter-return}, where @var{function}
+receives different arguments than the original function stored in
+@var{place}.
 @end defmac
 
 @defmac remove-function place function

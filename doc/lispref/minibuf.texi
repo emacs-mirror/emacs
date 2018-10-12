@@ -2242,6 +2242,7 @@ Here is an example of using this function:
   To read a password to pass to another program, you can use the
 function @code{read-passwd}.
 
+@vindex read-hide-char
 @defun read-passwd prompt &optional confirm default
 This function reads a password, prompting with @var{prompt}.  It does
 not echo the password as the user types it; instead, it echoes

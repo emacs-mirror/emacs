@@ -1,5 +1,5 @@
 # acl.m4 - check for access control list (ACL) primitives
-# serial 22
+# serial 23
 
 # Copyright (C) 2002, 2004-2018 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
@@ -30,7 +30,8 @@ AC_DEFUN([gl_FUNC_ACL],
       ac_save_LIBS=$LIBS
 
       dnl Test for POSIX-draft-like API (GNU/Linux, FreeBSD, Mac OS X,
-      dnl IRIX, Tru64).  -lacl is needed on GNU/Linux, -lpacl on OSF/1.
+      dnl IRIX, Tru64, Cygwin >= 2.5).
+      dnl -lacl is needed on GNU/Linux, -lpacl on OSF/1.
       if test $use_acl = 0; then
         AC_SEARCH_LIBS([acl_get_file], [acl pacl],
           [if test "$ac_cv_search_acl_get_file" != "none required"; then

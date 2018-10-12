@@ -110,6 +110,16 @@ be removed prior using the changed 'shadow-*' commands.
 The old name is an alias of the new name.  Future Emacs version will
 obsolete it.
 
+---
+** 'while-no-input' does not return due to input from subprocesses.
+Input that arrived from subprocesses while some code executed inside
+the 'while-no-input' form injected an internal buffer-switch event
+that counted as input and would cause 'while-no-input' to return,
+perhaps prematurely.  These buffer-switch events are now by default
+ignored by 'while-no-input'; if you need to get the old behavior,
+remove 'buffer-switch' from the list of events in
+'while-no-input-ignore-events'.
+
 
 * Lisp Changes in Emacs 26.2
 

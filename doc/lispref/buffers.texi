@@ -648,16 +648,13 @@ file should not be done.
 
 @defun visited-file-modtime
 This function returns the current buffer's recorded last file
-modification time, as a list of the form @code{(@var{high} @var{low}
-@var{microsec} @var{picosec})}.  (This is the same format that
-@code{file-attributes} uses to return time values; @pxref{File
-Attributes}.)
+modification time, as a Lisp timestamp (@pxref{Time of Day}).
 
 If the buffer has no recorded last modification time, this function
 returns zero.  This case occurs, for instance, if the buffer is not
 visiting a file or if the time has been explicitly cleared by
 @code{clear-visited-file-modtime}.  Note, however, that
-@code{visited-file-modtime} returns a list for some non-file buffers
+@code{visited-file-modtime} returns a timestamp for some non-file buffers
 too.  For instance, in a Dired buffer listing a directory, it returns
 the last modification time of that directory, as recorded by Dired.
 
@@ -671,9 +668,8 @@ is not @code{nil}, and otherwise to the last modification time of the
 visited file.
 
 If @var{time} is neither @code{nil} nor an integer flag returned
-by @code{visited-file-modtime}, it should have the form
-@code{(@var{high} @var{low} @var{microsec} @var{picosec})},
-the format used by @code{current-time} (@pxref{Time of Day}).
+by @code{visited-file-modtime}, it should be a Lisp time value
+(@pxref{Time of Day}).
 
 This function is useful if the buffer was not read from the file
 normally, or if the file itself has been changed for some known benign

@@ -660,6 +660,21 @@ Don't try to split prefixes that are already longer than that.")
 
 (defvar autoload-builtin-package-versions nil)
 
+(defvar autoload-ignored-definitions
+  '("define-obsolete-function-alias"
+    "define-obsolete-variable-alias"
+    "define-category" "define-key"
+    "defgroup" "defface" "defadvice"
+    "def-edebug-spec"
+    ;; Hmm... this is getting ugly:
+    "define-widget"
+    "define-erc-module"
+    "define-erc-response-handler"
+    "defun-rcirc-command")
+  "List of strings naming definitions to ignore for prefixes.
+More specifically those definitions will not be considered for the
+`register-definition-prefixes' call.")
+
 ;; When called from `generate-file-autoloads' we should ignore
 ;; `generated-autoload-file' altogether.  When called from
 ;; `update-file-autoloads' we don't know `outbuf'.  And when called from
@@ -758,16 +773,7 @@ FILE's modification time."
                              (looking-at "(\\(def[^ ]+\\) ['(]*\\([^' ()\"\n]+\\)[\n \t]")
                              (not (member
                                    (match-string 1)
-                                   '("define-obsolete-function-alias"
-                                     "define-obsolete-variable-alias"
-                                     "define-category" "define-key"
-                                     "defgroup" "defface" "defadvice"
-                                     "def-edebug-spec"
-                                     ;; Hmm... this is getting ugly:
-                                     "define-widget"
-                                     "define-erc-module"
-                                     "define-erc-response-handler"
-                                     "defun-rcirc-command"))))
+                                   autoload-ignored-definitions)))
                     (push (match-string-no-properties 2) defs))
                             (forward-sexp 1)
                             (forward-line 1)))))))

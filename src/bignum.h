@@ -45,7 +45,10 @@ extern mpz_t mpz[4];
 
 extern void init_bignum (void);
 extern Lisp_Object make_integer_mpz (void);
+extern bool mpz_to_intmax (mpz_t const, intmax_t *) ARG_NONNULL ((1, 2));
+extern bool mpz_to_uintmax (mpz_t const, uintmax_t *) ARG_NONNULL ((1, 2));
 extern void mpz_set_intmax_slow (mpz_t, intmax_t) ARG_NONNULL ((1));
+extern void mpz_set_uintmax_slow (mpz_t, uintmax_t) ARG_NONNULL ((1));
 extern double mpz_get_d_rounded (mpz_t const);
 
 INLINE_HEADER_BEGIN
@@ -67,6 +70,14 @@ mpz_set_intmax (mpz_t result, intmax_t v)
     mpz_set_si (result, v);
   else
     mpz_set_intmax_slow (result, v);
+}
+INLINE void ARG_NONNULL ((1))
+mpz_set_uintmax (mpz_t result, uintmax_t v)
+{
+  if (v <= ULONG_MAX)
+    mpz_set_ui (result, v);
+  else
+    mpz_set_uintmax_slow (result, v);
 }
 
 /* Return a pointer to an mpz_t that is equal to the Lisp integer I.

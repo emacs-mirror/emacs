@@ -535,8 +535,6 @@ static Lisp_Object ltime (ULONGLONG);
 /* Get total user and system times for get-internal-run-time.
    Returns a list of integers if the times are provided by the OS
    (NT derivatives), otherwise it returns the result of current-time. */
-Lisp_Object w32_get_internal_run_time (void);
-
 Lisp_Object
 w32_get_internal_run_time (void)
 {

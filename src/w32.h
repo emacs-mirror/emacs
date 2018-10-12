@@ -195,6 +195,7 @@ extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
 extern int  filename_to_utf16 (const char *, wchar_t *);
+extern Lisp_Object w32_get_internal_run_time (void);
 extern void w32_init_file_name_codepage (void);
 extern int  codepage_for_filenames (CPINFO *);
 extern Lisp_Object ansi_encode_filename (Lisp_Object);

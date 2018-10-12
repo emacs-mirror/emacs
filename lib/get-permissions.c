@@ -38,9 +38,9 @@ get_permissions (const char *name, int desc, mode_t mode,
 
 #if USE_ACL && HAVE_ACL_GET_FILE
   /* POSIX 1003.1e (draft 17 -- abandoned) specific version.  */
-  /* Linux, FreeBSD, Mac OS X, IRIX, Tru64 */
+  /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
 # if !HAVE_ACL_TYPE_EXTENDED
-  /* Linux, FreeBSD, IRIX, Tru64 */
+  /* Linux, FreeBSD, IRIX, Tru64, Cygwin >= 2.5 */
 
   if (HAVE_ACL_GET_FD && desc != -1)
     ctx->acl = acl_get_fd (desc);
@@ -60,13 +60,13 @@ get_permissions (const char *name, int desc, mode_t mode,
         return -1;
     }
 
-# if HAVE_ACL_TYPE_NFS4  /* FreeBSD */
+#  if HAVE_ACL_TYPE_NFS4  /* FreeBSD */
 
   /* TODO (see set_permissions). */
 
-# endif
+#  endif
 
-#  else /* HAVE_ACL_TYPE_EXTENDED */
+# else /* HAVE_ACL_TYPE_EXTENDED */
   /* Mac OS X */
 
   /* On Mac OS X,  acl_get_file (name, ACL_TYPE_ACCESS)

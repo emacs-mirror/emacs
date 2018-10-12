@@ -27,9 +27,11 @@
 
 #include <string.h>
 
+#if _LIBC
 /* glibc-internal users use __explicit_bzero_chk, and explicit_bzero
    redirects to that.  */
-#undef explicit_bzero
+# undef explicit_bzero
+#endif
 
 /* Set LEN bytes of S to 0.  The compiler will not delete a call to
    this function, even if S is dead after the call.  */

@@ -24,7 +24,7 @@
 #include "acl-internal.h"
 
 #if USE_ACL
-# if ! defined HAVE_ACL_FROM_MODE && defined HAVE_ACL_FROM_TEXT /* FreeBSD, IRIX, Tru64 */
+# if ! defined HAVE_ACL_FROM_MODE && defined HAVE_ACL_FROM_TEXT /* FreeBSD, IRIX, Tru64, Cygwin >= 2.5 */
 #  if HAVE_ACL_GET_FILE && !HAVE_ACL_TYPE_EXTENDED
 
 static acl_t
@@ -32,7 +32,7 @@ acl_from_mode (mode_t mode)
 {
 #  if HAVE_ACL_FREE_TEXT /* Tru64 */
   char acl_text[] = "u::---,g::---,o::---,";
-#  else /* FreeBSD, IRIX */
+#  else /* FreeBSD, IRIX, Cygwin >= 2.5 */
   char acl_text[] = "u::---,g::---,o::---";
 #  endif
 
@@ -51,7 +51,7 @@ acl_from_mode (mode_t mode)
 #  endif
 # endif
 
-# if HAVE_FACL && defined GETACL /* Solaris, Cygwin, not HP-UX */
+# if HAVE_FACL && defined GETACL /* Solaris, Cygwin < 2.5, not HP-UX */
 static int
 set_acls_from_mode (const char *name, int desc, mode_t mode, bool *must_chmod)
 {
@@ -489,9 +489,9 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
 
 # if HAVE_ACL_GET_FILE
   /* POSIX 1003.1e (draft 17 -- abandoned) specific version.  */
-  /* Linux, FreeBSD, Mac OS X, IRIX, Tru64 */
+  /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
 #  if !HAVE_ACL_TYPE_EXTENDED
-  /* Linux, FreeBSD, IRIX, Tru64 */
+  /* Linux, FreeBSD, IRIX, Tru64, Cygwin >= 2.5 */
 
 #   ifndef HAVE_ACL_FROM_TEXT
 #    error Must have acl_from_text (see POSIX 1003.1e draft 17).
@@ -542,14 +542,14 @@ set_acls (struct permission_context *ctx, const char *name, int desc,
         }
     }
 
-# if HAVE_ACL_TYPE_NFS4  /* FreeBSD */
+#   if HAVE_ACL_TYPE_NFS4  /* FreeBSD */
 
   /* File systems either support POSIX ACLs (for example, ufs) or NFS4 ACLs
      (for example, zfs). */
 
   /* TODO: Implement setting ACLs once get_permissions() reads them. */
 
-# endif
+#   endif
 
 #  else /* HAVE_ACL_TYPE_EXTENDED */
   /* Mac OS X */

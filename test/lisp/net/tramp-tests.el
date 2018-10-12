@@ -4884,7 +4884,7 @@ Use the `ls' command."
 		 (numberp (nth 2 fsi))))))
 
 (defun tramp--test-timeout-handler ()
-  (interactive)
+  "Timeout handler, reporting a failed test."
   (ert-fail (format "`%s' timed out" (ert-test-name (ert-running-test)))))
 
 ;; This test is inspired by Bug#16928.

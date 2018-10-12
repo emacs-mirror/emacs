@@ -1993,39 +1993,17 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 
     case Lisp_Symbol:
       {
-	bool confusing;
-	unsigned char *p = SDATA (SYMBOL_NAME (obj));
-	unsigned char *end = p + SBYTES (SYMBOL_NAME (obj));
-	int c;
-	ptrdiff_t i, i_byte;
-	ptrdiff_t size_byte;
-	Lisp_Object name;
+	Lisp_Object name = SYMBOL_NAME (obj);
+	ptrdiff_t size_byte = SBYTES (name);
 
-	name = SYMBOL_NAME (obj);
-
-	if (p != end && (*p == '-' || *p == '+')) p++;
-	if (p == end)
-	  confusing = 0;
-	/* If symbol name begins with a digit, and ends with a digit,
-	   and contains nothing but digits and `e', it could be treated
-	   as a number.  So set CONFUSING.
-
-	   Symbols that contain periods could also be taken as numbers,
-	   but periods are always escaped, so we don't have to worry
-	   about them here.  */
-	else if (*p >= '0' && *p <= '9'
-		 && end[-1] >= '0' && end[-1] <= '9')
-	  {
-	    while (p != end && ((*p >= '0' && *p <= '9')
-				/* Needed for \2e10.  */
-				|| *p == 'e' || *p == 'E'))
-	      p++;
-	    confusing = (end == p);
-	  }
-	else
-	  confusing = 0;
-
-	size_byte = SBYTES (name);
+	/* Set CONFUSING if NAME looks like a number, calling
+	   string_to_number for non-obvious cases.  */
+	char *p = SSDATA (name);
+	bool signedp = *p == '-' || *p == '+';
+	ptrdiff_t len;
+	bool confusing = ((c_isdigit (p[signedp]) || p[signedp] == '.')
+			  && !NILP (string_to_number (p, 10, &len))
+			  && len == size_byte);
 
 	if (! NILP (Vprint_gensym)
             && !SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (obj))
@@ -2036,10 +2014,12 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	    break;
 	  }
 
-	for (i = 0, i_byte = 0; i_byte < size_byte;)
+	ptrdiff_t i = 0;
+	for (ptrdiff_t i_byte = 0; i_byte < size_byte; )
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
+	    int c;
 	    FETCH_STRING_CHAR_ADVANCE (c, name, i, i_byte);
 	    maybe_quit ();
 
@@ -2049,6 +2029,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 		    || c == ';' || c == '#' || c == '(' || c == ')'
 		    || c == ',' || c == '.' || c == '`'
 		    || c == '[' || c == ']' || c == '?' || c <= 040
+		    || c == NO_BREAK_SPACE
                     || confusing
 		    || (i == 1 && confusable_symbol_character_p (c)))
 		  {

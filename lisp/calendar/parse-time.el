@@ -227,7 +227,7 @@ If DATE-STRING cannot be parsed, it falls back to
 	 (tz-re (nth 2 parse-time-iso8601-regexp))
          re-start
          time seconds minute hour
-         day month year day-of-week dst tz)
+         day month year day-of-week (dst -1) tz)
     ;; We need to populate 'time' with
     ;; (SEC MIN HOUR DAY MON YEAR DOW DST TZ)
 
@@ -243,6 +243,7 @@ If DATE-STRING cannot be parsed, it falls back to
 	      seconds (string-to-number (match-string 3 date-string))
 	      re-start (match-end 0))
 	(when (string-match tz-re date-string re-start)
+          (setq dst nil)
           (if (string= "Z" (match-string 1 date-string))
               (setq tz 0)  ;; UTC timezone indicated by Z
             (setq tz (+
@@ -260,7 +261,7 @@ If DATE-STRING cannot be parsed, it falls back to
       (setq time (parse-time-string date-string)))
 
     (and time
-	 (apply 'encode-time time))))
+	 (encode-time time))))
 
 (provide 'parse-time)
 

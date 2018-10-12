@@ -173,9 +173,26 @@ minibuffer history.")
   "Toggle saving of minibuffer history (Savehist mode).
 
 When Savehist mode is enabled, minibuffer history is saved
-periodically and when exiting Emacs.  When Savehist mode is
-enabled for the first time in an Emacs session, it loads the
-previous minibuffer history from `savehist-file'.
+to `savehist-file' periodically and when exiting Emacs.  When
+Savehist mode is enabled for the first time in an Emacs session,
+it loads the previous minibuffer histories from `savehist-file'.
+The variable `savehist-autosave-interval' controls the
+periodicity of saving minibuffer histories.
+
+If `savehist-save-minibuffer-history' is non-nil (the default),
+all recorded minibuffer histories will be saved.  You can arrange
+for additional history variables to be saved and restored by
+customizing `savehist-additional-variables', which by default is
+an empty list.  For example, to save the history of commands
+invoked via \\[execute-extended-command], add `command-history' to the list in
+`savehist-additional-variables'.
+
+Alternatively, you could customize `savehist-save-minibuffer-history'
+to nil, and add to `savehist-additional-variables' only those
+history variables you want to save.
+
+To ignore some history variables, add their symbols to the list
+in `savehist-ignored-variables'.
 
 This mode should normally be turned on from your Emacs init file.
 Calling it at any other time replaces your current minibuffer
