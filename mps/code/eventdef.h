@@ -36,7 +36,7 @@
  */
 
 #define EVENT_VERSION_MAJOR  ((unsigned)2)
-#define EVENT_VERSION_MEDIAN ((unsigned)3)
+#define EVENT_VERSION_MEDIAN ((unsigned)4)
 #define EVENT_VERSION_MINOR  ((unsigned)0)
 
 
@@ -243,7 +243,8 @@
   PARAM(X,  2, W, chunkSize) /* arena's chunk size in bytes */ \
   PARAM(X,  3, W, grainSize) /* arena's grain size in bytes */ \
   PARAM(X,  4, P, arenaClass) /* arena's class */ \
-  PARAM(X,  5, U, serial) /* arena's serial number */
+  PARAM(X,  5, W, systemPools) /* number of system pools */ \
+  PARAM(X,  6, U, serial) /* arena's serial number */
 
 #define EVENT_ArenaWriteFaults_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena) \
@@ -287,7 +288,8 @@
   PARAM(X,  2, A, base) /* base address of memory given to arena */ \
   PARAM(X,  3, W, grainSize) /* arena's grain size in bytes */ \
   PARAM(X,  4, P, arenaClass) /* arena's class */ \
-  PARAM(X,  5, U, serial) /* arena's serial number */
+  PARAM(X,  5, W, systemPools) /* number of system pools */ \
+  PARAM(X,  6, U, serial) /* arena's serial number */
 
 #define EVENT_ArenaDestroy_PARAMS(PARAM, X) \
   PARAM(X,  0, P, arena)

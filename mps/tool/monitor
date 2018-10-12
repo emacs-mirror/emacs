@@ -619,7 +619,6 @@ class Trace(EventHandler):
 
     def TraceDestroy(self, t, event):
         self.add_time("destroy", t, event)
-        self.pause_end(t, event)
 
     def TraceStatScan(self, t, event):
         self.add_count('roots scanned', event.rootScanCount)
@@ -719,16 +718,13 @@ class Trace(EventHandler):
 
 class Arena(EventHandler):
     "Model of an MPS arena."
-    # Number of pools that are internal to the arena; see the list in
-    # global.c:GlobalsPrepareToDestroy.
-    _internal_pools = 4
-
     def __init__(self, model, pointer, t):
         "Create Arena owned by model, at pointer, at time t."
         self.model = model       # Owning model.
         self._pointer = pointer  # Arena's pointer.
         self._arena_class = None # Arena's class pointer.
         self._serial = None      # Arena's serial number.
+        self._system_pools = 0   # Number of system pools.
         self._pools = []         # List of Pools ever belonging to arena.
         self._pool = {}          # Pointer -> Pool (for live pools).
         self._gens = []          # List of Gens ever belonging to arena.
@@ -795,12 +791,12 @@ class Arena(EventHandler):
 
     def ArenaAlloc(self, t, event):
         self.delegate_to_pool(t, event)
-        if self._pool[event.pool]._serial >= self._internal_pools:
+        if self._pool[event.pool]._serial >= self._system_pools:
             self._alloc.add(t, event.size)
 
     def ArenaFree(self, t, event):
         self.delegate_to_pool(t, event)
-        if self._pool[event.pool]._serial >= self._internal_pools:
+        if self._pool[event.pool]._serial >= self._system_pools:
             self._alloc.sub(t, event.size)
 
     PoolInit = \
@@ -824,6 +820,7 @@ class Arena(EventHandler):
     def ArenaCreateVM(self, t, event):
         self._arena_class = event.arenaClass
         self._serial = event.serial
+        self._system_pools = event.systemPools
 
     ArenaCreateCL = ArenaCreateVM
 
