@@ -48,10 +48,10 @@ Interface changes
    :c:macro:`MPS_KEY_SPARE`, :c:func:`mps_arena_spare` and
    :c:func:`mps_arena_spare_set` instead.
 
-#. The format of :term:`telemetry` events has changed: Booleans are no
-   longer packed into bitfields, but are emitted as unsigned bytes.
-   This makes it possible to decode telemetry events using Python's
-   |struct|_.
+#. The format of the :term:`telemetry stream` has changed: Booleans
+   are no longer packed into bitfields, but are emitted as unsigned
+   bytes. This makes it possible to decode the telemetry stream using
+   the Python function |struct|_.
 
    .. |struct| replace:: ``struct.unpack``
    .. _struct: https://docs.python.org/3/library/struct.html#struct.unpack

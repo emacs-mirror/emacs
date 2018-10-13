@@ -81,7 +81,7 @@ In its :term:`hot` and :term:`cool` varieties, the MPS contains a
 events for later analysis and debugging. When using the default
 :term:`plinth`, the behaviour of the telemetry system is under the
 control of the environment variable :envvar:`MPS_TELEMETRY_CONTROL`,
-and the telemetry stream is written to the file named by the
+and the :term:`telemetry stream` is written to the file named by the
 environment variable :envvar:`MPS_TELEMETRY_FILENAME`.
 
 This means that an attacker who can set arbitrary environment
