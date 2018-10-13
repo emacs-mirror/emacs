@@ -877,7 +877,7 @@ Second, the leaf objects must be allocated on ``leaf_ap`` instead of
     res = mps_ap_create_k(&leaf_ap, leaf_pool, mps_args_none);
     if (res != MPS_RES_OK) error("Couldn't create leaf objects allocation point");
 
-Note that the new pool shared a :term:`generation chain` with the old
+Note that the new pool shares a :term:`generation chain` with the old
 pool. This is important, because the leaf objects live and die along
 with the non-leaf objects of similar ages.
 

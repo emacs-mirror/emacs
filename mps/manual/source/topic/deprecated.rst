@@ -898,8 +898,12 @@ Deprecated in version 1.111
 
     .. deprecated::
 
-        If you need access to protected memory for debugging,
-        :ref:`contact us <contact>`.
+        If you need access to protected memory for debugging a fatal
+        error, use :c:func:`mps_arena_postmortem` instead.
+
+        If you need access to protected memory and also need to
+        continue running the MPS afterwards, :ref:`contact us
+        <contact>`.
 
     Ensure that the MPS is not protecting any :term:`page` in the
     :term:`arena` with a :term:`read barrier` or :term:`write
