@@ -404,11 +404,25 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   arenaGlobals->lock = (Lock)p;
   LockInit(arenaGlobals->lock);
 
+  /* Create the arena's default generation chain. */
   {
     GenParamStruct params[] = ChainDEFAULT;
     res = ChainCreate(&arenaGlobals->defaultChain, arena, NELEMS(params), params);
     if (res != ResOK)
       goto failChainCreate;
+  }
+
+  /* Label generations in default generation chain, for telemetry. */
+  {
+    Chain chain = arenaGlobals->defaultChain;
+    char label[] = "DefGen-0";
+    char *gen_index = &label[(sizeof label) - 2];
+    size_t i;
+    AVER(*gen_index == '0');
+    for (i = 0; i < chain->genCount; ++i) {
+      *gen_index = "0123456789ABCDEF"[i % 16];
+      EventLabelPointer(&chain->gens[i], EventInternString(label));
+    }
   }
 
   arenaAnnounce(arena);
@@ -744,7 +758,7 @@ void (ArenaPoll)(Globals globals)
   /* fillMutatorSize has advanced; call TracePoll enough to catch up. */
   start = ClockNow();
 
-  EVENT3(ArenaPoll, arena, start, FALSE);
+  EVENT1(ArenaPollBegin, arena);
 
   do {
     moreWork = TracePoll(&tracedWork, &worldCollected, globals,
@@ -759,7 +773,7 @@ void (ArenaPoll)(Globals globals)
     ArenaAccumulateTime(arena, start, ClockNow());
   }
 
-  EVENT3(ArenaPoll, arena, start, BOOLOF(workWasDone));
+  EVENT2(ArenaPollEnd, arena, BOOLOF(workWasDone));
 
   globals->insidePoll = FALSE;
 }

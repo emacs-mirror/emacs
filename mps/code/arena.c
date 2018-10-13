@@ -309,6 +309,7 @@ static Res ArenaAbsInit(Arena arena, Size grainSize, ArgList args)
   if (res != ResOK)
     goto failMFSInit;
 
+  EventLabelPointer(ArenaCBSBlockPool(arena), EventInternString("CBSBlock"));
   return ResOK;
 
 failMFSInit:
@@ -517,6 +518,7 @@ Res ControlInit(Arena arena)
   if (res != ResOK)
     return res;
   arena->poolReady = TRUE;      /* <design/arena/#pool.ready> */
+  EventLabelPointer(&arena->controlPoolStruct, EventInternString("Control"));
   return ResOK;
 }
 
@@ -1158,7 +1160,7 @@ done:
   /* Freeing memory might create spare pages, but not more than this. */
   AVER(arena->spareCommitted <= ArenaSpareCommitLimit(arena));
 
-  EVENT3(ArenaFree, arena, base, size);
+  EVENT4(ArenaFree, arena, base, size, pool);
 }
 
 

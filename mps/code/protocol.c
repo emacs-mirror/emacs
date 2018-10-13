@@ -140,8 +140,7 @@ void ClassRegister(InstClass klass)
   /* label the pool class with its name */
   EventInit();
   classId = EventInternString(ClassName(klass));
-  /* NOTE: this breaks <design/type/#addr.use> */
-  EventLabelAddr((Addr)klass, classId);
+  EventLabelPointer(klass, classId);
 }
 
 

@@ -32,6 +32,7 @@ extern EventControlSet EventControl(EventControlSet resetMask,
 extern EventStringId EventInternString(const char *label);
 extern EventStringId EventInternGenString(size_t, const char *label);
 extern void EventLabelAddr(Addr addr, Word id);
+extern void EventLabelPointer(Pointer pointer, Word id);
 extern void EventFlush(EventKind kind);
 extern Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth);
 extern Res EventWrite(Event event, mps_lib_FILE *stream);
@@ -47,14 +48,13 @@ extern char *EventLast[EventKindLIMIT];
 extern Word EventKindControl;
 
 
-/* Events are written into the buffer from the top down, so that a backtrace
-   can find them all starting at EventLast. */
+/* EVENT_BEGIN -- flush buffer if necessary and write event header */
 
 #define EVENT_BEGIN(name, structSize) \
   BEGIN \
     if(EVENT_ALL || Event##name##Always) { /* see config.h */ \
       Event##name##Struct *_event; \
-      size_t _size = size_tAlignUp(structSize, MPS_PF_ALIGN); \
+      size_t _size = size_tAlignUp(structSize, EVENT_ALIGN); \
       if (_size > (size_t)(EventLast[Event##name##Kind] \
                            - EventBuffer[Event##name##Kind])) \
         EventFlush(Event##name##Kind); \
@@ -93,10 +93,10 @@ extern Word EventKindControl;
   END
 
 
-#define EVENT0(name) EVENT_BEGIN(name, sizeof(EventAnyStruct)) EVENT_END(name, sizeof(EventAnyStruct))
 /* The following lines were generated with
-   python -c 'for i in range(1,22): print "#define EVENT%d(name, %s) EVENT_BEGIN(name, sizeof(Event##name##Struct)) %s EVENT_END(name, sizeof(Event##name##Struct))" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["_event->f%d = (p%d);" % (j, j) for j in range(0, i)]))'
+   python -c 'for i in range(22): print("#define EVENT{}(name{}) EVENT_BEGIN(name, sizeof(Event##name##Struct)) {} EVENT_END(name, sizeof(Event##name##Struct))".format(i, "".join(map(", p{}".format, range(i))), " ".join(map("_event->f{0} = (p{0});".format, range(i)))))'
  */
+#define EVENT0(name) EVENT_BEGIN(name, sizeof(Event##name##Struct))  EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT1(name, p0) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT2(name, p0, p1) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); EVENT_END(name, sizeof(Event##name##Struct))
 #define EVENT3(name, p0, p1, p2) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); EVENT_END(name, sizeof(Event##name##Struct))
@@ -123,10 +123,10 @@ extern Word EventKindControl;
 #else /* EVENT not */
 
 
-#define EVENT0(name) NOOP
 /* The following lines were generated with
-   python -c 'for i in range(1,22): print "#define EVENT%d(name, %s) BEGIN %s END" % (i, ", ".join(["p%d" % j for j in range(0, i)]), " ".join(["UNUSED(p%d);" % j for j in range(0, i)]))'
+   python -c 'for i in range(22): print("#define EVENT{}(name{}) BEGIN {} END".format(i, "".join(map(", p{}".format, range(i))), " ".join(map("UNUSED(p{});".format, range(i)))))'
  */
+#define EVENT0(name) BEGIN  END
 #define EVENT1(name, p0) BEGIN UNUSED(p0); END
 #define EVENT2(name, p0, p1) BEGIN UNUSED(p0); UNUSED(p1); END
 #define EVENT3(name, p0, p1, p2) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); END
