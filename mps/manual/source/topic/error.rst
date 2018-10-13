@@ -393,9 +393,9 @@ Varieties
 ---------
 
 The MPS has three *varieties* which have different levels of internal
-checking and :ref:`telemetry <topic-telemetry>`. The variety can be
-selected at compile time, by defining one of the following
-preprocessor constants. If none is specified then
+checking, :ref:`topic-error-assertion` and :ref:`topic-telemetry`. The
+variety can be selected at compile time, by defining one of the
+following preprocessor constants. If none is specified then
 :c:macro:`CONFIG_VAR_HOT` is the default.
 
 
@@ -430,8 +430,8 @@ preprocessor constants. If none is specified then
     in the default ANSI Library, the default assertion handler will not
     terminate the program.  See :c:func:`mps_lib_assert_fail_install`.
 
-    Some events are sent to the telemetry stream, namely those not on
-    the :term:`critical path`.
+    Some events are sent to the :term:`telemetry stream`, namely those
+    not on the :term:`critical path`.
 
 
 .. index::
@@ -446,4 +446,4 @@ preprocessor constants. If none is specified then
     No functions check the consistency of their data structures and
     consequently there are no assertions.
 
-    No events are sent to the telemetry stream.
+    No events are sent to the :term:`telemetry stream`.

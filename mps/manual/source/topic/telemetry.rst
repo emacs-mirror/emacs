@@ -507,8 +507,8 @@ used in queries, for example:
         If the ``User`` event category is not turned on in the
         :term:`telemetry filter` (via :c:func:`mps_telemetry_set` or
         :envvar:`MPS_TELEMETRY_CONTROL`) then the string is not sent
-        to the telemetry stream. A label is still returned in this
-        case, but it is useless.
+        to the :term:`telemetry stream`. A label is still returned in
+        this case, but it is useless.
 
 
 .. c:function:: void mps_telemetry_label(mps_addr_t addr, mps_label_t label)
@@ -518,7 +518,7 @@ used in queries, for example:
 
     ``addr`` is an address.
 
-    ``label`` is a telemetry label returned from
+    ``label`` is a :term:`telemetry label` returned from
     :c:func:`mps_telemetry_intern`.
 
     The label will be associated with the address when it appears in
@@ -544,12 +544,12 @@ rather than writing it to a file on the local filesystem) then you may
 be able to do so by providing your own implementation of the
 :ref:`topic-plinth-io`.
 
-When it first needs to output telemetry, the MPS call the plinth
-function :c:func:`mps_io_create` to create an I/O stream. It then
-calls :c:func:`mps_io_write` to write binary data to the stream
-and :c:func:`mps_io_flush` to flush the stream in response to
-:c:func:`mps_telemetry_flush`. By providing your own implementations
-of these functions, you can direct the telemetry stream wherever you
-like.
+When it first needs to output the :term:`telemetry stream`, the MPS
+calls the plinth function :c:func:`mps_io_create` to create an I/O
+stream. It then calls :c:func:`mps_io_write` to write binary data to
+the stream and :c:func:`mps_io_flush` to flush the stream in response
+to :c:func:`mps_telemetry_flush`. By providing your own
+implementations of these functions, you can direct the telemetry
+stream wherever you like.
 
 See :ref:`topic-plinth` for details.
