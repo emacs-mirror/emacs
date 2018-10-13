@@ -428,7 +428,7 @@ typedef struct TraceStruct {
   Sig sig;                      /* <design/sig/> */
   TraceId ti;                   /* index into TraceSets */
   Arena arena;                  /* owning arena */
-  int why;                      /* why the trace began */
+  TraceStartWhy why;            /* why the trace began */
   ZoneSet white;                /* zones in the white set */
   ZoneSet mayMove;              /* zones containing possibly moving objs */
   TraceState state;             /* current state of trace */
@@ -774,6 +774,7 @@ typedef struct mps_arena_s {
 
   /* locus fields (<code/locus.c>) */
   GenDescStruct topGen;         /* generation descriptor for dynamic gen */
+  Serial genSerial;             /* serial of next generation */
 
   /* format fields (<code/format.c>) */
   RingStruct formatRing;        /* ring of formats attached to arena */

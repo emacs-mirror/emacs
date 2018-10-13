@@ -36,7 +36,7 @@ char EventBuffer[EventKindLIMIT][EventBufferSIZE];
 /* Pointers to last event logged into each buffer. */
 char *EventLast[EventKindLIMIT];
 
-/* Pointers to the last even written out of each buffer. */
+/* Pointers to the last event written out of each buffer. */
 static char *EventWritten[EventKindLIMIT];
 
 EventControlSet EventKindControl;       /* Bit set used to control output. */
@@ -53,7 +53,7 @@ static Res eventClockSync(void)
   Res res;
   size_t size;
 
-  size= size_tAlignUp(sizeof(eventClockSyncStruct), MPS_PF_ALIGN);
+  size= size_tAlignUp(sizeof(eventClockSyncStruct), EVENT_ALIGN);
   eventClockSyncStruct.code = EventEventClockSyncCode;
   eventClockSyncStruct.size = (EventSize)size;
   EVENT_CLOCK(eventClockSyncStruct.clock);
@@ -182,7 +182,7 @@ void EventInit(void)
   EVENT_PARAM_CHECK_##sort(name, index, ident)
 
 #define EVENT_CHECK(X, name, code, always, kind) \
-  AVER(size_tAlignUp(sizeof(Event##name##Struct), MPS_PF_ALIGN) \
+  AVER(size_tAlignUp(sizeof(Event##name##Struct), EVENT_ALIGN) \
        <= EventSizeMAX); \
   AVER(Event##name##Code == code); \
   AVER(0 <= code); \
@@ -294,6 +294,16 @@ void EventLabelAddr(Addr addr, EventStringId id)
   AVER((Serial)id < EventInternSerial);
 
   EVENT2(Label, addr, id);
+}
+
+
+/* EventLabelPointer -- emit event to label pointer with the given id */
+
+void EventLabelPointer(Pointer pointer, EventStringId id)
+{
+  AVER((Serial)id < EventInternSerial);
+
+  EVENT2(LabelPointer, pointer, id);
 }
 
 
@@ -410,7 +420,6 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 
 void EventDump(mps_lib_FILE *stream)
 {
-  Event event;
   EventKind kind;
 
   AVER(stream != NULL);
@@ -423,13 +432,15 @@ void EventDump(mps_lib_FILE *stream)
   }
 
   for (kind = 0; kind < EventKindLIMIT; ++kind) {
-    for (event = (Event)EventLast[kind];
-         (char *)event < EventBuffer[kind] + EventBufferSIZE;
-         event = (Event)((char *)event + event->any.size)) {
-      /* Try to keep going even if there's an error, because this is used as a
-         backtrace and we'll take what we can get. */
+    char *cursor = EventLast[kind];
+    const char *end = EventBuffer[kind] + EventBufferSIZE;
+    while (cursor < end) {
+      Event event = (void *)cursor;
+      /* Try to keep going even if there's an error, because this is
+         used for debugging and we'll take what we can get. */
       (void)EventWrite(event, stream);
       (void)WriteF(stream, 0, "\n", NULL);
+      cursor += event->any.size;
     }
   }
 }
@@ -489,6 +500,15 @@ void EventLabelAddr(Addr addr, Word id)
   UNUSED(id);
   /* EventLabelAddr is reached in varieties without events, but doesn't have
      to do anything. */
+}
+
+
+void EventLabelPointer(Pointer pointer, Word id)
+{
+  UNUSED(pointer);
+  UNUSED(id);
+  /* EventLabelPointer is reached in varieties without events, but
+     doesn't have to do anything. */
 }
 
 

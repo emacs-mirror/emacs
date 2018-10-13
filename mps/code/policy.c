@@ -216,6 +216,7 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
   AVER(mortalityReturn != NULL);
   AVERT(Chain, chain);
   AVERT(Trace, trace);
+  AVER(chain->arena == trace->arena);
 
   /* Find the highest generation that's over capacity. We will condemn
    * this and all lower generations in the chain. */
@@ -241,7 +242,8 @@ static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)
     AVERT(GenDesc, gen);
     GenDescStartTrace(gen, trace);
   }
-  EVENT3(ChainCondemnAuto, chain, topCondemnedGen, chain->genCount);
+  EVENT5(ChainCondemnAuto, chain->arena, chain, trace, topCondemnedGen,
+         chain->genCount);
   return TraceCondemnEnd(mortalityReturn, trace);
 }
 
