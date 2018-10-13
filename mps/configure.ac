@@ -147,7 +147,7 @@ if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
   AC_MSG_ERROR([MPS requires GNU make to build from configure, but see manual/build.txt])
 fi
 
-EXTRA_TARGETS="mpseventcnv mpseventtxt"
+EXTRA_TARGETS="mpseventcnv mpseventpy mpseventtxt"
 AC_CHECK_HEADER([sqlite3.h], [EXTRA_TARGETS="$EXTRA_TARGETS mpseventsql"])
 
 # Put platform compiler flags like -ansi -pedantic into CFLAGS only

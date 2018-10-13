@@ -132,13 +132,16 @@ static Bool GenParamCheck(GenParamStruct *params)
 
 /* GenDescInit -- initialize a generation in a chain */
 
-static void GenDescInit(GenDesc gen, GenParamStruct *params)
+static void GenDescInit(Arena arena, GenDesc gen, GenParamStruct *params)
 {
   TraceId ti;
 
+  AVER(arena != NULL); /* might not be initialized yet. */
   AVER(gen != NULL);
   AVER(GenParamCheck(params));
 
+  gen->serial = arena->genSerial;
+  ++ arena->genSerial;
   gen->zones = ZoneSetEMPTY;
   gen->capacity = params->capacity * 1024;
   gen->mortality = params->mortality;
@@ -149,17 +152,20 @@ static void GenDescInit(GenDesc gen, GenParamStruct *params)
     RingInit(&gen->trace[ti].traceRing);
   gen->sig = GenDescSig;
   AVERT(GenDesc, gen);
+  EVENT5(GenInit, arena, gen, gen->serial, gen->capacity, gen->mortality);
 }
 
 
 /* GenDescFinish -- finish a generation in a chain */
 
-static void GenDescFinish(GenDesc gen)
+static void GenDescFinish(Arena arena, GenDesc gen)
 {
   TraceId ti;
 
+  AVER(arena != NULL); /* might be being finished */
   AVERT(GenDesc, gen);
 
+  EVENT3(GenFinish, arena, gen, gen->serial);
   gen->sig = SigInvalid;
   RingFinish(&gen->locusRing);
   RingFinish(&gen->segRing);
@@ -228,8 +234,9 @@ void GenDescEndTrace(GenDesc gen, Trace trace)
     double mortality = 1.0 - survived / (double)genTrace->condemned;
     double alpha = LocusMortalityALPHA;
     gen->mortality = gen->mortality * (1 - alpha) + mortality * alpha;
-    EVENT6(TraceEndGen, trace, gen, genTrace->condemned, genTrace->forwarded,
-           genTrace->preservedInPlace, gen->mortality);
+    EVENT8(TraceEndGen, trace->arena, trace, gen, genTrace->condemned,
+           genTrace->forwarded, genTrace->preservedInPlace, mortality,
+           gen->mortality);
   }
 }
 
@@ -379,7 +386,7 @@ Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
   gens = PointerAdd(p, sizeof(ChainStruct));
 
   for (i = 0; i < genCount; ++i)
-    GenDescInit(&gens[i], &params[i]);
+    GenDescInit(arena, &gens[i], &params[i]);
   ChainInit(chain, arena, gens, genCount);
 
   *chainReturn = chain;
@@ -420,7 +427,7 @@ void ChainDestroy(Chain chain)
   RingRemove(&chain->chainRing);
   chain->sig = SigInvalid;
   for (i = 0; i < genCount; ++i)
-    GenDescFinish(&chain->gens[i]);
+    GenDescFinish(arena, &chain->gens[i]);
 
   RingFinish(&chain->chainRing);
 
@@ -627,7 +634,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass klass, Size size,
     /* Tracking the whole zoneset for each generation gives more
      * understandable telemetry than just reporting the added
      * zones. */
-    EVENT3(ArenaGenZoneAdd, arena, gen, moreZones);
+    EVENT3(GenZoneSet, arena, gen, moreZones);
   }
 
   PoolGenAccountForAlloc(pgen, SegSize(seg));
@@ -864,11 +871,12 @@ void LocusInit(Arena arena)
   GenParamStruct params;
 
   AVER(arena != NULL); /* not initialized yet. */
- 
+
   params.capacity = 1; /* unused since top generation is not on any chain */
   params.mortality = 0.5;
- 
-  GenDescInit(&arena->topGen, &params);
+
+  GenDescInit(arena, &arena->topGen, &params);
+  EventLabelPointer(&arena->topGen, EventInternString("TopGen"));
 }
 
 
@@ -878,7 +886,7 @@ void LocusFinish(Arena arena)
 {
   /* Can't check arena, because it's being finished. */
   AVER(arena != NULL);
-  GenDescFinish(&arena->topGen);
+  GenDescFinish(arena, &arena->topGen);
 }
 
 

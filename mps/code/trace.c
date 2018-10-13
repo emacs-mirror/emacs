@@ -233,7 +233,7 @@ Bool traceBandAdvance(Trace trace)
     trace->band = RankMIN;
     return FALSE;
   }
-  EVENT3(TraceBandAdvance, trace->arena, trace->ti, trace->band);
+  EVENT3(TraceBandAdvance, trace->arena, trace, trace->band);
   return TRUE;
 }
 
@@ -688,7 +688,7 @@ static void traceCreatePoolGen(GenDesc gen)
   }
 }
 
-Res TraceCreate(Trace *traceReturn, Arena arena, int why)
+Res TraceCreate(Trace *traceReturn, Arena arena, TraceStartWhy why)
 {
   TraceId ti;
   Trace trace;
@@ -792,7 +792,7 @@ static void traceDestroyCommon(Trace trace)
    * manually allocated objects that were freed). See job003999. */
   ArenaCompact(trace->arena, trace);
 
-  EVENT1(TraceDestroy, trace);
+  EVENT2(TraceDestroy, trace->arena, trace);
 
   /* Hopefully the trace reclaimed some memory, so clear any emergency.
    * Do this before removing the trace from busyTraces, to avoid
@@ -832,7 +832,7 @@ void TraceDestroyFinished(Trace trace)
   AVERT(Trace, trace);
   AVER(trace->state == TraceFINISHED);
 
-  STATISTIC(EVENT13(TraceStatScan, trace,
+  STATISTIC(EVENT14(TraceStatScan, trace, trace->arena,
                     trace->rootScanCount, trace->rootScanSize,
                     trace->rootCopiedSize,
                     trace->segScanCount, trace->segScanSize,
@@ -841,14 +841,14 @@ void TraceDestroyFinished(Trace trace)
                     trace->singleCopiedSize,
                     trace->readBarrierHitCount, trace->greySegMax,
                     trace->pointlessScanCount));
-  STATISTIC(EVENT10(TraceStatFix, trace,
+  STATISTIC(EVENT11(TraceStatFix, trace, trace->arena,
                     trace->fixRefCount, trace->segRefCount,
                     trace->whiteSegRefCount,
                     trace->nailCount, trace->snapCount,
                     trace->forwardedCount, trace->forwardedSize,
                     trace->preservedInPlaceCount,
                     trace->preservedInPlaceSize));
-  STATISTIC(EVENT3(TraceStatReclaim, trace,
+  STATISTIC(EVENT4(TraceStatReclaim, trace, trace->arena,
                    trace->reclaimCount, trace->reclaimSize));
 
   traceDestroyCommon(trace);
@@ -864,9 +864,9 @@ static void traceReclaim(Trace trace)
 
   AVER(trace->state == TraceRECLAIM);
 
-  EVENT1(TraceReclaim, trace);
 
   arena = trace->arena;
+  EVENT2(TraceReclaim, trace, arena);
   RING_FOR(genNode, &trace->genRing, genNext) {
     Ring segNode, segNext;
     GenDesc gen = GenDescOfTraceRing(genNode, trace);
@@ -874,6 +874,7 @@ static void traceReclaim(Trace trace)
     RING_FOR(segNode, &gen->segRing, segNext) {
       GCSeg gcseg = RING_ELT(GCSeg, genRing, segNode);
       Seg seg = &gcseg->segStruct;
+
       /* There shouldn't be any grey stuff left for this trace. */
       AVER_CRITICAL(!TraceSetIsMember(SegGrey(seg), trace));
       if (TraceSetIsMember(SegWhite(seg), trace)) {
@@ -1063,7 +1064,7 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
           }
           *segReturn = seg;
           *rankReturn = rank;
-          EVENT4(TraceFindGrey, arena, ti, seg, rank);
+          EVENT4(TraceFindGrey, arena, trace, seg, rank);
           return TRUE;
         }
       }
@@ -1624,10 +1625,9 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 
   /* TODO: compute rate of scanning here. */
 
-  EVENT8(TraceStart, trace, mortality, finishingTime,
-         trace->condemned, trace->notCondemned,
-         trace->foundation, trace->white,
-         trace->quantumWork);
+  EVENT9(TraceStart, trace->arena, trace, mortality, finishingTime,
+         trace->condemned, trace->notCondemned, trace->foundation,
+         trace->white, trace->quantumWork);
 
   trace->state = TraceUNFLIPPED;
   TracePostStartMessage(trace);
@@ -1696,7 +1696,7 @@ void TraceAdvance(Trace trace)
  * "why" is a TraceStartWhy* enum member that specifies why the
  * collection is starting. */
 
-Res TraceStartCollectAll(Trace *traceReturn, Arena arena, int why)
+Res TraceStartCollectAll(Trace *traceReturn, Arena arena, TraceStartWhy why)
 {
   Trace trace = NULL;
   Res res;

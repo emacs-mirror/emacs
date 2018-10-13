@@ -141,42 +141,21 @@ static void traceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
  * why a trace started.
  */
  
-const char *TraceStartWhyToString(int why)
+const char *TraceStartWhyToString(TraceStartWhy why)
 {
   const char *r;
 
-  switch(why) {
-  case TraceStartWhyCHAIN_GEN0CAP:
-    r = "Generation 0 of a chain has reached capacity:"
-        " start a minor collection.";
-    break;
-  case TraceStartWhyDYNAMICCRITERION:
-    r = "Need to start full collection now, or there won't be enough"
-        " memory (ArenaAvail) to complete it.";
-    break;
-  case TraceStartWhyOPPORTUNISM:
-    r = "Opportunism: client predicts plenty of idle time,"
-        " so start full collection.";
-    break;
-  case TraceStartWhyCLIENTFULL_INCREMENTAL:
-    r = "Client requests: start incremental full collection now.";
-    break;
-  case TraceStartWhyCLIENTFULL_BLOCK:
-    r = "Client requests: immediate full collection.";
-    break;
-  case TraceStartWhyWALK:
-    r = "Walking all live objects.";
-    break;
-  case TraceStartWhyEXTENSION:
-    r = "Extension: an MPS extension started the trace.";
-    break;
+  switch (why) {
+#define X(WHY, SHORT, LONG) case TraceStartWhy ## WHY: r = (LONG); break;
+    TRACE_START_WHY_LIST(X)
+#undef X
   default:
     NOTREACHED;
     r = "Unknown reason (internal error).";
     break;
   }
 
-  /* Should fit in buffer without truncation; see .whybuf.len */
+  /* Must fit in buffer without truncation; see .whybuf.len */
   AVER(StringLength(r) < TRACE_START_MESSAGE_WHYBUF_LEN);
 
   return r;
@@ -193,14 +172,13 @@ const char *TraceStartWhyToString(int why)
  * necessary.
  */
 
-static void traceStartWhyToTextBuffer(char *s, size_t len, int why)
+static void traceStartWhyToTextBuffer(char *s, size_t len, TraceStartWhy why)
 {
   const char *r;
   size_t i;
 
   AVER(s);
   /* len can be anything, including 0. */
-  AVER(TraceStartWhyBASE <= why);
   AVER(why < TraceStartWhyLIMIT);
 
   r = TraceStartWhyToString(why);
@@ -652,7 +630,7 @@ void ArenaPostmortem(Globals globals)
 /* ArenaStartCollect -- start a collection of everything in the
  * arena; leave unclamped. */
 
-Res ArenaStartCollect(Globals globals, int why)
+Res ArenaStartCollect(Globals globals, TraceStartWhy why)
 {
   Arena arena;
   Res res;
@@ -675,7 +653,7 @@ failStart:
 
 /* ArenaCollect -- collect everything in arena; leave parked */
 
-Res ArenaCollect(Globals globals, int why)
+Res ArenaCollect(Globals globals, TraceStartWhy why)
 {
   Res res;
 

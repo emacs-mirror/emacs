@@ -3608,7 +3608,7 @@ if ! $MAKE --version | grep -q "GNU" 2> /dev/null; then
   as_fn_error $? "MPS requires GNU make to build from configure, but see manual/build.txt" "$LINENO" 5
 fi
 
-EXTRA_TARGETS="mpseventcnv mpseventtxt"
+EXTRA_TARGETS="mpseventcnv mpseventpy mpseventtxt"
 ac_fn_c_check_header_mongrel "$LINENO" "sqlite3.h" "ac_cv_header_sqlite3_h" "$ac_includes_default"
 if test "x$ac_cv_header_sqlite3_h" = xyes; then :
   EXTRA_TARGETS="$EXTRA_TARGETS mpseventsql"

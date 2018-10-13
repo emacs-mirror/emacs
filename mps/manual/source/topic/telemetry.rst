@@ -125,14 +125,14 @@ as the `Time Stamp Counter
 <https://en.wikipedia.org/wiki/Time_Stamp_Counter>`_ on IA-32 and
 x86-64, if one is available. All numbers are given in hexadecimal. ::
 
-    000021C9DB3812C7 0075 EventClockSync      clock:0000000000001EE3 
-    000021C9DB39E2FB 002B VMInit              vm:00007FFF5429C4B8 base:000000010BA4A000 limit:000000010BA4B000 
-    000021C9DB3A5630 002D VMMap               vm:00007FFF5429C4B8 base:000000010BA4A000 limit:000000010BA4B000 
-    000021C9DB3E6BAA 001A Intern              stringId:0000000000000002 string:"MFS" 
-    000021C9DB3E6E17 001B Label               address:000000010BA0C5D8["MFS"] stringId:0000000000000002 
-    000021C9DB3EB6F8 0044 PoolInitMFS         pool:000000010BA4A360 arena:000000010BA4A000 extendBy:0000000000001000 extendSelf:False unitSize:0000000000000030 
-    000021C9DB3EFE3B 002B VMInit              vm:00007FFF5429C3D0 base:000000010BC84000 limit:000000010CC24000 
-    000021C9DB3F33F3 002D VMMap               vm:00007FFF5429C3D0 base:000000010BC84000 limit:000000010BC85000 
+    000050C3BA05F734 0074 EventInit           major:2 median:3 minor:0 maxCode:143 maxNameLen:19 wordWidth:64 clocksPerSec:00000000000F4240 
+    000050C3BA09FC24 0075 EventClockSync      clock:000000000000086C 
+    000050C3BA0F22B7 002B VMInit              vm:00007FFEECCCB660 base:0000000103062000 limit:0000000103063000 
+    000050C3BA0FA02F 008D GenInit             arena:0000000103062000 gen:00000001030624D8 serial:0 capacity:0000000000000400 mortality:   0.500 
+    000050C3BA168B85 0044 PoolInitMFS         pool:0000000103062360 arena:0000000103062000 extendBy:0000000000001000 extendSelf:False unitSize:0000000000000030 
+    000050C3BA168C3F 0015 PoolInit            pool:0000000103062360 arena:0000000103062000 poolClass:000000010301CD10 serial:0 
+    000050C3BA16BB6F 002B VMInit              vm:00007FFEECCCB520 base:00000001032B3000 limit:000000010369B000 
+    000050C3BA1787FC 0005 ArenaCreateVM       arena:0000000103062000 userSize:00000000003E8000 chunkSize:00000000003E8000 grainSize:0000000000001000 arenaClass:0000000103014DA8 serial:0 
 
 You can search through the telemetry for events related to particular
 addresses of interest.
@@ -269,14 +269,14 @@ Here's some example output. The first column contains the timestamp of
 the event, the second column contains the event type, and remaining
 columns contain parameters related to the event. ::
 
-    000021C9DB3812C7   75 1EE3
-    000021C9DB39E2FB   2B 7FFF5429C4B8 10BA4A000 10BA4B000
-    000021C9DB3A5630   2D 7FFF5429C4B8 10BA4A000 10BA4B000
-    000021C9DB3E6BAA   1A 2 "MFS"
-    000021C9DB3E6E17   1B 10BA0C5D8 2
-    000021C9DB3EB6F8   44 10BA4A360 10BA4A000 1000 0 30
-    000021C9DB3EFE3B   2B 7FFF5429C3D0 10BC84000 10CC24000
-    000021C9DB3F33F3   2D 7FFF5429C3D0 10BC84000 10BC85000
+    000050C3BA05F734   74 2 3 0 8F 13 40 F4240
+    000050C3BA09FC24   75 86C
+    000050C3BA0F22B7   2B 7FFEECCCB660 103062000 103063000
+    000050C3BA0FA02F   8D 103062000 1030624D8 0 400 0.5
+    000050C3BA168B85   44 103062360 103062000 1000 0 30
+    000050C3BA168C3F   15 103062360 103062000 10301CD10 0
+    000050C3BA16BB6F   2B 7FFEECCCB520 1032B3000 10369B000
+    000050C3BA1787FC    5 103062000 3E8000 3E8000 1000 103014DA8 0
 
 
 .. index::
@@ -306,14 +306,14 @@ takes the following options:
 For example, here's the result of passing the output shown above
 through :program:`mpseventtxt`::
 
-    000021C9DB3812C7 0075 EventClockSync      clock:0000000000001EE3 
-    000021C9DB39E2FB 002B VMInit              vm:00007FFF5429C4B8 base:000000010BA4A000 limit:000000010BA4B000 
-    000021C9DB3A5630 002D VMMap               vm:00007FFF5429C4B8 base:000000010BA4A000 limit:000000010BA4B000 
-    000021C9DB3E6BAA 001A Intern              stringId:0000000000000002 string:"MFS" 
-    000021C9DB3E6E17 001B Label               address:000000010BA0C5D8["MFS"] stringId:0000000000000002 
-    000021C9DB3EB6F8 0044 PoolInitMFS         pool:000000010BA4A360 arena:000000010BA4A000 extendBy:0000000000001000 extendSelf:False unitSize:0000000000000030 
-    000021C9DB3EFE3B 002B VMInit              vm:00007FFF5429C3D0 base:000000010BC84000 limit:000000010CC24000 
-    000021C9DB3F33F3 002D VMMap               vm:00007FFF5429C3D0 base:000000010BC84000 limit:000000010BC85000 
+    000050C3BA05F734 0074 EventInit           major:2 median:3 minor:0 maxCode:143 maxNameLen:19 wordWidth:64 clocksPerSec:00000000000F4240 
+    000050C3BA09FC24 0075 EventClockSync      clock:000000000000086C 
+    000050C3BA0F22B7 002B VMInit              vm:00007FFEECCCB660 base:0000000103062000 limit:0000000103063000 
+    000050C3BA0FA02F 008D GenInit             arena:0000000103062000 gen:00000001030624D8 serial:0 capacity:0000000000000400 mortality:   0.500 
+    000050C3BA168B85 0044 PoolInitMFS         pool:0000000103062360 arena:0000000103062000 extendBy:0000000000001000 extendSelf:False unitSize:0000000000000030 
+    000050C3BA168C3F 0015 PoolInit            pool:0000000103062360 arena:0000000103062000 poolClass:000000010301CD10 serial:0 
+    000050C3BA16BB6F 002B VMInit              vm:00007FFEECCCB520 base:00000001032B3000 limit:000000010369B000 
+    000050C3BA1787FC 0005 ArenaCreateVM       arena:0000000103062000 userSize:00000000003E8000 chunkSize:00000000003E8000 grainSize:0000000000001000 arenaClass:0000000103014DA8 serial:0 
 
 
 .. index::
@@ -382,6 +382,20 @@ further analysis by running :program:`mpseventsql`.
     Rebuild the tables ``event_kind``, ``event_type``, and
     ``event_param``. (This is necessary if you changed the event
     descriptions in ``eventdef.h``.)
+
+
+.. index::
+   single: telemetry; events
+
+Telemetry events
+----------------
+
+The set of telemetry events is not documented, and varies from version
+to version as we discover new requirements. You can see the current
+set of events by looking in the header ``eventdef.h``.
+
+If you have developed a tool that uses MPS telemetry, and would like
+to depend on particular telemetry events, :ref:`contact us <contact>`.
 
 
 .. index::

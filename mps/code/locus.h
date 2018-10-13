@@ -41,12 +41,13 @@ typedef struct GenDescStruct *GenDesc;
 #define GenDescSig ((Sig)0x5199E4DE)  /* SIGnature GEN DEsc */
 
 typedef struct GenDescStruct {
-  Sig sig;
+  Sig sig;              /* <design/sig/> */
+  Serial serial;        /* serial number within arena */
   ZoneSet zones;        /* zoneset for this generation */
   Size capacity;        /* capacity in bytes */
-  double mortality;     /* predicted mortality */
+  double mortality;     /* moving average mortality */
   RingStruct locusRing; /* Ring of all PoolGen's in this GenDesc (locus) */
-  RingStruct segRing; /* Ring of GCSegs in this generation */
+  RingStruct segRing;   /* Ring of GCSegs in this generation */
   TraceSet activeTraces; /* set of traces collecting this generation */
   GenTraceStruct trace[TraceLIMIT];
 } GenDescStruct;

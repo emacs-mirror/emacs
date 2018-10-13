@@ -74,6 +74,7 @@ lock_                   Lock module
 locus_                  Locus manager
 message_                Client message protocol
 message-gc_             GC messages
+monitor_                Monitor
 nailboard_              Nailboards for ambiguously referenced segments
 object-debug_           Debugging features for client objects
 pool_                   Pool classes

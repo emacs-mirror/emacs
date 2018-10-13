@@ -75,12 +75,15 @@ typedef unsigned short EventSize;
 
 /* Common prefix for all event structures.  The size field allows an event
    reader to skip over events whose codes it does not recognise. */
-#define EVENT_ANY_FIELDS \
-  EventCode code;       /* encoding of the event type */ \
-  EventSize size;       /* allows reader to skip events of unknown code */ \
-  EventClock clock;     /* when the event occurred */
+#define EVENT_ANY_FIELDS(X) \
+  X(EventCode, code, "encoding of the event type") \
+  X(EventSize, size, "allows reader to skip events of unknown code") \
+  X(EventClock, clock, "when the event occurred")
+
+#define EVENT_ANY_STRUCT_FIELD(TYPE, NAME, DOC) TYPE NAME;
+
 typedef struct EventAnyStruct {
-  EVENT_ANY_FIELDS
+  EVENT_ANY_FIELDS(EVENT_ANY_STRUCT_FIELD)
 } EventAnyStruct;
 
 /* Event field types, for indexing by macro on the event parameter sort */
@@ -90,11 +93,7 @@ typedef Word EventFW;                   /* word */
 typedef unsigned EventFU;               /* unsigned integer */
 typedef char EventFS[EventStringLengthMAX + sizeof('\0')]; /* string */
 typedef double EventFD;                 /* double */
-/* EventFB must be unsigned (even though Bool is a typedef for int)
- * because it used as the type of a bitfield with width 1, and we need
- * the legals values of the field to be 0 and 1 (not 0 and -1 which
- * would be the case for int : 1). */
-typedef unsigned EventFB;               /* Boolean */
+typedef unsigned char EventFB;          /* Boolean */
 
 /* Event packing bitfield specifiers */
 #define EventFP_BITFIELD
@@ -103,18 +102,21 @@ typedef unsigned EventFB;               /* Boolean */
 #define EventFU_BITFIELD
 #define EventFS_BITFIELD
 #define EventFD_BITFIELD
-#define EventFB_BITFIELD : 1
+#define EventFB_BITFIELD
 
 #define EVENT_STRUCT_FIELD(X, index, sort, ident) \
   EventF##sort f##index EventF##sort##_BITFIELD;
 
 #define EVENT_STRUCT(X, name, _code, always, kind) \
   typedef struct Event##name##Struct { \
-    EVENT_ANY_FIELDS \
+    EVENT_ANY_FIELDS(EVENT_ANY_STRUCT_FIELD) \
     EVENT_##name##_PARAMS(EVENT_STRUCT_FIELD, X) \
   } Event##name##Struct;
 
 EVENT_LIST(EVENT_STRUCT, X)
+
+/* Maximum alignment requirement of any event type. */
+#define EVENT_ALIGN (sizeof(EventFP))
 
 
 /* Event -- event union type
