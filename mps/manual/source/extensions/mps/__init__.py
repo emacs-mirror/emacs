@@ -37,7 +37,9 @@ admonitionlabels.update(
     see="See",
     similar="Similar term",
     similars="Similar terms",
-    specific="In the MPS"),
+    specific="In the MPS",
+    topics="Topic",
+    topicss="Topics"),
 
 class MpsDomain(Domain):
     label = 'MPS'
@@ -204,6 +206,12 @@ class specific(Admonition):
 class SpecificDirective(AdmonitionDirective):
     domain = 'mps'
     node_class = specific
+
+class topics(Admonition):
+    pass
+
+class TopicsDirective(PluralDirective):
+    node_class = topics
 
 class GlossaryTransform(transforms.Transform):
     """
