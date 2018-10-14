@@ -356,7 +356,7 @@ testscheme: phony
 # These convenience targets allow one to type "make foo" to build target
 # foo in selected varieties (or none, for the latter rule).
 
-$(ALL_TARGETS) $(TEST_SUITES) testmmqa: phony
+$(ALL_TARGETS) mpseventsql $(TEST_SUITES) testmmqa: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
