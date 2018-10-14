@@ -2,7 +2,7 @@
  * 
  * $Id$
  * 
- * Copyright (c) 2012-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2012-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that imports events from a text-format
  * MPS telemetry file into a SQLite database file.
@@ -522,7 +522,7 @@ static void logFileCompleted(sqlite3 *db,
 #define EVENT_PARAM_SQL_TYPE_S "TEXT   "
 #define EVENT_PARAM_SQL_TYPE_B "INTEGER"
 
-#define EVENT_PARAM_SQL_COLUMN(X, index, sort, ident) \
+#define EVENT_PARAM_SQL_COLUMN(X, index, sort, ident, doc) \
         "\"" #ident "\" " EVENT_PARAM_SQL_TYPE_##sort ", "
 
 #define EVENT_TABLE_CREATE(X, name, code, always, kind) \
@@ -548,6 +548,7 @@ static const char *createStatements[] = {
   "                                        param_index   INTEGER,"
   "                                        sort    TEXT,"
   "                                        ident   TEXT,"
+  "                                        doc     TEXT,"
   "  FOREIGN KEY (type) REFERENCES event_type(code));",
 
   "CREATE TABLE IF NOT EXISTS event_log (name TEXT,"
@@ -643,7 +644,7 @@ static void dropGlueTables(sqlite3 *db)
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "Couldn't reset event_type insert statement.");
 
-#define EVENT_PARAM_DO_INSERT(code, index, sort, ident)   \
+#define EVENT_PARAM_DO_INSERT(code, index, sort, ident, doc)   \
         res = sqlite3_bind_int(statement, 1, code);                     \
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "event_param bind of code %d failed.", code); \
@@ -656,9 +657,12 @@ static void dropGlueTables(sqlite3 *db)
         res = sqlite3_bind_text(statement, 4, #ident, -1, SQLITE_STATIC); \
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "event_type bind of ident \"" #ident "\" failed."); \
+        res = sqlite3_bind_text(statement, 5, doc, -1, SQLITE_STATIC); \
+        if (res != SQLITE_OK)                                           \
+                sqlite_error(res, db, "event_type bind of doc \"" doc "\" failed."); \
         res = sqlite3_step(statement);                                  \
         if (res != SQLITE_DONE)                                         \
-                sqlite_error(res, db, "event_param insert of ident \"" #ident "\" for code %d failed.", code); \
+                sqlite_error(res, db, "event_param insert of \"" #ident "\" for code %d failed.", code); \
         if (sqlite3_changes(db) != 0)                                   \
                 evlog(LOG_SOMETIMES, "Insert of event_param row for code %d,  ident \"" #ident "\" affected %d rows.", code, sqlite3_changes(db)); \
         res = sqlite3_reset(statement);                                 \
@@ -691,7 +695,7 @@ static void fillGlueTables(sqlite3 *db)
   finalizeStatement(db, statement);
 
   statement = prepareStatement(db,
-                               "INSERT OR IGNORE INTO event_param (type, param_index, sort, ident)"
+                               "INSERT OR IGNORE INTO event_param (type, param_index, sort, ident, doc)"
                                "VALUES (?, ?, ?, ?)");
   EVENT_LIST(EVENT_TYPE_INSERT_PARAMS, X);
         
@@ -703,9 +707,9 @@ static void fillGlueTables(sqlite3 *db)
 #define EVENT_TYPE_DECLARE_STATEMENT(X, name, code, always, kind) \
         sqlite3_stmt *stmt_##name;
 
-#define EVENT_PARAM_PREPARE_IDENT(X, index, sort, ident) "\"" #ident "\", "
+#define EVENT_PARAM_PREPARE_IDENT(X, index, sort, ident, doc) "\"" #ident "\", "
 
-#define EVENT_PARAM_PREPARE_PLACE(X, index, sort, ident) "?, "
+#define EVENT_PARAM_PREPARE_PLACE(X, index, sort, ident, doc) "?, "
 
 #define EVENT_TYPE_PREPARE_STATEMENT(X, name, code, always, kind) \
         stmt_##name = \
@@ -727,7 +731,7 @@ static void fillGlueTables(sqlite3 *db)
 #define EVENT_PARAM_BIND_S bind_text   
 #define EVENT_PARAM_BIND_B bind_int
 
-#define EVENT_PARAM_BIND(X, index, sort, ident) \
+#define EVENT_PARAM_BIND(X, index, sort, ident, doc) \
         p = EVENT_PARAM_BIND_##sort (db, statement, eventCount, index+1, p); \
         last_index = index+1;
 
@@ -965,7 +969,7 @@ int main(int argc, char *argv[])
 
 /* COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2012-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
