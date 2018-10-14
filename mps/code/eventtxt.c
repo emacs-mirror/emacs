@@ -1,8 +1,8 @@
 /* eventtxt.c: event text log to human-friendly format.
- * 
+ *
  * $Id$
- * 
- * Copyright (c) 2012-2014 Ravenbrook Limited.  See end of file for license.
+ *
+ * Copyright (c) 2012-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts events from a text-format
  * MPS telemetry file into a more human-readable format.
@@ -22,7 +22,7 @@
  * conversion.
  *
  * Options:
- * 
+ *
  * -l <logfile>: Import events from the named logfile.  Defaults to
  * stdin.
  *
@@ -155,14 +155,14 @@ static EventClock parseClock(char **pInOut)
   int i, l;
   unsigned long low, high;
   char *p = *pInOut;
-  
+
   i = sscanf(p, "%08lX%08lX%n", &high, &low, &l);
   if (i != 2)
     everror("Couldn't read a clock from '%s'", p);
   EVENT_CLOCK_MAKE(val, low, high);
 
   *pInOut = p + l;
-  return val;  
+  return val;
 }
 
 static ulongest_t parseHex(char **pInOut)
@@ -206,7 +206,7 @@ static char *parseString(char **pInOut)
   char *q = strBuf;
   while(*p == ' ')
     ++p;
-        
+
   if (*p != '"')
     everror("String has no opening quotation mark: '%s'", p);
   ++p;
@@ -252,7 +252,7 @@ static void createTables(mps_pool_t pool)
   res = TableCreate(&internTable,
                     (size_t)1<<4,
                     tableAlloc, tableFree, pool,
-                    (TableKey)-1, (TableKey)-2); 
+                    (TableKey)-1, (TableKey)-2);
   if (res != ResOK)
     everror("Couldn't make intern table.");
 
@@ -281,7 +281,7 @@ static void recordIntern(mps_pool_t pool, char *p)
   mps_addr_t copy;
   size_t len;
   Res res;
-        
+
   stringId = parseHex(&p);
   string = parseString(&p);
   len = strlen(string);
@@ -439,42 +439,43 @@ static void printLabelled(EventClock clock, ulongest_t value,
  * print it, preceded by its name and a colon and followed by a
  * space. */
 
-#define processParamA(ident)          \
-        val_hex = parseHex(&p);       \
-        printLabelled(clock, val_hex, #ident, labelAddrTable);
+#define processParamA(ident)                                    \
+  val_hex = parseHex(&p);                                       \
+  printLabelled(clock, val_hex, #ident, labelAddrTable);
 
-#define processParamP(ident)          \
-        val_hex = parseHex(&p);       \
-        printLabelled(clock, val_hex, #ident, labelPointerTable);
+#define processParamP(ident)                                    \
+  val_hex = parseHex(&p);                                       \
+  printLabelled(clock, val_hex, #ident, labelPointerTable);
 
-#define processParamW(ident)          \
-        val_hex = parseHex(&p);       \
-        printLabelled(clock, val_hex, #ident, NULL);
+#define processParamW(ident)                    \
+  val_hex = parseHex(&p);                       \
+  printLabelled(clock, val_hex, #ident, NULL);
 
-#define processParamU(ident)          \
-        val_hex = parseHex(&p);       \
-        printf(#ident ":%" PRIuLONGEST " ", val_hex);
+#define processParamU(ident)                    \
+  val_hex = parseHex(&p);                       \
+  printf(#ident ":%" PRIuLONGEST " ", val_hex);
 
-#define processParamD(ident)          \
-        val_float = parseDouble(&p);  \
-        printf(#ident ":%#8.3g ", val_float);
+#define processParamD(ident)                    \
+  val_float = parseDouble(&p);                  \
+  printf(#ident ":%#8.3g ", val_float);
 
-#define processParamS(ident)          \
-        val_string = parseString(&p); \
-        printf(#ident ":");           \
-        printStr(val_string);         \
-        putchar(' ');
+#define processParamS(ident)                    \
+  val_string = parseString(&p);                 \
+  printf(#ident ":");                           \
+  printStr(val_string);                         \
+  putchar(' ');
 
-#define processParamB(ident)          \
-        val_hex = parseHex(&p);       \
-        printf(#ident ":%s ", val_hex ? "True" : "False");
-        
-#define EVENT_PROCESS_PARAM(X, index, sort, ident) processParam##sort(ident);
+#define processParamB(ident)                            \
+  val_hex = parseHex(&p);                               \
+  printf(#ident ":%s ", val_hex ? "True" : "False");
 
-#define EVENT_PROCESS(X, name, code, always, kind) \
-        case code: \
-                EVENT_##name##_PARAMS(EVENT_PROCESS_PARAM, X) \
-        break;
+#define EVENT_PROCESS_PARAM(X, index, sort, ident, doc) \
+  processParam##sort(ident);
+
+#define EVENT_PROCESS(X, name, code, always, kind)      \
+  case code:                                            \
+    EVENT_##name##_PARAMS(EVENT_PROCESS_PARAM, X)       \
+    break;
 
 /* a table of the event names */
 
@@ -522,7 +523,7 @@ static void readLog(mps_pool_t pool, FILE *input)
     printf(" %04X ", code);
     if (eventName[code])
       printf("%-19s ", eventName[code]);
-    else 
+    else
       printf("%-19s ", "[Unknown]");
 
     q = p;
@@ -573,7 +574,7 @@ static void readLog(mps_pool_t pool, FILE *input)
         }
         hexWordWidth = newHexWordWidth;
       }
-      
+
       if (wordWidth > sizeof(ulongest_t) * CHAR_BIT) {
         everror("Event log word width %d is too wide for the current platform.",
                 (int)wordWidth);
@@ -632,21 +633,21 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2012-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2012-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -657,7 +658,7 @@ int main(int argc, char *argv[])
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR

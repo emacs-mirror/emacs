@@ -832,7 +832,7 @@ static Res AMSInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
     goto failGenInit;
   ams->pgen = &ams->pgenStruct;
 
-  EVENT3(PoolInitAMS, pool, PoolArena(pool), pool->format);
+  EVENT2(PoolInitAMS, pool, pool->format);
 
   return ResOK;
 

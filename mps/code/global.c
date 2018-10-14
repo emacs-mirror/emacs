@@ -347,7 +347,6 @@ Res GlobalsInit(Globals arenaGlobals)
 
   for(rank = RankMIN; rank < RankLIMIT; ++rank)
     RingInit(&arena->greyRing[rank]);
-  STATISTIC(arena->writeBarrierHitCount = 0);
   RingInit(&arena->chainRing);
 
   HistoryInit(ArenaHistory(arena));
@@ -443,8 +442,6 @@ void GlobalsFinish(Globals arenaGlobals)
   
   arena = GlobalsArena(arenaGlobals);
   AVERT(Globals, arenaGlobals);
-
-  STATISTIC(EVENT2(ArenaWriteFaults, arena, arena->writeBarrierHitCount));
 
   arenaGlobals->sig = SigInvalid;
 
@@ -658,7 +655,6 @@ Bool ArenaBusy(Arena arena)
 
 Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
 {
-  static Count count = 0;       /* used to match up ArenaAccess events */
   Seg seg;
   Ring node, nextNode;
   Res res;
@@ -672,7 +668,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
     Root root;
 
     ArenaEnter(arena);     /* <design/arena/#lock.arena> */
-    EVENT4(ArenaAccess, arena, ++count, addr, mode);
+    EVENT3(ArenaAccessBegin, arena, addr, mode);
 
     /* @@@@ The code below assumes that Roots and Segs are disjoint. */
     /* It will fall over (in TraceSegAccess probably) if there is a */
@@ -693,7 +689,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
         /* Protection was already cleared, for example by another thread
            or a fault in a nested exception handler: nothing to do now. */
       }
-      EVENT4(ArenaAccess, arena, count, addr, mode);
+      EVENT1(ArenaAccessEnd, arena);
       ArenaLeave(arena);
       return TRUE;
     } else if (RootOfAddr(&root, arena, addr)) {
@@ -701,7 +697,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
       mode &= RootPM(root);
       if (mode != AccessSetEMPTY)
         RootAccess(root, mode);
-      EVENT4(ArenaAccess, arena, count, addr, mode);
+      EVENT1(ArenaAccessEnd, arena);
       ArenaLeave(arena);
       return TRUE;
     } else {
@@ -709,9 +705,9 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorContext context)
        * that activity in another thread (or even in the same thread,
        * via a signal or exception handler) caused the segment or root
        * to go away. So there's nothing to do now. */
+      EVENT1(ArenaAccessEnd, arena);
+      ArenaLeave(arena);
     }
-
-    ArenaLeave(arena);
   }
 
   arenaReleaseRingLock();

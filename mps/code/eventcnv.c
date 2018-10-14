@@ -1,5 +1,5 @@
 /* eventcnv.c: Simple event log converter
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This is a command-line tool that converts a binary format telemetry output
  * stream from the MPS into a more-portable textual format.
@@ -22,7 +22,7 @@
  *
  * These text-format files have one line per event, and can be
  * manipulated by various programs systems in the usual Unix way.
- * 
+ *
  * The binary telemetry filename can be specified with a -f
  * command-line argument (use -f - to specify standard input).  If no
  * filename is specified on the command line, the environment variable
@@ -30,7 +30,7 @@
  * variable used to specify the telemetry file to the MPS library).
  * If the environment variable does not exist, the default filename of
  * "mpsio.log" is used.
- * 
+ *
  * $Id$
  */
 
@@ -153,7 +153,7 @@ static void printHex(ulongest_t val)
 {
   printf(" %"PRIXLONGEST, (ulongest_t)val);
 }
-        
+
 #define printParamP(p) printHex((ulongest_t)p)
 #define printParamA(a) printHex((ulongest_t)a)
 #define printParamU(u) printHex((ulongest_t)u)
@@ -244,7 +244,7 @@ static void readLog(FILE *stream)
 
     eventTime = event->any.clock;
     code = event->any.code;
-    
+
     /* Special handling for some events, prior to text output */
 
     switch(code) {
@@ -280,7 +280,7 @@ static void readLog(FILE *stream)
     printf(" %4X", (unsigned)code);
 
     switch (code) {
-#define EVENT_PARAM_PRINT(name, index, sort, ident)     \
+#define EVENT_PARAM_PRINT(name, index, sort, ident, doc) \
       printParam##sort(event->name.f##index);
 #define EVENT_PRINT(X, name, code, always, kind)        \
       case code:                                        \
@@ -338,21 +338,21 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
