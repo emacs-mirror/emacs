@@ -145,7 +145,7 @@ static Res AMCSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   amcSeg amcseg;
   Res res;
   ArgStruct arg;
-  
+
   ArgRequire(&arg, args, amcKeySegGen);
   amcgen = arg.val.p;
 
@@ -185,10 +185,10 @@ static void amcSegFinish(Inst inst)
 
 /* AMCSegSketch -- summarise the segment state for a human reader
  *
- * Write a short human-readable text representation of the segment 
+ * Write a short human-readable text representation of the segment
  * state into storage indicated by pbSketch+cbSketch.
  *
- * A typical sketch is "bGW_", meaning the seg has a nailboard, has 
+ * A typical sketch is "bGW_", meaning the seg has a nailboard, has
  * some Grey and some White objects, and has no buffer attached.
  */
 
@@ -245,7 +245,7 @@ static void AMCSegSketch(Seg seg, char *pbSketch, size_t cbSketch)
       /* I don't know what's going on! */
     }
   }
-  
+
   pbSketch[4] = '\0';
   AVER(4 < cbSketch);
 }
@@ -304,7 +304,7 @@ static Res AMCSegDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
     init = BufferGetInit(buffer);
   else
     init = limit;
-  
+
   for (i = base; i < limit; i = AddrAdd(i, row)) {
     Addr j;
     char c;
@@ -593,7 +593,7 @@ static Res amcGenCreate(amcGen *genReturn, AMC amc, GenDesc gen)
   AVERT(amcGen, amcgen);
 
   RingAppend(&amc->genRing, &amcgen->amcRing);
-  EVENT2(AMCGenCreate, amc, amcgen);
+
   *genReturn = amcgen;
   return ResOK;
 
@@ -614,7 +614,6 @@ static void amcGenDestroy(amcGen gen)
 
   AVERT(amcGen, gen);
 
-  EVENT1(AMCGenDestroy, gen);
   arena = PoolArena(amcGenPool(gen));
   gen->sig = SigInvalid;
   RingRemove(&gen->amcRing);
@@ -664,7 +663,7 @@ static Res amcSegCreateNailboard(Seg seg)
   AVER(!amcSegHasNailboard(seg));
   arena = PoolArena(pool);
 
-  res = NailboardCreate(&board, arena, pool->alignment, 
+  res = NailboardCreate(&board, arena, pool->alignment,
                         SegBase(seg), SegLimit(seg));
   if (res != ResOK)
     return res;
@@ -726,13 +725,13 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass klass,
   Size extendBy = AMC_EXTEND_BY_DEFAULT;
   Size largeSize = AMC_LARGE_SIZE_DEFAULT;
   ArgStruct arg;
-  
+
   AVER(pool != NULL);
   AVERT(Arena, arena);
   AVERT(ArgList, args);
   AVERT(PoolClass, klass);
   AVER(IsSubclass(klass, AMCZPool));
-  
+
   if (ArgPick(&arg, args, MPS_KEY_CHAIN))
     chain = arg.val.chain;
   else
@@ -743,7 +742,7 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass klass,
     extendBy = arg.val.size;
   if (ArgPick(&arg, args, MPS_KEY_LARGE_SIZE))
     largeSize = arg.val.size;
-  
+
   AVERT(Chain, chain);
   AVER(chain->arena == arena);
   AVER(extendBy > 0);
@@ -820,7 +819,6 @@ static Res amcInitComm(Pool pool, Arena arena, PoolClass klass,
   amc->gensBooted = TRUE;
 
   AVERT(AMC, amc);
-  EVENT2(AMCInit, pool, amc);
   if(rankSet == RankSetEMPTY)
     EVENT2(PoolInitAMCZ, pool, pool->format);
   else
@@ -867,8 +865,6 @@ static void AMCFinish(Inst inst)
   AMC amc = MustBeA(AMCZPool, pool);
   Ring ring;
   Ring node, nextNode;
-
-  EVENT1(AMCFinish, amc);
 
   /* @@@@ Make sure that segments aren't buffered by forwarding */
   /* buffers.  This is a hack which allows the pool to be destroyed */
@@ -967,7 +963,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
   if ((amc->rampMode == RampRAMPING
        && buffer == amc->rampGen->forward
        && gen == amc->rampGen)
-      || amcbuf->forHashArrays) 
+      || amcbuf->forHashArrays)
   {
     MustBeA(amcSeg, seg)->deferred = TRUE;
   }
@@ -984,7 +980,7 @@ static Res AMCBufferFill(Addr *baseReturn, Addr *limitReturn,
 
     limit = AddrAdd(base, size);
     AVER(limit <= SegLimit(seg));
-    
+
     padSize = grainsSize - size;
     AVER(SizeIsAligned(padSize, PoolAlignment(pool)));
     AVER(AddrAdd(limit, padSize) == SegLimit(seg));
@@ -1136,7 +1132,7 @@ static void AMCRampEnd(Pool pool, Buffer buf)
 
 static PoolGen amcSegPoolGen(Pool pool, Seg seg)
 {
-  amcSeg amcseg = MustBeA(amcSeg, seg);  
+  amcSeg amcseg = MustBeA(amcSeg, seg);
   AVERT(Pool, pool);
   AVER(pool == SegPool(seg));
   return &amcseg->gen->pgen;
@@ -1204,7 +1200,7 @@ static Res amcSegWhiten(Seg seg, Trace trace)
         } else {
           /* We have a nailboard, the buffer must be nailed already. */
           AVER(bufferScanLimit == BufferLimit(buffer)
-               || NailboardIsSetRange(amcSegNailboard(seg), 
+               || NailboardIsSetRange(amcSegNailboard(seg),
                                       bufferScanLimit,
                                       BufferLimit(buffer)));
           /* Nail it for this trace as well. */
@@ -1315,8 +1311,6 @@ static Res amcSegScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
   Res res;
   Buffer buffer;
 
-  EVENT3(AMCScanBegin, amc, seg, ss); /* TODO: consider using own event */
-
   *totalReturn = TRUE;
   board = amcSegNailboard(seg);
   NailboardClearNewNails(board);
@@ -1343,8 +1337,6 @@ static Res amcSegScanNailedOnce(Bool *totalReturn, Bool *moreReturn,
     return res;
 
 returnGood:
-  EVENT3(AMCScanEnd, amc, seg, ss); /* TODO: consider using own event */
-
   *moreReturn = NailboardNewNails(board);
   return ResOK;
 }
@@ -1375,22 +1367,22 @@ static Res amcSegScanNailed(Bool *totalReturn, ScanState ss, Pool pool,
 
     /* Looped: fixed refs (from 1st pass) were seen by MPS_FIX1
      * (in later passes), so the "ss.unfixedSummary" is _not_
-     * purely unfixed.  In this one case, unfixedSummary is not 
-     * accurate, and cannot be used to verify the SegSummary (see 
-     * impl/trace/#verify.segsummary).  Use ScanStateSetSummary to 
-     * store ScanStateSummary in ss.fixedSummary and reset 
+     * purely unfixed.  In this one case, unfixedSummary is not
+     * accurate, and cannot be used to verify the SegSummary (see
+     * impl/trace/#verify.segsummary).  Use ScanStateSetSummary to
+     * store ScanStateSummary in ss.fixedSummary and reset
      * ss.unfixedSummary.  See job001548.
      */
-  
+
     refset = ScanStateSummary(ss);
 
     /* A rare event, which might prompt a rare defect to appear. */
-    EVENT6(AMCScanNailed, loops, SegSummary(seg), ScanStateWhite(ss), 
+    EVENT6(AMCScanNailed, loops, SegSummary(seg), ScanStateWhite(ss),
            ScanStateUnfixedSummary(ss), ss->fixedSummary, refset);
-  
+
     ScanStateSetSummary(ss, refset);
   }
-  
+
   *totalReturn = total;
   return ResOK;
 }
@@ -1420,8 +1412,6 @@ static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
   if(amcSegHasNailboard(seg)) {
     return amcSegScanNailed(totalReturn, ss, pool, seg, amc);
   }
-
-  EVENT3(AMCScanBegin, amc, seg, ss);
 
   base = AddrAdd(SegBase(seg), format->headerSize);
   /* <design/poolamc/#seg-scan.loop> */
@@ -1455,8 +1445,6 @@ static Res amcSegScan(Bool *totalReturn, Seg seg, ScanState ss)
     }
   }
 
-  EVENT3(AMCScanEnd, amc, seg, ss);
-
   *totalReturn = TRUE;
   return ResOK;
 }
@@ -1482,7 +1470,6 @@ static void amcSegFixInPlace(Seg seg, ScanState ss, Ref *refIO)
   /* segment. */
   AVER(ref < SegLimit(seg));
 
-  EVENT0(AMCFixInPlace);
   if(amcSegHasNailboard(seg)) {
     Bool wasMarked = NailboardSet(amcSegNailboard(seg), ref);
     /* If there are no new marks (i.e., no new traces for which we */
@@ -1567,7 +1554,6 @@ static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
   AVERT_CRITICAL(ScanState, ss);
   AVERT_CRITICAL(Seg, seg);
   AVER_CRITICAL(refIO != NULL);
-  EVENT0(AMCFix);
 
   /* If the reference is ambiguous, set up the datastructures for */
   /* managing a nailed segment.  This involves marking the segment */
@@ -1600,7 +1586,7 @@ static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
   ref = *refIO;
   AVER_CRITICAL(AddrAdd(SegBase(seg), headerSize) <= ref);
   base = AddrSub(ref, headerSize);
-  AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));  
+  AVER_CRITICAL(AddrIsAligned(base, PoolAlignment(pool)));
   AVER_CRITICAL(ref < SegLimit(seg)); /* see .ref-limit */
   arena = pool->arena;
 
@@ -1676,8 +1662,6 @@ static Res amcSegFix(Seg seg, ScanState ss, Ref *refIO)
     TRACE_SET_ITER_END(ti, trace, ss->traces, ss->arena);
 
     (*format->move)(ref, newRef);  /* .exposed.seg */
-
-    EVENT1(AMCFixForward, newRef);
   } else {
     /* reference to broken heart (which should be snapped out -- */
     /* consider adding to (non-existent) snap-out cache here) */
@@ -1757,7 +1741,7 @@ static void amcSegReclaimNailed(Pool pool, Trace trace, Seg seg)
     } else {
       padLength += length;
     }
-    
+
     AVER(p < q);
     p = q;
   }
@@ -1818,8 +1802,6 @@ static void amcSegReclaim(Seg seg, Trace trace)
   AVERT_CRITICAL(Trace, trace);
   gen = amcSegGen(seg);
   AVERT_CRITICAL(amcGen, gen);
-
-  EVENT3(AMCReclaim, gen, trace, seg);
 
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
@@ -2025,7 +2007,7 @@ DEFINE_CLASS(Pool, AMCZPool, klass)
   klass->segPoolGen = amcSegPoolGen;
   klass->bufferClass = amcBufClassGet;
   klass->totalSize = AMCTotalSize;
-  klass->freeSize = AMCFreeSize;  
+  klass->freeSize = AMCFreeSize;
   AVERT(PoolClass, klass);
 }
 
@@ -2060,7 +2042,7 @@ mps_pool_class_t mps_class_amcz(void)
  * The iterator that is passed by the client is stored in a closure
  * structure which is passed to a local iterator in order to ensure
  * that any type conversion necessary between Addr and mps_addr_t
- * happen. They are almost certainly the same on all platforms, but 
+ * happen. They are almost certainly the same on all platforms, but
  * this is the correct way to do it.
 */
 
@@ -2145,18 +2127,18 @@ static Bool AMCCheck(AMC amc)
  * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -2167,7 +2149,7 @@ static Bool AMCCheck(AMC amc)
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR

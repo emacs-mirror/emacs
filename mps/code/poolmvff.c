@@ -1,7 +1,7 @@
 /* poolmvff.c: First Fit Manual Variable Pool
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -519,7 +519,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   mvff->sig = MVFFSig;
   AVERC(MVFFPool, mvff);
   
-  EVENT8(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
+  EVENT7(PoolInitMVFF, pool, extendBy, avgSize, align,
          BOOLOF(slotHigh), BOOLOF(arenaHigh), BOOLOF(firstFit));
 
   return ResOK;
@@ -758,7 +758,7 @@ Bool MVFFCheck(MVFF mvff)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

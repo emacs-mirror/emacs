@@ -655,7 +655,7 @@ class Trace(EventHandler):
     def TraceCondemnAll(self, t, event):
         self.gens = "all"
 
-    def ArenaAccess(self, t, event):
+    def ArenaAccessBegin(self, t, event):
         self.accesses[event.mode] += 1
 
     def ArenaPollBegin(self, t, event):
@@ -744,7 +744,6 @@ class Arena(EventHandler):
             self.model.add_time_series(
                 self, self._access[am], COUNT_AXIS, f"{name} barrier",
                 f"{name} barrier hits per second")
-        self._last_access = None
         self._seg_size = {}      # Segment pointer -> size.
         self._seg_summary = {}   # Segment pointer -> summary.
         self._zone_ref_size = {} # Zone -> refsize Accumulator.
@@ -840,12 +839,10 @@ class Arena(EventHandler):
             trace.ArenaPollEnd(t, event)
         self._poll.off(t)
 
-    def ArenaAccess(self, t, event):
-        if self._last_access is None or event.count != self._last_access.count:
-            self._last_access = event
-            self._access[event.mode].inc(t)
-            for trace in self._live_traces.values():
-                trace.ArenaAccess(t, event)
+    def ArenaAccessBegin(self, t, event):
+        self._access[event.mode].inc(t)
+        for trace in self._live_traces.values():
+            trace.ArenaAccessBegin(t, event)
 
     def update_to(self, t):
         """Update anything in the model which depends on the passage of time,
@@ -1154,7 +1151,7 @@ class Model(EventHandler):
             self.arenas.append(arena)
         arena.handle(t, event)
 
-    ArenaAccess = \
+    ArenaAccessBegin = \
     ArenaAlloc = \
     ArenaCreateCL = \
     ArenaCreateVM = \

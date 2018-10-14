@@ -1116,7 +1116,7 @@ Res ArenaAlloc(Addr *baseReturn, LocusPref pref, Size size, Pool pool)
   return ResOK;
 
 allocFail:
-   EVENT3(ArenaAllocFail, arena, size, pool); /* TODO: Should have res? */
+   EVENT4(ArenaAllocFail, arena, size, pool, (unsigned)res);
    return res;
 }
 
@@ -1268,7 +1268,7 @@ Res ArenaSetCommitLimit(Arena arena, Size limit)
     arena->commitLimit = limit;
     res = ResOK;
   }
-  EVENT3(CommitLimitSet, arena, limit, (res == ResOK));
+  EVENT3(CommitLimitSet, arena, limit, (unsigned)res);
   return res;
 }
 
