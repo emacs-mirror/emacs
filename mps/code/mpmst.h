@@ -442,24 +442,24 @@ typedef struct TraceStruct {
   Size notCondemned;            /* collectable but not condemned */
   Size foundation;              /* initial grey set size */
   Work quantumWork;             /* tracing work to be done in each poll */
-  STATISTIC_DECL(Count greySegCount) /* number of grey segs */
-  STATISTIC_DECL(Count greySegMax) /* max number of grey segs */
+  STATISTIC_DECL(Count greySegCount) /* number of grey segments */
+  STATISTIC_DECL(Count greySegMax) /* maximum number of grey segments */
   STATISTIC_DECL(Count rootScanCount) /* number of roots scanned */
   Count rootScanSize;           /* total size of scanned roots */
   STATISTIC_DECL(Size rootCopiedSize) /* bytes copied by scanning roots */
-  STATISTIC_DECL(Count segScanCount) /* number of segs scanned */
+  STATISTIC_DECL(Count segScanCount) /* number of segments scanned */
   Count segScanSize;            /* total size of scanned segments */
   STATISTIC_DECL(Size segCopiedSize) /* bytes copied by scanning segments */
   STATISTIC_DECL(Count singleScanCount) /* number of single refs scanned */
   STATISTIC_DECL(Count singleScanSize) /* total size of single refs scanned */
   STATISTIC_DECL(Size singleCopiedSize) /* bytes copied by scanning single refs */
   STATISTIC_DECL(Count fixRefCount) /* refs which pass zone check */
-  STATISTIC_DECL(Count segRefCount) /* refs which refer to segs */
+  STATISTIC_DECL(Count segRefCount) /* refs which refer to segments */
   STATISTIC_DECL(Count whiteSegRefCount) /* refs which refer to white segs */
-  STATISTIC_DECL(Count nailCount) /* segments nailed by ambig refs */
-  STATISTIC_DECL(Count snapCount) /* refs snapped to forwarded objs */
+  STATISTIC_DECL(Count nailCount) /* segments nailed by ambiguous refs */
+  STATISTIC_DECL(Count snapCount) /* refs snapped to forwarded objects */
   STATISTIC_DECL(Count readBarrierHitCount) /* read barrier faults */
-  STATISTIC_DECL(Count pointlessScanCount) /* pointless seg scans */
+  STATISTIC_DECL(Count pointlessScanCount) /* pointless segment scans */
   STATISTIC_DECL(Count forwardedCount) /* objects preserved by moving */
   Size forwardedSize;           /* bytes preserved by moving */
   STATISTIC_DECL(Count preservedInPlaceCount) /* objects preserved in place */
@@ -812,7 +812,6 @@ typedef struct mps_arena_s {
   Clock lastWorldCollect;
 
   RingStruct greyRing[RankLIMIT]; /* ring of grey segments at each rank */
-  STATISTIC_DECL(Count writeBarrierHitCount) /* write barrier hits */
   RingStruct chainRing;         /* ring of chains */
 
   struct HistoryStruct historyStruct;

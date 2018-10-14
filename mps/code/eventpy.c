@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
   puts("}");
 
   puts("\n# Description of a parameter of an event.");
-  puts("EventParam = namedtuple('EventParam', 'sort name')");
+  puts("EventParam = namedtuple('EventParam', 'sort name doc')");
 
   puts("\n# Description of the parameters of an event.");
   puts("EventDesc = namedtuple('EventDesc', "
@@ -113,12 +113,12 @@ int main(int argc, char *argv[])
       printf("%ux", (unsigned)(offset - prev_offset));  \
     prev_offset = offset;                               \
   } END
-#define EVENT_PARAM(X, INDEX, SORT, NAME)                       \
-  puts("        EventParam('" #SORT "', '" #NAME "'),");        \
+#define EVENT_PARAM(X, INDEX, SORT, IDENT, DOC)                         \
+  puts("        EventParam('" #SORT "', '" #IDENT "', \"" DOC "\"),");  \
   prev_sort = #SORT[0];
-#define EVENT_FORMAT(STRUCTNAME, INDEX, SORT, NAME)             \
-  PAD_TO(offsetof(Event##STRUCTNAME##Struct, f##INDEX));        \
-  format(sizeof(EventF##SORT), #SORT);                          \
+#define EVENT_FORMAT(NAME, INDEX, SORT, IDENT, DOC)     \
+  PAD_TO(offsetof(Event##NAME##Struct, f##INDEX));      \
+  format(sizeof(EventF##SORT), #SORT);                  \
   prev_offset += sizeof(EventF##SORT);
 #define EVENT_DEFINE(X, NAME, CODE, ALWAYS, KIND)                       \
   printf("    " #NAME " = EventDesc('" #NAME "', %d, %s, Kind." #KIND ", [\n", \
@@ -201,18 +201,18 @@ int main(int argc, char *argv[])
  * Copyright (c) 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
