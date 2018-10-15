@@ -696,7 +696,7 @@ static void fillGlueTables(sqlite3 *db)
 
   statement = prepareStatement(db,
                                "INSERT OR IGNORE INTO event_param (type, param_index, sort, ident, doc)"
-                               "VALUES (?, ?, ?, ?)");
+                               "VALUES (?, ?, ?, ?, ?)");
   EVENT_LIST(EVENT_TYPE_INSERT_PARAMS, X);
         
   finalizeStatement(db, statement);
