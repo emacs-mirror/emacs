@@ -49,9 +49,9 @@ ENUM_DECLARE(EventKind)
  */
 
 /* Note that enum values can be up to fifteen bits long portably. */
-#define EVENT_ENUM(X, name, code, always, kind) \
+#define EVENT_ENUM(X, name, code, used, kind) \
     Event##name##Code = code, \
-    Event##name##Always = always, \
+    Event##name##Used = used, \
     Event##name##Kind = EventKind##kind,
 
 enum EventDefinitionsEnum {
@@ -107,7 +107,7 @@ typedef unsigned char EventFB;          /* Boolean */
 #define EVENT_STRUCT_FIELD(X, index, sort, ident, doc) \
   EventF##sort f##index EventF##sort##_BITFIELD;
 
-#define EVENT_STRUCT(X, name, _code, always, kind) \
+#define EVENT_STRUCT(X, name, _code, used, kind) \
   typedef struct Event##name##Struct { \
     EVENT_ANY_FIELDS(EVENT_ANY_STRUCT_FIELD) \
     EVENT_##name##_PARAMS(EVENT_STRUCT_FIELD, X) \
@@ -126,7 +126,7 @@ EVENT_LIST(EVENT_STRUCT, X)
  * by examining event->any.code.
  */
 
-#define EVENT_UNION_MEMBER(X, name, code, always, kind) \
+#define EVENT_UNION_MEMBER(X, name, code, used, kind) \
   Event##name##Struct name;
 
 typedef union EventUnion {
