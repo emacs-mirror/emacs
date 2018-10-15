@@ -747,7 +747,6 @@ You could add, for instance, the symbol
 under cursor."
   :type '(repeat
           (choice
-           (symbol :tag "Other")
            (const :tag "Documentation on hover" :hoverProvider)
            (const :tag "Code completion" :completionProvider)
            (const :tag "Function signature help" :signatureHelpProvider)
@@ -767,7 +766,8 @@ under cursor."
            (const :tag "Highlight links in document" :documentLinkProvider)
            (const :tag "Decorate color references" :colorProvider)
            (const :tag "Fold regions of buffer" :foldingRangeProvider)
-           (const :tag "Execute custom commands" :executeCommandProvider))))
+           (const :tag "Execute custom commands" :executeCommandProvider)
+           (symbol :tag "Other"))))
 
 (defun eglot--server-capable (&rest feats)
   "Determine if current server is capable of FEATS."
