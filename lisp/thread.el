@@ -310,6 +310,25 @@ If there are no items in QUEUE, block until one is added."
       (condition-notify (thread--queue-not-full queue))
       item)))
 
+;;; Mutexes for variables
+
+(defun make-symbol-mutex (symbol)
+  "Create a mutex associated with SYMBOL."
+  (unless (get symbol 'thread--mutex)
+    (put symbol 'thread--mutex (make-mutex (symbol-name symbol)))))
+
+(defmacro with-symbol-mutex (symbol &rest body)
+  "Run BODY while holding the mutex for SYMBOL.
+If another thread holds the mutex, block until it is released."
+  (declare (indent 1)
+           (debug (symbolp body)))
+  (let ((g-mutex (gensym)))
+    `(let ((,g-mutex (get ',symbol 'thread--mutex)))
+       (if ,g-mutex
+           (with-mutex ,g-mutex
+             ,@body)
+         (error "`%s' doesn't have a mutex" ',symbol)))))
+
 
 (provide 'thread)
 ;;; thread.el ends here
