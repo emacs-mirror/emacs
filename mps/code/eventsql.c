@@ -525,7 +525,7 @@ static void logFileCompleted(sqlite3 *db,
 #define EVENT_PARAM_SQL_COLUMN(X, index, sort, ident, doc) \
         "\"" #ident "\" " EVENT_PARAM_SQL_TYPE_##sort ", "
 
-#define EVENT_TABLE_CREATE(X, name, code, always, kind) \
+#define EVENT_TABLE_CREATE(X, name, code, used, kind) \
         "CREATE TABLE IF NOT EXISTS EVENT_" #name " ( " \
         EVENT_##name##_PARAMS(EVENT_PARAM_SQL_COLUMN, X) \
         "time INTEGER, " \
@@ -540,7 +540,7 @@ static const char *createStatements[] = {
 
   "CREATE TABLE IF NOT EXISTS event_type (name    TEXT,"
   "                                       code    INTEGER PRIMARY KEY,"
-  "                                       always  INTEGER,"
+  "                                       used    INTEGER,"
   "                                       kind    INTEGER,"
   "  FOREIGN KEY (kind) REFERENCES event_kind(enum));",
 
@@ -622,16 +622,16 @@ static void dropGlueTables(sqlite3 *db)
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "Couldn't reset event_kind insert statement.");
 
-#define EVENT_TYPE_DO_INSERT(X, name, code, always, kind)          \
+#define EVENT_TYPE_DO_INSERT(X, name, code, used, kind)                 \
         res = sqlite3_bind_text(statement, 1, #name, -1, SQLITE_STATIC); \
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "event_type bind of name \"" #name "\" failed."); \
         res = sqlite3_bind_int(statement, 2, code);                     \
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "event_type bind of code %d failed.", code); \
-        res = sqlite3_bind_int(statement, 3, always);                   \
+        res = sqlite3_bind_int(statement, 3, used);                     \
         if (res != SQLITE_OK)                                           \
-                sqlite_error(res, db, "event_type bind of always for name \"" #name "\" failed."); \
+                sqlite_error(res, db, "event_type bind of used for name \"" #name "\" failed."); \
         res = sqlite3_bind_int(statement, 4, EventKind##kind);          \
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "event_type bind of kind for name \"" #name "\" failed."); \
@@ -669,7 +669,7 @@ static void dropGlueTables(sqlite3 *db)
         if (res != SQLITE_OK)                                           \
                 sqlite_error(res, db, "Couldn't reset event_param insert statement.");
 
-#define EVENT_TYPE_INSERT_PARAMS(X, name, code, always, kind) \
+#define EVENT_TYPE_INSERT_PARAMS(X, name, code, used, kind) \
         EVENT_##name##_PARAMS(EVENT_PARAM_DO_INSERT, code)
 
 static void fillGlueTables(sqlite3 *db)
@@ -688,7 +688,7 @@ static void fillGlueTables(sqlite3 *db)
   finalizeStatement(db, statement);
         
   statement = prepareStatement(db, 
-                               "INSERT OR IGNORE INTO event_type (name, code, always, kind)"
+                               "INSERT OR IGNORE INTO event_type (name, code, used, kind)"
                                "VALUES (?, ?, ?, ?)");
   EVENT_LIST(EVENT_TYPE_DO_INSERT, X);
         
@@ -704,14 +704,14 @@ static void fillGlueTables(sqlite3 *db)
 
 /* Populate the actual event tables. */
 
-#define EVENT_TYPE_DECLARE_STATEMENT(X, name, code, always, kind) \
+#define EVENT_TYPE_DECLARE_STATEMENT(X, name, code, used, kind) \
         sqlite3_stmt *stmt_##name;
 
 #define EVENT_PARAM_PREPARE_IDENT(X, index, sort, ident, doc) "\"" #ident "\", "
 
 #define EVENT_PARAM_PREPARE_PLACE(X, index, sort, ident, doc) "?, "
 
-#define EVENT_TYPE_PREPARE_STATEMENT(X, name, code, always, kind) \
+#define EVENT_TYPE_PREPARE_STATEMENT(X, name, code, used, kind) \
         stmt_##name = \
             prepareStatement(db, \
                              "INSERT INTO EVENT_" #name " (" \
@@ -720,7 +720,7 @@ static void fillGlueTables(sqlite3 *db)
                              EVENT_##name##_PARAMS(EVENT_PARAM_PREPARE_PLACE,X) \
                              "?, ?)");
 
-#define EVENT_TYPE_FINALIZE_STATEMENT(X, name, code, always, kind) \
+#define EVENT_TYPE_FINALIZE_STATEMENT(X, name, code, used, kind) \
         finalizeStatement(db, stmt_##name);
 
 #define EVENT_PARAM_BIND_A bind_int
@@ -735,7 +735,7 @@ static void fillGlueTables(sqlite3 *db)
         p = EVENT_PARAM_BIND_##sort (db, statement, eventCount, index+1, p); \
         last_index = index+1;
 
-#define EVENT_TYPE_WRITE_SQL(X, name, code, always, kind) \
+#define EVENT_TYPE_WRITE_SQL(X, name, code, used, kind) \
         case code: \
                 statement = stmt_##name; \
                 /* bind all the parameters of this particular event with macro magic. */ \

@@ -472,7 +472,7 @@ static void printLabelled(EventClock clock, ulongest_t value,
 #define EVENT_PROCESS_PARAM(X, index, sort, ident, doc) \
   processParam##sort(ident);
 
-#define EVENT_PROCESS(X, name, code, always, kind)      \
+#define EVENT_PROCESS(X, name, code, used, kind)        \
   case code:                                            \
     EVENT_##name##_PARAMS(EVENT_PROCESS_PARAM, X)       \
     break;
@@ -481,7 +481,7 @@ static void printLabelled(EventClock clock, ulongest_t value,
 
 static const char *eventName[EventCodeMAX+EventCodeMAX];
 
-#define EVENT_SET_NAME(X, name, code, always, kind) \
+#define EVENT_SET_NAME(X, name, code, used, kind) \
         eventName[code] = #name;
 
 /* this is overkill, at present. */

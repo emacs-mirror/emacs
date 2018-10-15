@@ -42,32 +42,26 @@
 
 /* EVENT_LIST -- list of event types and general properties
  *
- * These specify:
- *   - Type: The name of the event type, without the leading "Event";
- *   - Code: The unique 16-bit code associated with this event type;
- *   - Always: Whether this event type should appear in "hot" varieties,
- *   - Kind: Category into which this event falls, without the
- *     leading "EventKind";
+ * The columns are:
  *
- * When you retire an event type, don't delete it from the list -- comment
- * it out.  This serves as documentation for what the event code means
- * in older logs, and prevents the codes being re-used.  See
- * <design/telemetry/#.reg.code>.
+ * 1. Type: The name of the event type, without the leading "Event";
+ * 2. Code: The unique 16-bit code associated with this event type;
+ * 3. Used: Whether this event type is used at all;
+ * 4. Kind: Category into which this event falls, without the "EventKind";
  *
- * TODO: Rather than commenting them out, we should leave them in and mark
- * them in some other way, because this header is used by event decoders and
- * they still want to decode those events.  RB 2012-09-07
+ * When you retire an event type, don't delete it from the list, but
+ * set the "Used" column to FALSE. This serves as documentation for
+ * what the event code means in older logs, and prevents the codes
+ * being re-used. See <design/telemetry/#.reg.code>.
  *
- * When you add an event type, you must also add an EVENT_*_PARAMS macro
- * specify its parameters below.
+ * When you add an event type, you must also add an EVENT_*_PARAMS
+ * macro specifying its parameters.
  *
  * TODO: Add a doc string to each event type.
- *
- * See also EVENT_*_PARAMS for definition of event parameters.
  */
 
 #define EventNameMAX ((size_t)19)
-#define EventCodeMAX ((EventCode)0x005d)
+#define EventCodeMAX ((EventCode)0x005c)
 
 #define EVENT_LIST(EVENT, X) \
   /*       0123456789012345678 <- don't exceed without changing EventNameMAX */ \
@@ -112,9 +106,9 @@
   EVENT(X, MeterInit          , 0x0027,  TRUE, Pool) \
   EVENT(X, MeterValues        , 0x0028,  TRUE, Pool) \
   EVENT(X, PauseTimeSet       , 0x0029,  TRUE, Arena) \
-  EVENT(X, PoolAlloc          , 0x002a, FALSE, Object) \
+  EVENT(X, PoolAlloc          , 0x002a,  TRUE, Object) \
   EVENT(X, PoolFinish         , 0x002b,  TRUE, Pool) \
-  EVENT(X, PoolFree           , 0x002c, FALSE, Object) \
+  EVENT(X, PoolFree           , 0x002c,  TRUE, Object) \
   EVENT(X, PoolInit           , 0x002d,  TRUE, Pool) \
   EVENT(X, PoolInitAMC        , 0x002e,  TRUE, Pool) \
   EVENT(X, PoolInitAMCZ       , 0x002f,  TRUE, Pool) \
@@ -143,27 +137,26 @@
   EVENT(X, TraceDestroy       , 0x0046,  TRUE, Trace) \
   EVENT(X, TraceEndGen        , 0x0047,  TRUE, Trace) \
   EVENT(X, TraceFindGrey      , 0x0048,  TRUE, Seg) \
-  EVENT(X, TraceFix           , 0x0049, FALSE, Ref) \
-  EVENT(X, TraceFixSeg        , 0x004a, FALSE, Ref) \
-  EVENT(X, TraceFixWhite      , 0x004b, FALSE, Ref) \
-  EVENT(X, TraceFlipBegin     , 0x004c,  TRUE, Trace) \
-  EVENT(X, TraceFlipEnd       , 0x004d,  TRUE, Trace) \
-  EVENT(X, TraceReclaim       , 0x004e,  TRUE, Trace) \
-  EVENT(X, TraceScanArea      , 0x004f,  TRUE, Seg) /* see .kind.abuse */ \
-  EVENT(X, TraceScanAreaTagged, 0x0050,  TRUE, Seg) /* see .kind.abuse */ \
-  EVENT(X, TraceScanSingleRef , 0x0051,  TRUE, Seg) /* see .kind.abuse */ \
-  EVENT(X, TraceStart         , 0x0052,  TRUE, Trace) \
-  EVENT(X, TraceStatFix       , 0x0053,  TRUE, Trace) \
-  EVENT(X, TraceStatReclaim   , 0x0054,  TRUE, Trace) \
-  EVENT(X, TraceStatScan      , 0x0055,  TRUE, Trace) \
-  EVENT(X, VMArenaExtendDone  , 0x0056,  TRUE, Arena) \
-  EVENT(X, VMArenaExtendFail  , 0x0057,  TRUE, Arena) \
-  EVENT(X, VMArenaExtendStart , 0x0058,  TRUE, Arena) \
-  EVENT(X, VMCompact          , 0x0059,  TRUE, Arena) \
-  EVENT(X, VMFinish           , 0x005a,  TRUE, Arena) \
-  EVENT(X, VMInit             , 0x005b,  TRUE, Arena) \
-  EVENT(X, VMMap              , 0x005c,  TRUE, Seg) \
-  EVENT(X, VMUnmap            , 0x005d,  TRUE, Seg)
+  EVENT(X, TraceFix           , 0x0049,  TRUE, Ref) \
+  EVENT(X, TraceFixSeg        , 0x004a,  TRUE, Ref) \
+  EVENT(X, TraceFlipBegin     , 0x004b,  TRUE, Trace) \
+  EVENT(X, TraceFlipEnd       , 0x004c,  TRUE, Trace) \
+  EVENT(X, TraceReclaim       , 0x004d,  TRUE, Trace) \
+  EVENT(X, TraceScanArea      , 0x004e,  TRUE, Seg) /* see .kind.abuse */ \
+  EVENT(X, TraceScanAreaTagged, 0x004f,  TRUE, Seg) /* see .kind.abuse */ \
+  EVENT(X, TraceScanSingleRef , 0x0050,  TRUE, Seg) /* see .kind.abuse */ \
+  EVENT(X, TraceStart         , 0x0051,  TRUE, Trace) \
+  EVENT(X, TraceStatFix       , 0x0052,  TRUE, Trace) \
+  EVENT(X, TraceStatReclaim   , 0x0053,  TRUE, Trace) \
+  EVENT(X, TraceStatScan      , 0x0054,  TRUE, Trace) \
+  EVENT(X, VMArenaExtendDone  , 0x0055,  TRUE, Arena) \
+  EVENT(X, VMArenaExtendFail  , 0x0056,  TRUE, Arena) \
+  EVENT(X, VMArenaExtendStart , 0x0057,  TRUE, Arena) \
+  EVENT(X, VMCompact          , 0x0058,  TRUE, Arena) \
+  EVENT(X, VMFinish           , 0x0059,  TRUE, Arena) \
+  EVENT(X, VMInit             , 0x005a,  TRUE, Arena) \
+  EVENT(X, VMMap              , 0x005b,  TRUE, Seg) \
+  EVENT(X, VMUnmap            , 0x005c,  TRUE, Seg)
 
 
 /* Remember to update EventNameMAX and EventCodeMAX above!
@@ -571,8 +564,6 @@
 
 #define EVENT_TraceFixSeg_PARAMS(PARAM, X) \
   PARAM(X,  0, P, seg, "the segment")
-
-#define EVENT_TraceFixWhite_PARAMS(PARAM, X)
 
 #define EVENT_TraceFlipBegin_PARAMS(PARAM, X) \
   PARAM(X,  0, P, trace, "the trace") \
