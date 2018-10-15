@@ -1,7 +1,7 @@
 /* pool.c: POOL IMPLEMENTATION
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * DESIGN
@@ -234,7 +234,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
   /* it all in the fillMutatorSize field. */
   ArenaGlobals(PoolArena(pool))->fillMutatorSize += size;
 
-  EVENT3(PoolAlloc, pool, *pReturn, size);
+  EVENT_CRITICAL3(PoolAlloc, pool, *pReturn, size);
 
   return ResOK;
 }
@@ -424,7 +424,7 @@ Bool PoolHasRange(Pool pool, Addr base, Addr limit)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

@@ -156,7 +156,7 @@ void EventInit(void)
 #define EVENT_CHECK_ENUM_PARAM(name, index, sort, ident, doc) \
   Event##name##Param##ident,
 
-#define EVENT_CHECK_ENUM(X, name, code, always, kind) \
+#define EVENT_CHECK_ENUM(X, name, code, used, kind) \
   enum Event##name##ParamEnum { \
     EVENT_##name##_PARAMS(EVENT_CHECK_ENUM_PARAM, name) \
     Event##name##ParamLIMIT \
@@ -181,15 +181,15 @@ void EventInit(void)
   AVER(sizeof(EventF##sort) >= 0); /* check existence of type */ \
   EVENT_PARAM_CHECK_##sort(name, index)
 
-#define EVENT_CHECK(X, name, code, always, kind) \
+#define EVENT_CHECK(X, name, code, used, kind) \
   AVER(size_tAlignUp(sizeof(Event##name##Struct), EVENT_ALIGN) \
        <= EventSizeMAX); \
   AVER(Event##name##Code == code); \
   AVER(0 <= code); \
   AVER(code <= EventCodeMAX); \
   AVER(sizeof(#name) - 1 <= EventNameMAX); \
-  AVER((Bool)Event##name##Always == always); \
-  AVERT(Bool, always); \
+  AVER((Bool)Event##name##Used == used); \
+  AVERT(Bool, used); \
   AVER(0 <= Event##name##Kind); \
   AVER((EventKind)Event##name##Kind < EventKindLIMIT); \
   EVENT_##name##_PARAMS(EVENT_PARAM_CHECK, name)
@@ -350,8 +350,8 @@ Res EventDescribe(Event event, mps_lib_FILE *stream, Count depth)
                  "\n  $S", (WriteFS)#ident, \
                  EVENT_WRITE_PARAM_##sort(name, index, sort)
 
-#define EVENT_DESC(X, name, _code, always, kind) \
-  case _code: \
+#define EVENT_DESC(X, name, code, used, kind) \
+  case code: \
     res = WriteF(stream, depth, \
                  "  event \"$S\"", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_DESC_PARAM, name) \
@@ -395,7 +395,7 @@ Res EventWrite(Event event, mps_lib_FILE *stream)
 #define EVENT_WRITE_PARAM(name, index, sort, ident, doc) \
   EVENT_WRITE_PARAM_##sort(name, index, sort)
 
-#define EVENT_WRITE(X, name, code, always, kind) \
+#define EVENT_WRITE(X, name, code, used, kind) \
   case code: \
     res = WriteF(stream, 0, " $S", (WriteFS)#name, \
                  EVENT_##name##_PARAMS(EVENT_WRITE_PARAM, name) \

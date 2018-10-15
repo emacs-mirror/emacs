@@ -1,6 +1,6 @@
 /* <code/event.h> -- Event Logging Interface
  *
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * $Id$
  *
  * READERSHIP
@@ -50,24 +50,24 @@ extern Word EventKindControl;
 
 /* EVENT_BEGIN -- flush buffer if necessary and write event header */
 
-#define EVENT_BEGIN(name, structSize) \
-  BEGIN \
-    if(EVENT_ALL || Event##name##Always) { /* see config.h */ \
-      Event##name##Struct *_event; \
-      size_t _size = size_tAlignUp(structSize, EVENT_ALIGN); \
-      if (_size > (size_t)(EventLast[Event##name##Kind] \
-                           - EventBuffer[Event##name##Kind])) \
-        EventFlush(Event##name##Kind); \
-      AVER(_size <= (size_t)(EventLast[Event##name##Kind] \
-                             - EventBuffer[Event##name##Kind])); \
-      _event = (void *)(EventLast[Event##name##Kind] - _size); \
-      _event->code = Event##name##Code; \
-      _event->size = (EventSize)_size; \
-      EVENT_CLOCK(_event->clock);
+#define EVENT_BEGIN(name, structSize)                           \
+  BEGIN                                                         \
+    Event##name##Struct *_event;                                \
+    EventKind _kind = Event##name##Kind;                        \
+    size_t _size = size_tAlignUp(structSize, EVENT_ALIGN);      \
+    AVER(Event##name##Used);                                    \
+    if (_size > (size_t)(EventLast[Event##name##Kind]           \
+                         - EventBuffer[Event##name##Kind]))     \
+      EventFlush(Event##name##Kind);                            \
+    AVER(_size <= (size_t)(EventLast[Event##name##Kind]         \
+                           - EventBuffer[Event##name##Kind]));  \
+    _event = (void *)(EventLast[Event##name##Kind] - _size);    \
+    _event->code = Event##name##Code;                           \
+    _event->size = (EventSize)_size;                            \
+    EVENT_CLOCK(_event->clock);
 
-#define EVENT_END(name, size) \
-      EventLast[Event##name##Kind] -= _size; \
-    } \
+#define EVENT_END                   \
+    EventLast[_kind] -= _size;      \
   END
 
 
@@ -89,76 +89,124 @@ extern Word EventKindControl;
       _event->f0 = (p0); \
       (void)mps_lib_memcpy(_event->f1, (string), _string_len); \
       _event->f1[_string_len] = '\0'; \
-    EVENT_END(name, size); \
+    EVENT_END; \
   END
 
+#define EVENT0 EVENT_RECORD0
+#define EVENT1 EVENT_RECORD1
+#define EVENT2 EVENT_RECORD2
+#define EVENT3 EVENT_RECORD3
+#define EVENT4 EVENT_RECORD4
+#define EVENT5 EVENT_RECORD5
+#define EVENT6 EVENT_RECORD6
+#define EVENT7 EVENT_RECORD7
+#define EVENT8 EVENT_RECORD8
+#define EVENT9 EVENT_RECORD9
+#define EVENT10 EVENT_RECORD10
+#define EVENT11 EVENT_RECORD11
+#define EVENT12 EVENT_RECORD12
+#define EVENT13 EVENT_RECORD13
+#define EVENT14 EVENT_RECORD14
+
+#else /* !EVENT */
+
+#define EVENT0 EVENT_IGNORE0
+#define EVENT1 EVENT_IGNORE1
+#define EVENT2 EVENT_IGNORE2
+#define EVENT3 EVENT_IGNORE3
+#define EVENT4 EVENT_IGNORE4
+#define EVENT5 EVENT_IGNORE5
+#define EVENT6 EVENT_IGNORE6
+#define EVENT7 EVENT_IGNORE7
+#define EVENT8 EVENT_IGNORE8
+#define EVENT9 EVENT_IGNORE9
+#define EVENT10 EVENT_IGNORE10
+#define EVENT11 EVENT_IGNORE11
+#define EVENT12 EVENT_IGNORE12
+#define EVENT13 EVENT_IGNORE13
+#define EVENT14 EVENT_IGNORE14
+
+#endif /* !EVENT */
+
+#if EVENT_ALL
+
+#define EVENT_CRITICAL0 EVENT0
+#define EVENT_CRITICAL1 EVENT1
+#define EVENT_CRITICAL2 EVENT2
+#define EVENT_CRITICAL3 EVENT3
+#define EVENT_CRITICAL4 EVENT4
+#define EVENT_CRITICAL5 EVENT5
+#define EVENT_CRITICAL6 EVENT6
+#define EVENT_CRITICAL7 EVENT7
+#define EVENT_CRITICAL8 EVENT8
+#define EVENT_CRITICAL9 EVENT9
+#define EVENT_CRITICAL10 EVENT10
+#define EVENT_CRITICAL11 EVENT11
+#define EVENT_CRITICAL12 EVENT12
+#define EVENT_CRITICAL13 EVENT13
+#define EVENT_CRITICAL14 EVENT14
+
+#else /* !EVENT_ALL */
+
+#define EVENT_CRITICAL0 EVENT_IGNORE0
+#define EVENT_CRITICAL1 EVENT_IGNORE1
+#define EVENT_CRITICAL2 EVENT_IGNORE2
+#define EVENT_CRITICAL3 EVENT_IGNORE3
+#define EVENT_CRITICAL4 EVENT_IGNORE4
+#define EVENT_CRITICAL5 EVENT_IGNORE5
+#define EVENT_CRITICAL6 EVENT_IGNORE6
+#define EVENT_CRITICAL7 EVENT_IGNORE7
+#define EVENT_CRITICAL8 EVENT_IGNORE8
+#define EVENT_CRITICAL9 EVENT_IGNORE9
+#define EVENT_CRITICAL10 EVENT_IGNORE10
+#define EVENT_CRITICAL11 EVENT_IGNORE11
+#define EVENT_CRITICAL12 EVENT_IGNORE12
+#define EVENT_CRITICAL13 EVENT_IGNORE13
+#define EVENT_CRITICAL14 EVENT_IGNORE14
+
+#endif /* !EVENT_ALL */
+
 
 /* The following lines were generated with
-   python -c 'for i in range(22): print("#define EVENT{}(name{}) EVENT_BEGIN(name, sizeof(Event##name##Struct)) {} EVENT_END(name, sizeof(Event##name##Struct))".format(i, "".join(map(", p{}".format, range(i))), " ".join(map("_event->f{0} = (p{0});".format, range(i)))))'
+   python -c 'for i in range(15): print("#define EVENT_RECORD{i}(name{args}) EVENT_BEGIN(name, sizeof(Event##name##Struct)) {assign} EVENT_END\n#define EVENT_IGNORE{i}(name{args}) BEGIN {unused} END".format(i=i, args="".join(map(", p{}".format, range(i))), assign=" ".join(map("_event->f{0} = (p{0});".format, range(i))), unused=" ".join(map("UNUSED(p{});".format, range(i)))))'
  */
-#define EVENT0(name) EVENT_BEGIN(name, sizeof(Event##name##Struct))  EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT1(name, p0) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT2(name, p0, p1) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT3(name, p0, p1, p2) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT4(name, p0, p1, p2, p3) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT5(name, p0, p1, p2, p3, p4) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT6(name, p0, p1, p2, p3, p4, p5) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT7(name, p0, p1, p2, p3, p4, p5, p6) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT8(name, p0, p1, p2, p3, p4, p5, p6, p7) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT9(name, p0, p1, p2, p3, p4, p5, p6, p7, p8) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT10(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT11(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT15(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT16(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT17(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT18(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); _event->f17 = (p17); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT19(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); _event->f17 = (p17); _event->f18 = (p18); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT20(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); _event->f17 = (p17); _event->f18 = (p18); _event->f19 = (p19); EVENT_END(name, sizeof(Event##name##Struct))
-#define EVENT21(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); _event->f14 = (p14); _event->f15 = (p15); _event->f16 = (p16); _event->f17 = (p17); _event->f18 = (p18); _event->f19 = (p19); _event->f20 = (p20); EVENT_END(name, sizeof(Event##name##Struct))
-
-
-#else /* EVENT not */
-
-
-/* The following lines were generated with
-   python -c 'for i in range(22): print("#define EVENT{}(name{}) BEGIN {} END".format(i, "".join(map(", p{}".format, range(i))), " ".join(map("UNUSED(p{});".format, range(i)))))'
- */
-#define EVENT0(name) BEGIN  END
-#define EVENT1(name, p0) BEGIN UNUSED(p0); END
-#define EVENT2(name, p0, p1) BEGIN UNUSED(p0); UNUSED(p1); END
-#define EVENT3(name, p0, p1, p2) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); END
-#define EVENT4(name, p0, p1, p2, p3) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); END
-#define EVENT5(name, p0, p1, p2, p3, p4) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); END
-#define EVENT6(name, p0, p1, p2, p3, p4, p5) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); END
-#define EVENT7(name, p0, p1, p2, p3, p4, p5, p6) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); END
-#define EVENT8(name, p0, p1, p2, p3, p4, p5, p6, p7) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); END
-#define EVENT9(name, p0, p1, p2, p3, p4, p5, p6, p7, p8) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); END
-#define EVENT10(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); END
-#define EVENT11(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); END
-#define EVENT12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); END
-#define EVENT13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); END
-#define EVENT14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); END
-#define EVENT15(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); END
-#define EVENT16(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); END
-#define EVENT17(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); END
-#define EVENT18(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); UNUSED(p17); END
-#define EVENT19(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); UNUSED(p17); UNUSED(p18); END
-#define EVENT20(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); UNUSED(p17); UNUSED(p18); UNUSED(p19); END
-#define EVENT21(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); UNUSED(p14); UNUSED(p15); UNUSED(p16); UNUSED(p17); UNUSED(p18); UNUSED(p19); UNUSED(p20); END
-
-
-#endif /* EVENT */
-
+#define EVENT_RECORD0(name) EVENT_BEGIN(name, sizeof(Event##name##Struct))  EVENT_END
+#define EVENT_IGNORE0(name) BEGIN  END
+#define EVENT_RECORD1(name, p0) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); EVENT_END
+#define EVENT_IGNORE1(name, p0) BEGIN UNUSED(p0); END
+#define EVENT_RECORD2(name, p0, p1) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); EVENT_END
+#define EVENT_IGNORE2(name, p0, p1) BEGIN UNUSED(p0); UNUSED(p1); END
+#define EVENT_RECORD3(name, p0, p1, p2) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); EVENT_END
+#define EVENT_IGNORE3(name, p0, p1, p2) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); END
+#define EVENT_RECORD4(name, p0, p1, p2, p3) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); EVENT_END
+#define EVENT_IGNORE4(name, p0, p1, p2, p3) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); END
+#define EVENT_RECORD5(name, p0, p1, p2, p3, p4) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); EVENT_END
+#define EVENT_IGNORE5(name, p0, p1, p2, p3, p4) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); END
+#define EVENT_RECORD6(name, p0, p1, p2, p3, p4, p5) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); EVENT_END
+#define EVENT_IGNORE6(name, p0, p1, p2, p3, p4, p5) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); END
+#define EVENT_RECORD7(name, p0, p1, p2, p3, p4, p5, p6) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); EVENT_END
+#define EVENT_IGNORE7(name, p0, p1, p2, p3, p4, p5, p6) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); END
+#define EVENT_RECORD8(name, p0, p1, p2, p3, p4, p5, p6, p7) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); EVENT_END
+#define EVENT_IGNORE8(name, p0, p1, p2, p3, p4, p5, p6, p7) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); END
+#define EVENT_RECORD9(name, p0, p1, p2, p3, p4, p5, p6, p7, p8) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); EVENT_END
+#define EVENT_IGNORE9(name, p0, p1, p2, p3, p4, p5, p6, p7, p8) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); END
+#define EVENT_RECORD10(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); EVENT_END
+#define EVENT_IGNORE10(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); END
+#define EVENT_RECORD11(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); EVENT_END
+#define EVENT_IGNORE11(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); END
+#define EVENT_RECORD12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); EVENT_END
+#define EVENT_IGNORE12(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); END
+#define EVENT_RECORD13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); EVENT_END
+#define EVENT_IGNORE13(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); END
+#define EVENT_RECORD14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) EVENT_BEGIN(name, sizeof(Event##name##Struct)) _event->f0 = (p0); _event->f1 = (p1); _event->f2 = (p2); _event->f3 = (p3); _event->f4 = (p4); _event->f5 = (p5); _event->f6 = (p6); _event->f7 = (p7); _event->f8 = (p8); _event->f9 = (p9); _event->f10 = (p10); _event->f11 = (p11); _event->f12 = (p12); _event->f13 = (p13); EVENT_END
+#define EVENT_IGNORE14(name, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13) BEGIN UNUSED(p0); UNUSED(p1); UNUSED(p2); UNUSED(p3); UNUSED(p4); UNUSED(p5); UNUSED(p6); UNUSED(p7); UNUSED(p8); UNUSED(p9); UNUSED(p10); UNUSED(p11); UNUSED(p12); UNUSED(p13); END
 
 #endif /* event_h */
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

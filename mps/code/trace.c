@@ -1340,7 +1340,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
                 ZoneSetEMPTY);
 
   STATISTIC(++ss->fixRefCount);
-  EVENT4(TraceFix, ss, mps_ref_io, ref, ss->rank);
+  EVENT_CRITICAL4(TraceFix, ss, mps_ref_io, ref, ss->rank);
 
   /* This sequence of tests is equivalent to calling TractOfAddr(),
    * but inlined so that we can distinguish between "not pointing to
@@ -1378,15 +1378,14 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
      * active traces. See <design/trace/#fix.tractofaddr> */
     STATISTIC({
       ++ss->segRefCount;
-      EVENT1(TraceFixSeg, seg);
+      EVENT_CRITICAL1(TraceFixSeg, seg);
     });
     goto done;
   }
 
   STATISTIC(++ss->segRefCount);
   STATISTIC(++ss->whiteSegRefCount);
-  EVENT1(TraceFixSeg, seg);
-  EVENT0(TraceFixWhite);
+  EVENT_CRITICAL1(TraceFixSeg, seg);
   res = (*ss->fix)(seg, ss, &ref);
   if (res != ResOK) {
     /* SegFixEmergency must not fail. */

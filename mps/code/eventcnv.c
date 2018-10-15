@@ -282,7 +282,7 @@ static void readLog(FILE *stream)
     switch (code) {
 #define EVENT_PARAM_PRINT(name, index, sort, ident, doc) \
       printParam##sort(event->name.f##index);
-#define EVENT_PRINT(X, name, code, always, kind)        \
+#define EVENT_PRINT(X, name, code, used, kind)          \
       case code:                                        \
         EVENT_##name##_PARAMS(EVENT_PARAM_PRINT, name)  \
         break;

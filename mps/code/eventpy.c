@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
   puts("\n# Description of the parameters of an event.");
   puts("EventDesc = namedtuple('EventDesc', "
-       "'name code always kind params maxsize format')");
+       "'name code used kind params maxsize format')");
 
   puts("\n# Namespace containing an EventDesc for every event.");
   puts("class Event:");
@@ -120,9 +120,9 @@ int main(int argc, char *argv[])
   PAD_TO(offsetof(Event##NAME##Struct, f##INDEX));      \
   format(sizeof(EventF##SORT), #SORT);                  \
   prev_offset += sizeof(EventF##SORT);
-#define EVENT_DEFINE(X, NAME, CODE, ALWAYS, KIND)                       \
+#define EVENT_DEFINE(X, NAME, CODE, USED, KIND)                         \
   printf("    " #NAME " = EventDesc('" #NAME "', %d, %s, Kind." #KIND ", [\n", \
-         CODE, ALWAYS ? "True" : "False");                              \
+         CODE, USED ? "True" : "False");                                \
   EVENT_ ## NAME ## _PARAMS(EVENT_PARAM, X);                            \
   size = sizeof(Event##NAME##Struct) - sizeof(EventAnyStruct);          \
   printf("    ], %u, '%s", (unsigned)size, BYTE_ORDER);                 \
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
   puts("\n# Mapping from event number to EventDesc.");
   puts("EVENT = {");
-#define EVENT_ITEM(X, NAME, CODE, ALWAYS, KIND) \
+#define EVENT_ITEM(X, NAME, CODE, USED, KIND) \
   printf("    %d: Event." #NAME ",\n", CODE);
   EVENT_LIST(EVENT_ITEM, 0);
 #undef EVENT_ITEM
