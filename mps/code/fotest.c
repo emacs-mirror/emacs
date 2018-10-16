@@ -31,7 +31,7 @@
 
 
 #define testArenaSIZE   ((((size_t)3)<<24) - 4)
-#define testSetSIZE 200
+#define testSetSIZE 200 /* TODO: 10 * arena grain size / sizeof cbs_struct */
 #define testLOOPS 10
 
 
@@ -54,21 +54,25 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 /* The original alloc method on the MFS pool. */
 static PoolAllocMethod mfs_alloc;
 
+
 /* Are we currently in a part of the test that is allowed to fail in the case
- * where we run out of memory? This controls the behaviour of oomAlloc.
- */
-static Bool is_failure_our_problem = FALSE;
+ * where we run out of memory? This controls the behaviour of oomAlloc. */
+static Bool simulate_allocation_failure = FALSE;
+
+/* How many times has oomAlloc failed on purpose. */
+static unsigned long failure_count = 0;
 
 /* oomAlloc -- allocation function that reliably fails
  *
- * Returns a randomly chosen memory error code if `is_failure_our_problem`.
- * The point is to verify that none of these errors affects the caller.
- */
+ * Returns a randomly chosen memory error code (and increments
+ * `failure_count`) if `simulate_allocation_failure`. The point is to verify
+ * that none of these errors affects the caller. */
 
 static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
 {
-  if (is_failure_our_problem) {
-    /* Simulate a failure to enforce the fail-over behaviour. */
+  if (simulate_allocation_failure) {
+    /* Simulate a failure in order to enforce the fail-over behaviour. */
+    ++failure_count;
     switch (rnd() % 3) {
     case 0:
       return ResRESOURCE;
@@ -78,7 +82,8 @@ static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
       return ResCOMMIT_LIMIT;
     }
   } else {
-    /* Failure here is allowed, so succeed (see job4041 and job004104). */
+    /* Failure here is allowed, so attempt allocation as normal.
+     * (see job004041 and job004104). */
     return mfs_alloc(pReturn, pool, size);
   }
 }
@@ -94,6 +99,7 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
   unsigned long i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
+  Bool fs[testSetSIZE];
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
 
@@ -109,10 +115,28 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
       *ps[i] = 1; /* Write something, so it gets swap. */
   }
 
+  /* Decide on which iterations we're going to simulate failures.
+   * We want to be sure to fail at least once. We achieve this by
+   * deterministically filling an array of booleans, then shuffling it. */
+  for (i=0; i<testLOOPS; ++i) {
+    fs[i] = i < testLOOPS/2;
+  }
+  for (i=0; i<testLOOPS; ++i) {
+    unsigned long j = i + rnd()%(testSetSIZE-i);
+    Bool tf;
+    tf = fs[j];
+    fs[j] = fs[i];
+    fs[i] = tf;
+  }
+
+  failure_count = 0;
+
   for (k=0; k<testLOOPS; ++k) {
+    CLASS_STATIC(MFSPool).alloc = fs[k] ? mfs_alloc : oomAlloc;
+
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
-      unsigned long j = rnd()%(testSetSIZE-i);
+      unsigned long j = i + rnd()%(testSetSIZE-i);
       void *tp;
       size_t ts;
      
@@ -120,17 +144,19 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
       ps[j] = ps[i]; ss[j] = ss[i];
       ps[i] = tp; ss[i] = ts;
     }
+
     /* free half of the objects */
     /* upper half, as when allocating them again we want smaller objects */
     /* see randomSize() */
-    is_failure_our_problem = TRUE;
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
+      simulate_allocation_failure = TRUE;
       mps_free(pool, (mps_addr_t)ps[i], ss[i]);
+      simulate_allocation_failure = FALSE;
       /* if (i == testSetSIZE/2) */
       /*   PoolDescribe((Pool)pool, mps_lib_stdout); */
     }
+
     /* allocate some new objects */
-    is_failure_our_problem = FALSE;
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       mps_addr_t obj;
       ss[i] = (*size)(i, alignment);
@@ -139,10 +165,10 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
         goto allocFail;
       ps[i] = obj;
     }
-
-    CLASS_STATIC(MFSPool).alloc = rnd() % 2 ? mfs_alloc : oomAlloc;
   }
   CLASS_STATIC(MFSPool).alloc = mfs_alloc;
+
+  Insist(failure_count > 0);
 
 allocFail:
   mps_ap_destroy(ap);
@@ -196,7 +222,7 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, (1 + rnd() % 4) * 1024);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_RESERVE_DEPTH, (1 + rnd() % 64) * 16);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, (rnd() % 101) / 100.0);
-    die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVFF");
+    die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVT");
   } MPS_ARGS_END(args);
   die(stress(randomSizeAligned, alignment, pool), "stress MVT");
   mps_pool_destroy(pool);
