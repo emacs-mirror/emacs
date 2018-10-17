@@ -99,7 +99,6 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
   unsigned long i, k;
   int *ps[testSetSIZE];
   size_t ss[testSetSIZE];
-  Bool fs[testSetSIZE];
 
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "BufferCreate");
 
@@ -115,24 +114,11 @@ static mps_res_t stress(size_t (*size)(unsigned long, mps_align_t),
       *ps[i] = 1; /* Write something, so it gets swap. */
   }
 
-  /* Decide on which iterations we're going to simulate failures.
-   * We want to be sure to fail at least once. We achieve this by
-   * deterministically filling an array of booleans, then shuffling it. */
-  for (i=0; i<testLOOPS; ++i) {
-    fs[i] = i < testLOOPS/2;
-  }
-  for (i=0; i<testLOOPS; ++i) {
-    unsigned long j = i + rnd()%(testSetSIZE-i);
-    Bool tf;
-    tf = fs[j];
-    fs[j] = fs[i];
-    fs[i] = tf;
-  }
-
   failure_count = 0;
 
   for (k=0; k<testLOOPS; ++k) {
-    CLASS_STATIC(MFSPool).alloc = fs[k] ? mfs_alloc : oomAlloc;
+    /* Use oomAlloc for the first iteration and then with 0.5 probability. */
+    CLASS_STATIC(MFSPool).alloc = (k>0 && rnd() % 2) ? mfs_alloc : oomAlloc;
 
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
