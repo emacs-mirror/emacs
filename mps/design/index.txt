@@ -150,6 +150,7 @@ writef_                 The WriteF function
 .. _locus: locus
 .. _message: message
 .. _message-gc: message-gc
+.. _monitor: monitor
 .. _nailboard: nailboard
 .. _object-debug: object-debug
 .. _pool: pool
