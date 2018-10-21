@@ -1000,7 +1000,7 @@ Uses THING, FACE, DEFS and PREPEND."
                      'compilation-mode-line-run '())))
          ,@(when (cl-plusp pending)
              `("/" ,(eglot--mode-line-props
-                     (format "%d oustanding requests" pending) 'warning
+                     (format "%d outstanding requests" pending) 'warning
                      '((mouse-3 eglot-forget-pending-continuations
                                 "fahgettaboudit"))))))))))
 
