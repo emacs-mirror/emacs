@@ -30,7 +30,7 @@
 (defalias 'use-package-normalize/:chords 'use-package-normalize-binder)
 
 ;;;###autoload
-(defun use-package-handler/:chords (name keyword arg rest state)
+(defun use-package-handler/:chords (name _keyword arg rest state)
   "Handler for `:chords' keyword in `use-package'."
   (use-package-concat
    (use-package-process-keywords name rest state)
