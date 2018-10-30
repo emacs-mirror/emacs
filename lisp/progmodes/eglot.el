@@ -1348,7 +1348,7 @@ DUMMY is ignored."
          (setq eglot--xref-known-symbols
                (mapcar
                 (jsonrpc-lambda
-                    (&key name kind location containerName)
+                    (&key name kind location containerName _deprecated)
                   (propertize name
                               :textDocumentPositionParams
                               (list :textDocument text-id
@@ -1656,7 +1656,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
       (let ((entries
              (mapcar
               (jsonrpc-lambda
-                  (&key name kind location _containerName)
+                  (&key name kind location _containerName _deprecated)
                 (cons (propertize name :kind (cdr (assoc kind eglot--symbol-kind-names)))
                       (eglot--lsp-position-to-point
                        (plist-get (plist-get location :range) :start))))
