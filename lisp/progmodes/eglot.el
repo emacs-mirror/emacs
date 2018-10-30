@@ -65,7 +65,8 @@
 (require 'warnings)
 (require 'flymake)
 (require 'xref)
-(require 'subr-x)
+(eval-when-compile
+  (require 'subr-x))
 (require 'jsonrpc)
 (require 'filenotify)
 (require 'ert)
