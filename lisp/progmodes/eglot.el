@@ -1664,12 +1664,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
               (jsonrpc-request (eglot--current-server-or-lose)
                                :textDocument/documentSymbol
                                `(:textDocument ,(eglot--TextDocumentIdentifier))))))
-        (append
-         (cl-remove nil
-                    (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
-                                  entries)
-                    :key #'car)
-         entries))
+        (cl-remove nil
+                   (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
+                                 entries)
+                   :key #'car))
     (funcall oldfun)))
 
 (defun eglot--apply-text-edits (edits &optional version)
