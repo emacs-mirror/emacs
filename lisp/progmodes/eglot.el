@@ -223,7 +223,12 @@ let the buffer grow forever."
              :definition         `(:dynamicRegistration :json-false)
              :documentSymbol     `(:dynamicRegistration :json-false)
              :documentHighlight  `(:dynamicRegistration :json-false)
-             :codeAction         `(:dynamicRegistration :json-false)
+             :codeAction         (list
+                                  :dynamicRegistration :json-false
+                                  :codeActionLiteralSupport
+                                  `(:codeActionKind
+                                    (:valueSet
+                                     [,@eglot--code-action-kinds])))
              :formatting         `(:dynamicRegistration :json-false)
              :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
@@ -739,6 +744,11 @@ Doubles as an indicator of snippet support."
     (18 . "Array") (19 . "Object") (20 . "Key")
     (21 . "Null") (22 . "EnumMember") (23 . "Struct")
     (24 . "Event") (25 . "Operator") (26 . "TypeParameter")))
+
+(defconst eglot--code-action-kinds
+  '("quickfix" "refactor" "refactor.extract"
+    "refactor.inline" "refactor.rewrite"
+    "source" "source.organizeImports"))
 
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
@@ -1788,8 +1798,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                                         (cdr (assoc 'eglot-lsp-diag
                                                     (eglot--diag-data diag))))
                                       (flymake-diagnostics beg end))]))))
-         (menu-items (mapcar (jsonrpc-lambda (&key title command arguments)
-                               `(,title . (:command ,command :arguments ,arguments)))
+         (menu-items (mapcar (jsonrpc-lambda (&key title command arguments
+                                                   edit _kind _diagnostics)
+                               `(,title . (:command ,command :arguments ,arguments
+                                                    :edit ,edit)))
                              actions))
          (menu (and menu-items `("Eglot code actions:" ("dummy" ,@menu-items))))
          (command-and-args
@@ -1802,10 +1814,13 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                    (if (eq (setq retval (tmm-prompt menu)) never-mind)
                        (keyboard-quit)
                      retval))))))
-    (cl-destructuring-bind (&key _title command arguments) command-and-args
+    (cl-destructuring-bind (&key _title command arguments edit) command-and-args
+      (when edit
+        (eglot--apply-workspace-edit edit))
       (if command
           (eglot-execute-command server (intern command) arguments)
-        (eglot--message "No code actions here")))))
+        (unless edit
+          (eglot--message "No code actions here"))))))
 
 
 
