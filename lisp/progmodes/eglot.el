@@ -1657,10 +1657,15 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
       (let ((entries
              (mapcar
               (jsonrpc-lambda
-                  (&key name kind location _containerName _deprecated)
+                  (&key name kind location containerName _deprecated)
                 (cons (propertize
-                       name :kind (alist-get kind eglot--symbol-kind-names
-                                             "(Unknown)"))
+                       (concat
+                        (and (stringp containerName)
+                             (not (string-empty-p containerName))
+                             (concat containerName "::"))
+                        name)
+                       :kind (alist-get kind eglot--symbol-kind-names
+                                        "(Unknown)"))
                       (eglot--lsp-position-to-point
                        (plist-get (plist-get location :range) :start))))
               (jsonrpc-request (eglot--current-server-or-lose)
