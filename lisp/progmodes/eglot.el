@@ -1584,12 +1584,23 @@ is not active."
                        (cl-find comp strings :test #'string=))))
            (cl-destructuring-bind (&key insertTextFormat
                                         insertText
+                                        textEdit
+                                        additionalTextEdits
                                         &allow-other-keys)
                (text-properties-at 0 comp)
-             (when-let ((fn (and (eql insertTextFormat 2)
-                                 (eglot--snippet-expansion-fn))))
-               (delete-region (- (point) (length comp)) (point))
-               (funcall fn insertText))
+             (let ((fn (and (eql insertTextFormat 2)
+                            (eglot--snippet-expansion-fn))))
+               (when (or fn textEdit)
+                 ;; Undo the completion
+                 (delete-region (- (point) (length comp)) (point)))
+               (cond (textEdit
+                      (cl-destructuring-bind (&key range newText) textEdit
+                        (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
+                          (delete-region beg end)
+                          (goto-char beg)
+                          (funcall (or fn #'insert) newText)))
+                      (eglot--apply-text-edits additionalTextEdits))
+                     (fn (funcall fn insertText))))
              (eglot--signal-textDocument/didChange)
              (eglot-eldoc-function))))))))
 
