@@ -280,7 +280,7 @@ static void exec_sentinel (Lisp_Object, Lisp_Object);
 static int num_pending_connects;
 
 /* The largest descriptor currently in use; -1 if none.  */
-static int max_desc;
+int max_desc;
 
 /* Set the external socket descriptor for Emacs to use when
    `make-network-process' is called with a non-nil
@@ -459,6 +459,8 @@ static struct fd_callback_data
 void
 add_read_fd (int fd, fd_callback func, void *data)
 {
+  fprintf(stderr, "add_read_fd %d (%p)\n", fd, current_thread);
+
   add_keyboard_wait_descriptor (fd);
 
   fd_callback_info[fd].func = func;
@@ -471,6 +473,8 @@ add_non_keyboard_read_fd (int fd)
   eassert (fd >= 0 && fd < FD_SETSIZE);
   eassert (fd_callback_info[fd].func == NULL);
 
+  fprintf(stderr, "add_non_keyboard_read_fd %d (%p)\n", fd, current_thread);
+
   fd_callback_info[fd].flags &= ~KEYBOARD_FD;
   fd_callback_info[fd].flags |= FOR_READ;
   if (fd > max_desc)
@@ -480,6 +484,8 @@ add_non_keyboard_read_fd (int fd)
 static void
 add_process_read_fd (int fd)
 {
+  fprintf(stderr, "add_process_read_fd %d (%p)\n", fd, current_thread);
+
   add_non_keyboard_read_fd (fd);
   fd_callback_info[fd].flags |= PROCESS_FD;
 }
@@ -489,6 +495,8 @@ add_process_read_fd (int fd)
 void
 delete_read_fd (int fd)
 {
+  fprintf(stderr, "delete_read_fd %d (%p)\n", fd, current_thread);
+
   delete_keyboard_wait_descriptor (fd);
 
   if (fd_callback_info[fd].flags == 0)
@@ -506,6 +514,8 @@ add_write_fd (int fd, fd_callback func, void *data)
 {
   eassert (fd >= 0 && fd < FD_SETSIZE);
 
+  fprintf(stderr, "add_write_fd %d (%p)\n", fd, current_thread);
+
   fd_callback_info[fd].func = func;
   fd_callback_info[fd].data = data;
   fd_callback_info[fd].flags |= FOR_WRITE;
@@ -518,6 +528,8 @@ add_non_blocking_write_fd (int fd)
 {
   eassert (fd >= 0 && fd < FD_SETSIZE);
   eassert (fd_callback_info[fd].func == NULL);
+
+  fprintf(stderr, "add_non_blocking_write_fd %d (%p)\n", fd, current_thread);
 
   fd_callback_info[fd].flags |= FOR_WRITE | NON_BLOCKING_CONNECT_FD;
   if (fd > max_desc)
@@ -545,6 +557,8 @@ recompute_max_desc (void)
 void
 delete_write_fd (int fd)
 {
+  fprintf(stderr, "delete_write_fd %d (%p)\n", fd, current_thread);
+
   if ((fd_callback_info[fd].flags & NON_BLOCKING_CONNECT_FD) != 0)
     {
       if (--num_pending_connects < 0)

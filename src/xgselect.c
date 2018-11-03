@@ -18,6 +18,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "xgselect.h"
 
@@ -28,6 +31,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "blockinput.h"
 #include "systime.h"
+
+extern void safe_debug_print (Lisp_Object);
+extern int max_desc;
 
 /* `xg_select' is a `pselect' replacement.  Why do we need a separate function?
    1. Timeouts.  Glib and Gtk rely on timer events.  If we did pselect
@@ -45,6 +51,7 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	   struct timespec *timeout, sigset_t *sigmask)
 {
   fd_set all_rfds, all_wfds;
+  fd_set save_all_rfds, save_all_wfds;
   struct timespec tmo;
   struct timespec *tmop = timeout;
 
@@ -113,12 +120,36 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
 	tmop = &tmo;
     }
 
+  save_all_rfds = all_rfds;
+  save_all_wfds = all_wfds;
+
   fds_lim = max_fds + 1;
   nfds = thread_select (pselect, fds_lim,
 			&all_rfds, have_wfds ? &all_wfds : NULL, efds,
 			tmop, sigmask);
   if (nfds < 0)
-    retval = nfds;
+    {
+      retval = nfds;
+      if (errno == EBADF)
+	{
+	  int fd;
+	  fprintf (stderr, "EBADF in xg_select, thread = %p\n",
+		   current_thread);
+
+	  for (fd = 0; fd <= max_desc; ++fd)
+	    {
+	      if (FD_ISSET (fd, &save_all_rfds) &&
+		  fcntl(fd, F_GETFL) < 0 &&
+		  errno == EBADF)
+		fprintf (stderr, "fd %d in save_all_rfds\n", fd);
+	      if (FD_ISSET (fd, &save_all_wfds) &&
+		  fcntl(fd, F_GETFL) < 0 &&
+		  errno == EBADF)
+		fprintf (stderr, "fd %d in save_all_wfds\n", fd);
+	    }
+	  errno = EBADF;
+	}
+    }
   else if (nfds > 0)
     {
       for (i = 0; i < fds_lim; ++i)
