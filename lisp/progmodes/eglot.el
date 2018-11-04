@@ -1670,20 +1670,29 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
               (jsonrpc-lambda
                   (&key name kind location containerName _deprecated)
                 (cons (propertize
-                       (concat
-                        (and (stringp containerName)
-                             (not (string-empty-p containerName))
-                             (concat containerName "::"))
-                        name)
+                       name
                        :kind (alist-get kind eglot--symbol-kind-names
-                                        "(Unknown)"))
+                                        "Unknown")
+                       :containerName (and (stringp containerName)
+                                           (not (string-empty-p containerName))
+                                           containerName))
                       (eglot--lsp-position-to-point
                        (plist-get (plist-get location :range) :start))))
               (jsonrpc-request (eglot--current-server-or-lose)
                                :textDocument/documentSymbol
                                `(:textDocument ,(eglot--TextDocumentIdentifier))))))
-        (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
-                      entries))
+        (mapcar
+         (pcase-lambda (`(,kind . ,syms))
+           (let ((syms-by-scope (seq-group-by
+                                 (lambda (e)
+                                   (get-text-property 0 :containerName (car e)))
+                                 syms)))
+             (cons kind (cl-loop for (scope . elems) in syms-by-scope
+                                 append (if scope
+                                            (list (cons scope elems))
+                                          elems)))))
+         (seq-group-by (lambda (e) (get-text-property 0 :kind (car e)))
+                       entries)))
     (funcall oldfun)))
 
 (defun eglot--apply-text-edits (edits &optional version)
