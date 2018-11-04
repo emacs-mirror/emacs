@@ -1381,17 +1381,20 @@ DUMMY is ignored."
 (cl-defmethod xref-backend-definitions ((_backend (eql eglot)) identifier)
   (let* ((rich-identifier
           (car (member identifier eglot--xref-known-symbols)))
-         (location-or-locations
+         (definitions
           (if rich-identifier
               (get-text-property 0 :locations rich-identifier)
             (jsonrpc-request (eglot--current-server-or-lose)
                              :textDocument/definition
                              (get-text-property
-                              0 :textDocumentPositionParams identifier)))))
+                              0 :textDocumentPositionParams identifier))))
+         (locations
+          (and definitions
+               (if (vectorp definitions) definitions (vector definitions)))))
     (eglot--sort-xrefs
      (mapcar (jsonrpc-lambda (&key uri range)
                (eglot--xref-make identifier uri (plist-get range :start)))
-             location-or-locations))))
+             locations))))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
   (unless (eglot--server-capable :referencesProvider)
