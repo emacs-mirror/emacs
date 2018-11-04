@@ -226,9 +226,12 @@ let the buffer grow forever."
              :codeAction         (list
                                   :dynamicRegistration :json-false
                                   :codeActionLiteralSupport
-                                  `(:codeActionKind
+                                  '(:codeActionKind
                                     (:valueSet
-                                     [,@eglot--code-action-kinds])))
+                                     ["quickfix"
+                                      "refactor" "refactor.extract"
+                                      "refactor.inline" "refactor.rewrite"
+                                      "source" "source.organizeImports"])))
              :formatting         `(:dynamicRegistration :json-false)
              :rangeFormatting    `(:dynamicRegistration :json-false)
              :rename             `(:dynamicRegistration :json-false)
@@ -744,11 +747,6 @@ Doubles as an indicator of snippet support."
     (18 . "Array") (19 . "Object") (20 . "Key")
     (21 . "Null") (22 . "EnumMember") (23 . "Struct")
     (24 . "Event") (25 . "Operator") (26 . "TypeParameter")))
-
-(defconst eglot--code-action-kinds
-  '("quickfix" "refactor" "refactor.extract"
-    "refactor.inline" "refactor.rewrite"
-    "source" "source.organizeImports"))
 
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
@@ -1786,41 +1784,40 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (unless (eglot--server-capable :codeActionProvider)
     (eglot--error "Server can't execute code actions!"))
   (let* ((server (eglot--current-server-or-lose))
-         (actions (jsonrpc-request
-                   server
-                   :textDocument/codeAction
-                   (list :textDocument (eglot--TextDocumentIdentifier)
-                         :range (list :start (eglot--pos-to-lsp-position beg)
-                                      :end (eglot--pos-to-lsp-position end))
-                         :context
-                         `(:diagnostics
-                           [,@(mapcar (lambda (diag)
-                                        (cdr (assoc 'eglot-lsp-diag
-                                                    (eglot--diag-data diag))))
-                                      (flymake-diagnostics beg end))]))))
-         (menu-items (mapcar (jsonrpc-lambda (&key title command arguments
-                                                   edit _kind _diagnostics)
-                               `(,title . (:command ,command :arguments ,arguments
-                                                    :edit ,edit)))
-                             actions))
-         (menu (and menu-items `("Eglot code actions:" ("dummy" ,@menu-items))))
-         (command-and-args
-          (and menu
-               (if (listp last-nonmenu-event)
-                   (x-popup-menu last-nonmenu-event menu)
-                 (let ((never-mind (gensym)) retval)
-                   (setcdr (cadr menu)
-                           (cons `("never mind..." . ,never-mind) (cdadr menu)))
-                   (if (eq (setq retval (tmm-prompt menu)) never-mind)
-                       (keyboard-quit)
-                     retval))))))
-    (cl-destructuring-bind (&key _title command arguments edit) command-and-args
+         (actions
+          (jsonrpc-request
+           server
+           :textDocument/codeAction
+           (list :textDocument (eglot--TextDocumentIdentifier)
+                 :range (list :start (eglot--pos-to-lsp-position beg)
+                              :end (eglot--pos-to-lsp-position end))
+                 :context
+                 `(:diagnostics
+                   [,@(mapcar (lambda (diag)
+                                (cdr (assoc 'eglot-lsp-diag
+                                            (eglot--diag-data diag))))
+                              (flymake-diagnostics beg end))]))))
+         (menu-items
+          (or (mapcar (jsonrpc-lambda (&key title command arguments
+                                            edit _kind _diagnostics)
+                        `(,title . (:command ,command :arguments ,arguments
+                                             :edit ,edit)))
+                      actions)
+              (eglot--error "No code actions here")))
+         (menu `("Eglot code actions:" ("dummy" ,@menu-items)))
+         (action (if (listp last-nonmenu-event)
+                     (x-popup-menu last-nonmenu-event menu)
+                   (let ((never-mind (gensym)) retval)
+                     (setcdr (cadr menu)
+                             (cons `("never mind..." . ,never-mind) (cdadr menu)))
+                     (if (eq (setq retval (tmm-prompt menu)) never-mind)
+                         (keyboard-quit)
+                       retval)))))
+    (cl-destructuring-bind (&key _title command arguments edit) action
       (when edit
         (eglot--apply-workspace-edit edit))
-      (if command
-          (eglot-execute-command server (intern command) arguments)
-        (unless edit
-          (eglot--message "No code actions here"))))))
+      (when command
+        (eglot-execute-command server (intern command) arguments)))))
 
 
 
