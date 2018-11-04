@@ -7,13 +7,18 @@
 
 from collections import Iterator
 from contextlib import contextmanager
+from datetime import datetime
 import marshal
-import os
 import re
 from subprocess import Popen, PIPE
 
+
+__all__ = 'Connection contents do Error parse_datetime run temp_client'.split()
+
+
 class Error(Exception):
-    pass
+    """Error in a Perforce command."""
+
 
 class Command(Iterator):
     """A Perforce command and its output.
@@ -65,7 +70,10 @@ class Command(Iterator):
     def __init__(self, *args, **kwargs):
         self.encoding = kwargs.pop('encoding', 'utf8')
         self.pipe = Popen([a.encode('utf8') for a in args],
-                          stdin = PIPE, stdout = PIPE)
+                          stdin=PIPE, stdout=PIPE)
+
+    def __del__(self):
+        self.done()
 
     def __next__(self):
         # Ensure that stdin is closed before attempting to read any
@@ -88,6 +96,7 @@ class Command(Iterator):
     next = __next__             # for compatibility with Python 2
 
     def send(self, data):
+        """Encode dictionary and send it to the command."""
         def encode(s):
             if isinstance(s, type(u'')):
                 return s.encode(self.encoding)
@@ -98,8 +107,10 @@ class Command(Iterator):
         return self
 
     def done(self):
+        """Consume and discard remaining output from the command."""
         for _ in self:
             pass
+
 
 class Connection(object):
     """A connection to a Perforce server.
@@ -115,22 +126,24 @@ class Connection(object):
     """
     def __init__(self, p4='p4', port=None, client=None, user=None,
                  encoding='utf8'):
-        self.args = [p4, '-G']
-        if port: self.args.extend(['-p', port])
-        if user: self.args.extend(['-u', user])
-        if client: self.args.extend(['-c', client])
+        args = self.args = [p4, '-G']
+        if port:
+            args.extend(['-p', port])
+        if user:
+            args.extend(['-u', user])
+        if client:
+            args.extend(['-c', client])
         self.encoding = encoding
         self.kwargs = dict(p4=p4, port=port, client=client, user=user,
                            encoding=encoding)
 
     def run(self, *args):
-        """Run a Perforce command.
+        """Return a Command object running a Perforce command on this
+        connection.
 
-            >>> conn = Connection()
-            >>> conn.run('edit', filespec)
-            >>> conn.run('submit', '-d', description, filespec)
-
-        Returns a Command object.
+        >>> conn = Connection()
+        >>> conn.run('edit', filespec)
+        >>> conn.run('submit', '-d', description, filespec)
 
         """
         return Command(*(self.args + list(args)), encoding=self.encoding)
@@ -140,12 +153,8 @@ class Connection(object):
         self.run(*args).done()
 
     def contents(self, filespec):
-        """Return the contents of the file whose specification is given as a
-        string. If the file does not exist, raise p4.Error.
-
-        """
-        return ''.join(t['data'] for t in self.run('print', filespec)
-                       if 'data' in t)
+        """Return contents of filespec."""
+        return ''.join(t.get('data', '') for t in self.run('print', filespec))
 
     @contextmanager
     def temp_client(self, client_spec):
@@ -163,6 +172,7 @@ class Connection(object):
         import shutil
         import tempfile
         import uuid
+
         name = 'tmp-{}'.format(uuid.uuid4())
         root = tempfile.mkdtemp()
         spec = {k: re.sub(r'__CLIENT__', name, v)
@@ -192,6 +202,18 @@ contents = _conn.contents
 temp_client = _conn.temp_client
 
 
+# Regular expression matching a Perforce datetime string.
+_DATETIME_RE = re.compile(r'(\d{4})/(\d{2})/(\d{2}) (\d{2}):(\d{2}):(\d{2})')
+
+def parse_datetime(s):
+    """Return datetime object corresponding to Perforce datetime string."""
+    match = _DATETIME_RE.match(s)
+    if match:
+        return datetime(*map(int, match.groups()))
+    else:
+        raise ValueError("Not a Perforce datetime: {!r}".format(s))
+
+
 # A. REFERENCES
 #
 # [SUBPROCESS] Python Standard Library: "subprocess -- Subprocess
@@ -201,33 +223,26 @@ temp_client = _conn.temp_client
 # B. DOCUMENT HISTORY
 #
 # 2001-05-20 GDR Created.
-#
 # 2003-02-14 NB Changed os.wait to os.waitpid for Python 2.2.
-#
 # 2010-10-04 GDR Rewritten to use [SUBPROCESS] instead of os.pipe.
-#
-# 2010-10-05 GDR Raise an exception if Perforce returns an error. New
-# function 'contents' for getting the contents of a file.
-#
+# 2010-10-05 GDR Raise an exception if Perforce returns an error. New function
+#                'contents' for getting the contents of a file.
 # 2010-10-06 GDR Move p4client, p4path, p4port, and p4user to global
-# variables, to make testing easier. New function 'pipe' makes it
-# possible to run the 'client -i' command.
-#
+#                variables, to make testing easier. New function 'pipe' makes
+#                it possible to run the 'client -i' command.
 # 2013-12-09 GDR Merge pipe and run functions into a Run class that
-# also handles encoding and decoding.
-#
-# 2014-03-18 GDR Refactor into classes: Connection (holding the
-# client/server configuration) and Command (a single command and its
-# output).
-#
-# 2014-03-19 GDR New methods Connection.temp_client for creating a
-# temporary client workspace, and Connection.do for encapsulating
-# run().done().
+#                also handles encoding and decoding.
+# 2014-03-18 GDR Refactor into classes: Connection (holding the configuration)
+#                and Command (a single command and its output).
+# 2014-03-19 GDR New methods Connection.temp_client for creating a temporary
+#                client workspace, and Connection.do for encapsulating
+#                run().done().
+# 2018-10-22 GDR Add parse_datetime function.
 #
 #
 # C. COPYRIGHT AND LICENCE
 #
-# Copyright 2001-2014 Ravenbrook Ltd.  All rights reserved.
+# Copyright 2001-2018 Ravenbrook Ltd.  All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
