@@ -196,6 +196,8 @@ let the buffer grow forever."
   "JSON object to send under `initializationOptions'"
   (:method (_s) nil)) ; blank default
 
+(defvar eglot--symbol-kind-names)
+
 (cl-defgeneric eglot-client-capabilities (server)
   "What the EGLOT LSP client supports for SERVER."
   (:method (_s)
@@ -221,7 +223,11 @@ let the buffer grow forever."
              :signatureHelp      `(:dynamicRegistration :json-false)
              :references         `(:dynamicRegistration :json-false)
              :definition         `(:dynamicRegistration :json-false)
-             :documentSymbol     `(:dynamicRegistration :json-false)
+             :documentSymbol     (list
+                                  :dynamicRegistration :json-false
+                                  :symbolKind `(:valueSet
+                                                [,@(mapcar
+                                                    #'car eglot--symbol-kind-names)]))
              :documentHighlight  `(:dynamicRegistration :json-false)
              :codeAction         (list
                                   :dynamicRegistration :json-false
