@@ -100,10 +100,16 @@ of SECS seconds since the epoch.  SECS may be a fraction."
 			    (integerp (cdr time)) (< 0 (cdr time)))
 		       time
 		     (encode-time time 1000000000000)))
+	 (ticks (car ticks-hz))
 	 (hz (cdr ticks-hz))
-	 (s-ticks (* secs hz))
-	 (more-ticks (+ (car ticks-hz) s-ticks)))
-    (encode-time (cons (- more-ticks (% more-ticks s-ticks)) hz))))
+	 trunc-s-ticks)
+    (while (let ((s-ticks (* secs hz)))
+	     (setq trunc-s-ticks (truncate s-ticks))
+	     (/= s-ticks trunc-s-ticks))
+      (setq ticks (ash ticks 1))
+      (setq hz (ash hz 1)))
+    (let ((more-ticks (+ ticks trunc-s-ticks)))
+      (encode-time (cons (- more-ticks (% more-ticks trunc-s-ticks)) hz)))))
 
 (defun timer-relative-time (time secs &optional usecs psecs)
   "Advance TIME by SECS seconds and optionally USECS microseconds

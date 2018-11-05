@@ -934,6 +934,10 @@ the initial frame, by customizing the variable
 specify colors and fonts don't affect menus and the menu bar, since
 those are drawn by the toolkit and not directly by Emacs.
 
+  Frame appearance and behavior can also be customized through X
+resources (@pxref{X Resources}); these override the parameters of the
+initial frame specified in your init file.
+
   Note that if you are using the desktop library to save and restore
 your sessions, the frames to be restored are recorded in the desktop
 file, together with their parameters.  When these frames are restored,

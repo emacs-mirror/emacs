@@ -962,10 +962,11 @@ way that, if the file was edited only slightly, you will be at
 approximately the same part of the text as before.  But if you have
 made major changes, point may end up in a totally different location.
 
-  Reverting marks the buffer as not modified.  It also clears the
-buffer's undo history (@pxref{Undo}).  Thus, the reversion cannot be
-undone---if you change your mind yet again, you can't use the undo
-commands to bring the reverted changes back.
+  Reverting marks the buffer as not modified.  However, it adds the
+reverted changes as a single modification to the buffer's undo history
+(@pxref{Undo}).  Thus, after reverting, you can type @kbd{C-/} or its
+aliases to bring the reverted changes back, if you happen to change
+your mind.
 
   Some kinds of buffers that are not associated with files, such as
 Dired buffers, can also be reverted.  For them, reverting means

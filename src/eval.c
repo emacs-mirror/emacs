@@ -3429,6 +3429,7 @@ record_unwind_protect (void (*function) (Lisp_Object), Lisp_Object arg)
   specpdl_ptr->unwind.kind = SPECPDL_UNWIND;
   specpdl_ptr->unwind.func = function;
   specpdl_ptr->unwind.arg = arg;
+  specpdl_ptr->unwind.eval_depth = lisp_eval_depth;
   grow_specpdl ();
 }
 
@@ -3501,6 +3502,7 @@ do_one_unbind (union specbinding *this_binding, bool unwinding,
   switch (this_binding->kind)
     {
     case SPECPDL_UNWIND:
+      lisp_eval_depth = this_binding->unwind.eval_depth;
       this_binding->unwind.func (this_binding->unwind.arg);
       break;
     case SPECPDL_UNWIND_ARRAY:
@@ -3595,6 +3597,7 @@ set_unwind_protect (ptrdiff_t count, void (*func) (Lisp_Object),
   p->unwind.kind = SPECPDL_UNWIND;
   p->unwind.func = func;
   p->unwind.arg = arg;
+  p->unwind.eval_depth = lisp_eval_depth;
 }
 
 void

@@ -464,12 +464,7 @@ movement is relative to."
 (defun windmove-find-other-window (dir &optional arg window)
   "Return the window object in direction DIR.
 DIR, ARG, and WINDOW are handled as by `windmove-other-window-loc'."
-  (window-in-direction
-   (cond
-    ((eq dir 'up) 'above)
-    ((eq dir 'down) 'below)
-    (t dir))
-   window nil arg windmove-wrap-around t))
+  (window-in-direction dir window nil arg windmove-wrap-around t))
 
 ;; Selects the window that's hopefully at the location returned by
 ;; `windmove-other-window-loc', or screams if there's no window there.

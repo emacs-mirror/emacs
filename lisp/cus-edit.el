@@ -917,7 +917,7 @@ the current value of the variable, otherwise `symbol-value' is used.
 If optional COMMENT argument is non-nil, also prompt for a comment and return
 it as the third element in the list."
   (let* ((var (read-variable prompt-var))
-	 (minibuffer-help-form '(describe-variable var))
+	 (minibuffer-help-form `(describe-variable ',var))
 	 (val
 	  (let ((prop (get var 'variable-interactive))
 		(type (get var 'custom-type))

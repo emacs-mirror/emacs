@@ -1,4 +1,4 @@
-# manywarnings.m4 serial 16
+# manywarnings.m4 serial 17
 dnl Copyright (C) 2008-2018 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -51,54 +51,53 @@ m4_defun([gl_MANYWARN_ALL_GCC(C)],
 
     dnl Check if -W -Werror -Wno-missing-field-initializers is supported
     dnl with the current $CC $CFLAGS $CPPFLAGS.
-    AC_MSG_CHECKING([whether -Wno-missing-field-initializers is supported])
-    AC_CACHE_VAL([gl_cv_cc_nomfi_supported], [
-      gl_save_CFLAGS="$CFLAGS"
-      CFLAGS="$CFLAGS -W -Werror -Wno-missing-field-initializers"
-      AC_COMPILE_IFELSE(
-        [AC_LANG_PROGRAM([[]], [[]])],
-        [gl_cv_cc_nomfi_supported=yes],
-        [gl_cv_cc_nomfi_supported=no])
-      CFLAGS="$gl_save_CFLAGS"])
-    AC_MSG_RESULT([$gl_cv_cc_nomfi_supported])
+    AC_CACHE_CHECK([whether -Wno-missing-field-initializers is supported],
+      [gl_cv_cc_nomfi_supported],
+      [gl_save_CFLAGS="$CFLAGS"
+       CFLAGS="$CFLAGS -W -Werror -Wno-missing-field-initializers"
+       AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM([[]], [[]])],
+         [gl_cv_cc_nomfi_supported=yes],
+         [gl_cv_cc_nomfi_supported=no])
+       CFLAGS="$gl_save_CFLAGS"
+      ])
 
     if test "$gl_cv_cc_nomfi_supported" = yes; then
       dnl Now check whether -Wno-missing-field-initializers is needed
       dnl for the { 0, } construct.
-      AC_MSG_CHECKING([whether -Wno-missing-field-initializers is needed])
-      AC_CACHE_VAL([gl_cv_cc_nomfi_needed], [
-        gl_save_CFLAGS="$CFLAGS"
-        CFLAGS="$CFLAGS -W -Werror"
-        AC_COMPILE_IFELSE(
-          [AC_LANG_PROGRAM(
-             [[int f (void)
-               {
-                 typedef struct { int a; int b; } s_t;
-                 s_t s1 = { 0, };
-                 return s1.b;
-               }
-             ]],
-             [[]])],
-          [gl_cv_cc_nomfi_needed=no],
-          [gl_cv_cc_nomfi_needed=yes])
-        CFLAGS="$gl_save_CFLAGS"
-      ])
-      AC_MSG_RESULT([$gl_cv_cc_nomfi_needed])
+      AC_CACHE_CHECK([whether -Wno-missing-field-initializers is needed],
+        [gl_cv_cc_nomfi_needed],
+        [gl_save_CFLAGS="$CFLAGS"
+         CFLAGS="$CFLAGS -W -Werror"
+         AC_COMPILE_IFELSE(
+           [AC_LANG_PROGRAM(
+              [[int f (void)
+                {
+                  typedef struct { int a; int b; } s_t;
+                  s_t s1 = { 0, };
+                  return s1.b;
+                }
+              ]],
+              [[]])],
+           [gl_cv_cc_nomfi_needed=no],
+           [gl_cv_cc_nomfi_needed=yes])
+         CFLAGS="$gl_save_CFLAGS"
+        ])
     fi
 
     dnl Next, check if -Werror -Wuninitialized is useful with the
     dnl user's choice of $CFLAGS; some versions of gcc warn that it
     dnl has no effect if -O is not also used
-    AC_MSG_CHECKING([whether -Wuninitialized is supported])
-    AC_CACHE_VAL([gl_cv_cc_uninitialized_supported], [
-      gl_save_CFLAGS="$CFLAGS"
-      CFLAGS="$CFLAGS -Werror -Wuninitialized"
-      AC_COMPILE_IFELSE(
-        [AC_LANG_PROGRAM([[]], [[]])],
-        [gl_cv_cc_uninitialized_supported=yes],
-        [gl_cv_cc_uninitialized_supported=no])
-      CFLAGS="$gl_save_CFLAGS"])
-    AC_MSG_RESULT([$gl_cv_cc_uninitialized_supported])
+    AC_CACHE_CHECK([whether -Wuninitialized is supported],
+      [gl_cv_cc_uninitialized_supported],
+      [gl_save_CFLAGS="$CFLAGS"
+       CFLAGS="$CFLAGS -Werror -Wuninitialized"
+       AC_COMPILE_IFELSE(
+         [AC_LANG_PROGRAM([[]], [[]])],
+         [gl_cv_cc_uninitialized_supported=yes],
+         [gl_cv_cc_uninitialized_supported=no])
+       CFLAGS="$gl_save_CFLAGS"
+      ])
 
   fi
 

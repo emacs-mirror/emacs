@@ -35832,7 +35832,7 @@ keystrokes are not listed in this summary.
 @r{       @:      _     @:number       @:        @:-@:number}
 @r{       @:      e     @:number       @:        @:@:1e number}
 @r{       @:      #     @:number       @:        @:@:current-radix@tfn{#}number}
-@r{       @:      P     @:(in number)  @:        @:+/-@:}
+@r{       @:      p     @:(in number)  @:        @:+/-@:}
 @r{       @:      M     @:(in number)  @:        @:mod@:}
 @r{       @:      @@ ' " @:  (in number)@:        @:@:HMS form}
 @r{       @:      h m s @:  (in number)@:        @:@:HMS form}

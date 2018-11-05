@@ -810,7 +810,7 @@ The client/server work only on Berkeley Unix, since they use the Berkeley
 sockets mechanism for their communication.
 
 
-* Changes in Lisp programming in Emacs 18.
+* Changes in Lisp programming in Emacs 18
 
 ** Init file changes.
 

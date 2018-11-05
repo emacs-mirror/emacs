@@ -1040,6 +1040,7 @@ gamegroup = @gamegroup@
 gameuser = @gameuser@
 gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7 = @gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7@
 gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9 = @gl_GNULIB_ENABLED_2049e887c7e5308faad27b3f894bb8c9@
+gl_GNULIB_ENABLED_21ee726a3540c09237a8e70c0baf7467 = @gl_GNULIB_ENABLED_21ee726a3540c09237a8e70c0baf7467@
 gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b = @gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b@
 gl_GNULIB_ENABLED_37f71b604aa9c54446783d80f42fe547 = @gl_GNULIB_ENABLED_37f71b604aa9c54446783d80f42fe547@
 gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31 = @gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31@
@@ -1899,6 +1900,17 @@ EXTRA_DIST += inttypes.in.h
 
 endif
 ## end   gnulib module inttypes-incomplete
+
+## begin gnulib module libc-config
+ifeq (,$(OMIT_GNULIB_MODULE_libc-config))
+
+ifneq (,$(gl_GNULIB_ENABLED_21ee726a3540c09237a8e70c0baf7467))
+
+endif
+EXTRA_DIST += cdefs.h libc-config.h
+
+endif
+## end   gnulib module libc-config
 
 ## begin gnulib module limits-h
 ifeq (,$(OMIT_GNULIB_MODULE_limits-h))

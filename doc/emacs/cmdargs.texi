@@ -305,6 +305,8 @@ not disable loading @file{site-start.el}.
 
 @item --no-site-file
 @opindex --no-site-file
+@itemx -nsl
+@opindex -nsl
 @cindex @file{site-start.el} file, not loading
 Do not load @file{site-start.el} (@pxref{Init File}).  The @samp{-Q}
 option does this too, but other options like @samp{-q} do not.
@@ -323,14 +325,20 @@ Do not display a startup screen.  You can also achieve this effect by
 setting the variable @code{inhibit-startup-screen} to non-@code{nil}
 in your initialization file (@pxref{Entering Emacs}).
 
+@item --no-x-resources
+@opindex --no-x-resources
+@cindex X resources, not loading
+Do not load X resources.  You can also achieve this effect by setting
+the variable @code{inhibit-x-resources} to @code{t} in your
+initialization file (@pxref{Resources}).
+
 @item -Q
 @opindex -Q
 @itemx --quick
 @opindex --quick
-Start Emacs with minimum customizations.  This is similar to using @samp{-q},
-@samp{--no-site-file}, @samp{--no-site-lisp}, and @samp{--no-splash}
-together.  This also stops Emacs from processing X resources by
-setting @code{inhibit-x-resources} to @code{t} (@pxref{Resources}).
+Start Emacs with minimum customizations.  This is similar to using
+@samp{-q}, @samp{--no-site-file}, @samp{--no-site-lisp},
+@samp{--no-x-resources}, and @samp{--no-splash} together..
 
 @item -daemon
 @opindex -daemon
@@ -373,6 +381,8 @@ Enable expensive correctness checks when dealing with dynamically
 loadable modules.  This is intended for module authors that wish to
 verify that their module conforms to the module API requirements.  The
 option makes Emacs abort if a module-related assertion triggers.
+@xref{Writing Dynamic Modules,, Writing Dynamically-Loaded Modules,
+elisp, The GNU Emacs Lisp Reference Manual}.
 @end table
 
 @node Command Example

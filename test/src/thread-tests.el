@@ -388,4 +388,8 @@
     (should (= (length (all-threads)) 1))
     (should (equal (thread-last-error) '(error "Die, die, die!")))))
 
+(ert-deftest threads-test-bug33073 ()
+  (let ((th (make-thread 'ignore)))
+    (should-not (equal th main-thread))))
+
 ;;; threads.el ends here

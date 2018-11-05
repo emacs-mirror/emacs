@@ -5863,6 +5863,8 @@ garbage_collect_1 (void *end)
   VECTOR_UNMARK (&buffer_defaults);
   VECTOR_UNMARK (&buffer_local_symbols);
 
+  unmark_main_thread ();
+
   check_cons_list ();
 
   gc_in_progress = 0;

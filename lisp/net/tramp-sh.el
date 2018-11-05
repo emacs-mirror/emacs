@@ -4478,7 +4478,8 @@ means discard it)."
     (if (stringp output) (concat " >" output) ""))))
 
 (defconst tramp-inline-compress-commands
-  '(("gzip" "gzip -d")
+  '(;; Suppress warnings about obsolete environment variable GZIP.
+    ("env GZIP= gzip" "env GZIP= gzip -d")
     ("bzip2" "bzip2 -d")
     ("xz" "xz -d")
     ("compress" "compress -d"))

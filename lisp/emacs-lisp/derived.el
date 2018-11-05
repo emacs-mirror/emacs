@@ -193,10 +193,10 @@ See Info node `(elisp)Derived Modes' for more details."
     ;; Process the keyword args.
     (while (keywordp (car body))
       (pcase (pop body)
-	(`:group (setq group (pop body)))
-	(`:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
-	(`:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
-        (`:after-hook (setq after-hook (pop body)))
+	(:group (setq group (pop body)))
+	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
+	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+        (:after-hook (setq after-hook (pop body)))
 	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring

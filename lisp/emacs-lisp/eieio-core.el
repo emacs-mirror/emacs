@@ -388,9 +388,9 @@ See `defclass' for more information."
 	;; Clean up the meaning of protection.
         (setq prot
               (pcase prot
-                ((or 'nil 'public ':public) nil)
-                ((or 'protected ':protected) 'protected)
-                ((or 'private ':private) 'private)
+                ((or 'nil 'public :public) nil)
+                ((or 'protected :protected) 'protected)
+                ((or 'private :private) 'private)
                 (_ (signal 'invalid-slot-type (list :protection prot)))))
 
 	;; The default type specifier is supposed to be t, meaning anything.

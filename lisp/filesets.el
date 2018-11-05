@@ -1559,7 +1559,7 @@ SAVE-FUNCTION takes no argument, but works on the current buffer."
 (defun filesets-get-fileset-from-name (name &optional mode)
   "Get fileset definition for NAME."
   (pcase mode
-    ((or `:ingroup `:tree) name)
+    ((or :ingroup :tree) name)
     (_ (assoc name filesets-data))))
 
 

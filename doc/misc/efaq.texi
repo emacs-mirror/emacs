@@ -3536,7 +3536,7 @@ see @ref{Packages that do not come with Emacs}.
 
 The easiest way to add more features to your Emacs is to use the
 command @kbd{M-x list-packages}.  This contacts the
-@uref{https:///elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
+@uref{https://elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
 server and fetches the list of additional packages that it offers.
 These are GNU packages that are available for use with Emacs, but are
 distributed separately from Emacs itself, for reasons of space, etc.
@@ -3545,8 +3545,8 @@ available, and then Emacs can automatically download and install the
 packages that you select.  @xref{Packages,,, emacs, The GNU Emacs Manual}.
 
 There are other, non-GNU, Emacs Lisp package servers, including:
-@uref{http://melpa.org/, MELPA}; and
-@uref{https://marmalade-repo.org/, Marmalade}.  To use additional
+@uref{https://melpa.org, MELPA}; and
+@uref{https://marmalade-repo.org, Marmalade}.  To use additional
 package servers, customize the @code{package-archives} variable.  Be
 aware that installing a package can run arbitrary code, so only add
 sources that you trust.
@@ -3557,8 +3557,8 @@ GNU Emacs sources mailing list}, which is gatewayed to the
 connection between the two can be unreliable) is an official place
 where people can post or announce their extensions to Emacs.
 
-The @uref{http://emacswiki.org, Emacs Wiki} contains pointers to some
-additional extensions.  @uref{http://wikemacs.org, WikEmacs} is an
+The @uref{https://emacswiki.org, Emacs Wiki} contains pointers to some
+additional extensions.  @uref{https://wikemacs.org, WikEmacs} is an
 alternative wiki for Emacs.
 
 @uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs

@@ -275,6 +275,9 @@ should not be skipped."
 	(setq found (cdr skip))))
     found))
 
+(defvar change-log-start-entry-re) ; in add-log, which defines change-log-mode
+(declare-function add-log-iso8601-time-string "add-log" ())
+
 (defun gitmerge-resolve (file)
   "Try to resolve conflicts in FILE with smerge.
 Returns non-nil if conflicts remain."
@@ -323,6 +326,9 @@ Returns non-nil if conflicts remain."
           ;; Try to resolve the conflicts.
           (let (temp)
             (cond
+             ;; FIXME when merging release branch to master, we still
+             ;; need to detect and handle the case where NEWS was modified
+             ;; without a conflict.  We should abort if NEWS gets changed.
              ((and (equal file "etc/NEWS")
                    (ignore-errors
                      (setq temp
@@ -332,18 +338,21 @@ Returns non-nil if conflicts remain."
                    (or noninteractive
                        (y-or-n-p "Try to fix NEWS conflict? ")))
               (let ((relfile (file-name-nondirectory file))
-                    (tempfile (make-temp-file "gitmerge")))
-                (unwind-protect
+                    (patchfile (concat temp "-gitmerge.patch")))
+                (call-process "git" nil `(:file ,patchfile) nil "diff"
+                              (format ":1:%s" file)
+                              (format ":3:%s" file))
+                (if (eq 0 (call-process "patch" patchfile nil nil temp))
                     (progn
-                      (call-process "git" nil `(:file ,tempfile) nil "diff"
-                                    (format ":1:%s" file)
-                                    (format ":3:%s" file))
+                      ;; We intentionally use a non-temporary name for this
+                      ;; file, and only delete it if applied successfully.
+                      (delete-file patchfile)
+                      (call-process "git" nil t nil "add" "--" temp)
                       (call-process "git" nil t nil "reset" "--" relfile)
                       (call-process "git" nil t nil "checkout" "--" relfile)
-                      (revert-buffer nil 'noconfirm)
-                      (call-process "patch" tempfile nil nil temp)
-                      (call-process "git" nil t nil "add" "--" temp))
-                  (delete-file tempfile))))
+                      (revert-buffer nil 'noconfirm))
+                  ;; The conflict markers remain so we return non-nil.
+                  (message "Failed to fix NEWS conflict"))))
              ;; Generated files.
              ((member file '("lisp/ldefs-boot.el"))
               ;; We are in the file's buffer, so names are relative.

@@ -170,7 +170,7 @@ from which to start."
     ;; need to keep them grouped together like this: "\\(  \\|[ ...][ ...]\\)".
     (while (< i end)
       (pcase (aref string i)
-        (`?\s (setq spaces (1+ spaces)))
+        (?\s (setq spaces (1+ spaces)))
         (c (when (> spaces 0)
              (push (char-fold--make-space-string spaces) out)
              (setq spaces 0))

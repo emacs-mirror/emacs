@@ -1409,6 +1409,9 @@ set_socket (int no_exit_if_error)
 
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
   /* Explicit --socket-name argument.  */
+  if (!socket_name)
+    socket_name = egetenv ("EMACS_SOCKET_NAME");
+
   if (socket_name)
     {
       s = set_local_socket (socket_name);

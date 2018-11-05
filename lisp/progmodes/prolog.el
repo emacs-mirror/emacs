@@ -954,9 +954,9 @@ This is really kludgy, and unneeded (i.e. obsolete) in Emacs>=24."
     ;;    ->  thenrule
     ;;    ;   elserule
     ;;    )
-    (`(:before . ,(or `"->" `";"))
+    (`(:before . ,(or "->" ";"))
      (and (smie-rule-bolp) (smie-rule-parent-p "(") (smie-rule-parent 0)))
-    (`(:after . ,(or `"->" `"*->"))
+    (`(:after . ,(or "->" "*->"))
      ;; We distinguish
      ;;
      ;;     (a ->
@@ -3247,11 +3247,11 @@ the following comma and whitespace, if any."
 
 (defun prolog-post-self-insert ()
   (pcase last-command-event
-    (`?_ (prolog-electric--underscore))
-    (`?- (prolog-electric--dash))
-    (`?: (prolog-electric--colon))
-    ((or `?\( `?\; `?>) (prolog-electric--if-then-else))
-    (`?. (prolog-electric--dot))))
+    (?_ (prolog-electric--underscore))
+    (?- (prolog-electric--dash))
+    (?: (prolog-electric--colon))
+    ((or ?\( ?\; ?>) (prolog-electric--if-then-else))
+    (?. (prolog-electric--dot))))
 
 (defun prolog-find-term (functor arity &optional prefix)
   "Go to the position at the start of the next occurrence of a term.

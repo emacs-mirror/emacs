@@ -171,16 +171,6 @@ emacs_localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
   return tm;
 }
 
-static time_t
-emacs_mktime_z (timezone_t tz, struct tm *tm)
-{
-  errno = 0;
-  time_t t = mktime_z (tz, tm);
-  if (t == (time_t) -1 && errno == ENOMEM)
-    memory_full (SIZE_MAX);
-  return t;
-}
-
 static _Noreturn void
 invalid_time_zone_specification (Lisp_Object zone)
 {
@@ -347,9 +337,14 @@ time_overflow (void)
 }
 
 static _Noreturn void
-invalid_time (void)
+time_error (int err)
 {
-  error ("Invalid time specification");
+  switch (err)
+    {
+    case ENOMEM: memory_full (SIZE_MAX);
+    case EOVERFLOW: time_overflow ();
+    default: error ("Invalid time specification");
+    }
 }
 
 static _Noreturn void
@@ -373,19 +368,19 @@ lo_time (time_t t)
 }
 
 /* Convert T into an Emacs time *RESULT, truncating toward minus infinity.
-   Return true if T is in range, false otherwise.  */
-static bool
+   Return zero if successful, an error number otherwise.  */
+static int
 decode_float_time (double t, struct lisp_time *result)
 {
   if (!isfinite (t))
-    return false;
+    return isnan (t) ? EINVAL : EOVERFLOW;
   /* Actual hz unknown; guess TIMESPEC_HZ.  */
   mpz_set_d (mpz[1], t);
   mpz_set_si (mpz[0], floor ((t - trunc (t)) * TIMESPEC_HZ));
   mpz_addmul_ui (mpz[0], mpz[1], TIMESPEC_HZ);
   result->ticks = make_integer_mpz ();
   result->hz = timespec_hz;
-  return true;
+  return 0;
 }
 
 /* Compute S + NS/TIMESPEC_HZ as a double.
@@ -569,9 +564,9 @@ lisp_time_form_stamp (struct lisp_time t, Lisp_Object form)
    start of the POSIX Epoch.  Unsuccessful calls may or may not store
    results.
 
-   Return true if successful, false if (TICKS . HZ) would not
+   Return zero if successful, an error number if (TICKS . HZ) would not
    be a valid new-format timestamp.  */
-static bool
+static int
 decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz,
 		 struct lisp_time *result, double *dresult)
 {
@@ -581,7 +576,7 @@ decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz,
   if (! (INTEGERP (ticks)
 	 && ((FIXNUMP (hz) && 0 < XFIXNUM (hz))
 	     || (BIGNUMP (hz) && 0 < mpz_sgn (XBIGNUM (hz)->value)))))
-    return false;
+    return EINVAL;
 
   if (result)
     {
@@ -600,7 +595,7 @@ decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz,
 	      if (ns < 0)
 		s--, ns += TIMESPEC_HZ;
 	      *dresult = s_ns_to_double (s, ns);
-	      return true;
+	      return 0;
 	    }
 	  ns = mpz_fdiv_q_ui (*q, XBIGNUM (ticks)->value, TIMESPEC_HZ);
 	}
@@ -610,7 +605,7 @@ decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz,
 	  if (FIXNUMP (ticks))
 	    {
 	      *dresult = XFIXNUM (ticks);
-	      return true;
+	      return 0;
 	    }
 	  q = &XBIGNUM (ticks)->value;
 	}
@@ -624,7 +619,7 @@ decode_ticks_hz (Lisp_Object ticks, Lisp_Object hz,
       *dresult = s_ns_to_double (mpz_get_d (*q), ns);
     }
 
-  return true;
+  return 0;
 }
 
 /* Lisp timestamp classification.  */
@@ -649,9 +644,8 @@ enum timeform
    start of the POSIX Epoch.  Unsuccessful calls may or may not store
    results.
 
-   Return true if successful, false if the components are of the wrong
-   type.  */
-static bool
+   Return zero if successful, an error number otherwise.  */
+static int
 decode_time_components (enum timeform form,
 			Lisp_Object high, Lisp_Object low,
 			Lisp_Object usec, Lisp_Object psec,
@@ -660,7 +654,7 @@ decode_time_components (enum timeform form,
   switch (form)
     {
     case TIMEFORM_INVALID:
-      return false;
+      return EINVAL;
 
     case TIMEFORM_TICKS_HZ:
       return decode_ticks_hz (high, low, result, dresult);
@@ -673,7 +667,7 @@ decode_time_components (enum timeform form,
 	else
 	  {
 	    *dresult = t;
-	    return true;
+	    return 0;
 	  }
       }
 
@@ -687,7 +681,7 @@ decode_time_components (enum timeform form,
 	  }
 	else
 	  *dresult = s_ns_to_double (now.tv_sec, now.tv_nsec);
-	return true;
+	return 0;
       }
 
     default:
@@ -696,7 +690,7 @@ decode_time_components (enum timeform form,
 
   if (! (INTEGERP (high) && INTEGERP (low)
 	 && FIXNUMP (usec) && FIXNUMP (psec)))
-    return false;
+    return EINVAL;
   EMACS_INT us = XFIXNUM (usec);
   EMACS_INT ps = XFIXNUM (psec);
 
@@ -740,7 +734,7 @@ decode_time_components (enum timeform form,
   else
     *dresult = mpz_get_d (mpz[0]) + (us * 1e6L + ps) / 1e12L;
 
-  return true;
+  return 0;
 }
 
 enum { DECODE_SECS_ONLY = WARN_OBSOLETE_TIMESTAMPS + 1 };
@@ -758,9 +752,8 @@ enum { DECODE_SECS_ONLY = WARN_OBSOLETE_TIMESTAMPS + 1 };
    start of the POSIX Epoch.  Unsuccessful calls may or may not store
    results.
 
-   Return true if successful, false if SPECIFIED_TIME is
-   not a valid Lisp timestamp.  */
-static bool
+   Signal an error if unsuccessful.  */
+static void
 decode_lisp_time (Lisp_Object specified_time, int flags,
 		  enum timeform *pform,
 		  struct lisp_time *result, double *dresult)
@@ -820,7 +813,10 @@ decode_lisp_time (Lisp_Object specified_time, int flags,
 
   if (pform)
     *pform = form;
-  return decode_time_components (form, high, low, usec, psec, result, dresult);
+  int err = decode_time_components (form, high, low, usec, psec,
+				    result, dresult);
+  if (err)
+    time_error (err);
 }
 
 /* Convert Z to time_t, returning true if it fits.  */
@@ -915,8 +911,8 @@ list4_to_timespec (Lisp_Object high, Lisp_Object low,
 		   struct timespec *result)
 {
   struct lisp_time t;
-  if (! decode_time_components (TIMEFORM_HI_LO_US_PS, high, low, usec, psec,
-				&t, 0))
+  if (decode_time_components (TIMEFORM_HI_LO_US_PS, high, low, usec, psec,
+			      &t, 0))
     return false;
   *result = lisp_to_timespec (t);
   return timespec_valid_p (*result);
@@ -928,10 +924,8 @@ list4_to_timespec (Lisp_Object high, Lisp_Object low,
 static struct lisp_time
 lisp_time_struct (Lisp_Object specified_time, enum timeform *pform)
 {
-  int flags = WARN_OBSOLETE_TIMESTAMPS;
   struct lisp_time t;
-  if (! decode_lisp_time (specified_time, flags, pform, &t, 0))
-    invalid_time ();
+  decode_lisp_time (specified_time, WARN_OBSOLETE_TIMESTAMPS, pform, &t, 0);
   return t;
 }
 
@@ -956,8 +950,7 @@ lisp_seconds_argument (Lisp_Object specified_time)
 {
   int flags = WARN_OBSOLETE_TIMESTAMPS | DECODE_SECS_ONLY;
   struct lisp_time lt;
-  if (! decode_lisp_time (specified_time, flags, 0, &lt, 0))
-    invalid_time ();
+  decode_lisp_time (specified_time, flags, 0, &lt, 0);
   struct timespec t = lisp_to_timespec (lt);
   if (! timespec_valid_p (t))
     time_overflow ();
@@ -1126,8 +1119,7 @@ or (if you need time as a string) `format-time-string'.  */)
   (Lisp_Object specified_time)
 {
   double t;
-  if (! decode_lisp_time (specified_time, 0, 0, 0, &t))
-    invalid_time ();
+  decode_lisp_time (specified_time, 0, 0, 0, &t);
   return make_float (t);
 }
 
@@ -1200,8 +1192,9 @@ format_time_string (char const *format, ptrdiff_t formatlen,
   tmp = emacs_localtime_rz (tz, &tsec, tmp);
   if (! tmp)
     {
+      int localtime_errno = errno;
       xtzfree (tz);
-      time_overflow ();
+      time_error (localtime_errno);
     }
   synchronize_system_time_locale ();
 
@@ -1338,10 +1331,12 @@ usage: (decode-time &optional TIME ZONE)  */)
   struct tm local_tm, gmt_tm;
   timezone_t tz = tzlookup (zone, false);
   struct tm *tm = emacs_localtime_rz (tz, &time_spec, &local_tm);
+  int localtime_errno = errno;
   xtzfree (tz);
 
-  if (! (tm
-	 && MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= local_tm.tm_year
+  if (!tm)
+    time_error (localtime_errno);
+  if (! (MOST_NEGATIVE_FIXNUM - TM_YEAR_BASE <= local_tm.tm_year
 	 && local_tm.tm_year <= MOST_POSITIVE_FIXNUM - TM_YEAR_BASE))
     time_overflow ();
 
@@ -1445,7 +1440,6 @@ year values as low as 1901 do work.
 usage: (encode-time &optional TIME FORM &rest OBSOLESCENT-ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  time_t value;
   struct tm tm;
   Lisp_Object form = Qnil, zone = Qnil;
   Lisp_Object a = args[0];
@@ -1460,8 +1454,7 @@ usage: (encode-time &optional TIME FORM &rest OBSOLESCENT-ARGUMENTS)  */)
 	if (! CONSP (tail))
 	  {
 	    struct lisp_time t;
-	    if (! decode_lisp_time (a, 0, 0, &t, 0))
-	      invalid_time ();
+	    decode_lisp_time (a, 0, 0, &t, 0);
 	    return lisp_time_form_stamp (t, form);
 	  }
       tm.tm_sec  = check_tm_member (XCAR (a), 0); a = XCDR (a);
@@ -1492,11 +1485,13 @@ usage: (encode-time &optional TIME FORM &rest OBSOLESCENT-ARGUMENTS)  */)
     }
 
   timezone_t tz = tzlookup (zone, false);
-  value = emacs_mktime_z (tz, &tm);
+  tm.tm_wday = -1;
+  time_t value = mktime_z (tz, &tm);
+  int mktime_errno = errno;
   xtzfree (tz);
 
-  if (value == (time_t) -1)
-    time_overflow ();
+  if (tm.tm_wday < 0)
+    time_error (mktime_errno);
 
   return time_form_stamp (value, form);
 }
@@ -1544,9 +1539,10 @@ without consideration for daylight saving time.  */)
      range -999 .. 9999.  */
   struct tm tm;
   struct tm *tmp = emacs_localtime_rz (tz, &value, &tm);
+  int localtime_errno = errno;
   xtzfree (tz);
   if (! tmp)
-    time_overflow ();
+    time_error (localtime_errno);
 
   static char const wday_name[][4] =
     { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };

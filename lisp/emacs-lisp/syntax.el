@@ -176,7 +176,7 @@ Note: back-references in REGEXPs do not work."
          (re
           (mapconcat
            (lambda (rule)
-             (let* ((orig-re (eval (car rule)))
+             (let* ((orig-re (eval (car rule) t))
                     (re orig-re))
                (when (and (assq 0 rule) (cdr rules))
                  ;; If there's more than 1 rule, and the rule want to apply
@@ -190,7 +190,7 @@ Note: back-references in REGEXPs do not work."
                       (cond
                        ((assq 0 rule) (if (zerop offset) t
                                         `(match-beginning ,offset)))
-                       ((null (cddr rule))
+                       ((and (cdr rule) (null (cddr rule)))
                         `(match-beginning ,(+ offset (car (cadr rule)))))
                        (t
                         `(or ,@(mapcar

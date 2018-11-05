@@ -369,6 +369,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   ptrdiff_t item_bytes = stack_items * word_size;
   Lisp_Object *stack_base = ptr_bounds_clip (alloc, item_bytes);
   Lisp_Object *top = stack_base;
+  *top = vector; /* Ensure VECTOR survives GC (Bug#33014).  */
   Lisp_Object *stack_lim = stack_base + stack_items;
   unsigned char *bytestr_data = alloc;
   bytestr_data = ptr_bounds_clip (bytestr_data + item_bytes, bytestr_length);

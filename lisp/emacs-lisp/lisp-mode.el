@@ -839,6 +839,10 @@ by more than one line to cross a string literal."
     (prog1
         (let (indent)
           (cond ((= (forward-line 1) 1) nil)
+                ;; Negative depth, probably some kind of syntax error.
+                ((null indent-stack)
+                 ;; Reset state.
+                 (setq ppss (parse-partial-sexp (point) (point))))
                 ((car indent-stack))
                 ((integerp (setq indent (calculate-lisp-indent ppss)))
                  (setf (car indent-stack) indent))

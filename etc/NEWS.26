@@ -25,17 +25,36 @@ webkit2gtk-4.0 package; version 2.12 or later is required.
 (This change was actually made in Emacs 26.1, but was not called out
 in its NEWS.)
 
++++
+** Installing Emacs now installs the emacs-module.h file.
+The emacs-module.h file is now installed in the system-wide include
+directory as part of the Emacs installation.  This allows to build
+Emacs modules outside of the Emacs source tree.
+
 
 * Startup Changes in Emacs 26.2
 
 
 * Changes in Emacs 26.2
 
+---
+** Emacs is now compliant with the latest version 11.0 of the Unicode Standard.
+
+---
+** New variable 'xft-ignore-color-fonts'.
+Default t means don't try to load color fonts when using Xft, as they
+often cause crashes.  Set it to nil if you really need those fonts.
+
 
 * Editing Changes in Emacs 26.2
 
 
 * Changes in Specialized Modes and Packages in Emacs 26.2
+
+** Ibuffer
+
+---
+*** New toggle 'ibuffer-do-toggle-lock', bound to 'L'.
 
 ** Imenu
 
@@ -122,6 +141,25 @@ remove 'buffer-switch' from the list of events in
 
 
 * Lisp Changes in Emacs 26.2
+
++++
+** The new function 'read-answer' accepts either long or short answers
+depending on the new customizable variable 'read-answer-short'.
+
++++
+** New function 'assoc-delete-all'.
+Like 'assq-delete-all', but uses 'equal' for comparison.
+
+---
+** The function 'thing-at-point' behaves as before Emacs 26.1.
+The behavior of 'thing-at-point' when called with argument 'list' has
+changed in Emacs 26.1, in that it didn't consider text inside comments
+and strings as a potential list.  This change is now reverted, and
+'thing-at-point' behaves like it did before Emacs 26.1.
+
+To cater to use cases where comments and strings are to be ignored
+when looking for a list, the function 'list-at-point' now takes an
+optional argument to do so.
 
 
 * Changes in Emacs 26.2 on Non-Free Operating Systems
@@ -1391,6 +1429,13 @@ passphrases, but it was also removed from other pinentry programs as
 the attack is unrealistic on modern computer systems which don't
 utilize swap memory usually.
 
+** The function 'display-buffer-in-major-side-window' no longer exists.
+It has been renamed as internal function 'window--make-major-side-window',
+however applications should instead call 'display-buffer-in-side-window'
+(passing the SIDE and SLOT parameters as elements of ALIST).  This approach
+is backwards-compatible with versions of Emacs in which the old function
+exists.  See the node "Displaying Buffers in Side Windows" in the ELisp
+manual for more details.
 
 * Lisp Changes in Emacs 26.1
 

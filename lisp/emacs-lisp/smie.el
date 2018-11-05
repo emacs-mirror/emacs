@@ -1856,9 +1856,9 @@ KEYWORDS are additional arguments, which can use the following keywords:
     (let ((k (pop keywords))
           (v (pop keywords)))
       (pcase k
-        (`:forward-token
+        (:forward-token
          (set (make-local-variable 'smie-forward-token-function) v))
-        (`:backward-token
+        (:backward-token
          (set (make-local-variable 'smie-backward-token-function) v))
         (_ (message "smie-setup: ignoring unknown keyword %s" k)))))
   (let ((ca (cdr (assq :smie-closer-alist grammar))))

@@ -1141,7 +1141,7 @@ current buffer and the selected frame, respectively."
 				    (format
                                      "Describe symbol (default %s): " v-or-f)
 				  "Describe symbol: ")
-				obarray
+				#'help--symbol-completion-table
 				(lambda (vv)
                                   (cl-some (lambda (x) (funcall (nth 1 x) vv))
                                            describe-symbol-backends))

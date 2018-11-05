@@ -3991,6 +3991,16 @@ buffer.  */)
 
       unchain_both (ob, overlay);
     }
+  else
+    /* An overlay not associated with any buffer will normally have its
+       `next' field set to NULL, but not always: when killing a buffer,
+       we just set its overlays_after and overlays_before to NULL without
+       manually setting each overlay's `next' field to NULL.
+       Let's correct it here, to simplify subsequent assertions.
+       FIXME: Maybe the better fix is to change `kill-buffer'!?  */
+    XOVERLAY (overlay)->next = NULL;
+
+  eassert (XOVERLAY (overlay)->next == NULL);
 
   /* Set the overlay boundaries, which may clip them.  */
   Fset_marker (OVERLAY_START (overlay), beg, buffer);
@@ -4020,10 +4030,20 @@ buffer.  */)
 	modify_overlay (b, min (o_beg, n_beg), max (o_end, n_end));
     }
 
+  eassert (XOVERLAY (overlay)->next == NULL);
+
   /* Delete the overlay if it is empty after clipping and has the
      evaporate property.  */
   if (n_beg == n_end && !NILP (Foverlay_get (overlay, Qevaporate)))
-    return unbind_to (count, Fdelete_overlay (overlay));
+    { /* We used to call `Fdelete_overlay' here, but it causes problems:
+         - At this stage, `overlay' is not included in its buffer's lists
+           of overlays (the data-structure is in an inconsistent state),
+           contrary to `Fdelete_overlay's assumptions.
+         - Most of the work done by Fdelete_overlay has already been done
+           here for other reasons.  */
+      drop_overlay (XBUFFER (buffer), XOVERLAY (overlay));
+      return unbind_to (count, overlay);
+    }
 
   /* Put the overlay into the new buffer's overlay lists, first on the
      wrong list.  */

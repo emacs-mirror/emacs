@@ -1350,6 +1350,13 @@ to invoke the other auxiliary or primary methods.
 This allows you to add more methods, distinguished by @var{string},
 for the same specializers and qualifiers.
 @end table
+
+Functions defined using @code{cl-defmethod} cannot be made
+interactive, i.e.@: commands (@pxref{Defining Commands}), by adding
+the @code{interactive} form to them.  If you need a polymorphic
+command, we recommend defining a normal command that calls a
+polymorphic function defined via @code{cl-defgeneric} and
+@code{cl-defmethod}.
 @end defmac
 
 @cindex dispatch of methods for generic function

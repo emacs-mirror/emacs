@@ -321,8 +321,8 @@ Default: @code{nil}
 
 @cindex How to make omitting the default in Dired
 If non-@code{nil}, ``uninteresting'' files are not listed.
-Uninteresting files are those whose files whose names match regexp
-@code{dired-omit-files}, plus those ending with extensions in
+Uninteresting files are files whose names match regexp
+@code{dired-omit-files}, plus files whose names end with extension in
 @code{dired-omit-extensions}.  @kbd{C-x M-o} (@code{dired-omit-mode})
 toggles its value, which is buffer-local.  Put
 

@@ -959,8 +959,8 @@ See `sh-feature'.")
            ;; ((...)) or $((...)) or $[...] or ${...}. Nested
            ;; parenthesis can occur inside the first of these forms, so
            ;; parse backward recursively.
-           (`?\( (eq ?\( (char-before)))
-           ((or `?\{ `?\[) (eq ?\$ (char-before))))
+           (?\( (eq ?\( (char-before)))
+           ((or ?\{ ?\[) (eq ?\$ (char-before))))
          (sh--inside-noncommand-expression (1- (point))))))))
 
 (defun sh-font-lock-open-heredoc (start string eol)
@@ -2038,7 +2038,7 @@ May return nil if the line should not be treated as continued."
     (`(:elem . basic) sh-basic-offset)
     (`(:after . "case-)") (- (sh-var-value 'sh-indent-for-case-alt)
                              (sh-var-value 'sh-indent-for-case-label)))
-    (`(:before . ,(or `"(" `"{" `"[" "while" "if" "for" "case"))
+    (`(:before . ,(or "(" "{" "[" "while" "if" "for" "case"))
      (if (not (smie-rule-prev-p "&&" "||" "|"))
          (when (smie-rule-hanging-p)
            (smie-rule-parent))
@@ -2047,11 +2047,11 @@ May return nil if the line should not be treated as continued."
 	 `(column . ,(smie-indent-virtual)))))
     ;; FIXME: Maybe this handling of ;; should be made into
     ;; a smie-rule-terminator function that takes the substitute ";" as arg.
-    (`(:before . ,(or `";;" `";&" `";;&"))
+    (`(:before . ,(or ";;" ";&" ";;&"))
      (if (and (smie-rule-bolp) (looking-at ";;?&?[ \t]*\\(#\\|$\\)"))
          (cons 'column (smie-indent-keyword ";"))
        (smie-rule-separator kind)))
-    (`(:after . ,(or `";;" `";&" `";;&"))
+    (`(:after . ,(or ";;" ";&" ";;&"))
      (with-demoted-errors
        (smie-backward-sexp token)
        (cons 'column
@@ -2062,7 +2062,7 @@ May return nil if the line should not be treated as continued."
                             (smie-rule-bolp))))
                  (current-column)
                (smie-indent-calculate)))))
-    (`(:before . ,(or `"|" `"&&" `"||"))
+    (`(:before . ,(or "|" "&&" "||"))
      (unless (smie-rule-parent-p token)
        (smie-backward-sexp token)
        `(column . ,(+ (funcall smie-rules-function :elem 'basic)
@@ -2081,7 +2081,7 @@ May return nil if the line should not be treated as continued."
     ;; sh-indent-after-done: aligned completely differently.
     (`(:after . "in") (sh-var-value 'sh-indent-for-case-label))
     ;; sh-indent-for-continuation: Line continuations are handled differently.
-    (`(:after . ,(or `"(" `"{" `"["))
+    (`(:after . ,(or "(" "{" "["))
      (if (not (looking-at ".[ \t]*[^\n \t#]"))
          (sh-var-value 'sh-indent-after-open)
        (goto-char (1- (match-end 0)))
@@ -2253,7 +2253,7 @@ Point should be before the newline."
      (save-excursion
        (when (sh-smie--rc-after-special-arg-p)
          `(column . ,(current-column)))))
-    (`(:before . ,(or `"(" `"{" `"["))
+    (`(:before . ,(or "(" "{" "["))
      (if (smie-rule-hanging-p) (smie-rule-parent)))
     ;; FIXME: SMIE parses "if (exp) cmd" as "(if ((exp) cmd))" so "cmd" is
     ;; treated as an arg to (exp) by default, which indents it all wrong.
@@ -2262,7 +2262,7 @@ Point should be before the newline."
     ;; rule we have is the :list-intro hack, which we use here to align "cmd"
     ;; with "(exp)", which is rarely the right thing to do, but is better
     ;; than nothing.
-    (`(:list-intro . ,(or `"for" `"if" `"while")) t)
+    (`(:list-intro . ,(or "for" "if" "while")) t)
     ;; sh-indent-after-switch: handled implicitly by the default { rule.
     ))
 

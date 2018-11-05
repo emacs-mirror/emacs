@@ -4170,10 +4170,10 @@ Used to indicate continued lines.
 @item @code{right-triangle}, @code{left-triangle}
 The former is used by overlay arrows.  The latter is unused.
 
-@item @code{up-arrow}, @code{down-arrow}, @code{top-left-angle} @code{top-right-angle}
+@item @code{up-arrow}, @code{down-arrow}
 @itemx @code{bottom-left-angle}, @code{bottom-right-angle}
-@itemx @code{top-right-angle}, @code{top-left-angle}
-@itemx @code{left-bracket}, @code{right-bracket}, @code{top-right-angle}, @code{top-left-angle}
+@itemx @code{top-left-angle}, @code{top-right-angle}
+@itemx @code{left-bracket}, @code{right-bracket}
 Used to indicate buffer boundaries.
 
 @item @code{filled-rectangle}, @code{hollow-rectangle}
@@ -4181,7 +4181,7 @@ Used to indicate buffer boundaries.
 @itemx @code{vertical-bar}, @code{horizontal-bar}
 Used for different types of fringe cursors.
 
-@item @code{empty-line}, @code{exclamation-mark}, @code{question-mark}, @code{exclamation-mark}
+@item @code{empty-line}, @code{exclamation-mark}, @code{question-mark}
 Not used by core Emacs features.
 @end table
 

@@ -624,42 +624,54 @@ struct json_buffer_and_size
 {
   const char *buffer;
   ptrdiff_t size;
+  /* This tracks how many bytes were inserted by the callback since
+     json_dump_callback was called.  */
+  ptrdiff_t inserted_bytes;
 };
 
 static Lisp_Object
 json_insert (void *data)
 {
   struct json_buffer_and_size *buffer_and_size = data;
-  /* FIXME: This should be possible without creating an intermediate
-     string object.  */
-  Lisp_Object string
-    = json_make_string (buffer_and_size->buffer, buffer_and_size->size);
-  insert1 (string);
+  ptrdiff_t len = buffer_and_size->size;
+  ptrdiff_t inserted_bytes = buffer_and_size->inserted_bytes;
+  ptrdiff_t gap_size = GAP_SIZE - inserted_bytes;
+
+  /* Enlarge the gap if necessary.  */
+  if (gap_size < len)
+    make_gap (len - gap_size);
+
+  /* Copy this chunk of data into the gap.  */
+  memcpy ((char *) BEG_ADDR + PT_BYTE - BEG_BYTE + inserted_bytes,
+	  buffer_and_size->buffer, len);
+  buffer_and_size->inserted_bytes += len;
   return Qnil;
 }
 
 struct json_insert_data
 {
+  /* This tracks how many bytes were inserted by the callback since
+     json_dump_callback was called.  */
+  ptrdiff_t inserted_bytes;
   /* nil if json_insert succeeded, otherwise the symbol
      Qcatch_all_memory_full or a cons (ERROR-SYMBOL . ERROR-DATA).  */
   Lisp_Object error;
 };
 
-/* Callback for json_dump_callback that inserts the UTF-8 string in
-   [BUFFER, BUFFER + SIZE) into the current buffer.
-   If [BUFFER, BUFFER + SIZE) does not contain a valid UTF-8 string,
-   an unspecified string is inserted into the buffer.  DATA must point
-   to a structure of type json_insert_data.  This function may not
-   exit nonlocally.  It catches all nonlocal exits and stores them in
-   data->error for reraising.  */
+/* Callback for json_dump_callback that inserts a JSON representation
+   as a unibyte string into the gap.  DATA must point to a structure
+   of type json_insert_data.  This function may not exit nonlocally.
+   It catches all nonlocal exits and stores them in data->error for
+   reraising.  */
 
 static int
 json_insert_callback (const char *buffer, size_t size, void *data)
 {
   struct json_insert_data *d = data;
   struct json_buffer_and_size buffer_and_size
-    = {.buffer = buffer, .size = size};
+    = {.buffer = buffer, .size = size, .inserted_bytes = d->inserted_bytes};
   d->error = internal_catch_all (json_insert, &buffer_and_size, Fidentity);
+  d->inserted_bytes = buffer_and_size.inserted_bytes;
   return NILP (d->error) ? 0 : -1;
 }
 
@@ -695,10 +707,15 @@ usage: (json-insert OBJECT &rest ARGS)  */)
   json_t *json = lisp_to_json (args[0], &conf);
   record_unwind_protect_ptr (json_release_object, json);
 
+  prepare_to_modify_buffer (PT, PT, NULL);
+  move_gap_both (PT, PT_BYTE);
   struct json_insert_data data;
+  data.inserted_bytes = 0;
   /* If desired, we might want to add the following flags:
      JSON_DECODE_ANY, JSON_ALLOW_NUL.  */
   int status
+    /* Could have used json_dumpb, but that became available only in
+       Jansson 2.10, whereas we want to support 2.7 and upward.  */
     = json_dump_callback (json, json_insert_callback, &data, JSON_COMPACT);
   if (status == -1)
     {
@@ -706,6 +723,65 @@ usage: (json-insert OBJECT &rest ARGS)  */)
         xsignal (XCAR (data.error), XCDR (data.error));
       else
         json_out_of_memory ();
+    }
+
+  ptrdiff_t inserted = 0;
+  ptrdiff_t inserted_bytes = data.inserted_bytes;
+  if (inserted_bytes > 0)
+    {
+      /* Make the inserted text part of the buffer, as unibyte text.  */
+      GAP_SIZE -= inserted_bytes;
+      GPT      += inserted_bytes;
+      GPT_BYTE += inserted_bytes;
+      ZV       += inserted_bytes;
+      ZV_BYTE  += inserted_bytes;
+      Z        += inserted_bytes;
+      Z_BYTE   += inserted_bytes;
+
+      if (GAP_SIZE > 0)
+	/* Put an anchor to ensure multi-byte form ends at gap.  */
+	*GPT_ADDR = 0;
+
+      /* If required, decode the stuff we've read into the gap.  */
+      struct coding_system coding;
+      /* JSON strings are UTF-8 encoded strings.  If for some reason
+	 the text returned by the Jansson library includes invalid
+	 byte sequences, they will be represented by raw bytes in the
+	 buffer text.  */
+      setup_coding_system (Qutf_8_unix, &coding);
+      coding.dst_multibyte =
+	!NILP (BVAR (current_buffer, enable_multibyte_characters));
+      if (CODING_MAY_REQUIRE_DECODING (&coding))
+	{
+	  move_gap_both (PT, PT_BYTE);
+	  GAP_SIZE += inserted_bytes;
+	  ZV_BYTE -= inserted_bytes;
+	  Z_BYTE -= inserted_bytes;
+	  ZV -= inserted_bytes;
+	  Z -= inserted_bytes;
+	  decode_coding_gap (&coding, inserted_bytes, inserted_bytes);
+	  inserted = coding.produced_char;
+	}
+      else
+	{
+	  /* The target buffer is unibyte, so we don't need to decode.  */
+	  invalidate_buffer_caches (current_buffer,
+				    PT, PT + inserted_bytes);
+	  adjust_after_insert (PT, PT_BYTE,
+			       PT + inserted_bytes,
+			       PT_BYTE + inserted_bytes,
+			       inserted_bytes);
+	  inserted = inserted_bytes;
+	}
+    }
+
+  /* Call after-change hooks.  */
+  signal_after_change (PT, 0, inserted);
+  if (inserted > 0)
+    {
+      update_compositions (PT, PT, CHECK_BORDER);
+      /* Move point to after the inserted text.  */
+      SET_PT_BOTH (PT + inserted, PT_BYTE + inserted_bytes);
     }
 
   return unbind_to (count, Qnil);

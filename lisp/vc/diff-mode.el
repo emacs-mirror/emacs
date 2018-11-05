@@ -1341,6 +1341,13 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
   (diff-hunk-next arg)
   (diff-goto-source))
 
+(defun diff--font-lock-cleanup ()
+  (remove-overlays nil nil 'diff-mode 'fine)
+  (when font-lock-mode
+    (make-local-variable 'font-lock-extra-managed-props)
+    ;; Added when diff--font-lock-prettify is non-nil!
+    (cl-pushnew 'display font-lock-extra-managed-props)))
+
 (defvar whitespace-style)
 (defvar whitespace-trailing-regexp)
 
@@ -1358,12 +1365,10 @@ You can also switch between context diff and unified diff with \\[diff-context->
 or vice versa with \\[diff-unified->context] and you can also reverse the direction of
 a diff with \\[diff-reverse-direction].
 
-   \\{diff-mode-map}"
+\\{diff-mode-map}"
 
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
-  (add-hook 'font-lock-mode-hook
-            (lambda () (remove-overlays nil nil 'diff-mode 'fine))
-            nil 'local)
+  (add-hook 'font-lock-mode-hook #'diff--font-lock-cleanup nil 'local)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   (set (make-local-variable 'imenu-generic-expression)
        diff-imenu-generic-expression)
@@ -1408,6 +1413,8 @@ a diff with \\[diff-reverse-direction].
        #'diff-current-defun)
   (set (make-local-variable 'add-log-buffer-file-name-function)
        (lambda () (diff-find-file-name nil 'noprompt)))
+  (add-function :filter-return (local 'filter-buffer-substring-function)
+                #'diff--filter-substring)
   (unless (buffer-file-name)
     (hack-dir-local-variables-non-file-buffer)))
 
@@ -2088,6 +2095,7 @@ Return new point, if it was moved."
             (diff--refine-hunk beg end)
             (let ((ol (make-overlay beg end)))
               (overlay-put ol 'diff--font-lock-refined t)
+              (overlay-put ol 'diff-mode 'fine)
               (overlay-put ol 'evaporate t)
               (overlay-put ol 'modification-hooks
                            '(diff--font-lock-refine--refresh))))
@@ -2204,19 +2212,80 @@ fixed, visit it in a buffer."
 
 ;;; Prettifying from font-lock
 
+(define-fringe-bitmap 'diff-fringe-add
+  [#b00000000
+   #b00000000
+   #b00010000
+   #b00010000
+   #b01111100
+   #b00010000
+   #b00010000
+   #b00000000
+   #b00000000]
+  nil nil 'center)
+
+(define-fringe-bitmap 'diff-fringe-del
+  [#b00000000
+   #b00000000
+   #b00000000
+   #b00000000
+   #b01111100
+   #b00000000
+   #b00000000
+   #b00000000
+   #b00000000]
+  nil nil 'center)
+
+(define-fringe-bitmap 'diff-fringe-rep
+  [#b00000000
+   #b00010000
+   #b00010000
+   #b00010000
+   #b00010000
+   #b00010000
+   #b00000000
+   #b00010000
+   #b00000000]
+  nil nil 'center)
+
+(define-fringe-bitmap 'diff-fringe-nul
+  ;; Maybe there should be such an "empty" bitmap defined by default?
+  [#b00000000
+   #b00000000
+   #b00000000
+   #b00000000
+   #b00000000
+   #b00000000
+   #b00000000
+   #b00000000
+   #b00000000]
+  nil nil 'center)
+
 (defun diff--font-lock-prettify (limit)
-  ;; Mimicks the output of Magit's diff.
-  ;; FIXME: This has only been tested with Git's diff output.
   (when diff-font-lock-prettify
+    (save-excursion
+      ;; FIXME: Include the first space for context-style hunks!
+      (while (re-search-forward "^[-+! ]" limit t)
+        (let ((spec (alist-get (char-before)
+                               '((?+ . (left-fringe diff-fringe-add diff-added))
+                                 (?- . (left-fringe diff-fringe-del diff-removed))
+                                 (?! . (left-fringe diff-fringe-rep diff-changed))
+                                 (?\s . (left-fringe diff-fringe-nul))))))
+          (put-text-property (match-beginning 0) (match-end 0) 'display spec))))
+    ;; Mimicks the output of Magit's diff.
+    ;; FIXME: This has only been tested with Git's diff output.
     (while (re-search-forward "^diff " limit t)
+      ;; FIXME: Switching between context<->unified leads to messed up
+      ;; file headers by cutting the `display' property in chunks!
       (when (save-excursion
-                  (forward-line 0)
-                  (looking-at (eval-when-compile
-                                (concat "diff.*\n"
-                                        "\\(?:\\(?:new file\\|deleted\\).*\n\\)?"
-                                        "\\(?:index.*\n\\)?"
-                                        "--- \\(?:/dev/null\\|a/\\(.*\\)\\)\n"
-                                        "\\+\\+\\+ \\(?:/dev/null\\|b/\\(.*\\)\\)\n"))))
+              (forward-line 0)
+              (looking-at
+               (eval-when-compile
+                 (concat "diff.*\n"
+                         "\\(?:\\(?:new file\\|deleted\\).*\n\\)?"
+                         "\\(?:index.*\n\\)?"
+                         "--- \\(?:/dev/null\\|a/\\(.*\\)\\)\n"
+                         "\\+\\+\\+ \\(?:/dev/null\\|b/\\(.*\\)\\)\n"))))
         (put-text-property (match-beginning 0)
                            (or (match-beginning 2) (match-beginning 1))
                            'display (propertize
@@ -2229,6 +2298,28 @@ fixed, visit it in a buffer."
           (put-text-property (match-end 1) (1- (match-end 0))
                              'display "")))))
   nil)
+
+(defun diff--filter-substring (str)
+  (when diff-font-lock-prettify
+    ;; Strip the `display' properties added by diff-font-lock-prettify,
+    ;; since they look weird when you kill&yank!
+    (remove-text-properties 0 (length str) '(display nil) str)
+    ;; We could also try to only remove those `display' properties actually
+    ;; added by diff-font-lock-prettify rather than removing them all blindly.
+    ;; E.g.:
+    ;;(let ((len (length str))
+    ;;      (i 0))
+    ;;  (while (and (< i len)
+    ;;              (setq i (text-property-not-all i len 'display nil str)))
+    ;;    (let* ((val (get-text-property i 'display str))
+    ;;           (end (or (text-property-not-all i len 'display val str) len)))
+    ;;      ;; FIXME: Check for display props that prettify the file header!
+    ;;      (when (eq 'left-fringe (car-safe val))
+    ;;        ;; FIXME: Should we check that it's a diff-fringe-* bitmap?
+    ;;        (remove-text-properties i end '(display nil) str))
+    ;;      (setq i end))))
+    )
+  str)
 
 ;;; Support for converting a diff to diff3 markers via `wiggle'.
 
@@ -2255,7 +2346,7 @@ conflict."
           (set-buffer (prog1 tmpbuf (setq tmpbuf (current-buffer))))
           (when (buffer-modified-p filebuf)
             (save-some-buffers nil (lambda () (eq (current-buffer) filebuf)))
-            (if (buffer-modified-p filebuf) (error "Abort!")))
+            (if (buffer-modified-p filebuf) (user-error "Abort!")))
           (write-region (car bounds) (cadr bounds) patchfile nil 'silent)
           (let ((exitcode
                  (call-process "wiggle" nil (list tmpbuf errfile) nil

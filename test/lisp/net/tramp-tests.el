@@ -763,8 +763,8 @@ handled properly.  BODY shall not contain a timeout."
 	"|-:user2@host2"
 	"|-:user3@host3:/path/to/file"))
       (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
-	      "-" "user1" "host1"
-	      "-" "user2" "host2"
+	      "method1" "user1" "host1"
+	      "method2" "user2" "host2"
 	      "method3" "user3" "host3")))
 
     ;; Expand `tramp-default-user-alist'.
@@ -778,9 +778,9 @@ handled properly.  BODY shall not contain a timeout."
 	"/method1:host1"
 	"|method2:host2"
 	"|method3:host3:/path/to/file"))
-      (format "/%s:%s|%s:%s|%s:%s@%s:"
-	      "method1" "host1"
-	      "method2" "host2"
+      (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
+	      "method1" "user1" "host1"
+	      "method2" "user2" "host2"
 	      "method3" "user3" "host3")))
 
     ;; Expand `tramp-default-host-alist'.
@@ -794,9 +794,36 @@ handled properly.  BODY shall not contain a timeout."
 	"/method1:user1@"
 	"|method2:user2@"
 	"|method3:user3@:/path/to/file"))
-      (format "/%s:%s@|%s:%s@|%s:%s@%s:"
-	      "method1" "user1"
-	      "method2" "user2"
+      (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
+	      "method1" "user1" "host1"
+	      "method2" "user2" "host2"
+	      "method3" "user3" "host3")))
+
+    ;; Ad-hoc user name and host name expansion.
+    (setq tramp-default-method-alist nil
+	  tramp-default-user-alist nil
+	  tramp-default-host-alist nil)
+    (should
+     (string-equal
+      (file-remote-p
+       (concat
+	"/method1:user1@host1"
+	"|method2:user2@"
+	"|method3:user3@:/path/to/file"))
+      (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
+	      "method1" "user1" "host1"
+	      "method2" "user2" "host1"
+	      "method3" "user3" "host1")))
+    (should
+     (string-equal
+      (file-remote-p
+       (concat
+	"/method1:%u@%h"
+	"|method2:%u@%h"
+	"|method3:user3@host3:/path/to/file"))
+      (format "/%s:%s@%s|%s:%s@%s|%s:%s@%s:"
+	      "method1" "user3" "host3"
+	      "method2" "user3" "host3"
 	      "method3" "user3" "host3")))))
 
 (ert-deftest tramp-test02-file-name-dissect-simplified ()
@@ -1067,9 +1094,9 @@ handled properly.  BODY shall not contain a timeout."
 	      "/host1"
 	      "|host2"
 	      "|host3:/path/to/file"))
-	    (format "/%s|%s|%s@%s:"
-		    "host1"
-		    "host2"
+	    (format "/%s@%s|%s@%s|%s@%s:"
+		    "user1" "host1"
+		    "user2" "host2"
 		    "user3" "host3")))
 
 	  ;; Expand `tramp-default-host-alist'.
@@ -1083,9 +1110,35 @@ handled properly.  BODY shall not contain a timeout."
 	      "/user1@"
 	      "|user2@"
 	      "|user3@:/path/to/file"))
-	    (format "/%s@|%s@|%s@%s:"
-		    "user1"
-		    "user2"
+	    (format "/%s@%s|%s@%s|%s@%s:"
+		    "user1" "host1"
+		    "user2" "host2"
+		    "user3" "host3")))
+
+	  ;; Ad-hoc user name and host name expansion.
+	  (setq tramp-default-user-alist nil
+		tramp-default-host-alist nil)
+	  (should
+	   (string-equal
+	    (file-remote-p
+	     (concat
+	      "/user1@host1"
+	      "|user2@"
+	      "|user3@:/path/to/file"))
+	    (format "/%s@%s|%s@%s|%s@%s:"
+		    "user1" "host1"
+		    "user2" "host1"
+		    "user3" "host1")))
+	  (should
+	   (string-equal
+	    (file-remote-p
+	     (concat
+	      "/%u@%h"
+	      "|%u@%h"
+	      "|user3@host3:/path/to/file"))
+	    (format "/%s@%s|%s@%s|%s@%s:"
+		    "user3" "host3"
+		    "user3" "host3"
 		    "user3" "host3"))))
 
       ;; Exit.
@@ -1670,9 +1723,9 @@ handled properly.  BODY shall not contain a timeout."
 	      "/[/user1@host1"
 	      "|/user2@host2"
 	      "|/user3@host3]/path/to/file"))
-	    (format "/[/%s@%s|/%s@%s|%s/%s@%s]"
-		    "user1" "host1"
-		    "user2" "host2"
+	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
+		    "method1" "user1" "host1"
+		    "method2" "user2" "host2"
 		    "method3" "user3" "host3")))
 
 	  ;; Expand `tramp-default-user-alist'.
@@ -1686,9 +1739,9 @@ handled properly.  BODY shall not contain a timeout."
 	      "/[method1/host1"
 	      "|method2/host2"
 	      "|method3/host3]/path/to/file"))
-	    (format "/[%s/%s|%s/%s|%s/%s@%s]"
-		    "method1" "host1"
-		    "method2" "host2"
+	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
+		    "method1" "user1" "host1"
+		    "method2" "user2" "host2"
 		    "method3" "user3" "host3")))
 
 	  ;; Expand `tramp-default-host-alist'.
@@ -1702,9 +1755,36 @@ handled properly.  BODY shall not contain a timeout."
 	      "/[method1/user1@"
 	      "|method2/user2@"
 	      "|method3/user3@]/path/to/file"))
-	    (format "/[%s/%s@|%s/%s@|%s/%s@%s]"
-		    "method1" "user1"
-		    "method2" "user2"
+	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
+		    "method1" "user1" "host1"
+		    "method2" "user2" "host2"
+		    "method3" "user3" "host3")))
+
+	  ;; Ad-hoc user name and host name expansion.
+	  (setq tramp-default-method-alist nil
+		tramp-default-user-alist nil
+		tramp-default-host-alist nil)
+	  (should
+	   (string-equal
+	    (file-remote-p
+	     (concat
+	      "/[method1/user1@host1"
+	      "|method2/user2@"
+	      "|method3/user3@]/path/to/file"))
+	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
+		    "method1" "user1" "host1"
+		    "method2" "user2" "host1"
+		    "method3" "user3" "host1")))
+	  (should
+	   (string-equal
+	    (file-remote-p
+	     (concat
+	      "/[method1/%u@%h"
+	      "|method2/%u@%h"
+	      "|method3/user3@host3]/path/to/file"))
+	    (format "/[%s/%s@%s|%s/%s@%s|%s/%s@%s]"
+		    "method1" "user3" "host3"
+		    "method2" "user3" "host3"
 		    "method3" "user3" "host3"))))
 
       ;; Exit.
@@ -3491,6 +3571,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (when (not (memq system-type '(cygwin windows-nt)))
     (let ((method (file-remote-p tramp-test-temporary-file-directory 'method))
 	  (host (file-remote-p tramp-test-temporary-file-directory 'host))
+	  (vec (tramp-dissect-file-name tramp-test-temporary-file-directory))
           (orig-syntax tramp-syntax))
       (when (and (stringp host) (string-match tramp-host-with-port-regexp host))
 	(setq host (match-string 1 host)))
@@ -3501,6 +3582,10 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	       (if (tramp--test-expensive-test)
 		   (tramp-syntax-values) `(,orig-syntax)))
             (tramp-change-syntax syntax)
+	    ;; This has cleaned up all connection data, which are used
+	    ;; for completion.  We must refill the cache.
+	    (tramp-set-connection-property vec "property" nil)
+
             (let ;; This is needed for the `simplified' syntax.
                 ((method-marker
                   (if (zerop (length tramp-method-regexp))

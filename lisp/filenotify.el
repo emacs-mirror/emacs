@@ -45,11 +45,11 @@ could use another implementation.")
                (:constructor nil)
                (:constructor
                 file-notify--watch-make (directory filename callback)))
-  ;; Watched directory
+  ;; Watched directory.
   directory
   ;; Watched relative filename, nil if watching the directory.
   filename
-  ;; Function to propagate events to
+  ;; Function to propagate events to.
   callback)
 
 (defun file-notify--watch-absolute-filename (watch)
@@ -242,11 +242,10 @@ EVENT is the cadr of the event in `file-notify-handle-event'
             ;;(message
             ;;"file-notify-callback %S %S %S %S %S"
             ;;desc action file file1 watch)
-            (if file1
-                (funcall (file-notify--watch-callback watch)
-                         `(,desc ,action ,file ,file1))
-              (funcall (file-notify--watch-callback watch)
-                       `(,desc  ,action ,file))))
+            (funcall (file-notify--watch-callback watch)
+                     (if file1
+                         `(,desc ,action ,file ,file1)
+                       `(,desc ,action ,file))))
 
           ;; Send `stopped' event.
           (when (or stopped

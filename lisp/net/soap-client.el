@@ -5,7 +5,7 @@
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.1.4
+;; Version: 3.1.5
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
 ;; Homepage: https://github.com/alex-hhh/emacs-soap-client
@@ -2337,6 +2337,14 @@ traverse an element tree."
 (defun soap-parse-server-response ()
   "Error-check and parse the XML contents of the current buffer."
   (let ((mime-part (mm-dissect-buffer t t)))
+    (when (and
+           (equal (mm-handle-media-type mime-part) "multipart/related")
+           (equal (get-text-property 0 'type (mm-handle-media-type mime-part))
+                  "text/xml"))
+      (setq mime-part
+            (mm-make-handle
+             (get-text-property 0 'buffer (mm-handle-media-type mime-part))
+             `(,(get-text-property 0 'type (mm-handle-media-type mime-part))))))
     (unless mime-part
       (error "Failed to decode response from server"))
     (unless (equal (car (mm-handle-type mime-part)) "text/xml")

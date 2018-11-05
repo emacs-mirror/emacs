@@ -150,7 +150,8 @@ and sent with `smtpmail-send-queued-mail'."
   :group 'smtpmail)
 
 (defcustom smtpmail-queue-dir "~/Mail/queued-mail/"
-  "Directory where `smtpmail.el' stores queued mail."
+  "Directory where `smtpmail.el' stores queued mail.
+This directory should not be writable by other users."
   :type 'directory
   :group 'smtpmail)
 
@@ -360,9 +361,7 @@ for `smtpmail-try-auth-method'.")
 		     smtpmail-queue-dir))
 		   (file-data (convert-standard-filename file-data))
 		   (file-elisp (concat file-data ".el"))
-		   (buffer-data (create-file-buffer file-data))
-		   (buffer-elisp (create-file-buffer file-elisp))
-		   (buffer-scratch "*queue-mail*"))
+		   (buffer-data (create-file-buffer file-data)))
 	      (unless (file-exists-p smtpmail-queue-dir)
 		(make-directory smtpmail-queue-dir t))
 	      (with-current-buffer buffer-data
@@ -377,22 +376,16 @@ for `smtpmail-try-auth-method'.")
 		 nil t)
 		(insert-buffer-substring tembuf)
 		(write-file file-data)
-		(set-buffer buffer-elisp)
-		(erase-buffer)
-		(insert (concat
-			 "(setq smtpmail-recipient-address-list '"
+                (write-region
+                 (concat "(setq smtpmail-recipient-address-list '"
 			 (prin1-to-string smtpmail-recipient-address-list)
-			 ")\n"))
-		(write-file file-elisp)
-		(set-buffer (generate-new-buffer buffer-scratch))
-		(insert (concat file-data "\n"))
-		(append-to-file (point-min)
-				(point-max)
-                                (expand-file-name smtpmail-queue-index-file
-                                                  smtpmail-queue-dir)))
-	      (kill-buffer buffer-scratch)
-	      (kill-buffer buffer-data)
-	      (kill-buffer buffer-elisp))))
+			 ")\n")
+                 nil file-elisp nil 'silent)
+		(write-region (concat file-data "\n") nil
+                              (expand-file-name smtpmail-queue-index-file
+                                                smtpmail-queue-dir)
+                              t 'silent))
+	      (kill-buffer buffer-data))))
       (kill-buffer tembuf)
       (if (bufferp errbuf)
 	  (kill-buffer errbuf)))))
@@ -404,21 +397,35 @@ for `smtpmail-try-auth-method'.")
   (with-temp-buffer
     ;; Get index, get first mail, send it, update index, get second
     ;; mail, send it, etc...
-    (let ((file-msg "")
+    (let (file-data file-elisp
           (qfile (expand-file-name smtpmail-queue-index-file
                                    smtpmail-queue-dir))
 	  result)
       (insert-file-contents qfile)
       (goto-char (point-min))
       (while (not (eobp))
-	(setq file-msg (buffer-substring (point) (line-end-position)))
-	(load file-msg)
+	(setq file-data (buffer-substring (point) (line-end-position)))
+	(setq file-elisp (concat file-data ".el"))
+        ;; FIXME: Avoid `load' which can execute arbitrary code and is hence
+        ;; a source of security holes.  Better read the file and extract the
+        ;; data "by hand".
+	;;(load file-elisp)
+        (with-temp-buffer
+          (insert-file-contents file-elisp)
+          (goto-char (point-min))
+          (pcase (read (current-buffer))
+            (`(setq smtpmail-recipient-address-list ',v)
+             (skip-chars-forward " \n\t")
+             (unless (eobp) (message "Ignoring trailing text in %S"
+                                     file-elisp))
+             (setq smtpmail-recipient-address-list v))
+            (sexp (error "Unexpected code in %S: %S" file-elisp sexp))))
 	;; Insert the message literally: it is already encoded as per
 	;; the MIME headers, and code conversions might guess the
 	;; encoding wrongly.
 	(with-temp-buffer
 	  (let ((coding-system-for-read 'no-conversion))
-	    (insert-file-contents file-msg))
+	    (insert-file-contents file-data))
           (let ((smtpmail-mail-address
                  (or (and mail-specify-envelope-from (mail-envelope-from))
                      user-mail-address)))
@@ -428,8 +435,8 @@ for `smtpmail-try-auth-method'.")
 				    (current-buffer)))
 		  (error "Sending failed: %s" result))
               (error "Sending failed; no recipients"))))
-	(delete-file file-msg)
-	(delete-file (concat file-msg ".el"))
+	(delete-file file-data)
+	(delete-file file-elisp)
 	(delete-region (point-at-bol) (point-at-bol 2)))
       (write-region (point-min) (point-max) qfile))))
 

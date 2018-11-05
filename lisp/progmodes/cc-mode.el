@@ -1232,21 +1232,21 @@ Note that the style variables are always made local to the buffer."
       (if (eq beg-literal-type 'string)
 	  (setq c-new-BEG (min (car beg-limits) c-new-BEG))))
 
-     ((< c-new-END (point-max))
-      (goto-char (1+ c-new-END))	; might be a newline.
+     ((< end (point-max))
+      (goto-char (1+ end))	; might be a newline.
       ;; In the following regexp, the initial \n caters for a newline getting
       ;; joined to a preceding \ by the removal of what comes between.
       (re-search-forward "[\n\r]?\\(\\\\\\(.\\|\n\\|\r\\)\\|[^\\\n\r]\\)*"
 			 nil t)
       ;; We're at an EOLL or point-max.
-      (setq c-new-END (min (1+ (point)) (point-max)))
-      (goto-char c-new-END)
-      (if (equal (c-get-char-property (1- (point)) 'syntax-table) '(15))
-	  (if (memq (char-before) '(?\n ?\r))
+      (setq c-new-END (max c-new-END (min (1+ (point)) (point-max))))
+      (if (equal (c-get-char-property (point) 'syntax-table) '(15))
+	  (if (memq (char-after) '(?\n ?\r))
 	      ;; Normally terminated invalid string.
-	      (progn
+	      (let ((eoll-1 (point)))
+		(forward-char)
 		(backward-sexp)
-		(c-clear-char-property (1- c-new-END) 'syntax-table)
+		(c-clear-char-property eoll-1 'syntax-table)
 		(c-clear-char-property (point) 'syntax-table))
 	    ;; Opening " at EOB.
 	    (c-clear-char-property (1- (point)) 'syntax-table))
@@ -1254,7 +1254,7 @@ Note that the style variables are always made local to the buffer."
 	    ;; Opening " on last line of text (without EOL).
 	    (c-clear-char-property (point) 'syntax-table))))
 
-     (t (goto-char c-new-END)
+     (t (goto-char end)			; point-max
 	(if (c-search-backward-char-property 'syntax-table '(15) c-new-BEG)
 	    (c-clear-char-property (point) 'syntax-table))))
 
@@ -1343,9 +1343,9 @@ Note that the style variables are always made local to the buffer."
 	     (while (progn
 		      (setq s (parse-partial-sexp (point) c-new-END nil
 						  nil s 'syntax-table))
-		      (and (not (nth 3 s))
-			   (< (point) c-new-END)
-			   (not (memq (char-before) c-string-delims)))))
+                      (and (< (point) c-new-END)
+                           (or (not (nth 3 s))
+                               (not (memq (char-before) c-string-delims))))))
 	     ;; We're at the start of a string.
 	     (memq (char-before) c-string-delims)))
 	(if (c-unescaped-nls-in-string-p (1- (point)))
@@ -1463,7 +1463,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 		 (goto-char (match-beginning 0))
 		 (save-excursion (search-forward "'" (match-end 0) t)))))))))
 
-(defun c-parse-quotes-before-change (beg end)
+(defun c-parse-quotes-before-change (_beg _end)
   ;; This function analyzes 's near the region (c-new-BEG c-new-END), amending
   ;; those two variables as needed to include 's into that region when they
   ;; might be syntactically relevant to the change in progress.
@@ -1550,7 +1550,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	 'c-digit-separator t
 	 ?')))))
 
-(defun c-parse-quotes-after-change (beg end old-len)
+(defun c-parse-quotes-after-change (_beg _end _old-len)
   ;; This function applies syntax-table properties (value '(1)) and
   ;; c-digit-separator properties as needed to 's within the range (c-new-BEG
   ;; c-new-END).  This operation is performed even within strings and

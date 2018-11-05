@@ -1142,11 +1142,9 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-find-file-hook ()
   (when (and buffer-file-name
-             (file-exists-p (concat buffer-file-name ".orig"))
              ;; Hg does not seem to have a "conflict" status, eg
              ;; hg http://bz.selenic.com/show_bug.cgi?id=2724
-             (memq (vc-file-getprop buffer-file-name 'vc-state)
-                   '(edited conflict))
+             (memq (vc-state buffer-file-name) '(edited conflict))
              ;; Maybe go on to check that "hg resolve -l" says "U"?
              ;; If "hg resolve -l" says there's a conflict but there are no
              ;; conflict markers, it's not clear what we should do.

@@ -271,9 +271,7 @@ Return a list of updated types."
 	       (insert " ")))
 	 (insert-char ?  (max (- ,column (current-column)) 0))))))
 
-(defun gnus-correct-length (string)
-  "Return the correct width of STRING."
-  (apply #'+ (mapcar #'char-width string)))
+(define-obsolete-function-alias 'gnus-correct-length 'string-width "27.1")
 
 (defun gnus-correct-substring (string start &optional end)
   (let ((wstart 0)

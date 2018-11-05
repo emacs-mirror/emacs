@@ -79,4 +79,19 @@ with parameters from the *Messages* buffer modification."
   (with-temp-buffer
     (should (eq (buffer-base-buffer (current-buffer)) nil))))
 
+(ert-deftest overlay-evaporation-after-killed-buffer ()
+  (let* ((ols (with-temp-buffer
+                (insert "toto")
+                (list
+                 (make-overlay (point-min) (point-max))
+                 (make-overlay (point-min) (point-max))
+                 (make-overlay (point-min) (point-max)))))
+         (ol (nth 1 ols)))
+    (overlay-put ol 'evaporate t)
+    ;; Evaporation within move-overlay of an overlay that was deleted because
+    ;; of a kill-buffer, triggered an assertion failure in unchain_both.
+    (with-temp-buffer
+      (insert "toto")
+      (move-overlay ol (point-min) (point-min)))))
+
 ;;; buffer-tests.el ends here

@@ -66,9 +66,6 @@ to reduce differences between developer and production builds.
 This means you can now easily filter several major modes, as well
 as a single mode.
 
----
-*** New toggle 'ibuffer-do-toggle-lock', bound to 'L'.
-
 ** Gnus
 
 +++
@@ -123,12 +120,14 @@ the new version of the file again.)
 * Changes in Emacs 27.1
 
 +++
-** The function 'read-passwd' uses '*' as default character to hide passwords.
+** emacsclient now supports the 'EMACS_SOCKET_NAME' environment variable.
+The behavior is identical to 'EMACS_SERVER_FILE', in that the
+command-line value specified via '--socket-name' will override the
+environment, and the natural default to TMPDIR, then '/tmp', continues
+to apply.
 
----
-** New variable 'xft-ignore-color-fonts'.
-Default t means don't try to load color fonts when using Xft, as they
-often cause crashes.  Set it to nil if you really need those fonts.
++++
+** The function 'read-passwd' uses '*' as default character to hide passwords.
 
 ---
 ** The new option 'tooltip-resize-echo-area' avoids truncating tooltip text
@@ -172,7 +171,7 @@ the data.
 
 +++
 ** The Network Security Manager now allows more fine-grained control
-of what checks to run via the `network-security-protocol-checks'
+of what checks to run via the 'network-security-protocol-checks'
 variable.
 
 +++
@@ -297,6 +296,16 @@ in (info "(emacs) Directory Variables")
 
 * Changes in Specialized Modes and Packages in Emacs 27.1
 
+---
+** Follow mode
+In the current follow group of windows, "ghost" cursors are no longer
+displayed in the non-selected follow windows.  To get the old behavior
+back, customize follow-hide-ghost-cursors to nil.
+
+** Octave mode
+The mode is automatically enabled in files that start with the
+'function' keyword.
+
 ** project.el
 *** New commands project-search and project-query-replace
 
@@ -340,6 +349,13 @@ When no files are marked, all modified files are stashed, as before.
 
 *** The new hook 'vc-retrieve-tag-hook' runs after retrieving a tag.
 
+---
+*** 'vc-hg' now invokes 'smerge-mode' when visiting files.
+Code that attempted to invoke 'smerge-mode' when visiting an Hg file
+with conflicts existed in earlier versions of Emacs, but incorrectly
+never detected a conflict due to invalid assumptions about cached
+values.
+
 ** diff-mode
 *** Hunks are now automatically refined by default.
 To disable it, set the new defcustom 'diff-font-lock-refine' to nil.
@@ -356,7 +372,7 @@ shown in the currently selected window.
 ** Comint
 
 +++
-*** 'send-invisible' is now an obsolete alias for `comint-send-invisible'.
+*** 'send-invisible' is now an obsolete alias for 'comint-send-invisible'.
 Also, 'shell-strip-ctrl-m' is declared obsolete.
 
 +++
@@ -391,7 +407,7 @@ facilities to aid more casual SQL developers layout queries and
 complex expressions.
 
 *** 'sql-use-indent-support' (default t) enables SQL indention support.
-The `sql-indent' package from ELPA must be installed to get the
+The 'sql-indent' package from ELPA must be installed to get the
 indentation support in 'sql-mode' and 'sql-interactive-mode'.
 
 *** 'sql-mode-hook' and 'sql-interactive-mode-hook' changed.
@@ -419,6 +435,9 @@ This enables more efficient backends.  See the docstring of
 'flymake-diagnostic-functions' or the Flymake manual for details.
 
 ** Package
+
+*** New function 'package-get-version' lets packages query their own version.
+Example use in auctex.el: (defconst auctex-version (package-get-version))
 
 *** New 'package-quickstart' feature.
 When 'package-quickstart' is non-nil, package.el precomputes a big autoloads
@@ -479,6 +498,11 @@ See the concept index in the Gnus manual for the 'match-list' entry.
 ('gnus-summary-attach-article') can be used to attach the current
 article(s) to a pre-existing Message buffer, or create a new Message
 buffer with the article(s) attached.
+
+---
+*** New option 'nnir-notmuch-filter-group-names-function'.
+This option controls whether and how to use Gnus search groups as
+'path:' search terms to 'notmuch'.
 
 ** erc
 
@@ -579,6 +603,14 @@ can now be searched via 'C-s'.
 *** New filter ibuffer-filter-by-process; bound to '/E'.
 
 ** Search and Replace
+
+*** lazy-highlight-buffer highlights matches in the full buffer.
+It is useful in combination with lazy-highlight-cleanup customized to nil
+to leave matches highlighted in the whole buffer after exiting isearch.
+Also when lazy-highlight-buffer prepares highlighting in the buffer,
+navigation through the matches without flickering is more smooth.
+lazy-highlight-buffer-max-at-a-time controls the number of matches to
+highlight in one iteration while processing the full buffer.
 
 +++
 *** New isearch bindings.
@@ -744,8 +776,24 @@ are obsoleted in GVFS.
 *** Validated passwords are saved by auth-source backends which support this.
 
 +++
+*** During user and host name completion in the minibuffer, results
+from auth-source search are taken into account.  This can be disabled
+by setting user option 'tramp-completion-use-auth-sources' to nil.
+
++++
 *** The user option 'tramp-ignored-file-name-regexp' allows to disable
 Tramp for some look-alike remote file names.
+
++++
+*** For some connection methods, like "su" or "sudo", the host name in
+ad-hoc multi-hop file names must match the previous hop.
+
+** Rcirc
+
+---
+*** New user option 'rcirc-url-max-length'.
+Setting this option to an integer causes URLs displayed in Rcirc
+buffers to be truncated to that many characters.
 
 ** Register
 ---
@@ -836,11 +884,17 @@ UUID at point.
 
 
 ** Interactive automatic highlighting
-
 +++
 *** 'highlight-regexp' can now highlight subexpressions.
 The now command accepts a prefix numeric argument to choose the
 subexpression.
+
+** Mouse display of minor mode menu
+
+---
+*** 'minor-mode-menu-from-indicator' now display full minor mode name.
+When there is no menu for a mode, display the mode name after the
+indicator instead of just the indicator (which is sometimes cryptic).
 
 
 * New Modes and Packages in Emacs 27.1
@@ -871,6 +925,9 @@ documentation of the new mode and its commands.
 
 
 * Incompatible Lisp Changes in Emacs 27.1
+
+** define-fringe-bitmap is always defined, even when Emacs is built
+without any GUI support.
 
 ---
 ** Just loading a theme's file no longer activates the theme's settings.
@@ -952,14 +1009,6 @@ x-lost-selection-hooks, x-sent-selection-hooks.
 default-directory-alist, dired-default-directory,
 dired-default-directory-alist, dired-enable-local-variables,
 dired-hack-local-variables, dired-local-variables-file, dired-omit-here-always.
-
-** The function 'display-buffer-in-major-side-window' no longer exists.
-It has been renamed as internal function 'window--make-major-side-window',
-however applications should instead call 'display-buffer-in-side-window'
-(passing the SIDE and SLOT parameters as elements of ALIST).  This approach
-is backwards-compatible with versions of Emacs in which the old function
-exists.  See the node "Displaying Buffers in Side Windows" in the ELisp
-manual for more details.
 
 ** garbage collection no longer treats miscellaneous objects specially;
 they are now allocated like any other pseudovector.  As a result, the

@@ -53,7 +53,7 @@
   (should (pcase-tests-grep
            'memq (macroexpand-all '(pcase x ((or 1 2 3) body)))))
   (should (pcase-tests-grep
-           'member (macroexpand-all '(pcase x ((or '"a" '2 '3) body)))))
+           'member (macroexpand-all '(pcase x ((or "a" 2 3) body)))))
   (should-not (pcase-tests-grep
                'memq (macroexpand-all '(pcase x ((or "a" 2 3) body)))))
   (let ((exp (macroexpand-all

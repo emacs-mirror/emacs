@@ -26194,7 +26194,7 @@ Get the data under @code{key} for message @code{id}.
 If any extra entries are precious, their presence will make the
 registry keep the whole entry forever, even if there are no groups for
 the Message-ID and if the size limit of the registry is reached.  By
-default this is just @code{(marks)} so the custom registry marks are
+default this is just @code{(mark)} so the custom registry marks are
 precious.
 @end defvar
 

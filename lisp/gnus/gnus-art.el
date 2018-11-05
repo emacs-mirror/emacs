@@ -2243,9 +2243,7 @@ This only works if the article in question is HTML."
 		     start end)))))))
 
 (defun gnus-article-treat-fold-newsgroups ()
-  "Unfold folded message headers.
-Only the headers that fit into the current window width will be
-unfolded."
+  "Fold the Newsgroups and Followup-To message headers."
   (interactive)
   (gnus-with-article-headers
     (while (gnus-article-goto-header "newsgroups\\|followup-to")

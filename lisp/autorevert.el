@@ -515,32 +515,43 @@ will use an up-to-date value of `auto-revert-interval'"
 
 (defun auto-revert-notify-add-watch ()
   "Enable file notification for current buffer's associated file."
-  ;; We can assume that `buffer-file-name' and
-  ;; `auto-revert-notify-watch-descriptor' are non-nil.
+  ;; We can assume that `auto-revert-notify-watch-descriptor' is nil.
   (unless (or auto-revert-notify-watch-descriptor
               (string-match auto-revert-notify-exclude-dir-regexp
 			    (expand-file-name default-directory))
 	      (file-symlink-p (or buffer-file-name default-directory)))
-    (setq auto-revert-notify-watch-descriptor
-	  (ignore-errors
-	    (if buffer-file-name
-		(file-notify-add-watch
-		 (expand-file-name buffer-file-name default-directory)
-		 '(change attribute-change)
-		 'auto-revert-notify-handler)
-	      (file-notify-add-watch
-	       (expand-file-name default-directory)
-	       '(change)
-	       'auto-revert-notify-handler))))
-    (when auto-revert-notify-watch-descriptor
-      (setq auto-revert-notify-modified-p t)
-      (puthash
-      auto-revert-notify-watch-descriptor
-       (cons (current-buffer)
-	     (gethash auto-revert-notify-watch-descriptor
-		      auto-revert-notify-watch-descriptor-hash-list))
+    ;; Check, whether this has been activated already.
+    (let ((file (if buffer-file-name
+		    (expand-file-name buffer-file-name default-directory)
+	          (expand-file-name default-directory))))
+      (maphash
+       (lambda (key _value)
+         (when (and
+                (equal (file-notify--watch-absolute-filename
+                        (gethash key file-notify-descriptors))
+                       (directory-file-name file))
+                (equal (file-notify--watch-callback
+                        (gethash key file-notify-descriptors))
+                       'auto-revert-notify-handler))
+         (setq auto-revert-notify-watch-descriptor key)))
        auto-revert-notify-watch-descriptor-hash-list)
-      (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t))))
+      ;; Create a new watch if needed.
+      (unless auto-revert-notify-watch-descriptor
+        (setq auto-revert-notify-watch-descriptor
+	      (ignore-errors
+		(file-notify-add-watch
+		 file
+                 (if buffer-file-name '(change attribute-change) '(change))
+                 'auto-revert-notify-handler))))
+      (when auto-revert-notify-watch-descriptor
+        (setq auto-revert-notify-modified-p t)
+        (puthash
+         auto-revert-notify-watch-descriptor
+         (cons (current-buffer)
+	       (gethash auto-revert-notify-watch-descriptor
+		        auto-revert-notify-watch-descriptor-hash-list))
+         auto-revert-notify-watch-descriptor-hash-list)
+        (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t)))))
 
 ;; If we have file notifications, we want to update the auto-revert buffers
 ;; immediately when a notification occurs. Since file updates can happen very
@@ -626,10 +637,7 @@ no more reverts are possible until the next call of
                           auto-revert-buffers-counter)
                   (auto-revert-handler)
                   (setq auto-revert-buffers-counter-lockedout
-                        auto-revert-buffers-counter))
-
-                ;; No need to check other buffers.
-                (cl-return)))))))))
+                        auto-revert-buffers-counter))))))))))
 
 (defun auto-revert-active-p ()
   "Check if auto-revert is active (in current buffer or globally)."

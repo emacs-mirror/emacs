@@ -1741,16 +1741,12 @@ static char *magick[] = {
 (defvar breakpoint-disabled-icon nil
   "Icon for disabled breakpoint in display margin.")
 
-(declare-function define-fringe-bitmap "fringe.c"
-		  (bitmap bits &optional height width align))
-
-(and (display-images-p)
-     ;; Bitmap for breakpoint in fringe
-     (define-fringe-bitmap 'breakpoint
-       "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
-     ;; Bitmap for gud-overlay-arrow in fringe
-     (define-fringe-bitmap 'hollow-right-triangle
-       "\xe0\x90\x88\x84\x84\x88\x90\xe0"))
+;; Bitmap for breakpoint in fringe
+(define-fringe-bitmap 'breakpoint
+  "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
+;; Bitmap for gud-overlay-arrow in fringe
+(define-fringe-bitmap 'hollow-right-triangle
+  "\xe0\x90\x88\x84\x84\x88\x90\xe0")
 
 (defface breakpoint-enabled
   '((t

@@ -1219,7 +1219,7 @@ for determining whether point is within a selector."
     (`(:elem . basic) css-indent-offset)
     (`(:elem . arg) 0)
     ;; "" stands for BOB (bug#15467).
-    (`(:list-intro . ,(or `";" `"" `":-property")) t)
+    (`(:list-intro . ,(or ";" "" ":-property")) t)
     (`(:before . "{")
      (when (or (smie-rule-hanging-p) (smie-rule-bolp))
        (smie-backward-sexp ";")

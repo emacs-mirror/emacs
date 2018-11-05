@@ -1084,27 +1084,27 @@ of a set of discrete values.  Value is `integerp' if ATTRIBUTE expects
 an integer value."
   (let ((valid
          (pcase attribute
-           (`:family
+           (:family
             (if (window-system frame)
                 (mapcar (lambda (x) (cons x x))
                         (font-family-list))
 	      ;; Only one font on TTYs.
 	      (list (cons "default" "default"))))
-           (`:foundry
+           (:foundry
 	    (list nil))
-	   (`:width
+	   (:width
 	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-width-table))
-           (`:weight
+           (:weight
 	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-weight-table))
-	   (`:slant
+	   (:slant
 	    (mapcar #'(lambda (x) (cons (symbol-name (aref x 1)) (aref x 1)))
 		    font-slant-table))
-	   (`:inverse-video
+	   (:inverse-video
 	    (mapcar #'(lambda (x) (cons (symbol-name x) x))
 		    (internal-lisp-face-attribute-values attribute)))
-           ((or `:underline `:overline `:strike-through `:box)
+           ((or :underline :overline :strike-through :box)
             (if (window-system frame)
                 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
                                (internal-lisp-face-attribute-values attribute))
@@ -1112,12 +1112,12 @@ an integer value."
                                (defined-colors frame)))
 	      (mapcar #'(lambda (x) (cons (symbol-name x) x))
 		      (internal-lisp-face-attribute-values attribute))))
-           ((or `:foreground `:background)
+           ((or :foreground :background)
             (mapcar #'(lambda (c) (cons c c))
                     (defined-colors frame)))
-           (`:height
+           (:height
             'integerp)
-           (`:stipple
+           (:stipple
             (and (memq (window-system frame) '(x ns)) ; No stipple on w32
                  (mapcar #'list
                          (apply #'nconc
@@ -1126,7 +1126,7 @@ an integer value."
                                                (file-directory-p dir)
                                                (directory-files dir)))
                                         x-bitmap-file-path)))))
-           (`:inherit
+           (:inherit
             (cons '("none" . nil)
                   (mapcar #'(lambda (c) (cons (symbol-name c) c))
                           (face-list))))

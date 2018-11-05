@@ -311,6 +311,17 @@ are \" Fw\", or simply \"\"."
 	   (remove-hook 'find-file-hook 'follow-find-file-hook))
 	 (set-default symbol value)))
 
+(defcustom follow-hide-ghost-cursors t  ; Maybe this should be nil.
+  "When non-nil, Follow mode attempts to hide the obtrusive cursors
+in the non-selected windows of a window group.
+
+This variable takes effect when `follow-mode' is initialized.
+
+Due to limitations in Emacs, this only operates on the followers
+of the selected window."
+  :type 'boolean
+  :group 'follow)
+
 (defvar follow-cache-command-list
   '(next-line previous-line forward-char backward-char right-char left-char)
   "List of commands that don't require recalculation.
@@ -427,6 +438,8 @@ Keys specific to Follow mode:
 
         (when isearch-lazy-highlight
           (setq-local isearch-lazy-highlight 'all-windows))
+        (when follow-hide-ghost-cursors
+          (setq-local cursor-in-non-selected-windows nil))
 
         (setq window-group-start-function 'follow-window-start)
         (setq window-group-end-function 'follow-window-end)
@@ -455,6 +468,8 @@ Keys specific to Follow mode:
     (kill-local-variable 'set-window-group-start-function)
     (kill-local-variable 'window-group-end-function)
     (kill-local-variable 'window-group-start-function)
+
+    (kill-local-variable 'cursor-in-non-selected-windows)
 
     (remove-hook 'ispell-update-post-hook 'follow-post-command-hook t)
     (remove-hook 'replace-update-post-hook 'follow-post-command-hook t)
@@ -1262,6 +1277,10 @@ non-first windows in Follow mode."
 
 ;;; Pre Display Function
 
+(defvar follow-prev-buffer nil
+  "The buffer current at the last call to `follow-adjust-window' or nil.
+follow-mode is not necessarily enabled in this buffer.")
+
 ;; This function is added to `pre-display-function' and is thus called
 ;; before each redisplay operation.  It supersedes (2018-09) the
 ;; former use of the post command hook, and now does the right thing
@@ -1310,6 +1329,24 @@ non-first windows in Follow mode."
 (defun follow-adjust-window (win)
   ;; Adjust the window WIN and its followers.
   (cl-assert (eq (window-buffer win) (current-buffer)))
+
+  ;; Have we moved out of or into a follow-mode window group?
+  ;; If so, attend to the visibility of the cursors.
+  (when (not (eq (current-buffer) follow-prev-buffer))
+    ;; Do we need to switch off cursor handling in the previous buffer?
+    (when (buffer-live-p follow-prev-buffer)
+      (with-current-buffer follow-prev-buffer
+        (when (and follow-mode
+                   (local-variable-p 'cursor-in-non-selected-windows))
+          (setq cursor-in-non-selected-windows
+                (default-value 'cursor-in-non-selected-windows)))))
+    ;; Do we need to switch on cursor handling in the current buffer?
+    (when (and follow-mode
+               (local-variable-p 'cursor-in-non-selected-windows))
+      (setq cursor-in-non-selected-windows nil))
+    (when (buffer-live-p (current-buffer))
+      (setq follow-prev-buffer (current-buffer))))
+
   (when (and follow-mode
              (not (window-minibuffer-p win)))
     (let ((windows (follow-all-followers win)))
@@ -1405,7 +1442,13 @@ non-first windows in Follow mode."
 	  (unless (eq win (selected-window))
 	    (let ((p (window-point win)))
 	      (set-window-start win (window-start win) nil)
-	      (set-window-point win p))))
+              (if (nth 2 (pos-visible-in-window-p p win t))
+                  ;; p is in a partially visible line.  We can't leave
+                  ;; window-point there, because C-x o back into WIN
+                  ;; would then fail.
+                  (with-selected-window win
+                    (forward-line)) ; redisplay will recenter it in WIN.
+	        (set-window-point win p)))))
 
 	(unless visible
 	  ;; If point may not be visible in the selected window,

@@ -27,11 +27,18 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 #include "keyboard.h"
 
-static struct thread_state main_thread;
+union aligned_thread_state
+{
+  struct thread_state s;
+  GCALIGNED_UNION_MEMBER
+};
+verify (GCALIGNED (union aligned_thread_state));
 
-struct thread_state *current_thread = &main_thread;
+static union aligned_thread_state main_thread;
 
-static struct thread_state *all_threads = &main_thread;
+struct thread_state *current_thread = &main_thread.s;
+
+static struct thread_state *all_threads = &main_thread.s;
 
 static sys_mutex_t global_lock;
 
@@ -113,7 +120,7 @@ maybe_reacquire_global_lock (void)
   /* SIGINT handler is always run on the main thread, see
      deliver_process_signal, so reflect that in our thread-tracking
      variables.  */
-  current_thread = &main_thread;
+  current_thread = &main_thread.s;
 
   if (current_thread->not_holding_lock)
     {
@@ -656,6 +663,12 @@ mark_threads (void)
   flush_stack_call_func (mark_threads_callback, NULL);
 }
 
+void
+unmark_main_thread (void)
+{
+  main_thread.s.header.size &= ~ARRAY_MARK_FLAG;
+}
+
 
 
 static void
@@ -1037,23 +1050,23 @@ thread_check_current_buffer (struct buffer *buffer)
 static void
 init_main_thread (void)
 {
-  main_thread.header.size
+  main_thread.s.header.size
     = PSEUDOVECSIZE (struct thread_state, m_stack_bottom);
-  XSETPVECTYPE (&main_thread, PVEC_THREAD);
-  main_thread.m_last_thing_searched = Qnil;
-  main_thread.m_saved_last_thing_searched = Qnil;
-  main_thread.name = Qnil;
-  main_thread.function = Qnil;
-  main_thread.result = Qnil;
-  main_thread.error_symbol = Qnil;
-  main_thread.error_data = Qnil;
-  main_thread.event_object = Qnil;
+  XSETPVECTYPE (&main_thread.s, PVEC_THREAD);
+  main_thread.s.m_last_thing_searched = Qnil;
+  main_thread.s.m_saved_last_thing_searched = Qnil;
+  main_thread.s.name = Qnil;
+  main_thread.s.function = Qnil;
+  main_thread.s.result = Qnil;
+  main_thread.s.error_symbol = Qnil;
+  main_thread.s.error_data = Qnil;
+  main_thread.s.event_object = Qnil;
 }
 
 bool
 main_thread_p (void *ptr)
 {
-  return ptr == &main_thread;
+  return ptr == &main_thread.s;
 }
 
 bool
@@ -1074,11 +1087,11 @@ void
 init_threads (void)
 {
   init_main_thread ();
-  sys_cond_init (&main_thread.thread_condvar);
+  sys_cond_init (&main_thread.s.thread_condvar);
   sys_mutex_init (&global_lock);
   sys_mutex_lock (&global_lock);
-  current_thread = &main_thread;
-  main_thread.thread_id = sys_thread_self ();
+  current_thread = &main_thread.s;
+  main_thread.s.thread_id = sys_thread_self ();
 }
 
 void
@@ -1124,7 +1137,7 @@ syms_of_threads (void)
   DEFVAR_LISP ("main-thread", Vmain_thread,
     doc: /* The main thread of Emacs.  */);
 #ifdef THREADS_ENABLED
-  XSETTHREAD (Vmain_thread, &main_thread);
+  XSETTHREAD (Vmain_thread, &main_thread.s);
 #else
   Vmain_thread = Qnil;
 #endif

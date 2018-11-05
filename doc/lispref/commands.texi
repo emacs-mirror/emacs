@@ -137,6 +137,9 @@ start with a capital, e.g., @code{"use (system-name) instead."}); @code{t}; any
 other symbol, which should be an alternative function to use in Lisp
 code.
 
+Generic functions (@pxref{Generic Functions}) cannot be turned into
+commands by adding the @code{interactive} form to them.
+
 @menu
 * Using Interactive::     General rules for @code{interactive}.
 * Interactive Codes::     The standard letter-codes for reading arguments

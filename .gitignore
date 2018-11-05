@@ -264,6 +264,7 @@ etc/emacs.tmpdesktop
 *.in-h
 _*
 !lib/_Noreturn.h
+!m4/_*.m4
 /bin/
 /BIN/
 /data/

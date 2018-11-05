@@ -909,6 +909,12 @@ draw_window_fringes (struct window *w, bool no_fringe_p)
   if (w->pseudo_window_p)
     return updated_p;
 
+  /* We must switch to the window's buffer to use its local value of
+     the fringe face, in case it's been remapped in face-remapping-alist.  */
+  Lisp_Object window_buffer = w->contents;
+  struct buffer *oldbuf = current_buffer;
+  set_buffer_internal_1 (XBUFFER (window_buffer));
+
   /* Must draw line if no fringe */
   if (no_fringe_p
       && (WINDOW_LEFT_FRINGE_WIDTH (w) == 0
@@ -925,6 +931,8 @@ draw_window_fringes (struct window *w, bool no_fringe_p)
       row->redraw_fringe_bitmaps_p = 0;
       updated_p = 1;
     }
+
+  set_buffer_internal_1 (oldbuf);
 
   return updated_p;
 }

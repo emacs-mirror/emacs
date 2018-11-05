@@ -4820,7 +4820,7 @@ command is called from a keyboard macro?"
                           i frame nextframe)))
                (pcase skip
                  (`nil nil)
-                 (`0 t)
+                 (0 t)
                  (_ (setq i (+ i skip -1)) (funcall get-next-frame)))))))
       ;; Now `frame' should be "the function from which we were called".
       (pcase (cons frame nextframe)

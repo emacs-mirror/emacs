@@ -219,25 +219,24 @@ Specifically, start it when the saved buffer is actually displayed."
   :version "26.1"
   :type 'boolean)
 
-(when (fboundp 'define-fringe-bitmap)
-  (define-fringe-bitmap 'flymake-double-exclamation-mark
-    (vector #b00000000
-            #b00000000
-            #b00000000
-            #b00000000
-            #b01100110
-            #b01100110
-            #b01100110
-            #b01100110
-            #b01100110
-            #b01100110
-            #b01100110
-            #b01100110
-            #b00000000
-            #b01100110
-            #b00000000
-            #b00000000
-            #b00000000)))
+(define-fringe-bitmap 'flymake-double-exclamation-mark
+  (vector #b00000000
+          #b00000000
+          #b00000000
+          #b00000000
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b01100110
+          #b00000000
+          #b01100110
+          #b00000000
+          #b00000000
+          #b00000000))
 
 (defvar-local flymake-timer nil
   "Timer for starting syntax check.")
@@ -1184,20 +1183,17 @@ default) no filter is applied."
       ,@(unless (or all-disabled
                     (null known))
           (cl-loop
-           for (type . severity)
-           in (cl-sort (mapcar (lambda (type)
-                                 (cons type (flymake--severity type)))
-                               (cl-union (hash-table-keys diags-by-type)
-                                         '(:error :warning)
-                                         :key #'flymake--severity))
-                       #'>
-                       :key #'cdr)
+           with types = (hash-table-keys diags-by-type)
+           with _augmented = (cl-loop for extra in '(:error :warning)
+                                      do (cl-pushnew extra types
+                                                     :key #'flymake--severity))
+           for type in (cl-sort types #'> :key #'flymake--severity)
            for diags = (gethash type diags-by-type)
            for face = (flymake--lookup-type-property type
                                                      'mode-line-face
                                                      'compilation-error)
-           when (or diags
-                    (>= severity (warning-numeric-level :warning)))
+           when (or diags (>= (flymake--severity type)
+                              (warning-numeric-level :warning)))
            collect `(:propertize
                      ,(format "%d" (length diags))
                      face ,face

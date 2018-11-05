@@ -1966,6 +1966,10 @@ is given by the variable @code{server-name} on the Emacs server.  If
 this option is omitted, @command{emacsclient} connects to the first
 server it finds.  (This option is not supported on MS-Windows.)
 
+Alternatively, you can set the @env{EMACS_SOCKET_NAME} environment
+variable to point to the server socket.  (The command-line option
+overrides the environment variable.)
+
 @item -t
 @itemx --tty
 @itemx -nw

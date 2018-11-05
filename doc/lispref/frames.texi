@@ -3261,11 +3261,11 @@ and should be preferred when specifying a non-@code{nil}
 @code{drag-with-mode-line} parameter.
 
   When a child frame is used for displaying a buffer via
-@code{display-buffer-in-child-frame} (@pxref{Display Action Functions}),
-the frame's @code{auto-hide-function} parameter (@pxref{Frame
-Interaction Parameters}) can be set to a function, in order to
-appropriately deal with the frame when the window displaying the buffer
-shall be quit.
+@code{display-buffer-in-child-frame} (@pxref{Buffer Display Action
+Functions}), the frame's @code{auto-hide-function} parameter
+(@pxref{Frame Interaction Parameters}) can be set to a function, in
+order to appropriately deal with the frame when the window displaying
+the buffer shall be quit.
 
   When a child frame is used during minibuffer interaction, for example,
 to display completions in a separate window, the @code{minibuffer-exit}

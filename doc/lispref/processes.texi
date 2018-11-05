@@ -598,8 +598,8 @@ communication is only partially asynchronous: Emacs sends data to the
 process only when certain functions are called, and Emacs accepts data
 from the process only while waiting for input or for a time delay.
 
-@cindex pty
-@cindex pipe
+@cindex pty, when to use for subprocess communications
+@cindex pipe, when to use for subprocess communications
   An asynchronous process is controlled either via a @dfn{pty}
 (pseudo-terminal) or a @dfn{pipe}.  The choice of pty or pipe is made
 when creating the process, by default based on the value of the
@@ -609,11 +609,13 @@ Shell mode, because they allow for job control (@kbd{C-c}, @kbd{C-z},
 etc.)@: between the process and its children, and because interactive
 programs treat ptys as terminal devices, whereas pipes don't support
 these features.  However, for subprocesses used by Lisp programs for
-internal purposes, it is often better to use a pipe, because pipes are
-more efficient, and because they are immune to stray character
-injections that ptys introduce for large (around 500 byte) messages.
-Also, the total number of ptys is limited on many systems and it is
-good not to waste them.
+internal purposes (i.e., no user interaction with the subprocess is
+required), where significant amounts of data need to be exchanged
+between the subprocess and the Lisp program, it is often better to use
+a pipe, because pipes are more efficient, and because they are immune
+to stray character injections that ptys introduce for large (around
+500 byte) messages.  Also, the total number of ptys is limited on many
+systems, and it is good not to waste them unnecessarily.
 
 @defun make-process &rest args
 This function is the basic low-level primitive for starting
@@ -666,7 +668,9 @@ pipe, or @code{nil} to use the default derived from the value of the
 @code{process-connection-type} variable.  This parameter and the value
 of @code{process-connection-type} are ignored if a non-@code{nil}
 value is specified for the @code{:stderr} parameter; in that case, the
-type will always be @code{pipe}.
+type will always be @code{pipe}.  On systems where ptys are not
+available (MS-Windows), this parameter is likewise ignored, and pipes
+are used unconditionally.
 
 @item :noquery @var{query-flag}
 Initialize the process query flag to @var{query-flag}.
@@ -873,7 +877,8 @@ around the call to these functions.
 Note that the value of this variable is ignored when
 @code{make-process} is called with a non-@code{nil} value of the
 @code{:stderr} parameter; in that case, Emacs will communicate with
-the process using pipes.
+the process using pipes.  It is also ignored if ptys are unavailable
+(MS-Windows).
 
 @smallexample
 @group

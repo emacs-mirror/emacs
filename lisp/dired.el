@@ -3046,10 +3046,10 @@ TRASH non-nil means to trash the file instead of deleting, provided
                              ("no"   ?n "skip to next")
                              ("all"  ?! "delete all remaining directories with no more questions")
                              ("quit" ?q "exit")))
-                     ('"all" (setq recursive 'always dired-recursive-deletes recursive))
-                     ('"yes" (if (eq recursive 'top) (setq recursive 'always)))
-                     ('"no" (setq recursive nil))
-                     ('"quit" (keyboard-quit))
+                     ("all" (setq recursive 'always dired-recursive-deletes recursive))
+                     ("yes" (if (eq recursive 'top) (setq recursive 'always)))
+                     ("no" (setq recursive nil))
+                     ("quit" (keyboard-quit))
                      (_ (keyboard-quit))))) ; catch all unknown answers
              (setq recursive nil)) ; Empty dir or recursive is nil.
            (delete-directory file recursive trash))))

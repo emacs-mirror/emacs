@@ -3879,9 +3879,10 @@ comment at the start of cc-engine.el for more info."
 (defmacro c-state-maybe-marker (place marker)
   ;; If PLACE is non-nil, return a marker marking it, otherwise nil.
   ;; We (re)use MARKER.
-  `(and ,place
-	(or ,marker (setq ,marker (make-marker)))
-	(set-marker ,marker ,place)))
+  `(let ((-place- ,place))
+     (and -place-
+	  (or ,marker (setq ,marker (make-marker)))
+	  (set-marker ,marker -place-))))
 
 (defun c-parse-state ()
   ;; This is a wrapper over `c-parse-state-1'.  See that function for a
@@ -13253,6 +13254,18 @@ Cannot combine absolute offsets %S and %S in `add' method"
 		    (current-column)))
       indent)))
 
+
+(def-edebug-spec c-bos-pop-state t)
+(def-edebug-spec c-bos-save-error-info t)
+(def-edebug-spec c-state-cache-top-lparen t)
+(def-edebug-spec c-state-cache-top-paren t)
+(def-edebug-spec c-state-cache-after-top-paren t)
+(def-edebug-spec c-state-maybe-marker (form symbolp))
+(def-edebug-spec c-record-type-id t)
+(def-edebug-spec c-record-ref-id t)
+(def-edebug-spec c-forward-keyword-prefixed-id t)
+(def-edebug-spec c-forward-id-comma-list t)
+(def-edebug-spec c-pull-open-brace (symbolp))
 
 (cc-provide 'cc-engine)
 

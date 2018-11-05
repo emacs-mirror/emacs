@@ -1170,7 +1170,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (setq-local fill-indent-according-to-mode t)
   (add-hook 'completion-at-point-functions
             #'latex-complete-data nil 'local)
-  (add-hook 'flymake-diagnostic-functions 'tex-chktex nil t)
+  (add-hook 'flymake-diagnostic-functions #'tex-chktex nil t)
   (setq-local outline-regexp latex-outline-regexp)
   (setq-local outline-level #'latex-outline-level)
   (setq-local forward-sexp-function #'latex-forward-sexp)
@@ -1261,8 +1261,8 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq-local comment-start-skip
 	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
   (setq-local parse-sexp-ignore-comments t)
-  (setq-local compare-windows-whitespace 'tex-categorize-whitespace)
-  (setq-local facemenu-add-face-function 'tex-facemenu-add-face-function)
+  (setq-local compare-windows-whitespace #'tex-categorize-whitespace)
+  (setq-local facemenu-add-face-function #'tex-facemenu-add-face-function)
   (setq-local facemenu-end-add-face "}")
   (setq-local facemenu-remove-face-function t)
   (setq-local font-lock-defaults
@@ -1591,7 +1591,7 @@ Puts point on a blank line between them."
 (defvar latex-complete-bibtex-cache nil)
 
 (define-obsolete-function-alias 'latex-string-prefix-p
-  'string-prefix-p "24.3")
+  #'string-prefix-p "24.3")
 
 (defvar bibtex-reference-key)
 (declare-function reftex-get-bibfile-list "reftex-cite.el" ())
@@ -2109,7 +2109,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 	    (delete-file (concat dir (car list))))
           (setq list (cdr list))))))
 
-(add-hook 'kill-emacs-hook 'tex-delete-last-temp-files)
+(add-hook 'kill-emacs-hook #'tex-delete-last-temp-files)
 
 ;;
 ;; Machinery to guess the command that the user wants to execute.
@@ -2168,7 +2168,7 @@ IN can be either a string (with the same % escapes in it) indicating
 OUT describes the output file and is either a %-escaped string
   or nil to indicate that there is no output file.")
 
-(define-obsolete-function-alias 'tex-string-prefix-p 'string-prefix-p "24.3")
+(define-obsolete-function-alias 'tex-string-prefix-p #'string-prefix-p "24.3")
 
 (defun tex-guess-main-file (&optional all)
   "Find a likely `tex-main-file'.
@@ -2263,9 +2263,11 @@ FILE is typically the output DVI or PDF file."
 		(> (save-excursion
                      ;; Usually page numbers are output as [N], but
                      ;; I've already seen things like
-                     ;; [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-                     (or (re-search-backward "\\[[0-9]+\\({[^}]*}\\)?\\]"
-                                             nil t)
+                     ;; [N{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+                     ;; as well as [N.N] (e.g. with 'acmart' style).
+                     (or (re-search-backward
+                          "\\[[0-9]+\\({[^}]*}\\|\\.[0-9]+\\)?\\]"
+                          nil t)
 			 (point-min)))
 		   (save-excursion
 		     (or (re-search-backward "Rerun" nil t)
@@ -2993,7 +2995,7 @@ There might be text before point."
 	       (lambda (x)
 		 (pcase (car-safe x)
 		   (`font-lock-syntactic-face-function
-		    (cons (car x) 'doctex-font-lock-syntactic-face-function))
+		    (cons (car x) #'doctex-font-lock-syntactic-face-function))
 		   (_ x)))
 	       (cdr font-lock-defaults))))
   (setq-local syntax-propertize-function

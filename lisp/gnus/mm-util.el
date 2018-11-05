@@ -827,7 +827,7 @@ decompressed data.  The buffer's multibyteness must be turned off."
 					    (insert-file-contents err-file)
 					    (buffer-string)
 					  (erase-buffer))
-                                        t)
+					nil t)
 				       " ")
 			    "\n")
 		    (setq err-msg

@@ -518,6 +518,26 @@ that it is for notmuch, not Namazu."
   :type '(regexp)
   :group 'nnir)
 
+(defcustom nnir-notmuch-filter-group-names-function
+  #'gnus-group-short-name
+  "Whether and how to use Gnus group names as \"path:\" search terms.
+When nil, the groups being searched in are not used as notmuch
+:path search terms.  It's still possible to use \"path:\" terms
+manually within the search query, however.
+
+When a function, map this function over all the group names.  By
+default this runs them through `gnus-group-short-name', and it is
+recommended to use this transform, at least.  Further
+transforms (for instance, converting \".\" to \"/\") can be
+added like so:
+
+\(add-function :filter-return
+   nnir-notmuch-filter-group-names-function
+   (lambda (g) (replace-regexp-in-string \"\\\\.\" \"/\" g)))"
+  :version "27.1"
+  :type '(choice function
+		 nil))
+
 ;;; Developer Extension Variable:
 
 (defvar nnir-engines
@@ -1505,23 +1525,30 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
                                (> (nnir-artitem-rsv x)
                                   (nnir-artitem-rsv y)))))))))
 
-(defun nnir-run-notmuch (query server &optional _group)
+(defun nnir-run-notmuch (query server &optional groups)
   "Run QUERY against notmuch.
 Returns a vector of (group name, file name) pairs (also vectors,
-actually)."
-
-  ;; (when group
-  ;;   (error "The notmuch backend cannot search specific groups"))
+actually).  If GROUPS is a list of group names, use them to
+construct path: search terms (see the variable
+`nnir-notmuch-filter-group-names-function')."
 
   (save-excursion
-    (let ( (qstring (cdr (assq 'query query)))
-	   (groupspec (cdr (assq 'notmuch-group query)))
+    (let* ((qstring (cdr (assq 'query query)))
 	   (prefix (nnir-read-server-parm 'nnir-notmuch-remove-prefix server))
            artlist
 	   (article-pattern (if (string-match "\\`nnmaildir:"
 					      (gnus-group-server server))
-			       ":[0-9]+"
-			     "^[0-9]+$"))
+				":[0-9]+"
+			      "^[0-9]+$"))
+	   (groups (when nnir-notmuch-filter-group-names-function
+		     (mapcar nnir-notmuch-filter-group-names-function
+			     groups)))
+	   (pathquery (when groups
+			(concat "("
+			 (mapconcat (lambda (g)
+				      (format " path:%s" g))
+				    groups " or")
+			 ")")))
            artno dirnam filenam)
 
       (when (equal "" qstring)
@@ -1530,9 +1557,13 @@ actually)."
       (set-buffer (get-buffer-create nnir-tmp-buffer))
       (erase-buffer)
 
-      (if groupspec
-          (message "Doing notmuch query %s on %s..." qstring groupspec)
+      (if groups
+          (message "Doing notmuch query %s on %s..."
+		   qstring (mapconcat #'identity groups " "))
         (message "Doing notmuch query %s..." qstring))
+
+      (when groups
+	(setq qstring (concat qstring pathquery)))
 
       (let* ((cp-list `( ,nnir-notmuch-program
                          nil            ; input from /dev/null
@@ -1571,10 +1602,7 @@ actually)."
         (when (string-match article-pattern artno)
           (when (not (null dirnam))
 
-	    ;; maybe limit results to matching groups.
-	    (when (or (not groupspec)
-		      (string-match groupspec dirnam))
-	      (nnir-add-result dirnam artno "" prefix server artlist)))))
+	    (nnir-add-result dirnam artno "" prefix server artlist))))
 
       (message "Massaging notmuch output...done")
 

@@ -992,7 +992,7 @@ IGNORES is a list of glob patterns."
        ;; do that reliably enough, without creating false negatives?
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
-                                     (expand-file-name dir)
+                                     (file-local-name (expand-file-name dir))
                                      ignores))
        (def default-directory)
        (buf (get-buffer-create " *xref-grep*"))
@@ -1003,7 +1003,7 @@ IGNORES is a list of glob patterns."
       (erase-buffer)
       (setq default-directory def)
       (setq status
-            (call-process-shell-command command nil t))
+            (process-file-shell-command command nil t))
       (goto-char (point-min))
       ;; Can't use the exit status: Grep exits with 1 to mean "no
       ;; matches found".  Find exits with 1 if any of the invocations
@@ -1105,6 +1105,7 @@ Such as the current syntax table and the applied syntax properties."
 
 (defun xref--collect-matches (hit regexp tmp-buffer)
   (pcase-let* ((`(,line ,file ,text) hit)
+               (file (and file (concat (file-remote-p default-directory) file)))
                (buf (xref--find-buffer-visiting file))
                (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
     (if buf

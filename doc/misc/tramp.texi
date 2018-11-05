@@ -464,7 +464,7 @@ this case it is written as @code{host#port}.
 @cindex @option{plink} method
 
 If your local host runs an SSH client, and the remote host runs an SSH
-server, the most simple remote file name is
+server, the simplest remote file name is
 @file{@trampfn{ssh,user@@host,/path/to/file}}.  The remote file name
 @file{@trampfn{ssh,,}} opens a remote connection to yourself on the
 local host, and is taken often for testing @value{tramp}.
@@ -2459,9 +2459,10 @@ and @code{user@@} parts are optional.
 
 @defvar tramp-file-name-regexp
 This variable keeps a regexp which matches the selected remote file
-name syntax.  However, it is not recommended to use this variable in
-external packages, a call of @code{file-remote-p} is much more
-appropriate.
+name syntax.  Its value changes after every call of
+@code{tramp-change-syntax}.  However, it is not recommended to use
+this variable in external packages, a call of @code{file-remote-p} is
+much more appropriate.
 @ifinfo
 @pxref{Magic File Names, , , elisp}
 @end ifinfo
@@ -2537,6 +2538,14 @@ names on that host.
 When the configuration (@pxref{Customizing Completion}) includes user
 names, then the completion lists will account for the user names as well.
 
+@vindex tramp-completion-use-auth-sources
+Results from @code{auth-sources} search (@pxref{Using an
+authentication file}) are added to the completion candidates.  This
+search could be annoying, for example due to a passphrase request of
+the @file{~/.authinfo.gpg} authentication file.  The user option
+@code{tramp-completion-use-auth-sources} controls, whether such a
+search is performed during completion.
+
 Remote hosts previously visited or hosts whose connections are kept
 persistently (@pxref{Connection caching}) will be included in the
 completion lists.
@@ -2585,9 +2594,9 @@ directory contents.
 @cindex multi-hop, ad-hoc
 @cindex proxy hosts, ad-hoc
 
-@value{tramp} file name syntax can accommodate ad hoc specification of
+@value{tramp} file name syntax can accommodate ad-hoc specification of
 multiple proxies without using @code{tramp-default-proxies-alist}
-configuration setup(@pxref{Multi-hops}).
+configuration setup (@pxref{Multi-hops}).
 
 Each proxy is specified using the same syntax as the remote host
 specification minus the file name part.  Each hop is separated by a
@@ -2599,8 +2608,6 @@ proxy @samp{bird@@bastion} to a remote file on @samp{you@@remotehost}:
 @c @kbd{C-x C-f @trampfn{ssh@value{postfixhop}bird@@bastion|ssh,you,remotehost,/path} @key{RET}}
 @kbd{C-x C-f @value{prefix}ssh@value{postfixhop}bird@@bastion|ssh@value{postfixhop}you@@remotehost@value{postfix}/path @key{RET}}
 @end example
-
-Proxies can take patterns @code{%h} or @code{%u}.
 
 @value{tramp} adds the ad-hoc definitions on the fly to
 @code{tramp-default-proxies-alist} and is available for re-use
@@ -2617,6 +2624,17 @@ For ad-hoc definitions to be saved automatically in
 (customize-set-variable 'tramp-save-ad-hoc-proxies t)
 @end lisp
 @end defopt
+
+Ad-hoc proxies can take patterns @code{%h} or @code{%u} like in
+@code{tramp-default-proxies-alist}.  The following file name expands
+to user @code{root} on host @code{remotehost}, starting with an
+@option{ssh} session on host @code{remotehost}:
+@samp{@value{prefix}ssh@value{postfixhop}%h|su@value{postfixhop}remotehost@value{postfix}}.
+
+On the other hand, if a trailing hop does not specifiy a host name,
+the host name of the previous hop is reused. Therefore, the following
+file name is equivalent to the previous example:
+@samp{@value{prefix}ssh@value{postfixhop}remotehost|su@value{postfixhop}@value{postfix}}.
 
 
 @node Remote processes

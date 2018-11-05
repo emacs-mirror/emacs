@@ -758,7 +758,9 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   register Lisp_Object function;
   CHECK_SYMBOL (symbol);
   /* Perhaps not quite the right error signal, but seems good enough.  */
-  if (NILP (symbol))
+  if (NILP (symbol) && !NILP (definition))
+    /* There are so many other ways to shoot oneself in the foot, I don't
+       think this one little sanity check is worth its cost, but anyway.  */
     xsignal1 (Qsetting_constant, symbol);
 
   function = XSYMBOL (symbol)->u.s.function;

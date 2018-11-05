@@ -358,7 +358,7 @@ return LIMIT such candidates.  If SORTFUNC is provided, sort
 entries first and return candidates from beginning of list."
   (let* ((precious (oref db precious))
 	 (precious-p (lambda (entry-key)
-		       (cdr (memq (car-safe entry-key) precious))))
+		       (memq (car-safe entry-key) precious)))
 	 (data (oref db data))
 	 (candidates (cl-loop for k being the hash-keys of data
 			      using (hash-values v)

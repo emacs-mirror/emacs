@@ -3324,7 +3324,7 @@ readable_events (int flags)
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
     timer_check ();
 
-  /* If the buffer contains only FOCUS_IN_EVENT events, and
+  /* If the buffer contains only FOCUS_IN/OUT_EVENT events, and
      READABLE_EVENTS_FILTER_EVENTS is set, report it as empty.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
@@ -3344,7 +3344,8 @@ readable_events (int flags)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		    (flags & READABLE_EVENTS_FILTER_EVENTS) &&
 #endif
-		    event->kind == FOCUS_IN_EVENT)
+		    (event->kind == FOCUS_IN_EVENT
+                     || event->kind == FOCUS_OUT_EVENT))
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		  && !((flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
 		       && (event->kind == SCROLL_BAR_CLICK_EVENT

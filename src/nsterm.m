@@ -279,7 +279,6 @@ long context_menu_value = 0;
 
 /* display update */
 static int ns_window_num = 0;
-static BOOL gsaved = NO;
 static BOOL ns_fake_keydown = NO;
 #ifdef NS_IMPL_COCOA
 static BOOL ns_menu_bar_is_hidden = NO;
@@ -1234,7 +1233,6 @@ ns_clip_to_rect (struct frame *f, NSRect *r, int n)
             NSRectClipList (r, 2);
           else
             NSRectClip (*r);
-          gsaved = YES;
 
           return YES;
         }
@@ -1258,11 +1256,7 @@ ns_reset_clipping (struct frame *f)
 {
   NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "ns_reset_clipping");
 
-  if (gsaved)
-    {
-      [[NSGraphicsContext currentContext] restoreGraphicsState];
-      gsaved = NO;
-    }
+  [[NSGraphicsContext currentContext] restoreGraphicsState];
 }
 
 
@@ -1287,19 +1281,6 @@ ns_clip_to_row (struct window *w, struct glyph_row *row,
 
   return ns_clip_to_rect (f, &clip_rect, 1);
 }
-
-
-static void
-ns_flush_display (struct frame *f)
-/* Force the frame to redisplay.  If areas have previously been marked
-   dirty by setNeedsDisplayInRect (in ns_clip_to_rect), then this will call
-   draw_rect: which will "expose" those areas.  */
-{
-  block_input ();
-  [FRAME_NS_VIEW (f) displayIfNeeded];
-  unblock_input ();
-}
-
 
 /* ==========================================================================
 
@@ -2837,6 +2818,8 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 static void
 ns_copy_bits (struct frame *f, NSRect src, NSRect dest)
 {
+  NSSize delta = NSMakeSize (dest.origin.x - src.origin.x,
+                             dest.origin.y - src.origin.y)
   NSTRACE ("ns_copy_bits");
 
   if (FRAME_NS_VIEW (f))
@@ -2845,9 +2828,21 @@ ns_copy_bits (struct frame *f, NSRect src, NSRect dest)
 
       /* FIXME: scrollRect:by: is deprecated in macOS 10.14.  There is
          no obvious replacement so we may have to come up with our own.  */
-      [FRAME_NS_VIEW (f) scrollRect: src
-                                 by: NSMakeSize (dest.origin.x - src.origin.x,
-                                                 dest.origin.y - src.origin.y)];
+      [FRAME_NS_VIEW (f) scrollRect: src by: delta];
+
+#ifdef NS_IMPL_COCOA
+      /* As far as I can tell from the documentation, scrollRect:by:,
+         above, should copy the dirty rectangles from our source
+         rectangle to our destination, however it appears it clips the
+         operation to src.  As a result we need to use
+         translateRectsNeedingDisplayInRect:by: below, and we have to
+         union src and dest so it can pick up the dirty rectangles,
+         and place them, as it also clips to the rectangle.
+
+         FIXME: We need a GNUstep equivalent.  */
+      [FRAME_NS_VIEW (f) translateRectsNeedingDisplayInRect:NSUnionRect (src, dest)
+                                                         by:delta];
+#endif
     }
 }
 
@@ -3232,15 +3227,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       else
         [FRAME_CURSOR_COLOR (f) set];
 
-#ifdef NS_IMPL_COCOA
-      /* TODO: This makes drawing of cursor plus that of phys_cursor_glyph
-         atomic.  Cleaner ways of doing this should be investigated.
-         One way would be to set a global variable DRAWING_CURSOR
-         when making the call to draw_phys..(), don't focus in that
-         case, then move the ns_reset_clipping() here after that call.  */
-      NSDisableScreenUpdates ();
-#endif
-
       switch (cursor_type)
         {
         case DEFAULT_CURSOR:
@@ -3274,10 +3260,6 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
       /* draw the character under the cursor */
       if (cursor_type != NO_CURSOR)
         draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
-
-#ifdef NS_IMPL_COCOA
-      NSEnableScreenUpdates ();
-#endif
     }
 }
 
@@ -5118,7 +5100,7 @@ static struct redisplay_interface ns_redisplay_interface =
   ns_after_update_window_line,
   ns_update_window_begin,
   ns_update_window_end,
-  ns_flush_display, /* flush_display */
+  0, /* flush_display */
   x_clear_window_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
@@ -7113,7 +7095,6 @@ not_in_argv (NSString *arg)
         size_title = xmalloc (strlen (old_title) + 40);
 	esprintf (size_title, "%s  —  (%d x %d)", old_title, cols, rows);
         [window setTitle: [NSString stringWithUTF8String: size_title]];
-        [window display];
         xfree (size_title);
       }
   }
@@ -8163,8 +8144,8 @@ not_in_argv (NSString *arg)
 
 - (void)drawRect: (NSRect)rect
 {
-  int x = NSMinX (rect), y = NSMinY (rect);
-  int width = NSWidth (rect), height = NSHeight (rect);
+  const NSRect *rectList;
+  NSInteger numRects;
 
   NSTRACE ("[EmacsView drawRect:" NSTRACE_FMT_RECT "]",
            NSTRACE_ARG_RECT(rect));
@@ -8172,9 +8153,23 @@ not_in_argv (NSString *arg)
   if (!emacsframe || !emacsframe->output_data.ns)
     return;
 
-  ns_clear_frame_area (emacsframe, x, y, width, height);
   block_input ();
-  expose_frame (emacsframe, x, y, width, height);
+
+  /* Get only the precise dirty rectangles to avoid redrawing
+     potentially large areas of the frame that haven't changed.
+
+     I'm not sure this actually provides much of a performance benefit
+     as it's hard to benchmark, but it certainly doesn't seem to
+     hurt.  */
+  [self getRectsBeingDrawn:&rectList count:&numRects];
+  for (int i = 0 ; i < numRects ; i++)
+    {
+      NSRect r = rectList[i];
+      expose_frame (emacsframe,
+                    NSMinX (r), NSMinY (r),
+                    NSWidth (r), NSHeight (r));
+    }
+
   unblock_input ();
 
   /*

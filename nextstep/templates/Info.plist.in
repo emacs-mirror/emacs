@@ -675,5 +675,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 	</array>
 	<key>NSAppleScriptEnabled</key>
 	<string>YES</string>
+        <key>NSAppleEventsUsageDescription</key>
+        <string>Emacs requires permission to send AppleEvents to other applications.</string>
 </dict>
 </plist>

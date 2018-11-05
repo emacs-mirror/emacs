@@ -272,10 +272,11 @@ Test with both unibyte and multibyte strings."
                   (cl-incf calls)
                   (throw 'test-tag 'throw-value))
                 :local)
-      (should-error
-       (catch 'test-tag
-         (json-insert '((a . "b") (c . 123) (d . [1 2 t :false]))))
-       :type 'no-catch)
+      (should
+       (equal
+        (catch 'test-tag
+          (json-insert '((a . "b") (c . 123) (d . [1 2 t :false]))))
+        'throw-value))
       (should (equal calls 1)))))
 
 (ert-deftest json-serialize/bignum ()

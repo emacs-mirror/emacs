@@ -1319,7 +1319,6 @@ succeeds.
 
 @item &define
 @c @kindex &define @r{(Edebug)}
-
 Indicates that the specification is for a defining form.  Edebug's
 definition of a defining form is a form containing one or more code
 forms which are saved and executed later, after the execution of the

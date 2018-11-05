@@ -1982,12 +1982,13 @@ started Emacs, set `abbreviated-home-dir' to nil so it will be recalculated)."
       (unless abbreviated-home-dir
         (put 'abbreviated-home-dir 'home (expand-file-name "~"))
         (setq abbreviated-home-dir
-              (let ((abbreviated-home-dir "$foo"))
-                (setq abbreviated-home-dir
+              (let* ((abbreviated-home-dir "\\`\\'.") ;Impossible regexp.
+                     (regexp
                       (concat "\\`"
-                              (abbreviate-file-name
-                               (get 'abbreviated-home-dir 'home))
-                              "\\(/\\|\\'\\)"))
+                              (regexp-quote
+                               (abbreviate-file-name
+                                (get 'abbreviated-home-dir 'home)))
+                              "\\(/\\|\\'\\)")))
                 ;; Depending on whether default-directory does or
                 ;; doesn't include non-ASCII characters, the value
                 ;; of abbreviated-home-dir could be multibyte or
@@ -1995,9 +1996,9 @@ started Emacs, set `abbreviated-home-dir' to nil so it will be recalculated)."
                 ;; it.  Note that this function is called for the
                 ;; first time (from startup.el) when
                 ;; locale-coding-system is already set up.
-                (if (multibyte-string-p abbreviated-home-dir)
-                    abbreviated-home-dir
-                  (decode-coding-string abbreviated-home-dir
+                (if (multibyte-string-p regexp)
+                    regexp
+                  (decode-coding-string regexp
                                         (if (eq system-type 'windows-nt)
                                             'utf-8
                                           locale-coding-system))))))
@@ -2010,22 +2011,22 @@ started Emacs, set `abbreviated-home-dir' to nil so it will be recalculated)."
       ;; is likely temporary (eg for testing).
       ;; FIXME Is it even worth caching abbreviated-home-dir?
       ;; Ref: https://debbugs.gnu.org/19657#20
-      (if (and (string-match abbreviated-home-dir filename)
-	       ;; If the home dir is just /, don't change it.
-	       (not (and (= (match-end 0) 1)
-			 (= (aref filename 0) ?/)))
-	       ;; MS-DOS root directories can come with a drive letter;
-	       ;; Novell Netware allows drive letters beyond `Z:'.
-	       (not (and (memq system-type '(ms-dos windows-nt cygwin))
-			 (save-match-data
-			   (string-match "^[a-zA-`]:/$" filename))))
-               (equal (get 'abbreviated-home-dir 'home)
-                      (save-match-data (expand-file-name "~"))))
-	  (setq filename
-		(concat "~"
-			(match-string 1 filename)
-			(substring filename (match-end 0)))))
-      filename)))
+      (let (mb1)
+        (if (and (string-match abbreviated-home-dir filename)
+                 (setq mb1 (match-beginning 1))
+	         ;; If the home dir is just /, don't change it.
+	         (not (and (= (match-end 0) 1)
+			   (= (aref filename 0) ?/)))
+	         ;; MS-DOS root directories can come with a drive letter;
+	         ;; Novell Netware allows drive letters beyond `Z:'.
+	         (not (and (memq system-type '(ms-dos windows-nt cygwin))
+			   (string-match "\\`[a-zA-`]:/\\'" filename)))
+                 (equal (get 'abbreviated-home-dir 'home)
+                        (expand-file-name "~")))
+	    (setq filename
+		  (concat "~"
+			  (substring filename mb1))))
+        filename))))
 
 (defun find-buffer-visiting (filename &optional predicate)
   "Return the buffer visiting file FILENAME (a string).
@@ -2422,9 +2423,9 @@ Do you want to revisit the file normally now? ")
 	       ;; If they fail too, set error.
 	       (setq error t)))))
       ;; Record the file's truename, and maybe use that as visited name.
-      (if (equal filename buffer-file-name)
-	  (setq buffer-file-truename truename)
-	(setq buffer-file-truename
+      (setq buffer-file-truename
+            (if (equal filename buffer-file-name)
+                truename
 	      (abbreviate-file-name (file-truename buffer-file-name))))
       (setq buffer-file-number number)
       (if find-file-visit-truename
@@ -4115,6 +4116,8 @@ those in the first."
       (dolist (f (list file-2 file-1))
         (when (and f
                    (file-readable-p f)
+                   ;; FIXME: Aren't file-regular-p and
+                   ;; file-directory-p mutually exclusive?
                    (file-regular-p f)
                    (not (file-directory-p f)))
           (push f out)))
@@ -6119,7 +6122,7 @@ an auto-save file."
   (interactive "FRecover file: ")
   (setq file (expand-file-name file))
   (if (auto-save-file-name-p (file-name-nondirectory file))
-      (error "%s is an auto-save file" (abbreviate-file-name file)))
+      (user-error "%s is an auto-save file" (abbreviate-file-name file)))
   (let ((file-name (let ((buffer-file-name file))
 		     (make-auto-save-file-name))))
     (cond ((and (file-exists-p file)
@@ -6129,8 +6132,8 @@ an auto-save file."
           ((if (file-exists-p file)
 	       (not (file-newer-than-file-p file-name file))
 	     (not (file-exists-p file-name)))
-	   (error "Auto-save file %s not current"
-		  (abbreviate-file-name file-name)))
+	   (user-error "Auto-save file %s not current"
+                       (abbreviate-file-name file-name)))
 	  ((with-temp-buffer-window
 	    "*Directory*" nil
 	    #'(lambda (window _value)

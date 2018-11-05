@@ -1267,7 +1267,7 @@ entry does not exist, return nil."
 (defun tramp-find-method (method user host)
   "Return the right method string to use.
 This is METHOD, if non-nil. Otherwise, do a lookup in
-`tramp-default-method-alist'."
+`tramp-default-method-alist' and `tramp-default-method'."
   (when (and method
 	     (or (string-equal method "")
 		 (string-equal method tramp-default-method-marker)))
@@ -1292,7 +1292,7 @@ This is METHOD, if non-nil. Otherwise, do a lookup in
 (defun tramp-find-user (method user host)
   "Return the right user string to use.
 This is USER, if non-nil. Otherwise, do a lookup in
-`tramp-default-user-alist'."
+`tramp-default-user-alist' and `tramp-default-user'."
   (let ((result
 	 (or user
 	     (let ((choices tramp-default-user-alist)
@@ -1312,18 +1312,24 @@ This is USER, if non-nil. Otherwise, do a lookup in
 
 (defun tramp-find-host (method user host)
   "Return the right host string to use.
-This is HOST, if non-nil. Otherwise, it is `tramp-default-host'."
-  (or (and (> (length host) 0) host)
-      (let ((choices tramp-default-host-alist)
-	    lhost item)
-	(while choices
-	  (setq item (pop choices))
-	  (when (and (string-match (or (nth 0 item) "") (or method ""))
-		     (string-match (or (nth 1 item) "") (or user "")))
-	    (setq lhost (nth 2 item))
-	    (setq choices nil)))
-	lhost)
-      tramp-default-host))
+This is HOST, if non-nil. Otherwise, do a lookup in
+`tramp-default-host-alist' and `tramp-default-host'."
+  (let ((result
+	 (or (and (> (length host) 0) host)
+	     (let ((choices tramp-default-host-alist)
+		   lhost item)
+	       (while choices
+		 (setq item (pop choices))
+		 (when (and (string-match (or (nth 0 item) "") (or method ""))
+			    (string-match (or (nth 1 item) "") (or user "")))
+		   (setq lhost (nth 2 item))
+		   (setq choices nil)))
+	       lhost)
+	     tramp-default-host)))
+    ;; We must mark, whether a default value has been used.
+    (if (or (> (length host) 0) (null result))
+	result
+      (propertize result 'tramp-default t))))
 
 (defun tramp-dissect-file-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of NAME, a remote file name.
@@ -1343,7 +1349,7 @@ default values are used."
 	    (host      (match-string (nth 3 tramp-file-name-structure) name))
 	    (localname (match-string (nth 4 tramp-file-name-structure) name))
 	    (hop       (match-string (nth 5 tramp-file-name-structure) name))
-	    domain port)
+	    domain port v)
 	(when user
 	  (when (string-match tramp-user-with-domain-regexp user)
 	    (setq domain (match-string 2 user)
@@ -1359,13 +1365,33 @@ default values are used."
 	    (setq host (replace-match "" nil t host))))
 
 	(unless nodefault
-	  (setq method (tramp-find-method method user host)
-		user (tramp-find-user method user host)
-		host (tramp-find-host method user host)))
+	  (when hop
+	    (setq v (tramp-dissect-hop-name hop)
+		  hop (and hop (tramp-make-tramp-hop-name v))))
+	  (let ((tramp-default-host
+		 (or (and v (not (string-match "%h" (tramp-file-name-host v)))
+			  (tramp-file-name-host v))
+		     tramp-default-host)))
+	    (setq method (tramp-find-method method user host)
+		  user (tramp-find-user method user host)
+		  host (tramp-find-host method user host)
+		  hop
+		  (and hop
+		       (format-spec hop (format-spec-make ?h host ?u user))))))
 
 	(make-tramp-file-name
 	 :method method :user user :domain domain :host host :port port
 	 :localname localname :hop hop)))))
+
+(defun tramp-dissect-hop-name (name &optional nodefault)
+  "Return a `tramp-file-name' structure of `hop' part of NAME.
+See `tramp-dissect-file-name' for details."
+  (tramp-dissect-file-name
+   (concat
+    tramp-prefix-format
+    (replace-regexp-in-string
+     (concat tramp-postfix-hop-regexp "$") tramp-postfix-host-format name))
+   nodefault))
 
 (defun tramp-buffer-name (vec)
   "A name for the connection buffer VEC."
@@ -1413,7 +1439,9 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
 	      localname (nth 5 args)
 	      hop (nth 6 args))))
 
-    (when (zerop (length method))
+    ;; Unless `tramp-syntax' is `simplified', we need a method.
+    (when (and (not (zerop (length tramp-postfix-method-format)))
+	       (zerop (length method)))
       (signal 'wrong-type-argument (list 'stringp method)))
     (concat tramp-prefix-format hop
 	    (unless (zerop (length tramp-postfix-method-format))
@@ -1432,6 +1460,14 @@ the form (METHOD USER DOMAIN HOST PORT LOCALNAME &optional HOP)."
 	      (concat tramp-prefix-port-format port))
 	    tramp-postfix-host-format
 	    localname)))
+
+(defun tramp-make-tramp-hop-name (vec)
+  "Construct a Tramp hop name from VEC."
+  (replace-regexp-in-string
+   tramp-prefix-regexp ""
+   (replace-regexp-in-string
+    (concat tramp-postfix-host-regexp "$") tramp-postfix-hop-format
+    (tramp-make-tramp-file-name vec 'noloc))))
 
 (defun tramp-completion-make-tramp-file-name (method user host localname)
   "Construct a Tramp file name from METHOD, USER, HOST and LOCALNAME.
@@ -1556,9 +1592,8 @@ The outline level is equal to the verbosity of the Tramp message."
 	(outline-mode))
       (set (make-local-variable 'outline-level) 'tramp-debug-outline-level)
       (set (make-local-variable 'font-lock-keywords)
-	   `(t
-	     (eval ,tramp-debug-font-lock-keywords)
-	     ,(eval tramp-debug-font-lock-keywords)))
+	   `(t (eval ,tramp-debug-font-lock-keywords)
+	       ,(eval tramp-debug-font-lock-keywords)))
       ;; Do not edit the debug buffer.
       (set-keymap-parent (current-local-map) special-mode-map))
     (current-buffer)))
@@ -1963,6 +1998,8 @@ For definition of that list see `tramp-set-completion-function'."
   (append
    `(;; Default settings are taken into account.
      (tramp-parse-default-user-host ,method)
+     ;; Hits from auth-sources.
+     (tramp-parse-auth-sources ,method)
      ;; Hosts visited once shall be remembered.
      (tramp-parse-connection-properties ,method))
    ;; The method related defaults.
@@ -2297,7 +2334,7 @@ If Emacs is compiled --with-threads, the body is protected by a mutex."
 			(when (autoloadp sf)
 			  (let ((default-directory
 				  (tramp-compat-temporary-file-directory))
-			        file-name-handler-alist)
+				file-name-handler-alist)
 			    (load (cadr sf) 'noerror 'nomessage)))
 			;; (tramp-message
 			;;  v 4 "Running `%s'..." (cons operation args))
@@ -2792,6 +2829,23 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
 This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from default settings."
   `((,(tramp-find-user method nil nil) ,(tramp-find-host method nil nil))))
+
+(defcustom tramp-completion-use-auth-sources auth-source-do-cache
+  "Whether to use `auth-source-search' for completion of user and host names.
+This could be disturbing, if it requires a password / passphrase,
+as for \"~/.authinfo.gpg\"."
+  :group 'tramp
+  :version "27.1"
+  :type 'boolean)
+
+(defun tramp-parse-auth-sources (method)
+  "Return a list of (user host) tuples allowed to access for METHOD.
+This function is added always in `tramp-get-completion-function'
+for all methods.  Resulting data are derived from default settings."
+  (and tramp-completion-use-auth-sources
+       (mapcar
+	(lambda (x) `(,(plist-get x :user) ,(plist-get x :host)))
+	(auth-source-search :port method :max most-positive-fixnum))))
 
 ;; Generic function.
 (defun tramp-parse-group (regexp match-level skip-regexp)
@@ -4549,13 +4603,7 @@ Invokes `password-read' if available, `read-passwd' else."
 	(hop (tramp-file-name-hop vec)))
     (when hop
       ;; Clear also the passwords of the hops.
-      (tramp-clear-passwd
-       (tramp-dissect-file-name
-	(concat
-	 tramp-prefix-format
-	 (replace-regexp-in-string
-	  (concat tramp-postfix-hop-regexp "$")
-	  tramp-postfix-host-format hop)))))
+      (tramp-clear-passwd (tramp-dissect-hop-name hop)))
     (auth-source-forget
      `(:max 1 ,(and user-domain :user) ,user-domain
        :host ,host-port :port ,method))

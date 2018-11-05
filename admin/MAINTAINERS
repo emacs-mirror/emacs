@@ -210,8 +210,8 @@ Paul Eggert
 Michael Albinus
 	src/inotify.c
         lisp/autorevert.el
-        lisp/files.el (file-name-non-special)
 	lisp/eshell/em-tramp.el
+        lisp/files.el (file-name-non-special)
 	lisp/net/ange-ftp.el
 	lisp/notifications.el
 	lisp/shadowfile.el

@@ -223,7 +223,7 @@ lock it at that."
   (interactive "P")
   (let ((count (prefix-numeric-value n)))
     (if (eshell-point-within-input-p (- (point) count))
-	(delete-backward-char count n)
+	(delete-char (- count) n)
       (beep))))
 
 (defun eshell-delchar-or-maybe-eof (arg)

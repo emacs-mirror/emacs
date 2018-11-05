@@ -229,7 +229,7 @@ extern bool suppress_checking EXTERNALLY_VISIBLE;
    USE_LSB_TAG not only requires the least 3 bits of pointers returned by
    malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
    on some non-GC Lisp_Objects, all of which are aligned via
-   GCALIGNED_UNION_MEMBER, GCALIGNED_STRUCT_MEMBER, and GCALIGNED_STRUCT.  */
+   GCALIGNED_UNION_MEMBER.  */
 
 enum Lisp_Bits
   {
@@ -284,15 +284,14 @@ error !;
 # define GCALIGNMENT 1
 #endif
 
-/* If a struct is always allocated by the GC and is therefore always
-   GC-aligned, put GCALIGNED_STRUCT after its closing '}'; this can
-   help the compiler generate better code.
+/* To cause a union to have alignment of at least GCALIGNMENT, put
+   GCALIGNED_UNION_MEMBER in its member list.
 
-   To cause a union to have alignment of at least GCALIGNMENT, put
-   GCALIGNED_UNION_MEMBER in its member list.  Similarly for a struct
-   and GCALIGNED_STRUCT_MEMBER, although this may make the struct a
-   bit bigger on non-GCC platforms.  Any struct using
-   GCALIGNED_STRUCT_MEMBER should also use GCALIGNED_STRUCT.
+   If a struct is always GC-aligned (either by the GC, or via
+   allocation in a containing union that has GCALIGNED_UNION_MEMBER)
+   and does not contain a GC-aligned struct or union, putting
+   GCALIGNED_STRUCT after its closing '}' can help the compiler
+   generate better code.
 
    Although these macros are reasonably portable, they are not
    guaranteed on non-GCC platforms, as C11 does not require support
@@ -306,10 +305,8 @@ error !;
 
 #define GCALIGNED_UNION_MEMBER char alignas (GCALIGNMENT) gcaligned;
 #if HAVE_STRUCT_ATTRIBUTE_ALIGNED
-# define GCALIGNED_STRUCT_MEMBER
 # define GCALIGNED_STRUCT __attribute__ ((aligned (GCALIGNMENT)))
 #else
-# define GCALIGNED_STRUCT_MEMBER GCALIGNED_UNION_MEMBER
 # define GCALIGNED_STRUCT
 #endif
 #define GCALIGNED(type) (alignof (type) % GCALIGNMENT == 0)
@@ -1970,9 +1967,13 @@ struct Lisp_Subr
     const char *symbol_name;
     const char *intspec;
     EMACS_INT doc;
-    GCALIGNED_STRUCT_MEMBER
   } GCALIGNED_STRUCT;
-verify (GCALIGNED (struct Lisp_Subr));
+union Aligned_Lisp_Subr
+  {
+    struct Lisp_Subr s;
+    GCALIGNED_UNION_MEMBER
+  };
+verify (GCALIGNED (union Aligned_Lisp_Subr));
 
 INLINE bool
 SUBRP (Lisp_Object a)
@@ -1984,7 +1985,7 @@ INLINE struct Lisp_Subr *
 XSUBR (Lisp_Object a)
 {
   eassert (SUBRP (a));
-  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Subr);
+  return &XUNTAG (a, Lisp_Vectorlike, union Aligned_Lisp_Subr)->s;
 }
 
 enum char_table_specials
@@ -2952,15 +2953,15 @@ CHECK_FIXNUM_CDR (Lisp_Object x)
 /* This version of DEFUN declares a function prototype with the right
    arguments, so we can catch errors with maxargs at compile-time.  */
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
-   static struct Lisp_Subr sname =				\
-     { { PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
+   static union Aligned_Lisp_Subr sname =				\
+     {{{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },				\
        { .a ## maxargs = fnname },					\
-       minargs, maxargs, lname, intspec, 0};				\
+       minargs, maxargs, lname, intspec, 0}};				\
    Lisp_Object fnname
 
 /* defsubr (Sname);
    is how we define the symbol for function `name' at start-up time.  */
-extern void defsubr (struct Lisp_Subr *);
+extern void defsubr (union Aligned_Lisp_Subr *);
 
 enum maxargs
   {
@@ -3071,6 +3072,7 @@ union specbinding
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
       void (*func) (Lisp_Object);
       Lisp_Object arg;
+      EMACS_INT eval_depth;
     } unwind;
     struct {
       ENUM_BF (specbind_tag) kind : CHAR_BIT;
@@ -4010,6 +4012,7 @@ extern void syms_of_module (void);
 
 /* Defined in thread.c.  */
 extern void mark_threads (void);
+extern void unmark_main_thread (void);
 
 /* Defined in editfns.c.  */
 extern void insert1 (Lisp_Object);

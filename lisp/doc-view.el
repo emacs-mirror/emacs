@@ -1764,27 +1764,28 @@ toggle between displaying the document or editing it as text.
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
     (setq-local doc-view--buffer-file-name
-                (cond
-                 (jka-compr-really-do-compress
-                  ;; FIXME: there's a risk of name conflicts here.
-                  (expand-file-name
-                   (file-name-nondirectory
-                    (file-name-sans-extension buffer-file-name))
-                   doc-view-cache-directory))
-                 ;; Is the file readable by local processes?
-                 ;; We used to use `file-remote-p' but it's unclear what it's
-                 ;; supposed to return nil for things like local files accessed
-                 ;; via `su' or via file://...
-                 ((let ((file-name-handler-alist nil))
-                    (not (and buffer-file-name
-                              (file-readable-p buffer-file-name))))
-                  ;; FIXME: there's a risk of name conflicts here.
-                  (expand-file-name
-                   (if buffer-file-name
-                       (file-name-nondirectory buffer-file-name)
-                     (buffer-name))
-                   doc-view-cache-directory))
-                 (t buffer-file-name)))
+		(convert-standard-filename
+                 (cond
+                  (jka-compr-really-do-compress
+                   ;; FIXME: there's a risk of name conflicts here.
+                   (expand-file-name
+                    (file-name-nondirectory
+                     (file-name-sans-extension buffer-file-name))
+                    doc-view-cache-directory))
+                  ;; Is the file readable by local processes?
+                  ;; We used to use `file-remote-p' but it's unclear what it's
+                  ;; supposed to return nil for things like local files accessed
+                  ;; via `su' or via file://...
+                  ((let ((file-name-handler-alist nil))
+                     (not (and buffer-file-name
+                               (file-readable-p buffer-file-name))))
+                   ;; FIXME: there's a risk of name conflicts here.
+                   (expand-file-name
+                    (if buffer-file-name
+			(file-name-nondirectory buffer-file-name)
+                      (buffer-name))
+                    doc-view-cache-directory))
+                  (t buffer-file-name))))
     (when (not (string= doc-view--buffer-file-name buffer-file-name))
       (write-region nil nil doc-view--buffer-file-name))
 

@@ -373,6 +373,8 @@ Return the result of the last expression in BODY."
 	 (t (split-window (minibuffer-selected-window)))))
   (set-window-buffer window buffer)
   (select-window window)
+  (unless (memq (framep (selected-frame)) '(nil t pc))
+    (x-focus-frame (selected-frame)))
   (set-window-hscroll window 0)) ;; should this be??
 
 (defun edebug-get-displayed-buffer-points ()
@@ -2328,6 +2330,7 @@ and run its entry function, and set up `edebug-before' and
               (debugger edebug-debugger) ; only while edebug is active.
               (edebug-outside-debug-on-error debug-on-error)
               (edebug-outside-debug-on-quit debug-on-quit)
+              (outside-frame (selected-frame))
               ;; Binding these may not be the right thing to do.
               ;; We want to allow the global values to be changed.
               (debug-on-error (or debug-on-error edebug-on-error))
@@ -2338,7 +2341,10 @@ and run its entry function, and set up `edebug-before' and
                                                 edebug-initial-mode
                                                 edebug-execution-mode)
                       edebug-next-execution-mode nil)
-                (edebug-default-enter function args body))))
+                (edebug-default-enter function args body))
+            (if (and (frame-live-p outside-frame)
+                     (not (memq (framep outside-frame) '(nil t pc))))
+                (x-focus-frame outside-frame))))
 
       (let* ((edebug-data (get function 'edebug))
              (edebug-def-mark (car edebug-data)) ; mark at def start
@@ -2647,6 +2653,8 @@ See `edebug-behavior-alist' for implementations.")
 	  (edebug-eval-display eval-result-list)
 	  ;; The evaluation list better not have deleted edebug-window-data.
 	  (select-window (car edebug-window-data))
+          (if (not (memq (framep (selected-frame)) '(nil t pc)))
+              (x-focus-frame (selected-frame)))
 	  (set-buffer edebug-buffer)
 
 	  (setq edebug-buffer-outside-point (point))

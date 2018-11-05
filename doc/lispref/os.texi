@@ -112,24 +112,29 @@ activate the packages in the latter case, @code{package-activate-all}
 should be called explicitly (e.g., via the @samp{--funcall} option).
 
 @vindex initial-window-system@r{, and startup}
-@vindex window-system-initialization-alist
+@findex window-system-initialization
 @item
 If not running in batch mode, it initializes the window system that
 the variable @code{initial-window-system} specifies (@pxref{Window
-Systems, initial-window-system}).  The initialization function for
-each supported window system is specified by
-@code{window-system-initialization-alist}.  If the value
-of @code{initial-window-system} is @var{windowsystem}, then the
-appropriate initialization function is defined in the file
-@file{term/@var{windowsystem}-win.el}.  This file should have been
-compiled into the Emacs executable when it was built.
+Systems, initial-window-system}).  The initialization function,
+@code{window-system-initialization}, is a @dfn{generic function}
+(@pxref{Generic Functions}) whose actual implementation is different
+for each supported window system.  If the value of
+@code{initial-window-system} is @var{windowsystem}, then the
+appropriate implementation of the initialization function is defined
+in the file @file{term/@var{windowsystem}-win.el}.  This file should
+have been compiled into the Emacs executable when it was built.
 
 @item
 It runs the normal hook @code{before-init-hook}.
 
 @item
-If appropriate, it creates a graphical frame.  This is not done in
-batch (noninteractive) or daemon mode.
+If appropriate, it creates a graphical frame.  As part of creating the
+graphical frame, it initializes the window system specified by
+@code{initial-frame-alist} and @code{default-frame-alist}
+(@pxref{Initial Parameters}) for the graphical frame, by calling the
+@code{window-system-initialization} function for that window system.
+This is not done in batch (noninteractive) or daemon mode.
 
 @item
 It initializes the initial frame's faces, and sets up the menu bar
@@ -1841,7 +1846,7 @@ special object that stores the information about the next invocation
 times and the function to invoke.
 
 @defun timerp object
-This predicate function returns non-@code{nil} of @code{object} is a
+This predicate function returns non-@code{nil} if @code{object} is a
 timer.
 @end defun
 

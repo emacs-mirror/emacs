@@ -685,7 +685,7 @@ since it could result in memory overflow and make Emacs crash."
 		      ((string-match "selection" (symbol-name symbol))
 		       (fboundp 'x-selection-exists-p))
 		      ((string-match "fringe" (symbol-name symbol))
-		       (fboundp 'define-fringe-bitmap))
+		       (boundp 'fringe-bitmaps))
 		      ((string-match "\\`imagemagick" (symbol-name symbol))
 		       (fboundp 'imagemagick-types))
 		      ((equal "font-use-system-font" (symbol-name symbol))

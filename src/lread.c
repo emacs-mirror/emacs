@@ -4409,8 +4409,9 @@ init_obarray (void)
 }
 
 void
-defsubr (struct Lisp_Subr *sname)
+defsubr (union Aligned_Lisp_Subr *aname)
 {
+  struct Lisp_Subr *sname = &aname->s;
   Lisp_Object sym, tem;
   sym = intern_c_string (sname->symbol_name);
   XSETPVECTYPE (sname, PVEC_SUBR);

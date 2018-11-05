@@ -173,14 +173,16 @@ This shell should support pipe redirect syntax."
 	  ;; find . -type f -print0 | xargs -0 -e grep -nH -e
 	  ;; Note : I removed -e as it is not posix, nor necessary it seems.
 
-	  (let ((cmd (concat "find " default-directory " -type f " filepattern " -print0 "
+	  (let ((cmd (concat "find " (file-local-name rootdir)
+                             " -type f " filepattern " -print0 "
 			     "| xargs -0 grep -H " grepflags "-e " greppat)))
 	    ;;(message "Old command: %s" cmd)
-	    (call-process semantic-symref-grep-shell nil b nil
+	    (process-file semantic-symref-grep-shell nil b nil
                           shell-command-switch cmd)
 	    )
-	(let ((cmd (semantic-symref-grep-use-template rootdir filepattern grepflags greppat)))
-	  (call-process semantic-symref-grep-shell nil b nil
+	(let ((cmd (semantic-symref-grep-use-template
+                    (file-local-name rootdir) filepattern grepflags greppat)))
+	  (process-file semantic-symref-grep-shell nil b nil
                         shell-command-switch cmd))
 	))
     (setq ans (semantic-symref-parse-tool-output tool b))

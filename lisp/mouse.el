@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'rect))
+
 ;;; Utility functions.
 
 ;; Indent track-mouse like progn.
@@ -169,7 +171,10 @@ items `Turn Off' and `Help'."
                 (mouse-menu-non-singleton menu)
               (if (fboundp mm-fun)      ; bug#20201
                   `(keymap
-                    ,indicator
+                    ,(format "%s - %s" indicator
+			     (capitalize
+			      (replace-regexp-in-string
+			       "-" " " (format "%S" minor-mode))))
                     (turn-off menu-item "Turn off minor mode" ,mm-fun)
                     (help menu-item "Help for minor mode"
                           (lambda () (interactive)
@@ -1606,8 +1611,8 @@ if `mouse-drag-copy-region' is non-nil)"
       (if mouse-drag-copy-region
           ;; Region already saved in the previous click;
           ;; don't make a duplicate entry, just delete.
-          (delete-region (mark t) (point))
-        (kill-region (mark t) (point)))
+          (funcall region-extract-function 'delete-only)
+        (kill-region (mark t) (point) 'region))
       (setq mouse-selection-click-count 0)
       (setq mouse-save-then-kill-posn nil))
 
@@ -1632,7 +1637,7 @@ if `mouse-drag-copy-region' is non-nil)"
 	(mouse-set-region-1)
         (when mouse-drag-copy-region
           ;; Region already copied to kill-ring once, so replace.
-          (kill-new (filter-buffer-substring (mark t) (point)) t))
+          (kill-new (funcall region-extract-function nil) t))
 	;; Arrange for a repeated mouse-3 to kill the region.
 	(setq mouse-save-then-kill-posn click-pt)))
 
@@ -2411,7 +2416,13 @@ is copied instead of being cut."
          (buffer (current-buffer))
          (window (selected-window))
          (text-from-read-only buffer-read-only)
-         (mouse-drag-and-drop-overlay (make-overlay start end))
+         ;; Use multiple overlays to cover cases where the region has more
+         ;; than one boundary.
+         (mouse-drag-and-drop-overlays (mapcar (lambda (bounds)
+                                                 (make-overlay (car bounds)
+                                                               (cdr bounds)))
+                                               (region-bounds)))
+         (region-noncontiguous (region-noncontiguous-p))
          point-to-paste
          point-to-paste-read-only
          window-to-paste
@@ -2455,7 +2466,7 @@ is copied instead of being cut."
           ;; Obtain the dragged text in region.  When the loop was
           ;; skipped, value-selection remains nil.
           (unless value-selection
-            (setq value-selection (buffer-substring start end))
+            (setq value-selection (funcall region-extract-function nil))
             (when mouse-drag-and-drop-region-show-tooltip
               (let ((text-size mouse-drag-and-drop-region-show-tooltip))
                 (setq text-tooltip
@@ -2468,12 +2479,14 @@ is copied instead of being cut."
                         value-selection))))
 
             ;; Check if selected text is read-only.
-            (setq text-from-read-only (or text-from-read-only
-                                          (get-text-property start 'read-only)
-                                          (not (equal
-                                                (next-single-char-property-change
-                                                 start 'read-only nil end)
-                                                end)))))
+            (setq text-from-read-only
+                  (or text-from-read-only
+                      (catch 'loop
+                        (dolist (bound (region-bounds))
+                          (when (text-property-not-all
+                                 (car bound) (cdr bound) 'read-only nil)
+                            (throw 'loop t)))))))
+
           (setq window-to-paste (posn-window (event-end event)))
           (setq point-to-paste (posn-point (event-end event)))
           ;; Set nil when target buffer is minibuffer.
@@ -2499,13 +2512,34 @@ is copied instead of being cut."
             ;; the original region.  When modifier is pressed, the
             ;; text will be inserted to inside of the original
             ;; region.
+            ;;
+            ;; If the region is rectangular, check if the newly inserted
+            ;; rectangular text would intersect the already selected
+            ;; region. If it would, then set "drag-but-negligible" to t.
+            ;; As a special case, allow dragging the region freely anywhere
+            ;; to the left, as this will never trigger its contents to be
+            ;; inserted into the overlays tracking it.
             (setq drag-but-negligible
-                  (and (eq (overlay-buffer mouse-drag-and-drop-overlay)
+                  (and (eq (overlay-buffer (car mouse-drag-and-drop-overlays))
                            buffer-to-paste)
-                       (<= (overlay-start mouse-drag-and-drop-overlay)
-                          point-to-paste)
-                       (<= point-to-paste
-                          (overlay-end mouse-drag-and-drop-overlay)))))
+                       (if region-noncontiguous
+                           (let ((dimensions (rectangle-dimensions start end))
+                                 (start-coordinates
+                                  (rectangle-position-as-coordinates start))
+                                 (point-to-paste-coordinates
+                                  (rectangle-position-as-coordinates
+                                   point-to-paste)))
+                             (and (rectangle-intersect-p
+                                   start-coordinates dimensions
+                                   point-to-paste-coordinates dimensions)
+                                  (not (< (car point-to-paste-coordinates)
+                                           (car start-coordinates)))))
+                         (and (<= (overlay-start
+                                   (car mouse-drag-and-drop-overlays))
+                                  point-to-paste)
+                              (<= point-to-paste
+                                  (overlay-end
+                                   (car mouse-drag-and-drop-overlays))))))))
 
           ;; Show a tooltip.
           (if mouse-drag-and-drop-region-show-tooltip
@@ -2524,8 +2558,9 @@ is copied instead of being cut."
                                (t
                                 'bar)))
             (when cursor-in-text-area
-              (overlay-put mouse-drag-and-drop-overlay
-                           'face 'mouse-drag-and-drop-region)
+              (dolist (overlay mouse-drag-and-drop-overlays)
+                (overlay-put overlay
+                           'face 'mouse-drag-and-drop-region))
               (deactivate-mark)     ; Maintain region in other window.
               (mouse-set-point event)))))
 
@@ -2581,7 +2616,9 @@ is copied instead of being cut."
           (select-window window)
           (goto-char point)
           (setq deactivate-mark nil)
-          (activate-mark))
+          (activate-mark)
+          (when region-noncontiguous
+            (rectangle-mark-mode)))
          ;; Modify buffers.
          (t
           ;; * DESTINATION BUFFER::
@@ -2590,11 +2627,14 @@ is copied instead of being cut."
           (setq window-exempt window-to-paste)
           (goto-char point-to-paste)
           (push-mark)
-          (insert value-selection)
+          (insert-for-yank value-selection)
+
           ;; On success, set the text as region on destination buffer.
           (when (not (equal (mark) (point)))
             (setq deactivate-mark nil)
-            (activate-mark))
+            (activate-mark)
+            (when region-noncontiguous
+              (rectangle-mark-mode)))
 
           ;; * SOURCE BUFFER::
           ;; Set back the original text as region or delete the original
@@ -2604,8 +2644,9 @@ is copied instead of being cut."
               ;; remove the original text.
               (when no-modifier-on-drop
                 (let (deactivate-mark)
-                  (delete-region (overlay-start mouse-drag-and-drop-overlay)
-                                 (overlay-end mouse-drag-and-drop-overlay))))
+                  (dolist (overlay mouse-drag-and-drop-overlays)
+                    (delete-region (overlay-start overlay)
+                                   (overlay-end overlay)))))
             ;; When source buffer and destination buffer are different,
             ;; keep (set back the original text as region) or remove the
             ;; original text.
@@ -2615,15 +2656,17 @@ is copied instead of being cut."
             (if mouse-drag-and-drop-region-cut-when-buffers-differ
                 ;; Remove the dragged text from source buffer like
                 ;; operation `cut'.
-                (delete-region (overlay-start mouse-drag-and-drop-overlay)
-                               (overlay-end mouse-drag-and-drop-overlay))
+                (dolist (overlay mouse-drag-and-drop-overlays)
+                    (delete-region (overlay-start overlay)
+                                   (overlay-end overlay)))
               ;; Set back the dragged text as region on source buffer
               ;; like operation `copy'.
               (activate-mark))
             (select-window window-to-paste))))))
 
     ;; Clean up.
-    (delete-overlay mouse-drag-and-drop-overlay)
+    (dolist (overlay mouse-drag-and-drop-overlays)
+      (delete-overlay overlay))
 
     ;; Restore old states but for the window where the drop
     ;; occurred. Restore cursor types for all windows.
