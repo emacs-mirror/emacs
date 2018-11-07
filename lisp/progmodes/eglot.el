@@ -174,6 +174,28 @@ let the buffer grow forever."
   :type '(choice (const :tag "No limit" nil)
                  (integer :tag "Number of characters")))
 
+
+;;; Constants
+;;;
+(defconst eglot--symbol-kind-names
+  `((1 . "File") (2 . "Module")
+    (3 . "Namespace") (4 . "Package") (5 . "Class")
+    (6 . "Method") (7 . "Property") (8 . "Field")
+    (9 . "Constructor") (10 . "Enum") (11 . "Interface")
+    (12 . "Function") (13 . "Variable") (14 . "Constant")
+    (15 . "String") (16 . "Number") (17 . "Boolean")
+    (18 . "Array") (19 . "Object") (20 . "Key")
+    (21 . "Null") (22 . "EnumMember") (23 . "Struct")
+    (24 . "Event") (25 . "Operator") (26 . "TypeParameter")))
+
+(defconst eglot--kind-names
+  `((1 . "Text") (2 . "Method") (3 . "Function") (4 . "Constructor")
+    (5 . "Field") (6 . "Variable") (7 . "Class") (8 . "Interface")
+    (9 . "Module") (10 . "Property") (11 . "Unit") (12 . "Value")
+    (13 . "Enum") (14 . "Keyword") (15 . "Snippet") (16 . "Color")
+    (17 . "File") (18 . "Reference")))
+
+
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
 (cl-defmacro eglot--with-live-buffer (buf &rest body)
@@ -197,8 +219,6 @@ let the buffer grow forever."
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'"
   (:method (_s) nil)) ; blank default
-
-(defvar eglot--symbol-kind-names)
 
 (cl-defgeneric eglot-client-capabilities (server)
   "What the EGLOT LSP client supports for SERVER."
@@ -737,24 +757,6 @@ Doubles as an indicator of snippet support."
   (and (boundp 'yas-minor-mode)
        (symbol-value 'yas-minor-mode)
        'yas-expand-snippet))
-
-(defconst eglot--kind-names
-  `((1 . "Text") (2 . "Method") (3 . "Function") (4 . "Constructor")
-    (5 . "Field") (6 . "Variable") (7 . "Class") (8 . "Interface")
-    (9 . "Module") (10 . "Property") (11 . "Unit") (12 . "Value")
-    (13 . "Enum") (14 . "Keyword") (15 . "Snippet") (16 . "Color")
-    (17 . "File") (18 . "Reference")))
-
-(defconst eglot--symbol-kind-names
-  `((1 . "File") (2 . "Module")
-    (3 . "Namespace") (4 . "Package") (5 . "Class")
-    (6 . "Method") (7 . "Property") (8 . "Field")
-    (9 . "Constructor") (10 . "Enum") (11 . "Interface")
-    (12 . "Function") (13 . "Variable") (14 . "Constant")
-    (15 . "String") (16 . "Number") (17 . "Boolean")
-    (18 . "Array") (19 . "Object") (20 . "Key")
-    (21 . "Null") (22 . "EnumMember") (23 . "Struct")
-    (24 . "Event") (25 . "Operator") (26 . "TypeParameter")))
 
 (defun eglot--format-markup (markup)
   "Format MARKUP according to LSP's spec."
