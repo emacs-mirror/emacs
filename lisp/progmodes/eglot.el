@@ -85,6 +85,8 @@
                                   rjsx-mode) . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
                                 ((c++-mode c-mode) . ("ccls"))
+                                ((caml-mode tuareg-mode reason-mode)
+                                 . ("ocaml-language-server" "--stdio"))
                                 (ruby-mode
                                  . ("solargraph" "socket" "--port"
                                     :autoport))
