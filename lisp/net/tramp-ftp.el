@@ -33,10 +33,10 @@
 ;; Pacify byte-compiler.
 (eval-when-compile
   (require 'custom))
+(declare-function ange-ftp-ftp-process-buffer "ange-ftp")
 (defvar ange-ftp-ftp-name-arg)
 (defvar ange-ftp-ftp-name-res)
 (defvar ange-ftp-name-format)
-(declare-function ange-ftp-ftp-process-buffer "ange-ftp")
 
 ;; Disable Ange-FTP from file-name-handler-alist.
 (defun tramp-disable-ange-ftp ()
