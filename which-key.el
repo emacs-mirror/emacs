@@ -1111,7 +1111,8 @@ popup)."
     (delete-frame which-key--frame)))
 
 (defun which-key--popup-showing-p ()
-  (window-live-p (get-buffer-window which-key--buffer)))
+  (and (bufferp which-key--buffer)
+       (window-live-p (get-buffer-window which-key--buffer))))
 
 (defun which-key--show-popup (act-popup-dim)
   "Show the which-key buffer.
