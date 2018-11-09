@@ -7,7 +7,6 @@ C Style -- naming
 :Author: Gareth Rees
 :Date: 2014-10-07
 :Status: incomplete guide
-:Format: rst
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms:
