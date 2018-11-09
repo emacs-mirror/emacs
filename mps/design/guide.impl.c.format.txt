@@ -7,7 +7,6 @@ C Style -- formatting
 :Author: Richard Brooksby
 :Date: 1995-08-07
 :Status: complete guide
-:Format: rst
 :Revision: $Id$
 :Copyright: See `Copyright and License`_.
 :Index terms:
