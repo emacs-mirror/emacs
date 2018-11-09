@@ -1374,7 +1374,7 @@ DUMMY is ignored."
                                     :position (plist-get
                                                (plist-get location :range)
                                                :start))
-                              :locations (list location)
+                              :locations (vector location)
                               :kind kind
                               :containerName containerName))
                 (jsonrpc-request server
