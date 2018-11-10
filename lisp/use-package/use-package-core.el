@@ -1315,41 +1315,41 @@ meaning:
       args
     (list args)))
 
-(defun use-package-after-count-uses (features)
+(defun use-package-after-count-uses (features*)
   "Count the number of time the body would appear in the result."
-  (cond ((use-package-non-nil-symbolp features)
+  (cond ((use-package-non-nil-symbolp features*)
          1)
-        ((and (consp features)
-              (memq (car features) '(:or :any)))
+        ((and (consp features*)
+              (memq (car features*) '(:or :any)))
          (let ((num 0))
-           (cl-dolist (next (cdr features))
+           (cl-dolist (next (cdr features*))
              (setq num (+ num (use-package-after-count-uses next))))
            num))
-        ((and (consp features)
-              (memq (car features) '(:and :all)))
+        ((and (consp features*)
+              (memq (car features*) '(:and :all)))
          (apply #'max (mapcar #'use-package-after-count-uses
-                              (cdr features))))
-        ((listp features)
-         (use-package-after-count-uses (cons :all features)))))
+                              (cdr features*))))
+        ((listp features*)
+         (use-package-after-count-uses (cons :all features*)))))
 
-(defun use-package-require-after-load (features body)
-  "Generate `eval-after-load' statements to represents FEATURES.
-FEATURES is a list containing keywords `:and' and `:all', where
+(defun use-package-require-after-load (features* body)
+  "Generate `eval-after-load' statements to represents FEATURES*.
+FEATURES* is a list containing keywords `:and' and `:all', where
 no keyword implies `:all'."
   (cond
-   ((use-package-non-nil-symbolp features)
-    `((eval-after-load ',features ',(macroexp-progn body))))
-   ((and (consp features)
-         (memq (car features) '(:or :any)))
+   ((use-package-non-nil-symbolp features*)
+    `((eval-after-load ',features* ',(macroexp-progn body))))
+   ((and (consp features*)
+         (memq (car features*) '(:or :any)))
     (cl-mapcan #'(lambda (x) (use-package-require-after-load x body))
-               (cdr features)))
-   ((and (consp features)
-         (memq (car features) '(:and :all)))
-    (cl-dolist (next (cdr features))
+               (cdr features*)))
+   ((and (consp features*)
+         (memq (car features*) '(:and :all)))
+    (cl-dolist (next (cdr features*))
       (setq body (use-package-require-after-load next body)))
     body)
-   ((listp features)
-    (use-package-require-after-load (cons :all features) body))))
+   ((listp features*)
+    (use-package-require-after-load (cons :all features*) body))))
 
 (defun use-package-handler/:after (name _keyword arg rest state)
   (let ((body (use-package-process-keywords name rest state))
