@@ -373,7 +373,9 @@ used to cache connection properties of the local machine."
 		       (prin1-to-string key))
 		     (if (hash-table-p value)
 			 (tramp-cache-print value)
-		       (if (bufferp value)
+		       (if (or (bufferp value)
+			       ;; Mutexes have entered Emacs 26.1.
+			       (tramp-compat-funcall 'mutexp value))
 			   (prin1-to-string (prin1-to-string value))
 			 (prin1-to-string value))))))
 	   (setq result (if result (concat result " " tmp) tmp))))
