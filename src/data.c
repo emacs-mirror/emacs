@@ -228,6 +228,7 @@ for example, (type-of 1) returns `integer'.  */)
         case PVEC_NORMAL_VECTOR: return Qvector;
 	case PVEC_BIGNUM: return Qinteger;
 	case PVEC_MARKER: return Qmarker;
+	case PVEC_LOCATED_SYMBOL: return Qlocated_symbol;
 	case PVEC_OVERLAY: return Qoverlay;
 	case PVEC_FINALIZER: return Qfinalizer;
 #ifdef HAVE_MODULES
@@ -326,6 +327,26 @@ DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0,
   return Qt;
 }
 
+DEFUN ("only-symbol-p", Fonly_symbol_p, Sonly_symbol_p, 1, 1, 0,
+       doc: /* Return t if OBJECT is a symbol, but not a located symbol.  */
+       attributes: const)
+  (Lisp_Object object)
+{
+  if (ONLY_SYMBOL_P (object))
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("located-symbol-p", Flocated_symbol_p, Slocated_symbol_p, 1, 1, 0,
+       doc: /* Return t if OBJECT is a located symbol.  */
+       attributes: const)
+  (Lisp_Object object)
+{
+  if (LOCATED_SYMBOL_P (object))
+    return Qt;
+  return Qnil;
+}
+
 DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0,
        doc: /* Return t if OBJECT is a symbol.  */
        attributes: const)
@@ -749,6 +770,22 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
   CHECK_SYMBOL (symbol);
   name = SYMBOL_NAME (symbol);
   return name;
+}
+
+DEFUN ("located-symbol-sym", Flocated_symbol_sym, Slocated_symbol_sym, 1, 1, 0,
+       doc: /* Return the symbol in a located symbol.  */)
+       (register Lisp_Object ls)
+{
+  /* Type checking is done in the following macro. */
+  return LOCATED_SYMBOL_SYM (ls);
+}
+
+DEFUN ("located-symbol-loc", Flocated_symbol_loc, Slocated_symbol_loc, 1, 1, 0,
+       doc: /* Return the location in a located symbol.  */)
+       (register Lisp_Object ls)
+{
+  /* Type checking is done in the following macro. */
+  return LOCATED_SYMBOL_LOC (ls);
 }
 
 DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
@@ -3818,6 +3855,8 @@ syms_of_data (void)
 
   DEFSYM (Qlistp, "listp");
   DEFSYM (Qconsp, "consp");
+  DEFSYM (Qonly_symbol_p, "only-symbol-p");
+  DEFSYM (Qlocated_symbol_p, "located-symbol-p");
   DEFSYM (Qsymbolp, "symbolp");
   DEFSYM (Qfixnump, "fixnump");
   DEFSYM (Qintegerp, "integerp");
@@ -3926,6 +3965,7 @@ syms_of_data (void)
   DEFSYM (Qstring, "string");
   DEFSYM (Qcons, "cons");
   DEFSYM (Qmarker, "marker");
+  DEFSYM (Qlocated_symbol, "located-symbol");
   DEFSYM (Qoverlay, "overlay");
   DEFSYM (Qfinalizer, "finalizer");
 #ifdef HAVE_MODULES
@@ -3973,6 +4013,8 @@ syms_of_data (void)
   defsubr (&Snumber_or_marker_p);
   defsubr (&Sfloatp);
   defsubr (&Snatnump);
+  defsubr (&Sonly_symbol_p);
+  defsubr (&Slocated_symbol_p);
   defsubr (&Ssymbolp);
   defsubr (&Skeywordp);
   defsubr (&Sstringp);
@@ -4003,6 +4045,8 @@ syms_of_data (void)
   defsubr (&Sindirect_function);
   defsubr (&Ssymbol_plist);
   defsubr (&Ssymbol_name);
+  defsubr (&Slocated_symbol_sym);
+  defsubr (&Slocated_symbol_loc);
   defsubr (&Smakunbound);
   defsubr (&Sfmakunbound);
   defsubr (&Sboundp);
@@ -4077,6 +4121,11 @@ This variable cannot be set; trying to do so will signal an error.  */);
 This variable cannot be set; trying to do so will signal an error.  */);
   Vmost_negative_fixnum = make_fixnum (MOST_NEGATIVE_FIXNUM);
   make_symbol_constant (intern_c_string ("most-negative-fixnum"));
+
+  DEFVAR_LISP ("located-symbols-enabled", Vlocated_symbols_enabled,
+               doc: /* Non-nil when "located symbols" can be used in place of symbols.
+Bind this to non-nil in applications such as the byte compiler.  */);
+  Vlocated_symbols_enabled = Qnil;
 
   DEFSYM (Qwatchers, "watchers");
   DEFSYM (Qmakunbound, "makunbound");

@@ -3670,6 +3670,21 @@ make_misc_ptr (void *a)
   return make_lisp_ptr (p, Lisp_Vectorlike);
 }
 
+/* Return a new located symbol with the specified SYMBOL and LOCATION. */
+Lisp_Object
+build_located_symbol (Lisp_Object symbol, Lisp_Object location)
+{
+  Lisp_Object val;
+  struct Lisp_Located_Symbol *p
+    = (struct Lisp_Located_Symbol *) allocate_vector (2);
+  XSETVECTOR (val, p);
+  XSETPVECTYPESIZE (XVECTOR (val), PVEC_LOCATED_SYMBOL, 2, 0);
+  p->sym = symbol;
+  p->loc = location;
+
+  return val;
+}
+
 /* Return a new overlay with specified START, END and PLIST.  */
 
 Lisp_Object

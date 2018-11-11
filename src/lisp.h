@@ -323,6 +323,64 @@ typedef union Lisp_X *Lisp_Word;
 typedef EMACS_INT Lisp_Word;
 #endif
 
+/* A Lisp_Object is a tagged pointer or integer.  Ordinarily it is a
+   Lisp_Word.  However, if CHECK_LISP_OBJECT_TYPE, it is a wrapper
+   around Lisp_Word, to help catch thinkos like 'Lisp_Object x = 0;'.
+
+   LISP_INITIALLY (W) initializes a Lisp object with a tagged value
+   that is a Lisp_Word W.  It can be used in a static initializer.  */
+
+#ifdef CHECK_LISP_OBJECT_TYPE
+typedef struct Lisp_Object { Lisp_Word i; } Lisp_Object;
+# define LISP_INITIALLY(w) {w}
+# undef CHECK_LISP_OBJECT_TYPE
+enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = true };
+#else
+typedef Lisp_Word Lisp_Object;
+# define LISP_INITIALLY(w) (w)
+enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = false };
+#endif
+
+/* Header of vector-like objects.  This documents the layout constraints on
+   vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents
+   compilers from being fooled by Emacs's type punning: XSETPSEUDOVECTOR
+   and PSEUDOVECTORP cast their pointers to union vectorlike_header *,
+   because when two such pointers potentially alias, a compiler won't
+   incorrectly reorder loads and stores to their size fields.  See
+   Bug#8546.  This union formerly contained more members, and there's
+   no compelling reason to change it to a struct merely because the
+   number of members has been reduced to one.  */
+union vectorlike_header
+  {
+    /* The main member contains various pieces of information:
+       - The MSB (ARRAY_MARK_FLAG) holds the gcmarkbit.
+       - The next bit (PSEUDOVECTOR_FLAG) indicates whether this is a plain
+         vector (0) or a pseudovector (1).
+       - If PSEUDOVECTOR_FLAG is 0, the rest holds the size (number
+         of slots) of the vector.
+       - If PSEUDOVECTOR_FLAG is 1, the rest is subdivided into three fields:
+	 - a) pseudovector subtype held in PVEC_TYPE_MASK field;
+	 - b) number of Lisp_Objects slots at the beginning of the object
+	   held in PSEUDOVECTOR_SIZE_MASK field.  These objects are always
+	   traced by the GC;
+	 - c) size of the rest fields held in PSEUDOVECTOR_REST_MASK and
+	   measured in word_size units.  Rest fields may also include
+	   Lisp_Objects, but these objects usually needs some special treatment
+	   during GC.
+	 There are some exceptions.  For PVEC_FREE, b) is always zero.  For
+	 PVEC_BOOL_VECTOR and PVEC_SUBR, both b) and c) are always zero.
+	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
+	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
+    ptrdiff_t size;
+  };
+
+struct Lisp_Located_Symbol
+  {
+    union vectorlike_header header;
+    Lisp_Object sym;            /* A symbol */
+    Lisp_Object loc;            /* A fixnum */
+  } GCALIGNED_STRUCT;
+
 /* Some operations are so commonly executed that they are implemented
    as macros, not functions, because otherwise runtime performance would
    suffer too much when compiling with GCC without optimization.
@@ -379,6 +437,97 @@ typedef EMACS_INT Lisp_Word;
 # endif
 #endif
 
+/* In the size word of a vector, this bit means the vector has been marked.  */
+
+DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, ARRAY_MARK_FLAG)
+# define ARRAY_MARK_FLAG PTRDIFF_MIN
+DEFINE_GDB_SYMBOL_END (ARRAY_MARK_FLAG)
+
+/* In the size word of a struct Lisp_Vector, this bit means it's really
+   some other vector-like object.  */
+DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, PSEUDOVECTOR_FLAG)
+# define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
+DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
+
+/* In a pseudovector, the size field actually contains a word with one
+   PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
+   with PVEC_TYPE_MASK to indicate the actual type.  */
+enum pvec_type
+{
+  PVEC_NORMAL_VECTOR,
+  PVEC_FREE,
+  PVEC_BIGNUM,
+  PVEC_MARKER,
+  PVEC_OVERLAY,
+  PVEC_FINALIZER,
+  PVEC_LOCATED_SYMBOL,
+  PVEC_MISC_PTR,
+#ifdef HAVE_MODULES
+  PVEC_USER_PTR,
+#endif
+  PVEC_PROCESS,
+  PVEC_FRAME,
+  PVEC_WINDOW,
+  PVEC_BOOL_VECTOR,
+  PVEC_BUFFER,
+  PVEC_HASH_TABLE,
+  PVEC_TERMINAL,
+  PVEC_WINDOW_CONFIGURATION,
+  PVEC_SUBR,
+  PVEC_OTHER,            /* Should never be visible to Elisp code.  */
+  PVEC_XWIDGET,
+  PVEC_XWIDGET_VIEW,
+  PVEC_THREAD,
+  PVEC_MUTEX,
+  PVEC_CONDVAR,
+  PVEC_MODULE_FUNCTION,
+
+  /* These should be last, check internal_equal to see why.  */
+  PVEC_COMPILED,
+  PVEC_CHAR_TABLE,
+  PVEC_SUB_CHAR_TABLE,
+  PVEC_RECORD,
+  PVEC_FONT /* Should be last because it's used for range checking.  */
+};
+
+enum More_Lisp_Bits
+  {
+    /* For convenience, we also store the number of elements in these bits.
+       Note that this size is not necessarily the memory-footprint size, but
+       only the number of Lisp_Object fields (that need to be traced by GC).
+       The distinction is used, e.g., by Lisp_Process, which places extra
+       non-Lisp_Object fields at the end of the structure.  */
+    PSEUDOVECTOR_SIZE_BITS = 12,
+    PSEUDOVECTOR_SIZE_MASK = (1 << PSEUDOVECTOR_SIZE_BITS) - 1,
+
+    /* To calculate the memory footprint of the pseudovector, it's useful
+       to store the size of non-Lisp area in word_size units here.  */
+    PSEUDOVECTOR_REST_BITS = 12,
+    PSEUDOVECTOR_REST_MASK = (((1 << PSEUDOVECTOR_REST_BITS) - 1)
+			      << PSEUDOVECTOR_SIZE_BITS),
+
+    /* Used to extract pseudovector subtype information.  */
+    PSEUDOVECTOR_AREA_BITS = PSEUDOVECTOR_SIZE_BITS + PSEUDOVECTOR_REST_BITS,
+    PVEC_TYPE_MASK = 0x3f << PSEUDOVECTOR_AREA_BITS
+  };
+
+#define lisp_h_PSEUDOVECTORP(a,code)                            \
+  (lisp_h_VECTORLIKEP(a) &&                                     \
+   ((XUNTAG (a, Lisp_Vectorlike, union vectorlike_header)->size \
+     & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))                    \
+    == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS))))
+
+
+/* These functions extract various sorts of values from a Lisp_Object.
+   For example, if tem is a Lisp_Object whose type is Lisp_Cons,
+   XCONS (tem) is the struct Lisp_Cons * pointing to the memory for
+   that cons.  */
+
+/* Largest and smallest representable fixnum values.  These are the C
+   values.  They are macros for use in #if and static initializers.  */
+#define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
+#define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
+
 #define lisp_h_CHECK_FIXNUM(x) CHECK_TYPE (FIXNUMP (x), Qfixnump, x)
 #define lisp_h_CHECK_SYMBOL(x) CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
 #define lisp_h_CHECK_TYPE(ok, predicate, x) \
@@ -399,7 +548,11 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_SYMBOL_TRAPPED_WRITE_P(sym) (XSYMBOL (sym)->u.s.trapped_write)
 #define lisp_h_SYMBOL_VAL(sym) \
    (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), (sym)->u.s.val.value)
-#define lisp_h_SYMBOLP(x) TAGGEDP (x, Lisp_Symbol)
+#define lisp_h_LOCATED_SYMBOL_P(x) lisp_h_PSEUDOVECTORP (XIL(x), PVEC_LOCATED_SYMBOL)
+#define lisp_h_ONLY_SYMBOL_P(x) TAGGEDP (x, Lisp_Symbol)
+/* verify (NIL_IS_ZERO) */
+#define lisp_h_SYMBOLP(x) ((lisp_h_ONLY_SYMBOL_P (x) || \
+                            (Vlocated_symbols_enabled && (lisp_h_LOCATED_SYMBOL_P (x)))))
 #define lisp_h_TAGGEDP(a, tag) \
    (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
 	- (unsigned) (tag)) \
@@ -419,18 +572,31 @@ typedef EMACS_INT Lisp_Word;
 # define lisp_h_XFIXNAT(a) XFIXNUM (a)
 # define lisp_h_XFIXNUM(a) (XLI (a) >> INTTYPEBITS)
 # ifdef __CHKP__
-#  define lisp_h_XSYMBOL(a) \
-    (eassert (SYMBOLP (a)), \
+#  define lisp_h_XONLY_SYMBOL(a) \
+    (eassert (ONLY_SYMBOL_P (a)), \
      (struct Lisp_Symbol *) ((char *) XUNTAG (a, Lisp_Symbol, \
 					      struct Lisp_Symbol) \
 			     + (intptr_t) lispsym))
 # else
    /* If !__CHKP__ this is equivalent, and is a bit faster as of GCC 7.  */
-#  define lisp_h_XSYMBOL(a) \
-    (eassert (SYMBOLP (a)), \
+#  define lisp_h_XONLY_SYMBOL(a) \
+    (eassert (ONLY_SYMBOL_P (a)), \
      (struct Lisp_Symbol *) ((intptr_t) XLI (a) - Lisp_Symbol \
 			     + (char *) lispsym))
 # endif
+# define lisp_h_XLOCATED_SYMBOL(a)                      \
+    (eassert (LOCATED_SYMBOL_P (a)),                    \
+     (struct Lisp_Located_Symbol *) XUNTAG              \
+     (a, Lisp_Vectorlike, struct Lisp_Located_Symbol))
+/* verify (NIL_IS_ZERO) */
+# define lisp_h_XSYMBOL(a)                      \
+    (eassert (SYMBOLP (a)),                     \
+      (!Vlocated_symbols_enabled                \
+      ? (lisp_h_XONLY_SYMBOL (a))               \
+       : (lisp_h_ONLY_SYMBOL_P (a))             \
+      ? (lisp_h_XONLY_SYMBOL (a))               \
+       : lisp_h_XONLY_SYMBOL (lisp_h_XLOCATED_SYMBOL (a)->sym)))
+
 # define lisp_h_XTYPE(a) ((enum Lisp_Type) (XLI (a) & ~VALMASK))
 #endif
 
@@ -462,6 +628,7 @@ typedef EMACS_INT Lisp_Word;
 # define SYMBOL_CONSTANT_P(sym) lisp_h_SYMBOL_CONSTANT_P (sym)
 # define SYMBOL_TRAPPED_WRITE_P(sym) lisp_h_SYMBOL_TRAPPED_WRITE_P (sym)
 # define SYMBOL_VAL(sym) lisp_h_SYMBOL_VAL (sym)
+# define ONLY_SYMBOL_P(x) lisp_h_ONLY_SYMBOL_P (x)
 # define SYMBOLP(x) lisp_h_SYMBOLP (x)
 # define TAGGEDP(a, tag) lisp_h_TAGGEDP (a, tag)
 # define VECTORLIKEP(x) lisp_h_VECTORLIKEP (x)
@@ -476,6 +643,7 @@ typedef EMACS_INT Lisp_Word;
 #  define make_fixnum(n) lisp_h_make_fixnum (n)
 #  define XFIXNAT(a) lisp_h_XFIXNAT (a)
 #  define XFIXNUM(a) lisp_h_XFIXNUM (a)
+#  define XONLY_SYMBOL(a)  lisp_h_XONLY_SYMBOL (a)
 #  define XSYMBOL(a) lisp_h_XSYMBOL (a)
 #  define XTYPE(a) lisp_h_XTYPE (a)
 # endif
@@ -585,24 +753,6 @@ enum Lisp_Fwd_Type
    You also need to add the new type to the constant
    `cl--typeof-types' in lisp/emacs-lisp/cl-preloaded.el.  */
 
-
-/* A Lisp_Object is a tagged pointer or integer.  Ordinarily it is a
-   Lisp_Word.  However, if CHECK_LISP_OBJECT_TYPE, it is a wrapper
-   around Lisp_Word, to help catch thinkos like 'Lisp_Object x = 0;'.
-
-   LISP_INITIALLY (W) initializes a Lisp object with a tagged value
-   that is a Lisp_Word W.  It can be used in a static initializer.  */
-
-#ifdef CHECK_LISP_OBJECT_TYPE
-typedef struct Lisp_Object { Lisp_Word i; } Lisp_Object;
-# define LISP_INITIALLY(w) {w}
-# undef CHECK_LISP_OBJECT_TYPE
-enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = true };
-#else
-typedef Lisp_Word Lisp_Object;
-# define LISP_INITIALLY(w) (w)
-enum CHECK_LISP_OBJECT_TYPE { CHECK_LISP_OBJECT_TYPE = false };
-#endif
 
 /* Forward declarations.  */
 
@@ -621,7 +771,7 @@ extern void char_table_set (Lisp_Object, int, Lisp_Object);
 
 /* Defined in data.c.  */
 extern _Noreturn void wrong_type_argument (Lisp_Object, Lisp_Object);
-
+extern Lisp_Object Vlocated_symbols_enabled;
 
 #ifdef CANNOT_DUMP
 enum { might_dump = false };
@@ -864,38 +1014,11 @@ typedef EMACS_UINT Lisp_Word_tag;
 
 #include "globals.h"
 
-/* Header of vector-like objects.  This documents the layout constraints on
-   vectors and pseudovectors (objects of PVEC_xxx subtype).  It also prevents
-   compilers from being fooled by Emacs's type punning: XSETPSEUDOVECTOR
-   and PSEUDOVECTORP cast their pointers to union vectorlike_header *,
-   because when two such pointers potentially alias, a compiler won't
-   incorrectly reorder loads and stores to their size fields.  See
-   Bug#8546.  This union formerly contained more members, and there's
-   no compelling reason to change it to a struct merely because the
-   number of members has been reduced to one.  */
-union vectorlike_header
-  {
-    /* The main member contains various pieces of information:
-       - The MSB (ARRAY_MARK_FLAG) holds the gcmarkbit.
-       - The next bit (PSEUDOVECTOR_FLAG) indicates whether this is a plain
-         vector (0) or a pseudovector (1).
-       - If PSEUDOVECTOR_FLAG is 0, the rest holds the size (number
-         of slots) of the vector.
-       - If PSEUDOVECTOR_FLAG is 1, the rest is subdivided into three fields:
-	 - a) pseudovector subtype held in PVEC_TYPE_MASK field;
-	 - b) number of Lisp_Objects slots at the beginning of the object
-	   held in PSEUDOVECTOR_SIZE_MASK field.  These objects are always
-	   traced by the GC;
-	 - c) size of the rest fields held in PSEUDOVECTOR_REST_MASK and
-	   measured in word_size units.  Rest fields may also include
-	   Lisp_Objects, but these objects usually needs some special treatment
-	   during GC.
-	 There are some exceptions.  For PVEC_FREE, b) is always zero.  For
-	 PVEC_BOOL_VECTOR and PVEC_SUBR, both b) and c) are always zero.
-	 Current layout limits the pseudovectors to 63 PVEC_xxx subtypes,
-	 4095 Lisp_Objects in GC-ed area and 4095 word-sized other slots.  */
-    ptrdiff_t size;
-  };
+INLINE bool
+(LOCATED_SYMBOL_P) (Lisp_Object x)
+{
+  return lisp_h_LOCATED_SYMBOL_P (x);
+}
 
 INLINE bool
 (SYMBOLP) (Lisp_Object x)
@@ -954,89 +1077,7 @@ INLINE void
   lisp_h_CHECK_SYMBOL (x);
 }
 
-/* In the size word of a vector, this bit means the vector has been marked.  */
-
-DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, ARRAY_MARK_FLAG)
-# define ARRAY_MARK_FLAG PTRDIFF_MIN
-DEFINE_GDB_SYMBOL_END (ARRAY_MARK_FLAG)
-
-/* In the size word of a struct Lisp_Vector, this bit means it's really
-   some other vector-like object.  */
-DEFINE_GDB_SYMBOL_BEGIN (ptrdiff_t, PSEUDOVECTOR_FLAG)
-# define PSEUDOVECTOR_FLAG (PTRDIFF_MAX - PTRDIFF_MAX / 2)
-DEFINE_GDB_SYMBOL_END (PSEUDOVECTOR_FLAG)
-
-/* In a pseudovector, the size field actually contains a word with one
-   PSEUDOVECTOR_FLAG bit set, and one of the following values extracted
-   with PVEC_TYPE_MASK to indicate the actual type.  */
-enum pvec_type
-{
-  PVEC_NORMAL_VECTOR,
-  PVEC_FREE,
-  PVEC_BIGNUM,
-  PVEC_MARKER,
-  PVEC_OVERLAY,
-  PVEC_FINALIZER,
-  PVEC_MISC_PTR,
-#ifdef HAVE_MODULES
-  PVEC_USER_PTR,
-#endif
-  PVEC_PROCESS,
-  PVEC_FRAME,
-  PVEC_WINDOW,
-  PVEC_BOOL_VECTOR,
-  PVEC_BUFFER,
-  PVEC_HASH_TABLE,
-  PVEC_TERMINAL,
-  PVEC_WINDOW_CONFIGURATION,
-  PVEC_SUBR,
-  PVEC_OTHER,            /* Should never be visible to Elisp code.  */
-  PVEC_XWIDGET,
-  PVEC_XWIDGET_VIEW,
-  PVEC_THREAD,
-  PVEC_MUTEX,
-  PVEC_CONDVAR,
-  PVEC_MODULE_FUNCTION,
-
-  /* These should be last, check internal_equal to see why.  */
-  PVEC_COMPILED,
-  PVEC_CHAR_TABLE,
-  PVEC_SUB_CHAR_TABLE,
-  PVEC_RECORD,
-  PVEC_FONT /* Should be last because it's used for range checking.  */
-};
-
-enum More_Lisp_Bits
-  {
-    /* For convenience, we also store the number of elements in these bits.
-       Note that this size is not necessarily the memory-footprint size, but
-       only the number of Lisp_Object fields (that need to be traced by GC).
-       The distinction is used, e.g., by Lisp_Process, which places extra
-       non-Lisp_Object fields at the end of the structure.  */
-    PSEUDOVECTOR_SIZE_BITS = 12,
-    PSEUDOVECTOR_SIZE_MASK = (1 << PSEUDOVECTOR_SIZE_BITS) - 1,
-
-    /* To calculate the memory footprint of the pseudovector, it's useful
-       to store the size of non-Lisp area in word_size units here.  */
-    PSEUDOVECTOR_REST_BITS = 12,
-    PSEUDOVECTOR_REST_MASK = (((1 << PSEUDOVECTOR_REST_BITS) - 1)
-			      << PSEUDOVECTOR_SIZE_BITS),
-
-    /* Used to extract pseudovector subtype information.  */
-    PSEUDOVECTOR_AREA_BITS = PSEUDOVECTOR_SIZE_BITS + PSEUDOVECTOR_REST_BITS,
-    PVEC_TYPE_MASK = 0x3f << PSEUDOVECTOR_AREA_BITS
-  };
 
-/* These functions extract various sorts of values from a Lisp_Object.
-   For example, if tem is a Lisp_Object whose type is Lisp_Cons,
-   XCONS (tem) is the struct Lisp_Cons * pointing to the memory for
-   that cons.  */
-
-/* Largest and smallest representable fixnum values.  These are the C
-   values.  They are macros for use in #if and static initializers.  */
-#define MOST_POSITIVE_FIXNUM (EMACS_INT_MAX >> INTTYPEBITS)
-#define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
-
 #if USE_LSB_TAG
 
 INLINE Lisp_Object
@@ -1586,6 +1627,7 @@ PSEUDOVECTOR_TYPEP (union vectorlike_header *a, enum pvec_type code)
 	  == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS)));
 }
 
+/* FIXME!!! 2018-11-09.  Consider using lisp_h_PSEUDOVECTOR here. */
 /* True if A is a pseudovector whose code is CODE.  */
 INLINE bool
 PSEUDOVECTORP (Lisp_Object a, int code)
@@ -2478,6 +2520,29 @@ XOVERLAY (Lisp_Object a)
 {
   eassert (OVERLAYP (a));
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Overlay);
+}
+
+INLINE struct Lisp_Located_Symbol *
+XLOCATED_SYMBOL (Lisp_Object a)
+{
+    eassert (LOCATED_SYMBOL_P (a));
+    return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Located_Symbol);
+}
+
+INLINE Lisp_Object
+LOCATED_SYMBOL_SYM (Lisp_Object a)
+{
+  if (!LOCATED_SYMBOL_P (a))
+    wrong_type_argument (Qlocated_symbol_p, a);
+  return XLOCATED_SYMBOL (a)->sym;
+}
+
+INLINE Lisp_Object
+LOCATED_SYMBOL_LOC (Lisp_Object a)
+{
+  if (!LOCATED_SYMBOL_P (a))
+    wrong_type_argument (Qlocated_symbol_p, a);
+  return XLOCATED_SYMBOL (a)->loc;
 }
 
 #ifdef HAVE_MODULES
@@ -3754,6 +3819,7 @@ extern bool gc_in_progress;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern ptrdiff_t inhibit_garbage_collection (void);
+extern Lisp_Object build_located_symbol (Lisp_Object, Lisp_Object);
 extern Lisp_Object build_overlay (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
 extern void init_alloc_once (void);
