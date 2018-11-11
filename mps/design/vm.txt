@@ -48,7 +48,7 @@ reserved chunk. (None of our supported operating systems can actually
 provide this feature, alas. We rely on co-operation with the client
 program.)
 
-_`.req.reserve.continguous`: The reserved chunk is a *contiguous*
+_`.req.reserve.contiguous`: The reserved chunk is a *contiguous*
 portion of address space. (Contiguity is needed for zones to work; see
 design.mps.arena.vm.overview.gc.zone_.)
 
@@ -122,7 +122,7 @@ _`.sol.overhead`: To meet `.req.reserve.contiguous`_,
 implementations ask the operating system for ``size + grainSize -
 pageSize`` bytes of address space. This ensures that wherever the
 operating system places the reserved address space, it contains a
-continguous region of ``size`` bytes aligned to a multiple of
+contiguous region of ``size`` bytes aligned to a multiple of
 ``grainSize``. The overhead is thus ``grainSize - pageSize``, and in
 the common case where ``grainSize`` is equal to ``pageSize``, this is
 zero.
