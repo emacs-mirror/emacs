@@ -1501,7 +1501,8 @@ is not active."
   "EGLOT's `completion-at-point' function."
   (let ((bounds (bounds-of-thing-at-point 'symbol))
         (server (eglot--current-server-or-lose))
-        (completion-capability (eglot--server-capable :completionProvider)))
+        (completion-capability (eglot--server-capable :completionProvider))
+        strings)
     (when completion-capability
       (list
        (or (car bounds) (point))
@@ -1514,19 +1515,21 @@ is not active."
                                         :deferred :textDocument/completion
                                         :cancel-on-input t))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
-            (mapcar
-             (jsonrpc-lambda (&rest all &key label insertText insertTextFormat
-                                    &allow-other-keys)
-               (let ((completion
-                      (cond ((and (eql insertTextFormat 2)
-                                  (eglot--snippet-expansion-fn))
-                             (string-trim-left label))
-                            (t
-                             (or insertText (string-trim-left label))))))
-                 (add-text-properties 0 1 all completion)
-                 (put-text-property 0 1 'eglot--lsp-completion all completion)
-                 completion))
-             items))))
+            (setq
+             strings
+             (mapcar
+              (jsonrpc-lambda (&rest all &key label insertText insertTextFormat
+                                     &allow-other-keys)
+                (let ((completion
+                       (cond ((and (eql insertTextFormat 2)
+                                   (eglot--snippet-expansion-fn))
+                              (string-trim-left label))
+                             (t
+                              (or insertText (string-trim-left label))))))
+                  (add-text-properties 0 1 all completion)
+                  (put-text-property 0 1 'eglot--lsp-completion all completion)
+                  completion))
+              items)))))
        :annotation-function
        (lambda (obj)
          (cl-destructuring-bind (&key detail kind insertTextFormat
@@ -1572,17 +1575,24 @@ is not active."
        (cl-some #'looking-back
                 (mapcar #'regexp-quote
                         (plist-get completion-capability :triggerCharacters)))
-       :exit-function (lambda (obj _status)
-                        (cl-destructuring-bind (&key insertTextFormat
-                                                     insertText
-                                                     &allow-other-keys)
-                            (text-properties-at 0 obj)
-                          (when-let ((fn (and (eql insertTextFormat 2)
-                                              (eglot--snippet-expansion-fn))))
-                            (delete-region (- (point) (length obj)) (point))
-                            (funcall fn insertText))
-                          (eglot--signal-textDocument/didChange)
-                          (eglot-eldoc-function)))))))
+       :exit-function
+       (lambda (comp _status)
+         (let ((comp (if (get-text-property 0 'eglot--lsp-completion comp)
+                         comp
+                       ;; When selecting from the *Completions*
+                       ;; buffer, `comp' won't have any properties.  A
+                       ;; lookup should fix that (github#148)
+                       (cl-find comp strings :test #'string=))))
+           (cl-destructuring-bind (&key insertTextFormat
+                                        insertText
+                                        &allow-other-keys)
+               (text-properties-at 0 comp)
+             (when-let ((fn (and (eql insertTextFormat 2)
+                                 (eglot--snippet-expansion-fn))))
+               (delete-region (- (point) (length comp)) (point))
+               (funcall fn insertText))
+             (eglot--signal-textDocument/didChange)
+             (eglot-eldoc-function))))))))
 
 (defvar eglot--highlights nil "Overlays for textDocument/documentHighlight.")
 
