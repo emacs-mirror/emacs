@@ -2379,12 +2379,12 @@ internal_equal (Lisp_Object o1, Lisp_Object o2, enum equal_kind equal_kind,
 	}
     }
 
-  /* A located symbol compares the contained symbol, and is `equal' to
-     the corresponding ordinary symbol.  */
-  if (LOCATED_SYMBOL_P (o1))
-    o1 = LOCATED_SYMBOL_SYM (o1);
-  if (LOCATED_SYMBOL_P (o2))
-    o2 = LOCATED_SYMBOL_SYM (o2);
+  /* A symbol with position compares the contained symbol, and is
+     `equal' to the corresponding ordinary symbol.  */
+  if (SYMBOL_WITH_POS_P (o1))
+    o1 = SYMBOL_WITH_POS_SYM (o1);
+  if (SYMBOL_WITH_POS_P (o2))
+    o2 = SYMBOL_WITH_POS_SYM (o2);
 
   if (EQ (o1, o2))
     return true;

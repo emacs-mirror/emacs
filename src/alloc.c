@@ -3670,17 +3670,17 @@ make_misc_ptr (void *a)
   return make_lisp_ptr (p, Lisp_Vectorlike);
 }
 
-/* Return a new located symbol with the specified SYMBOL and LOCATION. */
+/* Return a new symbol with position with the specified SYMBOL and POSITION. */
 Lisp_Object
-build_located_symbol (Lisp_Object symbol, Lisp_Object location)
+build_symbol_with_pos (Lisp_Object symbol, Lisp_Object position)
 {
   Lisp_Object val;
-  struct Lisp_Located_Symbol *p
-    = (struct Lisp_Located_Symbol *) allocate_vector (2);
+  struct Lisp_Symbol_With_Pos *p
+    = (struct Lisp_Symbol_With_Pos *) allocate_vector (2);
   XSETVECTOR (val, p);
-  XSETPVECTYPESIZE (XVECTOR (val), PVEC_LOCATED_SYMBOL, 2, 0);
+  XSETPVECTYPESIZE (XVECTOR (val), PVEC_SYMBOL_WITH_POS, 2, 0);
   p->sym = symbol;
-  p->loc = location;
+  p->pos = position;
 
   return val;
 }

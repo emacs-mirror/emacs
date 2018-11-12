@@ -2220,10 +2220,10 @@ STREAM or the value of `standard-input' may be:
   return read_internal_start (stream, Qnil, Qnil, false);
 }
 
-DEFUN ("read-locating-symbols", Fread_locating_symbols,
-       Sread_locating_symbols, 0, 1, 0,
+DEFUN ("read-positiong-symbols", Fread_positioning_symbols,
+       Sread_positioning_symbols, 0, 1, 0,
        doc: /* Read one Lisp expression as text from STREAM, return as Lisp object.
-Convert each occurrence of a symbol into a "located symbol" object.
+Convert each occurrence of a symbol into a "symbol with pos" object.
 
 If STREAM is nil, use the value of `standard-input' (which see).
 STREAM or the value of `standard-input' may be:
@@ -2267,8 +2267,8 @@ the end of STRING.  */)
 
 /* Function to set up the global context we need in toplevel read
    calls.  START and END only used when STREAM is a string.
-   LOCATE_SYMS true means read symbol occurrences as located
-   symbols.  */
+   LOCATE_SYMS true means read symbol occurrences as symbols with
+   position.  */
 static Lisp_Object
 read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end,
                      bool locate_syms)
@@ -2768,7 +2768,8 @@ read_integer (Lisp_Object readcharfun, EMACS_INT radix)
    zero in *PCH and we read and return one lisp object.
 
    FIRST_IN_LIST is true if this is the first element of a list.
-   LOCATE_SYMS true means read symbol occurrences as located symbols.  */
+   LOCATE_SYMS true means read symbol occurrences as symbols with
+   position.  */
 
 static Lisp_Object
 read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
@@ -3619,8 +3620,8 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 		}
 	    }
           if (locate_syms)
-            result = build_located_symbol (result,
-                                           make_fixnum (start_position));
+            result = build_symbol_with_pos (result,
+                                            make_fixnum (start_position));
 
 	  if (EQ (Vread_with_symbol_positions, Qt)
 	      || EQ (Vread_with_symbol_positions, readcharfun))
@@ -3959,8 +3960,8 @@ read_vector (Lisp_Object readcharfun, bool bytecodeflag, bool locate_syms)
 }
 
 /* FLAG means check for ']' to terminate rather than ')' and '.'.
-   LOCATE_SYMS true means read symbol occurrencess as located
-   symbols. */
+   LOCATE_SYMS true means read symbol occurrencess as symbols with
+   position. */
 
 static Lisp_Object
 read_list (bool flag, Lisp_Object readcharfun, bool locate_syms)
@@ -4845,7 +4846,7 @@ void
 syms_of_lread (void)
 {
   defsubr (&Sread);
-  defsubr (&Sread_locating_symbols);
+  defsubr (&Sread_positioning_symbols);
   defsubr (&Sread_from_string);
   defsubr (&Slread__substitute_object_in_subtree);
   defsubr (&Sintern);

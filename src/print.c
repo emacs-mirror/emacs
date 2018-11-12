@@ -1394,21 +1394,21 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
       printchar ('>', printcharfun);
       break;
 
-    case PVEC_LOCATED_SYMBOL:
+    case PVEC_SYMBOL_WITH_POS:
       {
-        struct Lisp_Located_Symbol *ls = XLOCATED_SYMBOL (obj);
+        struct Lisp_Symbol_With_Pos *sp = XSYMBOL_WITH_POS (obj);
         print_c_string ("#<symbol ", printcharfun);
-        if (SYMBOLP (ls->sym))
-          print_object (ls->sym, printcharfun, escapeflag);
+        if (BARE_SYMBOL_P (sp->sym))
+          print_object (sp->sym, printcharfun, escapeflag);
         else
           print_c_string ("NOT A SYMBOL!!", printcharfun);
-        if (FIXNUMP (ls->loc))
+        if (FIXNUMP (sp->pos))
           {
             print_c_string (" at ", printcharfun);
-            print_object (ls->loc, printcharfun, escapeflag);
+            print_object (sp->pos, printcharfun, escapeflag);
           }
         else
-          print_c_string (" NOT A LOCATION!!", printcharfun);
+          print_c_string (" NOT A POSITION!!", printcharfun);
         printchar ('>', printcharfun);
       }
       break;
