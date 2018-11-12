@@ -728,16 +728,43 @@ CONNECT-ARGS are passed as additional arguments to
          :character (- (goto-char (or pos (point)))
                        (line-beginning-position)))))
 
+(defvar eglot-move-to-column-function #'move-to-column
+  "How to move to a column reported by the LSP server.
+
+According to the standard, LSP column/character offsets are based
+on a count of UTF-16 code units, not actual visual columns.  So
+when LSP says position 3 of a line containing just \"aXbc\",
+where X is a multi-byte character, it actually means `b', not
+`c'.  This is what the function
+`eglot-move-to-lsp-abiding-column' does.
+
+However, many servers don't follow the spec this closely, and
+thus this variable should be set to `move-to-column' in buffers
+managed by those servers.")
+
+(defun eglot-move-to-lsp-abiding-column (column)
+  "Move to COLUMN abiding by the LSP spec."
+  (cl-loop
+   initially (move-to-column column)
+   with lbp = (line-beginning-position)
+   for diff = (- column
+                 (/ (- (length (encode-coding-region lbp (point) 'utf-16 t))
+                       2)
+                    2))
+   until (zerop diff)
+   for offset = (max 1 (abs (/ diff 2)))
+   do (if (> diff 0) (forward-char offset) (backward-char offset))))
+
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
 If optional MARKER, return a marker instead"
-  (save-excursion (goto-char (point-min))
-                  (forward-line (min most-positive-fixnum
-                                     (plist-get pos-plist :line)))
-                  (forward-char (min (plist-get pos-plist :character)
-                                     (- (line-end-position)
-                                        (line-beginning-position))))
-                  (if marker (copy-marker (point-marker)) (point))))
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line (min most-positive-fixnum
+                       (plist-get pos-plist :line)))
+    (unless (eobp) ;; if line was excessive leave point at eob
+      (funcall eglot-move-to-column-function (plist-get pos-plist :character)))
+    (if marker (copy-marker (point-marker)) (point))))
 
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
@@ -1040,7 +1067,7 @@ Uses THING, FACE, DEFS and PREPEND."
                    (priority . ,(+ 50 i))
                    (keymap . ,(let ((map (make-sparse-keymap)))
                                 (define-key map [mouse-1]
-                                  (eglot--mouse-call 'eglot-code-actions))
+                                            (eglot--mouse-call 'eglot-code-actions))
                                 map)))))
 
 
