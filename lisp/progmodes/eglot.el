@@ -721,26 +721,42 @@ CONNECT-ARGS are passed as additional arguments to
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'format format args) :warning)))
 
+(defvar eglot-current-column-function #'current-column
+  "Function to calculate the current column.
+
+This is the inverse operation of
+`eglot-move-to-column-function' (which see).  It is a function of
+no arguments returning a column number.  For buffers managed by
+fully LSP-compliant servers, this should be set to
+`eglot-lsp-abiding-column', and `current-column' (the default)
+for all others.")
+
+(defun eglot-lsp-abiding-column ()
+  "Calculate current COLUMN as defined by the LSP spec."
+  (/ (- (length (encode-coding-region (line-beginning-position)
+                                      (point) 'utf-16 t))
+        2)
+     2))
+
 (defun eglot--pos-to-lsp-position (&optional pos)
   "Convert point POS to LSP position."
   (eglot--widening
    (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
-         :character (- (goto-char (or pos (point)))
-                       (line-beginning-position)))))
+         :character (progn (when pos (goto-char pos))
+                           (funcall eglot-current-column-function)))))
 
 (defvar eglot-move-to-column-function #'move-to-column
-  "How to move to a column reported by the LSP server.
+  "Function to move to a column reported by the LSP server.
 
 According to the standard, LSP column/character offsets are based
 on a count of UTF-16 code units, not actual visual columns.  So
 when LSP says position 3 of a line containing just \"aXbc\",
 where X is a multi-byte character, it actually means `b', not
-`c'.  This is what the function
-`eglot-move-to-lsp-abiding-column' does.
+`c'. However, many servers don't follow the spec this closely.
 
-However, many servers don't follow the spec this closely, and
-thus this variable should be set to `move-to-column' in buffers
-managed by those servers.")
+For buffers managed by fully LSP-compliant servers, this should
+be set to `eglot-move-to-lsp-abiding-column', and
+`move-to-column' (the default) for all others.")
 
 (defun eglot-move-to-lsp-abiding-column (column)
   "Move to COLUMN abiding by the LSP spec."
