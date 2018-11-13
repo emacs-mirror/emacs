@@ -752,8 +752,7 @@ managed by those servers.")
                        2)
                     2))
    until (zerop diff)
-   for offset = (max 1 (abs (/ diff 2)))
-   do (if (> diff 0) (forward-char offset) (backward-char offset))))
+   do (forward-char (/ (if (> diff 0) (1+ diff) (1- diff)) 2))))
 
 (defun eglot--lsp-position-to-point (pos-plist &optional marker)
   "Convert LSP position POS-PLIST to Emacs point.
