@@ -1185,6 +1185,9 @@ ARG is passed to the first function."
       ;; The buffer should be in the unibyte mode because group names
       ;; are ASCII text or encoded non-ASCII text (i.e., unibyte).
       (mm-disable-multibyte)
+      ;; FIXME: Was unibyte necessary only because group names used to
+      ;; be unibyte? Or did it need to be unibyte for some other
+      ;; reason?
       (maphash
        (lambda (group active)
 	 (when active

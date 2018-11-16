@@ -152,6 +152,8 @@ seen in the same session."
   (let* ((header (gnus-data-header (gnus-data-find article)))
 	 (id     (when header (mail-header-id header))))
     (when id
+      (unless gnus-dup-list
+	(gnus-dup-open))
       (setq gnus-dup-list-dirty t)
       (setq gnus-dup-list (delete id gnus-dup-list))
       (remhash id gnus-dup-hashtb))))

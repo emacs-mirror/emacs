@@ -229,7 +229,7 @@ NOTES:
   "Cache of message subjects for spam messages.
 Actually a hash table holding subjects mapped to t.")
 (defvar gnus-agent-file-name nil)
-(defvar gnus-agent-file-coding-system 'raw-text)
+(defvar gnus-agent-file-coding-system 'undecided)
 (defvar gnus-agent-file-loading-cache nil)
 (defvar gnus-agent-total-fetched-hashtb nil)
 (defvar gnus-agent-inhibit-update-total-fetched-for nil)
@@ -1324,7 +1324,10 @@ downloaded into the agent."
       (gnus-make-directory (file-name-directory file))
       (with-temp-file file
 	;; Emacs got problem to match non-ASCII group in multibyte buffer.
-	(mm-disable-multibyte)
+
+	;; FIXME: Is this still an issue now that group names are
+	;; always strings?
+	;(mm-disable-multibyte)
 	(when (file-exists-p file)
 	  (nnheader-insert-file-contents file)
 
@@ -1354,7 +1357,7 @@ downloaded into the agent."
       (gnus-make-directory (file-name-directory file))
       (with-temp-buffer
 	;; Emacs got problem to match non-ASCII group in multibyte buffer.
-	(mm-disable-multibyte)
+	;(mm-disable-multibyte)
 	(when (file-exists-p file)
 	  (nnheader-insert-file-contents file)
 
@@ -1431,7 +1434,7 @@ downloaded into the agent."
 			     (format " *Gnus agent %s history*"
 				     (gnus-agent-method)))))
 	  gnus-agent-history-buffers)
-    (mm-disable-multibyte) ;; everything is binary
+    ;(mm-disable-multibyte) ;; everything is binary
     (erase-buffer)
     (insert "\n")
     (let ((file (gnus-agent-lib-file "history")))

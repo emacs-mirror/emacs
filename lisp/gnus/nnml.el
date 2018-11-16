@@ -740,8 +740,14 @@ article number.  This function is called narrowed to an article."
 
 (defun nnml-active-number (group &optional server)
   "Compute the next article number in GROUP on SERVER."
-  (let* ((encoded (if nnmail-group-names-not-encoded-p
-		      (nnml-encoded-group-name group server)))
+  ;; FIXME: What to do about this?  The following code seems to assume
+  ;; that the active file *must* be raw-text, and encodes group names
+  ;; if they aren't.  But couldn't `nnml-group-names-not-encoded-p' be
+  ;; interpreted to mean *don't* encode group names?  Anyway, blanking
+  ;; this out for now.
+  (let* ((encoded ;; (if nnmail-group-names-not-encoded-p
+		  ;;     (nnml-encoded-group-name group server))
+		  nil)
 	 (active (cadr (assoc (or encoded group) nnml-group-alist))))
     ;; The group wasn't known to nnml, so we just create an active
     ;; entry for it.
@@ -910,7 +916,7 @@ Unless no-active is non-nil, update the active file too."
   ;; Update the active info for this group.
   (let ((group (directory-file-name dir))
 	entry last)
-    (setq group (nnheader-file-to-group (nnml-encoded-group-name group)
+    (setq group (nnheader-file-to-group group
 					nnml-directory)
 	  entry (assoc group nnml-group-alist)
 	  last (or (caadr entry) 0)

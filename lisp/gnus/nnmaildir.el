@@ -419,7 +419,7 @@ This variable is set by `nnmaildir-request-article'.")
 	   (t (signal (car err) (cdr err)))))))))
 
 (defun nnmaildir--update-nov (server group article)
-  (let ((nnheader-file-coding-system 'binary)
+  (let ((nnheader-file-coding-system 'undecided)
 	(srv-dir (nnmaildir--srv-dir server))
 	(storage-version 1) ;; [version article-number msgid [...nov...]]
 	dir gname pgname msgdir prefix suffix file attr mtime novdir novfile

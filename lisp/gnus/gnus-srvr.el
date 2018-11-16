@@ -859,12 +859,7 @@ claim them."
 			   ((= level gnus-level-zombie) ?Z)
 			   (t ?K)))
 			(max 0 (- (1+ (cddr group)) (cadr group)))
-			;; Don't decode if name is ASCII
-			(if (eq (detect-coding-string name t) 'undecided)
-			    name
-			  (decode-coding-string
-			   name
-			   (inline (gnus-group-name-charset method name)))))))
+			name)))
 	     (list 'gnus-group name)
 	     )))
 	(switch-to-buffer (current-buffer)))
