@@ -595,7 +595,7 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
 (defun nnmail-request-post (&optional server)
   (mail-send-and-exit nil))
 
-(defvar nnmail-file-coding-system 'raw-text
+(defvar nnmail-file-coding-system 'undecided
   "Coding system used in nnmail.")
 
 (defvar nnmail-incoming-coding-system
@@ -661,9 +661,12 @@ nn*-request-list should have been called before calling this function."
       (condition-case err
 	  (progn
 	    (narrow-to-region (point) (point-at-eol))
-	    (setq group (read buffer))
-	    (unless (stringp group)
-	      (setq group (encode-coding-string (symbol-name group) 'latin-1)))
+	    (setq group (read buffer)
+		  group
+		  (cond ((symbolp group)
+			 (symbol-name group))
+			((numberp group)
+			 (number-to-string group))))
 	    (if (and (numberp (setq max (read buffer)))
 		     (numberp (setq min (read buffer))))
 		(push (list group (cons min max))
@@ -673,7 +676,7 @@ nn*-request-list should have been called before calling this function."
       (forward-line 1))
     group-assoc))
 
-(defcustom nnmail-active-file-coding-system 'raw-text
+(defcustom nnmail-active-file-coding-system 'undecided
   "Coding system for active file."
   :group 'nnmail-various
   :type 'coding-system)
@@ -683,7 +686,7 @@ nn*-request-list should have been called before calling this function."
   (let ((coding-system-for-write nnmail-active-file-coding-system))
     (when file-name
       (with-temp-file file-name
-	(mm-disable-multibyte)
+;	(mm-disable-multibyte)
 	(nnmail-generate-active group-assoc)))))
 
 (defun nnmail-generate-active (alist)
@@ -691,7 +694,7 @@ nn*-request-list should have been called before calling this function."
   (erase-buffer)
   (let (group)
     (while (setq group (pop alist))
-      (insert (format "%S %d %d y\n" (intern (car group)) (cdadr group)
+      (insert (format "%s %d %d y\n" (car group) (cdadr group)
 		      (caadr group))))
     (goto-char (point-max))
     (while (search-backward "\\." nil t)
@@ -1023,7 +1026,7 @@ If SOURCE is a directory spec, try to return the group name component."
       (nnmail-check-duplication message-id func artnum-func))
     1))
 
-(defvar nnmail-group-names-not-encoded-p nil
+(defvar nnmail-group-names-not-encoded-p t
   "Non-nil means group names are not encoded.")
 
 (defun nnmail-split-incoming (incoming func &optional exit-func
@@ -1044,6 +1047,10 @@ will be copied over from that buffer."
       (erase-buffer)
       (if (bufferp incoming)
 	  (insert-buffer-substring incoming)
+	;; The following coding system is set to
+	;; `mm-text-coding-system', which is set to some flavor of
+	;; 'raw-text "to get rid of ^Ms".  But it's going to do a lot
+	;; more than that, right?  Shouldn't this also be 'undecided?
 	(let ((coding-system-for-read nnmail-incoming-coding-system))
 	  (mm-insert-file-contents incoming)))
       (prog1

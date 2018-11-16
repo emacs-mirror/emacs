@@ -3455,11 +3455,9 @@ server is native)."
   "Return the prefix of the current group name."
   (< 0 (length (gnus-group-real-prefix group))))
 
-(declare-function gnus-group-decoded-name "gnus-group" (string))
-
 (defun gnus-summary-buffer-name (group)
   "Return the summary buffer name of GROUP."
-  (concat "*Summary " (gnus-group-decoded-name group) "*"))
+  (concat "*Summary " group "*"))
 
 (defun gnus-group-method (group)
   "Return the server or method used for selecting GROUP.

@@ -1834,17 +1834,22 @@ The info element is shared with the same element of
 	(if (setq rest (member method methods))
 	    (gnus-info-set-method info (car rest))
 	  (push method methods)))
+      ;; Check for encoded group names and decode them.
+      (when (string-match-p "[^\000-\177]" (setq gname (car info)))
+	(let ((decoded (gnus-group-decoded-name gname)))
+	 (setf gname decoded
+	       (car info) decoded)))
       ;; Check for duplicates.
-      (if (gethash (car info) gnus-newsrc-hashtb)
+      (if (gethash gname gnus-newsrc-hashtb)
 	  ;; Remove this entry from the alist.
 	  (setcdr alist (cddr alist))
 	(puthash
-	 (car info)
+	 gname
 	 ;; Preserve number of unread articles in groups.
-	 (list (and ohashtb (car (gethash (car info) ohashtb)))
+	 (list (and ohashtb (car (gethash gname ohashtb)))
 	       info)
 	 gnus-newsrc-hashtb)
-	(push (car info) gnus-group-list))
+	(push gname gnus-group-list))
       (setq alist (cdr alist)))
     (setq gnus-group-list (nreverse gnus-group-list))
     ;; Make the same select-methods in `gnus-server-alist' identical
@@ -2150,9 +2155,7 @@ The info element is shared with the same element of
 				      (cond ((numberp group)
 					     (number-to-string group))
 					    ((symbolp group)
-					     (encode-coding-string
-					      (symbol-name group)
-					      'latin-1))
+					     (symbol-name group))
 					    ((stringp group)
 					     group)))))
 		     (numberp (setq max (read cur)))
@@ -2918,10 +2921,6 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
       (setq default-directory (file-name-directory buffer-file-name))
       (buffer-disable-undo)
       (erase-buffer)
-      ;; Use a unibyte buffer since group names are unibyte strings;
-      ;; in particular, non-ASCII group names are the ones encoded by
-      ;; a certain coding system.
-      (mm-disable-multibyte)
       ;; Write options.
       (when gnus-newsrc-options
 	(insert gnus-newsrc-options))

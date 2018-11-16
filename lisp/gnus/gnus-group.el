@@ -479,7 +479,6 @@ simple manner."
 (defvar gnus-tmp-news-method)
 (defvar gnus-tmp-colon)
 (defvar gnus-tmp-news-server)
-(defvar gnus-tmp-decoded-group)
 (defvar gnus-tmp-header)
 (defvar gnus-tmp-process-marked)
 (defvar gnus-tmp-summary-live)
@@ -518,14 +517,9 @@ simple manner."
     (?T (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))) ?d)
     (?i (+ (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked)))
 	   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked)))) ?d)
-    (?g (if (boundp 'gnus-tmp-decoded-group)
-	    gnus-tmp-decoded-group
-	  gnus-tmp-group)
-	?s)
+    (?g gnus-tmp-group ?s)
     (?G gnus-tmp-qualified-group ?s)
-    (?c (gnus-short-group-name (if (boundp 'gnus-tmp-decoded-group)
-				   gnus-tmp-decoded-group
-				 gnus-tmp-group))
+    (?c (gnus-short-group-name gnus-tmp-group)
 	?s)
     (?C gnus-tmp-comment ?s)
     (?D gnus-tmp-newsgroup-description ?s)
@@ -1398,8 +1392,7 @@ if it is a string, only list groups matching REGEXP."
                      ((functionp regexp) (funcall regexp group))))
           (add-text-properties
            (point) (prog1 (1+ (point))
-                     (insert " " mark "     *: "
-                             (gnus-group-decoded-name group)
+                     (insert " " mark " *: " group
                              "\n"))
            (list 'gnus-group group
                  'gnus-unread t
@@ -1508,8 +1501,6 @@ if it is a string, only list groups matching REGEXP."
   "Insert a group line in the group buffer."
   (let* ((gnus-tmp-method
 	  (gnus-server-get-method gnus-tmp-group gnus-tmp-method))
-	 (group-name-charset (gnus-group-name-charset gnus-tmp-method
-						      gnus-tmp-group))
 	 (gnus-tmp-active (gnus-active gnus-tmp-group))
 	 (gnus-tmp-number-total
 	  (if gnus-tmp-active
@@ -1528,16 +1519,13 @@ if it is a string, only list groups matching REGEXP."
 		((= gnus-tmp-level gnus-level-zombie) ?Z)
 		(t ?K)))
 	 (gnus-tmp-qualified-group
-	  (gnus-group-name-decode (gnus-group-real-name gnus-tmp-group)
-				  group-name-charset))
+	  (gnus-group-real-name gnus-tmp-group))
 	 (gnus-tmp-comment
 	  (or (gnus-group-get-parameter gnus-tmp-group 'comment t)
 	      gnus-tmp-group))
 	 (gnus-tmp-newsgroup-description
 	  (if gnus-description-hashtb
-	      (or (gnus-group-name-decode
-		   (gethash gnus-tmp-group gnus-description-hashtb)
-		   group-name-charset) "")
+	      (or (gethash gnus-tmp-group gnus-description-hashtb) "")
 	    ""))
 	 (gnus-tmp-moderated
 	  (if (and gnus-moderated-hashtb
@@ -1574,9 +1562,7 @@ if it is a string, only list groups matching REGEXP."
      (point)
      (prog1 (1+ (point))
        ;; Insert the text.
-       (let ((gnus-tmp-decoded-group (gnus-group-name-decode
-				      gnus-tmp-group group-name-charset)))
-	 (eval gnus-group-line-format-spec)))
+       (eval gnus-group-line-format-spec))
      `(gnus-group ,gnus-tmp-group
 		  gnus-unread ,(if (numberp number)
 				   (string-to-number gnus-tmp-number-of-unread)
@@ -2166,6 +2152,9 @@ Non-ASCII group names are allowed.  The arguments are the same as
 `gnus-active-hashtb' and `gnus-group-history' respectively if
 they are omitted.  Can handle COLLECTION as a list, hash table,
 or vector."
+  ;; This function is a little more complicated for backwards
+  ;; compatibility.  In theory, `collection' will only ever be a list
+  ;; or a hash table, and the group names will all be fully decoded.
   (or collection (setq collection gnus-active-hashtb))
   (let* ((choices
 	  (mapcar
@@ -2726,13 +2715,13 @@ The user will be prompted for GROUP."
   (interactive (list (gnus-group-completing-read)))
   (gnus-group-make-group (gnus-group-real-name group)
 			 (gnus-group-server group)
-			 nil nil t))
+			 nil nil))
 
-(defun gnus-group-make-group (name &optional method address args encoded)
+(defun gnus-group-make-group (name &optional method address args)
   "Add a new newsgroup.
 The user will be prompted for a NAME, for a select METHOD, and an
 ADDRESS.  NAME should be a human-readable string (i.e., not be encoded
-even if it contains non-ASCII characters) unless ENCODED is non-nil.
+even if it contains non-ASCII characters).
 
 If the backend supports it, the group will also be created on the
 server."
@@ -2743,10 +2732,6 @@ server."
 
   (when (stringp method)
     (setq method (or (gnus-server-to-method method) method)))
-  (unless encoded
-    (setq name (encode-coding-string
-		name
-		(gnus-group-name-charset method name))))
   (let* ((meth (gnus-method-simplify
 		(when (and method
 			   (not (gnus-server-equal method gnus-select-method)))
@@ -2755,7 +2740,7 @@ server."
 	 (nname (if method (gnus-group-prefixed-name name meth) name))
 	 backend info)
     (when (gnus-group-entry nname)
-      (error "Group %s already exists" (gnus-group-decoded-name nname)))
+      (error "Group %s already exists" nname))
     ;; Subscribe to the new group.
     (gnus-group-change-level
      (setq info (list t nname gnus-level-default-subscribed nil nil meth))
@@ -3076,8 +3061,7 @@ If called with a prefix argument, ask for the file type."
 	 (coding (gnus-group-name-charset method name)))
     (setcar (cdr method) (encode-coding-string file coding))
     (gnus-group-make-group
-     (encode-coding-string (gnus-group-real-name name) coding)
-     method nil nil t)))
+     (gnus-group-real-name name) method nil nil)))
 
 (defvar nnweb-type-definition)
 (defvar gnus-group-web-type-history nil)
@@ -4458,9 +4442,9 @@ and the second element is the address."
 		   (prin1-to-string (car method)))
 		 (and (consp method)
 		      (nth 1 (gnus-info-method info)))
-		 nil t)
+		 nil)
 	      ;; It's a native group.
-	      (gnus-group-make-group (gnus-info-group info) nil nil nil t)))
+	      (gnus-group-make-group (gnus-info-group info) nil nil nil)))
 	  (gnus-message 6 "Note: New group created")
 	  (setq entry
 		(gnus-group-entry (gnus-group-prefixed-name

@@ -1175,16 +1175,10 @@ ARG is passed to the first function."
 	(throw 'found nil)))
     t))
 
-;; gnus.el requires mm-util.
-(declare-function mm-disable-multibyte "mm-util")
-
 (defun gnus-write-active-file (file hashtb &optional full-names)
-  ;; `coding-system-for-write' should be `raw-text' or equivalent.
   (let ((coding-system-for-write nnmail-active-file-coding-system))
     (with-temp-file file
-      ;; The buffer should be in the unibyte mode because group names
-      ;; are ASCII text or encoded non-ASCII text (i.e., unibyte).
-      (mm-disable-multibyte)
+      (insert (format ";; -*- encoding: %s; -*-\n\n" coding-system-for-write))
       (maphash
        (lambda (group active)
 	 (when active

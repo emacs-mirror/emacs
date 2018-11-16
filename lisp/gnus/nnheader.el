@@ -30,7 +30,6 @@
 
 (defvar nnmail-extra-headers)
 (defvar gnus-newsgroup-name)
-(defvar nnheader-file-coding-system)
 (defvar jka-compr-compression-info-list)
 
 ;; Requiring `gnus-util' at compile time creates a circular
@@ -566,7 +565,8 @@ the line could be found."
 
 (defvar nntp-server-buffer nil)
 (defvar nntp-process-response nil)
-
+(defvar nnheader-file-coding-system 'undecided
+  "Coding system used in file backends of Gnus.")
 (defvar nnheader-callback-function nil)
 
 (defun nnheader-init-server-buffer ()
@@ -937,9 +937,6 @@ first.  Otherwise, find the newest one, though it may take a time."
     (when (and (fboundp 'ange-ftp-re-read-dir) (boundp 'ange-ftp-path-format))
       (when (string-match (car ange-ftp-path-format) path)
 	(ange-ftp-re-read-dir path)))))
-
-(defvar nnheader-file-coding-system 'raw-text
-  "Coding system used in file backends of Gnus.")
 
 (defun nnheader-insert-file-contents (filename &optional visit beg end replace)
   "Like `insert-file-contents', q.v., but only reads in the file.
