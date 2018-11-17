@@ -1665,7 +1665,7 @@ is not active."
                     (insert "\n"
                             (propertize
                              label 'face 'eldoc-highlight-function-argument)
-                            ": " documentation))))
+                            ": " (eglot--format-markup documentation)))))
               (buffer-string)))
    when moresigs concat "\n"))
 
