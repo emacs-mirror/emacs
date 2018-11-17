@@ -1181,7 +1181,7 @@ print_preprocess (Lisp_Object obj)
 	error ("Apparently circular structure being printed");
 
       for (i = 0; i < print_depth; i++)
-	if (EQ (obj, being_printed[i]))
+	if (BASE_EQ (obj, being_printed[i]))
 	  return;
       being_printed[print_depth] = obj;
     }
@@ -1868,7 +1868,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	error ("Apparently circular structure being printed");
 
       for (i = 0; i < print_depth; i++)
-	if (EQ (obj, being_printed[i]))
+	if (BASE_EQ (obj, being_printed[i]))
 	  {
 	    int len = sprintf (buf, "#%d", i);
 	    strout (buf, len, len, printcharfun);

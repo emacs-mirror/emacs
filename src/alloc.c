@@ -527,10 +527,10 @@ PNTR_ADD (char *p, EMACS_UINT i)
 
 /* Extract the pointer hidden within O.  */
 
-#define macro_XPNTR(o)                                                 \
-  ((void *) \
-   (SYMBOLP (o)							       \
-    ? PNTR_ADD ((char *) lispsym,				       \
+#define macro_XPNTR(o)                                                  \
+  ((void *)                                                             \
+   (BARE_SYMBOL_P (o)                                                   \
+    ? PNTR_ADD ((char *) lispsym,                                       \
 		(XLI (o)						\
 		 - ((EMACS_UINT) Lisp_Symbol << (USE_LSB_TAG ? 0 : VALBITS)))) \
     : (char *) XLP (o) - (XLI (o) & ~VALMASK)))
@@ -5091,7 +5091,7 @@ valid_lisp_object_p (Lisp_Object obj)
   if (PURE_P (p))
     return 1;
 
-  if (SYMBOLP (obj) && c_symbol_p (p))
+  if (BARE_SYMBOL_P (obj) && c_symbol_p (p))
     return ((char *) p - (char *) lispsym) % sizeof lispsym[0] == 0;
 
   if (p == &buffer_defaults || p == &buffer_local_symbols)
@@ -6078,7 +6078,8 @@ mark_char_table (struct Lisp_Vector *ptr, enum pvec_type pvectype)
     {
       Lisp_Object val = ptr->contents[i];
 
-      if (FIXNUMP (val) || (SYMBOLP (val) && XSYMBOL (val)->u.s.gcmarkbit))
+      if (FIXNUMP (val) || (BARE_SYMBOL_P (val)
+                            && XBARE_SYMBOL (val)->u.s.gcmarkbit))
 	continue;
       if (SUB_CHAR_TABLE_P (val))
 	{

@@ -2220,7 +2220,7 @@ STREAM or the value of `standard-input' may be:
   return read_internal_start (stream, Qnil, Qnil, false);
 }
 
-DEFUN ("read-positiong-symbols", Fread_positioning_symbols,
+DEFUN ("read-positioning-symbols", Fread_positioning_symbols,
        Sread_positioning_symbols, 0, 1, 0,
        doc: /* Read one Lisp expression as text from STREAM, return as Lisp object.
 Convert each occurrence of a symbol into a "symbol with pos" object.

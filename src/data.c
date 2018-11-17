@@ -4152,7 +4152,7 @@ This variable cannot be set; trying to do so will signal an error.  */);
   make_symbol_constant (intern_c_string ("most-negative-fixnum"));
 
   DEFVAR_LISP ("symbols-with-pos-enabled", Vsymbols_with_pos_enabled,
-               doc: /* Non-nil when "located symbols" can be used in place of symbols.
+               doc: /* Non-nil when "symbols with position" can be used as symbols.
 Bind this to non-nil in applications such as the byte compiler.  */);
   Vsymbols_with_pos_enabled = Qnil;
 

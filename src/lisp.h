@@ -380,18 +380,33 @@ typedef EMACS_INT Lisp_Word;
 #endif
 
 #define lisp_h_PSEUDOVECTORP(a,code)                            \
-  (lisp_h_VECTORLIKEP(a) &&                                     \
-   ((XUNTAG (a, Lisp_Vectorlike, union vectorlike_header)->size \
+  (lisp_h_VECTORLIKEP((a)) &&                                   \
+   ((XUNTAG ((a), Lisp_Vectorlike, union vectorlike_header)->size       \
      & (PSEUDOVECTOR_FLAG | PVEC_TYPE_MASK))                    \
-    == (PSEUDOVECTOR_FLAG | (code << PSEUDOVECTOR_AREA_BITS))))
+    == (PSEUDOVECTOR_FLAG | ((code) << PSEUDOVECTOR_AREA_BITS))))
 
 #define lisp_h_CHECK_FIXNUM(x) CHECK_TYPE (FIXNUMP (x), Qfixnump, x)
 #define lisp_h_CHECK_SYMBOL(x) CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
 #define lisp_h_CHECK_TYPE(ok, predicate, x) \
    ((ok) ? (void) 0 : wrong_type_argument (predicate, x))
 #define lisp_h_CONSP(x) TAGGEDP (x, Lisp_Cons)
-#define lisp_h_EQ(x, y) (XLI (x) == XLI (y))
-#define lisp_h_FIXNUMP(x) \
+#define lisp_h_BASE_EQ(x, y) (XLI (x) == XLI (y))
+/* #define lisp_h_EQ(x, y) (XLI (x) == XLI (y)) */
+
+/* verify (NIL_IS_ZERO) */
+#define lisp_h_EQ(x, y) ((XLI ((x)) == XLI ((y)))       \
+  || (Vsymbols_with_pos_enabled  \
+  && (SYMBOL_WITH_POS_P ((x))                        \
+      ? BARE_SYMBOL_P ((y))                               \
+        ? (lisp_h_XSYMBOL_WITH_POS((x)))->sym == (y)          \
+        : SYMBOL_WITH_POS_P((y))                       \
+          && ((lisp_h_XSYMBOL_WITH_POS((x)))->sym                   \
+              == (lisp_h_XSYMBOL_WITH_POS((y)))->sym)               \
+      : (SYMBOL_WITH_POS_P ((y))                     \
+         && BARE_SYMBOL_P ((x))                           \
+         && ((x) == ((lisp_h_XSYMBOL_WITH_POS ((y)))->sym))))))
+
+#define lisp_h_FIXNUMP(x)                                       \
    (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS)) \
 	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG)) \
        & ((1 << INTTYPEBITS) - 1)))
@@ -405,11 +420,11 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_SYMBOL_TRAPPED_WRITE_P(sym) (XSYMBOL (sym)->u.s.trapped_write)
 #define lisp_h_SYMBOL_VAL(sym) \
    (eassert ((sym)->u.s.redirect == SYMBOL_PLAINVAL), (sym)->u.s.val.value)
-#define lisp_h_SYMBOL_WITH_POS_P(x) lisp_h_PSEUDOVECTORP (XIL(x), PVEC_SYMBOL_WITH_POS)
-#define lisp_h_BARE_SYMBOL_P(x) TAGGEDP (x, Lisp_Symbol)
+#define lisp_h_SYMBOL_WITH_POS_P(x) lisp_h_PSEUDOVECTORP (XIL((x)), PVEC_SYMBOL_WITH_POS)
+#define lisp_h_BARE_SYMBOL_P(x) TAGGEDP ((x), Lisp_Symbol)
 /* verify (NIL_IS_ZERO) */
-#define lisp_h_SYMBOLP(x) ((lisp_h_BARE_SYMBOL_P (x) || \
-                            (Vsymbols_with_pos_enabled && (lisp_h_SYMBOL_WITH_POS_P (x)))))
+#define lisp_h_SYMBOLP(x) ((lisp_h_BARE_SYMBOL_P ((x)) ||               \
+                            (Vsymbols_with_pos_enabled && (lisp_h_SYMBOL_WITH_POS_P ((x))))))
 #define lisp_h_TAGGEDP(a, tag) \
    (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
 	- (unsigned) (tag)) \
@@ -430,29 +445,29 @@ typedef EMACS_INT Lisp_Word;
 # define lisp_h_XFIXNUM(a) (XLI (a) >> INTTYPEBITS)
 # ifdef __CHKP__
 #  define lisp_h_XBARE_SYMBOL(a) \
-    (eassert (BARE_SYMBOL_P (a)), \
-     (struct Lisp_Symbol *) ((char *) XUNTAG (a, Lisp_Symbol, \
+    (eassert (BARE_SYMBOL_P ((a))),                             \
+     (struct Lisp_Symbol *) ((char *) XUNTAG ((a), Lisp_Symbol,   \
 					      struct Lisp_Symbol) \
 			     + (intptr_t) lispsym))
 # else
    /* If !__CHKP__ this is equivalent, and is a bit faster as of GCC 7.  */
 #  define lisp_h_XBARE_SYMBOL(a) \
-    (eassert (BARE_SYMBOL_P (a)), \
-     (struct Lisp_Symbol *) ((intptr_t) XLI (a) - Lisp_Symbol \
+    (eassert (BARE_SYMBOL_P ((a))),                             \
+     (struct Lisp_Symbol *) ((intptr_t) XLI ((a)) - Lisp_Symbol \
 			     + (char *) lispsym))
 # endif
 # define lisp_h_XSYMBOL_WITH_POS(a)                      \
-    (eassert (SYMBOL_WITH_POS_P (a)),                    \
+  (eassert (SYMBOL_WITH_POS_P ((a))),                    \
      (struct Lisp_Symbol_With_Pos *) XUNTAG              \
-     (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos))
+     ((a), Lisp_Vectorlike, struct Lisp_Symbol_With_Pos))
 /* verify (NIL_IS_ZERO) */
 # define lisp_h_XSYMBOL(a)                      \
-    (eassert (SYMBOLP (a)),                     \
+     (eassert (SYMBOLP ((a))),                      \
       (!Vsymbols_with_pos_enabled                \
-      ? (lisp_h_XBARE_SYMBOL (a))               \
-       : (lisp_h_BARE_SYMBOL_P (a))             \
-      ? (lisp_h_XBARE_SYMBOL (a))               \
-       : lisp_h_XBARE_SYMBOL (lisp_h_XSYMBOL_WITH_POS (a)->sym)))
+      ? (lisp_h_XBARE_SYMBOL ((a)))             \
+       : (lisp_h_BARE_SYMBOL_P ((a)))           \
+      ? (lisp_h_XBARE_SYMBOL ((a)))                                    \
+       : lisp_h_XBARE_SYMBOL (lisp_h_XSYMBOL_WITH_POS ((a))->sym)))
 
 # define lisp_h_XTYPE(a) ((enum Lisp_Type) (XLI (a) & ~VALMASK))
 #endif
@@ -477,7 +492,8 @@ typedef EMACS_INT Lisp_Word;
 # define CHECK_SYMBOL(x) lisp_h_CHECK_SYMBOL (x)
 # define CHECK_TYPE(ok, predicate, x) lisp_h_CHECK_TYPE (ok, predicate, x)
 # define CONSP(x) lisp_h_CONSP (x)
-# define EQ(x, y) lisp_h_EQ (x, y)
+# define BASE_EQ(x, y) lisp_h_BASE_EQ (x, y)
+/* # define EQ(x, y) lisp_h_EQ (x, y) */
 # define FLOATP(x) lisp_h_FLOATP (x)
 # define FIXNUMP(x) lisp_h_FIXNUMP (x)
 # define NILP(x) lisp_h_NILP (x)
@@ -486,7 +502,7 @@ typedef EMACS_INT Lisp_Word;
 # define SYMBOL_TRAPPED_WRITE_P(sym) lisp_h_SYMBOL_TRAPPED_WRITE_P (sym)
 # define SYMBOL_VAL(sym) lisp_h_SYMBOL_VAL (sym)
 # define BARE_SYMBOL_P(x) lisp_h_BARE_SYMBOL_P (x)
-# define SYMBOLP(x) lisp_h_SYMBOLP (x)
+/* # define SYMBOLP(x) lisp_h_SYMBOLP (x) */
 # define TAGGEDP(a, tag) lisp_h_TAGGEDP (a, tag)
 # define VECTORLIKEP(x) lisp_h_VECTORLIKEP (x)
 # define XCAR(c) lisp_h_XCAR (c)
@@ -500,8 +516,8 @@ typedef EMACS_INT Lisp_Word;
 #  define make_fixnum(n) lisp_h_make_fixnum (n)
 #  define XFIXNAT(a) lisp_h_XFIXNAT (a)
 #  define XFIXNUM(a) lisp_h_XFIXNUM (a)
-#  define XBARE_SYMBOL(a)  lisp_h_XONLY_SYMBOL (a)
-#  define XSYMBOL(a) lisp_h_XSYMBOL (a)
+#  define XBARE_SYMBOL(a)  lisp_h_XBARE_SYMBOL (a)
+/* #  define XSYMBOL(a) lisp_h_XSYMBOL (a) */
 #  define XTYPE(a) lisp_h_XTYPE (a)
 # endif
 #endif
