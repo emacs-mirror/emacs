@@ -641,7 +641,7 @@ static Tree SplayUpdateRightSpine(SplayTree splay, Tree node, Tree child)
  * Does the same job as SplayAssemble, but operates on pointer-reversed
  * left and right trees, updating client properties.  When we reach
  * this function, the nodes on the spines of the left and right trees
- * will have out of date client properties because their children have
+ * will have out-of-date client properties because their children have
  * been changed by SplaySplitRev.
  */
 
