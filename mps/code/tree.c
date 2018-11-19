@@ -425,7 +425,7 @@ void TreeRotateRight(Tree *treeIO)
 }
 
 
-/* TreeReverseLeftSpine -- reverse the pointers on the right spine
+/* TreeReverseLeftSpine -- reverse the pointers on the left spine
  *
  * Descends the left spine of a tree, updating each node's left child
  * to point to its parent instead.  The root's left child is set to
