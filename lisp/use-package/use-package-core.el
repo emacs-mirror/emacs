@@ -988,10 +988,10 @@ The date is returned as a string."
 
 (defun use-package-statistics-time (package)
   "Return the time is took for PACKAGE to load."
-  (+ (float-time (gethash :config-secs package 0))
-     (float-time (gethash :init-secs package 0))
-     (float-time (gethash :preface-secs package 0))
-     (float-time (gethash :use-package-secs package 0))))
+  (+ (float-time (gethash :config-secs package '(0 0 0 0)))
+     (float-time (gethash :init-secs package '(0 0 0 0)))
+     (float-time (gethash :preface-secs package '(0 0 0 0)))
+     (float-time (gethash :use-package-secs package '(0 0 0 0)))))
 
 (defun use-package-statistics-convert (package)
   "Return information about PACKAGE.
