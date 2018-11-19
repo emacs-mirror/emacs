@@ -743,7 +743,8 @@ for all others.")
   (eglot--widening
    (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
          :character (progn (when pos (goto-char pos))
-                           (funcall eglot-current-column-function)))))
+                           (let ((tab-width 1))
+                             (funcall eglot-current-column-function))))))
 
 (defvar eglot-move-to-column-function #'move-to-column
   "Function to move to a column reported by the LSP server.
@@ -778,7 +779,8 @@ If optional MARKER, return a marker instead"
     (forward-line (min most-positive-fixnum
                        (plist-get pos-plist :line)))
     (unless (eobp) ;; if line was excessive leave point at eob
-      (funcall eglot-move-to-column-function (plist-get pos-plist :character)))
+      (let ((tab-width 1))
+        (funcall eglot-move-to-column-function (plist-get pos-plist :character))))
     (if marker (copy-marker (point-marker)) (point))))
 
 (defun eglot--path-to-uri (path)
