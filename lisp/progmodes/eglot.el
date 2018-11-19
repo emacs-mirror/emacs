@@ -810,7 +810,7 @@ Doubles as an indicator of snippet support."
                (if (stringp markup) (list (string-trim markup)
                                           (intern "gfm-mode"))
                  (list (plist-get markup :value)
-                       (intern (concat (plist-get markup :language) "-mode" ))))))
+                       major-mode))))
     (with-temp-buffer
       (ignore-errors (funcall mode))
       (insert string) (font-lock-ensure) (buffer-string))))
@@ -1585,11 +1585,13 @@ is not active."
                                             (get-text-property
                                              0 'eglot--lsp-completion obj)
                                             :cancel-on-input t)
-                           :documentation)))))
-           (when documentation
+                           :documentation))))
+                (formatted (and documentation
+                                (eglot--format-markup documentation))))
+           (when formatted
              (with-current-buffer (get-buffer-create " *eglot doc*")
                (erase-buffer)
-               (insert (eglot--format-markup documentation))
+               (insert formatted)
                (current-buffer)))))
        :company-prefix-length
        (cl-some #'looking-back
