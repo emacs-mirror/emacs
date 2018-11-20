@@ -96,6 +96,8 @@ language-server/bin/php-language-server.php"))
                                 (kotlin-mode . ("kotlin-language-server"))
                                 (go-mode . ("go-langserver" "-mode=stdio"
                                             "-gocodecompletion"))
+                                ((R-mode ess-r-mode) . ("R" "--slave" "-e"
+                                                        "languageserver::run()"))
                                 (java-mode . eglot--eclipse-jdt-contact))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
