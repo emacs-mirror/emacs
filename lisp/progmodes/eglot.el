@@ -1543,6 +1543,7 @@ is not active."
                               (string-trim-left label))
                              (t
                               (or insertText (string-trim-left label))))))
+                  (setq all (append all `(:bounds ,bounds)))
                   (add-text-properties 0 1 all completion)
                   (put-text-property 0 1 'eglot--lsp-completion all completion)
                   completion))
@@ -1604,13 +1605,19 @@ is not active."
                                         insertText
                                         textEdit
                                         additionalTextEdits
+                                        bounds
                                         &allow-other-keys)
                (text-properties-at 0 comp)
              (let ((fn (and (eql insertTextFormat 2)
                             (eglot--snippet-expansion-fn))))
                (when (or fn textEdit)
-                 ;; Undo the completion
-                 (delete-region (- (point) (length comp)) (point)))
+                 ;; Undo the completion.  If before completion the buffer was
+                 ;; "foo.b" and now is "foo.bar", `comp' will be "bar".  We
+                 ;; want to delete only "ar" (`comp' minus the symbol whose
+                 ;; bounds we've calculated before) (github#160).
+                 (delete-region (+ (- (point) (length comp))
+                                   (if bounds (- (cdr bounds) (car bounds)) 0))
+                                (point)))
                (cond (textEdit
                       (cl-destructuring-bind (&key range newText) textEdit
                         (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
