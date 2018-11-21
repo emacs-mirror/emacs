@@ -169,14 +169,28 @@ first will be printed into the backtrace buffer."
    (inhibit-redisplay
     ;; Don't really try to enter debugger within an eval from redisplay.
     debugger-value)
-   ((and (eq t (framep (selected-frame)))
-         (equal "initial_terminal" (terminal-name)))
+   ((or (and (eq t (framep (selected-frame)))
+             (equal "initial_terminal" (terminal-name)))
+        (and (bound-and-true-p main-thread)
+             (not (eq main-thread (current-thread)))))
+    ;; Either:
     ;; We're in the initial-frame (where `message' just outputs to stdout) so
     ;; there's no tty or GUI frame to display the backtrace and interact with
-    ;; it: just dump a backtrace to stdout.
+    ;; it.
+    ;;
     ;; This happens for example while handling an error in code from
     ;; early-init.el with --debug-init.
+    ;;
+    ;; Or:
+    ;; We're in a non-main thread, in which keyboard interaction is currently
+    ;; not implemented.
+    ;;
+    ;; So:
+    ;; Just dump a backtrace to stdout/Messages.
     (message "Error: %S" args)
+    (when (and (bound-and-true-p main-thread)
+               (not (eq main-thread (current-thread))))
+      (message "Thread: %s" (current-thread)))
     (let ((print-escape-newlines t)
           (print-escape-control-characters t)
           (print-level 8)
