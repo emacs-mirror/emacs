@@ -150,7 +150,7 @@ References
 .. [GR_2004-12-02]
    "RE: MPS, working set, and address space"; Göran Rydqvist;
    Configura Sverige AB; 2004-12-02;
-   <http://info.ravenbrook.com/mail/2004/12/02/07-53-32/0/>.
+   <https://info.ravenbrook.com/mail/2004/12/02/07-53-32/0/>.
 
 
 Document History

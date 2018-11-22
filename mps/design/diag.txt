@@ -211,7 +211,7 @@ References
 
 .. [RHSK_2007-04-13] Richard Kistruck. 2007-04-13. "`diagnostic feedback from the MPS <https://info.ravenbrook.com/mail/2007/04/13/13-07-45/0.txt>`_".
 
-.. [RHSK_2007-04-18] Richard Kistruck. 2007-04-18. "`Diverse types of diagnostic feedback <http://info.ravenbrook.com/mail/2007/04/18/10-58-49/0.txt>`_".
+.. [RHSK_2007-04-18] Richard Kistruck. 2007-04-18. "`Diverse types of diagnostic feedback <https://info.ravenbrook.com/mail/2007/04/18/10-58-49/0.txt>`_".
 
 
 Document History
