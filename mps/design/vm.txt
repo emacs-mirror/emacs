@@ -266,7 +266,7 @@ _`.impl.ix.reserve`: Address space is reserved by calling |mmap|_,
 passing ``PROT_NONE`` and ``MAP_PRIVATE | MAP_ANON``.
 
 .. |mmap| replace:: ``mmap()``
-.. _mmap: http://pubs.opengroup.org/onlinepubs/9699919799/functions/mmap.html
+.. _mmap: https://pubs.opengroup.org/onlinepubs/9699919799/functions/mmap.html
 
 _`.impl.ix.anon.trans`: Note that ``MAP_ANON`` ("map anonymous
 memory not associated with any specific file") is an extension to
@@ -277,7 +277,7 @@ the file ``/dev/zero``.
 _`.impl.ix.release`: Address space is released by calling |munmap|_.
 
 .. |munmap| replace:: ``munmap()``
-.. _munmap: http://pubs.opengroup.org/onlinepubs/9699919799/functions/munmap.html
+.. _munmap: https://pubs.opengroup.org/onlinepubs/9699919799/functions/munmap.html
 
 _`.impl.ix.map`: Address space is mapped to main memory by calling
 |mmap|_, passing ``PROT_READ | PROT_WRITE | PROT_EXEC`` and

@@ -10,8 +10,8 @@
  * SOURCES
  *
  * .source.posix: POSIX specifications for signal.h and sigaction
- * <http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html>
- * <http://pubs.opengroup.org/onlinepubs/9699919799/functions/sigaction.html>
+ * <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html>
+ * <https://pubs.opengroup.org/onlinepubs/9699919799/functions/sigaction.html>
  *
  * .source.man: sigaction(2): FreeBSD System Calls Manual.
  *

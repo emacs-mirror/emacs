@@ -345,7 +345,7 @@ static void CatalogCheck(void)
  * means the interior pointers are unmanaged references, and the 
  * code goes wrong.  The hack in poolamc.c#4 cures this, but not very 
  * nicely.  For further discussion, see:
- *    <http://info.ravenbrook.com/mail/2009/02/05/18-05-52/0.txt>
+ *    <https://info.ravenbrook.com/mail/2009/02/05/18-05-52/0.txt>
  */
 static void CatalogDo(mps_arena_t arena, mps_ap_t ap)
 {

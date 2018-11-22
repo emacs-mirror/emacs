@@ -88,7 +88,7 @@ whose lifetime has ended, the behavior is undefined." For this reason,
 the documentation for ``mps_thread_reg()`` specifies that it is an
 error if a thread dies while registered.
 
-.. _POSIX: http://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_09_02
+.. _POSIX: https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_09_02
 
 _`.sol.thread.term.attempt`: Nonetheless, the thread manager makes a
 "best effort" to continue running after detecting a terminated thread,
@@ -203,7 +203,7 @@ _`.impl.ix.register`: ``ThreadRegister()`` records the thread id
 the current thread by calling |pthread_self|_.
 
 .. |pthread_self| replace:: ``pthread_self()``
-.. _pthread_self: http://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_self.html
+.. _pthread_self: https://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_self.html
 
 _`.impl.ix.register.multi`: Multiply-registered threads are handled
 specially by the POSIX thread extensions. See

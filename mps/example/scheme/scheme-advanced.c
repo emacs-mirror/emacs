@@ -3,7 +3,7 @@
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This is a toy interpreter for a subset of the Scheme programming
- * language <http://en.wikipedia.org/wiki/Scheme_%28programming_language%29>.
+ * language <https://en.wikipedia.org/wiki/Scheme_%28programming_language%29>.
  * It is by no means the best or even the right way to implement Scheme,
  * but it serves the purpose of showing how the Memory Pool System can be
  * used as part of a programming language run-time system.

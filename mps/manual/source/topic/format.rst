@@ -1,6 +1,6 @@
 .. sources:
 
-     `<http://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
+     `<https://info.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/protocol/mps/format/index.html>`_
 
 .. index::
    single: object format; introduction

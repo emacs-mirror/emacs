@@ -223,7 +223,7 @@ Bool TreeInsert(Tree *treeReturn, Tree root, Tree node,
  * TreeTraverse is generally superior if comparisons are cheap, but
  * TreeTraverseMorris does not require any comparison function.
  *
- * <http://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
+ * <https://en.wikipedia.org/wiki/Tree_traversal#Morris_in-order_traversal_using_threading>
  *
  * Joseph M. Morris (1979). "Traversing Binary Trees Simply and Cheaply".
  * Information Processing Letters 9:5 pp. 197–200.

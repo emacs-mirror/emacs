@@ -256,7 +256,7 @@ and in the parent and child processes just after fork (the "parent"
 and "child" handlers respectively).
 
 .. |pthread_atfork| replace:: ``pthread_atfork()``
-.. _pthread_atfork: http://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_atfork.html
+.. _pthread_atfork: https://pubs.opengroup.org/onlinepubs/9699919799/functions/pthread_atfork.html
 
 _`.sol.fork.lock`: In the prepare handler, the MPS takes all the
 locks: that is, the global locks, and then the arena lock for every

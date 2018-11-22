@@ -132,7 +132,7 @@ even if the :term:`client program` was running multiple
     situation of a child process running after a multi-threaded parent
     forked. The specification_ says:
 
-    .. _specification: http://pubs.opengroup.org/onlinepubs/9699919799/functions/fork.html
+    .. _specification: https://pubs.opengroup.org/onlinepubs/9699919799/functions/fork.html
 
         A process shall be created with a single thread. If a
         multi-threaded process calls :c:func:`fork`, the new process shall

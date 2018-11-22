@@ -278,7 +278,7 @@ References
 .. [POSIXThreads]
    The Open Group;
    "The Single UNIX Specification, Version 2---Threads";
-   <http://pubs.opengroup.org/onlinepubs/7990989775/xsh/threads.html>
+   <https://pubs.opengroup.org/onlinepubs/7990989775/xsh/threads.html>
 
 
 Document History

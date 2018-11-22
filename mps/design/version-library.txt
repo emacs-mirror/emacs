@@ -130,7 +130,7 @@ _`.impl.tool`: The version string starts with the characters
             Ravenbrook MPS, product.mps, release/1.117.0, platform.xci6ll, variety.asserted.logging.nonstats, compiled on Oct 18 2016 13:57:08
 
 .. |what| replace:: ``what(1)``
-.. _what: http://pubs.opengroup.org/onlinepubs/9699919799/utilities/what.html
+.. _what: https://pubs.opengroup.org/onlinepubs/9699919799/utilities/what.html
 
 
 Document History
