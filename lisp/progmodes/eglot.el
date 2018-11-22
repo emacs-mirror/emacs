@@ -1612,24 +1612,31 @@ is not active."
                                         bounds
                                         &allow-other-keys)
                (text-properties-at 0 comp)
-             (let ((fn (and (eql insertTextFormat 2)
-                            (eglot--snippet-expansion-fn))))
-               (when (or fn textEdit)
-                 ;; Undo the completion.  If before completion the buffer was
-                 ;; "foo.b" and now is "foo.bar", `comp' will be "bar".  We
-                 ;; want to delete only "ar" (`comp' minus the symbol whose
-                 ;; bounds we've calculated before) (github#160).
-                 (delete-region (+ (- (point) (length comp))
-                                   (if bounds (- (cdr bounds) (car bounds)) 0))
-                                (point)))
+             (let ((snippet-fn (and (eql insertTextFormat 2)
+                                    (eglot--snippet-expansion-fn))))
                (cond (textEdit
+                      ;; Undo the just the completed bit.  If before
+                      ;; completion the buffer was "foo.b" and now is
+                      ;; "foo.bar", `comp' will be "bar".  We want to
+                      ;; delete only "ar" (`comp' minus the symbol
+                      ;; whose bounds we've calculated before)
+                      ;; (github#160).
+                      (delete-region (+ (- (point) (length comp))
+                                        (if bounds (- (cdr bounds) (car bounds)) 0))
+                                     (point))
                       (cl-destructuring-bind (&key range newText) textEdit
                         (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
                           (delete-region beg end)
                           (goto-char beg)
-                          (funcall (or fn #'insert) newText)))
+                          (funcall (or snippet-fn #'insert) newText)))
                       (eglot--apply-text-edits additionalTextEdits))
-                     (fn (funcall fn insertText))))
+                     (snippet-fn
+                      ;; A snippet should be inserted, but using plain
+                      ;; `insertText'.  This requires us to delete the
+                      ;; whole completion, since `insertText' is the full
+                      ;; completion's text.
+                      (delete-region (- (point) (length comp)) (point))
+                      (funcall snippet-fn insertText))))
              (eglot--signal-textDocument/didChange)
              (eglot-eldoc-function))))))))
 
