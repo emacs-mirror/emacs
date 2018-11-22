@@ -51,7 +51,7 @@ typedef struct testthr_t {
 
 /* In pthreads, a thread is identified by a pthread_t, which is
  * allowed "to be defined as a structure" [IEEE Std 1003.1, sys/types.h]
- * <http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_types.h.html>
+ * <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_types.h.html>
  */
 typedef pthread_t testthr_t;
 

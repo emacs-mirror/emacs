@@ -218,7 +218,7 @@ On a Unix (including macOS) machine:
 --------------------------
 
 #. Visit the `project
-   updater <http://info.ravenbrook.com/infosys/cgi/data_update.cgi>`__,
+   updater <https://info.ravenbrook.com/infosys/cgi/data_update.cgi>`__,
    select “mps” from the dropdown, and hit “Find releases”.
 
 #. Make a git tag for the release::
@@ -250,7 +250,7 @@ A. References
 
 .. [RHSK_2008-10-16] Richard Kistruck; "revert ; rm ; sync -f";
    Ravenbrook Limited; 2008-10-16;
-   http://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt
+   <https://info.ravenbrook.com/mail/2008/10/16/13-08-20/0.txt>.
 
 
 B. Document History

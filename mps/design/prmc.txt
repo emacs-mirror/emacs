@@ -187,9 +187,9 @@ _`.impl.ix.context`: The context consists of the |siginfo_t|_ and
 This is decoded on a platform-by-platform basis.
 
 .. |siginfo_t| replace:: ``siginfo_t``
-.. _siginfo_t: http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html
+.. _siginfo_t: https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/signal.h.html
 .. |ucontext_t| replace:: ``ucontext_t``
-.. _ucontext_t: http://pubs.opengroup.org/onlinepubs/9699919799/functions/sigaction.html
+.. _ucontext_t: https://pubs.opengroup.org/onlinepubs/9699919799/functions/sigaction.html
 
 _`.impl.ix.fault.signal`: POSIX specifies that "Invalid permissions
 for mapped object" (a protection fault) causes a ``SEGV`` signal.

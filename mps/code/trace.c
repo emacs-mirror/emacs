@@ -933,7 +933,7 @@ static void traceReclaim(Trace trace)
  * scan at WEAK.  All other segments for this trace should be scanned by now.
  * We must scan at WEAK to avoid bringing any objects back to life.
  *
- * See the message <http://info.ravenbrook.com/mail/2012/08/30/16-46-42/0.txt>
+ * See the message <https://info.ravenbrook.com/mail/2012/08/30/16-46-42/0.txt>
  * for a description of these semantics.
  */
 Rank TraceRankForAccess(Arena arena, Seg seg)
@@ -1020,10 +1020,10 @@ Rank TraceRankForAccess(Arena arena, Seg seg)
  * whilst working in this band.  That's what we check, although we
  * expect to have to change the check if we introduce more ranks, or
  * start changing the semantics of them.  A flag is used to implement
- * this check.  See <http://info.ravenbrook.com/project/mps/issue/job001658/>.
+ * this check.  See <https://www.ravenbrook.com/project/mps/issue/job001658/>.
  *
  * For further discussion on the semantics of rank based tracing see
- * <http://info.ravenbrook.com/mail/2007/06/25/11-35-57/0.txt>
+ * <https://info.ravenbrook.com/mail/2007/06/25/11-35-57/0.txt>
  */
 
 static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
