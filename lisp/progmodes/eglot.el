@@ -2011,12 +2011,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
       (when edit
         (eglot--apply-workspace-edit edit))
       (when command
-        (cond ((stringp command)
-               (eglot-execute-command server (intern command) arguments))
-              ((listp command)
-               (eglot-execute-command server
-                                      (intern (plist-get command :command))
-                                      (plist-get command :arguments))))))))
+        (eglot-execute-command server (intern command) arguments)))))
 
 
 
