@@ -197,6 +197,94 @@ let the buffer grow forever."
     (13 . "Enum") (14 . "Keyword") (15 . "Snippet") (16 . "Color")
     (17 . "File") (18 . "Reference")))
 
+
+
+;;; Message verification helpers
+;;;
+(defvar eglot--lsp-interface-alist `()
+  "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
+
+INTERFACE-NAME is a symbol designated by the spec as \"export
+interface\".  INTERFACE is a list (REQUIRED OPTIONAL) where
+REQUIRED and OPTIONAL are lists of keyword symbols designating
+field names that must be, or may be, respectively, present in a
+message adhering to that interface.
+
+Here's what an element of this alist might look like:
+
+    (CreateFile . ((:kind :uri) (:options)))")
+
+(defvar eglot-strict-mode '()
+  "How strictly Eglot vetoes LSP messages from server.
+
+Value is a list of symbols:
+
+If a list containing the symbol `disallow-non-standard-keys', an
+error is raised if any non-standard fields are sent by the
+server.
+
+If the list containing the symbol `enforce-required-keys', an error
+is raised if any required fields are missing from the message.
+
+If the list is empty, any non-standard fields sent by the server
+and missing required fields are accepted (which may or may not
+cause problems in Eglot's functioning later on).")
+
+(defun eglot--call-with-interface (interface object fn)
+  "Call FN, but first check that OBJECT conforms to INTERFACE.
+
+INTERFACE is a key to `eglot--lsp-interface-alist' and OBJECT is
+  a plist representing an LSP message."
+  (let* ((entry (assoc interface eglot--lsp-interface-alist))
+         (required (car (cdr entry)))
+         (optional (cadr (cdr entry))))
+    (when (memq 'enforce-required-keys eglot-strict-mode)
+      (cl-loop for req in required
+               when (eq 'eglot--not-present
+                        (cl-getf object req 'eglot--not-present))
+               collect req into missing
+               finally (when missing
+                         (eglot--error
+                          "A `%s' must have %s" interface missing))))
+    (when (and entry (memq 'disallow-non-standard-keys eglot-strict-mode))
+      (cl-loop
+       with allowed = (append required optional)
+       for (key _val) on object by #'cddr
+       unless (memq key allowed) collect key into disallowed
+       finally (when disallowed
+                 (eglot--error
+                  "A `%s' mustn't have %s" interface disallowed))))
+    (funcall fn)))
+
+(cl-defmacro eglot--dbind (interface lambda-list object &body body)
+  "Destructure OBJECT of INTERFACE as CL-LAMBDA-LIST.
+Honour `eglot-strict-mode'."
+  (declare (indent 3))
+  (let ((fn-once `(lambda () ,@body))
+        (lax-lambda-list (if (memq '&allow-other-keys lambda-list)
+                             lambda-list
+                           (append lambda-list '(&allow-other-keys))))
+        (strict-lambda-list (delete '&allow-other-keys lambda-list)))
+    (if interface
+        `(cl-destructuring-bind ,lax-lambda-list ,object
+           (eglot--call-with-interface ',interface ,object ,fn-once))
+      (let ((object-once (make-symbol "object-once")))
+        `(let ((,object-once ,object))
+           (if (memq 'disallow-non-standard-keys eglot-strict-mode)
+               (cl-destructuring-bind ,strict-lambda-list ,object-once
+                 (funcall ,fn-once))
+             (cl-destructuring-bind ,lax-lambda-list ,object-once
+               (funcall ,fn-once))))))))
+
+(cl-defmacro eglot--lambda (interface cl-lambda-list &body body)
+  "Function of args CL-LAMBDA-LIST for processing INTERFACE objects.
+Honour `eglot-strict-mode'."
+  (declare (indent 2))
+  (let ((e (cl-gensym "jsonrpc-lambda-elem")))
+    `(lambda (,e)
+       (eglot--dbind ,interface ,cl-lambda-list ,e
+         ,@body))))
+
 
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
