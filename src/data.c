@@ -772,12 +772,14 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
   return name;
 }
 
-DEFUN ("symbol-with-pos-sym", Fsymbol_with_pos_sym, Ssymbol_with_pos_sym, 1, 1, 0,
-       doc: /* Extract the symbol from a symbol with position.  */)
-       (register Lisp_Object ls)
+DEFUN ("bare-symbol", Fbare_symbol, Sbare_symbol, 1, 1, 0,
+       doc: /* Extract, if need be, the bare symbol from SYM, a symbol.  */)
+       (register Lisp_Object sym)
 {
+  if (BARE_SYMBOL_P (sym))
+    return sym;
   /* Type checking is done in the following macro. */
-  return SYMBOL_WITH_POS_SYM (ls);
+  return SYMBOL_WITH_POS_SYM (sym);
 }
 
 DEFUN ("symbol-with-pos-pos", Fsymbol_with_pos_pos, Ssymbol_with_pos_pos, 1, 1, 0,
@@ -4073,7 +4075,7 @@ syms_of_data (void)
   defsubr (&Sindirect_function);
   defsubr (&Ssymbol_plist);
   defsubr (&Ssymbol_name);
-  defsubr (&Ssymbol_with_pos_sym);
+  defsubr (&Sbare_symbol);
   defsubr (&Ssymbol_with_pos_pos);
   defsubr (&Sposition_symbol);
   defsubr (&Smakunbound);
@@ -4151,6 +4153,7 @@ This variable cannot be set; trying to do so will signal an error.  */);
   Vmost_negative_fixnum = make_fixnum (MOST_NEGATIVE_FIXNUM);
   make_symbol_constant (intern_c_string ("most-negative-fixnum"));
 
+  DEFSYM (Qsymbols_with_pos_enabled, "symbols-with-pos-enabled");
   DEFVAR_LISP ("symbols-with-pos-enabled", Vsymbols_with_pos_enabled,
                doc: /* Non-nil when "symbols with position" can be used as symbols.
 Bind this to non-nil in applications such as the byte compiler.  */);

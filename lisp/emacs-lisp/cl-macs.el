@@ -53,6 +53,36 @@
   `(prog1 (car (cdr ,place))
      (setq ,place (cdr (cdr ,place)))))
 
+(defun cl-macs--strip-s-p-1 (arg)
+  "Strip all positions from symbols with position in ARG, destructively modifying ARG
+Return the modified ARG."
+  (cond
+   ((symbolp arg)
+    (bare-symbol arg))
+   ((consp arg)
+    (let ((a arg))
+      (while (consp (cdr a))
+        (setcar a (cl-macs--strip-s-p-1 (car a)))
+        (setq a (cdr a)))
+      (setcar a (cl-macs--strip-s-p-1 (car a)))
+      ;; (if (cdr a)
+      (unless (bare-symbol-p (cdr a))   ; includes (unpositioned) nil.
+          (setcdr a (cl-macs--strip-s-p-1 (cdr a)))))
+    arg)
+   ((vectorp arg)
+    (let ((i 0)
+	  (len (length arg)))
+      (while (< i len)
+	(aset arg i (cl-macs--strip-s-p-1 (aref arg i)))
+	(setq i (1+ i))))
+    arg)
+   (t arg)))
+
+(defun cl-macs--strip-symbol-positions (arg)
+  "Strip all positions from symbols (recursively) in ARG.  Don't modify ARG."
+  (let ((arg1 (copy-tree arg t)))
+    (cl-macs--strip-s-p-1 arg1)))
+
 (defvar cl--optimize-safety)
 (defvar cl--optimize-speed)
 
@@ -2280,10 +2310,12 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
                                                (append bindings venv))
                                          macroexpand-all-environment))))
             (if malformed-bindings
-                (macroexp--warn-and-return
-                 (format-message "Malformed `cl-symbol-macrolet' binding(s): %S"
-                                 (nreverse malformed-bindings))
-                 expansion)
+                (let ((rev-malformed-bindings (nreverse malformed-bindings)))
+                  (macroexp--warn-and-return
+                   rev-malformed-bindings
+                   (format-message "Malformed `cl-symbol-macrolet' binding(s): %S"
+                                   rev-malformed-bindings)
+                   expansion))
               expansion)))
       (unless advised
         (advice-remove 'macroexpand #'cl--sm-macroexpand)))))
@@ -2886,7 +2918,8 @@ non-nil value, that slot cannot be set via `setf'.
 	      ;; and pred-check, so changing it is not straightforward.
 	      (push `(cl-defsubst ,accessor (cl-x)
                        ,(format "Access slot \"%s\" of `%s' struct CL-X."
-                                slot struct)
+                                (cl-macs--strip-symbol-positions slot)
+                                (cl-macs--strip-symbol-positions struct))
                        (declare (side-effect-free t))
                        ,@(and pred-check
 			      (list `(or ,pred-check
@@ -2899,6 +2932,7 @@ non-nil value, that slot cannot be set via `setf'.
               (when (cl-oddp (length desc))
                 (push
                  (macroexp--warn-and-return
+                  (car (last desc))
                   (format "Missing value for option `%S' of slot `%s' in struct %s!"
                           (car (last desc)) slot name)
                   'nil)
@@ -2908,6 +2942,7 @@ non-nil value, that slot cannot be set via `setf'.
                   (let ((kw (car defaults)))
                     (push
                      (macroexp--warn-and-return
+                      kw
                       (format "  I'll take `%s' to be an option rather than a default value."
                               kw)
                       'nil)

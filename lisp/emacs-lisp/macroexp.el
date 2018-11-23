@@ -121,8 +121,8 @@ and also to avoid outputting the warning during normal execution."
 
 (defvar macroexp--warned (make-hash-table :test #'equal :weakness 'key))
 
-(defun macroexp--warn-and-return (msg form &optional compile-only)
-  (let ((when-compiled (lambda () (byte-compile-warn "%s" msg))))
+(defun macroexp--warn-and-return (arg msg form &optional compile-only)
+  (let ((when-compiled (lambda () (byte-compile--warn-x arg "%s" msg))))
     (cond
      ((null msg) form)
      ((macroexp--compiling-p)
@@ -190,6 +190,7 @@ and also to avoid outputting the warning during normal execution."
         (let* ((fun (car form))
                (obsolete (get fun 'byte-obsolete-info)))
           (macroexp--warn-and-return
+           fun
            (macroexp--obsolete-warning
             fun obsolete
             (if (symbolp (symbol-function fun))
@@ -252,12 +253,14 @@ Assumes the caller has bound `macroexpand-all-environment'."
       (`(,(and fun (or `funcall `apply `mapcar `mapatoms `mapconcat `mapc))
          ',(and f `(lambda . ,_)) . ,args)
        (macroexp--warn-and-return
+        (nth 1 f)
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         (macroexp--expand-all `(,fun ,f . ,args))))
       ;; Second arg is a function:
       (`(,(and fun (or `sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
        (macroexp--warn-and-return
+        (nth 1 f)
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         (macroexp--expand-all `(,fun ,arg1 ,f . ,args))))

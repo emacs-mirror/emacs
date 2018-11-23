@@ -6001,9 +6001,12 @@ See Info node `(elisp)Garbage Collection'.  */
        attributes: noinline)
   (void)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
   void *end;
+  specbind (Qsymbols_with_pos_enabled, Qnil);
   SET_STACK_TOP_ADDRESS (&end);
-  return garbage_collect_1 (end);
+  /* return garbage_collect_1 (end); */
+  return unbind_to (count, garbage_collect_1 (end));
 }
 
 /* Mark Lisp objects in glyph matrix MATRIX.  Currently the

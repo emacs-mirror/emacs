@@ -1397,19 +1397,24 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
     case PVEC_SYMBOL_WITH_POS:
       {
         struct Lisp_Symbol_With_Pos *sp = XSYMBOL_WITH_POS (obj);
-        print_c_string ("#<symbol ", printcharfun);
-        if (BARE_SYMBOL_P (sp->sym))
+        if (!NILP (Vprint_symbols_bare))
           print_object (sp->sym, printcharfun, escapeflag);
         else
-          print_c_string ("NOT A SYMBOL!!", printcharfun);
-        if (FIXNUMP (sp->pos))
           {
-            print_c_string (" at ", printcharfun);
-            print_object (sp->pos, printcharfun, escapeflag);
+            print_c_string ("#<symbol ", printcharfun);
+            if (BARE_SYMBOL_P (sp->sym))
+              print_object (sp->sym, printcharfun, escapeflag);
+            else
+              print_c_string ("NOT A SYMBOL!!", printcharfun);
+            if (FIXNUMP (sp->pos))
+              {
+                print_c_string (" at ", printcharfun);
+                print_object (sp->pos, printcharfun, escapeflag);
+              }
+            else
+              print_c_string (" NOT A POSITION!!", printcharfun);
+            printchar ('>', printcharfun);
           }
-        else
-          print_c_string (" NOT A POSITION!!", printcharfun);
-        printchar ('>', printcharfun);
       }
       break;
 
@@ -2347,6 +2352,12 @@ the value is different from what is guessed in the current charset
 priorities.  Values other than nil or t are also treated as
 `default'.  */);
   Vprint_charset_text_property = Qdefault;
+
+  DEFVAR_LISP ("print-symbols-bare", Vprint_symbols_bare,
+               doc: /* A flag to control printing of symbols with position.
+If the value is nil, print these objects complete with position.
+Otherwise print just the bare symbol.  */);
+  Vprint_symbols_bare = Qnil;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);

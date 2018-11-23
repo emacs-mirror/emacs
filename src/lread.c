@@ -2813,7 +2813,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 	      /* Accept extended format for hash tables (extensible to
 		 other types), e.g.
 		 #s(hash-table size 2 test equal data (k1 v1 k2 v2))  */
-	      Lisp_Object tmp = read_list (0, readcharfun, locate_syms);
+	      Lisp_Object tmp = read_list (0, readcharfun, false);
 	      Lisp_Object head = CAR_SAFE (tmp);
 	      Lisp_Object data = Qnil;
 	      Lisp_Object val = Qnil;
@@ -2899,7 +2899,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 	  if (c == '[')
 	    {
 	      Lisp_Object tmp;
-	      tmp = read_vector (readcharfun, 0, locate_syms);
+	      tmp = read_vector (readcharfun, 0, false);
 	      if (ASIZE (tmp) < CHAR_TABLE_STANDARD_SLOTS)
 		error ("Invalid size char-table");
 	      XSETPVECTYPE (XVECTOR (tmp), PVEC_CHAR_TABLE);
@@ -2912,7 +2912,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 		{
 		  /* Sub char-table can't be read as a regular
 		     vector because of a two C integer fields.  */
-		  Lisp_Object tbl, tmp = read_list (1, readcharfun, locate_syms);
+		  Lisp_Object tbl, tmp = read_list (1, readcharfun, false);
 		  ptrdiff_t size = XFIXNUM (Flength (tmp));
 		  int i, depth, min_char;
 		  struct Lisp_Cons *cell;
@@ -2950,7 +2950,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
       if (c == '&')
 	{
 	  Lisp_Object length;
-	  length = read1 (readcharfun, pch, first_in_list, locate_syms);
+	  length = read1 (readcharfun, pch, first_in_list, false);
 	  c = READCHAR;
 	  if (c == '"')
 	    {
@@ -2959,7 +2959,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 	      unsigned char *data;
 
 	      UNREAD (c);
-	      tmp = read1 (readcharfun, pch, first_in_list, locate_syms);
+	      tmp = read1 (readcharfun, pch, first_in_list, false);
 	      if (STRING_MULTIBYTE (tmp)
 		  || (size_in_chars != SCHARS (tmp)
 		      /* We used to print 1 char too many
@@ -3000,7 +3000,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 	  int ch;
 
 	  /* Read the string itself.  */
-	  tmp = read1 (readcharfun, &ch, 0, locate_syms);
+	  tmp = read1 (readcharfun, &ch, 0, false);
 	  if (ch != 0 || !STRINGP (tmp))
 	    invalid_syntax ("#");
 	  /* Read the intervals and their properties.  */
@@ -3008,14 +3008,14 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list, bool locate_syms)
 	    {
 	      Lisp_Object beg, end, plist;
 
-	      beg = read1 (readcharfun, &ch, 0, locate_syms);
+	      beg = read1 (readcharfun, &ch, 0, false);
 	      end = plist = Qnil;
 	      if (ch == ')')
 		break;
 	      if (ch == 0)
-		end = read1 (readcharfun, &ch, 0, locate_syms);
+		end = read1 (readcharfun, &ch, 0, false);
 	      if (ch == 0)
-		plist = read1 (readcharfun, &ch, 0, locate_syms);
+		plist = read1 (readcharfun, &ch, 0, false);
 	      if (ch)
 		invalid_syntax ("Invalid string property list");
 	      Fset_text_properties (beg, end, plist, tmp);

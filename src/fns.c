@@ -4141,6 +4141,8 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
   EMACS_UINT hash_code;
   ptrdiff_t start_of_bucket, i;
 
+  if (SYMBOL_WITH_POS_P (key))
+      key = SYMBOL_WITH_POS_SYM (key);
   hash_code = h->test.hashfn (&h->test, key);
   eassert ((hash_code & ~INTMASK) == 0);
   if (hash)

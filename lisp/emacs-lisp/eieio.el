@@ -270,6 +270,7 @@ This method is obsolete."
                          (if (not (stringp (car slots)))
                              whole
                            (macroexp--warn-and-return
+                            (car slots)
                             (format "Obsolete name arg %S to constructor %S"
                                     (car slots) (car whole))
                             ;; Keep the name arg, for backward compatibility,
