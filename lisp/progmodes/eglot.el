@@ -1629,7 +1629,8 @@ is not active."
                           (delete-region beg end)
                           (goto-char beg)
                           (funcall (or snippet-fn #'insert) newText)))
-                      (eglot--apply-text-edits additionalTextEdits))
+                      (when (cl-plusp (length additionalTextEdits))
+                        (eglot--apply-text-edits additionalTextEdits)))
                      (snippet-fn
                       ;; A snippet should be inserted, but using plain
                       ;; `insertText'.  This requires us to delete the
