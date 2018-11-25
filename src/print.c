@@ -1397,7 +1397,7 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
     case PVEC_SYMBOL_WITH_POS:
       {
         struct Lisp_Symbol_With_Pos *sp = XSYMBOL_WITH_POS (obj);
-        if (!NILP (Vprint_symbols_bare))
+        if (Vprint_symbols_bare)
           print_object (sp->sym, printcharfun, escapeflag);
         else
           {
@@ -2353,11 +2353,11 @@ priorities.  Values other than nil or t are also treated as
 `default'.  */);
   Vprint_charset_text_property = Qdefault;
 
-  DEFVAR_LISP ("print-symbols-bare", Vprint_symbols_bare,
+  DEFVAR_BOOL ("print-symbols-bare", Vprint_symbols_bare,
                doc: /* A flag to control printing of symbols with position.
 If the value is nil, print these objects complete with position.
 Otherwise print just the bare symbol.  */);
-  Vprint_symbols_bare = Qnil;
+  Vprint_symbols_bare = false;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);
