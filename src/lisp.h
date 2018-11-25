@@ -395,7 +395,7 @@ typedef EMACS_INT Lisp_Word;
 
 /* verify (NIL_IS_ZERO) */
 #define lisp_h_EQ(x, y) ((XLI ((x)) == XLI ((y)))       \
-  || (Vsymbols_with_pos_enabled  \
+  || (XLI (Vsymbols_with_pos_enabled)    \
   && (SYMBOL_WITH_POS_P ((x))                        \
       ? BARE_SYMBOL_P ((y))                               \
         ? (XSYMBOL_WITH_POS((x)))->sym == (y)          \
@@ -424,7 +424,7 @@ typedef EMACS_INT Lisp_Word;
 #define lisp_h_BARE_SYMBOL_P(x) TAGGEDP ((x), Lisp_Symbol)
 /* verify (NIL_IS_ZERO) */
 #define lisp_h_SYMBOLP(x) ((BARE_SYMBOL_P ((x)) ||               \
-                            (Vsymbols_with_pos_enabled && (SYMBOL_WITH_POS_P ((x))))))
+                            (XLI (Vsymbols_with_pos_enabled) && (SYMBOL_WITH_POS_P ((x))))))
 #define lisp_h_TAGGEDP(a, tag) \
    (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
 	- (unsigned) (tag)) \
@@ -463,7 +463,7 @@ typedef EMACS_INT Lisp_Word;
 /* verify (NIL_IS_ZERO) */
 # define lisp_h_XSYMBOL(a)                      \
      (eassert (SYMBOLP ((a))),                      \
-      (!Vsymbols_with_pos_enabled                \
+      (!XLI (Vsymbols_with_pos_enabled)             \
       ? (XBARE_SYMBOL ((a)))             \
        : (BARE_SYMBOL_P ((a)))           \
       ? (XBARE_SYMBOL ((a)))                                    \
