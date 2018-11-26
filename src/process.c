@@ -495,8 +495,6 @@ add_process_read_fd (int fd)
 void
 delete_read_fd (int fd)
 {
-  fprintf(stderr, "delete_read_fd %d (%p)\n", fd, current_thread);
-
   delete_keyboard_wait_descriptor (fd);
 
   if (fd_callback_info[fd].flags == 0)
@@ -1256,7 +1254,10 @@ static void
 set_process_filter_masks (struct Lisp_Process *p)
 {
   if (EQ (p->filter, Qt) && !EQ (p->status, Qlisten))
-    delete_read_fd (p->infd);
+    {
+      fprintf(stderr, "set_process_filter_masks %p %d (%p)\n", p, p->infd, current_thread);
+      delete_read_fd (p->infd);
+    }
   else if (EQ (p->filter, Qt)
 	   /* Network or serial process not stopped:  */
 	   && !EQ (p->command, Qt))
@@ -4597,6 +4598,7 @@ deactivate_process (Lisp_Object proc)
 	}
 #endif
       chan_process[inchannel] = Qnil;
+      fprintf(stderr, "deactivate_process %d (%p)\n", inchannel, current_thread);
       delete_read_fd (inchannel);
       if ((fd_callback_info[inchannel].flags & NON_BLOCKING_CONNECT_FD) != 0)
 	delete_write_fd (inchannel);
@@ -5675,6 +5677,8 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
 		  /* Clear the descriptor now, so we only raise the
 		     signal once.  */
+		  fprintf(stderr, "wait_reading_process_output %p %d (%p)\n",
+			  p, channel, current_thread);
 		  delete_read_fd (channel);
 
 		  if (p->pid == -2)
@@ -6785,7 +6789,11 @@ of incoming traffic.  */)
       p = XPROCESS (process);
       if (NILP (p->command)
 	  && p->infd >= 0)
-	delete_read_fd (p->infd);
+	{
+	  fprintf(stderr, "stop_process %p %d (%p)\n",
+		  p, p->infd, current_thread);
+	  delete_read_fd (p->infd);
+	}
       pset_command (p, Qt);
       return process;
     }
@@ -7119,7 +7127,11 @@ handle_child_signal (int sig)
 
 	      /* clear_desc_flag avoids a compiler bug in Microsoft C.  */
 	      if (clear_desc_flag)
-		delete_read_fd (p->infd);
+		{
+		  fprintf(stderr, "handle_child_signal %p %d (%p)\n",
+			  p, p->infd, current_thread);
+		  delete_read_fd (p->infd);
+		}
 	    }
 	}
     }
