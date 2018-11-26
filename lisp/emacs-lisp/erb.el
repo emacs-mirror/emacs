@@ -1901,7 +1901,7 @@ structure per task."
       (insert
        title
        "#+OPTIONS: toc:2 num:2 author:nil\n"
-       "#+LATEX_HEADER: \usepackage[margin=0.5in]{geometry}\n"
+       "#+LATEX_HEADER: \\usepackage[margin=0.5in]{geometry}\n"
        "* Benchmark results\n")
       (iter-do (file-summaries (erb--chunk-list 'erb--summary
                                                 '(file) summaries))
@@ -2018,6 +2018,7 @@ structure per task."
               "System information last updated: %Y-%m-%d %a %H:%M\n"
               (map-elt info :time))
              "* Xtics :noexport:\n"
+	     "#+NAME: xtics\n"
              "#+BEGIN_SRC gnuplot :export none\n"
              xtics
              "#+END_SRC\n")))))))
