@@ -1013,19 +1013,28 @@ system, remove it."
 
 ;;;; Run benchmarks
 
+;; Todo UI for this
+(defvar erb-task-select-function nil
+  "If non-nil, a function to select the benchmark tasks to run.
+Passed one argument, TASK, an `erb--metadata' structure.  Return
+non-nil if TASK should be run.")
+
 (defun erb--benchmark-one-commit (commit target-emacs)
   "Run the benchmark tasks for one COMMIT and record the results.
 The executable to run should be found in the subdirectory
 'result' of the directory TARGET-EMACS."
   (let* ((tasks (erb--vc-tasks-for-commmit commit))
+	 (selected-tasks (seq-filter (or erb-task-select-function
+					 #'identity)
+				     tasks))
          (benchmark-task-files (directory-files-recursively
                                 (erb--benchmark-dir) "\\.el$"))
          (all-run-results (make-erb--run-results)))
     (when tasks
       (dolist (file benchmark-task-files)
-        (when-let* ((selected-tasks (erb--filter-by-file tasks file)))
+        (when-let* ((file-tasks (erb--filter-by-file selected-tasks file)))
           (let* ((this-run-results (erb--run-tasks target-emacs
-                                                   file selected-tasks)))
+                                                   file file-tasks)))
             (setq all-run-results
                   (erb--merge-run-results all-run-results
                                           this-run-results))
