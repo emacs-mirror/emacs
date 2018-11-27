@@ -201,7 +201,14 @@ let the buffer grow forever."
 
 ;;; Message verification helpers
 ;;;
-(defvar eglot--lsp-interface-alist `()
+(defvar eglot--lsp-interface-alist
+  `(
+    (CodeAction (:title) (:kind :diagnostics :edit :command))
+    (FileSystemWatcher (:globPattern) (:kind))
+    (Registration (:id :method) (:registerOptions))
+    (TextDocumentEdit (:textDocument :edits) ())
+    (WorkspaceEdit () (:changes :documentChanges))
+    )
   "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
 INTERFACE-NAME is a symbol designated by the spec as
@@ -1314,7 +1321,7 @@ COMMAND is a symbol naming the command."
 THINGS are either registrations or unregisterations."
   (cl-loop
    for thing in (cl-coerce things 'list)
-   collect (cl-destructuring-bind (&key id method registerOptions) thing
+   collect (eglot--dbind ((Registration) id method registerOptions) thing
              (apply (intern (format "eglot--%s-%s" how method))
                     server :id id registerOptions))
    into results
@@ -1990,9 +1997,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
 
 (defun eglot--apply-workspace-edit (wedit &optional confirm)
   "Apply the workspace edit WEDIT.  If CONFIRM, ask user first."
-  (cl-destructuring-bind (&key changes documentChanges) wedit
+  (eglot--dbind ((WorkspaceEdit) changes documentChanges) wedit
     (let ((prepared
-           (mapcar (jsonrpc-lambda (&key textDocument edits)
+           (mapcar (eglot--lambda ((TextDocumentEdit) textDocument edits)
                      (cl-destructuring-bind (&key uri version) textDocument
                        (list (eglot--uri-to-path uri) edits version)))
                    documentChanges))
@@ -2057,8 +2064,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                                             (eglot--diag-data diag))))
                               (flymake-diagnostics beg end))]))))
          (menu-items
-          (or (mapcar (jsonrpc-lambda (&key title command arguments
-                                            edit _kind _diagnostics)
+          (or (mapcar (eglot--lambda ((CodeAction) title edit command arguments)
                         `(,title . (:command ,command :arguments ,arguments
                                              :edit ,edit)))
                       actions)
@@ -2098,7 +2104,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   "Handle dynamic registration of workspace/didChangeWatchedFiles"
   (eglot--unregister-workspace/didChangeWatchedFiles server :id id)
   (let* (success
-         (globs (mapcar (lambda (w) (plist-get w :globPattern)) watchers)))
+         (globs (mapcar (eglot--lambda ((FileSystemWatcher) globPattern)
+                          globPattern)
+                        watchers)))
     (cl-labels
         ((handle-event
           (event)
