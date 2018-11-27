@@ -811,7 +811,9 @@ CONNECT-ARGS are passed as additional arguments to
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'format format args) :warning)))
 
-(defvar eglot-current-column-function #'current-column
+(defun eglot--current-column () (- (point) (point-at-bol)))
+
+(defvar eglot-current-column-function #'eglot--current-column
   "Function to calculate the current column.
 
 This is the inverse operation of
@@ -833,8 +835,7 @@ for all others.")
   (eglot--widening
    (list :line (1- (line-number-at-pos pos t)) ; F!@&#$CKING OFF-BY-ONE
          :character (progn (when pos (goto-char pos))
-                           (let ((tab-width 1))
-                             (funcall eglot-current-column-function))))))
+                           (funcall eglot-current-column-function)))))
 
 (defvar eglot-move-to-column-function #'move-to-column
   "Function to move to a column reported by the LSP server.
@@ -1502,11 +1503,10 @@ Try to visit the target file for a richer summary line."
                   (eglot--widening
                    (pcase-let* ((`(,beg . ,end) (eglot--range-region range))
                                 (bol (progn (goto-char beg) (point-at-bol)))
-                                (substring (buffer-substring bol (point-at-eol)))
-                                (tab-width 1))
+                                (substring (buffer-substring bol (point-at-eol))))
                      (add-face-text-property (- beg bol) (- end bol) 'highlight
                                              t substring)
-                     (list substring (1+ (current-line)) (current-column))))))
+                     (list substring (1+ (current-line)) (eglot--current-column))))))
        (`(,summary ,line ,column)
         (cond
          (visiting (with-current-buffer visiting (funcall collect)))
