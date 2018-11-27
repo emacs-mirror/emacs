@@ -1478,13 +1478,26 @@ DUMMY is ignored."
 (advice-add 'xref-find-definitions :after #'eglot--xref-reset-known-symbols)
 (advice-add 'xref-find-references :after #'eglot--xref-reset-known-symbols)
 
+(defvar eglot--temp-location-buffers (make-hash-table :test #'equal)
+  "Helper variable for `eglot--handling-xrefs'.")
+
+(defmacro eglot--handling-xrefs (&rest body)
+  "Properly sort and handle xrefs produced and returned by BODY."
+  `(unwind-protect
+       (sort (progn ,@body)
+             (lambda (a b)
+               (< (xref-location-line (xref-item-location a))
+                  (xref-location-line (xref-item-location b)))))
+     (maphash (lambda (_uri buf) (kill-buffer buf)) eglot--temp-location-buffers)
+     (clrhash eglot--temp-location-buffers)))
+
 (defun eglot--xref-make (name uri range)
   "Like `xref-make' but with LSP's NAME, URI and RANGE.
 Try to visit the target file for a richer summary line."
   (pcase-let*
-      ((`(,beg . ,end) (eglot--range-region range))
-       (file (eglot--uri-to-path uri))
-       (visiting (find-buffer-visiting file))
+      ((file (eglot--uri-to-path uri))
+       (visiting (or (find-buffer-visiting file)
+                     (gethash uri eglot--temp-location-buffers)))
        (collect (lambda ()
                   (eglot--widening
                    (pcase-let* ((`(,beg . ,end) (eglot--range-region range))
@@ -1497,18 +1510,15 @@ Try to visit the target file for a richer summary line."
        (`(,summary ,line ,column)
         (cond
          (visiting (with-current-buffer visiting (funcall collect)))
-         ((file-readable-p file) (with-temp-buffer (insert-file-contents file)
-                                                   (funcall collect)))
+         ((file-readable-p file) (with-current-buffer
+                                     (puthash uri (generate-new-buffer " *temp*")
+                                              eglot--temp-location-buffers)
+                                   (insert-file-contents file)
+                                   (funcall collect)))
          (t ;; fall back to the "dumb strategy"
           (let ((start (cl-getf range :start)))
             (list name (1+ (cl-getf start :line)) (cl-getf start :character)))))))
     (xref-make summary (xref-make-file-location file line column))))
-
-(defun eglot--sort-xrefs (xrefs)
-  (sort xrefs
-        (lambda (a b)
-          (< (xref-location-line (xref-item-location a))
-             (xref-location-line (xref-item-location b))))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
   (when (eglot--server-capable :documentSymbolProvider)
@@ -1553,7 +1563,7 @@ Try to visit the target file for a richer summary line."
          (locations
           (and definitions
                (if (vectorp definitions) definitions (vector definitions)))))
-    (eglot--sort-xrefs
+    (eglot--handling-xrefs
      (mapcar (jsonrpc-lambda (&key uri range)
                (eglot--xref-make identifier uri range))
              locations))))
@@ -1567,7 +1577,7 @@ Try to visit the target file for a richer summary line."
                (and rich (get-text-property 0 :textDocumentPositionParams rich))))))
     (unless params
       (eglot--error "Don' know where %s is in the workspace!" identifier))
-    (eglot--sort-xrefs
+    (eglot--handling-xrefs
      (mapcar
       (jsonrpc-lambda (&key uri range)
         (eglot--xref-make identifier uri range))
@@ -1580,7 +1590,7 @@ Try to visit the target file for a richer summary line."
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
-    (eglot--sort-xrefs
+    (eglot--handling-xrefs
      (mapcar
       (jsonrpc-lambda (&key name location &allow-other-keys)
         (cl-destructuring-bind (&key uri range) location
