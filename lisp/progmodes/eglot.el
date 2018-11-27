@@ -1478,13 +1478,31 @@ DUMMY is ignored."
 (advice-add 'xref-find-definitions :after #'eglot--xref-reset-known-symbols)
 (advice-add 'xref-find-references :after #'eglot--xref-reset-known-symbols)
 
-(defun eglot--xref-make (name uri position)
-  "Like `xref-make' but with LSP's NAME, URI and POSITION."
-  (cl-destructuring-bind (&key line character) position
-    (xref-make name (xref-make-file-location
-                     (eglot--uri-to-path uri)
-                     ;; F!@(#*&#$)CKING OFF-BY-ONE again
-                     (1+ line) character))))
+(defun eglot--xref-make (name uri range)
+  "Like `xref-make' but with LSP's NAME, URI and RANGE.
+Try to visit the target file for a richer summary line."
+  (pcase-let*
+      ((`(,beg . ,end) (eglot--range-region range))
+       (file (eglot--uri-to-path uri))
+       (visiting (find-buffer-visiting file))
+       (collect (lambda ()
+                  (eglot--widening
+                   (pcase-let* ((`(,beg . ,end) (eglot--range-region range))
+                                (bol (progn (goto-char beg) (point-at-bol)))
+                                (substring (buffer-substring bol (point-at-eol)))
+                                (tab-width 1))
+                     (add-face-text-property (- beg bol) (- end bol) 'highlight
+                                             t substring)
+                     (list substring (1+ (current-line)) (current-column))))))
+       (`(,summary ,line ,column)
+        (cond
+         (visiting (with-current-buffer visiting (funcall collect)))
+         ((file-readable-p file) (with-temp-buffer (insert-file-contents file)
+                                                   (funcall collect)))
+         (t ;; fall back to the "dumb strategy"
+          (let ((start (cl-getf range :start)))
+            (list name (1+ (cl-getf start :line)) (cl-getf start :character)))))))
+    (xref-make summary (xref-make-file-location file line column))))
 
 (defun eglot--sort-xrefs (xrefs)
   (sort xrefs
@@ -1537,7 +1555,7 @@ DUMMY is ignored."
                (if (vectorp definitions) definitions (vector definitions)))))
     (eglot--sort-xrefs
      (mapcar (jsonrpc-lambda (&key uri range)
-               (eglot--xref-make identifier uri (plist-get range :start)))
+               (eglot--xref-make identifier uri range))
              locations))))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
@@ -1552,7 +1570,7 @@ DUMMY is ignored."
     (eglot--sort-xrefs
      (mapcar
       (jsonrpc-lambda (&key uri range)
-        (eglot--xref-make identifier uri (plist-get range :start)))
+        (eglot--xref-make identifier uri range))
       (jsonrpc-request (eglot--current-server-or-lose)
                        :textDocument/references
                        (append
@@ -1566,7 +1584,7 @@ DUMMY is ignored."
      (mapcar
       (jsonrpc-lambda (&key name location &allow-other-keys)
         (cl-destructuring-bind (&key uri range) location
-          (eglot--xref-make name uri (plist-get range :start))))
+          (eglot--xref-make name uri range)))
       (jsonrpc-request (eglot--current-server-or-lose)
                        :workspace/symbol
                        `(:query ,pattern))))))
