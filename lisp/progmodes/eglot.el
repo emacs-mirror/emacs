@@ -204,8 +204,8 @@ let the buffer grow forever."
 (defvar eglot--lsp-interface-alist `()
   "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
-INTERFACE-NAME is a symbol designated by the spec as \"export
-interface\".  INTERFACE is a list (REQUIRED OPTIONAL) where
+INTERFACE-NAME is a symbol designated by the spec as
+\"interface\".  INTERFACE is a list (REQUIRED OPTIONAL) where
 REQUIRED and OPTIONAL are lists of keyword symbols designating
 field names that must be, or may be, respectively, present in a
 message adhering to that interface.
@@ -230,60 +230,56 @@ If the list is empty, any non-standard fields sent by the server
 and missing required fields are accepted (which may or may not
 cause problems in Eglot's functioning later on).")
 
+(defun eglot--plist-keys (plist)
+  (cl-loop for (k _v) on plist by #'cddr collect k))
+
 (defun eglot--call-with-interface (interface object fn)
-  "Call FN, but first check that OBJECT conforms to INTERFACE.
+  "Call FN, checking that OBJECT conforms to INTERFACE."
+  (when-let ((missing (and (memq 'enforce-required-keys eglot-strict-mode)
+                           (cl-set-difference (car (cdr interface))
+                                              (eglot--plist-keys object)))))
+    (eglot--error "A `%s' must have %s" (car interface) missing))
+  (when-let ((excess (and (memq 'disallow-non-standard-keys eglot-strict-mode)
+                          (cl-set-difference
+                           (eglot--plist-keys object)
+                           (append (car (cdr interface)) (cadr (cdr interface)))))))
+    (eglot--error "A `%s' mustn't have %s" (car interface) excess))
+  (funcall fn))
 
-INTERFACE is a key to `eglot--lsp-interface-alist' and OBJECT is
-  a plist representing an LSP message."
-  (let* ((entry (assoc interface eglot--lsp-interface-alist))
-         (required (car (cdr entry)))
-         (optional (cadr (cdr entry))))
-    (when (memq 'enforce-required-keys eglot-strict-mode)
-      (cl-loop for req in required
-               when (eq 'eglot--not-present
-                        (cl-getf object req 'eglot--not-present))
-               collect req into missing
-               finally (when missing
-                         (eglot--error
-                          "A `%s' must have %s" interface missing))))
-    (when (and entry (memq 'disallow-non-standard-keys eglot-strict-mode))
-      (cl-loop
-       with allowed = (append required optional)
-       for (key _val) on object by #'cddr
-       unless (memq key allowed) collect key into disallowed
-       finally (when disallowed
-                 (eglot--error
-                  "A `%s' mustn't have %s" interface disallowed))))
-    (funcall fn)))
-
-(cl-defmacro eglot--dbind (interface lambda-list object &body body)
-  "Destructure OBJECT of INTERFACE as CL-LAMBDA-LIST.
-Honour `eglot-strict-mode'."
-  (declare (indent 3))
-  (let ((fn-once `(lambda () ,@body))
-        (lax-lambda-list (if (memq '&allow-other-keys lambda-list)
-                             lambda-list
-                           (append lambda-list '(&allow-other-keys))))
-        (strict-lambda-list (delete '&allow-other-keys lambda-list)))
-    (if interface
-        `(cl-destructuring-bind ,lax-lambda-list ,object
-           (eglot--call-with-interface ',interface ,object ,fn-once))
-      (let ((object-once (make-symbol "object-once")))
-        `(let ((,object-once ,object))
-           (if (memq 'disallow-non-standard-keys eglot-strict-mode)
-               (cl-destructuring-bind ,strict-lambda-list ,object-once
-                 (funcall ,fn-once))
-             (cl-destructuring-bind ,lax-lambda-list ,object-once
-               (funcall ,fn-once))))))))
-
-(cl-defmacro eglot--lambda (interface cl-lambda-list &body body)
-  "Function of args CL-LAMBDA-LIST for processing INTERFACE objects.
+(cl-defmacro eglot--dbind (vars object &body body)
+  "Destructure OBJECT of binding VARS in BODY.
+VARS is ([(INTERFACE)] SYMS...)
 Honour `eglot-strict-mode'."
   (declare (indent 2))
+  (let ((interface-name (if (consp (car vars))
+                            (car (pop vars))))
+        (object-once (make-symbol "object-once"))
+        (fn-once (make-symbol "fn-once")))
+    (cond (interface-name
+           ;; jt@2018-11-29: maybe we check some things at compile
+           ;; time and use `byte-compiler-warn' here
+           `(let ((,object-once ,object))
+              (cl-destructuring-bind (&key ,@vars &allow-other-keys) ,object-once
+                (eglot--call-with-interface (assoc ',interface-name
+                                                   eglot--lsp-interface-alist)
+                                            ,object-once (lambda ()
+                                                           ,@body)))))
+          (t
+           `(let ((,object-once ,object)
+                  (,fn-once (lambda (,@vars) ,@body)))
+              (if (memq 'disallow-non-standard-keys eglot-strict-mode)
+                  (cl-destructuring-bind (&key ,@vars) ,object-once
+                    (funcall ,fn-once ,@vars))
+                (cl-destructuring-bind (&key ,@vars &allow-other-keys) ,object-once
+                  (funcall ,fn-once ,@vars))))))))
+
+
+(cl-defmacro eglot--lambda (cl-lambda-list &body body)
+  "Function of args CL-LAMBDA-LIST for processing INTERFACE objects.
+Honour `eglot-strict-mode'."
+  (declare (indent 1))
   (let ((e (cl-gensym "jsonrpc-lambda-elem")))
-    `(lambda (,e)
-       (eglot--dbind ,interface ,cl-lambda-list ,e
-         ,@body))))
+    `(lambda (,e) (eglot--dbind ,cl-lambda-list ,e ,@body))))
 
 
 ;;; API (WORK-IN-PROGRESS!)
