@@ -811,16 +811,16 @@ CONNECT-ARGS are passed as additional arguments to
   (let ((warning-minimum-level :error))
     (display-warning 'eglot (apply #'format format args) :warning)))
 
-(defun eglot--current-column () (- (point) (point-at-bol)))
+(defun eglot-current-column () (- (point) (point-at-bol)))
 
-(defvar eglot-current-column-function #'eglot--current-column
+(defvar eglot-current-column-function #'eglot-current-column
   "Function to calculate the current column.
 
 This is the inverse operation of
 `eglot-move-to-column-function' (which see).  It is a function of
 no arguments returning a column number.  For buffers managed by
 fully LSP-compliant servers, this should be set to
-`eglot-lsp-abiding-column', and `current-column' (the default)
+`eglot-lsp-abiding-column', and `eglot-current-column' (the default)
 for all others.")
 
 (defun eglot-lsp-abiding-column ()
@@ -1506,7 +1506,7 @@ Try to visit the target file for a richer summary line."
                                 (substring (buffer-substring bol (point-at-eol))))
                      (add-face-text-property (- beg bol) (- end bol) 'highlight
                                              t substring)
-                     (list substring (1+ (current-line)) (eglot--current-column))))))
+                     (list substring (1+ (current-line)) (eglot-current-column))))))
        (`(,summary ,line ,column)
         (cond
          (visiting (with-current-buffer visiting (funcall collect)))
