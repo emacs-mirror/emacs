@@ -436,7 +436,7 @@ split and merge should not be written in such a way that they might
 detect failure after calling the next method, unless they have reason
 to know that the bit table allocations will not fail.
 
-.. _design.mps.seg.split-merge.fail.anti.no: seg#split-merge-fail-anti-no
+.. _design.mps.seg.split-merge.fail.anti.no: seg#.split-merge.fail.anti.no
 
 
 Testing

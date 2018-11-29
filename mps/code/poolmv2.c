@@ -6,7 +6,7 @@
  * .purpose: A manual-variable pool designed to take advantage of
  * placement according to predicted deathtime.
  *
- * .design: See <design/poolmvt/>.
+ * .design: <design/poolmvt>.
  */
 
 #include "mpm.h"
@@ -69,20 +69,20 @@ typedef struct MVTStruct
   FreelistStruct flStruct;      /* The emergency free list structure */
   FailoverStruct foStruct;      /* The fail-over mechanism */
   ABQStruct abqStruct;          /* The available block queue */
-  /* <design/poolmvt/#arch.parameters> */
+  /* <design/poolmvt#.arch.parameters> */
   Size minSize;                 /* Pool parameter */
   Size meanSize;                /* Pool parameter */
   Size maxSize;                 /* Pool parameter */
   Count fragLimit;              /* Pool parameter */
-  /* <design/poolmvt/#arch.overview.abq.reuse.size> */
+  /* <design/poolmvt#.arch.overview.abq.reuse.size> */
   Size reuseSize;               /* Size at which blocks are recycled */
-  /* <design/poolmvt/#arch.ap.fill.size> */
+  /* <design/poolmvt#.arch.ap.fill.size> */
   Size fillSize;                /* Size of pool segments */
-  /* <design/poolmvt/#arch.contingency> */
+  /* <design/poolmvt#.arch.contingency> */
   Size availLimit;              /* Limit on available */
-  /* <design/poolmvt/#impl.c.free.merge.segment.overflow> */
+  /* <design/poolmvt#.impl.c.free.merge.segment.overflow> */
   Bool abqOverflow;             /* ABQ dropped some candidates */
-  /* <design/poolmvt/#arch.ap.no-fit>.* */
+  /* <design/poolmvt#.arch.ap.no-fit> */
   Bool splinter;                /* Saved splinter */
   Addr splinterBase;            /* Saved splinter base */
   Addr splinterLimit;           /* Saved splinter size */
@@ -259,7 +259,7 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVERT(Align, align);
   /* This restriction on the alignment is necessary because of the use
      of a Freelist to store the free address ranges in low-memory
-     situations. See <design/freelist/#impl.grain.align>. */
+     situations. <design/freelist#.impl.grain.align>. */
   AVER(AlignIsAligned(align, FreelistMinimumAlignment));
   AVER(align <= ArenaGrainSize(arena));
   AVER(0 < minSize);
@@ -269,9 +269,9 @@ static Res MVTInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVER(fragLimit <= 100);
   /* TODO: More parameter checks possible? */
 
-  /* see <design/poolmvt/#arch.parameters> */
+  /* see <design/poolmvt#.arch.parameters> */
   fillSize = SizeArenaGrains(maxSize, arena);
-  /* see <design/poolmvt/#arch.fragmentation.internal> */
+  /* see <design/poolmvt#.arch.fragmentation.internal> */
   reuseSize = 2 * fillSize;
   abqDepth = (reserveDepth * meanSize + reuseSize - 1) / reuseSize;
   /* keep the abq from being useless */
@@ -521,8 +521,8 @@ static Res MVTOversizeFill(Addr *baseReturn,
    * to the unavailable total. (We deliberately lose these fragments
    * now so as to avoid the more severe fragmentation that we believe
    * would result if we used these for allocation. See
-   * design.mps.poolmvt.arch.fragmentation.internal and
-   * design.mps.poolmvt.anal.policy.size.)
+   * <design/poolmvt#.arch.fragmentation.internal> and
+   * <design/poolmvt#.anal.policy.size>.)
    */
   mvt->available -= alignedSize - minSize;
   mvt->unavailable += alignedSize - minSize;
@@ -689,7 +689,7 @@ static Res MVTSegFill(Addr *baseReturn, Addr *limitReturn,
 
 /* MVTBufferFill -- refill an allocation buffer from an MVT pool
  *
- * See <design/poolmvt/#impl.c.ap.fill>
+ * <design/poolmvt#.impl.c.ap.fill>
  */
 static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size minSize)
@@ -708,14 +708,14 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(SizeIsAligned(minSize, pool->alignment));
 
   /* Allocate oversize blocks exactly, directly from the arena.
-     <design/poolmvt/#arch.ap.no-fit.oversize> */
+     <design/poolmvt#.arch.ap.no-fit.oversize> */
   if (minSize > mvt->fillSize) {
     return MVTOversizeFill(baseReturn, limitReturn, mvt,
                            minSize);
   }
 
   /* Use any splinter, if available.
-     <design/poolmvt/#arch.ap.no-fit.return> */
+     <design/poolmvt#.arch.ap.no-fit.return> */
   if (MVTSplinterFill(baseReturn, limitReturn, mvt, minSize))
     return ResOK;
   
@@ -726,7 +726,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   METER_ACC(mvt->underflows, minSize);
 
   /* If fragmentation is acceptable, attempt to find a free block from
-     the free lists. <design/poolmvt/#arch.contingency.fragmentation-limit> */
+     the free lists. <design/poolmvt#.arch.contingency.fragmentation-limit> */
   if (mvt->available >= mvt->availLimit) {
     METER_ACC(mvt->fragLimitContingencies, minSize);
     if (MVTContingencyFill(baseReturn, limitReturn, mvt, minSize))
@@ -734,7 +734,7 @@ static Res MVTBufferFill(Addr *baseReturn, Addr *limitReturn,
   }
 
   /* Attempt to request a block from the arena.
-     <design/poolmvt/#impl.c.free.merge.segment> */
+     <design/poolmvt#.impl.c.free.merge.segment> */
   res = MVTSegFill(baseReturn, limitReturn,
                    mvt, mvt->fillSize, minSize);
   if (res == ResOK)
@@ -787,7 +787,7 @@ static Bool MVTReserve(MVT mvt, Range range)
   AVERT(Range, range);
   AVER(RangeSize(range) >= mvt->reuseSize);
 
-  /* See <design/poolmvt/#impl.c.free.merge> */
+  /* <design/poolmvt#.impl.c.free.merge> */
   if (!ABQPush(MVTABQ(mvt), range)) {
     Arena arena = PoolArena(MVTPool(mvt));
     RangeStruct oldRange;
@@ -881,7 +881,7 @@ static Res MVTDelete(MVT mvt, Addr base, Addr limit)
 /* MVTBufferEmpty -- return an unusable portion of a buffer to the MVT
  * pool
  *
- * See <design/poolmvt/#impl.c.ap.empty>
+ * <design/poolmvt#.impl.c.ap.empty>
  */
 static void MVTBufferEmpty(Pool pool, Buffer buffer)
 {
@@ -914,7 +914,7 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer)
   METER_ACC(mvt->poolSize, mvt->size);
   METER_ACC(mvt->bufferEmpties, size);
 
-  /* <design/poolmvt/#arch.ap.no-fit.splinter> */
+  /* <design/poolmvt#.arch.ap.no-fit.splinter> */
   if (size < mvt->minSize) {
     res = MVTInsert(mvt, base, limit);
     AVER(res == ResOK);
@@ -923,7 +923,7 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer)
   }
 
   METER_ACC(mvt->splinters, size);
-  /* <design/poolmvt/#arch.ap.no-fit.return> */
+  /* <design/poolmvt#.arch.ap.no-fit.return> */
   if (mvt->splinter) {
     Size oldSize = AddrOffset(mvt->splinterBase, mvt->splinterLimit);
 
@@ -950,7 +950,7 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer)
 /* MVTFree -- free a block (previously allocated from a buffer) that
  * is no longer in use
  *
- * see <design/poolmvt/#impl.c.free>
+ * see <design/poolmvt#.impl.c.free>
  */
 static void MVTFree(Pool pool, Addr base, Size size)
 {
@@ -976,7 +976,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   METER_ACC(mvt->poolAllocated, mvt->allocated);
   METER_ACC(mvt->poolSize, mvt->size);
  
-  /* <design/poolmvt/#arch.ap.no-fit.oversize.policy> */
+  /* <design/poolmvt#.arch.ap.no-fit.oversize.policy> */
   /* Return exceptional blocks directly to arena */
   if (size > mvt->fillSize) {
     Seg seg = NULL;         /* suppress "may be used uninitialized" */
@@ -1147,7 +1147,7 @@ static Res MVTSegAlloc(Seg *segReturn, MVT mvt, Size size)
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);
    
-    /* see <design/poolmvt/#arch.fragmentation.internal> */
+    /* see <design/poolmvt#.arch.fragmentation.internal> */
     AVER(segSize >= mvt->fillSize);
     mvt->size += segSize;
     mvt->available += segSize;

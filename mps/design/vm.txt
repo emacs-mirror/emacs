@@ -38,7 +38,7 @@ _`.req.granularity`: The virtual mapping module must report the
 necessary for the arena to be able to portably determine its grain
 size; see design.mps.arena.def.grain_.)
 
-.. _design.mps.arena.def.grain: arena#def-grain
+.. _design.mps.arena.def.grain: arena#.def.grain
 
 _`.req.reserve`: The *reserve* operation must reserves a chunk of
 address space.

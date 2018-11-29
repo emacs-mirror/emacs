@@ -353,7 +353,7 @@ _`.seg.class`: AMC allocates segments of class ``AMCSegClass``, which
 is a subclass of ``MutatorSegClass`` (see
 design.mps.seg.over.hierarchy.mutatorseg_).
 
-.. _design.mps.seg.over.hierarchy.mutatorseg: seg#over-hierarchy-mutatorseg
+.. _design.mps.seg.over.hierarchy.mutatorseg: seg#.over.hierarchy.mutatorseg
 
 _`.seg.gen`: AMC organizes the segments it manages into generations.
 

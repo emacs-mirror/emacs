@@ -4,7 +4,7 @@
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * Implements thread registration, suspension, and stack and register
- * scanning. See <design/thread-manager/>.
+ * scanning. <design/thread-manager>.
  *
  * .thread.id: The thread id is used to identify the current thread.
  * .thread.handle: The thread handle needs the enough access to
@@ -65,7 +65,7 @@ SRCID(thw3, "$Id$");
 
 
 typedef struct mps_thr_s {      /* Win32 thread structure */
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* threads attached to arena */
@@ -231,7 +231,7 @@ Thread ThreadRingThread(Ring threadRing)
   return thread;
 }
 
-/* Must be thread-safe. See <design/interface-c/#check.testt>. */
+/* Must be thread-safe. <design/interface-c#.check.testt>. */
 
 Arena ThreadArena(Thread thread)
 {

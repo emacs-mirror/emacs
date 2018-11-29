@@ -42,7 +42,7 @@
  * (Note: this should properly be called "trace begin", but it's much 
  * too late to change it now!)
  *
- * See <design/message-gc/>.
+ * <design/message-gc>.
  */
 
 #define TraceStartMessageSig ((Sig)0x51926535) /* SIGnature TRaceStartMeSsage */
@@ -119,7 +119,7 @@ static MessageClassStruct TraceStartMessageClassStruct = {
   MessageNoGCCondemnedSize,      /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize,   /* GCNotCondemnedSize */
   TraceStartMessageWhy,          /* GCStartWhy */
-  MessageClassSig                /* <design/message/#class.sig.double> */
+  MessageClassSig                /* <design/message#.class.sig.double> */
 };
 
 static void traceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
@@ -246,7 +246,7 @@ void TracePostStartMessage(Trace trace)
  * (Note: this should properly be called "trace end", but it's much 
  * too late to change it now!)
  *
- * See <design/message-gc/>.
+ * <design/message-gc>.
  */
 
 
@@ -337,7 +337,7 @@ static MessageClassStruct TraceMessageClassStruct = {
   TraceMessageCondemnedSize,     /* GCCondemnedSize */
   TraceMessageNotCondemnedSize,  /* GCNotCondemnedSize */
   MessageNoGCStartWhy,           /* GCStartWhy */
-  MessageClassSig                /* <design/message/#class.sig.double> */
+  MessageClassSig                /* <design/message#.class.sig.double> */
 };
 
 static void traceMessageInit(Arena arena, TraceMessage tMessage)
@@ -424,7 +424,7 @@ Bool TraceIdMessagesCheck(Arena arena, TraceId ti)
 
 /* TraceIdMessagesCreate -- pre-allocate all messages for this traceid
  *
- * See <design/message-gc/#lifecycle>.
+ * <design/message-gc#.lifecycle>.
  *
  * For remote control of ControlAlloc, to simulate low memory:
  *  #define ControlAlloc !TIMCA_remote() ? ResFAIL : ControlAlloc
@@ -477,7 +477,7 @@ failTraceStartMessage:
  *
  * Only used during ArenaDestroy.
  *
- * See <design/message-gc/#lifecycle>.
+ * <design/message-gc#.lifecycle>.
  */
 
 void TraceIdMessagesDestroy(Arena arena, TraceId ti)

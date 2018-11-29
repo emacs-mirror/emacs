@@ -8,7 +8,7 @@
  * variable size where address-ordered first (or last) fit is an
  * appropriate policy.
  *
- * .design: See <design/poolmvff/>
+ * .design: <design/poolmvff>
  */
 
 #ifndef poolmvff_h

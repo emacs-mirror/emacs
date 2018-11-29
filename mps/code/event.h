@@ -9,7 +9,7 @@
  *
  * DESIGN
  *
- * .design: <design/telemetry/>.
+ * .design: <design/telemetry>.
  */
 
 #ifndef event_h

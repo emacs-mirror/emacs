@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2013-2015 Ravenbrook Limited.  See end of file for license.
  *
- * .sources: <design/freelist/>.
+ * .sources: <design/freelist>.
  */
 
 #include "freelist.h"
@@ -176,7 +176,7 @@ Bool FreelistCheck(Freelist fl)
   CHECKL(AlignCheck(FreelistMinimumAlignment));
   CHECKL(sizeof(struct FreelistBlockSmall) < sizeof(struct FreelistBlockLarge));
   CHECKL(sizeof(struct FreelistBlockSmall) <= freelistAlignment(fl));
-  /* See <design/freelist/#impl.grain.align> */
+  /* <design/freelist#.impl.grain.align> */
   CHECKL(AlignIsAligned(freelistAlignment(fl), FreelistMinimumAlignment));
   CHECKL((fl->list == freelistEND) == (fl->listSize == 0));
   CHECKL((fl->list == freelistEND) == (fl->size == 0));
@@ -197,7 +197,7 @@ static Res freelistInit(Land land, Arena arena, Align alignment, ArgList args)
     return res;
   fl = CouldBeA(Freelist, land);
 
-  /* See <design/freelist/#impl.grain> */
+  /* <design/freelist#.impl.grain> */
   AVER(AlignIsAligned(LandAlignment(land), FreelistMinimumAlignment));
 
   fl->list = freelistEND;
@@ -254,7 +254,7 @@ static void freelistBlockSetPrevNext(Freelist fl, FreelistBlock prev,
   if (prev == freelistEND) {
     fl->list = next;
   } else {
-    /* Isolated range invariant (design.mps.freelist.impl.invariant). */
+    /* Isolated range invariant <design/freelist#.impl.invariant>. */
     AVER(next == freelistEND
          || freelistBlockLimit(fl, prev) < freelistBlockBase(next));
     freelistBlockSetNext(prev, next);
@@ -291,7 +291,7 @@ static Res freelistInsert(Range rangeReturn, Land land, Range range)
       break;
     next = freelistBlockNext(cur);
     if (next != freelistEND)
-      /* Isolated range invariant (design.mps.freelist.impl.invariant). */
+      /* Isolated range invariant <design/freelist#.impl.invariant>. */
       AVER(freelistBlockLimit(fl, cur) < freelistBlockBase(next));
     prev = cur;
     cur = next;

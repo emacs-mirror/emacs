@@ -4,7 +4,7 @@
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2001 Global Graphics Software.
  *
- * .design: <design/type/>
+ * .design: <design/type>
  *
  * .rationale: Types and type constants are almost all defined
  * in this header, in advance of any declarations of prototypes
@@ -26,88 +26,88 @@
 
 /* TYPES */
 
-typedef unsigned long Sig;              /* <design/sig/> */
-typedef int Res;                        /* <design/type/#res> */
+typedef unsigned long Sig;              /* <design/sig> */
+typedef int Res;                        /* <design/type#.res> */
 
-typedef void (*Fun)(void);              /* <design/type/#fun> */
-typedef MPS_T_WORD Word;                /* <design/type/#word> */
-typedef unsigned char Byte;             /* <design/type/#byte> */
-typedef struct AddrStruct *Addr;        /* <design/type/#addr> */
-typedef const struct AddrStruct *ReadonlyAddr; /* <design/type/#readonlyaddr> */
-typedef Word Size;                      /* <design/type/#size> */
-typedef Word Count;                     /* <design/type/#count> */
-typedef Word Index;                     /* <design/type/#index> */
-typedef Word Align;                     /* <design/type/#align> */
-typedef Word Work;                      /* <design/type/#work> */
-typedef unsigned Shift;                 /* <design/type/#shift> */
-typedef unsigned Serial;                /* <design/type/#serial> */
-typedef Addr Ref;                       /* <design/type/#ref> */
-typedef void *Pointer;                  /* <design/type/#pointer> */
-typedef Word Clock;                     /* <design/type/#clock> */
-typedef MPS_T_ULONGEST ULongest;        /* <design/type/#ulongest> */
+typedef void (*Fun)(void);              /* <design/type#.fun> */
+typedef MPS_T_WORD Word;                /* <design/type#.word> */
+typedef unsigned char Byte;             /* <design/type#.byte> */
+typedef struct AddrStruct *Addr;        /* <design/type#.addr> */
+typedef const struct AddrStruct *ReadonlyAddr; /* <design/type#.readonlyaddr> */
+typedef Word Size;                      /* <design/type#.size> */
+typedef Word Count;                     /* <design/type#.count> */
+typedef Word Index;                     /* <design/type#.index> */
+typedef Word Align;                     /* <design/type#.align> */
+typedef Word Work;                      /* <design/type#.work> */
+typedef unsigned Shift;                 /* <design/type#.shift> */
+typedef unsigned Serial;                /* <design/type#.serial> */
+typedef Addr Ref;                       /* <design/type#.ref> */
+typedef void *Pointer;                  /* <design/type#.pointer> */
+typedef Word Clock;                     /* <design/type#.clock> */
+typedef MPS_T_ULONGEST ULongest;        /* <design/type#.ulongest> */
 
 typedef mps_arg_s ArgStruct;
 typedef mps_arg_s *Arg;
 typedef mps_arg_s *ArgList;
 typedef mps_key_t Key;
 
-typedef Word RefSet;                    /* <design/collection/#refsets> */
-typedef Word ZoneSet;                   /* <design/collection/#refsets> */
-typedef unsigned Rank;                  /* <design/type/#rank> */
-typedef unsigned RankSet;               /* <design/type/#rankset> */
-typedef unsigned RootMode;              /* <design/type/#rootmode> */
-typedef Size Epoch;                     /* <design/type/#epoch> */
-typedef unsigned TraceId;               /* <design/type/#traceid> */
-typedef unsigned TraceSet;              /* <design/type/#traceset> */
-typedef unsigned TraceState;            /* <design/type/#tracestate> */
-typedef unsigned TraceStartWhy;         /* <design/type/#tracestartwhy> */
-typedef unsigned AccessSet;             /* <design/type/#access-set> */
-typedef unsigned Attr;                  /* <design/type/#attr> */
-typedef unsigned RootVar;               /* <design/type/#rootvar> */
+typedef Word RefSet;                    /* <design/collection#.refsets> */
+typedef Word ZoneSet;                   /* <design/collection#.refsets> */
+typedef unsigned Rank;                  /* <design/type#.rank> */
+typedef unsigned RankSet;               /* <design/type#.rankset> */
+typedef unsigned RootMode;              /* <design/type#.rootmode> */
+typedef Size Epoch;                     /* <design/type#.epoch> */
+typedef unsigned TraceId;               /* <design/type#.traceid> */
+typedef unsigned TraceSet;              /* <design/type#.traceset> */
+typedef unsigned TraceState;            /* <design/type#.tracestate> */
+typedef unsigned TraceStartWhy;         /* <design/type#.tracestartwhy> */
+typedef unsigned AccessSet;             /* <design/type#.access-set> */
+typedef unsigned Attr;                  /* <design/type#.attr> */
+typedef unsigned RootVar;               /* <design/type#.rootvar> */
 
-typedef Word *BT;                       /* <design/bt/> */
+typedef Word *BT;                       /* <design/bt> */
 typedef struct BootBlockStruct *BootBlock; /* <code/boot.c> */
-typedef struct BufferStruct *Buffer;    /* <design/buffer/> */
-typedef struct SegBufStruct *SegBuf;    /* <design/buffer/> */
-typedef struct BufferClassStruct *BufferClass; /* <design/buffer/> */
-typedef unsigned BufferMode;            /* <design/buffer/> */
-typedef struct mps_fmt_s *Format;       /* design.mps.format */
+typedef struct BufferStruct *Buffer;    /* <design/buffer> */
+typedef struct SegBufStruct *SegBuf;    /* <design/buffer> */
+typedef struct BufferClassStruct *BufferClass; /* <design/buffer> */
+typedef unsigned BufferMode;            /* <design/buffer> */
+typedef struct mps_fmt_s *Format;       /* <design/format> */
 typedef struct LockStruct *Lock;        /* <code/lock.c>* */
-typedef struct mps_pool_s *Pool;        /* <design/pool/> */
+typedef struct mps_pool_s *Pool;        /* <design/pool> */
 typedef Pool AbstractPool;
 typedef struct mps_pool_class_s *PoolClass;  /* <code/poolclas.c> */
-typedef struct TraceStruct *Trace;      /* <design/trace/> */
-typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
-typedef struct mps_chain_s *Chain;      /* <design/trace/> */
-typedef struct TractStruct *Tract;      /* <design/arena/> */
+typedef struct TraceStruct *Trace;      /* <design/trace> */
+typedef struct ScanStateStruct *ScanState; /* <design/trace> */
+typedef struct mps_chain_s *Chain;      /* <design/trace> */
+typedef struct TractStruct *Tract;      /* <design/arena> */
 typedef struct ChunkStruct *Chunk;      /* <code/tract.c> */
 typedef struct ChunkCacheEntryStruct *ChunkCacheEntry; /* <code/tract.c> */
 typedef union PageUnion *Page;          /* <code/tract.c> */
 typedef struct SegStruct *Seg;          /* <code/seg.c> */
 typedef struct GCSegStruct *GCSeg;      /* <code/seg.c> */
 typedef struct SegClassStruct *SegClass; /* <code/seg.c> */
-typedef struct LocusPrefStruct *LocusPref; /* <design/locus/>, <code/locus.c> */
-typedef unsigned LocusPrefKind;         /* <design/locus/>, <code/locus.c> */
-typedef struct mps_arena_class_s *ArenaClass; /* <design/arena/> */
-typedef struct mps_arena_s *Arena;      /* <design/arena/> */
+typedef struct LocusPrefStruct *LocusPref; /* <design/locus>, <code/locus.c> */
+typedef unsigned LocusPrefKind;         /* <design/locus>, <code/locus.c> */
+typedef struct mps_arena_class_s *ArenaClass; /* <design/arena> */
+typedef struct mps_arena_s *Arena;      /* <design/arena> */
 typedef Arena AbstractArena;
-typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
+typedef struct GlobalsStruct *Globals;  /* <design/arena> */
 typedef struct VMStruct *VM;            /* <code/vm.c>* */
 typedef struct RootStruct *Root;        /* <code/root.c> */
 typedef struct mps_thr_s *Thread;       /* <code/th.c>* */
-typedef struct MutatorContextStruct *MutatorContext; /* <design/prmc/> */
+typedef struct MutatorContextStruct *MutatorContext; /* <design/prmc> */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
 typedef struct AllocPatternStruct *AllocPattern;
-typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
+typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame> */
 typedef struct StackContextStruct *StackContext;
-typedef struct RangeStruct *Range;      /* <design/range/> */
+typedef struct RangeStruct *Range;      /* <design/range> */
 typedef struct RangeTreeStruct *RangeTree;
-typedef struct LandStruct *Land;        /* <design/land/> */
-typedef struct LandClassStruct *LandClass; /* <design/land/> */
-typedef unsigned FindDelete;            /* <design/land/> */
-typedef struct ShieldStruct *Shield; /* design.mps.shield */
-typedef struct HistoryStruct *History;  /* design.mps.arena.ld */
-typedef struct PoolGenStruct *PoolGen;  /* <design/strategy/> */
+typedef struct LandStruct *Land;        /* <design/land> */
+typedef struct LandClassStruct *LandClass; /* <design/land> */
+typedef unsigned FindDelete;            /* <design/land> */
+typedef struct ShieldStruct *Shield; /* <design/shield> */
+typedef struct HistoryStruct *History;  /* <design/arena#.ld> */
+typedef struct PoolGenStruct *PoolGen;  /* <design/strategy> */
 
 
 /* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
@@ -150,7 +150,7 @@ typedef void (*FormattedObjectsVisitor)(Addr obj, Format fmt, Pool pool,
 typedef void (*FreeBlockVisitor)(Addr base, Addr limit, Pool pool, void *p);
 
 
-/* Seg*Method -- see <design/seg/> */
+/* Seg*Method -- see <design/seg> */
 
 typedef Res (*SegInitMethod)(Seg seg, Pool pool, Addr base, Size size,
                              ArgList args);
@@ -183,7 +183,7 @@ typedef void (*SegWalkMethod)(Seg seg, Format format, FormattedObjectsVisitor f,
                               void *v, size_t s);
 
 
-/* Buffer*Method -- see <design/buffer/> */
+/* Buffer*Method -- see <design/buffer> */
 
 typedef void (*BufferVarargsMethod)(ArgStruct args[], va_list varargs);
 typedef Res (*BufferInitMethod)(Buffer buffer, Pool pool, Bool isMutator, ArgList args);
@@ -196,7 +196,7 @@ typedef void (*BufferSetRankSetMethod)(Buffer buffer, RankSet rankSet);
 typedef void (*BufferReassignSegMethod)(Buffer buffer, Seg seg);
 
 
-/* Pool*Method -- see <design/pool/> */
+/* Pool*Method -- see <design/pool> */
 
 /* Order of types corresponds to PoolClassStruct in <code/mpmst.h> */
 
@@ -222,14 +222,14 @@ typedef Size (*PoolSizeMethod)(Pool pool);
 
 /* Messages
  *
- * See <design/message/>
+ * <design/message>
  */
 
 typedef unsigned MessageType;
 typedef struct mps_message_s *Message;
 typedef struct MessageClassStruct *MessageClass;
 
-/* Message*Method -- <design/message/> */
+/* Message*Method -- <design/message> */
 
 typedef void (*MessageDeleteMethod)(Message message);
 typedef void (*MessageFinalizationRefMethod)
@@ -239,13 +239,13 @@ typedef Size (*MessageGCCondemnedSizeMethod)(Message message);
 typedef Size (*MessageGCNotCondemnedSizeMethod)(Message message);
 typedef const char * (*MessageGCStartWhyMethod)(Message message);
 
-/* Message Types -- <design/message/> and elsewhere */
+/* Message Types -- <design/message> and elsewhere */
 
 typedef struct TraceStartMessageStruct *TraceStartMessage;
 typedef struct TraceMessageStruct *TraceMessage;  /* trace end */
 
 
-/* Land*Method -- see <design/land/> */
+/* Land*Method -- see <design/land> */
 
 typedef Res (*LandInitMethod)(Land land, Arena arena, Align alignment, ArgList args);
 typedef Size (*LandSizeMethod)(Land land);
@@ -262,11 +262,11 @@ typedef Res (*LandFindInZonesMethod)(Bool *foundReturn, Range rangeReturn, Range
 /* CONSTANTS */
 
 
-/* <design/sig/>  */
+/* <design/sig>  */
 #define SigInvalid      ((Sig)0x51915BAD) /* SIGnature IS BAD */
 
 #define SizeMAX         ((Size)-1)
-#define AccessSetEMPTY  ((AccessSet)0) /* <design/type/#access-set> */
+#define AccessSetEMPTY  ((AccessSet)0) /* <design/type#.access-set> */
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
 #define AccessLIMIT     (2)
@@ -300,7 +300,7 @@ enum {
 #define BufferModeTRANSITION    ((BufferMode)(1<<3))
 
 
-/* Rank constants -- see <design/type/#rank> */
+/* Rank constants -- see <design/type#.rank> */
 /* These definitions must match <code/mps.h#rank>. */
 /* This is checked by <code/mpsi.c#check>. */
 
@@ -325,7 +325,7 @@ enum {
 #define RootModePROTECTABLE_INNER ((RootMode)1<<2)
 
 
-/* Root Variants -- see <design/type/#rootvar>
+/* Root Variants -- see <design/type#.rootvar>
  *
  * .rootvar: Synchonize with <code/root.c#rootvarcheck>
  */
@@ -341,12 +341,12 @@ enum {
 };
 
 
-/* .result-codes: Result Codes -- see <design/type/#res> */
+/* .result-codes: Result Codes -- see <design/type#.res> */
 
 _mps_ENUM_DEF(_mps_RES_ENUM, Res)
 
 
-/* TraceStates -- see <design/trace/> */
+/* TraceStates -- see <design/trace> */
 
 enum {
   TraceINIT = 1,
@@ -389,7 +389,7 @@ enum {
 };
 
 
-/* MessageTypes -- see <design/message/> */
+/* MessageTypes -- see <design/message> */
 /* .message.types: Keep in sync with <code/mps.h#message.types> */
 
 enum {
@@ -400,7 +400,7 @@ enum {
 };
 
 
-/* FindDelete operations -- see <design/land/> */
+/* FindDelete operations -- see <design/land> */
 
 enum {
   FindDeleteNONE = 1, /* don't delete after finding */

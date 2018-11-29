@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
    * In either case TraceIdMessagesCreate promptly gives up, and 
    * neither start nor end message will be sent for the next trace.
    *
-   * See <design/message-gc#lifecycle>.
+   * <design/message-gc#lifecycle>.
    */
 #if TEST_CONTROLALLOC_FAILURE
   {

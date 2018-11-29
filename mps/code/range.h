@@ -5,7 +5,7 @@
  *
  * .purpose: Representation of address ranges.
  *
- * .design: <design/range/>
+ * .design: <design/range>
  */
 
 #ifndef range_h

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
- * .source: <design/telemetry/>
+ * .source: <design/telemetry>
  *
  * .desc: This file declares macros that define the types of events and their
  * properties.
@@ -52,7 +52,7 @@
  * When you retire an event type, don't delete it from the list, but
  * set the "Used" column to FALSE. This serves as documentation for
  * what the event code means in older logs, and prevents the codes
- * being re-used. See <design/telemetry/#.reg.code>.
+ * being re-used. <design/telemetry/#.reg.code>.
  *
  * When you add an event type, you must also add an EVENT_*_PARAMS
  * macro specifying its parameters.

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/thread-manager/>.
+ * .design: <design/thread-manager>.
  *
  *
  * TODO
@@ -38,7 +38,7 @@ SRCID(thxc, "$Id$");
 
 
 typedef struct mps_thr_s {      /* macOS thread structure */
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attaches to arena */
@@ -214,7 +214,7 @@ Thread ThreadRingThread(Ring threadRing)
 }
 
 
-/* Must be thread-safe. See <design/interface-c/#check.testt>. */
+/* Must be thread-safe. <design/interface-c#.check.testt>. */
 
 Arena ThreadArena(Thread thread)
 {
@@ -310,7 +310,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 
 
 /* threadAtForkPrepare -- for each arena, mark the current thread as
- * forking <design/thread-safety/#sol.fork.thread>.
+ * forking <design/thread-safety#.sol.fork.thread>.
  */
 
 static Bool threadForkPrepare(Thread thread)
@@ -337,7 +337,7 @@ static void threadAtForkPrepare(void)
 
 
 /* threadAtForkParent -- for each arena, clear the forking flag for
- * all threads <design/thread-safety/#sol.fork.thread>.
+ * all threads <design/thread-safety#.sol.fork.thread>.
  */
 
 static Bool threadForkParent(Thread thread)
@@ -361,8 +361,8 @@ static void threadAtForkParent(void)
 
 /* threadAtForkChild -- For each arena, move all threads to the dead
  * ring, except for the thread that was marked as forking by the
- * prepare handler <design/thread-safety/#sol.fork.thread>, for which
- * update its mach port <design/thread-safety/#sol.fork.mach-port>.
+ * prepare handler <design/thread-safety#.sol.fork.thread>, for which
+ * update its mach port <design/thread-safety#.sol.fork.mach-port>.
  */
 
 static Bool threadForkChild(Thread thread)

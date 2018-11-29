@@ -40,7 +40,7 @@ design.mps.config.var_) and ``<target>`` is the collection of tests
 If ``<variety>`` is omitted, tests are run in both the cool and hot
 varieties.
 
-.. _design.mps.config.var: config#var
+.. _design.mps.config.var: config#.var
 .. _manual/build.txt: https://www.ravenbrook.com/project/mps/master/manual/build.txt
 
 
@@ -71,8 +71,8 @@ of the tests that are expected to pass in the generic ("ANSI") build
 configuration (see design.mps.config.opt.ansi_) with the option
 ``CONFIG_POLL_NONE`` (see design.mps.config.opt.poll_).
 
-.. _design.mps.config.opt.ansi: config#opt.ansi
-.. _design.mps.config.opt.poll: config#opt.poll
+.. _design.mps.config.opt.ansi: config#.opt.ansi
+.. _design.mps.config.opt.poll: config#.opt.poll
 
 _`.target.testratio`: The ``testratio`` target compares the
 performance of the HOT and RASH varieties. See `.ratio`_.

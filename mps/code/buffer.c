@@ -10,7 +10,7 @@
  *
  * DESIGN
  *
- * .design: See <design/buffer/>.
+ * .design: <design/buffer>.
  *
  * .ap.async: The mutator is allowed to change certain AP fields
  * asynchronously.  Functions that can be called on buffers not
@@ -231,7 +231,7 @@ static Res BufferInit(Buffer buffer, BufferClass klass,
 
 /* BufferCreate -- create an allocation buffer
  *
- * See <design/buffer/#method.create>.
+ * <design/buffer#.method.create>.
  */
 
 Res BufferCreate(Buffer *bufferReturn, BufferClass klass,
@@ -318,7 +318,8 @@ void BufferDetach(Buffer buffer, Pool pool)
 
 /* BufferDestroy -- destroy an allocation buffer
  *
- * See <design/buffer/#method.destroy>.  */
+ * <design/buffer#.method.destroy>.
+ */
 
 void BufferDestroy(Buffer buffer)
 {
@@ -439,7 +440,8 @@ void BufferSetAllocAddr(Buffer buffer, Addr addr)
 
 /* BufferFramePush
  *
- * See <design/alloc-frame/>.  */
+ * <design/alloc-frame>.
+ */
 
 Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 {
@@ -462,7 +464,8 @@ Res BufferFramePush(AllocFrame *frameReturn, Buffer buffer)
 
 /* BufferFramePop
  *
- * See <design/alloc-frame/>.  */
+ * <design/alloc-frame>.
+ */
 
 Res BufferFramePop(Buffer buffer, AllocFrame frame)
 {
@@ -478,7 +481,8 @@ Res BufferFramePop(Buffer buffer, AllocFrame frame)
 
 /* BufferReserve -- reserve memory from an allocation buffer
  *
- * .reserve: Keep in sync with <code/mps.h#reserve>.  */
+ * .reserve: Keep in sync with <code/mps.h#reserve>.
+ */
 
 Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
 {
@@ -539,7 +543,7 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   filled = AddrOffset(init, limit);
   buffer->fillSize += filled;
   if (buffer->isMutator) {
-    if (base != init) { /* see <design/buffer/#count.alloc.how> */
+    if (base != init) { /* see <design/buffer#.count.alloc.how> */
       Size prealloc = AddrOffset(base, init);
       ArenaGlobals(buffer->arena)->allocMutatorSize -= prealloc;
     }
@@ -634,7 +638,7 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
   AVER(!BufferIsReady(buffer));
 
-  /* See <design/collection/#flip>. */
+  /* <design/collection#.flip>. */
   /* .commit.before: If a flip occurs before this point, when the */
   /* pool reads "initAtFlip" it will point below the object, so it */
   /* will be trashed and the commit must fail when trip is called.  */
@@ -1029,7 +1033,7 @@ Bool BufferClassCheck(BufferClass klass)
 
 /* BufferClass -- the vanilla buffer class definition
  *
- * See <design/buffer/#class.hierarchy.buffer>.  */
+ * <design/buffer#.class.hierarchy.buffer>.  */
 
 DEFINE_CLASS(Inst, BufferClass, klass)
 {
@@ -1243,7 +1247,7 @@ static Res segBufDescribe(Inst inst, mps_lib_FILE *stream, Count depth)
 /* SegBufClass -- SegBuf class definition
  *
  * Supports an association with a single segment when attached.  See
- * <design/buffer/#class.hierarchy.segbuf>.  */
+ * <design/buffer#.class.hierarchy.segbuf>.  */
 
 DEFINE_CLASS(Buffer, SegBuf, klass)
 {

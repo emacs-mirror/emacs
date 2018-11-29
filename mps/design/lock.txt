@@ -74,20 +74,20 @@ to protect the data structure allowing multiple arenas to coordinate
 handling of protection faults: see
 design.mps.thread-safety.sol.global.mutable_.)
 
-.. _design.mps.thread-safety.sol.global.mutable: thread-safety#sol-global-mutable
+.. _design.mps.thread-safety.sol.global.mutable: thread-safety#.sol.global.mutable
 
 _`.req.global.recursive`: Provide a global recursive lock. (This is
 required to protect protocol class initialization: see
 design.mps.thread-safety.sol.global.once_.)
 
-.. _design.mps.thread-safety.sol.global.once: thread-safety#sol-global-once
+.. _design.mps.thread-safety.sol.global.once: thread-safety#.sol.global.once
 
 _`.req.deadlock.not`: There is no requirement to provide protection
 against deadlock. (Clients are able to avoid deadlock using
 traditional strategies such as ordering of locks; see
 design.mps.thread-safety.sol.deadlock_.)
 
-.. _design.mps.thread-safety.sol.deadlock: thread-safety#sol-deadlock
+.. _design.mps.thread-safety.sol.deadlock: thread-safety#.sol.deadlock
 
 
 Interface
@@ -143,7 +143,7 @@ called in the following circumstances: the first time either of the
 global locks is claimed; and in the child process after a ``fork()``.
 See design.mps.thread-safety.sol.fork.lock_.
 
-.. _design.mps.thread-safety.sol.fork.lock: thread-safety#sol-fork-lock
+.. _design.mps.thread-safety.sol.fork.lock: thread-safety#.sol.fork.lock
 
 ``void LockClaimGlobal(void)``
 

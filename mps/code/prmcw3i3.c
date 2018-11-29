@@ -5,7 +5,7 @@
  *
  * PURPOSE
  *
- * .purpose: Implement the mutator context module. See <design/prmc/>.
+ * .purpose: Implement the mutator context module. <design/prmc>.
  *
  * SOURCES
  *
@@ -19,7 +19,7 @@
  *
  * .assume.sp: The stack pointer is stored in CONTEXT.Esp. This
  * requires CONTEXT_CONTROL to be set in ContextFlags when
- * GetThreadContext is called (see <code/prmcw3.c>).
+ * GetThreadContext is called <code/prmcw3.c>.
  */
 
 #include "prmcw3.h"

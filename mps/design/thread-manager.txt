@@ -117,7 +117,7 @@ by ``mps_thread_dereg()``. It can't use ``AVER(TESTT(Thread,
 thread))``, as recommended by design.mps.sig.check.arg.unlocked_,
 since ``Thread`` is an opaque type.
 
-.. _design.mps.sig.check.arg.unlocked: sig#check-arg-unlocked
+.. _design.mps.sig.check.arg.unlocked: sig#.check.arg.unlocked
 
 ``Arena ThreadArena(Thread thread)``
 
@@ -210,18 +210,18 @@ specially by the POSIX thread extensions. See
 design.mps.pthreadext.req.suspend.multiple_ and
 design.mps.pthreadext.req.resume.multiple_.
 
-.. _design.mps.pthreadext.req.suspend.multiple: pthreadext#req-suspend-multiple
-.. _design.mps.pthreadext.req.resume.multiple: pthreadext#req-resume-multiple
+.. _design.mps.pthreadext.req.suspend.multiple: pthreadext#.req.suspend.multiple
+.. _design.mps.pthreadext.req.resume.multiple: pthreadext#.req.resume.multiple
 
 _`.impl.ix.suspend`: ``ThreadRingSuspend()`` calls
 ``PThreadextSuspend()``. See design.mps.pthreadext.if.suspend_.
 
-.. _design.mps.pthreadext.if.suspend: pthreadext#if-suspend
+.. _design.mps.pthreadext.if.suspend: pthreadext#.if.suspend
 
 _`.impl.ix.resume`: ``ThreadRingResume()`` calls
 ``PThreadextResume()``. See design.mps.pthreadext.if.resume_.
 
-.. _design.mps.pthreadext.if.resume: pthreadext#if-resume
+.. _design.mps.pthreadext.if.resume: pthreadext#.if.resume
 
 _`.impl.ix.scan.current`: ``ThreadScan()`` calls ``StackScan()`` if
 the thread is current.

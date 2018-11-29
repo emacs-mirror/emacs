@@ -307,7 +307,7 @@ If this field is ``TRUE``, then the value of ``p`` is a ``Seg``. See
 design.mps.type.bool.bitfield_ for why this is declared using the
 ``BOOLFIELD`` macro.
 
-.. _design.mps.type.bool.bitfield: type#bool-bitfield
+.. _design.mps.type.bool.bitfield: type#.bool.bitfield
 
 _`.tract.field.base`: The base field contains the base address of the
 memory represented by the tract.

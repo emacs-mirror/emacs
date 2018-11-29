@@ -5,7 +5,7 @@
  *
  * This is the implementation of the MFS pool class.
  *
- * See design.mps.poolmfs.
+ * <design/poolmfs>.
  *
  * .restriction: This pool cannot allocate from the arena control
  * pool (as the control pool is an instance of PoolClassMV and MV uses
@@ -188,7 +188,7 @@ void MFSExtend(Pool pool, Addr base, Addr limit)
      extent. This transgresses the rule that pools should allocate
      control structures from another pool, because an MFS is required
      during bootstrap when no other pools are available. See
-     <design/poolmfs/#impl.extent-ring.justify> */
+     <design/poolmfs#.impl.extent-ring.justify> */
   mfsRing = (Ring)base;
   RingInit(mfsRing);
   RingAppend(&mfs->extentRing, mfsRing);
@@ -249,7 +249,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
   {
     Addr base;
 
-    /* See design.mps.bootstrap.land.sol.pool. */
+    /* <design/bootstrap#.land.sol.pool>. */
     if (!mfs->extendSelf)
       return ResLIMIT;
 

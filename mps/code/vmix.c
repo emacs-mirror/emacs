@@ -12,7 +12,7 @@
  *
  * .deployed: Currently used on Darwin (macOS) and FreeBSD.
  *
- * .design: See <design/vm/>.  .design.mmap: mmap(2) is used to
+ * .design: <design/vm>.  .design.mmap: mmap(2) is used to
  * reserve address space by creating a mapping with page access none.
  * mmap(2) is used to map pages onto store by creating a copy-on-write
  * (MAP_PRIVATE) mapping with the flag MAP_ANON.
@@ -206,7 +206,7 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   size = AddrOffset(base, limit);
   AVER(size <= VMMapped(vm));
 
-  /* see <design/vmo1/#fun.unmap.offset> */
+  /* see <design/vmo1#.fun.unmap.offset> */
   addr = mmap((void *)base, (size_t)size,
               PROT_NONE, MAP_ANON | MAP_PRIVATE | MAP_FIXED,
               -1, 0);

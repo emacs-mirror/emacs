@@ -50,7 +50,7 @@ away from client memory. However, the MFS pool is used during the
 bootstrapping process (see design.mps.bootstrap.land.sol.pool_) and so
 has no other memory pools available for storage.
 
-.. _design.mps.bootstrap.land.sol.pool: bootstrap#land-sol-pool
+.. _design.mps.bootstrap.land.sol.pool: bootstrap#.land.sol.pool
 
 
 Document History

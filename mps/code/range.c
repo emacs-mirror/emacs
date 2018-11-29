@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2013-2018 Ravenbrook Limited.  See end of file for license.
  *
- * .design: <design/range/>
+ * .design: <design/range>
  */
 
 #include "check.h"

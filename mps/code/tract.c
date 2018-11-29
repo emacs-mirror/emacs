@@ -393,14 +393,14 @@ Bool TractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
   Index i;
   Chunk chunk;
  
-  /* <design/trace/#fix.noaver> */
+  /* <design/trace#.fix.noaver> */
   AVER_CRITICAL(tractReturn != NULL); /* .tract.critical */
   AVERT_CRITICAL(Arena, arena);
 
   b = ChunkOfAddr(&chunk, arena, addr);
   if (!b)
     return FALSE;
-  /* <design/trace/#fix.tractofaddr> */
+  /* <design/trace#.fix.tractofaddr> */
   i = INDEX_OF_ADDR(chunk, addr);
   /* .addr.free: If the page is recorded as being free then */
   /* either the page is free or it is */
@@ -427,7 +427,7 @@ Tract TractOfBaseAddr(Arena arena, Addr addr)
   AVERT_CRITICAL(Arena, arena);
   AVER_CRITICAL(AddrIsAligned(addr, ArenaGrainSize(arena)));
 
-  /* Check first in the cache, see <design/arena/#tract.cache>. */
+  /* Check first in the cache, see <design/arena#.tract.cache>. */
   if (arena->lastTractBase == addr) {
     tract = arena->lastTract;
   } else {

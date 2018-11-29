@@ -132,7 +132,7 @@ which the structure is::
       Sig sig;                  /* <code/misc.h#sig> */
     }
 
-.. _design.mps.seg.over.hierarchy.mutatorseg: seg#over-hierarchy-mutatorseg
+.. _design.mps.seg.over.hierarchy.mutatorseg: seg#.over.hierarchy.mutatorseg
 
 _`.awlseg.bt`: The ``mark``, ``alloc``, and ``scanned`` fields are
 bit-tables (see design.mps.bt_). Each bit in the table corresponds to
@@ -418,7 +418,7 @@ fix returns. If the rank is something else then the mark bit
 corresponding to the referenced grain is set, and the segment is
 greyed using ``SegSetGrey()``.
 
-.. _design.mps.fix.was-marked.not: fix#was-marked-not
+.. _design.mps.fix.was-marked.not: fix#.was-marked.not
 
 ``void awlSegReclaim(Seg seg, Trace trace)``
 

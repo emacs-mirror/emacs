@@ -5,7 +5,7 @@
  *
  * .purpose: A fixed-length FIFO queue.
  *
- * .design: <design/abq/>
+ * .design: <design/abq>
  */
 
 #ifndef abq_h

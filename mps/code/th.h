@@ -4,7 +4,7 @@
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  *  .purpose: Provides thread suspension facilities to the shield.
- *  See <design/thread-manager/>.  Each thread has to be
+ *  <design/thread-manager>.  Each thread has to be
  *  individually registered and deregistered with an arena.
  */
 

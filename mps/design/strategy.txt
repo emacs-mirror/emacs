@@ -547,7 +547,7 @@ or there is no more work to do. Then it schedules the next collection
 so that there is approximately one call to ``TracePoll()`` for every
 ``ArenaPollALLOCTIME`` bytes of allocation.
 
-.. _design.mps.arena.pause-time: arena#pause-time
+.. _design.mps.arena.pause-time: arena#.pause-time
 
 
 References

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .source: <design/cbs/>.
+ * .source: <design/cbs>.
  */
 
 #ifndef cbs_h

@@ -126,7 +126,7 @@ _`.loseg`: Every segment is an instance of segment class
 design.mps.seg.over.hierarchy.mutatorseg_), and is an object of type
 ``LOSegStruct``.
 
-.. _design.mps.seg.over.hierarchy.mutatorseg: seg#over-hierarchy-mutatorseg
+.. _design.mps.seg.over.hierarchy.mutatorseg: seg#.over.hierarchy.mutatorseg
 
 _`.loseg.purpose`: The purpose of the ``LOSeg`` structure is to
 associate the bit tables used for recording allocation and mark

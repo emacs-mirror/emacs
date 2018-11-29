@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * .source: <design/splay/>
+ * .source: <design/splay>
  */
 
 #ifndef splay_h

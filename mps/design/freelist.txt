@@ -130,7 +130,7 @@ _`.test`: The following testing will be performed on this module:
 _`.test.land`: A generic test for land implementations. See
 design.mps.land.test_.
 
-.. _design.mps.land.test: land#design-mps-land-test
+.. _design.mps.land.test: land#.test
 
 _`.test.pool`: Two pools (MVT_ and MVFF_) use free lists as a fallback
 when low on memory. These are subject to testing in development, QA,
