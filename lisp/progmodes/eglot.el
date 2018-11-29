@@ -281,6 +281,47 @@ Honour `eglot-strict-mode'."
   (let ((e (cl-gensym "jsonrpc-lambda-elem")))
     `(lambda (,e) (eglot--dbind ,cl-lambda-list ,e ,@body))))
 
+(cl-defmacro eglot--dcase (obj &rest clauses)
+  "Like `pcase', but for the LSP object OBJ.
+CLAUSES is a list (DESTRUCTURE FORMS...) where DESTRUCTURE is
+treated as in `eglot-dbind'."
+  (let ((obj-once (make-symbol "obj-once")))
+    `(let ((,obj-once ,obj))
+       (cond
+        ,@(cl-loop
+           for (vars . body) in clauses
+           for vars-as-keywords = (mapcar (lambda (var)
+                                            (intern (format ":%s" var)))
+                                          vars)
+           for interface-name = (if (consp (car vars))
+                                    (car (pop vars)))
+           for condition =
+           (if interface-name
+               `(let* ((interface
+                        (or (assoc ',interface-name eglot--lsp-interface-alist)
+                            (eglot--error "Unknown interface %s")))
+                       (object-keys (eglot--plist-keys ,obj-once))
+                       (required-keys (car (cdr interface))))
+                  (and (null (cl-set-difference required-keys object-keys))
+                       (or (null (memq 'disallow-non-standard-keys
+                                       eglot-strict-mode))
+                           (null (cl-set-difference
+                                  (cl-set-difference object-keys required-keys)
+                                  (cadr (cdr interface)))))))
+             ;; In this interface-less mode we don't check
+             ;; `eglot-strict-mode' at all.
+             `(null (cl-set-difference
+                     ',vars-as-keywords
+                     (eglot--plist-keys ,obj-once))))
+           collect `(,condition
+                     (cl-destructuring-bind (&key ,@vars &allow-other-keys)
+                         ,obj-once
+                       ,@body)))
+        (t
+         (eglot--error "%s didn't match any of %s"
+                       ,obj-once
+                       ',(mapcar #'car clauses)))))))
+
 
 ;;; API (WORK-IN-PROGRESS!)
 ;;;
