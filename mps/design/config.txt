@@ -362,7 +362,7 @@ machine word. It is used to defined the MPS Word type
 
     #define MPS_T_WORD      unsigned long
 
-.. _design.mps.type.word: type#word
+.. _design.mps.type.word: type#.word
 
 We avoid using ``typedef`` here because mpstd.h_ could potentially
 be included in assembly language source code.

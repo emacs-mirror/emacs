@@ -6,7 +6,7 @@
  *
  * DESIGN
  *
- * .design: See <design/poolawl/>.  This is Dylan-specific pool.
+ * .design: <design/poolawl>.  This is Dylan-specific pool.
  *
  *
  * ASSUMPTIONS (about when to scan single references on accesses)
@@ -92,7 +92,7 @@ typedef Addr (*FindDependentFunction)(Addr object);
 
 /* AWLStruct -- AWL pool structure
  *
- * See <design/poolawl/#poolstruct>
+ * <design/poolawl#.poolstruct>
  */
 
 typedef struct AWLPoolStruct {
@@ -125,7 +125,7 @@ DECLARE_CLASS(Pool, AWLPool, AbstractCollectPool);
 
 #define AWLSegSig ((Sig)0x519A3759) /* SIGnature AWL SeG */
 
-/* <design/poolawl/#seg> */
+/* <design/poolawl#.seg> */
 typedef struct AWLSegStruct {
   GCSegStruct gcSegStruct;  /* superclass fields must come first */
   BT mark;
@@ -747,7 +747,7 @@ static Res awlSegWhiten(Seg seg, Trace trace)
   /* All parameters checked by generic SegWhiten. */
 
   /* Can only whiten for a single trace, */
-  /* see <design/poolawl/#fun.condemn> */
+  /* see <design/poolawl#.fun.condemn> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   if (!SegBuffer(&buffer, seg)) {
@@ -869,9 +869,9 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
   dependentObject = awl->findDependent(base);
   dependent = SegOfAddr(&dependentSeg, arena, dependentObject);
   if (dependent) {
-      /* <design/poolawl/#fun.scan.pass.object.dependent.expose> */
+      /* <design/poolawl#.fun.scan.pass.object.dependent.expose> */
       ShieldExpose(arena, dependentSeg);
-      /* <design/poolawl/#fun.scan.pass.object.dependent.summary> */
+      /* <design/poolawl#.fun.scan.pass.object.dependent.summary> */
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
 
@@ -915,7 +915,7 @@ static Res awlSegScanSinglePass(Bool *anyScannedReturn, ScanState ss,
     Index i;        /* the index into the bit tables corresponding to p */
     Addr objectLimit;
 
-    /* <design/poolawl/#fun.scan.pass.buffer> */
+    /* <design/poolawl#.fun.scan.pass.buffer> */
     if (p == bufferScanLimit) {
       p = BufferLimit(buffer);
       continue;
@@ -928,7 +928,7 @@ static Res awlSegScanSinglePass(Bool *anyScannedReturn, ScanState ss,
     }
     hp = AddrAdd(p, format->headerSize);
     objectLimit = (format->skip)(hp);
-    /* <design/poolawl/#fun.scan.pass.object> */
+    /* <design/poolawl#.fun.scan.pass.object> */
     if (scanAllObjects
         || (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
       Res res = awlScanObject(arena, awl, ss, pool->format,
@@ -1033,7 +1033,7 @@ static Res awlSegFix(Seg seg, ScanState ss, Ref *refIO)
   }
 
   if (!BTGet(awlseg->mark, i)) {
-    ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
+    ss->wasMarked = FALSE; /* <design/fix#.was-marked.not> */
     if (ss->rank == RankWEAK) {
       *refIO = (Ref)0;
     } else {

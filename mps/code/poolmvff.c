@@ -191,8 +191,8 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size)
 
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
-  /* Use extendBy unless it's too small (see */
-  /* <design/poolmvff/#design.acquire-size>). */
+  /* Use extendBy unless it's too small */
+  /* <design/poolmvff#.design.acquire-size>. */
   if (size <= mvff->extendBy)
     allocSize = mvff->extendBy;
   else
@@ -203,7 +203,7 @@ static Res MVFFExtend(Range rangeReturn, MVFF mvff, Size size)
   res = ArenaAlloc(&base, MVFFLocusPref(mvff), allocSize, pool);
   if (res != ResOK) {
     /* try again with a range just large enough for object */
-    /* see <design/poolmvff/#design.seg-fail> */
+    /* see <design/poolmvff#.design.seg-fail> */
     allocSize = SizeArenaGrains(size, arena);
     res = ArenaAlloc(&base, MVFFLocusPref(mvff), allocSize, pool);
     if (res != ResOK)
@@ -333,7 +333,7 @@ static void MVFFFree(Pool pool, Addr old, Size size)
 /* MVFFBufferFill -- Fill the buffer
  *
  * Fill it with the largest block we can find. This is worst-fit
- * allocation policy; see <design/poolmvff/#over.buffer>.
+ * allocation policy; see <design/poolmvff#.over.buffer>.
  */
 static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
                           Pool pool, Buffer buffer, Size size)
@@ -415,7 +415,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVERC(PoolClass, klass);
 
   /* .arg: class-specific additional arguments; see */
-  /* <design/poolmvff/#method.init> */
+  /* <design/poolmvff#.method.init> */
   /* .arg.check: we do the same checks here and in MVFFCheck */
   /* except for arenaHigh, which is stored only in the locusPref. */
   
@@ -448,7 +448,7 @@ static Res MVFFInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   AVERT(Align, align);
   /* This restriction on the alignment is necessary because of the use
      of a Freelist to store the free address ranges in low-memory
-     situations. <design/freelist/#impl.grain.align>. */
+     situations. <design/freelist#.impl.grain.align>. */
   AVER(AlignIsAligned(align, FreelistMinimumAlignment));
   AVER(align <= ArenaGrainSize(arena));
   AVERT(Bool, slotHigh);

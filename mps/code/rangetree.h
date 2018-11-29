@@ -30,7 +30,7 @@ extern void RangeTreeFinish(RangeTree rangeTree);
 /* Compare and key functions for use with TreeFind, TreeInsert, etc.
  *
  * We pass the rangeTree base directly as a TreeKey (void *) assuming
- * that Addr can be encoded, possibly breaking <design/type/#addr.use>.
+ * that Addr can be encoded, possibly breaking <design/type#.addr.use>.
  * On an exotic platform where this isn't true, pass the address of
  * base: that is, add an &.
  */

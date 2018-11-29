@@ -12,7 +12,7 @@
  *
  * DESIGN
  *
- * See <design/config/>.
+ * <design/config>.
  */
 
 #ifndef config_h
@@ -433,7 +433,7 @@
 #define ARENA_MINIMUM_COLLECTABLE_SIZE ((Size)1000000)
 
 /* ARENA_DEFAULT_COLLECTION_RATE is an estimate of the MPS's
- * collection rate (in work per second; see <design/type/#work>), for
+ * collection rate (in work per second; see <design/type#.work>), for
  * use in the case where there isn't enough data to use a measured
  * value. */
 
@@ -487,7 +487,7 @@
 
 /* Currently StackProbe has a useful implementation only on Windows. */
 #if defined(MPS_OS_W3) && !defined(CONFIG_PF_ANSI)
-/* See <design/sp/#sol.depth.analysis> for a justification of this value. */
+/* See <design/sp#.sol.depth.analysis> for a justification of this value. */
 #define StackProbeDEPTH ((Size)500)
 #else
 #define StackProbeDEPTH ((Size)0)
@@ -601,7 +601,7 @@
 #if defined(MPS_OS_LI) || defined(MPS_OS_FR)
 
 /* PTHREADEXT_SIGSUSPEND -- signal used to suspend a thread
- * See <design/pthreadext/#impl.signals>
+ * <design/pthreadext#.impl.signals>
  */
 #if defined(CONFIG_PTHREADEXT_SIGSUSPEND)
 #define PTHREADEXT_SIGSUSPEND CONFIG_PTHREADEXT_SIGSUSPEND
@@ -610,7 +610,7 @@
 #endif
 
 /* PTHREADEXT_SIGRESUME -- signal used to resume a thread
- * See <design/pthreadext/#impl.signals>
+ * <design/pthreadext#.impl.signals>
  */
 #if defined(CONFIG_PTHREADEXT_SIGRESUME)
 #define PTHREADEXT_SIGRESUME CONFIG_PTHREADEXT_SIGRESUME
@@ -691,12 +691,12 @@
 
 /* Write barrier deferral
  *
- * See design.mps.write-barrier.deferral.
+ * <design/write-barrier#.deferral>.
  *
  * TODO: These settings were determined by trial and error, but should
  * be based on measurement of the protection overhead on each
  * platform.  We know it's extremely different between macOS and
- * Windows, for example.  See design.mps.write-barrier.improv.by-os.
+ * Windows, for example.  <design/write-barrier#.improv.by-os>.
  *
  * TODO: Consider basing the count on the amount of time that has
  * passed in the mutator rather than the number of scans.

@@ -5,7 +5,7 @@
  *
  * .purpose: Provides extension to Pthreads.
  *
- * .design: see <design/pthreadext/>
+ * .design: see <design/pthreadext>
  *
  * .acknowledgements: This was derived from code posted to
  * comp.programming.threads by Dave Butenhof and Raymond Lau
@@ -32,7 +32,7 @@ SRCID(pthreadext, "$Id$");
 
 
 /* Static data initialized on first use of the module
- * See <design/pthreadext/#impl.static>.*
+ * <design/pthreadext#.impl.static>
  */
 
 /* mutex */
@@ -47,7 +47,7 @@ static Bool pthreadextModuleInitialized = FALSE;
 
 
 /* Global variables protected by the mutex
- * See <design/pthreadext/#impl.global>.*
+ * <design/pthreadext#.impl.global>
  */
 
 static PThreadext suspendingVictim = NULL;  /* current victim */
@@ -56,7 +56,7 @@ static RingStruct suspendedRing;            /* PThreadext suspend ring */
 
 /* suspendSignalHandler -- signal handler called when suspending a thread
  *
- * See <design/pthreadext/#impl.suspend-handler>
+ * <design/pthreadext#.impl.suspend-handler>
  *
  * Handle PTHREADEXT_SIGSUSPEND in the target thread, to suspend it until
  * receiving PTHREADEXT_SIGRESUME (resume). Note that this is run with both
@@ -97,7 +97,7 @@ static void suspendSignalHandler(int sig,
 
 /* resumeSignalHandler -- signal handler called when resuming a thread
  *
- * See <design/pthreadext/#impl.suspend-handler>
+ * <design/pthreadext#.impl.suspend-handler>
  */
 
 static void resumeSignalHandler(int sig)
@@ -108,7 +108,7 @@ static void resumeSignalHandler(int sig)
 
 /* PThreadextModuleInit -- Initialize the PThreadext module
  *
- * See <design/pthreadext/#impl.static.init>
+ * <design/pthreadext#.impl.static.init>
  *
  * Dynamically initialize all state when first used
  * (called by pthread_once).
@@ -212,7 +212,7 @@ void PThreadextInit(PThreadext pthreadext, pthread_t id)
 
 /* PThreadextFinish -- Finish a pthreadext
  *
- * See <design/pthreadext/#impl.finish>
+ * <design/pthreadext#.impl.finish>
  */
 
 void PThreadextFinish(PThreadext pthreadext)
@@ -246,7 +246,7 @@ void PThreadextFinish(PThreadext pthreadext)
 
 /* PThreadextSuspend -- suspend a thread
  *
- * See <design/pthreadext/#impl.suspend>
+ * <design/pthreadext#.impl.suspend>
  */
 
 Res PThreadextSuspend(PThreadext target, MutatorContext *contextReturn)
@@ -308,7 +308,7 @@ unlock:
 
 /* PThreadextResume -- resume a suspended thread
  *
- * See <design/pthreadext/#impl.resume>
+ * <design/pthreadext#.impl.resume>
  */
 
 Res PThreadextResume(PThreadext target)

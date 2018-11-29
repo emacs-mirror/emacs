@@ -5,7 +5,7 @@
  *
  * .purpose: Implement operations on Ref, RefSet, ZoneSet, and Rank.
  *
- * .design: See design.mps.ref and design.mps.refset.
+ * .design: <design/ref> and <design/refset>.
  */
 
 #include "mpm.h"

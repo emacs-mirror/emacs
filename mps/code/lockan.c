@@ -18,7 +18,7 @@ SRCID(lockan, "$Id$");
 
 
 typedef struct LockStruct {     /* ANSI fake lock structure */
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   unsigned long claims;         /* # claims held by owner */
 } LockStruct;
 

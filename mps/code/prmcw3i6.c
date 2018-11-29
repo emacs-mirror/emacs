@@ -5,7 +5,7 @@
  *
  * PURPOSE
  *
- * .purpose: Implement the mutator context module. See <design/prmc/>.
+ * .purpose: Implement the mutator context module. <design/prmc>.
  *
  * SOURCES
  *

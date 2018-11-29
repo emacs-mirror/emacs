@@ -29,7 +29,7 @@ _`.purpose`: Nailboards are used by the AMC pool class to record
 ambiguous references to grains within a segment. See
 design.mps.poolamc.nailboard_.
 
-.. _design.mps.poolamc.nailboard: poolamc#nailboard
+.. _design.mps.poolamc.nailboard: poolamc#.nailboard
 
 
 Requirements

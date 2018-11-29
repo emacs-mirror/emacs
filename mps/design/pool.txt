@@ -72,7 +72,7 @@ to be ``sizeof(PoolABCStruct)``.
 _`.field.attr`: The ``attr`` field must be a bitset of pool class
 attributes. See design.mps.type.attr_.
 
-.. _design.mps.type.attr: type#attr
+.. _design.mps.type.attr: type#.attr
 
 _`.field.alignShift`: The ``alignShift`` field is the ``SizeLog2`` of
 the pool's alignment. It is computed and initialised when a pool is
@@ -180,7 +180,7 @@ it must leave ``*baseReturn`` and ``*limitReturn`` unchanged and
 return a non-OK result code. Pool classes are not required to provide
 this method. This method is called by ``BufferFill()``.
 
-.. _design.mps.buffer.reset: buffer#reset
+.. _design.mps.buffer.reset: buffer#.reset
 
 ``typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer)``
 
@@ -191,7 +191,7 @@ design.mps.buffer.ready_). This method must be provided if and only if
 ``bufferFill`` is provided. This method is called by the generic
 function ``BufferDetach()``.
 
-.. _design.mps.buffer.ready: buffer#ready
+.. _design.mps.buffer.ready: buffer#.ready
 
 ``typedef Size (*PoolSizeMethod)(Pool pool)``
 

@@ -4,7 +4,7 @@
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * .source: <design/object-debug/>
+ * .source: <design/object-debug>
  */
 
 #include "dbgpool.h"
@@ -21,7 +21,7 @@ void mps_pool_check_fenceposts(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Arena arena;
   
-  /* TESTT not AVERT, see <design/interface-c/#check.space */
+  /* TESTT not AVERT, see <design/interface-c#.check.space */
   AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 
@@ -41,7 +41,7 @@ void mps_pool_check_free_space(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Arena arena;
   
-  /* TESTT not AVERT, see <design/interface-c/#check.space */
+  /* TESTT not AVERT, see <design/interface-c#.check.space */
   AVER(TESTT(Pool, pool));
   arena = PoolArena(pool);
 

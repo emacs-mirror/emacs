@@ -38,7 +38,7 @@ void RangeTreeFinish(RangeTree rangeTree)
 
 /* RangeTreeCompare -- Compare key to [base,limit)
  *
- * See <design/splay/#type.splay.compare.method>
+ * <design/splay#.type.splay.compare.method>
  */
 
 Compare RangeTreeCompare(Tree tree, TreeKey key)

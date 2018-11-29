@@ -6,7 +6,7 @@
  * This module collects the decision-making code for the MPS, so that
  * policy can be maintained and adjusted.
  *
- * .sources: <design/strategy/>.
+ * .sources: <design/strategy>.
  */
 
 #include "locus.h"
@@ -205,7 +205,7 @@ Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
  *
  * This is only called if ChainDeferral returned a value sufficiently
  * low that we decided to start the collection. (Usually such values
- * are less than zero; see <design/strategy/#policy.start.chain>.)
+ * are less than zero; see <design/strategy#.policy.start.chain>.)
  */
 
 static Res policyCondemnChain(double *mortalityReturn, Chain chain, Trace trace)

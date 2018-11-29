@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
- * .design: The design for this module is <design/seg/>.
+ * .design: The design for this module is <design/seg>.
  *
  * PURPOSE
  *
@@ -216,7 +216,7 @@ static void segAbsFinish(Inst inst)
   RingFinish(SegPoolRing(seg));
 
   /* Check that the segment is not exposed, or in the shield */
-  /* cache (see <code/shield.c#def.depth>). */
+  /* cache <code/shield.c#def.depth>. */
   AVER(seg->depth == 0);
   /* Check not shielded or protected (so that pages in hysteresis */
   /* fund are not protected) */
@@ -601,7 +601,7 @@ Bool SegNext(Seg *segReturn, Arena arena, Seg seg)
 
 /* SegMerge -- Merge two adjacent segments
  *
- * See <design/seg/#merge>
+ * <design/seg#.merge>
  */
 
 Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)
@@ -624,7 +624,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi)
   arena = PoolArena(SegPool(segLo));
 
   if (segLo->queued || segHi->queued)
-    ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
+    ShieldFlush(arena);  /* see <design/seg#.split-merge.shield> */
 
   /* Invoke class-specific methods to do the merge */
   res = Method(Seg, segLo, merge)(segLo, segHi, base, mid, limit);
@@ -648,7 +648,7 @@ failMerge:
 /* SegSplit -- Split a segment
  *
  * The segment is split at the indicated position.
- * See <design/seg/#split>
+ * <design/seg#.split>
  */
 
 Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
@@ -678,7 +678,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at)
   AVER(!SegBuffer(&buffer, seg) || BufferLimit(buffer) <= at);
 
   if (seg->queued)
-    ShieldFlush(arena);  /* see <design/seg/#split-merge.shield> */
+    ShieldFlush(arena);  /* see <design/seg#.split-merge.shield> */
   AVER(SegSM(seg) == SegPM(seg));
 
   /* Allocate the new segment object from the control pool */
@@ -781,7 +781,7 @@ Res SegScan(Bool *totalReturn, Seg seg, ScanState ss)
 
 /* SegFix* -- fix a reference to an object in this segment
  *
- * See <design/pool/#req.fix>.
+ * <design/pool#.req.fix>.
  */
 
 Res SegFix(Seg seg, ScanState ss, Addr *refIO)
@@ -876,7 +876,7 @@ Bool SegCheck(Seg seg)
   CHECKL(AddrIsArenaGrain(TractBase(seg->firstTract), arena));
   CHECKL(AddrIsArenaGrain(seg->limit, arena));
   CHECKL(seg->limit > TractBase(seg->firstTract));
-  /* CHECKL(BoolCheck(seq->queued)); <design/type/#bool.bitfield.check> */
+  /* CHECKL(BoolCheck(seq->queued)); <design/type#.bool.bitfield.check> */
 
   /* Each tract of the segment must agree about the segment and its
    * pool. Note that even if the CHECKs are compiled away there is
@@ -905,25 +905,25 @@ Bool SegCheck(Seg seg)
 
   CHECKD_NOSIG(Ring, &seg->poolRing);
 
-  /* Shield invariants -- see design.mps.shield. */
+  /* Shield invariants -- see <design/shield>. */
 
   /* The protection mode is never more than the shield mode
-     (design.mps.shield.inv.prot.shield). */
+     <design/shield#.inv.prot.shield>. */
   CHECKL(BS_DIFF(seg->pm, seg->sm) == 0);
 
   /* All unsynced segments have positive depth or are in the queue
-     (design.mps.shield.inv.unsynced.depth). */
+     <design/shield#.inv.unsynced.depth>. */
   CHECKL(seg->sm == seg->pm || seg->depth > 0 || seg->queued);
 
   CHECKL(RankSetCheck(seg->rankSet));
   if (seg->rankSet == RankSetEMPTY) {
-    /* <design/seg/#field.rankSet.empty>: If there are no refs */
+    /* <design/seg#.field.rankSet.empty>: If there are no refs */
     /* in the segment then it cannot contain black or grey refs. */
     CHECKL(seg->grey == TraceSetEMPTY);
     CHECKL(seg->sm == AccessSetEMPTY);
     CHECKL(seg->pm == AccessSetEMPTY);
   } else {
-    /* <design/seg/#field.rankSet.single>: The Tracer only permits */
+    /* <design/seg#.field.rankSet.single>: The Tracer only permits */
     /* one rank per segment [ref?] so this field is either empty or a */
     /* singleton. */
     CHECKL(RankSetIsSingle(seg->rankSet));
@@ -1075,7 +1075,7 @@ static Res segNoMerge(Seg seg, Seg segHi,
 /* segTrivMerge -- Basic Seg merge method
  *
  * .similar: Segments must be "sufficiently similar".
- * See <design/seg/#merge.inv.similar>
+ * <design/seg#.merge.inv.similar>
  */
 
 static Res segTrivMerge(Seg seg, Seg segHi,
@@ -1110,7 +1110,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(seg->depth == segHi->depth);
   AVER(seg->queued == segHi->queued);
   /* Neither segment may be exposed, or in the shield cache */
-  /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
+  /* <design/seg#.split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
   AVER(!seg->queued);
 
@@ -1172,7 +1172,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   AVER(SegLimit(seg) == limit);
 
   /* Segment may not be exposed, or in the shield queue */
-  /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
+  /* <design/seg#.split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
   AVER(!seg->queued);
 
@@ -1312,7 +1312,7 @@ Res SegSingleAccess(Seg seg, Arena arena, Addr addr,
       if(WordIsAligned((Word)ref, sizeof(Word))) {
         Rank rank;
         /* See the note in TraceRankForAccess */
-        /* (<code/trace.c#scan.conservative>). */
+        /* <code/trace.c#scan.conservative>. */
 
         rank = TraceRankForAccess(arena, seg);
         TraceScanSingleRef(arena->flippedTraces, rank, arena,
@@ -1435,7 +1435,7 @@ Bool GCSegCheck(GCSeg gcseg)
 
   if (gcseg->buffer != NULL) {
     CHECKU(Buffer, gcseg->buffer);
-    /* <design/seg/#field.buffer.owner> */
+    /* <design/seg#.field.buffer.owner> */
     CHECKL(BufferPool(gcseg->buffer) == SegPool(seg));
     CHECKL(BufferRankSet(gcseg->buffer) == SegRankSet(seg));
   }
@@ -1446,7 +1446,7 @@ Bool GCSegCheck(GCSeg gcseg)
          RingIsSingle(&gcseg->greyRing));
 
   if (seg->rankSet == RankSetEMPTY) {
-    /* <design/seg/#field.rankSet.empty> */
+    /* <design/seg#.field.rankSet.empty> */
     CHECKL(gcseg->summary == RefSetEMPTY);
   }
 
@@ -1849,7 +1849,7 @@ static void gcSegUnsetBuffer(Seg seg)
 /* gcSegMerge -- GCSeg merge method
  *
  * .buffer: Can't merge two segments both with buffers.
- * See <design/seg/#merge.inv.buffer>.
+ * <design/seg#.merge.inv.buffer>.
  */
 
 static Res gcSegMerge(Seg seg, Seg segHi,
@@ -1882,7 +1882,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   /* Assume that the write barrier shield is being used to implement
      the remembered set only, and so we can merge the shield and
      protection modes by unioning the segment summaries.  See also
-     design.mps.seg.merge.inv.similar. */
+     <design/seg#.merge.inv.similar>. */
   summary = RefSetUnion(gcseg->summary, gcsegHi->summary);
   SegSetSummary(seg, summary);
   SegSetSummary(segHi, summary);
@@ -1890,7 +1890,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   if (SegPM(seg) != SegPM(segHi)) {
     /* This shield won't cope with a partially-protected segment, so
        flush the shield queue to bring both halves in sync.  See also
-       design.mps.seg.split-merge.shield.re-flush. */
+       <design/seg#.split-merge.shield.re-flush>. */
     ShieldFlush(PoolArena(SegPool(seg)));
   }
 

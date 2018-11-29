@@ -4,7 +4,7 @@
  * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS client application developers, MPS developers.
- * .sources: <design/lib/>
+ * .sources: <design/lib>
  *
  * .purpose: The purpose of this file is to declare the functions and types
  * required for the MPS library interface.

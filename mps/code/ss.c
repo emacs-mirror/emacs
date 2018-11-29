@@ -4,12 +4,12 @@
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * This scans the mutator's stack and fixes the registers that may
- * contain roots. See <design/stack-scan/>.
+ * contain roots. <design/stack-scan>.
  *
  * This is a generic implementation, but it makes assumptions that,
  * while true on all the platforms we currently (version 1.115)
  * support, may not be true on all platforms. See
- * <design/stack-scan/#sol.platform>.
+ * <design/stack-scan#.sol.platform>.
  * 
  * .assume.desc: The stack is descending (and so stackHot is a lower
  * address than stackCold).
@@ -29,7 +29,7 @@ SRCID(ss, "$Id$");
  * On all supported platforms, the arguments are pushed on to the
  * stack by the caller below its other local data, so as long as
  * it does not use something like alloca, the address of the argument
- * is a hot stack pointer.  See design.mps.ss.sol.stack.hot.
+ * is a hot stack pointer.  <design/ss#.sol.stack.hot>.
  */
 
 ATTRIBUTE_NOINLINE
@@ -55,8 +55,8 @@ Res StackScan(ScanState ss, void *stackCold,
   AVER(arena->stackWarm != NULL);
   warmest = arena->stackWarm;
   if (warmest == NULL) {
-    /* Somehow missed saving the context at the entry point (see
-       <design/stack-scan/#sol.entry-points.fragile>): do it now.
+    /* Somehow missed saving the context at the entry point
+       <design/stack-scan#.sol.entry-points.fragile>: do it now.
        We assign warmest *before* calling STACK_CONTEXT_SAVE because
        that calls setjmp, and local variables assigned after a call to
        setjmp provoke the error "variable might be clobbered by

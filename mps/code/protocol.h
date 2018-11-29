@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
- * See design.mps.protocol.
+ * <design/protocol>.
  */
 
 #ifndef protocol_h
@@ -18,8 +18,8 @@
  * These turn the base identifier of a class (e.g. "Inst") into other
  * identifiers (e.g. "InstClassStruct").  These are not intended to be
  * used outside of this file.  These macros implement
- * design.mps.protocol.overview.naming and
- * design.mps.impl.derived-names.
+ * <design/protocol#.overview.naming> and
+ * <design/impl#.derived-names>.
  *
  * INST_TYPE derives the type of an instance of the class,
  * e.g. "Land", which will be a pointer to an INST_STRUCT.
@@ -88,7 +88,7 @@ typedef void *ClassId;
  *
  * Declares a prototype for the class ensure function, which ensures
  * that the class is initialized once and return it.  See
- * design.mps.protocol.if.declare-class.
+ * <design/protocol#.if.declare-class>.
  */
 
 #define DECLARE_CLASS(kind, klass, super) \
@@ -104,7 +104,7 @@ typedef void *ClassId;
  * object for a class.  Takes care to avoid initializing the class
  * twice, even when called asynchronously from multiple threads, since
  * this code can be reached without first entering an arena. See
- * design.mps.protocol.if.define-class.
+ * <design/protocol#.if.define-class>.
  */
 
 #define DEFINE_CLASS(kind, className, var) \
@@ -135,7 +135,7 @@ typedef void *ClassId;
 /* CLASS -- expression for getting a class
  *
  * Use this to get a class, rather than calling anything defined by
- * DEFINE_CLASS directly.  See design.mps.protocol.if.class.
+ * DEFINE_CLASS directly.  <design/protocol#.if.class>.
  */
 
 #define CLASS(klass) (CLASS_ENSURE(klass)())
@@ -145,7 +145,7 @@ typedef void *ClassId;
  *
  * This macro is used at the start of a class definition to inherit
  * the superclass and override the fields essential to the workings of
- * the protocol.  See design.mps.protocol.if.inheritance.
+ * the protocol.  <design/protocol#.if.inheritance>.
  */
 
 #define INHERIT_CLASS(this, _class, super) \
@@ -164,7 +164,7 @@ typedef void *ClassId;
  *
  * An InstStruct named instStruct must be the first field of any
  * instance structure using the protocol
- * (design.mps.protocol.overview.prefix).
+ * <design/protocol#.overview.prefix>.
  */
 
 typedef struct InstStruct *Inst;
@@ -186,7 +186,7 @@ typedef void (*FinishMethod)(Inst inst);
 
 typedef struct InstClassStruct {
   InstStruct instStruct;        /* classes are instances of kinds */
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   ClassName name;               /* human readable name such as "Land" */
   InstClass superclass;         /* pointer to direct superclass */
   ClassLevel level;             /* distance from root of class hierarchy */
@@ -220,7 +220,7 @@ extern void ClassRegister(InstClass klass);
  *
  * The InstClassStruct is arranged to make these tests fast and
  * simple, so that it can be used as a consistency check in the MPS.
- * See design.mps.protocol.impl.subclass.
+ * <design/protocol#.impl.subclass>.
  */
 
 #define IsSubclass(sub, super) \
@@ -238,16 +238,16 @@ extern void ClassRegister(InstClass klass);
 /* CouldBeA, MustBeA -- coerce instances
  *
  * CouldBeA converts an instance to another class without checking,
- * like C++ ``static_cast``.  See design.mps.protocol.if.could-be-a.
+ * like C++ ``static_cast``.  <design/protocol#.if.could-be-a>.
  *
  * MustBeA converts an instance to another class, but checks that the
  * object is a subclass, causing an assertion if not (depending on
- * build variety).  See design.mps.protocol.if.must-be-a.  It is like
+ * build variety).  <design/protocol#.if.must-be-a>.  It is like
  * C++ "dynamic_cast" with an assert.
  *
  * MustBeA_CRITICAL is like MustBeA for use on the critical path,
  * where it does no checking at all in production builds.  See
- * design.mps.protocol.if.must-be-a.critical.
+ * <design/protocol#.if.must-be-a.critical>.
  */
 
 #define CouldBeA(klass, inst) ((INST_TYPE(klass))(inst))
@@ -269,7 +269,7 @@ extern void ClassRegister(InstClass klass);
  *
  * The following are macros because of the need to cast subtypes of
  * InstClass. Nevertheless they are named as functions. See
- * design.mps.protocol.introspect.
+ * <design/protocol#.introspect>.
  */
 
 #define SuperclassPoly(kind, klass) \
@@ -292,7 +292,7 @@ extern void ClassRegister(InstClass klass);
  *
  * This should only be used when specialising an instance to be a
  * member of a subclass, once the instance has been initialized.  See
- * design.mps.protocol.if.set-class-of-poly.
+ * <design/protocol#.if.set-class-of-poly>.
  */
 
 #define SetClassOfPoly(inst, _class) \
@@ -302,7 +302,7 @@ extern void ClassRegister(InstClass klass);
 /* Method -- method call
  *
  * Use this macro to call a method on a class, rather than accessing
- * the class directly.  See design.mps.protocol.if.method.  For
+ * the class directly.  <design/protocol#.if.method>.  For
  * example:
  *
  *     res = Method(Land, land, insert)(land, range);
@@ -313,7 +313,7 @@ extern void ClassRegister(InstClass klass);
 
 /* NextMethod -- call a method in the superclass
  *
- * See design.mps.protocol.int.static-superclass.
+ * <design/protocol#.int.static-superclass>.
  *
  * TODO: All uses of NextMethod are statically known, but several
  * experiments with statically generating some kind of SUPERCLASS

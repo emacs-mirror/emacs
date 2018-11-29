@@ -13,7 +13,7 @@
 #include "mpswin.h"
 
 typedef struct MutatorContextStruct {
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   MutatorContextVar var;        /* Union discriminator */
   union {
     LPEXCEPTION_POINTERS ep;    /* Windows Exception Pointers */

@@ -114,7 +114,7 @@ definitions depending on how the MPS is compiled (see
 design.mps.config.def.var_). It may simply check the signature, or
 call the full checking function for the structure.
 
-.. _design.mps.config.def.var: config#def-var
+.. _design.mps.config.def.var: config#.def.var
 
 _`.check.sig`: The checking function for the structure should also
 validate the signature as its first step using the ``CHECKS()`` macro

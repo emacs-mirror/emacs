@@ -182,7 +182,7 @@ void FormatDestroy(Format format)
 
 /* FormatArena -- find the arena of a format
  *
- * Must be thread-safe. See <design/interface-c/#check.testt>. */
+ * Must be thread-safe. <design/interface-c#.check.testt>. */
 
 Arena FormatArena(Format format)
 {

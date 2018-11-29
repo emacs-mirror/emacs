@@ -6,7 +6,7 @@
  *
  * DESIGN
  *
- * <design/protan/>
+ * <design/protan>
  */
 
 #include "mpm.h"
@@ -44,7 +44,7 @@ void ProtSet(Addr base, Addr limit, AccessSet pm)
 
 /* ProtSync -- synchronize protection settings with hardware
  *
- * See <design/protan/#fun.sync>.
+ * <design/protan#.fun.sync>.
  */
 
 void ProtSync(Arena arena)
@@ -59,7 +59,7 @@ void ProtSync(Arena arena)
     synced = TRUE;
     if (SegFirst(&seg, arena)) {
       do {
-        if (SegPM(seg) != AccessSetEMPTY) { /* <design/protan/#fun.sync.seg> */
+        if (SegPM(seg) != AccessSetEMPTY) { /* <design/protan#.fun.sync.seg> */
           ShieldEnter(arena);
           TraceSegAccess(arena, seg, SegPM(seg));
           ShieldLeave(arena);

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * .sources: <design/nailboard/>.
+ * .sources: <design/nailboard>.
  */
 
 #include "bt.h"
@@ -14,14 +14,14 @@
 SRCID(nailboard, "$Id$");
 
 
-/* Log2 of scale factor between levels. See <design/nailboard/#impl.scale>. */
+/* Log2 of scale factor between levels. <design/nailboard#.impl.scale>. */
 #define LEVEL_SHIFT MPS_WORD_SHIFT
 
 
 /* nailboardLevels -- return the number of levels in a nailboard with
  * the given number of nails.
  *
- * See <design/nailboard/#impl.table.last>
+ * <design/nailboard#.impl.table.last>
  */
 
 static Count nailboardLevels(Count nails)
@@ -331,7 +331,7 @@ Bool NailboardIsSetRange(Nailboard board, Addr base, Addr limit)
  * object in every nailed segment. It must take time that is no more
  * than logarithmic in the size of the range.
  *
- * See <design/nailboard/#impl.isresrange>.
+ * <design/nailboard#.impl.isresrange>.
  */
 
 Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
@@ -350,11 +350,11 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
     nailboardIndexRange(&ibase, &ilimit, board, i, base, limit);
     if (BTIsResRange(board->level[i], ibase, ilimit))
       /* The entire range was clear. This is expected to be the common
-       * case. <design/nailboard/#impl.isresrange.empty> */
+       * case. <design/nailboard#.impl.isresrange.empty> */
       return TRUE;
     if (i == 0)
       /* At level 0 there is only one nail per bit so the set bit is known
-       * to be within the range. <design/nailboard/#impl.isresrange.level0> */
+       * to be within the range. <design/nailboard#.impl.isresrange.level0> */
       return FALSE;
   } while (ibase + 1 >= ilimit - 1);
 
@@ -377,7 +377,7 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
     -- j;
     nailboardIndexRange(&jbase, &jlimit, board, j, base, leftLimit);
     if (jbase + 1 < jlimit && !BTIsResRange(board->level[j], jbase + 1, jlimit))
-      return FALSE;    /* <design/nailboard/#impl.isresrange.inner> */
+      return FALSE;    /* <design/nailboard#.impl.isresrange.inner> */
     if (!BTGet(board->level[j], jbase))
       break;
     if (j == 0)
@@ -392,7 +392,7 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
     -- j;
     nailboardIndexRange(&jbase, &jlimit, board, j, rightBase, limit);
     if (jbase < jlimit - 1 && !BTIsResRange(board->level[j], jbase, jlimit - 1))
-      return FALSE;    /* <design/nailboard/#impl.isresrange.inner> */
+      return FALSE;    /* <design/nailboard#.impl.isresrange.inner> */
     if (!BTGet(board->level[j], jlimit - 1))
       break;
     if (j == 0)

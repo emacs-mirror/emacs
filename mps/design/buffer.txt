@@ -182,7 +182,7 @@ extra field to the buffer. The convenience macro
 ``DEFINE_BUFFER_CLASS()`` may be used to define subclasses of buffer
 classes. See design.mps.protocol.int.define-special_.
 
-.. _design.mps.protocol.int.define-special: protocol#int-define-special
+.. _design.mps.protocol.int.define-special: protocol#.int.define-special
 
 _`.replay`: To work with the allocation replayer (see
 design.mps.telemetry.replayer_), the buffer class has to emit an event
@@ -191,7 +191,7 @@ passed by the user. If a new event type is required to carry this
 information, the replayer (impl.c.eventrep) must then be extended to
 recreate the call.
 
-.. _design.mps.telemetry.replayer: telemetry#replayer
+.. _design.mps.telemetry.replayer: telemetry#.replayer
 
 _`.replay.pool-buffer`: The replayer must also be updated if the
 association of buffer class to pool or the buffer class hierarchy is
