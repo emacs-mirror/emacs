@@ -29,7 +29,7 @@ typedef void (*TableFreeFunction)(void *closure, void *p, size_t size);
 #define TableSig        ((Sig)0x5192AB13) /* SIGnature TABLE */
 
 typedef struct TableStruct {
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   Count length;                 /* Number of slots in the array */
   Count count;                  /* Active entries in the table */
   TableEntry array;             /* Array of table slots */

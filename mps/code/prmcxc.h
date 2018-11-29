@@ -15,7 +15,7 @@
 #include <mach/i386/thread_status.h>
 
 typedef struct MutatorContextStruct {
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   MutatorContextVar var;        /* Discriminator. */
   Addr address;                 /* Fault address, if stopped by protection
                                  * fault; NULL if stopped by thread manager. */

@@ -6,7 +6,7 @@
  * .purpose: This is a pthreads implementation of the threads manager.
  * This implements <code/th.h>.
  *
- * .design: See <design/thread-manager/>.
+ * .design: <design/thread-manager>.
  *
  * .thread.id: The thread id is used to identify the current thread.
  *
@@ -49,7 +49,7 @@ SRCID(thix, "$Id$");
 /* ThreadStruct -- thread descriptor */
 
 typedef struct mps_thr_s {       /* PThreads thread structure */
-  Sig sig;                       /* <design/sig/> */
+  Sig sig;                       /* <design/sig> */
   Serial serial;                 /* from arena->threadSerial */
   Arena arena;                   /* owning arena */
   RingStruct arenaRing;          /* threads attached to arena */
@@ -237,7 +237,7 @@ Thread ThreadRingThread(Ring threadRing)
 
 /* ThreadArena -- get the arena of a thread
  *
- * Must be thread-safe. See <design/interface-c/#check.testt>.
+ * Must be thread-safe. <design/interface-c#.check.testt>.
  */
 
 Arena ThreadArena(Thread thread)
@@ -319,7 +319,7 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream, Count depth)
 
 
 /* threadAtForkChild -- for each arena, move threads except for the
- * current thread to the dead ring <design/thread-safety/#sol.fork.thread>.
+ * current thread to the dead ring <design/thread-safety#.sol.fork.thread>.
  */
 
 static Bool threadForkChild(Thread thread)

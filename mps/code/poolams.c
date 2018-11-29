@@ -5,7 +5,7 @@
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  *
- * .design: See <design/poolams/>.
+ * .design: <design/poolams>.
  *
  *
  * TRANSGRESSSIONS
@@ -75,7 +75,7 @@ Bool AMSSegCheck(AMSSeg amsseg)
   CHECKD_NOSIG(BT, amsseg->allocTable);
 
   if (SegWhite(seg) != TraceSetEMPTY) {
-    /* <design/poolams/#colour.single> */
+    /* <design/poolams#.colour.single> */
     CHECKL(TraceSetIsSingle(SegWhite(seg)));
     CHECKL(amsseg->colourTablesInUse);
   }
@@ -253,7 +253,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   amsseg->bufferedGrains = (Count)0;
   amsseg->newGrains = (Count)0;
   amsseg->oldGrains = (Count)0;
-  amsseg->marksChanged = FALSE; /* <design/poolams/#marked.unused> */
+  amsseg->marksChanged = FALSE; /* <design/poolams#.marked.unused> */
   amsseg->ambiguousFixes = FALSE;
 
   res = amsCreateTables(ams, &amsseg->allocTable,
@@ -262,7 +262,7 @@ static Res AMSSegInit(Seg seg, Pool pool, Addr base, Size size, ArgList args)
   if (res != ResOK)
     goto failCreateTables;
 
-  /* start off using firstFree, see <design/poolams/#no-bit> */
+  /* start off using firstFree, see <design/poolams#.no-bit> */
   amsseg->allocTableInUse = FALSE;
   amsseg->firstFree = 0;
   amsseg->colourTablesInUse = FALSE;
@@ -308,15 +308,15 @@ static void AMSSegFinish(Inst inst)
  *
  * .empty: segment merging and splitting is limited to simple cases
  * where the high segment is empty.
- * See <design/poolams/#split-merge.constrain>.
+ * <design/poolams#.split-merge.constrain>.
  *
  * .grain-align: segment merging and splitting is limited to cases
  * where the join is aligned with the grain alignment
- * See <design/poolams/#split-merge.constrain>.
+ * <design/poolams#.split-merge.constrain>.
  *
  * .alloc-early: Allocations are performed before calling the
  * next method to simplify the fail cases. See
- * <design/seg/#split-merge.fail>
+ * <design/seg#.split-merge.fail>
  *
  * .table-names: The names of local variables holding the new
  * allocation and colour tables are chosen to have names which
@@ -483,10 +483,10 @@ static Res AMSSegSplit(Seg seg, Seg segHi,
   amssegHi->bufferedGrains = (Count)0;
   amssegHi->newGrains = (Count)0;
   amssegHi->oldGrains = (Count)0;
-  amssegHi->marksChanged = FALSE; /* <design/poolams/#marked.unused> */
+  amssegHi->marksChanged = FALSE; /* <design/poolams#.marked.unused> */
   amssegHi->ambiguousFixes = FALSE;
 
-  /* start off using firstFree, see <design/poolams/#no-bit> */
+  /* start off using firstFree, see <design/poolams#.no-bit> */
   amssegHi->allocTableInUse = FALSE;
   amssegHi->firstFree = 0;
   /* use colour tables if the segment is white */
@@ -701,7 +701,7 @@ static Res AMSSegCreate(Seg *segReturn, Pool pool, Size size,
       goto failSeg;
   }
 
-  /* see <design/seg/#field.rankset> */
+  /* see <design/seg#.field.rankset> */
   if (rankSet != RankSetEMPTY) {
     SegSetRankAndSummary(seg, rankSet, RefSetUNIV);
   } else {
@@ -770,7 +770,7 @@ static void AMSDebugVarargs(ArgStruct args[MPS_ARGS_MAX], va_list varargs)
 /* AMSInit -- the pool class initialization method
  *
  *  Takes one additional argument: the format of the objects
- *  allocated in the pool.  See <design/poolams/#init>.
+ *  allocated in the pool.  <design/poolams#.init>.
  */
 
 ARG_DEFINE_KEY(AMS_SUPPORT_AMBIGUOUS, Bool);
@@ -893,7 +893,7 @@ static Bool amsSegBufferFill(Addr *baseReturn, Addr *limitReturn,
     return FALSE;
 
   if (RefSetUnion(SegWhite(seg), SegGrey(seg)) != TraceSetEMPTY)
-    /* Can't use a white or grey segment, see design.mps.poolams.fill.colour */
+    /* Can't use a white or grey segment, see <design/poolams#.fill.colour> */
     return FALSE;
 
   if (rankSet != SegRankSet(seg))
@@ -950,7 +950,7 @@ found:
 /* AMSBufferFill -- the pool class buffer fill method
  *
  * Iterates over the segments looking for space.  See
- * <design/poolams/#fill>.
+ * <design/poolams#.fill>.
  */
 static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size)
@@ -968,11 +968,11 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
 
-  /* Check that we're not in the grey mutator phase (see */
-  /* <design/poolams/#fill.colour>). */
+  /* Check that we're not in the grey mutator phase */
+  /* <design/poolams#.fill.colour>. */
   AVER(PoolArena(pool)->busyTraces == PoolArena(pool)->flippedTraces);
 
-  /* <design/poolams/#fill.slow> */
+  /* <design/poolams#.fill.slow> */
   rankSet = BufferRankSet(buffer);
   RING_FOR(node, &pool->segRing, nextNode) {
     seg = SegOfPoolRing(node);
@@ -993,7 +993,7 @@ static Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
 /* amsSegBufferEmpty -- empty buffer to segment
  *
  * Frees the unused part of the buffer.  The colour of the area doesn't
- * need to be changed.  See <design/poolams/#empty>.
+ * need to be changed.  <design/poolams#.empty>.
  */
 static void amsSegBufferEmpty(Seg seg, Buffer buffer)
 {
@@ -1108,7 +1108,7 @@ static Res amsSegWhiten(Seg seg, Trace trace)
 
   AVERT(Trace, trace);
 
-  /* <design/poolams/#colour.single> */
+  /* <design/poolams#.colour.single> */
   AVER(SegWhite(seg) == TraceSetEMPTY);
   AVER(!amsseg->colourTablesInUse);
 
@@ -1135,7 +1135,7 @@ static Res amsSegWhiten(Seg seg, Trace trace)
     amsseg->allocTableInUse = TRUE;
   }
 
-  if (SegBuffer(&buffer, seg)) { /* <design/poolams/#condemn.buffer> */
+  if (SegBuffer(&buffer, seg)) { /* <design/poolams#.condemn.buffer> */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = PoolIndexOfAddr(SegBase(seg), pool, BufferScanLimit(buffer));
     limitIndex = PoolIndexOfAddr(SegBase(seg), pool, BufferLimit(buffer));
@@ -1159,7 +1159,7 @@ static Res amsSegWhiten(Seg seg, Trace trace)
   amsseg->oldGrains += agedGrains + amsseg->newGrains;
   amsseg->bufferedGrains = uncondemnedGrains;
   amsseg->newGrains = 0;
-  amsseg->marksChanged = FALSE; /* <design/poolams/#marked.condemn> */
+  amsseg->marksChanged = FALSE; /* <design/poolams#.marked.condemn> */
   amsseg->ambiguousFixes = FALSE;
 
   if (amsseg->oldGrains > 0) {
@@ -1326,7 +1326,7 @@ static Res amsScanObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 
 /* amsSegScan -- the segment scanning method
  *
- * See <design/poolams/#scan>
+ * <design/poolams#.scan>
  */
 static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss)
 {
@@ -1342,8 +1342,8 @@ static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss)
   AVER(totalReturn != NULL);
   AVERT(ScanState, ss);
 
-  /* Check that we're not in the grey mutator phase (see */
-  /* <design/poolams/#not-req.grey>). */
+  /* Check that we're not in the grey mutator phase */
+  /* <design/poolams#.not-req.grey>. */
   AVER(TraceSetSub(ss->traces, arena->flippedTraces));
 
   closureStruct.scanAllObjects =
@@ -1364,13 +1364,13 @@ static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss)
     format = pool->format;
     AVERT(Format, format);
     alignment = PoolAlignment(AMSPool(ams));
-    do { /* <design/poolams/#scan.iter> */
-      amsseg->marksChanged = FALSE; /* <design/poolams/#marked.scan> */
-      /* <design/poolams/#ambiguous.middle> */
+    do { /* <design/poolams#.scan.iter> */
+      amsseg->marksChanged = FALSE; /* <design/poolams#.marked.scan> */
+      /* <design/poolams#.ambiguous.middle> */
       if (amsseg->ambiguousFixes) {
         res = semSegIterate(seg, amsScanObject, &closureStruct);
         if (res != ResOK) {
-          /* <design/poolams/#marked.scan.fail> */
+          /* <design/poolams#.marked.scan.fail> */
           amsseg->marksChanged = TRUE;
           *totalReturn = FALSE;
           return res;
@@ -1395,7 +1395,7 @@ static Res amsSegScan(Bool *totalReturn, Seg seg, ScanState ss)
           j = PoolIndexOfAddr(SegBase(seg), pool, next);
           res = FormatScan(format, ss, clientP, clientNext);
           if (res != ResOK) {
-            /* <design/poolams/#marked.scan.fail> */
+            /* <design/poolams#.marked.scan.fail> */
             amsseg->marksChanged = TRUE;
             *totalReturn = FALSE;
             return res;
@@ -1439,7 +1439,7 @@ static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO)
   AVER_CRITICAL(amsseg->colourTablesInUse);
 
   /* @@@@ We should check that we're not in the grey mutator phase */
-  /* (see <design/poolams/#not-req.grey>), but there's no way of */
+  /* <design/poolams#.not-req.grey>, but there's no way of */
   /* doing that here (this can be called from RootScan, during flip). */
 
   clientRef = *refIO;
@@ -1483,13 +1483,13 @@ static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO)
   case RankFINAL:
   case RankWEAK:
     if (AMS_IS_WHITE(seg, i)) {
-      ss->wasMarked = FALSE; /* <design/fix/#was-marked.not> */
+      ss->wasMarked = FALSE; /* <design/fix#.was-marked.not> */
       if (ss->rank == RankWEAK) { /* then splat the reference */
         *refIO = (Ref)0;
       } else {
         STATISTIC(++ss->preservedInPlaceCount); /* Size updated on reclaim */
         if (SegRankSet(seg) == RankSetEMPTY && ss->rank != RankAMBIG) {
-          /* <design/poolams/#fix.to-black> */
+          /* <design/poolams#.fix.to-black> */
           Addr clientNext, next;
 
           ShieldExpose(PoolArena(pool), seg);
@@ -1502,7 +1502,7 @@ static Res amsSegFix(Seg seg, ScanState ss, Ref *refIO)
         } else { /* turn it grey */
           AMS_WHITE_GREYEN(seg, i);
           SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
-          /* mark it for scanning - <design/poolams/#marked.fix> */
+          /* mark it for scanning - <design/poolams#.marked.fix> */
           amsseg->marksChanged = TRUE;
         }
       }

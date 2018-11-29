@@ -51,7 +51,7 @@ SRCID(lockix, "$Id$");
  */
 
 typedef struct LockStruct {
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   unsigned long claims;         /* # claims held by owner */
   pthread_mutex_t mut;          /* the mutex itself */
 } LockStruct;
@@ -264,7 +264,7 @@ void (LockReleaseGlobal)(void)
 void LockSetup(void)
 {
   /* Claim all locks before a fork; release in the parent;
-     reinitialize in the child <design/thread-safety/#sol.fork.lock> */
+     reinitialize in the child <design/thread-safety#.sol.fork.lock> */
   pthread_atfork(GlobalsClaimAll, GlobalsReleaseAll, GlobalsReinitializeAll);
 }
 

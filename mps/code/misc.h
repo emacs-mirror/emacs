@@ -14,7 +14,7 @@
 #define misc_h
 
 
-typedef int Bool;                       /* <design/type/#bool> */
+typedef int Bool;                       /* <design/type#.bool> */
 enum BoolEnum {
   FALSE = 0,
   TRUE = 1
@@ -176,7 +176,7 @@ typedef const struct SrcIdStruct {
  * Given a pointer to a field of a structure this returns a pointer to
  * the main structure.  PARENT(foo_t, x, &(foo->x)) == foo.
  *
- * This macro is thread-safe, see design.mps.misc.parent.thread-safe.
+ * This macro is thread-safe, see <design/misc#.parent.thread-safe>.
  *
  * That intermediate (void *) is required to stop some compilers complaining
  * about alignment of 'type *' being greater than that of 'char *'.  Which
@@ -196,7 +196,7 @@ typedef const struct SrcIdStruct {
  * conversion (which would be a compiler error) when assigning TRUE to
  * the field.
  *
- * See <design/type/#bool.bitfield>
+ * <design/type#.bool.bitfield>
  */
 #define BOOLFIELD(name) unsigned name : 1
 
@@ -215,7 +215,7 @@ typedef const struct SrcIdStruct {
  *
  * Can be used on any unsigned integral type, ty.  These definitions
  * are _syntactic_, hence macroid, hence upper case
- * (guide.c.naming.macro.special).
+ * <design/guide.impl.c.naming#.capital.macro>.
  */
 
 #define BS_EMPTY(ty)            ((ty)0)

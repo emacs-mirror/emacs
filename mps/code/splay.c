@@ -11,7 +11,7 @@
  *
  * .note.stack: It's important that the MPS have a bounded stack size,
  * and this is a problem for tree algorithms. Basically, we have to
- * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
+ * avoid recursion. <design/sp#.sol.depth.no-recursion>.
  *
  * .critical: In manual-allocation-bound programs using MVFF, many of
  * these functions are on the critical paths via mps_alloc (and then
@@ -66,8 +66,8 @@ Bool SplayTreeCheck(SplayTree splay)
  * ``nodeKey`` extracts a key from a tree node for passing to ``compare``.
  *
  * ``updateNode`` will be applied to nodes from bottom to top when the
- * tree is restructured in order to maintain client properties (see
- * design.mps.splay.prop).  If SplayTrivUpdate is be passed, faster
+ * tree is restructured in order to maintain client properties
+ * <design/splay#.prop>.  If SplayTrivUpdate is be passed, faster
  * algorithms are chosen for splaying.  Compare SplaySplitDown with
  * SplaySplitRev.
  */
@@ -189,7 +189,7 @@ Count SplayDebugCount(SplayTree splay)
  * Link the top node of the middle tree into the left child of the
  * right tree, then step to the left child.  Returns new middle.
  *
- * See <design/splay/#impl.link.right>.
+ * <design/splay#.impl.link.right>.
  *
  *    middle    rightNext            middle
  *      B          E                   A              E
@@ -294,7 +294,7 @@ typedef struct SplayStateStruct {
  * Split a tree into three according to a key and a comparison,
  * splaying nested left and right nodes.  Preserves tree ordering.
  * This is a top-down splay procedure, and does not use any recursion
- * or require any parent pointers (see design.mps.impl.top-down).
+ * or require any parent pointers <design/impl#.top-down>.
  *
  * Returns cmp, the relationship of the root of the middle tree to the key,
  * and a SplayState.
@@ -407,7 +407,7 @@ stop:
  *
  * Does *not* maintain client properties.  See SplayAssembleRev.
  *
- * See <design/splay/#impl.assemble>.
+ * <design/splay#.impl.assemble>.
  */
 
 static void SplayAssembleDown(SplayTree splay, SplayState state)
@@ -703,7 +703,7 @@ static void SplayAssemble(SplayTree splay, SplayState state)
  * case the new root is the last node visited which is either the closest
  * node left or the closest node right of the key.
  *
- * See <design/splay/#impl.splay>.
+ * <design/splay#.impl.splay>.
  */
 
 static Compare SplaySplay(SplayTree splay, TreeKey key,
@@ -921,7 +921,7 @@ static Tree SplayTreeSuccessor(SplayTree splay)
  * good moment to do it, avoiding another search and splay.
  *
  * This implementation uses SplaySplit to find both neighbours in a
- * single splay (see design.mps.splay.impl.neighbours).
+ * single splay <design/splay#.impl.neighbours>.
  */
 
 Bool SplayTreeNeighbours(Tree *leftReturn, Tree *rightReturn,
@@ -1372,7 +1372,7 @@ void SplayNodeInit(SplayTree splay, Tree node)
 
 /* SplayTreeDescribe -- Describe a splay tree
  *
- * See <design/splay/#function.splay.tree.describe>.
+ * <design/splay#.function.splay.tree.describe>.
  */
 
 Res SplayTreeDescribe(SplayTree splay, mps_lib_FILE *stream, Count depth,

@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: See <design/message/> (it really exists).
+ * .design: <design/message> (it really exists).
  *
  * PURPOSE
  *
@@ -128,7 +128,7 @@ void MessagePost(Arena arena, Message message)
   AVERT(Message, message);
 
   /* queueRing field must be a singleton, see */
-  /* <design/message/#fun.post.singleton> */
+  /* <design/message#.fun.post.singleton> */
   AVER(!MessageOnQueue(message));
   if(MessageTypeEnabled(arena, MessageGetType(message))) {
     /* .message.clocked: Reading the clock with ClockNow() */

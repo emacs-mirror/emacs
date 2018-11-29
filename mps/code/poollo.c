@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: See <design/poollo/>.  This is a leaf pool class.
+ * .design: <design/poollo>.  This is a leaf pool class.
  */
 
 #include "mpsclo.h"
@@ -684,7 +684,7 @@ static Res loSegFix(Seg seg, ScanState ss, Ref *refIO)
   }
 
   if(!BTGet(loseg->mark, i)) {
-    ss->wasMarked = FALSE;  /* <design/fix/#was-marked.not> */
+    ss->wasMarked = FALSE;  /* <design/fix#.was-marked.not> */
     if(ss->rank == RankWEAK) {
       *refIO = (Addr)0;
     } else {

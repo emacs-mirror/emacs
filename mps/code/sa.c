@@ -49,7 +49,7 @@ Bool SparseArrayCheck(SparseArray sa)
   CHECKS(SparseArray, sa);
   CHECKL(sa->base != NULL);
   CHECKL(sa->elementSize >= 1);
-  CHECKD_NOSIG(VM, sa->vm); /* <design/check/#hidden-type> */
+  CHECKD_NOSIG(VM, sa->vm); /* <design/check#.hidden-type> */
   CHECKL(sa->elementSize <= VMPageSize(sa->vm));
   CHECKL(sa->length > 0);
   CHECKD_NOSIG(BT, sa->mapped);

@@ -105,7 +105,7 @@ Res PoolAbsInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   pool->serial = ArenaGlobals(arena)->poolSerial;
   ++ArenaGlobals(arena)->poolSerial;
 
-  /* Initialise signature last; see <design/sig/> */
+  /* Initialise signature last; see <design/sig> */
   SetClassOfPoly(pool, CLASS(AbstractPool));
   pool->sig = PoolSig;
   AVERT(Pool, pool);
@@ -202,7 +202,7 @@ DEFINE_CLASS(Pool, AbstractCollectPool, klass)
 
 /* PoolNo*, PoolTriv* -- Trivial and non-methods for Pool Classes
  *
- * See <design/pool/#no> and <design/pool/#triv>
+ * <design/pool#.no> and <design/pool#.triv>
  */
 
 Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size)

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
  *
- * .source: <design/bt/>
+ * .source: <design/bt>
  */
 
 #ifndef bt_h
@@ -16,21 +16,21 @@
 extern Size (BTSize)(Count length);
 #define BTSize(n) (((n) + MPS_WORD_WIDTH-1) / MPS_WORD_WIDTH * sizeof(Word))
 
-/* <design/bt/#if.get> */
+/* <design/bt#.if.get> */
 extern Bool (BTGet)(BT bt, Index index);
 #define BTGet(a, i) \
   ((Bool)(((a)[((i) >> MPS_WORD_SHIFT)] \
            >> ((i) & ~((Word)-1 << MPS_WORD_SHIFT))) \
           & (Word)1))
 
-/* <design/bt/#if.set> */
+/* <design/bt#.if.set> */
 extern void (BTSet)(BT bt, Index index);
 #define BTSet(a, i) \
   BEGIN \
     (a)[((i)>>MPS_WORD_SHIFT)] |= (Word)1<<((i)&~((Word)-1<<MPS_WORD_SHIFT)); \
   END
 
-/* <design/bt/#if.res> */
+/* <design/bt#.if.res> */
 extern void (BTRes)(BT bt, Index index);
 #define BTRes(a, i) \
   BEGIN \

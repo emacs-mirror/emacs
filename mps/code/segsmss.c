@@ -41,7 +41,7 @@ typedef struct AMSTStruct {
   Count badMerges;          /* count of unsuccessful segment merges */
   Count bsplits;            /* count of buffered segment splits */
   Count bmerges;            /* count of buffered segment merges */
-  Sig sig;                  /* <design/pool/#outer-structure.sig> */
+  Sig sig;                  /* <design/pool#.outer-structure.sig> */
 } AMSTStruct;
 
 typedef struct AMSTStruct *AMST;
@@ -62,7 +62,7 @@ ATTRIBUTE_UNUSED
 static Bool AMSTCheck(AMST amst)
 {
   CHECKS(AMST, amst);
-  CHECKD_NOSIG(AMS, AMST2AMS(amst)); /* <design/check/#hidden-type> */
+  CHECKD_NOSIG(AMS, AMST2AMS(amst)); /* <design/check#.hidden-type> */
   return TRUE;
 }
 
@@ -89,7 +89,7 @@ typedef struct AMSTSegStruct {
   AMSSegStruct amsSegStruct; /* superclass fields must come first */
   AMSTSeg next;          /* mergeable next segment, or NULL */
   AMSTSeg prev;          /* mergeable prev segment, or NULL */
-  Sig sig;               /* <design/pool/#outer-structure.sig> */
+  Sig sig;               /* <design/pool#.outer-structure.sig> */
 } AMSTSegStruct;
 
 
@@ -100,7 +100,7 @@ ATTRIBUTE_UNUSED
 static Bool AMSTSegCheck(AMSTSeg amstseg)
 {
   CHECKS(AMSTSeg, amstseg);
-  CHECKD_NOSIG(AMSSeg, &amstseg->amsSegStruct); /* <design/check/#hidden-type> */
+  CHECKD_NOSIG(AMSSeg, &amstseg->amsSegStruct); /* <design/check#.hidden-type> */
   /* don't bother to do other checks - this is a stress test */
   return TRUE;
 }
@@ -165,7 +165,7 @@ static void amstSegFinish(Inst inst)
  * .fail: Test proper handling of the most complex failure cases
  * by deliberately detecting failure sometimes after calling the
  * next method. We handle the error by calling the anti-method.
- * This isn't strictly safe (see <design/poolams/#split-merge.fail>).
+ * This isn't strictly safe <design/poolams#.split-merge.fail>.
  * But we assume here that we won't run out of memory when calling the
  * anti-method.
  */

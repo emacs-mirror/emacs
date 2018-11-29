@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
- * .purpose: Implement the mutator context module. See <design/prmc/>.
+ * .purpose: Implement the mutator context module. <design/prmc>.
  *
  *
  * ASSUMPTIONS

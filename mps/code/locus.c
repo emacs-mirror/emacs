@@ -5,8 +5,8 @@
  *
  * DESIGN
  *
- * See <design/arenavm/> and <design/locus/> for basic locus stuff.
- * See <design/trace/> for chains. See <design/strategy/> for the
+ * <design/arenavm> and <design/locus> for basic locus stuff.
+ * <design/trace> for chains. <design/strategy> for the
  * collection strategy.
  */
 
@@ -649,7 +649,7 @@ Res PoolGenAlloc(Seg *segReturn, PoolGen pgen, SegClass klass, Size size,
  * Call this when the pool allocates memory to the client program via
  * BufferFill.
  *
- * See <design/strategy/#accounting.op.fill>
+ * <design/strategy#.accounting.op.fill>
  */
 
 void PoolGenAccountForFill(PoolGen pgen, Size size)
@@ -669,7 +669,7 @@ void PoolGenAccountForFill(PoolGen pgen, Size size)
  * the used memory (for the purpose of scheduling collections) should
  * be deferred until later.
  *
- * See <design/strategy/#accounting.op.empty>
+ * <design/strategy#.accounting.op.empty>
  */
 
 void PoolGenAccountForEmpty(PoolGen pgen, Size used, Size unused, Bool deferred)
@@ -695,7 +695,7 @@ void PoolGenAccountForEmpty(PoolGen pgen, Size used, Size unused, Bool deferred)
  * should be the amount of memory that is being condemned for the
  * first time. The deferred flag is as for PoolGenAccountForEmpty.
  *
- * See <design/strategy/#accounting.op.age>
+ * <design/strategy#.accounting.op.age>
  */
 
 void PoolGenAccountForAge(PoolGen pgen, Size wasBuffered, Size wasNew,
@@ -723,7 +723,7 @@ void PoolGenAccountForAge(PoolGen pgen, Size wasBuffered, Size wasNew,
  * Call this when reclaiming memory, passing the amount of memory that
  * was reclaimed. The deferred flag is as for PoolGenAccountForEmpty.
  *
- * See <design/strategy/#accounting.op.reclaim>
+ * <design/strategy#.accounting.op.reclaim>
  */
 
 void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
@@ -748,7 +748,7 @@ void PoolGenAccountForReclaim(PoolGen pgen, Size reclaimed, Bool deferred)
  * (condemned at least once) and new (never condemned) memory whose
  * accounting was deferred (for example, during a ramp).
  *
- * See <design/strategy/#accounting.op.undefer>
+ * <design/strategy#.accounting.op.undefer>
  */
 
 void PoolGenUndefer(PoolGen pgen, Size oldSize, Size newSize)
@@ -809,7 +809,7 @@ static void PoolGenAccountForFree(PoolGen pgen, Size size,
  * old, or new, respectively. The deferred flag is as for
  * PoolGenAccountForEmpty.
  *
- * See <design/strategy/#accounting.op.free>
+ * <design/strategy#.accounting.op.free>
  */
 
 void PoolGenFree(PoolGen pgen, Seg seg, Size freeSize, Size oldSize,

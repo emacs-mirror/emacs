@@ -11,7 +11,7 @@
  *      Interface.
  *
  * .readership: For MPS client application developers and MPS developers.
- * .sources: <design/lib/>
+ * .sources: <design/lib>
  *
  *
  * TRANSGRESSIONS (rule.impl.trans)

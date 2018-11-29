@@ -41,7 +41,7 @@ typedef struct GenDescStruct *GenDesc;
 #define GenDescSig ((Sig)0x5199E4DE)  /* SIGnature GEN DEsc */
 
 typedef struct GenDescStruct {
-  Sig sig;              /* <design/sig/> */
+  Sig sig;              /* <design/sig> */
   Serial serial;        /* serial number within arena */
   ZoneSet zones;        /* zoneset for this generation */
   Size capacity;        /* capacity in bytes */

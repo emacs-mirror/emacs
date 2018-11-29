@@ -24,7 +24,7 @@
  * but fails on lii6ll in variety HOT. Rather than struggle to defeat
  * the Clang optimizer, we choose not to test in this configuration.
  * In any case, the MPS does not guarantee anything about timely
- * finalization (see <manual/html/topic/finalization.html#cautions>).
+ * finalization <manual/html/topic/finalization.html#cautions>.
  */
 
 #include "mps.h"

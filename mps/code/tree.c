@@ -11,7 +11,7 @@
  *
  * .note.stack: It's important that the MPS have a bounded stack size,
  * and this is a problem for tree algorithms. Basically, we have to
- * avoid recursion. See design.mps.sp.sol.depth.no-recursion.
+ * avoid recursion. <design/sp#.sol.depth.no-recursion>.
  */
 
 #include "tree.h"
@@ -537,7 +537,7 @@ void TreeBalance(Tree *treeIO)
  * The visitor function must return TRUE to delete the current node,
  * or FALSE to keep it.
  *
- * See <design/arena/#chunk.delete.tricky>.
+ * <design/arena#.chunk.delete.tricky>.
  */
 void TreeTraverseAndDelete(Tree *treeIO, TreeVisitor visitor,
                            void *closure)

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2016 Ravenbrook Limited.  See end of file for license.
  *
- * See <design/prmc/> for the design of the generic interface including
+ * See <design/prmc> for the design of the generic interface including
  * the contracts for these functions.
  *
  * This interface has several different implementations, typically one

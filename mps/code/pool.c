@@ -6,7 +6,7 @@
  *
  * DESIGN
  *
- * .design: See <design/pool/>.
+ * .design: <design/pool>.
  *
  * PURPOSE
  *
@@ -118,7 +118,7 @@ ARG_DEFINE_KEY(INTERIOR, Bool);
 /* PoolInit -- initialize a pool
  *
  * Initialize the generic fields of the pool and calls class-specific
- * init.  See <design/pool/#align>.
+ * init.  <design/pool#.align>.
  */
 
 Res PoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args)

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2013-2014 Ravenbrook Limited.  See end of file for license.
  *
- * .source: <design/freelist/>.
+ * .source: <design/freelist>.
  */
 
 #ifndef freelist_h
@@ -19,7 +19,7 @@ typedef struct FreelistStruct *Freelist;
 
 extern Bool FreelistCheck(Freelist freelist);
 
-/* See <design/freelist/#impl.grain.align> */
+/* <design/freelist#.impl.grain.align> */
 #define FreelistMinimumAlignment ((Align)sizeof(FreelistBlock))
 
 DECLARE_CLASS(Land, Freelist, Land);

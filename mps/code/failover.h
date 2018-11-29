@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2014 Ravenbrook Limited.  See end of file for license.
  *
- * .source: <design/failover/>.
+ * .source: <design/failover>.
  */
 
 #ifndef failover_h

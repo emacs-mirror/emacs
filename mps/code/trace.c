@@ -5,7 +5,7 @@
  * See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * .design: <design/trace/>.  */
+ * .design: <design/trace>.  */
 
 #include "locus.h"
 #include "mpm.h"
@@ -629,7 +629,7 @@ static Res traceFlip(Trace trace)
   /* needs to change when we flip later (i.e. have a read-barrier     */
   /* collector), so that we allocate grey or white before the flip    */
   /* and black afterwards. For instance, see                          */
-  /* <design/poolams/#invariant.alloc>.                              */
+  /* <design/poolams#.invariant.alloc>.                              */
   /* (surely we mean "write-barrier" not "read-barrier" above? */
   /* drj 2003-02-19) */
 
@@ -704,7 +704,7 @@ Res TraceCreate(Trace *traceReturn, Arena arena, TraceStartWhy why)
 
 found:
   trace = ArenaTrace(arena, ti);
-  AVER(trace->sig == SigInvalid);       /* <design/arena/#trace.invalid> */
+  AVER(trace->sig == SigInvalid);       /* <design/arena#.trace.invalid> */
 
   trace->arena = arena;
   trace->why = why;
@@ -1165,13 +1165,13 @@ static Res traceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
     });
 
     /* Following is true whether or not scan was total. */
-    /* See <design/scan/#summary.subset>. */
+    /* <design/scan#.summary.subset>. */
     /* .verify.segsummary: were the seg contents, as found by this
      * scan, consistent with the recorded SegSummary?
      */
     AVER(RefSetSub(ScanStateUnfixedSummary(ss), SegSummary(seg))); /* <design/check/#.common> */
 
-    /* Write barrier deferral -- see design.mps.write-barrier.deferral. */
+    /* Write barrier deferral -- see <design/write-barrier#.deferral>. */
     /* Did the segment refer to the white set? */
     if (ZoneSetInter(ScanStateUnfixedSummary(ss), white) == ZoneSetEMPTY) {
       /* Boring scan.  One step closer to raising the write barrier. */
@@ -1260,7 +1260,7 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 
   EVENT3(TraceAccess, arena, seg, mode);
 
-  /* Write barrier deferral -- see design.mps.write-barrier.deferral. */
+  /* Write barrier deferral -- see <design/write-barrier#.deferral>. */
   if (writeHit)
     seg->defer = WB_DEFER_HIT;
 
@@ -1328,7 +1328,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   Res res;
 
   /* Special AVER macros are used on the critical path. */
-  /* See <design/trace/#fix.noaver> */
+  /* <design/trace#.fix.noaver> */
   AVERT_CRITICAL(ScanState, ss);
   AVER_CRITICAL(mps_ref_io != NULL);
 
@@ -1346,7 +1346,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
    * but inlined so that we can distinguish between "not pointing to
    * chunk" and "pointing to chunk but not to tract" so that we can
    * check the rank in the latter case. See
-   * <design/trace/#fix.tractofaddr.inline>
+   * <design/trace#.fix.tractofaddr.inline>
    *
    * If compilers fail to do a good job of inlining ChunkOfAddr and
    * TreeFind then it may become necessary to inline at least the
@@ -1360,7 +1360,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   i = INDEX_OF_ADDR(chunk, ref);
   if (!BTGet(chunk->allocTable, i)) {
     /* Reference points into a chunk but not to an allocated tract.
-     * See <design/trace/#exact.legal> */
+     * <design/trace#.exact.legal> */
     AVER_CRITICAL(ss->rank < RankEXACT); /* <design/check/#.common> */
     goto done;
   }
@@ -1375,7 +1375,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
      this test when walking references in the roots. */
   if (TraceSetInter(SegWhite(seg), ss->traces) == TraceSetEMPTY) {
     /* Reference points to a segment that is not white for any of the
-     * active traces. See <design/trace/#fix.tractofaddr> */
+     * active traces. <design/trace#.fix.tractofaddr> */
     STATISTIC({
       ++ss->segRefCount;
       EVENT_CRITICAL1(TraceFixSeg, seg);
@@ -1402,7 +1402,7 @@ mps_res_t _mps_fix2(mps_ss_t mps_ss, mps_addr_t *mps_ref_io)
   }
 
 done:
-  /* See <design/trace/#fix.fixed.all> */
+  /* <design/trace#.fix.fixed.all> */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, ref);
 
   *mps_ref_io = (mps_addr_t)ref;
@@ -1509,7 +1509,7 @@ Res TraceScanArea(ScanState ss, Word *base, Word *limit,
  * recently returned from TraceCreate, with some condemned segments
  * added. mortality is the fraction of the condemned set expected not
  * to survive. finishingTime is relative to the current polling clock,
- * see <design/arena/#poll.clock>.
+ * see <design/arena#.poll.clock>.
  *
  * .start.black: All segments are black w.r.t. a newly allocated trace.
  * However, if TraceStart initialized segments to black when it
@@ -1633,7 +1633,7 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
 
 /* traceWork -- a measure of the work done for this trace.
  *
- * See design.mps.type.work.
+ * <design/type#.work>.
  */
 
 #define traceWork(trace) ((Work)((trace)->segScanSize + (trace)->rootScanSize))

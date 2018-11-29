@@ -4,7 +4,7 @@
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
- * .source: design.mps.object-debug
+ * .source: <design/object-debug>
  */
 
 #include "dbgpool.h"
@@ -161,7 +161,7 @@ static Res DebugPoolInit(Pool pool, Arena arena, PoolClass klass, ArgList args)
   /* fencepost init */
   /* @@@@ This parses a user argument, options, so it should really */
   /* go through the MPS interface.  The template needs to be copied */
-  /* into Addr memory, to avoid breaking <design/type/#addr.use>. */
+  /* into Addr memory, to avoid breaking <design/type#.addr.use>. */
   debug->fenceSize = options->fenceSize;
   if (debug->fenceSize != 0) {
     /* Fenceposting turns on tagging */

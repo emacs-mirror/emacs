@@ -517,7 +517,7 @@ space will be represented by dummy regions. There are also sentinel
 regions at both ends of the address space. See
 design.mps.arena.chunk_.
 
-.. _design.mps.arena.chunk: arena#chunk
+.. _design.mps.arena.chunk: arena#.chunk
 
 
 Overview of strategy

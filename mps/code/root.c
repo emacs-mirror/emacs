@@ -5,8 +5,8 @@
  *
  * .purpose: This is the implementation of the root datatype.
  *
- * .design: For design, see <design/root/> and
- * design.mps.root-interface. */
+ * .design: For design, see <design/root> and
+ * <design/root-interface>. */
 
 #include "mpm.h"
 
@@ -130,7 +130,7 @@ Bool RootCheck(Root root)
     break;
 
   case RootTHREAD:
-    CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
+    CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check#.hidden-type> */
     CHECKL(FUNCHECK(root->the.thread.scan_area));
     /* Can't check anything about closure as it could mean anything to
        scan_area. */
@@ -138,7 +138,7 @@ Bool RootCheck(Root root)
     break;
 
   case RootTHREAD_TAGGED:
-    CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check/#hidden-type> */
+    CHECKD_NOSIG(Thread, root->the.thread.thread); /* <design/check#.hidden-type> */
     CHECKL(FUNCHECK(root->the.thread.scan_area));
     /* Can't check anything about tag as it could mean anything to
        scan_area. */
@@ -175,7 +175,7 @@ Bool RootCheck(Root root)
  * RootCreate* set up the appropriate union member, and call the generic
  * create function to do the actual creation
  *
- * See <design/root/#init> for initial value. */
+ * See <design/root#.init> for initial value. */
 
 static Res rootCreate(Root *rootReturn, Arena arena,
                       Rank rank, RootMode mode, RootVar type,
@@ -210,7 +210,7 @@ static Res rootCreate(Root *rootReturn, Arena arena,
   root->protBase = (Addr)0;
   root->protLimit = (Addr)0;
 
-  /* See <design/arena/#root-ring> */
+  /* <design/arena#.root-ring> */
   RingInit(&root->arenaRing);
 
   root->serial = globals->rootSerial;
@@ -452,7 +452,7 @@ void RootDestroy(Root root)
 
 /* RootArena -- return the arena of a root
  *
- * Must be thread-safe. See <design/interface-c/#check.testt> */
+ * Must be thread-safe. <design/interface-c#.check.testt> */
 
 Arena RootArena(Root root)
 {

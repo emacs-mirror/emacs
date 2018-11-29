@@ -6,7 +6,7 @@
  * .purpose: Miscellaneous support for the implementation of the MPM
  * and pool classes.
  *
- * .sources: <design/writef/> */
+ * .sources: <design/writef> */
 
 #include "check.h"
 #include "misc.h"
@@ -86,7 +86,7 @@ Bool MPMCheck(void)
   CHECKL(PageSize() % ProtGranularity() == 0);
 
   /* StackProbe mustn't skip over the stack guard page. See
-   * <design/sp/#sol.depth.constraint>. */
+   * <design/sp#.sol.depth.constraint>. */
   CHECKL(StackProbeDEPTH * sizeof(Word) < PageSize());
 
   /* Check these values will fit in their bitfield. */
@@ -446,7 +446,7 @@ static Res WriteDouble(mps_lib_FILE *stream, double d)
 
 /* WriteF -- write formatted output
  *
- * .writef.des: See <design/writef/>, also <design/lib/>
+ * .writef.des: <design/writef>, also <design/lib>
  *
  * .writef.p: There is an assumption that void * fits in Word in
  * the case of $P, and ULongest for $U and $B.  This is checked in

@@ -104,7 +104,7 @@ keyword arguments:
   (This feature is used by the arena to bootstrap its own CBS of free
   memory. See design.mps.bootstrap.land.sol.pool_.)
 
-  .. _design.mps.bootstrap.land.sol.pool: bootstrap#land-sol-pool
+  .. _design.mps.bootstrap.land.sol.pool: bootstrap#.land.sol.pool
 
 
 Limitations
@@ -204,7 +204,7 @@ _`.test`: The following testing will be performed on this module:
 _`.test.land`: A generic test for land implementations. See
 design.mps.land.test_.
 
-.. _design.mps.land.test: land#test
+.. _design.mps.land.test: land#.test
 
 _`.test.pool`: The arena and two pools (MVT_ and MVFF_) are
 implemented on top of a CBS. These are subject to testing in

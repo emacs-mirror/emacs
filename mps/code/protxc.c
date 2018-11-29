@@ -378,13 +378,13 @@ static void protExcThreadStart(void)
 
 
 /* protAtForkChild -- support for fork()
- * <design/thread-safety/#sol.fork.exc-thread>
+ * <design/thread-safety#.sol.fork.exc-thread>
  */
 
 static void protAtForkChild(void)
 {
   /* Restart the exception handling thread
-     <design/thread-safety/#sol.fork.exc-thread>. */
+     <design/thread-safety#.sol.fork.exc-thread>. */
   protExcThreadStart();
 }
 
@@ -395,7 +395,7 @@ static void protSetupInner(void)
 {
   protExcThreadStart();
 
-  /* Install fork handlers <design/thread-safety/#sol.fork.atfork>. */
+  /* Install fork handlers <design/thread-safety#.sol.fork.atfork>. */
   pthread_atfork(NULL, NULL, protAtForkChild);
 }
 

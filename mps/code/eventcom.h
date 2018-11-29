@@ -15,7 +15,7 @@
 #include "clock.h"
 
 
-/* Event Kinds --- see <design/telemetry/>
+/* Event Kinds --- see <design/telemetry>
  *
  * All events are classified as being of one event type.
  * They are small enough to be able to be used as members of a bit set.

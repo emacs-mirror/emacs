@@ -34,7 +34,7 @@
  *
  * .mod: LDHistoryLENGTH is used as a modulus to calculate the offset
  * of an epoch in the history, so it's best if this is a power of two.
- * (<code/mpmconf.h>)
+ * <code/mpmconf.h>
  *
  * .epoch-size: The epoch should probably be a longer integer to avoid
  * the possibility of overflow.

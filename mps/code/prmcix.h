@@ -15,7 +15,7 @@
 #include <ucontext.h> /* ucontext_t */
 
 typedef struct MutatorContextStruct {
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   MutatorContextVar var;        /* Discriminator. */
   siginfo_t *info;              /* Signal info, if stopped by protection
                                  * fault; NULL if stopped by thread manager. */

@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/vm/>.
+ * .design: <design/vm>.
  *
  * .purpose: This is the implementation of the virtual memory mapping
  * interface (vm.h) for Win32s.

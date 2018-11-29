@@ -8,9 +8,9 @@
  * <code/mps.h>, and the internal MPM interfaces, as defined by
  * <code/mpm.h>.  .purpose.check: It performs checking of the C client's
  * usage of the MPS Interface.  .purpose.thread: It excludes multiple
- * threads from the MPM by locking the Arena (see <design/thread-safety/>).
+ * threads from the MPM by locking the Arena (see <design/thread-safety>).
  *
- * .design: <design/interface-c/>
+ * .design: <design/interface-c>
  *
  *
  * NOTES
@@ -22,7 +22,7 @@
  * .note.avert: Use AVERT only when "inside" the Arena (between
  * ArenaEnter and ArenaLeave), as it's not thread-safe in all
  * varieties. Use AVER(TESTT) otherwise. See
- * <design/sig/#check.arg.unlocked>.
+ * <design/sig#.check.arg.unlocked>.
  *
  *
  * TRANSGRESSIONS (rule.impl.trans)
@@ -41,7 +41,7 @@
  * In future, it will.
  *
  * .naming: (rule.impl.guide) The exported identifiers do not follow the
- * normal MPS naming conventions.  See <design/interface-c/#naming>.
+ * normal MPS naming conventions.  <design/interface-c#.naming>.
  */
 
 #include "mpm.h"
@@ -84,7 +84,7 @@ static Bool mpsi_check(void)
          == (int)_mps_MESSAGE_TYPE_GC_START);
 
   /* The external idea of a word width and the internal one */
-  /* had better match.  See <design/interface-c/#cons>. */
+  /* had better match.  <design/interface-c#.cons>. */
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
   CHECKL(COMPATTYPE(mps_word_t, Word));
 
@@ -93,8 +93,8 @@ static Bool mpsi_check(void)
   CHECKL(COMPATTYPE(mps_addr_t, Addr));
 
   /* The external idea of size and the internal one had */
-  /* better match.  See <design/interface-c/#cons.size> */
-  /* and <design/interface-c/#pun.size>. */
+  /* better match.  <design/interface-c#.cons.size> */
+  /* and <design/interface-c#.pun.size>. */
   CHECKL(COMPATTYPE(size_t, Size));
 
   /* Clock values are passed from external to internal and back */
@@ -542,7 +542,7 @@ mps_res_t mps_fmt_create_k(mps_fmt_t *mps_fmt_o,
  *
  * .fmt.create.A.purpose: This function converts an object format spec
  * of variant "A" into an MPM Format object.  See
- * <design/interface-c/#fmt.extend> for justification of the way that
+ * <design/interface-c#.fmt.extend> for justification of the way that
  * the format structure is declared as "mps_fmt_A".  */
 
 mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
@@ -807,7 +807,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t pool, size_t size)
     AVERT_CRITICAL(Pool, pool);
     AVER_CRITICAL(size > 0);
     /* Note: class may allow unaligned size, see */
-    /* <design/pool/#method.alloc.size.align>. */
+    /* <design/pool#.method.alloc.size.align>. */
     /* Rest ignored, see .varargs. */
 
     res = PoolAlloc(&p, pool, size);
@@ -847,7 +847,7 @@ void mps_free(mps_pool_t pool, mps_addr_t p, size_t size)
   AVERT_CRITICAL(Pool, pool);
   AVER_CRITICAL(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* <design/pool/#method.free.size.align>. */
+  /* <design/pool#.method.free.size.align>. */
 
   PoolFree(pool, (Addr)p, size);
   ArenaLeave(arena);
@@ -998,7 +998,7 @@ mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 
 /* mps_ap_frame_push -- push a new allocation frame
  *
- * See <design/alloc-frame/#lw-frame.push>. */
+ * <design/alloc-frame#.lw-frame.push>. */
 
 mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 {
@@ -1039,7 +1039,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 
 /* mps_ap_frame_pop -- push a new allocation frame
  *
- * See <design/alloc-frame/#lw-frame.pop>.  */
+ * <design/alloc-frame#.lw-frame.pop>.  */
 
 mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 {
@@ -1686,7 +1686,7 @@ void mps_ld_reset(mps_ld_t ld, mps_arena_t arena)
 
 /* mps_ld_add -- add a reference to a location dependency
  *
- * See <design/interface-c/#lock-free>.  */
+ * <design/interface-c#.lock-free>.  */
 
 void mps_ld_add(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
 {
@@ -1696,7 +1696,7 @@ void mps_ld_add(mps_ld_t ld, mps_arena_t arena, mps_addr_t addr)
 
 /* mps_ld_merge -- merge two location dependencies
  *
- * See <design/interface-c/#lock-free>.  */
+ * <design/interface-c#.lock-free>.  */
 
 void mps_ld_merge(mps_ld_t ld, mps_arena_t arena,
                   mps_ld_t from)
@@ -1707,7 +1707,7 @@ void mps_ld_merge(mps_ld_t ld, mps_arena_t arena,
 
 /* mps_ld_isstale -- check whether a location dependency is "stale"
  *
- * See <design/interface-c/#lock-free>.  */
+ * <design/interface-c#.lock-free>.  */
 
 mps_bool_t mps_ld_isstale(mps_ld_t ld, mps_arena_t arena,
                           mps_addr_t addr)

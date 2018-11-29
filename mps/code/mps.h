@@ -99,8 +99,8 @@ typedef mps_word_t mps_label_t;  /* telemetry label */
 _mps_ENUM_DEF(_mps_RES_ENUM, MPS_RES_)
 
 /* Format and Root Method Types */
-/* see design.mps.root-interface */
-/* see design.mps.format-interface */
+/* see <design/root-interface> */
+/* see <design/format-interface> */
 
 typedef struct mps_scan_tag_s *mps_scan_tag_t;
 typedef struct mps_scan_tag_s {

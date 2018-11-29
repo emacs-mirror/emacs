@@ -37,11 +37,11 @@ typedef union PagePoolUnion {
 /* TractStruct -- tract structure
  *
  * .tract: Tracts represent the grains of memory allocation from
- * the arena.  See <design/arena/>.
+ * the arena.  <design/arena>.
  */
 
 typedef struct TractStruct { /* Tract structure */
-  PagePoolUnion pool; /* MUST BE FIRST (<design/arena/#tract.field> pool) */
+  PagePoolUnion pool; /* MUST BE FIRST <design/arena#.tract.field.pool> */
   Seg seg;                     /* NULL or segment containing tract */
   Addr base;                   /* Base address of the tract */
 } TractStruct;
@@ -80,11 +80,10 @@ extern void TractFinish(Tract tract);
 /* PageUnion -- page descriptor
  *
  * .page-table: The page table (defined as a PageUnion array)
- * is central to the design of the arena.
- * See <design/arenavm/#table>.*.
+ * is central to the design of the arena. <design/arenavm#.table>
  *
  * .page: The "pool" field must be the first field of the "tail"
- * field of this union.  See <design/arena/#tract.field.pool>.
+ * field of this union.  <design/arena#.tract.field.pool>.
  */
 
 typedef struct PageSpareStruct {
@@ -128,7 +127,7 @@ typedef union PageUnion {     /* page structure */
 #define ChunkSig ((Sig)0x519C804C) /* SIGnature CHUNK */
 
 typedef struct ChunkStruct {
-  Sig sig;              /* <design/sig/> */
+  Sig sig;              /* <design/sig> */
   Serial serial;        /* serial within the arena */
   Arena arena;          /* parent arena */
   RingStruct arenaRing; /* node in ring of all chunks in arena */
@@ -197,7 +196,7 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
 
 /* PageIndexBase -- map page index to base address of page
  *
- * See <design/arenavm/#table.linear>
+ * <design/arenavm#.table.linear>
  */
 
 #define PageIndexBase(chunk, i) \
@@ -218,7 +217,7 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
 
 /* TRACT_TRACT_FOR -- iterate over a range of tracts in a chunk
  *
- * See <design/arena-tract-iter/#if.macro>.
+ * <design/arena-tract-iter#.if.macro>.
  * Parameters arena & limit are evaluated multiple times.
  * Check first tract & last tract lie with the same chunk.
  */
@@ -235,7 +234,7 @@ extern Index IndexOfAddr(Chunk chunk, Addr addr);
 
 /* TRACT_FOR -- iterate over a range of tracts in a chunk
  *
- * See <design/arena/#tract.for>.
+ * <design/arena#.tract.for>.
  * Parameters arena & limit are evaluated multiple times.
  */
 

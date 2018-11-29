@@ -3,7 +3,7 @@
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  * $Id$
  *
- * .design: <design/clock/>.
+ * .design: <design/clock>.
  */
 
 #ifndef clock_h

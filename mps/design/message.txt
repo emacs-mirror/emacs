@@ -165,7 +165,7 @@ _`.type.finalization.semantics`: A finalization message indicates that
 an object has been discovered to be finalizable (see
 design.mps.poolmrg.def.final.object_ for a definition of finalizable).
 
-.. _design.mps.poolmrg.def.final.object: poolmrg#def-final-object
+.. _design.mps.poolmrg.def.final.object: poolmrg#.def.final.object
 
 _`.type.finalization.ref`: The accessor function
 ``mps_message_finalization_ref()`` retrieves the reference to the
@@ -333,7 +333,7 @@ the function the message fields must not be manipulated except from
 the message's class's method functions (that is, you mustn't poke
 about with the ``queueRing`` field in particular).
 
-.. _design.mps.ring.def.singleton: ring#def-singleton
+.. _design.mps.ring.def.singleton: ring#.def.singleton
 
 ``void MessageEmpty(Arena arena)``
 

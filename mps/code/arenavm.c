@@ -6,7 +6,7 @@
  *
  * DESIGN
  *
- * .design: See <design/arenavm/>, and <design/arena/#coop-vm>
+ * .design: <design/arenavm>, and <design/arena#.coop-vm>
  *
  * .vm.addr-is-star: In this file, Addr is compatible with C
  * pointers, and Count with size_t (Index), because all refer to the
@@ -45,7 +45,7 @@ typedef struct VMChunkStruct {
   VMStruct vmStruct;            /* virtual memory descriptor */
   Addr overheadMappedLimit;     /* limit of pages mapped for overhead */
   SparseArrayStruct pages;      /* to manage backing store of page table */
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
 } VMChunkStruct;
 
 #define VMChunk2Chunk(vmchunk) (&(vmchunk)->chunkStruct)
@@ -61,7 +61,7 @@ typedef struct VMChunkStruct {
 
 /* VMArena
  *
- * See <design/arena/#coop-vm.struct.vmarena> for description.
+ * <design/arena#.coop-vm.struct.vmarena> for description.
  */
 
 typedef struct VMArenaStruct *VMArena;
@@ -78,7 +78,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ArenaVMExtendedCallback extended;
   ArenaVMContractedCallback contracted;
   RingStruct spareRing;         /* spare (free but mapped) tracts */
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
 } VMArenaStruct;
 
 #define VMArenaVM(vmarena) (&(vmarena)->vmStruct)
@@ -615,7 +615,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   AVER(sizeof(vmArena->vmParams) == sizeof(vmParams));
   (void)mps_lib_memcpy(vmArena->vmParams, vmParams, sizeof(vmArena->vmParams));
 
-  /* <design/arena/#coop-vm.struct.vmarena.extendby.init> */
+  /* <design/arena#.coop-vm.struct.vmarena.extendby.init> */
   vmArena->extendBy = size;
   vmArena->extendMin = 0;
 
@@ -653,7 +653,7 @@ static Res VMArenaCreate(Arena *arenaReturn, ArgList args)
   /* number of stripes as will fit into a reference set (the number of */
   /* bits in a word).  Fail if the chunk is so small stripes are smaller */
   /* than pages.  Note that some zones are discontiguous in the chunk if */
-  /* the size is not a power of 2.  See <design/arena/#class.fields>. */
+  /* the size is not a power of 2.  <design/arena#.class.fields>. */
   chunkSize = ChunkSize(chunk);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
   AVER(ChunkPageSize(chunk) == ArenaGrainSize(arena));
@@ -688,7 +688,7 @@ static void VMArenaDestroy(Arena arena)
   VM vm = &vmStruct;
 
   /* Destroy all chunks, including the primary. See
-   * <design/arena/#chunk.delete> */
+   * <design/arena#.chunk.delete> */
   arena->primary = NULL;
   TreeTraverseAndDelete(&arena->chunkTree, vmChunkDestroy,
                         UNUSED_POINTER);
@@ -1181,7 +1181,7 @@ static void VMCompact(Arena arena, Trace trace)
   STATISTIC(vmem1 = ArenaReserved(arena));
 
   /* Destroy chunks that are completely free, but not the primary
-   * chunk. See <design/arena/#chunk.delete>
+   * chunk. <design/arena#.chunk.delete>
    * TODO: add hysteresis here. See job003815. */
   TreeTraverseAndDelete(&arena->chunkTree, vmChunkCompact, arena);
 

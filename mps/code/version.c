@@ -58,7 +58,7 @@ char MPSCopyrightNotice[] =
  * The value of MPSVersion is a declared object comprising the
  * concatenation of all the version info. The "@(#)" prefix is the
  * convention used by the BSD Unix command what(1); see also
- * design.mps.version.impl.tool.
+ * <design/version#.impl.tool>.
  */
 
 extern char MPSVersionString[];

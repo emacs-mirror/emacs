@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2014-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .design: <design/land/>
+ * .design: <design/land>
  *
  * .critical.macros: In manual-allocation-bound programs using MVFF,
  * the Land generic functions are on the critical path via mps_free.
@@ -112,7 +112,7 @@ static void LandAbsFinish(Inst inst)
 
 /* LandInit -- initialize land
  *
- * See <design/land/#function.init>
+ * <design/land#.function.init>
  */
 
 Res LandInit(Land land, LandClass klass, Arena arena, Align alignment, void *owner, ArgList args)
@@ -135,7 +135,7 @@ Res LandInit(Land land, LandClass klass, Arena arena, Align alignment, void *own
 
 /* LandFinish -- finish land
  *
- * See <design/land/#function.finish>
+ * <design/land#.function.finish>
  */
 
 void LandFinish(Land land)
@@ -149,7 +149,7 @@ void LandFinish(Land land)
 
 /* LandSize -- return the total size of ranges in land
  *
- * See <design/land/#function.size>
+ * <design/land#.function.size>
  */
 
 Size (LandSize)(Land land)
@@ -163,7 +163,7 @@ Size (LandSize)(Land land)
 
 /* LandInsert -- insert range of addresses into land
  *
- * See <design/land/#function.insert>
+ * <design/land#.function.insert>
  */
 
 Res (LandInsert)(Range rangeReturn, Land land, Range range)
@@ -188,7 +188,7 @@ Res (LandInsert)(Range rangeReturn, Land land, Range range)
  * stealing some of the inserted memory to allocate internal data
  * structures.
  *
- * See <design/land/#function.insert-steal>
+ * <design/land#.function.insert-steal>
  */
 
 Res LandInsertSteal(Range rangeReturn, Land land, Range rangeIO)
@@ -213,7 +213,7 @@ Res LandInsertSteal(Range rangeReturn, Land land, Range rangeIO)
 
 /* LandDelete -- delete range of addresses from land
  *
- * See <design/land/#function.delete>
+ * <design/land#.function.delete>
  */
 
 Res (LandDelete)(Range rangeReturn, Land land, Range range)
@@ -238,7 +238,7 @@ Res (LandDelete)(Range rangeReturn, Land land, Range range)
  * stealing some memory from the land to allocate internal data
  * structures.
  *
- * See <design/land/#function.delete-steal>
+ * <design/land#.function.delete-steal>
  */
 
 Res LandDeleteSteal(Range rangeReturn, Land land, Range range)
@@ -261,7 +261,7 @@ Res LandDeleteSteal(Range rangeReturn, Land land, Range range)
 
 /* LandIterate -- iterate over isolated ranges of addresses in land
  *
- * See <design/land/#function.iterate>
+ * <design/land#.function.iterate>
  */
 
 Bool (LandIterate)(Land land, LandVisitor visitor, void *closure)
@@ -281,7 +281,7 @@ Bool (LandIterate)(Land land, LandVisitor visitor, void *closure)
 /* LandIterateAndDelete -- iterate over isolated ranges of addresses
  * in land, deleting some of them
  *
- * See <design/land/#function.iterate.and.delete>
+ * <design/land#.function.iterate.and.delete>
  */
 
 Bool (LandIterateAndDelete)(Land land, LandDeleteVisitor visitor, void *closure)
@@ -300,7 +300,7 @@ Bool (LandIterateAndDelete)(Land land, LandDeleteVisitor visitor, void *closure)
 
 /* LandFindFirst -- find first range of given size
  *
- * See <design/land/#function.find.first>
+ * <design/land#.function.find.first>
  */
 
 Bool (LandFindFirst)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
@@ -323,7 +323,7 @@ Bool (LandFindFirst)(Range rangeReturn, Range oldRangeReturn, Land land, Size si
 
 /* LandFindLast -- find last range of given size
  *
- * See <design/land/#function.find.last>
+ * <design/land#.function.find.last>
  */
 
 Bool (LandFindLast)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
@@ -346,7 +346,7 @@ Bool (LandFindLast)(Range rangeReturn, Range oldRangeReturn, Land land, Size siz
 
 /* LandFindLargest -- find largest range of at least given size
  *
- * See <design/land/#function.find.largest>
+ * <design/land#.function.find.largest>
  */
 
 Bool (LandFindLargest)(Range rangeReturn, Range oldRangeReturn, Land land, Size size, FindDelete findDelete)
@@ -369,7 +369,7 @@ Bool (LandFindLargest)(Range rangeReturn, Range oldRangeReturn, Land land, Size 
 
 /* LandFindInSize -- find range of given size in set of zones
  *
- * See <design/land/#function.find.zones>
+ * <design/land#.function.find.zones>
  */
 
 Res (LandFindInZones)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn, Land land, Size size, ZoneSet zoneSet, Bool high)
@@ -395,7 +395,7 @@ Res (LandFindInZones)(Bool *foundReturn, Range rangeReturn, Range oldRangeReturn
 
 /* LandDescribe -- describe land for debugging
  *
- * See <design/land/#function.describe>
+ * <design/land#.function.describe>
  */
 
 Res LandDescribe(Land land, mps_lib_FILE *stream, Count depth)
@@ -440,7 +440,7 @@ Bool LandFlushVisitor(Bool *deleteReturn, Land land, Range range,
 
 /* LandFlush -- move ranges from src to dest
  *
- * See <design/land/#function.flush>
+ * <design/land#.function.flush>
  */
 
 Bool (LandFlush)(Land dest, Land src)

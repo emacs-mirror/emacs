@@ -5,7 +5,7 @@
  *
  * This module saves the mutator context on entry to the MPS, and
  * provides functions for decoding the context and scanning the root
- * registers. See <design/stack-scan/>.
+ * registers. <design/stack-scan>.
  */
 
 #ifndef ss_h
@@ -18,7 +18,7 @@
  *
  * The jumpBuffer is used to capture most of the mutator's state on
  * entry to the MPS, but can't capture it all.  See
- * design.mps.stack-scan.sol.setjmp.scan.
+ * <design/stack-scan#.sol.setjmp.scan>.
  */
 
 #include <setjmp.h>

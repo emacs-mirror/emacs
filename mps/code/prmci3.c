@@ -3,11 +3,11 @@
  * $Id$
  * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See <design/prmc/> for the generic design of the interface
+ * .design: See <design/prmc> for the generic design of the interface
  * which is implemented in this module, including the contracts for the
  * functions.
  *
- * .purpose: Implement the mutator context module. See <design/prmc/>.
+ * .purpose: Implement the mutator context module. <design/prmc>.
  *
  * .requirements: Current requirements are for limited support only, for
  * stepping the sorts of instructions that the Dylan compiler might

@@ -52,7 +52,7 @@ condemned sets to coincide with zone stripes.
 _`.overview.gc.tract`: A fast translation from addresses to tract.
 (See design.mps.arena.req.fun.trans_.)
 
-.. _design.mps.arena.req.fun.trans: arena#req-fun-trans
+.. _design.mps.arena.req.fun.trans: arena#.req.fun.trans
 
 
 Notes
@@ -63,8 +63,8 @@ _`.note.refset`: Some of this document simply assumes that RefSets
 design.mps.arena.req.fun.set_. It's a lot simpler that way. Both to
 write and understand.
 
-.. _design.mps.collections.refsets: collections#refsets
-.. _design.mps.arena.req.fun.set: arena#req-fun-set
+.. _design.mps.collections.refsets: collections#.refsets
+.. _design.mps.arena.req.fun.set: arena#.req.fun.set
 
 
 Requirements
@@ -74,7 +74,7 @@ Most of the requirements are in fact on the generic arena (see
 design.mps.arena.req_). However, many of those requirements can only
 be met by a suitable arena class design.
 
-.. _design.mps.arena.req: arena#req
+.. _design.mps.arena.req: arena#.req
 
 Requirements particular to this arena class:
 
@@ -187,7 +187,7 @@ only valid if it is allocated to a pool. If it is not allocated to a
 pool, the fields of the tract are used for other purposes. (See
 design.mps.arena.tract.field.pool_)
 
-.. _design.mps.arena.tract.field.pool: arena#tract-field-pool
+.. _design.mps.arena.tract.field.pool: arena#.tract.field.pool
 
 _`.table.alloc`: The alloc table is a simple bit table (implemented
 using the BT module, design.mps.bt_).

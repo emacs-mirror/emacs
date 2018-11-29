@@ -92,8 +92,8 @@ LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info)
       action = EXCEPTION_CONTINUE_SEARCH;
   } else {
     /* Access on last sizeof(Addr) (ie 4 on this platform) bytes */
-    /* in memory.  We assume we can't get this page anyway (see */
-    /* <code/vmw3.c#assume.not-last>) so it can't be our fault. */
+    /* in memory.  We assume we can't get this page anyway */
+    /* <code/vmw3.c#assume.not-last> so it can't be our fault. */
     action = EXCEPTION_CONTINUE_SEARCH;
   }
 

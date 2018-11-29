@@ -1,6 +1,6 @@
 /* dbgpool.h: POOL DEBUG MIXIN
  *
- * See <design/object-debug>.
+ * <design/object-debug>.
  *
  * $Id$
  * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.

@@ -29,7 +29,7 @@ _`.other`: The thread manager module is responsible for scanning the
 control stack and registers of *other* threads. See
 design.mps.thread-manager.if.scan_.
 
-.. _design.mps.thread-manager.if.scan: thread-manager#if-scan
+.. _design.mps.thread-manager.if.scan: thread-manager#.if.scan
 
 _`.origin`: This design was originally proposed in
 mail.richard.2012-08-03.14-36_.
@@ -268,7 +268,7 @@ This necessity to have the definition in scope in ``mpsi.c``, while
 also having different definitions on different platforms, requires a
 violation of design.mps.config.no-spaghetti_ in ss.h.
 
-.. _design.mps.config.no-spaghetti: config#no-spaghetti
+.. _design.mps.config.no-spaghetti: config#.no-spaghetti
 
 ``STACK_CONTEXT_BEGIN(Arena arena)``
 

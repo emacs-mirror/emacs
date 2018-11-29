@@ -95,7 +95,7 @@ expansion of the macro ``MPS_PROD_STRING`` defined by ``config.h``
 (impl.h.config). Note that there is now only one product, so this is
 always ``"mps"`` (see design.mps.config.req.prod_).
 
-.. _design.mps.config.req.prod: config#req-prod
+.. _design.mps.config.req.prod: config#.req.prod
 
 _`.impl.platform`: The string containing the name of the platform is
 the expansion of the macro ``MPS_PF_STRING`` defined by ``mpstd.h``

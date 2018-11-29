@@ -5,14 +5,14 @@
  *
  * DESIGN
  *
- * .design: design.mps.poolsnc
+ * .design: <design/poolsnc>
  *
  * LIGHTWEIGHT FRAMES
  *
  * .lw-frame-state: The pool uses lightweight frames as its only
  * type of allocation frame. The lightweight frame state is set to
  * Valid whenever a buffer has a segment and Disabled otherwise.
- * See <design/alloc-frame/#lw-frame.states>.
+ * <design/alloc-frame#.lw-frame.states>.
  *
  * .lw-frame-null: The frame marker NULL is used as a special value
  * to indicate bottom of stack.
@@ -26,7 +26,7 @@ SRCID(poolsnc, "$Id$");
 
 /* SNCStruct -- structure for an SNC pool
  *
- * See design.mps.poolsnc.poolstruct.
+ * <design/poolsnc#.poolstruct>.
  */
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -78,7 +78,7 @@ typedef struct SNCBufStruct *SNCBuf;
 typedef struct SNCBufStruct {
   SegBufStruct segBufStruct;      /* superclass fields must come first */
   Seg topseg;                     /* The segment chain head -- may be NULL */
-  Sig sig;                        /* <design/sig/> */
+  Sig sig;                        /* <design/sig> */
 } SNCBufStruct;
 
 
@@ -462,7 +462,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
     return res;
 
 found:
-  /* <design/seg/#field.rankSet.start> */
+  /* <design/seg#.field.rankSet.start> */
   if (BufferRankSet(buffer) == RankSetEMPTY)
     SegSetRankAndSummary(seg, BufferRankSet(buffer), RefSetEMPTY);
   else

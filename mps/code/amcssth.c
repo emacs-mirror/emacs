@@ -126,7 +126,7 @@ static void *kid_thread(void *arg)
   closure_t cl = arg;
 
   /* Register the thread twice to check this is supported -- see
-   * <design/thread-manager/#req.register.multi>
+   * <design/thread-manager#.req.register.multi>
    */
   die(mps_thread_reg(&thread1, arena), "thread_reg");
   die(mps_thread_reg(&thread2, arena), "thread_reg");

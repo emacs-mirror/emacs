@@ -5,7 +5,7 @@
  *
  *  This is a single-threaded implementation of the threads manager.
  *  Has stubs for thread suspension.
- *  See <design/thread-manager/#impl.an>.
+ *  <design/thread-manager#.impl.an>.
  */
 
 #include "mpm.h"
@@ -14,7 +14,7 @@ SRCID(than, "$Id$");
 
 
 typedef struct mps_thr_s {      /* ANSI fake thread structure */
-  Sig sig;                      /* <design/sig/> */
+  Sig sig;                      /* <design/sig> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* attaches to arena */
@@ -107,7 +107,7 @@ Thread ThreadRingThread(Ring threadRing)
 }
 
 
-/* Must be thread-safe. See <design/interface-c/#check.testt>. */
+/* Must be thread-safe. <design/interface-c#.check.testt>. */
 
 Arena ThreadArena(Thread thread)
 {

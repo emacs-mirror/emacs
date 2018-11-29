@@ -791,8 +791,8 @@ attempts to flush blocks from the free list back to the CBS. See
 design.mps.freelist_ for the design and implementation of the free
 list.
 
-.. _design.mps.cbs.function.cbs.delete.fail: cbs#function-cbs-delete-fail
-.. _design.mps.cbs.function.cbs.insert.fail: cbs#function-cbs-insert-fail
+.. _design.mps.cbs.function.cbs.delete.fail: cbs#.function.cbs.delete.fail
+.. _design.mps.cbs.function.cbs.insert.fail: cbs#.function.cbs.insert.fail
 .. _design.mps.freelist: freelist
 
 
@@ -1007,7 +1007,7 @@ B. Document History
 - 1998-05-06 PTW Revised in response to review
   review.design.mps.poolmv2.2_(0).
 
-.. _design.mps.poolmv2.2: poolmv2#2
+.. _design.mps.poolmv2.2: poolmv2#.2
 
 - 2002-06-07 RB_ Converted from MMInfo database design document.
 

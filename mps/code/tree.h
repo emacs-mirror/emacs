@@ -44,7 +44,7 @@ typedef TreeKey (*TreeKeyFunction)(Tree tree);
 
 /* When storing Addrs in a tree, it is fastest to cast the Addr
  * directly to a TreeKey. This assumes that Addr and TreeKey are
- * compatible, possibly breaking <design/type/#addr.use>. On an exotic
+ * compatible, possibly breaking <design/type#.addr.use>. On an exotic
  * platform where the types are not convertible, take the address of
  * the variable in TreeKeyOfAddrVar, and dereference the address in
  * AddrOfTreeKey.

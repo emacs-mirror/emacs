@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2013-2018 Ravenbrook Limited.  See end of file for license.
  *
- * .source: See <design/keyword-arguments.rst>.
+ * .source: <design/keyword-arguments.rst>.
  */
 
 #include "config.h"

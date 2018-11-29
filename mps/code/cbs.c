@@ -9,7 +9,7 @@
  * .purpose: CBSs are used to manage potentially unbounded collections
  * of memory blocks.
  *
- * .sources: <design/cbs/>.
+ * .sources: <design/cbs>.
  *
  * .critical: In manual-allocation-bound programs using MVFF, many of
  * these functions are on the critical paths via mps_alloc (and then
@@ -155,7 +155,7 @@ static void cbsUpdateZonedNode(SplayTree splay, Tree tree)
 
 /* cbsInit -- Initialise a CBS structure
  *
- * See <design/land/#function.init>.
+ * <design/land#.function.init>.
  */
 
 ARG_DEFINE_KEY(cbs_block_pool, Pool);
@@ -231,7 +231,7 @@ static Res cbsInitZoned(Land land, Arena arena, Align alignment, ArgList args)
 
 /* cbsFinish -- Finish a CBS structure
  *
- * See <design/land/#function.finish>.
+ * <design/land#.function.finish>.
  */
 
 static void cbsFinish(Inst inst)
@@ -253,7 +253,7 @@ static void cbsFinish(Inst inst)
 
 /* cbsSize -- total size of ranges in CBS
  *
- * See <design/land/#function.size>.
+ * <design/land#.function.size>.
  */
 
 static Size cbsSize(Land land)
@@ -380,7 +380,7 @@ static void cbsBlockInsert(CBS cbs, RangeTree block)
 
 /* cbsInsert -- Insert a range into the CBS
  *
- * See <design/cbs/#functions.cbs.insert>.
+ * <design/cbs#.functions.cbs.insert>.
  *
  * .insert.alloc: Will only allocate a block if the range does not
  * abut an existing range.
@@ -548,7 +548,7 @@ static Res cbsInsertSteal(Range rangeReturn, Land land, Range rangeIO)
 
 /* cbsDelete -- Remove a range from a CBS
  *
- * See <design/land/#function.delete>.
+ * <design/land#.function.delete>.
  *
  * .delete.alloc: Will only allocate a block if the range splits
  * an existing range.
@@ -758,7 +758,7 @@ static Res cbsZonedSplayNodeDescribe(Tree tree, mps_lib_FILE *stream)
 
 /* cbsIterate -- iterate over all blocks in CBS
  *
- * See <design/land/#function.iterate>.
+ * <design/land#.function.iterate>.
  */
 
 typedef struct CBSIterateClosure {
@@ -800,7 +800,7 @@ static Bool cbsIterate(Land land, LandVisitor visitor, void *visitorClosure)
 
 /* cbsIterateAndDelete -- iterate over all blocks in CBS
  *
- * See <design/land/#function.iterate.and.delete>.
+ * <design/land#.function.iterate.and.delete>.
  */
 
 typedef struct CBSIterateAndDeleteClosure {
@@ -1137,7 +1137,7 @@ fail:
 
 /* cbsDescribe -- describe a CBS
  *
- * See <design/land/#function.describe>.
+ * <design/land#.function.describe>.
  */
 
 static Res cbsDescribe(Inst inst, mps_lib_FILE *stream, Count depth)

@@ -200,7 +200,7 @@ how the MPS is compiled (see design.mps.config.def.var_). It may
 expand to ``TESTT()``, or it may call the full checking function for
 the type.
 
-.. _design.mps.config.def.var: config#def-var
+.. _design.mps.config.def.var: config#.def.var
 
 _`.check.types`: We use definitions of types in both our external
 interface and our internal code, and we want to make sure that they
@@ -298,7 +298,7 @@ _`.cons.addr`: The interface constrains the MPS address type, Addr
 (design.mps.type.addr_), to being the same as C's generic pointer type,
 ``void *``, so that the MPS can manage C objects in the natural way.
 
-.. _design.mps.type.addr: type#addr
+.. _design.mps.type.addr: type#.addr
 
 _`.pun.addr`: We pun the type of ``mps_addr_t`` (which is ``void *``)
 into ``Addr`` (an incomplete type, see design.mps.type.addr_). This
@@ -308,7 +308,7 @@ _`.cons.size`: The interface constrains the MPS size type, ``Size``
 (design.mps.type.size_), to being the same as C's size type,
 ``size_t``, so that the MPS can manage C objects in the natural way.
 
-.. _design.mps.type.size: type#size
+.. _design.mps.type.size: type#.size
  
 _`.pun.size`: We pun the type of ``size_t`` in mps.h into ``Size`` in
 the MPM, as an argument to the format methods. We assume this works.
@@ -318,7 +318,7 @@ and ``Addr`` (design.mps.type.addr_) are the same size, and the
 interface constrains ``Word`` to being the same size as C's generic
 pointer type, ``void *``.
 
-.. _design.mps.type.word: type#word
+.. _design.mps.type.word: type#.word
 
 
 Implementation

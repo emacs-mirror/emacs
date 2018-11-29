@@ -196,8 +196,8 @@ extern unsigned CheckLevel;
 
 /* TESTT -- check type simply
  *
- * Must be thread safe.  See <design/interface-c/#thread-safety>
- * and <design/interface-c/#check.space>.
+ * Must be thread safe.  <design/interface-c#.thread-safety>
+ * and <design/interface-c#.check.space>.
  */
 
 #define TESTT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)
@@ -334,7 +334,7 @@ extern unsigned CheckLevel;
  * verify that certain types and fields are equivalent. They do not do
  * a complete job. This trickery is justified by the security gained
  * in knowing that <code/mps.h> matches the MPM. See
- * <design/interface-c/#check.types>. [This paragraph is intended to
+ * <design/interface-c#.check.types>. [This paragraph is intended to
  * satisfy rule.impl.trick.]
  */
 

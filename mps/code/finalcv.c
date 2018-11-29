@@ -6,7 +6,7 @@
  *
  * DESIGN
  *
- * See <design/poolmrg/#test>.
+ * <design/poolmrg#.test>.
  *
  * DEPENDENCIES
  *
@@ -132,7 +132,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
   die(mps_ap_create(&ap, pool, mps_rank_exact()), "ap_create\n");
 
   /* Make registered-for-finalization objects. */
-  /* <design/poolmrg/#test.promise.ut.alloc> */
+  /* <design/poolmrg#.test.promise.ut.alloc> */
   for(i = 0; i < rootCOUNT; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, vectorSIZE);
@@ -155,7 +155,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
   mps_message_type_enable(arena, mps_message_type_finalization());
   mps_message_type_enable(arena, mps_message_type_gc());
 
-  /* <design/poolmrg/#test.promise.ut.churn> */
+  /* <design/poolmrg#.test.promise.ut.churn> */
   while (finalizations < finalizationCOUNT && collections < collectionCOUNT) {
     mps_message_type_t type;
     
@@ -163,7 +163,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
     churn(ap);
     
     /* Maybe make some objects ready-to-finalize */
-    /* <design/poolmrg/#test.promise.ut.drop> */
+    /* <design/poolmrg#.test.promise.ut.drop> */
     for (i = 0; i < rootCOUNT; ++i) {
       if (root[i] != NULL && state[i] == rootSTATE) {
         if (rnd() % finalizationRATE == 0) {
@@ -192,7 +192,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
         mps_word_t objind;
         mps_addr_t objaddr;
 
-        /* <design/poolmrg/#test.promise.ut.message> */
+        /* <design/poolmrg#.test.promise.ut.message> */
         cdie(0 == mps_message_clock(arena, message),
              "message clock should be 0 (unset) for finalization messages");
         mps_message_finalization_ref(&objaddr, arena, message);
@@ -200,7 +200,7 @@ static void test(mps_arena_t arena, mps_pool_class_t pool_class)
         objind = dylan_int_int(obj[vectorSLOT]);
         printf("Finalizing: object %"PRIuLONGEST" at %p\n",
                (ulongest_t)objind, objaddr);
-        /* <design/poolmrg/#test.promise.ut.final.check> */
+        /* <design/poolmrg#.test.promise.ut.final.check> */
         cdie(root[objind] == NULL, "finalized live");
         cdie(state[objind] == finalizableSTATE, "finalized dead");
         state[objind] = finalizedSTATE;
