@@ -1258,7 +1258,7 @@ Return nil if such is not found."
        (with-current-buffer (get-buffer-create byte-compile-log-buffer)
 	 (goto-char (point-max))
 	 (let* ((inhibit-read-only t)
-		(dir (and byte-compile-current-file
+		(dir (and (stringp byte-compile-current-file)
 			  (file-name-directory byte-compile-current-file)))
 		(was-same (equal default-directory dir))
 		pt)
@@ -2093,20 +2093,19 @@ With argument ARG, insert value in current buffer after the form."
   (save-excursion
     (end-of-defun)
     (beginning-of-defun)
-    (let* ((byte-compile-current-file nil)
+    (let* ((byte-compile-current-file (current-buffer))
 	   (byte-compile-current-buffer (current-buffer))
 	   (byte-compile-read-position (point))
 	   (byte-compile-last-position byte-compile-read-position)
 	   (byte-compile-last-warned-form 'nothing)
 	   (value (eval
 		   (let ((read-with-symbol-positions (current-buffer))
-			 (read-symbol-positions-list nil))
+			 (read-symbol-positions-list nil)
+                         (symbols-with-pos-enabled t))
 		     (displaying-byte-compile-warnings
 		      (byte-compile-sexp
                        (eval-sexp-add-defvars
-                        (if symbols-with-pos-enabled
-                            (read-positioning-symbols (current-buffer))
-                          (read (current-buffer)))
+                        (read-positioning-symbols (current-buffer))
                         byte-compile-read-position))))
                    lexical-binding)))
       (cond (arg
@@ -2177,9 +2176,7 @@ With argument ARG, insert value in current buffer after the form."
 	  (setq byte-compile-read-position (point)
 		byte-compile-last-position byte-compile-read-position)
 	  (let* ((lread--unescaped-character-literals nil)
-                 (form (if symbols-with-pos-enabled
-                           (read-positioning-symbols inbuffer)
-                         (read inbuffer))))
+                 (form (read-positioning-symbols inbuffer)))
             (when lread--unescaped-character-literals
               (byte-compile-warn
                "unescaped character literals %s detected!"
@@ -5024,24 +5021,26 @@ OP and OPERAND are as passed to `byte-compile-out'."
 ;;; call tree stuff
 
 (defun byte-compile-annotate-call-tree (form)
-  (let (entry)
+  (let ((current-form (byte-compile-strip-symbol-positions
+                       byte-compile-current-form))
+        (bare-car-form (byte-compile-strip-symbol-positions (car form)))
+        entry)
     ;; annotate the current call
-    (if (setq entry (assq (car form) byte-compile-call-tree))
-	(or (memq byte-compile-current-form (nth 1 entry)) ;callers
+    (if (setq entry (assq bare-car-form byte-compile-call-tree))
+	(or (memq current-form (nth 1 entry)) ;callers
 	    (setcar (cdr entry)
-		    (cons byte-compile-current-form (nth 1 entry))))
+		    (cons current-form (nth 1 entry))))
       (setq byte-compile-call-tree
-	    (cons (list (car form) (list byte-compile-current-form) nil)
+	    (cons (list bare-car-form (list current-form) nil)
 		  byte-compile-call-tree)))
     ;; annotate the current function
-    (if (setq entry (assq byte-compile-current-form byte-compile-call-tree))
-	(or (memq (car form) (nth 2 entry)) ;called
+    (if (setq entry (assq current-form byte-compile-call-tree))
+	(or (memq bare-car-form (nth 2 entry)) ;called
 	    (setcar (cdr (cdr entry))
-		    (cons (car form) (nth 2 entry))))
+		    (cons bare-car-form (nth 2 entry))))
       (setq byte-compile-call-tree
-	    (cons (list byte-compile-current-form nil (list (car form)))
-		  byte-compile-call-tree)))
-    ))
+	    (cons (list current-form nil (list bare-car-form))
+		  byte-compile-call-tree)))))
 
 ;; Renamed from byte-compile-report-call-tree
 ;; to avoid interfering with completion of byte-compile-file.
