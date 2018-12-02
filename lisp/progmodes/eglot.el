@@ -82,7 +82,9 @@
                                 (python-mode . ("pyls"))
                                 ((js-mode
                                   js2-mode
-                                  rjsx-mode) . ("javascript-typescript-stdio"))
+                                  rjsx-mode
+                                  typescript-mode)
+                                 . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
                                 ((c++-mode c-mode) . ("ccls"))
                                 ((caml-mode tuareg-mode reason-mode)
