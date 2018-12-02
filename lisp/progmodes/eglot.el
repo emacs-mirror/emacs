@@ -374,7 +374,8 @@ treated as in `eglot-dbind'."
                                     `(:snippetSupport
                                       ,(if (eglot--snippet-expansion-fn)
                                            t
-                                         :json-false)))
+                                         :json-false))
+                                    :contextSupport t)
              :hover              `(:dynamicRegistration :json-false)
              :signatureHelp      `(:dynamicRegistration :json-false)
              :references         `(:dynamicRegistration :json-false)
@@ -1374,6 +1375,19 @@ THINGS are either registrations or unregisterations."
   (list :textDocument (eglot--TextDocumentIdentifier)
         :position (eglot--pos-to-lsp-position)))
 
+(defun eglot--CompletionParams ()
+  (append
+   (eglot--TextDocumentPositionParams)
+   `(:context
+     ,(if-let (trigger (and (eq last-command 'self-insert-command)
+                            (characterp last-input-event)
+                            (cl-find last-input-event
+                                     (eglot--server-capable :completionProvider
+                                                            :triggerCharacters)
+                                     :key (lambda (str) (aref str 0))
+                                     :test #'char-equal)))
+          `(:triggerKind 2 :triggerCharacter ,trigger) `(:triggerKind 1)))))
+
 (defvar-local eglot--recent-changes nil
   "Recent buffer changes as collected by `eglot--before-change'.")
 
@@ -1693,7 +1707,7 @@ is not active."
         (lambda (_ignored)
           (let* ((resp (jsonrpc-request server
                                         :textDocument/completion
-                                        (eglot--TextDocumentPositionParams)
+                                        (eglot--CompletionParams)
                                         :deferred :textDocument/completion
                                         :cancel-on-input t))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
