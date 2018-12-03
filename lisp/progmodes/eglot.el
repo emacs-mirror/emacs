@@ -204,13 +204,12 @@ let the buffer grow forever."
 ;;; Message verification helpers
 ;;;
 (defvar eglot--lsp-interface-alist
-  `(
-    (CodeAction (:title) (:kind :diagnostics :edit :command))
+  `((CodeAction (:title) (:kind :diagnostics :edit :command))
+    (Command (:title :command) (:arguments))
     (FileSystemWatcher (:globPattern) (:kind))
     (Registration (:id :method) (:registerOptions))
     (TextDocumentEdit (:textDocument :edits) ())
-    (WorkspaceEdit () (:changes :documentChanges))
-    )
+    (WorkspaceEdit () (:changes :documentChanges)))
   "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
 INTERFACE-NAME is a symbol designated by the spec as
@@ -294,6 +293,7 @@ Honour `eglot-strict-mode'."
   "Like `pcase', but for the LSP object OBJ.
 CLAUSES is a list (DESTRUCTURE FORMS...) where DESTRUCTURE is
 treated as in `eglot-dbind'."
+  (declare (indent 1))
   (let ((obj-once (make-symbol "obj-once")))
     `(let ((,obj-once ,obj))
        (cond
@@ -306,19 +306,21 @@ treated as in `eglot-dbind'."
                                     (car (pop vars)))
            for condition =
            (if interface-name
+               ;; In this mode, we assume `eglot-strict-mode' is fully
+               ;; on, otherwise we can't disambiguate between certain
+               ;; types.
                `(let* ((interface
                         (or (assoc ',interface-name eglot--lsp-interface-alist)
                             (eglot--error "Unknown interface %s")))
                        (object-keys (eglot--plist-keys ,obj-once))
                        (required-keys (car (cdr interface))))
                   (and (null (cl-set-difference required-keys object-keys))
-                       (or (null (memq 'disallow-non-standard-keys
-                                       eglot-strict-mode))
-                           (null (cl-set-difference
-                                  (cl-set-difference object-keys required-keys)
-                                  (cadr (cdr interface)))))))
+                       (null (cl-set-difference
+                              (cl-set-difference object-keys required-keys)
+                              (cadr (cdr interface))))))
              ;; In this interface-less mode we don't check
-             ;; `eglot-strict-mode' at all.
+             ;; `eglot-strict-mode' at all: just check that the object
+             ;; has all the keys the user wants to destructure.
              `(null (cl-set-difference
                      ',vars-as-keywords
                      (eglot--plist-keys ,obj-once))))
@@ -2100,9 +2102,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                                             (eglot--diag-data diag))))
                               (flymake-diagnostics beg end))]))))
          (menu-items
-          (or (mapcar (eglot--lambda ((CodeAction) title edit command arguments)
-                        `(,title . (:command ,command :arguments ,arguments
-                                             :edit ,edit)))
+          (or (mapcar (jsonrpc-lambda (&rest all &key title &allow-other-keys)
+                        (cons title all))
                       actions)
               (eglot--error "No code actions here")))
          (menu `("Eglot code actions:" ("dummy" ,@menu-items)))
@@ -2114,11 +2115,14 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                      (if (eq (setq retval (tmm-prompt menu)) never-mind)
                          (keyboard-quit)
                        retval)))))
-    (cl-destructuring-bind (&key _title command arguments edit) action
-      (when edit
-        (eglot--apply-workspace-edit edit))
-      (when command
-        (eglot-execute-command server (intern command) arguments)))))
+    (eglot--dcase action
+      (((Command) command arguments)
+       (eglot-execute-command server (intern command) arguments))
+      (((CodeAction) edit command)
+       (when edit (eglot--apply-workspace-edit edit))
+       (when command
+         (eglot--dbind ((Command) command arguments) command
+           (eglot-execute-command server (intern command) arguments)))))))
 
 
 
