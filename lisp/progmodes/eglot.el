@@ -1052,6 +1052,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (add-hook 'xref-backend-functions 'eglot-xref-backend nil t)
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-hook 'change-major-mode-hook 'eglot--managed-mode-onoff nil t)
+    (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'eglot-eldoc-function)
     (add-function :around (local 'imenu-create-index-function) #'eglot-imenu)
@@ -1068,6 +1069,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (remove-hook 'xref-backend-functions 'eglot-xref-backend t)
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-onoff t)
+    (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
@@ -1383,12 +1385,18 @@ THINGS are either registrations or unregisterations."
   (list :textDocument (eglot--TextDocumentIdentifier)
         :position (eglot--pos-to-lsp-position)))
 
+(defvar-local eglot--last-inserted-char nil
+  "If non-nil, value of the last inserted character in buffer.")
+
+(defun eglot--post-self-insert-hook ()
+  "Set `eglot--last-inserted-char.'"
+  (setq eglot--last-inserted-char last-input-event))
+
 (defun eglot--CompletionParams ()
   (append
    (eglot--TextDocumentPositionParams)
    `(:context
-     ,(if-let (trigger (and (eq last-command 'self-insert-command)
-                            (characterp last-input-event)
+     ,(if-let (trigger (and (characterp eglot--last-inserted-char)
                             (cl-find last-input-event
                                      (eglot--server-capable :completionProvider
                                                             :triggerCharacters)
@@ -1406,15 +1414,18 @@ THINGS are either registrations or unregisterations."
 (defvar-local eglot--change-idle-timer nil "Idle timer for didChange signals.")
 
 (defun eglot--before-change (start end)
-  "Hook onto `before-change-functions'.
-Records START and END, crucially convert them into
-LSP (line/char) positions before that information is
-lost (because the after-change thingy doesn't know if newlines
-were deleted/added)"
+  "Hook onto `before-change-functions'."
+  ;; Records START and END, crucially convert them into LSP
+  ;; (line/char) positions before that information is lost (because
+  ;; the after-change thingy doesn't know if newlines were
+  ;; deleted/added)
   (when (listp eglot--recent-changes)
     (push `(,(eglot--pos-to-lsp-position start)
             ,(eglot--pos-to-lsp-position end))
-          eglot--recent-changes)))
+          eglot--recent-changes))
+  ;; Also, reset `eglot--last-inserted-char' which might be set later
+  ;; by `eglot--post-self-insert-hook'.
+  (setq eglot--last-inserted-char nil))
 
 (defun eglot--after-change (start end pre-change-length)
   "Hook onto `after-change-functions'.
