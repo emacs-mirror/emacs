@@ -1313,7 +1313,13 @@ COMMAND is a symbol naming the command."
                                        message `((eglot-lsp-diag . ,diag-spec)))))
          into diags
          finally (cond ((and flymake-mode eglot--current-flymake-report-fn)
-                        (funcall eglot--current-flymake-report-fn diags)
+                        (funcall eglot--current-flymake-report-fn diags
+                                 ;; If the buffer hasn't changed since last
+                                 ;; call to the report function, flymake won't
+                                 ;; delete old diagnostics.  Using :region
+                                 ;; keyword forces flymake to delete
+                                 ;; them (github#159).
+                                 :region (cons (point-min) (point-max)))
                         (setq eglot--unreported-diagnostics nil))
                        (t
                         (setq eglot--unreported-diagnostics (cons t diags))))))
