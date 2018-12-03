@@ -960,8 +960,9 @@ output is passed to the filter `inferior-octave-output-digest'."
 	  (setq inferior-octave-output-string nil
 		inferior-octave-receive-in-progress t)
 	  (comint-send-string proc string)
-	  (while inferior-octave-receive-in-progress
-	    (accept-process-output proc))
+	  (while (and inferior-octave-receive-in-progress
+	              (with-local-quit
+                        (accept-process-output proc))))
 	  (setq list (cdr list)))
       (set-process-filter proc filter))))
 
