@@ -1606,23 +1606,26 @@ code line."
                  (const :tag "Multi Line" multiline))
   :version "24.4")
 
-;; (FN SIGNATURE1 SIGNATURE2 ...)
-(defvar octave-eldoc-cache nil)
+;; (FN -> (SIGNATURE1 SIGNATURE2 ...))
+(defvar octave-eldoc-cache (make-hash-table :test #'equal))
+
+(defun octave-eldoc-flush-cache ()
+  "Flush the cache of function signatures for Eldoc."
+  (clrhash octave-eldoc-cache))
 
 (defun octave-eldoc-function-signatures (fn)
-  (unless (equal fn (car octave-eldoc-cache))
-    (inferior-octave-send-list-and-digest
-     (list (format "print_usage ('%s');\n" fn)))
-    (let (result)
-      (dolist (line inferior-octave-output-list)
-        (when (string-match
-               "\\s-*\\(?:--[^:]+\\|usage\\):\\s-*\\(.*\\)$"
-               line)
-          (push (match-string 1 line) result)))
-      (setq octave-eldoc-cache
-            (cons (substring-no-properties fn)
-                  (nreverse result)))))
-  (cdr octave-eldoc-cache))
+  (or (gethash fn octave-eldoc-cache)
+      (puthash fn
+               (let (result)
+                 (inferior-octave-send-list-and-digest
+                  (list (format "print_usage ('%s');\n" fn)))
+                 (dolist (line inferior-octave-output-list)
+                   (when (string-match
+                          "\\s-*\\(?:--\\|usage:\\)\\s-*\\(.*\\)$"
+                          line)
+                     (push (match-string 1 line) result)))
+                 (nreverse result))
+               octave-eldoc-cache)))
 
 (defun octave-eldoc-function ()
   "A function for `eldoc-documentation-function' (which see)."
