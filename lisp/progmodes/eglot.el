@@ -1399,7 +1399,7 @@ THINGS are either registrations or unregisterations."
    (eglot--TextDocumentPositionParams)
    `(:context
      ,(if-let (trigger (and (characterp eglot--last-inserted-char)
-                            (cl-find last-input-event
+                            (cl-find eglot--last-inserted-char
                                      (eglot--server-capable :completionProvider
                                                             :triggerCharacters)
                                      :key (lambda (str) (aref str 0))
@@ -2116,8 +2116,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                          (keyboard-quit)
                        retval)))))
     (eglot--dcase action
-      (((Command) command arguments)
-       (eglot-execute-command server (intern command) arguments))
+        (((Command) command arguments)
+         (eglot-execute-command server (intern command) arguments))
       (((CodeAction) edit command)
        (when edit (eglot--apply-workspace-edit edit))
        (when command
