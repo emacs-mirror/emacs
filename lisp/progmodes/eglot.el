@@ -1055,6 +1055,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-hook 'change-major-mode-hook 'eglot--managed-mode-onoff nil t)
     (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
+    (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
     (add-function :before-until (local 'eldoc-documentation-function)
                   #'eglot-eldoc-function)
     (add-function :around (local 'imenu-create-index-function) #'eglot-imenu)
@@ -1072,6 +1073,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-onoff t)
     (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
+    (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
     (remove-function (local 'eldoc-documentation-function)
                      #'eglot-eldoc-function)
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
@@ -1394,6 +1396,10 @@ THINGS are either registrations or unregisterations."
   "Set `eglot--last-inserted-char.'"
   (setq eglot--last-inserted-char last-input-event))
 
+(defun eglot--pre-command-hook ()
+  "Reset `eglot--last-inserted-char.'"
+  (setq eglot--last-inserted-char nil))
+
 (defun eglot--CompletionParams ()
   (append
    (eglot--TextDocumentPositionParams)
@@ -1424,10 +1430,7 @@ THINGS are either registrations or unregisterations."
   (when (listp eglot--recent-changes)
     (push `(,(eglot--pos-to-lsp-position start)
             ,(eglot--pos-to-lsp-position end))
-          eglot--recent-changes))
-  ;; Also, reset `eglot--last-inserted-char' which might be set later
-  ;; by `eglot--post-self-insert-hook'.
-  (setq eglot--last-inserted-char nil))
+          eglot--recent-changes)))
 
 (defun eglot--after-change (start end pre-change-length)
   "Hook onto `after-change-functions'.
