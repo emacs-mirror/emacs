@@ -203,40 +203,41 @@ let the buffer grow forever."
 
 ;;; Message verification helpers
 ;;;
-(defvar eglot--lsp-interface-alist
-  `((CodeAction (:title) (:kind :diagnostics :edit :command))
-    (Command (:title :command) (:arguments))
-    (FileSystemWatcher (:globPattern) (:kind))
-    (Registration (:id :method) (:registerOptions))
-    (Hover (:contents) (:range))
-    (SymbolInformation
-     (:name :kind :location)
-     (:deprecated :containerName))
-    (Position (:line :character))
-    (Range (:start :end))
-    (Location (:uri :range))
-    (Diagnostic (:range :message)
-                (:severity :code :source :relatedInformation))
-    (TextEdit (:range :newText))
-    (TextDocumentEdit (:textDocument :edits) ())
-    (VersionedTextDocumentIdentifier (:uri :version) ())
-    (WorkspaceEdit () (:changes :documentChanges))
-    (MarkupContent (:kind :value))
-    (InitializeResult (:capabilities))
-    (ShowMessageParams (:type :message))
-    (ShowMessageRequestParams (:type :message) (:actions))
-    (LogMessageParams (:type :message))
-    (Registration (:id :method) (:registerOptions))
-    (CompletionItem
-     (:label )
-     (:kind :detail :documentation :deprecated :preselect :sortText :filterText
-            :insertText :insertTextFormat :textEdit :additionalTextEdits?
-            :commitCharacters :command :data))
-    (SignatureHelp (:signatures) (:activeSignature :activeParameter))
-    (SignatureInformation (:label) (:documentation :parameters))
-    (ParameterInformation (:label) (:documentation))
-    (DocumentHighlight) (:range) (:kind))
-  "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
+(eval-and-compile
+  (defvar eglot--lsp-interface-alist
+    `(
+      (CodeAction (:title) (:kind :diagnostics :edit :command))
+      (Command (:title :command) (:arguments))
+      (CompletionItem (:label)
+                      (:kind :detail :documentation :deprecated :preselect
+                             :sortText :filterText :insertText :insertTextFormat
+                             :textEdit :additionalTextEdits :commitCharacters
+                             :command :data))
+      (Diagnostic (:range :message) (:severity :code :source :relatedInformation))
+      (DocumentHighlight (:range) (:kind))
+      (FileSystemWatcher (:globPattern) (:kind))
+      (Hover (:contents) (:range))
+      (InitializeResult (:capabilities))
+      (Location (:uri :range))
+      (LogMessageParams (:type :message))
+      (MarkupContent (:kind :value))
+      (ParameterInformation (:label) (:documentation))
+      (Position (:line :character))
+      (Range (:start :end))
+      (Registration (:id :method) (:registerOptions))
+      (Registration (:id :method) (:registerOptions))
+      (ResponseError (:code :message) (:data))
+      (ShowMessageParams (:type :message))
+      (ShowMessageRequestParams (:type :message) (:actions))
+      (SignatureHelp (:signatures) (:activeSignature :activeParameter))
+      (SignatureInformation (:label) (:documentation :parameters))
+      (SymbolInformation (:name :kind :location) (:deprecated :containerName))
+      (TextDocumentEdit (:textDocument :edits) ())
+      (TextEdit (:range :newText))
+      (VersionedTextDocumentIdentifier (:uri :version) ())
+      (WorkspaceEdit () (:changes :documentChanges))
+      )
+    "Alist (INTERFACE-NAME . INTERFACE) of known external LSP interfaces.
 
 INTERFACE-NAME is a symbol designated by the spec as
 \"interface\".  INTERFACE is a list (REQUIRED OPTIONAL) where
@@ -246,23 +247,38 @@ message adhering to that interface.
 
 Here's what an element of this alist might look like:
 
-    (CreateFile . ((:kind :uri) (:options)))")
+    (CreateFile . ((:kind :uri) (:options)))"))
 
-(defvar eglot-strict-mode '()
-  "How strictly Eglot vetoes LSP messages from server.
+(eval-and-compile
+  (defvar eglot-strict-mode (if load-file-name '()
+                              '(disallow-non-standard-keys
+                                ;; Uncomment these two for fun at
+                                ;; compile-time or with flymake-mode.
+                                ;;
+                                ;; enforce-required-keys
+                                ;; enforce-optional-keys
+                                ))
+    "How strictly to check LSP interfaces at compile- and run-time.
 
 Value is a list of symbols:
 
-If a list containing the symbol `disallow-non-standard-keys', an
-error is raised if any non-standard fields are sent by the
-server.
+If the symbol `disallow-non-standard-keys' is present, an error
+is raised if any extraneous fields are sent by the server.  At
+compile-time, a warning is raised if a destructuring spec
+includes such a field.
 
-If the list containing the symbol `enforce-required-keys', an error
-is raised if any required fields are missing from the message.
+If the symbol `enforce-required-keys' is present, an error is
+raised if any required fields are missing from the message sent
+from the server.  At compile-time, a warning is raised if a
+destructuring spec doesn't use such a field.
+
+If the symbol `enforce-optional-keys' is present, nothing special
+happens at run-time.  At compile-time, a warning is raised if a
+destructuring spec doesn't use all optional fields.
 
 If the list is empty, any non-standard fields sent by the server
 and missing required fields are accepted (which may or may not
-cause problems in Eglot's functioning later on).")
+cause problems in Eglot's functioning later on)."))
 
 (defun eglot--plist-keys (plist)
   (cl-loop for (k _v) on plist by #'cddr collect k))
@@ -280,6 +296,45 @@ cause problems in Eglot's functioning later on).")
     (eglot--error "A `%s' mustn't have %s" (car interface) excess))
   (funcall fn))
 
+(eval-and-compile
+  (defun eglot--keywordize-vars (vars)
+    (mapcar (lambda (var) (intern (format ":%s" var))) vars))
+
+  (defun eglot--check-interface (interface-name vars)
+    (let ((interface
+           (assoc interface-name eglot--lsp-interface-alist)))
+      (cond (interface
+             (let ((too-many
+                    (and
+                     (memq 'disallow-non-standard-keys eglot-strict-mode)
+                     (cl-set-difference
+                      (eglot--keywordize-vars vars)
+                      (append (car (cdr interface))
+                              (cadr (cdr interface))))))
+                   (ignored-required
+                    (and
+                     (memq 'enforce-required-keys eglot-strict-mode)
+                     (cl-set-difference
+                      (car (cdr interface))
+                      (eglot--keywordize-vars vars))))
+                   (missing-out
+                    (and
+                     (memq 'enforce-optional-keys eglot-strict-mode)
+                     (cl-set-difference
+                      (cadr (cdr interface))
+                      (eglot--keywordize-vars vars)))))
+               (when too-many (byte-compile-warn
+                               "Destructuring for %s has extraneous %s"
+                               interface-name too-many))
+               (when ignored-required (byte-compile-warn
+                                       "Destructuring for %s ignores required %s"
+                                       interface-name ignored-required))
+               (when missing-out (byte-compile-warn
+                                  "Destructuring for %s is missing out on %s"
+                                  interface-name missing-out))))
+            (t
+             (byte-compile-warn "Unknown LSP interface %s" interface-name))))))
+
 (cl-defmacro eglot--dbind (vars object &body body)
   "Destructure OBJECT of binding VARS in BODY.
 VARS is ([(INTERFACE)] SYMS...)
@@ -290,8 +345,7 @@ Honour `eglot-strict-mode'."
         (object-once (make-symbol "object-once"))
         (fn-once (make-symbol "fn-once")))
     (cond (interface-name
-           ;; jt@2018-11-29: maybe we check some things at compile
-           ;; time and use `byte-compiler-warn' here
+           (eglot--check-interface interface-name vars)
            `(let ((,object-once ,object))
               (cl-destructuring-bind (&key ,@vars &allow-other-keys) ,object-once
                 (eglot--call-with-interface (assoc ',interface-name
@@ -325,31 +379,32 @@ treated as in `eglot-dbind'."
        (cond
         ,@(cl-loop
            for (vars . body) in clauses
-           for vars-as-keywords = (mapcar (lambda (var)
-                                            (intern (format ":%s" var)))
-                                          vars)
+           for vars-as-keywords = (eglot--keywordize-vars vars)
            for interface-name = (if (consp (car vars))
                                     (car (pop vars)))
            for condition =
-           (if interface-name
-               ;; In this mode, we assume `eglot-strict-mode' is fully
-               ;; on, otherwise we can't disambiguate between certain
-               ;; types.
-               `(let* ((interface
-                        (or (assoc ',interface-name eglot--lsp-interface-alist)
-                            (eglot--error "Unknown interface %s")))
-                       (object-keys (eglot--plist-keys ,obj-once))
-                       (required-keys (car (cdr interface))))
-                  (and (null (cl-set-difference required-keys object-keys))
-                       (null (cl-set-difference
-                              (cl-set-difference object-keys required-keys)
-                              (cadr (cdr interface))))))
-             ;; In this interface-less mode we don't check
-             ;; `eglot-strict-mode' at all: just check that the object
-             ;; has all the keys the user wants to destructure.
-             `(null (cl-set-difference
-                     ',vars-as-keywords
-                     (eglot--plist-keys ,obj-once))))
+           (cond (interface-name
+                  (eglot--check-interface interface-name vars)
+                  ;; In this mode, in runtime, we assume
+                  ;; `eglot-strict-mode' is fully on, otherwise we
+                  ;; can't disambiguate between certain types.
+                  `(let* ((interface
+                           (or (assoc ',interface-name eglot--lsp-interface-alist)
+                               (eglot--error "Unknown LSP interface %s"
+                                             ',interface-name)))
+                          (object-keys (eglot--plist-keys ,obj-once))
+                          (required-keys (car (cdr interface))))
+                     (and (null (cl-set-difference required-keys object-keys))
+                          (null (cl-set-difference
+                                 (cl-set-difference object-keys required-keys)
+                                 (cadr (cdr interface)))))))
+                 (t
+                  ;; In this interface-less mode we don't check
+                  ;; `eglot-strict-mode' at all: just check that the object
+                  ;; has all the keys the user wants to destructure.
+                  `(null (cl-set-difference
+                          ',vars-as-keywords
+                          (eglot--plist-keys ,obj-once)))))
            collect `(,condition
                      (cl-destructuring-bind (&key ,@vars &allow-other-keys)
                          ,obj-once
