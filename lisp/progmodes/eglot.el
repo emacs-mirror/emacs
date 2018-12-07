@@ -260,7 +260,8 @@ Here's what an element of this alist might look like:
                                 ))
     "How strictly to check LSP interfaces at compile- and run-time.
 
-Value is a list of symbols:
+Value is a list of symbols (if the list is empty, no checks are
+performed).
 
 If the symbol `disallow-non-standard-keys' is present, an error
 is raised if any extraneous fields are sent by the server.  At
@@ -276,9 +277,9 @@ If the symbol `enforce-optional-keys' is present, nothing special
 happens at run-time.  At compile-time, a warning is raised if a
 destructuring spec doesn't use all optional fields.
 
-If the list is empty, any non-standard fields sent by the server
-and missing required fields are accepted (which may or may not
-cause problems in Eglot's functioning later on)."))
+If the symbol `disallow-unknown-methods' is present, Eglot warns
+on unknown notifications and errors on unknown requests.
+"))
 
 (defun eglot--plist-keys (plist)
   (cl-loop for (k _v) on plist by #'cddr collect k))
@@ -1316,13 +1317,15 @@ Uses THING, FACE, DEFS and PREPEND."
 (cl-defmethod eglot-handle-notification
   (_server method &key &allow-other-keys)
   "Handle unknown notification"
-  (unless (string-prefix-p "$" (format "%s" method))
+  (unless (or (string-prefix-p "$" (format "%s" method))
+              (not (memq 'disallow-unknown-methods eglot-strict-mode)))
     (eglot--warn "Server sent unknown notification method `%s'" method)))
 
 (cl-defmethod eglot-handle-request
   (_server method &key &allow-other-keys)
   "Handle unknown request"
-  (jsonrpc-error "Unknown request method `%s'" method))
+  (when (memq 'disallow-unknown-methods eglot-strict-mode)
+    (jsonrpc-error "Unknown request method `%s'" method)))
 
 (cl-defmethod eglot-execute-command
   (server command arguments)
