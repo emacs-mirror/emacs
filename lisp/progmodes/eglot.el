@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.6"))
+;; Package-Requires: ((emacs "26.1") (jsonrpc "1.0.6") (flymake "1.0.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -2399,40 +2399,6 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   ((_server eglot-eclipse-jdt) (_cmd (eql java.apply.workspaceEdit)) arguments)
   "Eclipse JDT breaks spec and replies with edits as arguments."
   (mapc #'eglot--apply-workspace-edit arguments))
-
-
-;; FIXME: A horrible hack of Flymake's insufficient API that must go
-;; into Emacs master, or better, 26.2
-(when (version< emacs-version "27.0")
-  (cl-defstruct (eglot--diag (:include flymake--diag)
-                             (:constructor eglot--make-diag-1))
-    data-1)
-  (defsubst eglot--make-diag (buffer beg end type text data)
-    (let ((sym (alist-get type eglot--diag-error-types-to-old-types)))
-      (eglot--make-diag-1 :buffer buffer :beg beg :end end :type sym
-                          :text text :data-1 data)))
-  (defsubst eglot--diag-data (diag)
-    (and (eglot--diag-p diag) (eglot--diag-data-1 diag)))
-  (defvar eglot--diag-error-types-to-old-types
-    '((eglot-error . :error)
-      (eglot-warning . :warning)
-      (eglot-note . :note)))
-  (advice-add
-   'flymake--highlight-line :after
-   (lambda (diag)
-     (when (eglot--diag-p diag)
-       (let ((ov (cl-find diag
-                          (overlays-at (flymake-diagnostic-beg diag))
-                          :key (lambda (ov)
-                                 (overlay-get ov 'flymake-diagnostic))))
-             (overlay-properties
-              (get (car (rassoc (flymake-diagnostic-type diag)
-                                eglot--diag-error-types-to-old-types))
-                   'flymake-overlay-control)))
-         (cl-loop for (k . v) in overlay-properties
-                  do (overlay-put ov k v)))))
-   '((name . eglot-hacking-in-some-per-diag-overlay-properties))))
-
 
 (provide 'eglot)
 ;;; eglot.el ends here
