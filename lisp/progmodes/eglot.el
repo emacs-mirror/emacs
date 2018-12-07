@@ -429,7 +429,7 @@ treated as in `eglot-dbind'."
 (cl-defgeneric eglot-handle-request (server method &rest params)
   "Handle SERVER's METHOD request with PARAMS.")
 
-(cl-defgeneric eglot-handle-notification (server method id &rest params)
+(cl-defgeneric eglot-handle-notification (server method &rest params)
   "Handle SERVER's METHOD notification with PARAMS.")
 
 (cl-defgeneric eglot-execute-command (server command arguments)
@@ -783,10 +783,8 @@ This docstring appeases checkdoc, that's all."
                                 :noquery t
                                 :stderr (get-buffer-create
                                          (format "*%s stderr*" readable-name))))))))
-         (spread
-          (lambda (fn)
-            (lambda (&rest args)
-              (apply fn (append (butlast args) (car (last args)))))))
+         (spread (lambda (fn) (lambda (server method params)
+                                (apply fn server method (append params nil)))))
          (server
           (apply
            #'make-instance class
