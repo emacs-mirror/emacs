@@ -325,7 +325,7 @@ memory. Here are some things you might try:
    but this is only necessary for SSE_ types; ordinary types on this
    platform require no more than 8-byte alignment.
 
-   .. _SSE: http://msdn.microsoft.com/en-us/library/t467de55.aspx
+   .. _SSE: https://en.wikipedia.org/wiki/Streaming_SIMD_Extensions
 
 
 .. index::

@@ -1,7 +1,7 @@
 /* mpswin.h: RAVENBROOK MEMORY POOL SYSTEM WINDOWS.H INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: For MPS client application developers, MPS developers.
  *
@@ -13,7 +13,9 @@
 
 #ifndef WIN32_LEAN_AND_MEAN
 /* Speed up the build process by excluding parts of windows.h that we
- * don't use. See <http://support.microsoft.com/kb/166474> */
+ * don't use. See
+ * <https://docs.microsoft.com/en-us/windows/desktop/winprog/using-the-windows-headers#faster-builds-with-smaller-header-files>
+ */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #undef WIN32_LEAN_AND_MEAN
@@ -26,7 +28,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

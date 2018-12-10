@@ -74,7 +74,7 @@ LONG WINAPI ProtSEHfilter(LPEXCEPTION_POINTERS info)
     mode = AccessREAD | AccessWRITE;
     break;
   default:
-    /* <http://msdn.microsoft.com/en-us/library/aa363082%28VS.85%29.aspx> */
+    /* <https://docs.microsoft.com/en-gb/windows/desktop/api/winnt/ns-winnt-_exception_record> */
     NOTREACHED;
     mode = AccessREAD | AccessWRITE;
     break;
@@ -107,7 +107,7 @@ void ProtSetup(void)
 {
   void *handler;
   /* See "AddVectoredExceptionHandler function (Windows)"
-     <http://msdn.microsoft.com/en-us/library/windows/desktop/ms679274%28v=vs.85%29.aspx> */
+     <https://msdn.microsoft.com/en-us/library/windows/desktop/ms679274%28v=vs.85%29.aspx> */
   /* ProtSetup is called only once per process, not once per arena, so
      this exception handler is only installed once. */
   handler = AddVectoredExceptionHandler(1uL, ProtSEHfilter);
@@ -138,7 +138,7 @@ void ProtSync(Arena arena)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

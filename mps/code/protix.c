@@ -9,9 +9,8 @@
  *
  *  SOURCES
  *
- *  [SUSV2MPROTECT] Single UNIX Specification, Version 2, mprotect man
- *  page:
- *  http://opengroup.org/onlinepubs/007908799/xsh/mprotect.html
+ *  [SUSV2MPROTECT] Single UNIX Specification, Version 2, mprotect
+ *  <https://pubs.opengroup.org/onlinepubs/007908799/xsh/mprotect.html>
  *
  *  ASSUMPTIONS
  *

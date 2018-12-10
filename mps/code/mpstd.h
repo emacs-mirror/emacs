@@ -1,7 +1,7 @@
 /* mpstd.h: RAVENBROOK MEMORY POOL SYSTEM TARGET DETECTION
  *
  * $Id$
- * Copyright (c) 2001-2013 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2001 Global Graphics Software.
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -53,12 +53,12 @@
 
 
 /* "Predefined Macros" from "Visual Studio 2010" on MSDN
- * <http://msdn.microsoft.com/en-us/library/b0084kay(v=vs.100).aspx>.
+ * <https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/b0084kay(v=vs.100)>.
  * Note that Win32 includes 64-bit Windows!
  * We use the same alignment as MS malloc: 16, which is used for XMM
  * operations.
  * See MSDN -> x64 Software Conventions -> Overview of x64 Calling Conventions
- * <http://msdn.microsoft.com/en-us/library/ms235286> 
+ * <https://docs.microsoft.com/en-gb/cpp/build/overview-of-x64-calling-conventions>
  */
 
 #elif defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64) && !defined(__POCC__)
@@ -345,7 +345,7 @@
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2013 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  *

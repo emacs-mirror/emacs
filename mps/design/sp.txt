@@ -64,7 +64,7 @@ beyond. If ``StackProbeDEPTH`` is greater than or equal to the number
 of words per page, the implementation might need to carry out multiple
 probes. (This constraint is checked in ``MPMCheck()``.)
 
-.. _Windows: http://support.microsoft.com/kb/100775
+.. _Windows: https://docs.microsoft.com/en-us/windows/desktop/procthread/thread-stack-size
 
 _`.sol.depth.no-recursion`: In order to implement this design, the MPS
 must have constant bounded stack depth, and therefore, no recursion.
@@ -173,7 +173,7 @@ function |alloca|_, for which the documentation says, "A stack
 overflow exception is generated if the space cannot be allocated."
 
 .. |alloca| replace:: ``_alloca()``
-.. _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
+.. _alloca: https://docs.microsoft.com/en-gb/cpp/c-runtime-library/reference/alloca
 
 
 Document History
@@ -181,13 +181,13 @@ Document History
 
 - 2014-10-23 GDR_ Initial draft.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

@@ -183,7 +183,7 @@ using ``ControlAlloc()``.
     allocation. This does not satisfy `.req.queue`_. See also
     job001570_. Richard Kistruck, 2008-12-15.
 
-    .. _job001570: http://www.ravenbrook.com/project/mps/issue/job001570/
+    .. _job001570: https://www.ravenbrook.com/project/mps/issue/job001570/
 
 Poiters to these messages are stored in ``tsMessage[ti]`` and
 ``tMessage[ti]`` arrays in the ``ArenaStruct``.
@@ -198,7 +198,7 @@ Poiters to these messages are stored in ``tsMessage[ti]`` and
     uninitialised memory) when not being used by a trace. See also
     job001989_. Richard Kistruck, 2008-12-15.
 
-    .. _job001989: http://www.ravenbrook.com/project/mps/issue/job001989/
+    .. _job001989: https://www.ravenbrook.com/project/mps/issue/job001989/
 
 
 Creating and Posting
@@ -311,13 +311,13 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
