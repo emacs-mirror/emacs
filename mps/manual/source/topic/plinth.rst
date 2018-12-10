@@ -63,7 +63,7 @@ into account the restrictions imposed by the operating system. (See
 "`Defining Signal Handlers`_" in the GNU C Library Reference Manual
 for useful advice.)
 
-.. _Defining Signal Handlers: http://www.gnu.org/software/libc/manual/html_node/Defining-Handlers.html
+.. _Defining Signal Handlers: https://www.gnu.org/software/libc/manual/html_node/Defining-Handlers.html
 
 
 .. c:macro:: CONFIG_PLINTH_NONE

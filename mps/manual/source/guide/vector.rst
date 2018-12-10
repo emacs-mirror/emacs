@@ -19,7 +19,7 @@ vector* problem (named after the |stretchy-vector|_ abstract class in
 Dylan).
 
 .. |stretchy-vector| replace:: ``<stretchy-vector>``
-.. _stretchy-vector:  http://opendylan.org/books/drm/Collection_Classes#stretchy-vector
+.. _stretchy-vector:  https://opendylan.org/books/drm/Collection_Classes#stretchy-vector
 
 A *stretchy vector* is a vector that can change length dynamically.
 Such a vector is often implemented using two objects: an array, and a
@@ -126,8 +126,8 @@ other garbage collectors. For example, here's the function
 |setarrayvector|_ from Lua_:
 
 .. |setarrayvector| replace:: ``setarrayvector()``
-.. _setarrayvector: http://www.lua.org/source/5.2/ltable.c.html#setarrayvector
-.. _Lua: http://www.lua.org
+.. _setarrayvector: https://www.lua.org/source/5.2/ltable.c.html#setarrayvector
+.. _Lua: https://www.lua.org/
 
 .. code-block:: c
 
@@ -149,4 +149,4 @@ assumption will no longer be correct if this code is adapted to the
 MPS.
 
 .. |luaM_reallocvector| replace:: ``luaM_reallocvector()``
-.. _luaM_reallocvector: http://www.lua.org/source/5.2/lmem.h.html#luaM_reallocvector
+.. _luaM_reallocvector: https://www.lua.org/source/5.2/lmem.h.html#luaM_reallocvector

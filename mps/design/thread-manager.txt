@@ -251,11 +251,11 @@ information for the current thread:
     may be identified in the ring of threads.
 
 .. |SuspendThread| replace:: ``SuspendThread()``
-.. _SuspendThread: http://msdn.microsoft.com/en-us/library/windows/desktop/ms686345.aspx
+.. _SuspendThread: https://docs.microsoft.com/en-gb/windows/desktop/api/processthreadsapi/nf-processthreadsapi-suspendthread
 .. |ResumeThread| replace:: ``ResumeThread()``
-.. _ResumeThread: http://msdn.microsoft.com/en-us/library/windows/desktop/ms685086.aspx
+.. _ResumeThread: https://docs.microsoft.com/en-gb/windows/desktop/api/processthreadsapi/nf-processthreadsapi-resumethread
 .. |GetCurrentThreadId| replace:: ``GetCurrentThreadId()``
-.. _GetCurrentThreadId: http://msdn.microsoft.com/en-us/library/windows/desktop/ms683183.aspx
+.. _GetCurrentThreadId: https://docs.microsoft.com/en-gb/windows/desktop/api/processthreadsapi/nf-processthreadsapi-getcurrentthreadid
 
 _`.impl.w3.register.multi`: There is no need for any special treatment
 of multiple threads, because Windows maintains a suspend count that is
@@ -272,7 +272,7 @@ work on the current thread: the context would not necessarily have the
 values which were in the saved registers on entry to the MPS.
 
 .. |GetThreadContext| replace:: ``GetThreadContext()``
-.. _GetThreadContext: http://msdn.microsoft.com/en-us/library/windows/desktop/ms679362.aspx
+.. _GetThreadContext: https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-getthreadcontext
 
 _`.impl.w3.scan.suspended`: Otherwise, ``ThreadScan()`` calls
 |GetThreadContext|_ to get the root registers and the stack
@@ -290,7 +290,7 @@ _`.impl.xc.register`: ``ThreadRegister()`` records the Mach port of
 the current thread by calling |mach_thread_self|_.
 
 .. |mach_thread_self| replace:: ``mach_thread_self()``
-.. _mach_thread_self: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Information.html
+.. _mach_thread_self: https://www.gnu.org/software/hurd/gnumach-doc/Thread-Information.html
 
 _`.impl.xc.register.multi`: There is no need for any special treatment
 of multiple threads, because Mach maintains a suspend count that is
@@ -298,9 +298,9 @@ incremented on |thread_suspend|_ and decremented on
 |thread_resume|_.
 
 .. |thread_suspend| replace:: ``thread_suspend()``
-.. _thread_suspend: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
+.. _thread_suspend: https://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
 .. |thread_resume| replace:: ``thread_resume()``
-.. _thread_resume: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
+.. _thread_resume: https://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
 
 _`.impl.xc.suspend`: ``ThreadRingSuspend()`` calls
 |thread_suspend|_.
@@ -314,7 +314,7 @@ _`.impl.xc.scan.suspended`: Otherwise, ``ThreadScan()`` calls
 |thread_get_state|_ to get the root registers and the stack pointer.
 
 .. |thread_get_state| replace:: ``thread_get_state()``
-.. _thread_get_state: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
+.. _thread_get_state: https://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
 
 
 Document History
@@ -328,14 +328,14 @@ Document History
 
 - 2014-10-22 GDR_ Complete design.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

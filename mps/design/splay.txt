@@ -923,10 +923,10 @@ References
 .. [ST85] "Self-Adjusting Binary Search Trees"; Daniel Dominic Sleator,
    Robert Endre Tarjan; AT&T Bell Laboratories, Murray Hill, NJ; 1985-07;
    Journal of the ACM, Vol. 32, Num. 3, pp. 652-686, July 1985;
-   <http://www.cs.cmu.edu/~sleator/papers/self-adjusting.pdf>.
+   <https://www.cs.cmu.edu/~sleator/papers/self-adjusting.pdf>.
 
 .. [Sleator96] "Splay Trees"; Daniel Dominic Sleator; CMU, 22/02/96;
-   CMU 15-211; <http://langevin.usc.edu/BST/Sleator-SplayTrees.ps>.
+   CMU 15-211; <https://langevin.usc.edu/BST/Sleator-SplayTrees.ps>.
 
 
 Document History
@@ -948,14 +948,14 @@ Document History
 - 2014-03-11 RB_ Updating in response to code review. Removing
   .future.tree and .future.reverse, both now implemented.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

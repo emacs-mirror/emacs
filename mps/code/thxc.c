@@ -16,7 +16,7 @@
  *
  * [Mach_man]  Mach man pages within XNU;
  *             Apple Computer;
- *             <http://www.opensource.apple.com/source/xnu/xnu-2050.22.13/osfmk/man/>.
+ *             <https://opensource.apple.com/source/xnu/xnu-2050.22.13/osfmk/man/>.
  */
 
 #include "mpm.h"
@@ -397,7 +397,7 @@ void ThreadSetup(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

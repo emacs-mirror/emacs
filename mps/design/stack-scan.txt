@@ -72,7 +72,7 @@ at the point where it enters the MPS. (This avoids scanning registers
 and stack that belong to the MPS rather than the mutator, leading to
 unnecessary pinning and zone pollution; see job003525_.)
 
-.. _job003525: http://www.ravenbrook.com/project/mps/issue/job003525/
+.. _job003525: https://www.ravenbrook.com/project/mps/issue/job003525/
 
 _`.req.setjmp`: The implementation must follow the C Standard in its
 use of the ``setjmp()`` macro. (So that it is reliable and portable.)
@@ -163,7 +163,7 @@ _`.sol.xc.alternative`: On macOS, we could use ``getcontext()`` from
 libunwind (see here_), but that produces deprecation warnings and
 introduces a dependency on that library.
 
-.. _here: http://stackoverflow.com/questions/3592914/how-can-i-implement-cooperative-lightweight-threading-with-c-on-mac-os-x
+.. _here: https://stackoverflow.com/questions/3592914/
 
 
 Analysis
@@ -322,7 +322,7 @@ References
 
 .. [Fog]
    Agner Fog;
-   "`Calling conventions for different C++ compilers and operating systems <http://agner.org/optimize/calling_conventions.pdf>`_";
+   "`Calling conventions for different C++ compilers and operating systems <https://agner.org/optimize/calling_conventions.pdf>`_";
    Copenhagen University College of Engineering;
    2014-08-07.
 
@@ -339,14 +339,14 @@ Document History
 - 2016-03-03 RB_ Reorganised based mostly on `.sol.stack.hot`_ and
   `.sol.stack.nest`_.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
-.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2014-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

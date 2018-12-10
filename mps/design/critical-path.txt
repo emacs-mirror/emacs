@@ -17,7 +17,7 @@ The critical path through the MPS
 Introduction
 ------------
 The critical path is a key concept in the design of the `Memory Pool
-System <http://www.ravenbrook.com/project/mps/>`_.  Code on the critical
+System <https://www.ravenbrook.com/project/mps/>`_.  Code on the critical
 path is usually executed more than any other code in the process.  A
 change of just one instruction on the critical path can make as much as
 a 1% difference in overall run-time.  A lot of the design of the MPS is
@@ -348,15 +348,15 @@ And we write long documents about it.
 
 References
 ----------
-.. [MMRef] "The Memory Management Reference"; <http://www.memorymanagement.org/>.
-.. _scanning: http://www.memorymanagement.org/glossary/s.html#scan
-.. _marking: http://www.memorymanagement.org/glossary/m.html#marking
-.. _copying: http://www.memorymanagement.org/glossary/c.html#copying.garbage.collection
-.. _condemns: http://www.memorymanagement.org/glossary/c.html#condemned.set
-.. _BIBOP: http://www.memorymanagement.org/glossary/b.html#bibop
-.. _remembered set: http://www.memorymanagement.org/glossary/r.html#remembered.set
-.. _reference tag: http://www.memorymanagement.org/glossary/t.html#tag
-.. _Open Dylan: http://opendylan.org/
+.. [MMRef] "The Memory Management Reference"; <https://www.memorymanagement.org/>.
+.. _scanning: https://www.memorymanagement.org/glossary/s.html#scan
+.. _marking: https://www.memorymanagement.org/glossary/m.html#marking
+.. _copying: https://www.memorymanagement.org/glossary/c.html#copying.garbage.collection
+.. _condemns: https://www.memorymanagement.org/glossary/c.html#condemned.set
+.. _BIBOP: https://www.memorymanagement.org/glossary/b.html#bibop
+.. _remembered set: https://www.memorymanagement.org/glossary/r.html#remembered.set
+.. _reference tag: https://www.memorymanagement.org/glossary/t.html#tag
+.. _Open Dylan: https://opendylan.org/
 
 
 Document History
@@ -364,14 +364,14 @@ Document History
 - 2012-09-07  RB_  First draft.
 - 2013-05-10  RB_  Converted to reStructuredText.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
 
 
 Copyright and License
 ---------------------
 
 Copyright © 2012-2018 Ravenbrook Limited. All rights reserved. 
-<http://www.ravenbrook.com/>. This is an open source license. Contact
+<https://www.ravenbrook.com/>. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

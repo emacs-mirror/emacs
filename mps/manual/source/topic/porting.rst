@@ -144,7 +144,7 @@ that may need to be defined. For example::
      * We use the same alignment as MS malloc: 16, which is used for XMM
      * operations.
      * See MSDN -> x64 Software Conventions -> Overview of x64 Calling Conventions
-     * <http://msdn.microsoft.com/en-us/library/ms235286> 
+     * <https://docs.microsoft.com/en-gb/cpp/build/overview-of-x64-calling-conventions>
      */
 
     #elif defined(_MSC_VER) && defined(_WIN32) && defined(_WIN64) && defined(_M_X64) && !defined(__POCC__)

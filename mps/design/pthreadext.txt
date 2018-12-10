@@ -96,7 +96,7 @@ call another unsafe function. See `mail.tony.1999-08-24.15-40`_ and
 followups for some further analysis.
 
 .. _mail.tony.1999-08-24.15-40: https://info.ravenbrook.com/project/mps/mail/1999/08/24/15-40/0.txt
-.. _sigaction: http://www.opengroup.org/onlinepubs/007908799/xsh/sigaction.html
+.. _sigaction: https://pubs.opengroup.org/onlinepubs/007908799/xsh/sigaction.html
 
 _`.anal.signal.safety.implication`: Since we can't assume that we
 won't attempt to suspend a thread while it is running an unsafe
@@ -369,14 +369,14 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

@@ -273,7 +273,7 @@ References
 .. [cso]
    Microsoft Developer Network;
    "Critical Section Objects";
-   <http://msdn.microsoft.com/en-us/library/windows/desktop/ms682530.aspx>
+   <https://docs.microsoft.com/en-gb/windows/desktop/Sync/critical-section-objects>
 
 .. [POSIXThreads]
    The Open Group;
@@ -294,14 +294,14 @@ Document History
 
 - 2018-06-14 GDR_ Added ``LockInitGlobal()``.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
