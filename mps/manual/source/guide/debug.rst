@@ -180,7 +180,7 @@ Here's the situation on each of the operating systems supported by the MPS:
   |DYNAMICBASE|_.
 
   .. |DYNAMICBASE| replace:: ``/DYNAMICBASE:NO`` linker option
-  .. _DYNAMICBASE: http://msdn.microsoft.com/en-us/library/bb384887.aspx
+  .. _DYNAMICBASE: https://docs.microsoft.com/en-us/cpp/build/reference/dynamicbase
 
 * On **Linux** (kernel version 2.6.12 or later), ASLR can be turned
   off for a single process by running |setarch|_ with the ``-R``

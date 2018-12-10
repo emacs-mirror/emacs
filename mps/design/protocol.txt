@@ -582,7 +582,7 @@ level.  The level is statically defined using enum constants, and the
 id is the address of the canonical class object, so the test is fast
 and simple.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
 
 
 Common instance methods
@@ -639,13 +639,13 @@ B. Document History
 
 - 2016-04-19 RB_ Miscellaneous clean-up in response to review by GDR_.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 C. Copyright and License
 ------------------------
 
-Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

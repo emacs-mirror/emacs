@@ -221,8 +221,8 @@ this has been computed correctly, the locus module uses a double-entry
 book-keeping system to account for every byte in each pool generation.
 This uses seven accounts:
 
-.. _job003772: http://www.ravenbrook.com/project/mps/issue/job003772/
-.. _job004007: http://www.ravenbrook.com/project/mps/issue/job004007/
+.. _job003772: https://www.ravenbrook.com/project/mps/issue/job003772/
+.. _job004007: https://www.ravenbrook.com/project/mps/issue/job004007/
 
 _`.account.total`: Memory acquired from the arena.
 
@@ -458,7 +458,7 @@ blacklisted. Fifth, it tries allocating from any zone at all.
 _`.policy.alloc.issue`: This plan performs poorly under stress. See
 for example job003898_.
 
-.. _job003898: http://www.ravenbrook.com/project/mps/issue/job003898/
+.. _job003898: https://www.ravenbrook.com/project/mps/issue/job003898/
 
 
 
@@ -511,7 +511,7 @@ a collection of a set of generations can't possibly make progress
 (because nothing that refers to this set of generations has changed),
 and so not start such a collection.
 
-.. _job004011: http://www.ravenbrook.com/project/mps/issue/job004011/
+.. _job004011: https://www.ravenbrook.com/project/mps/issue/job004011/
 
 _`.policy.start.chain`: If ``collectWorldAllowed`` is FALSE, or if it
 is not yet time to schedule a collection of the world,
@@ -568,15 +568,15 @@ Document History
 - 2014-01-29 RB_ The arena no longer manages generation zonesets.
 - 2014-05-17 GDR_ Bring data structures and condemn logic up to date.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
-.. _NB: http://www.ravenbrook.com/consultants/nb/
-.. _RB: http://www.ravenbrook.com/consultants/rb
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
+.. _NB: https://www.ravenbrook.com/consultants/nb/
+.. _RB: https://www.ravenbrook.com/consultants/rb
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

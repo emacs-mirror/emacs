@@ -123,7 +123,7 @@ References
 .. [job003975] "Poor performance due to imbalance between protection
                and scanning costs"; Richard Brooksby; Ravenbrook
                Limited; 2016-03-11;
-               <http://www.ravenbrook.com/project/mps/issue/job003975>.
+               <https://www.ravenbrook.com/project/mps/issue/job003975>.
 
 
 Document History
@@ -132,13 +132,13 @@ Document History
 - 2016-03-19 RB_ Created during preparation of
   branch/2016-03-13/defer-write-barrier for [job003975]_.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2016-2018 Ravenbrook Limited <http://www.ravenbrook.com/>. All
+Copyright © 2016-2018 Ravenbrook Limited <https://www.ravenbrook.com/>. All
 rights reserved.  This is an open source license. Contact Ravenbrook
 for commercial licensing options.
 

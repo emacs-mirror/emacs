@@ -1,7 +1,7 @@
 /* prmci6.c: MUTATOR CONTEXT (x64)
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  *
  * .design: See <design/prmc> for the generic design of the interface
  * which is implemented in this module, including the contracts for the
@@ -14,7 +14,7 @@
  *
  * .source.amd64: AMD64 Architecture Programmer’s Manual Volume 3: 
  * General-Purpose and System Instructions
- * <http://support.amd.com/us/Processor_TechDocs/24594_APM_v3.pdf>
+ * <https://www.amd.com/system/files/TechDocs/24594.pdf>
  *
  *
  * ASSUMPTIONS
@@ -91,7 +91,7 @@ Res MutatorContextStepInstruction(MutatorContext context)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

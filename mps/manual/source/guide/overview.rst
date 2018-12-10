@@ -23,7 +23,7 @@ implementing specialized memory management policies.
 The MPS has been in development since 1994 and deployed in successful
 commercial products since 1997. Bugs are almost unknown in production.
 It is under continuous development and support by `Ravenbrook
-<http://www.ravenbrook.com>`_.
+<https://www.ravenbrook.com/>`_.
 
 The MPS is distributed under an :ref:`open source license
 <license>`. The license is designed to make it possible for you to use
@@ -70,9 +70,9 @@ anything.
     If you are running a multi-threaded 32-bit application on 64-bit
     Windows 7 via the WOW64 emulator, then you must install `this
     hotfix from Microsoft
-    <http://support.microsoft.com/kb/2864432/en-us>`_. See `WOW64 bug:
+    <https://support.microsoft.com/kb/2864432/en-us>`_. See `WOW64 bug:
     GetThreadContext() may return stale contents
-    <http://zachsaw.blogspot.co.uk/2010/11/wow64-bug-getthreadcontext-may-return.html>`_
+    <https://zachsaw.blogspot.com/2010/11/wow64-bug-getthreadcontext-may-return.html>`_
     for a description of the problem.
 
 

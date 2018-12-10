@@ -158,13 +158,13 @@ Document History
 
 - 2018-09-14 GDR_ Created based on [GDR_2018-06-27]_.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

@@ -16,7 +16,7 @@ Introduction
 ------------
 
 _`.intro`: This document describes how the `Memory Pool System
-<http://www.ravenbrook.com/project/mps/>`_ source code is configured so
+<https://www.ravenbrook.com/project/mps/>`_ source code is configured so
 that it can target different architectures, operating systems, build
 environments, varieties, and products.
 
@@ -115,7 +115,7 @@ requiring a separate build of the MPS or linking a library.  This is
 described `section 2.3.1, "Compiling for production" of the MPS manual
 <../manual/html/guide/build.html#compiling-for-production>`_.
 
-.. _`version 1.110`: http://www.ravenbrook.com/project/mps/version/1.110/
+.. _`version 1.110`: https://www.ravenbrook.com/project/mps/version/1.110/
 
 _`.no-gen`: No generated code or external tools are required.  On most
 platforms the only tool is the C compiler.  On 64-bit Windows we require
@@ -577,7 +577,7 @@ References
 
 .. [RB_2012-09-07] "The critical path through the MPS"; Richard Brooksby;
    Ravenbrook Limited; 2012-09-07;
-   <http://www.ravenbrook.com/project/mps/master/design/critical-path>.
+   <https://www.ravenbrook.com/project/mps/master/design/critical-path>.
 
 .. [RB_2012-09-13] "The Configura CET custom mainline"; Richard
    Brooksby; Ravenbrook Limited; 2013-09-13;
@@ -611,15 +611,15 @@ Document History
 
 - 2013-06-06 GDR_ Removed reference to obsolete DIAG variety.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _NB: http://www.ravenbrook.com/consultants/nb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _NB: https://www.ravenbrook.com/consultants/nb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

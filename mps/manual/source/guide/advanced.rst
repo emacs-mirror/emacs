@@ -496,7 +496,7 @@ to be automatically reclaimed when they die. So AWL it is.
     now the only uses our customers have had for weak references are the
     ones supported by AWL. (In particular, AWL was designed around the
     requirements of weak hash tables in `Open Dylan
-    <http://opendylan.org/>`_.) If you need more general handling of
+    <https://opendylan.org/>`_.) If you need more general handling of
     weak references, :ref:`contact us <contact>`.
 
 All the references in a :term:`formatted object` belong to the same

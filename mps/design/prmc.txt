@@ -234,11 +234,11 @@ vectored exception handler, which points to |EXCEPTION_RECORD|_ and
 |CONTEXT|_ structures.
 
 .. |EXCEPTION_POINTERS| replace:: ``EXCEPTION_POINTERS``
-.. _EXCEPTION_POINTERS: http://msdn.microsoft.com/en-us/library/windows/desktop/ms679331.aspx
+.. _EXCEPTION_POINTERS: https://docs.microsoft.com/en-gb/windows/desktop/api/winnt/ns-winnt-_exception_pointers
 .. |EXCEPTION_RECORD| replace:: ``EXCEPTION_RECORD``
-.. _EXCEPTION_RECORD: http://msdn.microsoft.com/en-us/library/windows/desktop/aa363082.aspx
+.. _EXCEPTION_RECORD: https://docs.microsoft.com/en-gb/windows/desktop/api/winnt/ns-winnt-_exception_record
 .. |CONTEXT| replace:: ``CONTEXT``
-.. _CONTEXT: http://msdn.microsoft.com/en-gb/library/windows/desktop/ms679284.aspx
+.. _CONTEXT: https://docs.microsoft.com/en-gb/windows/desktop/api/winnt/ns-winnt-_exception_record
 
 _`.impl.w3.fault.addr`: ``EXCEPTION_RECORD.ExceptionAddress`` is the
 address that the faulting instruction was trying to access.
@@ -254,7 +254,7 @@ _`.impl.w3.suspend`: The context of a suspended thread is returned by
 |GetThreadContext|_.
 
 .. |GetThreadContext| replace:: ``GetThreadContext()``
-.. _GetThreadContext: http://msdn.microsoft.com/en-gb/library/windows/desktop/ms679362.aspx
+.. _GetThreadContext: https://docs.microsoft.com/en-us/windows/desktop/api/processthreadsapi/nf-processthreadsapi-getthreadcontext
 
 _`.impl.w3.context.scan`: The context's root registers are found in
 the |CONTEXT|_ structure.
@@ -289,7 +289,7 @@ _`.impl.xc.suspend`: The context of a suspended thread is obtained by
 calling |thread_get_state|_.
 
 .. |thread_get_state| replace:: ``thread_get_state()``
-.. _thread_get_state: http://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
+.. _thread_get_state: https://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
 
 _`.impl.xc.context.scan`: The thread's registers are found in the
 ``x86_thread_state32_t`` or ``x86_thread_state64_t`` structure.
@@ -305,13 +305,13 @@ Document History
 - 2014-10-23 GDR_ Initial draft based on design.mps.thread-manager_
   and design.mps.prot_.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2014-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2014-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

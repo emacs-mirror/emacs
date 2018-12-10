@@ -101,7 +101,7 @@ _`.impl.design.pelican`: Design documents are converted to HTML using
 _`.impl.manual`: The manual is written in RST using Sphinx_ extensions
 and custom manual extensions (see `.ext`_).
 
-.. _Sphinx: http://www.sphinx-doc.org/en/master/
+.. _Sphinx: https://www.sphinx-doc.org/en/master/
 
 _`.impl.manual.sphinx`: The manual is converted to HTML using the
 Sphinx_ documentation generator.
@@ -296,13 +296,13 @@ Document History
 
 - 2018-09-18 GDR_ Created based on [RB_2013-05-09]_.
 
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

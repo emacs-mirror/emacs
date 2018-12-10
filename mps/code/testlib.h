@@ -1,7 +1,7 @@
 /* testlib.h: TEST LIBRARY INTERFACE
  *
  * $Id$
- * Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -42,8 +42,8 @@
 
 #if defined(MPS_BUILD_GC) || defined(MPS_BUILD_LL)
 
-/* GCC: <http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-Wformat-2850>
- * Clang: <http://clang.llvm.org/docs/AttributeReference.html#format-gnu-format>
+/* GCC: <https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-format-function-attribute>
+ * Clang: <https://clang.llvm.org/docs/AttributeReference.html#format-gnu-format>
  */
 #define ATTRIBUTE_FORMAT(ARGLIST) __attribute__((__format__ ARGLIST))
 
@@ -57,7 +57,7 @@
 /* alloca -- memory allocator
  *
  * Windows calls this function _alloca() instead of alloca().
- * <http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx>
+ * <https://docs.microsoft.com/en-gb/cpp/c-runtime-library/reference/alloca>
  */
 
 #if defined(MPS_OS_W3)
@@ -70,7 +70,7 @@
 /* setenv -- set environment variable
  *
  * Windows lacks setenv(), but _putenv_s() has similar functionality.
- * <http://msdn.microsoft.com/en-us/library/eyw7eyfw.aspx>
+ * <https://docs.microsoft.com/en-gb/cpp/c-runtime-library/reference/putenv-s-wputenv-s>
  *
  * This macro version may evaluate the name argument twice.
  */
@@ -286,7 +286,7 @@ extern void testlib_init(int argc, char *argv[]);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

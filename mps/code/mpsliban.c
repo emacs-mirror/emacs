@@ -1,7 +1,7 @@
 /* mpsliban.c: RAVENBROOK MEMORY POOL SYSTEM LIBRARY INTERFACE (ANSI)
  *
  * $Id$
- * Copyright (c) 2001-2017 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: The purpose of this code is
@@ -70,7 +70,7 @@ static void mps_lib_assert_fail_default(const char *file, unsigned line,
                 "The MPS detected a problem!\n"
                 "%s:%u: MPS ASSERTION FAILED: %s\n"
                 "See the \"Assertions\" section in the reference manual:\n"
-                "http://www.ravenbrook.com/project/mps/master/manual/html/topic/error.html#assertions\n",
+                "https://www.ravenbrook.com/project/mps/master/manual/html/topic/error.html#assertions\n",
                 file, line, condition);
   /* Ensure the message is output even if stderr is buffered. */
   (void)fflush(stderr);
@@ -206,7 +206,7 @@ unsigned long mps_lib_telemetry_control(void)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2017 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

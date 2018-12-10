@@ -297,7 +297,7 @@ _`.impl.w3.page.size`: The page size is retrieved by calling
 |GetSystemInfo|_ and consulting ``SYSTEMINFO.dwPageSize``.
 
 .. |GetSystemInfo| replace:: ``GetSystemInfo()``
-.. _GetSystemInfo: http://msdn.microsoft.com/en-gb/library/windows/desktop/ms724381.aspx
+.. _GetSystemInfo: https://docs.microsoft.com/en-us/windows/desktop/api/sysinfoapi/nf-sysinfoapi-getsysteminfo
 
 _`.impl.w3.param`: Decodes the keyword argument
 ``MPS_KEY_VMW3_MEM_TOP_DOWN``, and if it is set, arranges for
@@ -308,13 +308,13 @@ _`.impl.w3.reserve`: Address space is reserved by calling
 ``MEM_TOP_DOWN``) and ``PAGE_NOACCESS``.
 
 .. |VirtualAlloc| replace:: ``VirtualAlloc()``
-.. _VirtualAlloc: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366887.aspx
+.. _VirtualAlloc: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366887.aspx
 
 _`.impl.w3.release`: Address space is released by calling
 |VirtualFree|_, passing ``MEM_RELEASE``.
 
 .. |VirtualFree| replace:: ``VirtualFree()``
-.. _VirtualFree: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366892.aspx
+.. _VirtualFree: https://msdn.microsoft.com/en-us/library/windows/desktop/aa366892.aspx
 
 _`.impl.w3.map`: Address space is mapped to main memory by calling
 |VirtualAlloc|_, passing ``MEM_COMMIT`` and
@@ -362,14 +362,14 @@ Document History
 
 - 2014-10-22 GDR_ Refactor module description into requirements.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

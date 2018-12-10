@@ -61,8 +61,8 @@ Pads
 
 (See job001809_ and job001811_, and mps/branch/2009-03-31/padding.)
 
-.. _job001809: http://www.ravenbrook.com/project/mps/issue/job001809/
-.. _job001811: http://www.ravenbrook.com/project/mps/issue/job001811/
+.. _job001809: https://www.ravenbrook.com/project/mps/issue/job001809/
+.. _job001811: https://www.ravenbrook.com/project/mps/issue/job001811/
 
 _`.pad`: A pad is logically a trivial client object. Pads are created
 by the MPS asking the client's format code to create them, to fill up
@@ -804,14 +804,14 @@ Document History
 
 - 2013-05-23 GDR_ Converted to reStructuredText.
 
-.. _RB: http://www.ravenbrook.com/consultants/rb/
-.. _GDR: http://www.ravenbrook.com/consultants/gdr/
+.. _RB: https://www.ravenbrook.com/consultants/rb/
+.. _GDR: https://www.ravenbrook.com/consultants/gdr/
 
 
 Copyright and License
 ---------------------
 
-Copyright © 2013-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 

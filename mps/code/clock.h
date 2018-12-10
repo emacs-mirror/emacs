@@ -1,6 +1,6 @@
 /* clock.h -- Fast clocks and timers
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2018 Ravenbrook Limited.  See end of file for license.
  * $Id$
  *
  * .design: <design/clock>.
@@ -19,7 +19,8 @@
  */
 
 /* Microsoft C provides an intrinsic for the Intel rdtsc instruction.
-   <http://msdn.microsoft.com/en-US/library/twchhe95%28v=vs.100%29.aspx> */
+ * <https://docs.microsoft.com/en-us/cpp/intrinsics/rdtsc>
+ */
 #if (defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)) && defined(MPS_BUILD_MV)
 
 typedef unsigned __int64 EventClock;
@@ -113,8 +114,9 @@ __extension__ typedef unsigned long long EventClock;
   ((lvalue) = ((EventClock)(high) << 32) + ((EventClock)(low) & (0xfffffffful)))
 
 /* Clang provides a cross-platform builtin for a fast timer, but it
-   was not available on Mac OS X 10.8 until the release of XCode 4.6.
-   <http://clang.llvm.org/docs/LanguageExtensions.html#builtins> */
+ * was not available on Mac OS X 10.8 until the release of XCode 4.6.
+ * <https://clang.llvm.org/docs/LanguageExtensions.html#builtins>
+ */
 #if defined(MPS_BUILD_LL)
 
 #if __has_builtin(__builtin_readcyclecounter)
@@ -178,7 +180,7 @@ typedef mps_clock_t EventClock;
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

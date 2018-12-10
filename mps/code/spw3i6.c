@@ -7,7 +7,7 @@
  * words available. It achieves this by exploiting an obscure but
  * documented feature of Microsoft's function _alloca: "A stack
  * overflow exception is generated if the space cannot be allocated."
- * _alloca: http://msdn.microsoft.com/en-us/library/wb1s57t5.aspx
+ * <https://docs.microsoft.com/en-gb/cpp/c-runtime-library/reference/alloca>
  */
 
 #include "mpm.h"
@@ -27,7 +27,7 @@ void StackProbe(Size depth)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2013-2018 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2013-2018 Ravenbrook Limited <https://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
