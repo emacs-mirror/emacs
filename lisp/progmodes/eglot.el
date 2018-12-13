@@ -1951,7 +1951,7 @@ is not active."
          (setq documentation (match-string 1 documentation))
          (unless (string-prefix-p (string-trim documentation) label)
            (goto-char (point-max))
-           (insert ": " documentation)))
+           (insert ": " (eglot--format-markup documentation))))
        (when (and (eql i active-sig) active-param
                   (< -1 active-param (length parameters)))
          (eglot--dbind ((ParameterInformation) label documentation)
