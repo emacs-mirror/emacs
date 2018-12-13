@@ -1960,10 +1960,10 @@ is not active."
            (eglot--dbind ((ParameterInformation) label documentation)
                (aref parameters active-param)
              (goto-char params-start)
-             (let ((case-fold-search nil))
+             (let ((regex (concat "\\<" (regexp-quote label) "\\>"))
+                   (case-fold-search nil))
                (cl-loop for nmatches from 0
-                        while (and (not (string-empty-p label))
-                                   (search-forward label params-end t))
+                        while (re-search-forward regex params-end t)
                         finally do
                         (when (= 1 nmatches)
                           (add-face-text-property
