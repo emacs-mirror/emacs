@@ -1962,13 +1962,10 @@ is not active."
              (goto-char params-start)
              (let ((regex (concat "\\<" (regexp-quote label) "\\>"))
                    (case-fold-search nil))
-               (cl-loop for nmatches from 0
-                        while (re-search-forward regex params-end t)
-                        finally do
-                        (when (= 1 nmatches)
-                          (add-face-text-property
-                           (- (point) (length label)) (point)
-                           'eldoc-highlight-function-argument))))
+               (when (re-search-forward regex params-end t)
+                 (add-face-text-property
+                  (- (point) (length label)) (point)
+                  'eldoc-highlight-function-argument)))
              (when documentation
                (goto-char (point-max))
                (insert "\n"
