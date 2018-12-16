@@ -1941,37 +1941,42 @@ is not active."
    (eglot--dbind ((SignatureInformation) label documentation parameters) sig
      (with-temp-buffer
        (save-excursion (insert label))
-       (let ((params-start (point-min))
-             (params-end (point-max)))
-         (when (looking-at "\\([^(]+\\)(")
-           (setq params-start (match-end 0))
+       (let (params-start params-end)
+         ;; Ad-hoc attempt to parse label as <name>(<params>)
+         (when (looking-at "\\([^(]+\\)(\\([^)]+\\))")
+           (setq params-start (match-beginning 2) params-end (match-end 2))
            (add-face-text-property (match-beginning 1) (match-end 1)
                                    'font-lock-function-name-face))
-
-         (when (and (stringp documentation) (eql i active-sig)
-                    (string-match "[[:space:]]*\\([^.\r\n]+[.]?\\)"
-                                  documentation))
-           (setq documentation (match-string 1 documentation))
-           (unless (string-prefix-p (string-trim documentation) label)
-             (goto-char (point-max))
-             (insert ": " (eglot--format-markup documentation))))
-         (when (and (eql i active-sig) active-param
-                    (< -1 active-param (length parameters)))
-           (eglot--dbind ((ParameterInformation) label documentation)
-               (aref parameters active-param)
-             (goto-char params-start)
-             (let ((regex (concat "\\<" (regexp-quote label) "\\>"))
-                   (case-fold-search nil))
-               (when (re-search-forward regex params-end t)
-                 (add-face-text-property
-                  (- (point) (length label)) (point)
-                  'eldoc-highlight-function-argument)))
-             (when documentation
+         (when (eql i active-sig)
+           ;; Decide whether to add one-line-summary to signature line
+           (when (and (stringp documentation)
+                      (string-match "[[:space:]]*\\([^.\r\n]+[.]?\\)"
+                                    documentation))
+             (setq documentation (match-string 1 documentation))
+             (unless (string-prefix-p (string-trim documentation) label)
                (goto-char (point-max))
-               (insert "\n"
-                       (propertize
-                        label 'face 'eldoc-highlight-function-argument)
-                       ": " (eglot--format-markup documentation)))))
+               (insert ": " (eglot--format-markup documentation))))
+           ;; Decide what to do with the active parameter...
+           (when (and (eql i active-sig) active-param
+                      (< -1 active-param (length parameters)))
+             (eglot--dbind ((ParameterInformation) label documentation)
+                 (aref parameters active-param)
+               ;; ...perhaps highlight it in the formals list
+               (when params-start
+                 (goto-char params-start)
+                 (let ((regex (concat "\\<" (regexp-quote label) "\\>"))
+                       (case-fold-search nil))
+                   (when (re-search-forward regex params-end t)
+                     (add-face-text-property
+                      (match-beginning 0) (match-end 0)
+                      'eldoc-highlight-function-argument))))
+               ;; ...and/or maybe add its doc on a line by its own.
+               (when documentation
+                 (goto-char (point-max))
+                 (insert "\n"
+                         (propertize
+                          label 'face 'eldoc-highlight-function-argument)
+                         ": " (eglot--format-markup documentation))))))
          (buffer-string))))
    when moresigs concat "\n"))
 
