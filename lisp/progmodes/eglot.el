@@ -1118,6 +1118,14 @@ and just return it.  PROMPT shouldn't end with a question mark."
 (defvar-local eglot--current-flymake-report-fn nil
   "Current flymake report function for this buffer")
 
+(defvar-local eglot--saved-bindings nil
+  "Bindings saved by `eglot--setq-saving'.")
+
+(defmacro eglot--setq-saving (symbol binding)
+  `(progn (push (cons ',symbol (symbol-value ',symbol))
+                eglot--saved-bindings)
+          (setq-local ,symbol ,binding)))
+
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some EGLOT project."
   nil nil eglot-mode-map
@@ -1125,7 +1133,6 @@ and just return it.  PROMPT shouldn't end with a question mark."
    (eglot--managed-mode
     (add-hook 'after-change-functions 'eglot--after-change nil t)
     (add-hook 'before-change-functions 'eglot--before-change nil t)
-    (add-hook 'flymake-diagnostic-functions 'eglot-flymake-backend nil t)
     (add-hook 'kill-buffer-hook 'eglot--signal-textDocument/didClose nil t)
     (add-hook 'kill-buffer-hook 'eglot--managed-mode-onoff nil t)
     (add-hook 'before-revert-hook 'eglot--signal-textDocument/didClose nil t)
@@ -1136,8 +1143,8 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (add-hook 'change-major-mode-hook 'eglot--managed-mode-onoff nil t)
     (add-hook 'post-self-insert-hook 'eglot--post-self-insert-hook nil t)
     (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
-    (add-function :before-until (local 'eldoc-documentation-function)
-                  #'eglot-eldoc-function)
+    (eglot--setq-saving eldoc-documentation-function #'eglot-eldoc-function)
+    (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend t))
     (add-function :around (local 'imenu-create-index-function) #'eglot-imenu)
     (flymake-mode 1)
     (eldoc-mode 1))
@@ -1154,9 +1161,8 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-onoff t)
     (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
-    (remove-function (local 'eldoc-documentation-function)
-                     #'eglot-eldoc-function)
-    (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
+    (cl-loop for (var . saved-binding) in eglot--saved-bindings
+             do (set (make-local-variable var) saved-binding))
     (setq eglot--current-flymake-report-fn nil))))
 
 (defvar-local eglot--cached-current-server nil
