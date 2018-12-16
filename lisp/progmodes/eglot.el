@@ -1417,11 +1417,9 @@ COMMAND is a symbol naming the command."
 THINGS are either registrations or unregisterations."
   (cl-loop
    for thing in (cl-coerce things 'list)
-   collect (eglot--dbind ((Registration) id method registerOptions) thing
-             (apply (intern (format "eglot--%s-%s" how method))
-                    server :id id registerOptions))
-   into results
-   finally return `(:ok ,@results)))
+   do (eglot--dbind ((Registration) id method registerOptions) thing
+        (apply (intern (format "eglot--%s-%s" how method))
+               server :id id registerOptions))))
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql client/registerCapability)) &key registrations)
