@@ -1667,8 +1667,10 @@ Try to visit the target file for a richer summary line."
                   (eglot--widening
                    (pcase-let* ((`(,beg . ,end) (eglot--range-region range))
                                 (bol (progn (goto-char beg) (point-at-bol)))
-                                (substring (buffer-substring bol (point-at-eol))))
-                     (add-face-text-property (- beg bol) (- end bol) 'highlight
+                                (substring (buffer-substring bol (point-at-eol)))
+                                (hi-beg (- beg bol))
+                                (hi-end (- (min (point-at-eol) end) bol)))
+                     (add-face-text-property hi-beg hi-end 'highlight
                                              t substring)
                      (list substring (1+ (current-line)) (eglot-current-column))))))
        (`(,summary ,line ,column)
