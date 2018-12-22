@@ -1026,7 +1026,7 @@ Doubles as an indicator of snippet support."
   "Format MARKUP according to LSP's spec."
   (pcase-let ((`(,string ,mode)
                (if (stringp markup) (list (string-trim markup)
-                                          (intern "gfm-mode"))
+                                          (intern "gfm-view-mode"))
                  (list (plist-get markup :value)
                        major-mode))))
     (with-temp-buffer
