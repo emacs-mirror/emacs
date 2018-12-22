@@ -1822,19 +1822,21 @@ is not active."
                                         :deferred :textDocument/completion
                                         :cancel-on-input t))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
-            (mapcar
-             (jsonrpc-lambda (&rest all &key label insertText insertTextFormat
-                                    &allow-other-keys)
-               (let ((completion
-                      (cond ((and (eql insertTextFormat 2)
-                                  (eglot--snippet-expansion-fn))
-                             (string-trim-left label))
-                            (t
-                             (or insertText (string-trim-left label))))))
-                 (add-text-properties 0 1 all completion)
-                 (put-text-property 0 1 'eglot--lsp-completion all completion)
-                 completion))
-             items))))
+            (setq
+             strings
+             (mapcar
+              (jsonrpc-lambda (&rest all &key label insertText insertTextFormat
+                                     &allow-other-keys)
+                (let ((completion
+                       (cond ((and (eql insertTextFormat 2)
+                                   (eglot--snippet-expansion-fn))
+                              (string-trim-left label))
+                             (t
+                              (or insertText (string-trim-left label))))))
+                  (add-text-properties 0 1 all completion)
+                  (put-text-property 0 1 'eglot--lsp-completion all completion)
+                  completion))
+              items)))))
        :annotation-function
        (lambda (obj)
          (eglot--dbind ((CompletionItem) detail kind insertTextFormat)
