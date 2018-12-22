@@ -1822,22 +1822,19 @@ is not active."
                                         :deferred :textDocument/completion
                                         :cancel-on-input t))
                  (items (if (vectorp resp) resp (plist-get resp :items))))
-            (setq
-             strings
-             (mapcar
-              (jsonrpc-lambda (&rest all &key label insertText insertTextFormat
-                                     &allow-other-keys)
-                (let ((completion
-                       (cond ((and (eql insertTextFormat 2)
-                                   (eglot--snippet-expansion-fn))
-                              (string-trim-left label))
-                             (t
-                              (or insertText (string-trim-left label))))))
-                  (add-text-properties 0 1 all completion)
-                  (put-text-property 0 1 'eglot--completion-bounds bounds completion)
-                  (put-text-property 0 1 'eglot--lsp-completion all completion)
-                  completion))
-              items)))))
+            (mapcar
+             (jsonrpc-lambda (&rest all &key label insertText insertTextFormat
+                                    &allow-other-keys)
+               (let ((completion
+                      (cond ((and (eql insertTextFormat 2)
+                                  (eglot--snippet-expansion-fn))
+                             (string-trim-left label))
+                            (t
+                             (or insertText (string-trim-left label))))))
+                 (add-text-properties 0 1 all completion)
+                 (put-text-property 0 1 'eglot--lsp-completion all completion)
+                 completion))
+             items))))
        :annotation-function
        (lambda (obj)
          (eglot--dbind ((CompletionItem) detail kind insertTextFormat)
@@ -1898,12 +1895,7 @@ is not active."
                           additionalTextEdits)
                (get-text-property 0 'eglot--lsp-completion comp)
              (let ((snippet-fn (and (eql insertTextFormat 2)
-                                    (eglot--snippet-expansion-fn)))
-                   ;; FIXME: it would have been much easier to fetch
-                   ;; these from the lexical environment, but we can't
-                   ;; in company because of
-                   ;; https://github.com/company-mode/company-mode/pull/845
-                   (bounds (get-text-property 0 'eglot--completion-bounds comp)))
+                                    (eglot--snippet-expansion-fn))))
                (cond (textEdit
                       ;; Undo the just the completed bit.  If before
                       ;; completion the buffer was "foo.b" and now is
