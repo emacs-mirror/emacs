@@ -1844,7 +1844,6 @@ is not active."
                                    (string-trim-left label))
                                   (t
                                    (or insertText (string-trim-left label))))))
-                       (add-text-properties 0 1 all completion)
                        (put-text-property 0 1 'eglot--lsp-completion all completion)
                        completion))
                    items)))))
@@ -1869,15 +1868,15 @@ is not active."
        :company-doc-buffer
        (lambda (obj)
          (let* ((documentation
-                 (or (get-text-property 0 :documentation obj)
-                     (and (eglot--server-capable :completionProvider
-                                                 :resolveProvider)
-                          (plist-get
-                           (jsonrpc-request server :completionItem/resolve
-                                            (get-text-property
-                                             0 'eglot--lsp-completion obj)
-                                            :cancel-on-input t)
-                           :documentation))))
+                 (let ((lsp-comp
+                        (get-text-property 0 'eglot--lsp-completion obj)))
+                   (or (plist-get lsp-comp :documentation)
+                       (and (eglot--server-capable :completionProvider
+                                                   :resolveProvider)
+                            (plist-get
+                             (jsonrpc-request server :completionItem/resolve
+                                              lsp-comp :cancel-on-input t)
+                             :documentation)))))
                 (formatted (and documentation
                                 (eglot--format-markup documentation))))
            (when formatted
