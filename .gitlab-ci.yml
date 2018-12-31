@@ -31,29 +31,12 @@ before_script:
   - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libc-dev gcc make autoconf automake libncurses-dev gnutls-dev git
 
 stages:
-  - compile
   - test
 
-compile:
-  stage: compile
+test:
+  stage: test
   script:
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo
     - make bootstrap
-  artifacts:
-    when: always
-    name: "compile-$CI_COMMIT_REF_NAME-$CI_JOB_STAGE-$CI_JOB_NAME"
-    paths:
-      - doc/
-      - lib-src/
-      - lib/
-      - lisp/
-      - src/
-      - test/
-
-test:
-  stage: test
-  dependencies:
-    - compile
-  script:
     - make check
