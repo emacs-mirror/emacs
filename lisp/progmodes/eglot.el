@@ -1030,8 +1030,8 @@ Doubles as an indicator of snippet support."
                  (list (plist-get markup :value)
                        major-mode))))
     (with-temp-buffer
-      (ignore-errors (funcall mode))
-      (insert string) (font-lock-ensure) (buffer-string))))
+      (insert string)
+      (ignore-errors (funcall mode)) (font-lock-ensure) (buffer-string))))
 
 (defcustom eglot-ignored-server-capabilites (list)
   "LSP server capabilities that Eglot could use, but won't.
