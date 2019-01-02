@@ -1553,6 +1553,8 @@ Records START, END and PRE-CHANGE-LENGTH locally."
 Setting should be a keyword, value can be any value that can be
 converted to JSON.")
 
+(put 'eglot-workspace-configuration 'safe-local-variable 'listp)
+
 (defun eglot-signal-didChangeConfiguration (server)
   "Send a `:workspace/didChangeConfiguration' signal to SERVER.
 When called interactively, use the currently active server"
