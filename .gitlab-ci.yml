@@ -35,6 +35,8 @@ stages:
 
 test:
   stage: test
+  variables:
+    EMACS_EMBA_CI: 1
   script:
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo
