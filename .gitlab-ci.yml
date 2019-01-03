@@ -41,4 +41,4 @@ test:
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo
     - make bootstrap
-    - make check
+    - make -C test filenotify-tests
