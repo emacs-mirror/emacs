@@ -38,6 +38,7 @@ test:
   variables:
     EMACS_EMBA_CI: 1
   script:
+    - df
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo
     - make bootstrap
