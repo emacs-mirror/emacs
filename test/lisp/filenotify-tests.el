@@ -687,9 +687,9 @@ delivered."
 	     ;; cygwin does not raise a `changed' event.
 	     ((eq system-type 'cygwin)
 	      '(created deleted stopped))
-	     ((string-equal (file-notify--test-library) "kqueue")
-	      '(created changed deleted stopped))
-	     (t '(created changed deleted deleted stopped)))
+             ;; Still not all monitors detect both `deleted' events.
+	     (t '((created changed deleted stopped)
+                  (created changed deleted deleted stopped))))
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (file-notify--test-read-event)
