@@ -673,10 +673,8 @@ delivered."
 	(file-notify--test-with-events
 	    (cond
 	     ;; w32notify does not raise `deleted' and `stopped'
-	     ;; events for the watched directory.  Same for inotify on emba.
-	     ((or (string-equal (file-notify--test-library) "w32notify")
-                  (and (string-equal (file-notify--test-library) "inotify")
-                       (getenv "EMACS_EMBA_CI")))
+	     ;; events for the watched directory.
+	     ((string-equal (file-notify--test-library) "w32notify")
 	      '(created changed deleted))
              ;; gvfs-monitor-dir on cygwin does not detect the
              ;; `created' event reliably.
@@ -689,9 +687,14 @@ delivered."
 	     ;; cygwin does not raise a `changed' event.
 	     ((eq system-type 'cygwin)
 	      '(created deleted stopped))
-             ;; Still not all monitors detect both `deleted' events.
-	     (t '((created changed deleted stopped)
-                  (created changed deleted deleted stopped))))
+	     ((string-equal (file-notify--test-library) "kqueue")
+	      '(created changed deleted stopped))
+             ;; inotify on emba does not detect `deleted' and
+             ;; `stopped' events of the directory.
+             ((and (string-equal (file-notify--test-library) "inotify")
+                   (getenv "EMACS_EMBA_CI"))
+              '(created changed deleted))
+	     (t '(created changed deleted deleted stopped)))
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
 	  (file-notify--test-read-event)
@@ -736,6 +739,11 @@ delivered."
 	      '(created created changed changed deleted stopped))
 	     ((string-equal (file-notify--test-library) "kqueue")
 	      '(created changed created changed deleted stopped))
+             ;; inotify on emba does not detect `deleted' and
+             ;; `stopped' events of the directory.
+             ((and (string-equal (file-notify--test-library) "inotify")
+                   (getenv "EMACS_EMBA_CI"))
+              '(created changed created changed deleted deleted))
 	     (t '(created changed created changed
 		  deleted deleted deleted stopped)))
 	  (write-region
@@ -1033,6 +1041,11 @@ delivered."
 	   '(created deleted stopped))
 	  ((string-equal (file-notify--test-library) "kqueue")
 	   '(created changed deleted stopped))
+          ;; inotify on emba does not detect `deleted' and `stopped'
+          ;; events of the directory.
+          ((and (string-equal (file-notify--test-library) "inotify")
+                (getenv "EMACS_EMBA_CI"))
+           '(created changed deleted))
 	  (t '(created changed deleted deleted stopped)))
 	 (write-region
 	  "any text" nil file-notify--test-tmpfile nil 'no-message)
