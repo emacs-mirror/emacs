@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2018 Free Software Foundation, Inc.
 
-;; Version: 1.3
+;; Version: 1.4
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
@@ -439,6 +439,20 @@ treated as in `eglot-dbind'."
 (cl-defgeneric eglot-initialization-options (server)
   "JSON object to send under `initializationOptions'"
   (:method (_s) nil)) ; blank default
+
+(cl-defgeneric eglot-register-capability (server method id &rest params)
+  "Ask SERVER to register capability METHOD marked with ID."
+  (:method
+   (_s method _id &rest _params)
+   (eglot--warn "Server tried to register unsupported capability `%s'"
+                method)))
+
+(cl-defgeneric eglot-unregister-capability (server method id &rest params)
+  "Ask SERVER to register capability METHOD marked with ID."
+  (:method
+   (_s method _id &rest _params)
+   (eglot--warn "Server tried to unregister unsupported capability `%s'"
+                method)))
 
 (cl-defgeneric eglot-client-capabilities (server)
   "What the EGLOT LSP client supports for SERVER."
@@ -1423,12 +1437,14 @@ COMMAND is a symbol naming the command."
 
 (cl-defun eglot--register-unregister (server things how)
   "Helper for `registerCapability'.
-THINGS are either registrations or unregisterations."
+THINGS are either registrations or unregisterations (sic)."
   (cl-loop
    for thing in (cl-coerce things 'list)
    do (eglot--dbind ((Registration) id method registerOptions) thing
-        (apply (intern (format "eglot--%s-%s" how method))
-               server :id id registerOptions))))
+        (apply (cl-ecase how
+                 (register 'eglot-register-capability)
+                 (unregister 'eglot-unregister-capability))
+               server (intern method) id registerOptions))))
 
 (cl-defmethod eglot-handle-request
   (server (_method (eql client/registerCapability)) &key registrations)
@@ -2243,9 +2259,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
    for result = (replace-regexp-in-string pattern rep target)
    finally return result))
 
-(cl-defun eglot--register-workspace/didChangeWatchedFiles (server &key id watchers)
+(cl-defmethod eglot-register-capability
+    (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers)
   "Handle dynamic registration of workspace/didChangeWatchedFiles"
-  (eglot--unregister-workspace/didChangeWatchedFiles server :id id)
+  (eglot-unregister-capability server method id)
   (let* (success
          (globs (mapcar (eglot--lambda ((FileSystemWatcher) globPattern)
                           globPattern)
@@ -2280,9 +2297,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                   `(:message ,(format "OK, watching %s watchers"
                                       (length watchers)))))
         (unless success
-          (eglot--unregister-workspace/didChangeWatchedFiles server :id id))))))
+          (eglot-unregister-capability server method id))))))
 
-(cl-defun eglot--unregister-workspace/didChangeWatchedFiles (server &key id)
+(cl-defmethod eglot-unregister-capability
+  (server (_method (eql workspace/didChangeWatchedFiles)) id)
   "Handle dynamic unregistration of workspace/didChangeWatchedFiles"
   (mapc #'file-notify-rm-watch (gethash id (eglot--file-watches server)))
   (remhash id (eglot--file-watches server))
