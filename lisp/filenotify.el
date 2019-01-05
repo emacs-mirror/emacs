@@ -257,7 +257,7 @@ EVENT is the cadr of the event in `file-notify-handle-event'
                          ;; Watched file or directory is concerned.
                          (or (string-equal
                               file (file-notify--event-watched-file event))
-                             (string-equal
+                             (file-in-directory-p
                               file (file-notify--watch-directory watch)))))
             (file-notify-rm-watch desc)))))))
 
