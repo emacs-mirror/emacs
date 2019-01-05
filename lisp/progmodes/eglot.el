@@ -2070,7 +2070,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                          ov)))
                    highlights))))
          :deferred :textDocument/documentHighlight))))
-  nil)
+  eldoc-last-message)
 
 (defun eglot-imenu (oldfun)
   "EGLOT's `imenu-create-index-function' overriding OLDFUN."
