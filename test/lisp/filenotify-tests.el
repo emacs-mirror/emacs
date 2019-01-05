@@ -796,6 +796,11 @@ delivered."
 	      '(created created deleted deleted stopped))
 	     ((string-equal (file-notify--test-library) "kqueue")
 	      '(created changed renamed deleted stopped))
+             ;; inotify on emba does not detect `deleted' and
+             ;; `stopped' events of the directory.
+             ((and (string-equal (file-notify--test-library) "inotify")
+                   (getenv "EMACS_EMBA_CI"))
+              '(created changed renamed deleted))
 	     (t '(created changed renamed deleted deleted stopped)))
 	  (write-region
 	   "any text" nil file-notify--test-tmpfile nil 'no-message)
