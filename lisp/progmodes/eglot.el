@@ -1481,11 +1481,11 @@ THINGS are either registrations or unregisterations."
   "If non-nil, value of the last inserted character in buffer.")
 
 (defun eglot--post-self-insert-hook ()
-  "Set `eglot--last-inserted-char.'"
+  "Set `eglot--last-inserted-char'."
   (setq eglot--last-inserted-char last-input-event))
 
 (defun eglot--pre-command-hook ()
-  "Reset `eglot--last-inserted-char.'"
+  "Reset `eglot--last-inserted-char'."
   (setq eglot--last-inserted-char nil))
 
 (defun eglot--CompletionParams ()
@@ -1510,7 +1510,7 @@ THINGS are either registrations or unregisterations."
 (defvar-local eglot--change-idle-timer nil "Idle timer for didChange signals.")
 
 (defun eglot--before-change (start end)
-  "Hook onto `before-change-functions'."
+  "Hook onto `before-change-functions' with START and END."
   ;; Records START and END, crucially convert them into LSP
   ;; (line/char) positions before that information is lost (because
   ;; the after-change thingy doesn't know if newlines were
@@ -2352,7 +2352,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
         (ignore (eglot--warn "JAVA_HOME env var not set")))))
 
 (defun eglot--eclipse-jdt-contact (interactive)
-  "Return a contact for connecting to eclipse.jdt.ls server, as a cons cell."
+  "Return a contact for connecting to eclipse.jdt.ls server, as a cons cell.
+If INTERACTIVE, prompt user for details."
   (cl-labels
       ((is-the-jar
         (path)
