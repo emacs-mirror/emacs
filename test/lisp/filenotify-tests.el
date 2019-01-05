@@ -673,8 +673,10 @@ delivered."
 	(file-notify--test-with-events
 	    (cond
 	     ;; w32notify does not raise `deleted' and `stopped'
-	     ;; events for the watched directory.
-	     ((string-equal (file-notify--test-library) "w32notify")
+	     ;; events for the watched directory.  Same for inotify on emba.
+	     ((or (string-equal (file-notify--test-library) "w32notify")
+                  (and (string-equal (file-notify--test-library) "inotify")
+                       (getenv "EMACS_EMBA_CI")))
 	      '(created changed deleted))
              ;; gvfs-monitor-dir on cygwin does not detect the
              ;; `created' event reliably.

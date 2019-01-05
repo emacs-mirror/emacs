@@ -114,7 +114,7 @@ Could be different from the directory watched by the backend library."
   (when-let* ((watch (gethash (car event) file-notify-descriptors)))
     (directory-file-name
      (expand-file-name
-      (or  (and (stringp (nth 2 event)) (nth 2 event)) "")
+      (or (and (stringp (nth 2 event)) (nth 2 event)) "")
       (file-notify--watch-directory watch)))))
 
 ;; Only `gfilenotify' could return two file names.
@@ -421,9 +421,8 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
 
 
 ;; TODO:
-;; * Watching a /dir/file may receive events for dir.
-;;   (This may be the desired behavior.)
-;; * Watching a file in an already watched directory
+
+;; * Watching a file in an already watched directory.
 ;;   If the file is created and *then* a watch is added to that file, the
 ;;   watch might receive events which occurred prior to it being created,
 ;;   due to the way events are propagated during idle time.  Note: This
