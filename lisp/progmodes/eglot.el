@@ -1162,6 +1162,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
     (eglot--setq-saving eldoc-documentation-function #'eglot-eldoc-function)
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend t))
+    (add-function :before-until (local 'eldoc-message-function) #'eglot--eldoc-message)
     (add-function :around (local 'imenu-create-index-function) #'eglot-imenu)
     (flymake-mode 1)
     (eldoc-mode 1))
@@ -1178,6 +1179,7 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-onoff t)
     (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
+    (remove-function (local 'eldoc-message-function) #'eglot--eldoc-message)
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
     (setq eglot--current-flymake-report-fn nil))))
@@ -2006,6 +2008,15 @@ is not active."
          (buffer-string))))
    when moresigs concat "\n"))
 
+(defvar eglot--eldoc-hint nil)
+
+(defvar eglot--help-buffer nil)
+
+(defun eglot--help-buffer ()
+  (or (and (buffer-live-p eglot--help-buffer)
+           eglot--help-buffer)
+      (setq eglot--help-buffer (generate-new-buffer "*eglot-help*"))))
+
 (defun eglot-help-at-point ()
   "Request \"hover\" information for the thing at point."
   (interactive)
@@ -2013,9 +2024,58 @@ is not active."
       (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
                        (eglot--TextDocumentPositionParams))
     (when (seq-empty-p contents) (eglot--error "No hover info here"))
-    (let ((blurb (eglot--hover-info contents range)))
-      (with-help-window "*eglot help*"
-        (with-current-buffer standard-output (insert blurb))))))
+    (let ((blurb (eglot--hover-info contents range))
+          (sym (thing-at-point 'symbol)))
+      (with-current-buffer (eglot--help-buffer)
+        (with-help-window (current-buffer)
+          (rename-buffer (format "*eglot-help for %s*" sym))
+          (with-current-buffer standard-output (insert blurb)))))))
+
+(defun eglot-eldoc-extra-buffer-if-too-large (string)
+  "Return non-nil if STRING won't fit in echo area.
+Respects `max-mini-window-height' (which see)."
+  (let ((max-height
+         (cond ((floatp max-mini-window-height) (* (frame-height)
+                                                   max-mini-window-height))
+               ((integerp max-mini-window-height) max-mini-window-height)
+               (t 1))))
+    (> (cl-count ?\n string) max-height)))
+
+(defcustom eglot-eldoc-extra-buffer
+  #'eglot-eldoc-extra-buffer-if-too-large
+  "If non-nil, put eldoc docstrings in separate `*eglot-help*' buffer.
+If nil, use whatever `eldoc-message-function' decides (usually
+the echo area).  If t, use `*eglot-help; unconditionally.  If a
+function, it is called with the docstring to display and should a
+boolean."
+  :type '(choice (const :tag "Never use `*eglot-help*'" nil)
+                 (const :tag "Always use `*eglot-help*'" t)
+                 (function :tag "Ask a function")))
+
+(defcustom eglot-auto-display-eldoc-extra-buffer nil
+  "If non-nil, automatically display `*eglot-help*' buffer.
+Buffer is displayed with `display-buffer', which obeys
+`display-buffer-alist' & friends."
+  :type 'boolean)
+
+(defun eglot--eldoc-message (format &rest args)
+  (let ((string (apply #'format format args))) ;; FIXME: overworking?
+    (when (or (eq t eglot-eldoc-extra-buffer)
+              (funcall eglot-eldoc-extra-buffer string))
+      (with-current-buffer (eglot--help-buffer)
+        (rename-buffer (format "*eglot-help for %s*" eglot--eldoc-hint))
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert string)
+          (goto-char (point-min))
+          (setq eldoc-last-message nil)
+          (if eglot-auto-display-eldoc-extra-buffer
+              (display-buffer (current-buffer))
+            (unless (get-buffer-window (current-buffer))
+              (eglot--message "Help for %s in in %s buffer" eglot--eldoc-hint
+                              (buffer-name eglot--help-buffer))))
+          (help-mode)
+          t)))))
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function.
@@ -2023,7 +2083,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
   (let* ((buffer (current-buffer))
          (server (eglot--current-server-or-lose))
          (position-params (eglot--TextDocumentPositionParams))
-         sig-showing)
+         sig-showing
+         (thing-at-point (thing-at-point 'symbol)))
     (cl-macrolet ((when-buffer-window
                    (&body body) ; notice the exception when testing with `ert'
                    `(when (or (get-buffer-window buffer) (ert-running-test))
@@ -2037,9 +2098,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
            (when-buffer-window
             (when (cl-plusp (length signatures))
               (setq sig-showing t)
-              (eldoc-message (eglot--sig-info signatures
-                                              activeSignature
-                                              activeParameter)))))
+              (let ((eglot--eldoc-hint thing-at-point))
+                (eldoc-message (eglot--sig-info signatures
+                                                activeSignature
+                                                activeParameter))))))
          :deferred :textDocument/signatureHelp))
       (when (eglot--server-capable :hoverProvider)
         (jsonrpc-async-request
@@ -2050,7 +2112,8 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                           (when-let (info (and contents
                                                (eglot--hover-info contents
                                                                   range)))
-                            (eldoc-message info)))))
+                            (let ((eglot--eldoc-hint thing-at-point))
+                              (eldoc-message info))))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
         (jsonrpc-async-request
