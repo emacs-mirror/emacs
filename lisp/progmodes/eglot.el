@@ -2068,12 +2068,12 @@ Buffer is displayed with `display-buffer', which obeys
           (erase-buffer)
           (insert string)
           (goto-char (point-min))
-          (setq eldoc-last-message nil)
-          (if eglot-auto-display-eldoc-extra-buffer
-              (display-buffer (current-buffer))
-            (unless (get-buffer-window (current-buffer))
-              (eglot--message "Help for %s in in %s buffer" eglot--eldoc-hint
-                              (buffer-name eglot--help-buffer))))
+          (cond (eglot-auto-display-eldoc-extra-buffer
+                 (display-buffer (current-buffer)))
+                (t
+                 (unless (get-buffer-window (current-buffer))
+                   (eglot--message "Help for %s is in %s buffer" eglot--eldoc-hint
+                                   (buffer-name eglot--help-buffer)))))
           (help-mode)
           t)))))
 
@@ -2085,6 +2085,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          (position-params (eglot--TextDocumentPositionParams))
          sig-showing
          (thing-at-point (thing-at-point 'symbol)))
+    (setq eglot--eldoc-hint thing-at-point)
     (cl-macrolet ((when-buffer-window
                    (&body body) ; notice the exception when testing with `ert'
                    `(when (or (get-buffer-window buffer) (ert-running-test))
