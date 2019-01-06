@@ -2031,7 +2031,7 @@ is not active."
           (rename-buffer (format "*eglot-help for %s*" sym))
           (with-current-buffer standard-output (insert blurb)))))))
 
-(defun eglot-eldoc-extra-buffer-if-too-large (string)
+(defun eglot-doc-too-large-for-echo-area (string)
   "Return non-nil if STRING won't fit in echo area.
 Respects `max-mini-window-height' (which see)."
   (let ((max-height
@@ -2041,18 +2041,18 @@ Respects `max-mini-window-height' (which see)."
                (t 1))))
     (> (cl-count ?\n string) max-height)))
 
-(defcustom eglot-eldoc-extra-buffer
-  #'eglot-eldoc-extra-buffer-if-too-large
-  "If non-nil, put eldoc docstrings in separate `*eglot-help*' buffer.
+(defcustom eglot-put-doc-in-help-buffer
+  #'eglot-doc-too-large-for-echo-area
+  "If non-nil, put \"hover\" documentation in separate `*eglot-help*' buffer.
 If nil, use whatever `eldoc-message-function' decides (usually
 the echo area).  If t, use `*eglot-help; unconditionally.  If a
 function, it is called with the docstring to display and should a
-boolean."
+boolean producing one of the two previous values."
   :type '(choice (const :tag "Never use `*eglot-help*'" nil)
                  (const :tag "Always use `*eglot-help*'" t)
                  (function :tag "Ask a function")))
 
-(defcustom eglot-auto-display-eldoc-extra-buffer nil
+(defcustom eglot-auto-display-help-buffer nil
   "If non-nil, automatically display `*eglot-help*' buffer.
 Buffer is displayed with `display-buffer', which obeys
 `display-buffer-alist' & friends."
@@ -2060,20 +2060,19 @@ Buffer is displayed with `display-buffer', which obeys
 
 (defun eglot--eldoc-message (format &rest args)
   (let ((string (apply #'format format args))) ;; FIXME: overworking?
-    (when (or (eq t eglot-eldoc-extra-buffer)
-              (funcall eglot-eldoc-extra-buffer string))
+    (when (or (eq t eglot-put-doc-in-help-buffer)
+              (funcall eglot-put-doc-in-help-buffer string))
       (with-current-buffer (eglot--help-buffer)
         (rename-buffer (format "*eglot-help for %s*" eglot--eldoc-hint))
         (let ((inhibit-read-only t))
           (erase-buffer)
           (insert string)
           (goto-char (point-min))
-          (cond (eglot-auto-display-eldoc-extra-buffer
-                 (display-buffer (current-buffer)))
-                (t
-                 (unless (get-buffer-window (current-buffer))
-                   (eglot--message "Help for %s is in %s buffer" eglot--eldoc-hint
-                                   (buffer-name eglot--help-buffer)))))
+          (if eglot-auto-display-help-buffer
+              (display-buffer (current-buffer))
+            (unless (get-buffer-window (current-buffer))
+              (eglot--message "Help for %s is in %s buffer" eglot--eldoc-hint
+                              (buffer-name eglot--help-buffer))))
           (help-mode)
           t)))))
 
