@@ -1051,11 +1051,6 @@ delivered."
 	        '(created deleted stopped))
 	       ((string-equal (file-notify--test-library) "kqueue")
 	        '(created changed deleted stopped))
-               ;; inotify on emba does not detect `deleted' and
-               ;; `stopped' events of the directory.
-               ((and (string-equal (file-notify--test-library) "inotify")
-                     (getenv "EMACS_EMBA_CI"))
-                '(created changed deleted))
 	       (t '(created changed deleted deleted stopped)))
 	    (write-region
 	     "any text" nil file-notify--test-tmpfile nil 'no-message)
@@ -1110,31 +1105,35 @@ delivered."
     ;; Cleanup.
     (file-notify--test-cleanup))
 
-  (unwind-protect
-      (progn
-	(should
-	 (setq file-notify--test-tmpfile
-	       (make-temp-file "file-notify-test-parent" t)))
-	(should
-	 (setq file-notify--test-desc
-	       (file-notify-add-watch
-		file-notify--test-tmpfile '(change) #'ignore)))
-        (should (file-notify-valid-p file-notify--test-desc))
-        ;; After deleting the directory, the descriptor must not be
-        ;; valid anymore.
-        (delete-directory file-notify--test-tmpfile 'recursive)
-        (file-notify--wait-for-events
-	 (file-notify--test-timeout)
-	 (not (file-notify-valid-p file-notify--test-desc)))
-        (should-not (file-notify-valid-p file-notify--test-desc))
-        (if (string-equal (file-notify--test-library) "w32notify")
-            (file-notify--rm-descriptor file-notify--test-desc))
+  ;; inotify on emba does not detect `deleted' and
+  ;; `stopped' events of the directory.
+  (unless (and (string-equal (file-notify--test-library) "inotify")
+               (getenv "EMACS_EMBA_CI"))
+    (unwind-protect
+        (progn
+	  (should
+	   (setq file-notify--test-tmpfile
+	         (make-temp-file "file-notify-test-parent" t)))
+	  (should
+	   (setq file-notify--test-desc
+	         (file-notify-add-watch
+		  file-notify--test-tmpfile '(change) #'ignore)))
+          (should (file-notify-valid-p file-notify--test-desc))
+          ;; After deleting the directory, the descriptor must not be
+          ;; valid anymore.
+          (delete-directory file-notify--test-tmpfile 'recursive)
+          (file-notify--wait-for-events
+	   (file-notify--test-timeout)
+	   (not (file-notify-valid-p file-notify--test-desc)))
+          (should-not (file-notify-valid-p file-notify--test-desc))
+          (if (string-equal (file-notify--test-library) "w32notify")
+              (file-notify--rm-descriptor file-notify--test-desc))
 
-        ;; The environment shall be cleaned up.
-        (file-notify--test-cleanup-p))
+          ;; The environment shall be cleaned up.
+          (file-notify--test-cleanup-p))
 
-    ;; Cleanup.
-    (file-notify--test-cleanup)))
+      ;; Cleanup.
+      (file-notify--test-cleanup))))
 
 (file-notify--deftest-remote file-notify-test06-dir-validity
   "Check `file-notify-valid-p' via file notification for remote directories.")
@@ -1200,7 +1199,9 @@ delivered."
             (file-notify--test-read-event)
             (delete-file file)))
         (delete-directory file-notify--test-tmpfile)
-        (if (string-equal (file-notify--test-library) "w32notify")
+        (if (or (string-equal (file-notify--test-library) "w32notify")
+                (and (string-equal (file-notify--test-library) "inotify")
+                     (getenv "EMACS_EMBA_CI")))
             (file-notify--rm-descriptor file-notify--test-desc))
 
         ;; The environment shall be cleaned up.
@@ -1409,6 +1410,11 @@ the file watch."
 		  ;; w32notify does not raise `deleted' and `stopped'
 		  ;; events for the watched directory.
                   ((string-equal (file-notify--test-library) "w32notify") '())
+                  ;; inotify on emba does not detect `deleted' and
+                  ;; `stopped' events of the directory.
+                  ((and (string-equal (file-notify--test-library) "inotify")
+                        (getenv "EMACS_EMBA_CI"))
+                   '())
                   (t '(deleted stopped))))))
           (delete-directory file-notify--test-tmpfile 'recursive))
         (should-not (file-notify-valid-p file-notify--test-desc1))
