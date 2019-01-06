@@ -239,11 +239,11 @@ EVENT is the cadr of the event in `file-notify-handle-event'
                            (string-equal
                             (file-notify--watch-filename watch)
                             (file-name-nondirectory file1)))))
-            (message
-             "file-notify-callback %S %S %S %S %S %S %S"
-             desc action file file1 watch
-             (file-notify--event-watched-file event)
-             (file-notify--watch-directory watch))
+            ;;(message
+            ;;"file-notify-callback %S %S %S %S %S %S %S"
+            ;;desc action file file1 watch
+            ;;(file-notify--event-watched-file event)
+            ;;(file-notify--watch-directory watch))
             (funcall (file-notify--watch-callback watch)
                      (if file1
                          `(,desc ,action ,file ,file1)
@@ -420,7 +420,6 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
                ((eq file-notify--library 'w32notify) 'w32notify-valid-p))
               descriptor))
            t))))
-
 
 ;; TODO:
 

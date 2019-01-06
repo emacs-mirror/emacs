@@ -690,7 +690,7 @@ delivered."
 	      '(created changed deleted stopped))
              ;; inotify on emba does not detect `deleted' and
              ;; `stopped' events of the directory.
-             ((and (string-equal (file-notify--test-library) "inotify")
+             ((and (string-match "inotify" (file-notify--test-library))
                    (getenv "EMACS_EMBA_CI"))
               '(created changed deleted))
 	     (t '(created changed deleted deleted stopped)))
@@ -740,7 +740,7 @@ delivered."
 	      '(created changed created changed deleted stopped))
              ;; inotify on emba does not detect `deleted' and
              ;; `stopped' events of the directory.
-             ((and (string-equal (file-notify--test-library) "inotify")
+             ((and (string-match "inotify" (file-notify--test-library))
                    (getenv "EMACS_EMBA_CI"))
               '(created changed created changed deleted deleted))
 	     (t '(created changed created changed
@@ -797,7 +797,7 @@ delivered."
 	      '(created changed renamed deleted stopped))
              ;; inotify on emba does not detect `deleted' and
              ;; `stopped' events of the directory.
-             ((and (string-equal (file-notify--test-library) "inotify")
+             ((and (string-match "inotify" (file-notify--test-library))
                    (getenv "EMACS_EMBA_CI"))
               '(created changed renamed deleted))
 	     (t '(created changed renamed deleted deleted stopped)))
@@ -1019,7 +1019,7 @@ delivered."
 
   ;; inotify on emba does not detect `deleted' and
   ;; `stopped' events of the directory.
-  (unless (and (string-equal (file-notify--test-library) "inotify")
+  (unless (and (string-match "inotify" (file-notify--test-library))
                (getenv "EMACS_EMBA_CI"))
     (unwind-protect
         (let ((file-notify--test-tmpdir
@@ -1106,7 +1106,7 @@ delivered."
 
   ;; inotify on emba does not detect `deleted' and
   ;; `stopped' events of the directory.
-  (unless (and (string-equal (file-notify--test-library) "inotify")
+  (unless (and (string-match "inotify" (file-notify--test-library))
                (getenv "EMACS_EMBA_CI"))
     (unwind-protect
         (progn
@@ -1199,7 +1199,7 @@ delivered."
             (delete-file file)))
         (delete-directory file-notify--test-tmpfile)
         (if (or (string-equal (file-notify--test-library) "w32notify")
-                (and (string-equal (file-notify--test-library) "inotify")
+                (and (string-match "inotify" (file-notify--test-library))
                      (getenv "EMACS_EMBA_CI")))
             (file-notify--rm-descriptor file-notify--test-desc))
 
@@ -1411,17 +1411,17 @@ the file watch."
                   ((string-equal (file-notify--test-library) "w32notify") '())
                   ;; inotify on emba does not detect `deleted' and
                   ;; `stopped' events of the directory.
-                  ((and (string-equal (file-notify--test-library) "inotify")
+                  ((and (string-match "inotify" (file-notify--test-library))
                         (getenv "EMACS_EMBA_CI"))
                    '())
                   (t '(deleted stopped))))))
           (delete-directory file-notify--test-tmpfile 'recursive))
-        (unless (and (string-equal (file-notify--test-library) "inotify")
+        (unless (and (string-match "inotify" (file-notify--test-library))
                      (getenv "EMACS_EMBA_CI"))
           (should-not (file-notify-valid-p file-notify--test-desc1))
           (should-not (file-notify-valid-p file-notify--test-desc2)))
         (when (or (string-equal (file-notify--test-library) "w32notify")
-                  (and (string-equal (file-notify--test-library) "inotify")
+                  (and (string-match "inotify" (file-notify--test-library))
                        (getenv "EMACS_EMBA_CI")))
           (file-notify--rm-descriptor file-notify--test-desc1)
           (file-notify--rm-descriptor file-notify--test-desc2))
