@@ -255,10 +255,8 @@ EVENT is the cadr of the event in `file-notify-handle-event'
                          ;; Not, when a file is backed up.
                          (not (and (stringp file1) (backup-file-name-p file1)))
                          ;; Watched file or directory is concerned.
-                         (or (string-equal
-                              file (file-notify--event-watched-file event))
-                             (file-in-directory-p
-                              file (file-notify--watch-directory watch)))))
+                         (string-equal
+                          file (file-notify--event-watched-file event))))
             (file-notify-rm-watch desc)))))))
 
 ;; `kqueue', `gfilenotify' and `w32notify' return a unique descriptor

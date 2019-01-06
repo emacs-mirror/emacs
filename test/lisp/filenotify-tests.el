@@ -1018,60 +1018,65 @@ delivered."
     ;; Cleanup.
     (file-notify--test-cleanup))
 
-  (unwind-protect
-      (let ((file-notify--test-tmpdir
-	     (make-temp-file "file-notify-test-parent" t)))
-	(should
-	 (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
-	       file-notify--test-desc
-	       (file-notify-add-watch
-		file-notify--test-tmpdir
-		'(change) #'file-notify--test-event-handler)))
-	(should (file-notify-valid-p file-notify--test-desc))
-	(file-notify--test-with-events
-	 (cond
-	  ;; w32notify does not raise `deleted' and `stopped' events
-	  ;; for the watched directory.
-	  ((string-equal (file-notify--test-library) "w32notify")
-	   '(created changed deleted))
-          ;; gvfs-monitor-dir on cygwin does not detect the `created'
-          ;; event reliably.
-	  ((string-equal (file-notify--test-library) "gvfs-monitor-dir.exe")
-	   '((deleted stopped)
-	     (created deleted stopped)))
-	  ;; There are two `deleted' events, for the file and for the
-	  ;; directory.  Except for cygwin and kqueue.  And cygwin
-	  ;; does not raise a `changed' event.
-	  ((eq system-type 'cygwin)
-	   '(created deleted stopped))
-	  ((string-equal (file-notify--test-library) "kqueue")
-	   '(created changed deleted stopped))
-          ;; inotify on emba does not detect `deleted' and `stopped'
-          ;; events of the directory.
-          ((and (string-equal (file-notify--test-library) "inotify")
-                (getenv "EMACS_EMBA_CI"))
-           '(created changed deleted))
-	  (t '(created changed deleted deleted stopped)))
-	 (write-region
-	  "any text" nil file-notify--test-tmpfile nil 'no-message)
-	 (file-notify--test-read-event)
-	 (delete-directory file-notify--test-tmpdir 'recursive))
-	;; After deleting the parent directory, the descriptor must
-	;; not be valid anymore.
-	(should-not (file-notify-valid-p file-notify--test-desc))
-        ;; w32notify doesn't generate `stopped' events when the parent
-        ;; directory is deleted, which doesn't provide a chance for
-        ;; filenotify.el to remove the descriptor from the internal
-        ;; hash table it maintains.  So we must remove the descriptor
-        ;; manually.
-        (if (string-equal (file-notify--test-library) "w32notify")
-            (file-notify--rm-descriptor file-notify--test-desc))
+  ;; inotify on emba does not detect `deleted' and
+  ;; `stopped' events of the directory.
+  (unless (and (string-equal (file-notify--test-library) "inotify")
+               (getenv "EMACS_EMBA_CI"))
+    (unwind-protect
+        (let ((file-notify--test-tmpdir
+	       (make-temp-file "file-notify-test-parent" t)))
+	  (should
+	   (setq file-notify--test-tmpfile (file-notify--test-make-temp-name)
+	         file-notify--test-desc
+	         (file-notify-add-watch
+		  file-notify--test-tmpdir
+		  '(change) #'file-notify--test-event-handler)))
+	  (should (file-notify-valid-p file-notify--test-desc))
+	  (file-notify--test-with-events
+	      (cond
+	       ;; w32notify does not raise `deleted' and `stopped'
+	       ;; events for the watched directory.
+	       ((string-equal (file-notify--test-library) "w32notify")
+	        '(created changed deleted))
+               ;; gvfs-monitor-dir on cygwin does not detect the
+               ;; `created' event reliably.
+	       ((string-equal
+                 (file-notify--test-library) "gvfs-monitor-dir.exe")
+	        '((deleted stopped)
+	          (created deleted stopped)))
+	       ;; There are two `deleted' events, for the file and for
+	       ;; the directory.  Except for cygwin and kqueue.  And
+	       ;; cygwin does not raise a `changed' event.
+	       ((eq system-type 'cygwin)
+	        '(created deleted stopped))
+	       ((string-equal (file-notify--test-library) "kqueue")
+	        '(created changed deleted stopped))
+               ;; inotify on emba does not detect `deleted' and
+               ;; `stopped' events of the directory.
+               ((and (string-equal (file-notify--test-library) "inotify")
+                     (getenv "EMACS_EMBA_CI"))
+                '(created changed deleted))
+	       (t '(created changed deleted deleted stopped)))
+	    (write-region
+	     "any text" nil file-notify--test-tmpfile nil 'no-message)
+	    (file-notify--test-read-event)
+	    (delete-directory file-notify--test-tmpdir 'recursive))
+	  ;; After deleting the parent directory, the descriptor must
+	  ;; not be valid anymore.
+	  (should-not (file-notify-valid-p file-notify--test-desc))
+          ;; w32notify doesn't generate `stopped' events when the
+          ;; parent directory is deleted, which doesn't provide a
+          ;; chance for filenotify.el to remove the descriptor from
+          ;; the internal hash table it maintains.  So we must remove
+          ;; the descriptor manually.
+          (if (string-equal (file-notify--test-library) "w32notify")
+              (file-notify--rm-descriptor file-notify--test-desc))
 
-        ;; The environment shall be cleaned up.
-        (file-notify--test-cleanup-p))
+          ;; The environment shall be cleaned up.
+          (file-notify--test-cleanup-p))
 
-    ;; Cleanup.
-    (file-notify--test-cleanup)))
+      ;; Cleanup.
+      (file-notify--test-cleanup))))
 
 (file-notify--deftest-remote file-notify-test05-file-validity
   "Check `file-notify-valid-p' via file notification for remote files.")
