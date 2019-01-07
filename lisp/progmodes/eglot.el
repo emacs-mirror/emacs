@@ -2071,8 +2071,12 @@ Buffer is displayed with `display-buffer', which obeys
           (if eglot-auto-display-help-buffer
               (display-buffer (current-buffer))
             (unless (get-buffer-window (current-buffer))
-              (eglot--message "Help for %s is in %s buffer" eglot--eldoc-hint
-                              (buffer-name eglot--help-buffer))))
+              (eglot--message
+               "%s\n(...truncated. Full help is in `%s')"
+               (truncate-string-to-width
+                (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
+                (frame-width) nil nil "...")
+               (buffer-name eglot--help-buffer))))
           (help-mode)
           t)))))
 
