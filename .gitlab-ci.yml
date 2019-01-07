@@ -22,23 +22,52 @@
 # evaluation purposes, thus possibly temporary.
 
 # Maintainer: tzz@lifelogs.com
-# URL: https://gitlab.com/emacs-ci/emacs
+# URL: https://emba.gnu.org/emacs/emacs
 
 image: debian:stretch
 
+variables:
+  GIT_STRATEGY: fetch
+  EMACS_EMBA_CI: 1
+
 before_script:
   - apt update -qq
-  - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libc-dev gcc make autoconf automake libncurses-dev gnutls-dev git inotify-tools
+  - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y >
+    -qq -o=Dpkg::Use-Pty=0 libc-dev gcc make autoconf automake libncurses-dev >
+    gnutls-dev git
 
 stages:
-  - test
+  - test-all
+  - test-filenotify-gio
 
-test:
-  stage: test
-  variables:
-    EMACS_EMBA_CI: 1
+test-all:
+  stage: test-all
   script:
+    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y >
+      -qq -o=Dpkg::Use-Pty=0 inotify-tools
     - ./autogen.sh autoconf
     - ./configure --without-makeinfo
     - make bootstrap
+    - make check-expensive
+  after_script:
+    - DEBIAN_FRONTEND=noninteractive apt remove --no-install-recommends -y >
+      -qq -o=Dpkg::Use-Pty=0 inotify-tools
+
+test-filenotify-gio:
+  stage: test-filenotify-gio
+  when: always
+  only:
+    changes:
+      - .gitlab-ci.yml
+      - lisp/filenotify.el
+      - test/lisp/filenotify-tests.el
+  script:
+    - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y >
+      -qq -o=Dpkg::Use-Pty=0 libglib2.0-bin
+    - ./autogen.sh autoconf
+    - ./configure --without-makeinfo --with-file-notification=gfile
+    - make bootstrap
     - make -C test filenotify-tests
+  after_script:
+    - DEBIAN_FRONTEND=noninteractive apt remove --no-install-recommends -y >
+      -qq -o=Dpkg::Use-Pty=0 libglib2.0-bin
