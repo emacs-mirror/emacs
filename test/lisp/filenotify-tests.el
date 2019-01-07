@@ -688,10 +688,9 @@ delivered."
 	      '(created deleted stopped))
 	     ((string-equal (file-notify--test-library) "kqueue")
 	      '(created changed deleted stopped))
-             ;; inotify on emba does not detect `deleted' and
-             ;; `stopped' events of the directory.
-             ((and (string-match "inotify" (file-notify--test-library))
-                   (getenv "EMACS_EMBA_CI"))
+             ;; On emba, `deleted' and `stopped' events of the
+             ;; directory are not detected.
+             ((getenv "EMACS_EMBA_CI")
               '(created changed deleted))
 	     (t '(created changed deleted deleted stopped)))
 	  (write-region
@@ -738,10 +737,9 @@ delivered."
 	      '(created created changed changed deleted stopped))
 	     ((string-equal (file-notify--test-library) "kqueue")
 	      '(created changed created changed deleted stopped))
-             ;; inotify on emba does not detect `deleted' and
-             ;; `stopped' events of the directory.
-             ((and (string-match "inotify" (file-notify--test-library))
-                   (getenv "EMACS_EMBA_CI"))
+             ;; On emba, `deleted' and `stopped' events of the
+             ;; directory are not detected.
+             ((getenv "EMACS_EMBA_CI")
               '(created changed created changed deleted deleted))
 	     (t '(created changed created changed
 		  deleted deleted deleted stopped)))
@@ -795,10 +793,9 @@ delivered."
 	      '(created created deleted deleted stopped))
 	     ((string-equal (file-notify--test-library) "kqueue")
 	      '(created changed renamed deleted stopped))
-             ;; inotify on emba does not detect `deleted' and
-             ;; `stopped' events of the directory.
-             ((and (string-match "inotify" (file-notify--test-library))
-                   (getenv "EMACS_EMBA_CI"))
+             ;; On emba, `deleted' and `stopped' events of the
+             ;; directory are not detected.
+             ((getenv "EMACS_EMBA_CI")
               '(created changed renamed deleted))
 	     (t '(created changed renamed deleted deleted stopped)))
 	  (write-region
@@ -1017,10 +1014,8 @@ delivered."
     ;; Cleanup.
     (file-notify--test-cleanup))
 
-  ;; inotify on emba does not detect `deleted' and
-  ;; `stopped' events of the directory.
-  (unless (and (string-match "inotify" (file-notify--test-library))
-               (getenv "EMACS_EMBA_CI"))
+  ;; On emba, `deleted' and `stopped' events of the directory are not detected.
+  (unless (getenv "EMACS_EMBA_CI")
     (unwind-protect
         (let ((file-notify--test-tmpdir
 	       (make-temp-file "file-notify-test-parent" t)))
@@ -1104,10 +1099,8 @@ delivered."
     ;; Cleanup.
     (file-notify--test-cleanup))
 
-  ;; inotify on emba does not detect `deleted' and
-  ;; `stopped' events of the directory.
-  (unless (and (string-match "inotify" (file-notify--test-library))
-               (getenv "EMACS_EMBA_CI"))
+  ;; On emba, `deleted' and `stopped' events of the directory are not detected.
+  (unless (getenv "EMACS_EMBA_CI")
     (unwind-protect
         (progn
 	  (should
@@ -1199,8 +1192,7 @@ delivered."
             (delete-file file)))
         (delete-directory file-notify--test-tmpfile)
         (if (or (string-equal (file-notify--test-library) "w32notify")
-                (and (string-match "inotify" (file-notify--test-library))
-                     (getenv "EMACS_EMBA_CI")))
+                (getenv "EMACS_EMBA_CI"))
             (file-notify--rm-descriptor file-notify--test-desc))
 
         ;; The environment shall be cleaned up.
@@ -1409,20 +1401,17 @@ the file watch."
 		  ;; w32notify does not raise `deleted' and `stopped'
 		  ;; events for the watched directory.
                   ((string-equal (file-notify--test-library) "w32notify") '())
-                  ;; inotify on emba does not detect `deleted' and
-                  ;; `stopped' events of the directory.
-                  ((and (string-match "inotify" (file-notify--test-library))
-                        (getenv "EMACS_EMBA_CI"))
+                  ;; On emba, `deleted' and `stopped' events of the
+                  ;; directory are not detected.
+                  ((getenv "EMACS_EMBA_CI")
                    '())
                   (t '(deleted stopped))))))
           (delete-directory file-notify--test-tmpfile 'recursive))
-        (unless (and (string-match "inotify" (file-notify--test-library))
-                     (getenv "EMACS_EMBA_CI"))
+        (unless (getenv "EMACS_EMBA_CI")
           (should-not (file-notify-valid-p file-notify--test-desc1))
           (should-not (file-notify-valid-p file-notify--test-desc2)))
         (when (or (string-equal (file-notify--test-library) "w32notify")
-                  (and (string-match "inotify" (file-notify--test-library))
-                       (getenv "EMACS_EMBA_CI")))
+                  (getenv "EMACS_EMBA_CI"))
           (file-notify--rm-descriptor file-notify--test-desc1)
           (file-notify--rm-descriptor file-notify--test-desc2))
 
