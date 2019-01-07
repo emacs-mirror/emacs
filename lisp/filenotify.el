@@ -90,7 +90,7 @@ If EVENT is a filewatch event, call its callback.  It has the format
 
 Otherwise, signal a `file-notify-error'."
   (interactive "e")
-  (message "file-notify-handle-event %S" event)
+  ;;(message "file-notify-handle-event %S" event)
   (if (and (consp event)
            (eq (car event) 'file-notify)
 	   (>= (length event) 3))

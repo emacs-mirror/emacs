@@ -516,8 +516,8 @@ and the event to `file-notify--test-events'."
     (unless (string-match
 	     (regexp-quote ".#")
 	     (file-notify--event-file-name file-notify--test-event))
-      (message "file-notify--test-event-handler result: %s event: %S"
-               (null (ert-test-failed-p result)) file-notify--test-event)
+      ;;(message "file-notify--test-event-handler result: %s event: %S"
+               ;;(null (ert-test-failed-p result)) file-notify--test-event)
       (setq file-notify--test-events
 	    (append file-notify--test-events `(,file-notify--test-event))
 	    file-notify--test-results
