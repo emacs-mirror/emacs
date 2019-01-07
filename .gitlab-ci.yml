@@ -54,6 +54,7 @@ test-filenotify-gio:
     changes:
       - .gitlab-ci.yml
       - lisp/filenotify.el
+      - lisp/net/tramp-sh.el
       - src/gfilenotify.c
       - test/lisp/filenotify-tests.el
   script:
