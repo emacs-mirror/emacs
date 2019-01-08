@@ -16,8 +16,6 @@ END_HEADER
 #include "mpscmvff.h"
 #include "mpsavm.h"
 
-#define MVFF_HI_PARMS EXTEND,AVGSIZE,MPS_PF_ALIGN,1,1,0
-
 mps_arena_t arena;
 
 #define MAXOBJS (10000)
@@ -45,9 +43,15 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_pool_create(&poolhi, arena, mps_class_mvff(), MVFF_HI_PARMS),
-  "create high pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, EXTEND);
+   MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, AVGSIZE);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_ARENA_HIGH, 1);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_SLOT_HIGH, 1);
+   MPS_ARGS_ADD(args, MPS_KEY_MVFF_FIRST_FIT, 0);
+   cdie(mps_pool_create_k(&poolhi, arena, mps_class_mvff(), args),
+        "create high pool");
+ } MPS_ARGS_END(args);
 
  MPS_ARGS_BEGIN(args) {
    MPS_ARGS_ADD(args, MPS_KEY_EXTEND_BY, EXTEND);
