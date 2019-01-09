@@ -28,7 +28,7 @@ mps_pool_t poolmv;
 mps_arena_t arena;
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_pool_t pool;
  mps_root_t root;
@@ -103,7 +103,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

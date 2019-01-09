@@ -42,7 +42,6 @@ static mps_gen_param_s testChain[genCOUNT] = {
 #define MAGICPOINT ((mycell *) 214208)
 
 
-void *stackpointer;
 long int appcount;
 long int apppadcount;
 
@@ -110,7 +109,7 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
 }
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mycell *a[4], /* a is a table of exact roots */
         *b[4]; /* b is a table of ambiguous roots */
@@ -237,10 +236,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

@@ -37,8 +37,6 @@ static mps_gen_param_s testChain[genCOUNT] = {
 */
 
 
-void *stackpointer;
-
 mps_arena_t arena;
 mps_pool_t poolamc;
 mps_thr_t thread;
@@ -61,7 +59,7 @@ static void alloc_back(void)
 }
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_chain_t chain;
  long int i;
@@ -74,11 +72,7 @@ static void test(void)
       "create arena");
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
- cdie(
-  mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-                      mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
-
+ cdie(mps_root_create_thread(&root, arena, thread, stack_pointer), "thread root");
  cdie(
   mps_root_create_table(&root1, arena, mps_rank_exact(), 0, &objtab[0], TABSIZE),
   "create root table");
@@ -150,10 +144,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  report("result", "pass");
  return 0;
 }

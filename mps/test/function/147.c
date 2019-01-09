@@ -15,7 +15,7 @@ END_HEADER
 
 #define THIRTY_MEG (30uL*1024ul*1024ul)
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  int i = 0, f = 0;
  mps_ap_t sap;
@@ -99,7 +99,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

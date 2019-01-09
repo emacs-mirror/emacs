@@ -206,7 +206,7 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
  mps_pool_destroy(poolhi);
 }
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_thr_t thread;
  int spare, spare_total, commit, obj;
@@ -240,7 +240,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

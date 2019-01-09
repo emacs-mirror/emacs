@@ -14,12 +14,12 @@ END_HEADER
 #include "mpscmvff.h"
 #include "mpsavm.h"
 
-void *stackpointer;
 mps_arena_t arena;
 
 static mps_pool_debug_option_s debugOpts = {(void *)"bibblebo", 8};
 
-static void test(void) {
+static void test(void *stack_pointer)
+{
  mps_thr_t thread;
  mps_pool_t pool;
  mps_addr_t a;
@@ -55,10 +55,7 @@ static void test(void) {
 }
 
 int main(void) {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

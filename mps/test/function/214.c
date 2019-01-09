@@ -12,7 +12,6 @@ END_HEADER
 #include "mpscmvt.h"
 #include "mpsavm.h"
 
-void *stackpointer;
 mps_arena_t arena;
 
 static mps_addr_t objs[OBJECTS];
@@ -30,7 +29,8 @@ static mps_res_t mvt_alloc(mps_addr_t *ref, mps_ap_t ap, size_t size) {
  return MPS_RES_OK;
 }
 
-static void test (void) {
+static void test(void *stack_pointer)
+{
  mps_thr_t thread;
  mps_pool_t pool;
  mps_ap_t ap;
@@ -65,10 +65,7 @@ static void test (void) {
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

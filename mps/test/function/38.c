@@ -24,8 +24,6 @@ static mps_gen_param_s testChain[genCOUNT] = {
 #define MAXLDS 100
 
 
-void *stackpointer;
-
 mps_arena_t arena;
 static mycell *obj_table[MAXLDS];
 static mps_ld_t lds[MAXLDS];
@@ -50,7 +48,7 @@ static void checklds(void)
 }
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_pool_t poolmvff, poolawl, poolamc;
  mps_thr_t thread;
@@ -79,10 +77,7 @@ static void test(void)
                             (mps_addr_t *)obj_table, MAXLDS),
       "create table root");
 
- cdie(mps_root_create_reg(&root1, arena, mps_rank_ambig(), 0, thread,
-                          mps_stack_scan_ambig, stackpointer, 0),
-      "create register and stack root");
-
+ cdie(mps_root_create_thread(&root1, arena, thread, stack_pointer), "thread root");
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
 
@@ -175,10 +170,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

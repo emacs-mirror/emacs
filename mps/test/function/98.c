@@ -13,7 +13,7 @@ END_HEADER
 #include "testlib.h"
 #include "mpsavm.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
   mps_arena_t arena;
   mps_res_t res;
@@ -34,7 +34,7 @@ static void test(void)
 int main(void)
 {
   if (MPS_WORD_WIDTH <= 32) {
-    easy_tramp(test);
+    run_test(test);
   } else {
     /* Can't exhaust 64-bit address space by allocating, so fake a pass. */
     report("arena", "%d", ARENAS);

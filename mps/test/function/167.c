@@ -23,7 +23,7 @@ mps_arena_t arena;
 mps_addr_t objs[MAXOBJS];
 mps_addr_t sizes[MAXOBJS];
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_pool_t poolhi, poollo;
  mps_thr_t thread;
@@ -106,7 +106,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

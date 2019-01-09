@@ -17,8 +17,6 @@ END_HEADER
 static mps_gen_param_s testChain[genCOUNT] = {
   { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
-void *stackpointer;
-
 static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
  comment("Scan: %p", base);
@@ -59,7 +57,7 @@ struct mps_fmt_A_s fmtA =
 };
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  mps_pool_t pool;
@@ -78,11 +76,7 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
-
+ cdie(mps_root_create_thread(&root, arena, thread, stack_pointer), "thread root");
  cdie(
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
@@ -120,10 +114,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

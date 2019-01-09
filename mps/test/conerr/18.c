@@ -14,7 +14,7 @@ END_HEADER
 #include "testlib.h"
 #include "mpsclo.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena0;
  mps_arena_t arena1;
@@ -47,6 +47,6 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  return 0;
 }
