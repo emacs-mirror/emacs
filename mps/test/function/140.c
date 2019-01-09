@@ -15,7 +15,6 @@ END_HEADER
 
 #define MAXNUMBER 1000000
 
-void *stackpointer;
 mps_arena_t arena;
 
 mps_bool_t slotHigh, arenaHigh, firstFit;
@@ -153,7 +152,7 @@ static void dt(int kind,
   mins, maxs, number, iter, secs);
 }
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_thr_t thread;
  unsigned long mins;
@@ -182,10 +181,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

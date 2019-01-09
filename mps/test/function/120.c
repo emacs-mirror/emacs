@@ -23,14 +23,13 @@ END_HEADER
 #include "mpsavm.h"
 #include "mpscmvff.h"
 
-void *stackpointer;
-
 mps_arena_t arena;
 mps_thr_t thread;
 mps_pool_t pool;
 mps_pool_t pools[1000];
 
-static void test(void) {
+static void test(void *stack_pointer)
+{
  int i;
  mps_addr_t a;
  mps_res_t res;
@@ -130,10 +129,7 @@ static void test(void) {
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

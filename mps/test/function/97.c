@@ -41,7 +41,6 @@ END_HEADER
 static mps_gen_param_s testChain[genCOUNT] = {
   { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
-void *stackpointer;
 long int appcount;
 long int apppadcount;
 
@@ -107,7 +106,7 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
  }
 }
 
-static void test(void)
+static void test(void *stack_pointer)
 {
 /* a is a table of exact roots
    b    a table of ambiguous roots
@@ -254,10 +253,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

@@ -14,9 +14,8 @@ END_HEADER
 #include "mpscmvff.h"
 #include "newfmt.h"
 
-void *stackpointer;
-
-static void test(void) {
+static void test(void *stack_pointer)
+{
  mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
@@ -29,9 +28,7 @@ static void test(void) {
  die(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
  die(mps_arena_commit_limit_set(arena, 1ul << 30), "commit_limit_set");
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-  mps_stack_scan_ambig, stackpointer, 0), "create root");
-
+ cdie(mps_root_create_thread(&root, arena, thread, stack_pointer), "thread root");
  cdie(mps_pool_create_k(&pool, arena, mps_class_mvff(), mps_args_none), "pool");
 
  while (mps_alloc(&q, pool, 64*1024)==MPS_RES_OK);
@@ -48,10 +45,7 @@ static void test(void) {
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

@@ -40,7 +40,7 @@ static void xfree(void *p)
   }
 }
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  size_t i, j;
@@ -68,7 +68,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

@@ -28,12 +28,10 @@ static mps_gen_param_s testChain[genCOUNT] = {
   { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 
-void *stackpointer;
-
 mps_addr_t temp_root;
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  mps_pool_t pool1, pool2;
@@ -123,10 +121,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

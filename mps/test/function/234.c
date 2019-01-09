@@ -15,9 +15,7 @@ END_HEADER
 #include "rankfmt.h"
 #include "testlib.h"
 
-static void *stackpointer;
-
-static void test_pool(mps_pool_class_t pool_class)
+static void test_pool(void *stack_pointer, mps_pool_class_t pool_class)
 {
   mps_arena_t arena;
   mps_pool_t pool;
@@ -30,7 +28,7 @@ static void test_pool(mps_pool_class_t pool_class)
   cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
        "create arena");
   cdie(mps_thread_reg(&thread, arena), "register thread");
-  cdie(mps_root_create_thread(&root, arena, thread, stackpointer),
+  cdie(mps_root_create_thread(&root, arena, thread, stack_pointer),
        "create thread");
   cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
   MPS_ARGS_BEGIN(args) {
@@ -61,19 +59,17 @@ static void test_pool(mps_pool_class_t pool_class)
   mps_arena_destroy(arena);
 }
 
-static void test(void)
+static void test(void *stack_pointer)
 {
-  test_pool(mps_class_amc());
-  test_pool(mps_class_ams());
-  test_pool(mps_class_awl());
-  test_pool(mps_class_lo());
+  test_pool(stack_pointer, mps_class_amc());
+  test_pool(stack_pointer, mps_class_ams());
+  test_pool(stack_pointer, mps_class_awl());
+  test_pool(stack_pointer, mps_class_lo());
 }
 
 int main(void)
 {
- void *m;
- stackpointer = &m; /* hack to get stack pointer */
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

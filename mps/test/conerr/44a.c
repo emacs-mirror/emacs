@@ -13,9 +13,7 @@ END_HEADER
 #include "mpscamc.h"
 #include "myfmt.h"
 
-void *stackpointer;
-
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  mps_thr_t thread = (mps_thr_t)1;
@@ -27,11 +25,7 @@ static void test(void)
  cdie(mps_thread_reg(&thread, arena), "register thread");
 */
 
- cdie(
-  mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
-
+ cdie(mps_root_create_thread(&root, arena, thread, stack_pointer), "thread root");
  mps_root_destroy(root);
  comment("Destroyed root.");
 
@@ -46,10 +40,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  return 0;
 }
 

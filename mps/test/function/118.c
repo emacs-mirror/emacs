@@ -89,7 +89,7 @@ static mps_addr_t make(void)
 }
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
   mps_addr_t busy_init;
   mps_ap_t busy_ap;
@@ -140,7 +140,7 @@ static void test(void)
 
 int main(void)
 {
-  easy_tramp(test);
+  run_test(test);
 
   pass();
   return 0;

@@ -10,11 +10,9 @@ END_HEADER
 #include "testlib.h"
 #include "mpsavm.h"
 
-void *stackpointer;
-
 mps_arena_t arena;
 
-static void test(void)
+static void test(void *stack_pointer)
 {
 
 /* create an arena that can't grow beyond 128 M */
@@ -29,10 +27,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

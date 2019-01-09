@@ -13,7 +13,7 @@ END_HEADER
 
 #include "testlib.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  mps_fmt_t format;
@@ -34,6 +34,6 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  return 0;
 }

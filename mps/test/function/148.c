@@ -36,7 +36,7 @@ static mps_gen_param_s testChain[genCOUNT] = {
 #define SMALLSIZE (4096)
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  int i;
  mps_ap_t ap, sap;
@@ -139,7 +139,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

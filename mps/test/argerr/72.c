@@ -13,9 +13,7 @@ END_HEADER
 #include "testlib.h"
 #include "arg.h"
 
-void *stackpointer;
-
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  mps_thr_t thread;
@@ -30,9 +28,6 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  return 0;
 }

@@ -17,7 +17,7 @@ mps_arena_t arena;
 
 static char buffer[1024 * 1024];
 
-static void test(void)
+static void test(void *stack_pointer)
 {
   mps_res_t res, prev_res = MPS_RES_OK;
   int i;
@@ -61,7 +61,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

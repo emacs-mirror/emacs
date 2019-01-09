@@ -82,12 +82,9 @@ void asserts(int expr, const char *format, ...);
 void myabort(void);
 
 
-/* Easy way of entering the trampoline, for when you don't
-   want to pass any information in or out. If you have a
-   function void foo(void), just go easy_tramp(foo).
-*/
-
-void easy_tramp(void (*f)(void));
+/* Run test case with MMQA assertion handler installed. */
+typedef void (*mmqa_test_function_t)(void *stack_pointer);
+void run_test(mmqa_test_function_t test);
 
 
 /* Pause for n seconds

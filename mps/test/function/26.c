@@ -31,7 +31,8 @@ static mps_res_t trysize(size_t try) {
  return res;
 }
 
-static void test(void) {
+static void test(void *stack_pointer)
+{
  size_t inf, sup, try;
 
  die(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create");
@@ -55,7 +56,7 @@ static void test(void) {
 }
 
 int main(void) {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

@@ -22,7 +22,7 @@ static mps_gen_param_s testChain[genCOUNT] = {
   { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  int j;
  mps_ap_t ap;
@@ -80,7 +80,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

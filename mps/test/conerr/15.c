@@ -15,7 +15,7 @@ END_HEADER
 
 #include "testlib.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_pool_t pool = malloc(4096);
  mps_pool_destroy(pool);
@@ -23,6 +23,6 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  return 0;
 }

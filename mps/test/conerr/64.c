@@ -16,7 +16,7 @@ END_HEADER
 #include "mpsclo.h"
 #include "myfmt.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  void *marker = &marker;
  mps_arena_t arena;
@@ -75,6 +75,6 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  return 0;
 }

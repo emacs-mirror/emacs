@@ -14,10 +14,7 @@ END_HEADER
 #include "mpsavm.h"
 
 
-void *stackpointer;
-
-
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  mps_pool_t pool;
@@ -38,10 +35,7 @@ static void test(void)
       "create arena");
 
  die(mps_thread_reg(&thread, arena), "register thread");
- die(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-                         mps_stack_scan_ambig, stackpointer, 0),
-     "create root");
-
+ cdie(mps_root_create_thread(&root, arena, thread, stack_pointer), "thread root");
  cdie(mps_fmt_create_A(&format, arena, &fmtA), "create format");
 
  die(mps_pool_create(&pool, arena, mps_class_awl(), format, getassociated),
@@ -99,10 +93,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

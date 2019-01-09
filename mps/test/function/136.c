@@ -39,7 +39,6 @@ END_HEADER
 #define MAXLARGEOBJECTS (100000ul)
 
 
-void *stackpointer;
 mps_arena_t arena;
 
 static mps_addr_t
@@ -152,7 +151,7 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
 }
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
   mps_thr_t thread;
   int symm;
@@ -187,10 +186,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

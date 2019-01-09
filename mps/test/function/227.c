@@ -34,8 +34,6 @@ END_HEADER
 #define COLLECT_WORLD
 */
 
-void *stackpointer;
-
 mps_arena_t arena1, arena2;
 mps_pool_t poolamc1, poolamc2;
 mps_thr_t thread1, thread2;
@@ -56,7 +54,8 @@ static void alloc_back(void) {
  }
 }
 
-static void test(void) {
+static void test(void *stack_pointer)
+{
  long int i;
  long int rsize = 0;
 
@@ -72,15 +71,7 @@ static void test(void) {
  cdie(mps_thread_reg(&thread1, arena1), "register thread");
  cdie(mps_thread_reg(&thread2, arena2), "register thread");
 
- cdie(
-  mps_root_create_reg(&root1, arena1, mps_rank_ambig(), 0, thread1,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
- cdie(
-  mps_root_create_reg(&root2, arena2, mps_rank_ambig(), 0, thread2,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
-
+ cdie(mps_root_create_thread(&root1, arena1, thread1, stack_pointer), "thread root"); cdie(mps_root_create_thread(&root2, arena2, thread2, stack_pointer), "thread root");
  cdie(
   mps_root_create_table(&root1a, arena1, mps_rank_exact(), 0, &objtab1[0], TABSIZE),
   "create root table");
@@ -198,10 +189,7 @@ static void test(void) {
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  report("result", "pass");
  return 0;
 }

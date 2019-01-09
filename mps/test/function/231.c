@@ -14,7 +14,7 @@ END_HEADER
 #include "testlib.h"
 #include "newfmt.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
   mps_arena_t arena;
 
@@ -34,7 +34,7 @@ static void test(void)
 
 int main(void)
 {
-  easy_tramp(test);
+  run_test(test);
   pass();
   return 0;
 }

@@ -11,7 +11,7 @@ END_HEADER
 #include "mpscmfs.h"
 #include "testlib.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
   size_t i;
   for (i = 0; i < 20; ++i) {
@@ -41,7 +41,7 @@ static void test(void)
 
 int main(void)
 {
-  easy_tramp(test);
+  run_test(test);
   pass();
   return 0;
 }

@@ -1,7 +1,7 @@
 /* 
 TEST_HEADER
  id = $Id$
- summary = UNALIGNED thread for mps_root_create_reg
+ summary = UNALIGNED thread for mps_root_create_thread
  language = c
  link = testlib.o
 OUTPUT_SPEC
@@ -12,9 +12,7 @@ END_HEADER
 #include "testlib.h"
 #include "arg.h"
 
-void *stackpointer;
-
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  mps_thr_t thread;
@@ -24,17 +22,11 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0,
-                      UNALIGNED, mps_stack_scan_ambig, stackpointer, 0),
-      "root create");
-
+ cdie(mps_root_create_thread(&root, arena, UNALIGNED, stack_pointer), "thread root");
 }
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  return 0;
 }

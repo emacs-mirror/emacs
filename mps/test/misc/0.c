@@ -13,9 +13,7 @@ END_HEADER
 #include "mps.h"
 #include "testlib.h"
 
-void *stackpointer;
-
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
  int *p;
@@ -28,10 +26,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m;
-
- easy_tramp(test);
+ run_test(test);
  return 0;
 }
 
