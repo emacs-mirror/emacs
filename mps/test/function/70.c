@@ -10,7 +10,7 @@ END_HEADER
 #include "testlib.h"
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena;
 
@@ -31,7 +31,7 @@ int main(void)
 {
  comment("Started");
  mmqa_pause(10);
- easy_tramp(test);
+ run_test(test);
  comment("Left trampoline");
  mmqa_pause(10);
  pass();

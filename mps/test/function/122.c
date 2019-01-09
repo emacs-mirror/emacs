@@ -26,7 +26,6 @@ static mps_gen_param_s testChain[genCOUNT] = {
 #define MAGICSIZE (342)
 
 
-void *stackpointer;
 long int rootcount;
 long int speccount;
 
@@ -81,7 +80,7 @@ static void walkroots (mycell *a)
 mycell *a[4], *b[4];
 
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_chain_t chain;
  mycell *x;
@@ -144,9 +143,7 @@ static void test(void)
  walkroots(NULL);
  report("count1", "%ld", rootcount);
  
- cdie(mps_root_create_reg(&root, arena, mps_rank_ambig(), 0, thread,
-  mps_stack_scan_ambig, stackpointer, 0), "create stack root");
-
+ cdie(mps_root_create_thread(&root, arena, thread, stack_pointer), "thread root");
  x = allocdumb(apamc, 64, mps_rank_exact());
  (void)allocdumb(apamc, 64, mps_rank_exact());
  (void)allocdumb(apamc, 64, mps_rank_exact());
@@ -187,10 +184,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  report("result", "pass");
  return 0;
 }

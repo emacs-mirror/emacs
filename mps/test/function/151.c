@@ -16,7 +16,7 @@ END_HEADER
 #define OBJSIZE (1024*1024*1)
 #define ITERATIONS (100)
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  int i = 0;
  mps_ap_t sap;
@@ -78,7 +78,7 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

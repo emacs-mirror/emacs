@@ -2,7 +2,7 @@
 # This file should be updated whenever the test harness changes.
 # Edit with care!
 
-$HARNESS_VERSION="3.5";
+$HARNESS_VERSION="3.6";
 
 # Version history:
 # [Recorded history begins with version 2.0]
@@ -34,3 +34,4 @@ $HARNESS_VERSION="3.5";
 #                _succeeds_
 #  3.4 -- Added P= (pathname equality) operator
 #  3.5 -- Platform detection based on uname; Linux and macOS stuff
+#  3.6 -- Replace easy_tramp with run_test since MPS no longer needs trampoline.

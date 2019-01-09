@@ -24,14 +24,14 @@ END_HEADER
 #define EXTENDBY (8*1024)
 #define MAXLARGE (1000*1024)
 
-void *stackpointer;
 mps_arena_t arena;
 
 static mps_addr_t
   largeObjects[MAXLARGE],
   smallObjects[NSMALL];
 
-static void test(void) {
+static void test(void *stack_pointer)
+{
  mps_thr_t thread;
  mps_pool_t pool;
  unsigned int i;
@@ -76,10 +76,7 @@ static void test(void) {
 }
 
 int main(void) {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }

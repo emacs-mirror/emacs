@@ -14,7 +14,7 @@ END_HEADER
 #include "testlib.h"
 #include "mps.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
   mps_arena_t arena;
   cdie(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none),
@@ -25,6 +25,6 @@ static void test(void)
 
 int main(void)
 {
-  easy_tramp(test);
+  run_test(test);
   return 0;
 }

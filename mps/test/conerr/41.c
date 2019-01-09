@@ -13,9 +13,7 @@ END_HEADER
 #include "mpscamc.h"
 #include "myfmt.h"
 
-void *stackpointer;
-
-static void test(void)
+static void test(void *stack_pointer)
 {
  mps_arena_t arena = (mps_arena_t)1;
  mps_root_t root;
@@ -38,10 +36,7 @@ static void test(void)
 
 int main(void)
 {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  return 0;
 }
 

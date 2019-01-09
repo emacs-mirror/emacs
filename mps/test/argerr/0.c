@@ -14,7 +14,7 @@ END_HEADER
 #include "testlib.h"
 #include "arg.h"
 
-static void test(void)
+static void test(void *stack_pointer)
 {
  adie(mps_arena_create(NULL, mps_arena_class_vm(), mmqaArenaSIZE),
       "Create arena");
@@ -22,6 +22,6 @@ static void test(void)
 
 int main(void)
 {
- easy_tramp(test);
+ run_test(test);
  return 0;
 }

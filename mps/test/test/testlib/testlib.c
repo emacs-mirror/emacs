@@ -225,8 +225,7 @@ void asserts(int expr, const char *format, ...)
 /* routines for easy use of the MPS */
 
 
-/* my own assertion handler, insalled by easy_tramp
-*/
+/* my own assertion handler, insalled by run_test */
 
 static void mmqa_assert_handler(const char *cond, const char *id,
                               const char *file, unsigned line)
@@ -276,64 +275,22 @@ static void mmqa_lib_fail(const char *file, unsigned line, const char *message)
   mmqa_assert_handler(message, "<none>", file, line);
 }
 
-/* easy_tramp
-   simplified trampoline, for those who don't want to
-   pass anything into or out of it -- it takes
-   a function with no arguments returning nothing
-*/
+/* run_test -- run test case with MMQA assertion handler installed.
+ *
+ * The test case takes a pointer to the cold end of the stack and
+ * returns nothing.
+ */
 
-static void *call_f(void *p, size_t s)
+void run_test(mmqa_test_function_t test)
 {
- void (**f)(void) = p;
+  void *stack_pointer = &stack_pointer;
 
 #ifdef MMQA_DEFINED_mps_lib_assert_fail_install
  mps_lib_assert_fail_install(mmqa_lib_fail);
 #endif
 
- (**f)(); 
- return NULL;
+ test(stack_pointer);
 }
-
-
-#if defined(MMQA_PROD_epcore)
-
-static void easy_tramp2(void (*f)(void))
-{
- call_f(&f, (size_t) 0);
-}
-
-#else
-
-static void easy_tramp2(void (*f)(void))
-{
- void *result;
-
- mps_tramp(&result, call_f, &f, (size_t)0);
-}
-
-#endif
-
-
-#ifdef MPS_OS_W3
-
-void easy_tramp(void (*f)(void))
-{
- __try {
-  easy_tramp2(f);
- } __except(mySEHFilter(GetExceptionInformation())) {
-  error("Exception handler messed up.");
- }
-}
-
-#else
-
-void easy_tramp(void (*f)(void))
-{
- easy_tramp2(f);
-}
-
-#endif
-
 
 /* mmqa_pause(n) waits for n seconds
 */

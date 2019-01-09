@@ -21,8 +21,6 @@ END_HEADER
 static mps_gen_param_s testChain[genCOUNT] = {
   { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
 
-void *stackpointer;
-
 mps_arena_t arena;
 static mycell *obj_table[MAXLDS];
 static mycell *addr_table[MAXLDS];
@@ -70,7 +68,8 @@ static void blat(mps_ap_t apamc, unsigned percent) {
  }
 }
 
-static void test(void) {
+static void test(void *stack_pointer)
+{
  mps_pool_t poolmvff, poolawl, poolamc;
  mps_thr_t thread;
  mps_root_t root0, root1, root2;
@@ -101,11 +100,7 @@ static void test(void) {
   mps_root_create_table(&root2, arena, mps_rank_exact(), 0,
                         (mps_addr_t *)obj_table, MAXLDS),
   "create table root");
- cdie(
-  mps_root_create_reg(&root1, arena, mps_rank_ambig(), 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create register and stack root");
- cdie(
+ cdie(mps_root_create_thread(&root1, arena, thread, stack_pointer), "thread root"); cdie(
   mps_fmt_create_A(&format, arena, &fmtA),
   "create format");
  cdie(
@@ -200,10 +195,7 @@ static void test(void) {
 }
 
 int main(void) {
- void *m;
- stackpointer=&m; /* hack to get stack pointer */
-
- easy_tramp(test);
+ run_test(test);
  pass();
  return 0;
 }
