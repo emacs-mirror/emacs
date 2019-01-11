@@ -177,7 +177,11 @@ language-server/bin/php-language-server.php"))
                                 (gdscript-mode . ("localhost" 6008))
                                 ((fortran-mode f90-mode) . ("fortls"))
                                 (lua-mode . ("lua-lsp"))
-                                (zig-mode . ("zls")))
+                                (zig-mode . ("zls"))
+                                (css-mode "css-languageserver" "--stdio")
+                                (html-mode "html-languageserver" "--stdio")
+                                (json-mode "json-languageserver" "--stdio")
+                                (dockerfile-mode . ("docker-langserver" "--stdio")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 identifies the buffers that are to be managed by a specific
