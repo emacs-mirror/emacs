@@ -34,12 +34,11 @@
   TODO:
 
   - Two-pass dumping: first assemble object list, then write all.
-    This way, we can perform arbitrary reordering.
+    This way, we can perform arbitrary reordering or maybe use fancy
+    graph algorithms to get better locality.
 
   - Don't emit relocations that happen to set Emacs memory locations
     to values they will already have.
-
-  - Check at dump time that relocations are properly aligned.
 
   - Nullify frame_and_buffer_state.
 
