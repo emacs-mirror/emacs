@@ -81,8 +81,6 @@
 (defvar eglot-server-programs '((rust-mode . (eglot-rls "rls"))
                                 (python-mode . ("pyls"))
                                 ((js-mode
-                                  js2-mode
-                                  rjsx-mode
                                   typescript-mode)
                                  . ("javascript-typescript-stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
@@ -635,8 +633,9 @@ be guessed."
          (project (or (project-current) `(transient . ,default-directory)))
          (guess (cdr (assoc managed-mode eglot-server-programs
                             (lambda (m1 m2)
-                              (or (eq m1 m2)
-                                  (and (listp m1) (memq m2 m1)))))))
+                              (cl-find
+                               m2 (if (listp m1) m1 (list m1))
+                               :test #'provided-mode-derived-p)))))
          (guess (if (functionp guess)
                     (funcall guess interactive)
                   guess))
