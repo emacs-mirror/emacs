@@ -2070,26 +2070,27 @@ Buffer is displayed with `display-buffer', which obeys
   :type 'boolean)
 
 (defun eglot--eldoc-message (format &rest args)
-  (let ((string (apply #'format format args))) ;; FIXME: overworking?
-    (when (or (eq t eglot-put-doc-in-help-buffer)
-              (funcall eglot-put-doc-in-help-buffer string))
-      (with-current-buffer (eglot--help-buffer)
-        (rename-buffer (format "*eglot-help for %s*" eglot--eldoc-hint))
-        (let ((inhibit-read-only t))
-          (erase-buffer)
-          (insert string)
-          (goto-char (point-min))
-          (if eglot-auto-display-help-buffer
-              (display-buffer (current-buffer))
-            (unless (get-buffer-window (current-buffer))
-              (eglot--message
-               "%s\n(...truncated. Full help is in `%s')"
-               (truncate-string-to-width
-                (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
-                (frame-width) nil nil "...")
-               (buffer-name eglot--help-buffer))))
-          (help-mode)
-          t)))))
+  (when format
+    (let ((string (apply #'format format args))) ;; FIXME: overworking?
+      (when (or (eq t eglot-put-doc-in-help-buffer)
+                (funcall eglot-put-doc-in-help-buffer string))
+        (with-current-buffer (eglot--help-buffer)
+          (rename-buffer (format "*eglot-help for %s*" eglot--eldoc-hint))
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (insert string)
+            (goto-char (point-min))
+            (if eglot-auto-display-help-buffer
+                (display-buffer (current-buffer))
+              (unless (get-buffer-window (current-buffer))
+                (eglot--message
+                 "%s\n(...truncated. Full help is in `%s')"
+                 (truncate-string-to-width
+                  (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
+                  (frame-width) nil nil "...")
+                 (buffer-name eglot--help-buffer))))
+            (help-mode)
+            t))))))
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function.
