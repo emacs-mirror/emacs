@@ -1,9 +1,9 @@
-# serial 20
+# serial 21
 
 dnl From Jim Meyering.
 dnl A wrapper around AC_FUNC_GETGROUPS.
 
-# Copyright (C) 1996-1997, 1999-2004, 2008-2018 Free Software Foundation, Inc.
+# Copyright (C) 1996-1997, 1999-2004, 2008-2019 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -34,7 +34,7 @@ AC_DEFUN([AC_FUNC_GETGROUPS],
       [AC_RUN_IFELSE(
          [AC_LANG_PROGRAM(
             [AC_INCLUDES_DEFAULT],
-            [[/* On Ultrix 4.3, getgroups (0, 0) always fails.  */
+            [[/* On NeXTstep 3.2, getgroups (0, 0) always fails.  */
               return getgroups (0, 0) == -1;]])
          ],
          [ac_cv_func_getgroups_works=yes],

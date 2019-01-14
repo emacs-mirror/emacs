@@ -1,7 +1,7 @@
 The files OrgOdtContentTemplate.xml and OrgOdtStyles.xml have the
 following copyright information:
 
-Copyright (C) 2010-2018 Free Software Foundation, Inc.
+Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 These files are part of GNU Emacs.
 
@@ -21,7 +21,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 Author: Jambunathan K <kjambunathan at gmail dot com>
 Keywords: outlines, hypermedia, calendar, wp
-Homepage: http://orgmode.org
+Homepage: https://orgmode.org
 
 Commentary:
 

@@ -27,7 +27,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifnottex
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1985--1987, 1993--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1186,7 +1186,7 @@ Reporting Bugs
 
 Contributing to Emacs Development
 
-* Coding Standards::     Gnu Emacs coding standards.
+* Coding Standards::     GNU Emacs coding standards.
 * Copyright Assignment:: Assigning copyright to the FSF.
 
 Command Line Arguments for Emacs Invocation

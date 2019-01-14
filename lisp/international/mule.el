@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -911,7 +911,7 @@ non-ASCII files.  This attribute is meaningful only when
 		(i 0))
 	    (dolist (elt coding-system-iso-2022-flags)
 	      (if (memq elt flags)
-		  (setq bits (logior bits (lsh 1 i))))
+		  (setq bits (logior bits (ash 1 i))))
 	      (setq i (1+ i)))
 	    (setcdr (assq :flags spec-attrs) bits))))
 
@@ -2501,7 +2501,11 @@ This function is intended to be added to `auto-coding-functions'."
                   (let ((sym-type (coding-system-type sym))
                         (bfcs-type
                          (coding-system-type buffer-file-coding-system)))
-                    (if (and (coding-system-equal 'utf-8 sym-type)
+                    ;; 'charset' will signal an error in
+                    ;; coding-system-equal, since it isn't a
+                    ;; coding-system.  So test that up front.
+                    (if (and (not (equal sym-type 'charset))
+                             (coding-system-equal 'utf-8 sym-type)
                              (coding-system-equal 'utf-8 bfcs-type))
                         buffer-file-coding-system
 		      sym))
@@ -2545,7 +2549,17 @@ This function is intended to be added to `auto-coding-functions'."
       (let* ((match (match-string 2))
 	     (sym (intern (downcase match))))
 	(if (coding-system-p sym)
-	    sym
+            ;; If the encoding tag is UTF-8 and the buffer's
+            ;; encoding is one of the variants of UTF-8, use the
+            ;; buffer's encoding.  This allows, e.g., saving an
+            ;; HTML file as UTF-8 with BOM when the tag says UTF-8.
+            (let ((sym-type (coding-system-type sym))
+                  (bfcs-type
+                   (coding-system-type buffer-file-coding-system)))
+              (if (and (coding-system-equal 'utf-8 sym-type)
+                       (coding-system-equal 'utf-8 bfcs-type))
+                  buffer-file-coding-system
+		sym))
 	  (message "Warning: unknown coding system \"%s\"" match)
 	  nil)))))
 

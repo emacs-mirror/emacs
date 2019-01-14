@@ -68,8 +68,7 @@
 (require 'message)
 (require 'nnmail)
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defconst nnmaildir-version "Gnus")
 
@@ -165,14 +164,14 @@ This variable is set by `nnmaildir-request-article'.")
 (defmacro nnmaildir--nov-set-mtime (nov value) `(aset ,nov 3 ,value))
 (defmacro nnmaildir--nov-set-extra (nov value) `(aset ,nov 4 ,value))
 
-(defstruct nnmaildir--art
+(cl-defstruct nnmaildir--art
   (prefix nil :type string)  ;; "time.pid.host"
   (suffix nil :type string)  ;; ":2,flags"
   (num    nil :type natnum)  ;; article number
   (msgid  nil :type string)  ;; "<mess.age@id>"
   (nov    nil :type vector)) ;; cached nov structure, or nil
 
-(defstruct nnmaildir--grp
+(cl-defstruct nnmaildir--grp
   (name  nil :type string)  ;; "group.name"
   (new   nil :type list)    ;; new/ modtime
   (cur   nil :type list)    ;; cur/ modtime
@@ -186,7 +185,7 @@ This variable is set by `nnmaildir-request-article'.")
   (mmth  nil :type vector)) ;; obarray mapping mark name->dir modtime
 					; ("Mark Mod Time Hash")
 
-(defstruct nnmaildir--srv
+(cl-defstruct nnmaildir--srv
   (address    	 nil :type string)         ;; server address string
   (method     	 nil :type list)           ;; (nnmaildir "address" ...)
   (prefix     	 nil :type string)         ;; "nnmaildir+address:"
@@ -319,15 +318,15 @@ This variable is set by `nnmaildir-request-article'.")
 	(setq attr (file-attributes
 		    (concat dir (number-to-string number-opened))))
 	(or attr (throw 'return (1- number-opened)))
-	(setq ino-opened (nth 10 attr)
-	      nlink (nth 1 attr)
+	(setq ino-opened (file-attribute-inode-number attr)
+	      nlink (file-attribute-link-number attr)
 	      number-linked (+ number-opened nlink))
 	(if (or (< nlink 1) (< number-linked nlink))
 	    (signal 'error '("Arithmetic overflow")))
 	(setq attr (file-attributes
 		    (concat dir (number-to-string number-linked))))
 	(or attr (throw 'return (1- number-linked)))
-	(unless (equal ino-opened (nth 10 attr))
+	(unless (equal ino-opened (file-attribute-inode-number attr))
 	  (setq number-opened number-linked))))))
 
 ;; Make the given server, if non-nil, be the current server.  Then make the
@@ -393,8 +392,8 @@ This variable is set by `nnmaildir-request-article'.")
 	  (setq make-new-file nil
 		previous-number-link 0))
 	(let* ((attr (file-attributes path-open))
-	       (nlink (nth 1 attr)))
-	  (setq ino-open (nth 10 attr)
+	       (nlink (file-attribute-link-number attr)))
+	  (setq ino-open (file-attribute-inode-number attr)
 		number-link (+ number-open nlink))
 	  (if (or (< nlink 1) (< number-link nlink))
 	      (signal 'error '("Arithmetic overflow"))))
@@ -413,7 +412,7 @@ This variable is set by `nnmaildir-request-article'.")
 		  number-open number-link))
 	   ((nnmaildir--eexist-p err)
 	    (let ((attr (file-attributes path-link)))
-	      (unless (equal (nth 10 attr) ino-open)
+	      (unless (equal (file-attribute-inode-number attr) ino-open)
 		(setq number-open number-link
 		      number-link 0))))
 	   (t (signal (car err) (cdr err)))))))))
@@ -438,8 +437,8 @@ This variable is set by `nnmaildir-request-article'.")
       (unless attr
 	(nnmaildir--expired-article group article)
 	(throw 'return nil))
-      (setq mtime (nth 5 attr)
-	    attr (nth 7 attr)
+      (setq mtime (file-attribute-modification-time attr)
+	    attr (file-attribute-size attr)
 	    nov (nnmaildir--art-nov article)
 	    dir (nnmaildir--nndir dir)
 	    novdir (nnmaildir--nov-dir dir)
@@ -652,7 +651,7 @@ This variable is set by `nnmaildir-request-article'.")
 	  (funcall func (cdr entry)))))))
 
 (defun nnmaildir--up2-1 (n)
-  (if (zerop n) 1 (1- (lsh 1 (1+ (logb n))))))
+  (if (zerop n) 1 (1- (ash 1 (1+ (logb n))))))
 
 (defun nnmaildir--system-name ()
   (replace-regexp-in-string
@@ -765,7 +764,7 @@ This variable is set by `nnmaildir-request-article'.")
 
 (defun nnmaildir--scan (gname scan-msgs groups _method srv-dir srv-ls)
   (catch 'return
-    (let ((36h-ago (- (car (current-time)) 2))
+    (let ((36h-ago (- (float-time) 129600))
 	  absdir nndir tdir ndir cdir nattr cattr isnew pgname read-only ls
 	  files num dir flist group x)
       (setq absdir (nnmaildir--srvgrp-dir srv-dir gname)
@@ -795,29 +794,33 @@ This variable is set by `nnmaildir-request-article'.")
       (setq read-only (nnmaildir--param pgname 'read-only)
 	    ls (or (nnmaildir--param pgname 'directory-files) srv-ls))
       (unless read-only
-	(setq x (nth 11 (file-attributes tdir)))
-	(unless (and (equal x (nth 11 nattr)) (equal x (nth 11 cattr)))
+	(setq x (file-attribute-device-number (file-attributes tdir)))
+	(unless (and (equal x (file-attribute-device-number nattr))
+		     (equal x (file-attribute-device-number cattr)))
 	  (setf (nnmaildir--srv-error nnmaildir--cur-server)
 		(concat "Maildir spans filesystems: " absdir))
 	  (throw 'return nil))
 	(dolist (file (funcall ls tdir 'full "\\`[^.]" 'nosort))
 	  (setq x (file-attributes file))
-	  (if (or (> (cadr x) 1) (< (car (nth 4 x)) 36h-ago))
+	  (if (or (> (file-attribute-link-number x) 1)
+		  (time-less-p (file-attribute-access-time x) 36h-ago))
 	      (delete-file file))))
       (or scan-msgs
 	  isnew
 	  (throw 'return t))
-      (setq nattr (nth 5 nattr))
+      (setq nattr (file-attribute-modification-time nattr))
       (if (equal nattr (nnmaildir--grp-new group))
 	  (setq nattr nil))
       (if read-only (setq dir (and (or isnew nattr) ndir))
 	(when (or isnew nattr)
 	  (dolist (file  (funcall ls ndir nil "\\`[^.]" 'nosort))
 	    (setq x (concat ndir file))
-	    (and (time-less-p (nth 5 (file-attributes x)) nil)
+	    (and (time-less-p (file-attribute-modification-time
+			       (file-attributes x))
+			      nil)
 		 (rename-file x (concat cdir (nnmaildir--ensure-suffix file)))))
 	  (setf (nnmaildir--grp-new group) nattr))
-	(setq cattr (nth 5 (file-attributes cdir)))
+	(setq cattr (file-attribute-modification-time (file-attributes cdir)))
 	(if (equal cattr (nnmaildir--grp-cur group))
 	    (setq cattr nil))
 	(setq dir (and (or isnew cattr) cdir)))
@@ -856,7 +859,7 @@ This variable is set by `nnmaildir-request-article'.")
 		     ;; then look in marks directories
 		     (not (file-exists-p (concat cdir prefix)))
 		     (file-exists-p (concat ndir prefix)))
-		(incf num)))))
+		(cl-incf num)))))
 	(setf (nnmaildir--grp-cache group) (make-vector num nil))
         (let ((inhibit-quit t))
           (set (intern gname groups) group))
@@ -904,7 +907,7 @@ This variable is set by `nnmaildir-request-article'.")
 		(if (nnmaildir--srv-gnm nnmaildir--cur-server)
 		    (nnmail-get-new-mail 'nnmaildir nil nil scan-group))
 	      (unintern scan-group groups))
-	  (setq x (nth 5 (file-attributes srv-dir))
+	  (setq x (file-attribute-modification-time (file-attributes srv-dir))
 		scan-group (null scan-group))
 	  (if (equal x (nnmaildir--srv-mtime nnmaildir--cur-server))
 	      (if scan-group
@@ -937,7 +940,7 @@ This variable is set by `nnmaildir-request-article'.")
 	    (dolist (grp x)
 	      (unintern grp groups))
 	    (setf (nnmaildir--srv-mtime nnmaildir--cur-server)
-		  (nth 5 (file-attributes srv-dir))))
+		  (file-attribute-modification-time (file-attributes srv-dir))))
 	  (and scan-group
 	       (nnmaildir--srv-gnm nnmaildir--cur-server)
 	       (nnmail-get-new-mail 'nnmaildir nil nil))))))
@@ -994,7 +997,7 @@ This variable is set by `nnmaildir-request-article'.")
 	 (curdir (nnmaildir--cur
 		  (nnmaildir--srvgrp-dir
 		   (nnmaildir--srv-dir nnmaildir--cur-server) gname)))
-	 (curdir-mtime (nth 5 (file-attributes curdir)))
+	 (curdir-mtime (file-attribute-modification-time (file-attributes curdir)))
 	 pgname flist always-marks never-marks old-marks dir
 	 all-marks marks ranges markdir read ls
 	 old-mmth new-mmth mtime existing missing deactivate-mark)
@@ -1047,7 +1050,7 @@ This variable is set by `nnmaildir-request-article'.")
 	  ;; a filename flag, get the later of the mtimes for markdir and
 	  ;; curdir, otherwise only the markdir counts.
 	  (setq mtime
-		(let ((markdir-mtime (nth 5 (file-attributes markdir))))
+		(let ((markdir-mtime (file-attribute-modification-time (file-attributes markdir))))
 		  (cond
 		   ((null (nnmaildir--mark-to-flag mark))
 		    markdir-mtime)
@@ -1464,9 +1467,7 @@ This variable is set by `nnmaildir-request-article'.")
       (unless (string-equal nnmaildir--delivery-time file)
 	(setq nnmaildir--delivery-time file
 	      nnmaildir--delivery-count 0))
-      (when (and (consp (cdr time))
-		 (consp (cddr time)))
-	(setq file (concat file "M" (number-to-string (caddr time)))))
+      (setq file (concat file "M" (number-to-string (caddr time))))
       (setq file (concat file nnmaildir--delivery-pid)
 	    file (concat file "Q" (number-to-string nnmaildir--delivery-count))
 	    file (concat file "." (nnmaildir--system-name))
@@ -1602,7 +1603,7 @@ This variable is set by `nnmaildir-request-article'.")
 	     (nnmaildir--expired-article group article))
 	    ((and no-force
 		  (progn
-		    (setq time (nth 5 time)
+		    (setq time (file-attribute-modification-time time)
 			  bound-iter boundary)
 		    (while (and bound-iter time
 				(= (car bound-iter) (car time)))
@@ -1732,7 +1733,7 @@ This variable is set by `nnmaildir-request-article'.")
 	(setq ranges (car action)
 	      todo-marks (caddr action))
 	(dolist (mark todo-marks)
-	  (pushnew mark all-marks :test #'equal))
+	  (cl-pushnew mark all-marks :test #'equal))
 	(if (numberp (cdr ranges)) (setq ranges (list ranges)))
 	(nnmaildir--nlist-iterate nlist ranges
 				  (cond ((eq 'del (cadr action)) del-action)
@@ -1779,14 +1780,11 @@ This variable is set by `nnmaildir-request-article'.")
       t)))
 
 (defun nnmaildir-close-server (&optional server)
-  (defvar flist) (defvar ls) (defvar dirs) (defvar dir)
-  (defvar files) (defvar file) (defvar x)
-  (let (flist ls dirs dir files file x)
-    (nnmaildir--prepare server nil)
-    (when nnmaildir--cur-server
-      (setq server nnmaildir--cur-server
-	    nnmaildir--cur-server nil)
-      (unintern (nnmaildir--srv-address server) nnmaildir--servers)))
+  (nnmaildir--prepare server nil)
+  (when nnmaildir--cur-server
+    (setq server nnmaildir--cur-server
+	  nnmaildir--cur-server nil)
+    (unintern (nnmaildir--srv-address server) nnmaildir--servers))
   t)
 
 (defun nnmaildir-request-close ()

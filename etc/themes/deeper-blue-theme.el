@@ -1,6 +1,6 @@
 ;;; deeper-blue-theme.el --- Custom theme for faces
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Scott Frazer <frazer.scott@gmail.com>
 
@@ -109,9 +109,5 @@
    `(warning ((,class (:foreground "Yellow"))))))
 
 (provide-theme 'deeper-blue)
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; deeper-blue-theme.el ends here

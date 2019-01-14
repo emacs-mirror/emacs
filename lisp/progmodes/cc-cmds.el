@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2019 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1383,7 +1383,7 @@ No indentation or other \"electric\" behavior is performed."
 	 (let ((eo-block (point))
 	       bod)
 	   (and (eq (char-before) ?\})
-		(eq (car (c-beginning-of-decl-1 lim)) 'previous)
+		(memq (car (c-beginning-of-decl-1 lim)) '(same previous))
 		(setq bod (point))
 		;; Look for struct or union or ...  If we find one, it might
 		;; be the return type of a function, or the like.  Exclude
@@ -1441,14 +1441,23 @@ No indentation or other \"electric\" behavior is performed."
 	'in-block)
        ((c-in-function-trailer-p)
 	'in-trailer)
-       ((and (not least-enclosing)
-	     (consp paren-state)
-	     (consp (car paren-state))
-	     (eq start (cdar paren-state))
-	     (not
-	      (progn
-		(c-forward-syntactic-ws)
-		(looking-at c-symbol-start))))
+       ((or (and (eq (char-before) ?\;)
+		 (save-excursion
+		   (backward-char)
+		   (c-in-function-trailer-p)))
+	    (and (not least-enclosing)
+		 (consp paren-state)
+		 (consp (car paren-state))
+		 (eq start (cdar paren-state))
+		 (or
+		  (save-excursion
+		    (c-forward-syntactic-ws)
+		    (or (not (looking-at c-symbol-start))
+			(looking-at c-keywords-regexp)))
+		  (save-excursion
+		    (goto-char (caar paren-state))
+		    (c-beginning-of-decl-1)
+		    (not (looking-at c-defun-type-name-decl-key))))))
 	'at-function-end)
        (t
 	;; Find the start of the current declaration.  NOTE: If we're in the
@@ -1630,6 +1639,8 @@ No indentation or other \"electric\" behavior is performed."
        (setq lim (c-widen-to-enclosing-decl-scope
 		  paren-state orig-point-min orig-point-max))
        (setq where 'in-block))))
+
+(def-edebug-spec c-while-widening-to-decl-block t)
 
 (defun c-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.
@@ -1841,7 +1852,7 @@ or NIL if there isn't one.  \"Defun\" here means a function, or
 other top level construct with a brace block."
   (c-save-buffer-state
       (beginning-of-defun-function end-of-defun-function
-       where pos decl name-start name-end case-fold-search)
+       where pos decl0 decl type-pos tag-pos case-fold-search)
 
     (save-excursion
       ;; Move back out of any macro/comment/string we happen to be in.
@@ -1861,31 +1872,10 @@ other top level construct with a brace block."
 	(when (looking-at c-typedef-key)
 	  (goto-char (match-end 0))
 	  (c-forward-syntactic-ws))
+	(setq type-pos (point))
 
 	;; Pick out the defun name, according to the type of defun.
 	(cond
-	 ;; struct, union, enum, or similar:
-	 ((save-excursion
-	    (and
-	     (looking-at c-defun-type-name-decl-key)
-	     (consp (c-forward-decl-or-cast-1 (c-point 'bosws) 'top nil))
-	     (or (not (or (eq (char-after) ?{)
-			  (and c-recognize-knr-p
-			       (c-in-knr-argdecl))))
-		 (progn (c-backward-syntactic-ws)
-			(not (eq (char-before) ?\)))))))
-	  (let ((key-pos (point)))
-	    (c-forward-over-token-and-ws) ; over "struct ".
-	    (cond
-	     ((looking-at c-symbol-key)	; "struct foo { ..."
-	      (buffer-substring-no-properties key-pos (match-end 0)))
-	     ((eq (char-after) ?{)	; "struct { ... } foo"
-	      (when (c-go-list-forward)
-		(c-forward-syntactic-ws)
-		(when (looking-at c-symbol-key) ; a bit bogus - there might
-					; be several identifiers.
-		  (match-string-no-properties 0)))))))
-
 	 ((looking-at "DEFUN\\s-*(")	;"DEFUN\\_>") think of XEmacs!
 	  ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
 	  ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
@@ -1901,32 +1891,23 @@ other top level construct with a brace block."
 	     (c-backward-syntactic-ws)
 	     (point))))
 
-	 (t
-	  ;; Normal function or initializer.
-	  (when
-	      (and
-	       (consp
-		(setq decl
-		      (c-forward-decl-or-cast-1 (c-point 'bosws) 'top nil)))
-	       (setq name-start (car decl))
-	       (progn (if (and (looking-at c-after-suffixed-type-decl-key)
-			       (match-beginning 1))
-			  (c-forward-keyword-clause 1))
-		      t)
-	       (or (eq (char-after) ?{)
-		   (and c-recognize-knr-p
-			(c-in-knr-argdecl)))
-	       (goto-char name-start)
-	       (c-forward-name)
-	       (eq (char-after) ?\())
-	    (c-backward-syntactic-ws)
-	    (when (eq (char-before) ?\=) ; struct foo bar = {0, 0} ;
-	      (c-backward-token-2)
-	      (c-backward-syntactic-ws))
-	    (setq name-end (point))
-	    (c-back-over-compound-identifier)
-	    (and (looking-at c-symbol-start)
-		 (buffer-substring-no-properties (point) name-end)))))))))
+	 (t				; Normal function or initializer.
+	  (when (looking-at c-defun-type-name-decl-key) ; struct, etc.
+	    (goto-char (match-end 0))
+	    (c-forward-syntactic-ws)
+	    (setq tag-pos (point))
+	    (goto-char type-pos))
+	  (setq decl0 (c-forward-decl-or-cast-1 (c-point 'bosws) 'top nil))
+	  (when (consp decl0)
+	    (goto-char (car decl0))
+	    (setq decl (c-forward-declarator)))
+	  (and decl
+	       (car decl) (cadr decl)
+	       (buffer-substring-no-properties
+		(if (eq (car decl) tag-pos)
+		    type-pos
+		  (car decl))
+		(cadr decl)))))))))
 
 (defun c-defun-name ()
   "Return the name of the current defun, or NIL if there isn't one.

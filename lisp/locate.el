@@ -1,6 +1,6 @@
 ;;; locate.el --- interface to the locate command
 
-;; Copyright (C) 1996, 1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files
@@ -499,9 +499,9 @@ do not work in subdirectories.
 	 (progn
 	   (kill-buffer locate-buffer-name)
 	   (if locate-current-filter
-	       (error "Locate: no match for %s in database using filter %s"
+	       (user-error "Locate: no match for %s in database using filter %s"
 		      search-string locate-current-filter)
-	     (error "Locate: no match for %s in database" search-string))))
+	     (user-error "Locate: no match for %s in database" search-string))))
 
     (locate-insert-header search-string)
 

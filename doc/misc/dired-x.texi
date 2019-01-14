@@ -20,7 +20,7 @@
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2018
+Copyright @copyright{} 1994--1995, 1999, 2001--2019
 Free Software Foundation, Inc.
 
 @quotation
@@ -92,7 +92,6 @@ For @file{dired-x.el} as distributed with GNU Emacs @value{EMACSVER}.
 * Introduction::
 * Installation::
 * Omitting Files in Dired::
-* Local Variables::
 * Shell Command Guessing::
 * Virtual Dired::
 * Advanced Mark Commands::
@@ -322,8 +321,8 @@ Default: @code{nil}
 
 @cindex How to make omitting the default in Dired
 If non-@code{nil}, ``uninteresting'' files are not listed.
-Uninteresting files are those whose files whose names match regexp
-@code{dired-omit-files}, plus those ending with extensions in
+Uninteresting files are files whose names match regexp
+@code{dired-omit-files}, plus files whose names end with extension in
 @code{dired-omit-extensions}.  @kbd{C-x M-o} (@code{dired-omit-mode})
 toggles its value, which is buffer-local.  Put
 
@@ -338,7 +337,7 @@ inside your @code{dired-mode-hook} to have omitting initially turned on in
 
 To enable omitting automatically only in certain directories you can add
 a directory local setting
-(@pxref{Directory Variables,,,emacs,The Gnu Emacs manual}) for Dired mode
+(@pxref{Directory Variables,,,emacs,The GNU Emacs manual}) for Dired mode
 
 @example
 ((dired-mode . ((dired-omit-mode . t))))
@@ -478,77 +477,6 @@ Loading @file{dired-x.el} will install Dired Omit by putting
 call @code{dired-extra-startup}, which in turn calls @code{dired-omit-startup}
 in your @code{dired-mode-hook}.
 
-@node Local Variables
-@chapter Local Variables for Dired Directories
-
-@cindex Local Variables for Dired Directories
-@vindex dired-local-variables-file
-@vindex dired-enable-local-variables
-@noindent
-This Dired-X feature is obsolete as of Emacs 24.1.  The standard Emacs
-directory local variables mechanism (@pxref{Directory
-Variables,,,emacs,The Gnu Emacs manual}) replaces it.  For an example of
-the new mechanisms, @pxref{Omitting Variables}.
-
-When Dired visits a directory, it looks for a file whose name is the
-value of variable @code{dired-local-variables-file} (default: @file{.dired}).
-If such a file is found, Dired will temporarily insert it into the Dired
-buffer and run @code{hack-local-variables}.
-
-@noindent
-For example, if the user puts
-
-@example
-Local Variables:
-dired-actual-switches: "-lat"
-dired-omit-mode: t
-End:
-@end example
-
-@noindent
-into a file called @file{.dired} in a directory then when that directory is
-viewed it will be
-
-@enumerate
-@item
-sorted by date
-@item
-omitted automatically
-@end enumerate
-
-@noindent
-You can set @code{dired-local-variables-file} to @code{nil} to suppress this.
-The value of @code{dired-enable-local-variables} controls if and how these
-local variables are read.  This variable exists so that it may override the
-default value of @code{enable-local-variables}.
-
-@noindent
-Please see the GNU Emacs Manual to learn more about local variables.
-@xref{File Variables,Local Variables in Files,Local Variables in
-Files,emacs,The GNU Emacs Manual}.
-
-@noindent
-The following variables affect Dired Local Variables
-
-@table @code
-@vindex dired-local-variables-file
-@item dired-local-variables-file
-Default: @code{".dired"}
-
-If non-@code{nil}, file name for local variables for Dired.  If Dired finds a
-file with that name in the current directory, it will temporarily insert it
-into the Dired buffer and run @code{hack-local-variables}.
-
-@vindex dired-enable-local-variables
-@item dired-enable-local-variables
-Default: @code{t}
-
-Controls the use of local-variables lists in Dired.  This variable
-temporarily overrides the value of @code{enable-local-variables} when
-the Dired Local Variables are hacked.  It takes the same values as that
-variable.  A value of @code{nil} means to ignore any Dired Local Variables.
-@end table
-
 @node Shell Command Guessing
 @chapter Shell Command Guessing
 @cindex Guessing shell commands for files.
@@ -593,8 +521,9 @@ where each @var{command} can either be a string or a Lisp expression
 that evaluates to a string.  If several commands are given, all of
 them will temporarily be pushed onto the history.
 
-If @samp{*} in the shell command, that means to substitute the file
-name.
+A @samp{*} in the shell command stands for the file name that matched
+@var{regexp}.  When Emacs invokes the @var{command}, it replaces each
+instance of @samp{*} with the matched file name.
 
 You can set this variable in your @file{~/.emacs}.  For example,
 to add rules for @samp{.foo} and @samp{.bar} file extensions, write

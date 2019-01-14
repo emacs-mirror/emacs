@@ -1,6 +1,6 @@
 ;;; nneething.el --- arbitrary file access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'mailcap)
 (require 'nnheader)
@@ -101,7 +101,7 @@ included.")
 	    (nneething-insert-head file)
 	    (insert ".\n"))
 
-	  (incf count)
+	  (cl-incf count)
 
 	  (and large
 	       (zerop (% count 20))
@@ -123,7 +123,7 @@ included.")
 	 (file-exists-p file)		; The file exists.
 	 (not (file-directory-p file))	; It's not a dir.
 	 (save-excursion
-	   (let ((nnmail-file-coding-system 'binary))
+	   (let ((nnmail-file-coding-system 'raw-text))
 	     (nnmail-find-file file))	; Insert the file in the nntp buf.
 	   (unless (nnheader-article-p)	; Either it's a real article...
 	     (let ((type
@@ -215,8 +215,9 @@ included.")
 	(setq nneething-map
 	      (mapcar (lambda (n)
 			(list (cdr n) (car n)
-			      (nth 5 (file-attributes
-				      (nneething-file-name (car n))))))
+			      (file-attribute-modification-time
+			       (file-attributes
+				(nneething-file-name (car n))))))
 		      nneething-map)))
       ;; Remove files matching the exclusion regexp.
       (when nneething-exclude-files
@@ -244,7 +245,7 @@ included.")
 	(while map
 	  (if (and (member (cadr (car map)) files)
 		  ;; We also remove files that have changed mod times.
-		   (equal (nth 5 (file-attributes
+		   (equal (file-attribute-modification-time (file-attributes
 				  (nneething-file-name (cadr (car map)))))
 			  (cadr (cdar map))))
 	      (progn
@@ -262,7 +263,7 @@ included.")
 	  (setq touched t)
 	  (setcdr nneething-active (1+ (cdr nneething-active)))
 	  (push (list (cdr nneething-active) (car files)
-		      (nth 5 (file-attributes
+		      (file-attribute-modification-time (file-attributes
 			      (nneething-file-name (car files)))))
 		nneething-map))
 	(setq files (cdr files)))
@@ -318,15 +319,17 @@ included.")
      "Subject: " (file-name-nondirectory file) (or extra-msg "") "\n"
      "Message-ID: <nneething-" (nneething-encode-file-name file)
      "@" (system-name) ">\n"
-     (if (equal '(0 0) (nth 5 atts)) ""
-       (concat "Date: " (current-time-string (nth 5 atts)) "\n"))
+     (if (zerop (float-time (file-attribute-modification-time atts))) ""
+       (concat "Date: "
+	       (current-time-string (file-attribute-modification-time atts))
+	       "\n"))
      (or (when buffer
 	   (with-current-buffer buffer
 	     (when (re-search-forward "<[a-zA-Z0-9_]@[-a-zA-Z0-9_]>" 1000 t)
 	       (concat "From: " (match-string 0) "\n"))))
-	 (nneething-from-line (nth 2 atts) file))
-     (if (> (string-to-number (int-to-string (nth 7 atts))) 0)
-	 (concat "Chars: " (int-to-string (nth 7 atts)) "\n")
+	 (nneething-from-line (file-attribute-user-id atts) file))
+     (if (> (file-attribute-size atts) 0)
+	 (concat "Chars: " (int-to-string (file-attribute-size atts)) "\n")
        "")
      (if buffer
 	 (with-current-buffer buffer

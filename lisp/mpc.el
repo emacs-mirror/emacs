@@ -1,6 +1,6 @@
 ;;; mpc.el --- A client for the Music Player Daemon   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: multimedia
@@ -1017,7 +1017,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                (text
                 (if (eq info 'self) (symbol-name tag)
                   (pcase tag
-                    ((or `Time `Duration)
+                    ((or 'Time 'Duration)
                      (let ((time (cdr (or (assq 'time info) (assq 'Time info)))))
                        (setq pred (list nil)) ;Just assume it's never eq.
                        (when time
@@ -1025,7 +1025,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
                                                     (string-match ":" time))
                                                (substring time (match-end 0))
                                              time)))))
-                    (`Cover
+                    ('Cover
                      (let ((dir (file-name-directory (cdr (assq 'file info)))))
                        ;; (debug)
                        (push `(equal ',dir (file-name-directory (cdr (assq 'file info)))) pred)

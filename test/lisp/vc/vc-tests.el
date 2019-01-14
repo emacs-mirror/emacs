@@ -1,6 +1,6 @@
 ;;; vc-tests.el --- Tests of different backends of vc.el
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -109,7 +109,7 @@
 (require 'ert)
 (require 'vc)
 
-(declare-function w32-application-type "w32proc")
+(declare-function w32-application-type "w32proc.c")
 
 ;; The working horses.
 

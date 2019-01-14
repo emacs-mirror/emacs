@@ -1,6 +1,6 @@
 ;;; srecode/srt.el --- argument handlers for SRT files
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -25,7 +25,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'eieio)
 (require 'srecode/dictionary)
 (require 'srecode/insert)

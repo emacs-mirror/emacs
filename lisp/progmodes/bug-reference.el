@@ -1,6 +1,6 @@
 ;; bug-reference.el --- buttonize bug references
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 21 Mar 2007
@@ -141,10 +141,7 @@ The second subexpression should match the bug reference (usually a number)."
 
 ;;;###autoload
 (define-minor-mode bug-reference-mode
-  "Toggle hyperlinking bug references in the buffer (Bug Reference mode).
-With a prefix argument ARG, enable Bug Reference mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  "Toggle hyperlinking bug references in the buffer (Bug Reference mode)."
   nil
   ""
   nil

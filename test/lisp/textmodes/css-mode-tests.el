@@ -1,6 +1,6 @@
 ;;; css-mode-tests.el --- Test suite for CSS mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords: internal
@@ -85,7 +85,7 @@
     (insert "body { top: 0; }")
     (goto-char 7)
     (should (equal (css-current-defun-name) "body"))
-    (goto-char 18)
+    (goto-char 15)
     (should (equal (css-current-defun-name) "body"))))
 
 (ert-deftest css-test-current-defun-name-nested ()
@@ -323,6 +323,19 @@
     (should (equal (buffer-string) "rgb(0, 0, 0)"))
     (css-cycle-color-format)
     (should (equal (buffer-string) "black"))))
+
+(ert-deftest css-test-join-nested-selectors ()
+  (should (equal (css--join-nested-selectors '("div" "&:hover"))
+                 "div:hover"))
+  (should
+   (equal (css--join-nested-selectors '("a" "&::before, &::after"))
+          "a::before, a::after"))
+  (should
+   (equal (css--join-nested-selectors
+           '("article" "& > .front-page" "& h1, & h2"))
+          "article > .front-page h1, article > .front-page h2"))
+  (should (equal (css--join-nested-selectors '(".link" "& + &"))
+                 ".link + .link")))
 
 (ert-deftest css-mdn-symbol-guessing ()
   (dolist (item '(("@med" "ia" "@media")

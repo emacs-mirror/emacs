@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -438,9 +438,7 @@ as an integer unless JUNK-ALLOWED is non-nil."
 ;; Random numbers.
 
 (defun cl--random-time ()
-  (let* ((time (copy-sequence (current-time-string))) (i (length time)) (v 0))
-    (while (>= (cl-decf i) 0) (setq v (+ (* v 3) (aref time i))))
-    v))
+  (car (encode-time nil t)))
 
 ;;;###autoload (autoload 'cl-random-state-p "cl-extra")
 (cl-defstruct (cl--random-state
@@ -472,7 +470,7 @@ Optional second arg STATE is a random-state object."
 	   (n (logand 8388607 (aset vec i (- (aref vec i) (aref vec j))))))
       (if (integerp lim)
 	  (if (<= lim 512) (% n lim)
-	    (if (> lim 8388607) (setq n (+ (lsh n 9) (cl-random 512 state))))
+	    (if (> lim 8388607) (setq n (+ (ash n 9) (cl-random 512 state))))
 	    (let ((mask 1023))
 	      (while (< mask (1- lim)) (setq mask (1+ (+ mask mask))))
 	      (if (< (setq n (logand n mask)) lim) n (cl-random lim state))))
@@ -484,7 +482,7 @@ Optional second arg STATE is a random-state object."
 If STATE is t, return a new state object seeded from the time of day."
   (unless state (setq state cl--random-state))
   (if (cl-random-state-p state)
-      (copy-tree state t)
+      (copy-sequence state)
     (cl--make-random-state (if (integerp state) state (cl--random-time)))))
 
 ;; Implementation limits.
@@ -576,9 +574,9 @@ too large if positive or too small if negative)."
   "Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
 \n(fn TYPE SEQUENCE...)"
   (pcase type
-    (`vector (apply #'vconcat sequences))
-    (`string (apply #'concat sequences))
-    (`list (apply #'append (append sequences '(nil))))
+    ('vector (apply #'vconcat sequences))
+    ('string (apply #'concat sequences))
+    ('list (apply #'append (append sequences '(nil))))
     (_ (error "Not a sequence type name: %S" type))))
 
 ;;; List functions.
@@ -742,7 +740,7 @@ including `cl-block' and `cl-eval-when'."
 (with-eval-after-load 'find-func
   (defvar find-function-regexp-alist)
   (add-to-list 'find-function-regexp-alist
-               `(define-type . cl--typedef-regexp)))
+               '(define-type . cl--typedef-regexp)))
 
 (define-button-type 'cl-help-type
   :supertype 'help-function-def

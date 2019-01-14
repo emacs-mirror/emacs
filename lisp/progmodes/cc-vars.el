@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2019 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1647,8 +1647,9 @@ white space either before or after the operator, but not both."
   :type 'boolean
   :group 'c)
 
-(defvar c-noise-macro-with-parens-name-re "\\<\\>")
-(defvar c-noise-macro-name-re "\\<\\>")
+;; Initialize the next two to a regexp which never matches.
+(defvar c-noise-macro-with-parens-name-re "a\\`")
+(defvar c-noise-macro-name-re "a\\`")
 
 (defcustom c-noise-macro-names nil
   "A list of names of macros which expand to nothing, or compiler extensions
@@ -1677,7 +1678,7 @@ These are recognized by CC Mode only in declarations."
   ;; Convert `c-noise-macro-names' and `c-noise-macro-with-parens-names' into
   ;; `c-noise-macro-name-re' and `c-noise-macro-with-parens-name-re'.
   (setq c-noise-macro-with-parens-name-re
-	(cond ((null c-noise-macro-with-parens-names) "\\<\\>")
+	(cond ((null c-noise-macro-with-parens-names) "a\\`") ; Never matches.
 	      ((consp c-noise-macro-with-parens-names)
 	       (concat (regexp-opt c-noise-macro-with-parens-names t)
 		       "\\([^[:alnum:]_$]\\|$\\)"))
@@ -1686,7 +1687,7 @@ These are recognized by CC Mode only in declarations."
 	      (t (error "c-make-noise-macro-regexps: \
 c-noise-macro-with-parens-names is invalid: %s" c-noise-macro-with-parens-names))))
   (setq c-noise-macro-name-re
-	(cond ((null c-noise-macro-names) "\\<\\>")
+	(cond ((null c-noise-macro-names) "a\\`") ; Never matches anything.
 	      ((consp c-noise-macro-names)
 	       (concat (regexp-opt c-noise-macro-names t)
 		       "\\([^[:alnum:]_$]\\|$\\)"))

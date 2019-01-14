@@ -1,6 +1,6 @@
 ;;; cedet-files.el --- Common routines dealing with file names.
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Package: cedet

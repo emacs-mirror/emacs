@@ -1,6 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>

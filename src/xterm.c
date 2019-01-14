@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993-2018 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,11 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* If we have Xfixes extension, use it for pointer blanking.  */
 #ifdef HAVE_XFIXES
 #include <X11/extensions/Xfixes.h>
-#endif
-
-/* Using Xft implies that XRender is available.  */
-#ifdef HAVE_XFT
-#include <X11/extensions/Xrender.h>
 #endif
 
 #ifdef HAVE_XDBE
@@ -361,17 +356,17 @@ x_begin_cr_clip (struct frame *f, GC gc)
 
       if (! FRAME_CR_SURFACE (f))
         {
-          cairo_surface_t *surface;
-          surface = cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
-                                               FRAME_X_DRAWABLE (f),
-                                               FRAME_DISPLAY_INFO (f)->visual,
-                                               FRAME_PIXEL_WIDTH (f),
-                                               FRAME_PIXEL_HEIGHT (f));
-          cr = cairo_create (surface);
-          cairo_surface_destroy (surface);
-        }
-      else
-        cr = cairo_create (FRAME_CR_SURFACE (f));
+	  int scale = 1;
+#ifdef USE_GTK
+	  scale = xg_get_scale (f);
+#endif
+
+	  FRAME_CR_SURFACE (f) =
+	    cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+					scale * FRAME_PIXEL_WIDTH (f),
+					scale * FRAME_PIXEL_HEIGHT (f));
+	}
+      cr = cairo_create (FRAME_CR_SURFACE (f));
       FRAME_CR_CONTEXT (f) = cr;
     }
   cairo_save (cr);
@@ -550,10 +545,8 @@ x_cr_accumulate_data (void *closure, const unsigned char *data,
 }
 
 static void
-x_cr_destroy (Lisp_Object arg)
+x_cr_destroy (void *cr)
 {
-  cairo_t *cr = (cairo_t *) XSAVE_POINTER (arg, 0);
-
   block_input ();
   cairo_destroy (cr);
   unblock_input ();
@@ -612,7 +605,7 @@ x_cr_export_frames (Lisp_Object frames, cairo_surface_type_t surface_type)
 
   cr = cairo_create (surface);
   cairo_surface_destroy (surface);
-  record_unwind_protect (x_cr_destroy, make_save_ptr (cr));
+  record_unwind_protect_ptr (x_cr_destroy, cr);
 
   while (1)
     {
@@ -925,8 +918,8 @@ x_set_frame_alpha (struct frame *f)
 
   if (FLOATP (Vframe_alpha_lower_limit))
     alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
-  else if (INTEGERP (Vframe_alpha_lower_limit))
-    alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
+  else if (FIXNUMP (Vframe_alpha_lower_limit))
+    alpha_min = (XFIXNUM (Vframe_alpha_lower_limit)) / 100.0;
 
   if (alpha < 0.0)
     return;
@@ -1007,8 +1000,9 @@ x_update_begin (struct frame *f)
       if (FRAME_GTK_WIDGET (f))
         {
           GdkWindow *w = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
-          width = gdk_window_get_width (w);
-          height = gdk_window_get_height (w);
+	  int scale = xg_get_scale (f);
+	  width = scale * gdk_window_get_width (w);
+	  height = scale * gdk_window_get_height (w);
         }
       else
 #endif
@@ -1235,32 +1229,24 @@ x_update_end (struct frame *f)
 #ifdef USE_CAIRO
   if (FRAME_CR_SURFACE (f))
     {
-      cairo_t *cr = 0;
-      block_input();
-#if defined (USE_GTK) && defined (HAVE_GTK3)
-      if (FRAME_GTK_WIDGET (f))
-        {
-          GdkWindow *w = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
-          cr = gdk_cairo_create (w);
-        }
-      else
-#endif
-        {
-          cairo_surface_t *surface;
-          int width = FRAME_PIXEL_WIDTH (f);
-          int height = FRAME_PIXEL_HEIGHT (f);
-          if (! FRAME_EXTERNAL_TOOL_BAR (f))
-            height += FRAME_TOOL_BAR_HEIGHT (f);
-          if (! FRAME_EXTERNAL_MENU_BAR (f))
-            height += FRAME_MENU_BAR_HEIGHT (f);
-          surface = cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
-                                               FRAME_X_DRAWABLE (f),
-                                               FRAME_DISPLAY_INFO (f)->visual,
-                                               width,
-                                               height);
-          cr = cairo_create (surface);
-          cairo_surface_destroy (surface);
-        }
+      cairo_t *cr;
+      cairo_surface_t *surface;
+      int width, height;
+
+      block_input ();
+      width = FRAME_PIXEL_WIDTH (f);
+      height = FRAME_PIXEL_HEIGHT (f);
+      if (! FRAME_EXTERNAL_TOOL_BAR (f))
+	height += FRAME_TOOL_BAR_HEIGHT (f);
+      if (! FRAME_EXTERNAL_MENU_BAR (f))
+	height += FRAME_MENU_BAR_HEIGHT (f);
+      surface = cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
+					   FRAME_X_DRAWABLE (f),
+					   FRAME_DISPLAY_INFO (f)->visual,
+					   width,
+					   height);
+      cr = cairo_create (surface);
+      cairo_surface_destroy (surface);
 
       cairo_set_source_surface (cr, FRAME_CR_SURFACE (f), 0, 0);
       cairo_paint (cr);
@@ -1987,7 +1973,13 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
   for (i = 0; i < s->nchars; i++, glyph++)
     {
-      char buf[7], *str = NULL;
+#ifdef GCC_LINT
+      enum { PACIFY_GCC_BUG_81401 = 1 };
+#else
+      enum { PACIFY_GCC_BUG_81401 = 0 };
+#endif
+      char buf[7 + PACIFY_GCC_BUG_81401];
+      char *str = NULL;
       int len = glyph->u.glyphless.len;
 
       if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_ACRONYM)
@@ -2980,6 +2972,46 @@ x_draw_glyph_string_box (struct glyph_string *s)
 }
 
 
+static void
+x_composite_image (struct glyph_string *s, Pixmap dest,
+                   int srcX, int srcY, int dstX, int dstY,
+                   int width, int height)
+{
+#ifdef HAVE_XRENDER
+  if (s->img->picture)
+    {
+      Picture destination;
+      XRenderPictFormat *default_format;
+      XRenderPictureAttributes attr;
+
+      /* FIXME: Should we do this each time or would it make sense to
+         store destination in the frame struct?  */
+      default_format = XRenderFindVisualFormat (s->display,
+                                                DefaultVisual (s->display, 0));
+      destination = XRenderCreatePicture (s->display, dest,
+                                          default_format, 0, &attr);
+
+      /* FIXME: It may make sense to use PictOpSrc instead of
+         PictOpOver, as I don't know if we care about alpha values too
+         much here.  */
+      XRenderComposite (s->display, PictOpOver,
+                        s->img->picture, s->img->mask_picture, destination,
+                        srcX, srcY,
+                        srcX, srcY,
+                        dstX, dstY,
+                        width, height);
+
+      XRenderFreePicture (s->display, destination);
+    }
+  else
+#endif
+    XCopyArea (s->display, s->img->pixmap,
+               dest, s->gc,
+               srcX, srcY,
+               width, height, dstX, dstY);
+}
+
+
 /* Draw foreground of image glyph string S.  */
 
 static void
@@ -3011,6 +3043,7 @@ x_draw_image_foreground (struct glyph_string *s)
 	     trust on the shape extension to be available
 	     (XShapeCombineRegion).  So, compute the rectangle to draw
 	     manually.  */
+          /* FIXME: Do we need to do this when using XRender compositing?  */
 	  unsigned long mask = (GCClipMask | GCClipXOrigin | GCClipYOrigin
 				| GCFunction);
 	  XGCValues xgcv;
@@ -3028,10 +3061,8 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.width = s->slice.width;
 	  image_rect.height = s->slice.height;
 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-            XCopyArea (s->display, s->img->pixmap,
-                       FRAME_X_DRAWABLE (s->f), s->gc,
-		       s->slice.x + r.x - x, s->slice.y + r.y - y,
-		       r.width, r.height, r.x, r.y);
+            x_composite_image (s, FRAME_X_DRAWABLE (s->f), s->slice.x + r.x - x, s->slice.y + r.y - y,
+                               r.x, r.y, r.width, r.height);
 	}
       else
 	{
@@ -3043,10 +3074,8 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.width = s->slice.width;
 	  image_rect.height = s->slice.height;
 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-            XCopyArea (s->display, s->img->pixmap,
-                       FRAME_X_DRAWABLE (s->f), s->gc,
-		       s->slice.x + r.x - x, s->slice.y + r.y - y,
-		       r.width, r.height, r.x, r.y);
+            x_composite_image (s, FRAME_X_DRAWABLE (s->f), s->slice.x + r.x - x, s->slice.y + r.y - y,
+                               r.x, r.y, r.width, r.height);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -3116,14 +3145,14 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->face->id == TOOL_BAR_FACE_ID)
     {
       if (CONSP (Vtool_bar_button_margin)
-	  && INTEGERP (XCAR (Vtool_bar_button_margin))
-	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
+	  && FIXNUMP (XCAR (Vtool_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtool_bar_button_margin)))
 	{
-	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
-	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
+	  extra_x = XFIXNUM (XCAR (Vtool_bar_button_margin));
+	  extra_y = XFIXNUM (XCDR (Vtool_bar_button_margin));
 	}
-      else if (INTEGERP (Vtool_bar_button_margin))
-	extra_x = extra_y = XINT (Vtool_bar_button_margin);
+      else if (FIXNUMP (Vtool_bar_button_margin))
+	extra_x = extra_y = XFIXNUM (Vtool_bar_button_margin);
     }
 
   top_p = bot_p = left_p = right_p = false;
@@ -3708,33 +3737,53 @@ x_draw_glyph_string (struct glyph_string *s)
               else
                 {
 		  struct font *font = font_for_underline_metrics (s);
+		  unsigned long minimum_offset;
+		  bool underline_at_descent_line;
+		  bool use_underline_position_properties;
+		  Lisp_Object val
+		    = buffer_local_value (Qunderline_minimum_offset,
+					  s->w->contents);
+		  if (FIXNUMP (val))
+		    minimum_offset = XFIXNAT (val);
+		  else
+		    minimum_offset = 1;
+		  val = buffer_local_value (Qx_underline_at_descent_line,
+					    s->w->contents);
+		  underline_at_descent_line
+		    = !(NILP (val) || EQ (val, Qunbound));
+		  val
+		    = buffer_local_value (Qx_use_underline_position_properties,
+					  s->w->contents);
+		  use_underline_position_properties
+		    = !(NILP (val) || EQ (val, Qunbound));
 
                   /* Get the underline thickness.  Default is 1 pixel.  */
                   if (font && font->underline_thickness > 0)
                     thickness = font->underline_thickness;
                   else
                     thickness = 1;
-                  if (x_underline_at_descent_line)
+                  if (underline_at_descent_line)
                     position = (s->height - thickness) - (s->ybase - s->y);
                   else
                     {
-                      /* Get the underline position.  This is the recommended
-                         vertical offset in pixels from the baseline to the top of
-                         the underline.  This is a signed value according to the
+                      /* Get the underline position.  This is the
+                         recommended vertical offset in pixels from
+                         the baseline to the top of the underline.
+                         This is a signed value according to the
                          specs, and its default is
 
                          ROUND ((maximum descent) / 2), with
                          ROUND(x) = floor (x + 0.5)  */
 
-                      if (x_use_underline_position_properties
+                      if (use_underline_position_properties
                           && font && font->underline_position >= 0)
                         position = font->underline_position;
                       else if (font)
                         position = (font->descent + 1) / 2;
                       else
-                        position = underline_minimum_offset;
+                        position = minimum_offset;
                     }
-                  position = max (position, underline_minimum_offset);
+                  position = max (position, minimum_offset);
                 }
               /* Check the sanity of thickness and position.  We should
                  avoid drawing underline out of the current line area.  */
@@ -4252,7 +4301,29 @@ x_scroll_run (struct window *w, struct run *run)
   x_clear_cursor (w);
 
 #ifdef USE_CAIRO
-  SET_FRAME_GARBAGED (f);
+  if (FRAME_CR_CONTEXT (f))
+    {
+      int wx = WINDOW_LEFT_EDGE_X (w);
+      cairo_surface_t *s = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+						       width, height);
+      cairo_t *cr = cairo_create (s);
+      cairo_set_source_surface (cr, cairo_get_target (FRAME_CR_CONTEXT (f)),
+				-x, -from_y);
+      cairo_paint (cr);
+      cairo_destroy (cr);
+
+      cr = FRAME_CR_CONTEXT (f);
+      cairo_save (cr);
+      cairo_set_source_surface (cr, s, wx, to_y);
+      cairo_rectangle (cr, wx, to_y, width, height);
+      cairo_fill (cr);
+      cairo_restore (cr);
+      cairo_surface_destroy (s);
+    }
+  else
+    {
+      SET_FRAME_GARBAGED (f);
+    }
 #else
   XCopyArea (FRAME_X_DISPLAY (f),
              FRAME_X_DRAWABLE (f), FRAME_X_DRAWABLE (f),
@@ -4353,16 +4424,6 @@ x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct fra
         {
           x_new_focus_frame (dpyinfo, frame);
           dpyinfo->x_focus_event_frame = frame;
-
-          /* Don't stop displaying the initial startup message
-             for a switch-frame event we don't need.  */
-          /* When run as a daemon, Vterminal_frame is always NIL.  */
-          bufp->arg = (((NILP (Vterminal_frame)
-                         || ! FRAME_X_P (XFRAME (Vterminal_frame))
-                         || EQ (Fdaemonp (), Qt))
-			&& CONSP (Vframe_list)
-			&& !NILP (XCDR (Vframe_list)))
-		       ? Qt : Qnil);
           bufp->kind = FOCUS_IN_EVENT;
           XSETFRAME (bufp->frame_or_window, frame);
         }
@@ -4802,15 +4863,15 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
   Lisp_Object tem;
 
   tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_ctrl = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_ctrl = XFIXNUM (tem) & INT_MAX;
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_alt = XFIXNUM (tem) & INT_MAX;
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_meta = XFIXNUM (tem) & INT_MAX;
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_hyper = XFIXNUM (tem) & INT_MAX;
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XINT (tem) & INT_MAX;
+  if (FIXNUMP (tem)) mod_super = XFIXNUM (tem) & INT_MAX;
 
   return (  ((state & (ShiftMask | dpyinfo->shift_lock_mask)) ? shift_modifier : 0)
             | ((state & ControlMask)			? mod_ctrl	: 0)
@@ -4832,15 +4893,15 @@ x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, EMACS_INT state)
   Lisp_Object tem;
 
   tem = Fget (Vx_ctrl_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_ctrl = XINT (tem);
+  if (FIXNUMP (tem)) mod_ctrl = XFIXNUM (tem);
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_alt = XINT (tem);
+  if (FIXNUMP (tem)) mod_alt = XFIXNUM (tem);
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_meta = XINT (tem);
+  if (FIXNUMP (tem)) mod_meta = XFIXNUM (tem);
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_hyper = XINT (tem);
+  if (FIXNUMP (tem)) mod_hyper = XFIXNUM (tem);
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (INTEGERP (tem)) mod_super = XINT (tem);
+  if (FIXNUMP (tem)) mod_super = XFIXNUM (tem);
 
 
   return (  ((state & mod_alt)		? dpyinfo->alt_mod_mask   : 0)
@@ -5489,8 +5550,8 @@ x_scroll_bar_to_input_event (const XEvent *event,
 #endif
   ievent->code = 0;
   ievent->part = ev->data.l[2];
-  ievent->x = make_number (ev->data.l[3]);
-  ievent->y = make_number (ev->data.l[4]);
+  ievent->x = make_fixnum (ev->data.l[3]);
+  ievent->y = make_fixnum (ev->data.l[4]);
   ievent->modifiers = 0;
 }
 
@@ -5524,8 +5585,8 @@ x_horizontal_scroll_bar_to_input_event (const XEvent *event,
 #endif
   ievent->code = 0;
   ievent->part = ev->data.l[2];
-  ievent->x = make_number (ev->data.l[3]);
-  ievent->y = make_number (ev->data.l[4]);
+  ievent->x = make_fixnum (ev->data.l[3]);
+  ievent->y = make_fixnum (ev->data.l[4]);
   ievent->modifiers = 0;
 }
 
@@ -8179,7 +8240,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
       /* If mouse-highlight is an integer, input clears out
 	 mouse highlighting.  */
-      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+      if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
 #if ! defined (USE_GTK)
 	  && (f == 0
 	      || !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
@@ -8336,15 +8397,15 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  /* Now non-ASCII.  */
 	  if (HASH_TABLE_P (Vx_keysym_table)
-	      && (c = Fgethash (make_number (keysym),
+	      && (c = Fgethash (make_fixnum (keysym),
 				Vx_keysym_table,
 				Qnil),
-		  NATNUMP (c)))
+		  FIXNATP (c)))
  	    {
- 	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
+	      inev.ie.kind = (SINGLE_BYTE_CHAR_P (XFIXNAT (c))
                               ? ASCII_KEYSTROKE_EVENT
                               : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
- 	      inev.ie.code = XFASTINT (c);
+	      inev.ie.code = XFIXNAT (c);
  	      goto done_keysym;
  	    }
 
@@ -9800,13 +9861,13 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
          current Xt versions, this isn't needed either.  */
 #ifdef USE_GTK
       /* A long-standing GTK bug prevents proper disconnect handling
-	 (https://bugzilla.gnome.org/show_bug.cgi?id=85715).  Once,
+	 <https://gitlab.gnome.org/GNOME/gtk/issues/221>.  Once,
 	 the resulting Glib error message loop filled a user's disk.
 	 To avoid this, kill Emacs unconditionally on disconnect.  */
       shut_down_emacs (0, Qnil);
       fprintf (stderr, "%s\n\
 When compiled with GTK, Emacs cannot recover from X disconnects.\n\
-This is a GTK bug: https://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
+This is a GTK bug: https://gitlab.gnome.org/GNOME/gtk/issues/221\n\
 For details, see etc/PROBLEMS.\n",
 	       error_msg);
       emacs_abort ();
@@ -9831,7 +9892,7 @@ For details, see etc/PROBLEMS.\n",
   if (terminal_list == 0)
     {
       fprintf (stderr, "%s\n", error_msg);
-      Fkill_emacs (make_number (70));
+      Fkill_emacs (make_fixnum (70));
       /* NOTREACHED */
     }
 
@@ -9913,7 +9974,6 @@ x_io_error_quitter (Display *display)
   snprintf (buf, sizeof buf, "Connection lost to X server '%s'",
 	    DisplayString (display));
   x_connection_closed (display, buf, true);
-  assume (false);
 }
 
 /* Changing the font of the frame.  */
@@ -10232,8 +10292,8 @@ x_calc_absolute_position (struct frame *f)
 	  XSETFRAME (frame, f);
 	  edges = Fx_frame_edges (frame, Qouter_edges);
 	  if (!NILP (edges))
-	    width = (XINT (Fnth (make_number (2), edges))
-		     - XINT (Fnth (make_number (0), edges)));
+	    width = (XFIXNUM (Fnth (make_fixnum (2), edges))
+		     - XFIXNUM (Fnth (make_fixnum (0), edges)));
 	}
 
       if (p)
@@ -10274,8 +10334,8 @@ x_calc_absolute_position (struct frame *f)
 	  if (NILP (edges))
 	    edges = Fx_frame_edges (frame, Qouter_edges);
 	  if (!NILP (edges))
-	    height = (XINT (Fnth (make_number (3), edges))
-		      - XINT (Fnth (make_number (1), edges)));
+	    height = (XFIXNUM (Fnth (make_fixnum (3), edges))
+		      - XFIXNUM (Fnth (make_fixnum (1), edges)));
 	}
 
       if (p)
@@ -10479,16 +10539,16 @@ set_wm_state (Lisp_Object frame, bool add, Atom atom, Atom value)
 {
   struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (XFRAME (frame));
 
-  x_send_client_event (frame, make_number (0), frame,
+  x_send_client_event (frame, make_fixnum (0), frame,
                        dpyinfo->Xatom_net_wm_state,
-                       make_number (32),
+                       make_fixnum (32),
                        /* 1 = add, 0 = remove */
                        Fcons
-                       (make_number (add),
+                       (make_fixnum (add),
                         Fcons
-                        (make_fixnum_or_float (atom),
+                        (INT_TO_INTEGER (atom),
                          (value != 0
-			  ? list1 (make_fixnum_or_float (value))
+			  ? list1 (INT_TO_INTEGER (value))
 			  : Qnil))));
 }
 
@@ -10544,6 +10604,10 @@ x_set_skip_taskbar (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
  * windows that do not have the `below' property set.
  *
  * Some window managers may not honor this parameter.
+ *
+ * Internally, this function also handles a value 'above-suspended'.
+ * That value is used to temporarily remove F from the 'above' group
+ * to make sure that it does not obscure a menu currently popped up.
  */
 void
 x_set_z_group (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
@@ -10612,14 +10676,14 @@ get_current_wm_state (struct frame *f,
 #ifdef USE_XCB
   xcb_get_property_cookie_t prop_cookie;
   xcb_get_property_reply_t *prop;
-  xcb_atom_t *reply_data;
+  xcb_atom_t *reply_data UNINIT;
 #else
   Display *dpy = FRAME_X_DISPLAY (f);
   unsigned long bytes_remaining;
   int rc, actual_format;
   Atom actual_type;
   unsigned char *tmp_data = NULL;
-  Atom *reply_data;
+  Atom *reply_data UNINIT;
 #endif
 
   *sticky = false;
@@ -11113,8 +11177,8 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_1, width, height,
-	 list2 (make_number (old_height),
-		make_number (pixelheight + FRAME_MENUBAR_HEIGHT (f))));
+	 list2 (make_fixnum (old_height),
+		make_fixnum (pixelheight + FRAME_MENUBAR_HEIGHT (f))));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     old_width, pixelheight + FRAME_MENUBAR_HEIGHT (f));
@@ -11123,7 +11187,7 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_2, width, height,
-	 list2 (make_number (old_width), make_number (pixelwidth)));
+	 list2 (make_fixnum (old_width), make_fixnum (pixelwidth)));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     pixelwidth, old_height);
@@ -11133,10 +11197,10 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_3, width, height,
-	 list3 (make_number (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
-		make_number (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+	 list3 (make_fixnum (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
+		make_fixnum (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
 			     + FRAME_MENUBAR_HEIGHT (f)),
-		make_number (FRAME_MENUBAR_HEIGHT (f))));
+		make_fixnum (FRAME_MENUBAR_HEIGHT (f))));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     pixelwidth, pixelheight + FRAME_MENUBAR_HEIGHT (f));
@@ -11320,9 +11384,9 @@ x_ewmh_activate_frame (struct frame *f)
     {
       Lisp_Object frame;
       XSETFRAME (frame, f);
-      x_send_client_event (frame, make_number (0), frame,
+      x_send_client_event (frame, make_fixnum (0), frame,
 			   dpyinfo->Xatom_net_active_window,
-			   make_number (32),
+			   make_fixnum (32),
 			   list2i (1, dpyinfo->last_user_time));
     }
 }
@@ -11532,7 +11596,8 @@ x_make_frame_visible (struct frame *f)
     poll_for_input_1 ();
     poll_suppress_count = old_poll_suppress_count;
 #endif
-    x_wait_for_event (f, MapNotify);
+    if (! FRAME_VISIBLE_P (f))
+      x_wait_for_event (f, MapNotify);
   }
 }
 
@@ -12403,11 +12468,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
         unrequest_sigio (); /* See comment in x_display_ok.  */
         gtk_init (&argc, &argv2);
         request_sigio ();
-        fixup_locale ();
 
         g_log_remove_handler ("GLib", id);
 
         xg_initialize ();
+
+	/* Do this after the call to xg_initialize, because when
+	   Fontconfig is used, xg_initialize calls its initialization
+	   function which in some versions of Fontconfig calls setlocale.  */
+	fixup_locale ();
 
         dpy = DEFAULT_GDK_DISPLAY ();
 
@@ -13248,6 +13317,8 @@ UNDERLINE_POSITION font properties, set this to nil.  You can also use
 `underline-minimum-offset' to override the font's UNDERLINE_POSITION for
 small font display sizes.  */);
   x_use_underline_position_properties = true;
+  DEFSYM (Qx_use_underline_position_properties,
+	  "x-use-underline-position-properties");
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       x_underline_at_descent_line,
@@ -13258,6 +13329,7 @@ A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = false;
+  DEFSYM (Qx_underline_at_descent_line, "x-underline-at-descent-line");
 
   DEFVAR_BOOL ("x-mouse-click-focus-ignore-position",
 	       x_mouse_click_focus_ignore_position,
@@ -13291,15 +13363,15 @@ With MS Windows or Nextstep, the value is t.  */);
 
   DEFSYM (Qmodifier_value, "modifier-value");
   DEFSYM (Qctrl, "ctrl");
-  Fput (Qctrl, Qmodifier_value, make_number (ctrl_modifier));
+  Fput (Qctrl, Qmodifier_value, make_fixnum (ctrl_modifier));
   DEFSYM (Qalt, "alt");
-  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
+  Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   DEFSYM (Qhyper, "hyper");
-  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
+  Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));
   DEFSYM (Qmeta, "meta");
-  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
+  Fput (Qmeta, Qmodifier_value, make_fixnum (meta_modifier));
   DEFSYM (Qsuper, "super");
-  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+  Fput (Qsuper, Qmodifier_value, make_fixnum (super_modifier));
 
   DEFVAR_LISP ("x-ctrl-keysym", Vx_ctrl_keysym,
     doc: /* Which keys Emacs uses for the ctrl modifier.

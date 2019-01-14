@@ -1,6 +1,6 @@
 ;;; edebug-test-code.el --- Sample code for the Edebug test suite
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 
@@ -41,7 +41,7 @@
 (defun edebug-test-code-range (num)
   !start!(let ((index 0)
         (result nil))
-    (while (< index num)!test!
+    (while !lt!(< index num)!test!
       (push index result)!loop!
       (cl-incf index))!end-loop!
     (nreverse result)))
@@ -129,6 +129,13 @@
 (defun edebug-test-code-use-destructuring-bind ()
   (let ((two 2) (three 3))
     (cl-destructuring-bind (x . y) (cons two three) (+ x!x! y!y!))))
+
+(defun edebug-test-code-use-cl-macrolet (x)
+  (cl-macrolet ((wrap (func &rest args)
+		      `(format "The result of applying %s to %s is %S"
+                               ',func!func! ',args
+                               ,(cons func args))))
+    (wrap + 1 x)))
 
 (provide 'edebug-test-code)
 ;;; edebug-test-code.el ends here

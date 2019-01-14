@@ -1,7 +1,7 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001-2019 Free Software Foundation, Inc.
 @c
 @c @setfilename gnus-faq.info
 @c @settitle Frequently Asked Questions
@@ -1161,13 +1161,13 @@ from using them):
 @example
 (setq nnmail-split-methods
   '(("duplicates" "^Gnus-Warning:.*duplicate")
-    ("XEmacs-NT" "^\\(To:\\|CC:\\).*localpart@@xemacs.invalid.*")
-    ("Gnus-Tut" "^\\(To:\\|CC:\\).*localpart@@socha.invalid.*")
-    ("tcsh" "^\\(To:\\|CC:\\).*localpart@@mx.gw.invalid.*")
-    ("BAfH" "^\\(To:\\|CC:\\).*localpart@@.*uni-muenchen.invalid.*")
-    ("Hamster-src" "^\\(CC:\\|To:\\).*hamster-sourcen@@yahoogroups.\\(de\\|com\\).*")
+    ("XEmacs-NT" "^\\(To:\\|Cc:\\).*localpart@@xemacs.invalid.*")
+    ("Gnus-Tut" "^\\(To:\\|Cc:\\).*localpart@@socha.invalid.*")
+    ("tcsh" "^\\(To:\\|Cc:\\).*localpart@@mx.gw.invalid.*")
+    ("BAfH" "^\\(To:\\|Cc:\\).*localpart@@.*uni-muenchen.invalid.*")
+    ("Hamster-src" "^\\(Cc:\\|To:\\).*hamster-sourcen@@yahoogroups.\\(de\\|com\\).*")
     ("Tagesschau" "^From: tagesschau <localpart@@www.tagesschau.invalid>$")
-    ("Replies" "^\\(CC:\\|To:\\).*localpart@@Frank-Schmitt.invalid.*")
+    ("Replies" "^\\(Cc:\\|To:\\).*localpart@@Frank-Schmitt.invalid.*")
     ("EK" "^From:.*\\(localpart@@privateprovider.invalid\\|localpart@@workplace.invalid\\).*")
     ("Spam" "^Content-Type:.*\\(ks_c_5601-1987\\|EUC-KR\\|big5\\|iso-2022-jp\\).*")
     ("Spam" "^Subject:.*\\(This really work\\|XINGA\\|ADV:\\|XXX\\|adult\\|sex\\).*")
@@ -1177,10 +1177,10 @@ from using them):
     ("Spam" "^From:.*\\(verizon\.net\\|prontomail\.com\\|money\\|ConsumerDirect\\).*")
     ("Spam" "^Delivered-To: GMX delivery to spamtrap@@gmx.invalid$")
     ("Spam" "^Received: from link2buy.com")
-    ("Spam" "^CC: .*azzrael@@t-online.invalid")
+    ("Spam" "^Cc: .*azzrael@@t-online.invalid")
     ("Spam" "^X-Mailer-Version: 1.50 BETA")
-    ("Uni" "^\\(CC:\\|To:\\).*localpart@@uni-koblenz.invalid.*")
-    ("Inbox" "^\\(CC:\\|To:\\).*\\(my\ name\\|address@@one.invalid\\|address@@two.invalid\\)")
+    ("Uni" "^\\(Cc:\\|To:\\).*localpart@@uni-koblenz.invalid.*")
+    ("Inbox" "^\\(Cc:\\|To:\\).*\\(my\ name\\|address@@one.invalid\\|address@@two.invalid\\)")
     ("Spam" "")))
 @end example
 @noindent

@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -578,7 +578,7 @@ struct frame
   enum ns_appearance_type ns_appearance;
   bool_bf ns_transparent_titlebar;
 #endif
-};
+} GCALIGNED_STRUCT;
 
 /* Most code should use these functions to set Lisp fields in struct frame.  */
 
@@ -726,7 +726,7 @@ default_pixels_per_inch_y (void)
 #define FRAME_IMAGE_CACHE(F) ((F)->terminal->image_cache)
 
 #define XFRAME(p) \
-  (eassert (FRAMEP (p)), (struct frame *) XUNTAG (p, Lisp_Vectorlike))
+  (eassert (FRAMEP (p)), XUNTAG (p, Lisp_Vectorlike, struct frame))
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
@@ -1360,17 +1360,13 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
    canonical char width is to be used.  X must be a Lisp integer or
    float.  Value is a C integer.  */
 #define FRAME_PIXEL_X_FROM_CANON_X(F, X)		\
-  (INTEGERP (X)						\
-   ? XINT (X) * FRAME_COLUMN_WIDTH (F)			\
-   : (int) (XFLOAT_DATA (X) * FRAME_COLUMN_WIDTH (F)))
+  ((int) (XFLOATINT (X) * FRAME_COLUMN_WIDTH (F)))
 
 /* Convert canonical value Y to pixels.  F is the frame whose
    canonical character height is to be used.  X must be a Lisp integer
    or float.  Value is a C integer.  */
 #define FRAME_PIXEL_Y_FROM_CANON_Y(F, Y)		\
-  (INTEGERP (Y)						\
-   ? XINT (Y) * FRAME_LINE_HEIGHT (F)			\
-   : (int) (XFLOAT_DATA (Y) * FRAME_LINE_HEIGHT (F)))
+  ((int) (XFLOATINT (Y) * FRAME_LINE_HEIGHT (F)))
 
 /* Convert pixel-value X to canonical units.  F is the frame whose
    canonical character width is to be used.  X is a C integer.  Result
@@ -1379,7 +1375,7 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 #define FRAME_CANON_X_FROM_PIXEL_X(F, X)			\
   ((X) % FRAME_COLUMN_WIDTH (F) != 0				\
    ? make_float ((double) (X) / FRAME_COLUMN_WIDTH (F))		\
-   : make_number ((X) / FRAME_COLUMN_WIDTH (F)))
+   : make_fixnum ((X) / FRAME_COLUMN_WIDTH (F)))
 
 /* Convert pixel-value Y to canonical units.  F is the frame whose
    canonical character height is to be used.  Y is a C integer.
@@ -1388,7 +1384,7 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 #define FRAME_CANON_Y_FROM_PIXEL_Y(F, Y)			\
   ((Y) % FRAME_LINE_HEIGHT (F)					\
    ? make_float ((double) (Y) / FRAME_LINE_HEIGHT (F))		\
-   : make_number ((Y) / FRAME_LINE_HEIGHT (F)))
+   : make_fixnum ((Y) / FRAME_LINE_HEIGHT (F)))
 
 
 

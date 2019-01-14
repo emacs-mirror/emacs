@@ -1,11 +1,11 @@
 ;;; org-list.el --- Plain lists for Org              -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Bastien Guerry <bzg@gnu.org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -121,6 +121,7 @@
 (declare-function org-element-set-element "org-element" (old new))
 (declare-function org-element-type "org-element" (element))
 (declare-function org-element-update-syntax "org-element" ())
+(declare-function org-end-of-meta-data "org" (&optional full))
 (declare-function org-entry-get "org"
 		  (pom property &optional inherit literal-nil))
 (declare-function org-export-create-backend "ox" (&rest rest) t)
@@ -2356,27 +2357,23 @@ is an integer, 0 means `-', 1 means `+' etc.  If WHICH is
 
 (defun org-toggle-checkbox (&optional toggle-presence)
   "Toggle the checkbox in the current line.
-With prefix arg TOGGLE-PRESENCE, add or remove checkboxes.  With
-double prefix, set checkbox to [-].
+
+With prefix argument TOGGLE-PRESENCE, add or remove checkboxes.
+With a double prefix argument, set the checkbox to \"[-]\".
 
 When there is an active region, toggle status or presence of the
 first checkbox there, and make every item inside have the same
 status or presence, respectively.
 
-If the cursor is in a headline, apply this to all checkbox items
-in the text below the heading, taking as reference the first item
-in subtree, ignoring drawers."
+If point is on a headline, apply this to all checkbox items in
+the text below the heading, taking as reference the first item in
+subtree, ignoring planning line and any drawer following it."
   (interactive "P")
   (save-excursion
     (let* (singlep
 	   block-item
 	   lim-up
 	   lim-down
-	   (keyword-re (concat "^[ \t]*\\<\\(" org-scheduled-string
-			       "\\|" org-deadline-string
-			       "\\|" org-closed-string
-			       "\\|" org-clock-string "\\)"
-			       " *[[<]\\([^]>]+\\)[]>]"))
 	   (orderedp (org-entry-get nil "ORDERED"))
 	   (_bounds
 	    ;; In a region, start at first item in region.
@@ -2389,15 +2386,10 @@ in subtree, ignoring drawers."
 		  (error "No item in region"))
 		(setq lim-down (copy-marker limit))))
 	     ((org-at-heading-p)
-	      ;; On an heading, start at first item after drawers and
+	      ;; On a heading, start at first item after drawers and
 	      ;; time-stamps (scheduled, etc.).
 	      (let ((limit (save-excursion (outline-next-heading) (point))))
-		(forward-line 1)
-		(while (or (looking-at org-drawer-regexp)
-			   (looking-at keyword-re))
-		  (if (looking-at keyword-re)
-		      (forward-line 1)
-		    (re-search-forward "^[ \t]*:END:" limit nil)))
+		(org-end-of-meta-data t)
 		(if (org-list-search-forward (org-item-beginning-re) limit t)
 		    (setq lim-up (point-at-bol))
 		  (error "No item in subtree"))
@@ -2656,8 +2648,8 @@ Return t if successful."
 		 (= top (point-at-bol))
 		 (cdr (assq 'indent org-list-automatic-rules))
 		 (if no-subtree
-		     (error
-		      "First item of list cannot move without its subtree")
+		     (user-error
+		      "At first item: use S-M-<left/right> to move the whole list")
 		   t))))
       ;; Determine begin and end points of zone to indent.  If moving
       ;; more than one item, save them for subsequent moves.

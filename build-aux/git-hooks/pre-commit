@@ -1,7 +1,7 @@
 #!/bin/sh
 # Check file names in git commits for GNU Emacs.
 
-# Copyright 2014-2018 Free Software Foundation, Inc.
+# Copyright 2014-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -28,7 +28,7 @@ exec >&2
 # When doing a two-way merge, ignore problems that came from the other
 # side of the merge.
 head=HEAD
-if test -r "$GIT_DIR"/MERGE_HEAD; then
+if test -r "$GIT_DIR"/MERGE_HEAD && test "$GIT_MERGE_CHECK_OTHER" != true; then
   merge_heads=`cat "$GIT_DIR"/MERGE_HEAD` || exit
   for merge_head in $merge_heads; do
     case $head in
@@ -42,21 +42,19 @@ if test -r "$GIT_DIR"/MERGE_HEAD; then
 fi
 
 git_diff='git diff --cached --name-only --diff-filter=A'
-ok_chars='\0+[=-=]./0-9A-Z_a-z'
-nbadchars=`$git_diff -z $head | tr -d "$ok_chars" | wc -c`
 
-if test "$nbadchars" -ne 0; then
-  echo "File name does not consist of -+./_ or ASCII letters or digits."
-  exit 1
-fi
-
-for new_name in `$git_diff $head`; do
+# 'git diff' will backslash escape tabs and newlines, so we don't have
+# to worry about word splitting here.
+$git_diff $head | sane_egrep 'ChangeLog|^-|/-|[^-+./_0-9A-Z_a-z]' | while IFS= read -r new_name; do
   case $new_name in
     -* | */-*)
       echo "$new_name: File name component begins with '-'."
       exit 1;;
     ChangeLog | */ChangeLog)
       echo "$new_name: Please use git commit messages, not ChangeLog files."
+      exit 1;;
+    *)
+      echo "$new_name: File name does not consist of -+./_ or ASCII letters or digits."
       exit 1;;
   esac
 done

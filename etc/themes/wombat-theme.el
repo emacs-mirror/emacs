@@ -1,6 +1,6 @@
 ;;; wombat-theme.el --- Custom face theme for Emacs
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Kristoffer Grönlund <krig@koru.se>
 
@@ -101,9 +101,5 @@ are included.")
 			    "#8ac6f2" "#333366" "#ccaa8f" "#f6f3e8"]))
 
 (provide-theme 'wombat)
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; wombat-theme.el ends here

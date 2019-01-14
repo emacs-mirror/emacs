@@ -1,5 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -113,10 +113,10 @@ start_atimer (enum atimer_type type, struct timespec timestamp,
   sigset_t oldset;
 
   /* Round TIMESTAMP up to the next full second if we don't have itimers.  */
-#ifndef HAVE_SETITIMER
+#if ! (defined HAVE_ITIMERSPEC || defined HAVE_SETITIMER)
   if (timestamp.tv_nsec != 0 && timestamp.tv_sec < TYPE_MAXIMUM (time_t))
     timestamp = make_timespec (timestamp.tv_sec + 1, 0);
-#endif /* not HAVE_SETITIMER */
+#endif
 
   /* Get an atimer structure from the free-list, or allocate
      a new one.  */
@@ -494,15 +494,14 @@ debug_timer_callback (struct atimer *t)
     r->intime = 0;
   else if (result >= 0)
     {
-#ifdef HAVE_SETITIMER
+      bool intime = true;
+#if defined HAVE_ITIMERSPEC || defined HAVE_SETITIMER
       struct timespec delta = timespec_sub (now, r->expected);
       /* Too late if later than expected + 0.02s.  FIXME:
 	 this should depend from system clock resolution.  */
-      if (timespec_cmp (delta, make_timespec (0, 20000000)) > 0)
-	r->intime = 0;
-      else
-#endif /* HAVE_SETITIMER */
-	r->intime = 1;
+      intime = timespec_cmp (delta, make_timespec (0, 20000000)) <= 0;
+#endif
+      r->intime = intime;
     }
 }
 

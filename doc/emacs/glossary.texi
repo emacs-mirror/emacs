@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Glossary
@@ -29,7 +29,7 @@ Alt is the name of a modifier bit that a keyboard input character may
 have.  To make a character Alt, type it while holding down the @key{Alt}
 key.  Such characters are given names that start with @kbd{@key{Alt}-}
 (usually written @kbd{A-} for short).  (Note that many terminals have a
-key labeled @key{Alt} that is really a @key{META} key.)  @xref{User
+key labeled @key{Alt} that is really a @key{Meta} key.)  @xref{User
 Input, Alt}.
 
 @item Argument
@@ -103,13 +103,14 @@ supports both of these forms, as well as any mixture of them---this
 is ``bidirectional text''.  @xref{Bidirectional Editing}.
 
 @item Bind
+@anchor{Glossary---Bind}
 To bind a key sequence means to give it a binding (q.v.).
 @xref{Rebinding}.
 
 @anchor{Glossary---Binding}
 @item Binding
 A key sequence gets its meaning in Emacs by having a binding, which is a
-command (q.v.), a Lisp function that is run when you type that
+command (q.v.)---a Lisp function that is run when you type that
 sequence.  @xref{Commands,Binding}.  Customization often involves
 rebinding a character to a different command function.  The bindings of
 all key sequences are recorded in the keymaps (q.v.).  @xref{Keymaps}.
@@ -141,8 +142,8 @@ are visiting (q.v.@:) some file.  @xref{Buffers}.
 
 @item Buffer Selection History
 Emacs keeps a buffer selection history that records how recently each
-Emacs buffer has been selected.  This is used for choosing a buffer to
-select.  @xref{Buffers}.
+Emacs buffer has been selected.  This is used for choosing which
+buffer to select.  @xref{Buffers}.
 
 @item Bug
 A bug is an incorrect or unreasonable behavior of a program, or
@@ -173,7 +174,7 @@ misspelling.
 
 @item @kbd{C-M-}
 @kbd{C-M-} in the name of a character is an abbreviation for
-Control-Meta.  If your terminal lacks a real @key{META} key, you type
+Control-Meta.  If your terminal lacks a real @key{Meta} key, you type
 a Control-Meta character by typing @key{ESC} and then typing the
 corresponding Control character.  @xref{User Input,C-M-}.
 
@@ -220,9 +221,9 @@ the clipboard is used @emph{instead} of the primary selection.
 @xref{Clipboard}.
 
 @item Coding System
-A coding system is an encoding for representing text characters in a
-file or in a stream of information.  Emacs has the ability to convert
-text to or from a variety of coding systems when reading or writing it.
+A coding system is a way to encode text characters in a file or in a
+stream of information.  Emacs has the ability to convert text to or
+from a variety of coding systems when reading or writing it.
 @xref{Coding Systems}.
 
 @item Command
@@ -263,12 +264,12 @@ executes faster.
 
 @item Complete Key
 A complete key is a key sequence that fully specifies one action to be
-performed by Emacs.  For example, @kbd{X} and @kbd{C-f} and @kbd{C-x m}
-are complete keys.  Complete keys derive their meanings from being bound
-(q.v.@:) to commands (q.v.).  Thus, @kbd{X} is conventionally bound to
-a command to insert @samp{X} in the buffer; @kbd{C-x m} is
-conventionally bound to a command to begin composing a mail message.
-@xref{Keys}.
+performed by Emacs.  For example, @kbd{X} and @kbd{C-f} and @kbd{C-x
+m} are complete keys.  Complete keys derive their meanings from being
+bound (@pxref{Glossary---Bind}) to commands (q.v.).  Thus, @kbd{X} is
+conventionally bound to a command to insert @samp{X} in the buffer;
+@kbd{C-x m} is conventionally bound to a command to begin composing a
+mail message.  @xref{Keys}.
 
 @item Completion
 Completion is what Emacs does when it automatically expands an
@@ -281,11 +282,11 @@ file names.  Completion usually occurs when @key{TAB}, @key{SPC} or
 @anchor{Glossary---Continuation Line}
 @item Continuation Line
 When a line of text is longer than the width of the window, it
-normally (but see @ref{Glossary---Truncation}) takes up more than one
-screen line when displayed.  We say that the text line is continued, and all
-screen lines used for it after the first are called continuation
-lines.  @xref{Continuation Lines}.  A related Emacs feature is
-filling (q.v.).
+normally takes up more than one screen line when displayed (but see
+@ref{Glossary---Truncation}).  We say that the text line is continued,
+and all screen lines used for it after the first are called
+continuation lines.  @xref{Continuation Lines}.  A related Emacs
+feature is filling (q.v.).
 
 @item Control Character
 A control character is a character that you type by holding down the
@@ -418,7 +419,7 @@ Variables}.
 On GNU and other Unix-like systems, directory names are strings that
 end in @samp{/}.  For example, @file{/no-such-dir/} is a directory
 name whereas @file{/tmp} is not, even though @file{/tmp} names a file
-that happens to be a directory.  On MS-DOS the relationship is more
+that happens to be a directory.  On MS-Windows the relationship is more
 complicated.  @xref{Directory Names,,, elisp, the Emacs Lisp Reference
 Manual}.
 
@@ -506,7 +507,7 @@ Such messages appear in the echo area, accompanied by a beep.
 
 @item @key{ESC}
 @key{ESC} is a character used as a prefix for typing Meta characters on
-keyboards lacking a @key{META} key.  Unlike the @key{META} key (which,
+keyboards lacking a @key{Meta} key.  Unlike the @key{Meta} key (which,
 like the @key{SHIFT} key, is held down while another character is
 typed), you press the @key{ESC} key as you would press a letter key, and
 it applies to the next character you type.
@@ -719,10 +720,11 @@ customizing the various hooks, you can modify Emacs's behavior without
 changing any of its code.  @xref{Hooks}.
 
 @item Hyper
-Hyper is the name of a modifier bit that a keyboard input character may
-have.  To make a character Hyper, type it while holding down the
+Hyper is the name of a modifier bit that a keyboard input character
+may have.  To make a character Hyper, type it while holding down the
 @key{Hyper} key.  Such characters are given names that start with
-@kbd{Hyper-} (usually written @kbd{H-} for short).  @xref{User Input}.
+@kbd{Hyper-} (usually written @kbd{H-} for short).  @xref{Modifier
+Keys}.
 
 @item i.e.
 Short for ``id est'' in Latin, which means ``that is''.
@@ -879,7 +881,7 @@ A local value of a variable (q.v.@:) applies to only one buffer.
 @xref{Locals}.
 
 @item @kbd{M-}
-@kbd{M-} in the name of a character is an abbreviation for @key{META},
+@kbd{M-} in the name of a character is an abbreviation for @key{Meta},
 one of the modifier keys that can accompany any character.
 @xref{User Input,M-}.
 
@@ -937,15 +939,15 @@ a keyboard interface to navigate it.  @xref{Menu Bars}.
 
 @item Meta
 Meta is the name of a modifier bit which you can use in a command
-character.  To enter a meta character, you hold down the @key{META}
+character.  To enter a meta character, you hold down the @key{Meta}
 key while typing the character.  We refer to such characters with
 names that start with @kbd{Meta-} (usually written @kbd{M-} for
-short).  For example, @kbd{M-<} is typed by holding down @key{META}
+short).  For example, @kbd{M-<} is typed by holding down @key{Meta}
 and at the same time typing @kbd{<} (which itself is done, on most
 terminals, by holding down @key{SHIFT} and typing @kbd{,}).
 @xref{User Input,Meta}.
 
-On some terminals, the @key{META} key is actually labeled @key{Alt}
+On some terminals, the @key{Meta} key is actually labeled @key{Alt}
 or @key{Edit}.
 
 @item Meta Character
@@ -1089,8 +1091,9 @@ The primary selection is one particular X selection (q.v.); it is the
 selection that most X applications use for transferring text to and from
 other applications.
 
-The Emacs kill commands set the primary selection and the yank command
-uses the primary selection when appropriate.  @xref{Killing}.
+The Emacs commands that mark or select text set the primary selection,
+and clicking the mouse inserts text from the primary selection when
+appropriate.  @xref{Shift Selection}.
 
 @item Prompt
 A prompt is text used to ask you for input.  Displaying a prompt
@@ -1341,10 +1344,11 @@ which characters balance each other like parentheses, etc.
 Manual}.
 
 @item Super
-Super is the name of a modifier bit that a keyboard input character may
-have.  To make a character Super, type it while holding down the
+Super is the name of a modifier bit that a keyboard input character
+may have.  To make a character Super, type it while holding down the
 @key{SUPER} key.  Such characters are given names that start with
-@kbd{Super-} (usually written @kbd{s-} for short).  @xref{User Input}.
+@kbd{Super-} (usually written @kbd{s-} for short).  @xref{Modifier
+Keys}.
 
 @item Suspending
 Suspending Emacs means stopping it temporarily and returning control
@@ -1491,13 +1495,13 @@ Emacs divides a frame (q.v.@:) into one or more windows, each of which
 can display the contents of one buffer (q.v.@:) at any time.
 @xref{Screen}, for basic information on how Emacs uses the screen.
 @xref{Windows}, for commands to control the use of windows.  Some
-other editors use the term ``window'' for what we call a ``frame''
-(q.v.@:) in Emacs.
+other editors use the term ``window'' for what we call a ``frame'' in
+Emacs.
 
 @item Window System
 A window system is software that operates on a graphical display
-(q.v.), to subdivide the screen so that multiple applications can
-have their] own windows at the same time.  All modern operating systems
+(q.v.), to subdivide the screen so that multiple applications can have
+their own windows at the same time.  All modern operating systems
 include a window system.
 
 @item Word Abbrev

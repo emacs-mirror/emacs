@@ -1,5 +1,5 @@
 /* Common functions for Microsoft Windows builds of Emacs
-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -49,5 +49,36 @@ extern int os_subtype;
 
 /* Cache system info, e.g., the NT page size.  */
 extern void cache_system_info (void);
+
+typedef void (* VOIDFNPTR) (void);
+
+/* Load a function address from a DLL.  Cast the result via VOIDFNPTR
+   to pacify -Wcast-function-type in GCC 8.1.  The return value must
+   be cast to the correct function pointer type.  */
+INLINE VOIDFNPTR get_proc_addr (HINSTANCE, LPCSTR);
+INLINE VOIDFNPTR
+get_proc_addr (HINSTANCE handle, LPCSTR fname)
+{
+  return (VOIDFNPTR) GetProcAddress (handle, fname);
+}
+
+/* Define a function that will be loaded from a DLL.  The variable
+   arguments should contain the argument list for the function, and
+   optionally be followed by function attributes.  For example:
+   DEF_DLL_FN (void, png_longjmp, (png_structp, int) PNG_NORETURN);
+  */
+#define DEF_DLL_FN(type, func, ...)                     \
+  typedef type (CDECL *W32_PFN_##func) __VA_ARGS__;     \
+  static W32_PFN_##func fn_##func
+
+/* Load a function from the DLL.  */
+#define LOAD_DLL_FN(lib, func)						\
+  do									\
+    {									\
+      fn_##func = (W32_PFN_##func) get_proc_addr (lib, #func);		\
+      if (!fn_##func)							\
+	return false;							\
+    }									\
+  while (false)
 
 #endif /* W32COMMON_H */

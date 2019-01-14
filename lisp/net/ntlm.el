@@ -1,6 +1,6 @@
-;;; ntlm.el --- NTLM (NT LanManager) authentication support
+;;; ntlm.el --- NTLM (NT LanManager) authentication support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
@@ -106,7 +106,7 @@ is not given."
 	(request-flags (concat (make-string 1 7) (make-string 1 130)
 			       (make-string 1 8) (make-string 1 0)))
 					;0x07 0x82 0x08 0x00
-	lu ld off-d off-u)
+	)
     (when (and user (string-match "@" user))
       (unless domain
 	(setq domain (substring user (1+ (match-beginning 0)))))
@@ -115,10 +115,10 @@ is not given."
       ;; set "negotiate domain supplied" bit
       (aset request-flags 1 (logior (aref request-flags 1) ?\x10)))
     ;; set fields offsets within the request struct
-    (setq lu (length user))
-    (setq ld (length domain))
-    (setq off-u 32)			;offset to the string 'user
-    (setq off-d (+ 32 lu))		;offset to the string 'domain
+    (let* ((lu (length user))
+           (ld (length domain))
+           (off-u 32)           ;offset to the string 'user
+           (off-d (+ 32 lu)))   ;offset to the string 'domain
     ;; pack the request struct in a string
     (concat request-ident			;8 bytes
 	    request-msgType			;4 bytes
@@ -131,39 +131,34 @@ is not given."
 	    (md4-pack-int32 (cons 0 off-d))	;domain field, offset field
 	    user				;buffer field
 	    domain				;buffer field
-	    )))
-
-(eval-when-compile
-  (defmacro ntlm-string-as-unibyte (string)
-    (if (fboundp 'string-as-unibyte)
-	`(string-as-unibyte ,string)
-      string)))
+	    ))))
 
 (defun ntlm-compute-timestamp ()
   "Compute an NTLMv2 timestamp.
 Return a unibyte string representing the number of tenths of a
 microsecond since January 1, 1601 as a 64-bit little-endian
 signed integer."
+  ;; FIXME: This can likely be significantly simplified using the new
+  ;; bignums support!
   (let* ((s-to-tenths-of-us "mul(add(lsh($1,16),$2),10000000)")
 	 (us-to-tenths-of-us "mul($3,10)")
 	 (ps-to-tenths-of-us "idiv($4,100000)")
 	 (tenths-of-us-since-jan-1-1601
-	  (apply 'calc-eval (concat "add(add(add("
+	  (apply #'calc-eval (concat "add(add(add("
 				    s-to-tenths-of-us ","
 				    us-to-tenths-of-us "),"
 				    ps-to-tenths-of-us "),"
 				    ;; tenths of microseconds between
 				    ;; 1601-01-01 and 1970-01-01
 				    "116444736000000000)")
-		 ;; add trailing zeros to support old current-time formats
-		 'rawnum (append (current-time) '(0 0))))
+		 'rawnum (encode-time nil 'list)))
 	 result-bytes)
-    (dotimes (byte 8)
+    (dotimes (_byte 8)
       (push (calc-eval "and($1,16#FF)" 'rawnum tenths-of-us-since-jan-1-1601)
 	    result-bytes)
       (setq tenths-of-us-since-jan-1-1601
 	    (calc-eval "rsh($1,8,64)" 'rawnum tenths-of-us-since-jan-1-1601)))
-    (apply 'unibyte-string (nreverse result-bytes))))
+    (apply #'unibyte-string (nreverse result-bytes))))
 
 (defun ntlm-generate-nonce ()
   "Generate a random nonce, not to be used more than once.
@@ -178,7 +173,13 @@ the NTLM based server for the user USER and the password hash list
 PASSWORD-HASHES.  NTLM uses two hash values which are represented
 by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
  (list (ntlm-smb-passwd-hash password) (ntlm-md4hash password))"
-  (let* ((rchallenge (ntlm-string-as-unibyte challenge))
+  (let* ((rchallenge (if (multibyte-string-p challenge)
+                         (progn
+                           ;; FIXME: Maybe it would be better to
+                           ;; signal an error.
+                           (message "Incorrect challenge string type in ntlm-build-auth-response")
+                           (encode-coding-string challenge 'binary))
+                       challenge))
 	 ;; get fields within challenge struct
 	 ;;(ident (substring rchallenge 0 8))	;ident, 8 bytes
 	 ;;(msgType (substring rchallenge 8 12))	;msgType, 4 bytes
@@ -189,20 +190,16 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 					;0x07 0x82 0x08 0x00
 	 (flags (substring rchallenge 20 24))	;flags, 4 bytes
 	 (challengeData (substring rchallenge 24 32)) ;challengeData, 8 bytes
-	 uDomain-len uDomain-offs
-	 ;; response struct and its fields
+         ;; Extract domain string from challenge string.
+	 ;;(uDomain-len (md4-unpack-int16 (substring uDomain 0 2)))
+         (uDomain-offs (md4-unpack-int32 (substring uDomain 4 8)))
+	 ;; Response struct and its fields.
 	 lmRespData			;lmRespData, 24 bytes
 	 ntRespData			;ntRespData, variable length
-	 domain				;ascii domain string
-	 workstation			;ascii workstation string
-	 ll ln lu ld lw off-lm off-nt off-u off-d off-w)
-    ;; extract domain string from challenge string
-    (setq uDomain-len (md4-unpack-int16 (substring uDomain 0 2)))
-    (setq uDomain-offs (md4-unpack-int32 (substring uDomain 4 8)))
-    ;; match Mozilla behavior, which is to send an empty domain string
-    (setq domain "")
-    ;; match Mozilla behavior, which is to send "WORKSTATION"
-    (setq workstation "WORKSTATION")
+         ;; Match Mozilla behavior, which is to send an empty domain string
+	 (domain "")                    ;ascii domain string
+         ;; Match Mozilla behavior, which is to send "WORKSTATION".
+	 (workstation "WORKSTATION"))    ;ascii workstation string
     ;; overwrite domain in case user is given in <user>@<domain> format
     (when (string-match "@" user)
       (setq domain (substring user (1+ (match-beginning 0))))
@@ -261,13 +258,11 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
       ;; so just treat it the same as levels 0 and 1
       ;; check if "negotiate NTLM2 key" flag is set in type 2 message
       (if (not (zerop (logand (aref flags 2) 8)))
-	  (let (randomString
-		sessionHash)
-	    ;; generate NTLM2 session response data
-	    (setq randomString (ntlm-generate-nonce))
-	    (setq sessionHash (secure-hash 'md5
+	  ;; generate NTLM2 session response data
+	  (let* ((randomString (ntlm-generate-nonce))
+		 (sessionHash (secure-hash 'md5
 					   (concat challengeData randomString)
-					   nil nil t))
+					   nil nil t)))
 	    (setq sessionHash (substring sessionHash 0 8))
 	    (setq lmRespData (concat randomString (make-string 16 0)))
 	    (setq ntRespData (ntlm-smb-owf-encrypt
@@ -279,16 +274,16 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	      (ntlm-smb-owf-encrypt (cadr password-hashes) challengeData))))
 
     ;; get offsets to fields to pack the response struct in a string
-    (setq ll (length lmRespData))
-    (setq ln (length ntRespData))
-    (setq lu (length user))
-    (setq ld (length domain))
-    (setq lw (length workstation))
-    (setq off-u 64)			;offset to string 'uUser
-    (setq off-d (+ off-u (* 2 lu)))	;offset to string 'uDomain
-    (setq off-w (+ off-d (* 2 ld)))	;offset to string 'uWks
-    (setq off-lm (+ off-w (* 2 lw)))	;offset to string 'lmResponse
-    (setq off-nt (+ off-lm ll))		;offset to string 'ntResponse
+    (let* ((ll (length lmRespData))
+           (ln (length ntRespData))
+           (lu (length user))
+           (ld (length domain))
+           (lw (length workstation))
+           (off-u 64)			;offset to string 'uUser
+           (off-d (+ off-u (* 2 lu)))	;offset to string 'uDomain
+           (off-w (+ off-d (* 2 ld)))	;offset to string 'uWks
+           (off-lm (+ off-w (* 2 lw)))	;offset to string 'lmResponse
+           (off-nt (+ off-lm ll)))      ;offset to string 'ntResponse
     ;; pack the response struct in a string
     (concat "NTLMSSP\0"				;response ident field, 8 bytes
 	    (md4-pack-int32 '(0 . 3))		;response msgType field, 4 bytes
@@ -342,7 +337,7 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 	    (ntlm-ascii2unicode workstation lw)	;Unicode workstation, 2*lw bytes
 	    lmRespData				;lmResponse, 24 bytes
 	    ntRespData				;ntResponse, ln bytes
-	    )))
+	    ))))
 
 (defun ntlm-get-password-hashes (password)
   "Return a pair of SMB hash and NT MD4 hash of the given password PASSWORD."
@@ -352,7 +347,10 @@ by PASSWORD-HASHES.  PASSWORD-HASHES should be a return value of
 (defun ntlm-ascii2unicode (str len)
   "Convert an ASCII string into a NT Unicode string, which is
 little-endian utf16."
-  (let ((utf (make-string (* 2 len) 0)) (i 0) val)
+  ;; FIXME: Can't we use encode-coding-string with a `utf-16le' coding system?
+  (let ((utf (make-string (* 2 len) 0))
+        (i 0)
+        val)
     (while (and (< i len)
 		(not (zerop (setq val (aref str i)))))
       (aset utf (* 2 i) val)
@@ -381,9 +379,9 @@ string PASSWD.  PASSWD is truncated to 14 bytes if longer."
   "Return the response string of 24 bytes long for the given password
 string PASSWD based on the DES encryption.  PASSWD is of at most 14
 bytes long and the challenge string C8 of 8 bytes long."
-  (let ((len (min (length passwd) 16)) p22)
-    (setq p22 (concat (substring passwd 0 len) ;fill top 16 bytes with passwd
-		      (make-string (- 22 len) 0)))
+  (let* ((len (min (length passwd) 16))
+         (p22 (concat (substring passwd 0 len) ;Fill top 16 bytes with passwd.
+		      (make-string (- 22 len) 0))))
     (ntlm-smb-des-e-p24 p22 c8)))
 
 (defun ntlm-smb-des-e-p24 (p22 c8)
@@ -405,53 +403,53 @@ string C8."
   "Return the hash string of length 8 for a string IN of length 8 and
 a string KEY of length 8.  FORW is t or nil."
   (let ((out (make-string 8 0))
-	outb				;string of length 64
 	(inb (make-string 64 0))
 	(keyb (make-string 64 0))
 	(key2 (ntlm-smb-str-to-key key))
-	(i 0) aa)
+	(i 0))
     (while (< i 64)
-      (unless (zerop (logand (aref in (/ i 8)) (lsh 1 (- 7 (% i 8)))))
+      (unless (zerop (logand (aref in (/ i 8)) (ash 1 (- 7 (% i 8)))))
 	(aset inb i 1))
-      (unless (zerop (logand (aref key2 (/ i 8)) (lsh 1 (- 7 (% i 8)))))
+      (unless (zerop (logand (aref key2 (/ i 8)) (ash 1 (- 7 (% i 8)))))
 	(aset keyb i 1))
       (setq i (1+ i)))
-    (setq outb (ntlm-smb-dohash inb keyb forw))
-    (setq i 0)
-    (while (< i 64)
-      (unless (zerop (aref outb i))
-	(setq aa (aref out (/ i 8)))
-	(aset out (/ i 8)
-	      (logior aa (lsh 1 (- 7 (% i 8))))))
-      (setq i (1+ i)))
-    out))
+    (let ((outb (ntlm-smb-dohash inb keyb forw))
+          aa)
+      (setq i 0)
+      (while (< i 64)
+        (unless (zerop (aref outb i))
+	  (setq aa (aref out (/ i 8)))
+	  (aset out (/ i 8)
+	        (logior aa (ash 1 (- 7 (% i 8))))))
+        (setq i (1+ i)))
+      out)))
 
 (defun ntlm-smb-str-to-key (str)
   "Return a string of length 8 for the given string STR of length 7."
   (let ((key (make-string 8 0))
 	(i 7))
-    (aset key 0 (lsh (aref str 0) -1))
+    (aset key 0 (ash (aref str 0) -1))
     (aset key 1 (logior
-		 (lsh (logand (aref str 0) 1) 6)
-		 (lsh (aref str 1) -2)))
+		 (ash (logand (aref str 0) 1) 6)
+		 (ash (aref str 1) -2)))
     (aset key 2 (logior
-		 (lsh (logand (aref str 1) 3) 5)
-		 (lsh (aref str 2) -3)))
+		 (ash (logand (aref str 1) 3) 5)
+		 (ash (aref str 2) -3)))
     (aset key 3 (logior
-		 (lsh (logand (aref str 2) 7) 4)
-		 (lsh (aref str 3) -4)))
+		 (ash (logand (aref str 2) 7) 4)
+		 (ash (aref str 3) -4)))
     (aset key 4 (logior
-		 (lsh (logand (aref str 3) 15) 3)
-		 (lsh (aref str 4) -5)))
+		 (ash (logand (aref str 3) 15) 3)
+		 (ash (aref str 4) -5)))
     (aset key 5 (logior
-		 (lsh (logand (aref str 4) 31) 2)
-		 (lsh (aref str 5) -6)))
+		 (ash (logand (aref str 4) 31) 2)
+		 (ash (aref str 5) -6)))
     (aset key 6 (logior
-		 (lsh (logand (aref str 5) 63) 1)
-		 (lsh (aref str 6) -7)))
+		 (ash (logand (aref str 5) 63) 1)
+		 (ash (aref str 6) -7)))
     (aset key 7 (logand (aref str 6) 127))
     (while (>= i 0)
-      (aset key i (lsh (aref key i) 1))
+      (aset key i (ash (aref key i) 1))
       (setq i (1- i)))
     key))
 
@@ -571,27 +569,22 @@ length of STR is LEN."
   "Return the hash value for a string IN and a string KEY.
 Length of IN and KEY are 64.  FORW non-nil means forward, nil means
 backward."
-  (let (pk1				;string of length 56
-	c				;string of length 28
-	d				;string of length 28
-	cd				;string of length 56
-	(ki (make-vector 16 0))		;vector of string of length 48
-	pd1				;string of length 64
-	l				;string of length 32
-	r				;string of length 32
-	rl				;string of length 64
-	(i 0) (j 0) (k 0))
-    (setq pk1 (ntlm-string-permute key ntlm-smb-perm1 56))
-    (setq c (substring pk1 0 28))
-    (setq d (substring pk1 28 56))
+  (let* ((pk1 (ntlm-string-permute key ntlm-smb-perm1 56)) ;string of length 56
+	 (c (substring pk1 0 28))       ;string of length 28
+	 (d (substring pk1 28 56))      ;string of length 28
+	 cd				;string of length 56
+	 (ki (make-vector 16 0))        ;vector of string of length 48
+	 pd1				;string of length 64
+	 l				;string of length 32
+	 r				;string of length 32
+	 rl				;string of length 64
+	 (i 0) (j 0) (k 0))
 
-    (setq i 0)
-    (while (< i 16)
+    (dotimes (i 16)
       (setq c (ntlm-string-lshift c (aref ntlm-smb-sc i) 28))
       (setq d (ntlm-string-lshift d (aref ntlm-smb-sc i) 28))
       (setq cd (concat (substring c 0 28) (substring d 0 28)))
-      (aset ki i (ntlm-string-permute cd ntlm-smb-perm2 48))
-      (setq i (1+ i)))
+      (aset ki i (ntlm-string-permute cd ntlm-smb-perm2 48)))
 
     (setq pd1 (ntlm-string-permute in ntlm-smb-perm3 64))
 
@@ -619,16 +612,16 @@ backward."
 	(setq j 0)
 	(while (< j 8)
 	  (setq bj (aref b j))
-	  (setq m (logior (lsh (aref bj 0) 1) (aref bj 5)))
-	  (setq n (logior (lsh (aref bj 1) 3)
-			  (lsh (aref bj 2) 2)
-			  (lsh (aref bj 3) 1)
+	  (setq m (logior (ash (aref bj 0) 1) (aref bj 5)))
+	  (setq n (logior (ash (aref bj 1) 3)
+			  (ash (aref bj 2) 2)
+			  (ash (aref bj 3) 1)
 			  (aref bj 4)))
 	  (setq k 0)
 	  (setq sbox-jmn (aref (aref (aref ntlm-smb-sbox j) m) n))
 	  (while (< k 4)
 	    (aset bj k
-		  (if (zerop (logand sbox-jmn (lsh 1 (- 3 k))))
+		  (if (zerop (logand sbox-jmn (ash 1 (- 3 k))))
 		      0 1))
 	    (setq k (1+ k)))
 	  (setq j (1+ j)))
@@ -650,16 +643,12 @@ backward."
 (defun ntlm-md4hash (passwd)
   "Return the 16 bytes MD4 hash of a string PASSWD after converting it
 into a Unicode string.  PASSWD is truncated to 128 bytes if longer."
-  (let (len wpwd)
-    ;; Password cannot be longer than 128 characters
-    (setq len (length passwd))
-    (if (> len 128)
-	(setq len 128))
-    ;; Password must be converted to NT Unicode
-    (setq wpwd (ntlm-ascii2unicode passwd len))
-    ;; Calculate length in bytes
-    (setq len (* len 2))
-    (md4 wpwd len)))
+  (let* ((len (min (length passwd) 128)) ;Pwd can't be > than 128 characters.
+         ;; Password must be converted to NT Unicode.
+         (wpwd (ntlm-ascii2unicode passwd len)))
+    (md4 wpwd
+         ;; Calculate length in bytes.
+         (* len 2))))
 
 (provide 'ntlm)
 

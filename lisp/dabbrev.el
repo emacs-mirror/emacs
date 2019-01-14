@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2018 Free
+;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -219,7 +219,7 @@ designated by `dabbrev-select-buffers-function'.
 
 Then, if `dabbrev-check-all-buffers' is non-nil, dabbrev searches
 all the other buffers, except those named in `dabbrev-ignored-buffer-names',
-or matched by `dabbrev-ignored-regexps'."
+or matched by `dabbrev-ignored-buffer-regexps'."
   :type 'boolean
   :group 'dabbrev)
 
@@ -434,7 +434,7 @@ buffers accepted by the function pointed out by variable
 `dabbrev-friend-buffer-function', if `dabbrev-check-other-buffers'
 says so.  Then, if `dabbrev-check-all-buffers' is non-nil, look in
 all the other buffers, subject to constraints specified
-by `dabbrev-ignored-buffer-names' and `dabbrev-ignored-regexps'.
+by `dabbrev-ignored-buffer-names' and `dabbrev-ignored-buffer-regexps'.
 
 A positive prefix argument, N, says to take the Nth backward *distinct*
 possibility.  A negative argument says search forward.

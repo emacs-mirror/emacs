@@ -1,6 +1,6 @@
 ;;; em-rebind.el --- rebind keys when point is at current input  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -223,7 +223,7 @@ lock it at that."
   (interactive "P")
   (let ((count (prefix-numeric-value n)))
     (if (eshell-point-within-input-p (- (point) count))
-	(delete-backward-char count n)
+	(delete-char (- count) n)
       (beep))))
 
 (defun eshell-delchar-or-maybe-eof (arg)

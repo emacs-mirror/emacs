@@ -1,6 +1,6 @@
 ;;; winner.el --- Restore old window configurations
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
@@ -351,9 +351,6 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;;;###autoload
 (define-minor-mode winner-mode
   "Toggle Winner mode on or off.
-With a prefix argument ARG, enable Winner mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 
 Winner mode is a global minor mode that records the changes in
 the window configuration (i.e. how the frames are partitioned

@@ -1,6 +1,6 @@
 ;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;;	   John Eaton <jwe@octave.org>
@@ -170,8 +170,8 @@ parenthetical grouping.")
     (modify-syntax-entry ?. "."   table)
     (modify-syntax-entry ?\" "\"" table)
     (modify-syntax-entry ?_ "_"   table)
-    ;; The "b" flag only applies to the second letter of the comstart
-    ;; and the first letter of the comend, i.e. the "4b" below is ineffective.
+    ;; The "b" flag only applies to the second letter of the comstart and
+    ;; the first letter of the comend, i.e. a "4b" below would be ineffective.
     ;; If we try to put `b' on the single-line comments, we get a similar
     ;; problem where the % and # chars appear as first chars of the 2-char
     ;; comend, so the multi-line ender is also turned into style-b.
@@ -442,12 +442,12 @@ Non-nil means always go to the next Octave code line after sending."
     ;; disadvantages:
     ;; - changes to octave-block-offset wouldn't take effect immediately.
     ;; - edebug wouldn't show the use of this variable.
-    (`(:elem . basic) octave-block-offset)
+    ('(:elem . basic) octave-block-offset)
     (`(:list-intro . ,(or "global" "persistent")) t)
     ;; Since "case" is in the same BNF rules as switch..end, SMIE by default
     ;; aligns it with "switch".
-    (`(:before . "case") (if (not (smie-rule-sibling-p)) octave-block-offset))
-    (`(:after . ";")
+    ('(:before . "case") (if (not (smie-rule-sibling-p)) octave-block-offset))
+    ('(:after . ";")
      (if (apply #'smie-rule-parent-p octave--block-offset-keywords)
          (smie-rule-parent octave-block-offset)
        ;; For (invalid) code between switch and case.
@@ -532,6 +532,27 @@ Non-nil means always go to the next Octave code line after sending."
                          'syntax-table (string-to-syntax "\"'")))))
 
 (defvar electric-layout-rules)
+
+;; FIXME: cc-mode.el also adds an entry for .m files, mapping them to
+;; objc-mode.  We here rely on the fact that loaddefs.el is filled in
+;; alphabetical order, so cc-mode.el comes before octave-mode.el, which lets
+;; our entry come first!
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-maybe-mode))
+
+;;;###autoload
+(defun octave-maybe-mode ()
+  "Select `octave-mode' if the current buffer seems to hold Octave code."
+  (if (save-excursion
+        (with-syntax-table octave-mode-syntax-table
+          (goto-char (point-min))
+          (forward-comment (point-max))
+          ;; FIXME: What about Octave files which don't start with "function"?
+          (looking-at "function")))
+      (octave-mode)
+    (let ((x (rassq 'octave-maybe-mode auto-mode-alist)))
+      (when x
+        (let ((auto-mode-alist (remove x auto-mode-alist)))
+          (set-auto-mode))))))
 
 ;;;###autoload
 (define-derived-mode octave-mode prog-mode "Octave"
@@ -639,6 +660,9 @@ mode, include \"-q\" and \"--traditional\"."
   :type '(repeat string)
   :version "24.4")
 
+(define-obsolete-variable-alias 'inferior-octave-startup-hook
+  'inferior-octave-mode-hook "24.4")
+
 (defcustom inferior-octave-mode-hook nil
   "Hook to be run when Inferior Octave mode is started."
   :type 'hook)
@@ -692,9 +716,6 @@ mode, include \"-q\" and \"--traditional\"."
 (defvar inferior-octave-output-list nil)
 (defvar inferior-octave-output-string nil)
 (defvar inferior-octave-receive-in-progress nil)
-
-(define-obsolete-variable-alias 'inferior-octave-startup-hook
-  'inferior-octave-mode-hook "24.4")
 
 (defvar inferior-octave-dynamic-complete-functions
   '(inferior-octave-completion-at-point comint-filename-completion)
@@ -1044,8 +1065,8 @@ directory and makes this the current buffer's default directory."
              (unless found (goto-char orig))
              found))))
     (pcase (and buffer-file-name (file-name-extension buffer-file-name))
-      (`"cc" (funcall search
-                      "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
+      ("cc" (funcall search
+                     "\\_<DEFUN\\(?:_DLD\\)?\\s-*(\\s-*\\(\\(?:\\sw\\|\\s_\\)+\\)" 1))
       (_ (funcall search octave-function-header-regexp 3)))))
 
 (defun octave-function-file-p ()
@@ -1114,19 +1135,19 @@ q: Don't fix\n" func file))
                       (read-char-choice
                        "Which name to use? (a/b/q) " '(?a ?b ?q))))))
           (pcase c
-            (`?a (let ((newname (expand-file-name
-                                 (concat func (file-name-extension
-                                               buffer-file-name t)))))
-                   (when (or (not (file-exists-p newname))
-                             (yes-or-no-p
-                              (format "Target file %s exists; proceed? " newname)))
-                     (when (file-exists-p buffer-file-name)
-                       (rename-file buffer-file-name newname t))
-                     (set-visited-file-name newname))))
-            (`?b (save-excursion
-                   (goto-char name-start)
-                   (delete-region name-start name-end)
-                   (insert file)))))))))
+            (?a (let ((newname (expand-file-name
+                                (concat func (file-name-extension
+                                              buffer-file-name t)))))
+                  (when (or (not (file-exists-p newname))
+                            (yes-or-no-p
+                             (format "Target file %s exists; proceed? " newname)))
+                    (when (file-exists-p buffer-file-name)
+                      (rename-file buffer-file-name newname t))
+                    (set-visited-file-name newname))))
+            (?b (save-excursion
+                  (goto-char name-start)
+                  (delete-region name-start name-end)
+                  (insert file)))))))))
 
 (defun octave-update-function-file-comment (beg end)
   "Query replace function names in function file comment."
@@ -1631,11 +1652,11 @@ code line."
       ;;
       ;; Return the value according to style.
       (pcase octave-eldoc-message-style
-        (`auto (if (< (length oneline) (window-width (minibuffer-window)))
+        ('auto (if (< (length oneline) (window-width (minibuffer-window)))
                    oneline
                  multiline))
-        (`oneline oneline)
-        (`multiline multiline)))))
+        ('oneline oneline)
+        ('multiline multiline)))))
 
 (defcustom octave-help-buffer "*Octave Help*"
   "Buffer name for `octave-help'."
@@ -1780,19 +1801,19 @@ If the environment variable OCTAVE_SRCDIR is set, it is searched first."
 (defun octave-find-definition-default-filename (name)
   "Default value for `octave-find-definition-filename-function'."
   (pcase (file-name-extension name)
-    (`"oct"
+    ("oct"
      (octave-find-definition-default-filename
       (concat "libinterp/dldfcn/"
               (file-name-sans-extension (file-name-nondirectory name))
               ".cc")))
-    (`"cc"
+    ("cc"
      (let ((file (or (locate-file name (octave-source-directories))
                      (locate-file (file-name-nondirectory name)
                                   (octave-source-directories)))))
        (or (and file (file-exists-p file))
            (error "File `%s' not found" name))
        file))
-    (`"mex"
+    ("mex"
      (if (yes-or-no-p (format-message "File `%s' may be binary; open? "
 				      (file-name-nondirectory name)))
          name

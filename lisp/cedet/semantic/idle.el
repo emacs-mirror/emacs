@@ -1,6 +1,6 @@
 ;;; idle.el --- Schedule parsing tasks in idle time
 
-;; Copyright (C) 2003-2006, 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2006, 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -172,11 +172,9 @@ some command requests the list of available tokens.  When idle-scheduler
 is enabled, Emacs periodically checks to see if the buffer is out of
 date, and reparses while the user is idle (not typing.)
 
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled."
-  nil nil nil
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled."  nil nil nil
   (if semantic-idle-scheduler-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))
           (progn
@@ -776,8 +774,6 @@ current tag to display information."
 
 (define-minor-mode semantic-idle-summary-mode
   "Toggle Semantic Idle Summary mode.
-With ARG, turn Semantic Idle Summary mode on if ARG is positive,
-off otherwise.
 
 When this minor mode is enabled, the echo area displays a summary
 of the lexical token at point whenever Emacs is idle."
@@ -812,8 +808,6 @@ of the lexical token at point whenever Emacs is idle."
 
 (define-minor-mode global-semantic-idle-summary-mode
   "Toggle Global Semantic Idle Summary mode.
-With ARG, turn Global Semantic Idle Summary mode on if ARG is
-positive, off otherwise.
 
 When this minor mode is enabled, `semantic-idle-summary-mode' is
 turned on in every Semantic-supported buffer."
@@ -931,9 +925,10 @@ Call `semantic-symref-hits-in-region' to identify local references."
 ;;;###autoload
 (define-minor-mode global-semantic-idle-scheduler-mode
   "Toggle global use of option `semantic-idle-scheduler-mode'.
-The idle scheduler will automatically reparse buffers in idle time,
-and then schedule other jobs setup with `semantic-idle-scheduler-add'.
-If ARG is positive or nil, enable, if it is negative, disable."
+
+The idle scheduler will automatically reparse buffers in idle
+time, and then schedule other jobs setup with
+`semantic-idle-scheduler-add'."
   :global t
   :group 'semantic
   :group 'semantic-modes

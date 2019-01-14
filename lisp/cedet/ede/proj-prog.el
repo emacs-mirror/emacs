@@ -1,6 +1,6 @@
 ;;; ede-proj-prog.el --- EDE Generic Project program support
 
-;; Copyright (C) 1998-2001, 2005, 2008-2018 Free Software Foundation,
+;; Copyright (C) 1998-2001, 2005, 2008-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -25,7 +25,6 @@
 ;;
 ;; Handle building programs from object files in and EDE Project file.
 
-(eval-when-compile (require 'cl))
 (require 'ede/pmake)
 (require 'ede/proj-obj)
 

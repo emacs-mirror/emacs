@@ -1,6 +1,6 @@
 /* Low-level bidirectional buffer/string-scanning functions for GNU Emacs.
 
-Copyright (C) 2000-2001, 2004-2005, 2009-2018 Free Software Foundation, Inc.
+Copyright (C) 2000-2001, 2004-2005, 2009-2019 Free Software Foundation, Inc.
 
 Author: Eli Zaretskii <eliz@gnu.org>
 
@@ -280,7 +280,7 @@ bidi_get_type (int ch, bidi_dir_t override)
   if (ch < 0 || ch > MAX_CHAR)
     emacs_abort ();
 
-  default_type = (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
+  default_type = (bidi_type_t) XFIXNUM (CHAR_TABLE_REF (bidi_type_table, ch));
   /* Every valid character code, even those that are unassigned by the
      UCD, have some bidi-class property, according to
      DerivedBidiClass.txt file.  Therefore, if we ever get UNKNOWN_BT
@@ -379,15 +379,15 @@ bidi_mirror_char (int c)
     emacs_abort ();
 
   val = CHAR_TABLE_REF (bidi_mirror_table, c);
-  if (INTEGERP (val))
+  if (FIXNUMP (val))
     {
       int v;
 
       /* When debugging, check before assigning to V, so that the check
 	 isn't broken by undefined behavior due to int overflow.  */
-      eassert (CHAR_VALID_P (XINT (val)));
+      eassert (CHAR_VALID_P (XFIXNUM (val)));
 
-      v = XINT (val);
+      v = XFIXNUM (val);
 
       /* Minimal test we must do in optimized builds, to prevent weird
 	 crashes further down the road.  */
@@ -409,7 +409,7 @@ bidi_paired_bracket_type (int c)
   if (c < 0 || c > MAX_CHAR)
     emacs_abort ();
 
-  return (bidi_bracket_type_t) XINT (CHAR_TABLE_REF (bidi_brackets_table, c));
+  return (bidi_bracket_type_t) XFIXNUM (CHAR_TABLE_REF (bidi_brackets_table, c));
 }
 
 /* Determine the start-of-sequence (sos) directional type given the two
@@ -1805,7 +1805,7 @@ bidi_explicit_dir_char (int ch)
       eassert (ch == BIDI_EOB);
       return false;
     }
-  ch_type = (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
+  ch_type = (bidi_type_t) XFIXNUM (CHAR_TABLE_REF (bidi_type_table, ch));
   return (ch_type == LRE || ch_type == LRO
 	  || ch_type == RLE || ch_type == RLO
 	  || ch_type == PDF);

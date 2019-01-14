@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -43,13 +43,13 @@
 
 ;;  0.06:  (2004-10-06)
 ;;  - Bugfixes regarding icalendar-import-format-*.
-;;  - Fix in icalendar-convert-diary-to-ical -- thanks to Philipp Grau.
+;;  - Fix in icalendar-export-file -- thanks to Philipp Grau.
 
 ;;  0.05: (2003-06-19)
 ;;  - New import format scheme: Replaced icalendar-import-prefix-*,
 ;;    icalendar-import-ignored-properties, and
 ;;    icalendar-import-separator with icalendar-import-format(-*).
-;;  - icalendar-import-file and icalendar-convert-diary-to-ical
+;;  - icalendar-import-file and icalendar-export-file
 ;;    have an extra parameter which should prevent them from
 ;;    erasing their target files (untested!).
 ;;  - Tested with Emacs 21.3.2
@@ -996,9 +996,6 @@ Finto iCalendar file: ")
     (set-buffer (find-file diary-filename))
     (icalendar-export-region (point-min) (point-max) ical-filename)))
 
-(define-obsolete-function-alias 'icalendar-convert-diary-to-ical
-  'icalendar-export-file "22.1")
-
 (defvar icalendar--uid-count 0
   "Auxiliary counter for creating unique ids.")
 
@@ -1019,9 +1016,7 @@ current iCalendar object, as a string.  Increase
       (setq icalendar--uid-count (1+ icalendar--uid-count))
       (setq uid (replace-regexp-in-string
                  "%t"
-                 (format "%d%d%d" (car (current-time))
-                         (cadr (current-time))
-                         (car (cddr (current-time))))
+                 (format-time-string "%s%N")
                  uid t t))
       (setq uid (replace-regexp-in-string
                  "%h"
@@ -2026,9 +2021,6 @@ buffer `*icalendar-errors*'."
        "Current buffer does not contain iCalendar contents!")
       ;; return nil, i.e. import did not work
       nil)))
-
-(define-obsolete-function-alias 'icalendar-extract-ical-from-buffer
-  'icalendar-import-buffer "22.1")
 
 (defun icalendar--format-ical-event (event)
   "Create a string representation of an iCalendar EVENT."

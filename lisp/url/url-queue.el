@@ -1,6 +1,6 @@
 ;;; url-queue.el --- Fetching web pages in parallel   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: comm
@@ -52,7 +52,7 @@
 (cl-defstruct url-queue
   url callback cbargs silentp
   buffer start-time pre-triggered
-  inhibit-cookiesp)
+  inhibit-cookiesp context-buffer)
 
 ;;;###autoload
 (defun url-queue-retrieve (url callback &optional cbargs silent inhibit-cookies)
@@ -67,7 +67,8 @@ The variable `url-queue-timeout' sets a timeout."
 				      :callback callback
 				      :cbargs cbargs
 				      :silentp silent
-				      :inhibit-cookiesp inhibit-cookies))))
+				      :inhibit-cookiesp inhibit-cookies
+                                      :context-buffer (current-buffer)))))
   (url-queue-setup-runners))
 
 ;; To ensure asynch behavior, we start the required number of queue
@@ -147,11 +148,14 @@ The variable `url-queue-timeout' sets a timeout."
 (defun url-queue-start-retrieve (job)
   (setf (url-queue-buffer job)
 	(ignore-errors
-	  (let ((url-request-noninteractive t))
-	    (url-retrieve (url-queue-url job)
-			  #'url-queue-callback-function (list job)
-			  (url-queue-silentp job)
-			  (url-queue-inhibit-cookiesp job))))))
+          (with-current-buffer (if (buffer-live-p (url-queue-context-buffer job))
+                                   (url-queue-context-buffer job)
+                                 (current-buffer))
+	   (let ((url-request-noninteractive t))
+             (url-retrieve (url-queue-url job)
+                           #'url-queue-callback-function (list job)
+                           (url-queue-silentp job)
+                           (url-queue-inhibit-cookiesp job)))))))
 
 (defun url-queue-prune-old-entries ()
   (let (dead-jobs)

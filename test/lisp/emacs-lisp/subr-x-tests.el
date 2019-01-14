@@ -1,6 +1,6 @@
 ;;; subr-x-tests.el --- Testing the extended lisp routines
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; Keywords:
@@ -148,34 +148,34 @@
   "Test `if-let' with falsie bindings."
   (should (equal
            (if-let* ((a nil))
-               (list a b c)
+               "yes"
              "no")
            "no"))
   (should (equal
            (if-let* ((a nil) (b 2) (c 3))
-               (list a b c)
+               "yes"
              "no")
            "no"))
   (should (equal
            (if-let* ((a 1) (b nil) (c 3))
-               (list a b c)
+               "yes"
              "no")
            "no"))
   (should (equal
            (if-let* ((a 1) (b 2) (c nil))
-               (list a b c)
+               "yes"
              "no")
            "no"))
   (should (equal
            (let (z)
              (if-let* (z (a 1) (b 2) (c 3))
-                 (list a b c)
+                 "yes"
                "no"))
            "no"))
   (should (equal
            (let (d)
              (if-let* ((a 1) (b 2) (c 3) d)
-                 (list a b c)
+                 "yes"
                "no"))
            "no")))
 
@@ -312,34 +312,28 @@
   "Test `when-let' with falsie bindings."
   (should (equal
            (when-let* ((a nil))
-             (list a b c)
              "no")
            nil))
   (should (equal
            (when-let* ((a nil) (b 2) (c 3))
-             (list a b c)
              "no")
            nil))
   (should (equal
            (when-let* ((a 1) (b nil) (c 3))
-             (list a b c)
              "no")
            nil))
   (should (equal
            (when-let* ((a 1) (b 2) (c nil))
-             (list a b c)
              "no")
            nil))
   (should (equal
            (let (z)
              (when-let* (z (a 1) (b 2) (c 3))
-               (list a b c)
                "no"))
            nil))
   (should (equal
            (let (d)
              (when-let* ((a 1) (b 2) (c 3) d)
-               (list a b c)
                "no"))
            nil)))
 
@@ -538,6 +532,53 @@
                    (format "abs sum is: %s"))
                  "abs sum is: 15")))
 
+
+;; Substring tests
+
+(ert-deftest subr-x-test-string-trim-left ()
+  "Test `string-trim-left' behavior."
+  (should (equal (string-trim-left "") ""))
+  (should (equal (string-trim-left " \t\n\r") ""))
+  (should (equal (string-trim-left " \t\n\ra") "a"))
+  (should (equal (string-trim-left "a \t\n\r") "a \t\n\r"))
+  (should (equal (string-trim-left "" "") ""))
+  (should (equal (string-trim-left "a" "") "a"))
+  (should (equal (string-trim-left "aa" "a*") ""))
+  (should (equal (string-trim-left "ba" "a*") "ba"))
+  (should (equal (string-trim-left "aa" "a*?") "aa"))
+  (should (equal (string-trim-left "aa" "a+?") "a")))
+
+(ert-deftest subr-x-test-string-trim-right ()
+  "Test `string-trim-right' behavior."
+  (should (equal (string-trim-right "") ""))
+  (should (equal (string-trim-right " \t\n\r") ""))
+  (should (equal (string-trim-right " \t\n\ra") " \t\n\ra"))
+  (should (equal (string-trim-right "a \t\n\r") "a"))
+  (should (equal (string-trim-right "" "") ""))
+  (should (equal (string-trim-right "a" "") "a"))
+  (should (equal (string-trim-right "aa" "a*") ""))
+  (should (equal (string-trim-right "ab" "a*") "ab"))
+  (should (equal (string-trim-right "aa" "a*?") "")))
+
+(ert-deftest subr-x-test-string-remove-prefix ()
+  "Test `string-remove-prefix' behavior."
+  (should (equal (string-remove-prefix "" "") ""))
+  (should (equal (string-remove-prefix "" "a") "a"))
+  (should (equal (string-remove-prefix "a" "") ""))
+  (should (equal (string-remove-prefix "a" "b") "b"))
+  (should (equal (string-remove-prefix "a" "a") ""))
+  (should (equal (string-remove-prefix "a" "aa") "a"))
+  (should (equal (string-remove-prefix "a" "ab") "b")))
+
+(ert-deftest subr-x-test-string-remove-suffix ()
+  "Test `string-remove-suffix' behavior."
+  (should (equal (string-remove-suffix "" "") ""))
+  (should (equal (string-remove-suffix "" "a") "a"))
+  (should (equal (string-remove-suffix "a" "") ""))
+  (should (equal (string-remove-suffix "a" "b") "b"))
+  (should (equal (string-remove-suffix "a" "a") ""))
+  (should (equal (string-remove-suffix "a" "aa") "a"))
+  (should (equal (string-remove-suffix "a" "ba") "b")))
 
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

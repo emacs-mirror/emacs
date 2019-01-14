@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'puny)
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
@@ -46,7 +47,15 @@
 (defcustom gnutls-algorithm-priority nil
   "If non-nil, this should be a TLS priority string.
 For instance, if you want to skip the \"dhe-rsa\" algorithm,
-set this variable to \"normal:-dhe-rsa\"."
+set this variable to \"normal:-dhe-rsa\".
+
+This variable can be useful for modifying low-level TLS
+connection parameters (for instance if you need to connect to a
+host that only accepts a specific algorithm).  However, in
+general, Emacs network security is handled by the Network
+Security Manager (NSM), and the default value of nil delegates
+the job of checking the connection security to the NSM.
+See Info node `(emacs) Network Security'."
   :group 'gnutls
   :type '(choice (const nil)
                  string))
@@ -61,9 +70,9 @@ If the value is a list, it should have the form
    ((HOST-REGEX FLAGS...) (HOST-REGEX FLAGS...) ...)
 
 where each HOST-REGEX is a regular expression to be matched
-against the hostname, and FLAGS is either t or a list of
-one or more verification flags.  The supported flags and the
-corresponding conditions to be tested are:
+against the hostname, on a first-match basis, and FLAGS is either
+t or a list of one or more verification flags.  The supported
+flags and the corresponding conditions to be tested are:
 
   :trustfiles -- certificate must be issued by a trusted authority.
   :hostname   -- hostname must match presented certificate's host name.
@@ -72,7 +81,13 @@ corresponding conditions to be tested are:
 If the condition test fails, an error will be signaled.
 
 If the value of this variable is t, every connection will be subjected
-to all of the tests described above."
+to all of the tests described above.
+
+The default value of this variable is nil, which means that no
+checks are performed at the gnutls level.  Instead the checks are
+performed via `open-network-stream' at a higher level by the
+Network Security Manager.  See Info node `(emacs) Network
+Security'."
   :group 'gnutls
   :version "24.4"
   :type '(choice
@@ -111,7 +126,14 @@ number with fewer than this number of bits, the handshake is
 rejected.  \(The smaller the prime number, the less secure the
 key exchange is against man-in-the-middle attacks.)
 
-A value of nil says to use the default GnuTLS value."
+A value of nil says to use the default GnuTLS value.
+
+The default value of this variable is such that virtually any
+connection can be established, whether this connection can be
+considered cryptographically \"safe\" or not.  However, Emacs
+network security is handled at a higher level via
+`open-network-stream' and the Network Security Manager.  See Info
+node `(emacs) Network Security'."
   :type '(choice (const :tag "Use default value" nil)
                  (integer :tag "Number of bits" 512))
   :group 'gnutls)
@@ -154,12 +176,12 @@ trust and key files, and priority string."
                        (cons 'gnutls-x509pki
                              (gnutls-boot-parameters
                               :type 'gnutls-x509pki
-                              :hostname host))))))
+                              :hostname (puny-encode-domain host)))))))
     (if nowait
         process
       (gnutls-negotiate :process process
                         :type 'gnutls-x509pki
-                        :hostname host))))
+                        :hostname (puny-encode-domain host)))))
 
 (define-error 'gnutls-error "GnuTLS error")
 
@@ -282,13 +304,9 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                              t)
                             ;; if a list, look for hostname matches
                             ((listp gnutls-verify-error)
-                             (apply 'append
-                                    (mapcar
-                                     (lambda (check)
-                                       (when (string-match (nth 0 check)
-                                                           hostname)
-                                         (nth 1 check)))
-                                     gnutls-verify-error)))
+                             (cadr (cl-find-if #'(lambda (x)
+                                                   (string-match (car x) hostname))
+                                               gnutls-verify-error)))
                             ;; else it's nil
                             (t nil))))
          (min-prime-bits (or min-prime-bits gnutls-min-prime-bits)))

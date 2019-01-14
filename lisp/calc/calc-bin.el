@@ -1,6 +1,6 @@
 ;;; calc-bin.el --- binary functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -420,7 +420,7 @@ the size of a Calc bignum digit.")
   (let ((q (math-div-bignum-digit a math-bignum-digit-power-of-two)))
     (if (<= w math-bignum-logb-digit-size)
 	(list (logand (lognot (cdr q))
-		      (1- (lsh 1 w))))
+		      (1- (ash 1 w))))
       (math-mul-bignum-digit (math-not-bignum (math-norm-bignum (car q))
 					       (- w math-bignum-logb-digit-size))
 			      math-bignum-digit-power-of-two
@@ -529,7 +529,7 @@ the size of a Calc bignum digit.")
 	((and (integerp a) (< a math-small-integer-size))
 	 (if (> w (logb math-small-integer-size))
 	     a
-	   (logand a (1- (lsh 1 w)))))
+	   (logand a (1- (ash 1 w)))))
 	(t
 	 (math-normalize
 	  (cons 'bigpos
@@ -542,7 +542,7 @@ the size of a Calc bignum digit.")
   (let ((q (math-div-bignum-digit a math-bignum-digit-power-of-two)))
     (if (<= w math-bignum-logb-digit-size)
 	(list (logand (cdr q)
-		      (1- (lsh 1 w))))
+		      (1- (ash 1 w))))
       (math-mul-bignum-digit (math-clip-bignum (math-norm-bignum (car q))
 						(- w math-bignum-logb-digit-size))
 			      math-bignum-digit-power-of-two

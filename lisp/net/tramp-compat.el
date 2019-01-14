@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -29,6 +29,11 @@
 
 ;;; Code:
 
+;; In Emacs 24 and 25, `tramp-unload-file-name-handlers' is not
+;; autoloaded.  So we declare it here in order to avoid recursive
+;; load.  This will be overwritten in tramp.el.
+(defun tramp-unload-file-name-handlers ())
+
 (require 'auth-source)
 (require 'advice)
 (require 'cl-lib)
@@ -39,8 +44,6 @@
 (require 'shell)
 (require 'timer)
 (require 'ucs-normalize)
-
-(require 'tramp-loaddefs)
 
 ;; For not existing functions, obsolete functions, or functions with a
 ;; changed argument list, there are compiler warnings.  We want to
@@ -92,17 +95,10 @@ Add the extension of F, if existing."
                          ;; The returned command name could be truncated
                          ;; to 15 characters.  Therefore, we cannot check
                          ;; for `string-equal'.
-                         (and comm (string-match
+                         (and comm (string-match-p
                                     (concat "^" (regexp-quote comm))
                                     process-name))))
 	      (setq result t)))))))))
-
-;; `user-error' has appeared in Emacs 24.3.
-(defsubst tramp-compat-user-error (vec-or-proc format &rest args)
-  "Signal a pilot error."
-  (apply
-   'tramp-error vec-or-proc
-   (if (fboundp 'user-error) 'user-error 'error) format args))
 
 ;; `default-toplevel-value' has been declared in Emacs 24.4.
 (unless (fboundp 'default-toplevel-value)
@@ -149,15 +145,15 @@ returned."
   (defsubst tramp-compat-file-attribute-modification-time (attributes)
     "The modification time in ATTRIBUTES returned by `file-attributes'.
 This is the time of the last change to the file's contents, and
-is a list of integers (HIGH LOW USEC PSEC) in the same style
-as (current-time)."
+is a Lisp timestamp in the style of `current-time'."
     (nth 5 attributes)))
 
 (if (fboundp 'file-attribute-size)
     (defalias 'tramp-compat-file-attribute-size 'file-attribute-size)
   (defsubst tramp-compat-file-attribute-size (attributes)
     "The size (in bytes) in ATTRIBUTES returned by `file-attributes'.
-This is a floating point number if the size is too large for an integer."
+If the size is too large for a fixnum, this is a bignum in Emacs 27
+and later, and is a float in Emacs 26 and earlier."
     (nth 7 attributes)))
 
 (if (fboundp 'file-attribute-modes)
@@ -189,15 +185,23 @@ This is a string of ten letters or dashes as in ls -l."
   (if (get 'file-missing 'error-conditions) 'file-missing 'file-error)
   "The error symbol for the `file-missing' error.")
 
-;; `file-name-quoted-p', `file-name-quote' and `file-name-unquote' are
-;; introduced in Emacs 26.
+;; `file-local-name', `file-name-quoted-p', `file-name-quote' and
+;; `file-name-unquote' are introduced in Emacs 26.
 (eval-and-compile
+  (if (fboundp 'file-local-name)
+      (defalias 'tramp-compat-file-local-name 'file-local-name)
+    (defsubst tramp-compat-file-local-name (name)
+      "Return the local name component of NAME.
+It returns a file name which can be used directly as argument of
+`process-file', `start-file-process', or `shell-command'."
+      (or (file-remote-p name 'localname) name)))
+
   (if (fboundp 'file-name-quoted-p)
       (defalias 'tramp-compat-file-name-quoted-p 'file-name-quoted-p)
     (defsubst tramp-compat-file-name-quoted-p (name)
       "Whether NAME is quoted with prefix \"/:\".
 If NAME is a remote file name, check the local part of NAME."
-      (string-match "^/:" (or (file-remote-p name 'localname) name))))
+      (string-prefix-p "/:" (tramp-compat-file-local-name name))))
 
   (if (fboundp 'file-name-quote)
       (defalias 'tramp-compat-file-name-quote 'file-name-quote)
@@ -207,26 +211,24 @@ If NAME is a remote file name, the local part of NAME is quoted."
       (if (tramp-compat-file-name-quoted-p name)
 	  name
 	(concat
-	 (file-remote-p name) "/:" (or (file-remote-p name 'localname) name)))))
+	 (file-remote-p name) "/:" (tramp-compat-file-local-name name)))))
 
   (if (fboundp 'file-name-unquote)
       (defalias 'tramp-compat-file-name-unquote 'file-name-unquote)
     (defsubst tramp-compat-file-name-unquote (name)
       "Remove quotation prefix \"/:\" from file NAME.
 If NAME is a remote file name, the local part of NAME is unquoted."
-      (save-match-data
-	(let ((localname (or (file-remote-p name 'localname) name)))
-	  (when (tramp-compat-file-name-quoted-p localname)
-	    (setq
-	     localname
-	     (replace-match
-	      (if (= (length localname) 2) "/" "") nil t localname)))
-	  (concat (file-remote-p name) localname))))))
+      (let ((localname (tramp-compat-file-local-name name)))
+	(when (tramp-compat-file-name-quoted-p localname)
+	  (setq
+	   localname (if (= (length localname) 2) "/" (substring localname 2))))
+	(concat (file-remote-p name) localname)))))
 
 ;; `tramp-syntax' has changed its meaning in Emacs 26.  We still
 ;; support old settings.
 (defsubst tramp-compat-tramp-syntax ()
   "Return proper value of `tramp-syntax'."
+  (defvar tramp-syntax)
   (cond ((eq tramp-syntax 'ftp) 'default)
 	((eq tramp-syntax 'sep) 'separate)
 	(t tramp-syntax)))
@@ -234,14 +236,48 @@ If NAME is a remote file name, the local part of NAME is unquoted."
 ;; `cl-struct-slot-info' has been introduced with Emacs 25.
 (defmacro tramp-compat-tramp-file-name-slots ()
   (if (fboundp 'cl-struct-slot-info)
-      `(cdr (mapcar 'car (cl-struct-slot-info 'tramp-file-name)))
-    `(cdr (mapcar 'car (get 'tramp-file-name 'cl-struct-slots)))))
+      '(cdr (mapcar 'car (cl-struct-slot-info 'tramp-file-name)))
+    '(cdr (mapcar 'car (get 'tramp-file-name 'cl-struct-slots)))))
 
 ;; The signature of `tramp-make-tramp-file-name' has been changed.
 ;; Therefore, we cannot us `url-tramp-convert-url-to-tramp' prior
 ;; Emacs 26.1.  We use `temporary-file-directory' as indicator.
 (defconst tramp-compat-use-url-tramp-p (fboundp 'temporary-file-directory)
   "Whether to use url-tramp.el.")
+
+;; `exec-path' is new in Emacs 27.1.
+(eval-and-compile
+  (if (fboundp 'exec-path)
+      (defalias 'tramp-compat-exec-path 'exec-path)
+    (defun tramp-compat-exec-path ()
+      "List of directories to search programs to run in remote subprocesses."
+      (let ((handler (find-file-name-handler default-directory 'exec-path)))
+	(if handler
+	    (funcall handler 'exec-path)
+	  exec-path)))))
+
+;; `time-equal-p' has appeared in Emacs 27.1.
+(if (fboundp 'time-equal-p)
+    (defalias 'tramp-compat-time-equal-p 'time-equal-p)
+  (defsubst tramp-compat-time-equal-p (t1 t2)
+    "Return non-nil if time value T1 is equal to time value T2.
+A nil value for either argument stands for the current time."
+    (equal (or t1 (current-time)) (or t2 (current-time)))))
+
+;; `flatten-tree' has appeared in Emacs 27.1.
+(if (fboundp 'flatten-tree)
+    (defalias 'tramp-compat-flatten-tree 'flatten-tree)
+  (defun tramp-compat-flatten-tree (tree)
+    "Take TREE and \"flatten\" it."
+    (let (elems)
+      (setq tree (list tree))
+      (while (let ((elem (pop tree)))
+               (cond ((consp elem)
+                      (setq tree (cons (car elem) (cons (cdr elem) tree))))
+                     (elem
+                      (push elem elems)))
+               tree))
+      (nreverse elems))))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
@@ -251,5 +287,8 @@ If NAME is a remote file name, the local part of NAME is unquoted."
 (provide 'tramp-compat)
 
 ;;; TODO:
+
+;; * When we get rid of Emacs 24, replace "(mapconcat 'identity" by
+;;   "(string-join".
 
 ;;; tramp-compat.el ends here

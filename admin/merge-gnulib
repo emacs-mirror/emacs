@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2018 Free Software Foundation, Inc.
+# Copyright 2012-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -29,15 +29,15 @@ GNULIB_MODULES='
   alloca-opt binary-io byteswap c-ctype c-strcase
   careadlinkat close-stream
   count-leading-zeros count-one-bits count-trailing-zeros
-  crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512
-  d-type diffseq dtoastr dtotimespec dup2
+  crypto/md5-buffer crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
+  d-type diffseq dosname dtoastr dtotimespec dup2
   environ execinfo explicit_bzero faccessat
-  fcntl fcntl-h fdatasync fdopendir
-  filemode filevercmp flexmember fstatat fsusage fsync
+  fcntl fcntl-h fdopendir
+  filemode filevercmp flexmember fpieee fstatat fsusage fsync
   getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
-  ignore-value intprops largefile lstat
+  ieee754-h ignore-value intprops largefile lstat
   manywarnings memrchr minmax mkostemp mktime nstrftime
-  pipe2 pselect pthread_sigmask putenv qcopy-acl readlink readlinkat
+  pipe2 pselect pthread_sigmask putenv qcopy-acl readlink readlinkat regex
   sig2str socklen stat-time std-gnu11 stdalign stddef stdio
   stpcpy strtoimax symlink sys_stat sys_time
   tempname time time_r time_rz timegm timer-time timespec-add timespec-sub
@@ -46,11 +46,12 @@ GNULIB_MODULES='
 '
 
 AVOIDED_MODULES='
-  close dup fchdir fstat
-  malloc-posix msvc-inval msvc-nothrow
+  btowc close dup fchdir fstat langinfo lock
+  malloc-posix mbrtowc mbsinit mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir raise
   save-cwd select setenv sigprocmask stat stdarg stdbool
   threadlib tzset unsetenv utime utime-h
+  wchar wcrtomb wctype-h
 '
 
 GNULIB_TOOL_FLAGS='

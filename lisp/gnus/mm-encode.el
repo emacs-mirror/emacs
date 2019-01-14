@@ -1,6 +1,6 @@
 ;;; mm-encode.el --- Functions for encoding MIME things
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'mail-parse)
 (autoload 'mailcap-extension-to-mime "mailcap")
 (autoload 'mm-body-7-or-8 "mm-bodies")
@@ -204,7 +204,7 @@ This is either `base64' or `quoted-printable'."
 	(goto-char (point-min))
 	(skip-chars-forward "\x20-\x7f\r\n\t" limit)
 	(while (< (point) limit)
-	  (incf n8bit)
+	  (cl-incf n8bit)
 	  (forward-char 1)
 	  (skip-chars-forward "\x20-\x7f\r\n\t" limit))
 	(if (or (< (* 6 n8bit) (- limit (point-min)))

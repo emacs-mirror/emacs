@@ -1,6 +1,6 @@
 ;;; ede/detect.el --- EDE project detection and file associations
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

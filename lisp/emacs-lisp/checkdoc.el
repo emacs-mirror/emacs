@@ -1,6 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -171,7 +171,7 @@
 (defvar checkdoc-version "0.6.1"
   "Release version of checkdoc you are currently running.")
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
 (require 'thingatpt) ;; for handy thing-at-point-looking-at
 
@@ -884,9 +884,8 @@ a separate buffer."
 ;;;###autoload
 (defun checkdoc-continue (&optional take-notes)
   "Find the next doc string in the current buffer which has a style error.
-Prefix argument TAKE-NOTES means to continue through the whole buffer and
-save warnings in a separate buffer.  Second optional argument START-POINT
-is the starting location.  If this is nil, `point-min' is used instead."
+Prefix argument TAKE-NOTES means to continue through the whole
+buffer and save warnings in a separate buffer."
   (interactive "P")
   (let ((wrong nil) (msg nil)
 	;; Assign a flag to spellcheck flag
@@ -1237,9 +1236,6 @@ TEXT, START, END and UNFIXABLE conform to
 ;;;###autoload
 (define-minor-mode checkdoc-minor-mode
   "Toggle automatic docstring checking (Checkdoc minor mode).
-With a prefix argument ARG, enable Checkdoc minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 In Checkdoc minor mode, the usual bindings for `eval-defun' which is
 bound to \\<checkdoc-minor-mode-map>\\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
@@ -1840,7 +1836,7 @@ Replace with \"%s\"? " original replace)
 		 (if (checkdoc-autofix-ask-replace
 		      (match-beginning 1) (+ (match-beginning 1)
 					     (length ms))
-		      msg (format-message "`%s'" ms) t)
+		      msg (format "`%s'" ms) t)
 		     (setq msg nil)
 		   (setq msg
 			 (format-message

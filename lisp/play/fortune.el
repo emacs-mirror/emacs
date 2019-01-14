@@ -1,6 +1,6 @@
 ;;; fortune.el --- use fortune to create signatures
 
-;; Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -313,6 +313,8 @@ Optional FILE is a fortune file from which a cookie will be selected."
   (with-temp-buffer
     (let ((fortune-buffer-name (current-buffer)))
       (fortune-in-buffer t file)
+      ;; Avoid trailing newline.
+      (if (bolp) (delete-char -1))
       (message "%s" (buffer-string)))))
 
 ;;;###autoload

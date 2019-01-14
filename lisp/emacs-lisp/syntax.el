@@ -1,6 +1,6 @@
 ;;; syntax.el --- helper functions to find syntactic context  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -176,7 +176,7 @@ Note: back-references in REGEXPs do not work."
          (re
           (mapconcat
            (lambda (rule)
-             (let* ((orig-re (eval (car rule)))
+             (let* ((orig-re (eval (car rule) t))
                     (re orig-re))
                (when (and (assq 0 rule) (cdr rules))
                  ;; If there's more than 1 rule, and the rule want to apply
@@ -190,7 +190,7 @@ Note: back-references in REGEXPs do not work."
                       (cond
                        ((assq 0 rule) (if (zerop offset) t
                                         `(match-beginning ,offset)))
-                       ((null (cddr rule))
+                       ((and (cdr rule) (null (cddr rule)))
                         `(match-beginning ,(+ offset (car (cadr rule)))))
                        (t
                         `(or ,@(mapcar
@@ -363,12 +363,6 @@ An \"outermost position\" means one that it is outside of any syntactic entity:
 outside of any parentheses, comments, or strings encountered in the scan.
 If no such position is recorded in PPSS (because the end of the scan was
 itself at the outermost level), return nil."
-  ;; BEWARE! We rely on the undocumented 9th field.  The 9th field currently
-  ;; contains the list of positions of the enclosing open-parens.
-  ;; I.e. those positions are outside of any string/comment and the first of
-  ;; those is outside of any paren (i.e. corresponds to a nil ppss).
-  ;; If this list is empty but we are in a string or comment, then the 8th
-  ;; field contains a similar "toplevel" position.
   (or (car (nth 9 ppss))
       (nth 8 ppss)))
 
@@ -440,14 +434,20 @@ These are valid when the buffer has no restriction.")
        (setcdr cell cache)))
     ))
 
+;;; FIXME: Explain this variable.  Currently only its last (5th) slot is used.
+;;; Perhaps the other slots should be removed?
 (defvar syntax-ppss-stats
-  [(0 . 0.0) (0 . 0.0) (0 . 0.0) (0 . 0.0) (0 . 0.0) (1 . 2500.0)])
+  [(0 . 0) (0 . 0) (0 . 0) (0 . 0) (0 . 0) (2 . 2500)])
 (defun syntax-ppss-stats ()
   (mapcar (lambda (x)
 	    (condition-case nil
-		(cons (car x) (truncate (/ (cdr x) (car x))))
+		(cons (car x) (/ (cdr x) (car x)))
 	      (error nil)))
 	  syntax-ppss-stats))
+(defun syntax-ppss--update-stats (i old new)
+  (let ((pair (aref syntax-ppss-stats i)))
+    (cl-incf (car pair))
+    (cl-incf (cdr pair) (- new old))))
 
 (defvar-local syntax-ppss-table nil
   "Syntax-table to use during `syntax-ppss', if any.")
@@ -492,11 +492,10 @@ running the hook."
 	(if (and old-pos (< (- pos old-pos)
 			    ;; The time to use syntax-begin-function and
 			    ;; find PPSS is assumed to be about 2 * distance.
-			    (* 2 (/ (cdr (aref syntax-ppss-stats 5))
-				    (1+ (car (aref syntax-ppss-stats 5)))))))
+			    (let ((pair (aref syntax-ppss-stats 5)))
+			      (/ (* 2 (cdr pair)) (car pair)))))
 	    (progn
-	      (cl-incf (car (aref syntax-ppss-stats 0)))
-	      (cl-incf (cdr (aref syntax-ppss-stats 0)) (- pos old-pos))
+	      (syntax-ppss--update-stats 0 old-pos pos)
 	      (parse-partial-sexp old-pos pos nil nil old-ppss))
 
 	  (cond
@@ -512,8 +511,7 @@ running the hook."
 		 (setq pt-min (or (syntax-ppss-toplevel-pos old-ppss)
 				  (nth 2 old-ppss)))
 		 (<= pt-min pos) (< (- pos pt-min) syntax-ppss-max-span))
-	    (cl-incf (car (aref syntax-ppss-stats 1)))
-	    (cl-incf (cdr (aref syntax-ppss-stats 1)) (- pos pt-min))
+	    (syntax-ppss--update-stats 1 pt-min pos)
 	    (setq ppss (parse-partial-sexp pt-min pos)))
 	   ;; The OLD-* data can't be used.  Consult the cache.
 	   (t
@@ -541,8 +539,7 @@ running the hook."
 	      ;; Use the best of OLD-POS and CACHE.
 	      (if (or (not old-pos) (< old-pos pt-min))
 		  (setq pt-best pt-min ppss-best ppss)
-		(cl-incf (car (aref syntax-ppss-stats 4)))
-		(cl-incf (cdr (aref syntax-ppss-stats 4)) (- pos old-pos))
+		(syntax-ppss--update-stats 4 old-pos pos)
 		(setq pt-best old-pos ppss-best old-ppss))
 
 	      ;; Use the `syntax-begin-function' if available.
@@ -562,21 +559,18 @@ running the hook."
 			 (not (memq (get-text-property (point) 'face)
 				    '(font-lock-string-face font-lock-doc-face
 				      font-lock-comment-face))))
-		(cl-incf (car (aref syntax-ppss-stats 5)))
-		(cl-incf (cdr (aref syntax-ppss-stats 5)) (- pos (point)))
+		(syntax-ppss--update-stats 5 (point) pos)
 		(setq pt-best (point) ppss-best nil))
 
 	      (cond
 	       ;; Quick case when we found a nearby pos.
 	       ((< (- pos pt-best) syntax-ppss-max-span)
-		(cl-incf (car (aref syntax-ppss-stats 2)))
-		(cl-incf (cdr (aref syntax-ppss-stats 2)) (- pos pt-best))
+		(syntax-ppss--update-stats 2 pt-best pos)
 		(setq ppss (parse-partial-sexp pt-best pos nil nil ppss-best)))
 	       ;; Slow case: compute the state from some known position and
 	       ;; populate the cache so we won't need to do it again soon.
 	       (t
-		(cl-incf (car (aref syntax-ppss-stats 3)))
-		(cl-incf (cdr (aref syntax-ppss-stats 3)) (- pos pt-min))
+		(syntax-ppss--update-stats 3 pt-min pos)
 
 		;; If `pt-min' is too far, add a few intermediate entries.
 		(while (> (- pos pt-min) (* 2 syntax-ppss-max-span))

@@ -1,6 +1,6 @@
 ;;; pgg-pgp5.el --- PGP 5.* support for PGG.
 
-;; Copyright (C) 1999-2000, 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/11/02
@@ -25,8 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'pgg)
 

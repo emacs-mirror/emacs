@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2018 Free
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -471,6 +471,11 @@ A change log tag is a symbol within a parenthesized,
 comma-separated list.  If no suitable tag can be found nearby,
 try to visit the file for the change under `point' instead."
   (interactive)
+  (let ((buffer (current-buffer)))
+    (change-log-goto-source-internal)
+    (next-error-found buffer (current-buffer))))
+
+(defun change-log-goto-source-internal ()
   (if (and (eq last-command 'change-log-goto-source)
 	   change-log-find-tail)
       (setq change-log-find-tail
@@ -539,7 +544,7 @@ Compatibility function for \\[next-error] invocations."
   ;; if we found a place to visit...
   (when (looking-at change-log-file-names-re)
     (let (change-log-find-window)
-      (change-log-goto-source)
+      (change-log-goto-source-internal)
       (when change-log-find-window
 	;; Select window displaying source file.
 	(select-window change-log-find-window)))))
@@ -739,6 +744,7 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
   file-name)
 
 (defun add-log-file-name (buffer-file log-file)
+  "Compute file-name of BUFFER-FILE to be used in entries in LOG-FILE."
   ;; Never want to add a change log entry for the ChangeLog file itself.
   (unless (or (null buffer-file) (string= buffer-file log-file))
     (if add-log-file-name-function
@@ -762,15 +768,57 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
 	  (file-name-sans-versions buffer-file)
 	buffer-file))))
 
-;;;###autoload
-(defun add-change-log-entry (&optional whoami file-name other-window new-entry
-				       put-new-entry-on-new-line)
-  "Find change log file, and add an entry for today and an item for this file.
-Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
-name and email (stored in `add-log-full-name' and `add-log-mailing-address').
+(defcustom add-log-dont-create-changelog-file t
+  "If non-nil, don't create ChangeLog files for log entries.
+If a ChangeLog file does not already exist, a non-nil value
+means to put log entries in a suitably named buffer."
+  :type :boolean
+  :version "27.1")
 
-Second arg FILE-NAME is file name of the change log.
-If nil, use the value of `change-log-default-name'.
+(put 'add-log-dont-create-changelog-file 'safe-local-variable 'booleanp)
+
+(defun add-log--pseudo-changelog-buffer-name (changelog-file-name)
+  "Compute a suitable name for a non-file visiting ChangeLog buffer.
+CHANGELOG-FILE-NAME is the file name of the actual ChangeLog file
+if it were to exist."
+  (format "*changes to %s*"
+          (abbreviate-file-name
+           (file-name-directory changelog-file-name))))
+
+(defun add-log--changelog-buffer-p (changelog-file-name buffer)
+  "Return non-nil if BUFFER holds a change log for CHANGELOG-FILE-NAME."
+  (with-current-buffer buffer
+    (if buffer-file-name
+        (equal buffer-file-name changelog-file-name)
+      (equal (add-log--pseudo-changelog-buffer-name changelog-file-name)
+             (buffer-name)))))
+
+(defun add-log-find-changelog-buffer (changelog-file-name)
+  "Find a ChangeLog buffer for CHANGELOG-FILE-NAME.
+Respect `add-log-use-pseudo-changelog', which see."
+  (if (or (file-exists-p changelog-file-name)
+          (not add-log-dont-create-changelog-file))
+      (find-file-noselect changelog-file-name)
+    (get-buffer-create
+     (add-log--pseudo-changelog-buffer-name changelog-file-name))))
+
+;;;###autoload
+(defun add-change-log-entry (&optional whoami
+                                       changelog-file-name
+                                       other-window new-entry
+				       put-new-entry-on-new-line)
+  "Find ChangeLog buffer, add an entry for today and an item for this file.
+Optional arg WHOAMI (interactive prefix) non-nil means prompt for
+user name and email (stored in `add-log-full-name'
+and `add-log-mailing-address').
+
+Second arg CHANGELOG-FILE-NAME is the file name of the change log.
+If nil, use the value of `change-log-default-name'.  If the file
+thus named exists, it is used for the new entry.  If it doesn't
+exist, it is created, unless `add-log-dont-create-changelog-file' is t,
+in which case a suitably named buffer that doesn't visit any file
+is used for keeping entries pertaining to CHANGELOG-FILE-NAME's
+directory.
 
 Third arg OTHER-WINDOW non-nil means visit in other window.
 
@@ -799,20 +847,28 @@ non-nil, otherwise in local time."
 		       (change-log-version-number-search)))
 	 (buf-file-name (funcall add-log-buffer-file-name-function))
 	 (buffer-file (if buf-file-name (expand-file-name buf-file-name)))
-	 (file-name (expand-file-name (find-change-log file-name buffer-file)))
+	 (changelog-file-name (expand-file-name (find-change-log
+                                                 changelog-file-name
+                                                 buffer-file)))
 	 ;; Set ITEM to the file name to use in the new item.
-	 (item (add-log-file-name buffer-file file-name)))
+	 (item (add-log-file-name buffer-file changelog-file-name)))
 
-    (unless (equal file-name buffer-file-name)
+    ;; don't add entries from the ChangeLog file/buffer to itself.
+    (unless (equal changelog-file-name buffer-file-name)
       (cond
-       ((equal file-name (buffer-file-name (window-buffer)))
+       ((add-log--changelog-buffer-p
+         changelog-file-name
+         (window-buffer))
         ;; If the selected window already shows the desired buffer don't show
         ;; it again (particularly important if other-window is true).
         ;; This is important for diff-add-change-log-entries-other-window.
         (set-buffer (window-buffer)))
        ((or other-window (window-dedicated-p))
-        (find-file-other-window file-name))
-       (t (find-file file-name))))
+        (switch-to-buffer-other-window
+         (add-log-find-changelog-buffer changelog-file-name)))
+       (t
+        (switch-to-buffer
+         (add-log-find-changelog-buffer changelog-file-name)))))
     (or (derived-mode-p 'change-log-mode)
 	(change-log-mode))
     (undo-boundary)
@@ -1019,6 +1075,13 @@ the change log file in another window."
 (defvar smerge-resolve-function)
 (defvar copyright-at-end-flag)
 
+(defvar change-log-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?` "'   " table)
+    (modify-syntax-entry ?' "'   " table)
+    table)
+  "Syntax table used while in `change-log-mode'.")
+
 ;;;###autoload
 (define-derived-mode change-log-mode text-mode "Change Log"
   "Major mode for editing change logs; like Indented Text mode.
@@ -1067,8 +1130,7 @@ Runs `change-log-mode-hook'.
   (set (make-local-variable 'end-of-defun-function)
        'change-log-end-of-defun)
   ;; next-error function glue
-  (setq next-error-function 'change-log-next-error)
-  (setq next-error-last-buffer (current-buffer)))
+  (setq next-error-function 'change-log-next-error))
 
 (defun change-log-next-buffer (&optional buffer wrap)
   "Return the next buffer in the series of ChangeLog file buffers.
@@ -1095,9 +1157,17 @@ file were isearch was started."
     ;; If there are no files that match the default pattern ChangeLog.[0-9],
     ;; return the current buffer to force isearch wrapping to its beginning.
     ;; If file is nil, multi-isearch-search-fun will signal "end of multi".
-    (if (and file (file-exists-p file))
-	(find-file-noselect file)
-      (current-buffer))))
+    (cond
+     ;; Wrapping doesn't catch errors from the nil arg of file-exists-p,
+     ;; so handle it explicitly.
+     ((and wrap (null file))
+      (current-buffer))
+     ;; When there is no next file, file-exists-p raises the error to be
+     ;; catched by the search function that displays the error message.
+     ((file-exists-p file)
+      (find-file-noselect file))
+     (t
+      (current-buffer)))))
 
 (defun change-log-fill-forward-paragraph (n)
   "Cut paragraphs so filling preserves open parentheses at beginning of lines."

@@ -1,6 +1,6 @@
 ;;; mm-url.el --- a wrapper of url functions/commands for Gnus
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 
@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'mm-util)
 (require 'gnus)
@@ -318,7 +318,7 @@ If FOLLOW-REFRESH is non-nil, redirect refresh url in META."
 	(done nil)
 	(first t)
 	result)
-    (while (and (not (zerop (decf times)))
+    (while (and (not (zerop (cl-decf times)))
 		(not done))
       (with-timeout (mm-url-timeout)
 	(unless first

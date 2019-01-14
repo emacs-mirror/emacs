@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org

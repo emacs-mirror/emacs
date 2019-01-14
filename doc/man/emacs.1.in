@@ -123,13 +123,16 @@ Use specified
 as the terminal instead of using stdin/stdout.
 This must be the first argument specified in the command line.
 .TP
-.BI \-\-daemon "\fR[=\fPname\fR]"
+.BI \-\-daemon "\fR[=\fPname\fR], " \-\-bg\-daemon "\fR[=\fPname\fR]"
 Start Emacs as a daemon, enabling the Emacs server and disconnecting
 from the terminal.  You can then use the emacsclient (see
 .BR emacsclient (1))
 command to
 connect to the server (with optional
 .IR name ")."
+.TP
+.BI \-\-fg\-daemon "\fR[=\fPname\fR]"
+Like "\-\-bg\-daemon", but don't disconnect from the terminal.
 .TP
 .B \-\-version
 Display
@@ -276,8 +279,8 @@ window's width, height, and position as specified.
 The geometry specification is in the standard X format; see
 .BR X (7)
 for more information.
-The width and height are specified in characters; the default is
-80 by 24.
+The width and height are specified in characters; the default for GUI
+frames is 80 by 36.
 See the Emacs manual, section "Options for Window Size and Position",
 for information on how window sizes interact
 with selecting or deselecting the tool bar and menu bar.
@@ -650,7 +653,7 @@ For detailed credits and acknowledgments, see the GNU Emacs manual.
 .
 .
 .SH COPYING
-Copyright 1995, 1999-2018 Free Software Foundation, Inc.
+Copyright 1995, 1999-2019 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are

@@ -1,6 +1,6 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2018 Free Software
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -272,7 +272,7 @@ Consult the selection.  Treat empty strings as if they were unset."
 (fset 'iconify-or-deiconify-frame 'ignore)
 
 ;; From lisp/frame.el
-(fset 'set-default-font 'ignore)
+(fset 'set-frame-font 'ignore)
 (fset 'set-mouse-color 'ignore)		; We cannot, I think.
 (fset 'set-cursor-color 'ignore)	; Hardware determined by char under.
 (fset 'set-border-color 'ignore)	; Not useful.

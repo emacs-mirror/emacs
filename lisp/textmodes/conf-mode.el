@@ -1,6 +1,6 @@
 ;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: conf ini windows java
@@ -230,7 +230,7 @@ This variable is best set in the file local variables, or through
 (put 'conf-space-keywords 'safe-local-variable 'stringp)
 
 (defvar conf-space-font-lock-keywords
-  `(;; [section] (do this first because it may look like a parameter)
+  '(;; [section] (do this first because it may look like a parameter)
     ("^[ \t]*\\[\\(.+\\)\\]" 1 'font-lock-type-face)
     ;; section { ... } (do this first because it looks like a parameter)
     ("^[ \t]*\\(.+?\\)[ \t\n]*{[^{}]*?$" 1 'font-lock-type-face)
@@ -243,7 +243,7 @@ This variable is best set in the file local variables, or through
   "Keywords to highlight in Conf Space mode.")
 
 (defvar conf-colon-font-lock-keywords
-  `(;; [section] (do this first because it may look like a parameter)
+  '(;; [section] (do this first because it may look like a parameter)
     ("^[ \t]*\\[\\(.+\\)\\]" 1 'font-lock-type-face)
     ;; var: val
     ("^[ \t]*\\(.+?\\)[ \t]*:"

@@ -1,11 +1,11 @@
 ;;; ob-makefile.el --- Babel Functions for Makefile  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; 	   Thomas S. Dye
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 

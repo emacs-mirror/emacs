@@ -1,6 +1,6 @@
 ;;; mh-letter.el --- MH-Letter mode
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>

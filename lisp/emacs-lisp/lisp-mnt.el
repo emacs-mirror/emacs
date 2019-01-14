@@ -1,6 +1,6 @@
-;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers
+;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -137,34 +137,28 @@ in your Lisp package:
 
 The @(#) construct is used by unix what(1) and
 then $identifier: doc string $ is used by GNU ident(1)"
-  :type 'regexp
-  :group 'lisp-mnt)
+  :type 'regexp)
 
 (defcustom lm-copyright-prefix "^\\(;+[ \t]\\)+Copyright (C) "
   "Prefix that is ignored before the dates in a copyright.
 Leading comment characters and whitespace should be in regexp group 1."
-  :type 'regexp
-  :group 'lisp-mnt)
+  :type 'regexp)
 
 (defcustom lm-comment-column 16
   "Column used for placing formatted output."
-  :type 'integer
-  :group 'lisp-mnt)
+  :type 'integer)
 
 (defcustom lm-any-header ".*"
   "Regexp which matches start of any section."
-  :type 'regexp
-  :group 'lisp-mnt)
+  :type 'regexp)
 
 (defcustom lm-commentary-header "Commentary\\|Documentation"
   "Regexp which matches start of documentation section."
-  :type 'regexp
-  :group 'lisp-mnt)
+  :type 'regexp)
 
 (defcustom lm-history-header "Change ?Log\\|History"
   "Regexp which matches the start of code log section."
-  :type 'regexp
-  :group 'lisp-mnt)
+  :type 'regexp)
 
 ;;; Functions:
 
@@ -236,26 +230,26 @@ a section."
 		      (while (forward-comment 1))
 		      (point))))))))
 
-(defsubst lm-code-start ()
+(defun lm-code-start ()
   "Return the buffer location of the `Code' start marker."
   (lm-section-start "Code"))
 (defalias 'lm-code-mark 'lm-code-start)
 
-(defsubst lm-commentary-start ()
+(defun lm-commentary-start ()
   "Return the buffer location of the `Commentary' start marker."
   (lm-section-start lm-commentary-header))
 (defalias 'lm-commentary-mark 'lm-commentary-start)
 
-(defsubst lm-commentary-end ()
+(defun lm-commentary-end ()
   "Return the buffer location of the `Commentary' section end."
   (lm-section-end lm-commentary-header))
 
-(defsubst lm-history-start ()
+(defun lm-history-start ()
   "Return the buffer location of the `History' start marker."
   (lm-section-start lm-history-header))
 (defalias 'lm-history-mark 'lm-history-start)
 
-(defsubst lm-copyright-mark ()
+(defun lm-copyright-mark ()
   "Return the buffer location of the `Copyright' line."
   (save-excursion
     (let ((case-fold-search t))
@@ -385,7 +379,7 @@ Each element of the list is a cons; the car is the full name,
 the cdr is an email address."
   (lm-with-file file
     (let ((authorlist (lm-header-multiline "author")))
-      (mapcar 'lm-crack-address authorlist))))
+      (mapcar #'lm-crack-address authorlist))))
 
 (defun lm-maintainer (&optional file)
   "Return the maintainer of file FILE, or current buffer if FILE is nil.
@@ -453,7 +447,7 @@ each line."
   (lm-with-file file
     (let ((keywords (lm-header-multiline "keywords")))
       (and keywords
-	   (mapconcat 'downcase keywords " ")))))
+	   (mapconcat #'downcase keywords " ")))))
 
 (defun lm-keywords-list (&optional file)
   "Return list of keywords given in file FILE."
@@ -507,7 +501,7 @@ absent, return nil."
   "Insert, at column COL, list of STRINGS."
   (if (> (current-column) col) (insert "\n"))
   (move-to-column col t)
-  (apply 'insert strings))
+  (apply #'insert strings))
 
 (defun lm-verify (&optional file showok verbose non-fsf-ok)
   "Check that the current buffer (or FILE if given) is in proper format.

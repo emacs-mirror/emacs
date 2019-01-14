@@ -1,0 +1,376 @@
+#!/bin/bash
+
+### upload-manuals - upload the Emacs manuals to the gnu.org website
+
+## Copyright 2018-2019 Free Software Foundation, Inc.
+
+## Author: Glenn Morris <rgm@gnu.org>
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## Run this on the output of make-manuals.
+
+## We assume you have already checked out a local copy of the website
+## following the instructions at
+## https://savannah.gnu.org/cvs/?group=emacs
+
+## Usage:
+## Call from the manual/ directory created by make-manual.
+## upload-manuals /path/to/cvs/checkout
+
+### Code:
+
+
+die ()                          # write error to stderr and exit
+{
+    [ $# -gt 0 ] && echo "$PN: $@" >&2
+    exit 1
+}
+
+PN=${0##*/}                     # basename of script
+
+usage ()
+{
+    cat 1>&2 <<EOF
+Usage: ${PN} [-m message] [-n] /path/to/cvs/checkout
+Upload the Emacs manuals to the gnu.org website.
+Call this script from the manual/ directory created by make-manuals.
+This script destructively modifies the source directory.
+Options:
+-m: commit message to use (default "$message")
+-n: dry-run (do not commit files)
+EOF
+    exit 1
+}
+
+
+## Parameters
+version=$(gunzip -c info/emacs.info.gz 2> /dev/null | sed -n '0,/updated for Emacs version/s/.*updated for Emacs version \([0-9.]*\).*\.$/\1/p')
+
+## Defaults
+cvs=cvs
+message="Regenerate manuals for Emacs $version"
+umessage=
+
+while getopts ":hm:n" option ; do
+    case $option in
+        (h) usage ;;
+
+        (m) umessage=t ; message="$OPTARG" ;;
+
+        (n) cvs="echo $cvs" ;;
+
+        (\?) die "Bad option -$OPTARG" ;;
+
+        (:) die "Option -$OPTARG requires an argument" ;;
+
+        (*) die "getopts error" ;;
+    esac
+done
+shift $(( --OPTIND ))
+OPTIND=1
+
+[ $# -eq 1 ] || usage
+
+[ "$version$umessage" ] || \
+    die "Could not get version to use for commit message"
+
+webdir=$1
+
+[ -e $webdir/CVS/Entries ] && [ -e $webdir/refcards/pdf/refcard.pdf ] || \
+    die "$webdir does not look like a checkout of the Emacs webpages"
+
+[ -e html_mono/emacs.html ] && [ -e html_node/emacs/index.html ] || \
+    die "Current directory does not like the manual/ directory"
+
+
+echo "Doing refcards..."
+
+mv refcards/emacs-refcards.tar.gz $webdir/refcards/
+(
+    cd $webdir/refcards
+    $cvs commit -m "$message" emacs-refcards.tar.gz || die "commit error"
+)
+
+## For refcards, we assume a missing file is due to a tex failure,
+## rather than a refcard that should be deleted.
+for fmt in pdf ps.gz; do
+
+    clist=
+
+    for f in $webdir/refcards/${fmt%.gz}/*.$fmt; do
+
+        s=${f#$webdir/}
+
+        if [ -e $s ]; then
+            mv $s $f
+            clist="$clist ${f##*/}"
+        else
+            echo "$s seems to be missing"
+        fi
+    done
+
+
+    ## Check for new files.
+    new=
+    for f in refcards/${fmt%.gz}/*.$fmt; do
+        [ -e $f ] || break
+        new="$new $f"
+        clist="$clist ${f##*/}"
+    done
+
+    [ "$new" ] && mv $new $webdir/refcards/${fmt%.gz}/
+
+    [ "$clist" ] && (
+        cd $webdir
+        [ "$new" ] && {
+            echo "Adding new files: $new"
+            $cvs add -kb $new || die "add error"
+            echo "Remember to add new refcards to refcards/index.html"
+        }
+        cd refcards/${fmt%.gz}
+        $cvs commit -m "$message" $clist || die "commit error"
+    )
+
+done                            # $fmt
+
+
+echo "Doing non-html manuals..."
+
+for fmt in info pdf ps texi; do
+
+    clist=
+
+    for f in $webdir/manual/$fmt/*; do
+
+        [ ${f##*/} = CVS ] && continue
+
+        s=$fmt/${f##*/}
+
+        if [ -e $s ]; then
+            mv $s $f
+            clist="$clist ${f##*/}"
+        else
+            case ${f##*/} in
+                *_7x9*.pdf) continue ;;
+            esac
+
+            echo "$s seems to be missing"
+        fi
+    done
+
+    ## Check for new files.
+    new=
+    for f in $fmt/*.$fmt*; do
+        [ -e $f ] || break
+        new="$new $f"
+        clist="$clist ${f##*/}"
+    done
+
+    [ "$new" ] && mv $new $webdir/manual/$fmt/
+
+    [ "$clist" ] && (
+        cd $webdir/manual
+        [ "$new" ] && {
+            echo "Adding new files: $new"
+            $cvs add $new || die "add error"
+            echo "Remember to add new files to the appropriate index pages"
+        }
+        cd $fmt
+        $cvs commit -m "$message" $clist || die "commit error"
+    )
+
+done
+
+
+echo "Doing tarred html..."
+
+clist=
+
+for f in $webdir/manual/*html*.tar*; do
+
+    s=${f##*/}
+
+    if [ -e $s ]; then
+        mv $s $f
+        clist="$clist ${f##*/}"
+    else
+        echo "$s seems to be missing"
+    fi
+done
+
+## Check for new files.
+new=
+for f in *html*.tar*; do
+    [ -e $f ] || break
+    new="$new $f"
+    clist="$clist ${f##*/}"
+done
+
+[ "$new" ] && mv $new $webdir/manual
+
+[ "$clist" ] && (
+    cd $webdir/manual
+    [ "$new" ] && {
+        echo "Adding new files: $new"
+        $cvs add -kb $new || die "add error"
+        echo "Remember to add new files to the appropriate index pages"
+    }
+    $cvs commit -m "$message" $clist || die "commit error"
+)
+
+
+## This happens so rarely it would be less effort to do by hand...
+new_manual () {
+    local t=eww
+    local i=$webdir/manual/$t.html # template
+
+    [ -r $i ] || die "Cannot read template $i"
+
+    local name o mono title
+
+    for name; do
+
+        name=${name##*/}
+        name=${name%.html}
+
+        o=$webdir/manual/$name.html
+
+        [ -e $o ] && die "$o already exists"
+
+        mono=$webdir/manual/html_mono/$name.html
+
+        [ -r $mono ] || die "Cannot read $mono"
+
+        title=$(sed -n 's|^<title>\(.*\)</title>|\1|p' $mono)
+
+        : ${title:?}
+
+        echo "$title" | grep -qi "Emacs" || title="Emacs $title"
+        echo "$title" | grep -qi "manual" || title="$title Manual"
+
+        ## It is a pain to extract and insert a good "documenting...".
+        ## Improve it by hand if you care.
+        sed -e "s|^<title>.*\( - GNU Project\)|<title>$title\1|" \
+            -e "s|^<h2>.*|<h2>$title</h2>|" \
+            -e "s/^documenting.*/documenting \"$title\"./" \
+            -e "s/$t/$name/" \
+            -e "s/&copy;.* Free/\&copy; $(date +%Y) Free/" $i > $o
+
+        (
+            cd $webdir/manual
+            $cvs add ${o##*/} || die "add error for $o"
+        )
+    done
+
+    return 0
+}
+
+
+echo "Doing html_mono..."
+
+clist=
+
+for f in $webdir/manual/html_mono/*.html; do
+
+    s=${f##*manual/}
+
+    if [ -e $s ]; then
+        mv $s $f
+        clist="$clist ${f##*/}"
+    else
+        echo "$s seems to be missing"
+    fi
+done
+
+## Check for new files.
+new=
+for f in html_mono/*.html; do
+    [ -e $f ] || break
+    new="$new $f"
+    clist="$clist ${f##*/}"
+done
+
+[ "$new" ] && mv $new $webdir/manual/html_mono/
+
+## TODO: check for removed manuals.
+
+[ "$clist" ] && (
+    cd $webdir/manual/html_mono
+    [ "$new" ] && {
+        echo "Adding new files: $new"
+        $cvs add $new || die "add error"
+        new_manual $new || die
+        echo "Remember to add new entries to manual/index.html"
+    }
+    $cvs commit -m "$message" $clist || die "commit error"
+)
+
+
+echo "Doing html_node..."
+
+for d in html_node/*; do
+
+    [ -e $d ] || break
+
+    echo "Doing $d..."
+
+    [ -e $webdir/manual/$d ] || {
+        echo "New directory: $d"
+        mkdir $webdir/manual/$d
+        $cvs add $webdir/manual/$d || die "add error"
+    }
+
+    new=
+    for f in $d/*.html; do
+        [ -e $webdir/manual/$f ] || new="$new ${f##*/}"
+    done
+
+    stale=
+    for f in $webdir/manual/$d/*.html; do
+        [ -e ${f#$webdir/manual/} ] || stale="$stale ${f##*/}"
+    done
+
+    mv $d/*.html $webdir/manual/$d/
+
+    (
+        cd $webdir/manual/$d
+        [ "$new" ] && {
+            echo "Adding new files: $new"
+            $cvs add $new || die "add error"
+        }
+
+        [ "$stale" ] && {
+            echo "Removing stale files: $stale"
+            $cvs remove -f $stale || die "remove error"
+        }
+
+        ## -f: create a new revision even if no change.
+        $cvs commit -f -m "$message" *.html $stale || die "commit error"
+    )
+
+done
+
+
+echo "Checking for stray files..."
+find -type f
+
+
+echo "Finished"
+
+exit 0

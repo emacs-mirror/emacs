@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: outlines
@@ -191,9 +191,6 @@ Each element has the form (WINDOW . OVERLAY).")
 ;;;###autoload
 (define-minor-mode reveal-mode
   "Toggle uncloaking of invisible text near point (Reveal mode).
-With a prefix argument ARG, enable Reveal mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-Reveal mode if ARG is omitted or nil.
 
 Reveal mode is a buffer-local minor mode.  When enabled, it
 reveals invisible text around point."
@@ -210,11 +207,7 @@ reveals invisible text around point."
 ;;;###autoload
 (define-minor-mode global-reveal-mode
   "Toggle Reveal mode in all buffers (Global Reveal mode).
-Reveal mode renders invisible text around point visible again.
-
-With a prefix argument ARG, enable Global Reveal mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+Reveal mode renders invisible text around point visible again."
   :global t :group 'reveal
   (setq-default reveal-mode global-reveal-mode)
   (if global-reveal-mode

@@ -1,6 +1,6 @@
 ;;; autoarg.el --- make digit keys supply prefix args
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-04
@@ -90,9 +90,6 @@
 ;;;###autoload
 (define-minor-mode autoarg-mode
   "Toggle Autoarg mode, a global minor mode.
-With a prefix argument ARG, enable Autoarg mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 \\<autoarg-mode-map>
 In Autoarg mode, digits are bound to `digit-argument', i.e. they
@@ -116,9 +113,6 @@ then invokes the normal binding of \\[autoarg-terminate].
 ;;;###autoload
 (define-minor-mode autoarg-kp-mode
   "Toggle Autoarg-KP mode, a global minor mode.
-With a prefix argument ARG, enable Autoarg-KP mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 \\<autoarg-kp-mode-map>
 This is similar to `autoarg-mode' but rebinds the keypad keys

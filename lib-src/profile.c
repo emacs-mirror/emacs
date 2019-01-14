@@ -1,5 +1,5 @@
 /* profile.c --- generate periodic events for profiling of Emacs Lisp code.
-   Copyright (C) 1992, 1994, 1999, 2001-2018 Free Software Foundation,
+   Copyright (C) 1992, 1994, 1999, 2001-2019 Free Software Foundation,
    Inc.
 
 Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
@@ -30,20 +30,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
  **  operations: reset_watch, get_time
  */
 
-#define INLINE EXTERN_INLINE
 #include <config.h>
 
 #include <inttypes.h>
 #include <stdlib.h>
 
 #include <intprops.h>
-#include <systime.h>
+#include <timespec.h>
 #include <unlocked-io.h>
 
 static struct timespec TV1;
 static int watch_not_started = 1; /* flag */
 static char time_string[INT_STRLEN_BOUND (uintmax_t) + sizeof "."
-			+ LOG10_TIMESPEC_RESOLUTION];
+			+ LOG10_TIMESPEC_HZ];
 
 /* Reset the stopwatch to zero.  */
 
@@ -66,7 +65,7 @@ get_time (void)
   int ns = TV2.tv_nsec;
   if (watch_not_started)
     exit (EXIT_FAILURE);  /* call reset_watch first ! */
-  sprintf (time_string, "%"PRIuMAX".%0*d", s, LOG10_TIMESPEC_RESOLUTION, ns);
+  sprintf (time_string, "%"PRIuMAX".%0*d", s, LOG10_TIMESPEC_HZ, ns);
   return time_string;
 }
 

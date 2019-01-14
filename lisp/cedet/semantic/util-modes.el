@@ -1,6 +1,6 @@
 ;;; semantic/util-modes.el --- Semantic minor modes
 
-;; Copyright (C) 2000-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;          David Ponce <david@dponce.com>
@@ -170,8 +170,7 @@ too an interactive function used to toggle the mode."
 
 ;;;###autoload
 (define-minor-mode global-semantic-highlight-edits-mode
-  "Toggle global use of option `semantic-highlight-edits-mode'.
-If ARG is positive or nil, enable, if it is negative, disable."
+  "Toggle global use of option `semantic-highlight-edits-mode'."
   :global t :group 'semantic :group 'semantic-modes
   (semantic-toggle-minor-mode-globally
    'semantic-highlight-edits-mode
@@ -209,10 +208,10 @@ Changes are tracked by semantic so that the incremental parser can work
 properly.
 This mode will highlight those changes as they are made, and clear them
 when the incremental parser accounts for those edits.
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled."
+
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled."
   :keymap semantic-highlight-edits-mode-map
   (if semantic-highlight-edits-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))
@@ -237,8 +236,7 @@ minor mode is enabled."
 
 ;;;###autoload
 (define-minor-mode global-semantic-show-unmatched-syntax-mode
-  "Toggle global use of option `semantic-show-unmatched-syntax-mode'.
-If ARG is positive or nil, enable, if it is negative, disable."
+  "Toggle global use of option `semantic-show-unmatched-syntax-mode'."
   :global t :group 'semantic :group 'semantic-modes
   ;; Not needed because it's autoloaded instead.
   ;; :require 'semantic/util-modes
@@ -360,10 +358,9 @@ parser rules.  These text characters are considered unmatched syntax.
 Often time, the display of unmatched syntax can expose coding
 problems before the compiler is run.
 
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled.
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled.
 
 \\{semantic-show-unmatched-syntax-mode-map}"
   :keymap semantic-show-unmatched-syntax-mode-map
@@ -410,8 +407,7 @@ minor mode is enabled.
 
 ;;;###autoload
 (define-minor-mode global-semantic-show-parser-state-mode
-  "Toggle global use of option `semantic-show-parser-state-mode'.
-If ARG is positive or nil, enable, if it is negative, disable."
+  "Toggle global use of option `semantic-show-parser-state-mode'."
   :global t :group 'semantic
   ;; Not needed because it's autoloaded instead.
   ;; :require 'semantic/util-modes
@@ -440,10 +436,10 @@ The state is indicated in the modeline with the following characters:
  `~'  ->  The cache needs to be incrementally parsed.
  `%'  ->  The cache is not currently parsable.
  `@'  ->  Auto-parse in progress (not set here.)
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled."
+
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled."
   :keymap semantic-show-parser-state-mode-map
   (if semantic-show-parser-state-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))
@@ -557,8 +553,7 @@ to indicate a parse in progress."
 
 ;;;###autoload
 (define-minor-mode global-semantic-stickyfunc-mode
-  "Toggle global use of option `semantic-stickyfunc-mode'.
-If ARG is positive or nil, enable, if it is negative, disable."
+  "Toggle global use of option `semantic-stickyfunc-mode'."
   :global t :group 'semantic :group 'semantic-modes
   ;; Not needed because it's autoloaded instead.
   ;; :require 'semantic/util-modes
@@ -700,10 +695,9 @@ A function (or other tag class specified by
 first line which describes the rest of the construct.  This first
 line is what is displayed in the header line.
 
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled."
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled."
   ;; Don't need indicator.  It's quite visible
   :keymap semantic-stickyfunc-mode-map
   (if semantic-stickyfunc-mode
@@ -837,8 +831,7 @@ Argument EVENT describes the event that caused this function to be called."
 
 ;;;###autoload
 (define-minor-mode global-semantic-highlight-func-mode
-  "Toggle global use of option `semantic-highlight-func-mode'.
-If ARG is positive or nil, enable, if it is negative, disable."
+  "Toggle global use of option `semantic-highlight-func-mode'."
   :global t :group 'semantic :group 'semantic-modes
   ;; Not needed because it's autoloaded instead.
   ;; :require 'semantic/util-modes
@@ -933,10 +926,9 @@ See `semantic-stickyfunc-mode' for putting a function in the
 header line.  This mode recycles the stickyfunc configuration
 classes list.
 
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled."
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled."
   :lighter nil ;; Don't need indicator.  It's quite visible.
   (if semantic-highlight-func-mode
       (progn

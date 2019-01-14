@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep / macOS Cocoa selection processing for emacs.
-   Copyright (C) 1993-1994, 2005-2006, 2008-2018 Free Software
+   Copyright (C) 1993-1994, 2005-2006, 2008-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -36,7 +36,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 static Lisp_Object Vselection_alist;
 
-/* NSPasteboardNameGeneral is pretty much analogous to X11 CLIPBOARD */
+/* NSPasteboardNameGeneral is pretty much analogous to X11 CLIPBOARD.  */
 static NSString *NXPrimaryPboard;
 static NSString *NXSecondaryPboard;
 
@@ -90,20 +90,20 @@ static Lisp_Object
 clean_local_selection_data (Lisp_Object obj)
 {
   if (CONSP (obj)
-      && INTEGERP (XCAR (obj))
+      && FIXNUMP (XCAR (obj))
       && CONSP (XCDR (obj))
-      && INTEGERP (XCAR (XCDR (obj)))
+      && FIXNUMP (XCAR (XCDR (obj)))
       && NILP (XCDR (XCDR (obj))))
     obj = Fcons (XCAR (obj), XCDR (obj));
 
   if (CONSP (obj)
-      && INTEGERP (XCAR (obj))
-      && INTEGERP (XCDR (obj)))
+      && FIXNUMP (XCAR (obj))
+      && FIXNUMP (XCDR (obj)))
     {
-      if (XINT (XCAR (obj)) == 0)
+      if (XFIXNUM (XCAR (obj)) == 0)
         return XCDR (obj);
-      if (XINT (XCAR (obj)) == -1)
-        return make_number (- XINT (XCDR (obj)));
+      if (XFIXNUM (XCAR (obj)) == -1)
+        return make_fixnum (- XFIXNUM (XCDR (obj)));
     }
 
   if (VECTORP (obj))
@@ -164,7 +164,7 @@ ns_get_our_change_count_for (Lisp_Object selection)
 static void
 ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
 {
-  if (EQ (str, Qnil))
+  if (NILP (str))
     {
       [pb declareTypes: [NSArray array] owner: nil];
     }
@@ -399,7 +399,7 @@ these literal upper-case names.)  The symbol nil is the same as
     return Qnil;
 
   CHECK_SYMBOL (selection);
-  if (EQ (selection, Qnil)) selection = QPRIMARY;
+  if (NILP (selection)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
   pb = ns_symbol_to_pb (selection);
   if (pb == nil) return Qnil;
@@ -421,7 +421,7 @@ and t is the same as `SECONDARY'.  */)
 {
   check_window_system (NULL);
   CHECK_SYMBOL (selection);
-  if (EQ (selection, Qnil)) selection = QPRIMARY;
+  if (NILP (selection)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
   return ns_get_pb_change_count (selection)
     == ns_get_our_change_count_for (selection)

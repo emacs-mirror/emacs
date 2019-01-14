@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1993, 1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Tips
@@ -316,7 +316,7 @@ any context prevents recognition of escape sequences as function keys in
 that context.
 
 @item
-Similarly, don't bind a key sequence ending in @key{C-g}, since that
+Similarly, don't bind a key sequence ending in @kbd{C-g}, since that
 is commonly used to cancel a key sequence.
 
 @item
@@ -942,7 +942,7 @@ explains these conventions, starting with an example:
 @group
 ;;; foo.el --- Support for the Foo programming language
 
-;; Copyright (C) 2010-2018 Your Name
+;; Copyright (C) 2010-2019 Your Name
 @end group
 
 ;; Author: Your Name <yourname@@example.com>
@@ -1043,7 +1043,8 @@ the place to write arbitrary keywords that describe their package,
 rather than just the relevant Finder keywords.
 
 @item Homepage
-This line states the homepage of the library.
+@itemx URL
+These lines state the homepage of the library.
 
 @item Package-Version
 If @samp{Version} is not suitable for use by the package manager, then

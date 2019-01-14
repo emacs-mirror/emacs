@@ -1,6 +1,6 @@
 ;;; nxml-outln.el --- outline support for nXML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML

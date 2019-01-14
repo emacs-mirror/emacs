@@ -1,6 +1,6 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2018 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -626,6 +626,34 @@ Creates FILE and its parent directories if they do not exist."
      (if (file-symlink-p file)
          (error "Danger: `%s' is a symbolic link" file))
      (set-file-modes file #o0600))))
+
+(autoload 'puny-encode-domain "puny")
+(autoload 'url-domsuf-cookie-allowed-p "url-domsuf")
+
+;;;###autoload
+(defun url-domain (url)
+  "Return the domain of the host of the URL.
+Return nil if this can't be determined.
+
+For instance, this function will return \"fsf.co.uk\" if the host in URL
+is \"www.fsf.co.uk\"."
+  (let* ((host (puny-encode-domain (url-host url)))
+         (parts (nreverse (split-string host "\\.")))
+         (candidate (pop parts))
+         found)
+    ;; IP addresses aren't domains.
+    (when (string-match "\\`[0-9.]+\\'" host)
+      (setq parts nil))
+    ;; We assume that the top-level domain is never an appropriate
+    ;; thing as "the domain", so we start at the next one (eg.
+    ;; "fsf.org").
+    (while (and parts
+                (not (setq found
+                           (url-domsuf-cookie-allowed-p
+                            (setq candidate (concat (pop parts) "."
+                                                    candidate))))))
+      )
+    (and found candidate)))
 
 (provide 'url-util)
 

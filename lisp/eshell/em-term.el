@@ -1,6 +1,6 @@
 ;;; em-term.el --- running visual commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -175,7 +175,7 @@ allowed."
   (let* (eshell-interpreter-alist
 	 (interp (eshell-find-interpreter (car args) (cdr args)))
 	 (program (car interp))
-	 (args (eshell-flatten-list
+	 (args (flatten-tree
 		(eshell-stringify-list (append (cdr interp)
 					       (cdr args)))))
 	 (term-buf

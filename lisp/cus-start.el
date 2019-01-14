@@ -1,6 +1,6 @@
 ;;; cus-start.el --- define customization properties of builtins  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -277,9 +277,10 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		     ((eq system-type 'darwin)
 		      (or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP")
 			  ;; See bug#7135.
-			  (let ((tmp (ignore-errors
-				       (shell-command-to-string
-					"getconf DARWIN_USER_TEMP_DIR"))))
+			  (let* (file-name-handler-alist
+				 (tmp (ignore-errors
+				        (shell-command-to-string
+					 "getconf DARWIN_USER_TEMP_DIR"))))
 			    (and (stringp tmp)
 				 (setq tmp (replace-regexp-in-string
 					    "\n\\'" "" tmp))
@@ -344,6 +345,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; keyboard.c
 	     (meta-prefix-char keyboard character)
 	     (auto-save-interval auto-save integer)
+             (auto-save-no-message auto-save boolean "27.1")
 	     (auto-save-timeout auto-save (choice (const :tag "off" nil)
 						  (integer :format "%v")))
 	     (echo-keystrokes minibuffer number)
@@ -545,7 +547,12 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "Respect `truncate-lines'" nil)
 		      (other :tag "Truncate if not full-width" t))
 	      "23.1")
-	     (make-cursor-line-fully-visible windows boolean)
+	     (make-cursor-line-fully-visible
+              windows
+              (choice
+               (const :tag "Make cursor always fully visible" t)
+               (const :tag "Allow cursor to be partially-visible" nil)
+               (function :tag "User-defined function")))
 	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer
@@ -678,7 +685,7 @@ since it could result in memory overflow and make Emacs crash."
 		      ((string-match "selection" (symbol-name symbol))
 		       (fboundp 'x-selection-exists-p))
 		      ((string-match "fringe" (symbol-name symbol))
-		       (fboundp 'define-fringe-bitmap))
+		       (boundp 'fringe-bitmaps))
 		      ((string-match "\\`imagemagick" (symbol-name symbol))
 		       (fboundp 'imagemagick-types))
 		      ((equal "font-use-system-font" (symbol-name symbol))
@@ -709,6 +716,8 @@ since it could result in memory overflow and make Emacs crash."
 	  (put symbol 'risky-local-variable (cadr prop)))
       (if (setq prop (memq :set rest))
 	  (put symbol 'custom-set (cadr prop)))
+      ;; This is used by describe-variable.
+      (if version (put symbol 'custom-version version))
       ;; Don't re-add to custom-delayed-init-variables post-startup.
       (unless after-init-time
 	;; Note this is the _only_ initialize property we handle.
@@ -729,7 +738,6 @@ since it could result in memory overflow and make Emacs crash."
 	  (custom-add-to-group group symbol 'custom-variable))
 	;; Set the type.
 	(put symbol 'custom-type type)
-	(if version (put symbol 'custom-version version))
 	(while rest
 	  (setq prop (car rest)
 		propval (cadr rest)

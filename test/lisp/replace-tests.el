@@ -1,6 +1,6 @@
 ;;; replace-tests.el --- tests for replace.el.
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 ;; Author: Juri Linkov <juri@jurta.org>
@@ -23,6 +23,7 @@
 ;;; Code:
 
 (require 'ert)
+(eval-when-compile (require 'subr-x))
 
 (ert-deftest query-replace--split-string-tests ()
   (let ((sep (propertize "\0" 'separator t)))
@@ -358,26 +359,145 @@ Each element has the format:
 (dotimes (i (length replace-occur-tests))
   (replace-occur-test-create i))
 
+(ert-deftest replace-occur-revert-bug32543 ()
+  "Test `occur-revert' with non-nil `list-matching-lines-jump-to-current-line'."
+  (let ((temp-buffer (get-buffer-create " *test-occur*")))
+    (unwind-protect
+        (save-window-excursion
+          (with-current-buffer temp-buffer
+            (erase-buffer)
+            (setq list-matching-lines-jump-to-current-line t)
+            (insert
+";; This buffer is for text that is not saved, and for Lisp evaluation.
+;; To create a file, visit it with C-x C-f and enter text in its buffer.
+
+")
+            (occur "and")
+            (with-current-buffer "*Occur*"
+              (revert-buffer)
+              (goto-char (point-min))
+              (should (string-match "\\`2 matches for \"and\" in buffer: "
+                                    (buffer-substring-no-properties
+                                     (point) (line-end-position)))))))
+      (and (buffer-name temp-buffer)
+           (kill-buffer temp-buffer)))))
+
+(ert-deftest replace-occur-revert-bug32987 ()
+  "Test `occur-revert' with non-nil `list-matching-lines-jump-to-current-line'."
+  (let ((temp-buffer (get-buffer-create " *test-occur*")))
+    (unwind-protect
+        (save-window-excursion
+          (with-current-buffer temp-buffer
+            (erase-buffer)
+            (setq list-matching-lines-jump-to-current-line nil)
+            (insert
+";; This buffer is for text that is not saved, and for Lisp evaluation.
+;; To create a file, visit it with C-x C-f and enter text in its buffer.
+
+")
+            (occur "and")
+            (with-current-buffer "*Occur*"
+              (revert-buffer)
+              (goto-char (point-min))
+              (should (string-match "\\`2 matches for \"and\" in buffer: "
+                                    (buffer-substring-no-properties
+                                     (point) (line-end-position)))))))
+      (and (buffer-name temp-buffer)
+           (kill-buffer temp-buffer)))))
+
+
+;;; Tests for `query-replace' undo feature.
+
+(defvar replace-tests-bind-read-string nil
+  "A string to bind `read-string' and avoid the prompt.")
+
+(defmacro replace-tests-with-undo (input from to char-nums def-chr &rest body)
+  "Helper to test `query-replace' undo feature.
+INPUT is a string to insert in a temporary buffer.
+FROM is the string to match and replace.
+TO is the replacement string.
+CHAR-NUMS is a list of elements (CHAR . NUMS), where CHAR is
+one of the characters `,', `?\\s', `u', `U', `E' or `q'
+and NUMS a list of integers.
+DEF-CHAR is the character `?\\s' or `q'.
+BODY is a list of forms to evaluate.
+
+Use CHAR-NUMS and DEF-CHAR to temporary bind the function value of
+`read-event', thus avoiding the prompt.
+For instance, if CHAR-NUMS is the lists ((?\\s . (1 2 3)) (?u . (4))),
+then replace 3 matches of FROM with TO, and undo the last replacement.
+
+Return the last evalled form in BODY."
+  (declare (indent 5) (debug (stringp stringp stringp form characterp body)))
+  (let ((text (gensym "text"))
+        (count (gensym "count")))
+    `(let* ((,text ,input)
+            (,count 0)
+            (inhibit-message t))
+       (with-temp-buffer
+         (insert ,text)
+         (goto-char 1)
+         ;; Bind `read-event' to simulate user input.
+         ;; If `replace-tests-bind-read-string' is non-nil, then
+         ;; bind `read-string' as well.
+         (cl-letf (((symbol-function 'read-event)
+                    (lambda (&rest args)
+                      (cl-incf ,count)
+                      (pcase ,count ; Build the clauses from CHAR-NUMS
+                        ,@(append
+                           (delq nil
+                                 (mapcar
+                                  (lambda (chr)
+                                    (when-let (it (alist-get chr char-nums))
+                                      (if (cdr it)
+                                          `(,(cons 'or it) ,chr)
+                                        `(,(car it) ,chr))))
+                                  '(?, ?\s ?u ?U ?E ?q)))
+                           `((_ ,def-chr))))))
+                   ((symbol-function 'read-string)
+                    (if replace-tests-bind-read-string
+                        (lambda (&rest args) replace-tests-bind-read-string)
+                      (symbol-function 'read-string))))
+           (perform-replace ,from ,to t t nil))
+         ,@body))))
+
 (defun replace-tests--query-replace-undo (&optional comma)
-  (with-temp-buffer
-    (insert "111")
-    (goto-char 1)
-    (let ((count 0))
-      ;; Don't wait for user input.
-      (cl-letf (((symbol-function 'read-event)
-                 (lambda (&rest args)
-                   (cl-incf count)
-                   (let ((val (pcase count
-                                ('2 (if comma ?, ?\s)) ; replace and: ',' no move; '\s' go next
-                                ('3 ?u) ; undo
-                                ('4 ?q) ; exit
-                                (_ ?\s)))) ; replace current and go next
-                     val))))
-        (perform-replace "1" "2" t nil nil)))
-    (buffer-string)))
+  (let ((input "111"))
+    (if comma
+        (should
+         (replace-tests-with-undo
+          input "1" "2" ((?, . (2)) (?u . (3)) (?q . (4))) ?\s (buffer-string)))
+      (should
+       (replace-tests-with-undo
+        input "1" "2" ((?\s . (2)) (?u . (3)) (?q . (4))) ?\s (buffer-string))))))
 
 (ert-deftest query-replace--undo ()
   (should (string= "211" (replace-tests--query-replace-undo)))
   (should (string= "211" (replace-tests--query-replace-undo 'comma))))
+
+(ert-deftest query-replace-undo-bug31073 ()
+  "Test for https://debbugs.gnu.org/31073 ."
+  (let ((input "aaa aaa"))
+    (should
+     (replace-tests-with-undo
+      input "a" "B" ((?\s . (1 2 3)) (?U . (4))) ?q
+      (string= input (buffer-string))))))
+
+(ert-deftest query-replace-undo-bug31492 ()
+  "Test for https://debbugs.gnu.org/31492 ."
+  (let ((input "a\nb\nc\n"))
+    (should
+     (replace-tests-with-undo
+      input "^\\|\b\\|$" "foo" ((?\s . (1 2)) (?U . (3))) ?q
+      (string= input (buffer-string))))))
+
+(ert-deftest query-replace-undo-bug31538 ()
+  "Test for https://debbugs.gnu.org/31538 ."
+  (let ((input "aaa aaa")
+        (replace-tests-bind-read-string "Bfoo"))
+    (should
+     (replace-tests-with-undo
+      input "a" "B" ((?\s . (1 2 3)) (?E . (4)) (?U . (5))) ?q
+      (string= input (buffer-string))))))
 
 ;;; replace-tests.el ends here

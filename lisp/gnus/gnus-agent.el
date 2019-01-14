@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -31,8 +31,7 @@
 (require 'gnus-srvr)
 (require 'gnus-util)
 (require 'timer)
-(eval-when-compile
-  (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (autoload 'gnus-server-update-server "gnus-srvr")
 (autoload 'gnus-agent-customize-category "gnus-cus")
@@ -172,7 +171,7 @@ When found, offer to remove them."
 (defcustom gnus-agent-auto-agentize-methods nil
   "Initially, all servers from these methods are agentized.
 The user may remove or add servers using the Server buffer.
-See Info nodes `(gnus)Server Buffer', `(gnus)Agent Variables'."
+See Info node `(gnus)Server Buffer' and Info node `(gnus)Agent Variables'."
   :version "22.1"
   :type '(repeat symbol)
   :group 'gnus-agent)
@@ -332,9 +331,9 @@ manipulated as follows:
     `(progn (defmacro ,name (category)
               (list 'cdr (list 'assq '',prop-name category)))
 
-            (defsetf ,name (category) (value)
-              (list 'gnus-agent-cat-set-property
-                    category '',prop-name value))))
+	    (gv-define-setter ,name (value category)
+	      (list 'gnus-agent-cat-set-property
+		    category '',prop-name value))))
   )
 
 (defmacro gnus-agent-cat-name (category)
@@ -361,11 +360,7 @@ manipulated as follows:
 (gnus-agent-cat-defaccessor
  gnus-agent-cat-enable-undownloaded-faces  agent-enable-undownloaded-faces)
 
-
-;; This form may expand to code that uses CL functions at run-time,
-;; but that's OK since those functions will only ever be called from
-;; something like `setf', so only when CL is loaded anyway.
-(defsetf gnus-agent-cat-groups gnus-agent-set-cat-groups)
+(gv-define-simple-setter gnus-agent-cat-groups gnus-agent-set-cat-groups)
 
 (defun gnus-agent-set-cat-groups (category groups)
   (unless (eq groups 'ignore)
@@ -1608,7 +1603,8 @@ downloaded into the agent."
 					   (number-to-string have-this)))
 			(size-file
 			 (float (or (and gnus-agent-total-fetched-hashtb
-					 (nth 7 (file-attributes file-name)))
+					 (file-attribute-size
+					  (file-attributes file-name)))
 				    0)))
 			(file-name-coding-system
 			 nnmail-pathname-coding-system))
@@ -2101,12 +2097,16 @@ doesn't exist, to valid the overview buffer."
 	   (let* (alist
 		  (file-name-coding-system nnmail-pathname-coding-system)
 		  (file-attributes (directory-files-and-attributes
-				    (gnus-agent-article-name ""
-							     gnus-agent-read-agentview) nil "^[0-9]+$" t)))
+				    (gnus-agent-article-name
+				     "" gnus-agent-read-agentview)
+				    nil "^[0-9]+$" t)))
 	     (while file-attributes
 	       (let ((fa (pop file-attributes)))
-		 (unless (nth 1 fa)
-		   (push (cons (string-to-number (nth 0 fa)) (time-to-days (nth 5 fa))) alist))))
+		 (unless (file-attribute-type (cdr fa))
+		   (push (cons (string-to-number (car fa))
+			       (time-to-days
+				(file-attribute-access-time (cdr fa))))
+			 alist))))
 	     alist)
 	 (file-error nil))))))
 
@@ -2180,7 +2180,7 @@ article counts for each of the method's subscribed groups."
 	     'gnus-agent-file-loading-local
 	     'gnus-agent-read-and-cache-local))
       (when gnus-agent-article-local-times
-	(incf gnus-agent-article-local-times)))
+	(cl-incf gnus-agent-article-local-times)))
     gnus-agent-article-local))
 
 (defun gnus-agent-read-and-cache-local (file)
@@ -2575,9 +2575,6 @@ modified) original contents, they are first saved to their own file."
 ;;; Agent Category Mode
 ;;;
 
-(defvar gnus-category-mode-hook nil
-  "Hook run in `gnus-category-mode' buffers.")
-
 (defvar gnus-category-line-format "     %(%20c%): %g\n"
   "Format of category lines.
 
@@ -2603,17 +2600,16 @@ General format specifiers can also be used.  See Info node
 (defvar gnus-tmp-groups)
 
 (defvar gnus-category-line-format-alist
-  `((?c gnus-tmp-name ?s)
+  '((?c gnus-tmp-name ?s)
     (?g gnus-tmp-groups ?d)))
 
 (defvar gnus-category-mode-line-format-alist
-  `((?u user-defined ?s)))
+  '((?u user-defined ?s)))
 
 (defvar gnus-category-line-format-spec nil)
 (defvar gnus-category-mode-line-format-spec nil)
 
 (defvar gnus-category-mode-map nil)
-(put 'gnus-category-mode 'mode-class 'special)
 
 (unless gnus-category-mode-map
   (setq gnus-category-mode-map (make-sparse-keymap))
@@ -2655,9 +2651,8 @@ General format specifiers can also be used.  See Info node
 
     (gnus-run-hooks 'gnus-category-menu-hook)))
 
-(define-derived-mode gnus-category-mode fundamental-mode "Category"
+(define-derived-mode gnus-category-mode gnus-mode "Category"
   "Major mode for listing and editing agent categories.
-
 All normal editing commands are switched off.
 \\<gnus-category-mode-map>
 For more in-depth information on this mode, read the manual
@@ -2672,8 +2667,7 @@ The following commands are available:
   (gnus-set-default-directory)
   (setq mode-line-process nil)
   (buffer-disable-undo)
-  (setq truncate-lines t)
-  (setq buffer-read-only t))
+  (setq truncate-lines t))
 
 (defalias 'gnus-category-position-point 'gnus-goto-colon)
 
@@ -3352,10 +3346,11 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 		     (ignore-errors	; Just being paranoid.
 		       (let* ((file-name (nnheader-concat dir (number-to-string
 							       article-number)))
-			      (size (float (nth 7 (file-attributes file-name)))))
-			 (incf bytes-freed size)
-			 (incf size-files-deleted size)
-			 (incf files-deleted)
+			      (size (float (file-attribute-size
+					    (file-attributes file-name)))))
+			 (cl-incf bytes-freed size)
+			 (cl-incf size-files-deleted size)
+			 (cl-incf files-deleted)
 			 (delete-file file-name))
 		       (push "expired cached article" actions))
 		     (setf (nth 1 entry) nil)
@@ -3368,13 +3363,13 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 				    marker
 				  (- marker position-offset)))
 
-		     (incf nov-entries-deleted)
+		     (cl-incf nov-entries-deleted)
 
 		     (let* ((from (point-at-bol))
 			    (to (progn (forward-line 1) (point)))
 			    (freed (- to from)))
-		       (incf bytes-freed freed)
-		       (incf position-offset freed)
+		       (cl-incf bytes-freed freed)
+		       (cl-incf position-offset freed)
 		       (delete-region from to)))
 
 		   ;; If considering all articles is set, I can only
@@ -3431,9 +3426,9 @@ expiration tests failed." decoded article-number)
 
 	 (when (boundp 'gnus-agent-expire-stats)
 	   (let ((stats gnus-agent-expire-stats))
-	     (incf (nth 2 stats) bytes-freed)
-	     (incf (nth 1 stats) files-deleted)
-	     (incf (nth 0 stats) nov-entries-deleted)))
+	     (cl-incf (nth 2 stats) bytes-freed)
+	     (cl-incf (nth 1 stats) files-deleted)
+	     (cl-incf (nth 0 stats) nov-entries-deleted)))
 
 	 (gnus-agent-update-files-total-fetched-for group (- size-files-deleted)))))))
 
@@ -3805,7 +3800,7 @@ has been fetched."
            (buffer-read-only nil)
 	   (file-name-coding-system nnmail-pathname-coding-system))
       (when (and (file-exists-p file)
-                 (> (nth 7 (file-attributes file)) 0))
+                 (> (file-attribute-size (file-attributes file)) 0))
         (erase-buffer)
         (gnus-kill-all-overlays)
         (let ((coding-system-for-read gnus-cache-coding-system))
@@ -3950,9 +3945,11 @@ If REREAD is not nil, downloaded articles are marked as unread."
 		 ;; This entry in the overview has been downloaded
 		 (push (cons (car downloaded)
 			     (time-to-days
-			      (nth 5 (file-attributes
-				      (concat dir (number-to-string
-						   (car downloaded))))))) alist)
+			      (file-attribute-modification-time
+			       (file-attributes
+				(concat dir (number-to-string
+					     (car downloaded)))))))
+		       alist)
 		 (setq downloaded (cdr downloaded))
 		 (setq nov-arts (cdr nov-arts)))
 		(t
@@ -4110,23 +4107,25 @@ agent has fetched."
 	       (let ((sum 0.0)
 		     file)
 		 (while (setq file (pop delta))
-		   (incf sum (float (or (nth 7 (file-attributes
-						(nnheader-concat
-						 path
-						 (if (numberp file)
-						     (number-to-string file)
-						   file)))) 0))))
+		   (cl-incf sum (float (or (file-attribute-size
+					    (file-attributes
+					     (nnheader-concat
+					      path
+					      (if (numberp file)
+						  (number-to-string file)
+						file))))
+					   0))))
 		 (setq delta sum))
 	     (let ((sum (- (nth 2 entry)))
 		   (info (directory-files-and-attributes
 			  path nil "^-?[0-9]+$" t))
 		   file)
 	       (while (setq file (pop info))
-		 (incf sum (float (or (nth 8 file) 0))))
+		 (cl-incf sum (float (or (file-attribute-size (cdr file)) 0))))
 	       (setq delta sum))))
 
 	 (setq gnus-agent-need-update-total-fetched-for t)
-	 (incf (nth 2 entry) delta))))))
+	 (cl-incf (nth 2 entry) delta))))))
 
 (defun gnus-agent-update-view-total-fetched-for
   (group agent-over &optional method path)
@@ -4143,11 +4142,11 @@ modified."
 		       (gnus-sethash path (make-list 3 0)
 				     gnus-agent-total-fetched-hashtb)))
 	    (file-name-coding-system nnmail-pathname-coding-system)
-	    (size (or (nth 7 (file-attributes
-			      (nnheader-concat
-			       path (if agent-over
-					".overview"
-				      ".agentview"))))
+	    (size (or (file-attribute-size (file-attributes
+					    (nnheader-concat
+					     path (if agent-over
+						      ".overview"
+						    ".agentview"))))
 		      0)))
        (setq gnus-agent-need-update-total-fetched-for t)
        (setf (nth (if agent-over 1 0) entry) size)))))

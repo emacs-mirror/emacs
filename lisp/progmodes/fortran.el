@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2018 Free Software Foundation,
+;; Copyright (C) 1986, 1993-1995, 1997-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -495,7 +495,7 @@ This is used to fontify fixed-format Fortran comments."
   ;; `byte-compile', but simple benchmarks indicate that it's probably not
   ;; worth the trouble (about 0.5% of slow down).
   (eval                         ;I hate `eval', but it's hard to avoid it here.
-   `(syntax-propertize-rules
+   '(syntax-propertize-rules
      ("^[CcDd\\*]" (0 "<"))
      ;; We mark all chars after line-length as "comment-start", rather than
      ;; just the first one.  This is so that a closing ' that's past the

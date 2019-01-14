@@ -1,6 +1,6 @@
 ;;; package-test.el --- Tests for the Emacs package system
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Daniel Hackney <dan@haxney.org>
 ;; Version: 1.0
@@ -112,7 +112,7 @@
                                            upload-base)
                                 &rest body)
   "Set up temporary locations and variables for testing."
-  (declare (indent 1))
+  (declare (indent 1) (debug (([&rest form]) body)))
   `(let* ((package-test-user-dir (make-temp-file "pkg-test-user-dir-" t))
           (process-environment (cons (format "HOME=%s" package-test-user-dir)
                                      process-environment))
@@ -158,6 +158,7 @@
 
 (defmacro with-fake-help-buffer (&rest body)
   "Execute BODY in a temp buffer which is treated as the \"*Help*\" buffer."
+  (declare (debug body))
   `(with-temp-buffer
     (help-mode)
     ;; Trick `help-buffer' into using the temp buffer.
@@ -414,7 +415,7 @@ Must called from within a `tar-mode' buffer."
   (with-fake-help-buffer
    (describe-package '5x5)
    (goto-char (point-min))
-   (should (search-forward "5x5 is a built-in package." nil t))
+   (should (search-forward "5x5 is built-in." nil t))
    ;; Don't assume the descriptions are in any particular order.
    (save-excursion (should (search-forward "Status: Built-in." nil t)))
    (save-excursion (should (search-forward "Summary: simple little puzzle game" nil t)))
@@ -428,16 +429,29 @@ Must called from within a `tar-mode' buffer."
     (with-fake-help-buffer
      (describe-package 'simple-single)
      (goto-char (point-min))
-     (should (search-forward "simple-single is an installed package." nil t))
+     (should (search-forward "Package simple-single is installed." nil t))
      (save-excursion (should (re-search-forward "Status: Installed in ['`‘]simple-single-1.3/['’] (unsigned)." nil t)))
      (save-excursion (should (search-forward "Version: 1.3" nil t)))
      (save-excursion (should (search-forward "Summary: A single-file package with no dependencies" nil t)))
      (save-excursion (should (search-forward "Homepage: http://doodles.au" nil t)))
      (save-excursion (should (re-search-forward "Keywords: \\[?frobnicate\\]?" nil t)))
-     ;; No description, though. Because at this point we don't know
-     ;; what archive the package originated from, and we don't have
-     ;; its readme file saved.
+     (save-excursion (should (search-forward "This package provides a minor mode to frobnicate"
+                                             nil t)))
      )))
+
+(ert-deftest package-test-describe-installed-multi-file-package ()
+  "Test displaying of the readme for installed multi-file package."
+
+  (with-package-test ()
+    (package-initialize)
+    (package-refresh-contents)
+    (package-install 'multi-file)
+    (with-fake-help-buffer
+     (describe-package 'multi-file)
+     (goto-char (point-min))
+     (should (search-forward "Homepage: http://puddles.li" nil t))
+     (should (search-forward "This is a bare-bones readme file for the multi-file"
+                             nil t)))))
 
 (ert-deftest package-test-describe-non-installed-package ()
   "Test displaying of the readme for non-installed package."
@@ -467,15 +481,23 @@ Must called from within a `tar-mode' buffer."
 
 (ert-deftest package-test-signed ()
   "Test verifying package signature."
-  (skip-unless (ignore-errors
-		 (let ((homedir (make-temp-file "package-test" t)))
-		   (unwind-protect
-		       (let ((process-environment
-			      (cons (format "HOME=%s" homedir)
-				    process-environment)))
-			 (epg-check-configuration (epg-configuration))
-			 (epg-find-configuration 'OpenPGP))
-		     (delete-directory homedir t)))))
+  (skip-unless (let ((homedir (make-temp-file "package-test" t)))
+		 (unwind-protect
+		     (let ((process-environment
+			    (cons (concat "HOME=" homedir)
+				  process-environment)))
+		       (epg-find-configuration
+                        'OpenPGP nil
+                        ;; By default we require gpg2 2.1+ due to some
+                        ;; practical problems with pinentry.  But this
+                        ;; test works fine with 2.0 as well.
+                        (let ((prog-alist (copy-tree epg-config--program-alist)))
+                          (setf (alist-get "gpg2"
+                                           (alist-get 'OpenPGP prog-alist)
+                                           nil nil #'equal)
+                                "2.0")
+                          prog-alist)))
+		   (delete-directory homedir t))))
   (let* ((keyring (expand-file-name "key.pub" package-test-data-dir))
 	 (package-test-data-dir
 	   (expand-file-name "package-resources/signed" package-test-file-dir)))
@@ -506,7 +528,7 @@ Must called from within a `tar-mode' buffer."
       (with-fake-help-buffer
        (describe-package 'signed-good)
        (goto-char (point-min))
-       (should (re-search-forward "signed-good is an? \\(\\S-+\\) package." nil t))
+       (should (re-search-forward "Package signed-good is \\(\\S-+\\)\\." nil t))
        (should (string-equal (match-string-no-properties 1) "installed"))
        (should (re-search-forward
 		"Status: Installed in ['`‘]signed-good-1.0/['’]."

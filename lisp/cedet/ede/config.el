@@ -1,6 +1,6 @@
 ;;; ede/config.el --- Configuration Handler baseclass
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Ludlam <eric@siege-engine.com>
 

@@ -1,6 +1,6 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
@@ -924,11 +924,6 @@ Any other value is treated as nil."
 ;;;###autoload
 (define-minor-mode whitespace-mode
   "Toggle whitespace visualization (Whitespace mode).
-With a prefix argument ARG, enable Whitespace mode if ARG is
-positive, and disable it otherwise.
-
-If called from Lisp, also enables the mode if ARG is omitted or nil,
-and toggles it if ARG is `toggle'.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'."
@@ -949,11 +944,6 @@ See also `whitespace-style', `whitespace-newline' and
 ;;;###autoload
 (define-minor-mode whitespace-newline-mode
   "Toggle newline visualization (Whitespace Newline mode).
-With a prefix argument ARG, enable Whitespace Newline mode if ARG
-is positive, and disable it otherwise.
-
-If called from Lisp, also enables the mode if ARG is omitted or nil,
-and toggles it if ARG is `toggle'.
 
 Use `whitespace-newline-mode' only for NEWLINE visualization
 exclusively.  For other visualizations, including NEWLINE
@@ -979,11 +969,6 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
 ;;;###autoload
 (define-minor-mode global-whitespace-mode
   "Toggle whitespace visualization globally (Global Whitespace mode).
-With a prefix argument ARG, enable Global Whitespace mode if ARG
-is positive, and disable it otherwise.
-
-If called from Lisp, also enables the mode if ARG is omitted or nil,
-and toggles it if ARG is `toggle'.
 
 See also `whitespace-style', `whitespace-newline' and
 `whitespace-display-mappings'."
@@ -1040,11 +1025,6 @@ This variable is normally modified via `add-function'.")
 ;;;###autoload
 (define-minor-mode global-whitespace-newline-mode
   "Toggle global newline visualization (Global Whitespace Newline mode).
-With a prefix argument ARG, enable Global Whitespace Newline mode
-if ARG is positive, and disable it otherwise.
-
-If called from Lisp, also enables the mode if ARG is omitted or nil,
-and toggles it if ARG is `toggle'.
 
 Use `global-whitespace-newline-mode' only for NEWLINE
 visualization exclusively.  For other visualizations, including
@@ -1728,7 +1708,7 @@ cleaning up these problems."
                        (setq has-bogus (memq (car option) style)))
                      t)))
              whitespace-report-list)))
-      (when (pcase report-if-bogus (`nil t) (`never nil) (_ has-bogus))
+      (when (pcase report-if-bogus ('nil t) ('never nil) (_ has-bogus))
         (whitespace-kill-buffer whitespace-report-buffer-name)
         ;; `indent-tabs-mode' may be local to current buffer
         ;; `tab-width' may be local to current buffer

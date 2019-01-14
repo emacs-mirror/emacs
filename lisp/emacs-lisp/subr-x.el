@@ -1,6 +1,6 @@
 ;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -122,16 +122,9 @@ If ELT is of the form ((EXPR)), listify (EXPR) with a dummy symbol."
             bindings)))
 
 (defmacro if-let* (varlist then &rest else)
-  "Bind variables according to VARLIST and eval THEN or ELSE.
-Each binding is evaluated in turn, and evaluation stops if a
-binding value is nil.  If all are non-nil, the value of THEN is
-returned, or the last form in ELSE is returned.
-
-Each element of VARLIST is a list (SYMBOL VALUEFORM) which binds
-SYMBOL to the value of VALUEFORM.  An element can additionally
-be of the form (VALUEFORM), which is evaluated and checked for
-nil; i.e. SYMBOL can be omitted if only the test result is of
-interest."
+  "Bind variables according to VARLIST and evaluate THEN or ELSE.
+This is like `if-let' but doesn't handle a VARLIST of the form
+\(SYMBOL SOMETHING) specially."
   (declare (indent 2)
            (debug ((&rest [&or symbolp (symbolp form) (form)])
                    form body)))
@@ -143,17 +136,14 @@ interest."
     `(let* () ,then)))
 
 (defmacro when-let* (varlist &rest body)
-  "Bind variables according to VARLIST and conditionally eval BODY.
-Each binding is evaluated in turn, and evaluation stops if a
-binding value is nil.  If all are non-nil, the value of the last
-form in BODY is returned.
-
-VARLIST is the same as in `if-let*'."
+  "Bind variables according to VARLIST and conditionally evaluate BODY.
+This is like `when-let' but doesn't handle a VARLIST of the form
+\(SYMBOL SOMETHING) specially."
   (declare (indent 1) (debug if-let*))
   (list 'if-let* varlist (macroexp-progn body)))
 
 (defmacro and-let* (varlist &rest body)
-  "Bind variables according to VARLIST and conditionally eval BODY.
+  "Bind variables according to VARLIST and conditionally evaluate BODY.
 Like `when-let*', except if BODY is empty and all the bindings
 are non-nil, then the result is non-nil."
   (declare (indent 1)
@@ -162,18 +152,29 @@ are non-nil, then the result is non-nil."
   (let (res)
     (if varlist
         `(let* ,(setq varlist (internal--build-bindings varlist))
-           (if ,(setq res (caar (last varlist)))
-               ,@(or body `(,res))))
+           (when ,(setq res (caar (last varlist)))
+             ,@(or body `(,res))))
       `(let* () ,@(or body '(t))))))
 
 (defmacro if-let (spec then &rest else)
-  "Bind variables according to SPEC and eval THEN or ELSE.
-Like `if-let*' except SPEC can have the form (SYMBOL VALUEFORM)."
+  "Bind variables according to SPEC and evaluate THEN or ELSE.
+Evaluate each binding in turn, stopping if a binding value is nil.
+If all are non-nil return the value of THEN, otherwise the last form in ELSE.
+
+Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
+SYMBOL to the value of VALUEFORM.  An element can additionally be
+of the form (VALUEFORM), which is evaluated and checked for nil;
+i.e. SYMBOL can be omitted if only the test result is of
+interest.  It can also be of the form SYMBOL, then the binding of
+SYMBOL is checked for nil.
+
+As a special case, interprets a SPEC of the form \(SYMBOL SOMETHING)
+like \((SYMBOL SOMETHING)).  This exists for backward compatibility
+with an old syntax that accepted only one binding."
   (declare (indent 2)
            (debug ([&or (&rest [&or symbolp (symbolp form) (form)])
                         (symbolp form)]
-                   form body))
-           (obsolete "use `if-let*' instead." "26.1"))
+                   form body)))
   (when (and (<= (length spec) 2)
              (not (listp (car spec))))
     ;; Adjust the single binding case
@@ -181,10 +182,12 @@ Like `if-let*' except SPEC can have the form (SYMBOL VALUEFORM)."
   (list 'if-let* spec then (macroexp-progn else)))
 
 (defmacro when-let (spec &rest body)
-  "Bind variables according to SPEC and conditionally eval BODY.
-Like `when-let*' except SPEC can have the form (SYMBOL VALUEFORM)."
-  (declare (indent 1) (debug if-let)
-           (obsolete "use `when-let*' instead." "26.1"))
+  "Bind variables according to SPEC and conditionally evaluate BODY.
+Evaluate each binding in turn, stopping if a binding value is nil.
+If all are non-nil, return the value of the last form in BODY.
+
+The variable list SPEC is the same as in `if-let'."
+  (declare (indent 1) (debug if-let))
   (list 'if-let spec (macroexp-progn body)))
 
 (defsubst hash-table-empty-p (hash-table)
@@ -205,7 +208,7 @@ Like `when-let*' except SPEC can have the form (SYMBOL VALUEFORM)."
 
 (defsubst string-join (strings &optional separator)
   "Join all STRINGS using SEPARATOR."
-  (mapconcat 'identity strings separator))
+  (mapconcat #'identity strings separator))
 
 (define-obsolete-function-alias 'string-reverse 'reverse "25.1")
 
@@ -213,17 +216,17 @@ Like `when-let*' except SPEC can have the form (SYMBOL VALUEFORM)."
   "Trim STRING of leading string matching REGEXP.
 
 REGEXP defaults to \"[ \\t\\n\\r]+\"."
-  (if (string-match (concat "\\`\\(?:" (or  regexp "[ \t\n\r]+")"\\)") string)
-      (replace-match "" t t string)
+  (if (string-match (concat "\\`\\(?:" (or regexp "[ \t\n\r]+") "\\)") string)
+      (substring string (match-end 0))
     string))
 
 (defsubst string-trim-right (string &optional regexp)
   "Trim STRING of trailing string matching REGEXP.
 
 REGEXP defaults to  \"[ \\t\\n\\r]+\"."
-  (if (string-match (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'") string)
-      (replace-match "" t t string)
-    string))
+  (let ((i (string-match-p (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'")
+                           string)))
+    (if i (substring string 0 i) string)))
 
 (defsubst string-trim (string &optional trim-left trim-right)
   "Trim STRING of leading and trailing strings matching TRIM-LEFT and TRIM-RIGHT.

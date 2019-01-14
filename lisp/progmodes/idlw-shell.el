@@ -1,6 +1,6 @@
-;; idlw-shell.el --- run IDL as an inferior process of Emacs.
+;; idlw-shell.el --- run IDL as an inferior process of Emacs.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -92,7 +92,7 @@
 (require 'comint)
 (require 'idlwave)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar idlwave-shell-have-new-custom nil)
 
@@ -1115,8 +1115,7 @@ IDL has currently stepped.")
 	(setq idlwave-shell-display-wframe
 	      (if (eq (selected-frame) idlwave-shell-idl-wframe)
 		  (or
-		   (let ((flist (visible-frame-list))
-			 (frame (selected-frame)))
+		   (let ((flist (visible-frame-list)))
 		     (catch 'exit
 		       (while flist
 			 (if (not (eq (car flist)
@@ -1142,7 +1141,7 @@ IDL has currently stepped.")
 	      (make-frame idlwave-shell-frame-parameters)))))
 
 ;;;###autoload
-(defun idlwave-shell (&optional arg quick)
+(defun idlwave-shell (&optional arg)
   "Run an inferior IDL, with I/O through buffer `(idlwave-shell-buffer)'.
 If buffer exists but shell process is not running, start new IDL.
 If buffer exists and shell process is running, just switch to the buffer.
@@ -1881,10 +1880,10 @@ directory."
 			      'idlwave-shell-filter-directory
 			      'hide 'wait))
 
-(defun idlwave-shell-retall (&optional arg)
+(defun idlwave-shell-retall ()
   "Return from the entire calling stack.
 Also get rid of widget events in the queue."
-  (interactive "P")
+  (interactive)
   (save-selected-window
     ;;if (widget_info(/MANAGED))[0] gt 0 then for i=0,n_elements(widget_info(/MANAGED))-1 do widget_control,(widget_info(/MANAGED))[i],/clear_events &
     (idlwave-shell-send-command "retall" nil
@@ -1892,9 +1891,9 @@ Also get rid of widget events in the queue."
 				nil t)
     (idlwave-shell-display-line nil)))
 
-(defun idlwave-shell-closeall (&optional arg)
+(defun idlwave-shell-closeall ()
   "Close all open files."
-  (interactive "P")
+  (interactive)
   (idlwave-shell-send-command "close,/all" nil
 			      (idlwave-shell-hide-p 'misc) nil t))
 
@@ -2157,7 +2156,7 @@ keywords."
       (if entry (setq idlw-help-link (cdr entry)))) ; setting dynamic variable!
      (t (error "This should not happen")))))
 
-(defun idlwave-shell-complete-filename (&optional arg)
+(defun idlwave-shell-complete-filename ()
   "Complete a file name at point if after a file name.
 We assume that we are after a file name when completing one of the
 args of an executive .run, .rnew or .compile."
@@ -2261,12 +2260,12 @@ overlays."
 (defun idlwave-shell-stack-up ()
   "Display the source code one step up the calling stack."
   (interactive)
-  (incf idlwave-shell-calling-stack-index)
+  (cl-incf idlwave-shell-calling-stack-index)
   (idlwave-shell-display-level-in-calling-stack 'hide))
 (defun idlwave-shell-stack-down ()
   "Display the source code one step down the calling stack."
   (interactive)
-  (decf idlwave-shell-calling-stack-index)
+  (cl-decf idlwave-shell-calling-stack-index)
   (idlwave-shell-display-level-in-calling-stack 'hide))
 
 (defun idlwave-shell-goto-frame (&optional frame)
@@ -2739,10 +2738,9 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 	 (bp-alist idlwave-shell-bp-alist)
 	 (orig-func (if (> dir 0) '> '<))
 	 (closer-func (if (> dir 0) '< '>))
-	 bp got-bp bp-line cur-line)
+	 bp bp-line cur-line)
     (while (setq bp (pop bp-alist))
       (when (string= file (car (car bp)))
-	(setq got-bp 1)
 	(setq cur-line (nth 1 (car bp)))
 	(if (and
 	     (funcall orig-func cur-line orig-bp-line)
@@ -2758,6 +2756,8 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
   "Print help on current expression.  See `idlwave-shell-print'."
   (interactive "P")
   (idlwave-shell-print arg 'help))
+
+(defvar zmacs-regions)
 
 (defmacro idlwave-shell-mouse-examine (help &optional ev)
   "Create a function for generic examination of expressions."
@@ -2782,7 +2782,7 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 
 ;; Begin terrible hack section -- XEmacs tests for button2 explicitly
 ;; on drag events, calling drag-n-drop code if detected.  Ughhh...
-(defun idlwave-default-mouse-track-event-is-with-button (event n)
+(defun idlwave-default-mouse-track-event-is-with-button (_event _n)
   t)
 
 (defun idlwave-xemacs-hack-mouse-track (event)
@@ -3193,22 +3193,20 @@ size(___,/DIMENSIONS)"
 		      output-begin output-end buffer))))
 
 (defun idlwave-shell-delete-output-overlay ()
-  (unless (or (eq this-command 'idlwave-shell-mouse-nop)
-	      (eq this-command 'handle-switch-frame))
+  (unless (memql this-command '(ignore handle-switch-frame))
     (condition-case nil
 	(if idlwave-shell-output-overlay
 	    (delete-overlay idlwave-shell-output-overlay))
       (error nil))
-    (remove-hook 'pre-command-hook 'idlwave-shell-delete-output-overlay)))
+    (remove-hook 'pre-command-hook #'idlwave-shell-delete-output-overlay)))
 
 (defun idlwave-shell-delete-expression-overlay ()
-  (unless (or (eq this-command 'idlwave-shell-mouse-nop)
-	      (eq this-command 'handle-switch-frame))
+  (unless (memql this-command '(ignore handle-switch-frame))
     (condition-case nil
 	(if idlwave-shell-expression-overlay
 	    (delete-overlay idlwave-shell-expression-overlay))
       (error nil))
-    (remove-hook 'pre-command-hook 'idlwave-shell-delete-expression-overlay)))
+    (remove-hook 'pre-command-hook #'idlwave-shell-delete-expression-overlay)))
 
 (defvar idlwave-shell-bp-alist nil
   "Alist of breakpoints.
@@ -3591,13 +3589,13 @@ Existing overlays are recycled, in order to minimize consumption."
 	  (bp-list idlwave-shell-bp-alist)
 	  (use-glyph (and (memq idlwave-shell-mark-breakpoints '(t glyph))
 			  idlwave-shell-bp-glyph))
-	  ov ov-list bp buf old-buffers win)
+	  ov ov-list bp buf old-buffers)
 
       ;; Delete the old overlays from their buffers
       (if ov-alist
 	  (while (setq ov-list (pop ov-alist))
 	    (while (setq ov (pop (cdr ov-list)))
-	      (pushnew (overlay-buffer ov) old-buffers)
+	      (cl-pushnew (overlay-buffer ov) old-buffers)
 	      (delete-overlay ov))))
 
       (setq ov-alist idlwave-shell-bp-overlays
@@ -3798,9 +3796,9 @@ only for glyphs)."
 	 (t
 	  (message "Unimplemented: %s" select))))))
 
-(defun idlwave-shell-edit-default-command-line (arg)
+(defun idlwave-shell-edit-default-command-line ()
   "Edit the current execute command."
-  (interactive "P")
+  (interactive)
   (setq idlwave-shell-command-line-to-execute
 	(read-string "IDL> " idlwave-shell-command-line-to-execute)))
 
@@ -4057,9 +4055,56 @@ Otherwise, just expand the file name."
 
 ;; Keybindings ------------------------------------------------------------
 
-(defvar idlwave-shell-mode-map (copy-keymap comint-mode-map)
+(defvar idlwave-shell-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map comint-mode-map)
+
+    ;;(define-key map "\M-?" 'comint-dynamic-list-completions)
+    ;;(define-key map "\t" 'comint-dynamic-complete)
+
+    (define-key map "\C-w"     'comint-kill-region)
+    (define-key map "\t"       'idlwave-shell-complete)
+    (define-key map "\M-\t"    'idlwave-shell-complete)
+    (define-key map "\C-c\C-s" 'idlwave-shell)
+    (define-key map "\C-c?"    'idlwave-routine-info)
+    (define-key map "\C-g"     'idlwave-keyboard-quit)
+    (define-key map "\M-?"     'idlwave-context-help)
+    (define-key map [(control meta ?\?)]
+      'idlwave-help-assistant-help-with-topic)
+    (define-key map "\C-c\C-i" 'idlwave-update-routine-info)
+    (define-key map "\C-c\C-y" 'idlwave-shell-char-mode-loop)
+    (define-key map "\C-c\C-x" 'idlwave-shell-send-char)
+    (define-key map "\C-c="    'idlwave-resolve)
+    (define-key map "\C-c\C-v" 'idlwave-find-module)
+    (define-key map "\C-c\C-k" 'idlwave-kill-autoloaded-buffers)
+    (define-key map idlwave-shell-prefix-key
+      'idlwave-shell-debug-map)
+    (define-key map [(up)]  'idlwave-shell-up-or-history)
+    (define-key map [(down)] 'idlwave-shell-down-or-history)
+    (define-key idlwave-shell-mode-map
+      (if (featurep 'xemacs) [(shift button3)] [(shift mouse-3)])
+      'idlwave-mouse-context-help)
+    map)
   "Keymap for `idlwave-mode'.")
-(defvar idlwave-shell-electric-debug-mode-map (make-sparse-keymap))
+
+(defvar idlwave-shell-electric-debug-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; A few extras in the electric debug map
+    (define-key map " " 'idlwave-shell-step)
+    (define-key map "+" 'idlwave-shell-stack-up)
+    (define-key map "=" 'idlwave-shell-stack-up)
+    (define-key map "-" 'idlwave-shell-stack-down)
+    (define-key map "_" 'idlwave-shell-stack-down)
+    (define-key map "e" (lambda () (interactive) (idlwave-shell-print '(16))))
+    (define-key map "q" 'idlwave-shell-retall)
+    (define-key map "t"
+      (lambda () (interactive) (idlwave-shell-send-command "help,/TRACE")))
+    (define-key map [(control ??)]  'idlwave-shell-electric-debug-help)
+    (define-key map "x"
+      (lambda (arg) (interactive "P")
+        (idlwave-shell-print arg nil nil t)))
+    map))
+
 (defvar idlwave-shell-mode-prefix-map (make-sparse-keymap))
 (fset 'idlwave-shell-mode-prefix-map idlwave-shell-mode-prefix-map)
 (defvar idlwave-mode-prefix-map (make-sparse-keymap))
@@ -4069,29 +4114,6 @@ Otherwise, just expand the file name."
   "Define a key in both the shell and buffer mode maps."
   (define-key idlwave-mode-map key hook)
   (define-key idlwave-shell-mode-map key hook))
-
-;(define-key idlwave-shell-mode-map "\M-?" 'comint-dynamic-list-completions)
-;(define-key idlwave-shell-mode-map "\t" 'comint-dynamic-complete)
-
-(define-key idlwave-shell-mode-map "\C-w"     'comint-kill-region)
-(define-key idlwave-shell-mode-map "\t"       'idlwave-shell-complete)
-(define-key idlwave-shell-mode-map "\M-\t"    'idlwave-shell-complete)
-(define-key idlwave-shell-mode-map "\C-c\C-s" 'idlwave-shell)
-(define-key idlwave-shell-mode-map "\C-c?"    'idlwave-routine-info)
-(define-key idlwave-shell-mode-map "\C-g"     'idlwave-keyboard-quit)
-(define-key idlwave-shell-mode-map "\M-?"     'idlwave-context-help)
-(define-key idlwave-shell-mode-map [(control meta ?\?)]
-  'idlwave-help-assistant-help-with-topic)
-(define-key idlwave-shell-mode-map "\C-c\C-i" 'idlwave-update-routine-info)
-(define-key idlwave-shell-mode-map "\C-c\C-y" 'idlwave-shell-char-mode-loop)
-(define-key idlwave-shell-mode-map "\C-c\C-x" 'idlwave-shell-send-char)
-(define-key idlwave-shell-mode-map "\C-c="    'idlwave-resolve)
-(define-key idlwave-shell-mode-map "\C-c\C-v" 'idlwave-find-module)
-(define-key idlwave-shell-mode-map "\C-c\C-k" 'idlwave-kill-autoloaded-buffers)
-(define-key idlwave-shell-mode-map idlwave-shell-prefix-key
-  'idlwave-shell-debug-map)
-(define-key idlwave-shell-mode-map [(up)]  'idlwave-shell-up-or-history)
-(define-key idlwave-shell-mode-map [(down)] 'idlwave-shell-down-or-history)
 (define-key idlwave-mode-map "\C-c\C-y" 'idlwave-shell-char-mode-loop)
 (define-key idlwave-mode-map "\C-c\C-x" 'idlwave-shell-send-char)
 
@@ -4112,22 +4134,12 @@ Otherwise, just expand the file name."
    [(control shift down-mouse-2)])
  'idlwave-shell-examine-select)
 ;; Add this one from the idlwave-mode-map
-(define-key idlwave-shell-mode-map
-  (if (featurep 'xemacs)
-      [(shift button3)]
-    [(shift mouse-3)])
-  'idlwave-mouse-context-help)
-
 ;; For Emacs, we need to turn off the button release events.
-(defun idlwave-shell-mouse-nop (event)
-  (interactive "e"))
+
 (unless (featurep 'xemacs)
-  (idlwave-shell-define-key-both
-   [(shift mouse-2)] 'idlwave-shell-mouse-nop)
-  (idlwave-shell-define-key-both
-   [(shift control mouse-2)] 'idlwave-shell-mouse-nop)
-  (idlwave-shell-define-key-both
-   [(control meta mouse-2)] 'idlwave-shell-mouse-nop))
+  (idlwave-shell-define-key-both [(shift mouse-2)] 'ignore)
+  (idlwave-shell-define-key-both [(shift control mouse-2)] 'ignore)
+  (idlwave-shell-define-key-both [(control meta mouse-2)] 'ignore))
 
 
 ;; The following set of bindings is used to bind the debugging keys.
@@ -4207,26 +4219,6 @@ Otherwise, just expand the file name."
 	(define-key idlwave-shell-electric-debug-mode-map (char-to-string c2)
 	  cmd))))
 
-;; A few extras in the electric debug map
-(define-key idlwave-shell-electric-debug-mode-map " " 'idlwave-shell-step)
-(define-key idlwave-shell-electric-debug-mode-map "+" 'idlwave-shell-stack-up)
-(define-key idlwave-shell-electric-debug-mode-map "=" 'idlwave-shell-stack-up)
-(define-key idlwave-shell-electric-debug-mode-map "-"
-  'idlwave-shell-stack-down)
-(define-key idlwave-shell-electric-debug-mode-map "_"
-  'idlwave-shell-stack-down)
-(define-key idlwave-shell-electric-debug-mode-map "e"
-  (lambda () (interactive) (idlwave-shell-print '(16))))
-(define-key idlwave-shell-electric-debug-mode-map "q" 'idlwave-shell-retall)
-(define-key idlwave-shell-electric-debug-mode-map "t"
-  (lambda () (interactive) (idlwave-shell-send-command "help,/TRACE")))
-(define-key idlwave-shell-electric-debug-mode-map [(control ??)]
-  'idlwave-shell-electric-debug-help)
-(define-key idlwave-shell-electric-debug-mode-map "x"
-  (lambda (arg) (interactive "P")
-    (idlwave-shell-print arg nil nil t)))
-
-
 ; Enter the prefix map in two places.
 (fset 'idlwave-debug-map       idlwave-mode-prefix-map)
 (fset 'idlwave-shell-debug-map idlwave-shell-mode-prefix-map)
@@ -4251,49 +4243,35 @@ Otherwise, just expand the file name."
 
 (define-minor-mode idlwave-shell-electric-debug-mode
   "Toggle Idlwave Shell Electric Debug mode.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
 
 When Idlwave Shell Electric Debug mode is enabled, the Idlwave
 Shell debugging commands are available as single key sequences."
-  nil " *Debugging*" idlwave-shell-electric-debug-mode-map)
-
-(add-hook
- 'idlwave-shell-electric-debug-mode-on-hook
- (lambda ()
-   (set (make-local-variable 'idlwave-shell-electric-debug-read-only)
-	buffer-read-only)
-   (setq buffer-read-only t)
-   (add-to-list 'idlwave-shell-electric-debug-buffers (current-buffer))
-   (if idlwave-shell-stop-line-overlay
-       (overlay-put idlwave-shell-stop-line-overlay 'face
-		    idlwave-shell-electric-stop-line-face))
-   (if (facep 'fringe)
-       (set-face-foreground 'fringe idlwave-shell-electric-stop-color
-			    (selected-frame)))))
-
-(add-hook
- 'idlwave-shell-electric-debug-mode-off-hook
- (lambda ()
-   ;; Return to previous read-only state
-   (setq buffer-read-only (if (boundp 'idlwave-shell-electric-debug-read-only)
-			      idlwave-shell-electric-debug-read-only))
-   (setq idlwave-shell-electric-debug-buffers
-	 (delq (current-buffer) idlwave-shell-electric-debug-buffers))
-   (if idlwave-shell-stop-line-overlay
-       (overlay-put idlwave-shell-stop-line-overlay 'face
-		    idlwave-shell-stop-line-face)
-     (if (facep 'fringe)
-	 (set-face-foreground 'fringe (face-foreground 'default))))))
-
-;; easy-mmode defines electric-debug-mode for us, so we need to advise it.
-(defadvice idlwave-shell-electric-debug-mode (after print-enter activate)
-  "Print out an entrance message."
-  (when idlwave-shell-electric-debug-mode
+  :lighter " *Debugging*"
+  (cond
+   (idlwave-shell-electric-debug-mode
+    (set (make-local-variable 'idlwave-shell-electric-debug-read-only)
+	 buffer-read-only)
+    (setq buffer-read-only t)
+    (add-to-list 'idlwave-shell-electric-debug-buffers (current-buffer))
+    (if idlwave-shell-stop-line-overlay
+        (overlay-put idlwave-shell-stop-line-overlay 'face
+		     idlwave-shell-electric-stop-line-face))
+    (if (facep 'fringe)
+        (set-face-foreground 'fringe idlwave-shell-electric-stop-color
+			     (selected-frame)))
     (message
      "Electric Debugging mode entered.  Press [C-?] for help, [q] to quit"))
-  (force-mode-line-update))
+   (t
+    ;; Return to previous read-only state
+    (setq buffer-read-only (if (boundp 'idlwave-shell-electric-debug-read-only)
+			       idlwave-shell-electric-debug-read-only))
+    (setq idlwave-shell-electric-debug-buffers
+	  (delq (current-buffer) idlwave-shell-electric-debug-buffers))
+    (if idlwave-shell-stop-line-overlay
+        (overlay-put idlwave-shell-stop-line-overlay 'face
+		     idlwave-shell-stop-line-face)
+      (if (facep 'fringe)
+	  (set-face-foreground 'fringe (face-foreground 'default)))))))
 
 ;; Turn it off in all relevant buffers
 (defvar idlwave-shell-electric-debug-buffers nil)

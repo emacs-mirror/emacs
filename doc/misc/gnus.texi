@@ -10,7 +10,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -3102,6 +3102,21 @@ interest in relation to the sieve parameter.
 The Sieve language is described in RFC 3028.  @xref{Top, Emacs Sieve,
 Top, sieve, Emacs Sieve}.
 
+@item match-list
+@cindex match-list
+If this parameter is set to @code{t} and @code{nnmail-split-method} is
+set to @code{gnus-group-split}, Gnus will match @code{to-address},
+@code{to-list}, @code{extra-aliases} and @code{split-regexp} against
+the @code{list} split abbreviation.  The split regexp is modified to
+match either a @code{@@} or a dot @code{.} in mail addresses to
+conform to RFC2919 @code{List-ID}.
+
+See @code{nnmail-split-abbrev-alist} for the regular expression
+matching mailing-list headers.
+
+See @pxref{Group Mail Splitting} to automatically split on group
+parameters.
+
 @item (agent parameters)
 If the agent has been enabled, you can set any of its parameters to
 control the behavior of the agent in individual groups.  See Agent
@@ -4442,7 +4457,7 @@ generated.  It may be used to modify the buffer in some strange,
 unnatural way.
 
 @item gnus-group-prepared-hook
-@vindex gnus-group-prepare-hook
+@vindex gnus-group-prepared-hook
 is called as the very last thing after the group buffer has been
 generated.  It may be used to move point around, for instance.
 
@@ -5577,7 +5592,7 @@ command uses the process/prefix convention.
 Mail a wide reply to the author of the current article
 (@code{gnus-summary-wide-reply}).  A @dfn{wide reply} is a reply that
 goes out to all people listed in the @code{To}, @code{From} (or
-@code{Reply-to}) and @code{Cc} headers.  If @code{Mail-Followup-To} is
+@code{Reply-To}) and @code{Cc} headers.  If @code{Mail-Followup-To} is
 present, that's used instead.
 
 @item S W
@@ -5601,7 +5616,7 @@ message to the mailing list, and include the original message
 Mail a very wide reply to the author of the current article
 (@code{gnus-summary-wide-reply}).  A @dfn{very wide reply} is a reply
 that goes out to all people listed in the @code{To}, @code{From} (or
-@code{Reply-to}) and @code{Cc} headers in all the process/prefixed
+@code{Reply-To}) and @code{Cc} headers in all the process/prefixed
 articles.  This command uses the process/prefix convention.
 
 @item S V
@@ -5643,8 +5658,7 @@ as an rfc822 @acronym{MIME} section; if the prefix is 3, decode message and
 forward as an rfc822 @acronym{MIME} section; if the prefix is 4, forward message
 directly inline; otherwise, the message is forwarded as no prefix given
 but use the flipped value of (@code{message-forward-as-mime}).  By
-default, the message is decoded and forwarded as an rfc822 @acronym{MIME}
-section.
+default, the forwarded message is inlined into the mail.
 
 @item S m
 @itemx m
@@ -5834,6 +5848,15 @@ Manual}, for more information.
 Yank the current article into an already existing Message composition
 buffer (@code{gnus-summary-yank-message}).  This command prompts for
 what message buffer you want to yank into, and understands the
+process/prefix convention (@pxref{Process/Prefix}).
+
+@item S A
+@kindex S A @r{(Summary)}
+@findex gnus-summary-attach-article
+Attach the current article into an already existing Message
+composition buffer (@code{gnus-summary-attach-message}).  If no such
+buffer exists, a new one is created.  This command prompts for what
+message buffer you want to yank into, and understands the
 process/prefix convention (@pxref{Process/Prefix}).
 
 @end table
@@ -6657,7 +6680,8 @@ Limit the summary buffer to the unseen articles
 @kindex / v @r{(Summary)}
 @findex gnus-summary-limit-to-score
 Limit the summary buffer to articles that have a score at or above some
-score (@code{gnus-summary-limit-to-score}).
+score (@code{gnus-summary-limit-to-score}).  If given a prefix, below
+some score.
 
 @item / p
 @kindex / p @r{(Summary)}
@@ -9790,9 +9814,6 @@ Warning: Spammers use links to images (using the @code{http} scheme) in
 this command passes the @acronym{HTML} content to the browser without
 eliminating these ``web bugs'' you should only use it for mails from
 trusted senders.
-
-If you always want to display @acronym{HTML} parts in the browser, set
-@code{mm-text-html-renderer} to @code{nil}.
 
 This command creates temporary files to pass @acronym{HTML} contents
 including images if any to the browser, and deletes them when exiting
@@ -14299,6 +14320,12 @@ fetch all textual parts, while leaving the rest on the server.
 If non-@code{nil}, record all @acronym{IMAP} commands in the
 @samp{"*imap log*"} buffer.
 
+@item nnimap-use-namespaces
+If non-@code{nil}, omit the IMAP namespace prefix in nnimap group
+names.  If your IMAP mailboxes are called something like @samp{INBOX}
+and @samp{INBOX.Lists.emacs}, but you'd like the nnimap group names to
+be @samp{INBOX} and @samp{Lists.emacs}, you should enable this option.
+
 @end table
 
 
@@ -15474,6 +15501,9 @@ Matches the @samp{To}, @samp{Cc}, @samp{Apparently-To},
 @samp{Resent-To} and @samp{Resent-Cc} fields.
 @item any
 Is the union of the @code{from} and @code{to} entries.
+@item list
+Matches the @samp{List-ID}, @samp{List-Post}, @samp{X-Mailing-List},
+@samp{X-BeenThere} and @samp{X-Loop} fields.
 @end table
 
 @vindex nnmail-split-fancy-syntax-table
@@ -19471,8 +19501,8 @@ score file and edit it.
 
 @item V w
 @kindex V w @r{(Summary)}
-@findex gnus-score-find-favourite-words
-List words used in scoring (@code{gnus-score-find-favourite-words}).
+@findex gnus-score-find-favorite-words
+List words used in scoring (@code{gnus-score-find-favorite-words}).
 
 @item V R
 @kindex V R @r{(Summary)}
@@ -21437,6 +21467,18 @@ A list of strings, to be given as additional arguments to notmuch.
 The prefix to remove from each file name returned by notmuch in order
 to get a group name (albeit with @samp{/} instead of @samp{.}).  This
 is a regular expression.
+
+@item nnir-notmuch-filter-group-names-function
+A function used to transform the names of groups being searched in,
+for use as a ``path:'' search keyword for notmuch.  If nil, the
+default, ``path:'' keywords are not used.  Otherwise, this should be a
+callable which accepts a single group name and returns a transformed
+name as notmuch expects to see it.  In many mail backends, for
+instance, dots in group names must be converted to forward slashes: to
+achieve this, set this option to
+@example
+(lambda (g) (replace-regexp-in-string "\\." "/" g))
+@end example
 
 @end table
 
@@ -24553,7 +24595,7 @@ determined by either the @code{ham-process-destination} group
 parameter or a match in the @code{gnus-ham-process-destinations}
 variable, which is a list of regular expressions matched with group
 names (it's easiest to customize this variable with @kbd{M-x
-customize-variable @key{@key{RET}} gnus-ham-process-destinations}).  Each
+customize-variable @key{RET} gnus-ham-process-destinations}).  Each
 group name list is a standard Lisp list, if you prefer to customize
 the variable manually.  If the @code{ham-process-destination}
 parameter is not set, ham articles are left in place.  If the
@@ -24589,7 +24631,7 @@ When you leave a @emph{ham} or @emph{unclassified} group, all
 the @code{spam-process-destination} group parameter or a match in the
 @code{gnus-spam-process-destinations} variable, which is a list of
 regular expressions matched with group names (it's easiest to
-customize this variable with @kbd{M-x customize-variable @key{@key{RET}}
+customize this variable with @kbd{M-x customize-variable @key{RET}
 gnus-spam-process-destinations}).  Each group name list is a standard
 Lisp list, if you prefer to customize the variable manually.  If the
 @code{spam-process-destination} parameter is not set, the spam
@@ -25859,13 +25901,13 @@ Reset: (setq spam-stat (make-hash-table :test 'equal))
 Learn spam: (spam-stat-process-spam-directory "~/Mail/mail/spam")
 Learn non-spam: (spam-stat-process-non-spam-directory "~/Mail/mail/misc")
 Save table: (spam-stat-save)
-File size: (nth 7 (file-attributes spam-stat-file))
+File size: (file-attribute-size (file-attributes spam-stat-file))
 Number of words: (hash-table-count spam-stat)
 Test spam: (spam-stat-test-directory "~/Mail/mail/spam")
 Test non-spam: (spam-stat-test-directory "~/Mail/mail/misc")
 Reduce table size: (spam-stat-reduce-size)
 Save table: (spam-stat-save)
-File size: (nth 7 (file-attributes spam-stat-file))
+File size: (file-attribute-size (file-attributes spam-stat-file))
 Number of words: (hash-table-count spam-stat)
 Test spam: (spam-stat-test-directory "~/Mail/mail/spam")
 Test non-spam: (spam-stat-test-directory "~/Mail/mail/misc")
@@ -26164,7 +26206,7 @@ Get the data under @code{key} for message @code{id}.
 If any extra entries are precious, their presence will make the
 registry keep the whole entry forever, even if there are no groups for
 the Message-ID and if the size limit of the registry is reached.  By
-default this is just @code{(marks)} so the custom registry marks are
+default this is just @code{(mark)} so the custom registry marks are
 precious.
 @end defvar
 
@@ -28708,7 +28750,7 @@ commonly fetched via the protocol @acronym{NNTP}, whereas mail
 messages could be read from a file on the local disk.  The internal
 architecture of Gnus thus comprises a ``front end'' and a number of
 ``back ends''.  Internally, when you enter a group (by hitting
-@key{@key{RET}}, say), you thereby invoke a function in the front end in
+@key{RET}, say), you thereby invoke a function in the front end in
 Gnus.  The front end then ``talks'' to a back end and says things like
 ``Give me the list of articles in the foo group'' or ``Show me article
 number 4711''.

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1994, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Read and Print
@@ -807,6 +807,21 @@ Those functions also use backslash sequences for multibyte
 non-@acronym{ASCII} characters, regardless of the value of this variable,
 when the output stream is a unibyte buffer or a marker pointing into
 one.
+@end defvar
+
+@defvar print-charset-text-property
+This variable controls printing of `charset' text property on printing
+a string.  The value should be @code{nil}, @code{t}, or
+@code{default}.
+
+If the value is @code{nil}, @code{charset} text properties are never
+printed.  If @code{t}, they are always printed.
+
+If the value is @code{default}, only print @code{charset} text
+properties if there is an ``unexpected'' @code{charset} property.  For
+ascii characters, all charsets are considered ``expected''.
+Otherwise, the expected @code{charset} property of a character is
+given by @code{char-charset}.
 @end defvar
 
 @defvar print-length

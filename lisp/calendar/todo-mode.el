@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- facilities for making and maintaining todo lists  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;;	Stephen Berman <stephen.berman@gmx.net>
@@ -853,17 +853,18 @@ category.  With non-nil argument BACK, visit the numerically
 previous category (the highest numbered one, if the current
 category is the first)."
   (interactive)
-  (setq todo-category-number
-        (1+ (mod (- todo-category-number (if back 2 0))
-		 (length todo-categories))))
-  (when todo-skip-archived-categories
-    (while (and (zerop (todo-get-count 'todo))
-		(zerop (todo-get-count 'done))
-		(not (zerop (todo-get-count 'archived))))
-      (setq todo-category-number
-	    (funcall (if back #'1- #'1+) todo-category-number))))
-  (todo-category-select)
-  (goto-char (point-min)))
+  (let ((setcatnum (lambda () (1+ (mod (- todo-category-number
+                                          (if back 2 0))
+		                       (length todo-categories))))))
+    (setq todo-category-number (funcall setcatnum))
+    (when todo-skip-archived-categories
+      (while (and (zerop (todo-get-count 'todo))
+                  (zerop (todo-get-count 'done))
+                  (not (zerop (todo-get-count 'archived))))
+        (setq todo-category-number (funcall setcatnum))))
+    (todo-category-select)
+    (if transient-mark-mode (deactivate-mark))
+    (goto-char (point-min))))
 
 (defun todo-backward-category ()
   "Visit the numerically previous category in this todo file.
@@ -928,11 +929,13 @@ Categories mode."
         (when goto-archive (todo-archive-mode))
         (set-window-buffer (selected-window)
                            (set-buffer (find-buffer-visiting file0)))
+        (if transient-mark-mode (deactivate-mark))
         (unless todo-global-current-todo-file
           (setq todo-global-current-todo-file todo-current-todo-file))
         (todo-category-number category)
         (todo-category-select)
         (goto-char (point-min))
+	(if (bound-and-true-p hl-line-mode) (hl-line-highlight))
         (when add-item (todo-insert-item--basic))))))
 
 (defun todo-next-item (&optional count)
@@ -1018,15 +1021,17 @@ empty line above the done items separator."
 	  (setq shown (progn
 			(goto-char (point-min))
 			(re-search-forward todo-done-string-start nil t)))
-	  (if (not (pos-visible-in-window-p shown))
-	      (recenter)
-	    (goto-char opoint)))))))
+	  (if (pos-visible-in-window-p shown)
+	      (goto-char opoint)
+	    (recenter)
+            (if transient-mark-mode (deactivate-mark))))))))
 
 (defun todo-toggle-view-done-only ()
   "Switch between displaying only done or only todo items."
   (interactive)
   (setq todo-show-done-only (not todo-show-done-only))
-  (todo-category-select))
+  (todo-category-select)
+  (if transient-mark-mode (deactivate-mark)))
 
 (defun todo-toggle-item-highlighting ()
   "Highlight or unhighlight the todo item the cursor is on."
@@ -1101,7 +1106,9 @@ Noninteractively, return the name of the new file."
 	(progn
 	  (set-window-buffer (selected-window)
 			     (set-buffer (find-file-noselect file)))
-	  (setq todo-current-todo-file file)
+	  ;; Since buffer is not yet in todo-mode, we need to
+	  ;; explicitly make todo-current-todo-file buffer local.
+          (setq-local todo-current-todo-file file)
 	  (todo-show))
       file)))
 
@@ -1237,9 +1244,10 @@ this command should be used with caution."
   (widen)
   (todo-edit-mode)
   (remove-overlays)
-  (display-warning 'todo (format "\
+  (display-warning
+   'todo (format "\
 
-Type %s to return to Todo mode.
+Type %s to return to Todo%s mode.
 
 This also runs a file format check and signals an error if
 the format has become invalid.  However, this check cannot
@@ -1249,7 +1257,12 @@ You can repair this inconsistency by invoking the command
 `todo-repair-categories-sexp', but this will revert any
 renumbering of the categories you have made, so you will
 have to renumber them again (see `(todo-mode) Reordering
-Categories')." (substitute-command-keys "\\[todo-edit-quit]"))))
+Categories').
+"
+                 (substitute-command-keys "\\[todo-edit-quit]")
+                 (if (equal "toda" (file-name-extension
+                                    (buffer-file-name)))
+                     " Archive" ""))))
 
 (defun todo-add-category (&optional file cat)
   "Add a new category to a todo file.
@@ -1825,7 +1838,6 @@ consist of the last todo items and the first done items."
 (defvar todo-date-from-calendar nil
   "Helper variable for setting item date from the Emacs Calendar.")
 
-(defvar todo-insert-item--keys-so-far)
 (defvar todo-insert-item--parameters)
 
 (defun todo-insert-item (&optional arg)
@@ -1847,8 +1859,7 @@ already been entered and which remain available.  See
 `(todo-mode) Inserting New Items' for details of the parameters,
 their associated keys and their effects."
   (interactive "P")
-  (setq todo-insert-item--keys-so-far "i")
-  (todo-insert-item--next-param nil (list arg) todo-insert-item--parameters))
+  (todo-insert-item--next-param (list arg) todo-insert-item--parameters nil "i"))
 
 (defun todo-insert-item--basic (&optional arg diary-type date-type time where)
   "Function implementing the core of `todo-insert-item'."
@@ -1860,15 +1871,18 @@ their associated keys and their effects."
 	  (region (eq where 'region))
 	  (here (eq where 'here))
 	  diary-item)
-      (when copy
-	(cond
-	 ((not (eq major-mode 'todo-mode))
-	  (user-error "You must be in Todo mode to copy a todo item"))
-	 ((todo-done-item-p)
-	  (user-error "You cannot copy a done item as a new todo item"))
-	 ((looking-at "^$")
-	  (user-error "Point must be on a todo item to copy it")))
-	(setq diary-item (todo-diary-item-p)))
+      (when (and arg here)
+        (user-error "Here insertion only valid in current category"))
+      (when (and (or copy here)
+                 (or (not (eq major-mode 'todo-mode)) (todo-done-item-p)
+                     (when copy (looking-at "^$"))
+                     (save-excursion
+                       (beginning-of-line)
+                       ;; Point is on done items separator.
+                       (looking-at todo-category-done))))
+        (user-error (concat "Item " (if copy "copying" "insertion")
+                            " is not valid here")))
+      (when copy (setq diary-item (todo-diary-item-p)))
       (when region
 	(let (use-empty-active-region)
 	  (unless (and todo-use-only-highlighted-region (use-region-p))
@@ -1876,7 +1890,6 @@ their associated keys and their effects."
       (let* ((obuf (current-buffer))
 	     (ocat (todo-current-category))
 	     (opoint (point))
-	     (todo-mm (eq major-mode 'todo-mode))
 	     (cat+file (cond ((equal arg '(4))
 			      (todo-read-category "Insert in category: "))
 			     ((equal arg '(16))
@@ -1894,7 +1907,10 @@ their associated keys and their effects."
 	     (new-item (cond (copy (todo-item-string))
 			     (region (buffer-substring-no-properties
 				      (region-beginning) (region-end)))
-			     (t (read-from-minibuffer "Todo item: "))))
+			     (t (if (eq major-mode 'todo-archive-mode)
+                                    (user-error (concat "Cannot insert a new Todo"
+                                                        " item in an archive"))
+                                  (read-from-minibuffer "Todo item: ")))))
 	     (date-string (cond
 			   ((eq date-type 'date)
 			    (todo-read-date))
@@ -1915,7 +1931,7 @@ their associated keys and their effects."
 			     (calendar-current-date) t t))))
 	     (time-string (or (and time (todo-read-time))
 			      (and todo-always-add-time-string
-				   (substring (current-time-string) 11 16)))))
+				   (format-time-string "%H:%M")))))
 	(setq todo-date-from-calendar nil)
 	(find-file-noselect file 'nowarn)
 	(set-window-buffer (selected-window)
@@ -1931,7 +1947,6 @@ their associated keys and their effects."
 	(unless todo-global-current-todo-file
 	  (setq todo-global-current-todo-file todo-current-todo-file))
 	(let ((buffer-read-only nil)
-	      (called-from-outside (not (and todo-mm (equal cat ocat))))
 	      done-only item-added)
 	  (unless copy
 	    (setq new-item
@@ -1955,14 +1970,8 @@ their associated keys and their effects."
 						     "\n\t" new-item nil nil 1)))
 	  (unwind-protect
 	      (progn
-		;; Make sure the correct category is selected.  There
-		;; are two cases: (i) we just visited the file, so no
-		;; category is selected yet, or (ii) we invoked
-		;; insertion "here" from outside the category we want
-		;; to insert in (with priority insertion, category
-		;; selection is done by todo-set-item-priority).
-		(when (or (= (- (point-max) (point-min)) (buffer-size))
-			  (and here called-from-outside))
+                ;; If we just visited the file, no category is selected yet.
+                (when (= (- (point-max) (point-min)) (buffer-size))
 		  (todo-category-number cat)
 		  (todo-category-select))
 		;; If only done items are displayed in category,
@@ -1973,16 +1982,7 @@ their associated keys and their effects."
 		  (setq done-only t)
 		  (todo-toggle-view-done-only))
 		(if here
-		    (progn
-		      ;; If command was invoked with point in done
-		      ;; items section or outside of the current
-		      ;; category, can't insert "here", so to be
-		      ;; useful give new item top priority.
-		      (when (or (todo-done-item-section-p)
-				called-from-outside
-				done-only)
-			(goto-char (point-min)))
-		      (todo-insert-with-overlays new-item))
+                    (todo-insert-with-overlays new-item)
 		  (todo-set-item-priority new-item cat t))
 		(setq item-added t))
 	    ;; If user cancels before setting priority, restore
@@ -2097,20 +2097,24 @@ the item at point."
 	      (setq todo-categories-with-marks
 		    (assq-delete-all cat todo-categories-with-marks)))
 	    (todo-update-categories-sexp)
-	    (todo-prefix-overlays)))
+	    (todo-prefix-overlays)
+            (when (and (zerop (todo-get-count 'diary))
+                       (save-excursion
+                         (goto-char (point-min))
+                         (re-search-forward
+                          (concat "^" (regexp-quote todo-category-done))
+			  nil t)))
+              (let (todo-show-with-done) (todo-category-select)))))
       (if ov (delete-overlay ov)))))
-
-(defvar todo-edit-item--param-key-alist)
-(defvar todo-edit-done-item--param-key-alist)
 
 (defun todo-edit-item (&optional arg)
   "Choose an editing operation for the current item and carry it out."
   (interactive "P")
   (let ((marked (assoc (todo-current-category) todo-categories-with-marks)))
     (cond ((and (todo-done-item-p) (not marked))
-	   (todo-edit-item--next-key todo-edit-done-item--param-key-alist))
+	   (todo-edit-item--next-key 'done arg))
 	  ((or marked (todo-item-string))
-	   (todo-edit-item--next-key todo-edit-item--param-key-alist arg)))))
+	   (todo-edit-item--next-key 'todo arg)))))
 
 (defun todo-edit-item--text (&optional arg)
   "Function providing the text editing facilities of `todo-edit-item'."
@@ -2233,7 +2237,8 @@ made in the number or names of categories."
 	  (insert item))
 	(kill-buffer)
 	(unless (eq (current-buffer) buf)
-	  (set-window-buffer (selected-window) (set-buffer buf))))
+	  (set-window-buffer (selected-window) (set-buffer buf)))
+        (if transient-mark-mode (deactivate-mark)))
     ;; We got here via `F e'.
     (when (todo-check-format)
       ;; FIXME: separate out sexp check?
@@ -2243,7 +2248,9 @@ made in the number or names of categories."
       ;; (todo-repair-categories-sexp)
       ;; Compare (todo-make-categories-list t) with sexp and if
       ;; different ask (todo-update-categories-sexp) ?
-      (todo-mode)
+      (if (equal (file-name-extension (buffer-file-name)) "toda")
+          (todo-archive-mode)
+        (todo-mode))
       (let* ((cat-beg (concat "^" (regexp-quote todo-category-beg)
 			      "\\(.*\\)$"))
 	     (curline (buffer-substring-no-properties
@@ -2340,7 +2347,7 @@ made in the number or names of categories."
 			    ((or (string= omonth "*") (= mm 13))
 			     (user-error "Cannot increment *"))
 			    (t
-			     (let ((mminc (+ mm inc)))
+			     (let ((mminc (+ mm inc (if (< inc 0) 12 0))))
 			       ;; Increment or decrement month by INC
 			       ;; modulo 12.
 			       (setq mm (% mminc 12))
@@ -2549,7 +2556,11 @@ whose value can be either of the symbols `raise' or `lower',
 meaning to raise or lower the item's priority by one."
   (interactive)
   (unless (and (or (called-interactively-p 'any) (memq arg '(raise lower)))
-	       (or (todo-done-item-p) (looking-at "^$")))
+               ;; Noop if point is not on a todo (i.e. not done) item.
+	       (or (todo-done-item-p) (looking-at "^$")
+                   ;; On done items separator.
+                   (save-excursion (beginning-of-line)
+                                   (looking-at todo-category-done))))
     (let* ((item (or item (todo-item-string)))
 	   (marked (todo-marked-item-p))
 	   (cat (or cat (cond ((eq major-mode 'todo-mode)
@@ -2697,9 +2708,13 @@ section in the category moved to."
   (interactive "P")
   (let* ((cat1 (todo-current-category))
 	 (marked (assoc cat1 todo-categories-with-marks)))
-    ;; Noop if point is not on an item and there are no marked items.
-    (unless (and (looking-at "^$")
-		 (not marked))
+    (unless
+        ;; Noop if point is not on an item and there are no marked items.
+        (and (or (looking-at "^$")
+                 ;; On done items separator.
+                 (save-excursion (beginning-of-line)
+                                 (looking-at todo-category-done)))
+             (not marked))
       (let* ((buffer-read-only)
 	     (file1 todo-current-todo-file)
 	     (item (todo-item-string))
@@ -2856,14 +2871,17 @@ visible."
   (let* ((cat (todo-current-category))
 	 (marked (assoc cat todo-categories-with-marks)))
     (when marked (todo--user-error-if-marked-done-item))
-    (unless (and (not marked)
-		 (or (todo-done-item-p)
-		     ;; Point is between todo and done items.
-		     (looking-at "^$")))
+    (unless
+        ;; Noop if point is not on a todo (i.e. not done) item and
+        ;; there are no marked items.
+        (and (or (todo-done-item-p) (looking-at "^$")
+                 ;; On done items separator.
+                 (save-excursion (beginning-of-line)
+                                 (looking-at todo-category-done)))
+             (not marked))
       (let* ((date-string (calendar-date-string (calendar-current-date) t t))
 	     (time-string (if todo-always-add-time-string
-			      (concat " " (substring (current-time-string)
-						     11 16))
+			      (format-time-string " %H:%M")
 			    ""))
 	     (done-prefix (concat "[" todo-done-string date-string time-string
 				  "] "))
@@ -3830,6 +3848,7 @@ face."
     (goto-char (point-min))
     (while (not (eobp))
       (setq match (re-search-forward regex nil t))
+      (if (and match transient-mark-mode) (deactivate-mark))
       (goto-char (line-beginning-position))
       (unless (or (equal (point) 1)
 		  (looking-at (concat "^" (regexp-quote todo-category-beg))))
@@ -4028,19 +4047,22 @@ regexp items."
   (interactive "P")
   (todo-filter-items 'regexp arg t))
 
+(defvar todo--fifiles-history nil
+  "List of short file names used by todo-find-filtered-items-file.")
+
 (defun todo-find-filtered-items-file ()
   "Choose a filtered items file and visit it."
   (interactive)
   (let ((files (directory-files todo-directory t "\\.tod[rty]$" t))
 	falist file)
     (dolist (f files)
-      (let ((type (cond ((equal (file-name-extension f) "todr") "regexp")
+      (let ((sf-name (todo-short-file-name f))
+            (type (cond ((equal (file-name-extension f) "todr") "regexp")
 			((equal (file-name-extension f) "todt") "top")
 			((equal (file-name-extension f) "tody") "diary"))))
-	(push (cons (concat (todo-short-file-name f) " (" type ")") f)
-	      falist)))
-    (setq file (completing-read "Choose a filtered items file: "
-				falist nil t nil nil (car falist)))
+	(push (cons (concat sf-name " (" type ")") f) falist)))
+    (setq file (completing-read "Choose a filtered items file: " falist nil t nil
+                                'todo--fifiles-history (caar falist)))
     (setq file (cdr (assoc-string file falist)))
     (find-file file)
     (unless (derived-mode-p 'todo-filtered-items-mode)
@@ -4050,25 +4072,27 @@ regexp items."
 (defun todo-go-to-source-item ()
   "Display the file and category of the filtered item at point."
   (interactive)
-  (let* ((str (todo-item-string))
-	 (buf (current-buffer))
-	 (res (todo-find-item str))
-	 (found (nth 0 res))
-	 (file (nth 1 res))
-	 (cat (nth 2 res)))
-    (if (not found)
-	(message "Category %s does not contain this item." cat)
-      (kill-buffer buf)
-      (set-window-buffer (selected-window)
-			 (set-buffer (find-buffer-visiting file)))
-      (setq todo-current-todo-file file)
-      (setq todo-category-number (todo-category-number cat))
-      (let ((todo-show-with-done (if (or todo-filter-done-items
-					  (eq (cdr found) 'done))
-				      t
-				    todo-show-with-done)))
-	(todo-category-select))
-      (goto-char (car found)))))
+  (unless (looking-at "^$")             ; Empty line at EOB.
+    (let* ((str (todo-item-string))
+           (buf (current-buffer))
+           (res (todo-find-item str))
+           (found (nth 0 res))
+           (file (nth 1 res))
+           (cat (nth 2 res)))
+      (if (not found)
+          (message "Category %s does not contain this item." cat)
+        (kill-buffer buf)
+        (set-window-buffer (selected-window)
+                           (set-buffer (find-buffer-visiting file)))
+        (setq todo-current-todo-file file)
+        (setq todo-category-number (todo-category-number cat))
+        (let ((todo-show-with-done (if (or todo-filter-done-items
+                                            (eq (cdr found) 'done))
+                                        t
+                                      todo-show-with-done)))
+          (todo-category-select))
+        (if transient-mark-mode (deactivate-mark))
+        (goto-char (car found))))))
 
 (defvar todo-multiple-filter-files nil
   "List of files selected from `todo-multiple-filter-files' widget.")
@@ -4520,8 +4544,11 @@ its priority has changed, and `same' otherwise."
 (defun todo-save-filtered-items-buffer ()
   "Save current Filtered Items buffer to a file.
 If the file already exists, overwrite it only on confirmation."
-  (let ((filename (or (buffer-file-name) (todo-filter-items-filename))))
-    (write-file filename t)))
+  (let ((filename (or (buffer-file-name) (todo-filter-items-filename)))
+        (bufname (buffer-name)))
+    (write-file filename t)
+    (setq buffer-read-only t)
+    (rename-buffer bufname)))
 
 ;; -----------------------------------------------------------------------------
 ;;; Printing Todo mode buffers
@@ -5076,7 +5103,7 @@ again."
 
 (defun todo-check-format ()
   "Signal an error if the current todo file is ill-formatted.
-Otherwise return t.  Display a message if the file is well-formed
+Otherwise return t.  Display a warning if the file is well-formed
 but the categories sexp differs from the current value of
 `todo-categories'."
   (save-excursion
@@ -5110,12 +5137,14 @@ but the categories sexp differs from the current value of
 	    (forward-line)))
 	;; Warn user if categories sexp has changed.
 	(unless (string= ssexp cats)
-	  (message (concat "The sexp at the beginning of the file differs "
-			   "from the value of `todo-categories'.\n"
-			   "If the sexp is wrong, you can fix it with "
-			   "M-x todo-repair-categories-sexp,\n"
-			   "but note this reverts any changes you have "
-			   "made in the order of the categories."))))))
+          (display-warning 'todo "\
+
+The sexp at the beginning of the file differs from the value of
+`todo-categories'. If the sexp is wrong, you can fix it with
+M-x todo-repair-categories-sexp, but note this reverts any
+changes you have made in the order of the categories.
+"
+                           )))))
   t)
 
 (defun todo-item-start ()
@@ -5132,6 +5161,8 @@ but the categories sexp differs from the current value of
 		      (forward-line)
 		      (looking-at (concat "^"
 					  (regexp-quote todo-category-done))))))
+           ;; Point is on done items separator.
+           (save-excursion (beginning-of-line) (looking-at todo-category-done))
 	   ;; Buffer is widened.
 	   (looking-at (regexp-quote todo-category-beg)))
     (goto-char (line-beginning-position))
@@ -5141,8 +5172,11 @@ but the categories sexp differs from the current value of
 
 (defun todo-item-end ()
   "Move to end of current todo item and return its position."
-  ;; Items cannot end with a blank line.
-  (unless (looking-at "^$")
+  (unless (or
+           ;; Items cannot end with a blank line.
+           (looking-at "^$")
+           ;; Point is on done items separator.
+           (save-excursion (beginning-of-line) (looking-at todo-category-done)))
     (let* ((done (todo-done-item-p))
 	   (to-lim nil)
 	   ;; For todo items, end is before the done items section, for done
@@ -5293,6 +5327,7 @@ Overrides `diary-goto-entry'."
                               nil t)
 	  (todo-category-number (match-string 1))
 	  (todo-category-select)
+          (if transient-mark-mode (deactivate-mark))
 	  (goto-char opoint))))))
 
 (add-function :override diary-goto-entry-function #'todo-diary-goto-entry)
@@ -5494,12 +5529,14 @@ of each other."
 ;;; Generating and applying item insertion and editing key sequences
 ;; -----------------------------------------------------------------------------
 
-;; Thanks to Stefan Monnier for suggesting dynamically generating item
-;; insertion commands and their key bindings, and offering an elegant
-;; implementation, which, however, relies on lexical scoping and so
-;; cannot be used here until the Calendar code used by todo-mode.el is
-;; converted to lexical binding.  Hence, the following implementation
-;; uses dynamic binding.
+;; Thanks to Stefan Monnier for (i) not only suggesting dynamically
+;; generating item insertion commands and their key bindings but also
+;; offering an elegant implementation which, however, since it used
+;; lexical binding, was at the time incompatible with the Calendar and
+;; Diary code in todo-mode.el; and (ii) later making that code
+;; compatible with lexical binding, so that his implementation, of
+;; which the following is a somewhat expanded version, could be
+;; realized in todo-mode.el.
 
 (defconst todo-insert-item--parameters
   '((default copy) (diary nonmarking) (calendar date dayname) time (here region))
@@ -5507,91 +5544,33 @@ of each other."
 Passed by `todo-insert-item' to `todo-insert-item--next-param' to
 dynamically create item insertion commands.")
 
-(defconst todo-insert-item--param-key-alist
-  '((default    . "i")
-    (copy       . "p")
-    (diary      . "y")
-    (nonmarking . "k")
-    (calendar   . "c")
-    (date       . "d")
-    (dayname    . "n")
-    (time       . "t")
-    (here       . "h")
-    (region     . "r"))
-  "List pairing item insertion parameters with their completion keys.")
-
-(defsubst todo-insert-item--keyof (param)
-  "Return key paired with item insertion PARAM."
-  (cdr (assoc param todo-insert-item--param-key-alist)))
-
-(defun todo-insert-item--argsleft (key list)
-  "Return sublist of LIST whose first member corresponds to KEY."
-  (let (l sym)
-    (mapc (lambda (m)
-	    (when (consp m)
-	      (catch 'found1
-		(dolist (s m)
-		  (when (equal key (todo-insert-item--keyof s))
-		    (throw 'found1 (setq sym s))))))
-	    (if sym
-		(progn
-		  (push sym l)
-		  (setq sym nil))
-	      (push m l)))
-	  list)
-    (setq list (reverse l)))
-  (memq (catch 'found2
-	  (dolist (e todo-insert-item--param-key-alist)
-	    (when (equal key (cdr e))
-	      (throw 'found2 (car e)))))
-	list))
-
-(defsubst todo-insert-item--this-key () (char-to-string last-command-event))
-
-(defvar todo-insert-item--keys-so-far ""
-  "String of item insertion keys so far entered for this command.")
-
-(defvar todo-insert-item--args nil)
-(defvar todo-insert-item--argleft nil)
-(defvar todo-insert-item--argsleft nil)
-(defvar todo-insert-item--newargsleft nil)
-
-(defun todo-insert-item--apply-args ()
-  "Build list of arguments for item insertion and apply them.
-The list consists of item insertion parameters that can be passed
-as insertion command arguments in fixed positions.  If a position
-in the list is not occupied by the corresponding parameter, it is
-occupied by nil."
-  (let* ((arg (list (car todo-insert-item--args)))
-	 (args (nconc (cdr todo-insert-item--args)
-		      (list (car (todo-insert-item--argsleft
-				  (todo-insert-item--this-key)
-				  todo-insert-item--argsleft)))))
-	 (arglist (if (= 4 (length args))
-		      args
-		    (let ((v (make-vector 4 nil)) elt)
-		      (while args
-			(setq elt (pop args))
-			(cond ((memq elt '(diary nonmarking))
-			       (aset v 0 elt))
-			      ((memq elt '(calendar date dayname))
-			       (aset v 1 elt))
-			      ((eq elt 'time)
-			       (aset v 2 elt))
-			      ((memq elt '(copy here region))
-			       (aset v 3 elt))))
-		      (append v nil)))))
-    (apply #'todo-insert-item--basic (nconc arg arglist))))
-
-(defun todo-insert-item--next-param (last args argsleft)
-  "Build item insertion command from LAST, ARGS and ARGSLEFT and call it.
-Dynamically generate key bindings, prompting with the keys
-already entered and those still available."
-  (cl-assert argsleft)
+(defun todo-insert-item--next-param (args params last keys-so-far)
+  "Generate and invoke an item insertion command.
+Dynamically generate the command, its arguments ARGS and its key
+binding by recursing through the list of parameters PARAMS,
+taking the LAST from a sublist and prompting with KEYS-SO-FAR
+keys already entered and those still available."
+  (cl-assert params)
   (let* ((map (make-sparse-keymap))
+         (param-key-alist '((default    . "i")
+                            (copy       . "p")
+                            (diary      . "y")
+                            (nonmarking . "k")
+                            (calendar   . "c")
+                            (date       . "d")
+                            (dayname    . "n")
+                            (time       . "t")
+                            (here       . "h")
+                            (region     . "r")))
+         ;; Return key paired with given item insertion parameter.
+         (key-of (lambda (param) (cdr (assoc param param-key-alist))))
+         ;; The key just typed.
+         (this-key (lambda () (char-to-string last-command-event)))
          (prompt nil)
-         (addprompt
-	  (lambda (k name)
+         ;; Add successively entered keys to the prompt and show what
+         ;; possibilities remain.
+         (add-to-prompt
+	  (lambda (key name)
 	    (setq prompt
 		  (concat prompt
 			  (format
@@ -5601,80 +5580,119 @@ already entered and those still available."
 			    "%s=>%s"
 			    (when (memq name '(copy nonmarking dayname region))
 			      " }"))
-			   (propertize k 'face 'todo-key-prompt)
-			   name))))))
-    (setq todo-insert-item--args args)
-    (setq todo-insert-item--argsleft argsleft)
+			   (propertize key 'face 'todo-key-prompt)
+			   name)))))
+         ;; Return the sublist of the given list of parameters whose
+         ;; first member is paired with the given key.
+         (get-params
+          (lambda (key lst)
+            (setq lst (if (consp lst) lst (list lst)))
+            (let (l sym)
+              (mapc (lambda (m)
+                      (when (consp m)
+                        (catch 'found1
+                          (dolist (s m)
+                            (when (equal key (funcall key-of s))
+                              (throw 'found1 (setq sym s))))))
+                      (if sym
+                          (progn
+                            (push sym l)
+                            (setq sym nil))
+                        (push m l)))
+                    lst)
+              (setq lst (reverse l)))
+            (memq (catch 'found2
+                    (dolist (e param-key-alist)
+                      (when (equal key (cdr e))
+                        (throw 'found2 (car e)))))
+                  lst)))
+         ;; Build list of arguments for item insertion and then
+         ;; execute the basic insertion function. The list consists of
+         ;; item insertion parameters that can be passed as insertion
+         ;; command arguments in fixed positions.  If a position in
+         ;; the list is not occupied by the corresponding parameter,
+         ;; it is occupied by nil.
+         (gen-and-exec
+          (lambda ()
+            (let* ((arg (list (car args))) ; Possible prefix argument.
+	           (rest (nconc (cdr args)
+	                        (list (car (funcall get-params
+                                                    (funcall this-key)
+                                                    params)))))
+	           (parlist (if (= 4 (length rest))
+                                rest
+                              (let ((v (make-vector 4 nil)) elt)
+                                (while rest
+                                  (setq elt (pop rest))
+                                  (cond ((memq elt '(diary nonmarking))
+                                         (aset v 0 elt))
+                                        ((memq elt '(calendar date dayname))
+                                         (aset v 1 elt))
+                                        ((eq elt 'time)
+                                         (aset v 2 elt))
+                                        ((memq elt '(copy here region))
+                                         (aset v 3 elt))))
+                                (append v nil)))))
+              (apply #'todo-insert-item--basic (nconc arg parlist)))))
+         ;; Operate on a copy of the parameter list so the original is
+         ;; not consumed, thus available for the next key typed.
+         (params0 params))
     (when last
       (if (memq last '(default copy))
 	  (progn
-	    (setq todo-insert-item--argsleft nil)
-	    (todo-insert-item--apply-args))
-	(let ((k (todo-insert-item--keyof last)))
-	  (funcall addprompt k (make-symbol (concat (symbol-name last) ":GO!")))
-	  (define-key map (todo-insert-item--keyof last)
+	    (setq params0 nil)
+            (funcall gen-and-exec))
+        (let ((key (funcall key-of last)))
+	  (funcall add-to-prompt key (make-symbol
+                                      (concat (symbol-name last) ":GO!")))
+	  (define-key map (funcall key-of last)
 	    (lambda () (interactive)
-	      (todo-insert-item--apply-args))))))
-    (while todo-insert-item--argsleft
-      (let ((x (car todo-insert-item--argsleft)))
-	(setq todo-insert-item--newargsleft (cdr todo-insert-item--argsleft))
-        (dolist (argleft (if (consp x) x (list x)))
-	  (let ((k (todo-insert-item--keyof argleft)))
-	    (funcall addprompt k argleft)
-	    (define-key map k
-	      (if (null todo-insert-item--newargsleft)
-		  (lambda () (interactive)
-		    (todo-insert-item--apply-args))
-		(lambda () (interactive)
-		  (setq todo-insert-item--keys-so-far
-			(concat todo-insert-item--keys-so-far " "
-				(todo-insert-item--this-key)))
-		  (todo-insert-item--next-param
-		   (car (todo-insert-item--argsleft
-			 (todo-insert-item--this-key)
-			 todo-insert-item--argsleft))
-		   (nconc todo-insert-item--args
-			  (list (car (todo-insert-item--argsleft
-				      (todo-insert-item--this-key)
-				      todo-insert-item--argsleft))))
-		   (cdr (todo-insert-item--argsleft
-			 (todo-insert-item--this-key)
-			 todo-insert-item--argsleft)))))))))
-      (setq todo-insert-item--argsleft todo-insert-item--newargsleft))
-    (when prompt (message "Press a key (so far `%s'): %s"
-			  todo-insert-item--keys-so-far prompt))
+	      (funcall gen-and-exec))))))
+    (while params0
+      (let* ((x (car params0))
+             (restparams (cdr params0)))
+        (dolist (param (if (consp x) x (list x)))
+          (let ((key (funcall key-of param)))
+            (funcall add-to-prompt key param)
+            (define-key map key
+              (if (null restparams)
+                  (lambda () (interactive)
+                    (funcall gen-and-exec))
+                (lambda () (interactive)
+                  (setq keys-so-far (concat keys-so-far " " (funcall this-key)))
+                  (todo-insert-item--next-param
+                   (nconc args (list (car (funcall get-params
+                                                   (funcall this-key) param))))
+                   (cdr (funcall get-params (funcall this-key) params))
+                   (car (funcall get-params (funcall this-key) param))
+                   keys-so-far))))))
+        (setq params0 restparams)))
     (set-transient-map map)
-    (setq todo-insert-item--argsleft argsleft)))
+    (when prompt (message "Press a key (so far `%s'): %s" keys-so-far prompt))
+    (setq params0 params)))
 
-(defconst todo-edit-item--param-key-alist
-  '((edit       . "e")
-    (header     . "h")
-    (multiline  . "m")
-    (diary      . "y")
-    (nonmarking . "k")
-    (date       . "d")
-    (time       . "t"))
-  "Alist of item editing parameters and their keys.")
-
-(defconst todo-edit-item--date-param-key-alist
-  '((full       . "f")
-    (calendar   . "c")
-    (today      . "a")
-    (dayname    . "n")
-    (year       . "y")
-    (month      . "m")
-    (daynum     . "d"))
-  "Alist of item date editing parameters and their keys.")
-
-(defconst todo-edit-done-item--param-key-alist
-  '((add/edit   . "c")
-    (delete     . "d"))
-  "Alist of done item comment editing parameters and their keys.")
-
-(defvar	todo-edit-item--prompt "Press a key (so far `e'): ")
-
-(defun todo-edit-item--next-key (params &optional arg)
-  (let* ((p->k (mapconcat (lambda (elt)
+(defun todo-edit-item--next-key (type &optional arg)
+  (let* ((todo-param-key-alist '((edit       . "e")
+                                 (header     . "h")
+                                 (multiline  . "m")
+                                 (diary      . "y")
+                                 (nonmarking . "k")
+                                 (date       . "d")
+                                 (time       . "t")))
+         (done-param-key-alist '((add/edit   . "c")
+                                 (delete     . "d")))
+         (date-param-key-alist '((full       . "f")
+                                 (calendar   . "c")
+                                 (today      . "a")
+                                 (dayname    . "n")
+                                 (year       . "y")
+                                 (month      . "m")
+                                 (daynum     . "d")))
+         (params (pcase type
+                   ('todo todo-param-key-alist)
+                   ('done done-param-key-alist)
+                   ('date date-param-key-alist)))
+         (p->k (mapconcat (lambda (elt)
 			    (format "%s=>%s"
 				    (propertize (cdr elt) 'face
 						'todo-key-prompt)
@@ -5683,31 +5701,32 @@ already entered and those still available."
 							'(add/edit delete))
 					      " comment"))))
 			  params " "))
-	 (key-prompt (substitute-command-keys todo-edit-item--prompt))
+	 (key-prompt (substitute-command-keys
+                      (concat "Press a key (so far `e"
+                              (if (eq type 'date) " d" "")
+                              "'): ")))
 	 (this-key (let ((key (read-key (concat key-prompt p->k))))
 		     (and (characterp key) (char-to-string key))))
 	 (this-param (car (rassoc this-key params))))
     (pcase this-param
-      (`edit (todo-edit-item--text))
-      (`header (todo-edit-item--text 'include-header))
-      (`multiline (todo-edit-item--text 'multiline))
-      (`add/edit (todo-edit-item--text 'comment-edit))
-      (`delete (todo-edit-item--text 'comment-delete))
-      (`diary (todo-edit-item--diary-inclusion))
-      (`nonmarking (todo-edit-item--diary-inclusion 'nonmarking))
-      (`date (let ((todo-edit-item--prompt "Press a key (so far `e d'): "))
-	       (todo-edit-item--next-key
-		todo-edit-item--date-param-key-alist arg)))
-      (`full (progn (todo-edit-item--header 'date)
+      ('edit (todo-edit-item--text))
+      ('header (todo-edit-item--text 'include-header))
+      ('multiline (todo-edit-item--text 'multiline))
+      ('add/edit (todo-edit-item--text 'comment-edit))
+      ('delete (todo-edit-item--text 'comment-delete))
+      ('diary (todo-edit-item--diary-inclusion))
+      ('nonmarking (todo-edit-item--diary-inclusion 'nonmarking))
+      ('date (todo-edit-item--next-key 'date arg))
+      ('full (progn (todo-edit-item--header 'date)
 		    (when todo-always-add-time-string
 		      (todo-edit-item--header 'time))))
-      (`calendar (todo-edit-item--header 'calendar))
-      (`today (todo-edit-item--header 'today))
-      (`dayname (todo-edit-item--header 'dayname))
-      (`year (todo-edit-item--header 'year arg))
-      (`month (todo-edit-item--header 'month arg))
-      (`daynum (todo-edit-item--header 'day arg))
-      (`time (todo-edit-item--header 'time)))))
+      ('calendar (todo-edit-item--header 'calendar))
+      ('today (todo-edit-item--header 'today))
+      ('dayname (todo-edit-item--header 'dayname))
+      ('year (todo-edit-item--header 'year arg))
+      ('month (todo-edit-item--header 'month arg))
+      ('daynum (todo-edit-item--header 'day arg))
+      ('time (todo-edit-item--header 'time)))))
 
 ;; -----------------------------------------------------------------------------
 ;;; Todo minibuffer utilities
@@ -6071,7 +6090,7 @@ the empty string (i.e., no time string)."
     (while (not valid)
       (setq answer (read-string "Enter a clock time: " nil nil
 				(when todo-always-add-time-string
-				  (substring (current-time-string) 11 16))))
+				  (format-time-string "%H:%M"))))
       (when (or (string= "" answer)
 		(string-match diary-time-regexp answer))
 	(setq valid t)))
@@ -6369,8 +6388,7 @@ Filtered Items mode following todo (not done) items."
 ;; -----------------------------------------------------------------------------
 
 (defvar todo-key-bindings-t
-  `(
-    ("Af"	     todo-find-archive)
+  '(("Af"	     todo-find-archive)
     ("Ac"	     todo-choose-archive)
     ("Ad"	     todo-archive-done-item)
     ("Cv"	     todo-toggle-view-done-items)
@@ -6401,13 +6419,11 @@ Filtered Items mode following todo (not done) items."
     ("k"	     todo-delete-item)
     ("m"	     todo-move-item)
     ("u"	     todo-item-undone)
-    ([remap newline] newline-and-indent)
-   )
+    ([remap newline] newline-and-indent))
   "List of key bindings for Todo mode only.")
 
 (defvar todo-key-bindings-t+a+f
-  `(
-    ("C*" todo-mark-category)
+  '(("C*" todo-mark-category)
     ("Cu" todo-unmark-category)
     ("Fh" todo-toggle-item-header)
     ("h"  todo-toggle-item-header)
@@ -6419,33 +6435,27 @@ Filtered Items mode following todo (not done) items."
     ("N"  todo-toggle-prefix-numbers)
     ("PB" todo-print-buffer)
     ("PF" todo-print-buffer-to-file)
-    ("b"  todo-backward-category)
-    ("d"  todo-item-done)
-    ("f"  todo-forward-category)
     ("j"  todo-jump-to-category)
     ("n"  todo-next-item)
     ("p"  todo-previous-item)
     ("q"  todo-quit)
     ("s"  todo-save)
-    ("t"  todo-show)
-   )
+    ("t"  todo-show))
   "List of key bindings for Todo, Archive, and Filtered Items modes.")
 
 (defvar todo-key-bindings-t+a
-  `(
-    ("Fc" todo-show-categories-table)
+  '(("Fc" todo-show-categories-table)
     ("S"  todo-search)
     ("X"  todo-clear-matches)
-    ("*"  todo-toggle-mark-item)
-   )
+    ("b"  todo-backward-category)
+    ("f"  todo-forward-category)
+    ("*"  todo-toggle-mark-item))
   "List of key bindings for Todo and Todo Archive modes.")
 
 (defvar todo-key-bindings-t+f
-  `(
-    ("l" todo-lower-item-priority)
+  '(("l" todo-lower-item-priority)
     ("r" todo-raise-item-priority)
-    ("#" todo-set-item-priority)
-   )
+    ("#" todo-set-item-priority))
   "List of key bindings for Todo and Todo Filtered Items modes.")
 
 (defvar todo-mode-map
@@ -6704,32 +6714,19 @@ Added to `window-configuration-change-hook' in Todo mode."
   (setq-local todo-current-todo-file (file-truename (buffer-file-name)))
   (setq-local todo-show-done-only t))
 
-(defun todo-mode-external-set ()
-  "Set `todo-categories' externally to `todo-current-todo-file'."
-  (setq-local todo-current-todo-file todo-global-current-todo-file)
-  (let ((cats (with-current-buffer
-		  ;; Can't use find-buffer-visiting when
-		  ;; `todo-show-categories-table' is called on first
-		  ;; invocation of `todo-show', since there is then
-		  ;; no buffer visiting the current file.
-		  (find-file-noselect todo-current-todo-file 'nowarn)
-		(or todo-categories
-		    ;; In Todo Edit mode todo-categories is now nil
-		    ;; since it uses same buffer as Todo mode but
-		    ;; doesn't have the latter's local variables.
-		    (save-excursion
-		      (goto-char (point-min))
-		      (read (buffer-substring-no-properties
-			     (line-beginning-position)
-			     (line-end-position))))))))
-    (setq-local todo-categories cats)))
-
 (define-derived-mode todo-edit-mode text-mode "Todo-Ed"
   "Major mode for editing multiline todo items.
 
 \\{todo-edit-mode-map}"
   (todo-modes-set-1)
-  (todo-mode-external-set)
+  (if (> (buffer-size) (- (point-max) (point-min)))
+      ;; Editing one item in an indirect buffer, so buffer-file-name is nil.
+      (setq-local todo-current-todo-file todo-global-current-todo-file)
+    ;; When editing archive file, make sure it is current todo file.
+    (setq-local todo-current-todo-file (file-truename (buffer-file-name)))
+    ;; Need this when editing the whole file to return to the category
+    ;; editing was invoked from.
+    (setq-local todo-categories (todo-set-categories)))
   (setq buffer-read-only nil))
 
 (put 'todo-categories-mode 'mode-class 'special)
@@ -6738,7 +6735,15 @@ Added to `window-configuration-change-hook' in Todo mode."
   "Major mode for displaying and editing todo categories.
 
 \\{todo-categories-mode-map}"
-  (todo-mode-external-set))
+  (setq-local todo-current-todo-file todo-global-current-todo-file)
+  (setq-local todo-categories
+	      ;; Can't use find-buffer-visiting when
+	      ;; `todo-show-categories-table' is called on first
+	      ;; invocation of `todo-show', since there is then no
+	      ;; buffer visiting the current file.
+              (with-current-buffer (find-file-noselect
+                                    todo-current-todo-file 'nowarn)
+                todo-categories)))
 
 (put 'todo-filtered-items-mode 'mode-class 'special)
 

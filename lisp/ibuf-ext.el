@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -114,7 +114,7 @@ Buffers whose name matches a regexp in this list, are not searched."
   "A list of major modes ignored by `ibuffer-mark-by-content-regexp'.
 Buffers whose major mode is in this list, are not searched."
   :version "26.1"
-  :type '(repeat regexp)
+  :type '(repeat (symbol :tag "Major mode"))
   :require 'ibuf-ext
   :group 'ibuffer)
 
@@ -403,10 +403,7 @@ format. See `ibuffer-update-saved-filters-format' and
 
 ;;;###autoload
 (define-minor-mode ibuffer-auto-mode
-  "Toggle use of Ibuffer's auto-update facility (Ibuffer Auto mode).
-With a prefix argument ARG, enable Ibuffer Auto mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  "Toggle use of Ibuffer's auto-update facility (Ibuffer Auto mode)."
   nil nil nil
   (unless (derived-mode-p 'ibuffer-mode)
     (error "This buffer is not in Ibuffer mode"))
@@ -726,7 +723,7 @@ specification, with the same structure as an element of the list
   (not
    (not
     (pcase (car filter)
-      (`or
+      ('or
        ;;; ATTN: Short-circuiting alternative with parallel structure w/`and
        ;;(catch 'has-match
        ;;  (dolist (filter-spec (cdr filter) nil)
@@ -735,12 +732,12 @@ specification, with the same structure as an element of the list
        (memq t (mapcar #'(lambda (x)
                            (ibuffer-included-in-filter-p buf x))
                        (cdr filter))))
-      (`and
+      ('and
        (catch 'no-match
          (dolist (filter-spec (cdr filter) t)
            (unless (ibuffer-included-in-filter-p buf filter-spec)
              (throw 'no-match nil)))))
-      (`saved
+      ('saved
        (let ((data (assoc (cdr filter) ibuffer-saved-filters)))
 	 (unless data
 	   (ibuffer-filter-disable t)
@@ -1054,14 +1051,14 @@ turned into separate filters, like [name: foo] and [mode: bar-mode]."
          (tail (cdr filters))
          (value
           (pcase (caar filters)
-            ((or `or 'and) (nconc head tail))
-            (`saved
+            ((or 'or 'and) (nconc head tail))
+            ('saved
              (let ((data (assoc head ibuffer-saved-filters)))
                (unless data
                  (ibuffer-filter-disable)
                  (error "Unknown saved filter %s" head))
                (append (cdr data) tail)))
-            (`not (cons (ibuffer-unary-operand (car filters)) tail))
+            ('not (cons (ibuffer-unary-operand (car filters)) tail))
             (_
              (error "Filter type %s is not compound" (caar filters))))))
     (setq ibuffer-filtering-qualifiers value))
@@ -1200,12 +1197,12 @@ Interactively, prompt for NAME, and use the current filters."
 
 (defun ibuffer-format-qualifier-1 (qualifier)
   (pcase (car qualifier)
-    (`saved
+    ('saved
      (concat " [filter: " (cdr qualifier) "]"))
-    (`or
+    ('or
      (concat " [OR" (mapconcat #'ibuffer-format-qualifier
                                (cdr qualifier) "") "]"))
-    (`and
+    ('and
      (concat " [AND" (mapconcat #'ibuffer-format-qualifier
                                 (cdr qualifier) "") "]"))
     (_
@@ -1231,28 +1228,33 @@ If INCLUDE-PARENTS is non-nil then include parent modes."
 
 ;;;###autoload (autoload 'ibuffer-filter-by-mode "ibuf-ext")
 (define-ibuffer-filter mode
-  "Limit current view to buffers with major mode QUALIFIER."
+    "Limit current view to buffers with major mode(s) specified by QUALIFIER.
+QUALIFIER is the mode name as a symbol or a list of symbols.
+Called interactively, accept a comma separated list of mode names."
   (:description "major mode"
    :reader
    (let* ((buf (ibuffer-current-buffer))
           (default (if (and buf (buffer-live-p buf))
                        (symbol-name (buffer-local-value
                                      'major-mode buf)))))
-     (intern
-      (completing-read
+     (mapcar #'intern
+      (completing-read-multiple
        (if default
            (format "Filter by major mode (default %s): " default)
          "Filter by major mode: ")
        obarray
-       #'(lambda (e)
-           (string-match "-mode\\'" (symbol-name e)))
-       t nil nil default))))
+       (lambda (e)
+           (string-match "-mode\\'" (if (symbolp e) (symbol-name e) e)))
+       t nil nil default)))
+   :accept-list t)
   (eq qualifier (buffer-local-value 'major-mode buf)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-used-mode "ibuf-ext")
 (define-ibuffer-filter used-mode
-  "Limit current view to buffers with major mode QUALIFIER.
-Called interactively, this function allows selection of modes
+    "Limit current view to buffers with major mode(s) specified by QUALIFIER.
+QUALIFIER is the mode name as a symbol or a list of symbols.
+
+Called interactively, accept a comma separated list of mode names
 currently used by buffers."
   (:description "major mode in use"
    :reader
@@ -1260,23 +1262,29 @@ currently used by buffers."
           (default (if (and buf (buffer-live-p buf))
                        (symbol-name (buffer-local-value
                                      'major-mode buf)))))
-     (intern
-      (completing-read
+     (mapcar #'intern
+      (completing-read-multiple
        (if default
            (format "Filter by major mode (default %s): " default)
          "Filter by major mode: ")
-       (ibuffer-list-buffer-modes) nil t nil nil default))))
+       (ibuffer-list-buffer-modes) nil t nil nil default)))
+   :accept-list t)
   (eq qualifier (buffer-local-value 'major-mode buf)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-derived-mode "ibuf-ext")
 (define-ibuffer-filter derived-mode
-    "Limit current view to buffers whose major mode inherits from QUALIFIER."
+    "Limit current view to buffers with major mode(s) specified by QUALIFIER.
+QUALIFIER is the mode name as a symbol or a list of symbols.
+ Restrict the view to buffers whose major mode derivates
+ from modes specified by QUALIFIER.
+Called interactively, accept a comma separated list of mode names."
   (:description "derived mode"
-		:reader
-		(intern
-		 (completing-read "Filter by derived mode: "
-				  (ibuffer-list-buffer-modes t)
-                                  nil t)))
+        :reader
+        (mapcar #'intern
+         (completing-read-multiple "Filter by derived mode: "
+                       (ibuffer-list-buffer-modes t)
+                       nil t))
+        :accept-list t)
   (with-current-buffer buf (derived-mode-p qualifier)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-name "ibuf-ext")

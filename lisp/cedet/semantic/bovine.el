@@ -1,6 +1,6 @@
 ;;; semantic/bovine.el --- LL Parser/Analyzer core.
 
-;; Copyright (C) 1999-2004, 2006-2007, 2009-2018 Free Software
+;; Copyright (C) 1999-2004, 2006-2007, 2009-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
@@ -72,7 +72,7 @@ The return list is a lambda expression to be used in a bovine table."
   "Return the current nonterminal symbol.
 Part of the grammar source debugger.  Depends on the existing
 environment of `semantic-bovinate-stream'."
-  `(if nt-stack
+  '(if nt-stack
        (car (aref (car nt-stack) 2))
      nonterminal))
 

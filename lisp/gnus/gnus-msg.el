@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'message)
@@ -393,6 +393,7 @@ Thank you for your help in stamping out bugs.
   "N" gnus-summary-followup-to-mail-with-original
   "m" gnus-summary-mail-other-window
   "u" gnus-uu-post-news
+  "A" gnus-summary-attach-article
   "\M-c" gnus-summary-mail-crosspost-complaint
   "Br" gnus-summary-reply-broken-reply-to
   "BR" gnus-summary-reply-broken-reply-to-with-original
@@ -535,7 +536,7 @@ instead."
       (progn
 	(message "Gnus not running; using plain Message mode")
 	(message-mail to subject other-headers continue
-		      nil yank-action send-actions return-action))
+                      switch-action yank-action send-actions return-action))
     (let ((buf (current-buffer))
 	  ;; Don't use posting styles corresponding to any existing group.
 	  (group-name gnus-newsgroup-name)
@@ -1037,7 +1038,7 @@ header line with the old Message-ID."
 	  (gnus-inews-yank-articles yank))))))
 
 (defun gnus-msg-treat-broken-reply-to (&optional force)
-  "Remove the Reply-to header if broken-reply-to."
+  "Remove the Reply-To header if broken-reply-to."
   (when (or force
 	    (gnus-group-find-parameter
 	     gnus-newsgroup-name 'broken-reply-to))
@@ -1113,11 +1114,11 @@ If SILENT, don't prompt the user."
      ((and (eq gnus-post-method 'current)
 	   (not (memq (car group-method) gnus-discouraged-post-methods))
 	   (gnus-get-function group-method 'request-post t))
-      (assert (not arg))
+      (cl-assert (not arg))
       group-method)
      ;; Use gnus-post-method.
      ((listp gnus-post-method)		;A method...
-      (assert (not (listp (car gnus-post-method)))) ;... not a list of methods.
+      (cl-assert (not (listp (car gnus-post-method)))) ;... not a list of methods.
       gnus-post-method)
      ;; Use the normal select method (nil or native).
      (t gnus-select-method))))
@@ -1482,7 +1483,7 @@ See `gnus-summary-mail-forward' for ARG."
 		   (not (member group (message-tokenize-header
 				       followup-to ", ")))))
 	  (if followup-to
-	      (gnus-message 1 "Followup-to restricted")
+	      (gnus-message 1 "Followup-To restricted")
 	    (gnus-message 1 "Not a crossposted article"))
 	(set-buffer gnus-summary-buffer)
 	(gnus-summary-reply-with-original 1)
@@ -1541,7 +1542,7 @@ If YANK is non-nil, include the original article."
                        (X-Debbugs-Version
                         . ,(format "%s" (gnus-continuum-version))))))
     (when gnus-bug-create-help-buffer
-      (push `(gnus-bug-kill-buffer) message-send-actions))
+      (push '(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
     (message-goto-body)
     (insert "\n\n\n\n\n")
@@ -1999,6 +2000,36 @@ this is a reply."
 			 (message-goto-eoh)
 			 (insert "From: " (message-make-from) "\n"))))
 		  nil 'local)))))
+
+(defun gnus-summary-attach-article (n)
+  "Attach the current article(s) to an outgoing Message buffer.
+If any current in-progress Message buffers exist, the articles
+can be attached to them.  If not, a new Message buffer is
+created.
+
+This command uses the process/prefix convention, so if you
+process-mark several articles, they will all be attached."
+  (interactive "P")
+  (let ((buffers (message-buffers))
+	destination)
+    ;; Set up the destination mail composition buffer.
+    (if (and buffers
+	     (y-or-n-p "Attach files to existing mail composition buffer? "))
+	(setq destination
+	      (if (= (length buffers) 1)
+		  (get-buffer (car buffers))
+		(gnus-completing-read "Attach to buffer"
+                                      buffers t nil nil (car buffers))))
+      (gnus-summary-mail-other-window)
+      (setq destination (current-buffer)))
+    (gnus-summary-iterate n
+      (gnus-summary-select-article)
+      (set-buffer destination)
+      ;; Attach at the end of the buffer.
+      (save-excursion
+	(goto-char (point-max))
+	(message-forward-make-body-mime gnus-original-article-buffer)))
+    (gnus-configure-windows 'message t)))
 
 (provide 'gnus-msg)
 

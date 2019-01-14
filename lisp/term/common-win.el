@@ -1,6 +1,6 @@
 ;;; common-win.el --- common part of handling window systems
 
-;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: terminals
@@ -59,20 +59,20 @@
 	(setq system-key-alist
 	      (list
 	       ;; These are special "keys" used to pass events from C to lisp.
-	       (cons (logior (lsh 0 16)   1) 'ns-power-off)
-	       (cons (logior (lsh 0 16)   2) 'ns-open-file)
-	       (cons (logior (lsh 0 16)   3) 'ns-open-temp-file)
-	       (cons (logior (lsh 0 16)   4) 'ns-drag-file)
-	       (cons (logior (lsh 0 16)   5) 'ns-drag-color)
-	       (cons (logior (lsh 0 16)   6) 'ns-drag-text)
-	       (cons (logior (lsh 0 16)   7) 'ns-change-font)
-	       (cons (logior (lsh 0 16)   8) 'ns-open-file-line)
-;;;	       (cons (logior (lsh 0 16)   9) 'ns-insert-working-text)
-;;;	       (cons (logior (lsh 0 16)  10) 'ns-delete-working-text)
-	       (cons (logior (lsh 0 16)  11) 'ns-spi-service-call)
-	       (cons (logior (lsh 0 16)  12) 'ns-new-frame)
-	       (cons (logior (lsh 0 16)  13) 'ns-toggle-toolbar)
-	       (cons (logior (lsh 0 16)  14) 'ns-show-prefs)
+	       (cons  1 'ns-power-off)
+	       (cons  2 'ns-open-file)
+	       (cons  3 'ns-open-temp-file)
+	       (cons  4 'ns-drag-file)
+	       (cons  5 'ns-drag-color)
+	       (cons  6 'ns-drag-text)
+	       (cons  7 'ns-change-font)
+	       (cons  8 'ns-open-file-line)
+;;;	       (cons  9 'ns-insert-working-text)
+;;;	       (cons 10 'ns-delete-working-text)
+	       (cons 11 'ns-spi-service-call)
+	       (cons 12 'ns-new-frame)
+	       (cons 13 'ns-toggle-toolbar)
+	       (cons 14 'ns-show-prefs)
 	       ))))
     (set-terminal-parameter frame 'x-setup-function-keys t)))
 

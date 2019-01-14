@@ -1,6 +1,6 @@
 ;;; dirtrack.el --- Directory Tracking by watching the prompt
 
-;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
@@ -184,9 +184,6 @@ and ends with a forward slash."
 ;;;###autoload
 (define-minor-mode dirtrack-mode
   "Toggle directory tracking in shell buffers (Dirtrack mode).
-With a prefix argument ARG, enable Dirtrack mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 This method requires that your shell prompt contain the current
 working directory at all times, and that you set the variable
@@ -205,10 +202,7 @@ directory."
   "23.1")
 (define-obsolete-variable-alias 'dirtrack-debug 'dirtrack-debug-mode "23.1")
 (define-minor-mode dirtrack-debug-mode
-  "Toggle Dirtrack debugging.
-With a prefix argument ARG, enable Dirtrack debugging if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  "Toggle Dirtrack debugging."
   nil nil nil
   (if dirtrack-debug-mode
       (display-buffer (get-buffer-create dirtrack-debug-buffer))))

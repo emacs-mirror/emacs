@@ -1,5 +1,5 @@
 /* The emacs frame widget.
-   Copyright (C) 1992-1993, 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -282,7 +282,7 @@ set_frame_size (EmacsFrame ew)
 
   frame_size_history_add
     (f, Qset_frame_size, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
-     list2 (make_number (ew->core.width), make_number (ew->core.height)));
+     list2 (make_fixnum (ew->core.width), make_fixnum (ew->core.height)));
 }
 
 static void
@@ -421,10 +421,10 @@ EmacsFrameResize (Widget widget)
 
   frame_size_history_add
     (f, QEmacsFrameResize, width, height,
-     list5 (make_number (ew->core.width), make_number (ew->core.height),
-	    make_number (FRAME_TOP_MARGIN_HEIGHT (f)),
-	    make_number (FRAME_SCROLL_BAR_AREA_HEIGHT (f)),
-	    make_number (2 * FRAME_INTERNAL_BORDER_WIDTH (f))));
+     list5 (make_fixnum (ew->core.width), make_fixnum (ew->core.height),
+	    make_fixnum (FRAME_TOP_MARGIN_HEIGHT (f)),
+	    make_fixnum (FRAME_SCROLL_BAR_AREA_HEIGHT (f)),
+	    make_fixnum (2 * FRAME_INTERNAL_BORDER_WIDTH (f))));
 
   change_frame_size (f, width, height, 0, 1, 0, 1);
 

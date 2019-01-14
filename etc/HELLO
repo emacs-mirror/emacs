@@ -1,99 +1,127 @@
+Content-Type: text/enriched
+Text-Width: 70
+
 This is a list of ways to say hello in various languages.
 It is not intended to be comprehensive, but to demonstrate
 some of the character sets that Emacs supports.
 
+
 Non-ASCII examples:
-  Europe: ,A!(BHola!, Gr,A|_(B Gott, Hyv,Add(B p,Ad(Biv,Add(B, Tere ,Au(Bhtust, Bon,Cu(Bu
-          Cze,B6f(B!, Dobr,B}(B den, ,L7T`PRabRcYbU(B!, ,FCei\(B ,Fsar(B, $,1J2J0J;J0J@JOJ=J1J0(B
-  Africa: $(3!A!,!>(B
-  Middle/Near East: ,Hylem(B, $,1-g.$-s.1.$-g.%(B $,1-y.$.*.#.%(B
-  South Asia: $,19h9n9x:-9d:'(B, $,15h5n5x6-5d6'(B, $,1?(?.?8?M>u?>?0(B, $,1@H@N@X@m@5@^@P@"(B, $,1;6;A;#;?;,;G(B,
-              $,1AFAzB4AvB=B AqB*(B, $,1<U<C<5<m<5<N<m(B, $,1=h=n=x>-=U=~=p=B(B, $(7"7"!#C!;"E"S"G!;"7"2"[!;"D"["#"G!>(B
-  South East Asia: $,1\'\f\:\V\4\?\]\:(B, (1JP:R-4U(B, $,1H9H$HZHYH"H<HLH5HK(B, ,TJGQJ4U$CQ:(B, Ch,1`(Bo b,1U(Bn
-  East Asia: $ADc:C(B, $(0*/=((B, $B$3$s$K$A$O(B, $(C>H3gGO<<?d(B
-  Misc: E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde, $,2(3(1('('(5(B, $,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
-  CJK variety: GB($AT*Fx(B,$A?*7"(B), BIG5($(0&x86(B,$(0DeBv(B), JIS($B855$(B,$B3+H/(B), KSC($(Cj*Q((B,$(CKR[!(B)
-  Unicode charset: E$,1 E(Bo$,1 }(Ban$,1 =(Bo $,1 )(Biu$,1 U(Ba$,1!-(Bde, $,1&s'5'9',(B $,1'C'1'B(B, $,1-),|,u,}(B, $,1(7(T(`(P(R(a(b(R(c(Y(b(U(B!
+  Europe: <x-charset><param>latin-iso8859-1</param>¡Hola!, Grüß Gott, Hyvää päivää,</x-charset><x-charset><param>latin-iso8859-15</param> Tere õhtust,</x-charset><x-charset><param>latin-iso8859-3</param> Bonġu
+          Cześć!,</x-charset><x-charset><param>latin-iso8859-2</param> Dobrý den,</x-charset><x-charset><param>cyrillic-iso8859-5</param> Здравствуйте!,</x-charset><x-charset><param>greek-iso8859-7</param> Γειά σας,</x-charset><x-charset><param>mule-unicode-0100-24ff</param> გამარჯობა</x-charset>
+  Africa:<x-charset><param>mule-unicode-0100-24ff</param> </x-charset><x-charset><param>ethiopic</param>ሠላም</x-charset>
+  Middle/Near East:<x-charset><param>hebrew-iso8859-8</param> שלום,</x-charset><x-charset><param>mule-unicode-0100-24ff</param> السّلام عليكم</x-charset>
+  South Asia:<x-charset><param>mule-unicode-0100-24ff</param> નમસ્તે, नमस्ते, ನಮಸ್ಕಾರ, നമസ്കാരം, ଶୁଣିବେ,
+              ආයුබෝවන්, வணக்கம், నమస్కారం,</x-charset><x-charset><param>tibetan</param> བཀྲ་ཤིས་བདེ་ལེགས༎</x-charset>
+  South East Asia:<x-charset><param>mule-unicode-0100-24ff</param> ជំរាបសួរ,</x-charset><x-charset><param>lao</param> ສະບາຍດີ,</x-charset><x-charset><param>mule-unicode-0100-24ff</param> မင်္ဂလာပါ,</x-charset><x-charset><param>thai-tis620</param> สวัสดีครับ,</x-charset><x-charset><param>vietnamese-viscii-lower</param> </x-charset><x-charset><param>vietnamese-viscii-upper</param>C</x-charset><x-charset><param>vietnamese-viscii-lower</param>hào bạn</x-charset>
+  East Asia:<x-charset><param>chinese-gb2312</param> 你好,</x-charset><x-charset><param>chinese-big5-1</param> 早晨,</x-charset><x-charset><param>japanese-jisx0208</param> こんにちは,</x-charset><x-charset><param>korean-ksc5601</param> 안녕하세요</x-charset>
+  Misc:<x-charset><param>latin-iso8859-3</param> Eĥoŝanĝo ĉiuĵaŭde,</x-charset><x-charset><param>mule-unicode-2500-33ff</param> ⠓⠑⠇⠇⠕,</x-charset><x-charset><param>mule-unicode-0100-24ff</param> ∀ p ∈ world • hello p  </x-charset><x-charset><param>mule-unicode-2500-33ff</param>□</x-charset>
+  CJK variety:<x-charset><param>chinese-gb2312</param> GB(元气,开发),</x-charset><x-charset><param>chinese-big5-1</param> BIG5(元氣,開發),</x-charset><x-charset><param>japanese-jisx0208</param> JIS(元気,開発),</x-charset><x-charset><param>korean-ksc5601</param> KSC(元氣,開發)</x-charset>
+  Unicode charset:<x-charset><param>unicode</param> Eĥoŝanĝo ĉiuĵaŭde, Γειά σας, שלום, Здравствуйте!</x-charset>
+
 
 LANGUAGE (NATIVE NAME)	HELLO
 ----------------------	-----
-Amharic ($,1O M[MmN{(B)	$,1M`MKM](B
-Arabic ($,1-g.$-y-q-h.*.1-i(B)	$,1-g.$-s.1.$-g.%(B $,1-y.$.*.#.%(B
-Armenian ($,1+p+a+u+e, +e+v(B)	$,1+2+a, ,'(B $,1+q+e+f(B
-Bengali ($,17,7>6b727>(B)	$,17(7.787M6u7>70(B
-Braille	$,2(3(1('('(5(B
-Burmese ($,1H9H\H4HZH9HL(B)	$,1H9H$HZHYH"H<HLH5HK(B
-C	printf ("Hello, world!\n");
-Czech (,Bh(Be,B9(Btina)	Dobr,A}(B den
-Danish (dansk)	Hej / Goddag / Hall,Ax(Bj
+<x-charset><param>mule-unicode-0100-24ff</param>Amharic (አማርኛ)	ሠላም
+Arabic (العربيّة)	السّلام عليكم
+Armenian (հայերեն)	Բարև ձեզ
+Bengali (বাংলা)	নমস্কার
+</x-charset><x-charset><param>mule-unicode-2500-33ff</param>Braille	⠓⠑⠇⠇⠕
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Burmese (မြန်မာ)	မင်္ဂလာပါ
+</x-charset>C	printf ("Hello, world!\n");
+<x-charset><param>unicode</param>Cherokee (ᏣᎳᎩ ᎦᏬᏂᎯᏍᏗ)	ᎣᏏᏲ / ᏏᏲ
+Comanche /kəˈmæntʃiː/	Haa marʉ́awe
+
+Cree (ᓀᐦᐃᔭᐍᐏᐣ)	ᑕᓂᓯ / ᐙᒋᔮ
+
+</x-charset><x-charset><param>latin-iso8859-2</param>Czech (čeština)	Dobrý den
+</x-charset><x-charset><param>latin-iso8859-1</param>Danish (dansk)	Hej / Goddag / Halløj
 Dutch (Nederlands)	Hallo / Dag
+</x-charset><x-charset><param>unicode</param>Efik  /ˈɛfɪk/	Mɔkɔm
+
 Emacs	emacs --no-splash -f view-hello-file
-English /$(O+S,0!,D?$(O*y(Bl,0!$(O*h(B/	Hello
-Esperanto	Saluton (E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde)
-Estonian (eesti keel)	Tere p,Ad(Bevast / Tere ,Au(Bhtust
-Finnish (suomi)	Hei / Hyv,Add(B p,Ad(Biv,Add(B
-French (fran,Ag(Bais)	Bonjour / Salut
-Georgian ($,1JEJ0J@J7J5J4J:J8(B)	$,1J2J0J;J0J@JOJ=J1J0(B
-German (Deutsch)	Guten Tag / Gr,A|_(B Gott
-Greek (,Fekkgmij\(B)	,FCei\(B ,Fsar(B
-Greek, ancient ($,1p1,Fkkgmij^(B)	,FO$,1pv,Fk](B ,Fte(B ,Fja$,1q6(B ,Fl]ca(B ,Fwa$,1r6,Fqe(B
-Gujarati ($,19W:!9\9p9~9d: (B)	$,19h9n9x:-9d:'(B
-Hebrew ($,1-",q-(,y-*(B)	,Hylem(B
-Hungarian (magyar)	Sz,Bi(Bp j,Bs(B napot!
-Hindi ($,15y55B5f6 (B)	$,15h5n5x6-5d6'(B / $,15h5n5x6-5U5~5p(B $,16D(B
-Italian (italiano)	Ciao / Buon giorno
-Javanese (Jawa)	System.out.println("Sugeng siang!");
-Kannada ($,1>u?(?M?(?!(B)	$,1?(?.?8?M>u?>?0(B
-Khmer ($,1\7\V\?\V\!\r\8\b\:(B)	$,1\'\f\:\V\4\?\]\:(B
-Lao ((1>RJRERG(B)	(1JP:R-4U(B / (1"mcKib*!4U(B
-Malayalam ($,1@N@R@O@^@S@"(B)	$,1@H@N@X@m@5@^@P@"(B
-Maltese (il-Malti)	Bon,Cu(Bu / Sa,C11(Ba
-Mathematics	$,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
-Mongolian (,L\^]S^[(B ,Lem[(B)	,LAPY](B ,LQPY]P(B ,Lcc(B?
-Norwegian (norsk)	Hei / God dag
-Oriya ($,1:s;\;?:f(B)	$,1;6;A;#;?;,;G(B
-Polish  (j,Bj(Bzyk polski)	Dzie,Bq(B dobry! / Cze,B6f(B!
-Russian (,L`caaZXY(B)	,L7T`P$(O+Z,LRabRcYbU(B!
-Sinhala ($,1B#B2ABB$A}(B)	$,1AFAzB4AvB=B AqB*(B
-Slovak (sloven,Bh(Bina)	Dobr,A}(B de,Br(B
-Slovenian (sloven,B9h(Bina)	Pozdravljeni!
-Spanish (espa,Aq(Bol)	,A!(BHola!
-Swedish (svenska)	Hej / Goddag / Hall,Ae(B
-Tamil ($,1<D<N<_<T<m(B)	$,1<U<C<5<m<5<N<m(B
-Telugu ($,1=d>&=r>!=W>!(B)	$,1=h=n=x>-=U=~=p=B(B
-Thai (,T@RIRd7B(B)	,TJGQJ4U$CQ:(B / ,TJGQJ4U$hP(B
-Tibetan ($(7"7"]"2!;"G#!"2!;(B)	$(7"7"!#C!;"E"S"G!;"7"2"[!;"D"["#"G!>(B
-Tigrigna ($,1NUP-MmN{(B)	$,1MpMKM[NU(B
-Turkish (T,A|(Brk,Ag(Be)	Merhaba
-Ukrainian (,LcZ`Pw]alZP(B)	,L2vbPn(B
-Vietnamese (ti,1*(Bng Vi,1.(Bt)	Ch,A`(Bo b,1U(Bn
 
-Japanese ($BF|K\8l(B)	$B$3$s$K$A$O(B / (I:]FAJ(B
-Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B
-Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B
-Korean ($(CGQ1[(B)	$(C>H3gGO<<?d(B / $(C>H3gGO=J4O1n(B
+Emoji	👋
+</x-charset>English <x-charset><param>ipa</param>/ˈɪŋɡlɪʃ/</x-charset>	Hello
+<x-charset><param>latin-iso8859-3</param>Esperanto	Saluton (Eĥoŝanĝo ĉiuĵaŭde)
+</x-charset><x-charset><param>latin-iso8859-15</param>Estonian (eesti keel)	Tere päevast / Tere õhtust
+</x-charset><x-charset><param>latin-iso8859-1</param>Finnish (suomi)	Hei / Hyvää päivää
+French (français)	Bonjour / Salut
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Georgian (ქართველი)	გამარჯობა
+</x-charset><x-charset><param>latin-iso8859-1</param>German (Deutsch)	Guten Tag / Grüß Gott
+</x-charset><x-charset><param>greek-iso8859-7</param>Greek (ελληνικά)	Γειά σας
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Greek, ancient (ἑλληνική)	Οὖλέ τε καὶ μέγα χαῖρε
+Gujarati (ગુજરાતી)	નમસ્તે
+</x-charset><x-charset><param>hebrew-iso8859-8</param>Hebrew (עברית)	שלום
+</x-charset><x-charset><param>latin-iso8859-2</param>Hungarian (magyar)	Szép jó napot!
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Hindi (हिंदी)	नमस्ते / नमस्कार ।
+</x-charset><x-charset><param>unicode</param>Inuktitut (ᐃᓄᒃᑎᑐᑦ)	ᐊᐃ
 
-
+</x-charset><x-charset><param>latin-iso8859-1</param>Italian (italiano)	Ciao / Buon giorno
+</x-charset>Javanese (Jawa)	System.out.println("Sugeng siang!");
+<x-charset><param>mule-unicode-0100-24ff</param>Kannada (ಕನ್ನಡ)	ನಮಸ್ಕಾರ
+Khmer (ភាសាខ្មែរ)	ជំរាបសួរ
+</x-charset><x-charset><param>lao</param>Lao (ພາສາລາວ)	ສະບາຍດີ / ຂໍໃຫ້ໂຊກດີ
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Malayalam (മലയാളം)	നമസ്കാരം
+</x-charset><x-charset><param>unicode</param>Maldivian (ދިވެހި)	އައްސަލާމު ޢަލައިކުމް / ކިހިނެހް؟
 
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+</x-charset><x-charset><param>latin-iso8859-3</param>Maltese (il-Malti)	Bonġu / Saħħa
+</x-charset><x-charset><param>unicode</param>Mathematics	∀ p ∈ world • hello p  □
+</x-charset><x-charset><param>cyrillic-iso8859-5</param>Mongolian (монгол хэл)	Сайн байна уу?
+</x-charset><x-charset><param>latin-iso8859-1</param>Norwegian (norsk)	Hei / God dag
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Oriya (ଓଡ଼ିଆ)	ଶୁଣିବେ
+</x-charset><x-charset><param>latin-iso8859-2</param>Polish  (język polski)	Dzień dobry! / Cześć!
+</x-charset><x-charset><param>cyrillic-iso8859-5</param>Russian (русский)	Здра́вствуйте!
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Sinhala (සිංහල)	ආයුබෝවන්
+</x-charset><x-charset><param>latin-iso8859-2</param>Slovak (slovenčina)	Dobrý deň
+Slovenian (slovenščina)	Pozdravljeni!
+Spanish (espa</x-charset><x-charset><param>latin-iso8859-1</param>ñol)	¡Hola!
+Swedish (svenska)	Hej / Goddag / Hallå
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Tamil (தமிழ்)	வணக்கம்
+Telugu (తెలుగు)	నమస్కారం
+</x-charset><x-charset><param>thai-tis620</param>Thai (ภาษาไทย)	สวัสดีครับ / สวัสดีค่ะ
+</x-charset><x-charset><param>tibetan</param>Tibetan (བོད་སྐད་)	བཀྲ་ཤིས་བདེ་ལེགས༎
+</x-charset><x-charset><param>mule-unicode-0100-24ff</param>Tigrigna (ትግርኛ)	ሰላማት
+</x-charset><x-charset><param>latin-iso8859-9</param>Turkish (Türkçe)	Merhaba
+</x-charset><x-charset><param>cyrillic-iso8859-5</param>Ukrainian (українська)	Вітаю
+</x-charset><x-charset><param>vietnamese-viscii-lower</param>Vietnamese (tiếng </x-charset><x-charset><param>vietnamese-viscii-upper</param>V</x-charset><x-charset><param>vietnamese-viscii-lower</param>iệt)	</x-charset><x-charset><param>vietnamese-viscii-upper</param>Chào bạn
+
+</x-charset>
+
+<x-charset><param>japanese-jisx0208</param>Japanese (日本語)	こんにちは</x-charset> <x-charset><param>katakana-jisx0201</param>/ ｺﾝﾆﾁﾊ
+</x-charset><x-charset><param>chinese-gb2312</param>Chinese (中文,普通话,汉语)	你好
+</x-charset><x-charset><param>chinese-big5-1</param>Cantonese (粵語,廣東話)	早晨, 你好
+</x-charset><x-charset><param>korean-ksc5601</param>Korean (한글)	안녕하세요 / 안녕하십니까
+
+</x-charset>
+
+<x-charset><param>unicode</param>
+
+
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
+
 
 This file is part of GNU Emacs.
+
 
 GNU Emacs is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
+
 GNU Emacs is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
+
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+along with GNU Emacs.  If not, see <<https://www.gnu.org/licenses/>.
+
 
 ;;; Local Variables:
 ;;; tab-width: 32
 ;;; bidi-display-reordering: t
-;;; coding: iso-2022-7bit
-;;; End:
+;;; coding: utf-8
+;;; End:</x-charset>

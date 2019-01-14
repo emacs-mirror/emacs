@@ -1,6 +1,6 @@
 /* Platform-independent code for terminal communications.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2018 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -86,7 +86,7 @@ init_menu_items (void)
   if (NILP (menu_items))
     {
       menu_items_allocated = 60;
-      menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
+      menu_items = make_nil_vector (menu_items_allocated);
     }
 
   menu_items_inuse = Qt;
@@ -134,11 +134,11 @@ restore_menu_items (Lisp_Object saved)
   menu_items_inuse = (! NILP (menu_items) ? Qt : Qnil);
   menu_items_allocated = (VECTORP (menu_items) ? ASIZE (menu_items) : 0);
   saved = XCDR (saved);
-  menu_items_used = XINT (XCAR (saved));
+  menu_items_used = XFIXNUM (XCAR (saved));
   saved = XCDR (saved);
-  menu_items_n_panes = XINT (XCAR (saved));
+  menu_items_n_panes = XFIXNUM (XCAR (saved));
   saved = XCDR (saved);
-  menu_items_submenu_depth = XINT (XCAR (saved));
+  menu_items_submenu_depth = XFIXNUM (XCAR (saved));
 }
 
 /* Push the whole state of menu_items processing onto the specpdl.
@@ -148,9 +148,9 @@ void
 save_menu_items (void)
 {
   Lisp_Object saved = list4 (!NILP (menu_items_inuse) ? menu_items : Qnil,
-			     make_number (menu_items_used),
-			     make_number (menu_items_n_panes),
-			     make_number (menu_items_submenu_depth));
+			     make_fixnum (menu_items_used),
+			     make_fixnum (menu_items_n_panes),
+			     make_fixnum (menu_items_submenu_depth));
   record_unwind_protect (restore_menu_items, saved);
   menu_items_inuse = Qnil;
   menu_items = Qnil;
@@ -524,19 +524,15 @@ bool
 parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name,
 		      Lisp_Object maps)
 {
-  Lisp_Object length;
-  EMACS_INT len;
   Lisp_Object *mapvec;
-  ptrdiff_t i;
   bool top_level_items = 0;
   USE_SAFE_ALLOCA;
 
-  length = Flength (maps);
-  len = XINT (length);
+  ptrdiff_t len = list_length (maps);
 
   /* Convert the list MAPS into a vector MAPVEC.  */
   SAFE_ALLOCA_LISP (mapvec, len);
-  for (i = 0; i < len; i++)
+  for (ptrdiff_t i = 0; i < len; i++)
     {
       mapvec[i] = Fcar (maps);
       maps = Fcdr (maps);
@@ -544,7 +540,7 @@ parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name,
 
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.  */
-  for (i = 0; i < len; i++)
+  for (ptrdiff_t i = 0; i < len; i++)
     {
       if (!KEYMAPP (mapvec[i]))
 	{
@@ -647,7 +643,7 @@ digest_single_submenu (int start, int end, bool top_level_items)
   i = start;
   while (i < end)
     {
-      if (EQ (AREF (menu_items, i), Qnil))
+      if (NILP (AREF (menu_items, i)))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
@@ -900,7 +896,7 @@ find_and_call_menu_selection (struct frame *f, int menu_bar_items_used,
 
   while (i < menu_bar_items_used)
     {
-      if (EQ (AREF (vector, i), Qnil))
+      if (NILP (AREF (vector, i)))
 	{
 	  subprefix_stack[submenu_depth++] = prefix;
 	  prefix = entry;
@@ -985,7 +981,7 @@ find_and_return_menu_selection (struct frame *f, bool keymaps, void *client_data
 
   while (i < menu_items_used)
     {
-      if (EQ (AREF (menu_items, i), Qnil))
+      if (NILP (AREF (menu_items, i)))
         {
           subprefix_stack[submenu_depth++] = prefix;
           prefix = entry;
@@ -1079,7 +1075,7 @@ into menu items.  */)
   if (!FRAME_LIVE_P (f))
     return Qnil;
 
-  pixel_to_glyph_coords (f, XINT (x), XINT (y), &col, &row, NULL, 1);
+  pixel_to_glyph_coords (f, XFIXNUM (x), XFIXNUM (y), &col, &row, NULL, 1);
   if (0 <= row && row < FRAME_MENU_BAR_LINES (f))
     {
       Lisp_Object items, item;
@@ -1099,10 +1095,10 @@ into menu items.  */)
 	  pos = AREF (items, i + 3);
 	  if (NILP (str))
 	    return item;
-	  if (XINT (pos) <= col
+	  if (XFIXNUM (pos) <= col
 	      /* We use <= so the blank between 2 items on a TTY is
 		 considered part of the previous item.  */
-	      && col <= XINT (pos) + menu_item_width (SDATA (str)))
+	      && col <= XFIXNUM (pos) + menu_item_width (SDATA (str)))
 	    {
 	      item = AREF (items, i);
 	      return item;
@@ -1152,7 +1148,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	else
 	  {
 	    menuflags |= MENU_FOR_CLICK;
-	    tem = Fcar (Fcdr (position));  /* EVENT_START (position) */
+	    tem = Fcar (XCDR (position));    /* EVENT_START (position) */
 	    window = Fcar (tem);	     /* POSN_WINDOW (tem) */
 	    tem2 = Fcar (Fcdr (tem));	     /* POSN_POSN (tem) */
 	    /* The MENU_KBD_NAVIGATION field is set when the menu
@@ -1168,7 +1164,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 	       event.  */
 	    if (!EQ (POSN_POSN (last_nonmenu_event),
 		     POSN_POSN (position))
-		&& CONSP (tem2) && EQ (Fcar (tem2), Qmenu_bar))
+		&& CONSP (tem2) && EQ (XCAR (tem2), Qmenu_bar))
 	      menuflags |= MENU_KBD_NAVIGATION;
 	    tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
 	    x = Fcar (tem);
@@ -1202,9 +1198,9 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 		int cur_x, cur_y;
 
 		x_relative_mouse_position (new_f, &cur_x, &cur_y);
-		/* cur_x/y may be negative, so use make_number.  */
-		x = make_number (cur_x);
-		y = make_number (cur_y);
+		/* cur_x/y may be negative, so use make_fixnum.  */
+		x = make_fixnum (cur_x);
+		y = make_fixnum (cur_y);
 	      }
 	  }
 	else
@@ -1268,8 +1264,8 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 			   ? (EMACS_INT) INT_MIN - ypos
 			   : MOST_NEGATIVE_FIXNUM),
 			  INT_MAX - ypos);
-    xpos += XINT (x);
-    ypos += XINT (y);
+    xpos += XFIXNUM (x);
+    ypos += XFIXNUM (y);
 
     XSETFRAME (Vmenu_updating_frame, f);
   }
@@ -1309,7 +1305,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
   else if (CONSP (menu) && KEYMAPP (XCAR (menu)))
     {
       /* We were given a list of keymaps.  */
-      EMACS_INT nmaps = XFASTINT (Flength (menu));
+      ptrdiff_t nmaps = list_length (menu);
       Lisp_Object *maps;
       ptrdiff_t i;
       USE_SAFE_ALLOCA;

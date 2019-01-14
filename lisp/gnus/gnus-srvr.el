@@ -1,6 +1,6 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-start)
@@ -35,11 +35,6 @@
 (require 'gnus-cloud)
 
 (autoload 'gnus-group-make-nnir-group "nnir")
-
-(defcustom gnus-server-mode-hook nil
-  "Hook run in `gnus-server-mode' buffers."
-  :group 'gnus-server
-  :type 'hook)
 
 (defcustom gnus-server-exit-hook nil
   "Hook run when exiting the server buffer."
@@ -92,7 +87,7 @@ If nil, a faster, but more primitive, buffer is used instead."
 (defvar gnus-inserted-opened-servers nil)
 
 (defvar gnus-server-line-format-alist
-  `((?h gnus-tmp-how ?s)
+  '((?h gnus-tmp-how ?s)
     (?n gnus-tmp-name ?s)
     (?w gnus-tmp-where ?s)
     (?s gnus-tmp-status ?s)
@@ -100,7 +95,7 @@ If nil, a faster, but more primitive, buffer is used instead."
     (?c gnus-tmp-cloud ?s)))
 
 (defvar gnus-server-mode-line-format-alist
-  `((?S gnus-tmp-news-server ?s)
+  '((?S gnus-tmp-news-server ?s)
     (?M gnus-tmp-news-method ?s)
     (?u gnus-tmp-user-defined ?s)))
 
@@ -108,7 +103,7 @@ If nil, a faster, but more primitive, buffer is used instead."
 (defvar gnus-server-mode-line-format-spec nil)
 (defvar gnus-server-killed-servers nil)
 
-(defvar gnus-server-mode-map)
+(defvar gnus-server-mode-map nil)
 
 (defcustom gnus-server-menu-hook nil
   "Hook run after the creation of the server mode menu."
@@ -150,11 +145,8 @@ If nil, a faster, but more primitive, buffer is used instead."
 
     (gnus-run-hooks 'gnus-server-menu-hook)))
 
-(defvar gnus-server-mode-map nil)
-(put 'gnus-server-mode 'mode-class 'special)
-
 (unless gnus-server-mode-map
-  (setq gnus-server-mode-map (make-sparse-keymap))
+  (setq gnus-server-mode-map (make-keymap))
   (suppress-keymap gnus-server-mode-map)
 
   (gnus-define-keys gnus-server-mode-map
@@ -253,9 +245,8 @@ If nil, a faster, but more primitive, buffer is used instead."
     ("(\\(offline\\))" 1 'gnus-server-offline)
     ("(\\(denied\\))" 1 'gnus-server-denied)))
 
-(defun gnus-server-mode ()
+(define-derived-mode gnus-server-mode gnus-mode "Server"
   "Major mode for listing and editing servers.
-
 All normal editing commands are switched off.
 \\<gnus-server-mode-map>
 For more in-depth information on this mode, read the manual
@@ -264,23 +255,16 @@ For more in-depth information on this mode, read the manual
 The following commands are available:
 
 \\{gnus-server-mode-map}"
-  ;; FIXME: Use define-derived-mode.
-  (interactive)
   (when (gnus-visual-p 'server-menu 'menu)
     (gnus-server-make-menu-bar))
-  (kill-all-local-variables)
   (gnus-simplify-mode-line)
-  (setq major-mode 'gnus-server-mode)
-  (setq mode-name "Server")
   (gnus-set-default-directory)
   (setq mode-line-process nil)
-  (use-local-map gnus-server-mode-map)
   (buffer-disable-undo)
   (setq truncate-lines t)
-  (setq buffer-read-only t)
   (set (make-local-variable 'font-lock-defaults)
-       '(gnus-server-font-lock-keywords t))
-  (gnus-run-mode-hooks 'gnus-server-mode-hook))
+       '(gnus-server-font-lock-keywords t)))
+
 
 (defun gnus-server-insert-server-line (name method)
   (let* ((gnus-tmp-name name)
@@ -320,20 +304,14 @@ The following commands are available:
 
 (defun gnus-enter-server-buffer ()
   "Set up the server buffer."
-  (gnus-server-setup-buffer)
   (gnus-configure-windows 'server)
   ;; Usually `gnus-configure-windows' will finish with the
   ;; `gnus-server-buffer' selected as the current buffer, but not always (I
   ;; bumped into it when starting from a dedicated *Group* frame, and
   ;; gnus-configure-windows opened *Server* into its own dedicated frame).
-  (with-current-buffer (get-buffer gnus-server-buffer)
+  (with-current-buffer (get-buffer-create gnus-server-buffer)
+    (gnus-server-mode)
     (gnus-server-prepare)))
-
-(defun gnus-server-setup-buffer ()
-  "Initialize the server buffer."
-  (unless (get-buffer gnus-server-buffer)
-    (with-current-buffer (gnus-get-buffer-create gnus-server-buffer)
-      (gnus-server-mode))))
 
 (defun gnus-server-prepare ()
   (gnus-set-format 'server-mode)
@@ -648,8 +626,8 @@ The following commands are available:
   (let ((info (gnus-server-to-method server)))
     (gnus-edit-form
      info "Showing the server."
-     `(lambda (form)
-	(gnus-server-position-point))
+     (lambda (form)
+       (gnus-server-position-point))
      'edit-server)))
 
 (defun gnus-server-scan-server (server)
@@ -717,9 +695,7 @@ claim them."
 		function
 		(repeat function)))
 
-(defvar gnus-browse-mode-hook nil)
 (defvar gnus-browse-mode-map nil)
-(put 'gnus-browse-mode 'mode-class 'special)
 
 (unless gnus-browse-mode-map
   (setq gnus-browse-mode-map (make-keymap))
@@ -808,12 +784,11 @@ claim them."
 	      (while (not (eobp))
 		(ignore-errors
 		  (push (cons
-			 (string-as-unibyte
-			  (buffer-substring
-			   (point)
-			   (progn
-			     (skip-chars-forward "^ \t")
-			     (point))))
+			 (buffer-substring
+			  (point)
+			  (progn
+			    (skip-chars-forward "^ \t")
+			    (point)))
 			 (let ((last (read cur)))
 			   (cons (read cur) last)))
 			groups))
@@ -821,19 +796,18 @@ claim them."
 	    (while (not (eobp))
 	      (ignore-errors
 		(push (cons
-		       (string-as-unibyte
-			(if (eq (char-after) ?\")
-			    (read cur)
-			  (let ((p (point)) (name ""))
-			    (skip-chars-forward "^ \t\\\\")
-			    (setq name (buffer-substring p (point)))
-			    (while (eq (char-after) ?\\)
-			      (setq p (1+ (point)))
-			      (forward-char 2)
-			      (skip-chars-forward "^ \t\\\\")
-			      (setq name (concat name (buffer-substring
-						       p (point)))))
-			    name)))
+		       (if (eq (char-after) ?\")
+			   (read cur)
+			 (let ((p (point)) (name ""))
+			   (skip-chars-forward "^ \t\\\\")
+			   (setq name (buffer-substring p (point)))
+			   (while (eq (char-after) ?\\)
+			     (setq p (1+ (point)))
+			     (forward-char 2)
+			     (skip-chars-forward "^ \t\\\\")
+			     (setq name (concat name (buffer-substring
+						      p (point)))))
+			   name))
 		       (let ((last (read cur)))
 			 (cons (read cur) last)))
 		      groups))
@@ -899,9 +873,8 @@ claim them."
       (gnus-message 5 "Connecting to %s...done" (nth 1 method))
       t))))
 
-(define-derived-mode gnus-browse-mode fundamental-mode "Browse Server"
+(define-derived-mode gnus-browse-mode gnus-mode "Browse Server"
   "Major mode for browsing a foreign server.
-
 All normal editing commands are switched off.
 
 \\<gnus-browse-mode-map>
@@ -920,14 +893,17 @@ buffer.
   (setq mode-line-process nil)
   (buffer-disable-undo)
   (setq truncate-lines t)
-  (gnus-set-default-directory)
-  (setq buffer-read-only t))
+  (gnus-set-default-directory))
 
 (defun gnus-browse-read-group (&optional no-article number)
   "Enter the group at the current line.
 If NUMBER, fetch this number of articles."
   (interactive "P")
-  (let ((group (gnus-browse-group-name)))
+  (let* ((full-name (gnus-browse-group-name))
+	 (group (if (gnus-native-method-p
+		     (gnus-find-method-for-group full-name))
+		    (gnus-group-short-name full-name)
+		  full-name)))
     (if (or (not (gnus-get-info group))
 	    (gnus-ephemeral-group-p group))
 	(unless (gnus-group-read-ephemeral-group
@@ -969,7 +945,7 @@ how new groups will be entered into the group buffer."
 		(not (eobp))
 		(gnus-browse-unsubscribe-group)
 		(zerop (gnus-browse-next-group ward)))
-      (decf arg))
+      (cl-decf arg))
     (gnus-group-position-point)
     (when (/= 0 arg)
       (gnus-message 7 "No more newsgroups"))

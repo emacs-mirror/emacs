@@ -1,6 +1,6 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2018 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar nnmail-extra-headers)
 (defvar gnus-newsgroup-name)
@@ -237,7 +237,7 @@ on your system, you could say something like:
       (format "fake+none+%s+%d" gnus-newsgroup-name number)
     (format "fake+none+%s+%s"
 	    gnus-newsgroup-name
-	    (int-to-string (incf nnheader-fake-message-id)))))
+	    (int-to-string (cl-incf nnheader-fake-message-id)))))
 
 (defsubst nnheader-fake-message-id-p (id)
   (save-match-data		       ; regular message-id's are <.*>
@@ -408,7 +408,7 @@ on your system, you could say something like:
   `(let ((id (nnheader-nov-field)))
      (if (string-match "^<[^>]+>$" id)
 	 ,(if nnheader-uniquify-message-id
-	      `(if (string-match "__[^@]+@" id)
+	      '(if (string-match "__[^@]+@" id)
 		   (concat (substring id 0 (match-beginning 0))
 			   (substring id (1- (match-end 0))))
 		 id)
@@ -612,7 +612,7 @@ the line could be found."
 	(while (and (eq nnheader-head-chop-length
 			(nth 1 (mm-insert-file-contents
 				file nil beg
-				(incf beg nnheader-head-chop-length))))
+				(cl-incf beg nnheader-head-chop-length))))
 		    ;; CRLF or CR might be used for the line-break code.
 		    (prog1 (not (re-search-forward "\n\r?\n\\|\r\r" nil t))
 		      (goto-char (point-max)))
@@ -784,7 +784,7 @@ If FULL, translate everything."
 	(when (setq trans (cdr (assq (aref leaf i)
 				     nnheader-file-name-translation-alist)))
 	  (aset leaf i trans))
-	(incf i))
+	(cl-incf i))
       (concat path leaf))))
 
 (defun nnheader-report (backend &rest args)
@@ -896,7 +896,7 @@ without formatting."
 
 (defun nnheader-file-size (file)
   "Return the file size of FILE or 0."
-  (or (nth 7 (file-attributes file)) 0))
+  (or (file-attribute-size (file-attributes file)) 0))
 
 (defun nnheader-find-etc-directory (package &optional file first)
   "Go through `load-path' and find the \"../etc/PACKAGE\" directory.
@@ -945,13 +945,13 @@ first.  Otherwise, find the newest one, though it may take a time."
   "Like `insert-file-contents', q.v., but only reads in the file.
 A buffer may be modified in several ways after reading into the buffer due
 to advanced Emacs features, such as file-name-handlers, format decoding,
-find-file-hooks, etc.
+find-file-hook, etc.
   This function ensures that none of these modifications will take place."
   (let ((coding-system-for-read nnheader-file-coding-system))
     (mm-insert-file-contents filename visit beg end replace)))
 
 (defun nnheader-insert-nov-file (file first)
-  (let ((size (nth 7 (file-attributes file)))
+  (let ((size (file-attribute-size (file-attributes file)))
 	(cutoff (* 32 1024)))
     (when size
       (if (< size cutoff)
@@ -973,7 +973,7 @@ find-file-hooks, etc.
 (defun nnheader-find-file-noselect (&rest args)
   "Open a file with some variables bound.
 See `find-file-noselect' for the arguments."
-  (letf* ((format-alist nil)
+  (cl-letf* ((format-alist nil)
           (auto-mode-alist (mm-auto-mode-alist))
           ((default-value 'major-mode) 'fundamental-mode)
           (enable-local-variables nil)
@@ -1071,14 +1071,11 @@ See `find-file-noselect' for the arguments."
 
 (defmacro nnheader-insert-buffer-substring (buffer &optional start end)
   "Copy string from unibyte buffer to multibyte current buffer."
-  `(if enable-multibyte-characters
-       (insert (with-current-buffer ,buffer
-		 (string-to-multibyte
-		  ,(if (or start end)
-		       `(buffer-substring (or ,start (point-min))
-					  (or ,end (point-max)))
-		     '(buffer-string)))))
-     (insert-buffer-substring ,buffer ,start ,end)))
+  `(insert (with-current-buffer ,buffer
+	     ,(if (or start end)
+		  `(buffer-substring (or ,start (point-min))
+				     (or ,end (point-max)))
+		'(buffer-string)))))
 
 (defvar nnheader-last-message-time '(0 0))
 (defun nnheader-message-maybe (&rest args)

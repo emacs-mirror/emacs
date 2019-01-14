@@ -1,6 +1,6 @@
 ;;; refer.el --- look up references in bibliography files
 
-;; Copyright (C) 1992, 1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
 ;; Maintainer: emacs-devel@gnu.org

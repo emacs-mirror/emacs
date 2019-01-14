@@ -1,6 +1,6 @@
 ;;; cc-fonts.el --- font lock support for CC Mode
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -488,6 +488,9 @@
 
 ;  (eval-after-load "edebug" ; 2006-07-09: def-edebug-spec is now in subr.el.
 ;    '(progn
+(def-edebug-spec c-put-font-lock-face t)
+(def-edebug-spec c-remove-font-lock-face t)
+(def-edebug-spec c-put-font-lock-string-face t)
   (def-edebug-spec c-fontify-types-and-refs let*)
   (def-edebug-spec c-make-syntactic-matcher t)
   ;; If there are literal quoted or backquoted highlight specs in
@@ -669,7 +672,7 @@ stuff.  Used on level 1 and higher."
 
       ,@(when (c-major-mode-is 'pike-mode)
 	  ;; Recognize hashbangs in Pike.
-	  `((eval . (list "\\`#![^\n\r]*"
+	  '((eval . (list "\\`#![^\n\r]*"
 			  0 c-preprocessor-face-name))))
 
       ;; Make hard spaces visible through an inverted `font-lock-warning-face'.
@@ -681,33 +684,6 @@ stuff.  Used on level 1 and higher."
 					  'c-nonbreakable-space-face))
 		   ''c-nonbreakable-space-face)))
       ))
-
-(defun c-font-lock-invalid-string ()
-  ;; Assuming the point is after the opening character of a string,
-  ;; fontify that char with `font-lock-warning-face' if the string
-  ;; decidedly isn't terminated properly.
-  ;;
-  ;; This function does hidden buffer changes.
-  (let ((start (1- (point))))
-    (save-excursion
-      (and (eq (elt (parse-partial-sexp start (c-point 'eol)) 8) start)
-	   (if (if (eval-when-compile (integerp ?c))
-		   ;; Emacs
-		   (integerp c-multiline-string-start-char)
-		 ;; XEmacs
-		 (characterp c-multiline-string-start-char))
-	       ;; There's no multiline string start char before the
-	       ;; string, so newlines aren't allowed.
-	       (not (eq (char-before start) c-multiline-string-start-char))
-	     ;; Multiline strings are allowed anywhere if
-	     ;; c-multiline-string-start-char is t.
-	     (not c-multiline-string-start-char))
-	   (if c-string-escaped-newlines
-	       ;; There's no \ before the newline.
-	       (not (eq (char-before (point)) ?\\))
-	     ;; Escaped newlines aren't supported.
-	     t)
-	   (c-put-font-lock-face start (1+ start) 'font-lock-warning-face)))))
 
 (defun c-font-lock-invalid-single-quotes (limit)
   ;; This function will be called from font-lock for a region bounded by POINT
@@ -749,16 +725,12 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; `c-recognize-<>-arglists' is set.
 
   t `(;; Put a warning face on the opener of unclosed strings that
-      ;; can't span lines.  Later font
+      ;; can't span lines and on the "terminating" newlines.  Later font
       ;; lock packages have a `font-lock-syntactic-face-function' for
       ;; this, but it doesn't give the control we want since any
       ;; fontification done inside the function will be
       ;; unconditionally overridden.
-      ,(c-make-font-lock-search-function
-	;; Match a char before the string starter to make
-	;; `c-skip-comments-and-strings' work correctly.
-	(concat ".\\(" c-string-limit-regexp "\\)")
-	'((c-font-lock-invalid-string)))
+      ("\\s|" 0 font-lock-warning-face t nil)
 
       ;; Invalid single quotes.
       c-font-lock-invalid-single-quotes
@@ -1278,12 +1250,14 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	   (c-put-char-property (1- match-pos)
 				'c-type 'c-decl-arg-start)
 	   (cons 'decl nil))
-	  ;; Got an open paren preceded by an arith operator.
+	  ;; Got (an) open paren(s) preceded by an arith operator.
 	  ((and (eq (char-before match-pos) ?\()
 		(save-excursion
 		  (goto-char match-pos)
-		  (and (zerop (c-backward-token-2 2))
-		       (looking-at c-arithmetic-op-regexp))))
+		  (while
+		      (and (zerop (c-backward-token-2))
+			   (eq (char-after) ?\()))
+		  (looking-at c-arithmetic-op-regexp)))
 	   (cons nil nil))
 	  ;; In a C++ member initialization list.
 	  ((and (eq (char-before match-pos) ?,)
@@ -1965,7 +1939,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify generic colon labels in languages that support them.
       ,@(when (c-lang-const c-recognize-colon-labels)
-	  `(c-font-lock-labels))))
+	  '(c-font-lock-labels))))
 
 (c-lang-defconst c-complex-decl-matchers
   "Complex font lock matchers for types and declarations.  Used on level
@@ -2011,10 +1985,10 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify angle bracket arglists like templates in C++.
       ,@(when (c-lang-const c-recognize-<>-arglists)
-	  `(c-font-lock-<>-arglists))
+	  '(c-font-lock-<>-arglists))
 
       ,@(when (c-major-mode-is 'c++-mode)
-	  `(c-font-lock-c++-lambda-captures))
+	  '(c-font-lock-c++-lambda-captures))
 
       ;; The first two rules here mostly find occurrences that
       ;; `c-font-lock-declarations' has found already, but not
@@ -2036,7 +2010,7 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
       ,@(when (c-major-mode-is 'c++-mode)
 	  ;; This pattern is a probably a "(MATCHER . ANCHORED-HIGHLIGHTER)"
 	  ;; (see Elisp page "Search-based Fontification").
-	  `(("\\<new\\>"
+	  '(("\\<new\\>"
 	     (c-font-lock-c++-new))))
       ))
 
@@ -2104,10 +2078,10 @@ higher."
   t `(,@(when (c-lang-const c-brace-list-decl-kwds)
       ;; Fontify the remaining identifiers inside an enum list when we start
       ;; inside it.
-	  `(c-font-lock-enum-tail
-      ;; Fontify the identifiers inside enum lists.  (The enum type
-      ;; name is handled by `c-simple-decl-matchers' or
-      ;; `c-complex-decl-matchers' below.
+	  '(c-font-lock-enum-tail
+	    ;; Fontify the identifiers inside enum lists.  (The enum type
+	    ;; name is handled by `c-simple-decl-matchers' or
+	    ;; `c-complex-decl-matchers' below.
 	    c-font-lock-enum-body))
 
 	;; Fontify labels after goto etc.
@@ -2158,7 +2132,7 @@ higher."
 		     (if (> (point) limit) (goto-char limit))))))))
 
 	,@(when (c-major-mode-is 'java-mode)
-	    `((eval . (list "\\<\\(@[a-zA-Z0-9]+\\)\\>" 1 c-annotation-face))))
+	    '((eval . (list "\\<\\(@[a-zA-Z0-9]+\\)\\>" 1 c-annotation-face))))
       ))
 
 (c-lang-defconst c-matchers-1

@@ -1,6 +1,6 @@
 ;;; mantemp.el --- create manual template instantiations from g++ 2.7.2 output
 
-;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Tom Houlder <thoulder@icor.fr>
 ;; Created: 10 Dec 1996

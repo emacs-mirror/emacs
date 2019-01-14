@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files
 
-;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -27,7 +27,7 @@
 ;; Automatically save place in files, so that visiting them later
 ;; (even during a different Emacs session) automatically moves point
 ;; to the saved position, when the file is first found.  Uses the
-;; value of buffer-local variable save-place to determine whether to
+;; value of buffer-local variable save-place-mode to determine whether to
 ;; save position or not.
 ;;
 ;; Thanks to Stefan Schoef, who sent a patch with the
@@ -160,9 +160,6 @@ If this mode is enabled, point is recorded when you kill the buffer
 or exit Emacs.  Visiting this file again will go to that position,
 even in a later Emacs session.
 
-If called with a prefix arg, the mode is enabled if and only if
-the argument is positive.
-
 To save places automatically in all files, put this in your init
 file:
 
@@ -179,7 +176,7 @@ file:
 
 (defun save-place-to-alist ()
   ;; put filename and point in a cons box and then cons that onto the
-  ;; front of the save-place-alist, if save-place is non-nil.
+  ;; front of the save-place-alist, if save-place-mode is non-nil.
   ;; Otherwise, just delete that file from the alist.
   ;; first check to make sure alist has been loaded in from the master
   ;; file.  If not, do so, then feel free to modify the alist.  It
@@ -309,8 +306,8 @@ may have changed) back to `save-place-alist'."
           nil))))
 
 (defun save-places-to-alist ()
-  ;; go through buffer-list, saving places to alist if save-place is
-  ;; non-nil, deleting them from alist if it is nil.
+  ;; go through buffer-list, saving places to alist if save-place-mode
+  ;; is non-nil, deleting them from alist if it is nil.
   (let ((buf-list (buffer-list)))
     (while buf-list
       ;; put this into a save-excursion in case someone is counting on
@@ -335,7 +332,7 @@ may have changed) back to `save-place-alist'."
 	      (and (integerp (cdr cell))
 		   (goto-char (cdr cell))))
           ;; and make sure it will be saved again for later
-          (setq save-place t)))))
+          (setq save-place-mode t)))))
 
 (declare-function dired-goto-file "dired" (file))
 
@@ -360,7 +357,7 @@ may have changed) back to `save-place-alist'."
 	       ((and (listp (cdr cell)) (assq 'dired-filename (cdr cell)))
 		(dired-goto-file (cdr (assq 'dired-filename (cdr cell)))))))
           ;; and make sure it will be saved again for later
-          (setq save-place t)))))
+          (setq save-place-mode t)))))
 
 (defun save-place-kill-emacs-hook ()
   ;; First update the alist.  This loads the old save-place-file if nec.

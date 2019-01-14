@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Copyright (C) 2017-2018 Free Software Foundation, Inc.
+## Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -49,8 +49,9 @@ function build_zip {
     export PKG_CONFIG_PATH=$PKG
 
     ## Running configure forces a rebuild of the C core which takes
-    ## time that is not always needed
-    if (($CONFIG))
+    ## time that is not always needed, so do not do it unless we have
+    ## to.
+    if [ ! -f Makefile ] || (($CONFIG))
     then
         echo [build] Configuring Emacs $ARCH
         ../../../git/$BRANCH/configure \
@@ -60,7 +61,7 @@ function build_zip {
             CFLAGS="-O2 -static -g3"
     fi
 
-    make -j 16 install \
+    make -j 2 install \
          prefix=$HOME/emacs-build/install/emacs-$VERSION/$ARCH
     cd $HOME/emacs-build/install/emacs-$VERSION/$ARCH
     cp $HOME/emacs-build/deps/libXpm/$ARCH/libXpm-noX4.dll bin
@@ -107,7 +108,7 @@ BUILD_64=1
 GIT_UP=0
 CONFIG=1
 
-while getopts "36ghnsiV:" opt; do
+while getopts "36gb:hnsiV:" opt; do
   case $opt in
     3)
         BUILD_32=1
@@ -130,6 +131,10 @@ while getopts "36ghnsiV:" opt; do
         ;;
     i)
         BUILD=0
+        ;;
+    b)
+        REQUIRED_BRANCH=$OPTARG
+        echo "Setting Required branch $REQUIRED_BRANCH"
         ;;
     V)
         VERSION=$OPTARG
@@ -182,6 +187,19 @@ else
     BRANCH=master
     CACHE=-C
     OF_VERSION="$VERSION-`date +%Y-%m-%d`"
+fi
+
+echo Checking for required branch
+if [ -z $REQUIRED_BRANCH ];
+then
+    :
+else
+    BRANCH=$REQUIRED_BRANCH
+    echo [build] Building from Branch $BRANCH
+    VERSION=$VERSION-$BRANCH
+    OF_VERSION="$VERSION-`date +%Y-%m-%d`"
+    ## Use snapshot dependencies
+    SNAPSHOT=1
 fi
 
 if (($GIT_UP))

@@ -1,6 +1,6 @@
 ;;; lcms-tests.el --- tests for Little CMS interface -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 

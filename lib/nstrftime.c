@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -1438,28 +1438,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # endif
 
                 ltm = *tp;
+                ltm.tm_wday = -1;
                 lt = mktime_z (tz, &ltm);
-
-                if (lt == (time_t) -1)
-                  {
-                    /* mktime returns -1 for errors, but -1 is also a
-                       valid time_t value.  Check whether an error really
-                       occurred.  */
-                    struct tm tm;
-
-                    if (! localtime_rz (tz, &lt, &tm)
-                        || ((ltm.tm_sec ^ tm.tm_sec)
-                            | (ltm.tm_min ^ tm.tm_min)
-                            | (ltm.tm_hour ^ tm.tm_hour)
-                            | (ltm.tm_mday ^ tm.tm_mday)
-                            | (ltm.tm_mon ^ tm.tm_mon)
-                            | (ltm.tm_year ^ tm.tm_year)))
-                      break;
-                  }
-
-                if (! localtime_rz (0, &lt, &gtm))
+                if (ltm.tm_wday < 0 || ! localtime_rz (0, &lt, &gtm))
                   break;
-
                 diff = tm_diff (&ltm, &gtm);
               }
 #endif

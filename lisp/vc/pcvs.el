@@ -1,6 +1,6 @@
 ;;; pcvs.el --- a front-end to CVS  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
 ;; Author: The PCL-CVS Trust <pcl-cvs@cyclic.com>
 ;;	Per Cederqvist <ceder@lysator.liu.se>
@@ -430,11 +430,11 @@ If non-nil, NEW means to create a new buffer no matter what."
 		    (set-buffer buffer)
 		    (and (cvs-buffer-p)
 			 (pcase cvs-reuse-cvs-buffer
-			   (`always t)
-			   (`subdir
+			   ('always t)
+			   ('subdir
 			    (or (string-prefix-p default-directory dir)
 				(string-prefix-p dir default-directory)))
-			   (`samedir (string= default-directory dir)))
+			   ('samedir (string= default-directory dir)))
 			 (cl-return buffer)))))
 	      ;; we really have to create a new buffer:
 	      ;; we temporarily bind cwd to "" to prevent
@@ -700,7 +700,7 @@ OLD-FIS is the list of fileinfos on which the cvs command was applied and
     ;; because of the call to `process-send-eof'.
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "^\\^D+" nil t)
+      (while (re-search-forward "^\\^D\^H+" nil t)
 	(let ((inhibit-read-only t))
 	  (delete-region (match-beginning 0) (match-end 0))))))
   (let* ((fileinfos (cvs-parse-buffer 'cvs-parse-table dcd subdir))
@@ -876,11 +876,11 @@ RM-MSGS if non-nil means remove messages."
 		  (keep
 		   (pcase type
 		     ;; Remove temp messages and keep the others.
-		     (`MESSAGE (not (or rm-msgs (eq subtype 'TEMP))))
+		     ('MESSAGE (not (or rm-msgs (eq subtype 'TEMP))))
 		     ;; Remove dead entries.
-		     (`DEAD nil)
+		     ('DEAD nil)
 		     ;; Handled also?
-		     (`UP-TO-DATE
+		     ('UP-TO-DATE
                       (not
                        (if (find-buffer-visiting (cvs-fileinfo->full-name fi))
                            (eq rm-handled 'all)

@@ -1,5 +1,5 @@
 /* Interface to zlib.
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef WINDOWSNT
 # include <windows.h>
+# include "w32common.h"
 # include "w32.h"
 
 DEF_DLL_FN (int, inflateInit2_,
@@ -149,8 +150,8 @@ This function can be called only in unibyte buffers.  */)
 
   /* This is a unibyte buffer, so character positions and bytes are
      the same.  */
-  istart = XINT (start);
-  iend = XINT (end);
+  istart = XFIXNUM (start);
+  iend = XFIXNUM (end);
 
   /* Do the following before manipulating the gap. */
   modify_text (istart, iend);

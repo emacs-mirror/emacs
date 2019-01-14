@@ -1,6 +1,6 @@
 ;;; ccl.el --- CCL (Code Conversion Language) compiler  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -184,11 +184,19 @@
 (defvar ccl-current-ic 0
   "The current index for `ccl-program-vector'.")
 
+;; The CCL compiled codewords are 28bits, but the CCL implementation
+;; assumes that the codewords are sign-extended, so that data constants in
+;; the upper part of the codeword are signed. This function truncates a
+;; codeword to 28bits, and then sign extends the result to a fixnum.
+(defun ccl-fixnum (code)
+  "Convert a CCL code word to a fixnum value."
+  (- (logxor (logand code #x0fffffff) #x08000000) #x08000000))
+
 (defun ccl-embed-data (data &optional ic)
   "Embed integer DATA in `ccl-program-vector' at `ccl-current-ic' and
 increment it.  If IC is specified, embed DATA at IC."
   (if ic
-      (aset ccl-program-vector ic data)
+      (aset ccl-program-vector ic (ccl-fixnum data))
     (let ((len (length ccl-program-vector)))
       (if (>= ccl-current-ic len)
 	  (let ((new (make-vector (* len 2) nil)))
@@ -196,7 +204,7 @@ increment it.  If IC is specified, embed DATA at IC."
 	      (setq len (1- len))
 	      (aset new len (aref ccl-program-vector len)))
 	    (setq ccl-program-vector new))))
-    (aset ccl-program-vector ccl-current-ic data)
+    (aset ccl-program-vector ccl-current-ic (ccl-fixnum data))
     (setq ccl-current-ic (1+ ccl-current-ic))))
 
 (defun ccl-embed-symbol (symbol prop)
@@ -230,7 +238,8 @@ proper index number for SYMBOL.  PROP should be
 `ccl-program-vector' at IC without altering the other bit field."
   (let ((relative (- ccl-current-ic (1+ ic))))
     (aset ccl-program-vector ic
-	  (logior (aref ccl-program-vector ic) (ash relative 8)))))
+	  (logior (aref ccl-program-vector ic)
+                  (ccl-fixnum (ash relative 8))))))
 
 (defun ccl-embed-code (op reg data &optional reg2)
   "Embed CCL code for the operation OP and arguments REG and DATA in
@@ -986,7 +995,8 @@ is a list of CCL-BLOCKs."
 (defun ccl-get-next-code ()
   "Return a CCL code in `ccl-code' at `ccl-current-ic'."
   (prog1
-      (aref ccl-code ccl-current-ic)
+      (let ((code (aref ccl-code ccl-current-ic)))
+        (if (numberp code) (ccl-fixnum code) code))
     (setq ccl-current-ic (1+ ccl-current-ic))))
 
 (defun ccl-dump-1 ()
@@ -1142,9 +1152,9 @@ is a list of CCL-BLOCKs."
 	      (progn
 		(insert (logand code #xFFFFFF))
 		(setq i (1+ i)))
-	    (insert (format "%c" (lsh code -16)))
+	    (insert (format "%c" (ash code -16)))
 	    (if (< (1+ i) len)
-		(insert (format "%c" (logand (lsh code -8) 255))))
+		(insert (format "%c" (logand (ash code -8) 255))))
 	    (if (< (+ i 2) len)
 		(insert (format "%c" (logand code 255))))
 	    (setq i (+ i 3)))))

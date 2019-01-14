@@ -1,5 +1,5 @@
 /* xftfont.c -- XFT font driver.
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -43,8 +43,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 struct xftfont_info
 {
   struct font font;
-  /* The following five members must be here in this order to be
-     compatible with struct ftfont_info (in ftfont.c).  */
+  /* The following members up to and including 'matrix' must be here
+     in this order to be compatible with struct ftfont_info (in
+     ftfont.c).  */
 #ifdef HAVE_LIBOTF
   bool maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
   OTF *otf;
@@ -52,6 +53,7 @@ struct xftfont_info
   FT_Size ft_size;
   int index;
   FT_Matrix matrix;
+
   Display *display;
   XftFont *xftfont;
   unsigned x_display_id;
@@ -220,24 +222,24 @@ xftfont_add_rendering_parameters (FcPattern *pat, Lisp_Object entity)
 	FcPatternAddBool (pat, FC_AUTOHINT, NILP (val) ? FcFalse : FcTrue);
       else if (EQ (key, QChintstyle))
 	{
-	  if (INTEGERP (val))
-	    FcPatternAddInteger (pat, FC_HINT_STYLE, XINT (val));
+	  if (FIXNUMP (val))
+	    FcPatternAddInteger (pat, FC_HINT_STYLE, XFIXNUM (val));
           else if (SYMBOLP (val)
                    && FcNameConstant (SDATA (SYMBOL_NAME (val)), &ival))
 	    FcPatternAddInteger (pat, FC_HINT_STYLE, ival);
 	}
       else if (EQ (key, QCrgba))
 	{
-	  if (INTEGERP (val))
-	    FcPatternAddInteger (pat, FC_RGBA, XINT (val));
+	  if (FIXNUMP (val))
+	    FcPatternAddInteger (pat, FC_RGBA, XFIXNUM (val));
           else if (SYMBOLP (val)
                    && FcNameConstant (SDATA (SYMBOL_NAME (val)), &ival))
 	    FcPatternAddInteger (pat, FC_RGBA, ival);
 	}
       else if (EQ (key, QClcdfilter))
 	{
-	  if (INTEGERP (val))
-	    FcPatternAddInteger (pat, FC_LCD_FILTER, ival = XINT (val));
+	  if (FIXNUMP (val))
+	    FcPatternAddInteger (pat, FC_LCD_FILTER, ival = XFIXNUM (val));
           else if (SYMBOLP (val)
                    && FcNameConstant (SDATA (SYMBOL_NAME (val)), &ival))
 	    FcPatternAddInteger (pat, FC_LCD_FILTER, ival);
@@ -272,7 +274,7 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   val = XCDR (val);
   filename = XCAR (val);
   idx = XCDR (val);
-  size = XINT (AREF (entity, FONT_SIZE_INDEX));
+  size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
   pat = FcPatternCreate ();
@@ -290,16 +292,16 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
     FcPatternAddString (pat, FC_FOUNDRY, (FcChar8 *) SDATA (SYMBOL_NAME (val)));
   val = AREF (entity, FONT_SPACING_INDEX);
   if (! NILP (val))
-    FcPatternAddInteger (pat, FC_SPACING, XINT (val));
+    FcPatternAddInteger (pat, FC_SPACING, XFIXNUM (val));
   val = AREF (entity, FONT_DPI_INDEX);
   if (! NILP (val))
     {
-      double dbl = XINT (val);
+      double dbl = XFIXNUM (val);
 
       FcPatternAddDouble (pat, FC_DPI, dbl);
     }
   val = AREF (entity, FONT_AVGWIDTH_INDEX);
-  if (INTEGERP (val) && XINT (val) == 0)
+  if (FIXNUMP (val) && XFIXNUM (val) == 0)
     FcPatternAddBool (pat, FC_SCALABLE, FcTrue);
   /* This is necessary to identify the exact font (e.g. 10x20.pcf.gz
      over 10x20-ISO8859-1.pcf.gz).  */
@@ -308,7 +310,7 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   xftfont_add_rendering_parameters (pat, entity);
 
   FcPatternAddString (pat, FC_FILE, (FcChar8 *) SDATA (filename));
-  FcPatternAddInteger (pat, FC_INDEX, XINT (idx));
+  FcPatternAddInteger (pat, FC_INDEX, XFIXNUM (idx));
 
 
   block_input ();
@@ -353,8 +355,8 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
       xftfont_info->matrix.xy = 0x10000L * matrix->xy;
       xftfont_info->matrix.yx = 0x10000L * matrix->yx;
     }
-  if (INTEGERP (AREF (entity, FONT_SPACING_INDEX)))
-    spacing = XINT (AREF (entity, FONT_SPACING_INDEX));
+  if (FIXNUMP (AREF (entity, FONT_SPACING_INDEX)))
+    spacing = XFIXNUM (AREF (entity, FONT_SPACING_INDEX));
   else
     spacing = FC_PROPORTIONAL;
   if (! ascii_printable[0])
@@ -413,7 +415,7 @@ xftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
     }
   font->height = font->ascent + font->descent;
 
-  if (XINT (AREF (entity, FONT_SIZE_INDEX)) == 0)
+  if (XFIXNUM (AREF (entity, FONT_SIZE_INDEX)) == 0)
     {
       int upEM = ft_face->units_per_EM;
 

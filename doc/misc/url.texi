@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2018 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2019 Free Software
 Foundation, Inc.
 
 @quotation
@@ -570,13 +570,6 @@ if it has the file suffix @file{.z}, @file{.gz}, @file{.Z},
 @file{.bz2}, or @file{.xz}.  (The list of supported suffixes is
 hard-coded, and cannot be altered by customizing
 @code{jka-compr-compression-info-list}.)
-
-@defopt url-directory-index-file
-This option specifies the filename to look for when a @code{file} or
-@code{ftp} URL specifies a directory.  The default is
-@file{index.html}.  If this file exists and is readable, it is viewed.
-Otherwise, Emacs visits the directory using Dired.
-@end defopt
 
 @node info
 @section info
@@ -1263,19 +1256,6 @@ You can use this function to do completion of URLs from the history.
 @node Customization
 @chapter Customization
 
-@cindex environment variables
-  The following environment variables affect the @code{url} library's
-operation at startup.
-
-@table @code
-@item TMPDIR
-@vindex TMPDIR
-@vindex url-temporary-directory
-If this is defined, @code{url-temporary-directory} is initialized from
-it.  This variable was obsoleted in 23.1, please use
-@code{temporary-file-directory} instead.
-@end table
-
   The following user options affect the general operation of
 @code{url} library.
 
@@ -1303,6 +1283,20 @@ It may also be a list of the types of messages to be logged.
 @defopt url-personal-mail-address
 @end defopt
 @defopt url-privacy-level
+@end defopt
+@defopt url-lastloc-privacy-level
+Provided @code{lastloc} is not prohibited by @code{url-privacy-level},
+this determines who we send our last location to.  @code{none} means
+we include our last location in every outgoing request.
+@code{domain-match} means we send it only if the domain of our last
+location matches the domain of the URI we are requesting.
+@code{host-match} means we only send our last location back to the
+same host.  The default is @code{domain-match}.
+
+Using @code{domain-match} for this option requires emacs to make one
+or more DNS requests each time a new host is contacted, to determine
+the domain of the host.  Results of these lookups are cached, so
+repeated visits do not require repeated domain lookups.
 @end defopt
 @defopt url-uncompressor-alist
 @end defopt
@@ -1348,7 +1342,7 @@ The User Agent string used for sending @acronym{HTTP}/@acronym{HTTPS}
 requests.  The value should be @code{nil}, which means that no
 @samp{User-Agent} header is generated, @code{default}, which means
 that a string is generated based on the setting of
-@code{url-privacy-leve}, a string or a function of no arguments that
+@code{url-privacy-level}, a string or a function of no arguments that
 returns a string.
 
 The default is @code{default}, which means that the

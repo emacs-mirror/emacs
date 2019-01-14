@@ -1,6 +1,6 @@
 ;;; ietf-drums.el --- Functions for parsing RFC822bis headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -185,8 +185,12 @@ STRING is assumed to be a string that is extracted from
 the Content-Transfer-Encoding header of a mail."
   (ietf-drums-remove-garbage (inline (ietf-drums-strip string))))
 
-(defun ietf-drums-parse-address (string)
-  "Parse STRING and return a MAILBOX / DISPLAY-NAME pair."
+(declare-function rfc2047-decode-string "rfc2047" (string &optional address-mime))
+
+(defun ietf-drums-parse-address (string &optional decode)
+  "Parse STRING and return a MAILBOX / DISPLAY-NAME pair.
+If DECODE, the DISPLAY-NAME will have RFC2047 decoding performed
+(that's the \"=?utf...q...=?\") stuff."
   (with-temp-buffer
     (let (display-name mailbox c display-string)
       (ietf-drums-init string)
@@ -236,7 +240,9 @@ the Content-Transfer-Encoding header of a mail."
 	    (cons
 	     (mapconcat 'identity (nreverse display-name) "")
 	     (ietf-drums-get-comment string)))
-	(cons mailbox display-string)))))
+	(cons mailbox (if decode
+                          (rfc2047-decode-string display-string)
+                        display-string))))))
 
 (defun ietf-drums-parse-addresses (string &optional rawp)
   "Parse STRING and return a list of MAILBOX / DISPLAY-NAME pairs.

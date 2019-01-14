@@ -1,6 +1,6 @@
 ;;; url-parse.el --- Uniform Resource Locator parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 

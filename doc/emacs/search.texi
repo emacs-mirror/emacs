@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search
@@ -99,31 +99,45 @@ text that matches the search string---using the @code{isearch} face
 that customize this highlighting.  The current search string is also
 displayed in the echo area.
 
-  If you make a mistake typing the search string, type @key{DEL}.
-Each @key{DEL} cancels the last character of the search string.
-@xref{Error in Isearch}, for more about dealing with unsuccessful
-search.
+@cindex isearch input item
+@cindex input item, isearch
+@findex isearch-delete-char
+@kindex DEL @r{(Incremental search)}
+  If you make a mistake typing the search string, type @key{DEL}
+(@code{isearch-delete-char}).  Each @key{DEL} cancels the last input
+item entered during the search.  Emacs records a new @dfn{input item}
+whenever you type a command that changes the search string, the
+position of point, the success or failure of the search, the direction
+of the search, the position of the other end of the current search
+result, or the ``wrappedness'' of the search.  @xref{Error in
+Isearch}, for more about dealing with unsuccessful search.
 
 @cindex exit incremental search
 @cindex incremental search, exiting
+@findex isearch-exit
+@kindex RET @r{(Incremental search)}
   When you are satisfied with the place you have reached, type
-@key{RET}.  This stops searching, leaving the cursor where the search
-brought it.  Also, any command not specially meaningful in searches
-stops the searching and is then executed.  Thus, typing @kbd{C-a}
-exits the search and then moves to the beginning of the line; typing
-one of the arrow keys exits the search and performs the respective
-movement command; etc.  @key{RET} is necessary only if the next
-command you want to type is a printing character, @key{DEL},
-@key{RET}, or another character that is special within searches
-(@kbd{C-q}, @kbd{C-w}, @kbd{C-r}, @kbd{C-s}, @kbd{C-y}, @kbd{M-y},
-@kbd{M-r}, @kbd{M-c}, @kbd{M-e}, and some others described below).
-You can fine-tune the commands that exit the search; see @ref{Not
-Exiting Isearch}.
+@key{RET} (@code{isearch-exit}).  This stops searching, leaving the
+cursor where the search brought it.  Also, any command not specially
+meaningful in searches stops the searching and is then executed.
+Thus, typing @kbd{C-a} exits the search and then moves to the
+beginning of the line; typing one of the arrow keys exits the search
+and performs the respective movement command; etc.  @key{RET} is
+necessary only if the next command you want to type is a printing
+character, @key{DEL}, @key{RET}, or another character that is special
+within searches (@kbd{C-q}, @kbd{C-w}, @kbd{C-r}, @kbd{C-s},
+@kbd{C-y}, @kbd{M-y}, @kbd{M-r}, @kbd{M-c}, @kbd{M-e}, and some others
+described below).  You can fine-tune the commands that exit the
+search; see @ref{Not Exiting Isearch}.
 
   As a special exception, entering @key{RET} when the search string is
 empty launches nonincremental search (@pxref{Nonincremental Search}).
 (This can be customized; see @ref{Search Customizations}.)
 
+@findex isearch-abort
+@findex isearch-cancel
+@kindex C-g C-g @r{(Incremental Search)}
+@kindex ESC ESC ESC @r{(Incremental Search)}
   To abandon the search and return to the place where you started,
 type @kbd{@key{ESC} @key{ESC} @key{ESC}} (@code{isearch-cancel}) or
 @kbd{C-g C-g} (@code{isearch-abort}).
@@ -146,13 +160,18 @@ matches that begin after it.
 @node Repeat Isearch
 @subsection Repeating Incremental Search
 
+@kindex C-s @r{(Incremental Search)}
+@kindex C-r @r{(Incremental Search)}
+@findex isearch-repeat-forward
+@findex isearch-repeat-backward
   Suppose you search forward for @samp{FOO} and find a match, but not
 the one you expected to find: the @samp{FOO} you were aiming for
-occurs later in the buffer.  In this event, type another @kbd{C-s} to
-move to the next occurrence of the search string.  You can repeat this
-any number of times.  If you overshoot, you can cancel some @kbd{C-s}
-characters with @key{DEL}.  Similarly, each @kbd{C-r} in a backward
-incremental search repeats the backward search.
+occurs later in the buffer.  In this event, type another @kbd{C-s}
+(@code{isearch-repeat-forward}) to move to the next occurrence of the
+search string.  You can repeat this any number of times.  If you
+overshoot, you can cancel some @kbd{C-s} commands with @key{DEL}.
+Similarly, each @kbd{C-r} (@code{isearch-repeat-backward}) in a
+backward incremental search repeats the backward search.
 
 @cindex lazy search highlighting
   If you pause for a little while during incremental search, Emacs
@@ -192,12 +211,15 @@ going past the original starting point of the search, it changes to
 you have already seen.
 
 @cindex search ring
+@findex isearch-ring-advance
+@findex isearch-ring-retreat
 @kindex M-n @r{(Incremental search)}
 @kindex M-p @r{(Incremental search)}
 @vindex search-ring-max
   To reuse earlier search strings, use the @dfn{search ring}.  The
-commands @kbd{M-p} and @kbd{M-n} move through the ring to pick a
-search string to reuse.  These commands leave the selected search ring
+commands @kbd{M-p} (@code{isearch-ring-retreat}) and @kbd{M-n}
+(@code{isearch-ring-advance}) move through the ring to pick a search
+string to reuse.  These commands leave the selected search ring
 element in the minibuffer, where you can edit it.  Type
 @kbd{C-s}/@kbd{C-r} or @key{RET} to accept the string and start
 searching for it.  The number of most recently used search strings
@@ -206,14 +228,16 @@ saved in the search ring is specified by the variable
 
 @cindex incremental search, edit search string
 @cindex interactively edit search string
+@findex isearch-edit-string
 @kindex M-e @r{(Incremental search)}
 @kindex mouse-1 @r{in the minibuffer (Incremental Search)}
   To edit the current search string in the minibuffer without
-replacing it with items from the search ring, type @kbd{M-e} or click
-@kbd{mouse-1} in the minibuffer.  Type @key{RET}, @kbd{C-s} or
-@kbd{C-r} to finish editing the string and search for it.  Type
-@kbd{C-f} or @kbd{@key{RIGHT}} to add to the search string characters
-following point from the buffer from which you started the search.
+replacing it with items from the search ring, type @kbd{M-e}
+(@code{isearch-edit-string}) or click @kbd{mouse-1} in the minibuffer.
+Type @key{RET}, @kbd{C-s} or @kbd{C-r} to finish editing the string
+and search for it.  Type @kbd{C-f} or @kbd{@key{RIGHT}} to add to the
+search string characters following point from the buffer from which
+you started the search.
 
 @node Isearch Yank
 @subsection Isearch Yanking
@@ -290,14 +314,15 @@ string that failed to match is highlighted using the face
 @code{isearch-fail}.
 
   At this point, there are several things you can do.  If your string
-was mistyped, you can use @key{DEL} to erase some of it and correct
-it, or you can type @kbd{M-e} and edit it.  If you like the place you
-have found, you can type @key{RET} to remain there.  Or you can type
-@kbd{C-g}, which removes from the search string the characters that
-could not be found (the @samp{T} in @samp{FOOT}), leaving those that
-were found (the @samp{FOO} in @samp{FOOT}).  A second @kbd{C-g} at
-that point cancels the search entirely, returning point to where it
-was when the search started.
+was mistyped, use @key{DEL} to cancel a previous input item
+(@pxref{Basic Isearch}), @kbd{C-M-d} to erase one character at a time,
+or @kbd{M-e} to edit it.  If you like the place you have found, you
+can type @key{RET} to remain there.  Or you can type @kbd{C-g}, which
+removes from the search string the characters that could not be found
+(the @samp{T} in @samp{FOOT}), leaving those that were found (the
+@samp{FOO} in @samp{FOOT}).  A second @kbd{C-g} at that point cancels
+the search entirely, returning point to where it was when the search
+started.
 
 @cindex quitting (in search)
 @kindex C-g @r{(Incremental search)}
@@ -355,17 +380,22 @@ following methods:
 
 @itemize @bullet
 @item
-Type @kbd{C-q}, followed by a non-graphic character or a sequence of
-octal digits.  This adds a character to the search string, similar to
-inserting into a buffer using @kbd{C-q} (@pxref{Inserting Text}).  For
-example, @kbd{C-q C-s} during incremental search adds the
-@samp{control-S} character to the search string.
+@findex isearch-quote-char
+@kindex C-q @r{(Incremental Search)}
+Type @kbd{C-q} (@code{isearch-quote-char}), followed by a non-graphic
+character or a sequence of octal digits.  This adds a character to the
+search string, similar to inserting into a buffer using @kbd{C-q}
+(@pxref{Inserting Text}).  For example, @kbd{C-q C-s} during
+incremental search adds the @samp{control-S} character to the search
+string.
 
 @item
-Type @kbd{C-x 8 @key{RET}}, followed by a Unicode name or code-point
-in hex.  This adds the specified character into the search string,
-similar to the usual @code{insert-char} command (@pxref{Inserting
-Text}).
+@findex isearch-char-by-name
+@kindex C-x 8 RET @r{(Incremental Search)}
+Type @kbd{C-x 8 @key{RET}} (@code{isearch-char-by-name}), followed by
+a Unicode name or code-point in hex.  This adds the specified
+character into the search string, similar to the usual
+@code{insert-char} command (@pxref{Inserting Text}).
 
 @item
 @kindex C-^ @r{(Incremental Search)}
@@ -398,12 +428,20 @@ current buffer afterwards.
 @code{isearch-occur}, which runs @code{occur} with the current search
 string.  @xref{Other Repeating Search, occur}.
 
+@findex isearch-query-replace
+@findex isearch-query-replace-regexp
 @kindex M-% @r{(Incremental search)}
-  Typing @kbd{M-%} in incremental search invokes @code{query-replace}
-or @code{query-replace-regexp} (depending on search mode) with the
-current search string used as the string to replace.  A negative
-prefix argument means to replace backward.  @xref{Query Replace}.
+@kindex C-M-% @r{(Incremental search)}
+  Typing @kbd{M-%} (@code{isearch-query-replace}) in incremental
+search invokes @code{query-replace} or @code{query-replace-regexp}
+(depending on search mode) with the current search string used as the
+string to replace.  A negative prefix argument means to replace
+backward.  @xref{Query Replace}.  Typing @kbd{C-M-%}
+(@code{isearch-query-replace-regexp}) invokes
+@code{query-replace-regexp} with the current search string used as the
+regexp to replace.
 
+@findex isearch-complete
 @kindex M-TAB @r{(Incremental search)}
   Typing @kbd{M-@key{TAB}} in incremental search invokes
 @code{isearch-complete}, which attempts to complete the search string
@@ -446,7 +484,7 @@ they are not themselves part of incremental search.
 search exits the search before executing the command.  Thus, the
 command operates on the buffer from which you invoked the search.
 However, if you customize the variable @code{search-exit-option} to
-@code{nil}, the characters which you type that are not interpreted by
+@code{append}, the characters which you type that are not interpreted by
 the incremental search are simply appended to the search string.  This
 is so you could include in the search string control characters, such
 as @kbd{C-a}, that would normally exit the search and invoke the
@@ -510,12 +548,12 @@ an incremental search.  This feature is disabled if
 
 @item Motion Commands
 @cindex motion commands, during incremental search
-When @code{search-exit-option} is customized to @code{shift-move},
+When @code{isearch-yank-on-move} is customized to @code{shift},
 you can extend the search string by holding down the shift key while
 typing cursor motion commands.  It will yank text that ends at the new
 position after moving point in the current buffer.
 
-When @code{search-exit-option} is @code{move}, you can extend the
+When @code{isearch-yank-on-move} is @code{t}, you can extend the
 search string without using the shift key for cursor motion commands,
 but it applies only for certain motion command that have the
 @code{isearch-move} property on their symbols.
@@ -609,15 +647,17 @@ Search backward for @var{words}, using a nonincremental word search.
 Search the Web for the text in region.
 @end table
 
-@kindex M-s w
 @findex isearch-forward-word
+@findex isearch-toggle-word
+@kindex M-s w
   To begin a forward incremental word search, type @kbd{M-s w}.  If
 incremental search is not already active, this runs the command
 @code{isearch-forward-word}.  If incremental search is already active
-(whether a forward or backward search), @kbd{M-s w} switches to a word
-search while keeping the direction of the search and the current
-search string unchanged.  You can toggle word search back off by
-typing @kbd{M-s w} again.
+(whether a forward or backward search), @kbd{M-s w} runs the command
+@code{isearch-toggle-word}, which switches to a word search while
+keeping the direction of the search and the current search string
+unchanged.  You can toggle word search back off by typing @kbd{M-s w}
+again.
 
 @findex word-search-forward
 @findex word-search-backward
@@ -1673,7 +1713,7 @@ specify what to do with this occurrence.
 
 @item Y @r{(Upper-case)}
 to replace all remaining occurrences in all remaining buffers in
-multi-buffer replacements (like the Dired @key{Q} command that performs
+multi-buffer replacements (like the Dired @kbd{Q} command that performs
 query replace on selected files).  It answers this question and all
 subsequent questions in the series with ``yes'', without further
 user interaction.
@@ -1796,7 +1836,7 @@ In the @file{*Occur*} buffer, you can click on each entry, or move
 point there and type @key{RET}, to visit the corresponding position in
 the buffer that was searched.  @kbd{o} and @kbd{C-o} display the match
 in another window; @kbd{C-o} does not select it.  Alternatively, you
-can use the @kbd{C-x `} (@code{next-error}) command to visit the
+can use the @kbd{M-g M-n} (@code{next-error}) command to visit the
 occurrences one by one (@pxref{Compilation Mode}).
 
 @cindex Occur Edit mode

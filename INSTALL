@@ -1,5 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996-1997, 2000-2018 Free Software Foundation,
+Copyright (C) 1992, 1994, 1996-1997, 2000-2019 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -34,7 +34,7 @@ some of the steps manually.  The more detailed description in the other
 sections of this guide will help you do that, so please refer to those
 sections if you need to.
 
-  1. Unpacking the Emacs 25 release requires about 200 MB of free
+  1. Unpacking the Emacs release requires about 200 MB of free
   disk space.  Building Emacs uses about another 200 MB of space.
   The final installed Emacs uses about 150 MB of disk space.
   This includes the space-saving that comes from automatically
@@ -202,8 +202,9 @@ The names of the packages that you need varies according to the
 GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
-like 'apt-get build-dep emacs24'.  On Red Hat systems, the
-corresponding command is 'yum-builddep emacs'.
+like 'apt-get build-dep emacs' (on older systems, replace 'emacs' with
+eg 'emacs25').  On Red Hat-based systems, the corresponding command is
+'dnf builddep emacs' (on older systems, use 'yum-builddep' instead).
 
 
 DETAILED BUILDING AND INSTALLATION:

@@ -1,6 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: Stefan Merten <stefan at merten-home dot de>
 ;; Author: Stefan Merten <stefan at merten-home dot de>,
@@ -796,6 +796,9 @@ Return ADO if so or signal an error otherwise."
 
 ;; Public class methods
 
+(define-obsolete-variable-alias
+  'rst-preferred-decorations 'rst-preferred-adornments "rst 1.0.0")
+
 (defvar rst-preferred-adornments) ; Forward declaration.
 
 (defun rst-Hdr-preferred-adornments ()
@@ -1408,9 +1411,6 @@ highlighting.
 ;;;###autoload
 (define-minor-mode rst-minor-mode
   "Toggle ReST minor mode.
-With a prefix argument ARG, enable ReST minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 When ReST minor mode is enabled, the ReST mode keybindings
 are installed on top of the major mode bindings.  Use this
@@ -1481,8 +1481,6 @@ for modes derived from Text mode, like Mail mode."
   :group 'rst
   :version "21.1")
 
-(define-obsolete-variable-alias
-  'rst-preferred-decorations 'rst-preferred-adornments "rst 1.0.0")
 ;; FIXME: Default must match suggestion in
 ;;        http://sphinx-doc.org/rest.html#sections for Python documentation.
 (defcustom rst-preferred-adornments '((?= over-and-under 1)

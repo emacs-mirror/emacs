@@ -1,6 +1,6 @@
 ;;; footnote.el --- footnote support for message mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Steven L Baur <steve@xemacs.org> (1997-2011)
 ;;         Boruch Baum <boruch_baum@gmx.com> (2017-)
@@ -945,9 +945,6 @@ being set it is automatically widened."
 ;;;###autoload
 (define-minor-mode footnote-mode
   "Toggle Footnote mode.
-With a prefix argument ARG, enable Footnote mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Footnote mode is a buffer-local minor mode.  If enabled, it
 provides footnote support for `message-mode'.  To get started,

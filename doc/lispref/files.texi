@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Files
@@ -582,8 +582,9 @@ with @code{insert-file-contents}, as long as @var{replace} and
 
 @defun insert-file-contents-literally filename &optional visit beg end replace
 This function works like @code{insert-file-contents} except that it
-does not run @code{find-file-hook}, and does not do format decoding,
-character code conversion, automatic uncompression, and so on.
+does not run @code{after-insert-file-functions}, and does not do
+format decoding, character code conversion, automatic uncompression,
+and so on.
 @end defun
 
 If you want to pass a file name to another process so that another
@@ -711,6 +712,7 @@ with-temp-buffer,, The Current Buffer}.
 @section File Locks
 @cindex file locks
 @cindex lock file
+@cindex .#, lock file names
 
   When two users edit the same file at the same time, they are likely
 to interfere with each other.  Emacs tries to prevent this situation
@@ -719,8 +721,17 @@ modified.
 Emacs can then detect the first attempt to modify a buffer visiting a
 file that is locked by another Emacs job, and ask the user what to do.
 The file lock is really a file, a symbolic link with a special name,
-stored in the same directory as the file you are editing.  (On file
-systems that do not support symbolic links, a regular file is used.)
+stored in the same directory as the file you are editing.  The name is
+constructed by prepending @file{.#} to the filename of the buffer.
+The target of the symbolic link will be of the form
+@code{@var{user}@@@var{host}.@var{pid}:@var{boot}}, where @var{user}
+is replaced with the current username (from @code{user-login-name}),
+@var{host} with the name of the host where Emacs is running (from
+@code{system-name}), @var{pid} with Emacs's process id, and @var{boot}
+with the time since the last reboot.  @code{:@var{boot}} is omitted if
+the boot time is unavailable.  (On file systems that do not support
+symbolic links, a regular file is used instead, with contents of the
+form @code{@var{user}@@@var{host}.@var{pid}:@var{boot}}.)
 
   When you access files using NFS, there may be a small probability that
 you and another user will both lock the same file simultaneously.
@@ -1288,36 +1299,34 @@ Alternate names, also known as hard links, can be created by using the
 @item
 The file's @acronym{UID}, normally as a string
 (@code{file-attribute-user-id}).  However, if it does not correspond
-to a named user, the value is a number.
+to a named user, the value is an integer.
 
 @item
 The file's @acronym{GID}, likewise (@code{file-attribute-group-id}).
 
 @item
-The time of last access, as a list of four integers
-@code{(@var{sec-high} @var{sec-low} @var{microsec} @var{picosec})}
-(@code{file-attribute-access-time}).  (This is similar to the value of
-@code{current-time}; see @ref{Time of Day}.)  The value is truncated
+The time of last access as a Lisp timestamp
+(@code{file-attribute-status-change-time}).  The timestamp is in the
+style of @code{current-time} (@pxref{Time of Day}) and is truncated
 to that of the filesystem's timestamp resolution; for example, on some
 FAT-based filesystems, only the date of last access is recorded, so
 this time will always hold the midnight of the day of the last access.
 
 @cindex modification time of file
 @item
-The time of last modification as a list of four integers (as above)
+The time of last modification as a Lisp timestamp
 (@code{file-attribute-modification-time}).  This is the last time when
 the file's contents were modified.
 
 @item
-The time of last status change as a list of four integers (as above)
+The time of last status change as a Lisp timestamp
 (@code{file-attribute-status-change-time}).  This is the time of the
 last change to the file's access mode bits, its owner and group, and
 other information recorded in the filesystem for the file, beyond the
 file's contents.
 
 @item
-The size of the file in bytes (@code{file-attribute-size}).  This is
-floating point if the size is too large to fit in a Lisp integer.
+The size of the file in bytes (@code{file-attribute-size}).
 
 @item
 The file's modes, as a string of ten letters or dashes, as in
@@ -1327,21 +1336,13 @@ The file's modes, as a string of ten letters or dashes, as in
 An unspecified value, present for backward compatibility.
 
 @item
-The file's inode number (@code{file-attribute-inode-number}).  If
-possible, this is an integer.  If the inode number is too large to be
-represented as an integer in Emacs Lisp but dividing it by
-@math{2^{16}} yields a representable integer, then the value has the
-form @code{(@var{high} . @var{low})}, where @var{low} holds the low 16
-bits.  If the inode number is too wide for even that, the value is of
-the form @code{(@var{high} @var{middle} . @var{low})}, where
-@code{high} holds the high bits, @var{middle} the middle 24 bits, and
-@var{low} the low 16 bits.
+The file's inode number (@code{file-attribute-inode-number}),
+a nonnegative integer.
 
 @item
 The filesystem number of the device that the file is on
-@code{file-attribute-device-number}).  Depending on the magnitude of
-the value, this can be either an integer or a cons cell, in the same
-manner as the inode number.  This element and the file's inode number
+@code{file-attribute-device-number}), an integer.
+This element and the file's inode number
 together give enough information to distinguish any two files on the
 system---no two files can have the same values for both of these
 numbers.
@@ -1357,8 +1358,8 @@ For example, here are the file attributes for @file{files.texi}:
           (20000 23 0 0)
           (20614 64555 902289 872000)
           122295 "-rw-rw-rw-"
-          t (5888 2 . 43978)
-          (15479 . 46724))
+          t 6473924464520138
+          1014478468)
 @end group
 @end example
 
@@ -1399,10 +1400,10 @@ has a mode of read and write access for the owner, group, and world.
 @item t
 is merely a placeholder; it carries no information.
 
-@item (5888 2 . 43978)
+@item 6473924464520138
 has an inode number of 6473924464520138.
 
-@item (15479 . 46724)
+@item 1014478468
 is on the file-system device whose number is 1014478468.
 @end table
 @end defun
@@ -1556,13 +1557,16 @@ For compatibility, @var{predicate} can also be one of the symbols
 a list of one or more of these symbols.
 @end defun
 
-@defun executable-find program
+@defun executable-find program &optional remote
 This function searches for the executable file of the named
 @var{program} and returns the absolute file name of the executable,
 including its file-name extensions, if any.  It returns @code{nil} if
-the file is not found.  The functions searches in all the directories
+the file is not found.  The function searches in all the directories
 in @code{exec-path}, and tries all the file-name extensions in
 @code{exec-suffixes} (@pxref{Subprocess Creation}).
+
+If @var{remote} is non-@code{nil}, and @code{default-directory} is a
+remote directory, @var{program} is searched on the respective remote host.
 @end defun
 
 @node Changing Files
@@ -2363,8 +2367,10 @@ start with @samp{~}.)  Otherwise, the current buffer's value of
 @end example
 
 If the part of @var{filename} before the first slash is
-@samp{~}, it expands to the value of the @env{HOME} environment
-variable (usually your home directory).  If the part before the first
+@samp{~}, it expands to your home directory, which is typically
+specified by the value of the @env{HOME} environment variable
+(@pxref{General Variables,,, emacs, The GNU Emacs Manual}).
+If the part before the first
 slash is @samp{~@var{user}} and if @var{user} is a valid login name,
 it expands to @var{user}'s home directory.
 If you do not want this expansion for a relative @var{filename} that
@@ -2506,9 +2512,9 @@ with @samp{/:}.
 @defmac file-name-quote name
 This macro adds the quotation prefix @samp{/:} to the file @var{name}.
 For a local file @var{name}, it prefixes @var{name} with @samp{/:}.
-If @var{name} is a remote file name, the local part of @var{name} is
-quoted.  If @var{name} is already a quoted file name, @var{name} is
-returned unchanged.
+If @var{name} is a remote file name, the local part of @var{name}
+(@pxref{Magic File Names}) is quoted.  If @var{name} is already a
+quoted file name, @var{name} is returned unchanged.
 
 @example
 @group
@@ -2560,10 +2566,10 @@ This function creates a temporary file and returns its name.  Emacs
 creates the temporary file's name by adding to @var{prefix} some
 random characters that are different in each Emacs job.  The result is
 guaranteed to be a newly created file, containing @var{text} if that's
-given as a string and empty otherwise. On MS-DOS, this function
-can truncate the @var{string} prefix to fit into the 8+3 file-name
-limits.  If @var{prefix} is a relative file name, it is expanded
-against @code{temporary-file-directory}.
+given as a string and empty otherwise. On MS-DOS, this function can
+truncate @var{prefix} to fit into the 8+3 file-name limits.  If
+@var{prefix} is a relative file name, it is expanded against
+@code{temporary-file-directory}.
 
 @example
 @group
@@ -2687,8 +2693,8 @@ that remote host.  If such a directory does not exist, or
 @code{temporary-file-directory} is returned.
 @end defun
 
-In order to extract the local part of the path name from a temporary
-file, @code{file-local-name} could be used.
+In order to extract the local part of the file's name of a temporary
+file, use @code{file-local-name} (@pxref{Magic File Names}).
 
 @node File Name Completion
 @subsection File Name Completion
@@ -2915,7 +2921,7 @@ This is similar to @code{directory-files} in deciding which files
 to report on and how to report their names.  However, instead
 of returning a list of file names, it returns for each file a
 list @code{(@var{filename} . @var{attributes})}, where @var{attributes}
-is what @code{file-attributes} would return for that file.
+is what @code{file-attributes} returns for that file.
 The optional argument @var{id-format} has the same meaning as the
 corresponding argument to @code{file-attributes} (@pxref{Definition
 of file-attributes}).
@@ -2991,8 +2997,14 @@ This command creates a directory named @var{dirname}.  If
 @var{parents} is non-@code{nil}, as is always the case in an
 interactive call, that means to create the parent directories first,
 if they don't already exist.
-
 @code{mkdir} is an alias for this.
+@end deffn
+
+@deffn Command make-empty-file filename &optional parents
+This command creates an empty file named @var{filename}.
+As @code{make-directory}, this command creates parent directories
+if @var{parents} is non-@code{nil}.
+If @var{filename} already exists, this command signals an error.
 @end deffn
 
 @deffn Command copy-directory dirname newname &optional keep-time parents copy-contents
@@ -3055,7 +3067,7 @@ expression to define the class of names (all those that match the
 regular expression), plus a handler that implements all the primitive
 Emacs file operations for file names that match.
 
-@cindex file handler
+@cindex file name handler
 @vindex file-name-handler-alist
   The variable @code{file-name-handler-alist} holds a list of handlers,
 together with regular expressions that determine when to apply each
@@ -3126,8 +3138,8 @@ first, before handlers for jobs such as remote file access.
 @code{directory-file-name},
 @code{directory-files},
 @code{directory-files-and-attributes},
-@code{dired-compress-file}, @code{dired-uncache},@*
-@code{expand-file-name},
+@code{dired-compress-file}, @code{dired-uncache},
+@code{exec-path}, @code{expand-file-name},@*
 @code{file-accessible-directory-p},
 @code{file-acl},
 @code{file-attributes},
@@ -3159,6 +3171,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-directory},
 @code{make-directory-internal},
 @code{make-nearby-temp-file},
+@code{make-process},
 @code{make-symbolic-link},@*
 @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
@@ -3184,7 +3197,7 @@ first, before handlers for jobs such as remote file access.
 @code{directory-files},
 @code{directory-files-and-at@discretionary{}{}{}tributes},
 @code{dired-compress-file}, @code{dired-uncache},
-@code{expand-file-name},
+@code{exec-path}, @code{expand-file-name},
 @code{file-accessible-direc@discretionary{}{}{}tory-p},
 @code{file-acl},
 @code{file-attributes},
@@ -3215,6 +3228,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-auto-save-file-name},
 @code{make-direc@discretionary{}{}{}tory},
 @code{make-direc@discretionary{}{}{}tory-internal},
+@code{make-process},
 @code{make-symbolic-link},
 @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
@@ -3342,8 +3356,8 @@ If @code{file-remote-p} returns the same identifier for two different
 filenames, that means they are stored on the same file system and can
 be accessed locally with respect to each other.  This means, for
 example, that it is possible to start a remote process accessing both
-files at the same time.  Implementers of file handlers need to ensure
-this principle is valid.
+files at the same time.  Implementers of file name handlers need to
+ensure this principle is valid.
 
 @var{identification} specifies which part of the identifier shall be
 returned as string.  @var{identification} can be the symbol
@@ -3371,11 +3385,24 @@ non-magic directory to serve as its current directory, and this function
 is a good way to come up with one.
 @end defun
 
+@cindex local part of remote file name
 @defun file-local-name filename
-This function returns the local part of file @var{filename}.  For a
-remote @var{filename}, it returns a file name which could be used
-directly as argument of a remote process.  If @var{filename} is local,
-this function returns the file name.
+This function returns the @dfn{local part} of @var{filename}.  This is
+the part of the file's name that identifies it on the remote host, and
+is typically obtained by removing from the remote file name the parts
+that specify the remote host and the method of accessing it.  For
+example:
+
+@smallexample
+(file-local-name "/ssh:@var{user}@@@var{host}:/foo/bar")
+     @result{} "/foo/bar"
+@end smallexample
+
+For a remote @var{filename}, this function returns a file name which
+could be used directly as an argument of a remote process
+(@pxref{Asynchronous Processes}, and @pxref{Synchronous Processes}),
+and as the program to run on the remote host.  If @var{filename} is
+local, this function returns it unchanged.
 @end defun
 
 @defopt remote-file-name-inhibit-cache
@@ -3400,8 +3427,9 @@ between consecutive checks.  For example:
   (let ((remote-file-name-inhibit-cache
          (- display-time-interval 5)))
     (and (file-exists-p file)
-         (< 0 (nth 7 (file-attributes
-                       (file-chase-links file)))))))
+         (< 0 (file-attribute-size
+               (file-attributes
+                (file-chase-links file)))))))
 @end example
 @end defopt
 

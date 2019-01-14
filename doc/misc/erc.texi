@@ -10,7 +10,7 @@
 @copying
 This manual is for ERC as distributed with Emacs @value{EMACSVER}.
 
-Copyright @copyright{} 2005--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2005--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

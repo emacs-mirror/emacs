@@ -1,6 +1,6 @@
 ;;; mail-source.el --- functions for fetching mail
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -26,7 +26,7 @@
 
 (require 'format-spec)
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (require 'imap))
 (autoload 'auth-source-search "auth-source")
 (autoload 'pop3-movemail "pop3")
@@ -301,9 +301,9 @@ number."
   :group 'mail-source
   :type 'number)
 
-(defcustom mail-source-movemail-program nil
+(defcustom mail-source-movemail-program "movemail"
   "If non-nil, name of program for fetching new mail."
-  :version "22.1"
+  :version "26.2"
   :group 'mail-source
   :type '(choice (const nil) string))
 
@@ -439,7 +439,7 @@ the `mail-source-keyword-map' variable."
     ;; the msname is the mail-source parameter
     (dolist (msname '(:server :user :port))
       ;; the asname is the auth-source parameter
-      (let* ((asname (case msname
+      (let* ((asname (cl-case msname
                        (:server :host)  ; auth-source uses :host
                        (t msname)))
              ;; this is the mail-source default
@@ -602,7 +602,8 @@ If CONFIRM is non-nil, ask for confirmation before removing a file."
       (let* ((ffile (car files))
 	     (bfile (replace-regexp-in-string "\\`.*/\\([^/]+\\)\\'" "\\1"
 					      ffile))
-	     (filetime (nth 5 (file-attributes ffile))))
+	     (filetime (file-attribute-modification-time
+			(file-attributes ffile))))
 	(setq files (cdr files))
 	(when (and (> (time-to-number-of-days (time-subtract now filetime))
 		      diff)
@@ -618,7 +619,8 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 (defun mail-source-callback (callback info)
   "Call CALLBACK on the mail file.  Pass INFO on to CALLBACK."
   (if (or (not (file-exists-p mail-source-crash-box))
-	  (zerop (nth 7 (file-attributes mail-source-crash-box))))
+	  (zerop (file-attribute-size
+		  (file-attributes mail-source-crash-box))))
       (progn
 	(when (file-exists-p mail-source-crash-box)
 	  (delete-file mail-source-crash-box))
@@ -670,7 +672,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
        ((not (file-exists-p from))
 	;; There is no inbox.
 	(setq to nil))
-       ((zerop (nth 7 (file-attributes from)))
+       ((zerop (file-attribute-size (file-attributes from)))
 	;; Empty file.
 	(setq to nil))
        (t
@@ -682,12 +684,16 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	      (setq errors (generate-new-buffer " *mail source loss*"))
 	      (let ((default-directory "/"))
 		(setq result
+		      ;; call-process looks in exec-path, which
+		      ;; contains exec-directory, so will find
+		      ;; Mailutils movemail if it exists, else it will
+		      ;; find "our" movemail in exec-directory.
+		      ;; Bug#31737
 		      (apply
 		       'call-process
 		       (append
 			(list
-			 (or mail-source-movemail-program
-			     (expand-file-name "movemail" exec-directory))
+			 mail-source-movemail-program
 			 nil errors nil from to)))))
 	      (when (file-exists-p to)
 		(set-file-modes to mail-source-default-file-modes))
@@ -786,7 +792,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	(when (and (file-regular-p file)
 		   (funcall predicate file)
 		   (mail-source-movemail file mail-source-crash-box))
-	  (incf found (mail-source-callback callback file))
+	  (cl-incf found (mail-source-callback callback file))
 	  (mail-source-run-script postscript (format-spec-make ?t path))
 	  (mail-source-delete-crash-box)))
       found)))
@@ -1041,7 +1047,7 @@ This only works when `display-time' is enabled."
 				  (insert "\001\001\001\001\n"))
 				(delete-file file)
 				nil))))
-	      (incf found (mail-source-callback callback file))
+	      (cl-incf found (mail-source-callback callback file))
 	      (mail-source-delete-crash-box)))))
       found)))
 
@@ -1116,7 +1122,7 @@ This only works when `display-time' is enabled."
 		    (replace-match ">From "))
 		  (goto-char (point-max))))
 	      (nnheader-ms-strip-cr))
-	    (incf found (mail-source-callback callback server))
+	    (cl-incf found (mail-source-callback callback server))
 	    (mail-source-delete-crash-box)
 	    (when (and remove fetchflag)
 	      (setq remove (nreverse remove))

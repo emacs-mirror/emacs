@@ -1,6 +1,6 @@
 ;;; Test GNU Emacs modules.
 
-;; Copyright 2015-2018 Free Software Foundation, Inc.
+;; Copyright 2015-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -66,12 +66,12 @@
   (when (< #x1fffffff most-positive-fixnum)
     (should (= (mod-test-sum 1 #x1fffffff)
                (1+ #x1fffffff)))
-    (should (= (mod-test-sum -1 #x20000000)
+    (should (= (mod-test-sum -1 (1+ #x1fffffff))
                #x1fffffff)))
-  (should-error (mod-test-sum 1 most-positive-fixnum)
-                :type 'overflow-error)
-  (should-error (mod-test-sum -1 most-negative-fixnum)
-                :type 'overflow-error))
+  (should (= (mod-test-sum 1 most-positive-fixnum)
+             (1+ most-positive-fixnum)))
+  (should (= (mod-test-sum -1 most-negative-fixnum)
+             (1- most-negative-fixnum))))
 
 (ert-deftest mod-test-sum-docstring ()
   (should (string= (documentation 'mod-test-sum) "Return A + B\n\n(fn a b)")))
@@ -138,14 +138,18 @@ changes."
 
 (defun multiply-string (s n)
   (let ((res ""))
-    (dotimes (i n res)
-      (setq res (concat res s)))))
+    (dotimes (i n)
+      (setq res (concat res s)))
+    res))
 
 (ert-deftest mod-test-globref-make-test ()
   (let ((mod-str (mod-test-globref-make))
         (ref-str (multiply-string "abcdefghijklmnopqrstuvwxyz" 100)))
     (garbage-collect) ;; XXX: not enough to really test but it's something..
     (should (string= ref-str mod-str))))
+
+(ert-deftest mod-test-globref-free-test ()
+  (should (eq (mod-test-globref-free 1 'a "test" 'b) 'ok)))
 
 (ert-deftest mod-test-string-a-to-b-test ()
   (should (string= (mod-test-string-a-to-b "aaa") "bbb")))

@@ -4,7 +4,7 @@
 @include docstyle.texi
 @syncodeindex vr fn
 @copying
-Copyright @copyright{} 2003--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2003--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

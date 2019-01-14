@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -150,7 +150,7 @@ elisp byte-compiler."
   :group 'ibuffer)
 
 (defcustom ibuffer-fontification-alist
-  `((10 buffer-read-only font-lock-constant-face)
+  '((10 buffer-read-only font-lock-constant-face)
     (15 (and buffer-file-name
 	     (string-match ibuffer-compressed-file-name-regexp
 			   buffer-file-name))
@@ -223,14 +223,6 @@ view of the buffers."
   :type 'boolean
   :group 'ibuffer)
 (defvar ibuffer-sorting-reversep nil)
-
-(defcustom ibuffer-elide-long-columns nil
-  "If non-nil, then elide column entries which exceed their max length."
-  :type 'boolean
-  :group 'ibuffer)
-(make-obsolete-variable 'ibuffer-elide-long-columns
-                        "use the :elide argument of `ibuffer-formats'."
-                        "22.1")
 
 (defcustom ibuffer-eliding-string "..."
   "The string to use for eliding long columns."
@@ -349,14 +341,10 @@ directory, like `default-directory'."
   :type 'regexp
   :group 'ibuffer)
 
-(define-obsolete-variable-alias 'ibuffer-hooks 'ibuffer-hook "22.1")
-
 (defcustom ibuffer-hook nil
   "Hook run when `ibuffer' is called."
   :type 'hook
   :group 'ibuffer)
-
-(define-obsolete-variable-alias 'ibuffer-mode-hooks 'ibuffer-mode-hook "22.1")
 
 (defcustom ibuffer-mode-hook nil
   "Hook run upon entry into `ibuffer-mode'."
@@ -591,6 +579,7 @@ directory, like `default-directory'."
     (define-key map (kbd "R") 'ibuffer-do-rename-uniquely)
     (define-key map (kbd "S") 'ibuffer-do-save)
     (define-key map (kbd "T") 'ibuffer-do-toggle-read-only)
+    (define-key map (kbd "L") 'ibuffer-do-toggle-lock)
     (define-key map (kbd "r") 'ibuffer-do-replace-regexp)
     (define-key map (kbd "V") 'ibuffer-do-revert)
     (define-key map (kbd "W") 'ibuffer-do-view-and-eval)
@@ -863,6 +852,10 @@ directory, like `default-directory'."
       '(menu-item "Print" ibuffer-do-print))
     (define-key-after operate-map [do-toggle-modified]
       '(menu-item "Toggle modification flag" ibuffer-do-toggle-modified))
+    (define-key-after operate-map [do-toggle-read-only]
+      '(menu-item "Toggle read-only flag" ibuffer-do-toggle-read-only))
+    (define-key-after operate-map [do-toggle-lock]
+      '(menu-item "Toggle lock flag" ibuffer-do-toggle-lock))
     (define-key-after operate-map [do-revert]
       '(menu-item "Revert" ibuffer-do-revert
         :help "Revert marked buffers to their associated file"))
@@ -952,7 +945,6 @@ directory, like `default-directory'."
 (defvar ibuffer-compiled-formats nil)
 (defvar ibuffer-cached-formats nil)
 (defvar ibuffer-cached-eliding-string nil)
-(defvar ibuffer-cached-elide-long-columns 0)
 
 (defvar ibuffer-sorting-functions-alist nil
   "An alist of functions which describe how to sort buffers.
@@ -1362,6 +1354,16 @@ Otherwise, toggle read only status."
    :modifier-p t)
   (read-only-mode (if (integerp arg) arg 'toggle)))
 
+(define-ibuffer-op ibuffer-do-toggle-lock (&optional arg)
+  "Toggle locked status in marked buffers.
+If optional ARG is a non-negative integer, lock buffers.
+If ARG is a negative integer or 0, unlock buffers.
+Otherwise, toggle lock status."
+  (:opstring "toggled lock status in"
+   :interactive "P"
+   :modifier-p t)
+  (emacs-lock-mode (if (integerp arg) arg 'toggle)))
+
 (define-ibuffer-op ibuffer-do-delete ()
   "Kill marked buffers as with `kill-this-buffer'."
   (:opstring "killed"
@@ -1589,7 +1591,7 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-compile-make-eliding-form (strvar elide from-end-p)
   (let ((ellipsis (propertize ibuffer-eliding-string 'font-lock-face 'bold)))
-    (if (or elide (with-no-warnings ibuffer-elide-long-columns))
+    (if elide
 	`(if (> strlen 5)
 	     ,(if from-end-p
                   ;; FIXME: this should probably also be using
@@ -1611,8 +1613,8 @@ If point is on a group name, this function operates on that group."
     `(truncate-string-to-width ,strvar ,maxvar nil ?\s)))
 
 (defun ibuffer-compile-make-format-form (strvar widthform alignment)
-  (let* ((left `(make-string tmp2 ?\s))
-	 (right `(make-string (- tmp1 tmp2) ?\s)))
+  (let* ((left '(make-string tmp2 ?\s))
+	 (right '(make-string (- tmp1 tmp2) ?\s)))
     `(progn
        (setq tmp1 ,widthform
 	     tmp2 (/ tmp1 2))
@@ -1735,7 +1737,7 @@ If point is on a group name, this function operates on that group."
 		      outforms)
 		     (push `(setq str ,callform
                                   ,@(when strlen-used
-                                      `(strlen (string-width str))))
+                                      '(strlen (string-width str))))
 			   outforms)
 		     (setq outforms
 			   (append outforms
@@ -1789,9 +1791,6 @@ If point is on a group name, this function operates on that group."
 	      (not (eq ibuffer-cached-formats ibuffer-formats))
 	      (null ibuffer-cached-eliding-string)
 	      (not (equal ibuffer-cached-eliding-string ibuffer-eliding-string))
-	      (eql 0 ibuffer-cached-elide-long-columns)
-	      (not (eql ibuffer-cached-elide-long-columns
-			(with-no-warnings ibuffer-elide-long-columns)))
 	      (and ext-loaded
 		   (not (eq ibuffer-cached-filter-formats
 			    ibuffer-filter-format-alist))
@@ -1800,8 +1799,7 @@ If point is on a group name, this function operates on that group."
       (message "Formats have changed, recompiling...")
       (ibuffer-recompile-formats)
       (setq ibuffer-cached-formats ibuffer-formats
-	    ibuffer-cached-eliding-string ibuffer-eliding-string
-	    ibuffer-cached-elide-long-columns (with-no-warnings ibuffer-elide-long-columns))
+	    ibuffer-cached-eliding-string ibuffer-eliding-string)
       (when ext-loaded
 	(setq ibuffer-cached-filter-formats ibuffer-filter-format-alist))
       (message "Formats have changed, recompiling...done"))))
@@ -1913,11 +1911,9 @@ If point is on a group name, this function operates on that group."
      (let ((procs 0)
 	   (files 0))
        (dolist (string strings)
-	 (if (string-match "\\(?:\\`([[:ascii:]]+)\\)" string)
-	     (progn (setq procs (1+ procs))
-		    (if (< (match-end 0) (length string))
-			(setq files (1+ files))))
-	   (setq files (1+ files))))
+         (when (get-text-property 1 'ibuffer-process string)
+           (setq procs (1+ procs)))
+	 (setq files (1+ files)))
        (concat (cond ((zerop files) "No files")
 		     ((= 1 files) "1 file")
 		     (t (format "%d files" files)))
@@ -1929,7 +1925,8 @@ If point is on a group name, this function operates on that group."
 	(filename (ibuffer-make-column-filename buffer mark)))
     (if proc
 	(concat (propertize (format "(%s %s)" proc (process-status proc))
-			    'font-lock-face 'italic)
+			    'font-lock-face 'italic
+                            'ibuffer-process proc)
 		(if (> (length filename) 0)
 		    (format " %s" filename)
 		  ""))
@@ -2208,7 +2205,7 @@ the value of point at the beginning of the line for that buffer."
 		     strname
 		     (propertize strname 'mouse-face 'highlight 'keymap hmap)))
 		  strname)))))
-	 (add-text-properties opos (point) `(ibuffer-title-header t))
+	 (add-text-properties opos (point) '(ibuffer-title-header t))
 	 (insert "\n")
 	 ;; Add the underlines
 	 (let ((str (save-excursion
@@ -2258,7 +2255,7 @@ the value of point at the beginning of the line for that buffer."
                                                align)
                       summary))))))
 	   (point))
-	 `(ibuffer-summary t)))))
+	 '(ibuffer-summary t)))))
 
 
 (defun ibuffer-redisplay (&optional silent)
@@ -2515,6 +2512,7 @@ Operations on marked buffers:
   `\\[ibuffer-do-view-other-frame]' - View the marked buffers in another frame.
   `\\[ibuffer-do-revert]' - Revert the marked buffers.
   `\\[ibuffer-do-toggle-read-only]' - Toggle read-only state of marked buffers.
+  `\\[ibuffer-do-toggle-lock]' - Toggle lock state of marked buffers.
   `\\[ibuffer-do-delete]' - Kill the marked buffers.
   `\\[ibuffer-do-isearch]' - Do incremental search in the marked buffers.
   `\\[ibuffer-do-isearch-regexp]' - Isearch for regexp in the marked buffers.
@@ -2746,7 +2744,6 @@ will be inserted before the group at point."
   (set (make-local-variable 'ibuffer-compiled-formats) nil)
   (set (make-local-variable 'ibuffer-cached-formats) nil)
   (set (make-local-variable 'ibuffer-cached-eliding-string) nil)
-  (set (make-local-variable 'ibuffer-cached-elide-long-columns) nil)
   (set (make-local-variable 'ibuffer-current-format) nil)
   (set (make-local-variable 'ibuffer-did-modification) nil)
   (set (make-local-variable 'ibuffer-tmp-hide-regexps) nil)

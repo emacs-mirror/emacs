@@ -1,6 +1,6 @@
 ;;; dbus.el --- Elisp bindings for D-Bus. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -41,8 +41,15 @@
 (defvar dbus-message-type-method-return)
 (defvar dbus-message-type-error)
 (defvar dbus-message-type-signal)
-(defvar dbus-debug)
 (defvar dbus-registered-objects-table)
+
+;; The following symbols are defined in dbusbind.c.  We need them also
+;; when Emacs is compiled without D-Bus support.
+(unless (boundp 'dbus-error)
+  (define-error 'dbus-error "D-Bus error"))
+
+(unless (boundp 'dbus-debug)
+  (defvar dbus-debug nil))
 
 ;; Pacify byte compiler.
 (eval-when-compile (require 'cl-lib))
@@ -1791,10 +1798,11 @@ GTK+.  It should be used with care for at least the `:system' and
 this connection to those buses."
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
-  (dbus--init-bus bus private)
-  (dbus-register-signal
-   bus nil dbus-path-local dbus-interface-local
-   "Disconnected" #'dbus-handle-bus-disconnect))
+  (prog1
+      (dbus--init-bus bus private)
+    (dbus-register-signal
+     bus nil dbus-path-local dbus-interface-local
+     "Disconnected" #'dbus-handle-bus-disconnect)))
 
  
 ;; Initialize `:system' and `:session' buses.  This adds their file

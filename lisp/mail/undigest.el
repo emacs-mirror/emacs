@@ -1,6 +1,6 @@
 ;;; undigest.el --- digest-cracking support for the RMAIL mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 1996, 2001-2018 Free Software
+;; Copyright (C) 1985-1986, 1994, 1996, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; ede-pmake.el --- EDE Generic Project Makefile code generator.
 
-;; Copyright (C) 1998-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -43,7 +43,6 @@
 ;;       1) Insert distribution source variables for targets
 ;;       2) Insert user requested rules
 
-(eval-when-compile (require 'cl))
 (require 'ede/proj)
 (require 'ede/proj-obj)
 (require 'ede/proj-comp)

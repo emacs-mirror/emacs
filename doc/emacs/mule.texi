@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2019 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International
 @chapter International Character Set Support
@@ -51,7 +51,7 @@ others.
 @item
 You can insert non-@acronym{ASCII} characters or search for them.  To do that,
 you can specify an input method (@pxref{Select Input Method}) suitable
-for your language, or use the default input method set up when you chose
+for your language, or use the default input method set up when you choose
 your language environment.  If
 your keyboard can produce non-@acronym{ASCII} characters, you can select an
 appropriate keyboard coding system (@pxref{Terminal Coding}), and Emacs
@@ -156,12 +156,19 @@ system encodes the character safely and with a single byte
 (@pxref{Coding Systems}).  If the character's encoding is longer than
 one byte, Emacs shows @samp{file ...}.
 
-  As a special case, if the character lies in the range 128 (0200
-octal) through 159 (0237 octal), it stands for a raw byte that
-does not correspond to any specific displayable character.  Such a
-character lies within the @code{eight-bit-control} character set,
-and is displayed as an escaped octal character code.  In this case,
-@kbd{C-x =} shows @samp{part of display ...} instead of @samp{file}.
+@cindex eight-bit character set
+@cindex raw bytes
+  On rare occasions, Emacs encounters @dfn{raw bytes}: single bytes
+whose values are in the range 128 (0200 octal) through 255 (0377
+octal), which Emacs cannot interpret as part of a known encoding of
+some non-ASCII character.  Such raw bytes are treated as if they
+belonged to a special character set @code{eight-bit}; Emacs displays
+them as escaped octal codes (this can be customized; @pxref{Display
+Custom}).  In this case, @kbd{C-x =} shows @samp{raw-byte} instead of
+@samp{file}.  In addition, @kbd{C-x =} shows the character codes of
+raw bytes as if they were in the range @code{#x3FFF80..#x3FFFFF},
+which is where Emacs maps them to distinguish them from Unicode
+characters in the range @code{#x0080..#x00FF}.
 
 @cindex character set of character at point
 @cindex font of character at point
@@ -390,7 +397,7 @@ messages.  But if your locale matches an entry in the variable
 coding system instead.  For example, if the locale @samp{ja_JP.PCK}
 matches @code{japanese-shift-jis} in
 @code{locale-preferred-coding-systems}, Emacs uses that encoding even
-though it might normally use @code{japanese-iso-8bit}.
+though it might normally use @code{utf-8}.
 
   You can override the language environment chosen at startup with
 explicit use of the command @code{set-language-environment}, or with
@@ -690,15 +697,15 @@ system; for example, to visit a file encoded in codepage 850, type
   In addition to converting various representations of non-@acronym{ASCII}
 characters, a coding system can perform end-of-line conversion.  Emacs
 handles three different conventions for how to separate lines in a file:
-newline (Unix), carriage-return linefeed (DOS), and just
-carriage-return (Mac).
+newline (Unix), carriage return followed by linefeed (DOS), and just
+carriage return (Mac).
 
 @table @kbd
 @item C-h C @var{coding} @key{RET}
 Describe coding system @var{coding} (@code{describe-coding-system}).
 
 @item C-h C @key{RET}
-Describe the coding systems currently in use.
+Describe the coding systems currently in use (@code{describe-coding-system}).
 
 @item M-x list-coding-systems
 Display a list of all the supported coding systems.
@@ -728,8 +735,8 @@ system, including the letter that stands for it in the mode line
 @code{no-conversion}, which means no conversion of any kind---specifies
 how and whether to convert printing characters, but leaves the choice of
 end-of-line conversion to be decided based on the contents of each file.
-For example, if the file appears to use the sequence carriage-return
-linefeed to separate lines, DOS end-of-line conversion will be used.
+For example, if the file appears to use the sequence carriage return
+and linefeed to separate lines, DOS end-of-line conversion will be used.
 
   Each of the listed coding systems has three variants, which specify
 exactly what to do for end-of-line conversion:
@@ -741,15 +748,15 @@ newline to separate lines.  (This is the convention normally used
 on Unix and GNU systems, and macOS.)
 
 @item @dots{}-dos
-Assume the file uses carriage-return linefeed to separate lines, and do
-the appropriate conversion.  (This is the convention normally used on
-Microsoft systems.@footnote{It is also specified for MIME @samp{text/*}
-bodies and in other network transport contexts.  It is different
-from the SGML reference syntax record-start/record-end format, which
-Emacs doesn't support directly.})
+Assume the file uses carriage return followed by linefeed to separate
+lines, and do the appropriate conversion.  (This is the convention
+normally used on Microsoft systems.@footnote{It is also specified for
+MIME @samp{text/*} bodies and in other network transport contexts.  It
+is different from the SGML reference syntax record-start/record-end
+format, which Emacs doesn't support directly.})
 
 @item @dots{}-mac
-Assume the file uses carriage-return to separate lines, and do the
+Assume the file uses carriage return to separate lines, and do the
 appropriate conversion.  (This was the convention used in Classic Mac
 OS.)
 @end table
@@ -859,19 +866,19 @@ the third argument says which coding system to use for these files.
 @vindex inhibit-eol-conversion
 @cindex DOS-style end-of-line display
   Emacs recognizes which kind of end-of-line conversion to use based on
-the contents of the file: if it sees only carriage-returns, or only
-carriage-return linefeed sequences, then it chooses the end-of-line
-conversion accordingly.  You can inhibit the automatic use of
-end-of-line conversion by setting the variable @code{inhibit-eol-conversion}
-to non-@code{nil}.  If you do that, DOS-style files will be displayed
-with the @samp{^M} characters visible in the buffer; some people
-prefer this to the more subtle @samp{(DOS)} end-of-line type
-indication near the left edge of the mode line (@pxref{Mode Line,
-eol-mnemonic}).
+the contents of the file: if it sees only carriage returns, or only
+carriage return followed by linefeed sequences, then it chooses the
+end-of-line conversion accordingly.  You can inhibit the automatic use
+of end-of-line conversion by setting the variable
+@code{inhibit-eol-conversion} to non-@code{nil}.  If you do that,
+DOS-style files will be displayed with the @samp{^M} characters
+visible in the buffer; some people prefer this to the more subtle
+@samp{(DOS)} end-of-line type indication near the left edge of the
+mode line (@pxref{Mode Line, eol-mnemonic}).
 
 @vindex inhibit-iso-escape-detection
 @cindex escape sequences in files
-  By default, the automatic detection of coding system is sensitive to
+  By default, the automatic detection of the coding system is sensitive to
 escape sequences.  If Emacs sees a sequence of characters that begin
 with an escape character, and the sequence is valid as an ISO-2022
 code, that tells Emacs to use one of the ISO-2022 encodings to decode
@@ -936,7 +943,7 @@ or a local variables list at the end (@pxref{File Variables}).  You do
 this by defining a value for the ``variable'' named @code{coding}.
 Emacs does not really have a variable @code{coding}; instead of
 setting a variable, this uses the specified coding system for the
-file.  For example, @samp{-*-mode: C; coding: latin-1;-*-} specifies
+file.  For example, @w{@samp{-*-mode: C; coding: latin-1; -*-}} specifies
 use of the Latin-1 coding system, as well as C mode.  When you specify
 the coding explicitly in the file, that overrides
 @code{file-coding-system-alist}.
@@ -1041,7 +1048,7 @@ buffer (@pxref{Output Coding}).
 (@pxref{Coding Systems, end-of-line conversion}) for encoding the
 current buffer.  For example, @kbd{C-x @key{RET} f dos @key{RET}} will
 cause Emacs to save the current buffer's text with DOS-style
-carriage-return linefeed line endings.
+carriage return followed by linefeed line endings.
 
 @kindex C-x RET c
 @findex universal-coding-system-argument
@@ -1207,13 +1214,13 @@ using the internal Emacs representation.
 @cindex file-name encoding, MS-Windows
 @vindex w32-unicode-filenames
   When Emacs runs on MS-Windows versions that are descendants of the
-NT family (Windows 2000, XP, Vista, Windows 7, and all the later
-versions), the value of @code{file-name-coding-system} is largely
-ignored, as Emacs by default uses APIs that allow passing Unicode file
-names directly.  By contrast, on Windows 9X, file names are encoded
-using @code{file-name-coding-system}, which should be set to the
-codepage (@pxref{Coding Systems, codepage}) pertinent for the current
-system locale.  The value of the variable @code{w32-unicode-filenames}
+NT family (Windows 2000, XP, and all the later versions), the value of
+@code{file-name-coding-system} is largely ignored, as Emacs by default
+uses APIs that allow passing Unicode file names directly.  By
+contrast, on Windows 9X, file names are encoded using
+@code{file-name-coding-system}, which should be set to the codepage
+(@pxref{Coding Systems, codepage}) pertinent for the current system
+locale.  The value of the variable @code{w32-unicode-filenames}
 controls whether Emacs uses the Unicode APIs when it calls OS
 functions that accept file names.  This variable is set by the startup
 code to @code{nil} on Windows 9X, and to @code{t} on newer versions of
@@ -1344,9 +1351,8 @@ The default fontset is most likely to have fonts for a wide variety of
 non-@acronym{ASCII} characters, and is the default fallback for the
 other two fontsets, and if you set a default font rather than fontset.
 However, it does not specify font family names, so results can be
-somewhat random if you use it directly.  You can specify use of a
-particular fontset by starting Emacs with the @samp{-fn} option.
-For example,
+somewhat random if you use it directly.  You can specify a particular
+fontset by starting Emacs with the @samp{-fn} option.  For example,
 
 @example
 emacs -fn fontset-standard
@@ -1779,8 +1785,9 @@ of the first character you read precedes that of the next character.
 Reordering of bidirectional text into the @dfn{visual} order happens
 at display time.  As a result, character positions no longer increase
 monotonically with their positions on display.  Emacs implements the
-Unicode Bidirectional Algorithm (UBA) described in the Unicode
-Standard Annex #9, for reordering of bidirectional text for display.
+Unicode Bidirectional Algorithm (UBA) described in the
+@uref{http://unicode.org/reports/tr9/, Unicode Standard Annex #9}, for
+reordering of bidirectional text for display.
 It deviates from the UBA only in how continuation lines are displayed
 when text direction is opposite to the base paragraph direction,
 e.g., when a long line of English text appears in a right-to-left

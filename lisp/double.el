@@ -1,6 +1,6 @@
 ;;; double.el --- support for keyboard remapping with double clicking
 
-;; Copyright (C) 1994, 1997-1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1994, 1997-1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -150,9 +150,6 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 ;;;###autoload
 (define-minor-mode double-mode
   "Toggle special insertion on double keypresses (Double mode).
-With a prefix argument ARG, enable Double mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 When Double mode is enabled, some keys will insert different
 strings when pressed twice.  See `double-map' for details."

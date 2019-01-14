@@ -1,6 +1,6 @@
 ;;; eldoc.el --- Show function arglist or variable docstring in echo area  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
@@ -177,9 +177,6 @@ printed after commands contained in this obarray."
 ;;;###autoload
 (define-minor-mode eldoc-mode
   "Toggle echo area display of Lisp objects at point (ElDoc mode).
-With a prefix argument ARG, enable ElDoc mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable ElDoc mode
-if ARG is omitted or nil.
 
 ElDoc mode is a buffer-local minor mode.  When enabled, the echo
 area displays information about a function or variable in the
@@ -360,12 +357,15 @@ return any documentation.")
   ;; This is run from post-command-hook or some idle timer thing,
   ;; so we need to be careful that errors aren't ignored.
   (with-demoted-errors "eldoc error: %s"
-    (and (or (eldoc-display-message-p)
-             ;; Erase the last message if we won't display a new one.
-             (when eldoc-last-message
-               (eldoc-message nil)
-               nil))
-	 (eldoc-message (funcall eldoc-documentation-function)))))
+    (if (not (eldoc-display-message-p))
+        ;; Erase the last message if we won't display a new one.
+        (when eldoc-last-message
+          (eldoc-message nil))
+      (let ((non-essential t))
+        ;; Only keep looking for the info as long as the user hasn't
+        ;; requested our attention.  This also locally disables inhibit-quit.
+        (while-no-input
+          (eldoc-message (funcall eldoc-documentation-function)))))))
 
 ;; If the entire line cannot fit in the echo area, the symbol name may be
 ;; truncated or eliminated entirely from the output to make room for the

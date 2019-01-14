@@ -1,6 +1,6 @@
-;;; bubbles.el --- Puzzle game for Emacs
+;;; bubbles.el --- Puzzle game for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         http://ulf.epplejasper.de/
@@ -144,8 +144,7 @@ images the `ascii' theme will be used."
                 (const :tag "Diamonds" diamonds)
                 (const :tag "Balls" balls)
                 (const :tag "Emacs" emacs)
-                (const :tag "ASCII (no images)" ascii))
-  :group 'bubbles)
+                (const :tag "ASCII (no images)" ascii)))
 
 (defconst bubbles--grid-small '(10 . 10)
   "Predefined small bubbles grid.")
@@ -168,8 +167,7 @@ images the `ascii' theme will be used."
                 (const :tag "Huge" ,bubbles--grid-huge)
                 (cons :tag "User defined"
                       (integer :tag "Width")
-                      (integer :tag "Height")))
-  :group 'bubbles)
+                      (integer :tag "Height"))))
 
 (defconst bubbles--colors-2 '("orange" "violet")
   "Predefined bubbles color list with two colors.")
@@ -194,16 +192,14 @@ types are present."
                 (const :tag "Red, darkgreen, blue, orange" ,bubbles--colors-4)
                 (const :tag "Red, darkgreen, blue, orange, violet"
                        ,bubbles--colors-5)
-                (repeat :tag "User defined" color))
-  :group 'bubbles)
+                (repeat :tag "User defined" color)))
 
 (defcustom bubbles-chars
   '(?+ ?O ?# ?X ?. ?* ?& ?§)
   "Characters used for bubbles.
 Note that the actual number of different bubbles is determined by
 the number of colors, see `bubbles-colors'."
-  :type '(repeat character)
-  :group 'bubbles)
+  :type '(repeat character))
 
 (defcustom bubbles-shift-mode
   'default
@@ -212,12 +208,10 @@ Available modes are `shift-default' and `shift-always'."
   :type '(radio (const :tag "Default" default)
                 (const :tag "Shifter" always)
                 ;;(const :tag "Mega Shifter" mega)
-                )
-  :group 'bubbles)
+                ))
 
 (defcustom bubbles-mode-hook nil
   "Hook run by Bubbles mode."
-  :group 'bubbles
   :type 'hook)
 
 (defun bubbles-customize ()
@@ -250,10 +244,10 @@ Available modes are `shift-default' and `shift-always'."
   "Indicate whether images have been created successfully.")
 
 (defvar bubbles--col-offset 0
-  "Horizontal offset for centering the bubbles grid.")
+  "Horizontal offset for centering the bubbles grid, in pixels.")
 
 (defvar bubbles--row-offset 0
-  "Vertical offset for centering the bubbles grid.")
+  "Vertical offset for centering the bubbles grid, in pixels.")
 
 (defvar bubbles--save-data nil
   "List containing bubbles save data (SCORE BUFFERCONTENTS).")
@@ -718,57 +712,57 @@ static char * dot3d_xpm[] = {
 (defsubst bubbles--grid-width ()
   "Return the grid width for the current game theme."
   (car (pcase bubbles-game-theme
-         (`easy
+         ('easy
           bubbles--grid-small)
-         (`medium
+         ('medium
           bubbles--grid-medium)
-         (`difficult
+         ('difficult
           bubbles--grid-large)
-         (`hard
+         ('hard
           bubbles--grid-huge)
-         (`user-defined
+         ('user-defined
           bubbles-grid-size))))
 
 (defsubst bubbles--grid-height ()
   "Return the grid height for the current game theme."
   (cdr (pcase bubbles-game-theme
-         (`easy
+         ('easy
           bubbles--grid-small)
-         (`medium
+         ('medium
           bubbles--grid-medium)
-         (`difficult
+         ('difficult
           bubbles--grid-large)
-         (`hard
+         ('hard
           bubbles--grid-huge)
-         (`user-defined
+         ('user-defined
           bubbles-grid-size))))
 
 (defsubst bubbles--colors ()
   "Return the color list for the current game theme."
   (pcase bubbles-game-theme
-    (`easy
+    ('easy
      bubbles--colors-2)
-    (`medium
+    ('medium
      bubbles--colors-3)
-    (`difficult
+    ('difficult
      bubbles--colors-4)
-    (`hard
+    ('hard
      bubbles--colors-5)
-    (`user-defined
+    ('user-defined
      bubbles-colors)))
 
 (defsubst bubbles--shift-mode ()
   "Return the shift mode for the current game theme."
   (pcase bubbles-game-theme
-    (`easy
+    ('easy
      'default)
-    (`medium
+    ('medium
      'default)
-    (`difficult
+    ('difficult
      'always)
-    (`hard
+    ('hard
      'always)
-    (`user-defined
+    ('user-defined
      bubbles-shift-mode)))
 
 (defun bubbles-save-settings ()
@@ -898,7 +892,7 @@ static char * dot3d_xpm[] = {
 ;; bubbles mode map
 (defvar bubbles-mode-map
   (let ((map (make-sparse-keymap 'bubbles-mode-map)))
-;;    (suppress-keymap map t)
+    ;; (suppress-keymap map t)
     (define-key map "q" 'bubbles-quit)
     (define-key map "\n" 'bubbles-plop)
     (define-key map " " 'bubbles-plop)
@@ -925,7 +919,7 @@ static char * dot3d_xpm[] = {
   (buffer-disable-undo)
   (force-mode-line-update)
   (redisplay)
-  (add-hook 'post-command-hook 'bubbles--mark-neighborhood t t))
+  (add-hook 'post-command-hook #'bubbles--mark-neighborhood t t))
 
 ;;;###autoload
 (defun bubbles ()
@@ -960,33 +954,26 @@ columns on its right towards the left.
 (defun bubbles--compute-offsets ()
   "Update horizontal and vertical offsets for centering the bubbles grid.
 Set `bubbles--col-offset' and `bubbles--row-offset'."
-  (cond ((and (display-images-p)
-              bubbles--images-ok
-              (not (eq bubbles-graphics-theme 'ascii))
-              (fboundp 'window-inside-pixel-edges))
-         ;; compute offset in units of pixels
-         (let ((bubbles--image-size
-                (car (image-size (car bubbles--images) t))))
-           (setq bubbles--col-offset
-                 (list
-                  (max 0 (/ (- (nth 2 (window-inside-pixel-edges))
-                               (nth 0 (window-inside-pixel-edges))
-                               (* ( + bubbles--image-size 2) ;; margin
-                                  (bubbles--grid-width))) 2))))
-           (setq bubbles--row-offset
-                 (list
-                  (max 0 (/ (- (nth 3 (window-inside-pixel-edges))
-                               (nth 1 (window-inside-pixel-edges))
-                               (* (+ bubbles--image-size 1) ;; margin
-                                  (bubbles--grid-height))) 2))))))
-        (t
-         ;; compute offset in units of chars
-         (setq bubbles--col-offset
-               (max 0 (/ (- (window-width)
-                            (bubbles--grid-width)) 2)))
-         (setq bubbles--row-offset
-               (max 0 (/ (- (window-height)
-                            (bubbles--grid-height) 2) 2))))))
+  (let* ((use-images-p (and (display-images-p)
+                            bubbles--images-ok
+                            (not (eq bubbles-graphics-theme 'ascii))))
+         (bubbles--image-size
+          (if use-images-p (car (image-size (car bubbles--images) t)) 1))
+         ;; In GUI mode, leave thin margins around the images.
+         (image-hor-size
+          (if use-images-p (+ bubbles--image-size 2) bubbles--image-size))
+         (image-vert-size
+          (if use-images-p (1+ bubbles--image-size) bubbles--image-size)))
+    (setq bubbles--col-offset
+          (max 0 (/ (- (nth 2 (window-body-pixel-edges))
+                       (nth 0 (window-body-pixel-edges))
+                       (* image-hor-size (bubbles--grid-width)))
+                    2)))
+    (setq bubbles--row-offset
+          (max 0 (/ (- (nth 3 (window-body-pixel-edges))
+                       (nth 1 (window-body-pixel-edges))
+                       (* image-vert-size (bubbles--grid-height)))
+                    2)))))
 
 (defun bubbles--remove-overlays ()
   "Remove all overlays."
@@ -1007,16 +994,18 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
     (insert " ")
     (put-text-property (point-min) (point)
                        'display
-                       (cons 'space (list :height bubbles--row-offset)))
+                       (cons 'space (list :height
+                                          (list bubbles--row-offset))))
     (insert "\n")
     (let ((max-char (length (bubbles--colors))))
-      (dotimes (i (bubbles--grid-height))
+      (dotimes (_ (bubbles--grid-height))
         (let ((p (point)))
           (insert " ")
           (put-text-property p (point)
                              'display
-                             (cons 'space (list :width bubbles--col-offset))))
-        (dotimes (j (bubbles--grid-width))
+                             (cons 'space (list :width
+                                                (list bubbles--col-offset)))))
+        (dotimes (_ (bubbles--grid-width))
           (let* ((index (random max-char))
                  (char (nth index bubbles-chars)))
             (insert char)
@@ -1025,7 +1014,8 @@ Set `bubbles--col-offset' and `bubbles--row-offset'."
       (insert "\n ")
       (put-text-property (1- (point)) (point)
                          'display
-                         (cons 'space (list :width bubbles--col-offset))))
+                         (cons 'space (list :width
+                                            (list bubbles--col-offset)))))
     (put-text-property (point-min) (point-max) 'pointer 'arrow))
   (bubbles-mode)
   (bubbles--reset-score)
@@ -1177,7 +1167,7 @@ Use optional parameter POS instead of point if given."
       (insert " ")
       (put-text-property (1- (point)) (point)
                          'display
-                         (cons 'space (list :width bubbles--col-offset)))
+                         (cons 'space (list :width (list bubbles--col-offset))))
       (insert (format "Score:    %4d" bubbles--score))
       (put-text-property pos (point) 'status t))))
 
@@ -1197,7 +1187,7 @@ Use optional parameter POS instead of point if given."
     (insert "\n ")
     (put-text-property (1- (point)) (point)
                        'display
-                       (cons 'space (list :width bubbles--col-offset)))
+                       (cons 'space (list :width (list bubbles--col-offset))))
     (insert "Game Over!"))
   ;; save score
   (gamegrid-add-score (format "bubbles-%s-%d-%d-%d-scores"
@@ -1272,7 +1262,7 @@ Use optional parameter POS instead of point if given."
                      (while (get-text-property (point) 'removed)
                        (setq shifted-cols (1+ shifted-cols))
                        (bubbles--shift 'right (1- (bubbles--grid-height)) j))
-                     (dotimes (k shifted-cols)
+                     (dotimes (_ shifted-cols)
                        (let ((i (- (bubbles--grid-height) 2)))
                          (while (>= i 0)
                            (setq shifted (or (bubbles--shift 'right i j)
@@ -1338,11 +1328,11 @@ Return t if new char is non-empty."
   (when (and (display-images-p)
              (not (eq bubbles-graphics-theme 'ascii)))
     (let ((template (pcase bubbles-graphics-theme
-                      (`circles bubbles--image-template-circle)
-                      (`balls bubbles--image-template-ball)
-                      (`squares bubbles--image-template-square)
-                      (`diamonds bubbles--image-template-diamond)
-                      (`emacs bubbles--image-template-emacs))))
+                      ('circles bubbles--image-template-circle)
+                      ('balls bubbles--image-template-ball)
+                      ('squares bubbles--image-template-square)
+                      ('diamonds bubbles--image-template-diamond)
+                      ('emacs bubbles--image-template-emacs))))
       (setq bubbles--empty-image
             (create-image (replace-regexp-in-string
                            "^\"\\(.*\\)\t.*c .*\",$"
@@ -1426,8 +1416,8 @@ Return t if new char is non-empty."
         (goto-char (point-min))
         (forward-line 1)
         (let ((inhibit-read-only t))
-          (dotimes (i (bubbles--grid-height))
-            (dotimes (j (bubbles--grid-width))
+          (dotimes (_ (bubbles--grid-height))
+            (dotimes (_ (bubbles--grid-width))
               (forward-char 1)
               (let ((index (or (get-text-property (point) 'index) -1)))
                 (let ((img bubbles--empty-image))

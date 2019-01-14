@@ -1,6 +1,6 @@
-;;; eieio-persist.el --- Tests for eieio-persistent class
+;;; eieio-test-persist.el --- Tests for eieio-persistent class
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -40,6 +40,17 @@ This is usually a symbol that starts with `:'."
 	(car tuple)
       nil)))
 
+(defun hash-equal (hash1 hash2)
+  "Compare two hash tables to see whether they are equal."
+  (and (= (hash-table-count hash1)
+          (hash-table-count hash2))
+       (catch 'flag
+         (maphash (lambda (x y)
+                    (or (equal (gethash x hash2) y)
+                        (throw 'flag nil)))
+                  hash1)
+         (throw 'flag t))))
+
 (defun persist-test-save-and-compare (original)
   "Compare the object ORIGINAL against the one read fromdisk."
 
@@ -49,8 +60,8 @@ This is usually a symbol that starts with `:'."
 	 (class (eieio-object-class original))
 	 (fromdisk (eieio-persistent-read file class))
 	 (cv (cl--find-class class))
-	 (slots  (eieio--class-slots cv))
-	 )
+	 (slots  (eieio--class-slots cv)))
+
     (unless (object-of-class-p fromdisk class)
       (error "Persistent class %S != original class %S"
 	     (eieio-object-class fromdisk)
@@ -62,18 +73,24 @@ This is usually a symbol that starts with `:'."
 	     (origvalue (eieio-oref original oneslot))
 	     (fromdiskvalue (eieio-oref fromdisk oneslot))
 	     (initarg-p (eieio--attribute-to-initarg
-                         (cl--find-class class) oneslot))
-	     )
+                         (cl--find-class class) oneslot)))
 
 	(if initarg-p
-	    (unless (equal origvalue fromdiskvalue)
+	    (unless
+		(cond ((and (hash-table-p origvalue) (hash-table-p fromdiskvalue))
+		       (hash-equal origvalue fromdiskvalue))
+		      (t (equal origvalue fromdiskvalue)))
 	      (error "Slot %S Original Val %S != Persistent Val %S"
 		     oneslot origvalue fromdiskvalue))
 	  ;; Else !initarg-p
-	  (unless (equal (cl--slot-descriptor-initform slot) fromdiskvalue)
+	  (let ((origval (cl--slot-descriptor-initform slot))
+		(diskval fromdiskvalue))
+	    (unless
+		(cond ((and (hash-table-p origval) (hash-table-p diskval))
+		       (hash-equal origval diskval))
+		      (t (equal origval diskval)))
 	    (error "Slot %S Persistent Val %S != Default Value %S"
-		   oneslot fromdiskvalue (cl--slot-descriptor-initform slot))))
-	))))
+		   oneslot diskval origvalue))))))))
 
 ;;; Simple Case
 ;;
@@ -90,7 +107,7 @@ This is usually a symbol that starts with `:'."
 
 (ert-deftest eieio-test-persist-simple-1 ()
   (let ((persist-simple-1
-	 (persist-simple "simple 1" :slot1 'goose :slot2 "testing"
+	 (persist-simple :slot1 'goose :slot2 "testing"
 			 :file (concat default-directory "test-ps1.pt"))))
     (should persist-simple-1)
 
@@ -124,7 +141,7 @@ Assume SLOTVALUE is a symbol of some sort."
 
 (ert-deftest eieio-test-persist-printer ()
   (let ((persist-:printer-1
-	 (persist-:printer "persist" :slot1 'goose :slot2 "testing"
+	 (persist-:printer :slot1 'goose :slot2 "testing"
 			   :file (concat default-directory "test-ps2.pt"))))
     (should persist-:printer-1)
     (persist-test-save-and-compare persist-:printer-1)
@@ -161,8 +178,7 @@ persistent class.")
 (ert-deftest eieio-test-non-persistent-as-slot ()
   (let ((persist-wos
 	 (persistent-with-objs-slot
-	  "persist wos 1"
-	  :pnp (persist-not-persistent "pnp 1" :slot1 3)
+	  :pnp (persist-not-persistent :slot1 3)
 	  :file (concat default-directory "test-ps3.pt"))))
 
     (persist-test-save-and-compare persist-wos)
@@ -188,8 +204,7 @@ persistent class.")
 (ert-deftest eieio-test-non-persistent-as-slot-child ()
   (let ((persist-woss
 	 (persistent-with-objs-slot-subs
-	  "persist woss 1"
-	  :pnp (persist-not-persistent-subclass "pnps 1" :slot1 3)
+	  :pnp (persist-not-persistent-subclass :slot1 3)
 	  :file (concat default-directory "test-ps4.pt"))))
 
     (persist-test-save-and-compare persist-woss)
@@ -205,13 +220,16 @@ persistent class.")
   ((slot1 :initarg :slot1
           :type (or persistent-random-class null persist-not-persistent))
    (slot2 :initarg :slot2
-          :type (or persist-not-persistent persist-random-class null))))
+          :type (or persist-not-persistent persistent-random-class null))
+   (slot3 :initarg :slot3
+          :type persistent-random-class)))
 
 (ert-deftest eieio-test-multiple-class-slot ()
   (let ((persist
-         (persistent-multiclass-slot "random string"
+         (persistent-multiclass-slot
           :slot1 (persistent-random-class)
           :slot2 (persist-not-persistent)
+          :slot3 (persistent-random-class)
           :file (concat default-directory "test-ps5.pt"))))
     (unwind-protect
         (persist-test-save-and-compare persist)
@@ -229,13 +247,93 @@ persistent class.")
 (ert-deftest eieio-test-slot-with-list-of-objects ()
   (let ((persist-wols
 	 (persistent-with-objs-list-slot
-	  "persist wols 1"
-	  :pnp (list (persist-not-persistent "pnp 1" :slot1 3)
-		     (persist-not-persistent "pnp 2" :slot1 4)
-		     (persist-not-persistent "pnp 3" :slot1 5))
+	  :pnp (list (persist-not-persistent :slot1 3)
+		     (persist-not-persistent :slot1 4)
+		     (persist-not-persistent :slot1 5))
 	  :file (concat default-directory "test-ps5.pt"))))
 
     (persist-test-save-and-compare persist-wols)
     (delete-file (oref persist-wols file))))
+
+;;; Tests targeted at popular libraries in the wild.
+
+;; Objects inside hash tables and vectors (pcache), see bug#29220.
+(defclass person ()
+  ((name :type string :initarg :name)))
+
+(defclass classy (eieio-persistent)
+  ((teacher
+    :type person
+    :initarg :teacher)
+   (students
+    :initarg :students :initform (make-hash-table :test 'equal))
+   (janitors
+    :type list
+    :initarg :janitors)
+   (random-vector
+    :type vector
+    :initarg :random-vector)))
+
+(ert-deftest eieio-test-persist-hash-and-vector ()
+  (let* ((jane (make-instance 'person :name "Jane"))
+         (bob  (make-instance 'person :name "Bob"))
+         (hans (make-instance 'person :name "Hans"))
+         (dierdre (make-instance 'person :name "Dierdre"))
+         (class (make-instance 'classy
+			       :teacher jane
+                               :janitors (list [tuesday nil]
+                                              [friday nil])
+                               :random-vector [nil]
+			       :file (concat default-directory "classy-" emacs-version ".eieio"))))
+    (puthash "Bob" bob (slot-value class 'students))
+    (aset (slot-value class 'random-vector) 0
+          (make-instance 'persistent-random-class))
+    (unwind-protect
+        (persist-test-save-and-compare class)
+      (delete-file (oref class file)))
+    (aset (car (slot-value class 'janitors)) 1 hans)
+    (aset (nth 1 (slot-value class 'janitors)) 1 dierdre)
+    (unwind-protect
+        ;; FIXME: This should not error.
+        (should-error (persist-test-save-and-compare class))
+      (delete-file (oref class file)))))
+
+;; Extra quotation of lists inside other objects (Gnus registry), also
+;; bug#29220.
+
+(defclass eieio-container (eieio-persistent)
+  ((alist
+    :initarg :alist
+    :type list)
+   (vec
+    :initarg :vec
+    :type vector)
+   (htab
+    :initarg :htab
+    :type hash-table)))
+
+(ert-deftest eieio-test-persist-interior-lists ()
+  (let* ((thing (make-instance
+                 'eieio-container
+                 :vec [nil]
+                 :htab (make-hash-table :test #'equal)
+                 :file (concat default-directory
+                               "container-" emacs-version ".eieio")))
+         (john (make-instance 'person :name "John"))
+         (alexie (make-instance 'person :name "Alexie"))
+         (alst '(("first" (one two three))
+                 ("second" (four five six)))))
+    (setf (slot-value thing 'alist) alst)
+    (puthash "alst" alst (slot-value thing 'htab))
+    (aset (slot-value thing 'vec) 0 alst)
+    (unwind-protect
+        (persist-test-save-and-compare thing)
+      (delete-file (slot-value thing 'file)))
+    (setf (nth 2 (cadar alst)) john
+          (nth 2 (cadadr alst)) alexie)
+    (unwind-protect
+        ;; FIXME: Should not error.
+        (should-error (persist-test-save-and-compare thing))
+      (delete-file (slot-value thing 'file)))))
 
 ;;; eieio-test-persist.el ends here

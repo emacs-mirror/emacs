@@ -1,6 +1,6 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-util)
@@ -312,7 +312,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	    ;; Select the frame in question and do more splits there.
 	    (select-frame frame)
 	    (setq fresult (or (gnus-configure-frame (elt subs i)) fresult))
-	    (incf i))
+	    (cl-incf i))
 	  ;; Select the frame that has the selected buffer.
 	  (when fresult
 	    (select-frame (window-frame fresult)))))
@@ -344,7 +344,7 @@ See the Gnus manual for an explanation of the syntax used.")
 		    ((eq type 'vertical)
 		     (setq s (max s window-min-height))))
 	      (setcar (cdar comp-subs) s)
-	      (incf total s)))
+	      (cl-incf total s)))
 	  ;; Take care of the "1.0" spec.
 	  (if rest
 	      (setcar (cdr rest) (- len total))

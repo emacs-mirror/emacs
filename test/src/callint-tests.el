@@ -1,6 +1,6 @@
 ;;; callint-tests.el --- unit tests for callint.c    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -42,5 +42,13 @@
                                          (interactive "ka\0a: \nkb: ")
                                          (list a b))))
                  '("a" "b"))))
+
+(ert-deftest call-interactively-prune-command-history ()
+  "Check that Bug#31211 is fixed."
+  (let ((history-length 1)
+        (command-history ()))
+    (dotimes (_ (1+ history-length))
+      (call-interactively #'ignore t))
+    (should (= (length command-history) history-length))))
 
 ;;; callint-tests.el ends here

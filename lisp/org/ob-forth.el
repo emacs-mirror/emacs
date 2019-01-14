@@ -1,10 +1,10 @@
 ;;; ob-forth.el --- Babel Functions for Forth        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, forth
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 1994, 1996, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
@@ -656,48 +656,48 @@ that DVAL has been added on SQUARE."
     ((eq result 'emacs-won)
      (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
      (cond ((< gomoku-number-of-moves 20)
-	    "This was a REALLY QUICK win.")
+	    "I won...  I hope you like the game as you get better.")
 	   (gomoku-human-refused-draw
 	    "I won...  Too bad you refused my offer of a draw!")
 	   (gomoku-human-took-back
-	    "I won...  Taking moves back will not help you!")
+	    "I won...  It's OK to take back more moves next time.")
 	   ((not gomoku-emacs-played-first)
-	    "I won...  Playing first did not help you much!")
+	    "I won...  Use C-c C-b to take back a move on second thought.")
 	   ((and (zerop gomoku-number-of-human-wins)
 		 (zerop gomoku-number-of-draws)
 		 (> gomoku-number-of-emacs-wins 1))
-	    "I'm becoming tired of winning...")
+	    "I won...  It might be time take a break before trying again.")
 	   ("I won.")))
     ((eq result 'human-won)
      (setq gomoku-number-of-human-wins (1+ gomoku-number-of-human-wins))
      (concat "OK, you won this one."
 	     (cond
 	      (gomoku-human-took-back
-	       "  I, for one, never take my moves back...")
+	       "  For a bigger challenge, play without taking moves back.")
 	      (gomoku-emacs-played-first
-	       ".. so what?")
-	      ("  Now, let me play first just once."))))
+	       "  Congratulations!")
+	      ("  For a bigger challenge, let me play first."))))
     ((eq result 'human-resigned)
      (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
-     "So you resign.  That's just one more win for me.")
+     "I see that you resigned.  Better luck next time.")
     ((eq result 'nobody-won)
      (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
      (concat "This is a draw.  "
 	     (cond
 	      (gomoku-human-took-back
-	       "I, for one, never take my moves back...")
+	       "  For a bigger challenge, try without taking moves back.")
 	      (gomoku-emacs-played-first
-	       "Just chance, I guess.")
-	      ("Now, let me play first just once."))))
+	       "Wow, that was a long game.  We both played well.")
+	      ("  For a bigger challenge, let me play first."))))
     ((eq result 'draw-agreed)
      (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
      (concat "Draw agreed.  "
 	     (cond
 	      (gomoku-human-took-back
-	       "I, for one, never take my moves back...")
+	       "  For a bigger challenge, try without taking moves back.")
 	      (gomoku-emacs-played-first
-	       "You were lucky.")
-	      ("Now, let me play first just once."))))
+	       "Good game.")
+	      ("  For a bigger challenge, let me play first."))))
     ((eq result 'crash-game)
      "Sorry, I have been interrupted and cannot resume that game...")))
   (gomoku-display-statistics)

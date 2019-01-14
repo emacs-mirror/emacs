@@ -1,6 +1,6 @@
 ;;; dns-mode.el --- a mode for viewing/editing Domain Name System master files
 
-;; Copyright (C) 2000-2001, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: DNS master zone file SOA comm
@@ -44,6 +44,8 @@
 ;; 2004-09-14  Installed in Emacs CVS.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (defgroup dns-mode nil
   "DNS master file mode configuration."

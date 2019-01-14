@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -342,7 +342,7 @@ It returns a file name which can be used directly as argument of
     (substitute-key-definition 'complete-symbol 'completion-at-point
                                map global-map)
     (easy-menu-define python-menu map "Python Mode menu"
-      `("Python"
+      '("Python"
         :help "Python-specific Features"
         ["Shift region left" python-indent-shift-left :active mark-active
          :help "Shift region left by a single indentation step"]
@@ -469,13 +469,13 @@ This variant of `rx' supports common Python named REGEXPS."
 (eval-and-compile
   (defun python-syntax--context-compiler-macro (form type &optional syntax-ppss)
     (pcase type
-      (`'comment
+      (''comment
        `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
           (and (nth 4 ppss) (nth 8 ppss))))
-      (`'string
+      (''string
        `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
           (and (nth 3 ppss) (nth 8 ppss))))
-      (`'paren
+      (''paren
        `(nth 1 (or ,syntax-ppss (syntax-ppss))))
       (_ form))))
 
@@ -486,9 +486,9 @@ character address of the specified TYPE."
   (declare (compiler-macro python-syntax--context-compiler-macro))
   (let ((ppss (or syntax-ppss (syntax-ppss))))
     (pcase type
-      (`comment (and (nth 4 ppss) (nth 8 ppss)))
-      (`string (and (nth 3 ppss) (nth 8 ppss)))
-      (`paren (nth 1 ppss))
+      ('comment (and (nth 4 ppss) (nth 8 ppss)))
+      ('string (and (nth 3 ppss) (nth 8 ppss)))
+      ('paren (nth 1 ppss))
       (_ nil))))
 
 (defun python-syntax-context-type (&optional syntax-ppss)
@@ -526,9 +526,19 @@ The type returned can be `comment', `string' or `paren'."
         font-lock-string-face)
     font-lock-comment-face))
 
-(defvar python-font-lock-keywords
-  ;; Keywords
-  `(,(rx symbol-start
+(defvar python-font-lock-keywords-level-1
+  `((,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
+     (1 font-lock-function-name-face))
+    (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
+     (1 font-lock-type-face)))
+  "Font lock keywords to use in python-mode for level 1 decoration.
+
+This is the minimum decoration level, including function and
+class declarations.")
+
+(defvar python-font-lock-keywords-level-2
+  `(,@python-font-lock-keywords-level-1
+    ,(rx symbol-start
          (or
           "and" "del" "from" "not" "while" "as" "elif" "global" "or" "with"
           "assert" "else" "if" "pass" "yield" "break" "except" "import" "class"
@@ -548,12 +558,35 @@ The type returned can be `comment', `string' or `paren'."
           ;; Extra:
           "self")
          symbol-end)
-    ;; functions
-    (,(rx symbol-start "def" (1+ space) (group (1+ (or word ?_))))
-     (1 font-lock-function-name-face))
-    ;; classes
-    (,(rx symbol-start "class" (1+ space) (group (1+ (or word ?_))))
-     (1 font-lock-type-face))
+    ;; Builtins
+    (,(rx symbol-start
+          (or
+           "abs" "all" "any" "bin" "bool" "callable" "chr" "classmethod"
+           "compile" "complex" "delattr" "dict" "dir" "divmod" "enumerate"
+           "eval" "filter" "float" "format" "frozenset" "getattr" "globals"
+           "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
+           "issubclass" "iter" "len" "list" "locals" "map" "max" "memoryview"
+           "min" "next" "object" "oct" "open" "ord" "pow" "print" "property"
+           "range" "repr" "reversed" "round" "set" "setattr" "slice" "sorted"
+           "staticmethod" "str" "sum" "super" "tuple" "type" "vars" "zip"
+           "__import__"
+           ;; Python 2:
+           "basestring" "cmp" "execfile" "file" "long" "raw_input" "reduce"
+           "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
+           "intern"
+           ;; Python 3:
+           "ascii" "bytearray" "bytes" "exec"
+           ;; Extra:
+           "__all__" "__doc__" "__name__" "__package__")
+          symbol-end) . font-lock-builtin-face))
+  "Font lock keywords to use in python-mode for level 2 decoration.
+
+This is the medium decoration level, including everything in
+`python-font-lock-keywords-level-1', as well as keywords and
+builtins.")
+
+(defvar python-font-lock-keywords-maximum-decoration
+  `(,@python-font-lock-keywords-level-2
     ;; Constants
     (,(rx symbol-start
           (or
@@ -596,27 +629,6 @@ The type returned can be `comment', `string' or `paren'."
            "VMSError" "WindowsError"
            )
           symbol-end) . font-lock-type-face)
-    ;; Builtins
-    (,(rx symbol-start
-          (or
-           "abs" "all" "any" "bin" "bool" "callable" "chr" "classmethod"
-           "compile" "complex" "delattr" "dict" "dir" "divmod" "enumerate"
-           "eval" "filter" "float" "format" "frozenset" "getattr" "globals"
-           "hasattr" "hash" "help" "hex" "id" "input" "int" "isinstance"
-           "issubclass" "iter" "len" "list" "locals" "map" "max" "memoryview"
-           "min" "next" "object" "oct" "open" "ord" "pow" "print" "property"
-           "range" "repr" "reversed" "round" "set" "setattr" "slice" "sorted"
-           "staticmethod" "str" "sum" "super" "tuple" "type" "vars" "zip"
-           "__import__"
-           ;; Python 2:
-           "basestring" "cmp" "execfile" "file" "long" "raw_input" "reduce"
-           "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
-           "intern"
-           ;; Python 3:
-           "ascii" "bytearray" "bytes" "exec"
-           ;; Extra:
-           "__all__" "__doc__" "__name__" "__package__")
-          symbol-end) . font-lock-builtin-face)
     ;; assignments
     ;; support for a = b = c = 5
     (,(lambda (limit)
@@ -640,7 +652,26 @@ The type returned can be `comment', `string' or `paren'."
                       (goto-char (match-end 1))
                       (python-syntax-context 'paren)))
           res))
-     (1 font-lock-variable-name-face nil nil))))
+     (1 font-lock-variable-name-face nil nil)))
+  "Font lock keywords to use in python-mode for maximum decoration.
+
+This decoration level includes everything in
+`python-font-lock-keywords-level-2', as well as constants,
+decorators, exceptions, and assignments.")
+
+(defvar python-font-lock-keywords
+  '(python-font-lock-keywords-level-1   ; When `font-lock-maximum-decoration' is nil.
+    python-font-lock-keywords-level-1   ; When `font-lock-maximum-decoration' is 1.
+    python-font-lock-keywords-level-2   ; When `font-lock-maximum-decoration' is 2.
+    python-font-lock-keywords-maximum-decoration ; When `font-lock-maximum-decoration'
+                                                 ; is more than 1, or t (which it is,
+                                                 ; by default).
+    )
+  "List of font lock keyword specifications to use in python-mode.
+
+Which one will be chosen depends on the value of
+`font-lock-maximum-decoration'.")
+
 
 (defconst python-syntax-propertize-function
   (syntax-propertize-rules
@@ -1303,16 +1334,17 @@ the line will be re-indented automatically if needed."
            (not (equal ?: (char-before (1- (point)))))
            (not (python-syntax-comment-or-string-p)))
       ;; Just re-indent dedenters
-      (let ((dedenter-pos (python-info-dedenter-statement-p))
-            (current-pos (point)))
+      (let ((dedenter-pos (python-info-dedenter-statement-p)))
         (when dedenter-pos
-          (save-excursion
-            (goto-char dedenter-pos)
-            (python-indent-line)
-            (unless (= (line-number-at-pos dedenter-pos)
-                       (line-number-at-pos current-pos))
-              ;; Reindent region if this is a multiline statement
-              (python-indent-region dedenter-pos current-pos)))))))))
+          (let ((start (copy-marker dedenter-pos))
+                (end (point-marker)))
+            (save-excursion
+              (goto-char start)
+              (python-indent-line)
+              (unless (= (line-number-at-pos start)
+                         (line-number-at-pos end))
+                ;; Reindent region if this is a multiline statement
+                (python-indent-region start end))))))))))
 
 
 ;;; Mark
@@ -1518,7 +1550,7 @@ of the statement."
                        ;; are somehow out of whack.  This has been
                        ;; observed when using `syntax-ppss' during
                        ;; narrowing.
-                       (cl-assert (> string-start last-string-end)
+                       (cl-assert (>= string-start last-string-end)
                                   :show-args
                                   "\
 Overlapping strings detected (start=%d, last-end=%d)")
@@ -2842,10 +2874,12 @@ process buffer for a list of commands.)"
         (y-or-n-p "Make dedicated process? ")
         (= (prefix-numeric-value current-prefix-arg) 4))
      (list (python-shell-calculate-command) nil t)))
-  (get-buffer-process
-   (python-shell-make-comint
-    (or cmd (python-shell-calculate-command))
-    (python-shell-get-process-name dedicated) show)))
+  (let ((buffer
+         (python-shell-make-comint
+          (or cmd (python-shell-calculate-command))
+          (python-shell-get-process-name dedicated) show)))
+    (pop-to-buffer buffer)
+    (get-buffer-process buffer)))
 
 (defun run-python-internal ()
   "Run an inferior Internal Python process.
@@ -2923,10 +2957,16 @@ be asked for their values."
  "Instead call `python-shell-get-process' and create one if returns nil."
  "25.1")
 
+(define-obsolete-variable-alias
+  'python-buffer 'python-shell-internal-buffer "24.3")
+
 (defvar python-shell-internal-buffer nil
   "Current internal shell buffer for the current buffer.
 This is really not necessary at all for the code to work but it's
 there for compatibility with CEDET.")
+
+(define-obsolete-variable-alias
+  'python-preoutput-result 'python-shell-internal-last-output "24.3")
 
 (defvar python-shell-internal-last-output nil
   "Last output captured by the internal shell.
@@ -2942,12 +2982,6 @@ there for compatibility with CEDET.")
 
 (define-obsolete-function-alias
   'python-proc 'python-shell-internal-get-or-create-process "24.3")
-
-(define-obsolete-variable-alias
-  'python-buffer 'python-shell-internal-buffer "24.3")
-
-(define-obsolete-variable-alias
-  'python-preoutput-result 'python-shell-internal-last-output "24.3")
 
 (defun python-shell--save-temp-file (string)
   (let* ((temporary-file-directory
@@ -3163,9 +3197,12 @@ t when called interactively."
                        (beginning-of-line 1))
                    (> (current-indentation) 0)))
        (when (not arg)
-         (while (and (forward-line -1)
-                     (looking-at (python-rx decorator))))
-         (forward-line 1))
+         (while (and
+                 (eq (forward-line -1) 0)
+                 (if (looking-at (python-rx decorator))
+                     t
+                   (forward-line 1)
+                   nil))))
        (point-marker))
      (progn
        (or (python-nav-end-of-defun)
@@ -3979,11 +4016,11 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
             ;; is NIL means to not add any newlines for start or end
             ;; of docstring.  See `python-fill-docstring-style' for a
             ;; graphic idea of each style.
-            (`django (cons 1 1))
-            (`onetwo (and multi-line-p (cons 1 2)))
-            (`pep-257 (and multi-line-p (cons nil 2)))
-            (`pep-257-nn (and multi-line-p (cons nil 1)))
-            (`symmetric (and multi-line-p (cons 1 1)))))
+            ('django (cons 1 1))
+            ('onetwo (and multi-line-p (cons 1 2)))
+            ('pep-257 (and multi-line-p (cons nil 2)))
+            ('pep-257-nn (and multi-line-p (cons nil 1)))
+            ('symmetric (and multi-line-p (cons 1 1)))))
          (fill-paragraph-function))
     (save-restriction
       (narrow-to-region str-start-pos str-end-pos)
@@ -5204,9 +5241,10 @@ be used."
 (defcustom python-flymake-msg-alist
   '(("\\(^redefinition\\|.*unused.*\\|used$\\)" . :warning))
   "Alist used to associate messages to their types.
-Each element should be a cons-cell (REGEXP . TYPE), where TYPE must be
-one defined in the variable `flymake-diagnostic-types-alist'.
-For example, when using `flake8' a possible configuration could be:
+Each element should be a cons-cell (REGEXP . TYPE), where TYPE
+should be a diagnostic type symbol like `:error', `:warning' or
+`:note'.  For example, when using `flake8' a possible
+configuration could be:
 
   ((\"\\(^redefinition\\|.*unused.*\\|used$\\)\" . :warning)
    (\"^E999\" . :error)
@@ -5215,7 +5253,7 @@ For example, when using `flake8' a possible configuration could be:
 By default messages are considered errors."
   :version "26.1"
   :group 'python-flymake
-  :type `(alist :key-type (regexp)
+  :type '(alist :key-type (regexp)
                 :value-type (symbol)))
 
 (defvar-local python--flymake-proc nil)
@@ -5319,7 +5357,7 @@ REPORT-FN is Flymake's callback function."
        'python-nav-forward-sexp)
 
   (set (make-local-variable 'font-lock-defaults)
-       '(python-font-lock-keywords
+       `(,python-font-lock-keywords
          nil nil nil nil
          (font-lock-syntactic-face-function
           . python-font-lock-syntactic-face-function)))
@@ -5377,7 +5415,7 @@ REPORT-FN is Flymake's callback function."
 
   (add-to-list
    'hs-special-modes-alist
-   `(python-mode
+   '(python-mode
      "\\s-*\\_<\\(?:def\\|class\\)\\_>"
      ;; Use the empty string as end regexp so it doesn't default to
      ;; "\\s)".  This way parens at end of defun are properly hidden.

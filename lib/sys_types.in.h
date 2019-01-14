@@ -1,6 +1,6 @@
 /* Provide a more complete sys/types.h.
 
-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+   Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,17 @@
 @PRAGMA_SYSTEM_HEADER@
 #endif
 @PRAGMA_COLUMNS@
+
+#if defined _WIN32 && !defined __CYGWIN__ \
+    && (defined __need_off_t || defined __need___off64_t \
+        || defined __need_ssize_t || defined __need_time_t)
+
+/* Special invocation convention inside mingw header files.  */
+
+#@INCLUDE_NEXT@ @NEXT_SYS_TYPES_H@
+
+#else
+/* Normal invocation convention.  */
 
 #ifndef _@GUARD_PREFIX@_SYS_TYPES_H
 
@@ -86,10 +97,10 @@ typedef unsigned long long int rpl_ino_t;
 
 /* MSVC 9 defines size_t in <stddef.h>, not in <sys/types.h>.  */
 /* But avoid namespace pollution on glibc systems.  */
-#if ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__) \
-    && ! defined __GLIBC__
+#if (defined _WIN32 && ! defined __CYGWIN__) && ! defined __GLIBC__
 # include <stddef.h>
 #endif
 
 #endif /* _@GUARD_PREFIX@_SYS_TYPES_H */
 #endif /* _@GUARD_PREFIX@_SYS_TYPES_H */
+#endif /* __need_XXX */

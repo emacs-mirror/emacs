@@ -1386,7 +1386,7 @@ l(ines)."
   (interactive "p\nc")
   (cond ((char-equal region ?d) (mark-defun))
 	((char-equal region ?s) (mark-sexp arg))
-	((char-equal region ?b) (mark-whole-buffer))
+	((char-equal region ?b) (with-no-warnings (mark-whole-buffer)))
 	((char-equal region ?p) (mark-paragraph))
 	((char-equal region ?P) (mark-page arg))
 	((char-equal region ?f) (c-mark-function))

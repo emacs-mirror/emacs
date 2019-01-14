@@ -1,6 +1,6 @@
 ;;; json.el --- JavaScript Object Notation parser / generator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Theresa O'Connor <ted@oconnor.cx>
 ;; Version: 1.4
@@ -370,7 +370,7 @@ representation will be parsed correctly."
 
 (defun json--decode-utf-16-surrogates (high low)
   "Return the code point represented by the UTF-16 surrogates HIGH and LOW."
-  (+ (lsh (- high #xD800) 10) (- low #xDC00) #x10000))
+  (+ (ash (- high #xD800) 10) (- low #xDC00) #x10000))
 
 (defun json-read-escaped-char ()
   "Read the JSON string escaped character at point."
@@ -523,8 +523,8 @@ Please see the documentation of `json-object-type' and `json-key-type'."
     ;; Skip over the "}"
     (json-advance)
     (pcase json-object-type
-      (`alist (nreverse elements))
-      (`plist (json--plist-reverse elements))
+      ('alist (nreverse elements))
+      ('plist (json--plist-reverse elements))
       (_ elements))))
 
 ;; Hash table encoding
@@ -609,8 +609,7 @@ Please see the documentation of `json-object-type' and `json-key-type'."
   "Return a JSON representation of LIST.
 Tries to DWIM: simple lists become JSON arrays, while alists and plists
 become JSON objects."
-  (cond ((null list)         "null")
-        ((json-alist-p list) (json-encode-alist list))
+  (cond ((json-alist-p list) (json-encode-alist list))
         ((json-plist-p list) (json-encode-plist list))
         ((listp list)        (json-encode-array list))
         (t
@@ -642,8 +641,8 @@ become JSON objects."
     ;; Skip over the "]"
     (json-advance)
     (pcase json-array-type
-      (`vector (nreverse (vconcat elements)))
-      (`list (nreverse elements)))))
+      ('vector (nreverse (vconcat elements)))
+      ('list (nreverse elements)))))
 
 ;; Array encoding
 
@@ -685,7 +684,7 @@ become JSON objects."
       (push (list c 'json-read-number) table))
     (pcase-dolist (`(,c . ,rest) table)
       (push `((eq ,char ,c) (,@rest)) res))
-    `(cond ,@res (t (signal 'json-readtable-error ,char)))))
+    `(cond ,@res (t (signal 'json-readtable-error (list ,char))))))
 
 (defun json-read ()
   "Parse and return the JSON object following point.
@@ -723,12 +722,12 @@ Advances point just past JSON object."
         ((stringp object)      (json-encode-string object))
         ((keywordp object)     (json-encode-string
                                 (substring (symbol-name object) 1)))
+        ((listp object)        (json-encode-list object))
         ((symbolp object)      (json-encode-string
                                 (symbol-name object)))
         ((numberp object)      (json-encode-number object))
         ((arrayp object)       (json-encode-array object))
         ((hash-table-p object) (json-encode-hash-table object))
-        ((listp object)        (json-encode-list object))
         (t                     (signal 'json-error (list object)))))
 
 ;; Pretty printing
@@ -743,6 +742,8 @@ Advances point just past JSON object."
   (interactive "r")
   (atomic-change-group
     (let ((json-encoding-pretty-print t)
+          ;; Distinguish an empty objects from 'null'
+          (json-null :json-null)
           ;; Ensure that ordering is maintained
           (json-object-type 'alist)
           (txt (delete-and-extract-region begin end)))

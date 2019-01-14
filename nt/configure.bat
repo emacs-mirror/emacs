@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   This was the old configuration script for MS Windows operating systems
-rem   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+rem   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; sregex.el --- symbolic regular expressions
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Bob Glickstein <bobg+sregex@zanshin.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -240,7 +240,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Compatibility code for when we didn't have shy-groups
 (defvar sregex--current-sregex nil)
@@ -487,7 +487,7 @@ has one of the following forms:
 	(concat "\\(?:" (regexp-quote exp) "\\)")
       (regexp-quote exp)))
    ((symbolp exp)
-    (ecase exp
+    (cl-ecase exp
       (any ".")
       (bol "^")
       (eol "$")

@@ -1,6 +1,6 @@
 ;;; semantic/mru-bookmark.el --- Automatic bookmark tracking
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -45,7 +45,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio-base)
 (require 'ring)
@@ -166,7 +165,6 @@ We can't use the built-in ring data structure because we need
 to delete some items from the ring when we don't have the data.")
 
 (defvar semantic-mru-bookmark-ring (semantic-bookmark-ring
-				    "Ring"
 				    :ring (make-ring 20))
   "The MRU bookmark ring.
 This ring tracks the most recent active tags of interest.")
@@ -254,8 +252,7 @@ been edited, and you can re-visit them with \\[semantic-mrub-switch-tags]."
 
 ;;;###autoload
 (define-minor-mode global-semantic-mru-bookmark-mode
-  "Toggle global use of option `semantic-mru-bookmark-mode'.
-If ARG is positive or nil, enable, if it is negative, disable."
+  "Toggle global use of option `semantic-mru-bookmark-mode'."
   :global t :group 'semantic :group 'semantic-modes
   ;; Not needed because it's autoloaded instead.
   ;; :require 'semantic-util-modes
@@ -280,10 +277,9 @@ been edited, and you can re-visit them with \\[semantic-mrub-switch-tags].
 
 \\{semantic-mru-bookmark-mode-map}
 
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled."
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled."
   :keymap semantic-mru-bookmark-mode-map
   (if semantic-mru-bookmark-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))

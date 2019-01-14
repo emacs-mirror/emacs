@@ -1,6 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985-1987, 1992-1996, 1999-2018 Free Software
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -309,7 +309,10 @@ Normally nil in most modes, since there is no process to display.")
 (make-variable-buffer-local 'mode-line-process)
 
 (defun bindings--define-key (map key item)
-  "Make as much as possible of the menus pure."
+  "Define KEY in keymap MAP according to ITEM from a menu.
+This is like `define-key', but it takes the definition from the
+specified menu item, and makes pure copies of as much as possible
+of the menu's data."
   (declare (indent 2))
   (define-key map key
     (cond
@@ -414,7 +417,7 @@ zero, otherwise they start from one."
 This option specifies both the field width and the type of offset
 displayed in `mode-line-position', a component of the default
 `mode-line-format'."
-  :type `(radio
+  :type '(radio
           (const :tag "nil:  No offset is displayed" nil)
           (const :tag "\"%o\": Proportion of \"travel\" of the window through the buffer"
                  (-3 "%o"))
@@ -721,11 +724,11 @@ okay.  See `mode-line-format'.")
       ;; FIXME: Maybe beginning-of-line, beginning-of-buffer, end-of-line,
       ;; end-of-buffer, end-of-file, buffer-read-only, and
       ;; file-supersession should all be user-errors!
-      `(beginning-of-line beginning-of-buffer end-of-line
-	end-of-buffer end-of-file buffer-read-only
-	file-supersession mark-inactive
-        user-error ;; That's the main one!
-        ))
+      '(beginning-of-line beginning-of-buffer end-of-line
+	                  end-of-buffer end-of-file buffer-read-only
+	                  file-supersession mark-inactive
+                          user-error ;; That's the main one!
+                          ))
 
 (make-variable-buffer-local 'indent-tabs-mode)
 
@@ -851,7 +854,7 @@ and \\[backward-word], which see.
 
 Value is normally t.
 If an edge of the buffer or a field boundary is reached, point is left there
-there and the function returns nil.  Field boundaries are not noticed
+and the function returns nil.  Field boundaries are not noticed
 if `inhibit-field-text-motion' is non-nil."
   (interactive "^p")
   (if (eq (current-bidi-paragraph-direction) 'left-to-right)
@@ -867,7 +870,7 @@ and \\[forward-word], which see.
 
 Value is normally t.
 If an edge of the buffer or a field boundary is reached, point is left there
-there and the function returns nil.  Field boundaries are not noticed
+and the function returns nil.  Field boundaries are not noticed
 if `inhibit-field-text-motion' is non-nil."
   (interactive "^p")
   (if (eq (current-bidi-paragraph-direction) 'left-to-right)
@@ -1026,6 +1029,13 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key search-map "hu"   'unhighlight-regexp)
 (define-key search-map "hf"   'hi-lock-find-patterns)
 (define-key search-map "hw"   'hi-lock-write-interactive-patterns)
+(put 'highlight-regexp                   :advertised-binding [?\M-s ?h ?r])
+(put 'highlight-phrase                   :advertised-binding [?\M-s ?h ?p])
+(put 'highlight-lines-matching-regexp    :advertised-binding [?\M-s ?h ?l])
+(put 'highlight-symbol-at-point          :advertised-binding [?\M-s ?h ?.])
+(put 'unhighlight-regexp                 :advertised-binding [?\M-s ?h ?u])
+(put 'hi-lock-find-patterns              :advertised-binding [?\M-s ?h ?f])
+(put 'hi-lock-write-interactive-patterns :advertised-binding [?\M-s ?h ?w])
 
 ;;(defun function-key-error ()
 ;;  (interactive)

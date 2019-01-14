@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2018 Free Software
+Copyright (C) 1985-1987, 1993-1995, 1997-1999, 2001-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -66,6 +66,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 
+#include "bignum.h"
 #include "intervals.h"
 #include "character.h"
 #include "buffer.h"
@@ -84,7 +85,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "dispextern.h"
 #include "ptr-bounds.h"
-#include "regex.h"
+#include "regex-emacs.h"
 #include "sheap.h"
 #include "syntax.h"
 #include "sysselect.h"
@@ -94,10 +95,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "getpagesize.h"
 #include "gnutls.h"
 
-#if (defined PROFILING \
-     && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__))
+#ifdef PROFILING
 # include <sys/gmon.h>
 extern void moncontrol (int mode);
+# ifdef __MINGW32__
+extern unsigned char etext asm ("etext");
+# else
+extern char etext;
+# endif
 #endif
 
 #ifdef HAVE_SETLOCALE
@@ -191,6 +196,9 @@ HANDLE w32_daemon_event;
 /* Save argv and argc.  */
 char **initial_argv;
 int initial_argc;
+
+/* The name of the working directory, or NULL if this info is unavailable.  */
+char const *emacs_wd;
 
 static void sort_args (int argc, char **argv);
 static void syms_of_emacs (void);
@@ -366,7 +374,7 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 
           totally_unblock_input ();
           if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
-            Fkill_emacs (make_number (sig));
+            Fkill_emacs (make_fixnum (sig));
 
           shut_down_emacs (sig, Qnil);
           emacs_backtrace (backtrace_limit);
@@ -394,7 +402,7 @@ terminate_due_to_signal (int sig, int backtrace_limit)
 /* Code for dealing with Lisp access to the Unix command line.  */
 
 static void
-init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
+init_cmdargs (int argc, char **argv, int skip_args, char const *original_pwd)
 {
   int i;
   Lisp_Object name, dir, handler;
@@ -435,7 +443,7 @@ init_cmdargs (int argc, char **argv, int skip_args, char *original_pwd)
     {
       Lisp_Object found;
       int yes = openp (Vexec_path, Vinvocation_name,
-		       Vexec_suffixes, &found, make_number (X_OK), false);
+		       Vexec_suffixes, &found, make_fixnum (X_OK), false);
       if (yes == 1)
 	{
 	  /* Add /: to the front of the name
@@ -736,10 +744,12 @@ load_pdump (int argc, char **argv)
 #endif
 
   /* TODO: maybe more thoroughly scrub process environment in order to
-     make this use case possible?  Right now, we assume that things we
-     don't touch are zero-initialized, and in an unexeced Emacs, this
-     assumption doesn't hold.  */
-  eassert (!initialized);
+     make this use case (loading a pdumper image in an unexeced emacs)
+     possible?  Right now, we assume that things we don't touch are
+     zero-initialized, and in an unexeced Emacs, this assumption
+     doesn't hold.  */
+  if (initialized)
+    fatal ("cannot load pdumper image in unexeced Emacs");
 
   /* Look for an explicitly-specified dump file.  */
   const char *path_exec = PATH_EXEC;
@@ -822,7 +832,7 @@ main (int argc, char **argv)
   char *ch_to_dir = 0;
 
   /* If we use --chdir, this records the original directory.  */
-  char *original_pwd = 0;
+  char const *original_pwd = 0;
 
   /* Record (approximately) where the stack begins.  */
   stack_bottom = (char *) &stack_bottom_variable;
@@ -898,6 +908,8 @@ main (int argc, char **argv)
   /* Initialize the codepage for file names, needed to decode
      non-ASCII file names during startup.  */
   w32_init_file_name_codepage ();
+  /* Initialize the startup directory, needed for emacs_wd below.  */
+  w32_init_current_directory ();
 #endif
   w32_init_main_thread ();
 #endif
@@ -907,26 +919,8 @@ main (int argc, char **argv)
     load_pdump (argc, argv);
 #endif
 
-  /* True if address randomization interferes with memory allocation.  */
-# ifdef __PPC64__
-  bool disable_aslr = true;
-# else
-  bool disable_aslr = will_dump_with_unexec_p ();
-# endif
-
-  if (disable_aslr && disable_address_randomization ())
-    {
-      /* Set this so the personality will be reverted before execs
-	 after this one.  */
-      xputenv ("EMACS_HEAP_EXEC=true");
-
-      /* Address randomization was enabled, but is now disabled.
-	 Re-execute Emacs to get a clean slate.  */
-      execvp (argv[0], argv);
-
-      /* If the exec fails, warn and then try anyway.  */
-      perror (argv[0]);
-    }
+  argc = maybe_disable_address_randomization (
+    will_dump_with_unexec_p (), argc, argv);
 
 #if defined (GNU_LINUX) && !defined (CANNOT_DUMP)
   if (!initialized)
@@ -993,6 +987,8 @@ main (int argc, char **argv)
       exit (0);
     }
 
+  emacs_wd = emacs_get_current_dir_name ();
+
   if (argmatch (argv, argc, "-chdir", "--chdir", 4, &ch_to_dir, &skip_args))
     {
 #ifdef WINDOWSNT
@@ -1003,13 +999,18 @@ main (int argc, char **argv)
       filename_from_ansi (ch_to_dir, newdir);
       ch_to_dir = newdir;
 #endif
-      original_pwd = emacs_get_current_dir_name ();
       if (chdir (ch_to_dir) != 0)
         {
           fprintf (stderr, "%s: Can't chdir to %s: %s\n",
                    argv[0], ch_to_dir, strerror (errno));
           exit (1);
         }
+      original_pwd = emacs_wd;
+#ifdef WINDOWSNT
+      /* Reinitialize Emacs's notion of the startup directory.  */
+      w32_init_current_directory ();
+#endif
+      emacs_wd = emacs_get_current_dir_name ();
     }
 
 #if defined (HAVE_SETRLIMIT) && defined (RLIMIT_STACK) && !defined (CYGWIN)
@@ -1025,9 +1026,9 @@ main (int argc, char **argv)
     {
       rlim_t lim = rlim.rlim_cur;
 
-      /* Approximate the amount regex.c needs per unit of
+      /* Approximate the amount regex-emacs.c needs per unit of
 	 emacs_re_max_failures, then add 33% to cover the size of the
-	 smaller stacks that regex.c successively allocates and
+	 smaller stacks that regex-emacs.c successively allocates and
 	 discards on its way to the maximum.  */
       int min_ratio = 20 * sizeof (char *);
       int ratio = min_ratio + min_ratio / 3;
@@ -1056,18 +1057,21 @@ main (int argc, char **argv)
 	    newlim = rlim.rlim_max;
 	  newlim -= newlim % pagesize;
 
-	  if (pagesize <= newlim - lim)
+	  if (newlim > lim	/* in case rlim_t is an unsigned type */
+	      && pagesize <= newlim - lim)
 	    {
 	      rlim.rlim_cur = newlim;
 	      if (setrlimit (RLIMIT_STACK, &rlim) == 0)
 		lim = newlim;
 	    }
 	}
-      /* If the stack is big enough, let regex.c more of it before
-         falling back to heap allocation.  */
-      emacs_re_safe_alloca = max
-        (min (lim - extra, SIZE_MAX) * (min_ratio / ratio),
-         MAX_ALLOCA);
+      /* If the stack is big enough, let regex-emacs.c use more of it
+	 before falling back to heap allocation.  */
+      if (lim < extra)
+        lim = extra;    /* avoid wrap-around in unsigned subtraction */
+      ptrdiff_t max_failures
+	= min (lim - extra, min (PTRDIFF_MAX, SIZE_MAX)) / ratio;
+      emacs_re_safe_alloca = max (max_failures * min_ratio, MAX_ALLOCA);
     }
 #endif /* HAVE_SETRLIMIT and RLIMIT_STACK and not CYGWIN */
 
@@ -1248,7 +1252,7 @@ main (int argc, char **argv)
 #endif /* HAVE_LIBSYSTEMD */
 
 #ifdef USE_GTK
-      fprintf (stderr, "\nWarning: due to a long standing Gtk+ bug\nhttp://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
+      fprintf (stderr, "\nWarning: due to a long standing Gtk+ bug\nhttps://gitlab.gnome.org/GNOME/gtk/issues/221\n\
 Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.\n\
 Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.\n");
 #endif /* USE_GTK */
@@ -1429,6 +1433,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     }
 
   init_alloc ();
+  init_bignum ();
   init_threads ();
 
   if (do_initial_setlocale)
@@ -1479,21 +1484,21 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     {
 #ifdef NS_IMPL_COCOA
       /* Started from GUI? */
-      /* FIXME: Do the right thing if getenv returns NULL, or if
+      /* FIXME: Do the right thing if get_homedir returns "", or if
          chdir fails.  */
       if (! inhibit_window_system && ! isatty (STDIN_FILENO) && ! ch_to_dir)
-        chdir (getenv ("HOME"));
+        chdir (get_homedir ());
       if (skip_args < argc)
         {
           if (!strncmp (argv[skip_args], "-psn", 4))
             {
               skip_args += 1;
-              if (! ch_to_dir) chdir (getenv ("HOME"));
+              if (! ch_to_dir) chdir (get_homedir ());
             }
           else if (skip_args+1 < argc && !strncmp (argv[skip_args+1], "-psn", 4))
             {
               skip_args += 2;
-              if (! ch_to_dir) chdir (getenv ("HOME"));
+              if (! ch_to_dir) chdir (get_homedir ());
             }
         }
 #endif  /* COCOA */
@@ -1684,6 +1689,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_minibuf ();
       syms_of_process ();
       syms_of_search ();
+      syms_of_sysdep ();
+      syms_of_timefns ();
       syms_of_frame ();
       syms_of_syntax ();
       syms_of_terminal ();
@@ -1826,8 +1833,10 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 
   init_charset ();
 
-  /* This calls putenv and so must precede init_process_emacs.  Also,
-     it sets Voperating_system_release, which init_process_emacs uses.  */
+  /* This calls putenv and so must precede init_process_emacs.  */
+  init_timefns ();
+
+  /* This sets Voperating_system_release, which init_process_emacs uses.  */
   init_editfns ();
 
   /* These two call putenv.  */
@@ -1880,22 +1889,14 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
      GNU/Linux and MinGW.  It might work on some other systems too.
      Give it a try and tell us if it works on your system.  To compile
      for profiling, use the configure option --enable-profiling.  */
-#if defined (__FreeBSD__) || defined (GNU_LINUX) || defined (__MINGW32__)
 #ifdef PROFILING
   if (initialized)
     {
-#ifdef __MINGW32__
-      extern unsigned char etext asm ("etext");
-#else
-      extern char etext;
-#endif
-
       atexit (_mcleanup);
       monstartup ((uintptr_t) __executable_start, (uintptr_t) &etext);
     }
   else
     moncontrol (0);
-#endif
 #endif
 
   initialized = true;
@@ -2204,6 +2205,10 @@ all of which are called before Emacs is actually killed.  */
 {
   int exit_code;
 
+#ifdef HAVE_LIBSYSTEMD
+  sd_notify(0, "STOPPING=1");
+#endif /* HAVE_LIBSYSTEMD */
+
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
   waiting_for_input = 0;
@@ -2233,10 +2238,10 @@ all of which are called before Emacs is actually killed.  */
       unlink (SSDATA (listfile));
     }
 
-  if (INTEGERP (arg))
-    exit_code = (XINT (arg) < 0
-		 ? XINT (arg) | INT_MIN
-		 : XINT (arg) & INT_MAX);
+  if (FIXNUMP (arg))
+    exit_code = (XFIXNUM (arg) < 0
+		 ? XFIXNUM (arg) | INT_MIN
+		 : XFIXNUM (arg) & INT_MAX);
   else
     exit_code = EXIT_SUCCESS;
   exit (exit_code);
@@ -2608,7 +2613,7 @@ decode_env_path (const char *evarname, const char *defalt, bool empty)
               && strncmp (path, emacs_dir_env, emacs_dir_len) == 0)
             element = Fexpand_file_name (Fsubstring
                                          (element,
-                                          make_number (emacs_dir_len),
+                                          make_fixnum (emacs_dir_len),
                                           Qnil),
                                          build_unibyte_string (emacs_dir));
 #endif
@@ -2674,6 +2679,13 @@ from the parent process and its tty file descriptors.  */)
   if (NILP (Vafter_init_time))
     error ("This function can only be called after loading the init files");
 #ifndef WINDOWSNT
+
+  if (daemon_type == 1)
+    {
+#ifdef HAVE_LIBSYSTEMD
+      sd_notify(0, "READY=1");
+#endif /* HAVE_LIBSYSTEMD */
+    }
 
   if (daemon_type == 2)
     {

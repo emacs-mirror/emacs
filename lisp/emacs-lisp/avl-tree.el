@@ -1,6 +1,6 @@
 ;;; avl-tree.el --- balanced binary trees, AVL-trees  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;         Inge Wallin <inge@lysator.liu.se>

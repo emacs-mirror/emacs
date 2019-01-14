@@ -1,6 +1,6 @@
 ;;; speedbar --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -637,9 +637,6 @@ Created from `speedbar-ignored-directory-expressions' with the function
 Use the function `speedbar-add-ignored-directory-regexp', or customize the
 variable `speedbar-ignored-directory-expressions' to modify this variable.")
 
-(define-obsolete-variable-alias 'speedbar-ignored-path-expressions
-  'speedbar-ignored-directory-expressions "22.1")
-
 (defcustom speedbar-ignored-directory-expressions
   '("[/\\]logs?[/\\]\\'")
   "List of regular expressions matching directories speedbar will ignore.
@@ -743,13 +740,6 @@ DIRECTORY-EXPRESSION to `speedbar-ignored-directory-expressions'."
     (setq directory-expression (cdr directory-expression)))
   (setq speedbar-ignored-directory-regexp (speedbar-extension-list-to-regex
 				      speedbar-ignored-directory-expressions)))
-
-;; If we don't have custom, then we set it here by hand.
-(if (not (fboundp 'custom-declare-variable))
-    (setq speedbar-file-regexp (speedbar-extension-list-to-regex
-				speedbar-supported-extension-expressions)
-	  speedbar-ignored-directory-regexp (speedbar-extension-list-to-regex
-					speedbar-ignored-directory-expressions)))
 
 (defcustom speedbar-update-flag dframe-have-timer-flag
   "Non-nil means to automatically update the display.
@@ -1476,9 +1466,10 @@ Return nil if not applicable.  If FILENAME, then use that
 instead of reading it from the speedbar buffer."
   (let* ((item (or filename (speedbar-line-file)))
 	 (attr (if item (file-attributes item) nil)))
-    (if (and item attr) (dframe-message "%s %-6d %s" (nth 8 attr)
-					  (nth 7 attr) item)
-      nil)))
+    (if (and item attr)
+	(dframe-message "%s %-6d %s"
+			(file-attribute-modes attr)
+			(file-attribute-size attr) item))))
 
 (defun speedbar-item-info-tag-helper ()
   "Display info about a tag that is on the current line.
@@ -3018,13 +3009,13 @@ the file being checked."
 					      (cdr (car oa))))))
 	  nil
 	;; Find out if the object is out of date or not.
-	(let ((date1 (nth 5 (file-attributes fulln)))
-	      (date2 (nth 5 (file-attributes (concat
-					      (file-name-sans-extension fulln)
-                                              (cdr (car oa)))))))
-	  (if (or (< (car date1) (car date2))
-		  (and (= (car date1) (car date2))
-		       (< (nth 1 date1) (nth 1 date2))))
+	(let ((date1 (file-attribute-modification-time
+		      (file-attributes fulln)))
+	      (date2 (file-attribute-modification-time
+		      (file-attributes (concat
+					(file-name-sans-extension fulln)
+					(cdr (car oa)))))))
+	  (if (time-less-p date1 date2)
 	      (car speedbar-obj-indicator)
 	    (cdr speedbar-obj-indicator)))))))
 
@@ -4077,26 +4068,6 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 	 (setq font-lock-global-modes (delq 'speedbar-mode
 					    font-lock-global-modes)))))
 
-;;; Obsolete variables and functions
-
-(define-obsolete-variable-alias
-  'speedbar-ignored-path-regexp 'speedbar-ignored-directory-regexp "22.1")
-
-(define-obsolete-function-alias 'speedbar-add-ignored-path-regexp
-  'speedbar-add-ignored-directory-regexp "22.1")
-
-(define-obsolete-function-alias 'speedbar-line-path
-  'speedbar-line-directory "22.1")
-
-(define-obsolete-function-alias 'speedbar-buffers-line-path
-  'speedbar-buffers-line-directory "22.1")
-
-(define-obsolete-function-alias 'speedbar-path-line
-  'speedbar-directory-line "22.1")
-
-(define-obsolete-function-alias 'speedbar-buffers-line-path
-  'speedbar-buffers-line-directory "22.1")
-
 (provide 'speedbar)
 
 ;; run load-time hooks

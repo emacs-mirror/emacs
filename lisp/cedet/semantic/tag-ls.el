@@ -1,6 +1,6 @@
 ;;; semantic/tag-ls.el --- Language Specific override functions for tags
 
-;; Copyright (C) 1999-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2004, 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -134,7 +134,7 @@ By default, `semantic-tag-similar-ignorable-attributes' is referenced for
 attributes, and IGNORABLE-ATTRIBUTES will augment this list.
 
 Note that even though :name is not an attribute, it can be used to
-to indicate lax comparison of names via `semantic--tag-similar-names-p'")
+indicate lax comparison of names via `semantic--tag-similar-names-p'")
 
 ;; Note: optional thing is because overloadable fcns don't handle this
 ;; quite right.

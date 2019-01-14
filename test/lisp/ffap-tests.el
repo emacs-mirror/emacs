@@ -1,6 +1,6 @@
 ;;; ffap-tests.el --- Test suite for ffap.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 

@@ -1,6 +1,6 @@
 ;;; dom.el --- XML/HTML (etc.) DOM manipulation and searching functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: xml, html
@@ -78,15 +78,21 @@ A typical attribute is `href'."
 
 (defun dom-texts (node &optional separator)
   "Return all textual data under NODE concatenated with SEPARATOR in-between."
-  (mapconcat
-   'identity
-   (mapcar
-    (lambda (elem)
-      (if (stringp elem)
-	  elem
-	(dom-texts elem separator)))
-    (dom-children node))
-   (or separator " ")))
+  (if (eq (dom-tag node) 'script)
+      ""
+    (mapconcat
+     'identity
+     (mapcar
+      (lambda (elem)
+        (cond
+         ((stringp elem)
+	  elem)
+         ((eq (dom-tag elem) 'script)
+          "")
+         (t
+	  (dom-texts elem separator))))
+      (dom-children node))
+     (or separator " "))))
 
 (defun dom-child-by-tag (dom tag)
   "Return the first child of DOM that is of type TAG."

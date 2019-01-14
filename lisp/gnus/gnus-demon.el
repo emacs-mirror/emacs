@@ -1,6 +1,6 @@
 ;;; gnus-demon.el --- daemonic Gnus behavior
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-int)
@@ -101,7 +101,7 @@ If not, and a TIME is given, restart a new idle timer, so FUNC
 can be called at the next opportunity. Such a special idle run is
 marked with SPECIAL."
   (unless gnus-inhibit-demon
-    (block run-callback
+    (cl-block run-callback
       (when (eq idle t)
         (setq idle 0.001))
       (cond (special
@@ -117,7 +117,7 @@ marked with SPECIAL."
 				(run-with-idle-timer idle nil
 						     'gnus-demon-run-callback
 						     func idle time t))))
-             (return-from run-callback)))
+             (cl-return-from run-callback)))
       (with-local-quit
         (ignore-errors
           (funcall func))))))

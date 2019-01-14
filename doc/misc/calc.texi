@@ -95,7 +95,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990--1991, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1991, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -12422,7 +12422,7 @@ Calculations are normally performed numerically wherever possible.
 For example, the @code{calc-sqrt} command, or @code{sqrt} function in an
 algebraic expression, produces a numeric answer if the argument is a
 number or a symbolic expression if the argument is an expression:
-@kbd{2 Q} pushes 1.4142 but @kbd{@key{'} x+1 @key{RET} Q} pushes @samp{sqrt(x+1)}.
+@kbd{2 Q} pushes 1.4142 but @kbd{' x+1 @key{RET} Q} pushes @samp{sqrt(x+1)}.
 
 @kindex m s
 @pindex calc-symbolic-mode
@@ -16338,7 +16338,7 @@ computes an Nth root:  @kbd{125 @key{RET} 3 I ^} computes the number 5.
 @tindex \
 The @kbd{\} (@code{calc-idiv}) command divides two numbers on the stack
 to produce an integer result.  It is equivalent to dividing with
-@key{/}, then rounding down with @kbd{F} (@code{calc-floor}), only a bit
+@kbd{/}, then rounding down with @kbd{F} (@code{calc-floor}), only a bit
 more convenient and efficient.  Also, since it is an all-integer
 operation when the arguments are integers, it avoids problems that
 @kbd{/ F} would have with floating-point roundoff.
@@ -30289,7 +30289,7 @@ is the same as @key{CONJ}.
 @item INV *
 is the same as @key{y^x}.
 @item INV /
-is the same as @key{INV y^x} (the @expr{x}th root of @expr{y}).
+is the same as @kbd{INV y^x} (the @expr{x}th root of @expr{y}).
 @item HYP/INV 1
 are the same as @key{SIN} / @kbd{INV SIN}.
 @item HYP/INV 2
@@ -30366,9 +30366,9 @@ number.  (@xref{Random Numbers}.)  @key{RAGN} is the ``random
 again'' command; it computes another random number using the
 same limit as last time.
 
-@key{INV GCD} computes the LCM (least common multiple) function.
+@kbd{INV GCD} computes the LCM (least common multiple) function.
 
-@key{INV FACT} is the gamma function.
+@kbd{INV FACT} is the gamma function.
 @texline @math{\Gamma(x) = (x-1)!}.
 @infoline @expr{gamma(x) = (x-1)!}.
 
@@ -30396,14 +30396,14 @@ finds the previous prime.
 @noindent
 The keys in this menu perform operations on binary integers.
 Note that both logical and arithmetic right-shifts are provided.
-@key{INV LSH} rotates one bit to the left.
+@kbd{INV LSH} rotates one bit to the left.
 
-The ``difference'' function (normally on @kbd{b d}) is on @key{INV AND}.
-The ``clip'' function (normally on @w{@kbd{b c}}) is on @key{INV NOT}.
+The ``difference'' function (normally on @kbd{b d}) is on @kbd{INV AND}.
+The ``clip'' function (normally on @w{@kbd{b c}}) is on @kbd{INV NOT}.
 
 The @key{DEC}, @key{HEX}, @key{OCT}, and @key{BIN} keys select the
 current radix for display and entry of numbers:  Decimal, hexadecimal,
-octal, or binary.  The six letter keys @key{A} through @key{F} are used
+octal, or binary.  The six letter keys @kbd{A} through @kbd{F} are used
 for entering hexadecimal numbers.
 
 The @key{WSIZ} key displays the current word size for binary operations
@@ -30461,13 +30461,13 @@ equivalent to @kbd{u +} in normal Calc (@pxref{Statistical Operations}).
 @key{PROD} computes the product of the elements of a vector, and
 @key{MAX} computes the maximum of all the elements of a vector.
 
-@key{INV SUM} computes the alternating sum of the first element
+@kbd{INV SUM} computes the alternating sum of the first element
 minus the second, plus the third, minus the fourth, and so on.
-@key{INV MAX} computes the minimum of the vector elements.
+@kbd{INV MAX} computes the minimum of the vector elements.
 
-@key{HYP SUM} computes the mean of the vector elements.
-@key{HYP PROD} computes the sample standard deviation.
-@key{HYP MAX} computes the median.
+@kbd{HYP SUM} computes the mean of the vector elements.
+@kbd{HYP PROD} computes the sample standard deviation.
+@kbd{HYP MAX} computes the median.
 
 @key{MAP*} multiplies two vectors elementwise.  It is equivalent
 to the @kbd{V M *} command.  @key{MAP^} computes powers elementwise.
@@ -31292,7 +31292,7 @@ for @code{Save} have no effect.
 You can modify Embedded mode's behavior by setting various Lisp
 variables described here.  These variables are customizable
 (@pxref{Customizing Calc}), or you can use @kbd{M-x set-variable}
-or @kbd{M-x edit-options} to adjust a variable on the fly.
+to adjust a variable on the fly.
 (Another possibility would be to use a file-local variable annotation at
 the end of the file;
 @pxref{File Variables, , Local Variables in Files, emacs, the Emacs manual}.)
@@ -31311,9 +31311,8 @@ regular expression is not completely plain, let's go through it
 in detail.
 
 The surrounding @samp{" "} marks quote the text between them as a
-Lisp string.  If you left them off, @code{set-variable} or
-@code{edit-options} would try to read the regular expression as a
-Lisp program.
+Lisp string.  If you left them off, @code{set-variable} (for example)
+would try to read the regular expression as a Lisp program.
 
 The most obvious property of this regular expression is that it
 contains indecently many backslashes.  There are actually two levels
@@ -32718,7 +32717,7 @@ create an intermediate set.
     (while (> n 0)
       (if (oddp n)
           (setq count (1+ count)))
-      (setq n (lsh n -1)))
+      (setq n (ash n -1)))
     count))
 @end smallexample
 
@@ -32762,7 +32761,7 @@ routines are especially fast when dividing by an integer less than
   (let ((count 0))
     (while (> n 0)
       (setq count (+ count (logand n 1))
-            n (lsh n -1)))
+            n (ash n -1)))
     count))
 @end smallexample
 
@@ -32775,7 +32774,7 @@ uses.
 
 The @code{idivmod} function does an integer division, returning both
 the quotient and the remainder at once.  Again, note that while it
-might seem that @samp{(logand n 511)} and @samp{(lsh n -9)} are
+might seem that @samp{(logand n 511)} and @samp{(ash n -9)} are
 more efficient ways to split off the bottom nine bits of @code{n},
 actually they are less efficient because each operation is really
 a division by 512 in disguise; @code{idivmod} allows us to do the
@@ -33165,7 +33164,7 @@ This switches into the Calc buffer for the duration of the macro.
 For example, @samp{(calc-eval "vx5\rVR+" 'macro)} pushes the
 vector @samp{[1,2,3,4,5]} on the stack and then replaces it
 with the sum of those numbers.  Note that @samp{\r} is the Lisp
-notation for the carriage-return, @key{RET}, character.
+notation for the carriage return, @key{RET}, character.
 
 If your keyboard macro wishes to pop the stack, @samp{\C-d} is
 safer than @samp{\177} (the @key{DEL} character) because some
@@ -33276,19 +33275,18 @@ prefer them, or if you are calling these functions from regular Lisp.
 
 The functions described here are scattered throughout the various
 Calc component files.  Note that @file{calc.el} includes @code{autoload}s
-for only a few component files; when Calc wants to call an advanced
-function it calls @samp{(calc-extensions)} first; this function
-autoloads @file{calc-ext.el}, which in turn autoloads all the functions
-in the remaining component files.
+for only a few component files; to get autoloads of the more advanced
+function, one needs to load @file{calc-ext.el}, which in turn
+autoloads all the functions in the remaining component files.
 
 Because @code{defmath} itself uses the extensions, user-written code
 generally always executes with the extensions already loaded, so
 normally you can use any Calc function and be confident that it will
 be autoloaded for you when necessary.  If you are doing something
 special, check carefully to make sure each function you are using is
-from @file{calc.el} or its components, and call @samp{(calc-extensions)}
-before using any function based in @file{calc-ext.el} if you can't
-prove this file will already be loaded.
+from @file{calc.el} or its components, and use @w{@code{(require
+'calc-ext)}} before using any function based in @file{calc-ext.el} if
+you can't prove this file will already be loaded.
 
 @menu
 * Data Type Formats::
@@ -35726,19 +35724,12 @@ The default value of @code{calc-gregorian-switch} is @code{nil}.
 @appendix Reporting Bugs
 
 @noindent
-If you find a bug in Calc, send e-mail to Jay Belanger,
-
-@example
-jay.p.belanger@@gmail.com
-@end example
-
-@noindent
-There is an automatic command @kbd{M-x report-calc-bug} which helps
+If you find a bug in Calc, send e-mail to @email{bug-gnu-emacs@@gnu.org}.
+There is an automatic command @kbd{M-x report-emacs-bug} which helps
 you to report bugs.  This command prompts you for a brief subject
 line, then leaves you in a mail editing buffer.  Type @kbd{C-c C-c} to
 send your mail.  Make sure your subject line indicates that you are
-reporting a Calc bug; this command sends mail to the maintainer's
-regular mailbox.
+reporting a Calc bug.
 
 If you have suggestions for additional features for Calc, please send
 them.  Some have dared to suggest that Calc is already top-heavy with
@@ -35747,7 +35738,7 @@ them right in.
 
 At the front of the source file, @file{calc.el}, is a list of ideas for
 future work.  If any enthusiastic souls wish to take it upon themselves
-to work on these, please send a message (using @kbd{M-x report-calc-bug})
+to work on these, please send a message (using @kbd{M-x report-emacs-bug})
 so any efforts can be coordinated.
 
 The latest version of Calc is available from Savannah, in the Emacs
@@ -35841,7 +35832,7 @@ keystrokes are not listed in this summary.
 @r{       @:      _     @:number       @:        @:-@:number}
 @r{       @:      e     @:number       @:        @:@:1e number}
 @r{       @:      #     @:number       @:        @:@:current-radix@tfn{#}number}
-@r{       @:      P     @:(in number)  @:        @:+/-@:}
+@r{       @:      p     @:(in number)  @:        @:+/-@:}
 @r{       @:      M     @:(in number)  @:        @:mod@:}
 @r{       @:      @@ ' " @:  (in number)@:        @:@:HMS form}
 @r{       @:      h m s @:  (in number)@:        @:@:HMS form}
@@ -36258,7 +36249,7 @@ keystrokes are not listed in this summary.
 @c
 @r{       @:      j +   @:formula      @:    27  @:calc-sel-add-both-sides@:}
 @r{       @:      j -   @:formula      @:    27  @:calc-sel-sub-both-sides@:}
-@r{       @:      j *   @:formula      @:    27  @:calc-sel-mul-both-sides@:}
+@r{       @:      j *   @:formula      @:    27  @:calc-sel-mult-both-sides@:}
 @r{       @:      j /   @:formula      @:    27  @:calc-sel-div-both-sides@:}
 @r{       @:      j &   @:             @:    27  @:calc-sel-invert@:}
 

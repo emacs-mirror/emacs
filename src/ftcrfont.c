@@ -1,5 +1,5 @@
 /* ftcrfont.c -- FreeType font driver on cairo.
-   Copyright (C) 2015-2018 Free Software Foundation, Inc.
+   Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,8 +36,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 struct ftcrfont_info
 {
   struct font font;
-  /* The following six members must be here in this order to be
-     compatible with struct ftfont_info (in ftfont.c).  */
+  /* The following members up to and including 'matrix' must be here
+     in this order to be compatible with struct ftfont_info (in
+     ftfont.c).  */
 #ifdef HAVE_LIBOTF
   bool maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
   OTF *otf;
@@ -138,7 +139,7 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   FT_UInt size;
 
   block_input ();
-  size = XINT (AREF (entity, FONT_SIZE_INDEX));
+  size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
   font_object = font_build_object (VECSIZE (struct ftcrfont_info),
@@ -165,6 +166,9 @@ ftcrfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
 static void
 ftcrfont_close (struct font *font)
 {
+  if (font_data_structures_may_be_ill_formed ())
+    return;
+
   struct ftcrfont_info *ftcrfont_info = (struct ftcrfont_info *) font;
   int i;
 

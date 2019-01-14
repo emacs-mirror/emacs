@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2019 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  emacs-devel@gnu.org
@@ -57,7 +57,7 @@
                     ;; (We actually shouldn't trust this, but there is
                     ;; no other way to learn this from CVS at the
                     ;; moment (version 1.9).)
-                    (string-match "r-..-..-." (nth 8 attrib)))
+		    (string-match "r-..-..-." (file-attribute-modes attrib)))
                'announce
              'implicit))))))
 
@@ -257,7 +257,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
   ;; If the file has not changed since checkout, consider it `up-to-date'.
   ;; Otherwise consider it `edited'.
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
-        (lastmod (nth 5 (file-attributes file))))
+        (lastmod (file-attribute-modification-time (file-attributes file))))
     (cond
      ((equal checkout-time lastmod) 'up-to-date)
      ((string= (vc-working-revision file) "0") 'added)
@@ -524,7 +524,8 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
                     (string= (match-string 1) "P "))
                 (vc-file-setprop file 'vc-state 'up-to-date)
                 (vc-file-setprop file 'vc-checkout-time
-                                 (nth 5 (file-attributes file)))
+				 (file-attribute-modification-time
+				  (file-attributes file)))
                 0);; indicate success to the caller
                ;; Merge successful, but our own changes are still in the file
                ((string= (match-string 1) "M ")
@@ -748,7 +749,8 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 		    (vc-file-setprop file 'vc-state 'up-to-date)
 		    (vc-file-setprop file 'vc-working-revision nil)
 		    (vc-file-setprop file 'vc-checkout-time
-				     (nth 5 (file-attributes file))))
+				     (file-attribute-modification-time
+				      (file-attributes file))))
 		   ((or (string= state "M")
 			(string= state "C"))
 		    (vc-file-setprop file 'vc-state 'edited)
@@ -931,7 +933,8 @@ state."
 	 (cond
 	  ((string-match "Up-to-date" status)
 	   (vc-file-setprop file 'vc-checkout-time
-			    (nth 5 (file-attributes file)))
+			    (file-attribute-modification-time
+			     (file-attributes file)))
 	   'up-to-date)
 	  ((string-match "Locally Modified" status)             'edited)
 	  ((string-match "Needs Merge" status)                  'needs-merge)
@@ -1174,7 +1177,7 @@ is non-nil."
     ;; (which is based on textual comparison), because there can be problems
     ;; generating a time string that looks exactly like the one from CVS.
     (let* ((time (match-string 2))
-           (mtime (nth 5 (file-attributes file)))
+           (mtime (file-attribute-modification-time (file-attributes file)))
            (parsed-time (progn (require 'parse-time)
                                (parse-time-string (concat time " +0000")))))
       (cond ((and (not (string-match "\\+" time))

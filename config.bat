@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
-rem   Copyright (C) 1994-1999, 2001-2018 Free Software Foundation, Inc.
+rem   Copyright (C) 1994-1999, 2001-2019 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 

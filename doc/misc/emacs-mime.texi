@@ -12,7 +12,7 @@
 @copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright @copyright{} 1998--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1998--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -404,12 +404,12 @@ variable will cause @samp{text/html} parts to be treated as attachments.
 
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
-This selects the function used to render @acronym{HTML}.  The predefined
-renderers are selected by the symbols @code{shr}, @code{gnus-w3m},
-@code{w3m}@footnote{See @uref{http://emacs-w3m.namazu.org/} for more
-information about emacs-w3m}, @code{links}, @code{lynx},
-@code{w3m-standalone} or @code{html2text}.  If @code{nil} use an
-external viewer.  You can also specify a function, which will be
+This selects the function used to render @acronym{HTML}.  The
+predefined renderers are selected by the symbols @code{shr},
+@code{gnus-w3m}, @code{w3m}@footnote{See
+@uref{http://emacs-w3m.namazu.org/} for more information about
+emacs-w3m}, @code{links}, @code{lynx}, @code{w3m-standalone} or
+@code{html2text}.  You can also specify a function, which will be
 called with a @acronym{MIME} handle as the argument.
 
 @item mm-html-inhibit-images
@@ -708,7 +708,7 @@ RFC822 date when the part was read (@code{Content-Disposition}).
 
 @item recipients
 Who to encrypt/sign the part to.  This field is used to override any
-auto-detection based on the To/CC headers.
+auto-detection based on the To/Cc headers.
 
 @item sender
 Identity used to sign the part.  This field is used to override the
@@ -1524,45 +1524,54 @@ many mailers don't support it.  @xref{rfc2231}.
 @section time-date
 
 While not really a part of the @acronym{MIME} library, it is convenient to
-document this library here.  It deals with parsing @code{Date} headers
+document time conversion functions often used when parsing @code{Date} headers
 and manipulating time.  (Not by using tesseracts, though, I'm sorry to
 say.)
 
-These functions convert between five formats: A date string, an Emacs
-time structure, a decoded time list, a second number, and a day number.
+These functions convert between five formats: A date string, a Lisp
+timestamp, a decoded time list, a second number, and a day number.
 
 Here's a bunch of time/date/second/day examples:
 
 @example
 (parse-time-string "Sat Sep 12 12:21:54 1998 +0200")
-@result{} (54 21 12 12 9 1998 6 nil 7200)
+@result{} (54 21 12 12 9 1998 6 -1 7200)
 
-(date-to-time "Sat Sep 12 12:21:54 1998 +0200")
-@result{} (13818 19266)
+(encode-time (date-to-time "Sat Sep 12 12:21:54 1998 +0200")
+             1000000)
+@result{} (905595714000000 . 1000000)
 
-(parse-iso8601-time-string "1998-09-12T12:21:54+0200")
-@result{} (13818 19266)
+(encode-time (parse-iso8601-time-string "1998-09-12T12:21:54+0200")
+             1000000)
+@result{} (905595714000000 . 1000000)
 
-(float-time '(13818 19266))
+(float-time '(905595714000000 . 1000000))
 @result{} 905595714.0
 
-(seconds-to-time 905595714.0)
-@result{} (13818 19266 0 0)
+(encode-time 905595714.0 1000000)
+@result{} (905595714000000 . 1000000)
 
-(time-to-days '(13818 19266))
+(time-to-days '(905595714000000 . 1000000))
 @result{} 729644
 
-(days-to-time 729644)
-@result{} (961933 512)
+(encode-time (days-to-time 729644) 1000000)
+@result{} (63041241600000000 . 1000000)
 
-(time-since '(13818 19266))
-@result{} (6797 9607 984839 247000)
+(encode-time (time-since '(905595714000000 . 1000000))
+             1000000)
+@result{} (631963244775642171 . 1000000000)
 
-(time-less-p '(13818 19266) '(13818 19145))
+(time-less-p '(905595714000000 . 1000000)
+             '(905595593000000000 . 1000000000))
 @result{} nil
 
-(time-subtract '(13818 19266) '(13818 19145))
-@result{} (0 121)
+(time-equal-p '(905595593000000000 . 1000000000)
+              '(905595593000000    . 1000000   ))
+@result{} t
+
+(time-subtract '(905595714000000 . 1000000)
+               '(905595593000000000 . 1000000000))
+@result{} (121000000000 . 1000000000)
 
 (days-between "Sat Sep 12 12:21:54 1998 +0200"
               "Sat Sep 07 12:21:54 1998 +0200")
@@ -1571,13 +1580,13 @@ Here's a bunch of time/date/second/day examples:
 (date-leap-year-p 2000)
 @result{} t
 
-(time-to-day-in-year '(13818 19266))
+(time-to-day-in-year '(905595714000000 . 1000000))
 @result{} 255
 
 (time-to-number-of-days
  (time-since
   (date-to-time "Mon, 01 Jan 2001 02:22:26 GMT")))
-@result{} 4314.095589286675
+@result{} 6472.722661506652
 @end example
 
 And finally, we have @code{safe-date-to-time}, which does the same as
@@ -1592,22 +1601,24 @@ An RFC822 (or similar) date string.  For instance: @code{"Sat Sep 12
 12:21:54 1998 +0200"}.
 
 @item time
-An internal Emacs time.  For instance: @code{(13818 26466 0 0)}.
+A Lisp timestamp.
+For instance: @code{(905595714000000 . 1000000)}.
 
 @item seconds
-A floating point representation of the internal Emacs time.  For
-instance: @code{905595714.0}.
+An integer or floating point count of seconds.  For instance:
+@code{905595714.0}, @code{905595714}.
 
 @item days
 An integer number representing the number of days since 00000101.  For
 instance: @code{729644}.
 
 @item decoded time
-A list of decoded time.  For instance: @code{(54 21 12 12 9 1998 6 t
+A list of decoded time.  For instance: @code{(54 21 12 12 9 1998 6 nil
 7200)}.
 @end table
 
-All the examples above represent the same moment.
+All the examples above represent the same moment, except that
+@var{days} represents the day containing the moment.
 
 These are the functions available:
 
@@ -1618,8 +1629,9 @@ Take a date and return a time.
 @item float-time
 Take a time and return seconds.  (This is a built-in function.)
 
-@item seconds-to-time
-Take seconds and return a time.
+@item encode-time
+Take seconds (and other ways to represent time, notably decoded time
+lists), and return a time.
 
 @item time-to-days
 Take a time and return days.
@@ -1640,6 +1652,10 @@ return a ``zero'' time.
 @item time-less-p
 Take two times and say whether the first time is less (i.e., earlier)
 than the second time.  (This is a built-in function.)
+
+@item time-equal-p
+Check whether two time values are equal.  The time values need not be
+in the same format.  (This is a built-in function.)
 
 @item time-since
 Take a time and return a time saying how long it was since that time.
@@ -1845,10 +1861,22 @@ Interface functions:
 @table @code
 @item mailcap-parse-mailcaps
 @findex mailcap-parse-mailcaps
+@vindex mailcap-prefer-mailcap-viewers
 Parse the @file{~/.mailcap} file.
 
 @item mailcap-mime-info
 Takes a @acronym{MIME} type as its argument and returns the matching viewer.
+
+The @code{mailcap-prefer-mailcap-viewers} variable controls which
+viewer is chosen.  The default non-@code{nil} value means that
+settings from @file{~/.mailcap} is preferred over system-wide or
+Emacs-provided viewer settings.
+
+If @code{nil}, Emacs-provided viewer settings have precedence.  Next,
+the most specific viewer has precedence over less specific settings,
+no matter if they're system-provided or private, so @samp{image/gif}
+in @file{/etc/mailcap} will ``win'' over an @samp{image/*} setting in
+@file{~/.mailcap}.
 
 @end table
 

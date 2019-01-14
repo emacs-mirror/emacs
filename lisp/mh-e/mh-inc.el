@@ -1,6 +1,6 @@
 ;;; mh-inc.el --- MH-E "inc" and separate mail spool handling
 
-;; Copyright (C) 2003-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

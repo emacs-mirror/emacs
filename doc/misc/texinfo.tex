@@ -3,12 +3,9 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2018-02-24.16}
+\def\texinfoversion{2018-12-28.17}
 %
-% Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
-% 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-% 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
-% Free Software Foundation, Inc.
+% Copyright 1985, 1986, 1988, 1990-2018 Free Software Foundation, Inc.
 %
 % This texinfo.tex file is free software: you can redistribute it and/or
 % modify it under the terms of the GNU General Public License as
@@ -244,17 +241,7 @@
 %
 \def\finalout{\overfullrule=0pt }
 
-% Do @cropmarks to get crop marks.
-%
-\newif\ifcropmarks
-\let\cropmarks = \cropmarkstrue
-%
-% Dimensions to add cropmarks at corners.
-% Added by P. A. MacKay, 12 Nov. 1986
-%
 \newdimen\outerhsize \newdimen\outervsize % set by the paper size routines
-\newdimen\cornerlong  \cornerlong=1pc
-\newdimen\cornerthick \cornerthick=.3pt
 \newdimen\topandbottommargin \topandbottommargin=.75in
 
 % Output a mark which sets \thischapter, \thissection and \thiscolor.
@@ -328,12 +315,12 @@
 \newbox\footlinebox
 
 % \onepageout takes a vbox as an argument.
-% \shipout a vbox for a single page, adding an optional header, footer,
-% cropmarks, and footnote.  This also causes index entries for this page
-% to be written to the auxiliary files.
+% \shipout a vbox for a single page, adding an optional header, footer
+% and footnote.  This also causes index entries for this page to be written
+% to the auxiliary files.
 %
 \def\onepageout#1{%
-  \ifcropmarks \hoffset=0pt \else \hoffset=\normaloffset \fi
+  \hoffset=\normaloffset
   %
   \ifodd\pageno  \advance\hoffset by \bindingoffset
   \else \advance\hoffset by -\bindingoffset\fi
@@ -386,25 +373,6 @@
       % Do this early so pdf references go to the beginning of the page.
       \ifpdfmakepagedest \pdfdest name{\the\pageno} xyz\fi
       %
-      \ifcropmarks \vbox to \outervsize\bgroup
-        \hsize = \outerhsize
-        \vskip-\topandbottommargin
-        \vtop to0pt{%
-          \line{\ewtop\hfil\ewtop}%
-          \nointerlineskip
-          \line{%
-            \vbox{\moveleft\cornerthick\nstop}%
-            \hfill
-            \vbox{\moveright\cornerthick\nstop}%
-          }%
-          \vss}%
-        \vskip\topandbottommargin
-        \line\bgroup
-          \hfil % center the page within the outer (page) hsize.
-          \ifodd\pageno\hskip\bindingoffset\fi
-          \vbox\bgroup
-      \fi
-      %
       \unvbox\headlinebox
       \pagebody{#1}%
       \ifdim\ht\footlinebox > 0pt
@@ -415,22 +383,6 @@
         \unvbox\footlinebox
       \fi
       %
-      \ifcropmarks
-          \egroup % end of \vbox\bgroup
-        \hfil\egroup % end of (centering) \line\bgroup
-        \vskip\topandbottommargin plus1fill minus1fill
-        \boxmaxdepth = \cornerthick
-        \vbox to0pt{\vss
-          \line{%
-            \vbox{\moveleft\cornerthick\nsbot}%
-            \hfill
-            \vbox{\moveright\cornerthick\nsbot}%
-          }%
-          \nointerlineskip
-          \line{\ewbot\hfil\ewbot}%
-        }%
-      \egroup % \vbox from first cropmarks clause
-      \fi
     }% end of \shipout\vbox
   }% end of group with \indexdummies
   \advancepageno
@@ -450,17 +402,6 @@
 \ifvoid\footins\else\vskip\skip\footins\footnoterule \unvbox\footins\fi
 \ifr@ggedbottom \kern-\dimen@ \vfil \fi}
 }
-
-% Here are the rules for the cropmarks.  Note that they are
-% offset so that the space between them is truly \outerhsize or \outervsize
-% (P. A. MacKay, 12 November, 1986)
-%
-\def\ewtop{\vrule height\cornerthick depth0pt width\cornerlong}
-\def\nstop{\vbox
-  {\hrule height\cornerthick depth\cornerlong width\cornerthick}}
-\def\ewbot{\vrule height0pt depth\cornerthick width\cornerlong}
-\def\nsbot{\vbox
-  {\hrule height\cornerlong depth\cornerthick width\cornerthick}}
 
 
 % Argument parsing
@@ -1528,6 +1469,9 @@ output) for that.)}
       \startlink attr{/Border [0 0 0]}%
         user{/Subtype /Link /A << /S /URI /URI (#1) >>}%
     \endgroup}
+  % \pdfgettoks - Surround page numbers in #1 with @pdflink.  #1 may
+  % be a simple number, or a list of numbers in the case of an index
+  % entry.
   \def\pdfgettoks#1.{\setbox\boxA=\hbox{\toksA={#1.}\toksB={}\maketoks}}
   \def\addtokens#1#2{\edef\addtoks{\noexpand#1={\the#1#2}}\addtoks}
   \def\adn#1{\addtokens{\toksC}{#1}\global\countA=1\let\next=\maketoks}
@@ -8001,6 +7945,7 @@ end
   \gdef\boldbrax{\let(=\opnr\let)=\clnr\let[=\lbrb\let]=\rbrb}
   \gdef\magicamp{\let&=\amprm}
 }
+\let\ampchar\&
 
 \newcount\parencount
 
@@ -11715,7 +11660,7 @@ directory should work if nowhere else does.}
 @markupsetuprqdefault
 
 @c Local variables:
-@c eval: (add-hook 'write-file-hooks 'time-stamp)
+@c eval: (add-hook 'before-save-hook 'time-stamp)
 @c page-delimiter: "^\\\\message\\|emacs-page"
 @c time-stamp-start: "def\\\\texinfoversion{"
 @c time-stamp-format: "%:y-%02m-%02d.%02H"

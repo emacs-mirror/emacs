@@ -1,6 +1,6 @@
 ;;; files-x-tests.el --- tests for files-x.el.
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -101,15 +101,19 @@
     (setq files-x-test--criteria
           (append files-x-test--application files-x-test--protocol
                   files-x-test--user files-x-test--machine))
+
     ;; An empty variable list is accepted (but makes no sense).
     (connection-local-set-profiles files-x-test--criteria)
     (should-not (connection-local-get-profiles files-x-test--criteria))
+
+    ;; First test, all declared properties.
     (connection-local-set-profiles
      files-x-test--criteria 'remote-bash 'remote-ksh)
     (should
      (equal
       (connection-local-get-profiles files-x-test--criteria)
       '(remote-bash remote-ksh)))
+
     ;; Changing the order of properties doesn't matter.
     (setq files-x-test--criteria
           (append files-x-test--protocol files-x-test--application
@@ -118,12 +122,14 @@
      (equal
       (connection-local-get-profiles files-x-test--criteria)
       '(remote-bash remote-ksh)))
-     ;; A further call adds profiles.
+
+    ;; A further call adds profiles.
     (connection-local-set-profiles files-x-test--criteria 'remote-nullfile)
     (should
      (equal
       (connection-local-get-profiles files-x-test--criteria)
       '(remote-bash remote-ksh remote-nullfile)))
+
     ;; Adding existing profiles doesn't matter.
     (connection-local-set-profiles
      files-x-test--criteria 'remote-bash 'remote-nullfile)
@@ -132,31 +138,38 @@
       (connection-local-get-profiles files-x-test--criteria)
       '(remote-bash remote-ksh remote-nullfile)))
 
-    ;; Use a criteria without application.
-    (setq files-x-test--criteria
-          (append files-x-test--protocol
-                  files-x-test--user files-x-test--machine))
-    (connection-local-set-profiles files-x-test--criteria 'remote-ksh)
-    (should
-     (equal
-      (connection-local-get-profiles files-x-test--criteria)
-      '(remote-ksh)))
-    ;; An application not used in any registered criteria matches also this.
-    (setq files-x-test--criteria
-          (append files-x-test--another-application files-x-test--protocol
-                  files-x-test--user files-x-test--machine))
-    (should
-     (equal
-      (connection-local-get-profiles files-x-test--criteria)
-      '(remote-ksh)))
+    ;; Use different properties.
+    (dolist (criteria
+             `(;; All properties.
+               ,(append files-x-test--application files-x-test--protocol
+                        files-x-test--user files-x-test--machine)
+               ;; Without :application.
+               ,(append files-x-test--protocol
+                        files-x-test--user files-x-test--machine)
+               ;; Without :protocol.
+               ,(append files-x-test--application
+                        files-x-test--user files-x-test--machine)
+               ;; Without :user.
+               ,(append files-x-test--application files-x-test--protocol
+                        files-x-test--machine)
+               ;; Without :machine.
+               ,(append files-x-test--application files-x-test--protocol
+                        files-x-test--user)
+               ;; No property at all.
+               nil))
+      (should
+       (equal
+        (connection-local-get-profiles criteria)
+        '(remote-bash remote-ksh remote-nullfile))))
 
     ;; Using a nil criteria also works.  Duplicate profiles are trashed.
     (connection-local-set-profiles
      nil 'remote-bash 'remote-ksh 'remote-ksh 'remote-bash)
+    ;; This matches also the existing profiles from other criteria.
     (should
      (equal
       (connection-local-get-profiles nil)
-      '(remote-bash remote-ksh)))
+      '(remote-bash remote-ksh remote-nullfile)))
 
     ;; A criteria other than plist is wrong.
     (should-error (connection-local-set-profiles 'dummy))))
@@ -235,7 +248,9 @@
         ;; declare same variables as in `remote-bash'.
         (should
          (equal connection-local-variables-alist
-                (nreverse (copy-tree files-x-test--variables1))))
+                (append
+                 (nreverse (copy-tree files-x-test--variables3))
+                 (nreverse (copy-tree files-x-test--variables1)))))
         ;; The variables exist also as local variables.
         (should (local-variable-p 'remote-shell-file-name))
         ;; The proper variable value is set.

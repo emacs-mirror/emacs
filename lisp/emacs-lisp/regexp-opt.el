@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -117,12 +117,12 @@ than that of a simplified version:
  (defun simplified-regexp-opt (strings &optional paren)
    (let ((parens
           (cond ((stringp paren)       (cons paren \"\\\\)\"))
-                ((eq paren 'words)    '(\"\\\\\\=<\\\\(\" . \"\\\\)\\\\>\"))
-                ((eq paren 'symbols) '(\"\\\\_<\\\\(\" . \"\\\\)\\\\_>\"))
-                ((null paren)          '(\"\\\\(?:\" . \"\\\\)\"))
-                (t                       '(\"\\\\(\" . \"\\\\)\")))))
+                ((eq paren \\='words)    \\='(\"\\\\\\=<\\\\(\" . \"\\\\)\\\\>\"))
+                ((eq paren \\='symbols) \\='(\"\\\\_<\\\\(\" . \"\\\\)\\\\_>\"))
+                ((null paren)          \\='(\"\\\\(?:\" . \"\\\\)\"))
+                (t                       \\='(\"\\\\(\" . \"\\\\)\")))))
      (concat (car paren)
-             (mapconcat 'regexp-quote strings \"\\\\|\")
+             (mapconcat \\='regexp-quote strings \"\\\\|\")
              (cdr paren))))"
   (save-match-data
     ;; Recurse on the sorted list.

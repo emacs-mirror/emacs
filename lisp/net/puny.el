@@ -1,6 +1,6 @@
 ;;; puny.el --- translate non-ASCII domain names to ASCII
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, net
@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'seq)
 
 (defun puny-encode-domain (domain)

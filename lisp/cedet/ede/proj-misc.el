@@ -1,6 +1,6 @@
 ;;; ede-proj-misc.el --- EDE Generic Project Emacs Lisp support
 
-;; Copyright (C) 1998-2001, 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2001, 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -26,7 +26,6 @@
 ;; This misc target lets the user link in custom makefiles to an EDE
 ;; project.
 
-(eval-when-compile (require 'cl))
 (require 'ede/pmake)
 (require 'ede/proj-comp)
 
@@ -49,14 +48,12 @@ A user-written makefile is used to build this target.
 All listed sources are included in the distribution.")
 
 (defvar ede-misc-source
-  (ede-sourcecode "ede-misc-source"
-		  :name "Miscellaneous"
+  (ede-sourcecode :name "Miscellaneous"
 		  :sourcepattern ".*")
   "Miscellaneous field definition.")
 
 (defvar ede-misc-compile
-  (ede-compiler "ede-misc-compile"
-		:name "Sub Makefile"
+  (ede-compiler :name "Sub Makefile"
 		:commands
 		'(
 		  )

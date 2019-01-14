@@ -1,6 +1,6 @@
 ;;; ipa-praat.el --- Inputting IPA characters with the conventions of Praat
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Oliver Scholz <epameinondas@gmx.de>
 ;; Keywords: multilingual, input method, IPA

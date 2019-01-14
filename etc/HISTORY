@@ -12,10 +12,11 @@ development is sketchy, the following text summarizes what is known.
 EMACS started out as a set of macros atop the TECO text editor, and
 was first operational in late 1976.  It was inspired by earlier work
 such as the E editor of Stanford, and was based on older TECO macro
-sets.  EMACS in turn inspired several similar editors.  See:
-Stallman RM. EMACS: The Extensible, Customizable Self-Documenting
-Display Editor.  AI Memo 519a, MIT, 1981-03-26
+sets.  See: Stallman RM. EMACS: The Extensible, Customizable
+Self-Documenting Display Editor.  AI Memo 519a, MIT, 1981-03-26
 <http://dspace.mit.edu/bitstream/handle/1721.1/5736/AIM-519A.pdf>.
+EMACS in turn inspired several similar editors.  For a summary of
+this history, see <https://github.com/larsbrinkhoff/emacs-history>.
 
 In 1984, work began on GNU Emacs, a fresh implementation designed to
 run on GNU and GNU-like systems, with a full-featured Lisp at its
@@ -212,6 +213,8 @@ GNU Emacs 25.1 (2016-09-16) emacs-25.1
 GNU Emacs 25.2 (2017-04-20) emacs-25.2
 
 GNU Emacs 25.3 (2017-09-11) emacs-25.3
+
+GNU Emacs 26.1 (2018-05-28) emacs-26.1
 
 
 ----------------------------------------------------------------------

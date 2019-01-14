@@ -1,6 +1,6 @@
 ;;; nnmbox.el --- mail mbox access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -33,7 +33,6 @@
 (require 'nnmail)
 (require 'nnoo)
 (require 'gnus-range)
-(eval-when-compile (require 'cl))
 
 (nnoo-declare nnmbox)
 

@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990, 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: emacs-devel@gnu.org
@@ -86,6 +86,8 @@
 ;;          ] =~ s/;9$//;
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (defgroup perl nil
   "Major mode for editing Perl code."
@@ -321,8 +323,8 @@
               (cons (car (string-to-syntax "< c"))
                     ;; Remember the names of heredocs found on this line.
                     (cons (cons (pcase (aref name 0)
-                                  (`?\\ (substring name 1))
-                                  ((or `?\" `?\' `?\`) (substring name 1 -1))
+                                  (?\\ (substring name 1))
+                                  ((or ?\" ?\' ?\`) (substring name 1 -1))
                                   (_ name))
                                 indented)
                           (cdr st)))))))
@@ -745,8 +747,6 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
       0					;Existing comment at bol stays there.
     comment-column))
 
-(define-obsolete-function-alias 'electric-perl-terminator
-  'perl-electric-terminator "22.1")
 (defun perl-electric-noindent-p (_char)
   ;; To reproduce the old behavior, ;, {, }, and : are made electric, but
   ;; we only want them to be electric at EOL.

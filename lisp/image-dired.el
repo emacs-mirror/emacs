@@ -1,6 +1,6 @@
 ;;; image-dired.el --- use dired to browse and manipulate your images -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2019 Free Software Foundation, Inc.
 ;;
 ;; Version: 0.4.11
 ;; Keywords: multimedia
@@ -587,8 +587,9 @@ Create the thumbnails directory if it does not exist."
   (let* ((thumb-file (image-dired-thumb-name file))
 	 (thumb-attr (file-attributes thumb-file)))
     (when (or (not thumb-attr)
-	      (time-less-p (nth 5 thumb-attr)
-			   (nth 5 (file-attributes file))))
+	      (time-less-p (file-attribute-modification-time thumb-attr)
+			   (file-attribute-modification-time
+			    (file-attributes file))))
       (image-dired-create-thumb file thumb-file))
     (create-image thumb-file)
 ;;     (list 'image :type 'jpeg
@@ -752,7 +753,8 @@ Increase at own risk.")
   (let* ((width (int-to-string (image-dired-thumb-size 'width)))
          (height (int-to-string (image-dired-thumb-size 'height)))
 	 (modif-time (format-time-string
-		      "%s" (nth 5 (file-attributes original-file))))
+		      "%s" (file-attribute-modification-time
+			    (file-attributes original-file))))
          (thumbnail-nq8-file (replace-regexp-in-string ".png\\'" "-nq8.png"
                                                        thumbnail-file))
          (spec
@@ -2652,8 +2654,8 @@ tags to their respective image file.  Internal function used by
 ;;            (mapcar
 ;;             (lambda (f)
 ;;               (let ((fattribs (file-attributes f)))
-;;                 ;; Get last access time and file size
-;;                 `(,(nth 4 fattribs) ,(nth 7 fattribs) ,f)))
+;;                 `(,(file-attribute-access-time fattribs)
+;;                   ,(file-attribute-size fattribs) ,f)))
 ;;             (directory-files (image-dired-dir) t ".+\\.thumb\\..+$"))
 ;;            ;; Sort function. Compare time between two files.
 ;;            (lambda (l1 l2)

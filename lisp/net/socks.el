@@ -1,6 +1,6 @@
-;;; socks.el --- A Socks v5 Client for Emacs
+;;; socks.el --- A Socks v5 Client for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2000, 2002, 2007-2018 Free Software Foundation,
+;; Copyright (C) 1996-2000, 2002, 2007-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>
@@ -32,71 +32,59 @@
 ;; - Implement composition of servers.  Recursively evaluate the
 ;;   redirection rules and do SOCKS-over-HTTP and SOCKS-in-SOCKS
 
-(eval-when-compile
-  (require 'wid-edit))
-(require 'custom)
+;;; Code:
 
-(eval-and-compile
-  (if (featurep 'emacs)
-      (defalias 'socks-split-string 'split-string) ; since at least 21.1
-    (if (fboundp 'split-string)
-	(defalias 'socks-split-string 'split-string)
-      (defun socks-split-string (string &optional pattern)
-	"Return a list of substrings of STRING which are separated by PATTERN.
-If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
-	(or pattern
-	    (setq pattern "[ \f\t\n\r\v]+"))
-	(let (parts (start 0))
-	  (while (string-match pattern string start)
-	    (setq parts (cons (substring string start
-					 (match-beginning 0)) parts)
-		  start (match-end 0)))
-	  (nreverse (cons (substring string start) parts)))))))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Custom widgets
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; (define-widget 'dynamic-choice 'menu-choice
-;;;   "A pretty simple dynamic dropdown list"
-;;;   :format "%[%t%]: %v"
-;;;   :tag "Network"
-;;;   :case-fold t
-;;;   :void '(item :format "invalid (%t)\n")
-;;;   :value-create 's5-widget-value-create
-;;;   :value-delete 'widget-children-value-delete
-;;;   :value-get 'widget-choice-value-get
-;;;   :value-inline 'widget-choice-value-inline
-;;;   :mouse-down-action 'widget-choice-mouse-down-action
-;;;   :action 'widget-choice-action
-;;;   :error "Make a choice"
-;;;   :validate 'widget-choice-validate
-;;;   :match 's5-dynamic-choice-match
-;;;   :match-inline 's5-dynamic-choice-match-inline)
-;;;
-;;; (defun s5-dynamic-choice-match (widget value)
-;;;   (let ((choices (funcall (widget-get widget :choice-function)))
-;;; 	current found)
-;;;     (while (and choices (not found))
-;;;       (setq current (car choices)
-;;; 	    choices (cdr choices)
-;;; 	    found (widget-apply current :match value)))
-;;;     found))
-;;;
-;;; (defun s5-dynamic-choice-match-inline (widget value)
-;;;   (let ((choices (funcall (widget-get widget :choice-function)))
-;;; 	current found)
-;;;     (while (and choices (not found))
-;;;       (setq current (car choices)
-;;; 	    choices (cdr choices)
-;;; 	    found (widget-match-inline current value)))
-;;;     found))
-;;;
-;;; (defun s5-widget-value-create (widget)
-;;;   (let ((choices (funcall (widget-get widget :choice-function)))
-;;; 	(value (widget-get widget :value)))
-;;;     (if (not value)
-;;; 	(widget-put widget :value (widget-value (car choices))))
-;;;     (widget-put widget :args choices)
-;;;     (widget-choice-value-create widget)))
+(eval-when-compile (require 'cl-lib))
+
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;; Custom widgets
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; (eval-when-compile
+;;   (require 'wid-edit))
+
+;; (define-widget 'dynamic-choice 'menu-choice
+;;   "A pretty simple dynamic dropdown list"
+;;   :format "%[%t%]: %v"
+;;   :tag "Network"
+;;   :case-fold t
+;;   :void '(item :format "invalid (%t)\n")
+;;   :value-create 's5-widget-value-create
+;;   :value-delete 'widget-children-value-delete
+;;   :value-get 'widget-choice-value-get
+;;   :value-inline 'widget-choice-value-inline
+;;   :mouse-down-action 'widget-choice-mouse-down-action
+;;   :action 'widget-choice-action
+;;   :error "Make a choice"
+;;   :validate 'widget-choice-validate
+;;   :match 's5-dynamic-choice-match
+;;   :match-inline 's5-dynamic-choice-match-inline)
+;;
+;; (defun s5-dynamic-choice-match (widget value)
+;;   (let ((choices (funcall (widget-get widget :choice-function)))
+;; 	current found)
+;;     (while (and choices (not found))
+;;       (setq current (car choices)
+;; 	    choices (cdr choices)
+;; 	    found (widget-apply current :match value)))
+;;     found))
+;;
+;; (defun s5-dynamic-choice-match-inline (widget value)
+;;   (let ((choices (funcall (widget-get widget :choice-function)))
+;; 	current found)
+;;     (while (and choices (not found))
+;;       (setq current (car choices)
+;; 	    choices (cdr choices)
+;; 	    found (widget-match-inline current value)))
+;;     found))
+;;
+;; (defun s5-widget-value-create (widget)
+;;   (let ((choices (funcall (widget-get widget :choice-function)))
+;; 	(value (widget-get widget :value)))
+;;     (if (not value)
+;; 	(widget-put widget :value (widget-value (car choices))))
+;;     (widget-put widget :args choices)
+;;     (widget-choice-value-create widget)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Customization support
@@ -107,70 +95,66 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   :prefix "socks-"
   :group 'processes)
 
-;;; (defcustom socks-server-aliases nil
-;;;   "A list of server aliases for use in access control and filtering rules."
-;;;   :group 'socks
-;;;   :type '(repeat (list :format "%v"
-;;; 		       :value ("" "" 1080 5)
-;;; 		       (string :tag "Alias")
-;;; 		       (string :tag "Hostname/IP Address")
-;;; 		       (integer :tag "Port #")
-;;; 		       (choice :tag "SOCKS Version"
-;;; 			       (integer :tag "SOCKS v4" :value 4)
-;;; 			       (integer :tag "SOCKS v5" :value 5)))))
-;;;
-;;; (defcustom socks-network-aliases
-;;;   '(("Anywhere" (netmask "0.0.0.0" "0.0.0.0")))
-;;;   "A list of network aliases for use in subsequent rules."
-;;;   :group 'socks
-;;;   :type '(repeat (list :format "%v"
-;;; 		       :value (netmask "" "255.255.255.0")
-;;; 		       (string :tag "Alias")
-;;; 		       (radio-button-choice
-;;; 			:format "%v"
-;;; 			(list :tag  "IP address range"
-;;; 			      (const :format "" :value range)
-;;; 			      (string :tag "From")
-;;; 			      (string :tag "To"))
-;;; 			(list :tag  "IP address/netmask"
-;;; 			      (const :format "" :value netmask)
-;;; 			      (string :tag "IP Address")
-;;; 			      (string :tag "Netmask"))
-;;; 			(list :tag  "Domain Name"
-;;; 			      (const :format "" :value domain)
-;;; 			      (string :tag "Domain name"))
-;;; 			(list :tag  "Unique hostname/IP address"
-;;; 			      (const :format "" :value exact)
-;;; 			      (string :tag "Hostname/IP Address"))))))
-;;;
-;;; (defun s5-servers-filter ()
-;;;   (if socks-server-aliases
-;;;       (mapcar (lambda (x) (list 'const :tag (car x) :value (car x))) s5-server-aliases)
-;;;     '((const :tag "No aliases defined" :value nil))))
-;;;
-;;; (defun s5-network-aliases-filter ()
-;;;   (mapcar (lambda (x) (list 'const :tag (car x) :value (car x)))
-;;; 	  socks-network-aliases))
-;;;
-;;; (defcustom socks-redirection-rules
-;;;    nil
-;;;    "A list of redirection rules."
-;;;    :group 'socks
-;;;    :type '(repeat (list :format "%v"
-;;; 			:value ("Anywhere" nil)
-;;; 			(dynamic-choice :choice-function s5-network-aliases-filter
-;;; 					:tag "Destination network")
-;;; 			(radio-button-choice
-;;; 			 :tag "Connection type"
-;;; 			 (const :tag "Direct connection" :value nil)
-;;; 			 (dynamic-choice :format "%t: %[%v%]"
-;;; 					 :choice-function s5-servers-filter
-;;; 					 :tag "Proxy chain via")))))
+;; (defcustom socks-server-aliases nil
+;;   "A list of server aliases for use in access control and filtering rules."
+;;   :type '(repeat (list :format "%v"
+;; 		       :value ("" "" 1080 5)
+;; 		       (string :tag "Alias")
+;; 		       (string :tag "Hostname/IP Address")
+;; 		       (integer :tag "Port #")
+;; 		       (choice :tag "SOCKS Version"
+;; 			       (integer :tag "SOCKS v4" :value 4)
+;; 			       (integer :tag "SOCKS v5" :value 5)))))
+;;
+;; (defcustom socks-network-aliases
+;;   '(("Anywhere" (netmask "0.0.0.0" "0.0.0.0")))
+;;   "A list of network aliases for use in subsequent rules."
+;;   :type '(repeat (list :format "%v"
+;; 		       :value (netmask "" "255.255.255.0")
+;; 		       (string :tag "Alias")
+;; 		       (radio-button-choice
+;; 			:format "%v"
+;; 			(list :tag  "IP address range"
+;; 			      (const :format "" :value range)
+;; 			      (string :tag "From")
+;; 			      (string :tag "To"))
+;; 			(list :tag  "IP address/netmask"
+;; 			      (const :format "" :value netmask)
+;; 			      (string :tag "IP Address")
+;; 			      (string :tag "Netmask"))
+;; 			(list :tag  "Domain Name"
+;; 			      (const :format "" :value domain)
+;; 			      (string :tag "Domain name"))
+;; 			(list :tag  "Unique hostname/IP address"
+;; 			      (const :format "" :value exact)
+;; 			      (string :tag "Hostname/IP Address"))))))
+;;
+;; (defun s5-servers-filter ()
+;;   (if socks-server-aliases
+;;       (mapcar (lambda (x) (list 'const :tag (car x) :value (car x))) s5-server-aliases)
+;;     '((const :tag "No aliases defined" :value nil))))
+;;
+;; (defun s5-network-aliases-filter ()
+;;   (mapcar (lambda (x) (list 'const :tag (car x) :value (car x)))
+;; 	  socks-network-aliases))
+;;
+;; (defcustom socks-redirection-rules
+;;    nil
+;;    "A list of redirection rules."
+;;    :type '(repeat (list :format "%v"
+;; 			:value ("Anywhere" nil)
+;; 			(dynamic-choice :choice-function s5-network-aliases-filter
+;; 					:tag "Destination network")
+;; 			(radio-button-choice
+;; 			 :tag "Connection type"
+;; 			 (const :tag "Direct connection" :value nil)
+;; 			 (dynamic-choice :format "%t: %[%v%]"
+;; 					 :choice-function s5-servers-filter
+;; 					 :tag "Proxy chain via")))))
 
 (defcustom socks-server
   (list "Default server" "socks" 1080 5)
   ""
-  :group 'socks
   :type '(list
 	  (string :format "" :value "Default server")
 	  (string :tag "Server")
@@ -225,7 +209,6 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 ;; Base variables
 (defvar socks-timeout 5)
-(defvar socks-connections (make-hash-table :size 13))
 
 ;; Miscellaneous stuff for authentication
 (defvar socks-authentication-methods nil)
@@ -266,40 +249,40 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 (defconst socks-state-waiting 3)
 (defconst socks-state-connected 4)
 
-(defmacro socks-wait-for-state-change (proc htable cur-state)
-  `(while (and (= (gethash 'state ,htable) ,cur-state)
-	       (memq (process-status ,proc) '(run open)))
-     (accept-process-output ,proc socks-timeout)))
+(defun socks-wait-for-state-change (proc cur-state)
+  (while (and (= (process-get proc 'socks-state) cur-state)
+	      (memq (process-status proc) '(run open)))
+    (accept-process-output proc socks-timeout)))
 
 (defun socks-filter (proc string)
-  (let ((info (gethash proc socks-connections))
-	state version desired-len)
-    (or info (error "socks-filter called on non-SOCKS connection %S" proc))
-    (setq state (gethash 'state info))
+  (let (state version desired-len)
+    (or (process-get proc 'socks)
+        (error "socks-filter called on non-SOCKS connection %S" proc))
+    (setq state (process-get proc 'socks-state))
     (cond
      ((= state socks-state-waiting-for-auth)
-      (puthash 'scratch (concat string (gethash 'scratch info)) info)
-      (setq string (gethash 'scratch info))
+      (cl-callf (lambda (s) (setq string (concat string s)))
+          (process-get proc 'socks-scratch))
       (if (< (length string) 2)
 	  nil				; We need to spin some more
-	(puthash 'authtype (aref string 1) info)
-	(puthash 'scratch (substring string 2 nil) info)
-	(puthash 'state socks-state-submethod-negotiation info)))
+	(process-put proc 'socks-authtype (aref string 1))
+	(process-put proc 'socks-scratch (substring string 2 nil))
+	(process-put proc 'socks-state socks-state-submethod-negotiation)))
      ((= state socks-state-submethod-negotiation)
       )
      ((= state socks-state-authenticated)
       )
      ((= state socks-state-waiting)
-      (puthash 'scratch (concat string (gethash 'scratch info)) info)
-      (setq string (gethash 'scratch info))
-      (setq version (gethash 'server-protocol info))
+      (cl-callf (lambda (s) (setq string (concat string s)))
+          (process-get proc 'socks-scratch))
+      (setq version (process-get proc 'socks-server-protocol))
       (cond
        ((equal version 'http)
 	(if (not (string-match "\r\n\r\n" string))
 	    nil			; Need to spin some more
-	  (puthash 'state socks-state-connected info)
-	  (puthash 'reply 0 info)
-	  (puthash 'response string info)))
+	  (process-put proc 'socks-state socks-state-connected)
+	  (process-put proc 'socks-reply 0)
+	  (process-put proc 'socks-response string)))
        ((equal version 4)
 	(if (< (length string) 2)
 	    nil			; Can't know how much to read yet
@@ -313,71 +296,58 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	    (let ((response (aref string 1)))
 	      (if (= response 90)
 		  (setq response 0))
-	      (puthash 'state socks-state-connected info)
-	      (puthash 'reply response info)
-	      (puthash 'response string info)))))
+	      (process-put proc 'socks-state socks-state-connected)
+	      (process-put proc 'socks-reply response)
+	      (process-put proc 'socks-response string)))))
        ((equal version 5)
 	(if (< (length string) 4)
 	    nil
 	  (setq desired-len
 		(+ 6			; Standard socks header
-		   (cond
-		    ((= (aref string 3) socks-address-type-v4) 4)
-		    ((= (aref string 3) socks-address-type-v6) 16)
-		    ((= (aref string 3) socks-address-type-name)
-		     (if (< (length string) 5)
-			 255
-		       (+ 1 (aref string 4)))))))
+		   (pcase (aref string 3)
+		     ((pred (= socks-address-type-v4)) 4)
+		     ((pred (= socks-address-type-v6)) 16)
+		     ((pred (= socks-address-type-name))
+		      (if (< (length string) 5)
+			  255
+		        (+ 1 (aref string 4)))))))
 	  (if (< (length string) desired-len)
 	      nil			; Need to spin some more
-	    (puthash 'state socks-state-connected info)
-	    (puthash 'reply (aref string 1) info)
-	    (puthash 'response string info))))))
-     ((= state socks-state-connected)
-      )
-     )
-    )
-  )
-
-(declare-function socks-original-open-network-stream "socks") ; fset
+	    (process-put proc 'socks-state socks-state-connected)
+	    (process-put proc 'socks-reply (aref string 1))
+	    (process-put proc 'socks-response string))))))
+     ((= state socks-state-connected)))))
 
 ;; FIXME this is a terrible idea.
 ;; It is not even compatible with the argument spec of open-network-stream
-;; in 24.1.  If this is really necessary, open-network-stream
-;; could get a wrapper hook, or defer to open-network-stream-function.
+;; in 24.1.
 
 (defvar socks-override-functions nil
-  "Whether to overwrite the `open-network-stream' function with the SOCKSified
-version.")
+  "If non-nil, overwrite `open-network-stream' function with SOCKSified version.")
 
-(require 'network-stream)
-
-(if (fboundp 'socks-original-open-network-stream)
-    nil				; Do nothing, we've been here already
-  (defalias 'socks-original-open-network-stream
-    (symbol-function 'open-network-stream))
-  (if socks-override-functions
-      (defalias 'open-network-stream 'socks-open-network-stream)))
+(when socks-override-functions
+  (advice-add 'open-network-stream :around #'socks--open-network-stream))
 
 (defun socks-open-connection (server-info)
   (interactive)
   (save-excursion
-    (let ((proc (socks-original-open-network-stream "socks"
-						    nil
-						    (nth 1 server-info)
-						    (nth 2 server-info)))
-	  (info (make-hash-table :size 13))
+    (let ((proc
+           (let ((socks-override-functions nil))
+             (open-network-stream "socks"
+				  nil
+				  (nth 1 server-info)
+				  (nth 2 server-info))))
 	  (authtype nil)
 	  version)
 
       ;; Initialize process and info about the process
-      (set-process-filter proc 'socks-filter)
+      (set-process-filter proc #'socks-filter)
       (set-process-query-on-exit-flag proc nil)
-      (puthash proc info socks-connections)
-      (puthash 'state socks-state-waiting-for-auth info)
-      (puthash 'authtype socks-authentication-failure info)
-      (puthash 'server-protocol (nth 3 server-info) info)
-      (puthash 'server-name (nth 1 server-info) info)
+      (process-put proc 'socks t)
+      (process-put proc 'socks-state socks-state-waiting-for-auth)
+      (process-put proc 'socks-authtype socks-authentication-failure)
+      (process-put proc 'socks-server-protocol (nth 3 server-info))
+      (process-put proc 'socks-server-name (nth 1 server-info))
       (setq version (nth 3 server-info))
       (cond
        ((equal version 'http)
@@ -393,15 +363,15 @@ version.")
 					  (socks-build-auth-list)))
 
 	;; Basically just do a select() until we change states.
-	(socks-wait-for-state-change proc info socks-state-waiting-for-auth)
-	(setq authtype (gethash 'authtype info))
+	(socks-wait-for-state-change proc socks-state-waiting-for-auth)
+	(setq authtype (process-get proc 'socks-authtype))
 	(cond
 	 ((= authtype socks-authentication-null)
 	  (and socks-debug (message "No authentication necessary")))
 	 ((= authtype socks-authentication-failure)
 	  (error "No acceptable authentication methods found"))
 	 (t
-	  (let* ((auth-type (gethash 'authtype info))
+	  (let* ((auth-type (process-get proc 'socks-authtype))
 		 (auth-handler (assoc auth-type socks-authentication-methods))
 		 (auth-func (and auth-handler (cdr (cdr auth-handler))))
 		 (auth-desc (and auth-handler (car (cdr auth-handler)))))
@@ -415,8 +385,8 @@ version.")
 	    )
 	  )
 	 )
-	(puthash 'state socks-state-authenticated info)
-	(set-process-filter proc 'socks-filter)))
+	(process-put proc 'socks-state socks-state-authenticated)
+	(set-process-filter proc #'socks-filter)))
       proc)))
 
 (defun socks-send-command (proc command atype address port)
@@ -428,12 +398,11 @@ version.")
 		(format "%c%s" (length address) address))
 	       (t
 		(error "Unknown address type: %d" atype))))
-	(info (gethash proc socks-connections))
 	request version)
-    (or info (error "socks-send-command called on non-SOCKS connection %S"
-		    proc))
-    (puthash 'state socks-state-waiting info)
-    (setq version (gethash 'server-protocol info))
+    (or (process-get proc 'socks)
+        (error "socks-send-command called on non-SOCKS connection %S" proc))
+    (process-put proc 'socks-state socks-state-waiting)
+    (setq version (process-get proc 'socks-server-protocol))
     (cond
      ((equal version 'http)
       (setq request (format (eval-when-compile
@@ -447,38 +416,36 @@ version.")
 			      (error "Unsupported address type for HTTP: %d" atype)))
 			    port)))
      ((equal version 4)
-      (setq request (string-make-unibyte
-		     (format
-		      "%c%c%c%c%s%s%c"
-		      version		; version
-		      command		; command
-		      (lsh port -8)	; port, high byte
-		      (- port (lsh (lsh port -8) 8)) ; port, low byte
-		      addr		; address
-		      (user-full-name)	; username
-		      0			; terminate username
-		      ))))
+      (setq request (concat
+		     (unibyte-string
+		      version             ; version
+		      command             ; command
+		      (ash port -8)       ; port, high byte
+		      (logand port #xff)) ; port, low byte
+		     addr                 ; address
+		     (user-full-name)     ; username
+		     "\0")))              ; terminate username
      ((equal version 5)
-      (setq request (string-make-unibyte
-		     (format
-		      "%c%c%c%c%s%c%c"
+      (setq request (concat
+		     (unibyte-string
 		      version		; version
 		      command		; command
 		      0			; reserved
-		      atype		; address type
-		      addr		; address
-		      (lsh port -8)	; port, high byte
-		      (- port (lsh (lsh port -8) 8)) ; port, low byte
-		      ))))
+		      atype)		; address type
+		     addr		; address
+		     (unibyte-string
+                      (ash port -8)          ; port, high byte
+		      (logand port #xff))))) ; port, low byte
      (t
       (error "Unknown protocol version: %d" version)))
     (process-send-string proc request)
-    (socks-wait-for-state-change proc info socks-state-waiting)
+    (socks-wait-for-state-change proc socks-state-waiting)
     (process-status proc)
-    (if (= (or (gethash 'reply info) 1) socks-response-success)
+    (if (= (or (process-get proc 'socks-reply) 1) socks-response-success)
 	nil				; Sweet sweet success!
       (delete-process proc)
-      (error "SOCKS: %s" (nth (or (gethash 'reply info) 1) socks-errors)))
+      (error "SOCKS: %s"
+             (nth (or (process-get proc 'socks-reply) 1) socks-errors)))
     proc))
 
 
@@ -486,7 +453,7 @@ version.")
 (defvar socks-noproxy nil
   "List of regexps matching hosts that we should not socksify connections to")
 
-(defun socks-find-route (host service)
+(defun socks-find-route (host _service)
   (let ((route socks-server)
 	(noproxy socks-noproxy))
     (while noproxy
@@ -540,37 +507,46 @@ version.")
 	      (if udp socks-udp-services socks-tcp-services)))
 
 (defun socks-open-network-stream (name buffer host service)
-  (let* ((route (socks-find-route host service))
-	 proc info version atype)
+  (let ((socks-override-functions t))
+    (socks--open-network-stream
+     (lambda (&rest args)
+       (let ((socks-override-functions nil))
+         (apply #'open-network-stream args)))
+     name buffer host service)))
+
+(defun socks--open-network-stream (orig-fun name buffer host service &rest params)
+  (let ((route (and socks-override-functions
+                    (socks-find-route host service))))
     (if (not route)
-	(socks-original-open-network-stream name buffer host service)
-      (setq proc (socks-open-connection route)
-	    info (gethash proc socks-connections)
-	    version (gethash 'server-protocol info))
-      (cond
-       ((equal version 4)
-	(setq host (socks-nslookup-host host))
-	(if (not (listp host))
-	    (error "Could not get IP address for: %s" host))
-	(setq host (apply 'format "%c%c%c%c" host))
-	(setq atype socks-address-type-v4))
-       (t
-	(setq atype socks-address-type-name)))
-      (socks-send-command proc
-			  socks-connect-command
-			  atype
-			  host
-			  (if (stringp service)
-			      (or
-			       (socks-find-services-entry service)
-			       (error "Unknown service: %s" service))
-			    service))
-      (puthash 'buffer buffer info)
-      (puthash 'host host info)
-      (puthash 'service host info)
-      (set-process-filter proc nil)
-      (set-process-buffer proc (if buffer (get-buffer-create buffer)))
-      proc)))
+	(apply orig-fun name buffer host service params)
+      ;; FIXME: Obey `params'!
+      (let* ((proc (socks-open-connection route))
+	     (version (process-get proc 'socks-server-protocol))
+             (atype
+              (cond
+               ((equal version 4)
+	        (setq host (socks-nslookup-host host))
+	        (if (not (listp host))
+	            (error "Could not get IP address for: %s" host))
+	        (setq host (apply #'format "%c%c%c%c" host))
+                socks-address-type-v4)
+               (t
+                socks-address-type-name))))
+        (socks-send-command proc
+			    socks-connect-command
+			    atype
+			    host
+			    (if (stringp service)
+			        (or
+			         (socks-find-services-entry service)
+			         (error "Unknown service: %s" service))
+			      service))
+        (process-put proc 'socks-buffer buffer)
+        (process-put proc 'socks-host host)
+        (process-put proc 'socks-service host)
+        (set-process-filter proc nil)
+        (set-process-buffer proc (if buffer (get-buffer-create buffer)))
+        proc))))
 
 ;; Authentication modules go here
 
@@ -581,24 +557,25 @@ version.")
 (defconst socks-username/password-auth-version 1)
 
 (defun socks-username/password-auth-filter (proc str)
-  (let ((info (gethash proc socks-connections)))
-    (or info (error "socks-filter called on non-SOCKS connection %S" proc))
-    (puthash 'scratch (concat (gethash 'scratch info) str) info)
-    (if (< (length (gethash 'scratch info)) 2)
-	nil
-      (puthash 'password-auth-status (aref (gethash 'scratch info) 1) info)
-      (puthash 'state socks-state-authenticated info))))
+  (or (process-get proc 'socks)
+      (error "socks-filter called on non-SOCKS connection %S" proc))
+  (cl-callf (lambda (s) (concat s str))
+      (process-get proc 'socks-scratch))
+  (if (< (length (process-get proc 'socks-scratch)) 2)
+      nil
+    (process-put proc 'socks-password-auth-status
+                 (aref (process-get proc 'socks-scratch) 1))
+    (process-put proc 'socks-state socks-state-authenticated)))
 
 (defun socks-username/password-auth (proc)
-  (let* ((info (gethash proc socks-connections))
-	 (state (gethash 'state info)))
+  (let ((state (process-get proc 'socks-state)))
     (if (not socks-password)
 	(setq socks-password (read-passwd
 			      (format "Password for %s@%s: "
 				      socks-username
-				      (gethash 'server-name info)))))
-    (puthash 'scratch "" info)
-    (set-process-filter proc 'socks-username/password-auth-filter)
+				      (process-get proc 'socks-server-name)))))
+    (process-put proc 'socks-scratch "")
+    (set-process-filter proc #'socks-username/password-auth-filter)
     (process-send-string proc
 			 (format "%c%c%s%c%s"
 				 socks-username/password-auth-version
@@ -606,33 +583,32 @@ version.")
 				 socks-username
 				 (length socks-password)
 				 socks-password))
-    (socks-wait-for-state-change proc info state)
-    (= (gethash 'password-auth-status info) 0)))
+    (socks-wait-for-state-change proc state)
+    (= (process-get proc 'socks-password-auth-status) 0)))
 
 
 ;; More advanced GSS/API stuff, not yet implemented - volunteers?
 ;; (socks-register-authentication-method 1 "GSS/API" 'socks-gssapi-auth)
 
-(defun socks-gssapi-auth (proc)
+(defun socks-gssapi-auth (_proc)
   nil)
 
 
 ;; CHAP stuff
 ;; (socks-register-authentication-method 3 "CHAP" 'socks-chap-auth)
-(defun socks-chap-auth (proc)
+(defun socks-chap-auth (_proc)
   nil)
 
 
 ;; CRAM stuff
 ;; (socks-register-authentication-method 5 "CRAM" 'socks-cram-auth)
-(defun socks-cram-auth (proc)
+(defun socks-cram-auth (_proc)
   nil)
 
 
 (defcustom socks-nslookup-program "nslookup"
-  "If non-NIL then a string naming the nslookup program."
-  :type '(choice (const :tag "None" :value nil) string)
-  :group 'socks)
+  "If non-nil then a string naming the nslookup program."
+  :type '(choice (const :tag "None" :value nil) string))
 
 (defun socks-nslookup-host (host)
   "Attempt to resolve the given HOSTNAME using nslookup if possible."
@@ -651,8 +627,8 @@ version.")
 	      (progn
 		(setq res (buffer-substring (match-beginning 2)
 					    (match-end 2))
-		      res (mapcar 'string-to-number
-				  (socks-split-string res "\\.")))))
+		      res (mapcar #'string-to-number
+				  (split-string res "\\.")))))
 	  (kill-buffer (current-buffer)))
 	res)
     host))

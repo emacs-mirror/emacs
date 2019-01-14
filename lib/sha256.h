@@ -1,6 +1,6 @@
 /* Declarations of functions and data types used for SHA256 and SHA224 sum
    library functions.
-   Copyright (C) 2005-2006, 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2008-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -89,8 +89,11 @@ extern void *sha256_buffer (const char *buffer, size_t len, void *resblock);
 extern void *sha224_buffer (const char *buffer, size_t len, void *resblock);
 
 # endif
-/* Compute SHA256 (SHA224) message digest for bytes read from STREAM.  The
-   resulting message digest number will be written into the 32 (28) bytes
+/* Compute SHA256 (SHA224) message digest for bytes read from STREAM.
+   STREAM is an open file stream.  Regular files are handled more efficiently.
+   The contents of STREAM from its current position to its end will be read.
+   The case that the last operation on STREAM was an 'ungetc' is not supported.
+   The resulting message digest number will be written into the 32 (28) bytes
    beginning at RESBLOCK.  */
 extern int sha256_stream (FILE *stream, void *resblock);
 extern int sha224_stream (FILE *stream, void *resblock);

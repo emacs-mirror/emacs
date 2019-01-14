@@ -1,6 +1,6 @@
 ;;; gnus-icalendar.el --- reply to iCalendar meeting requests
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Jan Tatarik <Jan.Tatarik@gmail.com>
 ;; Keywords: mail, icalendar, org
@@ -40,7 +40,7 @@
 (require 'gnus-sum)
 (require 'gnus-art)
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defun gnus-icalendar-find-if (pred seq)
   (catch 'found
@@ -238,7 +238,7 @@
 		"\\\\n" "\n" (substring-no-properties value))))))
 	 (accumulate-args
 	  (mapping)
-	  (destructuring-bind (slot . ical-property) mapping
+	  (cl-destructuring-bind (slot . ical-property) mapping
 	    (setq args (append (list
 				(intern (concat ":" (symbol-name slot)))
 				(map-property ical-property))
@@ -443,7 +443,7 @@ Return nil for non-recurring EVENT."
      ;; A 0:0 - A .:. -> A 0:0-.:. (default 1)
      ;; A 0:0 - A+n .:. -> A - A+n .:.
      ((and start-at-midnight
-           (plusp start-end-date-diff)) (format "<%s>--<%s %s>" start-date end-date end-time))
+           (cl-plusp start-end-date-diff)) (format "<%s>--<%s %s>" start-date end-date end-time))
      ;; default
      ;; A .:. - A .:. -> A .:.-.:.
      ;; A .:. - B .:.

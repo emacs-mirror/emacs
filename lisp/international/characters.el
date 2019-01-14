@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -643,10 +643,22 @@ with L, LRE, or LRO Unicode bidi character type.")
     (setq c (1+ c)))
 
   ;; Circled Latin
-  (setq c #x24b6)
-  (while (<= c #x24cf)
+  (setq c #x24B6)
+  (while (<= c #x24CF)
     (modify-category-entry c ?l)
     (modify-category-entry (+ c 26) ?l)
+    (setq c (1+ c)))
+
+  ;; Supplemental Mathematical Operators
+  (setq c #x2A00)
+  (while (<= c #x2AFF)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+
+  ;; Miscellaneous Symbols and Arrows
+  (setq c #x2B00)
+  (while (<= c #x2BFF)
+    (set-case-syntax c "." tbl)
     (setq c (1+ c)))
 
   ;; Coptic
@@ -655,6 +667,12 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; in this block are derived from Greek letters, so let's be
   ;; consistent about their category.
   (modify-category-entry '(#x2C80 . #x2CFF) ?g)
+
+  ;; Supplemental Punctuation
+  (setq c #x2E00)
+  (while (<= c #x2E7F)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
 
   ;; Fullwidth Latin
   (setq c #xff21)
@@ -1200,7 +1218,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#xFF01 . #xFF60)
 	   (#xFFE0 . #xFFE6)
 	   (#x16FE0 . #x16FE1)
-	   (#x17000 . #x187EC)
+	   (#x17000 . #x187F1)
 	   (#x18800 . #x18AF2)
 	   (#x1B000 . #x1B11E)
            (#x1B170 . #x1B2FB)
@@ -1233,13 +1251,16 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#x1F6CC . #x1F6CC)
 	   (#x1F6D0 . #x1F6D2)
 	   (#x1F6EB . #x1F6EC)
-	   (#x1F6F4 . #x1F6F8)
+	   (#x1F6F4 . #x1F6F9)
 	   (#x1F910 . #x1F93E)
-	   (#x1F940 . #x1F94C)
-	   (#x1F950 . #x1F96B)
-	   (#x1F980 . #x1F997)
-	   (#x1F9C0 . #x1F9C0)
-           (#x1F9D0 . #x1F9E6)
+	   (#x1F940 . #x1F970)
+	   (#x1F973 . #x1F976)
+	   (#x1F97A . #x1F97A)
+	   (#x1F97C . #x1F9A2)
+	   (#x1F9B0 . #x1F9B9)
+	   (#x1F9C0 . #x1F9C2)
+           (#x1F9D0 . #x1F9FF)
+           (#x1FA60 . #x1FA6D)
 	   (#x20000 . #x2FFFF)
 	   (#x30000 . #x3FFFF))))
   (dolist (elt l)
@@ -1403,7 +1424,9 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 (defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
-This function updates the char-table `glyphless-char-display'."
+This function updates the char-table `glyphless-char-display',
+and is intended to be used in the `:set' attribute of the
+option `glyphless-char-display'."
   (when value
     (set-default variable value))
   (dolist (elt value)

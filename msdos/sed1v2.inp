@@ -2,7 +2,7 @@
 # Configuration script for src/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
+# Copyright (C) 1996-1997, 1999-2019 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -165,8 +165,8 @@ s/ *@LIBXPM@//
 /^lisp\.mk:/,/^$/c\
 lisp.mk: $(lispsource)/loadup.el\
 	@rm -f $@\
-	${AM_V_GEN}printf 'shortlisp = \\n' > $@\
-	${AM_V_GEN}sed -n 's/^[ \t]*(load "\([^"]*\)".*/\1/p' $< | sed -e "s/$/.elc \/" -e "s/\.el\.elc/.el/" >> $@\
+	${AM_V_GEN}printf 'shortlisp = \\\\\\n' > $@\
+	${AM_V_GEN}sed -n 's/^[ \t]*(load "\\([^"]*\\)".*/\\1/p' $< | sed -e "s/\$\$/.elc \\\\/" -e "s/\\.el\\.elc/.el/" >> $@\
 	${AM_V_GEN}djecho ""  >> $@
 
 #"

@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2004, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -56,8 +56,9 @@ The glyph is displayed in face `nxml-glyph'."
   :group 'nxml
   :type 'boolean)
 
-(defcustom nxml-sexp-element-flag nil
+(defcustom nxml-sexp-element-flag t
   "Non-nil means sexp commands treat an element as a single expression."
+  :version "27.1"                       ; nil -> t
   :group 'nxml
   :type 'boolean)
 
@@ -471,11 +472,10 @@ The Emacs commands that normally operate on balanced expressions will
 operate on XML markup items.  Thus \\[forward-sexp] will move forward
 across one markup item; \\[backward-sexp] will move backward across
 one markup item; \\[kill-sexp] will kill the following markup item;
-\\[mark-sexp] will mark the following markup item.  By default, each
-tag each treated as a single markup item; to make the complete element
-be treated as a single markup item, set the variable
-`nxml-sexp-element-flag' to t.  For more details, see the function
-`nxml-forward-balanced-item'.
+\\[mark-sexp] will mark the following markup item.  By default, the
+complete element is treated as a single markup item; to make each tag be
+treated as a separate markup item, set the variable `nxml-sexp-element-flag'
+to nil.  For more details, see the function `nxml-forward-balanced-item'.
 
 \\[nxml-backward-up-element] and \\[nxml-down-element] move up and down the element structure.
 
@@ -1510,17 +1510,18 @@ With ARG, do it that many times.  Negative arg -N means
 move backward across N balanced expressions.
 This is the equivalent of `forward-sexp' for XML.
 
-An element contains as items strings with no markup, tags, processing
-instructions, comments, CDATA sections, entity references and
-characters references.  However, if the variable
-`nxml-sexp-element-flag' is non-nil, then an element is treated as a
-single markup item.  A start-tag contains an element name followed by
-one or more attributes.  An end-tag contains just an element name.
-An attribute value literals contains strings with no markup, entity
-references and character references.  A processing instruction
-consists of a target and a content string.  A comment or a CDATA
-section contains a single string.  An entity reference contains a
-single name.  A character reference contains a character number."
+An element is by default treated as a single markup item.
+However, if the variable `nxml-sexp-element-flag' is nil, then an
+element contains as items strings with no markup, tags,
+processing instructions, comments, CDATA sections, entity
+references and character references.  A start-tag contains an
+element name followed by one or more attributes.  An end-tag
+contains just an element name.  An attribute value literals
+contains strings with no markup, entity references and character
+references.  A processing instruction consists of a target and a
+content string.  A comment or a CDATA section contains a single
+string.  An entity reference contains a single name.  A character
+reference contains a character number."
   (interactive "^p")
   (or arg (setq arg 1))
   (cond ((> arg 0)

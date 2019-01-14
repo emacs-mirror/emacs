@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1993-1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1988, 1993-1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
@@ -73,7 +73,7 @@
 ;; c-c c-o comint-delete-output		   Delete last batch of process output
 ;; c-c c-r comint-show-output		   Show last batch of process output
 ;; c-c c-l comint-dynamic-list-input-ring  List input history
-;;         send-invisible                  Read line w/o echo & send to proc
+;;         comint-send-invisible           Read line w/o echo & send to proc
 ;;         comint-continue-subjob	   Useful if you accidentally suspend
 ;;					        top-level job
 ;; comint-mode-hook is the comint mode hook.
@@ -315,6 +315,8 @@ for Shell mode only."
   "List of directories saved by pushd in this buffer's shell.
 Thus, this does not include the shell's current directory.")
 
+(defvaralias 'shell-dirtrack-mode 'shell-dirtrackp)
+
 (defvar shell-dirtrackp t
   "Non-nil in a shell buffer means directory tracking is enabled.")
 
@@ -424,7 +426,7 @@ Thus, this does not include the shell's current directory.")
           (while (looking-at
                   (eval-when-compile
                     (concat
-                     "\\(?:[^\s\t\n\\\"']+"
+                     "\\(?:[^\s\t\n\\\"';]+"
                      "\\|'\\([^']*\\)'?"
                      "\\|\"\\(\\(?:[^\"\\]\\|\\\\.\\)*\\)\"?"
                      "\\|\\\\\\(\\(?:.\\|\n\\)?\\)\\)")))
@@ -466,6 +468,8 @@ Shell buffers.  It implements `shell-completion-execonly' for
   (set (make-local-variable 'comint-file-name-chars) shell-file-name-chars)
   (set (make-local-variable 'comint-file-name-quote-list)
        shell-file-name-quote-list)
+  (set (make-local-variable 'comint-file-name-prefix)
+       (or (file-remote-p default-directory) ""))
   (set (make-local-variable 'comint-dynamic-complete-functions)
        shell-dynamic-complete-functions)
   (setq-local comint-unquote-function #'shell--unquote-argument)
@@ -486,7 +490,7 @@ Shell buffers.  It implements `shell-completion-execonly' for
   (setq comint-input-autoexpand shell-input-autoexpand)
   ;; Not needed in shell-mode because it's inherited from comint-mode, but
   ;; placed here for read-shell-command.
-  (add-hook 'completion-at-point-functions 'comint-completion-at-point nil t))
+  (add-hook 'completion-at-point-functions #'comint-completion-at-point nil t))
 
 (put 'shell-mode 'mode-class 'special)
 
@@ -496,7 +500,7 @@ Shell buffers.  It implements `shell-completion-execonly' for
     the end of process to the end of the current line.
 \\[comint-send-input] before end of process output copies the current line minus the prompt to
     the end of the buffer and sends it (\\[comint-copy-old-input] just copies the current line).
-\\[send-invisible] reads a line of text without echoing it, and sends it to
+\\[comint-send-invisible] reads a line of text without echoing it, and sends it to
     the shell.  This is useful for entering passwords.  Or, add the function
     `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
 
@@ -568,8 +572,10 @@ buffer."
   (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
   (when (ring-empty-p comint-input-ring)
-    (let ((shell (file-name-nondirectory (car
-		   (process-command (get-buffer-process (current-buffer))))))
+    (let ((shell (if (get-buffer-process (current-buffer))
+                     (file-name-nondirectory
+                      (car (process-command (get-buffer-process (current-buffer)))))
+                   ""))
 	  (hsize (getenv "HISTSIZE")))
       (and (stringp hsize)
 	   (integerp (setq hsize (string-to-number hsize)))
@@ -600,7 +606,7 @@ buffer."
       ;; Bypass a bug in certain versions of bash.
       (when (string-equal shell "bash")
         (add-hook 'comint-preoutput-filter-functions
-                  'shell-filter-ctrl-a-ctrl-b nil t)))
+                  #'shell-filter-ctrl-a-ctrl-b nil t)))
     (comint-read-input-ring t)))
 
 (defun shell-apply-ansi-color (beg end face)
@@ -745,7 +751,7 @@ Otherwise, one argument `-i' is passed to the shell.
            (xargs-name (intern-soft (concat "explicit-" name "-args"))))
       (unless (file-exists-p startfile)
         (setq startfile (concat user-emacs-directory "init_" name ".sh")))
-      (apply 'make-comint-in-buffer "shell" buffer prog
+      (apply #'make-comint-in-buffer "shell" buffer prog
              (if (file-exists-p startfile) startfile)
              (if (and xargs-name (boundp xargs-name))
                  (symbol-value xargs-name)
@@ -959,22 +965,18 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (and (string-match "^\\+[1-9][0-9]*$" str)
        (string-to-number str)))
 
-(defvaralias 'shell-dirtrack-mode 'shell-dirtrackp)
 (define-minor-mode shell-dirtrack-mode
   "Toggle directory tracking in this shell buffer (Shell Dirtrack mode).
-With a prefix argument ARG, enable Shell Dirtrack mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 The `dirtrack' package provides an alternative implementation of
 this feature; see the function `dirtrack-mode'."
   nil nil nil
   (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
   (if shell-dirtrack-mode
-      (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t)
-    (remove-hook 'comint-input-filter-functions 'shell-directory-tracker t)))
+      (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)
+    (remove-hook 'comint-input-filter-functions #'shell-directory-tracker t)))
 
-(define-obsolete-function-alias 'shell-dirtrack-toggle 'shell-dirtrack-mode
+(define-obsolete-function-alias 'shell-dirtrack-toggle #'shell-dirtrack-mode
   "23.1")
 
 (defun shell-cd (dir)
@@ -1167,9 +1169,12 @@ Returns t if successful."
          (start (if (zerop (length filename)) (point) (match-beginning 0)))
          (end (if (zerop (length filename)) (point) (match-end 0)))
 	 (filenondir (file-name-nondirectory filename))
-	 ; why cdr? see `shell-dynamic-complete-command'
-	 (path-dirs (append (cdr (reverse exec-path))
-	   (if (memq system-type '(windows-nt ms-dos)) '("."))))
+	 (path-dirs
+	  ;; Ignore `exec-directory', the last entry in `exec-path'.
+          (append (cdr (reverse (exec-path)))
+	          (if (and (memq system-type '(windows-nt ms-dos))
+                           (not (file-remote-p default-directory)))
+                      '("."))))
 	 (cwd (file-name-as-directory (expand-file-name default-directory)))
 	 (ignored-extensions
 	  (and comint-completion-fignore

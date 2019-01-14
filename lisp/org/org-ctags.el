@@ -1,6 +1,6 @@
 ;;; org-ctags.el - Integrate Emacs "tags" Facility with Org -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
 
@@ -137,6 +137,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'org)
 
 (defgroup org-ctags nil
@@ -235,7 +236,7 @@ buffer position where the tag is found."
       (with-current-buffer (get-file-buffer tags-file-name)
         (goto-char (point-min))
         (cond
-         ((re-search-forward (format "^.*%s\\([0-9]+\\),\\([0-9]+\\)$"
+         ((re-search-forward (format "^.*\^?%s\^A\\([0-9]+\\),\\([0-9]+\\)$"
                                      (regexp-quote tag)) nil t)
           (let ((line (string-to-number (match-string 1)))
                 (pos (string-to-number (match-string 2))))
@@ -260,7 +261,7 @@ Return the list."
       (visit-tags-table-buffer 'same)
       (with-current-buffer (get-file-buffer tags-file-name)
         (goto-char (point-min))
-        (while (re-search-forward "^.*\\(.*\\)\\([0-9]+\\),\\([0-9]+\\)$"
+        (while (re-search-forward "^.*\^?\\(.*\\)\^A\\([0-9]+\\),\\([0-9]+\\)$"
                                   nil t)
           (push (substring-no-properties (match-string 1)) taglist)))
       taglist)))

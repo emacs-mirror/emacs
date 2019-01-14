@@ -1,6 +1,6 @@
 ;;; eieio-core.el --- Core implementation for eieio  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -388,9 +388,9 @@ See `defclass' for more information."
 	;; Clean up the meaning of protection.
         (setq prot
               (pcase prot
-                ((or 'nil 'public ':public) nil)
-                ((or 'protected ':protected) 'protected)
-                ((or 'private ':private) 'private)
+                ((or 'nil 'public :public) nil)
+                ((or 'protected :protected) 'protected)
+                ((or 'private :private) 'private)
                 (_ (signal 'invalid-slot-type (list :protection prot)))))
 
 	;; The default type specifier is supposed to be t, meaning anything.

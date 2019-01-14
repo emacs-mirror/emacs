@@ -8,7 +8,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1995--1997, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--1997, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1743,7 +1743,7 @@ lines, etc.  @xref{Movement and Markers}, for more info.
 @item viper-ex-style-editing t
 Set this to @code{nil}, if you want
 @kbd{C-h} and @key{DEL} to not stop
-at the beginning of a line in Insert state, @key{X} and @key{x} to delete
+at the beginning of a line in Insert state, @kbd{X} and @kbd{x} to delete
 characters across lines in Vi command state, etc.
 @item viper-ESC-moves-cursor-back t
 It @code{t}, cursor moves back 1 character when switching from insert state to vi
@@ -4330,7 +4330,7 @@ Same as @code{tabstop}, but affects all buffers.
 @cindex auto fill
 @cindex word wrap
 wrapmargin: In append mode Vi automatically
-puts a <lf> whenever there is a <sp> or <ht>
+puts an <lf> whenever there is an <sp> or <ht>
 within <wm> columns from the right margin.
 @item wrapscan
 @itemx ws

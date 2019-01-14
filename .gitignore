@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2018 Free Software Foundation, Inc.
+# Copyright 2009-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -57,6 +57,7 @@ lib/execinfo.h
 lib/fcntl.h
 lib/getopt.h
 lib/getopt-cdefs.h
+lib/ieee754.h
 lib/inttypes.h
 lib/libgnu.a
 lib/limits.h
@@ -268,6 +269,7 @@ etc/emacs.tmpdesktop
 *.in-h
 _*
 !lib/_Noreturn.h
+!m4/_*.m4
 /bin/
 /BIN/
 /data/

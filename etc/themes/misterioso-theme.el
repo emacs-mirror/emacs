@@ -1,6 +1,6 @@
 ;;; misterioso-theme.el --- Custom face theme for Emacs
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Hermida
 
@@ -102,9 +102,5 @@
 			    "#34cae2" "#008b8b" "#00ede1" "#e1e1e0"]))
 
 (provide-theme 'misterioso)
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; misterioso-theme.el  ends here

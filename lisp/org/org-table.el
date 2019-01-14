@@ -1,10 +1,10 @@
 ;;; org-table.el --- The Table Editor for Org        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -135,7 +135,7 @@ the fixed string \"#+ORGTBL: SEND\", followed by instruction on how to
 convert the table into a data structure useful in the
 language of the buffer.  Check the manual for the section on
 \"Translator functions\", and more generally check out
-http://orgmode.org/manual/Tables-in-arbitrary-syntax.html#Tables-in-arbitrary-syntax
+the Info node `(org)Tables in arbitrary syntax'.
 
 All occurrences of %n in a template will be replaced with the name of the
 table, obtained by prompting the user."
@@ -387,16 +387,19 @@ portability of tables."
 	  (const :tag "Error on attempt to cross" error)))
 
 (defcustom org-table-formula-create-columns nil
-  "Non-nil means that evaluation of a field formula can add new
-columns if an out-of-bounds field is being set."
+  "Non-nil means evaluation of formula can add new columns.
+When non-nil, evaluating an out-of-bounds field can insert as
+many columns as needed.  When set to `warn', issue a warning when
+doing so.  When set to `prompt', ask user before creating a new
+column.  Otherwise, throw an error."
   :group 'org-table-calculation
   :version "26.1"
   :package-version '(Org . "8.3")
   :type '(choice
-	  (const :tag "Setting an out-of-bounds field generates an error (default)" nil)
-	  (const :tag "Setting an out-of-bounds field silently adds columns as needed" t)
-	  (const :tag "Setting an out-of-bounds field adds columns as needed, but issues a warning message" warn)
-	  (const :tag "When setting an out-of-bounds field, the user is prompted" prompt)))
+	  (const :tag "Out-of-bounds field generates an error (default)" nil)
+	  (const :tag "Out-of-bounds field silently adds columns as needed" t)
+	  (const :tag "Out-of-bounds field adds columns, but issues a warning" warn)
+	  (const :tag "Prompt user when setting an out-of-bounds field" prompt)))
 
 (defgroup org-table-import-export nil
   "Options concerning table import and export in Org mode."
@@ -3327,7 +3330,9 @@ existing formula for column %s"
 				  t))
 			   (and (eq org-table-formula-create-columns 'prompt)
 				(yes-or-no-p
-				 "Out-of-bounds formula.  Add columns? ")))))))
+				 "Out-of-bounds formula.  Add columns? "))
+			   (user-error
+			    "Missing columns in the table.  Aborting"))))))
 	     (org-table-eval-formula nil formula t t t t))))
 	;; Clean up markers and internal text property.
 	(remove-text-properties (point-min) (point-max) '(org-untouchable t))
@@ -5428,7 +5433,7 @@ which will prompt for the width."
 ;; - orgtbl-uc-draw-cont (smooth unicode)
 
 ;; This is best viewed with the "DejaVu Sans Mono" font
-;; (use M-x set-default-font).
+;; (use M-x set-frame-font).
 
 (defun orgtbl-uc-draw-grid (value min max &optional width)
   "Draw a bar in a table using block unicode characters.

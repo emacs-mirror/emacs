@@ -1,6 +1,6 @@
 ;;; mm-bodies.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -262,7 +262,7 @@ decoding.  If it is nil, default to `mail-parse-charset'."
 	    (setq coding-system
 		  (mm-charset-to-coding-system mail-parse-charset)))
 	(when (and charset coding-system
-		   (mm-multibyte-p)
+		   enable-multibyte-characters
 		   (or (not (eq coding-system 'ascii))
 		       (setq coding-system mail-parse-charset)))
 	  (decode-coding-region (point-min) (point-max) coding-system))
@@ -289,7 +289,7 @@ decoding.  If it is nil, default to `mail-parse-charset'."
 	 (setq coding-system
 	       (mm-charset-to-coding-system mail-parse-charset)))
      (when (and charset coding-system
-		(mm-multibyte-p)
+		enable-multibyte-characters
 		(or (not (eq coding-system 'ascii))
 		    (setq coding-system mail-parse-charset)))
        (decode-coding-string string coding-system)))

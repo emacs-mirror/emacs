@@ -1,6 +1,6 @@
 ;;; cmds-tests.el --- Testing some Emacs commands
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 ;; Keywords:

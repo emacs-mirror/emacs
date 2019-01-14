@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2018 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -501,7 +501,7 @@ that."
                             (and sym (charsetp sym)
                                  (help-xref-button 7 'help-character-set sym)))
                            ((assoc data input-method-alist)
-                            (help-xref-button 7 'help-character-set data))
+                            (help-xref-button 7 'help-input-method data))
                            ((and sym (coding-system-p sym))
                             (help-xref-button 7 'help-coding-system sym))
                            ((and sym (charsetp sym))

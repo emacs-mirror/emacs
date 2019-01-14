@@ -1,7 +1,7 @@
 		    Building and Installing Emacs on MS-Windows
                           using the MSYS and MinGW tools
 
-  Copyright (C) 2013-2018 Free Software Foundation, Inc.
+  Copyright (C) 2013-2019 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 The MSYS/MinGW build described here is supported on versions of
@@ -52,7 +52,8 @@ build will run on Windows 9X and newer systems).
      You can pass other options to the configure script.  Here's a
      typical example (for an in-place debug build):
 
-       CFLAGS='-O0 -g3' ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs'
+       ./configure --prefix=/d/usr/emacs --enable-checking='yes,glyphs' \
+         CFLAGS='-O0 -g3'
 
   3. After the configure script finishes, it should display the
      resulting configuration.  After that, type
@@ -461,7 +462,8 @@ build will run on Windows 9X and newer systems).
   A few frequently used options are needed when you want to produce an
   unoptimized binary with runtime checks enabled:
 
-     CFLAGS='-O0 -g3' ./configure --prefix=PREFIX --enable-checking='yes,glyphs'
+     ./configure --prefix=PREFIX --enable-checking='yes,glyphs' \
+       CFLAGS='-O0 -g3'
 
   Once invoked, the configure script will run for some time, and, if
   successful, will eventually produce a summary of the configuration

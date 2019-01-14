@@ -1,5 +1,5 @@
 /* Heap management routines for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 
@@ -116,7 +116,7 @@ typedef struct _RTL_HEAP_PARAMETERS {
    to build only the first bootstrap-emacs.exe with the large size,
    and reset that to a lower value afterwards.  */
 #if defined _WIN64 || defined WIDE_EMACS_INT
-# define DUMPED_HEAP_SIZE (22*1024*1024)
+# define DUMPED_HEAP_SIZE (23*1024*1024)
 #else
 # define DUMPED_HEAP_SIZE (13*1024*1024)
 #endif
@@ -257,7 +257,9 @@ init_heap (void)
 #ifndef MINGW_W64
       /* Set the low-fragmentation heap for OS before Vista.  */
       HMODULE hm_kernel32dll = LoadLibrary ("kernel32.dll");
-      HeapSetInformation_Proc s_pfn_Heap_Set_Information = (HeapSetInformation_Proc) GetProcAddress (hm_kernel32dll, "HeapSetInformation");
+      HeapSetInformation_Proc s_pfn_Heap_Set_Information =
+        (HeapSetInformation_Proc) get_proc_addr (hm_kernel32dll,
+                                                        "HeapSetInformation");
       if (s_pfn_Heap_Set_Information != NULL)
 	{
 	  if (s_pfn_Heap_Set_Information ((PVOID) heap,
@@ -288,7 +290,7 @@ init_heap (void)
          in ntdll.dll since XP.  */
       HMODULE hm_ntdll = LoadLibrary ("ntdll.dll");
       RtlCreateHeap_Proc s_pfn_Rtl_Create_Heap
-	= (RtlCreateHeap_Proc) GetProcAddress (hm_ntdll, "RtlCreateHeap");
+	= (RtlCreateHeap_Proc) get_proc_addr (hm_ntdll, "RtlCreateHeap");
       /* Specific parameters for the private heap.  */
       RTL_HEAP_PARAMETERS params;
       ZeroMemory (&params, sizeof(params));

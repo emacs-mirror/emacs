@@ -4,11 +4,11 @@
 @settitle The Org Manual
 @include docstyle.texi
 
-@set VERSION 9.1.6
-@set DATE 2018-01-03
+@set VERSION 9.1.9
+@set DATE 2018-03-22
 
 @c Version and Contact Info
-@set MAINTAINERSITE @uref{http://orgmode.org,maintainers web page}
+@set MAINTAINERSITE @uref{https://orgmode.org,maintainers web page}
 @set AUTHOR Carsten Dominik
 @set MAINTAINER Carsten Dominik
 @set MAINTAINEREMAIL @email{carsten at orgmode dot org}
@@ -260,7 +260,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -325,7 +325,6 @@ Jambunathan K, Dan Davison, Thomas Dye, David O'Toole, and Philip Rooke.
 * Working with source code::    Export, evaluate, and tangle code blocks
 * Miscellaneous::               All the rest which did not fit elsewhere
 * Hacking::                     How to hack your way around
-* MobileOrg::                   Viewing and capture on a mobile device
 * History and acknowledgments::  How Org came into being
 * GNU Free Documentation License::  The license for this documentation.
 * Main Index::                  An index of Org's concepts and features
@@ -760,11 +759,18 @@ Miscellaneous
 * TTY keys::                    Using Org on a tty
 * Interaction::                 With other Emacs packages
 * org-crypt::                   Encrypting Org files
+* Org Mobile::                  Viewing and capture on a mobile device
 
 Interaction with other packages
 
 * Cooperation::                 Packages Org cooperates with
 * Conflicts::                   Packages that lead to conflicts
+
+Org Mobile
+
+* Setting up the staging area::  For the mobile device
+* Pushing to the mobile application::  Uploading Org files and agendas
+* Pulling from the mobile application::  Integrating captured and flagged items
 
 Hacking
 
@@ -787,12 +793,6 @@ Tables and lists in arbitrary syntax
 * A @LaTeX{} example::          Step by step, almost a tutorial
 * Translator functions::        Copy and modify
 * Radio lists::                 Sending and receiving lists
-
-MobileOrg
-
-* Setting up the staging area::  For the mobile device
-* Pushing to MobileOrg::        Uploading Org files and agendas
-* Pulling from MobileOrg::      Integrating captured and flagged items
 
 @end detailmenu
 @end menu
@@ -856,7 +856,7 @@ platform.
 There is a website for Org which provides links to the newest
 version of Org, as well as additional information, frequently asked
 questions (FAQ), links to tutorials, etc.  This page is located at
-@uref{http://orgmode.org}.
+@uref{https://orgmode.org}.
 @cindex print edition
 
 An earlier version (7.3) of this manual is available as a
@@ -892,11 +892,11 @@ been visited, i.e., where no Org built-in function have been loaded.
 Otherwise autoload Org functions will mess up the installation.
 
 If you want to use Org's package repository,
-check out the @uref{http://orgmode.org/elpa.html, Org ELPA page}.
+check out the @uref{https://orgmode.org/elpa.html, Org ELPA page}.
 
 @subsubheading Downloading Org as an archive
 
-You can download Org latest release from @uref{http://orgmode.org/, Org's
+You can download Org latest release from @uref{https://orgmode.org/, Org's
 website}.  In this case, make sure you set the load-path correctly in your
 Emacs init file:
 
@@ -921,7 +921,8 @@ You can clone Org's repository and install Org like this:
 
 @example
 $ cd ~/src/
-$ git clone git://orgmode.org/org-mode.git
+$ git clone https://code.orgmode.org/bzg/org-mode.git
+$ cd org-mode/
 $ make autoloads
 @end example
 
@@ -937,7 +938,7 @@ install Org with @code{make install}.  Please run @code{make help} to get
 the list of compilation/installation options.
 
 For more detailed explanations on Org's build system, please check the Org
-Build System page on @uref{http://orgmode.org/worg/dev/org-build-system.html,
+Build System page on @uref{https://orgmode.org/worg/dev/org-build-system.html,
 Worg}.
 
 @node Activation
@@ -950,7 +951,7 @@ Worg}.
 @findex org-agenda
 @findex org-capture
 @findex org-store-link
-@findex org-iswitchb
+@findex org-switchb
 
 Org mode buffers need font-lock to be turned on: this is the default in
 Emacs@footnote{If you don't use font-lock globally, turn it on in Org buffer
@@ -960,7 +961,7 @@ There are compatibility issues between Org mode and some other Elisp
 packages, please take the time to check the list (@pxref{Conflicts}).
 
 The four Org commands @command{org-store-link}, @command{org-capture},
-@command{org-agenda}, and @command{org-iswitchb} should be accessible through
+@command{org-agenda}, and @command{org-switchb} should be accessible through
 global keys (i.e., anywhere in Emacs, not just in Org buffers).  Here are
 suggested bindings for these keys, please modify the keys to your own
 liking.
@@ -968,7 +969,7 @@ liking.
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cc" 'org-capture)
-(global-set-key "\C-cb" 'org-iswitchb)
+(global-set-key "\C-cb" 'org-switchb)
 @end lisp
 
 @cindex Org mode, turning on
@@ -1467,8 +1468,8 @@ level).
 Move subtree down (swap with next subtree of same level).
 @orgcmd{M-h,org-mark-element}
 Mark the element at point.  Hitting repeatedly will mark subsequent elements
-of the one just marked.  E.g., hitting @key{M-h} on a paragraph will mark it,
-hitting @key{M-h} immediately again will mark the next one.
+of the one just marked.  E.g., hitting @kbd{M-h} on a paragraph will mark it,
+hitting @kbd{M-h} immediately again will mark the next one.
 @orgcmd{C-c @@,org-mark-subtree}
 Mark the subtree at point.  Hitting repeatedly will mark subsequent subtrees
 of the same level than the marked subtree.
@@ -1835,7 +1836,7 @@ this:
 @end example
 
 You can interactively insert drawers at point by calling
-@code{org-insert-drawer}, which is bound to @key{C-c C-x d}.  With an active
+@code{org-insert-drawer}, which is bound to @kbd{C-c C-x d}.  With an active
 region, this command will put the region inside the drawer.  With a prefix
 argument, this command calls @code{org-insert-property-drawer} and add
 a property drawer right below the current headline.  Completion over drawer
@@ -1900,7 +1901,7 @@ marker in square brackets, inside text.  Markers always start with
 @example
 The Org homepage[fn:1] now looks a lot better than it used to.
 ...
-[fn:1] The link is: http://orgmode.org
+[fn:1] The link is: https://orgmode.org
 @end example
 
 Org mode extends the number-based syntax to @emph{named} footnotes and
@@ -2030,7 +2031,7 @@ prefix is set, but folding/unfolding will work correctly.
 @cindex Org syntax
 
 A reference document providing a formal description of Org's syntax is
-available as @uref{http://orgmode.org/worg/dev/org-syntax.html, a draft on
+available as @uref{https://orgmode.org/worg/dev/org-syntax.html, a draft on
 Worg}, written and maintained by Nicolas Goaziou.  It defines Org's core
 internal concepts such as @code{headlines}, @code{sections}, @code{affiliated
 keywords}, @code{(greater) elements} and @code{objects}.  Each part of an Org
@@ -2058,7 +2059,7 @@ You can check syntax in your documents using @code{org-lint} command.
 
 Org comes with a fast and intuitive table editor.  Spreadsheet-like
 calculations are supported using the Emacs @file{calc} package
-(@pxref{Top, Calc, , calc, Gnu Emacs Calculator Manual}).
+(@pxref{Top, Calc, , calc, GNU Emacs Calculator Manual}).
 
 @menu
 * Built-in table editor::       Simple tables
@@ -2277,17 +2278,6 @@ general formats for exported tables.  The exporter format is the same as the
 format used by Orgtbl radio tables, see @ref{Translator functions}, for a
 detailed description.
 @end table
-
-If you don't like the automatic table editor because it gets in your
-way on lines which you would like to start with @samp{|}, you can turn
-it off with
-
-@lisp
-(setq org-enable-table-editor nil)
-@end lisp
-
-@noindent Then the only table command that still works is
-@kbd{C-c C-c} to do a manual re-align.
 
 @node Column width and alignment
 @section Column width and alignment
@@ -2948,7 +2938,7 @@ element of @code{R-LIST}.
 
 These three functions can be used to implement associative arrays, count
 matching cells, rank results, group data etc.  For practical examples
-see @uref{http://orgmode.org/worg/org-tutorials/org-lookups.html, this
+see @uref{https://orgmode.org/worg/org-tutorials/org-lookups.html, this
 tutorial on Worg}.
 
 @node Editing and debugging formulas
@@ -3282,7 +3272,7 @@ Further control over the labels, type, content, and appearance of plots can
 be exercised through the @code{#+PLOT:} lines preceding a table.  See below
 for a complete list of Org-plot options.  The @code{#+PLOT:} lines are
 optional.  For more information and examples see the Org-plot tutorial at
-@uref{http://orgmode.org/worg/org-tutorials/org-plot.html}.
+@uref{https://orgmode.org/worg/org-tutorials/org-plot.html}.
 
 @subsubheading Plot Options
 
@@ -4420,7 +4410,7 @@ Then each time you turn an entry from a TODO (not-done) state into any of the
 DONE states, a line @samp{CLOSED: [timestamp]} will be inserted just after
 the headline.  If you turn the entry back into a TODO item through further
 state cycling, that line will be removed again.  If you turn the entry back
-to a non-TODO state (by pressing @key{C-c C-t @key{SPC}} for example), that line
+to a non-TODO state (by pressing @kbd{C-c C-t @key{SPC}} for example), that line
 will also be removed, unless you set @code{org-closed-keep-when-no-todo} to
 non-@code{nil}.  If you want to record a note along with the timestamp,
 use@footnote{The corresponding in-buffer setting is: @code{#+STARTUP:
@@ -5144,7 +5134,7 @@ that Org can parse this line correctly:
 
 In this example, @samp{GTD} is the @emph{group tag} and it is related to two
 other tags: @samp{Control}, @samp{Persp}.  Defining @samp{Control} and
-@samp{Persp} as group tags creates an hierarchy of tags:
+@samp{Persp} as group tags creates a hierarchy of tags:
 
 @example
 #+TAGS: [ Control : Context Task ]
@@ -5833,7 +5823,7 @@ An alternative way to capture and process property values into a table is
 provided by Eric Schulte's @file{org-collector.el} which is a contributed
 package@footnote{Contributed packages are not part of Emacs, but are
 distributed with the main distribution of Org (visit
-@uref{http://orgmode.org}).}.  It provides a general API to collect
+@uref{https://orgmode.org}).}.  It provides a general API to collect
 properties from entries in a certain scope, and arbitrary Lisp expressions to
 process these values before inserting them into a table or a dynamic block.
 
@@ -7060,6 +7050,7 @@ through the customize interface.
 
 @table @kbd
 @orgkey{C-c c C}
+@vindex org-capture-templates
 Customize the variable @code{org-capture-templates}.
 @end table
 
@@ -7655,13 +7646,13 @@ The variable @code{org-protocol-project-alist} maps URLs to local file names,
 by stripping URL parameters from the end and replacing the @code{:base-url}
 with @code{:working-directory} and @code{:online-suffix} with
 @code{:working-suffix}.  For example, assuming you own a local copy of
-@url{http://orgmode.org/worg/} contents at @file{/home/user/worg}, you can
+@url{https://orgmode.org/worg/} contents at @file{/home/user/worg}, you can
 set @code{org-protocol-project-alist} to the following
 
 @lisp
 (setq org-protocol-project-alist
       '(("Worg"
-	 :base-url "http://orgmode.org/worg/"
+	 :base-url "https://orgmode.org/worg/"
 	 :working-directory "/home/user/worg/"
 	 :online-suffix ".html"
 	 :working-suffix ".org")))
@@ -7669,7 +7660,7 @@ set @code{org-protocol-project-alist} to the following
 
 @noindent
 If you are now browsing
-@url{http://orgmode.org/worg/org-contrib/org-protocol.html} and find a typo
+@url{https://orgmode.org/worg/org-contrib/org-protocol.html} and find a typo
 or have an idea about how to enhance the documentation, simply click the
 bookmark and start editing.
 
@@ -8022,7 +8013,7 @@ Remove current file from the list of agenda files.
 @orgcmd{C-',org-cycle-agenda-files}
 @itemx C-,
 Cycle through agenda file list, visiting one file after the other.
-@item M-x org-iswitchb @key{RET}
+@item M-x org-switchb @key{RET}
 Command to use an @code{iswitchb}-like interface to switch to and between Org
 buffers.
 @end table
@@ -9982,7 +9973,7 @@ To turn off fontification for marked up text, you can set
 available markup syntax, you can customize @code{org-emphasis-alist}.  To fine
 tune what characters are allowed before and after the markup characters, you
 can tweak @code{org-emphasis-regexp-components}.  Beware that changing one of
-the above variables will no take effect until you reload Org, for which you
+the above variables will not take effect until you reload Org, for which you
 may need to restart Emacs.
 
 @node Horizontal rules
@@ -10235,7 +10226,7 @@ for display purposes only.
 @cindex dash, special symbol
 @cindex ellipsis, special symbol
 In addition to regular entities defined above, Org exports in a special
-way@footnote{This behaviour can be disabled with @code{-} export setting
+way@footnote{This behavior can be disabled with @code{-} export setting
 (@pxref{Export settings}).} the following commonly used character
 combinations: @samp{\-} is treated as a shy hyphen, @samp{--} and @samp{---}
 are converted into dashes, and @samp{...} becomes a compact set of dots.
@@ -10615,7 +10606,7 @@ In-buffer settings may appear anywhere in the file, either directly or
 indirectly through a file included using @samp{#+SETUPFILE: filename or URL}
 syntax.  Option keyword sets tailored to a particular back-end can be
 inserted from the export dispatcher (@pxref{The export dispatcher}) using the
-@code{Insert template} command by pressing @key{#}.  To insert keywords
+@code{Insert template} command by pressing @kbd{#}.  To insert keywords
 individually, a good way to make sure the keyword is correct is to type
 @code{#+} and then to use @kbd{M-@key{TAB}}@footnote{Many desktops intercept
 @kbd{M-@key{TAB}} to switch windows.  Use @kbd{C-M-i} or @kbd{@key{ESC}
@@ -11187,7 +11178,7 @@ Org exports text in this block only when using ASCII back-end.
 @cindex horizontal rules, in ASCII export
 
 ASCII back-end recognizes only one attribute, @code{:width}, which specifies
-the width of an horizontal rule in number of characters.  The keyword and
+the width of a horizontal rule in number of characters.  The keyword and
 syntax for specifying widths is:
 
 @example
@@ -11777,7 +11768,7 @@ to @code{<a>} or @code{<img>} tags.  This example shows changing the link's
 @cindex @code{#+ATTR_HTML}
 @example
 #+ATTR_HTML: :title The Org mode homepage :style color:red;
-[[http://orgmode.org]]
+[[https://orgmode.org]]
 @end example
 
 @node Tables in HTML export
@@ -12052,9 +12043,9 @@ program enhances large files in two different ways of viewing.  One is an
 navigation can be done with the @kbd{n} and @kbd{p} keys (and some other keys
 as well, press @kbd{?} for an overview of the available keys).  The second
 one has a @emph{folding} view, much like Org provides inside Emacs.  The
-script is available at @url{http://orgmode.org/org-info.js} and the
-documentation at @url{http://orgmode.org/worg/code/org-info-js/}.  The script
-is hosted on @url{http://orgmode.org}, but for reliability, prefer installing
+script is available at @url{https://orgmode.org/org-info.js} and the
+documentation at @url{https://orgmode.org/worg/code/org-info-js/}.  The script
+is hosted on @url{https://orgmode.org}, but for reliability, prefer installing
 it on your own web server.
 
 To use this program, just add this line to the Org file:
@@ -12071,7 +12062,7 @@ below:
 
 @example
 path:    @r{The path to the script.  The default grabs the script from}
-         @r{@url{http://orgmode.org/org-info.js}, but you might want to have}
+         @r{@url{https://orgmode.org/org-info.js}, but you might want to have}
          @r{a local copy and use a path like @samp{../scripts/org-info.js}.}
 view:    @r{Initial view when the website is first shown.  Possible values are:}
          info      @r{Info-like interface with one section per page.}
@@ -12991,10 +12982,10 @@ of these examples works:
 @subsubheading Embedding clickable images
 For clickable images, provide a link whose description is another link to an
 image file.  For example, to embed an image @file{org-mode-unicorn.png} which
-when clicked jumps to @uref{http://Orgmode.org} website, do the following
+when clicked jumps to @uref{https://orgmode.org} website, do the following
 
 @example
-[[http://orgmode.org][./org-mode-unicorn.png]]
+[[https://orgmode.org][./org-mode-unicorn.png]]
 @end example
 
 @subsubheading Sizing and scaling of embedded images
@@ -13798,7 +13789,7 @@ Copyright information is printed on the back of the title page.
 
   This is a short example of a complete Texinfo file, version 1.0.
 
-  Copyright \copy 2018 Free Software Foundation, Inc.
+  Copyright \copy 2019 Free Software Foundation, Inc.
 @end example
 
 @node Info directory file
@@ -14075,7 +14066,7 @@ This manual is for GNU Sample (version @{@{@{version@}@}@},
   This manual is for GNU Sample (version @{@{@{version@}@}@},
   @{@{@{updated@}@}@}), which is an example in the Texinfo documentation.
 
-  Copyright \copy 2018 Free Software Foundation, Inc.
+  Copyright \copy 2019 Free Software Foundation, Inc.
 
   #+BEGIN_QUOTE
   Permission is granted to copy, distribute and/or modify this
@@ -15254,7 +15245,7 @@ Source code in the dialect of the specified language identifier.
 edit buffer containing the body of the @samp{src} code block, ready for any
 edits.  @kbd{C-c '} again to close the buffer and return to the Org buffer.
 
-@key{C-x C-s} saves the buffer and updates the contents of the Org buffer.
+@kbd{C-x C-s} saves the buffer and updates the contents of the Org buffer.
 
 Set @code{org-edit-src-auto-save-idle-delay} to save the base buffer after
 a certain idle delay time.
@@ -15510,7 +15501,7 @@ For more examples of header arguments for @code{#+CALL:} lines,
 The ``Library of Babel'' is a collection of code blocks.  Like a function
 library, these code blocks can be called from other Org files.  A collection
 of useful code blocks is available on
-@uref{http://orgmode.org/worg/library-of-babel.html,Worg}.  For remote code
+@uref{https://orgmode.org/worg/library-of-babel.html,Worg}.  For remote code
 block evaluation syntax, @pxref{Evaluating code blocks}.
 
 @kindex C-c C-v i
@@ -15552,7 +15543,7 @@ Org supports the following languages for the @samp{src} code blocks:
 @end multitable
 
 Additional documentation for some languages are at
-@uref{http://orgmode.org/worg/org-contrib/babel/languages.html}.
+@uref{https://orgmode.org/worg/org-contrib/babel/languages.html}.
 
 @vindex org-babel-load-languages
 By default, only @code{emacs-lisp} is enabled for evaluation.  To enable or
@@ -15640,7 +15631,7 @@ Org expand @code{:noweb} references by default.
 Each language can have separate default header arguments by customizing the
 variable @code{org-babel-default-header-args:<lang>}, where @code{<lang>} is
 the name of the language.  For details, see the language-specific online
-documentation at @uref{http://orgmode.org/worg/org-contrib/babel}.
+documentation at @uref{https://orgmode.org/worg/org-contrib/babel/}.
 
 @node Header arguments in Org mode properties
 @subsubheading Header arguments in Org mode properties
@@ -17260,6 +17251,7 @@ emacs -Q --batch --eval "
 * TTY keys::                    Using Org on a tty
 * Interaction::                 With other Emacs packages
 * org-crypt::                   Encrypting Org files
+* Org Mobile::                  Viewing and capture on a mobile device
 @end menu
 
 
@@ -18000,7 +17992,7 @@ supports Imenu menus.  Enable it with a mode hook as follows:
 @end lisp
 @vindex org-imenu-depth
 By default the Imenu index is two levels deep.  Change the index depth using
-thes variable, @code{org-imenu-depth}.
+the variable @code{org-imenu-depth}.
 @item @file{speedbar.el} by Eric M. Ludlam
 @cindex @file{speedbar.el}
 @cindex Ludlam, Eric M.
@@ -18074,7 +18066,7 @@ different replacement keys, look at the variable @code{org-disputed-keys}.
 @cindex @file{ecomplete.el}
 
 Ecomplete provides ``electric'' address completion in address header
-lines in message buffers.  Sadly Orgtbl mode cuts ecompletes power
+lines in message buffers.  Sadly Orgtbl mode cuts ecomplete's power
 supply: No completion happens when Orgtbl mode is enabled in message
 buffers while entering text in address header lines.  If one wants to
 use ecomplete one should @emph{not} follow the advice to automagically
@@ -18194,6 +18186,150 @@ Suggested Org crypt settings in Emacs init file:
 Excluding the crypt tag from inheritance prevents encrypting previously
 encrypted text.
 
+@node Org Mobile
+@section Org Mobile
+
+@cindex smartphone
+
+Org Mobile is a protocol for synchronizing Org files between Emacs and
+other applications, e.g., on mobile devices.  It enables offline-views
+and capture support for an Org mode system that is rooted on a ``real''
+computer.  The external application can also record changes to
+existing entries.
+
+This appendix describes Org's support for agenda view formats
+compatible with Org Mobile.  It also describes synchronizing changes,
+such as to notes, between the mobile application and the computer.
+
+To change tags and TODO states in the mobile application, first
+customize the variables @code{org-todo-keywords} and @code{org-tag-alist}.
+These should cover all the important tags and TODO keywords, even if
+Org files use only some of them.  Though the mobile application is
+expected to support in-buffer settings, it is required to understand
+TODO states @emph{sets} (see @ref{Per-file keywords}) and
+@emph{mutually exclusive} tags (see @ref{Setting tags}) only for those set in
+these variables.
+
+@menu
+* Setting up the staging area::  For the mobile device
+* Pushing to the mobile application::  Uploading Org files and agendas
+* Pulling from the mobile application::  Integrating captured and flagged items
+@end menu
+
+@node Setting up the staging area
+@subsection Setting up the staging area
+
+@vindex org-mobile-directory
+The mobile application needs access to a file directory on
+a server@footnote{For a server to host files, consider using a WebDAV server,
+such as @uref{https://nextcloud.com, Nextcloud}.  Additional help is at this @uref{https://orgmode.org/worg/org-faq.html#mobileorg_webdav, FAQ entry}.} to interact with Emacs.  Pass its location through
+the @code{org-mobile-directory} variable.  If you can mount that directory
+locally just set the variable to point to that directory:
+
+@lisp
+(setq org-mobile-directory "~/orgmobile/")
+@end lisp
+
+@noindent
+Alternatively, by using TRAMP (see @ref{Top,TRAMP User Manual,,tramp,}),
+@code{org-mobile-directory} may point to a remote directory accessible
+through, for example, SSH and SCP:
+
+@lisp
+(setq org-mobile-directory "/scpc:user@@remote.host:org/webdav/")
+@end lisp
+
+@vindex org-mobile-encryption
+With a public server, consider encrypting the files.  Org also
+requires OpenSSL installed on the local computer.  To turn on
+encryption, set the same password in the mobile application and in
+Emacs.  Set the password in the variable
+@code{org-mobile-use-encryption}@footnote{If Emacs is configured for safe storing of passwords, then
+configure the variable @code{org-mobile-encryption-password}; please read
+the docstring of that variable.}.  Note that even after the mobile
+application encrypts the file contents, the file name remains visible
+on the file systems of the local computer, the server, and the mobile
+device.
+
+@node Pushing to the mobile application
+@subsection Pushing to the mobile application
+
+@findex org-mobile-push
+@vindex org-mobile-files
+The command @code{org-mobile-push} copies files listed in
+@code{org-mobile-files} into the staging area.  Files include agenda files
+(as listed in @code{org-agenda-files}).  Customize @code{org-mobile-files} to
+add other files.  File names are staged with paths relative to
+@code{org-directory}, so all files should be inside this directory@footnote{Symbolic links in @code{org-directory} need to have the same name
+as their targets.}.
+
+Push creates a special Org file @samp{agendas.org} with custom agenda views
+defined by the user@footnote{While creating the agendas, Org mode forces ID properties on
+all referenced entries, so that these entries can be uniquely
+identified if Org Mobile flags them for further action.  To avoid
+setting properties configure the variable
+@code{org-mobile-force-id-on-agenda-items} to @code{nil}.  Org mode then relies
+on outline paths, assuming they are unique.}.
+
+Finally, Org writes the file @samp{index.org}, containing links to other
+files.  The mobile application reads this file first from the server
+to determine what other files to download for agendas.  For faster
+downloads, it is expected to only read files whose checksums@footnote{Checksums are stored automatically in the file
+@samp{checksums.dat}.}
+have changed.
+
+@node Pulling from the mobile application
+@subsection Pulling from the mobile application
+
+@findex org-mobile-pull
+The command @code{org-mobile-pull} synchronizes changes with the server.
+More specifically, it first pulls the Org files for viewing.  It then
+appends captured entries and pointers to flagged or changed entries to
+the file @samp{mobileorg.org} on the server.  Org ultimately integrates its
+data in an inbox file format, through the following steps:
+
+@enumerate
+@item
+@vindex org-mobile-inbox-for-pull
+Org moves all entries found in @samp{mobileorg.org}@footnote{The file will be empty after this operation.} and appends
+them to the file pointed to by the variable
+@code{org-mobile-inbox-for-pull}.  It should reside neither in the
+staging area nor on the server.  Each captured entry and each
+editing event is a top-level entry in the inbox file.
+
+@item
+@cindex @samp{FLAGGED}, tag
+After moving the entries, Org processes changes to the shared
+files.  Some of them are applied directly and without user
+interaction.  Examples include changes to tags, TODO state,
+headline and body text.  Entries requiring further action are
+tagged as @samp{FLAGGED}.  Org marks entries with problems with an error
+message in the inbox.  They have to be resolved manually.
+
+@item
+Org generates an agenda view for flagged entries for user
+intervention to clean up.  For notes stored in flagged entries, Org
+displays them in the echo area when point is on the corresponding
+agenda item.
+
+@table @asis
+@item @kbd{?}
+Pressing @kbd{?} displays the entire flagged note in
+another window.  Org also pushes it to the kill ring.  To
+store flagged note as a normal note, use @kbd{? z C-y C-c C-c}.  Pressing @kbd{?} twice does these things: first
+it removes the @samp{FLAGGED} tag; second, it removes the flagged
+note from the property drawer; third, it signals that manual
+editing of the flagged entry is now finished.
+@end table
+@end enumerate
+
+@kindex ? @r{(Agenda dispatcher)}
+From the agenda dispatcher, @kbd{?} returns to the view to finish
+processing flagged entries.  Note that these entries may not be the
+most recent since the mobile application searches files that were last
+pulled.  To get an updated agenda view with changes since the last
+pull, pull again.
+
 @node Hacking
 @appendix Hacking
 @cindex hacking
@@ -18223,7 +18359,7 @@ Org.
 Org has a large number of hook variables for adding functionality.  This
 appendix illustrates using a few.  A complete list of hooks with
 documentation is maintained by the Worg project at
-@uref{http://orgmode.org/worg/doc.html#hooks}.
+@uref{https://orgmode.org/worg/doc.html#hooks}.
 
 @node Add-on packages
 @section Add-on packages
@@ -18232,10 +18368,10 @@ documentation is maintained by the Worg project at
 Various authors wrote a large number of add-on packages for Org.
 
 These packages are not part of Emacs, but they are distributed as contributed
-packages with the separate release available at @uref{http://orgmode.org}.
+packages with the separate release available at @uref{https://orgmode.org}.
 See the @file{contrib/README} file in the source code directory for a list of
 contributed files.  Worg page with more information is at:
-@uref{http://orgmode.org/worg/org-contrib/}.
+@uref{https://orgmode.org/worg/org-contrib/}.
 
 @node Adding hyperlink types
 @section Adding hyperlink types
@@ -18356,7 +18492,7 @@ to an alist of export functions.  This alist replaces the parent back-end
 functions.
 
 For complete documentation, see
-@url{http://orgmode.org/worg/dev/org-export-reference.html, the Org Export
+@url{https://orgmode.org/worg/dev/org-export-reference.html, the Org Export
 Reference on Worg}.
 
 @node Context-sensitive commands
@@ -18867,7 +19003,7 @@ Disable tag inheritance for agendas:
 
 These options can be applied to selected agenda views.  For more details
 about generation of agenda views, see the docstrings for the relevant
-variables, and this @uref{http://orgmode.org/worg/agenda-optimization.html,
+variables, and this @uref{https://orgmode.org/worg/agenda-optimization.html,
 dedicated Worg page} for agenda optimization.
 
 @node Extracting agenda information
@@ -19157,140 +19293,6 @@ The following example counts the number of entries with TODO keyword
 @lisp
 (length (org-map-entries t "/+WAITING" 'agenda))
 @end lisp
-
-@node MobileOrg
-@appendix MobileOrg
-@cindex iPhone
-@cindex MobileOrg
-
-MobileOrg is a companion mobile app that runs on iOS and Android devices.
-MobileOrg enables offline-views and capture support for an Org mode system
-that is rooted on a ``real'' computer.  MobileOrg can record changes to
-existing entries.
-
-The @uref{https://github.com/MobileOrg/, iOS implementation} for the
-@emph{iPhone/iPod Touch/iPad} series of devices, was started by Richard
-Moreland and is now in the hands Sean Escriva.  Android users should check
-out @uref{http://wiki.github.com/matburt/mobileorg-android/, MobileOrg
-Android} by Matt Jones.  Though the two implementations are not identical,
-they offer similar features.
-
-This appendix describes Org's support for agenda view formats compatible with
-MobileOrg.  It also describes synchronizing changes, such as to notes,
-between MobileOrg and the computer.
-
-To change tags and TODO states in MobileOrg, first customize the variables
-@code{org-todo-keywords} and @code{org-tag-alist}.  These should cover all
-the important tags and TODO keywords, even if Org files use only some of
-them.  Though MobileOrg has in-buffer settings, it understands TODO states
-@emph{sets} (@pxref{Per-file keywords}) and @emph{mutually exclusive} tags
-(@pxref{Setting tags}) only for those set in these variables.
-
-@menu
-* Setting up the staging area::  For the mobile device
-* Pushing to MobileOrg::        Uploading Org files and agendas
-* Pulling from MobileOrg::      Integrating captured and flagged items
-@end menu
-
-@node Setting up the staging area
-@section Setting up the staging area
-
-MobileOrg needs access to a file directory on a server to interact with
-Emacs.  With a public server, consider encrypting the files.  MobileOrg
-version 1.5 supports encryption for the iPhone.  Org also requires
-@file{openssl} installed on the local computer.  To turn on encryption, set
-the same password in MobileOrg and in Emacs.  Set the password in the
-variable @code{org-mobile-use-encryption}@footnote{If Emacs is configured for
-safe storing of passwords, then configure the variable,
-@code{org-mobile-encryption-password}; please read the docstring of that
-variable.}.  Note that even after MobileOrg encrypts the file contents, the
-file names will remain visible on the file systems of the local computer, the
-server, and the mobile device.
-
-For a server to host files, consider options like
-@uref{http://dropbox.com,Dropbox.com} account@footnote{An alternative is to
-use webdav server.  MobileOrg documentation has details of webdav server
-configuration.  Additional help is at
-@uref{http://orgmode.org/worg/org-faq.html#mobileorg_webdav, FAQ entry}.}.
-On first connection, MobileOrg creates a directory @file{MobileOrg/} on
-Dropbox.  Pass its location to Emacs through an init file variable as
-follows:
-
-@lisp
-(setq org-mobile-directory "~/Dropbox/MobileOrg")
-@end lisp
-
-Org copies files to the above directory for MobileOrg.  Org also uses the
-same directory for sharing notes between Org and MobileOrg.
-
-@node Pushing to MobileOrg
-@section Pushing to MobileOrg
-
-Org pushes files listed in @code{org-mobile-files} to
-@code{org-mobile-directory}.  Files include agenda files (as listed in
-@code{org-agenda-files}).  Customize @code{org-mobile-files} to add other
-files.  File names will be staged with paths relative to
-@code{org-directory}, so all files should be inside this
-directory@footnote{Symbolic links in @code{org-directory} should have the
-same name as their targets.}.
-
-Push creates a special Org file @file{agendas.org} with custom agenda views
-defined by the user@footnote{While creating the agendas, Org mode will force
-ID properties on all referenced entries, so that these entries can be
-uniquely identified if MobileOrg flags them for further action.  To avoid
-setting properties configure the variable
-@code{org-mobile-force-id-on-agenda-items} to @code{nil}.  Org mode will then
-rely on outline paths, assuming they are unique.}.
-
-Org writes the file @file{index.org}, containing links to other files.
-MobileOrg reads this file first from the server to determine what other files
-to download for agendas.  For faster downloads, MobileOrg will read only
-those files whose checksums@footnote{Checksums are stored automatically in
-the file @file{checksums.dat}.} have changed.
-
-@node Pulling from MobileOrg
-@section Pulling from MobileOrg
-
-When MobileOrg synchronizes with the server, it pulls the Org files for
-viewing.  It then appends to the file @file{mobileorg.org} on the server the
-captured entries, pointers to flagged and changed entries.  Org integrates
-its data in an inbox file format.
-
-@enumerate
-@item
-Org moves all entries found in
-@file{mobileorg.org}@footnote{@file{mobileorg.org} will be empty after this
-operation.} and appends them to the file pointed to by the variable
-@code{org-mobile-inbox-for-pull}.  Each captured entry and each editing event
-is a top-level entry in the inbox file.
-@item
-After moving the entries, Org attempts changes to MobileOrg.  Some changes
-are applied directly and without user interaction.  Examples include changes
-to tags, TODO state, headline and body text.  Entries for further action are
-tagged as @code{:FLAGGED:}.  Org marks entries with problems with an error
-message in the inbox.  They have to be resolved manually.
-@item
-Org generates an agenda view for flagged entries for user intervention to
-clean up.  For notes stored in flagged entries, MobileOrg displays them in
-the echo area when the cursor is on the corresponding agenda item.
-
-@table @kbd
-@kindex ?
-@item ?
-Pressing @kbd{?} displays the entire flagged note in another window.  Org
-also pushes it to the kill ring.  To store flagged note as a normal note, use
-@kbd{?  z C-y C-c C-c}.  Pressing @kbd{?} twice does these things: first it
-removes the @code{:FLAGGED:} tag; second, it removes the flagged note from
-the property drawer; third, it signals that manual editing of the flagged
-entry is now finished.
-@end table
-@end enumerate
-
-@kindex C-c a ?
-@kbd{C-c a ?} returns to the agenda view to finish processing flagged
-entries.  Note that these entries may not be the most recent since MobileOrg
-searches files that were last pulled.  To get an updated agenda view with
-changes since the last pull, pull again.
 
 @node History and acknowledgments
 @appendix History and acknowledgments
@@ -19703,8 +19705,8 @@ mentioned in the manual.  For a complete list, use @kbd{M-x org-customize
 @c Local variables:
 @c fill-column: 77
 @c indent-tabs-mode: nil
-@c paragraph-start:    "\\|^@[a-zA-Z]*[ \n]\\|^@x?org\\(key\\|cmd\\)\\|\f\\|[ 	]*$"
-@c paragraph-separate: "\\|^@[a-zA-Z]*[ \n]\\|^@x?org\\(key\\|cmd\\)\\|[ 	\f]*$"
+@c paragraph-start:    "^@[a-zA-Z]*[ \n]\\|^@x?org\\(key\\|cmd\\)\\|\f\\|[ 	]*$"
+@c paragraph-separate: "^@[a-zA-Z]*[ \n]\\|^@x?org\\(key\\|cmd\\)\\|[ 	\f]*$"
 @c End:
 
 

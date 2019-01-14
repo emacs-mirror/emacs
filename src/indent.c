@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2018 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -116,7 +116,7 @@ disptab_matches_widthtab (struct Lisp_Char_Table *disptab, struct Lisp_Vector *w
 
   for (i = 0; i < 256; i++)
     if (character_width (i, disptab)
-        != XFASTINT (widthtab->contents[i]))
+        != XFIXNAT (widthtab->contents[i]))
       return 0;
 
   return 1;
@@ -235,24 +235,24 @@ skip_invisible (ptrdiff_t pos, ptrdiff_t *next_boundary_p, ptrdiff_t to, Lisp_Ob
   /* As for text properties, this gives a lower bound
      for where the invisible text property could change.  */
   proplimit = Fnext_property_change (position, buffer, Qt);
-  if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
+  if (XFIXNAT (overlay_limit) < XFIXNAT (proplimit))
     proplimit = overlay_limit;
   /* PROPLIMIT is now a lower bound for the next change
      in invisible status.  If that is plenty far away,
      use that lower bound.  */
-  if (XFASTINT (proplimit) > pos + 100 || XFASTINT (proplimit) >= to)
-    *next_boundary_p = XFASTINT (proplimit);
+  if (XFIXNAT (proplimit) > pos + 100 || XFIXNAT (proplimit) >= to)
+    *next_boundary_p = XFIXNAT (proplimit);
   /* Otherwise, scan for the next `invisible' property change.  */
   else
     {
       /* Don't scan terribly far.  */
       XSETFASTINT (proplimit, min (pos + 100, to));
       /* No matter what, don't go past next overlay change.  */
-      if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
+      if (XFIXNAT (overlay_limit) < XFIXNAT (proplimit))
 	proplimit = overlay_limit;
       tmp = Fnext_single_property_change (position, Qinvisible,
 					  buffer, proplimit);
-      end = XFASTINT (tmp);
+      end = XFIXNAT (tmp);
 #if 0
       /* Don't put the boundary in the middle of multibyte form if
          there is no actual property change.  */
@@ -472,7 +472,7 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
   Lisp_Object val, overlay;
 
   if (CONSP (val = get_char_property_and_overlay
-	     (make_number (pos), Qdisplay, Qnil, &overlay))
+	     (make_fixnum (pos), Qdisplay, Qnil, &overlay))
       && EQ (Qspace, XCAR (val)))
     { /* FIXME: Use calc_pixel_width_or_height.  */
       Lisp_Object plist = XCDR (val), prop;
@@ -483,16 +483,16 @@ check_display_width (ptrdiff_t pos, ptrdiff_t col, ptrdiff_t *endpos)
 	 : MOST_POSITIVE_FIXNUM);
 
       if ((prop = Fplist_get (plist, QCwidth),
-	   RANGED_INTEGERP (0, prop, INT_MAX))
+	   RANGED_FIXNUMP (0, prop, INT_MAX))
 	  || (prop = Fplist_get (plist, QCrelative_width),
-	      RANGED_INTEGERP (0, prop, INT_MAX)))
-	width = XINT (prop);
+	      RANGED_FIXNUMP (0, prop, INT_MAX)))
+	width = XFIXNUM (prop);
       else if (FLOATP (prop) && 0 <= XFLOAT_DATA (prop)
 	       && XFLOAT_DATA (prop) <= INT_MAX)
 	width = (int)(XFLOAT_DATA (prop) + 0.5);
       else if ((prop = Fplist_get (plist, QCalign_to),
-		RANGED_INTEGERP (col, prop, align_to_max)))
-	width = XINT (prop) - col;
+		RANGED_FIXNUMP (col, prop, align_to_max)))
+	width = XFIXNUM (prop) - col;
       else if (FLOATP (prop) && col <= XFLOAT_DATA (prop)
 	       && (XFLOAT_DATA (prop) <= align_to_max))
 	width = (int)(XFLOAT_DATA (prop) + 0.5) - col;
@@ -751,16 +751,16 @@ string_display_width (Lisp_Object string, Lisp_Object beg, Lisp_Object end)
     e = SCHARS (string);
   else
     {
-      CHECK_NUMBER (end);
-      e = XINT (end);
+      CHECK_FIXNUM (end);
+      e = XFIXNUM (end);
     }
 
   if (NILP (beg))
     b = 0;
   else
     {
-      CHECK_NUMBER (beg);
-      b = XINT (beg);
+      CHECK_FIXNUM (beg);
+      b = XFIXNUM (beg);
     }
 
   /* Make a pointer for decrementing through the chars before point.  */
@@ -820,32 +820,32 @@ The return value is the column where the insertion ends.  */)
   register ptrdiff_t fromcol;
   int tab_width = SANE_TAB_WIDTH (current_buffer);
 
-  CHECK_NUMBER (column);
+  CHECK_FIXNUM (column);
   if (NILP (minimum))
     XSETFASTINT (minimum, 0);
-  CHECK_NUMBER (minimum);
+  CHECK_FIXNUM (minimum);
 
   fromcol = current_column ();
-  mincol = fromcol + XINT (minimum);
-  if (mincol < XINT (column)) mincol = XINT (column);
+  mincol = fromcol + XFIXNUM (minimum);
+  if (mincol < XFIXNUM (column)) mincol = XFIXNUM (column);
 
   if (fromcol == mincol)
-    return make_number (mincol);
+    return make_fixnum (mincol);
 
   if (indent_tabs_mode)
     {
       Lisp_Object n;
       XSETFASTINT (n, mincol / tab_width - fromcol / tab_width);
-      if (XFASTINT (n) != 0)
+      if (XFIXNAT (n) != 0)
 	{
-	  Finsert_char (make_number ('\t'), n, Qt);
+	  Finsert_char (make_fixnum ('\t'), n, Qt);
 
 	  fromcol = (mincol / tab_width) * tab_width;
 	}
     }
 
   XSETFASTINT (column, mincol - fromcol);
-  Finsert_char (make_number (' '), column, Qt);
+  Finsert_char (make_fixnum (' '), column, Qt);
 
   last_known_column = mincol;
   last_known_column_point = PT;
@@ -866,7 +866,7 @@ following any initial whitespace.  */)
   ptrdiff_t posbyte;
 
   find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, NULL, &posbyte, 1);
-  return make_number (position_indentation (posbyte));
+  return make_fixnum (position_indentation (posbyte));
 }
 
 static ptrdiff_t
@@ -994,8 +994,8 @@ The return value is the current column.  */)
   EMACS_INT col;
   EMACS_INT goal;
 
-  CHECK_NATNUM (column);
-  goal = XINT (column);
+  CHECK_FIXNAT (column);
+  goal = XFIXNUM (column);
 
   col = goal;
   pos = ZV;
@@ -1020,13 +1020,13 @@ The return value is the current column.  */)
 	     first so that a marker at the end of the tab gets
 	     adjusted.  */
 	  SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-	  Finsert_char (make_number (' '), make_number (goal - prev_col), Qt);
+	  Finsert_char (make_fixnum (' '), make_fixnum (goal - prev_col), Qt);
 
 	  /* Now delete the tab, and indent to COL.  */
 	  del_range (PT, PT + 1);
 	  goal_pt = PT;
 	  goal_pt_byte = PT_BYTE;
-	  Findent_to (make_number (col), Qnil);
+	  Findent_to (make_fixnum (col), Qnil);
 	  SET_PT_BOTH (goal_pt, goal_pt_byte);
 
 	  /* Set the last_known... vars consistently.  */
@@ -1036,13 +1036,13 @@ The return value is the current column.  */)
 
   /* If line ends prematurely, add space to the end.  */
   if (col < goal && EQ (force, Qt))
-    Findent_to (make_number (col = goal), Qnil);
+    Findent_to (make_fixnum (col = goal), Qnil);
 
   last_known_column = col;
   last_known_column_point = PT;
   last_known_column_modified = MODIFF;
 
-  return make_number (col);
+  return make_fixnum (col);
 }
 
 /* compute_motion: compute buffer posn given screen posn and vice versa */
@@ -1128,8 +1128,8 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
   bool ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   struct Lisp_Char_Table *dp = window_display_table (win);
   EMACS_INT selective
-    = (INTEGERP (BVAR (current_buffer, selective_display))
-       ? XINT (BVAR (current_buffer, selective_display))
+    = (FIXNUMP (BVAR (current_buffer, selective_display))
+       ? XFIXNUM (BVAR (current_buffer, selective_display))
        : !NILP (BVAR (current_buffer, selective_display)) ? -1 : 0);
   ptrdiff_t selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
@@ -1338,9 +1338,9 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 	  if (!NILP (Vtruncate_partial_width_windows)
 	      && (total_width < FRAME_COLS (XFRAME (WINDOW_FRAME (win)))))
 	    {
-	      if (INTEGERP (Vtruncate_partial_width_windows))
+	      if (FIXNUMP (Vtruncate_partial_width_windows))
 		truncate
-		  = total_width < XFASTINT (Vtruncate_partial_width_windows);
+		  = total_width < XFIXNAT (Vtruncate_partial_width_windows);
 	      else
 		truncate = 1;
 	    }
@@ -1533,7 +1533,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 	      /* Is this character part of the current run?  If so, extend
 		 the run.  */
 	      if (pos - 1 == width_run_end
-		  && XFASTINT (width_table[c]) == width_run_width)
+		  && XFIXNAT (width_table[c]) == width_run_width)
 		width_run_end = pos;
 
 	      /* The previous run is over, since this is a character at a
@@ -1548,7 +1548,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 				       width_run_start, width_run_end);
 
 		  /* Start recording a new width run.  */
-		  width_run_width = XFASTINT (width_table[c]);
+		  width_run_width = XFIXNAT (width_table[c]);
 		  width_run_start = pos - 1;
 		  width_run_end = pos;
 		}
@@ -1754,48 +1754,48 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   ptrdiff_t hscroll;
   int tab_offset;
 
-  CHECK_NUMBER_COERCE_MARKER (from);
+  CHECK_FIXNUM_COERCE_MARKER (from);
   CHECK_CONS (frompos);
-  CHECK_NUMBER_CAR (frompos);
-  CHECK_NUMBER_CDR (frompos);
-  CHECK_NUMBER_COERCE_MARKER (to);
+  CHECK_FIXNUM (XCAR (frompos));
+  CHECK_FIXNUM (XCDR (frompos));
+  CHECK_FIXNUM_COERCE_MARKER (to);
   if (!NILP (topos))
     {
       CHECK_CONS (topos);
-      CHECK_NUMBER_CAR (topos);
-      CHECK_NUMBER_CDR (topos);
+      CHECK_FIXNUM (XCAR (topos));
+      CHECK_FIXNUM (XCDR (topos));
     }
   if (!NILP (width))
-    CHECK_NUMBER (width);
+    CHECK_FIXNUM (width);
 
   if (!NILP (offsets))
     {
       CHECK_CONS (offsets);
-      CHECK_NUMBER_CAR (offsets);
-      CHECK_NUMBER_CDR (offsets);
-      if (! (0 <= XINT (XCAR (offsets)) && XINT (XCAR (offsets)) <= PTRDIFF_MAX
-	     && 0 <= XINT (XCDR (offsets)) && XINT (XCDR (offsets)) <= INT_MAX))
+      CHECK_FIXNUM (XCAR (offsets));
+      CHECK_FIXNUM (XCDR (offsets));
+      if (! (0 <= XFIXNUM (XCAR (offsets)) && XFIXNUM (XCAR (offsets)) <= PTRDIFF_MAX
+	     && 0 <= XFIXNUM (XCDR (offsets)) && XFIXNUM (XCDR (offsets)) <= INT_MAX))
 	args_out_of_range (XCAR (offsets), XCDR (offsets));
-      hscroll = XINT (XCAR (offsets));
-      tab_offset = XINT (XCDR (offsets));
+      hscroll = XFIXNUM (XCAR (offsets));
+      tab_offset = XFIXNUM (XCDR (offsets));
     }
   else
     hscroll = tab_offset = 0;
 
   w = decode_live_window (window);
 
-  if (XINT (from) < BEGV || XINT (from) > ZV)
-    args_out_of_range_3 (from, make_number (BEGV), make_number (ZV));
-  if (XINT (to) < BEGV || XINT (to) > ZV)
-    args_out_of_range_3 (to, make_number (BEGV), make_number (ZV));
+  if (XFIXNUM (from) < BEGV || XFIXNUM (from) > ZV)
+    args_out_of_range_3 (from, make_fixnum (BEGV), make_fixnum (ZV));
+  if (XFIXNUM (to) < BEGV || XFIXNUM (to) > ZV)
+    args_out_of_range_3 (to, make_fixnum (BEGV), make_fixnum (ZV));
 
-  pos = compute_motion (XINT (from), CHAR_TO_BYTE (XINT (from)),
-			XINT (XCDR (frompos)),
-			XINT (XCAR (frompos)), 0,
-			XINT (to),
+  pos = compute_motion (XFIXNUM (from), CHAR_TO_BYTE (XFIXNUM (from)),
+			XFIXNUM (XCDR (frompos)),
+			XFIXNUM (XCAR (frompos)), 0,
+			XFIXNUM (to),
 			(NILP (topos)
 			 ? window_internal_height (w)
-			 : XINT (XCDR (topos))),
+			 : XFIXNUM (XCDR (topos))),
 			(NILP (topos)
 			 ? (window_body_width (w, 0)
 			    - (
@@ -1803,8 +1803,8 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 			       FRAME_WINDOW_P (XFRAME (w->frame)) ? 0 :
 #endif
 			       1))
-			 : XINT (XCAR (topos))),
-			(NILP (width) ? -1 : XINT (width)),
+			 : XFIXNUM (XCAR (topos))),
+			(NILP (width) ? -1 : XFIXNUM (width)),
 			hscroll, tab_offset, w);
 
   XSETFASTINT (bufpos, pos->bufpos);
@@ -1831,8 +1831,8 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
   register ptrdiff_t first;
   ptrdiff_t lmargin = hscroll > 0 ? 1 - hscroll : 0;
   ptrdiff_t selective
-    = (INTEGERP (BVAR (current_buffer, selective_display))
-       ? clip_to_bounds (-1, XINT (BVAR (current_buffer, selective_display)),
+    = (FIXNUMP (BVAR (current_buffer, selective_display))
+       ? clip_to_bounds (-1, XFIXNUM (BVAR (current_buffer, selective_display)),
 			 PTRDIFF_MAX)
        : !NILP (BVAR (current_buffer, selective_display)) ? -1 : 0);
   Lisp_Object window;
@@ -1870,7 +1870,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 		      && indented_beyond_p (prevline, bytepos, selective))
 		     /* Watch out for newlines with `invisible' property.
 			When moving upward, check the newline before.  */
-		     || (propval = Fget_char_property (make_number (prevline - 1),
+		     || (propval = Fget_char_property (make_fixnum (prevline - 1),
 						       Qinvisible,
 						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))))
@@ -1920,7 +1920,7 @@ vmotion (register ptrdiff_t from, register ptrdiff_t from_byte,
 		  && indented_beyond_p (prevline, bytepos, selective))
 		 /* Watch out for newlines with `invisible' property.
 		    When moving downward, check the newline after.  */
-		 || (propval = Fget_char_property (make_number (prevline),
+		 || (propval = Fget_char_property (make_fixnum (prevline),
 						   Qinvisible,
 						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))))
@@ -2016,8 +2016,8 @@ numbers on display.  */)
       return make_float ((double) pixel_width / FRAME_COLUMN_WIDTH (f));
     }
   else if (!NILP (pixelwise))
-    return make_number (pixel_width);
-  return make_number (width);
+    return make_fixnum (pixel_width);
+  return make_fixnum (width);
 }
 
 /* In window W (derived from WINDOW), return x coordinate for column
@@ -2045,8 +2045,8 @@ restore_window_buffer (Lisp_Object list)
   wset_buffer (w, XCAR (list));
   list = XCDR (list);
   set_marker_both (w->pointm, w->contents,
-		   XFASTINT (XCAR (list)),
-		   XFASTINT (XCAR (XCDR (list))));
+		   XFIXNAT (XCAR (list)),
+		   XFIXNAT (XCAR (XCDR (list))));
 }
 
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 3, 0,
@@ -2100,15 +2100,15 @@ whether or not it is currently displayed in some window.  */)
       lines = XCDR (lines);
     }
 
-  CHECK_NUMBER (lines);
+  CHECK_FIXNUM (lines);
   w = decode_live_window (window);
 
   if (XBUFFER (w->contents) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
       Lisp_Object old = list4 (window, w->contents,
-			       make_number (marker_position (w->pointm)),
-			       make_number (marker_byte_position (w->pointm)));
+			       make_fixnum (marker_position (w->pointm)),
+			       make_fixnum (marker_byte_position (w->pointm)));
       record_unwind_protect (restore_window_buffer, old);
       wset_buffer (w, Fcurrent_buffer ());
       set_marker_both (w->pointm, w->contents,
@@ -2118,7 +2118,7 @@ whether or not it is currently displayed in some window.  */)
   if (noninteractive)
     {
       struct position pos;
-      pos = *vmotion (PT, PT_BYTE, XINT (lines), w);
+      pos = *vmotion (PT, PT_BYTE, XFIXNUM (lines), w);
       SET_PT_BOTH (pos.bufpos, pos.bytepos);
       it.vpos = pos.vpos;
     }
@@ -2128,7 +2128,7 @@ whether or not it is currently displayed in some window.  */)
       int first_x;
       bool overshoot_handled = 0;
       bool disp_string_at_start_p = 0;
-      ptrdiff_t nlines = XINT (lines);
+      ptrdiff_t nlines = XFIXNUM (lines);
       int vpos_init = 0;
       double start_col UNINIT;
       int start_x UNINIT;
@@ -2147,8 +2147,7 @@ whether or not it is currently displayed in some window.  */)
 	 will sometimes err by one column.  */
       int lnum_width = 0;
       int lnum_pixel_width = 0;
-      if (!NILP (Vdisplay_line_numbers)
-	  && !EQ (Vdisplay_line_numbers, Qvisual))
+      if (!NILP (Vdisplay_line_numbers))
 	line_number_display_width (w, &lnum_width, &lnum_pixel_width);
       SET_TEXT_POS (pt, PT, PT_BYTE);
       itdata = bidi_shelve_cache ();
@@ -2278,7 +2277,9 @@ whether or not it is currently displayed in some window.  */)
 	  overshoot_handled = 1;
 	}
       if (lcols_given)
-	to_x = window_column_x (w, window, extract_float (lcols), lcols);
+	to_x =
+	  window_column_x (w, window, extract_float (lcols), lcols)
+	  + lnum_pixel_width;
       if (nlines <= 0)
 	{
 	  it.vpos = vpos_init;
@@ -2330,12 +2331,6 @@ whether or not it is currently displayed in some window.  */)
 	 an addition to the hscroll amount.  */
       if (lcols_given)
 	{
-	  /* If we are displaying line numbers, we could cross the
-	     line where the width of the line-number display changes,
-	     in which case we need to fix up the pixel coordinate
-	     accordingly.  */
-	  if (lnum_pixel_width > 0)
-	    to_x += it.lnum_pixel_width - lnum_pixel_width;
 	  move_it_in_display_line (&it, ZV, first_x + to_x, MOVE_TO_X);
 	  /* If we find ourselves in the middle of an overlay string
 	     which includes a newline after current string position,
@@ -2361,9 +2356,7 @@ whether or not it is currently displayed in some window.  */)
       bidi_unshelve_cache (itdata, 0);
     }
 
-  unbind_to (count, Qnil);
-
-  return make_number (it.vpos);
+  return unbind_to (count, make_fixnum (it.vpos));
 }
 
 

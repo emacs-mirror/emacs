@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -485,7 +485,7 @@ Delete all frames on the current terminal, except the selected one.
 Toggle the maximization state of the current frame.  When a frame is
 maximized, it fills the screen.
 
-@item @key{F11>}
+@item @key{F11}
 @kindex F11
 @findex toggle-frame-fullscreen
 Toggle full-screen mode for the current frame.  (The difference
@@ -933,6 +933,10 @@ the initial frame, by customizing the variable
   If Emacs is compiled to use an X toolkit, frame parameters that
 specify colors and fonts don't affect menus and the menu bar, since
 those are drawn by the toolkit and not directly by Emacs.
+
+  Frame appearance and behavior can also be customized through X
+resources (@pxref{X Resources}); these override the parameters of the
+initial frame specified in your init file.
 
   Note that if you are using the desktop library to save and restore
 your sessions, the frames to be restored are recorded in the desktop

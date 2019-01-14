@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2018 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -200,8 +200,8 @@ fix_command (Lisp_Object input, Lisp_Object values)
 		  carelt = XCAR (elt);
 		  /* If it is (if X Y), look at Y.  */
 		  if (EQ (carelt, Qif)
-		      && EQ (Fnthcdr (make_number (3), elt), Qnil))
-		    elt = Fnth (make_number (2), elt);
+		      && NILP (Fnthcdr (make_fixnum (3), elt)))
+		    elt = Fnth (make_fixnum (2), elt);
 		  /* If it is (when ... Y), look at Y.  */
 		  else if (EQ (carelt, Qwhen))
 		    {
@@ -262,7 +262,7 @@ to the function `interactive' at the top level of the function body.
 See `interactive'.
 
 Optional second arg RECORD-FLAG non-nil
-means unconditionally put this command in the command-history.
+means unconditionally put this command in the variable `command-history'.
 Otherwise, this is done only if an arg is read using the minibuffer.
 
 Optional third arg KEYS, if given, specifies the sequence of events to
@@ -328,18 +328,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	     and turn them into things we can eval.  */
 	  Lisp_Object values = quotify_args (Fcopy_sequence (specs));
 	  fix_command (input, values);
-	  Lisp_Object this_cmd = Fcons (function, values);
-	  if (history_delete_duplicates)
-	    Vcommand_history = Fdelete (this_cmd, Vcommand_history);
-	  Vcommand_history = Fcons (this_cmd, Vcommand_history);
-
-	  /* Don't keep command history around forever.  */
-	  if (INTEGERP (Vhistory_length) && XINT (Vhistory_length) > 0)
-	    {
-	      Lisp_Object teml = Fnthcdr (Vhistory_length, Vcommand_history);
-	      if (CONSP (teml))
-		XSETCDR (teml, Qnil);
-	    }
+          call4 (intern ("add-to-history"), intern ("command-history"),
+                 Fcons (function, values), Qnil, Qt);
 	}
 
       Vthis_command = save_this_command;
@@ -489,8 +479,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
         case 'c':		/* Character.  */
 	  /* Prompt in `minibuffer-prompt' face.  */
-	  Fput_text_property (make_number (0),
-			      make_number (SCHARS (callint_message)),
+	  Fput_text_property (make_fixnum (0),
+			      make_fixnum (SCHARS (callint_message)),
 			      Qface, Qminibuffer_prompt, callint_message);
 	  args[i] = Fread_char (callint_message, Qnil, Qnil);
 	  message1_nolog (0);
@@ -541,8 +531,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    /* Prompt in `minibuffer-prompt' face.  */
-	    Fput_text_property (make_number (0),
-				make_number (SCHARS (callint_message)),
+	    Fput_text_property (make_fixnum (0),
+				make_fixnum (SCHARS (callint_message)),
 				Qface, Qminibuffer_prompt, callint_message);
 	    args[i] = Fread_key_sequence (callint_message,
 					  Qnil, Qnil, Qnil, Qnil);
@@ -552,7 +542,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    /* If the key sequence ends with a down-event,
 	       discard the following up-event.  */
 	    Lisp_Object teml
-	      = Faref (args[i], make_number (XINT (Flength (args[i])) - 1));
+	      = Faref (args[i], make_fixnum (XFIXNUM (Flength (args[i])) - 1));
 	    if (CONSP (teml))
 	      teml = XCAR (teml);
 	    if (SYMBOLP (teml))
@@ -571,8 +561,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    ptrdiff_t speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    /* Prompt in `minibuffer-prompt' face.  */
-	    Fput_text_property (make_number (0),
-				make_number (SCHARS (callint_message)),
+	    Fput_text_property (make_fixnum (0),
+				make_fixnum (SCHARS (callint_message)),
 				Qface, Qminibuffer_prompt, callint_message);
 	    args[i] = Fread_key_sequence_vector (callint_message,
 						 Qnil, Qt, Qnil, Qnil);
@@ -582,7 +572,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    /* If the key sequence ends with a down-event,
 	       discard the following up-event.  */
 	    Lisp_Object teml
-	      = Faref (args[i], make_number (XINT (Flength (args[i])) - 1));
+	      = Faref (args[i], make_fixnum (ASIZE (args[i]) - 1));
 	    if (CONSP (teml))
 	      teml = XCAR (teml);
 	    if (SYMBOLP (teml))
@@ -599,7 +589,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'U':		/* Up event from last k or K.  */
 	  if (!NILP (up_event))
 	    {
-	      args[i] = Fmake_vector (make_number (1), up_event);
+	      args[i] = make_vector (1, up_event);
 	      up_event = Qnil;
 	      visargs[i] = Fkey_description (args[i], Qnil);
 	    }
@@ -768,15 +758,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	visargs[i] = (varies[i] > 0
 		      ? list1 (intern (callint_argfuns[varies[i]]))
 		      : quotify_arg (args[i]));
-      Vcommand_history = Fcons (Flist (nargs - 1, visargs + 1),
-				Vcommand_history);
-      /* Don't keep command history around forever.  */
-      if (INTEGERP (Vhistory_length) && XINT (Vhistory_length) > 0)
-	{
-	  Lisp_Object teml = Fnthcdr (Vhistory_length, Vcommand_history);
-	  if (CONSP (teml))
-	    XSETCDR (teml, Qnil);
-	}
+      call4 (intern ("add-to-history"), intern ("command-history"),
+             Flist (nargs - 1, visargs + 1), Qnil, Qt);
     }
 
   /* If we used a marker to hold point, mark, or an end of the region,
@@ -796,8 +779,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   specbind (Qcommand_debug_status, Qnil);
 
   Lisp_Object val = Ffuncall (nargs, args);
-  SAFE_FREE ();
-  return unbind_to (speccount, val);
+  return SAFE_FREE_UNBIND_TO (speccount, val);
 }
 
 DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
@@ -813,9 +795,9 @@ Its numeric meaning is what you would get from `(interactive "p")'.  */)
     XSETFASTINT (val, 1);
   else if (EQ (raw, Qminus))
     XSETINT (val, -1);
-  else if (CONSP (raw) && INTEGERP (XCAR (raw)))
-    XSETINT (val, XINT (XCAR (raw)));
-  else if (INTEGERP (raw))
+  else if (CONSP (raw) && FIXNUMP (XCAR (raw)))
+    XSETINT (val, XFIXNUM (XCAR (raw)));
+  else if (FIXNUMP (raw))
     val = raw;
   else
     XSETFASTINT (val, 1);

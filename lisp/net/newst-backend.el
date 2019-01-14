@@ -1,6 +1,6 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-backend.el
@@ -170,7 +170,7 @@ These were mostly extracted from the Radio Community Server at
 http://subhonker6.userland.com/rcsPublic/rssHotlist.
 
 You may add other entries in `newsticker-url-list'."
-  :type `(set ,@(mapcar `newsticker--splicer
+  :type `(set ,@(mapcar #'newsticker--splicer
                         newsticker--raw-url-list-defaults))
   :set 'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
@@ -874,11 +874,12 @@ Argument BUFFER is the buffer of the retrieval process."
                   (decode-coding-region (point-min) (point-max)
                                         coding-system))
                 (condition-case errordata
-                    ;; The xml parser might fail or the xml might be
-                    ;; bugged
+                    ;; The xml parser might fail or the xml might be bugged.
                     (if (fboundp 'libxml-parse-xml-region)
-                        (list (libxml-parse-xml-region (point-min) (point-max)
-                                                       nil t))
+                        (progn
+                          (xml-remove-comments (point-min) (point-max))
+                          (list (libxml-parse-xml-region (point-min) (point-max)
+                                                         nil)))
                       (xml-parse-region (point-min) (point-max)))
                   (error (message "Could not parse %s: %s"
                                   (buffer-name) (cadr errordata))
@@ -1799,7 +1800,8 @@ download it from URL first."
   (let ((image-name (concat directory feed-name)))
     (if (and (file-exists-p image-name)
              (time-less-p nil
-                          (time-add (nth 5 (file-attributes image-name))
+                          (time-add (file-attribute-modification-time
+				     (file-attributes image-name))
                                     (seconds-to-time 86400))))
         (newsticker--debug-msg "%s: Getting image for %s skipped"
                                (format-time-string "%A, %H:%M")

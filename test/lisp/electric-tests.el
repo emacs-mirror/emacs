@@ -1,6 +1,6 @@
 ;;; electric-tests.el --- tests for electric.el
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords:
@@ -114,14 +114,30 @@
                                      mode
                                      extra-desc))
            ()
-         ,(format "With |%s|, try input %c at point %d. \
-Should %s |%s| and point at %d"
-                  fixture
-                  char
+         ,(format "Electricity test in a `%s' buffer.\n
+Start with point at %d in a %d-char-long buffer
+like this one:
+
+  |%s|   (buffer start and end are denoted by `|')
+%s
+%s
+Now press the key for: %c
+
+The buffer's contents should %s:
+
+  |%s|
+
+, and point should be at %d."
+                  mode
                   (1+ pos)
-                  (if (string= fixture expected-string)
-                      "stay"
-                    "become")
+                  (length fixture)
+                  fixture
+                  (if fixture-fn (format "\nNow call this:\n\n%s"
+                                         (pp-to-string fixture-fn)) "")
+                  (if bindings (format "\nEnsure the following bindings:\n\n%s"
+                                       (pp-to-string bindings)) "")
+                  char
+                  (if (string= fixture expected-string) "stay" "become")
                   (replace-regexp-in-string "\n" "\\\\n" expected-string)
                   expected-point)
          (electric-pair-test-for ,fixture
@@ -163,9 +179,9 @@ Should %s |%s| and point at %d"
                         ""
                         "-in-comments")))
                  (if test-in-strings
-                     `(("\"" "\"" "-in-strings")))
+                     '(("\"" "\"" "-in-strings")))
                  (if test-in-code
-                     `(("" "" ""))))
+                     '(("" "" ""))))
          append
          (cl-loop
           for char across input
@@ -374,6 +390,16 @@ baz\"\""
   " ( \n\t\t\n  )  " "--)------" :expected-string " ()  " :expected-point 4
   :bindings '((electric-pair-skip-whitespace . chomp))
   :test-in-comments nil)
+
+
+;; A test failure introduced by some changes in CC mode.  Hopefully CC
+;; mode will sort this out eventually, using some new e-p-m machinery.
+;; See
+;; https://lists.gnu.org/archive/html/emacs-devel/2018-06/msg00535.html
+(setf
+ (ert-test-expected-result-type
+  (ert-get-test 'electric-pair-whitespace-chomping-2-at-point-4-in-c++-mode-in-strings))
+ :failed)
 
 (define-electric-pair-test whitespace-chomping-dont-cross-comments
   " ( \n\t\t\n  )  " "--)------" :expected-string " () \n\t\t\n  )  "
@@ -785,6 +811,110 @@ baz\"\""
                           nil :local))
   :bindings '((comment-start . "<!--") (comment-use-syntax . t))
   :test-in-comments nil :test-in-strings nil)
+
+
+;;; tests for `electric-layout-mode'
+
+(ert-deftest electric-layout-int-main-kernel-style ()
+  (ert-with-test-buffer ()
+    (c-mode)
+    (electric-layout-local-mode 1)
+    (electric-pair-local-mode 1)
+    (electric-indent-local-mode 1)
+    (setq-local electric-layout-rules
+                '((?\{ . (after-stay after))))
+    (insert "int main () ")
+    (let ((last-command-event ?\{))
+      (call-interactively (key-binding `[,last-command-event])))
+    (should (equal (buffer-string) "int main () {\n  \n}"))))
+
+(ert-deftest electric-layout-int-main-allman-style ()
+  (ert-with-test-buffer ()
+    (c-mode)
+    (electric-layout-local-mode 1)
+    (electric-pair-local-mode 1)
+    (electric-indent-local-mode 1)
+    (setq-local electric-layout-rules
+                '((?\{ . (before after-stay after))))
+    (insert "int main () ")
+    (let ((last-command-event ?\{))
+      (call-interactively (key-binding `[,last-command-event])))
+    (should (equal (buffer-string) "int main ()\n{\n  \n}"))))
+
+(define-derived-mode plainer-c-mode c-mode "pC"
+  "A plainer/saner C-mode with no internal electric machinery."
+  (c-toggle-electric-state -1)
+  (setq-local electric-indent-local-mode-hook nil)
+  (setq-local electric-indent-mode-hook nil)
+  (electric-indent-local-mode 1)
+  (dolist (key '(?\" ?\' ?\{ ?\} ?\( ?\) ?\[ ?\]))
+    (local-set-key (vector key) 'self-insert-command)))
+
+(ert-deftest electric-modes-in-c-mode-with-self-insert-command ()
+  (ert-with-test-buffer ()
+    (plainer-c-mode)
+    (electric-layout-local-mode 1)
+    (electric-pair-local-mode 1)
+    (electric-indent-local-mode 1)
+    (setq-local electric-layout-rules
+                '((?\{ . (before after-stay after))))
+    (insert "int main () ")
+    (let ((last-command-event ?\{))
+      (call-interactively (key-binding `[,last-command-event])))
+    (should (equal (buffer-string) "int main ()\n{\n  \n}"))))
+
+(ert-deftest electric-pair-mode-newline-between-parens ()
+  (ert-with-test-buffer ()
+    (plainer-c-mode)
+    (electric-layout-local-mode -1) ;; ensure e-l-m mode is off
+    (electric-pair-local-mode 1)
+    (insert-before-markers "int main () {}")
+    (backward-char 1)
+    (let ((last-command-event ?))
+      (call-interactively (key-binding `[,last-command-event])))
+    (should (equal (buffer-string) "int main () {\n  \n}"))))
+
+(ert-deftest electric-layout-mode-newline-between-parens-without-e-p-m ()
+  (ert-with-test-buffer ()
+    (plainer-c-mode)
+    (electric-layout-local-mode 1)
+    (electric-pair-local-mode -1) ;; ensure e-p-m mode is off
+    (electric-indent-local-mode 1)
+    (setq-local electric-layout-rules
+                '((?\n
+                   .
+                   (lambda ()
+                     (when (eq (save-excursion
+                                 (skip-chars-backward "\t\s")
+                                 (char-before (1- (point))))
+                               (matching-paren (char-after)))
+                       '(after-stay))))))
+    (insert "int main () {}")
+    (backward-char 1)
+    (let ((last-command-event ?))
+      (call-interactively (key-binding `[,last-command-event])))
+    (should (equal (buffer-string) "int main () {\n  \n}"))))
+
+(ert-deftest electric-layout-mode-newline-between-parens-without-e-p-m-2 ()
+  (ert-with-test-buffer ()
+    (plainer-c-mode)
+    (electric-layout-local-mode 1)
+    (electric-pair-local-mode -1) ;; ensure e-p-m mode is off
+    (electric-indent-local-mode 1)
+    (setq-local electric-layout-rules
+                '((lambda (char)
+                    (when (and
+                           (eq char ?\n)
+                           (eq (save-excursion
+                                 (skip-chars-backward "\t\s")
+                                 (char-before (1- (point))))
+                               (matching-paren (char-after))))
+                       '(after-stay)))))
+    (insert "int main () {}")
+    (backward-char 1)
+    (let ((last-command-event ?))
+      (call-interactively (key-binding `[,last-command-event])))
+    (should (equal (buffer-string) "int main () {\n  \n}"))))
 
 (provide 'electric-tests)
 ;;; electric-tests.el ends here

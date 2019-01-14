@@ -1,6 +1,6 @@
 ;;; semantic/db-ref.el --- Handle cross-db file references
 
-;;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -80,7 +80,7 @@ Abstract tables would be difficult to reference."
 
 (cl-defmethod semanticdb-check-references ((dbt semanticdb-table))
   "Check and cleanup references in the database DBT.
-Any reference to a file that cannot be found, or whos file no longer
+Any reference to a file that cannot be found, or whose file no longer
 refers to DBT will be removed."
   (let ((refs (oref dbt db-refs))
 	(myexpr (concat "\\<" (oref dbt file)))
@@ -162,8 +162,7 @@ refreshed before dumping the result."
   (let* ((tab semanticdb-current-table)
 	 (myrefs (oref tab db-refs))
 	 (myinc (semanticdb-includes-in-table tab))
-	 (adbc (semanticdb-ref-adebug "DEBUG"
-				      :i-depend-on myrefs
+	 (adbc (semanticdb-ref-adebug :i-depend-on myrefs
 				      :local-table tab
 				      :i-include myinc)))
     (data-debug-new-buffer "*References ADEBUG*")

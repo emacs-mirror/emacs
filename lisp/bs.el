@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -828,8 +828,8 @@ See `visit-tags-table'."
   (let ((res
          (with-current-buffer (bs--current-buffer)
            (setq bs-buffer-show-mark (pcase bs-buffer-show-mark
-                                       (`nil   'never)
-                                       (`never 'always)
+                                       ('nil   'never)
+                                       ('never 'always)
                                        (_       nil))))))
     (bs--update-current-line)
     (bs--set-window-height)
@@ -1159,7 +1159,7 @@ and move point to current buffer."
   (bs-mode)
   (let* ((inhibit-read-only t)
 	 (map-fun (lambda (entry)
-		    (length (buffer-name entry))))
+		    (string-width (buffer-name entry))))
 	 (max-length-of-names (apply 'max
 				     (cons 0 (mapcar map-fun list))))
 	 (name-entry-length (min bs-maximal-buffer-name-column
@@ -1371,7 +1371,7 @@ normally *buffer-selection*."
 							  apply-args)
 					   (nth 3 column)                ; align
 					   (- min to-much)))
-	       (len (length new-string)))
+	       (len (string-width new-string)))
 	  (setq string (concat string new-string))
 	  (when (> len min)
 	    (setq to-much (- len min))))))

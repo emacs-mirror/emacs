@@ -1,6 +1,6 @@
 ;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ulrik Vieth <vieth@thphy.uni-duesseldorf.de>
 ;; Version: 1.0
@@ -47,8 +47,8 @@
 ;; `metafont-mode-hook' and `metapost-mode-hook' which apply to the
 ;; individual modes.  In addition, there are several variables and
 ;; regexps controlling e.g. the behavior of the indentation function,
-;; which may be customized via `edit-options'.  Please refer to the
-;; docstrings in the code below for details.
+;; which may be customized.  Please refer to the docstrings in the code
+;; below for details.
 
 ;; Availability:
 ;;

@@ -4,7 +4,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1987, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1987, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1903,7 +1903,7 @@ by @kbd{o} or @kbd{O} command.
 @item vip-tags-file-name "TAGS"
 The name of the file used as the tags table.
 @item vip-help-in-insert-mode nil
-If @code{t} then @key{C-h} is bound to @code{help-command} in insert mode,
+If @code{t} then @kbd{C-h} is bound to @code{help-command} in insert mode,
 if @code{nil} then it sis bound to @code{delete-backward-char}.
 @end table
 @noindent

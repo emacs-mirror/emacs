@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (defvar gnus-newsrc-file-version)
 
 (require 'gnus)
@@ -271,9 +271,7 @@ Return a list of updated types."
 	       (insert " ")))
 	 (insert-char ?  (max (- ,column (current-column)) 0))))))
 
-(defun gnus-correct-length (string)
-  "Return the correct width of STRING."
-  (apply #'+ (mapcar #'char-width string)))
+(define-obsolete-function-alias 'gnus-correct-length 'string-width "27.1")
 
 (defun gnus-correct-substring (string start &optional end)
   (let ((wstart 0)
@@ -285,15 +283,15 @@ Return a list of updated types."
     ;; Find the start position.
     (while (and (< seek length)
 		(< wseek start))
-      (incf wseek (char-width (aref string seek)))
-      (incf seek))
+      (cl-incf wseek (char-width (aref string seek)))
+      (cl-incf seek))
     (setq wstart seek)
     ;; Find the end position.
     (while (and (<= seek length)
 		(or (not end)
 		    (<= wseek end)))
-      (incf wseek (char-width (aref string seek)))
-      (incf seek))
+      (cl-incf wseek (char-width (aref string seek)))
+      (cl-incf seek))
     (setq wend seek)
     (substring string wstart (1- wend))))
 

@@ -1,6 +1,6 @@
 /* fsusage.c -- return space usage of mounted file systems
 
-   Copyright (C) 1991-1992, 1996, 1998-1999, 2002-2006, 2009-2018 Free Software
+   Copyright (C) 1991-1992, 1996, 1998-1999, 2002-2006, 2009-2019 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -45,9 +45,6 @@
 # endif
 # if HAVE_SYS_STATFS_H
 #  include <sys/statfs.h>
-# endif
-# if HAVE_DUSTAT_H              /* AIX PS/2 */
-#  include <sys/dustat.h>
 # endif
 #endif
 
@@ -151,21 +148,6 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
                         ? PROPAGATE_ALL_ONES (fsd.f_frsize)
                         : PROPAGATE_ALL_ONES (fsd.f_bsize));
 
-#elif defined STAT_STATFS2_FS_DATA      /* Ultrix */
-
-  struct fs_data fsd;
-
-  if (statfs (file, &fsd) != 1)
-    return -1;
-
-  fsp->fsu_blocksize = 1024;
-  fsp->fsu_blocks = PROPAGATE_ALL_ONES (fsd.fd_req.btot);
-  fsp->fsu_bfree = PROPAGATE_ALL_ONES (fsd.fd_req.bfree);
-  fsp->fsu_bavail = PROPAGATE_TOP_BIT (fsd.fd_req.bfreen);
-  fsp->fsu_bavail_top_bit_set = EXTRACT_TOP_BIT (fsd.fd_req.bfreen) != 0;
-  fsp->fsu_files = PROPAGATE_ALL_ONES (fsd.fd_req.gtot);
-  fsp->fsu_ffree = PROPAGATE_ALL_ONES (fsd.fd_req.gfree);
-
 #elif defined STAT_STATFS3_OSF1         /* OSF/1 */
 
   struct statfs fsd;
@@ -219,12 +201,7 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
 
   fsp->fsu_blocksize = PROPAGATE_ALL_ONES (fsd.f_fsize);
 
-#elif defined STAT_STATFS4              /* SVR3, Dynix, old Irix, old AIX, \
-                                           Dolphin */
-
-# if !_AIX && !defined _SEQUENT_ && !defined DOLPHIN
-#  define f_bavail f_bfree
-# endif
+#elif defined STAT_STATFS4              /* SVR3, old Irix */
 
   struct statfs fsd;
 
@@ -234,7 +211,7 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
   /* Empirically, the block counts on most SVR3 and SVR3-derived
      systems seem to always be in terms of 512-byte blocks,
      no matter what value f_bsize has.  */
-# if _AIX || defined _CRAY
+# if defined _CRAY
    fsp->fsu_blocksize = PROPAGATE_ALL_ONES (fsd.f_bsize);
 # else
    fsp->fsu_blocksize = 512;
@@ -258,30 +235,3 @@ get_fs_usage (char const *file, char const *disk, struct fs_usage *fsp)
   (void) disk;  /* avoid argument-unused warning */
   return 0;
 }
-
-#if defined _AIX && defined _I386
-/* AIX PS/2 does not supply statfs.  */
-
-int
-statfs (char *file, struct statfs *fsb)
-{
-  struct stat stats;
-  struct dustat fsd;
-
-  if (stat (file, &stats) != 0)
-    return -1;
-  if (dustat (stats.st_dev, 0, &fsd, sizeof (fsd)))
-    return -1;
-  fsb->f_type   = 0;
-  fsb->f_bsize  = fsd.du_bsize;
-  fsb->f_blocks = fsd.du_fsize - fsd.du_isize;
-  fsb->f_bfree  = fsd.du_tfree;
-  fsb->f_bavail = fsd.du_tfree;
-  fsb->f_files  = (fsd.du_isize - 2) * fsd.du_inopb;
-  fsb->f_ffree  = fsd.du_tinode;
-  fsb->f_fsid.val[0] = fsd.du_site;
-  fsb->f_fsid.val[1] = fsd.du_pckno;
-  return 0;
-}
-
-#endif /* _AIX && _I386 */

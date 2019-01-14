@@ -7,7 +7,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1991--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1991--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -470,7 +470,7 @@ commands that @samp{tag} or @samp{diff} a file (which can be changed
 with the variable @code{cvs-invert-ignore-marks}).
 
 In addition, you may use the special prefix @code{cvs-mode-toggle-marks}
-normally bound to @key{T} to toggle the use of marks for the following
+normally bound to @kbd{T} to toggle the use of marks for the following
 command.
 
 This scheme might seem a little complicated, but once one gets used to

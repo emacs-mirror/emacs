@@ -1,6 +1,6 @@
 ;;; binhex.el --- decode BinHex-encoded text  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: binhex news
@@ -136,9 +136,9 @@ input and write the converted data to its standard output."
 (defun binhex-update-crc (crc char &optional count)
   (if (null count) (setq count 1))
   (while (> count 0)
-    (setq crc (logxor (logand (lsh crc 8) 65280)
+    (setq crc (logxor (logand (ash crc 8) 65280)
 		      (aref binhex-crc-table
-			    (logxor (logand (lsh crc -8) 255)
+			    (logxor (logand (ash crc -8) 255)
 				    char)))
 	  count (1- count)))
   crc)
@@ -156,14 +156,14 @@ input and write the converted data to its standard output."
 (defun binhex-string-big-endian (string)
   (let ((ret 0) (i 0) (len (length string)))
     (while (< i len)
-      (setq ret (+ (lsh ret 8) (binhex-char-int (aref string i)))
+      (setq ret (+ (ash ret 8) (binhex-char-int (aref string i)))
 	    i (1+ i)))
     ret))
 
 (defun binhex-string-little-endian (string)
   (let ((ret 0) (i 0) (shift 0) (len (length string)))
     (while (< i len)
-      (setq ret (+ ret (lsh (binhex-char-int (aref string i)) shift))
+      (setq ret (+ ret (ash (binhex-char-int (aref string i)) shift))
 	    i (1+ i)
 	    shift (+ shift 8)))
     ret))
@@ -239,13 +239,13 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 		      counter (1+ counter)
 		      inputpos (1+ inputpos))
 		(cond ((= counter 4)
-		       (binhex-push-char (lsh bits -16) nil work-buffer)
-		       (binhex-push-char (logand (lsh bits -8) 255) nil
+		       (binhex-push-char (ash bits -16) nil work-buffer)
+		       (binhex-push-char (logand (ash bits -8) 255) nil
 					 work-buffer)
 		       (binhex-push-char (logand bits 255) nil
 					 work-buffer)
 		       (setq bits 0 counter 0))
-		      (t (setq bits (lsh bits 6)))))
+		      (t (setq bits (ash bits 6)))))
 	      (if (null file-name-length)
 		  (with-current-buffer work-buffer
 		    (setq file-name-length (char-after (point-min))
@@ -261,12 +261,12 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 	      (setq tmp (and tmp (not (eq inputpos end)))))
 	    (cond
 	     ((= counter 3)
-	      (binhex-push-char (logand (lsh bits -16) 255) nil
+	      (binhex-push-char (logand (ash bits -16) 255) nil
 				work-buffer)
-	      (binhex-push-char (logand (lsh bits -8) 255) nil
+	      (binhex-push-char (logand (ash bits -8) 255) nil
 				work-buffer))
 	     ((= counter 2)
-	      (binhex-push-char (logand (lsh bits -10) 255) nil
+	      (binhex-push-char (logand (ash bits -10) 255) nil
 				work-buffer))))
 	  (if header-only nil
 	    (binhex-verify-crc work-buffer

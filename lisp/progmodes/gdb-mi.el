@@ -1,6 +1,6 @@
 ;;; gdb-mi.el --- User Interface for running GDB  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1120,13 +1120,15 @@ line, and no execution takes place."
 (defcustom gdb-show-changed-values t
   "If non-nil change the face of out of scope variables and changed values.
 Out of scope variables are suppressed with `shadow' face.
-Changed values are highlighted with the face `font-lock-warning-face'."
+Changed values are highlighted with the face `font-lock-warning-face'.
+Used by Speedbar."
   :type 'boolean
   :group 'gdb
   :version "22.1")
 
 (defcustom gdb-max-children 40
-  "Maximum number of children before expansion requires confirmation."
+  "Maximum number of children before expansion requires confirmation.
+Used by Speedbar."
   :type 'integer
   :group 'gdb
   :version "22.1")
@@ -1138,9 +1140,7 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :version "22.2")
 
 (define-minor-mode gdb-speedbar-auto-raise
-  "Minor mode to automatically raise the speedbar for watch expressions.
-With prefix argument ARG, automatically raise speedbar if ARG is
-positive, otherwise don't automatically raise it."
+  "Minor mode to automatically raise the speedbar for watch expressions."
   :global t
   :group 'gdb
   :version "22.1")
@@ -1743,16 +1743,12 @@ static char *magick[] = {
 (defvar breakpoint-disabled-icon nil
   "Icon for disabled breakpoint in display margin.")
 
-(declare-function define-fringe-bitmap "fringe.c"
-		  (bitmap bits &optional height width align))
-
-(and (display-images-p)
-     ;; Bitmap for breakpoint in fringe
-     (define-fringe-bitmap 'breakpoint
-       "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
-     ;; Bitmap for gud-overlay-arrow in fringe
-     (define-fringe-bitmap 'hollow-right-triangle
-       "\xe0\x90\x88\x84\x84\x88\x90\xe0"))
+;; Bitmap for breakpoint in fringe
+(define-fringe-bitmap 'breakpoint
+  "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
+;; Bitmap for gud-overlay-arrow in fringe
+(define-fringe-bitmap 'hollow-right-triangle
+  "\xe0\x90\x88\x84\x84\x88\x90\xe0")
 
 (defface breakpoint-enabled
   '((t
@@ -1782,9 +1778,10 @@ static char *magick[] = {
 (defvar gdb-control-commands-regexp
   (concat
    "^\\("
-   "commands\\|if\\|while\\|define\\|document\\|"
+   "comm\\(a\\(n\\(ds?\\)?\\)?\\)?\\|if\\|while"
+   "\\|def\\(i\\(ne?\\)?\\)?\\|doc\\(u\\(m\\(e\\(nt?\\)?\\)?\\)?\\)?\\|"
    gdb-python-guile-commands-regexp
-   "\\|while-stepping\\|stepping\\|ws\\|actions"
+   "\\|while-stepping\\|stepp\\(i\\(ng?\\)?\\)?\\|ws\\|actions"
    "\\)\\([[:blank:]]+\\([^[:blank:]]*\\)\\)?$")
   "Regexp matching GDB commands that enter a recursive reading loop.
 As long as GDB is in the recursive reading loop, it does not expect

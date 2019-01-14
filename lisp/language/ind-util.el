@@ -1,6 +1,6 @@
 ;;; ind-util.el --- Transliteration and Misc. Tools for Indian Languages -*- coding: utf-8-emacs; -*-
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Indian, Devanagari

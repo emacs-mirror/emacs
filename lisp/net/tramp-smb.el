@@ -1,6 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'tramp)
 
 ;; Define SMB method ...
@@ -37,54 +38,49 @@
 ;; ... and add it to the method list.
 ;;;###tramp-autoload
 (unless (memq system-type '(cygwin windows-nt))
-  (add-to-list 'tramp-methods
-    `(,tramp-smb-method
-      ;; We define an empty command, because `tramp-smb-call-winexe'
-      ;; opens already the powershell.  Used in `tramp-handle-shell-command'.
-      (tramp-remote-shell "")
-      ;; This is just a guess.  We don't know whether the share "C$"
-      ;; is available for public use, and whether the user has write
-      ;; access.
-      (tramp-tmpdir "/C$/Temp")
-      ;; Another guess.  We might implement a better check later on.
-      (tramp-case-insensitive t))))
+  (tramp--with-startup
+   (add-to-list 'tramp-methods
+                `(,tramp-smb-method
+                  ;; We define an empty command, because
+                  ;; `tramp-smb-call-winexe' opens already the powershell.
+                  ;; Used in `tramp-handle-shell-command'.
+                  (tramp-remote-shell "")
+                  ;; This is just a guess.  We don't know whether the share "C$"
+                  ;; is available for public use, and whether the user has write
+                  ;; access.
+                  (tramp-tmpdir "/C$/Temp")
+                  ;; Another guess.  We might implement a better check later on.
+                  (tramp-case-insensitive t)))))
 
 ;; Add a default for `tramp-default-user-alist'. Rule: For the SMB method,
 ;; the anonymous user is chosen.
 ;;;###tramp-autoload
-(add-to-list 'tramp-default-user-alist
-	     `(,(concat "\\`" tramp-smb-method "\\'") nil nil))
+(tramp--with-startup
+ (add-to-list 'tramp-default-user-alist
+	      `(,(concat "\\`" tramp-smb-method "\\'") nil nil))
 
-;; Add completion function for SMB method.
-;;;###tramp-autoload
-(eval-after-load 'tramp
-  '(tramp-set-completion-function
-    tramp-smb-method
-    '((tramp-parse-netrc "~/.netrc"))))
+ ;; Add completion function for SMB method.
+ (tramp-set-completion-function
+  tramp-smb-method
+  '((tramp-parse-netrc "~/.netrc"))))
 
-;;;###tramp-autoload
 (defcustom tramp-smb-program "smbclient"
   "Name of SMB client to run."
   :group 'tramp
-  :type 'string
-  :require 'tramp)
+  :type 'string)
 
-;;;###tramp-autoload
 (defcustom tramp-smb-acl-program "smbcacls"
   "Name of SMB acls to run."
   :group 'tramp
   :type 'string
-  :version "24.4"
-  :require 'tramp)
+  :version "24.4")
 
-;;;###tramp-autoload
 (defcustom tramp-smb-conf "/dev/null"
   "Path of the smb.conf file.
 If it is nil, no smb.conf will be added to the `tramp-smb-program'
 call, letting the SMB client use the default one."
   :group 'tramp
-  :type '(choice (const nil) (file :must-match t))
-  :require 'tramp)
+  :type '(choice (const nil) (file :must-match t)))
 
 (defvar tramp-smb-version nil
   "Version string of the SMB client.")
@@ -122,6 +118,7 @@ call, letting the SMB client use the default one."
 	 "ERRnoaccess"
 	 "ERRnomem"
 	 "ERRnosuchshare"
+	 ;; See /usr/include/samba-4.0/core/ntstatus.h.
 	 ;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
 	 ;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003),
 	 ;; Windows 6.0 (Windows Vista), Windows 6.1 (Windows 7),
@@ -132,6 +129,7 @@ call, letting the SMB client use the default one."
 	 "NT_STATUS_CANNOT_DELETE"
 	 "NT_STATUS_CONNECTION_DISCONNECTED"
 	 "NT_STATUS_CONNECTION_REFUSED"
+	 "NT_STATUS_CONNECTION_RESET"
 	 "NT_STATUS_DIRECTORY_NOT_EMPTY"
 	 "NT_STATUS_DUPLICATE_NAME"
 	 "NT_STATUS_FILE_IS_A_DIRECTORY"
@@ -152,6 +150,7 @@ call, letting the SMB client use the default one."
 	 "NT_STATUS_OBJECT_PATH_SYNTAX_BAD"
 	 "NT_STATUS_PASSWORD_MUST_CHANGE"
 	 "NT_STATUS_RESOURCE_NAME_NOT_FOUND"
+	 "NT_STATUS_REVISION_MISMATCH"
 	 "NT_STATUS_SHARING_VIOLATION"
 	 "NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
 	 "NT_STATUS_UNSUCCESSFUL"
@@ -228,6 +227,7 @@ See `tramp-actions-before-shell' for more info.")
      . tramp-handle-directory-files-and-attributes)
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
+    (exec-path . ignore)
     (expand-file-name . tramp-smb-handle-expand-file-name)
     (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
     (file-acl . tramp-smb-handle-file-acl)
@@ -260,7 +260,6 @@ See `tramp-actions-before-shell' for more info.")
     (file-truename . tramp-handle-file-truename)
     (file-writable-p . tramp-smb-handle-file-writable-p)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
-    ;; `find-file-noselect' performed by default handler.
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-smb-handle-insert-directory)
     (insert-file-contents . tramp-handle-insert-file-contents)
@@ -269,6 +268,7 @@ See `tramp-actions-before-shell' for more info.")
     (make-directory . tramp-smb-handle-make-directory)
     (make-directory-internal . tramp-smb-handle-make-directory-internal)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
+    (make-process . ignore)
     (make-symbolic-link . tramp-smb-handle-make-symbolic-link)
     (process-file . tramp-smb-handle-process-file)
     (rename-file . tramp-smb-handle-rename-file)
@@ -281,6 +281,7 @@ See `tramp-actions-before-shell' for more info.")
     (start-file-process . tramp-smb-handle-start-file-process)
     (substitute-in-file-name . tramp-smb-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
+    (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
@@ -289,41 +290,36 @@ See `tramp-actions-before-shell' for more info.")
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
 ;; Options for remote processes via winexe.
-;;;###tramp-autoload
 (defcustom tramp-smb-winexe-program "winexe"
   "Name of winexe client to run.
 If it isn't found in the local $PATH, the absolute path of winexe
 shall be given.  This is needed for remote processes."
   :group 'tramp
   :type 'string
-  :version "24.3"
-  :require 'tramp)
+  :version "24.3")
 
-;;;###tramp-autoload
 (defcustom tramp-smb-winexe-shell-command "powershell.exe"
   "Shell to be used for processes on remote machines.
 This must be Powershell V2 compatible."
   :group 'tramp
   :type 'string
-  :version "24.3"
-  :require 'tramp)
+  :version "24.3")
 
-;;;###tramp-autoload
 (defcustom tramp-smb-winexe-shell-command-switch "-file -"
   "Command switch used together with `tramp-smb-winexe-shell-command'.
 This can be used to disable echo etc."
   :group 'tramp
   :type 'string
-  :version "24.3"
-  :require 'tramp)
+  :version "24.3")
 
 ;; It must be a `defsubst' in order to push the whole code into
 ;; tramp-loaddefs.el.  Otherwise, there would be recursive autoloading.
 ;;;###tramp-autoload
 (defsubst tramp-smb-file-name-p (filename)
   "Check if it's a filename for SMB servers."
-  (string= (tramp-file-name-method (tramp-dissect-file-name filename))
-	   tramp-smb-method))
+  (and (tramp-tramp-file-p filename)
+       (string= (tramp-file-name-method (tramp-dissect-file-name filename))
+		tramp-smb-method)))
 
 ;;;###tramp-autoload
 (defun tramp-smb-file-name-handler (operation &rest args)
@@ -337,8 +333,9 @@ pass to the OPERATION."
 
 ;;;###tramp-autoload
 (unless (memq system-type '(cygwin windows-nt))
-  (tramp-register-foreign-file-name-handler
-   'tramp-smb-file-name-p 'tramp-smb-file-name-handler))
+  (tramp--with-startup
+   (tramp-register-foreign-file-name-handler
+    #'tramp-smb-file-name-p #'tramp-smb-file-name-handler)))
 
 ;; File name primitives.
 
@@ -641,7 +638,12 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (goto-char (point-min))
 	  (search-forward-regexp tramp-smb-errors nil t)
 	  (tramp-error
-	   v 'file-error "%s `%s'" (match-string 0) directory))))))
+	   v 'file-error "%s `%s'" (match-string 0) directory)))
+
+      ;; "rmdir" does not report an error.  So we check ourselves.
+      (when (file-exists-p directory)
+	(tramp-error
+	 v 'file-error "`%s' not removed." directory)))))
 
 (defun tramp-smb-handle-delete-file (filename &optional _trash)
   "Like `delete-file' for Tramp files."
@@ -673,7 +675,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (when match
       (setq result
 	    (delete nil
-		    (mapcar (lambda (x) (when (string-match match x) x))
+		    (mapcar (lambda (x) (when (string-match-p match x) x))
 			    result))))
     ;; Append directory.
     (when full
@@ -712,8 +714,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       (tramp-make-tramp-file-name
-       method user domain host port
-       (tramp-run-real-handler 'expand-file-name (list localname))))))
+       v (tramp-run-real-handler 'expand-file-name (list localname))))))
 
 (defun tramp-smb-action-get-acl (proc vec)
   "Read ACL data from connection buffer."
@@ -725,10 +726,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       (widen)
       (tramp-message vec 10 "\n%s" (buffer-string))
       (goto-char (point-min))
-      (while (and (not (eobp)) (not (looking-at "^REVISION:")))
+      (while (and (not (eobp)) (not (looking-at-p "^REVISION:")))
 	(forward-line)
 	(delete-region (point-min) (point)))
-      (while (and (not (eobp)) (looking-at "^.+:.+"))
+      (while (and (not (eobp)) (looking-at-p "^.+:.+"))
  	(forward-line))
       (delete-region (point) (point-max))
       (throw 'tramp-action 'ok))))
@@ -813,19 +814,19 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
 	    ;; Check result.
 	    (when entry
-	      (list (and (string-match "d" (nth 1 entry))
-			 t)        ;0 file type
-		    -1	           ;1 link count
-		    uid	           ;2 uid
-		    gid	           ;3 gid
-		    '(0 0)	   ;4 atime
-		    (nth 3 entry)  ;5 mtime
-		    '(0 0)	   ;6 ctime
-		    (nth 2 entry)  ;7 size
-		    (nth 1 entry)  ;8 mode
-		    nil	           ;9 gid weird
-		    inode	   ;10 inode number
-		    device)))))))) ;11 file system number
+	      (list (and (string-match-p "d" (nth 1 entry))
+			 t)              ;0 file type
+		    -1	                 ;1 link count
+		    uid	                 ;2 uid
+		    gid	                 ;3 gid
+		    tramp-time-dont-know ;4 atime
+		    (nth 3 entry)        ;5 mtime
+		    tramp-time-dont-know ;6 ctime
+		    (nth 2 entry)        ;7 size
+		    (nth 1 entry)        ;8 mode
+		    nil	                 ;9 gid weird
+		    inode	         ;10 inode number
+		    device))))))))       ;11 file system number
 
 (defun tramp-smb-do-file-attributes-with-stat (vec &optional id-format)
   "Implement `file-attributes' for Tramp files using stat command."
@@ -930,15 +931,14 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
    filename
    (with-parsed-tramp-file-name (expand-file-name directory) nil
      (with-tramp-file-property v localname "file-name-all-completions"
-       (save-match-data
-	 (delete-dups
-	  (mapcar
-	   (lambda (x)
-	     (list
-	      (if (string-match "d" (nth 1 x))
-		  (file-name-as-directory (nth 0 x))
-		(nth 0 x))))
-	   (tramp-smb-get-file-entries directory))))))))
+       (delete-dups
+	(mapcar
+	 (lambda (x)
+	   (list
+	    (if (string-match-p "d" (nth 1 x))
+		(file-name-as-directory (nth 0 x))
+	      (nth 0 x))))
+	 (tramp-smb-get-file-entries directory)))))))
 
 (defun tramp-smb-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
@@ -953,21 +953,19 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (goto-char (point-min))
 	  (forward-line)
 	  (when (looking-at
-		 (concat "[[:space:]]*\\([[:digit:]]+\\)"
-			 " blocks of size \\([[:digit:]]+\\)"
-			 "\\. \\([[:digit:]]+\\) blocks available"))
-	    (setq blocksize (string-to-number (concat (match-string 2) "e0"))
-		  total (* blocksize
-			   (string-to-number (concat (match-string 1) "e0")))
-		  avail (* blocksize
-			   (string-to-number (concat (match-string 3) "e0")))))
+		 (eval-when-compile
+		   (concat "[[:space:]]*\\([[:digit:]]+\\)"
+			   " blocks of size \\([[:digit:]]+\\)"
+			   "\\. \\([[:digit:]]+\\) blocks available")))
+	    (setq blocksize (string-to-number (match-string 2))
+		  total (* blocksize (string-to-number (match-string 1)))
+		  avail (* blocksize (string-to-number (match-string 3)))))
 	  (forward-line)
 	  (when (looking-at "Total number of bytes: \\([[:digit:]]+\\)")
 	    ;; The used number of bytes is not part of the result.  As
 	    ;; side effect, we store it as file property.
 	    (tramp-set-file-property
-	     v localname "used-bytes"
-	     (string-to-number (concat (match-string 1) "e0"))))
+	     v localname "used-bytes" (string-to-number (match-string 1))))
 	  ;; Result.
 	  (when (and total avail)
 	    (list total (- total avail) avail)))))))
@@ -975,7 +973,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-smb-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
   (if (file-exists-p filename)
-      (string-match
+      (string-match-p
        "w"
        (or (tramp-compat-file-attribute-modes (file-attributes filename)) ""))
     (let ((dir (file-name-directory filename)))
@@ -1027,7 +1025,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     ;; Check for matching entries.
 		     (mapcar
 		      (lambda (x)
-			(when (string-match
+			(when (string-match-p
 			       (format "^%s" base) (nth 0 x))
 			  x))
 		      entries)
@@ -1039,14 +1037,14 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		(sort
 		 entries
 		 (lambda (x y)
-		   (if (string-match "t" switches)
+		   (if (string-match-p "t" switches)
 		       ;; Sort by date.
 		       (time-less-p (nth 3 y) (nth 3 x))
 		     ;; Sort by name.
 		     (string-lessp (nth 0 x) (nth 0 y))))))
 
 	  ;; Handle "-F" switch.
-	  (when (string-match "F" switches)
+	  (when (string-match-p "F" switches)
 	    (mapc
 	     (lambda (x)
 	       (when (not (zerop (length (car x))))
@@ -1075,7 +1073,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 			   (expand-file-name
 			    (nth 0 x) (file-name-directory filename))
 			   'string)))))
-		 (when (string-match "l" switches)
+		 (when (string-match-p "l" switches)
 		   (insert
 		    (format
 		     "%10s %3d %-8s %-8s %8s %s "
@@ -1085,8 +1083,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		     (or (tramp-compat-file-attribute-group-id attr) "nogroup")
 		     (or (tramp-compat-file-attribute-size attr) (nth 2 x))
 		     (format-time-string
-		      (if (time-less-p (time-subtract (current-time) (nth 3 x))
-			   tramp-half-a-year)
+		      (if (time-less-p
+			   ;; Half a year.
+			   (time-since (nth 3 x)) (days-to-time 183))
 			  "%b %e %R"
 			"%b %e  %Y")
 		      (nth 3 x))))) ; date
@@ -1105,7 +1104,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		   (put-text-property start (point) 'dired-filename t))
 
 		 ;; Insert symlink.
-		 (when (and (string-match "l" switches)
+		 (when (and (string-match-p "l" switches)
 			    (stringp (tramp-compat-file-attribute-type attr)))
 		   (insert " -> " (tramp-compat-file-attribute-type attr))))
 
@@ -1120,18 +1119,17 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (unless (file-name-absolute-p dir)
     (setq dir (expand-file-name dir default-directory)))
   (with-parsed-tramp-file-name dir nil
-    (save-match-data
-      (let* ((ldir (file-name-directory dir)))
-	;; Make missing directory parts.
-	(when (and parents
-		   (tramp-smb-get-share v)
-		   (not (file-directory-p ldir)))
-	  (make-directory ldir parents))
-	;; Just do it.
-	(when (file-directory-p ldir)
-	  (make-directory-internal dir))
-	(unless (file-directory-p dir)
-	  (tramp-error v 'file-error "Couldn't make directory %s" dir))))))
+    (let* ((ldir (file-name-directory dir)))
+      ;; Make missing directory parts.
+      (when (and parents
+		 (tramp-smb-get-share v)
+		 (not (file-directory-p ldir)))
+	(make-directory ldir parents))
+      ;; Just do it.
+      (when (file-directory-p ldir)
+	(make-directory-internal dir))
+      (unless (file-directory-p dir)
+	(tramp-error v 'file-error "Couldn't make directory %s" dir)))))
 
 (defun tramp-smb-handle-make-directory-internal (directory)
   "Like `make-directory-internal' for Tramp files."
@@ -1139,21 +1137,19 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (unless (file-name-absolute-p directory)
     (setq directory (expand-file-name directory default-directory)))
   (with-parsed-tramp-file-name directory nil
-    (save-match-data
-      (let* ((file (tramp-smb-get-localname v)))
-	(when (file-directory-p (file-name-directory directory))
-	  (tramp-smb-send-command
-	   v
-	   (if (tramp-smb-get-cifs-capabilities v)
-	       (format "posix_mkdir \"%s\" %o" file (default-file-modes))
-	     (format "mkdir \"%s\"" file)))
-	  ;; We must also flush the cache of the directory, because
-	  ;; `file-attributes' reads the values from there.
-	  (tramp-flush-file-properties v (file-name-directory localname))
-	  (tramp-flush-file-properties v localname))
-	(unless (file-directory-p directory)
-	  (tramp-error
-	   v 'file-error "Couldn't make directory %s" directory))))))
+    (let* ((file (tramp-smb-get-localname v)))
+      (when (file-directory-p (file-name-directory directory))
+	(tramp-smb-send-command
+	 v
+	 (if (tramp-smb-get-cifs-capabilities v)
+	     (format "posix_mkdir \"%s\" %o" file (default-file-modes))
+	   (format "mkdir \"%s\"" file)))
+	;; We must also flush the cache of the directory, because
+	;; `file-attributes' reads the values from there.
+	(tramp-flush-file-properties v (file-name-directory localname))
+	(tramp-flush-file-properties v localname))
+      (unless (file-directory-p directory)
+	(tramp-error v 'file-error "Couldn't make directory %s" directory)))))
 
 (defun tramp-smb-handle-make-symbolic-link
   (target linkname &optional ok-if-already-exists)
@@ -1232,8 +1228,7 @@ component is used as the target of the symlink."
 	    (setq input (with-parsed-tramp-file-name infile nil localname))
 	  ;; INFILE must be copied to remote host.
 	  (setq input (tramp-make-tramp-temp-file v)
-		tmpinput
-		(tramp-make-tramp-file-name method user domain host port input))
+		tmpinput (tramp-make-tramp-file-name v input))
 	  (copy-file infile tmpinput t))
 	;; Transform input into a filename powershell does understand.
 	(setq input (format "//%s%s" host input)))
@@ -1510,7 +1505,7 @@ component is used as the target of the symlink."
 
 	;; Save exit.
 	(with-current-buffer (tramp-get-connection-buffer v)
-	  (if (string-match tramp-temp-buffer-name (buffer-name))
+	  (if (string-match-p tramp-temp-buffer-name (buffer-name))
 	      (progn
 		(set-process-buffer (tramp-get-connection-process v) nil)
 		(kill-buffer (current-buffer)))
@@ -1618,6 +1613,13 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
       ;; Sometimes we have discarded `substitute-in-file-name'.
       (when (string-match "\\(\\$\\$\\)\\(/\\|$\\)" localname)
 	(setq localname (replace-match "$" nil nil localname 1)))
+
+      ;; A period followed by a space, or trailing periods and spaces,
+      ;; are not supported.
+      (when (string-match-p "\\. \\|\\.$\\| $" localname)
+	(tramp-error
+	 vec 'file-error
+	 "Invalid file name %s" (tramp-make-tramp-file-name vec localname)))
 
       localname)))
 
@@ -1768,7 +1770,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 	  (cl-return))
 
 	;; weekday.
-	(if (string-match "\\(\\w+\\)$" line)
+	(if (string-match-p "\\(\\w+\\)$" line)
 	    (setq line (substring line 0 -5))
 	  (cl-return))
 
@@ -1789,12 +1791,12 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 	(if (string-match "\\([ACDEHNORrsSTV]+\\)?$" line)
 	    (setq
 	     mode (or (match-string 1 line) "")
-	     mode (save-match-data (format
+	     mode (format
 		    "%s%s"
-		    (if (string-match "D" mode) "d" "-")
+		    (if (string-match-p "D" mode) "d" "-")
 		    (mapconcat
 		     (lambda (_x) "") "    "
-		     (concat "r" (if (string-match "R" mode) "-" "w") "x"))))
+		     (concat "r" (if (string-match-p "R" mode) "-" "w") "x")))
 	     line (substring line 0 -6))
 	  (cl-return))
 
@@ -1810,7 +1812,7 @@ Result is the list (LOCALNAME MODE SIZE MTIME)."
 		 sec min hour day
 		 (cdr (assoc (downcase month) parse-time-months))
 		 year)
-	      '(0 0)))
+	      tramp-time-dont-know))
       (list localname mode size mtime))))
 
 (defun tramp-smb-get-cifs-capabilities (vec)
@@ -2079,7 +2081,6 @@ Returns nil if an error message has appeared."
 
 (defun tramp-smb-call-winexe (vec)
   "Apply a remote command, if possible, using `tramp-smb-winexe-program'."
-
   ;; Check for program.
   (unless (executable-find tramp-smb-winexe-program)
     (tramp-error

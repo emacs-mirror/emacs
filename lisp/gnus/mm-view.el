@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -22,7 +22,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 (require 'mail-parse)
 (require 'mailcap)
 (require 'mm-bodies)
@@ -318,6 +318,8 @@
       (if entry
 	  (setq func (cdr entry)))
       (cond
+       ((null func)
+	(mm-insert-inline handle (mm-get-part handle)))
        ((functionp func)
 	(funcall func handle))
        (t
@@ -450,7 +452,7 @@
   "Insert HANDLE inline fontifying with MODE.
 If MODE is not set, try to find mode automatically."
   (let ((charset (mail-content-type-get (mm-handle-type handle) 'charset))
-	text coding-system)
+	text coding-system ovs)
     (unless (eq charset 'gnus-decoded)
       (mm-with-unibyte-buffer
 	(mm-insert-part handle)
@@ -496,10 +498,18 @@ If MODE is not set, try to find mode automatically."
 		      (eq major-mode 'fundamental-mode))
 	    (font-lock-ensure))))
       (setq text (buffer-string))
+      (when (eq mode 'diff-mode)
+	(setq ovs (mapcar (lambda (ov) (list ov (overlay-start ov)
+	                                        (overlay-end ov)))
+	                  (overlays-in (point-min) (point-max)))))
       ;; Set buffer unmodified to avoid confirmation when killing the
       ;; buffer.
       (set-buffer-modified-p nil))
-    (mm-insert-inline handle text)))
+    (let ((b (1- (point))))
+      (mm-insert-inline handle text)
+      (dolist (ov ovs)
+	(move-overlay (nth 0 ov) (+ (nth 1 ov) b)
+	                         (+ (nth 2 ov) b) (current-buffer))))))
 
 ;; Shouldn't these functions check whether the user even wants to use
 ;; font-lock?  Also, it would be nice to change for the size of the
@@ -561,7 +571,7 @@ If MODE is not set, try to find mode automatically."
 	   (error "Could not identify PKCS#7 type")))))
 
 (defun mm-view-pkcs7 (handle &optional from)
-  (case (mm-view-pkcs7-get-type handle)
+  (cl-case (mm-view-pkcs7-get-type handle)
     (enveloped (mm-view-pkcs7-decrypt handle from))
     (signed (mm-view-pkcs7-verify handle))
     (otherwise (error "Unknown or unimplemented PKCS#7 type"))))

@@ -1,6 +1,6 @@
 ;;; registry.el --- Track and remember data items by various fields
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data
@@ -358,7 +358,7 @@ return LIMIT such candidates.  If SORTFUNC is provided, sort
 entries first and return candidates from beginning of list."
   (let* ((precious (oref db precious))
 	 (precious-p (lambda (entry-key)
-		       (cdr (memq (car-safe entry-key) precious))))
+		       (memq (car-safe entry-key) precious)))
 	 (data (oref db data))
 	 (candidates (cl-loop for k being the hash-keys of data
 			      using (hash-values v)

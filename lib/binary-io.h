@@ -1,5 +1,5 @@
 /* Binary mode I/O.
-   Copyright (C) 2001, 2003, 2005, 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2003, 2005, 2008-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -47,10 +47,8 @@ _GL_INLINE_HEADER_BEGIN
   /* Use a function rather than a macro, to avoid gcc warnings
      "warning: statement with no effect".  */
 BINARY_IO_INLINE int
-__gl_setmode (int fd, int mode)
+__gl_setmode (int fd _GL_UNUSED, int mode _GL_UNUSED)
 {
-  (void) fd;
-  (void) mode;
   return O_BINARY;
 }
 #endif
@@ -59,7 +57,7 @@ __gl_setmode (int fd, int mode)
 extern int __gl_setmode_check (int);
 #else
 BINARY_IO_INLINE int
-__gl_setmode_check (int fd) { return 0; }
+__gl_setmode_check (int fd _GL_UNUSED) { return 0; }
 #endif
 
 /* Set FD's mode to MODE, which should be either O_TEXT or O_BINARY.

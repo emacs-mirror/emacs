@@ -1,6 +1,6 @@
 /* Compile-time assert-like macros.
 
-   Copyright (C) 2005-2006, 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2009-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -276,7 +276,8 @@ template <int w>
      when 'assume' silences warnings even with older GCCs.  */
 # define assume(R) ((R) ? (void) 0 : __builtin_trap ())
 #else
-# define assume(R) ((void) (0 && (R)))
+  /* Some tools grok NOTREACHED, e.g., Oracle Studio 12.6.  */
+# define assume(R) ((R) ? (void) 0 : /*NOTREACHED*/ (void) 0)
 #endif
 
 /* @assert.h omit end@  */

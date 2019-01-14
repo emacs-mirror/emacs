@@ -1,6 +1,6 @@
 ;;; manoj-dark.el --- A dark theme from Manoj
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Manoj Srivastava <srivasta@ieee.org>
 ;; Keywords: lisp, faces
@@ -699,9 +699,5 @@ jarring angry fruit salad look to reduce eye fatigue.")
  '(woman-unknown-face ((t (:foreground "LightSalmon")))))
 
 (provide-theme 'manoj-dark)
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; manoj-dark.el ends here

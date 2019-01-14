@@ -1,6 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2018 Free Software Foundation,
+Copyright (C) 1987-1989, 1993-1999, 2001-2019 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -126,7 +126,7 @@ This version of GCC is buggy: see
 You can work around this error in gcc-4.5 by omitting sibling call
 optimization.  To do this, configure Emacs with
 
- CFLAGS="-g -O2 -fno-optimize-sibling-calls" ./configure
+ ./configure CFLAGS="-g -O2 -fno-optimize-sibling-calls"
 
 ** Emacs compiled with GCC 4.6.1 crashes on MS-Windows when C-g is pressed
 
@@ -207,7 +207,7 @@ configuring your compiler to use the native linker instead of GNU ld.
 ** When Emacs is compiled with Gtk+, closing a display kills Emacs.
 
 There is a long-standing bug in GTK that prevents it from recovering
-from disconnects: http://bugzilla.gnome.org/show_bug.cgi?id=85715.
+from disconnects: https://gitlab.gnome.org/GNOME/gtk/issues/221
 
 Thus, for instance, when Emacs is run as a server on a text terminal,
 and an X frame is created, and the X server for that frame crashes or
@@ -217,6 +217,26 @@ result in an endless loop.
 If you need Emacs to be able to recover from closing displays, compile
 it with the Lucid toolkit instead of GTK.
 
+** Emacs compiled with GTK+ 3 crashes when run under some X servers.
+This happens when the X server does not provide certain display
+features that the underlying GTK+ 3 toolkit assumes.  For example, this
+issue has been seen with remote X servers like X2Go.  The symptoms
+are an Emacs crash, possibly triggered by the mouse entering the Emacs
+window, or an attempt to resize the Emacs window.  The crash backtrace
+contains a call to XQueryPointer.
+
+This issue was fixed in the GTK+ 3 toolkit in commit 4b1c0256 in February 2018.
+
+If your GTK+ 3 is still affected, you can avoid the issue by recompiling
+Emacs with a different X toolkit, eg --with-toolkit=gtk2.
+
+References:
+https://gitlab.gnome.org/GNOME/gtk/commit/4b1c02560f0d8097bf5a11932e52fb72f3e9e94b
+https://debbugs.gnu.org/24280
+https://bugs.debian.org/901038
+https://bugzilla.redhat.com/1483942
+https://access.redhat.com/solutions/3410101
+
 ** Emacs compiled with GTK crashes at startup due to X protocol error.
 
 This is known to happen on elementary OS GNU/Linux systems.
@@ -225,7 +245,7 @@ The error message is:
 
   X protocol error: BadMatch (invalid parameter attributes) on protocol request 140
   When compiled with GTK, Emacs cannot recover from X disconnects.
-  This is a GTK bug: https://bugzilla.gnome.org/show_bug.cgi?id=85715
+  This is a GTK bug: https://gitlab.gnome.org/GNOME/gtk/issues/221
   For details, see etc/PROBLEMS.
   Fatal error 6: Aborted
 
@@ -554,17 +574,6 @@ And then rename the system's readline so that it won't be loaded:
 
 See <https://pypi.python.org/pypi/gnureadline> for more details on
 installation.
-
-*** Emacs startup on GNU/Linux systems (and possibly other systems) is slow.
-
-This can happen if the system is misconfigured and Emacs can't get the
-full qualified domain name, FQDN.  You should have your FQDN in the
-/etc/hosts file, something like this:
-
-127.0.0.1	localhost
-129.187.137.82	nuc04.t30.physik.tu-muenchen.de	nuc04
-
-The way to set this up may vary on non-GNU systems.
 
 *** Visiting files in some auto-mounted directories causes Emacs to print
 'Error reading dir-locals: (file-error "Read error" "is a directory" ...'
@@ -1158,7 +1167,7 @@ is running.  If gnome-settings-daemon is not running, Emacs receives
 input through XIM without any problem.  Furthermore, this seems only
 to happen in *.UTF-8 locales; zh_CN.GB2312 and zh_CN.GBK locales, for
 example, work fine.  A bug report has been filed in the Gnome
-bugzilla: http://bugzilla.gnome.org/show_bug.cgi?id=357032
+bugzilla: https://bugzilla.gnome.org/show_bug.cgi?id=357032
 
 *** Gnome: GPaste clipboard manager causes erratic behavior of 'yank'
 
@@ -1281,6 +1290,14 @@ That the resource has this effect indicates a bug in something, but we
 do not know what.  If it is an Emacs bug, we hope someone can
 explain what the bug is so we can fix it.  In the mean time, removing
 the resource prevents the problem.
+
+*** FVWM: Some versions of FVWM incorrectly set the 'sticky' frame parameter.
+
+Version 2.6.4 of the FVWM can make a frame sticky (appear on all user
+desktops) when setting the 'sticky' frame parameter to nil.  This may
+happen without any special user interaction, for example, when Emacs
+restores a saved desktop.  A fix is to install version 2.6.8 of FVWM,
+see https://debbugs.gnu.org/cgi/bugreport.cgi?bug=31650.
 
 ** General X problems
 
@@ -2582,6 +2599,13 @@ please call support for your X-server and see if you can get a fix.
 If you do, please send it to bug-gnu-emacs@gnu.org so we can list it here.
 
 
+* Runtime problems specific to macOS
+
+** macOS doesn't come with libxpm, so only XPM3 is supported.
+
+Libxpm is available for macOS as part of the XQuartz project.
+
+
 * Build-time problems
 
 ** Configuration
@@ -2952,6 +2976,15 @@ as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out(5).
 
+* 'make check' failures
+
+** emacs-module-tests fail on Ubuntu 16.04
+
+This is due to a bug in GCC that was fixed in 2015; see
+<https://lists.gnu.org/r/emacs-devel/2018-09/msg00548.html>.
+You can work around the problem by using a later version of GCC or of
+Ubuntu, or by configuring without modules.
+
 * Problems on legacy systems
 
 This section covers bugs reported on very old hardware or software.
@@ -3206,6 +3239,15 @@ unzip program that preserved the long file names instead of truncating
 them to DOS 8+3 limits.  To be useful on NT, the MSDOS port of Emacs
 must be unzipped by a DOS utility, so that long file names are
 properly truncated.
+
+** Apple Macintosh operating systems
+
+*** OS X 10.9 and earlier: symlinks autocomplete as directories
+
+Autocompleting the name of a symbolic link incorrectly appends "/".
+Building and running Emacs on OS X 10.10 (or later) fixes the problem.
+Older operating systems are no longer supported by Apple.
+https://bugs.gnu.org/31305
 
 ** Archaic window managers and toolkits
 

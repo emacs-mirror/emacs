@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2018 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -86,10 +86,10 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   int offset;
   EMACS_INT position;
   Lisp_Object file, tem, pos;
-  ptrdiff_t count;
+  ptrdiff_t count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
 
-  if (INTEGERP (filepos))
+  if (FIXNUMP (filepos))
     {
       file = Vdoc_file_name;
       pos = filepos;
@@ -102,7 +102,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   else
     return Qnil;
 
-  position = eabs (XINT (pos));
+  position = eabs (XFIXNUM (pos));
 
   if (!STRINGP (Vdoc_directory))
     return Qnil;
@@ -145,7 +145,6 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	  return concat3 (cannot_open, file, quote_nl);
 	}
     }
-  count = SPECPDL_INDEX ();
   record_unwind_protect_int (close_file_unwind, fd);
 
   /* Seek only to beginning of disk block.  */
@@ -201,8 +200,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 	}
       p += nread;
     }
-  unbind_to (count, Qnil);
-  SAFE_FREE ();
+  SAFE_FREE_UNBIND_TO (count, Qnil);
 
   /* Sanity checking.  */
   if (CONSP (filepos))
@@ -338,7 +336,7 @@ string is passed through `substitute-command-keys'.  */)
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
   if (SUBRP (fun))
-    doc = make_number (XSUBR (fun)->doc);
+    doc = make_fixnum (XSUBR (fun)->doc);
   else if (MODULE_FUNCTIONP (fun))
     doc = XMODULE_FUNCTION (fun)->documentation;
   else if (COMPILEDP (fun))
@@ -350,7 +348,7 @@ string is passed through `substitute-command-keys'.  */)
 	  Lisp_Object tem = AREF (fun, COMPILED_DOC_STRING);
 	  if (STRINGP (tem))
 	    doc = tem;
-	  else if (NATNUMP (tem) || CONSP (tem))
+	  else if (FIXNATP (tem) || CONSP (tem))
 	    doc = tem;
 	  else
 	    return Qnil;
@@ -377,7 +375,7 @@ string is passed through `substitute-command-keys'.  */)
 	    doc = tem;
 	  /* Handle a doc reference--but these never come last
 	     in the function body, so reject them if they are last.  */
-	  else if ((NATNUMP (tem) || (CONSP (tem) && INTEGERP (XCDR (tem))))
+	  else if ((FIXNATP (tem) || (CONSP (tem) && FIXNUMP (XCDR (tem))))
 		   && !NILP (XCDR (tem1)))
 	    doc = tem;
 	  else
@@ -394,9 +392,9 @@ string is passed through `substitute-command-keys'.  */)
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
-  if (EQ (doc, make_number (0)))
+  if (EQ (doc, make_fixnum (0)))
     doc = Qnil;
-  if (INTEGERP (doc) || CONSP (doc))
+  if (FIXNUMP (doc) || CONSP (doc))
     {
       Lisp_Object tem;
       tem = get_doc_string (doc, 0, 0);
@@ -436,9 +434,9 @@ aren't strings.  */)
  documentation_property:
 
   tem = Fget (symbol, prop);
-  if (EQ (tem, make_number (0)))
+  if (EQ (tem, make_fixnum (0)))
     tem = Qnil;
-  if (INTEGERP (tem) || (CONSP (tem) && INTEGERP (XCDR (tem))))
+  if (FIXNUMP (tem) || (CONSP (tem) && FIXNUMP (XCDR (tem))))
     {
       Lisp_Object doc = tem;
       tem = get_doc_string (tem, 0, 0);
@@ -485,10 +483,10 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
 	{
 	  tem = Fcdr (Fcdr (fun));
-	  if (CONSP (tem) && INTEGERP (XCAR (tem)))
+	  if (CONSP (tem) && FIXNUMP (XCAR (tem)))
 	    /* FIXME: This modifies typically pure hash-cons'd data, so its
 	       correctness is quite delicate.  */
-	    XSETCAR (tem, make_number (offset));
+	    XSETCAR (tem, make_fixnum (offset));
 	}
     }
 
@@ -502,7 +500,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
       if (PVSIZE (fun) > COMPILED_DOC_STRING)
-	ASET (fun, COMPILED_DOC_STRING, make_number (offset));
+	ASET (fun, COMPILED_DOC_STRING, make_fixnum (offset));
       else
 	{
 	  AUTO_STRING (format, "No docstring slot for %s");
@@ -629,7 +627,7 @@ the same file name is found in the `doc-directory'.  */)
                       || !NILP (Fmemq (sym, delayed_init)))
                       && strncmp (end, "\nSKIP", 5))
                     Fput (sym, Qvariable_documentation,
-                          make_number ((pos + end + 1 - buf)
+                          make_fixnum ((pos + end + 1 - buf)
                                        * (end[1] == '*' ? -1 : 1)));
 		}
 
@@ -651,8 +649,7 @@ the same file name is found in the `doc-directory'.  */)
       memmove (buf, end, filled);
     }
 
-  SAFE_FREE ();
-  return unbind_to (count, Qnil);
+  return SAFE_FREE_UNBIND_TO (count, Qnil);
 }
 
 /* Return true if text quoting style should default to quote `like this'.  */
@@ -666,7 +663,7 @@ default_to_grave_quoting_style (void)
   Lisp_Object dv = DISP_CHAR_VECTOR (XCHAR_TABLE (Vstandard_display_table),
 				     LEFT_SINGLE_QUOTATION_MARK);
   return (VECTORP (dv) && ASIZE (dv) == 1
-	  && EQ (AREF (dv, 0), make_number ('`')));
+	  && EQ (AREF (dv, 0), make_fixnum ('`')));
 }
 
 /* Return the current effective text quoting style.  */

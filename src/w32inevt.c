@@ -1,5 +1,5 @@
 /* Input event support for Emacs on the Microsoft Windows API.
-   Copyright (C) 1992-1993, 1995, 2001-2018 Free Software Foundation,
+   Copyright (C) 1992-1993, 1995, 2001-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -181,8 +181,8 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	     Space which we will ignore.  */
 	  if ((mod_key_state & LEFT_WIN_PRESSED) == 0)
 	    {
-	      if (NUMBERP (Vw32_phantom_key_code))
-		faked_key = XUINT (Vw32_phantom_key_code) & 255;
+	      if (FIXNUMP (Vw32_phantom_key_code))
+		faked_key = XUFIXNUM (Vw32_phantom_key_code) & 255;
 	      else
 		faked_key = VK_SPACE;
 	      keybd_event (faked_key, (BYTE) MapVirtualKey (faked_key, 0), 0, 0);
@@ -198,8 +198,8 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	{
 	  if ((mod_key_state & RIGHT_WIN_PRESSED) == 0)
 	    {
-	      if (NUMBERP (Vw32_phantom_key_code))
-		faked_key = XUINT (Vw32_phantom_key_code) & 255;
+	      if (FIXNUMP (Vw32_phantom_key_code))
+		faked_key = XUFIXNUM (Vw32_phantom_key_code) & 255;
 	      else
 		faked_key = VK_SPACE;
 	      keybd_event (faked_key, (BYTE) MapVirtualKey (faked_key, 0), 0, 0);

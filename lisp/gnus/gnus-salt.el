@@ -1,6 +1,6 @@
 ;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
 
-;; Copyright (C) 1996-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-sum)
@@ -131,7 +131,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
 (defvar gnus-pick-line-number 1)
 (defun gnus-pick-line-number ()
   "Return the current line number."
-  (incf gnus-pick-line-number))
+  (cl-incf gnus-pick-line-number))
 
 (defun gnus-pick-start-reading (&optional catch-up)
   "Start reading the picked articles.
@@ -396,11 +396,6 @@ Two predefined functions are available:
 		(function :tag "Other" nil))
   :group 'gnus-summary-tree)
 
-(defcustom gnus-tree-mode-hook nil
-  "Hook run in tree mode buffers."
-  :type 'hook
-  :group 'gnus-summary-tree)
-
 ;;; Internal variables.
 
 (defvar gnus-tmp-name)
@@ -411,7 +406,7 @@ Two predefined functions are available:
 (defvar gnus-tmp-subject)
 
 (defvar gnus-tree-line-format-alist
-  `((?n gnus-tmp-name ?s)
+  '((?n gnus-tmp-name ?s)
     (?f gnus-tmp-from ?s)
     (?N gnus-tmp-number ?d)
     (?\[ gnus-tmp-open-bracket ?c)
@@ -445,8 +440,6 @@ Two predefined functions are available:
      'undefined 'gnus-tree-read-summary-keys map)
     map))
 
-(put 'gnus-tree-mode 'mode-class 'special)
-
 (defun gnus-tree-make-menu-bar ()
   (unless (boundp 'gnus-tree-menu)
     (easy-menu-define
@@ -454,7 +447,7 @@ Two predefined functions are available:
       '("Tree"
 	["Select article" gnus-tree-select-article t]))))
 
-(define-derived-mode gnus-tree-mode fundamental-mode "Tree"
+(define-derived-mode gnus-tree-mode gnus-mode "Tree"
   "Major mode for displaying thread trees."
   (gnus-set-format 'tree-mode)
   (gnus-set-format 'tree t)
@@ -552,7 +545,7 @@ Two predefined functions are available:
 	     (not (one-window-p)))
     (let ((windows 0)
 	  tot-win-height)
-      (walk-windows (lambda (_window) (incf windows)))
+      (walk-windows (lambda (_window) (cl-incf windows)))
       (setq tot-win-height
 	    (- (frame-height)
 	       (* window-min-height (1- windows))
@@ -734,7 +727,7 @@ it in the environment specified by BINDINGS."
       (insert (make-string len ? )))))
 
 (defsubst gnus-tree-forward-line (n)
-  (while (>= (decf n) 0)
+  (while (>= (cl-decf n) 0)
     (unless (zerop (forward-line 1))
       (end-of-line)
       (insert "\n")))
@@ -784,7 +777,7 @@ it in the environment specified by BINDINGS."
 	(progn
 	  (goto-char (point-min))
 	  (end-of-line)
-	  (incf gnus-tmp-indent))
+	  (cl-incf gnus-tmp-indent))
       ;; Recurse downwards in all children of this article.
       (while thread
 	(gnus-generate-vertical-tree

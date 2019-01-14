@@ -1,6 +1,6 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases
 
-;; Copyright (C) 1985-1987, 1992-1993, 1996-1997, 2000-2018 Free
+;; Copyright (C) 1985-1987, 1992-1993, 1996-1997, 2000-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com; now jwz@jwz.org>
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 
-;; This file ensures that, when the point is in a To:, CC:, BCC:, or From:
+;; This file ensures that, when the point is in a To:, Cc:, Bcc:, or From:
 ;; field, word-abbrevs are defined for each of your mail aliases.  These
 ;; aliases will be defined from your .mailrc file (or the file specified by
 ;; `mail-personal-alias-file') if it exists.  Your mail aliases will
@@ -134,9 +134,6 @@
 ;;;###autoload
 (define-minor-mode mail-abbrevs-mode
   "Toggle abbrev expansion of mail aliases (Mail Abbrevs mode).
-With a prefix argument ARG, enable Mail Abbrevs mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Mail Abbrevs mode is a global minor mode.  When enabled,
 abbrev-like expansion is performed when editing certain mail
@@ -166,7 +163,8 @@ no aliases, which is represented by this being a table with no entries.)")
 (defun mail-abbrevs-sync-aliases ()
   (when mail-personal-alias-file
     (if (file-exists-p mail-personal-alias-file)
-	(let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
+	(let ((modtime (file-attribute-modification-time
+			(file-attributes mail-personal-alias-file))))
 	  (if (not (equal mail-abbrev-modtime modtime))
 	      (progn
 		(setq mail-abbrev-modtime modtime)
@@ -179,7 +177,8 @@ no aliases, which is represented by this being a table with no entries.)")
 	   (file-exists-p mail-personal-alias-file))
       (progn
 	(setq mail-abbrev-modtime
-	      (nth 5 (file-attributes mail-personal-alias-file)))
+	      (file-attribute-modification-time
+	       (file-attributes mail-personal-alias-file)))
 	(build-mail-abbrevs)))
   (mail-abbrevs-sync-aliases)
   (add-function :around (local 'abbrev-expand-function)
@@ -414,7 +413,7 @@ with a space."
 ;;; Syntax tables and abbrev-expansion
 
 (defcustom mail-abbrev-mode-regexp
-  "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):"
+  "^\\(Resent-\\)?\\(To\\|From\\|Cc\\|Bcc\\|Reply-To\\):"
   "Regexp matching mail headers in which mail abbrevs should be expanded.
 This string will be handed to `looking-at' with point at the beginning
 of the current line; if it matches, abbrev mode will be turned on, otherwise
@@ -477,7 +476,7 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 	      ;; Necessary for `message-read-from-minibuffer' to work.
 	      (window-minibuffer-p))
 
-          ;; We are in a To: (or CC:, or whatever) header or a minibuffer,
+          ;; We are in a To: (or Cc:, or whatever) header or a minibuffer,
           ;; and should use word-abbrevs to expand mail aliases.
           (let ((local-abbrev-table mail-abbrevs))
 

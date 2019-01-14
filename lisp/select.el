@@ -1,6 +1,6 @@
 ;;; select.el --- lisp portion of standard selection support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -86,6 +86,8 @@ After the communication, this variable is set to nil.")
 ;; Only declared obsolete in 23.3.
 (define-obsolete-function-alias 'x-selection 'x-get-selection "at least 19.34")
 
+(define-obsolete-variable-alias 'x-select-enable-clipboard
+  'select-enable-clipboard "25.1")
 (defcustom select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
 This can be in addition to, but in preference to, the primary selection,
@@ -94,9 +96,9 @@ if applicable (i.e. under X11)."
   :group 'killing
   ;; The GNU/Linux version changed in 24.1, the MS-Windows version did not.
   :version "24.1")
-(define-obsolete-variable-alias 'x-select-enable-clipboard
-  'select-enable-clipboard "25.1")
 
+(define-obsolete-variable-alias 'x-select-enable-primary
+  'select-enable-primary "25.1")
 (defcustom select-enable-primary nil
   "Non-nil means cutting and pasting uses the primary selection.
 The existence of a primary selection depends on the underlying GUI you use.
@@ -104,8 +106,6 @@ E.g. it doesn't exist under MS-Windows."
   :type 'boolean
   :group 'killing
   :version "25.1")
-(define-obsolete-variable-alias 'x-select-enable-primary
-  'select-enable-primary "25.1")
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
@@ -291,8 +291,10 @@ all upper-case names.  The most often used ones, in addition to
 `PRIMARY', are `SECONDARY' and `CLIPBOARD'.
 
 DATA-TYPE is usually `STRING', but can also be one of the symbols
-in `selection-converter-alist', which see.  This argument is
-ignored on NS, MS-Windows and MS-DOS."
+in `selection-converter-alist', which see.  Window systems other
+than X usually support only a small subset of these symbols, in
+addition to `STRING'; MS-Windows supports `TARGETS', which reports
+the formats available in the clipboard if TYPE is `CLIPBOARD'."
   (let ((data (gui-backend-get-selection (or type 'PRIMARY)
                                          (or data-type 'STRING))))
     (when (and (stringp data)

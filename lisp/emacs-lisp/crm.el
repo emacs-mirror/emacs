@@ -1,6 +1,6 @@
 ;;; crm.el --- read multiple strings with completion
 
-;; Copyright (C) 1985-1986, 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1993-2019 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: completion, minibuffer, multiple elements
@@ -263,7 +263,8 @@ with empty strings removed."
 	       (input (read-from-minibuffer
 		       prompt initial-input map
 		       nil hist def inherit-input-method)))
-	  (and def (string-equal input "") (setq input def))
+	  (when (and def (string-equal input ""))
+	    (setq input (if (consp def) (car def) def)))
           ;; Remove empty strings in the list of read strings.
 	  (split-string input crm-separator t)))
     (remove-hook 'choose-completion-string-functions

@@ -1,6 +1,6 @@
 /* euidaccess -- check if effective user id can access file
 
-   Copyright (C) 1990-1991, 1995, 1998, 2000, 2003-2006, 2008-2018 Free
+   Copyright (C) 1990-1991, 1995, 1998, 2000, 2003-2006, 2008-2019 Free
    Software Foundation, Inc.
 
    This file is part of the GNU C Library.
@@ -29,8 +29,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#include "root-uid.h"
+#if defined _WIN32 && ! defined __CYGWIN__
+# include <io.h>
+#else
+# include "root-uid.h"
+#endif
 
 #if HAVE_LIBGEN_H
 # include <libgen.h>
@@ -84,7 +87,9 @@ euidaccess (const char *file, int mode)
   return accessx (file, mode, ACC_SELF);
 #elif HAVE_EACCESS                      /* FreeBSD */
   return eaccess (file, mode);
-#else       /* Mac OS X, NetBSD, OpenBSD, HP-UX, Solaris, Cygwin, mingw, BeOS */
+#elif defined _WIN32 && ! defined __CYGWIN__  /* mingw */
+  return _access (file, mode);
+#else              /* Mac OS X, NetBSD, OpenBSD, HP-UX, Solaris, Cygwin, BeOS */
 
   uid_t uid = getuid ();
   gid_t gid = getgid ();

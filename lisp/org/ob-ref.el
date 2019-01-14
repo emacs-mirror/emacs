@@ -1,11 +1,11 @@
 ;;; ob-ref.el --- Babel Functions for Referencing External Data -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 

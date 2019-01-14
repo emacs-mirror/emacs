@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2018 Free Software Foundation, Inc.
+Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -47,6 +47,9 @@ struct xwidget
   /* A title used for button labels, for instance.  */
   Lisp_Object title;
 
+  /* Vector of currently executing scripts with callbacks.  */
+  Lisp_Object script_callbacks;
+
   /* Here ends the Lisp part.  "height" is the marker field.  */
 
   int height;
@@ -58,7 +61,7 @@ struct xwidget
 
   /* Kill silently if Emacs is exited.  */
   bool_bf kill_without_query : 1;
-};
+} GCALIGNED_STRUCT;
 
 struct xwidget_view
 {
@@ -85,13 +88,13 @@ struct xwidget_view
   int clip_left;
 
   long handler_id;
-};
+} GCALIGNED_STRUCT;
 #endif
 
 /* Test for xwidget pseudovector.  */
 #define XWIDGETP(x) PSEUDOVECTORP (x, PVEC_XWIDGET)
 #define XXWIDGET(a) (eassert (XWIDGETP (a)), \
-                     (struct xwidget *) XUNTAG (a, Lisp_Vectorlike))
+		     XUNTAG (a, Lisp_Vectorlike, struct xwidget))
 
 #define CHECK_XWIDGET(x) \
   CHECK_TYPE (XWIDGETP (x), Qxwidgetp, x)
@@ -99,7 +102,7 @@ struct xwidget_view
 /* Test for xwidget_view pseudovector.  */
 #define XWIDGET_VIEW_P(x) PSEUDOVECTORP (x, PVEC_XWIDGET_VIEW)
 #define XXWIDGET_VIEW(a) (eassert (XWIDGET_VIEW_P (a)), \
-                          (struct xwidget_view *) XUNTAG (a, Lisp_Vectorlike))
+			  XUNTAG (a, Lisp_Vectorlike, struct xwidget_view))
 
 #define CHECK_XWIDGET_VIEW(x) \
   CHECK_TYPE (XWIDGET_VIEW_P (x), Qxwidget_view_p, x)

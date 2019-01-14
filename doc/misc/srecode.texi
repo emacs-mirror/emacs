@@ -16,7 +16,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1474,7 +1474,7 @@ to write your own function in order to provide your dictionaries with
 the values needed for custom templates.
 
 In this way, you can build your own code generator for any language
-based on a set of predefined macros whos values you need to derive
+based on a set of predefined macros whose values you need to derive
 from Emacs Lisp code yourself.
 
 For example:

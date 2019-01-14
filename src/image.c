@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
 
-Copyright (C) 1989, 1992-2018 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -78,6 +78,7 @@ typedef struct x_bitmap_record Bitmap_Record;
 
 /* We need (or want) w32.h only when we're _not_ compiling for Cygwin.  */
 #ifdef WINDOWSNT
+# include "w32common.h"
 # include "w32.h"
 #endif
 
@@ -323,7 +324,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
   /* Search bitmap-file-path for the file, if appropriate.  */
   if (openp (Vx_bitmap_file_path, file, Qnil, &found,
-	     make_number (R_OK), false)
+	     make_fixnum (R_OK), false)
       < 0)
     return -1;
 
@@ -408,8 +409,13 @@ x_destroy_all_bitmaps (Display_Info *dpyinfo)
   dpyinfo->bitmaps_last = 0;
 }
 
+#ifndef HAVE_XRENDER
+/* Required for the definition of x_create_x_image_and_pixmap below.  */
+typedef void Picture;
+#endif
+
 static bool x_create_x_image_and_pixmap (struct frame *, int, int, int,
-					 XImagePtr *, Pixmap *);
+					 XImagePtr *, Pixmap *, Picture *);
 static void x_destroy_x_image (XImagePtr ximg);
 
 #ifdef HAVE_NTGUI
@@ -472,7 +478,8 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
       return;
     }
 
-  result = x_create_x_image_and_pixmap (f, width, height, 1, &mask_img, &mask);
+  result = x_create_x_image_and_pixmap (f, width, height, 1,
+                                        &mask_img, &mask, NULL);
 
   unblock_input ();
   if (!result)
@@ -524,6 +531,33 @@ x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
 /***********************************************************************
 			    Image types
  ***********************************************************************/
+
+/* Each image format (JPEG, TIFF, ...) supported is described by
+   a structure of the type below.  */
+
+struct image_type
+{
+  /* Index of a symbol uniquely identifying the image type, e.g., 'jpeg'.  */
+  int type;
+
+  /* Check that SPEC is a valid image specification for the given
+     image type.  Value is true if SPEC is valid.  */
+  bool (*valid_p) (Lisp_Object spec);
+
+  /* Load IMG which is used on frame F from information contained in
+     IMG->spec.  Value is true if successful.  */
+  bool (*load) (struct frame *f, struct image *img);
+
+  /* Free resources of image IMG which is used on frame F.  */
+  void (*free) (struct frame *f, struct image *img);
+
+  /* Initialization function (used for dynamic loading of image
+     libraries on Windows), or NULL if none.  */
+  bool (*init) (void);
+
+  /* Next in list of all supported image types.  */
+  struct image_type *next;
+};
 
 /* List of supported image types.  Use define_image_type to add new
    types.  Use lookup_image_type to find a type for a given symbol.  */
@@ -762,23 +796,23 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 
 	case IMAGE_POSITIVE_INTEGER_VALUE:
-	  if (! RANGED_INTEGERP (1, value, INT_MAX))
+	  if (! RANGED_FIXNUMP (1, value, INT_MAX))
 	    return 0;
 	  break;
 
 	case IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR:
-	  if (RANGED_INTEGERP (0, value, INT_MAX))
+	  if (RANGED_FIXNUMP (0, value, INT_MAX))
 	    break;
 	  if (CONSP (value)
-	      && RANGED_INTEGERP (0, XCAR (value), INT_MAX)
-	      && RANGED_INTEGERP (0, XCDR (value), INT_MAX))
+	      && RANGED_FIXNUMP (0, XCAR (value), INT_MAX)
+	      && RANGED_FIXNUMP (0, XCDR (value), INT_MAX))
 	    break;
 	  return 0;
 
 	case IMAGE_ASCENT_VALUE:
 	  if (SYMBOLP (value) && EQ (value, Qcenter))
 	    break;
-	  else if (RANGED_INTEGERP (0, value, 100))
+	  else if (RANGED_FIXNUMP (0, value, 100))
 	    break;
 	  return 0;
 
@@ -786,7 +820,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  /* Unlike the other integer-related cases, this one does not
 	     verify that VALUE fits in 'int'.  This is because callers
 	     want EMACS_INT.  */
-	  if (!INTEGERP (value) || XINT (value) < 0)
+	  if (!FIXNUMP (value) || XFIXNUM (value) < 0)
 	    return 0;
 	  break;
 
@@ -805,7 +839,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 
 	case IMAGE_INTEGER_VALUE:
-	  if (! TYPE_RANGED_INTEGERP (int, value))
+	  if (! TYPE_RANGED_FIXNUMP (int, value))
 	    return 0;
 	  break;
 
@@ -884,7 +918,7 @@ or omitted means use the selected frame.  */)
 	size = Fcons (make_float ((double) width / FRAME_COLUMN_WIDTH (f)),
 		      make_float ((double) height / FRAME_LINE_HEIGHT (f)));
       else
-	size = Fcons (make_number (width), make_number (height));
+	size = Fcons (make_fixnum (width), make_fixnum (height));
     }
   else
     error ("Invalid image specification");
@@ -984,6 +1018,13 @@ free_image (struct frame *f, struct image *img)
 
       c->images[img->id] = NULL;
 
+#ifdef HAVE_XRENDER
+      if (img->picture)
+        XRenderFreePicture (FRAME_X_DISPLAY (f), img->picture);
+      if (img->mask_picture)
+        XRenderFreePicture (FRAME_X_DISPLAY (f), img->mask_picture);
+#endif
+
       /* Windows NT redefines 'free', but in this file, we need to
          avoid the redefinition.  */
 #ifdef WINDOWSNT
@@ -1005,9 +1046,9 @@ check_image_size (struct frame *f, int width, int height)
   if (width <= 0 || height <= 0)
     return 0;
 
-  if (INTEGERP (Vmax_image_size))
-    return (width <= XINT (Vmax_image_size)
-	    && height <= XINT (Vmax_image_size));
+  if (FIXNUMP (Vmax_image_size))
+    return (width <= XFIXNUM (Vmax_image_size)
+	    && height <= XFIXNUM (Vmax_image_size));
   else if (FLOATP (Vmax_image_size))
     {
       if (f != NULL)
@@ -1535,7 +1576,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 		}
 	    }
 	}
-      else if (INTEGERP (Vimage_cache_eviction_delay))
+      else if (FIXNUMP (Vimage_cache_eviction_delay))
 	{
 	  /* Free cache based on timestamp.  */
 	  struct timespec old, t;
@@ -1548,7 +1589,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 
 	  /* If the number of cached images has grown unusually large,
 	     decrease the cache eviction delay (Bug#6230).  */
-	  delay = XINT (Vimage_cache_eviction_delay);
+	  delay = XFIXNUM (Vimage_cache_eviction_delay);
 	  if (nimages > 40)
 	    delay = 1600 * delay / nimages / nimages;
 	  delay = max (delay, 1);
@@ -1611,7 +1652,7 @@ Anything else, means only clear those images which refer to FILTER,
 which is then usually a filename.  */)
   (Lisp_Object filter)
 {
-  if (!(EQ (filter, Qnil) || FRAMEP (filter)))
+  if (! (NILP (filter) || FRAMEP (filter)))
     clear_image_caches (filter);
   else
     clear_image_cache (decode_window_system_frame (filter), Qt);
@@ -1720,6 +1761,147 @@ postprocess_image (struct frame *f, struct image *img)
     }
 }
 
+#if defined (HAVE_IMAGEMAGICK) || defined (HAVE_NATIVE_SCALING)
+/* Scale an image size by returning SIZE / DIVISOR * MULTIPLIER,
+   safely rounded and clipped to int range.  */
+
+static int
+scale_image_size (int size, size_t divisor, size_t multiplier)
+{
+  if (divisor != 0)
+    {
+      double s = size;
+      double scaled = s * multiplier / divisor + 0.5;
+      if (scaled < INT_MAX)
+	return scaled;
+    }
+  return INT_MAX;
+}
+
+/* Compute the desired size of an image with native size WIDTH x HEIGHT.
+   Use SPEC to deduce the size.  Store the desired size into
+   *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the native size is OK.  */
+static void
+compute_image_size (size_t width, size_t height,
+		    Lisp_Object spec,
+		    int *d_width, int *d_height)
+{
+  Lisp_Object value;
+  int desired_width = -1, desired_height = -1, max_width = -1, max_height = -1;
+  double scale = 1;
+
+  value = image_spec_value (spec, QCscale, NULL);
+  if (NUMBERP (value))
+    scale = XFLOATINT (value);
+
+  value = image_spec_value (spec, QCmax_width, NULL);
+  if (FIXNATP (value))
+    max_width = min (XFIXNAT (value), INT_MAX);
+
+  value = image_spec_value (spec, QCmax_height, NULL);
+  if (FIXNATP (value))
+    max_height = min (XFIXNAT (value), INT_MAX);
+
+  /* If width and/or height is set in the display spec assume we want
+     to scale to those values.  If either h or w is unspecified, the
+     unspecified should be calculated from the specified to preserve
+     aspect ratio.  */
+  value = image_spec_value (spec, QCwidth, NULL);
+  if (FIXNATP (value))
+    {
+      desired_width = min (XFIXNAT (value) * scale, INT_MAX);
+      /* :width overrides :max-width. */
+      max_width = -1;
+    }
+
+  value = image_spec_value (spec, QCheight, NULL);
+  if (FIXNATP (value))
+    {
+      desired_height = min (XFIXNAT (value) * scale, INT_MAX);
+      /* :height overrides :max-height. */
+      max_height = -1;
+    }
+
+  /* If we have both width/height set explicitly, we skip past all the
+     aspect ratio-preserving computations below. */
+  if (desired_width != -1 && desired_height != -1)
+    goto out;
+
+  width = width * scale;
+  height = height * scale;
+
+  if (desired_width != -1)
+    /* Width known, calculate height. */
+    desired_height = scale_image_size (desired_width, width, height);
+  else if (desired_height != -1)
+    /* Height known, calculate width. */
+    desired_width = scale_image_size (desired_height, height, width);
+  else
+    {
+      desired_width = width;
+      desired_height = height;
+    }
+
+  if (max_width != -1 && desired_width > max_width)
+    {
+      /* The image is wider than :max-width. */
+      desired_width = max_width;
+      desired_height = scale_image_size (desired_width, width, height);
+    }
+
+  if (max_height != -1 && desired_height > max_height)
+    {
+      /* The image is higher than :max-height. */
+      desired_height = max_height;
+      desired_width = scale_image_size (desired_height, height, width);
+    }
+
+ out:
+  *d_width = desired_width;
+  *d_height = desired_height;
+}
+
+#ifdef HAVE_NATIVE_SCALING
+static void
+x_set_image_size (struct frame *f, struct image *img)
+{
+#ifdef HAVE_IMAGEMAGICK
+  /* ImageMagick images are already the correct size.  */
+  if (!EQ (image_spec_value (img->spec, QCtype, NULL), Qimagemagick))
+#endif
+    {
+      int width, height;
+
+      compute_image_size (img->width, img->height, img->spec, &width, &height);
+
+#ifdef HAVE_NS
+      ns_image_set_size (img->pixmap, width, height);
+      img->width = width;
+      img->height = height;
+#endif
+
+#ifdef HAVE_XRENDER
+      if (img->picture)
+      {
+        double xscale = (double) img->width/width;
+        double yscale = (double) img->height/height;
+
+        XTransform tmat = {{{XDoubleToFixed (xscale), XDoubleToFixed (0), XDoubleToFixed (0)},
+                            {XDoubleToFixed (0), XDoubleToFixed (yscale), XDoubleToFixed (0)},
+                            {XDoubleToFixed (0), XDoubleToFixed (0), XDoubleToFixed (1)}}};
+
+        XRenderSetPictureFilter (FRAME_X_DISPLAY (f), img->picture, FilterBest, 0, 0);
+        XRenderSetPictureTransform (FRAME_X_DISPLAY (f), img->picture, &tmat);
+
+        img->width = width;
+        img->height = height;
+      }
+#endif
+    }
+}
+#endif
+#endif /* HAVE_IMAGEMAGICK || HAVE_XRENDER || HAVE_NS  */
+
 
 /* Return the id of image with Lisp specification SPEC on frame F.
    SPEC must be a valid Lisp image specification (see valid_image_p).  */
@@ -1762,11 +1944,11 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	  Lisp_Object value;
 
 	  value = image_spec_value (spec, QCwidth, NULL);
-	  img->width = (INTEGERP (value)
-			? XFASTINT (value) : DEFAULT_IMAGE_WIDTH);
+	  img->width = (FIXNUMP (value)
+			? XFIXNAT (value) : DEFAULT_IMAGE_WIDTH);
 	  value = image_spec_value (spec, QCheight, NULL);
-	  img->height = (INTEGERP (value)
-			 ? XFASTINT (value) : DEFAULT_IMAGE_HEIGHT);
+	  img->height = (FIXNUMP (value)
+			 ? XFIXNAT (value) : DEFAULT_IMAGE_HEIGHT);
 	}
       else
 	{
@@ -1775,27 +1957,30 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	     `:background COLOR'.  */
 	  Lisp_Object ascent, margin, relief, bg;
 	  int relief_bound;
+#ifdef HAVE_NATIVE_SCALING
+          x_set_image_size (f, img);
+#endif
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
-	  if (INTEGERP (ascent))
-	    img->ascent = XFASTINT (ascent);
+	  if (FIXNUMP (ascent))
+	    img->ascent = XFIXNAT (ascent);
 	  else if (EQ (ascent, Qcenter))
 	    img->ascent = CENTERED_IMAGE_ASCENT;
 
 	  margin = image_spec_value (spec, QCmargin, NULL);
-	  if (INTEGERP (margin))
-	    img->vmargin = img->hmargin = XFASTINT (margin);
+	  if (FIXNUMP (margin))
+	    img->vmargin = img->hmargin = XFIXNAT (margin);
 	  else if (CONSP (margin))
 	    {
-	      img->hmargin = XFASTINT (XCAR (margin));
-	      img->vmargin = XFASTINT (XCDR (margin));
+	      img->hmargin = XFIXNAT (XCAR (margin));
+	      img->vmargin = XFIXNAT (XCDR (margin));
 	    }
 
 	  relief = image_spec_value (spec, QCrelief, NULL);
 	  relief_bound = INT_MAX - max (img->hmargin, img->vmargin);
-	  if (RANGED_INTEGERP (- relief_bound, relief, relief_bound))
+	  if (RANGED_FIXNUMP (- relief_bound, relief, relief_bound))
 	    {
-	      img->relief = XINT (relief);
+	      img->relief = XFIXNUM (relief);
 	      img->hmargin += eabs (img->relief);
 	      img->vmargin += eabs (img->relief);
 	    }
@@ -1949,12 +2134,15 @@ x_check_image_size (XImagePtr ximg, int width, int height)
 
 static bool
 x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
-			     XImagePtr *ximg, Pixmap *pixmap)
+			     XImagePtr *ximg, Pixmap *pixmap, Picture *picture)
 {
 #ifdef HAVE_X_WINDOWS
   Display *display = FRAME_X_DISPLAY (f);
   Drawable drawable = FRAME_X_DRAWABLE (f);
   Screen *screen = FRAME_X_SCREEN (f);
+#ifdef HAVE_XRENDER
+  int event_basep, error_basep;
+#endif
 
   eassert (input_blocked_p ());
 
@@ -1974,7 +2162,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
       x_destroy_x_image (*ximg);
       *ximg = NULL;
       image_error ("Image too large (%dx%d)",
-		   make_number (width), make_number (height));
+		   make_fixnum (width), make_fixnum (height));
       return 0;
     }
 
@@ -1990,6 +2178,21 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
       image_error ("Unable to create X pixmap");
       return 0;
     }
+
+#ifdef HAVE_XRENDER
+  if (picture && XRenderQueryExtension (display, &event_basep, &error_basep))
+    {
+      XRenderPictFormat *format;
+      XRenderPictureAttributes attr;
+
+      /* FIXME: Do we need to handle all possible bit depths?  */
+      format = XRenderFindStandardFormat (display,
+                                          depth > 24 ? PictStandardARGB32
+                                          : depth > 8 ? PictStandardRGB24
+                                          : PictStandardA8);
+      *picture = XRenderCreatePicture (display, *pixmap, format, 0, &attr);
+    }
+#endif
 
   return 1;
 #endif /* HAVE_X_WINDOWS */
@@ -2136,7 +2339,8 @@ x_put_x_image (struct frame *f, XImagePtr ximg, Pixmap pixmap, int width, int he
 
   eassert (input_blocked_p ());
   gc = XCreateGC (FRAME_X_DISPLAY (f), pixmap, 0, NULL);
-  XPutImage (FRAME_X_DISPLAY (f), pixmap, gc, ximg, 0, 0, 0, 0, width, height);
+  XPutImage (FRAME_X_DISPLAY (f), pixmap, gc, ximg, 0, 0, 0, 0,
+             ximg->width, ximg->height);
   XFreeGC (FRAME_X_DISPLAY (f), gc);
 #endif /* HAVE_X_WINDOWS */
 
@@ -2165,7 +2369,13 @@ image_create_x_image_and_pixmap (struct frame *f, struct image *img,
   eassert ((!mask_p ? img->pixmap : img->mask) == NO_PIXMAP);
 
   return x_create_x_image_and_pixmap (f, width, height, depth, ximg,
-				      !mask_p ? &img->pixmap : &img->mask);
+				      !mask_p ? &img->pixmap : &img->mask,
+#ifdef HAVE_XRENDER
+                                      !mask_p ? &img->picture : &img->mask_picture
+#else
+                                      NULL
+#endif
+                                      );
 }
 
 /* Put X image XIMG into image IMG on frame F, as a mask if and only
@@ -2307,16 +2517,16 @@ x_find_image_fd (Lisp_Object file, int *pfd)
 
   /* Try to find FILE in data-directory/images, then x-bitmap-file-path.  */
   fd = openp (search_path, file, Qnil, &file_found,
-	      pfd ? Qt : make_number (R_OK), false);
+	      pfd ? Qt : make_fixnum (R_OK), false);
   if (fd >= 0 || fd == -2)
     {
       file_found = ENCODE_FILE (file_found);
       if (fd == -2)
 	{
-	  /* The file exists locally, but has a file handler.  (This
-	     happens, e.g., under Auto Image File Mode.)  'openp'
-	     didn't open the file, so we should, because the caller
-	     expects that.  */
+	  /* The file exists locally, but has a file name handler.
+	     (This happens, e.g., under Auto Image File Mode.)
+	     'openp' didn't open the file, so we should, because the
+	     caller expects that.  */
 	  fd = emacs_open (SSDATA (file_found), O_RDONLY, 0);
 	}
     }
@@ -2513,8 +2723,8 @@ xbm_image_p (Lisp_Object object)
 	return 0;
 
       data = kw[XBM_DATA].value;
-      width = XFASTINT (kw[XBM_WIDTH].value);
-      height = XFASTINT (kw[XBM_HEIGHT].value);
+      width = XFIXNAT (kw[XBM_WIDTH].value);
+      height = XFIXNAT (kw[XBM_HEIGHT].value);
 
       /* Check type of data, and width and height against contents of
 	 data.  */
@@ -2876,7 +3086,7 @@ xbm_read_bitmap_data (struct frame *f, char *contents, char *end,
     {
       if (!inhibit_image_error)
 	image_error ("Image too large (%dx%d)",
-		     make_number (*width), make_number (*height));
+		     make_fixnum (*width), make_fixnum (*height));
       goto failure;
     }
   bytes_per_line = (*width + 7) / 8 + padding_p;
@@ -3062,8 +3272,8 @@ xbm_load (struct frame *f, struct image *img)
       /* Get specified width, and height.  */
       if (!in_memory_file_p)
 	{
-	  img->width = XFASTINT (fmt[XBM_WIDTH].value);
-	  img->height = XFASTINT (fmt[XBM_HEIGHT].value);
+	  img->width = XFIXNAT (fmt[XBM_WIDTH].value);
+	  img->height = XFIXNAT (fmt[XBM_HEIGHT].value);
 	  eassert (img->width > 0 && img->height > 0);
 	  if (!check_image_size (f, img->width, img->height))
 	    {
@@ -4001,7 +4211,7 @@ xpm_make_color_table_v (void (**put_func) (Lisp_Object, const char *, int,
 {
   *put_func = xpm_put_color_table_v;
   *get_func = xpm_get_color_table_v;
-  return Fmake_vector (make_number (256), Qnil);
+  return make_nil_vector (256);
 }
 
 static void
@@ -4169,7 +4379,7 @@ xpm_load_image (struct frame *f,
   if (!NILP (Fxw_display_color_p (frame)))
     best_key = XPM_COLOR_KEY_C;
   else if (!NILP (Fx_display_grayscale_p (frame)))
-    best_key = (XFASTINT (Fx_display_planes (frame)) > 2
+    best_key = (XFIXNAT (Fx_display_planes (frame)) > 2
 		? XPM_COLOR_KEY_G : XPM_COLOR_KEY_G4);
   else
     best_key = XPM_COLOR_KEY_M;
@@ -4240,7 +4450,7 @@ xpm_load_image (struct frame *f,
 		color_val = Qt;
 	      else if (x_defined_color (f, SSDATA (XCDR (specified_color)),
 					&cdef, 0))
-		color_val = make_number (cdef.pixel);
+		color_val = make_fixnum (cdef.pixel);
 	    }
 	}
       if (NILP (color_val) && max_key > 0)
@@ -4248,7 +4458,7 @@ xpm_load_image (struct frame *f,
 	  if (xstrcasecmp (max_color, "None") == 0)
 	    color_val = Qt;
 	  else if (x_defined_color (f, max_color, &cdef, 0))
-	    color_val = make_number (cdef.pixel);
+	    color_val = make_fixnum (cdef.pixel);
 	}
       if (!NILP (color_val))
 	(*put_color_table) (color_table, beg, chars_per_pixel, color_val);
@@ -4268,7 +4478,7 @@ xpm_load_image (struct frame *f,
 	    (*get_color_table) (color_table, str, chars_per_pixel);
 
 	  XPutPixel (ximg, x, y,
-		     (INTEGERP (color_val) ? XINT (color_val)
+		     (FIXNUMP (color_val) ? XFIXNUM (color_val)
 		      : FRAME_FOREGROUND_PIXEL (f)));
 #ifndef HAVE_NS
 	  XPutPixel (mask_img, x, y,
@@ -4309,7 +4519,7 @@ xpm_load_image (struct frame *f,
   return 1;
 
  failure:
-  image_error ("Invalid XPM file (%s)", img->spec);
+  image_error ("Invalid XPM3 file (%s)", img->spec);
   x_destroy_x_image (ximg);
   x_destroy_x_image (mask_img);
   x_clear_image (f, img);
@@ -4630,6 +4840,8 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
   return PALETTERGB (r >> 8, g >> 8, b >> 8);
 #elif defined HAVE_NS
   return RGB_TO_ULONG (r >> 8, g >> 8, b >> 8);
+#elif defined USE_CAIRO
+  return (0xffu << 24) | (r << 16) | (g << 8) | b;
 #else
   xsignal1 (Qfile_error,
 	    build_string ("This Emacs mishandles this image file type"));
@@ -4938,7 +5150,7 @@ x_edge_detection (struct frame *f, struct image *img, Lisp_Object matrix,
     }
 
   if (NILP (color_adjust))
-    color_adjust = make_number (0xffff / 2);
+    color_adjust = make_fixnum (0xffff / 2);
 
   if (i == 9 && NUMBERP (color_adjust))
     x_detect_edges (f, img, trans, XFLOATINT (color_adjust));
@@ -5092,9 +5304,9 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
     {
       int rgb[3], i;
 
-      for (i = 0; i < 3 && CONSP (how) && NATNUMP (XCAR (how)); ++i)
+      for (i = 0; i < 3 && CONSP (how) && FIXNATP (XCAR (how)); ++i)
 	{
-	  rgb[i] = XFASTINT (XCAR (how)) & 0xffff;
+	  rgb[i] = XFIXNAT (XCAR (how)) & 0xffff;
 	  how = XCDR (how);
 	}
 
@@ -5733,7 +5945,7 @@ DEF_DLL_FN (void, png_read_end, (png_structp, png_infop));
 DEF_DLL_FN (void, png_error, (png_structp, png_const_charp));
 
 #  if (PNG_LIBPNG_VER >= 10500)
-DEF_DLL_FN (void, png_longjmp, (png_structp, int)) PNG_NORETURN;
+DEF_DLL_FN (void, png_longjmp, (png_structp, int) PNG_NORETURN);
 DEF_DLL_FN (jmp_buf *, png_set_longjmp_fn,
 	    (png_structp, png_longjmp_ptr, size_t));
 #  endif /* libpng version >= 1.5 */
@@ -6703,10 +6915,10 @@ jpeg_load_body (struct frame *f, struct image *img,
   FILE *volatile fp = NULL;
   JSAMPARRAY buffer;
   int row_stride, x, y;
-  unsigned long *colors;
   int width, height;
   int i, ir, ig, ib;
 #ifndef USE_CAIRO
+  unsigned long *colors;
   XImagePtr ximg = NULL;
 #endif
 
@@ -6824,7 +7036,7 @@ jpeg_load_body (struct frame *f, struct image *img,
     else
       ir = 0, ig = 0, ib = 0;
 
-#ifndef CAIRO
+#ifndef USE_CAIRO
     /* Use the color table mechanism because it handles colors that
        cannot be allocated nicely.  Such colors will be replaced with
        a default color, and we don't have to care about which colors
@@ -7279,9 +7491,9 @@ tiff_load (struct frame *f, struct image *img)
     }
 
   image = image_spec_value (img->spec, QCindex, NULL);
-  if (INTEGERP (image))
+  if (FIXNUMP (image))
     {
-      EMACS_INT ino = XFASTINT (image);
+      EMACS_INT ino = XFIXNAT (image);
       if (! (TYPE_MINIMUM (tdir_t) <= ino && ino <= TYPE_MAXIMUM (tdir_t)
 	     && TIFFSetDirectory (tiff, ino)))
 	{
@@ -7323,7 +7535,7 @@ tiff_load (struct frame *f, struct image *img)
 
   if (count > 1)
     img->lisp_data = Fcons (Qcount,
-			    Fcons (make_number (count),
+			    Fcons (make_fixnum (count),
 				   img->lisp_data));
 
   TIFFClose (tiff);
@@ -7745,7 +7957,7 @@ gif_load (struct frame *f, struct image *img)
   /* Which sub-image are we to display?  */
   {
     Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
-    idx = INTEGERP (image_number) ? XFASTINT (image_number) : 0;
+    idx = FIXNUMP (image_number) ? XFIXNAT (image_number) : 0;
     if (idx < 0 || idx >= gif->ImageCount)
       {
 	image_error ("Invalid image number `%s' in image `%s'",
@@ -7999,7 +8211,7 @@ gif_load (struct frame *f, struct image *img)
 	/* Append (... FUNCTION "BYTES") */
 	{
 	  img->lisp_data
-	    = Fcons (make_number (ext->Function),
+	    = Fcons (make_fixnum (ext->Function),
 		     Fcons (make_unibyte_string ((char *) ext->Bytes,
 						 ext->ByteCount),
 			    img->lisp_data));
@@ -8020,7 +8232,7 @@ gif_load (struct frame *f, struct image *img)
 
   if (gif->ImageCount > 1)
     img->lisp_data = Fcons (Qcount,
-			    Fcons (make_number (gif->ImageCount),
+			    Fcons (make_fixnum (gif->ImageCount),
 				   img->lisp_data));
 
   if (gif_close (gif, &gif_err) == GIF_ERROR)
@@ -8071,105 +8283,6 @@ gif_load (struct frame *f, struct image *img)
 /***********************************************************************
 				 ImageMagick
 ***********************************************************************/
-
-/* Scale an image size by returning SIZE / DIVISOR * MULTIPLIER,
-   safely rounded and clipped to int range.  */
-
-static int
-scale_image_size (int size, size_t divisor, size_t multiplier)
-{
-  if (divisor != 0)
-    {
-      double s = size;
-      double scaled = s * multiplier / divisor + 0.5;
-      if (scaled < INT_MAX)
-	return scaled;
-    }
-  return INT_MAX;
-}
-
-/* Compute the desired size of an image with native size WIDTH x HEIGHT.
-   Use SPEC to deduce the size.  Store the desired size into
-   *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the native size is OK.  */
-static void
-compute_image_size (size_t width, size_t height,
-		    Lisp_Object spec,
-		    int *d_width, int *d_height)
-{
-  Lisp_Object value;
-  int desired_width = -1, desired_height = -1, max_width = -1, max_height = -1;
-  double scale = 1;
-
-  value = image_spec_value (spec, QCscale, NULL);
-  if (NUMBERP (value))
-    scale = XFLOATINT (value);
-
-  value = image_spec_value (spec, QCmax_width, NULL);
-  if (NATNUMP (value))
-    max_width = min (XFASTINT (value), INT_MAX);
-
-  value = image_spec_value (spec, QCmax_height, NULL);
-  if (NATNUMP (value))
-    max_height = min (XFASTINT (value), INT_MAX);
-
-  /* If width and/or height is set in the display spec assume we want
-     to scale to those values.  If either h or w is unspecified, the
-     unspecified should be calculated from the specified to preserve
-     aspect ratio.  */
-  value = image_spec_value (spec, QCwidth, NULL);
-  if (NATNUMP (value))
-    {
-      desired_width = min (XFASTINT (value) * scale, INT_MAX);
-      /* :width overrides :max-width. */
-      max_width = -1;
-    }
-
-  value = image_spec_value (spec, QCheight, NULL);
-  if (NATNUMP (value))
-    {
-      desired_height = min (XFASTINT (value) * scale, INT_MAX);
-      /* :height overrides :max-height. */
-      max_height = -1;
-    }
-
-  /* If we have both width/height set explicitly, we skip past all the
-     aspect ratio-preserving computations below. */
-  if (desired_width != -1 && desired_height != -1)
-    goto out;
-
-  width = width * scale;
-  height = height * scale;
-
-  if (desired_width != -1)
-    /* Width known, calculate height. */
-    desired_height = scale_image_size (desired_width, width, height);
-  else if (desired_height != -1)
-    /* Height known, calculate width. */
-    desired_width = scale_image_size (desired_height, height, width);
-  else
-    {
-      desired_width = width;
-      desired_height = height;
-    }
-
-  if (max_width != -1 && desired_width > max_width)
-    {
-      /* The image is wider than :max-width. */
-      desired_width = max_width;
-      desired_height = scale_image_size (desired_width, width, height);
-    }
-
-  if (max_height != -1 && desired_height > max_height)
-    {
-      /* The image is higher than :max-height. */
-      desired_height = max_height;
-      desired_width = scale_image_size (desired_height, height, width);
-    }
-
- out:
-  *d_width = desired_width;
-  *d_height = desired_height;
-}
 
 static bool imagemagick_image_p (Lisp_Object);
 static bool imagemagick_load (struct frame *, struct image *);
@@ -8271,11 +8384,20 @@ imagemagick_image_p (Lisp_Object object)
 /* The GIF library also defines DrawRectangle, but its never used in Emacs.
    Therefore rename the function so it doesn't collide with ImageMagick.  */
 #define DrawRectangle DrawRectangleGif
-#include <wand/MagickWand.h>
+
+#ifdef HAVE_IMAGEMAGICK7
+# include <MagickWand/MagickWand.h>
+# include <MagickCore/version.h>
+/* ImageMagick 7 compatibility definitions.  */
+# define PixelSetMagickColor PixelSetPixelColor
+typedef PixelInfo MagickPixelPacket;
+#else
+# include <wand/MagickWand.h>
+# include <magick/version.h>
+#endif
 
 /* ImageMagick 6.5.3 through 6.6.5 hid PixelGetMagickColor for some reason.
    Emacs seems to work fine with the hidden version, so unhide it.  */
-#include <magick/version.h>
 #if 0x653 <= MagickLibVersion && MagickLibVersion <= 0x665
 extern WandExport void PixelGetMagickColor (const PixelWand *,
 					    MagickPixelPacket *);
@@ -8538,7 +8660,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
   int width, height;
   size_t image_width, image_height;
   MagickBooleanType status;
+#ifndef USE_CAIRO
   XImagePtr ximg;
+#endif
   int x, y;
   MagickWand *image_wand;
   PixelIterator *iterator;
@@ -8552,6 +8676,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
   double rotation;
   char hint_buffer[MaxTextExtent];
   char *filename_hint = NULL;
+#ifdef USE_CAIRO
+  void *data = NULL;
+#endif
 
   /* Initialize the ImageMagick environment.  */
   static bool imagemagick_initialized;
@@ -8567,7 +8694,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
      find out things about it.  */
 
   image = image_spec_value (img->spec, QCindex, NULL);
-  ino = INTEGERP (image) ? XFASTINT (image) : 0;
+  ino = FIXNUMP (image) ? XFIXNAT (image) : 0;
   image_wand = NewMagickWand ();
 
   if (filename)
@@ -8577,9 +8704,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
       Lisp_Object lwidth = image_spec_value (img->spec, QCwidth, NULL);
       Lisp_Object lheight = image_spec_value (img->spec, QCheight, NULL);
 
-      if (NATNUMP (lwidth) && NATNUMP (lheight))
+      if (FIXNATP (lwidth) && FIXNATP (lheight))
 	{
-	  MagickSetSize (image_wand, XFASTINT (lwidth), XFASTINT (lheight));
+	  MagickSetSize (image_wand, XFIXNAT (lwidth), XFIXNAT (lheight));
 	  MagickSetDepth (image_wand, 8);
 	}
       filename_hint = imagemagick_filename_hint (img->spec, hint_buffer);
@@ -8622,7 +8749,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
   if (MagickGetNumberImages (image_wand) > 1)
     img->lisp_data =
       Fcons (Qcount,
-             Fcons (make_number (MagickGetNumberImages (image_wand)),
+             Fcons (make_fixnum (MagickGetNumberImages (image_wand)),
                     img->lisp_data));
 
   /* If we have an animated image, get the new wand based on the
@@ -8672,26 +8799,26 @@ imagemagick_load_image (struct frame *f, struct image *img,
      efficient.  */
   crop = image_spec_value (img->spec, QCcrop, NULL);
 
-  if (CONSP (crop) && TYPE_RANGED_INTEGERP (size_t, XCAR (crop)))
+  if (CONSP (crop) && TYPE_RANGED_FIXNUMP (size_t, XCAR (crop)))
     {
       /* After some testing, it seems MagickCropImage is the fastest crop
          function in ImageMagick.  This crop function seems to do less copying
          than the alternatives, but it still reads the entire image into memory
          before cropping, which is apparently difficult to avoid when using
          imagemagick.  */
-      size_t crop_width = XINT (XCAR (crop));
+      size_t crop_width = XFIXNUM (XCAR (crop));
       crop = XCDR (crop);
-      if (CONSP (crop) && TYPE_RANGED_INTEGERP (size_t, XCAR (crop)))
+      if (CONSP (crop) && TYPE_RANGED_FIXNUMP (size_t, XCAR (crop)))
 	{
-	  size_t crop_height = XINT (XCAR (crop));
+	  size_t crop_height = XFIXNUM (XCAR (crop));
 	  crop = XCDR (crop);
-	  if (CONSP (crop) && TYPE_RANGED_INTEGERP (ssize_t, XCAR (crop)))
+	  if (CONSP (crop) && TYPE_RANGED_FIXNUMP (ssize_t, XCAR (crop)))
 	    {
-	      ssize_t crop_x = XINT (XCAR (crop));
+	      ssize_t crop_x = XFIXNUM (XCAR (crop));
 	      crop = XCDR (crop);
-	      if (CONSP (crop) && TYPE_RANGED_INTEGERP (ssize_t, XCAR (crop)))
+	      if (CONSP (crop) && TYPE_RANGED_FIXNUMP (ssize_t, XCAR (crop)))
 		{
-		  ssize_t crop_y = XINT (XCAR (crop));
+		  ssize_t crop_y = XFIXNUM (XCAR (crop));
 		  MagickCropImage (image_wand, crop_width, crop_height,
 				   crop_x, crop_y);
 		}
@@ -8760,6 +8887,12 @@ imagemagick_load_image (struct frame *f, struct image *img,
       /* Magicexportimage is normally faster than pixelpushing.  This
          method is also well tested.  Some aspects of this method are
          ad-hoc and needs to be more researched. */
+      void *dataptr;
+#ifdef USE_CAIRO
+      data = xmalloc (width * height * 4);
+      const char *exportdepth = "BGRA";
+      dataptr = data;
+#else
       int imagedepth = 24; /*MagickGetImageDepth(image_wand);*/
       const char *exportdepth = imagedepth <= 8 ? "I" : "BGRP"; /*"RGBP";*/
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
@@ -8772,6 +8905,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
 	  image_error ("Imagemagick X bitmap allocation failure");
 	  goto imagemagick_error;
 	}
+      dataptr = ximg->data;
+#endif /* not USE_CAIRO */
 
       /* Oddly, the below code doesn't seem to work:*/
       /* switch(ximg->bitmap_unit){ */
@@ -8794,14 +8929,18 @@ imagemagick_load_image (struct frame *f, struct image *img,
       */
       int pixelwidth = CharPixel; /*??? TODO figure out*/
       MagickExportImagePixels (image_wand, 0, 0, width, height,
-			       exportdepth, pixelwidth, ximg->data);
+			       exportdepth, pixelwidth, dataptr);
     }
   else
 #endif /* HAVE_MAGICKEXPORTIMAGEPIXELS */
     {
       size_t image_height;
-      MagickRealType color_scale = 65535.0 / QuantumRange;
-
+      double quantum_range = QuantumRange;
+      MagickRealType color_scale = 65535.0 / quantum_range;
+#ifdef USE_CAIRO
+      data = xmalloc (width * height * 4);
+      color_scale /= 256;
+#else
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
       if (!image_create_x_image_and_pixmap (f, img, width, height, 0,
 					    &ximg, 0))
@@ -8812,6 +8951,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
           image_error ("Imagemagick X bitmap allocation failure");
           goto imagemagick_error;
         }
+#endif
 
       /* Copy imagemagick image to x with primitive yet robust pixel
          pusher loop.  This has been tested a lot with many different
@@ -8824,7 +8964,9 @@ imagemagick_load_image (struct frame *f, struct image *img,
 #ifdef COLOR_TABLE_SUPPORT
 	  free_color_table ();
 #endif
+#ifndef USE_CAIRO
 	  x_destroy_x_image (ximg);
+#endif
           image_error ("Imagemagick pixel iterator creation failed");
           goto imagemagick_error;
         }
@@ -8840,16 +8982,27 @@ imagemagick_load_image (struct frame *f, struct image *img,
 	  for (x = 0; x < xlim; x++)
             {
               PixelGetMagickColor (pixels[x], &pixel);
+#ifdef USE_CAIRO
+	      ((uint32_t *)data)[width * y + x] =
+		lookup_rgb_color (f,
+				  color_scale * pixel.red,
+				  color_scale * pixel.green,
+				  color_scale * pixel.blue);
+#else
               XPutPixel (ximg, x, y,
                          lookup_rgb_color (f,
 					   color_scale * pixel.red,
 					   color_scale * pixel.green,
 					   color_scale * pixel.blue));
+#endif
             }
         }
       DestroyPixelIterator (iterator);
     }
 
+#ifdef USE_CAIRO
+  create_cairo_image_surface (img, data, width, height);
+#else
 #ifdef COLOR_TABLE_SUPPORT
   /* Remember colors allocated for this image.  */
   img->colors = colors_in_color_table (&img->ncolors);
@@ -8861,6 +9014,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
+#endif
 
   /* Final cleanup. image_wand should be the only resource left. */
   DestroyMagickWand (image_wand);
@@ -9270,7 +9424,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   /* Set base_uri for properly handling referenced images (via 'href').
      See rsvg bug 596114 - "image refs are relative to curdir, not .svg file"
-     (https://bugzilla.gnome.org/show_bug.cgi?id=596114). */
+     <https://gitlab.gnome.org/GNOME/librsvg/issues/33>. */
   if (filename)
     rsvg_handle_set_base_uri(rsvg_handle, filename);
 
@@ -9519,7 +9673,7 @@ gs_image_p (Lisp_Object object)
   if (CONSP (tem))
     {
       for (i = 0; i < 4; ++i, tem = XCDR (tem))
-	if (!CONSP (tem) || !INTEGERP (XCAR (tem)))
+	if (!CONSP (tem) || !FIXNUMP (XCAR (tem)))
 	  return 0;
       if (!NILP (tem))
 	return 0;
@@ -9529,7 +9683,7 @@ gs_image_p (Lisp_Object object)
       if (ASIZE (tem) != 4)
 	return 0;
       for (i = 0; i < 4; ++i)
-	if (!INTEGERP (AREF (tem, i)))
+	if (!FIXNUMP (AREF (tem, i)))
 	  return 0;
     }
   else
@@ -9557,10 +9711,10 @@ gs_load (struct frame *f, struct image *img)
      = 1/72 in, xdpi and ydpi are stored in the frame's X display
      info.  */
   pt_width = image_spec_value (img->spec, QCpt_width, NULL);
-  in_width = INTEGERP (pt_width) ? XFASTINT (pt_width) / 72.0 : 0;
+  in_width = FIXNUMP (pt_width) ? XFIXNAT (pt_width) / 72.0 : 0;
   in_width *= FRAME_RES_X (f);
   pt_height = image_spec_value (img->spec, QCpt_height, NULL);
-  in_height = INTEGERP (pt_height) ? XFASTINT (pt_height) / 72.0 : 0;
+  in_height = FIXNUMP (pt_height) ? XFIXNAT (pt_height) / 72.0 : 0;
   in_height *= FRAME_RES_Y (f);
 
   if (! (in_width <= INT_MAX && in_height <= INT_MAX
@@ -9611,8 +9765,8 @@ gs_load (struct frame *f, struct image *img)
     loader = intern ("gs-load-image");
 
   img->lisp_data = call6 (loader, frame, img->spec,
-			  make_number (img->width),
-			  make_number (img->height),
+			  make_fixnum (img->width),
+			  make_fixnum (img->height),
 			  window_and_pixmap_id,
 			  pixel_colors);
   return PROCESSP (img->lisp_data);
@@ -9736,7 +9890,7 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0,
     id = lookup_image (SELECTED_FRAME (), spec);
 
   debug_print (spec);
-  return make_number (id);
+  return make_fixnum (id);
 }
 
 #endif /* GLYPH_DEBUG */
@@ -9745,6 +9899,25 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0,
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
+
+DEFUN ("image-scaling-p", Fimage_scaling_p, Simage_scaling_p, 0, 1, 0,
+       doc: /* Test whether FRAME supports resizing images.
+Return t if FRAME supports native scaling, nil otherwise.  */)
+     (Lisp_Object frame)
+{
+#ifdef HAVE_NS
+  return Qt;
+#elif defined (HAVE_X_WINDOWS) && defined (HAVE_XRENDER)
+  int event_basep, error_basep;
+
+  if (XRenderQueryExtension
+      (FRAME_X_DISPLAY (decode_window_system_frame (frame)),
+       &event_basep, &error_basep))
+    return Qt;
+#endif
+
+  return Qnil;
+}
 
 DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 1, 1, 0,
        doc: /* Initialize image library implementing image type TYPE.
@@ -9903,27 +10076,27 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qlibpng_version, "libpng-version");
   Fset (Qlibpng_version,
 #if HAVE_PNG
-	make_number (PNG_LIBPNG_VER)
+	make_fixnum (PNG_LIBPNG_VER)
 #else
-	make_number (-1)
+	make_fixnum (-1)
 #endif
 	);
   DEFSYM (Qlibgif_version, "libgif-version");
   Fset (Qlibgif_version,
 #ifdef HAVE_GIF
-	make_number (GIFLIB_MAJOR * 10000
+	make_fixnum (GIFLIB_MAJOR * 10000
 		     + GIFLIB_MINOR * 100
 		     + GIFLIB_RELEASE)
 #else
-	make_number (-1)
+	make_fixnum (-1)
 #endif
         );
   DEFSYM (Qlibjpeg_version, "libjpeg-version");
   Fset (Qlibjpeg_version,
 #if HAVE_JPEG
-	make_number (JPEG_LIB_VERSION)
+	make_fixnum (JPEG_LIB_VERSION)
 #else
-	make_number (-1)
+	make_fixnum (-1)
 #endif
 	);
 #endif
@@ -9990,6 +10163,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
   defsubr (&Slookup_image);
 #endif
 
+  defsubr (&Simage_scaling_p);
+
   DEFVAR_BOOL ("cross-disabled-images", cross_disabled_images,
     doc: /* Non-nil means always draw a cross over disabled images.
 Disabled images are those having a `:conversion disabled' property.
@@ -10008,7 +10183,7 @@ a large number of images, the actual eviction time may be shorter.
 The value can also be nil, meaning the cache is never cleared.
 
 The function `clear-image-cache' disregards this variable.  */);
-  Vimage_cache_eviction_delay = make_number (300);
+  Vimage_cache_eviction_delay = make_fixnum (300);
 #ifdef HAVE_IMAGEMAGICK
   DEFVAR_INT ("imagemagick-render-type", imagemagick_render_type,
     doc: /* Integer indicating which ImageMagick rendering method to use.

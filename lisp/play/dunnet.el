@@ -1,6 +1,6 @@
 ;;; dunnet.el --- text adventure for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
@@ -2349,7 +2349,6 @@ for a moment, then straighten yourself up.\n")
 ;;;; This section sets up the keymaps for interactive and batch dunnet.
 ;;;;
 
-(define-obsolete-variable-alias 'dungeon-mode-map 'dun-mode-map "22.1")
 (define-key dun-mode-map "\r" 'dun-parse)
 (defvar dungeon-batch-map (make-keymap))
 (if (string= (substring emacs-version 0 2) "18")

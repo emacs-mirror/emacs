@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs
@@ -835,7 +835,7 @@ styles for specific categories, such as files, buffers, etc."
 (defvar completion-category-defaults
   '((buffer (styles . (basic substring)))
     (unicode-name (styles . (basic substring)))
-    (project-file (styles . (basic substring)))
+    (project-file (styles . (substring)))
     (info-menu (styles . (basic substring))))
   "Default settings for specific completion categories.
 Each entry has the shape (CATEGORY . ALIST) where ALIST is
@@ -987,7 +987,8 @@ Moves point to the end of the new text."
 (defcustom completion-cycle-threshold nil
   "Number of completion candidates below which cycling is used.
 Depending on this setting `completion-in-region' may use cycling,
-like `minibuffer-force-complete'.
+whereby invoking a completion command several times in a row
+completes to each of the candidates in turn, in a cyclic manner.
 If nil, cycling is never used.
 If t, cycling is always used.
 If an integer, cycling is used so long as there are not more
@@ -1127,7 +1128,7 @@ when the buffer's text is already an exact match."
              ;; Show the completion table, if requested.
              ((not exact)
 	      (if (pcase completion-auto-help
-                    (`lazy (eq this-command last-command))
+                    ('lazy (eq this-command last-command))
                     (_ completion-auto-help))
                   (minibuffer-completion-help beg end)
                 (completion--message "Next char not unique")))
@@ -2071,7 +2072,13 @@ Currently supported properties are all the properties that can appear in
    match the text at point, then instead of reporting a completion
    failure, the completion should try the next completion function.
 As is the case with most hooks, the functions are responsible for
-preserving things like point and current buffer.")
+preserving things like point and current buffer.
+
+NOTE: These functions should be cheap to run since they're sometimes
+run from `post-command-hook'; and they should ideally only choose
+which kind of completion table to use, and not pre-filter it based
+on the current text between START and END (e.g., they should not
+obey `completion-styles').")
 
 (defvar completion--capf-misbehave-funs nil
   "List of functions found on `completion-at-point-functions' that misbehave.
@@ -2088,9 +2095,9 @@ a completion function or god knows what else.")
   ;; like comint-completion-at-point or mh-letter-completion-at-point, which
   ;; could be sometimes safe and sometimes misbehaving (and sometimes neither).
   (if (pcase which
-        (`all t)
-        (`safe (member fun completion--capf-safe-funs))
-        (`optimist (not (member fun completion--capf-misbehave-funs))))
+        ('all t)
+        ('safe (member fun completion--capf-safe-funs))
+        ('optimist (not (member fun completion--capf-misbehave-funs))))
       (let ((res (funcall fun)))
         (cond
          ((and (consp res) (not (functionp res)))
@@ -2715,17 +2722,9 @@ See `read-file-name' for the meaning of the arguments."
               (if (string= val1 (cadr file-name-history))
                   (pop file-name-history)
                 (setcar file-name-history val1)))
-          (if add-to-history
-              ;; Add the value to the history--but not if it matches
-              ;; the last value already there.
-              (let ((val1 (minibuffer-maybe-quote-filename val)))
-                (unless (and (consp file-name-history)
-                             (equal (car file-name-history) val1))
-                  (setq file-name-history
-                        (cons val1
-                              (if history-delete-duplicates
-                                  (delete val1 file-name-history)
-                                file-name-history)))))))
+          (when add-to-history
+            (add-to-history 'file-name-history
+                            (minibuffer-maybe-quote-filename val))))
 	val))))
 
 (defun internal-complete-buffer-except (&optional buffer)
@@ -2951,12 +2950,14 @@ or a symbol, see `completion-pcm--merge-completions'."
         (`(,(and s1 (pred stringp)) ,(and s2 (pred stringp)) . ,rest)
          (setq p (cons (concat s1 s2) rest)))
         (`(,(and p1 (pred symbolp)) ,(and p2 (guard (eq p1 p2))) . ,_)
+         ;; Unused lexical variable warning due to body not using p1, p2.
+         ;; https://debbugs.gnu.org/16771
          (setq p (cdr p)))
         (`(star ,(pred symbolp) . ,rest) (setq p `(star . ,rest)))
         (`(,(pred symbolp) star . ,rest) (setq p `(star . ,rest)))
-        (`(point ,(or `any `any-delim) . ,rest) (setq p `(point . ,rest)))
-        (`(,(or `any `any-delim) point . ,rest) (setq p `(point . ,rest)))
-        (`(any ,(or `any `any-delim) . ,rest) (setq p `(any . ,rest)))
+        (`(point ,(or 'any 'any-delim) . ,rest) (setq p `(point . ,rest)))
+        (`(,(or 'any 'any-delim) point . ,rest) (setq p `(point . ,rest)))
+        (`(any ,(or 'any 'any-delim) . ,rest) (setq p `(any . ,rest)))
         (`(,(pred symbolp)) (setq p nil)) ;Implicit terminating `any'.
         (_ (push (pop p) n))))
     (nreverse n)))

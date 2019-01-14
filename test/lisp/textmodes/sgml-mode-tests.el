@@ -1,6 +1,6 @@
 ;;; sgml-mode-tests.el --- Tests for sgml-mode
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Przemysław Wojnowski <esperanto@cumego.com>
 ;; Keywords: tests
@@ -130,6 +130,36 @@ The point is set to the beginning of the buffer."
    "<title>Winter is comin'</title>"
    (sgml-delete-tag 1)
    (should (string= "Winter is comin'" (buffer-string)))))
+
+(ert-deftest sgml-quote-works ()
+  (let ((text "Foo<Bar> \"Baz\" 'Qux'\n"))
+    (with-temp-buffer
+      ;; Back and forth transformation.
+      (insert text)
+      (sgml-quote (point-min) (point-max))
+      (should (string= "Foo&lt;Bar&gt; &#34;Baz&#34; &#39;Qux&#39;\n"
+                       (buffer-string)))
+      (sgml-quote (point-min) (point-max) t)
+      (should (string= text (buffer-string)))
+
+      ;; The same text escaped differently.
+      (erase-buffer)
+      (insert "Foo&lt;Bar&gt; &#34;Baz&quot; &#x27;Qux&#X27;\n")
+      (sgml-quote (point-min) (point-max) t)
+      (should (string= text (buffer-string)))
+
+      ;; Lack of semicolon.
+      (erase-buffer)
+      (insert "&amp&amp")
+      (sgml-quote (point-min) (point-max) t)
+      (should (string= "&&" (buffer-string)))
+
+      ;; Double quoting
+      (sgml-quote (point-min) (point-max))
+      (sgml-quote (point-min) (point-max))
+      (sgml-quote (point-min) (point-max) t)
+      (sgml-quote (point-min) (point-max) t)
+      (should (string= "&&" (buffer-string))))))
 
 (provide 'sgml-mode-tests)
 ;;; sgml-mode-tests.el ends here

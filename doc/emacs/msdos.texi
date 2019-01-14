@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows
@@ -19,6 +19,13 @@ manual (@pxref{MS-DOS,,, emacs-xtra, Specialized Emacs Features}).
 section (@pxref{MS-DOS}).
 @end ifnottex
 
+  MS-Windows is a non-free operating system; that means it denies its
+users the freedom that every computer user deserves.  That is an
+injustice.  For your freedom's sake, we urge you to switch to a free
+operating system.
+
+  We support GNU Emacs on proprietary operating systems because we
+hope this taste of freedom will inspire users to escape from them.
 
   The behavior of Emacs on MS-Windows is reasonably similar to what is
 documented in the rest of the manual, including support for long file
@@ -152,15 +159,16 @@ window.  @xref{emacsclient Options}.
 convention used on GNU, Unix, and other POSIX-compliant systems.
 
 @cindex end-of-line conversion on MS-DOS/MS-Windows
-  By contrast, MS-DOS and MS-Windows normally use carriage-return linefeed,
-a two-character sequence, to separate text lines.  (Linefeed is the same
-character as newline.)  Therefore, convenient editing of typical files
-with Emacs requires conversion of these end-of-line (EOL) sequences.
-And that is what Emacs normally does: it converts carriage-return
-linefeed into newline when reading files, and converts newline into
-carriage-return linefeed when writing files.  The same mechanism that
-handles conversion of international character codes does this conversion
-also (@pxref{Coding Systems}).
+  By contrast, MS-DOS and MS-Windows normally use carriage return
+followed by linefeed, a two-character sequence, to separate text
+lines.  (Linefeed is the same character as newline.)  Therefore,
+convenient editing of typical files with Emacs requires conversion of
+these end-of-line (EOL) sequences.  And that is what Emacs normally
+does: it converts carriage return followed by linefeed into newline
+when reading files, and converts newline into carriage return followed
+by linefeed when writing files.  The same mechanism that handles
+conversion of international character codes does this conversion also
+(@pxref{Coding Systems}).
 
 @cindex cursor location, on MS-DOS
 @cindex point location, on MS-DOS
@@ -169,11 +177,11 @@ that character positions as reported by Emacs (@pxref{Position Info}) do
 not agree with the file size information known to the operating system.
 
   In addition, if Emacs recognizes from a file's contents that it uses
-newline rather than carriage-return linefeed as its line separator, it
-does not perform EOL conversion when reading or writing that file.
-Thus, you can read and edit files from GNU and Unix systems on MS-DOS
-with no special effort, and they will retain their Unix-style
-end-of-line convention after you edit them.
+newline rather than carriage return followed by linefeed as its line
+separator, it does not perform EOL conversion when reading or writing
+that file.  Thus, you can read and edit files from GNU and Unix
+systems on MS-DOS with no special effort, and they will retain their
+Unix-style end-of-line convention after you edit them.
 
   The mode line indicates whether end-of-line translation was used for
 the current buffer.  If MS-DOS end-of-line translation is in use for the
@@ -181,20 +189,20 @@ buffer, the MS-Windows build of Emacs displays a backslash @samp{\} after
 the coding system mnemonic near the beginning of the mode line
 (@pxref{Mode Line}).  If no EOL translation was performed, the string
 @samp{(Unix)} is displayed instead of the backslash, to alert you that the
-file's EOL format is not the usual carriage-return linefeed.
+file's EOL format is not the usual carriage return followed by linefeed.
 
 @cindex DOS-to-Unix conversion of files
   To visit a file and specify whether it uses DOS-style or Unix-style
 end-of-line, specify a coding system (@pxref{Text Coding}).  For
 example, @kbd{C-x @key{RET} c unix @key{RET} C-x C-f foobar.txt}
 visits the file @file{foobar.txt} without converting the EOLs; if some
-line ends with a carriage-return linefeed pair, Emacs will display
-@samp{^M} at the end of that line.  Similarly, you can direct Emacs to
-save a buffer in a specified EOL format with the @kbd{C-x @key{RET} f}
-command.  For example, to save a buffer with Unix EOL format, type
-@kbd{C-x @key{RET} f unix @key{RET} C-x C-s}.  If you visit a file
-with DOS EOL conversion, then save it with Unix EOL format, that
-effectively converts the file to Unix EOL style, like the
+line ends with a carriage return followed by linefeed pair, Emacs will
+display @samp{^M} at the end of that line.  Similarly, you can direct
+Emacs to save a buffer in a specified EOL format with the @kbd{C-x
+@key{RET} f} command.  For example, to save a buffer with Unix EOL
+format, type @kbd{C-x @key{RET} f unix @key{RET} C-x C-s}.  If you
+visit a file with DOS EOL conversion, then save it with Unix EOL
+format, that effectively converts the file to Unix EOL style, like the
 @code{dos2unix} program.
 
 @cindex untranslated file system
@@ -333,7 +341,7 @@ it doesn't support all of them.  Here's the list of the switches it
 does support: @option{-A}, @option{-a}, @option{-B}, @option{-C},
 @option{-c}, @option{-G}, @option{-g}, @option{-h}, @option{-i}, @option{-n},
 @option{-R}, @option{-r}, @option{-S}, @option{-s}, @option{-t}, @option{-U},
-@option{-u}, @option{v}, and @option{-X}.  The @option{-F} switch is
+@option{-u}, @option{-v}, and @option{-X}.  The @option{-F} switch is
 partially supported (it appends the character that classifies the
 file, but does not prevent symlink following).
 
@@ -547,7 +555,7 @@ Windows-specific variables in this category.
 @ifnottex
 @vindex w32-alt-is-meta
 @cindex @code{Alt} key (MS-Windows)
-  By default, the key labeled @key{Alt} is mapped as the @key{META}
+  By default, the key labeled @key{Alt} is mapped as the @key{Meta}
 key.  If you wish it to produce the @code{Alt} modifier instead, set
 the variable @code{w32-alt-is-meta} to a @code{nil} value.
 
@@ -589,7 +597,7 @@ search string against previously sought strings during incremental
 search.  @code{(w32-register-hot-key [s-])} with
 @code{w32-lwindow-modifier} bound to @code{super} disables all the
 Windows' own Windows key based shortcuts.@footnote{There is one known
-exception: The combination @kbd{@key{Windows}-@key{L}} that locks the
+exception: The combination @kbd{@key{Windows}-L} that locks the
 workstation is handled by the system on a lower level.  For this
 reason, @code{w32-register-hot-key} cannot override this key
 combination - it always locks the computer.}
@@ -599,14 +607,14 @@ combination - it always locks the computer.}
 call.  Thus, you can set @code{w32-lwindow-modifier} as @code{super},
 then call @code{(w32-register-hot-key [s-r])}, and finally set
 @code{w32-rwindow-modifier} as @code{super} as well.  The result is
-that the left Windows key together with @key{R} invokes whichever
+that the left Windows key together with @kbd{R} invokes whichever
 function you have bound for the combination in Emacs, and the right
-Windows key and @key{R} opens the Windows @code{Run} dialog.
+Windows key and @kbd{R} opens the Windows @code{Run} dialog.
 
   The hotkey registrations always also include all the shift and
 control modifier combinations for the given hotkey; that is,
-registering @kbd{s-@key{a}} as a hotkey gives you @kbd{S-s-@key{a}},
-@kbd{C-s-@key{a}} and @kbd{C-S-s-@key{a}} as well.
+registering @kbd{s-a} as a hotkey gives you @kbd{S-s-a},
+@kbd{C-s-a} and @kbd{C-S-s-a} as well.
 
   On Windows 98 and ME, the hotkey registration is more restricted.
 The desired hotkey must always be fully specified, and
@@ -670,8 +678,8 @@ value other than the above modifier symbols.
 @cindex @code{Alt} key invokes menu (Windows)
   Emacs compiled as a native Windows application normally turns off
 the Windows feature that tapping the @key{Alt} key invokes the Windows
-menu.  The reason is that the @key{Alt} serves as @key{META} in Emacs.
-When using Emacs, users often press the @key{META} key temporarily and
+menu.  The reason is that the @key{Alt} serves as @key{Meta} in Emacs.
+When using Emacs, users often press the @key{Meta} key temporarily and
 then change their minds; if this has the effect of bringing up the
 Windows menu, it alters the meaning of subsequent commands.  Many
 users find this frustrating.
@@ -701,7 +709,7 @@ the combination of the right @key{Alt} and left @key{Ctrl} keys
 pressed together, is recognized as the @key{AltGr} key.  The default
 is @code{t}, which means these keys produce @code{AltGr}; setting it
 to @code{nil} causes @key{AltGr} or the equivalent key combination to
-be interpreted as the combination of @key{Ctrl} and @key{META}
+be interpreted as the combination of @key{Ctrl} and @key{Meta}
 modifiers.
 @end ifnottex
 
@@ -800,6 +808,13 @@ communications with subprocesses to programs that exhibit unusual
 behavior with respect to buffering pipe I/O.
 
 @ifnottex
+@vindex w32-pipe-read-delay
+  If you need to invoke MS-DOS programs as Emacs subprocesses, you may
+see low rate of reading data from such programs.  Setting the variable
+@code{w32-pipe-read-delay} to a non-zero value may improve throughput
+in these cases; we suggest the value of 50 for such situations.  The
+default is zero.
+
 @findex w32-shell-execute
   The function @code{w32-shell-execute} can be useful for writing
 customized commands that run MS-Windows applications registered to

@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: emacs-devel@gnu.org
@@ -101,11 +101,11 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (eval-when-compile
   (require 'vc)
   (require 'vc-dir))
-
-(require 'cl-lib)
 
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
@@ -583,15 +583,14 @@ back to running Mercurial directly."
 
 (defsubst vc-hg--read-u8 ()
   "Read and advance over an unsigned byte.
-Return a fixnum."
+Return the byte's value as an integer."
   (prog1 (char-after)
     (forward-char)))
 
 (defsubst vc-hg--read-u32-be ()
-  "Read and advance over a big-endian unsigned 32-bit integer.
-Return a fixnum; on overflow, result is undefined."
+  "Read and advance over a big-endian unsigned 32-bit integer."
   ;; Because elisp bytecode has an instruction for multiply and
-  ;; doesn't have one for lsh, it's somewhat counter-intuitively
+  ;; doesn't have one for shift, it's somewhat counter-intuitively
   ;; faster to multiply than to shift.
   (+ (* (vc-hg--read-u8) (* 256 256 256))
      (* (vc-hg--read-u8) (* 256 256))
@@ -627,9 +626,7 @@ Return a fixnum; on overflow, result is undefined."
       ;; hundreds of thousands of times, so performance is important
       ;; here
       (while (< (point) search-limit)
-        ;; 1+4*4 is the length of the dirstate item header, which we
-        ;; spell as a literal for performance, since the elisp
-        ;; compiler lacks constant propagation
+        ;; 1+4*4 is the length of the dirstate item header.
         (forward-char (1+ (* 3 4)))
         (let ((this-flen (vc-hg--read-u32-be)))
           (if (and (or (eq this-flen flen)
@@ -836,7 +833,7 @@ if we don't understand a construct, we signal
     (with-temp-buffer
       (let ((attr (file-attributes hgignore)))
         (when attr (insert-file-contents hgignore))
-        (push (list hgignore (nth 5 attr) (nth 7 attr))
+        (push (list hgignore (file-attribute-modification-time attr) (file-attribute-size attr))
               vc-hg--hgignore-filenames))
       (while (not (eobp))
         ;; This list of pattern-file commands isn't complete, but it
@@ -900,8 +897,8 @@ REPO must be the directory name of an hg repository."
              (saved-mtime (nth 1 fs))
              (saved-size (nth 2 fs))
              (attr (file-attributes (nth 0 fs)))
-             (current-mtime (nth 5 attr))
-             (current-size (nth 7 attr)))
+             (current-mtime (file-attribute-modification-time attr))
+             (current-size (file-attribute-size attr)))
         (unless (and (equal saved-mtime current-mtime)
                      (equal saved-size current-size))
           (setf valid nil))))
@@ -917,7 +914,7 @@ FILENAME must be the file's true absolute name."
       (setf ignored (string-match (pop patterns) filename)))
     ignored))
 
-(defun vc-hg--time-to-fixnum (ts)
+(defun vc-hg--time-to-integer (ts)
   (+ (* 65536 (car ts)) (cadr ts)))
 
 (defvar vc-hg--cached-ignore-patterns nil
@@ -971,8 +968,8 @@ Avoids the need to repeatedly scan dirstate on repeated calls to
 `vc-hg-state', as we see during registration queries.")
 
 (defun vc-hg--cached-dirstate-search (dirstate dirstate-attr ascii-fname)
-  (let* ((mtime (nth 5 dirstate-attr))
-         (size (nth 7 dirstate-attr))
+  (let* ((mtime (file-attribute-modification-time dirstate-attr))
+         (size (file-attribute-size dirstate-attr))
          (cache vc-hg--dirstate-scan-cache)
          )
     (if (and cache
@@ -1015,9 +1012,7 @@ hg binary."
          ;; Repository must be in an understood format
          (not (vc-hg--requirements-understood-p repo))
          ;; Dirstate too small to be valid
-         (< (nth 7 dirstate-attr) 40)
-         ;; We want to store 32-bit unsigned values in fixnums
-         (< most-positive-fixnum 4294967295)
+         (< (file-attribute-size dirstate-attr) 40)
          (progn
            (setf repo-relative-filename
                  (file-relative-name truename repo))
@@ -1041,8 +1036,9 @@ hg binary."
               ((eq state ?n)
                (let ((vc-hg-size (nth 2 dirstate-entry))
                      (vc-hg-mtime (nth 3 dirstate-entry))
-                     (fs-size (nth 7 stat))
-                     (fs-mtime (vc-hg--time-to-fixnum (nth 5 stat))))
+                     (fs-size (file-attribute-size stat))
+                     (fs-mtime (vc-hg--time-to-integer
+				(file-attribute-modification-time stat))))
                  (if (and (eql vc-hg-size fs-size) (eql vc-hg-mtime fs-mtime))
                      'up-to-date
                    'edited)))
@@ -1146,11 +1142,9 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-find-file-hook ()
   (when (and buffer-file-name
-             (file-exists-p (concat buffer-file-name ".orig"))
              ;; Hg does not seem to have a "conflict" status, eg
              ;; hg http://bz.selenic.com/show_bug.cgi?id=2724
-             (memq (vc-file-getprop buffer-file-name 'vc-state)
-                   '(edited conflict))
+             (memq (vc-state buffer-file-name) '(edited conflict))
              ;; Maybe go on to check that "hg resolve -l" says "U"?
              ;; If "hg resolve -l" says there's a conflict but there are no
              ;; conflict markers, it's not clear what we should do.
@@ -1198,9 +1192,9 @@ REV is the revision to check out into WORKFILE."
       (insert (propertize
                (format "   (%s %s)"
                        (pcase (vc-hg-extra-fileinfo->rename-state extra)
-                         (`copied "copied from")
-                         (`renamed-from "renamed from")
-                         (`renamed-to "renamed to"))
+                         ('copied "copied from")
+                         ('renamed-from "renamed from")
+                         ('renamed-to "renamed to"))
                        (vc-hg-extra-fileinfo->extra-name extra))
                'face 'font-lock-comment-face)))))
 

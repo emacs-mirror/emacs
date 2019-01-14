@@ -1,6 +1,6 @@
 ;;; mml-sec.el --- A package with security functions for MML documents
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -23,7 +23,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 
 (require 'gnus-util)
 (require 'epg)
@@ -167,9 +167,9 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
 	(if (or (eq style 'separate)
 		(eq style 'combined))
 	    ;; valid style setting?
-	    (setf (second style-item) style)
+	    (setf (cadr style-item) style)
 	  ;; otherwise, just return the current value
-	  (second style-item))
+	  (cadr style-item))
       (message "Warning, attempt to set invalid signencrypt style"))))
 
 ;;; Security functions
@@ -554,7 +554,7 @@ customized in this variable."
   "For CONTEXT, USAGE, and NAME record fingerprint(s) of KEYS.
 If optional SAVE is not nil, save customized fingerprints.
 Return keys."
-  (assert keys)
+  (cl-assert keys)
   (let* ((usage-prefs (mml-secure-cust-usage-lookup context usage))
 	 (curr-fprs (cdr (assoc name (cdr usage-prefs))))
 	 (key-fprs (mapcar 'mml-secure-fingerprint keys))
@@ -647,6 +647,7 @@ The passphrase is read and cached."
       (when passphrase
 	(let ((password-cache-expiry (mml-secure-cache-expiry-interval
 				      (epg-context-protocol context))))
+	  ;; FIXME test passphrase works before caching it.
 	  (password-cache-add password-cache-key-id passphrase))
 	(mml-secure-add-secret-key-id password-cache-key-id)
 	(copy-sequence passphrase)))))
@@ -903,7 +904,7 @@ If no one is selected, symmetric encryption will be performed.  "
 (defun mml-secure-epg-encrypt (protocol cont &optional sign)
   ;; Based on code appearing inside mml2015-epg-encrypt.
   (let* ((context (epg-make-context protocol))
-	 (config (epg-configuration))
+	 (config (epg-find-configuration 'OpenPGP))
 	 (sender (message-options-get 'message-sender))
 	 (recipients (mml-secure-recipients protocol context config sender))
 	 (signer-names (mml-secure-signer-names protocol sender))

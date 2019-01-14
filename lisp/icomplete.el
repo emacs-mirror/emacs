@@ -1,6 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992-1994, 1997, 1999, 2001-2018 Free Software
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
@@ -194,9 +194,6 @@ Last entry becomes the first and can be selected with
 ;;;###autoload
 (define-minor-mode icomplete-mode
   "Toggle incremental minibuffer completion (Icomplete mode).
-With a prefix argument ARG, enable Icomplete mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 When this global minor mode is enabled, typing in the minibuffer
 continuously displays a list of possible completions that match

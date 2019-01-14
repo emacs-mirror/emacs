@@ -1,6 +1,6 @@
 ;;; mh-utils.el --- MH-E general utilities
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -177,6 +177,7 @@ been set. This hook can be used the change the value of these
 variables if you need to run with different values between MH and
 MH-E."
   (unless mh-find-path-run
+    (or mh-variant-in-use (mh-variant-set mh-variant))
     ;; Sanity checks.
     (if (and (getenv "MH")
              (not (file-readable-p (getenv "MH"))))

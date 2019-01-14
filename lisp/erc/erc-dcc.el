@@ -1,6 +1,6 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2018 Free Software
+;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
@@ -54,7 +54,9 @@
 ;;; Code:
 
 (require 'erc)
-(eval-when-compile (require 'pcomplete))
+;; Strictly speaking, should only be needed at compile time.
+;; Require at run-time too to silence compiler.
+(require 'pcomplete)
 
 ;;;###autoload(autoload 'erc-dcc-mode "erc-dcc")
 (define-erc-module dcc nil
@@ -222,14 +224,6 @@ which is big-endian."
       (setq i (1- i)))
     str))
 
-(defconst erc-most-positive-int-bytes
-  (ceiling (/ (ceiling (/ (log most-positive-fixnum) (log 2))) 8.0))
-  "Maximum number of bytes for a fixnum.")
-
-(defconst erc-most-positive-int-msb
-  (lsh most-positive-fixnum (- 0 (* 8 (1- erc-most-positive-int-bytes))))
-  "Content of the most significant byte of most-positive-fixnum.")
-
 (defun erc-unpack-int (str)
   "Unpack a packed string into an integer."
   (let ((len (length str)))
@@ -240,16 +234,11 @@ which is big-endian."
       (when (> start 0)
         (setq str (substring str start))
         (setq len (- len start))))
-    ;; make sure size is not larger than Emacs can handle
-    (when (or (> len (min 4 erc-most-positive-int-bytes))
-              (and (eq len erc-most-positive-int-bytes)
-                   (> (aref str 0) erc-most-positive-int-msb)))
-      (error "ERC-DCC (erc-unpack-int): packet to send is too large"))
     ;; unpack
     (let ((num 0)
           (count 0))
       (while (< count len)
-        (setq num (+ num (lsh (aref str (- len count 1)) (* 8 count))))
+        (setq num (+ num (ash (aref str (- len count 1)) (* 8 count))))
         (setq count (1+ count)))
       num)))
 
@@ -433,23 +422,23 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                           (when (fboundp 'make-network-process) '("send"))))
   (pcomplete-here
    (pcase (intern (downcase (pcomplete-arg 1)))
-     (`chat (mapcar (lambda (elt) (plist-get elt :nick))
+     ('chat (mapcar (lambda (elt) (plist-get elt :nick))
                     (erc-remove-if-not
                      #'(lambda (elt)
                          (eq (plist-get elt :type) 'CHAT))
                      erc-dcc-list)))
-     (`close (erc-delete-dups
+     ('close (erc-delete-dups
               (mapcar (lambda (elt) (symbol-name (plist-get elt :type)))
                       erc-dcc-list)))
-     (`get (mapcar #'erc-dcc-nick
+     ('get (mapcar #'erc-dcc-nick
                    (erc-remove-if-not
                     #'(lambda (elt)
                         (eq (plist-get elt :type) 'GET))
                     erc-dcc-list)))
-     (`send (pcomplete-erc-all-nicks))))
+     ('send (pcomplete-erc-all-nicks))))
   (pcomplete-here
    (pcase (intern (downcase (pcomplete-arg 2)))
-     (`get (mapcar (lambda (elt) (plist-get elt :file))
+     ('get (mapcar (lambda (elt) (plist-get elt :file))
                    (erc-remove-if-not
                     #'(lambda (elt)
                         (and (eq (plist-get elt :type) 'GET)
@@ -457,13 +446,13 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                                                 (plist-get elt :nick))
                                                (pcomplete-arg 1))))
                     erc-dcc-list)))
-     (`close (mapcar #'erc-dcc-nick
+     ('close (mapcar #'erc-dcc-nick
                      (erc-remove-if-not
                       #'(lambda (elt)
                           (eq (plist-get elt :type)
                               (intern (upcase (pcomplete-arg 1)))))
                       erc-dcc-list)))
-     (`send (pcomplete-entries)))))
+     ('send (pcomplete-entries)))))
 
 (defun erc-dcc-do-CHAT-command (proc &optional nick)
   (when nick
@@ -1092,13 +1081,13 @@ Possible values are: ask, auto, ignore."
   (pcomplete-here '("auto" "ask" "ignore")))
 (defalias 'pcomplete/erc-mode/SREQ 'pcomplete/erc-mode/CREQ)
 
+(define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
+  'erc-dcc-chat-filter-functions "24.3")
+
 (defvar erc-dcc-chat-filter-functions '(erc-dcc-chat-parse-output)
   "Abnormal hook run after parsing (and maybe inserting) a DCC message.
 Each function is called with two arguments: the ERC process and
 the unprocessed output.")
-
-(define-obsolete-variable-alias 'erc-dcc-chat-filter-hook
-  'erc-dcc-chat-filter-functions "24.3")
 
 (defvar erc-dcc-chat-mode-map
   (let ((map (make-sparse-keymap)))

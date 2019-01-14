@@ -1,6 +1,6 @@
 ;;; rmailmm.el --- MIME decoding and display stuff for RMAIL
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Alexander Pohoyda
 ;;	Alex Schroeder

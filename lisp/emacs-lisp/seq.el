@@ -1,10 +1,10 @@
 ;;; seq.el --- Sequence manipulation functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 2.20
+;; Version: 2.21
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -110,6 +110,14 @@ name to be bound to the rest of SEQUENCE."
   "Return the number of elements of SEQUENCE."
   (length sequence))
 
+(defun seq-first (sequence)
+  "Return the first element of SEQUENCE."
+  (seq-elt sequence 0))
+
+(defun seq-rest (sequence)
+  "Return a sequence of the elements of SEQUENCE except the first one."
+  (seq-drop sequence 1))
+
 (cl-defgeneric seq-do (function sequence)
   "Apply FUNCTION to each element of SEQUENCE, presumably for side effects.
 Return SEQUENCE."
@@ -127,9 +135,9 @@ the sequence, and its index within the sequence."
                (setq index (1+ index)))
              sequence)))
 
-(cl-defgeneric seqp (sequence)
-  "Return non-nil if SEQUENCE is a sequence, nil otherwise."
-  (sequencep sequence))
+(cl-defgeneric seqp (object)
+  "Return non-nil if OBJECT is a sequence, nil otherwise."
+  (sequencep object))
 
 (cl-defgeneric seq-copy (sequence)
   "Return a shallow copy of SEQUENCE."

@@ -1,6 +1,6 @@
 ;;; erc-track.el --- Track modified channel buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -495,9 +495,6 @@ START is the minimum length of the name used."
 ;;;###autoload
 (define-minor-mode erc-track-minor-mode
   "Toggle mode line display of ERC activity (ERC Track minor mode).
-With a prefix argument ARG, enable ERC Track minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 ERC Track minor mode is a global minor mode.  It exists for the
 sole purpose of providing the C-c C-SPC and C-c C-@ keybindings.
@@ -932,14 +929,14 @@ relative to `erc-track-switch-direction'"
 	offset)
     (when (< arg 0)
       (setq dir (pcase dir
-		  (`oldest      'newest)
-		  (`newest      'oldest)
-		  (`mostactive  'leastactive)
-		  (`leastactive 'mostactive)
-		  (`importance  'oldest)))
+		  ('oldest      'newest)
+		  ('newest      'oldest)
+		  ('mostactive  'leastactive)
+		  ('leastactive 'mostactive)
+		  ('importance  'oldest)))
       (setq arg (- arg)))
     (setq offset (pcase dir
-		   ((or `oldest `leastactive)
+		   ((or 'oldest 'leastactive)
 		    (- (length erc-modified-channels-alist) arg))
 		   (_ (1- arg))))
     ;; normalize out of range user input

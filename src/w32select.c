@@ -1,6 +1,6 @@
 /* Selection processing for Emacs on the Microsoft Windows API.
 
-Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2019 Free Software Foundation, Inc.
 
 Author: Kevin Gallo
 	Benjamin Riefenstahl
@@ -241,7 +241,7 @@ static Lisp_Object
 render (Lisp_Object oformat)
 {
   HGLOBAL htext = NULL;
-  UINT format = XFASTINT (oformat);
+  UINT format = XFIXNAT (oformat);
 
   ONTRACE (fprintf (stderr, "render\n"));
 
@@ -371,8 +371,8 @@ render_all (Lisp_Object ignore)
   render_locale ();
 
   if (current_clipboard_type == CF_UNICODETEXT)
-    render (make_number (CF_TEXT));
-  render (make_number (current_clipboard_type));
+    render (make_fixnum (CF_TEXT));
+  render (make_fixnum (current_clipboard_type));
 
   CloseClipboard ();
 
@@ -419,7 +419,7 @@ owner_callback (HWND win, UINT msg, WPARAM wp, LPARAM lp)
     {
     case WM_RENDERFORMAT:
       ONTRACE (fprintf (stderr, "WM_RENDERFORMAT\n"));
-      run_protected (render, make_number (wp));
+      run_protected (render, make_fixnum (wp));
       return 0;
 
     case WM_RENDERALLFORMATS:
@@ -631,7 +631,7 @@ validate_coding_system (Lisp_Object coding_system)
   eol_type = Fcoding_system_eol_type (coding_system);
 
   /* Already a DOS coding system? */
-  if (EQ (eol_type, make_number (1)))
+  if (EQ (eol_type, make_fixnum (1)))
     return coding_system;
 
   /* Get EOL_TYPE vector of the base of CODING_SYSTEM.  */
@@ -742,7 +742,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	  /* If for some reason we don't have a clipboard_owner, we
 	     just set the text format as chosen by the configuration
 	     and than forget about the whole thing.  */
-	  ok = !NILP (render (make_number (current_clipboard_type)));
+	  ok = !NILP (render (make_fixnum (current_clipboard_type)));
 	  current_text = Qnil;
 	  current_coding_system = Qnil;
 	}
@@ -1123,7 +1123,7 @@ representing a data format that is currently available in the clipboard.  */)
 
 	      /* We generate a vector because that's what xselect.c
 		 does in this case.  */
-	      val = Fmake_vector (make_number (fmtcount), Qnil);
+	      val = Fmake_vector (make_fixnum (fmtcount), Qnil);
 	      /* Note: when stepping with GDB through this code, the
 		 loop below terminates immediately because
 		 EnumClipboardFormats for some reason returns with

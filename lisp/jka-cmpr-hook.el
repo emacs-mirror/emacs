@@ -1,6 +1,6 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
-;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2018 Free Software
+;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Jay K. Adams <jka@ece.cmu.edu>
@@ -347,9 +347,6 @@ variables.  Setting this through Custom does that automatically."
 
 (define-minor-mode auto-compression-mode
   "Toggle Auto Compression mode.
-With a prefix argument ARG, enable Auto Compression mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 Auto Compression mode is a global minor mode.  When enabled,
 compressed files are automatically uncompressed for reading, and

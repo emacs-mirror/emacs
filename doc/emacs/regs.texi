@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Registers
@@ -80,7 +80,9 @@ information until you store something else in it.
 @kindex C-x r j
 @findex jump-to-register
   The command @kbd{C-x r j @var{r}} switches to the buffer recorded in
-register @var{r}, and moves point to the recorded position.  The
+register @var{r}, pushes a mark, and moves point to the recorded
+position.  (The mark is not pushed if point was already at the
+recorded position, or in successive calls to the command.)  The
 contents of the register are not changed, so you can jump to the saved
 position any number of times.
 
@@ -314,18 +316,18 @@ Save all the current bookmark values in the default bookmark file.
 @findex bookmark-set
 @kindex C-x r b
 @findex bookmark-jump
-  The prototypical use for bookmarks is to record one current position
-in each of several files.  So the command @kbd{C-x r m}, which sets a
-bookmark, uses the visited file name as the default for the bookmark
-name.  If you name each bookmark after the file it points to, then you
-can conveniently revisit any of those files with @kbd{C-x r b}, and move
-to the position of the bookmark at the same time.
+  To record the current position in the visited file, use the command
+@kbd{C-x r m}, which sets a bookmark using the visited file name as
+the default for the bookmark name.  If you name each bookmark after
+the file it points to, then you can conveniently revisit any of those
+files with @kbd{C-x r b}, and move to the position of the bookmark at
+the same time.
 
 @kindex C-x r M
 @findex bookmark-set-no-overwrite
   The command @kbd{C-x r M} (@code{bookmark-set-no-overwrite}) works
-like @kbd{C-x r m}, but it signals an error if the specified bookmark
-already exists, instead of overwriting it.
+like @w{@kbd{C-x r m}}, but it signals an error if the specified
+bookmark already exists, instead of overwriting it.
 
 @kindex C-x r l
 @findex list-bookmarks

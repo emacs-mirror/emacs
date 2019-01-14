@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -115,12 +115,12 @@ such as `edebug-defun' to work with such inputs."
   :type 'boolean
   :group 'ielm)
 
+(defvaralias 'inferior-emacs-lisp-mode-hook 'ielm-mode-hook)
 (defcustom ielm-mode-hook nil
   "Hooks to be run when IELM (`inferior-emacs-lisp-mode') is started."
   :options '(eldoc-mode)
   :type 'hook
   :group 'ielm)
-(defvaralias 'inferior-emacs-lisp-mode-hook 'ielm-mode-hook)
 
 (defvar * nil
   "Most recent value evaluated in IELM.")
@@ -165,6 +165,7 @@ This variable is buffer-local.")
   "*** Welcome to IELM ***  Type (describe-mode) for help.\n"
   "Message to display when IELM is started.")
 
+(defvaralias 'inferior-emacs-lisp-mode-map 'ielm-map)
 (defvar ielm-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\t" 'ielm-tab)
@@ -183,7 +184,6 @@ This variable is buffer-local.")
     (define-key map "\C-c\C-v" 'ielm-print-working-buffer)
     map)
   "Keymap for IELM mode.")
-(defvaralias 'inferior-emacs-lisp-mode-map 'ielm-map)
 
 (easy-menu-define ielm-menu ielm-map
   "IELM mode menu."
@@ -612,17 +612,19 @@ Customized bindings may be defined in `ielm-map', which currently contains:
 ;;; User command
 
 ;;;###autoload
-(defun ielm nil
+(defun ielm (&optional buf-name)
   "Interactively evaluate Emacs Lisp expressions.
-Switches to the buffer `*ielm*', or creates it if it does not exist.
+Switches to the buffer named BUF-NAME if provided (`*ielm*' by default),
+or creates it if it does not exist.
 See `inferior-emacs-lisp-mode' for details."
   (interactive)
-  (let (old-point)
-    (unless (comint-check-proc "*ielm*")
-      (with-current-buffer (get-buffer-create "*ielm*")
+  (let (old-point
+        (buf-name (or buf-name "*ielm*")))
+    (unless (comint-check-proc buf-name)
+      (with-current-buffer (get-buffer-create buf-name)
         (unless (zerop (buffer-size)) (setq old-point (point)))
         (inferior-emacs-lisp-mode)))
-    (pop-to-buffer-same-window "*ielm*")
+    (pop-to-buffer-same-window buf-name)
     (when old-point (push-mark old-point))))
 
 (provide 'ielm)

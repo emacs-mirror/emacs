@@ -15,7 +15,7 @@ Answers to Frequently asked Questions about using Emacs on Microsoft Windows.
 @include emacsver.texi
 
 @copying
-Copyright @copyright{} 2008, 2010-2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2008, 2010-2019 Free Software Foundation, Inc.
 
 @quotation
 This list of frequently asked questions about GNU Emacs on MS Windows
@@ -398,7 +398,7 @@ of which varies according to Windows version and whether the computer is
 part of a domain.
 @end enumerate
 
-Within Emacs, @key{~} at the beginning of a file name is expanded to your
+Within Emacs, @kbd{~} at the beginning of a file name is expanded to your
 @env{HOME} directory, so you can always find your @file{.emacs} file
 by typing the command @kbd{C-x C-f ~/.emacs}.
 
@@ -906,7 +906,7 @@ The doc string contains a list of the system sounds you can use.
 @cindex font XLFD name format
 @cindex fontconfig font names in Emacs 23
 @cindex font dialog, using to find font names
-@findex w32-select-font
+@findex x-select-font
 @findex x-list-fonts
 
 Fonts in Emacs 22 and earlier are named using the X Logical Font
@@ -937,7 +937,7 @@ Fontconfig: Courier New-13
 To find the XFLD name for a font, you can execute the following in the
 @file{*scratch*} buffer by pressing C-j at the end of the line:
 @example
-(w32-select-font nil t)
+(x-select-font nil t)
 @end example
 
 To see a complete list of fonts, execute the following in the
@@ -1595,7 +1595,7 @@ non-@code{nil}, you should set it to @code{nil}:
 @cindex movemail, using pop3
 @cindex MAILHOST
 @vindex rmail-primary-inbox-list
-@vindex rmail-pop-password-required
+@vindex rmail-remote-password-required
 
 For incoming mail using the Rmail package and a POP3 server, you will
 need the following configuration:
@@ -1603,7 +1603,7 @@ need the following configuration:
 @example
 (setenv "MAILHOST" "@var{domain.name.of.your.pop3.server}")
 (setq rmail-primary-inbox-list '("po:@var{your logon id}"))
-(setq rmail-pop-password-required t)
+(setq rmail-remote-password-required t)
 @end example
 
 @node Incoming mail with Gnus

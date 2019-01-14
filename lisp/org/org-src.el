@@ -1,12 +1,12 @@
 ;;; org-src.el --- Source code examples in Org       -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Bastien Guerry <bzg@gnu.org>
 ;;         Dan Davison <davison at stats dot ox dot ac dot uk>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;

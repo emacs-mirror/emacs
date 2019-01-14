@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -261,8 +261,12 @@ ROOT should be the root of an Emacs source tree."
 ROOT should be the root of an Emacs source tree.
 Interactively with a prefix argument, prompt for TYPE.
 Optional argument TYPE is type of output (nil means all)."
-  (interactive (let ((root (read-directory-name "Emacs root directory: "
-						source-directory nil t)))
+  (interactive (let ((root
+                      (if noninteractive
+                          (or (pop command-line-args-left)
+                              default-directory)
+                        (read-directory-name "Emacs root directory: "
+                                             source-directory nil t))))
 		 (list root
 		       (if current-prefix-arg
 			   (completing-read
@@ -348,13 +352,22 @@ Optional argument TYPE is type of output (nil means all)."
     (manual-html-mono texi (expand-file-name (concat name ".html")
 					     html-mono-dir))))
 
+(defvar manual-makeinfo (or (getenv "MAKEINFO") "makeinfo")
+  "The `makeinfo' program to use.")
+
+(defvar manual-texi2pdf (or (getenv "TEXI2PDF") "texi2pdf")
+  "The `texi2pdf' program to use.")
+
+(defvar manual-texi2dvi (or (getenv "TEXI2DVI") "texi2dvi")
+  "The `texi2dvi' program to use.")
+
 (defun manual-html-mono (texi-file dest)
   "Run Makeinfo on TEXI-FILE, emitting mono HTML output to DEST.
 This function also edits the HTML files so that they validate as
 HTML 4.01 Transitional, and pulls in the gnu.org stylesheet using
 the @import directive."
   (make-directory (or (file-name-directory dest) ".") t)
-  (call-process "makeinfo" nil nil nil
+  (call-process manual-makeinfo nil nil nil
 		"-D" "WWW_GNU_ORG"
 		"-I" (expand-file-name "../emacs"
 				       (file-name-directory texi-file))
@@ -382,7 +395,7 @@ the @import directive."
   (unless (file-exists-p texi-file)
     (user-error "Manual file %s not found" texi-file))
   (make-directory dir t)
-  (call-process "makeinfo" nil nil nil
+  (call-process manual-makeinfo nil nil nil
 		"-D" "WWW_GNU_ORG"
 		"-I" (expand-file-name "../emacs"
 				       (file-name-directory texi-file))
@@ -421,7 +434,7 @@ the @import directive."
   "Run texi2pdf on TEXI-FILE, emitting PDF output to DEST."
   (make-directory (or (file-name-directory dest) ".") t)
   (let ((default-directory (file-name-directory texi-file)))
-    (call-process "texi2pdf" nil nil nil
+    (call-process manual-texi2pdf nil nil nil
 		  "-I" "../emacs" "-I" "../misc"
 		  texi-file "-o" dest)))
 
@@ -431,7 +444,7 @@ the @import directive."
   (let ((dvi-dest (concat (file-name-sans-extension dest) ".dvi"))
 	(default-directory (file-name-directory texi-file)))
     ;; FIXME: Use `texi2dvi --ps'?  --xfq
-    (call-process "texi2dvi" nil nil nil
+    (call-process manual-texi2dvi nil nil nil
 		  "-I" "../emacs" "-I" "../misc"
 		  texi-file "-o" dvi-dest)
     (call-process "dvips" nil nil nil dvi-dest "-o" dest)
@@ -644,7 +657,7 @@ style=\"text-align:left\">")
 
 
 (defconst make-manuals-dist-output-variables
-  `(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
+  '(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
     ("^\\(\\(?:texinfo\\|buildinfo\\|emacs\\)dir *=\\).*" . "\\1 .")
     ("^\\(clean:.*\\)" . "\\1 infoclean")
     ("@MAKEINFO@" . "makeinfo")
@@ -717,8 +730,12 @@ style=\"text-align:left\">")
 ROOT should be the root of an Emacs source tree.
 Interactively with a prefix argument, prompt for TYPE.
 Optional argument TYPE is type of output (nil means all)."
-  (interactive (let ((root (read-directory-name "Emacs root directory: "
-						source-directory nil t)))
+  (interactive (let ((root
+                      (if noninteractive
+                          (or (pop command-line-args-left)
+                              default-directory)
+                        (read-directory-name "Emacs root directory: "
+                                             source-directory nil t))))
 		 (list root
 		       (if current-prefix-arg
 			   (completing-read

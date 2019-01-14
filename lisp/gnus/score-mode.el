@@ -1,6 +1,6 @@
 ;;; score-mode.el --- mode for editing Gnus score files
 
-;; Copyright (C) 1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'mm-util)			; for mm-universal-coding-system
 (require 'gnus-util)			; for gnus-pp, gnus-run-mode-hooks
 

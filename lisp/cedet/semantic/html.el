@@ -1,6 +1,6 @@
 ;;; semantic/html.el --- Semantic details for html files
 
-;; Copyright (C) 2004-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

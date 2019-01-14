@@ -1,6 +1,6 @@
 #!/usr/bin/awk -f
 
-## Copyright (C) 2015-2018 Free Software Foundation, Inc.
+## Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 

@@ -6,7 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2006--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2006--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -88,7 +88,6 @@ Hacking and Tweaking
 * Scrolling conservatively::
 * Changing the time stamp format::
 * Defining a new command::
-* Reconnecting after you have lost the connection::
 
 @end detailmenu
 @end menu
@@ -401,6 +400,23 @@ This disconnects from the server and parts all channels.  You can
 optionally provide a reason for quitting.  When you kill the server
 buffer, you automatically quit the server and part all channels.  (Also
 @code{/quit ZZZzzz...}.)
+
+@item /reconnect
+@cindex /reconnect
+@cindex reconnect
+@cindex lost connection
+@cindex disconnecting servers, reconnecting
+This reconnects after you have lost the connection.
+
+If you're chatting from a laptop, then you might be familiar with this
+problem: When your laptop falls asleep and wakes up later, your IRC
+client doesn't realize that it has been disconnected.  It takes several
+minutes until the client decides that the connection has in fact been
+lost.  The simple solution is to use @kbd{M-x rcirc}.  The problem is
+that this opens an @emph{additional} connection, so you'll have two
+copies of every channel buffer, one dead and one live.
+
+The real answer, therefore, is the @code{/reconnect} command.
 @end table
 
 @node Useful IRC commands
@@ -787,7 +803,6 @@ Here are some examples of stuff you can do to configure @code{rcirc}.
 * Scrolling conservatively::
 * Changing the time stamp format::
 * Defining a new command::
-* Reconnecting after you have lost the connection::
 @end menu
 
 @node Skipping /away messages using handlers
@@ -886,47 +901,6 @@ because @code{defun-rcirc-command} is not yet available, and without
     (interactive "i")
     (rcirc-send-message process target
                          (concat "I use " rcirc-id-string))))
-@end smallexample
-
-@node Reconnecting after you have lost the connection
-@section Reconnecting after you have lost the connection
-@cindex reconnecting
-@cindex disconnecting servers, reconnecting
-
-If you're chatting from a laptop, then you might be familiar with this
-problem: When your laptop falls asleep and wakes up later, your IRC
-client doesn't realize that it has been disconnected.  It takes several
-minutes until the client decides that the connection has in fact been
-lost.  The simple solution is to use @kbd{M-x rcirc}.  The problem is
-that this opens an @emph{additional} connection, so you'll have two
-copies of every channel buffer, one dead and one live.
-
-The real answer, therefore, is a @code{/reconnect} command:
-
-@smallexample
-(with-eval-after-load 'rcirc
-  (defun-rcirc-command reconnect (arg)
-    "Reconnect the server process."
-    (interactive "i")
-    (unless process
-      (error "There's no process for this target"))
-    (let* ((server (car (process-contact process)))
-           (port (process-contact process :service))
-           (nick (rcirc-nick process))
-           channels query-buffers)
-      (dolist (buf (buffer-list))
-        (with-current-buffer buf
-          (when (eq process (rcirc-buffer-process))
-            (remove-hook 'change-major-mode-hook
-                         'rcirc-change-major-mode-hook)
-            (if (rcirc-channel-p rcirc-target)
-                (setq channels (cons rcirc-target channels))
-              (setq query-buffers (cons buf query-buffers))))))
-      (delete-process process)
-      (rcirc-connect server port nick
-                     rcirc-default-user-name
-                     rcirc-default-full-name
-                     channels))))
 @end smallexample
 
 @node GNU Free Documentation License

@@ -1,6 +1,6 @@
 /* Test GNU Emacs modules.
 
-Copyright 2015-2018 Free Software Foundation, Inc.
+Copyright 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -155,6 +155,24 @@ Fmod_test_globref_make (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   emacs_value lisp_str = env->make_string (env, str, sizeof str);
   return env->make_global_ref (env, lisp_str);
 }
+
+/* Create a few global references from arguments and free them.  */
+static emacs_value
+Fmod_test_globref_free (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
+			void *data)
+{
+  emacs_value refs[10];
+  for (int i = 0; i < 10; i++)
+    {
+      refs[i] = env->make_global_ref (env, args[i % nargs]);
+    }
+  for (int i = 0; i < 10; i++)
+    {
+      env->free_global_ref (env, refs[i]);
+    }
+  return env->intern (env, "ok");
+}
+
 
 
 /* Return a copy of the argument string where every 'a' is replaced
@@ -339,6 +357,7 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-non-local-exit-funcall", Fmod_test_non_local_exit_funcall,
 	 1, 1, NULL, NULL);
   DEFUN ("mod-test-globref-make", Fmod_test_globref_make, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-globref-free", Fmod_test_globref_free, 4, 4, NULL, NULL);
   DEFUN ("mod-test-string-a-to-b", Fmod_test_string_a_to_b, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-make", Fmod_test_userptr_make, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-get", Fmod_test_userptr_get, 1, 1, NULL, NULL);

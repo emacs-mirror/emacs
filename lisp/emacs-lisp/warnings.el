@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -68,6 +68,7 @@ Each element looks like (ALIAS . LEVEL) and defines ALIAS as
 equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
 
+(defvaralias 'display-warning-minimum-level 'warning-minimum-level)
 (defcustom warning-minimum-level :warning
   "Minimum severity level for displaying the warning buffer.
 If a warning's severity level is lower than this,
@@ -77,8 +78,8 @@ is not immediately displayed.  See also `warning-minimum-log-level'."
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
-(defvaralias 'display-warning-minimum-level 'warning-minimum-level)
 
+(defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
 (defcustom warning-minimum-log-level :warning
   "Minimum severity level for logging a warning.
 If a warning severity level is lower than this,
@@ -89,7 +90,6 @@ because warnings not logged aren't displayed either."
   :type '(choice (const :emergency) (const :error)
                  (const :warning) (const :debug))
   :version "22.1")
-(defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
 
 (defcustom warning-suppress-log-types nil
   "List of warning types that should not be logged.
@@ -241,11 +241,15 @@ See also `warning-series', `warning-prefix-function' and
 	       (old (get-buffer buffer-name))
 	       (buffer (or old (get-buffer-create buffer-name)))
 	       (level-info (assq level warning-levels))
+               ;; `newline' may be unbound during bootstrap.
+               (newline (if (fboundp 'newline) #'newline
+                          (lambda () (insert "\n"))))
 	       start end)
 	  (with-current-buffer buffer
 	    ;; If we created the buffer, disable undo.
 	    (unless old
-	      (special-mode)
+	      (when (fboundp 'special-mode) ; Undefined during bootstrap.
+                (special-mode))
 	      (setq buffer-read-only t)
 	      (setq buffer-undo-list t))
 	    (goto-char (point-max))
@@ -256,7 +260,7 @@ See also `warning-series', `warning-prefix-function' and
 			(funcall warning-series)))))
 	    (let ((inhibit-read-only t))
 	      (unless (bolp)
-		(newline))
+		(funcall newline))
 	      (setq start (point))
 	      (if warning-prefix-function
 		  (setq level-info (funcall warning-prefix-function
@@ -264,7 +268,7 @@ See also `warning-series', `warning-prefix-function' and
 	      (insert (format (nth 1 level-info)
 			      (format warning-type-format typename))
 		      message)
-	      (newline)
+              (funcall newline)
 	      (when (and warning-fill-prefix (not (string-match "\n" message)))
 		(let ((fill-prefix warning-fill-prefix)
 		      (fill-column 78))

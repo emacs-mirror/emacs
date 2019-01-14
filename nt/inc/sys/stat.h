@@ -1,7 +1,7 @@
 /* sys/stat.h supplied with MSVCRT uses too narrow data types for
    inode and user/group id, so we replace them with our own.
 
-Copyright (C) 2008-2018 Free Software Foundation, Inc.
+Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

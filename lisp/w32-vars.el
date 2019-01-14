@@ -1,6 +1,6 @@
 ;;; w32-vars.el --- MS-Windows specific user options
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Jason Rumney <jasonr@gnu.org>
 ;; Keywords: internal
@@ -46,10 +46,6 @@ after changing the value of this variable."
 	 (set symbol value)
 	 (setq mouse-appearance-menu-map nil))
   :group 'w32)
-
-(defvar w32-list-proportional-fonts nil
-  "Include proportional fonts in the default font dialog.")
-(make-obsolete-variable 'w32-list-proportional-fonts "no longer used." "23.1")
 
 (unless (eq system-type 'cygwin)
   (defcustom w32-allow-system-shell nil

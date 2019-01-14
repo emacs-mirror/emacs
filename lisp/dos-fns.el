@@ -1,6 +1,6 @@
 ;;; dos-fns.el --- MS-Dos specific functions
 
-;; Copyright (C) 1991, 1993, 1995-1996, 2001-2018 Free Software
+;; Copyright (C) 1991, 1993, 1995-1996, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -269,7 +269,7 @@ returned unaltered."
 			(car where)
 			(if (zerop (cdr where))
 			    (logior (logand tem 65280) value)
-			  (logior (logand tem 255) (lsh value 8))))))
+			  (logior (logand tem 255) (ash value 8))))))
 	       ((numberp where)
 		(aset regs where (logand value 65535))))))
   regs)

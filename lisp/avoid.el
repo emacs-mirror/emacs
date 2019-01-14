@@ -1,6 +1,6 @@
 ;;; avoid.el --- make mouse pointer stay out of the way of editing
 
-;; Copyright (C) 1993-1994, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: mouse
@@ -205,8 +205,8 @@ If you want the mouse banished to a different corner set
                               'frame-or-window
                               mouse-avoidance-banish-position 'eq))
          (list-values        (pcase fra-or-win
-                               (`frame (list 0 0 (frame-width) (frame-height)))
-                               (`window (window-edges))))
+                               ('frame (list 0 0 (frame-width) (frame-height)))
+                               ('window (window-edges))))
          (alist              (cl-loop for v in list-values
                                       for k in '(left top right bottom)
                                       collect (cons k v)))
@@ -223,11 +223,11 @@ If you want the mouse banished to a different corner set
                               'top-or-bottom-pos
                               mouse-avoidance-banish-position #'eq))
          (side-fn            (pcase side
-                               (`left '+)
-                               (`right '-)))
+                               ('left '+)
+                               ('right '-)))
          (top-or-bottom-fn   (pcase top-or-bottom
-                               (`top '+)
-                               (`bottom '-))))
+                               ('top '+)
+                               ('bottom '-))))
     (cons (funcall side-fn                        ; -/+
                    (assoc-default side alist 'eq) ; right or left
                    side-dist)                     ; distance from side

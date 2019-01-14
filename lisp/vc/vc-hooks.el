@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2019 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -658,7 +658,7 @@ Before doing that, check if there are any old backups and get rid of them."
       ;; If the file was saved in the same second in which it was
       ;; checked out, clear the checkout-time to avoid confusion.
       (if (equal (vc-file-getprop file 'vc-checkout-time)
-		 (nth 5 (file-attributes file)))
+		 (file-attribute-modification-time (file-attributes file)))
 	  (vc-file-setprop file 'vc-checkout-time nil))
       (if (vc-state-refresh file backend)
 	  (vc-mode-line file backend)))
@@ -692,24 +692,26 @@ visiting FILE.
 If BACKEND is passed use it as the VC backend when computing the result."
   (interactive (list buffer-file-name))
   (setq backend (or backend (vc-backend file)))
-  (if (not backend)
-      (setq vc-mode nil)
+  (cond
+   ((not backend)
+    (setq vc-mode nil))
+   ((null vc-display-status)
+    (setq vc-mode (concat " " (symbol-name backend))))
+   (t
     (let* ((ml-string (vc-call-backend backend 'mode-line-string file))
 	   (ml-echo (get-text-property 0 'help-echo ml-string)))
       (setq vc-mode
 	    (concat
 	     " "
-	     (if (null vc-display-status)
-		 (symbol-name backend)
-	       (propertize
-		ml-string
-		'mouse-face 'mode-line-highlight
-		'help-echo
-		(concat (or ml-echo
-			    (format "File under the %s version control system"
-				    backend))
-			"\nmouse-1: Version Control menu")
-		'local-map vc-mode-line-map)))))
+	     (propertize
+	      ml-string
+	      'mouse-face 'mode-line-highlight
+	      'help-echo
+	      (concat (or ml-echo
+			  (format "File under the %s version control system"
+				  backend))
+		      "\nmouse-1: Version Control menu")
+	      'local-map vc-mode-line-map))))
     ;; If the user is root, and the file is not owner-writable,
     ;; then pretend that we can't write it
     ;; even though we can (because root can write anything).
@@ -718,7 +720,7 @@ If BACKEND is passed use it as the VC backend when computing the result."
 	 (not buffer-read-only)
 	 (zerop (user-real-uid))
 	 (zerop (logand (file-modes buffer-file-name) 128))
-	 (setq buffer-read-only t)))
+	 (setq buffer-read-only t))))
   (force-mode-line-update)
   backend)
 

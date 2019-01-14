@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -39,7 +39,7 @@
 ;;	C-v	-> paste
 ;;
 ;; The tricky part is the handling of the C-x and C-c keys which
-;; are normally used as prefix keys for most of emacs' built-in
+;; are normally used as prefix keys for most of Emacs' built-in
 ;; commands.  With CUA they still do!!!
 ;;
 ;; Only when the region is currently active (and highlighted since
@@ -69,7 +69,7 @@
 ;; [C-space] to start the region and use unshifted movement keys to extend
 ;; it. To cancel the region, use [C-space] or [C-g].
 
-;; If you prefer to use the standard emacs cut, copy, paste, and undo
+;; If you prefer to use the standard Emacs cut, copy, paste, and undo
 ;; bindings, customize cua-enable-cua-keys to nil.
 
 
@@ -138,7 +138,7 @@
 ;; cua-mode's superior rectangle support uses a true visual
 ;; representation of the selected rectangle, i.e. it highlights the
 ;; actual part of the buffer that is currently selected as part of the
-;; rectangle.  Unlike emacs' traditional rectangle commands, the
+;; rectangle.  Unlike Emacs' traditional rectangle commands, the
 ;; selected rectangle always as straight left and right edges, even
 ;; when those are in the middle of a TAB character or beyond the end
 ;; of the current line.  And it does this without actually modifying
@@ -852,8 +852,6 @@ With numeric prefix arg, copy to register 0-9 instead."
   (if (fboundp 'cua--cancel-rectangle)
       (cua--cancel-rectangle)))
 
-(declare-function x-clipboard-yank "../term/x-win" ())
-
 (put 'cua-paste 'delete-selection 'yank)
 (defun cua-paste (arg)
   "Paste last cut or copied region or rectangle.
@@ -884,10 +882,8 @@ If global mark is active, copy from register or one character."
 	 ((consp regtxt) (cua--insert-rectangle regtxt))
 	 ((stringp regtxt) (insert-for-yank regtxt))
 	 (t (message "Unknown data in register %c" cua--register))))
-       ((eq this-original-command 'clipboard-yank)
-	(clipboard-yank))
-       ((eq this-original-command 'x-clipboard-yank)
-	(x-clipboard-yank))
+       ((memq this-original-command '(clipboard-yank x-clipboard-yank))
+        (funcall this-original-command))
        (t (yank arg)))))))
 
 
@@ -1051,7 +1047,6 @@ If ARG is the atom `-', scroll downward by nearly full screen."
 	(scroll-up arg)
       (end-of-buffer (goto-char (point-max)))))))
 
-(put 'cua-scroll-up 'CUA 'move)
 (put 'cua-scroll-up 'isearch-scroll t)
 
 (defun cua-scroll-down (&optional arg)
@@ -1072,7 +1067,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(scroll-down arg)
       (beginning-of-buffer (goto-char (point-min)))))))
 
-(put 'cua-scroll-down 'CUA 'move)
 (put 'cua-scroll-down 'isearch-scroll t)
 
 ;;; Cursor indications
@@ -1322,9 +1316,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 ;;;###autoload
 (define-minor-mode cua-mode
   "Toggle Common User Access style editing (CUA mode).
-With a prefix argument ARG, enable CUA mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
 
 CUA mode is a global minor mode.  When enabled, typed text
 replaces the active selection, and you can use C-z, C-x, C-c, and

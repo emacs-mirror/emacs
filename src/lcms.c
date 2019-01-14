@@ -1,5 +1,5 @@
 /* Interface to Little CMS
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,6 +34,7 @@ typedef struct
 
 #ifdef WINDOWSNT
 # include <windows.h>
+# include "w32common.h"
 # include "w32.h"
 
 DEF_DLL_FN (cmsFloat64Number, cmsCIE2000DeltaE,
@@ -251,10 +252,10 @@ parse_viewing_conditions (Lisp_Object view, const cmsCIEXYZ *wp,
   else									\
     return false;
 #define PARSE_VIEW_CONDITION_INT(field)					\
-  if (CONSP (view) && NATNUMP (XCAR (view)))				\
+  if (CONSP (view) && FIXNATP (XCAR (view)))				\
     {									\
       CHECK_RANGED_INTEGER (XCAR (view), 1, 4);				\
-      vc->field = XINT (XCAR (view));					\
+      vc->field = XFIXNUM (XCAR (view));					\
       view = XCDR (view);						\
     }									\
   else									\
@@ -554,7 +555,7 @@ Valid range of TEMPERATURE is from 4000K to 25000K.  */)
     }
 #endif
 
-  CHECK_NUMBER_OR_FLOAT (temperature);
+  CHECK_NUMBER (temperature);
 
   tempK = XFLOATINT (temperature);
   if (!(cmsWhitePointFromTemp (&whitepoint, tempK)))

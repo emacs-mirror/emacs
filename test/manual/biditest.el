@@ -1,6 +1,6 @@
 ;;; biditest.el --- test bidi reordering in GNU Emacs display engine.
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: emacs-devel@gnu.org

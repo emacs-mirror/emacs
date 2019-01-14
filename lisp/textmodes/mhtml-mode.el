@@ -1,6 +1,6 @@
 ;;; mhtml-mode.el --- HTML editing mode that handles CSS and JS -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Keywords: wp, hypermedia, comm, languages
 
@@ -22,12 +22,11 @@
 ;;; Code:
 
 (eval-and-compile
-  (require 'flyspell)
+  (require 'cl-lib)
   (require 'sgml-mode))
 (require 'js)
 (require 'css-mode)
 (require 'prog-mode)
-(require 'font-lock)
 
 (defcustom mhtml-tag-relative-indent t
   "How <script> and <style> bodies are indented relative to the tag.
@@ -348,6 +347,8 @@ This is used by `mhtml--pre-command'.")
                 (funcall indent-line-function)))))
       ;; HTML.
       (sgml-indent-line))))
+
+(declare-function flyspell-generic-progmode-verify "flyspell")
 
 (defun mhtml--flyspell-check-word ()
   (let ((submode (get-text-property (point) 'mhtml-submode)))

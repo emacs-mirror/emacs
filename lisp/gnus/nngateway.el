@@ -1,6 +1,6 @@
 ;;; nngateway.el --- posting news via mail gateways
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'nnoo)
 (require 'message)
 

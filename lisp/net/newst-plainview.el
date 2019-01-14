@@ -1,6 +1,6 @@
 ;;; newst-plainview.el --- Single buffer frontend for newsticker.
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
@@ -562,7 +562,6 @@ This does NOT start the retrieval timers."
         (newsticker--debug-msg "Getting news for %s" (symbol-name feed))
         (newsticker-get-news (symbol-name feed)))))
 
-(unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 (declare-function w3m-toggle-inline-image "ext:w3m" (&optional force no-cache))
 
 (defun newsticker-w3m-show-inline-images ()

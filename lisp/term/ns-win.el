@@ -1,6 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/macOS window system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2005-2019 Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
 ;;	Christian Limpach
@@ -141,6 +141,10 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-x] 'kill-region)
 (define-key global-map [?\s-y] 'ns-paste-secondary)
 (define-key global-map [?\s-z] 'undo)
+(define-key global-map [?\s-+] 'text-scale-adjust)
+(define-key global-map [?\s-=] 'text-scale-adjust)
+(define-key global-map [?\s--] 'text-scale-adjust)
+(define-key global-map [?\s-0] 'text-scale-adjust)
 (define-key global-map [?\s-|] 'shell-command-on-region)
 (define-key global-map [s-kp-bar] 'shell-command-on-region)
 (define-key global-map [?\C-\s- ] 'ns-do-show-character-palette)
@@ -307,8 +311,8 @@ is currently being used."
   "Insert contents of `ns-working-text' as UTF-8 string and mark with
 `ns-working-overlay'.  Any previously existing working text is cleared first.
 The overlay is assigned the face `ns-working-text-face'."
-  ;; FIXME: if buffer is read-only, don't try to insert anything
-  ;;  and if text is bound to a command, execute that instead (Bug#1453)
+  ;; FIXME: if buffer is read-only, don't try to insert anything, and
+  ;; if text is bound to a command, execute that instead (Bug#1453).
   (interactive)
   (ns-delete-working-text)
   (let ((start (point)))
@@ -437,7 +441,7 @@ Lines are highlighted according to `ns-input-line'."
 ;;;; File handling.
 
 (defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
-"SKIP: real doc in xfns.c."
+  "SKIP: real doc in xfns.c."
   (ns-read-file-name prompt dir mustmatch default_filename only_dir_p))
 
 (defun ns-open-file-using-panel ()
@@ -497,48 +501,38 @@ unless the current buffer is a scratch buffer."
       (find-file f)))))
 
 
-(defun ns-drag-n-drop (event &optional new-frame force-text)
+(defun ns-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop EVENT.
-Switch to a buffer editing the last file dropped."
+Switch to a buffer editing the last file dropped, or insert the
+string dropped into the current buffer."
   (interactive "e")
   (let* ((window (posn-window (event-start event)))
          (arg (car (cdr (cdr event))))
          (type (car arg))
-         (data (car (cdr arg)))
-         (url-or-string (cond ((eq type 'file)
-                               (concat "file:" data))
-                              (t data))))
+         (operations (car (cdr arg)))
+         (objects (cdr (cdr arg)))
+         (string (mapconcat 'identity objects "\n")))
     (set-frame-selected-window nil window)
-    (when new-frame
-      (select-frame (make-frame)))
     (raise-frame)
     (setq window (selected-window))
-    (if force-text
-        (dnd-insert-text window 'private data)
-      (dnd-handle-one-url window 'private url-or-string))))
-
-
-(defun ns-drag-n-drop-other-frame (event)
-  "Edit the files listed in the drag-n-drop EVENT, in other frames.
-May create new frames, or reuse existing ones.  The frame editing
-the last file dropped is selected."
-  (interactive "e")
-  (ns-drag-n-drop event t))
-
-(defun ns-drag-n-drop-as-text (event)
-  "Drop the data in EVENT as text."
-  (interactive "e")
-  (ns-drag-n-drop event nil t))
-
-(defun ns-drag-n-drop-as-text-other-frame (event)
-  "Drop the data in EVENT as text in a new frame."
-  (interactive "e")
-  (ns-drag-n-drop event t t))
+    (cond ((memq 'ns-drag-operation-generic operations)
+           ;; Perform the default action for the type.
+           (if (eq type 'file)
+               (dolist (data objects)
+                 (dnd-handle-one-url window 'private (concat "file:" data)))
+             (dnd-insert-text window 'private string)))
+          ((memq 'ns-drag-operation-copy operations)
+           ;; Try to open the file/URL.  If type is nil, try to open
+           ;; it as a URL anyway.
+           (dolist (data objects)
+             (dnd-handle-one-url window 'private (if (eq type 'file)
+                                                     (concat "file:" data)
+                                                   data))))
+          (t
+           ;; Insert the text as is.
+           (dnd-insert-text window 'private string)))))
 
 (global-set-key [drag-n-drop] 'ns-drag-n-drop)
-(global-set-key [C-drag-n-drop] 'ns-drag-n-drop-other-frame)
-(global-set-key [M-drag-n-drop] 'ns-drag-n-drop-as-text)
-(global-set-key [C-M-drag-n-drop] 'ns-drag-n-drop-as-text-other-frame)
 
 ;;;; Frame-related functions.
 
@@ -549,8 +543,9 @@ the last file dropped is selected."
 (defvar ns-right-control-modifier)
 
 ;; You say tomAYto, I say tomAHto..
-(defvaralias 'ns-option-modifier 'ns-alternate-modifier)
-(defvaralias 'ns-right-option-modifier 'ns-right-alternate-modifier)
+(with-no-warnings
+  (defvaralias 'ns-option-modifier 'ns-alternate-modifier)
+  (defvaralias 'ns-right-option-modifier 'ns-right-alternate-modifier))
 
 (defun ns-do-hide-emacs ()
   (interactive)
@@ -618,7 +613,7 @@ the last file dropped is selected."
       (let ((last-nonmenu-event (if (listp last-nonmenu-event)
                                     last-nonmenu-event
                                   ;; Fake it:
-                                  `(mouse-1 POSITION 1))))
+                                  '(mouse-1 POSITION 1))))
         (if (y-or-n-p (format "Print buffer %s? " (buffer-name)))
             (print-buffer)
 	  (error "Canceled")))

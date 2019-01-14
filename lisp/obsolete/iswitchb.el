@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996-1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -352,8 +352,6 @@ See also `iswitchb-prompt-newbuffer'."
 See also `iswitchb-newbuffer'."
   :type 'boolean
   :group 'iswitchb)
-
-(define-obsolete-variable-alias 'iswitchb-use-fonts 'iswitchb-use-faces "22.1")
 
 (defcustom iswitchb-use-faces t
   "Non-nil means use font-lock faces for showing first match."
@@ -1419,9 +1417,6 @@ See the variable `iswitchb-case' for details."
 ;;;###autoload
 (define-minor-mode iswitchb-mode
   "Toggle Iswitchb mode.
-With a prefix argument ARG, enable Iswitchb mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Iswitchb mode is a global minor mode that enables switching
 between buffers using substrings.  See `iswitchb' for details."

@@ -1,11 +1,11 @@
 ;;; org-entities.el --- Support for Special Entities -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>,
 ;;         Ulf Stegemann <ulf at zeitform dot de>
 ;; Keywords: outlines, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;

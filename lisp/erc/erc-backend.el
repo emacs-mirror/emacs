@@ -1,6 +1,6 @@
 ;;; erc-backend.el --- Backend network communication for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
@@ -466,14 +466,18 @@ If this is set to nil, never try to reconnect."
 The length is specified in `erc-split-line-length'.
 
 Currently this is called by `erc-send-input'."
-  (if (< (length longline)
-         erc-split-line-length)
-      (list longline)
+  (let ((charset (car (erc-coding-system-for-target nil))))
     (with-temp-buffer
       (insert longline)
+      ;; The line lengths are in octets, not characters (because these
+      ;; are server protocol limits), so we have to first make the
+      ;; text into bytes, then fold the bytes on "word" boundaries,
+      ;; and then make the bytes into text again.
+      (encode-coding-region (point-min) (point-max) charset)
       (let ((fill-column erc-split-line-length))
         (fill-region (point-min) (point-max)
                      nil t))
+      (decode-coding-region (point-min) (point-max) charset)
       (split-string (buffer-string) "\n"))))
 
 (defun erc-forward-word ()

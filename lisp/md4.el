@@ -1,6 +1,6 @@
 ;;; md4.el --- MD4 Message Digest Algorithm. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001, 2004, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Keywords: MD4
@@ -91,15 +91,15 @@ strings containing the character 0."
      (let*
          ((h1 (+ (car a) (,func (car b) (car c) (car d)) (car xk) (car ac)))
           (l1 (+ (cdr a) (,func (cdr b) (cdr c) (cdr d)) (cdr xk) (cdr ac)))
-          (h2 (logand 65535 (+ h1 (lsh l1 -16))))
+          (h2 (logand 65535 (+ h1 (ash l1 -16))))
           (l2 (logand 65535 l1))
 	  ;; cyclic shift of 32 bits integer
           (h3 (logand 65535 (if (> s 15)
-                                (+ (lsh h2 (- s 32)) (lsh l2 (- s 16)))
-                              (+ (lsh h2 s) (lsh l2 (- s 16))))))
+                                (+ (ash h2 (- s 32)) (ash l2 (- s 16)))
+                              (+ (ash h2 s) (ash l2 (- s 16))))))
           (l3 (logand 65535 (if (> s 15)
-                                (+ (lsh l2 (- s 32)) (lsh h2 (- s 16)))
-                              (+ (lsh l2 s) (lsh h2 (- s 16)))))))
+                                (+ (ash l2 (- s 32)) (ash h2 (- s 16)))
+                              (+ (ash l2 s) (ash h2 (- s 16)))))))
        (cons h3 l3))))
 
 (md4-make-step md4-round1 md4-F)
@@ -110,7 +110,7 @@ strings containing the character 0."
   "Return 32-bit sum of 32-bit integers X and Y."
   (let ((h (+ (car x) (car y)))
 	(l (+ (cdr x) (cdr y))))
-    (cons (logand 65535 (+ h (lsh l -16))) (logand 65535 l))))
+    (cons (logand 65535 (+ h (ash l -16))) (logand 65535 l))))
 
 (defsubst md4-and (x y)
   (cons (logand (car x) (car y)) (logand (cdr x) (cdr y))))
@@ -185,8 +185,8 @@ The resulting MD4 value is placed in `md4-buffer'."
   (let ((int32s (make-vector 16 0)) (i 0) j)
     (while (< i 16)
       (setq j (* i 4))
-      (aset int32s i (cons (+ (aref seq (+ j 2)) (lsh (aref seq (+ j 3)) 8))
-			   (+ (aref seq j) (lsh (aref seq (1+ j)) 8))))
+      (aset int32s i (cons (+ (aref seq (+ j 2)) (ash (aref seq (+ j 3)) 8))
+			   (+ (aref seq j) (ash (aref seq (1+ j)) 8))))
       (setq i (1+ i)))
     int32s))
 
@@ -197,7 +197,7 @@ The resulting MD4 value is placed in `md4-buffer'."
   "Pack 16 bits integer in 2 bytes string as little endian."
   (let ((str (make-string 2 0)))
     (aset str 0 (logand int16 255))
-    (aset str 1 (lsh int16 -8))
+    (aset str 1 (ash int16 -8))
     str))
 
 (defun md4-pack-int32 (int32)
@@ -207,20 +207,20 @@ integers (cons high low)."
   (let ((str (make-string 4 0))
 	(h (car int32)) (l (cdr int32)))
     (aset str 0 (logand l 255))
-    (aset str 1 (lsh l -8))
+    (aset str 1 (ash l -8))
     (aset str 2 (logand h 255))
-    (aset str 3 (lsh h -8))
+    (aset str 3 (ash h -8))
     str))
 
 (defun md4-unpack-int16 (str)
   (if (eq 2 (length str))
-      (+ (lsh (aref str 1) 8) (aref str 0))
+      (+ (ash (aref str 1) 8) (aref str 0))
     (error "%s is not 2 bytes long" str)))
 
 (defun md4-unpack-int32 (str)
   (if (eq 4 (length str))
-      (cons (+ (lsh (aref str 3) 8) (aref str 2))
-	    (+ (lsh (aref str 1) 8) (aref str 0)))
+      (cons (+ (ash (aref str 3) 8) (aref str 2))
+	    (+ (ash (aref str 1) 8) (aref str 0)))
     (error "%s is not 4 bytes long" str)))
 
 (provide 'md4)

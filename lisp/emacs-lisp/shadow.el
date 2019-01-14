@@ -1,6 +1,6 @@
 ;;; shadow.el --- locate Emacs Lisp file shadowings
 
-;; Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Terry Jones <terry@santafe.edu>
 ;; Keywords: lisp
@@ -161,8 +161,8 @@ See the documentation for `list-load-path-shadows' for further information."
 	     (or (equal (file-truename f1) (file-truename f2))
 		 ;; As a quick test, avoiding spawning a process, compare file
 		 ;; sizes.
-		 (and (= (nth 7 (file-attributes f1))
-			 (nth 7 (file-attributes f2)))
+		 (and (= (file-attribute-size (file-attributes f1))
+			 (file-attribute-size (file-attributes f2)))
 		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
 
 (defvar load-path-shadows-font-lock-keywords

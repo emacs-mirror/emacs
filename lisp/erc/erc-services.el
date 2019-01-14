@@ -1,6 +1,6 @@
 ;;; erc-services.el --- Identify to NickServ  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2004, 2006-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -214,7 +214,7 @@ Example of use:
      "identify" nil nil nil)
     (Azzurra
      "NickServ!service@azzurra.org"
-     "/ns\\s-IDENTIFY\\s-password"
+     "\^B/ns\\s-IDENTIFY\\s-password\^B"
      "NickServ"
      "IDENTIFY" nil nil nil)
     (BitlBee
@@ -223,7 +223,7 @@ Example of use:
      "identify" nil nil nil)
     (BRASnet
      "NickServ!services@brasnet.org"
-     "/NickServ\\s-IDENTIFY\\s-senha"
+     "\^B/NickServ\\s-IDENTIFY\\s-\^_senha\^_\^B"
      "NickServ"
      "IDENTIFY" nil "" nil)
     (DALnet
@@ -262,7 +262,7 @@ Example of use:
      nil
      "NickServ"
      "IDENTIFY" nil nil
-     "You\\s-are\\s-successfully\\s-identified\\s-as\\s-")
+     "You\\s-are\\s-successfully\\s-identified\\s-as\\s-\^B")
     (Rizon
      "NickServ!service@rizon.net"
      "This\\s-nickname\\s-is\\s-registered\\s-and\\s-protected."
@@ -275,7 +275,7 @@ Example of use:
      "auth" t nil nil)
     (SlashNET
      "NickServ!services@services.slashnet.org"
-     "/msg\\s-NickServ\\s-IDENTIFY\\s-password"
+     "/msg\\s-NickServ\\s-IDENTIFY\\s-\^_password"
      "NickServ@services.slashnet.org"
      "IDENTIFY" nil nil nil))
    "Alist of NickServer details, sorted by network.

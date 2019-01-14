@@ -1,7 +1,7 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993-1994, 1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1999, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
@@ -193,10 +193,10 @@ See Info node `(elisp)Derived Modes' for more details."
     ;; Process the keyword args.
     (while (keywordp (car body))
       (pcase (pop body)
-	(`:group (setq group (pop body)))
-	(`:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
-	(`:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
-        (`:after-hook (setq after-hook (pop body)))
+	(:group (setq group (pop body)))
+	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
+	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+        (:after-hook (setq after-hook (pop body)))
 	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring
@@ -285,19 +285,6 @@ No problems result if this variable is not bound.
 	     `((push (lambda () ,after-hook) delayed-after-hook-functions)))
 	 ;; Run the hooks (and delayed-after-hook-functions), if any.
 	 (run-mode-hooks ',hook)))))
-
-;; PUBLIC: find the ultimate class of a derived mode.
-
-(defun derived-mode-class (mode)
-  "Find the class of a major MODE.
-A mode's class is the first ancestor which is NOT a derived mode.
-Use the `derived-mode-parent' property of the symbol to trace backwards.
-Since major-modes might all derive from `fundamental-mode', this function
-is not very useful."
-  (declare (obsolete derived-mode-p "22.1"))
-  (while (get mode 'derived-mode-parent)
-    (setq mode (get mode 'derived-mode-parent)))
-  mode)
 
 
 ;;; PRIVATE

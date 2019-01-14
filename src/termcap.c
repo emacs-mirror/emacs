@@ -1,5 +1,5 @@
 /* Work-alike for termcap, plus extra features.
-   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2018 Free
+   Copyright (C) 1985-1986, 1993-1995, 2000-2008, 2011, 2013-2019 Free
    Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify

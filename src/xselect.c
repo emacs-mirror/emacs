@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993-1997, 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-1997, 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -322,7 +322,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
     Lisp_Object prev_value;
 
     selection_data = list4 (selection_name, selection_value,
-			    INTEGER_TO_CONS (timestamp), frame);
+			    INT_TO_INTEGER (timestamp), frame);
     prev_value = LOCAL_SELECTION (selection_name, dpyinfo);
 
     tset_selection_alist
@@ -388,7 +388,7 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 		       XCAR (XCDR (local_value)));
       else
 	value = Qnil;
-      unbind_to (count, Qnil);
+      value = unbind_to (count, value);
     }
 
   /* Make sure this value is of a type that we could transmit
@@ -1537,16 +1537,9 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
 	ATOM	32	> 1		Vector of Symbols
 	*	16	1		Integer
 	*	16	> 1		Vector of Integers
-	*	32	1		if <=16 bits: Integer
-					if > 16 bits: Cons of top16, bot16
+	*	32	1		if small enough: fixnum
+					otherwise: bignum
 	*	32	> 1		Vector of the above
-
-   When converting a Lisp number to C, it is assumed to be of format 16 if
-   it is an integer, and of format 32 if it is a cons of two integers.
-
-   When converting a vector of numbers from Lisp to C, it is assumed to be
-   of format 16 if every element in the vector is an integer, and is assumed
-   to be of format 32 if any element is a cons of two integers.
 
    When converting an object to C, it may be of the form (SYMBOL . <data>)
    where SYMBOL is what we should claim that the type is.  Format and
@@ -1582,7 +1575,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
 	lispy_type = QUTF8_STRING;
       else
 	lispy_type = QSTRING;
-      Fput_text_property (make_number (0), make_number (size),
+      Fput_text_property (make_fixnum (0), make_fixnum (size),
 			  Qforeign_selection, lispy_type, str);
       return str;
     }
@@ -1612,8 +1605,8 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
     }
 
   /* Convert a single 16-bit number or a small 32-bit number to a Lisp_Int.
-     If the number is 32 bits and won't fit in a Lisp_Int,
-     convert it to a cons of integers, 16 bits in each half.
+     If the number is 32 bits and won't fit in a Lisp_Int, convert it
+     to a bignum.
 
      INTEGER is a signed type, CARDINAL is unsigned.
      Assume any other types are unsigned as well.
@@ -1621,16 +1614,16 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
   else if (format == 32 && size == sizeof (int))
     {
       if (type == XA_INTEGER)
-        return INTEGER_TO_CONS (((int *) data) [0]);
+        return INT_TO_INTEGER (((int *) data) [0]);
       else
-        return INTEGER_TO_CONS (((unsigned int *) data) [0]);
+        return INT_TO_INTEGER (((unsigned int *) data) [0]);
     }
   else if (format == 16 && size == sizeof (short))
     {
       if (type == XA_INTEGER)
-        return make_number (((short *) data) [0]);
+        return make_fixnum (((short *) data) [0]);
       else
-        return make_number (((unsigned short *) data) [0]);
+        return make_fixnum (((unsigned short *) data) [0]);
     }
 
   /* Convert any other kind of data to a vector of numbers, represented
@@ -1646,7 +1639,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
           for (i = 0; i < size / 2; i++)
             {
               short j = ((short *) data) [i];
-              ASET (v, i, make_number (j));
+              ASET (v, i, make_fixnum (j));
             }
         }
       else
@@ -1654,7 +1647,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
           for (i = 0; i < size / 2; i++)
             {
               unsigned short j = ((unsigned short *) data) [i];
-              ASET (v, i, make_number (j));
+              ASET (v, i, make_fixnum (j));
             }
         }
       return v;
@@ -1669,7 +1662,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
           for (i = 0; i < size / X_LONG_SIZE; i++)
             {
               int j = ((int *) data) [i];
-              ASET (v, i, INTEGER_TO_CONS (j));
+              ASET (v, i, INT_TO_INTEGER (j));
             }
         }
       else
@@ -1677,7 +1670,7 @@ selection_data_to_lisp_data (struct x_display_info *dpyinfo,
           for (i = 0; i < size / X_LONG_SIZE; i++)
             {
               unsigned int j = ((unsigned int *) data) [i];
-              ASET (v, i, INTEGER_TO_CONS (j));
+              ASET (v, i, INT_TO_INTEGER (j));
             }
         }
       return v;
@@ -1694,7 +1687,7 @@ static unsigned long
 cons_to_x_long (Lisp_Object obj)
 {
   if (X_ULONG_MAX <= INTMAX_MAX
-      || XINT (INTEGERP (obj) ? obj : XCAR (obj)) < 0)
+      || NILP (Fnatnump (CONSP (obj) ? XCAR (obj) : obj)))
     return cons_to_signed (obj, X_LONG_MIN, min (X_ULONG_MAX, INTMAX_MAX));
   else
     return cons_to_unsigned (obj, X_ULONG_MAX);
@@ -1749,7 +1742,7 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
       *x_atom_ptr = symbol_to_x_atom (dpyinfo, obj);
       if (NILP (type)) type = QATOM;
     }
-  else if (RANGED_INTEGERP (X_SHRT_MIN, obj, X_SHRT_MAX))
+  else if (RANGED_FIXNUMP (X_SHRT_MIN, obj, X_SHRT_MAX))
     {
       void *data = xmalloc (sizeof (short) + 1);
       short *short_ptr = data;
@@ -1757,14 +1750,14 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
       cs->format = 16;
       cs->size = 1;
       cs->data[sizeof (short)] = 0;
-      *short_ptr = XINT (obj);
+      *short_ptr = XFIXNUM (obj);
       if (NILP (type)) type = QINTEGER;
     }
   else if (INTEGERP (obj)
 	   || (CONSP (obj) && INTEGERP (XCAR (obj))
-	       && (INTEGERP (XCDR (obj))
+	       && (FIXNUMP (XCDR (obj))
 		   || (CONSP (XCDR (obj))
-		       && INTEGERP (XCAR (XCDR (obj)))))))
+		       && FIXNUMP (XCAR (XCDR (obj)))))))
     {
       void *data = xmalloc (sizeof (unsigned long) + 1);
       unsigned long *x_long_ptr = data;
@@ -1812,7 +1805,7 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
 	  if (NILP (type)) type = QINTEGER;
 	  for (i = 0; i < size; i++)
 	    {
-	      if (! RANGED_INTEGERP (X_SHRT_MIN, AREF (obj, i),
+	      if (! RANGED_FIXNUMP (X_SHRT_MIN, AREF (obj, i),
 				     X_SHRT_MAX))
 		{
 		  /* Use sizeof (long) even if it is more than 32 bits.
@@ -1833,7 +1826,7 @@ lisp_data_to_selection_data (struct x_display_info *dpyinfo,
 	      if (format == 32)
 		x_atoms[i] = cons_to_x_long (AREF (obj, i));
 	      else
-		shorts[i] = XINT (AREF (obj, i));
+		shorts[i] = XFIXNUM (AREF (obj, i));
 	    }
 	}
     }
@@ -1849,18 +1842,18 @@ clean_local_selection_data (Lisp_Object obj)
   if (CONSP (obj)
       && INTEGERP (XCAR (obj))
       && CONSP (XCDR (obj))
-      && INTEGERP (XCAR (XCDR (obj)))
+      && FIXNUMP (XCAR (XCDR (obj)))
       && NILP (XCDR (XCDR (obj))))
     obj = Fcons (XCAR (obj), XCDR (obj));
 
   if (CONSP (obj)
       && INTEGERP (XCAR (obj))
-      && INTEGERP (XCDR (obj)))
+      && FIXNUMP (XCDR (obj)))
     {
-      if (XINT (XCAR (obj)) == 0)
+      if (EQ (XCAR (obj), make_fixnum (0)))
 	return XCDR (obj);
-      if (XINT (XCAR (obj)) == -1)
-	return make_number (- XINT (XCDR (obj)));
+      if (EQ (XCAR (obj), make_fixnum (-1)))
+	return make_fixnum (- XFIXNUM (XCDR (obj)));
     }
   if (VECTORP (obj))
     {
@@ -2095,7 +2088,7 @@ On Nextstep, TERMINAL is unused.  */)
   struct frame *f = frame_for_x_selection (terminal);
 
   CHECK_SYMBOL (selection);
-  if (EQ (selection, Qnil)) selection = QPRIMARY;
+  if (NILP (selection)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
 
   if (f && !NILP (LOCAL_SELECTION (selection, FRAME_DISPLAY_INFO (f))))
@@ -2125,7 +2118,7 @@ On Nextstep, TERMINAL is unused.  */)
   struct x_display_info *dpyinfo;
 
   CHECK_SYMBOL (selection);
-  if (EQ (selection, Qnil)) selection = QPRIMARY;
+  if (NILP (selection)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
 
   if (!f)
@@ -2307,15 +2300,15 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
       if (NUMBERP (o) || CONSP (o))
         {
           if (CONSP (o)
-	      && RANGED_INTEGERP (X_LONG_MIN >> 16, XCAR (o), X_LONG_MAX >> 16)
-	      && RANGED_INTEGERP (- (1 << 15), XCDR (o), -1))
+	      && RANGED_FIXNUMP (X_LONG_MIN >> 16, XCAR (o), X_LONG_MAX >> 16)
+	      && RANGED_FIXNUMP (- (1 << 15), XCDR (o), -1))
             {
 	      /* cons_to_x_long does not handle negative values for v2.
                  For XDnd, v2 might be y of a window, and can be negative.
                  The XDnd spec. is not explicit about negative values,
                  but let's assume negative v2 is sent modulo 2**16.  */
-	      unsigned long v1 = XINT (XCAR (o)) & 0xffff;
-	      unsigned long v2 = XINT (XCDR (o)) & 0xffff;
+	      unsigned long v1 = XFIXNUM (XCAR (o)) & 0xffff;
+	      unsigned long v2 = XFIXNUM (XCDR (o)) & 0xffff;
 	      val = (v1 << 16) | v2;
             }
           else
@@ -2482,11 +2475,11 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
       data = (unsigned char *) idata;
     }
 
-  vec = Fmake_vector (make_number (4), Qnil);
+  vec = make_nil_vector (4);
   ASET (vec, 0, SYMBOL_NAME (x_atom_to_symbol (FRAME_DISPLAY_INFO (f),
 					       event->message_type)));
   ASET (vec, 1, frame);
-  ASET (vec, 2, make_number (event->format));
+  ASET (vec, 2, make_fixnum (event->format));
   ASET (vec, 3, x_property_data_to_lisp (f,
 					 data,
 					 event->message_type,
@@ -2497,8 +2490,8 @@ x_handle_dnd_message (struct frame *f, const XClientMessageEvent *event,
   bufp->kind = DRAG_N_DROP_EVENT;
   bufp->frame_or_window = frame;
   bufp->timestamp = CurrentTime;
-  bufp->x = make_number (x);
-  bufp->y = make_number (y);
+  bufp->x = make_fixnum (x);
+  bufp->y = make_fixnum (y);
   bufp->arg = vec;
   bufp->modifiers = 0;
 
@@ -2555,17 +2548,17 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
   struct frame *f = decode_window_system_frame (from);
   bool to_root;
 
-  CHECK_NUMBER (format);
+  CHECK_FIXNUM (format);
   CHECK_CONS (values);
 
   if (x_check_property_data (values) == -1)
     error ("Bad data in VALUES, must be number, cons or string");
 
-  if (XINT (format) != 8 && XINT (format) != 16 && XINT (format) != 32)
+  if (XFIXNUM (format) != 8 && XFIXNUM (format) != 16 && XFIXNUM (format) != 32)
     error ("FORMAT must be one of 8, 16 or 32");
 
   event.xclient.type = ClientMessage;
-  event.xclient.format = XINT (format);
+  event.xclient.format = XFIXNUM (format);
 
   if (FRAMEP (dest) || NILP (dest))
     {

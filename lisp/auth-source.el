@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -83,7 +83,6 @@
 expiring.  Overrides `password-cache-expiry' through a
 let-binding."
   :version "24.1"
-  :group 'auth-source
   :type '(choice (const :tag "Never" nil)
                  (const :tag "All Day" 86400)
                  (const :tag "2 Hours" 7200)
@@ -139,7 +138,6 @@ let-binding."
                                    (smtp "smtp" "25"))
   "List of authentication protocols and their names"
 
-  :group 'auth-source
   :version "23.2" ;; No Gnus
   :type '(repeat :tag "Authentication Protocols"
                  (cons :tag "Protocol Entry"
@@ -168,9 +166,8 @@ let-binding."
 
 (defcustom auth-source-save-behavior 'ask
   "If set, auth-source will respect it for save behavior."
-  :group 'auth-source
   :version "23.2" ;; No Gnus
-  :type `(choice
+  :type '(choice
           :tag "auth-source new token save behavior"
           (const :tag "Always save" t)
           (const :tag "Never save" nil)
@@ -183,7 +180,6 @@ let-binding."
   "Set this to tell auth-source when to create GPG password
 tokens in netrc files.  It's either an alist or `never'.
 Note that if EPA/EPG is not available, this should NOT be used."
-  :group 'auth-source
   :version "23.2" ;; No Gnus
   :type `(choice
           (const :tag "Always use GPG password tokens" (t gpg))
@@ -203,9 +199,8 @@ Note that if EPA/EPG is not available, this should NOT be used."
 
 (defcustom auth-source-do-cache t
   "Whether auth-source should cache information with `password-cache'."
-  :group 'auth-source
   :version "23.2" ;; No Gnus
-  :type `boolean)
+  :type 'boolean)
 
 (defcustom auth-source-debug nil
   "Whether auth-source should log debug messages.
@@ -218,9 +213,8 @@ for passwords).
 
 If the value is a function, debug messages are logged by calling
  that function using the same arguments as `message'."
-  :group 'auth-source
   :version "23.2" ;; No Gnus
-  :type `(choice
+  :type '(choice
           :tag "auth-source debugging mode"
           (const :tag "Log using `message' to the *Messages* buffer" t)
           (const :tag "Log all trivia with `message' to the *Messages* buffer"
@@ -241,8 +235,7 @@ for details.
 
 It's best to customize this with `\\[customize-variable]' because the choices
 can get pretty complex."
-  :group 'auth-source
-  :version "24.1" ;; No Gnus
+  :version "26.1" ; neither new nor changed default
   :type `(repeat :tag "Authentication Sources"
                  (choice
                   (string :tag "Just a file")
@@ -305,12 +298,12 @@ can get pretty complex."
                                                :tag "Personality/Username"
                                                (const :tag "Any" t)
                                                (string
-                                                :tag "Name")))))))))
+                                                :tag "Name"))))))
+                  (sexp :tag "A data structure (external provider)"))))
 
 (defcustom auth-source-gpg-encrypt-to t
   "List of recipient keys that `authinfo.gpg' encrypted to.
 If the value is not a list, symmetric encryption will be used."
-  :group 'auth-source
   :version "24.1" ;; No Gnus
   :type '(choice (const :tag "Symmetric encryption" t)
                  (repeat :tag "Recipient public keys"
@@ -362,10 +355,9 @@ soon as a function returns non-nil.")
 (defun auth-source-backend-parse (entry)
   "Create an auth-source-backend from an ENTRY in `auth-sources'."
 
-  (let (backend)
-    (cl-dolist (f auth-source-backend-parser-functions)
-      (when (setq backend (funcall f entry))
-        (cl-return)))
+  (let ((backend
+         (run-hook-with-args-until-success 'auth-source-backend-parser-functions
+                                           entry)))
 
     (unless backend
       ;; none of the parsers worked
@@ -415,7 +407,7 @@ soon as a function returns non-nil.")
          :create-function #'auth-source-netrc-create))))))
 
 ;; Note this function should be last in the parser functions, so we add it first
-(add-hook 'auth-source-backend-parser-functions 'auth-source-backends-parser-file)
+(add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-file)
 
 (defun auth-source-backends-parser-macos-keychain (entry)
   ;; take macos-keychain-{internet,generic}:XYZ and use it as macOS
@@ -462,7 +454,7 @@ soon as a function returns non-nil.")
        :search-function #'auth-source-macos-keychain-search
        :create-function #'auth-source-macos-keychain-create)))))
 
-(add-hook 'auth-source-backend-parser-functions 'auth-source-backends-parser-macos-keychain)
+(add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-macos-keychain)
 
 (defun auth-source-backends-parser-secrets (entry)
   ;; take secrets:XYZ and use it as Secrets API collection "XYZ"
@@ -509,7 +501,7 @@ soon as a function returns non-nil.")
          :source ""
          :type 'ignore))))))
 
-(add-hook 'auth-source-backend-parser-functions 'auth-source-backends-parser-secrets)
+(add-hook 'auth-source-backend-parser-functions #'auth-source-backends-parser-secrets)
 
 (defun auth-source-backend-parse-parameters (entry backend)
   "Fills in the extra auth-source-backend parameters of ENTRY.
@@ -527,7 +519,7 @@ parameters."
       (oset backend port val)))
   backend)
 
-;; (mapcar 'auth-source-backend-parse auth-sources)
+;; (mapcar #'auth-source-backend-parse auth-sources)
 
 (cl-defun auth-source-search (&rest spec
                               &key max require create delete
@@ -778,7 +770,7 @@ Calls `auth-source-search' with the :delete property in SPEC set to t.
 The backend may not actually delete the entries.
 
 Returns the deleted entries."
-  (auth-source-search (plist-put spec :delete t)))
+  (apply #'auth-source-search (plist-put spec :delete t)))
 
 (defun auth-source-search-collection (collection value)
   "Returns t is VALUE is t or COLLECTION is t or COLLECTION contains VALUE."
@@ -955,7 +947,8 @@ Note that the MAX parameter is used so we can exit the parse early."
 
           (if (and (functionp cached-secrets)
                    (equal cached-mtime
-                          (nth 5 (file-attributes file))))
+                          (file-attribute-modification-time
+                           (file-attributes file))))
               (progn
                 (auth-source-do-trivia
                  "auth-source-netrc-parse: using CACHED file data for %s"
@@ -967,7 +960,8 @@ Note that the MAX parameter is used so we can exit the parse early."
             ;; (note for the irony-impaired: they are just obfuscated)
             (auth-source--aput
              auth-source-netrc-cache file
-             (list :mtime (nth 5 (file-attributes file))
+             (list :mtime (file-attribute-modification-time
+                           (file-attributes file))
                    :secret (let ((v (mapcar #'1+ (buffer-string))))
                              (lambda () (apply #'string (mapcar #'1- v)))))))
           (goto-char (point-min))
@@ -999,12 +993,13 @@ Note that the MAX parameter is used so we can exit the parse early."
 
 (defun auth-source-netrc-parse-next-interesting ()
   "Advance to the next interesting position in the current buffer."
+  (skip-chars-forward "\t ")
   ;; If we're looking at a comment or are at the end of the line, move forward
-  (while (or (looking-at "#")
+  (while (or (eq (char-after) ?#)
              (and (eolp)
                   (not (eobp))))
-    (forward-line 1))
-  (skip-chars-forward "\t "))
+    (forward-line 1)
+    (skip-chars-forward "\t ")))
 
 (defun auth-source-netrc-parse-one ()
   "Read one thing from the current buffer."
@@ -1014,8 +1009,9 @@ Note that the MAX parameter is used so we can exit the parse early."
             (looking-at "\"\\([^\"]*\\)\"")
             (looking-at "\\([^ \t\n]+\\)"))
     (forward-char (length (match-string 0)))
-    (auth-source-netrc-parse-next-interesting)
-    (match-string-no-properties 1)))
+    (prog1
+        (match-string-no-properties 1)
+      (auth-source-netrc-parse-next-interesting))))
 
 ;; with thanks to org-mode
 (defsubst auth-source-current-line (&optional pos)
@@ -1315,9 +1311,7 @@ See `auth-source-search' for details on SPEC."
                                                    (string-match (car item) file))
                                            (setq ret (cdr item))
                                            (setq check nil)))
-                                       ;; FIXME: `ret' unused.
-                                       ;; Should we return it here?
-                                       ))
+                                       ret))
                                     (t 'never)))
                                   (plain (or (eval default) (read-passwd prompt))))
                              ;; ask if we don't know what to do (in which case
@@ -1498,13 +1492,13 @@ Here's an example that looks for the first item in the `Login'
 Secrets collection:
 
  (let ((auth-sources \\='(\"secrets:Login\")))
-    (auth-source-search :max 1)
+    (auth-source-search :max 1))
 
 Here's another that looks for the first item in the `Login'
 Secrets collection whose label contains `gnus':
 
  (let ((auth-sources \\='(\"secrets:Login\")))
-    (auth-source-search :max 1 :label \"gnus\")
+    (auth-source-search :max 1 :label \"gnus\"))
 
 And this one looks for the first item in the `Login' Secrets
 collection that's a Google Chrome entry for the git.gnus.org site
@@ -1514,9 +1508,6 @@ authentication tokens:
     (auth-source-search :max 1 :signon_realm \"https://git.gnus.org/Git\"))
 "
 
-  ;; TODO
-  (cl-assert (not create) nil
-             "The Secrets API auth-source backend doesn't support creation yet")
   ;; TODO
   ;; (secrets-delete-item coll elt)
   (cl-assert (not delete) nil
@@ -1577,12 +1568,204 @@ authentication tokens:
                                           returned-keys))
                            plist))
                         items)))
+    (cond
+     ;; if we need to create an entry AND none were found to match
+     ((and create
+           (not items))
+
+      ;; create based on the spec and record the value
+      (setq items (or
+                   ;; if the user did not want to create the entry
+                   ;; in the file, it will be returned
+                   (apply (slot-value backend 'create-function) spec)
+                   ;; if not, we do the search again without :create
+                   ;; to get the updated data.
+
+                   ;; the result will be returned, even if the search fails
+                   (apply #'auth-source-secrets-search
+                          (plist-put spec :create nil))))))
     items))
 
-(defun auth-source-secrets-create (&rest spec)
-  ;; TODO
-  ;; (apply 'secrets-create-item (auth-get-source entry) name passwd spec)
-  (debug spec))
+(cl-defun auth-source-secrets-create (&rest spec
+                                      &key backend host port create
+                                      &allow-other-keys)
+  (let* ((base-required '(host user port secret label))
+         ;; we know (because of an assertion in auth-source-search) that the
+         ;; :create parameter is either t or a list (which includes nil)
+         (create-extra (if (eq t create) nil create))
+         (current-data (car (auth-source-search :max 1
+                                                :host host
+                                                :port port)))
+         (required (append base-required create-extra))
+         (collection (oref backend source))
+         ;; `args' are the arguments for `secrets-create-item'.
+         args
+         ;; `valist' is an alist
+         valist
+         ;; `artificial' will be returned if no creation is needed
+         artificial)
+
+    ;; only for base required elements (defined as function parameters):
+    ;; fill in the valist with whatever data we may have from the search
+    ;; we complete the first value if it's a list and use the value otherwise
+    (dolist (br base-required)
+      (let ((val (plist-get spec (auth-source--symbol-keyword br))))
+        (when val
+          (let ((br-choice (cond
+                            ;; all-accepting choice (predicate is t)
+                            ((eq t val) nil)
+                            ;; just the value otherwise
+                            (t val))))
+            (when br-choice
+              (auth-source--aput valist br br-choice))))))
+
+    ;; for extra required elements, see if the spec includes a value for them
+    (dolist (er create-extra)
+      (let ((k (auth-source--symbol-keyword er))
+            (keys (cl-loop for i below (length spec) by 2
+                           collect (nth i spec))))
+        (when (memq k keys)
+          (auth-source--aput valist er (plist-get spec k)))))
+
+    ;; for each required element
+    (dolist (r required)
+      (let* ((data (auth-source--aget valist r))
+             ;; take the first element if the data is a list
+             (data (or (auth-source-netrc-element-or-first data)
+                       (plist-get current-data
+                                  (auth-source--symbol-keyword r))))
+             ;; this is the default to be offered
+             (given-default (auth-source--aget
+                             auth-source-creation-defaults r))
+             ;; the default supplementals are simple:
+             ;; for the user, try `given-default' and then (user-login-name);
+             ;; for the label, try `given-default' and then user@host;
+             ;; otherwise take `given-default'
+             (default (cond
+                       ((and (not given-default) (eq r 'user))
+                        (user-login-name))
+                       ((and (not given-default) (eq r 'label))
+                        (format "%s@%s"
+                                (or (auth-source-netrc-element-or-first
+                                     (auth-source--aget valist 'user))
+                                    (plist-get artificial :user))
+                                (or (auth-source-netrc-element-or-first
+                                     (auth-source--aget valist 'host))
+                                    (plist-get artificial :host))))
+                       (t given-default)))
+             (printable-defaults (list
+                                  (cons 'user
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (auth-source--aget valist 'user))
+                                         (plist-get artificial :user)
+                                         "[any user]"))
+                                  (cons 'host
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (auth-source--aget valist 'host))
+                                         (plist-get artificial :host)
+                                         "[any host]"))
+                                  (cons 'port
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (auth-source--aget valist 'port))
+                                         (plist-get artificial :port)
+                                         "[any port]"))
+                                  (cons 'label
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (auth-source--aget valist 'label))
+                                         (plist-get artificial :label)
+                                         "[any label]"))))
+             (prompt (or (auth-source--aget auth-source-creation-prompts r)
+                         (cl-case r
+                           (secret "%p password for %u@%h: ")
+                           (user "%p user name for %h: ")
+                           (host "%p host name for user %u: ")
+                           (port "%p port for %u@%h: ")
+                           (label "Enter label for %u@%h: "))
+                         (format "Enter %s (%%u@%%h:%%p): " r)))
+             (prompt (auth-source-format-prompt
+                      prompt
+                      `((?u ,(auth-source--aget printable-defaults 'user))
+                        (?h ,(auth-source--aget printable-defaults 'host))
+                        (?p ,(auth-source--aget printable-defaults 'port))))))
+
+        ;; Store the data, prompting for the password if needed.
+        (setq data (or data
+                       (if (eq r 'secret)
+                           (or (eval default) (read-passwd prompt))
+                         (if (stringp default)
+                             (read-string (if (string-match ": *\\'" prompt)
+                                              (concat (substring prompt 0 (match-beginning 0))
+                                                      " (default " default "): ")
+                                            (concat prompt "(default " default ") "))
+                                          nil nil default)
+                           (eval default)))))
+
+        (when data
+          (setq artificial (plist-put artificial
+                                      (auth-source--symbol-keyword r)
+                                      (if (eq r 'secret)
+                                          (let ((data data))
+                                            (lambda () data))
+                                        data))))
+
+        ;; When r is not an empty string...
+        (when (and (stringp data)
+                   (< 0 (length data))
+                   (not (member r '(secret label))))
+          ;; append the key (the symbol name of r)
+          ;; and the value in r
+          (setq args (append args (list (auth-source--symbol-keyword r) data))))))
+
+    (plist-put
+     artificial
+     :save-function
+     (let* ((collection collection)
+            (item (plist-get artificial :label))
+            (secret (plist-get artificial :secret))
+            (secret (if (functionp secret) (funcall secret) secret)))
+       (lambda ()
+	 (auth-source-secrets-saver collection item secret args))))
+
+    (list artificial)))
+
+(defun auth-source-secrets-saver (collection item secret args)
+  "Wrapper around `secrets-create-item', prompting along the way.
+Respects `auth-source-save-behavior'."
+  (let ((prompt (format "Save auth info to secrets collection %s? " collection))
+        (done (not (eq auth-source-save-behavior 'ask)))
+        (doit (eq auth-source-save-behavior t))
+        (bufname "*auth-source Help*")
+        k)
+    (while (not done)
+      (setq k (auth-source-read-char-choice prompt '(?y ?n ?N ??)))
+      (cl-case k
+        (?y (setq done t doit t))
+        (?? (save-excursion
+              (with-output-to-temp-buffer bufname
+                (princ
+                 (concat "(y)es, save\n"
+                         "(n)o but use the info\n"
+                         "(N)o and don't ask to save again\n"
+                         "(?) for help as you can see.\n"))
+                ;; Why?  Doesn't with-output-to-temp-buffer already do
+                ;; the exact same thing anyway?  --Stef
+                (set-buffer standard-output)
+                (help-mode))))
+        (?n (setq done t doit nil))
+        (?N (setq done t doit nil)
+            (customize-save-variable 'auth-source-save-behavior nil))
+        (t nil)))
+
+    (when doit
+      (progn
+        (auth-source-do-debug
+         "secrets-create-item: wrote 1 new item to %s" collection)
+        (message "Saved new authentication information to %s" collection)
+	(apply 'secrets-create-item collection item secret args)))))
 
 ;;; Backend specific parsing: Mac OS Keychain (using /usr/bin/security) backend
 
@@ -1984,8 +2167,8 @@ entries for git.gnus.org:
         (plstore-save (oref backend data)))))
 
 ;;; Backend specific parsing: JSON backend
-;;; (auth-source-search :max 1 :machine "imap.gmail.com")
-;;; (auth-source-search :max 1 :host '("my-gmail" "imap.gmail.com") :port '(993 "imaps" "imap" "993" "143") :user nil :require '(:user :secret))
+;; (auth-source-search :max 1 :machine "imap.gmail.com")
+;; (auth-source-search :max 1 :host '("my-gmail" "imap.gmail.com") :port '(993 "imaps" "imap" "993" "143") :user nil :require '(:user :secret))
 
 (defun auth-source-json-check (host user port require item)
   (and item

@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -28,6 +28,7 @@
 ;; (require 'url-util)
 (eval-when-compile (require 'mm-decode))
 ;; (require 'mailcap)
+(eval-when-compile (require 'subr-x))
 ;; The following are autoloaded instead of `require'd to avoid eagerly
 ;; loading all of URL when turning on url-handler-mode in the .emacs.
 (autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
@@ -101,10 +102,7 @@
 
 ;;;###autoload
 (define-minor-mode url-handler-mode
-  "Toggle using `url' library for URL filenames (URL Handler mode).
-With a prefix argument ARG, enable URL Handler mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  "Toggle using `url' library for URL filenames (URL Handler mode)."
   :global t :group 'url
   ;; Remove old entry, if any.
   (setq file-name-handler-alist
@@ -186,6 +184,7 @@ the arguments that would have been passed to OPERATION."
 (put 'file-name-absolute-p 'url-file-handlers (lambda (&rest ignored) t))
 (put 'expand-file-name 'url-file-handlers 'url-handler-expand-file-name)
 (put 'directory-file-name 'url-file-handlers 'url-handler-directory-file-name)
+(put 'file-name-directory 'url-file-handlers 'url-handler-file-name-directory)
 (put 'unhandled-file-name-directory 'url-file-handlers 'url-handler-unhandled-file-name-directory)
 (put 'file-remote-p 'url-file-handlers 'url-handler-file-remote-p)
 ;; (put 'file-name-as-directory 'url-file-handlers 'url-handler-file-name-as-directory)
@@ -230,6 +229,14 @@ the arguments that would have been passed to OPERATION."
       ;; All other URLs are not expected to be directly accessible from
       ;; a local process.
       nil)))
+
+(defun url-handler-file-name-directory (dir)
+  (let ((url (url-generic-parse-url dir)))
+    ;; Do not attempt to handle `file' URLs which are local.
+    (if (and (not (equal (url-type url) "file"))
+	     (string-empty-p (url-filename url)))
+	(url-handler-file-name-directory (concat dir "/"))
+      (url-run-real-handler 'file-name-directory (list dir)))))
 
 (defun url-handler-file-remote-p (filename &optional identification _connected)
   (let ((url (url-generic-parse-url filename)))

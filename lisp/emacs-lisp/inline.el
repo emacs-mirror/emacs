@@ -1,6 +1,6 @@
 ;;; inline.el --- Define functions by their inliner  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -91,9 +91,13 @@
 
 (defmacro inline--leteval (_var-exp &rest _body)
   (declare (indent 1) (debug (sexp &rest body)))
+  ;; BEWARE: if we're here it's presumably via macro-expansion of
+  ;; inline-letevals, so signal the error in terms of the user's code.
   (error "inline-letevals can only be used within define-inline"))
 (defmacro inline--letlisteval (_list &rest _body)
   (declare (indent 1) (debug (sexp &rest body)))
+  ;; BEWARE: if we're here it's presumably via macro-expansion of
+  ;; inline-letevals, so signal the error in terms of the user's code.
   (error "inline-letevals can only be used within define-inline"))
 
 (defmacro inline-letevals (vars &rest body)
@@ -255,7 +259,7 @@ See Info node `(elisp)Defining Functions' for more details."
   `(error ,@args))
 
 (defun inline--warning (&rest _args)
-  `(throw 'inline--just-use
+  '(throw 'inline--just-use
           ;; FIXME: This would inf-loop by calling us right back when
           ;; macroexpand-all recurses to expand inline--form.
           ;; (macroexp--warn-and-return (format ,@args)

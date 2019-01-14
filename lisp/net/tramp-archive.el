@@ -1,6 +1,6 @@
 ;;; tramp-archive.el --- Tramp archive manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -62,6 +62,7 @@
 ;; * ".lzh", ".LZH" - Microsoft Windows compressed LHA archives
 ;; * ".msu", ".MSU" - Microsoft Windows Update packages
 ;; * ".mtree" - BSD mtree format
+;; * ".odb" ".odf" ".odg" ".odp" ".ods" ".odt" - OpenDocument formats
 ;; * ".pax" - Posix archives
 ;; * ".rar" - RAR archives
 ;; * ".rpm" - Red Hat packages
@@ -106,6 +107,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'tramp-gvfs)
 
 (autoload 'dired-uncache "dired")
@@ -115,7 +117,7 @@
 (defvar url-tramp-protocols)
 
 ;; We cannot check `tramp-gvfs-enabled' in loaddefs.el, because this
-;; would load Tramp. So we make a cheaper check.
+;; would load Tramp.  So we make a cheaper check.
 ;;;###autoload
 (defvar tramp-archive-enabled (featurep 'dbusbind)
   "Non-nil when file archive support is available.")
@@ -126,9 +128,9 @@
 ;; <https://github.com/libarchive/libarchive/wiki/LibarchiveFormats>
 ;;;###autoload
 (defconst tramp-archive-suffixes
-  ;; "cab", "lzh" and "zip" are included with lower and upper letters,
-  ;; because Microsoft Windows provides them often with capital
-  ;; letters.
+  ;; "cab", "lzh", "msu" and "zip" are included with lower and upper
+  ;; letters, because Microsoft Windows provides them often with
+  ;; capital letters.
   '("7z" ;; 7-Zip archives.
     "apk" ;; Android package kits.  Not in libarchive testsuite.
     "ar" ;; UNIX archiver formats.
@@ -142,6 +144,7 @@
     "lzh" "LZH" ;; Microsoft Windows compressed LHA archives.
     "msu" "MSU" ;; Microsoft Windows Update packages.  Not in testsuite.
     "mtree" ;; BSD mtree format.
+    "odb" "odf" "odg" "odp" "ods" "odt" ;; OpenDocument formats.  Not in testsuite.
     "pax" ;; Posix archives.
     "rar" ;; RAR archives.
     "rpm" ;; Red Hat packages.
@@ -171,7 +174,7 @@ It must be supported by libarchive(3).")
 ;;;###autoload
 (progn (defmacro tramp-archive-autoload-file-name-regexp ()
   "Regular expression matching archive file names."
-  `(concat
+  '(concat
     "\\`" "\\(" ".+" "\\."
       ;; Default suffixes ...
       (regexp-opt tramp-archive-suffixes)
@@ -217,6 +220,7 @@ It must be supported by libarchive(3).")
      . tramp-handle-directory-files-and-attributes)
     (dired-compress-file . tramp-archive-handle-not-implemented)
     (dired-uncache . tramp-archive-handle-dired-uncache)
+    (exec-path . ignore)
     ;; `expand-file-name' performed by default handler.
     (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
     (file-acl . ignore)
@@ -249,7 +253,6 @@ It must be supported by libarchive(3).")
     (file-truename . tramp-archive-handle-file-truename)
     (file-writable-p . ignore)
     (find-backup-file-name . ignore)
-    ;; `find-file-noselect' performed by default handler.
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-archive-handle-insert-directory)
     (insert-file-contents . tramp-archive-handle-insert-file-contents)
@@ -258,6 +261,7 @@ It must be supported by libarchive(3).")
     (make-directory . tramp-archive-handle-not-implemented)
     (make-directory-internal . tramp-archive-handle-not-implemented)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
+    (make-process . ignore)
     (make-symbolic-link . tramp-archive-handle-not-implemented)
     (process-file . ignore)
     (rename-file . tramp-archive-handle-not-implemented)
@@ -270,6 +274,7 @@ It must be supported by libarchive(3).")
     (start-file-process . tramp-archive-handle-not-implemented)
     ;; `substitute-in-file-name' performed by default handler.
     (temporary-file-directory . tramp-archive-handle-temporary-file-directory)
+    ;; `tramp-set-file-uid-gid' performed by default handler.
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
@@ -299,27 +304,37 @@ pass to the OPERATION."
   "Invoke the file archive related OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let* ((filename (apply 'tramp-archive-file-name-for-operation
-			  operation args))
-	 (archive (tramp-archive-file-name-archive filename)))
-    ;; The file archive could be a directory, see Bug#30293.
-    (if (and archive
-	     (tramp-archive-run-real-handler 'file-directory-p (list archive)))
-	(tramp-archive-run-real-handler operation args)
-      ;; Now run the handler.
-      (unless tramp-archive-enabled
-	(tramp-compat-user-error nil "Package `tramp-archive' not supported"))
-      (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
-	    (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
-	    ;; Set uid and gid.  gvfsd-archive could do it, but it doesn't.
-	    (tramp-unknown-id-integer (user-uid))
-	    (tramp-unknown-id-string (user-login-name))
-	    (fn (assoc operation tramp-archive-file-name-handler-alist)))
-	(when (eq (cdr fn) 'tramp-archive-handle-not-implemented)
-	  (setq args (cons operation args)))
-	(if fn
-	    (save-match-data (apply (cdr fn) args))
-	  (tramp-archive-run-real-handler operation args))))))
+    (if (not tramp-archive-enabled)
+        ;; Unregister `tramp-archive-file-name-handler'.
+        (progn
+          (tramp-register-file-name-handlers)
+          (tramp-archive-run-real-handler operation args))
+
+      (let* ((filename (apply 'tramp-archive-file-name-for-operation
+			      operation args))
+	     (archive (tramp-archive-file-name-archive filename)))
+
+        ;; The file archive could be a directory, see Bug#30293.
+        (if (and archive
+	         (tramp-archive-run-real-handler
+                  'file-directory-p (list archive)))
+            (tramp-archive-run-real-handler operation args)
+          ;; Now run the handler.
+          (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
+	        (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
+	        ;; Set uid and gid.  gvfsd-archive could do it, but it doesn't.
+	        (tramp-unknown-id-integer (user-uid))
+	        (tramp-unknown-id-string (user-login-name))
+	        (fn (assoc operation tramp-archive-file-name-handler-alist)))
+	    (when (eq (cdr fn) 'tramp-archive-handle-not-implemented)
+	      (setq args (cons operation args)))
+	    (if fn
+	        (save-match-data (apply (cdr fn) args))
+	      (tramp-archive-run-real-handler operation args)))))))
+
+;;;###autoload
+(defalias
+  'tramp-archive-autoload-file-name-handler 'tramp-autoload-file-name-handler)
 
 ;;;###autoload
 (progn (defun tramp-register-archive-file-name-handler ()
@@ -327,8 +342,8 @@ pass to the OPERATION."
   (when tramp-archive-enabled
     (add-to-list 'file-name-handler-alist
 	         (cons (tramp-archive-autoload-file-name-regexp)
-		       'tramp-autoload-file-name-handler))
-    (put 'tramp-archive-file-name-handler 'safe-magic t))))
+		       'tramp-archive-autoload-file-name-handler))
+    (put 'tramp-archive-autoload-file-name-handler 'safe-magic t))))
 
 ;;;###autoload
 (progn
@@ -365,6 +380,7 @@ pass to the OPERATION."
 (defun tramp-archive-file-name-p (name)
   "Return t if NAME is a string with archive file name syntax."
   (and (stringp name)
+       ;; We cannot use `string-match-p', the matches are used.
        (string-match tramp-archive-file-name-regexp name)
        t))
 
@@ -395,7 +411,7 @@ hexified archive name as host, and the localname.  The archive
 name is kept in slot `hop'"
   (save-match-data
     (unless (tramp-archive-file-name-p name)
-      (tramp-compat-user-error nil "Not an archive file name: \"%s\"" name))
+      (tramp-user-error nil "Not an archive file name: \"%s\"" name))
     (let* ((localname (tramp-archive-file-name-localname name))
 	   (archive (file-truename (tramp-archive-file-name-archive name)))
 	   (vec (make-tramp-file-name
@@ -417,8 +433,9 @@ name is kept in slot `hop'"
        ;; http://...
        ((and url-handler-mode
 	     tramp-compat-use-url-tramp-p
-             (string-match url-handler-regexp archive)
-	     (string-match "https?" (url-type (url-generic-parse-url archive))))
+             (string-match-p url-handler-regexp archive)
+	     (string-match-p
+	      "https?" (url-type (url-generic-parse-url archive))))
 	(let* ((url-tramp-protocols
 		(cons
 		 (url-type (url-generic-parse-url archive))

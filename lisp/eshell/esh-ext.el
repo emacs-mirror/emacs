@@ -1,6 +1,6 @@
 ;;; esh-ext.el --- commands external to Eshell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -222,7 +222,7 @@ causing the user to wonder if anything's really going on..."
 
 (defun eshell-external-command (command args)
   "Insert output from an external COMMAND, using ARGS."
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
+  (setq args (eshell-stringify-list (flatten-tree args)))
   (let ((interp (eshell-find-interpreter
 		 command
 		 args
@@ -259,6 +259,7 @@ Adds the given PATH to $PATH.")
        (eshell-printn dir)))))
 
 (put 'eshell/addpath 'eshell-no-numeric-conversions t)
+(put 'eshell/addpath 'eshell-filename-arguments t)
 
 (defun eshell-script-interpreter (file)
   "Extract the script to run from FILE, if it has #!<interp> in it.

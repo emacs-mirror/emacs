@@ -10,7 +10,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -330,7 +330,7 @@ List subprocesses of the Emacs process, if any, using the function
 @item kill
 @cmindex kill
 Kill processes.  Takes a PID or a process object and an optional
-signal specifier.
+signal specifier which can either be a number or a signal name.
 
 @item listify
 @cmindex listify
@@ -346,8 +346,9 @@ Alias to Emacs's @code{locate} function, which simply runs the external
 
 @item make
 @cmindex make
-Run @command{make} through @code{compile}.
-@xref{Compilation, , , emacs, The GNU Emacs Manual}.
+Run @command{make} through @code{compile} when run asynchronously
+(e.g., @samp{make &}).  @xref{Compilation, , , emacs, The GNU Emacs
+Manual}.  Otherwise call the external @command{make} command.
 
 @item occur
 @cmindex occur
@@ -850,7 +851,7 @@ since.
 
 Make it so that the Lisp command on the right of the pipe is repeatedly
 called with the input strings as arguments.  This will require changing
-@code{eshell-do-pipeline} to handle non-process targets.
+@code{eshell-do-pipelines} to handle non-process targets.
 
 @item Input redirection is not supported
 
@@ -1204,7 +1205,7 @@ perform this on-thy-fly rewriting.
 
 @item Write an alias for @command{less} that brings up a @code{view-mode} buffer
 
-Such that the user can press @key{SPC} and @key{DEL}, and then @key{q}
+Such that the user can press @key{SPC} and @key{DEL}, and then @kbd{q}
 to return to Eshell.  It would be equivalent to:
 @samp{X > #<buffer Y>; view-buffer #<buffer Y>}.
 

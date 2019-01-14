@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1995-1996, 1998, 2001-2018 Free Software
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
@@ -76,6 +76,8 @@ a DOCTYPE or an XML declaration."
   :version "22.1"
   :group 'sgml)
 
+(defvaralias 'sgml-transformation 'sgml-transformation-function)
+
 (defcustom sgml-transformation-function 'identity
   "Default value for `skeleton-transformation-function' in SGML mode."
   :type 'function
@@ -92,7 +94,6 @@ a DOCTYPE or an XML declaration."
 
 (put 'sgml-transformation-function 'variable-interactive
      "aTransformation function: ")
-(defvaralias 'sgml-transformation 'sgml-transformation-function)
 
 (defcustom sgml-mode-hook nil
   "Hook run by command `sgml-mode'.
@@ -618,7 +619,7 @@ Behaves electrically if `sgml-quick-keys' is non-nil."
     (delete-char -1)
     (sgml-close-tag))
    (t
-    (sgml-slash-matching arg))))
+    (insert-char ?/ arg))))
 
 (defun sgml-slash-matching (arg)
   "Insert `/' and display any previous matching `/'.
@@ -940,9 +941,6 @@ Return non-nil if we skipped over matched tags."
 
 (define-minor-mode sgml-electric-tag-pair-mode
   "Toggle SGML Electric Tag Pair mode.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
 
 SGML Electric Tag Pair mode is a buffer-local minor mode for use
 with `sgml-mode' and related major modes.  When enabled, editing
@@ -1241,8 +1239,11 @@ See `sgml-tag-alist' for info about attribute rules."
 
 (defun sgml-quote (start end &optional unquotep)
   "Quote SGML text in region START ... END.
-Only &, < and > are quoted, the rest is left untouched.
-With prefix argument UNQUOTEP, unquote the region."
+Only &, <, >, ' and \" characters are quoted, the rest is left
+untouched.  This is sufficient to use quoted text as SGML argument.
+
+With prefix argument UNQUOTEP, unquote the region.  All numeric entities,
+\"amp\", \"lt\", \"gt\" and \"quot\" named entities are unquoted."
   (interactive "r\nP")
   (save-restriction
     (narrow-to-region start end)
@@ -1250,14 +1251,23 @@ With prefix argument UNQUOTEP, unquote the region."
     (if unquotep
 	;; FIXME: We should unquote other named character references as well.
 	(while (re-search-forward
-		"\\(&\\(amp\\|\\(l\\|\\(g\\)\\)t\\)\\)[][<>&;\n\t \"%!'(),/=?]"
+		"\\(&\\(amp\\|quot\\|lt\\|gt\\|#\\([0-9]+\\|[xX][0-9a-fA-F]+\\)\\)\\)\\([][<>&;\n\t \"%!'(),/=?]\\|$\\)"
 		nil t)
-	  (replace-match (if (match-end 4) ">" (if (match-end 3) "<" "&")) t t
-			 nil (if (eq (char-before (match-end 0)) ?\;) 0 1)))
-      (while (re-search-forward "[&<>]" nil t)
+          (replace-match
+           (string
+            (or (cdr (assq (char-after (match-beginning 2))
+                           '((?a . ?&) (?q . ?\") (?l . ?<) (?g . ?>))))
+                (let ((num (match-string 3)))
+                  (if (or (eq ?x (aref num 0)) (eq ?X (aref num 0)))
+                      (string-to-number (substring num 1) 16)
+                    (string-to-number num 10)))))
+           t t nil (if (eq (char-before (match-end 0)) ?\;) 0 1)))
+      (while (re-search-forward "[&<>\"']" nil t)
 	(replace-match (cdr (assq (char-before) '((?& . "&amp;")
 						  (?< . "&lt;")
-						  (?> . "&gt;"))))
+						  (?> . "&gt;")
+                                                  (?\" . "&#34;")
+                                                  (?' . "&#39;"))))
 		       t t)))))
 
 (defun sgml-pretty-print (beg end)
@@ -1514,12 +1524,12 @@ Depending on context, inserts a matching close-tag, or closes
 the current start-tag or the current comment or the current cdata, ..."
   (interactive)
   (pcase (car (sgml-lexical-context))
-    (`comment 	(insert " -->"))
-    (`cdata 	(insert "]]>"))
-    (`pi 	(insert " ?>"))
-    (`jsp 	(insert " %>"))
-    (`tag 	(insert " />"))
-    (`text
+    ('comment 	(insert " -->"))
+    ('cdata 	(insert "]]>"))
+    ('pi 	(insert " ?>"))
+    ('jsp 	(insert " %>"))
+    ('tag 	(insert " />"))
+    ('text
      (let ((context (save-excursion (sgml-get-context))))
        (if context
            (progn
@@ -1552,7 +1562,7 @@ LCON is the lexical context, if any."
 
   (pcase (car lcon)
 
-    (`string
+    ('string
      ;; Go back to previous non-empty line.
      (while (and (> (point) (cdr lcon))
 		 (zerop (forward-line -1))
@@ -1563,7 +1573,7 @@ LCON is the lexical context, if any."
        (goto-char (cdr lcon))
        (1+ (current-column))))
 
-    (`comment
+    ('comment
      (let ((mark (looking-at "--")))
        ;; Go back to previous non-empty line.
        (while (and (> (point) (cdr lcon))
@@ -1582,11 +1592,11 @@ LCON is the lexical context, if any."
        (current-column)))
 
     ;; We don't know how to indent it.  Let's be honest about it.
-    (`cdata nil)
+    ('cdata nil)
     ;; We don't know how to indent it.  Let's be honest about it.
-    (`pi nil)
+    ('pi nil)
 
-    (`tag
+    ('tag
      (goto-char (+ (cdr lcon) sgml-attribute-offset))
      (skip-chars-forward "^ \t\n")	;Skip tag name.
      (skip-chars-forward " \t")
@@ -1596,7 +1606,7 @@ LCON is the lexical context, if any."
        (goto-char (+ (cdr lcon) sgml-attribute-offset))
        (+ (current-column) sgml-basic-offset)))
 
-    (`text
+    ('text
      (while (looking-at "</")
        (sgml-forward-sexp 1)
        (skip-chars-forward " \t"))
@@ -2366,9 +2376,6 @@ The third `match-string' will be the used in the menu.")
 
 (define-minor-mode html-autoview-mode
   "Toggle viewing of HTML files on save (HTML Autoview mode).
-With a prefix argument ARG, enable HTML Autoview mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 HTML Autoview mode is a buffer-local minor mode for use with
 `html-mode'.  If enabled, saving the file automatically runs

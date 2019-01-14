@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support
 
-;; Copyright (C) 1993-1995, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware
@@ -133,9 +133,6 @@ Setting the variable with a customization buffer also takes effect."
 
 (define-minor-mode scroll-bar-mode
   "Toggle vertical scroll bars on all frames (Scroll Bar mode).
-With a prefix argument ARG, enable Scroll Bar mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 This command applies to all frames that exist and frames to be
 created in the future."
@@ -152,9 +149,6 @@ created in the future."
 
 (define-minor-mode horizontal-scroll-bar-mode
   "Toggle horizontal scroll bars on all frames (Horizontal Scroll Bar mode).
-With a prefix argument ARG, enable Horizontal Scroll Bar mode if
-ARG is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 This command applies to all frames that exist and frames to be
 created in the future."
@@ -260,14 +254,22 @@ EVENT should be a scroll bar click or drag event."
   (let* ((start-position (event-start event))
 	 (window (nth 0 start-position))
 	 (portion-whole (nth 2 start-position)))
-    (save-excursion
-      (with-current-buffer (window-buffer window)
-	;; Calculate position relative to the accessible part of the buffer.
-	(goto-char (+ (point-min)
-		      (scroll-bar-scale portion-whole
-					(- (point-max) (point-min)))))
-	(vertical-motion 0 window)
-	(set-window-start window (point))))))
+    ;; With 'scroll-bar-adjust-thumb-portion' nil and 'portion-whole'
+    ;; indicating that the buffer is fully visible, do not scroll the
+    ;; window since that might make it impossible to scroll it back
+    ;; with GTK's thumb (Bug#32002).
+    (when (or scroll-bar-adjust-thumb-portion
+              (not (numberp (car portion-whole)))
+              (not (numberp (cdr portion-whole)))
+              (/= (car portion-whole) (cdr portion-whole)))
+      (save-excursion
+        (with-current-buffer (window-buffer window)
+	  ;; Calculate position relative to the accessible part of the buffer.
+	  (goto-char (+ (point-min)
+		        (scroll-bar-scale portion-whole
+					  (- (point-max) (point-min)))))
+	  (vertical-motion 0 window)
+	  (set-window-start window (point)))))))
 
 (defun scroll-bar-drag (event)
   "Scroll the window by dragging the scroll bar slider.

@@ -1,5 +1,5 @@
 ;;; org-crypt.el --- Public Key Encryption for Org Entries -*- lexical-binding: t; -*-
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-crypt.el

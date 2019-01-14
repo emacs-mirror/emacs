@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Positions
 @chapter Positions
@@ -210,7 +210,7 @@ by the current buffer's syntax table (@pxref{Syntax Class Table}), but
 modes can override that by setting up a suitable
 @code{find-word-boundary-function-table}, described below.  Characters
 that belong to different scripts (as defined by
-@code{char-syntax-table}), also define a word boundary
+@code{char-script-table}), also define a word boundary
 (@pxref{Character Properties}).  In any case, this function cannot
 move point past the boundary of the accessible portion of the buffer,
 or across a field boundary (@pxref{Fields}).  The most common case of
@@ -569,9 +569,9 @@ The optional argument @var{cur-col} specifies the current column when
 the function is called.  This is the window-relative horizontal
 coordinate of point, measured in units of font width of the frame's
 default face.  Providing it speeds up the function, especially in very
-long lines, because it doesn't have to go back in the buffer in order
-to determine the current column.  Note that @var{cur-col} is also
-counted from the visual start of the line.
+long lines, because the function doesn't have to go back in the buffer
+in order to determine the current column.  Note that @var{cur-col} is
+also counted from the visual start of the line.
 @end defun
 
 @defun count-screen-lines &optional beg end count-final-newline window

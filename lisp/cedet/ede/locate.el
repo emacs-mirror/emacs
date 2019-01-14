@@ -1,6 +1,6 @@
 ;;; ede/locate.el --- Locate support
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -246,7 +246,7 @@ variable `cedet-global-command'.")
 
 (cl-defmethod ede-locate-file-in-project-impl ((loc ede-locate-global)
                                                filesubstring)
-  "Locate occurrences of FILESUBSTRING in LOC, using Gnu Global."
+  "Locate occurrences of FILESUBSTRING in LOC, using GNU Global."
   (require 'cedet-global)
   (let ((default-directory (oref loc root)))
     (cedet-gnu-global-expand-filename filesubstring)))

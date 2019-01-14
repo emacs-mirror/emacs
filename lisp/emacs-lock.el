@@ -1,6 +1,6 @@
 ;;; emacs-lock.el --- protect buffers against killing or exiting -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;; Inspired by emacs-lock.el by Tom Wurgler <twurgler@goodyear.com>
@@ -88,13 +88,19 @@ The functions get one argument, the first locked buffer found."
   :group 'emacs-lock
   :version "24.3")
 
+(define-obsolete-variable-alias 'emacs-lock-from-exiting
+  'emacs-lock-mode "24.1")
+
 (defvar-local emacs-lock-mode nil
   "If non-nil, the current buffer is locked.
 It can be one of the following values:
  exit   -- Emacs cannot exit while the buffer is locked
  kill   -- the buffer cannot be killed, but Emacs can exit as usual
  all    -- the buffer is locked against both actions
- nil    -- the buffer is not locked")
+ nil    -- the buffer is not locked
+
+See also `emacs-lock-unlockable-modes', which exempts buffers under
+some major modes from being locked under some circumstances.")
 (put 'emacs-lock-mode 'permanent-local t)
 
 (defvar-local emacs-lock--old-mode nil
@@ -182,16 +188,11 @@ Return a value appropriate for `kill-buffer-query-functions' (which see)."
                ;; anything else (turn off)
                mode))))
 
-(define-obsolete-variable-alias 'emacs-lock-from-exiting
-  'emacs-lock-mode "24.1")
-
 ;;;###autoload
 (define-minor-mode emacs-lock-mode
   "Toggle Emacs Lock mode in the current buffer.
 If called with a plain prefix argument, ask for the locking mode
-to be used.  With any other prefix ARG, turn mode on if ARG is
-positive, off otherwise.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+to be used.
 
 Initially, if the user does not pass an explicit locking mode, it
 defaults to `emacs-lock-default-locking-mode' (which see);
@@ -204,7 +205,10 @@ When called from Elisp code, ARG can be any locking mode:
  kill   -- the buffer cannot be killed, but Emacs can exit as usual
  all    -- the buffer is locked against both actions
 
-Other values are interpreted as usual."
+Other values are interpreted as usual.
+
+See also `emacs-lock-unlockable-modes', which exempts buffers under
+some major modes from being locked under some circumstances."
   :init-value nil
   :lighter (""
             (emacs-lock--try-unlocking " locked:" " Locked:")

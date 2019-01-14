@@ -1,6 +1,6 @@
 ;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tsdh@gnu.org>
 ;; Maintainer: Tassilo Horn <tsdh@gnu.org>
@@ -39,7 +39,7 @@
 ;;
 ;;     C-x C-f ~/path/to/document RET
 ;;
-;; and the document will be converted and displayed, if your emacs supports png
+;; and the document will be converted and displayed, if your emacs supports PNG
 ;; images.  With `C-c C-c' you can toggle between the rendered images
 ;; representation and the source text representation of the document.
 ;;
@@ -50,7 +50,7 @@
 ;; `doc-view-clear-cache'.  To open the cache with dired, so that you can tidy
 ;; it out use `doc-view-dired-cache'.
 ;;
-;; When conversion in underway the first page will be displayed as soon as it
+;; When conversion is underway the first page will be displayed as soon as it
 ;; is available and the available pages are refreshed every
 ;; `doc-view-conversion-refresh-interval' seconds.  If that variable is nil the
 ;; pages won't be displayed before conversion of the document finished
@@ -354,9 +354,6 @@ of the page moves to the previous page."
 (defvar doc-view--pending-cache-flush nil
   "Only used internally.")
 
-(defvar doc-view--previous-major-mode nil
-  "Only used internally.")
-
 (defvar doc-view--buffer-file-name nil
   "Only used internally.
 The file name used for conversion.  Normally it's the same as
@@ -455,7 +452,7 @@ Typically \"page-%s.png\".")
         ;; file.  (TODO: We'd like to have something like that also
         ;; for other types, at least PS, but I don't know a good way
         ;; to test if a PS file is complete.)
-        (if (= 0 (call-process (executable-find "pdfinfo") nil nil nil
+        (if (= 0 (call-process "pdfinfo" nil nil nil
                                doc-view--buffer-file-name))
             (revert)
           (when (called-interactively-p 'interactive)
@@ -497,10 +494,10 @@ Typically \"page-%s.png\".")
 
 (defmacro doc-view-current-page (&optional win)
   `(image-mode-window-get 'page ,win))
-(defmacro doc-view-current-info () `(image-mode-window-get 'info))
-(defmacro doc-view-current-overlay () `(image-mode-window-get 'overlay))
-(defmacro doc-view-current-image () `(image-mode-window-get 'image))
-(defmacro doc-view-current-slice () `(image-mode-window-get 'slice))
+(defmacro doc-view-current-info () '(image-mode-window-get 'info))
+(defmacro doc-view-current-overlay () '(image-mode-window-get 'overlay))
+(defmacro doc-view-current-image () '(image-mode-window-get 'image))
+(defmacro doc-view-current-slice () '(image-mode-window-get 'slice))
 
 (defun doc-view-last-page-number ()
   (length doc-view--current-files))
@@ -1007,8 +1004,8 @@ is named like ODF with the extension turned to pdf."
   "Convert PDF-PS to PNG asynchronously."
   (funcall
    (pcase doc-view-doc-type
-     (`pdf doc-view-pdf->png-converter-function)
-     (`djvu #'doc-view-djvu->tiff-converter-ddjvu)
+     ('pdf doc-view-pdf->png-converter-function)
+     ('djvu #'doc-view-djvu->tiff-converter-ddjvu)
      (_ #'doc-view-ps->png-converter-ghostscript))
    pdf-ps png nil
    (let ((resolution doc-view-resolution))
@@ -1077,20 +1074,20 @@ Start by converting PAGES, and then the rest."
   "Convert the current document to text and call CALLBACK when done."
   (make-directory (doc-view--current-cache-dir) t)
   (pcase doc-view-doc-type
-    (`pdf
+    ('pdf
      ;; Doc is a PDF, so convert it to TXT
      (doc-view-pdf->txt doc-view--buffer-file-name txt callback))
-    (`ps
+    ('ps
      ;; Doc is a PS, so convert it to PDF (which will be converted to
      ;; TXT thereafter).
      (let ((pdf (doc-view-current-cache-doc-pdf)))
        (doc-view-ps->pdf doc-view--buffer-file-name pdf
                          (lambda () (doc-view-pdf->txt pdf txt callback)))))
-    (`dvi
+    ('dvi
      ;; Doc is a DVI.  This means that a doc.pdf already exists in its
      ;; cache subdirectory.
      (doc-view-pdf->txt (doc-view-current-cache-doc-pdf) txt callback))
-    (`odf
+    ('odf
      ;; Doc is some ODF (or MS Office) doc.  This means that a doc.pdf
      ;; already exists in its cache subdirectory.
      (doc-view-pdf->txt (doc-view-current-cache-doc-pdf) txt callback))
@@ -1131,13 +1128,13 @@ Those files are saved in the directory given by the function
                    (doc-view--current-cache-dir))))
     (make-directory (doc-view--current-cache-dir) t)
     (pcase doc-view-doc-type
-      (`dvi
+      ('dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
        ;; it.
        (let ((pdf (doc-view-current-cache-doc-pdf)))
          (doc-view-dvi->pdf doc-view--buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
-      (`odf
+      ('odf
        ;; ODF files have to be converted to PDF before Ghostscript can
        ;; process it.
        (let ((pdf (doc-view-current-cache-doc-pdf))
@@ -1150,11 +1147,11 @@ Those files are saved in the directory given by the function
 	 ;; file name.  It's named like the input file with the
 	 ;; extension replaced by pdf.
          (funcall doc-view-odf->pdf-converter-function doc-view--buffer-file-name
-                            (lambda ()
-			      ;; Rename to doc.pdf
-			      (rename-file opdf pdf)
-			      (doc-view-pdf/ps->png pdf png-file)))))
-      ((or `pdf `djvu)
+                  (lambda ()
+		    ;; Rename to doc.pdf
+		    (rename-file opdf pdf)
+		    (doc-view-pdf/ps->png pdf png-file)))))
+      ((or 'pdf 'djvu)
        (let ((pages (doc-view-active-pages)))
          ;; Convert doc to bitmap images starting with the active pages.
          (doc-view-document->bitmap doc-view--buffer-file-name png-file pages)))
@@ -1698,7 +1695,7 @@ If BACKWARD is non-nil, jump to the previous match."
   "Find the right single-page converter for the current document type"
   (pcase-let ((`(,conv-function ,type ,extension)
                (pcase doc-view-doc-type
-                 (`djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
+                 ('djvu (list #'doc-view-djvu->tiff-converter-ddjvu 'tiff "tif"))
                  (_     (list doc-view-pdf->png-converter-function  'png  "png")))))
     (setq-local doc-view-single-page-converter-function conv-function)
     (setq-local doc-view--image-type type)
@@ -1752,12 +1749,7 @@ toggle between displaying the document or editing it as text.
       ;; returns nil for tar members.
       (doc-view-fallback-mode)
 
-    (let* ((prev-major-mode (if (derived-mode-p 'doc-view-mode)
-				doc-view--previous-major-mode
-			      (unless (eq major-mode 'fundamental-mode)
-				major-mode))))
-      (kill-all-local-variables)
-      (setq-local doc-view--previous-major-mode prev-major-mode))
+    (major-mode-suspend)
 
     (dolist (var doc-view-saved-settings)
       (set (make-local-variable (car var)) (cdr var)))
@@ -1772,27 +1764,28 @@ toggle between displaying the document or editing it as text.
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
     (setq-local doc-view--buffer-file-name
-                (cond
-                 (jka-compr-really-do-compress
-                  ;; FIXME: there's a risk of name conflicts here.
-                  (expand-file-name
-                   (file-name-nondirectory
-                    (file-name-sans-extension buffer-file-name))
-                   doc-view-cache-directory))
-                 ;; Is the file readable by local processes?
-                 ;; We used to use `file-remote-p' but it's unclear what it's
-                 ;; supposed to return nil for things like local files accessed
-                 ;; via `su' or via file://...
-                 ((let ((file-name-handler-alist nil))
-                    (not (and buffer-file-name
-                              (file-readable-p buffer-file-name))))
-                  ;; FIXME: there's a risk of name conflicts here.
-                  (expand-file-name
-                   (if buffer-file-name
-                       (file-name-nondirectory buffer-file-name)
-                     (buffer-name))
-                   doc-view-cache-directory))
-                 (t buffer-file-name)))
+		(convert-standard-filename
+                 (cond
+                  (jka-compr-really-do-compress
+                   ;; FIXME: there's a risk of name conflicts here.
+                   (expand-file-name
+                    (file-name-nondirectory
+                     (file-name-sans-extension buffer-file-name))
+                    doc-view-cache-directory))
+                  ;; Is the file readable by local processes?
+                  ;; We used to use `file-remote-p' but it's unclear what it's
+                  ;; supposed to return nil for things like local files accessed
+                  ;; via `su' or via file://...
+                  ((let ((file-name-handler-alist nil))
+                     (not (and buffer-file-name
+                               (file-readable-p buffer-file-name))))
+                   ;; FIXME: there's a risk of name conflicts here.
+                   (expand-file-name
+                    (if buffer-file-name
+			(file-name-nondirectory buffer-file-name)
+                      (buffer-name))
+                    doc-view-cache-directory))
+                  (t buffer-file-name))))
     (when (not (string= doc-view--buffer-file-name buffer-file-name))
       (write-region nil nil doc-view--buffer-file-name))
 
@@ -1848,14 +1841,7 @@ toggle between displaying the document or editing it as text.
                           '(doc-view-resolution
                             image-mode-winprops-alist)))))
     (remove-overlays (point-min) (point-max) 'doc-view t)
-    (if doc-view--previous-major-mode
-        (funcall doc-view--previous-major-mode)
-      (let ((auto-mode-alist
-             (rassq-delete-all
-              'doc-view-mode-maybe
-              (rassq-delete-all 'doc-view-mode
-                                (copy-alist auto-mode-alist)))))
-        (normal-mode)))
+    (major-mode-restore '(doc-view-mode-maybe doc-view-mode))
     (when vars
       (setq-local doc-view-saved-settings vars))))
 
@@ -1874,9 +1860,6 @@ to the next best mode."
 ;;;###autoload
 (define-minor-mode doc-view-minor-mode
   "Toggle displaying buffer via Doc View (Doc View minor mode).
-With a prefix argument ARG, enable Doc View minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 See the command `doc-view-mode' for more information on this mode."
   nil " DocView" doc-view-minor-mode-map

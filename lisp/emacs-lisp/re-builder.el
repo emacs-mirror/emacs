@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools

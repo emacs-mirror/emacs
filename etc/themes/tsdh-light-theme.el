@@ -1,6 +1,6 @@
 ;;; tsdh-light-theme.el --- Tassilo's light custom theme
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -105,10 +105,5 @@ Used and created by Tassilo Horn.")
  '(window-number-face ((t (:foreground "red" :weight bold)))))
 
 (provide-theme 'tsdh-light)
-
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; tsdh-light-theme.el ends here

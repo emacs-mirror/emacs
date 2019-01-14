@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 
-@c Copyright (C) 2004-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 @c    Permission is granted to anyone to make or distribute verbatim copies
 @c    of this document as received, in any medium, provided that the

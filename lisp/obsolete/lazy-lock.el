@@ -1,6 +1,6 @@
 ;;; lazy-lock.el --- lazy demand-driven fontification for fast Font Lock mode
 
-;; Copyright (C) 1994-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -267,11 +267,9 @@
 ;;; Code:
 
 (require 'font-lock)
+(eval-when-compile (require 'cl-lib))
 
 (eval-when-compile
- ;; We don't do this at the top-level as we only use non-autoloaded macros.
- (require 'cl)
- ;;
  ;; We use this to preserve or protect things when modifying text properties.
  (defmacro save-buffer-state (varlist &rest body)
    "Bind variables according to VARLIST and eval BODY restoring buffer state."
@@ -977,7 +975,7 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
       (while (setq beg (text-property-any beg (point-max) 'lazy-lock t))
 	(setq next (or (text-property-any beg (point-max) 'lazy-lock nil)
 		       (point-max)))
-	(incf size (- next beg))
+	(cl-incf size (- next beg))
 	(setq beg next))
       ;; Float because using integer multiplication will frequently overflow.
       (truncate (* (/ (float size) (point-max)) 100)))))

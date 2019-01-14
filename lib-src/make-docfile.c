@@ -1,6 +1,6 @@
 /* Generate doc-string file for GNU Emacs from source files.
 
-Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2018 Free Software
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -123,7 +123,7 @@ memory_exhausted (void)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-static void *
+static void * ATTRIBUTE_MALLOC
 xmalloc (ptrdiff_t size)
 {
   void *result = malloc (size);

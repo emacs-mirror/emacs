@@ -1,10 +1,10 @@
 ;;; org-id.el --- Global identifiers for Org entries -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -357,7 +357,7 @@ So a typical ID could look like \"Org:4nd91V40HI\"."
   "Return string with random (version 4) UUID."
   (let ((rnd (md5 (format "%s%s%s%s%s%s%s"
 			  (random)
-			  (current-time)
+			  (encode-time nil 'list)
 			  (user-uid)
 			  (emacs-pid)
 			  (user-full-name)
@@ -416,7 +416,7 @@ The input I may be a character, or a single-letter string."
   "Encode TIME as a 10-digit string.
 This string holds the time to micro-second accuracy, and can be decoded
 using `org-id-decode'."
-  (setq time (or time (current-time)))
+  (setq time (encode-time time 'list))
   (concat (org-id-int-to-b36 (nth 0 time) 4)
 	  (org-id-int-to-b36 (nth 1 time) 4)
 	  (org-id-int-to-b36 (or (nth 2 time) 0) 4)))

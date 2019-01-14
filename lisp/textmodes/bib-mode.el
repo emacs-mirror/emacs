@@ -1,6 +1,6 @@
 ;;; bib-mode.el --- major mode for editing bib files
 
-;; Copyright (C) 1989, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz
 ;; (according to authors.el)

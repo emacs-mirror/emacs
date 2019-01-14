@@ -1,6 +1,6 @@
 ;;; easymenu.el --- support the easymenu interface for defining a menu  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998-2019 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
@@ -226,14 +226,14 @@ possibly preceded by keyword pairs as described in `easy-menu-define'."
       (let ((arg (cadr menu-items)))
         (setq menu-items (cddr menu-items))
         (pcase keyword
-          (`:filter
+          (:filter
            (setq filter (lambda (menu)
                           (easy-menu-filter-return (funcall arg menu)
                                                    menu-name))))
-          ((or `:enable `:active) (setq enable (or arg ''nil)))
-          (`:label (setq label arg))
-          (`:help (setq help arg))
-          ((or `:included `:visible) (setq visible (or arg ''nil))))))
+          ((or :enable :active) (setq enable (or arg ''nil)))
+          (:label (setq label arg))
+          (:help (setq help arg))
+          ((or :included :visible) (setq visible (or arg ''nil))))))
     (if (equal visible ''nil)
 	nil				; Invisible menu entry, return nil.
       (if (and visible (not (easy-menu-always-true-p visible)))
@@ -325,15 +325,15 @@ ITEM defines an item as in `easy-menu-define'."
 		(setq arg (aref item (1+ count)))
 		(setq count (+ 2 count))
 		(pcase keyword
-                  ((or `:included `:visible) (setq visible (or arg ''nil)))
-                  (`:key-sequence (setq cache arg cache-specified t))
-                  (`:keys (setq keys arg no-name nil))
-                  (`:label (setq label arg))
-                  ((or `:active `:enable) (setq active (or arg ''nil)))
-                  (`:help (setq prop (cons :help (cons arg prop))))
-                  (`:suffix (setq suffix arg))
-                  (`:style (setq style arg))
-                  (`:selected (setq selected (or arg ''nil)))))
+                  ((or :included :visible) (setq visible (or arg ''nil)))
+                  (:key-sequence (setq cache arg cache-specified t))
+                  (:keys (setq keys arg no-name nil))
+                  (:label (setq label arg))
+                  ((or :active :enable) (setq active (or arg ''nil)))
+                  (:help (setq prop (cons :help (cons arg prop))))
+                  (:suffix (setq suffix arg))
+                  (:style (setq style arg))
+                  (:selected (setq selected (or arg ''nil)))))
 	      (if suffix
 		  (setq label
 			(if (stringp suffix)

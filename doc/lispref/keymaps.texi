@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Keymaps
 @chapter Keymaps
@@ -1660,7 +1660,7 @@ to turn the character that follows into a Hyper character:
 (defun hyperify (prompt)
   (let ((e (read-event)))
     (vector (if (numberp e)
-                (logior (lsh 1 24) e)
+                (logior (ash 1 24) e)
               (if (memq 'hyper (event-modifiers e))
                   e
                 (add-event-modifier "H-" e))))))
@@ -2443,7 +2443,7 @@ Next we define the menu items:
 
 @smallexample
 (define-key menu-bar-replace-menu [tags-repl-continue]
-  '(menu-item "Continue Replace" tags-loop-continue
+  '(menu-item "Continue Replace" multifile-continue
               :help "Continue last tags replace operation"))
 (define-key menu-bar-replace-menu [tags-repl]
   '(menu-item "Replace in tagged files" tags-query-replace

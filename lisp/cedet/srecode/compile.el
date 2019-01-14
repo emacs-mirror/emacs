@@ -1,6 +1,6 @@
 ;;; srecode/compile --- Compilation of srecode template files.
 
-;; Copyright (C) 2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -31,7 +31,6 @@
 ;; The output are a series of EIEIO objects which represent the
 ;; templates in a way that could be inserted later.
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio)
 (require 'cl-generic)

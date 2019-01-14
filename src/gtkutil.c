@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
 
-Copyright (C) 2003-2018 Free Software Foundation, Inc.
+Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -147,6 +147,8 @@ struct xg_frame_tb_info
   GtkTextDirection dir;
 };
 
+bool xg_gtk_initialized;        /* Used to make sure xwidget calls are possible */
+
 static GtkWidget * xg_get_widget_from_map (ptrdiff_t idx);
 
 
@@ -258,8 +260,8 @@ xg_display_close (Display *dpy)
     }
 
 #if GTK_CHECK_VERSION (2, 0, 0) && ! GTK_CHECK_VERSION (2, 10, 0)
-  /* GTK 2.2-2.8 has a bug that makes gdk_display_close crash (bug
-     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way we
+  /* GTK 2.2-2.8 has a bug that makes gdk_display_close crash
+     <https://gitlab.gnome.org/GNOME/gtk/issues/221>.  This way we
      can continue running, but there will be memory leaks.  */
   g_object_run_dispose (G_OBJECT (gdpy));
 #else
@@ -764,7 +766,7 @@ xg_show_tooltip (struct frame *f, int root_x, int root_y)
       block_input ();
       gtk_window_move (x->ttip_window, root_x / xg_get_scale (f),
 		       root_y / xg_get_scale (f));
-      gtk_widget_show_all (GTK_WIDGET (x->ttip_window));
+      gtk_widget_show (GTK_WIDGET (x->ttip_window));
       unblock_input ();
     }
 #endif
@@ -963,7 +965,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_1, width, height,
-	 list2 (make_number (gheight), make_number (totalheight)));
+	 list2 (make_fixnum (gheight), make_fixnum (totalheight)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 gwidth, totalheight);
@@ -972,7 +974,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_2, width, height,
-	 list2 (make_number (gwidth), make_number (totalwidth)));
+	 list2 (make_fixnum (gwidth), make_fixnum (totalwidth)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, gheight);
@@ -981,7 +983,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_3, width, height,
-	 list2 (make_number (totalwidth), make_number (totalheight)));
+	 list2 (make_fixnum (totalwidth), make_fixnum (totalheight)));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, totalheight);
@@ -1509,6 +1511,7 @@ xg_set_background_color (struct frame *f, unsigned long bg)
       block_input ();
       xg_set_widget_bg (f, FRAME_GTK_WIDGET (f), FRAME_BACKGROUND_PIXEL (f));
 
+#ifdef USE_TOOLKIT_SCROLL_BARS
       Lisp_Object bar;
       for (bar = FRAME_SCROLL_BARS (f);
            !NILP (bar);
@@ -1519,7 +1522,7 @@ xg_set_background_color (struct frame *f, unsigned long bg)
           GtkWidget *webox = gtk_widget_get_parent (scrollbar);
           xg_set_widget_bg (f, webox, FRAME_BACKGROUND_PIXEL (f));
         }
-
+#endif
       unblock_input ();
     }
 }
@@ -1867,7 +1870,7 @@ xg_maybe_add_timer (gpointer data)
   if (timespec_valid_p (next_time))
     {
       time_t s = next_time.tv_sec;
-      int per_ms = TIMESPEC_RESOLUTION / 1000;
+      int per_ms = TIMESPEC_HZ / 1000;
       int ms = (next_time.tv_nsec + per_ms - 1) / per_ms;
       if (s <= ((guint) -1 - ms) / 1000)
 	dd->timerid = g_timeout_add (s * 1000 + ms, xg_maybe_add_timer, dd);
@@ -4279,7 +4282,7 @@ draw_page (GtkPrintOperation *operation, GtkPrintContext *context,
 	   gint page_nr, gpointer user_data)
 {
   Lisp_Object frames = *((Lisp_Object *) user_data);
-  struct frame *f = XFRAME (Fnth (make_number (page_nr), frames));
+  struct frame *f = XFRAME (Fnth (make_fixnum (page_nr), frames));
   cairo_t *cr = gtk_print_context_get_cairo_context (context);
 
   x_cr_draw_frame (cr, f);
@@ -4296,7 +4299,7 @@ xg_print_frames_dialog (Lisp_Object frames)
     gtk_print_operation_set_print_settings (print, print_settings);
   if (page_setup != NULL)
     gtk_print_operation_set_default_page_setup (print, page_setup);
-  gtk_print_operation_set_n_pages (print, XINT (Flength (frames)));
+  gtk_print_operation_set_n_pages (print, list_length (frames));
   g_signal_connect (print, "draw-page", G_CALLBACK (draw_page), &frames);
   res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
                                  NULL, NULL);
@@ -4889,18 +4892,18 @@ update_frame_tool_bar (struct frame *f)
 
   block_input ();
 
-  if (RANGED_INTEGERP (1, Vtool_bar_button_margin, INT_MAX))
+  if (RANGED_FIXNUMP (1, Vtool_bar_button_margin, INT_MAX))
     {
-      hmargin = XFASTINT (Vtool_bar_button_margin);
-      vmargin = XFASTINT (Vtool_bar_button_margin);
+      hmargin = XFIXNAT (Vtool_bar_button_margin);
+      vmargin = XFIXNAT (Vtool_bar_button_margin);
     }
   else if (CONSP (Vtool_bar_button_margin))
     {
-      if (RANGED_INTEGERP (1, XCAR (Vtool_bar_button_margin), INT_MAX))
-        hmargin = XFASTINT (XCAR (Vtool_bar_button_margin));
+      if (RANGED_FIXNUMP (1, XCAR (Vtool_bar_button_margin), INT_MAX))
+        hmargin = XFIXNAT (XCAR (Vtool_bar_button_margin));
 
-      if (RANGED_INTEGERP (1, XCDR (Vtool_bar_button_margin), INT_MAX))
-        vmargin = XFASTINT (XCDR (Vtool_bar_button_margin));
+      if (RANGED_FIXNUMP (1, XCDR (Vtool_bar_button_margin), INT_MAX))
+        vmargin = XFIXNAT (XCDR (Vtool_bar_button_margin));
     }
 
   /* The natural size (i.e. when GTK uses 0 as margin) looks best,
@@ -5320,6 +5323,8 @@ xg_initialize (void)
 #ifdef HAVE_FREETYPE
   x_last_font_name = NULL;
 #endif
+
+  xg_gtk_initialized = true;
 }
 
 #endif /* USE_GTK */

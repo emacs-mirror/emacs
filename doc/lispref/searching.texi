@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
@@ -1102,6 +1102,8 @@ comes back" twice.
 @end example
 @end deffn
 
+@c This anchor is referenced by re-search-backward's docstring.
+@anchor{re-search-backward}
 @deffn Command re-search-backward regexp &optional limit noerror count
 This function searches backward in the current buffer for a string of
 text that is matched by the regular expression @var{regexp}, leaving
@@ -1751,13 +1753,14 @@ of matching @var{regexp} against a substring of @var{string}.
   If you want to write a command along the lines of @code{query-replace},
 you can use @code{perform-replace} to do the work.
 
-@defun perform-replace from-string replacements query-flag regexp-flag delimited-flag &optional repeat-count map start end
+@defun perform-replace from-string replacements query-flag regexp-flag delimited-flag &optional repeat-count map start end backward region-noncontiguous-p
 This function is the guts of @code{query-replace} and related
 commands.  It searches for occurrences of @var{from-string} in the
 text between positions @var{start} and @var{end} and replaces some or
 all of them.  If @var{start} is @code{nil} (or omitted), point is used
 instead, and the end of the buffer's accessible portion is used for
-@var{end}.
+@var{end}.  (If the optional argument @var{backward} is
+non-@code{nil}, the search starts at @var{end} and goes backward.)
 
 If @var{query-flag} is @code{nil}, it replaces all
 occurrences; otherwise, it asks the user what to do about each one.
@@ -1788,6 +1791,11 @@ Normally, the keymap @code{query-replace-map} defines the possible
 user responses for queries.  The argument @var{map}, if
 non-@code{nil}, specifies a keymap to use instead of
 @code{query-replace-map}.
+
+Non-@code{nil} @var{region-noncontiguous-p} means that the region
+between @var{start} and @var{end} is composed of noncontiguous pieces.
+The most common example of this is a rectangular region, where the
+pieces are separated by newline characters.
 
 This function uses one of two functions to search for the next
 occurrence of @var{from-string}.  These functions are specified by the

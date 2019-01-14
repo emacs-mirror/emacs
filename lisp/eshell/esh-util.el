@@ -1,6 +1,6 @@
 ;;; esh-util.el --- general utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -285,17 +285,9 @@ Prepend remote identification of `default-directory', if any."
 	 ,@forms)
        (setq list-iter (cdr list-iter)))))
 
-(defun eshell-flatten-list (args)
-  "Flatten any lists within ARGS, so that there are no sublists."
-  (let ((new-list (list t)))
-    (dolist (a args)
-      (if (and (listp a)
-	       (listp (cdr a)))
-	  (nconc new-list (eshell-flatten-list a))
-	(nconc new-list (list a))))
-    (cdr new-list)))
+(define-obsolete-function-alias 'eshell-flatten-list #'flatten-tree "27.1")
 
-(defun eshell-uniqify-list (l)
+(defun eshell-uniquify-list (l)
   "Remove occurring multiples in L.  You probably want to sort first."
   (let ((m l))
     (while m
@@ -305,6 +297,9 @@ Prepend remote identification of `default-directory', if any."
 	(setcdr m (cddr m)))
       (setq m (cdr m))))
   l)
+(define-obsolete-function-alias
+  'eshell-uniqify-list
+  'eshell-uniquify-list "27.1")
 
 (defun eshell-stringify (object)
   "Convert OBJECT into a string value."
@@ -327,7 +322,7 @@ Prepend remote identification of `default-directory', if any."
 
 (defsubst eshell-flatten-and-stringify (&rest args)
   "Flatten and stringify all of the ARGS into a single string."
-  (mapconcat 'eshell-stringify (eshell-flatten-list args) " "))
+  (mapconcat 'eshell-stringify (flatten-tree args) " "))
 
 (defsubst eshell-directory-files (regexp &optional directory)
   "Return a list of files in the given DIRECTORY matching REGEXP."
@@ -444,7 +439,7 @@ list."
 	  (not (symbol-value timestamp-var))
 	  (time-less-p
 	   (symbol-value timestamp-var)
-	   (nth 5 (file-attributes file))))
+	   (file-attribute-modification-time (file-attributes file))))
       (progn
 	(set result-var (eshell-read-passwd-file file))
 	(set timestamp-var (current-time))))
@@ -498,7 +493,7 @@ list."
 	  (not (symbol-value timestamp-var))
 	  (time-less-p
 	   (symbol-value timestamp-var)
-	   (nth 5 (file-attributes file))))
+	   (file-attribute-modification-time (file-attributes file))))
       (progn
 	(set result-var (eshell-read-hosts-file file))
 	(set timestamp-var (current-time))))

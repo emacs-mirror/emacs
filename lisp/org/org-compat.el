@@ -1,10 +1,10 @@
 ;;; org-compat.el --- Compatibility Code for Older Emacsen -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -61,12 +61,6 @@
   (defalias 'format-message 'format)
   (defalias 'gui-get-selection 'x-get-selection))
 
-(defun org-decode-time (&optional time zone)
-  "Backward-compatible function for `decode-time'."
-  (if (< emacs-major-version 25)
-      (decode-time time)
-    (decode-time time zone)))
-
 (unless (fboundp 'directory-name-p)
   (defun directory-name-p (name)
     "Return non-nil if NAME ends with a directory separator character."
@@ -77,37 +71,6 @@
       (or (= lastc ?/)
 	  (and (memq system-type '(windows-nt ms-dos))
 	       (= lastc ?\\))))))
-
-(unless (fboundp 'directory-files-recursively)
-  (defun directory-files-recursively (dir regexp &optional include-directories)
-    "Return list of all files under DIR that have file names matching REGEXP.
-This function works recursively.  Files are returned in \"depth first\"
-order, and files from each directory are sorted in alphabetical order.
-Each file name appears in the returned list in its absolute form.
-Optional argument INCLUDE-DIRECTORIES non-nil means also include in the
-output directories whose names match REGEXP."
-    (let ((result nil)
-	  (files nil)
-	  ;; When DIR is "/", remote file names like "/method:" could
-	  ;; also be offered.  We shall suppress them.
-	  (tramp-mode (and tramp-mode (file-remote-p (expand-file-name dir)))))
-      (dolist (file (sort (file-name-all-completions "" dir)
-			  'string<))
-	(unless (member file '("./" "../"))
-	  (if (directory-name-p file)
-	      (let* ((leaf (substring file 0 (1- (length file))))
-		     (full-file (expand-file-name leaf dir)))
-		;; Don't follow symlinks to other directories.
-		(unless (file-symlink-p full-file)
-		  (setq result
-			(nconc result (directory-files-recursively
-				       full-file regexp include-directories))))
-		(when (and include-directories
-			   (string-match regexp leaf))
-		  (setq result (nconc result (list full-file)))))
-	    (when (string-match regexp file)
-	      (push (expand-file-name file dir) files)))))
-      (nconc result (nreverse files)))))
 
 
 ;;; Obsolete aliases (remove them after the next major release).

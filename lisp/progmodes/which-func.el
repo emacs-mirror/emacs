@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1997-1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1994, 1997-1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
@@ -247,9 +247,6 @@ It creates the Imenu index for the buffer, if necessary."
 ;;;###autoload
 (define-minor-mode which-function-mode
   "Toggle mode line display of current function (Which Function mode).
-With a prefix argument ARG, enable Which Function mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Which Function mode is a global minor mode.  When enabled, the
 current function name is continuously displayed in the mode line,

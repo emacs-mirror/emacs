@@ -1,6 +1,6 @@
 ;;; tildify.el --- adding hard spaces into texts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
 ;; Author:     Milan Zamazal <pdm@zamazal.org>
 ;;             Michal Nazarewicz <mina86@mina86.com>

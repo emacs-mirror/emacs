@@ -1,6 +1,6 @@
 ;;; gnus-mlspl.el --- a group params-based mail splitting mechanism
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Oliva <oliva@lsd.ic.unicamp.br>
 ;; Keywords: news, mail
@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'gnus)
 (require 'gnus-sum)
 (require 'gnus-group)
@@ -183,7 +182,8 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
 		    (to-list (cdr (assoc 'to-list params)))
 		    (extra-aliases (cdr (assoc 'extra-aliases params)))
 		    (split-regexp (cdr (assoc 'split-regexp params)))
-		    (split-exclude (cdr (assoc 'split-exclude params))))
+		    (split-exclude (cdr (assoc 'split-exclude params)))
+		    (match-list (cdr (assoc 'match-list params))))
 		(when (or to-address to-list extra-aliases split-regexp)
 		  ;; regexp-quote to-address, to-list and extra-aliases
 		  ;; and add them all to split-regexp
@@ -203,16 +203,28 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
 			  "\\|")
 			 "\\)"))
 		  ;; Now create the new SPLIT
-		  (push (append
-			 (list 'any split-regexp)
+		  (let ((split-regexp-with-list-ids
+			 (replace-regexp-in-string "@" "[@.]" split-regexp t t))
+			(exclude
 			 ;; Generate RESTRICTs for SPLIT-EXCLUDEs.
 			 (if (listp split-exclude)
 			     (apply #'append
 				    (mapcar (lambda (arg) (list '- arg))
 					    split-exclude))
-			   (list '- split-exclude))
-			 (list group-clean))
-			split)
+			   (list '- split-exclude))))
+
+		    (if match-list
+			;; Match RFC2919 IDs or mail addresses
+			(push (append
+			       (list 'list split-regexp-with-list-ids)
+			       exclude
+			       (list group-clean))
+			      split)
+		      (push (append
+			     (list 'any split-regexp)
+			     exclude
+			     (list group-clean))
+			    split)))
 		  ;; If it matches the empty string, it is a catch-all
 		  (when (string-match split-regexp "")
 		    (setq catch-all nil)))))))))

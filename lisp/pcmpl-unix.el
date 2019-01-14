@@ -1,6 +1,6 @@
 ;;; pcmpl-unix.el --- standard UNIX completions
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -111,7 +111,7 @@ documentation), this function returns nil."
 						(point))) ":")))
 	    (setq names (cons (nth 0 fields) names)))
 	  (forward-line))))
-    (pcomplete-uniqify-list names)))
+    (pcomplete-uniquify-list names)))
 
 (defsubst pcmpl-unix-group-names ()
   "Read the contents of /etc/group for group names."

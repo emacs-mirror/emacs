@@ -1,6 +1,6 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
 ;;	Nobuyoshi Nakada
@@ -38,6 +38,8 @@
 ;; Still needs more docstrings; search below for TODO.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (defgroup ruby nil
   "Major mode for editing Ruby code."
@@ -215,19 +217,16 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
 (defcustom ruby-indent-tabs-mode nil
   "Indentation can insert tabs in Ruby mode if this is non-nil."
   :type 'boolean
-  :group 'ruby
   :safe 'booleanp)
 
 (defcustom ruby-indent-level 2
   "Indentation of Ruby statements."
   :type 'integer
-  :group 'ruby
   :safe 'integerp)
 
 (defcustom ruby-comment-column (default-value 'comment-column)
   "Indentation column of comments."
   :type 'integer
-  :group 'ruby
   :safe 'integerp)
 
 (defconst ruby-alignable-keywords '(if while unless until begin case for def)
@@ -255,8 +254,7 @@ the statement:
     qux
   end
 
-Only has effect when `ruby-use-smie' is t.
-"
+Only has effect when `ruby-use-smie' is t."
   :type `(choice
           (const :tag "None" nil)
           (const :tag "All" t)
@@ -264,7 +262,6 @@ Only has effect when `ruby-use-smie' is t.
                   (choice ,@(mapcar
                              (lambda (kw) (list 'const kw))
                              ruby-alignable-keywords))))
-  :group 'ruby
   :safe 'listp
   :version "24.4")
 
@@ -276,7 +273,6 @@ of its parent.
 
 Only has effect when `ruby-use-smie' is t."
   :type 'boolean
-  :group 'ruby
   :safe 'booleanp
   :version "24.4")
 
@@ -285,7 +281,6 @@ Only has effect when `ruby-use-smie' is t."
 Also ignores spaces after parenthesis when `space'.
 Only has effect when `ruby-use-smie' is nil."
   :type 'boolean
-  :group 'ruby
   :safe 'booleanp)
 
 ;; FIXME Woefully under documented.  What is the point of the last t?.
@@ -300,14 +295,12 @@ Only has effect when `ruby-use-smie' is nil."
                                  (cons character (choice (const nil)
                                                          (const t)))
                                  (const t) ; why?
-                                 )))
-  :group 'ruby)
+                                 ))))
 
 (defcustom ruby-deep-indent-paren-style 'space
   "Default deep indent style.
 Only has effect when `ruby-use-smie' is nil."
-  :type '(choice (const t) (const nil) (const space))
-  :group 'ruby)
+  :type '(choice (const t) (const nil) (const space)))
 
 (defcustom ruby-encoding-map
   '((us-ascii       . nil)       ;; Do not put coding: us-ascii
@@ -317,8 +310,7 @@ Only has effect when `ruby-use-smie' is nil."
   "Alist to map encoding name from Emacs to Ruby.
 Associating an encoding name with nil means it needs not be
 explicitly declared in magic comment."
-  :type '(repeat (cons (symbol :tag "From") (symbol :tag "To")))
-  :group 'ruby)
+  :type '(repeat (cons (symbol :tag "From") (symbol :tag "To"))))
 
 (defcustom ruby-insert-encoding-magic-comment t
   "Insert a magic Ruby encoding comment upon save if this is non-nil.
@@ -335,14 +327,12 @@ even if it's not required."
           (const :tag "Emacs Style" emacs)
           (const :tag "Ruby Style" ruby)
           (const :tag "Custom Style" custom))
-  :group 'ruby
   :version "24.4")
 
 (defcustom ruby-custom-encoding-magic-comment-template "# encoding: %s"
   "A custom encoding comment template.
 It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
   :type 'string
-  :group 'ruby
   :version "24.4")
 
 (defcustom ruby-use-encoding-map t
@@ -527,6 +517,9 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
              ((ruby-smie--opening-pipe-p) "opening-|")
              ((ruby-smie--closing-pipe-p) "closing-|")
              (t tok)))
+           ((string-match "\\`[^|]+|\\'" tok)
+            (forward-char -1)
+            (substring tok 0 -1))
            ((and (equal tok "") (looking-at "\\\\\n"))
             (goto-char (match-end 0)) (ruby-smie--forward-token))
            ((equal tok "do")
@@ -569,6 +562,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
            ((ruby-smie--opening-pipe-p) "opening-|")
            ((ruby-smie--closing-pipe-p) "closing-|")
            (t tok)))
+         ((string-match-p "\\`[^|]+|\\'" tok) "closing-|")
          ((string-match-p "\\`|[*&]\\'" tok)
           (forward-char 1)
           (substring tok 1))
@@ -596,12 +590,12 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
 
 (defun ruby-smie-rules (kind token)
   (pcase (cons kind token)
-    (`(:elem . basic) ruby-indent-level)
+    ('(:elem . basic) ruby-indent-level)
     ;; "foo" "bar" is the concatenation of the two strings, so the second
     ;; should be aligned with the first.
-    (`(:elem . args) (if (looking-at "\\s\"") 0))
+    ('(:elem . args) (if (looking-at "\\s\"") 0))
     ;; (`(:after . ",") (smie-rule-separator kind))
-    (`(:before . ";")
+    ('(:before . ";")
      (cond
       ((smie-rule-parent-p "def" "begin" "do" "class" "module" "for"
                            "while" "until" "unless"
@@ -611,7 +605,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
       ;; For (invalid) code between switch and case.
       ;; (if (smie-parent-p "switch") 4)
       ))
-    (`(:before . ,(or `"(" `"[" `"{"))
+    (`(:before . ,(or "(" "[" "{"))
      (cond
       ((and (equal token "{")
             (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";"))
@@ -638,7 +632,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
            (forward-char -1))
          (smie-indent-virtual))
         (t (smie-rule-parent))))))
-    (`(:after . ,(or `"(" "[" "{"))
+    (`(:after . ,(or "(" "[" "{"))
      ;; FIXME: Shouldn't this be the default behavior of
      ;; `smie-indent-after-keyword'?
      (save-excursion
@@ -648,20 +642,20 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        ;; because we want to reject hanging tokens at bol, too.
        (unless (or (eolp) (forward-comment 1))
          (cons 'column (current-column)))))
-    (`(:before . " @ ")
+    ('(:before . " @ ")
      (save-excursion
        (skip-chars-forward " \t")
        (cons 'column (current-column))))
-    (`(:before . "do") (ruby-smie--indent-to-stmt))
-    (`(:before . ".")
+    ('(:before . "do") (ruby-smie--indent-to-stmt))
+    ('(:before . ".")
      (if (smie-rule-sibling-p)
          (and ruby-align-chained-calls 0)
        (smie-backward-sexp ".")
        (cons 'column (+ (current-column)
                         ruby-indent-level))))
-    (`(:before . ,(or `"else" `"then" `"elsif" `"rescue" `"ensure"))
+    (`(:before . ,(or "else" "then" "elsif" "rescue" "ensure"))
      (smie-rule-parent))
-    (`(:before . "when")
+    ('(:before . "when")
      ;; Align to the previous `when', but look up the virtual
      ;; indentation of `case'.
      (if (smie-rule-sibling-p) 0 (smie-rule-parent)))
@@ -678,7 +672,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
        (if (ruby-smie--indent-to-stmt-p token)
            (ruby-smie--indent-to-stmt)
          (cons 'column (current-column)))))
-    (`(:before . "iuwu-mod")
+    ('(:before . "iuwu-mod")
      (smie-rule-parent ruby-indent-level))
     ))
 
@@ -740,7 +734,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
           (back-to-indentation)
           (narrow-to-region (point) end)
           (smie-forward-sexp))
-      (while (and (setq state (apply 'ruby-parse-partial end state))
+      (while (and (setq state (apply #'ruby-parse-partial end state))
                     (>= (nth 2 state) 0) (< (point) end))))))
 
 (defun ruby-mode-variables ()
@@ -750,7 +744,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
       (smie-setup ruby-smie-grammar #'ruby-smie-rules
                   :forward-token  #'ruby-smie--forward-token
                   :backward-token #'ruby-smie--backward-token)
-    (setq-local indent-line-function 'ruby-indent-line))
+    (setq-local indent-line-function #'ruby-indent-line))
   (setq-local comment-start "# ")
   (setq-local comment-end "")
   (setq-local comment-column ruby-comment-column)
@@ -766,9 +760,9 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
 The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
   (let ((encoding-magic-comment-template
          (pcase ruby-encoding-magic-comment-style
-           (`ruby "# coding: %s")
-           (`emacs "# -*- coding: %s -*-")
-           (`custom
+           ('ruby "# coding: %s")
+           ('emacs "# -*- coding: %s -*-")
+           ('custom
             ruby-custom-encoding-magic-comment-template))))
     (insert
      (format encoding-magic-comment-template encoding)
@@ -985,6 +979,7 @@ delimiter."
         ((eq c ?\( ) ruby-deep-arglist)))
 
 (defun ruby-parse-partial (&optional end in-string nest depth pcol indent)
+  ;; FIXME: Document why we can't just use parse-partial-sexp.
   "TODO: document throughout function body."
   (or depth (setq depth 0))
   (or indent (setq indent 0))
@@ -1159,7 +1154,7 @@ delimiter."
                  (state (list in-string nest depth pcol indent)))
             ;; parse the rest of the line
             (while (and (> line-end-position (point))
-                        (setq state (apply 'ruby-parse-partial
+                        (setq state (apply #'ruby-parse-partial
                                            line-end-position state))))
             (setq in-string (car state)
                   nest (nth 1 state)
@@ -1196,7 +1191,7 @@ delimiter."
       (save-restriction
         (narrow-to-region (point) end)
         (while (and (> end (point))
-                    (setq state (apply 'ruby-parse-partial end state))))))
+                    (setq state (apply #'ruby-parse-partial end state))))))
     (list (nth 0 state)                 ; in-string
           (car (nth 1 state))           ; nest
           (nth 2 state)                 ; depth
@@ -1543,8 +1538,8 @@ With ARG, do it many times.  Negative ARG means move forward."
             (cond ((looking-at "\\s)")
                    (goto-char (scan-sexps (1+ (point)) -1))
                    (pcase (char-before)
-                     (`?% (forward-char -1))
-                     ((or `?q `?Q `?w `?W `?r `?x)
+                     (?% (forward-char -1))
+                     ((or ?q ?Q ?w ?W ?r ?x)
                       (if (eq (char-before (1- (point))) ?%)
                           (forward-char -2))))
                    nil)
@@ -1561,13 +1556,13 @@ With ARG, do it many times.  Negative ARG means move forward."
                    (forward-char 1)
                    (while (progn (forward-word-strictly -1)
                                  (pcase (char-before)
-                                   (`?_ t)
-                                   (`?. (forward-char -1) t)
-                                   ((or `?$ `?@)
+                                   (?_ t)
+                                   (?. (forward-char -1) t)
+                                   ((or ?$ ?@)
                                     (forward-char -1)
                                     (and (eq (char-before) (char-after))
                                          (forward-char -1)))
-                                   (`?:
+                                   (?:
                                     (forward-char -1)
                                     (eq (char-before) :)))))
                    (if (looking-at ruby-block-end-re)
@@ -2033,13 +2028,6 @@ It will be properly highlighted even when the call omits parens.")
                  context)))
         t)))
 
-(defvar ruby-font-lock-syntax-table
-  (let ((tbl (make-syntax-table ruby-mode-syntax-table)))
-    (modify-syntax-entry ?_ "w" tbl)
-    tbl)
-  "The syntax table to use for fontifying Ruby mode buffers.
-See `font-lock-syntax-table'.")
-
 (defconst ruby-font-lock-keyword-beg-re "\\(?:^\\|[^.@$:]\\|\\.\\.\\)")
 
 (defconst ruby-font-lock-keywords
@@ -2218,7 +2206,8 @@ See `font-lock-syntax-table'.")
     ;; Conversion methods on Kernel.
     (,(concat ruby-font-lock-keyword-beg-re
               (regexp-opt '("Array" "Complex" "Float" "Hash"
-                            "Integer" "Rational" "String") 'symbols))
+                            "Integer" "Rational" "String")
+                          'symbols))
      (1 font-lock-builtin-face))
     ;; Expression expansion.
     (ruby-match-expression-expansion
@@ -2311,36 +2300,44 @@ See `font-lock-syntax-table'.")
       (process-send-eof ruby--flymake-proc))))
 
 (defcustom ruby-flymake-use-rubocop-if-available t
-  "Non-nil to use the Rubocop Flymake backend.
-Only takes effect if Rubocop is installed."
+  "Non-nil to use the RuboCop Flymake backend.
+Only takes effect if RuboCop is installed.
+
+If there is no Rubocop config file, Rubocop will be passed a flag
+'--lint' to only show syntax errors and important problems."
   :version "26.1"
   :type 'boolean
-  :group 'ruby
   :safe 'booleanp)
 
 (defcustom ruby-rubocop-config ".rubocop.yml"
   "Configuration file for `ruby-flymake-rubocop'."
   :version "26.1"
   :type 'string
-  :group 'ruby
   :safe 'stringp)
 
 (defun ruby-flymake-rubocop (report-fn &rest _args)
-  "Rubocop backend for Flymake."
+  "RuboCop backend for Flymake."
   (unless (executable-find "rubocop")
     (error "Cannot find the rubocop executable"))
 
   (let ((command (list "rubocop" "--stdin" buffer-file-name "--format" "emacs"
                        "--cache" "false" ; Work around a bug in old version.
                        "--display-cop-names"))
+        (default-directory default-directory)
         config-dir)
     (when buffer-file-name
       (setq config-dir (locate-dominating-file buffer-file-name
                                                ruby-rubocop-config))
-      (when config-dir
+      (if (not config-dir)
+          (setq command (append command '("--lint")))
         (setq command (append command (list "--config"
                                             (expand-file-name ruby-rubocop-config
-                                                              config-dir)))))
+                                                              config-dir))))
+        (when (ruby-flymake-rubocop--use-bundler-p config-dir)
+          (setq command (append '("bundle" "exec") command))
+          ;; In case of a project with multiple nested subprojects,
+          ;; each one with a Gemfile.
+          (setq default-directory config-dir)))
 
       (ruby-flymake--helper
        "rubocop-flymake"
@@ -2352,7 +2349,7 @@ Only takes effect if Rubocop is installed."
          (when (eq (process-exit-status proc) 127)
            ;; Not sure what to do in this case.  Maybe ideally we'd
            ;; switch back to ruby-flymake-simple.
-           (flymake-log :warning "Rubocop returned status 127: %s"
+           (flymake-log :warning "RuboCop returned status 127: %s"
                         (buffer-string)))
          (goto-char (point-min))
          (cl-loop
@@ -2378,6 +2375,13 @@ Only takes effect if Rubocop is installed."
           into diags
           finally (funcall report-fn diags)))))))
 
+(defun ruby-flymake-rubocop--use-bundler-p (dir)
+  (let ((file (expand-file-name "Gemfile" dir)))
+    (and (file-exists-p file)
+         (with-temp-buffer
+           (insert-file-contents file)
+           (re-search-forward "^ *gem ['\"]rubocop['\"]" nil t)))))
+
 (defun ruby-flymake-auto (report-fn &rest args)
   (apply
    (if (and ruby-flymake-use-rubocop-if-available
@@ -2392,18 +2396,17 @@ Only takes effect if Rubocop is installed."
   "Major mode for editing Ruby code."
   (ruby-mode-variables)
 
-  (setq-local imenu-create-index-function 'ruby-imenu-create-index)
-  (setq-local add-log-current-defun-function 'ruby-add-log-current-method)
-  (setq-local beginning-of-defun-function 'ruby-beginning-of-defun)
-  (setq-local end-of-defun-function 'ruby-end-of-defun)
+  (setq-local imenu-create-index-function #'ruby-imenu-create-index)
+  (setq-local add-log-current-defun-function #'ruby-add-log-current-method)
+  (setq-local beginning-of-defun-function #'ruby-beginning-of-defun)
+  (setq-local end-of-defun-function #'ruby-end-of-defun)
 
-  (add-hook 'after-save-hook 'ruby-mode-set-encoding nil 'local)
-  (add-hook 'electric-indent-functions 'ruby--electric-indent-p nil 'local)
-  (add-hook 'flymake-diagnostic-functions 'ruby-flymake-auto nil 'local)
+  (add-hook 'after-save-hook #'ruby-mode-set-encoding nil 'local)
+  (add-hook 'electric-indent-functions #'ruby--electric-indent-p nil 'local)
+  (add-hook 'flymake-diagnostic-functions #'ruby-flymake-auto nil 'local)
 
-  (setq-local font-lock-defaults '((ruby-font-lock-keywords) nil nil))
-  (setq-local font-lock-keywords ruby-font-lock-keywords)
-  (setq-local font-lock-syntax-table ruby-font-lock-syntax-table)
+  (setq-local font-lock-defaults '((ruby-font-lock-keywords) nil nil
+                                   ((?_ . "w"))))
 
   (setq-local syntax-propertize-function #'ruby-syntax-propertize))
 

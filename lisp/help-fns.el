@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2018 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -68,6 +68,9 @@ The functions will receive the function name as argument.")
 
 (defun help--loaded-p (file)
   "Try and figure out if FILE has already been loaded."
+  ;; FIXME: this regexp business is not good enough: for file
+  ;; `toto', it will say `toto' is loaded when in reality it was
+  ;; just cedet/semantic/toto that has been loaded.
   (or (let ((feature (intern-soft file)))
         (and feature (featurep feature)))
       (let* ((re (load-history-regexp file))
@@ -83,11 +86,9 @@ The functions will receive the function name as argument.")
     (dolist (file files)
       ;; FIXME: Should we scan help-definition-prefixes to remove
       ;; other prefixes of the same file?
-      ;; FIXME: this regexp business is not good enough: for file
-      ;; `toto', it will say `toto' is loaded when in reality it was
-      ;; just cedet/semantic/toto that has been loaded.
       (unless (help--loaded-p file)
-        (load file 'noerror 'nomessage)))))
+        (with-demoted-errors "while loading: %S"
+          (load file 'noerror 'nomessage))))))
 
 (defun help--symbol-completion-table (string pred action)
   (let ((prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
@@ -181,8 +182,8 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	   (expand-file-name internal-doc-file-name doc-directory)))
       (let ((file (catch 'loop
 		    (while t
-		      (let ((pnt (search-forward (concat "" name "\n"))))
-			(re-search-backward "S\\(.*\\)")
+		      (let ((pnt (search-forward (concat "\^_" name "\n"))))
+			(re-search-backward "\^_S\\(.*\\)")
 			(let ((file (match-string 1)))
 			  (if (member file build-files)
 			      (throw 'loop file)
@@ -1141,7 +1142,7 @@ current buffer and the selected frame, respectively."
 				    (format
                                      "Describe symbol (default %s): " v-or-f)
 				  "Describe symbol: ")
-				obarray
+				#'help--symbol-completion-table
 				(lambda (vv)
                                   (cl-some (lambda (x) (funcall (nth 1 x) vv))
                                            describe-symbol-backends))
@@ -1293,7 +1294,7 @@ BUFFER should be a buffer or a buffer name."
           ".AU Richard M. Stallman\n")
   (insert-file-contents file)
   (let (notfirst)
-    (while (search-forward "" nil 'move)
+    (while (search-forward "\^_" nil 'move)
       (if (= (following-char) ?S)
           (delete-region (1- (point)) (line-end-position))
         (delete-char -1)
@@ -1326,12 +1327,12 @@ BUFFER should be a buffer or a buffer name."
         (insert "@")
         (forward-char 1))
       (goto-char (point-min))
-      (while (search-forward "" nil t)
+      (while (search-forward "\^_" nil t)
         (when (/= (following-char) ?S)
           (setq type (char-after)
                 name (buffer-substring (1+ (point)) (line-end-position))
                 doc (buffer-substring (line-beginning-position 2)
-                                      (if (search-forward  "" nil 'move)
+                                      (if (search-forward  "\^_" nil 'move)
                                           (1- (point))
                                         (point)))
                 alist (cons (list name type doc) alist))

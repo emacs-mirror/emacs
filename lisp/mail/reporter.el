@@ -1,6 +1,6 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Copyright (C) 1993-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author:          1993-1998 Barry A. Warsaw
 ;; Maintainer: emacs-devel@gnu.org

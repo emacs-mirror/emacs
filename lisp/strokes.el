@@ -1,6 +1,6 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1388,9 +1388,6 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 ;;;###autoload
 (define-minor-mode strokes-mode
   "Toggle Strokes mode, a global minor mode.
-With a prefix argument ARG, enable Strokes mode if ARG is
-positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 \\<strokes-mode-map>
 Strokes are pictographic mouse gestures which invoke commands.

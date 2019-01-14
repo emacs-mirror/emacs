@@ -1,10 +1,10 @@
 ;;; ob-processing.el --- Babel functions for processing -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Jarmo Hurri (adapted from ob-asymptote.el written by Eric Schulte)
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 

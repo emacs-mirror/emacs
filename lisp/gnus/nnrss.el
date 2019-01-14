@@ -1,6 +1,6 @@
 ;;; nnrss.el --- interfacing with RSS
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: RSS
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'nnoo)
@@ -49,7 +49,7 @@
   "Where nnrss will save its files.")
 
 (defvoo nnrss-ignore-article-fields '(slash:comments)
-  "*List of fields that should be ignored when comparing RSS articles.
+  "List of fields that should be ignored when comparing RSS articles.
 Some RSS feeds update article fields during their lives, e.g. to
 indicate the number of comments or the number of times the
 articles have been seen.  However, if there is a difference
@@ -355,8 +355,8 @@ for decoding when the cdr that the data specify is not available.")
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (dolist (elem nnrss-group-alist)
-      (if (third elem)
-	  (insert (car elem) "\t" (third elem) "\n"))))
+      (if (nth 2 elem)
+	  (insert (car elem) "\t" (nth 2 elem) "\n"))))
   t)
 
 (deffoo nnrss-retrieve-groups (groups &optional server)
@@ -645,7 +645,7 @@ which RSS 2.0 allows."
 					nnrss-directory))))
 	(setq xml (nnrss-fetch file t))
       (setq url (or (nth 2 (assoc group nnrss-server-data))
-		    (second (assoc group nnrss-group-alist))))
+		    (cadr (assoc group nnrss-group-alist))))
       (unless url
 	(setq url
 	      (cdr
@@ -691,7 +691,7 @@ which RSS 2.0 allows."
 		  (if (and len (integerp (setq len (string-to-number len))))
 		      ;; actually already in `ls-lisp-format-file-size' but
 		      ;; probably not worth to require it for one function
-		      (do ((size (/ len 1.0) (/ size 1024.0))
+		      (cl-do ((size (/ len 1.0) (/ size 1024.0))
 			   (post-fixes (list "" "k" "M" "G" "T" "P" "E")
 				       (cdr post-fixes)))
 			  ((< size 1024)
@@ -705,7 +705,7 @@ which RSS 2.0 allows."
 	    (setq enclosure (list url name len type))))
 	(push
 	 (list
-	  (incf nnrss-group-max)
+	  (cl-incf nnrss-group-max)
 	  (current-time)
 	  url
 	  (and subject (nnrss-mime-encode-string subject))
@@ -792,7 +792,7 @@ It is useful when `(setq nnrss-use-local t)'."
   (insert "RSSDIR='" (expand-file-name nnrss-directory) "'\n")
   (dolist (elem nnrss-server-data)
     (let ((url (or (nth 2 elem)
-		   (second (assoc (car elem) nnrss-group-alist)))))
+		   (cadr (assoc (car elem) nnrss-group-alist)))))
       (insert "$WGET -q -O \"$RSSDIR\"/'"
 	      (nnrss-translate-file-chars (concat (car elem) ".xml"))
 	      "' '" url "'\n"))))

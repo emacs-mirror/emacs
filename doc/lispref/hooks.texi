@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1998, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Hooks
@@ -66,6 +66,7 @@ not exactly a hook, but does a similar job.
 
 @item after-make-frame-functions
 @itemx before-make-frame-hook
+@itemx server-after-make-frame-hook
 @xref{Creating Frames}.
 
 @c Not general enough?
@@ -123,6 +124,7 @@ The command loop runs this soon after @code{post-command-hook} (q.v.).
 @xref{Input Focus}.
 
 @item delete-frame-functions
+@itemx after-delete-frame-functions
 @xref{Deleting Frames}.
 
 @item delete-terminal-functions

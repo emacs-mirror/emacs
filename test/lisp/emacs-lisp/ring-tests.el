@@ -1,6 +1,6 @@
 ;;; ring-tests.el --- Tests for ring.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:
@@ -161,6 +161,43 @@
     (ring-insert ring 3)
     (should (= (ring-size ring) 5))
     (should (equal (ring-elements ring) '(3 2 1)))))
+
+(ert-deftest ring-resize/grow ()
+  (let ((ring (make-ring 3)))
+    (ring-insert ring 1)
+    (ring-insert ring 2)
+    (ring-insert ring 3)
+    (ring-resize ring 5)
+    (should (= (ring-size ring) 5))
+    (should (equal (ring-elements ring) '(3 2 1)))))
+
+(ert-deftest ring-resize/grow-empty ()
+  (let ((ring (make-ring 3)))
+    (ring-resize ring 5)
+    (should (= (ring-size ring) 5))
+    (should (equal (ring-elements ring) '()))))
+
+(ert-deftest ring-resize/grow-wrapped-ring ()
+  (let ((ring (make-ring 3)))
+    (ring-insert ring 1)
+    (ring-insert ring 2)
+    (ring-insert ring 3)
+    (ring-insert ring 4)
+    (ring-insert ring 5)
+    (ring-resize ring 5)
+    (should (= (ring-size ring) 5))
+    (should (equal (ring-elements ring) '(5 4 3)))))
+
+(ert-deftest ring-resize/shrink ()
+  (let ((ring (make-ring 5)))
+    (ring-insert ring 1)
+    (ring-insert ring 2)
+    (ring-insert ring 3)
+    (ring-insert ring 4)
+    (ring-insert ring 5)
+    (ring-resize ring 3)
+    (should (= (ring-size ring) 3))
+    (should (equal (ring-elements ring) '(5 4 3)))))
 
 (ert-deftest ring-tests-insert ()
   (let ((ring (make-ring 2)))

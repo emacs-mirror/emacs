@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff

@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the NeXT/Open/GNUstep API.
-   Copyright (C) 1995, 2005, 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2005, 2008-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef __NSGUI_H__
 #define __NSGUI_H__
 
-/* this gets included from a couple of the plain (non-NS) .c files */
+/* This gets included from a couple of the plain (non-NS) .c files.  */
 #ifdef __OBJC__
 
 #ifdef NS_IMPL_COCOA
@@ -73,9 +73,11 @@ typedef unichar XChar2b;
 #define XCHAR2B_BYTE2(chp) \
   (*(chp) & 0x00ff)
 
+/* Used in xdisp.c when comparing faces and frame colors.  */
+extern unsigned long ns_color_index_to_rgba(int idx, struct frame *f);
 
 /* XXX: xfaces requires these structures, but the question is are we
-        forced to use them? */
+        forced to use them?  */
 typedef struct _XGCValues
 {
   unsigned long foreground;
@@ -119,8 +121,8 @@ typedef int Display;
 typedef Lisp_Object XrmDatabase;
 
 
-/* some sort of attempt to normalize rectangle handling.. seems a bit much
-   for what is accomplished */
+/* Some sort of attempt to normalize rectangle handling.  Seems a bit
+   much for what is accomplished.  */
 typedef struct {
       int x, y;
       unsigned width, height;
@@ -160,7 +162,7 @@ typedef struct _NSRect  { NSPoint origin; NSSize size; } NSRect;
 
 
 
-/* This stuff needed by frame.c. */
+/* This stuff needed by frame.c.  */
 #define ForgetGravity		0
 #define NorthWestGravity	1
 #define NorthGravity		2

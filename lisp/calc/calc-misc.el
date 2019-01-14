@@ -1,6 +1,6 @@
 ;;; calc-misc.el --- miscellaneous functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -943,19 +943,9 @@ loaded and the keystroke automatically re-typed."
 ;;; Bug reporting
 
 ;;;###autoload
-(defun report-calc-bug ()
-  "Report a bug in Calc, the GNU Emacs calculator.
-Prompts for bug subject.  Leaves you in a mail buffer."
-  (interactive)
-  (let ((reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report calc-bug-address "Calc"
-				nil nil nil
-				"Please describe exactly what actions triggered the bug and the
-precise symptoms of the bug.  If possible, include a backtrace by
-doing `\\[toggle-debug-on-error]', then reproducing the bug.
-" )))
+(define-obsolete-function-alias 'report-calc-bug 'report-emacs-bug "26.2")
 ;;;###autoload
-(defalias 'calc-report-bug 'report-calc-bug)
+(define-obsolete-function-alias 'calc-report-bug 'report-emacs-bug "26.2")
 
 (provide 'calc-misc)
 

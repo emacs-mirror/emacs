@@ -1,6 +1,6 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Per Abhiddenware
 
@@ -22,8 +22,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl))
 
 (require 'gnus)
 (require 'gnus-range)
@@ -342,7 +340,7 @@ in a boring face, then the pages will be skipped."
 ;; TAG: Is a Supercite tag, if any.
 
 (defvar gnus-cited-opened-text-button-line-format-alist
-  `((?b (marker-position beg) ?d)
+  '((?b (marker-position beg) ?d)
     (?e (marker-position end) ?d)
     (?n (count-lines beg end) ?d)
     (?l (- end beg) ?d)))
@@ -483,8 +481,13 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 (defun gnus-article-fill-cited-article (&optional width long-lines)
   "Do word wrapping in the current article.
 If WIDTH (the numerical prefix), use that text width when
-filling.  If LONG-LINES, only fill sections that have lines
-longer than the frame width."
+filling.
+
+If LONG-LINES, only fill sections that have lines longer than the
+frame width.
+
+Sections that are heuristically interpreted as not being
+text (i.e., computer code and the like) will not be folded."
   (interactive "P")
   (with-current-buffer gnus-article-buffer
     (let ((buffer-read-only nil)
@@ -504,8 +507,6 @@ longer than the frame width."
 		use-hard-newlines)
 	    (unless do-fill
 	      (setq do-fill (gnus-article-foldable-buffer (cdar marks))))
-	    ;; Note: the XEmacs version of `fill-region' inserts a newline
-	    ;; unless the region ends with a newline.
 	    (when do-fill
 	      (if (not long-lines)
 		  (fill-region (point-min) (point-max))
@@ -624,7 +625,7 @@ always hide."
 		(point)
 		(progn (eval gnus-cited-closed-text-button-line-format-spec)
 		       (point))
-		`gnus-article-toggle-cited-text
+		'gnus-article-toggle-cited-text
 		(list (cons beg end) start))
 	       (point))
              'article-type 'annotation)
@@ -674,7 +675,7 @@ means show, nil means toggle."
 			gnus-cited-opened-text-button-line-format-spec
 		      gnus-cited-closed-text-button-line-format-spec))
 		   (point))
-	    `gnus-article-toggle-cited-text
+	    'gnus-article-toggle-cited-text
 	    args)
 	   (point))
 	 'article-type 'annotation)))))

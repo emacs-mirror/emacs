@@ -1,6 +1,6 @@
 ;;; version.el --- record version number of Emacs
 
-;; Copyright (C) 1985, 1992, 1994-1995, 1999-2018 Free Software
+;; Copyright (C) 1985, 1992, 1994-1995, 1999-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -99,14 +99,14 @@ to the system configuration; look at `system-configuration' instead."
 ;; We hope that this alias is easier for people to find.
 (defalias 'version 'emacs-version)
 
+(define-obsolete-variable-alias 'emacs-bzr-version
+                                'emacs-repository-version "24.4")
+
 ;; Set during dumping, this is a defvar so that it can be setq'd.
 (defvar emacs-repository-version nil
   "String giving the repository revision from which this Emacs was built.
 Value is nil if Emacs was not built from a repository checkout,
 or if we could not determine the revision.")
-
-(define-obsolete-variable-alias 'emacs-bzr-version
-                                'emacs-repository-version "24.4")
 
 (define-obsolete-function-alias 'emacs-bzr-get-version
                                 'emacs-repository-get-version "24.4")
@@ -134,6 +134,34 @@ correspond to the running Emacs.
 Optional argument DIR is a directory to use instead of `source-directory'.
 Optional argument EXTERNAL is ignored."
   (emacs-repository-version-git (or dir source-directory)))
+
+(defvar emacs-repository-branch nil
+  "String giving the repository branch from which this Emacs was built.
+Value is nil if Emacs was not built from a repository checkout,
+or if we could not determine the branch.")
+
+(defun emacs-repository-branch-git (dir)
+  "Ask git itself for the branch information for directory DIR."
+  (message "Waiting for git...")
+  (with-temp-buffer
+    (let ((default-directory (file-name-as-directory dir)))
+      (and (zerop
+	    (with-demoted-errors "Error running git rev-parse --abbrev-ref: %S"
+	      (call-process "git" nil '(t nil) nil
+                            "rev-parse" "--abbrev-ref" "HEAD")))
+           (goto-char (point-min))
+           (buffer-substring (point) (line-end-position))))))
+
+(defun emacs-repository-get-branch (&optional dir)
+  "Try to return as a string the repository branch of the Emacs sources.
+The format of the returned string is dependent on the VCS in use.
+Value is nil if the sources do not seem to be under version
+control, or if we could not determine the branch.  Note that
+this reports on the current state of the sources, which may not
+correspond to the running Emacs.
+
+Optional argument DIR is a directory to use instead of `source-directory'."
+  (emacs-repository-branch-git (or dir source-directory)))
 
 ;; We put version info into the executable in the form that `ident' uses.
 (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))

@@ -4,7 +4,7 @@
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -300,24 +300,24 @@ It is a function which takes two arguments, the directory and its parent."
   "Format one line of long ls output for file FILE-NAME.
 FILE-ATTR and FILE-SIZE give the file's attributes and size.
 SWITCHES and TIME-INDEX give the full switch list and time data."
-  (let ((file-type (nth 0 file-attr)))
+  (let ((file-type (file-attribute-type file-attr)))
     (concat (if (memq ?i switches)	; inode number
-		(format "%6d " (nth 10 file-attr)))
+		(format "%6d " (file-attribute-inode-number file-attr)))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K
-		(format "%4d " (1+ (/ (nth 7 file-attr) 1024))))
-	    (nth 8 file-attr)		; permission bits
+		(format "%4d " (1+ (/ (file-attribute-size file-attr) 1024))))
+	    (file-attribute-modes file-attr)
 	    (format " %3d %-8s %-8s %8d "
-		    (nth 1 file-attr)	; no. of links
-		    (if (numberp (nth 2 file-attr))
-			(int-to-string (nth 2 file-attr))
-		      (nth 2 file-attr)) ; uid
+		    (file-attribute-link-number file-attr)
+		    (if (numberp (file-attribute-user-id file-attr))
+			(int-to-string (file-attribute-user-id file-attr))
+		      (file-attribute-user-id file-attr))
 		    (if (eq system-type 'ms-dos)
 			"root"		; everything is root on MSDOS.
-		      (if (numberp (nth 3 file-attr))
-			  (int-to-string (nth 3 file-attr))
-			(nth 3 file-attr))) ; gid
-		    (nth 7 file-attr)	; size in bytes
+		      (if (numberp (file-attribute-group-id file-attr))
+			  (int-to-string (file-attribute-group-id file-attr))
+			(file-attribute-group-id file-attr)))
+		    (file-attribute-size file-attr)
 		    )
 	    (find-lisp-format-time file-attr switches now)
 	    " "

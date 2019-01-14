@@ -1,5 +1,5 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2018 Free Software Foundation,
+   Copyright (C) 1985-1987, 1993, 2001-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -391,7 +391,7 @@ extern void unuse_menu_items (void);
 #define EVENT_END(event) (CAR_SAFE (CDR_SAFE (CDR_SAFE (event))))
 
 /* Extract the click count from a multi-click event.  */
-#define EVENT_CLICK_COUNT(event) (Fnth (make_number (2), (event)))
+#define EVENT_CLICK_COUNT(event) (Fnth (make_fixnum (2), (event)))
 
 /* Extract the fields of a position.  */
 #define POSN_WINDOW(posn) (CAR_SAFE (posn))
@@ -399,17 +399,17 @@ extern void unuse_menu_items (void);
 #define POSN_SET_POSN(posn,x) (XSETCAR (XCDR (posn), (x)))
 #define POSN_WINDOW_POSN(posn) (CAR_SAFE (CDR_SAFE (CDR_SAFE (posn))))
 #define POSN_TIMESTAMP(posn) (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (posn)))))
-#define POSN_SCROLLBAR_PART(posn)	(Fnth (make_number (4), (posn)))
+#define POSN_SCROLLBAR_PART(posn)	(Fnth (make_fixnum (4), (posn)))
 
 /* A cons (STRING . STRING-CHARPOS), or nil in mouse-click events.
    It's a cons if the click is over a string in the mode line.  */
 
-#define POSN_STRING(posn) (Fnth (make_number (4), (posn)))
+#define POSN_STRING(posn) (Fnth (make_fixnum (4), (posn)))
 
 /* If POSN_STRING is nil, event refers to buffer location.  */
 
 #define POSN_INBUFFER_P(posn) (NILP (POSN_STRING (posn)))
-#define POSN_BUFFER_POSN(posn) (Fnth (make_number (5), (posn)))
+#define POSN_BUFFER_POSN(posn) (Fnth (make_fixnum (5), (posn)))
 
 /* Getting the kind of an event head.  */
 #define EVENT_HEAD_KIND(event_head) \

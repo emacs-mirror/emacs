@@ -1,6 +1,6 @@
 ;;; rx-tests.el --- test for rx.el functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -32,6 +32,28 @@
            (apply #'string (nconc (number-sequence ?\] ?\{)
                                   (number-sequence ?< ?\])
                                   (number-sequence ?- ?:))))))
+
+(ert-deftest rx-char-any-range-nl ()
+  "Test character alternatives with LF as a range endpoint."
+  (should (equal (rx (any "\n-\r"))
+                 "[\n-\r]"))
+  (should (equal (rx (any "\a-\n"))
+                 "[\a-\n]")))
+
+(ert-deftest rx-char-any-raw-byte ()
+  "Test raw bytes in character alternatives."
+  ;; Separate raw characters.
+  (should (equal (string-match-p (rx (any "\326A\333B"))
+                                 "X\326\333")
+                 1))
+  ;; Range of raw characters, unibyte.
+  (should (equal (string-match-p (rx (any "\200-\377"))
+                                 "ÿA\310B")
+                 2))
+  ;; Range of raw characters, multibyte.
+  (should (equal (string-match-p (rx (any "Å\211\326-\377\177"))
+                                 "XY\355\177\327")
+                 2)))
 
 (ert-deftest rx-pcase ()
   (should (equal (pcase "a 1 2 3 1 1 b"

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Indentation
@@ -60,9 +60,9 @@ repositioned to the first non-whitespace character on the line.
 @node Indentation Commands
 @section Indentation Commands
 
-Apart from the @key{TAB} (@code{indent-for-tab-command}) command,
-Emacs provides a variety of commands to perform indentation in other
-ways.
+Apart from the @kbd{@key{TAB}} (@code{indent-for-tab-command})
+command, Emacs provides a variety of commands to perform indentation
+in other ways.
 
 @table @kbd
 @item C-M-o
@@ -113,8 +113,8 @@ appears after the newline that is deleted.  @xref{Fill Prefix}.
 @item C-M-\
 @kindex C-M-\
 @findex indent-region
-Indent all the lines in the region, as though you had typed @key{TAB}
-at the beginning of each line (@code{indent-region}).
+Indent all the lines in the region, as though you had typed
+@kbd{@key{TAB}} at the beginning of each line (@code{indent-region}).
 
 If a numeric argument is supplied, indent every line in the region to
 that column number.
@@ -128,11 +128,12 @@ in the region, moving the affected lines as a rigid unit.
 
 If called with no argument, the command activates a transient mode for
 adjusting the indentation of the affected lines interactively.  While
-this transient mode is active, typing @key{LEFT} or @key{RIGHT}
-indents leftward and rightward, respectively, by one space.  You can
-also type @kbd{S-@key{LEFT}} or @kbd{S-@key{RIGHT}} to indent leftward
-or rightward to the next tab stop (@pxref{Tab Stops}).  Typing any
-other key disables the transient mode, and resumes normal editing.
+this transient mode is active, typing @kbd{@key{LEFT}} or
+@kbd{@key{RIGHT}} indents leftward and rightward, respectively, by one
+space.  You can also type @kbd{S-@key{LEFT}} or @kbd{S-@key{RIGHT}} to
+indent leftward or rightward to the next tab stop (@pxref{Tab Stops}).
+Typing any other key disables the transient mode, and resumes normal
+editing.
 
 If called with a prefix argument @var{n}, this command indents the
 lines forward by @var{n} spaces (without enabling the transient mode).

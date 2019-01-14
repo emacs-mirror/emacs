@@ -1,6 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -697,7 +697,7 @@ share the same state."
 (defun vc-dir-unmark ()
   "Unmark the current file or all files in the region.
 If the region is active, unmark all the files in the region.
-Otherwise mark the file on the current line and move to the next
+Otherwise unmark the file on the current line and move to the next
 line."
   (interactive)
   (vc-dir-mark-unmark 'vc-dir-unmark-file))

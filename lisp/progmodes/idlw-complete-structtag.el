@@ -1,6 +1,6 @@
 ;;; idlw-complete-structtag.el --- Completion of structure tags.
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>

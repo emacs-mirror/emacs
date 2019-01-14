@@ -1,6 +1,6 @@
 ;;; tramp-archive-tests.el --- Tests of file archive access  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -24,6 +24,8 @@
 
 (require 'ert)
 (require 'tramp-archive)
+(defvar tramp-copy-size-limit)
+(defvar tramp-persistency-file-name)
 
 (defconst tramp-archive-test-resource-directory
   (let ((default-directory
@@ -311,6 +313,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
 (ert-deftest tramp-archive-test07-file-exists-p ()
   "Check `file-exist-p', `write-region' and `delete-file'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (unwind-protect
@@ -333,6 +336,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
 (ert-deftest tramp-archive-test08-file-local-copy ()
   "Check `file-local-copy'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let (tmp-name)
@@ -359,6 +363,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
 (ert-deftest tramp-archive-test09-insert-file-contents ()
   "Check `insert-file-contents'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let ((tmp-name (expand-file-name "bar/bar" tramp-archive-test-archive)))
@@ -385,6 +390,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
 (ert-deftest tramp-archive-test11-copy-file ()
   "Check `copy-file'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   ;; Copy simple file.
@@ -450,6 +456,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
 (ert-deftest tramp-archive-test15-copy-directory ()
   "Check `copy-directory'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let* ((tmp-name1 (expand-file-name "bar" tramp-archive-test-archive))
@@ -504,6 +511,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
 (ert-deftest tramp-archive-test16-directory-files ()
   "Check `directory-files'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let ((tmp-name tramp-archive-test-archive)
@@ -527,6 +535,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 
 (ert-deftest tramp-archive-test17-insert-directory ()
   "Check `insert-directory'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let (;; We test for the summary line.  Keyword "total" could be localized.
@@ -569,6 +578,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 (ert-deftest tramp-archive-test18-file-attributes ()
   "Check `file-attributes'.
 This tests also `file-readable-p' and `file-regular-p'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let ((tmp-name1 (expand-file-name "foo.txt" tramp-archive-test-archive))
@@ -619,6 +629,7 @@ This tests also `file-readable-p' and `file-regular-p'."
 
 (ert-deftest tramp-archive-test19-directory-files-and-attributes ()
   "Check `directory-files-and-attributes'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let ((tmp-name (expand-file-name "bar" tramp-archive-test-archive))
@@ -644,6 +655,7 @@ This tests also `file-readable-p' and `file-regular-p'."
 (ert-deftest tramp-archive-test20-file-modes ()
   "Check `file-modes'.
 This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let ((tmp-name1 (expand-file-name "foo.txt" tramp-archive-test-archive))
@@ -673,6 +685,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 
 (ert-deftest tramp-archive-test21-file-links ()
   "Check `file-symlink-p' and `file-truename'"
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   ;; We must use `file-truename' for the file archive, because it
@@ -711,6 +724,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 
 (ert-deftest tramp-archive-test26-file-name-completion ()
   "Check `file-name-completion' and `file-name-all-completions'."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
 
   (let ((tmp-name tramp-archive-test-archive))
@@ -748,7 +762,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
       (tramp-archive-cleanup-hash))))
 
 ;; The functions were introduced in Emacs 26.1.
-(ert-deftest tramp-archive-test37-make-nearby-temp-file ()
+(ert-deftest tramp-archive-test38-make-nearby-temp-file ()
   "Check `make-nearby-temp-file' and `temporary-file-directory'."
   (skip-unless tramp-archive-enabled)
   ;; Since Emacs 26.1.
@@ -785,7 +799,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
     (delete-directory tmp-file)
     (should-not (file-exists-p tmp-file))))
 
-(ert-deftest tramp-archive-test40-file-system-info ()
+(ert-deftest tramp-archive-test41-file-system-info ()
   "Check that `file-system-info' returns proper values."
   (skip-unless tramp-archive-enabled)
   ;; Since Emacs 27.1.
@@ -802,14 +816,15 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 		 (zerop (nth 1 fsi))
 		 (zerop (nth 2 fsi))))))
 
-(ert-deftest tramp-archive-test42-auto-load ()
+(ert-deftest tramp-archive-test44-auto-load ()
   "Check that `tramp-archive' autoloads properly."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
   ;; Autoloading tramp-archive works since Emacs 27.1.
   (skip-unless (tramp-archive--test-emacs27-p))
 
   ;; tramp-archive is neither loaded at Emacs startup, nor when
-  ;; loading a file like "/ssh::" (which loads Tramp).
+  ;; loading a file like "/mock::foo" (which loads Tramp).
   (let ((default-directory (expand-file-name temporary-file-directory))
 	(code
 	 "(progn \
@@ -818,7 +833,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	    (file-attributes %S \"/\") \
 	    (message \"tramp-archive loaded: %%s %%s\" \
               (featurep 'tramp) (featurep 'tramp-archive)))"))
-    (dolist (file `("/ssh::foo" ,(concat tramp-archive-test-archive "foo")))
+    (dolist (file `("/mock::foo" ,(concat tramp-archive-test-archive "foo")))
       (should
        (string-match
 	(format
@@ -832,8 +847,9 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 	  (mapconcat 'shell-quote-argument load-path " -L ")
 	  (shell-quote-argument (format code file)))))))))
 
-(ert-deftest tramp-archive-test42-delay-load ()
+(ert-deftest tramp-archive-test44-delay-load ()
   "Check that `tramp-archive' is loaded lazily, only when needed."
+  :tags '(:expensive-test)
   (skip-unless tramp-archive-enabled)
   ;; Autoloading tramp-archive works since Emacs 27.1.
   (skip-unless (tramp-archive--test-emacs27-p))
@@ -873,7 +889,7 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
 
 (ert-deftest tramp-archive-test99-libarchive-tests ()
   "Run tests of libarchive test files."
-  :tags '(:expensive-test)
+  :tags '(:expensive-test :unstable)
   (skip-unless tramp-archive-enabled)
   ;; We do not want to run unless chosen explicitly.  This test makes
   ;; sense only in my local environment.  Michael Albinus.

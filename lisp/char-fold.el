@@ -1,6 +1,6 @@
 ;;; char-fold.el --- match unicode to similar ASCII -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: matching
@@ -170,7 +170,7 @@ from which to start."
     ;; need to keep them grouped together like this: "\\(  \\|[ ...][ ...]\\)".
     (while (< i end)
       (pcase (aref string i)
-        (`?\s (setq spaces (1+ spaces)))
+        (?\s (setq spaces (1+ spaces)))
         (c (when (> spaces 0)
              (push (char-fold--make-space-string spaces) out)
              (setq spaces 0))
@@ -214,7 +214,7 @@ from which to start."
     (when (> spaces 0)
       (push (char-fold--make-space-string spaces) out))
     (let ((regexp (apply #'concat (nreverse out))))
-      ;; Limited by `MAX_BUF_SIZE' in `regex.c'.
+      ;; Limited by `MAX_BUF_SIZE' in `regex-emacs.c'.
       (if (> (length regexp) 5000)
           (regexp-quote string)
         regexp))))

@@ -1,6 +1,6 @@
 ;;; benchmark-tests.el --- Test suite for benchmark.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -23,29 +23,37 @@
 (require 'ert)
 
 (ert-deftest benchmark-tests ()
-  (let (str t-long t-short)
-    (should (consp (benchmark-run nil (1+ 0))))
-    (should (consp (benchmark-run 1 (1+ 0))))
+  (let (str t-long t-short m)
+    (should (consp (benchmark-run nil (setq m (1+ 0)))))
+    (should (consp (benchmark-run 1 (setq m (1+ 0)))))
     (should (stringp (benchmark nil (1+ 0))))
     (should (stringp (benchmark 1 (1+ 0))))
-    (should (consp (benchmark-run-compiled nil (1+ 0))))
+    (should (consp (benchmark-run-compiled (1+ 0))))
     (should (consp (benchmark-run-compiled 1 (1+ 0))))
     ;; First test is heavier, must need longer time.
-    (should (> (car (benchmark-run nil
+    (let ((count1 0)
+          (count2 0)
+          (repeat 2))
+      (ignore (benchmark-run (setq count1 (1+ count1))))
+      (ignore (benchmark-run repeat (setq count2 (1+ count2))))
+      (should (> count2 count1)))
+    (should (> (car (benchmark-run
                       (let ((n 100000)) (while (> n 1) (setq n (1- n))))))
-               (car (benchmark-run nil (1+ 0)))))
-    (should (> (car (benchmark-run nil
+               (car (benchmark-run (setq m (1+ 0))))))
+    (should (> (car (benchmark-run
                       (let ((n 100000)) (while (> n 1) (setq n (1- n))))))
-               (car (benchmark-run nil (1+ 0)))))
-    (should (> (car (benchmark-run-compiled nil
+               (car (benchmark-run (setq m (1+ 0))))))
+    (should (> (car (benchmark-run-compiled
                       (let ((n 100000)) (while (> n 1) (setq n (1- n))))))
-               (car (benchmark-run-compiled nil (1+ 0)))))
+               (car (benchmark-run-compiled (1+ 0)))))
     (setq str (benchmark nil '(let ((n 100000)) (while (> n 1) (setq n (1- n))))))
     (string-match "Elapsed time: \\([0-9.]+\\)" str)
     (setq t-long (string-to-number (match-string 1 str)))
     (setq str (benchmark nil '(1+ 0)))
     (string-match "Elapsed time: \\([0-9.]+\\)" str)
     (setq t-short (string-to-number (match-string 1 str)))
-    (should (> t-long t-short))))
+    (should (> t-long t-short))
+    ;; Silence compiler.
+    m))
 
 ;;; benchmark-tests.el ends here.

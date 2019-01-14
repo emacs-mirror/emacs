@@ -1,6 +1,6 @@
-;;; viper-util.el --- Utilities used by viper.el
+;;; viper-util.el --- Utilities used by viper.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1997, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -28,7 +28,6 @@
 
 
 ;; Compiler pacifier
-(defvar viper-overriding-map)
 (defvar viper-minibuffer-current-face)
 (defvar viper-minibuffer-insert-face)
 (defvar viper-minibuffer-vi-face)
@@ -41,9 +40,6 @@
 (defvar viper-syntax-preference)
 
 (require 'ring)
-
-(eval-and-compile
-  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
 ;; end pacifier
 
@@ -634,15 +630,15 @@ Otherwise return the normal value."
 
 ;;; Saving settings in custom file
 
-;; Save the current setting of VAR in CUSTOM-FILE.
+;; Save the current setting of VAR in FILE.
 ;; If given, MESSAGE is a message to be displayed after that.
 ;; This message is erased after 2 secs, if erase-msg is non-nil.
-;; Arguments: var message custom-file &optional erase-message
-(defun viper-save-setting (var message custom-file &optional erase-msg)
+;; Arguments: var message file &optional erase-message
+(defun viper-save-setting (var message file &optional erase-msg)
   (let* ((var-name (symbol-name var))
 	 (var-val (if (boundp var) (eval var)))
 	 (regexp (format "^[^;]*%s[ \t\n]*[a-zA-Z---_']*[ \t\n)]" var-name))
-	 (buf (find-file-noselect (substitute-in-file-name custom-file)))
+	 (buf (find-file-noselect (substitute-in-file-name file)))
 	)
     (message "%s" (or message ""))
     (with-current-buffer buf
@@ -664,12 +660,12 @@ Otherwise return the normal value."
 	    (message "")))
       ))
 
-;; Save STRING in CUSTOM-FILE.  If PATTERN is non-nil, remove strings that
+;; Save STRING in FILE.  If PATTERN is non-nil, remove strings that
 ;; match this pattern.
-(defun viper-save-string-in-file (string custom-file &optional pattern)
-  (let ((buf (find-file-noselect (substitute-in-file-name custom-file))))
+(defun viper-save-string-in-file (string file &optional pattern)
+  (let ((buf (find-file-noselect (substitute-in-file-name file))))
     (with-current-buffer buf
-      (let (buffer-read-only)
+      (let ((inhibit-read-only t))
 	(goto-char (point-min))
 	(if pattern (delete-matching-lines pattern))
 	(goto-char (point-max))
@@ -946,48 +942,6 @@ Otherwise return the normal value."
           (or (event-to-character event)
               event))
       (read-event))))
-
-;; Viperized read-key-sequence
-(defun viper-read-key-sequence (prompt &optional continue-echo)
-  (let (inhibit-quit event keyseq)
-    (setq keyseq (read-key-sequence prompt continue-echo))
-    (setq event (if (featurep 'xemacs)
-		    (elt keyseq 0) ; XEmacs returns vector of events
-		  (elt (listify-key-sequence keyseq) 0)))
-    (if (viper-ESC-event-p event)
-	(let (unread-command-events)
-	  (if (viper-fast-keysequence-p)
-	      (let ((viper-vi-global-user-minor-mode  nil)
-		    (viper-vi-local-user-minor-mode  nil)
-		    (viper-vi-intercept-minor-mode nil)
-		    (viper-insert-intercept-minor-mode nil)
-		    (viper-replace-minor-mode nil) ; actually unnecessary
-		    (viper-insert-global-user-minor-mode  nil)
-		    (viper-insert-local-user-minor-mode  nil))
-		;; Note: set unread-command-events only after testing for fast
-		;; keysequence. Otherwise, viper-fast-keysequence-p will be
-		;; always t -- whether there is anything after ESC or not
-		(viper-set-unread-command-events keyseq)
-		(setq keyseq (read-key-sequence nil)))
-	    (viper-set-unread-command-events keyseq)
-	    (setq keyseq (read-key-sequence nil)))))
-    keyseq))
-
-
-;; This function lets function-key-map convert key sequences into logical
-;; keys.  This does a better job than viper-read-event when it comes to kbd
-;; macros, since it enables certain macros to be shared between X and TTY modes
-;; by correctly mapping key sequences for Left/Right/... (on an ascii
-;; terminal) into logical keys left, right, etc.
-(defun viper-read-key () ;; FIXME: Use `read-key'?
-  (let ((overriding-local-map viper-overriding-map)
-	(inhibit-quit t)
-	help-char key)
-    (use-global-map viper-overriding-map)
-    (unwind-protect
-	(setq key (elt (viper-read-key-sequence nil) 0))
-      (use-global-map global-map))
-    key))
 
 
 ;; Emacs has a bug in eventp, which causes (eventp nil) to return (nil)

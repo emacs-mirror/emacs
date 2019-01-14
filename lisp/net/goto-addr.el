@@ -1,6 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -221,10 +221,6 @@ and `goto-address-fontify-p'."
 ;; snarfed from browse-url.el
 
 ;;;###autoload
-(define-obsolete-function-alias
-  'goto-address-at-mouse 'goto-address-at-point "22.1")
-
-;;;###autoload
 (defun goto-address-at-point (&optional event)
   "Send to the e-mail address or load the URL at point.
 Send mail to address at point.  See documentation for
@@ -274,10 +270,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 ;;;###autoload
 (define-minor-mode goto-address-mode
-  "Minor mode to buttonize URLs and e-mail addresses in the current buffer.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil."
+  "Minor mode to buttonize URLs and e-mail addresses in the current buffer."
   nil
   ""
   nil

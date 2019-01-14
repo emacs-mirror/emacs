@@ -1,6 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format
 
-;; Copyright (C) 1994-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: wp, faces
@@ -120,9 +120,11 @@ expression, which is evaluated to get the string to insert.")
     ;; The following are not part of the standard:
     (FUNCTION      (enriched-decode-foreground "x-color")
 		   (enriched-decode-background "x-bg-color")
-		   (enriched-decode-display-prop "x-display"))
+		   (enriched-decode-display-prop "x-display")
+                   (enriched-decode-charset "x-charset"))
     (read-only     (t           "x-read-only"))
     (display	   (nil		enriched-handle-display-prop))
+    (charset       (nil         enriched-handle-charset-prop))
     (unknown       (nil         format-annotate-value))
 ;   (font-size     (2           "bigger")       ; unimplemented
 ;		   (-2          "smaller"))
@@ -207,10 +209,6 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
   "Minor mode for editing text/enriched files.
 These are files with embedded formatting information in the MIME standard
 text/enriched format.
-
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
 
 Turning the mode on or off runs `enriched-mode-hook'.
 
@@ -492,6 +490,21 @@ Return value is \(begin end name positive-p), or nil if none was found."
       (list from to 'face (list ':background color))
     (message "Warning: no color specified for <x-bg-color>")
     nil))
+
+(defun enriched-decode-charset (from to &optional cset)
+  (let ((cs (when (stringp cset)
+              (condition-case ()
+                  (car (read-from-string cset))
+                (error nil)))))
+    (unless cs
+      (message "Warning: invalid <x-charset> parameter %s" cset))
+    (list from to 'charset cs)))
+
+(defun enriched-handle-charset-prop (old new)
+  "Return a list of annotations for a change in the `charset' property."
+  (cons (and old (list (list "x-charset" (symbol-name old))))
+        (and new (list (list "x-charset" (symbol-name new))))))
+
 
 ;;; Handling the `display' property.
 

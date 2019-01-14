@@ -1,6 +1,6 @@
 ;;; semantic/bovine/gcc.el --- gcc querying special code for the C parser
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

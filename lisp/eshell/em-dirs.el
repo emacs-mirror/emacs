@@ -1,6 +1,6 @@
 ;;; em-dirs.el --- directory navigation commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -259,7 +259,7 @@ Thus, this does not include the current directory.")
   (if (> (length args) 1)
       (error "%s: command not found" (car args))
     (throw 'eshell-replace-command
-	   (eshell-parse-command "cd" (eshell-flatten-list args)))))
+	   (eshell-parse-command "cd" (flatten-tree args)))))
 
 (defun eshell-parse-user-reference ()
   "An argument beginning with ~ is a filename to be expanded."
@@ -282,7 +282,7 @@ Thus, this does not include the current directory.")
 (defvar pcomplete-stub)
 (defvar pcomplete-last-completion-raw)
 (declare-function pcomplete-actual-arg "pcomplete")
-(declare-function pcomplete-uniqify-list "pcomplete")
+(declare-function pcomplete-uniquify-list "pcomplete")
 
 (defun eshell-complete-user-reference ()
   "If there is a user reference, complete it."
@@ -293,7 +293,7 @@ Thus, this does not include the current directory.")
       (throw 'pcomplete-completions
 	     (progn
 	       (eshell-read-user-names)
-	       (pcomplete-uniqify-list
+	       (pcomplete-uniquify-list
 		(mapcar
 		 (function
 		  (lambda (user)
@@ -314,16 +314,18 @@ Thus, this does not include the current directory.")
       path)))
 
 (defun eshell-expand-multiple-dots (path)
+  ;; FIXME: This advice recommendation is rather odd: it's somewhat
+  ;; dangerous and it claims not to work with minibuffer-completion, which
+  ;; makes it much less interesting.
   "Convert `...' to `../..', `....' to `../../..', etc..
 
 With the following piece of advice, you can make this functionality
 available in most of Emacs, with the exception of filename completion
 in the minibuffer:
 
-  (defadvice expand-file-name
-    (before translate-multiple-dots
-	    (filename &optional directory) activate)
-    (setq filename (eshell-expand-multiple-dots filename)))"
+    (advice-add 'expand-file-name :around #'my-expand-multiple-dots)
+    (defun my-expand-multiple-dots (orig-fun filename &rest args)
+      (apply orig-fun (eshell-expand-multiple-dots filename) args))"
   (while (string-match "\\(?:^\\|/\\)\\.\\.\\(\\.+\\)\\(?:$\\|/\\)" path)
     (let* ((extra-dots (match-string 1 path))
 	   (len (length extra-dots))
@@ -351,7 +353,7 @@ in the minibuffer:
 
 (defun eshell/cd (&rest args)           ; all but first ignored
   "Alias to extend the behavior of `cd'."
-  (setq args (eshell-flatten-list args))
+  (setq args (flatten-tree args))
   (let ((path (car args))
 	(subpath (car (cdr args)))
 	(case-fold-search (eshell-under-windows-p))
@@ -407,6 +409,7 @@ in the minibuffer:
 	nil))))
 
 (put 'eshell/cd 'eshell-no-numeric-conversions t)
+(put 'eshell/cd 'eshell-filename-arguments t)
 
 (defun eshell-add-to-dir-ring (path)
   "Add PATH to the last-dir-ring, if applicable."
@@ -470,6 +473,7 @@ in the minibuffer:
   nil)
 
 (put 'eshell/pushd 'eshell-no-numeric-conversions t)
+(put 'eshell/pushd 'eshell-filename-arguments t)
 
 ;;; popd [+n]
 (defun eshell/popd (&rest args)
@@ -500,6 +504,7 @@ in the minibuffer:
   nil)
 
 (put 'eshell/popd 'eshell-no-numeric-conversions t)
+(put 'eshell/pop 'eshell-filename-arguments t)
 
 (defun eshell/dirs (&optional if-verbose)
   "Implementation of dirs in Lisp."
@@ -547,15 +552,16 @@ in the minibuffer:
 
 (defun eshell-write-last-dir-ring ()
   "Write the buffer's `eshell-last-dir-ring' to a history file."
-  (let ((file eshell-last-dir-ring-file-name))
+  (let* ((file eshell-last-dir-ring-file-name)
+	 (resolved-file (if (stringp file) (file-truename file))))
     (cond
      ((or (null file)
 	  (equal file "")
 	  (null eshell-last-dir-ring)
 	  (ring-empty-p eshell-last-dir-ring))
       nil)
-     ((not (file-writable-p file))
-      (message "Cannot write last-dir-ring file %s" file))
+     ((not (file-writable-p resolved-file))
+      (message "Cannot write last-dir-ring file %s" resolved-file))
      (t
       (let* ((ring eshell-last-dir-ring)
 	     (index (ring-length ring)))
@@ -565,7 +571,7 @@ in the minibuffer:
 	    (insert (ring-ref ring index) ?\n))
 	  (insert (eshell/pwd) ?\n)
 	  (eshell-with-private-file-modes
-	   (write-region (point-min) (point-max) file nil
+	   (write-region (point-min) (point-max) resolved-file nil
 			 'no-message))))))))
 
 (provide 'em-dirs)

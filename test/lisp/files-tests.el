@@ -1,6 +1,6 @@
 ;;; files-tests.el --- tests for files.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -157,6 +157,9 @@ form.")
 (ert-deftest files-test-bug-18141 ()
   "Test for https://debbugs.gnu.org/18141 ."
   (skip-unless (executable-find "gzip"))
+  ;; If called interactively, environment variable
+  ;; $EMACS_TEST_DIRECTORY does not exist.
+  (skip-unless (file-exists-p files-test-bug-18141-file))
   (let ((tempfile (make-temp-file "files-test-bug-18141" nil ".gz")))
     (unwind-protect
 	(progn
@@ -348,6 +351,12 @@ be invoked with the right arguments."
 
 (cl-defmacro files-tests--with-temp-non-special
     ((name non-special-name &optional dir-flag) &rest body)
+  "Run tests with quoted file name.
+NAME is the symbol which contains the name of a created temporary
+file.  NON-SPECIAL-NAME is another symbol, which contains the
+temporary file name with quoted file name syntax.  If DIR-FLAG is
+non-nil, a temporary directory is created instead.
+After evaluating BODY, the temporary file or directory is deleted."
   (declare (indent 1) (debug ((symbolp symbolp &optional form) body)))
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
@@ -358,64 +367,183 @@ be invoked with the right arguments."
          (progn ,@body)
        (when (file-exists-p ,name)
          (if ,dir-flag (delete-directory ,name t)
-           (delete-file ,name))))))
+           (delete-file ,name)))
+       (when (file-exists-p ,non-special-name)
+         (if ,dir-flag (delete-directory ,non-special-name t)
+           (delete-file ,non-special-name))))))
+
+(defconst files-tests--special-file-name-extension ".special"
+  "Trailing string for test file name handler.")
+
+(defconst files-tests--special-file-name-regexp
+  (concat (regexp-quote files-tests--special-file-name-extension) "\\'")
+  "Regular expression for test file name handler.")
+
+(defun files-tests--special-file-name-handler (operation &rest args)
+  "File name handler for files with extension \".special\"."
+  (let ((arg args)
+        ;; Avoid cyclic call.
+        (file-name-handler-alist
+         (delete
+          (rassoc
+           'files-tests--special-file-name-handler file-name-handler-alist)
+          file-name-handler-alist)))
+    ;; Remove trailing "\\.special\\'" from arguments, if they are not quoted.
+    (while arg
+      (when (and (stringp (car arg))
+                 (not (file-name-quoted-p (car arg)))
+                 (string-match files-tests--special-file-name-regexp (car arg)))
+        (setcar arg (replace-match "" nil nil (car arg))))
+      (setq arg (cdr arg)))
+    ;; Call it.
+    (apply operation args)))
+
+(cl-defmacro files-tests--with-temp-non-special-and-file-name-handler
+    ((name non-special-name &optional dir-flag) &rest body)
+  "Run tests with quoted file name, see `files-tests--with-temp-non-special'.
+Both file names in NAME and NON-SPECIAL-NAME have the extension
+\".special\".  The created temporary file or directory does not have
+that extension.
+A file name handler is added which is activated for files with
+that extension.  It simply removes the extension from file names.
+It is expected, that this file name handler works only for
+unquoted file names."
+  (declare (indent 1) (debug ((symbolp symbolp &optional form) body)))
+  (cl-check-type name symbol)
+  (cl-check-type non-special-name symbol)
+  `(let* ((temporary-file-directory (file-truename temporary-file-directory))
+          (file-name-handler-alist
+           `((,files-tests--special-file-name-regexp
+              . files-tests--special-file-name-handler)
+             . ,file-name-handler-alist))
+           (,name (concat
+                  (make-temp-file "files-tests" ,dir-flag)
+                  files-tests--special-file-name-extension))
+           (,non-special-name (file-name-quote ,name)))
+     (unwind-protect
+         (progn ,@body)
+       (when (file-exists-p ,name)
+         (if ,dir-flag (delete-directory ,name t)
+           (delete-file ,name)))
+       (when (file-exists-p ,non-special-name)
+         (if ,dir-flag (delete-directory ,non-special-name t)
+           (delete-file ,non-special-name))))))
+
+(defun files-tests--new-name (name part)
+  (let (file-name-handler-alist)
+    (concat (file-name-sans-extension name) part (file-name-extension name t))))
 
 (ert-deftest files-tests-file-name-non-special-access-file ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (null (access-file nospecial "test")))))
+    ;; Both versions of the file name work.
+    (should-not (access-file tmpfile "test"))
+    (should-not (access-file nospecial "test")))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (access-file tmpfile "test"))
+    ;; The quoted file name does not work.
+    (should-error (access-file nospecial "test"))))
 
 (ert-deftest files-tests-file-name-non-special-add-name-to-file ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (let ((newname (concat nospecial "add-name")))
+    (let ((newname (files-tests--new-name nospecial "add-name")))
+      ;; Both versions work.
+      (add-name-to-file tmpfile newname)
+      (should (file-exists-p newname))
+      (delete-file newname)
       (add-name-to-file nospecial newname)
       (should (file-exists-p newname))
-      (delete-file newname))))
+      (delete-file newname)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (let ((newname (files-tests--new-name tmpfile "add-name")))
+      ;; Using an unquoted file name works.
+      (add-name-to-file tmpfile newname)
+      (should (file-exists-p newname))
+      (delete-file newname))
+    (let ((newname (files-tests--new-name nospecial "add-name")))
+      (add-name-to-file tmpfile newname)
+      (should (file-exists-p newname))
+      (delete-file newname)
+      ;; The quoted special file name does not work.
+      (should-error (add-name-to-file nospecial newname)))))
 
 (ert-deftest files-tests-file-name-non-special-byte-compiler-base-file-name ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (equal (byte-compiler-base-file-name nospecial)
-                   (byte-compiler-base-file-name tmpfile)))))
+                   (byte-compiler-base-file-name tmpfile))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should (equal (byte-compiler-base-file-name nospecial) tmpfile))
+    (should-not (equal (byte-compiler-base-file-name tmpfile) tmpfile))))
 
 (ert-deftest files-tests-file-name-non-special-copy-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
-    (let ((newname (concat (directory-file-name nospecial-dir)
-                           "copy-dir")))
+    (let ((newname (files-tests--new-name
+                    (directory-file-name nospecial-dir) "copy-dir")))
       (copy-directory nospecial-dir newname)
       (should (file-directory-p newname))
       (delete-directory newname)
-      (should-not (file-directory-p newname)))))
+      (should-not (file-directory-p newname))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (let ((newname (files-tests--new-name
+                    (directory-file-name nospecial-dir) "copy-dir")))
+      (should-error (copy-directory nospecial-dir newname))
+      (delete-directory newname))))
 
 (ert-deftest files-tests-file-name-non-special-copy-file ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (let ((newname (concat (directory-file-name nospecial)
-                           "copy-file")))
+    (let ((newname
+           (files-tests--new-name (directory-file-name nospecial) "copy-file")))
       (copy-file nospecial newname)
       (should (file-exists-p newname))
       (delete-file newname)
-      (should-not (file-exists-p newname)))))
+      (should-not (file-exists-p newname))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (let ((newname
+           (files-tests--new-name (directory-file-name nospecial) "copy-file")))
+      (should-error (copy-file nospecial newname)))))
 
 (ert-deftest files-tests-file-name-non-special-delete-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
-    (delete-directory nospecial-dir)))
+    (delete-directory nospecial-dir))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (should-error (delete-directory nospecial-dir))))
 
 (ert-deftest files-tests-file-name-non-special-delete-file ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (delete-file nospecial)))
+    (delete-file nospecial))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (delete-file nospecial)
+    (should (file-exists-p tmpfile))))
 
 (ert-deftest files-tests-file-name-non-special-diff-latest-backup-file ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (write-region "foo" nil (make-backup-file-name tmpfile))
     (should (equal (diff-latest-backup-file nospecial)
-                   (diff-latest-backup-file tmpfile)))))
+                   (diff-latest-backup-file tmpfile)))
+    (delete-file (diff-latest-backup-file nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (write-region "foo" nil (make-backup-file-name tmpfile))
+    (should-not (equal (diff-latest-backup-file nospecial)
+                       (diff-latest-backup-file tmpfile)))
+    (delete-file (diff-latest-backup-file nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-directory-file-name ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (should (equal (directory-file-name nospecial-dir)
-                   (file-name-quote (directory-file-name tmpdir))))))
+                   (file-name-quote (directory-file-name tmpdir)))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (should-not (equal (directory-file-name nospecial-dir)
+                       (file-name-quote (directory-file-name tmpdir))))))
 
 (ert-deftest files-tests-file-name-non-special-directory-files ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (should (equal (directory-files nospecial-dir)
-                   (directory-files tmpdir)))))
+                   (directory-files tmpdir))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (should-error (directory-files nospecial-dir))))
 
 (defun files-tests-file-attributes-equal (attr1 attr2)
   ;; Element 4 is access time, which may be changed by the act of
@@ -433,7 +561,10 @@ be invoked with the right arguments."
              for (file2 . attr2) in (directory-files-and-attributes tmpdir)
              do
              (should (equal file1 file2))
-             (should (files-tests-file-attributes-equal attr1 attr2)))))
+             (should (files-tests-file-attributes-equal attr1 attr2))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (should-error (directory-files-and-attributes nospecial-dir))))
 
 (ert-deftest files-tests-file-name-non-special-dired-compress-handler ()
   ;; `dired-compress-file' can get confused by filenames with ":" in
@@ -444,49 +575,86 @@ be invoked with the right arguments."
     (let ((compressed (dired-compress-file nospecial)))
       (when compressed
         ;; FIXME: Should it return a still-quoted name?
-        (should (file-equal-p nospecial (dired-compress-file compressed)))))))
+        (should (file-equal-p nospecial (dired-compress-file compressed))))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (dired-compress-file nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-dired-uncache ()
+  ;; FIXME: This is not a real test.  We need cached values, and check
+  ;; whether they disappear.
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
+    (dired-uncache nospecial-dir))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
     (dired-uncache nospecial-dir)))
 
 (ert-deftest files-tests-file-name-non-special-expand-file-name ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should (equal (expand-file-name nospecial) nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (equal (expand-file-name nospecial) nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-accessible-directory-p ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
-    (should (file-accessible-directory-p nospecial-dir))))
+    (should (file-accessible-directory-p nospecial-dir)))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (should-not (file-accessible-directory-p nospecial-dir))))
 
 (ert-deftest files-tests-file-name-non-special-file-acl ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (equal (file-acl nospecial) (file-acl tmpfile)))))
+    (should (equal (file-acl nospecial) (file-acl tmpfile))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (file-acl nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-attributes ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (files-tests-file-attributes-equal
-             (file-attributes nospecial) (file-attributes tmpfile)))))
+             (file-attributes nospecial) (file-attributes tmpfile))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (file-attributes nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-directory-p ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
-    (should (file-directory-p nospecial-dir))))
+    (should (file-directory-p nospecial-dir)))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (should-not (file-directory-p nospecial-dir))))
 
 (ert-deftest files-tests-file-name-non-special-file-equal-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (file-equal-p nospecial tmpfile))
     (should (file-equal-p tmpfile nospecial))
+    (should (file-equal-p nospecial nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should (file-equal-p (file-name-unquote nospecial) tmpfile))
+    (should (file-equal-p tmpfile (file-name-unquote nospecial)))
+    ;; File `nospecial' does not exist, so it cannot be compared.
+    (should-not (file-equal-p nospecial nospecial))
+    (write-region "foo" nil nospecial)
     (should (file-equal-p nospecial nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-executable-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should-not (file-executable-p nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should-not (file-executable-p nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-exists-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (file-exists-p nospecial))))
+    (should (file-exists-p tmpfile))
+    (should (file-exists-p nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should (file-exists-p tmpfile))
+    (should-not (file-exists-p nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-in-directory-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (let ((nospecial-tempdir (file-name-quote temporary-file-directory)))
+      (should (file-in-directory-p nospecial temporary-file-directory))
+      (should (file-in-directory-p tmpfile nospecial-tempdir))
+      (should (file-in-directory-p nospecial nospecial-tempdir))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (let ((nospecial-tempdir (file-name-quote temporary-file-directory)))
       (should (file-in-directory-p nospecial temporary-file-directory))
       (should (file-in-directory-p tmpfile nospecial-tempdir))
@@ -494,66 +662,127 @@ be invoked with the right arguments."
 
 (ert-deftest files-tests-file-name-non-special-file-local-copy ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should-not (file-local-copy nospecial))) ; Already local.
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should-not (file-local-copy nospecial)))) ; Already local.
 
 (ert-deftest files-tests-file-name-non-special-file-modes ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (equal (file-modes nospecial) (file-modes tmpfile)))))
+    (should (equal (file-modes nospecial) (file-modes tmpfile))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (equal (file-modes nospecial) (file-modes tmpfile)))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-all-completions ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (let ((nospecial-tempdir (file-name-quote temporary-file-directory))
-          (tmpdir temporary-file-directory))
-      (should (equal (file-name-all-completions nospecial nospecial-tempdir)
-                     (file-name-all-completions tmpfile tmpdir)))
-      (should (equal (file-name-all-completions tmpfile nospecial-tempdir)
-                     (file-name-all-completions tmpfile tmpdir)))
-      (should (equal (file-name-all-completions nospecial tmpdir)
-                     (file-name-all-completions tmpfile tmpdir))))))
+          (tmpdir temporary-file-directory)
+          (file (file-name-nondirectory tmpfile))
+          (nospecial-file (file-name-nondirectory nospecial)))
+      (should (string-equal file nospecial-file))
+      (should (equal (file-name-all-completions
+                      nospecial-file nospecial-tempdir)
+                     (file-name-all-completions file tmpdir)))
+      (should (equal (file-name-all-completions file nospecial-tempdir)
+                     (file-name-all-completions file tmpdir)))
+      (should (equal (file-name-all-completions nospecial-file tmpdir)
+                     (file-name-all-completions file tmpdir)))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (let ((nospecial-tempdir (file-name-quote temporary-file-directory))
+          (tmpdir temporary-file-directory)
+          (file (file-name-nondirectory tmpfile))
+          (nospecial-file (file-name-nondirectory nospecial)))
+      (should-not (string-equal file nospecial-file))
+      (should-not (equal (file-name-all-completions
+                          nospecial-file nospecial-tempdir)
+                         (file-name-all-completions file tmpdir)))
+      (should (equal (file-name-all-completions file nospecial-tempdir)
+                     (file-name-all-completions file tmpdir)))
+      (should (equal (file-name-all-completions nospecial-file tmpdir)
+                     (file-name-all-completions file tmpdir))))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-as-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (should (equal (file-name-as-directory nospecial-dir)
+                   (file-name-quote (file-name-as-directory tmpdir)))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (should-not (equal (file-name-as-directory nospecial-dir)
                    (file-name-quote (file-name-as-directory tmpdir))))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-case-insensitive-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should (equal (file-name-case-insensitive-p nospecial)
+                   (file-name-case-insensitive-p tmpfile))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (equal (file-name-case-insensitive-p nospecial)
                    (file-name-case-insensitive-p tmpfile)))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-completion ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (let ((nospecial-tempdir (file-name-quote temporary-file-directory))
-          (tmpdir temporary-file-directory))
-      (should (equal (file-name-completion nospecial nospecial-tempdir)
-                     (file-name-completion tmpfile tmpdir)))
-      (should (equal (file-name-completion tmpfile nospecial-tempdir)
-                     (file-name-completion tmpfile tmpdir)))
-      (should (equal (file-name-completion nospecial tmpdir)
-                     (file-name-completion tmpfile tmpdir))))))
+          (tmpdir temporary-file-directory)
+          (file (file-name-nondirectory tmpfile))
+          (nospecial-file (file-name-nondirectory nospecial)))
+      (should (string-equal file nospecial-file))
+      (should (equal (file-name-completion nospecial-file nospecial-tempdir)
+                     (file-name-completion file tmpdir)))
+      (should (equal (file-name-completion file nospecial-tempdir)
+                     (file-name-completion file tmpdir)))
+      (should (equal (file-name-completion nospecial-file tmpdir)
+                     (file-name-completion file tmpdir)))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (let ((nospecial-tempdir (file-name-quote temporary-file-directory))
+          (tmpdir temporary-file-directory)
+          (file (file-name-nondirectory tmpfile))
+          (nospecial-file (file-name-nondirectory nospecial)))
+      (should-not (string-equal file nospecial-file))
+      (should-not (equal (file-name-completion nospecial-file nospecial-tempdir)
+                         (file-name-completion file tmpdir)))
+      (should (equal (file-name-completion file nospecial-tempdir)
+                     (file-name-completion file tmpdir)))
+      (should (equal (file-name-completion nospecial-file tmpdir)
+                     (file-name-completion file tmpdir))))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-directory ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should (equal (file-name-directory nospecial)
+                   (file-name-quote temporary-file-directory))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (equal (file-name-directory nospecial)
                    (file-name-quote temporary-file-directory)))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-nondirectory ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (equal (file-name-nondirectory nospecial)
-                   (file-name-nondirectory tmpfile)))))
+                   (file-name-nondirectory tmpfile))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (equal (file-name-nondirectory nospecial)
+                       (file-name-nondirectory tmpfile)))))
 
 (ert-deftest files-tests-file-name-non-special-file-name-sans-versions ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should (equal (file-name-sans-versions nospecial) nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (equal (file-name-sans-versions nospecial) nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-newer-than-file-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should-not (file-newer-than-file-p nospecial tmpfile))
     (should-not (file-newer-than-file-p tmpfile nospecial))
+    (should-not (file-newer-than-file-p nospecial nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (file-newer-than-file-p nospecial tmpfile))
+    (should (file-newer-than-file-p tmpfile nospecial))
     (should-not (file-newer-than-file-p nospecial nospecial))))
 
-(ert-deftest files-file-name-non-special-notify-handlers ()
+(ert-deftest files-tests-file-name-non-special-notify-handlers ()
+  (skip-unless file-notify--library)
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (let ((watch (file-notify-add-watch nospecial '(change) #'ignore)))
+      (should (file-notify-valid-p watch))
+      (file-notify-rm-watch watch)
+      (should-not (file-notify-valid-p watch))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (let ((watch (file-notify-add-watch nospecial '(change) #'ignore)))
       (should (file-notify-valid-p watch))
       (file-notify-rm-watch watch)
@@ -562,45 +791,75 @@ be invoked with the right arguments."
 (ert-deftest files-tests-file-name-non-special-file-ownership-preserved-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (should (equal (file-ownership-preserved-p nospecial)
+                   (file-ownership-preserved-p tmpfile))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should (equal (file-ownership-preserved-p nospecial)
                    (file-ownership-preserved-p tmpfile)))))
 
 (ert-deftest files-tests-file-name-non-special-file-readable-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (file-readable-p nospecial))))
+    (should (file-readable-p nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (file-readable-p nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-regular-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (file-regular-p nospecial))))
+    (should (file-regular-p nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-not (file-regular-p nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-remote-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should-not (file-remote-p nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should-not (file-remote-p nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-selinux-context ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (equal (file-selinux-context nospecial)
-                   (file-selinux-context tmpfile)))))
+    (unless (equal (file-selinux-context tmpfile) '(nil nil nil nil))
+      (should (equal (file-selinux-context nospecial)
+                     (file-selinux-context tmpfile)))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (unless (equal (file-selinux-context tmpfile) '(nil nil nil nil))
+      (should-not (equal (file-selinux-context nospecial)
+                         (file-selinux-context tmpfile))))))
 
 (ert-deftest files-tests-file-name-non-special-file-symlink-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should-not (file-symlink-p nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should-not (file-symlink-p nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-file-truename ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should (equal nospecial (file-truename nospecial))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (equal nospecial (file-truename nospecial)))))
 
 (ert-deftest files-tests-file-name-non-special-file-writable-p ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should (file-writable-p nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (file-writable-p nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-find-backup-file-name ()
-  (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should (equal (find-backup-file-name nospecial)
-                   (mapcar #'file-name-quote
-                           (find-backup-file-name tmpfile))))))
+  (let (version-control delete-old-versions
+	(kept-old-versions (default-toplevel-value 'kept-old-versions))
+	(kept-new-versions (default-toplevel-value 'kept-new-versions)))
+    (files-tests--with-temp-non-special (tmpfile nospecial)
+      (should (equal (find-backup-file-name nospecial)
+                     (mapcar #'file-name-quote
+                             (find-backup-file-name tmpfile)))))
+    (files-tests--with-temp-non-special-and-file-name-handler
+        (tmpfile nospecial)
+      (should-not (equal (find-backup-file-name nospecial)
+                         (mapcar #'file-name-quote
+                                 (find-backup-file-name tmpfile)))))))
 
 (ert-deftest files-tests-file-name-non-special-get-file-buffer ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should-not (get-file-buffer nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should-not (get-file-buffer nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-insert-directory ()
@@ -610,16 +869,23 @@ be invoked with the right arguments."
                      (buffer-string))
                    (with-temp-buffer
                      (insert-directory tmpdir "")
-                     (buffer-string))))))
+                     (buffer-string)))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (should-error (with-temp-buffer (insert-directory nospecial-dir "")))))
 
 (ert-deftest files-tests-file-name-non-special-insert-file-contents ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (with-temp-buffer
       (insert-file-contents nospecial)
-      (should (zerop (buffer-size))))))
+      (should (zerop (buffer-size)))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-error (with-temp-buffer (insert-file-contents nospecial)))))
 
 (ert-deftest files-tests-file-name-non-special-load ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should (load nospecial nil t)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (load nospecial nil t))))
 
 (ert-deftest files-tests-file-name-non-special-make-auto-save-file-name ()
@@ -630,21 +896,37 @@ be invoked with the right arguments."
                        (kill-buffer))
                      (prog2 (set-buffer (find-file-noselect tmpfile))
                          (make-auto-save-file-name)
-                       (kill-buffer)))))))
+                       (kill-buffer))))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (save-current-buffer
+      (should-not (equal (prog2 (set-buffer (find-file-noselect nospecial))
+                             (make-auto-save-file-name)
+                           (kill-buffer))
+                         (prog2 (set-buffer (find-file-noselect tmpfile))
+                             (make-auto-save-file-name)
+                           (kill-buffer)))))))
 
 (ert-deftest files-tests-file-name-non-special-make-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (let ((default-directory nospecial-dir))
       (make-directory "dir")
       (should (file-directory-p "dir"))
-      (delete-directory "dir"))))
+      (delete-directory "dir")))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (let ((default-directory nospecial-dir))
+      (should-error (make-directory "dir")))))
 
 (ert-deftest files-tests-file-name-non-special-make-directory-internal ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (let ((default-directory nospecial-dir))
       (make-directory-internal "dir")
       (should (file-directory-p "dir"))
-      (delete-directory "dir"))))
+      (delete-directory "dir")))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (let ((default-directory nospecial-dir))
+      (should-error (make-directory-internal "dir")))))
 
 (ert-deftest files-tests-file-name-non-special-make-nearby-temp-file ()
   (let* ((default-directory (file-name-quote temporary-file-directory))
@@ -654,7 +936,7 @@ be invoked with the right arguments."
 
 (ert-deftest files-tests-file-name-non-special-make-symbolic-link ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
-    (files-tests--with-temp-non-special (tmpfile _nospecial)
+    (files-tests--with-temp-non-special (tmpfile nospecial)
       (let* ((linkname (expand-file-name "link" tmpdir))
              (may-symlink (ignore-errors (make-symbolic-link tmpfile linkname)
                                          t)))
@@ -664,38 +946,74 @@ be invoked with the right arguments."
           (let ((linkname (expand-file-name "link" nospecial-dir)))
             (make-symbolic-link tmpfile linkname)
             (should (file-symlink-p linkname))
-            (delete-file linkname)))))))
+            (delete-file linkname))))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (files-tests--with-temp-non-special-and-file-name-handler
+        (tmpfile nospecial)
+      (let* ((linkname (expand-file-name "link" tmpdir))
+             (may-symlink (ignore-errors (make-symbolic-link tmpfile linkname)
+                                         t)))
+        (when may-symlink
+          (should (file-symlink-p linkname))
+          (delete-file linkname)
+          (let ((linkname (expand-file-name "link" nospecial-dir)))
+            (should-error (make-symbolic-link tmpfile linkname))))))))
 
 ;; See `files-tests--file-name-non-special--subprocess'.
 ;; (ert-deftest files-tests-file-name-non-special-process-file ())
 
 (ert-deftest files-tests-file-name-non-special-rename-file ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (rename-file nospecial (concat nospecial "x"))
-    (rename-file (concat nospecial "x") nospecial)
-    (rename-file tmpfile (concat nospecial "x"))
-    (rename-file (concat nospecial "x") nospecial)
-    (rename-file nospecial (concat tmpfile "x"))
-    (rename-file (concat nospecial "x") nospecial)))
+    (rename-file nospecial (files-tests--new-name nospecial "x"))
+    (rename-file (files-tests--new-name nospecial "x") nospecial)
+    (rename-file tmpfile (files-tests--new-name nospecial "x"))
+    (rename-file (files-tests--new-name nospecial "x") nospecial)
+    (rename-file nospecial (files-tests--new-name tmpfile "x"))
+    (rename-file (files-tests--new-name nospecial "x") nospecial))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-error (rename-file nospecial (files-tests--new-name nospecial "x")))
+    (rename-file tmpfile (files-tests--new-name nospecial "x"))
+    (rename-file (files-tests--new-name nospecial "x") nospecial)
+    (rename-file nospecial (files-tests--new-name tmpfile "x"))
+    (should-error (rename-file (files-tests--new-name nospecial "x") nospecial))
+    (delete-file (files-tests--new-name tmpfile "x"))
+    (delete-file (files-tests--new-name nospecial "x"))))
 
 (ert-deftest files-tests-file-name-non-special-set-file-acl ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (set-file-acl nospecial (file-acl nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (set-file-acl nospecial (file-acl nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-set-file-modes ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (set-file-modes nospecial (file-modes nospecial))))
+    (set-file-modes nospecial (file-modes nospecial)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-error (set-file-modes nospecial (file-modes nospecial)))))
 
 (ert-deftest files-tests-file-name-non-special-set-file-selinux-context ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (set-file-selinux-context nospecial (file-selinux-context nospecial))))
+    (unless (equal (file-selinux-context tmpfile) '(nil nil nil nil))
+      (set-file-selinux-context nospecial (file-selinux-context nospecial))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (unless (equal (file-selinux-context tmpfile) '(nil nil nil nil))
+      (should-error
+       (set-file-selinux-context nospecial (file-selinux-context nospecial))))))
 
 (ert-deftest files-tests-file-name-non-special-set-file-times ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (set-file-times nospecial)))
+    (set-file-times nospecial))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (should-error (set-file-times nospecial))))
 
 (ert-deftest files-tests-file-name-non-special-set-visited-file-modtime ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (save-current-buffer
+      (set-buffer (find-file-noselect nospecial))
+      (set-visited-file-modtime)
+      (kill-buffer)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (save-current-buffer
       (set-buffer (find-file-noselect nospecial))
       (set-visited-file-modtime)
@@ -710,7 +1028,16 @@ be invoked with the right arguments."
                                " --version")
                        (current-buffer))
         (goto-char (point-min))
-        (should (search-forward emacs-version nil t))))))
+        (should (search-forward emacs-version nil t)))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (with-temp-buffer
+      (let ((default-directory nospecial-dir))
+        (should-error
+         (shell-command (concat (shell-quote-argument
+                                 (concat invocation-directory invocation-name))
+                                " --version")
+                        (current-buffer)))))))
 
 (ert-deftest files-tests-file-name-non-special-start-file-process ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
@@ -725,26 +1052,50 @@ be invoked with the right arguments."
           (should (search-forward emacs-version nil t))
           ;; Don't stop the test run with a query, as the subprocess
           ;; may or may not be dead by the time we reach here.
-          (set-process-query-on-exit-flag proc nil))))))
+          (set-process-query-on-exit-flag proc nil)))))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (with-temp-buffer
+      (let ((default-directory nospecial-dir))
+        (should-error (start-file-process
+                       "emacs" (current-buffer)
+                       (concat invocation-directory invocation-name)
+                       "--version"))))))
 
 (ert-deftest files-tests-file-name-non-special-substitute-in-file-name ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (let ((process-environment (cons "FOO=foo" process-environment))
-          (nospecial-foo (concat nospecial "$FOO")))
+          (nospecial-foo (files-tests--new-name nospecial "$FOO")))
+      ;; The "/:" prevents substitution.
+      (equal (substitute-in-file-name nospecial-foo) nospecial-foo)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (let ((process-environment (cons "FOO=foo" process-environment))
+          (nospecial-foo (files-tests--new-name nospecial "$FOO")))
       ;; The "/:" prevents substitution.
       (equal (substitute-in-file-name nospecial-foo) nospecial-foo))))
+
 (ert-deftest files-tests-file-name-non-special-temporary-file-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
+    (let ((default-directory nospecial-dir))
+      (equal (temporary-file-directory) temporary-file-directory)))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
     (let ((default-directory nospecial-dir))
       (equal (temporary-file-directory) temporary-file-directory))))
 
 (ert-deftest files-tests-file-name-non-special-unhandled-file-name-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (equal (unhandled-file-name-directory nospecial-dir)
+           (file-name-as-directory tmpdir)))
+  (files-tests--with-temp-non-special-and-file-name-handler
+      (tmpdir nospecial-dir t)
+    (equal (unhandled-file-name-directory nospecial-dir)
            (file-name-as-directory tmpdir))))
 
 (ert-deftest files-tests-file-name-non-special-vc-registered ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (should (equal (vc-registered nospecial) (vc-registered tmpfile))))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (should (equal (vc-registered nospecial) (vc-registered tmpfile)))))
 
 ;; See test `files-tests--file-name-non-special--buffers'.
@@ -753,7 +1104,20 @@ be invoked with the right arguments."
 (ert-deftest files-tests-file-name-non-special-write-region ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
     (with-temp-buffer
+      (write-region nil nil nospecial nil :visit)))
+  (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (with-temp-buffer
       (write-region nil nil nospecial nil :visit))))
+
+(ert-deftest files-tests-file-name-non-special-make-process ()
+  "Check that the ‘:file-handler’ argument of ‘make-process’
+works as expected if the default directory is quoted."
+  (let ((default-directory (file-name-quote invocation-directory))
+        (program (file-name-quote
+                  (expand-file-name invocation-name invocation-directory))))
+    (should (processp (make-process :name "name"
+                                    :command (list program "--version")
+                                    :file-handler t)))))
 
 (ert-deftest files-tests--insert-directory-wildcard-in-dir-p ()
   (let ((alist (list (cons "/home/user/*/.txt" (cons "/home/user/" "*/.txt"))
@@ -803,7 +1167,8 @@ consider the buffer saved, without prompting for a file
 name (Bug#28412)."
   (let ((read-file-name-function
          (lambda (&rest _ignore)
-           (error "Prompting for file name"))))
+           (error "Prompting for file name")))
+        require-final-newline)
     ;; With contents function, and no file.
     (with-temp-buffer
       (setq write-contents-functions (lambda () t))

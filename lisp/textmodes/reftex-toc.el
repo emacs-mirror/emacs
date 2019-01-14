@@ -1,6 +1,6 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
 
-;; Copyright (C) 1997-2000, 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -1096,7 +1096,7 @@ always show the current section in connection with the option
       (when (eq reftex-auto-recenter-toc 'frame)
         (unless reftex-toc-auto-recenter-timer
           (reftex-toggle-auto-toc-recenter))
-        (add-hook 'delete-frame-hook 'reftex-toc-delete-frame-hook)))))
+        (add-hook 'delete-frame-functions 'reftex-toc-delete-frame-hook)))))
 
 (defun reftex-toc-delete-frame-hook (frame)
   (if (and reftex-toc-auto-recenter-timer

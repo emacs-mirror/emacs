@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2019 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -78,7 +78,7 @@
 ;;
 ;; Not bound by default in comint-mode (some are in shell mode)
 ;; comint-run				Run a program under comint-mode
-;; send-invisible			Read a line w/o echo, and send to proc
+;; comint-send-invisible		Read a line w/o echo, and send to proc
 ;; comint-dynamic-complete-filename	Complete filename at point.
 ;; comint-dynamic-list-filename-completions List completions in help buffer.
 ;; comint-replace-by-expanded-filename	Expand and complete filename at point;
@@ -263,6 +263,8 @@ See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local."
 		 (const this))
   :group 'comint)
 
+(defvaralias 'comint-scroll-to-bottom-on-output 'comint-move-point-for-output)
+
 (defcustom comint-move-point-for-output nil
   "Controls whether interpreter output moves point to the end of the output.
 If nil, then output never moves point to the output.
@@ -294,8 +296,6 @@ end of the current logical (not visual) line after insertion."
   :type '(radio (const :tag "Stay after input" after-input)
                 (const :tag "Move to end of line" end-of-line))
   :group 'comint)
-
-(defvaralias 'comint-scroll-to-bottom-on-output 'comint-move-point-for-output)
 
 (defcustom comint-scroll-show-maximum-output t
   "Controls how to scroll due to interpreter output.
@@ -360,11 +360,12 @@ This variable is buffer-local."
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
       "[sudo]" "Repeat" "Bad" "Retype")
     t)
-   " +\\)"
+   ;; Allow for user name to precede password equivalent (Bug#31075).
+   " +.*\\)"
    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
-   "\\(?: [[:alpha:]]+ .+\\)?[\\s  ]*[:：៖][\\s  ]*\\'")
+   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :version "27.1"
@@ -429,9 +430,6 @@ See `comint-send-input'."
   :type 'boolean
   :group 'comint)
 
-(define-obsolete-variable-alias 'comint-use-prompt-regexp-instead-of-fields
-  'comint-use-prompt-regexp "22.1")
-
 ;; Note: If it is decided to purge comint-prompt-regexp from the source
 ;; entirely, searching for uses of this variable will help to identify
 ;; places that need attention.
@@ -454,8 +452,8 @@ This is run before the process is cranked up."
   "Hook run each time a process is exec'd by `comint-exec'.
 This is called after the process is cranked up.  It is useful for things that
 must be done each time a process is executed in a Comint mode buffer (e.g.,
-`(process-kill-without-query)').  In contrast, the `comint-mode-hook' is only
-executed once when the buffer is created."
+`set-process-query-on-exit-flag').  In contrast, `comint-mode-hook' is only
+executed once, when the buffer is created."
   :type 'hook
   :group 'comint)
 
@@ -635,7 +633,7 @@ Input ring history expansion can be achieved with the commands
 Input ring expansion is controlled by the variable `comint-input-autoexpand',
 and addition is controlled by the variable `comint-input-ignoredups'.
 
-Commands with no default key bindings include `send-invisible',
+Commands with no default key bindings include `comint-send-invisible',
 `completion-at-point', `comint-dynamic-list-filename-completions', and
 `comint-magic-space'.
 
@@ -1686,11 +1684,13 @@ characters), and are not considered to be delimiters."
 (defun comint-arguments (string nth mth)
   "Return from STRING the NTH to MTH arguments.
 NTH and/or MTH can be nil, which means the last argument.
-Returned arguments are separated by single spaces.
-We assume whitespace separates arguments, except within quotes
-and except for a space or tab that immediately follows a backslash.
-Also, a run of one or more of a single character
-in `comint-delimiter-argument-list' is a separate argument.
+NTH and MTH can be negative to count from the end; -1 means
+the last argument.
+Returned arguments are separated by single spaces.  We assume
+whitespace separates arguments, except within quotes and except
+for a space or tab that immediately follows a backslash.  Also, a
+run of one or more of a single character in
+`comint-delimiter-argument-list' is a separate argument.
 Argument 0 is the command name."
   ;; The first line handles ordinary characters and backslash-sequences
   ;; (except with w32 msdos-like shells, where backslashes are valid).
@@ -1712,7 +1712,7 @@ Argument 0 is the command name."
 	 (count 0)
 	 beg str quotes)
     ;; Build a list of all the args until we have as many as we want.
-    (while (and (or (null mth) (<= count mth))
+    (while (and (or (null mth) (< mth 0) (<= count mth))
 		(string-match argpart string pos))
       ;; Apply the `literal' text property to backslash-escaped
       ;; characters, so that `comint-delim-arg' won't break them up.
@@ -1739,8 +1739,14 @@ Argument 0 is the command name."
 	      args (if quotes (cons str args)
 		     (nconc (comint-delim-arg str) args))))
     (setq count (length args))
-    (let ((n (or nth (1- count)))
-	  (m (if mth (1- (- count mth)) 0)))
+    (let ((n (cond
+              ((null nth) (1- count))
+              ((>= nth 0) nth)
+              (t          (+ count nth))))
+          (m (cond
+              ((null mth) 0)
+              ((>= mth 0) (1- (- count mth)))
+              (t          (1- (- mth))))))
       (mapconcat
        (function (lambda (a) a)) (nthcdr n (nreverse (nthcdr m args))) " "))))
 
@@ -2242,7 +2248,7 @@ This function could be on `comint-output-filter-functions' or bound to a key."
 	(error nil))
       (while (re-search-forward "\r+$" pmark t)
 	(replace-match "" t t)))))
-(defalias 'shell-strip-ctrl-m 'comint-strip-ctrl-m)
+(define-obsolete-function-alias 'shell-strip-ctrl-m #'comint-strip-ctrl-m "27.1")
 
 (defun comint-show-maximum-output ()
   "Put the end of the buffer at the bottom of the window."
@@ -2258,14 +2264,16 @@ current line, if point is on an output field.
 If `comint-use-prompt-regexp' is non-nil, then return
 the current line with any initial string matching the regexp
 `comint-prompt-regexp' removed."
-  (let (bof)
+  (let (field-prop bof)
     (if (and (not comint-use-prompt-regexp)
              ;; Make sure we're in an input rather than output field.
-             (null (get-char-property (setq bof (field-beginning)) 'field)))
+             (not (setq field-prop (get-char-property
+                                    (setq bof (field-beginning)) 'field))))
 	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point)
-				      (if comint-use-prompt-regexp
+                                      (if (or comint-use-prompt-regexp
+                                              (eq field-prop 'output))
 					  (line-end-position)
 					(field-end))))))
 
@@ -2350,9 +2358,9 @@ a buffer local variable."
 
 ;; These three functions are for entering text you don't want echoed or
 ;; saved -- typically passwords to ftp, telnet, or somesuch.
-;; Just enter m-x send-invisible and type in your line.
+;; Just enter m-x comint-send-invisible and type in your line.
 
-(defun send-invisible (&optional prompt)
+(defun comint-send-invisible (&optional prompt)
   "Read a string without echoing.
 Then send it to the process running in the current buffer.
 The string is sent using `comint-input-sender'.
@@ -2375,18 +2383,19 @@ Security bug: your string can still be temporarily recovered with
 	    (message "Warning: text will be echoed")))
       (error "Buffer %s has no process" (current-buffer)))))
 
+(define-obsolete-function-alias 'send-invisible #'comint-send-invisible "27.1")
+
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
-This function uses `send-invisible' to read and send a password to the buffer's
-process if STRING contains a password prompt defined by
-`comint-password-prompt-regexp'.
+Looks for a match to `comint-password-prompt-regexp' in order
+to detect the need to (prompt and) send a password.
 
 This function could be in the list `comint-output-filter-functions'."
   (when (let ((case-fold-search t))
 	  (string-match comint-password-prompt-regexp string))
     (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
       (setq string (replace-match "" t t string)))
-    (send-invisible string)))
+    (comint-send-invisible string)))
 
 ;; Low-level process communication
 
@@ -2653,8 +2662,17 @@ text matching `comint-prompt-regexp'."
 (defvar-local comint-insert-previous-argument-last-start-pos nil)
 (defvar-local comint-insert-previous-argument-last-index nil)
 
-;; Needs fixing:
-;;  make comint-arguments understand negative indices as bash does
+(defcustom comint-insert-previous-argument-from-end nil
+  "If non-nil, `comint-insert-previous-argument' counts args from the end.
+If this variable is nil, the default, `comint-insert-previous-argument'
+counts the arguments from the beginning; if non-nil, it counts from
+the end instead.  This allows to emulate the behavior of `ESC-NUM ESC-.'
+in both Bash and zsh: in Bash, `number' counts from the
+beginning (variable is nil), while in zsh, it counts from the end."
+  :type 'boolean
+  :group 'comint
+  :version "27.1")
+
 (defun comint-insert-previous-argument (index)
   "Insert the INDEXth argument from the previous Comint command-line at point.
 Spaces are added at beginning and/or end of the inserted string if
@@ -2662,8 +2680,9 @@ necessary to ensure that it's separated from adjacent arguments.
 Interactively, if no prefix argument is given, the last argument is inserted.
 Repeated interactive invocations will cycle through the same argument
 from progressively earlier commands (using the value of INDEX specified
-with the first command).
-This command is like `M-.' in bash."
+with the first command).  Values of INDEX < 0 count from the end, so
+INDEX = -1 is the last argument.  This command is like `M-.' in
+Bash and zsh."
   (interactive "P")
   (unless (null index)
     (setq index (prefix-numeric-value index)))
@@ -2673,6 +2692,9 @@ This command is like `M-.' in bash."
 	 (setq index comint-insert-previous-argument-last-index))
 	(t
 	 ;; This is a non-repeat invocation, so initialize state.
+         (when (and index
+                    comint-insert-previous-argument-from-end)
+           (setq index (- index)))
 	 (setq comint-input-ring-index nil)
 	 (setq comint-insert-previous-argument-last-index index)
 	 (when (null comint-insert-previous-argument-last-start-pos)
@@ -2688,9 +2710,6 @@ This command is like `M-.' in bash."
   (set-marker comint-insert-previous-argument-last-start-pos (point))
   ;; Insert the argument.
   (let ((input-string (comint-previous-input-string 0)))
-    (when (string-match "[ \t\n]*&" input-string)
-      ;; strip terminating '&'
-      (setq input-string (substring input-string 0 (match-beginning 0))))
     (insert (comint-arguments input-string index index)))
   ;; Make next invocation return arg from previous input
   (setq comint-input-ring-index (1+ (or comint-input-ring-index 0)))

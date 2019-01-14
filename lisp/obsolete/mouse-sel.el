@@ -1,6 +1,6 @@
 ;;; mouse-sel.el --- multi-click selection support
 
-;; Copyright (C) 1993-1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse
@@ -135,9 +135,6 @@
 (require 'mouse)
 (require 'thingatpt)
 
-(eval-when-compile
-  (require 'cl))
-
 ;;=== User Variables ======================================================
 
 (defgroup mouse-sel nil
@@ -197,9 +194,6 @@ If nil, point will always be placed at the beginning of the region."
 ;;;###autoload
 (define-minor-mode mouse-sel-mode
   "Toggle Mouse Sel mode.
-With a prefix argument ARG, enable Mouse Sel mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Mouse Sel mode is a global minor mode.  When enabled, mouse
 selection is enhanced in various ways:

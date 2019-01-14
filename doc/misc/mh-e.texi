@@ -25,7 +25,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001--2003, 2005--2018 Free Software
+Copyright @copyright{} 1995, 2001--2003, 2005--2019 Free Software
 Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
@@ -847,9 +847,9 @@ sending the original message, like this:
 To:
 cc:
 Subject: Re: Test
-In-reply-to: <31054.1142621351@@stop.mail-abuse.org>
+In-Reply-To: <31054.1142621351@@stop.mail-abuse.org>
 References: <31054.1142621351@@stop.mail-abuse.org>
-Comments: In-reply-to Bill Wohler <wohler@@stop.mail-abuse.org>
+Comments: In-Reply-To Bill Wohler <wohler@@stop.mail-abuse.org>
    message dated "Fri, 17 Mar 2006 10:49:11 -0800."
 X-Mailer: MH-E 8.1; nmh 1.1; GNU Emacs 23.1
 --------
@@ -2588,13 +2588,6 @@ seem to do multi-column tables which makes output much cleaner. It
 centers the output and wraps long lines more than most. It does not
 always handle special characters like @samp{&reg;} or @samp{&ndash;}.
 It does not download images.
-@c -------------------------
-@item @samp{nil}
-This choice obviously requires an external browser. With this setting,
-HTML messages have a button for the body part which you can view with
-@kbd{K v} (@code{mh-folder-toggle-mime-part}). Rendering of special
-characters and handling of remote images depends on your choice of
-browser.
 @c -------------------------
 @item @samp{shr}
 @cindex @samp{shr}

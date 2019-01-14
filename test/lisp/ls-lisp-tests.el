@@ -1,6 +1,6 @@
 ;;; ls-lisp-tests.el --- tests for ls-lisp.el  -*- lexical-binding: t-*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 ;; Keywords:
@@ -26,6 +26,7 @@
 ;;; Code:
 (require 'ert)
 (require 'ls-lisp)
+(require 'dired)
 
 (ert-deftest ls-lisp-unload ()
   "Test for https://debbugs.gnu.org/xxxxx ."

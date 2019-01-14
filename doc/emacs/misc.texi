@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -132,7 +132,8 @@ sessions.
 @kindex SPC @r{(Gnus Group mode)}
 @findex gnus-group-read-group
 @item @key{SPC}
-Switch to the summary buffer for the group on the current line.
+Switch to the summary buffer for the group on the current line
+(@code{gnus-group-read-group}).
 
 @kindex l @r{(Gnus Group mode)}
 @kindex A s @r{(Gnus Group mode)}
@@ -140,7 +141,8 @@ Switch to the summary buffer for the group on the current line.
 @item l
 @itemx A s
 In the group buffer, list only the groups to which you subscribe and
-which contain unread articles (this is the default listing).
+which contain unread articles (@code{gnus-group-list-groups}; this is
+the default listing).
 
 @kindex L @r{(Gnus Group mode)}
 @kindex A u @r{(Gnus Group mode)}
@@ -148,24 +150,25 @@ which contain unread articles (this is the default listing).
 @item L
 @itemx A u
 List all subscribed and unsubscribed groups, but not killed or zombie
-groups.
+groups (@code{gnus-group-list-all-groups}).
 
 @kindex A k @r{(Gnus Group mode)}
 @findex gnus-group-list-killed
 @item A k
-List killed groups.
+List killed groups (@code{gnus-group-list-killed}).
 
 @kindex A z @r{(Gnus Group mode)}
 @findex gnus-group-list-zombies
 @item A z
-List zombie groups.
+List zombie groups (@code{gnus-group-list-zombies}).
 
 @kindex u @r{(Gnus Group mode)}
 @findex gnus-group-unsubscribe-current-group
 @cindex subscribe groups
 @cindex unsubscribe groups
 @item u
-Toggle the subscription status of the group on the current line
+Toggle the subscription status of the group
+(@code{gnus-group-unsubscribe-current-group}) on the current line
 (i.e., turn a subscribed group into an unsubscribed group, or vice
 versa).  Invoking this on a killed or zombie group turns it into an
 unsubscribed group.
@@ -173,28 +176,31 @@ unsubscribed group.
 @kindex C-k @r{(Gnus Group mode)}
 @findex gnus-group-kill-group
 @item C-k
-Kill the group on the current line.  Killed groups are not recorded in
-the @file{.newsrc} file, and they are not shown in the @kbd{l} or
-@kbd{L} listings.
+Kill the group on the current line (@code{gnus-group-kill-group}).
+Killed groups are not recorded in the @file{.newsrc} file, and they
+are not shown in the @kbd{l} or @kbd{L} listings.
 
 @kindex DEL @r{(Gnus Group mode)}
 @item @key{DEL}
-Move point to the previous group containing unread articles.
+Move point to the previous group containing unread articles
+(@code{gnus-group-prev-unread-group}).
 
 @kindex n @r{(Gnus Group mode)}
 @findex gnus-group-next-unread-group
 @item n
-Move point to the next unread group.
+Move point to the next unread group
+(@code{gnus-group-next-unread-group}).
 
 @kindex p @r{(Gnus Group mode)}
 @findex gnus-group-prev-unread-group
 @item p
-Move point to the previous unread group.
+Move point to the previous unread group
+(@code{gnus-group-prev-unread-group}).
 
 @kindex q @r{(Gnus Group mode)}
 @findex gnus-group-exit
 @item q
-Update your Gnus settings, and quit Gnus.
+Update your Gnus settings, and quit Gnus (@code{gnus-group-exit}).
 @end table
 
 @node Gnus Summary Buffer
@@ -209,7 +215,7 @@ Update your Gnus settings, and quit Gnus.
 If there is no article selected, select the article on the current
 line and display its article buffer.  Otherwise, try scrolling the
 selected article buffer in its window; on reaching the end of the
-buffer, select the next unread article.
+buffer, select the next unread article (@code{gnus-summary-next-page}).
 
 Thus, you can read through all articles by repeatedly typing
 @key{SPC}.
@@ -217,33 +223,44 @@ Thus, you can read through all articles by repeatedly typing
 @kindex DEL @r{(Gnus Summary mode)}
 @findex gnus-summary-prev-page
 @item @key{DEL}
-Scroll the text of the article backwards.
+Scroll the text of the article backwards
+(@code{gnus-summary-prev-page}).
 
 @kindex n @r{(Gnus Summary mode)}
 @findex gnus-summary-next-unread-article
 @item n
-Select the next unread article.
+Select the next unread article
+(@code{gnus-summary-next-unread-article}).
 
 @kindex p @r{(Gnus Summary mode)}
 @findex gnus-summary-prev-unread-article
 @item p
-Select the previous unread article.
+Select the previous unread article
+(@code{gnus-summary-prev-unread-article}).
 
 @kindex s @r{(Gnus Summary mode)}
 @findex gnus-summary-isearch-article
 @item s
-Do an incremental search on the selected article buffer, as if you
-switched to the buffer and typed @kbd{C-s} (@pxref{Incremental
-Search}).
+Do an incremental search on the selected article buffer
+(@code{gnus-summary-isearch-article}), as if you switched to the
+buffer and typed @kbd{C-s} (@pxref{Incremental Search}).
 
 @kindex M-s @r{(Gnus Summary mode)}
 @findex gnus-summary-search-article-forward
 @item M-s @var{regexp} @key{RET}
-Search forward for articles containing a match for @var{regexp}.
+Search forward for articles containing a match for @var{regexp}
+(@code{gnus-summary-search-article-forward}).
+
+@kindex M-r @r{(Gnus Summary mode)}
+@findex gnus-summary-search-article-backward
+@item M-r @var{regexp} @key{RET}
+Search back for articles containing a match for @var{regexp}
+(@code{gnus-summary-search-article-backward}).
 
 @kindex q @r{(Gnus Summary mode)}
 @item q
-Exit the summary buffer and return to the group buffer.
+Exit the summary buffer and return to the group buffer
+(@code{gnus-summary-exit}).
 @end table
 
 @node Host Security
@@ -273,12 +290,14 @@ Emacs as part of a larger application.
 @cindex encryption
 @cindex SSL
 @cindex TLS
+@cindex Transport Layer Security
 @cindex STARTTLS
 
 Whenever Emacs establishes any network connection, it passes the
 established connection to the @dfn{Network Security Manager}
 (@acronym{NSM}).  @acronym{NSM} is responsible for enforcing the
-network security under your control.
+network security under your control.  Currently, this works by using
+the Transport Layer Security (@acronym{TLS}) features.
 
 @vindex network-security-level
 The @code{network-security-level} variable determines the security
@@ -295,7 +314,28 @@ You can decide to register a permanent security exception for an
 unverified connection, a temporary exception, or refuse the connection
 entirely.
 
-Below is a list of the checks done on the @code{medium} level.
+@vindex network-security-protocol-checks
+In addition to the basic certificate correctness checks, several
+@acronym{TLS} algorithm checks are available.  Some encryption
+technologies that were previously thought to be secure have shown
+themselves to be fragile, so Emacs (by default) warns you about some
+of these problems.
+
+The protocol network checks is controlled via the
+@code{network-security-protocol-checks} variable.
+
+It's an alist where the first element of each association is the name
+of the check, the second element is the security level where the check
+should be used, and the optional third element is a parameter supplied
+to the check.
+
+An element like @code{(rc4 medium)} will result in the function
+@code{nsm-protocol-check--rc4} being called like thus:
+@w{@code{(nsm-protocol-check--rc4 host port status optional-parameter)}}.
+The function should return non-@code{nil} if the connection should
+proceed and @code{nil} otherwise.
+
+Below is a list of the checks done on the default @code{medium} level.
 
 @table @asis
 
@@ -333,12 +373,44 @@ over these connections.  Similarly, if you're sending email via
 connection to be encrypted.  If the connection isn't encrypted,
 @acronym{NSM} will warn you.
 
+@item Diffie-Hellman low prime bits
+When doing the public key exchange, the number of prime bits should be
+high enough to ensure that the channel can't be eavesdropped on by third
+parties.  If this number is too low, Emacs will warn you.  (This is the
+@code{diffie-hellman-prime-bits} check in
+@code{network-security-protocol-checks}).
+
+@item @acronym{RC4} stream cipher
+The @acronym{RC4} stream cipher is believed to be of low quality and
+may allow eavesdropping by third parties.  (This is the @code{rc4}
+check in @code{network-security-protocol-checks}).
+
+@item @acronym{SHA1} in the host certificate or in intermediate certificates
+It is believed that if an intermediate certificate uses the
+@acronym{SHA1} hashing algorithm, then third parties can issue
+certificates pretending to be that issuing instance.  These
+connections are therefore vulnerable to man-in-the-middle attacks.
+(These are the @code{signature-sha1} and @code{intermediate-sha1}
+checks in @code{network-security-protocol-checks}).
+
+@item @acronym{SSL1}, @acronym{SSL2} and @acronym{SSL3}
+The protocols older than @acronym{TLS1.0} are believed to be
+vulnerable to a variety of attacks, and you may want to avoid using
+these if what you're doing requires higher security.  (This is the
+@code{ssl} check in @code{network-security-protocol-checks}).
+
 @end table
 
 If @code{network-security-level} is @code{high}, the following checks
 will be made, in addition to the above:
 
 @table @asis
+@item @acronym{3DES} cipher
+The @acronym{3DES} stream cipher provides at most 112 bits of
+effective security, which is considered to be towards the low end.
+(This is the @code{3des} check in
+@code{network-security-protocol-checks}).
+
 @item a validated certificate changes the public key
 Servers change their keys occasionally, and that is normally nothing
 to be concerned about.  However, if you are worried that your network
@@ -346,19 +418,6 @@ connections are being hijacked by agencies who have access to pliable
 Certificate Authorities which issue new certificates for third-party
 services, you may want to keep track of these changes.
 
-@item Diffie-Hellman low prime bits
-When doing the public key exchange, the number of prime bits
-should be high to ensure that the channel can't be eavesdropped on by
-third parties.  If this number is too low, you will be warned.
-
-@item @acronym{RC4} stream cipher
-The @acronym{RC4} stream cipher is believed to be of low quality and
-may allow eavesdropping by third parties.
-
-@item @acronym{SSL1}, @acronym{SSL2} and @acronym{SSL3}
-The protocols older than @acronym{TLS1.0} are believed to be
-vulnerable to a variety of attacks, and you may want to avoid using
-these if what you're doing requires higher security.
 @end table
 
 Finally, if @code{network-security-level} is @code{paranoid}, you will
@@ -381,7 +440,9 @@ By default, host names will not be saved for non-@code{STARTTLS}
 connections.  Instead a host/port hash is used to identify connections.
 This means that one can't casually read the settings file to see what
 servers the user has connected to.  If this variable is @code{t},
-@acronym{NSM} will also save host names in the nsm-settings-file.
+@acronym{NSM} will also save host names in the
+@code{nsm-settings-file}.
+
 @end table
 
 
@@ -411,7 +472,7 @@ is needed.  For OpenDocument and Microsoft Office documents, the
 @findex doc-view-toggle-display
 @findex doc-view-minor-mode
   When you visit a document file that can be displayed with DocView
-mode, Emacs automatically uses DocView mode @footnote{The needed
+mode, Emacs automatically uses that mode @footnote{The needed
 external tools for the document type must be available, and Emacs must
 be running in a graphical frame and have PNG image support.  If these
 requirements is not fulfilled, Emacs falls back to another major
@@ -426,7 +487,7 @@ underlying file contents.
 @findex doc-view-open-text
   When you visit a file which would normally be handled by DocView
 mode but some requirement is not met (e.g., you operate in a terminal
-frame or emacs has no PNG support), you are queried if you want to
+frame or Emacs has no PNG support), you are queried if you want to
 view the document's contents as plain text.  If you confirm, the
 buffer is put in text mode and DocView minor mode is activated.  Thus,
 by typing @kbd{C-c C-c} you switch to the fallback mode.  With another
@@ -472,12 +533,16 @@ displays the next page if you are at the end of the current page.
 @findex doc-view-previous-page
 @kindex n @r{(DocView mode)}
 @kindex p @r{(DocView mode)}
+@kindex PageDown @r{(DocView mode)}
+@kindex PageUp @r{(DocView mode)}
+@kindex next @r{(DocView mode)}
+@kindex prior @r{(DocView mode)}
 @kindex C-x ] @r{(DocView mode)}
 @kindex C-x [ @r{(DocView mode)}
-  You can also display the next page by typing @kbd{n}, @key{next} or
-@kbd{C-x ]} (@code{doc-view-next-page}).  To display the previous
-page, type @kbd{p}, @key{prior} or @kbd{C-x [}
-(@code{doc-view-previous-page}).
+  You can also display the next page by typing @kbd{n},
+@key{PageDown}, @key{next} or @kbd{C-x ]} (@code{doc-view-next-page}).
+To display the previous page, type @kbd{p}, @key{PageUp}, @key{prior}
+or @kbd{C-x [} (@code{doc-view-previous-page}).
 
 @findex doc-view-scroll-up-or-next-page
 @findex doc-view-scroll-down-or-previous-page
@@ -574,7 +639,7 @@ including its entire margins.
 @vindex doc-view-cache-directory
 @findex doc-view-clear-cache
   For efficiency, DocView caches the images produced by @command{gs}.
-The name of this directory is given by the variable
+The name of the directory where it caches images is given by the variable
 @code{doc-view-cache-directory}.  You can clear the cache directory by
 typing @kbd{M-x doc-view-clear-cache}.
 
@@ -660,7 +725,9 @@ for that command.  Standard input for the command comes from the null
 device.  If the shell command produces any output, the output appears
 either in the echo area (if it is short), or in an Emacs buffer named
 @file{*Shell Command Output*}, displayed in another window (if the
-output is long).
+output is long).  The variables @code{resize-mini-windows} and
+@code{max-mini-window-height} (@pxref{Minibuffer Edit}) control when
+Emacs should consider the output to be too long for the echo area.
 
   For instance, one way to decompress a file named @file{foo.gz} is to
 type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
@@ -758,7 +825,8 @@ text in the buffer.  To give input to the subshell, go to the end of
 the buffer and type the input, terminated by @key{RET}.
 
   By default, when the subshell is invoked interactively, the
-@file{*shell*} buffer is displayed in a new window.  This behavior can
+@file{*shell*} buffer is displayed in a new window, unless the current
+window already shows the @file{*shell*} buffer.  This behavior can
 be customized via @code{display-buffer-alist} (@pxref{Window Choice}).
 
   While the subshell is waiting or running a command, you can switch
@@ -872,11 +940,12 @@ line---but after @kbd{C-c @key{SPC}} the process mark may be in a
 previous line.)
 
 @item C-c @key{SPC}
-Accumulate multiple lines of input, then send them together.  This
-command inserts a newline before point, but does not send the preceding
-text as input to the subshell---at least, not yet.  Both lines, the one
-before this newline and the one after, will be sent together (along with
-the newline that separates them), when you type @key{RET}.
+Accumulate multiple lines of input, then send them together
+(@code{comint-accumulate}).  This command inserts a newline before
+point, but does not send the preceding text as input to the
+subshell---at least, not yet.  Both lines, the one before this newline
+and the one after, will be sent together (along with the newline that
+separates them), when you type @key{RET}.
 
 @item C-c C-u
 @kindex C-c C-u @r{(Shell mode)}
@@ -936,7 +1005,7 @@ of the window; also move the cursor there (@code{comint-show-output}).
 @item C-c C-e
 @kindex C-c C-e @r{(Shell mode)}
 @findex comint-show-maximum-output
-Scroll to put the end of the buffer at the bottom of the window
+Scroll to put the last line of the buffer at the bottom of the window
 (@code{comint-show-maximum-output}).
 
 @item C-c C-f
@@ -957,8 +1026,8 @@ Move backward across one shell command, but not beyond the current line
 Ask the shell for its working directory, and update the Shell buffer's
 default directory.  @xref{Directory Tracking}.
 
-@item M-x send-invisible @key{RET} @var{text} @key{RET}
-@findex send-invisible
+@item M-x comint-send-invisible @key{RET} @var{text} @key{RET}
+@findex comint-send-invisible
 Send @var{text} as input to the shell, after reading it without
 echoing.  This is useful when a shell command runs a program that asks
 for a password.
@@ -1027,9 +1096,9 @@ specializations of Shell mode.
 @cindex prompt, shell
   A prompt is text output by a program to show that it is ready to
 accept new user input.  Normally, Comint mode (and thus Shell mode)
-automatically figures out part of the buffer is a prompt, based on the
-output of the subprocess.  (Specifically, it assumes that any received
-output line which doesn't end with a newline is a prompt.)
+automatically figures out which part of the buffer is a prompt, based
+on the output of the subprocess.  (Specifically, it assumes that any
+received output line which doesn't end with a newline is a prompt.)
 
   Comint mode divides the buffer into two types of @dfn{fields}: input
 fields (where user input is typed) and output fields (everywhere
@@ -1044,7 +1113,7 @@ Emacs Lisp Reference Manual}).
 @vindex comint-use-prompt-regexp
 @vindex shell-prompt-pattern
   If you change the variable @code{comint-use-prompt-regexp} to a
-non-@code{nil} value, then Comint mode recognize prompts using a
+non-@code{nil} value, then Comint mode will recognize prompts using a
 regular expression (@pxref{Regexps}).  In Shell mode, the regular
 expression is specified by the variable @code{shell-prompt-pattern}.
 The default value of @code{comint-use-prompt-regexp} is @code{nil},
@@ -1082,28 +1151,32 @@ resubmit them or copy them to the end.  Or you can use a
 @kindex M-p @r{(Shell mode)}
 @item M-p
 @itemx C-@key{UP}
-Fetch the next earlier old shell command.
+Fetch the next earlier old shell command
+(@code{comint-previous-input}).
 
 @kindex M-n @r{(Shell mode)}
 @findex comint-next-input
 @item M-n
 @itemx C-@key{DOWN}
-Fetch the next later old shell command.
+Fetch the next later old shell command (@code{comint-next-input}).
 
 @kindex M-r @r{(Shell mode)}
 @findex comint-history-isearch-backward-regexp
 @item M-r
-Begin an incremental regexp search of old shell commands.
+Begin an incremental regexp search of old shell commands
+(@code{comint-history-isearch-backward-regexp}).
 
 @item C-c C-x
 @kindex C-c C-x @r{(Shell mode)}
 @findex comint-get-next-from-history
-Fetch the next subsequent command from the history.
+Fetch the next subsequent command from the history
+(@code{comint-get-next-from-history}).
 
 @item C-c .
 @kindex C-c . @r{(Shell mode)}
-@findex comint-input-previous-argument
-Fetch one argument from an old shell command.
+@findex comint-insert-previous-argument
+Fetch one argument from an old shell command
+(@code{comint-input-previous-argument}).
 
 @item C-c C-l
 @kindex C-c C-l @r{(Shell mode)}
@@ -1114,10 +1187,11 @@ Display the buffer's history of shell commands in another window
 
   Shell buffers provide a history of previously entered shell
 commands.  To reuse shell commands from the history, use the editing
-commands @kbd{M-p}, @kbd{M-n}, @kbd{M-r} and @kbd{M-s}.  These work
-just like the minibuffer history commands (@pxref{Minibuffer
+commands @kbd{M-p}, @kbd{M-n}, and @kbd{M-r}.  These work
+similar to the minibuffer history commands (@pxref{Minibuffer
 History}), except that they operate within the Shell buffer rather
-than the minibuffer.
+than the minibuffer, and @code{M-r} in a Shell buffer invokes
+incremental search through shell command history.
 
   @kbd{M-p} fetches an earlier shell command to the end of the shell
 buffer.  Successive use of @kbd{M-p} fetches successively earlier
@@ -1147,14 +1221,20 @@ you just repeated.  Then type @key{RET} to reexecute this command.  You
 can reexecute several successive commands by typing @kbd{C-c C-x
 @key{RET}} over and over.
 
-  The command @kbd{C-c .}@: (@code{comint-input-previous-argument})
+  The command @kbd{C-c .}@: (@code{comint-insert-previous-argument})
 copies an individual argument from a previous command, like
-@kbd{@key{ESC} .} in Bash.  The simplest use copies the last argument from the
-previous shell command.  With a prefix argument @var{n}, it copies the
-@var{n}th argument instead.  Repeating @kbd{C-c .} copies from an
-earlier shell command instead, always using the same value of @var{n}
-(don't give a prefix argument when you repeat the @kbd{C-c .}
-command).
+@kbd{@key{ESC} .}@: in Bash and @command{zsh}.  The simplest use
+copies the last argument from the previous shell command.  With a
+prefix argument @var{n}, it copies the @var{n}th argument instead.
+Repeating @kbd{C-c .} copies from an earlier shell commands, always
+using the same value of @var{n}  (don't give a prefix argument when
+you repeat the @kbd{C-c .} command).
+
+@vindex comint-insert-previous-argument-from-end
+  If you set @code{comint-insert-previous-argument-from-end} to a
+non-@code{nil} value, @kbd{C-c .}@: will instead copy the @var{n}th
+argument counting from the last one; this emulates @kbd{@key{ESC} .}@:
+in @command{zsh}.
 
   These commands get the text of previous shell commands from a special
 history list, not from the shell buffer itself.  Thus, editing the shell
@@ -1231,7 +1311,7 @@ typing @key{RET}.
 when you send them to the shell.  To request this, set the variable
 @code{comint-input-autoexpand} to @code{input}.  You can make
 @key{SPC} perform history expansion by binding @key{SPC} to the
-command @code{comint-magic-space}.
+command @code{comint-magic-space}.  @xref{Rebinding}.
 
   Shell mode recognizes history references when they follow a prompt.
 @xref{Shell Prompts}, for how Shell mode recognizes prompts.
@@ -1419,9 +1499,6 @@ examining your input.  But some shells can tell Term what the current
 directory is.  This is done automatically by @code{bash} version 1.15
 and later.
 
-
-
-
 @node Term Mode
 @subsection Term Mode
 @cindex Term mode
@@ -1448,7 +1525,8 @@ char mode.
 
 @table @kbd
 @item C-c C-c
-Send a literal @kbd{C-c} to the sub-shell.
+Send a literal @kbd{C-c} to the sub-shell
+(@code{term-interrupt-subjob}).
 
 @item C-c @var{char}
 This is equivalent to @kbd{C-x @var{char}} in normal Emacs.  For
@@ -1464,13 +1542,13 @@ output pause at the end of each screenful:
 @kindex C-c C-q @r{(Term mode)}
 @findex term-pager-toggle
 @item C-c C-q
-Toggle the page-at-a-time feature.  This command works in both line
-and char modes.  When the feature is enabled, the mode-line displays
-the word @samp{page}, and each time Term receives more than a
-screenful of output, it pauses and displays @samp{**MORE**} in the
-mode-line.  Type @key{SPC} to display the next screenful of output, or
-@kbd{?} to see your other options.  The interface is similar to the
-@code{more} program.
+Toggle the page-at-a-time feature (@code{term-pager-toggle}).  This
+command works in both line and char modes.  When the feature is
+enabled, the mode-line displays the word @samp{page}, and each time
+Term receives more than a screenful of output, it pauses and displays
+@samp{**MORE**} in the mode-line.  Type @key{SPC} to display the next
+screenful of output, or @kbd{?} to see your other options.  The
+interface is similar to the @code{more} program.
 @end table
 
 @node Remote Host
@@ -1481,8 +1559,8 @@ mode-line.  Type @key{SPC} to display the next screenful of output, or
 @cindex Rlogin
 
   You can login to a remote computer, using whatever commands you
-would from a regular terminal (e.g., using the @code{telnet} or
-@code{rlogin} commands), from a Term window.
+would from a regular terminal (e.g., using the @command{ssh} or
+@command{telnet} or @code{rlogin} commands), from a Term window.
 
   A program that asks you for a password will normally suppress
 echoing of the password, so the password will not show up in the
@@ -1615,13 +1693,15 @@ each one a unique @dfn{server name}, using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
 server-name @key{RET} "foo" @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
-name, using the @samp{-s} option (@pxref{emacsclient Options}).
+name, using the @samp{-s} or the @samp{-f} option (@pxref{emacsclient
+Options}), depending on whether or not the server uses a TCP socket
+(@pxref{TCP Emacs server}).
 
   If you want to run multiple Emacs daemons (@pxref{Initial Options}),
 you can give each daemon its own server name like this:
 
 @example
-  emacs --eval "(setq server-name \"foo\")" --daemon
+  emacs --daemon=foo
 @end example
 
 @findex server-eval-at
@@ -1656,7 +1736,7 @@ not support local sockets.
 
 @vindex server-host
 @vindex server-port
-  If the Emacs server is set to use TCP, it will by default listen to
+  If the Emacs server is set to use TCP, it will by default listen on
 a random port on the localhost interface.  This can be changed to
 another interface and/or a fixed port using the variables
 @code{server-host} and @code{server-port}.
@@ -1680,21 +1760,23 @@ use @kbd{M-x server-generate-key} to get a random key.
   When you start a TCP Emacs server, Emacs creates a @dfn{server file}
 containing the TCP information to be used by @command{emacsclient} to
 connect to the server.  The variable @code{server-auth-dir} specifies
-the directory containing the server file; by default, this is
+the default directory containing the server file; by default, this is
 @file{~/.emacs.d/server/}.  In the absence of a local socket with file
 permissions, the permissions of this directory determine which users
 can have their @command{emacsclient} processes talk to the Emacs
-server.
+server.  If @code{server-name} is an absolute file name, the server
+file is created where specified by that file name.
 
 @vindex EMACS_SERVER_FILE@r{, environment variable}
   To tell @command{emacsclient} to connect to the server over TCP with
 a specific server file, use the @samp{-f} or @samp{--server-file}
 option, or set the @env{EMACS_SERVER_FILE} environment variable
 (@pxref{emacsclient Options}).  If @code{server-auth-dir} is set to a
-non-standard value, @command{emacsclient} needs an absolute file name
-to the server file, as the default @code{server-auth-dir} is
-hard-coded in @command{emacsclient} to be used as the directory for
-resolving relative filenames.
+non-standard value, or if @code{server-name} is set to an absolute
+file name, @command{emacsclient} needs an absolute file name to the
+server file, as the default @code{server-auth-dir} is hard-coded in
+@command{emacsclient} to be used as the directory for resolving
+relative filenames.
 
 @node Invoking emacsclient
 @subsection Invoking @code{emacsclient}
@@ -1848,7 +1930,7 @@ evaluate, @emph{not} as a list of files to visit.
 Specify a server file (@pxref{TCP Emacs server}) for connecting to an
 Emacs server via TCP.  Alternatively, you can set the
 @env{EMACS_SERVER_FILE} environment variable to point to the server
-file.
+file.  (The command-line option overrides the environment variable.)
 
 An Emacs server usually uses a local socket to listen for connections,
 but also supports connections over TCP.  To connect to a TCP Emacs
@@ -1883,10 +1965,17 @@ evaluation performed is for side-effect rather than result.
 
 @item -s @var{server-name}
 @itemx --socket-name=@var{server-name}
-Connect to the Emacs server named @var{server-name}.  The server name
-is given by the variable @code{server-name} on the Emacs server.  If
-this option is omitted, @command{emacsclient} connects to the first
-server it finds.  (This option is not supported on MS-Windows.)
+Connect to the Emacs server named @var{server-name}.  (This option is
+not supported on MS-Windows.)  The server name is given by the
+variable @code{server-name} on the Emacs server.  If this option is
+omitted, @command{emacsclient} connects to the first server it finds.
+If you set @code{server-name} of the Emacs server to an absolute file
+name, give the same absolute file name as @var{server-name} to this
+option to instruct @command{emacsclient} to connect to that server.
+
+Alternatively, you can set the @env{EMACS_SOCKET_NAME} environment
+variable to point to the server socket.  (The command-line option
+overrides the environment variable.)
 
 @item -t
 @itemx --tty
@@ -1904,14 +1993,15 @@ terminal.
 @item -T @var{tramp-prefix}
 @itemx --tramp-prefix=@var{tramp-prefix}
 Set the prefix to add to filenames for Emacs to locate files on remote
-machines using TRAMP (@pxref{Top, The Tramp Manual,, tramp, The Tramp
-Manual}).  This is mostly useful in combination with using the Emacs
-server over TCP (@pxref{TCP Emacs server}).  By ssh-forwarding the
-listening port and making the @var{server-file} available on a remote
-machine, programs on the remote machine can use @command{emacsclient}
-as the value for the @env{EDITOR} and similar environment variables,
-but instead of talking to an Emacs server on the remote machine, the
-files will be visited in the local Emacs session using TRAMP.
+machines (@pxref{Remote Files}) using TRAMP (@pxref{Top, The Tramp
+Manual,, tramp, The Tramp Manual}).  This is mostly useful in
+combination with using the Emacs server over TCP (@pxref{TCP Emacs
+server}).  By ssh-forwarding the listening port and making the
+@var{server-file} available on a remote machine, programs on the
+remote machine can use @command{emacsclient} as the value for the
+@env{EDITOR} and similar environment variables, but instead of talking
+to an Emacs server on the remote machine, the files will be visited in
+the local Emacs session using TRAMP.
 
 @vindex EMACSCLIENT_TRAMP@r{, environment variable}
 Setting the environment variable @env{EMACSCLIENT_TRAMP} has the same
@@ -2068,8 +2158,8 @@ buffer; the other, just the region.  The commands
 @code{ps-print-region-with-faces} behave similarly, but use PostScript
 features to show the faces (fonts and colors) of the buffer text.
 
-  Interactively, when you use a prefix argument (@kbd{C-u}), the command
-prompts the user for a file name, and saves the PostScript image in that file
+  Interactively, when you use a prefix argument (@kbd{C-u}), these commands
+prompt the user for a file name, and save the PostScript image in that file
 instead of sending it to the printer.
 
 @findex ps-spool-region
@@ -2161,7 +2251,9 @@ default is 1.
 for printing ordinary text.  Legitimate values include @code{Courier},
 @code{Helvetica}, @code{NewCenturySchlbk}, @code{Palatino} and
 @code{Times}.  The variable @code{ps-font-size} specifies the size of
-the font for ordinary text.  It defaults to 8.5 points.
+the font for ordinary text and defaults to 8.5 points.  The value of
+@code{ps-font-size} can also be a cons of 2 floats: one for landscape
+mode, the other for portrait mode.
 
 @vindex ps-multibyte-buffer
 @cindex Intlfonts for PostScript printing
@@ -2229,7 +2321,8 @@ into the order determined by the sort keys.  The records are ordered so
 that their keys are in alphabetical order, or, for numeric sorting, in
 numeric order.  In alphabetic sorting, all upper-case letters @samp{A}
 through @samp{Z} come before lower-case @samp{a}, in accordance with the
-@acronym{ASCII} character sequence.
+@acronym{ASCII} character sequence (but @code{sort-fold-case},
+described below, can change that).
 
   The various sort commands differ in how they divide the text into sort
 records and in which part of each record is used as the sort key.  Most of
@@ -2267,10 +2360,11 @@ in a line constitutes field 1, the second such run constitutes field
 2, etc.
 
 Specify which field to sort by with a numeric argument: 1 to sort by
-field 1, etc.  A negative argument means count fields from the right
-instead of from the left; thus, minus 1 means sort by the last field.
-If several lines have identical contents in the field being sorted, they
-keep the same relative order that they had in the original buffer.
+field 1, etc.; the default is 1.  A negative argument means count
+fields from the right instead of from the left; thus, minus 1 means
+sort by the last field.  If several lines have identical contents in
+the field being sorted, they keep the same relative order that they
+had in the original buffer.
 
 @item M-x sort-numeric-fields
 Like @kbd{M-x sort-fields} except the specified field is converted
@@ -2463,12 +2557,6 @@ sessions, or add this line in your init file (@pxref{Init File}):
 (desktop-save-mode 1)
 @end example
 
-@vindex desktop-auto-save-timeout
-@noindent
-When @code{desktop-save-mode} is active and the desktop file exists,
-Emacs auto-saves it every @code{desktop-auto-save-timeout}
-seconds, if that is non-@code{nil} and non-zero.
-
 @findex desktop-change-dir
 @findex desktop-revert
 @vindex desktop-path
@@ -2535,7 +2623,7 @@ e.g., the daemon cannot use GUI features, so parameters such as frame
 position, size, and decorations cannot be restored.  For that reason,
 you may wish to delay restoring the desktop in daemon mode until the
 first client connects, by calling @code{desktop-read} in a hook
-function that you add to @code{after-make-frame-functions}
+function that you add to @code{server-after-make-frame-hook}
 (@pxref{Creating Frames,,, elisp, The Emacs Lisp Reference Manual}).
 
 @node Recursive Edit
@@ -2824,7 +2912,7 @@ which has a similar feature of its own.
 @cindex finding file at point
 
   The FFAP package replaces certain key bindings for finding files,
-such as @kbd{C-x C-f}, with commands that provide more sensitive
+such as @kbd{C-x C-f}, with commands that provide more sensible
 defaults.  These commands behave like the ordinary ones when given a
 prefix argument.  Otherwise, they get the default file name or URL
 from the text around point.  If what is found in the buffer has the
@@ -2847,33 +2935,33 @@ functionality in Rmail, Gnus and VM article buffers.
 @kindex C-x C-f @r{(FFAP)}
 Find @var{filename}, guessing a default from text around point
 (@code{find-file-at-point}).
-@item C-x C-r
+@item C-x C-r @var{filename} @key{RET}
 @kindex C-x C-r @r{(FFAP)}
 @code{ffap-read-only}, analogous to @code{find-file-read-only}.
-@item C-x C-v
+@item C-x C-v @var{filename} @key{RET}
 @kindex C-x C-v @r{(FFAP)}
 @code{ffap-alternate-file}, analogous to @code{find-alternate-file}.
 @item C-x d @var{directory} @key{RET}
 @kindex C-x d @r{(FFAP)}
 Start Dired on @var{directory}, defaulting to the directory at
 point (@code{dired-at-point}).
-@item C-x C-d
+@item C-x C-d @var{directory} @key{RET}
 @code{ffap-list-directory}, analogous to @code{list-directory}.
-@item C-x 4 f
+@item C-x 4 f @var{filename} @key{RET}
 @kindex C-x 4 f @r{(FFAP)}
 @code{ffap-other-window}, analogous to @code{find-file-other-window}.
-@item C-x 4 r
+@item C-x 4 r @var{filename} @key{RET}
 @code{ffap-read-only-other-window}, analogous to
 @code{find-file-read-only-other-window}.
-@item C-x 4 d
+@item C-x 4 d @var{directory} @key{RET}
 @code{ffap-dired-other-window}, like @code{dired-other-window}.
-@item C-x 5 f
+@item C-x 5 f @var{filename} @key{RET}
 @kindex C-x 5 f @r{(FFAP)}
 @code{ffap-other-frame}, analogous to @code{find-file-other-frame}.
-@item C-x 5 r
+@item C-x 5 r @var{filename} @key{RET}
 @code{ffap-read-only-other-frame}, analogous to
 @code{find-file-read-only-other-frame}.
-@item C-x 5 d
+@item C-x 5 d @var{directory} @key{RET}
 @code{ffap-dired-other-frame}, analogous to @code{dired-other-frame}.
 @item M-x ffap-next
 Search buffer for next file name or URL, then find that file or URL.
@@ -2890,6 +2978,7 @@ find the one you select (@code{ffap-menu}).
 @node Amusements
 @section Games and Other Amusements
 @cindex boredom
+@cindex games
 
 @findex animate-birthday-present
 @cindex animate
@@ -2908,6 +2997,7 @@ guess---to guess a value, type a letter and then the digit you think it
 stands for.  The aim of @code{5x5} is to fill in all the squares.
 
 @findex bubbles
+@cindex bubbles
   @kbd{M-x bubbles} is a game in which the object is to remove as many
 bubbles as you can in the smallest number of moves.
 
@@ -2932,6 +3022,7 @@ character.  Keep dissociwords out of your documentation, if you want
 it to be well userenced and properbose.
 
 @findex dunnet
+@cindex dunnet
   @kbd{M-x dunnet} runs a text-based adventure game.
 
 @findex gomoku
@@ -2948,13 +3039,6 @@ bored, try an argument of 9.  Sit back and watch.
 @findex life
 @cindex Life
   @kbd{M-x life} runs Conway's Game of Life cellular automaton.
-
-@findex landmark
-@cindex landmark game
-  @kbd{M-x landmark} runs a relatively non-participatory game in which
-a robot attempts to maneuver towards a tree at the center of the
-window based on unique olfactory cues from each of the four
-directions.
 
 @findex morse-region
 @findex unmorse-region
@@ -2981,8 +3065,14 @@ implementations of the well-known Pong, Snake and Tetris games.
 across other pegs.
 
 @findex zone
+@cindex zone
   The command @kbd{M-x zone} plays games with the display when Emacs
 is idle.
+
+@findex butterfly
+@cindex butterfly
+  ``Real Programmers'' deploy @kbd{M-x butterfly}, which uses butterflies
+to flip a bit on the drive platter, see @uref{https://xkcd.com/378}.
 
 @findex doctor
 @cindex Eliza

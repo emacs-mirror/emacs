@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -52,7 +52,7 @@
 ;; The main keymap
 
 (easy-mmode-defmap log-edit-mode-map
-  `(("\C-c\C-c" . log-edit-done)
+  '(("\C-c\C-c" . log-edit-done)
     ("\C-c\C-a" . log-edit-insert-changelog)
     ("\C-c\C-d" . log-edit-show-diff)
     ("\C-c\C-f" . log-edit-show-files)
@@ -203,10 +203,7 @@ when this variable is set to nil.")
 
 (defconst log-edit-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
-(define-obsolete-variable-alias 'vc-comment-ring 'log-edit-comment-ring "22.1")
 (defvar log-edit-comment-ring (make-ring log-edit-maximum-comment-ring-size))
-(define-obsolete-variable-alias 'vc-comment-ring-index
-  'log-edit-comment-ring-index "22.1")
 (defvar log-edit-comment-ring-index nil)
 (defvar log-edit-last-comment-match "")
 
@@ -310,13 +307,6 @@ automatically."
     (delete-char (- (skip-syntax-backward " ")))
     (or (eobp) (looking-at "\n\n")
 	(insert "\n"))))
-
-;; Compatibility with old names.
-(define-obsolete-function-alias 'vc-previous-comment 'log-edit-previous-comment "22.1")
-(define-obsolete-function-alias 'vc-next-comment 'log-edit-next-comment "22.1")
-(define-obsolete-function-alias 'vc-comment-search-reverse 'log-edit-comment-search-backward "22.1")
-(define-obsolete-function-alias 'vc-comment-search-forward 'log-edit-comment-search-forward "22.1")
-(define-obsolete-function-alias 'vc-comment-to-change-log 'log-edit-comment-to-change-log "22.1")
 
 ;;;
 ;;; Actual code
@@ -923,8 +913,10 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
              (setq change-log-default-name nil)
              (find-change-log)))))
     (when (or (find-buffer-visiting changelog-file-name)
-              (file-exists-p changelog-file-name))
-      (with-current-buffer (find-file-noselect changelog-file-name)
+              (file-exists-p changelog-file-name)
+              add-log-dont-create-changelog-file)
+      (with-current-buffer
+          (add-log-find-changelog-buffer changelog-file-name)
         (unless (eq major-mode 'change-log-mode) (change-log-mode))
         (goto-char (point-min))
         (if (looking-at "\\s-*\n") (goto-char (match-end 0)))

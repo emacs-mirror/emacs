@@ -1,6 +1,6 @@
 ;;; rmc.el --- read from a multiple choice question -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -30,12 +30,12 @@
   "Ask user a multiple choice question.
 PROMPT should be a string that will be displayed as the prompt.
 
-CHOICES is an alist where the first element in each entry is a
-character to be entered, the second element is a short name for
-the entry to be displayed while prompting (if there's room, it
-might be shortened), and the third, optional entry is a longer
-explanation that will be displayed in a help buffer if the user
-requests more help.
+CHOICES is a list of (KEY NAME [DESCRIPTION]).  KEY is a
+character to be entered.  NAME is a short name for the entry to
+be displayed while prompting (if there's room, it might be
+shortened).  DESCRIPTION is an optional longer explanation that
+will be displayed in a help buffer if the user requests more
+help.
 
 This function translates user input into responses by consulting
 the bindings in `query-replace-map'; see the documentation of
@@ -46,9 +46,9 @@ perform the requested window recentering or scrolling and ask
 again.
 
 When `use-dialog-box' is t (the default), this function can pop
-up a dialog window to collect the user input. That functionality
-requires `display-popup-menus-p' to return t. Otherwise, a text
-dialog will be used.
+up a dialog window to collect the user input.  That functionality
+requires `display-popup-menus-p' to return t.  Otherwise, a
+text dialog will be used.
 
 The return value is the matching entry from the CHOICES list.
 

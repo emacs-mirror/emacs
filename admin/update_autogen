@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ### update_autogen - update some auto-generated files in the Emacs tree
 
-## Copyright (C) 2011-2018 Free Software Foundation, Inc.
+## Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 
@@ -47,7 +47,7 @@ cd $PD
 cd ../
 [ -d admin ] || die "Could not locate admin directory"
 
-[ -d .git ] || die "No .git directory"
+[ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1 || die "Not in a git repository"
 
 usage ()
 {

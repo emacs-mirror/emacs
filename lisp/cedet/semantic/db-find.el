@@ -1,6 +1,6 @@
 ;;; semantic/db-find.el --- Searching through semantic databases.
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -1333,12 +1333,18 @@ Returns a table of all matching tags."
       (semantic-find-tags-included (or tags (semanticdb-get-tags table)))
     (semantic-find-tags-by-class class (or tags (semanticdb-get-tags table)))))
 
+(declare-function semantic-find-tags-external-children-of-type
+		  "semantic/find" (type &optional table))
+
 (cl-defmethod semanticdb-find-tags-external-children-of-type-method ((table semanticdb-abstract-table) parent &optional tags)
    "In TABLE, find all occurrences of tags whose parent is the PARENT type.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
    (require 'semantic/find)
    (semantic-find-tags-external-children-of-type parent (or tags (semanticdb-get-tags table))))
+
+(declare-function semantic-find-tags-subclasses-of-type
+		  "semantic/find" (type &optional table))
 
 (cl-defmethod semanticdb-find-tags-subclasses-of-type-method ((table semanticdb-abstract-table) parent &optional tags)
    "In TABLE, find all occurrences of tags whose parent is the PARENT type.

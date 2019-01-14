@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 2001-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 2001-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Byte Compilation
 @chapter Byte Compilation
@@ -161,7 +161,7 @@ function.
 
 @code{compile-defun} normally displays the result of evaluation in the
 echo area, but if @var{arg} is non-@code{nil}, it inserts the result
-in the current buffer after the form it compiled.
+in the current buffer after the form it has compiled.
 @end deffn
 
 @deffn Command byte-compile-file filename &optional load
@@ -500,7 +500,8 @@ You can tell the compiler that a function is defined using
 @item
 Likewise, you can tell the compiler that a variable is defined using
 @code{defvar} with no initial value.  (Note that this marks the
-variable as special, i.e.@: dynamically bound.)  @xref{Defining
+variable as special, i.e.@: dynamically bound, but only within the
+current lexical scope, or file if at top-level.)  @xref{Defining
 Variables}.
 @end itemize
 

@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2018 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -937,7 +937,7 @@ struct scroll_bar
 
   /* True if the scroll bar is horizontal.  */
   bool horizontal;
-};
+} GCALIGNED_STRUCT;
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))

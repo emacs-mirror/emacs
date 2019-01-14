@@ -1,6 +1,6 @@
 ;;; gnus-cloud.el --- storing and retrieving data via IMAP
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail
@@ -28,7 +28,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'parse-time)
 (require 'nnimap)
 
@@ -48,10 +47,14 @@
     "~/.authinfo.gpg"
     "~/.gnus.el"
     (:directory "~/News" :match ".*.SCORE\\'"))
-  "List of file regexps that should be kept up-to-date via the cloud."
+  "List of files that should be kept up-to-date via the cloud.
+Each element may be either a string or a property list.
+The latter should have a :directory element whose value is a string,
+and a :match element whose value is a regular expression to match
+against the basename of files in said directory."
   :group 'gnus-cloud
-  ;; FIXME this type does not match the default.  Nor does the documentation.
-  :type '(repeat regexp))
+  :type '(repeat (choice (string :tag "File")
+                         (plist :tag "Property list"))))
 
 (defcustom gnus-cloud-storage-method (if (featurep 'epg) 'epg 'base64-gzip)
   "Storage method for cloud data, defaults to EPG if that's available."
@@ -290,6 +293,8 @@ Use old data if FORCE-OLDER is not nil."
     (dolist (elem gnus-cloud-synced-files)
       (cond
        ((stringp elem)
+        ;; This seems fragile.  String comparison, with no
+        ;; expand-file-name to resolve ~, etc.
         (when (equal elem file-name)
           (setq matched t)))
        ((consp elem)
@@ -334,7 +339,8 @@ Use old data if FORCE-OLDER is not nil."
   (format-time-string "%FT%T%z" time))
 
 (defun gnus-cloud-file-new-p (file full)
-  (let ((timestamp (gnus-cloud-timestamp (nth 5 (file-attributes file))))
+  (let ((timestamp (gnus-cloud-timestamp (file-attribute-modification-time
+					  (file-attributes file))))
         (old (cadr (assoc file gnus-cloud-file-timestamps))))
     (when (or full
               (null old)

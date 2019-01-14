@@ -15,7 +15,7 @@
 This file describes how to use Info, the menu-driven GNU
 documentation system.
 
-Copyright @copyright{} 1989, 1992, 1996--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1989, 1992, 1996--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -363,13 +363,15 @@ the menu, one by one.  Once you reach the end of a node, and have seen
 all of its subnodes, @key{SPC} takes you to the next node or to the
 parent's next node.
 
-@kindex PAGEUP @r{(Info mode)}
-@kindex PAGEDOWN @r{(Info mode)}
+@kindex PageUp @r{(Info mode)}
+@kindex PageDown @r{(Info mode)}
+@kindex prior @r{(Info mode)}
+@kindex next @r{(Info mode)}
   Many keyboards nowadays have two scroll keys labeled @samp{PageUp}
-and @samp{PageDown} (or maybe @samp{Prior} and @samp{Next}).  If your
+and @samp{PageDown} (or maybe @samp{prior} and @samp{next}).  If your
 keyboard has these keys, you can use them to move forward and backward
 through the text of one node, like @key{SPC} and @key{BACKSPACE} (or
-@key{DEL}).  However, @key{PAGEUP} and @key{PAGEDOWN} keys never
+@key{DEL}).  However, @key{PageUp} and @key{PageDown} keys never
 scroll beyond the beginning or the end of the current node.
 
 @kindex C-l @r{(Info mode)}
@@ -403,7 +405,7 @@ brief list of commands.  When you are finished looking at the list,
 make it go away by typing @key{SPC} repeatedly.
 
 @format
->> Type a @key{?} (or @key{H} in the stand-alone Info reader) now.
+>> Type @kbd{?} (or @kbd{H} in the stand-alone Info reader) now.
    Press @key{SPC} to see consecutive screenfuls of the list
    until finished.  Then type @key{SPC} several times.  If
    you are using Emacs, the help will then go away automatically.

@@ -1,6 +1,6 @@
 ;;; org-element.el --- Parser for Org Syntax         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 ;;
-;; See <http://orgmode.org/worg/dev/org-syntax.html> for details about
+;; See <https://orgmode.org/worg/dev/org-syntax.html> for details about
 ;; Org syntax.
 ;;
 ;; Lisp-wise, a syntax object can be represented as a list.
@@ -3065,7 +3065,7 @@ Assume point is at the beginning of the link."
 	(setq path (match-string-no-properties 1))
 	(setq contents-begin (match-beginning 1))
 	(setq contents-end (match-end 1)))
-       ;; Type 2: Standard link, i.e. [[http://orgmode.org][homepage]]
+       ;; Type 2: Standard link, i.e. [[https://orgmode.org][homepage]]
        ((looking-at org-bracket-link-regexp)
 	(setq format 'bracket)
 	(setq contents-begin (match-beginning 3))
@@ -3114,14 +3114,14 @@ Assume point is at the beginning of the link."
 	 (t
 	  (setq type "fuzzy")
 	  (setq path raw-link))))
-       ;; Type 3: Plain link, e.g., http://orgmode.org
+       ;; Type 3: Plain link, e.g., https://orgmode.org
        ((looking-at org-plain-link-re)
 	(setq format 'plain)
 	(setq raw-link (match-string-no-properties 0))
 	(setq type (match-string-no-properties 1))
 	(setq link-end (match-end 0))
 	(setq path (match-string-no-properties 2)))
-       ;; Type 4: Angular link, e.g., <http://orgmode.org>.  Unlike to
+       ;; Type 4: Angular link, e.g., <https://orgmode.org>.  Unlike to
        ;; bracket links, follow RFC 3986 and remove any extra
        ;; whitespace in URI.
        ((looking-at org-angle-link-re)
@@ -4721,7 +4721,7 @@ indentation removed from its contents."
 ;; Cache is enabled by default, but can be disabled globally with
 ;; `org-element-use-cache'.  `org-element-cache-sync-idle-time',
 ;; org-element-cache-sync-duration' and `org-element-cache-sync-break'
-;; can be tweaked to control caching behaviour.
+;; can be tweaked to control caching behavior.
 ;;
 ;; Internally, parsed elements are stored in an AVL tree,
 ;; `org-element--cache'.  This tree is updated lazily: whenever
@@ -4856,7 +4856,7 @@ table is cleared once the synchronization is complete."
 (defun org-element--cache-generate-key (lower upper)
   "Generate a key between LOWER and UPPER.
 
-LOWER and UPPER are integers or lists, possibly empty.
+LOWER and UPPER are fixnums or lists of same, possibly empty.
 
 If LOWER and UPPER are equals, return LOWER.  Otherwise, return
 a unique key, as an integer or a list of integers, according to

@@ -1,6 +1,6 @@
 ;;; sieve.el --- Utilities to manage sieve scripts
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -345,11 +345,14 @@ Used to bracket operations which move point in the sieve-buffer."
 ;;;###autoload
 (defun sieve-upload (&optional name)
   (interactive)
-  (when (or (get-buffer sieve-buffer) (call-interactively 'sieve-manage))
-    (let ((script (buffer-string)) err)
+  (when (or (get-buffer sieve-buffer)
+            (save-current-buffer (call-interactively 'sieve-manage)))
+    (let ((script (buffer-string))
+          (script-name (file-name-sans-extension (buffer-name)))
+          err)
       (with-current-buffer (get-buffer sieve-buffer)
 	(setq err (sieve-manage-putscript
-                   (or name sieve-buffer-script-name (buffer-name))
+                   (or name sieve-buffer-script-name script-name)
                    script sieve-manage-buffer))
 	(if (sieve-manage-ok-p err)
 	    (message (substitute-command-keys

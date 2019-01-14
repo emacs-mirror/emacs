@@ -1,6 +1,6 @@
 ;;; find-gc.el --- detect functions that call the garbage collector
 
-;; Copyright (C) 1992, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 
@@ -57,7 +57,7 @@ Each entry has the form (FUNCTION . FUNCTIONS-IT-CALLS).")
     "keymap.c" "sysdep.c" "buffer.c" "filelock.c"
     "insdel.c" "marker.c" "minibuf.c" "fileio.c"
     "dired.c" "cmds.c" "casefiddle.c"
-    "indent.c" "search.c" "regex.c" "undo.c"
+    "indent.c" "search.c" "regex-emacs.c" "undo.c"
     "alloc.c" "data.c" "doc.c" "editfns.c"
     "callint.c" "eval.c" "fns.c" "print.c" "lread.c"
     "syntax.c" "unexcoff.c"

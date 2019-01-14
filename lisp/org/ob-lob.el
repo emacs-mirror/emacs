@@ -1,11 +1,11 @@
 ;;; ob-lob.el --- Functions Supporting the Library of Babel -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	 Dan Davison
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -79,44 +79,54 @@ if so then run the appropriate source block from the Library."
       (org-babel-execute-src-block nil info)
       t)))
 
-(defun org-babel-lob--src-info (name)
-  "Return internal representation for Babel data named NAME.
-NAME is a string.  This function looks into the current document
+(defun org-babel-lob--src-info (ref)
+  "Return internal representation for Babel data referenced as REF.
+REF is a string.  This function looks into the current document
 for a Babel call or source block.  If none is found, it looks
-after NAME in the Library of Babel.  Eventually, if that also
-fails, it returns nil."
-  ;; During export, look into the pristine copy of the document being
-  ;; exported instead of the current one, which could miss some data.
-  (with-current-buffer (or org-babel-exp-reference-buffer (current-buffer))
-    (org-with-wide-buffer
-     (goto-char (point-min))
-     (catch :found
-       (let ((case-fold-search t)
-	     (regexp (org-babel-named-data-regexp-for-name name)))
-	 (while (re-search-forward regexp nil t)
-	   (let ((element (org-element-at-point)))
-	     (when (equal name (org-element-property :name element))
-	       (throw :found
-		      (pcase (org-element-type element)
-			(`src-block (org-babel-get-src-block-info t element))
-			(`babel-call (org-babel-lob-get-info element))
-			;; Non-executable data found.  Since names are
-			;; supposed to be unique throughout a document,
-			;; bail out.
-			(_ nil))))))
-	 ;; No element named NAME in buffer.  Try Library of Babel.
-	 (cdr (assoc-string name org-babel-library-of-babel)))))))
+after REF in the Library of Babel."
+  (let ((name ref)
+	(file nil))
+    ;; Extract the remote file, if specified in the reference.
+    (when (string-match "\\`\\(.+\\):\\(.+\\)\\'" ref)
+      (setq file (match-string 1 ref))
+      (setq name (match-string 2 ref)))
+    ;; During export, look into the pristine copy of the document
+    ;; being exported instead of the current one, which could miss
+    ;; some data.
+    (with-current-buffer (cond (file (find-file-noselect file t))
+			       (org-babel-exp-reference-buffer)
+			       (t (current-buffer)))
+      (org-with-point-at 1
+	(catch :found
+	  (let ((case-fold-search t)
+		(regexp (org-babel-named-data-regexp-for-name name)))
+	    (while (re-search-forward regexp nil t)
+	      (let ((element (org-element-at-point)))
+		(when (equal name (org-element-property :name element))
+		  (throw :found
+			 (pcase (org-element-type element)
+			   (`src-block (org-babel-get-src-block-info t element))
+			   (`babel-call (org-babel-lob-get-info element))
+			   ;; Non-executable data found.  Since names
+			   ;; are supposed to be unique throughout
+			   ;; a document, bail out.
+			   (_ nil))))))
+	    (cdr (assoc-string ref org-babel-library-of-babel))))))))
 
 ;;;###autoload
 (defun org-babel-lob-get-info (&optional datum)
   "Return internal representation for Library of Babel function call.
-Consider DATUM, when provided, or element at point.  Return nil
-when not on an appropriate location.  Otherwise return a list
-compatible with `org-babel-get-src-block-info', which see."
+
+Consider DATUM, when provided, or element at point otherwise.
+
+Return nil when not on an appropriate location.  Otherwise return
+a list compatible with `org-babel-get-src-block-info', which
+see."
   (let* ((context (or datum (org-element-context)))
-	 (type (org-element-type context)))
+	 (type (org-element-type context))
+	 (reference (org-element-property :call context)))
     (when (memq type '(babel-call inline-babel-call))
-      (pcase (org-babel-lob--src-info (org-element-property :call context))
+      (pcase (org-babel-lob--src-info reference)
 	(`(,language ,body ,header ,_ ,_ ,_ ,coderef)
 	 (let ((begin (org-element-property (if (eq type 'inline-babel-call)
 						:begin

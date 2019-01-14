@@ -1,6 +1,6 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Copyright (C) 1985-1986, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Richard King
 ;; (according to authors.el)
@@ -31,6 +31,8 @@
 ;; `ask-user-about-supersession-threat'.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl-lib))
 
 (define-error 'file-locked "File is locked" 'file-error)
 

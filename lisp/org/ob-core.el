@@ -1,11 +1,11 @@
 ;;; ob-core.el --- Working with Code Blocks          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Authors: Eric Schulte
 ;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -980,13 +980,24 @@ with a prefix argument then this is passed on to
 (defmacro org-babel-do-in-edit-buffer (&rest body)
   "Evaluate BODY in edit buffer if there is a code block at point.
 Return t if a code block was found at point, nil otherwise."
-  `(let ((org-src-window-setup 'switch-invisibly))
-     (when (and (org-babel-where-is-src-block-head)
+  (declare (debug (body)))
+  `(let* ((element (org-element-at-point))
+	  ;; This function is not supposed to move point.  However,
+	  ;; `org-edit-src-code' always moves point back into the
+	  ;; source block.  It is problematic if the point was before
+	  ;; the code, e.g., on block's opening line.  In this case,
+	  ;; we want to restore this location after executing BODY.
+	  (outside-position
+	   (and (<= (line-beginning-position)
+		    (org-element-property :post-affiliated element))
+		(point-marker)))
+	  (org-src-window-setup 'switch-invisibly))
+     (when (and (org-babel-where-is-src-block-head element)
 		(org-edit-src-code))
        (unwind-protect (progn ,@body)
-	 (org-edit-src-exit))
+	 (org-edit-src-exit)
+	 (when outside-position (goto-char outside-position)))
        t)))
-(def-edebug-spec org-babel-do-in-edit-buffer (body))
 
 (defun org-babel-do-key-sequence-in-edit-buffer (key)
   "Read key sequence and execute the command in edit buffer.
@@ -2299,10 +2310,9 @@ INFO may provide the values of these header arguments (in the
 		       (lambda (r)
 			 ;; Non-nil when result R can be turned into
 			 ;; a table.
-			 (and (listp r)
-			      (null (cdr (last r)))
+                         (and (proper-list-p r)
 			      (cl-every
-			       (lambda (e) (or (atom e) (null (cdr (last e)))))
+                               (lambda (e) (or (atom e) (proper-list-p e)))
 			       result)))))
 		  ;; insert results based on type
 		  (cond

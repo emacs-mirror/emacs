@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997, 2000-2018 Free Software
+;; Copyright (C) 1986, 1993-1995, 1997, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -299,9 +299,6 @@ After that, changing the prefix key requires manipulating keymaps."
 ;;;###autoload
 (define-minor-mode outline-minor-mode
   "Toggle Outline minor mode.
-With a prefix argument ARG, enable Outline minor mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 See the command `outline-mode' for more information on this mode."
   nil " Outl" (list (cons [menu-bar] outline-minor-mode-menu-bar-map)
@@ -1100,28 +1097,26 @@ convenient way to make a table of contents of the buffer."
     (save-restriction
       (narrow-to-region beg end)
       (goto-char (point-min))
-      (let ((buffer (current-buffer))
-	    start end)
-	(with-temp-buffer
-	  (with-current-buffer buffer
-	    ;; Boundary condition: starting on heading:
-	    (when (outline-on-heading-p)
-	      (outline-back-to-heading)
-	      (setq start (point)
-		    end (progn (outline-end-of-heading)
-			       (point)))
-	      (insert-buffer-substring buffer start end)
-	      (insert "\n\n")))
-	  (let ((temp-buffer (current-buffer)))
-	    (with-current-buffer buffer
-	      (while (outline-next-heading)
-		(unless (outline-invisible-p)
-		  (setq start (point)
-			end (progn (outline-end-of-heading) (point)))
-		  (with-current-buffer temp-buffer
-		    (insert-buffer-substring buffer start end)
-		    (insert "\n\n"))))))
-	  (kill-new (buffer-string)))))))
+      (let ((buffer (current-buffer)) start end)
+        (with-temp-buffer
+          (let ((temp-buffer (current-buffer)))
+            (with-current-buffer buffer
+              ;; Boundary condition: starting on heading:
+              (when (outline-on-heading-p)
+                (outline-back-to-heading)
+                (setq start (point)
+                      end (progn (outline-end-of-heading) (point)))
+                (with-current-buffer temp-buffer
+                  (insert-buffer-substring buffer start end)
+                  (insert "\n\n")))
+              (while (outline-next-heading)
+                (unless (outline-invisible-p)
+                  (setq start (point)
+                        end (progn (outline-end-of-heading) (point)))
+                  (with-current-buffer temp-buffer
+                    (insert-buffer-substring buffer start end)
+                    (insert "\n\n"))))))
+          (kill-new (buffer-string)))))))
 
 (provide 'outline)
 (provide 'noutline)

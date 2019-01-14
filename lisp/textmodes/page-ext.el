@@ -1,6 +1,6 @@
 ;;; page-ext.el --- extended page handling commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1991, 1993-1994, 2001-2018 Free Software
+;; Copyright (C) 1990-1991, 1993-1994, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Robert J. Chassell <bob@gnu.org>
@@ -304,19 +304,21 @@ With arg (prefix if interactive), move that many pages."
   (or count (setq count 1))
   (widen)
   ;; Cannot use forward-page because of problems at page boundaries.
-  (while (and (> count 0) (not (eobp)))
-    (if (re-search-forward page-delimiter nil t)
-        nil
-      (goto-char (point-max)))
-    (setq count (1- count)))
-  ;; If COUNT is negative, we want to go back -COUNT + 1 page boundaries.
-  ;; The first page boundary we reach is the top of the current page,
-  ;; which doesn't count.
-  (while (and (< count 1) (not (bobp)))
-    (if (re-search-backward page-delimiter nil t)
-	(goto-char (match-beginning 0))
-      (goto-char (point-min)))
-    (setq count (1+ count)))
+  (if (>= count 0)
+      (while (and (> count 0) (not (eobp)))
+        (if (re-search-forward page-delimiter nil t)
+            nil
+          (goto-char (point-max)))
+        (setq count (1- count)))
+    ;; If COUNT is negative, we want to go back -COUNT + 1 page boundaries.
+    ;; The first page boundary we reach is the top of the current page,
+    ;; which doesn't count.
+    (while (and (< count 1) (not (bobp)))
+      (if (re-search-backward page-delimiter nil t)
+          (when (= count 0)
+            (goto-char (match-end 0)))
+        (goto-char (point-min)))
+      (setq count (1+ count))))
   (narrow-to-page)
   (goto-char (point-min))
   (recenter 0))
@@ -699,7 +701,7 @@ to the same line in the pages buffer."
 (defun pages-directory-goto (&optional event)
   "Go to the corresponding line in the pages buffer."
   ;; This function is mostly a copy of `occur-mode-goto-occurrence'
-  (interactive "@e")
+  (interactive (list last-nonmenu-event))
   (if event (mouse-set-point event))
   (if (or (not pages-buffer)
 	  (not (buffer-name pages-buffer)))

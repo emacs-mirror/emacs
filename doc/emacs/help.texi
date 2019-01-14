@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help
@@ -491,7 +491,7 @@ buffer (@pxref{Package Menu}).
 @findex describe-package
 @kindex C-h P
   @kbd{C-h P} (@code{describe-package}) prompts for the name of a
-package (@pxref{Packages}, and displays a help buffer describing the
+package (@pxref{Packages}), and displays a help buffer describing the
 attributes of the package and the features that it implements.  The
 buffer lists the keywords that relate to the package in the form of
 buttons.  Click on a button with @kbd{mouse-1} or @kbd{mouse-2} to see
@@ -523,13 +523,17 @@ currently in use.  @xref{Coding Systems}.
 @section Other Help Commands
 
 @kindex C-h i
+@kindex C-h 4 i
 @findex info
+@findex info-other-window
 @cindex Info
 @cindex manuals, included
   @kbd{C-h i} (@code{info}) runs the Info program, which browses
-structured documentation files.  The entire Emacs manual is available
-within Info, along with many other manuals for the GNU system.  Type
-@kbd{h} after entering Info to run a tutorial on using Info.
+structured documentation files.  @kbd{C-h 4 i}
+(@code{info-other-window}) does the same, but shows the Info buffer in
+another window.  The entire Emacs manual is available within Info,
+along with many other manuals for the GNU system.  Type @kbd{h} after
+entering Info to run a tutorial on using Info.
 
 @cindex find Info manual by its file name
   With a numeric argument @var{n}, @kbd{C-h i} selects the Info buffer

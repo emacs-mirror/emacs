@@ -1,6 +1,6 @@
 ;;; m4-mode.el --- m4 code editing commands for Emacs
 
-;; Copyright (C) 1996-1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Andrew Csillag <drew@thecsillags.com>
 ;; Keywords: languages, faces
@@ -63,8 +63,7 @@ If m4 is not in your PATH, set this to an absolute file name."
 ;;(defconst m4-program-options '("--prefix-builtins"))
 
 (defvar m4-font-lock-keywords
-  `(
-    ("\\(\\_<\\(m4_\\)?dnl\\_>\\).*$" . font-lock-comment-face)
+  '(("\\(\\_<\\(m4_\\)?dnl\\_>\\).*$" . font-lock-comment-face)
     ("\\$[*#@0-9]" . font-lock-variable-name-face)
     ("\\$\\@" . font-lock-variable-name-face)
     ("\\$\\*" . font-lock-variable-name-face)

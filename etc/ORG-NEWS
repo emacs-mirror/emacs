@@ -1,9 +1,9 @@
 ORG NEWS -- history of user-visible changes.   -*- mode: org; coding: utf-8 -*-
 
-#+LINK: doc http://orgmode.org/worg/doc.html#%s
-#+LINK: git http://orgmode.org/cgit.cgi/org-mode.git/commit/?id=%s
+#+LINK: doc https://orgmode.org/worg/doc.html#%s
+#+LINK: git https://code.orgmode.org/bzg/org-mode/commit/%s
 
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Org bug reports to mailto:emacs-orgmode@gnu.org.
@@ -211,8 +211,8 @@ this ~:prologue "fpprintprec: 2; linel: 50;"~ for presenting Maxima
 results in a beamer presentation.
 **** PlantUML: add support for header arguments
 
-[[http://plantuml.com/][Plantuml]] source blocks now support the [[http://orgmode.org/manual/prologue.html#prologue][~:prologue~]], [[http://orgmode.org/manual/epilogue.html#epilogue][~:epilogue~]] and
-[[http://orgmode.org/manual/var.html#var][~:var~]] header arguments.
+[[http://plantuml.com/][Plantuml]] source blocks now support the [[https://orgmode.org/manual/prologue.html#prologue][~:prologue~]], [[https://orgmode.org/manual/epilogue.html#epilogue][~:epilogue~]] and
+[[https://orgmode.org/manual/var.html#var][~:var~]] header arguments.
 
 **** SQL: new engine added ~sqsh~
 
@@ -266,7 +266,7 @@ using ~:namespaces~:
 - ~:flags~ passes arguments to the compiler
 - ~:cmdline~ passes commandline arguments to the generated executable
 
-Support for [[http://orgmode.org/manual/var.html#var][~:var~]] does not exist yet, also there is no [[http://orgmode.org/manual/session.html#session][~:session~]]
+Support for [[https://orgmode.org/manual/var.html#var][~:var~]] does not exist yet, also there is no [[https://orgmode.org/manual/session.html#session][~:session~]]
 support because Vala is a compiled language.
 
 The Vala compiler binary can be changed via the ~defcustom~
@@ -436,9 +436,9 @@ Call ~org-agenda-set-restriction-lock~ from the agenda.
 
 The library-of-babel.org used to be accessible from the =doc/=
 directory, distributed with Org’s core.  It is now accessible
-from the Worg community-driven documentation [[http://orgmode.org/worg/library-of-babel.html][here]].
+from the Worg community-driven documentation [[https://orgmode.org/worg/library-of-babel.html][here]].
 
-If you want to contribute to it, please see [[http://orgmode.org/worg/org-contribute.html][how to contribute]].
+If you want to contribute to it, please see [[https://orgmode.org/worg/org-contribute.html][how to contribute]].
 
 *** Allow multiple columns view
 
@@ -798,7 +798,7 @@ Evaluating a Stan block can produce two different results.
    that does not end in ".stan".
 
 For more information and usage examples, visit
-http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
+https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
 
 **** Support for Oracle databases via ~sqlplus~
 
@@ -1358,7 +1358,7 @@ don't have to be distinct on a heading.
 
 Grouptags had to previously be defined with { }.  This syntax is
 already used for exclusive tags and Grouptags need their own,
-non-exclusive syntax.  This behaviour is achieved with [ ].  Note: { }
+non-exclusive syntax.  This behavior is achieved with [ ].  Note: { }
 can still be used also for Grouptags but then only one of the given
 tags can be used on the headline at the same time.  Example:
 
@@ -1422,9 +1422,9 @@ Check the documentation for more details.
 
 Thanks to Jarmo Hurri for this feature.
 
-*** New behaviour for ~org-toggle-latex-fragment~
+*** New behavior for ~org-toggle-latex-fragment~
 
-The new behaviour is the following:
+The new behavior is the following:
 
 - With a double prefix argument or with a single prefix argument when
   point is before the first headline, toggle overlays in the whole
@@ -1623,10 +1623,10 @@ leading spaces within table cells.
 Org uses the MathJax CDN by default.  See the manual and the docstring
 of ~org-html-mathjax-options~ for details.
 
-*** New behaviour in `org-export-options-alist'
+*** New behavior in `org-export-options-alist'
 
 When defining a back-end, it is now possible to specify to give
-`parse' behaviour on a keyword.  It is equivalent to call
+`parse' behavior on a keyword.  It is equivalent to call
 `org-element-parse-secondary-string' on the value.
 
 However, parsed =KEYWORD= is automatically associated to an
@@ -1745,7 +1745,7 @@ everywhere in the buffer, possibly corrupting URLs.
 *** Removed option =org-babel-sh-command=
 
 This undocumented option defaulted to the value of =shell-file-name= at
-the time of loading =ob-shell=.  The new behaviour is to use the value
+the time of loading =ob-shell=.  The new behavior is to use the value
 of =shell-file-name= directly when the shell langage is =shell=.  To chose
 a different shell, either customize =shell-file-name= or bind this
 variable locally.
@@ -1966,7 +1966,7 @@ This allows to specify the names of automatic bookmarks.
 *** New option [[doc:org-agenda-ignore-drawer-properties][org-agenda-ignore-drawer-properties]]
 
 This allows more flexibility when optimizing the agenda generation.
-See http://orgmode.org/worg/agenda-optimization.html for details.
+See https://orgmode.org/worg/agenda-optimization.html for details.
 *** New option: [[doc:org-html-link-use-abs-url][org-html-link-use-abs-url]] to force using absolute URLs
 
 This is an export/publishing option, and should be used either within
@@ -2050,7 +2050,7 @@ instructions:
 When in doubt, run =M-x org-version RET= and see if you have a mixed-up
 installation.
 
-See http://orgmode.org/org.html#Installation for details.
+See https://orgmode.org/org.html#Installation for details.
 
 ** Incompatible changes
 
@@ -2063,7 +2063,7 @@ you will have to update them.
 
 Below is a list of changes for which you need to take action.
 
-See http://orgmode.org/worg/org-8.0.html for the most recent version of
+See https://orgmode.org/worg/org-8.0.html for the most recent version of
 this list and for detailed instructions on how to migrate.
 
 **** New export engine
@@ -2085,7 +2085,7 @@ corresponding files start with the =ox-= prefix.
 If you customized an export back-end (like HTML or LaTeX), you will need to
 rename some options so that your customization is not lost.  Typically, an
 option starting with =org-export-html-= is now named =org-html-=.  See the
-manual for details and check [[http://orgmode.org/worg/org-8.0.html][this Worg page]] for directions.
+manual for details and check [[https://orgmode.org/worg/org-8.0.html][this Worg page]] for directions.
 
 **** New syntax for #+ATTR_HTML/LaTeX/... options
 
@@ -2146,7 +2146,7 @@ manual for details and check [[http://orgmode.org/worg/org-8.0.html][this Worg p
      ~ox-taskjuggler.el~ by Nicolas Goaziou and others.
 
      Also, the Taskjuggler exporter now uses TJ3 by default.  John Hendy
-     wrote [[http://orgmode.org/worg/org-tutorials/org-taskjuggler3.html][a tutorial on Worg]] for the TJ3 export.
+     wrote [[https://orgmode.org/worg/org-tutorials/org-taskjuggler3.html][a tutorial on Worg]] for the TJ3 export.
 
 ** New packages in core
 
@@ -2192,7 +2192,7 @@ manual for details and check [[http://orgmode.org/worg/org-8.0.html][this Worg p
 
     Display bullets instead of stars for headlines.
 
-    Also see [[http://orgmode.org/worg/org-faq.html#sec-8-12][this updated FAQ]] on how to display another character than "*"
+    Also see [[https://orgmode.org/worg/org-faq.html#sec-8-12][this updated FAQ]] on how to display another character than "*"
     for starting headlines.
 
 *** ~org-favtable.el~ by Marc-Oliver Ihm
@@ -2200,7 +2200,7 @@ manual for details and check [[http://orgmode.org/worg/org-8.0.html][this Worg p
     ~org-favtable.el~ helps you to create and update a table of favorite
     locations in org, keeping the most frequently visited lines right at
     the top.  This table is called "favtable".  See the documentation on
-    [[http://orgmode.org/worg/org-contrib/org-favtable.html][Worg]].
+    [[https://orgmode.org/worg/org-contrib/org-favtable.html][Worg]].
 
 *** ~ox-confluence.el~ by Sébastien Delafond
 
@@ -2241,7 +2241,7 @@ manual for details and check [[http://orgmode.org/worg/org-8.0.html][this Worg p
 
 **** New export generic options
 
-If you use Org exporter, we advise you to re-read [[http://orgmode.org/org.html#Exporting][the manual section about
+If you use Org exporter, we advise you to re-read [[https://orgmode.org/org.html#Exporting][the manual section about
 it]].  It has been updated and includes new options.
 
 Among the new/updated export options, three are of particular importance:
@@ -2616,7 +2616,7 @@ of those tags.)
 You can use group tags for sparse tree in an Org buffer, for creating
 agenda views, and for filtering.
 
-See http://orgmode.org/org.html#Tag-groups for details.
+See https://orgmode.org/org.html#Tag-groups for details.
 
 *** Links
 
@@ -2624,7 +2624,7 @@ See http://orgmode.org/org.html#Tag-groups for details.
 
 Org knows how to store links from Org buffers, from info files and from
 other Emacs buffers.  Org can be taught how to store links from any buffer
-through new link protocols (see [[http://orgmode.org/org.html#Adding-hyperlink-types]["Adding hyperlink types"]] in the manual.)
+through new link protocols (see [[https://orgmode.org/org.html#Adding-hyperlink-types]["Adding hyperlink types"]] in the manual.)
 
 Sometimes you want Org to ignore added link protocols and store the link
 as if the protocol was not known.
@@ -2648,7 +2648,7 @@ with-description and without-description links when inserting them.
 
 When storing a link to a headline like
 
-: * See [[http://orgmode.org][Org website]]
+: * See [[https://orgmode.org][Org website]]
 
 [[doc:org-store-link][org-store-link]] used to convert the square brackets into curly brackets.
 It does not anymore, taking the link description or the link path, when
@@ -2664,7 +2664,7 @@ those other formulas.
 **** You now use "nan" for empty fields in Calc formulas
 
 If empty fields are of interest, it is recommended to reread the section
-[[http://orgmode.org/org.html#Formula-syntax-for-Calc][3.5.2 Formula syntax for Calc]] of the manual because the description for the
+[[https://orgmode.org/org.html#Formula-syntax-for-Calc][3.5.2 Formula syntax for Calc]] of the manual because the description for the
 mode strings has been clarified and new examples have been added towards
 the end.
 
@@ -2683,7 +2683,7 @@ There are now three lookup functions:
 - [[doc:org-loopup-last][org-loopup-last]]
 - [[doc:org-loopup-all][org-loopup-all]]
 
-See [[http://orgmode.org/org.html#Lookup-functions][the manual]] for details.
+See [[https://orgmode.org/org.html#Lookup-functions][the manual]] for details.
 *** Startup keywords
 
 These new startup keywords are now available:
@@ -2814,7 +2814,7 @@ instead of requiring each Babel library one by one.
 
 David (and others) translated the Org compact guide in spanish:
 
-You can read the [[http://orgmode.org/worg/orgguide/orgguide.es.pdf][PDF guide]].
+You can read the [[https://orgmode.org/worg/orgguide/orgguide.es.pdf][PDF guide]].
 
 *** ~poporg.el~ and ~outorg.el~
 
@@ -2825,7 +2825,7 @@ Org-mode available.  ~outorg.el~ comes together with ~outshine.el~ and
 ~navi-mode.el~, two more libraries by Thorsten Jolitz with the goal to give
 source-code buffers the /look & feel/ of Org-mode buffers while greatly
 improving navigation and structure editing.  A detailed description can be
-found here: http://orgmode.org/worg/org-tutorials/org-outside-org.html
+found here: https://orgmode.org/worg/org-tutorials/org-outside-org.html
 
 Here are two screencasts demonstrating Thorsten's tools:
 
@@ -2894,7 +2894,7 @@ in most environments.
 You can now add the Org ELPA repository like this:
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 #+END_SRC
 
 It contains both the =org-*.tar= package (the core Org distribution, also
@@ -2902,7 +2902,7 @@ available through https://elpa.gnu.org) and the =org-plus*.tar= package (the
 extended Org distribution, with non-GNU packages from the =contrib/=
 directory.)
 
-See http://orgmode.org/elpa/
+See https://orgmode.org/elpa/
 
 ** Overview of the new keybindings
 
@@ -3085,7 +3085,7 @@ See http://orgmode.org/elpa/
 
 **** New =todo-unblocked= and =nottodo-unblocked= skip conditions
 
-     See the [[http://orgmode.org/cgit.cgi/org-mode.git/commit/?id=f426da][git commit]] for more explanations.
+     See the [[https://orgmode.org/cgit.cgi/org-mode.git/commit/?id=f426da][git commit]] for more explanations.
 
 **** Allow category filtering in the agenda
 
@@ -3402,7 +3402,7 @@ See http://orgmode.org/elpa/
      Thanks to Carsten for implementing this.
 
 **** ODT: Add support for ODT export in org-bbdb.el
-**** ODT: Add support for indented tables (see [[http://orgmode.org/cgit.cgi/org-mode.git/commit/?id=e9fd33][this commit]] for details)
+**** ODT: Add support for indented tables (see [[https://orgmode.org/cgit.cgi/org-mode.git/commit/?id=e9fd33][this commit]] for details)
 **** ODT: Improve the conversion from ODT to other formats
 **** ASCII: Swap the level-1/level-2 characters to underline the headlines
 **** Support for Chinese, simplified Chinese, Russian, Ukrainian and Japanese
@@ -3535,7 +3535,7 @@ that Calc formulas can operate on them.
 
 *** Emacs 21 support has been dropped
 
-    Do not use Org mode 7.xx with Emacs 21, use [[http://orgmode.org/org-6.36c.zip][version 6.36c]] instead.
+    Do not use Org mode 7.xx with Emacs 21, use [[https://orgmode.org/org-6.36c.zip][version 6.36c]] instead.
 
 *** XEmacs support requires the XEmacs development version
 
@@ -3685,7 +3685,7 @@ that Calc formulas can operate on them.
     This replaces the earlier system org-remember.  The manual only
     describes org-capture, but for people who prefer to continue to
     use org-remember, we keep a static copy of the former manual
-    section [[http://orgmode.org/org-remember.pdf][chapter about remember]].
+    section [[https://orgmode.org/org-remember.pdf][chapter about remember]].
 
     The new system has a technically cleaner implementation and more
     possibilities for capturing different types of data.  See
@@ -3749,7 +3749,7 @@ that Calc formulas can operate on them.
 **** org-taskjuggler.el (Christian Egli)
 
      Christian Egli's /org-taskjuggler.el/ module is now part of Org.
-     He also wrote a [[http://orgmode.org/worg/org-tutorials/org-taskjuggler.php][tutorial]] for it.
+     He also wrote a [[https://orgmode.org/worg/org-tutorials/org-taskjuggler.php][tutorial]] for it.
 
 **** org-ctags.el (Paul Sexton)
 
@@ -3969,7 +3969,7 @@ that Calc formulas can operate on them.
      Org-mode documents or subtrees can now be converted directly in
      to BEAMER presentation.  Turning a tree into a simple
      presentations is straight forward, and there is also quite some
-     support to make richer presentations as well.  See the [[http://orgmode.org/manual/Beamer-class-export.html#Beamer-class-export][BEAMER
+     support to make richer presentations as well.  See the [[https://orgmode.org/manual/Beamer-class-export.html#Beamer-class-export][BEAMER
      section]] in the manual for more details.
 
      Thanks to everyone who has contributed to the discussion about

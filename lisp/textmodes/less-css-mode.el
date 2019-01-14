@@ -1,6 +1,6 @@
 ;;; less-css-mode.el --- Major mode for editing Less CSS files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Steve Purcell <steve@sanityinc.com>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>

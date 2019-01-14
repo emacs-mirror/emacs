@@ -1,10 +1,10 @@
 ;;; org-feed.el --- Add RSS feed items to Org files  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -276,14 +276,21 @@ have been saved."
 (defun org-feed-update-all ()
   "Get inbox items from all feeds in `org-feed-alist'."
   (interactive)
-  (let ((nfeeds (length org-feed-alist))
-	(nnew (apply '+  (mapcar 'org-feed-update org-feed-alist))))
-    (message "%s from %d %s"
-	     (cond ((= nnew 0) "No new entries")
-		   ((= nnew 1) "1 new entry")
-		   (t (format "%d new entries" nnew)))
-	     nfeeds
-	     (if (= nfeeds 1) "feed" "feeds"))))
+  (let ((entries 0)
+	(errors 0)
+	(total-feeds (length org-feed-alist)))
+    (dolist (feed org-feed-alist)
+      (let ((items (ignore-errors (org-feed-update feed))))
+	(if items (cl-incf entries items)
+	  (cl-incf errors))))
+    (message "%s from %d %s%s"
+	     (pcase entries
+	       (0 "No new entries")
+	       (1 "1 new entry")
+	       (_ (format "%d new entries" entries)))
+	     total-feeds
+	     (if (= total-feeds 1) "feed" "feeds")
+	     (if (= 0 errors) "" (format " (unavailable feeds: %d)" errors)))))
 
 ;;;###autoload
 (defun org-feed-update (feed &optional retrieve-only)

@@ -11,7 +11,7 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994--1995, 1999, 2001--2018
+Copyright @copyright{} 1994--1995, 1999, 2001--2019
 Free Software Foundation, Inc.
 
 @quotation
@@ -214,7 +214,7 @@ have been omitted.)
 @cindex skeleton language
 
 @findex skeleton-insert
-  Skeletons are an shorthand extension to the Lisp language, where various
+  Skeletons are a shorthand extension to the Lisp language, where various
 atoms directly perform either actions on the current buffer or rudimentary
 flow control mechanisms.  Skeletons are interpreted by the function
 @code{skeleton-insert}.

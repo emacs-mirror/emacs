@@ -1,6 +1,6 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 
-;; Copyright (C) 1994-1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -78,7 +78,8 @@ If ARG is non-nil, set timestamp with the current time."
                     (function
                      (lambda (file)
                        (when (and file (file-exists-p file))
-                         (setq stamp (nth 5 (file-attributes file)))
+                         (setq stamp (file-attribute-modification-time
+				      (file-attributes file)))
                          (or (> (car stamp) (car mh-alias-tstamp))
                              (and (= (car stamp) (car mh-alias-tstamp))
                                   (> (cadr stamp) (cadr mh-alias-tstamp)))))))

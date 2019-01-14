@@ -1,6 +1,6 @@
 ;;; pcvs-parse.el --- the CVS output parser
 
-;; Copyright (C) 1991-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -32,6 +32,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'pcvs-util)
 (require 'pcvs-info)
 

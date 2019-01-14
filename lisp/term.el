@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2018 Free Software
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -229,30 +229,32 @@
 ;;
 ;;  Notice: for directory/host/user tracking you need to have something
 ;; like this in your shell startup script (this is for a POSIXish shell
-;; like Bash but should be quite easy to port to other shells)
+;; like Bash but should be quite easy to port to other shells).
+;;
+;; For troubleshooting in Bash, you can check the definition of the
+;; custom functions with the "type" command.  e.g. "type cd".  If you
+;; do not see the expected definition from the config below, then the
+;; directory tracking will not work.
 ;;
 ;;             ----------------------------------------
 ;;
-;;  # Set HOSTNAME if not already set.
+;;	# Set HOSTNAME if not already set.
 ;;	: ${HOSTNAME=$(uname -n)}
 ;;
-;;  # su does not change this but I'd like it to
-;;
+;;	# su does not change this but I'd like it to
 ;;	USER=$(whoami)
 ;;
-;;  # ...
+;;	# ...
 ;;
 ;;	case $TERM in
 ;;	    eterm*)
 ;;
 ;;		printf '%s\n' \
 ;;		 -------------------------------------------------------------- \
-;;		 "Hello $user" \
+;;		 "Hello $USER" \
 ;;		 "Today is $(date)" \
 ;;		 "We are on $HOSTNAME running $(uname) under Emacs term mode" \
 ;;		 --------------------------------------------------------------
-;;
-;;		export EDITOR=emacsclient
 ;;
 ;;		# The \033 stands for ESC.
 ;;		# There is a space between "AnSiT?" and $whatever.
@@ -265,10 +267,11 @@
 ;;		printf '\033AnSiTh %s\n' "$HOSTNAME"
 ;;		printf '\033AnSiTu %s\n' "$USER"
 ;;
-;;		eval $(dircolors $HOME/.emacs_dircolors)
+;;		# Use custom dircolors in term buffers.
+;;		# eval $(dircolors $HOME/.emacs_dircolors)
 ;;	esac
 ;;
-;;  # ...
+;;	# ...
 ;;
 ;;
 
@@ -340,6 +343,7 @@
 (eval-when-compile (require 'cl-lib))
 (require 'ring)
 (require 'ehelp)
+(require 'comint) ; Password regexp.
 
 (declare-function ring-empty-p "ring" (ring))
 (declare-function ring-ref "ring" (ring index))
@@ -487,7 +491,7 @@ inconsistent with the state of the terminal understood by the
 inferior process.  Only the process filter is allowed to make
 changes to the buffer.
 
-Customize this option to nil if you want the previous behaviour."
+Customize this option to nil if you want the previous behavior."
   :version "26.1"
   :type 'boolean
   :group 'term)
@@ -508,7 +512,7 @@ commands can be invoked on the mouse-selected point or region,
 until the process filter (or user) moves point to the process
 mark once again.
 
-Customize this option to nil if you want the previous behaviour."
+Customize this option to nil if you want the previous behavior."
   :version "26.1"
   :type 'boolean
   :group 'term)
@@ -598,8 +602,8 @@ This is run before the process is cranked up."
   "Called each time a process is exec'd by `term-exec'.
 This is called after the process is cranked up.  It is useful for things that
 must be done each time a process is executed in a term mode buffer (e.g.,
-`process-kill-without-query').  In contrast, `term-mode-hook' is only
-executed once when the buffer is created."
+`set-process-query-on-exit-flag').  In contrast, `term-mode-hook' is only
+executed once, when the buffer is created."
   :type 'hook
   :group 'term)
 
@@ -1138,6 +1142,11 @@ Entry to this mode runs the hooks on `term-mode-hook'."
       (setq term-current-row nil)
       (setq term-current-column nil)
       (term-set-scroll-region 0 height)
+      ;; `term-set-scroll-region' causes these to be set, we have to
+      ;; clear them again since we're changing point (Bug#30544).
+      (setq term-start-line-column nil)
+      (setq term-current-row nil)
+      (setq term-current-column nil)
       (goto-char point))))
 
 ;; Recursive routine used to check if any string in term-kill-echo-list
@@ -1451,6 +1460,9 @@ The main purpose is to get rid of the local keymap."
   (let ((buffer-read-only nil)
 	(omax (point-max))
 	(opoint (point)))
+    ;; Remove hooks to avoid errors due to dead process.
+    (remove-hook 'pre-command-hook #'term-set-goto-process-mark t)
+    (remove-hook 'post-command-hook #'term-goto-process-mark-maybe t)
     ;; Record where we put the message, so we can ignore it
     ;; later on.
     (goto-char omax)
@@ -1481,6 +1493,31 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
   ;; don't define :te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
   "Termcap capabilities supported.")
 
+;; This private hack is for backwards compatibility with Bash 4.3 and earlier.
+;; It can be useful even when running a program other than Bash, as the
+;; program might invoke Bash as an interactive subshell.  See this thread:
+;; https://lists.gnu.org/r/emacs-devel/2018-05/msg00670.html
+;; Remove this hack and its uses once Bash 4.4-or-later is reasonably
+;; universal, because it slows down execution slightly when
+;; term--bash-needs-EMACSp is first called.
+(defvar term--bash-needs-EMACS-status nil
+  "43 if Bash is so old that it needs EMACS set.
+Some other integer if Bash is new or not in use.
+Nil if unknown.")
+(defun term--bash-needs-EMACSp ()
+  "t if Bash is old, nil if it is new or not in use."
+  (eq 43
+      (or term--bash-needs-EMACS-status
+          (setf
+           term--bash-needs-EMACS-status
+           (let ((process-environment
+                  (cons "BASH_ENV" process-environment)))
+             (condition-case nil
+                 (call-process
+                  "bash" nil nil nil "-c"
+                  "case $BASH_VERSION in [0123].*|4.[0123].*) exit 43;; esac")
+               (error 0)))))))
+
 ;; This auxiliary function cranks up the process for term-exec in
 ;; the appropriate environment.
 
@@ -1498,12 +1535,6 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
 	   (format term-termcap-format "TERMCAP="
 		   term-term-name term-height term-width)
 
-	   ;; This is for backwards compatibility with Bash 4.3 and earlier.
-	   ;; Remove this hack once Bash 4.4-or-later is common, because
-	   ;; it breaks './configure' of some packages that expect it to
-	   ;; say where to find EMACS.
-	   (format "EMACS=%s (term:%s)" emacs-version term-protocol-version)
-
 	   (format "INSIDE_EMACS=%s,term:%s" emacs-version term-protocol-version)
 	   (format "LINES=%d" term-height)
 	   (format "COLUMNS=%d" term-width))
@@ -1515,6 +1546,9 @@ Using \"emacs\" loses, because bash disables editing if $TERM == emacs.")
 	;; escape codes, so we need to see the raw output.  We will have to
 	;; do the decoding by hand on the parts that are made of chars.
 	(coding-system-for-read 'binary))
+    (when (term--bash-needs-EMACSp)
+      (push (format "EMACS=%s (term:%s)" emacs-version term-protocol-version)
+            process-environment))
     (apply 'start-process name buffer
 	   "/bin/sh" "-c"
 	   (format "stty -nl echo rows %d columns %d sane 2>/dev/null;\
@@ -2182,6 +2216,7 @@ filter and C-g is pressed, this function returns nil rather than a string).
 Note that the keystrokes comprising the text can still be recovered
 \(temporarily) with \\[view-lossage].  This may be a security bug for some
 applications."
+  (declare (obsolete read-passwd "27.1"))
   (let ((ans "")
 	(c 0)
 	(echo-keystrokes 0)
@@ -2222,12 +2257,10 @@ applications."
 (defun term-send-invisible (str &optional proc)
   "Read a string without echoing.
 Then send it to the process running in the current buffer.  A new-line
-is additionally sent.  String is not saved on term input history list.
-Security bug: your string can still be temporarily recovered with
-\\[view-lossage]."
+is additionally sent.  String is not saved on term input history list."
   (interactive "P") ; Defeat snooping via C-x esc
   (when (not (stringp str))
-    (setq str (term-read-noecho "Non-echoed text: " t)))
+    (setq str (read-passwd "Non-echoed text: ")))
   (when (not proc)
     (setq proc (get-buffer-process (current-buffer))))
   (if (not proc) (error "Current buffer has no process")
@@ -2235,6 +2268,16 @@ Security bug: your string can still be temporarily recovered with
 				     (cons str nil)))
     (term-send-string proc str)
     (term-send-string proc "\n")))
+
+;; TODO: Maybe combine this with `comint-watch-for-password-prompt'.
+(defun term-watch-for-password-prompt (string)
+  "Prompt in the minibuffer for password and send without echoing.
+Checks if STRING contains a password prompt as defined by
+`comint-password-prompt-regexp'."
+  (when (term-in-line-mode)
+    (when (let ((case-fold-search t))
+            (string-match comint-password-prompt-regexp string))
+      (term-send-invisible (read-passwd string)))))
 
 
 ;;; Low-level process communication
@@ -2712,12 +2755,10 @@ See `term-prompt-regexp'."
 	(setq default-directory
 	      (file-name-as-directory
 	       (if (and (string= term-ansi-at-host (system-name))
-					(string= term-ansi-at-user (user-real-login-name)))
+                        (string= term-ansi-at-user (user-real-login-name)))
 		   (expand-file-name term-ansi-at-dir)
-		 (if (string= term-ansi-at-user (user-real-login-name))
-		     (concat "/" term-ansi-at-host ":" term-ansi-at-dir)
-		   (concat "/" term-ansi-at-user "@" term-ansi-at-host ":"
-			   term-ansi-at-dir)))))
+                 (concat "/-:" term-ansi-at-user "@" term-ansi-at-host ":"
+                         term-ansi-at-dir))))
 
 	;; I'm not sure this is necessary,
 	;; but it's best to be on the safe side.
@@ -2874,7 +2915,8 @@ See `term-prompt-regexp'."
                   (when (not (or (eobp) term-insert-mode))
                     (let ((pos (point)))
                       (term-move-columns columns)
-                      (delete-region pos (point))))
+                      (delete-region pos (point))
+                      (setq term-current-column nil)))
                   ;; In insert mode if the current line
                   ;; has become too long it needs to be
                   ;; chopped off.
@@ -2891,9 +2933,11 @@ See `term-prompt-regexp'."
                 ;; If the last char was written in last column,
                 ;; back up one column, but remember we did so.
                 ;; Thus we emulate xterm/vt100-style line-wrapping.
-                (cond ((eq (term-current-column) term-width)
-                       (term-move-columns -1)
-                       (setq term-do-line-wrapping t)))
+                (when (eq (term-current-column) term-width)
+                  (term-move-columns -1)
+                  ;; We check after ctrl sequence handling if point
+                  ;; was moved (and leave line-wrapping state if so).
+                  (setq term-do-line-wrapping (point)))
                 (setq term-current-column nil)
                 (setq i funny))
               (pcase-exhaustive (and (<= ctl-end str-length) (aref str i))
@@ -2993,6 +3037,9 @@ See `term-prompt-regexp'."
                      (substring str i ctl-end)))))
                 ;; Ignore NUL, Shift Out, Shift In.
                 ((or ?\0 #xE #xF 'nil) nil))
+              ;; Leave line-wrapping state if point was moved.
+              (unless (eq term-do-line-wrapping (point))
+                (setq term-do-line-wrapping nil))
               (if (term-handling-pager)
                   (progn
                     ;; Finish stuff to get ready to handle PAGER.
@@ -3017,6 +3064,8 @@ See `term-prompt-regexp'."
 	  (term-handle-deferred-scroll))
 
 	(set-marker (process-mark proc) (point))
+        (when (stringp decoded-substring)
+          (term-watch-for-password-prompt decoded-substring))
 	(when save-point
 	  (goto-char save-point)
 	  (set-marker save-point nil))
@@ -3269,11 +3318,9 @@ option is enabled.  See `term-set-goto-process-mark'."
    ((eq char ?B)
     (let ((tcr (term-current-row))
           (scroll-amount (car params)))
-      (unless (= tcr (1- term-scroll-end))
+      (unless (>= tcr term-scroll-end)
 	(term-down
-         (if (> (+ tcr scroll-amount) term-scroll-end)
-	     (- term-scroll-end 1 tcr)
-           (max 1 scroll-amount))
+         (min (- term-scroll-end tcr) (max 1 scroll-amount))
          t))))
    ;; \E[C - cursor right (terminfo: cuf, cuf1)
    ((eq char ?C)
@@ -3643,7 +3690,7 @@ all pending output has been dealt with."))
   (let ((start-column (term-horizontal-column)))
     (when (and check-for-scroll (or term-scroll-with-delete term-pager-count))
       (setq down (term-handle-scroll down)))
-    (unless (and (= term-current-row 0) (< down 0))
+    (unless (and (= (term-current-row) 0) (< down 0))
       (term-adjust-current-row-cache down)
       (when (or (/= (point) (point-max)) (< down 0))
 	(setq down (- down (term-vertical-motion down)))))
@@ -3653,7 +3700,7 @@ all pending output has been dealt with."))
 	   (setq term-current-column 0)
 	   (setq term-start-line-column 0))
 	  (t
-	   (when (= term-current-row 0)
+	   (when (= (term-current-row) 0)
 	     ;; Insert lines if at the beginning.
 	     (save-excursion (term-insert-char ?\n (- down)))
 	     (save-excursion

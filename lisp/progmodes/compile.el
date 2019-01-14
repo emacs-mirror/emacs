@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2018 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -83,7 +83,10 @@ buffer.  This enables a major-mode to specify its own value.")
 (defvar compilation-parse-errors-filename-function nil
   "Function to call to post-process filenames while parsing error messages.
 It takes one arg FILENAME which is the name of a file as found
-in the compilation output, and should return a transformed file name.")
+in the compilation output, and should return a transformed file name
+or a buffer, the one which was compiled.")
+;; Note: the compilation-parse-errors-filename-function need not save the
+;; match data.
 
 ;;;###autoload
 (defvar compilation-process-setup-function nil
@@ -98,16 +101,6 @@ while processing the output of the compilation process.")
 The function receives one argument, the name of the major mode of the
 compilation buffer.  It should return a string.
 If nil, compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
-
-;;;###autoload
-(defvar compilation-finish-function nil
-  "Function to call when a compilation process finishes.
-It is called with two arguments: the compilation buffer, and a string
-describing how the process finished.")
-
-(make-obsolete-variable 'compilation-finish-function
-  "use `compilation-finish-functions', but it works a little differently."
-  "22.1")
 
 ;;;###autoload
 (defvar compilation-finish-functions nil
@@ -560,7 +553,8 @@ FILE can also have the form (FILE FORMAT...), where the FORMATs
 \(e.g. \"%s.c\") will be applied in turn to the recognized file
 name, until a file of that name is found.  Or FILE can also be a
 function that returns (FILENAME) or (RELATIVE-FILENAME . DIRNAME).
-In the former case, FILENAME may be relative or absolute.
+In the former case, FILENAME may be relative or absolute, or it may
+be a buffer.
 
 LINE can also be of the form (LINE . END-LINE) meaning a range
 of lines.  COLUMN can also be of the form (COLUMN . END-COLUMN)
@@ -954,10 +948,11 @@ from a different message."
 ;;   FILE-STRUCTURE is a list of
 ;;   ((FILENAME DIRECTORY) FORMATS (LINE LOC ...) ...)
 
-;; FILENAME is a string parsed from an error message.  DIRECTORY is a string
-;; obtained by following directory change messages.  DIRECTORY will be nil for
-;; an absolute filename.  FORMATS is a list of formats to apply to FILENAME if
-;; a file of that name can't be found.
+;; FILENAME is a string parsed from an error message, or the buffer which was
+;; compiled.  DIRECTORY is a string obtained by following directory change
+;; messages.  DIRECTORY will be nil for an absolute filename or a buffer.
+;; FORMATS is a list of formats to apply to FILENAME if a file of that name
+;; can't be found.
 ;; The rest of the list is an alist of elements with LINE as key.  The keys
 ;; are either nil or line numbers.  If present, nil comes first, followed by
 ;; the numbers in decreasing order.  The LOCs for each line are again an alist
@@ -1190,7 +1185,8 @@ just char-counts."
   "Get the meta-info that will be added as text-properties.
 LINE, END-LINE, COL, END-COL are integers or nil.
 TYPE can be 0, 1, or 2, meaning error, warning, or just info.
-FILE should be (FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil.
+FILE should be (FILENAME) or (RELATIVE-FILENAME . DIRNAME) or (BUFFER) or
+nil.
 FMTS is a list of format specs for transforming the file name.
  (See `compilation-error-regexp-alist'.)"
   (unless file (setq file '("*unknown*")))
@@ -2101,7 +2097,6 @@ by replacing the first word, e.g., `compilation-scroll-output' from
 		   compilation-error-regexp-alist
 		   compilation-error-regexp-alist-alist
 		   compilation-error-screen-columns
-		   compilation-finish-function
 		   compilation-finish-functions
 		   compilation-first-column
 		   compilation-mode-font-lock-keywords
@@ -2175,9 +2170,6 @@ Optional argument MINOR indicates this is called from
 ;;;###autoload
 (define-minor-mode compilation-shell-minor-mode
   "Toggle Compilation Shell minor mode.
-With a prefix argument ARG, enable Compilation Shell minor mode
-if ARG is positive, and disable it otherwise.  If called from
-Lisp, enable the mode if ARG is omitted or nil.
 
 When Compilation Shell minor mode is enabled, all the
 error-parsing commands of the Compilation major mode are
@@ -2192,9 +2184,6 @@ See `compilation-mode'."
 ;;;###autoload
 (define-minor-mode compilation-minor-mode
   "Toggle Compilation minor mode.
-With a prefix argument ARG, enable Compilation minor mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 When Compilation minor mode is enabled, all the error-parsing
 commands of Compilation major mode are available.  See
@@ -2245,9 +2234,6 @@ commands of Compilation major mode are available.  See
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
 	(goto-char opoint))
-    (with-no-warnings
-      (if compilation-finish-function
-	  (funcall compilation-finish-function cur-buffer msg)))
     (run-hook-with-args 'compilation-finish-functions cur-buffer msg)))
 
 ;; Called when compilation process changes state.
@@ -2513,12 +2499,14 @@ This is the value of `next-error-function' in Compilation buffers."
                  ;;            (setq timestamp compilation-buffer-modtime)))
                  )
       (with-current-buffer
-          (apply #'compilation-find-file
-                 marker
-                 (caar (compilation--loc->file-struct loc))
-                 (cadr (car (compilation--loc->file-struct loc)))
-                 (compilation--file-struct->formats
-                  (compilation--loc->file-struct loc)))
+          (if (bufferp (caar (compilation--loc->file-struct loc)))
+              (caar (compilation--loc->file-struct loc))
+            (apply #'compilation-find-file
+                   marker
+                   (caar (compilation--loc->file-struct loc))
+                   (cadr (car (compilation--loc->file-struct loc)))
+                   (compilation--file-struct->formats
+                    (compilation--loc->file-struct loc))))
         (let ((screen-columns
                ;; Obey the compilation-error-screen-columns of the target
                ;; buffer if its major mode set it buffer-locally.
@@ -2830,18 +2818,21 @@ TRUE-DIRNAME is the `file-truename' of DIRNAME, if given."
 		       (concat comint-file-name-prefix spec-directory))))))
 
 	;; If compilation-parse-errors-filename-function is
-	;; defined, use it to process the filename.
+	;; defined, use it to process the filename.  The result might be a
+	;; buffer.
 	(when compilation-parse-errors-filename-function
-	  (setq filename
-		(funcall compilation-parse-errors-filename-function
-			 filename)))
+          (save-match-data
+	    (setq filename
+		  (funcall compilation-parse-errors-filename-function
+			   filename))))
 
 	;; Some compilers (e.g. Sun's java compiler, reportedly) produce bogus
 	;; file names like "./bar//foo.c" for file "bar/foo.c";
 	;; expand-file-name will collapse these into "/foo.c" and fail to find
 	;; the appropriate file.  So we look for doubled slashes in the file
 	;; name and fix them.
-	(setq filename (command-line-normalize-file-name filename))
+	(if (stringp filename)
+            (setq filename (command-line-normalize-file-name filename)))
 
 	;; Store it for the possibly unnormalized name
 	(puthash file

@@ -1,6 +1,6 @@
 ;;; nnfolder.el --- mail folder access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
@@ -32,7 +32,6 @@
 (require 'message)
 (require 'nnmail)
 (require 'nnoo)
-(eval-when-compile (require 'cl))
 (require 'gnus)
 (require 'gnus-util)
 (require 'gnus-range)
@@ -863,7 +862,7 @@ deleted.  Point is left where the deleted region was."
     (mm-enable-multibyte) ;; Use multibyte buffer for future copying.
     (buffer-disable-undo)
     (if (equal (cadr (assoc group nnfolder-scantime-alist))
-	       (nth 5 (file-attributes file)))
+	       (file-attribute-modification-time (file-attributes file)))
 	;; This looks up-to-date, so we don't do any scanning.
 	(if (file-exists-p file)
 	    buffer
@@ -878,17 +877,17 @@ deleted.  Point is left where the deleted region was."
 	  (delete-char 1))
 	(nnmail-activate 'nnfolder)
 	;; Read in the file.
-	(let ((delim "^From ")
-	      (marker (concat "\n" nnfolder-article-marker))
-	      (number "[0-9]+")
-	      (active (or (cadr (assoc group nnfolder-group-alist))
-			  (cons 1 0)))
-	      (scantime (assoc group nnfolder-scantime-alist))
-	      (minid most-positive-fixnum)
-	      maxid start end newscantime
-	      novbuf articles newnum
-	      buffer-read-only)
-	  (setq maxid (cdr active))
+	(let* ((delim "^From ")
+	       (marker (concat "\n" nnfolder-article-marker))
+	       (number "[0-9]+")
+	       (active (or (cadr (assoc group nnfolder-group-alist))
+			   (cons 1 0)))
+	       (scantime (assoc group nnfolder-scantime-alist))
+	       (minid (cdr active))
+	       maxid start end newscantime
+	       novbuf articles newnum
+	       buffer-read-only)
+	  (setq maxid minid)
 
 	  (unless (or gnus-nov-is-evil nnfolder-nov-is-evil
 		      (and (file-exists-p nov)
@@ -959,7 +958,7 @@ deleted.  Point is left where the deleted region was."
 	  (while (not (= end (point-max)))
 	    (setq start (marker-position end))
 	    (goto-char end)
-	   ;; There may be more than one "From " line, so we skip past
+	    ;; There may be more than one "From " line, so we skip past
 	    ;; them.
 	    (while (looking-at delim)
 	      (forward-line 1))

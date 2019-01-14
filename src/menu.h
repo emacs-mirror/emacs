@@ -1,5 +1,5 @@
 /* Functions to manipulate menus.
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,7 +30,7 @@ enum {
 };
 
 extern void init_menu_items (void);
-extern void finish_menu_items (void) ATTRIBUTE_CONST;
+extern void finish_menu_items (void);
 extern void discard_menu_items (void);
 extern void save_menu_items (void);
 extern bool parse_single_submenu (Lisp_Object, Lisp_Object, Lisp_Object);

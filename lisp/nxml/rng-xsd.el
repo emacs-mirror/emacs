@@ -1,6 +1,6 @@
 ;;; rng-xsd.el --- W3C XML Schema datatypes library for RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG

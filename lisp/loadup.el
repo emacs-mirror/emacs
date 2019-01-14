@@ -1,6 +1,6 @@
 ;;; loadup.el --- load up standardly loaded Lisp files for Emacs
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2018 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -394,8 +394,8 @@ lost after dumping")))
 				(string-to-number
 				 (substring name (length base) exelen))))
 			     files)))
-      (setq emacs-repository-version (condition-case nil (emacs-repository-get-version)
-                                       (error nil)))
+      (setq emacs-repository-version (ignore-errors (emacs-repository-get-version))
+            emacs-repository-branch (ignore-errors (emacs-repository-get-branch)))
       ;; A constant, so we shouldn't change it with `setq'.
       (defconst emacs-build-number
 	(if versions (1+ (apply 'max versions)) 1))))
@@ -486,10 +486,17 @@ lost after dumping")))
         (file-error nil))
       ;; On MS-Windows, the current directory is not necessarily the
       ;; same as invocation-directory.
-      (if (member dump-mode '("pdump" "pbootstrap"))
-          (dump-emacs-portable (expand-file-name output invocation-directory))
-        (dump-emacs output "temacs")
-        (message "%d pure bytes used" pure-bytes-used))
+      (let (success)
+        (unwind-protect
+             (progn
+               (if (member dump-mode '("pdump" "pbootstrap"))
+                   (dump-emacs-portable (expand-file-name output invocation-directory))
+                 (dump-emacs output "temacs")
+                 (message "%d pure bytes used" pure-bytes-used))
+               (setq success t))
+          (unless success
+            (ignore-errors
+              (delete-file output)))))
       ;; Recompute NAME now, so that it isn't set when we dump.
       (if (not (or (eq system-type 'ms-dos)
                    ;; Don't bother adding another name if we're just

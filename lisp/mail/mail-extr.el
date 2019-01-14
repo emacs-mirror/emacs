@@ -1,6 +1,6 @@
 ;;; mail-extr.el --- extract full name and address from RFC 822 mail header
 
-;; Copyright (C) 1991-1994, 1997, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1991-1994, 1997, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Joe Wells <jbw@cs.bu.edu>
@@ -652,7 +652,7 @@ Unless NO-REPLACE is true, at each of the positions in LIST-SYMBOL
 		   (< ch ,beg-symbol))
 	   ,@(if no-replace
 		   nil
-		 `((mail-extr-nuke-char-at ch)))
+	       '((mail-extr-nuke-char-at ch)))
 	   (setcar temp nil))
 	 (setq temp (cdr temp)))
        (setq ,list-symbol (delq nil ,list-symbol))))
@@ -712,7 +712,13 @@ one recipients, all but the first is ignored.
 ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 \(narrowed) portion of the buffer will be interpreted as the address.
 \(This feature exists so that the clever caller might be able to avoid
-consing a string.)"
+consing a string.)
+
+This function is primarily meant for when you're displaying the
+result to the user: Many prettifications are applied to the
+result returned.  If you want to decode an address for further
+non-display use, you should probably use
+`mail-header-parse-address' instead."
   (let ((canonicalization-buffer (get-buffer-create " *canonical address*"))
 	(extraction-buffer (get-buffer-create " *extract address components*"))
 	value-list)
@@ -1406,26 +1412,25 @@ consing a string.)"
 	      (insert (upcase mi) ". ")))
 
 	  ;; Nuke name if it is the same as mailbox name.
-          (when mail-extr-ignore-single-names
-            (let ((buffer-length (- (point-max) (point-min)))
-                  (i 0)
-                  (names-match-flag t))
-              (when (and (> buffer-length 0)
-                         (eq buffer-length (- mbox-end mbox-beg)))
-                (goto-char (point-max))
-                (insert-buffer-substring canonicalization-buffer
-                                         mbox-beg mbox-end)
-                (while (and names-match-flag
-                            (< i buffer-length))
-                  (or (eq (downcase (char-after (+ i (point-min))))
-                          (downcase
-                           (char-after (+ i buffer-length (point-min)))))
-                      (setq names-match-flag nil))
-                  (setq i (1+ i)))
-                (delete-region (+ (point-min) buffer-length) (point-max))
-                (and names-match-flag
-                     mail-extr-ignore-realname-equals-mailbox-name
-                     (narrow-to-region (point) (point))))))
+	  (let ((buffer-length (- (point-max) (point-min)))
+		(i 0)
+		(names-match-flag t))
+	    (when (and (> buffer-length 0)
+		       (eq buffer-length (- mbox-end mbox-beg)))
+	      (goto-char (point-max))
+	      (insert-buffer-substring canonicalization-buffer
+				       mbox-beg mbox-end)
+	      (while (and names-match-flag
+			  (< i buffer-length))
+		(or (eq (downcase (char-after (+ i (point-min))))
+			(downcase
+			 (char-after (+ i buffer-length (point-min)))))
+		    (setq names-match-flag nil))
+		(setq i (1+ i)))
+	      (delete-region (+ (point-min) buffer-length) (point-max))
+	      (and names-match-flag
+			   mail-extr-ignore-realname-equals-mailbox-name
+			   (narrow-to-region (point) (point)))))
 
 	  ;; Nuke name if it's just one word.
 	  (goto-char (point-min))

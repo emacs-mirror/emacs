@@ -1,6 +1,6 @@
 ;;; format.el --- read and save files in multiple formats
 
-;; Copyright (C) 1994-1995, 1997, 1999, 2001-2018 Free Software
+;; Copyright (C) 1994-1995, 1997, 1999, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
@@ -539,13 +539,7 @@ Compare using `equal'."
 	(setq tail next)))
     (cons acopy bcopy)))
 
-(defun format-proper-list-p (list)
-  "Return t if LIST is a proper list.
-A proper list is a list ending with a nil cdr, not with an atom "
-  (when (listp list)
-    (while (consp list)
-      (setq list (cdr list)))
-    (null list)))
+(define-obsolete-function-alias 'format-proper-list-p 'proper-list-p "27.1")
 
 (defun format-reorder (items order)
   "Arrange ITEMS to follow partial ORDER.
@@ -1005,12 +999,10 @@ either strings, or lists of the form (PARAMETER VALUE)."
       ;; If either old or new is a list, have to treat both that way.
       (if (and (or (listp old) (listp new))
 	       (not (get prop 'format-list-atomic-p)))
-	  (if (or (not (format-proper-list-p old))
-		  (not (format-proper-list-p new)))
+          (if (not (and (proper-list-p old)
+                        (proper-list-p new)))
 	      (format-annotate-atomic-property-change prop-alist old new)
-	    (let* ((old (if (listp old) old (list old)))
-		   (new (if (listp new) new (list new)))
-		   close open)
+	    (let (close open)
 	      (while old
 		(setq close
 		      (append (car (format-annotate-atomic-property-change

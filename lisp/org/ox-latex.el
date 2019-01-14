@@ -1,6 +1,6 @@
 ;;; ox-latex.el --- LaTeX Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -920,15 +920,14 @@ using customize, or with
   (add-to-list \\='org-latex-packages-alist \\='(\"newfloat\" \"minted\"))
 
 In addition, it is necessary to install pygments
-\(http://pygments.org), and to configure the variable
+\(URL `http://pygments.org>'), and to configure the variable
 `org-latex-pdf-process' so that the -shell-escape option is
 passed to pdflatex.
 
 The minted choice has possible repercussions on the preview of
 latex fragments (see `org-preview-latex-fragment').  If you run
 into previewing problems, please consult
-
-  http://orgmode.org/worg/org-tutorials/org-latex-preview.html"
+URL `https://orgmode.org/worg/org-tutorials/org-latex-preview.html'."
   :group 'org-export-latex
   :type '(choice
 	  (const :tag "Use listings" t)
@@ -1719,7 +1718,7 @@ holding export options."
      ;; Table of contents.
      (let ((depth (plist-get info :with-toc)))
        (when depth
-	 (concat (when (wholenump depth)
+	 (concat (when (integerp depth)
 		   (format "\\setcounter{tocdepth}{%d}\n" depth))
 		 (plist-get info :latex-toc-command))))
      ;; Document's body.

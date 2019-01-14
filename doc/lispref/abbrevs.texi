@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1999, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1994, 1999, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Abbrevs
@@ -232,7 +232,8 @@ Emacs commands to offer to save your abbrevs.
 Save all abbrev definitions (except system abbrevs), for all abbrev
 tables listed in @code{abbrev-table-name-list}, in the file
 @var{filename}, in the form of a Lisp program that when loaded will
-define the same abbrevs.  If @var{filename} is @code{nil} or omitted,
+define the same abbrevs.  Tables that do not have any abbrevs to save
+are omitted.  If @var{filename} is @code{nil} or omitted,
 @code{abbrev-file-name} is used.  This function returns @code{nil}.
 @end deffn
 

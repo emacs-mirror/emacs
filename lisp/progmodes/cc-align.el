@@ -1,6 +1,6 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2019 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -868,12 +868,11 @@ returned if there's no template argument on the first line.
 
 Works with: template-args-cont."
   (save-excursion
-    (c-with-syntax-table c++-template-syntax-table
-      (beginning-of-line)
-      (backward-up-list 1)
-      (if (and (eq (char-after) ?<)
-	       (zerop (c-forward-token-2 1 nil (c-point 'eol))))
-	  (vector (current-column))))))
+    (beginning-of-line)
+    (backward-up-list 1)
+    (if (and (eq (char-after) ?<)
+	     (zerop (c-forward-token-2 1 nil (c-point 'eol))))
+	(vector (current-column)))))
 
 (defun c-lineup-ObjC-method-call (langelem)
   "Line up selector args as Emacs Lisp mode does with function args:

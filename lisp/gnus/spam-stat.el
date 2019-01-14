@@ -1,6 +1,6 @@
 ;;; spam-stat.el --- detecting spam based on statistics
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
@@ -77,13 +77,13 @@
 ;; Learn spam: (spam-stat-process-spam-directory "~/Mail/mail/spam")
 ;; Learn non-spam: (spam-stat-process-non-spam-directory "~/Mail/mail/misc")
 ;; Save table: (spam-stat-save)
-;; File size: (nth 7 (file-attributes spam-stat-file))
+;; File size: (file-attribute-size (file-attributes spam-stat-file))
 ;; Number of words: (hash-table-count spam-stat)
 ;; Test spam: (spam-stat-test-directory "~/Mail/mail/spam")
 ;; Test non-spam: (spam-stat-test-directory "~/Mail/mail/misc")
 ;; Reduce table size: (spam-stat-reduce-size)
 ;; Save table: (spam-stat-save)
-;; File size: (nth 7 (file-attributes spam-stat-file))
+;; File size: (file-attribute-size (file-attributes spam-stat-file))
 ;; Number of words: (hash-table-count spam-stat)
 ;; Test spam: (spam-stat-test-directory "~/Mail/mail/spam")
 ;; Test non-spam: (spam-stat-test-directory "~/Mail/mail/misc")
@@ -424,7 +424,8 @@ spam-stat (spam-stat-to-hash-table '(" spam-stat-ngood spam-stat-nbad))
 	  (insert ")))"))))
     (message "Saved %s."  spam-stat-file)
     (setq spam-stat-dirty nil
-          spam-stat-last-saved-at (nth 5 (file-attributes spam-stat-file)))))
+          spam-stat-last-saved-at (file-attribute-modification-time
+				   (file-attributes spam-stat-file)))))
 
 (defun spam-stat-load ()
   "Read the `spam-stat' hash table from disk."
@@ -434,12 +435,14 @@ spam-stat (spam-stat-to-hash-table '(" spam-stat-ngood spam-stat-nbad))
           ((or (not (boundp 'spam-stat-last-saved-at))
                (null spam-stat-last-saved-at)
                (not (equal spam-stat-last-saved-at
-                           (nth 5 (file-attributes spam-stat-file)))))
+                           (file-attribute-modification-time
+			    (file-attributes spam-stat-file)))))
            (progn
              (load-file spam-stat-file)
              (setq spam-stat-dirty nil
                    spam-stat-last-saved-at
-                   (nth 5 (file-attributes spam-stat-file)))))
+                   (file-attribute-modification-time
+		    (file-attributes spam-stat-file)))))
           (t (message "Spam stat file not loaded: no change in disk.")))))
 
 (defun spam-stat-to-hash-table (entries)
@@ -561,8 +564,10 @@ check the variable `spam-stat-score-data'."
       (dolist (f files)
 	(when (and (file-readable-p f)
 		   (file-regular-p f)
-                   (> (nth 7 (file-attributes f)) 0)
-		   (< (time-to-number-of-days (time-since (nth 5 (file-attributes f))))
+                   (> (file-attribute-size (file-attributes f)) 0)
+		   (< (time-to-number-of-days
+		       (time-since (file-attribute-modification-time
+				    (file-attributes f))))
 		      spam-stat-process-directory-age))
 	  (setq count (1+ count))
 	  (message "Reading %s: %.2f%%" dir (/ count max))
@@ -607,7 +612,7 @@ display non-spam files; otherwise display spam files."
       (dolist (f files)
 	(when (and (file-readable-p f)
 		   (file-regular-p f)
-                   (> (nth 7 (file-attributes f)) 0))
+                   (> (file-attribute-size (file-attributes f)) 0))
 	  (setq count (1+ count))
 	  (message "Reading %.2f%%, score %.2f"
 	  	   (/ count max) (/ score count))

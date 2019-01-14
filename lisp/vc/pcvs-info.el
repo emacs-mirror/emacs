@@ -1,6 +1,6 @@
 ;;; pcvs-info.el --- internal representation of a fileinfo entry
 
-;; Copyright (C) 1991-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -38,9 +38,6 @@
 ;;;;
 ;;;; config variables
 ;;;;
-
-(define-obsolete-variable-alias 'cvs-display-full-path
-    'cvs-display-full-name "22.1")
 
 (defcustom cvs-display-full-name t
   "Specifies how the filenames should be displayed in the listing.
@@ -211,8 +208,6 @@ to confuse some users sometimes."
       ;; Here, I use `concat' rather than `expand-file-name' because I want
       ;; the resulting path to stay relative if `dir' is relative.
       (concat dir (cvs-fileinfo->file fileinfo)))))
-(define-obsolete-function-alias 'cvs-fileinfo->full-path
-    'cvs-fileinfo->full-name "22.1")
 
 (defun cvs-fileinfo->pp-name (fi)
   "Return the filename of FI as it should be displayed."
@@ -268,9 +263,9 @@ to confuse some users sometimes."
 	     (setq check 'type)		(symbolp type)
 	     (setq check 'consistency)
 	     (pcase type
-	       (`DIRCHANGE (and (null subtype) (string= "." file)))
-	       ((or `NEED-UPDATE `ADDED `MISSING `DEAD `MODIFIED `MESSAGE
-                    `UP-TO-DATE `REMOVED `NEED-MERGE `CONFLICT `UNKNOWN)
+	       ('DIRCHANGE (and (null subtype) (string= "." file)))
+	       ((or 'NEED-UPDATE 'ADDED 'MISSING 'DEAD 'MODIFIED 'MESSAGE
+                    'UP-TO-DATE 'REMOVED 'NEED-MERGE 'CONFLICT 'UNKNOWN)
 		t)))
 	fi
       (error "Invalid :%s in cvs-fileinfo %s" check fi))))
@@ -331,11 +326,11 @@ For use by the ewoc package."
 	(subtype (cvs-fileinfo->subtype fileinfo)))
     (insert
      (pcase type
-       (`DIRCHANGE (concat "In directory "
+       ('DIRCHANGE (concat "In directory "
                            (cvs-add-face (cvs-fileinfo->full-name fileinfo)
                                          'cvs-header t 'cvs-goal-column t)
                            ":"))
-       (`MESSAGE
+       ('MESSAGE
 	(cvs-add-face (format "Message: %s" (cvs-fileinfo->full-log fileinfo))
 		      'cvs-msg))
        (_
@@ -349,7 +344,7 @@ For use by the ewoc package."
 	       (type
 		(let ((str (pcase type
 			     ;;(MOD-CONFLICT "Not Removed")
-			     (`DEAD	  "")
+			     ('DEAD	  "")
 			     (_ (capitalize (symbol-name type)))))
 		      (face (let ((sym (intern-soft
 					(concat "cvs-fi-"
@@ -456,7 +451,8 @@ DIR can also be a file."
 	       ((not (file-exists-p (concat dir f))) (setq type 'MISSING))
 	       ((equal rev "0") (setq type 'ADDED rev nil))
 	       ((equal date "Result of merge") (setq subtype 'MERGED))
-	       ((let ((mtime (nth 5 (file-attributes (concat dir f))))
+	       ((let ((mtime (file-attribute-modification-time
+			      (file-attributes (concat dir f))))
 		      (system-time-locale "C"))
 		  (setq timestamp (format-time-string "%c" mtime t))
 		  ;; Solaris sometimes uses "Wed Sep 05", not "Wed Sep  5".

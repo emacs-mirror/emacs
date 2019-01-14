@@ -1,6 +1,6 @@
 ;;; nnweb.el --- retrieving articles via web search engines
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (require 'nnoo)
 (require 'message)
@@ -33,9 +33,7 @@
 (require 'nnmail)
 (require 'mm-util)
 (require 'mm-url)
-(eval-and-compile
-  (ignore-errors
-    (require 'url)))
+(require 'url)
 
 (nnoo-declare nnweb)
 
@@ -362,11 +360,11 @@ Valid types include `google', `dejanews', and `gmane'.")
 		     (current-time-string)))
 	(setq From (match-string 4)))
       (widen)
-      (incf i)
+      (cl-incf i)
       (unless (nnweb-get-hashtb url)
 	(push
 	 (list
-	  (incf (cdr active))
+	  (cl-incf (cdr active))
 	  (make-full-mail-header
 	   (cdr active) (if Newsgroups
 			    (concat  "(" Newsgroups ") " Subject)
@@ -398,7 +396,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 		  (nconc nnweb-articles (nnweb-google-parse-1)))
 	    ;; Check if there are more articles to fetch
 	    (goto-char (point-min))
-	    (incf i 100)
+	    (cl-incf i 100)
 	    (if (or (not (re-search-forward
 			  "<a [^>]+href=\"\n?\\([^>\" \n\t]+\\)[^<]*<img[^>]+src=[^>]+next"
 			  nil t))
@@ -478,7 +476,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 					 (rfc2047-encode-string subject))
 
 		(unless (nnweb-get-hashtb (mail-header-xref header))
-		  (mail-header-set-number header (incf (cdr active)))
+		  (mail-header-set-number header (cl-incf (cdr active)))
 		  (push (list (mail-header-number header) header) map)
 		  (nnweb-set-hashtb (cadar map) (car map))))))
 	  (forward-line 1)))
@@ -525,10 +523,6 @@ Valid types include `google', `dejanews', and `gmane'.")
 (defun nnweb-insert-html (parse)
   "Insert HTML based on a w3 parse tree."
   (if (stringp parse)
-      ;; We used to call nnheader-string-as-multibyte here, but it cannot
-      ;; be right, so I removed it.  If a bug shows up because of this change,
-      ;; please do not blindly revert the change, but help me find the real
-      ;; cause of the bug instead.  --Stef
       (insert parse)
     (insert "<" (symbol-name (car parse)) " ")
     (insert (mapconcat

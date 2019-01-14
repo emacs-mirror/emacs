@@ -1,6 +1,6 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990-1993, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience
@@ -191,7 +191,6 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
 ;;;###autoload
 (define-minor-mode partial-completion-mode
   "Toggle Partial Completion mode.
-With prefix ARG, turn Partial Completion mode on if ARG is positive.
 
 When Partial Completion mode is enabled, TAB (or M-TAB if `PC-meta-flag' is
 nil) is enhanced so that if some string is divided into words and each word is

@@ -1,6 +1,6 @@
 /* Replacement inttypes.h file for building GNU Emacs on Windows with MSVC.
 
-Copyright (C) 2011-2018 Free Software Foundation, Inc.
+Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

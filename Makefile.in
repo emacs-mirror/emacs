@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1992-2018 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -153,6 +153,9 @@ libexecdir=@libexecdir@
 # Currently only used for the systemd service file.
 libdir=@libdir@
 
+# Where to install emacs-module.h.
+includedir=@includedir@
+
 # Where to install Emacs's man pages.
 # Note they contain cross-references that expect them to be in section 1.
 mandir=@mandir@
@@ -194,7 +197,7 @@ x_default_search_path=@x_default_search_path@
 desktopdir=$(datarootdir)/applications
 
 # Where the etc/emacs.appdata.xml file is to be installed.
-appdatadir=$(datarootdir)/appdata
+appdatadir=$(datarootdir)/metainfo
 
 # Where the etc/emacs.service file is to be installed.
 # The system value (typically /usr/lib/systemd/user) can be
@@ -521,9 +524,11 @@ INSTALL_ARCH_INDEP_EXTRA = @INSTALL_ARCH_INDEP_EXTRA@
 ## https://lists.gnu.org/r/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.
 set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
-	  `id -un 2> /dev/null`; do \
+	  `(id -u) 2> /dev/null`; do \
 	  [ -n "$${installuser}" ] && break ; \
-	done
+	done; \
+	installgroup=`(id -g) 2>/dev/null` && [ -n "$$installgroup" ] && \
+	  installuser=$$installuser:$$installgroup
 
 ### Install the files that are machine-independent.
 ### Most of them come straight from the distribution; the exception is
@@ -563,6 +568,8 @@ set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
 ## See also these comments from 2004 about cp -r working fine:
 ## https://lists.gnu.org/r/autoconf-patches/2004-11/msg00005.html
 install-arch-indep: lisp install-info install-man ${INSTALL_ARCH_INDEP_EXTRA}
+	umask 022 && $(MKDIR_P) "$(DESTDIR)$(includedir)"
+	$(INSTALL_DATA) src/emacs-module.h "$(DESTDIR)$(includedir)/emacs-module.h"
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	$(set_installuser); \
@@ -746,6 +753,7 @@ install-strip:
 ###
 ### Don't delete the lisp and etc directories if they're in the source tree.
 uninstall: uninstall-$(NTDIR) uninstall-doc
+	rm -f "$(DESTDIR)$(includedir)/emacs-module.h"
 	$(MAKE) -C lib-src uninstall
 	-unset CDPATH; \
 	for dir in "$(DESTDIR)${lispdir}" "$(DESTDIR)${etcdir}" ; do 	\
@@ -783,7 +791,9 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	(if cd "$(DESTDIR)${icondir}"; then \
 	   rm -f hicolor/*x*/apps/"${EMACS_NAME}.png" \
 	     "hicolor/scalable/apps/${EMACS_NAME}.svg" \
-	     hicolor/scalable/mimetypes/`echo emacs-document | sed '$(TRANSFORM)'`.svg; \
+	     "hicolor/scalable/apps/${EMACS_NAME}.ico" \
+	     "hicolor/scalable/mimetypes/${EMACS_NAME}-document.svg" \
+	     "hicolor/scalable/mimetypes/${EMACS_NAME}-document23.svg"; \
 	fi)
 	-rm -f "$(DESTDIR)${desktopdir}/${EMACS_NAME}.desktop"
 	-rm -f "$(DESTDIR)${appdatadir}/${EMACS_NAME}.appdata.xml"
@@ -842,7 +852,7 @@ $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 clean: $(clean_dirs:=_clean)
 	$(MAKE) -C admin/charsets $@
 	[ ! -d test ] || $(MAKE) -C test $@
-	-rm -f *.tmp etc/*.tmp*
+	-rm -f ./*.tmp etc/*.tmp*
 	-rm -rf info-dir.*
 
 ### 'bootclean'
@@ -929,7 +939,7 @@ $(foreach dir,$(extraclean_dirs),$(eval $(call submake_template,$(dir),extraclea
 extraclean: $(extraclean_dirs:=_extraclean)
 	${top_maintainer_clean}
 	-rm -f config-tmp-*
-	-rm -f *~ \#*
+	-rm -f ./*~ \#*
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
@@ -1163,6 +1173,7 @@ check-declare:
 	  exit 1; \
 	fi
 	$(MAKE) -C lisp $@
+	$(MAKE) -C test $@
 
 .PHONY: gitmerge
 

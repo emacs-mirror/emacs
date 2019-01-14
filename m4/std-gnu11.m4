@@ -7,7 +7,7 @@
 # or later is installed everywhere a Gnulib program might be developed.
 
 
-# Copyright (C) 2001-2018 Free Software Foundation, Inc.
+# Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ _AS_ECHO_LOG([checking for _AC_LANG compiler version])
 set X $ac_compile
 ac_compiler=$[2]
 for ac_option in --version -v -V -qversion -version; do
-  _AC_DO_LIMIT([$ac_compiler $ac_option >&AS_MESSAGE_LOG_FD])
+  m4_ifdef([_AC_DO_LIMIT],[_AC_DO_LIMIT],[_AC_DO])([$ac_compiler $ac_option >&AS_MESSAGE_LOG_FD])
 done
 
 m4_expand_once([_AC_COMPILER_EXEEXT])[]dnl
@@ -135,7 +135,7 @@ _AS_ECHO_LOG([checking for _AC_LANG compiler version])
 set X $ac_compile
 ac_compiler=$[2]
 for ac_option in --version -v -V -qversion; do
-  _AC_DO_LIMIT([$ac_compiler $ac_option >&AS_MESSAGE_LOG_FD])
+  m4_ifdef([_AC_DO_LIMIT],[_AC_DO_LIMIT],[_AC_DO])([$ac_compiler $ac_option >&AS_MESSAGE_LOG_FD])
 done
 
 m4_expand_once([_AC_COMPILER_EXEEXT])[]dnl

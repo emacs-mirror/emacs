@@ -1,6 +1,6 @@
 ;;; tempo.el --- Flexible template insertion
 
-;; Copyright (C) 1994-1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Kågedal <davidk@lysator.liu.se>
 ;; Created: 16 Feb 1994

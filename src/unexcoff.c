@@ -1,4 +1,4 @@
-/* Copyright (C) 1985-1988, 1992-1994, 2001-2018 Free Software
+/* Copyright (C) 1985-1988, 1992-1994, 2001-2019 Free Software
  * Foundation, Inc.
 
 This file is part of GNU Emacs.

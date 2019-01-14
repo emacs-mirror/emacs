@@ -1,6 +1,6 @@
 ;;; ox.el --- Export Framework for Org Mode          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -66,7 +66,7 @@
 ;; Eventually, a dispatcher (`org-export-dispatch') is provided in the
 ;; last one.
 ;;
-;; See <http://orgmode.org/worg/dev/org-export-reference.html> for
+;; See <https://orgmode.org/worg/dev/org-export-reference.html> for
 ;; more information.
 
 ;;; Code:
@@ -714,12 +714,15 @@ frequently in plain text."
 (defcustom org-export-with-toc t
   "Non-nil means create a table of contents in exported files.
 
-The TOC contains headlines with levels up
-to`org-export-headline-levels'.  When an integer, include levels
-up to N in the toc, this may then be different from
-`org-export-headline-levels', but it will not be allowed to be
-larger than the number of headline levels.  When nil, no table of
-contents is made.
+The table of contents contains headlines with levels up to
+`org-export-headline-levels'.
+
+When this variable is set to an integer N, include levels up to
+N in the table of contents.  Although it may then be different
+from `org-export-headline-levels', it is cannot be larger than
+the number of headline levels.
+
+When nil, no table of contents is created.
 
 This option can also be set with the OPTIONS keyword,
 e.g. \"toc:nil\" or \"toc:3\"."
@@ -728,8 +731,9 @@ e.g. \"toc:nil\" or \"toc:3\"."
 	  (const :tag "No Table of Contents" nil)
 	  (const :tag "Full Table of Contents" t)
 	  (integer :tag "TOC to level"))
-  :safe (lambda (x) (or (booleanp x)
-			(integerp x))))
+  :safe (lambda (x)
+	  (or (booleanp x)
+	      (integerp x))))
 
 (defcustom org-export-with-tables t
   "Non-nil means export tables.
@@ -1777,7 +1781,8 @@ for a footnotes section."
   "List headlines and inlinetasks with a select tag in their tree.
 DATA is parsed data as returned by `org-element-parse-buffer'.
 INFO is a plist holding export options."
-  (let ((select (plist-get info :select-tags)))
+  (let ((select (cl-mapcan (lambda (tag) (org-tags-expand tag t))
+			   (plist-get info :select-tags))))
     (if (cl-some (lambda (tag) (member tag select)) (plist-get info :filetags))
 	;; If FILETAGS contains a select tag, every headline or
 	;; inlinetask is returned.
@@ -1811,11 +1816,13 @@ INFO is a plist holding export options."
 	(funcall walk-data data nil)
 	selected-trees))))
 
-(defun org-export--skip-p (datum options selected)
+(defun org-export--skip-p (datum options selected excluded)
   "Non-nil when element or object DATUM should be skipped during export.
 OPTIONS is the plist holding export options.  SELECTED, when
 non-nil, is a list of headlines or inlinetasks belonging to
-a tree with a select tag."
+a tree with a select tag.  EXCLUDED is a list of tags, as
+strings.  Any headline or inlinetask marked with one of those is
+not exported."
   (cl-case (org-element-type datum)
     ((comment comment-block)
      ;; Skip all comments and comment blocks.  Make to keep maximum
@@ -1854,8 +1861,7 @@ a tree with a select tag."
 	(and (eq (org-element-type datum) 'inlinetask)
 	     (not (plist-get options :with-inlinetasks)))
 	;; Ignore subtrees with an exclude tag.
-	(cl-loop for k in (plist-get options :exclude-tags)
-		 thereis (member k tags))
+	(cl-some (lambda (tag) (member tag excluded)) tags)
 	;; When a select tag is present in the buffer, ignore any tree
 	;; without it.
 	(and selected (not (memq datum selected)))
@@ -2709,6 +2715,9 @@ from tree."
   (letrec ((ignore nil)
 	   ;; First find trees containing a select tag, if any.
 	   (selected (org-export--selected-trees data info))
+	   ;; List tags that prevent export of headlines.
+	   (excluded (cl-mapcan (lambda (tag) (org-tags-expand tag t))
+				(plist-get info :exclude-tags)))
 	   (walk-data
 	    (lambda (data)
 	      ;; Prune non-exportable elements and objects from tree.
@@ -2717,7 +2726,7 @@ from tree."
 	      ;; accessed during export.
 	      (when data
 		(let ((type (org-element-type data)))
-		  (if (org-export--skip-p data info selected)
+		  (if (org-export--skip-p data info selected excluded)
 		      (if (memq type '(table-cell table-row)) (push data ignore)
 			(org-element-extract-element data))
 		    (if (and (eq type 'headline)
@@ -4264,7 +4273,7 @@ A search cell follows the pattern (TYPE . SEARCH) where
     - target's or radio-target's name as a list of strings if
       TYPE is `target'.
 
-    - NAME affiliated keyword is TYPE is `other'.
+    - NAME affiliated keyword if TYPE is `other'.
 
 A search cell is the internal representation of a fuzzy link.  It
 ignores white spaces and statistics cookies, if applicable."

@@ -1,6 +1,6 @@
 ;;; semantic/scope.el --- Analyzer Scope Calculations
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -140,7 +140,7 @@ Saves scoping information between runs of the analyzer.")
 (cl-defmethod semantic-scope-set-typecache ((cache semantic-scope-cache)
 					 types-in-scope)
   "Set the :typescope property on CACHE to some types.
-TYPES-IN-SCOPE is a list of type tags whos members are
+TYPES-IN-SCOPE is a list of type tags whose members are
 currently in scope.  For each type in TYPES-IN-SCOPE,
 add those members to the types list.
 If nil, then the typescope is reset."
@@ -309,7 +309,7 @@ are from nesting data types."
 			     (list searchname)))
 		   (fullsearchname nil)
 
-		   (miniscope (semantic-scope-cache "mini"))
+		   (miniscope (semantic-scope-cache))
 		   ptag)
 
 	      ;; Find the next entry in the referenced type for
@@ -368,7 +368,7 @@ and PROTECTION is the level of protection offered by the relationship.
 Optional SCOPETYPES are additional scoped entities in which our parent might
 be found."
   (let ((lineage nil)
-	(miniscope (semantic-scope-cache "mini"))
+	(miniscope (semantic-scope-cache))
 	)
     (oset miniscope parents parents)
     (oset miniscope scope scopetypes)
@@ -644,7 +644,7 @@ whose tags can be searched when needed, OR it may be a scope object."
 	  ;; We need to make a mini scope, and only include the misc bits
 	  ;; that will help in finding the parent.  We don't really need
 	  ;; to do any of the stuff related to variables and what-not.
-	  (setq tmpscope (semantic-scope-cache "mini"))
+	  (setq tmpscope (semantic-scope-cache))
 	  (let* ( ;; Step 1:
 		 (scopetypes (cons type (semantic-analyze-scoped-types (point))))
 		 (parents (semantic-analyze-scope-nested-tags (point) scopetypes))

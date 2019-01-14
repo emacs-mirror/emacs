@@ -15,7 +15,7 @@
 ## without express or implied warranty.
 
 
-## Copyright (C) 2001-2018 Free Software Foundation, Inc.
+## Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ## This program is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -138,7 +138,7 @@ libXMenu11.a: $(OBJS) $(EXTRA)
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 clean mostlyclean:
-	rm -f libXMenu11.a *.o $(DEPDIR)/*
+	rm -f libXMenu11.a ./*.o $(DEPDIR)/*
 
 bootstrap-clean maintainer-clean distclean: clean
 	rm -f Makefile

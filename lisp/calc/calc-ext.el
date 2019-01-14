@@ -1,6 +1,6 @@
-;;; calc-ext.el --- various extension functions for Calc
+;;; calc-ext.el --- various extension functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -88,7 +88,7 @@
 (defvar calc-alg-map)
 (defvar calc-alg-esc-map)
 
-;;; The following was made a function so that it could be byte-compiled.
+;; The following was made a function so that it could be byte-compiled.
 (defun calc-init-extensions ()
 
   (define-key calc-mode-map ":" 'calc-fdiv)
@@ -714,8 +714,8 @@
 
 ;;;; (Autoloads here)
   (mapc (function (lambda (x)
-    (mapcar (function (lambda (func)
-      (autoload func (car x)))) (cdr x))))
+    (mapcar (function (lambda (func) (autoload func (car x))))
+            (cdr x))))
     '(
 
  ("calc-alg" calc-has-rules math-defsimplify
@@ -894,8 +894,8 @@ calcFunc-pcont calcFunc-pdeg calcFunc-pdiv calcFunc-pdivide
 calcFunc-pdivrem calcFunc-pgcd calcFunc-plead calcFunc-pprim
 calcFunc-prem math-accum-factors math-atomic-factorp
 math-div-poly-const math-div-thru math-expand-power math-expand-term
-math-factor-contains math-factor-expr math-factor-expr-part
-math-factor-expr-try math-factor-finish math-factor-poly-coefs
+math-factor-contains math-factor-expr
+math-factor-finish
 math-factor-protect math-mul-thru math-padded-polynomial
 math-partial-fractions math-poly-degree math-poly-deriv-coefs
 math-poly-gcd-frac-list math-poly-modulus-rec math-ratpoly-p
@@ -984,8 +984,8 @@ calc-force-refresh calc-locate-cursor-element calc-show-edit-buffer)
 ))
 
   (mapcar (function (lambda (x)
-    (mapcar (function (lambda (cmd)
-      (autoload cmd (car x) nil t))) (cdr x))))
+                      (mapcar (function (lambda (cmd) (autoload cmd (car x) nil t)))
+                              (cdr x))))
     '(
 
  ("calc-alg" calc-alg-evaluate calc-apart calc-collect calc-expand
@@ -1307,8 +1307,9 @@ calc-kill calc-kill-region calc-yank))))
 	    (message "%s" (if msg
 			      (concat group ": " msg ":"
 				      (make-string
-				       (- (apply 'max (mapcar 'length msgs))
-					  (length msg)) 32)
+				       (- (apply #'max (mapcar #'length msgs))
+					  (length msg))
+                                       ?\s)
 				      "  [MORE]"
 				      (if key
 					  (concat "  " (char-to-string key)
@@ -1333,6 +1334,8 @@ calc-kill calc-kill-region calc-yank))))
 
 
 ;;; General.
+
+(defvar calc-embedded-quiet)
 
 (defun calc-reset (arg)
   (interactive "P")
@@ -1398,7 +1401,7 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-scroll-up (n)
   (interactive "P")
-  (condition-case err
+  (condition-case nil
       (scroll-up (or n (/ (window-height) 2)))
     (error nil))
   (if (pos-visible-in-window-p (max 1 (- (point-max) 2)))
@@ -1657,7 +1660,7 @@ calc-kill calc-kill-region calc-yank))))
 	  (let ((entries (calc-top-list n 1 'entry))
 		(calc-undo-list nil) (calc-redo-list nil))
 	    (calc-pop-stack n 1 t)
-	    (calc-push-list (mapcar 'car entries)
+	    (calc-push-list (mapcar #'car entries)
 			    1
 			    (mapcar (function (lambda (x) (nth 2 x)))
 				    entries)))))))
@@ -1707,7 +1710,7 @@ calc-kill calc-kill-region calc-yank))))
 	(calc-pop-push-record-list 1 "eval"
 				   (math-evaluate-expr (calc-top (- n)))
 				   (- n))
-      (calc-pop-push-record-list n "eval" (mapcar 'math-evaluate-expr
+      (calc-pop-push-record-list n "eval" (mapcar #'math-evaluate-expr
 						  (calc-top-list n)))))
    (calc-handle-whys)))
 
@@ -1928,7 +1931,7 @@ calc-kill calc-kill-region calc-yank))))
 	 (calc-z-prefix-buf "")
 	 (kmap (sort (copy-sequence (calc-user-key-map))
 		     (function (lambda (x y) (< (car x) (car y))))))
-	 (flags (apply 'logior
+	 (flags (apply #'logior
 		       (mapcar (function
 				(lambda (k)
 				  (calc-user-function-classify (car k))))
@@ -2003,12 +2006,13 @@ calc-kill calc-kill-region calc-yank))))
 ;;;; Caches.
 
 (defmacro math-defcache (name init form)
+  (declare (indent 2) (debug (symbolp sexp form)))
   (let ((cache-prec (intern (concat (symbol-name name) "-cache-prec")))
 	(cache-val (intern (concat (symbol-name name) "-cache")))
 	(last-prec (intern (concat (symbol-name name) "-last-prec")))
 	(last-val (intern (concat (symbol-name name) "-last"))))
     `(progn
-;      (defvar ,cache-prec ,(if init (math-numdigs (nth 1 init)) -100))
+       ;; (defvar ,cache-prec ,(if init (math-numdigs (nth 1 init)) -100))
        (defvar ,cache-prec (cond
 			    ((consp ,init) (math-numdigs (nth 1 ,init)))
 			    (,init
@@ -2037,7 +2041,6 @@ calc-kill calc-kill-region calc-yank))))
 			   ,cache-val))
 		   ,last-prec calc-internal-prec))
 	 ,last-val))))
-(put 'math-defcache 'lisp-indent-hook 2)
 
 ;;; Betcha didn't know that pi = 16 atan(1/5) - 4 atan(1/239).   [F] [Public]
 (defconst math-approx-pi
@@ -2294,14 +2297,14 @@ calc-kill calc-kill-region calc-yank))))
 	 (let ((a (math-trunc a)))
 	   (if (integerp a)
 	       a
-	     (if (or (Math-lessp (lsh -1 -1) a)
-		     (Math-lessp a (- (lsh -1 -1))))
+	     (if (or (Math-lessp most-positive-fixnum a)
+		     (Math-lessp a (- most-positive-fixnum)))
 		 (math-reject-arg a 'fixnump)
 	       (math-fixnum a)))))
 	((and allow-inf (equal a '(var inf var-inf)))
-	 (lsh -1 -1))
+	 most-positive-fixnum)
 	((and allow-inf (equal a '(neg (var inf var-inf))))
-	 (- (lsh -1 -1)))
+	 (- most-positive-fixnum))
 	(t (math-reject-arg a 'fixnump))))
 
 ;;; Verify that A is an integer >= 0 and return A in integer form.  [I N; - x]
@@ -2400,7 +2403,7 @@ If X is not an error form, return 1."
 	       (list 'calcFunc-intv mask lo hi)
 	     (math-make-intv mask lo hi))))
 	((eq (car a) 'vec)
-	 (cons 'vec (mapcar 'math-normalize (cdr a))))
+	 (cons 'vec (mapcar #'math-normalize (cdr a))))
 	((eq (car a) 'quote)
 	 (math-normalize (nth 1 a)))
 	((eq (car a) 'special-const)
@@ -2412,7 +2415,7 @@ If X is not an error form, return 1."
 	 (math-normalize-logical-op a))
 	((memq (car a) '(calcFunc-lambda calcFunc-quote calcFunc-condition))
 	 (let ((calc-simplify-mode 'none))
-	   (cons (car a) (mapcar 'math-normalize (cdr a)))))
+	   (cons (car a) (mapcar #'math-normalize (cdr a)))))
 	((eq (car a) 'calcFunc-evalto)
 	 (setq a (or (nth 1 a) 0))
 	 (or calc-refreshing-evaltos
@@ -2435,27 +2438,25 @@ If X is not an error form, return 1."
 ;; The variable math-normalize-a is local to math-normalize in calc.el,
 ;; but is used by math-normalize-nonstandard, which is called by
 ;; math-normalize.
-(defvar math-normalize-a)
-
-(defun math-normalize-nonstandard ()
+(defun math-normalize-nonstandard (a)
   (if (consp calc-simplify-mode)
       (progn
 	(setq calc-simplify-mode 'none
-	      math-simplify-only (car-safe (cdr-safe math-normalize-a)))
+	      math-simplify-only (car-safe (cdr-safe a)))
 	nil)
-    (and (symbolp (car math-normalize-a))
+    (and (symbolp (car a))
 	 (or (eq calc-simplify-mode 'none)
 	     (and (eq calc-simplify-mode 'num)
-		  (let ((aptr (setq math-normalize-a
+		  (let ((aptr (setq a
                                     (cons
-                                     (car math-normalize-a)
-                                     (mapcar 'math-normalize
-                                             (cdr math-normalize-a))))))
+                                     (car a)
+                                     (mapcar #'math-normalize
+                                             (cdr a))))))
 		    (while (and aptr (math-constp (car aptr)))
 		      (setq aptr (cdr aptr)))
 		    aptr)))
-	 (cons (car math-normalize-a)
-               (mapcar 'math-normalize (cdr math-normalize-a))))))
+	 (cons (car a)
+               (mapcar #'math-normalize (cdr a))))))
 
 
 ;;; Normalize a bignum digit list by trimming high-end zeros.  [L l]
@@ -2808,7 +2809,7 @@ If X is not an error form, return 1."
 	      x)
 	  (if (Math-primp x)
 	      x
-	    (cons (car x) (mapcar 'math-evaluate-expr-rec (cdr x))))))
+	    (cons (car x) (mapcar #'math-evaluate-expr-rec (cdr x))))))
     x))
 
 (defun math-any-floats (expr)
@@ -2822,9 +2823,10 @@ If X is not an error form, return 1."
 (defvar math-mt-many nil)
 (defvar math-mt-func nil)
 
-(defun math-map-tree (math-mt-func mmt-expr &optional math-mt-many)
-  (or math-mt-many (setq math-mt-many 1000000))
-  (math-map-tree-rec mmt-expr))
+(defun math-map-tree (func mmt-expr &optional many)
+  (let ((math-mt-func func)
+        (math-mt-many (or many 1000000)))
+    (math-map-tree-rec mmt-expr)))
 
 (defun math-map-tree-rec (mmt-expr)
   (or (= math-mt-many 0)
@@ -2842,7 +2844,7 @@ If X is not an error form, return 1."
 		  (<= math-mt-many 0))
 	      (setq mmt-done t)
 	    (setq mmt-nextval (cons (car mmt-expr)
-				    (mapcar 'math-map-tree-rec
+				    (mapcar #'math-map-tree-rec
 					    (cdr mmt-expr))))
 	    (if (equal mmt-nextval mmt-expr)
 		(setq mmt-done t)
@@ -2867,6 +2869,7 @@ If X is not an error form, return 1."
 (defvar math-integral-cache)
 
 (defmacro math-defintegral (funcs &rest code)
+  (declare (indent 1) (debug (sexp body)))
   (setq math-integral-cache nil)
   (cons 'progn
         (mapcar #'(lambda (func)
@@ -2876,9 +2879,9 @@ If X is not an error form, return 1."
                            (list
                             #'(lambda (u) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
-(put 'math-defintegral 'lisp-indent-hook 1)
 
 (defmacro math-defintegral-2 (funcs &rest code)
+  (declare (indent 1) (debug (sexp body)))
   (setq math-integral-cache nil)
   (cons 'progn
         (mapcar #'(lambda (func)
@@ -2887,7 +2890,6 @@ If X is not an error form, return 1."
                             (get ',func 'math-integral-2)
                             (list #'(lambda (u v) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
-(put 'math-defintegral-2 'lisp-indent-hook 1)
 
 (defvar var-IntegAfterRules 'calc-IntegAfterRules)
 
@@ -3097,9 +3099,16 @@ If X is not an error form, return 1."
 ;;; Expression parsing.
 
 (defvar math-expr-data)
+(defvar math-exp-pos)
+(defvar math-exp-old-pos)
+(defvar math-exp-keep-spaces)
+(defvar math-exp-token)
+(defvar math-expr-data)
+(defvar math-exp-str)
 
-(defun math-read-expr (math-exp-str)
+(defun math-read-expr (str)
   (let ((math-exp-pos 0)
+        (math-exp-str str)
 	(math-exp-old-pos 0)
 	(math-exp-keep-spaces nil)
 	math-exp-token math-expr-data)
@@ -3137,6 +3146,10 @@ If X is not an error form, return 1."
 
 
 ;;; They said it couldn't be done...
+
+(defvar math-read-big-baseline)
+(defvar math-read-big-h2)
+(defvar math-read-big-err-msg)
 
 (defun math-read-big-expr (str)
   (and (> (length calc-left-label) 0)
@@ -3178,6 +3191,8 @@ If X is not an error form, return 1."
 	      math-read-big-err-msg
 	      '(error 0 "Syntax error"))
 	(math-read-expr str)))))
+
+(defvar math-rb-h2)
 
 (defun math-read-big-bigp (math-read-big-lines)
   (and (cdr math-read-big-lines)

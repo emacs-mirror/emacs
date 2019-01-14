@@ -1,6 +1,6 @@
 ;;; map-ynp.el --- general-purpose boolean question-asker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -79,6 +79,7 @@ are meaningful here.
 
 Returns the number of actions taken."
   (let* ((actions 0)
+         (msg (current-message))
 	 user-keys mouse-event map prompt char elt def
 	 ;; Non-nil means we should use mouse menus to ask.
 	 use-menus
@@ -246,9 +247,12 @@ C-g to quit (cancel the whole command);
       (if delayed-switch-frame
 	  (setq unread-command-events
 		(cons delayed-switch-frame unread-command-events))))
-    ;; Clear the last prompt from the minibuffer.
+    ;; Clear the last prompt from the minibuffer, and restore the
+    ;; previous echo-area message, if any.
     (let ((message-log-max nil))
-      (message ""))
+      (if msg
+          (message "%s" msg)
+        (message "")))
     ;; Return the number of actions that were taken.
     actions))
 
@@ -257,10 +261,15 @@ C-g to quit (cancel the whole command);
 ;; either long or short answers.
 
 ;; For backward compatibility check if short y/n answers are preferred.
-(defcustom read-answer-short (eq (symbol-function 'yes-or-no-p) 'y-or-n-p)
-  "If non-nil, accept short answers to the question."
-  :type 'boolean
-  :version "27.1"
+(defcustom read-answer-short 'auto
+  "If non-nil, `read-answer' accepts single-character answers.
+If t, accept short (single key-press) answers to the question.
+If nil, require long answers.  If `auto', accept short answers if
+the function cell of `yes-or-no-p' is set to `y-or-n-p'."
+  :type '(choice (const :tag "Accept short answers" t)
+                 (const :tag "Require long answer" nil)
+                 (const :tag "Guess preference" auto))
+  :version "26.2"
   :group 'minibuffer)
 
 (defconst read-answer-map--memoize (make-hash-table :weakness 'key :test 'equal))
@@ -290,8 +299,9 @@ When `read-answer-short' is non-nil, accept short answers.
 Return a long answer even in case of accepting short ones.
 
 When `use-dialog-box' is t, pop up a dialog window to get user input."
-  (custom-reevaluate-setting 'read-answer-short)
-  (let* ((short read-answer-short)
+  (let* ((short (if (eq read-answer-short 'auto)
+                    (eq (symbol-function 'yes-or-no-p) 'y-or-n-p)
+                  read-answer-short))
          (answers-with-help
           (if (assoc "help" answers)
               answers

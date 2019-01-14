@@ -1,11 +1,12 @@
 ;;; starttls.el --- STARTTLS functions
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Created: 1999/11/20
 ;; Keywords: TLS, SSL, OpenSSL, GnuTLS, mail, news
+;; Obsolete-since: 27.1
 
 ;; This file is part of GNU Emacs.
 

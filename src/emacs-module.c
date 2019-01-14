@@ -1,6 +1,6 @@
 /* emacs-module.c - Module loading and runtime implementation
 
-Copyright (C) 2015-2018 Free Software Foundation, Inc.
+Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -39,6 +39,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Work around GCC bug 83162.  */
 #if GNUC_PREREQ (4, 3, 0)
 # pragma GCC diagnostic ignored "-Wclobbered"
+#endif
+
+/* This module is lackadaisical about function casts.  */
+#if GNUC_PREREQ (8, 0, 0)
+# pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
 /* We use different strategies for allocating the user-visible objects
@@ -297,15 +302,15 @@ module_make_global_ref (emacs_env *env, emacs_value ref)
   if (i >= 0)
     {
       Lisp_Object value = HASH_VALUE (h, i);
-      EMACS_INT refcount = XFASTINT (value) + 1;
+      EMACS_INT refcount = XFIXNAT (value) + 1;
       if (MOST_POSITIVE_FIXNUM < refcount)
-	xsignal0 (Qoverflow_error);
-      value = make_natnum (refcount);
+	overflow_error ();
+      value = make_fixed_natnum (refcount);
       set_hash_value_slot (h, i, value);
     }
   else
     {
-      hash_put (h, new_obj, make_natnum (1), hashcode);
+      hash_put (h, new_obj, make_fixed_natnum (1), hashcode);
     }
 
   return lisp_to_value (module_assertions ? global_env : env, new_obj);
@@ -324,9 +329,9 @@ module_free_global_ref (emacs_env *env, emacs_value ref)
 
   if (i >= 0)
     {
-      EMACS_INT refcount = XFASTINT (HASH_VALUE (h, i)) - 1;
+      EMACS_INT refcount = XFIXNAT (HASH_VALUE (h, i)) - 1;
       if (refcount > 0)
-        set_hash_value_slot (h, i, make_natnum (refcount));
+        set_hash_value_slot (h, i, make_fixed_natnum (refcount));
       else
         {
           eassert (refcount == 0);
@@ -339,20 +344,20 @@ module_free_global_ref (emacs_env *env, emacs_value ref)
       Lisp_Object globals = global_env_private.values;
       Lisp_Object prev = Qnil;
       ptrdiff_t count = 0;
-      for (Lisp_Object tail = global_env_private.values; CONSP (tail);
+      for (Lisp_Object tail = globals; CONSP (tail);
            tail = XCDR (tail))
         {
-          emacs_value global = XSAVE_POINTER (XCAR (globals), 0);
+          emacs_value global = xmint_pointer (XCAR (tail));
           if (global == ref)
             {
               if (NILP (prev))
                 global_env_private.values = XCDR (globals);
               else
-                XSETCDR (prev, XCDR (globals));
+                XSETCDR (prev, XCDR (tail));
               return;
             }
           ++count;
-          prev = globals;
+          prev = tail;
         }
       module_abort ("Global value was not found in list of %"pD"d globals",
                     count);
@@ -436,7 +441,7 @@ module_make_function (emacs_env *env, ptrdiff_t min_arity, ptrdiff_t max_arity,
 	     ? (min_arity <= MOST_POSITIVE_FIXNUM
 		&& max_arity == emacs_variadic_function)
 	     : min_arity <= max_arity && max_arity <= MOST_POSITIVE_FIXNUM)))
-    xsignal2 (Qinvalid_arity, make_number (min_arity), make_number (max_arity));
+    xsignal2 (Qinvalid_arity, make_fixnum (min_arity), make_fixnum (max_arity));
 
   struct Lisp_Module_Function *function = allocate_module_function ();
   function->min_arity = min_arity;
@@ -470,7 +475,7 @@ module_funcall (emacs_env *env, emacs_value fun, ptrdiff_t nargs,
   USE_SAFE_ALLOCA;
   ptrdiff_t nargs1;
   if (INT_ADD_WRAPV (nargs, 1, &nargs1))
-    xsignal0 (Qoverflow_error);
+    overflow_error ();
   SAFE_ALLOCA_LISP (newargs, nargs1);
   newargs[0] = value_to_lisp (fun);
   for (ptrdiff_t i = 0; i < nargs; i++)
@@ -513,17 +518,18 @@ module_extract_integer (emacs_env *env, emacs_value n)
 {
   MODULE_FUNCTION_BEGIN (0);
   Lisp_Object l = value_to_lisp (n);
-  CHECK_NUMBER (l);
-  return XINT (l);
+  CHECK_INTEGER (l);
+  intmax_t i;
+  if (! integer_to_intmax (l, &i))
+    xsignal1 (Qoverflow_error, l);
+  return i;
 }
 
 static emacs_value
 module_make_integer (emacs_env *env, intmax_t n)
 {
   MODULE_FUNCTION_BEGIN (module_nil);
-  if (FIXNUM_OVERFLOW_P (n))
-    xsignal0 (Qoverflow_error);
-  return lisp_to_value (env, make_number (n));
+  return lisp_to_value (env, make_int (n));
 }
 
 static double
@@ -577,7 +583,7 @@ module_make_string (emacs_env *env, const char *str, ptrdiff_t length)
 {
   MODULE_FUNCTION_BEGIN (module_nil);
   if (! (0 <= length && length <= STRING_BYTES_BOUND))
-    xsignal0 (Qoverflow_error);
+    overflow_error ();
   /* FIXME: AUTO_STRING_WITH_LEN requires STR to be null-terminated,
      but we shouldn't require that.  */
   AUTO_STRING_WITH_LEN (lstr, str, length);
@@ -634,8 +640,8 @@ check_vec_index (Lisp_Object lvec, ptrdiff_t i)
 {
   CHECK_VECTOR (lvec);
   if (! (0 <= i && i < ASIZE (lvec)))
-    args_out_of_range_3 (make_fixnum_or_float (i),
-			 make_number (0), make_number (ASIZE (lvec) - 1));
+    args_out_of_range_3 (INT_TO_INTEGER (i),
+			 make_fixnum (0), make_fixnum (ASIZE (lvec) - 1));
 }
 
 static void
@@ -730,7 +736,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   rt->private_members = &rt_priv;
   rt->get_environment = module_get_environment;
 
-  Vmodule_runtimes = Fcons (make_save_ptr (rt), Vmodule_runtimes);
+  Vmodule_runtimes = Fcons (make_mint_ptr (rt), Vmodule_runtimes);
   ptrdiff_t count = SPECPDL_INDEX ();
   record_unwind_protect_ptr (finalize_runtime_unwind, rt);
 
@@ -741,11 +747,7 @@ DEFUN ("module-load", Fmodule_load, Smodule_load, 1, 1, 0,
   maybe_quit ();
 
   if (r != 0)
-    {
-      if (FIXNUM_OVERFLOW_P (r))
-        xsignal0 (Qoverflow_error);
-      xsignal2 (Qmodule_init_failed, file, make_number (r));
-    }
+    xsignal2 (Qmodule_init_failed, file, INT_TO_INTEGER (r));
 
   module_signal_or_throw (&env_priv);
   return unbind_to (count, Qt);
@@ -758,7 +760,7 @@ funcall_module (Lisp_Object function, ptrdiff_t nargs, Lisp_Object *arglist)
   eassume (0 <= func->min_arity);
   if (! (func->min_arity <= nargs
 	 && (func->max_arity < 0 || nargs <= func->max_arity)))
-    xsignal2 (Qwrong_number_of_arguments, function, make_number (nargs));
+    xsignal2 (Qwrong_number_of_arguments, function, make_fixnum (nargs));
 
   emacs_env pub;
   struct emacs_env_private priv;
@@ -781,7 +783,6 @@ funcall_module (Lisp_Object function, ptrdiff_t nargs, Lisp_Object *arglist)
     }
 
   emacs_value ret = func->subr (env, nargs, args, func->data);
-  SAFE_FREE ();
 
   eassert (&priv == env->private_members);
 
@@ -790,7 +791,7 @@ funcall_module (Lisp_Object function, ptrdiff_t nargs, Lisp_Object *arglist)
   maybe_quit ();
 
   module_signal_or_throw (&priv);
-  return unbind_to (count, value_to_lisp (ret));
+  return SAFE_FREE_UNBIND_TO (count, value_to_lisp (ret));
 }
 
 Lisp_Object
@@ -798,8 +799,8 @@ module_function_arity (const struct Lisp_Module_Function *const function)
 {
   ptrdiff_t minargs = function->min_arity;
   ptrdiff_t maxargs = function->max_arity;
-  return Fcons (make_number (minargs),
-		maxargs == MANY ? Qmany : make_number (maxargs));
+  return Fcons (make_fixnum (minargs),
+		maxargs == MANY ? Qmany : make_fixnum (maxargs));
 }
 
 
@@ -825,7 +826,7 @@ module_assert_runtime (struct emacs_runtime *ert)
   ptrdiff_t count = 0;
   for (Lisp_Object tail = Vmodule_runtimes; CONSP (tail); tail = XCDR (tail))
     {
-      if (XSAVE_POINTER (XCAR (tail), 0) == ert)
+      if (xmint_pointer (XCAR (tail)) == ert)
         return;
       ++count;
     }
@@ -842,7 +843,7 @@ module_assert_env (emacs_env *env)
   for (Lisp_Object tail = Vmodule_environments; CONSP (tail);
        tail = XCDR (tail))
     {
-      if (XSAVE_POINTER (XCAR (tail), 0) == env)
+      if (xmint_pointer (XCAR (tail)) == env)
         return;
       ++count;
     }
@@ -919,7 +920,7 @@ value_to_lisp_bits (emacs_value v)
      makes TAG_PTR faster.  */
 
   intptr_t i = (intptr_t) v;
-  EMACS_UINT tag = i & (GCALIGNMENT - 1);
+  EMACS_UINT tag = i & ((1 << GCTYPEBITS) - 1);
   EMACS_UINT untagged = i - tag;
   switch (tag)
     {
@@ -954,11 +955,11 @@ value_to_lisp (emacs_value v)
       for (Lisp_Object environments = Vmodule_environments;
            CONSP (environments); environments = XCDR (environments))
         {
-          emacs_env *env = XSAVE_POINTER (XCAR (environments), 0);
+          emacs_env *env = xmint_pointer (XCAR (environments));
           for (Lisp_Object values = env->private_members->values;
                CONSP (values); values = XCDR (values))
             {
-              Lisp_Object *p = XSAVE_POINTER (XCAR (values), 0);
+              Lisp_Object *p = xmint_pointer (XCAR (values));
               if (p == optr)
                 return *p;
               ++num_values;
@@ -987,7 +988,7 @@ lisp_to_value_bits (Lisp_Object o)
 
   /* Compress O into the space of a pointer, possibly losing information.  */
   EMACS_UINT u = XLI (o);
-  if (INTEGERP (o))
+  if (FIXNUMP (o))
     {
       uintptr_t i = (u << VALBITS) + XTYPE (o);
       return (emacs_value) i;
@@ -1016,7 +1017,7 @@ lisp_to_value (emacs_env *env, Lisp_Object o)
       void *vptr = optr;
       ATTRIBUTE_MAY_ALIAS emacs_value ret = vptr;
       struct emacs_env_private *priv = env->private_members;
-      priv->values = Fcons (make_save_ptr (ret), priv->values);
+      priv->values = Fcons (make_mint_ptr (ret), priv->values);
       return ret;
     }
 
@@ -1081,7 +1082,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->vec_get = module_vec_get;
   env->vec_size = module_vec_size;
   env->should_quit = module_should_quit;
-  Vmodule_environments = Fcons (make_save_ptr (env), Vmodule_environments);
+  Vmodule_environments = Fcons (make_mint_ptr (env), Vmodule_environments);
   return env;
 }
 
@@ -1090,7 +1091,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
 static void
 finalize_environment (emacs_env *env)
 {
-  eassert (XSAVE_POINTER (XCAR (Vmodule_environments), 0) == env);
+  eassert (xmint_pointer (XCAR (Vmodule_environments)) == env);
   Vmodule_environments = XCDR (Vmodule_environments);
   if (module_assertions)
     /* There is always at least the global environment.  */
@@ -1104,10 +1105,10 @@ finalize_environment_unwind (void *env)
 }
 
 static void
-finalize_runtime_unwind (void* raw_ert)
+finalize_runtime_unwind (void *raw_ert)
 {
   struct emacs_runtime *ert = raw_ert;
-  eassert (XSAVE_POINTER (XCAR (Vmodule_runtimes), 0) == ert);
+  eassert (xmint_pointer (XCAR (Vmodule_runtimes)) == ert);
   Vmodule_runtimes = XCDR (Vmodule_runtimes);
   finalize_environment (ert->private_members->env);
 }
@@ -1118,7 +1119,7 @@ mark_modules (void)
   for (Lisp_Object tail = Vmodule_environments; CONSP (tail);
        tail = XCDR (tail))
     {
-      emacs_env *env = XSAVE_POINTER (XCAR (tail), 0);
+      emacs_env *env = xmint_pointer (XCAR (tail));
       struct emacs_env_private *priv = env->private_members;
       mark_object (priv->non_local_exit_symbol);
       mark_object (priv->non_local_exit_data);
@@ -1162,15 +1163,11 @@ module_handle_throw (emacs_env *env, Lisp_Object tag_val)
 void
 init_module_assertions (bool enable)
 {
+  /* If enabling module assertions, use a hidden environment for
+     storing the globals.  This environment is never freed.  */
   module_assertions = enable;
   if (enable)
-    {
-      /* We use a hidden environment for storing the globals.  This
-         environment is never freed.  */
-      emacs_env env;
-      global_env = initialize_environment (&env, &global_env_private);
-      eassert (global_env != &env);
-    }
+    global_env = initialize_environment (NULL, &global_env_private);
 }
 
 static _Noreturn void

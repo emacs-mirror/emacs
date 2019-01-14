@@ -1,6 +1,6 @@
 ;;; mule-tests.el --- unit tests for mule.el         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -35,5 +35,8 @@
                          (auto-coding-functions ()))
                      (find-auto-coding "" (buffer-size)))
                    '(utf-8 . :coding)))))
+
+;; Stop "Local Variables" above causing confusion when visiting this file.
+
 
 ;;; mule-tests.el ends here

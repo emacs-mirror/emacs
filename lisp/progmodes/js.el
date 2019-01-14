@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -45,13 +45,11 @@
 
 ;;; Code:
 
-
 (require 'cc-mode)
 (require 'newcomment)
-(require 'thingatpt)                    ; forward-symbol etc
 (require 'imenu)
 (require 'moz nil t)
-(require 'json nil t)
+(require 'json)
 (require 'sgml-mode)
 (require 'prog-mode)
 
@@ -623,12 +621,6 @@ then the \".\"s will be lined up:
   "Parse state at `js--last-parse-pos'.")
 (make-variable-buffer-local 'js--state-at-last-parse-pos)
 
-(defun js--flatten-list (list)
-  (cl-loop for item in list
-           nconc (cond ((consp item)
-                        (js--flatten-list item))
-                       (item (list item)))))
-
 (defun js--maybe-join (prefix separator suffix &rest list)
   "Helper function for `js--update-quick-match-re'.
 If LIST contains any element that is not nil, return its non-nil
@@ -636,7 +628,7 @@ elements, separated by SEPARATOR, prefixed by PREFIX, and ended
 with SUFFIX as with `concat'.  Otherwise, if LIST is empty, return
 nil.  If any element in LIST is itself a list, flatten that
 element."
-  (setq list (js--flatten-list list))
+  (setq list (flatten-tree list))
   (when list
     (concat prefix (mapconcat #'identity list separator) suffix)))
 
@@ -1013,7 +1005,7 @@ BEG defaults to `point-min', meaning to flush the entire cache."
 Update parsing information up to point, referring to parse,
 prev-parse-point, goal-point, and open-items bound lexically in
 the body of `js--ensure-cache'."
-  `(progn
+  '(progn
      (setq goal-point (point))
      (goto-char prev-parse-point)
      (while (progn
@@ -1023,7 +1015,7 @@ the body of `js--ensure-cache'."
               ;; the given depth -- i.e., make sure we're deeper than the target
               ;; depth.
               (cl-assert (> (nth 0 parse)
-                         (js--pitem-paren-depth (car open-items))))
+                            (js--pitem-paren-depth (car open-items))))
               (setq parse (parse-partial-sexp
                            prev-parse-point goal-point
                            (js--pitem-paren-depth (car open-items))
@@ -2368,23 +2360,22 @@ i.e., customize JSX element indentation with `sgml-basic-offset',
 
 ;; FIXME: Such redefinitions are bad style.  We should try and use some other
 ;; way to get the same result.
-(defadvice c-forward-sws (around js-fill-paragraph activate)
-  (if js--filling-paragraph
-      (setq ad-return-value (js--forward-syntactic-ws (ad-get-arg 0)))
-    ad-do-it))
+(defun js--fill-c-advice (js-fun)
+  (lambda (orig-fun &rest args)
+    (if js--filling-paragraph
+        (funcall js-fun (car args))
+      (apply orig-fun args))))
 
-(defadvice c-backward-sws (around js-fill-paragraph activate)
-  (if js--filling-paragraph
-      (setq ad-return-value (js--backward-syntactic-ws (ad-get-arg 0)))
-    ad-do-it))
+(advice-add 'c-forward-sws
+            :around (js--fill-c-advice #'js--forward-syntactic-ws))
+(advice-add 'c-backward-sws
+            :around (js--fill-c-advice #'js--backward-syntactic-ws))
+(advice-add 'c-beginning-of-macro
+            :around (js--fill-c-advice #'js--beginning-of-macro))
 
-(defadvice c-beginning-of-macro (around js-fill-paragraph activate)
-  (if js--filling-paragraph
-      (setq ad-return-value (js--beginning-of-macro (ad-get-arg 0)))
-    ad-do-it))
-
-(defun js-c-fill-paragraph (&optional justify)
-  "Fill the paragraph with `c-fill-paragraph'."
+(define-obsolete-function-alias 'js-c-fill-paragraph #'js-fill-paragraph "27.1")
+(defun js-fill-paragraph (&optional justify)
+  "Fill the paragraph for Javascript code."
   (interactive "*P")
   (let ((js--filling-paragraph t)
         (fill-paragraph-function #'c-fill-paragraph))
@@ -3323,11 +3314,11 @@ If nil, the whole Array is treated as a JS symbol.")
 
 (defun js--js-decode-retval (result)
   (pcase (intern (cl-first result))
-    (`atom (cl-second result))
-    (`special (intern (cl-second result)))
-    (`array
+    ('atom (cl-second result))
+    ('special (intern (cl-second result)))
+    ('array
      (mapcar #'js--js-decode-retval (cl-second result)))
-    (`objid
+    ('objid
      (or (gethash (cl-second result)
                   js--js-references)
          (puthash (cl-second result)
@@ -3336,7 +3327,7 @@ If nil, the whole Array is treated as a JS symbol.")
                    :process (inferior-moz-process))
                   js--js-references)))
 
-    (`error (signal 'js-js-error (list (cl-second result))))
+    ('error (signal 'js-js-error (list (cl-second result))))
     (x (error "Unmatched case in js--js-decode-retval: %S" x))))
 
 (defvar comint-last-input-end)
@@ -3721,8 +3712,8 @@ If one hasn't been set, or if it's stale, prompt for a new one."
    (when (or (null js--js-context)
              (js--js-handle-expired-p (cdr js--js-context))
              (pcase (car js--js-context)
-               (`window (js? (js< (cdr js--js-context) "closed")))
-               (`browser (not (js? (js< (cdr js--js-context)
+               ('window (js? (js< (cdr js--js-context) "closed")))
+               ('browser (not (js? (js< (cdr js--js-context)
                                         "contentDocument"))))
                (x (error "Unmatched case in js--get-js-context: %S" x))))
      (setq js--js-context (js--read-tab "JavaScript Context: ")))
@@ -3731,8 +3722,8 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 (defun js--js-content-window (context)
   (with-js
    (pcase (car context)
-     (`window (cdr context))
-     (`browser (js< (cdr context)
+     ('window (cdr context))
+     ('browser (js< (cdr context)
                     "contentWindow" "wrappedJSObject"))
      (x (error "Unmatched case in js--js-content-window: %S" x)))))
 
@@ -3875,7 +3866,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
   ;; Comments
   (setq-local comment-start "// ")
   (setq-local comment-end "")
-  (setq-local fill-paragraph-function #'js-c-fill-paragraph)
+  (setq-local fill-paragraph-function #'js-fill-paragraph)
   (setq-local normal-auto-fill-function #'js-do-auto-fill)
 
   ;; Parse cache

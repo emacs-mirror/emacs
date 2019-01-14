@@ -1,6 +1,6 @@
 ;;; ediff-merg.el --- merging utilities
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -194,7 +194,7 @@ Buffer B."
 
 (defun ediff-set-merge-mode ()
   (normal-mode t)
-  (remove-hook 'local-write-file-hooks 'ediff-set-merge-mode))
+  (remove-hook 'write-file-functions 'ediff-set-merge-mode t))
 
 
 ;; Go over all diffs starting with DIFF-NUM and copy regions into buffer C

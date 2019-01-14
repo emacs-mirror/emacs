@@ -12,7 +12,7 @@
 @c appreciate a notice if you do).
 
 @copying
-Copyright @copyright{} 2001--2018 Free Software Foundation, Inc.@*
+Copyright @copyright{} 2001--2019 Free Software Foundation, Inc.@*
 Copyright @copyright{} 1994, 1995, 1996, 1997, 1998, 1999, 2000
 Reuven M. Lerner@*
 Copyright @copyright{} 1992, 1993 Steven Byrnes@*
@@ -134,14 +134,14 @@ used in the FAQ.
 @itemize @bullet
 
 @item
-@kbd{C-x}: press the @key{x} key while holding down the @key{Control} key
+@kbd{C-x}: press the @kbd{x} key while holding down the @key{Control} key
 
 @item
-@kbd{M-x}: press the @key{x} key while holding down the @key{Meta} key
+@kbd{M-x}: press the @kbd{x} key while holding down the @key{Meta} key
 (if your computer doesn't have a @key{Meta} key, @pxref{No Meta key})
 
 @item
-@kbd{M-C-x}: press the @key{x} key while holding down both @key{Control}
+@kbd{M-C-x}: press the @kbd{x} key while holding down both @key{Control}
 and @key{Meta}
 
 @item
@@ -181,10 +181,10 @@ Any real spaces in such a key sequence should be ignored; only @key{SPC}
 really means press the space key.
 
 The @acronym{ASCII} code sent by @kbd{C-x} (except for @kbd{C-?}) is the value
-that would be sent by pressing just @key{x} minus 96 (or 64 for
-upper-case @key{X}) and will be from 0 to 31.  On Unix and GNU/Linux
+that would be sent by pressing just @kbd{x} minus 96 (or 64 for
+upper-case @kbd{X}) and will be from 0 to 31.  On Unix and GNU/Linux
 terminals, the @acronym{ASCII} code sent by @kbd{M-x} is the sum of 128 and the
-@acronym{ASCII} code that would be sent by pressing just @key{x}.  Essentially,
+@acronym{ASCII} code that would be sent by pressing just @kbd{x}.  Essentially,
 @key{Control} turns off bits 5 and 6 and @key{Meta} turns on bit
 7@footnote{
 DOS and Windows terminals don't set bit 7 when the @key{Meta} key is
@@ -211,7 +211,7 @@ what @kbd{M-x} and @key{RET} mean.)
 @code{execute-extended-command}.  This command allows you to run any
 Emacs command if you can remember the command's name.  If you can't
 remember the command's name, you can type @key{TAB} and @key{SPC} for
-completion, @key{?} for a list of possibilities, and @kbd{M-p} and
+completion, @kbd{?} for a list of possibilities, and @kbd{M-p} and
 @kbd{M-n} (or up-arrow and down-arrow) to see previous commands entered.
 An Emacs @dfn{command} is an @dfn{interactive} Emacs function.
 
@@ -235,7 +235,7 @@ read this manual node inside Emacs (assuming nothing is broken) by
 typing @kbd{C-h i m emacs @key{RET} m @var{topic} @key{RET}}.
 
 This invokes Info, the GNU hypertext documentation browser.  If you don't
-already know how to use Info, type @key{?} from within Info.
+already know how to use Info, type @kbd{?} from within Info.
 
 If we refer to @var{topic}:@var{subtopic}, type @kbd{C-h i m emacs
 @key{RET} m @var{topic} @key{RET} m @var{subtopic} @key{RET}}.
@@ -576,7 +576,7 @@ There are several methods for finding out how to do things in Emacs.
 @item
 The complete text of the Emacs manual is available via the Info
 hypertext reader.  Type @kbd{C-h r} to display the manual in Info mode.
-Typing @key{h} immediately after entering Info will provide a short
+Typing @kbd{h} immediately after entering Info will provide a short
 tutorial on how to use it.
 
 @cindex Lookup a subject in a manual
@@ -761,7 +761,7 @@ named @samp{Top} in that file.  For example, to view an Info file named
 @end example
 
 Alternatively, you can feed a file name to the @code{Info-goto-node}
-command (invoked by pressing @key{g} in Info mode) by typing the name
+command (invoked by pressing @kbd{g} in Info mode) by typing the name
 of the file in parentheses, like this:
 
 @example
@@ -930,6 +930,7 @@ status of its latest version.
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 26::
 * New in Emacs 25::
 * New in Emacs 24::
 * New in Emacs 23::
@@ -946,7 +947,7 @@ status of its latest version.
 @cindex Original version of Emacs
 
 Emacs originally was an acronym for Editor MACroS@.  RMS says he ``picked
-the name Emacs because @key{E} was not in use as an abbreviation on ITS at
+the name Emacs because @kbd{E} was not in use as an abbreviation on ITS at
 the time.''  The first Emacs was a set of macros written in 1976 at MIT
 by RMS for the editor TECO (Text Editor and COrrector, originally Tape
 Editor and COrrector) under ITS (the Incompatible Timesharing System) on
@@ -979,7 +980,7 @@ conventions}).
 Emacs @value{EMACSVER} is the current version as of this writing.  A version
 number with two components (e.g., @samp{24.5}) indicates a released
 version; three components indicate a development
-version (e.g., @samp{26.0.50} is what will eventually become @samp{26.1}).
+version (e.g., @samp{27.0.50} is what will eventually become @samp{27.1}).
 
 Emacs is under active development, hosted at
 @uref{https://savannah.gnu.org/projects/emacs/, Savannah}.
@@ -997,6 +998,85 @@ few Emacs releases.  For full details of the changes in any version of
 Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  As of Emacs 22,
 you can give this command a prefix argument to read about which features
 were new in older versions.
+
+@node New in Emacs 26
+@section What is different about Emacs 26?
+@cindex Differences between Emacs 25 and Emacs 26
+@cindex Emacs 26, new features in
+
+@itemize
+@cindex threads
+@item
+Emacs now provides a limited form of concurrency with Lisp threads.
+
+@cindex systemd support
+@item
+Emacs now supports @code{systemd}.  The new command-line option
+@option{--fg-daemon} is part of this support, it causes Emacs to run
+in the foreground instead of forking, as under @option{--daemon}.
+
+@item
+Emacs now supports 24-bit true color on text terminals which provide
+that feature.  @xref{Colors on a TTY}.
+
+@cindex double-buffering
+@item
+Emacs on X now supports double-buffering, which eliminates display
+flickering in most situations.
+
+@item
+You can now scroll the Emacs display horizontally using the mouse or
+touchpad.
+
+@cindex line number display
+@item
+Emacs display now includes an optional feature for display of line
+numbers via the @code{display-line-numbers-mode} command.  This
+feature is much faster than the equivalent display offered by packages
+such as @code{linum}, and also provides many optional features like
+relative line numbers.
+
+@cindex horizontal scrolling of current line
+@item
+The automatic horizontal scrolling of the window display when lines
+are truncated can now optionally be enabled only for the current line,
+the line where Emacs shows the cursor.  Under this mode, all the other
+window lines are not scrolled to show characters outside of the
+viewport.
+
+@item
+Letter-case conversions now honor special cases in Turkish and Greek
+scripts.
+
+@cindex Enchant support
+@item
+Support for Enchant is now part of the Emacs spell-checking commands.
+
+@item
+Tramp now supports Google Drive filesystems.
+
+@item
+Emacs can now be built while omitting the details of the machine on
+which it was built, thus making it easier to produce reproducible
+builds.
+
+@item
+Security vulnerability related to Enriched Text mode is removed.
+Enriched mode previously allowed saving @code{display} properties as
+part of text; those properties support evaluating arbitrary Lisp code,
+which opens a vulnerability for Emacs users receiving Enriched Text
+from external sources.  Execution of arbitrary Lisp forms in
+@code{display} properties decoded by Enriched Text mode is now
+disabled by default.
+
+@cindex Unicode 11.0.0
+@item
+Emacs 26.2 comes with data files imported from the latest Unicode
+Standard version 11.0.0.
+@end itemize
+
+Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
+changes in Emacs 26.
 
 @node New in Emacs 25
 @section What is different about Emacs 25?
@@ -1925,9 +2005,18 @@ or by invoking @code{server-start} from @file{.emacs}:
 (if (@var{some conditions are met}) (server-start))
 @end lisp
 
-When this is done, Emacs creates a Unix domain socket named
-@file{server} in @file{/tmp/emacs@var{userid}}. See
-@code{server-socket-dir}.
+When this is done, Emacs by default creates a Unix domain socket named
+@file{server} in a well-known directory, typically
+@file{$XDG_RUNTIME_DIR/emacs} if Emacs is running under an X Window System
+desktop and @file{$TMPDIR/emacs@var{userid}} otherwise.  See the variable
+@code{server-socket-dir}.  Traditionally, Emacs used
+@file{$TMPDIR/emacs@var{userid}} even when running under an X desktop;
+if you prefer this traditional (and less-secure) behavior, you
+can set the environment variable @env{EMACS_SOCKET_NAME} to
+@samp{$TMPDIR/emacs@var{userid}/server} before invoking Emacs and
+@samp{emacsclient}, although it will be your responsibility to create
+the directory @samp{$TMPDIR/emacs@var{userid}} with appropriate
+ownership and permissions.
 
 To get your news reader, mail reader, etc., to invoke
 @samp{emacsclient}, try setting the environment variable @code{EDITOR}
@@ -2240,7 +2329,7 @@ and braces at the same time by modifying the syntax table.)
 
 @cindex Show matching paren as in @code{vi}
 @item
-Here is some Emacs Lisp that will make the @key{%} key show the matching
+Here is some Emacs Lisp that will make the @kbd{%} key show the matching
 parenthesis, like in @code{vi}.  In addition, if the cursor isn't over a
 parenthesis, it simply inserts a % like normal.
 
@@ -2908,7 +2997,7 @@ Emacs compiled on a 64-bit machine can handle much larger buffers.
 @cindex Shell buffer, echoed commands and @samp{^M} in
 @cindex Echoed commands in @code{shell-mode}
 
-Try typing @kbd{M-x shell-strip-ctrl-m @key{RET}} while in @code{shell-mode} to
+Try typing @kbd{M-x comint-strip-ctrl-m @key{RET}} while in @code{shell-mode} to
 make them go away.  If that doesn't work, you have several options:
 
 For @code{tcsh}, put this in your @file{.cshrc} (or @file{.tcshrc})
@@ -2961,7 +3050,7 @@ characters from the buffer by adding this to your @file{.emacs} init
 file:
 
 @smalllisp
-(add-hook 'comint-output-filter-functions 'shell-strip-ctrl-m)
+(add-hook 'comint-output-filter-functions #'comint-strip-ctrl-m)
 @end smalllisp
 
 On a related note: if your shell is echoing your input line in the shell
@@ -3312,8 +3401,9 @@ and binaries, and how to install Emacs on those systems.
 
 Most GNU/Linux distributions provide pre-built Emacs packages.
 If Emacs is not installed already, you can install it by running (as
-root) a command such as @samp{yum install emacs} (Red Hat and
-derivatives) or @samp{apt-get install emacs} (Debian and derivatives).
+root) a command such as @samp{dnf install emacs} (Red Hat and
+derivatives; use @samp{yum} in older distributions) or
+@samp{apt-get install emacs} (Debian and derivatives).
 
 If you want to compile Emacs yourself, read the file @file{INSTALL} in
 the source distribution.  In brief:
@@ -3455,7 +3545,7 @@ see @ref{Packages that do not come with Emacs}.
 
 The easiest way to add more features to your Emacs is to use the
 command @kbd{M-x list-packages}.  This contacts the
-@uref{https:///elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
+@uref{https://elpa.gnu.org, GNU ELPA} (``Emacs Lisp Package Archive'')
 server and fetches the list of additional packages that it offers.
 These are GNU packages that are available for use with Emacs, but are
 distributed separately from Emacs itself, for reasons of space, etc.
@@ -3464,8 +3554,8 @@ available, and then Emacs can automatically download and install the
 packages that you select.  @xref{Packages,,, emacs, The GNU Emacs Manual}.
 
 There are other, non-GNU, Emacs Lisp package servers, including:
-@uref{http://melpa.org/, MELPA}; and
-@uref{https://marmalade-repo.org/, Marmalade}.  To use additional
+@uref{https://melpa.org, MELPA}; and
+@uref{https://marmalade-repo.org, Marmalade}.  To use additional
 package servers, customize the @code{package-archives} variable.  Be
 aware that installing a package can run arbitrary code, so only add
 sources that you trust.
@@ -3476,8 +3566,8 @@ GNU Emacs sources mailing list}, which is gatewayed to the
 connection between the two can be unreliable) is an official place
 where people can post or announce their extensions to Emacs.
 
-The @uref{http://emacswiki.org, Emacs Wiki} contains pointers to some
-additional extensions.  @uref{http://wikemacs.org, WikEmacs} is an
+The @uref{https://emacswiki.org, Emacs Wiki} contains pointers to some
+additional extensions.  @uref{https://wikemacs.org, WikEmacs} is an
 alternative wiki for Emacs.
 
 @uref{http://www.damtp.cam.ac.uk/user/sje30/emacs/ell.html, The Emacs
@@ -3993,8 +4083,8 @@ On many keyboards, the @key{Alt} key acts as @key{Meta}, so try it.
 Instead of typing @kbd{M-a}, you can type @kbd{@key{ESC} a}.  In fact,
 Emacs converts @kbd{M-a} internally into @kbd{@key{ESC} a} anyway
 (depending on the value of @code{meta-prefix-char}).  Note that you
-press @key{Meta} and @key{a} together, but with @key{ESC}, you press
-@key{ESC}, release it, and then press @key{a}.
+press @key{Meta} and @kbd{a} together, but with @key{ESC}, you press
+@key{ESC}, release it, and then press @kbd{a}.
 
 @node No Escape key
 @section What if I don't have an @key{Escape} key?
@@ -4340,7 +4430,7 @@ fontset, or you can select it by setting the default font in your
 @file{~/.emacs}:
 
 @lisp
-  (set-default-font "fontset-bdf")
+  (set-frame-font "fontset-bdf")
 @end lisp
 
 
@@ -4487,9 +4577,9 @@ these systems, you should configure @code{movemail} to use @code{flock}.
 
 @c isaacson@@seas.upenn.edu
 Ron Isaacson says: When you hit
-@key{r} to reply in Rmail, by default it CCs all of the original
+@kbd{r} to reply in Rmail, by default it Ccs all of the original
 recipients (everyone on the original @samp{To} and @samp{CC}
-lists). With a prefix argument (i.e., typing @kbd{C-u} before @key{r}),
+lists). With a prefix argument (i.e., typing @kbd{C-u} before @kbd{r}),
 it replies only to the sender.  However, going through the whole
 @kbd{C-u} business every time you want to reply is a pain.  This is the
 best fix I've been able to come up with:

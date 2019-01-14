@@ -1,6 +1,6 @@
 ;;; semantic/sb.el --- Semantic tag display for speedbar
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -298,11 +298,7 @@ TEXT TOKEN and INDENT are the details."
   "Jump to the location specified in token.
 TEXT TOKEN and INDENT are the details."
   (let ((file
-	 (or
-	  (cond ((fboundp 'speedbar-line-path)
-		 (speedbar-line-directory indent))
-		((fboundp 'speedbar-line-directory)
-		 (speedbar-line-directory indent)))
+	 (or (speedbar-line-directory indent)
 	  ;; If speedbar cannot figure this out, extract the filename from
 	  ;; the token.  True for Analysis mode.
 	  (semantic-tag-file-name token)))

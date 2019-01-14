@@ -1,6 +1,6 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -4953,8 +4953,8 @@ Key bindings:
 (defun vhdl-write-file-hooks-init ()
   "Add/remove hooks when buffer is saved."
   (if vhdl-modify-date-on-saving
-      (add-hook 'local-write-file-hooks 'vhdl-template-modify-noerror nil t)
-    (remove-hook 'local-write-file-hooks 'vhdl-template-modify-noerror t))
+      (add-hook 'write-file-functions 'vhdl-template-modify-noerror nil t)
+    (remove-hook 'write-file-functions 'vhdl-template-modify-noerror t))
   (if (featurep 'xemacs) (make-local-hook 'after-save-hook))
   (add-hook 'after-save-hook 'vhdl-add-modified-file nil t))
 
@@ -8707,17 +8707,11 @@ project is defined."
 ;;  Enabling/disabling
 
 (define-minor-mode vhdl-electric-mode
-  "Toggle VHDL electric mode.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable it if ARG
-is omitted or nil."
+  "Toggle VHDL electric mode."
   :global t :group 'vhdl-mode)
 
 (define-minor-mode vhdl-stutter-mode
-  "Toggle VHDL stuttering mode.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable it if ARG
-is omitted or nil."
+  "Toggle VHDL stuttering mode."
   :global t :group 'vhdl-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-2018 Free Software Foundation, Inc.
+Copyright (C) 1985-1988, 1993-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -96,6 +96,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <acl.h>
 #include <allocator.h>
 #include <careadlinkat.h>
+#include <dosname.h>
 #include <fsusage.h>
 #include <stat-time.h>
 #include <tempname.h>
@@ -196,8 +197,8 @@ check_writable (const char *filename, int amode)
    list before reporting it; this saves report_file_errno's caller the
    trouble of preserving errno before calling list1.  */
 
-void
-report_file_errno (char const *string, Lisp_Object name, int errorno)
+Lisp_Object
+get_file_errno_data (char const *string, Lisp_Object name, int errorno)
 {
   Lisp_Object data = CONSP (name) || NILP (name) ? name : list1 (name);
   char *str = emacs_strerror (errorno);
@@ -207,10 +208,18 @@ report_file_errno (char const *string, Lisp_Object name, int errorno)
   Lisp_Object errdata = Fcons (errstring, data);
 
   if (errorno == EEXIST)
-    xsignal (Qfile_already_exists, errdata);
+    return Fcons (Qfile_already_exists, errdata);
   else
-    xsignal (errorno == ENOENT ? Qfile_missing : Qfile_error,
-	     Fcons (build_string (string), errdata));
+    return Fcons (errorno == ENOENT ? Qfile_missing : Qfile_error,
+		  Fcons (build_string (string), errdata));
+}
+
+void
+report_file_errno (char const *string, Lisp_Object name, int errorno)
+{
+  Lisp_Object data = get_file_errno_data (string, name, errorno);
+
+  xsignal (Fcar (data), Fcdr (data));
 }
 
 /* Signal a file-access failure that set errno.  STRING describes the
@@ -224,6 +233,7 @@ report_file_error (char const *string, Lisp_Object name)
   report_file_errno (string, name, errno);
 }
 
+#ifdef USE_FILE_NOTIFY
 /* Like report_file_error, but reports a file-notify-error instead.  */
 
 void
@@ -238,6 +248,7 @@ report_file_notify_error (const char *string, Lisp_Object name)
 
   xsignal (Qfile_notify_error, Fcons (build_string (string), errdata));
 }
+#endif
 
 void
 close_file_unwind (int fd)
@@ -336,7 +347,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   CHECK_STRING (filename);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_name_directory);
   if (!NILP (handler))
     {
@@ -431,7 +442,7 @@ or the entire name if it contains no slash.  */)
   CHECK_STRING (filename);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_name_nondirectory);
   if (!NILP (handler))
     {
@@ -462,7 +473,7 @@ DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory,
        Sunhandled_file_name_directory, 1, 1, 0,
        doc: /* Return a directly usable directory name somehow associated with FILENAME.
 A `directly usable' directory name is one that may be used without the
-intervention of any file handler.
+intervention of any file name handler.
 If FILENAME is a directly usable file itself, return
 \(file-name-as-directory FILENAME).
 If FILENAME refers to a file which is not accessible from a local process,
@@ -474,7 +485,7 @@ get a current directory to run processes in.  */)
   Lisp_Object handler;
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qunhandled_file_name_directory);
   if (!NILP (handler))
     {
@@ -536,7 +547,7 @@ is already present.  */)
   CHECK_STRING (file);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_as_directory);
   if (!NILP (handler))
     {
@@ -627,7 +638,7 @@ In Unix-syntax, this function just removes the final slash.  */)
   CHECK_STRING (directory);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_file_name);
   if (!NILP (handler))
     {
@@ -681,7 +692,7 @@ This function does not grok magic file names.  */)
   memset (data + prefix_len, 'X', nX);
   memcpy (data + prefix_len + nX, SSDATA (encoded_suffix), suffix_len);
   int kind = (NILP (dir_flag) ? GT_FILE
-	      : EQ (dir_flag, make_number (0)) ? GT_NOCREATE
+	      : EQ (dir_flag, make_fixnum (0)) ? GT_NOCREATE
 	      : GT_DIR);
   int fd = gen_tempname (data, suffix_len, O_BINARY | O_CLOEXEC, kind);
   bool failed = fd < 0;
@@ -722,7 +733,7 @@ later creating the file, which opens all kinds of security holes.
 For that reason, you should normally use `make-temp-file' instead.  */)
   (Lisp_Object prefix)
 {
-  return Fmake_temp_file_internal (prefix, make_number (0),
+  return Fmake_temp_file_internal (prefix, make_fixnum (0),
 				   empty_unibyte_string, Qnil);
 }
 
@@ -779,7 +790,7 @@ the root directory.  */)
   CHECK_STRING (name);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (name, Qexpand_file_name);
   if (!NILP (handler))
     {
@@ -811,17 +822,14 @@ the root directory.  */)
 #endif
     }
 
-  if (!NILP (default_directory))
+  handler = Ffind_file_name_handler (default_directory, Qexpand_file_name);
+  if (!NILP (handler))
     {
-      handler = Ffind_file_name_handler (default_directory, Qexpand_file_name);
-      if (!NILP (handler))
-	{
-	  handled_name = call3 (handler, Qexpand_file_name,
-				name, default_directory);
-	  if (STRINGP (handled_name))
-	    return handled_name;
-	  error ("Invalid handler in `file-name-handler-alist'");
-	}
+      handled_name = call3 (handler, Qexpand_file_name,
+			    name, default_directory);
+      if (STRINGP (handled_name))
+	return handled_name;
+      error ("Invalid handler in `file-name-handler-alist'");
     }
 
   {
@@ -865,9 +873,61 @@ the root directory.  */)
       }
   }
   multibyte = STRING_MULTIBYTE (name);
-  if (multibyte != STRING_MULTIBYTE (default_directory))
+  bool defdir_multibyte = STRING_MULTIBYTE (default_directory);
+  if (multibyte != defdir_multibyte)
     {
+      /* We want to make both NAME and DEFAULT_DIRECTORY have the same
+	 multibyteness.  Strategy:
+	 . If either NAME or DEFAULT_DIRECTORY is pure-ASCII, they
+	   can be converted to the multibyteness of the other one
+	   while keeping the same byte sequence.
+	 . If both are non-ASCII, the only safe conversion is to
+	   convert the multibyte one to be unibyte, because the
+	   reverse conversion potentially adds bytes while raw bytes
+	   are converted to their multibyte forms, which we will be
+	   unable to account for, since the information about the
+	   original multibyteness is lost.  If those additional bytes
+	   later leak to system APIs because they are not encoded or
+	   because they are converted to unibyte strings by keeping
+	   the data, file APIs will fail.
+
+	 Note: One could argue that if we see a multibyte string, it
+	 is evidence that file-name decoding was already set up, and
+	 we could convert unibyte strings to multibyte using
+	 DECODE_FILE.  However, this is risky, because the likes of
+	 string_to_multibyte are able of creating multibyte strings
+	 without any decoding.  */
       if (multibyte)
+	{
+	  bool name_ascii_p = SCHARS (name) == SBYTES (name);
+	  unsigned char *p = SDATA (default_directory);
+
+	  if (!name_ascii_p)
+	    while (*p && ASCII_CHAR_P (*p))
+	      p++;
+	  if (name_ascii_p || *p != '\0')
+	    {
+	      /* DEFAULT_DIRECTORY is unibyte and possibly non-ASCII.
+		 Make a unibyte string out of NAME, and arrange for
+		 the result of this function to be a unibyte string.
+		 This is needed during bootstrapping and dumping, when
+		 Emacs cannot decode file names, because the locale
+		 environment is not set up.  */
+	      name = make_unibyte_string (SSDATA (name), SBYTES (name));
+	      multibyte = 0;
+	    }
+	  else
+	    {
+	      /* NAME is non-ASCII and multibyte, and
+		 DEFAULT_DIRECTORY is unibyte and pure-ASCII: make a
+		 multibyte string out of DEFAULT_DIRECTORY's data.  */
+	      default_directory =
+		make_multibyte_string (SSDATA (default_directory),
+				       SCHARS (default_directory),
+				       SCHARS (default_directory));
+	    }
+	}
+      else
 	{
 	  unsigned char *p = SDATA (name);
 
@@ -875,23 +935,16 @@ the root directory.  */)
 	    p++;
 	  if (*p == '\0')
 	    {
-	      /* NAME is a pure ASCII string, and DEFAULT_DIRECTORY is
-		 unibyte.  Do not convert DEFAULT_DIRECTORY to
-		 multibyte; instead, convert NAME to a unibyte string,
-		 so that the result of this function is also a unibyte
-		 string.  This is needed during bootstrapping and
-		 dumping, when Emacs cannot decode file names, because
-		 the locale environment is not set up.  */
-	      name = make_unibyte_string (SSDATA (name), SBYTES (name));
-	      multibyte = 0;
+	      /* DEFAULT_DIRECTORY is multibyte and NAME is unibyte
+		 and pure-ASCII.  Make a multibyte string out of
+		 NAME's data.  */
+	      name = make_multibyte_string (SSDATA (name),
+					    SCHARS (name), SCHARS (name));
+	      multibyte = 1;
 	    }
 	  else
-	    default_directory = string_to_multibyte (default_directory);
-	}
-      else
-	{
-	  name = string_to_multibyte (name);
-	  multibyte = 1;
+	    default_directory = make_unibyte_string (SSDATA (default_directory),
+						     SBYTES (default_directory));
 	}
     }
 
@@ -1041,23 +1094,11 @@ the root directory.  */)
 	{
 	  Lisp_Object tem;
 
-	  if (!(newdir = egetenv ("HOME")))
-	    newdir = newdirlim = "";
+	  newdir = get_homedir ();
 	  nm++;
-#ifdef WINDOWSNT
-	  if (newdir[0])
-	    {
-	      char newdir_utf8[MAX_UTF8_PATH];
-
-	      filename_from_ansi (newdir, newdir_utf8);
-	      tem = make_unibyte_string (newdir_utf8, strlen (newdir_utf8));
-	      newdir = SSDATA (tem);
-	    }
-	  else
-#endif
-	    tem = build_string (newdir);
+	  tem = build_string (newdir);
 	  newdirlim = newdir + SBYTES (tem);
-	  /* `egetenv' may return a unibyte string, which will bite us
+	  /* get_homedir may return a unibyte string, which will bite us
 	     if we expect the directory to be multibyte.  */
 	  if (multibyte && !STRING_MULTIBYTE (tem))
 	    {
@@ -1406,7 +1447,7 @@ the root directory.  */)
   }
 
   /* Again look to see if the file name has special constructs in it
-     and perhaps call the corresponding file handler.  This is needed
+     and perhaps call the corresponding file name handler.  This is needed
      for filenames such as "/foo/../user@host:/bar/../baz".  Expanding
      the ".." component gives us "/user@host:/bar/../baz" which needs
      to be expanded again.  */
@@ -1585,7 +1626,6 @@ See also the function `substitute-in-file-name'.")
 }
 #endif
 
-/* If /~ or // appears, discard everything through first slash.  */
 static bool
 file_name_absolute_p (const char *filename)
 {
@@ -1598,6 +1638,102 @@ file_name_absolute_p (const char *filename)
      );
 }
 
+/* Put into BUF the concatenation of DIR and FILE, with an intervening
+   directory separator if needed.  Return a pointer to the null byte
+   at the end of the concatenated string.  */
+char *
+splice_dir_file (char *buf, char const *dir, char const *file)
+{
+  char *e = stpcpy (buf, dir);
+  *e = DIRECTORY_SEP;
+  e += ! (buf < e && IS_DIRECTORY_SEP (e[-1]));
+  return stpcpy (e, file);
+}
+
+/* Get the home directory, an absolute file name.  Return the empty
+   string on failure.  The returned value does not survive garbage
+   collection, calls to this function, or calls to the getpwnam class
+   of functions.  */
+char const *
+get_homedir (void)
+{
+  char const *home = egetenv ("HOME");
+
+#ifdef WINDOWSNT
+  /* getpw* functions return UTF-8 encoded file names, whereas egetenv
+     returns strings in locale encoding, so we need to convert for
+     consistency.  */
+  static char homedir_utf8[MAX_UTF8_PATH];
+  if (home)
+    {
+      filename_from_ansi (home, homedir_utf8);
+      home = homedir_utf8;
+    }
+#endif
+
+  if (!home)
+    {
+      static char const *userenv[] = {"LOGNAME", "USER"};
+      struct passwd *pw = NULL;
+      for (int i = 0; i < ARRAYELTS (userenv); i++)
+	{
+	  char *user = egetenv (userenv[i]);
+	  if (user)
+	    {
+	      pw = getpwnam (user);
+	      if (pw)
+		break;
+	    }
+	}
+      if (!pw)
+	pw = getpwuid (getuid ());
+      if (pw)
+	home = pw->pw_dir;
+      if (!home)
+	return "";
+    }
+#ifdef DOS_NT
+  /* If home is a drive-relative directory, expand it.  */
+  if (IS_DRIVE (*home)
+      && IS_DEVICE_SEP (home[1])
+      && !IS_DIRECTORY_SEP (home[2]))
+    {
+# ifdef WINDOWSNT
+      static char hdir[MAX_UTF8_PATH];
+# else
+      static char hdir[MAXPATHLEN];
+# endif
+      if (!getdefdir (c_toupper (*home) - 'A' + 1, hdir))
+	{
+	  hdir[0] = c_toupper (*home);
+	  hdir[1] = ':';
+	  hdir[2] = '/';
+	  hdir[3] = '\0';
+	}
+      if (home[2])
+	{
+	  size_t homelen = strlen (hdir);
+	  if (!IS_DIRECTORY_SEP (hdir[homelen - 1]))
+	    strcat (hdir, "/");
+	  strcat (hdir, home + 2);
+	}
+      home = hdir;
+    }
+#endif
+  if (IS_ABSOLUTE_FILE_NAME (home))
+    return home;
+  if (!emacs_wd)
+    error ("$HOME is relative to unknown directory");
+  static char *ahome;
+  static ptrdiff_t ahomesize;
+  ptrdiff_t ahomelenbound = strlen (emacs_wd) + 1 + strlen (home) + 1;
+  if (ahomesize <= ahomelenbound)
+    ahome = xpalloc (ahome, &ahomesize, ahomelenbound + 1 - ahomesize, -1, 1);
+  splice_dir_file (ahome, emacs_wd, home);
+  return ahome;
+}
+
+/* If /~ or // appears, discard everything through first slash.  */
 static char *
 search_embedded_absfilename (char *nm, char *endp)
 {
@@ -1664,7 +1800,7 @@ those `/' is discarded.  */)
   multibyte = STRING_MULTIBYTE (filename);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qsubstitute_in_file_name);
   if (!NILP (handler))
     {
@@ -1878,7 +2014,7 @@ permissions.  */)
   newname = expand_cp_target (file, newname);
 
   /* If the input file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qcopy_file);
   /* Likewise for output file name.  */
   if (NILP (handler))
@@ -1893,9 +2029,9 @@ permissions.  */)
 
 #ifdef WINDOWSNT
   if (NILP (ok_if_already_exists)
-      || INTEGERP (ok_if_already_exists))
+      || FIXNUMP (ok_if_already_exists))
     barf_or_query_if_file_exists (newname, false, "copy to it",
-				  INTEGERP (ok_if_already_exists), false);
+				  FIXNUMP (ok_if_already_exists), false);
 
   result = w32_copy_file (SSDATA (encoded_file), SSDATA (encoded_newname),
 			  !NILP (keep_time), !NILP (preserve_uid_gid),
@@ -1950,9 +2086,9 @@ permissions.  */)
 		    new_mask);
   if (ofd < 0 && errno == EEXIST)
     {
-      if (NILP (ok_if_already_exists) || INTEGERP (ok_if_already_exists))
+      if (NILP (ok_if_already_exists) || FIXNUMP (ok_if_already_exists))
 	barf_or_query_if_file_exists (newname, true, "copy to it",
-				      INTEGERP (ok_if_already_exists), false);
+				      FIXNUMP (ok_if_already_exists), false);
       already_exists = true;
       ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY, 0);
     }
@@ -2239,11 +2375,26 @@ The arg must be a string.  */)
   filename = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_name_case_insensitive_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_name_case_insensitive_p, filename);
 
+  /* If the file doesn't exist, move up the filesystem tree until we
+     reach an existing directory or the root.  */
+  if (NILP (Ffile_exists_p (filename)))
+    {
+      filename = Ffile_name_directory (filename);
+      while (NILP (Ffile_exists_p (filename)))
+	{
+	  Lisp_Object newname = expand_and_dir_to_file (filename);
+	  /* Avoid infinite loop if the root is reported as non-existing
+	     (impossible?).  */
+	  if (!NILP (Fstring_equal (newname, filename)))
+	    break;
+	  filename = newname;
+	}
+    }
   filename = ENCODE_FILE (filename);
   return file_name_case_insensitive_p (SSDATA (filename)) ? Qt : Qnil;
 }
@@ -2285,7 +2436,7 @@ This is what happens in interactive use with M-x.  */)
     newname = expand_cp_target (Fdirectory_file_name (file), newname);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qrename_file);
   if (NILP (handler))
     handler = Ffind_file_name_handler (newname, Qrename_file);
@@ -2298,7 +2449,7 @@ This is what happens in interactive use with M-x.  */)
 
   bool plain_rename = (case_only_rename
 		       || (!NILP (ok_if_already_exists)
-			   && !INTEGERP (ok_if_already_exists)));
+			   && !FIXNUMP (ok_if_already_exists)));
   int rename_errno UNINIT;
   if (!plain_rename)
     {
@@ -2316,7 +2467,7 @@ This is what happens in interactive use with M-x.  */)
 #endif
 	  barf_or_query_if_file_exists (newname, rename_errno == EEXIST,
 					"rename to it",
-					INTEGERP (ok_if_already_exists),
+					FIXNUMP (ok_if_already_exists),
 					false);
 	  plain_rename = true;
 	  break;
@@ -2387,14 +2538,14 @@ This is what happens in interactive use with M-x.  */)
   newname = expand_cp_target (file, newname);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qadd_name_to_file);
   if (!NILP (handler))
     return call4 (handler, Qadd_name_to_file, file,
 		  newname, ok_if_already_exists);
 
   /* If the new name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (newname, Qadd_name_to_file);
   if (!NILP (handler))
     return call4 (handler, Qadd_name_to_file, file,
@@ -2409,9 +2560,9 @@ This is what happens in interactive use with M-x.  */)
   if (errno == EEXIST)
     {
       if (NILP (ok_if_already_exists)
-	  || INTEGERP (ok_if_already_exists))
+	  || FIXNUMP (ok_if_already_exists))
 	barf_or_query_if_file_exists (newname, true, "make it a new name",
-				      INTEGERP (ok_if_already_exists), false);
+				      FIXNUMP (ok_if_already_exists), false);
       unlink (SSDATA (newname));
       if (link (SSDATA (encoded_file), SSDATA (encoded_newname)) == 0)
 	return Qnil;
@@ -2437,17 +2588,17 @@ This happens for interactive use with M-x.  */)
   Lisp_Object encoded_target, encoded_linkname;
 
   CHECK_STRING (target);
-  if (INTEGERP (ok_if_already_exists))
+  if (FIXNUMP (ok_if_already_exists))
     {
       if (SREF (target, 0) == '~')
 	target = Fexpand_file_name (target, Qnil);
       else if (SREF (target, 0) == '/' && SREF (target, 1) == ':')
-	target = Fsubstring_no_properties (target, make_number (2), Qnil);
+	target = Fsubstring_no_properties (target, make_fixnum (2), Qnil);
     }
   linkname = expand_cp_target (target, linkname);
 
   /* If the new link name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (linkname, Qmake_symbolic_link);
   if (!NILP (handler))
     return call4 (handler, Qmake_symbolic_link, target,
@@ -2466,9 +2617,9 @@ This happens for interactive use with M-x.  */)
   if (errno == EEXIST)
     {
       if (NILP (ok_if_already_exists)
-	  || INTEGERP (ok_if_already_exists))
+	  || FIXNUMP (ok_if_already_exists))
 	barf_or_query_if_file_exists (linkname, true, "make it a link",
-				      INTEGERP (ok_if_already_exists), false);
+				      FIXNUMP (ok_if_already_exists), false);
       unlink (SSDATA (encoded_linkname));
       if (symlink (SSDATA (encoded_target), SSDATA (encoded_linkname)) == 0)
 	return Qnil;
@@ -2502,7 +2653,7 @@ Use `file-symlink-p' to test for such links.  */)
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qfile_exists_p);
   if (!NILP (handler))
     {
@@ -2530,7 +2681,7 @@ purpose, though.)  */)
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qfile_executable_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_executable_p, absname);
@@ -2552,7 +2703,7 @@ See also `file-exists-p' and `file-attributes'.  */)
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qfile_readable_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_readable_p, absname);
@@ -2573,7 +2724,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qfile_writable_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_writable_p, absname);
@@ -2615,7 +2766,7 @@ If there is no error, returns nil.  */)
   CHECK_STRING (string);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qaccess_file);
   if (!NILP (handler))
     return call3 (handler, Qaccess_file, absname, string);
@@ -2663,7 +2814,7 @@ This function does not check whether the link target exists.  */)
   filename = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_symlink_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_symlink_p, filename);
@@ -2682,7 +2833,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
   Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_directory_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_directory_p, absname);
@@ -2751,7 +2902,7 @@ really is a readable and searchable directory.  */)
   absname = Fexpand_file_name (filename, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qfile_accessible_directory_p);
   if (!NILP (handler))
     {
@@ -2842,7 +2993,7 @@ See `file-symlink-p' to distinguish symlinks.  */)
   Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_regular_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_regular_p, absname);
@@ -2885,7 +3036,7 @@ or if SELinux is disabled, or if Emacs lacks SELinux support.  */)
   Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname,
 						 Qfile_selinux_context);
   if (!NILP (handler))
@@ -2947,7 +3098,7 @@ or if Emacs was not compiled with SELinux support.  */)
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qset_file_selinux_context);
   if (!NILP (handler))
     return call3 (handler, Qset_file_selinux_context, absname, context);
@@ -3017,7 +3168,7 @@ was unable to determine the ACL entries.  */)
   Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_acl);
   if (!NILP (handler))
     return call2 (handler, Qfile_acl, absname);
@@ -3072,7 +3223,7 @@ support.  */)
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qset_file_acl);
   if (!NILP (handler))
     return call3 (handler, Qset_file_acl, absname, acl_string);
@@ -3114,7 +3265,7 @@ Return nil, if file does not exist or is not accessible.  */)
   Lisp_Object absname = expand_and_dir_to_file (filename);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname, Qfile_modes);
   if (!NILP (handler))
     return call2 (handler, Qfile_modes, absname);
@@ -3124,7 +3275,7 @@ Return nil, if file does not exist or is not accessible.  */)
   if (stat (SSDATA (absname), &st) < 0)
     return Qnil;
 
-  return make_number (st.st_mode & 07777);
+  return make_fixnum (st.st_mode & 07777);
 }
 
 DEFUN ("set-file-modes", Fset_file_modes, Sset_file_modes, 2, 2,
@@ -3141,17 +3292,17 @@ symbolic notation, like the `chmod' command from GNU Coreutils.  */)
   Lisp_Object handler;
 
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
-  CHECK_NUMBER (mode);
+  CHECK_FIXNUM (mode);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qset_file_modes);
   if (!NILP (handler))
     return call3 (handler, Qset_file_modes, absname, mode);
 
   encoded_absname = ENCODE_FILE (absname);
 
-  if (chmod (SSDATA (encoded_absname), XINT (mode) & 07777) < 0)
+  if (chmod (SSDATA (encoded_absname), XFIXNUM (mode) & 07777) < 0)
     report_file_error ("Doing chmod", absname);
 
   return Qnil;
@@ -3172,9 +3323,9 @@ by having the corresponding bit in the mask reset.  */)
   (Lisp_Object mode)
 {
   mode_t oldrealmask, oldumask, newumask;
-  CHECK_NUMBER (mode);
+  CHECK_FIXNUM (mode);
   oldrealmask = realmask;
-  newumask = ~ XINT (mode) & 0777;
+  newumask = ~ XFIXNUM (mode) & 0777;
 
   block_input ();
   realmask = newumask;
@@ -3211,7 +3362,7 @@ Use the current time if TIMESTAMP is nil.  TIMESTAMP is in the format of
   absname = Fexpand_file_name (filename, BVAR (current_buffer, directory));
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (absname, Qset_file_times);
   if (!NILP (handler))
     return call3 (handler, Qset_file_times, absname, timestamp);
@@ -3259,7 +3410,7 @@ otherwise, if FILE2 does not exist, the answer is t.  */)
   Lisp_Object absname2 = expand_and_dir_to_file (file2);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (absname1,
 						 Qfile_newer_than_file_p);
   if (NILP (handler))
@@ -3318,21 +3469,28 @@ decide_coding_unwind (Lisp_Object unwind_data)
   bset_undo_list (current_buffer, undo_list);
 }
 
-/* Read from a non-regular file.  STATE is a Lisp_Save_Value
-   object where slot 0 is the file descriptor, slot 1 specifies
-   an offset to put the read bytes, and slot 2 is the maximum
-   amount of bytes to read.  Value is the number of bytes read.  */
+/* Read from a non-regular file.  Return the number of bytes read.  */
+
+union read_non_regular
+{
+  struct
+  {
+    int fd;
+    ptrdiff_t inserted, trytry;
+  } s;
+  GCALIGNED_UNION_MEMBER
+};
+verify (GCALIGNED (union read_non_regular));
 
 static Lisp_Object
 read_non_regular (Lisp_Object state)
 {
-  int nbytes = emacs_read_quit (XSAVE_INTEGER (state, 0),
+  union read_non_regular *data = XFIXNUMPTR (state);
+  int nbytes = emacs_read_quit (data->s.fd,
 				((char *) BEG_ADDR + PT_BYTE - BEG_BYTE
-				 + XSAVE_INTEGER (state, 1)),
-				XSAVE_INTEGER (state, 2));
-  /* Fast recycle this object for the likely next call.  */
-  free_misc (state);
-  return make_number (nbytes);
+				 + data->s.inserted),
+				data->s.trytry);
+  return make_fixnum (nbytes);
 }
 
 
@@ -3350,10 +3508,13 @@ read_non_regular_quit (Lisp_Object ignore)
 static off_t
 file_offset (Lisp_Object val)
 {
-  if (RANGED_INTEGERP (0, val, TYPE_MAXIMUM (off_t)))
-    return XINT (val);
-
-  if (FLOATP (val))
+  if (INTEGERP (val))
+    {
+      intmax_t v;
+      if (integer_to_intmax (val, &v) && 0 <= v && v <= TYPE_MAXIMUM (off_t))
+	return v;
+    }
+  else if (FLOATP (val))
     {
       double v = XFLOAT_DATA (val);
       if (0 <= v && v < 1.0 + TYPE_MAXIMUM (off_t))
@@ -3410,16 +3571,16 @@ restore_window_points (Lisp_Object window_markers, ptrdiff_t inserted,
 	Lisp_Object car = XCAR (window_markers);
 	Lisp_Object marker = XCAR (car);
 	Lisp_Object oldpos = XCDR (car);
-	if (MARKERP (marker) && INTEGERP (oldpos)
-	    && XINT (oldpos) > same_at_start
-	    && XINT (oldpos) < same_at_end)
+	if (MARKERP (marker) && FIXNUMP (oldpos)
+	    && XFIXNUM (oldpos) > same_at_start
+	    && XFIXNUM (oldpos) < same_at_end)
 	  {
 	    ptrdiff_t oldsize = same_at_end - same_at_start;
 	    ptrdiff_t newsize = inserted;
 	    double growth = newsize / (double)oldsize;
 	    ptrdiff_t newpos
-	      = same_at_start + growth * (XINT (oldpos) - same_at_start);
-	    Fset_marker (marker, make_number (newpos), Qnil);
+	      = same_at_start + growth * (XFIXNUM (oldpos) - same_at_start);
+	    Fset_marker (marker, make_fixnum (newpos), Qnil);
 	  }
       }
 }
@@ -3525,15 +3686,15 @@ by calling `format-decode', which see.  */)
   coding_system = Qnil;
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qinsert_file_contents);
   if (!NILP (handler))
     {
       val = call6 (handler, Qinsert_file_contents, filename,
 		   visit, beg, end, replace);
       if (CONSP (val) && CONSP (XCDR (val))
-	  && RANGED_INTEGERP (0, XCAR (XCDR (val)), ZV - PT))
-	inserted = XINT (XCAR (XCDR (val)));
+	  && RANGED_FIXNUMP (0, XCAR (XCDR (val)), ZV - PT))
+	inserted = XFIXNUM (XCAR (XCDR (val)));
       goto handled;
     }
 
@@ -3718,7 +3879,7 @@ by calling `format-decode', which see.  */)
 		  insert_1_both ((char *) read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 		  coding_system = call2 (Vset_auto_coding_function,
-					 filename, make_number (nread));
+					 filename, make_fixnum (nread));
 		  set_buffer_internal (prev);
 
 		  /* Discard the unwind protect for recovering the
@@ -4186,9 +4347,9 @@ by calling `format-decode', which see.  */)
 	    /* Read from the file, capturing `quit'.  When an
 	       error occurs, end the loop, and arrange for a quit
 	       to be signaled after decoding the text we read.  */
+	    union read_non_regular data = {{fd, inserted, trytry}};
 	    nbytes = internal_condition_case_1
-	      (read_non_regular,
-	       make_save_int_int_int (fd, inserted, trytry),
+	      (read_non_regular, make_pointer_integer (&data),
 	       Qerror, read_non_regular_quit);
 
 	    if (NILP (nbytes))
@@ -4197,7 +4358,7 @@ by calling `format-decode', which see.  */)
 		break;
 	      }
 
-	    this = XINT (nbytes);
+	    this = XFIXNUM (nbytes);
 	  }
 	else
 	  {
@@ -4293,7 +4454,7 @@ by calling `format-decode', which see.  */)
 	  if (inserted > 0 && ! NILP (Vset_auto_coding_function))
 	    {
 	      coding_system = call2 (Vset_auto_coding_function,
-				     filename, make_number (inserted));
+				     filename, make_fixnum (inserted));
 	    }
 
 	  if (NILP (coding_system))
@@ -4412,13 +4573,13 @@ by calling `format-decode', which see.  */)
 
   if (! NILP (Ffboundp (Qafter_insert_file_set_coding)))
     {
-      insval = call2 (Qafter_insert_file_set_coding, make_number (inserted),
+      insval = call2 (Qafter_insert_file_set_coding, make_fixnum (inserted),
 		      visit);
       if (! NILP (insval))
 	{
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 	    wrong_type_argument (intern ("inserted-chars"), insval);
-	  inserted = XFASTINT (insval);
+	  inserted = XFIXNAT (insval);
 	}
     }
 
@@ -4438,10 +4599,10 @@ by calling `format-decode', which see.  */)
       if (NILP (replace))
 	{
 	  insval = call3 (Qformat_decode,
-			  Qnil, make_number (inserted), visit);
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+			  Qnil, make_fixnum (inserted), visit);
+	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 	    wrong_type_argument (intern ("inserted-chars"), insval);
-	  inserted = XFASTINT (insval);
+	  inserted = XFIXNAT (insval);
 	}
       else
 	{
@@ -4461,8 +4622,8 @@ by calling `format-decode', which see.  */)
 
 	  TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
 	  insval = call3 (Qformat_decode,
-			  Qnil, make_number (oinserted), visit);
-	  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+			  Qnil, make_fixnum (oinserted), visit);
+	  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 	    wrong_type_argument (intern ("inserted-chars"), insval);
 	  if (ochars_modiff == CHARS_MODIFF)
 	    /* format_decode didn't modify buffer's characters => move
@@ -4472,7 +4633,7 @@ by calling `format-decode', which see.  */)
 	  else
 	    /* format_decode modified buffer's characters => consider
 	       entire buffer changed and leave point at point-min.  */
-	    inserted = XFASTINT (insval);
+	    inserted = XFIXNAT (insval);
 	}
 
       /* For consistency with format-decode call these now iff inserted > 0
@@ -4482,12 +4643,12 @@ by calling `format-decode', which see.  */)
 	{
 	  if (NILP (replace))
 	    {
-	      insval = call1 (XCAR (p), make_number (inserted));
+	      insval = call1 (XCAR (p), make_fixnum (inserted));
 	      if (!NILP (insval))
 		{
-		  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+		  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 		    wrong_type_argument (intern ("inserted-chars"), insval);
-		  inserted = XFASTINT (insval);
+		  inserted = XFIXNAT (insval);
 		}
 	    }
 	  else
@@ -4500,10 +4661,10 @@ by calling `format-decode', which see.  */)
 	      EMACS_INT ochars_modiff = CHARS_MODIFF;
 
 	      TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
-	      insval = call1 (XCAR (p), make_number (oinserted));
+	      insval = call1 (XCAR (p), make_fixnum (oinserted));
 	      if (!NILP (insval))
 		{
-		  if (! RANGED_INTEGERP (0, insval, ZV - PT))
+		  if (! RANGED_FIXNUMP (0, insval, ZV - PT))
 		    wrong_type_argument (intern ("inserted-chars"), insval);
 		  if (ochars_modiff == CHARS_MODIFF)
 		    /* after_insert_file_functions didn't modify
@@ -4515,7 +4676,7 @@ by calling `format-decode', which see.  */)
 		    /* after_insert_file_functions did modify buffer's
 	               characters => consider entire buffer changed and
 	               leave point at point-min.  */
-		    inserted = XFASTINT (insval);
+		    inserted = XFIXNAT (insval);
 		}
 	    }
 
@@ -4531,10 +4692,10 @@ by calling `format-decode', which see.  */)
 	      /* Adjust the last undo record for the size change during
 		 the format conversion.  */
 	      Lisp_Object tem = XCAR (old_undo);
-	      if (CONSP (tem) && INTEGERP (XCAR (tem))
-		  && INTEGERP (XCDR (tem))
-		  && XFASTINT (XCDR (tem)) == PT + old_inserted)
-		XSETCDR (tem, make_number (PT + inserted));
+	      if (CONSP (tem) && FIXNUMP (XCAR (tem))
+		  && FIXNUMP (XCDR (tem))
+		  && XFIXNAT (XCDR (tem)) == PT + old_inserted)
+		XSETCDR (tem, make_fixnum (PT + inserted));
 	    }
 	}
       else
@@ -4569,7 +4730,7 @@ by calling `format-decode', which see.  */)
 
   /* Retval needs to be dealt with in all cases consistently.  */
   if (NILP (val))
-    val = list2 (orig_filename, make_number (inserted));
+    val = list2 (orig_filename, make_fixnum (inserted));
 
   return unbind_to (count, val);
 }
@@ -4796,7 +4957,7 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
   annotations = Qnil;
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qwrite_region);
   /* If FILENAME has no handler, see if VISIT has one.  */
   if (NILP (handler) && STRINGP (visit))
@@ -4911,14 +5072,14 @@ write_region (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
 
   if (STRINGP (start))
     ok = a_write (desc, start, 0, SCHARS (start), &annotations, &coding);
-  else if (XINT (start) != XINT (end))
-    ok = a_write (desc, Qnil, XINT (start), XINT (end) - XINT (start),
+  else if (XFIXNUM (start) != XFIXNUM (end))
+    ok = a_write (desc, Qnil, XFIXNUM (start), XFIXNUM (end) - XFIXNUM (start),
 		  &annotations, &coding);
   else
     {
       /* If file was empty, still need to write the annotations.  */
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      ok = a_write (desc, Qnil, XINT (end), 0, &annotations, &coding);
+      ok = a_write (desc, Qnil, XFIXNUM (end), 0, &annotations, &coding);
     }
   save_errno = errno;
 
@@ -5165,7 +5326,7 @@ build_annotations (Lisp_Object start, Lisp_Object end)
          has written annotations to a temporary buffer, which is now
          current.  */
       res = call5 (Qformat_annotate_function, XCAR (p), start, end,
-		   original_buffer, make_number (i));
+		   original_buffer, make_fixnum (i));
       if (current_buffer != given_buffer)
 	{
 	  XSETFASTINT (start, BEGV);
@@ -5204,8 +5365,8 @@ a_write (int desc, Lisp_Object string, ptrdiff_t pos,
     {
       tem = Fcar_safe (Fcar (*annot));
       nextpos = pos - 1;
-      if (INTEGERP (tem))
-	nextpos = XFASTINT (tem);
+      if (FIXNUMP (tem))
+	nextpos = XFIXNAT (tem);
 
       /* If there are no more annotations in this range,
 	 output the rest of the range all at once.  */
@@ -5356,7 +5517,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   if (b->modtime.tv_nsec == UNKNOWN_MODTIME_NSECS) return Qt;
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (BVAR (b, filename),
 				     Qverify_visited_file_modtime);
   if (!NILP (handler))
@@ -5377,16 +5538,15 @@ See Info node `(elisp)Modification Time' for more details.  */)
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
-The value is a list of the form (HIGH LOW USEC PSEC), like the time values that
-`file-attributes' returns.  If the current buffer has no recorded file
-modification time, this function returns 0.  If the visited file
-doesn't exist, return -1.
+Return a Lisp timestamp (as in `current-time') if the current buffer
+has a recorded file modification time, 0 if it doesn't, and -1 if the
+visited file doesn't exist.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
   int ns = current_buffer->modtime.tv_nsec;
   if (ns < 0)
-    return make_number (UNKNOWN_MODTIME_NSECS - ns);
+    return make_fixnum (UNKNOWN_MODTIME_NSECS - ns);
   return make_lisp_time (current_buffer->modtime);
 }
 
@@ -5396,18 +5556,17 @@ DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
 Useful if the buffer was not read from the file normally
 or if the file itself has been changed for some known benign reason.
 An argument specifies the modification time value to use
-\(instead of that of the visited file), in the form of a list
-\(HIGH LOW USEC PSEC) or an integer flag as returned by
-`visited-file-modtime'.  */)
+\(instead of that of the visited file), in the form of a time value as
+in `current-time' or an integer flag as returned by `visited-file-modtime'.  */)
   (Lisp_Object time_flag)
 {
   if (!NILP (time_flag))
     {
       struct timespec mtime;
-      if (INTEGERP (time_flag))
+      if (FIXNUMP (time_flag))
 	{
 	  CHECK_RANGED_INTEGER (time_flag, -1, 0);
-	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - XINT (time_flag));
+	  mtime = make_timespec (0, UNKNOWN_MODTIME_NSECS - XFIXNUM (time_flag));
 	}
       else
 	mtime = lisp_time_argument (time_flag);
@@ -5424,7 +5583,7 @@ An argument specifies the modification time value to use
       filename = Fexpand_file_name (BVAR (current_buffer, filename), Qnil);
 
       /* If the file name has special constructs in it,
-	 call the corresponding file handler.  */
+	 call the corresponding file name handler.  */
       handler = Ffind_file_name_handler (filename, Qset_visited_file_modtime);
       if (!NILP (handler))
 	/* The handler can find the file name the same way we did.  */
@@ -5473,9 +5632,9 @@ auto_save_1 (void)
 	/* But make sure we can overwrite it later!  */
 	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
       else if (modes = Ffile_modes (BVAR (current_buffer, filename)),
-	       INTEGERP (modes))
+	       FIXNUMP (modes))
 	/* Remote files don't cooperate with stat.  */
-	auto_save_mode_bits = (XINT (modes) | 0600) & 0777;
+	auto_save_mode_bits = (XFIXNUM (modes) | 0600) & 0777;
     }
 
   return
@@ -5642,7 +5801,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	    && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b)
 	    && BUF_AUTOSAVE_MODIFF (b) < BUF_MODIFF (b)
 	    /* -1 means we've turned off autosaving for a while--see below.  */
-	    && XINT (BVAR (b, save_length)) >= 0
+	    && XFIXNUM (BVAR (b, save_length)) >= 0
 	    && (do_handled_files
 		|| NILP (Ffind_file_name_handler (BVAR (b, auto_save_file_name),
 						  Qwrite_region))))
@@ -5657,13 +5816,13 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 
 	    set_buffer_internal (b);
 	    if (NILP (Vauto_save_include_big_deletions)
-		&& (XFASTINT (BVAR (b, save_length)) * 10
+		&& (XFIXNAT (BVAR (b, save_length)) * 10
 		    > (BUF_Z (b) - BUF_BEG (b)) * 13)
 		/* A short file is likely to change a large fraction;
 		   spare the user annoying messages.  */
-		&& XFASTINT (BVAR (b, save_length)) > 5000
+		&& XFIXNAT (BVAR (b, save_length)) > 5000
 		/* These messages are frequent and annoying for `*mail*'.  */
-		&& !EQ (BVAR (b, filename), Qnil)
+		&& !NILP (BVAR (b, filename))
 		&& NILP (no_message))
 	      {
 		/* It has shrunk too much; turn off auto-saving here.  */
@@ -5674,7 +5833,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 		/* Turn off auto-saving until there's a real save,
 		   and prevent any more warnings.  */
 		XSETINT (BVAR (b, save_length), -1);
-		Fsleep_for (make_number (1), Qnil);
+		Fsleep_for (make_fixnum (1), Qnil);
 		continue;
 	      }
 	    if (!auto_saved && NILP (no_message))
@@ -5703,7 +5862,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	{
 	  /* If we are going to restore an old message,
 	     give time to read ours.  */
-	  sit_for (make_number (1), 0, 0);
+	  sit_for (make_fixnum (1), 0, 0);
 	  restore_message ();
 	}
       else if (!auto_save_error_occurred)
@@ -5716,8 +5875,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   Vquit_flag = oquit;
 
   /* This restores the message-stack status.  */
-  unbind_to (count, Qnil);
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 DEFUN ("set-buffer-auto-saved", Fset_buffer_auto_saved,
@@ -5843,7 +6001,7 @@ If the underlying system call fails, value is nil.  */)
   Lisp_Object encoded = ENCODE_FILE (Fexpand_file_name (filename, Qnil));
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   Lisp_Object handler = Ffind_file_name_handler (encoded, Qfile_system_info);
   if (!NILP (handler))
     {

@@ -1,6 +1,6 @@
 ;;; time-date.el --- Date and time handling functions
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -168,16 +168,15 @@ If DATE lacks timezone information, GMT is assumed."
 (defalias 'time-to-seconds 'float-time)
 
 ;;;###autoload
-(defun seconds-to-time (seconds)
-  "Convert SECONDS to a time value."
-  (time-add 0 seconds))
+(defalias 'seconds-to-time 'encode-time)
 
 ;;;###autoload
 (defun days-to-time (days)
   "Convert DAYS into a time value."
-  (let ((time (condition-case nil (seconds-to-time (* 86400.0 days))
-		(range-error (list most-positive-fixnum 65535)))))
-    (if (integerp days)
+  (let ((time (encode-time (* 86400 days))))
+    ;; Traditionally, this returned a two-element list if DAYS was an integer.
+    ;; Keep that tradition if encode-time outputs timestamps in list form.
+    (if (and (integerp days) (consp (cdr time)))
 	(setcdr (cdr time) nil))
     time))
 
@@ -277,9 +276,7 @@ return something of the form \"001 year\".
 
 The \"%z\" specifier does not print anything.  When it is used, specifiers
 must be given in order of decreasing size.  To the left of \"%z\", nothing
-is output until the first non-zero unit is encountered.
-
-This function does not work for SECONDS greater than `most-positive-fixnum'."
+is output until the first non-zero unit is encountered."
   (let ((start 0)
         (units '(("y" "year"   31536000)
                  ("d" "day"       86400)
@@ -306,6 +303,7 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
         (push match usedunits)))
     (and zeroflag larger
          (error "Units are not in decreasing order of size"))
+    (setq seconds (floor seconds))
     (dolist (u units)
       (setq spec (car u)
             name (cadr u)

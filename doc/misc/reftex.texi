@@ -46,7 +46,7 @@ This manual documents @RefTeX{} (version @value{VERSION}), a package
 to do labels, references, citations and indices for LaTeX documents
 with Emacs.
 
-Copyright @copyright{} 1997--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1997--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1710,8 +1710,8 @@ customizing @code{reftex-ref-macro-prompt} and relying only on the
 selection facilities provided in the last step.
 
 In the last step, i.e., the label selection, two key bindings are
-provided to set the reference macro.  Type @key{v} in order to cycle
-forward through the list of available macros or @key{V} to cycle
+provided to set the reference macro.  Type @kbd{v} in order to cycle
+forward through the list of available macros or @kbd{V} to cycle
 backward.  The mode line of the selection buffer shows the macro
 currently selected.
 
@@ -4618,7 +4618,7 @@ return the string to insert into the buffer.
 
 @defopt reftex-cite-prompt-optional-args
 Non-@code{nil} means, prompt for empty optional arguments in cite macros.
-When an entry in @code{reftex-cite-format} ist given with square brackets to
+When an entry in @code{reftex-cite-format} is given with square brackets to
 indicate optional arguments (for example @samp{\\cite[][]@{%l@}}), RefTeX can
 prompt for values.  Possible values are:
 @example

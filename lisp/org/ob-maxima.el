@@ -1,11 +1,11 @@
 ;;; ob-maxima.el --- Babel Functions for Maxima      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
 ;;	Eric Schulte
 ;; Keywords: literate programming, reproducible research, maxima
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000-2001, 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
@@ -5672,7 +5672,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 (defun pr-switches (switches mess)
   (or (listp switches)
       (error "%S should have a list of strings" mess))
-  (lpr-flatten-list			; dynamic evaluation
+  (flatten-tree			; dynamic evaluation
    (mapcar #'lpr-eval-switch switches)))
 
 

@@ -1,6 +1,6 @@
 ;;; fns-tests.el --- tests for src/fns.c
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +22,17 @@
 ;;; Code:
 
 (require 'cl-lib)
+
+;; Test that equality predicates work correctly on NaNs when combined
+;; with hash tables based on those predicates.  This was not the case
+;; for eql in Emacs 26.
+(ert-deftest fns-tests-equality-nan ()
+  (dolist (test (list #'eq #'eql #'equal))
+    (let* ((h (make-hash-table :test test))
+           (nan 0.0e+NaN)
+           (-nan (- nan)))
+      (puthash nan t h)
+      (should (eq (funcall test nan -nan) (gethash -nan h))))))
 
 (ert-deftest fns-tests-reverse ()
   (should-error (reverse))
@@ -119,10 +130,9 @@
 
   ;; In POSIX or C locales, collation order is lexicographic.
   (should (string-collate-lessp "XYZZY" "xyzzy" "POSIX"))
-  ;; In a language specific locale, collation order is different.
-  (should (string-collate-lessp
-	   "xyzzy" "XYZZY"
-	   (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))
+  ;; In a language specific locale on MS-Windows, collation order is different.
+  (when (eq system-type 'windows-nt)
+    (should (string-collate-lessp "xyzzy" "XYZZY" "enu_USA")))
 
   ;; Ignore case.
   (should (string-collate-equalp "xyzzy" "XYZZY" nil t))
@@ -154,8 +164,6 @@
 	    (9 . "aaa") (9 . "zzz") (9 . "ppp") (9 . "fff")])))
 
 (ert-deftest fns-tests-collate-sort ()
-  ;; See https://lists.gnu.org/r/emacs-devel/2015-10/msg02505.html.
-  :expected-result (if (eq system-type 'cygwin) :failed :passed)
   (skip-unless (fns-tests--collate-enabled-p))
 
   ;; Punctuation and whitespace characters are relevant for POSIX.
@@ -165,15 +173,16 @@
 	  (lambda (a b) (string-collate-lessp a b "POSIX")))
     '("1 1" "1 2" "1.1" "1.2" "11" "12")))
   ;; Punctuation and whitespace characters are not taken into account
-  ;; for collation in other locales.
-  (should
-   (equal
-    (sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
-	  (lambda (a b)
-	    (let ((w32-collate-ignore-punctuation t))
-	      (string-collate-lessp
-	       a b (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))))
-    '("11" "1 1" "1.1" "12" "1 2" "1.2")))
+  ;; for collation in other locales, on MS-Windows systems.
+  (when (eq system-type 'windows-nt)
+    (should
+     (equal
+      (sort '("11" "12" "1 1" "1 2" "1.1" "1.2")
+            (lambda (a b)
+              (let ((w32-collate-ignore-punctuation t))
+                (string-collate-lessp
+                 a b "enu_USA"))))
+      '("11" "1 1" "1.1" "12" "1 2" "1.2"))))
 
   ;; Diacritics are different letters for POSIX, they sort lexicographical.
   (should
@@ -181,15 +190,17 @@
     (sort '("Ævar" "Agustín" "Adrian" "Eli")
 	  (lambda (a b) (string-collate-lessp a b "POSIX")))
     '("Adrian" "Agustín" "Eli" "Ævar")))
-  ;; Diacritics are sorted between similar letters for other locales.
-  (should
-   (equal
-    (sort '("Ævar" "Agustín" "Adrian" "Eli")
-	  (lambda (a b)
-	    (let ((w32-collate-ignore-punctuation t))
-	      (string-collate-lessp
-	       a b (if (eq system-type 'windows-nt) "enu_USA" "en_US.UTF-8")))))
-    '("Adrian" "Ævar" "Agustín" "Eli"))))
+  ;; Diacritics are sorted between similar letters for other locales,
+  ;; on MS-Windows systems.
+  (when (eq system-type 'windows-nt)
+    (should
+     (equal
+      (sort '("Ævar" "Agustín" "Adrian" "Eli")
+            (lambda (a b)
+              (let ((w32-collate-ignore-punctuation t))
+                (string-collate-lessp
+                 a b "enu_USA"))))
+      '("Adrian" "Ævar" "Agustín" "Eli")))))
 
 (ert-deftest fns-tests-string-version-lessp ()
   (should (string-version-lessp "foo2.png" "foo12.png"))
@@ -574,5 +585,64 @@
   (should (equal (should-error (plist-member '(:foo 1 . :bar) :qux)
                                :type 'wrong-type-argument)
                  '(wrong-type-argument plistp (:foo 1 . :bar)))))
+
+(ert-deftest test-string-distance ()
+  "Test `string-distance' behavior."
+  ;; ASCII characters are always fine
+  (should (equal 1 (string-distance "heelo" "hello")))
+  (should (equal 2 (string-distance "aeelo" "hello")))
+  (should (equal 0 (string-distance "ab" "ab" t)))
+  (should (equal 1 (string-distance "ab" "abc" t)))
+
+  ;; string containing hanzi character, compare by byte
+  (should (equal 6 (string-distance "ab" "ab我她" t)))
+  (should (equal 3 (string-distance "ab" "a我b" t)))
+  (should (equal 3 (string-distance "我" "她" t)))
+
+  ;; string containing hanzi character, compare by character
+  (should (equal 2 (string-distance "ab" "ab我她")))
+  (should (equal 1 (string-distance "ab" "a我b")))
+  (should (equal 1 (string-distance "我" "她"))))
+
+(ert-deftest test-bignum-eql ()
+  "Test that `eql' works for bignums."
+  (let ((x (+ most-positive-fixnum 1))
+        (y (+ most-positive-fixnum 1)))
+    (should (eq x x))
+    (should (eql x y))
+    (should (equal x y))
+    (should-not (eql x 0.0e+NaN))))
+
+(ert-deftest test-bignum-hash ()
+  "Test that hash tables work for bignums."
+  ;; Make two bignums that are eql but not eq.
+  (let ((b1 (1+ most-positive-fixnum))
+        (b2 (1+ most-positive-fixnum)))
+    (dolist (test '(eq eql equal))
+      (let ((hash (make-hash-table :test test)))
+        (puthash b1 t hash)
+        (should (eq (gethash b2 hash)
+                    (funcall test b1 b2)))))))
+
+(ert-deftest test-nthcdr-simple ()
+  (should (eq (nthcdr 0 'x) 'x))
+  (should (eq (nthcdr 1 '(x . y)) 'y))
+  (should (eq (nthcdr 2 '(x y . z)) 'z)))
+
+(ert-deftest test-nthcdr-circular ()
+  (dolist (len '(1 2 5 37 120 997 1024))
+    (let ((cycle (make-list len nil)))
+      (setcdr (last cycle) cycle)
+      (dolist (n (list (1- most-negative-fixnum) most-negative-fixnum
+                       -1 0 1
+                       (1- len) len (1+ len)
+                       most-positive-fixnum (1+ most-positive-fixnum)
+                       (* 2 most-positive-fixnum)
+                       (* most-positive-fixnum most-positive-fixnum)
+                       (ash 1 12345)))
+        (let ((a (nthcdr n cycle))
+              (b (if (<= n 0) cycle (nthcdr (mod n len) cycle))))
+          (should (equal (list (eq a b) n len)
+                         (list t n len))))))))
 
 (provide 'fns-tests)

@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985-1986, 1993, 1995, 1997-2018 Free Software
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -24,57 +24,69 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 INLINE_HEADER_BEGIN
 
-/* Windows are allocated as if they were vectors, but then the
-Lisp data type is changed to Lisp_Window.  They are garbage
-collected along with the vectors.
+/* Windows are allocated as if they were vectors, but then the Lisp
+data type is changed to Lisp_Window.  They are garbage collected along
+with the vectors.
 
 All windows in use are arranged into a tree, with pointers up and down.
 
-Windows that are leaves of the tree are actually displayed
-and show the contents of buffers.  Windows that are not leaves
-are used for representing the way groups of leaf windows are
-arranged on the frame.  Leaf windows never become non-leaves.
-They are deleted only by calling delete-window on them (but
-this can be done implicitly).  Combination windows can be created
-and deleted at any time.
+Windows that are leaves of the tree are actually displayed and show
+the contents of buffers.  Windows that are not leaves are used for
+representing the way groups of leaf windows are arranged on the frame.
+Leaf windows never become non-leaves.  They are deleted only by
+calling `delete-window' on them (but this can be done implicitly).
+Non-leaf windows never become leaf windows and can be created and
+deleted at any time by the window management code.  Non-leaf windows
+can be seen but not directly manipulated by Lisp functions.
 
-A leaf window has a buffer stored in contents field and markers in its start
-and pointm fields.  Non-leaf windows have nil in the latter two fields.
+A leaf window has a buffer stored in its contents field and markers in
+its 'start' and 'pointm' fields.  Non-leaf windows have nil in the
+latter two fields.  Non-leaf windows are either vertical or horizontal
+combinations.
 
-Non-leaf windows are either vertical or horizontal combinations.
+A vertical combination window has children that are arranged on the
+frame one above the next.  Its 'contents' field points to the
+uppermost child.  The 'parent' field of each of the children points to
+the vertical combination window.  The 'next' field of each child
+points to the child below it, or is nil for the lowest child.  The
+'prev' field of each child points to the child above it, or is nil for
+the highest child.
 
-A vertical combination window has children that are arranged on the frame
-one above the next.  Its contents field points to the uppermost child.
-The parent field of each of the children points to the vertical
-combination window.  The next field of each child points to the
-child below it, or is nil for the lowest child.  The prev field
-of each child points to the child above it, or is nil for the
-highest child.
+A horizontal combination window has children that are arranged side by
+side.  Its 'contents' field points to the leftmost child.  In each
+child the 'next' field points to the child to the right and the 'prev'
+field points to the child to the left.
 
-A horizontal combination window has children that are side by side.
-Its contents field points to the leftmost child.  In each child
-the next field points to the child to the right and the prev field
-points to the child to the left.
+On each frame there are at least one and at most two windows which
+have nil as parent.  The second of these, if present, is the frame's
+minibuffer window and shows the minibuffer or the echo area.  The
+first one manages the remaining frame area and is called the frame's
+root window.  Different windows can be the root at different times;
+initially the root window is a leaf window, but if more windows are
+created, then that leaf window ceases to be root and a newly made
+combination window becomes the root instead.
 
-The children of a vertical combination window may be leaf windows
-or horizontal combination windows.  The children of a horizontal
-combination window may be leaf windows or vertical combination windows.
+On frames which have an ordinary window and a minibuffer window,
+'prev' of the minibuffer window is the root window and 'next' of the
+root window is the minibuffer window.  On minibuffer-less frames there
+is only a root window and 'next' of the root window is nil.  On
+minibuffer-only frames, the root window and the minibuffer window are
+one and the same, so its 'prev' and 'next' members are nil.  In any
+case, 'prev' of a root window and 'next' of a minibuffer window are
+always nil.
 
-At the top of the tree are two windows which have nil as parent.
-The second of these is minibuf_window.  The first one manages all
-the frame area that is not minibuffer, and is called the root window.
-Different windows can be the root at different times;
-initially the root window is a leaf window, but if more windows
-are created then that leaf window ceases to be root and a newly
-made combination window becomes root instead.
+In Lisp parlance, leaf windows are called "live windows" and non-leaf
+windows are called "internal windows".  Together, live and internal
+windows form the set of "valid windows".  A window that has been
+deleted is considered "dead" regardless of whether it formerly was a
+leaf or a non-leaf window.  A dead window has its 'contents' field set
+to nil.
 
-In any case, on screens which have an ordinary window and a
-minibuffer, prev of the minibuf window is the root window and next of
-the root window is the minibuf window.  On minibufferless screens or
-minibuffer-only screens, the root window and the minibuffer window are
-one and the same, so its prev and next members are nil.
-
-A dead window has its contents field set to nil.  */
+Frames may also contain pseudo windows, windows that are not exposed
+directly to Lisp code.  Pseudo windows are currently either used to
+display the menu bar or the tool bar (when Emacs uses toolkits that
+don't display their own menu bar and tool bar) or a tooltip in a
+tooltip frame (when tooltips are not display by the toolkit).  */
 
 struct cursor_pos
 {
@@ -93,27 +105,41 @@ struct window
     /* The frame this window is on.  */
     Lisp_Object frame;
 
-    /* Following (to right or down) and preceding (to left or up) child
-       at same level of tree.  */
+    /* Following (to right or down) and preceding (to left or up)
+       child at same level of tree.  Whether this is left/right or
+       up/down is determined by the parent window's 'horizontal' flag,
+       see below.  On a frame that is neither a minibuffer-only nor a
+       minibuffer-less frame, 'next' of the root window points to the
+       frame's minibuffer window and 'prev' of the minibuffer window
+       points to the frame's root window.  In all other cases, 'next'
+       of the root window and 'prev' of the minibuffer window, if
+       present, are nil.  'prev' of the root window and 'next' of the
+       minibuffer window are always nil.  */
     Lisp_Object next;
     Lisp_Object prev;
 
-    /* The window this one is a child of.  */
+    /* The window this one is a child of.  For the root and a
+       minibuffer window this is always nil.  */
     Lisp_Object parent;
 
-    /* The normal size of the window.  These are fractions, but we do
-       not use C doubles to avoid creating new Lisp_Float objects while
-       interfacing Lisp in Fwindow_normal_size.  */
+    /* The "normal" size of the window.  These are fractions, but we
+       do not use C doubles to avoid creating new Lisp_Float objects
+       while interfacing Lisp in Fwindow_normal_size.  */
     Lisp_Object normal_lines;
     Lisp_Object normal_cols;
 
-    /* New sizes of the window.  Note that Lisp code may set new_normal
-       to something beyond an integer, so C int can't be used here.  */
+    /* The new sizes of the window as proposed by the window resizing
+       functions.  Note that Lisp code may set new_normal to something
+       beyond an integer, so C int can't be used here.  */
     Lisp_Object new_total;
     Lisp_Object new_normal;
     Lisp_Object new_pixel;
 
-    /* May be buffer, window, or nil.  */
+    /* For a leaf window or a tooltip window this is the buffer shown
+       in the window; for a combination window this is the first of
+       its child windows; for a pseudo window showing the menu bar or
+       tool bar this is nil.  It is a buffer for a minibuffer window
+       as well.  */
     Lisp_Object contents;
 
     /* A marker pointing to where in the text to start displaying.
@@ -191,7 +217,7 @@ struct window
 
     /* The two Lisp_Object fields below are marked in a special way,
        which is why they're placed after `current_matrix'.  */
-    /* Alist of <buffer, window-start, window-point> triples listing
+    /* A list of <buffer, window-start, window-point> triples listing
        buffers previously shown in this window.  */
     Lisp_Object prev_buffers;
     /* List of buffers re-shown in this window.  */
@@ -400,7 +426,7 @@ struct window
     /* Z_BYTE - buffer position of the last glyph in the current matrix of W.
        Should be nonnegative, and only valid if window_end_valid is true.  */
     ptrdiff_t window_end_bytepos;
-  };
+  } GCALIGNED_STRUCT;
 
 INLINE bool
 WINDOWP (Lisp_Object a)
@@ -418,7 +444,7 @@ INLINE struct window *
 XWINDOW (Lisp_Object a)
 {
   eassert (WINDOWP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
+  return XUNTAG (a, Lisp_Vectorlike, struct window);
 }
 
 /* Most code should use these functions to set Lisp fields in struct

@@ -1,5 +1,5 @@
 /* Declarations for `malloc' and friends.
-   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2018 Free
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2019 Free
    Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 
@@ -37,6 +37,7 @@ License along with this library.  If not, see <https://www.gnu.org/licenses/>.
 #endif
 
 #include "lisp.h"
+
 #include "ptr-bounds.h"
 
 #ifdef HAVE_MALLOC_H
@@ -2020,11 +2021,7 @@ mabort (enum mcheck_status status)
 #else
   fprintf (stderr, "mcheck: %s\n", msg);
   fflush (stderr);
-# ifdef emacs
   emacs_abort ();
-# else
-  abort ();
-# endif
 #endif
 }
 

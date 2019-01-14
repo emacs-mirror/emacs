@@ -1,6 +1,6 @@
 ;;; pp.el --- pretty printer for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp

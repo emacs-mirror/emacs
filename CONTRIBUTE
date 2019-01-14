@@ -78,8 +78,15 @@ admin/notes/bug-triage.
 ** Documenting your changes
 
 Any change that matters to end-users should have an entry in etc/NEWS.
+Try to start each NEWS entry with a sentence that summarizes the entry
+and takes just one line -- this will allow to read NEWS in Outline
+mode after hiding the body of each entry.
 
 Doc-strings should be updated together with the code.
+
+New defcustom's should always have a ':version' tag stating the first
+Emacs version in which they will appear.  Likewise with defcustom's
+whose value is changed -- update their ':version' tag.
 
 Think about whether your change requires updating the manuals.  If you
 know it does not, mark the NEWS entry with "---".  If you know
@@ -90,7 +97,7 @@ Otherwise do not mark it.
 If your change requires updating the manuals to document new
 functions/commands/variables/faces, then use the proper Texinfo
 command to index them; for instance, use @vindex for variables and
-@findex for functions/commands.  For the full list of predefine indices, see
+@findex for functions/commands.  For the full list of predefined indices, see
 https://www.gnu.org/software/texinfo/manual/texinfo/html_node/Predefined-Indices.html
 or run the shell command 'info "(texinfo)Predefined Indices"'.
 
@@ -280,15 +287,23 @@ the current release branch.  Periodically, the current release branch
 is merged into the master, using the gitmerge function described in
 admin/notes/git-workflow.
 
-If you are fixing a bug that exists in the current release, be sure to
-commit it to the release branch; it will be merged to the master
-branch later by the gitmerge function.
+If you are fixing a bug that exists in the current release, you should
+generally commit it to the release branch; it will be merged to the
+master branch later by the gitmerge function.  However, when the
+release branch is for Emacs version NN.2 and later, or when it is for
+Emacs version NN.1 that is in the very last stages of its pretest,
+that branch is considered to be in a feature freeze: only bug fixes
+that are "safe" or are fixing major problems should go to the release
+branch, the rest should be committed to the master branch.  This is so
+to avoid destabilizing the next Emacs release.  If you are unsure
+whether your bug fix is "safe" enough for the release branch, ask on
+the emacs-devel mailing list.
 
-Documentation fixes (in doc strings, in manuals, and in comments)
-should always go to the release branch, if the documentation to be
-fixed exists and is relevant to the release-branch codebase.  Doc
-fixes are always considered "safe" -- even when a release branch is in
-feature freeze, it can still receive doc fixes.
+Documentation fixes (in doc strings, in manuals, in NEWS, and in
+comments) should always go to the release branch, if the documentation
+to be fixed exists and is relevant to the release-branch codebase.
+Doc fixes are always considered "safe" -- even when a release branch
+is in feature freeze, it can still receive doc fixes.
 
 When you know that the change will be difficult to merge to the
 master (e.g., because the code on master has changed a lot), you can

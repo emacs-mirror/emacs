@@ -1,6 +1,6 @@
 ;;; nnoo.el --- OO Gnus Backends
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -25,7 +25,7 @@
 ;;; Code:
 
 (require 'nnheader)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (defvar nnoo-definition-alist nil)
 (defvar nnoo-state-alist nil)
@@ -142,7 +142,7 @@
 	(if (numberp (nth i (cdr m)))
 	    (push `(nth ,i args) margs)
 	  (push (nth i (cdr m)) margs))
-	(incf i))
+	(cl-incf i))
       (eval `(deffoo ,(nnoo-symbol backend (nnoo-rest-symbol (car m)))
 		 (&rest args)
 	       (nnoo-parent-function ',backend ',(car m)

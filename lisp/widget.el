@@ -1,6 +1,6 @@
 ;;; widget.el --- a library of user interface components
 ;;
-;; Copyright (C) 1996-1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia

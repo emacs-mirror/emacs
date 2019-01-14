@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -1059,6 +1059,10 @@ local variable specifications; it automatically makes these variables
 local to the buffer, and sets them to the values specified in the
 file.
 
+  File local variables override directory local variables
+(@pxref{Directory Variables}), if any are specified for a file's
+directory.
+
 @menu
 * Specifying File Variables:: Specifying file local variables.
 * Safe File Variables::       Making sure file local variables are safe.
@@ -1309,20 +1313,22 @@ confirmation about processing @code{eval} variables.
   Sometimes, you may wish to define the same set of local variables to
 all the files in a certain directory and its subdirectories, such as
 the directory tree of a large software project.  This can be
-accomplished with @dfn{directory-local variables}.
+accomplished with @dfn{directory-local variables}.  File local
+variables override directory local variables, so if some of the files
+in a directory need specialized settings, you can specify the settings
+for the majority of the directory's files in directory variables, and
+then define file local variables in a few files which need the general
+settings overridden.
 
 @cindex @file{.dir-locals.el} file
   The usual way to define directory-local variables is to put a file
-named @file{.dir-locals.el}@footnote{ On MS-DOS, the name of this file
-should be @file{_dir-locals.el}, due to limitations of the DOS
-filesystems.  If the filesystem is limited to 8+3 file names, the name
-of the file will be truncated by the OS to @file{_dir-loc.el}.
-}@footnote{ You can also use @file{.dir-locals-2.el}, which
-is loaded in addition.  This is useful when @file{.dir-locals.el} is
-under version control in a shared repository and can't be used for
-personal customizations.  } in a
-directory.  Whenever Emacs visits any file in that directory or any of
-its subdirectories, it will apply the directory-local variables
+named @file{.dir-locals.el}@footnote{
+On MS-DOS, the name of this file should be @file{_dir-locals.el}, due
+to limitations of the DOS filesystems.  If the filesystem is limited
+to 8+3 file names, the name of the file will be truncated by the OS to
+@file{_dir-loc.el}.
+}in a directory.  Whenever Emacs visits any file in that directory or
+any of its subdirectories, it will apply the directory-local variables
 specified in @file{.dir-locals.el}, as though they had been defined as
 file-local variables for that file (@pxref{File Variables}).  Emacs
 searches for @file{.dir-locals.el} starting in the directory of the
@@ -1330,6 +1336,11 @@ visited file, and moving up the directory tree.  To avoid slowdown,
 this search is skipped for remote files.  If needed, the search can be
 extended for remote files by setting the variable
 @code{enable-remote-dir-locals} to @code{t}.
+
+  You can also use @file{.dir-locals-2.el}; if found, Emacs loads it
+in addition to @file{.dir-locals.el}.  This is useful when
+@file{.dir-locals.el} is under version control in a shared repository
+and can't be used for personal customizations.
 
   The @file{.dir-locals.el} file should hold a specially-constructed
 list, which maps major mode names (symbols) to alists
@@ -1745,10 +1756,11 @@ characters.  For example, here's how to bind @kbd{C-x M-l} to
 (global-set-key "\C-x\M-l" 'make-symbolic-link)
 @end example
 
-  To put @key{TAB}, @key{RET}, @key{ESC}, or @key{DEL} in the string,
-use the Emacs Lisp escape sequences @samp{\t}, @samp{\r}, @samp{\e},
-and @samp{\d} respectively.  Here is an example which binds @kbd{C-x
-@key{TAB}} to @code{indent-rigidly} (@pxref{Indentation}):
+  To bind a key sequence including @key{TAB}, @key{RET}, @key{ESC}, or
+@key{DEL}, the string should contain the Emacs Lisp escape sequence
+@samp{\t}, @samp{\r}, @samp{\e}, or @samp{\d} respectively.  Here is
+an example which binds @kbd{C-x @key{TAB}} to @code{indent-rigidly}
+(@pxref{Indentation}):
 
 @example
 (global-set-key "\C-x\t" 'indent-rigidly)
@@ -1822,11 +1834,11 @@ historical.
 characters case-sensitive when you customize Emacs.  For instance, you
 could make @kbd{M-a} and @kbd{M-A} run different commands.
 
-  Although only the @key{Control} and @key{META} modifier keys are
+  Although only the @key{Control} and @key{Meta} modifier keys are
 commonly used, Emacs supports three other modifier keys.  These are
 called @key{Super}, @key{Hyper}, and @key{Alt}.  Few terminals provide
 ways to use these modifiers; the key labeled @key{Alt} on most
-keyboards usually issues the @key{META} modifier, not @key{Alt}.  The
+keyboards usually issues the @key{Meta} modifier, not @key{Alt}.  The
 standard key bindings in Emacs do not include any characters with
 these modifiers.  However, you can customize Emacs to assign meanings
 to them.  The modifier bits are labeled as @samp{s-}, @samp{H-} and
@@ -1851,10 +1863,10 @@ the corresponding Lisp symbol.  Here are the conventional Lisp names for
 common function keys:
 
 @table @asis
-@item @code{LEFT}, @code{UP}, @code{RIGHT}, @code{DOWN}
+@item @code{left}, @code{up}, @code{right}, @code{down}
 Cursor arrow keys.
 
-@item @code{Begin}, @code{End}, @code{Home}, @code{next}, @code{prior}
+@item @code{begin}, @code{end}, @code{home}, @code{next}, @code{prior}
 Other cursor repositioning keys.
 
 @item @code{select}, @code{print}, @code{execute}, @code{backtab}
@@ -1868,6 +1880,9 @@ Numbered function keys (across the top of the keyboard).
 @item @code{kp-add}, @code{kp-subtract}, @code{kp-multiply}, @code{kp-divide}
 @itemx @code{kp-backtab}, @code{kp-space}, @code{kp-tab}, @code{kp-enter}
 @itemx @code{kp-separator}, @code{kp-decimal}, @code{kp-equal}
+@itemx @code{kp-prior}, @code{kp-next}, @code{kp-end}, @code{kp-home}
+@itemx @code{kp-left}, @code{kp-up}, @code{kp-right}, @code{kp-down}
+@itemx @code{kp-insert }, @code{kp-delete}
 Keypad keys (to the right of the regular keyboard), with names or punctuation.
 
 @item @code{kp-0}, @code{kp-1}, @dots{} @code{kp-9}
@@ -1896,7 +1911,7 @@ the numeric keypad produces @code{kp-8}, which is translated to
 such as @kbd{8} or @key{UP}, it affects the equivalent keypad key too.
 However, if you rebind a @samp{kp-} key directly, that won't affect
 its non-keypad equivalent.  Note that the modified keys are not
-translated: for instance, if you hold down the @key{META} key while
+translated: for instance, if you hold down the @key{Meta} key while
 pressing the @samp{8} key on the numeric keypad, that generates
 @kbd{M-@key{kp-8}}.
 
@@ -2242,8 +2257,8 @@ sequences are mandatory.
 
 @samp{\C-} can be used as a prefix for a control character, as in
 @samp{\C-s} for @acronym{ASCII} control-S, and @samp{\M-} can be used as a prefix for
-a Meta character, as in @samp{\M-a} for @kbd{@key{META}-A} or
-@samp{\M-\C-a} for @kbd{@key{Ctrl}-@key{META}-A}.
+a Meta character, as in @samp{\M-a} for @kbd{@key{Meta}-A} or
+@samp{\M-\C-a} for @kbd{@key{Ctrl}-@key{Meta}-A}.
 
 @xref{Init Non-ASCII}, for information about including
 non-@acronym{ASCII} in your init file.
@@ -2542,10 +2557,9 @@ library.  @xref{Hooks}.
 @node Find Init
 @subsection How Emacs Finds Your Init File
 
-  Normally Emacs uses the environment variable @env{HOME}
-(@pxref{General Variables, HOME}) to find @file{.emacs}; that's what
-@samp{~} means in a file name.  If @file{.emacs} is not found inside
-@file{~/} (nor @file{.emacs.el}), Emacs looks for
+  Normally Emacs uses your home directory to find @file{~/.emacs};
+that's what @samp{~} means in a file name.  @xref{General Variables, HOME}.
+If neither @file{~/.emacs} nor @file{~/.emacs.el} is found, Emacs looks for
 @file{~/.emacs.d/init.el} (which, like @file{~/.emacs.el}, can be
 byte-compiled).
 
@@ -2600,15 +2614,28 @@ Type @kbd{C-q}, followed by the key you want to bind, to insert @var{char}.
 @subsection The Early Init File
 @cindex early init file
 
-  Most customizations for Emacs can be put in the normal init file,
-@file{.emacs} or @file{~/.emacs.d/init.el}.  However, it is sometimes
-desirable to have customizations that take effect during Emacs startup
-earlier than the normal init file is processed.  Such customizations
-can be put in the early init file, @file{~/.emacs.d/early-init.el}.
-This file is loaded before the package system is initialized, so in it
-you can customize variables that affect the initialization process,
-such as @code{package-enable-at-startup} and @code{package-load-list}.
-@xref{Package Installation}.
+  Most customizations for Emacs should be put in the normal init file,
+@file{.emacs} or @file{~/.emacs.d/init.el}.  However, it is sometimes desirable
+to have customizations that take effect during Emacs startup earlier than the
+normal init file is processed.  Such customizations can be put in the early
+init file, @file{~/.emacs.d/early-init.el}.  This file is loaded before the
+package system and GUI is initialized, so in it you can customize variables
+that affect frame appearance as well as the package initialization process,
+such as @code{package-enable-at-startup}, @code{package-load-list}, and
+@code{package-user-dir}.  Note that variables like @code{package-archives}
+which only affect the installation of new packages, and not the process of
+making already-installed packages available, may be customized in the regular
+init file.  @xref{Package Installation}.
+
+  We do not recommend that you move into @file{early-init.el}
+customizations that can be left in the normal init files.  That is
+because the early init file is read before the GUI is initialized, so
+customizations related to GUI features will not work reliably in
+@file{early-init.el}.  By contrast, the normal init files are read
+after the GUI is initialized.  If you must have customizations in the
+early init file that rely on GUI features, make them run off hooks
+provided by the Emacs startup, such as @code{window-setup-hook} or
+@code{tty-setup-hook}.  @xref{Hooks}.
 
   For more information on the early init file, @pxref{Init File,,,
 elisp, The Emacs Lisp Reference Manual}.

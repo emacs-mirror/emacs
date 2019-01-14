@@ -1,5 +1,5 @@
 /* Substitute for and wrapper around <unistd.h>.
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@
 /* But avoid namespace pollution on glibc systems.  */
 #if (!(defined SEEK_CUR && defined SEEK_END && defined SEEK_SET) \
      || ((@GNULIB_UNLINK@ || defined GNULIB_POSIXCHECK) \
-         && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)) \
+         && (defined _WIN32 && ! defined __CYGWIN__)) \
      || ((@GNULIB_SYMLINKAT@ || defined GNULIB_POSIXCHECK) \
          && defined __CYGWIN__)) \
     && ! defined __GLIBC__
@@ -94,13 +94,13 @@
    lseek(), read(), unlink(), write() in <io.h>.  */
 #if ((@GNULIB_CHDIR@ || @GNULIB_GETCWD@ || @GNULIB_RMDIR@ \
       || defined GNULIB_POSIXCHECK) \
-     && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__))
+     && (defined _WIN32 && ! defined __CYGWIN__))
 # include <io.h>     /* mingw32, mingw64 */
 # include <direct.h> /* mingw64, MSVC 9 */
 #elif (@GNULIB_CLOSE@ || @GNULIB_DUP@ || @GNULIB_DUP2@ || @GNULIB_ISATTY@ \
        || @GNULIB_LSEEK@ || @GNULIB_READ@ || @GNULIB_UNLINK@ || @GNULIB_WRITE@ \
        || defined GNULIB_POSIXCHECK) \
-      && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+      && (defined _WIN32 && ! defined __CYGWIN__)
 # include <io.h>
 #endif
 
@@ -432,12 +432,12 @@ extern char **environ;
 #elif defined GNULIB_POSIXCHECK
 # if HAVE_RAW_DECL_ENVIRON
 _GL_UNISTD_INLINE char ***
+_GL_WARN_ON_USE_ATTRIBUTE ("environ is unportable - "
+                           "use gnulib module environ for portability")
 rpl_environ (void)
 {
   return &environ;
 }
-_GL_WARN_ON_USE (rpl_environ, "environ is unportable - "
-                 "use gnulib module environ for portability");
 #  undef environ
 #  define environ (*rpl_environ ())
 # endif
@@ -931,6 +931,36 @@ _GL_CXXALIASWARN (getpagesize);
 # if HAVE_RAW_DECL_GETPAGESIZE
 _GL_WARN_ON_USE (getpagesize, "getpagesize is unportable - "
                  "use gnulib module getpagesize for portability");
+# endif
+#endif
+
+
+#if @GNULIB_GETPASS@
+/* Function getpass() from module 'getpass':
+     Read a password from /dev/tty or stdin.
+   Function getpass() from module 'getpass-gnu':
+     Read a password of arbitrary length from /dev/tty or stdin.  */
+# if @REPLACE_GETPASS@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef getpass
+#   define getpass rpl_getpass
+#  endif
+_GL_FUNCDECL_RPL (getpass, char *, (const char *prompt)
+                                   _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (getpass, char *, (const char *prompt));
+# else
+#  if !@HAVE_GETPASS@
+_GL_FUNCDECL_SYS (getpass, char *, (const char *prompt)
+                                   _GL_ARG_NONNULL ((1)));
+#  endif
+_GL_CXXALIAS_SYS (getpass, char *, (const char *prompt));
+# endif
+_GL_CXXALIASWARN (getpass);
+#elif defined GNULIB_POSIXCHECK
+# undef getpass
+# if HAVE_RAW_DECL_GETPASS
+_GL_WARN_ON_USE (getpass, "getpass is unportable - "
+                 "use gnulib module getpass or getpass-gnu for portability");
 # endif
 #endif
 
@@ -1489,7 +1519,7 @@ _GL_FUNCDECL_RPL (truncate, int, (const char *filename, off_t length)
                                  _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (truncate, int, (const char *filename, off_t length));
 # else
-#  if !@HAVE_TRUNCATE@
+#  if !@HAVE_DECL_TRUNCATE@
 _GL_FUNCDECL_SYS (truncate, int, (const char *filename, off_t length)
                                  _GL_ARG_NONNULL ((1)));
 #  endif

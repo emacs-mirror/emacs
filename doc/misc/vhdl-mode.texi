@@ -10,7 +10,7 @@
 @copying
 This file documents VHDL Mode, an Emacs mode for editing VHDL code.
 
-Copyright @copyright{} 1995--2008, 2010, 2012, 2015--2018 Free Software
+Copyright @copyright{} 1995--2008, 2010, 2012, 2015--2019 Free Software
 Foundation, Inc.
 
 @quotation
@@ -734,7 +734,7 @@ operator on the first line of the statement.  Here is the lisp code
 Custom indent functions take a single argument, which is a syntactic
 component cons cell (see @ref{Syntactic Analysis}).  The
 function returns an integer offset value that will be added to the
-running total indentation for the lne.  Note that what actually gets
+running total indentation for the line.  Note that what actually gets
 returned is the difference between the column that the signal assignment
 operator is on, and the column of the buffer relative position passed in
 the function's argument.  Remember that VHDL Mode automatically

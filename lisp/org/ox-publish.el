@@ -1,5 +1,5 @@
 ;;; ox-publish.el --- Publish Related Org Mode Files as a Website -*- lexical-binding: t; -*-
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
@@ -405,11 +405,9 @@ definition."
 (defun org-publish--expand-file-name (file project)
   "Return full file name for FILE in PROJECT.
 When FILE is a relative file name, it is expanded according to
-project base directory.  Always return the true name of the file,
-ignoring symlinks."
-  (file-truename
-   (if (file-name-absolute-p file) file
-     (expand-file-name file (org-publish-property :base-directory project)))))
+project base directory."
+  (if (file-name-absolute-p file) file
+    (expand-file-name file (org-publish-property :base-directory project))))
 
 (defun org-publish-expand-projects (projects-alist)
   "Expand projects in PROJECTS-ALIST.
@@ -436,10 +434,32 @@ This splices all the components into the list."
 	 (match (if (eq extension 'any) ""
 		  (format "^[^\\.].*\\.\\(%s\\)$" extension)))
 	 (base-files
-	  (cl-remove-if #'file-directory-p
-			(if (org-publish-property :recursive project)
-			    (directory-files-recursively base-dir match)
-			  (directory-files base-dir t match t)))))
+	  (cond ((not (file-exists-p base-dir)) nil)
+		((not (org-publish-property :recursive project))
+		 (cl-remove-if #'file-directory-p
+			       (directory-files base-dir t match t)))
+		(t
+		 ;; Find all files recursively.  Unlike to
+		 ;; `directory-files-recursively', we follow symlinks
+		 ;; to other directories.
+		 (letrec ((files nil)
+			  (walk-tree
+			   (lambda (dir depth)
+			     (when (> depth 100)
+			       (error "Apparent cycle of symbolic links for %S"
+				      base-dir))
+			     (dolist (f (file-name-all-completions "" dir))
+			       (pcase f
+				 ((or "./" "../") nil)
+				 ((pred directory-name-p)
+				  (funcall walk-tree
+					   (expand-file-name f dir)
+					   (1+ depth)))
+				 ((pred (string-match match))
+				  (push (expand-file-name f dir) files))
+				 (_ nil)))
+			     files)))
+		   (funcall walk-tree base-dir 0))))))
     (org-uniquify
      (append
       ;; Files from BASE-DIR.  Apply exclusion filter before adding
@@ -468,13 +488,13 @@ This splices all the components into the list."
   "Return a project that FILENAME belongs to.
 When UP is non-nil, return a meta-project (i.e., with a :components part)
 publishing FILENAME."
-  (let* ((filename (file-truename filename))
+  (let* ((filename (expand-file-name filename))
 	 (project
 	  (cl-some
 	   (lambda (p)
 	     ;; Ignore meta-projects.
 	     (unless (org-publish-property :components p)
-	       (let ((base (file-truename
+	       (let ((base (expand-file-name
 			    (org-publish-property :base-directory p))))
 		 (cond
 		  ;; Check if FILENAME is explicitly included in one
@@ -499,9 +519,7 @@ publishing FILENAME."
 		  ;; Check if FILENAME belong to project's base
 		  ;; directory, or some of its sub-directories
 		  ;; if :recursive in non-nil.
-		  ((org-publish-property :recursive p)
-		   (and (file-in-directory-p filename base) p))
-		  ((file-equal-p base (file-name-directory filename)) p)
+		  ((member filename (org-publish-get-base-files p)) p)
 		  (t nil)))))
 	   org-publish-project-alist)))
     (cond
@@ -776,8 +794,8 @@ Default for SITEMAP-FILENAME is `sitemap.org'."
 		((or `anti-chronologically `chronologically)
 		 (let* ((adate (org-publish-find-date a project))
 			(bdate (org-publish-find-date b project))
-			(A (+ (lsh (car adate) 16) (cadr adate)))
-			(B (+ (lsh (car bdate) 16) (cadr bdate))))
+			(A (+ (ash (car adate) 16) (cadr adate)))
+			(B (+ (ash (car bdate) 16) (cadr bdate))))
 		   (setq retval
 			 (if (eq sort-files 'chronologically)
 			     (<= A B)
@@ -861,7 +879,8 @@ If FILE is an Org file and provides a DATE keyword use it.  In
 any other case use the file system's modification time.  Return
 time in `current-time' format."
   (let ((file (org-publish--expand-file-name file project)))
-    (if (file-directory-p file) (nth 5 (file-attributes file))
+    (if (file-directory-p file) (file-attribute-modification-time
+                                 (file-attributes file))
       (let ((date (org-publish-find-property file :date project)))
 	;; DATE is a secondary string.  If it contains a time-stamp,
 	;; convert it to internal format.  Otherwise, use FILE
@@ -871,7 +890,8 @@ time in `current-time' format."
 		      (let ((value (org-element-interpret-data ts)))
 			(and (org-string-nw-p value)
 			     (org-time-string-to-time value))))))
-	      ((file-exists-p file) (nth 5 (file-attributes file)))
+	      ((file-exists-p file) (file-attribute-modification-time
+                                     (file-attributes file)))
 	      (t (error "No such file: \"%s\"" file)))))))
 
 (defun org-publish-sitemap-default-entry (entry style project)
@@ -1260,25 +1280,21 @@ the file including them will be republished as well."
 	    (with-current-buffer buf
 	      (goto-char (point-min))
 	      (while (re-search-forward "^[ \t]*#\\+INCLUDE:" nil t)
-		(let* ((element (org-element-at-point))
-		       (included-file
-			(and (eq (org-element-type element) 'keyword)
-			     (let ((value (org-element-property :value element)))
-			       (and value
-				    (string-match
-				     "\\`\\(\".+?\"\\|\\S-+\\)\\(?:\\s-+\\|$\\)"
-				     value)
-				    (let ((m (match-string 1 value)))
-				      (org-unbracket-string
-				       "\"" "\""
-				       ;; Ignore search suffix.
-				       (if (string-match "::.*?\"?\\'" m)
-					   (substring m 0 (match-beginning 0))
-					 m))))))))
-		  (when included-file
-		    (push (org-publish-cache-ctime-of-src
-			   (expand-file-name included-file))
-			  included-files-ctime)))))
+		(let ((element (org-element-at-point)))
+		  (when (eq 'keyword (org-element-type element))
+		    (let* ((value (org-element-property :value element))
+			   (filename
+			    (and (string-match "\\`\\(\".+?\"\\|\\S-+\\)" value)
+				 (let ((m (org-unbracket-string
+					   "\"" "\"" (match-string 1 value))))
+				   ;; Ignore search suffix.
+				   (if (string-match "::.*?\\'" m)
+				       (substring m 0 (match-beginning 0))
+				     m)))))
+		      (when filename
+			(push (org-publish-cache-ctime-of-src
+			       (expand-file-name filename))
+			      included-files-ctime)))))))
 	  (unless visiting (kill-buffer buf)))))
     (or (null pstamp)
 	(let ((ctime (org-publish-cache-ctime-of-src filename)))
@@ -1334,8 +1350,7 @@ does not exist."
 	       (expand-file-name (or (file-symlink-p file) file)
 				 (file-name-directory file)))))
     (if (not attr) (error "No such file: \"%s\"" file)
-      (+ (lsh (car (nth 5 attr)) 16)
-	 (cadr (nth 5 attr))))))
+      (floor (float-time (file-attribute-modification-time attr))))))
 
 
 (provide 'ox-publish)

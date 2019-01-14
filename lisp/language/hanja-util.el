@@ -1,6 +1,6 @@
 ;;; hanja-util.el --- Korean Hanja util module  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hanja

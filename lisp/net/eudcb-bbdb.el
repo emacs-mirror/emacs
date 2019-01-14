@@ -1,6 +1,6 @@
 ;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -47,10 +47,13 @@
 BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
   ;; This just-in-time translation permits upgrading from BBDB 2 to
   ;; BBDB 3 without restarting Emacs.
-  (if (and (eq field-symbol 'net)
-	   (eudc--using-bbdb-3-or-newer-p))
-      'mail
-    field-symbol))
+  (cond ((and (eq field-symbol 'net)
+	      (eudc--using-bbdb-3-or-newer-p))
+         'mail)
+        ((and (eq field-symbol 'company)
+	      (eudc--using-bbdb-3-or-newer-p))
+         'organization)
+        (t field-symbol)))
 
 (defvar eudc-bbdb-attributes-translation-alist
   '((name . lastname)
@@ -124,18 +127,31 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
 (declare-function bbdb-record-addresses "ext:bbdb" t) ; via bbdb-defstruct
 (declare-function bbdb-records          "ext:bbdb"
                   (&optional dont-check-disk already-in-db-buffer))
+(declare-function bbdb-record-notes "ext:bbdb" t) ; via bbdb-defstruct
+
+;; External, BBDB >= 3.
+(declare-function bbdb-phone-label "ext:bbdb" t) ; via bbdb-defstruct
+(declare-function bbdb-record-phone "ext:bbdb" t) ; via bbdb-defstruct
+(declare-function bbdb-record-address "ext:bbdb" t) ; via bbdb-defstruct
+(declare-function bbdb-record-xfield "ext:bbdb" t) ; via bbdb-defstruct
 
 (defun eudc-bbdb-extract-phones (record)
   (require 'bbdb)
   (mapcar (function
 	   (lambda (phone)
 	     (if eudc-bbdb-use-locations-as-attribute-names
-		 (cons (intern (bbdb-phone-location phone))
+		 (cons (intern (if (eudc--using-bbdb-3-or-newer-p)
+                                   (bbdb-phone-label phone)
+                                 (bbdb-phone-location phone)))
 		       (bbdb-phone-string phone))
 	       (cons 'phones (format "%s: %s"
-				     (bbdb-phone-location phone)
+				     (if (eudc--using-bbdb-3-or-newer-p)
+                                         (bbdb-phone-label phone)
+                                       (bbdb-phone-location phone))
 				     (bbdb-phone-string phone))))))
-	  (bbdb-record-phones record)))
+	  (if (eudc--using-bbdb-3-or-newer-p)
+              (bbdb-record-phone record)
+            (bbdb-record-phones record))))
 
 (defun eudc-bbdb-extract-addresses (record)
   (require 'bbdb)
@@ -157,7 +173,9 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
                   (cons (intern (bbdb-address-location address)) val)
                 (cons 'addresses (concat (bbdb-address-location address)
                                          "\n" val))))
-            (bbdb-record-addresses record))))
+            (if (eudc--using-bbdb-3-or-newer-p)
+                (bbdb-record-address record)
+              (bbdb-record-addresses record)))))
 
 (defun eudc-bbdb-format-record-as-result (record)
   "Format the BBDB RECORD as a EUDC query result record.
@@ -176,7 +194,11 @@ The record is filtered according to `eudc-bbdb-current-return-attributes'"
 	(setq val (eudc-bbdb-extract-phones record)))
        ((eq attr 'addresses)
 	(setq val (eudc-bbdb-extract-addresses record)))
-       ((memq attr '(firstname lastname aka company net notes))
+       ((eq attr 'notes)
+        (if (eudc--using-bbdb-3-or-newer-p)
+            (setq val (bbdb-record-xfield record 'notes))
+          (setq val (bbdb-record-notes record))))
+       ((memq attr '(firstname lastname aka company net))
 	(setq val (eval
 		   (list (intern
 			  (concat "bbdb-record-"

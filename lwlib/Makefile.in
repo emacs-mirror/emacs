@@ -1,7 +1,7 @@
 ### @configure_input@
 
 # Copyright (C) 1992, 1993 Lucid, Inc.
-# Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+# Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 #
 # This file is part of the Lucid Widget Library.
 #
@@ -111,7 +111,7 @@ $(globals_h):
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 clean mostlyclean:
-	rm -f *.o liblw.a \#* $(DEPDIR)/*
+	rm -f ./*.o liblw.a \#* $(DEPDIR)/*
 
 distclean: clean
 	rm -f Makefile
@@ -131,6 +131,6 @@ FORCE:
 .PHONY: tags FORCE
 tags: TAGS
 TAGS: ${ETAGS} $(ctagsfiles)
-	${ETAGS} $(ctagsfiles)
+	$(AM_V_GEN)${ETAGS} $(ctagsfiles)
 
 ### Makefile.in ends here

@@ -1,6 +1,6 @@
 ;;; mwheel.el --- Wheel mouse support
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2019 Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 ;; Package: emacs
@@ -52,38 +52,25 @@
   ;; Sync the bindings.
   (when (bound-and-true-p mouse-wheel-mode) (mouse-wheel-mode 1)))
 
-(defvar mouse-wheel-down-button 4)
-(make-obsolete-variable 'mouse-wheel-down-button
-                        'mouse-wheel-down-event
-			"22.1")
 (defcustom mouse-wheel-down-event
   (if (or (featurep 'w32-win) (featurep 'ns-win))
       'wheel-up
-    (intern (format "mouse-%s" mouse-wheel-down-button)))
+    'mouse-4)
   "Event used for scrolling down."
   :group 'mouse
   :type 'symbol
   :set 'mouse-wheel-change-button)
 
-(defvar mouse-wheel-up-button 5)
-(make-obsolete-variable 'mouse-wheel-up-button
-                        'mouse-wheel-up-event
-			"22.1")
 (defcustom mouse-wheel-up-event
   (if (or (featurep 'w32-win) (featurep 'ns-win))
       'wheel-down
-    (intern (format "mouse-%s" mouse-wheel-up-button)))
+    'mouse-5)
   "Event used for scrolling up."
   :group 'mouse
   :type 'symbol
   :set 'mouse-wheel-change-button)
 
-(defvar mouse-wheel-click-button 2)
-(make-obsolete-variable 'mouse-wheel-click-button
-                        'mouse-wheel-click-event
-			"22.1")
-(defcustom mouse-wheel-click-event
-  (intern (format "mouse-%s" mouse-wheel-click-button))
+(defcustom mouse-wheel-click-event 'mouse-2
   "Event that should be temporarily inhibited after mouse scrolling.
 The mouse wheel is typically on the mouse-2 button, so it may easily
 happen that text is accidentally yanked into the buffer when
@@ -322,10 +309,7 @@ non-Windows systems."
 (defvar mwheel-installed-bindings nil)
 
 (define-minor-mode mouse-wheel-mode
-  "Toggle mouse wheel support (Mouse Wheel mode).
-With a prefix argument ARG, enable Mouse Wheel mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  "Toggle mouse wheel support (Mouse Wheel mode)."
   :init-value t
   ;; We'd like to use custom-initialize-set here so the setup is done
   ;; before dumping, but at the point where the defcustom is evaluated,

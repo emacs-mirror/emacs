@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
@@ -135,6 +135,9 @@ will use directly in its warning (it should end with a period, and not
 start with a capital, e.g., @code{"use (system-name) instead."}); @code{t}; any
 other symbol, which should be an alternative function to use in Lisp
 code.
+
+Generic functions (@pxref{Generic Functions}) cannot be turned into
+commands by adding the @code{interactive} form to them.
 
 @menu
 * Using Interactive::     General rules for @code{interactive}.
@@ -1009,7 +1012,8 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 sequence of text that has the @code{display} or @code{composition}
 property, or is invisible.  Therefore, after a command finishes and
 returns to the command loop, if point is within such a sequence, the
-command loop normally moves point to the edge of the sequence.
+command loop normally moves point to the edge of the sequence, making this
+sequence effectively intangible.
 
   A command can inhibit this feature by setting the variable
 @code{disable-point-adjustment}:
@@ -1075,11 +1079,13 @@ the current Emacs session.  If a symbol has not yet been so used,
 @subsection Keyboard Events
 @cindex keyboard events
 
+@cindex character event
 There are two kinds of input you can get from the keyboard: ordinary
-keys, and function keys.  Ordinary keys correspond to characters; the
-events they generate are represented in Lisp as characters.  The event
-type of a character event is the character itself (an integer); see
-@ref{Classifying Events}.
+keys, and function keys.  Ordinary keys correspond to (possibly
+modified) characters; the events they generate are represented in Lisp
+as characters.  The event type of a @dfn{character event} is the
+character itself (an integer), which might have some modifier bits
+set; see @ref{Classifying Events}.
 
 @cindex modifier bits (of input character)
 @cindex basic code (of input character)
@@ -1123,7 +1129,7 @@ for @kbd{%} plus
 2**26
 @end ifnottex
 (assuming the terminal supports non-@acronym{ASCII}
-control characters).
+control characters), i.e.@: with the 27th bit set.
 
 @item shift
 The
@@ -1133,8 +1139,8 @@ The
 @ifnottex
 2**25
 @end ifnottex
-bit in the character code indicates an @acronym{ASCII} control
-character typed with the shift key held down.
+bit (the 26th bit) in the character event code indicates an
+@acronym{ASCII} control character typed with the shift key held down.
 
 For letters, the basic code itself indicates upper versus lower case;
 for digits and punctuation, the shift key selects an entirely different
@@ -1146,7 +1152,7 @@ character with a different basic code.  In order to keep within the
 @ifnottex
 2**25
 @end ifnottex
-bit for those characters.
+bit for those character events.
 
 However, @acronym{ASCII} provides no way to distinguish @kbd{C-A} from
 @kbd{C-a}, so Emacs uses the
@@ -1167,7 +1173,7 @@ The
 @ifnottex
 2**24
 @end ifnottex
-bit in the character code indicates a character
+bit in the character event code indicates a character
 typed with the hyper key held down.
 
 @item super
@@ -1178,7 +1184,7 @@ The
 @ifnottex
 2**23
 @end ifnottex
-bit in the character code indicates a character
+bit in the character event code indicates a character
 typed with the super key held down.
 
 @item alt
@@ -1189,9 +1195,9 @@ The
 @ifnottex
 2**22
 @end ifnottex
-bit in the character code indicates a character typed with the alt key
-held down.  (The key labeled @key{Alt} on most keyboards is actually
-treated as the meta key, not this.)
+bit in the character event code indicates a character typed with the
+alt key held down.  (The key labeled @key{Alt} on most keyboards is
+actually treated as the meta key, not this.)
 @end table
 
   It is best to avoid mentioning specific bit numbers in your program.
@@ -1949,6 +1955,10 @@ Here are some examples:
 
 The modifiers list for a click event explicitly contains @code{click},
 but the event symbol name itself does not contain @samp{click}.
+Similarly, the modifiers list for an @acronym{ASCII} control
+character, such as @samp{C-a}, contains @code{control}, even though
+reading such an event via @code{read-char} will return the value 1
+with the control modifier bit removed.
 @end defun
 
 @defun event-basic-type event
@@ -2545,17 +2555,31 @@ right-arrow function key:
 @end defun
 
 @defun read-char &optional prompt inherit-input-method seconds
-This function reads and returns a character of command input.  If the
+This function reads and returns a character input event.  If the
 user generates an event which is not a character (i.e., a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
 work as in @code{read-event}.
 
-In the first example, the user types the character @kbd{1} (@acronym{ASCII}
-code 49).  The second example shows a keyboard macro definition that
-calls @code{read-char} from the minibuffer using @code{eval-expression}.
-@code{read-char} reads the keyboard macro's very next character, which
-is @kbd{1}.  Then @code{eval-expression} displays its return value in
-the echo area.
+If the event has modifiers, Emacs attempts to resolve them and return
+the code of the corresponding character.  For example, if the user
+types @kbd{C-a}, the function returns 1, which is the @acronym{ASCII}
+code of the @samp{C-a} character.  If some of the modifiers cannot be
+reflected in the character code, @code{read-char} leaves the
+unresolved modifier bits set in the returned event.  For example, if
+the user types @kbd{C-M-a}, the function returns 134217729, 8000001 in
+hex, i.e.@: @samp{C-a} with the Meta modifier bit set.  This value is
+not a valid character code: it fails the @code{characterp} test
+(@pxref{Character Codes}).  Use @code{event-basic-type}
+(@pxref{Classifying Events}) to recover the character code with the
+modifier bits removed; use @code{event-modifiers} to test for
+modifiers in the character event returned by @code{read-char}.
+
+In the first example below, the user types the character @kbd{1}
+(@acronym{ASCII} code 49).  The second example shows a keyboard macro
+definition that calls @code{read-char} from the minibuffer using
+@code{eval-expression}.  @code{read-char} reads the keyboard macro's
+very next character, which is @kbd{1}.  Then @code{eval-expression}
+displays its return value in the echo area.
 
 @example
 @group
@@ -2577,10 +2601,11 @@ the echo area.
 @end defun
 
 @defun read-char-exclusive &optional prompt inherit-input-method seconds
-This function reads and returns a character of command input.  If the
-user generates an event which is not a character,
+This function reads and returns a character input event.  If the
+user generates an event which is not a character event,
 @code{read-char-exclusive} ignores it and reads another event, until it
-gets a character.  The arguments work as in @code{read-event}.
+gets a character.  The arguments work as in @code{read-event}.  The
+returned value may include modifier bits, as with @code{read-char}.
 @end defun
 
   None of the above functions suppress quitting.

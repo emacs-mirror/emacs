@@ -1,10 +1,10 @@
 ;;; ob-lua.el --- Org Babel functions for Lua evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014, 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2016-2019 Free Software Foundation, Inc.
 
 ;; Authors: Dieter Schoen
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 

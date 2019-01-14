@@ -1,6 +1,6 @@
 ;;; vc-dispatcher.el -- generic command-dispatcher facility.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,10 +1,10 @@
 ;;; org-w3m.el --- Support from Copy and Paste From w3m -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 ;;
 ;; This file is part of GNU Emacs.
 ;;

@@ -1,6 +1,6 @@
 ;;; wisent-python.el --- Semantic support for Python
 
-;; Copyright (C) 2002, 2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Richard Kim  <emacs18@gmail.com>
 ;; Maintainer: Richard Kim  <emacs18@gmail.com>
@@ -40,9 +40,6 @@
 (require 'semantic/dep)
 (require 'semantic/ctxt)
 (require 'semantic/format)
-
-(eval-when-compile
-  (require 'cl))
 
 ;;; Customization
 ;;
@@ -358,7 +355,7 @@ Set attributes for constructors, special, private and static methods."
   ;; + first argument is self
   (when (and (> (length (semantic-tag-function-arguments tag)) 0)
 	     (string= (semantic-tag-name
-		       (first (semantic-tag-function-arguments tag)))
+		       (car (semantic-tag-function-arguments tag)))
 		      "self"))
     (semantic-tag-put-attribute tag :parent "dummy"))
 

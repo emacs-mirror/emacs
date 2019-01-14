@@ -1,6 +1,6 @@
 ;;; message-mode-tests.el --- Tests for message-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 
@@ -28,6 +28,8 @@
 (require 'message)
 (require 'ert)
 (require 'ert-x)
+
+(require 'cl-lib)
 
 (ert-deftest message-mode-propertize ()
   (with-temp-buffer
@@ -97,6 +99,60 @@
         (should (string= stripped-was
                          (message-strip-subject-trailing-was with-was)))))))
 
+(ert-deftest message-all-recipients ()
+  (ert-with-test-buffer (:name "message")
+    (insert "To: Person 1 <p1@p1.org>, Person 2 <p2@p2.org>\n")
+    (insert "Cc: Person 3 <p3@p3.org>, Person 4 <p4@p4.org>\n")
+    (insert "Bcc: Person 5 <p5@p5.org>, Person 6 <p6@p6.org>\n")
+    (should (equal (message-all-recipients)
+                   '(("Person 1" "p1@p1.org")
+                     ("Person 2" "p2@p2.org")
+                     ("Person 3" "p3@p3.org")
+                     ("Person 4" "p4@p4.org")
+                     ("Person 5" "p5@p5.org")
+                     ("Person 6" "p6@p6.org"))))))
+
+(ert-deftest message-all-epg-keys-available-p ()
+  (skip-unless (epg-check-configuration (epg-find-configuration 'OpenPGP)))
+  (let ((person1 '("Person 1" "p1@p1.org"))
+        (person2 '("Person 2" "p2@p2.org"))
+        (person3 '("Person 3" "p3@p3.org"))
+        (recipients nil)
+        (keyring '("p1@p1.org" "p2@p2.org")))
+    (cl-letf (((symbol-function 'epg-list-keys)
+               (lambda (_ email) (cl-find email keyring :test #'string=)))
+              ((symbol-function 'message-all-recipients)
+               (lambda () recipients)))
+
+      (setq recipients (list))
+      (should (message-all-epg-keys-available-p))
+
+      (setq recipients (list person1))
+      (should (message-all-epg-keys-available-p))
+
+      (setq recipients (list person1 person2))
+      (should (message-all-epg-keys-available-p))
+
+      (setq recipients (list person3))
+      (should-not (message-all-epg-keys-available-p))
+
+      (setq recipients (list person1 person3))
+      (should-not (message-all-epg-keys-available-p))
+
+      (setq recipients (list person3 person1))
+      (should-not (message-all-epg-keys-available-p))
+
+      (setq recipients (list person1 person2 person3))
+      (should-not (message-all-epg-keys-available-p)))))
+
+(ert-deftest message-alter-repeat-address ()
+  (should (equal (message--alter-repeat-address
+                  "Lars Ingebrigtsen <larsi@gnus.org>")
+                 "Lars Ingebrigtsen <larsi@gnus.org>"))
+
+  (should (equal (message--alter-repeat-address
+                      "\"larsi@gnus.org\" <larsi@gnus.org>")
+                     "larsi@gnus.org")))
 
 (provide 'message-mode-tests)
 

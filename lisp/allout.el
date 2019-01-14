@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
@@ -1506,41 +1506,6 @@ wrapped within allout's automatic `fill-prefix' setting.")
 (make-variable-buffer-local 'allout-outside-normal-auto-fill-function)
 ;;;_   = prevent redundant activation by desktop mode:
 (add-to-list 'desktop-minor-mode-handlers '(allout-mode . nil))
-;;;_   = allout-passphrase-verifier-string
-(defvar allout-passphrase-verifier-string nil
-  "Setting used to test solicited encryption passphrases against the one
-already associated with a file.
-
-It consists of an encrypted random string useful only to verify that a
-passphrase entered by the user is effective for decryption.  The passphrase
-itself is *not* recorded in the file anywhere, and the encrypted contents
-are random binary characters to avoid exposing greater susceptibility to
-search attacks.
-
-The verifier string is retained as an Emacs file variable, as well as in
-the Emacs buffer state, if file variable adjustments are enabled.  See
-`allout-enable-file-variable-adjustment' for details about that.")
-(make-variable-buffer-local 'allout-passphrase-verifier-string)
-(make-obsolete-variable 'allout-passphrase-verifier-string
-			'allout-passphrase-verifier-string "23.3")
-;;;###autoload
-(put 'allout-passphrase-verifier-string 'safe-local-variable 'stringp)
-;;;_   = allout-passphrase-hint-string
-(defvar allout-passphrase-hint-string ""
-  "Variable used to retain reminder string for file's encryption passphrase.
-
-See the description of `allout-passphrase-hint-handling' for details about how
-the reminder is deployed.
-
-The hint is retained as an Emacs file variable, as well as in the Emacs buffer
-state, if file variable adjustments are enabled.  See
-`allout-enable-file-variable-adjustment' for details about that.")
-(make-variable-buffer-local 'allout-passphrase-hint-string)
-(setq-default allout-passphrase-hint-string "")
-(make-obsolete-variable 'allout-passphrase-hint-string
-			'allout-passphrase-hint-string "23.3")
-;;;###autoload
-(put 'allout-passphrase-hint-string 'safe-local-variable 'stringp)
 ;;;_   = allout-after-save-decrypt
 (defvar allout-after-save-decrypt nil
   "Internal variable, is nil or has the value of two points:
@@ -1728,9 +1693,6 @@ valid values."
 (define-minor-mode allout-mode
 ;;;_    . Doc string:
   "Toggle Allout outline mode.
-With a prefix argument ARG, enable Allout outline mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 \\<allout-mode-map-value>
 Allout outline mode is a minor mode that provides extensive
@@ -4389,7 +4351,7 @@ subtopics into siblings of the item."
             (let ((children-chart (allout-chart-subtree 1)))
               (if (listp (car children-chart))
                   ;; whoops:
-                  (setq children-chart (allout-flatten children-chart)))
+                  (setq children-chart (flatten-tree children-chart)))
               (save-excursion
                 (dolist (child-point children-chart)
                   (goto-char child-point)
@@ -6585,14 +6547,7 @@ If BEG is bigger than END we return 0."
   (apply 'concat
          (mapcar (lambda (char) (if (= char ?%) "%%" (char-to-string char)))
                  string)))
-;;;_  : lists
-;;;_   > allout-flatten (list)
-(defun allout-flatten (list)
-  "Return a list of all atoms in list."
-  ;; classic.
-  (cond ((null list) nil)
-        ((atom (car list)) (cons (car list) (allout-flatten (cdr list))))
-        (t (append (allout-flatten (car list)) (allout-flatten (cdr list))))))
+(define-obsolete-function-alias 'allout-flatten #'flatten-tree "27.1")
 ;;;_  : Compatibility:
 ;;;_   : xemacs undo-in-progress provision:
 (unless (boundp 'undo-in-progress)

@@ -1,6 +1,6 @@
 ;;; gnus-cus.el --- customization commands for Gnus
 
-;; Copyright (C) 1996, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: news

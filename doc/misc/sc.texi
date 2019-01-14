@@ -15,7 +15,7 @@
 This document describes Supercite, an Emacs package for citing and
 attributing replies to mail and news messages.
 
-Copyright @copyright{} 1993, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -684,7 +684,7 @@ value of @code{sc-preferred-header-style}.
 Set the preferred reference header (i.e.,
 @code{sc-preferred-header-style}) to the currently displayed header.
 
-@item @code{sc-eref-exit} (@kbd{C-j}, @key{RET}, and @key{ESC C-c})
+@item @code{sc-eref-exit} (@kbd{C-j}, @key{RET}, and @kbd{@key{ESC} C-c})
 @kindex RET
 @kindex C-j
 @kindex q

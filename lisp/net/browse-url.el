@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -877,7 +877,21 @@ The optional NEW-WINDOW argument is not used."
 	   (error "Browsing URLs is not supported on this system")))
 	((eq system-type 'cygwin)
 	 (call-process "cygstart" nil nil nil url))
-	(t (w32-shell-execute "open" (url-unhex-string url)))))
+	(t
+         (w32-shell-execute "open"
+                            ;; w32-shell-execute passes file:// URLs
+                            ;; to APIs that expect file names, so we
+                            ;; need to unhex any %nn encoded
+                            ;; characters in the URL.  We don't do
+                            ;; that for other URLs; in particular,
+                            ;; default Windows mail client barfs on
+                            ;; quotes in the MAILTO URLs, so we prefer
+                            ;; to leave the URL with its embedded %nn
+                            ;; encoding intact.
+                            (if (eq t (compare-strings url nil 7
+                                                       "file://" nil nil))
+                                (url-unhex-string url)
+                              url)))))
 
 (defun browse-url-default-macosx-browser (url &optional _new-window)
   "Invoke the macOS system's default Web browser.
@@ -1242,18 +1256,16 @@ used instead of `browse-url-new-window-flag'."
 (defvar url-handler-regexp)
 
 ;;;###autoload
-(defun browse-url-emacs (url &optional _new-window)
-  "Ask Emacs to load URL into a buffer and show it in another window."
+(defun browse-url-emacs (url &optional same-window)
+  "Ask Emacs to load URL into a buffer and show it in another window.
+Optional argument SAME-WINDOW non-nil means show the URL in the
+currently selected window instead."
   (interactive (browse-url-interactive-arg "URL: "))
   (require 'url-handlers)
   (let ((file-name-handler-alist
          (cons (cons url-handler-regexp 'url-file-handler)
                file-name-handler-alist)))
-    ;; Ignore `new-window': with all other browsers the URL is always shown
-    ;; in another window than the current Emacs one since it's shown in
-    ;; another application's window.
-    ;; (if new-window (find-file-other-window url) (find-file url))
-    (find-file-other-window url)))
+    (if same-window (find-file url) (find-file-other-window url))))
 
 ;;;###autoload
 (defun browse-url-gnome-moz (url &optional new-window)

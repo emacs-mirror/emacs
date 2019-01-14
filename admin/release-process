@@ -99,6 +99,10 @@ significant changes and new features in the upcoming release, then
 describe the "benefits" from losing those features.  Be funny, use
 humor.  The text written for the previous releases can serve as an example.
 
+The Emacs FAQ (doc/misc/efaq.texi) also has a "What's new" section;
+for major releases a new section should be added listing the
+significant changes.
+
 Check cross-references between the manuals (e.g. from emacs to elisp)
 are correct.  You can use something like the following in the info
 directory in the Emacs build tree:
@@ -162,9 +166,9 @@ emacs.pdf' (e.g., enable "smallbook").
 What paper size are the English versions supposed to be on?
 On Debian testing, the packages texlive-lang-czechslovak and
 texlive-lang-polish will let you generate the cs-* and sk-* pdfs.
-(You may need texlive-lang-cyrillic, texlive-lang-german for others.)
-The Makefile rules did not work for me, I had to use something like:
-csplain -output-format=pdf cs-refcard
+(You may need texlive-lang-cyrillic, texlive-lang-german,
+and texlive-fonts-extra for others.)  On Fedora-like systems,
+texlive-lh may help.
 
 ** Ask maintainers of refcard translations to update them.
 

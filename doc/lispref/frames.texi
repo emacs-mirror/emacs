@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -180,6 +180,12 @@ assigned earlier when processing @code{make-frame}, the function sets
 the value of that parameter in the created frame to its value in the
 selected frame.
 @end defvar
+
+@defopt server-after-make-frame-hook
+A normal hook run when the Emacs server creates a client frame.  When
+this hook is called, the created frame is the selected one.
+@xref{Emacs Server,,, emacs, The GNU Emacs Manual}.
+@end defopt
 
 
 @node Multiple Terminals
@@ -497,7 +503,7 @@ Height |  | | Height                           | |  | Height
 In practice not all of the areas shown in the drawing will or may be
 present.  The meaning of these areas is described below.
 
-@table @samp
+@table @asis
 @item Outer Frame
 @cindex outer frame
 @cindex outer edges
@@ -2524,6 +2530,7 @@ it.
 
 @deffn Command delete-frame &optional frame force
 @vindex delete-frame-functions
+@vindex after-delete-frame-functions
 This function deletes the frame @var{frame}.  The argument @var{frame}
 must specify a live frame (see below) and defaults to the selected
 frame.
@@ -2535,7 +2542,9 @@ performed recursively; so this step makes sure that no other frames with
 @var{frame} as their ancestor will exist.  Then, unless @var{frame}
 specifies a tooltip, this function runs the hook
 @code{delete-frame-functions} (each function getting one argument,
-@var{frame}) before actually killing the frame.
+@var{frame}) before actually killing the frame.  After actually killing
+the frame and removing the frame from the frame list, @code{delete-frame}
+runs @code{after-delete-frame-functions}.
 
 Note that a frame cannot be deleted as long as its minibuffer serves as
 surrogate minibuffer for another frame (@pxref{Minibuffers and Frames}).
@@ -2696,14 +2705,22 @@ This function returns the selected frame.
 Some window systems and window managers direct keyboard input to the
 window object that the mouse is in; others require explicit clicks or
 commands to @dfn{shift the focus} to various window objects.  Either
-way, Emacs automatically keeps track of which frame has the focus.  To
+way, Emacs automatically keeps track of which frames have focus.  To
 explicitly switch to a different frame from a Lisp function, call
 @code{select-frame-set-input-focus}.
 
-Lisp programs can also switch frames temporarily by calling the
-function @code{select-frame}.  This does not alter the window system's
-concept of focus; rather, it escapes from the window manager's control
-until that control is somehow reasserted.
+The plural ``frames'' in the previous paragraph is deliberate: while
+Emacs itself has only one selected frame, Emacs can have frames on
+many different terminals (recall that a connection to a window system
+counts as a terminal), and each terminal has its own idea of which
+frame has input focus.  When you set the input focus to a frame, you
+set the focus for that frame's terminal, but frames on other terminals
+may still remain focused.
+
+Lisp programs can switch frames temporarily by calling the function
+@code{select-frame}.  This does not alter the window system's concept
+of focus; rather, it escapes from the window manager's control until
+that control is somehow reasserted.
 
 When using a text terminal, only one frame can be displayed at a time
 on the terminal, so after a call to @code{select-frame}, the next
@@ -2714,11 +2731,11 @@ before the buffer name (@pxref{Mode Line Variables}).
 
 @defun select-frame-set-input-focus frame &optional norecord
 This function selects @var{frame}, raises it (should it happen to be
-obscured by other frames) and tries to give it the X server's focus.
-On a text terminal, the next redisplay displays the new frame on the
-entire terminal screen.  The optional argument @var{norecord} has the
-same meaning as for @code{select-frame} (see below).  The return value
-of this function is not significant.
+obscured by other frames) and tries to give it the window system's
+focus.  On a text terminal, the next redisplay displays the new frame
+on the entire terminal screen.  The optional argument @var{norecord}
+has the same meaning as for @code{select-frame} (see below).
+The return value of this function is not significant.
 @end defun
 
 Ideally, the function described next should focus a frame without also
@@ -2766,17 +2783,35 @@ could switch to a different terminal without switching back when
 you're done.
 @end deffn
 
-Emacs cooperates with the window system by arranging to select frames as
-the server and window manager request.  It does so by generating a
-special kind of input event, called a @dfn{focus} event, when
-appropriate.  The command loop handles a focus event by calling
-@code{handle-switch-frame}.  @xref{Focus Events}.
+@cindex text-terminal focus notification
+Emacs cooperates with the window system by arranging to select frames
+as the server and window manager request.  When a window system
+informs Emacs that one of its frames has been selected, Emacs
+internally generates a @dfn{focus-in} event.  When an Emacs frame is
+displayed on a text-terminal emulator, such as @command{xterm}, which
+supports reporting of focus-change notification, the focus-in and
+focus-out events are available even for text-mode frames.  Focus
+events are normally handled by @code{handle-focus-in}.
+
+@deffn Command handle-focus-in event
+This function handles focus-in events from window systems and
+terminals that support explicit focus notifications.  It updates the
+per-frame focus flags that @code{frame-focus-state} queries and calls
+@code{after-focus-change-function}.  In addition, it generates a
+@code{switch-frame} event in order to switch the Emacs notion of the
+selected frame to the frame most recently focused in some terminal.
+It's important to note that this switching of the Emacs selected frame
+to the most recently focused frame does not mean that other frames do
+not continue to have the focus in their respective terminals.  Do not
+invoke this function yourself: instead, attach logic to
+@code{after-focus-change-function}.
+@end deffn
 
 @deffn Command handle-switch-frame frame
-This function handles a focus event by selecting frame @var{frame}.
-
-Focus events normally do their job by invoking this command.
-Don't call it for any other reason.
+This function handles a switch-frame event, which Emacs generates for
+itself upon focus notification or under various other circumstances
+involving an input event arriving at a different frame from the last
+event.  Do not invoke this function yourself.
 @end deffn
 
 @defun redirect-frame-focus frame &optional focus-frame
@@ -2810,14 +2845,42 @@ The redirection lasts until @code{redirect-frame-focus} is called to
 change it.
 @end defun
 
-@defvar focus-in-hook
-This is a normal hook run when an Emacs frame gains input focus.  The
-frame gaining focus is selected when this hook is run.
-@end defvar
+@defun frame-focus-state frame
+This function retrieves the last known focus state of @var{frame}.
 
-@defvar focus-out-hook
-This is a normal hook run when an Emacs frame has lost input focus and
-no other Emacs frame has gained input focus instead.
+It returns @code{nil} if the frame is known not to be focused,
+@code{t} if the frame is known to be focused, or @code{unknown} if
+Emacs does not know the focus state of the frame.  (You may see this
+last state in TTY frames running on terminals that do not support
+explicit focus notifications.)
+@end defun
+
+@defvar after-focus-change-function
+This function is an extension point that code can use to receive a
+notification that focus has changed.
+
+This function is called with no arguments when Emacs notices that the
+set of focused frames may have changed.  Code wanting to do something
+when frame focus changes should use @code{add-function} to add a
+function to this one, and in this added function, re-scan the set of
+focused frames, calling @code{frame-focus-state} to retrieve the last
+known focus state of each frame.  Focus events are delivered
+asynchronously, and frame input focus according to an external system
+may not correspond to the notion of the Emacs selected frame.
+Multiple frames may appear to have input focus simultaneously due to
+focus event delivery differences, the presence of multiple Emacs
+terminals, and other factors, and code should be robust in the face of
+this situation.
+
+Depending on window system, focus events may also be delivered
+repeatedly and with different focus states before settling to the
+expected values.  Code relying on focus notifications should
+``debounce'' any user-visible updates arising from focus changes,
+perhaps by deferring work until redisplay.
+
+This function may be called in arbitrary contexts, including from
+inside @code{read-event}, so take the same care as you might when
+writing a process filter.
 @end defvar
 
 @defopt focus-follows-mouse
@@ -3198,11 +3261,11 @@ and should be preferred when specifying a non-@code{nil}
 @code{drag-with-mode-line} parameter.
 
   When a child frame is used for displaying a buffer via
-@code{display-buffer-in-child-frame} (@pxref{Display Action Functions}),
-the frame's @code{auto-hide-function} parameter (@pxref{Frame
-Interaction Parameters}) can be set to a function, in order to
-appropriately deal with the frame when the window displaying the buffer
-shall be quit.
+@code{display-buffer-in-child-frame} (@pxref{Buffer Display Action
+Functions}), the frame's @code{auto-hide-function} parameter
+(@pxref{Frame Interaction Parameters}) can be set to a function, in
+order to appropriately deal with the frame when the window displaying
+the buffer shall be quit.
 
   When a child frame is used during minibuffer interaction, for example,
 to display completions in a separate window, the @code{minibuffer-exit}
@@ -3310,10 +3373,10 @@ occur.  That is useful, because normally you don't want to track the
 mouse forever---only until some other event, such as the release of a
 button.
 
-@defspec track-mouse body@dots{}
-This special form executes @var{body}, with generation of mouse motion
-events enabled.  Typically, @var{body} would use @code{read-event} to
-read the motion events and modify the display accordingly.  @xref{Motion
+@defmac track-mouse body@dots{}
+This macro executes @var{body}, with generation of mouse motion events
+enabled.  Typically, @var{body} would use @code{read-event} to read
+the motion events and modify the display accordingly.  @xref{Motion
 Events}, for the format of mouse motion events.
 
 The value of @code{track-mouse} is that of the last form in @var{body}.
@@ -3333,7 +3396,7 @@ on (@pxref{Pointer Shape}).  Therefore, Lisp programs that need the
 mouse pointer to retain its original shape during dragging should bind
 @code{track-mouse} to the value @code{dragging} at the beginning of
 their @var{body}.
-@end defspec
+@end defmac
 
 The usual purpose of tracking mouse motion is to indicate on the screen
 the consequences of pushing or releasing a button at the current

@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2018 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -287,28 +287,6 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
 /* Macros to access a character or byte in the current buffer,
    or convert between a byte position and an address.
    These macros do not check that the position is in range.  */
-
-/* Access a Lisp position value in POS,
-   and store the charpos in CHARPOS and the bytepos in BYTEPOS.  */
-
-#define DECODE_POSITION(charpos, bytepos, pos)				\
-  do									\
-    {									\
-      Lisp_Object __pos = (pos);					\
-      if (NUMBERP (__pos))						\
-	{								\
-	  charpos = __pos;						\
-	  bytepos = buf_charpos_to_bytepos (current_buffer, __pos);	\
-	}								\
-      else if (MARKERP (__pos))						\
-	{								\
-	  charpos = marker_position (__pos);				\
-	  bytepos = marker_byte_position (__pos);			\
-	}								\
-      else								\
-	wrong_type_argument (Qinteger_or_marker_p, __pos);		\
-    }									\
-  while (false)
 
 /* Maximum number of bytes in a buffer.
    A buffer cannot contain more bytes than a 1-origin fixnum can represent,
@@ -912,7 +890,7 @@ INLINE struct buffer *
 XBUFFER (Lisp_Object a)
 {
   eassert (BUFFERP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
+  return XUNTAG (a, Lisp_Vectorlike, struct buffer);
 }
 
 /* Most code should use these functions to set Lisp fields in struct
@@ -1349,7 +1327,7 @@ extern int last_per_buffer_idx;
 
 
 #define PER_BUFFER_IDX(OFFSET) \
-      XINT (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_flags))
+      XFIXNUM (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_flags))
 
 /* Functions to get and set default value of the per-buffer
    variable at offset OFFSET in the buffer structure.  */
@@ -1387,7 +1365,7 @@ downcase (int c)
 {
   Lisp_Object downcase_table = BVAR (current_buffer, downcase_table);
   Lisp_Object down = CHAR_TABLE_REF (downcase_table, c);
-  return NATNUMP (down) ? XFASTINT (down) : c;
+  return FIXNATP (down) ? XFIXNAT (down) : c;
 }
 
 /* Upcase a character C, or make no change if that cannot be done. */
@@ -1396,7 +1374,7 @@ upcase (int c)
 {
   Lisp_Object upcase_table = BVAR (current_buffer, upcase_table);
   Lisp_Object up = CHAR_TABLE_REF (upcase_table, c);
-  return NATNUMP (up) ? XFASTINT (up) : c;
+  return FIXNATP (up) ? XFIXNAT (up) : c;
 }
 
 /* True if C is upper case.  */

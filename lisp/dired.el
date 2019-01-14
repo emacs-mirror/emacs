@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2018 Free Software
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -88,9 +88,11 @@ If nil, `dired-listing-switches' is used."
 
 (defcustom dired-use-ls-dired 'unspecified
   "Non-nil means Dired should pass the \"--dired\" option to \"ls\".
-The special value of `unspecified' means to check explicitly, and
-save the result in this variable.  This is performed the first
-time `dired-insert-directory' is called.
+If nil, don't pass \"--dired\" to \"ls\".
+The special value of `unspecified' means to check whether \"ls\"
+supports the \"--dired\" option, and save the result in this
+variable.  This is performed the first time `dired-insert-directory'
+is invoked.
 
 Note that if you set this option to nil, either through choice or
 because your \"ls\" program does not support \"--dired\", Dired
@@ -104,9 +106,10 @@ This is used by default on MS Windows, which does not have an \"ls\" program.
 Note that `ls-lisp' does not support as many options as GNU ls, though.
 For more details, see Info node `(emacs)ls in Lisp'."
   :group 'dired
-  :type '(choice (const :tag "Check for --dired support" unspecified)
+  :type '(choice (const :tag
+                        "Use --dired only if 'ls' supports it" unspecified)
                  (const :tag "Do not use --dired" nil)
-                 (other :tag "Use --dired" t)))
+                 (other :tag "Always use --dired" t)))
 
 (defcustom dired-chmod-program "chmod"
   "Name of chmod command (usually `chmod')."
@@ -847,17 +850,21 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
   (not (let ((attributes (file-attributes dirname))
 	     (modtime (visited-file-modtime)))
 	 (or (eq modtime 0)
-	     (not (eq (car attributes) t))
-	     (equal (nth 5 attributes) modtime)))))
+	     (not (eq (file-attribute-type attributes) t))
+	     (equal (file-attribute-modification-time attributes) modtime)))))
+
+(defvar auto-revert-remote-files)
 
 (defun dired-buffer-stale-p (&optional noconfirm)
   "Return non-nil if current Dired buffer needs updating.
-If NOCONFIRM is non-nil, then this function always returns nil
-for a remote directory.  This feature is used by Auto Revert mode."
+If NOCONFIRM is non-nil, then this function returns nil for a
+remote directory, unless `auto-revert-remote-files' is non-nil.
+This feature is used by Auto Revert mode."
   (let ((dirname
 	 (if (consp dired-directory) (car dired-directory) dired-directory)))
     (and (stringp dirname)
-	 (not (when noconfirm (file-remote-p dirname)))
+	 (not (when noconfirm (and (not auto-revert-remote-files)
+                                   (file-remote-p dirname))))
 	 (file-readable-p dirname)
 	 ;; Do not auto-revert when the dired buffer can be currently
 	 ;; written by the user as in `wdired-mode'.
@@ -1085,7 +1092,8 @@ wildcards, erases the buffer, and builds the subdir-alist anew
       (dired-build-subdir-alist)
       (let ((attributes (file-attributes dirname)))
 	(if (eq (car attributes) t)
-	    (set-visited-file-modtime (nth 5 attributes))))
+	    (set-visited-file-modtime (file-attribute-modification-time
+                                       attributes))))
       (set-buffer-modified-p nil)
       ;; No need to narrow since the whole buffer contains just
       ;; dired-readin's output, nothing else.  The hook can
@@ -1439,7 +1447,8 @@ ARG and NOCONFIRM, passed from `revert-buffer', are ignored."
       (dolist (dir hidden-subdirs)
 	(if (dired-goto-subdir dir)
 	    (dired-hide-subdir 1))))
-    (unless modflag (restore-buffer-modified-p nil)))
+    (unless modflag (restore-buffer-modified-p nil))
+    (hack-dir-local-variables-non-file-buffer))
   ;; outside of the let scope
 ;;;  Might as well not override the user if the user changed this.
 ;;;  (setq buffer-read-only t)
@@ -1469,12 +1478,36 @@ change; the point does."
                (list w
 		     (dired-get-filename nil t)
                      (line-number-at-pos (window-point w)))))
-	   (get-buffer-window-list nil 0 t))))
+	   (get-buffer-window-list nil 0 t))
+   ;; For each window that showed the current buffer before, scan its
+   ;; list of previous buffers.  For each association thus found save
+   ;; a triple <point, name, line> where 'point' is that window's
+   ;; window-point marker stored in the window's list of previous
+   ;; buffers, 'name' is the filename at the position of 'point' and
+   ;; 'line' is the line number at the position of 'point'.
+   (let ((buffer (current-buffer))
+         prevs)
+     (walk-windows
+      (lambda (window)
+        (let ((prev (assq buffer (window-prev-buffers window))))
+          (when prev
+            (with-current-buffer buffer
+              (save-excursion
+                (goto-char (nth 2 prev))
+                (setq prevs
+                      (cons
+                       (list (nth 2 prev)
+                             (dired-get-filename nil t)
+                             (line-number-at-pos (point)))
+                       prevs)))))))
+      'nomini t)
+     prevs)))
 
 (defun dired-restore-positions (positions)
   "Restore POSITIONS saved with `dired-save-positions'."
   (let* ((buf-file-pos (nth 0 positions))
-	 (buffer (nth 0 buf-file-pos)))
+	 (buffer (nth 0 buf-file-pos))
+         (prevs (nth 2 positions)))
     (unless (and (nth 1 buf-file-pos)
 		 (dired-goto-file (nth 1 buf-file-pos)))
       (goto-char (point-min))
@@ -1488,7 +1521,21 @@ change; the point does."
 		       (dired-goto-file (nth 1 win-file-pos)))
             (goto-char (point-min))
 	    (forward-line (1- (nth 2 win-file-pos)))
-	    (dired-move-to-filename)))))))
+	    (dired-move-to-filename)))))
+    (when prevs
+      (with-current-buffer buffer
+        (save-excursion
+          (dolist (prev prevs)
+            (let ((point (nth 0 prev)))
+              ;; Sanity check of the point marker.
+              (when (and (markerp point)
+                         (eq (marker-buffer point) buffer))
+                (unless (and (nth 1 prev)
+                             (dired-goto-file (nth 1 prev)))
+                  (goto-char (point-min))
+	          (forward-line (1- (nth 2 prev))))
+	        (dired-move-to-filename)
+                (move-marker point (point) buffer)))))))))
 
 (defun dired-remember-marks (beg end)
   "Return alist of files and their marks, from BEG to END."
@@ -1797,6 +1844,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate create-directory]
       '(menu-item "Create Directory..." dired-create-directory
 		  :help "Create a directory"))
+    (define-key map [menu-bar immediate create-empty-file]
+      '(menu-item "Create Empty file..." dired-create-empty-file
+		  :help "Create an empty file"))
     (define-key map [menu-bar immediate wdired-mode]
       '(menu-item "Edit File Names" wdired-change-to-wdired-mode
 		  :help "Put a Dired buffer in a mode in which filenames are editable"
@@ -2207,7 +2257,7 @@ directory in another window."
   (let ((raw (dired-get-filename nil t))
 	file-name)
     (if (null raw)
-	(error "No file on this line"))
+	(user-error "No file on this line"))
     (setq file-name (file-name-sans-versions raw t))
     (if (file-exists-p file-name)
 	file-name
@@ -3034,10 +3084,10 @@ TRASH non-nil means to trash the file instead of deleting, provided
                              ("no"   ?n "skip to next")
                              ("all"  ?! "delete all remaining directories with no more questions")
                              ("quit" ?q "exit")))
-                     ('"all" (setq recursive 'always dired-recursive-deletes recursive))
-                     ('"yes" (if (eq recursive 'top) (setq recursive 'always)))
-                     ('"no" (setq recursive nil))
-                     ('"quit" (keyboard-quit))
+                     ("all" (setq recursive 'always dired-recursive-deletes recursive))
+                     ("yes" (if (eq recursive 'top) (setq recursive 'always)))
+                     ("no" (setq recursive nil))
+                     ("quit" (keyboard-quit))
                      (_ (keyboard-quit))))) ; catch all unknown answers
              (setq recursive nil)) ; Empty dir or recursive is nil.
            (delete-directory file recursive trash))))

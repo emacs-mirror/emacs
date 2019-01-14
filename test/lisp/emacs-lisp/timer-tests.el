@@ -1,6 +1,6 @@
 ;;; timer-tests.el --- tests for timers -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -38,5 +38,30 @@
   ;; This function exists only if --enable-checking.
   (if (fboundp 'debug-timer-check)
       (should (debug-timer-check)) t))
+
+(ert-deftest timer-test-multiple-of-time ()
+  (should (time-equal-p
+	   (timer-next-integral-multiple-of-time '(0 0 0 1) (1+ (ash 1 53)))
+	   (list (ash 1 (- 53 16)) 1))))
+
+(ert-deftest timer-next-integral-multiple-of-time-2 ()
+  "Test bug#33071."
+  (let* ((tc (current-time))
+         (delta-ticks 1000)
+         (hz 128000)
+         (tce (encode-time tc hz))
+         (tc+delta (time-add tce (cons delta-ticks hz)))
+         (tc+deltae (encode-time tc+delta hz))
+         (tc+delta-ticks (car tc+deltae))
+         (tc-nexte (cons (- tc+delta-ticks (% tc+delta-ticks delta-ticks)) hz))
+         (nt (timer-next-integral-multiple-of-time
+              tc (/ (float delta-ticks) hz)))
+         (nte (encode-time nt hz)))
+    (should (equal tc-nexte nte))))
+
+(ert-deftest timer-next-integral-multiple-of-time-3 ()
+  "Test bug#33071."
+  (let ((nt (timer-next-integral-multiple-of-time '(32770 . 65539) 0.5)))
+    (should (time-equal-p 1 nt))))
 
 ;;; timer-tests.el ends here

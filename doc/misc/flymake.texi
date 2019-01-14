@@ -1,8 +1,8 @@
 \input texinfo   @c -*-texinfo; coding: utf-8 -*-
 @comment %**start of header
 @setfilename ../../info/flymake.info
-@set VERSION 0.3
-@set UPDATED April 2004
+@set VERSION 1.0
+@set UPDATED June 2018
 @settitle GNU Flymake @value{VERSION}
 @include docstyle.texi
 @syncodeindex pg cp
@@ -14,7 +14,7 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -37,7 +37,7 @@ modify this GNU manual.''
 @titlepage
 @title GNU Flymake
 @subtitle for version @value{VERSION}, @value{UPDATED}
-@author Pavel Kobiakov(@email{pk_at_work@@yahoo.com}) and João Távora.
+@author João Távora and Pavel Kobiakov(@email{pk_at_work@@yahoo.com}).
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -84,6 +84,10 @@ Syntax check is done ``on-the-fly''.  It is started whenever
 @code{flymake-start-on-flymake-mode} is nil;
 
 @item
+the buffer is saved, unless @code{flymake-start-on-save-buffer} is
+nil;
+
+@item
 a newline character is added to the buffer, unless
 @code{flymake-start-syntax-check-on-newline} is nil;
 
@@ -95,9 +99,15 @@ some changes were made to the buffer more than @code{0.5} seconds ago
 Syntax check can also be started manually by typing the @kbd{M-x
 flymake-start @key{RET}} command.
 
+If the check detected errors or warnings, the respective buffer
+regions are highlighted.  You can place point on those regions and use
+@kbd{C-h .}  (@code{display-local-help}) to see what the specific
+problem was.  Alternatively, hovering the mouse on those regions
+should also display a tool-tip with the same information.
+
 @code{flymake-goto-next-error} and @code{flymake-goto-prev-error} are
 commands that allow easy navigation to the next/previous erroneous
-line, respectively.  If might be a good idea to map them to @kbd{M-n}
+regions, respectively.  If might be a good idea to map them to @kbd{M-n}
 and @kbd{M-p} in @code{flymake-mode}, by adding to your init file:
 
 @lisp
@@ -220,6 +230,10 @@ after a newline character is inserted into the buffer.
 A boolean flag indicating whether to start syntax check immediately
 after enabling @code{flymake-mode}.
 
+@item flymake-start-on-save-buffer
+A boolean flag indicating whether to start syntax check after saving
+the buffer.
+
 @item flymake-error
 A custom face for highlighting regions for which an error has been
 reported.
@@ -275,53 +289,60 @@ The following sections discuss each approach in detail.
 @cindex customizing error types
 @cindex error types, customization
 
-@vindex flymake-diagnostic-types-alist
-The variable @code{flymake-diagnostic-types-alist} is looked up by
-Flymake every time an annotation for a diagnostic is created in the
-buffer.  Specifically, this variable holds a table of correspondence
-between symbols designating diagnostic types and an additional
-sub-table of properties pertaining to each diagnostic type.
+To customize the appearance of error types, set properties on the
+symbols associated with each diagnostic type.  The standard diagnostic
+symbols are @code{:error}, @code{:warning} and @code{:note} (though
+the backend may define more, @pxref{Backend functions}).
 
-Both tables are laid out in association list (@pxref{Association
-Lists,,, elisp, The Emacs Lisp Reference Manual}) format, and thus can
-be conveniently accessed with the functions of the @code{assoc}
-family.
-
-You can use any symbol-value association in the properties sub-table,
-but some symbols have special meaning as to where and how Flymake
-presents the diagnostic:
+The following properties can be set:
 
 @itemize
 
 @item
 @cindex bitmap of diagnostic
-@code{bitmap}, an image displayed in the fringe according to
+@code{flymake-bitmap}, an image displayed in the fringe according to
 @code{flymake-fringe-indicator-position}.  The value actually follows
 the syntax of @code{flymake-error-bitmap} (@pxref{Customizable
 variables}).  It is overridden by any @code{before-string} overlay
 property.
 
 @item
-@cindex severity of diagnostic
-@code{severity} is a non-negative integer specifying the diagnostic's
-severity.  The higher the value, the more serious is the error.  If
-the overlay property @code{priority} is not specified, @code{severity}
-is used to set it and help sort overlapping overlays.
+@code{flymake-overlay-control}, an alist ((@var{OVPROP} . @var{VALUE})
+@var{...}) of further properties used to affect the appearance of
+Flymake annotations.  With the exception of @code{category} and
+@code{evaporate}, these properties are applied directly to the created
+overlay (@pxref{Overlay Properties,,, elisp, The Emacs Lisp Reference
+Manual}).
 
-@item
-Every property pertaining to overlays (@pxref{Overlay Properties,,,
-elisp, The Emacs Lisp Reference Manual}), except @code{category} and
-@code{evaporate}.  These properties are used to affect the appearance
-of Flymake annotations.
-
-As an example, here's how to make errors (diagnostics of the type
-@code{:error}) stand out even more prominently in the buffer, by
-raising the characters using a @code{display} overlay property.
+As an example, here's how to make diagnostics of the type @code{:note}
+stand out more prominently:
 
 @example
-(push '(display . (raise 1.2))
-      (cdr (assoc :error flymake-diagnostic-types-alist)))
+(push '(face . highlight) (get :note 'flymake-overlay-control))
 @end example
+
+If you push another alist entry in front, it overrides the previous
+one.  So this effectively removes the face from @code{:note}
+diagnostics:
+
+@example
+(push '(face . nil) (get :note 'flymake-overlay-control))
+@end example
+
+To restore the original look for @code{:note} types, empty or remove
+its @code{flymake-overlay-control} property:
+
+@example
+(put :note 'flymake-overlay-control '())
+@end example
+
+@item
+@cindex severity of diagnostic
+@code{flymake-severity} is a non-negative integer specifying the
+diagnostic's severity.  The higher the value, the more serious is the
+error.  If the overlay property @code{priority} is not specified in
+@code{flymake-overlay-control}, @code{flymake-severity} is used to set
+it and help sort overlapping overlays.
 
 @item
 @vindex flymake-category
@@ -333,32 +354,29 @@ the default for missing values of any other properties.
 @vindex flymake-error
 @vindex flymake-warning
 @vindex flymake-note
-Three default diagnostic types, @code{:error}, @code{:warning} and
-@code{:note} are predefined in
-@code{flymake-diagnostic-types-alist}.  By default each lists a single
+Three default diagnostic types are predefined: @code{:error},
+@code{:warning}, and @code{:note}.  By default, each one of them has a
 @code{flymake-category} property whose value is, respectively, the
-symbols @code{flymake-error}, @code{flymake-warning} and
+category symbol @code{flymake-error}, @code{flymake-warning} and
 @code{flymake-note}.
 
-These category symbols' plists is where the values of customizable
-variables and faces such as @code{flymake-error-bitmap} are found.
-Thus, if you change their plists, Flymake may stop honoring these
-user customizations.
+These category symbols' plist is where the values of customizable
+variables and faces (such as @code{flymake-error-bitmap}) are found.
+Thus, if you change their plists, Flymake may stop honoring these user
+customizations.
 
-The @code{flymake-category} special property is also especially useful
-for backends which create diagnostics objects with non-default
-types that differ from an existing type by only a few properties
-(@pxref{Flymake utility functions}).
+The @code{flymake-category} special property is especially useful for
+backends which create diagnostics objects with non-default types that
+differ from an existing type by only a few properties (@pxref{Flymake
+utility functions}).
 
 As an example, consider configuring a new diagnostic type
-@code{:low-priority-note} that behaves much like the @code{:note}
-priority but without an overlay face.
+@code{:low-priority-note} that behaves much like @code{:note}, but
+without an overlay face.
 
 @example
-(add-to-list
- 'flymake-diagnostic-types-alist
- `(:low-priority-note . ((face . nil)
-                         (flymake-category . flymake-note))))
+(put :low-priority-note 'flymake-overlay-control '((face . nil)))
+(put :low-priority-note 'flymake-category 'flymake-note)
 @end example
 
 @vindex flymake-diagnostics
@@ -389,20 +407,17 @@ Internet search for the text of a @code{:warning} or @code{:error}.
     (eww-browse-url
        (concat
         "https://duckduckgo.com/?q="
-        (replace-regexp-in-string " "
-                                  "+"
-                                  (flymake-diagnostic-text topmost-diag)))
+        (replace-regexp-in-string
+          " " "+" (flymake-diagnostic-text topmost-diag)))
        t)))
 
 (dolist (type '(:warning :error))
-  (let ((a (assoc type flymake-diagnostic-types-alist)))
-    (setf (cdr a)
-          (append `((mouse-face . highlight)
-                    (keymap . ,(let ((map (make-sparse-keymap)))
-                                 (define-key map [mouse-2]
-                                   'my-search-for-message)
-                                 map)))
-                  (cdr a)))))
+  (push '(mouse-face . highlight) (get type 'flymake-overlay-control))
+  (push `(keymap . ,(let ((map (make-sparse-keymap)))
+                      (define-key map [mouse-2]
+                        'my-search-for-message)
+                      map))
+        (get type 'flymake-overlay-control)))
 @end example
 
 @node Backend functions
@@ -428,18 +443,35 @@ calling convention: one for calls made by Flymake into the backend via
 the backend function, the other in the reverse direction via a
 callback.  To be usable, backends must adhere to both.
 
-Backend functions must accept an arbitrary number of arguments:
+The first argument passed to a backend function is always
+@var{report-fn}, a callback function detailed below.  Beyond it,
+functions must be prepared to accept (and possibly ignore) an
+arbitrary number of keyword-value pairs of the form
+@w{@code{(@var{:key} @var{value} @var{:key2} @var{value2}...)}}.
+
+Currently, Flymake may pass the following keywords and values to the
+backend function:
 
 @itemize
-@item
-the first argument is always @var{report-fn}, a callback function
-detailed below;
 
-@item
-the remaining arguments are keyword-value pairs of the
-form @w{@code{(@var{:key} @var{value} @var{:key2} @var{value2}...)}}.  Currently,
-Flymake provides no such arguments, but backend functions must be
-prepared to accept (and possibly ignore) any number of them.
+@item @code{:recent-changes}
+The value is a list recent changes since the last time the backend
+function was called for the buffer.  If the list is empty, this
+indicates that no changes have been recorded.  If it is the first time
+that this backend function is called for this activation of
+@code{flymake-mode}, then this argument isn't provided at all
+(i.e. it's not merely nil).
+
+Each element is in the form (@var{beg} @var{end} @var{text}) where
+@var{beg} and @var{end} are buffer positions, and @var{text} is a
+string containing the text contained between those positions (if any),
+after the change was performed.
+
+@item @code{:changes-start} and @code{:changes-end}
+The value is, repectively, the minimum and maximum buffer positions
+touched by the recent changes.  These are provided for convenience and
+only if @code{:recent-changes} is also provided.
+
 @end itemize
 
 Whenever Flymake or the user decide to re-check the buffer, backend
@@ -495,6 +527,11 @@ details of the situation encountered, if any.
 @code{:force}, whose value should be a boolean suggesting
 that Flymake consider the report even if it was somehow
 unexpected.
+
+@item
+@code{:region}, a cons (@var{beg} . @var{end}) of buffer positions
+indicating that the report applies to that region and that previous
+reports targeting other parts of the buffer remain valid.
 @end itemize
 
 @menu
@@ -512,9 +549,9 @@ by calling the function @code{flymake-make-diagnostic}.
 
 @deffn Function flymake-make-diagnostic buffer beg end type text
 Make a Flymake diagnostic for @var{buffer}'s region from @var{beg} to
-@var{end}.  @var{type} is a key to
-@code{flymake-diagnostic-types-alist} and @var{text} is a description
-of the problem detected in this region.
+@var{end}.  @var{type} is a diagnostic symbol (@pxref{Flymake error
+types}), and @var{text} is a description of the problem detected in
+this region.
 @end deffn
 
 @cindex access diagnostic object
@@ -715,14 +752,13 @@ Patterns for error/warning messages in the form @code{(regexp file-idx
 line-idx col-idx err-text-idx)}.  @xref{Parsing the output}.
 
 @item flymake-proc-diagnostic-type-pred
-A function to classify a diagnostic text as particular type of
-error.  Should be a function taking an error text and returning one of
-the symbols indexing @code{flymake-diagnostic-types-alist}.  If non-nil
-is returned but there is no such symbol in that table, a warning is
-assumed.  If nil is returned, an error is assumed.  Can also be a
-regular expression that should match only warnings.  This variable
-replaces the old @code{flymake-warning-re} and
-@code{flymake-warning-predicate}.
+A function to classify a diagnostic text as particular type of error.
+Should be a function taking an error text and returning a diagnostic
+symbol (@pxref{Flymake error types}).  If non-nil is returned but
+there is no such symbol in that table, a warning is assumed.  If nil
+is returned, an error is assumed.  Can also be a regular expression
+that should match only warnings.  This variable replaces the old
+@code{flymake-warning-re} and @code{flymake-warning-predicate}.
 
 @item flymake-proc-compilation-prevents-syntax-check
 A flag indicating whether compilation and syntax check of the same

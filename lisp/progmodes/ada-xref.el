@@ -1,6 +1,6 @@
 ;; ada-xref.el --- for lookup and completion in Ada mode
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>

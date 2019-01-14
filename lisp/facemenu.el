@@ -1,6 +1,6 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
-;; Copyright (C) 1994-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -188,6 +188,8 @@ it will remove any faces not explicitly in the list."
   (let ((map (make-sparse-keymap "Special")))
     (define-key map [?s] (cons (purecopy "Remove Special")
 			       'facemenu-remove-special))
+    (define-key map [?c] (cons (purecopy "Charset")
+			       'facemenu-set-charset))
     (define-key map [?t] (cons (purecopy "Intangible")
 			       'facemenu-set-intangible))
     (define-key map [?v] (cons (purecopy "Invisible")
@@ -433,6 +435,28 @@ This sets the `read-only' text property; it can be undone with
   (interactive "r")
   (add-text-properties start end '(read-only t)))
 
+(defun facemenu-set-charset (cset &optional start end)
+  "Apply CHARSET text property to the region or next character typed.
+
+If the region is active (normally true except in Transient
+Mark mode) and nonempty, and there is no prefix argument,
+this command adds CHARSET property to the region.  Otherwise, it
+sets the CHARSET property of the character at point."
+  (interactive (list (progn
+		       (barf-if-buffer-read-only)
+		       (read-charset
+                        (format "Use charset (default %s): " (charset-after))
+                        (charset-after)))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-beginning))
+		     (if (and mark-active (not current-prefix-arg))
+			 (region-end))))
+  (or start
+      (setq start (min (point) (1- (point-max)))
+            end (1+ start)))
+  (remove-text-properties start end '(charset nil))
+  (put-text-property start end 'charset cset))
+
 (defun facemenu-remove-face-props (start end)
   "Remove `face' and `mouse-face' text properties."
   (interactive "*r") ; error if buffer is read-only despite the next line.
@@ -452,7 +476,7 @@ These special properties include `invisible', `intangible' and `read-only'."
   (interactive "*r") ; error if buffer is read-only despite the next line.
   (let ((inhibit-read-only t))
     (remove-text-properties
-     start end '(invisible nil intangible nil read-only nil))))
+     start end '(invisible nil intangible nil read-only nil charset nil))))
 
 (defalias 'facemenu-read-color 'read-color)
 
@@ -614,7 +638,7 @@ color.  The function should accept a single argument, the color name."
 	(insert " ")
 	(insert (propertize
 		 (apply 'format "#%02x%02x%02x"
-			(mapcar (lambda (c) (lsh c -8))
+			(mapcar (lambda (c) (ash c -8))
 				color-values))
 		 'mouse-face 'highlight
 		 'help-echo

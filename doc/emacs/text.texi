@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text
@@ -117,7 +117,7 @@ cognate to @kbd{C-@@}, which is an alias for @kbd{C-@key{SPC}}.
 @findex backward-word
   The commands @kbd{M-f} (@code{forward-word}) and @kbd{M-b}
 (@code{backward-word}) move forward and backward over words.  These
-@key{META}-based key sequences are analogous to the key sequences
+@key{Meta}-based key sequences are analogous to the key sequences
 @kbd{C-f} and @kbd{C-b}, which move over single characters.  The
 analogy extends to numeric arguments, which serve as repeat counts.
 @kbd{M-f} with a negative argument moves backward, and @kbd{M-b} with
@@ -1331,7 +1331,7 @@ quad click: exit all folds and hide text.
 @c FIXME not marked as a user variable
 @vindex foldout-mouse-modifiers
   You can specify different modifier keys (instead of
-@kbd{@key{Ctrl}-@key{META}-}) by setting @code{foldout-mouse-modifiers}; but if
+@kbd{@key{Ctrl}-@key{Meta}-}) by setting @code{foldout-mouse-modifiers}; but if
 you have already loaded the @file{foldout.el} library, you must reload
 it in order for this to take effect.
 
@@ -1461,8 +1461,9 @@ etc.
 export and publication.  To export the current buffer, type @kbd{C-c
 C-e} (@code{org-export}) anywhere in an Org buffer.  This command
 prompts for an export format; currently supported formats include
-HTML, @LaTeX{}, OpenDocument (@file{.odt}), and PDF@.  Some formats,
-such as PDF, require certain system tools to be installed.
+HTML, @LaTeX{}, Texinfo, OpenDocument (@file{.odt}), iCalendar,
+Markdown, man-page, and PDF@.  Some formats, such as PDF, require
+certain system tools to be installed.
 
 @vindex org-publish-project-alist
   To export several files at once to a specific directory, either
@@ -1521,14 +1522,14 @@ with @LaTeX{}.}.
   Emacs provides a @TeX{} major mode for each of these variants: Plain
 @TeX{} mode, @LaTeX{} mode, Doc@TeX{} mode, and Sli@TeX{} mode.  Emacs
 selects the appropriate mode by looking at the contents of the buffer.
-(This is done by the @code{tex-mode} command, which is normally called
-automatically when you visit a @TeX{}-like file.  @xref{Choosing
-Modes}.)  If the contents are insufficient to determine this, Emacs
-chooses the mode specified by the variable @code{tex-default-mode};
-its default value is @code{latex-mode}.  If Emacs does not guess
-right, you can select the correct variant of @TeX{} mode using the
-command @kbd{M-x plain-tex-mode}, @kbd{M-x latex-mode}, @kbd{M-x
-slitex-mode}, or @kbd{doctex-mode}.
+(This is done by invoking the @code{tex-mode} command, which is
+normally called automatically when you visit a @TeX{}-like file.
+@xref{Choosing Modes}.)  If the contents are insufficient to determine
+this, Emacs chooses the mode specified by the variable
+@code{tex-default-mode}; its default value is @code{latex-mode}.  If
+Emacs does not guess right, you can select the correct variant of
+@TeX{} mode using the commands @code{plain-tex-mode},
+@code{latex-mode}, @code{slitex-mode}, or @code{doctex-mode}.
 
   The following sections document the features of @TeX{} mode and its
 variants.  There are several other @TeX{}-related Emacs packages,
@@ -1701,14 +1702,16 @@ chapter of a larger document).
 @table @kbd
 @item C-c C-b
 Invoke @TeX{} on the entire current buffer (@code{tex-buffer}).
+
 @item C-c C-r
 Invoke @TeX{} on the current region, together with the buffer's header
 (@code{tex-region}).
+
 @item C-c C-f
 Invoke @TeX{} on the current file (@code{tex-file}).
 
 @item C-c C-v
-Preview the output from the last @kbd{C-c C-r}, @kbd{C-c C-b}, or @kbd{C-c
+Preview the output from the last @kbd{C-c C-b}, @kbd{C-c C-r}, or @kbd{C-c
 C-f} command (@code{tex-view}).
 
 @item C-c C-p
@@ -1743,7 +1746,7 @@ C-p} (@code{tex-print}) to print a hardcopy of the output file.
 @cindex @env{TEXINPUTS} environment variable
 @vindex tex-directory
   By default, @kbd{C-c C-b} runs @TeX{} in the current directory.  The
-output of @TeX{} also goes in this directory.  To run @TeX{} in a
+output of @TeX{} is also created in this directory.  To run @TeX{} in a
 different directory, change the variable @code{tex-directory} to
 the desired directory.  If your environment variable @env{TEXINPUTS}
 contains relative names, or if your files contain
@@ -1889,14 +1892,16 @@ keys (@pxref{Completion}).
 
 @vindex tex-shell-hook
 @vindex tex-mode-hook
+@vindex doctex-mode-hook
 @vindex latex-mode-hook
 @vindex slitex-mode-hook
 @vindex plain-tex-mode-hook
   Entering any variant of @TeX{} mode runs the hooks
 @code{text-mode-hook} and @code{tex-mode-hook}.  Then it runs either
-@code{plain-tex-mode-hook}, @code{latex-mode-hook}, or
-@code{slitex-mode-hook}, whichever is appropriate.  Starting the
-@TeX{} shell runs the hook @code{tex-shell-hook}.  @xref{Hooks}.
+@code{plain-tex-mode-hook}, @code{doctex-mode-hook},
+@code{latex-mode-hook}, or @code{slitex-mode-hook}, whichever is
+appropriate.  Starting the @TeX{} shell runs the hook
+@code{tex-shell-hook}.  @xref{Hooks}.
 
 @findex iso-iso2tex
 @findex iso-tex2iso
@@ -2002,7 +2007,8 @@ characters themselves (@code{sgml-name-8bit-mode}).
 @kindex C-c C-v @r{(SGML mode)}
 @findex sgml-validate
 Run a shell command (which you must specify) to validate the current
-buffer as SGML (@code{sgml-validate}).
+buffer as SGML (@code{sgml-validate}).  (In HTML mode this key
+sequence runs a different command.)
 
 @item C-c @key{TAB}
 @kindex C-c TAB @r{(SGML mode)}
@@ -2061,27 +2067,27 @@ hook @code{text-mode-hook}, then @code{nroff-mode-hook}
 separators, pages are separated by @samp{.bp} commands, and comments
 start with backslash-doublequote.  It also defines these commands:
 
-@findex forward-text-line
-@findex backward-text-line
-@findex count-text-lines
+@findex nroff-forward-text-line
+@findex nroff-backward-text-line
+@findex nroff-count-text-lines
 @kindex M-n @r{(Nroff mode)}
 @kindex M-p @r{(Nroff mode)}
 @kindex M-? @r{(Nroff mode)}
 @table @kbd
 @item M-n
 Move to the beginning of the next line that isn't an nroff command
-(@code{forward-text-line}).  An argument is a repeat count.
+(@code{nroff-forward-text-line}).  An argument is a repeat count.
 @item M-p
-Like @kbd{M-n} but move up (@code{backward-text-line}).
+Like @kbd{M-n} but move up (@code{nroff-backward-text-line}).
 @item M-?
 Displays in the echo area the number of text lines (lines that are not
-nroff commands) in the region (@code{count-text-lines}).
+nroff commands) in the region (@code{nroff-count-text-lines}).
 @end table
 
-@findex electric-nroff-mode
+@findex nroff-electric-mode
   Electric Nroff mode is a buffer-local minor mode that can be used
 with Nroff mode.  To toggle this minor mode, type @kbd{M-x
-electric-nroff-mode} (@pxref{Minor Modes}).  When the mode is on, each
+nroff-electric-mode} (@pxref{Minor Modes}).  When the mode is on, each
 time you type @key{RET} to end a line containing an nroff command that
 opens a kind of grouping, the nroff command to close that grouping is
 automatically inserted on the following line.
@@ -2410,11 +2416,13 @@ to the commands above.
 @subsection Setting Other Text Properties
 
   The Special Properties submenu of Text Properties has entries for
-adding or removing three other text properties: @code{read-only},
+adding or removing four other text properties: @code{read-only},
 (which disallows alteration of the text), @code{invisible} (which
-hides text), and @code{intangible} (which disallows moving point
-within the text).  The @samp{Remove Special} menu item removes all of
-these special properties from the text in the region.
+hides text), @code{intangible} (which disallows moving point within
+the text), and @code{charset} (which is important for selecting a
+proper font to display a character).  The @samp{Remove Special} menu
+item removes all of these special properties from the text in the
+region.
 
   The @code{invisible} and @code{intangible} properties are not saved.
 
@@ -2759,8 +2767,7 @@ Invoking @kbd{M-x table-capture} on that text produces this table:
 to plain text, removing its cell borders.
 
   One application of this pair of commands is to edit a text in
-layout.  Look at the following three paragraphs (the latter two are
-indented with header lines):
+layout.  Look at the following three paragraphs:
 
 @example
 table-capture is a powerful command.
@@ -2913,7 +2920,7 @@ right-hand buffer.)
 @kindex F2 RET
 @kindex C-x 6 RET
 @findex 2C-newline
-  The command @kbd{C-x 6 @key{RET}} or @kbd{@key{F2} @key{RET}}
+  The command @kbd{@key{F2} @key{RET}} or @kbd{C-x 6 @key{RET}}
 (@code{2C-newline}) inserts a newline in each of the two buffers at
 corresponding positions.  This is the easiest way to add a new line to
 the two-column text while editing it in split buffers.

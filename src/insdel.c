@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs. -*- coding: utf-8 -*-
-   Copyright (C) 1985-1986, 1993-1995, 1997-2018 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -931,7 +931,7 @@ insert_1_both (const char *string,
   offset_intervals (current_buffer, PT, nchars);
 
   if (!inherit && buffer_intervals (current_buffer))
-    set_text_properties (make_number (PT), make_number (PT + nchars),
+    set_text_properties (make_fixnum (PT), make_fixnum (PT + nchars),
 			 Qnil, Qnil, Qnil);
 
   adjust_point (nchars, nbytes);
@@ -1945,7 +1945,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
       if (preserve_ptr)
 	{
 	  Lisp_Object preserve_marker;
-	  preserve_marker = Fcopy_marker (make_number (*preserve_ptr), Qnil);
+	  preserve_marker = Fcopy_marker (make_fixnum (*preserve_ptr), Qnil);
 	  verify_interval_modification (current_buffer, start, end);
 	  *preserve_ptr = marker_position (preserve_marker);
 	  unchain_marker (XMARKER (preserve_marker));
@@ -2055,7 +2055,7 @@ invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 
 #define PRESERVE_VALUE							\
   if (preserve_ptr && NILP (preserve_marker))				\
-    preserve_marker = Fcopy_marker (make_number (*preserve_ptr), Qnil)
+    preserve_marker = Fcopy_marker (make_fixnum (*preserve_ptr), Qnil)
 
 #define RESTORE_VALUE						\
   if (! NILP (preserve_marker))					\
@@ -2112,8 +2112,8 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   ptrdiff_t count = SPECPDL_INDEX ();
   struct rvoe_arg rvoe_arg;
 
-  start = make_number (start_int);
-  end = make_number (end_int);
+  start = make_fixnum (start_int);
+  end = make_fixnum (end_int);
   preserve_marker = Qnil;
   start_marker = Qnil;
   end_marker = Qnil;
@@ -2158,9 +2158,9 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
     }
 
   if (! NILP (start_marker))
-    free_marker (start_marker);
+    detach_marker (start_marker);
   if (! NILP (end_marker))
-    free_marker (end_marker);
+    detach_marker (end_marker);
   RESTORE_VALUE;
 
   unbind_to (count, Qnil);
@@ -2219,26 +2219,26 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
 
       /* Actually run the hook functions.  */
       CALLN (Frun_hook_with_args, Qafter_change_functions,
-	     make_number (charpos), make_number (charpos + lenins),
-	     make_number (lendel));
+	     make_fixnum (charpos), make_fixnum (charpos + lenins),
+	     make_fixnum (lendel));
 
       /* There was no error: unarm the reset_on_error.  */
       rvoe_arg.errorp = 0;
     }
 
   if (buffer_has_overlays ())
-    report_overlay_modification (make_number (charpos),
-				 make_number (charpos + lenins),
+    report_overlay_modification (make_fixnum (charpos),
+				 make_fixnum (charpos + lenins),
 				 1,
-				 make_number (charpos),
-				 make_number (charpos + lenins),
-				 make_number (lendel));
+				 make_fixnum (charpos),
+				 make_fixnum (charpos + lenins),
+				 make_fixnum (lendel));
 
   /* After an insertion, call the text properties
      insert-behind-hooks or insert-in-front-hooks.  */
   if (lendel == 0)
-    report_interval_modification (make_number (charpos),
-				  make_number (charpos + lenins));
+    report_interval_modification (make_fixnum (charpos),
+				  make_fixnum (charpos + lenins));
 
   unbind_to (count, Qnil);
 }
@@ -2264,7 +2264,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
 
   /* It is rare for combine_after_change_buffer to be invalid, but
      possible.  It can happen when combine-after-change-calls is
-     non-nil, and insertion calls a file handler (e.g. through
+     non-nil, and insertion calls a file name handler (e.g. through
      lock_file) which scribbles into a temp file -- cyd  */
   if (!BUFFERP (combine_after_change_buffer)
       || !BUFFER_LIVE_P (XBUFFER (combine_after_change_buffer)))
@@ -2296,17 +2296,17 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
       elt = XCAR (tail);
       if (! CONSP (elt))
 	continue;
-      thisbeg = XINT (XCAR (elt));
+      thisbeg = XFIXNUM (XCAR (elt));
 
       elt = XCDR (elt);
       if (! CONSP (elt))
 	continue;
-      thisend = XINT (XCAR (elt));
+      thisend = XFIXNUM (XCAR (elt));
 
       elt = XCDR (elt);
       if (! CONSP (elt))
 	continue;
-      thischange = XINT (XCAR (elt));
+      thischange = XFIXNUM (XCAR (elt));
 
       /* Merge this range into the accumulated range.  */
       change += thischange;

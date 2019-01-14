@@ -1,6 +1,6 @@
 ;;; bytecomp-tests.el
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -27,6 +27,7 @@
 
 (require 'ert)
 (require 'cl-lib)
+(require 'bytecomp)
 
 ;;; Code:
 (defconst byte-opt-testsuite-arith-data
@@ -38,8 +39,7 @@
     (let ((a 3) (b 2) (c 1.0))                     (/ a b c))
     (let ((a (+ 1 (expt 2 -64))) (b (expt 2 -65))) (+ a -1 b))
     (let ((a (+ 1 (expt 2 -64))) (b (expt 2 -65))) (- a 1 (- b)))
-    ;; This fails.  Should it be a bug?
-    ;; (let ((a (expt 2 -1074)) (b 0.125))		   (* a 8 b))
+    (let ((a (expt 2 -1074)) (b 0.125))		   (* a 8 b))
     (let ((a 1.0))				   (* a 0))
     (let ((a 1.0))				   (* a 2.0 0))
     (let ((a 1.0))				   (/ 0 a))
@@ -244,6 +244,9 @@
     (let ((a 3) (b 2) (c 1.0)) (/ a b c 0))
     (let ((a 3) (b 2) (c 1.0)) (/ a b c 1))
     (let ((a 3) (b 2) (c 1.0)) (/ a b c -1))
+
+    (let ((a t)) (logand 0 a))
+
     ;; Test switch bytecode
     (let ((a 3)) (cond ((eq a 1) 'one) ((eq a 2) 'two) ((eq a 3) 'three) (t t)))
     (let ((a 'three)) (cond ((eq a 'one) 1) ((eq a 2) 'two) ((eq a 'three) 3)
@@ -286,7 +289,14 @@
             (t)))
     (let ((a))
       (cond ((eq a 'foo) 'incorrect)
-            ('correct))))
+            ('correct)))
+    ;; Bug#31734
+    (let ((variable 0))
+      (cond
+       ((eq variable 'default)
+	(message "equal"))
+       (t
+	(message "not equal")))))
   "List of expression for test.
 Each element will be executed by interpreter and with
 bytecompiled code, and their results compared.")
@@ -568,6 +578,38 @@ literals (Bug#20852)."
   (with-current-buffer (get-buffer-create "*Compile-Log*")
     (goto-char (point-min))
     (should-not (search-forward "Warning" nil t))))
+
+(ert-deftest bytecomp-test-featurep-warnings ()
+  (let ((byte-compile-log-buffer (generate-new-buffer " *Compile-Log*")))
+    (unwind-protect
+        (progn
+          (with-temp-buffer
+            (insert "\
+\(defun foo ()
+  (an-undefined-function))
+
+\(defun foo1 ()
+  (if (featurep 'xemacs)
+      (some-undefined-function-if)))
+
+\(defun foo2 ()
+  (and (featurep 'xemacs)
+      (some-undefined-function-and)))
+
+\(defun foo3 ()
+  (if (not (featurep 'emacs))
+      (some-undefined-function-not)))
+
+\(defun foo4 ()
+  (or (featurep 'emacs)
+      (some-undefined-function-or)))
+")
+            (byte-compile-from-buffer (current-buffer)))
+          (with-current-buffer byte-compile-log-buffer
+            (should (search-forward "an-undefined-function" nil t))
+            (should-not (search-forward "some-undefined-function" nil t))))
+      (if (buffer-live-p byte-compile-log-buffer)
+          (kill-buffer byte-compile-log-buffer)))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

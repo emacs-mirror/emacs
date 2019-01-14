@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -343,7 +343,7 @@ not be enclosed in { } or ( )."
   "List of keywords understood by gmake.")
 
 (defconst makefile-bsdmake-statements
-  `(".elif" ".elifdef" ".elifmake" ".elifndef" ".elifnmake" ".else" ".endfor"
+  '(".elif" ".elifdef" ".elifmake" ".elifndef" ".elifnmake" ".else" ".endfor"
     ".endif" ".for" ".if" ".ifdef" ".ifmake" ".ifndef" ".ifnmake" ".undef")
   "List of keywords understood by BSD make.")
 
@@ -557,6 +557,9 @@ This should identify a `make' command that can handle the `-q' option."
   :type 'string
   :group 'makefile)
 
+(defvaralias 'makefile-query-one-target-method
+  'makefile-query-one-target-method-function)
+
 (defcustom makefile-query-one-target-method-function
   'makefile-query-by-make-minus-q
   "Function to call to determine whether a make target is up to date.
@@ -574,8 +577,6 @@ The function must satisfy this calling convention:
   makefile, any nonzero integer value otherwise."
   :type 'function
   :group 'makefile)
-(defvaralias 'makefile-query-one-target-method
-  'makefile-query-one-target-method-function)
 
 (defcustom makefile-up-to-date-buffer-name "*Makefile Up-to-date overview*"
   "Name of the Up-to-date overview buffer."
@@ -712,6 +713,7 @@ The function must satisfy this calling convention:
     (modify-syntax-entry ?#  "<     " st)
     (modify-syntax-entry ?\n ">     " st)
     (modify-syntax-entry ?= "." st)
+    (modify-syntax-entry ?$ "." st)
     st)
   "Syntax table used in `makefile-mode'.")
 

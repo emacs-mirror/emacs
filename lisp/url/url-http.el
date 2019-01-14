@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999, 2001, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -54,6 +54,7 @@
 (defvar url-http-target-url)
 (defvar url-http-transfer-encoding)
 (defvar url-show-status)
+(defvar url-http-referer)
 
 (require 'url-gw)
 (require 'url-parse)
@@ -238,6 +239,35 @@ request.")
                                  emacs-info os-info))
                  " ")))
 
+(defun url-http--get-referer (url)
+  (url-http-debug "getting referer from buffer: buffer:%S target-url:%S lastloc:%S" (current-buffer) url url-current-lastloc)
+  (when url-current-lastloc
+    (if (not (url-p url-current-lastloc))
+        (setq url-current-lastloc (url-generic-parse-url url-current-lastloc)))
+    (let ((referer (copy-sequence url-current-lastloc)))
+      (setf (url-host referer) (puny-encode-domain (url-host referer)))
+      (let ((referer-string (url-recreate-url referer)))
+        (when (and (not (memq url-privacy-level '(low high paranoid)))
+                   (not (and (listp url-privacy-level)
+                             (memq 'lastloc url-privacy-level))))
+          ;; url-privacy-level allows referer.  But url-lastloc-privacy-level
+          ;; may restrict who we send it to.
+          (cl-case url-lastloc-privacy-level
+            (host-match
+             (let ((referer-host (url-host referer))
+                   (url-host (url-host url)))
+               (when (string= referer-host url-host)
+                 referer-string)))
+            (domain-match
+             (let ((referer-domain (url-domain referer))
+                   (url-domain (url-domain url)))
+               (when (and referer-domain
+                          url-domain
+                          (string= referer-domain url-domain))
+                 referer-string)))
+            (otherwise
+             referer-string)))))))
+
 ;; Building an HTTP request
 (defun url-http-user-agent-string ()
   "Compute a User-Agent string.
@@ -254,8 +284,9 @@ The string is based on `url-privacy-level' and `url-user-agent'."
                 ((eq url-user-agent 'default) (url-http--user-agent-default-string))))))
     (if ua-string (format "User-Agent: %s\r\n" (string-trim ua-string)) "")))
 
-(defun url-http-create-request (&optional ref-url)
-  "Create an HTTP request for `url-http-target-url', referred to by REF-URL."
+(defun url-http-create-request ()
+  "Create an HTTP request for `url-http-target-url'.
+Use `url-http-referer' as the Referer-header (subject to `url-privacy-level')."
   (let* ((extra-headers)
 	 (request nil)
 	 (no-cache (cdr-safe (assoc "Pragma" url-http-extra-headers)))
@@ -268,13 +299,14 @@ The string is based on `url-privacy-level' and `url-user-agent'."
 			      'url-http-proxy-basic-auth-storage))
 			 (url-get-authentication url-http-proxy nil 'any nil))))
 	 (real-fname (url-filename url-http-target-url))
-	 (host (url-http--encode-string (url-host url-http-target-url)))
+	 (host (url-host url-http-target-url))
 	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
 		   nil
 		 (url-get-authentication (or
 					  (and (boundp 'proxy-info)
 					       proxy-info)
-					  url-http-target-url) nil 'any nil))))
+					  url-http-target-url) nil 'any nil)))
+         (ref-url (url-http--encode-string url-http-referer)))
     (if (equal "" real-fname)
 	(setq real-fname "/"))
     (setq no-cache (and no-cache (string-match "no-cache" no-cache)))
@@ -286,12 +318,6 @@ The string is based on `url-privacy-level' and `url-user-agent'."
     ;; Protection against stupid values in the referrer
     (if (and ref-url (stringp ref-url) (or (string= ref-url "file:nil")
 					   (string= ref-url "")))
-	(setq ref-url nil))
-
-    ;; We do not want to expose the referrer if the user is paranoid.
-    (if (or (memq url-privacy-level '(low high paranoid))
-	    (and (listp url-privacy-level)
-		 (memq 'lastloc url-privacy-level)))
 	(setq ref-url nil))
 
     ;; url-http-extra-headers contains an assoc-list of
@@ -329,9 +355,11 @@ The string is based on `url-privacy-level' and `url-user-agent'."
                      (url-scheme-get-property
                       (url-type url-http-target-url) 'default-port))
                  (format
-                  "Host: %s:%d\r\n" (puny-encode-domain host)
+                  "Host: %s:%d\r\n" (url-http--encode-string
+                                     (puny-encode-domain host))
                   (url-port url-http-target-url))
-               (format "Host: %s\r\n" (puny-encode-domain host)))
+               (format "Host: %s\r\n"
+                       (url-http--encode-string (puny-encode-domain host))))
              ;; Who its from
              (if url-personal-mail-address
                  (concat
@@ -585,7 +613,7 @@ should be shown to the user."
        ;; 206 Partial content
        ;; 207 Multi-status (Added by DAV)
        (pcase status-symbol
-	 ((or `no-content `reset-content)
+	 ((or 'no-content 'reset-content)
 	  ;; No new data, just stay at the same document
 	  (url-mark-buffer-as-dead buffer))
 	 (_
@@ -606,7 +634,7 @@ should be shown to the user."
        (let ((redirect-uri (or (mail-fetch-field "Location")
 			       (mail-fetch-field "URI"))))
 	 (pcase status-symbol
-	   (`multiple-choices	    ; 300
+	   ('multiple-choices	    ; 300
 	    ;; Quoth the spec (section 10.3.1)
 	    ;; -------------------------------
 	    ;; The requested resource corresponds to any one of a set of
@@ -623,20 +651,26 @@ should be shown to the user."
 	    ;; We do not support agent-driven negotiation, so we just
 	    ;; redirect to the preferred URI if one is provided.
 	    nil)
-           (`see-other			; 303
+           ('found			; 302
+	    ;; 302 Found was ambiguously defined in the standards, but
+	    ;; it's now recommended that it's treated like 303 instead
+	    ;; of 307, since that's what most servers expect.
+	    (setq url-http-method "GET"
+		  url-http-data nil))
+           ('see-other			; 303
 	    ;; The response to the request can be found under a different
 	    ;; URI and SHOULD be retrieved using a GET method on that
 	    ;; resource.
 	    (setq url-http-method "GET"
 		  url-http-data nil))
-	   (`not-modified		; 304
+	   ('not-modified		; 304
 	    ;; The 304 response MUST NOT contain a message-body.
 	    (url-http-debug "Extracting document from cache... (%s)"
 			    (url-cache-create-filename (url-view-url t)))
 	    (url-cache-extract (url-cache-create-filename (url-view-url t)))
 	    (setq redirect-uri nil
 		  success t))
-	   (`use-proxy			; 305
+	   ('use-proxy			; 305
 	    ;; The requested resource MUST be accessed through the
 	    ;; proxy given by the Location field.  The Location field
 	    ;; gives the URI of the proxy.  The recipient is expected
@@ -734,50 +768,50 @@ should be shown to the user."
        ;; 424 Failed Dependency
        (setq success
              (pcase status-symbol
-               (`unauthorized			; 401
+               ('unauthorized			; 401
                 ;; The request requires user authentication.  The response
                 ;; MUST include a WWW-Authenticate header field containing a
                 ;; challenge applicable to the requested resource.  The
                 ;; client MAY repeat the request with a suitable
                 ;; Authorization header field.
                 (url-http-handle-authentication nil))
-               (`payment-required              ; 402
+               ('payment-required              ; 402
                 ;; This code is reserved for future use
                 (url-mark-buffer-as-dead buffer)
                 (error "Somebody wants you to give them money"))
-               (`forbidden			; 403
+               ('forbidden			; 403
                 ;; The server understood the request, but is refusing to
                 ;; fulfill it.  Authorization will not help and the request
                 ;; SHOULD NOT be repeated.
                 t)
-               (`not-found			; 404
+               ('not-found			; 404
                 ;; Not found
                 t)
-               (`method-not-allowed		; 405
+               ('method-not-allowed		; 405
                 ;; The method specified in the Request-Line is not allowed
                 ;; for the resource identified by the Request-URI.  The
                 ;; response MUST include an Allow header containing a list of
                 ;; valid methods for the requested resource.
                 t)
-               (`not-acceptable		; 406
+               ('not-acceptable		; 406
                 ;; The resource identified by the request is only capable of
                 ;; generating response entities which have content
                 ;; characteristics not acceptable according to the accept
                 ;; headers sent in the request.
                 t)
-               (`proxy-authentication-required ; 407
+               ('proxy-authentication-required ; 407
                 ;; This code is similar to 401 (Unauthorized), but indicates
                 ;; that the client must first authenticate itself with the
                 ;; proxy.  The proxy MUST return a Proxy-Authenticate header
                 ;; field containing a challenge applicable to the proxy for
                 ;; the requested resource.
                 (url-http-handle-authentication t))
-               (`request-timeout		; 408
+               ('request-timeout		; 408
                 ;; The client did not produce a request within the time that
                 ;; the server was prepared to wait.  The client MAY repeat
                 ;; the request without modifications at any later time.
                 t)
-               (`conflict			; 409
+               ('conflict			; 409
                 ;; The request could not be completed due to a conflict with
                 ;; the current state of the resource.  This code is only
                 ;; allowed in situations where it is expected that the user
@@ -786,11 +820,11 @@ should be shown to the user."
                 ;; information for the user to recognize the source of the
                 ;; conflict.
                 t)
-               (`gone                          ; 410
+               ('gone                          ; 410
                 ;; The requested resource is no longer available at the
                 ;; server and no forwarding address is known.
                 t)
-               (`length-required		; 411
+               ('length-required		; 411
                 ;; The server refuses to accept the request without a defined
                 ;; Content-Length.  The client MAY repeat the request if it
                 ;; adds a valid Content-Length header field containing the
@@ -800,29 +834,29 @@ should be shown to the user."
                 ;; `url-http-create-request' automatically calculates the
                 ;; content-length.
                 t)
-               (`precondition-failed		; 412
+               ('precondition-failed		; 412
                 ;; The precondition given in one or more of the
                 ;; request-header fields evaluated to false when it was
                 ;; tested on the server.
                 t)
-               ((or `request-entity-too-large `request-uri-too-large) ; 413 414
+               ((or 'request-entity-too-large 'request-uri-too-large) ; 413 414
                 ;; The server is refusing to process a request because the
                 ;; request entity|URI is larger than the server is willing or
                 ;; able to process.
                 t)
-               (`unsupported-media-type	; 415
+               ('unsupported-media-type	; 415
                 ;; The server is refusing to service the request because the
                 ;; entity of the request is in a format not supported by the
                 ;; requested resource for the requested method.
                 t)
-               (`requested-range-not-satisfiable ; 416
+               ('requested-range-not-satisfiable ; 416
                 ;; A server SHOULD return a response with this status code if
                 ;; a request included a Range request-header field, and none
                 ;; of the range-specifier values in this field overlap the
                 ;; current extent of the selected resource, and the request
                 ;; did not include an If-Range request-header field.
                 t)
-               (`expectation-failed		; 417
+               ('expectation-failed		; 417
                 ;; The expectation given in an Expect request-header field
                 ;; could not be met by this server, or, if the server is a
                 ;; proxy, the server has unambiguous evidence that the
@@ -849,16 +883,16 @@ should be shown to the user."
        ;; 507 Insufficient storage
        (setq success t)
        (pcase url-http-response-status
-	 (`not-implemented		; 501
+	 ('not-implemented		; 501
 	  ;; The server does not support the functionality required to
 	  ;; fulfill the request.
 	  nil)
-	 (`bad-gateway			; 502
+	 ('bad-gateway			; 502
 	  ;; The server, while acting as a gateway or proxy, received
 	  ;; an invalid response from the upstream server it accessed
 	  ;; in attempting to fulfill the request.
 	  nil)
-	 (`service-unavailable		; 503
+	 ('service-unavailable		; 503
 	  ;; The server is currently unable to handle the request due
 	  ;; to a temporary overloading or maintenance of the server.
 	  ;; The implication is that this is a temporary condition
@@ -867,19 +901,19 @@ should be shown to the user."
 	  ;; header.  If no Retry-After is given, the client SHOULD
 	  ;; handle the response as it would for a 500 response.
 	  nil)
-	 (`gateway-timeout		; 504
+	 ('gateway-timeout		; 504
 	  ;; The server, while acting as a gateway or proxy, did not
 	  ;; receive a timely response from the upstream server
 	  ;; specified by the URI (e.g. HTTP, FTP, LDAP) or some other
 	  ;; auxiliary server (e.g. DNS) it needed to access in
 	  ;; attempting to complete the request.
 	  nil)
-	 (`http-version-not-supported	; 505
+	 ('http-version-not-supported	; 505
 	  ;; The server does not support, or refuses to support, the
 	  ;; HTTP protocol version that was used in the request
 	  ;; message.
 	  nil)
-	 (`insufficient-storage		; 507 (DAV)
+	 ('insufficient-storage		; 507 (DAV)
 	  ;; The method could not be performed on the resource
 	  ;; because the server is unable to store the representation
 	  ;; needed to successfully complete the request.  This
@@ -1258,7 +1292,8 @@ The return value of this function is the retrieval buffer."
          (mime-accept-string url-mime-accept-string)
 	 (buffer (or retry-buffer
 		     (generate-new-buffer
-                      (format " *http %s:%d*" (url-host url) (url-port url))))))
+                      (format " *http %s:%d*" (url-host url) (url-port url)))))
+         (referer (url-http--encode-string (url-http--get-referer url))))
     (if (not connection)
 	;; Failed to open the connection for some reason
 	(progn
@@ -1293,7 +1328,8 @@ The return value of this function is the retrieval buffer."
 		       url-http-no-retry
 		       url-http-connection-opened
                        url-mime-accept-string
-		       url-http-proxy))
+		       url-http-proxy
+                       url-http-referer))
 	  (set (make-local-variable var) nil))
 
 	(setq url-http-method (or url-request-method "GET")
@@ -1311,15 +1347,16 @@ The return value of this function is the retrieval buffer."
 	      url-http-no-retry retry-buffer
 	      url-http-connection-opened nil
               url-mime-accept-string mime-accept-string
-	      url-http-proxy url-using-proxy)
+	      url-http-proxy url-using-proxy
+              url-http-referer referer)
 
 	(set-process-buffer connection buffer)
 	(set-process-filter connection 'url-http-generic-filter)
 	(pcase (process-status connection)
-          (`connect
+          ('connect
            ;; Asynchronous connection
            (set-process-sentinel connection 'url-http-async-sentinel))
-          (`failed
+          ('failed
            ;; Asynchronous connection failed
            (error "Could not create connection to %s:%d" (url-host url)
                   (url-port url)))
@@ -1375,7 +1412,9 @@ The return value of this function is the retrieval buffer."
                         'url-http-wait-for-headers-change-function)
                   (set-process-filter tls-connection 'url-http-generic-filter)
                   (process-send-string tls-connection
-                                       (url-http-create-request)))
+                                       ;; Use the non-proxy form of the request
+                                       (let (url-http-proxy)
+                                         (url-http-create-request))))
               (gnutls-error
                (url-http-activate-callback)
                (error "gnutls-error: %s" e))
@@ -1563,7 +1602,6 @@ p3p
 
 ;; HTTPS.  This used to be in url-https.el, but that file collides
 ;; with url-http.el on systems with 8-character file names.
-(require 'tls)
 
 (defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
 

@@ -1,6 +1,6 @@
 ;;; mm-decode.el --- Functions for decoding MIME things  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -25,7 +25,7 @@
 
 (require 'mail-parse)
 (require 'mm-bodies)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (autoload 'gnus-map-function "gnus-util")
 
@@ -118,8 +118,7 @@
 	((executable-find "w3m") 'gnus-w3m)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
-	((locate-library "html2text") 'html2text)
-	(t nil))
+	((locate-library "html2text") 'html2text))
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
@@ -129,9 +128,8 @@ The defined renderer types are:
 `w3m-standalone': use plain w3m;
 `links': use links;
 `lynx': use lynx;
-`html2text': use html2text;
-nil    : use external viewer (default web browser)."
-  :version "24.1"
+`html2text': use html2text."
+  :version "27.1"
   :type '(choice (const shr)
                  (const gnus-w3m)
                  (const w3m :tag "emacs-w3m")
@@ -139,7 +137,6 @@ nil    : use external viewer (default web browser)."
 		 (const links)
 		 (const lynx)
 		 (const html2text)
-		 (const nil :tag "External viewer")
 		 (function))
   :group 'mime-display)
 
@@ -323,10 +320,12 @@ type inline."
 
 (defcustom mm-keep-viewer-alive-types
   '("application/postscript" "application/msword" "application/vnd.ms-excel"
-    "application/pdf" "application/x-dvi")
-  "List of media types for which the external viewer will not be killed
-when selecting a different article."
-  :version "22.1"
+    "application/pdf" "application/x-dvi"
+    "application/vnd.*")
+  "Media types for viewers not to be killed when selecting a different article.
+Instead the viewers will be killed on Gnus exit instead.  This is
+a list of regexps."
+  :version "27.1"
   :type '(repeat regexp)
   :group 'mime-display)
 
@@ -761,7 +760,7 @@ MIME-Version header before proceeding."
 (defun mm-copy-to-buffer ()
   "Copy the contents of the current buffer to a fresh buffer."
   (let ((obuf (current-buffer))
-        (mb (mm-multibyte-p))
+        (mb enable-multibyte-characters)
         beg)
     (goto-char (point-min))
     (search-forward-regexp "^\n" nil t)
@@ -1843,7 +1842,7 @@ text/html;\\s-*charset=\\([^\t\n\r \"'>]+\\)[^>]*>" nil t)
 	     (delete-region min max))))))))
 
 (defvar shr-image-map)
-
+(defvar shr-map)
 (autoload 'widget-convert-button "wid-edit")
 (defvar widget-keymap)
 
@@ -1857,7 +1856,10 @@ text/html;\\s-*charset=\\([^\t\n\r \"'>]+\\)[^>]*>" nil t)
 	(widget-convert-button
 	 'url-link start end
 	 :help-echo (get-text-property start 'help-echo)
-	 :keymap (setq keymap (copy-keymap shr-image-map))
+	 :keymap (setq keymap (copy-keymap
+			       (if (mm-images-in-region-p start end)
+				   shr-image-map
+				 shr-map)))
 	 (get-text-property start 'shr-url))
 	;; Mask keys that launch `widget-button-click'.
 	;; Those bindings are provided by `widget-keymap'

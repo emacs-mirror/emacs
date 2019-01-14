@@ -1,6 +1,6 @@
 ;;; nndiary.el --- A diary back end for Gnus
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@xemacs.org>
 ;; Maintainer:    Didier Verna <didier@xemacs.org>
@@ -83,7 +83,6 @@
 (require 'nnoo)
 (require 'nnheader)
 (require 'nnmail)
-(eval-when-compile (require 'cl))
 
 (require 'gnus-start)
 (require 'gnus-sum)
@@ -233,7 +232,7 @@ through all nnml directories and generate nov databases for them
 all.  This may very well take some time.")
 
 (defvoo nndiary-prepare-save-mail-hook nil
-  "*Hook run narrowed to an article before saving.")
+  "Hook run narrowed to an article before saving.")
 
 (defvoo nndiary-inhibit-expiry nil
   "If non-nil, inhibit expiry.")

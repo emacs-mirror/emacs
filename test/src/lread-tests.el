@@ -1,6 +1,6 @@
 ;;; lread-tests.el --- tests for lread.c -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -193,5 +193,29 @@ literals (Bug#20852)."
     (setcar x x)
     (lread--substitute-object-in-subtree x 1 t)
     (should (eq x (cdr x)))))
+
+(ert-deftest lread-long-hex-integer ()
+  (should (bignump (read "#xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"))))
+
+(ert-deftest lread-test-bug-31186 ()
+  (with-temp-buffer
+    (insert ";; -*- -:*-")
+    (should-not
+     ;; This used to crash in lisp_file_lexically_bound_p before the
+     ;; bug was fixed.
+     (eval-buffer))))
+
+(ert-deftest lread-invalid-bytecodes ()
+  (should-error
+   (let ((load-force-doc-strings t)) (read "#[0 \"\"]"))))
+
+(ert-deftest lread-string-to-number-trailing-dot ()
+  (dolist (n (list (* most-negative-fixnum most-negative-fixnum)
+                   (1- most-negative-fixnum) most-negative-fixnum
+                   (1+ most-negative-fixnum) -1 0 1
+                   (1- most-positive-fixnum) most-positive-fixnum
+                   (1+ most-positive-fixnum)
+                   (* most-positive-fixnum most-positive-fixnum)))
+    (should (= n (string-to-number (format "%d." n))))))
 
 ;;; lread-tests.el ends here

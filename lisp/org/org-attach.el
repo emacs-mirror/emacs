@@ -1,6 +1,6 @@
 ;;; org-attach.el --- Manage file attachments to Org tasks -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
@@ -352,7 +352,7 @@ This checks for the existence of a \".git\" directory in that directory."
                   (shell-command-to-string
                    "git ls-files -zmo --exclude-standard") "\0" t))
           (if (and use-annex
-                   (>= (nth 7 (file-attributes new-or-modified))
+                   (>= (file-attribute-size (file-attributes new-or-modified))
                        org-attach-git-annex-cutoff))
               (call-process "git" nil nil nil "annex" "add" new-or-modified)
             (call-process "git" nil nil nil "add" new-or-modified))

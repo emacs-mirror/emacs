@@ -1,6 +1,6 @@
 ;;; gametree.el --- manage game analysis trees in Emacs
 
-;; Copyright (C) 1997, 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ian T Zimmerman <itz@rahul.net>
 ;; Created: Wed Dec 10 07:41:46 PST 1997
@@ -586,8 +586,7 @@ shogi, etc.) players, it is a slightly modified version of Outline mode.
 
 \\{gametree-mode-map}"
   (auto-fill-mode 0)
-  (make-local-variable 'write-contents-hooks)
-  (add-hook 'write-contents-hooks 'gametree-save-and-hack-layout))
+  (add-hook 'write-contents-functions 'gametree-save-and-hack-layout nil t))
 
 ;;;; Goodies for mousing users
 (defun gametree-mouse-break-line-here (event)

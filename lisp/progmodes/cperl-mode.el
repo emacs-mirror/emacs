@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1991-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2019 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -119,7 +119,7 @@
                (beginning-of-line 2)
                (list ,file ,line)))
 	(defmacro cperl-etags-snarf-tag (_file _line)
-	  `(etags-snarf-tag)))
+	  '(etags-snarf-tag)))
       (if (featurep 'xemacs)
 	  (defmacro cperl-etags-goto-tag-location (elt)
 	    ;;(progn
@@ -389,13 +389,6 @@ Affects: `cperl-font-lock', `cperl-electric-lbrace-space',
   "Special version of `vc-rcs-header' that is used in CPerl mode buffers."
   :type '(repeat string)
      :group 'cperl)
-
-;; This became obsolete...
-(defvar cperl-vc-header-alist nil)
-(make-obsolete-variable
- 'cperl-vc-header-alist
- "use cperl-vc-rcs-header or cperl-vc-sccs-header instead."
- "22.1")
 
 ;; (defcustom cperl-clobber-mode-lists
 ;;   (not
@@ -1700,7 +1693,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-column) cperl-comment-column)
   (set (make-local-variable 'comment-start-skip) "#+ *")
-  
+
 ;;       "[ \t]*sub"
 ;;	  (cperl-after-sub-regexp 'named nil) ; 8=name 11=proto 14=attr-start
 ;;	  cperl-maybe-white-and-comment-rex	; 15=pre-block
@@ -1727,9 +1720,8 @@ or as help on variables `cperl-tips', `cperl-problems',
   (when (featurep 'xemacs)
     ;; This one is obsolete...
     (set (make-local-variable 'vc-header-alist)
-         (or cperl-vc-header-alist      ; Avoid warning
-	     `((SCCS ,(car cperl-vc-sccs-header))
-	       (RCS ,(car cperl-vc-rcs-header))))))
+	 `((SCCS ,(car cperl-vc-sccs-header))
+	   (RCS ,(car cperl-vc-rcs-header)))))
   (cond ((boundp 'compilation-error-regexp-alist-alist);; xemacs 20.x
 	 (set (make-local-variable 'compilation-error-regexp-alist-alist)
 	      (cons (cons 'cperl (car cperl-compilation-error-regexp-alist))
@@ -8794,7 +8786,7 @@ do extra unwind via `cperl-unwind-to-safe'."
 	(goto-char new-beg)))
     (setq beg (point))
     (goto-char end)
-    (while (and end
+    (while (and end (< end (point-max))
 		(progn
 		  (or (bolp) (condition-case nil
 				 (forward-line 1)

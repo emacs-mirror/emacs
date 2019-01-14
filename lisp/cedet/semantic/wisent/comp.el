@@ -1,6 +1,6 @@
 ;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler
 
-;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2018 Free
+;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
@@ -41,7 +41,7 @@
 
 ;;; Code:
 (require 'semantic/wisent)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;;;; -------------------
 ;;;; Misc. useful things
@@ -139,14 +139,7 @@ If optional LEFT is non-nil insert spaces on left."
 ;;;; Environment dependencies
 ;;;; ------------------------
 
-(defconst wisent-BITS-PER-WORD
-  (let ((i 1)
-	(do-shift (if (boundp 'most-positive-fixnum)
-		      (lambda (i) (lsh most-positive-fixnum (- i)))
-		    (lambda (i) (lsh 1 i)))))
-    (while (not (zerop (funcall do-shift i)))
-      (setq i (1+ i)))
-    i))
+(defconst wisent-BITS-PER-WORD (logcount most-positive-fixnum))
 
 (defsubst wisent-WORDSIZE (n)
   "(N + BITS-PER-WORD - 1) / BITS-PER-WORD."
@@ -156,18 +149,18 @@ If optional LEFT is non-nil insert spaces on left."
   "X[I/BITS-PER-WORD] |= 1 << (I % BITS-PER-WORD)."
   (let ((k (/ i wisent-BITS-PER-WORD)))
     (aset x k (logior (aref x k)
-                      (lsh 1 (% i wisent-BITS-PER-WORD))))))
+                      (ash 1 (% i wisent-BITS-PER-WORD))))))
 
 (defsubst wisent-RESETBIT (x i)
   "X[I/BITS-PER-WORD] &= ~(1 << (I % BITS-PER-WORD))."
   (let ((k (/ i wisent-BITS-PER-WORD)))
     (aset x k (logand (aref x k)
-                      (lognot (lsh 1 (% i wisent-BITS-PER-WORD)))))))
+                      (lognot (ash 1 (% i wisent-BITS-PER-WORD)))))))
 
 (defsubst wisent-BITISSET (x i)
   "(X[I/BITS-PER-WORD] & (1 << (I % BITS-PER-WORD))) != 0."
   (not (zerop (logand (aref x (/ i wisent-BITS-PER-WORD))
-                      (lsh 1 (% i wisent-BITS-PER-WORD))))))
+                      (ash 1 (% i wisent-BITS-PER-WORD))))))
 
 (defsubst wisent-noninteractive ()
   "Return non-nil if running without interactive terminal."
@@ -203,11 +196,11 @@ If optional LEFT is non-nil insert spaces on left."
 (defmacro wisent-log-buffer ()
   "Return the log buffer.
 Its name is defined in constant `wisent-log-buffer-name'."
-  `(get-buffer-create wisent-log-buffer-name))
+  '(get-buffer-create wisent-log-buffer-name))
 
 (defmacro wisent-clear-log ()
   "Delete the entire contents of the log buffer."
-  `(with-current-buffer (wisent-log-buffer)
+  '(with-current-buffer (wisent-log-buffer)
      (erase-buffer)))
 
 (defvar byte-compile-current-file)
@@ -2906,7 +2899,7 @@ references found in BODY, and XBODY is BODY expression with
       (progn
         (if (wisent-check-$N body n)
             ;; Accumulate $i symbol
-            (pushnew body found :test #'equal))
+            (cl-pushnew body found :test #'equal))
         (cons found body))
     ;; BODY is a list, expand inside it
     (let (xbody sexpr)
@@ -2926,7 +2919,7 @@ references found in BODY, and XBODY is BODY expression with
          ;; $i symbol
          ((wisent-check-$N sexpr n)
           ;; Accumulate $i symbol
-          (pushnew sexpr found :test #'equal))
+          (cl-pushnew sexpr found :test #'equal))
          )
         ;; Accumulate expanded forms
         (setq xbody (nconc xbody (list sexpr))))

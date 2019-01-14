@@ -1,6 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2018 Free
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -410,6 +410,8 @@ gnus-version)
   (require 'gnus)
   gnus-version)
 
+(defvar mh-variant)
+
 ;;;###autoload
 (defun mh-version ()
   "Display version information about MH-E and the MH mail handling system."
@@ -430,6 +432,7 @@ gnus-version)
   ;; Emacs version.
   (insert (emacs-version) "\n\n")
   ;; MH version.
+  (or mh-variant-in-use (mh-variant-set mh-variant))
   (if mh-variant-in-use
       (insert mh-variant-in-use "\n"
               " mh-progs:\t" mh-progs "\n"
@@ -876,6 +879,7 @@ variant."
 (defun mh-variant-p (&rest variants)
   "Return t if variant is any of VARIANTS.
 Currently known variants are `MH', `nmh', and `gnu-mh'."
+  (or mh-variant-in-use (mh-variant-set mh-variant))
   (let ((variant-in-use
          (cadr (assoc 'variant (assoc mh-variant-in-use (mh-variants))))))
     (not (null (member variant-in-use variants)))))
@@ -941,6 +945,8 @@ finally GNU mailutils MH."
       (when (not (mh-variant-set-variant variant))
         (message "Warning: %s variant not found. Autodetecting..." variant)
         (mh-variant-set 'autodetect)))
+     ((null valid-list)
+      (message "Unknown variant %s; can't find MH anywhere" variant))
      (t
       (message "Unknown variant %s; use %s"
                variant
@@ -972,6 +978,7 @@ necessary and can actually cause problems."
   :set (lambda (symbol value)
          (set-default symbol value)     ;Done in mh-variant-set-variant!
          (mh-variant-set value))
+  :initialize 'custom-initialize-default
   :group 'mh-e
   :package-version '(MH-E . "8.0"))
 
@@ -1022,12 +1029,13 @@ windows in the frame are removed."
   (when delete-other-windows-flag
     (delete-other-windows)))
 
-;; FIXME: Maybe out of date?  --xfq
 (if (boundp 'customize-package-emacs-version-alist)
     (add-to-list 'customize-package-emacs-version-alist
                  '(MH-E ("6.0" . "22.1") ("6.1" . "22.1") ("7.0" . "22.1")
                         ("7.1" . "22.1") ("7.2" . "22.1") ("7.3" . "22.1")
-                        ("7.4" . "22.1") ("8.0" . "22.1"))))
+                        ("7.4" . "22.1") ("8.0" . "22.1") ("8.1" . "23.1")
+                        ("8.2" . "23.1") ("8.3" . "24.1") ("8.4" . "24.4")
+                        ("8.5" . "24.4") ("8.6" . "24.4"))))
 
 
 

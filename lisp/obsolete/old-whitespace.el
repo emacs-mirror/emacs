@@ -1,6 +1,6 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
@@ -747,7 +747,6 @@ If timer is not set, then set it to scan the files in
 ;;;###autoload
 (define-minor-mode whitespace-global-mode
   "Toggle using Whitespace mode in new buffers.
-With ARG, turn the mode on if ARG is positive, otherwise turn it off.
 
 When this mode is active, `whitespace-buffer' is added to
 `find-file-hook' and `kill-buffer-hook'."

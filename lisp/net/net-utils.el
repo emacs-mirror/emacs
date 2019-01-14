@@ -1,6 +1,6 @@
 ;;; net-utils.el --- network functions
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
@@ -86,8 +86,6 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  '(repeat string))
 
-(define-obsolete-variable-alias 'ipconfig-program 'ifconfig-program "22.2")
-
 (defcustom ifconfig-program
   (cond ((eq system-type 'windows-nt) "ipconfig")
         ((executable-find "ifconfig") "ifconfig")
@@ -98,9 +96,6 @@ These options can be used to limit how many ICMP packets are emitted."
   :version "25.1"                       ; add ip
   :group 'net-utils
   :type  'string)
-
-(define-obsolete-variable-alias 'ipconfig-program-options
-  'ifconfig-program-options "22.2")
 
 (defcustom ifconfig-program-options
   (cond ((string-match "ipconfig\\'" ifconfig-program) '("/all"))

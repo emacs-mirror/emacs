@@ -1,6 +1,6 @@
 ;;; tango-theme.el --- Tango-based custom theme for faces
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Authors: Chong Yidong <cyd@stupidchicken>
 ;;          Jan Moringen <jan.moringen@uni-bielefeld.de>
@@ -153,9 +153,5 @@ Semantic, and Ansi-Color faces are included.")
 				      ,blue-3 ,plum-3 ,blue-1 ,alum-1])))
 
 (provide-theme 'tango)
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; tango-theme.el ends here

@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2018 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2019 Free Software
 Foundation, Inc.
 
 Author: Jon Arnold
@@ -1159,26 +1159,32 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
   GtkRequisition req;
   int max_x = -1;
   int max_y = -1;
+#ifdef HAVE_GTK3
+  int scale;
+#endif
 
   Lisp_Object frame, workarea;
 
   XSETFRAME (frame, data->f);
 
+#ifdef HAVE_GTK3
+  scale = xg_get_scale (data->f);
+#endif
   /* TODO: Get the monitor workarea directly without calculating other
      items in x-display-monitor-attributes-list. */
   workarea = call3 (Qframe_monitor_workarea,
                     Qnil,
-                    make_number (data->x),
-                    make_number (data->y));
+                    make_fixnum (data->x),
+                    make_fixnum (data->y));
 
   if (CONSP (workarea))
     {
       int min_x, min_y;
 
-      min_x = XINT (XCAR (workarea));
-      min_y = XINT (Fnth (make_number (1), workarea));
-      max_x = min_x + XINT (Fnth (make_number (2), workarea));
-      max_y = min_y + XINT (Fnth (make_number (3), workarea));
+      min_x = XFIXNUM (XCAR (workarea));
+      min_y = XFIXNUM (Fnth (make_fixnum (1), workarea));
+      max_x = min_x + XFIXNUM (Fnth (make_fixnum (2), workarea));
+      max_y = min_y + XFIXNUM (Fnth (make_fixnum (3), workarea));
     }
 
   if (max_x < 0 || max_y < 0)
@@ -1189,11 +1195,20 @@ menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer
       max_y = x_display_pixel_height (dpyinfo);
     }
 
+  /* frame-monitor-workarea and {x,y}_display_pixel_width/height all
+     return device pixels, but GTK wants scaled pixels.  The positions
+     passed in via data were already scaled for us.  */
+#ifdef HAVE_GTK3
+  max_x /= scale;
+  max_y /= scale;
+#endif
   *x = data->x;
   *y = data->y;
 
   /* Check if there is room for the menu.  If not, adjust x/y so that
-     the menu is fully visible.  */
+     the menu is fully visible.  gtk_widget_get_preferred_size returns
+     scaled pixels, so there is no need to apply the scaling
+     factor.  */
   gtk_widget_get_preferred_size (GTK_WIDGET (menu), NULL, &req);
   if (data->x + req.width > max_x)
     *x -= data->x + req.width - max_x;
@@ -1473,7 +1488,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   i = 0;
   while (i < menu_items_used)
     {
-      if (EQ (AREF (menu_items, i), Qnil))
+      if (NILP (AREF (menu_items, i)))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
@@ -1642,7 +1657,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
       i = 0;
       while (i < menu_items_used)
 	{
-	  if (EQ (AREF (menu_items, i), Qnil))
+	  if (NILP (AREF (menu_items, i)))
 	    {
 	      subprefix_stack[submenu_depth++] = prefix;
 	      prefix = entry;
@@ -2029,16 +2044,23 @@ menu_help_callback (char const *help_string, int pane, int item)
     pane_name = first_item[MENU_ITEMS_ITEM_NAME];
 
   /* (menu-item MENU-NAME PANE-NUMBER)  */
-  menu_object = list3 (Qmenu_item, pane_name, make_number (pane));
+  menu_object = list3 (Qmenu_item, pane_name, make_fixnum (pane));
   show_help_echo (help_string ? build_string (help_string) : Qnil,
- 		  Qnil, menu_object, make_number (item));
+ 		  Qnil, menu_object, make_fixnum (item));
 }
 
-static void
-pop_down_menu (Lisp_Object arg)
+struct pop_down_menu
 {
-  struct frame *f = XSAVE_POINTER (arg, 0);
-  XMenu *menu = XSAVE_POINTER (arg, 1);
+  struct frame *frame;
+  XMenu *menu;
+};
+
+static void
+pop_down_menu (void *arg)
+{
+  struct pop_down_menu *data = arg;
+  struct frame *f = data->frame;
+  XMenu *menu = data->menu;
 
   block_input ();
 #ifndef MSDOS
@@ -2284,7 +2306,8 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
   XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
 #endif
 
-  record_unwind_protect (pop_down_menu, make_save_ptr_ptr (f, menu));
+  record_unwind_protect_ptr (pop_down_menu,
+			     &(struct pop_down_menu) {f, menu});
 
   /* Help display under X won't work because XMenuActivate contains
      a loop that doesn't give Emacs a chance to process it.  */
@@ -2353,8 +2376,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 
  return_entry:
   unblock_input ();
-  SAFE_FREE ();
-  return unbind_to (specpdl_count, entry);
+  return SAFE_FREE_UNBIND_TO (specpdl_count, entry);
 }
 
 #endif /* not USE_X_TOOLKIT */
@@ -2396,7 +2418,7 @@ syms_of_xmenu (void)
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
   defsubr (&Sx_menu_bar_open_internal);
   Ffset (intern_c_string ("accelerate-menu"),
-	 intern_c_string (Sx_menu_bar_open_internal.symbol_name));
+	 intern_c_string (Sx_menu_bar_open_internal.s.symbol_name));
 #endif
 
   pdumper_do_now_and_after_load (syms_of_xmenu_for_pdumper);

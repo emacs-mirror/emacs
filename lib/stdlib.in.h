@@ -1,6 +1,6 @@
 /* A GNU-like <stdlib.h>.
 
-   Copyright (C) 1995, 2001-2004, 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2004, 2006-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@
 #endif
 
 /* Native Windows platforms declare mktemp() in <io.h>.  */
-#if 0 && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+#if 0 && (defined _WIN32 && ! defined __CYGWIN__)
 # include <io.h>
 #endif
 
@@ -90,9 +90,10 @@ struct random_data
 # endif
 #endif
 
-#if (@GNULIB_MKSTEMP@ || @GNULIB_MKSTEMPS@ || @GNULIB_GETSUBOPT@ || defined GNULIB_POSIXCHECK) && ! defined __GLIBC__ && !((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+#if (@GNULIB_MKSTEMP@ || @GNULIB_MKSTEMPS@ || @GNULIB_MKOSTEMP@ || @GNULIB_MKOSTEMPS@ || @GNULIB_GETSUBOPT@ || defined GNULIB_POSIXCHECK) && ! defined __GLIBC__ && !(defined _WIN32 && ! defined __CYGWIN__)
 /* On Mac OS X 10.3, only <unistd.h> declares mkstemp.  */
 /* On Mac OS X 10.5, only <unistd.h> declares mkstemps.  */
+/* On Mac OS X 10.13, only <unistd.h> declares mkostemp and mkostemps.  */
 /* On Cygwin 1.7.1, only <unistd.h> declares getsubopt.  */
 /* But avoid namespace pollution on glibc systems and native Windows.  */
 # include <unistd.h>

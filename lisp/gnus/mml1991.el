@@ -1,6 +1,6 @@
 ;;; mml1991.el --- Old PGP message format (RFC 1991) support for MML
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Sascha Lüdecke <sascha@meta-x.de>,
 ;;	Simon Josefsson <simon@josefsson.org> (Mailcrypt interface, Gnus glue)
@@ -25,9 +25,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (require 'mm-util))
+(eval-when-compile (require 'mm-util))
 
 (require 'mm-encode)
 (require 'mml-sec)
@@ -277,6 +275,8 @@ Whether the passphrase is cached at all is controlled by
 	(mm-decode-content-transfer-encoding cte)))
     (let* ((pair (mml-secure-epg-sign 'OpenPGP 'clear))
 	   (signature (car pair)))
+      (unless (stringp signature)
+        (error "Signature failed"))
       (delete-region (point-min) (point-max))
       (insert
        (with-temp-buffer

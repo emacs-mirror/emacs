@@ -1,6 +1,6 @@
 ;;; latin-pre.el --- Quail packages for inputting various European characters  -*-coding: utf-8;-*-
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -361,13 +361,14 @@ Key translation rules are:
  "german-prefix" "German" "DE>" t
  "German (Deutsch) input method with prefix modifiers
 Key translation rules are:
- \"A -> Ä ->   \"O -> Ö   \"U -> Ü   \"s -> ß
+ \"A -> Ä ->   \"O -> Ö   \"S -> ẞ   \"U -> Ü   \"s -> ß
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
  ("\"A" ?Ä)
  ("\"O" ?Ö)
  ("\"U" ?Ü)
+ ("\"S" ?ẞ)
  ("\"a" ?ä)
  ("\"o" ?ö)
  ("\"u" ?ü)
@@ -1175,6 +1176,7 @@ of characters from a single Latin-N charset.
  ("\"E" ?Ë)
  ("\"I" ?Ï)
  ("\"O" ?Ö)
+ ("\"S" ?ẞ)
  ("\"U" ?Ü)
  ("\"W" ?Ẅ)
  ("\"Y" ?Ÿ)
@@ -1282,5 +1284,53 @@ of characters from a single Latin-N charset.
  ("~|" ?¦)
  ("~~" ?¸)
 )
+
+;;; Hawaiian prefix input method. It's a small subset of Latin-4
+;;; with the addition of an ʻokina mapping.  Hopefully the ʻokina shows
+;;; correctly on most displays.
+
+;;; This reference is an authoritative guide to Hawaiian orthography:
+;;; http://www2.hawaii.edu/~strauch/tips/HawaiianOrthography.html
+
+;;; Initial coding 2018-09-08 Bob Newell, Honolulu, Hawaiʻi
+;;; Comments to bobnewell@bobnewell.net
+
+(quail-define-package
+ "hawaiian-prefix" "Hawaiian Prefix" "H>" t
+ "Hawaiian characters input method with postfix modifiers
+
+             | prefix | examples
+ ------------+---------+----------
+  ʻokina     |    \\=`    | \\=` -> ʻ
+  kahakō     |    -    | -a -> ā
+
+Doubling the prefix separates the letter and prefix. --a -> -a
+" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("-A" ?Ā)
+ ("-E" ?Ē)
+ ("~I" ?Ĩ)
+ ("-O" ?Ō)
+ ("-U" ?Ū)
+ ("-a" ?ā)
+ ("-e" ?ē)
+ ("-i" ?ī)
+ ("-o" ?ō)
+ ("-u" ?ū)
+ ("`" ?ʻ)
+
+ ("--A" ["-A"])
+ ("--E" ["-E"])
+ ("--I" ["-I"])
+ ("--O" ["-O"])
+ ("--U" ["-U"])
+ ("--a" ["-a"])
+ ("--e" ["-e"])
+ ("--i" ["-i"])
+ ("--o" ["-o"])
+ ("--u" ["-u"])
+ ("``"  ["`"])
+ )
 
 ;;; latin-pre.el ends here

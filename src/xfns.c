@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2018 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -274,7 +274,7 @@ x_real_pos_and_offsets (struct frame *f,
      should be the outer WM window. */
   for (;;)
     {
-      Window wm_window, rootw;
+      Window wm_window UNINIT, rootw UNINIT;
 
 #ifdef USE_XCB
       xcb_query_tree_cookie_t query_tree_cookie;
@@ -1233,7 +1233,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (!NILP (shape_var))
 	{
 	  CHECK_TYPE_RANGED_INTEGER (unsigned, shape_var);
-	  cursor_data.cursor_num[i] = XINT (shape_var);
+	  cursor_data.cursor_num[i] = XFIXNUM (shape_var);
 	}
       else
 	cursor_data.cursor_num[i] = mouse_cursor_types[i].default_shape;
@@ -1456,7 +1456,7 @@ x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
-  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
+  else if (!STRINGP (oldval) && NILP (oldval) == NILP (arg))
     return;
 
   block_input ();
@@ -1531,8 +1531,8 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f) || FRAME_PARENT_FRAME (f))
     return;
 
-  if (TYPE_RANGED_INTEGERP (int, value))
-    nlines = XINT (value);
+  if (TYPE_RANGED_FIXNUMP (int, value))
+    nlines = XFIXNUM (value);
   else
     nlines = 0;
 
@@ -1618,8 +1618,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     return;
 
   /* Use VALUE only if an int >= 0.  */
-  if (RANGED_INTEGERP (0, value, INT_MAX))
-    nlines = XFASTINT (value);
+  if (RANGED_FIXNUMP (0, value, INT_MAX))
+    nlines = XFIXNAT (value);
   else
     nlines = 0;
 
@@ -1661,8 +1661,8 @@ x_change_tool_bar_height (struct frame *f, int height)
   FRAME_TOOL_BAR_HEIGHT (f) = height;
   FRAME_TOOL_BAR_LINES (f) = lines;
   /* Store the `tool-bar-lines' and `height' frame parameters.  */
-  store_frame_param (f, Qtool_bar_lines, make_number (lines));
-  store_frame_param (f, Qheight, make_number (FRAME_LINES (f)));
+  store_frame_param (f, Qtool_bar_lines, make_fixnum (lines));
+  store_frame_param (f, Qheight, make_fixnum (FRAME_LINES (f)));
 
   /* We also have to make sure that the internal border at the top of
      the frame, below the menu bar or tool bar, is redrawn when the
@@ -1716,7 +1716,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
   int border;
 
   CHECK_TYPE_RANGED_INTEGER (int, arg);
-  border = max (XINT (arg), 0);
+  border = max (XFIXNUM (arg), 0);
 
   if (border != FRAME_INTERNAL_BORDER_WIDTH (f))
     {
@@ -3261,8 +3261,8 @@ x_icon_verify (struct frame *f, Lisp_Object parms)
   icon_y = x_frame_get_and_record_arg (f, parms, Qicon_top, 0, 0, RES_TYPE_NUMBER);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
-      CHECK_NUMBER (icon_x);
-      CHECK_NUMBER (icon_y);
+      CHECK_FIXNUM (icon_x);
+      CHECK_FIXNUM (icon_y);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
@@ -3292,7 +3292,7 @@ x_icon (struct frame *f, Lisp_Object parms)
   block_input ();
 
   if (! EQ (icon_x, Qunbound))
-    x_wm_set_icon_position (f, XINT (icon_x), XINT (icon_y));
+    x_wm_set_icon_position (f, XFIXNUM (icon_x), XFIXNUM (icon_y));
 
 #if false /* x_get_arg removes the visibility parameter as a side effect,
 	     but x_create_frame still needs it.  */
@@ -3617,7 +3617,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
-    CHECK_NUMBER (parent);
+    CHECK_FIXNUM (parent);
 
   frame = Qnil;
   tem = x_get_arg (dpyinfo, parms, Qminibuffer, "minibuffer", "Minibuffer",
@@ -3725,7 +3725,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Specify the parent under which to make this X window.  */
   if (!NILP (parent))
     {
-      f->output_data.x->parent_desc = (Window) XFASTINT (parent);
+      f->output_data.x->parent_desc = (Window) XFIXNAT (parent);
       f->output_data.x->explicit_parent = true;
     }
   else
@@ -3782,7 +3782,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* Frame contents get displaced if an embedded X window has a border.  */
   if (! FRAME_X_EMBEDDED_P (f))
-    x_default_parameter (f, parms, Qborder_width, make_number (0),
+    x_default_parameter (f, parms, Qborder_width, make_fixnum (0),
 			 "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
   /* This defaults to 1 in order to match xterm.  We recognize either
@@ -3800,15 +3800,15 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
   x_default_parameter (f, parms, Qinternal_border_width,
 #ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
-		       make_number (0),
+		       make_fixnum (0),
 #else
-		       make_number (1),
+		       make_fixnum (1),
 #endif
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qright_divider_width, make_number (0),
+  x_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
 		       NULL, NULL, RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qbottom_divider_width, make_number (0),
+  x_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
 		       NULL, NULL, RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qvertical_scroll_bars,
 #if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
@@ -3866,10 +3866,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
      Also process `min-width' and `min-height' parameters right here
      because `frame-windows-min-size' needs them.  */
   tem = x_get_arg (dpyinfo, parms, Qmin_width, NULL, NULL, RES_TYPE_NUMBER);
-  if (NUMBERP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_width, tem);
   tem = x_get_arg (dpyinfo, parms, Qmin_height, NULL, NULL, RES_TYPE_NUMBER);
-  if (NUMBERP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_height, tem);
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, true,
@@ -3882,11 +3882,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   x_default_parameter (f, parms, Qmenu_bar_lines,
 		       NILP (Vmenu_bar_mode)
-		       ? make_number (0) : make_number (1),
+		       ? make_fixnum (0) : make_fixnum (1),
 		       NULL, NULL, RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qtool_bar_lines,
 		       NILP (Vtool_bar_mode)
-		       ? make_number (0) : make_number (1),
+		       ? make_fixnum (0) : make_fixnum (1),
 		       NULL, NULL, RES_TYPE_NUMBER);
 
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
@@ -4222,7 +4222,7 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (x_display_pixel_width (dpyinfo));
+  return make_fixnum (x_display_pixel_width (dpyinfo));
 }
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
@@ -4240,7 +4240,7 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (x_display_pixel_height (dpyinfo));
+  return make_fixnum (x_display_pixel_height (dpyinfo));
 }
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
@@ -4254,7 +4254,7 @@ If omitted or nil, that stands for the selected frame's display.
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (dpyinfo->n_planes);
+  return make_fixnum (dpyinfo->n_planes);
 }
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
@@ -4278,7 +4278,7 @@ If omitted or nil, that stands for the selected frame's display.
      it "should be enough for everyone".  */
   if (nr_planes > 24) nr_planes = 24;
 
-  return make_number (1 << nr_planes);
+  return make_fixnum (1 << nr_planes);
 }
 
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
@@ -4295,7 +4295,7 @@ On Nextstep, this function just returns nil.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (MAXREQUEST (dpyinfo->display));
+  return make_fixnum (MAXREQUEST (dpyinfo->display));
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
@@ -4358,7 +4358,7 @@ For the number of physical monitors, use `(length
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (ScreenCount (dpyinfo->display));
+  return make_fixnum (ScreenCount (dpyinfo->display));
 }
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
@@ -4375,7 +4375,7 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (HeightMMOfScreen (dpyinfo->screen));
+  return make_fixnum (HeightMMOfScreen (dpyinfo->screen));
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
@@ -4392,7 +4392,7 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  return make_number (WidthMMOfScreen (dpyinfo->screen));
+  return make_fixnum (WidthMMOfScreen (dpyinfo->screen));
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
@@ -4628,7 +4628,7 @@ x_make_monitor_attribute_list (struct MonitorInfo *monitors,
                                struct x_display_info *dpyinfo,
                                const char *source)
 {
-  Lisp_Object monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
+  Lisp_Object monitor_frames = make_nil_vector (n_monitors);
   Lisp_Object frame, rest;
 
   FOR_EACH_FRAME (rest, frame)
@@ -4931,7 +4931,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #endif
   n_monitors = gdk_screen_get_n_monitors (gscreen);
 #endif
-  monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
+  monitor_frames = make_nil_vector (n_monitors);
   monitors = xzalloc (n_monitors * sizeof *monitors);
 
   FOR_EACH_FRAME (rest, frame)
@@ -5075,7 +5075,7 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   int menu_bar_height = 0, menu_bar_width = 0;
   int tool_bar_height = 0, tool_bar_width = 0;
 
-  if (FRAME_INITIAL_P (f) || !FRAME_X_P (f))
+  if (FRAME_INITIAL_P (f) || !FRAME_X_P (f) || !FRAME_OUTER_WINDOW (f))
     return Qnil;
 
   block_input ();
@@ -5099,8 +5099,8 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
       edges = Fx_frame_edges (parent, Qnative_edges);
       if (!NILP (edges))
 	{
-	  x_native += XINT (Fnth (make_number (0), edges));
-	  y_native += XINT (Fnth (make_number (1), edges));
+	  x_native += XFIXNUM (Fnth (make_fixnum (0), edges));
+	  y_native += XFIXNUM (Fnth (make_fixnum (1), edges));
 	}
 
       outer_left = x_native;
@@ -5185,43 +5185,43 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))
-    return list4 (make_number (outer_left), make_number (outer_top),
-		  make_number (outer_right), make_number (outer_bottom));
+    return list4 (make_fixnum (outer_left), make_fixnum (outer_top),
+		  make_fixnum (outer_right), make_fixnum (outer_bottom));
   else if (EQ (attribute, Qnative_edges))
-    return list4 (make_number (native_left), make_number (native_top),
-		  make_number (native_right), make_number (native_bottom));
+    return list4 (make_fixnum (native_left), make_fixnum (native_top),
+		  make_fixnum (native_right), make_fixnum (native_bottom));
   else if (EQ (attribute, Qinner_edges))
-    return list4 (make_number (inner_left), make_number (inner_top),
-		  make_number (inner_right), make_number (inner_bottom));
+    return list4 (make_fixnum (inner_left), make_fixnum (inner_top),
+		  make_fixnum (inner_right), make_fixnum (inner_bottom));
   else
     return
       listn (CONSTYPE_HEAP, 11,
 	     Fcons (Qouter_position,
-		    Fcons (make_number (outer_left),
-			   make_number (outer_top))),
+		    Fcons (make_fixnum (outer_left),
+			   make_fixnum (outer_top))),
 	     Fcons (Qouter_size,
-		    Fcons (make_number (outer_right - outer_left),
-			   make_number (outer_bottom - outer_top))),
+		    Fcons (make_fixnum (outer_right - outer_left),
+			   make_fixnum (outer_bottom - outer_top))),
 	     /* Approximate.  */
 	     Fcons (Qexternal_border_size,
-		    Fcons (make_number (right_off),
-			   make_number (bottom_off))),
-	     Fcons (Qouter_border_width, make_number (x_border_width)),
+		    Fcons (make_fixnum (right_off),
+			   make_fixnum (bottom_off))),
+	     Fcons (Qouter_border_width, make_fixnum (x_border_width)),
 	     /* Approximate.  */
 	     Fcons (Qtitle_bar_size,
-		    Fcons (make_number (0),
-			   make_number (top_off - bottom_off))),
+		    Fcons (make_fixnum (0),
+			   make_fixnum (top_off - bottom_off))),
 	     Fcons (Qmenu_bar_external, menu_bar_external ? Qt : Qnil),
 	     Fcons (Qmenu_bar_size,
-		    Fcons (make_number (menu_bar_width),
-			   make_number (menu_bar_height))),
+		    Fcons (make_fixnum (menu_bar_width),
+			   make_fixnum (menu_bar_height))),
 	     Fcons (Qtool_bar_external, tool_bar_external ? Qt : Qnil),
 	     Fcons (Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f)),
 	     Fcons (Qtool_bar_size,
-		    Fcons (make_number (tool_bar_width),
-			   make_number (tool_bar_height))),
+		    Fcons (make_fixnum (tool_bar_width),
+			   make_fixnum (tool_bar_height))),
 	     Fcons (Qinternal_border_width,
-		    make_number (internal_border_width)));
+		    make_fixnum (internal_border_width)));
 }
 
 DEFUN ("x-frame-geometry", Fx_frame_geometry, Sx_frame_geometry, 0, 1, 0,
@@ -5321,12 +5321,16 @@ x_frame_list_z_order (Display* dpy, Window window)
 	  Lisp_Object frame, tail;
 
 	  FOR_EACH_FRAME (tail, frame)
-	    /* With a reparenting window manager the parent_desc field
-	       usually specifies the topmost windows of our frames.
-	       Otherwise FRAME_OUTER_WINDOW should do.  */
-	    if (XFRAME (frame)->output_data.x->parent_desc == children[i]
-		|| FRAME_OUTER_WINDOW (XFRAME (frame)) == children[i])
-	      frames = Fcons (frame, frames);
+            {
+              struct frame *cf = XFRAME (frame);
+              /* With a reparenting window manager the parent_desc
+                 field usually specifies the topmost windows of our
+                 frames.  Otherwise FRAME_OUTER_WINDOW should do.  */
+              if (FRAME_X_P (cf)
+                  && (cf->output_data.x->parent_desc == children[i]
+                      || FRAME_OUTER_WINDOW (cf) == children[i]))
+                frames = Fcons (frame, frames);
+            }
 	}
 
       if (children) XFree ((char *)children);
@@ -5417,16 +5421,10 @@ Some window managers may refuse to restack windows.  */)
   struct frame *f1 = decode_live_frame (frame1);
   struct frame *f2 = decode_live_frame (frame2);
 
-  if (FRAME_OUTER_WINDOW (f1) && FRAME_OUTER_WINDOW (f2))
-    {
-      x_frame_restack (f1, f2, !NILP (above));
-      return Qt;
-    }
-  else
-    {
-      error ("Cannot restack frames");
-      return Qnil;
-    }
+  if (! (FRAME_OUTER_WINDOW (f1) && FRAME_OUTER_WINDOW (f2)))
+    error ("Cannot restack frames");
+  x_frame_restack (f1, f2, !NILP (above));
+  return Qt;
 }
 
 
@@ -5452,7 +5450,7 @@ selected frame's display.  */)
                  (unsigned int *) &dummy);
   unblock_input ();
 
-  return Fcons (make_number (x), make_number (y));
+  return Fcons (make_fixnum (x), make_fixnum (y));
 }
 
 DEFUN ("x-set-mouse-absolute-pixel-position", Fx_set_mouse_absolute_pixel_position,
@@ -5472,7 +5470,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
 
   block_input ();
   XWarpPointer (FRAME_X_DISPLAY (f), None, DefaultRootWindow (FRAME_X_DISPLAY (f)),
-		0, 0, 0, 0, XINT (x), XINT (y));
+		0, 0, 0, 0, XFIXNUM (x), XFIXNUM (y));
   unblock_input ();
 
   return Qnil;
@@ -5718,7 +5716,7 @@ If TERMINAL is omitted or nil, that stands for the selected frame's display.  */
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
-  XSynchronize (dpyinfo->display, !EQ (on, Qnil));
+  XSynchronize (dpyinfo->display, !NILP (on));
 
   return Qnil;
 }
@@ -5770,12 +5768,12 @@ FRAME.  Default is to change on the edit X window.  */)
 
   if (! NILP (format))
     {
-      CHECK_NUMBER (format);
+      CHECK_FIXNUM (format);
 
-      if (XINT (format) != 8 && XINT (format) != 16
-          && XINT (format) != 32)
+      if (XFIXNUM (format) != 8 && XFIXNUM (format) != 16
+          && XFIXNUM (format) != 32)
         error ("FORMAT must be one of 8, 16 or 32");
-      element_format = XINT (format);
+      element_format = XFIXNUM (format);
     }
 
   if (CONSP (value))
@@ -6068,9 +6066,9 @@ Otherwise, the return value is a vector with the following fields:
       XFree (tmp_data);
 
       prop_attr = make_uninit_vector (3);
-      ASET (prop_attr, 0, make_number (actual_type));
-      ASET (prop_attr, 1, make_number (actual_format));
-      ASET (prop_attr, 2, make_number (bytes_remaining / (actual_format >> 3)));
+      ASET (prop_attr, 0, make_fixnum (actual_type));
+      ASET (prop_attr, 1, make_fixnum (actual_format));
+      ASET (prop_attr, 2, make_fixnum (bytes_remaining / (actual_format >> 3)));
     }
 
   unblock_input ();
@@ -6253,7 +6251,7 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
      needed to determine window geometry.  */
   x_default_font_parameter (f, parms);
 
-  x_default_parameter (f, parms, Qborder_width, make_number (0),
+  x_default_parameter (f, parms, Qborder_width, make_fixnum (0),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
   /* This defaults to 2 in order to match xterm.  We recognize either
@@ -6270,12 +6268,12 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
 		       parms);
     }
 
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
+  x_default_parameter (f, parms, Qinternal_border_width, make_fixnum (1),
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qright_divider_width, make_number (0),
+  x_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
 		       NULL, NULL, RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qbottom_divider_width, make_number (0),
+  x_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
 		       NULL, NULL, RES_TYPE_NUMBER);
 
   /* Also do the stuff which must be set before the window exists.  */
@@ -6459,8 +6457,8 @@ compute_tip_xy (struct frame *f,
 
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  if ((!INTEGERP (left) && !INTEGERP (right))
-      || (!INTEGERP (top) && !INTEGERP (bottom)))
+  if ((!FIXNUMP (left) && !FIXNUMP (right))
+      || (!FIXNUMP (top) && !FIXNUMP (bottom)))
     {
       Lisp_Object frame, attributes, monitor, geometry;
 
@@ -6480,10 +6478,10 @@ compute_tip_xy (struct frame *f,
           geometry = Fassq (Qgeometry, monitor);
           if (CONSP (geometry))
             {
-              min_x = XINT (Fnth (make_number (1), geometry));
-              min_y = XINT (Fnth (make_number (2), geometry));
-              max_x = min_x + XINT (Fnth (make_number (3), geometry));
-              max_y = min_y + XINT (Fnth (make_number (4), geometry));
+              min_x = XFIXNUM (Fnth (make_fixnum (1), geometry));
+              min_y = XFIXNUM (Fnth (make_fixnum (2), geometry));
+              max_x = min_x + XFIXNUM (Fnth (make_fixnum (3), geometry));
+              max_y = min_y + XFIXNUM (Fnth (make_fixnum (4), geometry));
               if (min_x <= *root_x && *root_x < max_x
                   && min_y <= *root_y && *root_y < max_y)
                 {
@@ -6506,34 +6504,34 @@ compute_tip_xy (struct frame *f,
       max_y = x_display_pixel_height (FRAME_DISPLAY_INFO (f));
     }
 
-  if (INTEGERP (top))
-    *root_y = XINT (top);
-  else if (INTEGERP (bottom))
-    *root_y = XINT (bottom) - height;
-  else if (*root_y + XINT (dy) <= min_y)
+  if (FIXNUMP (top))
+    *root_y = XFIXNUM (top);
+  else if (FIXNUMP (bottom))
+    *root_y = XFIXNUM (bottom) - height;
+  else if (*root_y + XFIXNUM (dy) <= min_y)
     *root_y = min_y; /* Can happen for negative dy */
-  else if (*root_y + XINT (dy) + height <= max_y)
+  else if (*root_y + XFIXNUM (dy) + height <= max_y)
     /* It fits below the pointer */
-    *root_y += XINT (dy);
-  else if (height + XINT (dy) + min_y <= *root_y)
+    *root_y += XFIXNUM (dy);
+  else if (height + XFIXNUM (dy) + min_y <= *root_y)
     /* It fits above the pointer.  */
-    *root_y -= height + XINT (dy);
+    *root_y -= height + XFIXNUM (dy);
   else
     /* Put it on the top.  */
     *root_y = min_y;
 
-  if (INTEGERP (left))
-    *root_x = XINT (left);
-  else if (INTEGERP (right))
-    *root_x = XINT (right) - width;
-  else if (*root_x + XINT (dx) <= min_x)
+  if (FIXNUMP (left))
+    *root_x = XFIXNUM (left);
+  else if (FIXNUMP (right))
+    *root_x = XFIXNUM (right) - width;
+  else if (*root_x + XFIXNUM (dx) <= min_x)
     *root_x = 0; /* Can happen for negative dx */
-  else if (*root_x + XINT (dx) + width <= max_x)
+  else if (*root_x + XFIXNUM (dx) + width <= max_x)
     /* It fits to the right of the pointer.  */
-    *root_x += XINT (dx);
-  else if (width + XINT (dx) + min_x <= *root_x)
+    *root_x += XFIXNUM (dx);
+  else if (width + XFIXNUM (dx) + min_x <= *root_x)
     /* It fits to the left of the pointer.  */
-    *root_x -= width + XINT (dx);
+    *root_x -= width + XFIXNUM (dx);
   else
     /* Put it left justified on the screen -- it ought to fit that way.  */
     *root_x = min_x;
@@ -6754,19 +6752,19 @@ Text larger than the specified size is clipped.  */)
   f = decode_window_system_frame (frame);
 
   if (NILP (timeout))
-    timeout = make_number (5);
+    timeout = make_fixnum (5);
   else
-    CHECK_NATNUM (timeout);
+    CHECK_FIXNAT (timeout);
 
   if (NILP (dx))
-    dx = make_number (5);
+    dx = make_fixnum (5);
   else
-    CHECK_NUMBER (dx);
+    CHECK_FIXNUM (dx);
 
   if (NILP (dy))
-    dy = make_number (-10);
+    dy = make_fixnum (-10);
   else
-    CHECK_NUMBER (dy);
+    CHECK_FIXNUM (dy);
 
 #ifdef USE_GTK
   if (x_gtk_use_system_tooltips)
@@ -6881,9 +6879,9 @@ Text larger than the specified size is clipped.  */)
       if (NILP (Fassq (Qname, parms)))
 	parms = Fcons (Fcons (Qname, build_string ("tooltip")), parms);
       if (NILP (Fassq (Qinternal_border_width, parms)))
-	parms = Fcons (Fcons (Qinternal_border_width, make_number (3)), parms);
+	parms = Fcons (Fcons (Qinternal_border_width, make_fixnum (3)), parms);
       if (NILP (Fassq (Qborder_width, parms)))
-	parms = Fcons (Fcons (Qborder_width, make_number (1)), parms);
+	parms = Fcons (Fcons (Qborder_width, make_fixnum (1)), parms);
       if (NILP (Fassq (Qborder_color, parms)))
 	parms = Fcons (Fcons (Qborder_color, build_string ("lightyellow")), parms);
       if (NILP (Fassq (Qbackground_color, parms)))
@@ -6902,8 +6900,8 @@ Text larger than the specified size is clipped.  */)
   tip_buf = Fget_buffer_create (tip);
   /* We will mark the tip window a "pseudo-window" below, and such
      windows cannot have display margins.  */
-  bset_left_margin_cols (XBUFFER (tip_buf), make_number (0));
-  bset_right_margin_cols (XBUFFER (tip_buf), make_number (0));
+  bset_left_margin_cols (XBUFFER (tip_buf), make_fixnum (0));
+  bset_right_margin_cols (XBUFFER (tip_buf), make_fixnum (0));
   set_window_buffer (window, tip_buf, false, false);
   w = XWINDOW (window);
   w->pseudo_window_p = true;
@@ -6918,11 +6916,11 @@ Text larger than the specified size is clipped.  */)
   w->pixel_top = 0;
 
   if (CONSP (Vx_max_tooltip_size)
-      && RANGED_INTEGERP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
-      && RANGED_INTEGERP (1, XCDR (Vx_max_tooltip_size), INT_MAX))
+      && RANGED_FIXNUMP (1, XCAR (Vx_max_tooltip_size), INT_MAX)
+      && RANGED_FIXNUMP (1, XCDR (Vx_max_tooltip_size), INT_MAX))
     {
-      w->total_cols = XFASTINT (XCAR (Vx_max_tooltip_size));
-      w->total_lines = XFASTINT (XCDR (Vx_max_tooltip_size));
+      w->total_cols = XFIXNAT (XCAR (Vx_max_tooltip_size));
+      w->total_lines = XFIXNAT (XCDR (Vx_max_tooltip_size));
     }
   else
     {
@@ -6952,10 +6950,10 @@ Text larger than the specified size is clipped.  */)
   try_window (window, pos, TRY_WINDOW_IGNORE_FONTS_CHANGE);
   /* Calculate size of tooltip window.  */
   size = Fwindow_text_pixel_size (window, Qnil, Qnil, Qnil,
-				  make_number (w->pixel_height), Qnil);
+				  make_fixnum (w->pixel_height), Qnil);
   /* Add the frame's internal border to calculated size.  */
-  width = XINT (Fcar (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
-  height = XINT (Fcdr (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
+  width = XFIXNUM (Fcar (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
+  height = XFIXNUM (Fcdr (size)) + 2 * FRAME_INTERNAL_BORDER_WIDTH (tip_f);
 
   /* Calculate position of tooltip frame.  */
   compute_tip_xy (tip_f, parms, dx, dy, width, height, &root_x, &root_y);
@@ -7793,7 +7791,7 @@ or when you set the mouse color.  */);
   DEFVAR_LISP ("x-max-tooltip-size", Vx_max_tooltip_size,
     doc: /* Maximum size for tooltips.
 Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
-  Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
+  Vx_max_tooltip_size = Fcons (make_fixnum (80), make_fixnum (40));
 
   DEFVAR_LISP ("x-no-window-manager", Vx_no_window_manager,
     doc: /* Non-nil if no X window manager is in use.

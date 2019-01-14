@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -147,6 +147,19 @@ This includes password cache, file cache, connection cache, buffers."
   (when (bound-and-true-p tramp-archive-enabled)
     (tramp-archive-cleanup-hash))
 
+  ;; Remove ad-hoc proxies.
+  (let ((proxies tramp-default-proxies-alist))
+    (while proxies
+      (if (ignore-errors
+	    (get-text-property 0 'tramp-ad-hoc (nth 2 (car proxies))))
+	  (setq tramp-default-proxies-alist
+		(delete (car proxies) tramp-default-proxies-alist)
+		proxies tramp-default-proxies-alist)
+	(setq proxies (cdr proxies)))))
+    (when (and tramp-default-proxies-alist tramp-save-ad-hoc-proxies)
+      (customize-save-variable
+       'tramp-default-proxies-alist tramp-default-proxies-alist))
+
   ;; Remove buffers.
   (dolist (name (tramp-list-tramp-buffers))
     (when (bufferp (get-buffer name)) (kill-buffer name))))
@@ -181,10 +194,13 @@ This includes password cache, file cache, connection cache, buffers."
   "Submit a bug report to the Tramp developers."
   (interactive)
   (catch 'dont-send
-    (let ((reporter-prompt-for-summary-p t))
+    (let ((reporter-prompt-for-summary-p t)
+	  ;; In rare cases, it could contain the password.  So we make it nil.
+	  tramp-password-save-function)
       (reporter-submit-bug-report
-       tramp-bug-report-address		; to-address
-       (format "tramp (%s)" tramp-version) ; package name and version
+       tramp-bug-report-address	  ; to-address
+       (format "tramp (%s %s/%s)" ; package name and version
+	       tramp-version tramp-repository-branch tramp-repository-version)
        (sort
 	(delq nil (mapcar
 	  (lambda (x)
@@ -245,7 +261,7 @@ buffer in your bug report.
 	(set varsym (read (format "(%s)" (tramp-cache-print val))))
       ;; There are non-7bit characters to be masked.
       (when (and (stringp val)
-		 (string-match
+		 (string-match-p
 		  (concat "[^" (bound-and-true-p mm-7bit-chars) "]") val))
 	(with-current-buffer reporter-eval-buffer
 	  (set
@@ -261,10 +277,11 @@ buffer in your bug report.
       ;; Remove string quotation.
       (forward-line -1)
       (when (looking-at
-	     (concat "\\(^.*\\)" "\""                       ;; \1 "
-		     "\\((base64-decode-string \\)" "\\\\"  ;; \2 \
-		     "\\(\".*\\)" "\\\\"                    ;; \3 \
-		     "\\(\")\\)" "\"$"))                    ;; \4 "
+	     (eval-when-compile
+	       (concat "\\(^.*\\)" "\""                       ;; \1 "
+		       "\\((base64-decode-string \\)" "\\\\"  ;; \2 \
+		       "\\(\".*\\)" "\\\\"                    ;; \3 \
+		       "\\(\")\\)" "\"$")))                   ;; \4 "
 	(replace-match "\\1\\2\\3\\4")
 	(beginning-of-line)
 	(insert " ;; Variable encoded due to non-printable characters.\n"))
@@ -289,7 +306,7 @@ buffer in your bug report.
 	   (delq nil
 		 (mapcar
 		  (lambda (b)
-                    (when (string-match "\\*tramp/" (buffer-name b)) b))
+                    (when (string-match-p "\\*tramp/" (buffer-name b)) b))
 		  (buffer-list))))
     (let ((reporter-eval-buffer buffer)
 	  (elbuf (get-buffer-create " *tmp-reporter-buffer*")))
@@ -317,7 +334,7 @@ buffer in your bug report.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
     (mapc
-     (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
+     (lambda (x) (when (string-match-p "tramp" x) (insert x "\n")))
      (split-string (list-load-path-shadows t) "\n")))
 
   ;; Append buffers only when we are in message mode.

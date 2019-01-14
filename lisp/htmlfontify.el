@@ -1,6 +1,6 @@
 ;;; htmlfontify.el --- htmlize a buffer/source tree with optional hyperlinks -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2003, 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2009-2019 Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -448,6 +448,7 @@ and so on."
              (background (choice (const :tag "Dark"          dark     )
                                  (const :tag "Bright"        light    ))) ))
 
+(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "25.1")
 (defcustom hfy-optimizations (list 'keep-overlays)
   "Optimizations to turn on: So far, the following have been implemented:\n
   merge-adjacent-tags: If two (or more) span tags are adjacent, identical and
@@ -483,7 +484,6 @@ which can never slow you down, but may result in incomplete fontification."
                (const :tag "body-text-only"       body-text-only      ))
   :group 'htmlfontify
   :tag   "optimizations")
-(define-obsolete-variable-alias 'hfy-optimisations 'hfy-optimizations "25.1")
 
 (defvar hfy-tags-cache nil
   "Alist of the form:\n
@@ -584,22 +584,23 @@ therefore no longer care about) will be invalid at any time.\n
       (if (memq elt set-b) (setq interq (cons elt interq))))
     interq))
 
-(defun hfy-colour-vals (colour)
-  "Where COLOUR is a color name or #XXXXXX style triplet, return a
+(defun hfy-color-vals (color)
+  "Where COLOR is a color name or #XXXXXX style triplet, return a
 list of three (16 bit) rgb values for said color.\n
-If a window system is unavailable, calls `hfy-fallback-colour-values'."
-  (if (string-match hfy-triplet-regex colour)
+If a window system is unavailable, calls `hfy-fallback-color-values'."
+  (if (string-match hfy-triplet-regex color)
       (mapcar
-       (lambda (x) (* (string-to-number (match-string x colour) 16) 257))
+       (lambda (x) (* (string-to-number (match-string x color) 16) 257))
        '(1 2 3))
-    ;;(message ">> %s" colour)
+    ;;(message ">> %s" color)
     (if window-system
         (if (fboundp 'color-values)
-            (color-values colour)
+            (color-values color)
           ;;(message "[%S]" window-system)
-          (x-color-values colour))
+          (x-color-values color))
       ;; blarg - tty colors are no good - go fetch some X colors:
-      (hfy-fallback-colour-values colour))))
+      (hfy-fallback-color-values color))))
+(define-obsolete-function-alias 'hfy-colour-vals 'hfy-color-vals "27.1")
 
 (defvar hfy-cperl-mode-kludged-p nil)
 
@@ -738,7 +739,7 @@ FILE is the name of the file being rendered, in case it is needed."
   "Replace the end of a CSS style declaration STYLE-STRING with the contents
 of the variable `hfy-src-doc-link-style', removing text matching the regex
 `hfy-src-doc-link-unstyle' first, if necessary."
-  ;;(message "hfy-colour-vals");;DBUG
+  ;;(message "hfy-color-vals");;DBUG
   (if (string-match hfy-src-doc-link-unstyle style-string)
       (setq style-string (replace-match "" 'fixed-case 'literal style-string)))
   (if (and (not (string-match hfy-src-doc-link-style style-string))
@@ -751,19 +752,19 @@ of the variable `hfy-src-doc-link-style', removing text matching the regex
 
 ;; utility functions - cast emacs style specification values into their
 ;; css2 equivalents:
-(defun hfy-triplet (colour)
-  "Takes a COLOUR name (string) and return a CSS rgb(R, G, B) triplet string.
+(defun hfy-triplet (color)
+  "Takes a COLOR name (string) and return a CSS rgb(R, G, B) triplet string.
 Uses the definition of \"white\" to map the numbers to the 0-255 range, so
 if you've redefined white, (esp. if you've redefined it to have a triplet
 member lower than that of the color you are processing) strange things
 may happen."
-  ;;(message "hfy-colour-vals");;DBUG
+  ;;(message "hfy-color-vals");;DBUG
   ;; TODO?  Can we do somehow do better than this?
   (cond
-   ((equal colour "unspecified-fg") (setq colour "black"))
-   ((equal colour "unspecified-bg") (setq colour "white")))
-  (let ((white (mapcar (lambda (I) (float (1+ I))) (hfy-colour-vals "white")))
-        (rgb16 (mapcar (lambda (I) (float (1+ I))) (hfy-colour-vals  colour))))
+   ((equal color "unspecified-fg") (setq color "black"))
+   ((equal color "unspecified-bg") (setq color "white")))
+  (let ((white (mapcar (lambda (I) (float (1+ I))) (hfy-color-vals "white")))
+        (rgb16 (mapcar (lambda (I) (float (1+ I))) (hfy-color-vals  color))))
     (if rgb16
         ;;(apply 'format "rgb(%d, %d, %d)"
         ;; Use #rrggbb instead, it is smaller
@@ -774,8 +775,9 @@ may happen."
                        '(0 1 2))))))
 
 (defun hfy-family (family) (list (cons "font-family"  family)))
-(defun hfy-bgcol  (colour) (list (cons "background"   (hfy-triplet colour))))
-(defun hfy-colour (colour) (list (cons "color"        (hfy-triplet colour))))
+(defun hfy-bgcol  (color) (list (cons "background"   (hfy-triplet color))))
+(defun hfy-color (color) (list (cons "color"        (hfy-triplet color))))
+(define-obsolete-function-alias 'hfy-colour 'hfy-color "27.1")
 (defun hfy-width  (width)  (list (cons "font-stretch" (symbol-name  width))))
 
 (defcustom hfy-font-zoom 1.05
@@ -825,17 +827,17 @@ regular specifiers."
       (let ((tag (car  spec))
             (val (cadr spec)))
         (cons (cl-case tag
-                (:color (cons "colour" val))
+                (:color (cons "color" val))
                 (:width (cons "width"  val))
                 (:style (cons "style"  val)))
               (hfy-box-to-border-assoc (cddr spec))))))
 
 (defun hfy-box-to-style (spec)
   (let* ((css (hfy-box-to-border-assoc  spec))
-         (col (cdr      (assoc "colour" css)))
+         (col (cdr      (assoc "color" css)))
          (s   (cdr      (assoc "style"  css))))
     (list
-     (if col (cons "border-color" (cdr (assoc "colour" css))))
+     (if col (cons "border-color" (cdr (assoc "color" css))))
      (cons "border-width" (format "%dpx" (or (cdr (assoc "width" css)) 1)))
      (cons "border-style" (cl-case s
                             (released-button "outset")
@@ -1014,7 +1016,7 @@ merged by the user - `hfy-flatten-style' should do this."
                        (:width          (hfy-width     val))
                        (:weight         (hfy-weight    val))
                        (:slant          (hfy-slant     val))
-                       (:foreground     (hfy-colour    val))
+                       (:foreground     (hfy-color     val))
                        (:background     (hfy-bgcol     val))
                        (:box            (hfy-box       val))
                        (:height         (hfy-size      val))
@@ -1623,8 +1625,8 @@ invisible text.
 
 TEXT-BLOCK is a string that identifies a single chunk of visible
 or invisible text of which the current position is a part.  For
-visible portions, it's value is \"nil\". For invisible portions,
-it's value is computed as part of `hfy-invisible-name'.
+visible portions, its value is \"nil\".  For invisible portions,
+its value is computed as part of `hfy-invisible-name'.
 
 TEXT-ID marks a unique position within a block.  It is set to
 value of `point' at the current buffer position.
@@ -1828,10 +1830,11 @@ fontified.  This is a simple convenience wrapper around
    (noninteractive
     (message "hfy batch mode (%s:%S)"
              (or (buffer-file-name) (buffer-name)) major-mode)
-    (if (fboundp 'font-lock-ensure)
+    (if (fboundp 'font-lock-ensure)     ; Emacs >= 25.1
         (font-lock-ensure)
       (when font-lock-defaults
-        (font-lock-fontify-buffer))))
+        ; Silence "interactive use only" warning on Emacs >= 25.1.
+        (with-no-warnings (font-lock-fontify-buffer)))))
    ((fboundp #'jit-lock-fontify-now)
     (message "hfy jit-lock mode (%S %S)" window-system major-mode)
     (jit-lock-fontify-now))

@@ -1,6 +1,6 @@
 ;;; pcase-tests.el --- Test suite for pcase macro.
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -53,7 +53,7 @@
   (should (pcase-tests-grep
            'memq (macroexpand-all '(pcase x ((or 1 2 3) body)))))
   (should (pcase-tests-grep
-           'member (macroexpand-all '(pcase x ((or '"a" '2 '3) body)))))
+           'member (macroexpand-all '(pcase x ((or "a" 2 3) body)))))
   (should-not (pcase-tests-grep
                'memq (macroexpand-all '(pcase x ((or "a" 2 3) body)))))
   (let ((exp (macroexpand-all

@@ -1,6 +1,6 @@
 ;;; bindat.el --- binary data structure packing and unpacking.
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Assignment name: struct.el
@@ -205,22 +205,22 @@
     (setq bindat-idx (1+ bindat-idx))))
 
 (defun bindat--unpack-u16 ()
-  (logior (lsh (bindat--unpack-u8) 8) (bindat--unpack-u8)))
+  (logior (ash (bindat--unpack-u8) 8) (bindat--unpack-u8)))
 
 (defun bindat--unpack-u24 ()
-  (logior (lsh (bindat--unpack-u16) 8) (bindat--unpack-u8)))
+  (logior (ash (bindat--unpack-u16) 8) (bindat--unpack-u8)))
 
 (defun bindat--unpack-u32 ()
-  (logior (lsh (bindat--unpack-u16) 16) (bindat--unpack-u16)))
+  (logior (ash (bindat--unpack-u16) 16) (bindat--unpack-u16)))
 
 (defun bindat--unpack-u16r ()
-  (logior (bindat--unpack-u8) (lsh (bindat--unpack-u8) 8)))
+  (logior (bindat--unpack-u8) (ash (bindat--unpack-u8) 8)))
 
 (defun bindat--unpack-u24r ()
-  (logior (bindat--unpack-u16r) (lsh (bindat--unpack-u8) 16)))
+  (logior (bindat--unpack-u16r) (ash (bindat--unpack-u8) 16)))
 
 (defun bindat--unpack-u32r ()
-  (logior (bindat--unpack-u16r) (lsh (bindat--unpack-u16r) 16)))
+  (logior (bindat--unpack-u16r) (ash (bindat--unpack-u16r) 16)))
 
 (defun bindat--unpack-item (type len &optional vectype)
   (if (eq type 'ip)
@@ -250,7 +250,7 @@
 	    (if (/= 0 (logand m j))
 		(setq bits (cons bnum bits)))
 	    (setq bnum (1- bnum)
-		  j (lsh j -1)))))
+		  j (ash j -1)))))
       bits))
    ((eq type 'str)
     (let ((s (substring bindat-raw bindat-idx (+ bindat-idx len))))
@@ -459,30 +459,30 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   (setq bindat-idx (1+ bindat-idx)))
 
 (defun bindat--pack-u16 (v)
-  (aset bindat-raw bindat-idx (logand (lsh v -8) 255))
+  (aset bindat-raw bindat-idx (logand (ash v -8) 255))
   (aset bindat-raw (1+ bindat-idx) (logand v 255))
   (setq bindat-idx (+ bindat-idx 2)))
 
 (defun bindat--pack-u24 (v)
-  (bindat--pack-u8 (lsh v -16))
+  (bindat--pack-u8 (ash v -16))
   (bindat--pack-u16 v))
 
 (defun bindat--pack-u32 (v)
-  (bindat--pack-u16 (lsh v -16))
+  (bindat--pack-u16 (ash v -16))
   (bindat--pack-u16 v))
 
 (defun bindat--pack-u16r (v)
-  (aset bindat-raw (1+ bindat-idx) (logand (lsh v -8) 255))
+  (aset bindat-raw (1+ bindat-idx) (logand (ash v -8) 255))
   (aset bindat-raw bindat-idx (logand v 255))
   (setq bindat-idx (+ bindat-idx 2)))
 
 (defun bindat--pack-u24r (v)
   (bindat--pack-u16r v)
-  (bindat--pack-u8 (lsh v -16)))
+  (bindat--pack-u8 (ash v -16)))
 
 (defun bindat--pack-u32r (v)
   (bindat--pack-u16r v)
-  (bindat--pack-u16r (lsh v -16)))
+  (bindat--pack-u16r (ash v -16)))
 
 (defun bindat--pack-item (v type len &optional vectype)
   (if (eq type 'ip)
@@ -515,7 +515,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	    (if (memq bnum v)
 		(setq m (logior m j)))
 	    (setq bnum (1- bnum)
-		  j (lsh j -1))))
+		  j (ash j -1))))
 	(bindat--pack-u8 m))))
    ((memq type '(str strz))
     (let ((l (length v)) (i 0))

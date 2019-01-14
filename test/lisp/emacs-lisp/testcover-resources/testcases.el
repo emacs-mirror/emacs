@@ -1,6 +1,6 @@
 ;;;; testcases.el -- Test cases for testcover-tests.el
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 
@@ -226,7 +226,7 @@
 (should-not (testcover-testcase-cc nil))
 
 ;; ==== quotes-within-backquotes-bug-25316 ====
-"Forms to instrument are found within quotes within backquotes."
+"Forms to analyze are found within quotes within backquotes."
 ;; ====
 (defun testcover-testcase-make-list ()
   (list 'defun 'defvar))
@@ -377,7 +377,7 @@
 (should-error (testcover-testcase-thing 3))
 
 ;; ==== dotted-backquote ====
-"Testcover correctly instruments dotted backquoted lists."
+"Testcover can analyze code inside dotted backquoted lists."
 ;; ====
 (defun testcover-testcase-dotted-bq (flag extras)
   (let* ((bq
@@ -388,7 +388,7 @@
 (should (equal '(a b c d e) (testcover-testcase-dotted-bq t '(d e))))
 
 ;; ==== quoted-backquote ====
-"Testcover correctly instruments the quoted backquote symbol."
+"Testcover correctly handles the quoted backquote symbol."
 ;; ====
 (defun testcover-testcase-special-symbols ()
   (list '\` '\, '\,@))
@@ -396,7 +396,7 @@
 (should (equal '(\` \, \,@) (testcover-testcase-special-symbols)))
 
 ;; ==== backquoted-vector-bug-25316 ====
-"Testcover reinstruments within backquoted vectors."
+"Testcover can analyze code within backquoted vectors."
 ;; ====
 (defun testcover-testcase-vec (a b c)
   `[,a%%% ,(list b%%% c%%%)%%%]%%%)
@@ -411,8 +411,15 @@
 (should (equal '([[4 5] 6]) (testcover-testcase-vec-in-list 4 5 6)))
 (should (equal '([100]) (testcover-testcase-vec-arg 100)))
 
+;; ==== dotted-list-in-vector-bug-30909 ====
+"Testcover can analyze dotted pairs within vectors."
+;; ====
+(defun testcover-testcase-vectors-with-dotted-pairs ()
+  (equal [(1 . "x")] [(1 2 . "y")])%%%)
+(should-not (testcover-testcase-vectors-with-dotted-pairs))
+
 ;; ==== vector-in-macro-spec-bug-25316 ====
-"Testcover reinstruments within vectors."
+"Testcover can analyze code inside vectors."
 ;; ====
 (defmacro testcover-testcase-nth-case (arg vec)
   (declare (indent 1)
@@ -466,7 +473,7 @@ regarding the odd-looking coverage result for the quoted form."
 (should (equal (testcover-testcase-use-thing) 15))
 
 ;; ==== backquoted-dotted-alist ====
-"Testcover can instrument a dotted alist constructed with backquote."
+"Testcover can analyze a dotted alist constructed with backquote."
 ;; ====
 (defun testcover-testcase-make-alist (expr entries)
   `((0 . ,expr%%%) . ,entries%%%)%%%)

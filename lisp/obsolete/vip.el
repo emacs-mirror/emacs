@@ -1,6 +1,6 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2018 Free Software
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
@@ -1858,7 +1858,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
 	       (+ vip-use-register 32) (point) (+ (point) val))
 	    (copy-to-register vip-use-register (point) (+ (point) val) nil))
 	  (setq vip-use-register nil)))
-    (delete-backward-char val t)))
+    (with-no-warnings (delete-backward-char val t))))
 
 
 ;; join lines.

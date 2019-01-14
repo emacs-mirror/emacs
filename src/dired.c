@@ -1,5 +1,5 @@
 /* Lisp functions for making directory listings.
-   Copyright (C) 1985-1986, 1993-1994, 1999-2018 Free Software
+   Copyright (C) 1985-1986, 1993-1994, 1999-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -40,7 +40,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "buffer.h"
 #include "coding.h"
-#include "regex.h"
 
 #ifdef MSDOS
 #include "msdos.h"	/* for fstatat */
@@ -171,7 +170,6 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 {
   ptrdiff_t directory_nbytes;
   Lisp_Object list, dirfilename, encoded_directory;
-  struct re_pattern_buffer *bufp = NULL;
   bool needsep = 0;
   ptrdiff_t count = SPECPDL_INDEX ();
 #ifdef WINDOWSNT
@@ -187,32 +185,11 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
   list = encoded_directory = dirfilename = Qnil;
   dirfilename = Fdirectory_file_name (directory);
 
-  if (!NILP (match))
-    {
-      CHECK_STRING (match);
-
-      /* MATCH might be a flawed regular expression.  Rather than
-	 catching and signaling our own errors, we just call
-	 compile_pattern to do the work for us.  */
-      /* Pass 1 for the MULTIBYTE arg
-	 because we do make multibyte strings if the contents warrant.  */
-# ifdef WINDOWSNT
-      /* Windows users want case-insensitive wildcards.  */
-      bufp = compile_pattern (match, 0,
-			      BVAR (&buffer_defaults, case_canon_table), 0, 1);
-# else	/* !WINDOWSNT */
-      bufp = compile_pattern (match, 0, Qnil, 0, 1);
-# endif	 /* !WINDOWSNT */
-    }
-
   /* Note: ENCODE_FILE and DECODE_FILE can GC because they can run
      run_pre_post_conversion_on_str which calls Lisp directly and
      indirectly.  */
   dirfilename = ENCODE_FILE (dirfilename);
   encoded_directory = ENCODE_FILE (directory);
-
-  /* Now *bufp is the compiled form of MATCH; don't call anything
-     which might compile a new regexp until we're done with the loop!  */
 
   int fd;
   DIR *d = open_directory (dirfilename, &fd);
@@ -250,6 +227,18 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
       || !IS_ANY_SEP (SREF (directory, directory_nbytes - 1)))
     needsep = 1;
 
+  /* Windows users want case-insensitive wildcards.  */
+  Lisp_Object case_table =
+#ifdef WINDOWSNT
+    BVAR (&buffer_defaults, case_canon_table)
+#else
+    Qnil
+#endif
+    ;
+
+  if (!NILP (match))
+    CHECK_STRING (match);
+
   /* Loop reading directory entries.  */
   for (struct dirent *dp; (dp = read_dirent (d, directory)); )
     {
@@ -266,8 +255,9 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full,
 	 allow matching to be interrupted.  */
       maybe_quit ();
 
-      bool wanted = (NILP (match)
-		     || re_search (bufp, SSDATA (name), len, 0, len, 0) >= 0);
+      bool wanted = (NILP (match) ||
+                     fast_string_match_internal (
+                       match, name, case_table) >= 0);
 
       if (wanted)
 	{
@@ -346,7 +336,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
   directory = Fexpand_file_name (directory, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_files);
   if (!NILP (handler))
     return call5 (handler, Qdirectory_files, directory,
@@ -358,7 +348,14 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 DEFUN ("directory-files-and-attributes", Fdirectory_files_and_attributes,
        Sdirectory_files_and_attributes, 1, 5, 0,
        doc: /* Return a list of names of files and their attributes in DIRECTORY.
-There are four optional arguments:
+Value is a list of the form:
+
+  ((FILE1 . FILE1-ATTRS) (FILE2 . FILE2-ATTRS) ...)
+
+where each FILEn-ATTRS is the attributes of FILEn as returned
+by `file-attributes'.
+
+This function accepts four optional arguments:
 If FULL is non-nil, return absolute file names.  Otherwise return names
  that are relative to the specified directory.
 If MATCH is non-nil, mention only file names that match the regexp MATCH.
@@ -374,7 +371,7 @@ which see.  */)
   directory = Fexpand_file_name (directory, Qnil);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (directory, Qdirectory_files_and_attributes);
   if (!NILP (handler))
     return call6 (handler, Qdirectory_files_and_attributes,
@@ -409,13 +406,13 @@ is matched against file and directory names relative to DIRECTORY.  */)
   directory = Fexpand_file_name (directory, Qnil);
 
   /* If the directory name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (directory, Qfile_name_completion);
   if (!NILP (handler))
     return call4 (handler, Qfile_name_completion, file, directory, predicate);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_completion);
   if (!NILP (handler))
     return call4 (handler, Qfile_name_completion, file, directory, predicate);
@@ -437,13 +434,13 @@ is matched against file and directory names relative to DIRECTORY.  */)
   directory = Fexpand_file_name (directory, Qnil);
 
   /* If the directory name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (directory, Qfile_name_all_completions);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_all_completions, file, directory);
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (file, Qfile_name_all_completions);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_all_completions, file, directory);
@@ -677,15 +674,15 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
       /* Reject entries where the encoded strings match, but the
          decoded don't.  For example, "a" should not match "a-ring" on
          file systems that store decomposed characters. */
-      Lisp_Object zero = make_number (0);
+      Lisp_Object zero = make_fixnum (0);
 
       if (check_decoded && SCHARS (file) <= SCHARS (name))
 	{
 	  /* FIXME: This is a copy of the code below.  */
 	  ptrdiff_t compare = SCHARS (file);
 	  Lisp_Object cmp
-	    = Fcompare_strings (name, zero, make_number (compare),
-				file, zero, make_number (compare),
+	    = Fcompare_strings (name, zero, make_fixnum (compare),
+				file, zero, make_fixnum (compare),
 				completion_ignore_case ? Qt : Qnil);
 	  if (!EQ (cmp, Qt))
 	    continue;
@@ -707,10 +704,10 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 	  /* FIXME: This is a copy of the code in Ftry_completion.  */
 	  ptrdiff_t compare = min (bestmatchsize, SCHARS (name));
 	  Lisp_Object cmp
-	    = Fcompare_strings (bestmatch, zero, make_number (compare),
-				name, zero, make_number (compare),
+	    = Fcompare_strings (bestmatch, zero, make_fixnum (compare),
+				name, zero, make_fixnum (compare),
 				completion_ignore_case ? Qt : Qnil);
-	  ptrdiff_t matchsize = EQ (cmp, Qt) ? compare : eabs (XINT (cmp)) - 1;
+	  ptrdiff_t matchsize = EQ (cmp, Qt) ? compare : eabs (XFIXNUM (cmp)) - 1;
 
 	  if (completion_ignore_case)
 	    {
@@ -735,13 +732,13 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
 		    ==
 		    (matchsize + directoryp == SCHARS (bestmatch)))
 		   && (cmp = Fcompare_strings (name, zero,
-					       make_number (SCHARS (file)),
+					       make_fixnum (SCHARS (file)),
 					       file, zero,
 					       Qnil,
 					       Qnil),
 		       EQ (Qt, cmp))
 		   && (cmp = Fcompare_strings (bestmatch, zero,
-					       make_number (SCHARS (file)),
+					       make_fixnum (SCHARS (file)),
 					       file, zero,
 					       Qnil,
 					       Qnil),
@@ -775,8 +772,8 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, bool all_flag,
      it does not require any change to be made.  */
   if (matchcount == 1 && !NILP (Fequal (bestmatch, file)))
     return Qt;
-  bestmatch = Fsubstring (bestmatch, make_number (0),
-			  make_number (bestmatchsize));
+  bestmatch = Fsubstring (bestmatch, make_fixnum (0),
+			  make_fixnum (bestmatchsize));
   return bestmatch;
 }
 
@@ -872,28 +869,22 @@ provided: `file-attribute-type', `file-attribute-link-number',
 Elements of the attribute list are:
  0. t for directory, string (name linked to) for symbolic link, or nil.
  1. Number of links to file.
- 2. File uid as a string or a number.  If a string value cannot be
-  looked up, a numeric value, either an integer or a float, is returned.
+ 2. File uid as a string or (if ID-FORMAT is `integer' or a string value
+  cannot be looked up) as an integer.
  3. File gid, likewise.
- 4. Last access time, as a list of integers (HIGH LOW USEC PSEC) in the
-  same style as (current-time).
+ 4. Last access time, in the style of `current-time'.
   (See a note below about access time on FAT-based filesystems.)
  5. Last modification time, likewise.  This is the time of the last
   change to the file's contents.
  6. Last status change time, likewise.  This is the time of last change
   to the file's attributes: owner and group, access mode bits, etc.
- 7. Size in bytes.
-  This is a floating point number if the size is too large for an integer.
+ 7. Size in bytes, as an integer.
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. An unspecified value, present only for backward compatibility.
-10. inode number.  If it is larger than what an Emacs integer can hold,
-  this is of the form (HIGH . LOW): first the high bits, then the low 16 bits.
-  If even HIGH is too large for an Emacs integer, this is instead of the form
-  (HIGH MIDDLE . LOW): first the high bits, then the middle 24 bits,
-  and finally the low 16 bits.
-11. Filesystem device number.  If it is larger than what the Emacs
-  integer can hold, this is a cons cell, similar to the inode number.
+10. inode number, as a nonnegative integer.
+11. Filesystem device number, as an integer.
 
+Large integers are bignums, so `eq' might not work on them.
 On most filesystems, the combination of the inode and the device
 number uniquely identifies the file.
 
@@ -913,11 +904,12 @@ so last access time will always be midnight of that day.  */)
     return Qnil;
 
   /* If the file name has special constructs in it,
-     call the corresponding file handler.  */
+     call the corresponding file name handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_attributes);
   if (!NILP (handler))
-    { /* Only pass the extra arg if it is used to help backward compatibility
-	 with old file handlers which do not implement the new arg.  --Stef  */
+    { /* Only pass the extra arg if it is used to help backward
+	 compatibility with old file name handlers which do not
+	 implement the new arg.  --Stef */
       if (NILP (id_format))
 	return call2 (handler, Qfile_attributes, filename);
       else
@@ -1015,13 +1007,13 @@ file_attributes (int fd, char const *name,
 
   return CALLN (Flist,
 		file_type,
-		make_number (s.st_nlink),
+		make_fixnum (s.st_nlink),
 		(uname
 		 ? DECODE_SYSTEM (build_unibyte_string (uname))
-		 : make_fixnum_or_float (s.st_uid)),
+		 : INT_TO_INTEGER (s.st_uid)),
 		(gname
 		 ? DECODE_SYSTEM (build_unibyte_string (gname))
-		 : make_fixnum_or_float (s.st_gid)),
+		 : INT_TO_INTEGER (s.st_gid)),
 		make_lisp_time (get_stat_atime (&s)),
 		make_lisp_time (get_stat_mtime (&s)),
 		make_lisp_time (get_stat_ctime (&s)),
@@ -1030,14 +1022,14 @@ file_attributes (int fd, char const *name,
 		   files of sizes in the 2-4 GiB range wrap around to
 		   negative values, as this is a common bug on older
 		   32-bit platforms.  */
-		make_fixnum_or_float (sizeof (s.st_size) == 4
-				      ? s.st_size & 0xffffffffu
-				      : s.st_size),
+		INT_TO_INTEGER (sizeof (s.st_size) == 4
+			    ? s.st_size & 0xffffffffu
+			    : s.st_size),
 
 		make_string (modes, 10),
 		Qt,
-		INTEGER_TO_CONS (s.st_ino),
-		INTEGER_TO_CONS (s.st_dev));
+		INT_TO_INTEGER (s.st_ino),
+		INT_TO_INTEGER (s.st_dev));
 }
 
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,
@@ -1064,7 +1056,7 @@ return a list with one element, taken from `user-real-login-name'.  */)
 
   endpwent ();
 #endif
-  if (EQ (users, Qnil))
+  if (NILP (users))
     /* At least current user is always known. */
     users = list1 (Vuser_real_login_name);
   return users;

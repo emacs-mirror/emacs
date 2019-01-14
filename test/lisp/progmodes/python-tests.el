@@ -1,6 +1,6 @@
 ;;; python-tests.el --- Test suite for python.el
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1161,10 +1161,13 @@ def b()
 if do:
     something()
     else
+outside
 "
    (python-tests-look-at "else")
    (goto-char (line-end-position))
    (python-tests-self-insert ":")
+   (should (= (current-indentation) 0))
+   (python-tests-look-at "outside")
    (should (= (current-indentation) 0))))
 
 (ert-deftest python-indent-electric-colon-3 ()
@@ -2003,6 +2006,12 @@ string
                 (goto-char (point-max))
                 (python-util-forward-comment -1)
                 (point))))))
+
+(ert-deftest python-nav-end-of-statement-2 ()
+  "Test the string overlap assertion (Bug#30964)."
+  (python-tests-with-temp-buffer
+   "'\n''\n"
+   (python-nav-end-of-statement)))
 
 (ert-deftest python-nav-forward-statement-1 ()
   (python-tests-with-temp-buffer
@@ -5352,6 +5361,15 @@ buffer with overlapping strings."
                     (python-nav-end-of-statement)))
     (should (eolp))))
 
+;; After call `run-python' the buffer running the python process is current.
+(ert-deftest python-tests--bug31398 ()
+  "Test for https://debbugs.gnu.org/31398 ."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (let ((buffer (process-buffer (run-python nil nil 'show))))
+    (should (eq buffer (current-buffer)))
+    (pop-to-buffer (other-buffer))
+    (run-python nil nil 'show)
+    (should (eq buffer (current-buffer)))))
 
 (provide 'python-tests)
 

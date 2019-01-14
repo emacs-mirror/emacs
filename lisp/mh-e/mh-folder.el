@@ -1,6 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2019 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -88,7 +88,7 @@ the MH mail system."
 When desktop creates a buffer, DESKTOP-BUFFER-FILE-NAME holds the
 file name to visit, DESKTOP-BUFFER-NAME holds the desired buffer
 name, and DESKTOP-BUFFER-MISC holds a list of miscellaneous info
-used by the `desktop-buffer-handlers' functions."
+used by the `desktop-buffer-mode-handlers' functions."
   (mh-find-path)
   (mh-visit-folder desktop-buffer-name)
   (current-buffer))
@@ -519,7 +519,7 @@ font-lock is done highlighting.")
 (defmacro mh-remove-xemacs-horizontal-scrollbar ()
   "Get rid of the horizontal scrollbar that XEmacs insists on putting in."
   (when (featurep 'xemacs)
-    `(if (and (featurep 'scrollbar)
+    '(if (and (featurep 'scrollbar)
               (fboundp 'set-specifier))
          (set-specifier horizontal-scrollbar-visible-p nil
                         (cons (current-buffer) nil)))))

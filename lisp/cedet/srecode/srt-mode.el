@@ -1,6 +1,6 @@
 ;;; srecode/srt-mode.el --- Major mode for writing screcode macros
 
-;; Copyright (C) 2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -494,7 +494,7 @@ section or ? for an ask variable."
 	  (let* ((macroend (match-beginning 0))
 		 (raw (buffer-substring-no-properties
 		       macrostart macroend))
-		 (STATE (srecode-compile-state "TMP"))
+		 (STATE (srecode-compile-state))
 		 (inserter (condition-case nil
 			       (srecode-compile-parse-inserter
 				raw STATE)
@@ -605,7 +605,6 @@ section or ? for an ask variable."
 
 	(setq context-return
 	      (semantic-analyze-context-functionarg
-	       "context-for-srecode"
 	       :buffer (current-buffer)
 	       :scope scope
 	       :bounds bounds

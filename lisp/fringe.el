@@ -1,6 +1,6 @@
-;;; fringe.el --- fringe setup and control
+;;; fringe.el --- fringe setup and control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -290,6 +290,24 @@ SIDE must be the symbol `left' or `right'."
 			(window-fringes))
 	       0)
            (float (frame-char-width))))
+
+;;;###autoload
+(unless (fboundp 'define-fringe-bitmap)
+  (defun define-fringe-bitmap (_bitmap _bits &optional _height _width _align)
+    "Define fringe bitmap BITMAP from BITS of size HEIGHT x WIDTH.
+BITMAP is a symbol identifying the new fringe bitmap.
+BITS is either a string or a vector of integers.
+HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
+WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
+Optional fifth arg ALIGN may be one of ‘top’, ‘center’, or ‘bottom’,
+indicating the positioning of the bitmap relative to the rows where it
+is used; the default is to center the bitmap.  Fifth arg may also be a
+list (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap
+should be repeated.
+If BITMAP already exists, the existing definition is replaced."
+    ;; This is a fallback for non-GUI builds.
+    ;; The real implementation is in src/fringe.c.
+    ))
 
 (provide 'fringe)
 

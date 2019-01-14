@@ -1,6 +1,6 @@
 ;;; mh-acros.el --- macros used in MH-E
 
-;; Copyright (C) 2004, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -61,8 +61,8 @@ particular, the expansion of (setf (gethash ...) ...) used
 functions in \"cl\" at run time. This macro recognizes that and
 loads \"cl\" appropriately."
   (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
-      `(require 'cl)
-    `(eval-when-compile (require 'cl))))
+      '(require 'cl)
+    '(eval-when-compile (require 'cl))))
 
 ;;;###mh-autoload
 (defmacro mh-do-in-gnu-emacs (&rest body)
@@ -128,11 +128,11 @@ XEmacs and versions of GNU Emacs before 21.1 require
 In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then
 check if variable `transient-mark-mode' is active."
   (cond ((featurep 'xemacs)             ;XEmacs
-         `(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
+         '(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
         ((not check-transient-mark-mode-flag) ;GNU Emacs
-         `(and (boundp 'mark-active) mark-active))
+         '(and (boundp 'mark-active) mark-active))
         (t                              ;GNU Emacs
-         `(and (boundp 'transient-mark-mode) transient-mark-mode
+         '(and (boundp 'transient-mark-mode) transient-mark-mode
                (boundp 'mark-active) mark-active))))
 
 ;; Shush compiler.

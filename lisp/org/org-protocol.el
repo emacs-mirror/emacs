@@ -1,6 +1,6 @@
 ;;; org-protocol.el --- Intercept Calls from Emacsclient to Trigger Custom Actions -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Daniel M German <dmg AT uvic DOT org>
@@ -184,10 +184,10 @@ Possible properties are:
 Example:
 
    (setq org-protocol-project-alist
-       \\='((\"http://orgmode.org/worg/\"
+       \\='((\"https://orgmode.org/worg/\"
           :online-suffix \".php\"
           :working-suffix \".org\"
-          :base-url \"http://orgmode.org/worg/\"
+          :base-url \"https://orgmode.org/worg/\"
           :working-directory \"/home/user/org/Worg/\")
          (\"http://localhost/org-notes/\"
           :online-suffix \".html\"
@@ -349,17 +349,20 @@ returned list."
 	  ret)
       l)))
 
-(defun org-protocol-flatten (list)
-  "Transform LIST into a flat list.
+(defalias 'org-protocol-flatten
+  (if (fboundp 'flatten-tree) 'flatten-tree
+    (lambda (list)
+      "Transform LIST into a flat list.
 
 Greedy handlers might receive a list like this from emacsclient:
 \((\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\"))
 where \"/dir/\" is the absolute path to emacsclients working directory.
 This function transforms it into a flat list."
-  (if (null list) ()
-    (if (listp list)
-	(append (org-protocol-flatten (car list)) (org-protocol-flatten (cdr list)))
-      (list list))))
+      (if list
+	  (if (consp list)
+	      (append (org-protocol-flatten (car list))
+		      (org-protocol-flatten (cdr list)))
+	    (list list))))))
 
 (defun org-protocol-parse-parameters (info &optional new-style default-order)
   "Return a property list of parameters from INFO.
@@ -688,7 +691,7 @@ the cdr of an element in `org-publish-project-alist', reuse
   (let ((working-dir (expand-file-name
 		      (or (plist-get project-plist :base-directory)
 			  default-directory)))
-        (base-url "http://orgmode.org/worg/")
+        (base-url "https://orgmode.org/worg/")
         (strip-suffix (or (plist-get project-plist :html-extension) ".html"))
         (working-suffix (if (plist-get project-plist :base-extension)
                             (concat "." (plist-get project-plist :base-extension))

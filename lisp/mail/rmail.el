@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1988, 1993-1998, 2000-2018 Free Software
+;; Copyright (C) 1985-1988, 1993-1998, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -191,9 +191,6 @@ Its name should end with a slash."
   :group 'rmail-retrieve
   :type '(choice (const nil) string))
 
-(define-obsolete-variable-alias 'rmail-pop-password
-  'rmail-remote-password "22.1")
-
 (defcustom rmail-remote-password nil
   "Password to use when reading mail from a remote server.
 This setting is ignored for mailboxes whose URL already contains a password."
@@ -201,9 +198,6 @@ This setting is ignored for mailboxes whose URL already contains a password."
 		 (const :tag "Not Required" nil))
   :group 'rmail-retrieve
   :version "22.1")
-
-(define-obsolete-variable-alias 'rmail-pop-password-required
-  'rmail-remote-password-required "22.1")
 
 (defcustom rmail-remote-password-required nil
   "Non-nil if a password is required when reading mail from a remote server."
@@ -857,7 +851,7 @@ that knows the exact ordering of the \\( \\) subexpressions.")
 	       (beginning-of-line) (end-of-line)
 	       (1 font-lock-comment-delimiter-face nil t)
 	       (5 font-lock-comment-face nil t)))
-	    '("^\\(X-[a-z0-9-]+\\|In-reply-to\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
+	    '("^\\(X-[a-z0-9-]+\\|In-Reply-To\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
 	      . 'rmail-header-name))))
   "Additional expressions to highlight in Rmail mode.")
 
@@ -2034,10 +2028,10 @@ Value is the size of the newly read mail after conversion."
 			  "the remote server"
 			proto)))
 	    ((and (file-exists-p tofile)
-		  (/= 0 (nth 7 (file-attributes tofile))))
+		  (/= 0 (file-attribute-size (file-attributes tofile))))
 	     (message "Getting mail from %s..." tofile))
 	    ((and (file-exists-p file)
-		  (/= 0 (nth 7 (file-attributes file))))
+		  (/= 0 (file-attribute-size (file-attributes file))))
 	     (message "Getting mail from %s..." file)))
       ;; Set TOFILE if have not already done so, and
       ;; rename or copy the file FILE to TOFILE if and as appropriate.
@@ -3795,7 +3789,7 @@ original message into it."
 
 (defun rmail-reply (just-sender)
   "Reply to the current message.
-Normally include CC: to all other recipients of original message;
+Normally include Cc: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
@@ -3829,7 +3823,7 @@ use \\[mail-yank-original] to yank the original message into it."
        (unless just-sender
 	 (if (mail-fetch-field "mail-followup-to" nil t)
 	     ;; If this header field is present, use it instead of the
-	     ;; To and CC fields.
+	     ;; To and Cc fields.
 	     (setq to (mail-fetch-field "mail-followup-to" nil t))
 	   (setq cc (or (mail-fetch-field "cc" nil t) "")
 		 to (or (mail-fetch-field "to" nil t) ""))))))
@@ -4132,6 +4126,7 @@ typically for purposes of moderating a list."
 	  "^ *---+ +Original message follows +---+ *$\\|"
 	  "^ *---+ +Your message follows +---+ *$\\|"
 	  "^|? *---+ +Message text follows: +---+ *|?$\\|"
+          "^ *---+ +This is a copy of \\w+ message, including all the headers.*---+ *\n *---+ +The body of the message is [0-9]+ characters long; only the first *\n *---+ +[0-9]+ or so are included here\\. *$\\|"
 	  "^ *---+ +This is a copy of \\w+ message, including all the headers.*---+ *$")
   "A regexp that matches the separator before the text of a failed message.")
 
@@ -4280,7 +4275,7 @@ specifying headers which should not be copied into the new message."
 	      (if mail-self-blind
 		  (if resending
 		      (insert "Resent-Bcc: " (user-login-name) "\n")
-		    (insert "BCC: " (user-login-name) "\n"))))
+		    (insert "Bcc: " (user-login-name) "\n"))))
 	    (goto-char (point-min))
 	    (mail-position-on-field (if resending "Resent-To" "To") t))))))
 
@@ -4520,7 +4515,7 @@ encoded string (and the same mask) will decode the string."
      (if (= curmask 0)
 	 (setq curmask mask))
      (setq charmask (% curmask 256))
-     (setq curmask (lsh curmask -8))
+     (setq curmask (ash curmask -8))
      (aset string-vector i (logxor charmask (aref string-vector i)))
      (setq i (1+ i)))
    (concat string-vector)))

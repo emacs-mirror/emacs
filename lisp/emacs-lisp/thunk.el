@@ -1,6 +1,6 @@
 ;;; thunk.el --- Lazy form evaluation  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
@@ -48,7 +48,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-macs))
+(require 'cl-lib)
 
 (defmacro thunk-delay (&rest body)
   "Delay the evaluation of BODY."

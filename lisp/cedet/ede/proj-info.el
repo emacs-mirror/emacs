@@ -1,6 +1,6 @@
 ;;; ede-proj-info.el --- EDE Generic Project texinfo support
 
-;;; Copyright (C) 1998-2001, 2004, 2007-2018 Free Software Foundation,
+;;; Copyright (C) 1998-2001, 2004, 2007-2019 Free Software Foundation,
 ;;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -43,15 +43,13 @@ All other sources should be included independently."))
   "Target for a single info file.")
 
 (defvar ede-makeinfo-source
-  (ede-sourcecode "ede-makeinfo-source"
-		  :name "Texinfo"
+  (ede-sourcecode :name "Texinfo"
 		  :sourcepattern "\\.texi?$"
 		  :garbagepattern '("*.info*" "*.html"))
   "Texinfo source code definition.")
 
 (defvar ede-makeinfo-compiler
   (ede-compiler
-   "ede-makeinfo-compiler"
    :name "makeinfo"
    :variables '(("MAKEINFO" . "makeinfo"))
    :commands '("$(MAKEINFO) $<")
@@ -62,7 +60,6 @@ All other sources should be included independently."))
 
 (defvar ede-texi2html-compiler
   (ede-compiler
-   "ede-texi2html-compiler"
    :name "texi2html"
    :variables '(("TEXI2HTML" . "makeinfo -html"))
    :commands '("makeinfo -o $@ $<")

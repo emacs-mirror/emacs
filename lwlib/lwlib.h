@@ -1,6 +1,6 @@
 /*
 Copyright (C) 1992, 1993 Lucid, Inc.
-Copyright (C) 1994, 1999-2018 Free Software Foundation, Inc.
+Copyright (C) 1994, 1999-2019 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -111,15 +111,9 @@ void lw_refigure_widget (Widget w, Boolean doit);
 Boolean lw_window_is_in_menubar (Window win, Widget menubar_widget);
 
 /* Manage resizing: TRUE permits resizing widget w; FALSE disallows it. */
-#ifndef USE_MOTIF
-ATTRIBUTE_CONST
-#endif
 void lw_allow_resizing (Widget w, Boolean flag);
 
 /* Set up the main window. */
-#ifndef USE_MOTIF
-ATTRIBUTE_CONST
-#endif
 void lw_set_main_areas (Widget parent,
                         Widget menubar,
                         Widget work_area);

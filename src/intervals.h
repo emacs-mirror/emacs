@@ -1,5 +1,5 @@
 /* Definitions and global variables for intervals.
-   Copyright (C) 1993-1994, 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -115,7 +115,7 @@ struct interval
 
 /* True if this is a default interval, which is the same as being null
    or having no properties.  */
-#define DEFAULT_INTERVAL_P(i) (!i || EQ ((i)->plist, Qnil))
+#define DEFAULT_INTERVAL_P(i) (!i || NILP ((i)->plist))
 
 /* Test what type of parent we have.  Three possibilities: another
    interval, a buffer or string object, or NULL.  */

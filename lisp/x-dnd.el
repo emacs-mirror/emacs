@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -556,18 +556,18 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 (defun x-dnd-motif-value-to-list (value size byteorder)
   (let ((bytes (cond ((eq size 2)
-		      (list (logand (lsh value -8) ?\xff)
+		      (list (logand (ash value -8) ?\xff)
 			    (logand value ?\xff)))
 
 		     ((eq size 4)
 		      (if (consp value)
-			  (list (logand (lsh (car value) -8) ?\xff)
+			  (list (logand (ash (car value) -8) ?\xff)
 				(logand (car value) ?\xff)
-				(logand (lsh (cdr value) -8) ?\xff)
+				(logand (ash (cdr value) -8) ?\xff)
 				(logand (cdr value) ?\xff))
-			(list (logand (lsh value -24) ?\xff)
-			      (logand (lsh value -16) ?\xff)
-			      (logand (lsh value -8) ?\xff)
+			(list (logand (ash value -24) ?\xff)
+			      (logand (ash value -16) ?\xff)
+			      (logand (ash value -8) ?\xff)
 			      (logand value ?\xff)))))))
     (if (eq byteorder ?l)
 	(reverse bytes)

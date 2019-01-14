@@ -12,7 +12,7 @@
 @copying
 This file documents the Emacs Sieve package, for server-side mail filtering.
 
-Copyright @copyright{} 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -127,7 +127,7 @@ bindings to manage Sieve scripts remotely. @xref{Managing Sieve}.
 @kindex C-c RET
 @findex sieve-manage
 @cindex manage remote sieve script
-Open a connection to a remote server using the Managesieve protocol.
+Open a connection to a remote server using the Manage Sieve protocol.
 
 @item C-c C-l
 @kindex C-c C-l

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2004-2019 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -208,7 +208,13 @@ line is a continuation of the previous line.  We call this @dfn{fixed
 form}.  (In GNU Emacs we always count columns from 0; but note that
 the Fortran standard counts from 1.  You can customize the variable
 @code{column-number-indicator-zero-based} to make the column display
-Fortran-like; @pxref{Optional Mode Line}.)  The variable
+@iftex
+Fortran-like; @pxref{Optional Mode Line,,, emacs, the Emacs Manual}.)
+@end iftex
+@ifnottex
+Fortran-like; @pxref{Optional Mode Line}.)
+@end ifnottex
+The variable
 @code{fortran-continuation-string} specifies what character to put in
 column 5.  A line that starts with a tab character followed by any digit
 except @samp{0} is also a continuation line.  We call this style of
@@ -254,7 +260,13 @@ column 8 must consist of one tab character.
 indentation assumes it is a line number and moves it to columns 0
 through 4.  (Columns always count from 0 in Emacs, but setting
 @code{column-number-indicator-zero-based} to @code{nil} can change
-that, @pxref{Optional Mode Line}.)
+that,
+@iftex
+@pxref{Optional Mode Line,,, emacs, the Emacs Manual}.)
+@end iftex
+@ifnottex
+@pxref{Optional Mode Line}.)
+@end ifnottex
 
 @vindex fortran-line-number-indent
   Line numbers of four digits or less are normally indented one space.
@@ -535,7 +547,13 @@ statement body.  Column numbers appear above them.
 
   Note that the column numbers count from zero, as always in GNU Emacs
 (but customizing @code{column-number-indicator-zero-based} can change
-column display to match that of Fortran; @pxref{Optional Mode Line}).
+column display to match that of Fortran;
+@iftex
+@pxref{Optional Mode Line,,, emacs, the Emacs Manual}.)
+@end iftex
+@ifnottex
+@pxref{Optional Mode Line}.)
+@end ifnottex
 As a result, the numbers may be one less than those you are familiar
 with; but the positions they indicate in the line are standard for
 Fortran.

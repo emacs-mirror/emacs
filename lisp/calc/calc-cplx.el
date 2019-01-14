@@ -1,6 +1,6 @@
 ;;; calc-cplx.el --- Complex number functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -273,8 +273,8 @@
     (or (eq (car-safe val) 'special-const)
 	(equal val '(cplx 0 1))
 	(and (eq (car-safe val) 'polar)
-	     (eq (nth 1 val) 0)
-	     (Math-equal (nth 1 val) (math-quarter-circle nil))))))
+	     (eq (nth 1 val) 1)
+	     (Math-equal (nth 2 val) (math-quarter-circle nil))))))
 
 ;;; Extract the real or complex part of a complex number.  [R N] [Public]
 ;;; Also extracts the real part of a modulo form.

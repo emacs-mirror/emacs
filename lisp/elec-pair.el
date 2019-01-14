@@ -1,6 +1,6 @@
 ;;; elec-pair.el --- Automatic parenthesis pairing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 
@@ -154,6 +154,13 @@ return value is considered instead."
                       (const :tag "Tab" ?\t)
                       (const :tag "Newline" ?\n))
                  (list character)))
+
+(defvar-local electric-pair-skip-whitespace-function
+  #'electric-pair--skip-whitespace
+  "Function to use to skip whitespace forward.
+Before attempting a skip, if `electric-pair-skip-whitespace' is
+non-nil, this function is called. It move point to a new buffer
+position, presumably skipping only whitespace in between.")
 
 (defun electric-pair--skip-whitespace ()
   "Skip whitespace forward, not crossing comment or string boundaries."
@@ -501,7 +508,7 @@ happened."
                                                (functionp electric-pair-skip-whitespace))
                                           (funcall electric-pair-skip-whitespace)
                                         electric-pair-skip-whitespace)))
-                       (electric-pair--skip-whitespace))
+                       (funcall electric-pair-skip-whitespace-function))
                      (eq (char-after) last-command-event))))
          ;; This is too late: rather than insert&delete we'd want to only
          ;; skip (or insert in overwrite mode).  The difference is in what
@@ -509,13 +516,13 @@ happened."
          ;; be visible to other post-self-insert-hook.  We'll just have to
          ;; live with it for now.
          (when skip-whitespace-info
-           (electric-pair--skip-whitespace))
+           (funcall electric-pair-skip-whitespace-function))
          (delete-region (1- pos) (if (eq skip-whitespace-info 'chomp)
                                      (point)
                                    pos))
          (forward-char))
         ;; Insert matching pair.
-        ((and (memq syntax `(?\( ?\" ?\$))
+        ((and (memq syntax '(?\( ?\" ?\$))
               (not overwrite-mode)
               (or unconditional
                   (not (funcall electric-pair-inhibit-predicate
@@ -574,9 +581,6 @@ ARG and KILLP are passed directly to
 ;;;###autoload
 (define-minor-mode electric-pair-mode
   "Toggle automatic parens pairing (Electric Pair mode).
-With a prefix argument ARG, enable Electric Pair mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Electric Pair mode is a global minor mode.  When enabled, typing
 an open parenthesis automatically inserts the corresponding

@@ -1,10 +1,10 @@
 ;;; ob-stan.el --- Babel Functions for Stan          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Kyle Meyer
 ;; Keywords: literate programming, reproducible research
-;; Homepage: http://orgmode.org
+;; Homepage: https://orgmode.org
 
 ;; This file is part of GNU Emacs.
 
@@ -39,7 +39,7 @@
 ;;    that does not end in ".stan".
 ;;
 ;; For more information and usage examples, visit
-;; http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
+;; https://orgmode.org/worg/org-contrib/babel/languages/ob-doc-stan.html
 ;;
 ;; [1] http://mc-stan.org/
 

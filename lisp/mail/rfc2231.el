@@ -1,6 +1,6 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -22,6 +22,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
 (require 'ietf-drums)
 (require 'rfc2047)
 (autoload 'mm-encode-body "mm-bodies")

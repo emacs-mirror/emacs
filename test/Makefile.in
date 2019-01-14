@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2018 Free Software Foundation, Inc.
+# Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -81,7 +81,7 @@ EMACS_EXTRAOPT=
 # Command line flags for Emacs.
 # Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
 # but we might as well be explicit.
-EMACSOPT = -batch --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(EMACS_EXTRAOPT)
+EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(EMACS_EXTRAOPT)
 
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
@@ -94,19 +94,30 @@ GDB =
 # supported everywhere.
 TEST_LOCALE = C
 
+# Set this to 'yes' to run the tests in an interactive instance.
+TEST_INTERACTIVE ?= no
+
+ifeq ($(TEST_INTERACTIVE),yes)
+TEST_RUN_ERT = --eval '(ert (quote ${SELECTOR_ACTUAL}))'
+else
+TEST_RUN_ERT = --batch --eval '(ert-run-tests-batch-and-exit (quote ${SELECTOR_ACTUAL}))' ${WRITE_LOG}
+endif
+
 # Whether to run tests from .el files in preference to .elc, we do
 # this by default since it gives nicer stacktraces.
 # If you just want a pass/fail, setting this to no is much faster.
-TEST_LOAD_EL ?= yes
+export TEST_LOAD_EL ?= \
+    $(if $(findstring $(MAKECMDGOALS), all check check-maybe),no,yes)
+
+# Additional settings for ert.
+ert_opts =
 
 # Maximum length of lines in ert backtraces; nil for no limit.
 # (if empty, use the default ert-batch-backtrace-right-margin).
 TEST_BACKTRACE_LINE_LENGTH =
 
-ifeq (${TEST_BACKTRACE_LINE_LENGTH},)
-ert_opts =
-else
-ert_opts = --eval '(setq ert-batch-backtrace-right-margin ${TEST_BACKTRACE_LINE_LENGTH})'
+ifneq (${TEST_BACKTRACE_LINE_LENGTH},)
+ert_opts += --eval '(setq ert-batch-backtrace-right-margin ${TEST_BACKTRACE_LINE_LENGTH})'
 endif
 
 ifeq (@HAVE_MODULES@, yes)
@@ -121,15 +132,20 @@ emacs = EMACSLOADPATH= LC_ALL=$(TEST_LOCALE) \
  EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
  $(GDB) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
 
+# Set HOME to a nonexistent directory to prevent tests from accessing
+# it accidentally (e.g., popping up a gnupg dialog if ~/.authinfo.gpg
+# exists, or writing to ~/.bzr.log when running bzr commands).
+TEST_HOME = /nonexistent
+
 test_module_dir := data/emacs-module
 
 .PHONY: all check
 
 all: check
 
-SELECTOR_DEFAULT = (quote (not (or (tag :expensive-test) (tag :unstable))))
-SELECTOR_EXPENSIVE = (quote (not (tag :unstable)))
-SELECTOR_ALL = nil
+SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable)))
+SELECTOR_EXPENSIVE = (not (tag :unstable))
+SELECTOR_ALL = t
 ifdef SELECTOR
 SELECTOR_ACTUAL=$(SELECTOR)
 else ifndef MAKECMDGOALS
@@ -146,13 +162,12 @@ endif
 
 ## Byte-compile all test files to test for errors.
 %.elc: %.el
-	$(AM_V_ELC)$(emacs) -f batch-byte-compile $<
+	$(AM_V_ELC)$(emacs) --batch -f batch-byte-compile $<
 
 ## Save logs, and show logs for failed tests.
 WRITE_LOG = > $@ 2>&1 || { STAT=$$?; cat $@; exit $$STAT; }
 ifdef EMACS_HYDRA_CI
 ## On Hydra, always show logs for certain problematic tests.
-lisp/emacs-lisp/eieio-tests/eieio-tests.log \
 lisp/net/tramp-tests.log \
 : WRITE_LOG = 2>&1 | tee $@
 endif
@@ -165,15 +180,21 @@ endif
 
 %.log: %.elc
 	$(AM_V_at)${MKDIR_P} $(dir $@)
-	$(AM_V_GEN)HOME=/nonexistent $(emacs) \
+	$(AM_V_GEN)HOME=$(TEST_HOME) $(emacs) \
 	  -l ert ${ert_opts} -l $(testloadfile) \
-	  --eval "(ert-run-tests-batch-and-exit ${SELECTOR_ACTUAL})" ${WRITE_LOG}
+	  $(TEST_RUN_ERT)
 
 ifeq (@HAVE_MODULES@, yes)
 maybe_exclude_module_tests :=
 else
 maybe_exclude_module_tests := -name emacs-module-tests.el -prune -o
 endif
+
+## Optional list of .el files to exclude from testing.
+## Intended for use in automated testing where one or more files
+## has some problem and needs to be excluded.
+## To avoid writing full name, can use eg %foo-tests.el.
+EXCLUDE_TESTS =
 
 ## To speed up parallel builds, put these slow test files (which can
 ## take longer than all the rest combined) at the start of the list.
@@ -186,6 +207,8 @@ ELFILES := $(sort $(shell find ${srcdir} -path "${srcdir}/manual" -prune -o \
 		-name "*.el" ! -name ".*" -print))
 
 $(foreach slow,${SLOW_TESTS},$(eval ELFILES:= ${slow} $(filter-out ${slow},${ELFILES})))
+
+$(foreach exclude,${EXCLUDE_TESTS},$(eval ELFILES:= $(filter-out ${exclude},${ELFILES})))
 
 ## .log files may be in a different directory for out of source builds
 LOGFILES := $(patsubst %.el,%.log, \
@@ -231,12 +254,14 @@ else
 FPIC_CFLAGS = -fPIC
 endif
 
+# Note: emacs-module.h is generated from emacs-module.h.in, hence we
+# look in ../src, not $(srcdir)/../src.
 MODULE_CFLAGS = -I../src $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 
 test_module = $(test_module_dir)/mod-test${SO}
 src/emacs-module-tests.log: $(test_module)
-$(test_module): $(test_module:${SO}=.c) $(srcdir)/../src/emacs-module.h
+$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
 	$(AM_V_at)${MKDIR_P} $(dir $@)
 	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
 	  -o $@ $<
@@ -275,14 +300,22 @@ check-maybe: check-no-automated-subdir
 ## We can't put LOGFILES as prerequisites, because that would stop the
 ## summarizing step from running when there is an error.
 check-doit:
+ifeq ($(TEST_INTERACTIVE), yes)
+	HOME=$(TEST_HOME) $(emacs) \
+	  -l ert ${ert_opts} \
+	  $(patsubst %,-l %,$(if $(findstring $(TEST_LOAD_EL),yes),$ELFILES,$(ELFILES:.el=)))  \
+	  $(TEST_RUN_ERT)
+else
 	-@${MAKE} -k  ${LOGFILES}
-	@$(emacs) -l ert -f ert-summarize-tests-batch-and-exit ${LOGFILES}
+	@$(emacs) --batch -l ert --eval \
+	"(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
+endif
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
 
 mostlyclean:
 	-@for f in ${LOGFILES}; do test ! -f $$f || mv $$f $$f~; done
-	rm -f *.tmp
+	rm -f ./*.tmp
 
 clean:
 	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)
@@ -296,3 +329,9 @@ distclean: clean
 	rm -f Makefile
 
 maintainer-clean: distclean bootstrap-clean
+
+.PHONY: check-declare
+
+check-declare:
+	$(emacs) -l check-declare \
+	  --eval '(check-declare-directory "$(srcdir)")'

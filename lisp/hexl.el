@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994, 1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1989, 1994, 1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
@@ -58,53 +58,45 @@
                  (const 16)
                  (const 32)
                  (const 64))
-  :group 'hexl
   :version "24.3")
 
 (defcustom hexl-program "hexl"
   "The program that will hexlify and dehexlify its stdin.
 `hexl-program' will always be concatenated with `hexl-options'
 and \"-de\" when dehexlifying a buffer."
-  :type 'string
-  :group 'hexl)
+  :type 'string)
 
 (defcustom hexl-iso ""
   "If your Emacs can handle ISO characters, this should be set to
 \"-iso\" otherwise it should be \"\"."
-  :type 'string
-  :group 'hexl)
+  :type 'string)
 
 (defcustom hexl-options (format "-hex %s" hexl-iso)
   "Space separated options to `hexl-program' that suit your needs.
 Quoting cannot be used, so the arguments cannot themselves contain spaces.
 If you wish to set the `-group-by-X-bits' options, set `hexl-bits' instead,
 as that will override any bit grouping options set here."
-  :type 'string
-  :group 'hexl)
+  :type 'string)
 
 (defcustom hexl-follow-ascii t
   "If non-nil then highlight the ASCII character corresponding to point."
   :type 'boolean
-  :group 'hexl
   :version "20.3")
 
 (defcustom hexl-mode-hook '(hexl-follow-line hexl-activate-ruler)
   "Normal hook run when entering Hexl mode."
   :type 'hook
-  :options '(hexl-follow-line hexl-activate-ruler eldoc-mode)
-  :group 'hexl)
+  :options '(hexl-follow-line hexl-activate-ruler eldoc-mode))
 
 (defface hexl-address-region
   '((t (:inherit header-line)))
-  "Face used in address area of Hexl mode buffer."
-  :group 'hexl)
+  "Face used in address area of Hexl mode buffer.")
 
 (defface hexl-ascii-region
   '((t (:inherit header-line)))
-  "Face used in ASCII area of Hexl mode buffer."
-  :group 'hexl)
+  "Face used in ASCII area of Hexl mode buffer.")
 
-(defvar hexl-max-address 0
+(defvar-local hexl-max-address 0
   "Maximum offset into hexl buffer.")
 
 (defvar hexl-mode-map
@@ -252,24 +244,6 @@ as that will override any bit grouping options set here."
   "The length of a hexl display line (varies with `hexl-bits')."
   (+ 60 (/ 128 (or hexl-bits 16))))
 
-(defun hexl-mode--minor-mode-p (var)
-  (memq var '(ruler-mode hl-line-mode)))
-
-(defun hexl-mode--setq-local (var val)
-  ;; `var' can be either a symbol or a pair, in which case the `car'
-  ;; is the getter function and the `cdr' is the corresponding setter.
-  (unless (or (member var hexl-mode--old-var-vals)
-              (assoc var hexl-mode--old-var-vals))
-    (push (if (or (consp var) (boundp var))
-              (cons var
-                    (if (consp var) (funcall (car var)) (symbol-value var)))
-            var)
-          hexl-mode--old-var-vals))
-  (cond
-   ((consp var) (funcall (cdr var) val))
-   ((hexl-mode--minor-mode-p var) (funcall var (if val 1 -1)))
-   (t (set (make-local-variable var) val))))
-
 ;;;###autoload
 (defun hexl-mode (&optional arg)
   "\\<hexl-mode-map>A mode for editing binary files in hex dump format.
@@ -364,35 +338,33 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 	  (or (bolp) (setq original-point (1- original-point))))
         (hexlify-buffer)
         (restore-buffer-modified-p modified))
-      (set (make-local-variable 'hexl-max-address)
-           (+ (* (/ (1- (buffer-size)) (hexl-line-displen)) 16) 15))
+      (setq hexl-max-address
+            (+ (* (/ (1- (buffer-size)) (hexl-line-displen)) 16) 15))
       (condition-case nil
 	  (hexl-goto-address original-point)
 	(error nil)))
 
-    ;; We do not turn off the old major mode; instead we just
-    ;; override most of it.  That way, we can restore it perfectly.
+    (let ((max-address hexl-max-address))
+      (major-mode-suspend)
+      (setq hexl-max-address max-address))
 
-    (hexl-mode--setq-local '(current-local-map . use-local-map) hexl-mode-map)
+    (use-local-map hexl-mode-map)
 
-    (hexl-mode--setq-local 'mode-name "Hexl")
-    (hexl-mode--setq-local 'isearch-search-fun-function
-                           'hexl-isearch-search-function)
-    (hexl-mode--setq-local 'major-mode 'hexl-mode)
+    (setq-local mode-name "Hexl")
+    (setq-local isearch-search-fun-function #'hexl-isearch-search-function)
+    (setq-local major-mode 'hexl-mode)
 
-    (hexl-mode--setq-local '(syntax-table . set-syntax-table)
-                           (standard-syntax-table))
+    ;; (set-syntax-table (standard-syntax-table))
 
-    (add-hook 'write-contents-functions 'hexl-save-buffer nil t)
+    (add-hook 'write-contents-functions #'hexl-save-buffer nil t)
 
-    (hexl-mode--setq-local 'require-final-newline nil)
+    (setq-local require-final-newline nil)
 
 
-    (hexl-mode--setq-local 'font-lock-defaults '(hexl-font-lock-keywords t))
+    (setq-local font-lock-defaults '(hexl-font-lock-keywords t))
 
-    (hexl-mode--setq-local 'revert-buffer-function
-                           #'hexl-revert-buffer-function)
-    (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
+    (setq-local revert-buffer-function #'hexl-revert-buffer-function)
+    (add-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer nil t)
 
     ;; Set a callback function for eldoc.
     (add-function :before-until (local 'eldoc-documentation-function)
@@ -401,7 +373,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (eldoc-remove-command "hexl-save-buffer"
 			  "hexl-current-address")
 
-    (if hexl-follow-ascii (hexl-follow-ascii 1)))
+    (if hexl-follow-ascii (hexl-follow-ascii-mode 1)))
   (run-mode-hooks 'hexl-mode-hook))
 
 
@@ -469,6 +441,7 @@ and edit the file in `hexl-mode'."
       (hexl-mode)))
 
 (defun hexl-revert-buffer-function (_ignore-auto _noconfirm)
+  ;; FIXME: We don't obey revert-buffer-preserve-modes!
   (let ((coding-system-for-read 'no-conversion)
 	revert-buffer-function)
     ;; Call the original `revert-buffer' without code conversion; also
@@ -481,7 +454,7 @@ and edit the file in `hexl-mode'."
     ;; already hexl-mode.
     ;; 2. reset change-major-mode-hook in case that `hexl-mode'
     ;; previously added hexl-maybe-dehexlify-buffer to it.
-    (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
+    (remove-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer t)
     (setq major-mode 'fundamental-mode)
     (hexl-mode)))
 
@@ -494,7 +467,7 @@ With arg, don't unhexlify buffer."
 	    (inhibit-read-only t)
 	    (original-point (1+ (hexl-current-address))))
 	(dehexlify-buffer)
-	(remove-hook 'write-contents-functions 'hexl-save-buffer t)
+	(remove-hook 'write-contents-functions #'hexl-save-buffer t)
 	(restore-buffer-modified-p modified)
 	(goto-char original-point)
 	;; Maybe adjust point for the removed CR characters.
@@ -504,27 +477,8 @@ With arg, don't unhexlify buffer."
 	  (or (bobp) (setq original-point (1+ original-point))))
 	(goto-char original-point)))
 
-  (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
-  (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
-  (setq hexl-ascii-overlay nil)
-
-  (let ((mms ()))
-    (dolist (varval hexl-mode--old-var-vals)
-      (let* ((bound (consp varval))
-             (var (if bound (car varval) varval))
-             (val (cdr-safe varval)))
-        (cond
-         ((consp var) (funcall (cdr var) val))
-         ((hexl-mode--minor-mode-p var) (push (cons var val) mms))
-         (bound (set (make-local-variable var) val))
-         (t (kill-local-variable var)))))
-    (kill-local-variable 'hexl-mode--old-var-vals)
-    ;; Enable/disable minor modes.  Do it after having reset the other vars,
-    ;; since some of them may affect the minor modes.
-    (dolist (mm mms)
-      (funcall (car mm) (if (cdr mm) 1 -1))))
-
-  (force-mode-line-update))
+  (remove-hook 'change-major-mode-hook #'hexl-maybe-dehexlify-buffer t)
+  (major-mode-restore))
 
 (defun hexl-maybe-dehexlify-buffer ()
   "Convert a hexl format buffer to binary.
@@ -534,7 +488,7 @@ Ask the user for confirmation."
 	    (inhibit-read-only t)
 	    (original-point (1+ (hexl-current-address))))
 	(dehexlify-buffer)
-	(remove-hook 'write-contents-functions 'hexl-save-buffer t)
+	(remove-hook 'write-contents-functions #'hexl-save-buffer t)
 	(restore-buffer-modified-p modified)
 	(goto-char original-point))))
 
@@ -1041,48 +995,49 @@ Embedded whitespace, dashes, and periods in the string are ignored."
 	(error "Decimal number out of range")
       (hexl-insert-multibyte-char num arg))))
 
-(defun hexl-follow-ascii (&optional arg)
-  "Toggle following ASCII in Hexl buffers.
-With prefix ARG, turn on following if and only if ARG is positive.
+(define-minor-mode hexl-follow-ascii-mode
+  "Minor mode to follow ASCII in current Hexl buffer.
+
 When following is enabled, the ASCII character corresponding to the
 element under the point is highlighted.
-Customize the variable `hexl-follow-ascii' to disable this feature."
-  (interactive "P")
+The default activation is controlled by `hexl-follow-ascii'."
+  :global nil
+  (if hexl-follow-ascii-mode
+      ;; turn it on
+      (progn
+        (unless hexl-ascii-overlay
+	  (setq hexl-ascii-overlay (make-overlay (point) (point)))
+	  (overlay-put hexl-ascii-overlay 'face 'highlight))
+        (add-hook 'post-command-hook #'hexl-follow-ascii-find nil t))
+      ;; turn it off
+      (when hexl-ascii-overlay
+        (delete-overlay hexl-ascii-overlay)
+        (setq hexl-ascii-overlay nil))
+      (remove-hook 'post-command-hook #'hexl-follow-ascii-find t)))
+
+(define-minor-mode hexl-follow-ascii
+  "Toggle following ASCII in Hexl buffers.
+Like `hexl-follow-ascii-mode' but remembers the choice globally."
+  :global t
   (let ((on-p (if arg
 		  (> (prefix-numeric-value arg) 0)
 	       (not hexl-ascii-overlay))))
-
-    (if on-p
-      ;; turn it on
-      (if (not hexl-ascii-overlay)
-	  (progn
-	    (setq hexl-ascii-overlay (make-overlay 1 1)
-		  hexl-follow-ascii t)
-	    (overlay-put hexl-ascii-overlay 'face 'highlight)
-	    (add-hook 'post-command-hook 'hexl-follow-ascii-find nil t)))
-      ;; turn it off
-      (if hexl-ascii-overlay
-	  (progn
-	    (delete-overlay hexl-ascii-overlay)
-	    (setq hexl-ascii-overlay nil
-		  hexl-follow-ascii nil)
-	    (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
-	    )))))
+    (hexl-follow-ascii-mode (if on-p 1 -1))
+    ;; Remember this choice globally for later use.
+    (setq hexl-follow-ascii hexl-follow-ascii-mode)))
 
 (defun hexl-activate-ruler ()
   "Activate `ruler-mode'."
   (require 'ruler-mode)
-  (hexl-mode--setq-local 'ruler-mode-ruler-function
-                         #'hexl-mode-ruler)
-  (hexl-mode--setq-local 'ruler-mode t))
+  (setq-local ruler-mode-ruler-function #'hexl-mode-ruler)
+  (ruler-mode 1))
 
 (defun hexl-follow-line ()
   "Activate `hl-line-mode'."
   (require 'hl-line)
-  (hexl-mode--setq-local 'hl-line-range-function
-                         #'hexl-highlight-line-range)
-  (hexl-mode--setq-local 'hl-line-face 'highlight)
-  (hexl-mode--setq-local 'hl-line-mode t))
+  (setq-local hl-line-range-function #'hexl-highlight-line-range)
+  (setq-local hl-line-face 'highlight)  ;FIXME: Why?
+  (hl-line-mode 1))
 
 (defun hexl-highlight-line-range ()
   "Return the range of address region for the point.
@@ -1104,8 +1059,15 @@ This function is assumed to be used as callback function for `hl-line-mode'."
   "Return a string ruler for Hexl mode."
   (let* ((highlight (mod (hexl-current-address) 16))
 	 (s (cdr (assq hexl-bits hexl-rulers)))
-	 (pos 0))
+	 (pos 0)
+         (lnum-width
+          (if display-line-numbers
+              (round (line-number-display-width 'columns))
+            0)))
     (set-text-properties 0 (length s) nil s)
+    (when (> lnum-width 0)
+      (setq s (concat (make-string lnum-width ?  ) s))
+      (setq pos (+ pos lnum-width)))
     ;; Turn spaces in the header into stretch specs so they work
     ;; regardless of the header-line face.
     (while (string-match "[ \t]+" s pos)
@@ -1116,17 +1078,18 @@ This function is assumed to be used as callback function for `hl-line-mode'."
 			 s))
     ;; Highlight the current column.
     (let ( (offset (+ (* 2 highlight) (/ (* 8 highlight) hexl-bits))) )
+      (if (> lnum-width 0) (setq offset (+ offset lnum-width)))
       (put-text-property (+ 11 offset) (+ 13 offset) 'face 'highlight s))
     ;; Highlight the current ascii column
-    (put-text-property (+ (hexl-ascii-start-column) highlight 1)
-                       (+ (hexl-ascii-start-column) highlight 2)
+    (put-text-property (+ (hexl-ascii-start-column) lnum-width highlight 1)
+                       (+ (hexl-ascii-start-column) lnum-width highlight 2)
                        'face 'highlight s)
     s))
 
 ;; startup stuff.
 
 (easy-menu-define hexl-menu hexl-mode-map "Hexl Mode menu"
-  `("Hexl"
+  '("Hexl"
     :help "Hexl-specific Features"
 
     ["Backward short" hexl-backward-short

@@ -1,6 +1,6 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2018 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -235,9 +235,7 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 #endif /* GLYPH_DEBUG */
 
 
-#if (defined PROFILING \
-     && (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__) \
-     && !HAVE___EXECUTABLE_START)
+#if defined PROFILING && !HAVE___EXECUTABLE_START
 /* This function comes first in the Emacs executable and is used only
    to estimate the text start for profiling.  */
 void
@@ -1283,7 +1281,7 @@ row_equal_p (struct glyph_row *a, struct glyph_row *b, bool mouse_face_p)
    with zeros.  If GLYPH_DEBUG and ENABLE_CHECKING are in effect, the global
    variable glyph_pool_count is incremented for each pool allocated.  */
 
-static struct glyph_pool *
+static struct glyph_pool * ATTRIBUTE_MALLOC
 new_glyph_pool (void)
 {
   struct glyph_pool *result = xzalloc (sizeof *result);
@@ -2511,8 +2509,7 @@ spec_glyph_lookup_face (struct window *w, GLYPH *glyph)
   /* Convert the glyph's specified face to a realized (cache) face.  */
   if (lface_id > 0)
     {
-      int face_id = merge_faces (XFRAME (w->frame),
-				 Qt, lface_id, DEFAULT_FACE_ID);
+      int face_id = merge_faces (w, Qt, lface_id, DEFAULT_FACE_ID);
       SET_GLYPH_FACE (*glyph, face_id);
     }
 }
@@ -4127,7 +4124,12 @@ scrolling_window (struct window *w, bool header_line_p)
     }
 
 #ifdef HAVE_XWIDGETS
-  /* Currently this seems needed to detect xwidget movement reliably. */
+  /* Currently this seems needed to detect xwidget movement reliably.
+     This is most probably because an xwidget glyph is represented in
+     struct glyph's 'union u' by a pointer to a struct, which takes 8
+     bytes in 64-bit builds, and thus the comparison of u.val values
+     done by GLYPH_EQUAL_P doesn't work reliably, since it assumes the
+     size of the union is 4 bytes.  FIXME.  */
     return 0;
 #endif
 
@@ -4681,8 +4683,7 @@ scrolling (struct frame *frame)
 	{
 	  /* This line cannot be redrawn, so don't let scrolling mess it.  */
 	  new_hash[i] = old_hash[i];
-#define INFINITY 1000000	/* Taken from scroll.c */
-	  draw_cost[i] = INFINITY;
+	  draw_cost[i] = SCROLL_INFINITY;
 	}
       else
 	{
@@ -5099,13 +5100,15 @@ update_frame_line (struct frame *f, int vpos, bool updating_menu_p)
  ***********************************************************************/
 
 /* Determine what's under window-relative pixel position (*X, *Y).
-   Return the OBJECT (string or buffer) that's there.
+   Return the object (string or buffer) that's there.
    Return in *POS the position in that object.
    Adjust *X and *Y to character positions.
+   If an image is shown at the specified position, return
+   in *OBJECT its image-spec.
    Return in *DX and *DY the pixel coordinates of the click,
-   relative to the top left corner of OBJECT, or relative to
+   relative to the top left corner of object, or relative to
    the top left corner of the character glyph at (*X, *Y)
-   if OBJECT is nil.
+   if the object at (*X, *Y) is nil.
    Return WIDTH and HEIGHT of the object at (*X, *Y), or zero
    if the coordinates point to an empty area of the display.  */
 
@@ -5721,8 +5724,8 @@ additional wait period, in milliseconds; this is for backwards compatibility.
 
   if (!NILP (milliseconds))
     {
-      CHECK_NUMBER (milliseconds);
-      duration += XINT (milliseconds) / 1000.0;
+      CHECK_FIXNUM (milliseconds);
+      duration += XFIXNUM (milliseconds) / 1000.0;
     }
 
   if (duration > 0)
@@ -5772,9 +5775,18 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
 
   if (INTEGERP (timeout))
     {
-      sec = XINT (timeout);
-      if (sec <= 0)
-	return Qt;
+      if (integer_to_intmax (timeout, &sec))
+	{
+	  if (sec <= 0)
+	    return Qt;
+	  sec = min (sec, WAIT_READING_MAX);
+	}
+      else
+	{
+	  if (NILP (Fnatnump (timeout)))
+	    return Qt;
+	  sec = WAIT_READING_MAX;
+	}
       nsec = 0;
     }
   else if (FLOATP (timeout))
@@ -5832,8 +5844,7 @@ immediately by pending input.  */)
   if (!NILP (force) && !redisplay_dont_pause)
     specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (2);
-  unbind_to (count, Qnil);
-  return Qt;
+  return unbind_to (count, Qt);
 }
 
 
@@ -5930,7 +5941,7 @@ pass nil for VARIABLE.  */)
       || n + 20 < ASIZE (state) / 2)
     /* Add 20 extra so we grow it less often.  */
     {
-      state = Fmake_vector (make_number (n + 20), Qlambda);
+      state = make_vector (n + 20, Qlambda);
       if (! NILP (variable))
 	Fset (variable, state);
       else
@@ -6056,7 +6067,7 @@ init_display_interactive (void)
     {
       Vinitial_window_system = Qx;
 #ifdef HAVE_X11
-      Vwindow_system_version = make_number (11);
+      Vwindow_system_version = make_fixnum (11);
 #endif
 #ifdef USE_NCURSES
       /* In some versions of ncurses,
@@ -6072,7 +6083,7 @@ init_display_interactive (void)
   if (!inhibit_window_system)
     {
       Vinitial_window_system = Qw32;
-      Vwindow_system_version = make_number (1);
+      Vwindow_system_version = make_fixnum (1);
       return;
     }
 #endif /* HAVE_NTGUI */
@@ -6081,7 +6092,7 @@ init_display_interactive (void)
   if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qns;
-      Vwindow_system_version = make_number (10);
+      Vwindow_system_version = make_fixnum (10);
       return;
     }
 #endif
@@ -6237,7 +6248,7 @@ syms_of_display (void)
   defsubr (&Sdump_redisplay_history);
 #endif
 
-  frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
+  frame_and_buffer_state = make_vector (20, Qlambda);
   staticpro (&frame_and_buffer_state);
 
   /* This is the "purpose" slot of a display table.  */

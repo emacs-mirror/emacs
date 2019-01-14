@@ -1,6 +1,6 @@
 ;;; nnbabyl.el --- rmail mbox access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -35,7 +35,7 @@
       5 "Ignore rmail errors from this file, you don't have rmail")))
 (require 'nnmail)
 (require 'nnoo)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (nnoo-declare nnbabyl)
 
@@ -103,7 +103,7 @@
 	  (insert ".\n"))
 	(and (numberp nnmail-large-newsgroup)
 	     (> number nnmail-large-newsgroup)
-	     (zerop (% (incf count) 20))
+	     (zerop (% (cl-incf count) 20))
 	     (nnheader-message 5 "nnbabyl: Receiving headers... %d%%"
 			       (floor (* count 100.0) number))))
 

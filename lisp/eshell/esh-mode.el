@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -182,10 +182,11 @@ inserted.  They return the string as it should be inserted."
   :group 'eshell-mode)
 
 (defcustom eshell-password-prompt-regexp
-  (format "\\(%s\\).*:\\s *\\'" (regexp-opt password-word-equivalents))
+  (format "\\(%s\\)[^:：៖]*[:：៖]\\s *\\'" (regexp-opt password-word-equivalents))
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
+  :version "27.1"
   :group 'eshell-mode)
 
 (defcustom eshell-skip-prompt-function nil
@@ -884,8 +885,7 @@ If SCROLLBACK is non-nil, clear the scrollback contents."
   (interactive)
   (if scrollback
       (eshell/clear-scrollback)
-    (let ((eshell-input-filter-functions
-           (remq 'eshell-add-to-history eshell-input-filter-functions)))
+    (let ((eshell-input-filter-functions nil))
       (insert (make-string (window-size) ?\n))
       (eshell-send-input))))
 

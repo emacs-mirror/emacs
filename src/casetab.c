@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2001-2019 Free Software Foundation, Inc.
 
 Author: Howard Gayle
 
@@ -144,7 +144,8 @@ set_case_table (Lisp_Object table, bool standard)
       set_char_table_extras (table, 2, eqv);
     }
 
-  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  /* This is so set_image_of_range_1 in regex-emacs.c can find the EQV
+     table.  */
   set_char_table_extras (canon, 2, eqv);
 
   if (standard)
@@ -178,7 +179,7 @@ set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt)
   Lisp_Object up = XCHAR_TABLE (case_table)->extras[0];
   Lisp_Object canon = XCHAR_TABLE (case_table)->extras[1];
 
-  if (NATNUMP (elt))
+  if (FIXNATP (elt))
     Fset_char_table_range (canon, range, Faref (case_table, Faref (up, elt)));
 }
 
@@ -190,21 +191,21 @@ set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt)
 static void
 set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
-  if (NATNUMP (elt))
+  if (FIXNATP (elt))
     {
       int from, to;
 
       if (CONSP (c))
 	{
-	  from = XINT (XCAR (c));
-	  to = XINT (XCDR (c));
+	  from = XFIXNUM (XCAR (c));
+	  to = XFIXNUM (XCDR (c));
 	}
       else
-	from = to = XINT (c);
+	from = to = XFIXNUM (c);
 
       to++;
       for (; from < to; from++)
-	CHAR_TABLE_SET (table, from, make_number (from));
+	CHAR_TABLE_SET (table, from, make_fixnum (from));
     }
 }
 
@@ -216,24 +217,24 @@ set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 static void
 shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
-  if (NATNUMP (elt))
+  if (FIXNATP (elt))
     {
       int from, to;
 
       if (CONSP (c))
 	{
-	  from = XINT (XCAR (c));
-	  to = XINT (XCDR (c));
+	  from = XFIXNUM (XCAR (c));
+	  to = XFIXNUM (XCDR (c));
 	}
       else
-	from = to = XINT (c);
+	from = to = XFIXNUM (c);
 
       to++;
       for (; from < to; from++)
 	{
 	  Lisp_Object tem = Faref (table, elt);
-	  Faset (table, elt, make_number (from));
-	  Faset (table, make_number (from), tem);
+	  Faset (table, elt, make_fixnum (from));
+	  Faset (table, make_fixnum (from), tem);
 	}
     }
 }
@@ -245,7 +246,7 @@ init_casetab_once (void)
   Lisp_Object down, up, eqv;
 
   DEFSYM (Qcase_table, "case-table");
-  Fput (Qcase_table, Qchar_table_extra_slots, make_number (3));
+  Fput (Qcase_table, Qchar_table_extra_slots, make_fixnum (3));
 
   down = Fmake_char_table (Qcase_table, Qnil);
   Vascii_downcase_table = down;
@@ -254,7 +255,7 @@ init_casetab_once (void)
   for (i = 0; i < 128; i++)
     {
       int c = (i >= 'A' && i <= 'Z') ? i + ('a' - 'A') : i;
-      CHAR_TABLE_SET (down, i, make_number (c));
+      CHAR_TABLE_SET (down, i, make_fixnum (c));
     }
 
   set_char_table_extras (down, 1, Fcopy_sequence (down));
@@ -265,7 +266,7 @@ init_casetab_once (void)
   for (i = 0; i < 128; i++)
     {
       int c = (i >= 'a' && i <= 'z') ? i + ('A' - 'a') : i;
-      CHAR_TABLE_SET (up, i, make_number (c));
+      CHAR_TABLE_SET (up, i, make_fixnum (c));
     }
 
   eqv = Fmake_char_table (Qcase_table, Qnil);
@@ -275,7 +276,7 @@ init_casetab_once (void)
       int c = ((i >= 'A' && i <= 'Z') ? i + ('a' - 'A')
 	       : ((i >= 'a' && i <= 'z') ? i + ('A' - 'a')
 		  : i));
-      CHAR_TABLE_SET (eqv, i, make_number (c));
+      CHAR_TABLE_SET (eqv, i, make_fixnum (c));
     }
 
   set_char_table_extras (down, 2, eqv);

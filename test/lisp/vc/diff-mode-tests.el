@@ -1,4 +1,4 @@
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Dima Kogan <dima@secretsauce.net>
 ;; Maintainer: emacs-devel@gnu.org
@@ -182,7 +182,7 @@ youthfulness
             (with-temp-buffer
               (cd temp-dir)
               (insert patch)
-              (beginning-of-buffer)
+              (goto-char (point-min))
               (diff-apply-hunk)
               (diff-apply-hunk)
               (diff-apply-hunk))

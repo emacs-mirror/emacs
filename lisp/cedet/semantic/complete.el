@@ -1,6 +1,6 @@
 ;;; semantic/complete.el --- Routines for performing tag completion
 
-;; Copyright (C) 2003-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -106,7 +106,6 @@
 ;; `semantic-complete-inline-tag-engine' will complete text in
 ;; a buffer.
 
-(eval-when-compile (require 'cl))
 (require 'semantic)
 (require 'eieio-opt)
 (require 'semantic/analyze)
@@ -1890,8 +1889,8 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
    (semantic-collector-buffer-deep prompt :buffer (current-buffer))
-   (semantic-displayor-traditional-with-focus-highlight "simple")
-   ;;(semantic-displayor-tooltip "simple")
+   (semantic-displayor-traditional-with-focus-highlight)
+   ;;(semantic-displayor-tooltip)
    prompt
    default-tag
    initial-input
@@ -1912,8 +1911,8 @@ If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
 HISTORY is a symbol representing a variable to store the history in."
   (semantic-complete-read-tag-engine
    (semantic-collector-local-members prompt :buffer (current-buffer))
-   (semantic-displayor-traditional-with-focus-highlight "simple")
-   ;;(semantic-displayor-tooltip "simple")
+   (semantic-displayor-traditional-with-focus-highlight)
+   ;;(semantic-displayor-tooltip)
    prompt
    default-tag
    initial-input
@@ -1937,7 +1936,7 @@ HISTORY is a symbol representing a variable to store the history in."
 				       :buffer (current-buffer)
 				       :path (current-buffer)
 				       )
-   (semantic-displayor-traditional-with-focus-highlight "simple")
+   (semantic-displayor-traditional-with-focus-highlight)
    prompt
    default-tag
    initial-input
@@ -1954,7 +1953,6 @@ to control how completion options are displayed.
 See `semantic-complete-inline-tag-engine' for details on how
 completion works."
   (let* ((collector (semantic-collector-project-brutish
-		     "inline"
 		     :buffer (current-buffer)
 		     :path (current-buffer)))
 	 (sbounds (semantic-ctxt-current-symbol-and-bounds))
@@ -1984,9 +1982,8 @@ completion works."
 	  ;; There are several options.  Do the completion.
 	  (semantic-complete-inline-tag-engine
 	   collector
-	   (funcall semantic-complete-inline-analyzer-displayor-class
-		    "inline displayor")
-	   ;;(semantic-displayor-tooltip "simple")
+	   (funcall semantic-complete-inline-analyzer-displayor-class)
+	   ;;(semantic-displayor-tooltip)
 	   (current-buffer)
 	   start end))
       )))
@@ -2013,7 +2010,7 @@ prompts.  these are calculated from the CONTEXT variable passed in."
       prompt
       :buffer (oref context buffer)
       :context context)
-     (semantic-displayor-traditional-with-focus-highlight "simple")
+     (semantic-displayor-traditional-with-focus-highlight)
      (with-current-buffer (oref context buffer)
        (goto-char (cdr (oref context bounds)))
        (concat prompt (mapconcat 'identity syms ".")
@@ -2037,7 +2034,6 @@ completion works."
   (if (not context) (setq context (semantic-analyze-current-context (point))))
   (if (not context) (error "Nothing to complete on here"))
   (let* ((collector (semantic-collector-analyze-completions
-		     "inline"
 		     :buffer (oref context buffer)
 		     :context context))
 	 (syms (semantic-ctxt-current-symbol (point)))
@@ -2064,9 +2060,8 @@ completion works."
 	  ;; There are several options.  Do the completion.
 	  (semantic-complete-inline-tag-engine
 	   collector
-	   (funcall semantic-complete-inline-analyzer-displayor-class
-		    "inline displayor")
-	   ;;(semantic-displayor-tooltip "simple")
+	   (funcall semantic-complete-inline-analyzer-displayor-class)
+	   ;;(semantic-displayor-tooltip)
 	   (oref context buffer)
 	   (car (oref context bounds))
 	   (cdr (oref context bounds))

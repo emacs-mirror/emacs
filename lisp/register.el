@@ -1,6 +1,6 @@
 ;;; register.el --- register commands for Emacs      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1993-1994, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1994, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -231,6 +231,7 @@ Interactively, reads the register using `register-read-with-preview'."
 (defalias 'register-to-point 'jump-to-register)
 (defun jump-to-register (register &optional delete)
   "Move point to location stored in a register.
+Push the mark if jumping moves point, unless called in succession.
 If the register contains a file name, find that file.
 \(To put a file name in a register, you must use `set-register'.)
 If the register contains a window configuration (one frame) or a frameset
@@ -390,7 +391,20 @@ Interactively, reads the register using `register-read-with-preview'."
 (cl-defmethod register-val-describe ((val cons) verbose)
   (cond
    ((window-configuration-p (car val))
-    (princ "a window configuration."))
+    (let* ((stored-window-config (car val))
+           (window-config-frame (window-configuration-frame stored-window-config))
+           (current-frame (selected-frame)))
+      (princ (format "a window configuration: %s."
+                     (if (frame-live-p window-config-frame)
+                         (with-selected-frame window-config-frame
+                           (save-window-excursion
+                             (set-window-configuration stored-window-config)
+                             (concat
+                              (mapconcat (lambda (w) (buffer-name (window-buffer w)))
+                                         (window-list (selected-frame)) ", ")
+                              (unless (eq current-frame window-config-frame)
+                                " in another frame"))))
+                       "dead frame")))))
 
    ((frame-configuration-p (car val))
     (princ "a frame configuration."))

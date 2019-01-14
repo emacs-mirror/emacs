@@ -1,6 +1,6 @@
 ;;; url-cookie.el --- URL cookie support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -139,7 +139,8 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
     (set var new)))
 
 (defun url-cookie-write-file (&optional fname)
-  (when url-cookies-changed-since-last-save
+  (when (and url-cookies-changed-since-last-save
+             url-cookie-file)
     (or fname (setq fname (expand-file-name url-cookie-file)))
     (if (condition-case nil
             (progn
@@ -394,6 +395,8 @@ instead delete all cookies that do not match REGEXP."
 
 ;;; Mode for listing and editing cookies.
 
+(defvar url-cookie--deleted-cookies nil)
+
 (defun url-cookie-list ()
   "Display a buffer listing the current URL cookies, if there are any.
 Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
@@ -403,6 +406,11 @@ Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
     (error "No cookies are defined"))
 
   (pop-to-buffer "*url cookies*")
+  (url-cookie-mode)
+  (url-cookie--generate-buffer)
+  (goto-char (point-min)))
+
+(defun url-cookie--generate-buffer ()
   (let ((inhibit-read-only t)
 	(domains (sort
 		  (copy-sequence
@@ -413,7 +421,6 @@ Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
 	(domain-length 0)
 	start name format domain)
     (erase-buffer)
-    (url-cookie-mode)
     (dolist (elem domains)
       (setq domain-length (max domain-length (length (car elem)))))
     (setq format (format "%%-%ds %%-20s %%s" domain-length)
@@ -425,16 +432,15 @@ Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
 			    (lambda (c1 c2)
 			      (string< (url-cookie-name c1)
 				       (url-cookie-name c2)))))
-	(setq start (point)
+        (setq start (point)
 	      name (url-cookie-name cookie))
-	(when (> (length name) 20)
+        (when (> (length name) 20)
 	  (setq name (substring name 0 20)))
-	(insert (format format domain name
-			(url-cookie-value cookie))
-		"\n")
-	(setq domain "")
-	(put-text-property start (1+ start) 'url-cookie cookie)))
-    (goto-char (point-min))))
+        (insert (format format domain name
+		        (url-cookie-value cookie))
+	        "\n")
+        (setq domain "")
+        (put-text-property start (1+ start) 'url-cookie cookie)))))
 
 (defun url-cookie-delete ()
   "Delete the cookie on the current line."
@@ -458,12 +464,41 @@ Use \\<url-cookie-mode-map>\\[url-cookie-delete] to remove cookies."
     (delete-region (line-beginning-position)
 		   (progn
 		     (forward-line 1)
-		     (point)))))
+		     (point)))
+    (let ((point (point)))
+      (erase-buffer)
+      (url-cookie--generate-buffer)
+      (goto-char point))
+    (push cookie url-cookie--deleted-cookies)))
+
+(defun url-cookie-undo ()
+  "Undo deletion of a cookie."
+  (interactive)
+  (unless url-cookie--deleted-cookies
+    (error "No cookie deletions to undo"))
+  (let* ((cookie (pop url-cookie--deleted-cookies))
+         (variable (if (url-cookie-secure cookie)
+		       'url-cookie-secure-storage
+		     'url-cookie-storage))
+         (list (symbol-value variable))
+	 (elem (assoc (url-cookie-domain cookie) list)))
+    (if elem
+        (nconc elem (list cookie))
+      (setq elem (list (url-cookie-domain cookie) cookie))
+      (set variable (cons elem list)))
+    (setq url-cookies-changed-since-last-save t)
+    (url-cookie-write-file)
+    (let ((point (point))
+          (inhibit-read-only t))
+      (erase-buffer)
+      (url-cookie--generate-buffer)
+      (goto-char point))))
 
 (defvar url-cookie-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [delete] 'url-cookie-delete)
     (define-key map [(control k)] 'url-cookie-delete)
+    (define-key map [(control _)] 'url-cookie-undo)
     map))
 
 (define-derived-mode url-cookie-mode special-mode "URL Cookie"

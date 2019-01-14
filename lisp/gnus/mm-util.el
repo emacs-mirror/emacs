@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -241,7 +241,7 @@ superset of iso-8859-1."
 	(widget-convert
 	 'list
 	 `(set :inline t :format "%v" ,@(nreverse rest))
-	 `(repeat :inline t :tag "Other options"
+	 '(repeat :inline t :tag "Other options"
 		  (cons :format "%v"
 			(symbol :size 3 :format "(%v")
 			(symbol :size 3 :format " . %v)\n")))))))
@@ -559,7 +559,7 @@ nil means ASCII, a single-element list represents an appropriate MIME
 charset, and a longer list means no appropriate charset."
   (let (charsets)
     ;; The return possibilities of this function are a mess...
-    (or (and (mm-multibyte-p)
+    (or (and enable-multibyte-characters
 	     mm-use-find-coding-systems-region
 	     ;; Find the mime-charset of the most preferred coding
 	     ;; system that has one.
@@ -628,7 +628,7 @@ charset, and a longer list means no appropriate charset."
 (defun mm-find-charset-region (b e)
   "Return a list of Emacs charsets in the region B to E."
   (cond
-   ((mm-multibyte-p)
+   (enable-multibyte-characters
     ;; Remove composition since the base charsets have been included.
     ;; Remove eight-bit-*, treat them as ascii.
     (let ((css (find-charset-region b e)))
@@ -827,7 +827,7 @@ decompressed data.  The buffer's multibyteness must be turned off."
 					    (insert-file-contents err-file)
 					    (buffer-string)
 					  (erase-buffer))
-                                        t)
+					nil t)
 				       " ")
 			    "\n")
 		    (setq err-msg
@@ -881,6 +881,19 @@ gzip, bzip2, etc. are allowed."
 		(error nil))))
 	(when decomp
 	  (kill-buffer (current-buffer)))))))
+
+(defun mm-images-in-region-p (start end)
+  (let ((found nil))
+    (save-excursion
+      (goto-char start)
+      (while (and (not found)
+		  (< (point) end))
+	(let ((display (get-text-property (point) 'display)))
+	  (when (and (consp display)
+		     (eq (car display) 'image))
+	    (setq found t)))
+	(forward-char 1)))
+    found))
 
 (provide 'mm-util)
 

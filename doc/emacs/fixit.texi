@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit
@@ -149,6 +149,12 @@ Transpose two words (@code{transpose-words}).
 Transpose two balanced expressions (@code{transpose-sexps}).
 @item C-x C-t
 Transpose two lines (@code{transpose-lines}).
+@item M-x transpose-sentences
+Transpose two sentences (@code{transpose-sentences}).
+@item M-x transpose-paragraphs
+Transpose two paragraphs (@code{transpose-paragraphs}).
+@item M-x transpose-regions
+Transpose two regions.
 @end table
 
 @kindex C-t
@@ -180,13 +186,17 @@ Otherwise, a reverse search (@kbd{C-r}) is often the best way.
 dragging the word preceding or containing point forward as well.  The
 punctuation characters between the words do not move.  For example,
 @w{@samp{FOO, BAR}} transposes into @w{@samp{BAR, FOO}} rather than
-@samp{@w{BAR FOO,}}.  When point is at the end of the line, it will
+@w{@samp{BAR FOO,}}.  When point is at the end of the line, it will
 transpose the word before point with the first word on the next line.
 
+@findex transpose-sentences
+@findex transpose-paragraphs
   @kbd{C-M-t} (@code{transpose-sexps}) is a similar command for
 transposing two expressions (@pxref{Expressions}), and @kbd{C-x C-t}
-(@code{transpose-lines}) exchanges lines.  They work like @kbd{M-t}
-except as regards the units of text they transpose.
+(@code{transpose-lines}) exchanges lines.  @kbd{M-x
+transpose-sentences} and @kbd{M-x transpose-paragraphs} transpose
+sentences and paragraphs, respectively.  These commands work like
+@kbd{M-t} except as regards the units of text they transpose.
 
   A numeric argument to a transpose command serves as a repeat count: it
 tells the transpose command to move the character (or word or
@@ -203,6 +213,15 @@ across four words.  @kbd{C-u - C-M-t} would cancel the effect of plain
 otherwise a command with a repeat count of zero would do nothing): to
 transpose the character (or word or expression or line) ending after
 point with the one ending after the mark.
+
+@findex transpose-regions
+  @kbd{M-x transpose-regions} transposes the text between point and
+mark with the text between the last two marks pushed to the mark ring
+(@pxref{Setting Mark}).  With a numeric prefix argument, it transposes
+the text between point and mark with the text between two successive
+marks that many entries back in the mark ring.  This command is best
+used for transposing multiple characters (or words or sentences or
+paragraphs) in one go.
 
 @node Fixing Case
 @section Case Conversion
@@ -408,11 +427,15 @@ dictionary.
 @cindex mode, Flyspell
 @findex flyspell-mode
   Flyspell mode is a minor mode that performs automatic spell-checking
-as you type.  When it finds a word that it does not recognize, it
-highlights that word.  Type @kbd{M-x flyspell-mode} to toggle Flyspell
-mode in the current buffer.  To enable Flyspell mode in all text mode
-buffers, add @code{flyspell-mode} to @code{text-mode-hook}.
-@xref{Hooks}.
+of the text you type as you type it.  When it finds a word that it
+does not recognize, it highlights that word.  Type @kbd{M-x
+flyspell-mode} to toggle Flyspell mode in the current buffer.  To
+enable Flyspell mode in all text mode buffers, add
+@code{flyspell-mode} to @code{text-mode-hook}.  @xref{Hooks}.  Note
+that, as Flyspell mode needs to check each word across which you move,
+it will slow down cursor motion and scrolling commands.  It also
+doesn't automatically check the text you didn't type or move across;
+use @code{flyspell-region} or @code{flyspell-buffer} for that.
 
 @findex flyspell-correct-word
 @findex flyspell-auto-correct-word

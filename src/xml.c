@@ -1,5 +1,5 @@
 /* Interface to libxml2.
-   Copyright (C) 2010-2018 Free Software Foundation, Inc.
+   Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,6 +31,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 
 # include <windows.h>
+# include "w32common.h"
 # include "w32.h"
 
 DEF_DLL_FN (htmlDocPtr, htmlReadMemory,
@@ -187,8 +188,8 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url,
 
   validate_region (&start, &end);
 
-  istart = XINT (start);
-  iend = XINT (end);
+  istart = XFIXNUM (start);
+  iend = XFIXNUM (end);
   istart_byte = CHAR_TO_BYTE (istart);
   iend_byte = CHAR_TO_BYTE (iend);
 
@@ -271,7 +272,9 @@ DEFUN ("libxml-parse-html-region", Flibxml_parse_html_region,
        2, 4, 0,
        doc: /* Parse the region as an HTML document and return the parse tree.
 If BASE-URL is non-nil, it is used to expand relative URLs.
-If DISCARD-COMMENTS is non-nil, all HTML comments are discarded. */)
+
+If you want comments to be stripped, use the `xml-remove-comments'
+function to strip comments before calling this function.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, Lisp_Object discard_comments)
 {
   if (init_libxml2_functions ())
@@ -284,7 +287,9 @@ DEFUN ("libxml-parse-xml-region", Flibxml_parse_xml_region,
        2, 4, 0,
        doc: /* Parse the region as an XML document and return the parse tree.
 If BASE-URL is non-nil, it is used to expand relative URLs.
-If DISCARD-COMMENTS is non-nil, all HTML comments are discarded. */)
+
+If you want comments to be stripped, use the `xml-remove-comments'
+function to strip comments before calling this function.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, Lisp_Object discard_comments)
 {
   if (init_libxml2_functions ())

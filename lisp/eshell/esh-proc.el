@@ -1,6 +1,6 @@
 ;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -87,8 +87,8 @@ variable's value to take effect."
   "Called each time a process is exec'd by `eshell-gather-process-output'.
 It is passed one argument, which is the process that was just started.
 It is useful for things that must be done each time a process is
-executed in an eshell mode buffer (e.g., `process-kill-without-query').
-In contrast, `eshell-mode-hook' is only executed once when the buffer
+executed in an eshell mode buffer (e.g., `set-process-query-on-exit-flag').
+In contrast, `eshell-mode-hook' is only executed once, when the buffer
 is created."
   :type 'hook
   :group 'eshell-proc)
@@ -167,7 +167,8 @@ The signals which will cause this to happen are matched by
 (defun eshell/kill (&rest args)
   "Kill processes.
 Usage: kill [-<signal>] <pid>|<process> ...
-Accepts PIDs and process objects."
+Accepts PIDs and process objects.  Optionally accept signals
+and signal names."
   ;; If the first argument starts with a dash, treat it as the signal
   ;; specifier.
   (let ((signum 'SIGINT))
@@ -178,12 +179,12 @@ Accepts PIDs and process objects."
          ((string-match "\\`-[[:digit:]]+\\'" arg)
           (setq signum (abs (string-to-number arg))))
          ((string-match "\\`-\\([[:upper:]]+\\|[[:lower:]]+\\)\\'" arg)
-          (setq signum (abs (string-to-number arg)))))
+          (setq signum (intern (substring arg 1)))))
         (setq args (cdr args))))
     (while args
       (let ((arg (if (eshell-processp (car args))
                      (process-id (car args))
-                   (car args))))
+                   (string-to-number (car args)))))
         (when arg
           (cond
            ((null arg)
@@ -197,6 +198,8 @@ Accepts PIDs and process objects."
             (signal-process arg signum)))))
       (setq args (cdr args))))
   nil)
+
+(put 'eshell/kill 'eshell-no-numeric-conversions t)
 
 (defun eshell-read-process-name (prompt)
   "Read the name of a process from the minibuffer, using completion.
@@ -279,11 +282,9 @@ See `eshell-needs-pipe'."
 	    (let ((process-connection-type
 		   (unless (eshell-needs-pipe-p command)
 		     process-connection-type))
-		  (command (file-local-name command)))
+		  (command (file-local-name (expand-file-name command))))
 	      (apply 'start-file-process
-		     (file-name-nondirectory command) nil
-		     ;; `start-process' can't deal with relative filenames.
-		     (append (list (expand-file-name command)) args))))
+		     (file-name-nondirectory command) nil command args)))
       (eshell-record-process-object proc)
       (set-process-buffer proc (current-buffer))
       (if (eshell-interactive-output-p)

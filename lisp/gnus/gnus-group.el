@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,10 +24,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-(defvar tool-bar-mode)
-
+(require 'cl-lib)
 (require 'gnus)
 (require 'gnus-start)
 (require 'nnmail)
@@ -45,6 +42,8 @@
     (require 'gnus-sum))
   (unless (boundp 'gnus-cache-active-hashtb)
     (defvar gnus-cache-active-hashtb nil)))
+
+(defvar tool-bar-mode)
 
 (autoload 'gnus-agent-total-fetched-for "gnus-agent")
 (autoload 'gnus-cache-total-fetched-for "gnus-cache")
@@ -497,7 +496,7 @@ simple manner."
 (defvar gnus-tmp-number-of-unread)
 
 (defvar gnus-group-line-format-alist
-  `((?M gnus-tmp-marked-mark ?c)
+  '((?M gnus-tmp-marked-mark ?c)
     (?S gnus-tmp-subscribed ?c)
     (?L gnus-tmp-level ?d)
     (?N (cond ((eq number t) "*" )
@@ -545,7 +544,7 @@ simple manner."
     ))
 
 (defvar gnus-group-mode-line-format-alist
-  `((?S gnus-tmp-news-server ?s)
+  '((?S gnus-tmp-news-server ?s)
     (?M gnus-tmp-news-method ?s)
     (?u gnus-tmp-user-defined ?s)
     (?: gnus-tmp-colon ?s)))
@@ -567,8 +566,6 @@ simple manner."
 ;;;
 ;;; Gnus group mode
 ;;;
-
-(put 'gnus-group-mode 'mode-class 'special)
 
 (gnus-define-keys gnus-group-mode-map
   " " gnus-group-read-group
@@ -783,7 +780,7 @@ simple manner."
 
     (easy-menu-define
      gnus-group-reading-menu gnus-group-mode-map ""
-     `("Group"
+     '("Group"
        ["Read" gnus-group-read-group
 	:included (not (gnus-topic-mode-p))
 	:active (gnus-group-group-name)]
@@ -950,7 +947,7 @@ simple manner."
 
     (easy-menu-define
      gnus-group-misc-menu gnus-group-mode-map ""
-     `("Gnus"
+     '("Gnus"
        ["Send a mail" gnus-group-mail t]
        ["Send a message (mail or news)" gnus-group-post-news t]
        ["Create a local message" gnus-group-news t]
@@ -1107,9 +1104,8 @@ When FORCE, rebuild the tool bar."
 	  (set (make-local-variable 'tool-bar-map) map))))
   gnus-group-tool-bar-map)
 
-(define-derived-mode gnus-group-mode fundamental-mode "Group"
+(define-derived-mode gnus-group-mode gnus-mode "Group"
   "Major mode for reading news.
-
 All normal editing commands are switched off.
 \\<gnus-group-mode-map>
 The group buffer lists (some of) the groups available.  For instance,
@@ -1132,8 +1128,7 @@ The following commands are available:
   (setq mode-line-process nil)
   (buffer-disable-undo)
   (setq truncate-lines t)
-  (setq buffer-read-only t
-	show-trailing-whitespace nil)
+  (setq show-trailing-whitespace nil)
   (gnus-set-default-directory)
   (gnus-update-format-specifications nil 'group 'group-mode)
   (gnus-update-group-mark-positions)
@@ -1154,7 +1149,7 @@ The following commands are available:
       (goto-char (point-min))
       (setq gnus-group-mark-positions
 	    (list (cons 'process (and (search-forward
-				       (string-to-multibyte "\200") nil t)
+				       (string gnus-process-mark) nil t)
 				      (- (point) (point-min) 1))))))))
 
 (defun gnus-mouse-pick-group (e)
@@ -1902,7 +1897,7 @@ If FIRST-TOO, the current line is also eligible as a target."
 	   (insert-char gnus-process-mark 1 t)))
       (unless no-advance
 	(gnus-group-next-group 1))
-      (decf n))
+      (cl-decf n))
     (gnus-group-position-point)
     n))
 
@@ -2552,65 +2547,70 @@ If PROMPT (the prefix) is a number, use the prompt specified in
   (when (equal group "")
     (error "Empty group name"))
 
-  (unless (gnus-ephemeral-group-p group)
-    ;; Either go to the line in the group buffer...
-    (unless (gnus-group-goto-group group)
-      ;; ... or insert the line.
-      (gnus-group-update-group group)
-      (gnus-group-goto-group group)))
-  ;; Adjust cursor point.
-  (gnus-group-position-point))
+  (prog1
+      (unless (gnus-ephemeral-group-p group)
+	;; Either go to the line in the group buffer...
+	(unless (gnus-group-goto-group group)
+	  ;; ... or insert the line.
+	  (gnus-group-update-group group)
+	  (gnus-group-goto-group group)))
+    ;; Adjust cursor point.
+    (gnus-group-position-point)))
 
 (defun gnus-group-goto-group (group &optional far test-marked)
   "Goto to newsgroup GROUP.
 If FAR, it is likely that the group is not on the current line.
 If TEST-MARKED, the line must be marked."
   (when group
-    (beginning-of-line)
-    (cond
-     ;; It's quite likely that we are on the right line, so
-     ;; we check the current line first.
-     ((and (not far)
-	   (eq (get-text-property (point) 'gnus-group)
-	       (gnus-intern-safe group gnus-active-hashtb))
-	   (or (not test-marked) (gnus-group-mark-line-p)))
-      (point))
-     ;; Previous and next line are also likely, so we check them as well.
-     ((and (not far)
-	   (save-excursion
-	     (forward-line -1)
-	     (and (eq (get-text-property (point) 'gnus-group)
-		      (gnus-intern-safe group gnus-active-hashtb))
-		  (or (not test-marked) (gnus-group-mark-line-p)))))
-      (forward-line -1)
-      (point))
-     ((and (not far)
-	   (save-excursion
-	     (forward-line 1)
-	     (and (eq (get-text-property (point) 'gnus-group)
-		      (gnus-intern-safe group gnus-active-hashtb))
-		  (or (not test-marked) (gnus-group-mark-line-p)))))
-      (forward-line 1)
-      (point))
-     (test-marked
-      (goto-char (point-min))
-      (let (found)
-	(while (and (not found)
-		    (gnus-goto-char
-		     (text-property-any
-		      (point) (point-max)
-		      'gnus-group
-		      (gnus-intern-safe group gnus-active-hashtb))))
-	  (if (gnus-group-mark-line-p)
-	      (setq found t)
-	    (forward-line 1)))
-	found))
-     (t
-      ;; Search through the entire buffer.
-      (gnus-goto-char
-       (text-property-any
-	(point-min) (point-max)
-	'gnus-group (gnus-intern-safe group gnus-active-hashtb)))))))
+    (let ((start (point)))
+      (beginning-of-line)
+      (cond
+       ;; It's quite likely that we are on the right line, so
+       ;; we check the current line first.
+       ((and (not far)
+	     (eq (get-text-property (point) 'gnus-group)
+		 (gnus-intern-safe group gnus-active-hashtb))
+	     (or (not test-marked) (gnus-group-mark-line-p)))
+	(point))
+       ;; Previous and next line are also likely, so we check them as well.
+       ((and (not far)
+	     (save-excursion
+	       (forward-line -1)
+	       (and (eq (get-text-property (point) 'gnus-group)
+			(gnus-intern-safe group gnus-active-hashtb))
+		    (or (not test-marked) (gnus-group-mark-line-p)))))
+	(forward-line -1)
+	(point))
+       ((and (not far)
+	     (save-excursion
+	       (forward-line 1)
+	       (and (eq (get-text-property (point) 'gnus-group)
+			(gnus-intern-safe group gnus-active-hashtb))
+		    (or (not test-marked) (gnus-group-mark-line-p)))))
+	(forward-line 1)
+	(point))
+       (test-marked
+	(goto-char (point-min))
+	(let (found)
+	  (while (and (not found)
+		      (gnus-goto-char
+		       (text-property-any
+			(point) (point-max)
+			'gnus-group
+			(gnus-intern-safe group gnus-active-hashtb))))
+	    (if (gnus-group-mark-line-p)
+		(setq found t)
+	      (forward-line 1)))
+	  found))
+       (t
+	;; Search through the entire buffer.
+	(if (gnus-goto-char
+	     (text-property-any
+	      (point-min) (point-max)
+	      'gnus-group (gnus-intern-safe group gnus-active-hashtb)))
+	    (point)
+	  (goto-char start)
+	  nil))))))
 
 (defun gnus-group-next-group (n &optional silent)
   "Go to next N'th newsgroup.
@@ -3557,7 +3557,7 @@ Obeys the process/prefix convention."
 	 (gnus-request-set-mark ,group ',action)
 	 (gnus-info-set-marks ',info ',(gnus-info-marks info) t)
 	 (gnus-info-set-read ',info ',(gnus-info-read info))
-	 (when (gnus-group-goto-group ,group)
+	 (when (gnus-group-jump-to-group ,group)
 	   (gnus-get-unread-articles-in-group ',info ',(gnus-active group) t)
 	   (gnus-group-update-group-line))))
     (setq action (mapcar (lambda (el) (list (nth 0 el) 'del (nth 2 el)))
@@ -3925,7 +3925,7 @@ yanked) a list of yanked groups is returned."
   (interactive "p")
   (setq arg (or arg 1))
   (let (info group prev out)
-    (while (>= (decf arg) 0)
+    (while (>= (cl-decf arg) 0)
       (when (not (setq info (pop gnus-list-of-killed-groups)))
 	(error "No more newsgroups to yank"))
       (push (setq group (nth 1 info)) out)
@@ -4106,9 +4106,14 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
       (gnus-group-remove-mark group)
       ;; Bypass any previous denials from the server.
       (gnus-remove-denial (setq method (gnus-find-method-for-group group)))
-      (if (or (and (not dont-scan)
-		   (gnus-request-group-scan group (gnus-get-info group)))
-	      (gnus-activate-group group (if dont-scan nil 'scan) nil method))
+      (if (if (and (not dont-scan)
+		   ;; Prefer request-group-scan if the backend supports it.
+		   (gnus-check-backend-function 'request-group-scan group))
+	      (progn
+		;; Ensure that the server is already open.
+		(gnus-activate-group group nil nil method)
+		(gnus-request-group-scan group (gnus-get-info group)))
+	    (gnus-activate-group group (if dont-scan nil 'scan) nil method))
 	  (let ((info (gnus-get-info group))
 		(active (gnus-active group)))
 	    (when info
@@ -4121,6 +4126,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	       method (gnus-group-real-name group) active))
 	    (gnus-group-update-group group nil t))
 	(gnus-error 3 "%s error: %s" group (gnus-status-message group))))
+    (gnus-run-hooks 'gnus-after-getting-new-news-hook)
     (when beg
       (goto-char beg))
     (when gnus-goto-next-group-when-activating
@@ -4371,6 +4377,9 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
 	  gnus-expert-user
 	  (gnus-y-or-n-p "Are you sure you want to quit reading news? "))
     (gnus-run-hooks 'gnus-exit-gnus-hook)
+    ;; Check whether we have any unsaved Message buffers and offer to
+    ;; save them.
+    (gnus--abort-on-unsaved-message-buffers)
     ;; Offer to save data from non-quitted summary buffers.
     (gnus-offer-save-summaries)
     ;; Save the newsrc file(s).
@@ -4381,6 +4390,18 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
     (gnus-clear-system)
     ;; Allow the user to do things after cleaning up.
     (gnus-run-hooks 'gnus-after-exiting-gnus-hook)))
+
+(defun gnus--abort-on-unsaved-message-buffers ()
+  (dolist (buffer (gnus-buffers))
+    (when (gnus-buffer-exists-p buffer)
+      (with-current-buffer buffer
+	(when (and (derived-mode-p 'message-mode)
+		   (buffer-modified-p)
+		   (not (y-or-n-p
+			 (format "Message buffer %s unsaved, continue exit? "
+				 (buffer-name)))))
+	  (error "Gnus exit aborted due to unsaved %s buffer"
+		 (buffer-name)))))))
 
 (defun gnus-group-quit ()
   "Quit reading news without updating .newsrc.eld or .newsrc.

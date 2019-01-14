@@ -1,6 +1,6 @@
 ;;; gamegrid.el --- library for implementing grid-based games on Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 1.02
@@ -318,19 +318,19 @@ format."
   (let ((data (gamegrid-match-spec-list data-spec-list))
 	(color (gamegrid-match-spec-list color-spec-list)))
     (pcase data
-      (`color-x
+      ('color-x
        (gamegrid-make-color-x-face color))
-      (`grid-x
+      ('grid-x
        (unless gamegrid-grid-x-face
 	 (setq gamegrid-grid-x-face (gamegrid-make-grid-x-face)))
        gamegrid-grid-x-face)
-      (`mono-x
+      ('mono-x
        (unless gamegrid-mono-x-face
 	 (setq gamegrid-mono-x-face (gamegrid-make-mono-x-face)))
        gamegrid-mono-x-face)
-      (`color-tty
+      ('color-tty
        (gamegrid-make-color-tty-face color))
-      (`mono-tty
+      ('mono-tty
        (unless gamegrid-mono-tty-face
 	 (setq gamegrid-mono-tty-face (gamegrid-make-mono-tty-face)))
        gamegrid-mono-tty-face))))
@@ -557,7 +557,7 @@ On non-POSIX systems Emacs searches for FILE in the directory
 specified by the variable `temporary-file-directory'.  If necessary,
 FILE is created there."
   (pcase system-type
-    ((or `ms-dos `windows-nt)
+    ((or 'ms-dos 'windows-nt)
      (gamegrid-add-score-insecure file score))
     (_
      (gamegrid-add-score-with-update-game-score file score))))

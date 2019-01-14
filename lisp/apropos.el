@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994-1995, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1989, 1994-1995, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
@@ -688,12 +688,12 @@ the output includes key-bindings of commands."
     (dolist (x (cdr lh-entry))
       (pcase (car-safe x)
 	;; (autoload (push (cdr x) autoloads))
-	(`require (push (cdr x) requires))
-	(`provide (push (cdr x) provides))
-        (`t nil) ; Skip "was an autoload" entries.
+	('require (push (cdr x) requires))
+	('provide (push (cdr x) provides))
+        ('t nil) ; Skip "was an autoload" entries.
         ;; FIXME: Print information about each individual method: both
         ;; its docstring and specializers (bug#21422).
-        (`cl-defmethod (push (cadr x) provides))
+        ('cl-defmethod (push (cadr x) provides))
 	(_ (push (or (cdr-safe x) x) symbols))))
     (let ((apropos-pattern "")) ;Dummy binding for apropos-symbols-internal.
       (apropos-symbols-internal
