@@ -1745,20 +1745,17 @@ for FRAME."
   (let* ((frame (window-normalize-frame frame))
          (root (frame-root-window frame))
          (mini (minibuffer-window frame))
-         (mini-height-before-size-change 0)
+         (mini-old-height 0)
          (mini-height 0))
     ;; FRAME's minibuffer window counts iff it's on FRAME and FRAME is
     ;; not a minibuffer-only frame.
     (when (and (eq (window-frame mini) frame) (not (eq mini root)))
-      (setq mini-height-before-size-change
-            (window-pixel-height-before-size-change mini))
+      (setq mini-old-height (window-old-pixel-height mini))
       (setq mini-height (window-pixel-height mini)))
     ;; Return non-nil when either the width of the root or the sum of
     ;; the heights of root and minibuffer window changed.
-    (or (/= (window-pixel-width-before-size-change root)
-            (window-pixel-width root))
-        (/= (+ (window-pixel-height-before-size-change root)
-               mini-height-before-size-change)
+    (or (/= (window-old-pixel-width root) (window-pixel-width root))
+        (/= (+ (window-old-pixel-height root) mini-old-height)
             (+ (window-pixel-height root) mini-height)))))
 
 ;;;; Frame/display capabilities.

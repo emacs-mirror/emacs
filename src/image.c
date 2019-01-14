@@ -1860,47 +1860,48 @@ compute_image_size (size_t width, size_t height,
   *d_width = desired_width;
   *d_height = desired_height;
 }
+#endif /* HAVE_IMAGEMAGICK || HAVE_NATIVE_SCALING */
 
-#ifdef HAVE_NATIVE_SCALING
 static void
 x_set_image_size (struct frame *f, struct image *img)
 {
-#ifdef HAVE_IMAGEMAGICK
+#ifdef HAVE_NATIVE_SCALING
+# ifdef HAVE_IMAGEMAGICK
   /* ImageMagick images are already the correct size.  */
-  if (!EQ (image_spec_value (img->spec, QCtype, NULL), Qimagemagick))
-#endif
+  if (EQ (image_spec_value (img->spec, QCtype, NULL), Qimagemagick))
+    return;
+# endif
+
+  int width, height;
+  compute_image_size (img->width, img->height, img->spec, &width, &height);
+
+# ifdef HAVE_NS
+  ns_image_set_size (img->pixmap, width, height);
+  img->width = width;
+  img->height = height;
+# endif
+
+# ifdef HAVE_XRENDER
+  if (img->picture)
     {
-      int width, height;
+      double xscale = img->width / (double) width;
+      double yscale = img->height / (double) height;
 
-      compute_image_size (img->width, img->height, img->spec, &width, &height);
+      XTransform tmat
+	= {{{XDoubleToFixed (xscale), XDoubleToFixed (0), XDoubleToFixed (0)},
+	    {XDoubleToFixed (0), XDoubleToFixed (yscale), XDoubleToFixed (0)},
+	    {XDoubleToFixed (0), XDoubleToFixed (0), XDoubleToFixed (1)}}};
 
-#ifdef HAVE_NS
-      ns_image_set_size (img->pixmap, width, height);
+      XRenderSetPictureFilter (FRAME_X_DISPLAY (f), img->picture, FilterBest,
+			       0, 0);
+      XRenderSetPictureTransform (FRAME_X_DISPLAY (f), img->picture, &tmat);
+
       img->width = width;
       img->height = height;
-#endif
-
-#ifdef HAVE_XRENDER
-      if (img->picture)
-      {
-        double xscale = (double) img->width/width;
-        double yscale = (double) img->height/height;
-
-        XTransform tmat = {{{XDoubleToFixed (xscale), XDoubleToFixed (0), XDoubleToFixed (0)},
-                            {XDoubleToFixed (0), XDoubleToFixed (yscale), XDoubleToFixed (0)},
-                            {XDoubleToFixed (0), XDoubleToFixed (0), XDoubleToFixed (1)}}};
-
-        XRenderSetPictureFilter (FRAME_X_DISPLAY (f), img->picture, FilterBest, 0, 0);
-        XRenderSetPictureTransform (FRAME_X_DISPLAY (f), img->picture, &tmat);
-
-        img->width = width;
-        img->height = height;
-      }
-#endif
     }
-}
+# endif
 #endif
-#endif /* HAVE_IMAGEMAGICK || HAVE_XRENDER || HAVE_NS  */
+}
 
 
 /* Return the id of image with Lisp specification SPEC on frame F.
@@ -1957,9 +1958,7 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	     `:background COLOR'.  */
 	  Lisp_Object ascent, margin, relief, bg;
 	  int relief_bound;
-#ifdef HAVE_NATIVE_SCALING
           x_set_image_size (f, img);
-#endif
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
 	  if (FIXNUMP (ascent))
@@ -2140,9 +2139,6 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
   Display *display = FRAME_X_DISPLAY (f);
   Drawable drawable = FRAME_X_DRAWABLE (f);
   Screen *screen = FRAME_X_SCREEN (f);
-#ifdef HAVE_XRENDER
-  int event_basep, error_basep;
-#endif
 
   eassert (input_blocked_p ());
 
@@ -2179,7 +2175,8 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
       return 0;
     }
 
-#ifdef HAVE_XRENDER
+# ifdef HAVE_XRENDER
+  int event_basep, error_basep;
   if (picture && XRenderQueryExtension (display, &event_basep, &error_basep))
     {
       XRenderPictFormat *format;
@@ -2192,7 +2189,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
                                           : PictStandardA8);
       *picture = XRenderCreatePicture (display, *pixmap, format, 0, &attr);
     }
-#endif
+# endif
 
   return 1;
 #endif /* HAVE_X_WINDOWS */
@@ -2368,14 +2365,13 @@ image_create_x_image_and_pixmap (struct frame *f, struct image *img,
 {
   eassert ((!mask_p ? img->pixmap : img->mask) == NO_PIXMAP);
 
+  Picture *picture = NULL;
+#ifdef HAVE_XRENDER
+  picture = !mask_p ? &img->picture : &img->mask_picture;
+#endif
   return x_create_x_image_and_pixmap (f, width, height, depth, ximg,
 				      !mask_p ? &img->pixmap : &img->mask,
-#ifdef HAVE_XRENDER
-                                      !mask_p ? &img->picture : &img->mask_picture
-#else
-                                      NULL
-#endif
-                                      );
+				      picture);
 }
 
 /* Put X image XIMG into image IMG on frame F, as a mask if and only

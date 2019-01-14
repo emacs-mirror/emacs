@@ -2668,13 +2668,17 @@ argument must be a plist keyword accepted by
 
   (let* ((p (assoc product sql-product-alist))
          (v (plist-get (cdr p) feature)))
-    (if p
+    (if (and p v)
         (if (and
              (member feature sql-indirect-features)
              (symbolp v))
             (set v newvalue)
           (setcdr p (plist-put (cdr p) feature newvalue)))
-      (error "`%s' is not a known product; use `sql-add-product' to add it first." product))))
+      (progn
+       (when (null p)
+         (error "`%s' is not a known product; use `sql-add-product' to add it first." product))
+       (when (null v)
+         (error "`%s' is not a known feature for `%s'; use `sql-add-product' to add it first." feature product))))))
 
 (defun sql-get-product-feature (product feature &optional fallback not-indirect)
   "Lookup FEATURE associated with a SQL PRODUCT.

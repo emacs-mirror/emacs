@@ -125,6 +125,10 @@ struct frame
      The selected window of the selected frame is Emacs's selected window.  */
   Lisp_Object selected_window;
 
+  /* This frame's selected window when run_window_change_functions was
+     called the last time on this frame.  */
+  Lisp_Object old_selected_window;
+
   /* This frame's minibuffer window.
      Most frames have their own minibuffer windows,
      but only the selected frame's minibuffer window
@@ -321,9 +325,14 @@ struct frame
      cleared.  */
   bool_bf explicit_name : 1;
 
-  /* True if configuration of windows on this frame has changed since
-     last call of run_window_size_change_functions.  */
-  bool_bf window_configuration_changed : 1;
+  /* True if at least one window on this frame changed since the last
+     call of run_window_change_functions.  Changes are either "state
+     changes" (a window has been created, deleted or got assigned
+     another buffer) or "size changes" (the total or body size of a
+     window changed).  run_window_change_functions exits early unless
+     either this flag is true or a window selection happened on this
+     frame.  */
+  bool_bf window_change : 1;
 
   /* True if the mouse has moved on this display device
      since the last time we checked.  */
@@ -405,6 +414,20 @@ struct frame
   bool_bf face_change : 1;
 
   /* Bitfield area ends here.  */
+
+  /* This frame's change stamp, set the last time window change
+     functions were run for this frame.  Should never be 0 because
+     that's the change stamp of a new window.  A window was not on a
+     frame the last run_window_change_functions was called on it if
+     it's change stamp differs from that of its frame.  */
+  int change_stamp;
+
+  /* This frame's number of windows, set the last time window change
+     functions were run for this frame.  Should never be 0 even for
+     minibuffer-only frames.  If no window has been added, this allows
+     to detect whether a window was deleted on this frame since the
+     last time run_window_change_functions was called on it.  */
+  ptrdiff_t number_of_windows;
 
   /* Number of lines (rounded up) of tool bar.  REMOVE THIS  */
   int tool_bar_lines;
@@ -662,6 +685,11 @@ fset_selected_window (struct frame *f, Lisp_Object val)
   f->selected_window = val;
 }
 INLINE void
+fset_old_selected_window (struct frame *f, Lisp_Object val)
+{
+  f->old_selected_window = val;
+}
+INLINE void
 fset_title (struct frame *f, Lisp_Object val)
 {
   f->title = val;
@@ -908,10 +936,9 @@ default_pixels_per_inch_y (void)
    are frozen on frame F.  */
 #define FRAME_WINDOWS_FROZEN(f) (f)->frozen_window_starts
 
-/* True if the frame's window configuration has changed since last call
-   of run_window_size_change_functions.  */
-#define FRAME_WINDOW_CONFIGURATION_CHANGED(f)	\
-  (f)->window_configuration_changed
+/* True if at least one window changed on frame F since the last time
+   window change functions were run on F.  */
+#define FRAME_WINDOW_CHANGE(f) (f)->window_change
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
 #define FRAME_MINIBUF_WINDOW(f) f->minibuffer_window
@@ -919,8 +946,10 @@ default_pixels_per_inch_y (void)
 /* The root window of the window tree of frame F.  */
 #define FRAME_ROOT_WINDOW(f) f->root_window
 
-/* The currently selected window of the window tree of frame F.  */
+/* The currently selected window of frame F.  */
 #define FRAME_SELECTED_WINDOW(f) f->selected_window
+/* The old selected window of frame F.  */
+#define FRAME_OLD_SELECTED_WINDOW(f) f->old_selected_window
 
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
@@ -1215,6 +1244,7 @@ SET_FRAME_VISIBLE (struct frame *f, int v)
   (f)->iconified = (eassert (0 <= (i) && (i) <= 1), (i))
 
 extern Lisp_Object selected_frame;
+extern Lisp_Object old_selected_frame;
 
 #if ! (defined USE_GTK || defined HAVE_NS)
 extern int frame_default_tool_bar_height;

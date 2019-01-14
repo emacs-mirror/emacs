@@ -2797,6 +2797,19 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
     {
       if (cons_block_index == CONS_BLOCK_SIZE)
 	{
+	  /* Maximum number of conses that should be active at any
+	     given time, so that list lengths fit into a ptrdiff_t and
+	     into a fixnum.  */
+	  ptrdiff_t max_conses = min (PTRDIFF_MAX, MOST_POSITIVE_FIXNUM);
+
+	  /* This check is typically optimized away, as a runtime
+	     check is needed only on weird platforms where a count of
+	     distinct conses might not fit.  */
+	  if (max_conses < INTPTR_MAX / sizeof (struct Lisp_Cons)
+	      && (max_conses - CONS_BLOCK_SIZE
+		  < total_free_conses + total_conses))
+	    memory_full (sizeof (struct cons_block));
+
 	  struct cons_block *new
 	    = lisp_align_malloc (sizeof *new, MEM_TYPE_CONS);
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);

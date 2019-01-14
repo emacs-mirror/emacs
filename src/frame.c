@@ -56,8 +56,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "pdumper.h"
 
 /* The currently selected frame.  */
-
 Lisp_Object selected_frame;
+
+/* The selected frame the last time window change functions were run.  */
+Lisp_Object old_selected_frame;
 
 /* A frame which is not just a mini-buffer, or NULL if there are no such
    frames.  This is usually the most recent such frame that was selected.  */
@@ -856,7 +858,8 @@ make_frame (bool mini_p)
   f->ns_transparent_titlebar = false;
 #endif
 #endif
-
+  /* This one should never be zero.  */
+  f->change_stamp = 1;
   root_window = make_window ();
   rw = XWINDOW (root_window);
   if (mini_p)
@@ -1449,7 +1452,8 @@ This function returns FRAME, or nil if FRAME has been deleted.  */)
   return do_switch_frame (frame, 1, 0, norecord);
 }
 
-DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 1, "^e",
+DEFUN ("handle-switch-frame", Fhandle_switch_frame,
+       Shandle_switch_frame, 1, 1, "^e",
        doc: /* Handle a switch-frame event EVENT.
 Switch-frame events are usually bound to this function.
 A switch-frame event is an event Emacs sends itself to
@@ -1468,6 +1472,18 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   (void)
 {
   return selected_frame;
+}
+
+DEFUN ("old-selected-frame", Fold_selected_frame,
+       Sold_selected_frame, 0, 0, 0,
+       doc: /* Return the old selected FRAME.
+FRAME must be a live frame and defaults to the selected one.
+
+The return value is the frame selected the last time window change
+functions were run.  */)
+  (void)
+{
+  return old_selected_frame;
 }
 
 DEFUN ("frame-list", Fframe_list, Sframe_list,
@@ -6114,9 +6130,10 @@ iconify the top level frame instead.  */);
   defsubr (&Swindow_system);
   defsubr (&Sframe_windows_min_size);
   defsubr (&Smake_terminal_frame);
-  defsubr (&Shandle_switch_frame);
   defsubr (&Sselect_frame);
+  defsubr (&Shandle_switch_frame);
   defsubr (&Sselected_frame);
+  defsubr (&Sold_selected_frame);
   defsubr (&Sframe_list);
   defsubr (&Sframe_parent);
   defsubr (&Sframe_ancestor_p);

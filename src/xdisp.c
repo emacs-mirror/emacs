@@ -2786,6 +2786,7 @@ init_iterator (struct it *it, struct window *w,
 	       struct glyph_row *row, enum face_id base_face_id)
 {
   enum face_id remapped_base_face_id = base_face_id;
+  int body_width = 0, body_height = 0;
 
   /* Some precondition checks.  */
   eassert (w != NULL && it != NULL);
@@ -2962,7 +2963,7 @@ init_iterator (struct it *it, struct window *w,
     {
       /* Mode lines, menu bar in terminal frames.  */
       it->first_visible_x = 0;
-      it->last_visible_x = WINDOW_PIXEL_WIDTH (w);
+      it->last_visible_x = body_width = WINDOW_PIXEL_WIDTH (w);
     }
   else
     {
@@ -2982,8 +2983,12 @@ init_iterator (struct it *it, struct window *w,
       else
 	it->first_visible_x =
 	  window_hscroll_limited (w, it->f) * FRAME_COLUMN_WIDTH (it->f);
-      it->last_visible_x = (it->first_visible_x
-			    + window_box_width (w, TEXT_AREA));
+
+      body_width = window_box_width (w, TEXT_AREA);
+      if (!w->pseudo_window_p && !MINI_WINDOW_P (w)
+	  && body_width != w->old_body_pixel_width)
+	FRAME_WINDOW_CHANGE (it->f) = true;
+      it->last_visible_x = it->first_visible_x + body_width;
 
       /* If we truncate lines, leave room for the truncation glyph(s) at
 	 the right margin.  Otherwise, leave room for the continuation
@@ -2997,7 +3002,8 @@ init_iterator (struct it *it, struct window *w,
 	}
 
       it->header_line_p = window_wants_header_line (w);
-      it->current_y = WINDOW_HEADER_LINE_HEIGHT (w) + w->vscroll;
+      body_height = WINDOW_HEADER_LINE_HEIGHT (w);
+      it->current_y =  body_height + w->vscroll;
     }
 
   /* Leave room for a border glyph.  */
@@ -3006,6 +3012,10 @@ init_iterator (struct it *it, struct window *w,
     it->last_visible_x -= 1;
 
   it->last_visible_y = window_text_bottom_y (w);
+  body_height += it->last_visible_y;
+  if (!w->pseudo_window_p && !MINI_WINDOW_P (w)
+      && body_height != w->old_body_pixel_height)
+    FRAME_WINDOW_CHANGE (it->f) = true;
 
   /* For mode lines and alike, arrange for the first glyph having a
      left box line if the face specifies a box.  */
@@ -12200,8 +12210,6 @@ prepare_menu_bars (void)
 	      && !XBUFFER (w->contents)->text->redisplay)
 	    continue;
 
-	  run_window_size_change_functions (frame);
-
 	  if (FRAME_PARENT_FRAME (f))
 	    continue;
 
@@ -14119,20 +14127,6 @@ redisplay_internal (void)
     {
       echo_area_display (false);
 
-      /* If echo_area_display resizes the mini-window, the redisplay and
-	 window_sizes_changed flags of the selected frame are set, but
-	 it's too late for the hooks in window-size-change-functions,
-	 which have been examined already in prepare_menu_bars.  So in
-	 that case we call the hooks here only for the selected frame.  */
-      if (sf->redisplay)
-	{
-	  ptrdiff_t count1 = SPECPDL_INDEX ();
-
-	  record_unwind_save_match_data ();
-	  run_window_size_change_functions (selected_frame);
-	  unbind_to (count1, Qnil);
-	}
-
       if (message_cleared_p)
 	update_miniwindow_p = true;
 
@@ -14149,15 +14143,6 @@ redisplay_internal (void)
 	   && (current_buffer->clip_changed || window_outdated (w))
 	   && resize_mini_window (w, false))
     {
-      if (sf->redisplay)
-	{
-	  ptrdiff_t count1 = SPECPDL_INDEX ();
-
-	  record_unwind_save_match_data ();
-	  run_window_size_change_functions (selected_frame);
-	  unbind_to (count1, Qnil);
-	}
-
       /* Resized active mini-window to fit the size of what it is
          showing if its contents might have changed.  */
       must_finish = true;
@@ -14347,7 +14332,19 @@ redisplay_internal (void)
 		  && (w = XWINDOW (selected_window)) != sw)
 		goto retry;
 
-	      /* We used to always goto end_of_redisplay here, but this
+	      if (!NILP (Vrun_hooks))
+		{
+		  run_window_change_functions ();
+
+		  /* If windows or buffers changed or selected_window
+		     changed, redisplay again.  */
+		  if ((windows_or_buffers_changed)
+		      || (WINDOWP (selected_window)
+			  && (w = XWINDOW (selected_window)) != sw))
+		    goto retry;
+		}
+
+		/* We used to always goto end_of_redisplay here, but this
 		 isn't enough if we have a blinking cursor.  */
 	      if (w->cursor_off_p == w->last_cursor_off_p)
 		goto end_of_redisplay;
@@ -14706,8 +14703,21 @@ redisplay_internal (void)
   /* If we just did a pending size change, or have additional
      visible frames, or selected_window changed, redisplay again.  */
   if ((windows_or_buffers_changed && !pending)
-      || (WINDOWP (selected_window) && (w = XWINDOW (selected_window)) != sw))
+      || (WINDOWP (selected_window)
+	  && (w = XWINDOW (selected_window)) != sw))
     goto retry;
+
+  if (!NILP (Vrun_hooks))
+    {
+      run_window_change_functions ();
+
+      /* If windows or buffers changed or selected_window changed,
+	 redisplay again.  */
+      if ((windows_or_buffers_changed)
+	  || (WINDOWP (selected_window)
+	      && (w = XWINDOW (selected_window)) != sw))
+	goto retry;
+    }
 
   /* Clear the face and image caches.
 

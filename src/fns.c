@@ -101,9 +101,7 @@ list_length (Lisp_Object list)
   FOR_EACH_TAIL (list)
     i++;
   CHECK_LIST_END (list, list);
-  if (i <= min (PTRDIFF_MAX, MOST_POSITIVE_FIXNUM))
-    return i;
-  overflow_error ();
+  return i;
 }
 
 
@@ -141,14 +139,13 @@ DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
        doc: /* Return the length of a list, but avoid error or infinite loop.
 This function never gets an error.  If LIST is not really a list,
 it returns 0.  If LIST is circular, it returns an integer that is at
-least the number of distinct elements.
-Value is a fixnum, if it's small enough, otherwise a bignum.  */)
+least the number of distinct elements.  */)
   (Lisp_Object list)
 {
   intptr_t len = 0;
   FOR_EACH_TAIL_SAFE (list)
     len++;
-  return INT_TO_INTEGER (len);
+  return make_fixnum (len);
 }
 
 DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
@@ -168,8 +165,6 @@ A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */
     }
   if (!NILP (last_tail))
     return Qnil;
-  if (MOST_POSITIVE_FIXNUM < len)
-    overflow_error ();
   return make_fixnum (len);
 }
 

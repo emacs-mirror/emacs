@@ -373,4 +373,13 @@
               ((eq stat 2)
                (should-not name)))))))))
 
+(ert-deftest test-translate-region-internal ()
+  (with-temp-buffer
+    (let ((max-char #16r3FFFFF)
+          (tt (make-char-table 'translation-table)))
+      (aset tt max-char ?*)
+      (insert max-char)
+      (translate-region-internal (point-min) (point-max) tt)
+      (should (string-equal (buffer-string) "*")))))
+
 ;;; editfns-tests.el ends here

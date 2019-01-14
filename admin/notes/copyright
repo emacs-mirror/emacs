@@ -161,9 +161,6 @@ etc/letter.pbm,letter.xpm
   - trivial, no notice needed.
 <https://lists.gnu.org/r/emacs-devel/2007-02/msg00324.html>
 
-etc/FTP, ORDERS
-  - trivial (at time of writing), no license needed
-
 etc/HELLO
   standard notices. Just a note that although the file itself is not
   really copyrightable, in the wider context of it being part of

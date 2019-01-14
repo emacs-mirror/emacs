@@ -640,7 +640,7 @@ only consider active buffers visible.")
   (unless (minibuffer-window-active-p (minibuffer-window))
     ;; delay this until command has finished to make sure window is
     ;; actually visible before clearing activity
-    (add-hook 'post-command-hook 'erc-modified-channels-update)))
+    (erc-modified-channels-update)))
 
 (defvar erc-modified-channels-update-inside nil
   "Variable to prevent running `erc-modified-channels-update' multiple
@@ -669,8 +669,7 @@ ARGS are ignored."
 		  (erc-modified-channels-remove-buffer buffer))))
 	    erc-modified-channels-alist)
       (when removed-channel
-	(erc-modified-channels-display)))
-    (remove-hook 'post-command-hook 'erc-modified-channels-update)))
+	(erc-modified-channels-display)))))
 
 (defvar erc-track-mouse-face (if (featurep 'xemacs)
 				 'modeline-mousable

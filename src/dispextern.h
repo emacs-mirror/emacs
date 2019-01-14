@@ -32,7 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif /* USE_X_TOOLKIT */
 
 #ifdef HAVE_XRENDER
-#include <X11/extensions/Xrender.h>
+# include <X11/extensions/Xrender.h>
 #endif
 #else /* !HAVE_X_WINDOWS */
 
@@ -2938,10 +2938,9 @@ struct redisplay_interface
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-#if defined (HAVE_X_WINDOWS) && defined (HAVE_XRENDER) \
-  || defined (HAVE_NS)
-#define HAVE_NATIVE_SCALING
-#endif
+# if defined HAVE_XRENDER || defined HAVE_NS
+#  define HAVE_NATIVE_SCALING
+# endif
 
 /* Structure describing an image.  Specific image formats like XBM are
    converted into this form, so that display only has to deal with
@@ -2967,10 +2966,10 @@ struct image
      synchronized to Pixmap.  */
   XImagePtr ximg, mask_img;
 
-#ifdef HAVE_NATIVE_SCALING
+# ifdef HAVE_NATIVE_SCALING
   /* Picture versions of pixmap and mask for compositing.  */
   Picture picture, mask_picture;
-#endif
+# endif
 #endif
 
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */

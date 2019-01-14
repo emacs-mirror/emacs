@@ -568,12 +568,6 @@ its pixel height is the pixel height of the screen areas spanned by its
 children.
 @end defun
 
-@defun window-pixel-height-before-size-change &optional Lisp_Object &optional window
-This function returns the height of window @var{window} in pixels at the
-time @code{window-size-change-functions} was run for the last time on
-@var{window}'s frame (@pxref{Window Hooks}).
-@end defun
-
 @cindex window pixel width
 @cindex pixel width of a window
 @cindex total pixel width of a window
@@ -586,12 +580,6 @@ The return value includes the fringes and margins of @var{window} as
 well as any vertical dividers or scroll bars belonging to @var{window}.
 If @var{window} is an internal window, its pixel width is the width of
 the screen areas spanned by its children.
-@end defun
-
-@defun window-pixel-width-before-size-change &optional Lisp_Object &optional window
-This function returns the width of window @var{window} in pixels at the
-time @code{window-size-change-functions} was run for the last time on
-@var{window}'s frame (@pxref{Window Hooks}).
 @end defun
 
 @cindex full-width window
@@ -5705,10 +5693,6 @@ prevent the code in @var{forms} from opening new windows, because new
 windows might be opened in other frames (@pxref{Choosing Window}), and
 @code{save-window-excursion} only saves and restores the window
 configuration on the current frame.
-
-Do not use this macro in @code{window-size-change-functions}; exiting
-the macro triggers execution of @code{window-size-change-functions},
-leading to an endless loop.
 @end defmac
 
 @defun window-configuration-p object
@@ -5827,10 +5811,10 @@ This function sets @var{window}'s value of @var{parameter} to
 is the selected window.
 @end defun
 
-By default, the functions that save and restore window configurations or the
-states of windows (@pxref{Window Configurations}) do not care about
-window parameters.  This means that when you change the value of a
-parameter within the body of a @code{save-window-excursion}, the
+By default, the functions that save and restore window configurations
+or the states of windows (@pxref{Window Configurations}) do not care
+about window parameters.  This means that when you change the value of
+a parameter within the body of a @code{save-window-excursion}, the
 previous value is not restored when that macro exits.  It also means
 that when you restore via @code{window-state-put} a window state saved
 earlier by @code{window-state-get}, all cloned windows have their
@@ -6019,27 +6003,26 @@ applications.  It might be replaced by an improved solution in future
 versions of Emacs.
 @end table
 
+
 @node Window Hooks
 @section Hooks for Window Scrolling and Changes
 @cindex hooks for window operations
 
-This section describes how a Lisp program can take action whenever a
-window displays a different part of its buffer or a different buffer.
-There are three actions that can change this: scrolling the window,
-switching buffers in the window, and changing the size of the window.
-The first two actions run @code{window-scroll-functions}; the last runs
-@code{window-size-change-functions}.
+This section describes how Lisp programs can take action after a
+window has been scrolled or other window modifications occurred.  We
+first consider the case where a window shows a different part of its
+buffer.
 
 @defvar window-scroll-functions
 This variable holds a list of functions that Emacs should call before
-redisplaying a window with scrolling.  Displaying a different buffer in
-the window also runs these functions.
+redisplaying a window with scrolling.  Displaying a different buffer
+in a window and making a new window also call these functions.
 
-This variable is not a normal hook, because each function is called with
-two arguments: the window, and its new display-start position.  At the
-time of the call, the display-start position of the window argument is
-already set to its new value, and the buffer to be displayed in the
-window is already set as the current buffer.
+This variable is not a normal hook, because each function is called
+with two arguments: the window, and its new display-start position.
+At the time of the call, the display-start position of the argument
+window is already set to its new value, and the buffer to be displayed
+in the window is set as the current buffer.
 
 These functions must take care when using @code{window-end}
 (@pxref{Window Start and End}); if you need an up-to-date value, you
@@ -6050,63 +6033,226 @@ is scrolled.  It's not designed for that, and such use probably won't
 work.
 @end defvar
 
-@defun run-window-scroll-functions &optional window
-This function calls @code{window-scroll-functions} for the specified
-@var{window}, which defaults to the selected window.
-@end defun
-
-@defvar window-size-change-functions
-This variable holds a list of functions to be called if the size of any
-window changes for any reason.  The functions are called once per
-redisplay, and once for each frame on which size changes have occurred.
-
-Each function receives the frame as its sole argument.  To find out
-whether a specific window has changed size, compare the return values of
-@code{window-pixel-width-before-size-change} and
-@code{window-pixel-width} respectively
-@code{window-pixel-height-before-size-change} and
-@code{window-pixel-height} for that window (@pxref{Window Sizes}).
-
-The buffer-local value of this hook is run once for the buffer and the
-frame in question, provided at least one window showing the buffer on
-that frame has changed its size.  As it still receives the frame as
-its sole argument, any function called on a buffer-local basis will be
-oblivious to which window(s) showing the buffer changed its (their)
-size and has to check out these windows by using the method described
-in the previous paragraph.
-
-These function are usually only called when at least one window was
-added or has changed size since the last time this hook was run for
-the associated frame.  In some rare cases this hook also runs when a
-window that was added intermittently has been deleted afterwards.  In
-these cases none of the windows on the frame will appear to have
-changed its size.
-@end defvar
-
-@defvar window-configuration-change-hook
-A normal hook that is run every time the window configuration of a
-frame changes.  Window configuration changes include splitting and
-deleting windows, and the display of a different buffer in a window.
-
-The hook can be also used for tracking changes of window sizes.  It
-is, however, not run when the size of a frame changes or automatic
-resizing of a minibuffer window (@pxref{Minibuffer Windows}) changes
-the size of another window.  As a rule, adding a function to
-@code{window-size-change-functions}, see above, is the recommended way
-for reliably tracking size changes of any window.
-
-The buffer-local value of this hook is run once for each window on the
-affected frame, with the relevant window selected and its buffer
-current.  The global value of this hook is run once for the modified
-frame, with that frame selected.
-@end defvar
-
-@defun run-window-configuration-change-hook &optional frame
-This function runs @code{window-configuration-change-hook} for the
-specified @var{frame}, which defaults to the selected frame.
-@end defun
-
-  In addition, you can use @code{jit-lock-register} to register a Font
+In addition, you can use @code{jit-lock-register} to register a Font
 Lock fontification function, which will be called whenever parts of a
 buffer are (re)fontified because a window was scrolled or its size
 changed.  @xref{Other Font Lock Variables}.
+
+@cindex window change functions
+   The remainder of this section covers four hooks that are called at
+the end of redisplay provided a significant, non-scrolling change of a
+window has been detected.  For simplicity, these hooks and the
+functions they call will be collectively referred to as @dfn{window
+change functions}.
+
+@cindex window buffer change
+The first of these hooks is run after a @dfn{window buffer change} is
+detected, which means that a window was created, deleted or assigned
+another buffer.
+
+@defvar window-buffer-change-functions
+This variable specifies functions called at the end of redisplay when
+window buffers have changed.  The value should be a list of functions
+that take one argument.
+
+Functions specified buffer-locally are called for any window showing
+the corresponding buffer if that window has been created or assigned
+that buffer since the last time window change functions were run.  In
+this case the window is passed as argument.
+
+Functions specified by the default value are called for a frame if at
+least one window on that frame has been added, deleted or assigned
+another buffer since the last time window change functions were run.
+In this case the frame is passed as argument.
+@end defvar
+
+@cindex window size change
+The second of these hooks is run after a @dfn{window size change} has
+been detected which means that a window was created, assigned another
+buffer, or changed its total size or that of its text area.
+
+@defvar window-size-change-functions
+This variable specifies functions called at the end of redisplay when
+a window size change occurred.  The value should be a list of
+functions that take one argument.
+
+Functions specified buffer-locally are called for any window showing
+the corresponding buffer if that window has been added or assigned
+another buffer, total or body size since the last time window change
+functions were run.  In this case the window is passed as argument.
+
+Functions specified by the default value are called for a frame if at
+least one window on that frame has been added or assigned another
+buffer, total or body size since the last time window change functions
+were run.  In this case the frame is passed as argument.
+@end defvar
+
+@cindex window selection change
+The third of these hooks is run after a @dfn{window selection change}
+has selected another window since the last redisplay.
+
+@defvar window-selection-change-functions
+This variable specifies functions called at the end of redisplay when
+the selected window or a frame's selected window has changed.  The
+value should be a list of functions that take one argument.
+
+Functions specified buffer-locally are called for any window showing
+the corresponding buffer if that window has been selected or
+deselected (among all windows or among all windows on its frame) since
+the last time window change functions were run.  In this case the
+window is passed as argument.
+
+Functions specified by the default value are called for a frame if
+that frame has been selected or deselected or the frame's selected
+window has changed since the last time window change functions were
+run.  In this case the frame is passed as argument.
+@end defvar
+
+@cindex window configuration change
+The fourth of these hooks is run when a @dfn{window configuration
+change} has been detected which means that either the buffer or the
+size of a window changed.
+
+@defvar window-configuration-change-hook
+This variable specifies functions called at the end of redisplay when
+either the buffer or the size of a window has changed.  The value
+should be a list of functions that take no argument.
+
+Functions specified buffer-locally are called for any window showing
+the corresponding buffer if at least one window on that frame has been
+added, deleted or assigned another buffer, total or body size since
+the last time window change functions were run.  Each call is
+performed with the window showing the buffer temporarily selected and
+its buffer current.
+
+Functions specified by the default value are called for each frame if
+at least one window on that frame has been added, deleted or assigned
+another buffer, total or body size since the last time window change
+functions were run.  Each call is performed with the frame temporarily
+selected and the selected window's buffer current.
+@end defvar
+
+Window change functions are called at the end of redisplay for each
+frame as follows: First, any buffer-local window buffer change
+function, window size change function and selected window change
+functions are called in this order.  Next, the default values for
+these functions are called in the same order.  Then any buffer-local
+window configuration change functions are called followed by functions
+specified by the default value of those functions.
+
+   Window change functions are run for a specific frame only if a
+corresponding change was registered for that frame earlier.  Such
+changes include the creation or deletion of a window or the assignment
+of another buffer or size to a window.  Note that even when such a
+change has been registered, this does not mean that any of the hooks
+described above is run.  If, for example, a change was registered
+within the scope of a window excursion (@pxref{Window
+Configurations}), this will trigger a call of window change functions
+only if that excursion still persists at the time change functions are
+run.  If it is exited earlier, hooks will be run only if registered by
+a change outside the scope of that excursion.
+
+   While window change functions are run, the functions described next
+can be called to get more insight into what has changed for a specific
+window or frame since the last redisplay.  All these functions take a
+live window as single, optional argument, defaulting to the selected
+window.
+
+@defun window-old-buffer &optional window
+This function returns the buffer shown in @var{window} at the last
+time window change functions were run for @var{window}'s frame.  If it
+returns @code{nil}, @var{window} has been created after that.  If it
+returns @code{t}, @var{window} was not shown at that time but has been
+restored from a previously saved window configuration afterwards.
+Otherwise, the return value is the buffer shown by @code{window} at
+that time.
+@end defun
+
+@defun window-old-pixel-width &optional window
+This function returns the total pixel width of @var{window} the
+last time window change functions found @code{window} live on its
+frame.  It is zero if @code{window} was created after that.
+@end defun
+
+@defun window-old-pixel-height &optional window
+This function returns the total pixel height of @var{window} the last
+time window change functions found @code{window} live on its frame.
+It is zero if @code{window} was created after that.
+@end defun
+
+@defun window-old-body-pixel-width &optional window
+This function returns the pixel width of @var{window}'s text area the
+last time window change functions found @code{window} live on its
+frame.  It is zero if @code{window} was created after that.
+@end defun
+
+@defun window-old-body-pixel-height &optional window
+This function returns the pixel height of @var{window}'s text area the
+last time window change functions found @code{window} live on its
+frame.  It is zero if @code{window} was created after that.
+@end defun
+
+In order to find out which window or frame was selected the last time
+window change functions were run, the following functions can be used:
+
+@defun frame-old-selected-window &optional frame
+This function returns the selected window of @var{frame} at the last
+time window change functions were run.  If omitted or @code{nil}
+@var{frame} defaults to the selected frame.
+@end defun
+
+@defun old-selected-window
+This function returns the selected window at the last time window
+change functions were run.
+@end defun
+
+@defun old-selected-frame
+This function returns the selected frame at the last time window
+change functions were run.
+@end defun
+
+Note that window change functions provide no information about which
+windows have been deleted since the last time they were run.  If
+necessary, an application should remember any window showing a
+specific buffer in a local variable of that buffer and update it in a
+function run by the default value of
+@code{window-buffer-change-functions} or
+@code{window-configuration-change-hook} (the only hooks triggered by
+the deletion of windows).
+
+   The following caveats should be considered when adding a function
+to window change functions:
+
+@itemize @bullet
+@item
+Some operations will not trigger a call of window change functions.
+These include showing another buffer in a minibuffer window or any
+change of a tooltip window.
+
+@item
+Window change functions should not create or delete windows or change
+the buffer, size or selection status of any window because there is no
+guarantee that the information about such a change will be propagated
+to other window change functions.  If at all, any such change should
+be executed only by the last function listed by the default value of
+@code{window-configuration-change-hook}.
+
+@item
+Macros like @code{save-window-excursion}, @code{with-selected-window}
+or @code{with-current-buffer} can be used when running window change
+functions.
+
+@item
+Running window change functions does not save and restore match data.
+Unless running @code{window-configuration-change-hook} it does not
+save or restore the selected window or frame or the current buffer
+either.
+
+@item
+Any redisplay triggering the run of window change functions may be
+aborted.  If the abort occurs before window change functions have run
+to their completion, they will be run again with the previous values,
+that is, as if redisplay had not been performed.  If aborted later,
+they will be run with the new values, that is, as if redisplay had
+been actually performed.
+@end itemize

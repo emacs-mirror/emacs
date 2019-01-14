@@ -3002,13 +3002,14 @@ x_composite_image (struct glyph_string *s, Pixmap dest,
                         width, height);
 
       XRenderFreePicture (s->display, destination);
+      return;
     }
-  else
 #endif
-    XCopyArea (s->display, s->img->pixmap,
-               dest, s->gc,
-               srcX, srcY,
-               width, height, dstX, dstY);
+
+  XCopyArea (s->display, s->img->pixmap,
+	     dest, s->gc,
+	     srcX, srcY,
+	     width, height, dstX, dstY);
 }
 
 
@@ -3061,7 +3062,8 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.width = s->slice.width;
 	  image_rect.height = s->slice.height;
 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-            x_composite_image (s, FRAME_X_DRAWABLE (s->f), s->slice.x + r.x - x, s->slice.y + r.y - y,
+            x_composite_image (s, FRAME_X_DRAWABLE (s->f),
+			       s->slice.x + r.x - x, s->slice.y + r.y - y,
                                r.x, r.y, r.width, r.height);
 	}
       else

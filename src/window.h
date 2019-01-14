@@ -142,6 +142,11 @@ struct window
        as well.  */
     Lisp_Object contents;
 
+    /* The old buffer of this window, set to this window's buffer by
+       run_window_change_functions every time it sees this window.
+       Unused for internal windows.  */
+    Lisp_Object old_buffer;
+
     /* A marker pointing to where in the text to start displaying.
        BIDI Note: This is the _logical-order_ start, i.e. the smallest
        buffer position visible in the window, not necessarily the
@@ -229,6 +234,14 @@ struct window
     /* Unique number of window assigned when it was created.  */
     EMACS_INT sequence_number;
 
+    /* The change stamp of this window.  Set to 0 when the window is
+       created, it is set to its frame's change stamp every time
+       run_window_change_functions is run on that frame with this
+       window live.  It is left alone when the window exists only
+       within a window configuration.  Not useful for internal
+       windows.  */
+    int change_stamp;
+
     /* The upper left corner pixel coordinates of this window, as
        integers relative to upper left corner of frame = 0, 0.  */
     int pixel_left;
@@ -243,10 +256,13 @@ struct window
     int pixel_width;
     int pixel_height;
 
-    /* The pixel sizes of the window at the last time
-       `window-size-change-functions' was run.  */
-    int pixel_width_before_size_change;
-    int pixel_height_before_size_change;
+    /* The pixel and pixel body sizes of the window at the last time
+       run_window_change_functions was run with this window live.  Not
+       useful for internal windows.  */
+    int old_pixel_width;
+    int old_pixel_height;
+    int old_body_pixel_width;
+    int old_body_pixel_height;
 
     /* The size of the window.  */
     int total_cols;
@@ -1023,6 +1039,7 @@ wset_next_buffers (struct window *w, Lisp_Object val)
    This value is always the same as FRAME_SELECTED_WINDOW (selected_frame).  */
 
 extern Lisp_Object selected_window;
+extern Lisp_Object old_selected_window;
 
 /* This is a time stamp for window selection, so we can find the least
    recently used window.  Its only users are Fselect_window,
@@ -1051,7 +1068,7 @@ extern void grow_mini_window (struct window *, int, bool);
 extern void shrink_mini_window (struct window *, bool);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
 
-void run_window_size_change_functions (Lisp_Object);
+void run_window_change_functions (void);
 
 /* Make WINDOW display BUFFER.  RUN_HOOKS_P means it's allowed
    to run hooks.  See make_frame for a case where it's not allowed.  */

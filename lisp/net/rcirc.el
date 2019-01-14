@@ -2064,9 +2064,7 @@ activity.  Only run if the buffer is not visible and
 (defvar rcirc-visible-buffers nil)
 (defun rcirc-window-configuration-change ()
   (unless (minibuffer-window-active-p (minibuffer-window))
-    ;; delay this until command has finished to make sure window is
-    ;; actually visible before clearing activity
-    (add-hook 'post-command-hook 'rcirc-window-configuration-change-1)))
+    (rcirc-window-configuration-change-1)))
 
 (defun rcirc-window-configuration-change-1 ()
   ;; clear activity and overlay arrows
@@ -2090,9 +2088,7 @@ activity.  Only run if the buffer is not visible and
 			    rcirc-activity)))
     ;; update the mode-line string
     (unless (equal old-activity rcirc-activity)
-      (rcirc-update-activity-string)))
-
-  (remove-hook 'post-command-hook 'rcirc-window-configuration-change-1))
+      (rcirc-update-activity-string))))
 
 
 ;;; buffer name abbreviation

@@ -320,7 +320,7 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+------------------
-    tilde    |   ~    | ~a -> ă
+    breve    |   ~    | ~a -> ă
   circumflex |   ^    | ^a -> â, ^i -> î
    cedilla   |   ,    | ,s -> ş, ,t -> ţ
    ~         |   ~    | ~~ -> ~
@@ -342,11 +342,11 @@ Key translation rules are:
 
     effect   | prefix | examples
  ------------+--------+------------------
-    tilde    |   \"    | \"a -> â
-  circumflex |   \\='    | \\='a -> â, \\='i -> î
-   cedilla   |   \\='    | \\='s -> ş, \\='t -> ţ
-   \\='         |   \\='    | \\='\\=' -> \\='
-   \"         |   \"    | \"\" -> \"
+    breve    |   \\='    | \\='a -> ă
+ circumflex  |  \" \\='   | \"a -> â  \\='i -> î
+   cedilla   |   \\='    | \\='s -> ş  \\='t -> ţ
+      \\='      |   \\='    | \\='\\=' -> \\='
+      \"      |   \"    | \"\" -> \"
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -606,7 +606,7 @@ Key translation rules are:
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä   \"\" -> ¨
    cedilla   |   ~    | ~c -> ç   ~s -> ş   ~~ -> ¸
-  dot above  |   / .  | /g -> ġ   .o -> ġ
+  dot above  |   / .  | /g -> ġ   .g -> ġ
     misc     | \" ~ /  | \"s -> ß   ~g -> ğ   ~u -> ŭ   /h -> ħ   /i -> ı
    symbol    |   ~    | ~\\=` -> ˘   /# -> £   /$ -> ¤   // -> °
 " nil t nil nil nil nil nil nil nil nil t)
@@ -1089,15 +1089,15 @@ of characters from a single Latin-N charset.
 
     effect   | prefix | examples
  ------------+--------+----------
-    acute    |   \\='    | \\='a -> á, \\='\\=' -> ´
+    acute    |   \\='    | \\='a -> á  \\='\\=' -> ´
     grave    |   \\=`    | \\=`a -> à
   circumflex |   ^    | ^a -> â
   diaeresis  |   \"    | \"a -> ä  \"\" -> ¨
     tilde    |   ~    | ~a -> ã
-   cedilla   |   ~    | ~c -> ç
+   cedilla   |  , ~   | ,c -> ç  ~c -> ç
+    caron    |   ~    | ~c -> č  ~g -> ğ
     breve    |   ~    | ~a -> ă
-    caron    |   ~    | ~c -> č
-  dot above  | ~ / .  | ~o -> ġ   /o -> ġ   .o -> ġ
+  dot above  |   / .  | /g -> ġ   .g -> ġ
     misc     | \" ~ /  | \"s -> ß  ~d -> ð  ~t -> þ  /a -> å  /e -> æ  /o -> ø
    symbol    |   ~    | ~> -> »  ~< -> «  ~! -> ¡  ~? -> ¿  ~~ -> ¸
    symbol    |  _ /   | _o -> º  _a -> ª  // -> °  /\\ -> ×  _y -> ¥
@@ -1252,7 +1252,10 @@ of characters from a single Latin-N charset.
  ("~>" ?\»)
  ("~?" ?¿)
  ("~A" ?Ã)
+ ("~A" ?Ă)
  ("~C" ?Ç)
+ ("~C" ?Č)
+ (",C" ?Ç)
  ("~D" ?Ð)
  ("~G" ?Ğ)
  ("~N" ?Ñ)
@@ -1265,13 +1268,15 @@ of characters from a single Latin-N charset.
  ("~Z" ?Ž)
  ("~`" ?˘)
  ("~a" ?ã)
+ ("~a" ?ă)
  ("~c" ?ç)
+ ("~c" ?č)
+ (",c" ?ç)
  ("~d" ?ð)
  ("~e" ?€)
  ("~g" ?ğ)
  ("~n" ?ñ)
  ("~o" ?õ)
- ("~o" ?ġ)
  ("~p" ?¶)
  ("~s" ?§)
  ("~s" ?ş)

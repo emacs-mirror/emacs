@@ -2322,7 +2322,7 @@ Both characters must have the same length of multi-byte form.  */)
 	      /* replace_range is less efficient, because it moves the gap,
 		 but it handles combining correctly.  */
 	      replace_range (pos, pos + 1, string,
-			     0, 0, 1, 0);
+			     false, false, true, false);
 	      pos_byte_next = CHAR_TO_BYTE (pos);
 	      if (pos_byte_next > pos_byte)
 		/* Before combining happened.  We should not increment
@@ -2433,60 +2433,53 @@ From START to END, translate characters according to TABLE.
 TABLE is a string or a char-table; the Nth character in it is the
 mapping for the character with code N.
 It returns the number of characters changed.  */)
-  (Lisp_Object start, Lisp_Object end, register Lisp_Object table)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object table)
 {
-  register unsigned char *tt;	/* Trans table. */
-  register int nc;		/* New character. */
-  int cnt;			/* Number of changes made. */
-  ptrdiff_t size;		/* Size of translate table. */
-  ptrdiff_t pos, pos_byte, end_pos;
+  int translatable_chars = MAX_CHAR + 1;
   bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   bool string_multibyte UNINIT;
 
   validate_region (&start, &end);
-  if (CHAR_TABLE_P (table))
+  if (STRINGP (table))
     {
-      if (! EQ (XCHAR_TABLE (table)->purpose, Qtranslation_table))
-	error ("Not a translation table");
-      size = MAX_CHAR;
-      tt = NULL;
-    }
-  else
-    {
-      CHECK_STRING (table);
-
-      if (! multibyte && (SCHARS (table) < SBYTES (table)))
+      if (! multibyte)
 	table = string_make_unibyte (table);
-      string_multibyte = SCHARS (table) < SBYTES (table);
-      size = SBYTES (table);
-      tt = SDATA (table);
+      translatable_chars = min (translatable_chars, SBYTES (table));
+      string_multibyte = STRING_MULTIBYTE (table);
     }
+  else if (! (CHAR_TABLE_P (table)
+	      && EQ (XCHAR_TABLE (table)->purpose, Qtranslation_table)))
+    error ("Not a translation table");
 
-  pos = XFIXNUM (start);
-  pos_byte = CHAR_TO_BYTE (pos);
-  end_pos = XFIXNUM (end);
+  ptrdiff_t pos = XFIXNUM (start);
+  ptrdiff_t pos_byte = CHAR_TO_BYTE (pos);
+  ptrdiff_t end_pos = XFIXNUM (end);
   modify_text (pos, end_pos);
 
-  cnt = 0;
-  for (; pos < end_pos; )
+  ptrdiff_t characters_changed = 0;
+
+  while (pos < end_pos)
     {
       unsigned char *p = BYTE_POS_ADDR (pos_byte);
       unsigned char *str UNINIT;
       unsigned char buf[MAX_MULTIBYTE_LENGTH];
-      int len, str_len;
-      int oc;
-      Lisp_Object val;
+      int len, oc;
 
       if (multibyte)
 	oc = STRING_CHAR_AND_LENGTH (p, len);
       else
 	oc = *p, len = 1;
-      if (oc < size)
+      if (oc < translatable_chars)
 	{
-	  if (tt)
+	  int nc; /* New character.  */
+	  int str_len;
+	  Lisp_Object val;
+
+	  if (STRINGP (table))
 	    {
 	      /* Reload as signal_after_change in last iteration may GC.  */
-	      tt = SDATA (table);
+	      unsigned char *tt = SDATA (table);
+
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
@@ -2535,7 +2528,8 @@ It returns the number of characters changed.  */)
 		  /* This is less efficient, because it moves the gap,
 		     but it should handle multibyte characters correctly.  */
 		  string = make_multibyte_string ((char *) str, 1, str_len);
-		  replace_range (pos, pos + 1, string, 1, 0, 1, 0);
+		  replace_range (pos, pos + 1, string,
+				 true, false, true, false);
 		  len = str_len;
 		}
 	      else
@@ -2546,12 +2540,10 @@ It returns the number of characters changed.  */)
 		  signal_after_change (pos, 1, 1);
 		  update_compositions (pos, pos + 1, CHECK_BORDER);
 		}
-	      ++cnt;
+	      characters_changed++;
 	    }
 	  else if (nc < 0)
 	    {
-	      Lisp_Object string;
-
 	      if (CONSP (val))
 		{
 		  val = check_translation (pos, pos_byte, end_pos, val);
@@ -2568,18 +2560,14 @@ It returns the number of characters changed.  */)
 	      else
 		len = 1;
 
-	      if (VECTORP (val))
-		{
-		  string = Fconcat (1, &val);
-		}
-	      else
-		{
-		  string = Fmake_string (make_fixnum (1), val, Qnil);
-		}
-	      replace_range (pos, pos + len, string, 1, 0, 1, 0);
+	      Lisp_Object string
+		= (VECTORP (val)
+		   ? Fconcat (1, &val)
+		   : Fmake_string (make_fixnum (1), val, Qnil));
+	      replace_range (pos, pos + len, string, true, false, true, false);
 	      pos_byte += SBYTES (string);
 	      pos += SCHARS (string);
-	      cnt += SCHARS (string);
+	      characters_changed += SCHARS (string);
 	      end_pos += SCHARS (string) - len;
 	      continue;
 	    }
@@ -2588,7 +2576,7 @@ It returns the number of characters changed.  */)
       pos++;
     }
 
-  return make_fixnum (cnt);
+  return make_fixnum (characters_changed);
 }
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",

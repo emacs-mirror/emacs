@@ -2043,6 +2043,8 @@ doc-string of `window-resizable'."
 ;; Aliases of functions defined in window.c.
 (defalias 'window-height 'window-total-height)
 (defalias 'window-width 'window-body-width)
+(defalias 'window-pixel-width-before-size-change 'window-old-pixel-width)
+(defalias 'window-pixel-height-before-size-change 'window-old-pixel-height)
 
 (defun window-full-height-p (&optional window)
   "Return t if WINDOW is as high as its containing frame.
@@ -2759,8 +2761,7 @@ as small) as possible, but don't signal an error."
 	;; The following routine catches the case where we want to resize
 	;; a minibuffer-only frame.
 	(when (resize-mini-window-internal window)
-	  (window--pixel-to-total frame)
-	  (run-window-configuration-change-hook frame))))))
+	  (window--pixel-to-total frame))))))
 
 (defun window--resize-apply-p (frame &optional horizontal)
   "Return t when a window on FRAME shall be resized vertically.
@@ -2858,9 +2859,7 @@ instead."
 	(window--resize-siblings window delta horizontal ignore))
       (when (window--resize-apply-p frame horizontal)
 	(if (window-resize-apply frame horizontal)
-	    (progn
-	      (window--pixel-to-total frame horizontal)
-	      (run-window-configuration-change-hook frame))
+	    (window--pixel-to-total frame horizontal)
 	  (error "Failed to apply resizing %s" window))))
      (t
       (error "Cannot resize window %s" window)))))
@@ -3579,9 +3578,7 @@ move it as far as possible in the desired direction."
 	;; Don't report an error in the standard case.
 	(when (window--resize-apply-p frame horizontal)
 	  (if (window-resize-apply frame horizontal)
-	      (progn
-		(window--pixel-to-total frame horizontal)
-		(run-window-configuration-change-hook frame))
+	      (window--pixel-to-total frame horizontal)
 	    ;; But do report an error if applying the changes fails.
 	    (error "Failed adjusting window %s" window))))))))
 
@@ -4112,7 +4109,6 @@ that is its frame's root window."
 	  ;; `delete-window-internal' has selected a window that should
 	  ;; not be selected, fix this here.
 	  (other-window -1 frame))
-	(run-window-configuration-change-hook frame)
 	(window--check frame)
 	;; Always return nil.
 	nil))))
@@ -4198,7 +4194,6 @@ any window whose `no-delete-other-windows' parameter is non-nil."
       ;; If WINDOW is the main window of its frame do nothing.
       (unless (eq window main)
 	(delete-other-windows-internal window main)
-	(run-window-configuration-change-hook frame)
 	(window--check frame))
       ;; Always return nil.
       nil)))
@@ -5186,7 +5181,6 @@ frame.  The selected window is not changed by this function."
 	  (unless size
             (window--sanitize-window-sizes horizontal))
 
-	  (run-window-configuration-change-hook frame)
 	  (run-window-scroll-functions new)
 	  (window--check frame)
 	  ;; Always return the new window.
@@ -5417,15 +5411,13 @@ window."
     (balance-windows-1 window)
     (when (window--resize-apply-p frame)
       (window-resize-apply frame)
-      (window--pixel-to-total frame)
-      (run-window-configuration-change-hook frame))
+      (window--pixel-to-total frame))
     ;; Balance horizontally.
     (window--resize-reset (window-frame window) t)
     (balance-windows-1 window t)
     (when (window--resize-apply-p frame t)
       (window-resize-apply frame t)
-      (window--pixel-to-total frame t)
-      (run-window-configuration-change-hook frame))))
+      (window--pixel-to-total frame t))))
 
 (defun window-fixed-size-p (&optional window direction)
   "Return t if WINDOW cannot be resized in DIRECTION.
@@ -9441,15 +9433,7 @@ displaying that processes's buffer."
               (when size
                 (set-process-window-size process (cdr size) (car size))))))))))
 
-;; Remove the following call in Emacs 27, running
-;; 'window-size-change-functions' should suffice.
 (add-hook 'window-configuration-change-hook 'window--adjust-process-windows)
-
-;; Catch any size changes not handled by
-;; 'window-configuration-change-hook' (Bug#32720, "another issue" in
-;; Bug#33230).
-(add-hook 'window-size-change-functions (lambda (_frame)
-                                          (window--adjust-process-windows)))
 
 ;; Some of these are in tutorial--default-keys, so update that if you
 ;; change these.

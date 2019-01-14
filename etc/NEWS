@@ -1283,9 +1283,30 @@ displaying the same buffer.  See the node "(elisp) Face Remapping"
 of the Emacs Lisp Reference manual for more detail.
 
 +++
-** Special handling of buffer-local 'window-size-change-functions'.
-A buffer-local value of this hook is now run only if at least one
-window showing the buffer has changed its size.
+** Window change functions have been redesigned completely.
+Hooks reacting to window changes run now only when redisplay detects
+that a change has actually occurred.  The four hooks provided are:
+'window-buffer-change-functions' (run after window buffers have
+changed), 'window-size-change-functions' (run after a window was
+assigned a new buffer or size), 'window-configuration-change-hook'
+(like the former but run also when a window was deleted) and
+'window-selection-change-functions' (run when the selected window
+changed).  'window-scroll-functions' are unaffected by these changes.
+
+In addition, a number of functions now allow the caller to detect what
+has changed since last redisplay: 'window-old-buffer' returns for any
+window the buffer it showed at that time.  ‘old-selected-window’ and
+'old-selected-frame' return the window and frame that were selected
+during last redisplay.  'window-old-pixel-width' (renamed from
+'window-pixel-width-before-size-change'), 'window-old-pixel-height'
+(renamed from 'window-pixel-height-before-size-change'),
+'window-old-body-pixel-width' and 'window-old-body-pixel-height'
+return the total and body sizes of any window during last redisplay.
+
+One consequence of these changes is that all window change functions
+run now after functions run by 'post-command-hook'.  See the section
+"(elisp) Window Hooks" in the Elisp manual for a detailed explanation
+of the new behavior.
 
 +++
 ** New buffer display action alist entry 'dedicated'.
