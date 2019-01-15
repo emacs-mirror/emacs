@@ -457,7 +457,7 @@ all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
 .PHONY: all
 
 dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h \
-	$(srcdir)/intervals.h $(srcdir)/charset.h
+	$(srcdir)/intervals.h $(srcdir)/charset.h $(srcdir)/bignum.h
 pdumper.o: dmpstruct.h
 dmpstruct.h: $(srcdir)/dmpstruct.awk
 dmpstruct.h: $(libsrc)/make-fingerprint$(EXEEXT) $(dmpstruct_headers)

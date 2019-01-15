@@ -134,8 +134,8 @@ enum pdumper_load_result
 enum pdumper_load_result pdumper_load (const char *dump_filename);
 
 struct pdumper_loaded_dump {
-  intptr_t start;
-  intptr_t end;
+  uintptr_t start;
+  uintptr_t end;
 };
 
 #ifdef HAVE_PDUMPER
@@ -150,7 +150,7 @@ bool
 pdumper_object_p (const void *obj)
 {
 #ifdef HAVE_PDUMPER
-  intptr_t obj_addr = (intptr_t) obj;
+  uintptr_t obj_addr = (uintptr_t) obj;
   return dump_public.start <= obj_addr && obj_addr < dump_public.end;
 #else
   (void) obj;

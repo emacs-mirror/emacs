@@ -1686,7 +1686,7 @@ PSEUDOVECTOR_TYPE (const struct Lisp_Vector *v)
 
 /* Can't be used with PVEC_NORMAL_VECTOR.  */
 INLINE bool
-PSEUDOVECTOR_TYPEP (union vectorlike_header *a, enum pvec_type code)
+PSEUDOVECTOR_TYPEP (const union vectorlike_header *a, enum pvec_type code)
 {
   /* We don't use PSEUDOVECTOR_TYPE here so as to avoid a shift
    * operation when `code' is known.  */
@@ -3805,7 +3805,13 @@ extern Lisp_Object make_string (const char *, ptrdiff_t);
 extern Lisp_Object make_formatted_string (char *, const char *, ...)
   ATTRIBUTE_FORMAT_PRINTF (2, 3);
 extern Lisp_Object make_unibyte_string (const char *, ptrdiff_t);
-extern ptrdiff_t vector_nbytes (struct Lisp_Vector *v);
+extern ptrdiff_t vectorlike_nbytes (const union vectorlike_header *hdr);
+
+INLINE ptrdiff_t
+vector_nbytes (const struct Lisp_Vector *v)
+{
+  return vectorlike_nbytes (&v->header);
+}
 
 /* Make unibyte string from C string when the length isn't known.  */
 

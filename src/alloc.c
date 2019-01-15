@@ -3198,16 +3198,16 @@ allocate_vector_from_block (ptrdiff_t nbytes)
 /* Return the memory footprint of V in bytes.  */
 
 ptrdiff_t
-vector_nbytes (struct Lisp_Vector *v)
+vectorlike_nbytes (const union vectorlike_header *hdr)
 {
-  ptrdiff_t size = v->header.size & ~ARRAY_MARK_FLAG;
+  ptrdiff_t size = hdr->size & ~ARRAY_MARK_FLAG;
   ptrdiff_t nwords;
 
   if (size & PSEUDOVECTOR_FLAG)
     {
-      if (PSEUDOVECTOR_TYPEP (&v->header, PVEC_BOOL_VECTOR))
+      if (PSEUDOVECTOR_TYPEP (hdr, PVEC_BOOL_VECTOR))
         {
-          struct Lisp_Bool_Vector *bv = (struct Lisp_Bool_Vector *) v;
+          struct Lisp_Bool_Vector *bv = (struct Lisp_Bool_Vector *) hdr;
 	  ptrdiff_t word_bytes = (bool_vector_words (bv->size)
 				  * sizeof (bits_word));
 	  ptrdiff_t boolvec_bytes = bool_header_size + word_bytes;
