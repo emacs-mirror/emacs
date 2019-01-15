@@ -451,10 +451,7 @@ struct dump_flags
   /* Pack objects tighter than GC memory alignment would normally
      require.  Useful for objects copied into the Emacs image instead
      of used directly from the loaded dump.
-
-     XXX: actually use
-
-     */
+  */
   bool_bf pack_objects : 1;
   /* Sometimes we dump objects that we've already scanned for outbound
      references to other objects.  These objects should not cause new
@@ -4033,9 +4030,11 @@ types.  */)
            "dumper.  Dumping with the portable dumper may produce "
            "unexpected results.");
 
-  // XXX: check that we have no other threads running
   if (!main_thread_p (current_thread))
     error ("Function can be called only on main thread");
+
+  if (!NILP (XCDR (Fall_threads ())))
+    error ("No other threads can be running");
 
   /* Clear out any detritus in memory.  */
   do {
