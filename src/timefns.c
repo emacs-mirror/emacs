@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "bignum.h"
 #include "coding.h"
 #include "lisp.h"
+#include "pdumper.h"
 
 #include <strftime.h>
 
@@ -1729,6 +1730,19 @@ emacs_setenv_TZ (const char *tzstring)
   return 0;
 }
 
+#if (ULONG_MAX < TRILLION || !FASTER_TIMEFNS) && !defined ztrillion
+# define NEED_ZTRILLION_INIT 1
+#endif
+
+#ifdef NEED_ZTRILLION_INIT
+static void
+syms_of_timefns_for_pdumper (void)
+{
+  mpz_init_set_ui (ztrillion, 1000000);
+  mpz_mul_ui (ztrillion, ztrillion, 1000000);
+}
+#endif
+
 void
 syms_of_timefns (void)
 {
@@ -1739,10 +1753,6 @@ syms_of_timefns (void)
 #ifndef trillion
   trillion = make_int (1000000000000);
   staticpro (&trillion);
-#endif
-#if (ULONG_MAX < TRILLION || !FASTER_TIMEFNS) && !defined ztrillion
-  mpz_init_set_ui (ztrillion, 1000000);
-  mpz_mul_ui (ztrillion, ztrillion, 1000000);
 #endif
 
   DEFSYM (Qencode_time, "encode-time");
@@ -1759,4 +1769,7 @@ syms_of_timefns (void)
   defsubr (&Scurrent_time_string);
   defsubr (&Scurrent_time_zone);
   defsubr (&Sset_time_zone_rule);
+#ifdef NEED_ZTRILLION_INIT
+  pdumper_do_now_and_after_load (syms_of_timefns_for_pdumper);
+#endif
 }

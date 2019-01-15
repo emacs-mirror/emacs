@@ -2013,7 +2013,9 @@ static dump_off
 finish_dump_pvec (struct dump_context *ctx,
                   union vectorlike_header *out_hdr)
 {
+  ALLOW_IMPLICIT_CONVERSION;
   return dump_object_finish (ctx, out_hdr, vectorlike_nbytes (out_hdr));
+  DISALLOW_IMPLICIT_CONVERSION;
 }
 
 static void
@@ -2235,7 +2237,8 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
 
       /* Write the offset of that exported blob here.  */
       dump_off value_offset =
-        bignum_offset + offsetof (struct Lisp_Bignum, value);
+        bignum_offset +
+        (dump_off) offsetof (struct Lisp_Bignum, value);
       dump_push (&ctx->fixups,
                  list3 (
                    make_fixnum (DUMP_FIXUP_BIGNUM_DATA),
@@ -2593,11 +2596,12 @@ dump_vectorlike_generic (
          padding.  Instead, use the size through the last non-Lisp
          field.  */
       size_t sz = (char*)&out.min_char + sizeof (out.min_char) - (char*)&out;
-      dump_object_start (ctx, &out, sz);
+      eassert (sz < DUMP_OFF_MAX);
+      dump_object_start (ctx, &out, (dump_off) sz);
       DUMP_FIELD_COPY (&out, sct, header.size);
       DUMP_FIELD_COPY (&out, sct, depth);
       DUMP_FIELD_COPY (&out, sct, min_char);
-      offset = dump_object_finish (ctx, &out, sz);
+      offset = dump_object_finish (ctx, &out, (dump_off) sz);
       skip = SUB_CHAR_TABLE_OFFSET;
     }
   else
@@ -2629,7 +2633,10 @@ dump_vectorlike_generic (
     {
       Lisp_Object out;
       const Lisp_Object *vslot = &v->contents[i];
+      /* In the wide case, we're always misaligned.  */
+#ifndef WIDE_EMACS_INT
       eassert (ctx->offset % sizeof (out) == 0);
+#endif
       dump_object_start (ctx, &out, sizeof (out));
       dump_field_lv (ctx, &out, vslot, vslot, WEIGHT_STRONG);
       dump_object_finish (ctx, &out, sizeof (out));
