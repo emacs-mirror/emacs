@@ -1,0 +1,16 @@
+
+
+1) Scripting?
+
+Guess we have to use sh
+
+2) How to get specific directory of a repository
+
+3) How to work out when a directory is out of date wrt to the make
+   file
+
+4) Heuristics for working out which files to copy to right place
+
+5) Work out what is the right place to copy to
+
+6) How to enable ELPA packages to customize the process
