@@ -148,6 +148,10 @@ test/manual/etags/ETAGS
 test/manual/etags/CTAGS
 test/manual/indent/*.new
 
+# ELPA
+/elpa/elpa-git/
+/elpa/packages/
+
 # ctags, etags.
 TAGS
 !admin/notes/tags

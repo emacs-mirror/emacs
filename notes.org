@@ -6,11 +6,62 @@ Guess we have to use sh
 
 2) How to get specific directory of a repository
 
+
+
+git archive --remote=phillord@git.savannah.gnu.org:/srv/git/emacs/elpa.git master packages/hydra | tar xv --strip-components=1
+
+Currently, this requires a member login -- it doesn't work with http
+or the current git server.
+
+Would also be possible to configure this from local.
+
 3) How to work out when a directory is out of date wrt to the make
    file
 
+unpack the directory with the commit
+
+SHAID-hydra
+
+Then when the SHA is updated to point somewhere else, magically, the
+directory will run out of space
+
+
+
 4) Heuristics for working out which files to copy to right place
+
+*-test.el
+*-tests.el
+/test/*.el
+
+to test
+
+All other *el to lisp
+
+Nothing else
 
 5) Work out what is the right place to copy to
 
+lisp/elpa/package-name
+test/lisp/elpa/package-name
+
+is my prefered option. Eli may complain in which case "package-name"
+can be dropped.
+
+
 6) How to enable ELPA packages to customize the process
+
+Add the option to run an core-deploy.sh file placed into the root of a
+package.
+
+
+7) What about make bootstrap
+
+I think we would add another command called make clean-elpa which
+would delete the elpa extracted files. I'd have to think very
+carefully about which clean things I wanted to attach to. a priori
+there is no reason to ever check the files out more than once.
+
+
+8) Support other repos
+
+Org-mode effectively does this already

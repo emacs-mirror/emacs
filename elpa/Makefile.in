@@ -1,0 +1,25 @@
+
+all: packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
+
+
+elpa-git:
+	git clone --mirror https://git.savannah.gnu.org/git/emacs/elpa.git elpa-git
+
+elpa-update: elpa-git
+	cd elpa-git;git fetch --all
+.PHONY: elpa-update
+
+packages:
+	mkdir packages
+
+packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev: elpa-update packages
+	# Remove all version
+	rm -rf packages/*pabbrev
+	mkdir packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
+	cd elpa-git;\
+	git archive d28cf8632d2691dc93afbb28500126242d37961c \
+	| tar xv -C ../packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
+
+
+clean:
+	rm -rf packages
