@@ -405,6 +405,9 @@ src: lib-src
 # We need to build 'emacs' in 'src' to compile the *.elc files in 'lisp'.
 lisp: src
 
+# We need to fetch 'elpa' before we build lisp
+lisp: elpa
+
 # These targets should be "${SUBDIR} without 'src'".
 lib lib-src lisp nt: Makefile
 	$(MAKE) -C $@ all
@@ -420,6 +423,9 @@ lib lib-src lisp nt: Makefile
 dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 src: Makefile
+	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' all
+
+elpa:
 	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' all
 
 blessmail: Makefile src
