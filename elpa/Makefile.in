@@ -29,12 +29,15 @@ packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev: elpa-update directori
 	./bin/extract-package.sh -s d28cf8632d2691dc93afbb28500126242d37961c -p pabbrev -e
 
 pabbrev: packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
-	$(MAKE) -C packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev/ -f package-makefile.mk deploy
+	$(MAKE) -C packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev/pabbrev -f package-makefile.mk deploy PACKAGE=pabbrev
 
 packages/cba688842ac089ad516155d1b2d6d73826929449-hydra: elpa-update directories
 	./bin/extract-package.sh -s cba688842ac089ad516155d1b2d6d73826929449 -p hydra
 
 hydra: packages/cba688842ac089ad516155d1b2d6d73826929449-hydra
-	$(MAKE) -C packages/cba688842ac089ad516155d1b2d6d73826929449-hydra -f package-makefile.mk deploy
+	$(MAKE) -C packages/cba688842ac089ad516155d1b2d6d73826929449-hydra/hydra -f package-makefile.mk deploy PACKAGE=hydra
+
 clean:
 	rm -rf packages
+	rm -rf ../lisp/elpa
+	rm -rf ../test/lisp/elpa

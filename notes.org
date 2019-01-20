@@ -1,5 +1,22 @@
 
 
+* Working on
+
+Have package checkout working for external
+Next get it working for non external so we can template
+
+Then how to get the submakes working
+
+
+
+* To Fix
+
+Think we are running git fetch --all on every package. Is there
+something more intelligent we can do here? Lookup VCS Witness
+elsewhere.
+
+* Notes
+
 1) Scripting?
 
 Guess we have to use sh

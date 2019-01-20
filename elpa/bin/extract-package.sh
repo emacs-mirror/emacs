@@ -2,12 +2,23 @@
 
 function grab_external {
     rm -rf packages/*$PACKAGE
-    mkdir packages/$SHA-$PACKAGE
+    mkdir --parents packages/$SHA-$PACKAGE/$PACKAGE
     cd elpa-git
     git archive $SHA \
-        | tar xv -C ../packages/$SHA-$PACKAGE
+        | tar xv -C ../packages/$SHA-$PACKAGE/$PACKAGE
     cd ..
-    cp bin/package-makefile.mk packages/$SHA-$PACKAGE
+    cp --no-clobber bin/package-makefile.mk packages/$SHA-$PACKAGE/$PACKAGE/
+}
+
+
+function grab_subtree {
+    rm -rf packages/*$PACKAGE
+    mkdir --parents packages/$SHA-$PACKAGE/$PACKAGE
+    cd elpa-git
+    git archive $SHA \
+        | tar xv -C ../packages/$SHA-$PACKAGE/$PACKAGE
+    cd ..
+    cp --no-clobber bin/package-makefile.mk packages/$SHA-$PACKAGE/$PACKAGE
 }
 
 SHA=
@@ -34,4 +45,4 @@ then
     exit 0
 fi
 
-exit 1
+grab_subtree

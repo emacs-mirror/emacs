@@ -311,7 +311,7 @@ EMACS = ${EMACS_NAME}${EXEEXT}
 EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`${EXEEXT}
 
 # Subdirectories to make recursively.
-SUBDIR = $(NTDIR) lib lib-src src lisp
+SUBDIR = $(NTDIR) elpa lib lib-src src lisp
 
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
