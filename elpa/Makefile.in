@@ -1,25 +1,40 @@
+## Get this stuff from above
+dirstate = .git/logs/HEAD
+VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 
-all: packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
 
+all: pabbrev hydra
 
-elpa-git:
-	git clone --mirror https://git.savannah.gnu.org/git/emacs/elpa.git elpa-git
+../lisp/elpa:
+	mkdir ../lisp/elpa
 
-elpa-update: elpa-git
-	cd elpa-git;git fetch --all
-.PHONY: elpa-update
+../test/lisp/elpa:
+	mkdir ../test/lisp/elpa
 
 packages:
 	mkdir packages
 
-packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev: elpa-update packages
-	# Remove all version
-	rm -rf packages/*pabbrev
-	mkdir packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
-	cd elpa-git;\
-	git archive d28cf8632d2691dc93afbb28500126242d37961c \
-	| tar xv -C ../packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
+# The location of this needs to be configurable in some way
+elpa-git:
+	git clone --mirror https://git.savannah.gnu.org/git/emacs/elpa.git elpa-git
 
+elpa-update: $(VCSWITNESS) elpa-git
+	cd elpa-git;git fetch --all
 
+directories: packages ../lisp/elpa ../test/lisp/elpa
+
+.PHONY: elpa-update directories
+
+packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev: elpa-update directories
+	./bin/extract-package.sh -s d28cf8632d2691dc93afbb28500126242d37961c -p pabbrev -e
+
+pabbrev: packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
+	$(MAKE) -C packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev/ -f package-makefile.mk deploy
+
+packages/cba688842ac089ad516155d1b2d6d73826929449-hydra: elpa-update directories
+	./bin/extract-package.sh -s cba688842ac089ad516155d1b2d6d73826929449 -p hydra
+
+hydra: packages/cba688842ac089ad516155d1b2d6d73826929449-hydra
+	$(MAKE) -C packages/cba688842ac089ad516155d1b2d6d73826929449-hydra -f package-makefile.mk deploy
 clean:
 	rm -rf packages

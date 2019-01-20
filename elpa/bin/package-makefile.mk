@@ -1,0 +1,2 @@
+deploy:
+	echo hello `pwd`
