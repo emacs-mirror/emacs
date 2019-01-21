@@ -3,7 +3,7 @@ dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 
 
-all: pabbrev hydra
+all: all-packages
 
 ../lisp/elpa:
 	mkdir ../lisp/elpa
@@ -25,17 +25,25 @@ directories: packages ../lisp/elpa ../test/lisp/elpa
 
 .PHONY: elpa-update directories
 
-packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev: elpa-update directories
-	./bin/extract-package.sh -s d28cf8632d2691dc93afbb28500126242d37961c -p pabbrev -e
+PACKAGES=
+define package_template
+  packages/$(1)-$(2): elpa-update directories
+	./bin/extract-package.sh -p $(1) -s $(2) $(3)
 
-pabbrev: packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev
-	$(MAKE) -C packages/d28cf8632d2691dc93afbb28500126242d37961c-pabbrev/pabbrev -f package-makefile.mk deploy PACKAGE=pabbrev
+  $(1): packages/$(1)-$(2)
+	$$(MAKE) -C packages/$(1)-$(2)/$(1) -f package-makefile.mk deploy PACKAGE=$(1)
 
-packages/cba688842ac089ad516155d1b2d6d73826929449-hydra: elpa-update directories
-	./bin/extract-package.sh -s cba688842ac089ad516155d1b2d6d73826929449 -p hydra
+  PACKAGES:=$$(PACKAGES) $(1)
+endef
 
-hydra: packages/cba688842ac089ad516155d1b2d6d73826929449-hydra
-	$(MAKE) -C packages/cba688842ac089ad516155d1b2d6d73826929449-hydra/hydra -f package-makefile.mk deploy PACKAGE=hydra
+$(info $(call package_template,pabbrev,d28cf8632d2691dc93afbb28500126242d37961c,-e))
+$(eval $(call package_template,pabbrev,d28cf8632d2691dc93afbb28500126242d37961c,-e))
+$(eval $(call package_template,darkroom,73701d95133ba6581a95cec9489224b87f483cc0))
+$(eval $(call package_template,queue,cf2001d3e83e05af5820174e9fa1f9638a4f8c08))
+
+
+all-packages: $(PACKAGES)
+	# PACKAGES $(PACKAGES)
 
 clean:
 	rm -rf packages

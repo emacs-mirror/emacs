@@ -151,6 +151,8 @@ test/manual/indent/*.new
 # ELPA
 /elpa/elpa-git/
 /elpa/packages/
+/lisp/elpa/
+/test/lisp/elpa/
 
 # ctags, etags.
 TAGS

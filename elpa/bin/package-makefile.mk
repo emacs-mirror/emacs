@@ -14,19 +14,19 @@ TEST_DIR=../../../../test/lisp/elpa/$(PACKAGE)/
 LISP_TARGETS=$(addprefix $(LISP_DIR),$(LISP))
 TEST_TARGETS=$(addprefix $(TEST_DIR),$(TEST))
 
-deploy: prepare $(LISP_TARGETS) $(TEST_TARGETS)
+deploy: $(LISP_TARGETS) $(TEST_TARGETS)
 	# LISP $(LISP_TARGETS)
 	# TEST $(TEST_TARGETS)
 
 define lisp_template
-  $(LISP_DIR)$(1): $(1)
+  $(LISP_DIR)$(1): $(1) prepare
 	cp $$< $$@
 endef
 
 $(foreach prereq, $(LISP), $(eval $(call lisp_template,$(prereq))))
 
 define test_template
-  $(TEST_DIR)$(1): $(1)
+  $(TEST_DIR)$(1): $(1) prepare
 	cp $$< $$@
 endef
 
