@@ -47,14 +47,10 @@
   (declare (indent defun) (debug t))
   `(call-with-saved-electric-modes #'(lambda () ,@body)))
 
-;; Defined in lisp/progmodes/cc-cmds.el
-(defvar c--disable-fix-of-bug-33794 t)
-
 (defun electric-pair-test-for (fixture where char expected-string
                                        expected-point mode bindings fixture-fn)
   (with-temp-buffer
     (funcall mode)
-    (setq-local c--disable-fix-of-bug-33794 t)
     (insert fixture)
     (save-electric-modes
       (let ((last-command-event char)
@@ -825,7 +821,6 @@ baz\"\""
     (electric-layout-local-mode 1)
     (electric-pair-local-mode 1)
     (electric-indent-local-mode 1)
-    (setq-local c--disable-fix-of-bug-33794 t)
     (setq-local electric-layout-rules
                 '((?\{ . (after-stay after))))
     (insert "int main () ")
@@ -839,7 +834,6 @@ baz\"\""
     (electric-layout-local-mode 1)
     (electric-pair-local-mode 1)
     (electric-indent-local-mode 1)
-    (setq-local c--disable-fix-of-bug-33794 t)
     (setq-local electric-layout-rules
                 '((?\{ . (before after-stay after))))
     (insert "int main () ")
