@@ -1,9 +1,12 @@
+ELPA_IN_CORE=@ELPA_IN_CORE@
+ELPA_LOCAL_PATH=@ELPA_LOCAL_PATH@
 ## Get this stuff from above
 dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 
 
-all: all-packages
+all:
+	echo Lets build ELPA!
 
 ../lisp/elpa:
 	mkdir ../lisp/elpa

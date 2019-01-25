@@ -543,15 +543,11 @@ elif test "${enableval}" != "yes"; then
 fi)
 
 AC_ARG_ENABLE(elpa,
-[AS_HELP_STRING([--enable-elpa=PATH],
-		[enable ELPA in core.])],
-if test "${enableval}" = "no"; then
+[AS_HELP_STRING([--enable-elpa],
+		[Copy Selected ELPA files into core])],
+  ELPA_IN_CORE=$enableval,
   ELPA_IN_CORE=
-  ELPA_LOCAL_PATH=
-elif test "${enableval}" != "yes"; then
-  ELPA_IN_CORE=true
-  ELPA_LOCAL_PATH=${enableval}
-fi)
+)
 
 AC_ARG_ENABLE(checking,
 [AS_HELP_STRING([--enable-checking@<:@=LIST@:>@],
@@ -5180,6 +5176,8 @@ AC_SUBST(ns_appresdir)
 AC_SUBST(ns_appsrc)
 AC_SUBST(GNU_OBJC_CFLAGS)
 AC_SUBST(OTHER_FILES)
+AC_SUBST(ELPA_IN_CORE)
+AC_SUBST(ELPA_LOCAL_PATH)
 
 if test -n "${term_header}"; then
     AC_DEFINE_UNQUOTED(TERM_HEADER, "${term_header}",

@@ -429,7 +429,10 @@ src: Makefile
 	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' all
 
 elpa:
+  ifeq ($(ELPA_IN_CORE),yes)
 	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' all
+  endif
+
 
 blessmail: Makefile src
 	$(MAKE) -C lib-src maybe-blessmail
