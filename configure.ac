@@ -545,8 +545,10 @@ fi)
 AC_ARG_ENABLE(elpa,
 [AS_HELP_STRING([--enable-elpa],
 		[Copy Selected ELPA files into core])],
-  ELPA_IN_CORE=$enableval,
+  ELPA_IN_CORE=yes
+  ELPA_LOCAL_PATH=$enableval,
   ELPA_IN_CORE=
+  ELPA_LOCAL_PATH=
 )
 
 AC_ARG_ENABLE(checking,

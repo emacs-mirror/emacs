@@ -3,10 +3,10 @@
 function grab_external {
     rm -rf packages/$PACKAGE*
     mkdir --parents $PACKAGE_LOC
-    cd elpa-git
+    pushd $GIT_LOC
     git archive $SHA \
         | tar xv -C ../$PACKAGE_LOC
-    cd ..
+    popd
     cp --no-clobber bin/package-makefile.mk $PACKAGE_LOC
 }
 
@@ -14,18 +14,18 @@ function grab_external {
 function grab_subtree {
     rm -rf packages/*$PACKAGE
     mkdir --parents $PACKAGE_LOC
-    cd elpa-git
+    pushd $GIT_LOC
     git archive $SHA packages/$PACKAGE \
         | tar xv  --strip-components=2 -C ../$PACKAGE_LOC
-    cd ..
+    popd
     cp --no-clobber bin/package-makefile.mk $PACKAGE_LOC
 }
 
 SHA=
 PACKAGE=
 EXTERNAL=0
-
-while getopts "s:p:e" opt; do
+GIT_LOC=
+while getopts "g:s:p:e" opt; do
     case $opt in
         s)
             SHA=$OPTARG
@@ -35,6 +35,9 @@ while getopts "s:p:e" opt; do
             ;;
         e)
             EXTERNAL=1
+            ;;
+        g)
+            GIT_LOC=$OPTARG
             ;;
     esac
 done

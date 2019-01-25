@@ -1,12 +1,17 @@
-ELPA_IN_CORE=@ELPA_IN_CORE@
 ELPA_LOCAL_PATH=@ELPA_LOCAL_PATH@
+
+ifdef ELPA_LOCAL_PATH
+	ELPA_PATH=$(ELPA_LOCAL_PATH)
+else
+	ELPA_PATH=elpa-git
+endif
+
 ## Get this stuff from above
 dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 
 
-all:
-	echo Lets build ELPA!
+all: all-packages
 
 ../lisp/elpa:
 	mkdir ../lisp/elpa
@@ -17,12 +22,12 @@ all:
 packages:
 	mkdir packages
 
-# The location of this needs to be configurable in some way
-elpa-git:
-	git clone --mirror https://git.savannah.gnu.org/git/emacs/elpa.git elpa-git
+$(ELPA_PATH):
+	echo Hello: $(ELPA_PATH)
+	git clone --mirror https://git.savannah.gnu.org/git/emacs/elpa.git $(ELPA_PATH)
 
-elpa-update: $(VCSWITNESS) elpa-git
-	cd elpa-git;git fetch --all
+elpa-update: $(VCSWITNESS) $(ELPA_PATH)
+	cd $(ELPA_PATH);git fetch --all
 
 directories: packages ../lisp/elpa ../test/lisp/elpa
 
@@ -31,7 +36,7 @@ directories: packages ../lisp/elpa ../test/lisp/elpa
 PACKAGES=
 define package_template
   packages/$(1)-$(2): elpa-update directories
-	./bin/extract-package.sh -p $(1) -s $(2) $(3)
+	./bin/extract-package.sh -g $$(ELPA_PATH) -p $(1) -s $(2) $(3)
 
   $(1): packages/$(1)-$(2)
 	$$(MAKE) -C packages/$(1)-$(2)/$(1) -f package-makefile.mk deploy PACKAGE=$(1)
@@ -41,6 +46,7 @@ endef
 
 $(info $(call package_template,pabbrev,d28cf8632d2691dc93afbb28500126242d37961c,-e))
 $(eval $(call package_template,pabbrev,d28cf8632d2691dc93afbb28500126242d37961c,-e))
+
 $(eval $(call package_template,darkroom,73701d95133ba6581a95cec9489224b87f483cc0))
 $(eval $(call package_template,queue,cf2001d3e83e05af5820174e9fa1f9638a4f8c08))
 
