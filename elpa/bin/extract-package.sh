@@ -3,10 +3,11 @@
 function grab_external {
     rm -rf packages/$PACKAGE*
     mkdir --parents $PACKAGE_LOC
-    pushd $GIT_LOC
+    cwd=`pwd`
+    cd $GIT_LOC
     git archive $SHA \
-        | tar xv -C ../$PACKAGE_LOC
-    popd
+        | tar xv -C $cwd/$PACKAGE_LOC
+    cd $cwd
     cp --no-clobber bin/package-makefile.mk $PACKAGE_LOC
 }
 
@@ -14,10 +15,11 @@ function grab_external {
 function grab_subtree {
     rm -rf packages/*$PACKAGE
     mkdir --parents $PACKAGE_LOC
-    pushd $GIT_LOC
+    cwd=`pwd`
+    cd $GIT_LOC
     git archive $SHA packages/$PACKAGE \
-        | tar xv  --strip-components=2 -C ../$PACKAGE_LOC
-    popd
+        | tar xv  --strip-components=2 -C $cwd/$PACKAGE_LOC
+    cd $cwd
     cp --no-clobber bin/package-makefile.mk $PACKAGE_LOC
 }
 

@@ -10,8 +10,7 @@ endif
 dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 
-
-all: all-packages
+all: elpa-update all-packages
 
 ../lisp/elpa:
 	mkdir ../lisp/elpa
@@ -23,24 +22,22 @@ packages:
 	mkdir packages
 
 $(ELPA_PATH):
-	echo Hello: $(ELPA_PATH)
 	git clone --mirror https://git.savannah.gnu.org/git/emacs/elpa.git $(ELPA_PATH)
 
 elpa-update: $(VCSWITNESS) $(ELPA_PATH)
 	cd $(ELPA_PATH);git fetch --all
 
-directories: packages ../lisp/elpa ../test/lisp/elpa
-
-.PHONY: elpa-update directories
+.PHONY: elpa-update
 
 PACKAGES=
 define package_template
-  packages/$(1)-$(2): elpa-update directories
-	./bin/extract-package.sh -g $$(ELPA_PATH) -p $(1) -s $(2) $(3)
+  packages/$(1)-$(2): $(ELPA_PATH)
+	./bin/extract-package.sh -g $(ELPA_PATH) -p $(1) -s $(2) $(3)
 
   $(1): packages/$(1)-$(2)
 	$$(MAKE) -C packages/$(1)-$(2)/$(1) -f package-makefile.mk deploy PACKAGE=$(1)
 
+  .PHONY: $(1)
   PACKAGES:=$$(PACKAGES) $(1)
 endef
 
@@ -52,7 +49,6 @@ $(eval $(call package_template,queue,cf2001d3e83e05af5820174e9fa1f9638a4f8c08))
 
 
 all-packages: $(PACKAGES)
-	# PACKAGES $(PACKAGES)
 
 clean:
 	rm -rf packages
