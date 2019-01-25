@@ -542,6 +542,17 @@ elif test "${enableval}" != "yes"; then
   locallisppath=${enableval} locallisppathset=yes
 fi)
 
+AC_ARG_ENABLE(elpa,
+[AS_HELP_STRING([--enable-elpa=PATH],
+		[enable ELPA in core.])],
+if test "${enableval}" = "no"; then
+  ELPA_IN_CORE=
+  ELPA_LOCAL_PATH=
+elif test "${enableval}" != "yes"; then
+  ELPA_IN_CORE=true
+  ELPA_LOCAL_PATH=${enableval}
+fi)
+
 AC_ARG_ENABLE(checking,
 [AS_HELP_STRING([--enable-checking@<:@=LIST@:>@],
 		[enable expensive run-time checks.  With LIST,

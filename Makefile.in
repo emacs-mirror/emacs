@@ -108,6 +108,9 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
+ELPA_IN_CORE=@ELPA_IN_CORE@
+ELPA_LOCAL_PATH=@ELPA_LOCAL_PATH@
+
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / macOS.
