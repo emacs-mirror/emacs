@@ -10,7 +10,7 @@ endif
 dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 
-all: $(ELPA_PATH)/FETCH_HEAD all-packages
+all: all-packages
 
 ../lisp/elpa:
 	mkdir ../lisp/elpa
@@ -29,14 +29,14 @@ $(ELPA_PATH)/FETCH_HEAD: $(ELPA_PATH) Makefile
 
 PACKAGES=
 define package_template
-  packages/$(1)-$(2)/$(1):
+  packages/$(1)-$(2)/$(1): $(ELPA_PATH)/FETCH_HEAD
 	./bin/extract-package.sh -g $(ELPA_PATH) -p $(1) -s $(2) $(3)
-
-  $(1): packages/$(1)-$(2)/$(1)
 	$$(MAKE) -C packages/$(1)-$(2)/$(1) -f package-makefile.mk deploy PACKAGE=$(1)
 
+  $(1): packages/$(1)-$(2)/$(1)
+
   .PHONY: $(1)
-  PACKAGES:=$$(PACKAGES) $(1)
+  PACKAGES:=$$(PACKAGES) packages/$(1)-$(2)/$(1)
 endef
 
 $(eval $(call package_template,pabbrev,d28cf8632d2691dc93afbb28500126242d37961c,-e))
