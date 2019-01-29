@@ -452,6 +452,15 @@ it:
     14456, 2> ht
     #[hashtable]
 
+.. note::
+
+    If the hash table is being used to implement a *set* (that is,
+    there are no values, only keys), and if it doesn't matter that the
+    same key appears twice in the table (under the hashes of its old
+    and new addresses) then you may be able to skip the staleness
+    check when adding a key. This is a delicate optimization, however:
+    if you needed to iterate over the keys, or maintain a count of
+    keys, then it would not work.
 
 .. topics::
 
