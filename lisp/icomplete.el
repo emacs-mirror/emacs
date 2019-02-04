@@ -167,6 +167,19 @@ the default otherwise."
       (minibuffer-force-complete-and-exit)
     (minibuffer-complete-and-exit)))
 
+(defun icomplete-force-complete-and-exit-unless-directory ()
+  "Complete minibuffer, don't exit if completing a directory."
+  (interactive)
+  (minibuffer-force-complete nil nil 'dont-cycle)
+  (let* ((meta (cdr (funcall minibuffer-completion-table
+                             nil nil 'metadata)))
+         (category (cdr (assq 'category meta))))
+    (unless (and (eq 'file category)
+                 (file-directory-p
+                  (buffer-substring-no-properties (icomplete--field-beg)
+                                                  (icomplete--field-end))))
+      (minibuffer-complete-and-exit))))
+
 (defun icomplete-force-complete-and-kill ()
   "Complete minibuffer, kill current prospect, don't exit.
 Killing the current prospect has different meanings according to
