@@ -22,16 +22,16 @@
 
 ;;; Commentary:
 
+;; The backlog caches the text of a certain number of read articles in
+;; a separate buffer, so they can be retrieved quickly if the user
+;; opens them again.  Also see `gnus-keep-backlog'.
+
 ;;; Code:
 
 (require 'gnus)
 
-;;;
-;;; Buffering of read articles.
-;;;
-
 (defvar gnus-backlog-buffer " *Gnus Backlog*")
-(defvar gnus-backlog-hashtb nil)
+(defvar gnus-backlog-articles '())
 
 (defun gnus-backlog-buffer ()
   "Return the backlog buffer."
@@ -41,11 +41,6 @@
 	(setq buffer-read-only t)
 	(get-buffer gnus-backlog-buffer))))
 
-(defun gnus-backlog-setup ()
-  "Initialize backlog variables."
-  (unless gnus-backlog-hashtb
-    (setq gnus-backlog-hashtb (gnus-make-hashtable 1000))))
-
 (gnus-add-shutdown 'gnus-backlog-shutdown 'gnus)
 
 (defun gnus-backlog-shutdown ()
@@ -53,20 +48,19 @@
   (interactive)
   (when (get-buffer gnus-backlog-buffer)
     (gnus-kill-buffer gnus-backlog-buffer))
-  (setq gnus-backlog-hashtb nil))
+  (setq gnus-backlog-articles nil))
 
 (defun gnus-backlog-enter-article (group number buffer)
   (when (and (numberp number)
 	     (not (gnus-virtual-group-p group)))
-    (gnus-backlog-setup)
-    (let ((ident (concat group ":" (int-to-string number)))
+    (let ((ident (format "%s:%d" group number))
 	  b)
-     (unless (gethash ident gnus-backlog-hashtb) ; It's already kept.
+     (unless (member ident gnus-backlog-articles) ; It's already kept.
        ;; Remove the oldest article, if necessary.
        (and (numberp gnus-keep-backlog)
-	    (>= (hash-table-count gnus-backlog-hashtb) gnus-keep-backlog)
+	    (>= (length gnus-backlog-articles) gnus-keep-backlog)
 	    (gnus-backlog-remove-oldest-article))
-       (puthash ident t gnus-backlog-hashtb)
+       (push ident gnus-backlog-articles)
        ;; Insert the new article.
        (with-current-buffer (gnus-backlog-buffer)
 	 (let (buffer-read-only)
@@ -88,7 +82,8 @@
 	    buffer-read-only)
 	;; Remove the ident from the list of articles.
 	(when ident
-	  (remhash ident gnus-backlog-hashtb))
+	  (setq gnus-backlog-articles
+		(delete ident gnus-backlog-articles)))
 	;; Delete the article itself.
 	(delete-region
 	 (point) (next-single-property-change
@@ -97,10 +92,9 @@
 (defun gnus-backlog-remove-article (group number)
   "Remove article NUMBER in GROUP from the backlog."
   (when (numberp number)
-    (gnus-backlog-setup)
-    (let ((ident (concat group ":" (int-to-string number)))
+    (let ((ident (format "%s:%d" group number))
 	  beg)
-      (when (gethash ident gnus-backlog-hashtb)
+      (when (member ident gnus-backlog-articles)
 	;; It was in the backlog.
 	(with-current-buffer (gnus-backlog-buffer)
 	  (save-excursion
@@ -108,7 +102,6 @@
 	      (goto-char (point-min))
 	      (when (setq beg (gnus-text-property-search
 			       'gnus-backlog ident))
-		(setq beg (prop-match-beginning beg))
 		;; Find the end (i. e., the beginning of the next article).
 		(goto-char
 		 (next-single-property-change
@@ -116,22 +109,23 @@
 		(delete-region beg (point))
 		;; Return success.
 		t)))
-	  (remhash ident gnus-backlog-hashtb))))))
+	  (setq gnus-backlog-articles
+		(delete ident gnus-backlog-articles)))))))
 
 (defun gnus-backlog-request-article (group number &optional buffer)
   (when (and (numberp number)
 	     (not (gnus-virtual-group-p group)))
-    (gnus-backlog-setup)
-    (let ((ident (concat group ":" (int-to-string number)))
+    (let ((ident (format "%s:%d" group number))
 	  beg end)
-      (when (gethash ident gnus-backlog-hashtb)
+      (when (member ident gnus-backlog-articles)
 	;; It was in the backlog.
 	(with-current-buffer (gnus-backlog-buffer)
 	  (if (not (setq beg (gnus-text-property-search
 			      'gnus-backlog ident)))
 	      ;; It wasn't in the backlog after all.
 	      (ignore
-	       (remhash ident gnus-backlog-hashtb))
+	       (setq gnus-backlog-articles
+		     (delete ident gnus-backlog-articles)))
 	    ;; Find the end (i. e., the beginning of the next article).
 	    (setq end
 		  (next-single-property-change
