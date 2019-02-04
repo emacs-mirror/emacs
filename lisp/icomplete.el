@@ -149,6 +149,11 @@ icompletion is occurring."
     (define-key map [?\C-j]  'icomplete-force-complete-and-exit)
     (define-key map [?\C-.]  'icomplete-forward-completions)
     (define-key map [?\C-,]  'icomplete-backward-completions)
+    (define-key map
+      (kbd "C-k") '(menu-item
+                    "" icomplete-force-complete-and-kill
+                    ;; activate binding if at end of input
+                    :filter (lambda (cmd) (and (eobp) cmd))))
     map)
   "Keymap used by `icomplete-mode' in the minibuffer.")
 
@@ -161,6 +166,38 @@ the default otherwise."
           (> (icomplete--field-end) (icomplete--field-beg)))
       (minibuffer-force-complete-and-exit)
     (minibuffer-complete-and-exit)))
+
+(defun icomplete-force-complete-and-kill ()
+  "Complete minibuffer, kill current prospect, don't exit.
+Killing the current prospect has different meanings according to
+the completion table's `category'.  A `file' table will interpret
+killing as a request to delete a file whereas a `buffer' table
+will interpret it as a request to kill a buffer."
+  (interactive)
+  (minibuffer-force-complete nil nil 'dont-cycle)
+  (let* ((beg (icomplete--field-beg))
+         (end (icomplete--field-end))
+         (comp (buffer-substring-no-properties beg end))
+         (meta (funcall minibuffer-completion-table
+                        nil nil 'metadata))
+         (meta (and (eq 'metadata (car meta)) (cdr meta)))
+         (category (cdr (assq 'category meta)))
+         file buffer)
+    (cond ((and (eq 'file category)
+                (file-exists-p
+                 (setq file (expand-file-name comp)))
+                (yes-or-no-p (format "Delete %s?" file)))
+           (delete-file file t)
+           (delete-region beg end)
+           (insert (file-name-directory file)))
+          ((and (eq 'buffer category)
+                (buffer-live-p (setq buffer (get-buffer comp)))
+                ;; (yes-or-no-p (format "Kill buffer %s?" buffer))
+                )
+           (kill-buffer buffer)
+           (delete-region beg end)))
+    ;; Clear echo area immediately
+    (message nil)))
 
 (defun icomplete-force-complete ()
   "Complete the icomplete minibuffer."
