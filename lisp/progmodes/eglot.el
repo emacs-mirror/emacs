@@ -1911,9 +1911,12 @@ is not active."
                (insert formatted)
                (current-buffer)))))
        :company-prefix-length
-       (cl-some #'looking-back
-                (mapcar #'regexp-quote
-                        (plist-get completion-capability :triggerCharacters)))
+       (save-excursion
+         (when (car bounds) (goto-char (car bounds)))
+         (looking-back
+          (regexp-opt
+           (cl-coerce (cl-getf completion-capability :triggerCharacters) 'list))
+          (line-beginning-position)))
        :exit-function
        (lambda (comp _status)
          (let ((comp (if (get-text-property 0 'eglot--lsp-completion comp)
