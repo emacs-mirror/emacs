@@ -1156,8 +1156,6 @@ static void VMFree(Addr base, Size size, Pool pool)
     AVER(TractPool(tract) == pool);
 
     TractFinish(tract);
-    PageSetPool(page, NULL);
-    PageSetType(page, PageStateSPARE);
   }
   BTResRange(chunk->allocTable, piBase, piLimit);
 
