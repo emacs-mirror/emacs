@@ -88,6 +88,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 
 /* Forward declarations */
 
+static void VMFree(Addr base, Size size, Pool pool);
 static Size VMPurgeSpare(Arena arena, Size size);
 static Size vmArenaUnmapSpare(Arena arena, Size size, Chunk filter);
 DECLARE_CLASS(Arena, VMArena, AbstractArena);
@@ -984,15 +985,11 @@ static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
 failVMMap:
   pageDescUnmap(vmChunk, j, k);
 failSAMap:
-  /* region from basePI to j needs deallocating */
-  /* TODO: Consider making pages spare instead, then purging. */
+  /* Region from basePI to j was allocated but can't be used */
   if (basePI < j) {
-    vmArenaUnmap(vmArena, VMChunkVM(vmChunk),
-                 PageIndexBase(chunk, basePI),
-                 PageIndexBase(chunk, j));
-    for (i = basePI; i < j; ++i)
-      PageFree(chunk, i);
-    pageDescUnmap(vmChunk, basePI, j);
+    VMFree(PageIndexBase(chunk, basePI),
+           ChunkPagesToSize(chunk, j - basePI),
+           pool);
   }
   return res;
 }
