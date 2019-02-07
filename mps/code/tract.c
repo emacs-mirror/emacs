@@ -60,7 +60,7 @@ void TractInit(Tract tract, Pool pool, Addr base)
   AVER_CRITICAL(tract != NULL);
   AVERT_CRITICAL(Pool, pool);
 
-  tract->pool.pool = pool;
+  tract->pool = pool;
   tract->base = base;
   tract->seg = NULL;
 
@@ -77,7 +77,7 @@ void TractFinish(Tract tract)
 
   /* Check that there's no segment - and hence no shielding. */
   AVER(!TractHasSeg(tract));
-  tract->pool.pool = NULL;
+  tract->pool = NULL;
 }
 
 
@@ -481,8 +481,7 @@ void PageInit(Chunk chunk, Index pi)
   page = ChunkPage(chunk, pi);
 
   BTRes(chunk->allocTable, pi);
-  PageSetPool(page, NULL);
-  PageSetType(page, PageStateFREE);
+  page->pool = NULL;
 }
 
 
