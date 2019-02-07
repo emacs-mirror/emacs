@@ -1169,10 +1169,8 @@ static void VMFree(Addr base, Size size, Pool pool)
        land because the block pool is full. Allocate the first grain
        of the freed range and use it to extend the block pool. */
     Addr extendLimit = AddrAdd(base, ArenaGrainSize(arena));
-    AVER(res == ResLIMIT);
     res = ArenaFreeLandDelete(arena, base, extendLimit);
     if (res != ResOK) {
-      AVER(res == ResLIMIT);
       /* Give up and unmap the memory immediately. */
       chunkUnmapRange(chunk, RangeBase(&range), RangeLimit(&range));
       return;
