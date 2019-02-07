@@ -1,7 +1,7 @@
 /* fotest.c: FAIL-OVER TEST
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2019 Ravenbrook Limited.  See end of file for license.
  * Portions copyright (C) 2002 Global Graphics Software.
  *
  * This tests fail-over behaviour in low memory situations. The MVFF
@@ -71,8 +71,9 @@ static unsigned long failure_count = 0;
 static Res oomAlloc(Addr *pReturn, Pool pool, Size size)
 {
   if (simulate_allocation_failure) {
-    /* Simulate a failure in order to enforce the fail-over behaviour. */
-    ++failure_count;
+    /* Simulate a single failure in order to enforce the fail-over behaviour. */
+    ++ failure_count;
+    simulate_allocation_failure = 0;
     switch (rnd() % 3) {
     case 0:
       return ResRESOURCE;
@@ -221,7 +222,7 @@ int main(int argc, char *argv[])
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (c) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (c) 2001-2019 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
