@@ -46,7 +46,7 @@
 ;;;###autoload
 (defun use-package-normalize/:ensure-system-package (_name-symbol keyword args)
   "Turn `arg' into a list of cons-es of (`package-name' . `install-command')."
-  (use-package-only-one (symbol-name keyword) args
+  (use-package-as-one (symbol-name keyword) args
     (lambda (_label arg)
       (cond
        ((and (listp arg) (listp (cdr arg)))
