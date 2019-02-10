@@ -287,12 +287,6 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       error ("Unknown color");
     }
 
-  /* Clear the frame; in some instances the NS-internal GC appears not
-     to update, or it does update and cannot clear old text
-     properly.  */
-  if (FRAME_VISIBLE_P (f))
-    ns_clear_frame (f);
-
   [col retain];
   [f->output_data.ns->background_color release];
   f->output_data.ns->background_color = col;
@@ -324,7 +318,10 @@ ns_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
         }
 
       if (FRAME_VISIBLE_P (f))
-        SET_FRAME_GARBAGED (f);
+        {
+          SET_FRAME_GARBAGED (f);
+          ns_clear_frame (f);
+        }
     }
   unblock_input ();
 }

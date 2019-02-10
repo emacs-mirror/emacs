@@ -290,9 +290,6 @@ long context_menu_value = 0;
 static struct frame *ns_updating_frame;
 static NSView *focus_view = NULL;
 static int ns_window_num = 0;
-#ifdef NS_IMPL_GNUSTEP
-static NSRect uRect;            // TODO: This is dead, remove it?
-#endif
 static BOOL gsaved = NO;
 static BOOL ns_fake_keydown = NO;
 #ifdef NS_IMPL_COCOA
@@ -1120,33 +1117,10 @@ ns_update_begin (struct frame *f)
 #endif
 
   ns_updating_frame = f;
-  [view lockFocus];
-
-  /* drawRect may have been called for say the minibuffer, and then clip path
-     is for the minibuffer.  But the display engine may draw more because
-     we have set the frame as garbaged.  So reset clip path to the whole
-     view.  */
 #ifdef NS_IMPL_COCOA
-  {
-    NSBezierPath *bp;
-    NSRect r = [view frame];
-    NSRect cr = [[view window] frame];
-    /* If a large frame size is set, r may be larger than the window frame
-       before constrained.  In that case don't change the clip path, as we
-       will clear in to the tool bar and title bar.  */
-    if (r.size.height
-        + FRAME_NS_TITLEBAR_HEIGHT (f)
-        + FRAME_TOOLBAR_HEIGHT (f) <= cr.size.height)
-      {
-        bp = [[NSBezierPath bezierPathWithRect: r] retain];
-        [bp setClip];
-        [bp release];
-      }
-  }
-#endif
-
-#ifdef NS_IMPL_GNUSTEP
-  uRect = NSMakeRect (0, 0, 0, 0);
+  [view focusOnDrawingBuffer];
+#else
+  [view lockFocus];
 #endif
 }
 
@@ -1165,12 +1139,17 @@ ns_update_end (struct frame *f)
 /*   if (f == MOUSE_HL_INFO (f)->mouse_face_mouse_frame) */
   MOUSE_HL_INFO (f)->mouse_face_defer = 0;
 
+#ifdef NS_IMPL_COCOA
+  [NSGraphicsContext setCurrentContext:nil];
+  [view display];
+#else
   block_input ();
 
   [view unlockFocus];
   [[view window] flushWindow];
 
   unblock_input ();
+#endif
   ns_updating_frame = NULL;
 }
 
@@ -1185,6 +1164,8 @@ ns_focus (struct frame *f, NSRect *r, int n)
      the entire window.
    -------------------------------------------------------------------------- */
 {
+  EmacsView *view = FRAME_NS_VIEW (f);
+
   NSTRACE_WHEN (NSTRACE_GROUP_FOCUS, "ns_focus");
   if (r != NULL)
     {
@@ -1192,27 +1173,34 @@ ns_focus (struct frame *f, NSRect *r, int n)
     }
 
   if (f != ns_updating_frame)
+#ifdef NS_IMPL_COCOA
+    [view focusOnDrawingBuffer];
+#else
     {
-      NSView *view = FRAME_NS_VIEW (f);
       if (view != focus_view)
         {
           if (focus_view != NULL)
             {
               [focus_view unlockFocus];
               [[focus_view window] flushWindow];
-/*debug_lock--; */
             }
 
           if (view)
             [view lockFocus];
           focus_view = view;
-/*if (view) debug_lock++; */
         }
     }
+#endif
 
   /* clipping */
   if (r)
     {
+#ifdef NS_IMPL_COCOA
+      int i;
+      for (i = 0 ; i < n ; i++)
+        [view setNeedsDisplayInRect:r[i]];
+#endif
+
       [[NSGraphicsContext currentContext] saveGraphicsState];
       if (n == 2)
         NSRectClipList (r, 2);
@@ -1237,6 +1225,7 @@ ns_unfocus (struct frame *f)
       gsaved = NO;
     }
 
+#ifdef NS_IMPL_GNUSTEP
   if (f != ns_updating_frame)
     {
       if (focus_view != NULL)
@@ -1244,9 +1233,9 @@ ns_unfocus (struct frame *f)
           [focus_view unlockFocus];
           [[focus_view window] flushWindow];
           focus_view = NULL;
-/*debug_lock--; */
         }
     }
+#endif
 }
 
 
@@ -1258,16 +1247,7 @@ ns_clip_to_row (struct window *w, struct glyph_row *row,
    -------------------------------------------------------------------------- */
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  NSRect clip_rect;
-  int window_x, window_y, window_width;
-
-  window_box (w, area, &window_x, &window_y, &window_width, 0);
-
-  clip_rect.origin.x = window_x;
-  clip_rect.origin.y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, row->y));
-  clip_rect.origin.y = max (clip_rect.origin.y, window_y);
-  clip_rect.size.width = window_width;
-  clip_rect.size.height = row->visible_height;
+  NSRect clip_rect = ns_row_rect (w, row, area);
 
   ns_focus (f, &clip_rect, 1);
 }
@@ -2903,22 +2883,6 @@ ns_clear_frame_area (struct frame *f, int x, int y, int width, int height)
   return;
 }
 
-static void
-ns_copy_bits (struct frame *f, NSRect src, NSRect dest)
-{
-  NSTRACE ("ns_copy_bits");
-
-  if (FRAME_NS_VIEW (f))
-    {
-      hide_bell();              // Ensure the bell image isn't scrolled.
-
-      ns_focus (f, &dest, 1);
-      [FRAME_NS_VIEW (f) scrollRect: src
-                                 by: NSMakeSize (dest.origin.x - src.origin.x,
-                                                 dest.origin.y - src.origin.y)];
-      ns_unfocus (f);
-    }
-}
 
 static void
 ns_scroll_run (struct window *w, struct run *run)
@@ -2971,8 +2935,12 @@ ns_scroll_run (struct window *w, struct run *run)
   {
     NSRect srcRect = NSMakeRect (x, from_y, width, height);
     NSRect dstRect = NSMakeRect (x, to_y, width, height);
+    EmacsView *view = FRAME_NS_VIEW (f);
 
-    ns_copy_bits (f, srcRect , dstRect);
+    [view copyRect:srcRect to:dstRect];
+#ifdef NS_IMPL_COCOA
+    [view setNeedsDisplayInRect:srcRect];
+#endif
   }
 
   unblock_input ();
@@ -3026,20 +2994,12 @@ ns_shift_glyphs_for_insert (struct frame *f,
     External (RIF): copy an area horizontally, don't worry about clearing src
    -------------------------------------------------------------------------- */
 {
-  //NSRect srcRect = NSMakeRect (x, y, width, height);
+  NSRect srcRect = NSMakeRect (x, y, width, height);
   NSRect dstRect = NSMakeRect (x+shift_by, y, width, height);
 
   NSTRACE ("ns_shift_glyphs_for_insert");
 
-  /* This doesn't work now as we copy the "bits" before we've had a
-     chance to actually draw any changes to the screen.  This means in
-     certain circumstances we end up with copies of the cursor all
-     over the place.  Just mark the area dirty so it is redrawn later.
-
-     FIXME: Work out how to do this properly.  */
-  // ns_copy_bits (f, srcRect, dstRect);
-
-  [FRAME_NS_VIEW (f) setNeedsDisplayInRect:dstRect];
+  [FRAME_NS_VIEW (f) copyRect:srcRect to:dstRect];
 }
 
 
@@ -3159,20 +3119,18 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   /* The visible portion of imageRect will always be contained within
      clearRect.  */
-  if (ns_clip_to_rect (f, &clearRect, 1))
+  ns_focus (f, &clearRect, 1);
+  if (! NSIsEmptyRect (clearRect))
     {
-      if (! NSIsEmptyRect (clearRect))
-        {
-          NSTRACE_RECT ("clearRect", clearRect);
+      NSTRACE_RECT ("clearRect", clearRect);
 
-          [ns_lookup_indexed_color(face->background, f) set];
-          NSRectFill (clearRect);
-        }
+      [ns_lookup_indexed_color(face->background, f) set];
+      NSRectFill (clearRect);
     }
 
-      if (p->which)
-        {
-          EmacsImage *img = bimgs[p->which - 1];
+  if (p->which)
+    {
+      EmacsImage *img = bimgs[p->which - 1];
 
       if (!img)
         {
@@ -3205,20 +3163,30 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
         [img setXBMColor: bm_color];
       }
 
-          // Note: For periodic images, the full image height is "h + hd".
-          // By using the height h, a suitable part of the image is used.
-          NSRect fromRect = NSMakeRect(0, 0, p->wd, p->h);
+      // Note: For periodic images, the full image height is "h + hd".
+      // By using the height h, a suitable part of the image is used.
+      NSRect fromRect = NSMakeRect(0, 0, p->wd, p->h);
 
-          NSTRACE_RECT ("fromRect", fromRect);
+      NSTRACE_RECT ("fromRect", fromRect);
 
-          [img drawInRect: imageRect
-                 fromRect: fromRect
-                operation: NSCompositingOperationSourceOver
-                 fraction: 1.0
-               respectFlipped: YES
-                    hints: nil];
-        }
-      ns_reset_clipping (f);
+      /* Because we're drawing into an offscreen buffer which isn't
+         flipped, the images come out upside down.  To work around it
+         we need to do some fancy transforms.  */
+      {
+        NSAffineTransform *transform = [NSAffineTransform transform];
+        [transform translateXBy:0 yBy:NSMaxY(imageRect)];
+        [transform scaleXBy:1 yBy:-1];
+        [transform concat];
+
+        imageRect.origin.y = 0;
+      }
+
+      [img drawInRect: imageRect
+             fromRect: fromRect
+            operation: NSCompositingOperationSourceOver
+             fraction: 1.0
+           respectFlipped: YES
+                hints: nil];
     }
   ns_unfocus (f);
 }
@@ -3315,54 +3283,42 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   else
     [FRAME_CURSOR_COLOR (f) set];
 
-#ifdef NS_IMPL_COCOA
-  /* TODO: This makes drawing of cursor plus that of phys_cursor_glyph
-           atomic.  Cleaner ways of doing this should be investigated.
-           One way would be to set a global variable DRAWING_CURSOR
-           when making the call to draw_phys..(), don't focus in that
-           case, then move the ns_unfocus() here after that call. */
-  NSDisableScreenUpdates ();
-#endif
+  ns_focus (f, &r, 1);
 
-      switch (cursor_type)
-        {
-        case DEFAULT_CURSOR:
-        case NO_CURSOR:
-          break;
-        case FILLED_BOX_CURSOR:
-          NSRectFill (r);
-          break;
-        case HOLLOW_BOX_CURSOR:
-          NSRectFill (r);
-          [hollow_color set];
-          NSRectFill (NSInsetRect (r, 1, 1));
-          [FRAME_CURSOR_COLOR (f) set];
-          break;
-        case HBAR_CURSOR:
-          NSRectFill (r);
-          break;
-        case BAR_CURSOR:
-          s = r;
-          /* If the character under cursor is R2L, draw the bar cursor
-             on the right of its glyph, rather than on the left.  */
-          cursor_glyph = get_phys_cursor_glyph (w);
-          if ((cursor_glyph->resolved_level & 1) != 0)
-            s.origin.x += cursor_glyph->pixel_width - s.size.width;
+  switch (cursor_type)
+    {
+    case DEFAULT_CURSOR:
+    case NO_CURSOR:
+      break;
+    case FILLED_BOX_CURSOR:
+      NSRectFill (r);
+      break;
+    case HOLLOW_BOX_CURSOR:
+      NSRectFill (r);
+      [hollow_color set];
+      NSRectFill (NSInsetRect (r, 1, 1));
+      [FRAME_CURSOR_COLOR (f) set];
+      break;
+    case HBAR_CURSOR:
+      NSRectFill (r);
+      break;
+    case BAR_CURSOR:
+      s = r;
+      /* If the character under cursor is R2L, draw the bar cursor
+         on the right of its glyph, rather than on the left.  */
+      cursor_glyph = get_phys_cursor_glyph (w);
+      if ((cursor_glyph->resolved_level & 1) != 0)
+        s.origin.x += cursor_glyph->pixel_width - s.size.width;
 
-          NSRectFill (s);
-          break;
-        }
-      ns_unfocus (f);
+      NSRectFill (s);
+      break;
+    }
+  ns_unfocus (f);
 
-      /* Draw the character under the cursor.  Other terms only draw
-         the character on top of box cursors, so do the same here.  */
-      if (cursor_type == FILLED_BOX_CURSOR || cursor_type == HOLLOW_BOX_CURSOR)
-        draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
-
-#ifdef NS_IMPL_COCOA
-  NSEnableScreenUpdates ();
-#endif
-
+  /* Draw the character under the cursor.  Other terms only draw
+     the character on top of box cursors, so do the same here.  */
+  if (cursor_type == FILLED_BOX_CURSOR || cursor_type == HOLLOW_BOX_CURSOR)
+    draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
 }
 
 
@@ -3446,6 +3402,7 @@ ns_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
 
   ns_unfocus (f);
 }
+
 
 static void
 ns_show_hourglass (struct frame *f)
@@ -3970,15 +3927,27 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
 
       [[NSGraphicsContext currentContext] saveGraphicsState];
 
-      /* Because of the transforms it's far too difficult to work out
-         what portion of the original, untransformed, image will be
-         drawn, so the clipping area will ensure we draw only the
-         correct bit.  */
+      /* Because of the transforms it's difficult to work out what
+         portion of the original, untransformed, image will be drawn,
+         so the clipping area will ensure we draw only the correct
+         bit.  */
       NSRectClip (dr);
 
       [setOrigin translateXBy:x - s->slice.x yBy:y - s->slice.y];
       [setOrigin concat];
-      [img->transform concat];
+
+      NSAffineTransform *doTransform = [NSAffineTransform transform];
+
+      /* We have to flip the image around the X axis as the offscreen
+         bitmap we're drawing to is flipped.  */
+      [doTransform scaleXBy:1 yBy:-1];
+      [doTransform translateXBy:0 yBy:-[img size].height];
+
+      /* ImageMagick images don't have transforms.  */
+      if (img->transform)
+        [doTransform appendTransform:img->transform];
+
+      [doTransform concat];
 
       [img drawInRect:ir fromRect:ir
             operation:NSCompositingOperationSourceOver
@@ -4051,6 +4020,7 @@ static void
 ns_dumpglyphs_stretch (struct glyph_string *s)
 {
   NSRect r[2];
+  NSRect glyphRect;
   int n, i;
   struct face *face;
   NSColor *fgCol, *bgCol;
@@ -4058,106 +4028,56 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
   if (!s->background_filled_p)
     {
       n = ns_get_glyph_string_clip_rect (s, r);
-
       ns_focus (s->f, r, n);
 
       if (s->hl == DRAW_MOUSE_FACE)
-       {
-         face = FACE_FROM_ID_OR_NULL (s->f,
-				      MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-         if (!face)
-           face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-       }
+        {
+          face = FACE_FROM_ID_OR_NULL (s->f,
+                                       MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+          if (!face)
+            face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+        }
       else
-       face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+        face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
 
       bgCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
       fgCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
 
-      for (i = 0; i < n; ++i)
+      glyphRect = NSMakeRect (s->x, s->y, s->background_width, s->height);
+
+      [bgCol set];
+
+      /* NOTE: under NS this is NOT used to draw cursors, but we must avoid
+         overwriting cursor (usually when cursor on a tab) */
+      if (s->hl == DRAW_CURSOR)
         {
-          /* FIXME: Why are we reusing the clipping rectangles? The
-             other terms don't appear to do anything like this.  */
-          *r = NSMakeRect (s->x, s->y, s->background_width, s->height);
+          CGFloat x, width;
 
-          if (s->hl == DRAW_MOUSE_FACE)
-            {
-	      int overrun, leftoverrun;
+          /* FIXME: This looks like it will only work for left to
+             right languages.  */
+          x = NSMinX (glyphRect);
+          width = s->w->phys_cursor_width;
+          glyphRect.size.width -= width;
+          glyphRect.origin.x += width;
 
-              /* truncate to avoid overwriting fringe and/or scrollbar */
-	      overrun = max (0, (s->x + s->background_width)
-			     - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
-				- WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
-              r[i].size.width -= overrun;
+          NSRectFill (glyphRect);
 
-          for (i = 0; i < n; ++i)
-            {
-              if (!s->row->full_width_p)
-                {
-                  int overrun, leftoverrun;
-
-                  /* truncate to avoid overwriting fringe and/or scrollbar */
-                  overrun = max (0, (s->x + s->background_width)
-                                 - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
-                                    - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
-                  r[i].size.width -= overrun;
-
-                  /* truncate to avoid overwriting to left of the window box */
-                  leftoverrun = (WINDOW_BOX_LEFT_EDGE_X (s->w)
-                                 + WINDOW_LEFT_FRINGE_WIDTH (s->w)) - s->x;
-
-                    if (leftoverrun > 0)
-                      {
-                        r[i].origin.x += leftoverrun;
-                        r[i].size.width -= leftoverrun;
-                      }
-                }
-
-	      if (leftoverrun > 0)
-		{
-		  r[i].origin.x += leftoverrun;
-		  r[i].size.width -= leftoverrun;
-		}
-
-              /* XXX: Try to work between problem where a stretch glyph on
-                 a partially-visible bottom row will clear part of the
-                 modeline, and another where list-buffers headers and similar
-                 rows erroneously have visible_height set to 0.  Not sure
-                 where this is coming from as other terms seem not to show. */
-              r[i].size.height = min (s->height, s->row->visible_height);
-            }
-
-          [bgCol set];
-
-          /* NOTE: under NS this is NOT used to draw cursors, but we must avoid
-             overwriting cursor (usually when cursor on a tab) */
-          if (s->hl == DRAW_CURSOR)
-            {
-              CGFloat x, width;
-
-              x = r[i].origin.x;
-              width = s->w->phys_cursor_width;
-              r[i].size.width -= width;
-              r[i].origin.x += width;
-
-              NSRectFill (r[i]);
-
-              /* Draw overlining, etc. on the cursor. */
-              if (s->w->phys_cursor_type == FILLED_BOX_CURSOR)
-                ns_draw_text_decoration (s, face, bgCol, width, x);
-              else
-                ns_draw_text_decoration (s, face, fgCol, width, x);
-            }
+          /* Draw overlining, etc. on the cursor. */
+          if (s->w->phys_cursor_type == FILLED_BOX_CURSOR)
+            ns_draw_text_decoration (s, face, bgCol, width, x);
           else
-            {
-              NSRectFill (r[i]);
-            }
-
-          /* Draw overlining, etc. on the stretch glyph (or the part
-             of the stretch glyph after the cursor). */
-          ns_draw_text_decoration (s, face, fgCol, r[i].size.width,
-                                   r[i].origin.x);
+            ns_draw_text_decoration (s, face, fgCol, width, x);
         }
+      else
+        {
+          NSRectFill (glyphRect);
+        }
+
+      /* Draw overlining, etc. on the stretch glyph (or the part
+         of the stretch glyph after the cursor). */
+      ns_draw_text_decoration (s, face, fgCol, NSWidth (glyphRect),
+                               NSMinX (glyphRect));
+
       ns_unfocus (s->f);
       s->background_filled_p = 1;
     }
@@ -7184,6 +7104,7 @@ not_in_argv (NSString *arg)
          from non-native fullscreen, in other circumstances it appears
          to be a noop.  (bug#28872) */
       wr = NSMakeRect (0, 0, neww, newh);
+      [self createDrawingBufferWithRect:wr];
       [view setFrame: wr];
 
       // To do: consider using [NSNotificationCenter postNotificationName:].
@@ -7522,6 +7443,8 @@ not_in_argv (NSString *arg)
   old_title = 0;
   maximizing_resize = NO;
 #endif
+
+  [self createDrawingBufferWithRect:r];
 
   win = [[EmacsWindow alloc]
             initWithContentRect: r
@@ -8306,38 +8229,105 @@ not_in_argv (NSString *arg)
 }
 
 
-- (void)viewWillDraw
+- (void)createDrawingBufferWithRect:(NSRect)rect
+  /* Create and store a new NSBitmapImageRep for Emacs to draw
+     into.
+
+     Drawing to an offscreen bitmap doesn't work in GNUstep as there's
+     a bug in graphicsContextWithBitmapImageRep
+     (https://savannah.gnu.org/bugs/?38405).  So under GNUstep we
+     retain the old method of drawing direct to the EmacsView.  */
 {
-  /* If the frame has been garbaged there's no point in redrawing
-     anything.  */
-  if (FRAME_GARBAGED_P (emacsframe))
-    [self setNeedsDisplay:NO];
+#ifdef NS_IMPL_COCOA
+  if (drawingBuffer != nil)
+    [drawingBuffer release];
+
+  drawingBuffer = [[self bitmapImageRepForCachingDisplayInRect:rect] retain];
+#endif
 }
+
+
+#ifdef NS_IMPL_COCOA
+- (void)focusOnDrawingBuffer
+{
+  /* Creating the graphics context each time is very slow, but it
+     doesn't seem possible to cache and reuse it.  */
+  [NSGraphicsContext
+    setCurrentContext:
+      [NSGraphicsContext graphicsContextWithBitmapImageRep:drawingBuffer]];
+}
+
+
+- (void)windowDidChangeBackingProperties:(NSNotification *)notification
+  /* Update the drawing buffer when the backing scale factor changes.  */
+{
+   CGFloat old = [[[notification userInfo]
+                    objectForKey:@"NSBackingPropertyOldScaleFactorKey"]
+                   doubleValue];
+   CGFloat new = [[self window] backingScaleFactor];
+
+   if (old != new)
+     {
+       NSRect frame = [self frame];
+       [self createDrawingBufferWithRect:frame];
+       ns_clear_frame (emacsframe);
+       expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
+     }
+}
+#endif
+
+
+- (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect
+{
+  NSTRACE ("[EmacsView copyRect:To:]");
+  NSTRACE_RECT ("Source", srcRect);
+  NSTRACE_RECT ("Destination", dstRect);
+
+#ifdef NS_IMPL_COCOA
+  [drawingBuffer drawInRect:dstRect
+                   fromRect:srcRect
+                  operation:NSCompositingOperationCopy
+                   fraction:1.0
+             respectFlipped:NO
+                      hints:nil];
+
+  [self setNeedsDisplayInRect:dstRect];
+#else
+  hide_bell();              // Ensure the bell image isn't scrolled.
+
+  ns_focus (emacsframe, &dstRect, 1);
+  [self scrollRect: srcRect
+                by: NSMakeSize (dstRect.origin.x - srcRect.origin.x,
+                                dstRect.origin.y - srcRect.origin.y)];
+  ns_unfocus (emacsframe);
+#endif
+}
+
 
 - (void)drawRect: (NSRect)rect
 {
-  int x = NSMinX (rect), y = NSMinY (rect);
-  int width = NSWidth (rect), height = NSHeight (rect);
-
   NSTRACE ("[EmacsView drawRect:" NSTRACE_FMT_RECT "]",
            NSTRACE_ARG_RECT(rect));
 
   if (!emacsframe || !emacsframe->output_data.ns)
     return;
 
+#ifdef NS_IMPL_COCOA
+  [drawingBuffer drawInRect:rect
+                   fromRect:rect
+                  operation:NSCompositingOperationSourceOver
+                   fraction:1
+             respectFlipped:NO
+                      hints:nil];
+#else
+  int x = NSMinX (rect), y = NSMinY (rect);
+  int width = NSWidth (rect), height = NSHeight (rect);
+
   ns_clear_frame_area (emacsframe, x, y, width, height);
   block_input ();
   expose_frame (emacsframe, x, y, width, height);
   unblock_input ();
-
-  /*
-    drawRect: may be called (at least in Mac OS X 10.5) for invisible
-    views as well for some reason.  Thus, do not infer visibility
-    here.
-
-    emacsframe->async_visible = 1;
-    emacsframe->async_iconified = 0;
-  */
+#endif
 }
 
 
