@@ -1767,24 +1767,24 @@ Try to visit the target file for a richer summary line."
              locations))))
 
 (cl-defmethod xref-backend-references ((_backend (eql eglot)) identifier)
-  (unless (eglot--server-capable :referencesProvider)
-    (cl-return-from xref-backend-references nil))
-  (let ((params
-         (or (get-text-property 0 :textDocumentPositionParams identifier)
-             (let ((rich (car (member identifier eglot--xref-known-symbols))))
-               (and rich (get-text-property 0 :textDocumentPositionParams rich))))))
-    (unless params
-      (eglot--error "Don' know where %s is in the workspace!" identifier))
-    (eglot--handling-xrefs
-     (mapcar
-      (eglot--lambda ((Location) uri range)
-        (eglot--xref-make identifier uri range))
-      (jsonrpc-request (eglot--current-server-or-lose)
-                       :textDocument/references
-                       (append
-                        params
-                        (list :context
-                              (list :includeDeclaration t))))))))
+  (when (eglot--server-capable :referencesProvider)
+    (let ((params
+           (or (get-text-property 0 :textDocumentPositionParams identifier)
+            (let ((rich (car (member identifier eglot--xref-known-symbols))))
+              (and rich
+                   (get-text-property 0 :textDocumentPositionParams rich))))))
+      (unless params
+        (eglot--error "Don' know where %s is in the workspace!" identifier))
+      (eglot--handling-xrefs
+       (mapcar
+        (eglot--lambda ((Location) uri range)
+          (eglot--xref-make identifier uri range))
+        (jsonrpc-request (eglot--current-server-or-lose)
+                         :textDocument/references
+                         (append
+                          params
+                          (list :context
+                                (list :includeDeclaration t)))))))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot--server-capable :workspaceSymbolProvider)
