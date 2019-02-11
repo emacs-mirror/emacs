@@ -1678,13 +1678,13 @@ DUMMY is ignored."
 (defvar eglot--temp-location-buffers (make-hash-table :test #'equal)
   "Helper variable for `eglot--handling-xrefs'.")
 
+(defvar eglot-xref-lessp-function #'ignore
+  "Compare two `xref-item' objects for sorting.")
+
 (defmacro eglot--handling-xrefs (&rest body)
   "Properly sort and handle xrefs produced and returned by BODY."
   `(unwind-protect
-       (sort (progn ,@body)
-             (lambda (a b)
-               (< (xref-location-line (xref-item-location a))
-                  (xref-location-line (xref-item-location b)))))
+       (sort (progn ,@body) eglot-xref-sort-function)
      (maphash (lambda (_uri buf) (kill-buffer buf)) eglot--temp-location-buffers)
      (clrhash eglot--temp-location-buffers)))
 
