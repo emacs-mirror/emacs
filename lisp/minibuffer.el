@@ -3056,20 +3056,38 @@ PATTERN is as returned by `completion-pcm--string->pattern'."
          (let* ((pos (if point-idx (match-beginning point-idx) (match-end 0)))
                 (md (match-data))
                 (start (pop md))
-                (end (pop md)))
+                (end (pop md))
+                (len (length str))
+                (score-numerator 0)
+                (score-denominator 0)
+                (aux 0)
+                (update-score
+                 (lambda (a b)
+                   "Update score variables given match range (A B)."
+                   (setq
+                    score-numerator   (+ score-numerator (- b a))
+                    score-denominator (+ score-denominator (expt (- a aux) 1.5))
+                    aux              b))))
+           (funcall update-score 0 start)
            (while md
-             (put-text-property start (pop md)
+             (funcall update-score start (car md))
+             (put-text-property start
+                                (pop md)
                                 'font-lock-face 'completions-common-part
                                 str)
              (setq start (pop md)))
            (put-text-property start end
                               'font-lock-face 'completions-common-part
                               str)
+           (funcall update-score start end)
            (if (> (length str) pos)
                (put-text-property pos (1+ pos)
-				  'font-lock-face 'completions-first-difference
-				  str)))
-	 str)
+                                  'font-lock-face 'completions-first-difference
+                                  str))
+           (put-text-property
+            0 1 'completion-pcm-commonality-score
+            (/ score-numerator (* len (1+ score-denominator)) 1.0) str))
+         str)
        completions))))
 
 (defun completion-pcm--find-all-completions (string table pred point
@@ -3440,8 +3458,13 @@ which is at the core of flex logic.  The extra
                 string table pred point
                 #'completion-flex--make-flex-pattern)))
     (when all
-      (nconc (completion-pcm--hilit-commonality pattern all)
-             (length prefix)))))
+      (let ((hilighted (completion-pcm--hilit-commonality pattern all)))
+        (mapc
+         (lambda (comp)
+           (let ((score (get-text-property 0 'completion-pcm-commonality-score comp)))
+             (put-text-property 0 1 'completion-style-sort-order (- score) comp)))
+         hilighted)
+        (nconc hilighted (length prefix))))))
 
 ;; Initials completion
 ;; Complete /ums to /usr/monnier/src or lch to list-command-history.
