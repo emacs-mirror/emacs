@@ -788,6 +788,11 @@ Additionally the user can use the char \"*\" as a glob pattern.")
 I.e. when completing \"foo_bar\" (where _ is the position of point),
 it will consider all completions candidates matching the glob
 pattern \"*foo*bar*\".")
+    (flex
+     completion-flex-try-completion completion-flex-all-completions
+     "Completion of an in-order subset of characters.
+When completing \"foo\" the glob \"*f*o*o*\" is used, so that
+i.e. foo can complete to frodo.")
     (initials
      completion-initials-try-completion completion-initials-all-completions
      "Completion of acronyms and initialisms.
@@ -3345,7 +3350,12 @@ the same set of elements."
 ;;; Substring completion
 ;; Mostly derived from the code of `basic' completion.
 
-(defun completion-substring--all-completions (string table pred point)
+(defun completion-substring--all-completions
+    (string table pred point &optional transform-pattern-fn)
+  "Match the presumed substring STRING to the entries in TABLE.
+Respect PRED and POINT.  The pattern used is a PCM-style
+substring pattern, but it be massaged by TRANSFORM-PATTERN-FN, if
+that is non-nil."
   (let* ((beforepoint (substring string 0 point))
          (afterpoint (substring string point))
          (bounds (completion-boundaries beforepoint table pred afterpoint))
@@ -3356,6 +3366,9 @@ the same set of elements."
          (pattern (if (not (stringp (car basic-pattern)))
                       basic-pattern
                     (cons 'prefix basic-pattern)))
+         (pattern (if transform-pattern-fn
+                      (funcall transform-pattern-fn pattern)
+                    pattern))
          (all (completion-pcm--all-completions prefix pattern table pred)))
     (list all pattern prefix suffix (car bounds))))
 
@@ -3371,6 +3384,61 @@ the same set of elements."
   (pcase-let ((`(,all ,pattern ,prefix ,_suffix ,_carbounds)
                (completion-substring--all-completions
                 string table pred point)))
+    (when all
+      (nconc (completion-pcm--hilit-commonality pattern all)
+             (length prefix)))))
+
+;;; "flex" completion, also known as flx/fuzzy/scatter completion
+;; Completes "foo" to "frodo" and "farfromsober"
+
+(defun completion-flex--make-flex-pattern (pattern)
+  "Convert PCM-style PATTERN into PCM-style flex pattern.
+
+This turns
+    (prefix \"foo\" point)
+into
+    (prefix \"f\" any \"o\" any \"o\" star point)
+which is at the core of flex logic.  The extra
+'any' is optimized away later on."
+  (mapcan (lambda (elem)
+            (if (stringp elem)
+                (mapcan (lambda (char)
+                          (list (string char) 'any))
+                        elem)
+              (list elem)))
+          pattern))
+
+(defun completion-flex-try-completion (string table pred point)
+  "Try to flex-complete STRING in TABLE given PRED and POINT."
+  (pcase-let ((`(,all ,pattern ,prefix ,suffix ,_carbounds)
+               (completion-substring--all-completions
+                string table pred point
+                #'completion-flex--make-flex-pattern)))
+    (if minibuffer-completing-file-name
+        (setq all (completion-pcm--filename-try-filter all)))
+    (cond ((not (consp all))
+           all)
+          ((not (consp (cdr all))) ; single completion
+           (if (equal string (car all))
+               t
+             (cons (car all) (length (car all)))))
+          (t
+           ;; If more than one completion, try some "merging".
+           ;; Meaning add as much as possible to the user's
+           ;; pattern without losing any possible matches in
+           ;; `all'.  If that fails, leave user input
+           ;; untouched.
+           (let ((probe (completion-pcm--merge-try pattern all prefix suffix)))
+             (if (stringp probe)
+                 (cons probe (length probe))
+               (cons string point)))))))
+
+(defun completion-flex-all-completions (string table pred point)
+  "Get flex-completions of STRING in TABLE, given PRED and POINT."
+  (pcase-let ((`(,all ,pattern ,prefix ,_suffix ,_carbounds)
+               (completion-substring--all-completions
+                string table pred point
+                #'completion-flex--make-flex-pattern)))
     (when all
       (nconc (completion-pcm--hilit-commonality pattern all)
              (length prefix)))))
