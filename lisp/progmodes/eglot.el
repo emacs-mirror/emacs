@@ -1684,7 +1684,7 @@ DUMMY is ignored."
 (defmacro eglot--handling-xrefs (&rest body)
   "Properly sort and handle xrefs produced and returned by BODY."
   `(unwind-protect
-       (sort (progn ,@body) eglot-xref-sort-function)
+       (sort (progn ,@body) eglot-xref-lessp-function)
      (maphash (lambda (_uri buf) (kill-buffer buf)) eglot--temp-location-buffers)
      (clrhash eglot--temp-location-buffers)))
 
