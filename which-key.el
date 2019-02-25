@@ -1437,9 +1437,9 @@ which are strings. KEY is of the form produced by `key-binding'."
          one-match)
     (if pseudo-binding
         pseudo-binding
-      (let* ((all-repls (or (cdr-safe
-                             (assq major-mode which-key-replacement-alist))
-                            which-key-replacement-alist)))
+      (let* ((all-repls
+              (append (cdr-safe (assq major-mode which-key-replacement-alist))
+                      which-key-replacement-alist)))
         (dolist (repl all-repls key-binding)
           (when (and (or which-key-allow-multiple-replacements
                          (not one-match))
