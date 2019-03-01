@@ -1406,7 +1406,8 @@ local bindings coming first. Within these categories order using
   ;; handled in the selection of alist
   (when (and (consp key-binding) (not (symbolp (car replacement))))
     (let ((key-regexp (caar replacement))
-          (binding-regexp (cdar replacement)))
+          (binding-regexp (cdar replacement))
+          case-fold-search)
       (and (or (null key-regexp)
                (string-match-p key-regexp
                                (car key-binding)))
