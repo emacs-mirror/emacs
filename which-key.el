@@ -640,12 +640,13 @@ used.")
 (defvar which-key--automatic-display nil
   "Internal: Non-nil if popup was triggered with automatic
 update.")
+(defvar which-key--debug-buffer-name nil
+  "If non-nil, use this buffer for debug messages.")
 (defvar which-key--multiple-locations nil)
 (defvar which-key--inhibit-next-operator-popup nil)
 (defvar which-key--prior-show-keymap-args nil)
 (defvar which-key--previous-frame-size nil)
 (defvar which-key--prefix-title-alist nil)
-(defvar which-key--debug nil)
 (defvar which-key--evil-keys-regexp (eval-when-compile
                                       (regexp-opt '("-state"))))
 (defvar which-key--ignore-non-evil-keys-regexp
@@ -700,6 +701,14 @@ update.")
 (defsubst which-key--current-prefix ()
   (when which-key--pages-obj
     (which-key--pages-prefix which-key--pages-obj)))
+
+(defmacro which-key--debug-message (&rest msg)
+  `(when which-key--debug-buffer-name
+     (let ((buf (get-buffer-create which-key--debug-buffer-name))
+           (fmt-msg (format ,@msg)))
+       (with-current-buffer buf
+         (goto-char (point-max))
+         (insert "\n" fmt-msg "\n")))))
 
 ;;; Third-party library support
 ;;;; Evil
@@ -1919,7 +1928,7 @@ as well as metadata."
         (push page-width page-widths))
       (make-which-key--pages
        :pages (nreverse pages)
-       :height avl-lines
+       :height (if (> n-pages 1) avl-lines (min avl-lines n-keys))
        :widths (nreverse page-widths)
        :keys/page (reverse keys/page)
        :page-nums (number-sequence 1 n-pages)
@@ -1981,6 +1990,12 @@ is the width of the live window."
             (or prefix-title
                 (which-key--maybe-get-prefix-title
                  (key-description prefix-keys))))
+      (which-key--debug-message "Frame height: %s
+Minibuffer height: %s
+Max dimensions: (%s,%s)
+Available for bindings: (%s,%s)
+Actual lines: %s" (frame-height) (window-text-height (minibuffer-window))
+max-lines max-width avl-lines avl-width (which-key--pages-height result))
       result)))
 
 (defun which-key--lighter-status ()
@@ -2495,7 +2510,7 @@ is selected interactively by mode in `minor-mode-map-alist'."
     (&optional prefix-keys from-keymap filter prefix-title)
   "Fill `which-key--buffer' with key descriptions and reformat.
 Finally, show the buffer."
-  (let ((start-time (when which-key--debug (current-time)))
+  (let ((start-time (current-time))
         (formatted-keys (which-key--get-bindings
                          prefix-keys from-keymap filter))
         (prefix-desc (key-description prefix-keys)))
@@ -2510,9 +2525,9 @@ Finally, show the buffer."
                    (which-key--create-pages
                     formatted-keys prefix-keys prefix-title))
              (which-key--show-page)))
-    (when which-key--debug
-      (message "On prefix \"%s\" which-key took %.0f ms." prefix-desc
-               (* 1000 (float-time (time-since start-time)))))))
+    (which-key--debug-message
+     "On prefix \"%s\" which-key took %.0f ms." prefix-desc
+     (* 1000 (float-time (time-since start-time))))))
 
 (defun which-key--this-command-keys ()
   "Version of `this-single-command-keys' corrected for key-chords and god-mode."
