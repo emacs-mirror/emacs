@@ -116,7 +116,7 @@ Code    Name        Type               Example rendering
 ======= =========== ================== =======================================
 ``$A``  address     ``Addr``           ``000000019EF60010``
 ``$P``  pointer     ``void *``         ``000000019EF60100``
-``$F``  function    ``void *(*)()``    ``0001D69E01000000`` (see `.function`_)
+``$F``  function    ``void (*)(void)`` ``0001D69E01000000`` (see `.function`_)
 ``$S``  string      ``char *``         ``hello``
 ``$C``  character   ``char``           ``x``
 ``$W``  word        ``ULongest``       ``0000000000109AE0``
@@ -133,11 +133,19 @@ incredible snazzy output engine. We only need it for ``Describe()``
 methods. At the moment it's a simple bit of code -- let's keep it that
 way.
 
-_`.function`: The ``F`` code is used for function pointers. ISO C
-forbids casting function pointers to other types, so the bytes of
+_`.function`: The ``F`` code is used for function pointers. The C
+standard defines conversion between pointer-to-function types
+(§6.3.2.3.8), but it does not define conversion between pointers to
+functions and pointers to data. To work around this, the bytes of
 their representation are written sequentially, and may have a
-different endianness to other pointers. Could be smarter, or even look
-up function names, but see `.snazzy`_.
+different endianness to other pointer types. This output could be
+smarter, or even look up function names, but see `.snazzy`_. The
+particular type ``void (*)(void)`` is chosen because in GCC
+(version 8) this suppresses the warning that we would otherwise get
+from ``-Wcast-function-type``. See job004156_ and `GCC Warning
+Options`_.
+
+.. _GCC Warning Options: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 
 
 Document History
@@ -151,6 +159,8 @@ Document History
 
 - 2014-04-17 GDR_ ``WriteF()`` now takes a ``depth`` parameter.
 
+- 2019-03-14 GDR_ Change type of ``WriteFF`` to avoid compiler warning.
+
 .. _RB: http://www.ravenbrook.com/consultants/rb/
 .. _GDR: http://www.ravenbrook.com/consultants/gdr/
 
@@ -158,7 +168,7 @@ Document History
 Copyright and License
 ---------------------
 
-Copyright © 2013-2015 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright © 2013-2019 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved. This is an open source license. Contact
 Ravenbrook for commercial licensing options.
 
