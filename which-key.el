@@ -56,8 +56,11 @@
   :prefix "which-key-")
 
 (defcustom which-key-idle-delay 1.0
-  "Delay (in seconds) for which-key buffer to popup. A value of zero
-might lead to issues, so a non-zero value is recommended
+  "Delay (in seconds) for which-key buffer to popup. This
+ variable should be set before activating `which-key-mode'.
+
+A value of zero might lead to issues, so a non-zero value is
+recommended
 (see https://github.com/justbur/emacs-which-key/issues/134)."
   :group 'which-key
   :type 'float)
