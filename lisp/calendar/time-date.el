@@ -1,6 +1,6 @@
 ;;; time-date.el --- Date and time handling functions
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -148,17 +148,17 @@ it is assumed that PICO was omitted and should be treated as zero."
 ;; values.  timezone-make-date-arpa-standard should help.
 (defun date-to-time (date)
   "Parse a string DATE that represents a date-time and return a time value.
+DATE should be in one of the forms recognized by `parse-time-string'.
 If DATE lacks timezone information, GMT is assumed."
   (condition-case err
-      (apply 'encode-time (parse-time-string date))
+      (encode-time (parse-time-string date))
     (error
      (let ((overflow-error '(error "Specified time is not representable")))
        (if (equal err overflow-error)
 	   (apply 'signal err)
 	 (condition-case err
-	     (apply 'encode-time
-		    (parse-time-string
-		     (timezone-make-date-arpa-standard date)))
+	     (encode-time (parse-time-string
+			   (timezone-make-date-arpa-standard date)))
 	   (error
 	    (if (equal err overflow-error)
 		(apply 'signal err)

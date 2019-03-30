@@ -1,6 +1,6 @@
 ;;; srecode/mode.el --- Minor mode for managing and using SRecode templates
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -89,14 +89,14 @@
      ])
    "---"
    '( "Insert ..." :filter srecode-minor-mode-templates-menu )
-   `( "Generate ..." :filter srecode-minor-mode-generate-menu )
+   '( "Generate ..." :filter srecode-minor-mode-generate-menu )
    "---"
-    (semantic-menu-item
-     ["Customize..."
-      (customize-group "srecode")
-      :active t
-      :help "Customize SRecode options"
-      ])
+   (semantic-menu-item
+    ["Customize..."
+     (customize-group "srecode")
+     :active t
+     :help "Customize SRecode options"
+     ])
    (list
     "Debugging Tools..."
     (semantic-menu-item

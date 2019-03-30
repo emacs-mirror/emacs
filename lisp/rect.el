@@ -1,6 +1,6 @@
 ;;; rect.el --- rectangle functions for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: Didier Verna <didier@xemacs.org>
 ;; Keywords: internal

@@ -1,6 +1,6 @@
-;;; kkc.el --- Kana Kanji converter    -*- coding: iso-2022-7bit; -*-
+;;; kkc.el --- Kana Kanji converter
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -36,7 +36,7 @@
 
 (require 'ja-dic-utl)
 
-(defvar kkc-input-method-title "$B4A(B"
+(defvar kkc-input-method-title "漢"
   "String denoting KKC input method.
 This string is shown at mode line when users are in KKC mode.")
 

@@ -1,6 +1,6 @@
 ;; erc-goodies.el --- Collection of ERC modules
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: emacs-devel@gnu.org

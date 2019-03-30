@@ -1,6 +1,6 @@
 ;;; radix-tree.el --- A simple library of radix trees  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -74,7 +74,7 @@
             (cmp (compare-strings prefix nil nil key i ni)))
        (if (eq t cmp)
            (pcase (radix-tree--remove ptree key ni)
-             (`nil rtree)
+             ('nil rtree)
              (`((,pprefix . ,pptree))
               `((,(concat prefix pprefix) . ,pptree) . ,rtree))
              (nptree `((,prefix . ,nptree) . ,rtree)))

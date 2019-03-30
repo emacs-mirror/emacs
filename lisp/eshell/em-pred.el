@@ -1,6 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -421,9 +421,8 @@ resultant list of strings."
       (forward-char))
     (if (looking-at "[0-9]+")
 	(progn
-	  (setq when (- (float-time)
-			(* (string-to-number (match-string 0))
-			   quantum)))
+	  (setq when (time-since (* (string-to-number (match-string 0))
+				    quantum)))
 	  (goto-char (match-end 0)))
       (setq open (char-after))
       (if (setq close (memq open '(?\( ?\[ ?\< ?\{)))
@@ -438,17 +437,17 @@ resultant list of strings."
 	     (attrs (file-attributes file)))
 	(unless attrs
 	  (error "Cannot stat file `%s'" file))
-	(setq when (float-time (nth attr-index attrs))))
+	(setq when (nth attr-index attrs)))
       (goto-char (1+ end)))
     `(lambda (file)
        (let ((attrs (file-attributes file)))
 	 (if attrs
 	     (,(if (eq qual ?-)
-		   '<
+		   'time-less-p
 		 (if (eq qual ?+)
-		     '>
-		   '=)) ,when (float-time
-			       (nth ,attr-index attrs))))))))
+		     '(lambda (a b) (time-less-p b a))
+		   'time-equal-p))
+	      ,when (nth ,attr-index attrs)))))))
 
 (defun eshell-pred-file-type (type)
   "Return a test which tests that the file is of a certain TYPE.

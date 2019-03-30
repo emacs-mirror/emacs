@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
@@ -1348,7 +1348,7 @@ Prefix ARG controls sort order, see `proced-sort-interactive'."
 
 (defun proced-format-time (time)
   "Format time interval TIME."
-  (let* ((ftime (float-time time))
+  (let* ((ftime (encode-time time 'integer))
          (days (truncate ftime 86400))
          (ftime (mod ftime 86400))
          (hours (truncate ftime 3600))

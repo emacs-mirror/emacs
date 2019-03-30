@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -370,10 +370,12 @@
 	  (enriched-decode (point-min) (point-max))))
       (mm-handle-set-undisplayer
        handle
-       `(lambda ()
-          (let ((inhibit-read-only t))
-	    (delete-region ,(copy-marker (point-min) t)
-			   ,(point-max-marker))))))))
+       (if (= (point-min) (point-max))
+	   #'ignore
+	 `(lambda ()
+	    (let ((inhibit-read-only t))
+	      (delete-region ,(copy-marker (point-min) t)
+			     ,(point-max-marker)))))))))
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
@@ -491,7 +493,8 @@ If MODE is not set, try to find mode automatically."
 	    (let ((auto-mode-alist
 		   (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
 			 (copy-sequence auto-mode-alist))))
-	      (set-auto-mode)))
+	      (set-auto-mode)
+	      (setq mode major-mode)))
 	  ;; The mode function might have already turned on font-lock.
 	  ;; Do not fontify if the guess mode is fundamental.
 	  (unless (or font-lock-mode

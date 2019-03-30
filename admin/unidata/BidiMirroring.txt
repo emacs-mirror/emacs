@@ -1,5 +1,5 @@
-# BidiMirroring-11.0.0.txt
-# Date: 2018-05-07, 18:02:00 GMT [KW, LI, RP]
+# BidiMirroring-12.0.0.txt
+# Date: 2018-11-02, 16:33:00 GMT [KW, LI, RP]
 # © 2018 Unicode®, Inc.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
@@ -15,7 +15,7 @@
 # value, for which there is another Unicode character that typically has a glyph
 # that is the mirror image of the original character's glyph.
 #
-# The repertoire covered by the file is Unicode 11.0.0.
+# The repertoire covered by the file is Unicode 12.0.0.
 #
 # The file contains a list of lines with mappings from one code point
 # to another one for character-based mirroring.

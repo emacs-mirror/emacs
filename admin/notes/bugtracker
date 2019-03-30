@@ -241,21 +241,29 @@ report, and Bcc: the control server (note the commands have no effect
 if you just send them to the bug-report number).  Bcc: is better than Cc:
 in case people use Reply-To-All in response.
 
+For the full documentation of control commands, see
+https://debbugs.gnu.org/server-control.html
+
 Some useful control commands:
+
+*** To close a bug and indicate in what Emacs version it was fixed
+close 123 VERSION
+
+where VERSION is XX.YY numerical version number, like 42.1.
 
 *** To reopen a closed bug:
 reopen 123
 
 *** Bugs can be tagged in various ways (eg wontfix, patch, etc).
 The available tags are:
-patch wontfix moreinfo unreproducible fixed notabug
+patch wontfix moreinfo unreproducible fixed notabug security confirmed
 See https://debbugs.gnu.org/Developer#tags
 The list of tags can be prefixed with +, - or =, meaning to add (the
 default), remove, or reset the tags. E.g.:
 
 tags 123 + wontfix
 
-** URL shortcuts
+*** URL shortcuts
 
 https://debbugs.gnu.org/...
 
@@ -266,7 +274,7 @@ from:submitter@email.address
 severity:severity      # all bugs of given severity
 tag:tag                # all bugs with given tag
 
-** Usertags
+*** Usertags
 
 See <http://wiki.debian.org/bugs.debian.org/usertags>
 
@@ -410,21 +418,21 @@ reassign 1234 emacs
 Note that reassigning clears the list of found versions, even if the
 new packages includes the original one.
 
-** To remove spam from the tracker, move it to the 'spam' pseudo-package:
+*** To remove spam from the tracker, move it to the 'spam' pseudo-package:
 reassign 123 spam
 
 (Should not be necessary any more, now that the input is moderated.)
 
-** To change the title of a bug:
+*** To change the title of a bug:
 retitle 123 Some New Title
 
-** To change the submitter address:
+*** To change the submitter address:
 submitter 123 none@example.com
 
 Note that it does not seem to work to specify "Submitter:" in the
 pseudo-header when first reporting a bug.
 
-** How does archiving work?
+*** How does archiving work?
 You can still send mail to a bug after it is closed.  After 28 days with
 no activity, the bug is archived, at which point no more changes can
 be made.  If you try to send mail to the bug after that (or merge with

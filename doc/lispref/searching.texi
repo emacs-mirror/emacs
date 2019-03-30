@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
@@ -406,13 +406,13 @@ Note also that the usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters is
 special inside character alternatives: @samp{]}, @samp{-} and @samp{^}.
 
-To include a @samp{]} in a character alternative, you must make it the
-first character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.
-To include a @samp{-}, write @samp{-} as the first or last character of
-the character alternative, or put it after a range.  Thus, @samp{[]-]}
-matches both @samp{]} and @samp{-}.  (As explained below, you cannot
-use @samp{\]} to include a @samp{]} inside a character alternative,
-since @samp{\} is not special there.)
+To include a @samp{]} in a character alternative, you must make it the first
+character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.  To include
+a @samp{-}, write @samp{-} as the last character of the character alternative,
+tho you can also put it first or after a range.  Thus, @samp{[]-]} matches both
+@samp{]} and @samp{-}.  (As explained below, you cannot use @samp{\]} to
+include a @samp{]} inside a character alternative, since @samp{\} is not
+special there.)
 
 To include @samp{^} in a character alternative, put it anywhere but at
 the beginning.
@@ -559,7 +559,7 @@ tabs, and other characters whose Unicode @samp{general-category}
 property (@pxref{Character Properties}) indicates they are spacing
 separators.
 @item [:cntrl:]
-This matches any @acronym{ASCII} control character.
+This matches any character whose code is in the range 0--31.
 @item [:digit:]
 This matches @samp{0} through @samp{9}.  Thus, @samp{[-+[:digit:]]}
 matches any digit, as well as @samp{+} and @samp{-}.
@@ -950,7 +950,7 @@ whitespace:
 @end defun
 
 @cindex optimize regexp
-@defun regexp-opt strings &optional paren
+@defun regexp-opt strings &optional paren keep-order
 This function returns an efficient regular expression that will match
 any of the strings in the list @var{strings}.  This is useful when you
 need to make matching or searching as fast as possible---for example,
@@ -959,6 +959,9 @@ guarantee that its result is absolutely the most efficient form
 possible.  A hand-tuned regular expression can sometimes be slightly
 more efficient, but is almost never worth the effort.}.
 @c E.g., see https://debbugs.gnu.org/2816
+
+If @var{strings} is the empty list, the return value is a regexp that
+never matches anything.
 
 The optional argument @var{paren} can be any of the following:
 
@@ -985,8 +988,15 @@ if it is necessary to ensure that a postfix operator appended to
 it will apply to the whole expression.
 @end table
 
-The resulting regexp of @code{regexp-opt} is equivalent to but usually
-more efficient than that of a simplified version:
+The optional argument @var{keep-order}, if @code{nil} or omitted,
+allows the returned regexp to match the strings in any order.  If
+non-@code{nil}, the match is guaranteed to be performed in the order
+given, as if the strings were made into a regexp by joining them with
+the @samp{\|} operator.
+
+Up to reordering, the resulting regexp of @code{regexp-opt} is
+equivalent to but usually more efficient than that of a simplified
+version:
 
 @example
 (defun simplified-regexp-opt (strings &optional paren)

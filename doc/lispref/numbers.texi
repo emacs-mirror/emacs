@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Numbers
@@ -313,14 +313,18 @@ and returns the result.  @var{x1} and @var{x2} must be floating point.
 
 @defun logb x
 This function returns the binary exponent of @var{x}.  More
-precisely, the value is the logarithm base 2 of @math{|x|}, rounded
-down to an integer.
+precisely, if @var{x} is finite and nonzero, the value is the
+logarithm base 2 of @math{|x|}, rounded down to an integer.
+If @var{x} is zero, infinite, or a NaN, the value is minus infinity,
+plus infinity, or a NaN respectively.
 
 @example
 (logb 10)
      @result{} 3
 (logb 10.0e20)
      @result{} 69
+(logb 0)
+     @result{} -1.0e+INF
 @end example
 @end defun
 

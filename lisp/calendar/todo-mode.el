@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- facilities for making and maintaining todo lists  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;;	Stephen Berman <stephen.berman@gmx.net>
@@ -1931,7 +1931,7 @@ their associated keys and their effects."
 			     (calendar-current-date) t t))))
 	     (time-string (or (and time (todo-read-time))
 			      (and todo-always-add-time-string
-				   (substring (current-time-string) 11 16)))))
+				   (format-time-string "%H:%M")))))
 	(setq todo-date-from-calendar nil)
 	(find-file-noselect file 'nowarn)
 	(set-window-buffer (selected-window)
@@ -2881,8 +2881,7 @@ visible."
              (not marked))
       (let* ((date-string (calendar-date-string (calendar-current-date) t t))
 	     (time-string (if todo-always-add-time-string
-			      (concat " " (substring (current-time-string)
-						     11 16))
+			      (format-time-string " %H:%M")
 			    ""))
 	     (done-prefix (concat "[" todo-done-string date-string time-string
 				  "] "))
@@ -6091,7 +6090,7 @@ the empty string (i.e., no time string)."
     (while (not valid)
       (setq answer (read-string "Enter a clock time: " nil nil
 				(when todo-always-add-time-string
-				  (substring (current-time-string) 11 16))))
+				  (format-time-string "%H:%M"))))
       (when (or (string= "" answer)
 		(string-match diary-time-regexp answer))
 	(setq valid t)))
@@ -6389,8 +6388,7 @@ Filtered Items mode following todo (not done) items."
 ;; -----------------------------------------------------------------------------
 
 (defvar todo-key-bindings-t
-  `(
-    ("Af"	     todo-find-archive)
+  '(("Af"	     todo-find-archive)
     ("Ac"	     todo-choose-archive)
     ("Ad"	     todo-archive-done-item)
     ("Cv"	     todo-toggle-view-done-items)
@@ -6421,13 +6419,11 @@ Filtered Items mode following todo (not done) items."
     ("k"	     todo-delete-item)
     ("m"	     todo-move-item)
     ("u"	     todo-item-undone)
-    ([remap newline] newline-and-indent)
-   )
+    ([remap newline] newline-and-indent))
   "List of key bindings for Todo mode only.")
 
 (defvar todo-key-bindings-t+a+f
-  `(
-    ("C*" todo-mark-category)
+  '(("C*" todo-mark-category)
     ("Cu" todo-unmark-category)
     ("Fh" todo-toggle-item-header)
     ("h"  todo-toggle-item-header)
@@ -6444,27 +6440,22 @@ Filtered Items mode following todo (not done) items."
     ("p"  todo-previous-item)
     ("q"  todo-quit)
     ("s"  todo-save)
-    ("t"  todo-show)
-   )
+    ("t"  todo-show))
   "List of key bindings for Todo, Archive, and Filtered Items modes.")
 
 (defvar todo-key-bindings-t+a
-  `(
-    ("Fc" todo-show-categories-table)
+  '(("Fc" todo-show-categories-table)
     ("S"  todo-search)
     ("X"  todo-clear-matches)
     ("b"  todo-backward-category)
     ("f"  todo-forward-category)
-    ("*"  todo-toggle-mark-item)
-   )
+    ("*"  todo-toggle-mark-item))
   "List of key bindings for Todo and Todo Archive modes.")
 
 (defvar todo-key-bindings-t+f
-  `(
-    ("l" todo-lower-item-priority)
+  '(("l" todo-lower-item-priority)
     ("r" todo-raise-item-priority)
-    ("#" todo-set-item-priority)
-   )
+    ("#" todo-set-item-priority))
   "List of key bindings for Todo and Todo Filtered Items modes.")
 
 (defvar todo-mode-map

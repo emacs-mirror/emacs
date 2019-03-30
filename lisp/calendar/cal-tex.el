@@ -1,6 +1,6 @@
 ;;; cal-tex.el --- calendar functions for printing calendars with LaTeX
 
-;; Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Steve Fisk <fisk@bowdoin.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -925,7 +925,7 @@ argument EVENT specifies a different buffer position."
         (cal-tex-large-bf (cal-tex-LaTeXify-string (calendar-day-name date)))
         (insert ", ")
         (cal-tex-large-bf (cal-tex-month-name month))
-        (insert " ")
+        (insert "\\ ")
         (cal-tex-large-bf (number-to-string day))
         (unless (string-equal "" (setq s (cal-tex-latexify-list
                                           holidays date "; ")))
@@ -976,7 +976,7 @@ shown are hard-coded to 8-12, 13-17."
   (cal-tex-large-bf (cal-tex-LaTeXify-string (calendar-day-name date)))
   (insert ", ")
   (cal-tex-large-bf (cal-tex-month-name month))
-  (insert " ")
+  (insert "\\ ")
   (cal-tex-large-bf (number-to-string day))
   (unless (string-equal "" (setq s (cal-tex-latexify-list
                                     holidays date "; ")))

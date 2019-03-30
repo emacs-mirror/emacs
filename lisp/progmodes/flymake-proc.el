@@ -1,6 +1,6 @@
 ;;; flymake-proc.el --- Flymake backend for external tools  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author:  Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
@@ -874,7 +874,7 @@ can also be executed interactively independently of
   (unless (stringp file-name)
     (error "Invalid file-name"))
 
-  (let* ((dir       (file-name-directory file-name))
+  (let* ((dir       (file-name-directory (file-name-unquote file-name)))
          ;; Not sure what this slash-pos is all about, but I guess it's just
          ;; trying to remove the leading / of absolute file names.
 	 (slash-pos (string-match "/" dir))
@@ -887,7 +887,7 @@ can also be executed interactively independently of
 (defun flymake-proc--delete-temp-directory (dir-name)
   "Attempt to delete temp dir created by `flymake-proc-create-temp-with-folder-structure', do not fail on error."
   (let* ((temp-dir    temporary-file-directory)
-	 (suffix      (substring dir-name (1+ (length temp-dir)))))
+	 (suffix      (substring dir-name (1+ (length (directory-file-name temp-dir))))))
 
     (while (> (length suffix) 0)
       (setq suffix (directory-file-name suffix))
@@ -1133,7 +1133,7 @@ Use CREATE-TEMP-F for creating temp copy."
   (let* ((temp-master-file-name (flymake-proc--init-create-temp-source-and-master-buffer-copy
                                  'flymake-proc-get-include-dirs-dot 'flymake-proc-create-temp-inplace
 				 '("\\.tex\\'")
-				 "[ \t]*\\in\\(?:put\\|clude\\)[ \t]*{\\(.*%s\\)}")))
+				 "[ \t]*in\\(?:put\\|clude\\)[ \t]*{\\(.*%s\\)}")))
     (when temp-master-file-name
       (flymake-proc--get-tex-args temp-master-file-name))))
 

@@ -125,7 +125,7 @@ the char-table has no extra slot.  */)
     }
 
   size = CHAR_TABLE_STANDARD_SLOTS + n_extras;
-  vector = Fmake_vector (make_fixnum (size), init);
+  vector = make_vector (size, init);
   XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
   set_char_table_parent (vector, Qnil);
   set_char_table_purpose (vector, purpose);
@@ -184,16 +184,13 @@ copy_sub_char_table (Lisp_Object table)
 Lisp_Object
 copy_char_table (Lisp_Object table)
 {
-  Lisp_Object copy;
   int size = PVSIZE (table);
-  int i;
-
-  copy = Fmake_vector (make_fixnum (size), Qnil);
+  Lisp_Object copy = make_nil_vector (size);
   XSETPVECTYPE (XVECTOR (copy), PVEC_CHAR_TABLE);
   set_char_table_defalt (copy, XCHAR_TABLE (table)->defalt);
   set_char_table_parent (copy, XCHAR_TABLE (table)->parent);
   set_char_table_purpose (copy, XCHAR_TABLE (table)->purpose);
-  for (i = 0; i < chartab_size[0]; i++)
+  for (int i = 0; i < chartab_size[0]; i++)
     set_char_table_contents
       (copy, i,
        (SUB_CHAR_TABLE_P (XCHAR_TABLE (table)->contents[i])
@@ -201,7 +198,7 @@ copy_char_table (Lisp_Object table)
 	: XCHAR_TABLE (table)->contents[i]));
   set_char_table_ascii (copy, char_table_ascii (copy));
   size -= CHAR_TABLE_STANDARD_SLOTS;
-  for (i = 0; i < size; i++)
+  for (int i = 0; i < size; i++)
     set_char_table_extras (copy, i, XCHAR_TABLE (table)->extras[i]);
 
   XSETCHAR_TABLE (copy, XCHAR_TABLE (copy));
@@ -1249,7 +1246,7 @@ uniprop_encode_value_numeric (Lisp_Object table, Lisp_Object value)
     set_char_table_extras (table, 4,
 			   CALLN (Fvconcat,
 				  XCHAR_TABLE (table)->extras[4],
-				  Fmake_vector (make_fixnum (1), value)));
+				  make_vector (1, value)));
   return make_fixnum (i);
 }
 

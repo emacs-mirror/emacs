@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware, mouse
@@ -98,7 +98,7 @@ point at the click position."
 
 (defun mouse--down-1-maybe-follows-link (&optional _prompt)
   (when mouse-1-click-follows-link
-    (setq mouse--last-down (cons (car-safe last-input-event) (float-time))))
+    (setq mouse--last-down (cons (car-safe last-input-event) (current-time))))
   nil)
 
 (defun mouse--click-1-maybe-follows-link (&optional _prompt)
@@ -110,8 +110,10 @@ Expects to be bound to `(double-)mouse-1' in `key-translation-map'."
          ('double (eq 'double-mouse-1 (car-safe last-input-event)))
          (_ (and (eq 'mouse-1 (car-safe last-input-event))
                  (or (not (numberp mouse-1-click-follows-link))
-                     (funcall (if (< mouse-1-click-follows-link 0) #'> #'<)
-                              (- (float-time) (cdr mouse--last-down))
+		     (funcall (if (< mouse-1-click-follows-link 0)
+				  (lambda (a b) (time-less-p b a))
+				#'time-less-p)
+			      (time-since (cdr mouse--last-down))
                               (/ (abs mouse-1-click-follows-link) 1000.0))))))
        (eq (car mouse--last-down)
            (event-convert-list (list 'down (car-safe last-input-event))))
@@ -171,7 +173,10 @@ items `Turn Off' and `Help'."
                 (mouse-menu-non-singleton menu)
               (if (fboundp mm-fun)      ; bug#20201
                   `(keymap
-                    ,indicator
+                    ,(format "%s - %s" indicator
+			     (capitalize
+			      (replace-regexp-in-string
+			       "-" " " (format "%S" minor-mode))))
                     (turn-off menu-item "Turn off minor mode" ,mm-fun)
                     (help menu-item "Help for minor mode"
                           (lambda () (interactive)
@@ -1111,6 +1116,10 @@ its value is returned."
   (if (consp pos)
       (let ((w (posn-window pos)) (pt (posn-point pos))
 	    (str (posn-string pos)))
+        ;; FIXME: When STR has a `category' property and there's another
+        ;; `category' property at PT, we should probably disregard the
+        ;; `category' property at PT while doing the (get-char-property
+        ;; pt property w)!
 	(or (and str
 		 (get-text-property (cdr str) property (car str)))
             ;; Mouse clicks in the fringe come with a position in

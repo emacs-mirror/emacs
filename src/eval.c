@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2018 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1999-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "dispextern.h"
 #include "buffer.h"
+#include "pdumper.h"
 
 /* CACHEABLE is ordinarily nothing, except it is 'volatile' if
    necessary to cajole GCC into not warning incorrectly that a
@@ -38,10 +39,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #else
 # define CACHEABLE /* empty */
 #endif
-
-/* Chain of condition and catch handlers currently in effect.  */
-
-/* struct handler *handlerlist; */
 
 /* Non-nil means record all fset's and provide's, to be undone
    if the file being autoloaded is not fully loaded.
@@ -55,26 +52,6 @@ Lisp_Object Vautoload_queue;
    is shutting down.  */
 Lisp_Object Vrun_hooks;
 
-/* The commented-out variables below are macros defined in thread.h.  */
-
-/* Current number of specbindings allocated in specpdl, not counting
-   the dummy entry specpdl[-1].  */
-
-/* ptrdiff_t specpdl_size; */
-
-/* Pointer to beginning of specpdl.  A dummy entry specpdl[-1] exists
-   only so that its address can be taken.  */
-
-/* union specbinding *specpdl; */
-
-/* Pointer to first unused element in specpdl.  */
-
-/* union specbinding *specpdl_ptr; */
-
-/* Depth in Lisp evaluations and function calls.  */
-
-/* static EMACS_INT lisp_eval_depth; */
-
 /* The value of num_nonmacro_input_events as of the last time we
    started to enter the debugger.  If we decide to enter the debugger
    again when this is still equal to num_nonmacro_input_events, then we
@@ -82,16 +59,12 @@ Lisp_Object Vrun_hooks;
    signal the error instead of entering an infinite loop of debugger
    invocations.  */
 
-static EMACS_INT when_entered_debugger;
+static intmax_t when_entered_debugger;
 
 /* The function from which the last `signal' was called.  Set in
    Fsignal.  */
 /* FIXME: We should probably get rid of this!  */
 Lisp_Object Vsignaling_function;
-
-/* If non-nil, Lisp code must not be run since some part of Emacs is in
-   an inconsistent state.  Currently unused.  */
-Lisp_Object inhibit_lisp_code;
 
 /* These would ordinarily be static, but they need to be visible to GDB.  */
 bool backtrace_p (union specbinding *) EXTERNALLY_VISIBLE;
@@ -202,7 +175,7 @@ set_backtrace_debug_on_exit (union specbinding *pdl, bool doe)
 
 bool
 backtrace_p (union specbinding *pdl)
-{ return pdl >= specpdl; }
+{ return specpdl ? pdl >= specpdl : false; }
 
 static bool
 backtrace_thread_p (struct thread_state *tstate, union specbinding *pdl)
@@ -211,6 +184,12 @@ backtrace_thread_p (struct thread_state *tstate, union specbinding *pdl)
 union specbinding *
 backtrace_top (void)
 {
+  /* This is so "xbacktrace" doesn't crash in pdumped Emacs if they
+     invoke the command before init_eval_once_for_pdumper initializes
+     specpdl machinery.  See also backtrace_p above.  */
+  if (!specpdl)
+    return NULL;
+
   union specbinding *pdl = specpdl_ptr - 1;
   while (backtrace_p (pdl) && pdl->kind != SPECPDL_BACKTRACE)
     pdl--;
@@ -235,6 +214,8 @@ backtrace_next (union specbinding *pdl)
   return pdl;
 }
 
+static void init_eval_once_for_pdumper (void);
+
 static union specbinding *
 backtrace_thread_next (struct thread_state *tstate, union specbinding *pdl)
 {
@@ -247,18 +228,21 @@ backtrace_thread_next (struct thread_state *tstate, union specbinding *pdl)
 void
 init_eval_once (void)
 {
-  enum { size = 50 };
-  union specbinding *pdlvec = xmalloc ((size + 1) * sizeof *specpdl);
-  specpdl_size = size;
-  specpdl = specpdl_ptr = pdlvec + 1;
   /* Don't forget to update docs (lispref node "Local Variables").  */
   max_specpdl_size = 1300; /* 1000 is not enough for CEDET's c-by.el.  */
   max_lisp_eval_depth = 800;
-
   Vrun_hooks = Qnil;
+  pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }
 
-/* static struct handler handlerlist_sentinel; */
+static void
+init_eval_once_for_pdumper (void)
+{
+  enum { size = 50 };
+  union specbinding *pdlvec = malloc ((size + 1) * sizeof *specpdl);
+  specpdl_size = size;
+  specpdl = specpdl_ptr = pdlvec + 1;
+}
 
 void
 init_eval (void)
@@ -281,13 +265,23 @@ init_eval (void)
   when_entered_debugger = -1;
 }
 
+/* Ensure that *M is at least A + B if possible, or is its maximum
+   value otherwise.  */
+
+static void
+max_ensure_room (intmax_t *m, intmax_t a, intmax_t b)
+{
+  intmax_t sum = INT_ADD_WRAPV (a, b, &sum) ? INTMAX_MAX : sum;
+  *m = max (*m, sum);
+}
+
 /* Unwind-protect function used by call_debugger.  */
 
 static void
 restore_stack_limits (Lisp_Object data)
 {
-  max_specpdl_size = XFIXNUM (XCAR (data));
-  max_lisp_eval_depth = XFIXNUM (XCDR (data));
+  integer_to_intmax (XCAR (data), &max_specpdl_size);
+  integer_to_intmax (XCDR (data), &max_lisp_eval_depth);
 }
 
 static void grow_specpdl (void);
@@ -300,21 +294,19 @@ call_debugger (Lisp_Object arg)
   bool debug_while_redisplaying;
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object val;
-  EMACS_INT old_depth = max_lisp_eval_depth;
+  intmax_t old_depth = max_lisp_eval_depth;
   /* Do not allow max_specpdl_size less than actual depth (Bug#16603).  */
-  EMACS_INT old_max = max (max_specpdl_size, count);
+  intmax_t old_max = max (max_specpdl_size, count);
 
   /* The previous value of 40 is too small now that the debugger
      prints using cl-prin1 instead of prin1.  Printing lists nested 8
      deep (which is the value of print-level used in the debugger)
      currently requires 77 additional frames.  See bug#31919.  */
-  if (lisp_eval_depth + 100 > max_lisp_eval_depth)
-    max_lisp_eval_depth = lisp_eval_depth + 100;
+  max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 100);
 
   /* While debugging Bug#16603, previous value of 100 was found
      too small to avoid specpdl overflow in the debugger itself.  */
-  if (max_specpdl_size - 200 < count)
-    max_specpdl_size = count + 200;
+  max_ensure_room (&max_specpdl_size, count, 200);
 
   if (old_max == count)
     {
@@ -325,8 +317,7 @@ call_debugger (Lisp_Object arg)
 
   /* Restore limits after leaving the debugger.  */
   record_unwind_protect (restore_stack_limits,
-			 Fcons (make_fixnum (old_max),
-				make_fixnum (old_depth)));
+			 Fcons (make_int (old_max), make_int (old_depth)));
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -951,16 +942,15 @@ usage: (let VARLIST BODY...)  */)
   (Lisp_Object args)
 {
   Lisp_Object *temps, tem, lexenv;
-  Lisp_Object elt, varlist;
+  Lisp_Object elt;
   ptrdiff_t count = SPECPDL_INDEX ();
   ptrdiff_t argnum;
   USE_SAFE_ALLOCA;
 
-  varlist = XCAR (args);
-  CHECK_LIST (varlist);
+  Lisp_Object varlist = XCAR (args);
 
   /* Make space to hold the values to give the bound variables.  */
-  EMACS_INT varlist_len = XFIXNAT (Flength (varlist));
+  EMACS_INT varlist_len = list_length (varlist);
   SAFE_ALLOCA_LISP (temps, varlist_len);
   ptrdiff_t nvars = varlist_len;
 
@@ -1572,10 +1562,7 @@ process_quit_flag (void)
    If quit-flag is set to `kill-emacs' the SIGINT handler has received
    a request to exit Emacs when it is safe to do.
 
-   When not quitting, process any pending signals.
-
-   If you change this function, also adapt module_should_quit in
-   emacs-module.c.  */
+   When not quitting, process any pending signals.  */
 
 void
 maybe_quit (void)
@@ -1654,11 +1641,8 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
       && specpdl_ptr < specpdl + specpdl_size)
     {
       /* Edebug takes care of restoring these variables when it exits.  */
-      if (lisp_eval_depth + 20 > max_lisp_eval_depth)
-	max_lisp_eval_depth = lisp_eval_depth + 20;
-
-      if (SPECPDL_INDEX () + 40 > max_specpdl_size)
-	max_specpdl_size = SPECPDL_INDEX () + 40;
+      max_ensure_room (&max_lisp_eval_depth, lisp_eval_depth, 20);
+      max_ensure_room (&max_specpdl_size, SPECPDL_INDEX (), 40);
 
       call2 (Vsignal_hook_function, error_symbol, data);
     }
@@ -2085,7 +2069,7 @@ it defines a macro.  */)
 
   /* This is to make sure that loadup.el gives a clear picture
      of what files are preloaded and when.  */
-  if (! NILP (Vpurify_flag))
+  if (will_dump_p () && !will_bootstrap_p ())
     error ("Attempt to autoload %s while preparing to dump",
 	   SDATA (SYMBOL_NAME (funname)));
 
@@ -2256,21 +2240,22 @@ eval_sub (Lisp_Object form)
   /* Optimize for no indirection.  */
   fun = original_fun;
   if (!SYMBOLP (fun))
-    fun = Ffunction (Fcons (fun, Qnil));
+    fun = Ffunction (list1 (fun));
   else if (!NILP (fun) && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
   if (SUBRP (fun))
     {
       Lisp_Object args_left = original_args;
-      Lisp_Object numargs = Flength (args_left);
+      ptrdiff_t numargs = list_length (args_left);
 
       check_cons_list ();
 
-      if (XFIXNUM (numargs) < XSUBR (fun)->min_args
+      if (numargs < XSUBR (fun)->min_args
 	  || (XSUBR (fun)->max_args >= 0
-	      && XSUBR (fun)->max_args < XFIXNUM (numargs)))
-	xsignal2 (Qwrong_number_of_arguments, original_fun, numargs);
+	      && XSUBR (fun)->max_args < numargs))
+	xsignal2 (Qwrong_number_of_arguments, original_fun,
+		  make_fixnum (numargs));
 
       else if (XSUBR (fun)->max_args == UNEVALLED)
 	val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
@@ -2281,9 +2266,9 @@ eval_sub (Lisp_Object form)
 	  ptrdiff_t argnum = 0;
 	  USE_SAFE_ALLOCA;
 
-	  SAFE_ALLOCA_LISP (vals, XFIXNUM (numargs));
+	  SAFE_ALLOCA_LISP (vals, numargs);
 
-	  while (CONSP (args_left) && argnum < XFIXNUM (numargs))
+	  while (CONSP (args_left) && argnum < numargs)
 	    {
 	      Lisp_Object arg = XCAR (args_left);
 	      args_left = XCDR (args_left);
@@ -2313,7 +2298,7 @@ eval_sub (Lisp_Object form)
 	      args_left = Fcdr (args_left);
 	    }
 
-	  set_backtrace_args (specpdl + count, argvals, XFIXNUM (numargs));
+	  set_backtrace_args (specpdl + count, argvals, numargs);
 
 	  switch (i)
 	    {
@@ -2417,16 +2402,13 @@ Thus, (apply \\='+ 1 2 \\='(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
-  ptrdiff_t i, numargs, funcall_nargs;
-  register Lisp_Object *funcall_args = NULL;
-  register Lisp_Object spread_arg = args[nargs - 1];
+  ptrdiff_t i, funcall_nargs;
+  Lisp_Object *funcall_args = NULL;
+  Lisp_Object spread_arg = args[nargs - 1];
   Lisp_Object fun = args[0];
-  Lisp_Object retval;
   USE_SAFE_ALLOCA;
 
-  CHECK_LIST (spread_arg);
-
-  numargs = XFIXNUM (Flength (spread_arg));
+  ptrdiff_t numargs = list_length (spread_arg);
 
   if (numargs == 0)
     return Ffuncall (nargs - 1, args);
@@ -2476,7 +2458,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
       spread_arg = XCDR (spread_arg);
     }
 
-  retval = Ffuncall (funcall_nargs, funcall_args);
+  Lisp_Object retval = Ffuncall (funcall_nargs, funcall_args);
 
   SAFE_FREE ();
   return retval;
@@ -2974,25 +2956,22 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
 static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args, ptrdiff_t count)
 {
-  Lisp_Object args_left;
-  ptrdiff_t i;
-  EMACS_INT numargs;
   Lisp_Object *arg_vector;
   Lisp_Object tem;
   USE_SAFE_ALLOCA;
 
-  numargs = XFIXNAT (Flength (args));
+  ptrdiff_t numargs = list_length (args);
   SAFE_ALLOCA_LISP (arg_vector, numargs);
-  args_left = args;
+  Lisp_Object args_left = args;
 
-  for (i = 0; i < numargs; )
+  for (ptrdiff_t i = 0; i < numargs; i++)
     {
       tem = Fcar (args_left), args_left = Fcdr (args_left);
       tem = eval_sub (tem);
-      arg_vector[i++] = tem;
+      arg_vector[i] = tem;
     }
 
-  set_backtrace_args (specpdl + count, arg_vector, i);
+  set_backtrace_args (specpdl + count, arg_vector, numargs);
   tem = funcall_lambda (fun, numargs, arg_vector);
 
   check_cons_list ();
@@ -3705,7 +3684,7 @@ backtrace_frame_apply (Lisp_Object function, union specbinding *pdl)
 
   Lisp_Object flags = Qnil;
   if (backtrace_debug_on_exit (pdl))
-    flags = Fcons (QCdebug_on_exit, Fcons (Qt, Qnil));
+    flags = list2 (QCdebug_on_exit, Qt);
 
   if (backtrace_nargs (pdl) == UNEVALLED)
     return call4 (function, Qnil, backtrace_function (pdl), *backtrace_args (pdl), flags);
@@ -4008,7 +3987,7 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
   for (pdl = first; pdl != ptr; pdl++)
     {
       switch (pdl->kind)
-	{
+        {
 	case SPECPDL_UNWIND:
 	  mark_object (specpdl_arg (pdl));
 	  break;
@@ -4045,7 +4024,7 @@ mark_specpdl (union specbinding *first, union specbinding *ptr)
 
 	case SPECPDL_UNWIND_PTR:
 	case SPECPDL_UNWIND_INT:
-	case SPECPDL_UNWIND_VOID:
+        case SPECPDL_UNWIND_VOID:
 	  break;
 
 	default:
@@ -4230,8 +4209,6 @@ alist of active lexical bindings.  */);
   Vautoload_queue = Qnil;
   staticpro (&Vsignaling_function);
   Vsignaling_function = Qnil;
-
-  inhibit_lisp_code = Qnil;
 
   DEFSYM (Qcatch_all_memory_full, "catch-all-memory-full");
   Funintern (Qcatch_all_memory_full, Qnil);

@@ -1,6 +1,6 @@
 ;;; files-x.el --- extended file handling commands
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -29,6 +29,8 @@
 ;; to not make the dumped image bigger.
 
 ;;; Code:
+
+(eval-when-compile (require 'subr-x)) ; for string-trim-right
 
 
 ;;; Commands to add/delete file-local/directory-local variables.
@@ -484,7 +486,7 @@ from the MODE alist ignoring the input argument VALUE."
 				 (if (memq variable '(mode eval))
 				     (cdr mode-assoc)
 				   (assq-delete-all variable (cdr mode-assoc))))))
-			(assq-delete-all mode variables)))
+			(assoc-delete-all mode variables)))
 	  (setq variables
 		(cons `(,mode . ((,variable . ,value)))
 		      variables))))
@@ -513,9 +515,11 @@ from the MODE alist ignoring the input argument VALUE."
                             (car mode-variables)
                             (format "(%s)" (mapconcat
                                             (lambda (variable-value)
-                                              (format "(%S . %S)"
+                                              (format "(%S . %s)"
                                                       (car variable-value)
-                                                      (cdr variable-value)))
+                                                      (string-trim-right
+                                                       (pp-to-string
+                                                        (cdr variable-value)))))
                                             (cdr mode-variables) "\n"))))
                   variables "\n")))
 
@@ -578,7 +582,7 @@ changed by the user.")
 (setq ignored-local-variables
       (cons 'connection-local-variables-alist ignored-local-variables))
 
-(defvar connection-local-profile-alist '()
+(defvar connection-local-profile-alist nil
   "Alist mapping connection profiles to variable lists.
 Each element in this list has the form (PROFILE VARIABLES).
 PROFILE is the name of a connection profile (a symbol).
@@ -586,7 +590,7 @@ VARIABLES is a list that declares connection-local variables for
 PROFILE.  An element in VARIABLES is an alist whose elements are
 of the form (VAR . VALUE).")
 
-(defvar connection-local-criteria-alist '()
+(defvar connection-local-criteria-alist nil
   "Alist mapping connection criteria to connection profiles.
 Each element in this list has the form (CRITERIA PROFILES).
 CRITERIA is a plist identifying a connection and the application
@@ -681,7 +685,12 @@ This does nothing if `enable-connection-local-variables' is nil."
       ;; Loop over variables.
       (dolist (variable (connection-local-get-profile-variables profile))
         (unless (assq (car variable) connection-local-variables-alist)
-          (push variable connection-local-variables-alist))))))
+          (push variable connection-local-variables-alist))))
+    ;; Push them to `file-local-variables-alist'.  Connection-local
+    ;; variables do not appear from external files.  So we can regard
+    ;; them as safe.
+    (let ((enable-local-variables :all))
+      (hack-local-variables-filter connection-local-variables-alist nil))))
 
 ;;;###autoload
 (defun hack-connection-local-variables-apply (criteria)
@@ -693,24 +702,35 @@ will not be changed."
         (copy-tree connection-local-variables-alist)))
    (hack-local-variables-apply)))
 
+(defsubst connection-local-criteria-for-default-directory ()
+  "Return a connection-local criteria, which represents `default-directory'."
+  (when (file-remote-p default-directory)
+    `(:application tramp
+       :protocol ,(file-remote-p default-directory 'method)
+       :user     ,(file-remote-p default-directory 'user)
+       :machine  ,(file-remote-p default-directory 'host))))
+
 ;;;###autoload
-(defmacro with-connection-local-profiles (profiles &rest body)
-  "Apply connection-local variables according to PROFILES in current buffer.
+(defmacro with-connection-local-variables (&rest body)
+  "Apply connection-local variables according to `default-directory'.
 Execute BODY, and unwind connection-local variables."
-  (declare (indent 1) (debug t))
-  `(let ((enable-connection-local-variables t)
-         (old-buffer-local-variables (buffer-local-variables))
-	 connection-local-variables-alist connection-local-criteria-alist)
-     (apply 'connection-local-set-profiles nil ,profiles)
-     (hack-connection-local-variables-apply nil)
-     (unwind-protect
-         (progn ,@body)
-       ;; Cleanup.
-       (dolist (variable connection-local-variables-alist)
-	 (let ((elt (assq (car variable) old-buffer-local-variables)))
-	   (if elt
-	       (set (make-local-variable (car elt)) (cdr elt))
-           (kill-local-variable (car variable))))))))
+  (declare (debug t))
+  `(if (file-remote-p default-directory)
+       (let ((enable-connection-local-variables t)
+             (old-buffer-local-variables (buffer-local-variables))
+	     connection-local-variables-alist)
+	 (hack-connection-local-variables-apply
+	  (connection-local-criteria-for-default-directory))
+	 (unwind-protect
+             (progn ,@body)
+	   ;; Cleanup.
+	   (dolist (variable connection-local-variables-alist)
+	     (let ((elt (assq (car variable) old-buffer-local-variables)))
+	       (if elt
+		   (set (make-local-variable (car elt)) (cdr elt))
+		 (kill-local-variable (car variable)))))))
+     ;; No connection-local variables to apply.
+     ,@body))
 
 
 

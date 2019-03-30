@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support
 
-;; Copyright (C) 1993-1995, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: hardware

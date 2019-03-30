@@ -1,6 +1,6 @@
 ;;; erc-backend.el --- Backend network communication for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>
@@ -844,10 +844,9 @@ Additionally, detect whether the IRC process has hung."
              erc-server-last-received-time))
       (with-current-buffer buf
         (if (and erc-server-send-ping-timeout
-                 (>
-                  (erc-time-diff (erc-current-time)
-                                 erc-server-last-received-time)
-                  erc-server-send-ping-timeout))
+                 (time-less-p
+                  erc-server-send-ping-timeout
+                  (time-since erc-server-last-received-time)))
             (progn
               ;; if the process is hung, kill it
               (setq erc-server-timed-out t)
@@ -865,16 +864,15 @@ Additionally, detect whether the IRC process has hung."
 See `erc-server-flood-margin' for an explanation of the flood
 protection algorithm."
   (with-current-buffer buffer
-    (let ((now (erc-current-time)))
+    (let ((now (current-time)))
       (when erc-server-flood-timer
         (erc-cancel-timer erc-server-flood-timer)
         (setq erc-server-flood-timer nil))
-      (when (< erc-server-flood-last-message
-               now)
-        (setq erc-server-flood-last-message now))
+      (when (time-less-p erc-server-flood-last-message now)
+        (setq erc-server-flood-last-message (erc-emacs-time-to-erc-time now)))
       (while (and erc-server-flood-queue
-                  (< erc-server-flood-last-message
-                     (+ now erc-server-flood-margin)))
+                  (time-less-p erc-server-flood-last-message
+                               (time-add now erc-server-flood-margin)))
         (let ((msg (caar erc-server-flood-queue))
               (encoding (cdar erc-server-flood-queue)))
           (setq erc-server-flood-queue (cdr erc-server-flood-queue)
@@ -1070,8 +1068,8 @@ Hands off to helper functions via `erc-call-hooks'."
               erc-server-prevent-duplicates)
       (let ((m (erc-response.unparsed parsed-response)))
         ;; duplicate suppression
-        (if (< (or (gethash m erc-server-duplicates) 0)
-               (- (erc-current-time) erc-server-duplicate-timeout))
+        (if (time-less-p (or (gethash m erc-server-duplicates) 0)
+                         (time-since erc-server-duplicate-timeout))
             (erc-call-hooks process parsed-response))
         (puthash m (erc-current-time) erc-server-duplicates))
     ;; Hand off to the relevant handler.
@@ -1447,7 +1445,7 @@ add things to `%s' instead."
   "Handle pong messages." nil
   (let ((time (string-to-number (erc-response.contents parsed))))
     (when (> time 0)
-      (setq erc-server-lag (erc-time-diff time (erc-current-time)))
+      (setq erc-server-lag (erc-time-diff time nil))
       (when erc-verbose-server-ping
         (erc-display-message
          parsed 'notice proc 'PONG
@@ -1730,7 +1728,7 @@ See `erc-display-server-message'." nil
                (cdr (erc-response.command-args parsed))))
     (setq time (when on-since
                  (format-time-string erc-server-timestamp-format
-                                     (erc-string-to-emacs-time on-since))))
+                                     (string-to-number on-since))))
     (erc-update-user-nick nick nick nil nil nil
                           (and time (format "on since %s" time)))
     (if time
@@ -1802,7 +1800,7 @@ See `erc-display-server-message'." nil
 (define-erc-response-handler (329)
   "Channel creation date." nil
   (let ((channel (cadr (erc-response.command-args parsed)))
-        (time (erc-string-to-emacs-time
+        (time (string-to-number
                (nth 2 (erc-response.command-args parsed)))))
     (erc-display-message
      parsed 'notice (erc-get-buffer channel proc)
@@ -1844,7 +1842,7 @@ See `erc-display-server-message'." nil
   (pcase-let ((`(,channel ,nick ,time)
                (cdr (erc-response.command-args parsed))))
     (setq time (format-time-string erc-server-timestamp-format
-                                   (erc-string-to-emacs-time time)))
+                                   (string-to-number time)))
     (erc-update-channel-topic channel
                               (format "\C-o (%s, %s)" nick time)
                               'append)

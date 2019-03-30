@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2018 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -68,12 +68,15 @@ The functions will receive the function name as argument.")
 
 (defun help--loaded-p (file)
   "Try and figure out if FILE has already been loaded."
+  ;; FIXME: this regexp business is not good enough: for file
+  ;; `toto', it will say `toto' is loaded when in reality it was
+  ;; just cedet/semantic/toto that has been loaded.
   (or (let ((feature (intern-soft file)))
         (and feature (featurep feature)))
       (let* ((re (load-history-regexp file))
              (done nil))
         (dolist (x load-history)
-          (and (car x) (string-match-p re (car x)) (setq done t)))
+          (and (stringp (car x)) (string-match-p re (car x)) (setq done t)))
         done)))
 
 (defun help--load-prefixes (prefixes)
@@ -83,11 +86,9 @@ The functions will receive the function name as argument.")
     (dolist (file files)
       ;; FIXME: Should we scan help-definition-prefixes to remove
       ;; other prefixes of the same file?
-      ;; FIXME: this regexp business is not good enough: for file
-      ;; `toto', it will say `toto' is loaded when in reality it was
-      ;; just cedet/semantic/toto that has been loaded.
       (unless (help--loaded-p file)
-        (load file 'noerror 'nomessage)))))
+        (with-demoted-errors "while loading: %S"
+          (load file 'noerror 'nomessage))))))
 
 (defun help--symbol-completion-table (string pred action)
   (let ((prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
@@ -520,7 +521,7 @@ FILE is the file where FUNCTION was probably defined."
 	 (target (cons t function))
 	 found)
     (while (and load-hist (not found))
-      (and (caar load-hist)
+      (and (stringp (caar load-hist))
 	   (equal (file-name-sans-extension (caar load-hist)) file)
 	   (setq found (member target (cdar load-hist))))
       (setq load-hist (cdr load-hist)))
@@ -1141,7 +1142,7 @@ current buffer and the selected frame, respectively."
 				    (format
                                      "Describe symbol (default %s): " v-or-f)
 				  "Describe symbol: ")
-				obarray
+				#'help--symbol-completion-table
 				(lambda (vv)
                                   (cl-some (lambda (x) (funcall (nth 1 x) vv))
                                            describe-symbol-backends))

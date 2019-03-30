@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994-1995, 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -767,7 +767,7 @@ the 4 file locations can be clicked on and jumped to."
   (interactive "d")
   (goto-char pos)
 
-  (skip-chars-backward "-a-zA-Z0-9_:./\\")
+  (skip-chars-backward "-a-zA-Z0-9_:./\\\\")
   (cond
    ;;  special case: looking at a filename:line not at the beginning of a line
    ;;  or a simple line reference "at line ..."

@@ -1,6 +1,6 @@
 /* Low-level bidirectional buffer/string-scanning functions for GNU Emacs.
 
-Copyright (C) 2000-2001, 2004-2005, 2009-2018 Free Software Foundation, Inc.
+Copyright (C) 2000-2001, 2004-2005, 2009-2019 Free Software Foundation, Inc.
 
 Author: Eli Zaretskii <eliz@gnu.org>
 
@@ -2335,7 +2335,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 		      and make it L right away, to avoid the
 		      potentially costly loop below.  This is
 		      important when the buffer has a long series of
-		      control characters, like binary nulls, and no
+		      control characters, like binary NULs, and no
 		      R2L characters at all.  */
 		   && new_level == 0
 		   && !bidi_explicit_dir_char (bidi_it->ch)
@@ -2993,7 +2993,7 @@ bidi_resolve_neutral (struct bidi_it *bidi_it)
 	}
       /* The next two "else if" clauses are shortcuts for the
 	 important special case when we have a long sequence of
-	 neutral or WEAK_BN characters, such as whitespace or nulls or
+	 neutral or WEAK_BN characters, such as whitespace or NULs or
 	 other control characters, on the base embedding level of the
 	 paragraph, and that sequence goes all the way to the end of
 	 the paragraph and follows a character whose resolved

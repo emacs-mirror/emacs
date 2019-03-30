@@ -1,6 +1,6 @@
 ;;; vc-arch.el --- VC backend for the Arch version-control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -397,8 +397,8 @@ CALLBACK expects (ENTRIES &optional MORE-TO-COME); see
 	  (setq rev (replace-match (cdr rule) t nil rev))))
     (format "Arch%c%s"
 	    (pcase (vc-state file)
-	      ((or `up-to-date `needs-update) ?-)
-	      (`added ?@)
+	      ((or 'up-to-date 'needs-update) ?-)
+	      ('added ?@)
 	      (_ ?:))
 	    rev)))
 

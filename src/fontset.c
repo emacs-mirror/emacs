@@ -1,6 +1,6 @@
 /* Fontset handler.
 
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -39,6 +39,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include TERM_HEADER
 #endif /* HAVE_WINDOW_SYSTEM */
 #include "font.h"
+#include "pdumper.h"
 
 /* FONTSET
 
@@ -281,10 +282,10 @@ set_fontset_fallback (Lisp_Object fontset, Lisp_Object fallback)
   ASET ((rfont_def), 3, make_fixnum (score))
 #define RFONT_DEF_NEW(rfont_def, font_def)		\
   do {							\
-    (rfont_def) = Fmake_vector (make_fixnum (4), Qnil);	\
-    ASET ((rfont_def), 1, (font_def));			\
-    RFONT_DEF_SET_SCORE ((rfont_def), 0);		\
-  } while (0)
+    (rfont_def) = make_nil_vector (4);			\
+    ASET (rfont_def, 1, font_def);			\
+    RFONT_DEF_SET_SCORE (rfont_def, 0);			\
+  } while (false)
 
 
 /* Return the element of FONTSET for the character C.  If FONTSET is a
@@ -327,11 +328,8 @@ fontset_ref (Lisp_Object fontset, int c)
 #define FONTSET_ADD(fontset, range, elt, add)				\
   (NILP (add)								\
    ? (NILP (range)							\
-      ? (set_fontset_fallback						\
-	 (fontset, Fmake_vector (make_fixnum (1), (elt))))		\
-      : ((void)								\
-	 Fset_char_table_range (fontset, range,				\
-				Fmake_vector (make_fixnum (1), elt))))	\
+      ? set_fontset_fallback (fontset, make_vector (1, elt))		\
+      : (void) Fset_char_table_range (fontset, range, make_vector (1, elt))) \
    : fontset_add ((fontset), (range), (elt), (add)))
 
 static void
@@ -340,7 +338,7 @@ fontset_add (Lisp_Object fontset, Lisp_Object range, Lisp_Object elt, Lisp_Objec
   Lisp_Object args[2];
   int idx = (EQ (add, Qappend) ? 0 : 1);
 
-  args[1 - idx] = Fmake_vector (make_fixnum (1), elt);
+  args[1 - idx] = make_vector (1, elt);
 
   if (CONSP (range))
     {
@@ -701,7 +699,6 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face,
 	{
 	  /* We found a font.  Open it and insert a new element for
 	     that font in VEC.  */
-	  Lisp_Object new_vec;
 	  int j;
 
 	  font_object = font_open_for_lface (f, font_entity, face->lface,
@@ -711,7 +708,7 @@ fontset_find_font (Lisp_Object fontset, int c, struct face *face,
 	  RFONT_DEF_NEW (rfont_def, font_def);
 	  RFONT_DEF_SET_OBJECT (rfont_def, font_object);
 	  RFONT_DEF_SET_SCORE (rfont_def, RFONT_DEF_SCORE (rfont_def));
-	  new_vec = Fmake_vector (make_fixnum (ASIZE (vec) + 1), Qnil);
+	  Lisp_Object new_vec = make_nil_vector (ASIZE (vec) + 1);
 	  found_index++;
 	  for (j = 0; j < found_index; j++)
 	    ASET (new_vec, j, AREF (vec, j));
@@ -2062,9 +2059,7 @@ Lisp_Object dump_fontset (Lisp_Object) EXTERNALLY_VISIBLE;
 Lisp_Object
 dump_fontset (Lisp_Object fontset)
 {
-  Lisp_Object vec;
-
-  vec = Fmake_vector (make_fixnum (3), Qnil);
+  Lisp_Object vec = make_nil_vector (3);
   ASET (vec, 0, FONTSET_ID (fontset));
 
   if (BASE_FONTSET_P (fontset))
@@ -2122,7 +2117,7 @@ syms_of_fontset (void)
   Vcached_fontset_data = Qnil;
   staticpro (&Vcached_fontset_data);
 
-  Vfontset_table = Fmake_vector (make_fixnum (32), Qnil);
+  Vfontset_table = make_nil_vector (32);
   staticpro (&Vfontset_table);
 
   Vdefault_fontset = Fmake_char_table (Qfontset, Qnil);
@@ -2133,6 +2128,7 @@ syms_of_fontset (void)
      build_pure_c_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default"));
   ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
+  PDUMPER_REMEMBER_SCALAR (next_fontset_id);
 
   auto_fontset_alist = Qnil;
   staticpro (&auto_fontset_alist);

@@ -1,6 +1,6 @@
 /* GNU Emacs routines to deal with category tables.
 
-Copyright (C) 1998, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1998, 2001-2019 Free Software Foundation, Inc.
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -42,15 +42,6 @@ bset_category_table (struct buffer *b, Lisp_Object val)
   b->category_table_ = val;
 }
 
-/* The version number of the latest category table.  Each category
-   table has a unique version number.  It is assigned a new number
-   also when it is modified.  When a regular expression is compiled
-   into the struct re_pattern_buffer, the version number of the
-   category table (of the current buffer) at that moment is also
-   embedded in the structure.
-
-   For the moment, we are not using this feature.  */
-static int category_table_version;
 
 /* Category set staff.  */
 
@@ -271,8 +262,7 @@ DEFUN ("make-category-table", Fmake_category_table, Smake_category_table,
   set_char_table_defalt (val, MAKE_CATEGORY_SET);
   for (i = 0; i < (1 << CHARTAB_SIZE_BITS_0); i++)
     set_char_table_contents (val, i, MAKE_CATEGORY_SET);
-  Fset_char_table_extra_slot (val, make_fixnum (0),
-			      Fmake_vector (make_fixnum (95), Qnil));
+  Fset_char_table_extra_slot (val, make_fixnum (0), make_nil_vector (95));
   return val;
 }
 
@@ -446,7 +436,7 @@ init_category_once (void)
   /* Set a category set which contains nothing to the default.  */
   set_char_table_defalt (Vstandard_category_table, MAKE_CATEGORY_SET);
   Fset_char_table_extra_slot (Vstandard_category_table, make_fixnum (0),
-			      Fmake_vector (make_fixnum (95), Qnil));
+			      make_nil_vector (95));
 }
 
 void
@@ -513,6 +503,4 @@ See the documentation of the variable `word-combining-categories'.  */);
   defsubr (&Schar_category_set);
   defsubr (&Scategory_set_mnemonics);
   defsubr (&Smodify_category_entry);
-
-  category_table_version = 0;
 }

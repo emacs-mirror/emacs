@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2018 Free Software Foundation, Inc.
+Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,6 +29,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <webkit2/webkit2.h>
 #include <JavaScriptCore/JavaScript.h>
+
+/* Suppress GCC deprecation warnings starting in WebKitGTK+ 2.21.1 for
+   webkit_javascript_result_get_global_context and
+   webkit_javascript_result_get_value (Bug#33679).
+   FIXME: Use the JavaScriptCore GLib API instead, and remove this hack.  */
+#if WEBKIT_CHECK_VERSION (2, 21, 1) && GNUC_PREREQ (4, 2, 0)
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 
 static struct xwidget *
 allocate_xwidget (void)
@@ -78,6 +86,8 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
    Lisp_Object title, Lisp_Object width, Lisp_Object height,
    Lisp_Object arguments, Lisp_Object buffer)
 {
+  if (!xg_gtk_initialized)
+    error ("make-xwidget: GTK has not been initialized");
   CHECK_SYMBOL (type);
   CHECK_FIXNAT (width);
   CHECK_FIXNAT (height);
@@ -300,11 +310,15 @@ webkit_js_to_lisp (JSContextRef context, JSValueRef value)
         if (JSValueIsArray (context, value))
           {
             JSStringRef pname = JSStringCreateWithUTF8CString("length");
-            JSValueRef len = JSObjectGetProperty (context, (JSObjectRef) value, pname, NULL);
-            EMACS_INT n = JSValueToNumber (context, len, NULL);
+	    JSValueRef len = JSObjectGetProperty (context, (JSObjectRef) value,
+						  pname, NULL);
+	    double dlen = JSValueToNumber (context, len, NULL);
             JSStringRelease(pname);
 
             Lisp_Object obj;
+	    if (! (0 <= dlen && dlen < PTRDIFF_MAX + 1.0))
+	      memory_full (SIZE_MAX);
+	    ptrdiff_t n = dlen;
             struct Lisp_Vector *p = allocate_vector (n);
 
             for (ptrdiff_t i = 0; i < n; ++i)
@@ -323,10 +337,12 @@ webkit_js_to_lisp (JSContextRef context, JSValueRef value)
             JSPropertyNameArrayRef properties =
               JSObjectCopyPropertyNames (context, (JSObjectRef) value);
 
-            ptrdiff_t n = JSPropertyNameArrayGetCount (properties);
+	    size_t n = JSPropertyNameArrayGetCount (properties);
             Lisp_Object obj;
 
             /* TODO: can we use a regular list here?  */
+	    if (PTRDIFF_MAX < n)
+	      memory_full (n);
             struct Lisp_Vector *p = allocate_vector (n);
 
             for (ptrdiff_t i = 0; i < n; ++i)
@@ -513,6 +529,10 @@ xwidget_init_view (struct xwidget *xww,
                    struct glyph_string *s,
                    int x, int y)
 {
+
+  if (!xg_gtk_initialized)
+    error ("xwidget_init_view: GTK has not been initialized");
+
   struct xwidget_view *xv = allocate_xwidget_view ();
   Lisp_Object val;
 
@@ -713,7 +733,7 @@ save_script_callback (struct xwidget *xw, Lisp_Object script, Lisp_Object fun)
 {
   Lisp_Object cbs = xw->script_callbacks;
   if (NILP (cbs))
-    xw->script_callbacks = cbs = Fmake_vector (make_fixnum (32), Qnil);
+    xw->script_callbacks = cbs = make_nil_vector (32);
 
   /* Find first free index.  */
   ptrdiff_t idx;
@@ -811,8 +831,7 @@ Emacs allocated area accordingly.  */)
   CHECK_XWIDGET (xwidget);
   GtkRequisition requisition;
   gtk_widget_size_request (XXWIDGET (xwidget)->widget_osr, &requisition);
-  return list2 (make_fixnum (requisition.width),
-		make_fixnum (requisition.height));
+  return list2i (requisition.width, requisition.height);
 }
 
 DEFUN ("xwidgetp",
@@ -1013,8 +1032,6 @@ syms_of_xwidget (void)
   defsubr (&Sxwidget_plist);
   defsubr (&Sxwidget_buffer);
   defsubr (&Sset_xwidget_plist);
-
-  DEFSYM (Qxwidget, "xwidget");
 
   DEFSYM (QCxwidget, ":xwidget");
   DEFSYM (QCtitle, ":title");

@@ -1,5 +1,5 @@
 /* Composite sequence support.
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -216,7 +216,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
      COMPONENTS (converted to a vector COMPONENTS-VEC) or, if it is
      nil, vector of characters in the composition range.  */
   if (FIXNUMP (components))
-    key = Fmake_vector (make_fixnum (1), components);
+    key = make_vector (1, components);
   else if (STRINGP (components) || CONSP (components))
     key = Fvconcat (1, &components);
   else if (VECTORP (components))
@@ -654,27 +654,23 @@ Lisp_Object
 composition_gstring_put_cache (Lisp_Object gstring, ptrdiff_t len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-  EMACS_UINT hash;
-  Lisp_Object header, copy;
-  ptrdiff_t i;
-
-  header = LGSTRING_HEADER (gstring);
-  hash = h->test.hashfn (&h->test, header);
+  hash_rehash_if_needed (h);
+  Lisp_Object header = LGSTRING_HEADER (gstring);
+  EMACS_UINT hash = h->test.hashfn (&h->test, header);
   if (len < 0)
     {
-      ptrdiff_t j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
-      for (j = 0; j < glyph_len; j++)
-	if (NILP (LGSTRING_GLYPH (gstring, j)))
+      ptrdiff_t glyph_len = LGSTRING_GLYPH_LEN (gstring);
+      for (len = 0; len < glyph_len; len++)
+	if (NILP (LGSTRING_GLYPH (gstring, len)))
 	  break;
-      len = j;
     }
 
-  copy = Fmake_vector (make_fixnum (len + 2), Qnil);
+  Lisp_Object copy = make_nil_vector (len + 2);
   LGSTRING_SET_HEADER (copy, Fcopy_sequence (header));
-  for (i = 0; i < len; i++)
+  for (ptrdiff_t i = 0; i < len; i++)
     LGSTRING_SET_GLYPH (copy, i, Fcopy_sequence (LGSTRING_GLYPH (gstring, i)));
-  i = hash_put (h, LGSTRING_HEADER (copy), copy, hash);
-  LGSTRING_SET_ID (copy, make_fixnum (i));
+  ptrdiff_t id = hash_put (h, LGSTRING_HEADER (copy), copy, hash);
+  LGSTRING_SET_ID (copy, make_fixnum (id));
   return copy;
 }
 
@@ -1759,7 +1755,7 @@ should be ignored.  */)
     return gstring;
 
   if (LGSTRING_GLYPH_LEN (gstring_work) < topos - frompos)
-    gstring_work = Fmake_vector (make_fixnum (topos - frompos + 2), Qnil);
+    gstring_work = make_nil_vector (topos - frompos + 2);
   LGSTRING_SET_HEADER (gstring_work, header);
   LGSTRING_SET_ID (gstring_work, Qnil);
   fill_gstring_body (gstring_work);
@@ -1917,9 +1913,9 @@ syms_of_composite (void)
   staticpro (&gstring_work_headers);
   gstring_work_headers = make_uninit_vector (8);
   for (i = 0; i < 8; i++)
-    ASET (gstring_work_headers, i, Fmake_vector (make_fixnum (i + 2), Qnil));
+    ASET (gstring_work_headers, i, make_nil_vector (i + 2));
   staticpro (&gstring_work);
-  gstring_work = Fmake_vector (make_fixnum (10), Qnil);
+  gstring_work = make_nil_vector (10);
 
   /* Text property `composition' should be nonsticky by default.  */
   Vtext_property_default_nonsticky

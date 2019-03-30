@@ -1,6 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
@@ -2895,7 +2895,7 @@ Returns a list of strings."
        dir-list)
       (mapcar
        (lambda (file)
-         (replace-regexp-in-string "\.flf\\'" "" file))
+         (replace-regexp-in-string "\\.flf\\'" "" file))
        result))))
 
 (defun artist-figlet-choose-font ()

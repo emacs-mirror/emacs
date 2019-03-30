@@ -1,6 +1,6 @@
 ;;; arc-mode-tests.el --- Test suite for arc-mode. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +21,8 @@
 (require 'ert)
 (require 'arc-mode)
 
+(defvar arc-mode-tests-data-directory
+  (expand-file-name "test/data/decompress" source-directory))
 
 (ert-deftest arc-mode-test-archive-int-to-mode ()
   (let ((alist (list (cons 448 "-rwx------")
@@ -31,6 +33,18 @@
                      (cons 2048 "---S------"))))
     (dolist (x alist)
       (should (equal (cdr x) (archive-int-to-mode (car x)))))))
+
+(ert-deftest arc-mode-test-zip-extract-gz ()
+  (skip-unless (and archive-zip-extract (executable-find (car archive-zip-extract))))
+  (skip-unless (executable-find "gzip"))
+  (let* ((zip-file (expand-file-name "zg.zip" arc-mode-tests-data-directory))
+         zip-buffer gz-buffer)
+    (unwind-protect
+        (with-current-buffer (setq zip-buffer (find-file-noselect zip-file))
+          (setq gz-buffer (archive-extract))
+          (should (equal (char-after) ?\N{SNOWFLAKE})))
+      (when (buffer-live-p zip-buffer) (kill-buffer zip-buffer))
+      (when (buffer-live-p gz-buffer) (kill-buffer gz-buffer)))))
 
 (provide 'arc-mode-tests)
 

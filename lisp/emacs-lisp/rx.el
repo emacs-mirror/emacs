@@ -1,6 +1,6 @@
-;;; rx.el --- sexp notation for regular expressions
+;;; rx.el --- sexp notation for regular expressions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -246,7 +246,9 @@ regular expressions.")
 
 
 (defconst rx-categories
-  '((consonant			. ?0)
+  '((space-for-indent           . ?\s)
+    (base                       . ?.)
+    (consonant			. ?0)
     (base-vowel			. ?1)
     (upper-diacritical-mark	. ?2)
     (lower-diacritical-mark	. ?3)
@@ -265,7 +267,9 @@ regular expressions.")
     (japanese-hiragana-two-byte . ?H)
     (indian-two-byte		. ?I)
     (japanese-katakana-two-byte . ?K)
+    (strong-left-to-right       . ?L)
     (korean-hangul-two-byte	. ?N)
+    (strong-right-to-left       . ?R)
     (cyrillic-two-byte		. ?Y)
     (combining-diacritic	. ?^)
     (ascii			. ?a)
@@ -389,7 +393,7 @@ FORM is of the form `(and FORM1 ...)'."
   (rx-group-if
    (if (memq nil (mapcar 'stringp (cdr form)))
        (mapconcat (lambda (x) (rx-form x '|)) (cdr form) "\\|")
-     (regexp-opt (cdr form)))
+     (regexp-opt (cdr form) nil t))
    (and (memq rx-parent '(: * t)) rx-parent)))
 
 
@@ -425,6 +429,13 @@ Only both edges of each range is checked."
     ;; set L list of all ranges
     (mapc (lambda (e) (cond ((stringp e) (push e str))
 			    ((numberp e) (push (cons e e) l))
+                            ;; Ranges between ASCII and raw bytes are split,
+                            ;; to prevent accidental inclusion of Unicode
+                            ;; characters later on.
+                            ((and (<= (car e) #x7f)
+                                  (>= (cdr e) #x3fff80))
+                             (push (cons (car e) #x7f) l)
+                             (push (cons #x3fff80 (cdr e)) l))
 			    (t (push e l))))
 	  args)
     ;; condense overlapped ranges in L
@@ -449,28 +460,38 @@ Only both edges of each range is checked."
 
 
 (defun rx-check-any-string (str)
-  "Check string argument STR for Rx `any'."
-  (let ((i 0)
-	c1 c2 l)
-    (if (= 0 (length str))
-	(error "String arg for Rx `any' must not be empty"))
-    (while (string-match ".-." str i)
-      ;; string before range: convert it to characters
-      (if (< i (match-beginning 0))
-	  (setq l (nconc
-		   l
-		   (append (substring str i (match-beginning 0)) nil))))
-      ;; range
-      (setq i (match-end 0)
-	    c1 (aref str (match-beginning 0))
-	    c2 (aref str (1- i)))
-      (cond
-       ((< c1 c2) (setq l (nconc l (list (cons c1 c2)))))
-       ((= c1 c2) (setq l (nconc l (list c1))))))
-    ;; rest?
-    (if (< i (length str))
-	(setq l (nconc l (append (substring str i) nil))))
-    l))
+  "Turn the `any' argument string STR into a list of characters.
+The original order is not preserved.  Ranges, \"A-Z\", become pairs, (?A . ?Z)."
+  (let ((decode-char
+         ;; Make sure raw bytes are decoded as such, to avoid confusion with
+         ;; U+0080..U+00FF.
+         (if (multibyte-string-p str)
+             #'identity
+           (lambda (c) (if (<= #x80 c #xff)
+                           (+ c #x3fff00)
+                         c))))
+        (len (length str))
+        (i 0)
+        (ret nil))
+    (if (= 0 len)
+        (error "String arg for Rx `any' must not be empty"))
+    (while (< i len)
+      (cond ((and (< i (- len 2))
+                  (= (aref str (+ i 1)) ?-))
+             ;; Range.
+             (let ((start (funcall decode-char (aref str i)))
+                   (end   (funcall decode-char (aref str (+ i 2)))))
+               (cond ((< start end) (push (cons start end) ret))
+                     ((= start end) (push start ret))
+                     (t
+                      (error "Rx character range `%c-%c' is reversed"
+                             start end)))
+               (setq i (+ i 3))))
+            (t
+             ;; Single character.
+             (push (funcall decode-char (aref str i)) ret)
+             (setq i (+ i 1)))))
+    ret))
 
 
 (defun rx-check-any (arg)
@@ -485,7 +506,10 @@ Only both edges of each range is checked."
 	       (null (string-match "\\`\\[\\[:[-a-z]+:\\]\\]\\'" translation)))
 	   (error "Invalid char class `%s' in Rx `any'" arg))
        (list (substring translation 1 -1)))) ; strip outer brackets
-    ((and (integerp (car-safe arg)) (integerp (cdr-safe arg)))
+    ((and (characterp (car-safe arg)) (characterp (cdr-safe arg)))
+     (unless (<= (car arg) (cdr arg))
+       (error "Rx character range `%c-%c' is reversed"
+              (car arg) (cdr arg)))
      (list arg))
     ((stringp arg) (rx-check-any-string arg))
     ((error
@@ -591,7 +615,7 @@ ARG is optional."
   (rx-check form)
   (let ((result (rx-form (cadr form) '!))
 	case-fold-search)
-    (cond ((string-match "\\`\\[^" result)
+    (cond ((string-match "\\`\\[\\^" result)
 	   (cond
 	    ((equal result "[^]") "[^^]")
 	    ((and (= (length result) 4) (null (eq rx-parent '!)))
@@ -726,8 +750,8 @@ If OP is anything else, produce a greedy regexp if `rx-greedy-flag'
 is non-nil."
   (rx-check form)
   (setq form (rx-trans-forms form))
-  (let ((suffix (cond ((memq (car form) '(* + ?\s)) "")
-		      ((memq (car form) '(*? +? ??)) "?")
+  (let ((suffix (cond ((memq (car form) '(* + \? ?\s)) "")
+		      ((memq (car form) '(*? +? \?? ??)) "?")
 		      (rx-greedy-flag "")
 		      (t "?")))
 	(op (cond ((memq (car form) '(* *? 0+ zero-or-more)) "*")
@@ -769,7 +793,7 @@ of all atomic regexps."
      ((= l 3) (string-match "\\`\\(?:\\\\[cCsS_]\\|\\[[^^]\\]\\)" r))
      ((null lax)
       (cond
-       ((string-match "\\`\\[^?\]?\\(?:\\[:[a-z]+:]\\|[^]]\\)*\\]\\'" r))
+       ((string-match "\\`\\[\\^?]?\\(?:\\[:[a-z]+:]\\|[^]]\\)*]\\'" r))
        ((string-match "\\`\\\\(\\(?:[^\\]\\|\\\\[^)]\\)*\\\\)\\'" r)))))))
 
 
@@ -830,33 +854,34 @@ If FORM is `(minimal-match FORM1)', non-greedy versions of `*',
   (rx-group-if (cadr form) rx-parent))
 
 
-(defun rx-form (form &optional rx-parent)
+(defun rx-form (form &optional parent)
   "Parse and produce code for regular expression FORM.
 FORM is a regular expression in sexp form.
-RX-PARENT shows which type of expression calls and controls putting of
+PARENT shows which type of expression calls and controls putting of
 shy groups around the result and some more in other functions."
-  (cond
-   ((stringp form)
-    (rx-group-if (regexp-quote form)
-                 (if (and (eq rx-parent '*) (< 1 (length form)))
-                     rx-parent)))
-   ((integerp form)
-    (regexp-quote (char-to-string form)))
-   ((symbolp form)
-    (let ((info (rx-info form nil)))
-      (cond ((stringp info)
-             info)
-            ((null info)
-             (error "Unknown rx form `%s'" form))
-            (t
-             (funcall (nth 0 info) form)))))
-   ((consp form)
-    (let ((info (rx-info (car form) 'head)))
-      (unless (consp info)
-        (error "Unknown rx form `%s'" (car form)))
-      (funcall (nth 0 info) form)))
-   (t
-    (error "rx syntax error at `%s'" form))))
+  (let ((rx-parent parent))
+    (cond
+     ((stringp form)
+      (rx-group-if (regexp-quote form)
+                   (if (and (eq parent '*) (< 1 (length form)))
+                       parent)))
+     ((integerp form)
+      (regexp-quote (char-to-string form)))
+     ((symbolp form)
+      (let ((info (rx-info form nil)))
+        (cond ((stringp info)
+               info)
+              ((null info)
+               (error "Unknown rx form `%s'" form))
+              (t
+               (funcall (nth 0 info) form)))))
+     ((consp form)
+      (let ((info (rx-info (car form) 'head)))
+        (unless (consp info)
+          (error "Unknown rx form `%s'" (car form)))
+        (funcall (nth 0 info) form)))
+     (t
+      (error "rx syntax error at `%s'" form)))))
 
 
 ;;;###autoload
@@ -897,6 +922,7 @@ CHAR
      matches any character in SET ....  SET may be a character or string.
      Ranges of characters can be specified as `A-Z' in strings.
      Ranges may also be specified as conses like `(?A . ?Z)'.
+     Reversed ranges like `Z-A' and `(?Z . ?A)' are not permitted.
 
      SET may also be the name of a character class: `digit',
      `control', `hex-digit', `blank', `graph', `print', `alnum',
@@ -957,7 +983,7 @@ CHAR
      matches 0 through 9.
 
 `control', `cntrl'
-     matches ASCII control characters.
+     matches any character whose code is in the range 0-31.
 
 `hex-digit', `hex', `xdigit'
      matches 0 through 9, a through f and A through F.
@@ -1044,7 +1070,9 @@ CHAR
      matches a character with category CATEGORY.  CATEGORY must be
      either a character to use for C, or one of the following symbols.
 
-     `consonant'			(\\c0 in string notation)
+     `space-for-indent'                 (\\c\\s in string notation)
+     `base'                             (\\c.)
+     `consonant'			(\\c0)
      `base-vowel'			(\\c1)
      `upper-diacritical-mark'		(\\c2)
      `lower-diacritical-mark'		(\\c3)
@@ -1062,7 +1090,9 @@ CHAR
      `japanese-hiragana-two-byte'	(\\cH)
      `indian-two-byte'			(\\cI)
      `japanese-katakana-two-byte'	(\\cK)
+     `strong-left-to-right'             (\\cL)
      `korean-hangul-two-byte'		(\\cN)
+     `strong-right-to-left'             (\\cR)
      `cyrillic-two-byte'		(\\cY)
      `combining-diacritic'		(\\c^)
      `ascii'				(\\ca)

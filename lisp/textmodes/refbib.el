@@ -1,6 +1,6 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
-;; Copyright (C) 1989, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -137,7 +137,7 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
 
 (defvar r2b-capitalize-title-stop-words
    (concat
-      "the\\|and\\|of\\|is\\|a\\|an\\|of\\|for\\|in\\|to\\|in\\|on\\|at\\|"
+      "the\\|and\\|of\\|is\\|a\\|an\\|for\\|in\\|to\\|on\\|at\\|"
       "by\\|with\\|that\\|its")
    "Words not to be capitalized in a title (unless the first word).")
 

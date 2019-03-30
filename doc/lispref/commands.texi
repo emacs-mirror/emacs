@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
@@ -1012,7 +1012,8 @@ If the last event came from a keyboard macro, the value is @code{macro}.
 sequence of text that has the @code{display} or @code{composition}
 property, or is invisible.  Therefore, after a command finishes and
 returns to the command loop, if point is within such a sequence, the
-command loop normally moves point to the edge of the sequence.
+command loop normally moves point to the edge of the sequence, making this
+sequence effectively intangible.
 
   A command can inhibit this feature by setting the variable
 @code{disable-point-adjustment}:
@@ -2879,6 +2880,14 @@ command's key sequence (as returned by, e.g., @code{this-command-keys}),
 as the events will already have been added once as they were read for
 the first time.  An element of the form @w{@code{(t . @var{event})}}
 forces @var{event} to be added to the current command's key sequence.
+
+@cindex not recording input events
+@cindex input events, prevent recording
+Elements read from this list are normally recorded by the
+record-keeping features (@pxref{Recording Input}) and while defining a
+keyboard macro (@pxref{Keyboard Macros}).  However, an element of the
+form @w{@code{(no-record . @var{event})}} causes @var{event} to be
+processed normally without recording it.
 @end defvar
 
 @defun listify-key-sequence key

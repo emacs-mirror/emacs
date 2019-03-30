@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2019 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  emacs-devel@gnu.org
@@ -650,7 +650,7 @@ Optional arg REVISION is a revision to annotate from."
   "Return the current time, based at midnight of the current day, and
 encoded as fractional days."
   (vc-annotate-convert-time
-   (apply 'encode-time 0 0 0 (nthcdr 3 (decode-time)))))
+   (apply #'encode-time 0 0 0 (nthcdr 3 (decode-time)))))
 
 (defun vc-cvs-annotate-time ()
   "Return the time of the next annotation (as fraction of days)
@@ -910,7 +910,7 @@ essential information. Note that this can never set the `ignored'
 state."
   (let (file status missing)
     (goto-char (point-min))
-    (while (looking-at "? \\(.*\\)")
+    (while (looking-at "\\? \\(.*\\)")
       (setq file (expand-file-name (match-string 1)))
       (vc-file-setprop file 'vc-state 'unregistered)
       (forward-line 1))
@@ -1184,9 +1184,8 @@ is non-nil."
                   (car parsed-time)
                   ;; Compare just the seconds part of the file time,
                   ;; since CVS file time stamp resolution is just 1 second.
-                  (let ((ptime (apply 'encode-time parsed-time)))
-                    (and (eq (car mtime) (car ptime))
-                         (eq (cadr mtime) (cadr ptime)))))
+		  (= (encode-time mtime 'integer)
+		     (encode-time parsed-time 'integer)))
              (vc-file-setprop file 'vc-checkout-time mtime)
              (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
             (t

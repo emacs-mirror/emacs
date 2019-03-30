@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990-1991, 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2019 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -95,6 +95,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'arc-mode)
 
 (defgroup tar nil
   "Simple editing of tar files."
@@ -931,6 +932,7 @@ actually appear on disk when you save the tar-file's buffer."
         (setq buffer-file-name new-buffer-file-name)
         (setq buffer-file-truename
               (abbreviate-file-name buffer-file-name))
+        (archive-try-jka-compr)       ;Pretty ugly hack :-(
         ;; Force buffer-file-coding-system to what
         ;; decode-coding-region actually used.
         (set-buffer-file-coding-system last-coding-system-used t)

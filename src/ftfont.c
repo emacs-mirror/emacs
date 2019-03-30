@@ -1,5 +1,5 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -24,6 +24,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fontconfig/fontconfig.h>
 #include <fontconfig/fcfreetype.h>
 
+/* These two blocks are here because this file is built when using XFT
+   and when using Cairo, so struct font_info in ftfont.h needs access
+   to the appropriate types.  */
+#ifdef HAVE_XFT
+# include <X11/Xlib.h>
+# include <X11/Xft/Xft.h>
+#endif
+#ifdef USE_CAIRO
+# include <cairo-ft.h>
+#endif
+
 #include <c-strcase.h>
 
 #include "lisp.h"
@@ -34,6 +45,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "composite.h"
 #include "font.h"
 #include "ftfont.h"
+#include "pdumper.h"
 
 static struct font_driver const ftfont_driver;
 
@@ -48,25 +60,6 @@ static Lisp_Object freetype_font_cache;
 
 /* Cache for FT_Face and FcCharSet. */
 static Lisp_Object ft_face_cache;
-
-/* The actual structure for FreeType font that can be cast to struct
-   font.  */
-
-struct ftfont_info
-{
-  struct font font;
-#ifdef HAVE_LIBOTF
-  /* The following four members must be here in this order to be
-     compatible with struct xftfont_info (in xftfont.c).  */
-  bool maybe_otf;	/* Flag to tell if this may be OTF or not.  */
-  OTF *otf;
-#endif	/* HAVE_LIBOTF */
-  FT_Size ft_size;
-  int index;
-  FT_Matrix matrix;
-};
-
-size_t ftfont_info_size = sizeof (struct ftfont_info);
 
 enum ftfont_cache_for
   {
@@ -452,7 +445,7 @@ ftfont_get_fc_charset (Lisp_Object entity)
 
 #ifdef HAVE_LIBOTF
 static OTF *
-ftfont_get_otf (struct ftfont_info *ftfont_info)
+ftfont_get_otf (struct font_info *ftfont_info)
 {
   OTF *otf;
 
@@ -593,16 +586,14 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
   spec->nfeatures[0] = spec->nfeatures[1] = 0;
   for (i = 0; i < 2 && ! NILP (otf_spec); i++, otf_spec = XCDR (otf_spec))
     {
-      Lisp_Object len;
-
       val = XCAR (otf_spec);
       if (NILP (val))
 	continue;
-      len = Flength (val);
+      ptrdiff_t len = list_length (val);
       spec->features[i] =
-	(min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < XFIXNUM (len)
+	(min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < len
 	 ? 0
-	 : malloc (XFIXNUM (len) * sizeof *spec->features[i]));
+	 : malloc (len * sizeof *spec->features[i]));
       if (! spec->features[i])
 	{
 	  if (i > 0 && spec->features[0])
@@ -1095,7 +1086,7 @@ ftfont_open2 (struct frame *f,
               int pixel_size,
               Lisp_Object font_object)
 {
-  struct ftfont_info *ftfont_info;
+  struct font_info *ftfont_info;
   struct font *font;
   struct ftfont_cache_data *cache_data;
   FT_Face ft_face;
@@ -1146,7 +1137,7 @@ ftfont_open2 (struct frame *f,
 
   ASET (font_object, FONT_FILE_INDEX, filename);
   font = XFONT_OBJECT (font_object);
-  ftfont_info = (struct ftfont_info *) font;
+  ftfont_info = (struct font_info *) font;
   ftfont_info->ft_size = ft_face->size;
   ftfont_info->index = XFIXNUM (idx);
 #ifdef HAVE_LIBOTF
@@ -1236,7 +1227,7 @@ ftfont_open (struct frame *f, Lisp_Object entity, int pixel_size)
   size = XFIXNUM (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
-  font_object = font_build_object (VECSIZE (struct ftfont_info),
+  font_object = font_build_object (VECSIZE (struct font_info),
 				   Qfreetype, entity, size);
   return ftfont_open2 (f, entity, pixel_size, font_object);
 }
@@ -1247,7 +1238,7 @@ ftfont_close (struct font *font)
   if (font_data_structures_may_be_ill_formed ())
     return;
 
-  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  struct font_info *ftfont_info = (struct font_info *) font;
   Lisp_Object val, cache;
 
   val = Fcons (font->props[FONT_FILE_INDEX], make_fixnum (ftfont_info->index));
@@ -1291,9 +1282,9 @@ ftfont_has_char (Lisp_Object font, int c)
     }
   else
     {
-      struct ftfont_info *ftfont_info;
+      struct font_info *ftfont_info;
 
-      ftfont_info = (struct ftfont_info *) XFONT_OBJECT (font);
+      ftfont_info = (struct font_info *) XFONT_OBJECT (font);
       return (FT_Get_Char_Index (ftfont_info->ft_size->face, (FT_ULong) c)
 	      != 0);
     }
@@ -1302,7 +1293,7 @@ ftfont_has_char (Lisp_Object font, int c)
 unsigned
 ftfont_encode_char (struct font *font, int c)
 {
-  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  struct font_info *ftfont_info = (struct font_info *) font;
   FT_Face ft_face = ftfont_info->ft_size->face;
   FT_ULong charcode = c;
   FT_UInt code = FT_Get_Char_Index (ft_face, charcode);
@@ -1314,7 +1305,7 @@ void
 ftfont_text_extents (struct font *font, unsigned int *code,
 		     int nglyphs, struct font_metrics *metrics)
 {
-  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  struct font_info *ftfont_info = (struct font_info *) font;
   FT_Face ft_face = ftfont_info->ft_size->face;
   int i, width = 0;
   bool first;
@@ -1357,7 +1348,7 @@ ftfont_text_extents (struct font *font, unsigned int *code,
 int
 ftfont_get_bitmap (struct font *font, unsigned int code, struct font_bitmap *bitmap, int bits_per_pixel)
 {
-  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  struct font_info *ftfont_info = (struct font_info *) font;
   FT_Face ft_face = ftfont_info->ft_size->face;
   FT_Int32 load_flags = FT_LOAD_RENDER;
 
@@ -1401,7 +1392,7 @@ int
 ftfont_anchor_point (struct font *font, unsigned int code, int idx,
 		     int *x, int *y)
 {
-  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  struct font_info *ftfont_info = (struct font_info *) font;
   FT_Face ft_face = ftfont_info->ft_size->face;
 
   if (ftfont_info->ft_size != ft_face->size)
@@ -1466,7 +1457,7 @@ ftfont_otf_features (OTF_GSUB_GPOS *gsub_gpos)
 Lisp_Object
 ftfont_otf_capability (struct font *font)
 {
-  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  struct font_info *ftfont_info = (struct font_info *) font;
   OTF *otf = ftfont_get_otf (ftfont_info);
   Lisp_Object gsub_gpos;
 
@@ -2616,7 +2607,7 @@ Lisp_Object
 ftfont_shape (Lisp_Object lgstring)
 {
   struct font *font = CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring));
-  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  struct font_info *ftfont_info = (struct font_info *) font;
   OTF *otf = ftfont_get_otf (ftfont_info);
 
   return ftfont_shape_by_flt (lgstring, font, ftfont_info->ft_size->face, otf,
@@ -2630,7 +2621,7 @@ ftfont_shape (Lisp_Object lgstring)
 int
 ftfont_variation_glyphs (struct font *font, int c, unsigned variations[256])
 {
-  struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
+  struct font_info *ftfont_info = (struct font_info *) font;
   OTF *otf = ftfont_get_otf (ftfont_info);
 
   if (! otf)
@@ -2702,6 +2693,8 @@ ftfont_combining_capability (struct font *font)
 #endif
 }
 
+static void syms_of_ftfont_for_pdumper (void);
+
 static struct font_driver const ftfont_driver =
   {
   /* We can't draw a text without device dependent functions.  */
@@ -2753,5 +2746,12 @@ syms_of_ftfont (void)
   staticpro (&ft_face_cache);
   ft_face_cache = Qnil;
 
+  pdumper_do_now_and_after_load (syms_of_ftfont_for_pdumper);
+}
+
+static void
+syms_of_ftfont_for_pdumper (void)
+{
+  PDUMPER_RESET_LV (ft_face_cache, Qnil);
   register_font_driver (&ftfont_driver, NULL);
 }

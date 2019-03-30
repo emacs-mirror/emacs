@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1542,7 +1542,7 @@ If YANK is non-nil, include the original article."
                        (X-Debbugs-Version
                         . ,(format "%s" (gnus-continuum-version))))))
     (when gnus-bug-create-help-buffer
-      (push `(gnus-bug-kill-buffer) message-send-actions))
+      (push '(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
     (message-goto-body)
     (insert "\n\n\n\n\n")

@@ -1,6 +1,6 @@
 ;;; em-hist.el --- history list management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -466,15 +466,16 @@ lost if `eshell-history-ring' is not empty.  If
 Useful within process sentinels.
 
 See also `eshell-read-history'."
-  (let ((file (or filename eshell-history-file-name)))
+  (let* ((file (or filename eshell-history-file-name))
+	 (resolved-file (if (stringp file) (file-truename file))))
     (cond
      ((or (null file)
 	  (equal file "")
 	  (null eshell-history-ring)
 	  (ring-empty-p eshell-history-ring))
       nil)
-     ((not (file-writable-p file))
-      (message "Cannot write history file %s" file))
+     ((not (file-writable-p resolved-file))
+      (message "Cannot write history file %s" resolved-file))
      (t
       (let* ((ring eshell-history-ring)
 	     (index (ring-length ring)))
@@ -489,7 +490,7 @@ See also `eshell-read-history'."
               (insert (substring-no-properties (ring-ref ring index)) ?\n)
 	      (subst-char-in-region start (1- (point)) ?\n ?\177)))
 	  (eshell-with-private-file-modes
-	   (write-region (point-min) (point-max) file append
+	   (write-region (point-min) (point-max) resolved-file append
 			 'no-message))))))))
 
 (defun eshell-list-history ()

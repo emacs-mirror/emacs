@@ -1,6 +1,6 @@
 ;;;; testcover-ses.el -- Example use of `testcover' to test "SES"
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@engineer.com>
 ;; Maintainer: Jonathan Yavner <jyavner@engineer.com>

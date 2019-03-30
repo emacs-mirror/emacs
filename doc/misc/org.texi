@@ -260,7 +260,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -13789,7 +13789,7 @@ Copyright information is printed on the back of the title page.
 
   This is a short example of a complete Texinfo file, version 1.0.
 
-  Copyright \copy 2018 Free Software Foundation, Inc.
+  Copyright \copy 2019 Free Software Foundation, Inc.
 @end example
 
 @node Info directory file
@@ -14066,7 +14066,7 @@ This manual is for GNU Sample (version @{@{@{version@}@}@},
   This manual is for GNU Sample (version @{@{@{version@}@}@},
   @{@{@{updated@}@}@}), which is an example in the Texinfo documentation.
 
-  Copyright \copy 2018 Free Software Foundation, Inc.
+  Copyright \copy 2019 Free Software Foundation, Inc.
 
   #+BEGIN_QUOTE
   Permission is granted to copy, distribute and/or modify this

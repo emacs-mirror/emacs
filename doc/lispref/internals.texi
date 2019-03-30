@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1993, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node GNU Emacs Internals
@@ -48,24 +48,63 @@ environment.  After this step, the Emacs executable is no longer
 @dfn{bare}.
 
 @cindex dumping Emacs
+@cindex @option{--temacs} option, and dumping method
   Because it takes some time to load the standard Lisp files, the
 @file{temacs} executable usually isn't run directly by users.
-Instead, as one of the last steps of building Emacs, the command
-@samp{temacs -batch -l loadup dump} is run.  The special @samp{dump}
-argument causes @command{temacs} to dump out an executable program,
-called @file{emacs}, which has all the standard Lisp files preloaded.
-(The @samp{-batch} argument prevents @file{temacs} from trying to
-initialize any of its data on the terminal, so that the tables of
-terminal information are empty in the dumped Emacs.)
+Instead, one of the last steps of building Emacs runs the command
+@w{@samp{temacs -batch -l loadup --temacs=@var{dump-method}}}.  The
+special option @option{--temacs} tells @command{temacs} how to record
+all the standard preloaded Lisp functions and variables, so that when
+you subsequently run Emacs, it will start much faster.  The
+@option{--temacs} option requires an argument @var{dump-method}, which
+can be one of the following:
+
+@table @samp
+@item pdump
+@cindex portable dump file
+Record the preloaded Lisp data in a @dfn{portable dump} file.  This
+method produces an additional data file which Emacs will load at
+startup.  The portable dump file is usually called @file{emacs.pdmp},
+and is installed in the Emacs @code{exec-directory} (@pxref{Help
+Functions}).  This method is the most preferred one, as it does not
+require Emacs to employ any special techniques of memory allocation,
+which might get in the way of various memory-layout techniques used by
+modern systems to enhance security and privacy.
+
+@item pbootstrap
+@cindex bootstrapping Emacs
+Like @samp{pdump}, but used while @dfn{bootstrapping} Emacs, when no
+previous Emacs binary and no @file{*.elc} byte-compiled Lisp files are
+available.  The produced portable dump file is usually named
+@file{bootstrap-emacs.pdmp} in this case.
+
+@item dump
+@cindex unexec
+This method causes @command{temacs} to dump out an executable program,
+called @file{emacs}, which has all the standard Lisp files already
+preloaded into it.  (The @samp{-batch} argument prevents
+@command{temacs} from trying to initialize any of its data on the
+terminal, so that the tables of terminal information are empty in the
+dumped Emacs.)  This method is also known as @dfn{unexec}, because it
+produces a program file from a running process, and thus is in some
+sense the opposite of executing a program to start a process.
+
+@item bootstrap
+Like @samp{dump}, but used when bootstrapping Emacs with the
+@code{unexec} method.
+@end table
 
 @cindex preloaded Lisp files
 @vindex preloaded-file-list
   The dumped @file{emacs} executable (also called a @dfn{pure} Emacs)
-is the one which is installed.  The variable
-@code{preloaded-file-list} stores a list of the Lisp files preloaded
-into the dumped Emacs.  If you port Emacs to a new operating system,
-and are not able to implement dumping, then Emacs must load
-@file{loadup.el} each time it starts.
+is the one which is installed.  If the portable dumping was used to
+build Emacs, the @file{emacs} executable is actually an exact copy of
+@file{temacs}, and the corresponding @file{emacs.pdmp} file is
+installed as well.  The variable @code{preloaded-file-list} stores a
+list of the preloaded Lisp files recorded in the portable dump file or
+in the dumped Emacs executable.  If you port Emacs to a new operating
+system, and are not able to implement dumping of any kind, then Emacs
+must load @file{loadup.el} each time it starts.
 
 @cindex build details
 @cindex deterministic build
@@ -161,14 +200,41 @@ In the unlikely event that you need a more general functionality than
 @code{custom-initialize-delay} provides, you can use
 @code{before-init-hook} (@pxref{Startup Summary}).
 
+@defun dump-emacs-portable to-file &optional track-referrers
+This function dumps the current state of Emacs into a portable dump
+file @var{to-file}, using the @code{pdump} method.  Normally, the
+portable dump file is called @file{@var{emacs-name}.dmp}, where
+@var{emacs-name} is the name of the Emacs executable file.  The
+optional argument @var{track-referrers}, if non-@code{nil}, causes the
+portable dumping process keep additional information to help track
+down the provenance of object types that are not yet supported by the
+@code{pdump} method.
+
+If you want to use this function in an Emacs that was already dumped,
+you must run Emacs with the @samp{-batch} option.
+@end defun
+
 @defun dump-emacs to-file from-file
 @cindex unexec
 This function dumps the current state of Emacs into an executable file
-@var{to-file}.  It takes symbols from @var{from-file} (this is normally
-the executable file @file{temacs}).
+@var{to-file}, using the @code{unexec} method.  It takes symbols from
+@var{from-file} (this is normally the executable file @file{temacs}).
 
-If you want to use this function in an Emacs that was already dumped,
-you must run Emacs with @samp{-batch}.
+This function cannot be used in an Emacs that was already dumped.  If
+Emacs was built without @code{unexec} support, this function will not
+be available.
+@end defun
+
+@defun pdumper-stats
+If the current Emacs session restored its state from a portable dump
+file, this function returns information about the dump file and the
+time it took to restore the Emacs state.  The value is an alist
+@w{@code{((dumped-with-pdumper . t) (load-time . @var{time})
+(dump-file-name . @var{file}))}},
+where @var{file} is the name of the dump file, and @var{time} is the
+time in seconds it took to restore the state from the dump file.
+If the current session was not restored from a portable dump file, the
+value is nil.
 @end defun
 
 @node Pure Storage
@@ -1557,7 +1623,27 @@ purpose.
 @deftypefn Function bool should_quit (emacs_env *@var{env})
 This function returns @code{true} if the user wants to quit.  In that
 case, we recommend that your module function aborts any on-going
-processing and returns as soon as possible.
+processing and returns as soon as possible.  In most cases, use
+@code{process_input} instead.
+@end deftypefn
+
+To process input events in addition to checking whether the user wants
+to quit, use the following function, which is available since Emacs
+27.1.
+
+@anchor{process_input}
+@deftypefn Function enum emacs_process_input_result process_input (emacs_env *@var{env})
+This function processes pending input events.  It returns
+@code{emacs_process_input_quit} if the user wants to quit or an error
+occurred while processing signals.  In that case, we recommend that
+your module function aborts any on-going processing and returns as
+soon as possible.  If the module code may continue running,
+@code{process_input} returns @code{emacs_process_input_continue}.  The
+return value is @code{emacs_process_input_continue} if and only if
+there is no pending nonlocal exit in @code{env}.  If the module
+continues after calling @code{process_input}, global state such as
+variable values and buffer content may have been modified in arbitrary
+ways.
 @end deftypefn
 
 @node Module Nonlocal
@@ -1622,7 +1708,7 @@ The last @acronym{API} function exited via @code{throw}.
 @end vtable
 @end deftypefn
 
-@deftypefn Function emacs_funcall_exit non_local_exit_get (emacs_env *@var{env}, emacs_value *@var{symbol}, emacs_value *@var{data})
+@deftypefn Function enum emacs_funcall_exit non_local_exit_get (emacs_env *@var{env}, emacs_value *@var{symbol}, emacs_value *@var{data})
 This function returns the kind of nonlocal exit condition stored in
 @var{env}, like @code{non_local_exit_check} does, but it also returns
 the full information about the nonlocal exit, if any.  If the return
@@ -1730,7 +1816,7 @@ frames, and processes fall into this category.
 
   Below there is a description of a few subtypes of @code{Lisp_Vectorlike}.
 Buffer object represents the text to display and edit.  Window is the part
-of display structure which shows the buffer or used as a container to
+of display structure which shows the buffer or is used as a container to
 recursively place other windows on the same frame.  (Do not confuse Emacs Lisp
 window object with the window as an entity managed by the user interface
 system like X; in Emacs terminology, the latter is called frame.)  Finally,
@@ -1757,7 +1843,8 @@ Here are some of the fields in @code{struct buffer_text}:
 
 @table @code
 @item beg
-The address of the buffer contents.
+The address of the buffer contents.  The buffer contents is a linear C
+array of @code{char}, with the gap somewhere in its midst.
 
 @item gpt
 @itemx gpt_byte
@@ -1781,8 +1868,8 @@ buffer-modification event, and is never otherwise changed;
 @code{save_modiff} contains the value of @code{modiff} the last time
 the buffer was visited or saved; @code{chars_modiff} counts only
 modifications to the characters in the buffer, ignoring all other
-kinds of changes; and @code{overlay_modiff} counts only modifications
-to the overlays.
+kinds of changes (such as text properties); and @code{overlay_modiff}
+counts only modifications to the buffer's overlays.
 
 @item beg_unchanged
 @itemx end_unchanged
@@ -1890,13 +1977,22 @@ position.
 
 @item name
 A Lisp string that names the buffer.  It is guaranteed to be unique.
-@xref{Buffer Names}.
+@xref{Buffer Names}.  This and the following fields have their names
+in the C struct definition end in a @code{_} to indicate that they
+should not be accessed directly, but via the @code{BVAR} macro, like
+this:
+
+@example
+  Lisp_Object buf_name = BVAR (buffer, name);
+@end example
 
 @item save_length
 The length of the file this buffer is visiting, when last read or
-saved.  This and other fields concerned with saving are not kept in
-the @code{buffer_text} structure because indirect buffers are never
-saved.
+saved.  It can have 2 special values: @minus{}1 means auto-saving was
+turned off in this buffer, and @minus{}2 means don't turn off
+auto-saving if buffer text shrinks a lot.  This and other fields
+concerned with saving are not kept in the @code{buffer_text} structure
+because indirect buffers are never saved.
 
 @item directory
 The directory for expanding relative file names.  This is the value of
@@ -2020,75 +2116,104 @@ if that window no longer displays this buffer.
 
 @table @code
 @item frame
-The frame that this window is on.
+The frame that this window is on, as a Lisp object.
 
-@item mini_p
-Non-@code{nil} if this window is a minibuffer window.
+@item mini
+Non-zero if this window is a minibuffer window, a window showing the
+minibuffer or the echo area.
+
+@item pseudo_window_p
+@cindex pseudo window
+Non-zero if this window is a @dfn{pseudo window}.  A pseudo window is
+either a window used to display the menu bar or the tool bar (when
+Emacs uses toolkits that don't display their own menu bar and tool
+bar) or a window showing a tooltip on a tooltip frame.  Pseudo windows
+are in general not accessible from Lisp code.
 
 @item parent
-Internally, Emacs arranges windows in a tree; each group of siblings has
-a parent window whose area includes all the siblings.  This field points
-to a window's parent.
+Internally, Emacs arranges windows in a tree; each group of siblings
+has a parent window whose area includes all the siblings.  This field
+points to the window's parent in that tree, as a Lisp object.  For the
+root window of the tree and a minibuffer window this is always
+@code{nil}.
 
 Parent windows do not display buffers, and play little role in display
-except to shape their child windows.  Emacs Lisp programs usually have
-no access to the parent windows; they operate on the windows at the
+except to shape their child windows.  Emacs Lisp programs cannot
+directly manipulate parent windows; they operate on the windows at the
 leaves of the tree, which actually display buffers.
 
-@c FIXME: These two slots and the 'buffer' slot below were replaced
-@c with a single slot 'contents' on 2013-03-28.  --xfq
-@item hchild
-@itemx vchild
-These fields contain the window's leftmost child and its topmost child
-respectively.  @code{hchild} is used if the window is subdivided
-horizontally by child windows, and @code{vchild} if it is subdivided
-vertically.  In a live window, only one of @code{hchild}, @code{vchild},
-and @code{buffer} (q.v.@:) is non-@code{nil}.
+@item contents
+For a leaf window and windows showing a tooltip, this is the buffer,
+as a Lisp object, that the window is displaying.  For an internal
+(``parent'') window, this is its first child window.  For a pseudo
+window showing a menu or tool bar this is @code{nil}.  It is also
+@code{nil} for a window that has been deleted.
 
 @item next
 @itemx prev
-The next sibling and previous sibling of this window.  @code{next} is
-@code{nil} if the window is the right-most or bottom-most in its group;
-@code{prev} is @code{nil} if it is the left-most or top-most in its
-group.
+The next and previous sibling of this window as Lisp objects.
+@code{next} is @code{nil} if the window is the right-most or
+bottom-most in its group; @code{prev} is @code{nil} if it is the
+left-most or top-most in its group.  Whether the sibling is left/right
+or up/down is determined by the @code{horizontal} field of the
+sibling's parent: if it's non-zero, the siblings are arranged
+horizontally.
+
+As a special case, @code{next} of a frame's root window points to the
+frame's minibuffer window, provided this is not a minibuffer-only or
+minibuffer-less frame.  On such frames @code{prev} of the minibuffer
+window points to that frame's root window.  In any other case, the
+root window's @code{next} and the minibuffer window's (if present)
+@code{prev} fields are @code{nil}.
 
 @item left_col
 The left-hand edge of the window, measured in columns, relative to the
-leftmost column in the frame (column 0).
+leftmost column (column 0) of the window's native frame.
 
 @item top_line
 The top edge of the window, measured in lines, relative to the topmost
-line in the frame (line 0).
+line (line 0) of the window's native frame.
+
+@item pixel_left
+@itemx pixel_top
+The left-hand and top edges of this window, measured in pixels,
+relative to the top-left corner (0, 0) of the window's native frame.
 
 @item total_cols
 @itemx total_lines
-The width and height of the window, measured in columns and lines
-respectively.  The width includes the scroll bar and fringes, and/or
-the separator line on the right of the window (if any).
+The total width and height of the window, measured in columns and
+lines respectively.  The values include scroll bars and fringes,
+dividers and/or the separator line on the right of the window (if
+any).
 
-@item buffer
-The buffer that the window is displaying.
+@item pixel_width;
+@itemx pixel_height;
+The total width and height of the window measured in pixels.
 
 @item start
 A marker pointing to the position in the buffer that is the first
-character displayed in the window.
+character (in the logical order, @pxref{Bidirectional Display})
+displayed in the window.
 
 @item pointm
 @cindex window point internals
 This is the value of point in the current buffer when this window is
 selected; when it is not selected, it retains its previous value.
 
+@item old_pointm
+The value of @code{pointm} at the last redisplay time.
+
 @item force_start
 If this flag is non-@code{nil}, it says that the window has been
-scrolled explicitly by the Lisp program.  This affects what the next
-redisplay does if point is off the screen: instead of scrolling the
-window to show the text around point, it moves point to a location that
-is on the screen.
+scrolled explicitly by the Lisp program, and the value of the the
+window's @code{start} was set for redisplay to honor.  This affects
+what the next redisplay does if point is off the screen: instead of
+scrolling the window to show the text around point, it moves point to
+a location that is on the screen.
 
-@item frozen_window_start_p
-This field is set temporarily to 1 to indicate to redisplay that
-@code{start} of this window should not be changed, even if point
-gets invisible.
+@item optional_new_start
+This is similar to @code{force_start}, but the next redisplay will
+only obey it if point stays visible.
 
 @item start_at_line_beg
 Non-@code{nil} means current value of @code{start} was the beginning of a line
@@ -2114,30 +2239,36 @@ The buffer's value of point, as of the last time a redisplay completed
 in this window.
 
 @item last_had_star
-A non-@code{nil} value means the window's buffer was modified when the
+A non-zero value means the window's buffer was modified when the
 window was last updated.
 
-@item vertical_scroll_bar
-This window's vertical scroll bar.
+@item vertical_scroll_bar_type
+@itemx horizontal_scroll_bar_type
+The types of this window's vertical and horizontal scroll bars.
+
+@item scroll_bar_width
+@itemx scroll_bar_height
+The width of this window's vertical scroll bar and the height of this
+window's horizontal scroll bar, in pixels.
 
 @item left_margin_cols
 @itemx right_margin_cols
 The widths of the left and right margins in this window.  A value of
-@code{nil} means no margin.
+zero means no margin.
 
 @item left_fringe_width
 @itemx right_fringe_width
-The widths of the left and right fringes in this window.  A value of
-@code{nil} or @code{t} means use the values of the frame.
+The pixel widths of the left and right fringes in this window.  A
+value of @minus{}1 means use the values of the frame.
 
 @item fringes_outside_margins
-A non-@code{nil} value means the fringes outside the display margins;
+A non-zero value means the fringes outside the display margins;
 othersize they are between the margin and the text.
 
 @item window_end_pos
 This is computed as @code{z} minus the buffer position of the last glyph
 in the current matrix of the window.  The value is only valid if
-@code{window_end_valid} is not @code{nil}.
+@code{window_end_valid} is non-zero.
 
 @item window_end_bytepos
 The byte position corresponding to @code{window_end_pos}.
@@ -2147,16 +2278,17 @@ The window-relative vertical position of the line containing
 @code{window_end_pos}.
 
 @item window_end_valid
-This field is set to a non-@code{nil} value if @code{window_end_pos} is truly
-valid.  This is @code{nil} if nontrivial redisplay is pre-empted, since in that
-case the display that @code{window_end_pos} was computed for did not get
-onto the screen.
+This field is set to a non-zero value if @code{window_end_pos} and
+@code{window_end_vpos} are truly valid.  This is zero if nontrivial
+redisplay is pre-empted, since in that case the display that
+@code{window_end_pos} was computed for did not get onto the screen.
 
 @item cursor
 A structure describing where the cursor is in this window.
 
-@item last_cursor
-The value of @code{cursor} as of the last redisplay that finished.
+@item last_cursor_vpos
+The window-relative vertical position of the line showing the cursor
+as of the last redisplay that finished.
 
 @item phys_cursor
 A structure describing where the cursor of this window physically is.
@@ -2184,8 +2316,16 @@ the last redisplay.
 This is set to 1 during redisplay when this window must be updated.
 
 @item hscroll
-This is the number of columns that the display in the window is scrolled
-horizontally to the left.  Normally, this is 0.
+This is the number of columns that the display in the window is
+scrolled horizontally to the left.  Normally, this is 0.  When only
+the current line is hscrolled, this describes how much the current
+line is scrolled.
+
+@item min_hscroll
+Minimum value of @code{hscroll}, set by the user via
+@code{set-window-hscroll} (@pxref{Horizontal Scrolling}).  When only
+the current line is hscrolled, this describes the horizontal scrolling
+of lines other than the current one.
 
 @item vscroll
 Vertical scroll amount, in pixels.  Normally, this is 0.
@@ -2193,24 +2333,37 @@ Vertical scroll amount, in pixels.  Normally, this is 0.
 @item dedicated
 Non-@code{nil} if this window is dedicated to its buffer.
 
+@item combination_limit
+This window's combination limit, meaningful only for a parent window.
+If this is @code{t}, then it is not allowed to delete this window and
+recombine its child windows with other siblings of this window.
+
+@item window_parameters
+The alist of this window's parameters.
+
 @item display_table
 The window's display table, or @code{nil} if none is specified for it.
 
 @item update_mode_line
-Non-@code{nil} means this window's mode line needs to be updated.
+Non-zero means this window's mode line needs to be updated.
+
+@item mode_line_height
+@itemx header_line_height
+The height in pixels of the mode line and the header line, or
+@minus{}1 if not known.
 
 @item base_line_number
-The line number of a certain position in the buffer, or @code{nil}.
+The line number of a certain position in the buffer, or zero.
 This is used for displaying the line number of point in the mode line.
 
 @item base_line_pos
 The position in the buffer for which the line number is known, or
-@code{nil} meaning none is known.  If it is a buffer, don't display
+zero meaning none is known.  If it is @minus{}1, don't display
 the line number as long as the window shows that buffer.
 
 @item column_number_displayed
-The column number currently displayed in this window's mode line, or @code{nil}
-if column numbers are not being displayed.
+The column number currently displayed in this window's mode line, or
+@minus{}1 if column numbers are not being displayed.
 
 @item current_matrix
 @itemx desired_matrix
@@ -2227,7 +2380,7 @@ Glyph matrices describing the current and desired display of this window.
 
 @table @code
 @item name
-A string, the name of the process.
+A Lisp string, the name of the process.
 
 @item command
 A list containing the command arguments that were used to start this
@@ -2235,10 +2388,10 @@ process.  For a network or serial process, it is @code{nil} if the
 process is running or @code{t} if the process is stopped.
 
 @item filter
-A function used to accept output from the process.
+A Lisp function used to accept output from the process.
 
 @item sentinel
-A function called whenever the state of the process changes.
+A Lisp function called whenever the state of the process changes.
 
 @item buffer
 The associated buffer of the process.
@@ -2265,7 +2418,8 @@ does not ask for confirmation about killing the process.
 The raw process status, as returned by the @code{wait} system call.
 
 @item status
-The process status, as @code{process-status} should return it.
+The process status, as @code{process-status} should return it.  This
+is a Lisp symbol, a cons cell, or a list.
 
 @item tick
 @itemx update_tick
@@ -2274,8 +2428,8 @@ needs to be reported, either by running the sentinel or by inserting a
 message in the process buffer.
 
 @item pty_flag
-Non-@code{nil} if communication with the subprocess uses a pty;
-@code{nil} if it uses a pipe.
+Non-zero if communication with the subprocess uses a pty; zero if it
+uses a pipe.
 
 @item infd
 The file descriptor for input from the process.

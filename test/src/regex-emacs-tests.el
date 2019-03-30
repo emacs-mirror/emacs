@@ -1,6 +1,6 @@
 ;;; regex-emacs-tests.el --- tests for regex-emacs.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -278,7 +278,7 @@ on success"
 
 
 (defconst regex-tests-re-even-escapes
-  "\\(?:^\\|[^\\\\]\\)\\(?:\\\\\\\\\\)*"
+  "\\(?:^\\|[^\\]\\)\\(?:\\\\\\\\\\)*"
   "Regex that matches an even number of \\ characters")
 
 (defconst regex-tests-re-odd-escapes
@@ -555,11 +555,11 @@ differences in behavior.")
 
 (defconst regex-tests-PTESTS-whitelist
   [
-   ;; emacs doesn't barf on weird ranges such as [b-a], but simply
-   ;; fails to match
+   ;; emacs doesn't see DEL (0x7f) as a [:cntrl:] character
    138
 
-   ;; emacs doesn't see DEL (0x78) as a [:cntrl:] character
+   ;; emacs doesn't barf on weird ranges such as [b-a], but simply
+   ;; fails to match
    168
   ]
   "Line numbers in the PTESTS test that should be skipped.  These

@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal

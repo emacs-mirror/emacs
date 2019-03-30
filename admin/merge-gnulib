@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2018 Free Software Foundation, Inc.
+# Copyright 2012-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -30,9 +30,9 @@ GNULIB_MODULES='
   careadlinkat close-stream
   count-leading-zeros count-one-bits count-trailing-zeros
   crypto/md5-buffer crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
-  d-type diffseq dtoastr dtotimespec dup2
+  d-type diffseq dosname dtoastr dtotimespec dup2
   environ execinfo explicit_bzero faccessat
-  fcntl fcntl-h fdatasync fdopendir
+  fcntl fcntl-h fdopendir
   filemode filevercmp flexmember fpieee fstatat fsusage fsync
   getloadavg getopt-gnu gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile lstat

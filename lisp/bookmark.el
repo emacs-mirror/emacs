@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993-1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -209,6 +209,7 @@ A non-nil value may result in truncated bookmark names."
     (define-key map "j" 'bookmark-jump)
     (define-key map "g" 'bookmark-jump) ;"g"o
     (define-key map "o" 'bookmark-jump-other-window)
+    (define-key map "5" 'bookmark-jump-other-frame)
     (define-key map "i" 'bookmark-insert)
     (define-key map "e" 'edit-bookmarks)
     (define-key map "f" 'bookmark-insert-location) ;"f"ind
@@ -734,7 +735,7 @@ CODING is the symbol of the coding-system in which the file is encoded."
   (if (memq (coding-system-base coding) '(undecided prefer-utf-8))
       (setq coding 'utf-8-emacs))
   (insert
-   (format ";;;; Emacs Bookmark Format Version %d ;;;; -*- coding: %S -*- \n"
+   (format ";;;; Emacs Bookmark Format Version %d ;;;; -*- coding: %S -*-\n"
            bookmark-file-format-version (coding-system-base coding)))
   (insert ";;; This format is meant to be slightly human-readable;\n"
           ";;; nevertheless, you probably don't want to edit it.\n"
@@ -1124,6 +1125,14 @@ DISPLAY-FUNC would be `switch-to-buffer-other-window'."
                                    bookmark-current-bookmark)))
   (bookmark-jump bookmark 'switch-to-buffer-other-window))
 
+;;;###autoload
+(defun bookmark-jump-other-frame (bookmark)
+  "Jump to BOOKMARK in another frame.  See `bookmark-jump' for more."
+  (interactive
+   (list (bookmark-completing-read "Jump to bookmark (in another frame)"
+                                   bookmark-current-bookmark)))
+  (let ((pop-up-frames t))
+    (bookmark-jump-other-window bookmark)))
 
 (defun bookmark-jump-noselect (bookmark)
   "Return the location pointed to by BOOKMARK (see `bookmark-jump').
@@ -1561,6 +1570,7 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
     (set-keymap-parent map special-mode-map)
     (define-key map "v" 'bookmark-bmenu-select)
     (define-key map "w" 'bookmark-bmenu-locate)
+    (define-key map "5" 'bookmark-bmenu-other-frame)
     (define-key map "2" 'bookmark-bmenu-2-window)
     (define-key map "1" 'bookmark-bmenu-1-window)
     (define-key map "j" 'bookmark-bmenu-this-window)
@@ -1702,6 +1712,7 @@ Bookmark names preceded by a \"*\" have annotations.
 \\[bookmark-bmenu-this-window] -- select this bookmark in place of the bookmark menu buffer.
 \\[bookmark-bmenu-other-window] -- select this bookmark in another window,
   so the bookmark menu bookmark remains visible in its window.
+\\[bookmark-bmenu-other-frame] -- select this bookmark in another frame.
 \\[bookmark-bmenu-switch-other-window] -- switch the other window to this bookmark.
 \\[bookmark-bmenu-rename] -- rename this bookmark (prompts for new name).
 \\[bookmark-bmenu-relocate] -- relocate this bookmark's file (prompts for new file).
@@ -1970,6 +1981,13 @@ With a prefix arg, prompts for a file to save them in."
   (let ((bookmark (bookmark-bmenu-bookmark)))
     (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))
 
+
+(defun bookmark-bmenu-other-frame ()
+  "Select this line's bookmark in other frame."
+  (interactive)
+  (let  ((bookmark (bookmark-bmenu-bookmark))
+         (pop-up-frames t))
+    (bookmark-jump-other-window bookmark)))
 
 (defun bookmark-bmenu-switch-other-window ()
   "Make the other window select this line's bookmark.

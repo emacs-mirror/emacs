@@ -1,6 +1,6 @@
 ;;; cc-awk.el --- AWK specific code within cc-mode.
 
-;; Copyright (C) 1988, 1994, 1996, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
@@ -130,7 +130,7 @@
 ;; REGEXPS FOR "HARMLESS" STRINGS/LINES.
 (defconst c-awk-harmless-_ "_\\([^\"]\\|\\'\\)")
 ;;   Matches an underline NOT followed by ".
-(defconst c-awk-harmless-char-re "[^_#/\"{}();\\\\\n\r]")
+(defconst c-awk-harmless-char-re "[^_#/\"{}();\\\n\r]")
 ;;   Matches any character not significant in the state machine applying
 ;; syntax-table properties to "s and /s.
 (defconst c-awk-harmless-string*-re
@@ -141,7 +141,7 @@
   (concat "\\=" c-awk-harmless-string*-re))
 ;; Matches the (possibly empty) sequence of "insignificant" chars at point.
 
-(defconst c-awk-harmless-line-char-re "[^_#/\"\\\\\n\r]")
+(defconst c-awk-harmless-line-char-re "[^_#/\"\\\n\r]")
 ;;   Matches any character but a _, #, /, ", \, or newline.  N.B. _" starts a
 ;; localization string in gawk 3.1
 (defconst c-awk-harmless-line-string*-re
@@ -188,8 +188,8 @@
   "\\[:[a-z]+:\\]")
   ;; Matches a character class spec (e.g. [:alpha:]).
 (defconst c-awk-regexp-char-list-re
-  (concat "\\[" c-awk-escaped-newlines*-re "^?" c-awk-escaped-newlines*-re "]?"
-          "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-class-re
+  (concat "\\[\\(" c-awk-escaped-newlines*-re "\\^\\)?" c-awk-escaped-newlines*-re "]?"
+	  "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-class-re
 	  "\\|" "[^]\n\r]" "\\)*" "\\(]\\|$\\)"))
 ;;   Matches a regexp char list, up to (but not including) EOL if the ] is
 ;;   missing.
@@ -250,7 +250,7 @@
 ;; which can precede an expression.
 
 ;; REGEXPS USED FOR FINDING THE POSITION OF A "virtual semicolon"
-(defconst c-awk-_-harmless-nonws-char-re "[^#/\"\\\\\n\r \t]")
+(defconst c-awk-_-harmless-nonws-char-re "[^#/\"\\\n\r \t]")
 (defconst c-awk-non-/-syn-ws*-re
   (concat
    "\\(" c-awk-escaped-nls*-with-space*

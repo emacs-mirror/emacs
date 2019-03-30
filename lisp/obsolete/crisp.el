@@ -1,6 +1,6 @@
 ;;; crisp.el --- CRiSP/Brief Emacs emulator
 
-;; Copyright (C) 1997-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp
@@ -375,10 +375,6 @@ normal CRiSP binding) and when it is nil M-x will run
 ;; People might use Apropos on `brief'.
 ;;;###autoload
 (defalias 'brief-mode 'crisp-mode)
-
-;; Interaction with other packages.
-(put 'crisp-home 'CUA 'move)
-(put 'crisp-end  'CUA 'move)
 
 (run-hooks 'crisp-load-hook)
 (provide 'crisp)

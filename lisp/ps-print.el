@@ -1,6 +1,6 @@
 ;;; ps-print.el --- print text from the buffer as PostScript -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)

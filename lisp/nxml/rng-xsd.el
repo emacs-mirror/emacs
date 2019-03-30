@@ -1,6 +1,6 @@
 ;;; rng-xsd.el --- W3C XML Schema datatypes library for RELAX NG  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG
@@ -360,7 +360,7 @@ trailing digits.  For example, -0021.0430 would be represented by [-1
       n)))
 
 (defun rng-xsd-convert-any-uri (string)
-  (and (string-match "\\`\\(?:[^%]\\|%[0-9a-fA-F][0-9a-fA-F]\\)?*\\'" string)
+  (and (string-match "\\`\\(?:[^%]\\|%[0-9a-fA-F][0-9a-fA-F]\\)*\\'" string)
        (string-match "\\`[^#]*\\(?:#[^#]*\\)?\\'" string)
        (string-match "\\`\\(?:[a-zA-Z][-+.A-Za-z0-9]*:.+\\|[^:]*\\(?:[#/?].*\\)?\\)\\'" string)
        string))

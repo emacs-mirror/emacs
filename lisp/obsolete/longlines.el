@@ -1,6 +1,6 @@
 ;;; longlines.el --- automatically wrap long lines   -*- coding:utf-8 -*-
 
-;; Copyright (C) 2000-2001, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2019 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>

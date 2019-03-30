@@ -1,5 +1,5 @@
 /* ftxfont.c -- FreeType font driver on X (without using XFT).
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "blockinput.h"
 #include "font.h"
+#include "pdumper.h"
 
 /* FTX font driver.  */
 
@@ -339,6 +340,8 @@ ftxfont_end_for_frame (struct frame *f)
 
 
 
+static void syms_of_ftxfont_for_pdumper (void);
+
 struct font_driver const ftxfont_driver =
   {
   /* We can't draw a text without device dependent functions.  */
@@ -373,5 +376,11 @@ void
 syms_of_ftxfont (void)
 {
   DEFSYM (Qftx, "ftx");
+  pdumper_do_now_and_after_load (syms_of_ftxfont_for_pdumper);
+}
+
+static void
+syms_of_ftxfont_for_pdumper (void)
+{
   register_font_driver (&ftxfont_driver, NULL);
 }

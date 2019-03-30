@@ -1,6 +1,6 @@
 ;;; epa.el --- the EasyPG Assistant -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -597,12 +597,12 @@ If SECRET is non-nil, list secret keys instead of public keys."
 	    (erase-buffer)
 	    (insert (format
 		     (pcase (epg-context-operation context)
-		       (`decrypt "Error while decrypting with \"%s\":")
-		       (`verify "Error while verifying with \"%s\":")
-		       (`sign "Error while signing with \"%s\":")
-		       (`encrypt "Error while encrypting with \"%s\":")
-		       (`import-keys "Error while importing keys with \"%s\":")
-		       (`export-keys "Error while exporting keys with \"%s\":")
+		       ('decrypt "Error while decrypting with \"%s\":")
+		       ('verify "Error while verifying with \"%s\":")
+		       ('sign "Error while signing with \"%s\":")
+		       ('encrypt "Error while encrypting with \"%s\":")
+		       ('import-keys "Error while importing keys with \"%s\":")
+		       ('export-keys "Error while exporting keys with \"%s\":")
 		       (_ "Error while executing \"%s\":\n\n"))
 		     (epg-context-program context))
 		    "\n\n"

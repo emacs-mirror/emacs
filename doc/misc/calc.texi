@@ -95,7 +95,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990--1991, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1991, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1775,7 +1775,7 @@ evaluated first, then @samp{*}, then @samp{/}, then finally
 is equivalent to
 
 @example
-2 + ((3*4*5) / (6*(7^8)) - 9
+2 + ((3*4*5) / (6*(7^8))) - 9
 @end example
 
 @noindent
@@ -2026,7 +2026,7 @@ You can also ``unstore'' a variable when you are through with it:
 
 @smallexample
 @group
-2:  2 + 5 => 5
+2:  2 + 3 => 5
 1:  2 a + 2 b => 2 a + 2 b
     .
 

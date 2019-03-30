@@ -1,6 +1,6 @@
 /* JSON parsing and serialization.
 
-Copyright (C) 2017-2018 Free Software Foundation, Inc.
+Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -229,7 +229,7 @@ json_make_string (const char *data, ptrdiff_t size)
                               Qutf_8_unix, Qt, false, true, true);
 }
 
-/* Create a multibyte Lisp string from the null-terminated UTF-8
+/* Create a multibyte Lisp string from the NUL-terminated UTF-8
    string beginning at DATA.  If the string is not a valid UTF-8
    string, an unspecified string is returned.  Note that all callers
    below either pass only value UTF-8 strings or use this function for
@@ -301,10 +301,10 @@ json_release_object (void *object)
 }
 
 /* Signal an error if OBJECT is not a string, or if OBJECT contains
-   embedded null characters.  */
+   embedded NUL characters.  */
 
 static void
-check_string_without_embedded_nulls (Lisp_Object object)
+check_string_without_embedded_nuls (Lisp_Object object)
 {
   CHECK_STRING (object);
   CHECK_TYPE (memchr (SDATA (object), '\0', SBYTES (object)) == NULL,
@@ -381,8 +381,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp,
           {
             Lisp_Object key = json_encode (HASH_KEY (h, i));
             /* We can't specify the length, so the string must be
-               null-terminated.  */
-            check_string_without_embedded_nulls (key);
+               NUL-terminated.  */
+            check_string_without_embedded_nuls (key);
             const char *key_str = SSDATA (key);
             /* Reject duplicate keys.  These are possible if the hash
                table test is not `equal'.  */
@@ -432,8 +432,8 @@ lisp_to_json_toplevel_1 (Lisp_Object lisp,
           CHECK_SYMBOL (key_symbol);
           Lisp_Object key = SYMBOL_NAME (key_symbol);
           /* We can't specify the length, so the string must be
-             null-terminated.  */
-          check_string_without_embedded_nulls (key);
+             NUL-terminated.  */
+          check_string_without_embedded_nuls (key);
           key_str = SSDATA (key);
           /* In plists, ensure leading ":" in keys is stripped.  It
              will be reconstructed later in `json_to_lisp'.*/
@@ -568,7 +568,7 @@ false values, t, numbers, strings, or other vectors hashtables, alists
 or plists.  t will be converted to the JSON true value.  Vectors will
 be converted to JSON arrays, whereas hashtables, alists and plists are
 converted to JSON objects.  Hashtable keys must be strings without
-embedded null characters and must be unique within each object.  Alist
+embedded NUL characters and must be unique within each object.  Alist
 and plist keys must be symbols; if a key is duplicate, the first
 instance is used.
 
@@ -815,9 +815,9 @@ json_to_lisp (json_t *json, struct json_configuration *conf)
         if (++lisp_eval_depth > max_lisp_eval_depth)
           xsignal0 (Qjson_object_too_deep);
         size_t size = json_array_size (json);
-        if (FIXNUM_OVERFLOW_P (size))
+        if (PTRDIFF_MAX < size)
           overflow_error ();
-        Lisp_Object result = Fmake_vector (make_fixed_natnum (size), Qunbound);
+        Lisp_Object result = make_vector (size, Qunbound);
         for (ptrdiff_t i = 0; i < size; ++i)
           ASET (result, i,
                 json_to_lisp (json_array_get (json, i), conf));
@@ -945,7 +945,7 @@ usage: (json-parse-string STRING &rest ARGS) */)
 
   Lisp_Object string = args[0];
   Lisp_Object encoded = json_encode (string);
-  check_string_without_embedded_nulls (encoded);
+  check_string_without_embedded_nuls (encoded);
   struct json_configuration conf = {json_object_hashtable, QCnull, QCfalse};
   json_parse_args (nargs - 1, args + 1, &conf, true);
 

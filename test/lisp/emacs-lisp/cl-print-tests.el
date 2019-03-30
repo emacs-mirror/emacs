@@ -1,6 +1,6 @@
 ;;; cl-print-tests.el --- Test suite for the cl-print facility.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -34,7 +34,7 @@
     (let ((print-circle t))
       (should (equal (cl-prin1-to-string `((x . ,x) (y . ,x)))
                      "((x . #1=#s(cl-print--test :a 1 :b 2)) (y . #1#))")))
-    (should (string-match "\\`#f(compiled-function (x) \"[^\"]+\" [^\)]*)\\'"
+    (should (string-match "\\`#f(compiled-function (x) \"[^\"]+\" [^)]*)\\'"
                           (cl-prin1-to-string (symbol-function #'caar))))))
 
 (ert-deftest cl-print-tests-2 ()

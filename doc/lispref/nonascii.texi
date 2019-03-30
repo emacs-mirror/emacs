@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Non-ASCII Characters
 @chapter Non-@acronym{ASCII} Characters
@@ -287,12 +287,11 @@ unibyte string, it is returned unchanged.  Use this function for
 characters.
 @end defun
 
-@c FIXME: Should '@var{character}' be '@var{byte}'?
 @defun byte-to-string byte
 @cindex byte to string
 This function returns a unibyte string containing a single byte of
-character data, @var{character}.  It signals an error if
-@var{character} is not an integer between 0 and 255.
+character data, @var{byte}.  It signals an error if @var{byte} is not
+an integer between 0 and 255.
 @end defun
 
 @defun multibyte-char-to-unibyte char
@@ -1379,7 +1378,7 @@ operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
 
 @cindex null bytes, and decoding text
-@defvar inhibit-null-byte-detection
+@defvar inhibit-nul-byte-detection
 If this variable has a non-@code{nil} value, null bytes are ignored
 when detecting the encoding of a region or a string.  This allows the
 encoding of text that contains null bytes to be correctly detected,
@@ -1633,11 +1632,16 @@ coding system for a file based on its undecoded contents.
 
 Each function in this list should be written to look at text in the
 current buffer, but should not modify it in any way.  The buffer will
-contain undecoded text of parts of the file.  Each function should
-take one argument, @var{size}, which tells it how many characters to
-look at, starting from point.  If the function succeeds in determining
-a coding system for the file, it should return that coding system.
-Otherwise, it should return @code{nil}.
+contain the text of parts of the file.  Each function should take one
+argument, @var{size}, which tells it how many characters to look at,
+starting from point.  If the function succeeds in determining a coding
+system for the file, it should return that coding system.  Otherwise,
+it should return @code{nil}.
+
+The functions in this list could be called either when the file is
+visited and Emacs wants to decode its contents, and/or when the file's
+buffer is about to be saved and Emacs wants to determine how to encode
+its contents.
 
 If a file has a @samp{coding:} tag, that takes precedence, so these
 functions won't be called.
@@ -2116,9 +2120,9 @@ Return a 12-element vector of month names (locale items @code{MON_1}
 through @code{MON_12}).
 
 @item paper
-Return a list @code{(@var{width} @var{height})} for the default paper
-size measured in millimeters (locale items @code{PAPER_WIDTH} and
-@code{PAPER_HEIGHT}).
+Return a list @w{@code{(@var{width} @var{height})}} of 2 integers, for
+the default paper size measured in millimeters (locale items
+@code{_NL_PAPER_WIDTH} and @code{_NL_PAPER_HEIGHT}).
 @end table
 
 If the system can't provide the requested information, or if

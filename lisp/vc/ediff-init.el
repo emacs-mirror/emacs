@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -267,17 +267,17 @@ It needs to be killed when we quit the session.")
   (and (ediff-window-display-p) ediff-multiframe))
 
 (defmacro ediff-narrow-control-frame-p ()
-  `(and (ediff-multiframe-setup-p)
-	(equal ediff-help-message ediff-brief-message-string)))
+  '(and (ediff-multiframe-setup-p)
+        (equal ediff-help-message ediff-brief-message-string)))
 
 (defmacro ediff-3way-comparison-job ()
-  `(memq
+  '(memq
     ediff-job-name
     '(ediff-files3 ediff-buffers3)))
 (ediff-defvar-local ediff-3way-comparison-job nil "")
 
 (defmacro ediff-merge-job ()
-  `(memq
+  '(memq
     ediff-job-name
     '(ediff-merge-files
       ediff-merge-buffers
@@ -288,10 +288,10 @@ It needs to be killed when we quit the session.")
 (ediff-defvar-local ediff-merge-job nil "")
 
 (defmacro ediff-patch-job ()
-  `(eq ediff-job-name 'epatch))
+  '(eq ediff-job-name 'epatch))
 
 (defmacro ediff-merge-with-ancestor-job ()
-  `(memq
+  '(memq
     ediff-job-name
     '(ediff-merge-files-with-ancestor
       ediff-merge-buffers-with-ancestor
@@ -299,26 +299,26 @@ It needs to be killed when we quit the session.")
 (ediff-defvar-local ediff-merge-with-ancestor-job nil "")
 
 (defmacro ediff-3way-job ()
-  `(or ediff-3way-comparison-job ediff-merge-job))
+  '(or ediff-3way-comparison-job ediff-merge-job))
 (ediff-defvar-local ediff-3way-job nil "")
 
 ;; A diff3 job is like a 3way job, but ediff-merge doesn't require the use
 ;; of diff3.
 (defmacro ediff-diff3-job ()
-  `(or ediff-3way-comparison-job
+  '(or ediff-3way-comparison-job
        ediff-merge-with-ancestor-job))
 (ediff-defvar-local ediff-diff3-job nil "")
 
 (defmacro ediff-windows-job ()
-  `(memq ediff-job-name '(ediff-windows-wordwise ediff-windows-linewise)))
+  '(memq ediff-job-name '(ediff-windows-wordwise ediff-windows-linewise)))
 (ediff-defvar-local ediff-windows-job nil "")
 
 (defmacro ediff-word-mode-job ()
-  `(memq ediff-job-name '(ediff-windows-wordwise ediff-regions-wordwise)))
+  '(memq ediff-job-name '(ediff-windows-wordwise ediff-regions-wordwise)))
 (ediff-defvar-local ediff-word-mode-job nil "")
 
 (defmacro ediff-narrow-job ()
-  `(memq ediff-job-name '(ediff-windows-wordwise
+  '(memq ediff-job-name '(ediff-windows-wordwise
 			  ediff-regions-wordwise
 			  ediff-windows-linewise
 			  ediff-regions-linewise)))

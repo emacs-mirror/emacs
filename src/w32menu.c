@@ -1,5 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2018 Free
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2019 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "coding.h"	/* for ENCODE_SYSTEM */
 #include "menu.h"
+#include "pdumper.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -1586,6 +1587,7 @@ syms_of_w32menu (void)
   globals_of_w32menu ();
 
   current_popup_menu = NULL;
+  PDUMPER_IGNORE (current_popup_menu);
 
   DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
   DEFSYM (Qunsupported__w32_dialog, "unsupported--w32-dialog");

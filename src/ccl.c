@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -2275,7 +2275,7 @@ void
 syms_of_ccl (void)
 {
   staticpro (&Vccl_program_table);
-  Vccl_program_table = Fmake_vector (make_fixnum (32), Qnil);
+  Vccl_program_table = make_nil_vector (32);
 
   DEFSYM (Qccl, "ccl");
   DEFSYM (Qcclp, "cclp");
@@ -2291,7 +2291,7 @@ syms_of_ccl (void)
 
   DEFVAR_LISP ("code-conversion-map-vector", Vcode_conversion_map_vector,
 	       doc: /* Vector of code conversion maps.  */);
-  Vcode_conversion_map_vector = Fmake_vector (make_fixnum (16), Qnil);
+  Vcode_conversion_map_vector = make_nil_vector (16);
 
   DEFVAR_LISP ("font-ccl-encoder-alist", Vfont_ccl_encoder_alist,
 	       doc: /* Alist of fontname patterns vs corresponding CCL program.

@@ -1,6 +1,6 @@
 ;;; subword.el --- Handling capitalized subwords in a nomenclature -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO
 
@@ -145,8 +145,6 @@ Optional argument ARG is the same as for `forward-word'."
    (t
     (point))))
 
-(put 'subword-forward 'CUA 'move)
-
 (defun subword-backward (&optional arg)
   "Do the same as `backward-word' but on subwords.
 See the command `subword-mode' for a description of subwords.
@@ -186,8 +184,6 @@ Optional argument ARG is the same as for `mark-word'."
 	    (subword-forward arg)
 	    (point))
 	  nil t))))
-
-(put 'subword-backward 'CUA 'move)
 
 (defun subword-kill (arg)
   "Do the same as `kill-word' but on subwords.

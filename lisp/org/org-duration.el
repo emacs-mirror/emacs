@@ -1,6 +1,6 @@
 ;;; org-duration.el --- Library handling durations   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -317,11 +317,10 @@ When optional argument CANONICAL is non-nil, ignore
 Raise an error if expected format is unknown."
   (pcase (or fmt org-duration-format)
     (`h:mm
-     (let ((minutes (floor minutes)))
-       (format "%d:%02d" (/ minutes 60) (mod minutes 60))))
+     (format "%d:%02d" (/ minutes 60) (mod minutes 60)))
     (`h:mm:ss
      (let* ((whole-minutes (floor minutes))
-	    (seconds (floor (* 60 (- minutes whole-minutes)))))
+	    (seconds (mod (* 60 minutes) 60)))
        (format "%s:%02d"
 	       (org-duration-from-minutes whole-minutes 'h:mm)
 	       seconds)))
@@ -402,9 +401,7 @@ Raise an error if expected format is unknown."
 	      (pcase-let* ((`(,unit . ,required?) units)
 			   (modifier (org-duration--modifier unit canonical)))
 		(cond ((<= modifier minutes)
-		       (let ((value (if (integerp modifier)
-					(/ (floor minutes) modifier)
-				      (floor (/ minutes modifier)))))
+		       (let ((value (floor minutes modifier)))
 			 (cl-decf minutes (* value modifier))
 			 (format " %d%s" value unit)))
 		      (required? (concat " 0" unit))

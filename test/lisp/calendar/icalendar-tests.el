@@ -1,6 +1,6 @@
 ;; icalendar-tests.el --- Test suite for icalendar.el
 
-;; Copyright (C) 2005, 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2008-2019 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        March 2005

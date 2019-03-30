@@ -1,6 +1,6 @@
 ;;; nnmairix.el --- Mairix back end for Gnus, the Emacs newsreader
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching
@@ -1774,7 +1774,7 @@ If VERSION is a string: must be contained in mairix version output."
 	(setq versionstring
 	      (let* ((commandsplit (split-string nnmairix-mairix-command))
 		     (args (append (list (car commandsplit))
-				  `(nil t nil) (cdr commandsplit) '("-V"))))
+				   '(nil t nil) (cdr commandsplit) '("-V"))))
 	      (apply 'call-process args)
 	      (goto-char (point-min))
 	      (re-search-forward "mairix.*")

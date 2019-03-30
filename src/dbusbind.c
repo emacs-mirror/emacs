@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1423,7 +1423,7 @@ usage: (dbus-message-internal &rest REST)  */)
   for (; count < nargs; ++count)
     {
       dtype = XD_OBJECT_TO_DBUS_TYPE (args[count]);
-      if (XD_DBUS_TYPE_P (args[count]))
+      if (count + 1 < nargs && XD_DBUS_TYPE_P (args[count]))
 	{
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count]);
 	  XD_DEBUG_VALID_LISP_OBJECT_P (args[count+1]);
@@ -1830,6 +1830,8 @@ be called when the D-Bus reply message arrives.  */);
   /* Initialize internal objects.  */
   xd_registered_buses = Qnil;
   staticpro (&xd_registered_buses);
+
+  // TODO: reset buses on dump load
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
 

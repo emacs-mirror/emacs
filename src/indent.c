@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2018 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -49,7 +49,7 @@ ptrdiff_t last_known_column_point;
 
 /* Value of MODIFF when current_column was called.  */
 
-static EMACS_INT last_known_column_modified;
+static modiff_count last_known_column_modified;
 
 static ptrdiff_t current_column_1 (void);
 static ptrdiff_t position_indentation (ptrdiff_t);
@@ -1756,14 +1756,14 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 
   CHECK_FIXNUM_COERCE_MARKER (from);
   CHECK_CONS (frompos);
-  CHECK_FIXNUM_CAR (frompos);
-  CHECK_FIXNUM_CDR (frompos);
+  CHECK_FIXNUM (XCAR (frompos));
+  CHECK_FIXNUM (XCDR (frompos));
   CHECK_FIXNUM_COERCE_MARKER (to);
   if (!NILP (topos))
     {
       CHECK_CONS (topos);
-      CHECK_FIXNUM_CAR (topos);
-      CHECK_FIXNUM_CDR (topos);
+      CHECK_FIXNUM (XCAR (topos));
+      CHECK_FIXNUM (XCDR (topos));
     }
   if (!NILP (width))
     CHECK_FIXNUM (width);
@@ -1771,8 +1771,8 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   if (!NILP (offsets))
     {
       CHECK_CONS (offsets);
-      CHECK_FIXNUM_CAR (offsets);
-      CHECK_FIXNUM_CDR (offsets);
+      CHECK_FIXNUM (XCAR (offsets));
+      CHECK_FIXNUM (XCDR (offsets));
       if (! (0 <= XFIXNUM (XCAR (offsets)) && XFIXNUM (XCAR (offsets)) <= PTRDIFF_MAX
 	     && 0 <= XFIXNUM (XCDR (offsets)) && XFIXNUM (XCDR (offsets)) <= INT_MAX))
 	args_out_of_range (XCAR (offsets), XCDR (offsets));
@@ -2286,7 +2286,7 @@ whether or not it is currently displayed in some window.  */)
 	  it.current_y = 0;
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
-	  if ((nlines < 0 && IT_CHARPOS (it) > 0)
+	  if ((nlines < 0 && IT_CHARPOS (it) > BEGV)
 	      || (nlines == 0 && !(start_x_given && start_x <= to_x)))
 	    move_it_by_lines (&it, max (PTRDIFF_MIN, nlines));
 	}
@@ -2338,7 +2338,7 @@ whether or not it is currently displayed in some window.  */)
 	     and then reposition point at the requested X coordinate;
 	     if we don't, the cursor will be placed just after the
 	     string, which might not be the requested column.  */
-	  if (nlines > 0 && it.area == TEXT_AREA)
+	  if (nlines >= 0 && it.area == TEXT_AREA)
 	    {
 	      while (it.method == GET_FROM_STRING
 		     && !it.string_from_display_prop_p

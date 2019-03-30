@@ -1,6 +1,6 @@
 ;;; ob-lilypond.el --- Babel Functions for Lilypond  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Martyn Jago
 ;; Keywords: babel language, literate programming

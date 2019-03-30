@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2018 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1997-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -91,56 +91,60 @@ See Info node `(elisp)Random Numbers' for more details.  */)
 
 /* Random data-structure functions.  */
 
+/* Return LIST's length.  Signal an error if LIST is not a proper list.  */
+
+ptrdiff_t
+list_length (Lisp_Object list)
+{
+  intptr_t i = 0;
+  FOR_EACH_TAIL (list)
+    i++;
+  CHECK_LIST_END (list, list);
+  return i;
+}
+
+
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
 A byte-code function object is also allowed.
 If the string contains multibyte characters, this is not necessarily
 the number of bytes in the string; it is the number of characters.
 To get the number of bytes, use `string-bytes'.  */)
-  (register Lisp_Object sequence)
+  (Lisp_Object sequence)
 {
-  register Lisp_Object val;
+  EMACS_INT val;
 
   if (STRINGP (sequence))
-    XSETFASTINT (val, SCHARS (sequence));
+    val = SCHARS (sequence);
   else if (VECTORP (sequence))
-    XSETFASTINT (val, ASIZE (sequence));
+    val = ASIZE (sequence);
   else if (CHAR_TABLE_P (sequence))
-    XSETFASTINT (val, MAX_CHAR);
+    val = MAX_CHAR;
   else if (BOOL_VECTOR_P (sequence))
-    XSETFASTINT (val, bool_vector_size (sequence));
+    val = bool_vector_size (sequence);
   else if (COMPILEDP (sequence) || RECORDP (sequence))
-    XSETFASTINT (val, PVSIZE (sequence));
+    val = PVSIZE (sequence);
   else if (CONSP (sequence))
-    {
-      intptr_t i = 0;
-      FOR_EACH_TAIL (sequence)
-	i++;
-      CHECK_LIST_END (sequence, sequence);
-      if (MOST_POSITIVE_FIXNUM < i)
-	error ("List too long");
-      val = make_fixnum (i);
-    }
+    val = list_length (sequence);
   else if (NILP (sequence))
-    XSETFASTINT (val, 0);
+    val = 0;
   else
     wrong_type_argument (Qsequencep, sequence);
 
-  return val;
+  return make_fixnum (val);
 }
 
 DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
        doc: /* Return the length of a list, but avoid error or infinite loop.
 This function never gets an error.  If LIST is not really a list,
 it returns 0.  If LIST is circular, it returns an integer that is at
-least the number of distinct elements.
-Value is a fixnum, if it's small enough, otherwise a bignum.  */)
+least the number of distinct elements.  */)
   (Lisp_Object list)
 {
   intptr_t len = 0;
   FOR_EACH_TAIL_SAFE (list)
     len++;
-  return INT_TO_INTEGER (len);
+  return make_fixnum (len);
 }
 
 DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
@@ -160,8 +164,6 @@ A proper list is neither circular nor dotted (i.e., its last cdr is nil).  */
     }
   if (!NILP (last_tail))
     return Qnil;
-  if (MOST_POSITIVE_FIXNUM < len)
-    xsignal0 (Qoverflow_error);
   return make_fixnum (len);
 }
 
@@ -410,7 +412,7 @@ Symbols are also allowed; their print names are used instead.  */)
 
   while ((cmp = filevercmp (p1, p2)) == 0)
     {
-      /* If the strings are identical through their first null bytes,
+      /* If the strings are identical through their first NUL bytes,
 	 skip past identical prefixes and try again.  */
       ptrdiff_t size = strlen (p1) + 1;
       p1 += size;
@@ -732,7 +734,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
   if (target_type == Lisp_Cons)
     val = Fmake_list (make_fixnum (result_len), Qnil);
   else if (target_type == Lisp_Vectorlike)
-    val = Fmake_vector (make_fixnum (result_len), Qnil);
+    val = make_nil_vector (result_len);
   else if (some_multibyte)
     val = make_uninit_multibyte_string (result_len, result_len_byte);
   else
@@ -1957,24 +1959,15 @@ See also the function `nreverse', which is used more often.  */)
 static Lisp_Object
 sort_list (Lisp_Object list, Lisp_Object predicate)
 {
-  Lisp_Object front, back;
-  Lisp_Object len, tem;
-  EMACS_INT length;
-
-  front = list;
-  len = Flength (list);
-  length = XFIXNUM (len);
+  ptrdiff_t length = list_length (list);
   if (length < 2)
     return list;
 
-  XSETINT (len, (length / 2) - 1);
-  tem = Fnthcdr (len, list);
-  back = Fcdr (tem);
+  Lisp_Object tem = Fnthcdr (make_fixnum (length / 2 - 1), list);
+  Lisp_Object back = Fcdr (tem);
   Fsetcdr (tem, Qnil);
 
-  front = Fsort (front, predicate);
-  back = Fsort (back, predicate);
-  return merge (front, back, predicate);
+  return merge (Fsort (list, predicate), Fsort (back, predicate), predicate);
 }
 
 /* Using PRED to compare, return whether A and B are in order.
@@ -2090,7 +2083,7 @@ the second.  */)
   else if (VECTORP (seq))
     sort_vector (seq, predicate);
   else if (!NILP (seq))
-    wrong_type_argument (Qsequencep, seq);
+    wrong_type_argument (Qlist_or_vector_p, seq);
   return seq;
 }
 
@@ -2962,7 +2955,7 @@ suppressed.  */)
 
       /* This is to make sure that loadup.el gives a clear picture
 	 of what files are preloaded and when.  */
-      if (! NILP (Vpurify_flag))
+      if (will_dump_p () && !will_bootstrap_p ())
 	error ("(require %s) while preparing to dump",
 	       SDATA (SYMBOL_NAME (feature)));
 
@@ -3113,8 +3106,9 @@ ITEM should be one of the following:
 
 `months', returning a 12-element vector of month names (locale items MON_n);
 
-`paper', returning a list (WIDTH HEIGHT) for the default paper size,
-  both measured in millimeters (locale items PAPER_WIDTH, PAPER_HEIGHT).
+`paper', returning a list of 2 integers (WIDTH HEIGHT) for the default
+  paper size, both measured in millimeters (locale items _NL_PAPER_WIDTH,
+  _NL_PAPER_HEIGHT).
 
 If the system can't provide such information through a call to
 `nl_langinfo', or if ITEM isn't from the list above, return nil.
@@ -3131,10 +3125,10 @@ The data read from the system are decoded using `locale-coding-system'.  */)
       str = nl_langinfo (CODESET);
       return build_string (str);
     }
-#ifdef DAY_1
-  else if (EQ (item, Qdays))	/* e.g. for calendar-day-name-array */
+# ifdef DAY_1
+  if (EQ (item, Qdays))  /* E.g., for calendar-day-name-array.  */
     {
-      Lisp_Object v = Fmake_vector (make_fixnum (7), Qnil);
+      Lisp_Object v = make_nil_vector (7);
       const int days[7] = {DAY_1, DAY_2, DAY_3, DAY_4, DAY_5, DAY_6, DAY_7};
       int i;
       synchronize_system_time_locale ();
@@ -3149,16 +3143,15 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	}
       return v;
     }
-#endif	/* DAY_1 */
-#ifdef MON_1
-  else if (EQ (item, Qmonths))	/* e.g. for calendar-month-name-array */
+# endif
+# ifdef MON_1
+  if (EQ (item, Qmonths))  /* E.g., for calendar-month-name-array.  */
     {
-      Lisp_Object v = Fmake_vector (make_fixnum (12), Qnil);
+      Lisp_Object v = make_nil_vector (12);
       const int months[12] = {MON_1, MON_2, MON_3, MON_4, MON_5, MON_6, MON_7,
 			      MON_8, MON_9, MON_10, MON_11, MON_12};
-      int i;
       synchronize_system_time_locale ();
-      for (i = 0; i < 12; i++)
+      for (int i = 0; i < 12; i++)
 	{
 	  str = nl_langinfo (months[i]);
 	  AUTO_STRING (val, str);
@@ -3167,13 +3160,12 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	}
       return v;
     }
-#endif	/* MON_1 */
-/* LC_PAPER stuff isn't defined as accessible in glibc as of 2.3.1,
-   but is in the locale files.  This could be used by ps-print.  */
-#ifdef PAPER_WIDTH
-  else if (EQ (item, Qpaper))
-    return list2i (nl_langinfo (PAPER_WIDTH), nl_langinfo (PAPER_HEIGHT));
-#endif	/* PAPER_WIDTH */
+# endif
+# ifdef HAVE_LANGINFO__NL_PAPER_WIDTH
+  if (EQ (item, Qpaper))
+    return list2i ((intptr_t) nl_langinfo (_NL_PAPER_WIDTH),
+		   (intptr_t) nl_langinfo (_NL_PAPER_HEIGHT));
+# endif
 #endif	/* HAVE_LANGINFO_CODESET*/
   return Qnil;
 }
@@ -3662,10 +3654,6 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
    if a `:linear-search t' argument is given to make-hash-table.  */
 
 
-/* The list of all weak hash tables.  Don't staticpro this one.  */
-
-static struct Lisp_Hash_Table *weak_hash_tables;
-
 
 /***********************************************************************
 			       Utilities
@@ -3880,7 +3868,7 @@ hashfn_eq (struct hash_table_test *ht, Lisp_Object key)
    `equal' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
-static EMACS_UINT
+EMACS_UINT
 hashfn_equal (struct hash_table_test *ht, Lisp_Object key)
 {
   return sxhash (key, 0);
@@ -3890,7 +3878,7 @@ hashfn_equal (struct hash_table_test *ht, Lisp_Object key)
    `eql' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
-static EMACS_UINT
+EMACS_UINT
 hashfn_eql (struct hash_table_test *ht, Lisp_Object key)
 {
   return ((FLOATP (key) || BIGNUMP (key))
@@ -3994,10 +3982,11 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   h->rehash_threshold = rehash_threshold;
   h->rehash_size = rehash_size;
   h->count = 0;
-  h->key_and_value = Fmake_vector (make_fixnum (2 * size), Qnil);
-  h->hash = Fmake_vector (make_fixnum (size), Qnil);
-  h->next = Fmake_vector (make_fixnum (size), make_fixnum (-1));
-  h->index = Fmake_vector (make_fixnum (index_size), make_fixnum (-1));
+  h->key_and_value = make_nil_vector (2 * size);
+  h->hash = make_nil_vector (size);
+  h->next = make_vector (size, make_fixnum (-1));
+  h->index = make_vector (index_size, make_fixnum (-1));
+  h->next_weak = NULL;
   h->pure = pure;
 
   /* Set up the free list.  */
@@ -4008,13 +3997,6 @@ make_hash_table (struct hash_table_test test, EMACS_INT size,
   XSET_HASH_TABLE (table, h);
   eassert (HASH_TABLE_P (table));
   eassert (XHASH_TABLE (table) == h);
-
-  /* Maybe add this hash table to the list of all weak hash tables.  */
-  if (! NILP (weak))
-    {
-      h->next_weak = weak_hash_tables;
-      weak_hash_tables = h;
-    }
 
   return table;
 }
@@ -4036,13 +4018,6 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
   h2->next = Fcopy_sequence (h1->next);
   h2->index = Fcopy_sequence (h1->index);
   XSET_HASH_TABLE (table, h2);
-
-  /* Maybe add this hash table to the list of all weak hash tables.  */
-  if (!NILP (h2->weak))
-    {
-      h2->next_weak = h1->next_weak;
-      h1->next_weak = h2;
-    }
 
   return table;
 }
@@ -4092,8 +4067,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       set_hash_key_and_value (h, larger_vector (h->key_and_value,
 						2 * (new_size - old_size), -1));
       set_hash_hash (h, larger_vector (h->hash, new_size - old_size, -1));
-      set_hash_index (h, Fmake_vector (make_fixnum (index_size),
-				       make_fixnum (-1)));
+      set_hash_index (h, make_vector (index_size, make_fixnum (-1)));
       set_hash_next (h, larger_vecalloc (h->next, new_size - old_size, -1));
 
       /* Update the free list.  Do it so that new entries are added at
@@ -4130,6 +4104,43 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
     }
 }
 
+void
+hash_table_rehash (struct Lisp_Hash_Table *h)
+{
+  ptrdiff_t size = HASH_TABLE_SIZE (h);
+
+  /* Recompute the actual hash codes for each entry in the table.
+     Order is still invalid.  */
+  for (ptrdiff_t i = 0; i < size; ++i)
+    if (!NILP (HASH_HASH (h, i)))
+      {
+        Lisp_Object key = HASH_KEY (h, i);
+        EMACS_UINT hash_code = h->test.hashfn (&h->test, key);
+        set_hash_hash_slot (h, i, make_fixnum (hash_code));
+      }
+
+  /* Reset the index so that any slot we don't fill below is marked
+     invalid.  */
+  Ffillarray (h->index, make_fixnum (-1));
+
+  /* Rebuild the collision chains.  */
+  for (ptrdiff_t i = 0; i < size; ++i)
+    if (!NILP (HASH_HASH (h, i)))
+      {
+        EMACS_UINT hash_code = XUFIXNUM (HASH_HASH (h, i));
+        ptrdiff_t start_of_bucket = hash_code % ASIZE (h->index);
+        set_hash_next_slot (h, i, HASH_INDEX (h, start_of_bucket));
+        set_hash_index_slot (h, start_of_bucket, i);
+        eassert (HASH_NEXT (h, i) != i); /* Stop loops.  */
+      }
+
+  /* Finally, mark the hash table as having a valid hash order.
+     Do this last so that if we're interrupted, we retry on next
+     access. */
+  eassert (h->count < 0);
+  h->count = -h->count;
+  eassert (!hash_rehash_needed_p (h));
+}
 
 /* Lookup KEY in hash table H.  If HASH is non-null, return in *HASH
    the hash code of KEY.  Value is the index of the entry in H
@@ -4143,6 +4154,8 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
 
   if (SYMBOL_WITH_POS_P (key))
       key = SYMBOL_WITH_POS_SYM (key);
+  hash_rehash_if_needed (h);
+
   hash_code = h->test.hashfn (&h->test, key);
   eassert ((hash_code & ~INTMASK) == 0);
   if (hash)
@@ -4170,6 +4183,8 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 	  EMACS_UINT hash)
 {
   ptrdiff_t start_of_bucket, i;
+
+  hash_rehash_if_needed (h);
 
   eassert ((hash & ~INTMASK) == 0);
 
@@ -4203,6 +4218,8 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
   eassert ((hash_code & ~INTMASK) == 0);
   ptrdiff_t start_of_bucket = hash_code % ASIZE (h->index);
   ptrdiff_t prev = -1;
+
+  hash_rehash_if_needed (h);
 
   for (ptrdiff_t i = HASH_INDEX (h, start_of_bucket);
        0 <= i;
@@ -4272,7 +4289,7 @@ hash_clear (struct Lisp_Hash_Table *h)
    !REMOVE_ENTRIES_P means mark entries that are in use.  Value is
    true if anything was marked.  */
 
-static bool
+bool
 sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 {
   ptrdiff_t n = gc_asize (h->index);
@@ -4280,12 +4297,14 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 
   for (ptrdiff_t bucket = 0; bucket < n; ++bucket)
     {
-      /* Follow collision chain, removing entries that
-	 don't survive this garbage collection.  */
+      /* Follow collision chain, removing entries that don't survive
+         this garbage collection.  It's okay if hash_rehash_needed_p
+         (h) is true, since we're operating entirely on the cached
+         hash values. */
       ptrdiff_t prev = -1;
       ptrdiff_t next;
       for (ptrdiff_t i = HASH_INDEX (h, bucket); 0 <= i; i = next)
-	{
+        {
 	  bool key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
 	  bool value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
 	  bool remove_p;
@@ -4320,10 +4339,11 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 		  /* Clear key, value, and hash.  */
 		  set_hash_key_slot (h, i, Qnil);
 		  set_hash_value_slot (h, i, Qnil);
-		  set_hash_hash_slot (h, i, Qnil);
+                  set_hash_hash_slot (h, i, Qnil);
 
-		  h->count--;
-		}
+                  eassert (h->count != 0);
+                  h->count += h->count > 0 ? -1 : 1;
+                }
 	      else
 		{
 		  prev = i;
@@ -4337,13 +4357,13 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 		  if (!key_known_to_survive_p)
 		    {
 		      mark_object (HASH_KEY (h, i));
-		      marked = 1;
+                      marked = true;
 		    }
 
 		  if (!value_known_to_survive_p)
 		    {
 		      mark_object (HASH_VALUE (h, i));
-		      marked = 1;
+                      marked = true;
 		    }
 		}
 	    }
@@ -4352,55 +4372,6 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 
   return marked;
 }
-
-/* Remove elements from weak hash tables that don't survive the
-   current garbage collection.  Remove weak tables that don't survive
-   from Vweak_hash_tables.  Called from gc_sweep.  */
-
-NO_INLINE /* For better stack traces */
-void
-sweep_weak_hash_tables (void)
-{
-  struct Lisp_Hash_Table *h, *used, *next;
-  bool marked;
-
-  /* Mark all keys and values that are in use.  Keep on marking until
-     there is no more change.  This is necessary for cases like
-     value-weak table A containing an entry X -> Y, where Y is used in a
-     key-weak table B, Z -> Y.  If B comes after A in the list of weak
-     tables, X -> Y might be removed from A, although when looking at B
-     one finds that it shouldn't.  */
-  do
-    {
-      marked = 0;
-      for (h = weak_hash_tables; h; h = h->next_weak)
-	{
-	  if (h->header.size & ARRAY_MARK_FLAG)
-	    marked |= sweep_weak_table (h, 0);
-	}
-    }
-  while (marked);
-
-  /* Remove tables and entries that aren't used.  */
-  for (h = weak_hash_tables, used = NULL; h; h = next)
-    {
-      next = h->next_weak;
-
-      if (h->header.size & ARRAY_MARK_FLAG)
-	{
-	  /* TABLE is marked as used.  Sweep its contents.  */
-	  if (h->count > 0)
-	    sweep_weak_table (h, 1);
-
-	  /* Add table to the list of used weak hash tables.  */
-	  h->next_weak = used;
-	  used = h;
-	}
-    }
-
-  weak_hash_tables = used;
-}
-
 
 
 /***********************************************************************
@@ -4952,13 +4923,7 @@ DEFUN ("secure-hash-algorithms", Fsecure_hash_algorithms,
        doc: /* Return a list of all the supported `secure_hash' algorithms. */)
   (void)
 {
-  return listn (CONSTYPE_HEAP, 6,
-                Qmd5,
-                Qsha1,
-                Qsha224,
-                Qsha256,
-                Qsha384,
-                Qsha512);
+  return list (Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512);
 }
 
 /* Extract data from a string or a buffer. SPEC is a list of
@@ -5008,7 +4973,8 @@ extract_data_from_object (Lisp_Object spec,
 	}
 
       if (STRING_MULTIBYTE (object))
-	object = code_convert_string (object, coding_system, Qnil, 1, 0, 1);
+	object = code_convert_string (object, coding_system,
+				      Qnil, true, false, true);
 
       ptrdiff_t size = SCHARS (object), start_char, end_char;
       validate_subarray (object, start, end, size, &start_char, &end_char);
@@ -5063,7 +5029,7 @@ extract_data_from_object (Lisp_Object spec,
 	    coding_system = Vcoding_system_for_write;
 	  else
 	    {
-	      bool force_raw_text = 0;
+	      bool force_raw_text = false;
 
 	      coding_system = BVAR (XBUFFER (object), buffer_file_coding_system);
 	      if (NILP (coding_system)
@@ -5071,14 +5037,15 @@ extract_data_from_object (Lisp_Object spec,
 		{
 		  coding_system = Qnil;
 		  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
-		    force_raw_text = 1;
+		    force_raw_text = true;
 		}
 
 	      if (NILP (coding_system) && !NILP (Fbuffer_file_name (object)))
 		{
 		  /* Check file-coding-system-alist.  */
 		  Lisp_Object val = CALLN (Ffind_operation_coding_system,
-					   Qwrite_region, start, end,
+					   Qwrite_region,
+					   make_fixnum (b), make_fixnum (e),
 					   Fbuffer_file_name (object));
 		  if (CONSP (val) && !NILP (XCDR (val)))
 		    coding_system = XCDR (val);
@@ -5114,14 +5081,15 @@ extract_data_from_object (Lisp_Object spec,
 	    }
 	}
 
-      object = make_buffer_string (b, e, 0);
+      object = make_buffer_string (b, e, false);
       set_buffer_internal (prev);
       /* Discard the unwind protect for recovering the current
 	 buffer.  */
       specpdl_ptr--;
 
       if (STRING_MULTIBYTE (object))
-	object = code_convert_string (object, coding_system, Qnil, 1, 0, 0);
+	object = code_convert_string (object, coding_system,
+				      Qnil, true, false, false);
       *start_byte = 0;
       *end_byte = SBYTES (object);
     }
@@ -5308,6 +5276,7 @@ disregarding any coding systems.  If nil, use the current buffer.  */ )
 }
 
 
+
 void
 syms_of_fns (void)
 {
@@ -5391,6 +5360,7 @@ Used by `featurep' and `require', and altered by `provide'.  */);
   DEFSYM (Qsubfeatures, "subfeatures");
   DEFSYM (Qfuncall, "funcall");
   DEFSYM (Qplistp, "plistp");
+  DEFSYM (Qlist_or_vector_p, "list-or-vector-p");
 
 #ifdef HAVE_LANGINFO_CODESET
   DEFSYM (Qcodeset, "codeset");
@@ -5406,7 +5376,7 @@ invoked by mouse clicks and mouse menu items.
 
 On some platforms, file selection dialogs are also enabled if this is
 non-nil.  */);
-  use_dialog_box = 1;
+  use_dialog_box = true;
 
   DEFVAR_BOOL ("use-file-dialog", use_file_dialog,
     doc: /* Non-nil means mouse commands use a file dialog to ask for files.
@@ -5414,7 +5384,7 @@ This applies to commands from menus and tool bar buttons even when
 they are initiated from the keyboard.  If `use-dialog-box' is nil,
 that disables the use of a file dialog, regardless of the value of
 this variable.  */);
-  use_file_dialog = 1;
+  use_file_dialog = true;
 
   defsubr (&Sidentity);
   defsubr (&Srandom);

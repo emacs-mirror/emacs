@@ -99,7 +99,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifnottex
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1990--1996, 1998--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1045,9 +1045,7 @@ Windows
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Switching Buffers::       Higher-level functions for switching to a buffer.
-* Choosing Window::         How to choose a window for displaying a buffer.
-* Display Action Functions:: Subroutines for @code{display-buffer}.
-* Choosing Window Options:: Extra options affecting how buffers are displayed.
+* Displaying Buffers::      Displaying a buffer in a suitable window.
 * Window History::          Each window remembers the buffers displayed in it.
 * Dedicated Windows::       How to avoid displaying another buffer in
                               a specific window.
@@ -1068,6 +1066,18 @@ Windows
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
                               or window configuration changes.
+
+Displaying Buffers
+
+* Choosing Window::         How to choose a window for displaying a buffer.
+* Buffer Display Action Functions:: Support functions for buffer display.
+* Buffer Display Action Alists:: Alists for fine-tuning buffer display
+                              action functions.
+* Choosing Window Options:: Extra options affecting how buffers are displayed.
+* Precedence of Action Functions:: A tutorial explaining the precedence of
+                              buffer display action functions.
+* The Zen of Buffer Display:: How to avoid that buffers get lost in between
+                              windows.
 
 Side Windows
 

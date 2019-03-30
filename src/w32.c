@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2018 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1771,7 +1771,40 @@ filename_from_ansi (const char *fn_in, char *fn_out)
 /* The directory where we started, in UTF-8. */
 static char startup_dir[MAX_UTF8_PATH];
 
-/* Get the current working directory.  */
+/* Get the current working directory.  The caller must arrange for CWD
+   to be allocated with enough space to hold a 260-char directory name
+   in UTF-8.  IOW, the space should be at least MAX_UTF8_PATH bytes.  */
+static void
+w32_get_current_directory (char *cwd)
+{
+  /* FIXME: Do we need to resolve possible symlinks in startup_dir?
+     Does it matter anywhere in Emacs?  */
+  if (w32_unicode_filenames)
+    {
+      wchar_t wstartup_dir[MAX_PATH];
+
+      if (!GetCurrentDirectoryW (MAX_PATH, wstartup_dir))
+	emacs_abort ();
+      filename_from_utf16 (wstartup_dir, cwd);
+    }
+  else
+    {
+      char astartup_dir[MAX_PATH];
+
+      if (!GetCurrentDirectoryA (MAX_PATH, astartup_dir))
+	emacs_abort ();
+      filename_from_ansi (astartup_dir, cwd);
+    }
+}
+
+/* For external callers.  Used by 'main' in emacs.c.  */
+void
+w32_init_current_directory (void)
+{
+  w32_get_current_directory (startup_dir);
+}
+
+/* Return the original directory where Emacs started.  */
 char *
 getcwd (char *dir, int dirsize)
 {
@@ -2043,7 +2076,9 @@ getpwuid (unsigned uid)
 struct group *
 getgrgid (gid_t gid)
 {
-  return &dflt_group;
+  if (gid == dflt_passwd.pw_gid)
+    return &dflt_group;
+  return NULL;
 }
 
 struct passwd *
@@ -2056,7 +2091,29 @@ getpwnam (char *name)
     return pw;
 
   if (xstrcasecmp (name, pw->pw_name))
-    return NULL;
+    {
+      /* Mimic what init_editfns does with these environment
+	 variables, so that the likes of ~USER is recognized by
+	 expand-file-name even if $LOGNAME gives a name different from
+	 the real username produced by the process token.  */
+      char *logname = getenv ("LOGNAME");
+      char *username = getenv ("USERNAME");
+      if ((logname || username)
+	  && xstrcasecmp (name, logname ? logname : username) == 0)
+	{
+	  static struct passwd alias_user;
+	  static char alias_name[PASSWD_FIELD_SIZE];
+
+	  memcpy (&alias_user, &dflt_passwd, sizeof dflt_passwd);
+	  alias_name[0] = '\0';
+	  strncat (alias_name, logname ? logname : username,
+		   PASSWD_FIELD_SIZE - 1);
+	  alias_user.pw_name = alias_name;
+	  pw = &alias_user;
+	}
+      else
+	return NULL;
+    }
 
   return pw;
 }
@@ -2925,8 +2982,7 @@ init_environment (char ** argv)
 		if (strcmp (env_vars[i].name, "HOME") == 0 && !appdata)
 		  Vdelayed_warnings_list
                     = Fcons
-                    (listn (CONSTYPE_HEAP, 2,
-                            intern ("initialization"), build_string
+		    (list2 (intern ("initialization"), build_string
                             ("Use of `C:\\.emacs' without defining `HOME'\n"
                              "in the environment is deprecated, "
                              "see `Windows HOME' in the Emacs manual.")),
@@ -2995,24 +3051,7 @@ init_environment (char ** argv)
   }
 
   /* Remember the initial working directory for getcwd.  */
-  /* FIXME: Do we need to resolve possible symlinks in startup_dir?
-     Does it matter anywhere in Emacs?  */
-  if (w32_unicode_filenames)
-    {
-      wchar_t wstartup_dir[MAX_PATH];
-
-      if (!GetCurrentDirectoryW (MAX_PATH, wstartup_dir))
-	emacs_abort ();
-      filename_from_utf16 (wstartup_dir, startup_dir);
-    }
-  else
-    {
-      char astartup_dir[MAX_PATH];
-
-      if (!GetCurrentDirectoryA (MAX_PATH, astartup_dir))
-	emacs_abort ();
-      filename_from_ansi (astartup_dir, startup_dir);
-    }
+  w32_get_current_directory (startup_dir);
 
   {
     static char modname[MAX_PATH];
@@ -3196,22 +3235,7 @@ GetCachedVolumeInformation (char * root_dir)
   /* NULL for root_dir means use root from current directory.  */
   if (root_dir == NULL)
     {
-      if (w32_unicode_filenames)
-	{
-	  wchar_t curdirw[MAX_PATH];
-
-	  if (GetCurrentDirectoryW (MAX_PATH, curdirw) == 0)
-	    return NULL;
-	  filename_from_utf16 (curdirw, default_root);
-	}
-      else
-	{
-	  char curdira[MAX_PATH];
-
-	  if (GetCurrentDirectoryA (MAX_PATH, curdira) == 0)
-	    return NULL;
-	  filename_from_ansi (curdira, default_root);
-	}
+      w32_get_current_directory (default_root);
       parse_root (default_root, (const char **)&root_dir);
       *root_dir = 0;
       root_dir = default_root;
@@ -5917,7 +5941,7 @@ is_symlink (const char *filename)
 
 /* If NAME identifies a symbolic link, copy into BUF the file name of
    the symlink's target.  Copy at most BUF_SIZE bytes, and do NOT
-   null-terminate the target name, even if it fits.  Return the number
+   NUL-terminate the target name, even if it fits.  Return the number
    of bytes copied, or -1 if NAME is not a symlink or any error was
    encountered while resolving it.  The file name copied into BUF is
    encoded in the current ANSI codepage.  */
@@ -6021,10 +6045,10 @@ readlink (const char *name, char *buf, size_t buf_size)
 	  size_t size_to_copy = buf_size;
 
 	  /* According to MSDN, PrintNameLength does not include the
-	     terminating null character.  */
+	     terminating NUL character.  */
 	  lwname = alloca ((lwname_len + 1) * sizeof(WCHAR));
 	  memcpy (lwname, lwname_src, lwname_len);
-	  lwname[lwname_len/sizeof(WCHAR)] = 0; /* null-terminate */
+	  lwname[lwname_len/sizeof(WCHAR)] = 0; /* NUL-terminate */
 	  filename_from_utf16 (lwname, resolved);
 	  dostounix_filename (resolved);
 	  lname_size = strlen (resolved) + 1;
@@ -7223,6 +7247,7 @@ system_process_attributes (Lisp_Object pid)
 			 code_convert_string_norecord (tem, Vlocale_coding_system, 0)),
 		 attrs);
 
+  memstex.dwLength = sizeof (memstex);
   if (global_memory_status_ex (&memstex))
 #if __GNUC__ || (defined (_MSC_VER) && _MSC_VER >= 1300)
     totphys = memstex.ullTotalPhys / 1024.0;
@@ -9359,7 +9384,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
       /* Convert input strings to UTF-16.  */
       encoded_key = code_convert_string_norecord (lkey, Qutf_16le, 1);
       memcpy (key_w, SSDATA (encoded_key), SBYTES (encoded_key));
-      /* wchar_t strings need to be terminated by 2 null bytes.  */
+      /* wchar_t strings need to be terminated by 2 NUL bytes.  */
       key_w [SBYTES (encoded_key)/2] = L'\0';
       encoded_vname = code_convert_string_norecord (lname, Qutf_16le, 1);
       memcpy (value_w, SSDATA (encoded_vname), SBYTES (encoded_vname));
@@ -9451,7 +9476,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
       case REG_SZ:
 	if (use_unicode)
 	  {
-	    /* pvalue ends with 2 null bytes, but we need only one,
+	    /* pvalue ends with 2 NUL bytes, but we need only one,
 	       and AUTO_STRING_WITH_LEN will add it.  */
 	    if (pvalue[vsize - 1] == '\0')
 	      vsize -= 2;
@@ -9460,7 +9485,7 @@ w32_read_registry (HKEY rootkey, Lisp_Object lkey, Lisp_Object lname)
 	  }
 	else
 	  {
-	    /* Don't waste a byte on the terminating null character,
+	    /* Don't waste a byte on the terminating NUL character,
 	       since make_unibyte_string will add one anyway.  */
 	    if (pvalue[vsize - 1] == '\0')
 	      vsize--;
@@ -9920,6 +9945,40 @@ maybe_load_unicows_dll (void)
         multiByteToWideCharFlags = MB_ERR_INVALID_CHARS;
       return LoadLibrary ("Gdi32.dll");
     }
+}
+
+/* Relocate a directory specified by epaths.h, using the location of
+   our binary as an anchor.  Note: this runs early during startup, so
+   we cannot rely on the usual file-related facilities, and in
+   particular the argument is assumed to be a unibyte string in system
+   codepage encoding.  */
+const char *
+w32_relocate (const char *epath_dir)
+{
+  if (strncmp (epath_dir, "%emacs_dir%/", 12) == 0)
+    {
+      static char relocated_dir[MAX_PATH];
+
+      /* Replace "%emacs_dir%" with the parent of the directory where
+	 our binary lives.  Note that init_environment was not yet
+	 called, so we cannot rely on emacs_dir being set in the
+	 environment.  */
+      if (GetModuleFileNameA (NULL, relocated_dir, MAX_PATH))
+	{
+	  char *p = _mbsrchr (relocated_dir, '\\');
+
+	  if (p)
+	    {
+	      *p = '\0';
+	      if ((p = _mbsrchr (relocated_dir, '\\')) != NULL)
+		{
+		  strcpy (p, epath_dir + 11);
+		  epath_dir = relocated_dir;
+		}
+	    }
+	}
+    }
+  return epath_dir;
 }
 
 /*

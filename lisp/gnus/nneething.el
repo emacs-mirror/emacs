@@ -1,6 +1,6 @@
 ;;; nneething.el --- arbitrary file access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -319,7 +319,7 @@ included.")
      "Subject: " (file-name-nondirectory file) (or extra-msg "") "\n"
      "Message-ID: <nneething-" (nneething-encode-file-name file)
      "@" (system-name) ">\n"
-     (if (zerop (float-time (file-attribute-modification-time atts))) ""
+     (if (time-equal-p 0 (file-attribute-modification-time atts)) ""
        (concat "Date: "
 	       (current-time-string (file-attribute-modification-time atts))
 	       "\n"))

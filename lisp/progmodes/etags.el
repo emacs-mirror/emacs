@@ -1,6 +1,6 @@
 ;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2018 Free
+;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -36,7 +36,7 @@
 (require 'ring)
 (require 'button)
 (require 'xref)
-(require 'multifile)
+(require 'fileloop)
 
 ;;;###autoload
 (defvar tags-file-name nil
@@ -1281,7 +1281,7 @@ buffer-local values of tags table format variables."
       ;; This regexp matches an explicit tag name or the place where
       ;; it would start.
       (while (re-search-forward
-              "[\f\t\n\r()=,; ]?\177\\\(?:\\([^\n\001]+\\)\001\\)?"
+              "[\f\t\n\r()=,; ]?\177\\(?:\\([^\n\001]+\\)\001\\)?"
 	      nil t)
 	(push	(prog1 (if (match-beginning 1)
 			   ;; There is an explicit tag name.
@@ -1645,7 +1645,7 @@ Point should be just after a string that matches TAG."
   ;; a textual description of the four rules.
   (and (string-match "^[^ \t()=,;]+$" tag) ;rule #1
        ;; Rules #2 and #4, and a check that there's no explicit name.
-       (looking-at "[ \t()=,;]?\177\\(?:[0-9]+\\)?,\\(?:[0-9]+\\)?$")
+       (looking-at "[ \t()=,;]?\177[0-9]*,[0-9]*$")
        (save-excursion
 	 (backward-char (1+ (length tag)))
 	 (looking-at "[\n \t()=,;]"))))	;rule #3
@@ -1693,12 +1693,12 @@ Point should be just after a string that matches TAG."
     (let ((bol (point)))
       (and (search-forward "\177" (line-end-position) t)
 	   (re-search-backward re bol t)))))
-(define-obsolete-variable-alias 'tags-loop-revert-buffers 'multifile-revert-buffers "27.1")
+(define-obsolete-variable-alias 'tags-loop-revert-buffers 'fileloop-revert-buffers "27.1")
 
 ;;;###autoload
 (defalias 'next-file 'tags-next-file)
 (make-obsolete 'next-file
-               "use tags-next-file or multifile-initialize and multifile-next-file instead" "27.1")
+               "use tags-next-file or fileloop-initialize and fileloop-next-file instead" "27.1")
 ;;;###autoload
 (defun tags-next-file (&optional initialize novisit)
   "Select next file among files in current tags table.
@@ -1716,7 +1716,7 @@ if the file was newly read in, the value is the filename."
   (interactive (list (if current-prefix-arg t)))
   (when initialize ;; Not the first run.
     (tags--compat-initialize initialize))
-  (multifile-next-file novisit)
+  (fileloop-next-file novisit)
   (switch-to-buffer (current-buffer)))
 
 (defun tags--all-files ()
@@ -1742,11 +1742,11 @@ if the file was newly read in, the value is the filename."
                 (mapcar #'expand-file-name (tags-table-files)))))
       files)))
 
-(make-obsolete-variable 'tags-loop-operate 'multifile-initialize "27.1")
+(make-obsolete-variable 'tags-loop-operate 'fileloop-initialize "27.1")
 (defvar tags-loop-operate nil
   "Form for `tags-loop-continue' to eval to change one file.")
 
-(make-obsolete-variable 'tags-loop-scan 'multifile-initialize "27.1")
+(make-obsolete-variable 'tags-loop-scan 'fileloop-initialize "27.1")
 (defvar tags-loop-scan
   '(user-error "%s"
 	       (substitute-command-keys
@@ -1775,7 +1775,7 @@ Bind `case-fold-search' during the evaluation, depending on the value of
     (eval files))))
 
 (defun tags--compat-initialize (initialize)
-  (multifile-initialize
+  (fileloop-initialize
    (tags--compat-files initialize)
    (if tags-loop-operate
        (lambda () (tags-loop-eval tags-loop-operate))
@@ -1792,11 +1792,11 @@ argument is passed to `next-file', which see)."
   ;; interesting (it returns non-nil if so) and `tags-loop-operate' is a form to
   ;; evaluate to operate on an interesting file.  If the latter evaluates to
   ;; nil, we exit; otherwise we scan the next file.
-  (declare (obsolete multifile-continue "27.1"))
+  (declare (obsolete fileloop-continue "27.1"))
   (interactive)
   (when first-time ;; Backward compatibility.
     (tags--compat-initialize first-time))
-  (multifile-continue))
+  (fileloop-continue))
 
 ;; We use it to detect when the last loop was a tags-search.
 (defvar tags--last-search-operate-function nil)
@@ -1813,18 +1813,18 @@ The search will be restricted to these files.
 Also see the documentation of the `tags-file-name' variable."
   (interactive "sTags search (regexp): ")
   (unless (and (equal regexp "")
-               ;; FIXME: If some other multifile operation took place,
+               ;; FIXME: If some other fileloop operation took place,
                ;; rather than search for "", we should repeat the last search!
-	       (eq multifile--operate-function
+	       (eq fileloop--operate-function
                    tags--last-search-operate-function))
-    (multifile-initialize-search
+    (fileloop-initialize-search
      regexp
      (tags--compat-files (or files t))
      tags-case-fold-search)
-    ;; Store it, so we can detect if some other multifile operation took
+    ;; Store it, so we can detect if some other fileloop operation took
     ;; place since the last search!
-    (setq tags--last-search-operate-function multifile--operate-function))
-  (multifile-continue))
+    (setq tags--last-search-operate-function fileloop--operate-function))
+  (fileloop-continue))
 
 ;;;###autoload
 (defun tags-query-replace (from to &optional delimited files)
@@ -1832,15 +1832,15 @@ Also see the documentation of the `tags-file-name' variable."
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
-For non-interactive use, superceded by `multifile-initialize-replace'."
+For non-interactive use, superceded by `fileloop-initialize-replace'."
   (declare (advertised-calling-convention (from to &optional delimited) "27.1"))
   (interactive (query-replace-read-args "Tags query replace (regexp)" t t))
-  (multifile-initialize-replace
+  (fileloop-initialize-replace
    from to
    (tags--compat-files (or files t))
    (if (equal from (downcase from)) nil 'default)
    delimited)
-  (multifile-continue))
+  (fileloop-continue))
 
 (defun tags-complete-tags-table-file (string predicate what) ; Doc string?
   (save-excursion

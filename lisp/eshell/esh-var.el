@@ -1,6 +1,6 @@
 ;;; esh-var.el --- handling of variables  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -128,60 +128,55 @@ variable value, a subcommand, or even the result of a Lisp form."
 (defcustom eshell-var-load-hook nil
   "A list of functions to call when loading `eshell-var'."
   :version "24.1"			; removed eshell-var-initialize
-  :type 'hook
-  :group 'eshell-var)
+  :type 'hook)
 
 (defcustom eshell-prefer-lisp-variables nil
   "If non-nil, prefer Lisp variables to environment variables."
-  :type 'boolean
-  :group 'eshell-var)
+  :type 'boolean)
 
 (defcustom eshell-complete-export-definition t
   "If non-nil, completing names for `export' shows current definition."
-  :type 'boolean
-  :group 'eshell-var)
+  :type 'boolean)
 
 (defcustom eshell-modify-global-environment nil
   "If non-nil, using `export' changes Emacs's global environment."
-  :type 'boolean
-  :group 'eshell-var)
+  :type 'boolean)
 
 (defcustom eshell-variable-name-regexp "[A-Za-z0-9_-]+"
   "A regexp identifying what constitutes a variable name reference.
 Note that this only applies for `$NAME'.  If the syntax `$<NAME>' is
 used, then NAME can contain any character, including angle brackets,
 if they are quoted with a backslash."
-  :type 'regexp
-  :group 'eshell-var)
+  :type 'regexp)
 
 (defcustom eshell-variable-aliases-list
-  '(;; for eshell.el
-    ("COLUMNS" (lambda (indices) (window-width)) t)
-    ("LINES" (lambda (indices) (window-height)) t)
+  `(;; for eshell.el
+    ("COLUMNS" ,(lambda (_indices) (window-width)) t)
+    ("LINES" ,(lambda (_indices) (window-height)) t)
 
     ;; for eshell-cmd.el
-    ("_" (lambda (indices)
-	   (if (not indices)
-	       (car (last eshell-last-arguments))
-	     (eshell-apply-indices eshell-last-arguments
-				   indices))))
+    ("_" ,(lambda (indices)
+	    (if (not indices)
+	        (car (last eshell-last-arguments))
+	      (eshell-apply-indices eshell-last-arguments
+				    indices))))
     ("?" eshell-last-command-status)
     ("$" eshell-last-command-result)
     ("0" eshell-command-name)
-    ("1" (lambda (indices) (nth 0 eshell-command-arguments)))
-    ("2" (lambda (indices) (nth 1 eshell-command-arguments)))
-    ("3" (lambda (indices) (nth 2 eshell-command-arguments)))
-    ("4" (lambda (indices) (nth 3 eshell-command-arguments)))
-    ("5" (lambda (indices) (nth 4 eshell-command-arguments)))
-    ("6" (lambda (indices) (nth 5 eshell-command-arguments)))
-    ("7" (lambda (indices) (nth 6 eshell-command-arguments)))
-    ("8" (lambda (indices) (nth 7 eshell-command-arguments)))
-    ("9" (lambda (indices) (nth 8 eshell-command-arguments)))
-    ("*" (lambda (indices)
-	   (if (not indices)
-	       eshell-command-arguments
-	     (eshell-apply-indices eshell-command-arguments
-				   indices)))))
+    ("1" ,(lambda (_indices) (nth 0 eshell-command-arguments)))
+    ("2" ,(lambda (_indices) (nth 1 eshell-command-arguments)))
+    ("3" ,(lambda (_indices) (nth 2 eshell-command-arguments)))
+    ("4" ,(lambda (_indices) (nth 3 eshell-command-arguments)))
+    ("5" ,(lambda (_indices) (nth 4 eshell-command-arguments)))
+    ("6" ,(lambda (_indices) (nth 5 eshell-command-arguments)))
+    ("7" ,(lambda (_indices) (nth 6 eshell-command-arguments)))
+    ("8" ,(lambda (_indices) (nth 7 eshell-command-arguments)))
+    ("9" ,(lambda (_indices) (nth 8 eshell-command-arguments)))
+    ("*" ,(lambda (indices)
+	    (if (not indices)
+	        eshell-command-arguments
+	      (eshell-apply-indices eshell-command-arguments
+				    indices)))))
   "This list provides aliasing for variable references.
 It is very similar in concept to what `eshell-user-aliases-list' does
 for commands.  Each member of this defines the name of a command,
@@ -197,8 +192,7 @@ function), and the arguments passed to this function would be the list
 '(10 20)', and nil."
   :type '(repeat (list string sexp
 		       (choice (const :tag "Copy to environment" t)
-			       (const :tag "Use only in Eshell" nil))))
-  :group 'eshell-var)
+			       (const :tag "Use only in Eshell" nil)))))
 
 (put 'eshell-variable-aliases-list 'risky-local-variable t)
 
@@ -397,6 +391,8 @@ process any indices that come after the variable reference."
 	  indices (and (not (eobp))
 		       (eq (char-after) ?\[)
 		       (eshell-parse-indices))
+          ;; This is an expression that will be evaluated by `eshell-do-eval',
+          ;; which only support let-binding of dynamically-scoped vars
 	  value `(let ((indices ',indices)) ,value))
     (if get-len
 	`(length ,value)
@@ -419,18 +415,17 @@ Possible options are:
       (if (not end)
           (throw 'eshell-incomplete ?\{)
         (prog1
-            (list 'eshell-convert
-                  (list 'eshell-command-to-value
-                        (list 'eshell-as-subcommand
-                              (eshell-parse-command
-                               (cons (1+ (point)) end)))))
+            `(eshell-convert
+              (eshell-command-to-value
+               (eshell-as-subcommand
+                ,(eshell-parse-command (cons (1+ (point)) end)))))
           (goto-char (1+ end))))))
    ((memq (char-after) '(?\' ?\"))
     (let ((name (if (eq (char-after) ?\')
                     (eshell-parse-literal-quote)
                   (eshell-parse-double-quote))))
       (if name
-	  (list 'eshell-get-variable (eval name) 'indices))))
+	  `(eshell-get-variable ,(eval name) indices))))
    ((eq (char-after) ?\<)
     (let ((end (eshell-find-delimiter ?\< ?\>)))
       (if (not end)
@@ -439,37 +434,30 @@ Possible options are:
                (cmd (concat (buffer-substring (1+ (point)) end)
                             " > " temp)))
           (prog1
-              (list
-               'let (list (list 'eshell-current-handles
-                                (list 'eshell-create-handles temp
-                                      (list 'quote 'overwrite))))
-               (list
-                'progn
-                (list 'eshell-as-subcommand
-                      (eshell-parse-command cmd))
-                (list 'ignore
-                      (list 'nconc 'eshell-this-command-hook
-                            (list 'list
-                                  (list 'function
-                                        (list 'lambda nil
-                                              (list 'delete-file temp))))))
-                (list 'quote temp)))
+              `(let ((eshell-current-handles
+                      (eshell-create-handles ,temp 'overwrite)))
+                 (progn
+                   (eshell-as-subcommand ,(eshell-parse-command cmd))
+                   (ignore
+                    (nconc eshell-this-command-hook
+                           (list (function (lambda ()
+                                              (delete-file ,temp))))))
+                   (quote ,temp)))
             (goto-char (1+ end)))))))
    ((eq (char-after) ?\()
     (condition-case nil
-        (list 'eshell-command-to-value
-              (list 'eshell-lisp-command
-                    (list 'quote (read (current-buffer)))))
+        `(eshell-command-to-value
+          (eshell-lisp-command
+           ',(read (current-buffer))))
       (end-of-file
        (throw 'eshell-incomplete ?\())))
    ((assoc (char-to-string (char-after))
            eshell-variable-aliases-list)
     (forward-char)
-    (list 'eshell-get-variable
-          (char-to-string (char-before)) 'indices))
+    `(eshell-get-variable ,(char-to-string (char-before)) indices))
    ((looking-at eshell-variable-name-regexp)
     (prog1
-        (list 'eshell-get-variable (match-string 0) 'indices)
+        `(eshell-get-variable ,(match-string 0) indices)
       (goto-char (match-end 0))))
    (t
     (error "Invalid variable reference"))))

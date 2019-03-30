@@ -1,6 +1,6 @@
 ;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;;	   John Eaton <jwe@octave.org>
@@ -442,12 +442,12 @@ Non-nil means always go to the next Octave code line after sending."
     ;; disadvantages:
     ;; - changes to octave-block-offset wouldn't take effect immediately.
     ;; - edebug wouldn't show the use of this variable.
-    (`(:elem . basic) octave-block-offset)
+    ('(:elem . basic) octave-block-offset)
     (`(:list-intro . ,(or "global" "persistent")) t)
     ;; Since "case" is in the same BNF rules as switch..end, SMIE by default
     ;; aligns it with "switch".
-    (`(:before . "case") (if (not (smie-rule-sibling-p)) octave-block-offset))
-    (`(:after . ";")
+    ('(:before . "case") (if (not (smie-rule-sibling-p)) octave-block-offset))
+    ('(:after . ";")
      (if (apply #'smie-rule-parent-p octave--block-offset-keywords)
          (smie-rule-parent octave-block-offset)
        ;; For (invalid) code between switch and case.
@@ -1652,11 +1652,11 @@ code line."
       ;;
       ;; Return the value according to style.
       (pcase octave-eldoc-message-style
-        (`auto (if (< (length oneline) (window-width (minibuffer-window)))
+        ('auto (if (< (length oneline) (window-width (minibuffer-window)))
                    oneline
                  multiline))
-        (`oneline oneline)
-        (`multiline multiline)))))
+        ('oneline oneline)
+        ('multiline multiline)))))
 
 (defcustom octave-help-buffer "*Octave Help*"
   "Buffer name for `octave-help'."

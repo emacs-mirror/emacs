@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1994, 1998, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1994, 1998, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Evaluation
@@ -128,6 +128,7 @@ with the other types, which are self-evaluating forms.
 @cindex vector evaluation
 @cindex literal evaluation
 @cindex self-evaluating form
+@cindex form, self-evaluating
 
   A @dfn{self-evaluating form} is any form that is not a list or
 symbol.  Self-evaluating forms evaluate to themselves: the result of
@@ -180,6 +181,8 @@ program.  Here is an example:
 @node Symbol Forms
 @subsection Symbol Forms
 @cindex symbol evaluation
+@cindex symbol forms
+@cindex forms, symbol
 
   When a symbol is evaluated, it is treated as a variable.  The result
 is the variable's value, if it has one.  If the symbol has no value as
@@ -216,6 +219,7 @@ its value ordinarily cannot be changed.  @xref{Constant Variables}.
 @node Classifying Lists
 @subsection Classification of List Forms
 @cindex list form evaluation
+@cindex forms, list
 
   A form that is a nonempty list is either a function call, a macro
 call, or a special form, according to its first element.  These three
@@ -350,6 +354,7 @@ Here is how you could define @code{indirect-function} in Lisp:
 @subsection Evaluation of Function Forms
 @cindex function form evaluation
 @cindex function call
+@cindex forms, function call
 
   If the first element of a list being evaluated is a Lisp function
 object, byte-code object or primitive function object, then that list is
@@ -373,6 +378,7 @@ body form becomes the value of the function call.
 @node Macro Forms
 @subsection Lisp Macro Evaluation
 @cindex macro call evaluation
+@cindex forms, macro call
 
   If the first element of a list being evaluated is a macro object, then
 the list is a @dfn{macro call}.  When a macro call is evaluated, the
@@ -419,6 +425,7 @@ expansion.
 @node Special Forms
 @subsection Special Forms
 @cindex special forms
+@cindex forms, special
 @cindex evaluation of special forms
 
   A @dfn{special form} is a primitive function specially marked so that
@@ -540,6 +547,7 @@ described in @ref{Autoload}.
 
 @node Quoting
 @section Quoting
+@cindex forms, quote
 
   The special form @code{quote} returns its single argument, as written,
 without evaluating it.  This provides a way to include constant symbols
@@ -599,6 +607,7 @@ only part of a list, while computing and substituting other parts.
 @cindex backquote (list substitution)
 @cindex ` (list substitution)
 @findex `
+@cindex forms, backquote
 
   @dfn{Backquote constructs} allow you to quote a list, but
 selectively evaluate elements of that list.  In the simplest case, it

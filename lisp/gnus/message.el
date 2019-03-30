@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -1285,11 +1285,10 @@ called and its result is inserted."
              (goto-char (point-min))
              (let ((case-fold-search nil))
                (re-search-forward "^OR\\>" nil t))))
-      ;; According to RFC822, "The field-name must be composed of printable
-      ;; ASCII characters (i. e., characters that have decimal values between
-      ;; 33 and 126, except colon)", i. e., any chars except ctl chars,
-      ;; space, or colon.
-      '(looking-at "[ \t]\\|[][!\"#$%&'()*+,-./0-9;<=>?@A-Z\\\\^_`a-z{|}~]+:"))
+      ;; According to RFC 822 and its successors, the field name must
+      ;; consist of printable US-ASCII characters other than colon,
+      ;; i.e., decimal 33-56 and 59-126.
+      '(looking-at "[ \t]\\|[][!\"#$%&'()*+,-./0-9;<=>?@A-Z\\^_`a-z{|}~]+:"))
   "Set this non-nil if the system's mailer runs the header and body together.
 \(This problem exists on Sunos 4 when sendmail is run in remote mode.)
 The value should be an expression to test whether the problem will
@@ -1733,7 +1732,7 @@ no, only reply back to the author."
   :type 'boolean)
 
 (defcustom message-user-fqdn nil
-  "Domain part of Message-Ids."
+  "Domain part of Message-IDs."
   :version "22.1"
   :group 'message-headers
   :link '(custom-manual "(message)News Headers")
@@ -1791,8 +1790,8 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
     (concat
      "From "
 
-     ;; Many things can happen to an RFC 822 mailbox before it is put into
-     ;; a `From' line.  The leading phrase can be stripped, e.g.
+     ;; Many things can happen to an RFC 822 (or later) mailbox before it is
+     ;; put into a `From' line.  The leading phrase can be stripped, e.g.
      ;; `Joe <@w.x:joe@y.z>' -> `<@w.x:joe@y.z>'.  The <> can be stripped, e.g.
      ;; `<@x.y:joe@y.z>' -> `@x.y:joe@y.z'.  Everything starting with a CRLF
      ;; can be removed, e.g.
@@ -1853,7 +1852,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
   "Alist of header names/filler functions.")
 
 (defvar message-header-format-alist
-  `((From)
+  '((From)
     (Newsgroups)
     (To)
     (Cc)
@@ -2716,7 +2715,7 @@ systematically send encrypted emails when possible."
 
 (easy-menu-define
   message-mode-menu message-mode-map "Message Menu."
-  `("Message"
+  '("Message"
     ["Yank Original" message-yank-original message-reply-buffer]
     ["Fill Yanked Message" message-fill-yanked-message t]
     ["Insert Signature" message-insert-signature t]
@@ -2750,7 +2749,7 @@ systematically send encrypted emails when possible."
 
 (easy-menu-define
   message-mode-field-menu message-mode-map ""
-  `("Field"
+  '("Field"
     ["To" message-goto-to t]
     ["From" message-goto-from t]
     ["Subject" message-goto-subject t]
@@ -5400,6 +5399,17 @@ Otherwise, generate and save a value for `canlock-password' first."
 	     (message "Denied posting -- only quoted text.")
 	     nil)))))))
 
+(defun message--rotate-fixnum-left (n)
+  "Rotate the fixnum N left by one bit in a fixnum word.
+The result is a fixnum."
+  (logior (if (natnump n) 0 1)
+	  (ash (cond ((< (ash most-positive-fixnum -1) n)
+		      (logior n most-negative-fixnum))
+		     ((< n (ash most-negative-fixnum -1))
+		      (logand n most-positive-fixnum))
+		     (n))
+	       1)))
+
 (defun message-checksum ()
   "Return a \"checksum\" for the current buffer."
   (let ((sum 0))
@@ -5409,7 +5419,7 @@ Otherwise, generate and save a value for `canlock-password' first."
        (concat "^" (regexp-quote mail-header-separator) "$"))
       (while (not (eobp))
 	(when (not (looking-at "[ \t\n]"))
-	  (setq sum (logxor (ash sum 1) (if (natnump sum) 0 1)
+	  (setq sum (logxor (message--rotate-fixnum-left sum)
 			    (char-after))))
 	(forward-char 1)))
     sum))
@@ -5531,7 +5541,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
   (let* ((cur (decode-time))
 	 (nday (+ days (nth 3 cur))))
     (setf (nth 3 cur) nday)
-    (message-make-date (apply 'encode-time cur))))
+    (message-make-date (encode-time cur))))
 
 (defun message-make-message-id ()
   "Make a unique Message-ID."
@@ -5721,7 +5731,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 	(insert fullname)
 	(goto-char (point-min))
 	;; Look for a character that cannot appear unquoted
-	;; according to RFC 822.
+	;; according to RFC 822 (or later).
 	(when (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]" nil 1)
 	  ;; Quote fullname, escaping specials.
 	  (goto-char (point-min))
@@ -5735,8 +5745,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 	(let ((fullname-start (point)))
 	  (insert fullname)
 	  (goto-char fullname-start)
-	  ;; RFC 822 says \ and nonmatching parentheses
-	  ;; must be escaped in comments.
+	  ;; \ and nonmatching parentheses must be escaped in comments.
 	  ;; Escape every instance of ()\ ...
 	  (while (re-search-forward "[()\\]" nil 1)
 	    (replace-match "\\\\\\&" t))
@@ -7459,7 +7468,7 @@ Optional DIGEST will use digest to forward."
     ;; Consider there is no illegible text.
     (add-text-properties
      b (point)
-     `(no-illegible-text t rear-nonsticky t start-open t))))
+     '(no-illegible-text t rear-nonsticky t start-open t))))
 
 (defun message-forward-make-body-mml (forward-buffer)
   (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")
@@ -8015,18 +8024,11 @@ regular text mode tabbing command."
 	       (skip-chars-backward "^, \t\n") (point))))
 	(completion-ignore-case t)
 	(e (progn (skip-chars-forward "^,\t\n ") (point)))
-	group collection)
-    (when (and (boundp 'gnus-active-hashtb)
-	       gnus-active-hashtb)
-      (mapatoms
-       (lambda (symbol)
-	 (setq group (symbol-name symbol))
-	 (push (if (string-match "[^\000-\177]" group)
-		   (gnus-group-decoded-name group)
-		 group)
-	       collection))
-       gnus-active-hashtb))
-    (completion-in-region b e collection)))
+	(collection (when (and (boundp 'gnus-active-hashtb)
+			       gnus-active-hashtb)
+		      (hash-table-keys gnus-active-hashtb))))
+    (when collection
+      (completion-in-region b e collection))))
 
 (defun message-expand-name ()
   (cond ((and (memq 'eudc message-expand-name-databases)
@@ -8051,7 +8053,7 @@ regular text mode tabbing command."
 If SHOW is non-nil, the arguments TEXT... are displayed in a temp buffer.
 The following arguments may contain lists of values."
   (if (and show
-	   (setq text (message-flatten-list text)))
+	   (setq text (flatten-tree text)))
       (save-window-excursion
         (with-output-to-temp-buffer " *MESSAGE information message*"
           (with-current-buffer " *MESSAGE information message*"
@@ -8061,15 +8063,7 @@ The following arguments may contain lists of values."
 	(funcall ask question))
     (funcall ask question)))
 
-(defun message-flatten-list (list)
-  "Return a new, flat list that contains all elements of LIST.
-
-\(message-flatten-list \\='(1 (2 3 (4 5 (6))) 7))
-=> (1 2 3 4 5 6 7)"
-  (cond ((consp list)
-	 (apply 'append (mapcar 'message-flatten-list list)))
-	(list
-	 (list list))))
+(define-obsolete-function-alias 'message-flatten-list #'flatten-tree "27.1")
 
 (defun message-generate-new-buffer-clone-locals (name &optional varstr)
   "Create and return a buffer with name based on NAME using `generate-new-buffer'.

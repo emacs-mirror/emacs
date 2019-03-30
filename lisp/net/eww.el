@@ -1,6 +1,6 @@
 ;;; eww.el --- Emacs Web Wowser  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -247,21 +247,29 @@ This list can be customized via `eww-suggest-uris'."
     (nreverse uris)))
 
 ;;;###autoload
-(defun eww (url)
+(defun eww (url &optional arg)
   "Fetch URL and render the page.
 If the input doesn't look like an URL or a domain name, the
-word(s) will be searched for via `eww-search-prefix'."
+word(s) will be searched for via `eww-search-prefix'.
+
+If called with a prefix ARG, use a new buffer instead of reusing
+the default EWW buffer."
   (interactive
    (let* ((uris (eww-suggested-uris))
 	  (prompt (concat "Enter URL or keywords"
 			  (if uris (format " (default %s)" (car uris)) "")
 			  ": ")))
-     (list (read-string prompt nil 'eww-prompt-history uris))))
+     (list (read-string prompt nil 'eww-prompt-history uris)
+           (prefix-numeric-value current-prefix-arg))))
   (setq url (eww--dwim-expand-url url))
   (pop-to-buffer-same-window
-   (if (eq major-mode 'eww-mode)
-       (current-buffer)
-     (get-buffer-create "*eww*")))
+   (cond
+    ((eq arg 4)
+     (generate-new-buffer "*eww*"))
+    ((eq major-mode 'eww-mode)
+     (current-buffer))
+    (t
+     (get-buffer-create "*eww*"))))
   (eww-setup-buffer)
   ;; Check whether the domain only uses "Highly Restricted" Unicode
   ;; IDNA characters.  If not, transform to punycode to indicate that
@@ -462,10 +470,10 @@ Currently this means either text/html or application/xhtml+xml."
 		(condition-case nil
 		    (decode-coding-region (point) (point-max) encode)
 		  (coding-system-error nil))
-                (save-excursion
-                  ;; Remove CRLF before parsing.
-                  (while (re-search-forward "\r$" nil t)
-                    (replace-match "" t t)))
+		(save-excursion
+		  ;; Remove CRLF and replace NUL with &#0; before parsing.
+		  (while (re-search-forward "\\(\r$\\)\\|\0" nil t)
+		    (replace-match (if (match-beginning 1) "" "&#0;") t t)))
 		(libxml-parse-html-region (point) (point-max))))))
 	(source (and (null document)
 		     (buffer-substring (point) (point-max)))))
@@ -1531,10 +1539,12 @@ Differences in #targets are ignored."
   (kill-new (plist-get eww-data :url)))
 
 (defun eww-download ()
-  "Download URL under point to `eww-download-directory'."
+  "Download URL to `eww-download-directory'.
+Use link at point if there is one, else the current page's URL."
   (interactive)
   (access-file eww-download-directory "Download failed")
-  (let ((url (get-text-property (point) 'shr-url)))
+  (let ((url (or (get-text-property (point) 'shr-url)
+                 (eww-current-url))))
     (if (not url)
         (message "No URL under point")
       (url-retrieve url 'eww-download-callback (list url)))))
@@ -1542,7 +1552,7 @@ Differences in #targets are ignored."
 (defun eww-download-callback (status url)
   (unless (plist-get status :error)
     (let* ((obj (url-generic-parse-url url))
-           (path (car (url-path-and-query obj)))
+           (path (directory-file-name (car (url-path-and-query obj))))
            (file (eww-make-unique-file-name
                   (eww-decode-url-file-name (file-name-nondirectory path))
                   eww-download-directory)))

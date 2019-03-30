@@ -1,6 +1,6 @@
 ;;; cl-lib.el --- Common Lisp extensions for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 1.0
@@ -364,13 +364,6 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 (cl--defalias 'cl-first 'car)
 (cl--defalias 'cl-second 'cadr)
 (cl--defalias 'cl-rest 'cdr)
-
-(defun cl-endp (x)
-  "Return true if X is the empty list; false if it is a cons.
-Signal an error if X is not a list."
-  (if (listp x)
-      (null x)
-    (signal 'wrong-type-argument (list 'listp x 'x))))
 
 (cl--defalias 'cl-third 'cl-caddr "Return the third element of the list X.")
 (cl--defalias 'cl-fourth 'cl-cadddr "Return the fourth element of the list X.")

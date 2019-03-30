@@ -1,6 +1,6 @@
 ;;; log-view.el --- Major mode for browsing revision log histories -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tools, vc
@@ -157,7 +157,7 @@
 
 (easy-menu-define log-view-mode-menu log-view-mode-map
   "Log-View Display Menu"
-  `("Log-View"
+  '("Log-View"
     ;; XXX Do we need menu entries for these?
     ;; ["Quit"  quit-window]
     ;; ["Kill This Buffer"  kill-this-buffer]
@@ -217,7 +217,7 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
 The match group number 1 should match the file name itself.")
 
 (defvar log-view-per-file-logs t
-  "Set if to t if the logs are shown one file at a time.")
+  "Set to t if the logs are shown one file at a time.")
 
 (defvar log-view-message-re
   (concat "^\\(?:revision \\(?1:[.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
@@ -517,8 +517,10 @@ Works like `end-of-defun'."
 If called interactively, visit the version at point."
   (interactive "d")
   (unless log-view-per-file-logs
-    (when (> (length log-view-vc-fileset) 1)
-      (error "Multiple files shown in this buffer, cannot use this command here")))
+    (when (or (> (length log-view-vc-fileset) 1)
+              (null (car log-view-vc-fileset))
+              (file-directory-p (car log-view-vc-fileset)))
+      (user-error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
     (switch-to-buffer (vc-find-revision (if log-view-per-file-logs
@@ -561,8 +563,10 @@ If called interactively, visit the version at point."
 If called interactively, annotate the version at point."
   (interactive "d")
   (unless log-view-per-file-logs
-    (when (> (length log-view-vc-fileset) 1)
-      (error "Multiple files shown in this buffer, cannot use this command here")))
+    (when (or (> (length log-view-vc-fileset) 1)
+              (null (car log-view-vc-fileset))
+              (file-directory-p (car log-view-vc-fileset)))
+      (user-error "Multiple files shown in this buffer, cannot use this command here")))
   (save-excursion
     (goto-char pos)
     (vc-annotate (if log-view-per-file-logs

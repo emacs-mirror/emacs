@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -386,12 +386,12 @@ textual parts.")
 	(with-current-buffer buffer
 	  (when (and nnimap-object
 		     (nnimap-last-command-time nnimap-object)
-		     (> (float-time
-			 (time-subtract
-			  now
-			  (nnimap-last-command-time nnimap-object)))
-			;; More than five minutes since the last command.
-			(* 5 60)))
+		     (time-less-p
+		      ;; More than five minutes since the last command.
+		      (* 5 60)
+		      (time-subtract
+		       now
+		       (nnimap-last-command-time nnimap-object))))
             (ignore-errors              ;E.g. "buffer foo has no process".
               (nnimap-send-command "NOOP"))))))))
 
@@ -413,8 +413,11 @@ textual parts.")
 	nil
       stream)))
 
+;; This is only needed for Windows XP or earlier
 (defun nnimap-map-port (port)
-  (if (equal port "imaps")
+  (if (and (eq system-type 'windows-nt)
+           (<= (car (x-server-version)) 5)
+           (equal port "imaps"))
       "993"
     port))
 
@@ -804,7 +807,7 @@ textual parts.")
     (insert "\n--" boundary "--\n")))
 
 (defun nnimap-find-wanted-parts (structure)
-  (message-flatten-list (nnimap-find-wanted-parts-1 structure "")))
+  (flatten-tree (nnimap-find-wanted-parts-1 structure "")))
 
 (defun nnimap-find-wanted-parts-1 (structure prefix)
   (let ((num 1)
@@ -1203,8 +1206,8 @@ If LIMIT, first try to limit the search to the N last articles."
 	    ;; We don't really care about the article number, because
 	    ;; that's determined by the IMAP server later.  So just
 	    ;; return the group name.
-	    `(lambda (group)
-	       (list (list group)))))))
+	    (lambda (group)
+              (list (list group)))))))
   (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-change-group nil server)
     (nnmail-check-syntax)

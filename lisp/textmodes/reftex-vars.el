@@ -1,6 +1,6 @@
 ;;; reftex-vars.el --- configuration variables for RefTeX
 
-;; Copyright (C) 1997-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -891,21 +891,58 @@ DOWNCASE    t:   Downcase words before using them."
     ;; so this list mustn't get any more items.
     (defconst reftex-label-regexps '("\\\\label{\\([^}]*\\)}"))
   (defcustom reftex-label-regexps
-    '(;; Normal \\label{foo} labels
+    `(;; Normal \\label{foo} labels
       "\\\\label{\\(?1:[^}]*\\)}"
       ;; keyvals [..., label = {foo}, ...] forms used by ctable,
-      ;; listings, minted, ...
-      "\\[[^][]\\{0,2000\\}\\<label[[:space:]]*=[[:space:]]*{?\\(?1:[^],}]+\\)}?")
+      ;; listings, breqn, ...
+      ,(concat
+        ;; Make sure we search only for optional arguments of
+        ;; environments/macros and don't match any other [.  ctable
+        ;; provides a macro called \ctable, listings/breqn have
+        ;; environments.  Start with a backslash and a group for names
+        "\\\\\\(?:"
+        ;; begin, optional spaces and opening brace
+        "begin[[:space:]]*{"
+        ;; Build a regexp for env names
+        (regexp-opt '("lstlisting" "dmath" "dseries" "dgroup" "darray"))
+        ;; closing brace, optional spaces
+        "}[[:space:]]*"
+        ;; Now for macros
+        "\\|"
+        ;; Build a regexp for macro names; currently only \ctable
+        (regexp-opt '("ctable"))
+        ;; Close the group for names
+        "\\)"
+        ;; Match the opening [ and the following chars
+        "\\[[^][]*"
+        ;; Allow nested levels of chars enclosed in braces
+        "\\(?:{[^}{]*"
+          "\\(?:{[^}{]*"
+            "\\(?:{[^}{]*}[^}{]*\\)*"
+          "}[^}{]*\\)*"
+        "}[^][]*\\)*"
+        ;; Match the label key
+        "\\<label[[:space:]]*=[[:space:]]*"
+        ;; Match the label value; braces around the value are
+        ;; optional.
+        "{?\\(?1:[^] ,}\r\n\t%]+\\)}?"
+        ;; We are done.  Just search until the next closing bracket
+        "[^]]*\\]"))
     "List of regexps matching \\label definitions.
 The default value matches usual \\label{...} definitions and
-keyval style [..., label = {...}, ...] label definitions.  It is
-assumed that the regexp group 1 matches the label text, so you
-have to define it using \\(?1:...\\) when adding new regexps.
+keyval style [..., label = {...}, ...] label definitions.  The
+regexp for keyval style explicitly looks for environments
+provided by the packages \"listings\" (\"lstlisting\"),
+\"breqn\" (\"dmath\", \"dseries\", \"dgroup\", \"darray\") and
+the macro \"\\ctable\" provided by the package of the same name.
+
+It is assumed that the regexp group 1 matches the label text, so
+you have to define it using \\(?1:...\\) when adding new regexps.
 
 When changed from Lisp, make sure to call
 `reftex-compile-variables' afterwards to make the change
 effective."
-    :version "25.1"
+    :version "27.1"
     :set (lambda (symbol value)
 	   (set symbol value)
 	   (when (fboundp 'reftex-compile-variables)

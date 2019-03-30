@@ -1,6 +1,6 @@
 ;;; ox-html.el --- HTML Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;      Jambunathan K <kjambunathan at gmail dot com>
@@ -234,7 +234,7 @@ property on the headline itself.")
 @licstart  The following is the entire license notice for the
 JavaScript code in this tag.
 
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 The JavaScript code in this tag is free software: you can
 redistribute it and/or modify it under the terms of the GNU
@@ -524,7 +524,7 @@ means to use the maximum value consistent with other options."
  * @licstart  The following is the entire license notice for the
  *  JavaScript code in %SCRIPT_PATH.
  *
- * Copyright (C) 2012-2018 Free Software Foundation, Inc.
+ * Copyright (C) 2012-2019 Free Software Foundation, Inc.
  *
  *
  * The JavaScript code in this tag is free software: you can
@@ -553,7 +553,7 @@ means to use the maximum value consistent with other options."
 @licstart  The following is the entire license notice for the
 JavaScript code in this tag.
 
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 The JavaScript code in this tag is free software: you can
 redistribute it and/or modify it under the terms of the GNU

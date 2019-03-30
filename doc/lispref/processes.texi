@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -423,27 +423,27 @@ be found in the definition of the @code{insert-directory} function:
 
 @defun process-file program &optional infile buffer display &rest args
 This function processes files synchronously in a separate process.  It
-is similar to @code{call-process}, but may invoke a file handler based
-on the value of the variable @code{default-directory}, which specifies
-the current working directory of the subprocess.
+is similar to @code{call-process}, but may invoke a file name handler
+based on the value of the variable @code{default-directory}, which
+specifies the current working directory of the subprocess.
 
 The arguments are handled in almost the same way as for
 @code{call-process}, with the following differences:
 
-Some file handlers may not support all combinations and forms of the
+Some file name handlers may not support all combinations and forms of the
 arguments @var{infile}, @var{buffer}, and @var{display}.  For example,
-some file handlers might behave as if @var{display} were @code{nil},
+some file name handlers might behave as if @var{display} were @code{nil},
 regardless of the value actually passed.  As another example, some
-file handlers might not support separating standard output and error
+file name handlers might not support separating standard output and error
 output by way of the @var{buffer} argument.
 
-If a file handler is invoked, it determines the program to run based
+If a file name handler is invoked, it determines the program to run based
 on the first argument @var{program}.  For instance, suppose that a
 handler for remote files is invoked.  Then the path that is used for
 searching for the program might be different from @code{exec-path}.
 
-The second argument @var{infile} may invoke a file handler.  The file
-handler could be different from the handler chosen for the
+The second argument @var{infile} may invoke a file name handler.  The file
+name handler could be different from the handler chosen for the
 @code{process-file} function itself.  (For example,
 @code{default-directory} could be on one remote host, and
 @var{infile} on a different remote host.  Or @code{default-directory}
@@ -459,7 +459,9 @@ present in @var{args}.  To avoid confusion, it may be best to avoid
 absolute file names in @var{args}, but rather to specify all file
 names as relative to @code{default-directory}.  The function
 @code{file-relative-name} is useful for constructing such relative
-file names.
+file names.  Alternatively, you can use @code{file-local-name}
+(@pxref{Magic File Names}) to obtain an absolute file name as seen
+from the remote host's perspective.
 @end defun
 
 @defvar process-file-side-effects
@@ -468,7 +470,7 @@ remote files.
 
 By default, this variable is always set to @code{t}, meaning that a
 call of @code{process-file} could potentially change any file on a
-remote host.  When set to @code{nil}, a file handler could optimize
+remote host.  When set to @code{nil}, a file name handler could optimize
 its behavior with respect to remote file attribute caching.
 
 You should only ever change this variable with a let-binding; never
@@ -612,10 +614,9 @@ these features.  However, for subprocesses used by Lisp programs for
 internal purposes (i.e., no user interaction with the subprocess is
 required), where significant amounts of data need to be exchanged
 between the subprocess and the Lisp program, it is often better to use
-a pipe, because pipes are more efficient, and because they are immune
-to stray character injections that ptys introduce for large (around
-500 byte) messages.  Also, the total number of ptys is limited on many
-systems, and it is good not to waste them unnecessarily.
+a pipe, because pipes are more efficient.  Also, the total number of
+ptys is limited on many systems, and it is good not to waste them
+unnecessarily.
 
 @defun make-process &rest args
 This function is the basic low-level primitive for starting
@@ -696,6 +697,12 @@ non-@code{nil} value should be either a buffer or a pipe process
 created with @code{make-pipe-process}, described below.  If
 @var{stderr} is @code{nil}, standard error is mixed with standard
 output, and both are sent to @var{buffer} or @var{filter}.
+
+@item :file-handler @var{file-handler}
+If @var{file-handler} is non-@code{nil}, then look for a file name
+handler for the current buffer's @code{default-directory}, and invoke
+that file name handler to make the process.  If there is no such
+handler, proceed as if @var{file-handler} were @code{nil}.
 @end table
 
 The original argument list, modified with the actual connection
@@ -703,9 +710,18 @@ information, is available via the @code{process-contact} function.
 
 The current working directory of the subprocess is set to the current
 buffer's value of @code{default-directory} if that is local (as
-determined by `unhandled-file-name-directory'), or "~" otherwise.  If
-you want to run a process in a remote directory use
-@code{start-file-process}.
+determined by @code{unhandled-file-name-directory}), or @file{~}
+otherwise.  If you want to run a process in a remote directory, pass
+@code{:file-handler t} to @code{make-process}.  In that case, the
+current working directory is the local name component of
+@code{default-directory} (as determined by @code{file-local-name}).
+
+Depending on the implementation of the file name handler, it might not
+be possible to apply @var{filter} or @var{sentinel} to the resulting
+process object.  @xref{Filter Functions}, and @ref{Sentinels}.
+
+Some file name handlers may not support @code{make-process}.  In such
+cases, this function does nothing and returns @code{nil}.
 @end defun
 
 @defun make-pipe-process &rest args
@@ -821,22 +837,27 @@ subprocess running @var{program} in it, and returns its process
 object.
 
 The difference from @code{start-process} is that this function may
-invoke a file handler based on the value of @code{default-directory}.
+invoke a file name handler based on the value of @code{default-directory}.
 This handler ought to run @var{program}, perhaps on the local host,
 perhaps on a remote host that corresponds to @code{default-directory}.
 In the latter case, the local part of @code{default-directory} becomes
 the working directory of the process.
 
 This function does not try to invoke file name handlers for
-@var{program} or for the rest of @var{args}.
+@var{program} or for the rest of @var{args}.  For that reason, if
+@var{program} or any of @var{args} use the remote-file syntax
+(@pxref{Magic File Names}), they must be converted either to file
+names relative to @code{default-directory}, or to names that identify
+the files locally on the remote host, by running them through
+@code{file-local-name}.
 
-Depending on the implementation of the file handler, it might not be
+Depending on the implementation of the file name handler, it might not be
 possible to apply @code{process-filter} or @code{process-sentinel} to
 the resulting process object.  @xref{Filter Functions}, and @ref{Sentinels}.
 
 @c FIXME  Can we find a better example (i.e., a more modern function
 @c that is actually documented).
-Some file handlers may not support @code{start-file-process} (for
+Some file name handlers may not support @code{start-file-process} (for
 example the function @code{ange-ftp-hook-function}).  In such cases,
 this function does nothing and returns @code{nil}.
 @end defun
@@ -1768,7 +1789,7 @@ system comes from @code{coding-system-for-read}, if that is
 non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
 Coding Systems}).  If the text output by a process contains null
 bytes, Emacs by default uses @code{no-conversion} for it; see
-@ref{Lisp and Coding Systems, inhibit-null-byte-detection}, for how to
+@ref{Lisp and Coding Systems, inhibit-nul-byte-detection}, for how to
 control this behavior.
 
   @strong{Warning:} Coding systems such as @code{undecided}, which
@@ -1806,7 +1827,8 @@ until output arrives from a process.
 This function allows Emacs to read pending output from processes.  The
 output is given to their filter functions.  If @var{process} is
 non-@code{nil} then this function does not return until some output
-has been received from @var{process}.
+has been received from @var{process} or @var{process} has closed the
+connection.
 
 The arguments @var{seconds} and @var{millisec} let you specify timeout
 periods.  The former specifies a period measured in seconds and the
@@ -1831,9 +1853,31 @@ speech synthesis.
 
 The function @code{accept-process-output} returns non-@code{nil} if it
 got output from @var{process}, or from any process if @var{process} is
-@code{nil}.  It returns @code{nil} if the timeout expired before output
+@code{nil}; this can occur even after a process has exited if the
+corresponding connection contains buffered data.  The function returns
+@code{nil} if the timeout expired or the connection was closed before output
 arrived.
 @end defun
+
+If a connection from a process contains buffered data,
+@code{accept-process-output} can return non-@code{nil} even after the
+process has exited.  Therefore, although the following loop:
+
+@example
+;; This loop contains a bug.
+(while (process-live-p process)
+  (accept-process-output process))
+@end example
+
+@noindent
+will often read all output from @var{process}, it has a race condition
+and can miss some output if @code{process-live-p} returns @code{nil}
+while the connection still contains data.  Better is to write the loop
+like this:
+
+@example
+(while (accept-process-output process))
+@end example
 
 @node Processes and Threads
 @subsection Processes and Threads
@@ -2596,7 +2640,9 @@ Specify the host to connect to.  @var{host} should be a host name or
 Internet address, as a string, or the symbol @code{local} to specify
 the local host.  If you specify @var{host} for a server, it must
 specify a valid address for the local host, and only clients
-connecting to that address will be accepted.
+connecting to that address will be accepted.  When using @code{local},
+by default IPv4 will be used, specify a @var{family} of @code{ipv6} to
+override this.
 
 @item :service @var{service}
 @var{service} specifies a port number to connect to; or, for a server,

@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2018 Free
+;; Copyright (C) 1985-1986, 1989, 1992, 1994-1999, 2001-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -601,9 +601,9 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	(list (concat slash citations opt arg) 3 'font-lock-constant-face)
 	;;
 	;; Text between `` quotes ''.
-	(cons (concat (regexp-opt `("``" "\"<" "\"`" "<<" "«") t)
+	(cons (concat (regexp-opt '("``" "\"<" "\"`" "<<" "«") t)
 		      "[^'\">{]+"	;a bit pessimistic
-		      (regexp-opt `("''" "\">" "\"'" ">>" "»") t))
+		      (regexp-opt '("''" "\">" "\"'" ">>" "»") t))
 	      'font-lock-string-face)
 	;;
 	;; Command names, special and general.
@@ -1656,7 +1656,7 @@ Puts point on a blank line between them."
     (let ((pt (point)))
       (skip-chars-backward "^ {}\n\t\\\\")
       (pcase (char-before)
-        ((or `nil ?\s ?\n ?\t ?\}) nil)
+        ((or 'nil ?\s ?\n ?\t ?\}) nil)
         (?\\
          ;; TODO: Complete commands.
          nil)
@@ -2994,7 +2994,7 @@ There might be text before point."
 	      (mapcar
 	       (lambda (x)
 		 (pcase (car-safe x)
-		   (`font-lock-syntactic-face-function
+		   ('font-lock-syntactic-face-function
 		    (cons (car x) #'doctex-font-lock-syntactic-face-function))
 		   (_ x)))
 	       (cdr font-lock-defaults))))

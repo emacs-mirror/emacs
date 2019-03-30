@@ -1,6 +1,6 @@
 ;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
@@ -112,7 +112,6 @@
     ("bottom" length percentage "auto")
     ("caption-side" "top" "bottom")
     ("clear" "none" "left" "right" "both")
-    ("clip" shape "auto")
     ("content" "normal" "none" string uri counter "attr()"
      "open-quote" "close-quote" "no-open-quote" "no-close-quote")
     ("counter-increment" identifier integer "none")
@@ -374,6 +373,31 @@
      "avoid-region")
     ("orphans" integer)
     ("widows" integer)
+
+    ;; CSS Masking Module Level 1
+    ;; (https://www.w3.org/TR/css-masking-1/#property-index)
+    ("clip-path" clip-source basic-shape geometry-box "none")
+    ("clip-rule" "nonzero" "evenodd")
+    ("mask-image" mask-reference)
+    ("mask-mode" masking-mode)
+    ("mask-repeat" repeat-style)
+    ("mask-position" position)
+    ("mask-clip" geometry-box "no-clip")
+    ("mask-origin" geometry-box)
+    ("mask-size" bg-size)
+    ("mask-composite" compositing-operator)
+    ("mask" mask-layer)
+    ("mask-border-source" "none" image)
+    ("mask-border-mode" "luminance" "alpha")
+    ("mask-border-slice" number percentage "fill")
+    ("mask-border-width" length percentage number "auto")
+    ("mask-border-outset" length number)
+    ("mask-border-repeat" "stretch" "repeat" "round" "space")
+    ("mask-border" mask-border-source mask-border-slice
+     mask-border-width mask-border-outset mask-border-repeat
+     mask-border-mode)
+    ("mask-type" "luminance" "alpha")
+    ("clip" "rect()" "auto")
 
     ;; CSS Multi-column Layout Module
     ;; (https://www.w3.org/TR/css3-multicol/#property-index)
@@ -652,14 +676,17 @@ further value candidates, since that list would be infinite.")
     (attachment "scroll" "fixed" "local")
     (auto-repeat "repeat()")
     (auto-track-list line-names fixed-size fixed-repeat auto-repeat)
+    (basic-shape "inset()" "circle()" "ellipse()" "polygon()")
     (bg-image image "none")
     (bg-layer bg-image position repeat-style attachment box)
     (bg-size length percentage "auto" "cover" "contain")
     (box "border-box" "padding-box" "content-box")
+    (clip-source uri)
     (color
      "rgb()" "rgba()" "hsl()" "hsla()" named-color "transparent"
      "currentColor")
     (common-lig-values "common-ligatures" "no-common-ligatures")
+    (compositing-operator "add" "subtract" "intersect" "exclude")
     (contextual-alt-values "contextual" "no-contextual")
     (counter "counter()" "counters()")
     (discretionary-lig-values
@@ -685,6 +712,7 @@ further value candidates, since that list would be infinite.")
     (generic-family
      "serif" "sans-serif" "cursive" "fantasy" "monospace")
     (generic-voice "male" "female" "child")
+    (geometry-box shape-box "fill-box" "stroke-box" "view-box")
     (gradient
      linear-gradient radial-gradient repeating-linear-gradient
      repeating-radial-gradient)
@@ -705,6 +733,12 @@ further value candidates, since that list would be infinite.")
     (line-width length "thin" "medium" "thick")
     (linear-gradient "linear-gradient()")
     (margin-width "auto" length percentage)
+    (mask-layer
+     mask-reference masking-mode position bg-size repeat-style
+     geometry-box "no-clip" compositing-operator)
+    (mask-reference "none" image mask-source)
+    (mask-source uri)
+    (masking-mode "alpha" "luminance" "auto")
     (named-color . ,(mapcar #'car css--color-map))
     (number "calc()")
     (numeric-figure-values "lining-nums" "oldstyle-nums")
@@ -720,7 +754,7 @@ further value candidates, since that list would be infinite.")
     (repeating-linear-gradient "repeating-linear-gradient()")
     (repeating-radial-gradient "repeating-radial-gradient()")
     (shadow "inset" length color)
-    (shape "rect()")
+    (shape-box box "margin-box")
     (single-animation-direction
      "normal" "reverse" "alternate" "alternate-reverse")
     (single-animation-fill-mode "none" "forwards" "backwards" "both")
@@ -858,7 +892,7 @@ cannot be completed sensibly: `custom-ident',
     (,(concat "@" css-ident-re) (0 font-lock-builtin-face))
     ;; Selectors.
     ;; Allow plain ":root" as a selector.
-    ("^[ \t]*\\(:root\\)\\(?:[\n \t]*\\)*{" (1 'css-selector keep))
+    ("^[ \t]*\\(:root\\)[\n \t]*{" (1 'css-selector keep))
     ;; FIXME: attribute selectors don't work well because they may contain
     ;; strings which have already been highlighted as f-l-string-face and
     ;; thus prevent this highlighting from being applied (actually now that
@@ -881,7 +915,7 @@ cannot be completed sensibly: `custom-ident',
        "\\(?:\\(:" (regexp-opt (append css-pseudo-class-ids
                                        css-pseudo-element-ids)
                                t)
-       "\\|\\::" (regexp-opt css-pseudo-element-ids t) "\\)"
+       "\\|::" (regexp-opt css-pseudo-element-ids t) "\\)"
        "\\(?:([^)]+)\\)?"
        (if (not sassy)
            "[^:{}()\n]*"
@@ -1216,20 +1250,20 @@ for determining whether point is within a selector."
 
 (defun css-smie-rules (kind token)
   (pcase (cons kind token)
-    (`(:elem . basic) css-indent-offset)
-    (`(:elem . arg) 0)
+    ('(:elem . basic) css-indent-offset)
+    ('(:elem . arg) 0)
     ;; "" stands for BOB (bug#15467).
     (`(:list-intro . ,(or ";" "" ":-property")) t)
-    (`(:before . "{")
+    ('(:before . "{")
      (when (or (smie-rule-hanging-p) (smie-rule-bolp))
        (smie-backward-sexp ";")
        (unless (eq (char-after) ?\{)
          (smie-indent-virtual))))
-    (`(:before . "(")
+    ('(:before . "(")
      (cond
       ((smie-rule-hanging-p) (smie-rule-parent 0))
       ((not (smie-rule-bolp)) 0)))
-    (`(:after . ":-property")
+    ('(:after . ":-property")
      (when (smie-rule-hanging-p)
        css-indent-offset))))
 
@@ -1523,7 +1557,7 @@ rgb()/rgba()."
         (prev nil))
     (dolist (sel selectors)
       (cond
-       ((seq-contains sel ?&)
+       ((seq-contains-p sel ?&)
         (setq sel (replace-regexp-in-string "&" prev sel))
         (pop processed))
        ;; Unless this is the first selector, separate this one and the

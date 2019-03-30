@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1992-2018 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -65,6 +65,8 @@
 #        fail unpredictably
 
 SHELL = @SHELL@
+
+DUMPING=@DUMPING@
 
 # This only matters when inheriting a CDPATH not starting with the
 # current directory.
@@ -491,6 +493,9 @@ install-arch-dep: src install-arch-indep install-etcdoc install-$(NTDIR)
 	$(MAKE) -C lib-src install
 ifeq (${ns_self_contained},no)
 	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} "$(DESTDIR)${bindir}/$(EMACSFULL)"
+ifeq (${DUMPING},pdumper)
+	${INSTALL_DATA} src/emacs.pdmp "$(DESTDIR)${libexecdir}/emacs/${version}/${configuration}"/emacs.pdmp
+endif
 	-chmod 755 "$(DESTDIR)${bindir}/$(EMACSFULL)"
 ifndef NO_BIN_LINK
 	rm -f "$(DESTDIR)${bindir}/$(EMACS)"
@@ -939,7 +944,9 @@ extraclean: $(extraclean_dirs:=_extraclean)
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
 .PHONY: TAGS tags
-TAGS tags: lib lib-src src
+# FIXME: We used to include `src` in the dependencies, not sure why.
+# I removed it because it causes `make tags` to build Emacs.
+TAGS tags: lib lib-src # src
 	$(MAKE) -C src tags
 
 .PHONY: have-tests

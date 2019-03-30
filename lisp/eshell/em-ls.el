@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -346,7 +346,7 @@ instead."
    "ls" (if eshell-ls-initial-args
 	    (list eshell-ls-initial-args args)
 	  args)
-   `((?a "all" nil show-all
+   '((?a "all" nil show-all
 	 "do not ignore entries starting with .")
      (?A "almost-all" nil show-almost-all
 	 "do not list implied . and ..")

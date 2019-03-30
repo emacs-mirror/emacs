@@ -1,10 +1,10 @@
 ;;; seq.el --- Sequence manipulation functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
-;; Version: 2.20
+;; Version: 2.21
 ;; Package: seq
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -109,6 +109,14 @@ name to be bound to the rest of SEQUENCE."
 (cl-defgeneric seq-length (sequence)
   "Return the number of elements of SEQUENCE."
   (length sequence))
+
+(defun seq-first (sequence)
+  "Return the first element of SEQUENCE."
+  (seq-elt sequence 0))
+
+(defun seq-rest (sequence)
+  "Return a sequence of the elements of SEQUENCE except the first one."
+  (seq-drop sequence 1))
 
 (cl-defgeneric seq-do (function sequence)
   "Apply FUNCTION to each element of SEQUENCE, presumably for side effects.
@@ -348,6 +356,7 @@ found or not."
     count))
 
 (cl-defgeneric seq-contains (sequence elt &optional testfn)
+  (declare (obsolete seq-contains-p "27.1"))
   "Return the first element in SEQUENCE that is equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
   (seq-some (lambda (e)
@@ -355,11 +364,20 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
                 e))
             sequence))
 
+(cl-defgeneric seq-contains-p (sequence elt &optional testfn)
+  "Return non-nil if SEQUENCE contains an element equal to ELT.
+Equality is defined by TESTFN if non-nil or by `equal' if nil."
+    (catch 'seq--break
+      (seq-doseq (e sequence)
+        (when (funcall (or testfn #'equal) e elt)
+          (throw 'seq--break t)))
+      nil))
+
 (cl-defgeneric seq-set-equal-p (sequence1 sequence2 &optional testfn)
   "Return non-nil if SEQUENCE1 and SEQUENCE2 contain the same elements, regardless of order.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
-  (and (seq-every-p (lambda (item1) (seq-contains sequence2 item1 testfn)) sequence1)
-       (seq-every-p (lambda (item2) (seq-contains sequence1 item2 testfn)) sequence2)))
+  (and (seq-every-p (lambda (item1) (seq-contains-p sequence2 item1 testfn)) sequence1)
+       (seq-every-p (lambda (item2) (seq-contains-p sequence1 item2 testfn)) sequence2)))
 
 (cl-defgeneric seq-position (sequence elt &optional testfn)
   "Return the index of the first element in SEQUENCE that is equal to ELT.
@@ -377,7 +395,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
 TESTFN is used to compare elements, or `equal' if TESTFN is nil."
   (let ((result '()))
     (seq-doseq (elt sequence)
-      (unless (seq-contains result elt testfn)
+      (unless (seq-contains-p result elt testfn)
         (setq result (cons elt result))))
     (nreverse result)))
 
@@ -402,7 +420,7 @@ negative integer or 0, nil is returned."
   "Return a list of the elements that appear in both SEQUENCE1 and SEQUENCE2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
   (seq-reduce (lambda (acc elt)
-                (if (seq-contains sequence2 elt testfn)
+                (if (seq-contains-p sequence2 elt testfn)
                     (cons elt acc)
                   acc))
               (seq-reverse sequence1)
@@ -412,9 +430,9 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
   "Return a list of the elements that appear in SEQUENCE1 but not in SEQUENCE2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
   (seq-reduce (lambda (acc elt)
-                (if (not (seq-contains sequence2 elt testfn))
-                    (cons elt acc)
-                  acc))
+                (if (seq-contains-p sequence2 elt testfn)
+                    acc
+                  (cons elt acc)))
               (seq-reverse sequence1)
               '()))
 

@@ -1,6 +1,6 @@
 ;;; filenotify.el --- watch files for changes on disk  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -45,11 +45,11 @@ could use another implementation.")
                (:constructor nil)
                (:constructor
                 file-notify--watch-make (directory filename callback)))
-  ;; Watched directory
+  ;; Watched directory.
   directory
   ;; Watched relative filename, nil if watching the directory.
   filename
-  ;; Function to propagate events to
+  ;; Function to propagate events to.
   callback)
 
 (defun file-notify--watch-absolute-filename (watch)
@@ -114,7 +114,7 @@ Could be different from the directory watched by the backend library."
   (when-let* ((watch (gethash (car event) file-notify-descriptors)))
     (directory-file-name
      (expand-file-name
-      (or  (and (stringp (nth 2 event)) (nth 2 event)) "")
+      (or (and (stringp (nth 2 event)) (nth 2 event)) "")
       (file-notify--watch-directory watch)))))
 
 ;; Only `gfilenotify' could return two file names.
@@ -240,13 +240,14 @@ EVENT is the cadr of the event in `file-notify-handle-event'
                             (file-notify--watch-filename watch)
                             (file-name-nondirectory file1)))))
             ;;(message
-            ;;"file-notify-callback %S %S %S %S %S"
-            ;;desc action file file1 watch)
-            (if file1
-                (funcall (file-notify--watch-callback watch)
-                         `(,desc ,action ,file ,file1))
-              (funcall (file-notify--watch-callback watch)
-                       `(,desc  ,action ,file))))
+            ;;"file-notify-callback %S %S %S %S %S %S %S"
+            ;;desc action file file1 watch
+            ;;(file-notify--event-watched-file event)
+            ;;(file-notify--watch-directory watch))
+            (funcall (file-notify--watch-callback watch)
+                     (if file1
+                         `(,desc ,action ,file ,file1)
+                       `(,desc ,action ,file))))
 
           ;; Send `stopped' event.
           (when (or stopped
@@ -420,11 +421,9 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
               descriptor))
            t))))
 
-
 ;; TODO:
-;; * Watching a /dir/file may receive events for dir.
-;;   (This may be the desired behavior.)
-;; * Watching a file in an already watched directory
+
+;; * Watching a file in an already watched directory.
 ;;   If the file is created and *then* a watch is added to that file, the
 ;;   watch might receive events which occurred prior to it being created,
 ;;   due to the way events are propagated during idle time.  Note: This

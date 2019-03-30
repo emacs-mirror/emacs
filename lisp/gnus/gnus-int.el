@@ -1,6 +1,6 @@
 ;;; gnus-int.el --- backend interface functions for Gnus
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -257,7 +257,8 @@ If it is down, start it up (again)."
       (insert (format-time-string "%H:%M:%S")
 	      (format " %.2fs %s %S\n"
 		      (if (numberp gnus-backend-trace-elapsed)
-			  (- (float-time) gnus-backend-trace-elapsed)
+			  (float-time
+			   (time-since gnus-backend-trace-elapsed))
 			0)
 		      type form))
       (setq gnus-backend-trace-elapsed (float-time)))))

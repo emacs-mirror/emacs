@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2018 Free
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -850,7 +850,6 @@ If nil, uses `regexp-history'."
 (defalias 'delete-matching-lines 'flush-lines)
 (defalias 'count-matches 'how-many)
 
-
 (defun keep-lines-read-args (prompt)
   "Read arguments for `keep-lines' and friends.
 Prompt for a regexp with PROMPT.
@@ -930,9 +929,8 @@ a previously found match."
   (set-marker rend nil)
   nil)
 
-
 (defun flush-lines (regexp &optional rstart rend interactive)
- "Delete lines containing matches for REGEXP.
+  "Delete lines containing matches for REGEXP.
 When called from Lisp (and usually when called interactively as
 well, see below), applies to the part of the buffer after point.
 The line point is in is deleted if and only if it contains a
@@ -953,7 +951,10 @@ a non-nil INTERACTIVE argument.
 
 If a match is split across lines, all the lines it lies in are deleted.
 They are deleted _before_ looking for the next match.  Hence, a match
-starting on the same line at which another match ended is ignored."
+starting on the same line at which another match ended is ignored.
+
+Return the number of deleted matching lines.  When called interactively,
+also print the number."
   (interactive
    (progn
      (barf-if-buffer-read-only)
@@ -968,7 +969,8 @@ starting on the same line at which another match ended is ignored."
       (setq rstart (point)
 	    rend (point-max-marker)))
     (goto-char rstart))
-  (let ((case-fold-search
+  (let ((count 0)
+        (case-fold-search
 	 (if (and case-fold-search search-upper-case)
 	     (isearch-no-upper-case-p regexp t)
 	   case-fold-search)))
@@ -978,10 +980,14 @@ starting on the same line at which another match ended is ignored."
 	(delete-region (save-excursion (goto-char (match-beginning 0))
 				       (forward-line 0)
 				       (point))
-		       (progn (forward-line 1) (point))))))
-  (set-marker rend nil)
-  nil)
-
+		       (progn (forward-line 1) (point)))
+        (setq count (1+ count))))
+    (set-marker rend nil)
+    (when interactive (message (ngettext "Deleted %d matching line"
+					 "Deleted %d matching lines"
+					 count)
+			       count))
+    count))
 
 (defun how-many (regexp &optional rstart rend interactive)
   "Print and return number of matches for REGEXP following point.
@@ -1029,9 +1035,10 @@ a previously found match."
 	(if (= opoint (point))
 	    (forward-char 1)
 	  (setq count (1+ count))))
-      (when interactive (message "%d occurrence%s"
-				 count
-				 (if (= count 1) "" "s")))
+      (when interactive (message (ngettext "%d occurrence"
+					   "%d occurrences"
+					   count)
+				 count))
       count)))
 
 
@@ -1614,11 +1621,12 @@ See also `multi-occur'."
 		  (not (eq occur-excluded-properties t))))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
-	    (message "Searched %d buffer%s%s; %s match%s%s"
-		     bufcount (if (= bufcount 1) "" "s")
+	    (message "Searched %d %s%s; %s %s%s"
+		     bufcount
+		     (ngettext "buffer" "buffers" bufcount)
 		     (if (zerop diff) "" (format " (%d killed)" diff))
 		     (if (zerop count) "no" (format "%d" count))
-		     (if (= count 1) "" "es")
+		     (ngettext "match" "matches" count)
 		     ;; Don't display regexp if with remaining text
 		     ;; it is longer than window-width.
 		     (if (> (+ (length (or (get-text-property 0 'isearch-string regexp)
@@ -1657,7 +1665,10 @@ See also `multi-occur'."
                   (lines 0)               ; count of matching lines
 	          (matches 0)             ; count of matches
 		  (headerpt (with-current-buffer out-buf (point)))
-                  )
+		  (orig-line (if (not (overlayp boo))
+				 (line-number-at-pos)
+			       (line-number-at-pos
+				(overlay-get boo 'occur--orig-point)))))
 	      (save-excursion
                 ;; begin searching in the buffer
 		(goto-char (if (overlayp boo) (overlay-start boo) (point-min)))
@@ -1665,9 +1676,6 @@ See also `multi-occur'."
 	        (let* ((limit (if (overlayp boo) (overlay-end boo) (point-max)))
                        (start-line (line-number-at-pos))
 		       (curr-line start-line) ; line count
-		       (orig-line (if (not (overlayp boo)) 1
-                                    (line-number-at-pos
-                                     (overlay-get boo 'occur--orig-point))))
 		       (orig-line-shown-p)
 		       (prev-line nil)        ; line number of prev match endpt
 		       (prev-after-lines nil) ; context lines of prev match
@@ -1796,7 +1804,7 @@ See also `multi-occur'."
 				(setq orig-line-shown-p t)
 				(save-excursion
 				  (goto-char (point-min))
-				  (forward-line (- orig-line start-line 1))
+				  (forward-line (1- orig-line))
 				  (occur-engine-line (line-beginning-position)
 						     (line-end-position) keep-props)))))
 		        ;; Actually insert the match display data
@@ -1834,7 +1842,7 @@ See also `multi-occur'."
 		    (let ((orig-line-str
 			   (save-excursion
 			     (goto-char (point-min))
-			     (forward-line (- orig-line start-line 1))
+			     (forward-line (1- orig-line))
 			     (occur-engine-line (line-beginning-position)
 						(line-end-position) keep-props))))
 		      (add-face-text-property
@@ -1853,14 +1861,15 @@ See also `multi-occur'."
 		  (let ((beg (point))
 		        end)
 		    (insert (propertize
-			     (format "%d match%s%s%s in buffer: %s%s\n"
-				     matches (if (= matches 1) "" "es")
+			     (format "%d %s%s%s in buffer: %s%s\n"
+				     matches
+				     (ngettext "match" "matches" matches)
 				     ;; Don't display the same number of lines
 				     ;; and matches in case of 1 match per line.
 				     (if (= lines matches)
-				         "" (format " in %d line%s"
+				         "" (format " in %d %s"
 						    lines
-						    (if (= lines 1) "" "s")))
+						    (ngettext "line" "lines" lines)))
 				     ;; Don't display regexp for multi-buffer.
 				     (if (> (length buffers) 1)
 				         "" (occur-regexp-descr regexp))
@@ -1886,13 +1895,15 @@ See also `multi-occur'."
 	(goto-char (point-min))
 	(let ((beg (point))
 	      end)
-	  (insert (format "%d match%s%s total%s:\n"
-			  global-matches (if (= global-matches 1) "" "es")
+	  (insert (format "%d %s%s total%s:\n"
+			  global-matches
+			  (ngettext "match" "matches" global-matches)
 			  ;; Don't display the same number of lines
 			  ;; and matches in case of 1 match per line.
 			  (if (= global-lines global-matches)
-			      "" (format " in %d line%s"
-					 global-lines (if (= global-lines 1) "" "s")))
+			      "" (format " in %d %s"
+					 global-lines
+					 (ngettext "line" "lines" global-lines)))
 			  (occur-regexp-descr regexp)))
 	  (setq end (point))
 	  (when title-face
@@ -1907,10 +1918,8 @@ See also `multi-occur'."
       global-matches)))
 
 (defun occur-engine-line (beg end &optional keep-props)
-  (if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
-	   (text-property-not-all beg end 'fontified t))
-      (if (fboundp 'jit-lock-fontify-now)
-	  (jit-lock-fontify-now beg end)))
+  (if (and keep-props font-lock-mode)
+      (font-lock-ensure beg end))
   (if (and keep-props (not (eq occur-excluded-properties t)))
       (let ((str (buffer-substring beg end)))
 	(remove-list-of-text-properties
@@ -2729,10 +2738,10 @@ characters."
                                            (1+ num-replacements))))))
                              (when (and (eq def 'undo-all)
                                         (null (zerop num-replacements)))
-                               (message "Undid %d %s" num-replacements
-                                        (if (= num-replacements 1)
-                                            "replacement"
-                                          "replacements"))
+                               (message (ngettext "Undid %d replacement"
+                                                  "Undid %d replacements"
+                                                  num-replacements)
+                                        num-replacements)
                                (ding 'no-terminate)
                                (sit-for 1)))
 			   (setq replaced nil last-was-undo t last-was-act-and-show nil)))
@@ -2858,9 +2867,10 @@ characters."
                       last-was-act-and-show     nil))))))
       (replace-dehighlight))
     (or unread-command-events
-	(message "Replaced %d occurrence%s%s"
+	(message (ngettext "Replaced %d occurrence%s"
+			   "Replaced %d occurrences%s"
+			   replace-count)
 		 replace-count
-		 (if (= replace-count 1) "" "s")
 		 (if (> (+ skip-read-only-count
 			   skip-filtered-count
 			   skip-invisible-count)

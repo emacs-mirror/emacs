@@ -1,6 +1,6 @@
 ;;; hideif.el --- hides selected code within ifdef  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Brian Marick
 ;;	Daniel LaLiberte <liberte@holonexus.org>
@@ -672,12 +672,7 @@ that form should be displayed.")
        result))
     (nreverse result)))
 
-(defun hif-flatten (l)
-  "Flatten a tree."
-  (apply #'nconc
-         (mapcar (lambda (x) (if (listp x)
-                                 (hif-flatten x)
-                               (list x))) l)))
+(define-obsolete-function-alias 'hif-flatten #'flatten-tree "27.1")
 
 (defun hif-expand-token-list (tokens &optional macroname expand_list)
   "Perform expansion on TOKENS till everything expanded.
@@ -748,7 +743,7 @@ detecting self-reference."
 
          expanded))
 
-      (hif-flatten (nreverse expanded)))))
+      (flatten-tree (nreverse expanded)))))
 
 (defun hif-parse-exp (token-list &optional macroname)
   "Parse the TOKEN-LIST.
@@ -1166,7 +1161,7 @@ preprocessing token"
         (setq actual-parms (cdr actual-parms)))
 
       ;; Replacement completed, flatten the whole token list
-      (setq macro-body (hif-flatten macro-body))
+      (setq macro-body (flatten-tree macro-body))
 
       ;; Stringification and token concatenation happens here
       (hif-token-concatenation (hif-token-stringification macro-body)))))

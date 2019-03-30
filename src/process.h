@@ -1,5 +1,5 @@
 /* Definitions for asynchronous process control in GNU Emacs.
-   Copyright (C) 1985, 1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -300,6 +300,7 @@ extern Lisp_Object network_interface_info (Lisp_Object);
 extern Lisp_Object remove_slash_colon (Lisp_Object);
 
 extern void update_processes_for_thread_death (Lisp_Object);
+extern void dissociate_controlling_tty (void);
 
 INLINE_HEADER_END
 

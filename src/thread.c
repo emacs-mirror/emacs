@@ -1,5 +1,5 @@
 /* Threading code.
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "coding.h"
 #include "syssignal.h"
+#include "pdumper.h"
 #include "keyboard.h"
 
 union aligned_thread_state
@@ -616,7 +617,7 @@ static void
 mark_one_thread (struct thread_state *thread)
 {
   /* Get the stack top now, in case mark_specpdl changes it.  */
-  void *stack_top = thread->stack_top;
+  void const *stack_top = thread->stack_top;
 
   mark_specpdl (thread->m_specpdl, thread->m_specpdl_ptr);
 
@@ -767,9 +768,21 @@ run_thread (void *state)
   return NULL;
 }
 
+static void
+free_search_regs (struct re_registers *regs)
+{
+  if (regs->num_regs != 0)
+    {
+      xfree (regs->start);
+      xfree (regs->end);
+    }
+}
+
 void
 finalize_one_thread (struct thread_state *state)
 {
+  free_search_regs (&state->m_search_regs);
+  free_search_regs (&state->m_saved_search_regs);
   sys_cond_destroy (&state->thread_condvar);
 }
 
@@ -1064,7 +1077,7 @@ init_main_thread (void)
 }
 
 bool
-main_thread_p (void *ptr)
+main_thread_p (const void *ptr)
 {
   return ptr == &main_thread.s;
 }

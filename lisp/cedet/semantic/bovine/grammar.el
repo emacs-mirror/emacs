@@ -1,6 +1,6 @@
 ;;; semantic/bovine/grammar.el --- Bovine's input grammar mode
 ;;
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>

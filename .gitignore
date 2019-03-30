@@ -1,6 +1,6 @@
 # Files that Git should ignore in the Emacs source directory.
 
-# Copyright 2009-2018 Free Software Foundation, Inc.
+# Copyright 2009-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -171,6 +171,7 @@ lib-src/emacsclient
 lib-src/etags
 lib-src/hexl
 lib-src/make-docfile
+lib-src/make-fingerprint
 lib-src/movemail
 lib-src/profile
 lib-src/test-distrib
@@ -184,6 +185,10 @@ src/bootstrap-emacs
 src/emacs
 src/emacs-[0-9]*
 src/temacs
+src/temacs.in
+src/fingerprint.c
+src/dmpstruct.h
+src/*.pdmp
 
 # Character-set info.
 admin/charsets/jisx2131-filter
@@ -194,6 +199,7 @@ lisp/international/charscript.el
 lisp/international/cp51932.el
 lisp/international/eucjp-ms.el
 lisp/international/uni-*.el
+lisp/language/pinyin.el
 
 # Documentation.
 *.aux
@@ -256,6 +262,9 @@ ChangeLog
 
 # Built by 'make install'.
 etc/emacs.tmpdesktop
+
+# Built by 'make-dist'.
+/MANIFEST
 
 # Distribution directories.
 /emacs-[1-9]*/

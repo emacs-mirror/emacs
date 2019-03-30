@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -386,13 +386,22 @@ The position information includes POS; the total size of BUFFER; the
 region limits, if narrowed; the column number; and the horizontal
 scroll amount, if the buffer is horizontally scrolled.
 
-The character information includes the character code; charset and
-code points in it; syntax; category; how the character is encoded in
-BUFFER and in BUFFER's file; character composition information (if
-relevant); the font and font glyphs used to display the character;
-the character's canonical name and other properties defined by the
-Unicode Data Base; and widgets, buttons, overlays, and text properties
-relevant to POS."
+The character information includes:
+ its codepoint;
+ its charset (see `char-charset'), overridden by the `charset' text
+   property at POS, if any;
+ the codepoint of the character in the above charset;
+ the character's script (as defined by `char-script-table')
+ the character's syntax, as produced by `syntax-after'
+   and `internal-describe-syntax-value';
+ its category (see `char-category-set' and `describe-char-categories');
+ how to input the character using the keyboard and input methods;
+ how the character is encoded in BUFFER and in BUFFER's file;
+ the font and font glyphs used to display the character;
+ the composition information for displaying the character (if relevant);
+ the character's canonical name and other properties defined by the
+   Unicode Data Base;
+ and widgets, buttons, overlays, and text properties relevant to POS."
   (interactive "d")
   (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
   (let ((src-buf (current-buffer)))
@@ -556,7 +565,7 @@ relevant to POS."
                         (apply 'propertize char-description
                                (text-properties-at pos))
                         char char char))
-              ("preferred charset"
+              ("charset"
                ,`(insert-text-button
                   ,(symbol-name charset)
                   'type 'help-character-set 'help-args '(,charset))

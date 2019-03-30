@@ -1,6 +1,6 @@
 ;;; cus-face.el --- customization support for faces
 ;;
-;; Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces

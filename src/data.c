@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2018 Free Software
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -268,11 +268,13 @@ for example, (type-of 1) returns `integer'.  */)
           }
         case PVEC_MODULE_FUNCTION:
           return Qmodule_function;
+        case PVEC_XWIDGET:
+          return Qxwidget;
+        case PVEC_XWIDGET_VIEW:
+          return Qxwidget_view;
         /* "Impossible" cases.  */
 	case PVEC_MISC_PTR:
-        case PVEC_XWIDGET:
         case PVEC_OTHER:
-        case PVEC_XWIDGET_VIEW:
         case PVEC_SUB_CHAR_TABLE:
         case PVEC_FREE: ;
         }
@@ -824,7 +826,9 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   register Lisp_Object function;
   CHECK_SYMBOL (symbol);
   /* Perhaps not quite the right error signal, but seems good enough.  */
-  if (NILP (symbol))
+  if (NILP (symbol) && !NILP (definition))
+    /* There are so many other ways to shoot oneself in the foot, I don't
+       think this one little sanity check is worth its cost, but anyway.  */
     xsignal1 (Qsetting_constant, symbol);
 
   function = XSYMBOL (symbol)->u.s.function;
@@ -866,7 +870,7 @@ The return value is undefined.  */)
 
   {
     bool autoload = AUTOLOADP (definition);
-    if (NILP (Vpurify_flag) || !autoload)
+    if (!will_dump_p () || !autoload)
       { /* Only add autoload entries after dumping, because the ones before are
 	   not useful and else we get loads of them from the loaddefs.el.  */
 
@@ -1042,14 +1046,12 @@ chain of aliases, signal a `cyclic-variable-indirection' error.  */)
    swap_in_symval_forwarding for that.  */
 
 Lisp_Object
-do_symval_forwarding (register union Lisp_Fwd *valcontents)
+do_symval_forwarding (union Lisp_Fwd *valcontents)
 {
-  register Lisp_Object val;
   switch (XFWDTYPE (valcontents))
     {
     case Lisp_Fwd_Int:
-      XSETINT (val, *XFIXNUMFWD (valcontents)->intvar);
-      return val;
+      return make_int (*XFIXNUMFWD (valcontents)->intvar);
 
     case Lisp_Fwd_Bool:
       return (*XBOOLFWD (valcontents)->boolvar ? Qt : Qnil);
@@ -1085,7 +1087,7 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
 void
 wrong_choice (Lisp_Object choice, Lisp_Object wrong)
 {
-  ptrdiff_t i = 0, len = XFIXNUM (Flength (choice));
+  ptrdiff_t i = 0, len = list_length (choice);
   Lisp_Object obj, *args;
   AUTO_STRING (one_of, "One of ");
   AUTO_STRING (comma, ", ");
@@ -1140,8 +1142,13 @@ store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newva
   switch (XFWDTYPE (valcontents))
     {
     case Lisp_Fwd_Int:
-      CHECK_FIXNUM (newval);
-      *XFIXNUMFWD (valcontents)->intvar = XFIXNUM (newval);
+      {
+	intmax_t i;
+	CHECK_INTEGER (newval);
+	if (! integer_to_intmax (newval, &i))
+	  xsignal1 (Qoverflow_error, newval);
+	*XFIXNUMFWD (valcontents)->intvar = i;
+      }
       break;
 
     case Lisp_Fwd_Bool:
@@ -1890,7 +1897,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
 {
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
-  union Lisp_Val_Fwd valcontents;
+  union Lisp_Val_Fwd valcontents UNINIT;
   bool forwarded UNINIT;
 
   CHECK_SYMBOL (variable);
@@ -1957,7 +1964,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 {
   Lisp_Object tem;
   bool forwarded UNINIT;
-  union Lisp_Val_Fwd valcontents;
+  union Lisp_Val_Fwd valcontents UNINIT;
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
 
@@ -2022,6 +2029,16 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 	(current_buffer,
 	 Fcons (Fcons (variable, XCDR (blv->defcell)),
 		BVAR (current_buffer, local_var_alist)));
+
+      /* If the symbol forwards into a C variable, then load the binding
+         for this buffer now, to preserve the invariant that forwarded
+         variables must always hold the value corresponding to the
+         current buffer (they are swapped eagerly).
+         Otherwise, if C code modifies the variable before we load the
+         binding in, then that new value would clobber the default binding
+         the next time we unload it.  See bug#34318.  */
+      if (blv->fwd)
+        swap_in_symval_forwarding (sym, blv);
     }
 
   return variable;
@@ -2476,14 +2493,14 @@ emacs_mpz_mul (mpz_t rop, mpz_t const op1, mpz_t const op2)
 }
 
 static void
-emacs_mpz_mul_2exp (mpz_t rop, mpz_t const op1, mp_bitcnt_t op2)
+emacs_mpz_mul_2exp (mpz_t rop, mpz_t const op1, EMACS_INT op2)
 {
   /* Fudge factor derived from GMP 6.1.2, to avoid an abort in
      mpz_mul_2exp (look for the '+ 1' in its source code).  */
   enum { mul_2exp_extra_limbs = 1 };
   enum { lim = min (NLIMBS_LIMIT, GMP_NLIMBS_MAX - mul_2exp_extra_limbs) };
 
-  mp_bitcnt_t op2limbs = op2 / GMP_NUMB_BITS;
+  EMACS_INT op2limbs = op2 / GMP_NUMB_BITS;
   if (lim - emacs_mpz_size (op1) < op2limbs)
     overflow_error ();
   mpz_mul_2exp (rop, op1, op2);
@@ -2717,7 +2734,7 @@ cons_to_unsigned (Lisp_Object c, uintmax_t max)
   else
     {
       Lisp_Object hi = CONSP (c) ? XCAR (c) : c;
-      valid = integer_to_uintmax (hi, &val);
+      valid = INTEGERP (hi) && integer_to_uintmax (hi, &val);
 
       if (valid && CONSP (c))
 	{
@@ -2778,7 +2795,7 @@ cons_to_signed (Lisp_Object c, intmax_t min, intmax_t max)
   else
     {
       Lisp_Object hi = CONSP (c) ? XCAR (c) : c;
-      valid = integer_to_intmax (hi, &val);
+      valid = INTEGERP (hi) && integer_to_intmax (hi, &val);
 
       if (valid && CONSP (c))
 	{
@@ -3022,7 +3039,7 @@ arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args,
 	/* Set ACCUM to the next operation's result if it fits,
 	   else exit the loop.  */
 	bool overflow = false;
-	intmax_t a;
+	intmax_t a UNINIT;
 	switch (code)
 	  {
 	  case Aadd : overflow = INT_ADD_WRAPV (accum, next, &a); break;
@@ -3313,12 +3330,21 @@ If COUNT is negative, shifting is actually to the right.
 In this case, the sign bit is duplicated.  */)
   (Lisp_Object value, Lisp_Object count)
 {
-  /* The negative of the minimum value of COUNT that fits into a fixnum,
-     such that mpz_fdiv_q_exp supports -COUNT.  */
-  EMACS_INT minus_count_min = min (-MOST_NEGATIVE_FIXNUM,
-				   TYPE_MAXIMUM (mp_bitcnt_t));
   CHECK_INTEGER (value);
-  CHECK_RANGED_INTEGER (count, - minus_count_min, TYPE_MAXIMUM (mp_bitcnt_t));
+  CHECK_INTEGER (count);
+
+  if (! FIXNUMP (count))
+    {
+      if (EQ (value, make_fixnum (0)))
+	return value;
+      if (mpz_sgn (XBIGNUM (count)->value) < 0)
+	{
+	  EMACS_INT v = (FIXNUMP (value) ? XFIXNUM (value)
+			 : mpz_sgn (XBIGNUM (value)->value));
+	  return make_fixnum (v < 0 ? -1 : 0);
+	}
+      overflow_error ();
+    }
 
   if (XFIXNUM (count) <= 0)
     {
@@ -3337,7 +3363,11 @@ In this case, the sign bit is duplicated.  */)
 
   mpz_t *zval = bignum_integer (&mpz[0], value);
   if (XFIXNUM (count) < 0)
-    mpz_fdiv_q_2exp (mpz[0], *zval, - XFIXNUM (count));
+    {
+      if (TYPE_MAXIMUM (mp_bitcnt_t) < - XFIXNUM (count))
+	return make_fixnum (mpz_sgn (*zval) < 0 ? -1 : 0);
+      mpz_fdiv_q_2exp (mpz[0], *zval, - XFIXNUM (count));
+    }
   else
     emacs_mpz_mul_2exp (mpz[0], *zval, XFIXNUM (count));
   return make_integer_mpz ();
@@ -3998,8 +4028,8 @@ syms_of_data (void)
   DEFSYM (Qsymbol_with_pos, "symbol-with-pos");
   DEFSYM (Qoverlay, "overlay");
   DEFSYM (Qfinalizer, "finalizer");
-#ifdef HAVE_MODULES
   DEFSYM (Qmodule_function, "module-function");
+#ifdef HAVE_MODULES
   DEFSYM (Quser_ptr, "user-ptr");
 #endif
   DEFSYM (Qfloat, "float");
@@ -4022,6 +4052,8 @@ syms_of_data (void)
   DEFSYM (Qfont_entity, "font-entity");
   DEFSYM (Qfont_object, "font-object");
   DEFSYM (Qterminal, "terminal");
+  DEFSYM (Qxwidget, "xwidget");
+  DEFSYM (Qxwidget_view, "xwidget-view");
 
   DEFSYM (Qdefun, "defun");
 

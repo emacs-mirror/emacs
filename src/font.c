@@ -1,6 +1,6 @@
 /* font.c -- "Font" primitives.
 
-Copyright (C) 2006-2018 Free Software Foundation, Inc.
+Copyright (C) 2006-2019 Free Software Foundation, Inc.
 Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
   National Institute of Advanced Industrial Science and Technology (AIST)
   Registration Number H13PRO009
@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "fontset.h"
 #include "font.h"
 #include "termhooks.h"
+#include "pdumper.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -374,10 +375,10 @@ font_style_to_value (enum font_property_index prop, Lisp_Object val,
       if (! noerror)
 	return -1;
       eassert (len < 255);
-      elt = Fmake_vector (make_fixnum (2), make_fixnum (100));
+      elt = make_vector (2, make_fixnum (100));
       ASET (elt, 1, val);
       ASET (font_style_table, prop - FONT_WEIGHT_INDEX,
-	    CALLN (Fvconcat, table, Fmake_vector (make_fixnum (1), elt)));
+	    CALLN (Fvconcat, table, make_vector (1, elt)));
       return (100 << 8) | (i << 4);
     }
   else
@@ -1006,7 +1007,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
 }
 
 
-/* Parse NAME (null terminated) as XLFD and store information in FONT
+/* Parse NAME (NUL terminated) as XLFD and store information in FONT
    (font-spec or font-entity).  Size property of FONT is set as
    follows:
 	specified XLFD fields		FONT property
@@ -1352,7 +1353,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   return len < nbytes ? len : -1;
 }
 
-/* Parse NAME (null terminated) and store information in FONT
+/* Parse NAME (NUL terminated) and store information in FONT
    (font-spec or font-entity).  NAME is supplied in either the
    Fontconfig or GTK font name format.  If NAME is successfully
    parsed, return 0.  Otherwise return -1.
@@ -1724,7 +1725,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 
 #endif
 
-/* Parse NAME (null terminated) and store information in FONT
+/* Parse NAME (NUL terminated) and store information in FONT
    (font-spec or font-entity).  If NAME is successfully parsed, return
    0.  Otherwise return -1.  */
 
@@ -2035,7 +2036,7 @@ font_otf_DeviceTable (OTF_DeviceTable *device_table)
 Lisp_Object
 font_otf_ValueRecord (int value_format, OTF_ValueRecord *value_record)
 {
-  Lisp_Object val = Fmake_vector (make_fixnum (8), Qnil);
+  Lisp_Object val = make_nil_vector (8);
 
   if (value_format & OTF_XPlacement)
     ASET (val, 0, make_fixnum (value_record->XPlacement));
@@ -2059,9 +2060,7 @@ font_otf_ValueRecord (int value_format, OTF_ValueRecord *value_record)
 Lisp_Object
 font_otf_Anchor (OTF_Anchor *anchor)
 {
-  Lisp_Object val;
-
-  val = Fmake_vector (make_fixnum (anchor->AnchorFormat + 1), Qnil);
+  Lisp_Object val = make_nil_vector (anchor->AnchorFormat + 1);
   ASET (val, 0, make_fixnum (anchor->XCoordinate));
   ASET (val, 1, make_fixnum (anchor->YCoordinate));
   if (anchor->AnchorFormat == 2)
@@ -2176,13 +2175,12 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
 static Lisp_Object
 font_vconcat_entity_vectors (Lisp_Object list)
 {
-  EMACS_INT nargs = XFIXNAT (Flength (list));
+  ptrdiff_t nargs = list_length (list);
   Lisp_Object *args;
   USE_SAFE_ALLOCA;
   SAFE_ALLOCA_LISP (args, nargs);
-  ptrdiff_t i;
 
-  for (i = 0; i < nargs; i++, list = XCDR (list))
+  for (ptrdiff_t i = 0; i < nargs; i++, list = XCDR (list))
     args[i] = XCAR (list);
   Lisp_Object result = Fvconcat (nargs, args);
   SAFE_FREE ();
@@ -2783,7 +2781,7 @@ font_list_entities (struct frame *f, Lisp_Object spec)
 	  {
 	    Lisp_Object copy;
 
-	    val = driver_list->driver->list (f, scratch_font_spec);
+	    val = (driver_list->driver->list) (f, scratch_font_spec);
 	    /* We put zero_vector in the font-cache to indicate that
 	       no fonts matching SPEC were found on the system.
 	       Failure to have this indication in the font cache can
@@ -3243,7 +3241,7 @@ font_find_for_lface (struct frame *f, Lisp_Object *attrs, Lisp_Object spec, int 
 
       if (! NILP (alters))
 	{
-	  EMACS_INT alterslen = XFIXNAT (Flength (alters));
+	  EMACS_INT alterslen = list_length (alters);
 	  SAFE_ALLOCA_LISP (family, alterslen + 2);
 	  for (i = 0; CONSP (alters); i++, alters = XCDR (alters))
 	    family[i] = XCAR (alters);
@@ -5170,14 +5168,13 @@ If the named font is not yet loaded, return nil.  */)
 static Lisp_Object
 build_style_table (const struct table_entry *entry, int nelement)
 {
-  int i, j;
-  Lisp_Object table, elt;
-
-  table = make_uninit_vector (nelement);
-  for (i = 0; i < nelement; i++)
+  Lisp_Object table = make_uninit_vector (nelement);
+  for (int i = 0; i < nelement; i++)
     {
-      for (j = 0; entry[i].names[j]; j++);
-      elt = Fmake_vector (make_fixnum (j + 1), Qnil);
+      int j;
+      for (j = 0; entry[i].names[j]; j++)
+	continue;
+      Lisp_Object elt = make_nil_vector (j + 1);
       ASET (elt, 0, make_fixnum (entry[i].numeric));
       for (j = 0; entry[i].names[j]; j++)
 	ASET (elt, j + 1, intern_c_string (entry[i].names[j]));
@@ -5313,9 +5310,10 @@ syms_of_font (void)
   sort_shift_bits[FONT_SIZE_INDEX] = 16;
   sort_shift_bits[FONT_WIDTH_INDEX] = 23;
   /* Note that the other elements in sort_shift_bits are not used.  */
+  PDUMPER_REMEMBER_SCALAR (sort_shift_bits);
 
-  staticpro (&font_charset_alist);
   font_charset_alist = Qnil;
+  staticpro (&font_charset_alist);
 
   DEFSYM (Qopentype, "opentype");
 
@@ -5353,13 +5351,13 @@ syms_of_font (void)
 
   DEFSYM (QCuser_spec, ":user-spec");
 
-  staticpro (&scratch_font_spec);
   scratch_font_spec = Ffont_spec (0, NULL);
-  staticpro (&scratch_font_prefer);
+  staticpro (&scratch_font_spec);
   scratch_font_prefer = Ffont_spec (0, NULL);
+  staticpro (&scratch_font_prefer);
 
+  Vfont_log_deferred = make_nil_vector (3);
   staticpro (&Vfont_log_deferred);
-  Vfont_log_deferred = Fmake_vector (make_fixnum (3), Qnil);
 
 #if 0
 #ifdef HAVE_LIBOTF

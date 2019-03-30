@@ -1,6 +1,6 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail...>
@@ -4351,7 +4351,7 @@ subtopics into siblings of the item."
             (let ((children-chart (allout-chart-subtree 1)))
               (if (listp (car children-chart))
                   ;; whoops:
-                  (setq children-chart (allout-flatten children-chart)))
+                  (setq children-chart (flatten-tree children-chart)))
               (save-excursion
                 (dolist (child-point children-chart)
                   (goto-char child-point)
@@ -5788,7 +5788,7 @@ BULLET string, and a list of TEXT strings for the body."
 					; "\end{verbatim}" in text,
 					; it's special:
 	(if (and body-content
-		 (setq bop (string-match "\\end{verbatim}" curr-line)))
+		 (setq bop (string-match "\\\\end{verbatim}" curr-line)))
 	    (setq curr-line (concat (substring curr-line 0 bop)
 				    ">"
 				    (substring curr-line bop))))
@@ -6547,14 +6547,7 @@ If BEG is bigger than END we return 0."
   (apply 'concat
          (mapcar (lambda (char) (if (= char ?%) "%%" (char-to-string char)))
                  string)))
-;;;_  : lists
-;;;_   > allout-flatten (list)
-(defun allout-flatten (list)
-  "Return a list of all atoms in list."
-  ;; classic.
-  (cond ((null list) nil)
-        ((atom (car list)) (cons (car list) (allout-flatten (cdr list))))
-        (t (append (allout-flatten (car list)) (allout-flatten (cdr list))))))
+(define-obsolete-function-alias 'allout-flatten #'flatten-tree "27.1")
 ;;;_  : Compatibility:
 ;;;_   : xemacs undo-in-progress provision:
 (unless (boundp 'undo-in-progress)

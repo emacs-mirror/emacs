@@ -1,6 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: Stefan Merten <stefan at merten-home dot de>
 ;; Author: Stefan Merten <stefan at merten-home dot de>,
@@ -225,7 +225,7 @@ and before TAIL-RE and DELIM-RE in VAR or DEFAULT for no match."
   "The SVN revision of this file.
 SVN revision is the upstream (docutils) revision.")
 (defconst rst-svn-timestamp
-  (rst-extract-version "\\$" "LastChangedDate: " ".+?+" " "
+  (rst-extract-version "\\$" "LastChangedDate: " ".+" " "
 		       "$LastChangedDate: 2017-01-08 10:54:35 +0100 (Sun, 08 Jan 2017) $")
   "The SVN time stamp of this file.")
 

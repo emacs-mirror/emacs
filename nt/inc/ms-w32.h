@@ -1,6 +1,6 @@
 /* System description file for Windows NT.
 
-Copyright (C) 1993-1995, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -311,7 +311,7 @@ extern int execve (const char *, char * const *, char * const *);
 #else
 extern intptr_t execve (const char *, char * const *, char * const *);
 #endif
-#define fdatasync _commit
+#define tcdrain _commit
 #define fdopen	  _fdopen
 #define fsync	  _commit
 #define ftruncate _chsize

@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -971,7 +971,7 @@ contained in UNIVERSE."
                       test
                       (ert-test-most-recent-result test))))
                 universe))
-    (:unexpected (ert-select-tests `(not :expected) universe))
+    (:unexpected (ert-select-tests '(not :expected) universe))
     ((pred stringp)
      (pcase-exhaustive universe
        (`t (mapcar #'ert-get-test
@@ -1563,7 +1563,8 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
       (message "-------")
       (with-temp-buffer
         (dolist (x (list (list skipped "skipped" "SKIPPED")
-                         (list unexpected "unexpected" "FAILED")))
+                         (list unexpected "unexpected"
+                               "\\(?:FAILED\\|PASSED\\)")))
           (mapc (lambda (l)
                   (erase-buffer)
                   (insert-file-contents l)
@@ -1821,13 +1822,13 @@ determines how frequently the progress display is updated.")
   (force-mode-line-update)
   (redisplay t)
   (setf (ert--stats-next-redisplay stats)
-        (+ (float-time) ert-test-run-redisplay-interval-secs)))
+	(float-time (time-add nil ert-test-run-redisplay-interval-secs))))
 
 (defun ert--results-update-stats-display-maybe (ewoc stats)
   "Call `ert--results-update-stats-display' if not called recently.
 
 EWOC and STATS are arguments for `ert--results-update-stats-display'."
-  (when (>= (float-time) (ert--stats-next-redisplay stats))
+  (unless (time-less-p nil (ert--stats-next-redisplay stats))
     (ert--results-update-stats-display ewoc stats)))
 
 (defun ert--tests-running-mode-line-indicator ()

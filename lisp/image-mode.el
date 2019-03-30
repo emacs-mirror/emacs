@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -53,7 +53,7 @@ See `image-mode-winprops'.")
 It is called with one argument, the initial WINPROPS.")
 
 ;; FIXME this doesn't seem mature yet. Document in manual when it is.
-(defvar image-transform-resize nil
+(defvar-local image-transform-resize nil
   "The image resize operation.
 Its value should be one of the following:
  - nil, meaning no resizing.
@@ -61,10 +61,10 @@ Its value should be one of the following:
  - `fit-width', meaning to fit the image to the window width.
  - A number, which is a scale factor (the default size is 1).")
 
-(defvar image-transform-scale 1.0
+(defvar-local image-transform-scale 1.0
   "The scale factor of the image being displayed.")
 
-(defvar image-transform-rotation 0.0
+(defvar-local image-transform-rotation 0.0
   "Rotation angle for the image in the current Image mode buffer.")
 
 (defvar image-transform-right-angle-fudge 0.0001
@@ -741,9 +741,11 @@ was inserted."
 	 (type (if (image--imagemagick-wanted-p filename)
 		   'imagemagick
 		 (image-type file-or-data nil data-p)))
+         ;; :scale 1: If we do not set this, create-image will apply
+         ;; default scaling based on font size.
 	 (image (if (not edges)
-		    (create-image file-or-data type data-p)
-		  (create-image file-or-data type data-p
+		    (create-image file-or-data type data-p :scale 1)
+		  (create-image file-or-data type data-p :scale 1
 				:max-width (- (nth 2 edges) (nth 0 edges))
 				:max-height (- (nth 3 edges) (nth 1 edges)))))
 	 (inhibit-read-only t)
@@ -786,7 +788,7 @@ was inserted."
 (defun image--imagemagick-wanted-p (filename)
   (and (fboundp 'imagemagick-types)
        (not (eq imagemagick-types-inhibit t))
-       (not (and (file-name-extension filename)
+       (not (and filename (file-name-extension filename)
                  (memq (intern (upcase (file-name-extension filename)) obarray)
                        imagemagick-types-inhibit)))))
 

@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -256,7 +256,10 @@ Can be set directly via `kmacro-set-format', which see.")
 (defun kmacro-insert-counter (arg)
   "Insert current value of `kmacro-counter', then increment it by ARG.
 Interactively, ARG defaults to 1.  With \\[universal-argument], insert
-current value of `kmacro-counter', but do not increment it."
+the previous value of `kmacro-counter', and do not increment the
+current value.
+The previous value of the counter is the one it had before
+the last increment."
   (interactive "P")
   (if kmacro-initial-counter-value
       (setq kmacro-counter kmacro-initial-counter-value
@@ -685,9 +688,10 @@ the current value of `kmacro-counter').
 
 When used during defining/executing a macro, inserts the current value
 of `kmacro-counter' and increments the counter value by ARG (or by 1 if no
-prefix argument).  With just \\[universal-argument], inserts the current value
-of `kmacro-counter', but does not modify the counter; this is the
-same as incrementing the counter by zero.
+prefix argument).  With just \\[universal-argument], inserts the previous
+value of `kmacro-counter', and does not modify the counter; this is
+different from incrementing the counter by zero.  (The previous value
+of the counter is the one it had before the last increment.)
 
 The macro counter can be set directly via \\[kmacro-set-counter] and \\[kmacro-add-counter].
 The format of the inserted value of the counter can be controlled

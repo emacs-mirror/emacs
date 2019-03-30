@@ -1,6 +1,6 @@
 ;;; color-tests.el --- Tests for color.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:

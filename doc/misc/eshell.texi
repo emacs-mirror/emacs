@@ -10,7 +10,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -213,8 +213,8 @@ available in the Emacs Lisp library.  It does this by transforming the
 input line into a callable Lisp form.@footnote{To see the Lisp form that will be invoked, type: @samp{eshell-parse-command "echo hello"}}
 
 The command can be either an Elisp function or an external command.
-Eshell looks first for an @ref{Aliases, alias} with the same name as the
-command, then a @ref{Built-ins, built-in command} or a function with the
+Eshell looks first for an alias (@pxref{Aliases}) with the same name as the
+command, then a built-in (@pxref{Built-ins}) or a function with the
 same name; if there is no match, it then tries to execute it as an
 external command.
 
@@ -253,7 +253,7 @@ eshell/ls is a compiled Lisp function in `em-ls.el'
 @end example
 
 If you want to discard a given built-in command, you could declare an
-alias, @ref{Aliases}.  Example:
+alias (@pxref{Aliases}).  Example:
 
 @example
 ~ $ which sudo
@@ -280,8 +280,7 @@ with no arguments, prints the current paths in this variable.
 
 @item alias
 @cmindex alias
-Define an alias (@pxref{Aliases}).  This does not add it to the aliases
-file.
+Define an alias (@pxref{Aliases}).  This adds it to the aliases file.
 
 @item clear
 @cmindex clear
@@ -419,7 +418,7 @@ Lisp functions, based on successful completion).
 
 @end table
 
-@ref{Aliases} for the built-in variables @samp{$*}, @samp{$1},
+@xref{Aliases}, for the built-in variables @samp{$*}, @samp{$1},
 @samp{$2}, @dots{}, in alias definitions.
 
 @node Variables
@@ -500,15 +499,14 @@ be directories @emph{and} files.  Eshell provides predefined completions
 for the built-in functions and some common external commands, and you
 can define your own for any command.
 
-Eshell completion also works for lisp forms and glob patterns. If the
-point is on a lisp form, then @key{TAB} will behave similarly to completion
-in @code{elisp-mode} and @code{lisp-interaction-mode}.  For glob
-patterns, If there are few enough possible completions of the patterns,
-they will be cycled when @key{TAB} is pressed, otherwise it will be removed
-from the input line and the possible completions will be listed.
+Eshell completion also works for lisp forms and glob patterns. If the point is
+on a lisp form, then @key{TAB} will behave similarly to completion in
+@code{elisp-mode} and @code{lisp-interaction-mode}.  For glob patterns, the
+pattern will be removed from the input line, and replaced by the
+completion.
 
-If you want to see the entire list of possible completions when it's
-below the cycling threshold, press @kbd{M-?}.
+If you want to see the entire list of possible completions (e.g. when it's
+below the @code{completion-cycle-threshold}), press @kbd{M-?}.
 
 @subsection pcomplete
 Pcomplete, short for programmable completion, is the completion
@@ -630,8 +628,8 @@ to @code{"hello"}.
 Eshell's globbing syntax is very similar to that of Zsh.  Users coming
 from Bash can still use Bash-style globbing, as there are no
 incompatibilities.  Most globbing is pattern-based expansion, but there
-is also predicate-based expansion.  See
-@ref{Filename Generation, , , zsh, The Z Shell Manual}
+is also predicate-based expansion.  @xref{Filename Generation, , ,
+zsh, The Z Shell Manual},
 for full syntax.  To customize the syntax and behavior of globbing in
 Eshell see the Customize@footnote{@xref{Easy Customization, , , emacs,
 The GNU Emacs Manual}.}

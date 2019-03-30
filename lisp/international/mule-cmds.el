@@ -1,6 +1,6 @@
 ;;; mule-cmds.el --- commands for multilingual environment  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1330,7 +1330,7 @@ This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
   :link  '(custom-manual "(emacs)Input Methods")
   :group 'mule
-  :type `(choice (const nil)
+  :type '(choice (const nil)
                  mule-input-method-string)
   :set-after '(current-language-environment))
 
@@ -1943,7 +1943,7 @@ See `set-language-info-alist' for use in programs."
 	     (set-language-info-alist (car elt) (cdr elt)))
 	   ;; re-set the environment in case its parameters changed
 	   (set-language-environment current-language-environment)))
-  :type `(alist
+  :type '(alist
 	  :key-type (string :tag "Language environment"
 			    :completions
                             (lambda (string pred action)
@@ -2181,22 +2181,27 @@ See `set-language-info-alist' for use in programs."
 (defconst locale-language-names
   (purecopy
    '(
-    ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
-    ;; as specified in the Single Unix Spec, Version 2.
-    ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
-    ;; with additions from ISO 639/RA Newsletter No.1/1989;
-    ;; see Internet RFC 2165 (1997-06) and
-    ;; http://www.evertype.com/standards/iso639/iso639-en.html
-    ;; TERRITORY is a country code taken from ISO 3166
-    ;; http://www.din.de/gremien/nas/nabd/iso3166ma/codlstp1/en_listp1.html.
-    ;; CODESET and MODIFIER are implementation-dependent.
+     ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
+     ;; as specified in the Single Unix Spec, Version 2.
+     ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
+     ;; with additions from ISO 639/RA Newsletter No.1/1989;
+     ;; see Internet RFC 2165 (1997-06) and
+     ;; http://www.evertype.com/standards/iso639/iso639-en.html
+     ;; TERRITORY is a country code taken from ISO 3166
+     ;; http://www.din.de/gremien/nas/nabd/iso3166ma/codlstp1/en_listp1.html.
+     ;; CODESET and MODIFIER are implementation-dependent.
+
+     ;; Language names for which there are no locales (yet) are
+     ;; commented out.
 
      ;; jasonr comments: MS Windows uses three letter codes for
      ;; languages instead of the two letter ISO codes that POSIX
-     ;; uses. In most cases the first two letters are the same, so
-     ;; most of the regexps in locale-language-names work. Japanese
-     ;; and Chinese are exceptions, which are listed in the
-     ;; non-standard section at the bottom of locale-language-names.
+     ;; uses.  In most cases the first two letters are the same, so
+     ;; most of the regexps in locale-language-names work.  Japanese,
+     ;; Chinese, and some others are exceptions, which are listed in the
+     ;; non-standard section at the bottom of locale-language-names, or
+     ;; in the main section, if otherwise we would pick up the wrong
+     ;; entry (because the first matching entry is used).
 
     ("aa_DJ" . "Latin-1") ; Afar
     ("aa" . "UTF-8")
@@ -2204,11 +2209,12 @@ See `set-language-info-alist' for use in programs."
     ("af" . "Latin-1") ; Afrikaans
     ("am" "Ethiopic" utf-8) ; Amharic
     ("an" . "Latin-9") ; Aragonese
+    ("arn" . "UTF-8") ; MS-Windows Mapudungun, Mapuche
     ("ar" . "Arabic")
-    ; as Assamese
+    ("as" . "UTF-8") ; Assamese
     ; ay Aymara
     ("az" . "UTF-8") ; Azerbaijani
-    ; ba Bashkir
+    ("ba" . "UTF-8") ; Bashkir, Cyrillic script
     ("be" "Belarusian" cp1251) ; Belarusian [Byelorussian until early 1990s]
     ("bg" "Bulgarian" cp1251) ; Bulgarian
     ; bh Bihari
@@ -2219,12 +2225,12 @@ See `set-language-info-alist' for use in programs."
     ("bs" . "Latin-2") ; Bosnian
     ("byn" . "UTF-8")  ; Bilin; Blin
     ("ca" "Catalan" iso-8859-1) ; Catalan
-    ; co Corsican
+    ("co" . "UTF-8") ; Corsican
     ("cs" "Czech" iso-8859-2)
     ("cy" "Welsh" iso-8859-14)
     ("da" . "Latin-1") ; Danish
     ("de" "German" iso-8859-1)
-    ; dv Divehi
+    ("dv" . "UTF-8") ; Divehi
     ; dz Bhutani
     ("ee" . "Latin-4") ; Ewe
     ("el" "Greek" iso-8859-7)
@@ -2238,6 +2244,8 @@ See `set-language-info-alist' for use in programs."
     ("et" . "Latin-9") ; Estonian
     ("eu" . "Latin-1") ; Basque
     ("fa" "Persian" utf-8) ; Persian
+    ("fil" . "UTF-8") ; Filipino
+    ("fpo" . "UTF-8") ; MS-Windows Filipino
     ("fi" . "Latin-9") ; Finnish
     ("fj" . "Latin-1") ; Fiji
     ("fo" . "Latin-1") ; Faroese
@@ -2246,6 +2254,7 @@ See `set-language-info-alist' for use in programs."
     ("ga" . "Latin-1") ; Irish Gaelic (new orthography)
     ("gd" . "Latin-9") ; Scots Gaelic
     ("gez" "Ethiopic" utf-8) ; Geez
+    ("gla" . "Latin-9") ; MS-Windows Scots Gaelic
     ("gl" . "Latin-1") ; Gallegan; Galician
     ; gn Guarani
     ("gu" "Gujarati" utf-8) ; Gujarati
@@ -2256,27 +2265,33 @@ See `set-language-info-alist' for use in programs."
     ("hni_IN" . "UTF-8") ; Chhattisgarhi
     ("hr" "Croatian" iso-8859-2) ; Croatian
     ("hu" . "Latin-2") ; Hungarian
-    ; hy Armenian
+    ("hy" . "UTF-8") ;  Armenian
     ; ia Interlingua
     ("id" . "Latin-1") ; Indonesian
     ; ie Interlingue
-    ; ik Inupiak
+    ("ig" . "UTF-8") ; Igbo (Nigeria)
+    ("ibo" . "UTF-8") ; MS-Windows Igbo
+    ; ik Inupiak, Inupiaq
     ("is" . "Latin-1") ; Icelandic
     ("it" "Italian" iso-8859-1) ; Italian
     ; iu Inuktitut
     ("iw" "Hebrew" iso-8859-8)
     ("ja" "Japanese" euc-jp)
     ; jw Javanese
+    ("kal" . "Latin-1") ; MS-Windows Greenlandic
     ("ka" "Georgian" georgian-ps) ; Georgian
-    ; kk Kazakh
+    ("kk" . "UTF-8") ; Kazakh
     ("kl" . "Latin-1") ; Greenlandic
     ("km" "Khmer" utf-8) ; Cambodian, Khmer
+    ("knk" "Devanagari" utf-8) ; MS-Windows Konkani
+    ("kok" "Devanagari" utf-8) ; Konkani
     ("kn" "Kannada" utf-8)
     ("ko" "Korean" euc-kr)
     ("ks" . "UTF-8") ; Kashmiri
     ; ku Kurdish
     ("kw" . "Latin-1") ; Cornish
     ("ky" . "UTF-8") ; Kirghiz
+    ("lao" "Lao" utf-8) ; MS-Windows Lao
     ("la" . "Latin-1") ; Latin
     ("lb" . "Latin-1") ; Luxemburgish
     ("lg" . "Latin-6") ; Ganda, a.k.a. Luganda
@@ -2287,18 +2302,22 @@ See `set-language-info-alist' for use in programs."
     ; mg Malagasy
     ("mi" . "Latin-7") ; Maori
     ("mk" "Cyrillic-ISO" iso-8859-5) ; Macedonian
+    ("mlt" . "Latin-3") ; MS-Windows Maltese
     ("ml" "Malayalam" utf-8)
     ("mn" . "UTF-8") ; Mongolian
-    ; mo Moldavian
+    ; mo Moldavian (retired)
+    ("mri" . "Latin-7") ; MS-Windows Maori
     ("mr" "Devanagari" utf-8) ; Marathi
     ("ms" . "Latin-1") ; Malay
     ("mt" . "Latin-3") ; Maltese
+    ("mym" "Malayalam" utf-8) ; MS-Windows Malayalam
     ("my" "Burmese" utf-8) ; Burmese
     ; na Nauru
     ("nb" . "Latin-1") ; Norwegian
     ("ne" "Devanagari" utf-8) ; Nepali
     ("nl" "Dutch" iso-8859-1)
     ("nn" . "Latin-1") ; Norwegian Nynorsk
+    ("non" . "Latin-1") ; MS-Windows Norwegian Nynorsk
     ("no" . "Latin-1") ; Norwegian
     ("nr_ZA" . "UTF-8") ; South Ndebele
     ("nso_ZA" . "UTF-8") ; Pedi
@@ -2308,7 +2327,8 @@ See `set-language-info-alist' for use in programs."
     ("or" "Oriya" utf-8)
     ("pa" "Punjabi" utf-8) ; Punjabi
     ("pl" "Polish" iso-8859-2) ; Polish
-    ; ps Pashto, Pushto
+    ("ps" . "UTF-8") ; Pashto, Pushto
+    ("pas" . "UTF-8") ; MS-Windows Pashto
     ("pt_BR" "Brazilian Portuguese" iso-8859-1) ; Brazilian Portuguese
     ("pt" . "Latin-1") ; Portuguese
     ; qu Quechua
@@ -2318,7 +2338,7 @@ See `set-language-info-alist' for use in programs."
     ("ru_RU.koi8r" "Cyrillic-KOI8" koi8-r)
     ("ru_RU" "Russian" iso-8859-5)
     ("ru_UA" "Russian" koi8-u)
-    ; rw Kinyarwanda
+    ("rw" . "UTF-8") ; Kinyarwanda
     ("sa" . "Devanagari") ; Sanskrit
     ; sd Sindhi
     ("se" . "UTF-8") ; Northern Sami
@@ -2339,6 +2359,7 @@ See `set-language-info-alist' for use in programs."
     ; su Sundanese
     ("sv" "Swedish" iso-8859-1)		; Swedish
     ("sw" . "Latin-1") ; Swahili
+    ("taj" "Tajik" koi8-t) ; MS-Windows Tajik w/Cyrillic script
     ("ta" "Tamil" utf-8)
     ("te" "Telugu" utf-8) ; Telugu
     ("tg" "Tajik" koi8-t)
@@ -2348,15 +2369,17 @@ See `set-language-info-alist' for use in programs."
     ("th" "Thai" iso-8859-11)
     ("ti" "Ethiopic" utf-8) ; Tigrinya
     ("tig_ER" . "UTF-8") ; Tigre
-    ; tk Turkmen
+    ("tk" . "Latin-5") ; Turkmen
+    ("tuk" . "Latin-5") ; MS-Windows Turkmen
     ("tl" . "Latin-1") ; Tagalog
     ("tn" . "Latin-9") ; Setswana, Tswana
     ; to Tonga
     ("tr" "Turkish" iso-8859-9)
+    ("tsn" . "Latin-9") ; MS-Windows Tswana
     ("ts" . "Latin-1") ; Tsonga
     ("tt" . "UTF-8") ; Tatar
     ; tw Twi
-    ; ug Uighur
+    ("ug" . "UTF-8") ; Uighur
     ("uk" "Ukrainian" koi8-u)
     ("ur" . "UTF-8") ; Urdu
     ("uz_UZ@cyrillic" . "UTF-8"); Uzbek
@@ -2365,10 +2388,10 @@ See `set-language-info-alist' for use in programs."
     ("vi" "Vietnamese" utf-8)
     ; vo Volapuk
     ("wa" . "Latin-1") ; Walloon
-    ; wo Wolof
+    ("wo" . "UTF-8") ; Wolof
     ("xh" . "Latin-1") ; Xhosa
     ("yi" . "Windows-1255") ; Yiddish
-    ; yo Yoruba
+    ("yo" . "UTF-8") ; Yoruba
     ; za Zhuang
     ("zh_HK" . "Chinese-Big5")
     ; zh_HK/BIG5-HKSCS \
@@ -2378,6 +2401,9 @@ See `set-language-info-alist' for use in programs."
     ("zh_CN.GB18030" "Chinese-GB18030")
     ("zh_CN.UTF-8" . "Chinese-GBK")
     ("zh_CN" . "Chinese-GB")
+    ("zhh" . "Chinese-Big5") ; MS-Windows Chinese (Hong Kong S.A.R.)
+    ("zhi" . "Chinese-GBK") ; MS-Windows Chinese (Singapore)
+    ("zhm" . "Chinese-Big5") ; MS-Windows Chinese (Macao S.A.R.)
     ("zh" . "Chinese-GB")
     ("zu" . "Latin-1") ; Zulu
 
@@ -2395,12 +2421,23 @@ See `set-language-info-alist' for use in programs."
     ("sp" . "Cyrillic-ISO") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
     ("jp" . "Japanese") ; e.g. MS Windows
-    ("chs" . "Chinese-GBK") ; MS Windows Chinese Simplified
-    ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional
+    ("chs" . "Chinese-GBK") ; MS Windows Chinese Simplified (PRC)
+    ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional (Taiwan)
     ("gbz" . "UTF-8") ; MS Windows Dari Persian
     ("div" . "UTF-8") ; MS Windows Divehi (Maldives)
     ("wee" . "Latin-2") ; MS Windows Lower Sorbian
     ("wen" . "Latin-2") ; MS Windows Upper Sorbian
+    ("ind" . "Latin-1") ; MS-Windows Indonesian
+    ("sme" . "UTF-8") ; MS-Windows Northern Sami (Norway)
+    ("smf" . "UTF-8") ; MS-Windows Northern Sami (Sweden)
+    ("smg" . "UTF-8") ; MS-Windows Northern Sami (Finland)
+    ("kdi" "Kannada" utf-8) ; MS-Windows Kannada
+    ("mar" "Devanagari" utf-8) ; MS-Windows Marathi
+    ("khm" "Khmer" utf-8) ; MS-Windows Khmer
+    ("iri" . "Latin-1") ; MS-Windows Irish Gaelic
+    ; mwk  MS-Windows Mohawk (Canada)
+    ("uig" . "UTF-8") ; MS-Windows Uighur
+    ("kin" . "UTF-8") ;  MS-Windows Kinyarwanda
     ))
   "Alist of locale regexps vs the corresponding languages and coding systems.
 Each element has this form:
@@ -2702,10 +2739,20 @@ See also `locale-charset-language-names', `locale-language-names',
              (output-coding
               (if noninteractive
                   (intern (format "cp%d" (w32-get-console-output-codepage)))
-                code-page-coding)))
-	(when (coding-system-p code-page-coding)
+                code-page-coding))
+             (multibyte-code-page-coding
+              (or (and (boundp 'w32-multibyte-code-page)
+                       (not (zerop w32-multibyte-code-page))
+                       (intern (format "cp%d" w32-multibyte-code-page)))
+                  code-page-coding))
+             (locale-coding
+              (if noninteractive
+                  code-page-coding
+                multibyte-code-page-coding)))
+	(when (and (coding-system-p code-page-coding)
+                   (coding-system-p locale-coding))
           (or output-coding (setq output-coding code-page-coding))
-	  (unless frame (setq locale-coding-system code-page-coding))
+	  (unless frame (setq locale-coding-system locale-coding))
 	  (set-keyboard-coding-system code-page-coding frame)
 	  (set-terminal-coding-system output-coding frame)
 	  (setq default-file-name-coding-system ansi-code-page-coding))))
@@ -2727,7 +2774,6 @@ See also `locale-charset-language-names', `locale-language-names',
       (let ((paper (locale-info 'paper))
             locale)
 	(if paper
-	    ;; This will always be null at the time of writing.
 	    (cond
 	     ((equal paper '(216 279))
 	      (setq ps-paper-type 'letter))
@@ -2930,12 +2976,13 @@ on encoding."
                (#x14400 . #x14646)
 	       ;; (#x14647 . #x167FF) unused
 	       (#x16800 . #x16F9F)
-               (#x16FE0 . #x16FE0)
+               (#x16FE0 . #x16FE3)
                ;; (#x17000 . #x187FF) Tangut Ideographs
                ;; (#x18800 . #x18AFF) Tangut Components
 	       ;; (#x18B00 . #x1AFFF) unused
-	       (#x1B000 . #x1B12F)
-               ;; (#x1B130 . #x1B16F) unused
+	       (#x1B000 . #x1B11F)
+               ;; (#x1B120 . #x1B14F) unused
+               (#x1B150 . #x1B16F)
                (#x1B170 . #x1B2FF)
 	       ;; (#x1B300 . #x1BBFF) unused
                (#x1BC00 . #x1BCAF)

@@ -1,6 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -98,7 +98,7 @@ A value of t means there is no limit--fontify regardless of the size."
 
 (defvar goto-address-mail-regexp
   ;; Actually pretty much any char could appear in the username part.  -stef
-  "[-a-zA-Z0-9=._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
+  "[-a-zA-Z0-9=._+]+@\\([-a-zA-Z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
 (defvar goto-address-url-regexp
@@ -246,7 +246,7 @@ there, then load the URL at or before point."
   "Find e-mail address around or before point.
 Then search backwards to beginning of line for the start of an e-mail
 address.  If no e-mail address found, return nil."
-  (re-search-backward "[^-_A-z0-9.@]" (line-beginning-position) 'lim)
+  (re-search-backward "[^-_A-Za-z0-9.@]" (line-beginning-position) 'lim)
   (if (or (looking-at goto-address-mail-regexp)	; already at start
 	  (and (re-search-forward goto-address-mail-regexp
 				  (line-end-position) 'lim)

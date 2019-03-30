@@ -1,6 +1,6 @@
 ;;; zeroconf.el --- Service browser using Avahi.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -528,22 +528,27 @@ DOMAIN is nil, the local domain is used."
 	     zeroconf-avahi-current-domain
 	     zeroconf-avahi-flags-unspec))))
 
+(defvar zeroconf-service-type-browser-handler-running nil
+  "Prevent infinite recursion in `zeroconf-service-type-browser-handler'.")
+
 (defun zeroconf-service-type-browser-handler (&rest val)
   "Registered service type browser handler at the Avahi daemon."
-  (when zeroconf-debug
-    (message "zeroconf-service-type-browser-handler: %s %S"
-	     (dbus-event-member-name last-input-event) val))
-  (cond
-   ((string-equal (dbus-event-member-name last-input-event) "ItemNew")
-    ;; Parameters: (interface protocol type domain flags)
-    ;; Register a service browser.
-    (let ((object-path (zeroconf-register-service-browser (nth 2 val))))
-      ;; Register the signals.
-      (dolist (member '("ItemNew" "ItemRemove" "Failure"))
-	(dbus-register-signal
-	 :system zeroconf-service-avahi object-path
-	 zeroconf-interface-avahi-service-browser member
-	 'zeroconf-service-browser-handler))))))
+  (unless zeroconf-service-type-browser-handler-running
+    (let ((zeroconf-service-type-browser-handler-running t))
+      (when zeroconf-debug
+        (message "zeroconf-service-type-browser-handler: %s %S"
+	         (dbus-event-member-name last-input-event) val))
+      (cond
+       ((string-equal (dbus-event-member-name last-input-event) "ItemNew")
+        ;; Parameters: (interface protocol type domain flags)
+        ;; Register a service browser.
+        (let ((object-path (zeroconf-register-service-browser (nth 2 val))))
+          ;; Register the signals.
+          (dolist (member '("ItemNew" "ItemRemove" "Failure"))
+	    (dbus-register-signal
+	     :system zeroconf-service-avahi object-path
+	     zeroconf-interface-avahi-service-browser member
+	     'zeroconf-service-browser-handler))))))))
 
 (defun zeroconf-register-service-browser (type)
   "Register a service browser at the Avahi daemon."

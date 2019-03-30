@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Minibuffers
@@ -1108,11 +1108,11 @@ different function to completely override the normal behavior of
 in the minibuffer to do completion.
 
 @defvar minibuffer-completion-table
-The value of this variable is the completion table used for completion
-in the minibuffer.  This is the global variable that contains what
-@code{completing-read} passes to @code{try-completion}.  It is used by
-minibuffer completion commands such as
-@code{minibuffer-complete-word}.
+The value of this variable is the completion table (@pxref{Basic
+Completion}) used for completion in the minibuffer.  This is the
+global variable that contains what @code{completing-read} passes to
+@code{try-completion}.  It is used by minibuffer completion commands
+such as @code{minibuffer-complete-word}.
 @end defvar
 
 @defvar minibuffer-completion-predicate
@@ -1770,7 +1770,8 @@ possible match, and ignore the match if the predicate returns
 @code{nil}.
 
 @item
-A flag specifying the type of completion operation to perform.  This
+A flag specifying the type of completion operation to perform; see
+@ref{Basic Completion}, for the details of those operations.  This
 flag may be one of the following values.
 
 @table @code
@@ -1841,17 +1842,26 @@ the same as for @code{display-sort-function}.
 
 @defun completion-table-dynamic function &optional switch-buffer
 This function is a convenient way to write a function that can act as
-a programmed completion function.  The argument @var{function} should be
-a function that takes one argument, a string, and returns an alist of
-possible completions of it.  It is allowed to ignore the argument and
-return a full list of all possible completions.  You can think of
-@code{completion-table-dynamic} as a transducer between that interface
+a programmed completion function.  The argument @var{function} should
+be a function that takes one argument, a string, and returns a
+completion table (@pxref{Basic Completion}) containing all the
+possible completions.  The table returned by @var{function} can also
+include elements that don't match the string argument; they are
+automatically filtered out by @code{completion-table-dynamic}.  In
+particular, @var{function} can ignore its argument and return a full
+list of all possible completions.  You can think of
+@code{completion-table-dynamic} as a transducer between @var{function}
 and the interface for programmed completion functions.
 
 If the optional argument @var{switch-buffer} is non-@code{nil}, and
 completion is performed in the minibuffer, @var{function} will be
 called with current buffer set to the buffer from which the minibuffer
 was entered.
+
+The return value of @code{completion-table-dynamic} is a function that
+can be used as the 2nd argument to @code{try-completion} and
+@code{all-completions}.  Note that this function will always return
+empty metadata and trivial boundaries (@pxref{Programmed Completion}).
 @end defun
 
 @defun completion-table-with-cache function &optional ignore-case
@@ -1876,9 +1886,10 @@ Emacs Manual}.  This command uses the abnormal hook variable
 
 @defvar completion-at-point-functions
 The value of this abnormal hook should be a list of functions, which
-are used to compute a completion table for completing the text at
-point.  It can be used by major modes to provide mode-specific
-completion tables (@pxref{Major Mode Conventions}).
+are used to compute a completion table (@pxref{Basic Completion}) for
+completing the text at point.  It can be used by major modes to
+provide mode-specific completion tables (@pxref{Major Mode
+Conventions}).
 
 When the command @code{completion-at-point} runs, it calls the
 functions in the list one by one, without any argument.  Each function
@@ -2390,6 +2401,25 @@ time, so let-binding them around code which produces echo-area messages
 will not work.  If you want to prevent resizing of minibuffer windows
 when displaying long messages, bind the @code{message-truncate-lines}
 variable instead (@pxref{Echo Area Customization}).
+
+The option @code{resize-mini-windows} does not affect the behavior of
+minibuffer-only frames (@pxref{Frame Layout}).  The following option
+allows to automatically resize such frames as well.
+
+@defopt resize-mini-frames
+If this is @code{nil}, minibuffer-only frames are never resized
+automatically.
+
+If this is a function, that function is called with the
+minibuffer-only frame to be resized as sole argument.  At the time
+this function is called, the buffer of the minibuffer window of that
+frame is the buffer whose contents will be shown the next time that
+window is redisplayed.  The function is expected to fit the frame to
+the buffer in some appropriate way.
+
+Any other non-@code{nil} value means to resize minibuffer-only frames
+by calling @code{fit-frame-to-buffer} (@pxref{Resizing Windows}).
+@end defopt
 
 
 @node Minibuffer Contents

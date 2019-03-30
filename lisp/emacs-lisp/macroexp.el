@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -94,7 +94,7 @@ each clause."
       clause)))
 
 (defun macroexp--compiler-macro (handler form)
-  (condition-case err
+  (condition-case-unless-debug err
       (apply handler form (cdr form))
     (error
      (message "Compiler-macro error for %S: %S" (car form) err)
@@ -223,15 +223,15 @@ Assumes the caller has bound `macroexpand-all-environment'."
                                         (cddr form))
                         (cdr form))
         form))
-      (`(,(or `defvar `defconst) . ,_) (macroexp--all-forms form 2))
+      (`(,(or 'defvar 'defconst) . ,_) (macroexp--all-forms form 2))
       (`(function ,(and f `(lambda . ,_)))
        (macroexp--cons 'function
                        (macroexp--cons (macroexp--all-forms f 2)
                                        nil
                                        (cdr form))
                        form))
-      (`(,(or `function `quote) . ,_) form)
-      (`(,(and fun (or `let `let*)) . ,(or `(,bindings . ,body) dontcare))
+      (`(,(or 'function 'quote) . ,_) form)
+      (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body) dontcare))
        (macroexp--cons fun
                        (macroexp--cons (macroexp--all-clauses bindings 1)
                                        (macroexp--all-forms body)
@@ -250,7 +250,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
       ;; here, so that any code that cares about the difference will
       ;; see the same transformation.
       ;; First arg is a function:
-      (`(,(and fun (or `funcall `apply `mapcar `mapatoms `mapconcat `mapc))
+      (`(,(and fun (or 'funcall 'apply 'mapcar 'mapatoms 'mapconcat 'mapc))
          ',(and f `(lambda . ,_)) . ,args)
        (macroexp--warn-and-return
         (nth 1 f)
@@ -258,7 +258,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                 (list 'lambda (nth 1 f) '...))
         (macroexp--expand-all `(,fun ,f . ,args))))
       ;; Second arg is a function:
-      (`(,(and fun (or `sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
+      (`(,(and fun (or 'sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
        (macroexp--warn-and-return
         (nth 1 f)
         (format "%s quoted with ' rather than with #'"
@@ -409,7 +409,7 @@ cases where EXP is a constant."
   "Bind each binding in BINDINGS as `macroexp-let2' does."
   (declare (indent 2) (debug (sexp (&rest (sexp form)) body)))
   (pcase-exhaustive bindings
-    (`nil (macroexp-progn body))
+    ('nil (macroexp-progn body))
     (`((,var ,exp) . ,tl)
      `(macroexp-let2 ,test ,var ,exp
         (macroexp-let2* ,test ,tl ,@body)))))

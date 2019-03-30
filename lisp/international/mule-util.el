@@ -1,6 +1,6 @@
 ;;; mule-util.el --- utility functions for multilingual environment (mule)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -393,17 +393,17 @@ QUALITY can be:
                                        japanese-cp932 korean-cp949)))
          (setq type 'single-byte))
     (pcase type
-      (`utf-8
+      ('utf-8
        (when (coding-system-get coding-system :bom)
          (setq byte (max 0 (- byte 3))))
        (if (= eol 1)
            (filepos-to-bufferpos--dos (+ pm byte) #'byte-to-position)
          (byte-to-position (+ pm byte))))
-      (`single-byte
+      ('single-byte
        (if (= eol 1)
            (filepos-to-bufferpos--dos (+ pm byte) #'identity)
          (+ pm byte)))
-      ((and `utf-16
+      ((and 'utf-16
             ;; FIXME: For utf-16, we could use the same approach as used for
             ;; dos EOLs (counting the number of non-BMP chars instead of the
             ;; number of lines).
@@ -419,8 +419,8 @@ QUALITY can be:
          (+ pm byte)))
       (_
        (pcase quality
-         (`approximate (byte-to-position (+ pm byte)))
-         (`exact
+         ('approximate (byte-to-position (+ pm byte)))
+         ('exact
           ;; Rather than assume that the file exists and still holds the right
           ;; data, we reconstruct it based on the buffer's content.
           (let ((buf (current-buffer)))
@@ -470,7 +470,7 @@ QUALITY can be:
                                        japanese-cp932 korean-cp949)))
          (setq type 'single-byte))
     (pcase type
-      (`utf-8
+      ('utf-8
        (setq byte (position-bytes position))
        (when (null byte)
          (if (<= position 0)
@@ -482,9 +482,9 @@ QUALITY can be:
           (if (coding-system-get coding-system :bom) 3 0)
           ;; Account for CR in CRLF pairs.
           lineno))
-      (`single-byte
+      ('single-byte
        (+ position -1 lineno))
-      ((and `utf-16
+      ((and 'utf-16
             ;; FIXME: For utf-16, we could use the same approach as used for
             ;; dos EOLs (counting the number of non-BMP chars instead of the
             ;; number of lines).
@@ -498,8 +498,8 @@ QUALITY can be:
           lineno))
       (_
        (pcase quality
-         (`approximate (+ (position-bytes position) -1 lineno))
-         (`exact
+         ('approximate (+ (position-bytes position) -1 lineno))
+         ('exact
           ;; Rather than assume that the file exists and still holds the right
           ;; data, we reconstruct its relevant portion.
           (let ((buf (current-buffer)))

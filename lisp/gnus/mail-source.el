@@ -1,6 +1,6 @@
 ;;; mail-source.el --- functions for fetching mail
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -647,9 +647,9 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	  ;; Don't check for old incoming files more than once per day to
 	  ;; save a lot of file accesses.
 	  (when (or (null mail-source-incoming-last-checked-time)
-		    (> (float-time
-			(time-since mail-source-incoming-last-checked-time))
-		       (* 24 60 60)))
+		    (time-less-p
+		     (* 24 60 60)
+		     (time-since mail-source-incoming-last-checked-time)))
 	    (setq mail-source-incoming-last-checked-time (current-time))
 	    (mail-source-delete-old-incoming
 	     mail-source-delete-incoming

@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2018 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -572,7 +572,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    /* If the key sequence ends with a down-event,
 	       discard the following up-event.  */
 	    Lisp_Object teml
-	      = Faref (args[i], make_fixnum (XFIXNUM (Flength (args[i])) - 1));
+	      = Faref (args[i], make_fixnum (ASIZE (args[i]) - 1));
 	    if (CONSP (teml))
 	      teml = XCAR (teml);
 	    if (SYMBOLP (teml))
@@ -589,7 +589,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'U':		/* Up event from last k or K.  */
 	  if (!NILP (up_event))
 	    {
-	      args[i] = Fmake_vector (make_fixnum (1), up_event);
+	      args[i] = make_vector (1, up_event);
 	      up_event = Qnil;
 	      visargs[i] = Fkey_description (args[i], Qnil);
 	    }
@@ -714,7 +714,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	default:
 	  {
 	    /* How many bytes are left unprocessed in the specs string?
-	       (Note that this excludes the trailing null byte.)  */
+	       (Note that this excludes the trailing NUL byte.)  */
 	    ptrdiff_t bytes_left = string_len - (tem - string);
 	    unsigned letter;
 
@@ -814,11 +814,11 @@ syms_of_callint (void)
   callint_message = Qnil;
   staticpro (&callint_message);
 
-  preserved_fns = listn (CONSTYPE_PURE, 4,
-			 intern_c_string ("region-beginning"),
-			 intern_c_string ("region-end"),
-			 intern_c_string ("point"),
-			 intern_c_string ("mark"));
+  preserved_fns = pure_list (intern_c_string ("region-beginning"),
+			     intern_c_string ("region-end"),
+			     intern_c_string ("point"),
+			     intern_c_string ("mark"));
+  staticpro (&preserved_fns);
 
   DEFSYM (Qlist, "list");
   DEFSYM (Qlet, "let");

@@ -1,7 +1,5 @@
 \input texinfo
 
-@include gnus-overrides.texi
-
 @setfilename ../../info/emacs-mime.info
 @settitle Emacs MIME Manual
 @include docstyle.texi
@@ -12,7 +10,7 @@
 @copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright @copyright{} 1998--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1998--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -698,13 +696,15 @@ Translation}.
 A description of the part (@code{Content-Description}).
 
 @item creation-date
-RFC822 date when the part was created (@code{Content-Disposition}).
+Date when the part was created (@code{Content-Disposition}).
+This uses the format of RFC 822 or its successors.
 
 @item modification-date
-RFC822 date when the part was modified (@code{Content-Disposition}).
+RFC 822 (or later) date when the part was modified
+(@code{Content-Disposition}).
 
 @item read-date
-RFC822 date when the part was read (@code{Content-Disposition}).
+RFC 822 (or later) date when the part was read (@code{Content-Disposition}).
 
 @item recipients
 Who to encrypt/sign the part to.  This field is used to override any
@@ -754,7 +754,7 @@ be obtained.  Values include @samp{ftp}, @samp{anon-ftp}, @samp{tftp},
 @samp{localfile}, and @samp{mailserver}.  (@code{Content-Type}.)
 
 @item expiration
-The RFC822 date after which the file may no longer be fetched.
+RFC 822 (or later) date after which the file may no longer be fetched.
 (@code{Content-Type}.)
 
 @item size
@@ -1301,7 +1301,7 @@ on.  High-level functionality is dealt with in the first chapter
 @menu
 * rfc2045::      Encoding @code{Content-Type} headers.
 * rfc2231::      Parsing @code{Content-Type} headers.
-* ietf-drums::   Handling mail headers defined by RFC822bis.
+* ietf-drums::   Handling mail headers defined by RFC 2822.
 * rfc2047::      En/decoding encoded words in headers.
 * time-date::    Functions for parsing dates and manipulating time.
 * qp::           Quoted-Printable en/decoding.
@@ -1385,8 +1385,8 @@ Encode a parameter in headers likes @code{Content-Type} and
 @node ietf-drums
 @section ietf-drums
 
-@dfn{drums} is an IETF working group that is working on the replacement
-for RFC822.
+@dfn{drums} was an IETF working group that worked on Internet RFC 2822,
+the first successor to RFC 822 and a predecessor of the current email standard.
 
 The functions provided by this library include:
 
@@ -1597,7 +1597,7 @@ The five data representations used are the following:
 
 @table @var
 @item date
-An RFC822 (or similar) date string.  For instance: @code{"Sat Sep 12
+An RFC 822 (or similar) date string.  For instance: @code{"Sat Sep 12
 12:21:54 1998 +0200"}.
 
 @item time
@@ -1889,55 +1889,55 @@ in @file{/etc/mailcap} will ``win'' over an @samp{image/*} setting in
 The Emacs @acronym{MIME} library implements handling of various elements
 according to a (somewhat) large number of RFCs, drafts and standards
 documents.  This chapter lists the relevant ones.  They can all be
-fetched from @uref{http://quimby.gnus.org/notes/}.
+fetched from @uref{https://www.rfc-editor.org}.
 
 @table @dfn
-@item RFC822
-@itemx STD11
-Standard for the Format of ARPA Internet Text Messages.
+@item RFC 5322
+Internet Message Format
 
-@item RFC1036
-Standard for Interchange of USENET Messages
+@item RFC 5536
+Netnews Article Format
 
-@item RFC2045
+@item RFC 2045
 Format of Internet Message Bodies
 
-@item RFC2046
+@item RFC 2046
 Media Types
 
-@item RFC2047
+@item RFC 2047
 Message Header Extensions for Non-@acronym{ASCII} Text
 
-@item RFC2048
-Registration Procedures
+@item RFC 6838
+Media Type Specifications and Registration Procedures
 
-@item RFC2049
+@item RFC 4289
+Registration Procedures (obsoleting RFC 2048)
+
+@item RFC 2049
 Conformance Criteria and Examples
 
-@item RFC2231
+@item RFC 2231
 @acronym{MIME} Parameter Value and Encoded Word Extensions: Character Sets,
 Languages, and Continuations
 
-@item RFC1843
+@item RFC 1843
 HZ---A Data Format for Exchanging Files of Arbitrarily Mixed Chinese and
 @acronym{ASCII} characters
 
-@item draft-ietf-drums-msg-fmt-05.txt
-Draft for the successor of RFC822
-
-@item RFC2112
+@item RFC 2387
 The @acronym{MIME} Multipart/Related Content-type
 
-@item RFC1892
-The Multipart/Report Content Type for the Reporting of Mail System
+@item RFC 6522
+@itemx STD 73
+The Multipart/Report Media Type for the Reporting of Mail System
 Administrative Messages
 
-@item RFC2183
+@item RFC 2183
 Communicating Presentation Information in Internet Messages: The
 Content-Disposition Header Field
 
-@item RFC2646
-Documentation of the text/plain format parameter for flowed text.
+@item RFC 3676
+The Text/Plain Format and DelSp Parameters
 
 @end table
 

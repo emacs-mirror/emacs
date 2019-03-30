@@ -1,6 +1,6 @@
 /* String search routines for GNU Emacs.
 
-Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2018 Free Software
+Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "region-cache.h"
 #include "blockinput.h"
 #include "intervals.h"
+#include "pdumper.h"
 
 #include "regex-emacs.h"
 
@@ -57,31 +58,6 @@ static struct regexp_cache searchbufs[REGEXP_CACHE_SIZE];
 
 /* The head of the linked list; points to the most recently used buffer.  */
 static struct regexp_cache *searchbuf_head;
-
-
-/* Every call to re_search, etc., must pass &search_regs as the regs
-   argument unless you can show it is unnecessary (i.e., if re_search
-   is certainly going to be called again before region-around-match
-   can be called).
-
-   Since the registers are now dynamically allocated, we need to make
-   sure not to refer to the Nth register before checking that it has
-   been allocated by checking search_regs.num_regs.
-
-   The regex code keeps track of whether it has allocated the search
-   buffer using bits in the re_pattern_buffer.  This means that whenever
-   you compile a new pattern, it completely forgets whether it has
-   allocated any registers, and will allocate new registers the next
-   time you call a searching or matching function.  Therefore, we need
-   to call re_set_registers after compiling a new pattern or after
-   setting the match registers, so that the regex functions will be
-   able to free or re-allocate it properly.  */
-/* static struct re_registers search_regs; */
-
-/* The buffer in which the last search was performed, or
-   Qt if the last search was done in a string;
-   Qnil if no searching has been done yet.  */
-/* static Lisp_Object last_thing_searched; */
 
 static void set_search_regs (ptrdiff_t, ptrdiff_t);
 static void save_search_regs (void);
@@ -222,11 +198,13 @@ static struct regexp_cache *
 compile_pattern (Lisp_Object pattern, struct re_registers *regp,
 		 Lisp_Object translate, bool posix, bool multibyte)
 {
-  struct regexp_cache *cp, **cpp;
+  struct regexp_cache *cp, **cpp, **lru_nonbusy;
 
-  for (cpp = &searchbuf_head; ; cpp = &cp->next)
+  for (cpp = &searchbuf_head, lru_nonbusy = NULL; ; cpp = &cp->next)
     {
       cp = *cpp;
+      if (!cp->busy)
+        lru_nonbusy = cpp;
       /* Entries are initialized to nil, and may be set to nil by
 	 compile_pattern_1 if the pattern isn't valid.  Don't apply
 	 string accessors in those cases.  However, compile_pattern_1
@@ -246,13 +224,14 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp,
 	  && cp->buf.charset_unibyte == charset_unibyte)
 	break;
 
-      /* If we're at the end of the cache, compile into the nil cell
-	 we found, or the last (least recently used) cell with a
-	 string value.  */
+      /* If we're at the end of the cache, compile into the last
+	 (least recently used) non-busy cell in the cache.  */
       if (cp->next == 0)
 	{
-          if (cp->busy)
+          if (!lru_nonbusy)
             error ("Too much matching reentrancy");
+          cpp = lru_nonbusy;
+          cp = *cpp;
 	compile_it:
           eassert (!cp->busy);
 	  compile_pattern_1 (cp, pattern, translate, posix);
@@ -340,7 +319,10 @@ looking_at_1 (Lisp_Object string, bool posix)
 		  ZV_BYTE - BEGV_BYTE);
 
   if (i == -2)
-    matcher_overflow ();
+    {
+      unbind_to (count, Qnil);
+      matcher_overflow ();
+    }
 
   val = (i >= 0 ? Qt : Qnil);
   if (preserve_match_data && i >= 0)
@@ -646,14 +628,16 @@ newline_cache_on_off (struct buffer *buf)
    If COUNT is zero, do anything you please; run rogue, for all I care.
 
    If END is zero, use BEGV or ZV instead, as appropriate for the
-   direction indicated by COUNT.
+   direction indicated by COUNT.  If START_BYTE is -1 it is unknown,
+   and similarly for END_BYTE.
 
-   If we find COUNT instances, set *SHORTAGE to zero, and return the
+   If we find COUNT instances, set *COUNTED to COUNT, and return the
    position past the COUNTth match.  Note that for reverse motion
    this is not the same as the usual convention for Emacs motion commands.
 
-   If we don't find COUNT instances before reaching END, set *SHORTAGE
-   to the number of newlines left unfound, and return END.
+   If we don't find COUNT instances before reaching END, set *COUNTED
+   to the number of newlines left found (negated if COUNT is negative),
+   and return END.
 
    If BYTEPOS is not NULL, set *BYTEPOS to the byte position corresponding
    to the returned character position.
@@ -663,23 +647,17 @@ newline_cache_on_off (struct buffer *buf)
 
 ptrdiff_t
 find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
-	      ptrdiff_t end_byte, ptrdiff_t count, ptrdiff_t *shortage,
+	      ptrdiff_t end_byte, ptrdiff_t count, ptrdiff_t *counted,
 	      ptrdiff_t *bytepos, bool allow_quit)
 {
   struct region_cache *newline_cache;
-  int direction;
   struct buffer *cache_buffer;
 
-  if (count > 0)
+  if (!end)
     {
-      direction = 1;
-      if (!end)
+      if (count > 0)
 	end = ZV, end_byte = ZV_BYTE;
-    }
-  else
-    {
-      direction = -1;
-      if (!end)
+      else
 	end = BEGV, end_byte = BEGV_BYTE;
     }
   if (end_byte == -1)
@@ -691,8 +669,8 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
   else
     cache_buffer = current_buffer;
 
-  if (shortage != 0)
-    *shortage = 0;
+  if (counted)
+    *counted = count;
 
   if (count > 0)
     while (start != end)
@@ -935,8 +913,8 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
         }
       }
 
-  if (shortage)
-    *shortage = count * direction;
+  if (counted)
+    *counted -= count;
   if (bytepos)
     {
       *bytepos = start_byte == -1 ? CHAR_TO_BYTE (start) : start_byte;
@@ -951,30 +929,28 @@ find_newline (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
    We report the resulting position by calling TEMP_SET_PT_BOTH.
 
    If we find COUNT instances. we position after (always after,
-   even if scanning backwards) the COUNTth match, and return 0.
+   even if scanning backwards) the COUNTth match.
 
    If we don't find COUNT instances before reaching the end of the
-   buffer (or the beginning, if scanning backwards), we return
-   the number of line boundaries left unfound, and position at
+   buffer (or the beginning, if scanning backwards), we position at
    the limit we bumped up against.
 
    If ALLOW_QUIT, check for quitting.  That's good to do
    except in special cases.  */
 
-ptrdiff_t
+void
 scan_newline (ptrdiff_t start, ptrdiff_t start_byte,
 	      ptrdiff_t limit, ptrdiff_t limit_byte,
 	      ptrdiff_t count, bool allow_quit)
 {
-  ptrdiff_t charpos, bytepos, shortage;
+  ptrdiff_t charpos, bytepos, counted;
 
   charpos = find_newline (start, start_byte, limit, limit_byte,
-			  count, &shortage, &bytepos, allow_quit);
-  if (shortage)
+			  count, &counted, &bytepos, allow_quit);
+  if (counted != count)
     TEMP_SET_PT_BOTH (limit, limit_byte);
   else
     TEMP_SET_PT_BOTH (charpos, bytepos);
-  return shortage;
 }
 
 /* Like above, but always scan from point and report the
@@ -984,19 +960,19 @@ ptrdiff_t
 scan_newline_from_point (ptrdiff_t count, ptrdiff_t *charpos,
 			 ptrdiff_t *bytepos)
 {
-  ptrdiff_t shortage;
+  ptrdiff_t counted;
 
   if (count <= 0)
     *charpos = find_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, count - 1,
-			     &shortage, bytepos, 1);
+			     &counted, bytepos, 1);
   else
     *charpos = find_newline (PT, PT_BYTE, ZV, ZV_BYTE, count,
-			     &shortage, bytepos, 1);
-  return shortage;
+			     &counted, bytepos, 1);
+  return counted;
 }
 
 /* Like find_newline, but doesn't allow QUITting and doesn't return
-   SHORTAGE.  */
+   COUNTED.  */
 ptrdiff_t
 find_newline_no_quit (ptrdiff_t from, ptrdiff_t frombyte,
 		      ptrdiff_t cnt, ptrdiff_t *bytepos)
@@ -1012,10 +988,10 @@ ptrdiff_t
 find_before_next_newline (ptrdiff_t from, ptrdiff_t to,
 			  ptrdiff_t cnt, ptrdiff_t *bytepos)
 {
-  ptrdiff_t shortage;
-  ptrdiff_t pos = find_newline (from, -1, to, -1, cnt, &shortage, bytepos, 1);
+  ptrdiff_t counted;
+  ptrdiff_t pos = find_newline (from, -1, to, -1, cnt, &counted, bytepos, 1);
 
-  if (shortage == 0)
+  if (counted == cnt)
     {
       if (bytepos)
 	DEC_BOTH (pos, *bytepos);
@@ -1225,6 +1201,7 @@ search_buffer_re (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
                          pos_byte - BEGV_BYTE);
       if (val == -2)
         {
+          unbind_to (count, Qnil);
           matcher_overflow ();
         }
       if (val >= 0)
@@ -1270,6 +1247,7 @@ search_buffer_re (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
                          lim_byte - BEGV_BYTE);
       if (val == -2)
         {
+          unbind_to (count, Qnil);
           matcher_overflow ();
         }
       if (val >= 0)
@@ -2768,7 +2746,7 @@ since only regular expressions have distinguished subexpressions.  */)
      error out since otherwise this will result in confusing bugs.  */
   ptrdiff_t sub_start = search_regs.start[sub];
   ptrdiff_t sub_end = search_regs.end[sub];
-  unsigned  num_regs = search_regs.num_regs;
+  ptrdiff_t num_regs = search_regs.num_regs;
   newpoint = search_regs.start[sub] + SCHARS (newtext);
 
   /* Replace the old text with the new in the cleanest possible way.  */
@@ -2992,13 +2970,11 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
   /* Allocate registers if they don't already exist.  */
   {
-    EMACS_INT length = XFIXNAT (Flength (list)) / 2;
+    ptrdiff_t length = list_length (list) / 2;
 
     if (length > search_regs.num_regs)
       {
 	ptrdiff_t num_regs = search_regs.num_regs;
-	if (PTRDIFF_MAX < length)
-	  memory_full (SIZE_MAX);
 	search_regs.start =
 	  xpalloc (search_regs.start, &num_regs, length - num_regs,
 		   min (PTRDIFF_MAX, UINT_MAX), sizeof *search_regs.start);
@@ -3086,29 +3062,19 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
   return Qnil;
 }
 
-/* If true the match data have been saved in saved_search_regs
-   during the execution of a sentinel or filter. */
-/* static bool search_regs_saved; */
-/* static struct re_registers saved_search_regs; */
-/* static Lisp_Object saved_last_thing_searched; */
-
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
    if asynchronous code (filter or sentinel) is running. */
 static void
 save_search_regs (void)
 {
-  if (!search_regs_saved)
+  if (saved_search_regs.num_regs == 0)
     {
-      saved_search_regs.num_regs = search_regs.num_regs;
-      saved_search_regs.start = search_regs.start;
-      saved_search_regs.end = search_regs.end;
+      saved_search_regs = search_regs;
       saved_last_thing_searched = last_thing_searched;
       last_thing_searched = Qnil;
       search_regs.num_regs = 0;
       search_regs.start = 0;
       search_regs.end = 0;
-
-      search_regs_saved = 1;
     }
 }
 
@@ -3116,19 +3082,17 @@ save_search_regs (void)
 void
 restore_search_regs (void)
 {
-  if (search_regs_saved)
+  if (saved_search_regs.num_regs != 0)
     {
       if (search_regs.num_regs > 0)
 	{
 	  xfree (search_regs.start);
 	  xfree (search_regs.end);
 	}
-      search_regs.num_regs = saved_search_regs.num_regs;
-      search_regs.start = saved_search_regs.start;
-      search_regs.end = saved_search_regs.end;
+      search_regs = saved_search_regs;
       last_thing_searched = saved_last_thing_searched;
       saved_last_thing_searched = Qnil;
-      search_regs_saved = 0;
+      saved_search_regs.num_regs = 0;
     }
 }
 
@@ -3211,7 +3175,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 /* Like find_newline, but doesn't use the cache, and only searches forward.  */
 static ptrdiff_t
 find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
-	       ptrdiff_t end_byte, ptrdiff_t count, ptrdiff_t *shortage,
+	       ptrdiff_t end_byte, ptrdiff_t count, ptrdiff_t *counted,
 	       ptrdiff_t *bytepos, bool allow_quit)
 {
   if (count > 0)
@@ -3227,8 +3191,8 @@ find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
   if (end_byte == -1)
     end_byte = CHAR_TO_BYTE (end);
 
-  if (shortage != 0)
-    *shortage = 0;
+  if (counted)
+    *counted = count;
 
   if (count > 0)
     while (start != end)
@@ -3285,8 +3249,8 @@ find_newline1 (ptrdiff_t start, ptrdiff_t start_byte, ptrdiff_t end,
         }
       }
 
-  if (shortage)
-    *shortage = count;
+  if (counted)
+    *counted -= count;
   if (bytepos)
     {
       *bytepos = start_byte == -1 ? CHAR_TO_BYTE (start) : start_byte;
@@ -3307,7 +3271,7 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
   (Lisp_Object buffer)
 {
   struct buffer *buf, *old = NULL;
-  ptrdiff_t shortage, nl_count_cache, nl_count_buf;
+  ptrdiff_t nl_count_cache, nl_count_buf;
   Lisp_Object cache_newlines, buf_newlines, val;
   ptrdiff_t from, found, i;
 
@@ -3333,8 +3297,7 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
 
   /* How many newlines are there according to the cache?  */
   find_newline (BEGV, BEGV_BYTE, ZV, ZV_BYTE,
-		TYPE_MAXIMUM (ptrdiff_t), &shortage, NULL, true);
-  nl_count_cache = TYPE_MAXIMUM (ptrdiff_t) - shortage;
+		TYPE_MAXIMUM (ptrdiff_t), &nl_count_cache, NULL, true);
 
   /* Create vector and populate it.  */
   cache_newlines = make_uninit_vector (nl_count_cache);
@@ -3343,11 +3306,11 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
     {
       for (from = BEGV, found = from, i = 0; from < ZV; from = found, i++)
 	{
-	  ptrdiff_t from_byte = CHAR_TO_BYTE (from);
+	  ptrdiff_t from_byte = CHAR_TO_BYTE (from), counted;
 
-	  found = find_newline (from, from_byte, 0, -1, 1, &shortage,
+	  found = find_newline (from, from_byte, 0, -1, 1, &counted,
 				NULL, true);
-	  if (shortage != 0 || i >= nl_count_cache)
+	  if (counted == 0 || i >= nl_count_cache)
 	    break;
 	  ASET (cache_newlines, i, make_fixnum (found - 1));
 	}
@@ -3358,18 +3321,17 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
 
   /* Now do the same, but without using the cache.  */
   find_newline1 (BEGV, BEGV_BYTE, ZV, ZV_BYTE,
-		 TYPE_MAXIMUM (ptrdiff_t), &shortage, NULL, true);
-  nl_count_buf = TYPE_MAXIMUM (ptrdiff_t) - shortage;
+		 TYPE_MAXIMUM (ptrdiff_t), &nl_count_buf, NULL, true);
   buf_newlines = make_uninit_vector (nl_count_buf);
   if (nl_count_buf)
     {
       for (from = BEGV, found = from, i = 0; from < ZV; from = found, i++)
 	{
-	  ptrdiff_t from_byte = CHAR_TO_BYTE (from);
+	  ptrdiff_t from_byte = CHAR_TO_BYTE (from), counted;
 
-	  found = find_newline1 (from, from_byte, 0, -1, 1, &shortage,
+	  found = find_newline1 (from, from_byte, 0, -1, 1, &counted,
 				 NULL, true);
-	  if (shortage != 0 || i >= nl_count_buf)
+	  if (counted == 0 || i >= nl_count_buf)
 	    break;
 	  ASET (buf_newlines, i, make_fixnum (found - 1));
 	}
@@ -3388,26 +3350,17 @@ the buffer.  If the buffer doesn't have a cache, the value is nil.  */)
 }
 
 
+static void syms_of_search_for_pdumper (void);
+
 void
 syms_of_search (void)
 {
-  register int i;
-
-  for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
+  for (int i = 0; i < REGEXP_CACHE_SIZE; ++i)
     {
-      searchbufs[i].buf.allocated = 100;
-      searchbufs[i].buf.buffer = xmalloc (100);
-      searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
-      searchbufs[i].regexp = Qnil;
-      searchbufs[i].f_whitespace_regexp = Qnil;
-      searchbufs[i].busy = false;
-      searchbufs[i].syntax_table = Qnil;
       staticpro (&searchbufs[i].regexp);
       staticpro (&searchbufs[i].f_whitespace_regexp);
       staticpro (&searchbufs[i].syntax_table);
-      searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
-  searchbuf_head = &searchbufs[0];
 
   /* Error condition used for failing searches.  */
   DEFSYM (Qsearch_failed, "search-failed");
@@ -3420,18 +3373,17 @@ syms_of_search (void)
   DEFSYM (Qinvalid_regexp, "invalid-regexp");
 
   Fput (Qsearch_failed, Qerror_conditions,
-	listn (CONSTYPE_PURE, 2, Qsearch_failed, Qerror));
+	pure_list (Qsearch_failed, Qerror));
   Fput (Qsearch_failed, Qerror_message,
 	build_pure_c_string ("Search failed"));
 
   Fput (Quser_search_failed, Qerror_conditions,
-        listn (CONSTYPE_PURE, 4,
-               Quser_search_failed, Quser_error, Qsearch_failed, Qerror));
+	pure_list (Quser_search_failed, Quser_error, Qsearch_failed, Qerror));
   Fput (Quser_search_failed, Qerror_message,
         build_pure_c_string ("Search failed"));
 
   Fput (Qinvalid_regexp, Qerror_conditions,
-	listn (CONSTYPE_PURE, 2, Qinvalid_regexp, Qerror));
+	pure_list (Qinvalid_regexp, Qerror));
   Fput (Qinvalid_regexp, Qerror_message,
 	build_pure_c_string ("Invalid regexp"));
 
@@ -3478,4 +3430,23 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
   defsubr (&Snewline_cache_check);
+
+  pdumper_do_now_and_after_load (syms_of_search_for_pdumper);
+}
+
+static void
+syms_of_search_for_pdumper (void)
+{
+  for (int i = 0; i < REGEXP_CACHE_SIZE; ++i)
+    {
+      searchbufs[i].buf.allocated = 100;
+      searchbufs[i].buf.buffer = xmalloc (100);
+      searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
+      searchbufs[i].regexp = Qnil;
+      searchbufs[i].f_whitespace_regexp = Qnil;
+      searchbufs[i].busy = false;
+      searchbufs[i].syntax_table = Qnil;
+      searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
+    }
+  searchbuf_head = &searchbufs[0];
 }

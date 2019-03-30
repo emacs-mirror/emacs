@@ -1,6 +1,6 @@
 ;;; secrets-tests.el --- Tests of Secret Service API
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -90,10 +90,6 @@
   (unwind-protect
       (progn
 	(should (secrets-open-session))
-
-	;; There must be at least the collections "Login" and "session".
-	(should (or (member "Login" (secrets-list-collections))
-                    (member "login" (secrets-list-collections))))
 	(should (member "session" (secrets-list-collections)))
 
 	;; Create a random collection.  This asks for a password
@@ -160,9 +156,6 @@
 
 	;; There shall be no items in the "session" collection.
 	(should-not (secrets-list-items "session"))
-	;; There shall be items in the "Login" collection.
-	(should (or (secrets-list-items "Login")
-                    (secrets-list-items "login")))
 
 	;; Create a new item.
 	(should (setq item-path (secrets-create-item "session" "foo" "secret")))

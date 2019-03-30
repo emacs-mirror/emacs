@@ -1,6 +1,6 @@
 ;;; opascal.el --- major mode for editing Object Pascal source in Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>
@@ -140,7 +140,7 @@ That is, regardless of where in the line point is at the time."
    opascal-directives)
   "OPascal4 keywords.")
 
-(defconst opascal-previous-terminators `(semicolon comma)
+(defconst opascal-previous-terminators '(semicolon comma)
   "Expression/statement terminators that denote a previous expression.")
 
 (defconst opascal-comments
@@ -186,7 +186,7 @@ are followed by an expression.")
   `(except finally ,@opascal-visibilities)
   "Statements that mark mid sections of the enclosing block.")
 
-(defconst opascal-end-block-statements `(end until)
+(defconst opascal-end-block-statements '(end until)
   "Statements that end block sections.")
 
 (defconst opascal-match-block-statements
@@ -210,7 +210,7 @@ are followed by an expression.")
   '(interface implementation program library package)
   "Unit sections within which the indent is 0.")
 
-(defconst opascal-use-clauses `(uses requires exports contains)
+(defconst opascal-use-clauses '(uses requires exports contains)
   "Statements that refer to foreign symbols.")
 
 (defconst opascal-unit-statements
@@ -1519,7 +1519,7 @@ value of `opascal-tab-always-indents' and the current line position."
         (setq dir-name (match-string 1 dir-name)
               recurse t))
     ;; Ensure the trailing slash is removed.
-    (if (string-match "^\\(.+\\)[\\\\/]$" dir-name)
+    (if (string-match "^\\(.+\\)[\\/]$" dir-name)
         (setq dir-name (match-string 1 dir-name)))
     (opascal-search-directory unit dir-name recurse)))
 

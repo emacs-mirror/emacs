@@ -1,6 +1,6 @@
 ;; unidata-gen.el -- Create files containing character property data.
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1413,7 +1413,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	 (copyright (with-temp-buffer
 		      (insert-file-contents
 		       (expand-file-name "copyright.html" unidata-dir))
-		      (re-search-forward "^Copyright .*Unicode, Inc.")
+		      (re-search-forward "Copyright .*Unicode, Inc.")
 		      (match-string 0))))
     (or unidata-list (unidata-setup-list unidata-text-file))
     (let* ((basename (file-name-nondirectory file))

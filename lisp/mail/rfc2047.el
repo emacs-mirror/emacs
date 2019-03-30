@@ -1,6 +1,6 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -338,7 +338,7 @@ The buffer may be narrowed."
 
 ;; Use this syntax table when parsing into regions that may need
 ;; encoding.  Double quotes are string delimiters, backslash is
-;; character quoting, and all other RFC 2822 special characters are
+;; character quoting, and all other RFC 822 (or later) special characters are
 ;; treated as punctuation so we can use forward-sexp/forward-word to
 ;; skip to the end of regions appropriately.  Nb. ietf-drums does
 ;; things differently.
@@ -366,7 +366,7 @@ The buffer may be narrowed."
 
 (defun rfc2047-encode-region (b e &optional dont-fold)
   "Encode words in region B to E that need encoding.
-By default, the region is treated as containing RFC2822 addresses.
+By default, the region is treated as containing RFC 822 (or later) addresses.
 Dynamically bind `rfc2047-encoding-type' to change that."
   (save-restriction
     (narrow-to-region b e)
@@ -403,7 +403,7 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 	(with-syntax-table rfc2047-syntax-table
 	  (goto-char (point-min))
 	  (condition-case err		; in case of unbalanced quotes
-	      ;; Look for rfc2822-style: sequences of atoms, quoted
+	      ;; Look for RFC 822 (or later) style: sequences of atoms, quoted
 	      ;; strings, specials, whitespace.  (Specials mustn't be
 	      ;; encoded.)
 	      (while (not (eobp))
@@ -1025,7 +1025,7 @@ other than `\"' and `\\' in quoted strings."
 	      (replace-match " "))
 	    (setq end (point-max))
 	    ;; Quote decoded words if there are special characters
-	    ;; which might violate RFC2822.
+	    ;; which might violate RFC 822 (or later).
 	    (when (and rfc2047-quote-decoded-words-containing-tspecials
 		       (let ((regexp (car (rassq
 					   'address-mime

@@ -1,6 +1,6 @@
 ;;; auth-source-pass.el --- Integrate auth-source with password-store -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -134,12 +134,12 @@ ENTRY is the name of a password-store entry."
 (defun auth-source-pass--parse-secret (contents)
   "Parse the password-store data in the string CONTENTS and return its secret.
 The secret is the first line of CONTENTS."
-  (car (split-string contents "\\\n" t)))
+  (car (split-string contents "\n" t)))
 
 (defun auth-source-pass--parse-data (contents)
   "Parse the password-store data in the string CONTENTS and return an alist.
 CONTENTS is the contents of a password-store formatted file."
-  (let ((lines (split-string contents "\\\n" t "\\\s")))
+  (let ((lines (split-string contents "\n" t "[ \t]+")))
     (seq-remove #'null
                 (mapcar (lambda (line)
                           (let ((pair (mapcar (lambda (s) (string-trim s))
@@ -189,7 +189,7 @@ often."
   (let ((store-dir (expand-file-name "~/.password-store/")))
     (mapcar
      (lambda (file) (file-name-sans-extension (file-relative-name file store-dir)))
-     (directory-files-recursively store-dir "\.gpg$"))))
+     (directory-files-recursively store-dir "\\.gpg$"))))
 
 (defun auth-source-pass--find-all-by-entry-name (entryname user)
   "Search the store for all entries either matching ENTRYNAME/USER or ENTRYNAME.

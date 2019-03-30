@@ -1,6 +1,6 @@
 ;;; esh-opt.el --- command options processing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -77,7 +77,7 @@ arguments, some do not.  The recognized :KEYWORDS are:
   arguments.
 
 :preserve-args
-  If present, do not pass MACRO-ARGS through `eshell-flatten-list'
+  If present, do not pass MACRO-ARGS through `flatten-tree'
 and `eshell-stringify-list'.
 
 :parse-leading-options-only
@@ -106,7 +106,7 @@ let-bound variable `args'."
            ,(if (memq ':preserve-args (cadr options))
                 macro-args
               (list 'eshell-stringify-list
-                    (list 'eshell-flatten-list macro-args))))
+                    (list 'flatten-tree macro-args))))
           (processed-args (eshell--do-opts ,name ,options temp-args))
           ,@(delete-dups
              (delq nil (mapcar (lambda (opt)

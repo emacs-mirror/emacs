@@ -1,6 +1,6 @@
 ;;; json-tests.el --- unit tests for json.c          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -86,8 +86,8 @@
   (should (equal
            (json-serialize
             (list :detect-hash-table #s(hash-table test equal data ("bla" "ble"))
-                  :detect-alist `((bla . "ble"))
-                  :detect-plist `(:bla "ble")))
+                  :detect-alist '((bla . "ble"))
+                  :detect-plist '(:bla "ble")))
            "\
 {\
 \"detect-hash-table\":{\"bla\":\"ble\"},\

@@ -1,6 +1,6 @@
-;;; vc-hooks.el --- resident support for version-control
+;;; vc-hooks.el --- resident support for version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2019 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -173,9 +173,9 @@ Otherwise, not displayed."
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
 
-;;; We signal this error when we try to do something a VC backend
-;;; doesn't support.  Two arguments: the method that's not supported
-;;; and the backend
+;; We signal this error when we try to do something a VC backend
+;; doesn't support.  Two arguments: the method that's not supported
+;; and the backend
 (define-error 'vc-not-supported "VC method not implemented for backend")
 
 (defun vc-mode (&optional _arg)
@@ -243,12 +243,12 @@ if that doesn't exist either, return nil."
   "Call for BACKEND the implementation of FUNCTION-NAME with the given ARGS.
 Calls
 
-    (apply \\='vc-BACKEND-FUN ARGS)
+    (apply #\\='vc-BACKEND-FUN ARGS)
 
 if vc-BACKEND-FUN exists (after trying to find it in vc-BACKEND.el)
 and else calls
 
-    (apply \\='vc-default-FUN BACKEND ARGS)
+    (apply #\\='vc-default-FUN BACKEND ARGS)
 
 It is usually called via the `vc-call' macro."
   (let ((f (assoc function-name (get backend 'vc-functions))))
@@ -603,7 +603,7 @@ a regexp for matching all such backup files, regardless of the version."
   "Delete all existing automatic version backups for FILE."
   (condition-case nil
       (mapc
-       'delete-file
+       #'delete-file
        (directory-files (or (file-name-directory file) default-directory) t
 			(vc-version-backup-file-name file nil nil t)))
     ;; Don't fail when the directory doesn't exist.
@@ -811,7 +811,7 @@ In the latter case, VC mode is deactivated for this buffer."
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
     ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
-    (add-hook 'vc-mode-line-hook 'vc-mode-line nil t)
+    (add-hook 'vc-mode-line-hook #'vc-mode-line nil t)
     (let (backend)
       (cond
         ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
@@ -862,13 +862,13 @@ In the latter case, VC mode is deactivated for this buffer."
 		   )))))))))
 
 (add-hook 'find-file-hook #'vc-refresh-state)
-(define-obsolete-function-alias 'vc-find-file-hook 'vc-refresh-state "25.1")
+(define-obsolete-function-alias 'vc-find-file-hook #'vc-refresh-state "25.1")
 
 (defun vc-kill-buffer-hook ()
   "Discard VC info about a file when we kill its buffer."
   (when buffer-file-name (vc-file-clearprops buffer-file-name)))
 
-(add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
+(add-hook 'kill-buffer-hook #'vc-kill-buffer-hook)
 
 ;; Now arrange for (autoloaded) bindings of the main package.
 ;; Bindings for this have to go in the global map, as we'll often
@@ -890,6 +890,8 @@ In the latter case, VC mode is deactivated for this buffer."
     (define-key map "L" 'vc-print-root-log)
     (define-key map "I" 'vc-log-incoming)
     (define-key map "O" 'vc-log-outgoing)
+    (define-key map "ML" 'vc-log-mergebase)
+    (define-key map "MD" 'vc-diff-mergebase)
     (define-key map "m" 'vc-merge)
     (define-key map "r" 'vc-retrieve-tag)
     (define-key map "s" 'vc-create-tag)
@@ -950,8 +952,7 @@ In the latter case, VC mode is deactivated for this buffer."
     (bindings--define-key map [separator2] menu-bar-separator)
     (bindings--define-key map [vc-insert-header]
       '(menu-item "Insert Header" vc-insert-headers
-		  :help "Insert headers into a file for use with a version control system.
-"))
+		  :help "Insert headers into a file for use with a version control system."))
     (bindings--define-key map [vc-revert]
       '(menu-item "Revert to Base Version" vc-revert
 		  :help "Revert working copies of the selected file set to their repository contents"))

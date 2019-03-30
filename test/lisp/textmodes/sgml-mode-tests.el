@@ -1,6 +1,6 @@
 ;;; sgml-mode-tests.el --- Tests for sgml-mode
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Przemysław Wojnowski <esperanto@cumego.com>
 ;; Keywords: tests

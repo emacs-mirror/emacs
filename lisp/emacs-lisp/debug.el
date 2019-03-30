@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -236,14 +236,37 @@ first will be printed into the backtrace buffer."
 		;; Place an extra debug-on-exit for macro's.
 		(when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
 		  (backtrace-debug 5 t)))
+              (with-current-buffer debugger-buffer
+                (unless (derived-mode-p 'debugger-mode)
+	          (debugger-mode))
+	        (debugger-setup-buffer debugger-args)
+	        (when noninteractive
+		  ;; If the backtrace is long, save the beginning
+		  ;; and the end, but discard the middle.
+		  (when (> (count-lines (point-min) (point-max))
+			   debugger-batch-max-lines)
+		    (goto-char (point-min))
+		    (forward-line (/ 2 debugger-batch-max-lines))
+		    (let ((middlestart (point)))
+		      (goto-char (point-max))
+		      (forward-line (- (/ 2 debugger-batch-max-lines)
+				       debugger-batch-max-lines))
+		      (delete-region middlestart (point)))
+		    (insert "...\n"))
+		  (goto-char (point-min))
+		  (message "%s" (buffer-string))
+		  (kill-emacs -1)))
 	      (pop-to-buffer
 	       debugger-buffer
 	       `((display-buffer-reuse-window
-		  display-buffer-in-previous-window)
-		 . (,(when (and (window-live-p debugger-previous-window)
-				(frame-visible-p
-				 (window-frame debugger-previous-window)))
-		       `(previous-window . ,debugger-previous-window)))))
+		  display-buffer-in-previous-window
+		  display-buffer-below-selected)
+		 . ((window-min-height . 10)
+                    (window-height . fit-window-to-buffer)
+		    ,@(when (and (window-live-p debugger-previous-window)
+				 (frame-visible-p
+				  (window-frame debugger-previous-window)))
+		        `((previous-window . ,debugger-previous-window))))))
 	      (setq debugger-window (selected-window))
 	      (if (eq debugger-previous-window debugger-window)
 		  (when debugger-jumping-flag
@@ -256,25 +279,6 @@ first will be printed into the backtrace buffer."
 			    (window-total-height debugger-window)))
 		      (error nil)))
 		(setq debugger-previous-window debugger-window))
-              (unless (derived-mode-p 'debugger-mode)
-	        (debugger-mode))
-	      (debugger-setup-buffer debugger-args)
-	      (when noninteractive
-		;; If the backtrace is long, save the beginning
-		;; and the end, but discard the middle.
-		(when (> (count-lines (point-min) (point-max))
-			 debugger-batch-max-lines)
-		  (goto-char (point-min))
-		  (forward-line (/ 2 debugger-batch-max-lines))
-		  (let ((middlestart (point)))
-		    (goto-char (point-max))
-		    (forward-line (- (/ 2 debugger-batch-max-lines)
-				     debugger-batch-max-lines))
-		    (delete-region middlestart (point)))
-		  (insert "...\n"))
-		(goto-char (point-min))
-		(message "%s" (buffer-string))
-		(kill-emacs -1))
 	      (message "")
 	      (let ((standard-output nil)
 		    (buffer-read-only t))
@@ -354,26 +358,26 @@ Include the reason for debugger entry from ARGS."
   (pcase (car args)
     ;; lambda is for debug-on-call when a function call is next.
     ;; debug is for debug-on-entry function called.
-    ((or `lambda `debug)
+    ((or 'lambda 'debug)
      (insert "--entering a function:\n"))
     ;; Exiting a function.
-    (`exit
+    ('exit
      (insert "--returning value: ")
      (insert (backtrace-print-to-string debugger-value))
      (insert ?\n))
     ;; Watchpoint triggered.
-    ((and `watchpoint (let `(,symbol ,newval . ,details) (cdr args)))
+    ((and 'watchpoint (let `(,symbol ,newval . ,details) (cdr args)))
      (insert
       "--"
       (pcase details
-        (`(makunbound nil) (format "making %s void" symbol))
+        ('(makunbound nil) (format "making %s void" symbol))
         (`(makunbound ,buffer) (format "killing local value of %s in buffer %s"
                                        symbol buffer))
         (`(defvaralias ,_) (format "aliasing %s to %s" symbol newval))
         (`(let ,_) (format "let-binding %s to %s" symbol
                            (backtrace-print-to-string newval)))
         (`(unlet ,_) (format "ending let-binding of %s" symbol))
-        (`(set nil) (format "setting %s to %s" symbol
+        ('(set nil) (format "setting %s to %s" symbol
                             (backtrace-print-to-string newval)))
         (`(set ,buffer) (format "setting %s in buffer %s to %s"
                                 symbol buffer
@@ -382,12 +386,12 @@ Include the reason for debugger entry from ARGS."
       ": ")
      (insert ?\n))
     ;; Debugger entered for an error.
-    (`error
+    ('error
      (insert "--Lisp error: ")
      (insert (backtrace-print-to-string (nth 1 args)))
      (insert ?\n))
     ;; debug-on-call, when the next thing is an eval.
-    (`t
+    ('t
      (insert "--beginning evaluation of function call form:\n"))
     ;; User calls debug directly.
     (_
@@ -740,7 +744,7 @@ This function is called when SYMBOL's value is modified."
 
 When called interactively, prompt for VARIABLE in the minibuffer.
 
-This works by calling `add-variable-watch' on VARIABLE.  If you
+This works by calling `add-variable-watcher' on VARIABLE.  If you
 quit from the debugger, this will abort the change (unless the
 change is caused by the termination of a let-binding).
 

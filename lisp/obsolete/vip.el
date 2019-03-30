@@ -1,6 +1,6 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2018 Free Software
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>
@@ -2187,19 +2187,19 @@ a token has type \(command, address, end-mark\) and value."
 	  ((looking-at "%")
 	   (forward-char 1)
 	   (setq ex-token-type "whole"))
-	  ((looking-at "+")
-	   (cond ((or (looking-at "+[-+]") (looking-at "+[\n|]"))
+	  ((looking-at "\\+")
+	   (cond ((looking-at "\\+[-+\n|]")
 		  (forward-char 1)
 		  (insert "1")
 		  (backward-char 1)
 		  (setq ex-token-type "plus"))
-		 ((looking-at "+[0-9]")
+		 ((looking-at "\\+[0-9]")
 		  (forward-char 1)
 		  (setq ex-token-type "plus"))
 		 (t
 		  (error "Badly formed address"))))
 	  ((looking-at "-")
-	   (cond ((or (looking-at "-[-+]") (looking-at "-[\n|]"))
+	   (cond ((looking-at "-[-+\n|]")
 		  (forward-char 1)
 		  (insert "1")
 		  (backward-char 1)
@@ -2216,7 +2216,7 @@ a token has type \(command, address, end-mark\) and value."
 	     (while (and (not (eolp)) cont)
 	       ;;(re-search-forward "[^/]*/")
 	       (re-search-forward "[^/]*\\(/\\|\n\\)")
-	       (if (not (vip-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"))
+	       (if (not (vip-looking-back "[^\\]\\(\\\\\\\\\\)*\\\\/"))
 		   (setq cont nil))))
 	   (backward-char 1)
 	   (setq ex-token (buffer-substring (point) (mark)))
@@ -2229,7 +2229,7 @@ a token has type \(command, address, end-mark\) and value."
 	     (while (and (not (eolp)) cont)
 	       ;;(re-search-forward "[^\\?]*\\?")
 	       (re-search-forward "[^\\?]*\\(\\?\\|\n\\)")
-	       (if (not (vip-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"))
+	       (if (not (vip-looking-back "[^\\]\\(\\\\\\\\\\)*\\\\\\?"))
 		   (setq cont nil))
 	       (backward-char 1)
 	       (if (not (looking-at "\n")) (forward-char 1))))
@@ -2325,7 +2325,7 @@ a token has type \(command, address, end-mark\) and value."
 	    (while (and (not (eolp)) cont)
 	      (re-search-forward "[^/]*\\(/\\|\n\\)")
 	      ;;(re-search-forward "[^/]*/")
-	      (if (not (vip-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"))
+	      (if (not (vip-looking-back "[^\\]\\(\\\\\\\\\\)*\\\\/"))
 		  (setq cont nil))))
 	  (setq ex-token
 		(if (= (mark) (point)) ""
@@ -2520,7 +2520,7 @@ a token has type \(command, address, end-mark\) and value."
 		ex-variant t)
 	  (forward-char 2)
 	  (skip-chars-forward " \t")))
-    (if (looking-at "+")
+    (if (looking-at "\\+")
 	(progn
 	  (forward-char 1)
 	  (set-mark (point))

@@ -1,6 +1,6 @@
 ;;; nnml.el --- mail spool access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@xemacs.org> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org>

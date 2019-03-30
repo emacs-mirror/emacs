@@ -1,6 +1,6 @@
 ;;; flow-fill.el --- interpret RFC2646 "flowed" text  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail

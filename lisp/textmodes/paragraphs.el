@@ -1,6 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
-;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2018 Free Software
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; gnus-delay.el --- Delayed posting of articles
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;; Keywords: mail, news, extensions
@@ -98,19 +98,15 @@ DELAY is a string, giving the length of the time.  Possible values are:
 	   (setq hour   (string-to-number (match-string 1 delay))
 		 minute (string-to-number (match-string 2 delay)))
 	   ;; Use current time, except...
-	   (setq deadline (apply 'vector (decode-time)))
+	   (setq deadline (decode-time))
 	   ;; ... for minute and hour.
-	   (aset deadline 1 minute)
-	   (aset deadline 2 hour)
-	   ;; Convert to seconds.
-	   (setq deadline (float-time (apply 'encode-time
-					     (append deadline nil))))
+	   (setq deadline (apply #'encode-time (car deadline) minute hour
+				 (nthcdr 3 deadline)))
 	   ;; If this time has passed already, add a day.
-	   (when (< deadline (float-time))
-	     (setq deadline (+ 86400 deadline))) ; 86400 secs/day
+	   (when (time-less-p deadline nil)
+	     (setq deadline (time-add 86400 deadline))) ; 86400 secs/day
 	   ;; Convert seconds to date header.
-	   (setq deadline (message-make-date
-			   (seconds-to-time deadline))))
+	   (setq deadline (message-make-date deadline)))
 	  ((string-match "\\([0-9]+\\)\\s-*\\([mhdwMY]\\)" delay)
 	   (setq num (match-string 1 delay))
 	   (setq unit (match-string 2 delay))
@@ -128,8 +124,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 		  (setq delay (* num 60 60)))
 		 (t
 		  (setq delay (* num 60))))
-	   (setq deadline (message-make-date
-			   (seconds-to-time (+ (float-time) delay)))))
+	   (setq deadline (message-make-date (time-add nil delay))))
 	  (t (error "Malformed delay `%s'" delay)))
     (message-add-header (format "%s: %s" gnus-delay-header deadline)))
   (set-buffer-modified-p t)
@@ -164,11 +159,8 @@ DELAY is a string, giving the length of the time.  Possible values are:
 	       nil t)
 	      (progn
 		(setq deadline (nnheader-header-value))
-		(setq deadline (apply 'encode-time
-				      (parse-time-string deadline)))
-		(setq deadline (time-since deadline))
-		(when (and (>= (nth 0 deadline) 0)
-			   (>= (nth 1 deadline) 0))
+		(setq deadline (encode-time (parse-time-string deadline)))
+		(unless (time-less-p nil deadline)
 		  (message "Sending delayed article %d" article)
 		  (gnus-draft-send article group)
 		  (message "Sending delayed article %d...done" article)))

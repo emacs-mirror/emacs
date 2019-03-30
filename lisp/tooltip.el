@@ -1,6 +1,6 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -201,7 +201,8 @@ This might return nil if the event did not occur over a buffer."
 (defun tooltip-delay ()
   "Return the delay in seconds for the next tooltip."
   (if (and tooltip-hide-time
-           (< (- (float-time) tooltip-hide-time) tooltip-recent-seconds))
+	   (time-less-p (time-since tooltip-hide-time)
+			tooltip-recent-seconds))
       tooltip-short-delay
     tooltip-delay))
 

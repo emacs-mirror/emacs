@@ -1,6 +1,6 @@
 ;;; bs.el --- menu for selecting and displaying buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -828,8 +828,8 @@ See `visit-tags-table'."
   (let ((res
          (with-current-buffer (bs--current-buffer)
            (setq bs-buffer-show-mark (pcase bs-buffer-show-mark
-                                       (`nil   'never)
-                                       (`never 'always)
+                                       ('nil   'never)
+                                       ('never 'always)
                                        (_       nil))))))
     (bs--update-current-line)
     (bs--set-window-height)

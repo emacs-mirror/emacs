@@ -1,6 +1,6 @@
 /* Filesystem notifications support with kqueue API.
 
-Copyright (C) 2015-2018 Free Software Foundation, Inc.
+Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -99,7 +99,7 @@ kqueue_generate_event (Lisp_Object watch_object, Lisp_Object actions,
     event.arg = list2 (Fcons (XCAR (watch_object),
 			      Fcons (actions,
 				     NILP (file1)
-				     ? Fcons (file, Qnil)
+				     ? list1 (file)
 				     : list2 (file, file1))),
 		       Fnth (make_fixnum (3), watch_object));
     kbd_buffer_store_event (&event);
@@ -395,11 +395,12 @@ only when the upper directory of the renamed file is watched.  */)
     maxfd = 256;
 
   /* We assume 50 file descriptors are sufficient for the rest of Emacs.  */
-  if ((maxfd - 50) < XFIXNUM (Flength (watch_list)))
+  ptrdiff_t watch_list_len = list_length (watch_list);
+  if (maxfd - 50 < watch_list_len)
     xsignal2
       (Qfile_notify_error,
        build_string ("File watching not possible, no file descriptor left"),
-       Flength (watch_list));
+       make_fixnum (watch_list_len));
 
   if (kqueuefd < 0)
     {

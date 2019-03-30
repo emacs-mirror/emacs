@@ -1,7 +1,7 @@
 /* Output like sprintf to a buffer of specified size.    -*- coding: utf-8 -*-
    Also takes args differently: pass one pointer to the end
    of the format string in addition to the format string itself.
-   Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
      sequence.
 
    . It accepts a pointer to the end of the format string, so the format string
-     could include embedded null characters.
+     could include embedded NUL characters.
 
    . It signals an error if the length of the formatted string is about to
      overflow ptrdiff_t or size_t, to avoid producing strings longer than what
@@ -123,7 +123,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    to fit and return BUFSIZE - 1; if this truncates a multibyte
    sequence, store '\0' into the sequence's first byte.
    Returns the number of bytes stored into BUFFER, excluding
-   the terminating null byte.  Output is always null-terminated.
+   the terminating NUL byte.  Output is always NUL-terminated.
    String arguments are passed as C strings.
    Integers are passed as C integers.  */
 

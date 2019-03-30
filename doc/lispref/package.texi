@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 2010-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2010-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Packaging
 @chapter Preparing Lisp code for distribution
@@ -22,6 +22,7 @@ user-level features of the packaging system.
 * Simple Packages::         How to package a single .el file.
 * Multi-file Packages::     How to package multiple files.
 * Package Archives::        Maintaining package archives.
+* Archive Web Server::      Interfacing to an archive web server.
 @end menu
 
 @node Packaging Basics
@@ -249,7 +250,8 @@ dependency's version (a string).
 @end defun
 
   If the content directory contains a file named @file{README}, this
-file is used as the long description.
+file is used as the long description (overriding any @samp{;;;
+Commentary:} section).
 
   If the content directory contains a file named @file{dir}, this is
 assumed to be an Info directory file made with @command{install-info}.
@@ -311,8 +313,8 @@ access.  Such local archives are mainly useful for testing.
 
   A package archive is simply a directory in which the package files,
 and associated files, are stored.  If you want the archive to be
-reachable via HTTP, this directory must be accessible to a web server.
-How to accomplish this is beyond the scope of this manual.
+reachable via HTTP, this directory must be accessible to a web server;
+@xref{Archive Web Server}.
 
   A convenient way to set up and update a package archive is via the
 @code{package-x} library.  This is included with Emacs, but not loaded
@@ -393,3 +395,28 @@ manual.  For more information on cryptographic keys and signing,
 @pxref{Top,, GnuPG, gnupg, The GNU Privacy Guard Manual}.  Emacs comes
 with an interface to GNU Privacy Guard, @pxref{Top,, EasyPG, epa,
 Emacs EasyPG Assistant Manual}.
+
+@node Archive Web Server
+@section Interfacing to an archive web server
+@cindex archive web server
+
+A web server providing access to a package archive must support the
+following queries:
+
+@table @asis
+@item archive-contents
+Return a lisp form describing the archive contents. The form is a list
+of 'package-desc' structures (see @file{package.el}), except the first
+element of the list is the archive version.
+
+@item <package name>-readme.txt
+Return the long description of the package.
+
+@item <file name>.sig
+Return the signature for the file.
+
+@item <file name>
+Return the file. This will be the tarball for a multi-file
+package, or the single file for a simple package.
+
+@end table

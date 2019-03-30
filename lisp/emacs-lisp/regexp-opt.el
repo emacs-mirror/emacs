@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -84,11 +84,14 @@
 ;;; Code:
 
 ;;;###autoload
-(defun regexp-opt (strings &optional paren)
+(defun regexp-opt (strings &optional paren keep-order)
   "Return a regexp to match a string in the list STRINGS.
-Each string should be unique in STRINGS and should not contain
-any regexps, quoted or not.  Optional PAREN specifies how the
-returned regexp is surrounded by grouping constructs.
+Each member of STRINGS is treated as a fixed string, not as a regexp.
+Optional PAREN specifies how the returned regexp is surrounded by
+grouping constructs.
+
+If STRINGS is the empty list, the return value is a regexp that
+never matches anything.
 
 The optional argument PAREN can be any of the following:
 
@@ -111,8 +114,14 @@ nil
     necessary to ensure that a postfix operator appended to it will
     apply to the whole expression.
 
-The resulting regexp is equivalent to but usually more efficient
-than that of a simplified version:
+The optional argument KEEP-ORDER, if nil or omitted, allows the
+returned regexp to match the strings in any order.  If non-nil,
+the match is guaranteed to be performed in the order given, as if
+the strings were made into a regexp by joining them with the
+`\\|' operator.
+
+Up to reordering, the resulting regexp is equivalent to but
+usually more efficient than that of a simplified version:
 
  (defun simplified-regexp-opt (strings &optional paren)
    (let ((parens
@@ -121,9 +130,9 @@ than that of a simplified version:
                 ((eq paren \\='symbols) \\='(\"\\\\_<\\\\(\" . \"\\\\)\\\\_>\"))
                 ((null paren)          \\='(\"\\\\(?:\" . \"\\\\)\"))
                 (t                       \\='(\"\\\\(\" . \"\\\\)\")))))
-     (concat (car paren)
+     (concat (car parens)
              (mapconcat \\='regexp-quote strings \"\\\\|\")
-             (cdr paren))))"
+             (cdr parens))))"
   (save-match-data
     ;; Recurse on the sorted list.
     (let* ((max-lisp-eval-depth 10000)
@@ -133,7 +142,19 @@ than that of a simplified version:
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
 	   (sorted-strings (delete-dups
 			    (sort (copy-sequence strings) 'string-lessp)))
-	   (re (regexp-opt-group sorted-strings (or open t) (not open))))
+	   (re
+            (cond
+             ;; No strings: return a\` which cannot match anything.
+             ((null strings)
+              (concat (or open "\\(?:") "a\\`\\)"))
+             ;; If we cannot reorder, give up all attempts at
+             ;; optimisation.  There is room for improvement (Bug#34641).
+             ((and keep-order (regexp-opt--contains-prefix sorted-strings))
+              (concat (or open "\\(?:")
+                      (mapconcat #'regexp-quote strings "\\|")
+                      "\\)"))
+             (t
+              (regexp-opt-group sorted-strings (or open t) (not open))))))
       (cond ((eq paren 'words)
 	     (concat "\\<" re "\\>"))
 	    ((eq paren 'symbols)
@@ -312,6 +333,22 @@ CHARS should be a list of characters."
             "\\^"                       ; [^] is not a valid regexp
           (concat "[" dash caret "]"))
       (concat "[" bracket charset caret dash "]"))))
+
+
+(defun regexp-opt--contains-prefix (strings)
+  "Whether STRINGS contains a proper prefix of one of its other elements.
+STRINGS must be a list of sorted strings without duplicates."
+  (let ((s strings))
+    ;; In a lexicographically sorted list, a string always immediately
+    ;; succeeds one of its prefixes.
+    (while (and (cdr s)
+                (not (string-equal
+                      (car s)
+                      (substring (cadr s) 0 (min (length (car s))
+                                                 (length (cadr s)))))))
+      (setq s (cdr s)))
+    (cdr s)))
+
 
 (provide 'regexp-opt)
 

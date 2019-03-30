@@ -1,5 +1,5 @@
 /* The emacs frame widget.
-   Copyright (C) 1992-1993, 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -282,7 +282,7 @@ set_frame_size (EmacsFrame ew)
 
   frame_size_history_add
     (f, Qset_frame_size, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
-     list2 (make_fixnum (ew->core.width), make_fixnum (ew->core.height)));
+     list2i (ew->core.width, ew->core.height));
 }
 
 static void

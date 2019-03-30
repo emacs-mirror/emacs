@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -37,6 +37,9 @@
 
 (require 'cl-lib)
 (require 'puny)
+
+(declare-function network-stream-certificate "network-stream"
+                  (host service parameters))
 
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
@@ -138,7 +141,7 @@ node `(emacs) Network Security'."
                  (integer :tag "Number of bits" 512))
   :group 'gnutls)
 
-(defun open-gnutls-stream (name buffer host service &optional nowait)
+(defun open-gnutls-stream (name buffer host service &optional parameters)
   "Open a SSL/TLS connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
@@ -149,12 +152,15 @@ BUFFER is the buffer (or `buffer-name') to associate with the process.
  a filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
-Third arg is name of the host to connect to, or its IP address.
-Fourth arg SERVICE is name of the service desired, or an integer
+Third arg HOST is the name of the host to connect to, or its IP address.
+Fourth arg SERVICE is the name of the service desired, or an integer
 specifying a port number to connect to.
-Fifth arg NOWAIT (which is optional) means that the socket should
-be opened asynchronously.  The connection process will be
-returned to the caller before TLS negotiation has happened.
+Fifth arg PARAMETERS is an optional list of keyword/value pairs.
+Only :client-certificate and :nowait keywords are recognized, and
+have the same meaning as for `open-network-stream'.
+For historical reasons PARAMETERS can also be a symbol, which is
+interpreted the same as passing a list containing :nowait and the
+value of that symbol.
 
 Usage example:
 
@@ -168,19 +174,33 @@ This is a very simple wrapper around `gnutls-negotiate'.  See its
 documentation for the specific parameters you can use to open a
 GnuTLS connection, including specifying the credential type,
 trust and key files, and priority string."
-  (let ((process (open-network-stream
-                  name buffer host service
-                  :nowait nowait
-                  :tls-parameters
-                  (and nowait
-                       (cons 'gnutls-x509pki
-                             (gnutls-boot-parameters
-                              :type 'gnutls-x509pki
-                              :hostname (puny-encode-domain host)))))))
+  (let* ((parameters
+          (cond ((symbolp parameters)
+                 (list :nowait parameters))
+                ((not (cl-evenp (length parameters)))
+                 (error "Malformed keyword list"))
+                ((consp parameters)
+                 parameters)
+                (t
+                 (error "Unknown parameter type"))))
+         (cert (network-stream-certificate host service parameters))
+         (keylist (and cert (list cert)))
+         (nowait (plist-get parameters :nowait))
+         (process (open-network-stream
+                   name buffer host service
+                   :nowait nowait
+                   :tls-parameters
+                   (and nowait
+                        (cons 'gnutls-x509pki
+                              (gnutls-boot-parameters
+                               :type 'gnutls-x509pki
+                               :keylist keylist
+                               :hostname (puny-encode-domain host)))))))
     (if nowait
         process
       (gnutls-negotiate :process process
                         :type 'gnutls-x509pki
+                        :keylist keylist
                         :hostname (puny-encode-domain host)))))
 
 (define-error 'gnutls-error "GnuTLS error")

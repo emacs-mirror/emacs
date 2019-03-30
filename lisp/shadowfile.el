@@ -1,6 +1,6 @@
 ;;; shadowfile.el --- automatic file copying
 
-;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm files

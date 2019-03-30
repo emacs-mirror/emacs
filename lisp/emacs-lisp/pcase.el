@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords:
@@ -63,6 +63,7 @@
 ;; FIXME: Now that macroexpansion is also performed when loading an interpreted
 ;; file, this is not a real problem any more.
 (defconst pcase--memoize (make-hash-table :weakness 'key :test 'eq))
+;; (defconst pcase--memoize (make-hash-table :test 'eq))
 ;; (defconst pcase--memoize-1 (make-hash-table :test 'eq))
 ;; (defconst pcase--memoize-2 (make-hash-table :weakness 'key :test 'equal))
 
@@ -175,7 +176,9 @@ Emacs Lisp manual for more information and examples."
 
 ;; FIXME: Obviously, this will collide with nadvice's use of
 ;; function-documentation if we happen to advise `pcase'.
+;;;###autoload
 (put 'pcase 'function-documentation '(pcase--make-docstring))
+;;;###autoload
 (defun pcase--make-docstring ()
   (let* ((main (documentation (symbol-function 'pcase) 'raw))
          (ud (help-split-fundoc main 'pcase)))
@@ -264,10 +267,14 @@ variable name being but a special case of it)."
 
 ;;;###autoload
 (defmacro pcase-let* (bindings &rest body)
-  "Like `let*' but where you can use `pcase' patterns for bindings.
-BODY should be an expression, and BINDINGS should be a list of bindings
-of the form (PATTERN EXP).
-See `pcase-let' for discussion of how PATTERN is matched."
+  "Like `let*', but supports destructuring BINDINGS using `pcase' patterns.
+As with `pcase-let', BINDINGS are of the form (PATTERN EXP), but the
+EXP in each binding in BINDINGS can use the results of the destructuring
+bindings that precede it in BINDINGS' order.
+
+Each EXP should match (i.e. be of compatible structure) to its
+respective PATTERN; a mismatch may signal an error or may go
+undetected, binding variables to arbitrary values, such as nil."
   (declare (indent 1)
            (debug ((&rest (pcase-PAT &optional form)) body)))
   (let ((cached (gethash bindings pcase--memoize)))
@@ -280,13 +287,16 @@ See `pcase-let' for discussion of how PATTERN is matched."
 
 ;;;###autoload
 (defmacro pcase-let (bindings &rest body)
-  "Like `let' but where you can use `pcase' patterns for bindings.
-BODY should be a list of expressions, and BINDINGS should be a list of bindings
-of the form (PATTERN EXP).
-The PATTERNs are only used to extract data, so the code does not test
-whether the data does match the corresponding patterns: a mismatch
-may signal an error or may go undetected, binding variables to arbitrary
-values, such as nil."
+  "Like `let', but supports destructuring BINDINGS using `pcase' patterns.
+BODY should be a list of expressions, and BINDINGS should be a list of
+bindings of the form (PATTERN EXP).
+All EXPs are evaluated first, and then used to perform destructuring
+bindings by matching each EXP against its respective PATTERN.  Then
+BODY is evaluated with those bindings in effect.
+
+Each EXP should match (i.e. be of compatible structure) to its
+respective PATTERN; a mismatch may signal an error or may go
+undetected, binding variables to arbitrary values, such as nil."
   (declare (indent 1) (debug pcase-let*))
   (if (null (cdr bindings))
       `(pcase-let* ,bindings ,@body)
@@ -304,11 +314,15 @@ values, such as nil."
 
 ;;;###autoload
 (defmacro pcase-dolist (spec &rest body)
-  "Superset of `dolist' where the VAR binding can be a `pcase' PATTERN.
-More specifically, this is just a shorthand for the following combination
-of `dolist' and `pcase-let':
-
-    (dolist (x LIST) (pcase-let ((PATTERN x)) BODY...))
+  "Eval BODY once for each set of bindings defined by PATTERN and LIST elements.
+PATTERN should be a `pcase' pattern describing the structure of
+LIST elements, and LIST is a list of objects that match PATTERN,
+i.e. have a structure that is compatible with PATTERN.
+For each element of LIST, this macro binds the variables in
+PATTERN to the corresponding subfields of the LIST element, and
+then evaluates BODY with these bindings in effect.  The
+destructuring bindings of variables in PATTERN to the subfields
+of the elements of LIST is performed as if by `pcase-let'.
 \n(fn (PATTERN LIST) BODY...)"
   (declare (indent 1) (debug ((pcase-PAT form) body)))
   (if (pcase--trivial-upat-p (car spec))
@@ -771,7 +785,7 @@ Otherwise, it defers to REST which is a list of branches of the form
    ((eq 'or (caar matches))
     (let* ((alts (cdar matches))
            (var (if (eq (caar alts) 'match) (cadr (car alts))))
-           (simples '()) (others '()) (memq-ok t))
+           (simples '()) (others '()) (memql-ok t))
       (when var
         (dolist (alt alts)
           (if (and (eq (car alt) 'match) (eq var (cadr alt))
@@ -779,16 +793,16 @@ Otherwise, it defers to REST which is a list of branches of the form
                      (eq (car-safe upat) 'quote)))
               (let ((val (cadr (cddr alt))))
                 (unless (or (integerp val) (symbolp val))
-                  (setq memq-ok nil))
+                  (setq memql-ok nil))
                 (push (cadr (cddr alt)) simples))
             (push alt others))))
       (cond
        ((null alts) (error "Please avoid it") (pcase--u rest))
-       ;; Yes, we can use `memq' (or `member')!
+       ;; Yes, we can use `memql' (or `member')!
        ((> (length simples) 1)
         (pcase--u1 (cons `(match ,var
                                  . (pred (pcase--flip
-                                          ,(if memq-ok #'memq #'member)
+                                          ,(if memql-ok #'memql #'member)
                                           ',simples)))
                          (cdr matches))
                    code vars

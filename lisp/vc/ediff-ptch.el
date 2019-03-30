@@ -1,6 +1,6 @@
 ;;; ediff-ptch.el --- Ediff's  patch support
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -681,7 +681,7 @@ optional argument, then use it."
 	(error
 	 "Ediff doesn't take the -V option in `ediff-patch-options'--sorry"))
 
-    ;; Make a temp file, if source-filename has a magic file handler (or if
+    ;; Make a temp file, if source-filename has a magic file name handler (or if
     ;; it is handled via auto-mode-alist and similar magic).
     ;; Check if there is a buffer visiting source-filename and if they are in
     ;; sync; arrange for the deletion of temp file.
@@ -691,7 +691,7 @@ optional argument, then use it."
     ;; Check if source file name has triggered black magic, such as file name
     ;; handlers or auto mode alist, and make a note of it.
     ;; true-source-filename should be either the original name or a
-    ;; temporary file where we put the after-product of the file handler.
+    ;; temporary file where we put the after-product of the file name handler.
     (setq file-name-magic-p (not (equal (file-truename true-source-filename)
 					(file-truename source-filename))))
 
@@ -823,11 +823,11 @@ you can still examine the changes via M-x ediff-files"
     (setq startup-hooks
 	  ;; this sets various vars in the meta buffer inside
 	  ;; ediff-prepare-meta-buffer
-	  (cons `(lambda ()
-		   ;; tell what to do if the user clicks on a session record
-		   (setq ediff-session-action-function
-			 'ediff-patch-file-form-meta
-			 ediff-meta-patchbufer patch-buf) )
+	  (cons (lambda ()
+		  ;; tell what to do if the user clicks on a session record
+		  (setq ediff-session-action-function
+			'ediff-patch-file-form-meta
+			ediff-meta-patchbufer patch-buf) )
 		startup-hooks))
     (setq meta-buf (ediff-prepare-meta-buffer
 		    'ediff-filegroup-action

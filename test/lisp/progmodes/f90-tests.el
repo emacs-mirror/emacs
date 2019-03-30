@@ -1,6 +1,6 @@
 ;;; f90-tests.el --- tests for progmodes/f90.el
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
 
@@ -98,7 +98,7 @@ end subroutine test")
     (insert "(/ x /)")
     (f90-do-auto-fill)
     (beginning-of-line)
-    (skip-chars-forward "[ \t]")
+    (skip-chars-forward " \t")
     (should (equal "&(/" (buffer-substring (point) (+ 3 (point)))))))
 
 ;; TODO bug#5593

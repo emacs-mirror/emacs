@@ -1,6 +1,6 @@
 ;;; parse-time.el --- parsing time strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util
@@ -147,7 +147,7 @@ letters, digits, plus or minus signs or colons."
 ;;;###autoload
 (defun parse-time-string (string)
   "Parse the time-string STRING into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
-STRING should be on something resembling an RFC2822 string, a la
+STRING should be something resembling an RFC 822 (or later) date-time, e.g.,
 \"Fri, 25 Mar 2016 16:24:56 +0100\", but this function is
 somewhat liberal in what format it accepts, and will attempt to
 return a \"likely\" value even for somewhat malformed strings.

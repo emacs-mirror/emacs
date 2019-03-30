@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -929,7 +929,7 @@ Mostly we check word delimiters."
                           (or (string= "" ispell-otherchars)
                               (not (looking-at ispell-otherchars)))
                           (or flyspell-consider-dash-as-word-delimiter-flag
-                              (not (looking-at "\\-")))
+                              (not (looking-at "-")))
                           2)))))
        (format "  because    : %S\n"
                (cond
@@ -947,7 +947,7 @@ Mostly we check word delimiters."
                             (or (string= "" ispell-otherchars)
                                 (not (looking-at ispell-otherchars)))
                             (or flyspell-consider-dash-as-word-delimiter-flag
-                                (not (looking-at "\\-")))))))
+                                (not (looking-at "-")))))))
                  ;; Yes because we have reached or typed a word delimiter.
                  'separator)
                 ((not (integerp flyspell-delay))

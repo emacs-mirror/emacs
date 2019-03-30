@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2010-2018 Free Software Foundation, Inc.
+# Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -190,6 +190,12 @@ else
 maybe_exclude_module_tests := -name emacs-module-tests.el -prune -o
 endif
 
+## Optional list of .el files to exclude from testing.
+## Intended for use in automated testing where one or more files
+## has some problem and needs to be excluded.
+## To avoid writing full name, can use eg %foo-tests.el.
+EXCLUDE_TESTS =
+
 ## To speed up parallel builds, put these slow test files (which can
 ## take longer than all the rest combined) at the start of the list.
 SLOW_TESTS = ${srcdir}/lisp/net/tramp-tests.el
@@ -201,6 +207,8 @@ ELFILES := $(sort $(shell find ${srcdir} -path "${srcdir}/manual" -prune -o \
 		-name "*.el" ! -name ".*" -print))
 
 $(foreach slow,${SLOW_TESTS},$(eval ELFILES:= ${slow} $(filter-out ${slow},${ELFILES})))
+
+$(foreach exclude,${EXCLUDE_TESTS},$(eval ELFILES:= $(filter-out ${exclude},${ELFILES})))
 
 ## .log files may be in a different directory for out of source builds
 LOGFILES := $(patsubst %.el,%.log, \
@@ -246,17 +254,21 @@ else
 FPIC_CFLAGS = -fPIC
 endif
 
+HYBRID_MALLOC = @HYBRID_MALLOC@
+LIBEGNU_ARCHIVE = ../lib/lib$(if $(HYBRID_MALLOC),e)gnu.a
+
 # Note: emacs-module.h is generated from emacs-module.h.in, hence we
 # look in ../src, not $(srcdir)/../src.
-MODULE_CFLAGS = -I../src $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
+MODULE_CFLAGS = -I../src -I$(srcdir)/../lib \
+  $(FPIC_CFLAGS) $(PROFILING_CFLAGS) \
   $(WARN_CFLAGS) $(WERROR_CFLAGS) $(CFLAGS)
 
 test_module = $(test_module_dir)/mod-test${SO}
 src/emacs-module-tests.log: $(test_module)
-$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
+$(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h $(LIBEGNU_ARCHIVE)
 	$(AM_V_at)${MKDIR_P} $(dir $@)
 	$(AM_V_CCLD)$(CC) -shared $(CPPFLAGS) $(MODULE_CFLAGS) $(LDFLAGS) \
-	  -o $@ $<
+	  -o $@ $< $(LIBEGNU_ARCHIVE)
 endif
 
 ## Check that there is no 'automated' subdirectory, which would

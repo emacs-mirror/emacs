@@ -1,6 +1,6 @@
 ;;; subr-x-tests.el --- Testing the extended lisp routines
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; Keywords:

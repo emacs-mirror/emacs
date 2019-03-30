@@ -1,6 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991-1995, 1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1991-1995, 1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>

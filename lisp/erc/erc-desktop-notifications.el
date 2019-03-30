@@ -1,6 +1,6 @@
 ;; erc-desktop-notifications.el -- Send notification on PRIVMSG or mentions
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: comm

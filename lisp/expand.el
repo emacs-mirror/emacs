@@ -1,6 +1,6 @@
 ;;; expand.el --- make abbreviations more usable
 
-;; Copyright (C) 1995-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Frederic Lepied <Frederic.Lepied@sugix.frmug.org>
 ;; Maintainer: emacs-devel@gnu.org

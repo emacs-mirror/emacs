@@ -1,6 +1,6 @@
 ;;; chartab-tests.el --- Tests for char-tab.c
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 

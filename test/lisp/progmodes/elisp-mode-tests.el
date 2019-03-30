@@ -1,6 +1,6 @@
 ;;; elisp-mode-tests.el --- Tests for emacs-lisp-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Dmitry Gutov <dgutov@yandex.ru>
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
@@ -298,6 +298,16 @@
       )))
 
 
+;; tmp may be on a different filesystem to the tests, but, ehh.
+(defvar xref--case-insensitive
+  (let ((dir (make-temp-file "xref-test" t)))
+    (unwind-protect
+        (progn
+          (with-temp-file (expand-file-name "hElLo" dir) "hello")
+          (file-exists-p (expand-file-name "HELLO" dir)))
+      (delete-directory dir t)))
+  "Non-nil if file system seems to be case-insensitive.")
+
 (defun xref-elisp-test-run (xrefs expected-xrefs)
   (should (= (length xrefs) (length expected-xrefs)))
   (while xrefs
@@ -307,11 +317,13 @@
            (expected-source (when (consp expected) (cdr expected))))
 
       ;; Downcase the filenames for case-insensitive file systems.
-      (setf (xref-elisp-location-file (oref xref location))
-            (downcase (xref-elisp-location-file (oref xref location))))
+      (when xref--case-insensitive
+        (setf (xref-elisp-location-file (oref xref location))
+              (downcase (xref-elisp-location-file (oref xref location))))
 
-      (setf (xref-elisp-location-file (oref expected-xref location))
-            (downcase (xref-elisp-location-file (oref expected-xref location))))
+        (setf (xref-elisp-location-file (oref expected-xref location))
+              (downcase (xref-elisp-location-file
+                         (oref expected-xref location)))))
 
       (should (equal xref expected-xref))
 
@@ -346,10 +358,10 @@ to (xref-elisp-test-descr-to-target xref)."
 ;; `load-path' has the correct case, so this causes the expected test
 ;; values to have the wrong case). This is handled in
 ;; `xref-elisp-test-run'.
-(defconst emacs-test-dir
-  (downcase
-   (file-truename (file-name-directory
-		   (or load-file-name (buffer-file-name))))))
+(defvar emacs-test-dir
+  (funcall (if xref--case-insensitive 'downcase 'identity)
+           (file-truename (file-name-directory
+                           (or load-file-name (buffer-file-name))))))
 
 
 ;; alphabetical by test name

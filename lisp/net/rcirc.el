@@ -1,6 +1,6 @@
 ;;; rcirc.el --- default, simple IRC client          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske <rcyeske@gmail.com>
 ;; Maintainers: Ryan Yeske <rcyeske@gmail.com>,
@@ -166,6 +166,14 @@ If nil, calculate the prefix dynamically to line up text
 underneath each nick."
   :type '(choice (const :tag "Dynamic" nil)
 		 (string :tag "Prefix text"))
+  :group 'rcirc)
+
+(defcustom rcirc-url-max-length nil
+  "Maximum number of characters in displayed URLs.
+If nil, no maximum is applied."
+  :version "27.1"
+  :type '(choice (const :tag "No maximum" nil)
+                 (integer :tag "Number of characters"))
   :group 'rcirc)
 
 (defvar rcirc-ignore-buffer-activity-flag nil
@@ -662,8 +670,9 @@ last ping."
 
 (defun rcirc-handler-ctcp-KEEPALIVE (process _target _sender message)
   (with-rcirc-process-buffer process
-    (setq header-line-format (format "%f" (- (float-time)
-					     (string-to-number message))))))
+    (setq header-line-format
+	  (format "%f" (float-time
+			(time-since (string-to-number message)))))))
 
 (defvar rcirc-debug-buffer "*rcirc debug*")
 (defvar rcirc-debug-flag nil
@@ -715,8 +724,8 @@ When 0, do not auto-reconnect."
                  (< 0 rcirc-reconnect-delay))
         (let ((now (current-time)))
           (when (or (null rcirc-last-connect-time)
-                    (< rcirc-reconnect-delay
-                       (float-time (time-subtract now rcirc-last-connect-time))))
+		    (time-less-p rcirc-reconnect-delay
+				 (time-subtract now rcirc-last-connect-time)))
             (setq rcirc-last-connect-time now)
             (rcirc-cmd-reconnect nil))))
       (run-hook-with-args 'rcirc-sentinel-functions process sentinel))))
@@ -751,12 +760,12 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
   (with-rcirc-process-buffer process
     (setq rcirc-last-server-message-time (current-time))
     (setq rcirc-process-output (concat rcirc-process-output output))
-    (when (= (aref rcirc-process-output
-                   (1- (length rcirc-process-output))) ?\n)
-      (mapc (lambda (line)
-              (rcirc-process-server-response process line))
-            (split-string rcirc-process-output "[\n\r]" t))
-      (setq rcirc-process-output nil))))
+    (when (= ?\n (aref rcirc-process-output
+                       (1- (length rcirc-process-output))))
+      (let ((lines (split-string rcirc-process-output "[\n\r]" t)))
+        (setq rcirc-process-output nil)
+        (dolist (line lines)
+          (rcirc-process-server-response process line))))))
 
 (defun rcirc-reschedule-timeout (process)
   (with-rcirc-process-buffer process
@@ -2056,9 +2065,7 @@ activity.  Only run if the buffer is not visible and
 (defvar rcirc-visible-buffers nil)
 (defun rcirc-window-configuration-change ()
   (unless (minibuffer-window-active-p (minibuffer-window))
-    ;; delay this until command has finished to make sure window is
-    ;; actually visible before clearing activity
-    (add-hook 'post-command-hook 'rcirc-window-configuration-change-1)))
+    (rcirc-window-configuration-change-1)))
 
 (defun rcirc-window-configuration-change-1 ()
   ;; clear activity and overlay arrows
@@ -2082,9 +2089,7 @@ activity.  Only run if the buffer is not visible and
 			    rcirc-activity)))
     ;; update the mode-line string
     (unless (equal old-activity rcirc-activity)
-      (rcirc-update-activity-string)))
-
-  (remove-hook 'post-command-hook 'rcirc-window-configuration-change-1))
+      (rcirc-update-activity-string))))
 
 
 ;;; buffer name abbreviation
@@ -2485,24 +2490,26 @@ If ARG is given, opens the URL in a new browser window."
 	(rcirc-record-activity (current-buffer) 'nick)))))
 
 (defun rcirc-markup-urls (_sender _response)
-  (while (and rcirc-url-regexp ;; nil means disable URL catching
+  (while (and rcirc-url-regexp ; nil means disable URL catching.
               (re-search-forward rcirc-url-regexp nil t))
     (let* ((start (match-beginning 0))
-           (end (match-end 0))
-           (url (match-string-no-properties 0))
-           (link-text (buffer-substring-no-properties start end)))
+           (url   (buffer-substring-no-properties start (point))))
+      (when rcirc-url-max-length
+        ;; Replace match with truncated URL.
+        (delete-region start (point))
+        (insert (url-truncate-url-for-viewing url rcirc-url-max-length)))
       ;; Add a button for the URL.  Note that we use `make-text-button',
       ;; rather than `make-button', as text-buttons are much faster in
       ;; large buffers.
-      (make-text-button start end
+      (make-text-button start (point)
 			'face 'rcirc-url
 			'follow-link t
 			'rcirc-url url
 			'action (lambda (button)
 				  (browse-url (button-get button 'rcirc-url))))
-      ;; record the url if it is not already the latest stored url
-      (when (not (string= link-text (caar rcirc-urls)))
-        (push (cons link-text start) rcirc-urls)))))
+      ;; Record the URL if it is not already the latest stored URL.
+      (unless (string= url (caar rcirc-urls))
+        (push (cons url start) rcirc-urls)))))
 
 (defun rcirc-markup-keywords (sender response)
   (when (and (string= response "PRIVMSG")
@@ -2788,7 +2795,7 @@ the only argument."
   (let* ((nick (nth 1 args))
          (idle-secs (string-to-number (nth 2 args)))
          (idle-string (format-seconds "%yy %dd %hh %mm %z%ss" idle-secs))
-         (signon-time (seconds-to-time (string-to-number (nth 3 args))))
+	 (signon-time (string-to-number (nth 3 args)))
          (signon-string (format-time-string "%c" signon-time))
          (message (format "%s idle for %s, signed on %s"
                           nick idle-string signon-string)))
@@ -2809,8 +2816,7 @@ Not in rfc1459.txt"
     (with-current-buffer buffer
       (let ((setter (nth 2 args))
 	    (time (current-time-string
-		   (seconds-to-time
-		    (string-to-number (cl-cadddr args))))))
+		   (string-to-number (cl-cadddr args)))))
 	(rcirc-print process sender "TOPIC" (cadr args)
 		     (format "%s (%s on %s)" rcirc-topic setter time))))))
 

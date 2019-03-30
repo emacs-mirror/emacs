@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Files
@@ -16,7 +16,7 @@ described in @ref{Backups and Auto-Saving}.
 names.  A file name is a string.  Most of these functions expand file
 name arguments using the function @code{expand-file-name}, so that
 @file{~} is handled correctly, as are relative file names (including
-@file{../}).  @xref{File Name Expansion}.
+@file{../} and the empty string).  @xref{File Name Expansion}.
 
   In addition, certain @dfn{magic} file names are handled specially.
 For example, when a remote file name is specified, Emacs accesses the
@@ -550,7 +550,7 @@ the functions in the list @code{after-insert-file-functions}.
 (@pxref{Coding Systems}) used for decoding the file's contents,
 including end-of-line conversion.  However, if the file contains null
 bytes, it is by default visited without any code conversions.
-@xref{Lisp and Coding Systems, inhibit-null-byte-detection}.
+@xref{Lisp and Coding Systems, inhibit-nul-byte-detection}.
 
 If @var{visit} is non-@code{nil}, this function additionally marks the
 buffer as unmodified and sets up various fields in the buffer so that it
@@ -1306,7 +1306,7 @@ The file's @acronym{GID}, likewise (@code{file-attribute-group-id}).
 
 @item
 The time of last access as a Lisp timestamp
-(@code{file-attribute-status-change-time}).  The timestamp is in the
+(@code{file-attribute-access-time}).  The timestamp is in the
 style of @code{current-time} (@pxref{Time of Day}) and is truncated
 to that of the filesystem's timestamp resolution; for example, on some
 FAT-based filesystems, only the date of last access is recorded, so
@@ -2367,8 +2367,10 @@ start with @samp{~}.)  Otherwise, the current buffer's value of
 @end example
 
 If the part of @var{filename} before the first slash is
-@samp{~}, it expands to the value of the @env{HOME} environment
-variable (usually your home directory).  If the part before the first
+@samp{~}, it expands to your home directory, which is typically
+specified by the value of the @env{HOME} environment variable
+(@pxref{General Variables,,, emacs, The GNU Emacs Manual}).
+If the part before the first
 slash is @samp{~@var{user}} and if @var{user} is a valid login name,
 it expands to @var{user}'s home directory.
 If you do not want this expansion for a relative @var{filename} that
@@ -2399,6 +2401,17 @@ In some cases, a leading @samp{..} component can remain in the output:
 This is for the sake of filesystems that have the concept of a
 superroot above the root directory @file{/}.  On other filesystems,
 @file{/../} is interpreted exactly the same as @file{/}.
+
+Expanding @file{.} or the empty string returns the default directory:
+
+@example
+@group
+(expand-file-name "." "/usr/spool/")
+     @result{} "/usr/spool"
+(expand-file-name "" "/usr/spool/")
+     @result{} "/usr/spool"
+@end group
+@end example
 
 Note that @code{expand-file-name} does @emph{not} expand environment
 variables; only @code{substitute-in-file-name} does that:
@@ -2510,9 +2523,9 @@ with @samp{/:}.
 @defmac file-name-quote name
 This macro adds the quotation prefix @samp{/:} to the file @var{name}.
 For a local file @var{name}, it prefixes @var{name} with @samp{/:}.
-If @var{name} is a remote file name, the local part of @var{name} is
-quoted.  If @var{name} is already a quoted file name, @var{name} is
-returned unchanged.
+If @var{name} is a remote file name, the local part of @var{name}
+(@pxref{Magic File Names}) is quoted.  If @var{name} is already a
+quoted file name, @var{name} is returned unchanged.
 
 @example
 @group
@@ -2691,8 +2704,8 @@ that remote host.  If such a directory does not exist, or
 @code{temporary-file-directory} is returned.
 @end defun
 
-In order to extract the local part of the path name from a temporary
-file, @code{file-local-name} could be used.
+In order to extract the local part of the file's name of a temporary
+file, use @code{file-local-name} (@pxref{Magic File Names}).
 
 @node File Name Completion
 @subsection File Name Completion
@@ -3065,7 +3078,7 @@ expression to define the class of names (all those that match the
 regular expression), plus a handler that implements all the primitive
 Emacs file operations for file names that match.
 
-@cindex file handler
+@cindex file name handler
 @vindex file-name-handler-alist
   The variable @code{file-name-handler-alist} holds a list of handlers,
 together with regular expressions that determine when to apply each
@@ -3169,6 +3182,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-directory},
 @code{make-directory-internal},
 @code{make-nearby-temp-file},
+@code{make-process},
 @code{make-symbolic-link},@*
 @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
@@ -3225,6 +3239,7 @@ first, before handlers for jobs such as remote file access.
 @code{make-auto-save-file-name},
 @code{make-direc@discretionary{}{}{}tory},
 @code{make-direc@discretionary{}{}{}tory-internal},
+@code{make-process},
 @code{make-symbolic-link},
 @code{process-file},
 @code{rename-file}, @code{set-file-acl}, @code{set-file-modes},
@@ -3352,8 +3367,8 @@ If @code{file-remote-p} returns the same identifier for two different
 filenames, that means they are stored on the same file system and can
 be accessed locally with respect to each other.  This means, for
 example, that it is possible to start a remote process accessing both
-files at the same time.  Implementers of file handlers need to ensure
-this principle is valid.
+files at the same time.  Implementers of file name handlers need to
+ensure this principle is valid.
 
 @var{identification} specifies which part of the identifier shall be
 returned as string.  @var{identification} can be the symbol
@@ -3381,11 +3396,24 @@ non-magic directory to serve as its current directory, and this function
 is a good way to come up with one.
 @end defun
 
+@cindex local part of remote file name
 @defun file-local-name filename
-This function returns the local part of file @var{filename}.  For a
-remote @var{filename}, it returns a file name which could be used
-directly as argument of a remote process.  If @var{filename} is local,
-this function returns the file name.
+This function returns the @dfn{local part} of @var{filename}.  This is
+the part of the file's name that identifies it on the remote host, and
+is typically obtained by removing from the remote file name the parts
+that specify the remote host and the method of accessing it.  For
+example:
+
+@smallexample
+(file-local-name "/ssh:@var{user}@@@var{host}:/foo/bar")
+     @result{} "/foo/bar"
+@end smallexample
+
+For a remote @var{filename}, this function returns a file name which
+could be used directly as an argument of a remote process
+(@pxref{Asynchronous Processes}, and @pxref{Synchronous Processes}),
+and as the program to run on the remote host.  If @var{filename} is
+local, this function returns it unchanged.
 @end defun
 
 @defopt remote-file-name-inhibit-cache

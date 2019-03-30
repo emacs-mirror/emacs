@@ -1,6 +1,6 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -146,7 +146,7 @@ expression, in which case we want to handle forms differently."
                            t))))
         ;; Add the usage form at the end where describe-function-1
         ;; can recover it.
-        (when (listp args) (setq doc (help-add-fundoc-usage doc args)))
+        (when (consp args) (setq doc (help-add-fundoc-usage doc args)))
         ;; (message "autoload of %S" (nth 1 form))
         `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type)))
 
@@ -182,13 +182,13 @@ expression, in which case we want to handle forms differently."
       (let* ((macrop (memq car '(defmacro cl-defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (pcase car
-                     ((or `defun `defmacro
-                          `defun* `defmacro* `cl-defun `cl-defmacro
-                          `define-overloadable-function)
+                     ((or 'defun 'defmacro
+                          'defun* 'defmacro* 'cl-defun 'cl-defmacro
+                          'define-overloadable-function)
                       (nth 2 form))
-                     (`define-skeleton '(&optional str arg))
-                     ((or `define-generic-mode `define-derived-mode
-                          `define-compilation-mode)
+                     ('define-skeleton '(&optional str arg))
+                     ((or 'define-generic-mode 'define-derived-mode
+                          'define-compilation-mode)
                       nil)
                      (_ t)))
 	     (body (nthcdr (or (function-get car 'doc-string-elt) 3) form))
@@ -1047,7 +1047,7 @@ write its autoloads into the specified file instead."
                        ;; we don't want to depend on whether Emacs was
                        ;; built with or without modules support, nor
                        ;; what is the suffix for the underlying OS.
-		       (unless (string-match "\\.\\(elc\\|\\so\\|dll\\)" suf)
+		       (unless (string-match "\\.\\(elc\\|so\\|dll\\)" suf)
                          (push suf tmp)))
                      (concat "^[^=.].*" (regexp-opt tmp t) "\\'")))
 	 (files (apply #'nconc

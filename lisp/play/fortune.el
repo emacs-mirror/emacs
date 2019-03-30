@@ -1,6 +1,6 @@
 ;;; fortune.el --- use fortune to create signatures
 
-;; Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail

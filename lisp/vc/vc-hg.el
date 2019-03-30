@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: emacs-devel@gnu.org
@@ -143,6 +143,15 @@ switches."
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
   :version "25.1"
+  :group 'vc-hg)
+
+(defcustom vc-hg-revert-switches nil
+  "String or list of strings specifying switches for hg revert
+under VC."
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Argument String")
+		 (repeat :tag "Argument List" :value ("") string))
+  :version "27.1"
   :group 'vc-hg)
 
 (defcustom vc-hg-program "hg"
@@ -914,9 +923,6 @@ FILENAME must be the file's true absolute name."
       (setf ignored (string-match (pop patterns) filename)))
     ignored))
 
-(defun vc-hg--time-to-integer (ts)
-  (+ (* 65536 (car ts)) (cadr ts)))
-
 (defvar vc-hg--cached-ignore-patterns nil
   "Cached pre-parsed hg ignore patterns.")
 
@@ -1037,8 +1043,9 @@ hg binary."
                (let ((vc-hg-size (nth 2 dirstate-entry))
                      (vc-hg-mtime (nth 3 dirstate-entry))
                      (fs-size (file-attribute-size stat))
-                     (fs-mtime (vc-hg--time-to-integer
-				(file-attribute-modification-time stat))))
+		     (fs-mtime (encode-time
+				(file-attribute-modification-time stat)
+				'integer)))
                  (if (and (eql vc-hg-size fs-size) (eql vc-hg-mtime fs-mtime))
                      'up-to-date
                    'edited)))
@@ -1142,11 +1149,9 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-find-file-hook ()
   (when (and buffer-file-name
-             (file-exists-p (concat buffer-file-name ".orig"))
              ;; Hg does not seem to have a "conflict" status, eg
              ;; hg http://bz.selenic.com/show_bug.cgi?id=2724
-             (memq (vc-file-getprop buffer-file-name 'vc-state)
-                   '(edited conflict))
+             (memq (vc-state buffer-file-name) '(edited conflict))
              ;; Maybe go on to check that "hg resolve -l" says "U"?
              ;; If "hg resolve -l" says there's a conflict but there are no
              ;; conflict markers, it's not clear what we should do.
@@ -1163,7 +1168,11 @@ REV is the revision to check out into WORKFILE."
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
-    (with-temp-buffer (vc-hg-command t 0 file "revert"))))
+    (with-temp-buffer
+      (apply #'vc-hg-command
+             t 0 file
+             "revert"
+             (append (vc-switches 'hg 'revert))))))
 
 ;;; Hg specific functionality.
 
@@ -1194,9 +1203,9 @@ REV is the revision to check out into WORKFILE."
       (insert (propertize
                (format "   (%s %s)"
                        (pcase (vc-hg-extra-fileinfo->rename-state extra)
-                         (`copied "copied from")
-                         (`renamed-from "renamed from")
-                         (`renamed-to "renamed to"))
+                         ('copied "copied from")
+                         ('renamed-from "renamed from")
+                         ('renamed-to "renamed to"))
                        (vc-hg-extra-fileinfo->extra-name extra))
                'face 'font-lock-comment-face)))))
 

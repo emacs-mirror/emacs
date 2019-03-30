@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to spell checkers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1995, 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2019 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 
@@ -726,6 +726,7 @@ Otherwise returns the library directory name, if that is defined."
 	;; Make sure these variables are (re-)initialized to the default value
 	(setq ispell-really-aspell nil
               ispell-really-hunspell nil
+              ispell-really-enchant nil
 	      ispell-encoding8-command nil)
 
 	(goto-char (point-min))
@@ -1106,7 +1107,19 @@ dictionary from that list was found."
 				 null-device
 				 t
 				 nil
-				 "-D")
+                                 "-D"
+                                 ;; Use -a to prevent Hunspell from
+                                 ;; trying to initialize its
+                                 ;; curses/termcap UI, which causes it
+                                 ;; to crash or fail to start in some
+                                 ;; MS-Windows ports.
+                                 "-a"
+                                 ;; Hunspell 1.7.0 (and later?) won't
+                                 ;; show LOADED DICTIONARY unless
+                                 ;; there's at least one file argument
+                                 ;; on the command line.  So we feed
+                                 ;; it with the null device.
+				 null-device)
 	    (buffer-string))
 	  "[\n\r]+"
 	  t))
@@ -1260,7 +1273,6 @@ aspell is used along with Emacs).")
 (defun ispell-set-spellchecker-params ()
   "Initialize some spellchecker parameters when changed or first used."
   (unless (eq ispell-last-program-name ispell-program-name)
-    (setq ispell-last-program-name ispell-program-name)
     (ispell-kill-ispell t)
     (if (and (condition-case ()
 		 (progn
@@ -1375,7 +1387,8 @@ aspell is used along with Emacs).")
                            (nth 7 adict)))
                       adict)
                     tmp-dicts-alist :test #'equal))
-      (setq ispell-dictionary-alist tmp-dicts-alist))))
+      (setq ispell-dictionary-alist tmp-dicts-alist)))
+      (setq ispell-last-program-name ispell-program-name))
 
 (defun ispell-valid-dictionary-list ()
   "Return a list of valid dictionaries.
@@ -1777,11 +1790,15 @@ You can set this variable in hooks in your init file -- eg:
 
 
 (defun ispell-accept-output (&optional timeout-secs timeout-msecs)
-  "Wait for output from Ispell process, or TIMEOUT-SECS and TIMEOUT-MSECS.
+  "Wait for output from Ispell process, or for TIMEOUT-SECS + TIMEOUT-MSECS.
+\(The TIMEOUT-MSECS argument is obsolete and should be avoided.)
 If asynchronous subprocesses are not supported, call function `ispell-filter'
 and pass it the output of the last Ispell invocation."
   (if ispell-async-processp
-      (accept-process-output ispell-process timeout-secs timeout-msecs)
+      (let ((timeout (if timeout-msecs
+			 (+ (or timeout-secs 0) (/ timeout-msecs 1000.0))
+		       timeout-secs)))
+	(accept-process-output ispell-process timeout))
     (if (null ispell-process)
 	(error "No Ispell process to read output from!")
       (let ((buf ispell-output-buffer)
@@ -3458,7 +3475,7 @@ Returns the sum SHIFT due to changes in word replacements."
             ;; Error in tex mode when a potential math mode change exists.
             (if (and replace (listp replace) (= 2 (length replace)))
                 (if (and (eq ispell-parser 'tex)
-                         (string-match "[\\\\][]()[]\\|\\\\begin\\|\\$"
+                         (string-match "[\\][]()[]\\|\\\\begin\\|\\$"
                                        (regexp-quote string)))
                     (error
                      "Don't start query replace on a line with math characters"

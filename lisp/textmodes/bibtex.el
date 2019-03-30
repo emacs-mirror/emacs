@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1999, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
@@ -5095,7 +5095,7 @@ entries from minibuffer."
              (list beg end
                    (lambda (s p a)
                      (cond
-                      ((eq a 'metadata) `(metadata (category . bibtex-key)))
+                      ((eq a 'metadata) '(metadata (category . bibtex-key)))
                       (t (let ((completion-ignore-case nil))
                            (complete-with-action
                             a (bibtex-global-key-alist) s p)))))
@@ -5113,7 +5113,7 @@ entries from minibuffer."
            (list beg end
                  (lambda (s p a)
                    (cond
-                    ((eq a 'metadata) `(metadata (category . bibtex-string)))
+                    ((eq a 'metadata) '(metadata (category . bibtex-string)))
                     (t (let ((completion-ignore-case t))
                          (complete-with-action a compl s p)))))
                  :exit-function (bibtex-complete-string-cleanup compl))))))

@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2018 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -93,12 +93,13 @@ Info node `(elisp)Specification List' for details."
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
 (defmacro lambda (&rest cdr)
-  "Return a lambda expression.
-A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
-self-quoting; the result of evaluating the lambda expression is the
-expression itself.  The lambda expression may then be treated as a
-function, i.e., stored as the function value of a symbol, passed to
-`funcall' or `mapcar', etc.
+  "Return an anonymous function.
+Under dynamic binding, a call of the form (lambda ARGS DOCSTRING
+INTERACTIVE BODY) is self-quoting; the result of evaluating the
+lambda expression is the expression itself.  Under lexical
+binding, the result is a closure.  Regardless, the result is a
+function, i.e., it may be stored as the function value of a
+symbol, passed to `funcall' or `mapcar', etc.
 
 ARGS should take the same form as an argument list for a `defun'.
 DOCSTRING is an optional documentation string.
@@ -755,9 +756,31 @@ Elements of ALIST that are not conses are ignored."
 If KEY is not found in ALIST, return DEFAULT.
 Use TESTFN to lookup in the alist if non-nil.  Otherwise, use `assq'.
 
-This is a generalized variable suitable for use with `setf'.
+You can use `alist-get' in PLACE expressions.  This will modify
+an existing association (more precisely, the first one if
+multiple exist), or add a new element to the beginning of ALIST,
+destructively modifying the list stored in ALIST.
+
+Example:
+
+   (setq foo '((a . 0)))
+   (setf (alist-get 'a foo) 1
+         (alist-get 'b foo) 2)
+
+   foo => ((b . 2) (a . 1))
+
+
 When using it to set a value, optional argument REMOVE non-nil
-means to remove KEY from ALIST if the new value is `eql' to DEFAULT."
+means to remove KEY from ALIST if the new value is `eql' to
+DEFAULT (more precisely the first found association will be
+deleted from the alist).
+
+Example:
+
+  (setq foo '((a . 1) (b . 2)))
+  (setf (alist-get 'b foo nil 'remove) nil)
+
+  foo => ((a . 1))"
   (ignore remove) ;;Silence byte-compiler.
   (let ((x (if (not testfn)
                (assq key alist)
@@ -1510,6 +1533,8 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete-variable 'x-gtk-use-window-move nil "26.1")
 
 (defvaralias 'messages-buffer-max-lines 'message-log-max)
+(define-obsolete-variable-alias 'inhibit-null-byte-detection
+  'inhibit-nul-byte-detection "27.1")
 
 ;;;; Alternate names for functions - these are not being phased out.
 
@@ -3184,11 +3209,12 @@ discouraged."
   "Start a program in a subprocess.  Return the process object for it.
 Similar to `start-process-shell-command', but calls `start-file-process'."
   (declare (advertised-calling-convention (name buffer command) "23.1"))
-  (start-file-process
-   name buffer
-   (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
-   (if (file-remote-p default-directory) "-c" shell-command-switch)
-   (mapconcat 'identity args " ")))
+  ;; On remote hosts, the local `shell-file-name' might be useless.
+  (with-connection-local-variables
+   (start-file-process
+    name buffer
+    shell-file-name shell-command-switch
+    (mapconcat 'identity args " "))))
 
 (defun call-process-shell-command (command &optional infile buffer display
 					   &rest args)
@@ -3229,11 +3255,11 @@ discouraged."
 Similar to `call-process-shell-command', but calls `process-file'."
   (declare (advertised-calling-convention
             (command &optional infile buffer display) "24.5"))
-  (process-file
-   (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
-   infile buffer display
-   (if (file-remote-p default-directory) "-c" shell-command-switch)
-   (mapconcat 'identity (cons command args) " ")))
+  ;; On remote hosts, the local `shell-file-name' might be useless.
+  (with-connection-local-variables
+   (process-file
+    shell-file-name infile buffer display shell-command-switch
+    (mapconcat 'identity (cons command args) " "))))
 
 (defun call-shell-region (start end command &optional delete buffer)
   "Send text from START to END as input to an inferior shell running COMMAND.
@@ -3684,7 +3710,7 @@ the specified region.  It must not change
 `before-change-functions' or `after-change-functions'.
 
 Additionally, the buffer modifications of BODY are recorded on
-the buffer's undo list as a single \(apply ...) entry containing
+the buffer's undo list as a single (apply ...) entry containing
 the function `undo--wrap-and-run-primitive-undo'."
   (let ((old-bul buffer-undo-list)
 	(end-marker (copy-marker end t))
@@ -3697,7 +3723,14 @@ the function `undo--wrap-and-run-primitive-undo'."
 	(if (eq buffer-undo-list t)
 	    (setq result (funcall body))
 	  (let (;; (inhibit-modification-hooks t)
-                before-change-functions after-change-functions)
+                (before-change-functions
+                 ;; Ugly Hack: if the body uses syntax-ppss/syntax-propertize
+                 ;; (e.g. via a regexp-search or sexp-movement trigerring
+                 ;; on-the-fly syntax-propertize), make sure that this gets
+                 ;; properly refreshed after subsequent changes.
+                 (if (memq #'syntax-ppss-flush-cache before-change-functions)
+                     '(syntax-ppss-flush-cache)))
+                after-change-functions)
 	    (setq result (funcall body)))
 	  (let ((ap-elt
 		 (list 'apply
@@ -4814,7 +4847,7 @@ command is called from a keyboard macro?"
                           'called-interactively-p-functions
                           i frame nextframe)))
                (pcase skip
-                 (`nil nil)
+                 ('nil nil)
                  (0 t)
                  (_ (setq i (+ i skip -1)) (funcall get-next-frame)))))))
       ;; Now `frame' should be "the function from which we were called".
@@ -5034,7 +5067,7 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
 	 (enough-time-passed
 	  ;; See if enough time has passed since the last update.
 	  (or (not update-time)
-	      (when (>= (float-time) update-time)
+	      (when (time-less-p update-time nil)
 		;; Calculate time for the next update
 		(aset parameters 0 (+ update-time (aref parameters 5)))))))
     (cond ((and min-value max-value)
@@ -5447,5 +5480,26 @@ This function is called from lisp/Makefile and leim/Makefile."
     (setq file (concat (substring file 1 2) ":" (substring file 2))))
   file)
 
+(defun flatten-tree (tree)
+  "Return a \"flattened\" copy of TREE.
+In other words, return a list of the non-nil terminal nodes, or
+leaves, of the tree of cons cells rooted at TREE.  Leaves in the
+returned list are in the same order as in TREE.
+
+\(flatten-tree \\='(1 (2 . 3) nil (4 5 (6)) 7))
+=> (1 2 3 4 5 6 7)"
+  (let (elems)
+    (while (consp tree)
+      (let ((elem (pop tree)))
+        (while (consp elem)
+          (push (cdr elem) tree)
+          (setq elem (car elem)))
+        (if elem (push elem elems))))
+    (if tree (push tree elems))
+    (nreverse elems)))
+
+;; Technically, `flatten-list' is a misnomer, but we provide it here
+;; for discoverability:
+(defalias 'flatten-list 'flatten-tree)
 
 ;;; subr.el ends here

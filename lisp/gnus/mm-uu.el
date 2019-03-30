@@ -1,6 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp

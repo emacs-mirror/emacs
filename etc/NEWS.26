@@ -1,10 +1,10 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2016-2018 Free Software Foundation, Inc.
+Copyright (C) 2016-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
-If possible, use M-x report-emacs-bug.
+Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
+If possible, use 'M-x report-emacs-bug'.
 
 This file is about changes in Emacs version 26.
 
@@ -13,19 +13,17 @@ See files NEWS.25, NEWS.24, ..., NEWS.18, and NEWS.1-17 for changes
 in older Emacs versions.
 
 You can narrow news to a specific version by calling 'view-emacs-news'
-with a prefix argument or by typing C-u C-h C-n.
+with a prefix argument or by typing 'C-u C-h C-n'.
 
 
 * Installation Changes in Emacs 26.2
 
----
 ** Building Emacs with the '--with-xwidgets' option now requires WebKit2.
 To build Emacs with xwidgets support, you will need to install the
 webkit2gtk-4.0 package; version 2.12 or later is required.
 (This change was actually made in Emacs 26.1, but was not called out
 in its NEWS.)
 
-+++
 ** Installing Emacs now installs the emacs-module.h file.
 The emacs-module.h file is now installed in the system-wide include
 directory as part of the Emacs installation.  This allows to build
@@ -37,10 +35,8 @@ Emacs modules outside of the Emacs source tree.
 
 * Changes in Emacs 26.2
 
----
 ** Emacs is now compliant with the latest version 11.0 of the Unicode Standard.
 
----
 ** New variable 'xft-ignore-color-fonts'.
 Default t means don't try to load color fonts when using Xft, as they
 often cause crashes.  Set it to nil if you really need those fonts.
@@ -51,29 +47,41 @@ often cause crashes.  Set it to nil if you really need those fonts.
 
 * Changes in Specialized Modes and Packages in Emacs 26.2
 
+** Dired
+
+*** The 'Z' command on a directory name compresses all of its files.
+It produces a compressed '.tar.gz' archive with all the files in the
+directory and all of its subdirectories.  For symmetry, 'Z' on a
+'.tar.gz' or a '.tgz' archive extracts all the archived files into the
+current directory; thus, typing 'Z' on a '.tar.gz' archive created by
+a previous 'Z' command will extract the archived files into a
+directory whose name is the archive name sans the '.tar.gz' extension.
+(This change was actually made in Emacs 25.1 but was only
+partially called out in its NEWS; 'tgz' handling was added in 26.1.)
+
 ** Ibuffer
 
----
 *** New toggle 'ibuffer-do-toggle-lock', bound to 'L'.
 
 ** Imenu
 
----
 *** The value for 'imenu-auto-rescan-maxout' has been increased to 600000.
 
 ** Gnus
 
----
 *** Mailutils movemail will now be used if found at runtime.
-The default value of mail-source-movemail-program is now "movemail".
+The default value of 'mail-source-movemail-program' is now "movemail".
 This ensures that the movemail program from GNU Mailutils will be used
 if found in 'exec-path', even if it was not found at build time.  To
-use a different program, customize mail-source-movemail-program to the
+use a different program, customize 'mail-source-movemail-program' to the
 absolute file name of the desired executable.
+
+** Shadowfile
+
+*** shadowfile.el has been rewritten to support Tramp file names.
 
 ** Shell mode
 
----
 *** Shell mode buffers now have 'scroll-conservatively' set to 101.
 This is so as to better emulate the scrolling behavior of a text
 terminal when new output is added to the screen buffer.  To get back
@@ -84,13 +92,11 @@ in its NEWS.)
 
 ** VC
 
----
 *** VC support for Mercurial was improved.
 Emacs now avoids invoking 'hg' as much as possible, for faster operation.
 (This and the following changes were actually made in Emacs 26.1, but
 were not called out in its NEWS.)
 
----
 **** New vc-hg options.
 The new option 'vc-hg-parse-hg-data-structures' controls whether vc-hg
 will try parsing the Mercurial data structures directly instead of
@@ -102,16 +108,12 @@ The new option 'vc-hg-use-file-version-for-mode-line-version' controls
 whether the version shown on the mode line is that of the visited file
 or of the repository working copy.
 
----
-**** Display of Mercurial revisions in the mode-line has changed.
+**** Display of Mercurial revisions in the mode line has changed.
 Previously, the mode line displayed the local number (1, 2, 3, ...) of
 the revision.  Starting with Emacs 26.1, the default has changed, and
 it now shows the global revision number, in the form of its changeset
 hash value.  To get back the previous behavior, customize the new
 option 'vc-hg-symbolic-revision-styles' to the value '("{rev}")'.
-
----
-** shadowfile.el has been rewritten to support Tramp file names.
 
 
 * New Modes and Packages in Emacs 26.2
@@ -119,17 +121,14 @@ option 'vc-hg-symbolic-revision-styles' to the value '("{rev}")'.
 
 * Incompatible Lisp Changes in Emacs 26.2
 
----
 ** shadowfile config files have changed their syntax.
 Existing files "~/.emacs.d/shadows" and "~/.emacs.d/shadow_todo" must
 be removed prior using the changed 'shadow-*' commands.
 
-+++
 ** 'thread-alive-p' has been renamed to 'thread-live-p'.
 The old name is an alias of the new name.  Future Emacs version will
 obsolete it.
 
----
 ** 'while-no-input' does not return due to input from subprocesses.
 Input that arrived from subprocesses while some code executed inside
 the 'while-no-input' form injected an internal buffer-switch event
@@ -142,27 +141,29 @@ remove 'buffer-switch' from the list of events in
 
 * Lisp Changes in Emacs 26.2
 
-+++
 ** The new function 'read-answer' accepts either long or short answers
 depending on the new customizable variable 'read-answer-short'.
 
-+++
 ** New function 'assoc-delete-all'.
 Like 'assq-delete-all', but uses 'equal' for comparison.
 
----
 ** The function 'thing-at-point' behaves as before Emacs 26.1.
 The behavior of 'thing-at-point' when called with argument 'list' has
 changed in Emacs 26.1, in that it didn't consider text inside comments
 and strings as a potential list.  This change is now reverted, and
 'thing-at-point' behaves like it did before Emacs 26.1.
 
-To cater to use cases where comments and strings are to be ignored
+** To cater to use cases where comments and strings are to be ignored
 when looking for a list, the function 'list-at-point' now takes an
 optional argument to do so.
 
 
 * Changes in Emacs 26.2 on Non-Free Operating Systems
+
+** macOS features can now be detected at run-time as well as at
+build-time.  See nextstep/INSTALL for details.
+(This change was actually made in Emacs 26.1, but was undocumented and
+not called out in its NEWS.)
 
 
 * Installation Changes in Emacs 26.1
@@ -175,11 +176,11 @@ version 2.6.6 or later.
 
 ** The new option 'configure --with-mailutils' causes Emacs to rely on
 GNU Mailutils to retrieve email.  It is recommended, and is the
-default if GNU Mailutils is installed.  When --with-mailutils is not
+default if GNU Mailutils is installed.  When '--with-mailutils' is not
 in effect, the Emacs build procedure by default continues to build and
 install a limited 'movemail' substitute that retrieves POP3 email only
 via insecure channels.  To avoid this problem, use either
---with-mailutils or --without-pop when configuring; --without-pop
+'--with-mailutils' or '--without-pop' when configuring; '--without-pop'
 is the default on platforms other than native MS-Windows.
 
 ** The new option 'configure --enable-gcc-warnings=warn-only' causes
@@ -778,6 +779,9 @@ added: 'C-c C-s C-m C-m'.
 zone name instead of the numeric form.  The '%z' format continues to
 be the numeric form.  The new behavior is compatible with
 'format-time-string'.
+
+*** New user option 'gnus-rcvstore-options' provides a way to
+specify additional options when saving messages to an MH folder.
 
 ** Ibuffer
 

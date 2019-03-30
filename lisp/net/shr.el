@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -1755,7 +1755,14 @@ The preference is a float determined from `shr-prefer-media-type'."
 
 (defun shr-tag-ol (dom)
   (shr-ensure-paragraph)
-  (let ((shr-list-mode 1))
+  (let* ((attrs (dom-attributes dom))
+         (start-attr (alist-get 'start attrs))
+         ;; Start at 1 if there is no start attribute
+         ;; or if start can't be parsed as an integer.
+         (start-index (condition-case _
+                          (cl-parse-integer start-attr)
+                        (t 1)))
+         (shr-list-mode start-index))
     (shr-generic dom))
   (shr-ensure-paragraph))
 

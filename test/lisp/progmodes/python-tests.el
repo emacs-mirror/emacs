@@ -1,6 +1,6 @@
 ;;; python-tests.el --- Test suite for python.el
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1161,10 +1161,13 @@ def b()
 if do:
     something()
     else
+outside
 "
    (python-tests-look-at "else")
    (goto-char (line-end-position))
    (python-tests-self-insert ":")
+   (should (= (current-indentation) 0))
+   (python-tests-look-at "outside")
    (should (= (current-indentation) 0))))
 
 (ert-deftest python-indent-electric-colon-3 ()

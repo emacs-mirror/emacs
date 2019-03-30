@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t; lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -2746,7 +2746,7 @@ Return an alist of (TYPE MATCH)."
   "A widget which groups other widgets inside."
   :convert-widget 'widget-types-convert-widget
   :copy 'widget-types-copy
-  :format "%v"
+  :format ":\n%v"
   :value-create 'widget-group-value-create
   :value-get 'widget-editable-list-value-get
   :default-get 'widget-group-default-get

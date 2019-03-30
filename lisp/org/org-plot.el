@@ -1,6 +1,6 @@
 ;;; org-plot.el --- Support for Plotting from Org -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
@@ -336,7 +336,7 @@ line directly before or after the table."
                    (insert "\n")
                    (insert-file-contents (plist-get params :script))
                    (goto-char (point-min))
-                   (while (re-search-forward "$datafile" nil t)
+                   (while (re-search-forward "\\$datafile" nil t)
                      (replace-match data-file nil nil)))
 	  (insert (org-plot/gnuplot-script data-file num-cols params)))
 	;; Graph table.

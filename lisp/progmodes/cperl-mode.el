@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1991-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2019 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -119,7 +119,7 @@
                (beginning-of-line 2)
                (list ,file ,line)))
 	(defmacro cperl-etags-snarf-tag (_file _line)
-	  `(etags-snarf-tag)))
+	  '(etags-snarf-tag)))
       (if (featurep 'xemacs)
 	  (defmacro cperl-etags-goto-tag-location (elt)
 	    ;;(progn
@@ -1884,7 +1884,7 @@ or as help on variables `cperl-tips', `cperl-problems',
 ;;Point is at start of real comment."
 ;;  (let ((c (current-column)) target cnt prevc)
 ;;    (if (= c comment-column) nil
-;;      (setq cnt (skip-chars-backward "[ \t]"))
+;;      (setq cnt (skip-chars-backward " \t"))
 ;;      (setq target (max (1+ (setq prevc
 ;;			     (current-column))) ; Else indent at comment column
 ;;		   comment-column))
@@ -3145,12 +3145,12 @@ Returns true if comment is found.  In POD will not move the point."
 		  (cond
 		   ((looking-at "\\(s\\|tr\\)\\>")
 		    (or (re-search-forward
-			 "\\=\\w+[ \t]*#\\([^\n\\\\#]\\|\\\\[\\\\#]\\)*#\\([^\n\\\\#]\\|\\\\[\\\\#]\\)*"
+			 "\\=\\w+[ \t]*#\\([^\n\\#]\\|\\\\[\\#]\\)*#\\([^\n\\#]\\|\\\\[\\#]\\)*"
 			 lim 'move)
 			(setq stop-in t)))
 		   ((looking-at "\\(m\\|q\\([qxwr]\\)?\\)\\>")
 		    (or (re-search-forward
-			 "\\=\\w+[ \t]*#\\([^\n\\\\#]\\|\\\\[\\\\#]\\)*#"
+			 "\\=\\w+[ \t]*#\\([^\n\\#]\\|\\\\[\\#]\\)*#"
 			 lim 'move)
 			(setq stop-in t)))
 		   (t			; It was fair comment
@@ -3507,18 +3507,18 @@ Should be called with the point before leading colon of an attribute."
 (defsubst cperl-highlight-charclass (endbracket dashface bsface onec-space)
   (let ((l '(1 5 7)) ll lle lll
 	;; 2 groups, the first takes the whole match (include \[trnfabe])
-	(singleChar (concat "\\(" "[^\\\\]" "\\|" "\\\\[^cdg-mo-qsu-zA-Z0-9_]" "\\|" "\\\\c." "\\|" "\\\\x" "\\([0-9a-fA-F][0-9a-fA-F]?\\|\\={[0-9a-fA-F]+}\\)" "\\|" "\\\\0?[0-7][0-7]?[0-7]?" "\\|" "\\\\N{[^{}]*}" "\\)")))
+	(singleChar (concat "\\(" "[^\\]" "\\|" "\\\\[^cdg-mo-qsu-zA-Z0-9_]" "\\|" "\\\\c." "\\|" "\\\\x" "\\([0-9a-fA-F][0-9a-fA-F]?\\|\\={[0-9a-fA-F]+}\\)" "\\|" "\\\\0?[0-7][0-7]?[0-7]?" "\\|" "\\\\N{[^{}]*}" "\\)")))
     (while				; look for unescaped - between non-classes
 	(re-search-forward
 	 ;; On 19.33, certain simplifications lead
 	 ;; to bugs (as in  [^a-z] \\| [trnfabe]  )
 	 (concat	       		; 1: SingleChar (include \[trnfabe])
 	  singleChar
-	  ;;"\\(" "[^\\\\]" "\\|" "\\\\[^cdg-mo-qsu-zA-Z0-9_]" "\\|" "\\\\c." "\\|" "\\\\x" "\\([0-9a-fA-F][0-9a-fA-F]?\\|\\={[0-9a-fA-F]+}\\)" "\\|" "\\\\0?[0-7][0-7]?[0-7]?" "\\|" "\\\\N{[^{}]*}" "\\)"
+	  ;;"\\(" "[^\\]" "\\|" "\\\\[^cdg-mo-qsu-zA-Z0-9_]" "\\|" "\\\\c." "\\|" "\\\\x" "\\([0-9a-fA-F][0-9a-fA-F]?\\|\\={[0-9a-fA-F]+}\\)" "\\|" "\\\\0?[0-7][0-7]?[0-7]?" "\\|" "\\\\N{[^{}]*}" "\\)"
 	  "\\("				; 3: DASH SingleChar (match optionally)
 	    "\\(-\\)"			; 4: DASH
 	    singleChar			; 5: SingleChar
-	    ;;"\\(" "[^\\\\]" "\\|" "\\\\[^cdg-mo-qsu-zA-Z0-9_]" "\\|" "\\\\c." "\\|" "\\\\x" "\\([0-9a-fA-F][0-9a-fA-F]?\\|\\={[0-9a-fA-F]+}\\)" "\\|" "\\\\0?[0-7][0-7]?[0-7]?" "\\|" "\\\\N{[^{}]*}" "\\)"
+	    ;;"\\(" "[^\\]" "\\|" "\\\\[^cdg-mo-qsu-zA-Z0-9_]" "\\|" "\\\\c." "\\|" "\\\\x" "\\([0-9a-fA-F][0-9a-fA-F]?\\|\\={[0-9a-fA-F]+}\\)" "\\|" "\\\\0?[0-7][0-7]?[0-7]?" "\\|" "\\\\N{[^{}]*}" "\\)"
 	  "\\)?"
 	  "\\|"
 	  "\\("				; 7: other escapes
@@ -3749,7 +3749,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			     state-point b nil nil state)
 		      state-point b)
 		(if (or (nth 3 state) (nth 4 state)
-			(looking-at "\\(cut\\|\\end\\)\\>"))
+			(looking-at "\\(cut\\|end\\)\\>"))
 		    (if (or (nth 3 state) (nth 4 state) ignore-max)
 			nil		; Doing a chunk only
 		      (message "=cut is not preceded by a POD section")
@@ -3762,10 +3762,10 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			b1 nil)		; error condition
 		  ;; We do not search to max, since we may be called from
 		  ;; some hook of fontification, and max is random
-		  (or (re-search-forward "^\n=\\(cut\\|\\end\\)\\>" stop-point 'toend)
+		  (or (re-search-forward "^\n=\\(cut\\|end\\)\\>" stop-point 'toend)
 		      (progn
 			(goto-char b)
-			(if (re-search-forward "\n=\\(cut\\|\\end\\)\\>" stop-point 'toend)
+			(if (re-search-forward "\n=\\(cut\\|end\\)\\>" stop-point 'toend)
 			    (progn
 			      (message "=cut is not preceded by an empty line")
 			      (setq b1 t)
@@ -4455,13 +4455,13 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			      ;; Apparently, I can't put \] into a charclass
 			      ;; in m]]: m][\\\]\]] produces [\\]]
 ;;;   POSIX?  [:word:] [:^word:] only inside []
-;;;	       "\\=\\(\\\\.\\|[^][\\\\]\\|\\[:\\^?\sw+:]\\|\\[[^:]\\)*]")
+;;;	       "\\=\\(\\\\.\\|[^][\\]\\|\\[:\\^?\sw+:]\\|\\[[^:]\\)*]")
 			      (while	; look for unescaped ]
 				  (and argument
 				       (re-search-forward
 					(if (eq (char-after b) ?\] )
-					    "\\=\\(\\\\[^]]\\|[^]\\\\]\\)*\\\\]"
-					  "\\=\\(\\\\.\\|[^]\\\\]\\)*]")
+					    "\\=\\(\\\\[^]]\\|[^]\\]\\)*\\\\]"
+					  "\\=\\(\\\\.\\|[^]\\]\\)*]")
 					(1- e) 'toend))
 				;; Is this ] an end of POSIX class?
 				(if (save-excursion
@@ -4580,7 +4580,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			      ;; Works also if the outside delimiters are ().
 			      (or;;(if (eq (char-after b) ?\) )
 			       ;;(re-search-forward
-			       ;; "[^\\\\]\\(\\\\\\\\\\)*\\\\)"
+			       ;; "[^\\]\\(\\\\\\\\\\)*\\\\)"
 			       ;; (1- e) 'toend)
 			       (search-forward ")" (1- e) 'toend)
 			       ;;)
@@ -4924,7 +4924,7 @@ conditional/loop constructs."
 			      (if (looking-at "\\(state\\|my\\|local\\|our\\)\\>")
 				  (forward-sexp -1))))
 			(if (looking-at
-			     (concat "\\(\\elsif\\|if\\|unless\\|while\\|until"
+			     (concat "\\(elsif\\|if\\|unless\\|while\\|until"
 				     "\\|for\\(each\\)?\\>\\(\\("
 				     cperl-maybe-white-and-comment-rex
 				     "\\(state\\|my\\|local\\|our\\)\\)?"
@@ -5003,7 +5003,7 @@ Returns some position at the last line."
 	;; Looking at:
 	;; else   {
 	(if (looking-at
-	     "[ \t]*}?[ \t]*\\<\\(\\els\\(e\\|if\\)\\|continue\\|unless\\|if\\|while\\|for\\(each\\)?\\|until\\)\\>\\(\t*\\|[ \t][ \t]+\\)[^ \t\n#]")
+	     "[ \t]*}?[ \t]*\\<\\(els\\(e\\|if\\)\\|continue\\|unless\\|if\\|while\\|for\\(each\\)?\\|until\\)\\>\\(\t*\\|[ \t][ \t]+\\)[^ \t\n#]")
 	    (progn
 	      (forward-word-strictly 1)
 	      (delete-horizontal-space)
@@ -5031,7 +5031,7 @@ Returns some position at the last line."
 	;; Looking at (with or without "}" at start, ending after "({"):
 	;; } foreach my $var ()         OR   {
 	(if (looking-at
-	     "[ \t]*\\(}[ \t]*\\)?\\<\\(\\els\\(e\\|if\\)\\|continue\\|if\\|unless\\|while\\|for\\(each\\)?\\(\\([ \t]+\\(state\\|my\\|local\\|our\\)\\)?[ \t]*\\$[_a-zA-Z0-9]+\\)?\\|until\\)\\>\\([ \t]*(\\|[ \t\n]*{\\)\\|[ \t]*{")
+	     "[ \t]*\\(}[ \t]*\\)?\\<\\(els\\(e\\|if\\)\\|continue\\|if\\|unless\\|while\\|for\\(each\\)?\\(\\([ \t]+\\(state\\|my\\|local\\|our\\)\\)?[ \t]*\\$[_a-zA-Z0-9]+\\)?\\|until\\)\\>\\([ \t]*(\\|[ \t\n]*{\\)\\|[ \t]*{")
 	    (progn
 	      (setq ml (match-beginning 8)) ; "(" or "{" after control word
 	      (re-search-forward "[({]")
@@ -5736,9 +5736,9 @@ indentation and initial hashes.  Behaves usually outside of comment."
 			 (if (eq (char-after (cperl-1- (match-end 0))) ?\{ )
 			     'font-lock-function-name-face
 			   'font-lock-variable-name-face))))
-	    '("\\<\\(package\\|require\\|use\\|import\\|no\\|bootstrap\\)[ \t]+\\([a-zA-z_][a-zA-z_0-9:]*\\)[ \t;]" ; require A if B;
+	    '("\\<\\(package\\|require\\|use\\|import\\|no\\|bootstrap\\)[ \t]+\\([a-zA-Z_][a-zA-Z_0-9:]*\\)[ \t;]" ; require A if B;
 	      2 font-lock-function-name-face)
-	    '("^[ \t]*format[ \t]+\\([a-zA-z_][a-zA-z_0-9:]*\\)[ \t]*=[ \t]*$"
+	    '("^[ \t]*format[ \t]+\\([a-zA-Z_][a-zA-Z_0-9:]*\\)[ \t]*=[ \t]*$"
 	      1 font-lock-function-name-face)
 	    (cond ((featurep 'font-lock-extra)
 		   '("\\([]}\\\\%@>*&]\\|\\$[a-zA-Z0-9_:]*\\)[ \t]*{[ \t]*\\(-?[a-zA-Z0-9_:]+\\)[ \t]*}"
@@ -7261,7 +7261,7 @@ One may build such TAGS files from CPerl mode menu."
      ".->"				; a->b
      "->"				; a SPACE ->b
      "\\[-"				; a[-1]
-     "\\\\[&$@*\\\\]"			; \&func
+     "\\\\[&$@*\\]"			; \&func
      "^="				; =head
      "\\$."				; $|
      "<<[a-zA-Z_'\"`]"			; <<FOO, <<'FOO'
@@ -7347,7 +7347,7 @@ Currently it is tuned to C and Perl syntax."
      "-[a-zA-Z]"			; File test
      "\\\\[a-zA-Z0]"			; Special chars
      "^=[a-z][a-zA-Z0-9_]*"		; POD sections
-     "[-!&*+,-./<=>?\\\\^|~]+"		; Operator
+     "[-!&*+,./<=>?\\^|~]+"		; Operator
      "[a-zA-Z_0-9:]+"			; symbol or number
      "x="
      "#!")
@@ -7364,7 +7364,7 @@ Currently it is tuned to C and Perl syntax."
   ;; Does not save-excursion
   ;; Get to the something meaningful
   (or (eobp) (eolp) (forward-char 1))
-  (re-search-backward "[-a-zA-Z0-9_:!&*+,-./<=>?\\\\^|~$%@]"
+  (re-search-backward "[-a-zA-Z0-9_:!&*+,./<=>?\\^|~$%@]"
 		      (point-at-bol)
 		      'to-beg)
   ;;  (cond
@@ -7391,8 +7391,8 @@ Currently it is tuned to C and Perl syntax."
     (forward-char -1))
    ((and (looking-at "\\^") (eq (preceding-char) ?\$)) ; $^I
     (forward-char -1))
-   ((looking-at "[-!&*+,-./<=>?\\\\^|~]")
-    (skip-chars-backward "-!&*+,-./<=>?\\\\^|~")
+   ((looking-at "[-!&*+,./<=>?\\^|~]")
+    (skip-chars-backward "-!&*+,./<=>?\\^|~")
     (cond
      ((and (eq (preceding-char) ?\$)
 	   (not (eq (char-after (- (point) 2)) ?\$))) ; $-
@@ -8145,7 +8145,7 @@ prototype \\&SUB	Returns prototype of the function given a reference.
       ;; Protect fragile " ", "#"
       (if have-x nil
 	(goto-char (1+ b))
-	(while (re-search-forward "\\(\\=\\|[^\\\\]\\)\\(\\\\\\\\\\)*[ \t\n#]" e t) ; Need to include (?#) too?
+	(while (re-search-forward "\\(\\=\\|[^\\]\\)\\(\\\\\\\\\\)*[ \t\n#]" e t) ; Need to include (?#) too?
 	  (forward-char -1)
 	  (insert "\\")
 	  (forward-char 1)))
@@ -8174,7 +8174,7 @@ We suppose that the regexp is scanned already."
 	  (error "Cannot find `(' which starts a group"))
       (setq done
 	    (save-excursion
-	      (skip-chars-backward "\\")
+	      (skip-chars-backward "\\\\")
 	      (looking-at "\\(\\\\\\\\\\)*(")))
       (or done (forward-char -1)))))
 
@@ -8675,9 +8675,7 @@ start with default arguments, then refine the slowdown regions."
   (or l (setq l 1))
   (or step (setq step 500))
   (or lim (setq lim 40))
-  (let* ((timems (function (lambda ()
-			     (let ((tt (current-time)))
-			       (+ (* 1000 (nth 1 tt)) (/ (nth 2 tt) 1000))))))
+  (let* ((timems (function (lambda () (car (encode-time nil 1000)))))
 	 (tt (funcall timems)) (c 0) delta tot)
     (goto-char (point-min))
     (forward-line (1- l))

@@ -1,6 +1,6 @@
 ;;; tabulated-list.el --- generic major mode for tabulated lists -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords: extensions, lisp
@@ -35,6 +35,43 @@
 ;; extended and generalized to be used by other modes.
 
 ;;; Code:
+
+(defgroup tabulated-list nil
+  "Tabulated-list customization group."
+  :group 'convenience
+  :group 'display)
+
+(defcustom tabulated-list-gui-sort-indicator-asc ?▼
+  "Indicator for columns sorted in ascending order, for GUI frames.
+See `tabulated-list-tty-sort-indicator-asc' for the indicator used on
+text-mode frames."
+  :group 'tabulated-list
+  :type 'character
+  :version "27.1")
+
+(defcustom tabulated-list-gui-sort-indicator-desc ?▲
+  "Indicator for columns sorted in descending order, for GUI frames.
+See `tabulated-list-tty-sort-indicator-desc' for the indicator used on
+text-mode frames."
+  :group 'tabulated-list
+  :type 'character
+  :version "27.1")
+
+(defcustom tabulated-list-tty-sort-indicator-asc ?v
+  "Indicator for columns sorted in ascending order, for text-mode frames.
+See `tabulated-list-gui-sort-indicator-asc' for the indicator used on GUI
+frames."
+  :group 'tabulated-list
+  :type 'character
+  :version "27.1")
+
+(defcustom tabulated-list-tty-sort-indicator-desc ?^
+  "Indicator for columns sorted in ascending order, for text-mode frames.
+See `tabulated-list-gui-sort-indicator-asc' for the indicator used on GUI
+frames."
+  :group 'tabulated-list
+  :type 'character
+  :version "27.1")
 
 ;; The reason `tabulated-list-format' and other variables are
 ;; permanent-local is to make it convenient to switch to a different
@@ -151,8 +188,10 @@ If ADVANCE is non-nil, move forward by one line afterwards."
       (forward-line)))
 
 (defvar tabulated-list-mode-map
-  (let ((map (copy-keymap special-mode-map)))
-    (set-keymap-parent map button-buffer-map)
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map (make-composed-keymap
+                            button-buffer-map
+                            special-mode-map))
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
     (define-key map "S" 'tabulated-list-sort)
@@ -172,14 +211,20 @@ If ADVANCE is non-nil, move forward by one line afterwards."
     map)
   "Local keymap for `tabulated-list-mode' sort buttons.")
 
-(defvar tabulated-list-glyphless-char-display
+(defun tabulated-list-make-glyphless-char-display-table ()
+  "Make the `glyphless-char-display' table used for text-mode frames.
+This table is used for displaying the sorting indicators, see
+variables `tabulated-list-tty-sort-indicator-asc' and
+`tabulated-list-tty-sort-indicator-desc' for more information."
   (let ((table (make-char-table 'glyphless-char-display nil)))
     (set-char-table-parent table glyphless-char-display)
-    ;; Some text terminals can't display the Unicode arrows; be safe.
-    (aset table 9650 (cons nil "^"))
-    (aset table 9660 (cons nil "v"))
-    table)
-  "The `glyphless-char-display' table in Tabulated List buffers.")
+    (aset table
+          tabulated-list-gui-sort-indicator-desc
+          (cons nil (char-to-string tabulated-list-tty-sort-indicator-desc)))
+    (aset table
+          tabulated-list-gui-sort-indicator-asc
+          (cons nil (char-to-string tabulated-list-tty-sort-indicator-asc)))
+    table))
 
 (defvar tabulated-list--header-string nil
   "Holds the header if `tabulated-list-use-header-line' is nil.
@@ -229,8 +274,11 @@ Populated by `tabulated-list-init-header'.")
 		  (concat label
 			  (cond
 			   ((> (+ 2 (length label)) width) "")
-			   ((cdr tabulated-list-sort-key) " ▲")
-			   (t " ▼")))
+			   ((cdr tabulated-list-sort-key)
+                            (format " %c"
+                                    tabulated-list-gui-sort-indicator-desc))
+			   (t (format " %c"
+                                      tabulated-list-gui-sort-indicator-asc))))
 		  'face 'bold
 		  'tabulated-list-column-name label
 		  button-props))
@@ -653,7 +701,8 @@ as the ewoc pretty-printer."
   (setq-local truncate-lines t)
   (setq-local buffer-undo-list t)
   (setq-local revert-buffer-function #'tabulated-list-revert)
-  (setq-local glyphless-char-display tabulated-list-glyphless-char-display)
+  (setq-local glyphless-char-display
+              (tabulated-list-make-glyphless-char-display-table))
   ;; Avoid messing up the entries' display just because the first
   ;; column of the first entry happens to begin with a R2L letter.
   (setq bidi-paragraph-direction 'left-to-right)

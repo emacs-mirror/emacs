@@ -1,6 +1,6 @@
 ;;; vcursor.el --- manipulate an alternative ("virtual") cursor
 
-;; Copyright (C) 1994, 1996, 1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1994, 1996, 1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>

@@ -1,6 +1,6 @@
 ;;; calculator.el --- a calculator for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
@@ -1184,7 +1184,7 @@ arguments."
           (DX (if (and X calculator-deg) (degrees-to-radians X) X))
           (L  calculator-saved-list)
           (fF `(calculator-funcall ',f x y))
-          (fD `(if calculator-deg (radians-to-degrees x) x)))
+          (fD '(if calculator-deg (radians-to-degrees x) x)))
       (eval `(cl-flet ((F (&optional x y) ,fF) (D (x) ,fD))
                (let ((X ,X) (Y ,Y) (DX ,DX) (TX ,TX) (TY ,TY) (L ',L))
                  ,f))
@@ -1226,7 +1226,7 @@ OP is the operator (if any) that caused this call."
     (when (and (or calculator-display-fragile
                    (not (numberp (car calculator-stack))))
                (<= inp (pcase calculator-input-radix
-                         (`nil ?9) (`bin ?1) (`oct ?7) (_ 999))))
+                         ('nil ?9) ('bin ?1) ('oct ?7) (_ 999))))
       (calculator-clear-fragile)
       (setq calculator-curnum
             (concat (if (equal calculator-curnum "0") ""

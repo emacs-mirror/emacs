@@ -1,4 +1,4 @@
-# Copyright (C) 1992-1998, 2000-2018 Free Software Foundation, Inc.
+# Copyright (C) 1992-1998, 2000-2019 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -1231,24 +1231,12 @@ show environment TERM
 # terminate_due_to_signal when an assertion failure is non-fatal.
 break terminate_due_to_signal
 
-# x_error_quitter is defined only on X.  But window-system is set up
-# only at run time, during Emacs startup, so we need to defer setting
-# the breakpoint.  init_sys_modes is the first function called on
-# every platform after init_display, where window-system is set.
-tbreak init_sys_modes
-commands
-  silent
-  xsymname globals.f_Vinitial_window_system
-  xgetptr $symname
-  set $tem = (struct Lisp_String *) $ptr
-  set $tem = (char *) $tem->u.s.data
-  # If we are running in synchronous mode, we want a chance to look
-  # around before Emacs exits.  Perhaps we should put the break
-  # somewhere else instead...
-  if $tem[0] == 'x' && $tem[1] == '\0'
-    break x_error_quitter
-  end
-  continue
+# x_error_quitter is defined only if defined_HAVE_X_WINDOWS.
+# If we are running in synchronous mode, we want a chance to look
+# around before Emacs exits.  Perhaps we should put the break
+# somewhere else instead...
+if defined_HAVE_X_WINDOWS
+  break x_error_quitter
 end
 
 

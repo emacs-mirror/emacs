@@ -1,6 +1,6 @@
 /* Provide gettimeofday for systems that don't have it or for which it's broken.
 
-   Copyright (C) 2001-2003, 2005-2007, 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2003, 2005-2007, 2009-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,10 +72,10 @@ gettimeofday (struct timeval *restrict tv, void *restrict tz)
 
   /* On native Windows, there are two ways to get the current time:
      GetSystemTimeAsFileTime
-     <https://msdn.microsoft.com/en-us/library/ms724397.aspx>
+     <https://docs.microsoft.com/en-us/windows/desktop/api/sysinfoapi/nf-sysinfoapi-getsystemtimeasfiletime>
      or
      GetSystemTimePreciseAsFileTime
-     <https://msdn.microsoft.com/en-us/library/hh706895.aspx>.
+     <https://docs.microsoft.com/en-us/windows/desktop/api/sysinfoapi/nf-sysinfoapi-getsystemtimepreciseasfiletime>.
      GetSystemTimeAsFileTime produces values that jump by increments of
      15.627 milliseconds (!) on average.
      Whereas GetSystemTimePreciseAsFileTime values usually jump by 1 or 2
@@ -92,7 +92,7 @@ gettimeofday (struct timeval *restrict tv, void *restrict tz)
     GetSystemTimeAsFileTime (&current_time);
 
   /* Convert from FILETIME to 'struct timeval'.  */
-  /* FILETIME: <https://msdn.microsoft.com/en-us/library/ms724284.aspx> */
+  /* FILETIME: <https://docs.microsoft.com/en-us/windows/desktop/api/minwinbase/ns-minwinbase-filetime> */
   ULONGLONG since_1601 =
     ((ULONGLONG) current_time.dwHighDateTime << 32)
     | (ULONGLONG) current_time.dwLowDateTime;

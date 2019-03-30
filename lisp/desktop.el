@@ -1,6 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1993-1995, 1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -1544,10 +1544,10 @@ and try to load that."
           ;; for the sake of `clean-buffer-list': preserving the invariant
           ;; "how much time the user spent in Emacs without looking at this buffer".
           (setq buffer-display-time
-                (if buffer-display-time
-                    (time-add buffer-display-time
-                              (time-subtract nil desktop-file-modtime))
-                  (current-time)))
+		(time-since (if buffer-display-time
+				(time-subtract desktop-file-modtime
+					       buffer-display-time)
+			      0)))
 	  (unless (< desktop-file-version 208) ; Don't misinterpret any old custom args
 	    (dolist (record compacted-vars)
 	      (let*

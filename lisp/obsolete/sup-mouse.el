@@ -1,6 +1,6 @@
 ;;; sup-mouse.el --- supdup mouse support for lisp machines
 
-;; Copyright (C) 1985-1986, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Rupprecht
 ;; Maintainer: emacs-devel@gnu.org

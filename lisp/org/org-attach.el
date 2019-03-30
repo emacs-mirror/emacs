@@ -1,6 +1,6 @@
 ;;; org-attach.el --- Manage file attachments to Org tasks -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task

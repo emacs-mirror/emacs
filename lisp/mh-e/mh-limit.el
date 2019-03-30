@@ -1,6 +1,6 @@
 ;;; mh-limit.el --- MH-E display limits
 
-;; Copyright (C) 2001-2003, 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2003, 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

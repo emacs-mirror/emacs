@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Functions
@@ -1082,14 +1082,17 @@ This macro returns an anonymous function with argument list
 @var{args}, documentation string @var{doc} (if any), interactive spec
 @var{interactive} (if any), and body forms given by @var{body}.
 
-In effect, this macro makes @code{lambda} forms self-quoting:
-evaluating a form whose @sc{car} is @code{lambda} yields the form
-itself:
+Under dynamic binding, this macro effectively makes @code{lambda}
+forms self-quoting: evaluating a form whose @sc{car} is @code{lambda}
+yields the form itself:
 
 @example
 (lambda (x) (* x x))
      @result{} (lambda (x) (* x x))
 @end example
+
+Note that when evaluating under lexical binding the result is a
+closure object (@pxref{Closures}).
 
 The @code{lambda} form has one other effect: it tells the Emacs
 evaluator and byte-compiler that its argument is a function, by using

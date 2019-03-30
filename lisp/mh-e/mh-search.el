@@ -1,6 +1,6 @@
 ;;; mh-search  ---  MH-Search mode
 
-;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Indexed search by Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -495,16 +495,16 @@ group of results."
     (let ((point (point)))
       (forward-line (if backward-flag 0 1))
       (cond ((if backward-flag
-                 (re-search-backward "^+" (point-min) t)
-               (re-search-forward "^+" (point-max) t))
+                 (re-search-backward "^\\+" (point-min) t)
+               (re-search-forward "^\\+" (point-max) t))
              (beginning-of-line))
             ((and (if backward-flag
                       (goto-char (point-max))
                     (goto-char (point-min)))
                   nil))
             ((if backward-flag
-                 (re-search-backward "^+" (point-min) t)
-               (re-search-forward "^+" (point-max) t))
+                 (re-search-backward "^\\+" (point-min) t)
+               (re-search-forward "^\\+" (point-max) t))
              (beginning-of-line))
             (t (goto-char point))))))
 
@@ -1429,7 +1429,7 @@ being the list of messages originally from that folder."
         (setq which-func-mode t))
     (let ((alist ()))
       (goto-char (point-min))
-      (while (re-search-forward "^+" nil t)
+      (while (re-search-forward "^\\+" nil t)
         (save-excursion
           (beginning-of-line)
           (push (cons (buffer-substring-no-properties

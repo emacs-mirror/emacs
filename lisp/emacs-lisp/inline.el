@@ -1,6 +1,6 @@
 ;;; inline.el --- Define functions by their inliner  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 
@@ -259,7 +259,7 @@ See Info node `(elisp)Defining Functions' for more details."
   `(error ,@args))
 
 (defun inline--warning (&rest _args)
-  `(throw 'inline--just-use
+  '(throw 'inline--just-use
           ;; FIXME: This would inf-loop by calling us right back when
           ;; macroexpand-all recurses to expand inline--form.
           ;; (macroexp--warn-and-return (format ,@args)

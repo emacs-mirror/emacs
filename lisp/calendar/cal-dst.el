@@ -1,6 +1,6 @@
 ;;; cal-dst.el --- calendar functions for daylight saving rules  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@twinsun.com>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -154,7 +154,7 @@ Return nil if no such transition can be found."
        (while
            ;; Set PROBE to halfway between LO and HI, rounding down.
            ;; If PROBE equals LO, we are done.
-           (not (= lo (setq probe (/ (+ lo hi) 2))))
+           (not (= lo (setq probe (floor (+ lo hi) 2))))
          ;; Set either LO or HI to PROBE, depending on probe results.
          (if (eq (car (current-time-zone probe)) hi-utc-diff)
              (setq hi probe)
@@ -231,7 +231,7 @@ The result has the proper form for `calendar-daylight-savings-starts'."
 ;; https://lists.gnu.org/r/emacs-pretest-bug/2006-11/msg00060.html
 (defun calendar-dst-find-data (&optional time)
   "Find data on the first daylight saving time transitions after TIME.
-TIME defaults to `current-time'.  Return value is as described
+TIME defaults to the current time.  Return value is as described
 for `calendar-current-time-zone'."
   (let* ((t0 (or time (current-time)))
          (t0-zone (current-time-zone t0))
@@ -279,8 +279,8 @@ expressions that when evaluated return the start and end dates,
 respectively. This function first attempts to use pre-calculated
 data from `calendar-dst-transition-cache', otherwise it calls
 `calendar-dst-find-data' (and adds the results to the cache).
-If dates in YEAR cannot be handled by `encode-time' (e.g. if they
-are too large to be represented as a lisp integer), then rather
+If dates in YEAR cannot be handled by `encode-time' (e.g.,
+if they are out of range for POSIX time_t), then rather
 than an error this function returns the result appropriate for
 the current year."
   (let ((e (assoc year calendar-dst-transition-cache))

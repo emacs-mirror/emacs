@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and macOS window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2018 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -126,8 +126,6 @@ ns_load_image (struct frame *f, struct image *img,
       eImg = temp;
     }
 
-  [eImg setSizeFromSpec:XCDR (img->spec)];
-
   size = [eImg size];
   img->width = size.width;
   img->height = size.height;
@@ -149,6 +147,12 @@ int
 ns_image_height (void *img)
 {
   return [(id)img size].height;
+}
+
+void
+ns_image_set_size (void *img, int width, int height)
+{
+  [(EmacsImage *)img setSize:NSMakeSize (width, height)];
 }
 
 unsigned long
@@ -522,66 +526,6 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   /* Setting the frame has succeeded, or the image doesn't have
      multiple frames.  */
   return YES;
-}
-
-- (void)setSizeFromSpec: (Lisp_Object) spec
-{
-  NSSize size = [self size];
-  Lisp_Object value;
-  double scale = 1, aspect = size.width / size.height;
-  double width = -1, height = -1, max_width = -1, max_height = -1;
-
-  value = Fplist_get (spec, QCscale);
-  if (NUMBERP (value))
-    scale = XFLOATINT (value) ;
-
-  value = Fplist_get (spec, QCmax_width);
-  if (NUMBERP (value))
-    max_width = XFLOATINT (value);
-
-  value = Fplist_get (spec, QCmax_height);
-  if (NUMBERP (value))
-    max_height = XFLOATINT (value);
-
-  value = Fplist_get (spec, QCwidth);
-  if (NUMBERP (value))
-    {
-      width = XFLOATINT (value) * scale;
-      /* :width overrides :max-width. */
-      max_width = -1;
-    }
-
-  value = Fplist_get (spec, QCheight);
-  if (NUMBERP (value))
-    {
-      height = XFLOATINT (value) * scale;
-      /* :height overrides :max-height. */
-      max_height = -1;
-    }
-
-  if (width <= 0 && height <= 0)
-    {
-      width = size.width * scale;
-      height = size.height * scale;
-    }
-  else if (width > 0 && height <= 0)
-      height = width / aspect;
-  else if (height > 0 && width <= 0)
-      width = height * aspect;
-
-  if (max_width > 0 && width > max_width)
-    {
-      width = max_width;
-      height = max_width / aspect;
-    }
-
-  if (max_height > 0 && height > max_height)
-    {
-      height = max_height;
-      width = max_height * aspect;
-    }
-
-  [self setSize:NSMakeSize(width, height)];
 }
 
 - (instancetype)rotate: (double)rotation

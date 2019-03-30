@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990, 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: emacs-devel@gnu.org

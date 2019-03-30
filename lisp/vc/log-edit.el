@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -52,7 +52,7 @@
 ;; The main keymap
 
 (easy-mmode-defmap log-edit-mode-map
-  `(("\C-c\C-c" . log-edit-done)
+  '(("\C-c\C-c" . log-edit-done)
     ("\C-c\C-a" . log-edit-insert-changelog)
     ("\C-c\C-d" . log-edit-show-diff)
     ("\C-c\C-f" . log-edit-show-files)

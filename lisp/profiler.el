@@ -1,6 +1,6 @@
 ;;; profiler.el --- UI and helper functions for Emacs's native profiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Tomohiro Matsuyama <tomo@cx4a.org>
 ;; Keywords: lisp

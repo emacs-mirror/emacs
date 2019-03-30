@@ -1,6 +1,6 @@
 ;;; mml-sec.el --- A package with security functions for MML documents
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -659,6 +659,8 @@ The passphrase is read and cached."
     (catch 'break
       (dolist (uid uids nil)
 	(if (and (stringp (epg-user-id-string uid))
+                 (car (mail-header-parse-address
+                       (epg-user-id-string uid)))
 		 (equal (downcase (car (mail-header-parse-address
 					(epg-user-id-string uid))))
 			(downcase (car (mail-header-parse-address

@@ -1,6 +1,6 @@
 ;;; sasl-scram-rfc-tests.el --- tests for SCRAM-SHA-1       -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Magnus Henoch <magnus.henoch@gmail.com>
 

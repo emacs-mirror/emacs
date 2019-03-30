@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -794,6 +794,10 @@ to @command{gpg}.  This will output the list of keys to the
 @env{SHELL} environment variable when Emacs is started.  If the file
 name is relative, Emacs searches the directories listed in
 @code{exec-path} (@pxref{Shell}).
+
+  If the default directory is remote (@pxref{Remote Files}), the
+default value is @file{/bin/sh}.  This can be changed by declaring
+@code{shell-file-name} connection-local (@pxref{Connection Variables}).
 
   To specify a coding system for @kbd{M-!} or @kbd{M-|}, use the command
 @kbd{C-x @key{RET} c} immediately beforehand.  @xref{Communication Coding}.
@@ -1693,7 +1697,9 @@ each one a unique @dfn{server name}, using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
 server-name @key{RET} "foo" @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
-name, using the @samp{-s} option (@pxref{emacsclient Options}).
+name, using the @samp{-s} or the @samp{-f} option (@pxref{emacsclient
+Options}), depending on whether or not the server uses a TCP socket
+(@pxref{TCP Emacs server}).
 
   If you want to run multiple Emacs daemons (@pxref{Initial Options}),
 you can give each daemon its own server name like this:
@@ -1758,21 +1764,23 @@ use @kbd{M-x server-generate-key} to get a random key.
   When you start a TCP Emacs server, Emacs creates a @dfn{server file}
 containing the TCP information to be used by @command{emacsclient} to
 connect to the server.  The variable @code{server-auth-dir} specifies
-the directory containing the server file; by default, this is
+the default directory containing the server file; by default, this is
 @file{~/.emacs.d/server/}.  In the absence of a local socket with file
 permissions, the permissions of this directory determine which users
 can have their @command{emacsclient} processes talk to the Emacs
-server.
+server.  If @code{server-name} is an absolute file name, the server
+file is created where specified by that file name.
 
 @vindex EMACS_SERVER_FILE@r{, environment variable}
   To tell @command{emacsclient} to connect to the server over TCP with
 a specific server file, use the @samp{-f} or @samp{--server-file}
 option, or set the @env{EMACS_SERVER_FILE} environment variable
 (@pxref{emacsclient Options}).  If @code{server-auth-dir} is set to a
-non-standard value, @command{emacsclient} needs an absolute file name
-to the server file, as the default @code{server-auth-dir} is
-hard-coded in @command{emacsclient} to be used as the directory for
-resolving relative filenames.
+non-standard value, or if @code{server-name} is set to an absolute
+file name, @command{emacsclient} needs an absolute file name to the
+server file, as the default @code{server-auth-dir} is hard-coded in
+@command{emacsclient} to be used as the directory for resolving
+relative filenames.
 
 @node Invoking emacsclient
 @subsection Invoking @code{emacsclient}
@@ -1961,10 +1969,13 @@ evaluation performed is for side-effect rather than result.
 
 @item -s @var{server-name}
 @itemx --socket-name=@var{server-name}
-Connect to the Emacs server named @var{server-name}.  The server name
-is given by the variable @code{server-name} on the Emacs server.  If
-this option is omitted, @command{emacsclient} connects to the first
-server it finds.  (This option is not supported on MS-Windows.)
+Connect to the Emacs server named @var{server-name}.  (This option is
+not supported on MS-Windows.)  The server name is given by the
+variable @code{server-name} on the Emacs server.  If this option is
+omitted, @command{emacsclient} connects to the first server it finds.
+If you set @code{server-name} of the Emacs server to an absolute file
+name, give the same absolute file name as @var{server-name} to this
+option to instruct @command{emacsclient} to connect to that server.
 
 Alternatively, you can set the @env{EMACS_SOCKET_NAME} environment
 variable to point to the server socket.  (The command-line option

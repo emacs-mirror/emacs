@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -177,6 +177,26 @@ Instead, each hi-lock command will cycle through the faces in
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
+(defface hi-salmon
+  '((((min-colors 88) (background dark))
+     (:background "light salmon" :foreground "black"))
+    (((background dark)) (:background "red" :foreground "black"))
+    (((min-colors 88)) (:background "light salmon"))
+    (t (:background "red")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces
+  :version "27.1")
+
+(defface hi-aquamarine
+  '((((min-colors 88) (background dark))
+     (:background "aquamarine" :foreground "black"))
+    (((background dark)) (:background "blue" :foreground "black"))
+    (((min-colors 88)) (:background "aquamarine"))
+    (t (:background "blue")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces
+  :version "27.1")
+
 (defface hi-black-b
   '((t (:weight bold)))
   "Face for hi-lock mode."
@@ -189,13 +209,13 @@ Instead, each hi-lock command will cycle through the faces in
   :group 'hi-lock-faces)
 
 (defface hi-green-b
-  '((((min-colors 88)) (:weight bold :foreground "green1"))
+  '((((min-colors 88)) (:weight bold :foreground "green3"))
     (t (:weight bold :foreground "green")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
 (defface hi-red-b
-  '((((min-colors 88)) (:weight bold :foreground "red1"))
+  '((((min-colors 88)) (:weight bold :foreground "firebrick2"))
     (t (:weight bold :foreground "red")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
@@ -216,8 +236,8 @@ Instead, each hi-lock command will cycle through the faces in
 (define-obsolete-variable-alias 'hi-lock-face-history
                                 'hi-lock-face-defaults "23.1")
 (defvar hi-lock-face-defaults
-  '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-black-b"
-    "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
+  '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-salmon" "hi-aquamarine"
+    "hi-black-b" "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
   "Default faces for hi-lock interactive functions.")
 
 (define-obsolete-variable-alias 'hi-lock-regexp-history
@@ -559,7 +579,7 @@ then remove all hi-lock highlighting."
         (x-popup-menu
          t
          (cons
-          `keymap
+          'keymap
           (cons "Select Pattern to Unhighlight"
                 (mapcar (lambda (pattern)
                           (list (car pattern)

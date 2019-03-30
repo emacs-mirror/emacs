@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -1932,7 +1932,7 @@ Labels have lexical scope and dynamic extent."
           (push (nreverse block) blocks)
           (setq block (list label-or-stmt))))
       (unless (eq 'go (car-safe (car-safe block)))
-        (push `(go cl--exit) block))
+        (push '(go cl--exit) block))
       (push (nreverse block) blocks))
     (let ((catch-tag (make-symbol "cl--tagbody-tag"))
           (cl--tagbody-alist cl--tagbody-alist))
@@ -2215,7 +2215,7 @@ of `cl-symbol-macrolet' to additionally expand symbol macros."
             ;; The behavior of CL made sense in a dynamically scoped
             ;; language, but nowadays, lexical scoping semantics is more often
             ;; expected.
-            (`(,(or `let `let*) . ,(or `(,bindings . ,body) dontcare))
+            (`(,(or 'let 'let*) . ,(or `(,bindings . ,body) dontcare))
              (let ((nbs ()) (found nil))
                (dolist (binding bindings)
                  (let* ((var (if (symbolp binding) binding (car binding)))
@@ -3056,7 +3056,7 @@ the form NAME which is a shorthand for (NAME NAME)."
 
 (defun cl--defstruct-predicate (type)
   (let ((cons (assq (cl-struct-sequence-type type)
-                    `((list . consp)
+                    '((list . consp)
                       (vector . vectorp)
                       (nil . recordp)))))
     (if cons
@@ -3390,7 +3390,7 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
      (put ',name 'cl-deftype-handler
           (cl-function (lambda (&cl-defs ('*) ,@arglist) ,@body)))))
 
-(cl-deftype extended-char () `(and character (not base-char)))
+(cl-deftype extended-char () '(and character (not base-char)))
 
 ;;; Additional functions that we can now define because we've defined
 ;;; `cl-defsubst' and `cl-typep'.

@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep / macOS Cocoa selection processing for emacs.
-   Copyright (C) 1993-1994, 2005-2006, 2008-2018 Free Software
+   Copyright (C) 1993-1994, 2005-2006, 2008-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.

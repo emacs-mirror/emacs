@@ -1,6 +1,6 @@
 ;;; vc-rcs.el --- support for RCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -684,13 +684,13 @@ Optional arg REVISION is a revision to annotate from."
           (forward-line (1- (pop insn)))
           (setq p (point))
           (pcase (pop insn)
-            (`k (setq s (buffer-substring-no-properties
+            ('k (setq s (buffer-substring-no-properties
                          p (progn (forward-line (car insn))
                                   (point))))
                 (when prda
                   (push `(,p . ,(propertize s :vc-rcs-r/d/a prda)) path))
                 (delete-region p (point)))
-            (`i (setq s (car insn))
+            ('i (setq s (car insn))
                 (when prda
                   (push `(,p . ,(length s)) path))
                 (insert s)))))
@@ -716,10 +716,10 @@ Optional arg REVISION is a revision to annotate from."
                    (goto-char (point-min))
                    (forward-line (1- (pop insn)))
                    (pcase (pop insn)
-                     (`k (delete-region
+                     ('k (delete-region
                           (point) (progn (forward-line (car insn))
                                          (point))))
-                     (`i (insert (propertize
+                     ('i (insert (propertize
                                   (car insn)
                                   :vc-rcs-r/d/a
                                   (or prda (setq prda (r/d/a))))))))

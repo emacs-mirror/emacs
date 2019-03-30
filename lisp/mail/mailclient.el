@@ -1,6 +1,6 @@
 ;;; mailclient.el --- mail sending via system's mail client.
 
-;; Copyright (C) 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
 ;; Author: David Reitter <david.reitter@gmail.com>
 ;; Keywords: mail
@@ -152,7 +152,7 @@ The mail client is taken to be the handler of mailto URLs."
 		  (setq character-coding (downcase character-coding)))
 		(concat
 		 "mailto:"
-		 ;; some of the headers according to RFC822
+		 ;; Some of the headers according to RFC 822 (or later).
 		 (mailclient-gather-addresses "To"
 					      'drop-first-name)
 		 (mailclient-gather-addresses "cc"  )

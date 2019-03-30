@@ -270,16 +270,16 @@
   ;; - The inner VAR/TYPE are indented just like the outer VAR/TYPE.
   ;; - The inner PROCEDURE is not aligned with its VAR/TYPE siblings.
   (pcase (cons kind token)
-    (`(:elem . basic) m2-indent)
-    (`(:after . ":=") (or m2-indent smie-indent-basic))
+    ('(:elem . basic) m2-indent)
+    ('(:after . ":=") (or m2-indent smie-indent-basic))
     (`(:after . ,(or "CONST" "VAR" "TYPE"))
      (or m2-indent smie-indent-basic))
     ;; (`(:before . ,(or `"VAR" `"TYPE" `"CONST"))
     ;;  (if (smie-rule-parent-p "PROCEDURE") 0))
-    (`(:after . ";-block")
+    ('(:after . ";-block")
      (if (smie-rule-parent-p "PROCEDURE")
          (smie-rule-parent (or m2-indent smie-indent-basic))))
-    (`(:before . "|") (smie-rule-separator kind))
+    ('(:before . "|") (smie-rule-separator kind))
     ))
 
 ;;;###autoload

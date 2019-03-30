@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993-2018 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,11 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* If we have Xfixes extension, use it for pointer blanking.  */
 #ifdef HAVE_XFIXES
 #include <X11/extensions/Xfixes.h>
-#endif
-
-/* Using Xft implies that XRender is available.  */
-#ifdef HAVE_XFT
-#include <X11/extensions/Xrender.h>
 #endif
 
 #ifdef HAVE_XDBE
@@ -79,6 +74,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xsettings.h"
 #include "sysselect.h"
 #include "menu.h"
+#include "pdumper.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
@@ -360,10 +356,15 @@ x_begin_cr_clip (struct frame *f, GC gc)
 
       if (! FRAME_CR_SURFACE (f))
         {
+	  int scale = 1;
+#ifdef USE_GTK
+	  scale = xg_get_scale (f);
+#endif
+
 	  FRAME_CR_SURFACE (f) =
 	    cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-					FRAME_PIXEL_WIDTH (f),
-					FRAME_PIXEL_HEIGHT (f));
+					scale * FRAME_PIXEL_WIDTH (f),
+					scale * FRAME_PIXEL_HEIGHT (f));
 	}
       cr = cairo_create (FRAME_CR_SURFACE (f));
       FRAME_CR_CONTEXT (f) = cr;
@@ -425,7 +426,7 @@ x_set_cr_source_with_gc_background (struct frame *f, GC gc)
 /* Fringe bitmaps.  */
 
 static int max_fringe_bmp = 0;
-static cairo_pattern_t **fringe_bmp = 0;
+static cairo_surface_t **fringe_bmp = 0;
 
 static void
 x_cr_define_fringe_bitmap (int which, unsigned short *bits, int h, int wd)
@@ -433,13 +434,12 @@ x_cr_define_fringe_bitmap (int which, unsigned short *bits, int h, int wd)
   int i, stride;
   cairo_surface_t *surface;
   unsigned char *data;
-  cairo_pattern_t *pattern;
 
   if (which >= max_fringe_bmp)
     {
       i = max_fringe_bmp;
       max_fringe_bmp = which + 20;
-      fringe_bmp = (cairo_pattern_t **) xrealloc (fringe_bmp, max_fringe_bmp * sizeof (cairo_pattern_t *));
+      fringe_bmp = xrealloc (fringe_bmp, max_fringe_bmp * sizeof (*fringe_bmp));
       while (i < max_fringe_bmp)
 	fringe_bmp[i++] = 0;
     }
@@ -457,12 +457,10 @@ x_cr_define_fringe_bitmap (int which, unsigned short *bits, int h, int wd)
     }
 
   cairo_surface_mark_dirty (surface);
-  pattern = cairo_pattern_create_for_surface (surface);
-  cairo_surface_destroy (surface);
 
   unblock_input ();
 
-  fringe_bmp[which] = pattern;
+  fringe_bmp[which] = surface;
 }
 
 static void
@@ -474,23 +472,20 @@ x_cr_destroy_fringe_bitmap (int which)
   if (fringe_bmp[which])
     {
       block_input ();
-      cairo_pattern_destroy (fringe_bmp[which]);
+      cairo_surface_destroy (fringe_bmp[which]);
       unblock_input ();
     }
   fringe_bmp[which] = 0;
 }
 
 static void
-x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
+x_cr_draw_image (struct frame *f, GC gc, cairo_surface_t *image,
+		 int image_width, int image_height,
 		 int src_x, int src_y, int width, int height,
 		 int dest_x, int dest_y, bool overlay_p)
 {
-  cairo_t *cr;
-  cairo_matrix_t matrix;
-  cairo_surface_t *surface;
-  cairo_format_t format;
+  cairo_t *cr = x_begin_cr_clip (f, gc);
 
-  cr = x_begin_cr_clip (f, gc);
   if (overlay_p)
     cairo_rectangle (cr, dest_x, dest_y, width, height);
   else
@@ -499,21 +494,33 @@ x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
       cairo_rectangle (cr, dest_x, dest_y, width, height);
       cairo_fill_preserve (cr);
     }
-  cairo_clip (cr);
-  cairo_matrix_init_translate (&matrix, src_x - dest_x, src_y - dest_y);
-  cairo_pattern_set_matrix (image, &matrix);
-  cairo_pattern_get_surface (image, &surface);
-  format = cairo_image_surface_get_format (surface);
+
+  int orig_image_width = cairo_image_surface_get_width (image);
+  if (image_width == 0) image_width = orig_image_width;
+  int orig_image_height = cairo_image_surface_get_height (image);
+  if (image_height == 0) image_height = orig_image_height;
+
+  cairo_pattern_t *pattern = cairo_pattern_create_for_surface (image);
+  cairo_matrix_t matrix;
+  cairo_matrix_init_scale (&matrix, orig_image_width / (double) image_width,
+			   orig_image_height / (double) image_height);
+  cairo_matrix_translate (&matrix, src_x - dest_x, src_y - dest_y);
+  cairo_pattern_set_matrix (pattern, &matrix);
+
+  cairo_format_t format = cairo_image_surface_get_format (image);
   if (format != CAIRO_FORMAT_A8 && format != CAIRO_FORMAT_A1)
     {
-      cairo_set_source (cr, image);
+      cairo_set_source (cr, pattern);
       cairo_fill (cr);
     }
   else
     {
       x_set_cr_source_with_gc_foreground (f, gc);
-      cairo_mask (cr, image);
+      cairo_clip (cr);
+      cairo_mask (cr, pattern);
     }
+  cairo_pattern_destroy (pattern);
+
   x_end_cr_clip (f);
 }
 
@@ -999,8 +1006,9 @@ x_update_begin (struct frame *f)
       if (FRAME_GTK_WIDGET (f))
         {
           GdkWindow *w = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
-          width = gdk_window_get_width (w);
-          height = gdk_window_get_height (w);
+	  int scale = xg_get_scale (f);
+	  width = scale * gdk_window_get_width (w);
+	  height = scale * gdk_window_get_height (w);
         }
       else
 #endif
@@ -1300,7 +1308,11 @@ x_clear_under_internal_border (struct frame *f)
 #else
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
 #endif
-      struct face *face = FACE_FROM_ID_OR_NULL (f, INTERNAL_BORDER_FACE_ID);
+      int face_id =
+	!NILP (Vface_remapping_alist)
+	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	: INTERNAL_BORDER_FACE_ID;
+      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
 
@@ -1363,7 +1375,11 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	    height > 0))
       {
 	int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
-	struct face *face = FACE_FROM_ID_OR_NULL (f, INTERNAL_BORDER_FACE_ID);
+	int face_id =
+	  !NILP (Vface_remapping_alist)
+	  ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	  : INTERNAL_BORDER_FACE_ID;
+	struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
 	block_input ();
 	if (face)
@@ -1428,7 +1444,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 				       : f->output_data.x->cursor_pixel)
 				    : face->foreground));
       XSetBackground (display, gc, face->background);
-      x_cr_draw_image (f, gc, fringe_bmp[p->which], 0, p->dh,
+      x_cr_draw_image (f, gc, fringe_bmp[p->which], 0, 0, 0, p->dh,
 		       p->wd, p->h, p->x, p->y, p->overlay_p);
       XSetForeground (display, gc, gcv.foreground);
       XSetBackground (display, gc, gcv.background);
@@ -1509,7 +1525,9 @@ static void x_setup_relief_colors (struct glyph_string *);
 static void x_draw_image_glyph_string (struct glyph_string *);
 static void x_draw_image_relief (struct glyph_string *);
 static void x_draw_image_foreground (struct glyph_string *);
+#ifndef USE_CAIRO
 static void x_draw_image_foreground_1 (struct glyph_string *, Pixmap);
+#endif
 static void x_clear_glyph_string_rect (struct glyph_string *, int,
                                        int, int, int);
 static void x_draw_relief_rect (struct frame *, int, int, int, int,
@@ -2970,6 +2988,47 @@ x_draw_glyph_string_box (struct glyph_string *s)
 }
 
 
+static void
+x_composite_image (struct glyph_string *s, Pixmap dest,
+                   int srcX, int srcY, int dstX, int dstY,
+                   int width, int height)
+{
+#ifdef HAVE_XRENDER
+  if (s->img->picture)
+    {
+      Picture destination;
+      XRenderPictFormat *default_format;
+      XRenderPictureAttributes attr;
+
+      /* FIXME: Should we do this each time or would it make sense to
+         store destination in the frame struct?  */
+      default_format = XRenderFindVisualFormat (s->display,
+                                                DefaultVisual (s->display, 0));
+      destination = XRenderCreatePicture (s->display, dest,
+                                          default_format, 0, &attr);
+
+      /* FIXME: It may make sense to use PictOpSrc instead of
+         PictOpOver, as I don't know if we care about alpha values too
+         much here.  */
+      XRenderComposite (s->display, PictOpOver,
+                        s->img->picture, s->img->mask_picture, destination,
+                        srcX, srcY,
+                        srcX, srcY,
+                        dstX, dstY,
+                        width, height);
+
+      XRenderFreePicture (s->display, destination);
+      return;
+    }
+#endif
+
+  XCopyArea (s->display, s->img->pixmap,
+	     dest, s->gc,
+	     srcX, srcY,
+	     width, height, dstX, dstY);
+}
+
+
 /* Draw foreground of image glyph string S.  */
 
 static void
@@ -2992,6 +3051,32 @@ x_draw_image_foreground (struct glyph_string *s)
   if (s->slice.y == 0)
     y += s->img->vmargin;
 
+#ifdef USE_CAIRO
+  if (s->img->cr_data)
+    {
+      x_set_glyph_string_clipping (s);
+      x_cr_draw_image (s->f, s->gc,
+		       s->img->cr_data, s->img->width, s->img->height,
+		       s->slice.x, s->slice.y, s->slice.width, s->slice.height,
+		       x, y, true);
+      if (!s->img->mask)
+	{
+	  /* When the image has a mask, we can expect that at
+	     least part of a mouse highlight or a block cursor will
+	     be visible.  If the image doesn't have a mask, make
+	     a block cursor visible by drawing a rectangle around
+	     the image.  I believe it's looking better if we do
+	     nothing here for mouse-face.  */
+	  if (s->hl == DRAW_CURSOR)
+	    {
+	      int relief = eabs (s->img->relief);
+	      x_draw_rectangle (s->f, s->gc, x - relief, y - relief,
+				s->slice.width + relief*2 - 1,
+				s->slice.height + relief*2 - 1);
+	    }
+	}
+    }
+#else  /* ! USE_CAIRO */
   if (s->img->pixmap)
     {
       if (s->img->mask)
@@ -3001,6 +3086,7 @@ x_draw_image_foreground (struct glyph_string *s)
 	     trust on the shape extension to be available
 	     (XShapeCombineRegion).  So, compute the rectangle to draw
 	     manually.  */
+          /* FIXME: Do we need to do this when using XRender compositing?  */
 	  unsigned long mask = (GCClipMask | GCClipXOrigin | GCClipYOrigin
 				| GCFunction);
 	  XGCValues xgcv;
@@ -3018,10 +3104,9 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.width = s->slice.width;
 	  image_rect.height = s->slice.height;
 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-            XCopyArea (s->display, s->img->pixmap,
-                       FRAME_X_DRAWABLE (s->f), s->gc,
-		       s->slice.x + r.x - x, s->slice.y + r.y - y,
-		       r.width, r.height, r.x, r.y);
+            x_composite_image (s, FRAME_X_DRAWABLE (s->f),
+			       s->slice.x + r.x - x, s->slice.y + r.y - y,
+                               r.x, r.y, r.width, r.height);
 	}
       else
 	{
@@ -3033,10 +3118,8 @@ x_draw_image_foreground (struct glyph_string *s)
 	  image_rect.width = s->slice.width;
 	  image_rect.height = s->slice.height;
 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
-            XCopyArea (s->display, s->img->pixmap,
-                       FRAME_X_DRAWABLE (s->f), s->gc,
-		       s->slice.x + r.x - x, s->slice.y + r.y - y,
-		       r.width, r.height, r.x, r.y);
+            x_composite_image (s, FRAME_X_DRAWABLE (s->f), s->slice.x + r.x - x, s->slice.y + r.y - y,
+                               r.x, r.y, r.width, r.height);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -3054,6 +3137,7 @@ x_draw_image_foreground (struct glyph_string *s)
 	    }
 	}
     }
+#endif	/* ! USE_CAIRO */
   else
     /* Draw a rectangle if image could not be loaded.  */
     x_draw_rectangle (s->f, s->gc, x, y,
@@ -3090,7 +3174,9 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief : DEFAULT_TOOL_BAR_BUTTON_RELIEF;
+      thick = (tool_bar_button_relief < 0
+	       ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+	       : min (tool_bar_button_relief, 1000000));
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -3134,6 +3220,7 @@ x_draw_image_relief (struct glyph_string *s)
 }
 
 
+#ifndef USE_CAIRO
 /* Draw the foreground of image glyph string S to PIXMAP.  */
 
 static void
@@ -3206,6 +3293,7 @@ x_draw_image_foreground_1 (struct glyph_string *s, Pixmap pixmap)
     x_draw_rectangle (s->f, s->gc, x, y,
 		    s->slice.width - 1, s->slice.height - 1);
 }
+#endif	/* ! USE_CAIRO */
 
 
 /* Draw part of the background of glyph string S.  X, Y, W, and H
@@ -3265,6 +3353,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
       || s->img->pixmap == 0
       || s->width != s->background_width)
     {
+#ifndef USE_CAIRO
       if (s->img->mask)
 	{
 	  /* Create a pixmap as large as the glyph string.  Fill it
@@ -3305,6 +3394,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	    }
 	}
       else
+#endif	/* ! USE_CAIRO */
 	{
 	  int x = s->x;
 	  int y = s->y;
@@ -3327,25 +3417,8 @@ x_draw_image_glyph_string (struct glyph_string *s)
     }
 
   /* Draw the foreground.  */
-#ifdef USE_CAIRO
-  if (s->img->cr_data)
-    {
-      cairo_t *cr = x_begin_cr_clip (s->f, s->gc);
-
-      int x = s->x + s->img->hmargin;
-      int y = s->y + s->img->vmargin;
-      int width = s->background_width;
-
-      cairo_set_source_surface (cr, s->img->cr_data,
-                                x - s->slice.x,
-                                y - s->slice.y);
-      cairo_rectangle (cr, x, y, width, height);
-      cairo_fill (cr);
-      x_end_cr_clip (s->f);
-    }
-  else
-#endif
-    if (pixmap != None)
+#ifndef USE_CAIRO
+  if (pixmap != None)
     {
       x_draw_image_foreground_1 (s, pixmap);
       x_set_glyph_string_clipping (s);
@@ -3354,6 +3427,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
       XFreePixmap (s->display, pixmap);
     }
   else
+#endif	/* ! USE_CAIRO */
     x_draw_image_foreground (s);
 
   /* If we must draw a relief around the image, do it.  */
@@ -4264,7 +4338,6 @@ x_scroll_run (struct window *w, struct run *run)
 #ifdef USE_CAIRO
   if (FRAME_CR_CONTEXT (f))
     {
-      int wx = WINDOW_LEFT_EDGE_X (w);
       cairo_surface_t *s = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
 						       width, height);
       cairo_t *cr = cairo_create (s);
@@ -4275,8 +4348,8 @@ x_scroll_run (struct window *w, struct run *run)
 
       cr = FRAME_CR_CONTEXT (f);
       cairo_save (cr);
-      cairo_set_source_surface (cr, s, wx, to_y);
-      cairo_rectangle (cr, wx, to_y, width, height);
+      cairo_set_source_surface (cr, s, x, to_y);
+      cairo_rectangle (cr, x, to_y, width, height);
       cairo_fill (cr);
       cairo_restore (cr);
       cairo_surface_destroy (s);
@@ -4843,7 +4916,7 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 }
 
 static int
-x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, EMACS_INT state)
+x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, intmax_t state)
 {
   EMACS_INT mod_ctrl = ctrl_modifier;
   EMACS_INT mod_meta = meta_modifier;
@@ -10644,7 +10717,7 @@ get_current_wm_state (struct frame *f,
   int rc, actual_format;
   Atom actual_type;
   unsigned char *tmp_data = NULL;
-  Atom *reply_data;
+  Atom *reply_data UNINIT;
 #endif
 
   *sticky = false;
@@ -11138,8 +11211,7 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_1, width, height,
-	 list2 (make_fixnum (old_height),
-		make_fixnum (pixelheight + FRAME_MENUBAR_HEIGHT (f))));
+	 list2i (old_height, pixelheight + FRAME_MENUBAR_HEIGHT (f)));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     old_width, pixelheight + FRAME_MENUBAR_HEIGHT (f));
@@ -11148,7 +11220,7 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_2, width, height,
-	 list2 (make_fixnum (old_width), make_fixnum (pixelwidth)));
+	 list2i (old_width, pixelwidth));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     pixelwidth, old_height);
@@ -11158,10 +11230,10 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_3, width, height,
-	 list3 (make_fixnum (pixelwidth + FRAME_TOOLBAR_WIDTH (f)),
-		make_fixnum (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
-			     + FRAME_MENUBAR_HEIGHT (f)),
-		make_fixnum (FRAME_MENUBAR_HEIGHT (f))));
+	 list3i (pixelwidth + FRAME_TOOLBAR_WIDTH (f),
+		 (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
+		  + FRAME_MENUBAR_HEIGHT (f)),
+		 FRAME_MENUBAR_HEIGHT (f)));
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		     pixelwidth, pixelheight + FRAME_MENUBAR_HEIGHT (f));
@@ -13258,6 +13330,7 @@ void
 syms_of_xterm (void)
 {
   x_error_message = NULL;
+  PDUMPER_IGNORE (x_error_message);
 
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
   DEFSYM (Qlatin_1, "latin-1");

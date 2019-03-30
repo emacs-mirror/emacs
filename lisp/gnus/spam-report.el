@@ -1,6 +1,6 @@
 ;;; spam-report.el --- Reporting spam
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: network, spam, mail, gmane, report

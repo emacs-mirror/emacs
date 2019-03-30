@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2018 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -425,13 +425,11 @@ is specified by the variable `message-log-max'."
 (defun view-order-manuals ()
   "Display information on how to buy printed copies of Emacs manuals."
   (interactive)
-;;  (view-help-file "ORDERS")
   (info "(emacs)Printed Books"))
 
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
   (interactive)
-  ;; (find-file-read-only (expand-file-name "FAQ" data-directory))
   (info "(efaq)"))
 
 (defun view-emacs-problems ()
@@ -444,7 +442,8 @@ is specified by the variable `message-log-max'."
   (interactive)
   (view-help-file "DEBUG"))
 
-;; This used to visit MORE.STUFF; maybe it should just be removed.
+;; This used to visit a plain text file etc/MORE.STUFF;
+;; maybe this command should just be removed.
 (defun view-external-packages ()
   "Display info on where to get more Emacs packages."
   (interactive)

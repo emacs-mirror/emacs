@@ -1,5 +1,5 @@
 ;;; ox-publish.el --- Publish Related Org Mode Files as a Website -*- lexical-binding: t; -*-
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
@@ -793,13 +793,11 @@ Default for SITEMAP-FILENAME is `sitemap.org'."
 			   (not (string-lessp B A))))))
 		((or `anti-chronologically `chronologically)
 		 (let* ((adate (org-publish-find-date a project))
-			(bdate (org-publish-find-date b project))
-			(A (+ (ash (car adate) 16) (cadr adate)))
-			(B (+ (ash (car bdate) 16) (cadr bdate))))
+			(bdate (org-publish-find-date b project)))
 		   (setq retval
-			 (if (eq sort-files 'chronologically)
-			     (<= A B)
-			   (>= A B)))))
+			 (not (if (eq sort-files 'chronologically)
+				  (time-less-p bdate adate)
+				(time-less-p adate bdate))))))
 		(`nil nil)
 		(_ (user-error "Invalid sort value %s" sort-files)))
 	      ;; Directory-wise wins:
@@ -1350,7 +1348,7 @@ does not exist."
 	       (expand-file-name (or (file-symlink-p file) file)
 				 (file-name-directory file)))))
     (if (not attr) (error "No such file: \"%s\"" file)
-      (floor (float-time (file-attribute-modification-time attr))))))
+      (encode-time (file-attribute-modification-time attr) 'integer))))
 
 
 (provide 'ox-publish)

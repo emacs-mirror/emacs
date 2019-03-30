@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation
@@ -383,6 +383,21 @@ verify that their module conforms to the module API requirements.  The
 option makes Emacs abort if a module-related assertion triggers.
 @xref{Writing Dynamic Modules,, Writing Dynamically-Loaded Modules,
 elisp, The GNU Emacs Lisp Reference Manual}.
+
+@item --dump-file=@var{file}
+@opindex --dump-file
+@cindex specify dump file
+Load the dumped Emacs state from the named @var{file}.  By default, an
+installed Emacs will look for its dump state in a file named
+@file{@var{emacs}.pdmp} in the directory where the Emacs installation
+puts the architecture-dependent files; the variable
+@code{exec-directory} holds the name of that directory.  @var{emacs}
+is the name of the Emacs executable file, normally just @file{emacs}.
+(When you invoke Emacs from the @file{src} directory where it was
+built without installing it, it will look for the dump file in the
+directory of the executable.)  If you rename or move the dump file to
+a different place, you can use this option to tell Emacs where to find
+that file.
 @end table
 
 @node Command Example
@@ -528,12 +543,17 @@ This variable defaults to @file{~/.bash_history} if you use Bash, to
 otherwise.
 @item HOME
 @vindex HOME@r{, environment variable}
-The location of your files in the directory tree; used for
-expansion of file names starting with a tilde (@file{~}).  On MS-DOS,
-it defaults to the directory from which Emacs was started, with
-@samp{/bin} removed from the end if it was present.  On Windows, the
-default value of @env{HOME} is the @file{Application Data}
-subdirectory of the user profile directory (normally, this is
+The location of your files in the directory tree; used for expansion
+of file names starting with a tilde (@file{~}).  If set, it should be
+set to an absolute file name.  (If set to a relative file name, Emacs
+interprets it relative to the directory where Emacs was started, but
+we don't recommend to use this feature.)  If unset, @env{HOME}
+normally defaults to the home directory of the user given by
+@env{LOGNAME}, @env{USER} or your user ID, or to @file{/} if all else
+fails.  On MS-DOS, it defaults to the directory from which Emacs was
+started, with @samp{/bin} removed from the end if it was present.  On
+Windows, the default value of @env{HOME} is the @file{Application
+Data} subdirectory of the user profile directory (normally, this is
 @file{C:/Documents and Settings/@var{username}/Application Data},
 where @var{username} is your user name), though for backwards
 compatibility @file{C:/} will be used instead if a @file{.emacs} file
@@ -1029,7 +1049,7 @@ specifies a window 164 columns wide, enough for two ordinary width
 windows side by side, and 55 lines tall.
 
   The default frame width is 80 characters and the default height is
-40 lines.  You can omit either the width or the height or both.  If
+36 lines.  You can omit either the width or the height or both.  If
 you start the geometry with an integer, Emacs interprets it as the
 width.  If you start with an @samp{x} followed by an integer, Emacs
 interprets it as the height.  Thus, @samp{81} specifies just the

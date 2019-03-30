@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Syntax Tables
@@ -556,8 +556,8 @@ the current syntax table in the usual way.
 
 @defvar parse-sexp-lookup-properties
 If this is non-@code{nil}, the syntax scanning functions, like
-@code{forward-sexp}, pay attention to syntax text properties.
-Otherwise they use only the current syntax table.
+@code{forward-sexp}, pay attention to @code{syntax-table} text
+properties.  Otherwise they use only the current syntax table.
 @end defvar
 
 @defvar syntax-propertize-function
@@ -927,9 +927,9 @@ nicely.
 
 @defvar multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
-non-@acronym{ASCII} characters as symbol constituents regardless
-of what the syntax table says about them.  (However, text properties
-can still override the syntax.)
+non-@acronym{ASCII} characters as symbol constituents regardless of
+what the syntax table says about them.  (However, @code{syntax-table
+}text properties can still override the syntax.)
 @end defvar
 
 @defopt parse-sexp-ignore-comments
@@ -939,7 +939,6 @@ whitespace by the functions in this section and by @code{forward-sexp},
 @code{scan-lists} and @code{scan-sexps}.
 @end defopt
 
-@vindex parse-sexp-lookup-properties
 The behavior of @code{parse-partial-sexp} is also affected by
 @code{parse-sexp-lookup-properties} (@pxref{Syntax Properties}).
 
@@ -1042,8 +1041,8 @@ This function returns the syntax code for the raw syntax descriptor
 @var{syntax-code} component, masks off the high 16 bits which record
 the syntax flags, and returns the resulting integer.
 
-If @var{syntax} is @code{nil}, the return value is returns @code{nil}.
-This is so that the expression
+If @var{syntax} is @code{nil}, the return value is @code{nil}.  This
+is so that the expression
 
 @example
 (syntax-class (syntax-after pos))

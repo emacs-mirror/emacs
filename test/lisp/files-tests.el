@@ -1,6 +1,6 @@
 ;;; files-tests.el --- tests for files.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1108,6 +1108,16 @@ unquoted file names."
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
     (with-temp-buffer
       (write-region nil nil nospecial nil :visit))))
+
+(ert-deftest files-tests-file-name-non-special-make-process ()
+  "Check that the ‘:file-handler’ argument of ‘make-process’
+works as expected if the default directory is quoted."
+  (let ((default-directory (file-name-quote invocation-directory))
+        (program (file-name-quote
+                  (expand-file-name invocation-name invocation-directory))))
+    (should (processp (make-process :name "name"
+                                    :command (list program "--version")
+                                    :file-handler t)))))
 
 (ert-deftest files-tests--insert-directory-wildcard-in-dir-p ()
   (let ((alist (list (cons "/home/user/*/.txt" (cons "/home/user/" "*/.txt"))

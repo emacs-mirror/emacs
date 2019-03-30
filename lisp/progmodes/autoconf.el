@@ -1,6 +1,6 @@
 ;;; autoconf.el --- mode for editing Autoconf configure.ac files
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
@@ -84,7 +84,7 @@ searching backwards at another AC_... command."
   (setq-local syntax-propertize-function
 	      (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
   (setq-local font-lock-defaults
-	      `(autoconf-font-lock-keywords nil nil))
+	      '(autoconf-font-lock-keywords nil nil))
   (setq-local imenu-generic-expression autoconf-imenu-generic-expression)
   (setq-local indent-line-function #'indent-relative)
   (setq-local add-log-current-defun-function

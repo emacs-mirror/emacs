@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired
@@ -779,9 +779,15 @@ suitable guess made using the variables @code{lpr-command} and
 @item Z
 Compress the specified files (@code{dired-do-compress}).  If the file
 appears to be a compressed file already, uncompress it instead.  Each
-marked file is compressed into its own archive.  This uses the
+marked file is compressed into its own archive; this uses the
 @command{gzip} program if it is available, otherwise it uses
-@command{compress}.
+@command{compress}.  On a directory name, this command produces a
+compressed @file{.tar.gz} archive containing all of the directory's
+files, by running the @command{tar} command with output piped to
+@command{gzip}.  To allow decompression of compressed directories,
+typing @kbd{Z} on a @file{.tar.gz} or @file{.tgz} archive file unpacks
+all the files in the archive into a directory whose name is the
+archive name with the extension removed.
 
 @findex dired-do-compress-to
 @kindex c @r{(Dired)}

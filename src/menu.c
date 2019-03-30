@@ -1,6 +1,6 @@
 /* Platform-independent code for terminal communications.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2018 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -60,9 +60,9 @@ have_boxes (void)
 
 Lisp_Object menu_items;
 
-/* If non-nil, means that the global vars defined here are already in use.
+/* Whether the global vars defined here are already in use.
    Used to detect cases where we try to re-enter this non-reentrant code.  */
-Lisp_Object menu_items_inuse;
+bool menu_items_inuse;
 
 /* Number of slots currently allocated in menu_items.  */
 int menu_items_allocated;
@@ -80,16 +80,16 @@ static int menu_items_submenu_depth;
 void
 init_menu_items (void)
 {
-  if (!NILP (menu_items_inuse))
+  if (menu_items_inuse)
     error ("Trying to use a menu from within a menu-entry");
 
   if (NILP (menu_items))
     {
       menu_items_allocated = 60;
-      menu_items = Fmake_vector (make_fixnum (menu_items_allocated), Qnil);
+      menu_items = make_nil_vector (menu_items_allocated);
     }
 
-  menu_items_inuse = Qt;
+  menu_items_inuse = true;
   menu_items_used = 0;
   menu_items_n_panes = 0;
   menu_items_submenu_depth = 0;
@@ -105,7 +105,7 @@ finish_menu_items (void)
 void
 unuse_menu_items (void)
 {
-  menu_items_inuse = Qnil;
+  menu_items_inuse = false;
 }
 
 /* Call when finished using the data for the current menu
@@ -121,7 +121,7 @@ discard_menu_items (void)
       menu_items = Qnil;
       menu_items_allocated = 0;
     }
-  eassert (NILP (menu_items_inuse));
+  eassert (!menu_items_inuse);
 }
 
 /* This undoes save_menu_items, and it is called by the specpdl unwind
@@ -131,7 +131,7 @@ static void
 restore_menu_items (Lisp_Object saved)
 {
   menu_items = XCAR (saved);
-  menu_items_inuse = (! NILP (menu_items) ? Qt : Qnil);
+  menu_items_inuse = ! NILP (menu_items);
   menu_items_allocated = (VECTORP (menu_items) ? ASIZE (menu_items) : 0);
   saved = XCDR (saved);
   menu_items_used = XFIXNUM (XCAR (saved));
@@ -147,12 +147,12 @@ restore_menu_items (Lisp_Object saved)
 void
 save_menu_items (void)
 {
-  Lisp_Object saved = list4 (!NILP (menu_items_inuse) ? menu_items : Qnil,
+  Lisp_Object saved = list4 (menu_items_inuse ? menu_items : Qnil,
 			     make_fixnum (menu_items_used),
 			     make_fixnum (menu_items_n_panes),
 			     make_fixnum (menu_items_submenu_depth));
   record_unwind_protect (restore_menu_items, saved);
-  menu_items_inuse = Qnil;
+  menu_items_inuse = false;
   menu_items = Qnil;
 }
 
@@ -170,8 +170,7 @@ ensure_menu_items (int items)
     }
 }
 
-#if (defined USE_X_TOOLKIT || defined USE_GTK || defined HAVE_NS \
-     || defined HAVE_NTGUI)
+#ifdef HAVE_EXT_MENU_BAR
 
 /* Begin a submenu.  */
 
@@ -195,7 +194,7 @@ push_submenu_end (void)
   menu_items_submenu_depth--;
 }
 
-#endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || defined HAVE_NTGUI */
+#endif /* HAVE_EXT_MENU_BAR */
 
 /* Indicate boundary between left and right.  */
 
@@ -524,19 +523,15 @@ bool
 parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name,
 		      Lisp_Object maps)
 {
-  Lisp_Object length;
-  EMACS_INT len;
   Lisp_Object *mapvec;
-  ptrdiff_t i;
   bool top_level_items = 0;
   USE_SAFE_ALLOCA;
 
-  length = Flength (maps);
-  len = XFIXNUM (length);
+  ptrdiff_t len = list_length (maps);
 
   /* Convert the list MAPS into a vector MAPVEC.  */
   SAFE_ALLOCA_LISP (mapvec, len);
-  for (i = 0; i < len; i++)
+  for (ptrdiff_t i = 0; i < len; i++)
     {
       mapvec[i] = Fcar (maps);
       maps = Fcdr (maps);
@@ -544,7 +539,7 @@ parse_single_submenu (Lisp_Object item_key, Lisp_Object item_name,
 
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.  */
-  for (i = 0; i < len; i++)
+  for (ptrdiff_t i = 0; i < len; i++)
     {
       if (!KEYMAPP (mapvec[i]))
 	{
@@ -1309,7 +1304,7 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
   else if (CONSP (menu) && KEYMAPP (XCAR (menu)))
     {
       /* We were given a list of keymaps.  */
-      EMACS_INT nmaps = XFIXNAT (Flength (menu));
+      ptrdiff_t nmaps = list_length (menu);
       Lisp_Object *maps;
       ptrdiff_t i;
       USE_SAFE_ALLOCA;
@@ -1580,9 +1575,8 @@ for instance using the window manager, then this produces a quit and
 void
 syms_of_menu (void)
 {
-  staticpro (&menu_items);
   menu_items = Qnil;
-  menu_items_inuse = Qnil;
+  staticpro (&menu_items);
 
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);

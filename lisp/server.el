@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986-1987, 1992, 1994-2018 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1992, 1994-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -270,7 +270,14 @@ been consumed.")
     "server")
   "The name of the Emacs server, if this Emacs process creates one.
 The command `server-start' makes use of this.  It should not be
-changed while a server is running."
+changed while a server is running.
+If this is a file name with no leading directories, Emacs will
+create a socket file by that name under `server-socket-dir'
+if `server-use-tcp' is nil, else under `server-auth-dir'.
+If this is an absolute file name, it specifies where the socket
+file will be created.  To have emacsclient connect to the same
+socket, use the \"-s\" switch for local non-TCP sockets, and
+the \"-f\" switch otherwise."
   :group 'server
   :type 'string
   :version "23.1")
@@ -281,7 +288,10 @@ changed while a server is running."
   (if internal--daemon-sockname
       (file-name-directory internal--daemon-sockname)
     (and (featurep 'make-network-process '(:family local))
-         (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid))))
+	 (let ((xdg_runtime_dir (getenv "XDG_RUNTIME_DIR")))
+	   (if xdg_runtime_dir
+	       (format "%s/emacs" xdg_runtime_dir)
+	     (format "%s/emacs%d" (or (getenv "TMPDIR") "/tmp") (user-uid))))))
   "The directory in which to place the server socket.
 If local sockets are not supported, this is nil.")
 
@@ -1734,7 +1744,7 @@ returns the process ID of the Emacs instance running \"server\"."
 				   (server-quote-arg (format "%S" form))
 				   "\n"))
       (while (memq (process-status process) '(open run))
-	(accept-process-output process 0 10))
+	(accept-process-output process 0.01))
       (goto-char (point-min))
       ;; If the result is nil, there's nothing in the buffer.  If the
       ;; result is non-nil, it's after "-print ".

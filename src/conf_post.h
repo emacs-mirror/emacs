@@ -1,6 +1,6 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2018 Free Software
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -92,13 +92,11 @@ typedef bool bool_bf;
 # define ADDRESS_SANITIZER false
 #endif
 
-#ifdef DARWIN_OS
-#if defined emacs && !defined CANNOT_DUMP
-#define malloc unexec_malloc
-#define realloc unexec_realloc
-#define free unexec_free
+#if defined DARWIN_OS && defined emacs && defined HAVE_UNEXEC
+# define malloc unexec_malloc
+# define realloc unexec_realloc
+# define free unexec_free
 #endif
-#endif  /* DARWIN_OS */
 
 /* If HYBRID_MALLOC is defined (e.g., on Cygwin), emacs will use
    gmalloc before dumping and the system malloc after dumping.
@@ -299,8 +297,10 @@ extern int emacs_setenv_TZ (char const *);
 
 #if 3 <= __GNUC__
 # define ATTRIBUTE_MALLOC __attribute__ ((__malloc__))
+# define ATTRIBUTE_SECTION(name) __attribute__((section (name)))
 #else
 # define ATTRIBUTE_MALLOC
+#define ATTRIBUTE_SECTION(name)
 #endif
 
 #if __has_attribute (alloc_size)

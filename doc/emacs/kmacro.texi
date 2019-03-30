@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Keyboard Macros
@@ -241,10 +241,17 @@ determined by the customizable variable @code{kmacro-ring-max}.
 @section The Keyboard Macro Counter
 
   Each keyboard macro has an associated counter, which is initialized
-to 0 when you start defining the macro.  This counter allows you to
-insert a number into the buffer that depends on the number of times
-the macro has been called.  The counter is incremented each time its
-value is inserted into the buffer.
+to 0 when you start defining the macro.  This @dfn{current counter}
+allows you to insert a number into the buffer that depends on the
+number of times the macro has been called.  The counter is normally
+incremented each time its value is inserted into the buffer.
+
+In addition to the current counter, keyboard macros also maintain the
+@dfn{previous counter}, which records the value the current counter
+had last time it was incremented or set.  Note that incrementing the
+current counter by zero, e.g., with @w{@kbd{C-u 0 C-x C-k C-i}}, also
+records the value of the current counter as the previous counter
+value.
 
 @table @kbd
 @item @key{F3}
@@ -270,8 +277,8 @@ value of the keyboard macro's counter into the buffer, and increments
 the counter by 1.  (If you are not defining a macro, @key{F3} begins a
 macro definition instead.  @xref{Basic Keyboard Macro}.)  You can use
 a numeric prefix argument to specify a different increment.  If you
-just specify a @kbd{C-u} prefix, that is the same as an increment of
-zero: it inserts the current counter value without changing it.
+just specify a @kbd{C-u} prefix, that inserts the previous counter
+value, and doesn't change the current value.
 
   As an example, let us show how the keyboard macro counter can be
 used to build a numbered list.  Consider the following key sequence:

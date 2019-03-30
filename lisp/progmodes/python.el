@@ -1,6 +1,6 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; URL: https://github.com/fgallina/python.el
@@ -342,7 +342,7 @@ It returns a file name which can be used directly as argument of
     (substitute-key-definition 'complete-symbol 'completion-at-point
                                map global-map)
     (easy-menu-define python-menu map "Python Mode menu"
-      `("Python"
+      '("Python"
         :help "Python-specific Features"
         ["Shift region left" python-indent-shift-left :active mark-active
          :help "Shift region left by a single indentation step"]
@@ -438,7 +438,7 @@ It returns a file name which can be used directly as argument of
                                          (* ?\\ ?\\) (any ?\' ?\")))
                                 (* ?\\ ?\\)
                                 ;; Match single or triple quotes of any kind.
-                                (group (or  "\"" "\"\"\"" "'" "'''")))))
+                                (group (or  "\"\"\"" "\"" "'''" "'")))))
       (coding-cookie . ,(rx line-start ?# (* space)
                             (or
                              ;; # coding=<encoding name>
@@ -469,13 +469,13 @@ This variant of `rx' supports common Python named REGEXPS."
 (eval-and-compile
   (defun python-syntax--context-compiler-macro (form type &optional syntax-ppss)
     (pcase type
-      (`'comment
+      (''comment
        `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
           (and (nth 4 ppss) (nth 8 ppss))))
-      (`'string
+      (''string
        `(let ((ppss (or ,syntax-ppss (syntax-ppss))))
           (and (nth 3 ppss) (nth 8 ppss))))
-      (`'paren
+      (''paren
        `(nth 1 (or ,syntax-ppss (syntax-ppss))))
       (_ form))))
 
@@ -486,9 +486,9 @@ character address of the specified TYPE."
   (declare (compiler-macro python-syntax--context-compiler-macro))
   (let ((ppss (or syntax-ppss (syntax-ppss))))
     (pcase type
-      (`comment (and (nth 4 ppss) (nth 8 ppss)))
-      (`string (and (nth 3 ppss) (nth 8 ppss)))
-      (`paren (nth 1 ppss))
+      ('comment (and (nth 4 ppss) (nth 8 ppss)))
+      ('string (and (nth 3 ppss) (nth 8 ppss)))
+      ('paren (nth 1 ppss))
       (_ nil))))
 
 (defun python-syntax-context-type (&optional syntax-ppss)
@@ -575,7 +575,7 @@ class declarations.")
            "reload" "unichr" "unicode" "xrange" "apply" "buffer" "coerce"
            "intern"
            ;; Python 3:
-           "ascii" "bytearray" "bytes" "exec"
+           "ascii" "breakpoint" "bytearray" "bytes" "exec"
            ;; Extra:
            "__all__" "__doc__" "__name__" "__package__")
           symbol-end) . font-lock-builtin-face))
@@ -1334,16 +1334,17 @@ the line will be re-indented automatically if needed."
            (not (equal ?: (char-before (1- (point)))))
            (not (python-syntax-comment-or-string-p)))
       ;; Just re-indent dedenters
-      (let ((dedenter-pos (python-info-dedenter-statement-p))
-            (current-pos (point)))
+      (let ((dedenter-pos (python-info-dedenter-statement-p)))
         (when dedenter-pos
-          (save-excursion
-            (goto-char dedenter-pos)
-            (python-indent-line)
-            (unless (= (line-number-at-pos dedenter-pos)
-                       (line-number-at-pos current-pos))
-              ;; Reindent region if this is a multiline statement
-              (python-indent-region dedenter-pos current-pos)))))))))
+          (let ((start (copy-marker dedenter-pos))
+                (end (point-marker)))
+            (save-excursion
+              (goto-char start)
+              (python-indent-line)
+              (unless (= (line-number-at-pos start)
+                         (line-number-at-pos end))
+                ;; Reindent region if this is a multiline statement
+                (python-indent-region start end))))))))))
 
 
 ;;; Mark
@@ -4015,11 +4016,11 @@ JUSTIFY should be used (if applicable) as in `fill-paragraph'."
             ;; is NIL means to not add any newlines for start or end
             ;; of docstring.  See `python-fill-docstring-style' for a
             ;; graphic idea of each style.
-            (`django (cons 1 1))
-            (`onetwo (and multi-line-p (cons 1 2)))
-            (`pep-257 (and multi-line-p (cons nil 2)))
-            (`pep-257-nn (and multi-line-p (cons nil 1)))
-            (`symmetric (and multi-line-p (cons 1 1)))))
+            ('django (cons 1 1))
+            ('onetwo (and multi-line-p (cons 1 2)))
+            ('pep-257 (and multi-line-p (cons nil 2)))
+            ('pep-257-nn (and multi-line-p (cons nil 1)))
+            ('symmetric (and multi-line-p (cons 1 1)))))
          (fill-paragraph-function))
     (save-restriction
       (narrow-to-region str-start-pos str-end-pos)
@@ -5252,7 +5253,7 @@ configuration could be:
 By default messages are considered errors."
   :version "26.1"
   :group 'python-flymake
-  :type `(alist :key-type (regexp)
+  :type '(alist :key-type (regexp)
                 :value-type (symbol)))
 
 (defvar-local python--flymake-proc nil)
@@ -5414,7 +5415,7 @@ REPORT-FN is Flymake's callback function."
 
   (add-to-list
    'hs-special-modes-alist
-   `(python-mode
+   '(python-mode
      "\\s-*\\_<\\(?:def\\|class\\)\\_>"
      ;; Use the empty string as end regexp so it doesn't default to
      ;; "\\s)".  This way parens at end of defun are properly hidden.

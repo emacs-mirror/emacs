@@ -1,5 +1,5 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010-2018 Free Software Foundation, Inc.
+   Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -25,36 +25,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #include "coding.h"
 #include "buffer.h"
+#include "pdumper.h"
 
 #if GNUTLS_VERSION_NUMBER >= 0x030014
 # define HAVE_GNUTLS_X509_SYSTEM_TRUST
 #endif
 
-/* Although AEAD support started in GnuTLS 3.4.0 and works in 3.5.14,
-   it was broken through at least GnuTLS 3.4.10; see:
-   https://lists.gnu.org/r/emacs-devel/2017-07/msg00992.html
-   The relevant fix seems to have been made in GnuTLS 3.5.1; see:
-   https://gitlab.com/gnutls/gnutls/commit/568935848dd6b82b9315d8b6c529d00e2605e03d
-   So, require 3.5.1.  */
-#if GNUTLS_VERSION_NUMBER >= 0x030501
-# define HAVE_GNUTLS_AEAD
-#elif GNUTLS_VERSION_NUMBER < 0x030202
-/* gnutls_cipher_get_tag_size was introduced in 3.2.2, but it's only
-   relevant for AEAD ciphers.  */
-# define gnutls_cipher_get_tag_size(cipher) 0
+#if GNUTLS_VERSION_NUMBER >= 0x030200
+# define HAVE_GNUTLS_CIPHER_GET_IV_SIZE
 #endif
 
-#if GNUTLS_VERSION_NUMBER < 0x030200
-/* gnutls_cipher_get_iv_size was introduced in 3.2.0.  For the ciphers
-   available in previous versions, block size is equivalent.  */
-#define gnutls_cipher_get_iv_size(cipher) gnutls_cipher_get_block_size (cipher)
+#if GNUTLS_VERSION_NUMBER >= 0x030202
+# define HAVE_GNUTLS_CIPHER_GET_TAG_SIZE
+# define HAVE_GNUTLS_DIGEST_LIST /* also gnutls_digest_get_name */
 #endif
 
-#if GNUTLS_VERSION_NUMBER < 0x030202
-/* gnutls_digest_list and gnutls_digest_get_name were added in 3.2.2.
-   For previous versions, the mac algorithms are equivalent.  */
-# define gnutls_digest_list() ((const gnutls_digest_algorithm_t *) gnutls_mac_list ())
-# define gnutls_digest_get_name(id) gnutls_mac_get_name ((gnutls_mac_algorithm_t) id)
+#if GNUTLS_VERSION_NUMBER >= 0x030205
+# define HAVE_GNUTLS_EXT__DUMBFW
 #endif
 
 /* gnutls_mac_get_nonce_size was added in GnuTLS 3.2.0, but was
@@ -67,8 +54,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # define HAVE_GNUTLS_EXT_GET_NAME
 #endif
 
-#if GNUTLS_VERSION_NUMBER >= 0x030205
-# define HAVE_GNUTLS_EXT__DUMBFW
+/* Although AEAD support started in GnuTLS 3.4.0 and works in 3.5.14,
+   it was broken through at least GnuTLS 3.4.10; see:
+   https://lists.gnu.org/r/emacs-devel/2017-07/msg00992.html
+   The relevant fix seems to have been made in GnuTLS 3.5.1; see:
+   https://gitlab.com/gnutls/gnutls/commit/568935848dd6b82b9315d8b6c529d00e2605e03d
+   So, require 3.5.1.  */
+#if GNUTLS_VERSION_NUMBER >= 0x030501
+# define HAVE_GNUTLS_AEAD
 #endif
 
 #ifdef HAVE_GNUTLS
@@ -79,7 +72,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #  include "w32.h"
 # endif
 
-static bool emacs_gnutls_handle_error (gnutls_session_t, int);
+static int emacs_gnutls_handle_error (gnutls_session_t, int);
 
 static bool gnutls_global_initialized;
 
@@ -223,19 +216,17 @@ DEF_DLL_FN (const gnutls_mac_algorithm_t *, gnutls_mac_list, (void));
 DEF_DLL_FN (size_t, gnutls_mac_get_nonce_size, (gnutls_mac_algorithm_t));
 #   endif
 DEF_DLL_FN (size_t, gnutls_mac_get_key_size, (gnutls_mac_algorithm_t));
-#   ifndef gnutls_digest_list
+#   ifdef HAVE_GNUTLS_DIGEST_LIST
 DEF_DLL_FN (const gnutls_digest_algorithm_t *, gnutls_digest_list, (void));
-#   endif
-#   ifndef gnutls_digest_get_name
 DEF_DLL_FN (const char *, gnutls_digest_get_name, (gnutls_digest_algorithm_t));
 #   endif
 DEF_DLL_FN (gnutls_cipher_algorithm_t *, gnutls_cipher_list, (void));
-#   ifndef gnutls_cipher_get_iv_size
+#   ifdef HAVE_GNUTLS_CIPHER_GET_IV_SIZE
 DEF_DLL_FN (int, gnutls_cipher_get_iv_size, (gnutls_cipher_algorithm_t));
 #   endif
 DEF_DLL_FN (size_t, gnutls_cipher_get_key_size, (gnutls_cipher_algorithm_t));
 DEF_DLL_FN (int, gnutls_cipher_get_block_size, (gnutls_cipher_algorithm_t));
-#   ifndef gnutls_cipher_get_tag_size
+#   ifdef HAVE_GNUTLS_CIPHER_GET_TAG_SIZE
 DEF_DLL_FN (int, gnutls_cipher_get_tag_size, (gnutls_cipher_algorithm_t));
 #   endif
 DEF_DLL_FN (int, gnutls_cipher_init,
@@ -365,19 +356,17 @@ init_gnutls_functions (void)
   LOAD_DLL_FN (library, gnutls_mac_get_nonce_size);
 #   endif
   LOAD_DLL_FN (library, gnutls_mac_get_key_size);
-#   ifndef gnutls_digest_list
+#   ifdef HAVE_GNUTLS_DIGEST_LIST
   LOAD_DLL_FN (library, gnutls_digest_list);
-#   endif
-#   ifndef gnutls_digest_get_name
   LOAD_DLL_FN (library, gnutls_digest_get_name);
 #   endif
   LOAD_DLL_FN (library, gnutls_cipher_list);
-#   ifndef gnutls_cipher_get_iv_size
+#   ifdef HAVE_GNUTLS_CIPHER_GET_IV_SIZE
   LOAD_DLL_FN (library, gnutls_cipher_get_iv_size);
 #   endif
   LOAD_DLL_FN (library, gnutls_cipher_get_key_size);
   LOAD_DLL_FN (library, gnutls_cipher_get_block_size);
-#   ifndef gnutls_cipher_get_tag_size
+#   ifdef HAVE_GNUTLS_CIPHER_GET_TAG_SIZE
   LOAD_DLL_FN (library, gnutls_cipher_get_tag_size);
 #   endif
   LOAD_DLL_FN (library, gnutls_cipher_init);
@@ -406,8 +395,7 @@ init_gnutls_functions (void)
 #   endif
 #  endif	 /* HAVE_GNUTLS3 */
 
-  max_log_level = global_gnutls_log_level;
-
+  max_log_level = clip_to_bounds (INT_MIN, global_gnutls_log_level, INT_MAX);
   {
     Lisp_Object name = CAR_SAFE (Fget (Qgnutls, QCloaded_from));
     GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
@@ -489,19 +477,17 @@ init_gnutls_functions (void)
 #    define gnutls_mac_get_nonce_size fn_gnutls_mac_get_nonce_size
 #   endif
 #  define gnutls_mac_get_key_size fn_gnutls_mac_get_key_size
-#  ifndef gnutls_digest_list
+#  ifdef HAVE_GNUTLS_DIGEST_LIST
 #   define gnutls_digest_list fn_gnutls_digest_list
-#  endif
-#  ifndef gnutls_digest_get_name
 #   define gnutls_digest_get_name fn_gnutls_digest_get_name
 #  endif
 #  define gnutls_cipher_list fn_gnutls_cipher_list
-#  ifndef gnutls_cipher_get_iv_size
+#  ifdef HAVE_GNUTLS_CIPHER_GET_IV_SIZE
 #   define gnutls_cipher_get_iv_size fn_gnutls_cipher_get_iv_size
 #  endif
 #  define gnutls_cipher_get_key_size fn_gnutls_cipher_get_key_size
 #  define gnutls_cipher_get_block_size fn_gnutls_cipher_get_block_size
-#  ifndef gnutls_cipher_get_tag_size
+#  ifdef HAVE_GNUTLS_CIPHER_GET_TAG_SIZE
 #   define gnutls_cipher_get_tag_size fn_gnutls_cipher_get_tag_size
 #  endif
 #  define gnutls_cipher_init fn_gnutls_cipher_init
@@ -592,15 +578,17 @@ gnutls_try_handshake (struct Lisp_Process *proc)
   if (non_blocking)
     proc->gnutls_p = true;
 
-  do
+  while ((ret = gnutls_handshake (state)) < 0)
     {
-      ret = gnutls_handshake (state);
-      emacs_gnutls_handle_error (state, ret);
+      do
+	ret = gnutls_handshake (state);
+      while (ret == GNUTLS_E_INTERRUPTED);
+
+      if (0 <= ret || emacs_gnutls_handle_error (state, ret) == 0
+	  || non_blocking)
+	break;
       maybe_quit ();
     }
-  while (ret < 0
-	 && gnutls_error_is_fatal (ret) == 0
-	 && ! non_blocking);
 
   proc->gnutls_initstage = GNUTLS_STAGE_HANDSHAKE_TRIED;
 
@@ -695,8 +683,6 @@ emacs_gnutls_transport_set_errno (gnutls_session_t state, int err)
 ptrdiff_t
 emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
 {
-  ssize_t rtnval = 0;
-  ptrdiff_t bytes_written;
   gnutls_session_t state = proc->gnutls_state;
 
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
@@ -705,25 +691,19 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
       return 0;
     }
 
-  bytes_written = 0;
+  ptrdiff_t bytes_written = 0;
 
   while (nbyte > 0)
     {
-      rtnval = gnutls_record_send (state, buf, nbyte);
+      ssize_t rtnval;
+      do
+	rtnval = gnutls_record_send (state, buf, nbyte);
+      while (rtnval == GNUTLS_E_INTERRUPTED);
 
       if (rtnval < 0)
 	{
-	  if (rtnval == GNUTLS_E_INTERRUPTED)
-	    continue;
-	  else
-	    {
-	      /* If we get GNUTLS_E_AGAIN, then set errno
-		 appropriately so that send_process retries the
-		 correct way instead of erroring out. */
-	      if (rtnval == GNUTLS_E_AGAIN)
-		errno = EAGAIN;
-	      break;
-	    }
+	  emacs_gnutls_handle_error (state, rtnval);
+	  break;
 	}
 
       buf += rtnval;
@@ -731,14 +711,12 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, ptrdiff_t nbyte)
       bytes_written += rtnval;
     }
 
-  emacs_gnutls_handle_error (state, rtnval);
   return (bytes_written);
 }
 
 ptrdiff_t
 emacs_gnutls_read (struct Lisp_Process *proc, char *buf, ptrdiff_t nbyte)
 {
-  ssize_t rtnval;
   gnutls_session_t state = proc->gnutls_state;
 
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
@@ -747,19 +725,18 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, ptrdiff_t nbyte)
       return -1;
     }
 
-  rtnval = gnutls_record_recv (state, buf, nbyte);
+  ssize_t rtnval;
+  do
+    rtnval = gnutls_record_recv (state, buf, nbyte);
+  while (rtnval == GNUTLS_E_INTERRUPTED);
+
   if (rtnval >= 0)
     return rtnval;
   else if (rtnval == GNUTLS_E_UNEXPECTED_PACKET_LENGTH)
     /* The peer closed the connection. */
     return 0;
-  else if (emacs_gnutls_handle_error (state, rtnval))
-    /* non-fatal error */
-    return -1;
-  else {
-    /* a fatal error occurred */
-    return 0;
-  }
+  else
+    return emacs_gnutls_handle_error (state, rtnval);
 }
 
 static char const *
@@ -770,25 +747,25 @@ emacs_gnutls_strerror (int err)
 }
 
 /* Report a GnuTLS error to the user.
-   Return true if the error code was successfully handled.  */
-static bool
+   SESSION is the GnuTLS session, ERR is the (negative) GnuTLS error code.
+   Return 0 if the error was fatal, -1 (setting errno) otherwise so
+   that the caller can notice the error and attempt a repair.  */
+static int
 emacs_gnutls_handle_error (gnutls_session_t session, int err)
 {
-  int max_log_level = 0;
-
-  bool ret;
+  int ret;
 
   /* TODO: use a Lisp_Object generated by gnutls_make_error?  */
-  if (err >= 0)
-    return 1;
 
   check_memory_full (err);
 
-  max_log_level = global_gnutls_log_level;
+  int max_log_level
+    = clip_to_bounds (INT_MIN, global_gnutls_log_level, INT_MAX);
 
   /* TODO: use gnutls-error-fatalp and gnutls-error-string.  */
 
   char const *str = emacs_gnutls_strerror (err);
+  int errnum = EINVAL;
 
   if (gnutls_error_is_fatal (err))
     {
@@ -802,11 +779,11 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
 # endif
 
       GNUTLS_LOG2 (level, max_log_level, "fatal error:", str);
-      ret = false;
+      ret = 0;
     }
   else
     {
-      ret = true;
+      ret = -1;
 
       switch (err)
         {
@@ -822,6 +799,26 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
                        "non-fatal error:",
                        str);
         }
+
+      switch (err)
+	{
+	case GNUTLS_E_AGAIN:
+	  errnum = EAGAIN;
+	  break;
+
+# ifdef EMSGSIZE
+	case GNUTLS_E_LARGE_PACKET:
+	case GNUTLS_E_PUSH_ERROR:
+	  errnum = EMSGSIZE;
+	  break;
+# endif
+
+# if defined HAVE_GNUTLS3 && defined ECONNRESET
+	case GNUTLS_E_PREMATURE_TERMINATION:
+	  errnum = ECONNRESET;
+	  break;
+# endif
+	}
     }
 
   if (err == GNUTLS_E_WARNING_ALERT_RECEIVED
@@ -835,6 +832,8 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
 
       GNUTLS_LOG2 (level, max_log_level, "Received alert: ", str);
     }
+
+  errno = errnum;
   return ret;
 }
 
@@ -1692,14 +1691,17 @@ one trustfile (usually a CA bundle).  */)
 
   state = XPROCESS (proc)->gnutls_state;
 
-  if (TYPE_RANGED_FIXNUMP (int, loglevel))
+  if (INTEGERP (loglevel))
     {
       gnutls_global_set_log_function (gnutls_log_function);
 # ifdef HAVE_GNUTLS3
       gnutls_global_set_audit_log_function (gnutls_audit_log_function);
 # endif
-      gnutls_global_set_log_level (XFIXNUM (loglevel));
-      max_log_level = XFIXNUM (loglevel);
+      int level = (FIXNUMP (loglevel)
+		   ? clip_to_bounds (INT_MIN, XFIXNUM (loglevel), INT_MAX)
+		   : NILP (Fnatnump (loglevel)) ? INT_MIN : INT_MAX);
+      gnutls_global_set_log_level (level);
+      max_log_level = level;
       XPROCESS (proc)->gnutls_log_level = max_log_level;
     }
 
@@ -1955,6 +1957,24 @@ This function may also return `gnutls-e-again', or
 
 #ifdef HAVE_GNUTLS3
 
+# ifndef HAVE_GNUTLS_CIPHER_GET_IV_SIZE
+   /* Block size is equivalent.  */
+#  define gnutls_cipher_get_iv_size(cipher) gnutls_cipher_get_block_size (cipher)
+# endif
+
+# ifndef HAVE_GNUTLS_CIPHER_GET_TAG_SIZE
+   /* Tag size is irrelevant.  */
+#  define gnutls_cipher_get_tag_size(cipher) 0
+# endif
+
+# ifndef HAVE_GNUTLS_DIGEST_LIST
+   /* The mac algorithms are equivalent.  */
+#  define gnutls_digest_list() \
+     ((gnutls_digest_algorithm_t const *) gnutls_mac_list ())
+#  define gnutls_digest_get_name(id) \
+     gnutls_mac_get_name ((gnutls_mac_algorithm_t) (id))
+# endif
+
 DEFUN ("gnutls-ciphers", Fgnutls_ciphers, Sgnutls_ciphers, 0, 0, 0,
        doc: /* Return alist of GnuTLS symmetric cipher descriptions as plists.
 The alist key is the cipher name. */)
@@ -1978,7 +1998,7 @@ The alist key is the cipher name. */)
       ptrdiff_t cipher_tag_size = gnutls_cipher_get_tag_size (gca);
 
       Lisp_Object cp
-	= listn (CONSTYPE_HEAP, 15, cipher_symbol,
+	 = list (cipher_symbol,
 		 QCcipher_id, make_fixnum (gca),
 		 QCtype, Qgnutls_type_cipher,
 		 QCcipher_aead_capable, cipher_tag_size == 0 ? Qnil : Qt,
@@ -2306,10 +2326,10 @@ name. */)
       Lisp_Object gma_symbol = intern (gnutls_mac_get_name (gma));
 
       size_t nonce_size = 0;
-#ifdef HAVE_GNUTLS_MAC_GET_NONCE_SIZE
+# ifdef HAVE_GNUTLS_MAC_GET_NONCE_SIZE
       nonce_size = gnutls_mac_get_nonce_size (gma);
-#endif
-      Lisp_Object mp = listn (CONSTYPE_HEAP, 11, gma_symbol,
+# endif
+      Lisp_Object mp =  list (gma_symbol,
 			      QCmac_algorithm_id, make_fixnum (gma),
 			      QCtype, Qgnutls_type_mac_algorithm,
 
@@ -2344,7 +2364,7 @@ method name. */)
       /* A symbol representing the GnuTLS digest algorithm.  */
       Lisp_Object gda_symbol = intern (gnutls_digest_get_name (gda));
 
-      Lisp_Object mp = listn (CONSTYPE_HEAP, 7, gda_symbol,
+      Lisp_Object mp  = list (gda_symbol,
 			      QCdigest_algorithm_id, make_fixnum (gda),
 			      QCtype, Qgnutls_type_digest_algorithm,
 
@@ -2622,6 +2642,7 @@ syms_of_gnutls (void)
         );
 #ifdef HAVE_GNUTLS
   gnutls_global_initialized = 0;
+  PDUMPER_IGNORE (gnutls_global_initialized);
 
   DEFSYM (Qgnutls_code, "gnutls-code");
   DEFSYM (Qgnutls_anon, "gnutls-anon");

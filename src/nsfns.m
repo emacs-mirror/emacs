@@ -1,6 +1,6 @@
 /* Functions for the NeXT/Open/GNUstep and macOS window system.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2018 Free Software
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -48,7 +48,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <IOKit/graphics/IOGraphicsLib.h>
 #include "macfont.h"
 #endif
-
 
 #ifdef HAVE_NS
 
@@ -2476,7 +2475,7 @@ ns_make_monitor_attribute_list (struct MonitorInfo *monitors,
                                 int primary_monitor,
                                 const char *source)
 {
-  Lisp_Object monitor_frames = Fmake_vector (make_fixnum (n_monitors), Qnil);
+  Lisp_Object monitor_frames = make_nil_vector (n_monitors);
   Lisp_Object frame, rest;
   NSArray *screens = [NSScreen screens];
   int i;
@@ -2812,23 +2811,20 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))
-    return list4 (make_fixnum (f->left_pos), make_fixnum (f->top_pos),
-		  make_fixnum (f->left_pos + outer_width),
-		  make_fixnum (f->top_pos + outer_height));
+    return list4i (f->left_pos, f->top_pos,
+		   f->left_pos + outer_width,
+		   f->top_pos + outer_height);
   else if (EQ (attribute, Qnative_edges))
-    return list4 (make_fixnum (native_left), make_fixnum (native_top),
-		  make_fixnum (native_right), make_fixnum (native_bottom));
+    return list4i (native_left, native_top,
+		   native_right, native_bottom);
   else if (EQ (attribute, Qinner_edges))
-    return list4 (make_fixnum (native_left + internal_border_width),
-		  make_fixnum (native_top
-			       + tool_bar_height
-			       + internal_border_width),
-		  make_fixnum (native_right - internal_border_width),
-		  make_fixnum (native_bottom - internal_border_width));
+    return list4i (native_left + internal_border_width,
+		   native_top + tool_bar_height + internal_border_width,
+		   native_right - internal_border_width,
+		   native_bottom - internal_border_width);
   else
     return
-      listn (CONSTYPE_HEAP, 10,
-	     Fcons (Qouter_position,
+       list (Fcons (Qouter_position,
 		    Fcons (make_fixnum (f->left_pos),
 			   make_fixnum (f->top_pos))),
 	     Fcons (Qouter_size,
@@ -3125,7 +3121,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 
    ========================================================================== */
 
-
 void
 syms_of_nsfns (void)
 {
@@ -3215,5 +3210,6 @@ Default is t.  */);
 
   as_status = 0;
   as_script = Qnil;
+  staticpro (&as_script);
   as_result = 0;
 }

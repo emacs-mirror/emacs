@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
 
-Copyright (C) 1985, 1993-1994, 1997-2018 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -31,6 +31,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/Intrinsic.h>
 #endif /* USE_X_TOOLKIT */
 
+#ifdef HAVE_XRENDER
+# include <X11/extensions/Xrender.h>
+#endif
 #else /* !HAVE_X_WINDOWS */
 
 /* X-related stuff used by non-X gui code.  */
@@ -74,10 +77,13 @@ typedef HDC XImagePtr_or_DC;
 
 #ifdef HAVE_NS
 #include "nsgui.h"
+#define FACE_COLOR_TO_PIXEL(face_color, frame) ns_color_index_to_rgba(face_color, frame)
 /* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
 typedef struct ns_display_info Display_Info;
 typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
+#else
+#define FACE_COLOR_TO_PIXEL(face_color, frame) face_color
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1931,7 +1937,7 @@ struct bidi_string_data {
   Lisp_Object lstring;		/* Lisp string to reorder, or nil */
   const unsigned char *s;	/* string data, or NULL if reordering buffer */
   ptrdiff_t schars;		/* the number of characters in the string,
-				   excluding the terminating null */
+				   excluding the terminating NUL */
   ptrdiff_t bufpos;		/* buffer position of lstring, or 0 if N/A */
   bool_bf from_disp_str : 1;	/* True means the string comes from a
 				   display property */
@@ -2932,33 +2938,9 @@ struct redisplay_interface
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Each image format (JPEG, TIFF, ...) supported is described by
-   a structure of the type below.  */
-
-struct image_type
-{
-  /* Index of a symbol uniquely identifying the image type, e.g., 'jpeg'.  */
-  int type;
-
-  /* Check that SPEC is a valid image specification for the given
-     image type.  Value is true if SPEC is valid.  */
-  bool (* valid_p) (Lisp_Object spec);
-
-  /* Load IMG which is used on frame F from information contained in
-     IMG->spec.  Value is true if successful.  */
-  bool (* load) (struct frame *f, struct image *img);
-
-  /* Free resources of image IMG which is used on frame F.  */
-  void (* free) (struct frame *f, struct image *img);
-
-  /* Initialization function (used for dynamic loading of image
-     libraries on Windows), or NULL if none.  */
-  bool (* init) (void);
-
-  /* Next in list of all supported image types.  */
-  struct image_type *next;
-};
-
+# if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS || defined HAVE_NTGUI
+#  define HAVE_NATIVE_SCALING
+# endif
 
 /* Structure describing an image.  Specific image formats like XBM are
    converted into this form, so that display only has to deal with
@@ -2975,7 +2957,6 @@ struct image
 
 #ifdef USE_CAIRO
   void *cr_data;
-  void *cr_data2;
 #endif
 #ifdef HAVE_X_WINDOWS
   /* X images of the image, corresponding to the above Pixmaps.
@@ -2983,6 +2964,11 @@ struct image
      and the latter is outdated.  NULL means the X image has been
      synchronized to Pixmap.  */
   XImagePtr ximg, mask_img;
+
+# ifdef HAVE_NATIVE_SCALING
+  /* Picture versions of pixmap and mask for compositing.  */
+  Picture picture, mask_picture;
+# endif
 #endif
 
   /* Colors allocated for this image, if any.  Allocated via xmalloc.  */

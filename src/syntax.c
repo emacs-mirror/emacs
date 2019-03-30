@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2018 Free
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2019 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -175,7 +175,7 @@ static ptrdiff_t find_start_value;
 static ptrdiff_t find_start_value_byte;
 static struct buffer *find_start_buffer;
 static ptrdiff_t find_start_begv;
-static EMACS_INT find_start_modiff;
+static modiff_count find_start_modiff;
 
 
 static Lisp_Object skip_chars (bool, Lisp_Object, Lisp_Object, bool);
@@ -309,7 +309,7 @@ SETUP_SYNTAX_TABLE_FOR_OBJECT (Lisp_Object object,
 }
 
 /* Update gl_state to an appropriate interval which contains CHARPOS.  The
-   sign of COUNT give the relative position of CHARPOS wrt the previously
+   sign of COUNT gives the relative position of CHARPOS wrt the previously
    valid interval.  If INIT, only [be]_property fields of gl_state are
    valid at start, the rest is filled basing on OBJECT.
 
@@ -340,59 +340,46 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count, bool init,
       invalidate = false;
       if (!i)
 	return;
-      /* interval_of updates only ->position of the return value, so
-	 update the parents manually to speed up update_interval.  */
-      while (!NULL_PARENT (i))
-	{
-	  if (AM_RIGHT_CHILD (i))
-	    INTERVAL_PARENT (i)->position = i->position
-	      - LEFT_TOTAL_LENGTH (i) + TOTAL_LENGTH (i) /* right end */
-	      - TOTAL_LENGTH (INTERVAL_PARENT (i))
-	      + LEFT_TOTAL_LENGTH (INTERVAL_PARENT (i));
-	  else
-	    INTERVAL_PARENT (i)->position = i->position - LEFT_TOTAL_LENGTH (i)
-	      + TOTAL_LENGTH (i);
-	  i = INTERVAL_PARENT (i);
-	}
       i = gl_state.forward_i;
       gl_state.b_property = i->position - gl_state.offset;
       gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
-      goto update;
     }
-  i = count > 0 ? gl_state.forward_i : gl_state.backward_i;
-
-  /* We are guaranteed to be called with CHARPOS either in i,
-     or further off.  */
-  if (!i)
-    error ("Error in syntax_table logic for to-the-end intervals");
-  else if (charpos < i->position)		/* Move left.  */
+  else
     {
-      if (count > 0)
-	error ("Error in syntax_table logic for intervals <-");
-      /* Update the interval.  */
-      i = update_interval (i, charpos);
-      if (INTERVAL_LAST_POS (i) != gl_state.b_property)
-	{
-	  invalidate = false;
-	  gl_state.forward_i = i;
-	  gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
-	}
-    }
-  else if (charpos >= INTERVAL_LAST_POS (i)) /* Move right.  */
-    {
-      if (count < 0)
-	error ("Error in syntax_table logic for intervals ->");
-      /* Update the interval.  */
-      i = update_interval (i, charpos);
-      if (i->position != gl_state.e_property)
-	{
-	  invalidate = false;
-	  gl_state.backward_i = i;
-	  gl_state.b_property = i->position - gl_state.offset;
-	}
+      i = count > 0 ? gl_state.forward_i : gl_state.backward_i;
+
+      /* We are guaranteed to be called with CHARPOS either in i,
+         or further off.  */
+      if (!i)
+        error ("Error in syntax_table logic for to-the-end intervals");
+      else if (charpos < i->position)		/* Move left.  */
+        {
+          if (count > 0)
+	    error ("Error in syntax_table logic for intervals <-");
+          /* Update the interval.  */
+          i = update_interval (i, charpos);
+          if (INTERVAL_LAST_POS (i) != gl_state.b_property)
+	    {
+	      invalidate = false;
+	      gl_state.forward_i = i;
+	      gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
+	    }
+        }
+      else if (charpos >= INTERVAL_LAST_POS (i)) /* Move right.  */
+        {
+          if (count < 0)
+	    error ("Error in syntax_table logic for intervals ->");
+          /* Update the interval.  */
+          i = update_interval (i, charpos);
+          if (i->position != gl_state.e_property)
+	    {
+	      invalidate = false;
+	      gl_state.backward_i = i;
+	      gl_state.b_property = i->position - gl_state.offset;
+	    }
+        }
     }
 
-  update:
   tmp_table = textget (i->plist, Qsyntax_table);
 
   if (invalidate)
@@ -489,7 +476,7 @@ parse_sexp_propertize (ptrdiff_t charpos)
   if (syntax_propertize__done <= charpos
       && syntax_propertize__done < zv)
     {
-      EMACS_INT modiffs = CHARS_MODIFF;
+      modiff_count modiffs = CHARS_MODIFF;
       safe_call1 (Qinternal__syntax_propertize,
 		  make_fixnum (min (zv, 1 + charpos)));
       if (modiffs != CHARS_MODIFF)
@@ -608,7 +595,7 @@ find_defun_start (ptrdiff_t pos, ptrdiff_t pos_byte)
 
   if (!NILP (Vcomment_use_syntax_ppss))
     {
-      EMACS_INT modiffs = CHARS_MODIFF;
+      modiff_count modiffs = CHARS_MODIFF;
       Lisp_Object ppss = call1 (Qsyntax_ppss, make_fixnum (pos));
       if (modiffs != CHARS_MODIFF)
 	error ("syntax-ppss modified the buffer!");
@@ -3490,10 +3477,7 @@ internalize_parse_state (Lisp_Object external, struct lisp_parse_state *state)
   else
     {
       tem = Fcar (external);
-      if (!NILP (tem))
-	state->depth = XFIXNUM (tem);
-      else
-	state->depth = 0;
+      state->depth = FIXNUMP (tem) ? XFIXNUM (tem) : 0;
 
       external = Fcdr (external);
       external = Fcdr (external);
@@ -3730,12 +3714,9 @@ syms_of_syntax (void)
   staticpro (&gl_state.current_syntax_table);
   staticpro (&gl_state.old_prop);
 
-  /* Defined in regex-emacs.c.  */
-  staticpro (&re_match_object);
-
   DEFSYM (Qscan_error, "scan-error");
   Fput (Qscan_error, Qerror_conditions,
-	listn (CONSTYPE_PURE, 2, Qscan_error, Qerror));
+	pure_list (Qscan_error, Qerror));
   Fput (Qscan_error, Qerror_message,
 	build_pure_c_string ("Scan error"));
 

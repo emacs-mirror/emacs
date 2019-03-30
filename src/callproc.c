@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2018 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -237,7 +237,7 @@ DESTINATION can also have the form (REAL-BUFFER STDERR-FILE); in that case,
  t (mix it with ordinary output), or a file name string.
 
 Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.
-Remaining arguments are strings passed as command arguments to PROGRAM.
+Remaining arguments ARGS are strings passed as command arguments to PROGRAM.
 
 If executable PROGRAM can't be found as an executable, `call-process'
 signals a Lisp error.  `call-process' reports errors in execution of
@@ -643,19 +643,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 #endif
 
       unblock_child_signal (&oldset);
-
-#ifdef DARWIN_OS
-      /* Darwin doesn't let us run setsid after a vfork, so use
-         TIOCNOTTY when necessary. */
-      int j = emacs_open (DEV_TTY, O_RDWR, 0);
-      if (j >= 0)
-        {
-          ioctl (j, TIOCNOTTY, 0);
-          emacs_close (j);
-        }
-#else
-      setsid ();
-#endif
+      dissociate_controlling_tty ();
 
       /* Emacs ignores SIGPIPE, but the child should not.  */
       signal (SIGPIPE, SIG_DFL);
@@ -1045,7 +1033,8 @@ STDERR-FILE may be nil (discard standard error output),
 t (mix it with ordinary output), or a file name string.
 
 Sixth arg DISPLAY non-nil means redisplay buffer as output is inserted.
-Remaining args are passed to PROGRAM at startup as command args.
+Remaining arguments ARGS are passed to PROGRAM at startup as command-line
+arguments.
 
 If BUFFER is 0, `call-process-region' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
@@ -1600,9 +1589,7 @@ init_callproc (void)
 	}
     }
 
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif
+  if (!will_dump_p ())
     {
       tempdir = Fdirectory_file_name (Vexec_directory);
       if (! file_accessible_directory_p (tempdir))

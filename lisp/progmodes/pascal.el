@@ -1,6 +1,6 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages
@@ -117,7 +117,7 @@
 (defconst pascal-beg-block-re   "\\<\\(begin\\|case\\|record\\|repeat\\)\\>")
 (defconst pascal-end-block-re   "\\<\\(end\\|until\\)\\>")
 (defconst pascal-declaration-re "\\<\\(const\\|label\\|type\\|var\\)\\>")
-(defconst pascal-progbeg-re     "\\<\\program\\>")
+(defconst pascal-progbeg-re     "\\<program\\>")
 (defconst pascal-defun-re       "\\<\\(function\\|procedure\\|program\\)\\>")
 (defconst pascal-sub-block-re   "\\<\\(if\\|else\\|for\\|while\\|with\\)\\>")
 (defconst pascal-noindent-re    "\\<\\(begin\\|end\\|until\\|else\\)\\>")

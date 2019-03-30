@@ -1,6 +1,6 @@
 ;;; org-agenda.el --- Dynamic task and appointment lists for Org
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -2882,13 +2882,12 @@ Pressing `<' twice means to restrict to the current subtree or region
 	     (let* ((m (org-agenda-get-any-marker))
 		    (note (and m (org-entry-get m "THEFLAGGINGNOTE"))))
 	       (when note
-		 (message (concat
-			   "FLAGGING-NOTE ([?] for more info): "
-			   (org-add-props
-			       (replace-regexp-in-string
-				"\\\\n" "//"
-				(copy-sequence note))
-			       nil 'face 'org-warning)))))))
+		 (message "FLAGGING-NOTE ([?] for more info): %s"
+			  (org-add-props
+			   (replace-regexp-in-string
+			    "\\\\n" "//"
+			    (copy-sequence note))
+			   nil 'face 'org-warning))))))
 	 t t))
        ((equal org-keys "#") (call-interactively 'org-agenda-list-stuck-projects))
        ((equal org-keys "/") (call-interactively 'org-occur-in-agenda-files))
@@ -5491,8 +5490,8 @@ displayed in agenda view."
 	    (substring
 	     (format-time-string
 	      (car org-time-stamp-formats)
-	      (apply #'encode-time	; DATE bound by calendar
-		     (list 0 0 0 (nth 1 date) (car date) (nth 2 date))))
+	      (encode-time	; DATE bound by calendar
+	       0 0 0 (nth 1 date) (car date) (nth 2 date)))
 	     1 11))
 	   "\\|\\(<[0-9]+-[0-9]+-[0-9]+[^>\n]+?\\+[0-9]+[hdwmy]>\\)"
 	   "\\|\\(<%%\\(([^>\n]+)\\)>\\)"))
@@ -5742,8 +5741,8 @@ then those holidays will be skipped."
 		   (substring
 		    (format-time-string
 		     (car org-time-stamp-formats)
-		     (apply 'encode-time  ; DATE bound by calendar
-			    (list 0 0 0 (nth 1 date) (car date) (nth 2 date))))
+		     (encode-time  ; DATE bound by calendar
+		      0 0 0 (nth 1 date) (car date) (nth 2 date)))
 		    1 11))))
 	 (org-agenda-search-headline-for-time nil)
 	 marker hdmarker priority category level tags closedp
@@ -5860,21 +5859,19 @@ See also the user option `org-agenda-clock-consistency-checks'."
 	      (throw 'next t))
 	    (setq ts (match-string 1)
 		  te (match-string 3)
-		  ts (float-time
-		      (apply #'encode-time (org-parse-time-string ts)))
-		  te (float-time
-		      (apply #'encode-time (org-parse-time-string te)))
+		  ts (float-time (org-time-string-to-time ts))
+		  te (float-time (org-time-string-to-time te))
 		  dt (- te ts))))
 	(cond
 	 ((> dt (* 60 maxtime))
 	  ;; a very long clocking chunk
 	  (setq issue (format "Clocking interval is very long: %s"
-			      (org-duration-from-minutes (floor (/ dt 60.))))
+			      (org-duration-from-minutes (floor dt 60)))
 		face (or (plist-get pl :long-face) face)))
 	 ((< dt (* 60 mintime))
 	  ;; a very short clocking chunk
 	  (setq issue (format "Clocking interval is very short: %s"
-			      (org-duration-from-minutes (floor (/ dt 60.))))
+			      (org-duration-from-minutes (floor dt 60)))
 		face (or (plist-get pl :short-face) face)))
 	 ((and (> tlend 0) (< ts tlend))
 	  ;; Two clock entries are overlapping
@@ -5914,8 +5911,8 @@ See also the user option `org-agenda-clock-consistency-checks'."
 	(throw 'exit t))
     ;; We have a shorter gap.
     ;; Now we have to get the minute of the day when these times are
-    (let* ((t1dec (decode-time (seconds-to-time t1)))
-	   (t2dec (decode-time (seconds-to-time t2)))
+    (let* ((t1dec (decode-time t1))
+	   (t2dec (decode-time t2))
 	   ;; compute the minute on the day
 	   (min1 (+ (nth 1 t1dec) (* 60 (nth 2 t1dec))))
 	   (min2 (+ (nth 1 t2dec) (* 60 (nth 2 t2dec)))))
@@ -9448,7 +9445,7 @@ the resulting entry will not be shown.  When TEXT is empty, switch to
     (goto-char (point-min))
     (cond
      ((eq type 'anniversary)
-      (or (re-search-forward "^*[ \t]+Anniversaries" nil t)
+      (or (re-search-forward "^\\*[ \t]+Anniversaries" nil t)
 	  (progn
 	    (or (org-at-heading-p t)
 		(progn
@@ -10159,8 +10156,7 @@ to override `appt-message-warning-time'."
          ;; Do not use `org-today' here because appt only takes
          ;; time and without date as argument, so it may pass wrong
          ;; information otherwise
-         (today (org-date-to-gregorian
-                 (time-to-days (current-time))))
+	 (today (org-date-to-gregorian (time-to-days nil)))
          (org-agenda-restrict nil)
          (files (org-agenda-files 'unrestricted)) entries file
          (org-agenda-buffer nil))

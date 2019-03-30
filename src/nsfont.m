@@ -1,6 +1,6 @@
 /* Font back-end driver for the NeXT/Open/GNUstep and macOS window system.
    See font.h
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,6 +36,7 @@ Author: Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "character.h"
 #include "font.h"
 #include "termchar.h"
+#include "pdumper.h"
 
 /* TODO: Drop once we can assume gnustep-gui 0.17.1.  */
 #ifdef NS_IMPL_GNUSTEP
@@ -576,7 +577,7 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
 
     /* Add synthItal member if needed.  */
     family = [fdesc objectForKey: NSFontFamilyAttribute];
-    if (family != nil && !foundItal && XFIXNUM (Flength (list)) > 0)
+    if (family != nil && !foundItal && !NILP (list))
       {
         NSFontDescriptor *s1 = [NSFontDescriptor new];
         NSFontDescriptor *sDesc
@@ -595,8 +596,8 @@ ns_findfonts (Lisp_Object font_spec, BOOL isMatch)
       return ns_fallback_entity ();
 
     if (NSFONT_TRACE)
-	fprintf (stderr, "    Returning %"pI"d entities.\n",
-                 XFIXNUM (Flength (list)));
+	fprintf (stderr, "    Returning %"pD"d entities.\n",
+		 list_length (list));
 
     return list;
 }
@@ -667,8 +668,8 @@ nsfont_list_family (struct frame *f)
   /* FIXME: escape the name?  */
 
   if (NSFONT_TRACE)
-    fprintf (stderr, "nsfont: list families returning %"pI"d entries\n",
-	     XFIXNUM (Flength (list)));
+    fprintf (stderr, "nsfont: list families returning %"pD"d entries\n",
+	     list_length (list));
 
   unblock_input ();
   return list;
@@ -1483,6 +1484,8 @@ ns_dump_glyphstring (struct glyph_string *s)
   fprintf (stderr, "\n");
 }
 
+static void syms_of_nsfont_for_pdumper (void);
+
 struct font_driver const nsfont_driver =
   {
   .type = LISPSYM_INITIALLY (Qns),
@@ -1502,13 +1505,17 @@ struct font_driver const nsfont_driver =
 void
 syms_of_nsfont (void)
 {
-  register_font_driver (&nsfont_driver, NULL);
   DEFSYM (Qcondensed, "condensed");
   DEFSYM (Qexpanded, "expanded");
   DEFSYM (Qapple, "apple");
   DEFSYM (Qmedium, "medium");
   DEFVAR_LISP ("ns-reg-to-script", Vns_reg_to_script,
                doc: /* Internal use: maps font registry to Unicode script.  */);
+  pdumper_do_now_and_after_load (syms_of_nsfont_for_pdumper);
+}
 
-  ascii_printable = NULL;
+static void
+syms_of_nsfont_for_pdumper (void)
+{
+  register_font_driver (&nsfont_driver, NULL);
 }

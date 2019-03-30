@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -1034,8 +1034,8 @@ hiding certain lines on the screen.
 @cindex explicit selective display
   The first variant, explicit selective display, was designed for use in a Lisp
 program: it controls which lines are hidden by altering the text.  This kind of
-hiding is now obsolete; instead you can get the same effect with the
-@code{invisible} property (@pxref{Invisible Text}).
+hiding is now obsolete and deprecated; instead you should use the
+@code{invisible} property (@pxref{Invisible Text}) to get the same effect.
 
   In the second variant, the choice of lines to hide is made
 automatically based on indentation.  This variant is designed to be a
@@ -3079,10 +3079,17 @@ value, which inherits from @var{face}'s global definition.
 This function returns a list of all defined face names.
 @end defun
 
+@cindex face number
+@cindex face property of face symbols
 @defun face-id face
 This function returns the @dfn{face number} of face @var{face}.  This
 is a number that uniquely identifies a face at low levels within
 Emacs.  It is seldom necessary to refer to a face by its face number.
+However, functions that manipulate glyphs, such as
+@code{make-glyph-code} and @code{glyph-face} (@pxref{Glyphs}) access
+the face numbers internally.  Note that the face number is stored as
+the value of the @code{face} property of the face symbol, so we
+recommend not to set that property of a face to any value of your own.
 @end defun
 
 @defun face-documentation face
@@ -3950,6 +3957,9 @@ fringe, and likewise @var{right} for the right fringe.  A value of
 @var{outside-margins} is non-@code{nil}, that specifies that fringes
 should appear outside of the display margins.
 
+If @var{window} is not large enough to accommodate fringes of the
+desired width, this leaves the fringes of @var{window} unchanged.
+
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
 with its @var{keep-margins} argument @code{nil} or omitted.
@@ -4370,6 +4380,9 @@ vertical scroll bar.
 @var{horizontal-type} specifies whether to have a horizontal scroll bar.
 The possible values are @code{bottom}, @code{t}, which means to use the
 frame's default, and @code{nil} for no horizontal scroll bar.
+
+If @var{window} is not large enough to accommodate a scroll bar of the
+desired dimension, this leaves the corresponding scroll bar unchanged.
 
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
@@ -4887,6 +4900,16 @@ and the buffer position where the @code{display} property was found,
 respectively.  Both positions can be different when @code{object} is a
 string.
 
+Note that @var{condition} will only be evaluated when redisplay
+examines the text where this display spec is located, so this feature
+is best suited for conditions that are relatively stable, i.e.@:
+yield, for each particular buffer position, the same results on every
+evaluation.  If the results change for the same text location, e.g.,
+if the result depends on the position of point, then the conditional
+specification might not do what you want, because redisplay examines
+only those parts of buffer text where it has reasons to assume that
+something changed since the last display cycle.
+
 @node Display Margins
 @subsection Displaying in the Margins
 @cindex display margins
@@ -4949,6 +4972,9 @@ Thus, you can make changes take effect by calling
 This function specifies the margin widths for window @var{window}, in
 character cell units.  The argument @var{left} controls the left
 margin, and @var{right} controls the right margin (default @code{0}).
+
+If @var{window} is not large enough to accommodate margins of the
+desired width, this leaves the margins of @var{window} unchanged.
 
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
@@ -5112,6 +5138,47 @@ This adds a shadow rectangle around the image.  The value,
 @var{relief} is negative, shadows are drawn so that the image appears
 as a pressed button; otherwise, it appears as an unpressed button.
 
+@item :width @var{width}, :height @var{height}
+The @code{:width} and @code{:height} keywords are used for scaling the
+image.  If only one of them is specified, the other one will be
+calculated so as to preserve the aspect ratio.  If both are specified,
+aspect ratio may not be preserved.
+
+@item :max-width @var{max-width}, :max-height @var{max-height}
+The @code{:max-width} and @code{:max-height} keywords are used for
+scaling if the size of the image exceeds these values.  If
+@code{:width} is set, it will have precedence over @code{max-width},
+and if @code{:height} is set, it will have precedence over
+@code{max-height}, but you can otherwise mix these keywords as you
+wish.
+
+If both @code{:max-width} and @code{:height} are specified, but
+@code{:width} is not, preserving the aspect ratio might require that
+width exceeds @code{:max-width}.  If this happens, scaling will use a
+smaller value for the height so as to preserve the aspect ratio while
+not exceeding @code{:max-width}.  Similarly when both
+@code{:max-height} and @code{:width} are specified, but @code{:height}
+is not.  For example, if you have a 200x100 image and specify that
+@code{:width} should be 400 and @code{:max-height} should be 150,
+you'll end up with an image that is 300x150: Preserving the aspect
+ratio and not exceeding the ``max'' setting.  This combination of
+parameters is a useful way of saying ``display this image as large as
+possible, but no larger than the available display area''.
+
+@item :scale @var{scale}
+This should be a number, where values higher than 1 means to increase
+the size, and lower means to decrease the size, by multiplying both
+the width and height.  For instance, a value of 0.25 will make the
+image a quarter size of what it originally was.  If the scaling makes
+the image larger than specified by @code{:max-width} or
+@code{:max-height}, the resulting size will not exceed those two
+values.  If both @code{:scale} and @code{:height}/@code{:width} are
+specified, the height/width will be adjusted by the specified scaling
+factor.
+
+@item :index @var{frame}
+@xref{Multi-Frame Images}.
+
 @item :conversion @var{algorithm}
 This specifies a conversion algorithm that should be applied to the
 image before it is displayed; the value, @var{algorithm}, specifies
@@ -5251,6 +5318,16 @@ This function returns @code{t} if image @var{spec} has a mask bitmap.
 (@pxref{Input Focus}).
 @end defun
 
+@defun image-scaling-p &optional frame
+This function returns @code{t} if @var{frame} supports image scaling.
+@var{frame} @code{nil} or omitted means to use the selected frame
+(@pxref{Input Focus}).
+
+If image scaling is not supported, @code{:width}, @code{:height},
+@code{:scale}, @code{:max-width} and @code{:max-height} will only be
+usable through ImageMagick, if available (@pxref{ImageMagick Images}).
+@end defun
+
 @node XBM Images
 @subsection XBM Images
 @cindex XBM
@@ -5387,42 +5464,6 @@ color, which is used as the image's background color if the image
 supports transparency.  If the value is @code{nil}, it defaults to the
 frame's background color.
 
-@item :width @var{width}, :height @var{height}
-The @code{:width} and @code{:height} keywords are used for scaling the
-image.  If only one of them is specified, the other one will be
-calculated so as to preserve the aspect ratio.  If both are specified,
-aspect ratio may not be preserved.
-
-@item :max-width @var{max-width}, :max-height @var{max-height}
-The @code{:max-width} and @code{:max-height} keywords are used for
-scaling if the size of the image of the image exceeds these values.
-If @code{:width} is set it will have precedence over @code{max-width},
-and if @code{:height} is set it will have precedence over
-@code{max-height}, but you can otherwise mix these keywords as you
-wish.  @code{:max-width} and @code{:max-height} will always preserve
-the aspect ratio.
-
-If both @code{:width} and @code{:max-height} has been set (but
-@code{:height} has not been set), then @code{:max-height} will have
-precedence.  The same is the case for the opposite combination: The
-``max'' keyword has precedence.  That is, if you have a 200x100 image
-and specify that @code{:width} should be 400 and @code{:max-height}
-should be 150, you'll end up with an image that is 300x150: Preserving
-the aspect ratio and not exceeding the ``max'' setting.  This
-combination of parameters is a useful way of saying ``display this
-image as large as possible, but no larger than the available display
-area''.
-
-@item :scale @var{scale}
-This should be a number, where values higher than 1 means to increase
-the size, and lower means to decrease the size.  For instance, a value
-of 0.25 will make the image a quarter size of what it originally was.
-If the scaling makes the image larger than specified by
-@code{:max-width} or @code{:max-height}, the resulting size will not
-exceed those two values.  If both @code{:scale} and
-@code{:height}/@code{:width} are specified, the height/width will be
-adjusted by the specified scaling factor.
-
 @item :format @var{type}
 The value, @var{type}, should be a symbol specifying the type of the
 image data, as found in @code{image-format-suffixes}.  This is used
@@ -5431,9 +5472,6 @@ hint to ImageMagick to help it detect the image type.
 
 @item :rotation @var{angle}
 Specifies a rotation angle in degrees.
-
-@item :index @var{frame}
-@xref{Multi-Frame Images}.
 @end table
 
 @node SVG Images

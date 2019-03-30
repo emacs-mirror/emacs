@@ -1,6 +1,6 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1988, 1993-1994, 1999, 2001-2018 Free Software Foundation,
+Copyright (C) 1988, 1993-1994, 1999, 2001-2019 Free Software Foundation,
 Inc.
 
 Author: Wolfgang Rupprecht (according to ack.texi)
@@ -306,27 +306,22 @@ This is the same as the exponent of a float.  */)
   if (FLOATP (arg))
     {
       double f = XFLOAT_DATA (arg);
-
       if (f == 0)
-	value = MOST_NEGATIVE_FIXNUM;
-      else if (isfinite (f))
-	{
-	  int ivalue;
-	  frexp (f, &ivalue);
-	  value = ivalue - 1;
-	}
-      else
-	value = MOST_POSITIVE_FIXNUM;
+	return make_float (-HUGE_VAL);
+      if (!isfinite (f))
+	return f < 0 ? make_float (-f) : arg;
+      int ivalue;
+      frexp (f, &ivalue);
+      value = ivalue - 1;
     }
-  else if (BIGNUMP (arg))
+  else if (!FIXNUMP (arg))
     value = mpz_sizeinbase (XBIGNUM (arg)->value, 2) - 1;
   else
     {
-      eassert (FIXNUMP (arg));
-      EMACS_INT i = eabs (XFIXNUM (arg));
-      value = (i == 0
-	       ? MOST_NEGATIVE_FIXNUM
-	       : EMACS_UINT_WIDTH - 1 - ecount_leading_zeros (i));
+      EMACS_INT i = XFIXNUM (arg);
+      if (i == 0)
+	return make_float (-HUGE_VAL);
+      value = EMACS_UINT_WIDTH - 1 - ecount_leading_zeros (eabs (i));
     }
 
   return make_fixnum (value);

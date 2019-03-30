@@ -1,6 +1,6 @@
 ;;; map-ynp.el --- general-purpose boolean question-asker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1995, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -79,6 +79,7 @@ are meaningful here.
 
 Returns the number of actions taken."
   (let* ((actions 0)
+         (msg (current-message))
 	 user-keys mouse-event map prompt char elt def
 	 ;; Non-nil means we should use mouse menus to ask.
 	 use-menus
@@ -246,9 +247,12 @@ C-g to quit (cancel the whole command);
       (if delayed-switch-frame
 	  (setq unread-command-events
 		(cons delayed-switch-frame unread-command-events))))
-    ;; Clear the last prompt from the minibuffer.
+    ;; Clear the last prompt from the minibuffer, and restore the
+    ;; previous echo-area message, if any.
     (let ((message-log-max nil))
-      (message ""))
+      (if msg
+          (message "%s" msg)
+        (message "")))
     ;; Return the number of actions that were taken.
     actions))
 
@@ -261,7 +265,7 @@ C-g to quit (cancel the whole command);
   "If non-nil, `read-answer' accepts single-character answers.
 If t, accept short (single key-press) answers to the question.
 If nil, require long answers.  If `auto', accept short answers if
-the function cell of `yes-or-no-p' is set to `y-or-on-p'."
+the function cell of `yes-or-no-p' is set to `y-or-n-p'."
   :type '(choice (const :tag "Accept short answers" t)
                  (const :tag "Require long answer" nil)
                  (const :tag "Guess preference" auto))

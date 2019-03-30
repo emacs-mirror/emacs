@@ -1,6 +1,6 @@
 /* Portable API for dynamic loading.
 
-Copyright 2015-2018 Free Software Foundation, Inc.
+Copyright 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

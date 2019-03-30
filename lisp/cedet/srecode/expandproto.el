@@ -1,6 +1,6 @@
 ;;; srecode/expandproto.el --- Expanding prototypes.
 
-;; Copyright (C) 2007, 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 

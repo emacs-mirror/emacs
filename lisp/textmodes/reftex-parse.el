@@ -1,6 +1,6 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -1000,7 +1000,7 @@ OPT-ARGS is a list of argument numbers which are optional."
                     (eq (following-char) ?\{))
           (cl-incf cnt)))
       (if (and (= n cnt)
-               (> (skip-chars-forward "{\\[") 0))
+               (> (skip-chars-forward "{[") 0))
           (reftex-context-substring)
         nil))))
 

@@ -1,6 +1,6 @@
 ;;; lmenu.el --- emulate Lucid's menubar support
 
-;; Copyright (C) 1992-1994, 1997, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1992-1994, 1997, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Keywords: emulations obsolete

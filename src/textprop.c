@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993-1995, 1997, 1999-2018 Free Software Foundation,
+   Copyright (C) 1993-1995, 1997, 1999-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -89,7 +89,7 @@ modify_text_properties (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
   BUF_COMPUTE_UNCHANGED (buf, b - 1, e);
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
-  MODIFF++;
+  modiff_incr (&MODIFF);
 
   bset_point_before_scroll (current_buffer, Qnil);
 
@@ -110,9 +110,6 @@ CHECK_STRING_OR_BUFFER (Lisp_Object x)
    reverse them if *BEGIN is greater than *END.  The objects pointed
    to by BEGIN and END may be integers or markers; if the latter, they
    are coerced to integers.
-
-   When OBJECT is a string, we increment *BEGIN and *END
-   to make them origin-one.
 
    Note that buffer points don't correspond to interval indices.
    For example, point-max is 1 greater than the index of the last
@@ -175,9 +172,6 @@ validate_interval_range (Lisp_Object object, Lisp_Object *begin,
       if (! (0 <= XFIXNUM (*begin) && XFIXNUM (*begin) <= XFIXNUM (*end)
 	     && XFIXNUM (*end) <= len))
 	args_out_of_range (*begin, *end);
-      XSETFASTINT (*begin, XFIXNAT (*begin));
-      if (begin != end)
-	XSETFASTINT (*end, XFIXNAT (*end));
       i = string_intervals (object);
 
       if (len == 0)
@@ -1348,12 +1342,8 @@ Lisp_Object
 set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
 		     Lisp_Object object, Lisp_Object coherent_change_p)
 {
-  register INTERVAL i;
-  Lisp_Object ostart, oend;
+  INTERVAL i;
   bool first_time = true;
-
-  ostart = start;
-  oend = end;
 
   properties = validate_plist (properties);
 
@@ -1381,11 +1371,6 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
       /* If buffer has no properties, and we want none, return now.  */
       if (NILP (properties))
 	return Qnil;
-
-      /* Restore the original START and END values
-	 because validate_interval_range increments them for strings.  */
-      start = ostart;
-      end = oend;
 
       i = validate_interval_range (object, &start, &end, hard);
       /* This can return if start == end.  */
@@ -1421,34 +1406,25 @@ set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties,
 /* Replace properties of text from START to END with new list of
    properties PROPERTIES.  OBJECT is the buffer or string containing
    the text.  This does not obey any hooks.
-   You should provide the interval that START is located in as I.
-   START and END can be in any order.  */
+   I is the interval that START is located in.  */
 
 void
-set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object, INTERVAL i)
+set_text_properties_1 (Lisp_Object start, Lisp_Object end,
+		       Lisp_Object properties, Lisp_Object object, INTERVAL i)
 {
-  register INTERVAL prev_changed = NULL;
-  register ptrdiff_t s, len;
-  INTERVAL unchanged;
+  INTERVAL prev_changed = NULL;
+  ptrdiff_t s = XFIXNUM (start);
+  ptrdiff_t len = XFIXNUM (end) - s;
 
-  if (XFIXNUM (start) < XFIXNUM (end))
-    {
-      s = XFIXNUM (start);
-      len = XFIXNUM (end) - s;
-    }
-  else if (XFIXNUM (end) < XFIXNUM (start))
-    {
-      s = XFIXNUM (end);
-      len = XFIXNUM (start) - s;
-    }
-  else
+  if (len == 0)
     return;
+  eassert (0 < len);
 
   eassert (i);
 
   if (i->position != s)
     {
-      unchanged = i;
+      INTERVAL unchanged = i;
       i = split_interval_right (unchanged, s - unchanged->position);
 
       if (LENGTH (i) > len)
@@ -1896,45 +1872,30 @@ Lisp_Object
 copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src,
 		      Lisp_Object pos, Lisp_Object dest, Lisp_Object prop)
 {
-  INTERVAL i;
-  Lisp_Object res;
-  Lisp_Object stuff;
-  Lisp_Object plist;
-  ptrdiff_t s, e, e2, p, len;
-  bool modified = false;
-
-  i = validate_interval_range (src, &start, &end, soft);
+  INTERVAL i = validate_interval_range (src, &start, &end, soft);
   if (!i)
     return Qnil;
 
   CHECK_FIXNUM_COERCE_MARKER (pos);
-  {
-    Lisp_Object dest_start, dest_end;
 
-    e = XFIXNUM (pos) + (XFIXNUM (end) - XFIXNUM (start));
-    if (MOST_POSITIVE_FIXNUM < e)
-      args_out_of_range (pos, end);
-    dest_start = pos;
-    XSETFASTINT (dest_end, e);
-    /* Apply this to a copy of pos; it will try to increment its arguments,
-       which we don't want.  */
-    validate_interval_range (dest, &dest_start, &dest_end, soft);
-  }
+  EMACS_INT dest_e = XFIXNUM (pos) + (XFIXNUM (end) - XFIXNUM (start));
+  if (MOST_POSITIVE_FIXNUM < dest_e)
+    args_out_of_range (pos, end);
+  Lisp_Object dest_end = make_fixnum (dest_e);
+  validate_interval_range (dest, &pos, &dest_end, soft);
 
-  s = XFIXNUM (start);
-  e = XFIXNUM (end);
-  p = XFIXNUM (pos);
+  ptrdiff_t s = XFIXNUM (start), e = XFIXNUM (end), p = XFIXNUM (pos);
 
-  stuff = Qnil;
+  Lisp_Object stuff = Qnil;
 
   while (s < e)
     {
-      e2 = i->position + LENGTH (i);
+      ptrdiff_t e2 = i->position + LENGTH (i);
       if (e2 > e)
 	e2 = e;
-      len = e2 - s;
+      ptrdiff_t len = e2 - s;
 
-      plist = i->plist;
+      Lisp_Object plist = i->plist;
       if (! NILP (prop))
 	while (! NILP (plist))
 	  {
@@ -1959,9 +1920,11 @@ copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src,
       s = i->position;
     }
 
+  bool modified = false;
+
   while (! NILP (stuff))
     {
-      res = Fcar (stuff);
+      Lisp_Object res = Fcar (stuff);
       res = Fadd_text_properties (Fcar (res), Fcar (Fcdr (res)),
 				  Fcar (Fcdr (Fcdr (res))), dest);
       if (! NILP (res))
@@ -2356,11 +2319,10 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
   Vtext_property_default_nonsticky
     = list2 (Fcons (Qsyntax_table, Qt), Fcons (Qdisplay, Qt));
 
-  staticpro (&interval_insert_behind_hooks);
-  staticpro (&interval_insert_in_front_hooks);
   interval_insert_behind_hooks = Qnil;
   interval_insert_in_front_hooks = Qnil;
-
+  staticpro (&interval_insert_behind_hooks);
+  staticpro (&interval_insert_in_front_hooks);
 
   /* Common attributes one might give text.  */
 

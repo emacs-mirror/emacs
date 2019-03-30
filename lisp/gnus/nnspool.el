@@ -1,6 +1,6 @@
 ;;; nnspool.el --- spool access for GNU Emacs
 
-;; Copyright (C) 1988-1990, 1993-1998, 2000-2018 Free Software
+;; Copyright (C) 1988-1990, 1993-1998, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -305,25 +305,18 @@ there.")
 	(while (and (not (looking-at
 			  "\\([^ ]+\\) +\\([0-9]+\\)[0-9][0-9][0-9] "))
 		    (zerop (forward-line -1))))
-	;; We require nnheader which requires gnus-util.
-	(let ((seconds (float-time (date-to-time date)))
+	(let ((seconds (encode-time (date-to-time date) 'integer))
 	      groups)
 	  ;; Go through lines and add the latest groups to a list.
 	  (while (and (looking-at "\\([^ ]+\\) +[0-9]+ ")
 		      (progn
-			;; We insert a .0 to make the list reader
-			;; interpret the number as a float.  It is far
-			;; too big to be stored in a lisp integer.
-			(goto-char (1- (match-end 0)))
-			(insert ".0")
-			(> (progn
-			     (goto-char (match-end 1))
-			     (read (current-buffer)))
-			   seconds))
-		      (push (buffer-substring
-			     (match-beginning 1) (match-end 1))
-			    groups)
-		      (zerop (forward-line -1))))
+			(goto-char (match-end 1))
+			(< seconds (read (current-buffer))))
+		      (progn
+			(push (buffer-substring
+			       (match-beginning 1) (match-end 1))
+			      groups)
+			(zerop (forward-line -1)))))
 	  (erase-buffer)
 	  (dolist (group groups)
 	    (insert group " 0 0 y\n")))

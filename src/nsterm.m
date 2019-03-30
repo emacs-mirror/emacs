@@ -1,6 +1,6 @@
 /* NeXT/Open/GNUstep / macOS communication module.      -*- coding: utf-8 -*-
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2018 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -60,6 +60,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "keyboard.h"
 #include "buffer.h"
 #include "font.h"
+#include "pdumper.h"
 
 #ifdef NS_IMPL_GNUSTEP
 #include "process.h"
@@ -499,7 +500,7 @@ append2 (Lisp_Object list, Lisp_Object item)
    Utility to append to a list
    -------------------------------------------------------------------------- */
 {
-  return CALLN (Fnconc, list, list1 (item));
+  return nconc2 (list, list (item));
 }
 
 
@@ -850,6 +851,27 @@ ns_menu_bar_height (NSScreen *screen)
 }
 
 
+static NSRect
+ns_row_rect (struct window *w, struct glyph_row *row,
+               enum glyph_row_area area)
+/* Get the row as an NSRect.  */
+{
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  NSRect rect;
+  int window_x, window_y, window_width;
+
+  window_box (w, area, &window_x, &window_y, &window_width, 0);
+
+  rect.origin.x = window_x;
+  rect.origin.y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, row->y));
+  rect.origin.y = max (rect.origin.y, window_y);
+  rect.size.width = window_width;
+  rect.size.height = row->visible_height;
+
+  return rect;
+}
+
+
 /* ==========================================================================
 
     Focus (clipping) and screen update
@@ -1102,29 +1124,6 @@ ns_update_begin (struct frame *f)
     if (! tbar_visible != ! [toolbar isVisible])
       [toolbar setVisible: tbar_visible];
   }
-
-  /* drawRect may have been called for say the minibuffer, and then clip path
-     is for the minibuffer.  But the display engine may draw more because
-     we have set the frame as garbaged.  So reset clip path to the whole
-     view.  */
-  /* FIXME: I don't think we need to do this.  */
-  if ([NSView focusView] == FRAME_NS_VIEW (f))
-    {
-      NSBezierPath *bp;
-      NSRect r = [view frame];
-      NSRect cr = [[view window] frame];
-      /* If a large frame size is set, r may be larger than the window frame
-         before constrained.  In that case don't change the clip path, as we
-         will clear in to the tool bar and title bar.  */
-      if (r.size.height
-          + FRAME_NS_TITLEBAR_HEIGHT (f)
-          + FRAME_TOOLBAR_HEIGHT (f) <= cr.size.height)
-        {
-          bp = [[NSBezierPath bezierPathWithRect: r] retain];
-          [bp setClip];
-          [bp release];
-        }
-    }
 #endif
 }
 
@@ -1259,28 +1258,6 @@ ns_reset_clipping (struct frame *f)
   [[NSGraphicsContext currentContext] restoreGraphicsState];
 }
 
-
-static BOOL
-ns_clip_to_row (struct window *w, struct glyph_row *row,
-		enum glyph_row_area area, BOOL gc)
-/* --------------------------------------------------------------------------
-     Internal (but parallels other terms): Focus drawing on given row
-   -------------------------------------------------------------------------- */
-{
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-  NSRect clip_rect;
-  int window_x, window_y, window_width;
-
-  window_box (w, area, &window_x, &window_y, &window_width, 0);
-
-  clip_rect.origin.x = window_x;
-  clip_rect.origin.y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, row->y));
-  clip_rect.origin.y = max (clip_rect.origin.y, window_y);
-  clip_rect.size.width = window_width;
-  clip_rect.size.height = row->visible_height;
-
-  return ns_clip_to_rect (f, &clip_rect, 1);
-}
 
 /* ==========================================================================
 
@@ -1973,7 +1950,7 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
           [[child parentWindow] removeChildWindow:child];
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-          if ([child respondsToSelector:@selector(setAccessibilitySubrole:)]
+          if ([child respondsToSelector:@selector(setAccessibilitySubrole:)])
 #endif
               [child setAccessibilitySubrole:NSAccessibilityStandardWindowSubrole];
 #endif
@@ -1987,7 +1964,7 @@ x_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_valu
                          ordered: NSWindowAbove];
 #if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101000
-          if ([child respondsToSelector:@selector(setAccessibilitySubrole:)]
+          if ([child respondsToSelector:@selector(setAccessibilitySubrole:)])
 #endif
               [child setAccessibilitySubrole:NSAccessibilityFloatingWindowSubrole];
 #endif
@@ -2356,6 +2333,22 @@ ns_lisp_to_color (Lisp_Object color, NSColor **col)
   return 1;
 }
 
+/* Convert an index into the color table into an RGBA value.  Used in
+   xdisp.c:extend_face_to_end_of_line when comparing faces and frame
+   color values.  */
+
+unsigned long
+ns_color_index_to_rgba(int idx, struct frame *f)
+{
+  NSColor *col;
+  col = ns_lookup_indexed_color (idx, f);
+
+  EmacsCGFloat r, g, b, a;
+  [col getRed: &r green: &g blue: &b alpha: &a];
+
+  return ARGB_TO_ULONG((int)(a*255),
+                       (int)(r*255), (int)(g*255), (int)(b*255));
+}
 
 void
 ns_query_color(void *col, XColor *color_def, int setPixel)
@@ -2819,7 +2812,7 @@ static void
 ns_copy_bits (struct frame *f, NSRect src, NSRect dest)
 {
   NSSize delta = NSMakeSize (dest.origin.x - src.origin.x,
-                             dest.origin.y - src.origin.y)
+                             dest.origin.y - src.origin.y);
   NSTRACE ("ns_copy_bits");
 
   if (FRAME_NS_VIEW (f))
@@ -2952,12 +2945,20 @@ ns_shift_glyphs_for_insert (struct frame *f,
     External (RIF): copy an area horizontally, don't worry about clearing src
    -------------------------------------------------------------------------- */
 {
-  NSRect srcRect = NSMakeRect (x, y, width, height);
+  //NSRect srcRect = NSMakeRect (x, y, width, height);
   NSRect dstRect = NSMakeRect (x+shift_by, y, width, height);
 
   NSTRACE ("ns_shift_glyphs_for_insert");
 
-  ns_copy_bits (f, srcRect, dstRect);
+  /* This doesn't work now as we copy the "bits" before we've had a
+     chance to actually draw any changes to the screen.  This means in
+     certain circumstances we end up with copies of the cursor all
+     over the place.  Just mark the area dirty so it is redrawn later.
+
+     FIXME: Work out how to do this properly.  */
+  // ns_copy_bits (f, srcRect, dstRect);
+
+  [FRAME_NS_VIEW (f) setNeedsDisplayInRect:dstRect];
 }
 
 
@@ -3038,6 +3039,9 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
   struct face *face = p->face;
   static EmacsImage **bimgs = NULL;
   static int nBimgs = 0;
+  NSRect clearRect = NSZeroRect;
+  NSRect imageRect = NSZeroRect;
+  NSRect rowRect = ns_row_rect (w, row, ANY_AREA);
 
   NSTRACE_WHEN (NSTRACE_GROUP_FRINGE, "ns_draw_fringe_bitmap");
   NSTRACE_MSG ("which:%d cursor:%d overlay:%d width:%d height:%d period:%d",
@@ -3052,25 +3056,40 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       nBimgs = max_used_fringe_bitmap;
     }
 
-  /* Must clip because of partially visible lines.  */
-  if (ns_clip_to_row (w, row, ANY_AREA, YES))
-    {
-      if (!p->overlay_p)
-        {
-          int bx = p->bx, by = p->by, nx = p->nx, ny = p->ny;
+  /* Work out the rectangle we will composite into.  */
+  if (p->which)
+    imageRect = NSMakeRect (p->x, p->y, p->wd, p->h);
 
-          if (bx >= 0 && nx > 0)
-            {
-              NSRect r = NSMakeRect (bx, by, nx, ny);
-              NSRectClip (r);
-              [ns_lookup_indexed_color (face->background, f) set];
-              NSRectFill (r);
-            }
+  /* Work out the rectangle we will need to clear.  Because we're
+     compositing rather than blitting, we need to clear the area under
+     the image regardless of anything else.  */
+  if (p->bx >= 0 && !p->overlay_p)
+    {
+      clearRect = NSMakeRect (p->bx, p->by, p->nx, p->ny);
+      clearRect = NSUnionRect (clearRect, imageRect);
+    }
+  else
+    {
+      clearRect = imageRect;
+    }
+
+  /* Handle partially visible rows.  */
+  clearRect = NSIntersectionRect (clearRect, rowRect);
+
+  /* The visible portion of imageRect will always be contained within
+     clearRect.  */
+  if (ns_clip_to_rect (f, &clearRect, 1))
+    {
+      if (! NSIsEmptyRect (clearRect))
+        {
+          NSTRACE_RECT ("clearRect", clearRect);
+
+          [ns_lookup_indexed_color(face->background, f) set];
+          NSRectFill (clearRect);
         }
 
       if (p->which)
         {
-          NSRect r = NSMakeRect (p->x, p->y, p->wd, p->h);
           EmacsImage *img = bimgs[p->which - 1];
 
           if (!img)
@@ -3091,13 +3110,6 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
               xfree (cbits);
             }
 
-          NSTRACE_RECT ("r", r);
-
-          NSRectClip (r);
-          /* Since we composite the bitmap instead of just blitting it, we need
-             to erase the whole background.  */
-          [ns_lookup_indexed_color(face->background, f) set];
-          NSRectFill (r);
 
           {
             NSColor *bm_color;
@@ -3110,26 +3122,18 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
             [img setXBMColor: bm_color];
           }
 
-#ifdef NS_IMPL_COCOA
           // Note: For periodic images, the full image height is "h + hd".
           // By using the height h, a suitable part of the image is used.
           NSRect fromRect = NSMakeRect(0, 0, p->wd, p->h);
 
           NSTRACE_RECT ("fromRect", fromRect);
 
-          [img drawInRect: r
+          [img drawInRect: imageRect
                  fromRect: fromRect
                 operation: NSCompositingOperationSourceOver
                  fraction: 1.0
                respectFlipped: YES
                     hints: nil];
-#else
-          {
-            NSPoint pt = r.origin;
-            pt.y += p->h;
-            [img compositeToPoint: pt operation: NSCompositingOperationSourceOver];
-          }
-#endif
         }
       ns_reset_clipping (f);
     }
@@ -3215,7 +3219,9 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   r.size.width = w->phys_cursor_width;
 
   /* Prevent the cursor from being drawn outside the text area.  */
-  if (ns_clip_to_row (w, glyph_row, TEXT_AREA, NO))
+  r = NSIntersectionRect (r, ns_row_rect (w, glyph_row, TEXT_AREA));
+
+  if (ns_clip_to_rect (f, &r, 1))
     {
       face = FACE_FROM_ID_OR_NULL (f, phys_cursor_glyph->face_id);
       if (face && NS_FACE_BACKGROUND (face)
@@ -3255,11 +3261,19 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
           NSRectFill (s);
           break;
         }
-      ns_reset_clipping (f);
 
-      /* draw the character under the cursor */
-      if (cursor_type != NO_CURSOR)
+      /* Draw the character under the cursor.  Other terms only draw
+         the character on top of box cursors, so do the same here.  */
+      if (cursor_type == FILLED_BOX_CURSOR || cursor_type == HOLLOW_BOX_CURSOR)
         draw_phys_cursor_glyph (w, glyph_row, DRAW_CURSOR);
+
+      ns_reset_clipping (f);
+    }
+  else if (! redisplaying_p)
+    {
+      /* If this function is called outside redisplay, it probably
+         means we need an immediate update.  */
+      [FRAME_NS_VIEW (f) display];
     }
 }
 
@@ -3898,8 +3912,9 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
     {
       if (s->hl == DRAW_IMAGE_SUNKEN || s->hl == DRAW_IMAGE_RAISED)
         {
-          th = tool_bar_button_relief >= 0 ?
-            tool_bar_button_relief : DEFAULT_TOOL_BAR_BUTTON_RELIEF;
+          th = (tool_bar_button_relief < 0
+		? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+		: min (tool_bar_button_relief, 1000000));
           raised_p = (s->hl == DRAW_IMAGE_RAISED);
         }
       else
@@ -8142,6 +8157,14 @@ not_in_argv (NSString *arg)
 }
 
 
+- (void)viewWillDraw
+{
+  /* If the frame has been garbaged there's no point in redrawing
+     anything.  */
+  if (FRAME_GARBAGED_P (emacsframe))
+    [self setNeedsDisplay:NO];
+}
+
 - (void)drawRect: (NSRect)rect
 {
   const NSRect *rectList;
@@ -8165,6 +8188,9 @@ not_in_argv (NSString *arg)
   for (int i = 0 ; i < numRects ; i++)
     {
       NSRect r = rectList[i];
+
+      NSTRACE_RECT ("r", r);
+
       expose_frame (emacsframe,
                     NSMinX (r), NSMinY (r),
                     NSWidth (r), NSHeight (r));
@@ -8207,7 +8233,9 @@ not_in_argv (NSString *arg)
   NSEvent *theEvent = [[self window] currentEvent];
   NSPoint position;
   NSDragOperation op = [sender draggingSourceOperationMask];
-  int modifiers = 0;
+  Lisp_Object operations = Qnil;
+  Lisp_Object strings = Qnil;
+  Lisp_Object type_sym;
 
   NSTRACE ("[EmacsView performDragOperation:]");
 
@@ -8220,19 +8248,17 @@ not_in_argv (NSString *arg)
   pb = [sender draggingPasteboard];
   type = [pb availableTypeFromArray: ns_drag_types];
 
-  if (! (op & (NSDragOperationMove|NSDragOperationDelete)) &&
-      // URL drags contain all operations (0xf), don't allow all to be set.
-      (op & 0xf) != 0xf)
-    {
-      if (op & NSDragOperationLink)
-        modifiers |= NSEventModifierFlagControl;
-      if (op & NSDragOperationCopy)
-        modifiers |= NSEventModifierFlagOption;
-      if (op & NSDragOperationGeneric)
-        modifiers |= NSEventModifierFlagCommand;
-    }
+  /* We used to convert these drag operations to keyboard modifiers,
+     but because they can be set by the sending program as well as the
+     keyboard modifiers it was difficult to work out a sensible key
+     mapping for drag and drop.  */
+  if (op & NSDragOperationLink)
+    operations = Fcons (Qns_drag_operation_link, operations);
+  if (op & NSDragOperationCopy)
+    operations = Fcons (Qns_drag_operation_copy, operations);
+  if (op & NSDragOperationGeneric || NILP (operations))
+    operations = Fcons (Qns_drag_operation_generic, operations);
 
-  modifiers = EV_MODIFIERS2 (modifiers);
   if (type == 0)
     {
       return NO;
@@ -8246,39 +8272,20 @@ not_in_argv (NSString *arg)
       if (!(files = [pb propertyListForType: type]))
         return NO;
 
+      type_sym = Qfile;
+
       fenum = [files objectEnumerator];
       while ( (file = [fenum nextObject]) )
-        {
-          emacs_event->kind = DRAG_N_DROP_EVENT;
-          XSETINT (emacs_event->x, x);
-          XSETINT (emacs_event->y, y);
-          emacs_event->modifiers = modifiers;
-          emacs_event->arg =  list2 (Qfile, build_string ([file UTF8String]));
-          EV_TRAILER (theEvent);
-        }
-      return YES;
+        strings = Fcons (build_string ([file UTF8String]), strings);
     }
   else if ([type isEqualToString: NSURLPboardType])
     {
       NSURL *url = [NSURL URLFromPasteboard: pb];
       if (url == nil) return NO;
 
-      emacs_event->kind = DRAG_N_DROP_EVENT;
-      XSETINT (emacs_event->x, x);
-      XSETINT (emacs_event->y, y);
-      emacs_event->modifiers = modifiers;
-      emacs_event->arg =  list2 (Qurl,
-                                 build_string ([[url absoluteString]
-                                                 UTF8String]));
-      EV_TRAILER (theEvent);
+      type_sym = Qurl;
 
-      if ([url isFileURL] != NO)
-        {
-          NSString *file = [url path];
-          ns_input_file = append2 (ns_input_file,
-                                   build_string ([file UTF8String]));
-        }
-      return YES;
+      strings = list1 (build_string ([[url absoluteString] UTF8String]));
     }
   else if ([type isEqualToString: NSStringPboardType]
            || [type isEqualToString: NSTabularTextPboardType])
@@ -8288,19 +8295,27 @@ not_in_argv (NSString *arg)
       if (! (data = [pb stringForType: type]))
         return NO;
 
-      emacs_event->kind = DRAG_N_DROP_EVENT;
-      XSETINT (emacs_event->x, x);
-      XSETINT (emacs_event->y, y);
-      emacs_event->modifiers = modifiers;
-      emacs_event->arg =  list2 (Qnil, build_string ([data UTF8String]));
-      EV_TRAILER (theEvent);
-      return YES;
+      type_sym = Qnil;
+
+      strings = list1 (build_string ([data UTF8String]));
     }
   else
     {
       fprintf (stderr, "Invalid data type in dragging pasteboard");
       return NO;
     }
+
+  emacs_event->kind = DRAG_N_DROP_EVENT;
+  XSETINT (emacs_event->x, x);
+  XSETINT (emacs_event->y, y);
+  emacs_event->modifiers = 0;
+
+  emacs_event->arg = Fcons (type_sym,
+                            Fcons (operations,
+                                   strings));
+  EV_TRAILER (theEvent);
+
+  return YES;
 }
 
 
@@ -9322,6 +9337,7 @@ syms_of_nsterm (void)
   NSTRACE ("syms_of_nsterm");
 
   ns_antialias_threshold = 10.0;
+  PDUMPER_REMEMBER_SCALAR (ns_antialias_threshold);
 
   /* From 23+ we need to tell emacs what modifiers there are.  */
   DEFSYM (Qmodifier_value, "modifier-value");
@@ -9334,6 +9350,10 @@ syms_of_nsterm (void)
 
   DEFSYM (Qfile, "file");
   DEFSYM (Qurl, "url");
+
+  DEFSYM (Qns_drag_operation_copy, "ns-drag-operation-copy");
+  DEFSYM (Qns_drag_operation_link, "ns-drag-operation-link");
+  DEFSYM (Qns_drag_operation_generic, "ns-drag-operation-generic");
 
   Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));

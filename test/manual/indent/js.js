@@ -144,6 +144,22 @@ bar(
   /abc/
 )
 
+// No infloop inside js--re-search-backward-inner
+let b = {
+  a : `
+  //1
+  `
+}
+
+// bug#25904
+foo.bar.baz(very => // A comment
+  very
+).biz(([baz={a: [123]}, boz]) =>
+  baz
+).snarf((snorf) => /* Another comment */
+  snorf
+);
+
 // Local Variables:
 // indent-tabs-mode: nil
 // js-indent-level: 2

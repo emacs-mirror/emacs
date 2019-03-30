@@ -1,6 +1,6 @@
 ;;; tls.el --- TLS/SSL support via wrapper around GnuTLS
 
-;; Copyright (C) 1996-1999, 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: comm, tls, gnutls, ssl

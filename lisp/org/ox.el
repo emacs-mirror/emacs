@@ -1,6 +1,6 @@
 ;;; ox.el --- Export Framework for Org Mode          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -3252,7 +3252,7 @@ locally for the subtree through node properties."
       (let ((val (cond ((equal (car key) "DATE")
 			(or (cdr key)
 			    (with-temp-buffer
-			      (org-insert-time-stamp (current-time)))))
+			      (org-insert-time-stamp nil))))
 		       ((equal (car key) "TITLE")
 			(or (let ((visited-file
 				   (buffer-file-name (buffer-base-buffer))))
@@ -3322,7 +3322,7 @@ storing and resolving footnotes.  It is created automatically."
 			   (setq value (replace-match "" nil nil value)))))
 		   (lines
 		    (and (string-match
-			  ":lines +\"\\(\\(?:[0-9]+\\)?-\\(?:[0-9]+\\)?\\)\""
+			  ":lines +\"\\([0-9]*-[0-9]*\\)\""
 			  value)
 			 (prog1 (match-string 1 value)
 			   (setq value (replace-match "" nil nil value)))))

@@ -1,4 +1,4 @@
-Copyright (C) 2007-2018 Free Software Foundation, Inc.
+Copyright (C) 2007-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -160,9 +160,6 @@ etc/future-bug
 etc/letter.pbm,letter.xpm
   - trivial, no notice needed.
 <https://lists.gnu.org/r/emacs-devel/2007-02/msg00324.html>
-
-etc/FTP, ORDERS
-  - trivial (at time of writing), no license needed
 
 etc/HELLO
   standard notices. Just a note that although the file itself is not

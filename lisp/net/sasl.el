@@ -1,6 +1,6 @@
 ;;; sasl.el --- SASL client framework
 
-;; Copyright (C) 2000, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: SASL

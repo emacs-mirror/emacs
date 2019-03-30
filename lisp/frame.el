@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1996-1997, 2000-2018 Free Software
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -316,10 +316,15 @@ there (in decreasing order of priority)."
   ;; want to use save-excursion here, because that may also try to set
   ;; the buffer of the selected window, which fails when the selected
   ;; window is the minibuffer.
-  (let ((old-buffer (current-buffer))
-	(window-system-frame-alist
-         (cdr (assq initial-window-system
-                    window-system-default-frame-alist))))
+  (let* ((old-buffer (current-buffer))
+	 (window-system-frame-alist
+          (cdr (assq initial-window-system
+                     window-system-default-frame-alist)))
+         (minibuffer
+          (cdr (or (assq 'minibuffer initial-frame-alist)
+		   (assq 'minibuffer window-system-frame-alist)
+		   (assq 'minibuffer default-frame-alist)
+		   '(minibuffer . t)))))
 
     (when (and frame-notice-user-settings
 	       (null frame-initial-frame))
@@ -410,11 +415,7 @@ there (in decreasing order of priority)."
       ;; default-frame-alist in the parameters of the screen we
       ;; create here, so that its new value, gleaned from the user's
       ;; init file, will be applied to the existing screen.
-      (if (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
-			    (assq 'minibuffer window-system-frame-alist)
-			    (assq 'minibuffer default-frame-alist)
-			    '(minibuffer . t)))
-		   t))
+      (if (not (eq minibuffer t))
 	  ;; Create the new frame.
 	  (let (parms new)
 	    ;; MS-Windows needs this to avoid inflooping below.
@@ -442,7 +443,15 @@ there (in decreasing order of priority)."
 				parms
 				nil))
 
-	    ;; Get rid of `reverse', because that was handled
+	    (when (eq minibuffer 'child-frame)
+              ;; When the minibuffer shall be shown in a child frame,
+              ;; remove the 'minibuffer' parameter from PARMS.  It
+              ;; will get assigned by the usual routines to the child
+              ;; frame's root window below.
+              (setq parms (cons '(minibuffer)
+				(delq (assq 'minibuffer parms) parms))))
+
+            ;; Get rid of `reverse', because that was handled
 	    ;; when we first made the frame.
 	    (setq parms (cons '(reverse) (delq (assq 'reverse parms) parms)))
 
@@ -465,7 +474,18 @@ there (in decreasing order of priority)."
 	    ;; the only frame with a minibuffer.  If it is, create a
 	    ;; new one.
 	    (or (delq frame-initial-frame (minibuffer-frame-list))
-		(make-initial-minibuffer-frame nil))
+                (and (eq minibuffer 'child-frame)
+                     ;; Create a minibuffer child frame and parent it
+                     ;; immediately.  Take any other parameters for
+                     ;; the child frame from 'minibuffer-frame-list'.
+                     (let* ((minibuffer-frame-alist
+                             (cons `(parent-frame . ,new) minibuffer-frame-alist)))
+                       (make-initial-minibuffer-frame nil)
+                       ;; With a minibuffer child frame we do not want
+                       ;; to select the minibuffer frame initially as
+                       ;; we do for standard minibuffer-only frames.
+                       (select-frame new)))
+                (make-initial-minibuffer-frame nil))
 
 	    ;; If the initial frame is serving as a surrogate
 	    ;; minibuffer frame for any frames, we need to wean them
@@ -644,8 +664,38 @@ Return nil if we don't know how to interpret DISPLAY."
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on display DISPLAY.
 The optional argument PARAMETERS specifies additional frame parameters."
-  (interactive "sMake frame on display: ")
+  (interactive (list (completing-read
+                      (format "Make frame on display: ")
+                      (delete-dups
+                       (mapcar (lambda (frame)
+                                 (frame-parameter frame 'display))
+                               (frame-list))))))
   (make-frame (cons (cons 'display display) parameters)))
+
+(defun make-frame-on-monitor (monitor &optional display parameters)
+  "Make a frame on monitor MONITOR.
+The optional argument DISPLAY can be a display name, and the optional
+argument PARAMETERS specifies additional frame parameters."
+  (interactive
+   (list
+    (let* ((default (cdr (assq 'name (frame-monitor-attributes)))))
+      (completing-read
+       (format "Make frame on monitor (default %s): " default)
+       (or (delq nil (mapcar (lambda (a)
+                               (cdr (assq 'name a)))
+                             (display-monitor-attributes-list)))
+           '(""))
+       nil nil nil nil default))))
+  (let* ((monitor-workarea
+          (catch 'done
+            (dolist (a (display-monitor-attributes-list display))
+              (when (equal (cdr (assq 'name a)) monitor)
+                (throw 'done (cdr (assq 'workarea a)))))))
+         (geometry-parameters
+          (when monitor-workarea
+            `((top . ,(nth 1 monitor-workarea))
+              (left . ,(nth 0 monitor-workarea))))))
+    (make-frame (append geometry-parameters parameters))))
 
 (declare-function x-close-connection "xfns.c" (terminal))
 
@@ -682,7 +732,9 @@ If DISPLAY is nil, that stands for the selected frame's display."
 (defun make-frame-command ()
   "Make a new frame, on the same terminal as the selected frame.
 If the terminal is a text-only terminal, this also selects the
-new frame."
+new frame.
+
+When called from Lisp, returns the new frame."
   (interactive)
   (if (display-graphic-p)
       (make-frame)
@@ -761,7 +813,7 @@ the new frame according to its own rules."
              (t window-system)))
 	 (oldframe (selected-frame))
 	 (params parameters)
-	 frame)
+	 frame child-frame)
 
     (unless (get w 'window-system-initialized)
       (let ((window-system w))          ;Hack attack!
@@ -777,17 +829,44 @@ the new frame according to its own rules."
     (dolist (p default-frame-alist)
       (unless (assq (car p) params)
 	(push p params)))
-    ;; Now make the frame.
-    (run-hooks 'before-make-frame-hook)
 
 ;;     (setq frame-size-history '(1000))
 
-    (setq frame (let ((window-system w)) ;Hack attack!
+    (when (eq (cdr (or (assq 'minibuffer params) '(minibuffer . t)))
+              'child-frame)
+      ;; If the 'minibuffer' parameter equals 'child-frame' make a
+      ;; frame without minibuffer first using the root window of
+      ;; 'default-minibuffer-frame' as its minibuffer window
+      (setq child-frame t)
+      (setq params (cons '(minibuffer)
+                         (delq (assq 'minibuffer params) params))))
+
+    ;; Now make the frame.
+    (run-hooks 'before-make-frame-hook)
+
+    (setq frame (let ((window-system w)) ; Hack attack!
                   (frame-creation-function params)))
+
+    (when child-frame
+      ;; When we want to equip the new frame with a minibuffer-only
+      ;; child frame, make that frame and reparent it immediately.
+      (setq child-frame
+            (make-frame
+             (append
+              `((display . ,display) (minibuffer . only)
+                (parent-frame . ,frame))
+              minibuffer-frame-alist)))
+      (when (frame-live-p child-frame)
+        ;; Have the 'minibuffer' parameter of our new frame refer to
+        ;; its child frame's root window.
+        (set-frame-parameter
+         frame 'minibuffer (frame-root-window child-frame))))
+
     (normal-erase-is-backspace-setup-frame frame)
-    ;; Inherit the original frame's parameters.
+    ;; Inherit original frame's parameters unless they are overridden
+    ;; by explicit parameters.
     (dolist (param frame-inherited-parameters)
-      (unless (assq param parameters)   ;Overridden by explicit parameters.
+      (unless (assq param parameters)
         (let ((val (frame-parameter oldframe param)))
           (when val (set-frame-parameter frame param val)))))
 
@@ -1038,7 +1117,7 @@ face specs for the new background mode."
 	   (default-bg-mode
 	     (if (or (window-system frame)
 		     (and tty-type
-			  (string-match "^\\(xterm\\|\\rxvt\\|dtterm\\|eterm\\)"
+			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
 					tty-type)))
 		 'light
 	       'dark))
@@ -1085,9 +1164,23 @@ face specs for the new background mode."
 	    ;; most faces are unmodified).
 	    (dolist (face (face-list))
 	      (and (not (get face 'face-override-spec))
-		   (not (face-spec-match-p face
-					   (face-user-default-spec face)
-					   (selected-frame)))
+		   (not (and
+                         ;; If the face was not yet realized for the
+                         ;; frame, face-spec-match-p will signal an
+                         ;; error, so treat such a missing face as
+                         ;; having a mismatched spec; the call to
+                         ;; face-spec-recalc below will then realize
+                         ;; the face for the frame.  This happens
+                         ;; during startup with -rv on the command
+                         ;; line for the initial frame, because frames
+                         ;; are not recorded in the pdump file.
+                         (assq face (frame-face-alist))
+                         (face-spec-match-p face
+                                            (face-user-default-spec face)
+                                            ;; FIXME: why selected-frame and
+                                            ;; not the frame that is the
+                                            ;; argument to this function?
+                                            (selected-frame))))
 		   (push face locally-modified-faces)))
 	    ;; Now change to the new frame parameters
 	    (modify-frame-parameters frame params)
@@ -1607,7 +1700,10 @@ keys and their meanings."
   (or frame (setq frame (selected-frame)))
   (cl-loop for attributes in (display-monitor-attributes-list frame)
 	   for frames = (cdr (assq 'frames attributes))
-	   if (memq frame frames) return attributes))
+	   if (memq frame frames) return attributes
+	   ;; On broken frames monitor attributes,
+	   ;; fall back to the last monitor.
+	   finally return attributes))
 
 (defun frame-monitor-attribute (attribute &optional frame x y)
   "Return the value of ATTRIBUTE on FRAME's monitor.
@@ -1745,20 +1841,17 @@ for FRAME."
   (let* ((frame (window-normalize-frame frame))
          (root (frame-root-window frame))
          (mini (minibuffer-window frame))
-         (mini-height-before-size-change 0)
+         (mini-old-height 0)
          (mini-height 0))
     ;; FRAME's minibuffer window counts iff it's on FRAME and FRAME is
     ;; not a minibuffer-only frame.
     (when (and (eq (window-frame mini) frame) (not (eq mini root)))
-      (setq mini-height-before-size-change
-            (window-pixel-height-before-size-change mini))
+      (setq mini-old-height (window-old-pixel-height mini))
       (setq mini-height (window-pixel-height mini)))
     ;; Return non-nil when either the width of the root or the sum of
     ;; the heights of root and minibuffer window changed.
-    (or (/= (window-pixel-width-before-size-change root)
-            (window-pixel-width root))
-        (/= (+ (window-pixel-height-before-size-change root)
-               mini-height-before-size-change)
+    (or (/= (window-old-pixel-width root) (window-pixel-width root))
+        (/= (+ (window-old-pixel-height root) mini-old-height)
             (+ (window-pixel-height root) mini-height)))))
 
 ;;;; Frame/display capabilities.

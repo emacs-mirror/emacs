@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2018 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2019 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -53,8 +53,6 @@ lwlibdir = ../lwlib
 
 # Configuration files for .o files to depend on.
 config_h = config.h $(srcdir)/conf_post.h
-
-bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
 
 ## ns-app if HAVE_NS, else empty.
 OTHER_FILES = @OTHER_FILES@
@@ -127,7 +125,8 @@ LIBIMAGE=@LIBTIFF@ @LIBJPEG@ @LIBPNG@ @LIBGIF@ @LIBXPM@
 
 XCB_LIBS=@XCB_LIBS@
 XFT_LIBS=@XFT_LIBS@
-LIBX_EXTRA=-lX11 $(XCB_LIBS) $(XFT_LIBS)
+XRENDER_LIBS=@XRENDER_LIBS@
+LIBX_EXTRA=-lX11 $(XCB_LIBS) $(XFT_LIBS) $(XRENDER_LIBS)
 
 FONTCONFIG_CFLAGS = @FONTCONFIG_CFLAGS@
 FONTCONFIG_LIBS = @FONTCONFIG_LIBS@
@@ -141,7 +140,6 @@ M17N_FLT_LIBS = @M17N_FLT_LIBS@
 LIB_ACL=@LIB_ACL@
 LIB_CLOCK_GETTIME=@LIB_CLOCK_GETTIME@
 LIB_EACCESS=@LIB_EACCESS@
-LIB_FDATASYNC=@LIB_FDATASYNC@
 LIB_TIMER_TIME=@LIB_TIMER_TIME@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
@@ -332,7 +330,7 @@ BUILD_DETAILS = @BUILD_DETAILS@
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 
-CANNOT_DUMP=@CANNOT_DUMP@
+DUMPING=@DUMPING@
 
 # 'make' verbosity.
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
@@ -356,6 +354,15 @@ AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
+
+bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
+ifeq ($(DUMPING),pdumper)
+bootstrap_pdmp := bootstrap-emacs.pdmp # Keep in sync with loadup.el
+pdmp := emacs.pdmp
+else
+bootstrap_pdmp :=
+pdmp :=
+endif
 
 # Flags that might be in WARN_CFLAGS but are not valid for Objective C.
 NON_OBJC_CFLAGS = -Wignored-attributes -Wignored-qualifiers -Wopenmp-simd
@@ -395,7 +402,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	bignum.o buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex-emacs.o undo.o \
-	alloc.o data.o doc.o editfns.o callint.o \
+	alloc.o pdumper.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o font.o print.o lread.o $(MODULES_OBJ) \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o gnutls.o callproc.o \
@@ -446,8 +453,16 @@ FIRSTFILE_OBJ=@FIRSTFILE_OBJ@
 ALLOBJS = $(FIRSTFILE_OBJ) $(VMLIMIT_OBJ) $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
-all: emacs$(EXEEXT) $(OTHER_FILES)
+all: emacs$(EXEEXT) $(pdmp) $(OTHER_FILES)
 .PHONY: all
+
+dmpstruct_headers=$(srcdir)/lisp.h $(srcdir)/buffer.h \
+	$(srcdir)/intervals.h $(srcdir)/charset.h $(srcdir)/bignum.h
+pdumper.o: dmpstruct.h
+dmpstruct.h: $(srcdir)/dmpstruct.awk
+dmpstruct.h: $(libsrc)/make-fingerprint$(EXEEXT) $(dmpstruct_headers)
+	$(AM_V_GEN)POSIXLY_CORRECT=1 awk -f $(srcdir)/dmpstruct.awk \
+		$(dmpstruct_headers) > $@
 
 AUTO_DEPEND = @AUTO_DEPEND@
 DEPDIR = deps
@@ -496,7 +511,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(IMAGEMAGICK_LIBS) $(LIB_ACL) $(LIB_CLOCK_GETTIME) \
    $(WEBKIT_LIBS) \
-   $(LIB_EACCESS) $(LIB_FDATASYNC) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
+   $(LIB_EACCESS) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
    $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) $(XFIXES_LIBS) \
    $(XDBE_LIBS) \
    $(LIBXML2_LIBS) $(LIBGPM) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
@@ -506,12 +521,12 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
    $(JSON_LIBS) $(GMP_LIB)
 
-## FORCE it so that admin/unidata can decide whether these files
-## are up-to-date.  Although since charprop depends on bootstrap-emacs,
-## and emacs (which recreates bootstrap-emacs) depends on charprop,
-## in practice this rule was always run anyway.
-$(srcdir)/macuvs.h $(lispsource)/international/charprop.el: \
-  bootstrap-emacs$(EXEEXT) FORCE
+## FORCE it so that admin/unidata can decide whether this file is
+## up-to-date.  Although since charprop depends on bootstrap-emacs,
+## and emacs depends on charprop, in practice this rule was always run
+## anyway.
+$(lispsource)/international/charprop.el: \
+  FORCE | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../admin/unidata all EMACS="../$(bootstrap_exe)"
 
 ## We require charprop.el to exist before ucs-normalize.el is
@@ -542,14 +557,20 @@ ${lispintdir}/characters.elc: ${charscript:.el=.elc}
 emacs$(EXEEXT): temacs$(EXEEXT) \
                 lisp.mk $(etc)/DOC $(lisp) \
                 $(lispsource)/international/charprop.el ${charsets}
-ifeq ($(CANNOT_DUMP),yes)
-	ln -f temacs$(EXEEXT) $@
-else
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup dump
+ifeq ($(DUMPING),unexec)
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=dump
   ifneq ($(PAXCTL_dumped),)
-	$(PAXCTL_dumped) $@
+	      $(PAXCTL_dumped) emacs$(EXEEXT)
   endif
-	ln -f $@ bootstrap-emacs$(EXEEXT)
+	cp -f $@ bootstrap-emacs$(EXEEXT)
+else
+	rm -f $@ && cp -f temacs$(EXEEXT) $@
+endif
+
+ifeq ($(DUMPING),pdumper)
+$(pdmp): emacs$(EXEEXT)
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump
+	cp -f $@ $(bootstrap_pdmp)
 endif
 
 ## We run make-docfile twice because the command line may get too long
@@ -602,16 +623,30 @@ LIBEGNU_ARCHIVE = $(lib)/lib$(if $(HYBRID_MALLOC),e)gnu.a
 $(LIBEGNU_ARCHIVE): $(config_h)
 	$(MAKE) -C $(lib) all
 
+EMACS_DEPS_PRE=$(LIBXMENU) $(ALLOBJS)
+EMACS_DEPS_POST=$(LIBEGNU_ARCHIVE) $(EMACSRES) ${charsets} ${charscript}
+BUILD_EMACS_PRE=$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
+	  -o $@ $(ALLOBJS)
+BUILD_EMACS_POST=$(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
+
+## We hash this file to generate the build fingerprint
+temacs.in$(EXEEXT): $(EMACS_DEPS_PRE) fingerprint-dummy.o $(EMACS_DEPS_POST)
+	$(BUILD_EMACS_PRE) fingerprint-dummy.o $(BUILD_EMACS_POST)
+
+$(libsrc)/make-fingerprint$(EXEEXT): $(libsrc)/make-fingerprint.c $(lib)/libgnu.a
+	$(MAKE) -C $(libsrc) make-fingerprint$(EXEEXT)
+
+fingerprint.c: temacs.in$(EXEEXT) $(libsrc)/make-fingerprint$(EXEEXT)
+	$(libsrc)/make-fingerprint$(EXEEXT) temacs.in$(EXEEXT) > fingerprint.c
+
 ## We have to create $(etc) here because init_cmdargs tests its
 ## existence when setting Vinstallation_directory (FIXME?).
 ## This goes on to affect various things, and the emacs binary fails
 ## to start if Vinstallation_directory has the wrong value.
-temacs$(EXEEXT): $(LIBXMENU) $(ALLOBJS) \
-	         $(LIBEGNU_ARCHIVE) $(EMACSRES) ${charsets} ${charscript}
-	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(TEMACS_LDFLAGS) $(LDFLAGS) \
-	  -o temacs $(ALLOBJS) $(LIBEGNU_ARCHIVE) $(W32_RES_LINK) $(LIBES)
+temacs$(EXEEXT): $(EMACS_DEPS_PRE) fingerprint.o $(EMACS_DEPS_POST)
+	$(BUILD_EMACS_PRE) fingerprint.o $(BUILD_EMACS_POST)
 	$(MKDIR_P) $(etc)
-ifneq ($(CANNOT_DUMP),yes)
+ifeq ($(DUMPING),unexec)
   ifneq ($(PAXCTL_notdumped),)
 	$(PAXCTL_notdumped) $@
   endif
@@ -638,7 +673,7 @@ emacs.res: FORCE
 	$(MAKE) -C ../nt ../src/emacs.res
 
 .PHONY: ns-app
-ns-app: emacs$(EXEEXT)
+ns-app: emacs$(EXEEXT) $(pdmp)
 	$(MAKE) -C ../nextstep all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
@@ -646,13 +681,17 @@ ns-app: emacs$(EXEEXT)
 
 mostlyclean:
 	rm -f temacs$(EXEEXT) core ./*.core \#* ./*.o
+	rm -f temacs.in$(EXEEXT) fingerprint.c dmpstruct.h
+	rm -f emacs.pdmp
 	rm -f ../etc/DOC
-	rm -f bootstrap-emacs$(EXEEXT) emacs-$(version)$(EXEEXT)
+	rm -f bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
+	rm -f emacs-$(version)$(EXEEXT)
 	rm -f buildobj.h
 	rm -f globals.h gl-stamp
 	rm -f ./*.res ./*.tmp
 clean: mostlyclean
-	rm -f emacs-*.*.*[0-9]$(EXEEXT) emacs$(EXEEXT) $(DEPDIR)/*
+	rm -f emacs-*.*.*[0-9]$(EXEEXT) emacs-*.*.*[0-9].pdmp
+	rm -f emacs$(EXEEXT) $(DEPDIR)/*
 
 ## bootstrap-clean is used to clean up just before a bootstrap.
 ## It should remove all files generated during a compilation/bootstrap,
@@ -682,7 +721,10 @@ ETAGS = ../lib-src/etags${EXEEXT}
 ${ETAGS}: FORCE
 	${MAKE} -C ../lib-src $(notdir $@)
 
-ctagsfiles1 = $(wildcard ${srcdir}/*.[hc])
+# Remove macuvs.h and fingerprint.c since they'd cause `src/emacs`
+# to be built before we can get TAGS.
+ctagsfiles1 = $(filter-out ${srcdir}/macuvs.h ${srcdir}/fingerprint.c, \
+                           $(wildcard ${srcdir}/*.[hc]))
 ctagsfiles2 = $(wildcard ${srcdir}/*.m)
 
 ## In out-of-tree builds, TAGS are generated in the build dir, like
@@ -732,7 +774,7 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 ## but now that we require GNU make, we can simply specify
 ## bootstrap-emacs$(EXEEXT) as an order-only prerequisite.
 
-%.elc: %.el | bootstrap-emacs$(EXEEXT)
+%.elc: %.el | bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	@$(MAKE) -C ../lisp EMACS="$(bootstrap_exe)" THEFILE=$< $<c
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
@@ -740,24 +782,35 @@ tags: TAGS ../lisp/TAGS $(lwlibdir)/TAGS
 ## If empty it is ignored; the parent makefile can set it to some other value.
 VCSWITNESS =
 
-$(lispsource)/loaddefs.el: $(VCSWITNESS) | bootstrap-emacs$(EXEEXT)
+$(lispsource)/loaddefs.el: $(VCSWITNESS) | \
+		bootstrap-emacs$(EXEEXT) $(bootstrap_pdmp)
 	$(MAKE) -C ../lisp autoloads EMACS="$(bootstrap_exe)"
 
 ## Dump an Emacs executable named bootstrap-emacs containing the
 ## files from loadup.el in source form.
+
 bootstrap-emacs$(EXEEXT): temacs$(EXEEXT)
 	$(MAKE) -C ../lisp update-subdirs
-ifeq ($(CANNOT_DUMP),yes)
-	ln -f temacs$(EXEEXT) $@
-else
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) --load loadup bootstrap
+ifeq ($(DUMPING),unexec)
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=bootstrap
   ifneq ($(PAXCTL_dumped),)
 	$(PAXCTL_dumped) emacs$(EXEEXT)
   endif
-	mv -f emacs$(EXEEXT) $@
-endif
+	mv -f emacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
 	@: Compile some files earlier to speed up further compilation.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+else
+	@: In the pdumper case, make compile-first after the dump
+	cp -f temacs$(EXEEXT) bootstrap-emacs$(EXEEXT)
+endif
+
+ifeq ($(DUMPING),pdumper)
+$(bootstrap_pdmp): bootstrap-emacs$(EXEEXT)
+	rm -f $@
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap
+	@: Compile some files earlier to speed up further compilation.
+	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
+endif
 
 ### Flymake support (for C only)
 check-syntax:

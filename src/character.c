@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -1124,7 +1124,7 @@ syms_of_character (void)
 Vector recording all translation tables ever defined.
 Each element is a pair (SYMBOL . TABLE) relating the table to the
 symbol naming it.  The ID of a translation table is an index into this vector.  */);
-  Vtranslation_table_vector = Fmake_vector (make_fixnum (16), Qnil);
+  Vtranslation_table_vector = make_nil_vector (16);
 
   DEFVAR_LISP ("auto-fill-chars", Vauto_fill_chars,
 	       doc: /*

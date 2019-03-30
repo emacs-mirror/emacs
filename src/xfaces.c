@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
 
-Copyright (C) 1993-1994, 1998-2018 Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 1998-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1157,8 +1157,6 @@ load_color (struct frame *f, struct face *face, Lisp_Object name,
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-#define NEAR_SAME_COLOR_THRESHOLD 30000
-
 /* Load colors for face FACE which is used on frame F.  Colors are
    specified by slots LFACE_BACKGROUND_INDEX and LFACE_FOREGROUND_INDEX
    of ATTRS.  If the background color specified is not supported on F,
@@ -1199,7 +1197,7 @@ load_face_colors (struct frame *f, struct face *face,
 
   dfg = attrs[LFACE_DISTANT_FOREGROUND_INDEX];
   if (!NILP (dfg) && !UNSPECIFIEDP (dfg)
-      && color_distance (&xbg, &xfg) < NEAR_SAME_COLOR_THRESHOLD)
+      && color_distance (&xbg, &xfg) < face_near_same_color_threshold)
     {
       if (EQ (attrs[LFACE_INVERSE_INDEX], Qt))
         face->background = load_color (f, face, dfg, LFACE_BACKGROUND_INDEX);
@@ -1424,7 +1422,6 @@ the face font sort order.  */)
   Lisp_Object font_spec, list, *drivers, vec;
   struct frame *f = decode_live_frame (frame);
   ptrdiff_t i, nfonts;
-  EMACS_INT ndrivers;
   Lisp_Object result;
   USE_SAFE_ALLOCA;
 
@@ -1457,7 +1454,7 @@ the face font sort order.  */)
   font_props_for_sorting[i++] = FONT_ADSTYLE_INDEX;
   font_props_for_sorting[i++] = FONT_REGISTRY_INDEX;
 
-  ndrivers = XFIXNUM (Flength (list));
+  ptrdiff_t ndrivers = list_length (list);
   SAFE_ALLOCA_LISP (drivers, ndrivers);
   for (i = 0; i < ndrivers; i++, list = XCDR (list))
     drivers[i] = XCAR (list);
@@ -1600,7 +1597,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
     /* We don't have to check fontsets.  */
     return fonts;
   Lisp_Object fontsets = list_fontsets (f, pattern, size);
-  return CALLN (Fnconc, fonts, fontsets);
+  return nconc2 (fonts, fontsets);
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -2615,8 +2612,7 @@ Value is a vector of face attributes.  */)
   /* Add a global definition if there is none.  */
   if (NILP (global_lface))
     {
-      global_lface = Fmake_vector (make_fixnum (LFACE_VECTOR_SIZE),
-				   Qunspecified);
+      global_lface = make_vector (LFACE_VECTOR_SIZE, Qunspecified);
       ASET (global_lface, 0, Qface);
       Vface_new_frame_defaults = Fcons (Fcons (face, global_lface),
 					Vface_new_frame_defaults);
@@ -2643,8 +2639,7 @@ Value is a vector of face attributes.  */)
     {
       if (NILP (lface))
 	{
-	  lface = Fmake_vector (make_fixnum (LFACE_VECTOR_SIZE),
-				Qunspecified);
+	  lface = make_vector (LFACE_VECTOR_SIZE, Qunspecified);
 	  ASET (lface, 0, Qface);
 	  fset_face_alist (f, Fcons (Fcons (face, lface), f->face_alist));
 	}
@@ -4259,12 +4254,8 @@ two lists of the form (RED GREEN BLUE) aforementioned. */)
     return make_fixnum (color_distance (&cdef1, &cdef2));
   else
     return call2 (metric,
-                  list3 (make_fixnum (cdef1.red),
-                         make_fixnum (cdef1.green),
-                         make_fixnum (cdef1.blue)),
-                  list3 (make_fixnum (cdef2.red),
-                         make_fixnum (cdef2.green),
-                         make_fixnum (cdef2.blue)));
+		  list3i (cdef1.red, cdef1.green, cdef1.blue),
+		  list3i (cdef2.red, cdef2.green, cdef2.blue));
 }
 
 
@@ -4775,9 +4766,7 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
        doc: /* Return a vector of face attributes corresponding to PLIST.  */)
   (Lisp_Object plist)
 {
-  Lisp_Object lface;
-  lface = Fmake_vector (make_fixnum (LFACE_VECTOR_SIZE),
-			Qunspecified);
+  Lisp_Object lface = make_vector (LFACE_VECTOR_SIZE, Qunspecified);
   merge_face_ref (NULL, XFRAME (selected_frame),
                   plist, XVECTOR (lface)->contents,
 		  true, 0);
@@ -6093,7 +6082,14 @@ face_at_buffer_position (struct window *w, ptrdiff_t pos,
     int face_id;
 
     if (base_face_id >= 0)
-      face_id = base_face_id;
+      {
+	face_id = base_face_id;
+	/* Make sure the base face ID is usable: if someone freed the
+	   cached faces since we've looked up the base face, we need
+	   to look it up again.  */
+	if (!FACE_FROM_ID_OR_NULL (f, face_id))
+	  face_id = lookup_basic_face (w, f, DEFAULT_FACE_ID);
+      }
     else if (NILP (Vface_remapping_alist))
       face_id = DEFAULT_FACE_ID;
     else
@@ -6505,6 +6501,37 @@ DEFUN ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
 			    Initialization
  ***********************************************************************/
 
+#ifdef HAVE_PDUMPER
+/* All the faces defined during loadup are recorded in
+   face-new-frame-defaults, with the last face first in the list.  We
+   need to set next_lface_id to the next face ID number, so that any
+   new faces defined in this session will have face IDs different from
+   those defined during loadup.  We also need to set up the
+   lface_id_to_name[] array for the faces that were defined during
+   loadup.  */
+void
+init_xfaces (void)
+{
+  if (CONSP (Vface_new_frame_defaults))
+    {
+      /* Allocate the lface_id_to_name[] array.  */
+      lface_id_to_name_size = next_lface_id =
+	XFIXNAT (Flength (Vface_new_frame_defaults));
+      lface_id_to_name = xnmalloc (next_lface_id, sizeof *lface_id_to_name);
+
+      /* Store the faces.  */
+      Lisp_Object tail;
+      int i = next_lface_id - 1;
+      for (tail = Vface_new_frame_defaults; CONSP (tail); tail = XCDR (tail))
+	{
+	  Lisp_Object lface = XCAR (tail);
+	  eassert (i >= 0);
+	  lface_id_to_name[i--] = XCAR (lface);
+	}
+    }
+}
+#endif
+
 void
 syms_of_xfaces (void)
 {
@@ -6755,6 +6782,7 @@ Because Emacs normally only redraws screen areas when the underlying
 buffer contents change, you may need to call `redraw-display' after
 changing this variable for it to take effect.  */);
   Vface_remapping_alist = Qnil;
+  DEFSYM (Qface_remapping_alist,"face-remapping-alist");
 
   DEFVAR_LISP ("face-font-rescale-alist", Vface_font_rescale_alist,
 	       doc: /* Alist of fonts vs the rescaling factors.
@@ -6764,6 +6792,20 @@ RESCALE-RATIO is a floating point number to specify how much larger
 \(or smaller) font we should use.  For instance, if a face requests
 a font of 10 point, we actually use a font of 10 * RESCALE-RATIO point.  */);
   Vface_font_rescale_alist = Qnil;
+
+  DEFVAR_INT ("face-near-same-color-threshold", face_near_same_color_threshold,
+	      doc: /* Threshold for using distant-foreground color instead of foreground.
+
+The value should be an integer number providing the minimum distance
+between two colors that will still qualify them to be used as foreground
+and background.  If the value of `color-distance', invoked with a nil
+METRIC argument, for the foreground and background colors of a face is
+less than this threshold, the distant-foreground color, if defined,
+will be used for the face instead of the foreground color.
+
+Lisp programs that change the value of this variable should also
+clear the face cache, see `clear-face-cache'.  */);
+  face_near_same_color_threshold = 30000;
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);

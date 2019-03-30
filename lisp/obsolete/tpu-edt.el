@@ -1,6 +1,6 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
-;; Copyright (C) 1993-1995, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>

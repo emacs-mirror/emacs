@@ -1,6 +1,6 @@
 /* Functions for the X window system.
 
-Copyright (C) 1989, 1992-2018 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4628,7 +4628,7 @@ x_make_monitor_attribute_list (struct MonitorInfo *monitors,
                                struct x_display_info *dpyinfo,
                                const char *source)
 {
-  Lisp_Object monitor_frames = Fmake_vector (make_fixnum (n_monitors), Qnil);
+  Lisp_Object monitor_frames = make_nil_vector (n_monitors);
   Lisp_Object frame, rest;
 
   FOR_EACH_FRAME (rest, frame)
@@ -4931,7 +4931,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #endif
   n_monitors = gdk_screen_get_n_monitors (gscreen);
 #endif
-  monitor_frames = Fmake_vector (make_fixnum (n_monitors), Qnil);
+  monitor_frames = make_nil_vector (n_monitors);
   monitors = xzalloc (n_monitors * sizeof *monitors);
 
   FOR_EACH_FRAME (rest, frame)
@@ -5132,7 +5132,7 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
   inner_right = native_right - internal_border_width;
   inner_bottom = native_bottom - internal_border_width;
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+#ifdef HAVE_EXT_MENU_BAR
   menu_bar_external = true;
   menu_bar_height = FRAME_MENUBAR_HEIGHT (f);
   native_top += menu_bar_height;
@@ -5143,7 +5143,7 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 #endif
   menu_bar_width = menu_bar_height ? native_width : 0;
 
-#if defined (USE_GTK)
+#ifdef HAVE_EXT_TOOL_BAR
   tool_bar_external = true;
   if (EQ (FRAME_TOOL_BAR_POSITION (f), Qleft))
     {
@@ -5185,18 +5185,14 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))
-    return list4 (make_fixnum (outer_left), make_fixnum (outer_top),
-		  make_fixnum (outer_right), make_fixnum (outer_bottom));
+    return list4i (outer_left, outer_top, outer_right, outer_bottom);
   else if (EQ (attribute, Qnative_edges))
-    return list4 (make_fixnum (native_left), make_fixnum (native_top),
-		  make_fixnum (native_right), make_fixnum (native_bottom));
+    return list4i (native_left, native_top, native_right, native_bottom);
   else if (EQ (attribute, Qinner_edges))
-    return list4 (make_fixnum (inner_left), make_fixnum (inner_top),
-		  make_fixnum (inner_right), make_fixnum (inner_bottom));
+    return list4i (inner_left, inner_top, inner_right, inner_bottom);
   else
     return
-      listn (CONSTYPE_HEAP, 11,
-	     Fcons (Qouter_position,
+       list (Fcons (Qouter_position,
 		    Fcons (make_fixnum (outer_left),
 			   make_fixnum (outer_top))),
 	     Fcons (Qouter_size,
@@ -7675,7 +7671,7 @@ syms_of_xfns (void)
 #endif
 
   Fput (Qundefined_color, Qerror_conditions,
-	listn (CONSTYPE_PURE, 2, Qundefined_color, Qerror));
+	pure_list (Qundefined_color, Qerror));
   Fput (Qundefined_color, Qerror_message,
 	build_pure_c_string ("Undefined color"));
 

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Rmail
@@ -318,7 +318,7 @@ effect of a @kbd{d} command in most cases.  It undeletes the current
 message if the current message is deleted.  Otherwise it moves backward
 to previous messages until a deleted message is found, and undeletes
 that message.  A numeric prefix argument serves as a repeat count, to
-allow deletion of several messages in a single command.
+allow undeletion of several messages in a single command.
 
   You can usually undo a @kbd{d} with a @kbd{u} because the @kbd{u}
 moves back to and undeletes the message that the @kbd{d} deleted.  But

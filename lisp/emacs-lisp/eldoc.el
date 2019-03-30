@@ -1,6 +1,6 @@
 ;;; eldoc.el --- Show function arglist or variable docstring in echo area  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
@@ -357,12 +357,15 @@ return any documentation.")
   ;; This is run from post-command-hook or some idle timer thing,
   ;; so we need to be careful that errors aren't ignored.
   (with-demoted-errors "eldoc error: %s"
-    (and (or (eldoc-display-message-p)
-             ;; Erase the last message if we won't display a new one.
-             (when eldoc-last-message
-               (eldoc-message nil)
-               nil))
-	 (eldoc-message (funcall eldoc-documentation-function)))))
+    (if (not (eldoc-display-message-p))
+        ;; Erase the last message if we won't display a new one.
+        (when eldoc-last-message
+          (eldoc-message nil))
+      (let ((non-essential t))
+        ;; Only keep looking for the info as long as the user hasn't
+        ;; requested our attention.  This also locally disables inhibit-quit.
+        (while-no-input
+          (eldoc-message (funcall eldoc-documentation-function)))))))
 
 ;; If the entire line cannot fit in the echo area, the symbol name may be
 ;; truncated or eliminated entirely from the output to make room for the

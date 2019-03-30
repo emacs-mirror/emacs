@@ -1,6 +1,6 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience

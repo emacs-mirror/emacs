@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1997, 1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1993-1997, 1999, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -345,7 +345,7 @@ naming the shell."
   :group 'sh-script)
 
 (defcustom sh-imenu-generic-expression
-  `((sh
+  '((sh
      . ((nil
 	 ;; function FOO
 	 ;; function FOO()
@@ -1022,7 +1022,7 @@ subshells can nest."
         ;; unescape " inside a $( ... ) construct.
         (pcase (char-after)
           (?\' (pcase state
-                 (`double-quote nil)
+                 ('double-quote nil)
                  (_ (forward-char 1)
                     ;; FIXME: mark skipped double quotes as punctuation syntax.
                     (let ((spos (point)))
@@ -1035,12 +1035,12 @@ subshells can nest."
                                             'syntax-table '(1)))))))))
           (?\\ (forward-char 1))
           (?\" (pcase state
-                 (`double-quote (setq state (pop states)))
+                 ('double-quote (setq state (pop states)))
                  (_ (push state states) (setq state 'double-quote)))
                (if state (put-text-property (point) (1+ (point))
                                             'syntax-table '(1))))
           (?\` (pcase state
-                 (`backquote (setq state (pop states)))
+                 ('backquote (setq state (pop states)))
                  (_ (push state states) (setq state 'backquote))))
           (?\$ (if (not (eq (char-after (1+ (point))) ?\())
                    nil
@@ -1048,10 +1048,10 @@ subshells can nest."
                  (pcase state
                    (_ (push state states) (setq state 'code)))))
           (?\( (pcase state
-                 (`double-quote nil)
+                 ('double-quote nil)
                  (_ (push state states) (setq state 'code))))
           (?\) (pcase state
-                 (`double-quote nil)
+                 ('double-quote nil)
                  (_ (setq state (pop states)))))
           (_ (error "Internal error in sh-font-lock-quoted-subshell")))
         (forward-char 1))
@@ -1601,7 +1601,7 @@ with your script for an edit-interpret-debug cycle."
   (setq-local comint-prompt-regexp "^[ \t]*")
   (setq-local imenu-case-fold-search nil)
   (setq font-lock-defaults
-	`((sh-font-lock-keywords
+	'((sh-font-lock-keywords
 	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
 	  nil nil
 	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
@@ -2035,8 +2035,8 @@ May return nil if the line should not be treated as continued."
 
 (defun sh-smie-sh-rules (kind token)
   (pcase (cons kind token)
-    (`(:elem . basic) sh-basic-offset)
-    (`(:after . "case-)") (- (sh-var-value 'sh-indent-for-case-alt)
+    ('(:elem . basic) sh-basic-offset)
+    ('(:after . "case-)") (- (sh-var-value 'sh-indent-for-case-alt)
                              (sh-var-value 'sh-indent-for-case-label)))
     (`(:before . ,(or "(" "{" "[" "while" "if" "for" "case"))
      (if (not (smie-rule-prev-p "&&" "||" "|"))
@@ -2069,17 +2069,17 @@ May return nil if the line should not be treated as continued."
                       (smie-indent-virtual)))))
 
     ;; Attempt at backward compatibility with the old config variables.
-    (`(:before . "fi") (sh-var-value 'sh-indent-for-fi))
-    (`(:before . "done") (sh-var-value 'sh-indent-for-done))
-    (`(:after . "else") (sh-var-value 'sh-indent-after-else))
-    (`(:after . "if") (sh-var-value 'sh-indent-after-if))
-    (`(:before . "then") (sh-var-value 'sh-indent-for-then))
-    (`(:before . "do") (sh-var-value 'sh-indent-for-do))
-    (`(:after . "do")
+    ('(:before . "fi") (sh-var-value 'sh-indent-for-fi))
+    ('(:before . "done") (sh-var-value 'sh-indent-for-done))
+    ('(:after . "else") (sh-var-value 'sh-indent-after-else))
+    ('(:after . "if") (sh-var-value 'sh-indent-after-if))
+    ('(:before . "then") (sh-var-value 'sh-indent-for-then))
+    ('(:before . "do") (sh-var-value 'sh-indent-for-do))
+    ('(:after . "do")
      (sh-var-value (if (smie-rule-hanging-p)
                        'sh-indent-after-loop-construct 'sh-indent-after-do)))
     ;; sh-indent-after-done: aligned completely differently.
-    (`(:after . "in") (sh-var-value 'sh-indent-for-case-label))
+    ('(:after . "in") (sh-var-value 'sh-indent-for-case-label))
     ;; sh-indent-for-continuation: Line continuations are handled differently.
     (`(:after . ,(or "(" "{" "["))
      (if (not (looking-at ".[ \t]*[^\n \t#]"))
@@ -2244,12 +2244,12 @@ Point should be before the newline."
 
 (defun sh-smie-rc-rules (kind token)
   (pcase (cons kind token)
-    (`(:elem . basic) sh-basic-offset)
+    ('(:elem . basic) sh-basic-offset)
     ;; (`(:after . "case") (or sh-basic-offset smie-indent-basic))
-    (`(:after . ";")
+    ('(:after . ";")
      (if (smie-rule-parent-p "case")
          (smie-rule-parent (sh-var-value 'sh-indent-after-case))))
-    (`(:before . "{")
+    ('(:before . "{")
      (save-excursion
        (when (sh-smie--rc-after-special-arg-p)
          `(column . ,(current-column)))))

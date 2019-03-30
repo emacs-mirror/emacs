@@ -1,6 +1,6 @@
 ;;; ps-def.el --- XEmacs and Emacs definitions for ps-print -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)

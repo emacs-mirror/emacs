@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files
@@ -1427,23 +1427,30 @@ manually, type @kbd{M-x diff-mode}.
 @cindex hunk, diff
   The changes specified in a patch are grouped into @dfn{hunks}, which
 are contiguous chunks of text that contain one or more changed lines.
-Hunks can also include unchanged lines to provide context for the
+Hunks usually also include unchanged lines to provide context for the
 changes.  Each hunk is preceded by a @dfn{hunk header}, which
-specifies the old and new line numbers at which the hunk occurs.  Diff
-mode highlights each hunk header, to distinguish it from the actual
-contents of the hunk.
+specifies the old and new line numbers where the hunk's changes occur.
+Diff mode highlights each hunk header, to distinguish it from the
+actual contents of the hunk.
+
+  The first hunk in a patch is preceded by a file header, which shows
+the names of the new and the old versions of the file, and their time
+stamps.  If a patch shows changes for more than one file, each file
+has such a header before the first hunk of that file's changes.
 
 @vindex diff-update-on-the-fly
   You can edit a Diff mode buffer like any other buffer.  (If it is
-read-only, you need to make it writable first.  @xref{Misc Buffer}.)
-Whenever you change a hunk, Diff mode attempts to automatically
-correct the line numbers in the hunk headers, to ensure that the patch
-remains correct.  To disable automatic line number correction,
-change the variable @code{diff-update-on-the-fly} to @code{nil}.
+read-only, you need to make it writable first; see @ref{Misc Buffer}.)
+Whenever you edit a hunk, Diff mode attempts to automatically correct
+the line numbers in the hunk headers, to ensure that the patch remains
+correct, and could still be applied by @command{patch}.  To disable
+automatic line number correction, change the variable
+@code{diff-update-on-the-fly} to @code{nil}.
 
-  Diff mode treats each hunk as an error message, similar to
-Compilation mode.  Thus, you can use commands such as @kbd{M-g M-n} to
-visit the corresponding source locations.  @xref{Compilation Mode}.
+  Diff mode arranges for hunks to be treated as compiler error
+messages by @kbd{M-g M-n} and other commands that handle error messages
+(@pxref{Compilation Mode}).  Thus, you can use the compilation-mode
+commands to visit the corresponding source locations.
 
   In addition, Diff mode provides the following commands to navigate,
 manipulate and apply parts of patches:
@@ -1451,37 +1458,34 @@ manipulate and apply parts of patches:
 @table @kbd
 @item M-n
 @findex diff-hunk-next
-Move to the next hunk-start (@code{diff-hunk-next}).
+Move to the next hunk-start (@code{diff-hunk-next}).  With prefix
+argument @var{n}, move forward to the @var{n}th next hunk.
 
-@findex diff-auto-refine-mode
-@cindex mode, Diff Auto-Refine
-@cindex Diff Auto-Refine mode
-This command has a side effect: it @dfn{refines} the hunk you move to,
-highlighting its changes with better granularity.  To disable this
-feature, type @kbd{M-x diff-auto-refine-mode} to toggle off the minor
-mode Diff Auto-Refine mode.  To disable Diff Auto-Refine mode by
-default, add this to your init file (@pxref{Hooks}):
-
-@example
-(add-hook 'diff-mode-hook
-          (lambda () (diff-auto-refine-mode -1)))
-@end example
+@vindex diff-refine
+By default, Diff mode @dfn{refines} hunks as Emacs displays them,
+highlighting their changes with better granularity.  Alternatively, if
+you set @code{diff-refine} to the symbol @code{navigation}, Diff mode
+only refines the hunk you move to with this command or with
+@code{diff-hunk-prev}.
 
 @item M-p
 @findex diff-hunk-prev
-Move to the previous hunk-start (@code{diff-hunk-prev}).  Like
-@kbd{M-n}, this has the side-effect of refining the hunk you move to,
-unless you disable Diff Auto-Refine mode.
+Move to the previous hunk-start (@code{diff-hunk-prev}).  With prefix
+argument @var{n}, move back to the @var{n}th previous hunk.  Like
+@kbd{M-n}, this command refines the hunk you move to if you set
+@code{diff-refine} to the symbol @code{navigation}.
 
 @item M-@}
 @findex diff-file-next
 Move to the next file-start, in a multi-file patch
-(@code{diff-file-next}).
+(@code{diff-file-next}).  With prefix argument @var{n}, move forward
+to the start of the @var{n}th next file.
 
 @item M-@{
 @findex diff-file-prev
 Move to the previous file-start, in a multi-file patch
-(@code{diff-file-prev}).
+(@code{diff-file-prev}).  With prefix argument @var{n}, move back to
+the start of the @var{n}th previous file.
 
 @item M-k
 @findex diff-hunk-kill
@@ -1496,7 +1500,10 @@ In a multi-file patch, kill the current file part.
 @findex diff-apply-hunk
 @cindex patches, applying
 Apply this hunk to its target file (@code{diff-apply-hunk}).  With a
-prefix argument of @kbd{C-u}, revert this hunk.
+prefix argument of @kbd{C-u}, revert this hunk, i.e.@: apply the
+reverse of the hunk, which changes the ``new'' version into the ``old''
+version.  If @code{diff-jump-to-old-file} is non-@code{nil}, apply the
+hunk to the ``old'' version of the file instead.
 
 @item C-c C-b
 @findex diff-refine-hunk
@@ -1504,10 +1511,27 @@ Highlight the changes of the hunk at point with a finer granularity
 (@code{diff-refine-hunk}).  This allows you to see exactly which parts
 of each changed line were actually changed.
 
+@vindex diff-refine
+By default, Diff mode refines hunks as Emacs displays them, so you may
+find this command useful if you customize @code{diff-refine} to a
+non-default value.
+
 @item C-c C-c
 @findex diff-goto-source
+@vindex diff-jump-to-old-file
 Go to the source file and line corresponding to this hunk
-(@code{diff-goto-source}).
+(@code{diff-goto-source}).  By default, this jumps to the ``new''
+version of the file, the one shown first on the file header.
+With a prefix argument, jump to the ``old'' version instead.  If
+@code{diff-jump-to-old-file} is non-@code{nil}, this command by
+default jumps to the ``old'' file, and the meaning of the prefix
+argument is reversed.  If the prefix argument is a number greater than
+8 (e.g., if you type @kbd{C-u C-u C-c C-c}), then this command also
+sets @code{diff-jump-to-old-file} for the next invocation.
+If the source file is under version control (@pxref{Version Control}),
+this jumps to the work file by default.  With a prefix argument, jump
+to the ``old'' revision of the file (@pxref{Old Revisions}), when
+point is on the old line, or otherwise jump to the ``new'' revision.
 
 @item C-c C-e
 @findex diff-ediff-patch
@@ -1517,41 +1541,47 @@ Start an Ediff session with the patch (@code{diff-ediff-patch}).
 @item C-c C-n
 @findex diff-restrict-view
 Restrict the view to the current hunk (@code{diff-restrict-view}).
-@xref{Narrowing}.  With a prefix argument of @kbd{C-u}, restrict the
+@xref{Narrowing}.  With a prefix argument, restrict the
 view to the current file of a multiple-file patch.  To widen again,
 use @kbd{C-x n w} (@code{widen}).
 
 @item C-c C-r
 @findex diff-reverse-direction
 Reverse the direction of comparison for the entire buffer
-(@code{diff-reverse-direction}).
+(@code{diff-reverse-direction}).  With a prefix argument, reverse the
+direction only inside the current region (@pxref{Mark}).  Reversing
+the direction means changing the hunks and the file-start headers to
+produce a patch that would change the ``new'' version into the ``old''
+one.
 
 @item C-c C-s
 @findex diff-split-hunk
-Split the hunk at point (@code{diff-split-hunk}).  This is for
-manually editing patches, and only works with the @dfn{unified diff
-format} produced by the @option{-u} or @option{--unified} options to
-the @command{diff} program.  If you need to split a hunk in the
-@dfn{context diff format} produced by the @option{-c} or
-@option{--context} options to @command{diff}, first convert the buffer
-to the unified diff format with @kbd{C-c C-u}.
+Split the hunk at point (@code{diff-split-hunk}) into two separate
+hunks.  This inserts a hunk header and modifies the header of the
+current hunk.  This command is useful for manually editing patches,
+and only works with the @dfn{unified diff format} produced by the
+@option{-u} or @option{--unified} options to the @command{diff}
+program.  If you need to split a hunk in the @dfn{context diff format}
+produced by the @option{-c} or @option{--context} options to
+@command{diff}, first convert the buffer to the unified diff format
+with @kbd{C-c C-u}.
 
 @item C-c C-d
 @findex diff-unified->context
 Convert the entire buffer to the @dfn{context diff format}
 (@code{diff-unified->context}).  With a prefix argument, convert only
-the text within the region.
+the hunks within the region.
 
 @item C-c C-u
 @findex diff-context->unified
 Convert the entire buffer to unified diff format
 (@code{diff-context->unified}).  With a prefix argument, convert
 unified format to context format.  When the mark is active, convert
-only the text within the region.
+only the hunks within the region.
 
 @item C-c C-w
 @findex diff-ignore-whitespace-hunk
-Re-diff the current hunk, disregarding changes in whitespace
+Re-generate the current hunk, disregarding changes in whitespace
 (@code{diff-ignore-whitespace-hunk}).
 
 @item C-x 4 A
@@ -1582,7 +1612,12 @@ that whitespace in both the patch and the patched source file(s).
 This command does not save the modifications that it makes, so you can
 decide whether to save the changes (the list of modified files is
 displayed in the echo area).  With a prefix argument, it tries to
-modify the original source files rather than the patched source files.
+modify the original (``old'') source files rather than the patched
+(``new'') source files.
+
+@vindex diff-font-lock-syntax
+  If non-@code{nil}, fragments of source in hunks are highlighted
+according to the appropriate major mode.
 
 @node Copying and Naming
 @section Copying, Naming and Renaming Files
@@ -1668,10 +1703,12 @@ Dired rather than @code{delete-file}.  @xref{Dired Deletion}.
 
 @cindex trash
 @cindex recycle bin
+@findex move-file-to-trash
   @kbd{M-x move-file-to-trash} moves a file into the system
 @dfn{Trash} (or @dfn{Recycle Bin}).  This is a facility available on
 most operating systems; files that are moved into the Trash can be
-brought back later if you change your mind.
+brought back later if you change your mind.  (The way to restore
+trashed files is system-dependent.)
 
 @vindex delete-by-moving-to-trash
   By default, Emacs deletion commands do @emph{not} use the Trash.  To

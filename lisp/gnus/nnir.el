@@ -1,6 +1,6 @@
 ;;; nnir.el --- Search mail with various search engines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <grossjohann@ls6.cs.uni-dortmund.de>
 ;; Swish-e and Swish++ backends by:
@@ -518,6 +518,24 @@ that it is for notmuch, not Namazu."
   :type '(regexp)
   :group 'nnir)
 
+(defcustom nnir-notmuch-filter-group-names-function nil
+  "Whether and how to use Gnus group names as \"path:\" search terms.
+When nil, the groups being searched in are not used as notmuch
+:path search terms.  It's still possible to use \"path:\" terms
+manually within the search query, however.
+
+When a function, map this function over all the group names.  To
+use the group names unchanged, set to (lambda (g) g).  Multiple
+transforms (for instance, converting \".\" to \"/\") can be added
+like so:
+
+\(add-function :filter-return
+   nnir-notmuch-filter-group-names-function
+   (lambda (g) (replace-regexp-in-string \"\\\\.\" \"/\" g)))"
+  :version "27.1"
+  :type '(choice function
+		 nil))
+
 ;;; Developer Extension Variable:
 
 (defvar nnir-engines
@@ -639,7 +657,7 @@ skips all prompting."
   (let ((backend (car (gnus-server-to-method server))))
     (if backend
 	(nnoo-change-server backend server definitions)
-      (add-hook 'gnus-summary-mode-hook 'nnir-mode)
+      (add-hook 'gnus-summary-prepared-hook 'nnir-mode)
       (nnoo-change-server 'nnir server definitions))))
 
 (deffoo nnir-request-group (group &optional server dont-check _info)
@@ -1167,7 +1185,7 @@ returning the one at the supplied position."
 
 (defun nnir-imap-end-of-input ()
   "Are we at the end of input?"
-  (skip-chars-forward "[[:blank:]]")
+  (skip-chars-forward "[:blank:]")
   (looking-at "$"))
 
 
@@ -1505,23 +1523,31 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
                                (> (nnir-artitem-rsv x)
                                   (nnir-artitem-rsv y)))))))))
 
-(defun nnir-run-notmuch (query server &optional _group)
+(defun nnir-run-notmuch (query server &optional groups)
   "Run QUERY against notmuch.
 Returns a vector of (group name, file name) pairs (also vectors,
-actually)."
-
-  ;; (when group
-  ;;   (error "The notmuch backend cannot search specific groups"))
+actually).  If GROUPS is a list of group names, use them to
+construct path: search terms (see the variable
+`nnir-notmuch-filter-group-names-function')."
 
   (save-excursion
-    (let ( (qstring (cdr (assq 'query query)))
-	   (groupspec (cdr (assq 'notmuch-group query)))
+    (let* ((qstring (cdr (assq 'query query)))
 	   (prefix (nnir-read-server-parm 'nnir-notmuch-remove-prefix server))
            artlist
 	   (article-pattern (if (string-match "\\`nnmaildir:"
 					      (gnus-group-server server))
-			       ":[0-9]+"
-			     "^[0-9]+$"))
+				":[0-9]+"
+			      "^[0-9]+$"))
+	   (groups (when nnir-notmuch-filter-group-names-function
+		     (delq nil
+			   (mapcar nnir-notmuch-filter-group-names-function
+				   (mapcar #'gnus-group-short-name groups)))))
+	   (pathquery (when groups
+			(concat " ("
+				(mapconcat (lambda (g)
+					     (format "path:%s" g))
+					   groups " or")
+				")")))
            artno dirnam filenam)
 
       (when (equal "" qstring)
@@ -1530,9 +1556,13 @@ actually)."
       (set-buffer (get-buffer-create nnir-tmp-buffer))
       (erase-buffer)
 
-      (if groupspec
-          (message "Doing notmuch query %s on %s..." qstring groupspec)
+      (if groups
+          (message "Doing notmuch query %s on %s..."
+		   qstring (mapconcat #'identity groups " "))
         (message "Doing notmuch query %s..." qstring))
+
+      (when groups
+	(setq qstring (concat qstring pathquery)))
 
       (let* ((cp-list `( ,nnir-notmuch-program
                          nil            ; input from /dev/null
@@ -1571,10 +1601,7 @@ actually)."
         (when (string-match article-pattern artno)
           (when (not (null dirnam))
 
-	    ;; maybe limit results to matching groups.
-	    (when (or (not groupspec)
-		      (string-match groupspec dirnam))
-	      (nnir-add-result dirnam artno "" prefix server artlist)))))
+	    (nnir-add-result dirnam artno "" prefix server artlist))))
 
       (message "Massaging notmuch output...done")
 

@@ -1,7 +1,7 @@
 /* -*- coding: utf-8 -*- */
 /* GNU Emacs case conversion functions.
 
-Copyright (C) 1985, 1994, 1997-1999, 2001-2018 Free Software Foundation,
+Copyright (C) 1985, 1994, 1997-1999, 2001-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.

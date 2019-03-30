@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -440,6 +440,17 @@ This function returns the attributes of the physical monitor
 dominating (see above) @var{frame}, which defaults to the selected frame.
 @end defun
 
+On multi-monitor displays it is possible to use the command
+@code{make-frame-on-monitor} to make frames on the specified monitor.
+
+@deffn Command make-frame-on-monitor monitor &optional display parameters
+This function creates and returns a new frame on @var{monitor} located
+on @var{display}, taking the other frame parameters from the alist
+@var{parameters}.  @var{monitor} should be the name of the physical
+monitor, the same string as returned by the function
+@code{display-monitor-attributes-list} in the attribute @code{name}.
+@var{display} should be the name of an X display (a string).
+@end deffn
 
 @node Frame Geometry
 @section Frame Geometry
@@ -503,7 +514,7 @@ Height |  | | Height                           | |  | Height
 In practice not all of the areas shown in the drawing will or may be
 present.  The meaning of these areas is described below.
 
-@table @samp
+@table @asis
 @item Outer Frame
 @cindex outer frame
 @cindex outer edges
@@ -1873,6 +1884,12 @@ minibuffer window to @code{t} and vice-versa, or from @code{t} to
 @code{nil}.  If the parameter specifies a minibuffer window already,
 setting it to @code{nil} has no effect.
 
+The special value @code{child-frame} means to make a minibuffer-only
+child frame (@pxref{Child Frames}) whose parent becomes the frame
+created.  As if specified as @code{nil}, Emacs will set this parameter
+to the minibuffer window of the child frame but will not select the
+child frame after its creation.
+
 @vindex buffer-predicate@r{, a frame parameter}
 @item buffer-predicate
 The buffer-predicate function for this frame.  The function
@@ -3203,9 +3220,17 @@ top-level frame which also always appears on top of its parent
 window---the desktop's root window.  When a parent frame is iconified or
 made invisible (@pxref{Visibility of Frames}), its child frames are made
 invisible.  When a parent frame is deiconified or made visible, its
-child frames are made visible.  When a parent frame is about to be
-deleted (@pxref{Deleting Frames}), its child frames are recursively
-deleted before it.
+child frames are made visible.
+
+  When a parent frame is about to be deleted (@pxref{Deleting
+Frames}), its child frames are recursively deleted before it.  There
+is one exception to this rule: When the child frame serves as a
+surrogate minibuffer frame (@pxref{Minibuffers and Frames}) for
+another frame, it is retained until the parent frame has been deleted.
+If, at this time, no remaining frame uses the child frame as its
+minibuffer frame, Emacs will try to delete the child frame too.  If
+that deletion fails for whatever reason, the child frame is made a
+top-level frame.
 
   Whether a child frame can have a menu or tool bar is window-system or
 window manager dependent.  Most window-systems explicitly disallow menus
@@ -3261,11 +3286,11 @@ and should be preferred when specifying a non-@code{nil}
 @code{drag-with-mode-line} parameter.
 
   When a child frame is used for displaying a buffer via
-@code{display-buffer-in-child-frame} (@pxref{Display Action Functions}),
-the frame's @code{auto-hide-function} parameter (@pxref{Frame
-Interaction Parameters}) can be set to a function, in order to
-appropriately deal with the frame when the window displaying the buffer
-shall be quit.
+@code{display-buffer-in-child-frame} (@pxref{Buffer Display Action
+Functions}), the frame's @code{auto-hide-function} parameter
+(@pxref{Frame Interaction Parameters}) can be set to a function, in
+order to appropriately deal with the frame when the window displaying
+the buffer shall be quit.
 
   When a child frame is used during minibuffer interaction, for example,
 to display completions in a separate window, the @code{minibuffer-exit}

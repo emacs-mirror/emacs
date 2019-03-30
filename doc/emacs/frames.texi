@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -898,6 +898,16 @@ screens as a single stream of input.
 input stream for each server.  Each server also has its own selected
 frame.  The commands you enter with a particular X server apply to
 that server's selected frame.
+
+  On multi-monitor displays it is possible to use the command
+@code{make-frame-on-monitor}:
+
+@findex make-frame-on-monitor
+@table @kbd
+@item M-x make-frame-on-monitor @key{RET} @var{monitor} @key{RET}
+Create a new frame on monitor @var{monitor} whose screen area is
+a part of the current display.
+@end table
 
 @node Frame Parameters
 @section Frame Parameters

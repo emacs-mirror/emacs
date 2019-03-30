@@ -1,5 +1,5 @@
 /* How much read-only Lisp storage a dumped Emacs needs.
-   Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

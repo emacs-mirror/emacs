@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2018 Free
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2019 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -239,7 +239,7 @@ a case simply use the directory containing the changed file."
     ;; wrongly with a non-date line existing as a random note.  In
     ;; addition, using any kind of fixed setting like this doesn't
     ;; work if a user customizes add-log-time-format.
-    ("^[0-9-]+ +\\|^ \\{11,\\}\\|^\t \\{3,\\}\\|^\\(Sun\\|Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\) [A-z][a-z][a-z] [0-9:+ ]+"
+    ("^[0-9-]+ +\\|^ \\{11,\\}\\|^\t \\{3,\\}\\|^\\(Sun\\|Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\) [A-Z][a-z][a-z] [0-9:+ ]+"
      (0 'change-log-date)
      ;; Name and e-mail; some people put e-mail in parens, not angles.
      ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil

@@ -9,7 +9,7 @@
 @copying
 This file describes the Emacs GnuTLS integration.
 
-Copyright @copyright{} 2012--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2012--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -179,17 +179,35 @@ Just use @code{open-protocol-stream} or @code{open-network-stream}
 You should not have to use the @file{gnutls.el} functions directly.
 But you can test them with @code{open-gnutls-stream}.
 
-@defun open-gnutls-stream name buffer host service &optional nowait
+@defun open-gnutls-stream name buffer host service &optional parameters
 This function creates a buffer connected to a specific @var{host} and
-@var{service} (port number or service name).  The parameters and their
-syntax are the same as those given to @code{open-network-stream}
-(@pxref{Network,, Network Connections, elisp, The Emacs Lisp Reference
-Manual}).  The connection process is called @var{name} (made unique if
-necessary).  This function returns the connection process.
+@var{service} (port number or service name).  The mandatory arguments
+and their syntax are the same as those given to
+@code{open-network-stream} (@pxref{Network,, Network Connections,
+elisp, The Emacs Lisp Reference Manual}).  The connection process is
+called @var{name} (made unique if necessary).  This function returns
+the connection process.
 
-The @var{nowait} parameter means that the socket should be
-asynchronous, and the connection process will be returned to the
-caller before TLS negotiation has happened.
+The optional @var{parameters} argument is a list of keywords and
+values.  The only keywords which currently have any effect are
+@code{:client-certificate} and @code{:nowait}.
+
+Passing @w{@code{:client certificate t}} triggers looking up of client
+certificates matching @var{host} and @var{service} using the
+@file{auth-source} library.  Any resulting client certificates are passed
+down to the lower TLS layers.  The format used by @file{.authinfo} to
+specify the per-server keys is described in @ref{Help for
+users,,auth-source, auth, Emacs auth-source Library}.
+
+Passing @w{@code{:nowait t}} means that the socket should be asynchronous,
+and the connection process will be returned to the caller before TLS
+negotiation has happened.
+
+For historical reasons @var{parameters} can also be a symbol, which is
+interpreted the same as passing a list containing @code{:nowait} and
+the value of that symbol.
+
+Example calls:
 
 @lisp
 ;; open a HTTPS connection

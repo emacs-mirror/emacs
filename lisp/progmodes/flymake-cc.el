@@ -1,6 +1,6 @@
 ;;; flymake-cc.el --- Flymake support for GNU tools for C/C++     -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018  Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: languages, c
@@ -58,13 +58,15 @@ SOURCE."
   (cl-loop
    while
    (search-forward-regexp
-    "^\\(In file included from \\)?<stdin>:\\([0-9]+\\):\\([0-9]+\\):\n?\\(.*\\): \\(.*\\)$"
+    (concat
+     "^\\(In file included from \\)?<stdin>:\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)"
+     "?:[\n ]?\\(error\\|warning\\|note\\): \\(.*\\)$")
     nil t)
    for msg = (match-string 5)
    for (beg . end) = (flymake-diag-region
                       source
                       (string-to-number (match-string 2))
-                      (string-to-number (match-string 3)))
+                      (and (match-string 3) (string-to-number (match-string 3))))
    for type = (if (match-string 1)
                   :error
                 (assoc-default
@@ -78,7 +80,11 @@ SOURCE."
 (defun flymake-cc-use-special-make-target ()
   "Command for checking a file via a CHK_SOURCES Make target."
   (unless (executable-find "make") (error "Make not found"))
-  `("make" "check-syntax" "CHK_SOURCES=-x c -"))
+  `("make"
+    "check-syntax"
+    ,(format "CHK_SOURCES=-x %s -c -"
+             (cond ((derived-mode-p 'c++-mode) "c++")
+                   (t "c")))))
 
 (defvar-local flymake-cc--proc nil "Internal variable for `flymake-gcc'")
 

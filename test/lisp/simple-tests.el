@@ -1,6 +1,6 @@
 ;;; simple-test.el --- Tests for simple.el           -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 
@@ -212,6 +212,40 @@
             (open-line 10))
           (should (= x 0)))
       (remove-hook 'post-self-insert-hook inc))))
+
+
+;;; `delete-indentation'
+(ert-deftest simple-delete-indentation-no-region ()
+  "delete-indentation works when no mark is set."
+  ;; interactive \r returns nil for BEG END args
+  (unwind-protect
+      (with-temp-buffer
+        (insert (concat "zero line \n"
+                        "first line \n"
+                        "second line"))
+        (delete-indentation)
+        (should (string-equal
+                 (buffer-string)
+                 (concat "zero line \n"
+                         "first line second line")))
+        )))
+
+(ert-deftest simple-delete-indentation-inactive-region ()
+  "delete-indentation ignores inactive region."
+  ;; interactive \r returns non-nil for BEG END args
+  (unwind-protect
+      (with-temp-buffer
+        (insert (concat "zero line \n"
+                        "first line \n"
+                        "second line"))
+        (push-mark (point-min) t t)
+        (deactivate-mark)
+        (delete-indentation)
+        (should (string-equal
+                 (buffer-string)
+                 (concat "zero line \n"
+                         "first line second line")))
+        )))
 
 
 ;;; `delete-trailing-whitespace'

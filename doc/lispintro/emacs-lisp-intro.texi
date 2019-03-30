@@ -113,7 +113,7 @@ Edition @value{edition-number}, @value{update-date}
 Distributed with Emacs version @value{EMACSVER}.
 @end ifnottex
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2018 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2019 Free Software
 Foundation, Inc.
 @sp 1
 
@@ -4636,7 +4636,7 @@ languages, not just Lisp, and C, and it works with non-programming
 text as well.  For example, @code{xref-find-definitions} will jump to
 the various nodes in the Texinfo source file of this document
 (provided that you've run the @command{etags} utility to record all
-the nodes in the manuals that come with Emacs; @pxref{Create tags
+the nodes in the manuals that come with Emacs; @pxref{Create Tags
 Table,,, emacs, The GNU Emacs Manual}).
 
 To use the @code{xref-find-definitions} command, type @kbd{M-.}
@@ -14825,7 +14825,7 @@ According to its documentation as shown by @kbd{C-h f} (the
 @code{describe-function} command), the @code{find-file-noselect}
 function reads the named file into a buffer and returns the buffer.
 (Its most recent version includes an optional @var{wildcards} argument,
-too, as well as another to read a file literally and an other you
+too, as well as another to read a file literally and another to
 suppress warning messages.  These optional arguments are irrelevant.)
 
 However, the @code{find-file-noselect} function does not select the
@@ -15599,7 +15599,7 @@ like this:
    (recursive-lengths-list-many-files
     (files-in-below-directory "/usr/local/src/emacs/lisp/"))
    '<)
-  (insert (format "%s" (current-time-string))))
+  (insert (current-time-string)))
 @end ignore
 
 @node Counting function definitions

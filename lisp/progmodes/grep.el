@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2018 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -361,6 +361,9 @@ A grep buffer becomes most recent when you select Grep mode in it.
 Notice that using \\[next-error] or \\[compile-goto-error] modifies
 `compilation-last-buffer' rather than `grep-last-buffer'.")
 
+(defvar grep-match-face	'match
+  "Face name to use for grep matches.")
+
 ;;;###autoload
 (defconst grep-regexp-alist
   `((,(concat "^\\(?:"
@@ -384,7 +387,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
          (when grep-highlight-matches
            (let* ((beg (match-end 0))
                   (end (save-excursion (goto-char beg) (line-end-position)))
-                  (mbeg (text-property-any beg end 'font-lock-face 'grep-match-face)))
+                  (mbeg (text-property-any beg end 'font-lock-face grep-match-face)))
              (when mbeg
                (- mbeg beg)))))
       .
@@ -392,7 +395,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
          (when grep-highlight-matches
            (let* ((beg (match-end 0))
                   (end (save-excursion (goto-char beg) (line-end-position)))
-                  (mbeg (text-property-any beg end 'font-lock-face 'grep-match-face))
+                  (mbeg (text-property-any beg end 'font-lock-face grep-match-face))
                   (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end))))
              (when mend
                (- mend beg))))))
@@ -415,9 +418,6 @@ See `compilation-error-regexp-alist' for format details.")
 
 (defvar grep-error-face	'compilation-error
   "Face name to use for grep error messages.")
-
-(defvar grep-match-face	'match
-  "Face name to use for grep matches.")
 
 (defvar grep-context-face 'shadow
   "Face name to use for grep context lines.")
@@ -457,13 +457,13 @@ abbreviated part can also be toggled with
      (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
       1 grep-error-face)
      ;; remove match from grep-regexp-alist before fontifying
-     ("^Grep[/a-zA-z]* started.*"
+     ("^Grep[/a-zA-Z]* started.*"
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t))
-     ("^Grep[/a-zA-z]* finished with \\(?:\\(\\(?:[0-9]+ \\)?matches found\\)\\|\\(no matches found\\)\\).*"
+     ("^Grep[/a-zA-Z]* finished with \\(?:\\(\\(?:[0-9]+ \\)?match\\(?:es\\)? found\\)\\|\\(no matches found\\)\\).*"
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face nil t)
       (2 compilation-warning-face nil t))
-     ("^Grep[/a-zA-z]* \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
+     ("^Grep[/a-zA-Z]* \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 grep-error-face)
       (2 grep-error-face nil t))
@@ -552,7 +552,10 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
       ;; so the buffer is still unmodified if there is no output.
       (cond ((and (zerop code) (buffer-modified-p))
 	     (if (> grep-num-matches-found 0)
-                 (cons (format "finished with %d matches found\n" grep-num-matches-found)
+                 (cons (format (ngettext "finished with %d match found\n"
+                                         "finished with %d matches found\n"
+                                         grep-num-matches-found)
+                               grep-num-matches-found)
                        "matched")
                '("finished with matches found\n" . "matched")))
 	    ((not (buffer-modified-p))
@@ -704,7 +707,7 @@ This function is called from `compilation-filter-hook'."
 		  'exec-plus)
 		 ((and
 		   (grep-probe find-program `(nil nil nil ,null-device "-print0"))
-		   (grep-probe xargs-program `(nil nil nil "-0" "echo")))
+		   (grep-probe xargs-program '(nil nil nil "-0" "echo")))
 		  'gnu)
 		 (t
 		  'exec))))

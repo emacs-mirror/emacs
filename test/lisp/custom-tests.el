@@ -1,6 +1,6 @@
 ;;; custom-tests.el --- tests for custom.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -83,5 +83,44 @@
               (should (equal (custom-theme--load-path) (list themedir))))))
       (when (file-directory-p tmpdir)
         (delete-directory tmpdir t)))))
+
+(defcustom custom--test-user-option 'foo
+  "User option for test."
+  :group 'emacs
+  :type 'symbol)
+
+(defvar custom--test-variable 'foo
+  "Variable for test.")
+
+;; This is demonstrating bug#34027.
+(ert-deftest custom--test-theme-variables ()
+  "Test variables setting with enabling / disabling a custom theme."
+  :expected-result :failed
+  ;; We load custom-resources/custom--test-theme.el.
+  (let ((custom-theme-load-path
+         `(,(expand-file-name "custom-resources" (file-name-directory #$)))))
+    (load-theme 'custom--test 'no-confirm 'no-enable)
+    ;; The variables have still their initial values.
+    (should (equal custom--test-user-option 'foo))
+    (should (equal custom--test-variable 'foo))
+
+    (custom-set-variables
+     '(custom--test-user-option 'baz)
+     '(custom--test-variable 'baz))
+    ;; The initial values have been changed.
+    (should (equal custom--test-user-option 'baz))
+    (should (equal custom--test-variable 'baz))
+
+    (enable-theme 'custom--test)
+    ;; The variables have the theme values.
+    (should (equal custom--test-user-option 'bar))
+    (should (equal custom--test-variable 'bar))
+
+    (disable-theme 'custom--test)
+    ;; The variables should have the changed values, by reverting.
+    ;; This doesn't work as expected.  Instead, they have their
+    ;; initial values `foo'.
+    (should (equal custom--test-user-option 'baz))
+    (should (equal custom--test-variable 'baz))))
 
 ;;; custom-tests.el ends here

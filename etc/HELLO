@@ -88,17 +88,17 @@ Telugu (తెలుగు)	నమస్కారం
 
 </x-charset>
 
-Japanese (日本語)	こんにちは <x-charset><param>katakana-jisx0201</param>/ ｺﾝﾆﾁﾊ
+<x-charset><param>japanese-jisx0208</param>Japanese (日本語)	こんにちは</x-charset> <x-charset><param>katakana-jisx0201</param>/ ｺﾝﾆﾁﾊ
 </x-charset><x-charset><param>chinese-gb2312</param>Chinese (中文,普通话,汉语)	你好
 </x-charset><x-charset><param>chinese-big5-1</param>Cantonese (粵語,廣東話)	早晨, 你好
-</x-charset>Korean (한글)	안녕하세요 / 안녕하십니까
+</x-charset><x-charset><param>korean-ksc5601</param>Korean (한글)	안녕하세요 / 안녕하십니까
 
-<x-charset><param>korean-ksc5601</param>
+</x-charset>
 
-</x-charset><x-charset><param>unicode</param>
+<x-charset><param>unicode</param>
 
 
-Copyright (C) 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 
 This file is part of GNU Emacs.

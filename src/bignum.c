@@ -1,6 +1,6 @@
 /* Big numbers for Emacs.
 
-Copyright 2018 Free Software Foundation, Inc.
+Copyright 2018-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -271,7 +271,7 @@ bignum_to_uintmax (Lisp_Object x)
 
 /* Yield an upper bound on the buffer size needed to contain a C
    string representing the NUM in base BASE.  This includes any
-   preceding '-' and the terminating null.  */
+   preceding '-' and the terminating NUL.  */
 static ptrdiff_t
 mpz_bufsize (mpz_t const num, int base)
 {
@@ -336,7 +336,7 @@ bignum_to_string (Lisp_Object num, int base)
 
 /* Create a bignum by scanning NUM, with digits in BASE.
    NUM must consist of an optional '-', a nonempty sequence
-   of base-BASE digits, and a terminating null byte, and
+   of base-BASE digits, and a terminating NUL byte, and
    the represented number must not be in fixnum range.  */
 
 Lisp_Object

@@ -1,6 +1,6 @@
 ;;; align.el --- align text to a specific column, by regexp -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -399,7 +399,7 @@ The possible settings for `align-region-separate' are:
 		   (lambda (end reverse)
 		     (funcall (if reverse 're-search-backward
 				're-search-forward)
-			      (concat "[^ \t\n\\\\]"
+			      (concat "[^ \t\n\\]"
 				      (regexp-quote comment-start)
 				      "\\(.+\\)$") end t))))
      (modes    . align-open-comment-modes))
@@ -438,7 +438,7 @@ The possible settings for `align-region-separate' are:
      (tab-stop . nil))
 
     (perl-assignment
-     (regexp   . ,(concat "[^=!^&*-+<>/| \t\n]\\(\\s-*\\)=[~>]?"
+     (regexp   . ,(concat "[^=!^&*+<>/| \t\n-]\\(\\s-*\\)=[~>]?"
 			  "\\(\\s-*\\)\\([^>= \t\n]\\|$\\)"))
      (group    . (1 2))
      (modes    . align-perl-modes)
@@ -452,7 +452,7 @@ The possible settings for `align-region-separate' are:
      (tab-stop . nil))
 
     (make-assignment
-     (regexp   . "^\\s-*\\w+\\(\\s-*\\):?=\\(\\s-*\\)\\([^\t\n \\\\]\\|$\\)")
+     (regexp   . "^\\s-*\\w+\\(\\s-*\\):?=\\(\\s-*\\)\\([^\t\n \\]\\|$\\)")
      (group    . (1 2))
      (modes    . '(makefile-mode))
      (tab-stop . nil))
@@ -759,7 +759,7 @@ The following attributes are meaningful:
 	  (lambda (end reverse)
 	    (funcall (if reverse 're-search-backward
 		       're-search-forward)
-		     (concat "[^ \t\n\\\\]"
+		     (concat "[^ \t\n\\]"
 			     (regexp-quote comment-start)
 			     "\\(.+\\)$") end t))))
      (modes  . align-open-comment-modes))

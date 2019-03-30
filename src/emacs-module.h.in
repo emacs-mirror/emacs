@@ -1,6 +1,6 @@
 /* emacs-module.h - GNU Emacs module API.
 
-Copyright (C) 2015-2018 Free Software Foundation, Inc.
+Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -47,7 +47,7 @@ extern "C" {
 #endif
 
 /* Current environment.  */
-typedef struct emacs_env_26 emacs_env;
+typedef struct emacs_env_27 emacs_env;
 
 /* Opaque pointer representing an Emacs Lisp value.
    BEWARE: Do not assume NULL is a valid value!  */
@@ -83,6 +83,16 @@ enum emacs_funcall_exit
   emacs_funcall_exit_throw = 2
 };
 
+/* Possible return values for emacs_env.process_input.  */
+enum emacs_process_input_result
+{
+  /* Module code may continue  */
+  emacs_process_input_continue = 0,
+
+  /* Module code should return control to Emacs as soon as possible.  */
+  emacs_process_input_quit = 1
+};
+
 struct emacs_env_25
 {
 @module_env_snippet_25@
@@ -93,6 +103,15 @@ struct emacs_env_26
 @module_env_snippet_25@
 
 @module_env_snippet_26@
+};
+
+struct emacs_env_27
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
 };
 
 /* Every module should define a function as follows.  */

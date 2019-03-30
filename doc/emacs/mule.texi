@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2019 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International
 @chapter International Character Set Support
@@ -397,7 +397,7 @@ messages.  But if your locale matches an entry in the variable
 coding system instead.  For example, if the locale @samp{ja_JP.PCK}
 matches @code{japanese-shift-jis} in
 @code{locale-preferred-coding-systems}, Emacs uses that encoding even
-though it might normally use @code{japanese-iso-8bit}.
+though it might normally use @code{utf-8}.
 
   You can override the language environment chosen at startup with
 explicit use of the command @code{set-language-environment}, or with

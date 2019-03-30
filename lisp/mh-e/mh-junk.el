@@ -1,6 +1,6 @@
 ;;; mh-junk.el --- MH-E interface to anti-spam measures
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>,
 ;;         Bill Wohler <wohler@newt.com>

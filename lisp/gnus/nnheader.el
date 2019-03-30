@@ -1,6 +1,6 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2018 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -408,7 +408,7 @@ on your system, you could say something like:
   `(let ((id (nnheader-nov-field)))
      (if (string-match "^<[^>]+>$" id)
 	 ,(if nnheader-uniquify-message-id
-	      `(if (string-match "__[^@]+@" id)
+	      '(if (string-match "__[^@]+@" id)
 		   (concat (substring id 0 (match-beginning 0))
 			   (substring id (1- (match-end 0))))
 		 id)
@@ -1042,12 +1042,7 @@ See `find-file-noselect' for the arguments."
 ;; When changing this function, consider changing `pop3-accept-process-output'
 ;; as well.
 (defun nnheader-accept-process-output (process)
-  (accept-process-output
-   process
-   (truncate nnheader-read-timeout)
-   (truncate (* (- nnheader-read-timeout
-		   (truncate nnheader-read-timeout))
-		1000))))
+  (accept-process-output process nnheader-read-timeout))
 
 (defun nnheader-update-marks-actions (backend-marks actions)
   (dolist (action actions)
@@ -1080,7 +1075,7 @@ See `find-file-noselect' for the arguments."
 (defvar nnheader-last-message-time '(0 0))
 (defun nnheader-message-maybe (&rest args)
   (let ((now (current-time)))
-    (when (> (float-time (time-subtract now nnheader-last-message-time)) 1)
+    (when (time-less-p 1 (time-subtract now nnheader-last-message-time))
       (setq nnheader-last-message-time now)
       (apply 'nnheader-message args))))
 

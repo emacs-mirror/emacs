@@ -1,8 +1,8 @@
 #! /bin/sh
 # Configuration validation subroutine script.
-#   Copyright 1992-2018 Free Software Foundation, Inc.
+#   Copyright 1992-2019 Free Software Foundation, Inc.
 
-timestamp='2018-08-29'
+timestamp='2019-01-05'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ Report bugs and patches to <config-patches@gnu.org>."
 version="\
 GNU config.sub ($timestamp)
 
-Copyright 1992-2018 Free Software Foundation, Inc.
+Copyright 1992-2019 Free Software Foundation, Inc.
 
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
@@ -89,7 +89,7 @@ while test $# -gt 0 ; do
     - )	# Use stdin as input.
        break ;;
     -* )
-       echo "$me: invalid option $1$help"
+       echo "$me: invalid option $1$help" >&2
        exit 1 ;;
 
     *local*)
@@ -111,7 +111,8 @@ case $# in
 esac
 
 # Split fields of configuration type
-IFS="-" read -r field1 field2 field3 field4 <<EOF
+# shellcheck disable=SC2162
+IFS="-" read field1 field2 field3 field4 <<EOF
 $1
 EOF
 
@@ -149,7 +150,7 @@ case $1 in
 		esac
 		;;
 	*-*)
-		# A lone config we happen to match not fitting any patern
+		# A lone config we happen to match not fitting any pattern
 		case $field1-$field2 in
 			decstation-3100)
 				basic_machine=mips-dec
@@ -918,7 +919,8 @@ case $basic_machine in
 		;;
 
 	*-*)
-		IFS="-" read -r cpu vendor <<EOF
+		# shellcheck disable=SC2162
+		IFS="-" read cpu vendor <<EOF
 $basic_machine
 EOF
 		;;
@@ -950,7 +952,7 @@ unset -v basic_machine
 
 # Decode basic machines in the full and proper CPU-Company form.
 case $cpu-$vendor in
-	# Here we handle the default manufacturer of certain CPU types in cannonical form. It is in
+	# Here we handle the default manufacturer of certain CPU types in canonical form. It is in
 	# some cases the only manufacturer, in others, it is the most popular.
 	craynv-unknown)
 		vendor=cray
@@ -1101,7 +1103,7 @@ case $cpu-$vendor in
 		cpu=`echo "$cpu" | sed 's/^xscale/arm/'`
 		;;
 
-	# Recognize the cannonical CPU Types that limit and/or modify the
+	# Recognize the canonical CPU Types that limit and/or modify the
 	# company names they are paired with.
 	cr16-*)
 		os=${os:-elf}
@@ -1150,7 +1152,7 @@ case $cpu-$vendor in
 		;;
 
 	*)
-		# Recognize the cannonical CPU types that are allowed with any
+		# Recognize the canonical CPU types that are allowed with any
 		# company name.
 		case $cpu in
 			1750a | 580 \
@@ -1161,6 +1163,7 @@ case $cpu-$vendor in
 			| alpha64 | alpha64ev[4-8] | alpha64ev56 | alpha64ev6[78] \
 			| alphapca5[67] | alpha64pca5[67] \
 			| am33_2.0 \
+			| amdgcn \
 			| arc | arceb \
 			| arm  | arm[lb]e | arme[lb] | armv* \
 			| avr | avr32 \
@@ -1182,13 +1185,13 @@ case $cpu-$vendor in
 			| le32 | le64 \
 			| lm32 \
 			| m32c | m32r | m32rle \
-			| m5200 | m68000 | m680[012346]0 | m68360 | m683?2 | m68k | v70 | w65 \
-			| m6811 | m68hc11 | m6812 | m68hc12 | m68hcs12x | nvptx | picochip \
+			| m5200 | m68000 | m680[012346]0 | m68360 | m683?2 | m68k \
+			| m6811 | m68hc11 | m6812 | m68hc12 | m68hcs12x \
 			| m88110 | m88k | maxq | mb | mcore | mep | metag \
 			| microblaze | microblazeel \
 			| mips | mipsbe | mipseb | mipsel | mipsle \
 			| mips16 \
-			| mips64 | mips64el \
+			| mips64 | mips64eb | mips64el \
 			| mips64octeon | mips64octeonel \
 			| mips64orion | mips64orionel \
 			| mips64r5900 | mips64r5900el \
@@ -1215,11 +1218,12 @@ case $cpu-$vendor in
 			| nds32 | nds32le | nds32be \
 			| nfp \
 			| nios | nios2 | nios2eb | nios2el \
-			| none | np1 | ns16k | ns32k \
+			| none | np1 | ns16k | ns32k | nvptx \
 			| open8 \
 			| or1k* \
 			| or32 \
 			| orion \
+			| picochip \
 			| pdp10 | pdp11 | pj | pjl | pn | power \
 			| powerpc | powerpc64 | powerpc64le | powerpcle | powerpcspe \
 			| pru \
@@ -1227,7 +1231,8 @@ case $cpu-$vendor in
 			| riscv | riscv32 | riscv64 \
 			| rl78 | romp | rs6000 | rx \
 			| score \
-			| sh | sh[1234] | sh[24]a | sh[24]ae[lb] | sh[23]e | she[lb] | sh[lb]e \
+			| sh | shl \
+			| sh[1234] | sh[24]a | sh[24]ae[lb] | sh[23]e | she[lb] | sh[lb]e \
 			| sh[1234]e[lb] |  sh[12345][lb]e | sh[23]ele | sh64 | sh64le \
 			| sparc | sparc64 | sparc64b | sparc64v | sparc86x | sparclet \
 			| sparclite \
@@ -1237,10 +1242,10 @@ case $cpu-$vendor in
 			| tic30 | tic4x | tic54x | tic55x | tic6x | tic80 \
 			| tron \
 			| ubicom32 \
-			| v850 | v850e | v850e1 | v850es | v850e2 | v850e2v3 \
+			| v70 | v850 | v850e | v850e1 | v850es | v850e2 | v850e2v3 \
 			| vax \
 			| visium \
-			| wasm32 \
+			| w65 | wasm32 \
 			| we32k \
 			| x86 | x86_64 | xc16x | xgate | xps100 \
 			| xstormy16 | xtensa* \
@@ -1360,7 +1365,7 @@ case $os in
 	     | powermax* | dnix* | nx6 | nx7 | sei* | dragonfly* \
 	     | skyos* | haiku* | rdos* | toppers* | drops* | es* \
 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
-	     | midnightbsd*)
+	     | midnightbsd* | amdhsa* | unleashed* | emscripten*)
 	# Remember, each alternative MUST END IN *, to match a version number.
 		;;
 	qnx*)

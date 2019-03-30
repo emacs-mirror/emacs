@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -278,7 +278,7 @@ This can also be a list of the above values."
   "String or function to be executed to display an X-Face header.
 If it is a string, the command will be executed in a sub-shell
 asynchronously.  The compressed face will be piped to this command."
-  :type `(choice string
+  :type '(choice string
 		 (function-item gnus-display-x-face-in-from)
 		 function)
   :version "21.1"
@@ -3540,18 +3540,11 @@ possible values."
 	  (concat "Date: " (message-make-date time)))
 	 ;; Convert to Universal Time.
 	 ((eq type 'ut)
-	  (concat "Date: "
-		  (substring
-		   (message-make-date
-		    (let* ((e (parse-time-string date))
-			   (tm (apply 'encode-time e))
-			   (ms (car tm))
-			   (ls (- (cadr tm) (car (current-time-zone time)))))
-		      (cond ((< ls 0) (list (1- ms) (+ ls 65536)))
-			    ((> ls 65535) (list (1+ ms) (- ls 65536)))
-			    (t (list ms ls)))))
-		   0 -5)
-		  "UT"))
+	  (let ((system-time-locale "C"))
+	    (format-time-string
+	     "Date: %a, %d %b %Y %T UT"
+	     (encode-time (parse-time-string date))
+	     t)))
 	 ;; Get the original date from the article.
 	 ((eq type 'original)
 	  (concat "Date: " (if (string-match "\n+$" date)
@@ -3569,13 +3562,7 @@ possible values."
 	      (concat "Date: " (format-time-string format time)))))
 	 ;; ISO 8601.
 	 ((eq type 'iso8601)
-	  (let ((tz (car (current-time-zone time))))
-	    (concat
-	     "Date: "
-	     (format-time-string "%Y%m%dT%H%M%S" time)
-	     (format "%s%02d%02d"
-		     (if (> tz 0) "+" "-") (/ (abs tz) 3600)
-		     (/ (% (abs tz) 3600) 60)))))
+	  (format-time-string "Date: %Y%m%dT%H%M%S%z" time))
 	 ;; Do a lapsed format.
 	 ((eq type 'lapsed)
 	  (concat "Date: " (article-lapsed-string time)))
@@ -3623,18 +3610,14 @@ possible values."
 (defun article-lapsed-string (time &optional max-segments)
   ;; If the date is seriously mangled, the timezone functions are
   ;; liable to bug out, so we ignore all errors.
-  (let* ((real-time (time-subtract nil time))
-	 (real-sec (and real-time
-			(+ (* (float (car real-time)) 65536)
-			   (cadr real-time))))
-	 (sec (and real-time (abs real-sec)))
+  (let* ((real-time (time-since time))
+	 (real-sec (float-time real-time))
+	 (sec (abs real-sec))
 	 (segments 0)
 	 num prev)
     (unless max-segments
       (setq max-segments (length article-time-units)))
     (cond
-     ((null real-time)
-      "Unknown")
      ((zerop sec)
       "Now")
      (t
@@ -4388,8 +4371,6 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 ;;; Gnus article mode
 ;;;
 
-(put 'gnus-article-mode 'mode-class 'special)
-
 (set-keymap-parent gnus-article-mode-map widget-keymap)
 
 (gnus-define-keys gnus-article-mode-map
@@ -4467,9 +4448,8 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 (defvar bookmark-make-record-function)
 (defvar shr-put-image-function)
 
-(define-derived-mode gnus-article-mode fundamental-mode "Article"
+(define-derived-mode gnus-article-mode gnus-mode "Article"
   "Major mode for displaying an article.
-
 All normal editing commands are switched off.
 
 The following commands are available in addition to all summary mode
@@ -4510,8 +4490,7 @@ commands:
     (setq cursor-in-non-selected-windows nil))
   (gnus-set-default-directory)
   (buffer-disable-undo)
-  (setq buffer-read-only t
-	show-trailing-whitespace nil)
+  (setq show-trailing-whitespace nil)
   (mm-enable-multibyte))
 
 (defun gnus-article-setup-buffer ()
@@ -5159,7 +5138,7 @@ Deleting parts may malfunction or destroy the article; continue? "))
 	    "`----\n"))
 	  (setcdr data
 		  (cdr (mm-make-handle
-			nil `("text/plain" (charset . gnus-decoded)) nil nil
+			nil '("text/plain" (charset . gnus-decoded)) nil nil
 			(list "attachment")
 			(format "Deleted attachment (%s bytes)" bsize))))))
       ;; (set-buffer gnus-summary-buffer)
@@ -7397,9 +7376,8 @@ groups."
   :group 'gnus-article-buttons
   :type 'regexp)
 
-;; Regexp suggested by Felix Wiemann in <87oeuomcz9.fsf@news2.ososo.de>
 (defcustom gnus-button-valid-localpart-regexp
-  "[a-z0-9$%(*-=?[_][^<>\")!;:,{}\n\t @]*"
+  "[-a-z0-9$%(*+./=?[_][^<>\")!;:,{}\n\t @]*"
   "Regular expression that matches a localpart of mail addresses or MIDs."
   :version "22.1"
   :group 'gnus-article-buttons
@@ -7495,7 +7473,7 @@ must return `mid', `mail', `invalid' or `ask'."
     (2.0   . "^[A-Z][a-z][A-Z][a-z][a-z][^a-z]")) ;; ^[A-Z][a-z]{4,4}
   "An alist of (RATE . REGEXP) pairs for `gnus-button-mid-or-mail-heuristic'.
 
-A negative RATE indicates a message IDs, whereas a positive indicates a mail
+A negative RATE indicates a message ID, whereas a positive indicates a mail
 address.  The REGEXP is processed with `case-fold-search' set to nil."
   :version "22.1"
   :group 'gnus-article-buttons
@@ -7504,7 +7482,7 @@ address.  The REGEXP is processed with `case-fold-search' set to nil."
 
 (defun gnus-button-mid-or-mail-heuristic (mid-or-mail)
   "Guess whether MID-OR-MAIL is a message ID or a mail address.
-Returns `mid' if MID-OR-MAIL is a message IDs, `mail' if it's a mail
+Returns `mid' if MID-OR-MAIL is a message ID, `mail' if it's a mail
 address, `ask' if unsure and `invalid' if the string is invalid."
   (let ((case-fold-search nil)
 	(list gnus-button-mid-or-mail-heuristic-alist)

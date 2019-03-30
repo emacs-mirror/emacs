@@ -1,5 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2018 Free Software
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1201,7 +1201,9 @@ calculate_costs (struct frame *frame)
       calculate_ins_del_char_costs (frame);
 
       /* Don't use TS_repeat if its padding is worse than sending the chars */
-      if (tty->TS_repeat && per_line_cost (tty->TS_repeat) * baud_rate < 9000)
+      if (tty->TS_repeat
+	  && (baud_rate <= 0
+	      || per_line_cost (tty->TS_repeat) < 9000 / baud_rate))
         tty->RPov = string_cost (tty->TS_repeat);
       else
         tty->RPov = FRAME_COLS (frame) * 2;
@@ -1350,7 +1352,8 @@ term_get_fkeys_1 (void)
   char **address = term_get_fkeys_address;
   KBOARD *kboard = term_get_fkeys_kboard;
 
-  /* This can happen if CANNOT_DUMP or with strange options.  */
+  /* This can happen if Emacs is starting up from scratch, or with
+     strange options.  */
   if (!KEYMAPP (KVAR (kboard, Vinput_decode_map)))
     kset_input_decode_map (kboard, Fmake_sparse_keymap (Qnil));
 
@@ -1359,8 +1362,7 @@ term_get_fkeys_1 (void)
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
 	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
-		     Fmake_vector (make_fixnum (1),
-				   intern (keys[i].name)));
+		     make_vector (1, intern (keys[i].name)));
     }
 
   /* The uses of the "k0" capability are inconsistent; sometimes it
@@ -1379,13 +1381,13 @@ term_get_fkeys_1 (void)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
 	  Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
-		       Fmake_vector (make_fixnum (1), intern ("f0")));
+		       make_vector (1, intern ("f0")));
 	Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k_semi),
-		     Fmake_vector (make_fixnum (1), intern ("f10")));
+		     make_vector (1, intern ("f10")));
       }
     else if (k0)
       Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (k0),
-		   Fmake_vector (make_fixnum (1), intern (k0_name)));
+		   make_vector (1, intern (k0_name)));
   }
 
   /* Set up cookies for numbered function keys above f10. */
@@ -1408,8 +1410,7 @@ term_get_fkeys_1 (void)
 	    {
 	      sprintf (fkey, "f%d", i);
 	      Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence),
-			   Fmake_vector (make_fixnum (1),
-					 intern (fkey)));
+			   make_vector (1, intern (fkey)));
 	    }
 	}
       }
@@ -1425,8 +1426,7 @@ term_get_fkeys_1 (void)
 	  char *sequence = tgetstr (cap2, address);			\
 	  if (sequence)                                                 \
 	    Fdefine_key (KVAR (kboard, Vinput_decode_map), build_string (sequence), \
-			 Fmake_vector (make_fixnum (1),                 \
-				       intern (sym)));                  \
+			 make_vector (1, intern (sym)));		\
 	}
 
       /* if there's no key_next keycap, map key_npage to `next' keysym */
@@ -2437,15 +2437,14 @@ term_mouse_movement (struct frame *frame, Gpm_Event *event)
   return 0;
 }
 
-/* Return the Time that corresponds to T.  Wrap around on overflow.  */
+/* Return the current time, as a Time value.  Wrap around on overflow.  */
 static Time
-timeval_to_Time (struct timeval const *t)
+current_Time (void)
 {
-  Time s_1000, ms;
-
-  s_1000 = t->tv_sec;
+  struct timespec now = current_timespec ();
+  Time s_1000 = now.tv_sec;
   s_1000 *= 1000;
-  ms = t->tv_usec / 1000;
+  Time ms = now.tv_nsec / 1000000;
   return s_1000 + ms;
 }
 
@@ -2467,8 +2466,6 @@ term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 		     enum scroll_bar_part *part, Lisp_Object *x,
 		     Lisp_Object *y, Time *timeptr)
 {
-  struct timeval now;
-
   *fp = SELECTED_FRAME ();
   (*fp)->mouse_moved = 0;
 
@@ -2477,8 +2474,7 @@ term_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 
   XSETINT (*x, last_mouse_x);
   XSETINT (*y, last_mouse_y);
-  gettimeofday(&now, 0);
-  *timeptr = timeval_to_Time (&now);
+  *timeptr = current_Time ();
 }
 
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
@@ -2490,7 +2486,6 @@ static Lisp_Object
 term_mouse_click (struct input_event *result, Gpm_Event *event,
 		  struct frame *f)
 {
-  struct timeval now;
   int i, j;
 
   result->kind = GPM_CLICK_EVENT;
@@ -2501,8 +2496,7 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
 	break;
       }
     }
-  gettimeofday(&now, 0);
-  result->timestamp = timeval_to_Time (&now);
+  result->timestamp = current_Time ();
 
   if (event->type & GPM_UP)
     result->modifiers = up_modifier;

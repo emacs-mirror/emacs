@@ -1,6 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997-1998, 2000-2018 Free Software
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -69,6 +69,7 @@
 (declare-function x-server-vendor "xfns.c" (&optional terminal))
 (declare-function x-server-version "xfns.c" (&optional terminal))
 (declare-function message-sort-headers "message" ())
+(declare-function w32--os-description "w32-fns" ())
 (defvar message-strip-special-text-properties)
 
 (defun report-emacs-bug-can-use-osx-open ()
@@ -307,6 +308,8 @@ usually do not have translators for other languages.\n\n")))
 
     (if (stringp emacs-repository-version)
 	(insert "Repository revision: " emacs-repository-version "\n"))
+    (if (stringp emacs-repository-branch)
+	(insert "Repository branch: " emacs-repository-branch "\n"))
     (if (fboundp 'x-server-vendor)
 	(condition-case nil
             ;; This is used not only for X11 but also W32 and others.

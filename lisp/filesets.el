@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -565,7 +565,7 @@ including directory trees to the menu can take a lot of memory."
   :group 'filesets)
 
 (defcustom filesets-commands
-  `(("Isearch"
+  '(("Isearch"
      multi-isearch-files
      (filesets-cmd-isearch-getargs))
     ("Isearch (regexp)"
@@ -1286,10 +1286,10 @@ on-close-all ... Not used"
 		  (filesets-get-external-viewer filename)))))
     (filesets-alist-get def
 			(pcase event
-			  (`on-open-all       ':ignore-on-open-all)
-			  (`on-grep           ':ignore-on-read-text)
-			  (`on-cmd nil)
-			  (`on-close-all nil))
+			  ('on-open-all       ':ignore-on-open-all)
+			  ('on-grep           ':ignore-on-read-text)
+			  ('on-cmd nil)
+			  ('on-close-all nil))
 			nil t)))
 
 (defun filesets-filetype-get-prop (property filename &optional entry)

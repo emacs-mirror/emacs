@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2000-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2000-2019 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS / GNUstep
 @appendix Emacs and macOS / GNUstep
@@ -170,8 +170,25 @@ the requested line (@code{ns-open-file-select-line}).
 This event occurs when a user drags an object from another application
 into an Emacs frame.  The default behavior is to open a file in the
 window under the mouse, or to insert text at point of the window under
-the mouse.  It may sometimes be necessary to use the @key{Meta} key in
-conjunction with dragging to force text insertion.
+the mouse.
+
+The sending application has some limited ability to decide how Emacs
+handles the sent object, but the user may override the default
+behaviour by holding one or more modifier key.
+
+@table @kbd
+@item control
+Insert as text in the current buffer.  If the object is a file, this
+will insert the filename.
+@item alt/option
+Attempt to open the object as though it is a file or URL.
+@item super/command
+Perform the default action for the type.  This can be useful when an
+application is overriding the default behaviour.
+@end table
+
+The modifier keys listed above are defined by macOS and are unaffected
+by user changes to the modifiers in Emacs.
 
 @item ns-change-font
 This event occurs when the user selects a font in a Nextstep font

@@ -1,6 +1,6 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Copyright (C) 1985-1986, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Richard King
 ;; (according to authors.el)
@@ -174,7 +174,9 @@ really edit the buffer? (y, n, r or C-h) "
 
 (defun ask-user-about-supersession-help ()
   (with-output-to-temp-buffer "*Help*"
-    (princ "You want to modify a buffer whose disk file has changed
+    (princ
+     (substitute-command-keys
+      "You want to modify a buffer whose disk file has changed
 since you last read it in or saved it with this buffer.
 
 If you say `y' to go ahead and modify this buffer,
@@ -184,7 +186,7 @@ from the file on disk.
 If you say `n', the change you started to make will be aborted.
 
 Usually, you should type `n' and then `\\[revert-buffer]',
-to get the latest version of the file, then make the change again.")
+to get the latest version of the file, then make the change again."))
     (with-current-buffer standard-output
       (help-mode))))
 

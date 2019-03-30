@@ -1,7 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects  -*- lexical-binding:t -*-
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4

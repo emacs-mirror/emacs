@@ -1,5 +1,5 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
@@ -150,7 +150,7 @@ If no one is selected, default secret key is used.  "
 		   (mapcar
 		    (lambda (recipient)
 		      (let ((tem (assoc recipient epa-mail-aliases)))
-			(if tem (cdr tem)
+			(if tem (copy-sequence (cdr tem))
 			  (list recipient))))
 		    real-recipients)))
       )))

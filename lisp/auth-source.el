@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -167,7 +167,7 @@ let-binding."
 (defcustom auth-source-save-behavior 'ask
   "If set, auth-source will respect it for save behavior."
   :version "23.2" ;; No Gnus
-  :type `(choice
+  :type '(choice
           :tag "auth-source new token save behavior"
           (const :tag "Always save" t)
           (const :tag "Never save" nil)
@@ -200,7 +200,7 @@ Note that if EPA/EPG is not available, this should NOT be used."
 (defcustom auth-source-do-cache t
   "Whether auth-source should cache information with `password-cache'."
   :version "23.2" ;; No Gnus
-  :type `boolean)
+  :type 'boolean)
 
 (defcustom auth-source-debug nil
   "Whether auth-source should log debug messages.
@@ -214,7 +214,7 @@ for passwords).
 If the value is a function, debug messages are logged by calling
  that function using the same arguments as `message'."
   :version "23.2" ;; No Gnus
-  :type `(choice
+  :type '(choice
           :tag "auth-source debugging mode"
           (const :tag "Log using `message' to the *Messages* buffer" t)
           (const :tag "Log all trivia with `message' to the *Messages* buffer"

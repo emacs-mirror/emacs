@@ -1,5 +1,5 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
-;; Copyright (C) 1999-2000, 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -1144,7 +1144,7 @@ callback data (if any)."
 
 (defun epg--status-SIG_CREATED (context string)
   (if (string-match "\\`\\([DCS]\\) \\([0-9]+\\) \\([0-9]+\\) \
-\\([0-9A-Fa-F][0-9A-Fa-F]\\) \\(.*\\) " string)
+\\([0-9A-Fa-f][0-9A-Fa-f]\\) \\(.*\\) " string)
       (epg-context-set-result-for
        context 'sign
        (cons (epg-make-new-signature

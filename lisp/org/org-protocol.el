@@ -1,6 +1,6 @@
 ;;; org-protocol.el --- Intercept Calls from Emacsclient to Trigger Custom Actions -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Daniel M German <dmg AT uvic DOT org>
@@ -331,7 +331,7 @@ returned list."
 	 (len 0)
 	 dir
 	 ret)
-    (when (string-match "^\\(.*\\)\\(org-protocol:/+[a-zA-z0-9][-_a-zA-z0-9]*:/+\\)\\(.*\\)" trigger)
+    (when (string-match "^\\(.*\\)\\(org-protocol:/+[a-zA-Z0-9][-_a-zA-Z0-9]*:/+\\)\\(.*\\)" trigger)
       (setq dir (match-string 1 trigger))
       (setq len (length dir))
       (setcar l (concat dir (match-string 3 trigger))))
@@ -349,17 +349,20 @@ returned list."
 	  ret)
       l)))
 
-(defun org-protocol-flatten (list)
-  "Transform LIST into a flat list.
+(defalias 'org-protocol-flatten
+  (if (fboundp 'flatten-tree) 'flatten-tree
+    (lambda (list)
+      "Transform LIST into a flat list.
 
 Greedy handlers might receive a list like this from emacsclient:
 \((\"/dir/org-protocol:/greedy:/~/path1\" (23 . 12)) (\"/dir/param\"))
 where \"/dir/\" is the absolute path to emacsclients working directory.
 This function transforms it into a flat list."
-  (if (null list) ()
-    (if (listp list)
-	(append (org-protocol-flatten (car list)) (org-protocol-flatten (cdr list)))
-      (list list))))
+      (if list
+	  (if (consp list)
+	      (append (org-protocol-flatten (car list))
+		      (org-protocol-flatten (cdr list)))
+	    (list list))))))
 
 (defun org-protocol-parse-parameters (info &optional new-style default-order)
   "Return a property list of parameters from INFO.

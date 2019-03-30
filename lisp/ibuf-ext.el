@@ -1,6 +1,6 @@
 ;;; ibuf-ext.el --- extensions for ibuffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -723,7 +723,7 @@ specification, with the same structure as an element of the list
   (not
    (not
     (pcase (car filter)
-      (`or
+      ('or
        ;;; ATTN: Short-circuiting alternative with parallel structure w/`and
        ;;(catch 'has-match
        ;;  (dolist (filter-spec (cdr filter) nil)
@@ -732,12 +732,12 @@ specification, with the same structure as an element of the list
        (memq t (mapcar #'(lambda (x)
                            (ibuffer-included-in-filter-p buf x))
                        (cdr filter))))
-      (`and
+      ('and
        (catch 'no-match
          (dolist (filter-spec (cdr filter) t)
            (unless (ibuffer-included-in-filter-p buf filter-spec)
              (throw 'no-match nil)))))
-      (`saved
+      ('saved
        (let ((data (assoc (cdr filter) ibuffer-saved-filters)))
 	 (unless data
 	   (ibuffer-filter-disable t)
@@ -1051,14 +1051,14 @@ turned into separate filters, like [name: foo] and [mode: bar-mode]."
          (tail (cdr filters))
          (value
           (pcase (caar filters)
-            ((or `or 'and) (nconc head tail))
-            (`saved
+            ((or 'or 'and) (nconc head tail))
+            ('saved
              (let ((data (assoc head ibuffer-saved-filters)))
                (unless data
                  (ibuffer-filter-disable)
                  (error "Unknown saved filter %s" head))
                (append (cdr data) tail)))
-            (`not (cons (ibuffer-unary-operand (car filters)) tail))
+            ('not (cons (ibuffer-unary-operand (car filters)) tail))
             (_
              (error "Filter type %s is not compound" (caar filters))))))
     (setq ibuffer-filtering-qualifiers value))
@@ -1197,12 +1197,12 @@ Interactively, prompt for NAME, and use the current filters."
 
 (defun ibuffer-format-qualifier-1 (qualifier)
   (pcase (car qualifier)
-    (`saved
+    ('saved
      (concat " [filter: " (cdr qualifier) "]"))
-    (`or
+    ('or
      (concat " [OR" (mapconcat #'ibuffer-format-qualifier
                                (cdr qualifier) "") "]"))
-    (`and
+    ('and
      (concat " [AND" (mapconcat #'ibuffer-format-qualifier
                                 (cdr qualifier) "") "]"))
     (_
@@ -1948,11 +1948,10 @@ Otherwise buffers whose name matches an element of
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
        (with-current-buffer buf
-	 ;; hacked from midnight.el
 	 (when buffer-display-time
-	   (let* ((now (float-time))
-		  (then (float-time buffer-display-time)))
-	     (> (- now then) (* 60 60 ibuffer-old-time))))))))
+	   (time-less-p
+	    (* 60 60 ibuffer-old-time)
+	    (time-since buffer-display-time)))))))
 
 ;;;###autoload
 (defun ibuffer-mark-special-buffers ()

@@ -1,5 +1,5 @@
 /* undo handling for GNU Emacs.
-   Copyright (C) 1990, 1993-1994, 2000-2018 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2000-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -291,7 +291,7 @@ truncate_undo_list (struct buffer *b)
 {
   Lisp_Object list;
   Lisp_Object prev, next, last_boundary;
-  EMACS_INT size_so_far = 0;
+  intmax_t size_so_far = 0;
 
   /* Make sure that calling undo-outer-limit-function
      won't cause another GC.  */
@@ -348,14 +348,17 @@ truncate_undo_list (struct buffer *b)
 
   /* If by the first boundary we have already passed undo_outer_limit,
      we're heading for memory full, so offer to clear out the list.  */
-  if (FIXNUMP (Vundo_outer_limit)
-      && size_so_far > XFIXNUM (Vundo_outer_limit)
+  intmax_t undo_outer_limit;
+  if ((INTEGERP (Vundo_outer_limit)
+       && (integer_to_intmax (Vundo_outer_limit, &undo_outer_limit)
+	   ? undo_outer_limit < size_so_far
+	   : NILP (Fnatnump (Vundo_outer_limit))))
       && !NILP (Vundo_outer_limit_function))
     {
       Lisp_Object tem;
 
       /* Normally the function this calls is undo-outer-limit-truncate.  */
-      tem = call1 (Vundo_outer_limit_function, make_fixnum (size_so_far));
+      tem = call1 (Vundo_outer_limit_function, make_int (size_so_far));
       if (! NILP (tem))
 	{
 	  /* The function is responsible for making

@@ -1,6 +1,6 @@
 ;;; tmm.el --- text mode access to menu-bar  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1996, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -42,6 +42,23 @@
 (defvar tmm-next-shortcut-digit)
 (defvar tmm-table-undef)
 
+(defun tmm-menubar-keymap ()
+  "Return the current menu-bar keymap.
+
+The ordering of the return value respects `menu-bar-final-items'."
+  (let ((menu-bar '())
+        (menu-end '()))
+    (map-keymap
+     (lambda (key binding)
+       (push (cons key binding)
+             ;; If KEY is the name of an item that we want to put last,
+             ;; move it to the end.
+             (if (memq key menu-bar-final-items)
+                 menu-end
+               menu-bar)))
+     (tmm-get-keybind [menu-bar]))
+    `(keymap ,@(nreverse menu-bar) ,@(nreverse menu-end))))
+
 ;;;###autoload (define-key global-map "\M-`" 'tmm-menubar)
 ;;;###autoload (define-key global-map [menu-bar mouse-1] 'tmm-menubar-mouse)
 
@@ -58,19 +75,8 @@ to invoke `tmm-menubar' instead, customize the variable
   (interactive)
   (run-hooks 'menu-bar-update-hook)
   ;; Obey menu-bar-final-items; put those items last.
-  (let ((menu-bar '())
-        (menu-end '())
+  (let ((menu-bar (tmm-menubar-keymap))
 	menu-bar-item)
-    (map-keymap
-     (lambda (key binding)
-       (push (cons key binding)
-             ;; If KEY is the name of an item that we want to put last,
-             ;; move it to the end.
-             (if (memq key menu-bar-final-items)
-                 menu-end
-               menu-bar)))
-     (tmm-get-keybind [menu-bar]))
-    (setq menu-bar `(keymap ,@(nreverse menu-bar) ,@(nreverse menu-end)))
     (if x-position
 	(let ((column 0)
               prev-key)
@@ -154,7 +160,7 @@ specify nil for this variable."
 (defvar tmm--history nil)
 
 ;;;###autoload
-(defun tmm-prompt (menu &optional in-popup default-item)
+(defun tmm-prompt (menu &optional in-popup default-item no-execute)
   "Text-mode emulation of calling the bindings in keymap.
 Creates a text-mode menu of possible choices.  You can access the elements
 in the menu in two ways:
@@ -165,7 +171,9 @@ The last alternative is currently a hack, you cannot use mouse reliably.
 MENU is like the MENU argument to `x-popup-menu': either a
 keymap or an alist of alists.
 DEFAULT-ITEM, if non-nil, specifies an initial default choice.
-Its value should be an event that has a binding in MENU."
+Its value should be an event that has a binding in MENU.
+NO-EXECUTE, if non-nil, means to return the command the user selects
+instead of executing it."
   ;; If the optional argument IN-POPUP is t,
   ;; then MENU is an alist of elements of the form (STRING . VALUE).
   ;; That is used for recursive calls only.
@@ -268,7 +276,7 @@ Its value should be an event that has a binding in MENU."
 	   ;; We just did the inner level of a -popup menu.
 	   choice)
 	  ;; We just did the outer level.  Do the inner level now.
-	  (not-menu (tmm-prompt choice t))
+	  (not-menu (tmm-prompt choice t nil no-execute))
 	  ;; We just handled a menu keymap and found another keymap.
 	  ((keymapp choice)
 	   (if (symbolp choice)
@@ -276,11 +284,11 @@ Its value should be an event that has a binding in MENU."
 	   (condition-case nil
 	       (require 'mouse)
 	     (error nil))
-	   (tmm-prompt choice))
+	   (tmm-prompt choice nil nil no-execute))
 	  ;; We just handled a menu keymap and found a command.
 	  (choice
 	   (if chosen-string
-	       (progn
+	       (if no-execute choice
 		 (setq last-command-event chosen-string)
 		 (call-interactively choice))
 	     choice)))))

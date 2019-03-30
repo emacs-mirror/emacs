@@ -1,6 +1,6 @@
 ;;; xesam.el --- Xesam interface to search engines.
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: tools, hypermedia
@@ -410,18 +410,18 @@ If there is no registered search engine at all, the function returns nil."
 	;; Hopefully, this will change later.
 	(setq hit-fields
 	      (pcase (intern vendor-id)
-		(`Beagle
+		('Beagle
 		 '("xesam:mimeType" "xesam:url"))
-		(`Strigi
+		('Strigi
 		 '("xesam:author" "xesam:cc" "xesam:charset"
 		   "xesam:contentType" "xesam:fileExtension"
 		   "xesam:id" "xesam:lineCount" "xesam:links"
 		   "xesam:mimeType" "xesam:name" "xesam:size"
 		   "xesam:sourceModified" "xesam:subject" "xesam:to"
 		   "xesam:url"))
-		(`TrackerXesamSession
+		('TrackerXesamSession
 		 '("xesam:relevancyRating" "xesam:url"))
-		(`Debbugs
+		('Debbugs
 		 '("xesam:keyword" "xesam:owner" "xesam:title"
 		   "xesam:url" "xesam:sourceModified" "xesam:mimeType"
 		   "debbugs:key"))
@@ -622,8 +622,7 @@ Return propertized STRING."
 	(or (widget-get widget :tag) "")
 	(format-time-string
 	 "%d %B %Y, %T"
-	 (seconds-to-time
-	  (string-to-number (widget-get widget :xesam:sourceModified)))))))
+	 (string-to-number (widget-get widget :xesam:sourceModified))))))
 
     ;; Second line: :value.
     (widget-put widget :value (widget-get widget :xesam:url))

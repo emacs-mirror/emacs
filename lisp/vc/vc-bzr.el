@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -332,7 +332,7 @@ in the repository root directory of FILE."
          (file-relative-name filename* rootdir))))
 
 (defvar vc-bzr-error-regexp-alist
-  '(("^\\( M[* ]\\|+N \\|-D \\|\\|  \\*\\|R[M ] \\) \\(.+\\)" 2 nil nil 1)
+  '(("^\\( M[* ]\\|\\+N \\|-D \\|\\|  \\*\\|R[M ] \\) \\(.+\\)" 2 nil nil 1)
     ("^C  \\(.+\\)" 2)
     ("^Text conflict in \\(.+\\)" 1 nil nil 2)
     ("^Using saved parent location: \\(.+\\)" 1 nil nil 0))
@@ -782,7 +782,11 @@ If LIMIT is non-nil, show no more than this many entries."
 (defun vc-bzr-expanded-log-entry (revision)
   (with-temp-buffer
     (apply 'vc-bzr-command "log" t nil nil
-	   (list "--long" (format "-r%s" revision)))
+           (append
+            (list "--long" (format "-r%s" revision))
+            (if (stringp vc-bzr-log-switches)
+                (list vc-bzr-log-switches)
+              vc-bzr-log-switches)))
     (goto-char (point-min))
     (when (looking-at "^-+\n")
       ;; Indent the expanded log entry.
@@ -1243,7 +1247,11 @@ stream.  Standard error output is discarded."
   (let ((vc-bzr-revisions '())
         (default-directory (file-name-directory (car files))))
     (with-temp-buffer
-      (vc-bzr-command "log" t 0 files "--line")
+      (apply 'vc-bzr-command "log" t 0 files
+             (append '("--line")
+                     (if (stringp vc-bzr-log-switches)
+                         (list vc-bzr-log-switches)
+                       vc-bzr-log-switches)))
       (let ((start (point-min))
             (loglines (buffer-substring-no-properties (point-min) (point-max))))
         (while (string-match "^\\([0-9]+\\):" loglines)

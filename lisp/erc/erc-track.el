@@ -1,6 +1,6 @@
 ;;; erc-track.el --- Track modified channel buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -630,8 +630,8 @@ only consider active buffers visible.")
   (if erc-track-when-inactive
       (when erc-buffer-activity; could be nil
 	(and (erc-track-get-buffer-window buffer erc-track-visibility)
-	     (<= (erc-time-diff erc-buffer-activity (erc-current-time))
-		 erc-buffer-activity-timeout)))
+	     (not (time-less-p erc-buffer-activity-timeout
+			       (erc-time-diff erc-buffer-activity nil)))))
     (erc-track-get-buffer-window buffer erc-track-visibility)))
 
 ;;; Tracking the channel modifications
@@ -640,7 +640,7 @@ only consider active buffers visible.")
   (unless (minibuffer-window-active-p (minibuffer-window))
     ;; delay this until command has finished to make sure window is
     ;; actually visible before clearing activity
-    (add-hook 'post-command-hook 'erc-modified-channels-update)))
+    (erc-modified-channels-update)))
 
 (defvar erc-modified-channels-update-inside nil
   "Variable to prevent running `erc-modified-channels-update' multiple
@@ -669,8 +669,7 @@ ARGS are ignored."
 		  (erc-modified-channels-remove-buffer buffer))))
 	    erc-modified-channels-alist)
       (when removed-channel
-	(erc-modified-channels-display)))
-    (remove-hook 'post-command-hook 'erc-modified-channels-update)))
+	(erc-modified-channels-display)))))
 
 (defvar erc-track-mouse-face (if (featurep 'xemacs)
 				 'modeline-mousable
@@ -929,14 +928,14 @@ relative to `erc-track-switch-direction'"
 	offset)
     (when (< arg 0)
       (setq dir (pcase dir
-		  (`oldest      'newest)
-		  (`newest      'oldest)
-		  (`mostactive  'leastactive)
-		  (`leastactive 'mostactive)
-		  (`importance  'oldest)))
+		  ('oldest      'newest)
+		  ('newest      'oldest)
+		  ('mostactive  'leastactive)
+		  ('leastactive 'mostactive)
+		  ('importance  'oldest)))
       (setq arg (- arg)))
     (setq offset (pcase dir
-		   ((or `oldest `leastactive)
+		   ((or 'oldest 'leastactive)
 		    (- (length erc-modified-channels-alist) arg))
 		   (_ (1- arg))))
     ;; normalize out of range user input

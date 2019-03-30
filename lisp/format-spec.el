@@ -1,6 +1,6 @@
 ;;; format-spec.el --- functions for formatting arbitrary formatting strings
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: tools

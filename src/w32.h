@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -185,6 +185,8 @@ extern MultiByteToWideChar_Proc pMultiByteToWideChar;
 extern WideCharToMultiByte_Proc pWideCharToMultiByte;
 extern DWORD multiByteToWideCharFlags;
 
+extern const char *w32_relocate (const char *);
+
 extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);
@@ -201,6 +203,7 @@ extern int  codepage_for_filenames (CPINFO *);
 extern Lisp_Object ansi_encode_filename (Lisp_Object);
 extern int  w32_copy_file (const char *, const char *, int, int, int);
 extern int  w32_accessible_directory_p (const char *, ptrdiff_t);
+extern void w32_init_current_directory (void);
 
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);

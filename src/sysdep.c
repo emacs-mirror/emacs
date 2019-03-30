@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2018 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -150,22 +150,52 @@ static const int baud_convert[] =
 #ifdef HAVE_PERSONALITY_ADDR_NO_RANDOMIZE
 # include <sys/personality.h>
 
-/* Disable address randomization in the current process.  Return true
-   if addresses were randomized but this has been disabled, false
-   otherwise. */
-bool
-disable_address_randomization (void)
-{
-  int pers = personality (0xffffffff);
-  if (pers < 0)
-    return false;
-  int desired_pers = pers | ADDR_NO_RANDOMIZE;
+/* If not -1, the personality that should be restored before exec.  */
+static int exec_personality;
 
-  /* Call 'personality' twice, to detect buggy platforms like WSL
-     where 'personality' always returns 0.  */
-  return (pers != desired_pers
-	  && personality (desired_pers) == pers
-	  && personality (0xffffffff) == desired_pers);
+/* Try to disable randomization if the current process needs it and
+   does not appear to have it already.  */
+int
+maybe_disable_address_randomization (bool dumping, int argc, char **argv)
+{
+  /* Undocumented Emacs option used only by this function.  */
+  static char const aslr_disabled_option[] = "--__aslr-disabled";
+
+  if (argc < 2 || strcmp (argv[1], aslr_disabled_option) != 0)
+    {
+      bool disable_aslr = dumping;
+# ifdef __PPC64__
+      disable_aslr = true;
+# endif
+      exec_personality = disable_aslr ? personality (0xffffffff) : -1;
+      if (exec_personality & ADDR_NO_RANDOMIZE)
+	exec_personality = -1;
+      if (exec_personality != -1
+	  && personality (exec_personality | ADDR_NO_RANDOMIZE) != -1)
+	{
+	  char **newargv = malloc ((argc + 2) * sizeof *newargv);
+	  if (newargv)
+	    {
+	      /* Invoke self with undocumented option.  */
+	      newargv[0] = argv[0];
+	      newargv[1] = (char *) aslr_disabled_option;
+	      memcpy (&newargv[2], &argv[1], argc * sizeof *newargv);
+	      execvp (newargv[0], newargv);
+	    }
+
+	  /* If malloc or execvp fails, warn and then try anyway.  */
+	  perror (argv[0]);
+	  free (newargv);
+	}
+    }
+  else
+    {
+      /* Our earlier incarnation already disabled ASLR.  */
+      argc--;
+      memmove (&argv[1], &argv[2], argc * sizeof *argv);
+    }
+
+  return argc;
 }
 #endif
 
@@ -177,21 +207,12 @@ int
 emacs_exec_file (char const *file, char *const *argv, char *const *envp)
 {
 #ifdef HAVE_PERSONALITY_ADDR_NO_RANDOMIZE
-  int pers = getenv ("EMACS_HEAP_EXEC") ? personality (0xffffffff) : -1;
-  bool change_personality = 0 <= pers && pers & ADDR_NO_RANDOMIZE;
-  if (change_personality)
-    personality (pers & ~ADDR_NO_RANDOMIZE);
+  if (exec_personality != -1)
+    personality (exec_personality);
 #endif
 
   execve (file, argv, envp);
-  int err = errno;
-
-#ifdef HAVE_PERSONALITY_ADDR_NO_RANDOMIZE
-  if (change_personality)
-    personality (pers);
-#endif
-
-  return err;
+  return errno;
 }
 
 /* If FD is not already open, arrange for it to be open with FLAGS.  */
@@ -236,12 +257,12 @@ get_current_dir_name_or_unreachable (void)
 
   char *pwd;
 
-  /* The maximum size of a directory name, including the terminating null.
+  /* The maximum size of a directory name, including the terminating NUL.
      Leave room so that the caller can append a trailing slash.  */
   ptrdiff_t dirsize_max = min (PTRDIFF_MAX, SIZE_MAX) - 1;
 
   /* The maximum size of a buffer for a file name, including the
-     terminating null.  This is bounded by MAXPATHLEN, if available.  */
+     terminating NUL.  This is bounded by MAXPATHLEN, if available.  */
   ptrdiff_t bufsize_max = dirsize_max;
 #ifdef MAXPATHLEN
   bufsize_max = min (bufsize_max, MAXPATHLEN);
@@ -249,7 +270,7 @@ get_current_dir_name_or_unreachable (void)
 
 # if HAVE_GET_CURRENT_DIR_NAME && !BROKEN_GET_CURRENT_DIR_NAME
 #  ifdef HYBRID_MALLOC
-  bool use_libc = bss_sbrk_did_unexec;
+  bool use_libc = will_dump_with_unexec_p ();
 #  else
   bool use_libc = true;
 #  endif
@@ -1499,18 +1520,18 @@ reset_sys_modes (struct tty_display_info *tty_out)
     tty_out->terminal->reset_terminal_modes_hook (tty_out->terminal);
 
   /* Avoid possible loss of output when changing terminal modes.  */
-  while (fdatasync (fileno (tty_out->output)) != 0 && errno == EINTR)
+  while (tcdrain (fileno (tty_out->output)) != 0 && errno == EINTR)
     continue;
 
 #ifndef DOS_NT
-#ifdef F_SETOWN
+# ifdef F_SETOWN
   if (interrupt_input)
     {
       reset_sigio (fileno (tty_out->input));
       fcntl (fileno (tty_out->input), F_SETOWN,
              old_fcntl_owner[fileno (tty_out->input)]);
     }
-#endif /* F_SETOWN */
+# endif /* F_SETOWN */
   fcntl (fileno (tty_out->input), F_SETFL,
          fcntl (fileno (tty_out->input), F_GETFL, 0) & ~O_NONBLOCK);
 #endif
@@ -1829,8 +1850,8 @@ stack_overflow (siginfo_t *siginfo)
 
   /* The known top and bottom of the stack.  The actual stack may
      extend a bit beyond these boundaries.  */
-  char *bot = stack_bottom;
-  char *top = current_thread->stack_top;
+  char const *bot = stack_bottom;
+  char const *top = current_thread->stack_top;
 
   /* Log base 2 of the stack heuristic ratio.  This ratio is the size
      of the known stack divided by the size of the guard area past the
@@ -1887,7 +1908,10 @@ init_sigsegv (void)
   sigfillset (&sa.sa_mask);
   sa.sa_sigaction = handle_sigsegv;
   sa.sa_flags = SA_SIGINFO | SA_ONSTACK | emacs_sigaction_flags ();
-  return sigaction (SIGSEGV, &sa, NULL) < 0 ? 0 : 1;
+  if (sigaction (SIGSEGV, &sa, NULL) < 0)
+    return 0;
+
+  return 1;
 }
 
 #else /* not HAVE_STACK_OVERFLOW_HANDLING or WINDOWSNT */
@@ -1942,7 +1966,7 @@ maybe_fatal_sig (int sig)
 }
 
 void
-init_signals (bool dumping)
+init_signals (void)
 {
   struct sigaction thread_fatal_action;
   struct sigaction action;
@@ -2093,7 +2117,7 @@ init_signals (bool dumping)
   /* Don't alter signal handlers if dumping.  On some machines,
      changing signal handlers sets static data that would make signals
      fail to work right when the dumped Emacs is run.  */
-  if (dumping)
+  if (will_dump_p ())
     return;
 
   sigfillset (&process_fatal_action.sa_mask);
@@ -3411,7 +3435,7 @@ system_process_attributes (Lisp_Object pid)
 
       if (nread)
 	{
-	  /* We don't want trailing null characters.  */
+	  /* We don't want trailing NUL characters.  */
 	  for (p = cmdline + nread; cmdline < p && !p[-1]; p--)
 	    continue;
 

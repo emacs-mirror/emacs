@@ -1,6 +1,6 @@
 ;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -282,7 +282,6 @@ See `eshell-needs-pipe'."
 	    (let ((process-connection-type
 		   (unless (eshell-needs-pipe-p command)
 		     process-connection-type))
-		  ;; `start-process' can't deal with relative filenames.
 		  (command (file-local-name (expand-file-name command))))
 	      (apply 'start-file-process
 		     (file-name-nondirectory command) nil command args)))
@@ -499,7 +498,7 @@ See the variable `eshell-kill-processes-on-exit'."
 					(buffer-name))))
 	  (eshell-round-robin-kill
 	   (if (eq eshell-kill-processes-on-exit 'every)
-	       (format-message "Kill Eshell child process `%s'? "))))
+	       "Kill Eshell child process `%s'? ")))
       (let ((buf (get-buffer "*Process List*")))
 	(if (and buf (buffer-live-p buf))
 	    (kill-buffer buf)))

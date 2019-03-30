@@ -1,7 +1,7 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001-2019 Free Software Foundation, Inc.
 @c
 @c @setfilename gnus-faq.info
 @c @settitle Frequently Asked Questions
@@ -284,7 +284,7 @@ what's this?
 @subsubheading Answer
 
 You get the message described in the q/a pair above while
-starting Gnus, right? It's an other symptom for the same
+starting Gnus, right? It's another symptom for the same
 problem, so read the answer above.
 
 @node FAQ 2-3

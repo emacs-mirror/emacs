@@ -1,6 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2019 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -519,7 +519,7 @@ font-lock is done highlighting.")
 (defmacro mh-remove-xemacs-horizontal-scrollbar ()
   "Get rid of the horizontal scrollbar that XEmacs insists on putting in."
   (when (featurep 'xemacs)
-    `(if (and (featurep 'scrollbar)
+    '(if (and (featurep 'scrollbar)
               (fboundp 'set-specifier))
          (set-specifier horizontal-scrollbar-visible-p nil
                         (cons (current-buffer) nil)))))

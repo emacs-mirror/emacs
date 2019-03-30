@@ -1,6 +1,6 @@
 ;;; common-win.el --- common part of handling window systems
 
-;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: terminals

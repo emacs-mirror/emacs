@@ -1,6 +1,6 @@
 ;;; reftex-cite.el --- creating citations with RefTeX
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -172,7 +172,7 @@ If RETURN is non-nil, just return the entry and restore point."
         (if item
             (progn (end-of-line)
                    (re-search-forward
-                    "\\\\bibitem\\|\\end{thebibliography}")
+                    "\\\\bibitem\\|\\\\end{thebibliography}")
                    (1- (match-beginning 0)))
           (progn (forward-list 1) (point)))
       (error (min (point-max) (+ 300 (point)))))))
@@ -447,7 +447,7 @@ If FIELD is empty try \"editor\" field."
         (setq names (reftex-get-bib-field "editor" entry)))
     (while (string-match "\\band\\b[ \t]*" names)
       (setq names (replace-match "\n" nil t names)))
-    (while (string-match "[\\.a-zA-Z\\-]+\\.[ \t]*\\|,.*\\|[{}]+" names)
+    (while (string-match "[-.a-zA-Z]+\\.[ \t]*\\|,.*\\|[{}]+" names)
       (setq names (replace-match "" nil t names)))
     (while (string-match "^[ \t]+\\|[ \t]+$" names)
       (setq names (replace-match "" nil t names)))

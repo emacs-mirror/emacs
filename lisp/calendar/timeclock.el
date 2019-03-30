@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -467,16 +467,10 @@ include the second count.  If REVERSE-LEADER is non-nil, it means to
 output a \"+\" if the time value is negative, rather than a \"-\".
 This is used when negative time values have an inverted meaning (such
 as with time remaining, where negative time really means overtime)."
-  (if show-seconds
-      (format "%s%d:%02d:%02d"
-	      (if (< seconds 0) (if reverse-leader "+" "-") "")
-	      (truncate (/ (abs seconds) 60 60))
-	      (% (truncate (/ (abs seconds) 60)) 60)
-	      (% (truncate (abs seconds)) 60))
-    (format "%s%d:%02d"
+  (let ((s (abs (truncate seconds))))
+    (format (if show-seconds "%s%d:%02d:%02d" "%s%d:%02d")
 	    (if (< seconds 0) (if reverse-leader "+" "-") "")
-	    (truncate (/ (abs seconds) 60 60))
-	    (% (truncate (/ (abs seconds) 60)) 60))))
+	    (/ s 3600) (% (/ s 60) 60) (% s 60))))
 
 (defsubst timeclock-currently-in-p ()
   "Return non-nil if the user is currently clocked in."
@@ -528,14 +522,12 @@ non-nil, the amount returned will be relative to past time worked."
   "Return a time value representing the end of today's workday.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time."
-  (seconds-to-time
-   (- (float-time)
-      (let ((discrep (timeclock-find-discrep)))
-	(if discrep
-	    (if today-only
-		(cadr discrep)
-	      (car discrep))
-	  0.0)))))
+  (time-since (let ((discrep (timeclock-find-discrep)))
+		(if discrep
+		    (if today-only
+			(cadr discrep)
+		      (car discrep))
+		  0))))
 
 ;;;###autoload
 (defun timeclock-when-to-leave-string (&optional show-seconds
@@ -672,8 +664,8 @@ being logged for.  Normally only \"in\" events specify a project."
 		    "\n")
 	    (if (equal (downcase code) "o")
 		(setq timeclock-last-period
-		      (- (float-time now)
-			 (float-time (cadr timeclock-last-event)))
+		      (float-time
+		       (time-subtract now (cadr timeclock-last-event)))
 		      timeclock-discrepancy
 		      (+ timeclock-discrepancy
 			 timeclock-last-period)))
@@ -708,8 +700,7 @@ recorded to disk.  If MOMENT is non-nil, use that as the current time.
 This is only provided for coherency when used by
 `timeclock-discrepancy'."
   (if (equal (car timeclock-last-event) "i")
-      (- (float-time moment)
-	 (float-time (cadr timeclock-last-event)))
+      (float-time (time-subtract moment (cadr timeclock-last-event)))
     timeclock-last-period))
 
 (cl-defstruct (timeclock-entry
@@ -722,8 +713,7 @@ This is only provided for coherency when used by
 
 (defsubst timeclock-entry-length (entry)
   "Return the length of ENTRY in seconds."
-  (- (float-time (cadr entry))
-     (float-time (car entry))))
+  (float-time (time-subtract (cadr entry) (car entry))))
 
 (defsubst timeclock-entry-list-length (entry-list)
   "Return the total length of ENTRY-LIST in seconds."
@@ -742,8 +732,8 @@ This is only provided for coherency when used by
 
 (defsubst timeclock-entry-list-span (entry-list)
   "Return the total time in seconds spanned by ENTRY-LIST."
-  (- (float-time (timeclock-entry-list-end entry-list))
-     (float-time (timeclock-entry-list-begin entry-list))))
+  (float-time (time-subtract (timeclock-entry-list-end entry-list)
+			     (timeclock-entry-list-begin entry-list))))
 
 (defsubst timeclock-entry-list-break (entry-list)
   "Return the total break time (span - length) in ENTRY-LIST."
@@ -1110,7 +1100,7 @@ discrepancy, today's discrepancy, and the time worked today."
 			   last-date-limited nil)
 		     (if beg
 			 (error "Error in format of timelog file!")
-		       (setq beg (float-time (cadr event))))))
+		       (setq beg (cadr event)))))
 		  ((equal (downcase (car event)) "o")
 		   (if (and (nth 2 event)
 			    (> (length (nth 2 event)) 0))
@@ -1118,7 +1108,7 @@ discrepancy, today's discrepancy, and the time worked today."
 		   (if (not beg)
 		       (error "Error in format of timelog file!")
 		     (setq timeclock-last-period
-			   (- (float-time (cadr event)) beg)
+			   (float-time (time-subtract (cadr event) beg))
 			   accum (+ timeclock-last-period accum)
 			   beg nil))
 		   (if (equal last-date todays-date)
@@ -1156,7 +1146,7 @@ If optional argument TIME is non-nil, use that instead of the current time."
     (setcar (nthcdr 0 decoded) 0)
     (setcar (nthcdr 1 decoded) 0)
     (setcar (nthcdr 2 decoded) 0)
-    (apply 'encode-time decoded)))
+    (encode-time decoded)))
 
 (defun timeclock-mean (l)
   "Compute the arithmetic mean of the values in the list L."
@@ -1196,9 +1186,7 @@ HTML-P is non-nil, HTML markup is added."
 	    (insert project "</b><br>\n")
 	  (insert project "*\n"))
 	(let ((proj-data (cdr (assoc project (timeclock-project-alist log))))
-	      (two-weeks-ago (seconds-to-time
-			      (- (float-time today)
-				 (* 2 7 24 60 60))))
+	      (two-weeks-ago (time-subtract today (* 2 7 24 60 60)))
 	      two-week-len today-len)
 	  (while proj-data
 	    (if (not (time-less-p
@@ -1249,18 +1237,10 @@ HTML-P is non-nil, HTML markup is added."
     <th>-1 year</th>
 </tr>")
 	(let* ((day-list (timeclock-day-list))
-	       (thirty-days-ago (seconds-to-time
-				 (- (float-time today)
-				    (* 30 24 60 60))))
-	       (three-months-ago (seconds-to-time
-				  (- (float-time today)
-				     (* 90 24 60 60))))
-	       (six-months-ago (seconds-to-time
-				(- (float-time today)
-				   (* 180 24 60 60))))
-	       (one-year-ago (seconds-to-time
-			      (- (float-time today)
-				 (* 365 24 60 60))))
+	       (thirty-days-ago (time-subtract today (* 30 24 60 60)))
+	       (three-months-ago (time-subtract today (* 90 24 60 60)))
+	       (six-months-ago (time-subtract today (* 180 24 60 60)))
+	       (one-year-ago (time-subtract today (* 365 24 60 60)))
 	       (time-in  (vector (list t) (list t) (list t) (list t) (list t)))
 	       (time-out (vector (list t) (list t) (list t) (list t) (list t)))
 	       (breaks   (vector (list t) (list t) (list t) (list t) (list t)))
@@ -1273,12 +1253,11 @@ HTML-P is non-nil, HTML markup is added."
 	      (unless (time-less-p
 		       (timeclock-day-begin day)
 		       (aref lengths i))
-		(let ((base (float-time
-			     (timeclock-day-base
-			      (timeclock-day-begin day)))))
+		(let ((base (timeclock-day-base (timeclock-day-begin day))))
 		  (nconc (aref time-in i)
-			 (list (- (float-time (timeclock-day-begin day))
-				  base)))
+			 (list (float-time (time-subtract
+					    (timeclock-day-begin day)
+				            base))))
 		  (let ((span (timeclock-day-span day))
 			(len (timeclock-day-length day))
 			(req (timeclock-day-required day)))
@@ -1289,8 +1268,9 @@ HTML-P is non-nil, HTML markup is added."
 		    (when (and (> span 0)
 			       (> (/ (float len) (float span)) 0.70))
 		      (nconc (aref time-out i)
-			     (list (- (float-time (timeclock-day-end day))
-				      base)))
+			     (list (float-time (time-subtract
+						(timeclock-day-end day)
+						base))))
 		      (nconc (aref breaks i) (list (- span len))))
 		    (if req
 			(setq len (+ len (- timeclock-workday req))))

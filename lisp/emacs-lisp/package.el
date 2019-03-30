@@ -1,6 +1,6 @@
 ;;; package.el --- Simple package system for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
@@ -487,7 +487,7 @@ This is, approximately, the inverse of `version-to-list'.
                 str-list))))
       (if (equal "." (car str-list))
           (pop str-list))
-      (apply 'concat (nreverse str-list)))))
+      (apply #'concat (nreverse str-list)))))
 
 (defun package-desc-full-name (pkg-desc)
   (format "%s-%s"
@@ -496,9 +496,9 @@ This is, approximately, the inverse of `version-to-list'.
 
 (defun package-desc-suffix (pkg-desc)
   (pcase (package-desc-kind pkg-desc)
-    (`single ".el")
-    (`tar ".tar")
-    (`dir "")
+    ('single ".el")
+    ('tar ".tar")
+    ('dir "")
     (kind (error "Unknown package kind: %s" kind))))
 
 (defun package-desc--keywords (pkg-desc)
@@ -608,6 +608,12 @@ updates `package-alist'."
           (let ((pkg-dir (expand-file-name subdir dir)))
             (when (file-directory-p pkg-dir)
               (package-load-descriptor pkg-dir))))))))
+
+(defun package--alist ()
+  "Return `package-alist', after computing it if needed."
+  (or package-alist
+      (progn (package-load-all-descriptors)
+             package-alist)))
 
 (defun define-package (_name-string _version-string
                                     &optional _docstring _requirements
@@ -750,7 +756,8 @@ DIR, sorted by most recently loaded last."
   (let* ((history (delq nil
                         (mapcar (lambda (x)
                                   (let ((f (car x)))
-                                    (and f (file-name-sans-extension f))))
+                                    (and (stringp f)
+                                         (file-name-sans-extension f))))
                                 load-history)))
          (dir (file-truename dir))
          ;; List all files that have already been loaded.
@@ -837,7 +844,7 @@ untar into a directory named DIR; otherwise, signal an error."
   (tar-untar-buffer))
 
 (defun package--alist-to-plist-args (alist)
-  (mapcar 'macroexp-quote
+  (mapcar #'macroexp-quote
           (apply #'nconc
                  (mapcar (lambda (pair) (list (car pair) (cdr pair))) alist))))
 (defun package-unpack (pkg-desc)
@@ -846,7 +853,7 @@ untar into a directory named DIR; otherwise, signal an error."
          (dirname (package-desc-full-name pkg-desc))
          (pkg-dir (expand-file-name dirname package-user-dir)))
     (pcase (package-desc-kind pkg-desc)
-      (`dir
+      ('dir
        (make-directory pkg-dir t)
        (let ((file-list
               (directory-files
@@ -860,12 +867,12 @@ untar into a directory named DIR; otherwise, signal an error."
          ;; things simple by ensuring we're one of them.
          (setf (package-desc-kind pkg-desc)
                (if (> (length file-list) 1) 'tar 'single))))
-      (`tar
+      ('tar
        (make-directory package-user-dir t)
        ;; FIXME: should we delete PKG-DIR if it exists?
        (let* ((default-directory (file-name-as-directory package-user-dir)))
          (package-untar-buffer dirname)))
-      (`single
+      ('single
        (let ((el-file (expand-file-name (format "%s.el" name) pkg-dir)))
          (make-directory pkg-dir t)
          (package--write-file-no-coding el-file)))
@@ -898,7 +905,9 @@ untar into a directory named DIR; otherwise, signal an error."
           (print-length nil))
       (write-region
        (concat
-        ";;; -*- no-byte-compile: t -*-\n"
+        ";;; Generated package description from "
+        (replace-regexp-in-string "-pkg\\.el\\'" ".el" pkg-file)
+        "  -*- no-byte-compile: t -*-\n"
         (prin1-to-string
          (nconc
           (list 'define-package
@@ -1001,6 +1010,7 @@ is wrapped around any parts requiring it."
 
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-homepage "lisp-mnt" (&optional file))
+(declare-function lm-keywords-list "lisp-mnt" (&optional file))
 (declare-function lm-maintainer "lisp-mnt" (&optional file))
 (declare-function lm-authors "lisp-mnt" (&optional file))
 
@@ -1031,6 +1041,7 @@ boundaries."
            (pkg-version
             (or (package-strip-rcs-id (lm-header "package-version"))
                 (package-strip-rcs-id (lm-header "version"))))
+           (keywords (lm-keywords-list))
            (homepage (lm-homepage)))
       (unless pkg-version
         (error
@@ -1042,6 +1053,7 @@ boundaries."
             (package-read-from-string requires-str)))
        :kind 'single
        :url homepage
+       :keywords keywords
        :maintainer (lm-maintainer)
        :authors (lm-authors)))))
 
@@ -1491,10 +1503,8 @@ The variable `package-load-list' controls which packages to load."
       ;; 2 (this assumes we were careful to save this file so it doesn't need
       ;; any decoding).
       (let ((load-source-file-function nil))
-        (load package-quickstart-file))
-    (unless package--initialized
-      (package-initialize t))
-    (dolist (elt package-alist)
+        (load package-quickstart-file nil 'nomessage))
+    (dolist (elt (package--alist))
       (condition-case err
           (package-activate (car elt))
         ;; Don't let failure of activation of a package arbitrarily stop
@@ -1563,14 +1573,16 @@ similar to an entry in `package-alist'.  Save the cached copy to
                 (member name package-unsigned-archives))
             ;; If we don't care about the signature, save the file and
             ;; we're done.
-            (progn (write-region content nil local-file nil 'silent)
+            (progn (let ((coding-system-for-write 'utf-8))
+                     (write-region content nil local-file nil 'silent))
                    (package--update-downloads-in-progress archive))
           ;; If we care, check it (perhaps async) and *then* write the file.
           (package--check-signature
            location file content async
            ;; This function will be called after signature checking.
            (lambda (&optional good-sigs)
-             (write-region content nil local-file nil 'silent)
+             (let ((coding-system-for-write 'utf-8))
+               (write-region content nil local-file nil 'silent))
              ;; Write out good signatures into archive-contents.signed file.
              (when good-sigs
                (write-region (mapconcat #'epg-signature-to-string good-sigs "\n")
@@ -1903,10 +1915,9 @@ If PACKAGE is a `package-desc' object, MIN-VERSION is ignored."
     ;; We used the quickstart: make it possible to use package-installed-p
     ;; even before package is fully initialized.
     (memq package package-activated-list))
-   ((not package--initialized) (error "package.el is not yet initialized!"))
    (t
     (or
-     (let ((pkg-descs (cdr (assq package package-alist))))
+     (let ((pkg-descs (cdr (assq package (package--alist)))))
        (and pkg-descs
             (version-list-<= min-version
                              (package-desc-version (car pkg-descs)))))
@@ -2079,16 +2090,12 @@ If NOSAVE is non-nil, the package is not removed from
 `package-selected-packages'."
   (interactive
    (progn
-     ;; Initialize the package system to get the list of package
-     ;; symbols for completion.
-     (unless package--initialized
-       (package-initialize t))
      (let* ((package-table
              (mapcar
               (lambda (p) (cons (package-desc-full-name p) p))
               (delq nil
                     (mapcar (lambda (p) (unless (package-built-in-p p) p))
-                            (apply #'append (mapcar #'cdr package-alist))))))
+                            (apply #'append (mapcar #'cdr (package--alist)))))))
             (package-name (completing-read "Delete package: "
                                            (mapcar #'car package-table)
                                            nil t)))
@@ -2123,6 +2130,9 @@ If NOSAVE is non-nil, the package is not removed from
            (add-hook 'post-command-hook #'package-menu--post-refresh)
            (delete-directory dir t)
            ;; Remove NAME-VERSION.signed and NAME-readme.txt files.
+           ;;
+           ;; NAME-readme.txt files are no longer created, but they
+           ;; may be left around from an earlier install.
            (dolist (suffix '(".signed" "readme.txt"))
              (let* ((version (package-version-join (package-desc-version pkg-desc)))
                     (file (concat (if (string= suffix ".signed")
@@ -2193,12 +2203,12 @@ will be deleted."
      ;; Load the package list if necessary (but don't activate them).
      (unless package--initialized
        (package-initialize t))
-     (let ((packages (append (mapcar 'car package-alist)
-                             (mapcar 'car package-archive-contents)
-                             (mapcar 'car package--builtins))))
+     (let ((packages (append (mapcar #'car package-alist)
+                             (mapcar #'car package-archive-contents)
+                             (mapcar #'car package--builtins))))
        (unless (memq guess packages)
          (setq guess nil))
-       (setq packages (mapcar 'symbol-name packages))
+       (setq packages (mapcar #'symbol-name packages))
        (let ((val
               (completing-read (if guess
                                    (format "Describe package (default %s): "
@@ -2232,6 +2242,45 @@ Otherwise no newline is inserted."
     (insert "\n")))
 
 (declare-function lm-commentary "lisp-mnt" (&optional file))
+
+(defun package--get-description (desc)
+  "Return a string containing the long description of the package DESC.
+The description is read from the installed package files."
+  ;; Installed packages have nil for kind, so we look for README
+  ;; first, then fall back to the Commentary header.
+
+  ;; We don’t include README.md here, because that is often the home
+  ;; page on a site like github, and not suitable as the package long
+  ;; description.
+  (let ((files '("README-elpa" "README-elpa.md" "README" "README.rst" "README.org"))
+        file
+        (srcdir (package-desc-dir desc))
+        result)
+    (while (and files
+                (not result))
+      (setq file (pop files))
+      (when (file-readable-p (expand-file-name file srcdir))
+        ;; Found a README.
+        (with-temp-buffer
+          (insert-file-contents (expand-file-name file srcdir))
+          (setq result (buffer-string)))))
+
+    (or
+     result
+
+     ;; Look for Commentary header.
+     (let ((mainsrcfile (expand-file-name (format "%s.el" (package-desc-name desc))
+                                          srcdir)))
+       (when (file-readable-p mainsrcfile)
+         (with-temp-buffer
+           (insert (or (lm-commentary mainsrcfile) ""))
+           (goto-char (point-min))
+           (when (re-search-forward "^;;; Commentary:\n" nil t)
+             (replace-match ""))
+           (while (re-search-forward "^\\(;+ ?\\)" nil t)
+             (replace-match ""))
+           (buffer-string))))
+     )))
 
 (defun describe-package-1 (pkg)
   (require 'lisp-mnt)
@@ -2406,7 +2455,8 @@ Otherwise no newline is inserted."
     (insert "\n")
 
     (if built-in
-        ;; For built-in packages, insert the commentary.
+        ;; For built-in packages, get the description from the
+        ;; Commentary header.
         (let ((fn (locate-file (format "%s.el" name) load-path
                                load-file-rep-suffixes))
               (opoint (point)))
@@ -2417,27 +2467,26 @@ Otherwise no newline is inserted."
               (replace-match ""))
             (while (re-search-forward "^\\(;+ ?\\)" nil t)
               (replace-match ""))))
-      (let* ((basename (format "%s-readme.txt" name))
-             (readme (expand-file-name basename package-user-dir))
-             readme-string)
-        ;; For elpa packages, try downloading the commentary.  If that
-        ;; fails, try an existing readme file in `package-user-dir'.
-        (cond ((and (package-desc-archive desc)
-                    (package--with-response-buffer (package-archive-base desc)
-                      :file basename :noerror t
-                      (save-excursion
-                        (goto-char (point-max))
-                        (unless (bolp)
-                          (insert ?\n)))
-                      (write-region nil nil
-                                    (expand-file-name readme package-user-dir)
-                                    nil 'silent)
-                      (setq readme-string (buffer-string))
-                      t))
-               (insert readme-string))
-              ((file-readable-p readme)
-               (insert-file-contents readme)
-               (goto-char (point-max))))))))
+
+      (if (package-installed-p desc)
+          ;; For installed packages, get the description from the installed files.
+          (insert (package--get-description desc))
+
+        ;; For non-built-in, non-installed packages, get description from the archive.
+        (let* ((basename (format "%s-readme.txt" name))
+               readme-string)
+
+          (package--with-response-buffer (package-archive-base desc)
+            :file basename :noerror t
+            (save-excursion
+              (goto-char (point-max))
+              (unless (bolp)
+                (insert ?\n)))
+            (setq readme-string (buffer-string))
+            t)
+          (insert (or readme-string
+                      "This package does not provide a description.")))
+        ))))
 
 (defun package-install-button-action (button)
   (let ((pkg-desc (button-get button 'package-desc)))
@@ -2466,7 +2515,7 @@ Otherwise no newline is inserted."
                                 :background "light grey"
                                 :foreground "black")
                        'link)))
-    (apply 'insert-text-button button-text 'face button-face 'follow-link t
+    (apply #'insert-text-button button-text 'face button-face 'follow-link t
            props)))
 
 
@@ -2494,7 +2543,7 @@ Otherwise no newline is inserted."
 
 (easy-menu-define package-menu-mode-menu package-menu-mode-map
   "Menu for `package-menu-mode'."
-  `("Package"
+  '("Package"
     ["Describe Package" package-menu-describe-package :help "Display information about this package"]
     ["Help" package-menu-quick-help :help "Show short key binding help for package-menu-mode"]
     "--"
@@ -2547,7 +2596,7 @@ Letters do not insert themselves; instead, they are commands.
           ("Description" 0 nil)])
   (setq tabulated-list-padding 2)
   (setq tabulated-list-sort-key (cons "Status" nil))
-  (add-hook 'tabulated-list-revert-hook 'package-menu--refresh nil t)
+  (add-hook 'tabulated-list-revert-hook #'package-menu--refresh nil t)
   (tabulated-list-init-header))
 
 (defmacro package--push (pkg-desc status listname)
@@ -2818,7 +2867,7 @@ shown."
   (package-menu--refresh packages keywords)
   (setf (car (aref tabulated-list-format 0))
         (if keywords
-            (let ((filters (mapconcat 'identity keywords ",")))
+            (let ((filters (mapconcat #'identity keywords ",")))
               (concat "Package[" filters "]"))
           "Package"))
   (if keywords
@@ -3392,6 +3441,9 @@ short description."
   ;; Generate the Package Menu.
   (let ((buf (get-buffer-create "*Packages*")))
     (with-current-buffer buf
+      ;; Since some packages have their descriptions include non-ASCII
+      ;; characters...
+      (setq buffer-file-coding-system 'utf-8)
       (package-menu-mode)
 
       ;; Fetch the remote list of packages.

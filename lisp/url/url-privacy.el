@@ -1,6 +1,6 @@
 ;;; url-privacy.el --- Global history tracking for URL package
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -45,9 +45,9 @@
 	 ((memq (url-device-type) '(win32 w32)) "Windows; 32bit")
 	 (t
 	  (pcase (url-device-type)
-	    (`x "X11")
-	    (`ns "OpenStep")
-	    (`tty "TTY")
+	    ('x "X11")
+	    ('ns "OpenStep")
+	    ('tty "TTY")
 	    (_ nil)))))
 
   (setq url-personal-mail-address (or url-personal-mail-address

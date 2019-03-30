@@ -1,6 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Torbjörn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -648,7 +648,7 @@ forall\\|block\\|critical\\)\\)\\_>"
 \\|enumerator\\|procedure\\|\
 logical\\|double[ \t]*precision\\|type[ \t]*(\\(?:\\sw\\|\\s_\\)+)\\|none\\)[ \t]*"
       (1 font-lock-keyword-face) (2 font-lock-type-face))
-    '("\\_<\\(namelist\\|common\\)[ \t]*/\\(\\(?:\\sw\\|\\s_\\)+\\)?\/"
+    '("\\_<\\(namelist\\|common\\)[ \t]*/\\(\\(?:\\sw\\|\\s_\\)+\\)?/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     "\\_<else\\([ \t]*if\\|where\\)?\\_>"
     '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))

@@ -8,7 +8,7 @@
 @copying
 This file documents the GNU Emacs Web Wowser (EWW) package.
 
-Copyright @copyright{} 2014--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2014--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -85,6 +85,10 @@ searched via @code{eww-search-prefix}.  The default search engine is
 either prefix the file name with @code{file://} or use the command
 @kbd{M-x eww-open-file}.
 
+  If you invoke @code{eww} with a prefix argument, as in @w{@kbd{C-u
+M-x eww}}, it will create a new EWW buffer instead of reusing the
+default one, which is normally called @file{*eww*}.
+
 @findex eww-quit
 @findex eww-reload
 @findex eww-copy-page-url
@@ -118,16 +122,17 @@ variable-pitch fonts or not.  This sets the @code{shr-use-fonts} variable.
 @findex eww-toggle-colors
 @findex shr-use-colors
 @kindex F
-  The @kbd{C} command (@code{eww-toggle-colors}) toggles whether to use
+  The @kbd{M-C} command (@code{eww-toggle-colors}) toggles whether to use
 HTML-specified colors or not.  This sets the @code{shr-use-colors} variable.
 
 @findex eww-download
 @vindex eww-download-directory
 @kindex d
 @cindex Download
-  A URL under the point can be downloaded with @kbd{d}
-(@code{eww-download}).  The file will be written to the directory
-specified in @code{eww-download-directory} (Default: @file{~/Downloads/}).
+  A URL can be downloaded with @kbd{d} (@code{eww-download}).  This
+will download the link under point if there is one, or else the URL of
+the current page.  The file will be written to the directory specified
+in @code{eww-download-directory} (default: @file{~/Downloads/}).
 
 @findex eww-back-url
 @findex eww-forward-url

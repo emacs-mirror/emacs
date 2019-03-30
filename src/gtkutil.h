@@ -1,6 +1,6 @@
 /* Definitions and headers for GTK widgets.
 
-Copyright (C) 2003-2018 Free Software Foundation, Inc.
+Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -202,5 +202,6 @@ extern void xg_initialize (void);
    to indicate that the callback should do nothing.  */
 extern bool xg_ignore_gtk_scrollbar;
 
+extern bool xg_gtk_initialized;
 #endif /* USE_GTK */
 #endif /* GTKUTIL_H */

@@ -1,7 +1,5 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@include gnus-overrides.texi
-
 @set VERSION 0.3
 
 @setfilename ../../info/auth.info
@@ -11,7 +9,7 @@
 @copying
 This file describes the Emacs auth-source library.
 
-Copyright @copyright{} 2008--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2008--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -108,6 +106,15 @@ The @code{port} is the connection port or protocol.  It's known as
 The @code{user} is the user name.  It's known as @var{:user} in
 @code{auth-source-search} queries.  You can also use @code{login} and
 @code{account}.
+
+You can also use this file to specify client certificates to use when
+setting up TLS connections.  The format is:
+@example
+machine @var{mymachine} port @var{myport} key @var{key} cert @var{cert}
+@end example
+
+@var{key} and @var{cert} are filenames containing the key and
+certificate to use respectively.
 
 You can use spaces inside a password or other token by surrounding the
 token with either single or double quotes.

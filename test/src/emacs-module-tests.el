@@ -1,6 +1,6 @@
 ;;; Test GNU Emacs modules.
 
-;; Copyright 2015-2018 Free Software Foundation, Inc.
+;; Copyright 2015-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -265,7 +265,8 @@ during garbage collection."
   (skip-unless (file-executable-p mod-test-emacs))
   (module--test-assertion
       (rx "Module function called during garbage collection\n")
-    (mod-test-invalid-finalizer)))
+    (mod-test-invalid-finalizer)
+    (garbage-collect)))
 
 (ert-deftest module/describe-function-1 ()
   "Check that Bug#30163 is fixed."
@@ -288,5 +289,25 @@ Return A + B"
     (should (equal (file-name-sans-extension file) mod-test-file))
     (should (member '(provide . mod-test) entries))
     (should (member '(defun . mod-test-sum) entries))))
+
+(ert-deftest mod-test-sleep-until ()
+  "Check that `mod-test-sleep-until' either returns normally or quits.
+Interactively, you can try hitting \\[keyboard-quit] to quit."
+  (dolist (arg '(nil t))
+    ;; Guard against some caller setting `inhibit-quit'.
+    (with-local-quit
+      (condition-case nil
+          (should (eq (with-local-quit
+                        ;; Because `inhibit-quit' is nil here, the next
+                        ;; form either quits or returns `finished'.
+                        (mod-test-sleep-until
+                         ;; Interactively, run for 5 seconds to give the
+                         ;; user time to quit.  In batch mode, run only
+                         ;; briefly since the user can't quit.
+                         (float-time (time-add nil (if noninteractive 0.1 5)))
+                         ;; should_quit or process_input
+                         arg))
+                      'finished))
+        (quit)))))
 
 ;;; emacs-module-tests.el ends here

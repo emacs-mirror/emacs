@@ -1,6 +1,6 @@
 ;;; indian.el --- Quail packages for inputting Indian
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: KAWABATA, Taichi <kawabata@m17n.org>
 

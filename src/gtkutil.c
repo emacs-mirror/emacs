@@ -1,6 +1,6 @@
 /* Functions for creating and updating GTK widgets.
 
-Copyright (C) 2003-2018 Free Software Foundation, Inc.
+Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -146,6 +146,10 @@ struct xg_frame_tb_info
   int hmargin, vmargin;
   GtkTextDirection dir;
 };
+
+#ifdef HAVE_XWIDGETS
+bool xg_gtk_initialized;        /* Used to make sure xwidget calls are possible */
+#endif
 
 static GtkWidget * xg_get_widget_from_map (ptrdiff_t idx);
 
@@ -364,7 +368,11 @@ xg_get_image_for_pixmap (struct frame *f,
                          GtkWidget *widget,
                          GtkImage *old_widget)
 {
+#if defined USE_CAIRO && GTK_CHECK_VERSION (3, 10, 0)
+  cairo_surface_t *surface;
+#else
   GdkPixbuf *icon_buf;
+#endif
 
   /* If we have a file, let GTK do all the image handling.
      This seems to be the only way to make insensitive and activated icons
@@ -392,6 +400,17 @@ xg_get_image_for_pixmap (struct frame *f,
      on a monochrome display, and sometimes bad on all displays with
      certain themes.  */
 
+#if defined USE_CAIRO && GTK_CHECK_VERSION (3, 10, 0)
+  surface = img->cr_data;
+
+  if (surface)
+    {
+      if (! old_widget)
+        old_widget = GTK_IMAGE (gtk_image_new_from_surface (surface));
+      else
+        gtk_image_set_from_surface (old_widget, surface);
+    }
+#else
   /* This is a workaround to make icons look good on pseudo color
      displays.  Apparently GTK expects the images to have an alpha
      channel.  If they don't, insensitive and activated icons will
@@ -412,6 +431,7 @@ xg_get_image_for_pixmap (struct frame *f,
 
       g_object_unref (G_OBJECT (icon_buf));
     }
+#endif
 
   return GTK_WIDGET (old_widget);
 }
@@ -963,7 +983,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_1, width, height,
-	 list2 (make_fixnum (gheight), make_fixnum (totalheight)));
+	 list2i (gheight, totalheight));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 gwidth, totalheight);
@@ -972,7 +992,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_2, width, height,
-	 list2 (make_fixnum (gwidth), make_fixnum (totalwidth)));
+	 list2i (gwidth, totalwidth));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, gheight);
@@ -981,7 +1001,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     {
       frame_size_history_add
 	(f, Qxg_frame_set_char_size_3, width, height,
-	 list2 (make_fixnum (totalwidth), make_fixnum (totalheight)));
+	 list2i (totalwidth, totalheight));
 
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 			 totalwidth, totalheight);
@@ -4256,23 +4276,16 @@ xg_get_page_setup (void)
       eassume (false);
     }
 
-  return listn (CONSTYPE_HEAP, 7,
-		Fcons (Qorientation, orientation_symbol),
-#define MAKE_FLOAT_PAGE_SETUP(f)  make_float (f (page_setup, GTK_UNIT_POINTS))
-		Fcons (Qwidth,
-		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_page_width)),
-		Fcons (Qheight,
-		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_page_height)),
-		Fcons (Qleft_margin,
-		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_left_margin)),
-		Fcons (Qright_margin,
-		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_right_margin)),
-		Fcons (Qtop_margin,
-		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_top_margin)),
-		Fcons (Qbottom_margin,
-		       MAKE_FLOAT_PAGE_SETUP (gtk_page_setup_get_bottom_margin))
-#undef MAKE_FLOAT_PAGE_SETUP
-		);
+#define GETSETUP(f) make_float (f (page_setup, GTK_UNIT_POINTS))
+  return
+    list (Fcons (Qorientation, orientation_symbol),
+	  Fcons (Qwidth, GETSETUP (gtk_page_setup_get_page_width)),
+	  Fcons (Qheight, GETSETUP (gtk_page_setup_get_page_height)),
+	  Fcons (Qleft_margin, GETSETUP (gtk_page_setup_get_left_margin)),
+	  Fcons (Qright_margin, GETSETUP (gtk_page_setup_get_right_margin)),
+	  Fcons (Qtop_margin, GETSETUP (gtk_page_setup_get_top_margin)),
+	  Fcons (Qbottom_margin, GETSETUP (gtk_page_setup_get_bottom_margin)));
+#undef GETSETUP
 }
 
 static void
@@ -4297,7 +4310,7 @@ xg_print_frames_dialog (Lisp_Object frames)
     gtk_print_operation_set_print_settings (print, print_settings);
   if (page_setup != NULL)
     gtk_print_operation_set_default_page_setup (print, page_setup);
-  gtk_print_operation_set_n_pages (print, XFIXNUM (Flength (frames)));
+  gtk_print_operation_set_n_pages (print, list_length (frames));
   g_signal_connect (print, "draw-page", G_CALLBACK (draw_page), &frames);
   res = gtk_print_operation_run (print, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
                                  NULL, NULL);
@@ -4768,9 +4781,15 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
     {
       gpointer gold_img = g_object_get_data (G_OBJECT (wimage),
                                              XG_TOOL_BAR_IMAGE_DATA);
+#if defined USE_CAIRO && GTK_CHECK_VERSION (3, 10, 0)
+      void *old_img = (void *) gold_img;
+      if (old_img != img->cr_data)
+	return 1;
+#else
       Pixmap old_img = (Pixmap) gold_img;
       if (old_img != img->pixmap)
 	return 1;
+#endif
     }
 
   /* Check button configuration and label.  */
@@ -5062,7 +5081,13 @@ update_frame_tool_bar (struct frame *f)
           img = IMAGE_FROM_ID (f, img_id);
           prepare_image_for_display (f, img);
 
-          if (img->load_failed_p || img->pixmap == None)
+          if (img->load_failed_p
+#if defined USE_CAIRO && GTK_CHECK_VERSION (3, 10, 0)
+	      || img->cr_data == NULL
+#else
+	      || img->pixmap == None
+#endif
+	      )
             {
               if (ti)
 		gtk_container_remove (GTK_CONTAINER (wtoolbar),
@@ -5112,7 +5137,12 @@ update_frame_tool_bar (struct frame *f)
             {
               w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
               g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
-                                 (gpointer)img->pixmap);
+#if defined USE_CAIRO && GTK_CHECK_VERSION (3, 10, 0)
+                                 (gpointer)img->cr_data
+#else
+                                 (gpointer)img->pixmap
+#endif
+				 );
             }
 
 #if GTK_CHECK_VERSION (3, 14, 0)
@@ -5320,6 +5350,10 @@ xg_initialize (void)
 
 #ifdef HAVE_FREETYPE
   x_last_font_name = NULL;
+#endif
+
+#ifdef HAVE_XWIDGETS
+  xg_gtk_initialized = true;
 #endif
 }
 

@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 2000-2018 Free Software Foundation, Inc.
+# Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -220,7 +220,7 @@ update-subdirs:
 	   $(srcdir)/../build-aux/update-subdirs $$file; \
 	done;
 
-.PHONY: updates repo-update update-authors update-gnus-news
+.PHONY: updates repo-update update-authors
 
 # Some modes of make-dist use this.
 updates: update-subdirs autoloads finder-data custom-deps
@@ -233,16 +233,11 @@ updates: update-subdirs autoloads finder-data custom-deps
 # this directory's autoloads rule.
 repo-update: compile finder-data custom-deps
 
-# Update etc/AUTHORS and etc/GNUS-NEWS.
+# Update etc/AUTHORS
 
 update-authors:
 	$(emacs) -L "$(top_srcdir)/admin" -l authors \
 	  -f batch-update-authors "$(top_srcdir)/etc/AUTHORS" "$(top_srcdir)"
-
-update-gnus-news:
-	$(emacs) -L "$(top_srcdir)/doc/misc" -l gnus-news -f batch-gnus-news \
-	  "$(top_srcdir)/doc/misc/gnus-news.texi" \
-	  "$(top_srcdir)/etc/GNUS-NEWS"
 
 FORCE:
 .PHONY: FORCE
@@ -321,14 +316,16 @@ compile-targets: $(TARGETS)
 # Compile all the Elisp files that need it.  Beware: it approximates
 # 'no-byte-compile', so watch out for false-positives!
 compile-main: gen-lisp compile-clean
-	@(cd $(lisp) && \
+	@(cd $(lisp) && 			     \
 	els=`echo "${SUBDIRS_REL} " | sed -e 's|/\./|/|g' -e 's|/\. | |g' -e 's| |/*.el |g'`; \
-	for el in ${MAIN_FIRST} $$els; do \
-	  test -f $$el || continue; \
-	  test ! -f $${el}c && GREP_OPTIONS= grep '^;.*no-byte-compile: t' $$el > /dev/null && continue; \
-	  echo "$${el}c"; \
-	done | xargs $(XARGS_LIMIT) echo) | \
-	while read chunk; do \
+	for el in ${MAIN_FIRST} $$els; do            \
+	  test -f $$el || continue; 		     \
+	  test ! -f $${el}c && 			     \
+	      GREP_OPTIONS= grep '^;.*[^a-zA-Z]no-byte-compile: *t' $$el > /dev/null && \
+	      continue; 			     \
+	  echo "$${el}c";                            \
+	done | xargs $(XARGS_LIMIT) echo) | 	     \
+	while read chunk; do 			     \
 	  $(MAKE) compile-targets TARGETS="$$chunk"; \
 	done
 
@@ -350,7 +347,9 @@ compile-clean:
 ## with ../src.  See comments above for loaddefs.
 gen-lisp: leim semantic
 
-leim:
+# (re)compile titdic-cnv before recursing into `leim` since its used to
+# generate some of the Quail source files from tables.
+leim: $(lisp)/international/titdic-cnv.elc
 	$(MAKE) -C ../leim all EMACS="$(EMACS)"
 
 semantic:

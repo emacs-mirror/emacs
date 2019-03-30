@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -45,13 +45,11 @@
 
 ;;; Code:
 
-
 (require 'cc-mode)
 (require 'newcomment)
-(require 'thingatpt)                    ; forward-symbol etc
 (require 'imenu)
 (require 'moz nil t)
-(require 'json nil t)
+(require 'json)
 (require 'sgml-mode)
 (require 'prog-mode)
 
@@ -479,6 +477,7 @@ This applies to function movement, marking, and so on."
   "Align continuation of non-empty ([{ lines in `js-mode'."
   :version "26.1"
   :type 'boolean
+  :safe 'booleanp
   :group 'js)
 
 (defcustom js-comment-lineup-func #'c-lineup-C-comments
@@ -623,12 +622,6 @@ then the \".\"s will be lined up:
   "Parse state at `js--last-parse-pos'.")
 (make-variable-buffer-local 'js--state-at-last-parse-pos)
 
-(defun js--flatten-list (list)
-  (cl-loop for item in list
-           nconc (cond ((consp item)
-                        (js--flatten-list item))
-                       (item (list item)))))
-
 (defun js--maybe-join (prefix separator suffix &rest list)
   "Helper function for `js--update-quick-match-re'.
 If LIST contains any element that is not nil, return its non-nil
@@ -636,7 +629,7 @@ elements, separated by SEPARATOR, prefixed by PREFIX, and ended
 with SUFFIX as with `concat'.  Otherwise, if LIST is empty, return
 nil.  If any element in LIST is itself a list, flatten that
 element."
-  (setq list (js--flatten-list list))
+  (setq list (flatten-tree list))
   (when list
     (concat prefix (mapconcat #'identity list separator) suffix)))
 
@@ -793,7 +786,6 @@ macro as normal text."
 (defun js--re-search-backward-inner (regexp &optional bound count)
   "Auxiliary function for `js--re-search-backward'."
   (let ((parse)
-        str-terminator
         (orig-macro-start
          (save-excursion
            (and (js--beginning-of-macro)
@@ -804,13 +796,7 @@ macro as normal text."
                  (save-excursion (backward-char) (looking-at "/[/*]")))
         (forward-char))
       (setq parse (syntax-ppss))
-      (cond ((setq str-terminator (nth 3 parse))
-             (when (eq str-terminator t)
-               (setq str-terminator ?/))
-             (re-search-backward
-              (concat "\\([^\\]\\|^\\)" (string str-terminator))
-              (point-at-bol) t))
-            ((nth 7 parse)
+      (cond ((nth 8 parse)
              (goto-char (nth 8 parse)))
             ((or (nth 4 parse)
                  (and (eq (char-before) ?/) (eq (char-after) ?*)))
@@ -1013,7 +999,7 @@ BEG defaults to `point-min', meaning to flush the entire cache."
 Update parsing information up to point, referring to parse,
 prev-parse-point, goal-point, and open-items bound lexically in
 the body of `js--ensure-cache'."
-  `(progn
+  '(progn
      (setq goal-point (point))
      (goto-char prev-parse-point)
      (while (progn
@@ -1023,7 +1009,7 @@ the body of `js--ensure-cache'."
               ;; the given depth -- i.e., make sure we're deeper than the target
               ;; depth.
               (cl-assert (> (nth 0 parse)
-                         (js--pitem-paren-depth (car open-items))))
+                            (js--pitem-paren-depth (car open-items))))
               (setq parse (parse-partial-sexp
                            prev-parse-point goal-point
                            (js--pitem-paren-depth (car open-items))
@@ -1849,10 +1835,10 @@ This performs fontification according to `js--class-styles'."
              (skip-chars-backward " \t")
              (or (bobp) (backward-char))
              (and (> (point) (point-min))
-                  (save-excursion (backward-char) (not (looking-at "[/*]/")))
+                  (save-excursion (backward-char) (not (looking-at "[/*]/\\|=>")))
                   (js--looking-at-operator-p)
                   (and (progn (backward-char)
-                              (not (looking-at "+\\+\\|--\\|/[/*]"))))))))))
+                              (not (looking-at "\\+\\+\\|--\\|/[/*]"))))))))))
 
 (defun js--skip-term-backward ()
   "Skip a term before point; return t if a term was skipped."
@@ -1922,7 +1908,7 @@ the same column as the current line."
     (save-match-data
       (when (looking-at "\\s-*\\_<while\\_>")
 	(if (save-excursion
-	      (skip-chars-backward "[ \t\n]*}")
+	      (skip-chars-backward " \t\n}")
 	      (looking-at "[ \t\n]*}"))
 	    (save-excursion
 	      (backward-list) (forward-symbol -1) (looking-at "\\_<do\\_>"))
@@ -2078,6 +2064,24 @@ indentation is aligned to that column."
         (when comma-p
           (goto-char (1+ declaration-keyword-end))))))))
 
+(defconst js--line-terminating-arrow-re "\\s-*=>\\s-*\\(/[/*]\\|$\\)"
+  "Regexp matching the last \"=>\" (arrow) token on a line.
+Whitespace and comments around the arrow are ignored.")
+
+(defun js--looking-at-broken-arrow-function-p ()
+  "Helper function for `js--proper-indentation'.
+Return t if point is at the start of a (possibly async) arrow
+function and the last non-comment, non-whitespace token of the
+current line is the \"=>\" token."
+  (when (looking-at "\\s-*async\\s-*")
+    (goto-char (match-end 0)))
+  (cond
+   ((eq (char-after) ?\()
+    (forward-list)
+    (looking-at-p js--line-terminating-arrow-re))
+   (t (looking-at-p
+       (concat js--name-re js--line-terminating-arrow-re)))))
+
 (defun js--proper-indentation (parse-status)
   "Return the proper indentation for the current line."
   (save-excursion
@@ -2108,7 +2112,8 @@ indentation is aligned to that column."
                  (continued-expr-p (js--continued-expression-p)))
              (goto-char (nth 1 parse-status)) ; go to the opening char
              (if (or (not js-indent-align-list-continuation)
-                     (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)"))
+                     (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
+                     (save-excursion (forward-char) (js--looking-at-broken-arrow-function-p)))
                  (progn ; nothing following the opening paren/bracket
                    (skip-syntax-backward " ")
                    (when (eq (char-before) ?\)) (backward-list))
@@ -2766,8 +2771,8 @@ Otherwise, use the current value of `process-mark'."
   (with-current-buffer (process-buffer process)
     (cl-loop with start-pos = (or start
                                   (marker-position (process-mark process)))
-             with end-time = (+ (float-time) timeout)
-             for time-left = (- end-time (float-time))
+	     with end-time = (time-add nil timeout)
+	     for time-left = (float-time (time-subtract end-time nil))
              do (goto-char (point-max))
              if (looking-back regexp start-pos) return t
              while (> time-left 0)
@@ -3322,11 +3327,11 @@ If nil, the whole Array is treated as a JS symbol.")
 
 (defun js--js-decode-retval (result)
   (pcase (intern (cl-first result))
-    (`atom (cl-second result))
-    (`special (intern (cl-second result)))
-    (`array
+    ('atom (cl-second result))
+    ('special (intern (cl-second result)))
+    ('array
      (mapcar #'js--js-decode-retval (cl-second result)))
-    (`objid
+    ('objid
      (or (gethash (cl-second result)
                   js--js-references)
          (puthash (cl-second result)
@@ -3335,7 +3340,7 @@ If nil, the whole Array is treated as a JS symbol.")
                    :process (inferior-moz-process))
                   js--js-references)))
 
-    (`error (signal 'js-js-error (list (cl-second result))))
+    ('error (signal 'js-js-error (list (cl-second result))))
     (x (error "Unmatched case in js--js-decode-retval: %S" x))))
 
 (defvar comint-last-input-end)
@@ -3720,8 +3725,8 @@ If one hasn't been set, or if it's stale, prompt for a new one."
    (when (or (null js--js-context)
              (js--js-handle-expired-p (cdr js--js-context))
              (pcase (car js--js-context)
-               (`window (js? (js< (cdr js--js-context) "closed")))
-               (`browser (not (js? (js< (cdr js--js-context)
+               ('window (js? (js< (cdr js--js-context) "closed")))
+               ('browser (not (js? (js< (cdr js--js-context)
                                         "contentDocument"))))
                (x (error "Unmatched case in js--get-js-context: %S" x))))
      (setq js--js-context (js--read-tab "JavaScript Context: ")))
@@ -3730,8 +3735,8 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 (defun js--js-content-window (context)
   (with-js
    (pcase (car context)
-     (`window (cdr context))
-     (`browser (js< (cdr context)
+     ('window (cdr context))
+     ('browser (js< (cdr context)
                     "contentWindow" "wrappedJSObject"))
      (x (error "Unmatched case in js--js-content-window: %S" x)))))
 

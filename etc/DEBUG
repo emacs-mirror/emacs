@@ -1,6 +1,6 @@
 Debugging GNU Emacs
 
-Copyright (C) 1985, 2000-2018 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 ** Preliminaries
@@ -936,7 +936,7 @@ its own versions, and because the dumping process might be
 incompatible with the way these packages use to track allocated
 memory.  Here are some of the changes you might find necessary:
 
-  - Edit configure, to set system_malloc and CANNOT_DUMP to "yes".
+  - Make sure unexec is disabled, e.g., './configure --without-unexec'.
 
   - Configure with a different --prefix= option.  If you use GCC,
     version 2.7.2 is preferred, as some malloc debugging packages
