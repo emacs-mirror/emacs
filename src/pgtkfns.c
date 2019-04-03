@@ -2390,29 +2390,28 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 		  make_fixnum (native_bottom - internal_border_width));
   else
     return
-      listn (CONSTYPE_HEAP, 10,
-	     Fcons (Qouter_position,
-		    Fcons (make_fixnum (f->left_pos),
-			   make_fixnum (f->top_pos))),
-	     Fcons (Qouter_size,
-		    Fcons (make_fixnum (outer_width),
-			   make_fixnum (outer_height))),
-	     Fcons (Qexternal_border_size,
-		    (fullscreen
-		     ? Fcons (make_fixnum (0), make_fixnum (0))
-		     : Fcons (make_fixnum (border), make_fixnum (border)))),
-	     Fcons (Qtitle_bar_size,
-		    Fcons (make_fixnum (0), make_fixnum (title_height))),
-	     Fcons (Qmenu_bar_external, Qnil),
-	     Fcons (Qmenu_bar_size, Fcons (make_fixnum (0), make_fixnum (0))),
-	     Fcons (Qtool_bar_external,
-		    FRAME_EXTERNAL_TOOL_BAR (f) ? Qt : Qnil),
-	     Fcons (Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f)),
-	     Fcons (Qtool_bar_size,
-		    Fcons (make_fixnum (tool_bar_width),
-			   make_fixnum (tool_bar_height))),
-	     Fcons (Qinternal_border_width,
-		    make_fixnum (internal_border_width)));
+      list (Fcons (Qouter_position,
+		   Fcons (make_fixnum (f->left_pos),
+			  make_fixnum (f->top_pos))),
+	    Fcons (Qouter_size,
+		   Fcons (make_fixnum (outer_width),
+			  make_fixnum (outer_height))),
+	    Fcons (Qexternal_border_size,
+		   (fullscreen
+		    ? Fcons (make_fixnum (0), make_fixnum (0))
+		    : Fcons (make_fixnum (border), make_fixnum (border)))),
+	    Fcons (Qtitle_bar_size,
+		   Fcons (make_fixnum (0), make_fixnum (title_height))),
+	    Fcons (Qmenu_bar_external, Qnil),
+	    Fcons (Qmenu_bar_size, Fcons (make_fixnum (0), make_fixnum (0))),
+	    Fcons (Qtool_bar_external,
+		   FRAME_EXTERNAL_TOOL_BAR (f) ? Qt : Qnil),
+	    Fcons (Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f)),
+	    Fcons (Qtool_bar_size,
+		   Fcons (make_fixnum (tool_bar_width),
+			  make_fixnum (tool_bar_height))),
+	    Fcons (Qinternal_border_width,
+		   make_fixnum (internal_border_width)));
 }
 
 DEFUN ("pgtk-frame-geometry", Fpgtk_frame_geometry, Spgtk_frame_geometry, 0, 1, 0,
