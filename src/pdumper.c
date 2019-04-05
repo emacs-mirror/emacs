@@ -2914,17 +2914,20 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_594AB72B54)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_6AE56C1912)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment."
 #endif
   struct Lisp_Subr out;
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
   dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
+  dump_field_emacs_ptr (ctx, &out, subr, &subr->normal_function.a0);
+  dump_field_emacs_ptr (ctx, &out, subr, &subr->BC_function.a0);
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
   dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
   dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
+  dump_field_emacs_ptr (ctx, &out, subr, &subr->next);
   DUMP_FIELD_COPY (&out, subr, doc);
   return dump_object_finish (ctx, &out, sizeof (out));
 }
@@ -2953,7 +2956,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined (HASH_pvec_type_549C833A54)
+#if CHECK_STRUCTS && !defined (HASH_pvec_type_3C7A719153)
 # error "pvec_type changed. See CHECK_STRUCTS comment."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
@@ -2974,6 +2977,7 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_CHAR_TABLE:
     case PVEC_SUB_CHAR_TABLE:
     case PVEC_RECORD:
+    case PVEC_SYMBOL_WITH_POS:
       offset = dump_vectorlike_generic (ctx, &v->header);
       break;
     case PVEC_BOOL_VECTOR:

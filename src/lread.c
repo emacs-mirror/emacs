@@ -4438,6 +4438,40 @@ init_obarray_once (void)
 }
 
 
+static union Aligned_Lisp_Subr *subr_ptr = NULL;
+static bool using_BC_subrs = false;
+
+DEFUN ("switch-to-BC-subrs", Fswitch_to_BC_subrs, Sswitch_to_BC_subrs, 0, 0, 0,
+       doc: /* Switch all subrs to using the byte compiler versions.  */)
+     (void)
+{
+  union Aligned_Lisp_Subr *ptr = subr_ptr;
+  if (!using_BC_subrs)
+    while (ptr)
+      {
+        ptr->s.function = ptr->s.BC_function;
+        ptr = ptr->s.next;
+      }
+  using_BC_subrs = true;
+  return Qnil;
+}
+
+DEFUN ("switch-to-normal-subrs", Fswitch_to_normal_subrs,
+       Sswitch_to_normal_subrs, 0, 0, 0,
+       doc: /* Switch all subrs to using the normal versions.  */)
+     (void)
+{
+  union Aligned_Lisp_Subr *ptr = subr_ptr;
+  if (using_BC_subrs)
+    while (ptr)
+      {
+        ptr->s.function = ptr->s.normal_function;
+        ptr = ptr->s.next;
+      }
+  using_BC_subrs = false;
+  return Qnil;
+}
+
 void
 defsubr (union Aligned_Lisp_Subr *aname)
 {
@@ -4447,6 +4481,8 @@ defsubr (union Aligned_Lisp_Subr *aname)
   XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (tem, sname);
   set_symbol_function (sym, tem);
+  sname->next = subr_ptr;
+  subr_ptr = aname;
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */
@@ -4702,6 +4738,8 @@ init_lread (void)
   if (NILP (Vpurify_flag) && !NILP (Ffboundp (Qfile_truename)))
     Vsource_directory = call1 (Qfile_truename, Vsource_directory);
 
+  subr_ptr = NULL;
+
   /* First, set Vload_path.  */
 
   /* Ignore EMACSLOADPATH when dumping.  */
@@ -4816,6 +4854,8 @@ syms_of_lread (void)
   defsubr (&Sintern);
   defsubr (&Sintern_soft);
   defsubr (&Sunintern);
+  defsubr (&Sswitch_to_BC_subrs);
+  defsubr (&Sswitch_to_normal_subrs);
   defsubr (&Sget_load_suffixes);
   defsubr (&Sload);
   defsubr (&Seval_buffer);

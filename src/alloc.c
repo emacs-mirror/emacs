@@ -6053,12 +6053,17 @@ garbage_collect_1 (struct gcstat *gcst)
   struct timespec start;
   byte_ct tot_before = 0;
 
+  specbind (Qsymbols_with_pos_enabled, Qnil);
+
   eassert (weak_hash_tables == NULL);
 
   /* Can't GC if pure storage overflowed because we can't determine
      if something is a pure object or not.  */
   if (pure_bytes_used_before_overflow)
-    return false;
+    {
+      unbind_to (count, Qnil);
+      return false;
+    }
 
   /* Record this function, so it appears on the profiler's backtraces.  */
   record_in_backtrace (QAutomatic_GC, 0, 0);
@@ -6249,6 +6254,7 @@ garbage_collect_1 (struct gcstat *gcst)
       malloc_probe (min (swept, SIZE_MAX));
     }
 
+  unbind_to (count, Qnil);
   return true;
 }
 
@@ -6276,11 +6282,9 @@ returns nil, because real GC can't be done.
 See Info node `(elisp)Garbage Collection'.  */)
   (void)
 {
-  ptrdiff_t count = SPECPDL_INDEX ();
   struct gcstat gcst;
-  specbind (Qsymbols_with_pos_enabled, Qnil);
   if (!garbage_collect_1 (&gcst))
-    return unbind_to (count, Qnil);
+    return Qnil;
 
   Lisp_Object total[] = {
     list4 (Qconses, make_fixnum (sizeof (struct Lisp_Cons)),
@@ -6315,7 +6319,7 @@ See Info node `(elisp)Garbage Collection'.  */)
 	   make_int ((mallinfo ().fordblks + 1023) >> 10)),
 #endif
   };
-  return unbind_to (count, CALLMANY (Flist, total));
+  return CALLMANY (Flist, total);
 }
 
 /* Mark Lisp objects in glyph matrix MATRIX.  Currently the
