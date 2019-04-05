@@ -1533,6 +1533,7 @@ this file.  Usage:
                  package.  This is useful if the package is being lazily
                  loaded, and you wish to conditionally call functions in your
                  `:init' block that are defined in the package.
+:hook            Specify hook(s) to attach this package to.
 
 :bind            Bind keys, and define autoloads for the bound commands.
 :bind*           Bind keys, and define autoloads for the bound commands,
@@ -1542,7 +1543,7 @@ this file.  Usage:
 :bind-keymap*    Like `:bind-keymap', but overrides all minor mode bindings
 
 :defer           Defer loading of a package -- this is implied when using
-                 `:commands', `:bind', `:bind*', `:mode', `:magic',
+                 `:commands', `:bind', `:bind*', `:mode', `:magic', `:hook',
                  `:magic-fallback', or `:interpreter'.  This can be an integer,
                  to force loading after N seconds of idle time, if the package
                  has not already been loaded.
