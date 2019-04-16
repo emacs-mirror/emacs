@@ -1,6 +1,6 @@
 ;;; semantic.el --- Semantic buffer evaluator.
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax tools
@@ -225,37 +225,37 @@ during a flush when the cache is given a new value of nil.")
   "Indicate that the current buffer is unparseable.
 It is also true that the parse tree will need either updating or
 a rebuild.  This state will be changed when the user edits the buffer."
-  `(setq semantic-parse-tree-state 'unparseable))
+  '(setq semantic-parse-tree-state 'unparseable))
 
 (defmacro semantic-parse-tree-unparseable-p ()
   "Return non-nil if the current buffer has been marked unparseable."
-  `(eq semantic-parse-tree-state 'unparseable))
+  '(eq semantic-parse-tree-state 'unparseable))
 
 (defmacro semantic-parse-tree-set-needs-update ()
   "Indicate that the current parse tree needs to be updated.
 The parse tree can be updated by `semantic-parse-changes'."
-  `(setq semantic-parse-tree-state 'needs-update))
+  '(setq semantic-parse-tree-state 'needs-update))
 
 (defmacro semantic-parse-tree-needs-update-p ()
   "Return non-nil if the current parse tree needs to be updated."
-  `(eq semantic-parse-tree-state 'needs-update))
+  '(eq semantic-parse-tree-state 'needs-update))
 
 (defmacro semantic-parse-tree-set-needs-rebuild ()
   "Indicate that the current parse tree needs to be rebuilt.
 The parse tree must be rebuilt by `semantic-parse-region'."
-  `(setq semantic-parse-tree-state 'needs-rebuild))
+  '(setq semantic-parse-tree-state 'needs-rebuild))
 
 (defmacro semantic-parse-tree-needs-rebuild-p ()
   "Return non-nil if the current parse tree needs to be rebuilt."
-  `(eq semantic-parse-tree-state 'needs-rebuild))
+  '(eq semantic-parse-tree-state 'needs-rebuild))
 
 (defmacro semantic-parse-tree-set-up-to-date ()
   "Indicate that the current parse tree is up to date."
-  `(setq semantic-parse-tree-state nil))
+  '(setq semantic-parse-tree-state nil))
 
 (defmacro semantic-parse-tree-up-to-date-p ()
   "Return non-nil if the current parse tree is up to date."
-  `(null semantic-parse-tree-state))
+  '(null semantic-parse-tree-state))
 
 ;;; Interfacing with the system
 ;;
@@ -1096,9 +1096,6 @@ The following modes are more targeted at people who want to see
 ;;;###autoload
 (define-minor-mode semantic-mode
   "Toggle parser features (Semantic mode).
-With a prefix argument ARG, enable Semantic mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-Semantic mode if ARG is omitted or nil.
 
 In Semantic mode, Emacs parses the buffers you visit for their
 semantic content.  This information is used by a variety of

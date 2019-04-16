@@ -1,6 +1,6 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2018 Free Software
+;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
@@ -224,14 +224,6 @@ which is big-endian."
       (setq i (1- i)))
     str))
 
-(defconst erc-most-positive-int-bytes
-  (ceiling (/ (ceiling (/ (log most-positive-fixnum) (log 2))) 8.0))
-  "Maximum number of bytes for a fixnum.")
-
-(defconst erc-most-positive-int-msb
-  (lsh most-positive-fixnum (- 0 (* 8 (1- erc-most-positive-int-bytes))))
-  "Content of the most significant byte of most-positive-fixnum.")
-
 (defun erc-unpack-int (str)
   "Unpack a packed string into an integer."
   (let ((len (length str)))
@@ -242,16 +234,11 @@ which is big-endian."
       (when (> start 0)
         (setq str (substring str start))
         (setq len (- len start))))
-    ;; make sure size is not larger than Emacs can handle
-    (when (or (> len (min 4 erc-most-positive-int-bytes))
-              (and (eq len erc-most-positive-int-bytes)
-                   (> (aref str 0) erc-most-positive-int-msb)))
-      (error "ERC-DCC (erc-unpack-int): packet to send is too large"))
     ;; unpack
     (let ((num 0)
           (count 0))
       (while (< count len)
-        (setq num (+ num (lsh (aref str (- len count 1)) (* 8 count))))
+        (setq num (+ num (ash (aref str (- len count 1)) (* 8 count))))
         (setq count (1+ count)))
       num)))
 
@@ -435,23 +422,23 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                           (when (fboundp 'make-network-process) '("send"))))
   (pcomplete-here
    (pcase (intern (downcase (pcomplete-arg 1)))
-     (`chat (mapcar (lambda (elt) (plist-get elt :nick))
+     ('chat (mapcar (lambda (elt) (plist-get elt :nick))
                     (erc-remove-if-not
                      #'(lambda (elt)
                          (eq (plist-get elt :type) 'CHAT))
                      erc-dcc-list)))
-     (`close (erc-delete-dups
+     ('close (erc-delete-dups
               (mapcar (lambda (elt) (symbol-name (plist-get elt :type)))
                       erc-dcc-list)))
-     (`get (mapcar #'erc-dcc-nick
+     ('get (mapcar #'erc-dcc-nick
                    (erc-remove-if-not
                     #'(lambda (elt)
                         (eq (plist-get elt :type) 'GET))
                     erc-dcc-list)))
-     (`send (pcomplete-erc-all-nicks))))
+     ('send (pcomplete-erc-all-nicks))))
   (pcomplete-here
    (pcase (intern (downcase (pcomplete-arg 2)))
-     (`get (mapcar (lambda (elt) (plist-get elt :file))
+     ('get (mapcar (lambda (elt) (plist-get elt :file))
                    (erc-remove-if-not
                     #'(lambda (elt)
                         (and (eq (plist-get elt :type) 'GET)
@@ -459,13 +446,13 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
                                                 (plist-get elt :nick))
                                                (pcomplete-arg 1))))
                     erc-dcc-list)))
-     (`close (mapcar #'erc-dcc-nick
+     ('close (mapcar #'erc-dcc-nick
                      (erc-remove-if-not
                       #'(lambda (elt)
                           (eq (plist-get elt :type)
                               (intern (upcase (pcomplete-arg 1)))))
                       erc-dcc-list)))
-     (`send (pcomplete-entries)))))
+     ('send (pcomplete-entries)))))
 
 (defun erc-dcc-do-CHAT-command (proc &optional nick)
   (when nick
@@ -992,17 +979,20 @@ rather than every 1024 byte block, but nobody seems to care."
     (let ((inhibit-read-only t)
           received-bytes)
       (goto-char (point-max))
-      (insert (string-make-unibyte str))
+      (if str
+          (insert (string-make-unibyte str)))
 
       (when (> (point-max) erc-dcc-receive-cache)
         (erc-dcc-append-contents (current-buffer) erc-dcc-file-name))
-      (setq received-bytes (+ (buffer-size) erc-dcc-byte-count))
+      (setq received-bytes (buffer-size))
+      (if erc-dcc-byte-count
+          (setq received-bytes (+ received-bytes erc-dcc-byte-count)))
 
       (and erc-dcc-verbose
            (erc-display-message
             nil 'notice erc-server-process
             'dcc-get-bytes-received
-            ?f (file-name-nondirectory buffer-file-name)
+            ?f (file-name-nondirectory (buffer-name))
             ?b (number-to-string received-bytes)))
       (cond
        ((and (> (plist-get erc-dcc-entry-data :size) 0)
@@ -1010,7 +1000,7 @@ rather than every 1024 byte block, but nobody seems to care."
         (erc-display-message
          nil '(notice error) 'active
          'dcc-get-file-too-long
-         ?f (file-name-nondirectory buffer-file-name))
+         ?f (file-name-nondirectory (buffer-name)))
         (delete-process proc))
        (t
         (process-send-string
@@ -1034,7 +1024,7 @@ transfer is complete."
      ?s (number-to-string erc-dcc-byte-count)
      ?t (format "%.0f"
                 (erc-time-diff (plist-get erc-dcc-entry-data :start-time)
-                               (erc-current-time)))))
+                               nil))))
   (kill-buffer (process-buffer proc))
   (delete-process proc))
 

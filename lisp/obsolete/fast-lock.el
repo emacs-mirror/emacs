@@ -1,6 +1,6 @@
 ;;; fast-lock.el --- automagic text properties caching for fast Font Lock mode
 
-;; Copyright (C) 1994-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -441,7 +441,8 @@ See `fast-lock-mode'."
 	     ;; Only save if user's restrictions are satisfied.
 	     (and min-size (>= (buffer-size) min-size))
 	     (or fast-lock-save-others
-		 (eq (user-uid) (nth 2 (file-attributes buffer-file-name))))
+		 (eq (user-uid) (file-attribute-user-id
+				 (file-attributes buffer-file-name))))
 	     ;;
 	     ;; Only save if there are `face' properties to save.
 	     (text-property-not-all (point-min) (point-max) 'face nil))

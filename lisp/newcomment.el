@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -327,11 +327,11 @@ behavior for explicit filling, you might as well use \\[newline-and-indent]."
 (defcustom comment-empty-lines nil
   "If nil, `comment-region' does not comment out empty lines.
 If t, it always comments out empty lines.
-If `eol' it only comments out empty lines if comments are
-terminated by the end of line (i.e. `comment-end' is empty)."
+If `eol', it only comments out empty lines if comments are
+terminated by the end of line (i.e., `comment-end' is empty)."
   :type '(choice (const :tag "Never" nil)
-	  (const :tag "Always" t)
-	  (const :tag "EOl-terminated" eol))
+                 (const :tag "Always" t)
+                 (const :tag "EOL-terminated" eol))
   :group 'comment)
 
 ;;;;
@@ -895,7 +895,7 @@ If N is `re', a regexp is returned instead, that would match
 (defun uncomment-region (beg end &optional arg)
   "Uncomment each line in the BEG .. END region.
 The numeric prefix ARG can specify a number of chars to remove from the
-comment markers."
+comment delimiters."
   (interactive "*r\nP")
   (comment-normalize-vars)
   (when (> beg end) (setq beg (prog1 end (setq end beg))))
@@ -909,7 +909,8 @@ comment markers."
 (defun uncomment-region-default-1 (beg end &optional arg)
   "Uncomment each line in the BEG .. END region.
 The numeric prefix ARG can specify a number of chars to remove from the
-comment markers."
+comment delimiters.
+This function is the default value of `uncomment-region-function'."
   (goto-char beg)
   (setq end (copy-marker end))
   (let* ((numarg (prefix-numeric-value arg))

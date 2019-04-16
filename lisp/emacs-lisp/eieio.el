@@ -1,7 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects  -*- lexical-binding:t -*-
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-1996, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -346,10 +346,10 @@ variable name of the same name as the slot."
                  index))))
 
 (pcase-defmacro eieio (&rest fields)
-  "Pcase patterns to match EIEIO objects.
-Elements of FIELDS can be of the form (NAME PAT) in which case the contents of
-field NAME is matched against PAT, or they can be of the form NAME which
-is a shorthand for (NAME NAME)."
+  "Pcase patterns that match EIEIO object EXPVAL.
+Elements of FIELDS can be of the form (NAME PAT) in which case the
+contents of field NAME is matched against PAT, or they can be of
+ the form NAME which is a shorthand for (NAME NAME)."
   (declare (debug (&rest [&or (sexp pcase-PAT) sexp])))
   (let ((is (make-symbol "table")))
     ;; FIXME: This generates a horrendous mess of redundant let bindings.

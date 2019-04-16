@@ -1,6 +1,6 @@
 ;;; vc-rcs.el --- support for RCS version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org
@@ -684,13 +684,13 @@ Optional arg REVISION is a revision to annotate from."
           (forward-line (1- (pop insn)))
           (setq p (point))
           (pcase (pop insn)
-            (`k (setq s (buffer-substring-no-properties
+            ('k (setq s (buffer-substring-no-properties
                          p (progn (forward-line (car insn))
                                   (point))))
                 (when prda
                   (push `(,p . ,(propertize s :vc-rcs-r/d/a prda)) path))
                 (delete-region p (point)))
-            (`i (setq s (car insn))
+            ('i (setq s (car insn))
                 (when prda
                   (push `(,p . ,(length s)) path))
                 (insert s)))))
@@ -716,10 +716,10 @@ Optional arg REVISION is a revision to annotate from."
                    (goto-char (point-min))
                    (forward-line (1- (pop insn)))
                    (pcase (pop insn)
-                     (`k (delete-region
+                     ('k (delete-region
                           (point) (progn (forward-line (car insn))
                                          (point))))
-                     (`i (insert (propertize
+                     ('i (insert (propertize
                                   (car insn)
                                   :vc-rcs-r/d/a
                                   (or prda (setq prda (r/d/a))))))))
@@ -955,11 +955,10 @@ Uses `rcs2log' which only works for RCS and CVS."
   "Return non-nil if FILE is newer than its RCS master.
 This likely means that FILE has been changed with respect
 to its master version."
-  (let ((file-time (nth 5 (file-attributes file)))
-	(master-time (nth 5 (file-attributes (vc-master-name file)))))
-    (or (> (nth 0 file-time) (nth 0 master-time))
-	(and (= (nth 0 file-time) (nth 0 master-time))
-	     (> (nth 1 file-time) (nth 1 master-time))))))
+  (let ((file-time (file-attribute-modification-time (file-attributes file)))
+	(master-time (file-attribute-modification-time
+		      (file-attributes (vc-master-name file)))))
+    (time-less-p master-time file-time)))
 
 (defun vc-rcs-find-most-recent-rev (branch)
   "Find most recent revision on BRANCH."

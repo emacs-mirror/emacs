@@ -1,6 +1,6 @@
 ;;; semantic/db-mode.el --- Semanticdb Minor Mode
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -56,7 +56,6 @@
 ;;;###autoload
 (define-minor-mode global-semanticdb-minor-mode
   "Toggle Semantic DB mode.
-With ARG, turn Semantic DB mode on if ARG is positive, off otherwise.
 
 In Semantic DB mode, Semantic parsers store results in a
 database, which can be saved for future Emacs sessions."
@@ -179,8 +178,9 @@ handle it later if need be."
 	    (let ((fattr (file-attributes
 			  (semanticdb-full-filename
 			   semanticdb-current-table))))
-	      (oset semanticdb-current-table fsize (nth 7 fattr))
-	      (oset semanticdb-current-table lastmodtime (nth 5 fattr))
+	      (oset semanticdb-current-table fsize (file-attribute-size fattr))
+	      (oset semanticdb-current-table lastmodtime
+		    (file-attribute-modification-time fattr))
 	      (oset semanticdb-current-table buffer nil)
 	      ))
 	;; If this messes up, just clear the system

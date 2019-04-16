@@ -1,6 +1,6 @@
 ;;; python-tests.el --- Test suite for python.el
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1161,10 +1161,13 @@ def b()
 if do:
     something()
     else
+outside
 "
    (python-tests-look-at "else")
    (goto-char (line-end-position))
    (python-tests-self-insert ":")
+   (should (= (current-indentation) 0))
+   (python-tests-look-at "outside")
    (should (= (current-indentation) 0))))
 
 (ert-deftest python-indent-electric-colon-3 ()
@@ -2003,6 +2006,12 @@ string
                 (goto-char (point-max))
                 (python-util-forward-comment -1)
                 (point))))))
+
+(ert-deftest python-nav-end-of-statement-2 ()
+  "Test the string overlap assertion (Bug#30964)."
+  (python-tests-with-temp-buffer
+   "'\n''\n"
+   (python-nav-end-of-statement)))
 
 (ert-deftest python-nav-forward-statement-1 ()
   (python-tests-with-temp-buffer
@@ -5336,13 +5345,23 @@ class SomeClass:
 (ert-deftest python-tests--python-nav-end-of-statement--infloop ()
   "Checks that `python-nav-end-of-statement' doesn't infloop in a
 buffer with overlapping strings."
+  ;; FIXME: The treatment of strings has changed in the mean time, and the
+  ;; test below now neither signals an error nor inf-loops.
+  ;; The description of the problem it's trying to catch is not clear enough
+  ;; to be able to see if the underlying problem is really fixed, sadly.
+  ;; E.g. I don't know what is meant by "overlap", really.
+  :tags '(:unstable)
   (python-tests-with-temp-buffer "''' '\n''' ' '\n"
     (syntax-propertize (point-max))
     ;; Create a situation where strings nominally overlap.  This
     ;; shouldn't happen in practice, but apparently it can happen when
     ;; a package calls `syntax-ppss' in a narrowed buffer during JIT
     ;; lock.
+    ;; FIXME: 4-5 is the SPC right after the opening triple quotes: why
+    ;; put a string-fence syntax on it?
     (put-text-property 4 5 'syntax-table (string-to-syntax "|"))
+    ;; FIXME: 8-9 is the middle quote in the closing triple quotes:
+    ;; it shouldn't have any syntax-table property to remove anyway!
     (remove-text-properties 8 9 '(syntax-table nil))
     (goto-char 4)
     (setq-local syntax-propertize-function nil)
@@ -5352,6 +5371,15 @@ buffer with overlapping strings."
                     (python-nav-end-of-statement)))
     (should (eolp))))
 
+;; After call `run-python' the buffer running the python process is current.
+(ert-deftest python-tests--bug31398 ()
+  "Test for https://debbugs.gnu.org/31398 ."
+  (skip-unless (executable-find python-tests-shell-interpreter))
+  (let ((buffer (process-buffer (run-python nil nil 'show))))
+    (should (eq buffer (current-buffer)))
+    (pop-to-buffer (other-buffer))
+    (run-python nil nil 'show)
+    (should (eq buffer (current-buffer)))))
 
 (provide 'python-tests)
 

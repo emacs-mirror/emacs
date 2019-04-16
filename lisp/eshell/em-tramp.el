@@ -1,6 +1,6 @@
 ;;; em-tramp.el --- Eshell features that require TRAMP  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Aidan Gauland <aidalgol@no8wireless.co.nz>
 
@@ -46,7 +46,7 @@
    :tag "TRAMP Eshell features"
    :group 'eshell-module))
 
-(defun eshell-tramp-initialize ()
+(defun eshell-tramp-initialize ()   ;Called from `eshell-mode' via intern-soft!
   "Initialize the TRAMP-using commands code."
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
@@ -62,7 +62,7 @@
   "Alias \"su\" to call TRAMP.
 
 Uses the system su through TRAMP's su method."
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
+  (setq args (eshell-stringify-list (flatten-tree args)))
   (let ((orig-args (copy-tree args)))
     (eshell-eval-using-options
      "su" args
@@ -100,13 +100,14 @@ Become another USER during a login session.")
   "Alias \"sudo\" to call Tramp.
 
 Uses the system sudo through TRAMP's sudo method."
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
+  (setq args (eshell-stringify-list (flatten-tree args)))
   (let ((orig-args (copy-tree args)))
     (eshell-eval-using-options
      "sudo" args
      '((?h "help" nil nil "show this usage screen")
        (?u "user" t user "execute a command as another USER")
        :show-usage
+       :parse-leading-options-only
        :usage "[(-u | --user) USER] COMMAND
 Execute a COMMAND as the superuser or another USER.")
      (throw 'eshell-external

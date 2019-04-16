@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -60,6 +60,18 @@
                            "\\<\\(?:\\(?:fals\\|tru\\)e\\)\\>")
                      (quote
                       (0 font-lock-keyword-face))))))))
+
+(ert-deftest provided-mode-derived-p ()
+  ;; base case: `derived-mode' directly derives `prog-mode'
+  (should (progn
+            (define-derived-mode derived-mode prog-mode "test")
+            (provided-mode-derived-p 'derived-mode 'prog-mode)))
+  ;; edge case: `derived-mode' derives an alias of `prog-mode'
+  (should (progn
+            (defalias 'parent-mode
+              (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
+            (define-derived-mode derived-mode parent-mode "test")
+            (provided-mode-derived-p 'derived-mode 'prog-mode))))
 
 (ert-deftest number-sequence-test ()
   (should (= (length
@@ -341,6 +353,25 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
                             "%ca%"
                             (shell-quote-argument "%ca%")))
                    "without-caret %ca%"))))
+
+(ert-deftest subr-tests-flatten-tree ()
+  "Test `flatten-tree' behavior."
+  (should (equal (flatten-tree '(1 (2 . 3) nil (4 5 (6)) 7))
+                 '(1 2 3 4 5 6 7)))
+  (should (equal (flatten-tree '((1 . 2)))
+                 '(1 2)))
+  (should (equal (flatten-tree '(1 nil 2))
+                 '(1 2)))
+  (should (equal (flatten-tree 42)
+                 '(42)))
+  (should (equal (flatten-tree t)
+                 '(t)))
+  (should (equal (flatten-tree nil)
+                 nil))
+  (should (equal (flatten-tree '((nil) ((((nil)))) nil))
+                 nil))
+  (should (equal (flatten-tree '(1 ("foo" "bar") 2))
+                 '(1 "foo" "bar" 2))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

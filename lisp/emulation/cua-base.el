@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -39,7 +39,7 @@
 ;;	C-v	-> paste
 ;;
 ;; The tricky part is the handling of the C-x and C-c keys which
-;; are normally used as prefix keys for most of emacs' built-in
+;; are normally used as prefix keys for most of Emacs' built-in
 ;; commands.  With CUA they still do!!!
 ;;
 ;; Only when the region is currently active (and highlighted since
@@ -69,7 +69,7 @@
 ;; [C-space] to start the region and use unshifted movement keys to extend
 ;; it. To cancel the region, use [C-space] or [C-g].
 
-;; If you prefer to use the standard emacs cut, copy, paste, and undo
+;; If you prefer to use the standard Emacs cut, copy, paste, and undo
 ;; bindings, customize cua-enable-cua-keys to nil.
 
 
@@ -138,7 +138,7 @@
 ;; cua-mode's superior rectangle support uses a true visual
 ;; representation of the selected rectangle, i.e. it highlights the
 ;; actual part of the buffer that is currently selected as part of the
-;; rectangle.  Unlike emacs' traditional rectangle commands, the
+;; rectangle.  Unlike Emacs' traditional rectangle commands, the
 ;; selected rectangle always as straight left and right edges, even
 ;; when those are in the middle of a TAB character or beyond the end
 ;; of the current line.  And it does this without actually modifying
@@ -427,13 +427,23 @@ and after the region marked by the rectangle to search."
 
 (defcustom cua-rectangle-modifier-key 'meta
   "Modifier key used for rectangle commands bindings.
-On non-window systems, always use the meta modifier.
+On non-window systems, use `cua-rectangle-terminal-modifier-key'.
 Must be set prior to enabling CUA."
   :type '(choice (const :tag "Meta key" meta)
 		 (const :tag "Alt key" alt)
 		 (const :tag "Hyper key" hyper)
 		 (const :tag "Super key" super))
   :group 'cua)
+
+(defcustom cua-rectangle-terminal-modifier-key 'meta
+  "Modifier key used for rectangle commands bindings in terminals.
+Must be set prior to enabling CUA."
+  :type '(choice (const :tag "Meta key" meta)
+		 (const :tag "Alt key" alt)
+		 (const :tag "Hyper key" hyper)
+		 (const :tag "Super key" super))
+  :group 'cua
+  :version "27.1")
 
 (defcustom cua-enable-rectangle-auto-help t
   "If non-nil, automatically show help for region, rectangle and global mark."
@@ -710,7 +720,8 @@ a cons (TYPE . COLOR), then both properties are affected."
     ;; C-x binding after the first C-x C-x was rewritten to just C-x).
     (prefix-command-preserve-state)
     ;; Push the key back on the event queue
-    (setq unread-command-events (cons key unread-command-events))))
+    (setq unread-command-events (cons (cons 'no-record key)
+                                      unread-command-events))))
 
 (defun cua--prefix-override-handler ()
   "Start timer waiting for prefix key to be followed by another key.
@@ -1047,7 +1058,6 @@ If ARG is the atom `-', scroll downward by nearly full screen."
 	(scroll-up arg)
       (end-of-buffer (goto-char (point-max)))))))
 
-(put 'cua-scroll-up 'CUA 'move)
 (put 'cua-scroll-up 'isearch-scroll t)
 
 (defun cua-scroll-down (&optional arg)
@@ -1068,7 +1078,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	(scroll-down arg)
       (beginning-of-buffer (goto-char (point-min)))))))
 
-(put 'cua-scroll-down 'CUA 'move)
 (put 'cua-scroll-down 'isearch-scroll t)
 
 ;;; Cursor indications
@@ -1238,10 +1247,9 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 (defun cua--init-keymaps ()
   ;; Cache actual rectangle modifier key.
   (setq cua--rectangle-modifier-key
-	(if (and cua-rectangle-modifier-key
-		 (memq window-system '(x)))
-	    cua-rectangle-modifier-key
-	  'meta))
+	(if (eq (framep (selected-frame)) t)
+	    cua-rectangle-terminal-modifier-key
+	  cua-rectangle-modifier-key))
   ;; C-return always toggles rectangle mark
   (define-key cua-global-keymap cua-rectangle-mark-key	'cua-set-rectangle-mark)
   (unless (eq cua--rectangle-modifier-key 'meta)
@@ -1318,9 +1326,6 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 ;;;###autoload
 (define-minor-mode cua-mode
   "Toggle Common User Access style editing (CUA mode).
-With a prefix argument ARG, enable CUA mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
 
 CUA mode is a global minor mode.  When enabled, typed text
 replaces the active selection, and you can use C-z, C-x, C-c, and

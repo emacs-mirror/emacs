@@ -1,6 +1,6 @@
 ;;; xdg.el --- XDG specification and standard support -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Created: 27 January 2017
@@ -117,7 +117,7 @@ file:///foo/bar.jpg"
 (defun xdg--substitute-home-env (str)
   (if (file-name-absolute-p str) str
     (save-match-data
-      (and (string-match "^$HOME/" str)
+      (and (string-match "^\\$HOME/" str)
            (replace-match "~/" t nil str 0)))))
 
 (defun xdg--user-dirs-parse-line ()
@@ -295,7 +295,9 @@ Results are cached in `xdg-mime-table'."
               (files ()))
     (let ((mtim1 (get 'xdg-mime-table 'mtime))
           (mtim2 (cl-loop for f in caches when (file-readable-p f)
-                          maximize (float-time (nth 5 (file-attributes f))))))
+                          maximize (float-time
+				    (file-attribute-modification-time
+				     (file-attributes f))))))
       ;; If one of the MIME/Desktop cache files has been modified:
       (when (or (null mtim1) (time-less-p mtim1 mtim2))
         (setq xdg-mime-table nil)))

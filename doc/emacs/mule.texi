@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2019 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International
 @chapter International Character Set Support
@@ -156,12 +156,19 @@ system encodes the character safely and with a single byte
 (@pxref{Coding Systems}).  If the character's encoding is longer than
 one byte, Emacs shows @samp{file ...}.
 
-  As a special case, if the character lies in the range 128 (0200
-octal) through 159 (0237 octal), it stands for a raw byte that
-does not correspond to any specific displayable character.  Such a
-character lies within the @code{eight-bit-control} character set,
-and is displayed as an escaped octal character code.  In this case,
-@kbd{C-x =} shows @samp{part of display ...} instead of @samp{file}.
+@cindex eight-bit character set
+@cindex raw bytes
+  On rare occasions, Emacs encounters @dfn{raw bytes}: single bytes
+whose values are in the range 128 (0200 octal) through 255 (0377
+octal), which Emacs cannot interpret as part of a known encoding of
+some non-ASCII character.  Such raw bytes are treated as if they
+belonged to a special character set @code{eight-bit}; Emacs displays
+them as escaped octal codes (this can be customized; @pxref{Display
+Custom}).  In this case, @kbd{C-x =} shows @samp{raw-byte} instead of
+@samp{file}.  In addition, @kbd{C-x =} shows the character codes of
+raw bytes as if they were in the range @code{#x3FFF80..#x3FFFFF},
+which is where Emacs maps them to distinguish them from Unicode
+characters in the range @code{#x0080..#x00FF}.
 
 @cindex character set of character at point
 @cindex font of character at point
@@ -390,7 +397,7 @@ messages.  But if your locale matches an entry in the variable
 coding system instead.  For example, if the locale @samp{ja_JP.PCK}
 matches @code{japanese-shift-jis} in
 @code{locale-preferred-coding-systems}, Emacs uses that encoding even
-though it might normally use @code{japanese-iso-8bit}.
+though it might normally use @code{utf-8}.
 
   You can override the language environment chosen at startup with
 explicit use of the command @code{set-language-environment}, or with

@@ -1,6 +1,6 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -489,7 +489,7 @@ Example:
     (from . "from\\|sender\\|resent-from")
     (nato . "to\\|cc\\|resent-to\\|resent-cc")
     (naany . "from\\|to\\|cc\\|sender\\|resent-from\\|resent-to\\|resent-cc")
-    (list . "list-id\\|list-post\\|x-mailing-list\||x-beenthere\\|x-loop"))
+    (list . "list-id\\|list-post\\|x-mailing-list\\|x-beenthere\\|x-loop"))
   "Alist of abbreviations allowed in `nnmail-split-fancy'."
   :group 'nnmail-split
   :type '(repeat (cons :format "%v" symbol regexp)))
@@ -663,7 +663,7 @@ nn*-request-list should have been called before calling this function."
 	    (narrow-to-region (point) (point-at-eol))
 	    (setq group (read buffer))
 	    (unless (stringp group)
-	      (setq group (symbol-name group)))
+	      (setq group (encode-coding-string (symbol-name group) 'latin-1)))
 	    (if (and (numberp (setq max (read buffer)))
 		     (numberp (setq min (read buffer))))
 		(push (list group (cons min max))
@@ -1534,7 +1534,8 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	    (and (setq file (ignore-errors
 			      (symbol-value (intern (format "%s-active-file"
 							    backend)))))
-		 (setq file-time (nth 5 (file-attributes file)))
+		 (setq file-time (file-attribute-modification-time
+				  (file-attributes file)))
 		 (or (not
 		      (setq timestamp
 			    (condition-case ()
@@ -1542,11 +1543,8 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 					       (format "%s-active-timestamp"
 						       backend)))
 			      (error 'none))))
-		     (not (consp timestamp))
-		     (equal timestamp '(0 0))
-		     (> (nth 0 file-time) (nth 0 timestamp))
-		     (and (= (nth 0 file-time) (nth 0 timestamp))
-			  (> (nth 1 file-time) (nth 1 timestamp))))))
+		     (eq timestamp 'none)
+		     (time-less-p timestamp file-time))))
 	(save-excursion
 	  (or (eq timestamp 'none)
 	      (set (intern (format "%s-active-timestamp" backend))
@@ -1884,7 +1882,7 @@ If TIME is nil, then return the cutoff time for oldness instead."
 	     (setq days (days-to-time days))
 	     ;; Compare the time with the current time.
 	     (if (null time)
-		 (time-subtract nil days)
+		 (time-since days)
 	       (ignore-errors (time-less-p days (time-since time)))))))))
 
 (declare-function gnus-group-mark-article-read "gnus-group" (group article))

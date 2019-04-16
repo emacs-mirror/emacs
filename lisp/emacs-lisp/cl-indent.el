@@ -1,6 +1,6 @@
 ;;; cl-indent.el --- Enhanced lisp-indent mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987

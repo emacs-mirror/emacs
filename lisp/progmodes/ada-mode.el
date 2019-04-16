@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994-1995, 1997-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2019 Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -767,7 +767,7 @@ the 4 file locations can be clicked on and jumped to."
   (interactive "d")
   (goto-char pos)
 
-  (skip-chars-backward "-a-zA-Z0-9_:./\\")
+  (skip-chars-backward "-a-zA-Z0-9_:./\\\\")
   (cond
    ;;  special case: looking at a filename:line not at the beginning of a line
    ;;  or a simple line reference "at line ..."
@@ -4519,6 +4519,7 @@ Moves to `begin' if in a declarative part."
   (define-key ada-mode-map "\C-c\C-n" 'ada-make-subprogram-body)
 
   ;; Use predefined function of Emacs19 for comments (RE)
+  ;; FIXME: Made redundant with Emacs-21's standard comment-dwim binding on M-;
   (define-key ada-mode-map "\C-c;"    'comment-region)
   (define-key ada-mode-map "\C-c:"    'ada-uncomment-region)
 
@@ -4756,16 +4757,17 @@ Moves to `begin' if in a declarative part."
 ;;  function for justifying the comments.
 ;; -------------------------------------------------------
 
-(defadvice comment-region (before ada-uncomment-anywhere disable)
-  (if (and (consp arg)  ;;  a prefix with \C-u is of the form '(4), whereas
-		       ;;  \C-u 2  sets arg to '2'  (fixed by S.Leake)
-	   (derived-mode-p 'ada-mode))
-      (save-excursion
-	(let ((cs (concat "^[ \t]*" (regexp-quote comment-start))))
-	  (goto-char beg)
-	  (while (re-search-forward cs end t)
-	    (replace-match comment-start))
-	  ))))
+(when (or (<= emacs-major-version 20) (featurep 'xemacs))
+  (defadvice comment-region (before ada-uncomment-anywhere disable)
+    (if (and (consp arg) ;;  a prefix with \C-u is of the form '(4), whereas
+	     ;;  \C-u 2  sets arg to '2'  (fixed by S.Leake)
+	     (derived-mode-p 'ada-mode))
+        (save-excursion
+	  (let ((cs (concat "^[ \t]*" (regexp-quote comment-start))))
+	    (goto-char beg)
+	    (while (re-search-forward cs end t)
+	      (replace-match comment-start))
+	    )))))
 
 (defun ada-uncomment-region (beg end &optional arg)
   "Uncomment region BEG .. END.

@@ -1,6 +1,6 @@
 ;;; editfns-tests.el -- tests for editfns.c
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -88,7 +88,21 @@
            (format "%-10s" (concat (propertize "01" 'face 'bold)
                                    (propertize "23" 'face 'underline)
                                    (propertize "45" 'face 'italic)))
-           #("012345    " 0 2 (face bold) 2 4 (face underline) 4 10 (face italic)))))
+           #("012345    "
+             0 2 (face bold) 2 4 (face underline) 4 10 (face italic))))
+  ;; Bug #32404
+  (should (ert-equal-including-properties
+           (format (concat (propertize "%s" 'face 'bold)
+                           ""
+                           (propertize "%s" 'face 'error))
+                   "foo" "bar")
+           #("foobar" 0 3 (face bold) 3 6 (face error))))
+  (should (ert-equal-including-properties
+           (format (concat "%s" (propertize "%s" 'face 'error)) "foo" "bar")
+           #("foobar" 3 6 (face error))))
+  (should (ert-equal-including-properties
+           (format (concat "%s " (propertize "%s" 'face 'error)) "foo" "bar")
+           #("foo bar" 4 7 (face error)))))
 
 ;; Tests for bug#5131.
 (defun transpose-test-reverse-word (start end)
@@ -159,72 +173,35 @@
   (should-error (format "%x" 18446744073709551616.0)
                 :type 'overflow-error))
 (ert-deftest read-large-integer ()
-  (should-error (read (format "%d0" most-negative-fixnum))
-                :type 'overflow-error)
-  (should-error (read (format "%+d" (* -8.0 most-negative-fixnum)))
-                :type 'overflow-error)
-  (should-error (read (substring (format "%d" most-negative-fixnum) 1))
-                :type 'overflow-error)
-  (should-error (read (format "#x%x" most-negative-fixnum))
-                :type 'overflow-error)
-  (should-error (read (format "#o%o" most-negative-fixnum))
-                :type 'overflow-error)
-  (should-error (read (format "#32rG%x" most-positive-fixnum))
-                :type 'overflow-error))
+  (should (eq (type-of (read (format "%d0" most-negative-fixnum))) 'integer))
+  (should (eq (type-of (read (format "%+d" (* -8.0 most-negative-fixnum))))
+              'integer))
+  (should (eq (type-of (read (substring (format "%d" most-negative-fixnum) 1)))
+              'integer))
+  (should (eq (type-of (read (format "#x%x" most-negative-fixnum)))
+              'integer))
+  (should (eq (type-of (read (format "#o%o" most-negative-fixnum)))
+              'integer))
+  (should (eq (type-of (read (format "#32rG%x" most-positive-fixnum)))
+              'integer))
+  (dolist (fmt '("%d" "%s" "#o%o" "#x%x"))
+    (dolist (val (list most-negative-fixnum (1+ most-negative-fixnum)
+		       -1 0 1
+		       (1- most-positive-fixnum) most-positive-fixnum))
+      (should (eq val (read (format fmt val)))))))
 
 (ert-deftest format-%o-invalid-float ()
   (should-error (format "%o" -1e-37)
                 :type 'overflow-error))
 
-
-;;; Check format-time-string with various TZ settings.
-;;; Use only POSIX-compatible TZ values, since the tests should work
-;;; even if tzdb is not in use.
-(ert-deftest format-time-string-with-zone ()
-  ;; Don’t use (0 0 0 0) as the test case, as there are too many bugs
-  ;; in MS-Windows (and presumably other) C libraries when formatting
-  ;; time stamps near the Epoch of 1970-01-01 00:00:00 UTC, and this
-  ;; test is for GNU Emacs, not for C runtimes.  Instead, look before
-  ;; you leap: "look" is the timestamp just before the first leap
-  ;; second on 1972-06-30 23:59:60 UTC, so it should format to the
-  ;; same string regardless of whether the underlying C library
-  ;; ignores leap seconds, while avoiding circa-1970 glitches.
-  ;;
-  ;; Similarly, stick to the limited set of time zones that are
-  ;; supported by both POSIX and MS-Windows: exactly 3 ASCII letters
-  ;; in the abbreviation, and no DST.
-  (let ((look '(1202 22527 999999 999999))
-        (format "%Y-%m-%d %H:%M:%S.%3N %z (%Z)"))
-    ;; UTC.
-    (should (string-equal
-             (format-time-string "%Y-%m-%d %H:%M:%S.%3N %z" look t)
-             "1972-06-30 23:59:59.999 +0000"))
-    ;; "UTC0".
-    (should (string-equal
-             (format-time-string format look "UTC0")
-             "1972-06-30 23:59:59.999 +0000 (UTC)"))
-    ;; Negative UTC offset, as a Lisp list.
-    (should (string-equal
-             (format-time-string format look '(-28800 "PST"))
-             "1972-06-30 15:59:59.999 -0800 (PST)"))
-    ;; Negative UTC offset, as a Lisp integer.
-    (should (string-equal
-             (format-time-string format look -28800)
-             ;; MS-Windows build replaces unrecognizable TZ values,
-             ;; such as "-08", with "ZZZ".
-             (if (eq system-type 'windows-nt)
-                 "1972-06-30 15:59:59.999 -0800 (ZZZ)"
-               "1972-06-30 15:59:59.999 -0800 (-08)")))
-    ;; Positive UTC offset that is not an hour multiple, as a string.
-    (should (string-equal
-             (format-time-string format look "IST-5:30")
-             "1972-07-01 05:29:59.999 +0530 (IST)"))))
-
-;;; This should not dump core.
-(ert-deftest format-time-string-with-outlandish-zone ()
-  (should (stringp
-           (format-time-string "%Y-%m-%d %H:%M:%S.%3N %z" nil
-                               (concat (make-string 2048 ?X) "0")))))
+;; Bug#31938
+(ert-deftest format-%d-float ()
+  (should (string-equal (format "%d" -1.1) "-1"))
+  (should (string-equal (format "%d" -0.9) "0"))
+  (should (string-equal (format "%d" -0.0) "0"))
+  (should (string-equal (format "%d" 0.0) "0"))
+  (should (string-equal (format "%d" 0.9) "0"))
+  (should (string-equal (format "%d" 1.1) "1")))
 
 (ert-deftest format-with-field ()
   (should (equal (format "First argument %2$s, then %3$s, then %1$s" 1 2 3)
@@ -288,6 +265,17 @@
                  (buffer-string)
                  "foo bar baz qux"))))))
 
+(ert-deftest replace-buffer-contents-bug31837 ()
+  (switch-to-buffer "a")
+  (insert-char (char-from-name "SMILE"))
+  (insert "1234")
+  (switch-to-buffer "b")
+  (insert-char (char-from-name "SMILE"))
+  (insert "5678")
+  (replace-buffer-contents "a")
+  (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                 (concat (string (char-from-name "SMILE")) "1234"))))
+
 (ert-deftest delete-region-undo-markers-1 ()
   "Make sure we don't end up with freed markers reachable from Lisp."
   ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=30931#40
@@ -338,5 +326,62 @@
     (should (eq (type-of (car (nth 3 buffer-undo-list))) 'marker))
     (should (eq (type-of (car (nth 4 buffer-undo-list))) 'marker))
     (garbage-collect)))
+
+(ert-deftest format-bignum ()
+  (let* ((s1 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+         (v1 (read (concat "#x" s1)))
+         (s2 "99999999999999999999999999999999")
+         (v2 (read s2))
+         (v3 #x-3ffffffffffffffe000000000000000))
+    (should (> v1 most-positive-fixnum))
+    (should (equal (format "%X" v1) s1))
+    (should (> v2 most-positive-fixnum))
+    (should (equal (format "%d" v2) s2))
+    (should (equal (format "%d" v3) "-5316911983139663489309385231907684352"))
+    (should (equal (format "%+d" v3) "-5316911983139663489309385231907684352"))
+    (should (equal (format "%+d" (- v3))
+                   "+5316911983139663489309385231907684352"))
+    (should (equal (format "% d" (- v3))
+                   " 5316911983139663489309385231907684352"))
+    (should (equal (format "%o" v3)
+                   "-37777777777777777777600000000000000000000"))
+    (should (equal (format "%#50.40x" v3)
+                   "        -0x000000003ffffffffffffffe000000000000000"))
+    (should (equal (format "%-#50.40x" v3)
+                   "-0x000000003ffffffffffffffe000000000000000        "))))
+
+(ert-deftest test-group-name ()
+  ;; FIXME: Actually my GID in one of my systems has no associated entry
+  ;; in /etc/group so there's no name for it and `group-name' correctly
+  ;; returns nil!
+  (should (stringp (group-name (group-gid))))
+  (should-error (group-name 'foo))
+  (cond
+   ((memq system-type '(windows-nt ms-dos))
+    (should-not (group-name 123456789)))
+   ((executable-find "getent")
+    (with-temp-buffer
+      (let (stat name)
+      (dolist (gid (list 0 1212345 (group-gid)))
+        (erase-buffer)
+        (setq stat (ignore-errors
+                     (call-process "getent" nil '(t nil) nil "group"
+                                   (number-to-string gid))))
+        (setq name (group-name gid))
+        (goto-char (point-min))
+        (cond ((eq stat 0)
+               (if (looking-at "\\([[:alnum:]_-]+\\):")
+                   (should (string= (match-string 1) name))))
+              ((eq stat 2)
+               (should-not name)))))))))
+
+(ert-deftest test-translate-region-internal ()
+  (with-temp-buffer
+    (let ((max-char #16r3FFFFF)
+          (tt (make-char-table 'translation-table)))
+      (aset tt max-char ?*)
+      (insert max-char)
+      (translate-region-internal (point-min) (point-max) tt)
+      (should (string-equal (buffer-string) "*")))))
 
 ;;; editfns-tests.el ends here

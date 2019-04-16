@@ -1,6 +1,6 @@
 ;;; network-stream.el --- open network processes, possibly with encryption -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -42,14 +42,21 @@
 
 ;;; Code:
 
-(require 'tls)
-(require 'starttls)
 (require 'auth-source)
 (require 'nsm)
 (require 'puny)
 
+(declare-function starttls-available-p "starttls" ())
+(declare-function starttls-negotiate "starttls" (process))
+(declare-function starttls-open-stream "starttls" (name buffer host port))
+
 (autoload 'gnutls-negotiate "gnutls")
 (autoload 'open-gnutls-stream "gnutls")
+(defvar starttls-extra-arguments)
+(defvar starttls-extra-args)
+(defvar starttls-use-gnutls)
+(defvar starttls-gnutls-program)
+(defvar starttls-program)
 
 ;;;###autoload
 (defun open-network-stream (name buffer host service &rest parameters)
@@ -190,7 +197,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	  (car result))))))
 
 (defun network-stream-certificate (host service parameters)
-  (let ((spec (plist-get :client-certificate parameters)))
+  (let ((spec (plist-get parameters :client-certificate)))
     (cond
      ((listp spec)
       ;; Either nil or a list with a key/certificate pair.
@@ -255,7 +262,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 		     (or (gnutls-available-p)
 			 (and (or require-tls
 				  (plist-get parameters :use-starttls-if-possible))
-			      (starttls-available-p))))
+			      (require 'starttls)
+                              (starttls-available-p))))
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
@@ -336,7 +344,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	      ;; See `starttls-available-p'.  If this predicate
 	      ;; changes to allow running under Windows, the error
 	      ;; message below should be amended.
-	      (if (memq system-type '(windows-nt ms-dos))
+	      (if (or (memq system-type '(windows-nt ms-dos))
+                      (not (featurep 'starttls)))
 		  (concat "Emacs does not support TLS")
 		(concat "Emacs does not support TLS, and no external `"
 			(if starttls-use-gnutls
@@ -367,11 +376,13 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	(goto-char start)
 	(while (and (memq (process-status stream) '(open run))
 		    (not (re-search-forward end-of-command nil t)))
-	  (accept-process-output stream 0 50)
+	  (accept-process-output stream 0.05)
 	  (goto-char start))
 	;; Return the data we got back, or nil if the process died.
 	(unless (= start (point))
 	  (buffer-substring start (point)))))))
+
+(declare-function open-tls-stream "tls" (name buffer host port))
 
 (defun network-stream-open-tls (name buffer host service parameters)
   (with-current-buffer buffer
@@ -379,7 +390,8 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	   (stream
             (if (gnutls-available-p)
                 (open-gnutls-stream name buffer host service
-                                    (plist-get parameters :nowait))
+                                    parameters)
+              (require 'tls)
               (open-tls-stream name buffer host service)))
 	   (eoc (plist-get parameters :end-of-command)))
       (if (plist-get parameters :nowait)
@@ -405,6 +417,9 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
                   (network-stream-get-response stream start eoc)
                   (network-stream-command stream capability-command eo-capa)
                   'tls)))))))
+
+(declare-function format-spec "format-spec" (format spec))
+(declare-function format-spec-make "format-spec" (&rest pairs))
 
 (defun network-stream-open-shell (name buffer host service parameters)
   (require 'format-spec)

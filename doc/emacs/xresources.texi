@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node X Resources
@@ -45,6 +45,11 @@ usually named @file{~/.Xdefaults} or @file{~/.Xresources}.  Changes in
 this file do not take effect immediately, because the X server stores
 its own list of resources; to update it, use the command
 @command{xrdb}---for instance, @samp{xrdb ~/.Xdefaults}.
+
+  Settings specified via X resources in general override the
+equivalent settings in Emacs init files (@pxref{Init File}), in
+particular for parameters of the initial frame (@pxref{Frame
+Parameters}).
 
 @cindex registry, setting resources (MS-Windows)
   (MS-Windows systems do not support X resource files; on such systems,

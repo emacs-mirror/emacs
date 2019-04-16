@@ -1,5 +1,5 @@
 /* Erasure of sensitive data, generic implementation.
-   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+   Copyright (C) 2016-2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,9 +27,11 @@
 
 #include <string.h>
 
+#if _LIBC
 /* glibc-internal users use __explicit_bzero_chk, and explicit_bzero
    redirects to that.  */
-#undef explicit_bzero
+# undef explicit_bzero
+#endif
 
 /* Set LEN bytes of S to 0.  The compiler will not delete a call to
    this function, even if S is dead after the call.  */

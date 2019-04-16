@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2018 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -40,7 +40,21 @@
   "List of functions to run in help buffer in `describe-function'.
 Those functions will be run after the header line and argument
 list was inserted, and before the documentation will be inserted.
-The functions will receive the function name as argument.")
+The functions will receive the function name as argument.
+They can assume that a newline was output just before they were called,
+and they should terminate any of their own output with a newline.
+By convention they should indent their output by 2 spaces.")
+
+(defvar help-fns-describe-variable-functions nil
+  "List of functions to run in help buffer in `describe-variable'.
+Those functions will be run after the header line and value was inserted,
+and before the documentation will be inserted.
+The functions will receive the variable name as argument.
+They can assume that a newline was output just before they were called,
+and they should terminate any of their own output with a newline.
+By convention they should indent their output by 2 spaces.
+Current buffer is the buffer in which we queried the variable,
+and the output should go to `standard-output'.")
 
 ;; Functions
 
@@ -68,12 +82,15 @@ The functions will receive the function name as argument.")
 
 (defun help--loaded-p (file)
   "Try and figure out if FILE has already been loaded."
+  ;; FIXME: this regexp business is not good enough: for file
+  ;; `toto', it will say `toto' is loaded when in reality it was
+  ;; just cedet/semantic/toto that has been loaded.
   (or (let ((feature (intern-soft file)))
         (and feature (featurep feature)))
       (let* ((re (load-history-regexp file))
              (done nil))
         (dolist (x load-history)
-          (and (car x) (string-match-p re (car x)) (setq done t)))
+          (and (stringp (car x)) (string-match-p re (car x)) (setq done t)))
         done)))
 
 (defun help--load-prefixes (prefixes)
@@ -83,11 +100,9 @@ The functions will receive the function name as argument.")
     (dolist (file files)
       ;; FIXME: Should we scan help-definition-prefixes to remove
       ;; other prefixes of the same file?
-      ;; FIXME: this regexp business is not good enough: for file
-      ;; `toto', it will say `toto' is loaded when in reality it was
-      ;; just cedet/semantic/toto that has been loaded.
       (unless (help--loaded-p file)
-        (load file 'noerror 'nomessage)))))
+        (with-demoted-errors "while loading: %S"
+          (load file 'noerror 'nomessage))))))
 
 (defun help--symbol-completion-table (string pred action)
   (let ((prefixes (radix-tree-prefixes (help-definition-prefixes) string)))
@@ -411,7 +426,7 @@ suitable file is found, return nil."
 (defun help-fns--compiler-macro (function)
   (let ((handler (function-get function 'compiler-macro)))
     (when handler
-      (insert "\nThis function has a compiler macro")
+      (insert "  This function has a compiler macro")
       (if (symbolp handler)
           (progn
             (insert (format-message " `%s'" handler))
@@ -485,7 +500,7 @@ suitable file is found, return nil."
                           (get function
                                'derived-mode-parent))))
     (when parent-mode
-      (insert (substitute-command-keys "\nParent mode: `"))
+      (insert (substitute-command-keys "  Parent mode: `"))
       (let ((beg (point)))
         (insert (format "%s" parent-mode))
         (make-text-button beg (point)
@@ -499,15 +514,15 @@ suitable file is found, return nil."
 			(get function 'byte-obsolete-info)))
          (use (car obsolete)))
     (when obsolete
-      (insert "\nThis "
+      (insert "  This "
 	      (if (eq (car-safe (symbol-function function)) 'macro)
 		  "macro"
 		"function")
 	      " is obsolete")
       (when (nth 2 obsolete)
         (insert (format " since %s" (nth 2 obsolete))))
-      (insert (cond ((stringp use) (concat ";\n" use))
-                    (use (format-message ";\nuse `%s' instead." use))
+      (insert (cond ((stringp use) (concat ";\n  " use))
+                    (use (format-message ";\n  use `%s' instead." use))
                     (t "."))
               "\n"))))
 
@@ -520,7 +535,7 @@ FILE is the file where FUNCTION was probably defined."
 	 (target (cons t function))
 	 found)
     (while (and load-hist (not found))
-      (and (caar load-hist)
+      (and (stringp (caar load-hist))
 	   (equal (file-name-sans-extension (caar load-hist)) file)
 	   (setq found (member target (cdar load-hist))))
       (setq load-hist (cdr load-hist)))
@@ -537,16 +552,64 @@ FILE is the file where FUNCTION was probably defined."
                        (memq function
                              byte-compile-interactive-only-functions)))))
          (when interactive-only
-           (insert "\nThis function is for interactive use only"
+           (insert "  This function is for interactive use only"
                    ;; Cf byte-compile-form.
                    (cond ((stringp interactive-only)
-                          (format ";\nin Lisp code %s" interactive-only))
+                          (format ";\n  in Lisp code %s" interactive-only))
                          ((and (symbolp 'interactive-only)
                                (not (eq interactive-only t)))
-                          (format-message ";\nin Lisp code use `%s' instead."
+                          (format-message ";\n  in Lisp code use `%s' instead."
                                           interactive-only))
                          (t "."))
                    "\n")))))
+
+(add-hook 'help-fns-describe-function-functions #'help-fns--side-effects)
+(defun help-fns--side-effects (function)
+  (when (and (symbolp function)
+             (or (function-get function 'pure)
+                 (function-get function 'side-effect-free)))
+    (insert "  This function does not change global state, "
+            "including the match data.\n")))
+
+(defun help-fns--first-release (symbol)
+  "Return the likely first release that defined SYMBOL."
+  ;; Code below relies on the etc/NEWS* files.
+  ;; FIXME: Maybe we should also use the */ChangeLog* files when available.
+  ;; FIXME: Maybe we should also look for announcements of the addition
+  ;; of the *packages* in which the function is defined.
+  (let* ((name (symbol-name symbol))
+         (re (concat "\\_<" (regexp-quote name) "\\_>"))
+         (news (directory-files data-directory t "\\`NEWS.[1-9]"))
+         (first nil))
+    (with-temp-buffer
+      (dolist (f news)
+        (erase-buffer)
+        (insert-file-contents f)
+        (goto-char (point-min))
+        (search-forward "\n*")
+        (while (re-search-forward re nil t)
+          (save-excursion
+            ;; Almost all entries are of the form "* ... in Emacs NN.MM."
+            ;; but there are also a few in the form "* Emacs NN.MM is a bug
+            ;; fix release ...".
+            (if (not (re-search-backward "^\\*.* Emacs \\([0-9.]+[0-9]\\)"
+                                         nil t))
+                (message "Ref found in non-versioned section in %S"
+                         (file-name-nondirectory f))
+              (let ((version (match-string 1)))
+                (when (or (null first) (version< version first))
+                  (setq first version))))))))
+    first))
+
+(add-hook 'help-fns-describe-function-functions
+          #'help-fns--mention-first-release)
+(add-hook 'help-fns-describe-variable-functions
+          #'help-fns--mention-first-release)
+(defun help-fns--mention-first-release (object)
+  (let ((first (if (symbolp object) (help-fns--first-release object))))
+    (when first
+      (princ (format "  Probably introduced at or before Emacs version %s.\n"
+                     first)))))
 
 (defun help-fns-short-filename (filename)
   (let* ((abbrev (abbreviate-file-name filename))
@@ -610,9 +673,9 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                                  (memq (car-safe def) '(macro lambda closure)))
                              (stringp file-name)
                              (help-fns--autoloaded-p function file-name))
-                        (if (commandp def)
-                            "an interactive autoloaded "
-                          "an autoloaded ")
+                        (concat
+                         "an autoloaded " (if (commandp def)
+                                              "interactive "))
                       (if (commandp def) "an interactive " "a "))))
 
     ;; Print what kind of function-like object FUNCTION is.
@@ -626,14 +689,16 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		 (aliased
 		  (format-message "an alias for `%s'" real-def))
 		 ((subrp def)
-		  (if (eq 'unevalled (cdr (subr-arity def)))
-		      (concat beg "special form")
-		    (concat beg "built-in function")))
+		  (concat beg (if (eq 'unevalled (cdr (subr-arity def)))
+		                  "special form"
+                                "built-in function")))
 		 ((autoloadp def)
-		  (format "%s autoloaded %s"
-			  (if (commandp def) "an interactive" "an")
-			  (if (eq (nth 4 def) 'keymap) "keymap"
-			    (if (nth 4 def) "Lisp macro" "Lisp function"))))
+		  (format "an autoloaded %s"
+                          (cond
+			   ((commandp def) "interactive Lisp function")
+			   ((eq (nth 4 def) 'keymap) "keymap")
+			   ((nth 4 def) "Lisp macro")
+                           (t "Lisp function"))))
 		 ((or (eq (car-safe def) 'macro)
 		      ;; For advised macros, def is a lambda
 		      ;; expression or a byte-code-function-p, so we
@@ -684,6 +749,10 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 	    (help-xref-button 1 'help-function-def function file-name))))
       (princ "."))))
 
+(defun help-fns--ensure-empty-line ()
+  (unless (eolp) (insert "\n"))
+  (unless (eq ?\n (char-before (1- (point)))) (insert "\n")))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let ((pt1 (with-current-buffer (help-buffer) (point))))
@@ -721,12 +790,10 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                       real-function key-bindings-buffer)
                    ;; E.g. an alias for a not yet defined function.
                    ((invalid-function void-function) doc-raw))))
+        (help-fns--ensure-empty-line)
         (run-hook-with-args 'help-fns-describe-function-functions function)
-        (insert "\n" (or doc "Not documented.")))
-      (when (or (function-get function 'pure)
-                (function-get function 'side-effect-free))
-        (insert "\nThis function does not change global state, "
-                "including the match data."))
+        (help-fns--ensure-empty-line)
+        (insert (or doc "Not documented.")))
       ;; Avoid asking the user annoying questions if she decides
       ;; to save the help buffer, when her locale's codeset
       ;; isn't UTF-8.
@@ -829,7 +896,6 @@ it is displayed along with the global value."
 	(message "You did not specify a variable")
       (save-excursion
 	(let ((valvoid (not (with-current-buffer buffer (boundp variable))))
-	      (permanent-local (get variable 'permanent-local))
 	      val val-start-pos locus)
 	  ;; Extract the value before setting up the output buffer,
 	  ;; in case `buffer' *is* the output buffer.
@@ -845,26 +911,26 @@ it is displayed along with the global value."
 	      (prin1 variable)
 	      (setq file-name (find-lisp-object-file-name variable 'defvar))
 
-	      (if file-name
-		  (progn
-		    (princ (format-message
-                            " is a variable defined in `%s'.\n"
-                            (if (eq file-name 'C-source)
-                                "C source code"
-                              (file-name-nondirectory file-name))))
-		    (with-current-buffer standard-output
-		      (save-excursion
-			(re-search-backward (substitute-command-keys
-                                             "`\\([^`']+\\)'")
-                                            nil t)
-			(help-xref-button 1 'help-variable-def
-					  variable file-name)))
-		    (if valvoid
-			(princ "It is void as a variable.")
-		      (princ "Its ")))
-		(if valvoid
-		    (princ " is void as a variable.")
-		  (princ (substitute-command-keys "'s ")))))
+	      (princ (if file-name
+		         (progn
+		           (princ (format-message
+                                   " is a variable defined in `%s'.\n"
+                                   (if (eq file-name 'C-source)
+                                       "C source code"
+                                     (file-name-nondirectory file-name))))
+		           (with-current-buffer standard-output
+		             (save-excursion
+			       (re-search-backward (substitute-command-keys
+                                                    "`\\([^`']+\\)'")
+                                                   nil t)
+			       (help-xref-button 1 'help-variable-def
+					         variable file-name)))
+		           (if valvoid
+			       "It is void as a variable."
+                             "Its "))
+                       (if valvoid
+		           " is void as a variable."
+                         (substitute-command-keys "'s ")))))
 	    (unless valvoid
 	      (with-current-buffer standard-output
 		(setq val-start-pos (point))
@@ -893,7 +959,7 @@ it is displayed along with the global value."
 		  (let* ((sv (get variable 'standard-value))
 			 (origval (and (consp sv)
 				       (condition-case nil
-					   (eval (car sv))
+					   (eval (car sv) t)
 					 (error :help-eval-error))))
                          from)
 		    (when (and (consp sv)
@@ -968,132 +1034,17 @@ it is displayed along with the global value."
             (let* ((alias (condition-case nil
                               (indirect-variable variable)
                             (error variable)))
-                   (obsolete (get variable 'byte-obsolete-variable))
-                   (watchpoints (get-variable-watchers variable))
-		   (use (car obsolete))
-		   (safe-var (get variable 'safe-local-variable))
                    (doc (or (documentation-property
                              variable 'variable-documentation)
                             (documentation-property
-                             alias 'variable-documentation)))
-                   (extra-line nil))
+                             alias 'variable-documentation))))
 
-	      ;; Mention if it's a local variable.
-	      (cond
-	       ((and (local-variable-if-set-p variable)
-		     (or (not (local-variable-p variable))
-			 (with-temp-buffer
-			   (local-variable-if-set-p variable))))
-                (setq extra-line t)
-                (princ "  Automatically becomes ")
-		(if permanent-local
-		    (princ "permanently "))
-		(princ "buffer-local when set.\n"))
-	       ((not permanent-local))
-	       ((bufferp locus)
-		(setq extra-line t)
-		(princ
-		 (substitute-command-keys
-		  "  This variable's buffer-local value is permanent.\n")))
-	       (t
-		(setq extra-line t)
-                (princ (substitute-command-keys
-			"  This variable's value is permanent \
-if it is given a local binding.\n"))))
+              (with-current-buffer buffer
+                (run-hook-with-args 'help-fns-describe-variable-functions
+                                    variable))
 
-	      ;; Mention if it's an alias.
-              (unless (eq alias variable)
-                (setq extra-line t)
-                (princ (format-message
-                        "  This variable is an alias for `%s'.\n"
-                        alias)))
-
-              (when obsolete
-                (setq extra-line t)
-                (princ "  This variable is obsolete")
-                (if (nth 2 obsolete)
-                    (princ (format " since %s" (nth 2 obsolete))))
-		(princ (cond ((stringp use) (concat ";\n  " use))
-			     (use (format-message ";\n  use `%s' instead."
-                                                  (car obsolete)))
-			     (t ".")))
-                (terpri))
-
-              (when watchpoints
-                (setq extra-line t)
-                (princ "  Calls these functions when changed: ")
-                (princ watchpoints)
-                (terpri))
-
-	      (when (member (cons variable val)
-                            (with-current-buffer buffer
-                              file-local-variables-alist))
-		(setq extra-line t)
-		(if (member (cons variable val)
-                             (with-current-buffer buffer
-                               dir-local-variables-alist))
-		    (let ((file (and (buffer-file-name buffer)
-                                      (not (file-remote-p
-                                            (buffer-file-name buffer)))
-                                      (dir-locals-find-file
-                                       (buffer-file-name buffer))))
-                          (is-directory nil))
-		      (princ (substitute-command-keys
-			      "  This variable's value is directory-local"))
-                      (when (consp file) ; result from cache
-                        ;; If the cache element has an mtime, we
-                        ;; assume it came from a file.
-                        (if (nth 2 file)
-                            ;; (car file) is a directory.
-                            (setq file (dir-locals--all-files (car file)))
-                          ;; Otherwise, assume it was set directly.
-                          (setq file (car file)
-                                is-directory t)))
-                      (if (null file)
-                          (princ ".\n")
-                        (princ ", set ")
-                        (princ (substitute-command-keys
-                                (cond
-                                 (is-directory "for the directory\n  `")
-                                 ;; Many files matched.
-                                 ((and (consp file) (cdr file))
-                                  (setq file (file-name-directory (car file)))
-                                  (format "by one of the\n  %s files in the directory\n  `"
-                                          dir-locals-file))
-                                 (t (setq file (car file))
-                                    "by the file\n  `"))))
-			(with-current-buffer standard-output
-			  (insert-text-button
-			   file 'type 'help-dir-local-var-def
-                             'help-args (list variable file)))
-			(princ (substitute-command-keys "'.\n"))))
-		  (princ (substitute-command-keys
-			  "  This variable's value is file-local.\n"))))
-
-	      (when (memq variable ignored-local-variables)
-		(setq extra-line t)
-		(princ "  This variable is ignored as a file-local \
-variable.\n"))
-
-	      ;; Can be both risky and safe, eg auto-fill-function.
-	      (when (risky-local-variable-p variable)
-		(setq extra-line t)
-		(princ "  This variable may be risky if used as a \
-file-local variable.\n")
-		(when (assq variable safe-local-variable-values)
-		  (princ (substitute-command-keys
-                          "  However, you have added it to \
-`safe-local-variable-values'.\n"))))
-
-	      (when safe-var
-                (setq extra-line t)
-		(princ "  This variable is safe as a file local variable ")
-		(princ "if its value\n  satisfies the predicate ")
-		(princ (if (byte-code-function-p safe-var)
-			   "which is a byte-compiled expression.\n"
-			 (format-message "`%s'.\n" safe-var))))
-
-              (if extra-line (terpri))
+              (with-current-buffer standard-output
+                (help-fns--ensure-empty-line))
 	      (princ "Documentation:\n")
 	      (with-current-buffer standard-output
 		(insert (or doc "Not documented as a variable."))))
@@ -1120,6 +1071,134 @@ file-local variable.\n")
 	      ;; Return the text we displayed.
 	      (buffer-string))))))))
 
+(add-hook 'help-fns-describe-variable-functions #'help-fns--var-safe-local)
+(defun help-fns--var-safe-local (variable)
+  (let ((safe-var (get variable 'safe-local-variable)))
+    (when safe-var
+      (princ "  This variable is safe as a file local variable ")
+      (princ "if its value\n  satisfies the predicate ")
+      (princ (if (byte-code-function-p safe-var)
+		 "which is a byte-compiled expression.\n"
+	       (format-message "`%s'.\n" safe-var))))))
+
+(add-hook 'help-fns-describe-variable-functions #'help-fns--var-risky)
+(defun help-fns--var-risky (variable)
+  ;; Can be both risky and safe, eg auto-fill-function.
+  (when (risky-local-variable-p variable)
+    (princ "  This variable may be risky if used as a \
+file-local variable.\n")
+    (when (assq variable safe-local-variable-values)
+      (princ (substitute-command-keys
+              "  However, you have added it to \
+`safe-local-variable-values'.\n")))))
+
+(add-hook 'help-fns-describe-variable-functions #'help-fns--var-ignored-local)
+(defun help-fns--var-ignored-local (variable)
+  (when (memq variable ignored-local-variables)
+    (princ "  This variable is ignored as a file-local \
+variable.\n")))
+
+(add-hook 'help-fns-describe-variable-functions #'help-fns--var-file-local)
+(defun help-fns--var-file-local (variable)
+  (when (boundp variable)
+    (let ((val (symbol-value variable)))
+      (when (member (cons variable val)
+                    file-local-variables-alist)
+        (if (member (cons variable val)
+                    dir-local-variables-alist)
+	    (let ((file (and buffer-file-name
+                             (not (file-remote-p buffer-file-name))
+                             (dir-locals-find-file buffer-file-name)))
+                  (is-directory nil))
+	      (princ (substitute-command-keys
+		      "  This variable's value is directory-local"))
+              (when (consp file)       ; result from cache
+                ;; If the cache element has an mtime, we
+                ;; assume it came from a file.
+                (if (nth 2 file)
+                    ;; (car file) is a directory.
+                    (setq file (dir-locals--all-files (car file)))
+                  ;; Otherwise, assume it was set directly.
+                  (setq file (car file)
+                        is-directory t)))
+              (if (null file)
+                  (princ ".\n")
+                (princ ", set ")
+                (princ (substitute-command-keys
+                        (cond
+                         (is-directory "for the directory\n  `")
+                         ;; Many files matched.
+                         ((and (consp file) (cdr file))
+                          (setq file (file-name-directory (car file)))
+                          (format "by one of the\n  %s files in the directory\n  `"
+                                  dir-locals-file))
+                         (t (setq file (car file))
+                            "by the file\n  `"))))
+	        (with-current-buffer standard-output
+	          (insert-text-button
+	           file 'type 'help-dir-local-var-def
+                   'help-args (list variable file)))
+	        (princ (substitute-command-keys "'.\n"))))
+          (princ (substitute-command-keys
+	          "  This variable's value is file-local.\n")))))))
+
+(add-hook 'help-fns-describe-variable-functions #'help-fns--var-watchpoints)
+(defun help-fns--var-watchpoints (variable)
+  (let ((watchpoints (get-variable-watchers variable)))
+    (when watchpoints
+      (princ "  Calls these functions when changed: ")
+      ;; FIXME: Turn function names into hyperlinks.
+      (princ watchpoints)
+      (terpri))))
+
+(add-hook 'help-fns-describe-variable-functions #'help-fns--var-obsolete)
+(defun help-fns--var-obsolete (variable)
+  (let* ((obsolete (get variable 'byte-obsolete-variable))
+	 (use (car obsolete)))
+    (when obsolete
+      (princ "  This variable is obsolete")
+      (if (nth 2 obsolete)
+          (princ (format " since %s" (nth 2 obsolete))))
+      (princ (cond ((stringp use) (concat ";\n  " use))
+		   (use (format-message ";\n  use `%s' instead."
+                                        (car obsolete)))
+		   (t ".")))
+      (terpri))))
+
+(add-hook 'help-fns-describe-variable-functions #'help-fns--var-alias)
+(defun help-fns--var-alias (variable)
+  ;; Mention if it's an alias.
+  (let ((alias (condition-case nil
+                   (indirect-variable variable)
+                 (error variable))))
+    (unless (eq alias variable)
+      (princ (format-message
+              "  This variable is an alias for `%s'.\n"
+              alias)))))
+
+(add-hook 'help-fns-describe-variable-functions #'help-fns--var-bufferlocal)
+(defun help-fns--var-bufferlocal (variable)
+  (let ((permanent-local (get variable 'permanent-local))
+        (locus (variable-binding-locus variable)))
+    ;; Mention if it's a local variable.
+    (cond
+     ((and (local-variable-if-set-p variable)
+	   (or (not (local-variable-p variable))
+	       (with-temp-buffer
+	         (local-variable-if-set-p variable))))
+      (princ "  Automatically becomes ")
+      (if permanent-local
+	  (princ "permanently "))
+      (princ "buffer-local when set.\n"))
+     ((not permanent-local))
+     ((bufferp locus)
+      (princ
+       (substitute-command-keys
+        "  This variable's buffer-local value is permanent.\n")))
+     (t
+      (princ (substitute-command-keys
+	      "  This variable's value is permanent \
+if it is given a local binding.\n"))))))
 
 (defvar help-xref-stack-item)
 
@@ -1141,7 +1220,7 @@ current buffer and the selected frame, respectively."
 				    (format
                                      "Describe symbol (default %s): " v-or-f)
 				  "Describe symbol: ")
-				obarray
+				#'help--symbol-completion-table
 				(lambda (vv)
                                   (cl-some (lambda (x) (funcall (nth 1 x) vv))
                                            describe-symbol-backends))

@@ -1,6 +1,6 @@
 ;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: emacs-devel@gnu.org
@@ -824,14 +824,16 @@ A canonicalized color name is all-lower case, with any blanks removed."
 	(replace-regexp-in-string " +" "" (downcase color))
       color)))
 
-(defun tty-color-24bit (rgb)
-  "Return pixel value on 24-bit terminals. Return nil if RGB is
-nil or not on 24-bit terminal."
-  (when (and rgb (= (display-color-cells) 16777216))
-    (let ((r (lsh (car rgb) -8))
-	  (g (lsh (cadr rgb) -8))
-	  (b (lsh (nth 2 rgb) -8)))
-      (logior (lsh r 16) (lsh g 8) b))))
+(defun tty-color-24bit (rgb &optional display)
+  "Return 24-bit color pixel value for RGB value on DISPLAY.
+DISPLAY can be a display name or a frame, and defaults to the
+selected frame's display.
+If DISPLAY is not on a 24-but TTY terminal, return nil."
+  (when (and rgb (= (display-color-cells display) 16777216))
+    (let ((r (ash (car rgb) -8))
+	  (g (ash (cadr rgb) -8))
+	  (b (ash (nth 2 rgb) -8)))
+      (logior (ash r 16) (ash g 8) b))))
 
 (defun tty-color-define (name index &optional rgb frame)
   "Specify a tty color by its NAME, terminal INDEX and RGB values.
@@ -850,7 +852,7 @@ If FRAME is not specified or is nil, it defaults to the selected frame."
       (error "Invalid specification for tty color \"%s\"" name))
   (tty-modify-color-alist
    (append (list (tty-color-canonicalize name)
-		 (or (tty-color-24bit rgb) index))
+		 (or (tty-color-24bit rgb frame) index))
 	   rgb)
    frame))
 
@@ -893,9 +895,9 @@ FRAME defaults to the selected frame."
 	;; never consider it for approximating another color.
 	(if try-rgb
 	    (progn
-	      (setq try-r (lsh (car try-rgb) -8)
-		    try-g (lsh (cadr try-rgb) -8)
-		    try-b (lsh (nth 2 try-rgb) -8))
+	      (setq try-r (ash (car try-rgb) -8)
+		    try-g (ash (cadr try-rgb) -8)
+		    try-b (ash (nth 2 try-rgb) -8))
 	      (setq dif-r (- r try-r)
 		    dif-g (- g try-g)
 		    dif-b (- b try-b))
@@ -936,13 +938,13 @@ should be the same regardless of what display is being used."
 		  (i2 (+ i1 ndig))
 		  (i3 (+ i2 ndig)))
 	     (list
-	      (lsh
+	      (ash
 	       (string-to-number (substring color i1 i2) 16)
 	       (* 4 (- 4 ndig)))
-	      (lsh
+	      (ash
 	       (string-to-number (substring color i2 i3) 16)
 	       (* 4 (- 4 ndig)))
-	      (lsh
+	      (ash
 	       (string-to-number (substring color i3) 16)
 	       (* 4 (- 4 ndig))))))
 	  ((and (>= len 9) ;; X-style RGB:xx/yy/zz color spec
@@ -1026,7 +1028,7 @@ might need to be approximated if it is not supported directly."
 	  (or (assoc color (tty-color-alist frame))
 	      (let ((rgb (tty-color-standard-values color)))
 		(and rgb
-		     (let ((pixel (tty-color-24bit rgb)))
+		     (let ((pixel (tty-color-24bit rgb frame)))
 		       (or (and pixel (cons color (cons pixel rgb)))
 			   (tty-color-approximate rgb frame)))))))))
 

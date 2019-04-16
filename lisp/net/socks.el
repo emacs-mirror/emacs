@@ -1,6 +1,6 @@
 ;;; socks.el --- A Socks v5 Client for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2000, 2002, 2007-2018 Free Software Foundation,
+;; Copyright (C) 1996-2000, 2002, 2007-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>
@@ -420,7 +420,7 @@
 		     (unibyte-string
 		      version             ; version
 		      command             ; command
-		      (lsh port -8)       ; port, high byte
+		      (ash port -8)       ; port, high byte
 		      (logand port #xff)) ; port, low byte
 		     addr                 ; address
 		     (user-full-name)     ; username
@@ -434,7 +434,7 @@
 		      atype)		; address type
 		     addr		; address
 		     (unibyte-string
-                      (lsh port -8)          ; port, high byte
+                      (ash port -8)          ; port, high byte
 		      (logand port #xff))))) ; port, low byte
      (t
       (error "Unknown protocol version: %d" version)))

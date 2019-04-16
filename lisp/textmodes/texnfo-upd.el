@@ -1,6 +1,6 @@
 ;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
 
-;; Copyright (C) 1989-1992, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1989-1992, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: bug-texinfo@gnu.org
@@ -642,7 +642,7 @@ appears in the texinfo file."
   "Return description field of old menu line as string.
 Point must be located just after the node name.  Point left before description.
 Single argument, END-OF-MENU, is position limiting search."
-  (skip-chars-forward "[:.,\t\n ]+")
+  (skip-chars-forward ":.,\t\n ")
   ;; don't copy a carriage return at line beginning with asterisk!
   ;; don't copy @detailmenu or @end menu or @ignore as descriptions!
   ;; do copy a description that begins with an `@'!

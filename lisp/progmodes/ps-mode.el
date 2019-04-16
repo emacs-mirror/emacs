@@ -1,6 +1,6 @@
 ;;; ps-mode.el --- PostScript mode for GNU Emacs
 
-;; Copyright (C) 1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Maintainer: Peter Kleiweg <p.c.j.kleiweg@rug.nl>
@@ -458,9 +458,9 @@ If nil, use `temporary-file-directory'."
 
 (defun ps-mode-smie-rules (kind token)
   (pcase (cons kind token)
-    (`(:after . "<") (when (smie-rule-next-p "<") 0))
-    (`(:elem . basic) ps-mode-tab)
-    (`(:close-all . ">") t)
+    ('(:after . "<") (when (smie-rule-next-p "<") 0))
+    ('(:elem . basic) ps-mode-tab)
+    ('(:close-all . ">") t)
     (`(:list-intro . ,_) t)))
 
 ;;;###autoload

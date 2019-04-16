@@ -1,6 +1,6 @@
 ;;; ps-mule.el --- provide multi-byte character facility to ps-print
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
@@ -1031,7 +1031,7 @@ the sequence."
   (setq ps-mule-prologue-generated nil
 	ps-mule-composition-prologue-generated nil
 	ps-mule-bitmap-prologue-generated nil)
-  (mapcar `(lambda (x) (setcar (nthcdr 2 x) nil))
+  (mapcar (lambda (x) (setcar (nthcdr 2 x) nil))
 	  ps-mule-external-libraries))
 
 (defun ps-mule-encode-header-string (string fonttag)

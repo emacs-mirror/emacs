@@ -1,6 +1,6 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2018 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "tparam.h"
 #include "xwidget.h"
+#include "pdumper.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include TERM_HEADER
@@ -766,7 +767,7 @@ clear_current_matrices (register struct frame *f)
     clear_glyph_matrix (XWINDOW (f->menu_bar_window)->current_matrix);
 #endif
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   /* Clear the matrix of the tool-bar window, if any.  */
   if (WINDOWP (f->tool_bar_window))
     clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
@@ -791,7 +792,7 @@ clear_desired_matrices (register struct frame *f)
     clear_glyph_matrix (XWINDOW (f->menu_bar_window)->desired_matrix);
 #endif
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   if (WINDOWP (f->tool_bar_window))
     clear_glyph_matrix (XWINDOW (f->tool_bar_window)->desired_matrix);
 #endif
@@ -2105,7 +2106,7 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
   }
 #endif
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   {
     /* Allocate/ reallocate matrices of the tool bar window.  If we
        don't have a tool bar window yet, make one.  */
@@ -2187,7 +2188,7 @@ free_glyphs (struct frame *f)
 	}
 #endif
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
       /* Free the tool bar window and its glyph matrices.  */
       if (!NILP (f->tool_bar_window))
 	{
@@ -2508,8 +2509,7 @@ spec_glyph_lookup_face (struct window *w, GLYPH *glyph)
   /* Convert the glyph's specified face to a realized (cache) face.  */
   if (lface_id > 0)
     {
-      int face_id = merge_faces (XFRAME (w->frame),
-				 Qt, lface_id, DEFAULT_FACE_ID);
+      int face_id = merge_faces (w, Qt, lface_id, DEFAULT_FACE_ID);
       SET_GLYPH_FACE (*glyph, face_id);
     }
 }
@@ -3082,7 +3082,7 @@ update_frame (struct frame *f, bool force_p, bool inhibit_hairy_id_p)
 	update_window (XWINDOW (f->menu_bar_window), true);
 #endif
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
       /* Update the tool-bar window, if present.  */
       if (WINDOWP (f->tool_bar_window))
 	{
@@ -3389,7 +3389,7 @@ update_window (struct window *w, bool force_p)
 {
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   bool paused_p;
-  int preempt_count = baud_rate / 2400 + 1;
+  int preempt_count = clip_to_bounds (1, baud_rate / 2400 + 1, INT_MAX);
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #ifdef GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
@@ -4124,7 +4124,12 @@ scrolling_window (struct window *w, bool header_line_p)
     }
 
 #ifdef HAVE_XWIDGETS
-  /* Currently this seems needed to detect xwidget movement reliably. */
+  /* Currently this seems needed to detect xwidget movement reliably.
+     This is most probably because an xwidget glyph is represented in
+     struct glyph's 'union u' by a pointer to a struct, which takes 8
+     bytes in 64-bit builds, and thus the comparison of u.val values
+     done by GLYPH_EQUAL_P doesn't work reliably, since it assumes the
+     size of the union is 4 bytes.  FIXME.  */
     return 0;
 #endif
 
@@ -4480,15 +4485,12 @@ update_frame_1 (struct frame *f, bool force_p, bool inhibit_id_p,
   struct glyph_matrix *desired_matrix = f->desired_matrix;
   int i;
   bool pause_p;
-  int preempt_count = baud_rate / 2400 + 1;
+  int preempt_count = clip_to_bounds (1, baud_rate / 2400 + 1, INT_MAX);
 
   eassert (current_matrix && desired_matrix);
 
   if (baud_rate != FRAME_COST_BAUD_RATE (f))
     calculate_costs (f);
-
-  if (preempt_count <= 0)
-    preempt_count = 1;
 
   if (!force_p && detect_input_pending_ignore_squeezables ())
     {
@@ -4678,8 +4680,7 @@ scrolling (struct frame *frame)
 	{
 	  /* This line cannot be redrawn, so don't let scrolling mess it.  */
 	  new_hash[i] = old_hash[i];
-#define INFINITY 1000000	/* Taken from scroll.c */
-	  draw_cost[i] = INFINITY;
+	  draw_cost[i] = SCROLL_INFINITY;
 	}
       else
 	{
@@ -5096,13 +5097,15 @@ update_frame_line (struct frame *f, int vpos, bool updating_menu_p)
  ***********************************************************************/
 
 /* Determine what's under window-relative pixel position (*X, *Y).
-   Return the OBJECT (string or buffer) that's there.
+   Return the object (string or buffer) that's there.
    Return in *POS the position in that object.
    Adjust *X and *Y to character positions.
+   If an image is shown at the specified position, return
+   in *OBJECT its image-spec.
    Return in *DX and *DY the pixel coordinates of the click,
-   relative to the top left corner of OBJECT, or relative to
+   relative to the top left corner of object, or relative to
    the top left corner of the character glyph at (*X, *Y)
-   if OBJECT is nil.
+   if the object at (*X, *Y) is nil.
    Return WIDTH and HEIGHT of the object at (*X, *Y), or zero
    if the coordinates point to an empty area of the display.  */
 
@@ -5718,8 +5721,8 @@ additional wait period, in milliseconds; this is for backwards compatibility.
 
   if (!NILP (milliseconds))
     {
-      CHECK_NUMBER (milliseconds);
-      duration += XINT (milliseconds) / 1000.0;
+      CHECK_FIXNUM (milliseconds);
+      duration += XFIXNUM (milliseconds) / 1000.0;
     }
 
   if (duration > 0)
@@ -5769,9 +5772,18 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
 
   if (INTEGERP (timeout))
     {
-      sec = XINT (timeout);
-      if (sec <= 0)
-	return Qt;
+      if (integer_to_intmax (timeout, &sec))
+	{
+	  if (sec <= 0)
+	    return Qt;
+	  sec = min (sec, WAIT_READING_MAX);
+	}
+      else
+	{
+	  if (NILP (Fnatnump (timeout)))
+	    return Qt;
+	  sec = WAIT_READING_MAX;
+	}
       nsec = 0;
     }
   else if (FLOATP (timeout))
@@ -5829,8 +5841,7 @@ immediately by pending input.  */)
   if (!NILP (force) && !redisplay_dont_pause)
     specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (2);
-  unbind_to (count, Qnil);
-  return Qt;
+  return unbind_to (count, Qt);
 }
 
 
@@ -5927,7 +5938,7 @@ pass nil for VARIABLE.  */)
       || n + 20 < ASIZE (state) / 2)
     /* Add 20 extra so we grow it less often.  */
     {
-      state = Fmake_vector (make_number (n + 20), Qlambda);
+      state = make_vector (n + 20, Qlambda);
       if (! NILP (variable))
 	Fset (variable, state);
       else
@@ -5974,12 +5985,24 @@ pass nil for VARIABLE.  */)
 			    Initialization
 ***********************************************************************/
 
+static void
+init_faces_initial (void)
+{
+  /* For the initial frame, we don't have any way of knowing what
+     are the foreground and background colors of the terminal.  */
+  struct frame *sf = SELECTED_FRAME ();
+
+  FRAME_FOREGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_FG_COLOR;
+  FRAME_BACKGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_BG_COLOR;
+  call0 (intern ("tty-set-up-initial-frame-faces"));
+}
+
 /* Initialization done when Emacs fork is started, before doing stty.
    Determine terminal type and set terminal_driver.  Then invoke its
    decoding routine to set up variables in the terminal package.  */
 
-void
-init_display (void)
+static void
+init_display_interactive (void)
 {
   char *terminal_type;
 
@@ -5999,9 +6022,7 @@ init_display (void)
      with.  Otherwise newly opened tty frames will not resize
      automatically. */
 #ifdef SIGWINCH
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif /* CANNOT_DUMP */
+  if (!will_dump_p ())
     {
       struct sigaction action;
       emacs_sigaction_init (&action, deliver_window_change_signal);
@@ -6011,10 +6032,21 @@ init_display (void)
 
   /* If running as a daemon, no need to initialize any frames/terminal,
      except on Windows, where we at least want to initialize it.  */
-#ifndef WINDOWSNT
   if (IS_DAEMON)
+    {
+      /* Pdump'ed Emacs doesn't record the initial frame from temacs,
+	 so the non-basic faces realized for that frame in temacs
+	 aren't in emacs.  This causes errors when users try to
+	 customize those faces in their init file.  The call to
+	 init_faces_initial will realize these faces now.  (Non-daemon
+	 Emacs does this either near the end of this function or when
+	 the GUI frame is created.)  */
+      if (dumped_with_pdumper_p ())
+        init_faces_initial ();
+#ifndef WINDOWSNT
       return;
 #endif
+    }
 
   /* If the user wants to use a window system, we shouldn't bother
      initializing the terminal.  This is especially important when the
@@ -6043,7 +6075,7 @@ init_display (void)
     {
       Vinitial_window_system = Qx;
 #ifdef HAVE_X11
-      Vwindow_system_version = make_number (11);
+      Vwindow_system_version = make_fixnum (11);
 #endif
 #ifdef USE_NCURSES
       /* In some versions of ncurses,
@@ -6059,20 +6091,16 @@ init_display (void)
   if (!inhibit_window_system)
     {
       Vinitial_window_system = Qw32;
-      Vwindow_system_version = make_number (1);
+      Vwindow_system_version = make_fixnum (1);
       return;
     }
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-  if (!inhibit_window_system
-#ifndef CANNOT_DUMP
-     && initialized
-#endif
-      )
+  if (!inhibit_window_system && !will_dump_p ())
     {
       Vinitial_window_system = Qns;
-      Vwindow_system_version = make_number (10);
+      Vwindow_system_version = make_fixnum (10);
       return;
     }
 #endif
@@ -6157,21 +6185,22 @@ init_display (void)
 
   calculate_costs (XFRAME (selected_frame));
 
-  /* Set up faces of the initial terminal frame of a dumped Emacs.  */
-  if (initialized
-      && !noninteractive
-      && NILP (Vinitial_window_system))
-    {
-      /* For the initial frame, we don't have any way of knowing what
-	 are the foreground and background colors of the terminal.  */
-      struct frame *sf = SELECTED_FRAME ();
-
-      FRAME_FOREGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_FG_COLOR;
-      FRAME_BACKGROUND_PIXEL (sf) = FACE_TTY_DEFAULT_BG_COLOR;
-      call0 (intern ("tty-set-up-initial-frame-faces"));
-    }
+  /* Set up faces of the initial terminal frame.  */
+  if (initialized && !noninteractive && NILP (Vinitial_window_system))
+    init_faces_initial ();
 }
 
+void
+init_display (void)
+{
+  if (noninteractive)
+    {
+      if (dumped_with_pdumper_p ())
+        init_faces_initial ();
+    }
+  else
+    init_display_interactive ();
+}
 
 
 /***********************************************************************
@@ -6207,6 +6236,8 @@ WINDOW nil or omitted means report on the selected window.  */)
 			    Initialization
  ***********************************************************************/
 
+static void syms_of_display_for_pdumper (void);
+
 void
 syms_of_display (void)
 {
@@ -6225,7 +6256,7 @@ syms_of_display (void)
   defsubr (&Sdump_redisplay_history);
 #endif
 
-  frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
+  frame_and_buffer_state = make_vector (20, Qlambda);
   staticpro (&frame_and_buffer_state);
 
   /* This is the "purpose" slot of a display table.  */
@@ -6314,11 +6345,12 @@ See `buffer-display-table' for more information.  */);
      beginning of the next redisplay).  */
   redisplay_dont_pause = true;
 
-#ifdef CANNOT_DUMP
-  if (noninteractive)
-#endif
-    {
-      Vinitial_window_system = Qnil;
-      Vwindow_system_version = Qnil;
-    }
+  pdumper_do_now_and_after_load (syms_of_display_for_pdumper);
+}
+
+static void
+syms_of_display_for_pdumper (void)
+{
+  Vinitial_window_system = Qnil;
+  Vwindow_system_version = Qnil;
 }

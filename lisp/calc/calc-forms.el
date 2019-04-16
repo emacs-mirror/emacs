@@ -1,6 +1,6 @@
 ;;; calc-forms.el --- data format conversion functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -37,13 +37,11 @@
 (defun calc-time ()
   (interactive)
   (calc-wrapper
-   (let ((time (current-time-string)))
+   (let ((time (decode-time)))
      (calc-enter-result 0 "time"
 			(list 'mod
 			      (list 'hms
-				    (string-to-number (substring time 11 13))
-				    (string-to-number (substring time 14 16))
-				    (string-to-number (substring time 17 19)))
+				    (nth 2 time) (nth 1 time) (nth 0 time))
 			      (list 'hms 24 0 0))))))
 
 (defun calc-to-hms (arg)
@@ -62,7 +60,7 @@
 
 
 (defun calc-hms-notation (fmt)
-  (interactive "sHours-minutes-seconds format (hms, @ \\=' \", etc.): ")
+  (interactive "sHours-minutes-seconds format (hms, @ ' \", etc.): ")
   (calc-wrapper
    (if (string-match "\\`\\([^,; ]+\\)\\([,; ]*\\)\\([^,; ]\\)\\([,; ]*\\)\\([^,; ]\\)\\'" fmt)
        (progn
@@ -1341,16 +1339,15 @@ as measured in the integer number of days before December 31, 1 BC (Gregorian)."
           (math-parse-iso-date-validate isoyear isoweek isoweekday hour minute second)))))
 
 (defun calcFunc-now (&optional zone)
-  (let ((date (let ((calc-date-format nil))
-		(math-parse-date (current-time-string)))))
-    (if (consp date)
-	(if zone
-	    (math-add date (math-div (math-sub (calcFunc-tzone nil date)
-					       (calcFunc-tzone zone date))
-				     '(float 864 2)))
-	  date)
-      (calc-record-why "*Unable to interpret current date from system")
-      (append (list 'calcFunc-now) (and zone (list zone))))))
+  (let ((date (let ((now (decode-time)))
+		(list 'date (math-dt-to-date
+			     (list (nth 5 now) (nth 4 now) (nth 3 now)
+				   (nth 2 now) (nth 1 now) (nth 0 now)))))))
+    (if zone
+	(math-add date (math-div (math-sub (calcFunc-tzone nil date)
+					   (calcFunc-tzone zone date))
+				 '(float 864 2)))
+      date)))
 
 (defun calcFunc-year (date)
   (car (math-date-to-dt date)))

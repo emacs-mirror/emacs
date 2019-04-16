@@ -1,11 +1,11 @@
 ;;; soap-client.el --- Access SOAP web services       -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Author: Thomas Fitzsimmons <fitzsim@fitzsim.org>
 ;; Created: December, 2009
-;; Version: 3.1.3
+;; Version: 3.1.5
 ;; Keywords: soap, web-services, comm, hypermedia
 ;; Package: soap-client
 ;; Homepage: https://github.com/alex-hhh/emacs-soap-client
@@ -629,7 +629,7 @@ disallows them."
              (<= time-zone-minute 59))
       (error "Invalid or unsupported time: %s" date-time-string))
     ;; Return a value in a format similar to that returned by decode-time, and
-    ;; suitable for (apply 'encode-time ...).
+    ;; suitable for (apply #'encode-time ...).
     (list second minute hour day month year second-fraction datatype
           (if has-time-zone
               (* (rng-xsd-time-to-seconds
@@ -685,8 +685,20 @@ This is a specialization of `soap-decode-type' for
         (anyType (soap-decode-any-type node))
         (Array (soap-decode-array node))))))
 
+(defalias 'soap-type-of
+  (if (eq 'soap-xs-basic-type (type-of (make-soap-xs-basic-type)))
+      ;; `type-of' in Emacs ≥ 26 already does what we need.
+      #'type-of
+    ;; For Emacs < 26, use our own function.
+    (lambda (element)
+      "Return the type of ELEMENT."
+      (if (vectorp element)
+          (aref element 0)            ;Assume this vector is actually a struct!
+        ;; This should never happen.
+        (type-of element)))))
+
 ;; Register methods for `soap-xs-basic-type'
-(let ((tag (aref (make-soap-xs-basic-type) 0)))
+(let ((tag (soap-type-of (make-soap-xs-basic-type))))
   (put tag 'soap-attribute-encoder #'soap-encode-xs-basic-type-attributes)
   (put tag 'soap-encoder #'soap-encode-xs-basic-type)
   (put tag 'soap-decoder #'soap-decode-xs-basic-type))
@@ -915,7 +927,7 @@ This is a specialization of `soap-decode-type' for
     (soap-decode-type type node)))
 
 ;; Register methods for `soap-xs-element'
-(let ((tag (aref (make-soap-xs-element) 0)))
+(let ((tag (soap-type-of (make-soap-xs-element))))
   (put tag 'soap-resolve-references #'soap-resolve-references-for-xs-element)
   (put tag 'soap-attribute-encoder #'soap-encode-xs-element-attributes)
   (put tag 'soap-encoder #'soap-encode-xs-element)
@@ -1011,7 +1023,7 @@ See also `soap-wsdl-resolve-references'."
       (setf (soap-xs-attribute-reference attribute)
             (soap-wsdl-get reference wsdl predicate)))))
 
-(put (aref (make-soap-xs-attribute) 0)
+(put (soap-type-of (make-soap-xs-attribute))
      'soap-resolve-references #'soap-resolve-references-for-xs-attribute)
 
 (defun soap-resolve-references-for-xs-attribute-group (attribute-group wsdl)
@@ -1036,7 +1048,7 @@ See also `soap-wsdl-resolve-references'."
         (setf (soap-xs-attribute-group-attribute-groups attribute-group)
               (soap-xs-attribute-group-attribute-groups resolved))))))
 
-(put (aref (make-soap-xs-attribute-group) 0)
+(put (soap-type-of (make-soap-xs-attribute-group))
      'soap-resolve-references #'soap-resolve-references-for-xs-attribute-group)
 
 ;;;;; soap-xs-simple-type
@@ -1374,7 +1386,7 @@ This is a specialization of `soap-decode-type' for
       (soap-validate-xs-simple-type value type))))
 
 ;; Register methods for `soap-xs-simple-type'
-(let ((tag (aref (make-soap-xs-simple-type) 0)))
+(let ((tag (soap-type-of (make-soap-xs-simple-type))))
   (put tag 'soap-resolve-references
        #'soap-resolve-references-for-xs-simple-type)
   (put tag 'soap-attribute-encoder #'soap-encode-xs-simple-type-attributes)
@@ -1927,7 +1939,7 @@ This is a specialization of `soap-decode-type' for
             (soap-xs-complex-type-indicator type)))))
 
 ;; Register methods for `soap-xs-complex-type'
-(let ((tag (aref (make-soap-xs-complex-type) 0)))
+(let ((tag (soap-type-of (make-soap-xs-complex-type))))
   (put tag 'soap-resolve-references
        #'soap-resolve-references-for-xs-complex-type)
   (put tag 'soap-attribute-encoder #'soap-encode-xs-complex-type-attributes)
@@ -2147,7 +2159,7 @@ This is a generic function which invokes a specific resolver
 function depending on the type of the ELEMENT.
 
 If ELEMENT has no resolver function, it is silently ignored."
-  (let ((resolver (get (aref element 0) 'soap-resolve-references)))
+  (let ((resolver (get (soap-type-of element) 'soap-resolve-references)))
     (when resolver
       (funcall resolver element wsdl))))
 
@@ -2272,13 +2284,13 @@ See also `soap-wsdl-resolve-references'."
 
 ;; Install resolvers for our types
 (progn
-  (put (aref (make-soap-message) 0) 'soap-resolve-references
+  (put (soap-type-of (make-soap-message)) 'soap-resolve-references
        'soap-resolve-references-for-message)
-  (put (aref (make-soap-operation) 0) 'soap-resolve-references
+  (put (soap-type-of (make-soap-operation)) 'soap-resolve-references
        'soap-resolve-references-for-operation)
-  (put (aref (make-soap-binding) 0) 'soap-resolve-references
+  (put (soap-type-of (make-soap-binding)) 'soap-resolve-references
        'soap-resolve-references-for-binding)
-  (put (aref (make-soap-port) 0) 'soap-resolve-references
+  (put (soap-type-of (make-soap-port)) 'soap-resolve-references
        'soap-resolve-references-for-port))
 
 (defun soap-wsdl-resolve-references (wsdl)
@@ -2325,6 +2337,14 @@ traverse an element tree."
 (defun soap-parse-server-response ()
   "Error-check and parse the XML contents of the current buffer."
   (let ((mime-part (mm-dissect-buffer t t)))
+    (when (and
+           (equal (mm-handle-media-type mime-part) "multipart/related")
+           (equal (get-text-property 0 'type (mm-handle-media-type mime-part))
+                  "text/xml"))
+      (setq mime-part
+            (mm-make-handle
+             (get-text-property 0 'buffer (mm-handle-media-type mime-part))
+             `(,(get-text-property 0 'type (mm-handle-media-type mime-part))))))
     (unless mime-part
       (error "Failed to decode response from server"))
     (unless (equal (car (mm-handle-type mime-part)) "text/xml")
@@ -2685,16 +2705,17 @@ decode function to perform the actual decoding."
                (cond ((listp type)
                       (catch 'done
                         (dolist (union-member type)
-                          (let* ((decoder (get (aref union-member 0)
+                          (let* ((decoder (get (soap-type-of union-member)
                                                'soap-decoder))
                                  (result (ignore-errors
                                            (funcall decoder
                                                     union-member node))))
                             (when result (throw 'done result))))))
                      (t
-                      (let ((decoder (get (aref type 0) 'soap-decoder)))
+                      (let ((decoder (get (soap-type-of type) 'soap-decoder)))
                         (cl-assert decoder nil
-                                   "no soap-decoder for %s type" (aref type 0))
+                                   "no soap-decoder for %s type"
+                                   (soap-type-of type))
                         (funcall decoder type node))))))))))
 
 (defun soap-decode-any-type (node)
@@ -2871,6 +2892,8 @@ reference multiRef parts which are external to RESPONSE-NODE."
 
 ;;;; SOAP type encoding
 
+;; FIXME: Use `cl-defmethod' (but this requires Emacs-25).
+
 (defun soap-encode-attributes (value type)
   "Encode XML attributes for VALUE according to TYPE.
 This is a generic function which determines the attribute encoder
@@ -2878,9 +2901,9 @@ for the type and calls that specialized function to do the work.
 
 Attributes are inserted in the current buffer at the current
 position."
-  (let ((attribute-encoder (get (aref type 0) 'soap-attribute-encoder)))
+  (let ((attribute-encoder (get (soap-type-of type) 'soap-attribute-encoder)))
     (cl-assert attribute-encoder nil
-               "no soap-attribute-encoder for %s type" (aref type 0))
+               "no soap-attribute-encoder for %s type" (soap-type-of type))
     (funcall attribute-encoder value type)))
 
 (defun soap-encode-value (value type)
@@ -2892,8 +2915,8 @@ TYPE is one of the soap-*-type structures which defines how VALUE
 is to be encoded.  This is a generic function which finds an
 encoder function based on TYPE and calls that encoder to do the
 work."
-  (let ((encoder (get (aref type 0) 'soap-encoder)))
-    (cl-assert encoder nil "no soap-encoder for %s type" (aref type 0))
+  (let ((encoder (get (soap-type-of type) 'soap-encoder)))
+    (cl-assert encoder nil "no soap-encoder for %s type" (soap-type-of type))
     (funcall encoder value type))
   (when (soap-element-namespace-tag type)
     (add-to-list 'soap-encoded-namespaces (soap-element-namespace-tag type))))

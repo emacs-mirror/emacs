@@ -1,6 +1,6 @@
 /* Functions for handling font and other changes dynamically.
 
-Copyright (C) 2009-2018 Free Software Foundation, Inc.
+Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,6 +32,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include "termhooks.h"
+#include "pdumper.h"
 
 #include <X11/Xproto.h>
 
@@ -392,8 +393,8 @@ parse_settings (unsigned char *prop,
                 unsigned long bytes,
                 struct xsettings *settings)
 {
-  Lisp_Object byteorder = Fbyteorder ();
-  int my_bo = XFASTINT (byteorder) == 'B' ? MSBFirst : LSBFirst;
+  int int1 = 1;
+  int my_bo = *(char *) &int1 == 1 ? LSBFirst : MSBFirst;
   int that_bo = prop[0];
   CARD32 n_settings;
   int bytes_parsed = 0;
@@ -1023,13 +1024,18 @@ void
 syms_of_xsettings (void)
 {
   current_mono_font = NULL;
+  PDUMPER_IGNORE (current_mono_font);
   current_font = NULL;
+  PDUMPER_IGNORE (current_font);
   first_dpyinfo = NULL;
+  PDUMPER_IGNORE (first_dpyinfo);
 #ifdef HAVE_GSETTINGS
   gsettings_client = NULL;
+  PDUMPER_IGNORE (gsettings_client);
 #endif
 #ifdef HAVE_GCONF
   gconf_client = NULL;
+  PDUMPER_IGNORE (gconf_client);
 #endif
 
   DEFSYM (Qmonospace_font_name, "monospace-font-name");

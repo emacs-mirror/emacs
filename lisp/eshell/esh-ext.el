@@ -1,6 +1,6 @@
 ;;; esh-ext.el --- commands external to Eshell  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -31,17 +31,12 @@
 
 ;;; Code:
 
-(provide 'esh-ext)
-
 (require 'esh-util)
 
-(eval-when-compile
-  (require 'cl-lib)
-  (require 'esh-cmd))
+(eval-when-compile (require 'cl-lib))
 (require 'esh-io)
 (require 'esh-arg)
 (require 'esh-opt)
-(require 'esh-proc)
 
 (defgroup eshell-ext nil
   "External commands are invoked when operating system executables are
@@ -177,9 +172,9 @@ external version."
 
 ;;; Functions:
 
-(defun eshell-ext-initialize ()
+(defun eshell-ext-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the external command handling code."
-  (add-hook 'eshell-named-command-hook 'eshell-explicit-command nil t))
+  (add-hook 'eshell-named-command-hook #'eshell-explicit-command nil t))
 
 (defun eshell-explicit-command (command args)
   "If a command name begins with `*', call it externally always.
@@ -192,8 +187,6 @@ This bypasses all Lisp functions and aliases."
 	      (error "%s: external command failed" cmd))
 	(error "%s: external command not found"
 	       (substring command 1))))))
-
-(autoload 'eshell-close-handles "esh-io")
 
 (defun eshell-remote-command (command args)
   "Insert output from a remote COMMAND, using ARGS.
@@ -211,7 +204,7 @@ causing the user to wonder if anything's really going on..."
 	(progn
 	  (setq exitcode
 		(shell-command
-		 (mapconcat 'shell-quote-argument
+		 (mapconcat #'shell-quote-argument
 			    (append (list command) args) " ")
 		 outbuf errbuf))
 	  (eshell-print (with-current-buffer outbuf (buffer-string)))
@@ -222,7 +215,7 @@ causing the user to wonder if anything's really going on..."
 
 (defun eshell-external-command (command args)
   "Insert output from an external COMMAND, using ARGS."
-  (setq args (eshell-stringify-list (eshell-flatten-list args)))
+  (setq args (eshell-stringify-list (flatten-tree args)))
   (let ((interp (eshell-find-interpreter
 		 command
 		 args
@@ -235,6 +228,8 @@ causing the user to wonder if anything's really going on..."
     (cl-assert interp)
     (if (functionp (car interp))
 	(apply (car interp) (append (cdr interp) args))
+      (require 'esh-proc)
+      (declare-function eshell-gather-process-output "esh-proc" (command args))
       (eshell-gather-process-output
        (car interp) (append (cdr interp) args)))))
 
@@ -249,7 +244,7 @@ Adds the given PATH to $PATH.")
    (if args
        (progn
 	 (setq eshell-path-env (getenv "PATH")
-	       args (mapconcat 'identity args path-separator)
+	       args (mapconcat #'identity args path-separator)
 	       eshell-path-env
 	       (if prepend
 		   (concat args path-separator eshell-path-env)
@@ -259,6 +254,7 @@ Adds the given PATH to $PATH.")
        (eshell-printn dir)))))
 
 (put 'eshell/addpath 'eshell-no-numeric-conversions t)
+(put 'eshell/addpath 'eshell-filename-arguments t)
 
 (defun eshell-script-interpreter (file)
   "Extract the script to run from FILE, if it has #!<interp> in it.
@@ -335,4 +331,5 @@ line of the form #!<interp>."
 			    (cdr interp)))))
 	  (or interp (list fullname)))))))
 
+(provide 'esh-ext)
 ;;; esh-ext.el ends here

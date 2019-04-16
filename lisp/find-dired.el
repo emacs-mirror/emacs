@@ -1,6 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1995, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1995, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
@@ -144,7 +144,7 @@ use in place of \"-ls\" as the final argument."
     ;; Check that it's really a directory.
     (or (file-directory-p dir)
 	(error "find-dired needs a directory: %s" dir))
-    (switch-to-buffer (get-buffer-create "*Find*"))
+    (pop-to-buffer-same-window (get-buffer-create "*Find*"))
 
     ;; See if there's still a `find' running, and offer to kill
     ;; it first, if it is.
@@ -175,7 +175,7 @@ use in place of \"-ls\" as the final argument."
 			  " " args " "
 			  (shell-quote-argument ")")
 			  " "))
-		       (if (string-match "\\`\\(.*\\) {} \\(\\\\;\\|+\\)\\'"
+		       (if (string-match "\\`\\(.*\\) {} \\(\\\\;\\|\\+\\)\\'"
 					 (car find-ls-option))
 			   (format "%s %s %s"
 				   (match-string 1 (car find-ls-option))

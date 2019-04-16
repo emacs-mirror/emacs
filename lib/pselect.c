@@ -1,6 +1,6 @@
 /* pselect - synchronous I/O multiplexing
 
-   Copyright 2011-2018 Free Software Foundation, Inc.
+   Copyright 2011-2019 Free Software Foundation, Inc.
 
    This file is part of gnulib.
 
@@ -83,9 +83,9 @@ pselect (int nfds, fd_set *restrict rfds,
 
 int
 rpl_pselect (int nfds, fd_set *restrict rfds,
-	     fd_set *restrict wfds, fd_set *restrict xfds,
+             fd_set *restrict wfds, fd_set *restrict xfds,
              struct timespec const *restrict timeout,
-	     sigset_t const *restrict sigmask)
+             sigset_t const *restrict sigmask)
 {
   int i;
 

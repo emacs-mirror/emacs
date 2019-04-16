@@ -1,6 +1,6 @@
 ;;; json.el --- JavaScript Object Notation parser / generator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Theresa O'Connor <ted@oconnor.cx>
 ;; Version: 1.4
@@ -49,10 +49,13 @@
 ;; 2008-02-21 - Installed in GNU Emacs.
 ;; 2011-10-17 - Patch `json-alist-p' and `json-plist-p' to avoid recursion -tzz
 ;; 2012-10-25 - Added pretty-printed reformatting -Ryan Crum (ryan@ryancrum.org)
+;; 2019-02-02 - Pretty-printing now uses replace-region-contents and support for
+;;              minimization -tsdh
 
 ;;; Code:
 
 (require 'map)
+(require 'subr-x)
 
 ;; Parameters
 
@@ -370,7 +373,7 @@ representation will be parsed correctly."
 
 (defun json--decode-utf-16-surrogates (high low)
   "Return the code point represented by the UTF-16 surrogates HIGH and LOW."
-  (+ (lsh (- high #xD800) 10) (- low #xDC00) #x10000))
+  (+ (ash (- high #xD800) 10) (- low #xDC00) #x10000))
 
 (defun json-read-escaped-char ()
   "Read the JSON string escaped character at point."
@@ -523,8 +526,8 @@ Please see the documentation of `json-object-type' and `json-key-type'."
     ;; Skip over the "}"
     (json-advance)
     (pcase json-object-type
-      (`alist (nreverse elements))
-      (`plist (json--plist-reverse elements))
+      ('alist (nreverse elements))
+      ('plist (json--plist-reverse elements))
       (_ elements))))
 
 ;; Hash table encoding
@@ -609,8 +612,7 @@ Please see the documentation of `json-object-type' and `json-key-type'."
   "Return a JSON representation of LIST.
 Tries to DWIM: simple lists become JSON arrays, while alists and plists
 become JSON objects."
-  (cond ((null list)         "null")
-        ((json-alist-p list) (json-encode-alist list))
+  (cond ((json-alist-p list) (json-encode-alist list))
         ((json-plist-p list) (json-encode-plist list))
         ((listp list)        (json-encode-array list))
         (t
@@ -642,8 +644,8 @@ become JSON objects."
     ;; Skip over the "]"
     (json-advance)
     (pcase json-array-type
-      (`vector (nreverse (vconcat elements)))
-      (`list (nreverse elements)))))
+      ('vector (nreverse (vconcat elements)))
+      ('list (nreverse elements)))))
 
 ;; Array encoding
 
@@ -723,42 +725,58 @@ Advances point just past JSON object."
         ((stringp object)      (json-encode-string object))
         ((keywordp object)     (json-encode-string
                                 (substring (symbol-name object) 1)))
+        ((listp object)        (json-encode-list object))
         ((symbolp object)      (json-encode-string
                                 (symbol-name object)))
         ((numberp object)      (json-encode-number object))
         ((arrayp object)       (json-encode-array object))
         ((hash-table-p object) (json-encode-hash-table object))
-        ((listp object)        (json-encode-list object))
         (t                     (signal 'json-error (list object)))))
 
-;; Pretty printing
+;; Pretty printing & minimizing
 
-(defun json-pretty-print-buffer ()
-  "Pretty-print current buffer."
-  (interactive)
-  (json-pretty-print (point-min) (point-max)))
+(defun json-pretty-print-buffer (&optional minimize)
+  "Pretty-print current buffer.
+With prefix argument MINIMIZE, minimize it instead."
+  (interactive "P")
+  (json-pretty-print (point-min) (point-max) minimize))
 
-(defun json-pretty-print (begin end)
-  "Pretty-print selected region."
-  (interactive "r")
-  (atomic-change-group
-    (let ((json-encoding-pretty-print t)
-          ;; Ensure that ordering is maintained
-          (json-object-type 'alist)
-          (txt (delete-and-extract-region begin end)))
-      (insert (json-encode (json-read-from-string txt))))))
+(defvar json-pretty-print-max-secs 2.0
+  "Maximum time for `json-pretty-print's comparison.
+The function `json-pretty-print' uses `replace-region-contents'
+(which see) passing the value of this variable as argument
+MAX-SECS.")
 
-(defun json-pretty-print-buffer-ordered ()
-  "Pretty-print current buffer with object keys ordered."
-  (interactive)
+(defun json-pretty-print (begin end &optional minimize)
+  "Pretty-print selected region.
+With prefix argument MINIMIZE, minimize it instead."
+  (interactive "r\nP")
+  (let ((json-encoding-pretty-print (null minimize))
+        ;; Distinguish an empty objects from 'null'
+        (json-null :json-null)
+        ;; Ensure that ordering is maintained
+        (json-object-type 'alist))
+    (replace-region-contents
+     begin end
+     (lambda () (json-encode (json-read)))
+     json-pretty-print-max-secs
+     ;; FIXME: What's a good value here?  Can we use something better,
+     ;; e.g., by deriving a value from the size of the region?
+     64)))
+
+(defun json-pretty-print-buffer-ordered (&optional minimize)
+  "Pretty-print current buffer with object keys ordered.
+With prefix argument MINIMIZE, minimize it instead."
+  (interactive "P")
   (let ((json-encoding-object-sort-predicate 'string<))
-    (json-pretty-print-buffer)))
+    (json-pretty-print-buffer minimize)))
 
-(defun json-pretty-print-ordered (begin end)
-  "Pretty-print the region with object keys ordered."
-  (interactive "r")
+(defun json-pretty-print-ordered (begin end &optional minimize)
+  "Pretty-print the region with object keys ordered.
+With prefix argument MINIMIZE, minimize it instead."
+  (interactive "r\nP")
   (let ((json-encoding-object-sort-predicate 'string<))
-    (json-pretty-print begin end)))
+    (json-pretty-print begin end minimize)))
 
 (provide 'json)
 

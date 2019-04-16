@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep and macOS Cocoa menu and toolbar module.
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -37,6 +37,7 @@ Carbon version by Yamamoto Mitsuharu. */
 #include "termhooks.h"
 #include "keyboard.h"
 #include "menu.h"
+#include "pdumper.h"
 
 #define NSMENUPROFILE 0
 
@@ -377,7 +378,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
             {
 	      string = AREF (items, 4*i+1);
 
-              if (EQ (string, make_number (0))) // FIXME: Why???  --Stef
+              if (EQ (string, make_fixnum (0))) // FIXME: Why???  --Stef
                 continue;
               if (NILP (string))
                 {
@@ -828,7 +829,7 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
   i = 0;
   while (i < menu_items_used)
     {
-      if (EQ (AREF (menu_items, i), Qnil))
+      if (NILP (AREF (menu_items, i)))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
@@ -1632,24 +1633,24 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   int row = 0;
   int buttons = 0, btnnr = 0;
 
-  for (; XTYPE (lst) == Lisp_Cons; lst = XCDR (lst))
+  for (; CONSP (lst); lst = XCDR (lst))
     {
       item = XCAR (list);
-      if (XTYPE (item) == Lisp_Cons)
+      if (CONSP (item))
         ++buttons;
     }
 
   if (buttons > 0)
     button_values = xmalloc (buttons * sizeof *button_values);
 
-  for (; XTYPE (list) == Lisp_Cons; list = XCDR (list))
+  for (; CONSP (list); list = XCDR (list))
     {
       item = XCAR (list);
-      if (XTYPE (item) == Lisp_String)
+      if (STRINGP (item))
         {
           [self addString: SSDATA (item) row: row++];
         }
-      else if (XTYPE (item) == Lisp_Cons)
+      else if (CONSP (item))
         {
           button_values[btnnr] = XCDR (item);
           [self addButton: SSDATA (XCAR (item)) value: btnnr row: row++];
@@ -1726,7 +1727,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   Lisp_Object head;
   [super init];
 
-  if (XTYPE (contents) == Lisp_Cons)
+  if (CONSP (contents))
     {
       head = Fcar (contents);
       [self process_dialog: Fcdr (contents)];
@@ -1734,7 +1735,7 @@ ns_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
   else
     head = contents;
 
-  if (XTYPE (head) == Lisp_String)
+  if (STRINGP (head))
       [title setStringValue:
                  [NSString stringWithUTF8String: SSDATA (head)]];
   else if (isQ == YES)
@@ -1893,6 +1894,7 @@ syms_of_nsmenu (void)
   /* Don't know how to keep track of this in Next/Open/GNUstep.  Always
      update menus there.  */
   trackingMenu = 1;
+  PDUMPER_REMEMBER_SCALAR (trackingMenu);
 #endif
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);

@@ -1,6 +1,6 @@
 ;;; esh-cmd.el --- command invocation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -105,6 +105,8 @@
   (require 'eldoc))
 (require 'esh-arg)
 (require 'esh-proc)
+(require 'esh-module)
+(require 'esh-io)
 (require 'esh-ext)
 
 (eval-when-compile
@@ -122,24 +124,20 @@ however."
 
 (defcustom eshell-prefer-lisp-functions nil
   "If non-nil, prefer Lisp functions to external commands."
-  :type 'boolean
-  :group 'eshell-cmd)
+  :type 'boolean)
 
 (defcustom eshell-lisp-regexp "\\([(`]\\|#'\\)"
   "A regexp which, if matched at beginning of an argument, means Lisp.
 Such arguments will be passed to `read', and then evaluated."
-  :type 'regexp
-  :group 'eshell-cmd)
+  :type 'regexp)
 
 (defcustom eshell-pre-command-hook nil
   "A hook run before each interactive command is invoked."
-  :type 'hook
-  :group 'eshell-cmd)
+  :type 'hook)
 
 (defcustom eshell-post-command-hook nil
   "A hook run after each interactive command is invoked."
-  :type 'hook
-  :group 'eshell-cmd)
+  :type 'hook)
 
 (defcustom eshell-prepare-command-hook nil
   "A set of functions called to prepare a named command.
@@ -149,8 +147,7 @@ the value of these symbols if necessary.
 
 To prevent a command from executing at all, set
 `eshell-last-command-name' to nil."
-  :type 'hook
-  :group 'eshell-cmd)
+  :type 'hook)
 
 (defcustom eshell-named-command-hook nil
   "A set of functions called before a named command is invoked.
@@ -165,7 +162,7 @@ In order to substitute an alternate command form for execution, the
 hook function should throw it using the tag `eshell-replace-command'.
 For example:
 
-  (add-hook \\='eshell-named-command-hook \\='subst-with-cd)
+  (add-hook \\='eshell-named-command-hook #\\='subst-with-cd)
   (defun subst-with-cd (command args)
     (throw \\='eshell-replace-command
 	   (eshell-parse-command \"cd\" args)))
@@ -173,8 +170,7 @@ For example:
 Although useless, the above code will cause any non-glob, non-Lisp
 command (i.e., `ls' as opposed to `*ls' or `(ls)') to be replaced by a
 call to `cd' using the arguments that were passed to the function."
-  :type 'hook
-  :group 'eshell-cmd)
+  :type 'hook)
 
 (defcustom eshell-pre-rewrite-command-hook
   '(eshell-no-command-conversion
@@ -182,8 +178,7 @@ call to `cd' using the arguments that were passed to the function."
   "A hook run before command rewriting begins.
 The terms of the command to be rewritten is passed as arguments, and
 may be modified in place.  Any return value is ignored."
-  :type 'hook
-  :group 'eshell-cmd)
+  :type 'hook)
 
 (defcustom eshell-rewrite-command-hook
   '(eshell-rewrite-for-command
@@ -202,8 +197,7 @@ so by adding a function to this hook.  The first function to return a
 substitute command form is the one used.  Each function is passed the
 command's full argument list, which is a list of sexps (typically
 forms or strings)."
-  :type 'hook
-  :group 'eshell-cmd)
+  :type 'hook)
 
 (defvar eshell-post-rewrite-command-function #'identity
   "Function run after command rewriting is finished.
@@ -228,16 +222,14 @@ If an entry is a function, it will be called with the name, and should
 return non-nil if the command is complex."
   :type '(repeat :tag "Commands"
 		 (choice (string :tag "Name")
-			 (function :tag "Predicate")))
-  :group 'eshell-cmd)
+			 (function :tag "Predicate"))))
 
 ;;; User Variables:
 
 (defcustom eshell-cmd-load-hook nil
   "A hook that gets run when `eshell-cmd' is loaded."
   :version "24.1"		       ; removed eshell-cmd-initialize
-  :type 'hook
-  :group 'eshell-cmd)
+  :type 'hook)
 
 (defcustom eshell-debug-command nil
   "If non-nil, enable Eshell debugging code.
@@ -247,9 +239,8 @@ you must re-load `esh-cmd.el'."
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
 	 (set symbol value)
-	 (load-library "esh-cmd"))
-  :type 'boolean
-  :group 'eshell-cmd)
+	 (load "esh-cmd"))
+  :type 'boolean)
 
 (defcustom eshell-deferrable-commands
   '(eshell-named-command
@@ -259,16 +250,14 @@ you must re-load `esh-cmd.el'."
 If they return a process object, execution of the calling Eshell
 command will wait for completion (in the background) before finishing
 the command."
-  :type '(repeat function)
-  :group 'eshell-cmd)
+  :type '(repeat function))
 
 (defcustom eshell-subcommand-bindings
   '((eshell-in-subcommand-p t)
     (default-directory default-directory)
     (process-environment (eshell-copy-environment)))
   "A list of `let' bindings for subcommand environments."
-  :type 'sexp
-  :group 'eshell-cmd)
+  :type 'sexp)
 
 (put 'risky-local-variable 'eshell-subcommand-bindings t)
 
@@ -298,7 +287,7 @@ otherwise t.")
   "Return currently running command process, if non-Lisp."
   eshell-last-async-proc)
 
-(defun eshell-cmd-initialize ()
+(defun eshell-cmd-initialize ()     ;Called from `eshell-mode' via intern-soft!
   "Initialize the Eshell command processing module."
   (set (make-local-variable 'eshell-current-command) nil)
   (set (make-local-variable 'eshell-command-name) nil)
@@ -307,7 +296,7 @@ otherwise t.")
   (set (make-local-variable 'eshell-last-command-name) nil)
   (set (make-local-variable 'eshell-last-async-proc) nil)
 
-  (add-hook 'eshell-kill-hook 'eshell-resume-command nil t)
+  (add-hook 'eshell-kill-hook #'eshell-resume-command nil t)
 
   ;; make sure that if a command is over, and no process is being
   ;; waited for, that `eshell-current-command' is set to nil.  This
@@ -317,16 +306,17 @@ otherwise t.")
 	    (function
 	     (lambda ()
 	       (setq eshell-current-command nil
-		     eshell-last-async-proc nil))) nil t)
+		     eshell-last-async-proc nil)))
+            nil t)
 
   (add-hook 'eshell-parse-argument-hook
-	    'eshell-parse-subcommand-argument nil t)
+	    #'eshell-parse-subcommand-argument nil t)
   (add-hook 'eshell-parse-argument-hook
-	    'eshell-parse-lisp-argument nil t)
+	    #'eshell-parse-lisp-argument nil t)
 
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
-	      'eshell-complete-lisp-symbols nil t)))
+	      #'eshell-complete-lisp-symbols nil t)))
 
 (defun eshell-complete-lisp-symbols ()
   "If there is a user reference, complete it."
@@ -724,6 +714,8 @@ ensconced in a list."
 	 eshell-current-subjob-p)
      ,object))
 
+(defvar eshell-this-command-hook nil)
+
 (defmacro eshell-trap-errors (object)
   "Trap any errors that occur, so they are not entirely fatal.
 Also, the variable `eshell-this-command-hook' is available for the
@@ -736,9 +728,9 @@ this grossness will be made to disappear by using `call/cc'..."
      (eshell-condition-case err
 	 (prog1
 	     ,object
-	   (run-hooks 'eshell-this-command-hook))
+	   (mapc #'funcall eshell-this-command-hook))
        (error
-	(run-hooks 'eshell-this-command-hook)
+	(mapc #'funcall eshell-this-command-hook)
 	(eshell-errorn (error-message-string err))
 	(eshell-close-handles 1)))))
 
@@ -816,7 +808,7 @@ This is used on systems where async subprocesses are not supported."
        ;; The last process in the pipe should get its handles
        ;; redirected as we found them before running the pipe.
        ,(if (null (cdr pipeline))
-            `(progn
+            '(progn
                (setq eshell-current-handles tail-handles)
                (setq eshell-in-pipeline-p nil)))
        (let ((result ,(car pipeline)))
@@ -1059,16 +1051,8 @@ be finished later after the completion of an asynchronous subprocess."
        ((eq (car form) 'setcdr)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eval form))
-       ((memq (car form) '(let catch condition-case unwind-protect))
-	;; `let', `condition-case' and `unwind-protect' have to be
-	;; handled specially, because we only want to call
-	;; `eshell-do-eval' on their first form.
-	;;
-	;; NOTE: This requires obedience by all forms which this
-	;; function might encounter, that they do not contain
-	;; other special forms.
-	(if (and (eq (car form) 'let)
-		 (not (eq (car (cadr args)) 'eshell-do-eval)))
+       ((eq (car form) 'let)
+	(if (not (eq (car (cadr args)) 'eshell-do-eval))
 	    (eshell-manipulate "evaluating let args"
 	      (dolist (letarg (car args))
 		(if (and (listp letarg)
@@ -1076,6 +1060,21 @@ be finished later after the completion of an asynchronous subprocess."
 		    (setcdr letarg
 			    (list (eshell-do-eval
 				   (cadr letarg) synchronous-p)))))))
+        (cl-progv
+            (mapcar (lambda (binding) (if (consp binding) (car binding) binding))
+                    (car args))
+            ;; These expressions should all be constants now.
+            (mapcar (lambda (binding) (if (consp binding) (eval (cadr binding))))
+                    (car args))
+	  (eshell-do-eval (macroexp-progn (cdr args)) synchronous-p)))
+       ((memq (car form) '(catch condition-case unwind-protect))
+	;; `condition-case' and `unwind-protect' have to be
+	;; handled specially, because we only want to call
+	;; `eshell-do-eval' on their first form.
+	;;
+	;; NOTE: This requires obedience by all forms which this
+	;; function might encounter, that they do not contain
+	;; other special forms.
 	(unless (eq (car form) 'unwind-protect)
 	  (setq args (cdr args)))
 	(unless (eq (caar args) 'eshell-do-eval)
@@ -1158,10 +1157,9 @@ be finished later after the completion of an asynchronous subprocess."
 	  (setq name (substring name 1)
 		direct t))
       (if (and (not direct)
-	       (eshell-using-module 'eshell-alias)
+	       (fboundp 'eshell-lookup-alias)
 	       (setq alias
-		     (funcall (symbol-function 'eshell-lookup-alias)
-			      name)))
+		     (eshell-lookup-alias name)))
 	  (setq program
 		(concat name " is an alias, defined as \""
 			(cadr alias) "\"")))
@@ -1304,27 +1302,36 @@ messages, and errors."
   "Insert Lisp OBJECT, using ARGS if a function."
   (catch 'eshell-external               ; deferred to an external command
     (let* ((eshell-ensure-newline-p (eshell-interactive-output-p))
-	   (result
-	    (if (functionp object)
-		(progn
-		  (setq eshell-last-arguments args
-			eshell-last-command-name
-			(concat "#<function " (symbol-name object) ">"))
-		  ;; if any of the arguments are flagged as numbers
-		  ;; waiting for conversion, convert them now
-		  (unless (get object 'eshell-no-numeric-conversions)
-		    (while args
-		      (let ((arg (car args)))
-			(if (and (stringp arg)
-				 (> (length arg) 0)
-				 (not (text-property-not-all
-				       0 (length arg) 'number t arg)))
-			    (setcar args (string-to-number arg))))
-		      (setq args (cdr args))))
-		  (eshell-apply object eshell-last-arguments))
-	      (setq eshell-last-arguments args
-		    eshell-last-command-name "#<Lisp object>")
-	      (eshell-eval object))))
+           (result
+            (if (functionp object)
+                (progn
+                  (setq eshell-last-arguments args
+                        eshell-last-command-name
+                        (concat "#<function " (symbol-name object) ">"))
+                  (let ((numeric (not (get object
+                                           'eshell-no-numeric-conversions)))
+                        (fname-args (get object 'eshell-filename-arguments)))
+                    (when (or numeric fname-args)
+                      (while args
+                        (let ((arg (car args)))
+                          (cond ((and numeric (stringp arg) (> (length arg) 0)
+                                      (text-property-any 0 (length arg)
+                                                         'number t arg))
+                                 ;; If any of the arguments are
+                                 ;; flagged as numbers waiting for
+                                 ;; conversion, convert them now.
+                                 (setcar args (string-to-number arg)))
+                                ((and fname-args (stringp arg)
+                                      (string-equal arg "~"))
+                                 ;; If any of the arguments match "~",
+                                 ;; prepend "./" to treat it as a
+                                 ;; regular file name.
+                                 (setcar args (concat "./" arg)))))
+                        (setq args (cdr args)))))
+                  (eshell-apply object eshell-last-arguments))
+              (setq eshell-last-arguments args
+                    eshell-last-command-name "#<Lisp object>")
+              (eshell-eval object))))
       (if (and eshell-ensure-newline-p
 	       (save-excursion
 		 (goto-char eshell-last-output-end)
@@ -1332,7 +1339,7 @@ messages, and errors."
 	  (eshell-print "\n"))
       (eshell-close-handles 0 (list 'quote result)))))
 
-(defalias 'eshell-lisp-command* 'eshell-lisp-command)
+(defalias 'eshell-lisp-command* #'eshell-lisp-command)
 
 (provide 'esh-cmd)
 

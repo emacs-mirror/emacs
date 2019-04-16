@@ -1,6 +1,6 @@
 ;;; minibuf-eldef.el --- Only show defaults in prompts when applicable  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience
@@ -163,9 +163,6 @@ been set up by `minibuf-eldef-setup-minibuffer'."
 ;;;###autoload
 (define-minor-mode minibuffer-electric-default-mode
   "Toggle Minibuffer Electric Default mode.
-With a prefix argument ARG, enable Minibuffer Electric Default
-mode if ARG is positive, and disable it otherwise.  If called
-from Lisp, enable the mode if ARG is omitted or nil.
 
 Minibuffer Electric Default mode is a global minor mode.  When
 enabled, minibuffer prompts that show a default value only show

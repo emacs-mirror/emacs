@@ -1,6 +1,6 @@
 ;;; quail.el --- provides simple input method for multilingual text
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -568,7 +568,7 @@ While this input method is active, the variable
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil)
 	    (quail-hide-guidance)
-	    (remove-hook 'post-command-hook 'quail-show-guidance t)
+	    (remove-hook 'post-command-hook #'quail-show-guidance t)
 	    (run-hooks 'quail-deactivate-hook))
 	(kill-local-variable 'input-method-function))
     ;; Let's activate Quail input method.
@@ -579,19 +579,18 @@ While this input method is active, the variable
 	      (setq name (car (car quail-package-alist)))
 	    (error "No Quail package loaded"))
 	  (quail-select-package name)))
-    (setq deactivate-current-input-method-function 'quail-deactivate)
-    (setq describe-current-input-method-function 'quail-help)
+    (setq deactivate-current-input-method-function #'quail-deactivate)
+    (setq describe-current-input-method-function #'quail-help)
     (quail-delete-overlays)
     (setq quail-guidance-str "")
     (quail-show-guidance)
     ;; If we are in minibuffer, turn off the current input method
     ;; before exiting.
     (when (eq (selected-window) (minibuffer-window))
-      (add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer)
-      (add-hook 'post-command-hook 'quail-show-guidance nil t))
+      (add-hook 'minibuffer-exit-hook #'quail-exit-from-minibuffer)
+      (add-hook 'post-command-hook #'quail-show-guidance nil t))
     (run-hooks 'quail-activate-hook)
-    (make-local-variable 'input-method-function)
-    (setq input-method-function 'quail-input-method)))
+    (setq-local input-method-function #'quail-input-method)))
 
 (define-obsolete-variable-alias
   'quail-inactivate-hook
@@ -1367,9 +1366,7 @@ If STR has `advice' text property, append the following special event:
   (let ((start (overlay-start overlay))
 	(end (overlay-end overlay)))
     (if (< start end)
-	(prog1
-	    (string-to-list (buffer-substring start end))
-	  (delete-region start end)))))
+	(string-to-list (delete-and-extract-region start end)))))
 
 (defsubst quail-delete-region ()
   "Delete the text in the current translation region of Quail."
@@ -1394,12 +1391,13 @@ Return the input string."
 	     (generated-events nil)     ;FIXME: What is this?
 	     (input-method-function nil)
 	     (modified-p (buffer-modified-p))
-	     last-command-event last-command this-command)
+	     last-command-event last-command this-command inhibit-record)
 	(setq quail-current-key ""
 	      quail-current-str ""
 	      quail-translating t)
 	(if key
-	    (setq unread-command-events (cons key unread-command-events)))
+	    (setq unread-command-events (cons key unread-command-events)
+                  inhibit-record t))
 	(while quail-translating
 	  (set-buffer-modified-p modified-p)
 	  (quail-show-guidance)
@@ -1408,8 +1406,13 @@ Return the input string."
 				     (or input-method-previous-message "")
 				     quail-current-str
 				     quail-guidance-str)))
+                 ;; We inhibit record_char only for the first key,
+                 ;; because it was already recorded before read_char
+                 ;; called quail-input-method.
+                 (inhibit--record-char inhibit-record)
 		 (keyseq (read-key-sequence prompt nil nil t))
 		 (cmd (lookup-key (quail-translation-keymap) keyseq)))
+            (setq inhibit-record nil)
 	    (if (if key
 		    (and (commandp cmd) (not (eq cmd 'quail-other-command)))
 		  (eq cmd 'quail-self-insert-command))
@@ -1453,14 +1456,15 @@ Return the input string."
 	     (generated-events nil)     ;FIXME: What is this?
 	     (input-method-function nil)
 	     (modified-p (buffer-modified-p))
-	     last-command-event last-command this-command)
+	     last-command-event last-command this-command inhibit-record)
 	(setq quail-current-key ""
 	      quail-current-str ""
 	      quail-translating t
 	      quail-converting t
 	      quail-conversion-str "")
 	(if key
-	    (setq unread-command-events (cons key unread-command-events)))
+	    (setq unread-command-events (cons key unread-command-events)
+                  inhibit-record t))
 	(while quail-converting
 	  (set-buffer-modified-p modified-p)
 	  (or quail-translating
@@ -1476,8 +1480,13 @@ Return the input string."
 				     quail-conversion-str
 				     quail-current-str
 				     quail-guidance-str)))
+                 ;; We inhibit record_char only for the first key,
+                 ;; because it was already recorded before read_char
+                 ;; called quail-input-method.
+                 (inhibit--record-char inhibit-record)
 		 (keyseq (read-key-sequence prompt nil nil t))
 		 (cmd (lookup-key (quail-conversion-keymap) keyseq)))
+            (setq inhibit-record nil)
 	    (if (if key (commandp cmd) (eq cmd 'quail-self-insert-command))
 		(progn
 		  (setq last-command-event (aref keyseq (1- (length keyseq)))

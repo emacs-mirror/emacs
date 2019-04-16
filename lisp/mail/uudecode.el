@@ -1,6 +1,6 @@
 ;;; uudecode.el -- elisp native uudecode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: uudecode news
@@ -171,12 +171,12 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	      (cond ((= counter 4)
 		     (setq result (cons
 				   (concat
-				    (char-to-string (lsh bits -16))
-				    (char-to-string (logand (lsh bits -8) 255))
+				    (char-to-string (ash bits -16))
+				    (char-to-string (logand (ash bits -8) 255))
 				    (char-to-string (logand bits 255)))
 				   result))
 		     (setq bits 0 counter 0))
-		    (t (setq bits (lsh bits 6)))))))
+		    (t (setq bits (ash bits 6)))))))
 	  (cond
 	   (done)
 	   ((> 0 remain)
@@ -188,12 +188,12 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 	   ((= counter 3)
 	    (setq result (cons
 			  (concat
-			   (char-to-string (logand (lsh bits -16) 255))
-			   (char-to-string (logand (lsh bits -8) 255)))
+			   (char-to-string (logand (ash bits -16) 255))
+			   (char-to-string (logand (ash bits -8) 255)))
 			  result)))
 	   ((= counter 2)
 	    (setq result (cons
-			  (char-to-string (logand (lsh bits -10) 255))
+			  (char-to-string (logand (ash bits -10) 255))
 			  result))))
 	  (skip-chars-forward non-data-chars end))
 	(if file-name

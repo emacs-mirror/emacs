@@ -1,6 +1,6 @@
 ;;; message-mode-tests.el --- Tests for message-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 
@@ -102,8 +102,8 @@
 (ert-deftest message-all-recipients ()
   (ert-with-test-buffer (:name "message")
     (insert "To: Person 1 <p1@p1.org>, Person 2 <p2@p2.org>\n")
-    (insert "CC: Person 3 <p3@p3.org>, Person 4 <p4@p4.org>\n")
-    (insert "BCC: Person 5 <p5@p5.org>, Person 6 <p6@p6.org>\n")
+    (insert "Cc: Person 3 <p3@p3.org>, Person 4 <p4@p4.org>\n")
+    (insert "Bcc: Person 5 <p5@p5.org>, Person 6 <p6@p6.org>\n")
     (should (equal (message-all-recipients)
                    '(("Person 1" "p1@p1.org")
                      ("Person 2" "p2@p2.org")

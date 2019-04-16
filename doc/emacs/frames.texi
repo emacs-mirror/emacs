@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
@@ -899,6 +899,16 @@ input stream for each server.  Each server also has its own selected
 frame.  The commands you enter with a particular X server apply to
 that server's selected frame.
 
+  On multi-monitor displays it is possible to use the command
+@code{make-frame-on-monitor}:
+
+@findex make-frame-on-monitor
+@table @kbd
+@item M-x make-frame-on-monitor @key{RET} @var{monitor} @key{RET}
+Create a new frame on monitor @var{monitor} whose screen area is
+a part of the current display.
+@end table
+
 @node Frame Parameters
 @section Frame Parameters
 @vindex default-frame-alist
@@ -933,6 +943,10 @@ the initial frame, by customizing the variable
   If Emacs is compiled to use an X toolkit, frame parameters that
 specify colors and fonts don't affect menus and the menu bar, since
 those are drawn by the toolkit and not directly by Emacs.
+
+  Frame appearance and behavior can also be customized through X
+resources (@pxref{X Resources}); these override the parameters of the
+initial frame specified in your init file.
 
   Note that if you are using the desktop library to save and restore
 your sessions, the frames to be restored are recorded in the desktop

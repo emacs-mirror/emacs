@@ -1,6 +1,6 @@
 ;;; ede/util.el --- EDE utilities
 
-;; Copyright (C) 2000, 2005, 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005, 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make

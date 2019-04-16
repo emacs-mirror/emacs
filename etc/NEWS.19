@@ -1,10 +1,10 @@
 GNU Emacs NEWS -- history of user-visible changes.  1992.
 
-Copyright (C) 1993-1995, 2001, 2006-2018 Free Software Foundation, Inc.
+Copyright (C) 1993-1995, 2001, 2006-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-This file is about changes in emacs versions 19.
+This file is about changes in Emacs versions 19.
 
 
 
@@ -438,7 +438,7 @@ The other accent characters, not needed for the chosen language,
 remain normal.
 
 ** Posting articles and sending mail now has M-TAB completion on various
-header fields (Newsgroups, To, CC, ...).
+header fields (Newsgroups, To, Cc, ...).
 
 Completion in the Newsgroups header depends on the list of groups
 known to your news reader.  Completion in the Followup-To header
@@ -2087,7 +2087,7 @@ arguments are ARGS.
 for mail-default-reply-to.
 
 ** When you send a message in Emacs, if you specify an Rmail file with
-the FCC: header field, Emacs converts the message to Rmail format
+the Fcc: header field, Emacs converts the message to Rmail format
 before writing it.  Thus, the file never contains anything but Rmail
 format messages.
 
@@ -4341,7 +4341,7 @@ turn the character that follows into a hyper character:
 (defun hyperify (prompt)
   (let ((e (read-event)))
     (vector (if (numberp e)
-		(logior (lsh 1 20) e)
+		(logior (ash 1 20) e)
 	      (if (memq 'hyper (event-modifiers e))
 		  e
 		(add-event-modifier "H-" e))))))

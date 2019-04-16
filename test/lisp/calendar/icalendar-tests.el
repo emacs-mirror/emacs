@@ -1,6 +1,6 @@
 ;; icalendar-tests.el --- Test suite for icalendar.el
 
-;; Copyright (C) 2005, 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2008-2019 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        March 2005
@@ -57,17 +57,16 @@
 
 (ert-deftest icalendar--create-uid ()
   "Test for `icalendar--create-uid'."
-  (let* ((icalendar-uid-format "xxx-%t-%c-%h-%u-%s")
+  (let* ((icalendar-uid-format "xxx-%c-%h-%u-%s")
          (icalendar--uid-count 77)
          (entry-full "30.06.1964 07:01 blahblah")
          (hash (format "%d" (abs (sxhash entry-full))))
          (contents "DTSTART:19640630T070100\nblahblah")
          (username (or user-login-name "UNKNOWN_USER")))
-    (cl-letf (((symbol-function 'current-time) (lambda () '(1 2 3))))
-      (should (= 77 icalendar--uid-count))
-      (should (string=  (concat "xxx-123-77-" hash "-" username "-19640630")
-                        (icalendar--create-uid entry-full contents)))
-      (should (= 78 icalendar--uid-count)))
+    (should (= 77 icalendar--uid-count))
+    (should (string= (concat "xxx-77-" hash "-" username "-19640630")
+                     (icalendar--create-uid entry-full contents)))
+    (should (= 78 icalendar--uid-count))
     (setq contents "blahblah")
     (setq icalendar-uid-format "yyy%syyy")
     (should (string=  (concat "yyyDTSTARTyyy")

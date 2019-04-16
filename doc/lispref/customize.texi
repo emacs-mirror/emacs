@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1997-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Customization
 @chapter Customization Settings
@@ -257,6 +257,13 @@ customizable variable @code{custom-unlispify-remove-prefixes} is
 non-@code{nil}, the item's tag will omit @var{prefix}.  A group can
 have any number of prefixes.
 @end table
+
+@cindex @code{custom-group} property
+The variables and subgroups of a group are stored in the
+@code{custom-group} property of the group's symbol.  @xref{Symbol
+Plists}.  The value of that property is a list of pairs whose
+@code{car} is the variable or subgroup symbol and the @code{cdr} is
+either @code{custom-variable} or @code{custom-group}.
 @end defmac
 
 @defopt custom-unlispify-remove-prefixes
@@ -314,6 +321,7 @@ If a @code{defcustom} does not specify any @code{:group}, the last group
 defined with @code{defgroup} in the same file will be used.  This way, most
 @code{defcustom} do not need an explicit @code{:group}.
 
+@cindex @code{eval-defun}, and @code{defcustom} forms
 When you evaluate a @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp
 mode (@code{eval-defun}), a special feature of @code{eval-defun}
 arranges to set the variable unconditionally, without testing whether
@@ -409,20 +417,14 @@ Use the @code{:set} function to initialize the variable, if it is
 already set or has been customized; otherwise, just use
 @code{set-default}.
 
-@item custom-initialize-safe-set
-@itemx custom-initialize-safe-default
-These functions behave like @code{custom-initialize-set}
-(@code{custom-initialize-default}, respectively), but catch errors.
-If an error occurs during initialization, they set the variable to
-@code{nil} using @code{set-default}, and signal no error.
-
-These functions are meant for options defined in pre-loaded files,
-where the @var{standard} expression may signal an error because some
-required variable or function is not yet defined.  The value normally
-gets updated in @file{startup.el}, ignoring the value computed by
-@code{defcustom}.  After startup, if one unsets the value and
-reevaluates the @code{defcustom}, the @var{standard} expression can be
-evaluated without error.
+@item custom-initialize-delay
+This functions behaves like @code{custom-initialize-set}, but it
+delays the actual initialization to the next Emacs start.  This should
+be used in files that are preloaded (or for autoloaded variables), so
+that the initialization is done in the run-time context rather than
+the build-time context.  This also has the side-effect that the
+(delayed) initialization is performed with the @code{:set} function.
+@xref{Building Emacs}.
 @end table
 
 @item :risky @var{value}
@@ -447,15 +449,14 @@ those other variables already have their intended values.
   It is useful to specify the @code{:require} keyword for an option
 that turns on a certain feature.  This causes Emacs to load the
 feature, if it is not already loaded, whenever the option is set.
-@xref{Common Keywords}.  Here is an example, from the library
-@file{saveplace.el}:
+@xref{Common Keywords}.  Here is an example:
 
 @example
-(defcustom save-place nil
-  "Non-nil means automatically save place in each file..."
+(defcustom frobnicate-automatically nil
+  "Non-nil means automatically frobnicate all buffers."
   :type 'boolean
-  :require 'saveplace
-  :group 'save-place)
+  :require 'frobnicate-mode
+  :group 'frobnicate)
 @end example
 
 If a customization item has a type such as @code{hook} or

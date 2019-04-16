@@ -1,6 +1,6 @@
 ;;; tests/em-ls-tests.el --- em-ls test suite
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Tino Calancha <tino.calancha@gmail.com>
 
@@ -78,6 +78,11 @@
 
 (ert-deftest em-ls-test-bug27844 ()
   "Test for https://debbugs.gnu.org/27844 ."
+  ;; FIXME: it would be better to use something other than source-directory
+  ;; in this test.
+  (skip-unless (and source-directory
+                    (file-exists-p
+                     (expand-file-name "lisp/subr.el" source-directory))))
   (let ((orig eshell-ls-use-in-dired)
         (dired-use-ls-dired 'unspecified)
         buf insert-directory-program)
@@ -88,7 +93,14 @@
           (dired-toggle-marks)
           (should (cdr (dired-get-marked-files)))
           (kill-buffer buf)
-          (setq buf (dired (expand-file-name "lisp/subr.el" source-directory)))
+          ;; Eshell's default format duplicates the year for non-recent files,
+          ;; eg "2015-05-06  2015", which doesn't make a lot of sense,
+          ;; and causes this portion of the test to fail if subr.el
+          ;; is non-recent (eg if building from a tarfile unpacked
+          ;; with a fixed early timestamp for reproducibility).  Bug#33734.
+          (let ((eshell-ls-date-format "%b %e"))
+            (setq buf (dired (expand-file-name "lisp/subr.el"
+                                               source-directory))))
           (should (looking-at "subr\\.el")))
       (customize-set-variable 'eshell-ls-use-in-dired orig)
       (and (buffer-live-p buf) (kill-buffer)))))

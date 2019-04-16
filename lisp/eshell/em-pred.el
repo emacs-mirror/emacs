@@ -1,6 +1,6 @@
 ;;; em-pred.el --- argument predicates and modifiers (ala zsh)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -46,9 +46,7 @@
 
 ;;; Code:
 
-(require 'esh-util)
-(require 'esh-arg)
-(eval-when-compile (require 'eshell))
+(require 'esh-mode)
 
 ;;;###autoload
 (progn
@@ -89,10 +87,12 @@ ordinary strings."
     (?t . (eshell-pred-file-mode 1000)) ; sticky bit
     (?U . #'(lambda (file)                   ; owned by effective uid
               (if (file-exists-p file)
-                  (= (nth 2 (file-attributes file)) (user-uid)))))
+                  (= (file-attribute-user-id (file-attributes file))
+		     (user-uid)))))
     ;; (?G . #'(lambda (file)               ; owned by effective gid
     ;;          (if (file-exists-p file)
-    ;;              (= (nth 2 (file-attributes file)) (user-uid)))))
+    ;;              (= (file-attribute-user-id (file-attributes file))
+    ;;                 (user-uid)))))
     (?* . #'(lambda (file)
               (and (file-regular-p file)
                    (not (file-symlink-p file))
@@ -245,10 +245,10 @@ EXAMPLES:
     (lambda ()
       (insert eshell-modifier-help-string)))))
 
-(defun eshell-pred-initialize ()
+(defun eshell-pred-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the predicate/modifier code."
   (add-hook 'eshell-parse-argument-hook
-	    'eshell-parse-arg-modifier t t)
+	    #'eshell-parse-arg-modifier t t)
   (define-key eshell-command-map [(meta ?q)] 'eshell-display-predicate-help)
   (define-key eshell-command-map [(meta ?m)] 'eshell-display-modifier-help))
 
@@ -419,9 +419,8 @@ resultant list of strings."
       (forward-char))
     (if (looking-at "[0-9]+")
 	(progn
-	  (setq when (- (float-time)
-			(* (string-to-number (match-string 0))
-			   quantum)))
+	  (setq when (time-since (* (string-to-number (match-string 0))
+				    quantum)))
 	  (goto-char (match-end 0)))
       (setq open (char-after))
       (if (setq close (memq open '(?\( ?\[ ?\< ?\{)))
@@ -436,17 +435,17 @@ resultant list of strings."
 	     (attrs (file-attributes file)))
 	(unless attrs
 	  (error "Cannot stat file `%s'" file))
-	(setq when (float-time (nth attr-index attrs))))
+	(setq when (nth attr-index attrs)))
       (goto-char (1+ end)))
     `(lambda (file)
        (let ((attrs (file-attributes file)))
 	 (if attrs
 	     (,(if (eq qual ?-)
-		   '<
+		   'time-less-p
 		 (if (eq qual ?+)
-		     '>
-		   '=)) ,when (float-time
-			       (nth ,attr-index attrs))))))))
+		     '(lambda (a b) (time-less-p b a))
+		   'time-equal-p))
+	      ,when (nth ,attr-index attrs)))))))
 
 (defun eshell-pred-file-type (type)
   "Return a test which tests that the file is of a certain TYPE.
@@ -460,7 +459,7 @@ that `ls -l' will show in the first column of its display. "
   `(lambda (file)
      (let ((attrs (eshell-file-attributes (directory-file-name file))))
        (if attrs
-	   (memq (aref (nth 8 attrs) 0)
+	   (memq (aref (file-attribute-modes attrs) 0)
 		 ,(if (eq type ?%)
 		      '(?b ?c)
 		    (list 'quote (list type))))))))
@@ -489,7 +488,8 @@ that `ls -l' will show in the first column of its display. "
 		   '<
 		 (if (eq qual ?+)
 		     '>
-		   '=)) (nth 1 attrs) ,amount))))))
+		   '=))
+	      (file-attribute-link-number attrs) ,amount))))))
 
 (defun eshell-pred-file-size ()
   "Return a predicate to test whether a file is of a given size."
@@ -518,7 +518,8 @@ that `ls -l' will show in the first column of its display. "
 		   '<
 		 (if (eq qual ?+)
 		     '>
-		   '=)) (nth 7 attrs) ,amount))))))
+		   '=))
+	      (file-attribute-size attrs) ,amount))))))
 
 (defun eshell-pred-substitute (&optional repeat)
   "Return a modifier function that will substitute matches."

@@ -1,6 +1,6 @@
 ;;; esh-util.el --- general utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -285,15 +285,7 @@ Prepend remote identification of `default-directory', if any."
 	 ,@forms)
        (setq list-iter (cdr list-iter)))))
 
-(defun eshell-flatten-list (args)
-  "Flatten any lists within ARGS, so that there are no sublists."
-  (let ((new-list (list t)))
-    (dolist (a args)
-      (if (and (listp a)
-	       (listp (cdr a)))
-	  (nconc new-list (eshell-flatten-list a))
-	(nconc new-list (list a))))
-    (cdr new-list)))
+(define-obsolete-function-alias 'eshell-flatten-list #'flatten-tree "27.1")
 
 (defun eshell-uniquify-list (l)
   "Remove occurring multiples in L.  You probably want to sort first."
@@ -330,7 +322,7 @@ Prepend remote identification of `default-directory', if any."
 
 (defsubst eshell-flatten-and-stringify (&rest args)
   "Flatten and stringify all of the ARGS into a single string."
-  (mapconcat 'eshell-stringify (eshell-flatten-list args) " "))
+  (mapconcat 'eshell-stringify (flatten-tree args) " "))
 
 (defsubst eshell-directory-files (regexp &optional directory)
   "Return a list of files in the given DIRECTORY matching REGEXP."
@@ -447,7 +439,7 @@ list."
 	  (not (symbol-value timestamp-var))
 	  (time-less-p
 	   (symbol-value timestamp-var)
-	   (nth 5 (file-attributes file))))
+	   (file-attribute-modification-time (file-attributes file))))
       (progn
 	(set result-var (eshell-read-passwd-file file))
 	(set timestamp-var (current-time))))
@@ -486,24 +478,22 @@ list."
       (insert-file-contents (or filename eshell-hosts-file))
       (goto-char (point-min))
       (while (re-search-forward
-	      "^\\([^#[:space:]]+\\)\\s-+\\(\\S-+\\)\\(\\s-*\\(\\S-+\\)\\)?" nil t)
-	(if (match-string 1)
-	    (cl-pushnew (match-string 1) hosts :test #'equal))
-	(if (match-string 2)
-	    (cl-pushnew (match-string 2) hosts :test #'equal))
-	(if (match-string 4)
-	    (cl-pushnew (match-string 4) hosts :test #'equal))))
-    (sort hosts #'string-lessp)))
+              ;; "^ \t\\([^# \t\n]+\\)[ \t]+\\([^ \t\n]+\\)\\([ \t]*\\([^ \t\n]+\\)\\)?"
+	      "^[ \t]*\\([^# \t\n]+\\)[ \t]+\\([^ \t\n].+\\)" nil t)
+        (push (cons (match-string 1)
+                    (split-string (match-string 2)))
+              hosts)))
+    (nreverse hosts)))
 
 (defun eshell-read-hosts (file result-var timestamp-var)
-  "Read the contents of /etc/passwd for user names."
+  "Read the contents of /etc/hosts for host names."
   (if (or (not (symbol-value result-var))
 	  (not (symbol-value timestamp-var))
 	  (time-less-p
 	   (symbol-value timestamp-var)
-	   (nth 5 (file-attributes file))))
+	   (file-attribute-modification-time (file-attributes file))))
       (progn
-	(set result-var (eshell-read-hosts-file file))
+	(set result-var (apply #'nconc (eshell-read-hosts-file file)))
 	(set timestamp-var (current-time))))
   (symbol-value result-var))
 
@@ -660,7 +650,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 			(setcar (nthcdr 0 moment) 0)
 			(setcar (nthcdr 1 moment) 0)
 			(setcar (nthcdr 2 moment) 0))
-		      (apply 'encode-time moment))
+		      (encode-time moment))
 		  (ange-ftp-file-modtime (expand-file-name name dir))))
 	       symlink)
 	  (if (string-match "\\(.+\\) -> \\(.+\\)" name)

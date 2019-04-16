@@ -1,6 +1,6 @@
 ;;; ja-dic-cnv.el --- convert a Japanese dictionary (SKK-JISYO.L) to Emacs Lisp
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -32,15 +32,15 @@
 ;; input method (e.g. quail-japanese) can utilize the dictionary.
 
 ;; The format of SKK dictionary is quite simple.  Each line has the
-;; form "KANASTRING /CONV1/CONV2/.../" which means KANASTRING ($B2>L>J8(B
-;; $B;zNs(B) can be converted to one of CONVi.  CONVi is a Kanji ($B4A;z(B)
-;; and Kana ($B2>L>(B) mixed string.
+;; form "KANASTRING /CONV1/CONV2/.../" which means KANASTRING (仮名文
+;; 字列) can be converted to one of CONVi.  CONVi is a Kanji (漢字)
+;; and Kana (仮名) mixed string.
 ;;
-;; KANASTRING may have a trailing ASCII letter for Okurigana ($BAw$j2>L>(B)
+;; KANASTRING may have a trailing ASCII letter for Okurigana (送り仮名)
 ;; information.  For instance, the trailing letter `k' means that one
-;; of the following Okurigana is allowed: $B$+$-$/$1$3(B.  So, in that
-;; case, the string "KANASTRING$B$/(B" can be converted to one of "CONV1$B$/(B",
-;; CONV2$B$/(B, ...
+;; of the following Okurigana is allowed: かきくけこ.  So, in that
+;; case, the string "KANASTRINGく" can be converted to one of "CONV1く",
+;; CONV2く, ...
 
 ;;; Code:
 
@@ -76,25 +76,25 @@
 (defconst skkdic-postfix-list '(skkdic-postfix-list))
 
 (defconst skkdic-postfix-data
-  '(("$B$$$-(B" "$B9T(B")
-    ("$B$,$+$j(B" "$B78(B")
-    ("$B$,$/(B" "$B3X(B")
-    ("$B$,$o(B" "$B@n(B")
-    ("$B$7$c(B" "$B<R(B")
-    ("$B$7$e$&(B" "$B=8(B")
-    ("$B$7$g$&(B" "$B>^(B" "$B>k(B")
-    ("$B$8$g$&(B" "$B>k(B")
-    ("$B$;$s(B" "$B@~(B")
-    ("$B$@$1(B" "$B3Y(B")
-    ("$B$A$c$/(B" "$BCe(B")
-    ("$B$F$s(B" "$BE9(B")
-    ("$B$H$&$2(B" "$BF=(B")
-    ("$B$I$*$j(B" "$BDL$j(B")
-    ("$B$d$^(B" "$B;3(B")
-    ("$B$P$7(B" "$B66(B")
-    ("$B$O$D(B" "$BH/(B")
-    ("$B$b$/(B" "$BL\(B")
-    ("$B$f$-(B" "$B9T(B")))
+  '(("いき" "行")
+    ("がかり" "係")
+    ("がく" "学")
+    ("がわ" "川")
+    ("しゃ" "社")
+    ("しゅう" "集")
+    ("しょう" "賞" "城")
+    ("じょう" "城")
+    ("せん" "線")
+    ("だけ" "岳")
+    ("ちゃく" "着")
+    ("てん" "店")
+    ("とうげ" "峠")
+    ("どおり" "通り")
+    ("やま" "山")
+    ("ばし" "橋")
+    ("はつ" "発")
+    ("もく" "目")
+    ("ゆき" "行")))
 
 (defun skkdic-convert-postfix (skkbuf buf)
   (message "Processing POSTFIX entries ...")
@@ -124,7 +124,7 @@
 	(setq l (cdr l)))))
 
   ;; Search postfix entries.
-  (while (re-search-forward "^[#<>?]\\(\\(\\cH\\|$B!<(B\\)+\\) " nil t)
+  (while (re-search-forward "^[#<>?]\\(\\(\\cH\\|ー\\)+\\) " nil t)
     (let ((kana (match-string-no-properties 1))
 	  str candidates)
       (while (looking-at "/[#0-9 ]*\\([^/\n]*\\)/")
@@ -157,7 +157,7 @@
     (insert ";; Setting prefix entries.\n"
 	    "(skkdic-set-prefix\n"))
   (save-excursion
-    (while (re-search-forward "^\\(\\(\\cH\\|$B!<(B\\)+\\)[<>?] " nil t)
+    (while (re-search-forward "^\\(\\(\\cH\\|ー\\)+\\)[<>?] " nil t)
       (let ((kana (match-string-no-properties 1))
 	    str candidates)
 	(while (looking-at "/\\([^/\n]+\\)/")
@@ -275,7 +275,7 @@
     (let ((progress (make-progress-reporter "Collecting OKURI-NASI entries"
                                             (point) (point-max)
                                             nil 10)))
-      (while (re-search-forward "^\\(\\(\\cH\\|$B!<(B\\)+\\) \\(/\\cj.*\\)/$"
+      (while (re-search-forward "^\\(\\(\\cH\\|ー\\)+\\) \\(/\\cj.*\\)/$"
 				nil t)
         (let ((kana (match-string-no-properties 1))
 	      (candidates (skkdic-get-candidate-list (match-beginning 3)
@@ -452,7 +452,7 @@ To get complete usage, invoke:
       (aset vec i
 	    (if (< ch 128)		; CH is an ASCII letter for OKURIGANA,
 		(- ch)			;  represented by a negative code.
-	      (if (= ch ?$B!<(B)		; `$B!<(B' is represented by 0.
+	      (if (= ch ?ー)		; `ー' is represented by 0.
 		  0
 		(- (logand (encode-char ch 'japanese-jisx0208) #xFF) 32))))
       (setq i (1+ i)))
@@ -541,9 +541,4 @@ To get complete usage, invoke:
 	 map)))
 
 (provide 'ja-dic-cnv)
-
-;; Local Variables:
-;; coding: iso-2022-7bit
-;; End:
-
 ;;; ja-dic-cnv.el ends here

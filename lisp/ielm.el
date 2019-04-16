@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -612,17 +612,19 @@ Customized bindings may be defined in `ielm-map', which currently contains:
 ;;; User command
 
 ;;;###autoload
-(defun ielm nil
+(defun ielm (&optional buf-name)
   "Interactively evaluate Emacs Lisp expressions.
-Switches to the buffer `*ielm*', or creates it if it does not exist.
+Switches to the buffer named BUF-NAME if provided (`*ielm*' by default),
+or creates it if it does not exist.
 See `inferior-emacs-lisp-mode' for details."
   (interactive)
-  (let (old-point)
-    (unless (comint-check-proc "*ielm*")
-      (with-current-buffer (get-buffer-create "*ielm*")
+  (let (old-point
+        (buf-name (or buf-name "*ielm*")))
+    (unless (comint-check-proc buf-name)
+      (with-current-buffer (get-buffer-create buf-name)
         (unless (zerop (buffer-size)) (setq old-point (point)))
         (inferior-emacs-lisp-mode)))
-    (pop-to-buffer-same-window "*ielm*")
+    (pop-to-buffer-same-window buf-name)
     (when old-point (push-mark old-point))))
 
 (provide 'ielm)

@@ -1,5 +1,5 @@
 # pthread_sigmask.m4 serial 16
-dnl Copyright (C) 2011-2018 Free Software Foundation, Inc.
+dnl Copyright (C) 2011-2019 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -124,41 +124,41 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
       case " $LIBS " in
         *' -pthread '*) ;;
         *' -lpthread '*) ;;
-	*)
-	  AC_CACHE_CHECK([whether pthread_sigmask works without -lpthread],
-	    [gl_cv_func_pthread_sigmask_in_libc_works],
-	    [
-	      AC_RUN_IFELSE(
-		[AC_LANG_SOURCE([[
-		   #include <pthread.h>
-		   #include <signal.h>
-		   #include <stddef.h>
-		   int main ()
-		   {
-		     sigset_t set;
-		     sigemptyset (&set);
-		     return pthread_sigmask (1729, &set, NULL) != 0;
-		   }]])],
-		[gl_cv_func_pthread_sigmask_in_libc_works=no],
-		[gl_cv_func_pthread_sigmask_in_libc_works=yes],
-		[
-		 changequote(,)dnl
-		 case "$host_os" in
-		   freebsd* | hpux* | solaris | solaris2.[2-9]*)
-		     gl_cv_func_pthread_sigmask_in_libc_works="guessing no";;
-		   *)
-		     gl_cv_func_pthread_sigmask_in_libc_works="guessing yes";;
-		 esac
-		 changequote([,])dnl
-		])
-	    ])
-	  case "$gl_cv_func_pthread_sigmask_in_libc_works" in
-	    *no)
-	      REPLACE_PTHREAD_SIGMASK=1
-	      AC_DEFINE([PTHREAD_SIGMASK_INEFFECTIVE], [1],
-		[Define to 1 if pthread_sigmask may return 0 and have no effect.])
-	      ;;
-	  esac;;
+        *)
+          AC_CACHE_CHECK([whether pthread_sigmask works without -lpthread],
+            [gl_cv_func_pthread_sigmask_in_libc_works],
+            [
+              AC_RUN_IFELSE(
+                [AC_LANG_SOURCE([[
+                   #include <pthread.h>
+                   #include <signal.h>
+                   #include <stddef.h>
+                   int main ()
+                   {
+                     sigset_t set;
+                     sigemptyset (&set);
+                     return pthread_sigmask (1729, &set, NULL) != 0;
+                   }]])],
+                [gl_cv_func_pthread_sigmask_in_libc_works=no],
+                [gl_cv_func_pthread_sigmask_in_libc_works=yes],
+                [
+                 changequote(,)dnl
+                 case "$host_os" in
+                   freebsd* | hpux* | solaris | solaris2.[2-9]*)
+                     gl_cv_func_pthread_sigmask_in_libc_works="guessing no";;
+                   *)
+                     gl_cv_func_pthread_sigmask_in_libc_works="guessing yes";;
+                 esac
+                 changequote([,])dnl
+                ])
+            ])
+          case "$gl_cv_func_pthread_sigmask_in_libc_works" in
+            *no)
+              REPLACE_PTHREAD_SIGMASK=1
+              AC_DEFINE([PTHREAD_SIGMASK_INEFFECTIVE], [1],
+                [Define to 1 if pthread_sigmask may return 0 and have no effect.])
+              ;;
+          esac;;
       esac
     fi
 

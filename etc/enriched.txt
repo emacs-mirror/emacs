@@ -64,7 +64,11 @@ the right margin, fully justified, centered, or left alone).</indent>
 
 <bold>Excerpts:</bold><indent> <excerpt>"For quoted material."</excerpt></indent>
 
-<bold>Read-only</bold> regions.
+<bold>Read-only, Invisible, and Intangible</bold> regions.
+
+<bold>Charset</bold> properties.
+
+<bold>Display</bold> properties.
 
 </indent>
 
@@ -158,6 +162,16 @@ parts of other people's email messages and the like.  It is just a
 face, which is the same as the 'italic' face by default.</indent></excerpt>
 
 
+<x-bg-color><param>blue</param><x-color><param>white</param><bold>CHARSET</bold></x-color></x-bg-color>
+
+
+<indent>You can add character set information to stretches of text; this
+is important for selecting the font that will display that text.
+Users of various charsets, especially in East Asian cultures,
+prefer the same characters to be rendered differently depending on
+the language/charset context.</indent>
+
+
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>THE FILE FORMAT</bold></x-color></x-bg-color>
 
 
@@ -175,7 +189,7 @@ as possible.
 
 
 The text/enriched standard is defined in </indent>Internet<indent> RFC 1896
-(<<http://www.ietf.org/rfc/rfc1896.txt>).</indent></indent>
+(<<http://www.ietf.org/rfc/rfc1896.txt>).</indent>
 
 
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>CUSTOMIZATION</bold></x-color></x-bg-color><bold>
@@ -192,9 +206,9 @@ requires you to name your annotation starting<italic> "x-" </italic>(as in
 <italic>"x-read-only"</italic>).  Please report any such additions that you
 think might be of general interest using <fixed>M-x report-emacs-bug</fixed>.</indent>
 
-</indent>
+</indent><bold>
 
-<x-bg-color><param>blue</param><x-color><param>white</param><bold>TODO LIST</bold></x-color></x-bg-color>
+<x-bg-color><param>blue</param><x-color><param>white</param>TODO LIST</x-color></x-bg-color></bold>
 
 
 <italic><indent>[Feel free to work on these and send us the results!]</indent></italic><indent>
@@ -235,11 +249,11 @@ it.</indent>
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>Original Author:</bold></x-color></x-bg-color>
 
 
-<bold><x-color><param>white</param><x-bg-color><param>blue</param>Boris Goldowsky</x-bg-color></x-color><x-color><param>light blue</param> </x-color></bold><x-color><param>light blue</param><fixed><<boris@gnu.ai.mit.edu></fixed></x-color><x-color><param>blue</param>
+<bold><x-color><param>white</param><x-bg-color><param>blue</param>Boris Goldowsky</x-bg-color></x-color><x-color><param>light blue</param> </x-color></bold><x-color><param>light blue</param><fixed><<boris@gnu.ai.mit.edu></fixed></x-color>
 
 
 
-Copyright (C) 1995, 1997, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1995, 1997, 2001-2019 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

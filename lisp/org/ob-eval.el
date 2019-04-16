@@ -1,6 +1,6 @@
 ;;; ob-eval.el --- Babel Functions for External Code Evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
@@ -120,7 +120,7 @@ function in various versions of Emacs.
       (delete-file input-file))
 
     (when (and error-file (file-exists-p error-file))
-      (when (< 0 (nth 7 (file-attributes error-file)))
+      (when (< 0 (file-attribute-size (file-attributes error-file)))
 	(with-current-buffer (get-buffer-create error-buffer)
 	  (let ((pos-from-end (- (point-max) (point))))
 	    (or (bobp)

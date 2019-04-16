@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -469,19 +469,54 @@ never print it, there are many good reasons for this not to happen.
 Secondly, @samp{done} is more explicit.
 @end defun
 
-@defmac dotimes-with-progress-reporter (var count [result]) message body@dots{}
+@defmac dotimes-with-progress-reporter (var count [result]) reporter-or-message body@dots{}
 This is a convenience macro that works the same way as @code{dotimes}
 does, but also reports loop progress using the functions described
-above.  It allows you to save some typing.
+above.  It allows you to save some typing.  The argument
+@var{reporter-or-message} can be either a string or a progress
+reporter object.
 
-You can rewrite the example in the beginning of this node using
-this macro this way:
+You can rewrite the example in the beginning of this subsection using
+this macro as follows:
 
 @example
+@group
 (dotimes-with-progress-reporter
     (k 500)
     "Collecting some mana for Emacs..."
   (sit-for 0.01))
+@end group
+@end example
+
+Using a reporter object as the @var{reporter-or-message} argument is
+useful if you want to specify the optional arguments in
+@var{make-progress-reporter}.  For instance, you can write the
+previous example as follows:
+
+@example
+@group
+(dotimes-with-progress-reporter
+    (k 500)
+    (make-progress-reporter "Collecting some mana for Emacs..." 0 500 0 1 1.5)
+  (sit-for 0.01))
+@end group
+@end example
+@end defmac
+
+@defmac dolist-with-progress-reporter (var count [result]) reporter-or-message body@dots{}
+This is another convenience macro that works the same way as @code{dolist}
+does, but also reports loop progress using the functions described
+above.  As in @code{dotimes-with-progress-reporter},
+@code{reporter-or-message} can be a progress reporter or a string.
+You can rewrite the previous example with this macro as follows:
+
+@example
+@group
+(dolist-with-progress-reporter
+    (k (number-sequence 0 500))
+    "Collecting some mana for Emacs..."
+  (sit-for 0.01))
+@end group
 @end example
 @end defmac
 
@@ -999,8 +1034,8 @@ hiding certain lines on the screen.
 @cindex explicit selective display
   The first variant, explicit selective display, was designed for use in a Lisp
 program: it controls which lines are hidden by altering the text.  This kind of
-hiding is now obsolete; instead you can get the same effect with the
-@code{invisible} property (@pxref{Invisible Text}).
+hiding is now obsolete and deprecated; instead you should use the
+@code{invisible} property (@pxref{Invisible Text}) to get the same effect.
 
   In the second variant, the choice of lines to hide is made
 automatically based on indentation.  This variant is designed to be a
@@ -1048,7 +1083,7 @@ commands operate as if that portion did not exist, allowing a single
 @code{next-line} command to skip any number of hidden lines.
 However, character movement commands (such as @code{forward-char}) do
 not skip the hidden portion, and it is possible (if tricky) to insert
-or delete text in an hidden portion.
+or delete text in a hidden portion.
 
 In the examples below, we show the @emph{display appearance} of the
 buffer @code{foo}, which changes with the value of
@@ -2496,6 +2531,7 @@ However, if the customizations are subsequently removed, the
 appearance of @var{face} will again be determined by its default face
 spec.
 
+@cindex @code{eval-defun}, and @code{defface} forms
 As an exception, if you evaluate a @code{defface} form with
 @kbd{C-M-x} in Emacs Lisp mode (@code{eval-defun}), a special feature
 of @code{eval-defun} overrides any custom face specs on the face,
@@ -2938,7 +2974,13 @@ the remapped face---it replaces the normal definition of @var{face},
 instead of modifying it.
 
 If @code{face-remapping-alist} is buffer-local, its local value takes
-effect only within that buffer.
+effect only within that buffer.  If @code{face-remapping-alist}
+includes faces applicable only to certain windows, by using the
+@w{@code{(:filtered (:window @var{param} @var{val}) @var{spec})}},
+that face takes effect only in windows that match the filter
+conditions (@pxref{Special Properties}).  To turn off face filtering
+temporarily, bind @code{face-filters-always-match} to a non-@code{nil}
+value, then all face filters will match any window.
 
 Note: face remapping is non-recursive.  If @var{remapping} references
 the same face name @var{face}, either directly or via the
@@ -3037,10 +3079,17 @@ value, which inherits from @var{face}'s global definition.
 This function returns a list of all defined face names.
 @end defun
 
+@cindex face number
+@cindex face property of face symbols
 @defun face-id face
 This function returns the @dfn{face number} of face @var{face}.  This
 is a number that uniquely identifies a face at low levels within
 Emacs.  It is seldom necessary to refer to a face by its face number.
+However, functions that manipulate glyphs, such as
+@code{make-glyph-code} and @code{glyph-face} (@pxref{Glyphs}) access
+the face numbers internally.  Note that the face number is stored as
+the value of the @code{face} property of the face symbol, so we
+recommend not to set that property of a face to any value of your own.
 @end defun
 
 @defun face-documentation face
@@ -3456,11 +3505,15 @@ cons @code{(@var{from} . @var{to})}, where @var{from} and @var{to} are
 character codepoints.  In that case, use @var{font-spec} for all the
 characters in the range @var{from} and @var{to} (inclusive).
 
-@var{character} may be a charset.  In that case, use
-@var{font-spec} for all character in the charsets.
+@var{character} may be a charset (@pxref{Character Sets}).  In that
+case, use @var{font-spec} for all the characters in the charset.
 
-@var{character} may be a script name.  In that case, use
-@var{font-spec} for all character in the charsets.
+@var{character} may be a script name (@pxref{Character Properties}).
+In that case, use @var{font-spec} for all the characters belonging to
+the script.
+
+@var{character} may be @code{nil}, which means to use @var{font-spec}
+for any character which no font-spec is specified.
 
 @var{font-spec} may be a font-spec object created by the function
 @code{font-spec} (@pxref{Low-Level Font}).
@@ -3470,7 +3523,7 @@ where @var{family} is a family name of a font (possibly including a
 foundry name at the head), @var{registry} is a registry name of a font
 (possibly including an encoding name at the tail).
 
-@var{font-spec} may be a font name string.
+@var{font-spec} may be a font name, a string.
 
 @var{font-spec} may be @code{nil}, which explicitly specifies that
 there's no font for the specified @var{character}.  This is useful,
@@ -3904,6 +3957,9 @@ fringe, and likewise @var{right} for the right fringe.  A value of
 @var{outside-margins} is non-@code{nil}, that specifies that fringes
 should appear outside of the display margins.
 
+If @var{window} is not large enough to accommodate fringes of the
+desired width, this leaves the fringes of @var{window} unchanged.
+
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
 with its @var{keep-margins} argument @code{nil} or omitted.
@@ -4124,10 +4180,10 @@ Used to indicate continued lines.
 @item @code{right-triangle}, @code{left-triangle}
 The former is used by overlay arrows.  The latter is unused.
 
-@item @code{up-arrow}, @code{down-arrow}, @code{top-left-angle} @code{top-right-angle}
+@item @code{up-arrow}, @code{down-arrow}
 @itemx @code{bottom-left-angle}, @code{bottom-right-angle}
-@itemx @code{top-right-angle}, @code{top-left-angle}
-@itemx @code{left-bracket}, @code{right-bracket}, @code{top-right-angle}, @code{top-left-angle}
+@itemx @code{top-left-angle}, @code{top-right-angle}
+@itemx @code{left-bracket}, @code{right-bracket}
 Used to indicate buffer boundaries.
 
 @item @code{filled-rectangle}, @code{hollow-rectangle}
@@ -4135,7 +4191,7 @@ Used to indicate buffer boundaries.
 @itemx @code{vertical-bar}, @code{horizontal-bar}
 Used for different types of fringe cursors.
 
-@item @code{empty-line}, @code{exclamation-mark}, @code{question-mark}, @code{exclamation-mark}
+@item @code{empty-line}, @code{exclamation-mark}, @code{question-mark}
 Not used by core Emacs features.
 @end table
 
@@ -4324,6 +4380,9 @@ vertical scroll bar.
 @var{horizontal-type} specifies whether to have a horizontal scroll bar.
 The possible values are @code{bottom}, @code{t}, which means to use the
 frame's default, and @code{nil} for no horizontal scroll bar.
+
+If @var{window} is not large enough to accommodate a scroll bar of the
+desired dimension, this leaves the corresponding scroll bar unchanged.
 
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
@@ -4841,6 +4900,16 @@ and the buffer position where the @code{display} property was found,
 respectively.  Both positions can be different when @code{object} is a
 string.
 
+Note that @var{condition} will only be evaluated when redisplay
+examines the text where this display spec is located, so this feature
+is best suited for conditions that are relatively stable, i.e.@:
+yield, for each particular buffer position, the same results on every
+evaluation.  If the results change for the same text location, e.g.,
+if the result depends on the position of point, then the conditional
+specification might not do what you want, because redisplay examines
+only those parts of buffer text where it has reasons to assume that
+something changed since the last display cycle.
+
 @node Display Margins
 @subsection Displaying in the Margins
 @cindex display margins
@@ -4903,6 +4972,9 @@ Thus, you can make changes take effect by calling
 This function specifies the margin widths for window @var{window}, in
 character cell units.  The argument @var{left} controls the left
 margin, and @var{right} controls the right margin (default @code{0}).
+
+If @var{window} is not large enough to accommodate margins of the
+desired width, this leaves the margins of @var{window} unchanged.
 
 The values specified here may be later overridden by invoking
 @code{set-window-buffer} (@pxref{Buffers and Windows}) on @var{window}
@@ -5066,6 +5138,47 @@ This adds a shadow rectangle around the image.  The value,
 @var{relief} is negative, shadows are drawn so that the image appears
 as a pressed button; otherwise, it appears as an unpressed button.
 
+@item :width @var{width}, :height @var{height}
+The @code{:width} and @code{:height} keywords are used for scaling the
+image.  If only one of them is specified, the other one will be
+calculated so as to preserve the aspect ratio.  If both are specified,
+aspect ratio may not be preserved.
+
+@item :max-width @var{max-width}, :max-height @var{max-height}
+The @code{:max-width} and @code{:max-height} keywords are used for
+scaling if the size of the image exceeds these values.  If
+@code{:width} is set, it will have precedence over @code{max-width},
+and if @code{:height} is set, it will have precedence over
+@code{max-height}, but you can otherwise mix these keywords as you
+wish.
+
+If both @code{:max-width} and @code{:height} are specified, but
+@code{:width} is not, preserving the aspect ratio might require that
+width exceeds @code{:max-width}.  If this happens, scaling will use a
+smaller value for the height so as to preserve the aspect ratio while
+not exceeding @code{:max-width}.  Similarly when both
+@code{:max-height} and @code{:width} are specified, but @code{:height}
+is not.  For example, if you have a 200x100 image and specify that
+@code{:width} should be 400 and @code{:max-height} should be 150,
+you'll end up with an image that is 300x150: Preserving the aspect
+ratio and not exceeding the ``max'' setting.  This combination of
+parameters is a useful way of saying ``display this image as large as
+possible, but no larger than the available display area''.
+
+@item :scale @var{scale}
+This should be a number, where values higher than 1 means to increase
+the size, and lower means to decrease the size, by multiplying both
+the width and height.  For instance, a value of 0.25 will make the
+image a quarter size of what it originally was.  If the scaling makes
+the image larger than specified by @code{:max-width} or
+@code{:max-height}, the resulting size will not exceed those two
+values.  If both @code{:scale} and @code{:height}/@code{:width} are
+specified, the height/width will be adjusted by the specified scaling
+factor.
+
+@item :index @var{frame}
+@xref{Multi-Frame Images}.
+
 @item :conversion @var{algorithm}
 This specifies a conversion algorithm that should be applied to the
 image before it is displayed; the value, @var{algorithm}, specifies
@@ -5205,6 +5318,16 @@ This function returns @code{t} if image @var{spec} has a mask bitmap.
 (@pxref{Input Focus}).
 @end defun
 
+@defun image-scaling-p &optional frame
+This function returns @code{t} if @var{frame} supports image scaling.
+@var{frame} @code{nil} or omitted means to use the selected frame
+(@pxref{Input Focus}).
+
+If image scaling is not supported, @code{:width}, @code{:height},
+@code{:scale}, @code{:max-width} and @code{:max-height} will only be
+usable through ImageMagick, if available (@pxref{ImageMagick Images}).
+@end defun
+
 @node XBM Images
 @subsection XBM Images
 @cindex XBM
@@ -5341,42 +5464,6 @@ color, which is used as the image's background color if the image
 supports transparency.  If the value is @code{nil}, it defaults to the
 frame's background color.
 
-@item :width @var{width}, :height @var{height}
-The @code{:width} and @code{:height} keywords are used for scaling the
-image.  If only one of them is specified, the other one will be
-calculated so as to preserve the aspect ratio.  If both are specified,
-aspect ratio may not be preserved.
-
-@item :max-width @var{max-width}, :max-height @var{max-height}
-The @code{:max-width} and @code{:max-height} keywords are used for
-scaling if the size of the image of the image exceeds these values.
-If @code{:width} is set it will have precedence over @code{max-width},
-and if @code{:height} is set it will have precedence over
-@code{max-height}, but you can otherwise mix these keywords as you
-wish.  @code{:max-width} and @code{:max-height} will always preserve
-the aspect ratio.
-
-If both @code{:width} and @code{:max-height} has been set (but
-@code{:height} has not been set), then @code{:max-height} will have
-precedence.  The same is the case for the opposite combination: The
-``max'' keyword has precedence.  That is, if you have a 200x100 image
-and specify that @code{:width} should be 400 and @code{:max-height}
-should be 150, you'll end up with an image that is 300x150: Preserving
-the aspect ratio and not exceeding the ``max'' setting.  This
-combination of parameters is a useful way of saying ``display this
-image as large as possible, but no larger than the available display
-area''.
-
-@item :scale @var{scale}
-This should be a number, where values higher than 1 means to increase
-the size, and lower means to decrease the size.  For instance, a value
-of 0.25 will make the image a quarter size of what it originally was.
-If the scaling makes the image larger than specified by
-@code{:max-width} or @code{:max-height}, the resulting size will not
-exceed those two values.  If both @code{:scale} and
-@code{:height}/@code{:width} are specified, the height/width will be
-adjusted by the specified scaling factor.
-
 @item :format @var{type}
 The value, @var{type}, should be a symbol specifying the type of the
 image data, as found in @code{image-format-suffixes}.  This is used
@@ -5385,9 +5472,6 @@ hint to ImageMagick to help it detect the image type.
 
 @item :rotation @var{angle}
 Specifies a rotation angle in degrees.
-
-@item :index @var{frame}
-@xref{Multi-Frame Images}.
 @end table
 
 @node SVG Images
@@ -5396,7 +5480,8 @@ Specifies a rotation angle in degrees.
 
 SVG (Scalable Vector Graphics) is an XML format for specifying images.
 If your Emacs build has SVG support, you can create and manipulate
-these images with the following functions.
+these images with the following functions from the @file{svg.el}
+library.
 
 @defun svg-create width height &rest args
 Create a new, empty SVG image with the specified dimensions.
@@ -5410,8 +5495,11 @@ The default width (in pixels) of any lines created.
 The default stroke color on any lines created.
 @end table
 
-This function returns an SVG structure, and all the following functions
-work on that structure.
+@cindex SVG object
+This function returns an @dfn{SVG object}, a Lisp data structure that
+specifies an SVG image, and all the following functions work on that
+structure.  The argument @var{svg} in the following functions
+specifies such an SVG object.
 @end defun
 
 @defun svg-gradient svg id type stops
@@ -5455,8 +5543,8 @@ gradient object.
 @end table
 
 @defun svg-rectangle svg x y width height &rest args
-Add a rectangle to @var{svg} where the upper left corner is at
-position @var{x}/@var{y} and is of size @var{width}/@var{height}.
+Add to @var{svg} a rectangle whose upper left corner is at
+position @var{x}/@var{y} and whose size is @var{width}/@var{height}.
 
 @lisp
 (svg-rectangle svg 100 100 500 500 :gradient "gradient1")
@@ -5464,24 +5552,24 @@ position @var{x}/@var{y} and is of size @var{width}/@var{height}.
 @end defun
 
 @defun svg-circle svg x y radius &rest args
-Add a circle to @var{svg} where the center is at @var{x}/@var{y}
-and the radius is @var{radius}.
+Add to @var{svg} a circle whose center is at @var{x}/@var{y} and whose
+radius is @var{radius}.
 @end defun
 
 @defun svg-ellipse svg x y x-radius y-radius &rest args
-Add a circle to @var{svg} where the center is at @var{x}/@var{y} and
-the horizontal radius is @var{x-radius} and the vertical radius is
+Add to @var{svg} an ellipse whose center is at @var{x}/@var{y}, and
+whose horizontal radius is @var{x-radius} and the vertical radius is
 @var{y-radius}.
 @end defun
 
 @defun svg-line svg x1 y1 x2 y2 &rest args
-Add a line to @var{svg} that starts at @var{x1}/@var{y1} and extends
+Add to @var{svg} a line that starts at @var{x1}/@var{y1} and extends
 to @var{x2}/@var{y2}.
 @end defun
 
 @defun svg-polyline svg points &rest args
-Add a multiple segment line to @var{svg} that goes through
-@var{points}, which is a list of X/Y position pairs.
+Add to @var{svg} a multiple-segment line (a.k.a.@: ``polyline'') that
+goes through @var{points}, which is a list of X/Y position pairs.
 
 @lisp
 (svg-polyline svg '((200 . 100) (500 . 450) (80 . 100))
@@ -5495,12 +5583,12 @@ that describe the outer circumference of the polygon.
 
 @lisp
 (svg-polygon svg '((100 . 100) (200 . 150) (150 . 90))
-             :stroke-color "blue" :fill-color "red"")
+             :stroke-color "blue" :fill-color "red")
 @end lisp
 @end defun
 
 @defun svg-text svg text &rest args
-Add a text to @var{svg}.
+Add the specified @var{text} to @var{svg}.
 
 @lisp
 (svg-text
@@ -5519,9 +5607,9 @@ Add a text to @var{svg}.
 
 @defun svg-embed svg image image-type datap &rest args
 Add an embedded (raster) image to @var{svg}.  If @var{datap} is
-@code{nil}, @var{IMAGE} should be a file name; if not, it should be a
-binary string containing the image data.  @var{image-type} should be a
-@acronym{MIME} image type, for instance @samp{"image/jpeg"}.
+@code{nil}, @var{image} should be a file name; otherwise it should be a
+string containing the image data as raw bytes.  @var{image-type} should be a
+@acronym{MIME} image type, for instance @code{"image/jpeg"}.
 
 @lisp
 (svg-embed svg "~/rms.jpg" "image/jpeg" nil
@@ -5534,10 +5622,14 @@ binary string containing the image data.  @var{image-type} should be a
 Remove the element with identifier @code{id} from the @code{svg}.
 @end defun
 
-Finally, the @code{svg-image} takes an SVG object as its parameter and
+@defun svg-image svg
+Finally, the @code{svg-image} takes an SVG object as its argument and
 returns an image object suitable for use in functions like
-@code{insert-image}.  Here's a complete example that creates and
-inserts an image with a circle:
+@code{insert-image}.
+@end defun
+
+Here's a complete example that creates and inserts an image with a
+circle:
 
 @lisp
 (let ((svg (svg-create 400 400 :stroke-width 10)))

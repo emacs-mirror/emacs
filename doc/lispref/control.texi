@@ -1,11 +1,12 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Control Structures
 @chapter Control Structures
 @cindex special forms for control structures
+@cindex forms for control structures
 @cindex control structures
 
   A Lisp program consists of a set of @dfn{expressions}, or
@@ -38,6 +39,7 @@ structure constructs (@pxref{Macros}).
 * Sequencing::             Evaluation in textual order.
 * Conditionals::           @code{if}, @code{cond}, @code{when}, @code{unless}.
 * Combining Conditions::   @code{and}, @code{or}, @code{not}.
+* Pattern-Matching Conditional::  How to use @code{pcase} and friends.
 * Iteration::              @code{while} loops.
 * Generators::             Generic sequences and coroutines.
 * Nonlocal Exits::         Jumping out of a sequence.
@@ -47,6 +49,7 @@ structure constructs (@pxref{Macros}).
 @section Sequencing
 @cindex sequencing
 @cindex sequential execution
+@cindex forms for sequential execution
 
   Evaluating forms in the order they appear is the most common way
 control passes from one form to another.  In some contexts, such as in a
@@ -145,11 +148,14 @@ following @var{forms}, in textual order, returning the result of
 @node Conditionals
 @section Conditionals
 @cindex conditional evaluation
+@cindex forms, conditional
 
   Conditional control structures choose among alternatives.  Emacs Lisp
-has four conditional forms: @code{if}, which is much the same as in
+has five conditional forms: @code{if}, which is much the same as in
 other languages; @code{when} and @code{unless}, which are variants of
-@code{if}; and @code{cond}, which is a generalized case statement.
+@code{if}; @code{cond}, which is a generalized case statement;
+and @code{pcase}, which is a generalization of @code{cond}
+(@pxref{Pattern-Matching Conditional}).
 
 @defspec if condition then-form else-forms@dots{}
 @code{if} chooses between the @var{then-form} and the @var{else-forms}
@@ -288,214 +294,6 @@ For example:
 @end group
 @end example
 
-@menu
-* Pattern matching case statement::
-@end menu
-
-@node Pattern matching case statement
-@subsection Pattern matching case statement
-@cindex pcase
-@cindex pattern matching
-
-The @code{cond} form lets you choose between alternatives using
-predicate conditions that compare values of expressions against
-specific values known and written in advance.  However, sometimes it
-is useful to select alternatives based on more general conditions that
-distinguish between broad classes of values.  The @code{pcase} macro
-allows you to choose between alternatives based on matching the value
-of an expression against a series of patterns.  A pattern can be a
-literal value (for comparisons to literal values you'd use
-@code{cond}), or it can be a more general description of the expected
-structure of the expression's value.
-
-@defmac pcase expression &rest clauses
-Evaluate @var{expression} and choose among an arbitrary number of
-alternatives based on the value of @var{expression}.  The possible
-alternatives are specified by @var{clauses}, each of which must be a
-list of the form @code{(@var{pattern} @var{body-forms}@dots{})}.
-@code{pcase} tries to match the value of @var{expression} to the
-@var{pattern} of each clause, in textual order.  If the value matches,
-the clause succeeds; @code{pcase} then evaluates its @var{body-forms},
-and returns the value of the last of @var{body-forms}.  Any remaining
-@var{clauses} are ignored.  If no clauses match, then the @code{pcase}
-form evaluates to @code{nil}.
-
-The @var{pattern} part of a clause can be of one of two types:
-@dfn{QPattern}, a pattern quoted with a backquote; or a
-@dfn{UPattern}, which is not quoted.  UPatterns are simpler, so we
-describe them first.
-
-Note: In the description of the patterns below, we use ``the value
-being matched'' to refer to the value of the @var{expression} that is
-the first argument of @code{pcase}.
-
-A UPattern can have the following forms:
-
-@table @code
-
-@item '@var{val}
-Matches if the value being matched is @code{equal} to @var{val}.
-@item @var{atom}
-Matches any @var{atom}, which can be a keyword, a number, or a string.
-(These are self-quoting, so this kind of UPattern is actually a
-shorthand for @code{'@var{atom}}.)  Note that a string or a float
-matches any string or float with the same contents/value.
-@item _
-Matches any value.  This is known as @dfn{don't care} or @dfn{wildcard}.
-@item @var{symbol}
-Matches any value, and additionally let-binds @var{symbol} to the
-value it matched, so that you can later refer to it, either in the
-@var{body-forms} or also later in the pattern.
-@item (pred @var{predfun})
-Matches if the predicate function @var{predfun} returns non-@code{nil}
-when called with the value being matched as its argument.
-@var{predfun} can be one of the possible forms described below.
-@item (guard @var{boolean-expression})
-Matches if @var{boolean-expression} evaluates to non-@code{nil}.  This
-allows you to include in a UPattern boolean conditions that refer to
-symbols bound to values (including the value being matched) by
-previous UPatterns.  Typically used inside an @code{and} UPattern, see
-below.  For example, @w{@code{(and x (guard (< x 10)))}} is a pattern
-which matches any number smaller than 10 and let-binds the variable
-@code{x} to that number.
-@item (let @var{upattern} @var{expression})
-Matches if the specified @var{expression} matches the specified
-@var{upattern}.  This allows matching a pattern against the value of
-an @emph{arbitrary} expression, not just the expression that is the
-first argument to @code{pcase}.  (It is called @code{let} because
-@var{upattern} can bind symbols to values using the @var{symbol}
-UPattern.  For example:
-@w{@code{((or `(key . ,val) (let val 5)) val)}}.)
-@item (app @var{function} @var{upattern})
-Matches if @var{function} applied to the value being matched returns a
-value that matches @var{upattern}.  This is like the @code{pred}
-UPattern, except that it tests the result against @var{upattern},
-rather than against a boolean truth value.  The @var{function} call can
-use one of the forms described below.
-@item (or @var{upattern1} @var{upattern2}@dots{})
-Matches if one the argument UPatterns matches.  As soon as the first
-matching UPattern is found, the rest are not tested.  For this reason,
-if any of the UPatterns let-bind symbols to the matched value, they
-should all bind the same symbols.
-@item (and @var{upattern1} @var{upattern2}@dots{})
-Matches if all the argument UPatterns match.
-@end table
-
-The function calls used in the @code{pred} and @code{app} UPatterns
-can have one of the following forms:
-
-@table @asis
-@item function symbol, like @code{integerp}
-In this case, the named function is applied to the value being
-matched.
-@item lambda-function @code{(lambda (@var{arg}) @var{body})}
-In this case, the lambda-function is called with one argument, the
-value being matched.
-@item @code{(@var{func} @var{args}@dots{})}
-This is a function call with @var{n} specified arguments; the function
-is called with these @var{n} arguments and an additional @var{n}+1-th
-argument that is the value being matched.
-@end table
-
-Here's an illustrative example of using UPatterns:
-
-@c FIXME: This example should use every one of the UPatterns described
-@c above at least once.
-@example
-(pcase (get-return-code x)
-  ('success       (message "Done!"))
-  ('would-block   (message "Sorry, can't do it now"))
-  ('read-only     (message "The shmliblick is read-only"))
-  ('access-denied (message "You do not have the needed rights"))
-  (code           (message "Unknown return code %S" code)))
-@end example
-
-In addition, you can use backquoted patterns that are more powerful.
-They allow matching the value of the @var{expression} that is the
-first argument of @code{pcase} against specifications of its
-@emph{structure}.  For example, you can specify that the value must be
-a list of 2 elements whose first element is a specific string and the
-second element is any value with a backquoted pattern like
-@code{`("first" ,second-elem)}.
-
-Backquoted patterns have the form @code{`@var{qpattern}} where
-@var{qpattern} can have the following forms:
-
-@table @code
-@item (@var{qpattern1} . @var{qpattern2})
-Matches if the value being matched is a cons cell whose @code{car}
-matches @var{qpattern1} and whose @code{cdr} matches @var{qpattern2}.
-This readily generalizes to backquoted lists as in
-@w{@code{(@var{qpattern1} @var{qpattern2} @dots{})}}.
-@item [@var{qpattern1} @var{qpattern2} @dots{} @var{qpatternm}]
-Matches if the value being matched is a vector of length @var{m} whose
-@code{0}..@code{(@var{m}-1)}th elements match @var{qpattern1},
-@var{qpattern2} @dots{} @var{qpatternm}, respectively.
-@item @var{atom}
-Matches if corresponding element of the value being matched is
-@code{equal} to the specified @var{atom}.
-@item ,@var{upattern}
-Matches if the corresponding element of the value being matched
-matches the specified @var{upattern}.
-@end table
-
-Note that uses of QPatterns can be expressed using only UPatterns, as
-QPatterns are implemented on top of UPatterns using
-@code{pcase-defmacro}, described below.  However, using QPatterns will
-in many cases lead to a more readable code.
-@c FIXME: There should be an example here showing how a 'pcase' that
-@c uses QPatterns can be rewritten using UPatterns.
-
-@end defmac
-
-Here is an example of using @code{pcase} to implement a simple
-interpreter for a little expression language (note that this example
-requires lexical binding, @pxref{Lexical Binding}):
-
-@example
-(defun evaluate (exp env)
-  (pcase exp
-    (`(add ,x ,y)       (+ (evaluate x env) (evaluate y env)))
-    (`(call ,fun ,arg)  (funcall (evaluate fun env) (evaluate arg env)))
-    (`(fn ,arg ,body)   (lambda (val)
-                          (evaluate body (cons (cons arg val) env))))
-    ((pred numberp)     exp)
-    ((pred symbolp)     (cdr (assq exp env)))
-    (_                  (error "Unknown expression %S" exp))))
-@end example
-
-Here @code{`(add ,x ,y)} is a pattern that checks that @code{exp} is a
-three-element list starting with the literal symbol @code{add}, then
-extracts the second and third elements and binds them to the variables
-@code{x} and @code{y}.  Then it evaluates @code{x} and @code{y} and
-adds the results.  The @code{call} and @code{fn} patterns similarly
-implement two flavors of function calls.  @code{(pred numberp)} is a
-pattern that simply checks that @code{exp} is a number and if so,
-evaluates it.  @code{(pred symbolp)} matches symbols, and returns
-their association.  Finally, @code{_} is the catch-all pattern that
-matches anything, so it's suitable for reporting syntax errors.
-
-Here are some sample programs in this small language, including their
-evaluation results:
-
-@example
-(evaluate '(add 1 2) nil)                 ;=> 3
-(evaluate '(add x y) '((x . 1) (y . 2)))  ;=> 3
-(evaluate '(call (fn x (add 1 x)) 2) nil) ;=> 3
-(evaluate '(sub 1 2) nil)                 ;=> error
-@end example
-
-Additional UPatterns can be defined using the @code{pcase-defmacro}
-macro.
-
-@defmac pcase-defmacro name args &rest body
-Define a new kind of UPattern for @code{pcase}.  The new UPattern will
-be invoked as @code{(@var{name} @var{actual-args})}.  The @var{body}
-should describe how to rewrite the UPattern @var{name} into some other
-UPattern.  The rewriting will be the result of evaluating @var{body}
-in an environment where @var{args} are bound to @var{actual-args}.
-@end defmac
-
 @node Combining Conditions
 @section Constructs for Combining Conditions
 @cindex combining conditions
@@ -621,10 +419,862 @@ This is not completely equivalent because it can evaluate @var{arg1} or
 @var{arg3})} never evaluates any argument more than once.
 @end defspec
 
+@node Pattern-Matching Conditional
+@section Pattern-Matching Conditional
+@cindex pcase
+@cindex pattern matching, programming style
+
+Aside from the four basic conditional forms, Emacs Lisp also
+has a pattern-matching conditional form, the @code{pcase} macro,
+a hybrid of @code{cond} and @code{cl-case}
+(@pxref{Conditionals,,,cl,Common Lisp Extensions})
+that overcomes their limitations and introduces
+the @dfn{pattern matching programming style}.
+The limitations that @code{pcase} overcomes are:
+
+@itemize
+@item
+The @code{cond} form chooses among alternatives by evaluating the
+predicate @var{condition} of each of its clauses
+(@pxref{Conditionals}).  The primary limitation is that variables
+let-bound in @var{condition} are not available to the clause's
+@var{body-forms}.
+
+Another annoyance (more an inconvenience than a limitation)
+is that when a series of @var{condition} predicates implement
+equality tests, there is a lot of repeated code.  (@code{cl-case}
+solves this inconvenience.)
+
+@item
+The @code{cl-case} macro chooses among alternatives by evaluating
+the equality of its first argument against a set of specific
+values.
+
+Its limitations are two-fold:
+
+@enumerate
+@item
+The equality tests use @code{eql}.
+@item
+The values must be known and written in advance.
+@end enumerate
+
+@noindent
+These render @code{cl-case} unsuitable for strings or compound
+data structures (e.g., lists or vectors).  (@code{cond} doesn't have
+these limitations, but it has others, see above.)
+@end itemize
+
+@noindent
+Conceptually, the @code{pcase} macro borrows the first-arg focus
+of @code{cl-case} and the clause-processing flow of @code{cond},
+replacing @var{condition} with a generalization of
+the equality test which is a variant of @dfn{pattern matching},
+and adding facilities so that you can concisely express a
+clause's predicate, and arrange to share let-bindings between
+a clause's predicate and @var{body-forms}.
+
+The concise expression of a predicate is known as a @dfn{pattern}.
+When the predicate, called on the value of the first arg, returns
+non-@code{nil}, we say that ``the pattern matches the value'' (or
+sometimes ``the value matches the pattern'').
+
+@menu
+* The @code{pcase} macro: pcase Macro.  Includes examples and caveats.
+* Extending @code{pcase}: Extending pcase.  Define new kinds of patterns.
+* Backquote-Style Patterns: Backquote Patterns.  Structural patterns matching.
+* Destructuring with pcase Patterns:: Using pcase patterns to extract subfields.
+@end menu
+
+@node pcase Macro
+@subsection The @code{pcase} macro
+
+For background, @xref{Pattern-Matching Conditional}.
+
+@defmac pcase expression &rest clauses
+Each clause in @var{clauses} has the form:
+@w{@code{(@var{pattern} @var{body-forms}@dots{})}}.
+
+Evaluate @var{expression} to determine its value, @var{expval}.
+Find the first clause in @var{clauses} whose @var{pattern} matches
+@var{expval} and pass control to that clause's @var{body-forms}.
+
+If there is a match, the value of @code{pcase} is the value
+of the last of @var{body-forms} in the successful clause.
+Otherwise, @code{pcase} evaluates to @code{nil}.
+@end defmac
+
+@cindex pcase pattern
+Each @var{pattern} has to be a @dfn{pcase pattern}, which can use
+either one of the core patterns defined below, or one of the patterns
+defined via @code{pcase-defmacro} (@pxref{Extending pcase}).
+
+The rest of this subsection describes different forms of core
+patterns, presents some examples, and concludes with important caveats
+on using the let-binding facility provided by some pattern forms.  A
+core pattern can have the following forms:
+
+@table @code
+
+@item _
+Matches any @var{expval}.
+This is also known as @dfn{don't care} or @dfn{wildcard}.
+
+@item '@var{val}
+Matches if @var{expval} equals @var{val}.  The comparison is done as
+if by @code{equal} (@pxref{Equality Predicates}).
+
+@item @var{keyword}
+@itemx @var{integer}
+@itemx @var{string}
+Matches if @var{expval} equals the literal object.
+This is a special case of @code{'@var{val}}, above,
+possible because literal objects of these types are self-quoting.
+
+@item @var{symbol}
+Matches any @var{expval}, and additionally let-binds @var{symbol} to
+@var{expval}, such that this binding is available to
+@var{body-forms} (@pxref{Dynamic Binding}).
+
+If @var{symbol} is part of a sequencing pattern @var{seqpat}
+(e.g., by using @code{and}, below), the binding is also available to
+the portion of @var{seqpat} following the appearance of @var{symbol}.
+This usage has some caveats, see @ref{pcase-symbol-caveats,,caveats}.
+
+Two symbols to avoid are @code{t}, which behaves like @code{_}
+(above) and is deprecated, and @code{nil}, which signals an error.
+Likewise, it makes no sense to bind keyword symbols
+(@pxref{Constant Variables}).
+
+@item (pred @var{function})
+Matches if the predicate @var{function} returns non-@code{nil}
+when called on @var{expval}.
+the predicate @var{function} can have one of the following forms:
+
+@table @asis
+@item function name (a symbol)
+Call the named function with one argument, @var{expval}.
+
+Example: @code{integerp}
+
+@item lambda expression
+Call the anonymous function with one argument,
+@var{expval} (@pxref{Lambda Expressions}).
+
+Example: @code{(lambda (n) (= 42 n))}
+
+@item function call with @var{n} args
+Call the function (the first element of the function call)
+with @var{n} arguments (the other elements) and an additional
+@var{n}+1-th argument that is @var{expval}.
+
+Example: @code{(= 42)}@*
+In this example, the function is @code{=}, @var{n} is one, and
+the actual function call becomes: @w{@code{(= 42 @var{expval})}}.
+@end table
+
+@item (app @var{function} @var{pattern})
+Matches if @var{function} called on @var{expval} returns a
+value that matches @var{pattern}.
+@var{function} can take one of the forms described for @code{pred},
+above.  Unlike @code{pred}, however, @code{app} tests the result
+against @var{pattern}, rather than against a boolean truth value.
+
+@item (guard @var{boolean-expression})
+Matches if @var{boolean-expression} evaluates to non-@code{nil}.
+
+@item (let @var{pattern} @var{expr})
+Evaluates @var{expr} to get @var{exprval} and matches if @var{exprval}
+matches @var{pattern}.  (It is called @code{let} because @var{pattern}
+can bind symbols to values using @var{symbol}.)
+@end table
+
+@cindex sequencing pattern
+A @dfn{sequencing pattern} (also known as @var{seqpat}) is a
+pattern that processes its sub-pattern arguments in sequence.
+There are two for @code{pcase}: @code{and} and @code{or}.
+They behave in a similar manner to the special forms
+that share their name (@pxref{Combining Conditions}),
+but instead of processing values, they process sub-patterns.
+
+@table @code
+@item (and @var{pattern1}@dots{})
+Attempts to match @var{pattern1}@dots{}, in order, until one of them
+fails to match.  In that case, @code{and} likewise fails to match, and
+the rest of the sub-patterns are not tested.  If all sub-patterns
+match, @code{and} matches.
+
+@item (or @var{pattern1} @var{pattern2}@dots{})
+Attempts to match @var{pattern1}, @var{pattern2}, @dots{}, in order,
+until one of them succeeds.  In that case, @code{or} likewise matches,
+and the rest of the sub-patterns are not tested.  (Note that there
+must be at least two sub-patterns.
+Simply @w{@code{(or @var{pattern1})}} signals error.)
+@c Issue: Is this correct and intended?
+@c        Are there exceptions, qualifications?
+@c        (Btw, ``Please avoid it'' is a poor error message.)
+
+To present a consistent environment (@pxref{Intro Eval})
+to @var{body-forms} (thus avoiding an evaluation error on match),
+if any of the sub-patterns let-binds a set of symbols,
+they @emph{must} all bind the same set of symbols.
+@end table
+
+@anchor{pcase-example-0}
+@subheading Example: Advantage Over @code{cl-case}
+
+Here's an example that highlights some advantages @code{pcase}
+has over @code{cl-case}
+(@pxref{Conditionals,,,cl,Common Lisp Extensions}).
+
+@example
+@group
+(pcase (get-return-code x)
+  ;; string
+  ((and (pred stringp) msg)
+   (message "%s" msg))
+@end group
+@group
+  ;; symbol
+  ('success       (message "Done!"))
+  ('would-block   (message "Sorry, can't do it now"))
+  ('read-only     (message "The shmliblick is read-only"))
+  ('access-denied (message "You do not have the needed rights"))
+@end group
+@group
+  ;; default
+  (code           (message "Unknown return code %S" code)))
+@end group
+@end example
+
+@noindent
+With @code{cl-case}, you would need to explicitly declare a local
+variable @code{code} to hold the return value of @code{get-return-code}.
+Also @code{cl-case} is difficult to use with strings because it
+uses @code{eql} for comparison.
+
+@anchor{pcase-example-1}
+@subheading Example: Using @code{and}
+
+A common idiom is to write a pattern starting with @code{and},
+with one or more @var{symbol} sub-patterns providing bindings
+to the sub-patterns that follow (as well as to the body forms).
+For example, the following pattern matches single-digit integers.
+
+@example
+@group
+(and
+  (pred integerp)
+  n                     ; @r{bind @code{n} to @var{expval}}
+  (guard (<= -9 n 9)))
+@end group
+@end example
+
+@noindent
+First, @code{pred} matches if @w{@code{(integerp @var{expval})}}
+evaluates to non-@code{nil}.
+Next, @code{n} is a @var{symbol} pattern that matches
+anything and binds @code{n} to @var{expval}.
+Lastly, @code{guard} matches if the boolean expression
+@w{@code{(<= -9 n 9)}} (note the reference to @code{n})
+evaluates to non-@code{nil}.
+If all these sub-patterns match, @code{and} matches.
+
+@anchor{pcase-example-2}
+@subheading Example: Reformulation with @code{pcase}
+
+Here is another example that shows how to reformulate a simple
+matching task from its traditional implementation
+(function @code{grok/traditional}) to one using
+@code{pcase} (function @code{grok/pcase}).
+The docstring for both these functions is:
+``If OBJ is a string of the form "key:NUMBER", return NUMBER
+(a string).  Otherwise, return the list ("149" default).''
+First, the traditional implementation (@pxref{Regular Expressions}):
+
+@example
+@group
+(defun grok/traditional (obj)
+  (if (and (stringp obj)
+           (string-match "^key:\\([[:digit:]]+\\)$" obj))
+      (match-string 1 obj)
+    (list "149" 'default)))
+@end group
+
+@group
+(grok/traditional "key:0")   @result{} "0"
+(grok/traditional "key:149") @result{} "149"
+(grok/traditional 'monolith) @result{} ("149" default)
+@end group
+@end example
+
+@noindent
+The reformulation demonstrates @var{symbol} binding as well as
+@code{or}, @code{and}, @code{pred}, @code{app} and @code{let}.
+
+@example
+@group
+(defun grok/pcase (obj)
+  (pcase obj
+    ((or                                     ; @r{line 1}
+      (and                                   ; @r{line 2}
+       (pred stringp)                        ; @r{line 3}
+       (pred (string-match                   ; @r{line 4}
+              "^key:\\([[:digit:]]+\\)$"))   ; @r{line 5}
+       (app (match-string 1)                 ; @r{line 6}
+            val))                            ; @r{line 7}
+      (let val (list "149" 'default)))       ; @r{line 8}
+     val)))                                  ; @r{line 9}
+@end group
+
+@group
+(grok/pcase "key:0")   @result{} "0"
+(grok/pcase "key:149") @result{} "149"
+(grok/pcase 'monolith) @result{} ("149" default)
+@end group
+@end example
+
+@noindent
+The bulk of @code{grok/pcase} is a single clause of a @code{pcase}
+form, the pattern on lines 1-8, the (single) body form on line 9.
+The pattern is @code{or}, which tries to match in turn its argument
+sub-patterns, first @code{and} (lines 2-7), then @code{let} (line 8),
+until one of them succeeds.
+
+As in the previous example (@pxref{pcase-example-1,,Example 1}),
+@code{and} begins with a @code{pred} sub-pattern to ensure
+the following sub-patterns work with an object of the correct
+type (string, in this case).  If @w{@code{(stringp @var{expval})}}
+returns @code{nil}, @code{pred} fails, and thus @code{and} fails, too.
+
+The next @code{pred} (lines 4-5) evaluates
+@w{@code{(string-match RX @var{expval})}}
+and matches if the result is non-@code{nil}, which means
+that @var{expval} has the desired form: @code{key:NUMBER}.
+Again, failing this, @code{pred} fails and @code{and}, too.
+
+Lastly (in this series of @code{and} sub-patterns), @code{app}
+evaluates @w{@code{(match-string 1 @var{expval})}} (line 6)
+to get a temporary value @var{tmp} (i.e., the ``NUMBER'' substring)
+and tries to match @var{tmp} against pattern @code{val} (line 7).
+Since that is a @var{symbol} pattern, it matches unconditionally
+and additionally binds @code{val} to @var{tmp}.
+
+Now that @code{app} has matched, all @code{and} sub-patterns
+have matched, and so @code{and} matches.
+Likewise, once @code{and} has matched, @code{or} matches
+and does not proceed to try sub-pattern @code{let} (line 8).
+
+Let's consider the situation where @code{obj} is not a string,
+or it is a string but has the wrong form.
+In this case, one of the @code{pred} (lines 3-5) fails to match,
+thus @code{and} (line 2) fails to match,
+thus @code{or} (line 1) proceeds to try sub-pattern @code{let} (line 8).
+
+First, @code{let} evaluates @w{@code{(list "149" 'default)}}
+to get @w{@code{("149" default)}}, the @var{exprval}, and then
+tries to match @var{exprval} against pattern @code{val}.
+Since that is a @var{symbol} pattern, it matches unconditionally
+and additionally binds @code{val} to @var{exprval}.
+Now that @code{let} has matched, @code{or} matches.
+
+Note how both @code{and} and @code{let} sub-patterns finish in the
+same way: by trying (always successfully) to match against the
+@var{symbol} pattern @code{val}, in the process binding @code{val}.
+Thus, @code{or} always matches and control always passes
+to the body form (line 9).
+Because that is the last body form in a successfully matched
+@code{pcase} clause, it is the value of @code{pcase} and likewise
+the return value of @code{grok/pcase} (@pxref{What Is a Function}).
+
+@anchor{pcase-symbol-caveats}
+@subheading Caveats for @var{symbol} in Sequencing Patterns
+
+The preceding examples all use sequencing patterns
+which include the @var{symbol}
+sub-pattern in some way.
+Here are some important details about that usage.
+
+@enumerate
+@item When @var{symbol} occurs more than once in @var{seqpat},
+the second and subsequent occurrences do not expand to re-binding,
+but instead expand to an equality test using @code{eq}.
+
+The following example features a @code{pcase} form
+with two clauses and two @var{seqpat}, A and B.
+Both A and B first check that @var{expval} is a
+pair (using @code{pred}),
+and then bind symbols to the @code{car} and @code{cdr}
+of @var{expval} (using one @code{app} each).
+
+For A, because symbol @code{st} is mentioned twice, the second
+mention becomes an equality test using @code{eq}.
+On the other hand, B uses two separate symbols, @code{s1} and
+@code{s2}, both of which become independent bindings.
+
+@example
+@group
+(defun grok (object)
+  (pcase object
+    ((and (pred consp)        ; seqpat A
+          (app car st)        ; first mention: st
+          (app cdr st))       ; second mention: st
+     (list 'eq st))
+@end group
+@group
+    ((and (pred consp)        ; seqpat B
+          (app car s1)        ; first mention: s1
+          (app cdr s2))       ; first mention: s2
+     (list 'not-eq s1 s2))))
+@end group
+
+@group
+(let ((s "yow!"))
+  (grok (cons s s)))      @result{} (eq "yow!")
+(grok (cons "yo!" "yo!")) @result{} (not-eq "yo!" "yo!")
+(grok '(4 2))             @result{} (not-eq 4 (2))
+@end group
+@end example
+
+@item Side-effecting code referencing @var{symbol} is undefined.
+Avoid.
+For example, here are two similar functions.
+Both use @code{and}, @var{symbol} and @code{guard}:
+
+@example
+@group
+(defun square-double-digit-p/CLEAN (integer)
+  (pcase (* integer integer)
+    ((and n (guard (< 9 n 100))) (list 'yes n))
+    (sorry (list 'no sorry))))
+
+(square-double-digit-p/CLEAN 9) @result{} (yes 81)
+(square-double-digit-p/CLEAN 3) @result{} (no 9)
+@end group
+
+@group
+(defun square-double-digit-p/MAYBE (integer)
+  (pcase (* integer integer)
+    ((and n (guard (< 9 (incf n) 100))) (list 'yes n))
+    (sorry (list 'no sorry))))
+
+(square-double-digit-p/MAYBE 9) @result{} (yes 81)
+(square-double-digit-p/MAYBE 3) @result{} (yes 9)  ; @r{WRONG!}
+@end group
+@end example
+
+@noindent
+The difference is in @var{boolean-expression} in @code{guard}:
+@code{CLEAN} references @code{n} simply and directly,
+while @code{MAYBE} references @code{n} with a side-effect,
+in the expression @code{(incf n)}.
+When @code{integer} is 3, here's what happens:
+
+@itemize
+@item The first @code{n} binds it to @var{expval},
+i.e., the result of evaluating @code{(* 3 3)}, or 9.
+
+@item @var{boolean-expression} is evaluated:
+
+@example
+@group
+start:   (< 9 (incf n)        100)
+becomes: (< 9 (setq n (1+ n)) 100)
+becomes: (< 9 (setq n (1+ 9)) 100)
+@end group
+@group
+becomes: (< 9 (setq n 10)     100)
+                                   ; @r{side-effect here!}
+becomes: (< 9       n         100) ; @r{@code{n} now bound to 10}
+becomes: (< 9      10         100)
+becomes: t
+@end group
+@end example
+
+@item Because the result of the evaluation is non-@code{nil},
+@code{guard} matches, @code{and} matches, and
+control passes to that clause's body forms.
+@end itemize
+
+@noindent
+Aside from the mathematical incorrectness of asserting that 9 is a
+double-digit integer, there is another problem with @code{MAYBE}.
+The body form references @code{n} once more, yet we do not see
+the updated value---10---at all.  What happened to it?
+
+To sum up, it's best to avoid side-effecting references to
+@var{symbol} patterns entirely, not only
+in @var{boolean-expression} (in @code{guard}),
+but also in @var{expr} (in @code{let})
+and @var{function} (in @code{pred} and @code{app}).
+
+@item On match, the clause's body forms can reference the set
+of symbols the pattern let-binds.
+When @var{seqpat} is @code{and}, this set is
+the union of all the symbols each of its sub-patterns let-binds.
+This makes sense because, for @code{and} to match,
+all the sub-patterns must match.
+
+When @var{seqpat} is @code{or}, things are different:
+@code{or} matches at the first sub-pattern that matches;
+the rest of the sub-patterns are ignored.
+It makes no sense for each sub-pattern to let-bind a different
+set of symbols because the body forms have no way to distinguish
+which sub-pattern matched and choose among the different sets.
+For example, the following is invalid:
+
+@example
+@group
+(pcase (read-number "Enter an integer: ")
+  ((or (and (pred evenp)
+            e-num)      ; @r{bind @code{e-num} to @var{expval}}
+       o-num)           ; @r{bind @code{o-num} to @var{expval}}
+   (list e-num o-num)))
+@end group
+
+@group
+Enter an integer: 42
+@error{} Symbol’s value as variable is void: o-num
+@end group
+@group
+Enter an integer: 149
+@error{} Symbol’s value as variable is void: e-num
+@end group
+@end example
+
+@noindent
+Evaluating body form @w{@code{(list e-num o-num)}} signals error.
+To distinguish between sub-patterns, you can use another symbol,
+identical in name in all sub-patterns but differing in value.
+Reworking the above example:
+
+@example
+@group
+(pcase (read-number "Enter an integer: ")
+  ((and num                                ; @r{line 1}
+        (or (and (pred evenp)              ; @r{line 2}
+                 (let spin 'even))         ; @r{line 3}
+            (let spin 'odd)))              ; @r{line 4}
+   (list spin num)))                       ; @r{line 5}
+@end group
+
+@group
+Enter an integer: 42
+@result{} (even 42)
+@end group
+@group
+Enter an integer: 149
+@result{} (odd 149)
+@end group
+@end example
+
+@noindent
+Line 1 ``factors out'' the @var{expval} binding with
+@code{and} and @var{symbol} (in this case, @code{num}).
+On line 2, @code{or} begins in the same way as before,
+but instead of binding different symbols, uses @code{let} twice
+(lines 3-4) to bind the same symbol @code{spin} in both sub-patterns.
+The value of @code{spin} distinguishes the sub-patterns.
+The body form references both symbols (line 5).
+@end enumerate
+
+@node Extending pcase
+@subsection Extending @code{pcase}
+@cindex pcase, defining new kinds of patterns
+
+The @code{pcase} macro supports several kinds of patterns
+(@pxref{Pattern-Matching Conditional}).
+You can add support for other kinds of patterns
+using the @code{pcase-defmacro} macro.
+
+@defmac pcase-defmacro name args [doc] &rest body
+Define a new kind of pattern for @code{pcase}, to be invoked
+as @w{@code{(@var{name} @var{actual-args})}}.
+The @code{pcase} macro expands this into a function call
+that evaluates @var{body}, whose job it is to
+rewrite the invoked pattern into some other pattern,
+in an environment where @var{args} are bound to @var{actual-args}.
+
+Additionally, arrange to display @var{doc} along with
+the docstring of @code{pcase}.
+By convention, @var{doc} should use @code{EXPVAL}
+to stand for the result of
+evaluating @var{expression} (first arg to @code{pcase}).
+@end defmac
+
+@noindent
+Typically, @var{body} rewrites the invoked pattern
+to use more basic patterns.
+Although all patterns eventually reduce to core patterns,
+@code{body} need not use core patterns straight away.
+The following example defines two patterns, named
+@code{less-than} and @code{integer-less-than}.
+
+@example
+@group
+(pcase-defmacro less-than (n)
+  "Matches if EXPVAL is a number less than N."
+  `(pred (> ,n)))
+@end group
+
+@group
+(pcase-defmacro integer-less-than (n)
+  "Matches if EXPVAL is an integer less than N."
+  `(and (pred integerp)
+        (less-than ,n)))
+@end group
+@end example
+
+@noindent
+Note that the docstrings mention @var{args}
+(in this case, only one: @code{n}) in the usual way,
+and also mention @code{EXPVAL} by convention.
+The first rewrite (i.e., @var{body} for @code{less-than})
+uses one core pattern: @code{pred}.
+The second uses two core patterns: @code{and} and @code{pred},
+as well as the newly-defined pattern @code{less-than}.
+Both use a single backquote construct (@pxref{Backquote}).
+
+@node Backquote Patterns
+@subsection Backquote-Style Patterns
+@cindex backquote-style patterns
+@cindex matching, structural
+@cindex structural matching
+
+This subsection describes @dfn{backquote-style patterns},
+a set of builtin patterns that eases structural matching.
+For background, @pxref{Pattern-Matching Conditional}.
+
+Backquote-style patterns are a powerful set of @code{pcase} pattern
+extensions (created using @code{pcase-defmacro}) that make it easy to
+match @var{expval} against specifications of its @emph{structure}.
+
+For example, to match @var{expval} that must be a list of two
+elements whose first element is a specific string and the second
+element is any value, you can write a core pattern:
+
+@example
+@group
+(and (pred listp)
+     ls
+@end group
+@group
+     (guard (= 2 (length ls)))
+     (guard (string= "first" (car ls)))
+     (let second-elem (cadr ls)))
+@end group
+@end example
+
+@noindent
+or you can write the equivalent backquote-style pattern:
+
+@example
+`("first" ,second-elem)
+@end example
+
+@noindent
+The backquote-style pattern is more concise,
+resembles the structure of @var{expval},
+and avoids binding @code{ls}.
+
+A backquote-style pattern has the form @code{`@var{qpat}} where
+@var{qpat} can have the following forms:
+
+@table @code
+
+@item (@var{qpat1} . @var{qpat2})
+Matches if @var{expval} is a cons cell whose @code{car}
+matches @var{qpat1} and whose @code{cdr} matches @var{qpat2}.
+This readily generalizes to lists as in
+@w{@code{(@var{qpat1} @var{qpat2} @dots{})}}.
+
+@item [@var{qpat1} @var{qpat2} @dots{} @var{qpatm}]
+Matches if @var{expval} is a vector of length @var{m} whose
+@code{0}..@code{(@var{m}-1)}th elements match @var{qpat1},
+@var{qpat2} @dots{} @var{qpatm}, respectively.
+
+@item @var{symbol}
+@itemx @var{keyword}
+@itemx @var{number}
+@itemx @var{string}
+Matches if the corresponding element of @var{expval} is
+@code{equal} to the specified literal object.
+
+@item ,@var{pattern}
+Matches if the corresponding element of @var{expval}
+matches @var{pattern}.
+Note that @var{pattern} is any kind that @code{pcase} supports.
+(In the example above, @code{second-elem} is a @var{symbol}
+core pattern; it therefore matches anything,
+and let-binds @code{second-elem}.)
+@end table
+
+The @dfn{corresponding element} is the portion of @var{expval}
+that is in the same structural position as the structural position
+of @var{qpat} in the backquote-style pattern.
+(In the example above, the corresponding element of
+@code{second-elem} is the second element of @var{expval}.)
+
+Here is an example of using @code{pcase} to implement a simple
+interpreter for a little expression language
+(note that this requires lexical binding for the
+lambda expression in the @code{fn} clause to properly
+capture @code{body} and @code{arg} (@pxref{Lexical Binding}):
+
+@example
+@group
+(defun evaluate (form env)
+  (pcase form
+    (`(add ,x ,y)       (+ (evaluate x env)
+                           (evaluate y env)))
+@end group
+@group
+    (`(call ,fun ,arg)  (funcall (evaluate fun env)
+                                 (evaluate arg env)))
+    (`(fn ,arg ,body)   (lambda (val)
+                          (evaluate body (cons (cons arg val)
+                                               env))))
+@end group
+@group
+    ((pred numberp)     form)
+    ((pred symbolp)     (cdr (assq form env)))
+    (_                  (error "Syntax error: %S" form))))
+@end group
+@end example
+
+@noindent
+The first three clauses use backquote-style patterns.
+@code{`(add ,x ,y)} is a pattern that checks that @code{form}
+is a three-element list starting with the literal symbol @code{add},
+then extracts the second and third elements and binds them
+to symbols @code{x} and @code{y}, respectively.
+The clause body evaluates @code{x} and @code{y} and adds the results.
+Similarly, the @code{call} clause implements a function call,
+and the @code{fn} clause implements an anonymous function definition.
+
+The remaining clauses use core patterns.
+@code{(pred numberp)} matches if @code{form} is a number.
+On match, the body evaluates it.
+@code{(pred symbolp)} matches if @code{form} is a symbol.
+On match, the body looks up the symbol in @code{env} and
+returns its association.
+Finally, @code{_} is the catch-all pattern that
+matches anything, so it's suitable for reporting syntax errors.
+
+Here are some sample programs in this small language, including their
+evaluation results:
+
+@example
+(evaluate '(add 1 2) nil)                 @result{} 3
+(evaluate '(add x y) '((x . 1) (y . 2)))  @result{} 3
+(evaluate '(call (fn x (add 1 x)) 2) nil) @result{} 3
+(evaluate '(sub 1 2) nil)                 @result{} error
+@end example
+
+@node Destructuring with pcase Patterns
+@subsection Destructuring with @code{pcase} Patterns
+@cindex destructuring with pcase patterns
+
+Pcase patterns not only express a condition on the form of the objects
+they can match, but they can also extract sub-fields of those objects.
+For example we can extract 2 elements from a list that is the value of
+the variable @code{my-list} with the following code:
+
+@example
+  (pcase my-list
+    (`(add ,x ,y)  (message "Contains %S and %S" x y)))
+@end example
+
+This will not only extract @code{x} and @code{y} but will additionally
+test that @code{my-list} is a list containing exactly 3 elements and
+whose first element is the symbol @code{add}.  If any of those tests
+fail, @code{pcase} will immediately return @code{nil} without calling
+@code{message}.
+
+Extraction of multiple values stored in an object is known as
+@dfn{destructuring}.  Using @code{pcase} patterns allows to perform
+@dfn{destructuring binding}, which is similar to a local binding
+(@pxref{Local Variables}), but gives values to multiple elements of
+a variable by extracting those values from an object of compatible
+structure.
+
+The macros described in this section use @code{pcase} patterns to
+perform destructuring binding.  The condition of the object to be of
+compatible structure means that the object must match the pattern,
+because only then the object's subfields can be extracted.  For
+example:
+
+@example
+  (pcase-let ((`(add ,x ,y) my-list))
+    (message "Contains %S and %S" x y))
+@end example
+
+@noindent
+does the same as the previous example, except that it directly tries
+to extract @code{x} and @code{y} from @code{my-list} without first
+verifying if @code{my-list} is a list which has the right number of
+elements and has @code{add} as its first element.  The precise
+behavior when the object does not actually match the pattern is
+undefined, although the body will not be silently skipped: either an
+error is signaled or the body is run with some of the variables
+potentially bound to arbitrary values like @code{nil}.
+
+The pcase patterns that are useful for destructuring bindings are
+generally those described in @ref{Backquote Patterns}, since they
+express a specification of the structure of objects that will match.
+
+For an alternative facility for destructuring binding, see
+@ref{seq-let}.
+
+@defmac pcase-let bindings body@dots{}
+Perform destructuring binding of variables according to
+@var{bindings}, and then evaluate @var{body}.
+
+@var{bindings} is a list of bindings of the form @w{@code{(@var{pattern}
+@var{exp})}}, where @var{exp} is an expression to evaluate and
+@var{pattern} is a @code{pcase} pattern.
+
+All @var{exp}s are evaluated first, after which they are matched
+against their respective @var{pattern}, introducing new variable
+bindings that can then be used inside @var{body}.  The variable
+bindings are produced by destructuring binding of elements of
+@var{pattern} to the values of the corresponding elements of the
+evaluated @var{exp}.
+@end defmac
+
+@defmac pcase-let* bindings body@dots{}
+Perform destructuring binding of variables according to
+@var{bindings}, and then evaluate @var{body}.
+
+@var{bindings} is a list of bindings of the form @code{(@var{pattern}
+@var{exp})}, where @var{exp} is an expression to evaluate and
+@var{pattern} is a @code{pcase} pattern.  The variable bindings are
+produced by destructuring binding of elements of @var{pattern} to the
+values of the corresponding elements of the evaluated @var{exp}.
+
+Unlike @code{pcase-let}, but similarly to @code{let*}, each @var{exp}
+is matched against its corresponding @var{pattern} before processing
+the next element of @var{bindings}, so the variable bindings
+introduced in each one of the @var{bindings} are available in the
+@var{exp}s of the @var{bindings} that follow it, additionally to
+being available in @var{body}.
+@end defmac
+
+@defmac pcase-dolist (pattern list) body@dots{}
+Execute @var{body} once for each element of @var{list}, on each
+iteration performing a destructuring binding of variables in
+@var{pattern} to the values of the corresponding subfields of the
+element of @var{list}.  The bindings are performed as if by
+@code{pcase-let}.  When @var{pattern} is a simple variable, this ends
+up being equivalent to @code{dolist} (@pxref{Iteration}).
+@end defmac
+
+
 @node Iteration
 @section Iteration
 @cindex iteration
 @cindex recursion
+@cindex forms, iteration
 
   Iteration means executing part of a program repetitively.  For
 example, you might want to repeat some computation once for each element
@@ -849,6 +1499,7 @@ exited.
 
 @node Catch and Throw
 @subsection Explicit Nonlocal Exits: @code{catch} and @code{throw}
+@cindex forms for nonlocal exits
 
   Most control constructs affect only the flow of control within the
 construct itself.  The function @code{throw} is the exception to this
@@ -1220,6 +1871,7 @@ variables precisely as they were at the time of the error.
 @subsubsection Writing Code to Handle Errors
 @cindex error handler
 @cindex handling errors
+@cindex forms for handling errors
 
   The usual effect of signaling an error is to terminate the command
 that is running and return immediately to the Emacs editor command loop.
@@ -1333,9 +1985,10 @@ error occurs during @var{protected-form}.
 Each of the @var{handlers} is a list of the form @code{(@var{conditions}
 @var{body}@dots{})}.  Here @var{conditions} is an error condition name
 to be handled, or a list of condition names (which can include @code{debug}
-to allow the debugger to run before the handler); @var{body} is one or more
-Lisp expressions to be executed when this handler handles an error.
-Here are examples of handlers:
+to allow the debugger to run before the handler).  A condition name of
+@code{t} matches any condition.  @var{body} is one or more Lisp
+expressions to be executed when this handler handles an error.  Here
+are examples of handlers:
 
 @example
 @group
@@ -1588,6 +2241,7 @@ and their conditions.
 @node Cleanups
 @subsection Cleaning Up from Nonlocal Exits
 @cindex nonlocal exits, cleaning up
+@cindex forms for cleanup
 
   The @code{unwind-protect} construct is essential whenever you
 temporarily put a data structure in an inconsistent state; it permits

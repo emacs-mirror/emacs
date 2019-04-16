@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -917,7 +917,7 @@ the current value of the variable, otherwise `symbol-value' is used.
 If optional COMMENT argument is non-nil, also prompt for a comment and return
 it as the third element in the list."
   (let* ((var (read-variable prompt-var))
-	 (minibuffer-help-form '(describe-variable var))
+	 (minibuffer-help-form `(describe-variable ',var))
 	 (val
 	  (let ((prop (get var 'variable-interactive))
 		(type (get var 'custom-type))
@@ -2444,7 +2444,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   :group 'custom-faces)
 
 (defface custom-variable-tag
-  `((((class color) (background dark))
+  '((((class color) (background dark))
      :foreground "light blue" :weight bold)
     (((min-colors 88) (class color) (background light))
      :foreground "blue1" :weight bold)
@@ -3920,7 +3920,7 @@ restoring it to the state of a face that has never been customized."
 (defun custom-hook-convert-widget (widget)
   ;; Handle `:options'.
   (let* ((options (widget-get widget :options))
-	 (other `(editable-list :inline t
+	 (other '(editable-list :inline t
 				:entry-format "%i %d%v"
 				(function :format " %v")))
 	 (args (if options
@@ -4145,7 +4145,7 @@ If GROUPS-ONLY is non-nil, return only those members that are groups."
 	   ;; Update buttons.
 	   (widget-put widget :buttons buttons)
 	   ;; Insert documentation.
-	   (if (and (eq custom-buffer-style 'links) (> level 1))
+	   (when (eq custom-buffer-style 'links)
 	       (widget-put widget :documentation-indent
 			   custom-group-doc-align-col))
 	   (widget-add-documentation-string-button
@@ -4221,19 +4221,14 @@ If GROUPS-ONLY is non-nil, return only those members that are groups."
 			    custom-buffer-order-groups))
 		  (prefixes (widget-get widget :custom-prefixes))
 		  (custom-prefix-list (custom-prefix-add symbol prefixes))
-		  (len (length members))
-		  (count 0)
-		  (reporter (make-progress-reporter
-			     "Creating group entries..." 0 len))
 		  (have-subtitle (and (not (eq symbol 'emacs))
 				      (eq custom-buffer-order-groups 'last)))
 		  prev-type
 		  children)
 
-	     (dolist (entry members)
+	     (dolist-with-progress-reporter (entry members) "Creating group entries..."
 	       (unless (eq prev-type 'custom-group)
 		 (widget-insert "\n"))
-	       (progress-reporter-update reporter (setq count (1+ count)))
 	       (let ((sym (nth 0 entry))
 		     (type (nth 1 entry)))
 		 (when (and have-subtitle (eq type 'custom-group))
@@ -4255,8 +4250,7 @@ If GROUPS-ONLY is non-nil, return only those members that are groups."
 	     (setq children (nreverse children))
 	     (mapc 'custom-magic-reset children)
 	     (widget-put widget :children children)
-	     (custom-group-state-update widget)
-	     (progress-reporter-done reporter))
+	     (custom-group-state-update widget))
 	   ;; End line
 	   (let ((p (1+ (point))))
 	     (insert "\n\n")

@@ -10,7 +10,7 @@
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1015,7 +1015,7 @@ but different to
 
 The value for a byte D-Bus type can be any integer in the range 0
 through 255.  If a character is used as argument, modifiers
-represented outside this range are stripped of.  For example,
+represented outside this range are stripped off.  For example,
 @code{:byte ?x} is equal to @code{:byte ?\M-x}, but it is not equal to
 @code{:byte ?\C-x} or @code{:byte ?\M-\C-x}.
 

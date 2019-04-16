@@ -1,6 +1,6 @@
 ;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -122,7 +122,7 @@ If ELT is of the form ((EXPR)), listify (EXPR) with a dummy symbol."
             bindings)))
 
 (defmacro if-let* (varlist then &rest else)
-  "Bind variables according to VARLIST and eval THEN or ELSE.
+  "Bind variables according to VARLIST and evaluate THEN or ELSE.
 This is like `if-let' but doesn't handle a VARLIST of the form
 \(SYMBOL SOMETHING) specially."
   (declare (indent 2)
@@ -136,14 +136,14 @@ This is like `if-let' but doesn't handle a VARLIST of the form
     `(let* () ,then)))
 
 (defmacro when-let* (varlist &rest body)
-  "Bind variables according to VARLIST and conditionally eval BODY.
+  "Bind variables according to VARLIST and conditionally evaluate BODY.
 This is like `when-let' but doesn't handle a VARLIST of the form
 \(SYMBOL SOMETHING) specially."
   (declare (indent 1) (debug if-let*))
   (list 'if-let* varlist (macroexp-progn body)))
 
 (defmacro and-let* (varlist &rest body)
-  "Bind variables according to VARLIST and conditionally eval BODY.
+  "Bind variables according to VARLIST and conditionally evaluate BODY.
 Like `when-let*', except if BODY is empty and all the bindings
 are non-nil, then the result is non-nil."
   (declare (indent 1)
@@ -152,27 +152,25 @@ are non-nil, then the result is non-nil."
   (let (res)
     (if varlist
         `(let* ,(setq varlist (internal--build-bindings varlist))
-           (if ,(setq res (caar (last varlist)))
-               ,@(or body `(,res))))
+           (when ,(setq res (caar (last varlist)))
+             ,@(or body `(,res))))
       `(let* () ,@(or body '(t))))))
 
 (defmacro if-let (spec then &rest else)
-  "Bind variables according to SPEC and eval THEN or ELSE.
-Each binding is evaluated in turn, and evaluation stops if a
-binding value is nil.  If all are non-nil, the value of THEN is
-returned, or the last form in ELSE is returned.
+  "Bind variables according to SPEC and evaluate THEN or ELSE.
+Evaluate each binding in turn, stopping if a binding value is nil.
+If all are non-nil return the value of THEN, otherwise the last form in ELSE.
 
-Each element of SPEC is a list (SYMBOL VALUEFORM) which binds
+Each element of SPEC is a list (SYMBOL VALUEFORM) that binds
 SYMBOL to the value of VALUEFORM.  An element can additionally be
 of the form (VALUEFORM), which is evaluated and checked for nil;
 i.e. SYMBOL can be omitted if only the test result is of
 interest.  It can also be of the form SYMBOL, then the binding of
 SYMBOL is checked for nil.
 
-As a special case, a SPEC of the form \(SYMBOL SOMETHING) is
-interpreted like \((SYMBOL SOMETHING)). This exists for backward
-compatibility with the old syntax that accepted only one
-binding."
+As a special case, interprets a SPEC of the form \(SYMBOL SOMETHING)
+like \((SYMBOL SOMETHING)).  This exists for backward compatibility
+with an old syntax that accepted only one binding."
   (declare (indent 2)
            (debug ([&or (&rest [&or symbolp (symbolp form) (form)])
                         (symbolp form)]
@@ -184,10 +182,9 @@ binding."
   (list 'if-let* spec then (macroexp-progn else)))
 
 (defmacro when-let (spec &rest body)
-  "Bind variables according to SPEC and conditionally eval BODY.
-Each binding is evaluated in turn, and evaluation stops if a
-binding value is nil.  If all are non-nil, the value of the last
-form in BODY is returned.
+  "Bind variables according to SPEC and conditionally evaluate BODY.
+Evaluate each binding in turn, stopping if a binding value is nil.
+If all are non-nil, return the value of the last form in BODY.
 
 The variable list SPEC is the same as in `if-let'."
   (declare (indent 1) (debug if-let))
@@ -211,7 +208,7 @@ The variable list SPEC is the same as in `if-let'."
 
 (defsubst string-join (strings &optional separator)
   "Join all STRINGS using SEPARATOR."
-  (mapconcat 'identity strings separator))
+  (mapconcat #'identity strings separator))
 
 (define-obsolete-function-alias 'string-reverse 'reverse "25.1")
 
@@ -219,17 +216,17 @@ The variable list SPEC is the same as in `if-let'."
   "Trim STRING of leading string matching REGEXP.
 
 REGEXP defaults to \"[ \\t\\n\\r]+\"."
-  (if (string-match (concat "\\`\\(?:" (or  regexp "[ \t\n\r]+")"\\)") string)
-      (replace-match "" t t string)
+  (if (string-match (concat "\\`\\(?:" (or regexp "[ \t\n\r]+") "\\)") string)
+      (substring string (match-end 0))
     string))
 
 (defsubst string-trim-right (string &optional regexp)
   "Trim STRING of trailing string matching REGEXP.
 
 REGEXP defaults to  \"[ \\t\\n\\r]+\"."
-  (if (string-match (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'") string)
-      (replace-match "" t t string)
-    string))
+  (let ((i (string-match-p (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'")
+                           string)))
+    (if i (substring string 0 i) string)))
 
 (defsubst string-trim (string &optional trim-left trim-right)
   "Trim STRING of leading and trailing strings matching TRIM-LEFT and TRIM-RIGHT.
@@ -252,6 +249,35 @@ TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
   (if (string-suffix-p suffix string)
       (substring string 0 (- (length string) (length suffix)))
     string))
+
+(defun replace-region-contents (beg end replace-fn
+                                    &optional max-secs max-costs)
+  "Replace the region between BEG and END using REPLACE-FN.
+REPLACE-FN runs on the current buffer narrowed to the region.  It
+should return either a string or a buffer replacing the region.
+
+The replacement is performed using `replace-buffer-contents'
+which also describes the MAX-SECS and MAX-COSTS arguments and the
+return value.
+
+Note: If the replacement is a string, it'll be placed in a
+temporary buffer so that `replace-buffer-contents' can operate on
+it.  Therefore, if you already have the replacement in a buffer,
+it makes no sense to convert it to a string using
+`buffer-substring' or similar."
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (let ((repl (funcall replace-fn)))
+	(if (bufferp repl)
+	    (replace-buffer-contents repl max-secs max-costs)
+	  (let ((source-buffer (current-buffer)))
+	    (with-temp-buffer
+	      (insert repl)
+	      (let ((tmp-buffer (current-buffer)))
+		(set-buffer source-buffer)
+		(replace-buffer-contents tmp-buffer max-secs max-costs)))))))))
 
 (provide 'subr-x)
 

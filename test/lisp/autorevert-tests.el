@@ -1,6 +1,6 @@
 ;;; auto-revert-tests.el --- Tests of auto-revert
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -159,6 +159,9 @@ This expects `auto-revert--messages' to be bound by
 (ert-deftest auto-revert-test02-auto-revert-deleted-file ()
   "Check autorevert for a deleted file."
   :tags '(:expensive-test)
+  ;; Repeated unpredictable failures, bug#32645.
+  ;; Unlikely to be hydra-specific?
+  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
 
   (let ((tmpfile (make-temp-file "auto-revert-test"))
         buf desc)
@@ -167,6 +170,7 @@ This expects `auto-revert--messages' to be bound by
           (write-region "any text" nil tmpfile nil 'no-message)
 	  (setq buf (find-file-noselect tmpfile))
 	  (with-current-buffer buf
+            (should-not auto-revert-notify-watch-descriptor)
             (should (string-equal (buffer-string) "any text"))
             ;; `buffer-stale--default-function' checks for
             ;; `verify-visited-file-modtime'.  We must ensure that
@@ -180,7 +184,10 @@ This expects `auto-revert--messages' to be bound by
             ;; modifying `before-revert-hook'.
             (add-hook
              'before-revert-hook
-             (lambda () (delete-file buffer-file-name))
+             (lambda ()
+               ;; Temporarily.
+               (message "%s deleted" buffer-file-name)
+               (delete-file buffer-file-name))
              nil t)
 
             (ert-with-message-capture auto-revert--messages

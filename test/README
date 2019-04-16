@@ -1,4 +1,4 @@
-Copyright (C) 2008-2018 Free Software Foundation, Inc.
+Copyright (C) 2008-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This directory contains files intended to test various aspects of
@@ -56,7 +56,10 @@ except the tests tagged as expensive or unstable.
 
 If your test file contains the tests "test-foo", "test2-foo" and
 "test-foo-remote", and you want to run only the former two tests, you
-could use a selector regexp: "make <filename> SELECTOR='\"foo$$\"'".
+could use a selector regexp (note that the "$" needs to be doubled to
+protect against "make" variable expansion):
+
+    make <filename> SELECTOR='"foo$$"'
 
 Note that although the test files are always compiled (unless they set
 no-byte-compile), the source files will be run when expensive or
@@ -69,6 +72,31 @@ Some tests might take long time to run.  In order to summarize the
 <nn> tests with the longest duration, call
 
     make SUMMARIZE_TESTS=<nn> ...
+
+The tests are run in batch mode by default; sometimes it's useful to
+get precisely the same environment but run in interactive mode for
+debugging.  To do that, use
+
+    make TEST_INTERACTIVE=yes ...
+
+Some of the tests require a remote temporary directory
+(filenotify-tests.el, shadowfile-tests.el and tramp-tests.el).  Per
+default, a mock-up connection method is used (this might not be
+possible when running on MS Windows).  If you want to test a real
+remote connection, set $REMOTE_TEMPORARY_FILE_DIRECTORY to a suitable
+value in order to overwrite the default value:
+
+  env REMOTE_TEMPORARY_FILE_DIRECTORY=/ssh:host:/tmp make ...
+
+
+There are also continuous integration tests on
+<https://hydra.nixos.org/jobset/gnu/emacs-trunk> (see
+admin/notes/hydra) and <https://emba.gnu.org/emacs/emacs>.  Both
+environments provide an environment variable, which could be used to
+determine, whether the tests run in one of these test environments.
+
+$EMACS_HYDRA_CI indicates the hydra environment, and $EMACS_EMBA_CI
+indicates the emba environment, respectively.
 
 
 (Also, see etc/compilation.txt for compilation mode font lock tests.)

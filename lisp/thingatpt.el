@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- get the `thing' at point  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Maintainer: emacs-devel@gnu.org
@@ -61,7 +61,7 @@
   "Move forward to the end of the Nth next THING.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'."
   (let ((forward-op (or (get thing 'forward-op)
 			(intern-soft (format "forward-%s" thing)))))
@@ -76,7 +76,7 @@ Possibilities include `symbol', `list', `sexp', `defun',
   "Determine the start and end buffer locations for the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', and `page'.
 
 See the file `thingatpt.el' for documentation on how to define a
@@ -134,7 +134,7 @@ positions of the thing found."
   "Return the THING at point.
 THING should be a symbol specifying a type of syntactic entity.
 Possibilities include `symbol', `list', `sexp', `defun',
-`filename', `url', `email', `word', `sentence', `whitespace',
+`filename', `url', `email', `uuid', `word', `sentence', `whitespace',
 `line', `number', and `page'.
 
 When the optional argument NO-PROPERTIES is non-nil,
@@ -222,17 +222,15 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 
 (defun thing-at-point-bounds-of-list-at-point ()
   "Return the bounds of the list at point.
+Prefer the enclosing list with fallback on sexp at point.
 \[Internal function used by `bounds-of-thing-at-point'.]"
   (save-excursion
-    (let* ((st (parse-partial-sexp (point-min) (point)))
-           (beg (or (and (eq 4 (car (syntax-after (point))))
-                         (not (nth 8 st))
-                         (point))
-                    (nth 1 st))))
-      (when beg
-        (goto-char beg)
-        (forward-sexp)
-        (cons beg (point))))))
+    (if (ignore-errors (up-list -1))
+	(ignore-errors (cons (point) (progn (forward-sexp) (point))))
+      (let ((bound (bounds-of-thing-at-point 'sexp)))
+	(and bound
+	     (<= (car bound) (point)) (< (point) (cdr bound))
+	     bound)))))
 
 ;; Defuns
 
@@ -468,11 +466,14 @@ looks like an email address, \"ftp://\" if it starts with
      (while htbs
        (setq htb (car htbs) htbs (cdr htbs))
        (ignore-errors
-	 ;; errs: htb symbol may be unbound, or not a hash-table.
-	 ;; gnus-gethash is just a macro for intern-soft.
-	 (and (symbol-value htb)
-	      (intern-soft string (symbol-value htb))
-	      (setq ret string htbs nil))
+         (setq htb (symbol-value htb))
+	 (when (cond ((obarrayp htb)
+	              (intern-soft string htb))
+                     ((listp htb)
+                      (member string htb))
+                     ((hash-table-p htb)
+                      (gethash string htb)))
+	   (setq ret string htbs nil))
 	 ;; If we made it this far, gnus is running, so ignore "heads":
 	 (setq heads nil)))
      (or ret (not heads)
@@ -484,7 +485,7 @@ looks like an email address, \"ftp://\" if it starts with
 
 (put 'url 'end-op (lambda () (end-of-thing 'url)))
 
-(put 'url 'beginning-op (lambda () (end-of-thing 'url)))
+(put 'url 'beginning-op (lambda () (beginning-of-thing 'url)))
 
 ;; The normal thingatpt mechanism doesn't work for complex regexps.
 ;; This should work for almost any regexp wherever we are in the
@@ -564,6 +565,24 @@ with angle brackets.")
 (put 'buffer 'end-op (lambda () (goto-char (point-max))))
 (put 'buffer 'beginning-op (lambda () (goto-char (point-min))))
 
+;; UUID
+
+(defconst thing-at-point-uuid-regexp
+  (rx bow
+      (repeat 8 hex-digit) "-"
+      (repeat 4 hex-digit) "-"
+      (repeat 4 hex-digit) "-"
+      (repeat 4 hex-digit) "-"
+      (repeat 12 hex-digit)
+      eow)
+  "A regular expression matching a UUID.
+See RFC 4122 for the description of the format.")
+
+(put 'uuid 'bounds-of-thing-at-point
+     (lambda ()
+       (when (thing-at-point-looking-at thing-at-point-uuid-regexp 36)
+         (cons (match-beginning 0) (match-end 0)))))
+
 ;;  Aliases
 
 (defun word-at-point ()
@@ -618,8 +637,13 @@ Signal an error if the entire string was not used."
 
 (put 'number 'thing-at-point 'number-at-point)
 ;;;###autoload
-(defun list-at-point ()
-  "Return the Lisp list at point, or nil if none is found."
-  (form-at-point 'list 'listp))
+(defun list-at-point (&optional ignore-comment-or-string)
+  "Return the Lisp list at point, or nil if none is found.
+If IGNORE-COMMENT-OR-STRING is non-nil comments and strings are
+treated as white space."
+  (let ((ppss (and ignore-comment-or-string (syntax-ppss))))
+    (save-excursion
+      (goto-char (or (nth 8 ppss) (point)))
+      (form-at-point 'list 'listp))))
 
 ;;; thingatpt.el ends here

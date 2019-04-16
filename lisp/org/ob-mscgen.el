@@ -1,6 +1,6 @@
 ;;; ob-msc.el --- Babel Functions for Mscgen         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Juan Pechiar
 ;; Keywords: literate programming, reproducible research

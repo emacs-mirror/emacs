@@ -1,6 +1,6 @@
 ;;; org-table.el --- The Table Editor for Org        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -484,8 +484,8 @@ Line numbers are counted from the beginning of the table.  This
 variable is initialized with `org-table-analyze'.")
 
 (defconst org-table-range-regexp
-  "@\\([-+]?I*[-+]?[0-9]*\\)?\\(\\$[-+]?[0-9]+\\)?\\(\\.\\.@?\\([-+]?I*[-+]?[0-9]*\\)?\\(\\$[-+]?[0-9]+\\)?\\)?"
-  ;;   1                        2                    3          4                        5
+  "@\\([-+]?I*[-+]?[0-9]*\\)\\(\\$[-+]?[0-9]+\\)?\\(\\.\\.@?\\([-+]?I*[-+]?[0-9]*\\)\\(\\$[-+]?[0-9]+\\)?\\)?"
+  ;;   1                       2                    3          4                       5
   "Regular expression for matching ranges in formulas.")
 
 (defconst org-table-range-regexp2
@@ -1182,7 +1182,7 @@ to a number.  In the case of a timestamp, increment by days."
 			      (- (org-time-string-to-absolute txt)
 				 (org-time-string-to-absolute txt-up)))
 			     ((string-match org-ts-regexp3 txt) 1)
-			     ((string-match "\\([-+]\\)?\\(?:[0-9]+\\)?\\(?:\.[0-9]+\\)?" txt-up)
+			     ((string-match "\\([-+]\\)?[0-9]*\\(?:\\.[0-9]+\\)?" txt-up)
 			      (- (string-to-number txt)
 				 (string-to-number (match-string 0 txt-up))))
 			     (t 1)))
@@ -2175,8 +2175,8 @@ If NLAST is a number, only the NLAST fields will actually be summed."
 	     (sres (if (= org-timecnt 0)
 		       (number-to-string res)
 		     (setq diff (* 3600 res)
-			   h (floor (/ diff 3600)) diff (mod diff 3600)
-			   m (floor (/ diff 60)) diff (mod diff 60)
+			   h (floor diff 3600) diff (mod diff 3600)
+			   m (floor diff 60) diff (mod diff 60)
 			   s diff)
 		     (format "%.0f:%02.0f:%02.0f" h m s))))
 	(kill-new sres)
@@ -2307,7 +2307,7 @@ LOCATION instead."
 	      "\n"))))
 
 (defsubst org-table-formula-make-cmp-string (a)
-  (when (string-match "\\`$[<>]" a)
+  (when (string-match "\\`\\$[<>]" a)
     (let ((arrow (string-to-char (substring a 1))))
       ;; Fake a high number to make sure this is sorted at the end.
       (setq a (org-table-formula-handle-first/last-rc a))
@@ -2355,7 +2355,7 @@ LOCATION is a buffer position, consider the formulas there."
 		       (cond
 			((not (match-end 2)) m)
 			;; Is it a column reference?
-			((string-match-p "\\`$\\([0-9]+\\|[<>]+\\)\\'" m) m)
+			((string-match-p "\\`\\$\\([0-9]+\\|[<>]+\\)\\'" m) m)
 			;; Since named columns are not possible in
 			;; LHS, assume this is a named field.
 			(t (match-string 2 string)))))
@@ -2909,8 +2909,8 @@ location of point."
 		     (format-time-string
 		      (org-time-stamp-format
 		       (string-match-p "[0-9]\\{1,2\\}:[0-9]\\{2\\}" ts))
-		      (apply #'encode-time
-			     (save-match-data (org-parse-time-string ts))))))
+		      (encode-time
+		       (save-match-data (org-parse-time-string ts))))))
 		 form t t))
 
 	  (setq ev (if (and duration (string-match "^[0-9]+:[0-9]+\\(?::[0-9]+\\)?$" form))
@@ -3216,7 +3216,7 @@ known that the table will be realigned a little later anyway."
 		    (cond
 		     ((string-match "\\`@-?I+" old-lhs)
 		      (user-error "Can't assign to hline relative reference"))
-		     ((string-match "\\`$[<>]" old-lhs)
+		     ((string-match "\\`\\$[<>]" old-lhs)
 		      (let ((new (org-table-formula-handle-first/last-rc
 				  old-lhs)))
 			(when (assoc new eqlist)
@@ -3639,7 +3639,8 @@ Parameters get priority."
       (setq startline (org-current-line))
       (dolist (entry eql)
 	(let* ((type (cond
-		      ((string-match "\\`$\\([0-9]+\\|[<>]+\\)\\'" (car entry))
+		      ((string-match "\\`\\$\\([0-9]+\\|[<>]+\\)\\'"
+				     (car entry))
 		       'column)
 		      ((equal (string-to-char (car entry)) ?@) 'field)
 		      (t 'named)))

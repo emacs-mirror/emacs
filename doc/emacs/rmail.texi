@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Rmail
@@ -318,7 +318,7 @@ effect of a @kbd{d} command in most cases.  It undeletes the current
 message if the current message is deleted.  Otherwise it moves backward
 to previous messages until a deleted message is found, and undeletes
 that message.  A numeric prefix argument serves as a repeat count, to
-allow deletion of several messages in a single command.
+allow undeletion of several messages in a single command.
 
   You can usually undo a @kbd{d} with a @kbd{u} because the @kbd{u}
 moves back to and undeletes the message that the @kbd{d} deleted.  But
@@ -529,13 +529,18 @@ file name from the message @samp{Subject} header.
 @kindex C-o @r{(Rmail)}
 @findex rmail-output-as-seen
   The commands @kbd{o} and @kbd{C-o} copy the current message into a
-specified file, adding it at the end.  The two commands differ mainly
-in how much to copy: @kbd{o} copies the full message headers, even if
-they are not all visible, while @kbd{C-o} copies exactly the headers
-currently displayed and no more.  @xref{Rmail Display}.  In addition,
-@kbd{o} converts the message to Babyl format (used by Rmail in Emacs
-version 22 and before) if the file is in Babyl format; @kbd{C-o}
-cannot output to Babyl files at all.
+specified file, adding it at the end.  A positive prefix argument
+serves as a repeat count: that many consecutive messages will be
+copied to the specified file, starting with the current one and
+ignoring deleted messages.
+
+The two commands differ mainly in how much to copy: @kbd{o} copies the
+full message headers, even if they are not all visible, while
+@kbd{C-o} copies exactly the headers currently displayed and no more.
+@xref{Rmail Display}.  In addition, @kbd{o} converts the message to
+Babyl format (used by Rmail in Emacs version 22 and before) if the
+file is in Babyl format; @kbd{C-o} cannot output to Babyl files at
+all.
 @c FIXME remove BABYL mention in some future version?
 
   If the output file is currently visited in an Emacs buffer, the
@@ -565,16 +570,28 @@ second says which files in that directory to offer (all those that
 match the regular expression).  If no files match, you cannot select
 this menu item.
 
-@vindex rmail-delete-after-output
   Copying a message with @kbd{o} or @kbd{C-o} gives the original copy
 of the message the @samp{filed} attribute, so that @samp{filed}
 appears in the mode line when such a message is current.
 
+@vindex rmail-delete-after-output
   If you like to keep just a single copy of every mail message, set
 the variable @code{rmail-delete-after-output} to @code{t}; then the
 @kbd{o}, @kbd{C-o} and @kbd{w} commands delete the original message
 after copying it.  (You can undelete it afterward if you wish, see
 @ref{Rmail Deletion}.)
+
+@vindex rmail-output-reset-deleted-flag
+  By default, @kbd{o} will leave the deleted status of a message it
+outputs as it was on the original message; thus, a message deleted
+before it was output will appear as deleted in the output file.
+Setting the variable @code{rmail-output-reset-deleted-flag} to a
+non-@code{nil} value countermands that: the copy of the message will
+have its deleted status reset, so the message will appear as undeleted
+in the output file.  In addition, when this variable is
+non-@code{nil}, specifying a positive argument to @kbd{o} will not
+ignore deleted messages when looking for consecutive messages to
+output.
 
 @vindex rmail-output-file-alist
   The variable @code{rmail-output-file-alist} lets you specify
@@ -753,7 +770,7 @@ Try sending a bounced message a second time (@code{rmail-retry-failure}).
 to the message you are reading.  To do this, type @kbd{r}
 (@code{rmail-reply}).  This displays a mail composition buffer in
 another window, much like @kbd{C-x 4 m}, but preinitializes the
-@samp{Subject}, @samp{To}, @samp{CC}, @samp{In-reply-to} and
+@samp{Subject}, @samp{To}, @samp{CC}, @samp{In-Reply-To} and
 @samp{References} header fields based on the message you are replying
 to.  The @samp{To} field starts out as the address of the person who
 sent the message you received, and the @samp{CC} field starts out with
@@ -999,8 +1016,8 @@ summary buffer using @key{SPC} and @key{DEL}.  However, in the summary
 buffer scrolling past the end or the beginning of a message with
 @key{SPC} or @key{DEL} goes, respectively, to the next or previous
 undeleted message.  Customize the
-@code{rmail-summary-scroll-between-messages} option to nil to disable
-scrolling to next/previous messages.
+@code{rmail-summary-scroll-between-messages} option to @code{nil} to
+disable scrolling to next/previous messages.
 
 @findex rmail-summary-undelete-many
 @kbd{M-u} (@code{rmail-summary-undelete-many}) undeletes all deleted

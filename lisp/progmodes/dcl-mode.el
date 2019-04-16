@@ -1,6 +1,6 @@
 ;;; dcl-mode.el --- major mode for editing DCL command files
 
-;; Copyright (C) 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Odd Gripenstam <gripenstamol@decus.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1580,7 +1580,7 @@ Find the column of the first non-blank character on the line.
 Returns the column offset."
   (save-excursion
     (beginning-of-line)
-    (re-search-forward "^$[ \t]*" nil t)
+    (re-search-forward "^\\$[ \t]*" nil t)
     (current-column)))
 
 

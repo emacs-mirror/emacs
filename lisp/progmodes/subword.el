@@ -1,6 +1,6 @@
 ;;; subword.el --- Handling capitalized subwords in a nomenclature -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO
 
@@ -93,9 +93,6 @@
 ;;;###autoload
 (define-minor-mode subword-mode
   "Toggle subword movement and editing (Subword mode).
-With a prefix argument ARG, enable Subword mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Subword mode is a buffer-local minor mode.  Enabling it changes
 the definition of a word so that word-based commands stop inside
@@ -113,9 +110,7 @@ called a `subword'.  Here are some examples:
   NSGraphicsContext  =>  \"NS\", \"Graphics\" and \"Context\"
 
 This mode changes the definition of a word so that word commands
-treat nomenclature boundaries as word boundaries.
-
-\\{subword-mode-map}"
+treat nomenclature boundaries as word boundaries."
     :lighter " ,"
     (when subword-mode (superword-mode -1))
     (subword-setup-buffer))
@@ -149,8 +144,6 @@ Optional argument ARG is the same as for `forward-word'."
       (funcall subword-backward-function)))
    (t
     (point))))
-
-(put 'subword-forward 'CUA 'move)
 
 (defun subword-backward (&optional arg)
   "Do the same as `backward-word' but on subwords.
@@ -191,8 +184,6 @@ Optional argument ARG is the same as for `mark-word'."
 	    (subword-forward arg)
 	    (point))
 	  nil t))))
-
-(put 'subword-backward 'CUA 'move)
 
 (defun subword-kill (arg)
   "Do the same as `kill-word' but on subwords.
@@ -269,9 +260,6 @@ Optional argument ARG is the same as for `capitalize-word'."
 ;;;###autoload
 (define-minor-mode superword-mode
   "Toggle superword movement and editing (Superword mode).
-With a prefix argument ARG, enable Superword mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Superword mode is a buffer-local minor mode.  Enabling it changes
 the definition of words such that symbols characters are treated

@@ -1,6 +1,6 @@
-;;; locate.el --- interface to the locate command
+;;; locate.el --- interface to the locate command  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996, 1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files
@@ -261,7 +261,7 @@ that is, with a prefix arg, you get the default behavior."
 	 "Run locate (like this): "
 	 (cons
 	  (concat (car locate-cmd) "  "
-		  (mapconcat 'identity (cdr locate-cmd) " "))
+		  (mapconcat #'identity (cdr locate-cmd) " "))
 	  (+ 2 (length (car locate-cmd))))
 	 nil nil 'locate-history-list))
     (let* ((default (locate-word-at-point))
@@ -313,7 +313,7 @@ then `locate-post-command-hook'."
 	      (and (not arg) locate-prompt-for-command))))
 
     ;; Find the Locate buffer
-    (save-window-excursion
+    (save-window-excursion              ;FIXME: What window-excursion?
       (set-buffer (get-buffer-create locate-buffer-name))
       (locate-mode)
       (let ((inhibit-read-only t)
@@ -327,7 +327,7 @@ then `locate-post-command-hook'."
 
 	(if run-locate-command
 	    (shell-command search-string locate-buffer-name)
-	  (apply 'call-process locate-cmd nil t nil locate-cmd-args))
+	  (apply #'call-process locate-cmd nil t nil locate-cmd-args))
 
 	(and filter
 	     (locate-filter-output filter))
@@ -466,8 +466,8 @@ do not work in subdirectories.
   ;; Avoid clobbering this variable
   (make-local-variable 'dired-subdir-alist)
   (setq default-directory   "/"
-	buffer-read-only    t
-	selective-display   t)
+	buffer-read-only    t)
+  (add-to-invisibility-spec '(dired . t))
   (dired-alist-add-1 default-directory (point-min-marker))
   (set (make-local-variable 'dired-directory) "/")
   (set (make-local-variable 'dired-subdir-switches) locate-ls-subdir-switches)
@@ -499,9 +499,9 @@ do not work in subdirectories.
 	 (progn
 	   (kill-buffer locate-buffer-name)
 	   (if locate-current-filter
-	       (error "Locate: no match for %s in database using filter %s"
+	       (user-error "Locate: no match for %s in database using filter %s"
 		      search-string locate-current-filter)
-	     (error "Locate: no match for %s in database" search-string))))
+	     (user-error "Locate: no match for %s in database" search-string))))
 
     (locate-insert-header search-string)
 
@@ -554,7 +554,7 @@ do not work in subdirectories.
 	  locate-regexp-match
 	  (concat locate-regexp-match ":\n"))
 
-    (insert (apply 'format locate-format-string (reverse locate-format-args)))
+    (insert (apply #'format locate-format-string (reverse locate-format-args)))
 
     (save-excursion
       (goto-char (point-min))

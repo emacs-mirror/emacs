@@ -1,7 +1,5 @@
 \input texinfo                  @c -*-texinfo-*-
 
-@include gnus-overrides.texi
-
 @setfilename ../../info/message.info
 @settitle Message Manual
 @include docstyle.texi
@@ -11,7 +9,7 @@
 @copying
 This file documents Message, the Emacs message composition mode.
 
-Copyright @copyright{} 1996--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1996--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -162,7 +160,7 @@ header should be.  If it does not, it should just return @code{nil}, and
 the normal methods for determining the To header will be used.
 
 Each list element should be a cons, where the @sc{car} should be the
-name of a header (e.g., @code{Cc}) and the @sc{cdr} should be the header
+name of a header (e.g., @code{CC}) and the @sc{cdr} should be the header
 value (e.g., @samp{larsi@@ifi.uio.no}).  All these headers will be
 inserted into the head of the outgoing mail.
 
@@ -174,7 +172,7 @@ inserted into the head of the outgoing mail.
 The @code{message-wide-reply} pops up a message buffer that's a wide
 reply to the message in the current buffer.  A @dfn{wide reply} is a
 reply that goes out to all people listed in the @code{To}, @code{From}
-(or @code{Reply-to}) and @code{Cc} headers.
+(or @code{Reply-To}) and @code{CC} headers.
 
 @vindex message-wide-reply-to-function
 Message uses the normal methods to determine where wide replies are to go,
@@ -185,7 +183,7 @@ but you can change the behavior to suit your needs by fiddling with the
 @vindex message-dont-reply-to-names
 Addresses that match the @code{message-dont-reply-to-names} regular
 expression (or list of regular expressions or a predicate function)
-will be removed from the @code{Cc} header.  A value of @code{nil} means
+will be removed from the @code{CC} header.  A value of @code{nil} means
 to exclude only your email address.
 
 @vindex message-prune-recipient-rules
@@ -199,7 +197,7 @@ to match addresses to be pruned.
 It's complicated to explain, but it's easy to use.
 
 For instance, if you get an email from @samp{foo@@example.org}, but
-@samp{foo@@zot.example.org} is also in the @code{Cc} list, then your
+@samp{foo@@zot.example.org} is also in the @code{CC} list, then your
 wide reply will go out to both these addresses, since they are unique.
 
 To avoid this, do something like the following:
@@ -487,10 +485,10 @@ MFT field.  If there is one, it is left alone.  (Except if it's empty;
 in that case, the field is removed and is not replaced with an
 automatically generated one.  This lets you disable MFT generation on a
 per-message basis.)  If there is none, then the list of recipient
-addresses (in the To: and Cc: headers) is checked to see if one of them
+addresses (in the To: and CC: headers) is checked to see if one of them
 is a list address you are subscribed to.  If none of them is a list
 address, then no MFT is generated; otherwise, a MFT is added to the
-other headers and set to the value of all addresses in To: and Cc:
+other headers and set to the value of all addresses in To: and CC:
 
 @kindex C-c C-f C-a
 @findex message-generate-unsubscribed-mail-followup-to
@@ -516,7 +514,7 @@ header, Gnus' action will depend on the value of the variable
 
 @table @code
 @item use
- Always honor MFTs.  The To: and Cc: headers in your followup will be
+ Always honor MFTs.  The To: and CC: headers in your followup will be
  derived from the MFT header of the original post.  This is the default.
 
 @item nil
@@ -593,17 +591,17 @@ in the key binding is for Originator.)
 @item C-c C-f C-b
 @kindex C-c C-f C-b
 @findex message-goto-bcc
-Go to the @code{Bcc} header (@code{message-goto-bcc}).
+Go to the @code{BCC} header (@code{message-goto-bcc}).
 
 @item C-c C-f C-w
 @kindex C-c C-f C-w
 @findex message-goto-fcc
-Go to the @code{Fcc} header (@code{message-goto-fcc}).
+Go to the @code{FCC} header (@code{message-goto-fcc}).
 
 @item C-c C-f C-c
 @kindex C-c C-f C-c
 @findex message-goto-cc
-Go to the @code{Cc} header (@code{message-goto-cc}).
+Go to the @code{CC} header (@code{message-goto-cc}).
 
 @item C-c C-f C-s
 @kindex C-c C-f C-s
@@ -662,7 +660,7 @@ fetches the contents of the @samp{To:} header in the current mail
 buffer, and appends the current @code{user-mail-address}.
 
 If the optional argument @code{include-cc} is non-@code{nil}, the
-addresses in the @samp{Cc:} header are also put into the
+addresses in the @samp{CC:} header are also put into the
 @samp{Mail-Followup-To:} header.
 
 @end table
@@ -696,7 +694,7 @@ or @code{Newsgroups} header of the article you're replying to
 @kindex C-c C-l
 @findex message-to-list-only
 Send a message to the list only.  Remove all addresses but the list
-address from @code{To:} and @code{Cc:} headers.
+address from @code{To:} and @code{CC:} headers.
 
 @item C-c M-n
 @kindex C-c M-n
@@ -746,13 +744,13 @@ by the @code{message-cross-post-note-function} variable.
 @item C-c C-f t
 @kindex C-c C-f t
 @findex message-reduce-to-to-cc
-Replace contents of @samp{To} header with contents of @samp{Cc}
-header (or the @samp{Bcc} header, if there is no @samp{Cc} header).
+Replace contents of @samp{To} header with contents of @samp{CC}
+header (or the @samp{BCC} header, if there is no @samp{CC} header).
 
 @item C-c C-f w
 @kindex C-c C-f w
 @findex message-insert-wide-reply
-Insert @samp{To} and @samp{Cc} headers as if you were doing a wide
+Insert @samp{To} and @samp{CC} headers as if you were doing a wide
 reply even if the message was not made for a wide reply first.
 
 @item C-c C-f a
@@ -902,7 +900,7 @@ found in RFC 3490.
 Message is a @acronym{IDNA}-compliant posting agent.  The user
 generally doesn't have to do anything to make the @acronym{IDNA}
 happen---Message will encode non-@acronym{ASCII} domain names in @code{From},
-@code{To}, and @code{Cc} headers automatically.
+@code{To}, and @code{CC} headers automatically.
 
 Until @acronym{IDNA} becomes more well known, Message queries you
 whether @acronym{IDNA} encoding of the domain name really should
@@ -1011,7 +1009,7 @@ and/or encrypted messages as explained in the following.
 * Passphrase caching::          How to cache passphrases
 * PGP Compatibility::           Compatibility with older implementations
 * Encrypt-to-self::             Reading your own encrypted messages
-* Bcc Warning::                 Do not use encryption with Bcc headers
+* BCC Warning::                 Do not use encryption with BCC headers
 @end menu
 
 @node Signing and encryption
@@ -1300,7 +1298,7 @@ information about the problem.)
 @subsection Encrypt-to-self
 
 By default, messages are encrypted to all recipients (@code{To},
-@code{Cc}, @code{Bcc} headers).  Thus, you will not be able to decrypt
+@code{CC}, @code{BCC} headers).  Thus, you will not be able to decrypt
 your own messages.  To make sure that messages are also encrypted to
 your own key(s), several alternative solutions exist:
 @enumerate
@@ -1318,17 +1316,17 @@ OpenPGP) or @code{mml-secure-smime-encrypt-to-self} (for
 @acronym{S/MIME} with EasyPG).
 @end enumerate
 
-@node Bcc Warning
-@subsection Bcc Warning
+@node BCC Warning
+@subsection BCC Warning
 
-The @code{Bcc} header is meant to hide recipients of messages.
+The @code{BCC} header is meant to hide recipients of messages.
 However, when encrypted messages are used, the e-mail addresses of all
-@code{Bcc}-headers are given away to all recipients without
+@code{BCC}-headers are given away to all recipients without
 warning, which is a bug.
 @vindex mml-secure-safe-bcc-list
-But now Message got to warn if @code{Bcc} recipients are found in an
+But now Message got to warn if @code{BCC} recipients are found in an
 encrypted message when you are just about to send it.  If you are sure
-those @code{Bcc} addresses are safe to expose, set the
+those @code{BCC} addresses are safe to expose, set the
 @code{mml-secure-safe-bcc-list} variable, that is a list of e-mail
 addresses.  See
 @uref{https://debbugs.gnu.org/cgi/bugreport.cgi?bug=18718}.
@@ -1468,16 +1466,16 @@ alias ding "ding@@ifi.uio.no (ding mailing list)"
 @end example
 
 After adding lines like this to your @file{~/.mailrc} file, you should
-be able to just write @samp{lmi} in the @code{To} or @code{Cc} (and so
+be able to just write @samp{lmi} in the @code{To} or @code{CC} (and so
 on) headers and press @kbd{SPC} to expand the alias.
 
 No expansion will be performed upon sending of the message---all
 expansions have to be done explicitly.
 
 If you're using @code{ecomplete}, all addresses from @code{To} and
-@code{Cc} headers will automatically be put into the
+@code{CC} headers will automatically be put into the
 @file{~/.ecompleterc} file.  When you enter text in the @code{To} and
-@code{Cc} headers, @code{ecomplete} will check out the values stored
+@code{CC} headers, @code{ecomplete} will check out the values stored
 there and ``electrically'' say what completions are possible.  To
 choose one of these completions, use the @kbd{M-n} command to move
 down to the list.  Use @kbd{@key{DOWN}} or @kbd{M-n} and
@@ -1681,7 +1679,7 @@ trailing old subject.  In this case,
 @item message-alternative-emails
 @vindex message-alternative-emails
 Regexp or predicate function matching alternative email addresses.
-The first address in the To, Cc or From headers of the original
+The first address in the To, CC or From headers of the original
 article matching this variable is used as the From field of outgoing
 messages, replacing the default From value.
 
@@ -1701,7 +1699,7 @@ off @code{message-setup-hook}.
 @item message-allow-no-recipients
 @vindex message-allow-no-recipients
 Specifies what to do when there are no recipients other than
-@code{Gcc} or @code{Fcc}.  If it is @code{always}, the posting is
+@code{Gcc} or @code{FCC}.  If it is @code{always}, the posting is
 allowed.  If it is @code{never}, the posting is not allowed.  If it is
 @code{ask} (the default), you are prompted.
 
@@ -1713,7 +1711,7 @@ hidden when composing a message.
 
 @lisp
 (setq message-hidden-headers
-      '(not "From" "Subject" "To" "Cc" "Newsgroups"))
+      '(not "From" "Subject" "To" "CC" "Newsgroups"))
 @end lisp
 
 Headers are hidden using narrowing, you can use @kbd{M-x widen} to
@@ -1722,9 +1720,9 @@ expose them in the buffer.
 @item message-header-synonyms
 @vindex message-header-synonyms
 A list of lists of header synonyms.  E.g., if this list contains a
-member list with elements @code{Cc} and @code{To}, then
+member list with elements @code{CC} and @code{To}, then
 @code{message-carefully-insert-headers} will not insert a @code{To}
-header when the message is already @code{Cc}ed to the recipient.
+header when the message is already @code{CC}ed to the recipient.
 
 @end table
 
@@ -1742,7 +1740,7 @@ header when the message is already @code{Cc}ed to the recipient.
 @item message-ignored-mail-headers
 @vindex message-ignored-mail-headers
 Regexp of headers to be removed before mailing.  The default is@*
-@samp{^[GF]cc:\\|^Resent-Fcc:\\|^Xref:\\|^X-Draft-From:\\|@*
+@samp{^[GF]cc:\\|^Resent-FCC:\\|^Xref:\\|^X-Draft-From:\\|@*
 ^X-Gnus-Agent-Meta-Information:}.
 
 @item message-default-mail-headers
@@ -2056,7 +2054,7 @@ Check whether the @code{Newsgroups} header exists and is not empty.
 @item quoting-style
 Check whether text follows last quoted portion.
 @item repeated-newsgroups
-Check whether the @code{Newsgroups} and @code{Followup-to} headers
+Check whether the @code{Newsgroups} and @code{Followup-To} headers
 contains repeated group names.
 @item reply-to
 Check whether the @code{Reply-To} header looks ok.
@@ -2069,7 +2067,7 @@ Check for the existence of version and sendsys commands.
 @item shoot
 Check whether the domain part of the @code{Message-ID} header looks ok.
 @item shorten-followup-to
-Check whether to add a @code{Followup-to} header to shorten the number
+Check whether to add a @code{Followup-To} header to shorten the number
 of groups to post to.
 @item signature
 Check the length of the signature.
@@ -2080,7 +2078,7 @@ Check whether the @code{Subject} header exists and is not empty.
 @item subject-cmsg
 Check the subject for commands.
 @item valid-newsgroups
-Check whether the @code{Newsgroups} and @code{Followup-to} headers
+Check whether the @code{Newsgroups} and @code{Followup-To} headers
 are valid syntactically.
 @end table
 
@@ -2091,7 +2089,7 @@ for which the check is disabled by default if
 @item message-ignored-news-headers
 @vindex message-ignored-news-headers
 Regexp of headers to be removed before posting.  The default is@*
-@samp{^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|@*
+@samp{^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-FCC:\\|@*
 ^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:}.
 
 @item message-default-news-headers
@@ -2471,7 +2469,7 @@ an article\\nthat has been posted to %s as well.\\n\\n"}.
 
 @item message-fcc-externalize-attachments
 @vindex message-fcc-externalize-attachments
-If @code{nil}, attach files as normal parts in Fcc copies; if it is
+If @code{nil}, attach files as normal parts in FCC copies; if it is
 non-@code{nil}, attach local files as external parts.
 
 @item message-interactive
@@ -2626,13 +2624,13 @@ consulted, in turn:
 A @dfn{wide reply} is a mail response that includes @emph{all} entities
 mentioned in the message you are responding to.  All mailboxes from the
 following headers will be concatenated to form the outgoing
-@code{To}/@code{Cc} headers:
+@code{To}/@code{CC} headers:
 
 @table @code
 @item From
 (unless there's a @code{Reply-To}, in which case that is used instead).
 
-@item Cc
+@item CC
 
 @item To
 @end table
@@ -2656,7 +2654,7 @@ sent:
 @end table
 
 If a @code{Mail-Copies-To} header is present, it will be used as the
-basis of the new @code{Cc} header, except if this header is
+basis of the new @code{CC} header, except if this header is
 @samp{never}.
 
 @end table

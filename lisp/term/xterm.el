@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -74,7 +74,7 @@ string bytes that can be copied is 3/4 of this value."
   :type 'boolean)
 
 (defconst xterm-paste-ending-sequence "\e[201~"
-  "Characters send by the terminal to end a bracketed paste.")
+  "Characters sent by the terminal to end a bracketed paste.")
 
 (defun xterm--pasted-text ()
   "Handle the rest of a terminal paste operation.
@@ -95,14 +95,48 @@ Return the pasted text as a string."
 	(decode-coding-region (point-min) (point) (keyboard-coding-system)
                               t)))))
 
-(defun xterm-paste ()
+(defun xterm-paste (event)
   "Handle the start of a terminal paste operation."
-  (interactive)
-  (let* ((pasted-text (xterm--pasted-text))
+  (interactive "e")
+  (unless (eq (car-safe event) 'xterm-paste)
+    (error "xterm-paste must be found to xterm-paste event"))
+  (let* ((pasted-text (nth 1 event))
          (interprogram-paste-function (lambda () pasted-text)))
     (yank)))
 
+;; Put xterm-paste itself in global-map because, after translation,
+;; it's just a normal input event.
 (define-key global-map [xterm-paste] #'xterm-paste)
+
+;; By returning an empty key sequence, these two functions perform the
+;; moral equivalent of the kind of transparent event processing done
+;; by read-event's handling of special-event-map, but inside
+;; read-key-sequence (which can recognize multi-character terminal
+;; notifications) instead of read-event (which can't).
+
+(defun xterm-translate-focus-in (_prompt)
+  (setf (terminal-parameter nil 'tty-focus-state) 'focused)
+  (funcall after-focus-change-function)
+  [])
+
+(defun xterm-translate-focus-out (_prompt)
+  (setf (terminal-parameter nil 'tty-focus-state) 'defocused)
+  (funcall after-focus-change-function)
+  [])
+
+(defun xterm--suspend-tty-function (_tty)
+  ;; We can't know what happens to the tty after we're suspended
+  (setf (terminal-parameter nil 'tty-focus-state) nil)
+  (funcall after-focus-change-function))
+
+;; Similarly, we want to transparently slurp the entirety of a
+;; bracketed paste and encapsulate it into a single event.  We used to
+;; just slurp up the bracketed paste content in the event handler, but
+;; this strategy can produce unexpected results in a caller manually
+;; looping on read-key and buffering input for later processing.
+
+(defun xterm-translate-bracketed-paste (_prompt)
+  (vector (list 'xterm-paste (xterm--pasted-text))))
 
 (defvar xterm-rxvt-function-map
   (let ((map (make-sparse-keymap)))
@@ -132,9 +166,15 @@ Return the pasted text as a string."
     (define-key map "\e[13~" [f3])
     (define-key map "\e[14~" [f4])
 
-    ;; Recognize the start of a bracketed paste sequence.  The handler
-    ;; internally recognizes the end.
-    (define-key map "\e[200~" [xterm-paste])
+    ;; Recognize the start of a bracketed paste sequence.
+    ;; The translation function internally recognizes the end.
+    (define-key map "\e[200~" #'xterm-translate-bracketed-paste)
+
+    ;; These translation functions actually call the focus handlers
+    ;; internally and return an empty sequence, causing us to go on to
+    ;; read the next event.
+    (define-key map "\e[I" #'xterm-translate-focus-in)
+    (define-key map "\e[O" #'xterm-translate-focus-out)
 
     map)
   "Keymap of escape sequences, shared between xterm and rxvt support.")
@@ -639,7 +679,7 @@ Return the pasted text as a string."
   (let ((str "")
         chr)
     ;; The reply should be: \e ] 11 ; rgb: NUMBER1 / NUMBER2 / NUMBER3 \e \\
-    (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?\\)))
+    (while (and (setq chr (xterm--read-event-for-query)) (not (equal chr ?\\)))
       (setq str (concat str (string chr))))
     (when (string-match
            "rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
@@ -667,7 +707,7 @@ Return the pasted text as a string."
     ;; respond to this escape sequence.  RMS' opinion was to remove
     ;; it completely.  That might be right, but let's first try to
     ;; see if by using a longer timeout we get rid of most issues.
-    (while (and (setq chr (read-event nil nil 2)) (not (equal chr ?c)))
+    (while (and (setq chr (xterm--read-event-for-query)) (not (equal chr ?c)))
       (setq str (concat str (string chr))))
     ;; Since xterm-280, the terminal type (NUMBER1) is now 41 instead of 0.
     (when (string-match "\\([0-9]+\\);\\([0-9]+\\);0" str)
@@ -717,6 +757,26 @@ Return the pasted text as a string."
   "Seconds to wait for an answer from the terminal.
 Can be nil to mean \"no timeout\".")
 
+(defvar xterm-query-redisplay-timeout 0.2
+  "Seconds to wait before allowing redisplay during terminal
+  query." )
+
+(defun xterm--read-event-for-query ()
+  "Like read-event, but inhibit redisplay.
+
+By not redisplaying right away for xterm queries, we can avoid
+unsightly flashing during initialization. Give up and redisplay
+anyway if we've been waiting a little while."
+  (let ((start-time (current-time)))
+    (or (let ((inhibit-redisplay t))
+          (read-event nil nil xterm-query-redisplay-timeout))
+        (read-event nil nil
+                    (and xterm-query-timeout
+			 (max 0 (float-time
+				 (time-subtract
+				  xterm-query-timeout
+				  (time-since start-time)))))))))
+
 (defun xterm--query (query handlers &optional no-async)
   "Send QUERY string to the terminal and watch for a response.
 HANDLERS is an alist with elements of the form (STRING . FUNCTION).
@@ -749,7 +809,7 @@ We run the first FUNCTION whose STRING matches the input events."
         (let ((handler (pop handlers))
               (i 0))
           (while (and (< i (length (car handler)))
-                      (let ((evt (read-event nil nil xterm-query-timeout)))
+                      (let ((evt (xterm--read-event-for-query)))
                         (if (and (null evt) (= i 0) (not no-async))
                             ;; Timeout on the first event: fallback on async.
                             (progn
@@ -817,6 +877,8 @@ We run the first FUNCTION whose STRING matches the input events."
   ;; Unconditionally enable bracketed paste mode: terminals that don't
   ;; support it just ignore the sequence.
   (xterm--init-bracketed-paste-mode)
+  ;; We likewise unconditionally enable support for focus tracking.
+  (xterm--init-focus-tracking)
 
   (run-hooks 'terminal-init-xterm-hook))
 
@@ -831,6 +893,12 @@ We run the first FUNCTION whose STRING matches the input events."
   (send-string-to-terminal "\e[?2004h")
   (push "\e[?2004l" (terminal-parameter nil 'tty-mode-reset-strings))
   (push "\e[?2004h" (terminal-parameter nil 'tty-mode-set-strings)))
+
+(defun xterm--init-focus-tracking ()
+  "Terminal initialization for focus tracking mode."
+  (send-string-to-terminal "\e[?1004h")
+  (push "\e[?1004l" (terminal-parameter nil 'tty-mode-reset-strings))
+  (push "\e[?1004h" (terminal-parameter nil 'tty-mode-set-strings)))
 
 (defun xterm--init-activate-get-selection ()
   "Terminal initialization for `gui-get-selection'."
@@ -943,7 +1011,7 @@ hitting screen's max DCS length."
 
 (defun xterm-rgb-convert-to-16bit (prim)
   "Convert an 8-bit primary color value PRIM to a corresponding 16-bit value."
-  (logior prim (lsh prim 8)))
+  (logior prim (ash prim 8)))
 
 (defun xterm-register-default-colors (colors)
   "Register the default set of colors for xterm or compatible emulator.

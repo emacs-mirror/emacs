@@ -1,6 +1,6 @@
 ;;; pixel-scroll.el --- Scroll a line smoothly
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 ;; Author: Tak Kunihiro <tkk@misasa.okayama-u.ac.jp>
 ;; Keywords: mouse
 ;; Package: emacs
@@ -97,18 +97,16 @@ When scrolling request is delivered soon after the previous one,
 user is in hurry.  When the time since last scroll is larger than
 `pixel-dead-time', we are ready for another smooth scroll, and this
 function returns nil."
-  (let* ((current-time (float-time))
-         (scroll-in-rush-p (< (- current-time pixel-last-scroll-time)
-                              pixel-dead-time)))
-    (setq pixel-last-scroll-time current-time)
+  (let* ((now (current-time))
+	 (scroll-in-rush-p (time-less-p
+			    (time-subtract now pixel-last-scroll-time)
+			    pixel-dead-time)))
+    (setq pixel-last-scroll-time (float-time now))
     scroll-in-rush-p))
 
 ;;;###autoload
 (define-minor-mode pixel-scroll-mode
-  "A minor mode to scroll text pixel-by-pixel.
-With a prefix argument ARG, enable Pixel Scroll mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable Pixel Scroll mode
-if ARG is omitted or nil."
+  "A minor mode to scroll text pixel-by-pixel."
   :init-value nil
   :group 'scrolling
   :global t

@@ -1,6 +1,6 @@
 ;;; gnus-demon.el --- daemonic Gnus behavior
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -93,7 +93,7 @@ Emacs has been idle for IDLE `gnus-demon-timestep's."
 
 (defun gnus-demon-idle-since ()
   "Return the number of seconds since when Emacs is idle."
-  (float-time (or (current-idle-time) '(0 0 0))))
+  (float-time (or (current-idle-time) 0)))
 
 (defun gnus-demon-run-callback (func &optional idle time special)
   "Run FUNC if Emacs has been idle for longer than IDLE seconds.
@@ -192,11 +192,9 @@ marked with SPECIAL."
 			    (elt nowParts 6)
 			    (elt nowParts 7)
 			    (elt nowParts 8)))
-	 ;; calculate number of seconds between NOW and THEN
-	 (diff (+ (* 65536 (- (car then) (car now)))
-		  (- (cadr then) (cadr now)))))
-    ;; return number of timesteps in the number of seconds
-    (round (/ diff gnus-demon-timestep))))
+	 (diff (float-time (time-subtract then now))))
+    ;; Return number of timesteps in the number of seconds.
+    (round diff gnus-demon-timestep)))
 
 (gnus-add-shutdown 'gnus-demon-cancel 'gnus)
 

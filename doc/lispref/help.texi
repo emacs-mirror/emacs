@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Documentation
@@ -556,13 +556,15 @@ brackets.
 
 @defun text-char-description character
 This function returns a string describing @var{character} in the
-standard Emacs notation for characters that appear in text---like
-@code{single-key-description}, except that control characters are
-represented with a leading caret (which is how control characters in
-Emacs buffers are usually displayed).  Another difference is that
-@code{text-char-description} recognizes the 2**7 bit as the Meta
-character, whereas @code{single-key-description} uses the 2**27 bit
-for Meta.
+standard Emacs notation for characters that can appear in
+text---similar to @code{single-key-description}, except that the
+argument must be a valid character code that passes a
+@code{characterp} test (@pxref{Character Codes}).  The function
+produces descriptions of control characters with a leading caret
+(which is how Emacs usually displays control characters in buffers).
+Characters with modifier bits will cause this function to signal an
+error (@acronym{ASCII} characters with the Control modifier are an
+exception, they are represented as control characters).
 
 @smallexample
 @group
@@ -571,19 +573,7 @@ for Meta.
 @end group
 @group
 (text-char-description ?\M-m)
-     @result{} "\xed"
-@end group
-@group
-(text-char-description ?\C-\M-m)
-     @result{} "\x8d"
-@end group
-@group
-(text-char-description (+ 128 ?m))
-     @result{} "M-m"
-@end group
-@group
-(text-char-description (+ 128 ?\C-m))
-     @result{} "M-^M"
+     @error{} Wrong type argument: characterp, 134217837
 @end group
 @end smallexample
 @end defun

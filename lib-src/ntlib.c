@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
 
-Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 Author: Geoff Voelker (voelker@cs.washington.edu)
 Created: 10-8-94
@@ -31,6 +31,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <sys/timeb.h>
 #include <mbstring.h>
+#include <locale.h>
+
+#include <nl_types.h>
+#include <langinfo.h>
 
 #include "ntlib.h"
 
@@ -286,8 +290,8 @@ is_exec (const char * name)
 /* FIXME?  This is in configure.ac now - is this still needed?  */
 #define IS_DIRECTORY_SEP(x) ((x) == '/' || (x) == '\\')
 
-/* We need this because nt/inc/sys/stat.h defines struct stat that is
-   incompatible with the MS run-time libraries.  */
+/* We need stat/fsfat below because nt/inc/sys/stat.h defines struct
+   stat that is incompatible with the MS run-time libraries.  */
 int
 stat (const char * path, struct stat * buf)
 {
@@ -373,7 +377,9 @@ stat (const char * path, struct stat * buf)
     buf->st_dev = _getdrive ();
   buf->st_rdev = buf->st_dev;
 
-  buf->st_size = wfd.nFileSizeLow;
+  buf->st_size = wfd.nFileSizeHigh;
+  buf->st_size <<= 32;
+  buf->st_size += wfd.nFileSizeLow;
 
   /* Convert timestamps to Unix format. */
   buf->st_mtime = convert_time (wfd.ftLastWriteTime);
@@ -404,6 +410,98 @@ lstat (const char * path, struct stat * buf)
   return stat (path, buf);
 }
 
+int
+fstat (int desc, struct stat * buf)
+{
+  HANDLE fh = (HANDLE) _get_osfhandle (desc);
+  BY_HANDLE_FILE_INFORMATION info;
+  unsigned __int64 fake_inode;
+  int permission;
+
+  if (!init)
+    {
+      /* Determine the delta between 1-Jan-1601 and 1-Jan-1970. */
+      SYSTEMTIME st;
+
+      st.wYear = 1970;
+      st.wMonth = 1;
+      st.wDay = 1;
+      st.wHour = 0;
+      st.wMinute = 0;
+      st.wSecond = 0;
+      st.wMilliseconds = 0;
+
+      SystemTimeToFileTime (&st, &utc_base_ft);
+      utc_base = (long double) utc_base_ft.dwHighDateTime
+	* 4096.0L * 1024.0L * 1024.0L + utc_base_ft.dwLowDateTime;
+      init = 1;
+    }
+
+  switch (GetFileType (fh) & ~FILE_TYPE_REMOTE)
+    {
+    case FILE_TYPE_DISK:
+      buf->st_mode = S_IFREG;
+      if (!GetFileInformationByHandle (fh, &info))
+	{
+	  errno = EACCES;
+	  return -1;
+	}
+      break;
+    case FILE_TYPE_PIPE:
+      buf->st_mode = S_IFIFO;
+      goto non_disk;
+    case FILE_TYPE_CHAR:
+    case FILE_TYPE_UNKNOWN:
+    default:
+      buf->st_mode = S_IFCHR;
+    non_disk:
+      memset (&info, 0, sizeof (info));
+      info.dwFileAttributes = 0;
+      info.ftCreationTime = utc_base_ft;
+      info.ftLastAccessTime = utc_base_ft;
+      info.ftLastWriteTime = utc_base_ft;
+    }
+
+  if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      buf->st_mode = S_IFDIR;
+
+  buf->st_nlink = info.nNumberOfLinks;
+  /* Might as well use file index to fake inode values, but this
+     is not guaranteed to be unique unless we keep a handle open
+     all the time. */
+  fake_inode = info.nFileIndexHigh;
+  fake_inode <<= 32;
+  fake_inode += info.nFileIndexLow;
+  buf->st_ino = fake_inode;
+
+  buf->st_dev = info.dwVolumeSerialNumber;
+  buf->st_rdev = info.dwVolumeSerialNumber;
+
+  buf->st_size = info.nFileSizeHigh;
+  buf->st_size <<= 32;
+  buf->st_size += info.nFileSizeLow;
+
+  /* Convert timestamps to Unix format. */
+  buf->st_mtime = convert_time (info.ftLastWriteTime);
+  buf->st_atime = convert_time (info.ftLastAccessTime);
+  if (buf->st_atime == 0) buf->st_atime = buf->st_mtime;
+  buf->st_ctime = convert_time (info.ftCreationTime);
+  if (buf->st_ctime == 0) buf->st_ctime = buf->st_mtime;
+
+  /* determine rwx permissions */
+  if (info.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+    permission = S_IREAD;
+  else
+    permission = S_IREAD | S_IWRITE;
+
+  if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    permission |= S_IEXEC;
+
+  buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
+
+  return 0;
+}
+
 /* On Windows, you cannot rename into an existing file.  */
 int
 sys_rename (const char *from, const char *to)
@@ -422,4 +520,67 @@ int
 sys_open (const char * path, int oflag, int mode)
 {
   return _open (path, oflag, mode);
+}
+
+/* Emulation of nl_langinfo that supports only CODESET.
+   Used in Gnulib regex.c.  */
+char *
+nl_langinfo (nl_item item)
+{
+  switch (item)
+    {
+      case CODESET:
+	{
+	  /* Shamelessly stolen from Gnulib's nl_langinfo.c, modulo
+	     CPP directives.  */
+	  static char buf[2 + 10 + 1];
+	  char const *locale = setlocale (LC_CTYPE, NULL);
+	  char *codeset = buf;
+	  size_t codesetlen;
+	  codeset[0] = '\0';
+
+	  if (locale && locale[0])
+	    {
+	      /* If the locale name contains an encoding after the
+		 dot, return it.  */
+	      char *dot = strchr (locale, '.');
+
+	      if (dot)
+		{
+		  /* Look for the possible @... trailer and remove it,
+		     if any.  */
+		  char *codeset_start = dot + 1;
+		  char const *modifier = strchr (codeset_start, '@');
+
+		  if (! modifier)
+		    codeset = codeset_start;
+		  else
+		    {
+		      codesetlen = modifier - codeset_start;
+		      if (codesetlen < sizeof buf)
+			{
+			  codeset = memcpy (buf, codeset_start, codesetlen);
+			  codeset[codesetlen] = '\0';
+			}
+		    }
+		}
+	    }
+	  /* If setlocale is successful, it returns the number of the
+	     codepage, as a string.  Otherwise, fall back on Windows
+	     API GetACP, which returns the locale's codepage as a
+	     number (although this doesn't change according to what
+	     the 'setlocale' call specified).  Either way, prepend
+	     "CP" to make it a valid codeset name.  */
+	  codesetlen = strlen (codeset);
+	  if (0 < codesetlen && codesetlen < sizeof buf - 2)
+	    memmove (buf + 2, codeset, codesetlen + 1);
+	  else
+	    sprintf (buf + 2, "%u", GetACP ());
+	  codeset = memcpy (buf, "CP", 2);
+
+	  return codeset;
+	}
+      default:
+	return (char *) "";
+    }
 }

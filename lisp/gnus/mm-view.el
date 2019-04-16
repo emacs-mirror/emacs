@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -370,10 +370,12 @@
 	  (enriched-decode (point-min) (point-max))))
       (mm-handle-set-undisplayer
        handle
-       `(lambda ()
-          (let ((inhibit-read-only t))
-	    (delete-region ,(copy-marker (point-min) t)
-			   ,(point-max-marker))))))))
+       (if (= (point-min) (point-max))
+	   #'ignore
+	 `(lambda ()
+	    (let ((inhibit-read-only t))
+	      (delete-region ,(copy-marker (point-min) t)
+			     ,(point-max-marker)))))))))
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
@@ -452,7 +454,7 @@
   "Insert HANDLE inline fontifying with MODE.
 If MODE is not set, try to find mode automatically."
   (let ((charset (mail-content-type-get (mm-handle-type handle) 'charset))
-	text coding-system)
+	text coding-system ovs)
     (unless (eq charset 'gnus-decoded)
       (mm-with-unibyte-buffer
 	(mm-insert-part handle)
@@ -474,34 +476,46 @@ If MODE is not set, try to find mode automatically."
 		     (mm-decode-string text charset))
 		    (t
 		     text)))
-      (require 'font-lock)
-      ;; I find font-lock a bit too verbose.
-      (let ((font-lock-verbose nil)
-	    (font-lock-support-mode nil)
+      (let ((font-lock-verbose nil)     ; font-lock is a bit too verbose.
 	    (enable-local-variables nil))
-	;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
-	;; Note: XEmacs people use `font-lock-mode-hook' to run those modes.
+        ;; We used to set font-lock-mode-hook to nil to avoid enabling
+        ;; support modes, but now that we use font-lock-ensure, support modes
+        ;; aren't a problem any more.  So we could probably get rid of this
+        ;; setting now, but it seems harmless and potentially still useful.
 	(set (make-local-variable 'font-lock-mode-hook) nil)
         (setq buffer-file-name (mm-handle-filename handle))
 	(with-demoted-errors
-	  (if mode
-	      (save-window-excursion
-		(switch-to-buffer (current-buffer))
-		(funcall mode))
+	    (if mode
+                (save-window-excursion
+                  ;; According to Katsumi Yamaoka <yamaoka@jpl.org>, org-mode
+                  ;; requires the buffer to be temporarily displayed here, but
+                  ;; I could not reproduce this problem.  Furthermore, if
+                  ;; there's such a problem, we should fix org-mode rather than
+                  ;; use switch-to-buffer which can have undesirable
+                  ;; side-effects!
+                  ;;(switch-to-buffer (current-buffer))
+	          (funcall mode))
 	    (let ((auto-mode-alist
 		   (delq (rassq 'doc-view-mode-maybe auto-mode-alist)
 			 (copy-sequence auto-mode-alist))))
-	      (set-auto-mode)))
-	  ;; The mode function might have already turned on font-lock.
+	      (set-auto-mode)
+	      (setq mode major-mode)))
 	  ;; Do not fontify if the guess mode is fundamental.
-	  (unless (or font-lock-mode
-		      (eq major-mode 'fundamental-mode))
+	  (unless (eq major-mode 'fundamental-mode)
 	    (font-lock-ensure))))
       (setq text (buffer-string))
+      (when (eq mode 'diff-mode)
+	(setq ovs (mapcar (lambda (ov) (list ov (overlay-start ov)
+	                                        (overlay-end ov)))
+	                  (overlays-in (point-min) (point-max)))))
       ;; Set buffer unmodified to avoid confirmation when killing the
       ;; buffer.
       (set-buffer-modified-p nil))
-    (mm-insert-inline handle text)))
+    (let ((b (- (point) (save-restriction (widen) (point-min)))))
+      (mm-insert-inline handle text)
+      (dolist (ov ovs)
+	(move-overlay (nth 0 ov) (+ (nth 1 ov) b)
+	                         (+ (nth 2 ov) b) (current-buffer))))))
 
 ;; Shouldn't these functions check whether the user even wants to use
 ;; font-lock?  Also, it would be nice to change for the size of the

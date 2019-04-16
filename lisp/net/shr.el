@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -65,6 +65,13 @@ fit these criteria."
 (defcustom shr-use-fonts t
   "If non-nil, use proportional fonts for text."
   :version "25.1"
+  :group 'shr
+  :type 'boolean)
+
+(defcustom shr-discard-aria-hidden nil
+  "If non-nil, don't render tags with `aria-hidden=\"true\"'.
+This attribute is meant to tell screen readers to ignore a tag."
+  :version "27.1"
   :group 'shr
   :type 'boolean)
 
@@ -314,9 +321,9 @@ under point instead."
 
 (defun shr-copy-url (url)
   "Copy the URL under point to the kill ring.
-If IMAGE-URL (the prefix) is non-nil, or there is no link under
-point, but there is an image under point then copy the URL of the
-image under point instead."
+With a prefix argument, or if there is no link under point, but
+there is an image under point then copy the URL of the image
+under point instead."
   (interactive (list (shr-url-at-point current-prefix-arg)))
   (if (not url)
       (message "No URL under point")
@@ -509,7 +516,9 @@ size, and full-buffer size."
 					shr-stylesheet))
 	  (setq style nil)))
       ;; If we have a display:none, then just ignore this part of the DOM.
-      (unless (equal (cdr (assq 'display shr-stylesheet)) "none")
+      (unless (or (equal (cdr (assq 'display shr-stylesheet)) "none")
+                  (and shr-discard-aria-hidden
+                       (equal (dom-attr dom 'aria-hidden) "true")))
         ;; We don't use shr-indirect-call here, since shr-descend is
         ;; the central bit of shr.el, and should be as fast as
         ;; possible.  Having one more level of indirection with its
@@ -1560,6 +1569,10 @@ The preference is a float determined from `shr-prefer-media-type'."
 	(when (zerop (length alt))
 	  (setq alt "*"))
 	(cond
+         ((null url)
+          ;; After further expansion, there turned out to be no valid
+          ;; src in the img after all.
+          )
 	 ((or (member (dom-attr dom 'height) '("0" "1"))
 	      (member (dom-attr dom 'width) '("0" "1")))
 	  ;; Ignore zero-sized or single-pixel images.
@@ -1742,7 +1755,14 @@ The preference is a float determined from `shr-prefer-media-type'."
 
 (defun shr-tag-ol (dom)
   (shr-ensure-paragraph)
-  (let ((shr-list-mode 1))
+  (let* ((attrs (dom-attributes dom))
+         (start-attr (alist-get 'start attrs))
+         ;; Start at 1 if there is no start attribute
+         ;; or if start can't be parsed as an integer.
+         (start-index (condition-case _
+                          (cl-parse-integer start-attr)
+                        (t 1)))
+         (shr-list-mode start-index))
     (shr-generic dom))
   (shr-ensure-paragraph))
 

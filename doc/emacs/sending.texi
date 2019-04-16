@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Sending Mail
@@ -70,7 +70,7 @@ or using some other method.  @xref{Mail Sending}, for details.
 
 @example
 To: subotai@@example.org
-Cc: mongol.soldier@@example.net, rms@@gnu.org
+CC: mongol.soldier@@example.net, rms@@gnu.org
 Subject: Re: What is best in life?
 From: conan@@example.org
 --text follows this line--
@@ -82,7 +82,7 @@ hear the lamentation of their women.
 At the top of the mail buffer is a set of @dfn{header fields}, which
 are used for specifying information about the email's recipient(s),
 subject, and so on.  The above buffer contains header fields for
-@samp{To}, @samp{Cc}, @samp{Subject}, and @samp{From}.  Some header
+@samp{To}, @samp{CC}, @samp{Subject}, and @samp{From}.  Some header
 fields are automatically pre-initialized in the mail buffer, when
 appropriate.
 
@@ -152,32 +152,32 @@ more than one address, use commas to separate them.
 @item Subject
 The subject of the message.
 
-@item Cc
+@item CC
 Additional mailing address(es) to send the message to.  This is like
 @samp{To}, except that these readers should not regard the message as
 directed at them.
 
-@item Bcc
+@item BCC
 Additional mailing address(es) to send the message to, which should
-not appear in the header of the message actually sent.  @samp{Bcc} stands
+not appear in the header of the message actually sent.  @samp{BCC} stands
 for @dfn{blind carbon copies}.
 
-@item Fcc
+@item FCC
 The name of a file, to which a copy of the sent message should be
 appended.  Emacs writes the message in mbox format, unless the file is
 in Babyl format (used by Rmail before Emacs 23), in which case Emacs
 writes in Babyl format.  If an Rmail buffer is visiting the file,
 Emacs updates it accordingly.  To specify more than one file, use
-several @samp{Fcc} fields, with one file name in each field.
+several @samp{FCC} fields, with one file name in each field.
 
-@item Reply-to
+@item Reply-To
 An address to which replies should be sent, instead of @samp{From}.
 This is used if, for some reason, your @samp{From} address cannot
 receive replies.
 
-@item Mail-reply-to
-This field takes precedence over @samp{Reply-to}.  It is used because
-some mailing lists set the @samp{Reply-to} field for their own
+@item Mail-Reply-To
+This field takes precedence over @samp{Reply-To}.  It is used because
+some mailing lists set the @samp{Reply-To} field for their own
 purposes (a somewhat controversial practice).
 
 @item Mail-Followup-To
@@ -186,19 +186,19 @@ messages.  This is typically used when you reply to a message from a
 mailing list that you are subscribed to, and want replies to go to the
 list without sending an extra copy to you.
 
-@item In-reply-to
+@item In-Reply-To
 An identifier for the message you are replying to.  Most mail readers
 use this information to group related messages together.  Normally,
 this header is filled in automatically when you reply to a message in
 any mail program built into Emacs.
 
 @item References
-Identifiers for previous related messages.  Like @samp{In-reply-to},
+Identifiers for previous related messages.  Like @samp{In-Reply-To},
 this is normally filled in automatically for you.
 @end table
 
 @noindent
-The @samp{To}, @samp{Cc}, and @samp{Bcc} fields can appear any number
+The @samp{To}, @samp{CC}, and @samp{BCC} fields can appear any number
 of times, and each such header field can contain multiple addresses,
 separated by commas.  This way, you can specify any number of places
 to send the message.  These fields can also have continuation lines:
@@ -220,12 +220,12 @@ To: foo@@example.net, this@@example.net,
   You can direct Emacs to insert certain default headers into the mail
 buffer by setting the variable @code{mail-default-headers} to a
 string.  Then @kbd{C-x m} inserts this string into the message
-headers.  For example, here is how to add a @samp{Reply-to} and
-@samp{Fcc} header to each message:
+headers.  For example, here is how to add a @samp{Reply-To} and
+@samp{FCC} header to each message:
 
 @smallexample
 (setq mail-default-headers
-      "Reply-to: foo@@example.com\nFcc: ~/Mail/sent")
+      "Reply-To: foo@@example.com\nFCC: ~/Mail/sent")
 @end smallexample
 
 @noindent
@@ -293,7 +293,7 @@ alias definitions and include commands.
   Mail aliases expand as abbrevs---that is to say, as soon as you type
 a word-separator character after an alias (@pxref{Abbrevs}).  This
 expansion takes place only within the @samp{To}, @samp{From},
-@samp{Cc}, @samp{Bcc}, and @samp{Reply-to} header fields (plus their
+@samp{CC}, @samp{BCC}, and @samp{Reply-To} header fields (plus their
 @samp{Resent-} variants); it does not take place in other header
 fields, such as @samp{Subject}.
 
@@ -418,16 +418,16 @@ Move to the @samp{To} header (@code{message-goto-to}).
 @item C-c C-f C-s
 Move to the @samp{Subject} header (@code{message-goto-subject}).
 @item C-c C-f C-c
-Move to the @samp{Cc} header (@code{message-goto-cc}).
+Move to the @samp{CC} header (@code{message-goto-cc}).
 @item C-c C-f C-b
-Move to the @samp{Bcc} header (@code{message-goto-bcc}).
+Move to the @samp{BCC} header (@code{message-goto-bcc}).
 @item C-c C-f C-r
-Move to the @samp{Reply-to} header (@code{message-goto-reply-to}).
+Move to the @samp{Reply-To} header (@code{message-goto-reply-to}).
 @item C-c C-f C-f
 Move to the @samp{Mail-Followup-To} header field
 (@code{message-goto-followup-to}).
 @item C-c C-f C-w
-Add a new @samp{Fcc} header field, with file-name completion
+Add a new @samp{FCC} header field, with file-name completion
 (@code{message-goto-fcc}).
 @item C-c C-b
 Move to the start of the message body (@code{message-goto-body}).
@@ -463,7 +463,7 @@ the body.
 @findex message-tab
 @kindex TAB @r{(Message mode)}
   While editing a header field that contains addresses, such as
-@samp{To:}, @samp{Cc:} and @samp{Bcc:}, you can complete an address by
+@samp{To:}, @samp{CC:} and @samp{BCC:}, you can complete an address by
 typing @key{TAB} (@code{message-tab}).  This attempts to insert the
 full name corresponding to the address based on a couple of methods,
 including EUDC, a library that recognizes a number of directory server

@@ -1,6 +1,6 @@
 /* Process support for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1992, 1995, 1999-2018 Free Software Foundation, Inc.
+Copyright (C) 1992, 1995, 1999-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -80,6 +80,82 @@ static signal_handler sig_handlers[NSIG];
 static sigset_t sig_mask;
 
 static CRITICAL_SECTION crit_sig;
+
+/* Catch memory allocation before the heap allocation scheme is set
+   up.  These functions should never be called, unless code is added
+   early on in 'main' that runs before init_heap is called.  */
+_Noreturn void * malloc_before_init (size_t);
+_Noreturn void * realloc_before_init (void *, size_t);
+_Noreturn void   free_before_init (void *);
+
+_Noreturn void *
+malloc_before_init (size_t size)
+{
+  fprintf (stderr,
+	   "error: 'malloc' called before setting up heap allocation; exiting.\n");
+  exit (-1);
+}
+
+_Noreturn void *
+realloc_before_init (void *ptr, size_t size)
+{
+  fprintf (stderr,
+	   "error: 'realloc' called before setting up heap allocation; exiting.\n");
+  exit (-1);
+}
+
+_Noreturn void
+free_before_init (void *ptr)
+{
+  fprintf (stderr,
+	   "error: 'free' called before setting up heap allocation; exiting.\n");
+  exit (-1);
+}
+
+extern BOOL ctrl_c_handler (unsigned long type);
+
+/* MinGW64 doesn't add a leading underscore to external symbols,
+   whereas configure.ac sets up LD_SWITCH_SYSTEM_TEMACS to force the
+   entry point at __start, with two underscores.  */
+#ifdef __MINGW64__
+#define _start __start
+#endif
+
+extern void mainCRTStartup (void);
+
+/* Startup code for running on NT.  When we are running as the dumped
+   version, we need to bootstrap our heap and .bss section into our
+   address space before we can actually hand off control to the startup
+   code supplied by NT (primarily because that code relies upon malloc ()).  */
+void _start (void);
+
+void
+_start (void)
+{
+
+#if 1
+  /* Give us a way to debug problems with crashes on startup when
+     running under the MSVC profiler. */
+  if (GetEnvironmentVariable ("EMACS_DEBUG", NULL, 0) > 0)
+    DebugBreak ();
+#endif
+
+  the_malloc_fn = malloc_before_init;
+  the_realloc_fn = realloc_before_init;
+  the_free_fn = free_before_init;
+
+  /* Cache system info, e.g., the NT page size.  */
+  cache_system_info ();
+
+  /* This prevents ctrl-c's in shells running while we're suspended from
+     having us exit.  */
+  SetConsoleCtrlHandler ((PHANDLER_ROUTINE) ctrl_c_handler, TRUE);
+
+  /* Prevent Emacs from being locked up (eg. in batch mode) when
+     accessing devices that aren't mounted (eg. removable media drives).  */
+  SetErrorMode (SEM_FAILCRITICALERRORS);
+  mainCRTStartup ();
+}
 
 /* Improve on the CRT 'signal' implementation so that we could record
    the SIGCHLD handler and fake interval timers.  */
@@ -548,9 +624,8 @@ init_timers (void)
      through a pointer.  */
   s_pfn_Get_Thread_Times = NULL; /* in case dumped Emacs comes with a value */
   if (os_subtype != OS_9X)
-    s_pfn_Get_Thread_Times =
-      (GetThreadTimes_Proc)GetProcAddress (GetModuleHandle ("kernel32.dll"),
-					   "GetThreadTimes");
+    s_pfn_Get_Thread_Times = (GetThreadTimes_Proc)
+      get_proc_addr (GetModuleHandle ("kernel32.dll"), "GetThreadTimes");
 
   /* Make sure we start with zeroed out itimer structures, since
      dumping may have left there traces of threads long dead.  */
@@ -1529,6 +1604,78 @@ waitpid (pid_t pid, int *status, int options)
   return pid;
 }
 
+int
+open_input_file (file_data *p_file, char *filename)
+{
+  HANDLE file;
+  HANDLE file_mapping;
+  void  *file_base;
+  unsigned long size, upper_size;
+
+  file = CreateFileA (filename, GENERIC_READ, FILE_SHARE_READ, NULL,
+		      OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+  if (file == INVALID_HANDLE_VALUE)
+    return FALSE;
+
+  size = GetFileSize (file, &upper_size);
+  file_mapping = CreateFileMapping (file, NULL, PAGE_READONLY,
+				    0, size, NULL);
+  if (!file_mapping)
+    return FALSE;
+
+  file_base = MapViewOfFile (file_mapping, FILE_MAP_READ, 0, 0, size);
+  if (file_base == 0)
+    return FALSE;
+
+  p_file->name = filename;
+  p_file->size = size;
+  p_file->file = file;
+  p_file->file_mapping = file_mapping;
+  p_file->file_base = file_base;
+
+  return TRUE;
+}
+
+/* Return pointer to section header for section containing the given
+   relative virtual address. */
+IMAGE_SECTION_HEADER *
+rva_to_section (DWORD_PTR rva, IMAGE_NT_HEADERS * nt_header)
+{
+  PIMAGE_SECTION_HEADER section;
+  int i;
+
+  section = IMAGE_FIRST_SECTION (nt_header);
+
+  for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
+    {
+      /* Some linkers (eg. the NT SDK linker I believe) swapped the
+	 meaning of these two values - or rather, they ignored
+	 VirtualSize entirely and always set it to zero.  This affects
+	 some very old exes (eg. gzip dated Dec 1993).  Since
+	 w32_executable_type relies on this function to work reliably,
+	 we need to cope with this.  */
+      DWORD_PTR real_size = max (section->SizeOfRawData,
+			     section->Misc.VirtualSize);
+      if (rva >= section->VirtualAddress
+	  && rva < section->VirtualAddress + real_size)
+	return section;
+      section++;
+    }
+  return NULL;
+}
+
+/* Close the system structures associated with the given file.  */
+void
+close_file_data (file_data *p_file)
+{
+  UnmapViewOfFile (p_file->file_base);
+  CloseHandle (p_file->file_mapping);
+  /* For the case of output files, set final size.  */
+  SetFilePointer (p_file->file, p_file->size, NULL, FILE_BEGIN);
+  SetEndOfFile (p_file->file);
+  CloseHandle (p_file->file);
+}
+
 /* Old versions of w32api headers don't have separate 32-bit and
    64-bit defines, but the one they have matches the 32-bit variety.  */
 #ifndef IMAGE_NT_OPTIONAL_HDR32_MAGIC
@@ -1629,22 +1776,27 @@ w32_executable_type (char * filename,
           if (data_dir)
             {
               /* Look for Cygwin DLL in the DLL import list. */
-              IMAGE_DATA_DIRECTORY import_dir =
-                data_dir[IMAGE_DIRECTORY_ENTRY_IMPORT];
+              IMAGE_DATA_DIRECTORY import_dir
+                = data_dir[IMAGE_DIRECTORY_ENTRY_IMPORT];
 
 	      /* Import directory can be missing in .NET DLLs.  */
 	      if (import_dir.VirtualAddress != 0)
 		{
+		  IMAGE_SECTION_HEADER *section
+		    = rva_to_section (import_dir.VirtualAddress, nt_header);
+		  if (!section)
+		    emacs_abort ();
+
 		  IMAGE_IMPORT_DESCRIPTOR * imports =
-		    RVA_TO_PTR (import_dir.VirtualAddress,
-				rva_to_section (import_dir.VirtualAddress,
-						nt_header),
+		    RVA_TO_PTR (import_dir.VirtualAddress, section,
 				executable);
 
 		  for ( ; imports->Name; imports++)
 		    {
-		      IMAGE_SECTION_HEADER * section =
-			rva_to_section (imports->Name, nt_header);
+		      section = rva_to_section (imports->Name, nt_header);
+		      if (!section)
+			emacs_abort ();
+
 		      char * dllname = RVA_TO_PTR (imports->Name, section,
 						   executable);
 
@@ -1766,7 +1918,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     {
       program = build_string (cmdname);
       full = Qnil;
-      openp (Vexec_path, program, Vexec_suffixes, &full, make_number (X_OK), 0);
+      openp (Vexec_path, program, Vexec_suffixes, &full, make_fixnum (X_OK), 0);
       if (NILP (full))
 	{
 	  errno = EINVAL;
@@ -1855,9 +2007,9 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     }
 
   /* we have to do some conjuring here to put argv and envp into the
-     form CreateProcess wants...  argv needs to be a space separated/null
-     terminated list of parameters, and envp is a null
-     separated/double-null terminated list of parameters.
+     form CreateProcess wants...  argv needs to be a space separated/NUL
+     terminated list of parameters, and envp is a NUL
+     separated/double-NUL terminated list of parameters.
 
      Additionally, zero-length args and args containing whitespace or
      quote chars need to be wrapped in double quotes - for this to work,
@@ -1889,8 +2041,8 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       do_quoting = 1;
       /* Override escape char by binding w32-quote-process-args to
 	 desired character, or use t for auto-selection.  */
-      if (INTEGERP (Vw32_quote_process_args))
-	escape_char = XINT (Vw32_quote_process_args);
+      if (FIXNUMP (Vw32_quote_process_args))
+	escape_char = XFIXNUM (Vw32_quote_process_args);
       else
 	escape_char = (is_cygnus_app || is_msys_app) ? '"' : '\\';
     }
@@ -2691,8 +2843,8 @@ sys_kill (pid_t pid, int sig)
 	{
 	  g_b_init_debug_break_process = 1;
 	  s_pfn_Debug_Break_Process = (DebugBreakProcess_Proc)
-	    GetProcAddress (GetModuleHandle ("kernel32.dll"),
-			    "DebugBreakProcess");
+	    get_proc_addr (GetModuleHandle ("kernel32.dll"),
+                                  "DebugBreakProcess");
 	}
 
       if (s_pfn_Debug_Break_Process == NULL)
@@ -3017,13 +3169,13 @@ If successful, the return value is t, otherwise nil.  */)
       DWORD pid;
       child_process *cp;
 
-      CHECK_NUMBER (process);
+      CHECK_FIXNUM (process);
 
       /* Allow pid to be an internally generated one, or one obtained
 	 externally.  This is necessary because real pids on Windows 95 are
 	 negative.  */
 
-      pid = XINT (process);
+      pid = XFIXNUM (process);
       cp = find_child_pid (pid);
       if (cp != NULL)
 	pid = cp->procinfo.dwProcessId;
@@ -3101,6 +3253,12 @@ such programs cannot be invoked by Emacs anyway.  */)
 }
 
 #ifdef HAVE_LANGINFO_CODESET
+
+/* If we are compiling for compatibility with older 32-bit Windows
+   versions, this might not be defined by the Windows headers.  */
+#ifndef LOCALE_IPAPERSIZE
+# define LOCALE_IPAPERSIZE 0x100A
+#endif
 /* Emulation of nl_langinfo.  Used in fns.c:Flocale_info.  */
 char *
 nl_langinfo (nl_item item)
@@ -3113,7 +3271,8 @@ nl_langinfo (nl_item item)
     LOCALE_SMONTHNAME1, LOCALE_SMONTHNAME2, LOCALE_SMONTHNAME3,
     LOCALE_SMONTHNAME4, LOCALE_SMONTHNAME5, LOCALE_SMONTHNAME6,
     LOCALE_SMONTHNAME7, LOCALE_SMONTHNAME8, LOCALE_SMONTHNAME9,
-    LOCALE_SMONTHNAME10, LOCALE_SMONTHNAME11, LOCALE_SMONTHNAME12
+    LOCALE_SMONTHNAME10, LOCALE_SMONTHNAME11, LOCALE_SMONTHNAME12,
+    LOCALE_IPAPERSIZE, LOCALE_IPAPERSIZE
   };
 
   static char *nl_langinfo_buf = NULL;
@@ -3121,6 +3280,8 @@ nl_langinfo (nl_item item)
 
   if (nl_langinfo_len <= 0)
     nl_langinfo_buf = xmalloc (nl_langinfo_len = 1);
+
+  char *retval = nl_langinfo_buf;
 
   if (item < 0 || item >= _NL_NUM)
     nl_langinfo_buf[0] = 0;
@@ -3143,6 +3304,8 @@ nl_langinfo (nl_item item)
 	  if (nl_langinfo_len <= need_len)
 	    nl_langinfo_buf = xrealloc (nl_langinfo_buf,
 					nl_langinfo_len = need_len);
+	  retval = nl_langinfo_buf;
+
 	  if (!GetLocaleInfo (cloc, w32item[item] | LOCALE_USE_CP_ACP,
 			      nl_langinfo_buf, nl_langinfo_len))
 	    nl_langinfo_buf[0] = 0;
@@ -3159,9 +3322,32 @@ nl_langinfo (nl_item item)
 		  nl_langinfo_buf[1] = 'p';
 		}
 	    }
+	  else if (item == _NL_PAPER_WIDTH || item == _NL_PAPER_HEIGHT)
+	    {
+	      static const int paper_size[][2] =
+		{
+		 { -1, -1 },
+		 { 216, 279 },
+		 { -1, -1 },
+		 { -1, -1 },
+		 { -1, -1 },
+		 { 216, 356 },
+		 { -1, -1 },
+		 { -1, -1 },
+		 { 297, 420 },
+		 { 210, 297 }
+		};
+	      int idx = atoi (nl_langinfo_buf);
+	      if (0 <= idx && idx < ARRAYELTS (paper_size))
+		retval = (char *)(intptr_t) (item == _NL_PAPER_WIDTH
+					     ? paper_size[idx][0]
+					     : paper_size[idx][1]);
+	      else
+		retval = (char *)(intptr_t) -1;
+	    }
 	}
     }
-  return nl_langinfo_buf;
+  return retval;
 }
 #endif	/* HAVE_LANGINFO_CODESET */
 
@@ -3186,14 +3372,14 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
   char abbrev_name[32] = { 0 };
   char full_name[256] = { 0 };
 
-  CHECK_NUMBER (lcid);
+  CHECK_FIXNUM (lcid);
 
-  if (!IsValidLocale (XINT (lcid), LCID_SUPPORTED))
+  if (!IsValidLocale (XFIXNUM (lcid), LCID_SUPPORTED))
     return Qnil;
 
   if (NILP (longform))
     {
-      got_abbrev = GetLocaleInfo (XINT (lcid),
+      got_abbrev = GetLocaleInfo (XFIXNUM (lcid),
 				  LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
 				  abbrev_name, sizeof (abbrev_name));
       if (got_abbrev)
@@ -3201,21 +3387,21 @@ If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
     }
   else if (EQ (longform, Qt))
     {
-      got_full = GetLocaleInfo (XINT (lcid),
+      got_full = GetLocaleInfo (XFIXNUM (lcid),
 				LOCALE_SLANGUAGE | LOCALE_USE_CP_ACP,
 				full_name, sizeof (full_name));
       if (got_full)
 	return DECODE_SYSTEM (build_string (full_name));
     }
-  else if (NUMBERP (longform))
+  else if (FIXNUMP (longform))
     {
-      got_full = GetLocaleInfo (XINT (lcid),
-				XINT (longform),
+      got_full = GetLocaleInfo (XFIXNUM (lcid),
+				XFIXNUM (longform),
 				full_name, sizeof (full_name));
-      /* GetLocaleInfo's return value includes the terminating null
+      /* GetLocaleInfo's return value includes the terminating NUL
 	 character, when the returned information is a string, whereas
 	 make_unibyte_string needs the string length without the
-	 terminating null.  */
+	 terminating NUL.  */
       if (got_full)
 	return make_unibyte_string (full_name, got_full - 1);
     }
@@ -3231,7 +3417,7 @@ This is a numerical value; use `w32-get-locale-info' to convert to a
 human-readable form.  */)
   (void)
 {
-  return make_number (GetThreadLocale ());
+  return make_fixnum (GetThreadLocale ());
 }
 
 static DWORD
@@ -3260,7 +3446,7 @@ static BOOL CALLBACK ALIGN_STACK
 enum_locale_fn (LPTSTR localeNum)
 {
   DWORD id = int_from_hex (localeNum);
-  Vw32_valid_locale_ids = Fcons (make_number (id), Vw32_valid_locale_ids);
+  Vw32_valid_locale_ids = Fcons (make_fixnum (id), Vw32_valid_locale_ids);
   return TRUE;
 }
 
@@ -3289,8 +3475,8 @@ human-readable form.  */)
   (Lisp_Object userp)
 {
   if (NILP (userp))
-    return make_number (GetSystemDefaultLCID ());
-  return make_number (GetUserDefaultLCID ());
+    return make_fixnum (GetSystemDefaultLCID ());
+  return make_fixnum (GetUserDefaultLCID ());
 }
 
 
@@ -3299,20 +3485,20 @@ DEFUN ("w32-set-current-locale", Fw32_set_current_locale, Sw32_set_current_local
 If successful, the new locale id is returned, otherwise nil.  */)
   (Lisp_Object lcid)
 {
-  CHECK_NUMBER (lcid);
+  CHECK_FIXNUM (lcid);
 
-  if (!IsValidLocale (XINT (lcid), LCID_SUPPORTED))
+  if (!IsValidLocale (XFIXNUM (lcid), LCID_SUPPORTED))
     return Qnil;
 
-  if (!SetThreadLocale (XINT (lcid)))
+  if (!SetThreadLocale (XFIXNUM (lcid)))
     return Qnil;
 
   /* Need to set input thread locale if present.  */
   if (dwWindowsThreadId)
     /* Reply is not needed.  */
-    PostThreadMessage (dwWindowsThreadId, WM_EMACS_SETLOCALE, XINT (lcid), 0);
+    PostThreadMessage (dwWindowsThreadId, WM_EMACS_SETLOCALE, XFIXNUM (lcid), 0);
 
-  return make_number (GetThreadLocale ());
+  return make_fixnum (GetThreadLocale ());
 }
 
 
@@ -3324,7 +3510,7 @@ static BOOL CALLBACK ALIGN_STACK
 enum_codepage_fn (LPTSTR codepageNum)
 {
   DWORD id = atoi (codepageNum);
-  Vw32_valid_codepages = Fcons (make_number (id), Vw32_valid_codepages);
+  Vw32_valid_codepages = Fcons (make_fixnum (id), Vw32_valid_codepages);
   return TRUE;
 }
 
@@ -3347,7 +3533,7 @@ DEFUN ("w32-get-console-codepage", Fw32_get_console_codepage,
        doc: /* Return current Windows codepage for console input.  */)
   (void)
 {
-  return make_number (GetConsoleCP ());
+  return make_fixnum (GetConsoleCP ());
 }
 
 
@@ -3358,15 +3544,15 @@ This codepage setting affects keyboard input in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
   (Lisp_Object cp)
 {
-  CHECK_NUMBER (cp);
+  CHECK_FIXNUM (cp);
 
-  if (!IsValidCodePage (XINT (cp)))
+  if (!IsValidCodePage (XFIXNUM (cp)))
     return Qnil;
 
-  if (!SetConsoleCP (XINT (cp)))
+  if (!SetConsoleCP (XFIXNUM (cp)))
     return Qnil;
 
-  return make_number (GetConsoleCP ());
+  return make_fixnum (GetConsoleCP ());
 }
 
 
@@ -3375,7 +3561,7 @@ DEFUN ("w32-get-console-output-codepage", Fw32_get_console_output_codepage,
        doc: /* Return current Windows codepage for console output.  */)
   (void)
 {
-  return make_number (GetConsoleOutputCP ());
+  return make_fixnum (GetConsoleOutputCP ());
 }
 
 
@@ -3386,15 +3572,15 @@ This codepage setting affects display in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
   (Lisp_Object cp)
 {
-  CHECK_NUMBER (cp);
+  CHECK_FIXNUM (cp);
 
-  if (!IsValidCodePage (XINT (cp)))
+  if (!IsValidCodePage (XFIXNUM (cp)))
     return Qnil;
 
-  if (!SetConsoleOutputCP (XINT (cp)))
+  if (!SetConsoleOutputCP (XFIXNUM (cp)))
     return Qnil;
 
-  return make_number (GetConsoleOutputCP ());
+  return make_fixnum (GetConsoleOutputCP ());
 }
 
 
@@ -3412,17 +3598,17 @@ yield nil.  */)
   CHARSETINFO info;
   DWORD_PTR dwcp;
 
-  CHECK_NUMBER (cp);
+  CHECK_FIXNUM (cp);
 
-  if (!IsValidCodePage (XINT (cp)))
+  if (!IsValidCodePage (XFIXNUM (cp)))
     return Qnil;
 
   /* Going through a temporary DWORD_PTR variable avoids compiler warning
      about cast to pointer from integer of different size, when
      building --with-wide-int or building for 64bit.  */
-  dwcp = XINT (cp);
+  dwcp = XFIXNUM (cp);
   if (TranslateCharsetInfo ((DWORD *) dwcp, &info, TCI_SRCCODEPAGE))
-    return make_number (info.ciCharset);
+    return make_fixnum (info.ciCharset);
 
   return Qnil;
 }
@@ -3444,8 +3630,8 @@ The return value is a list of pairs of language id and layout id.  */)
 	{
 	  HKL kl = layouts[num_layouts];
 
-	  obj = Fcons (Fcons (make_number (LOWORD (kl)),
-			      make_number (HIWORD (kl))),
+	  obj = Fcons (Fcons (make_fixnum (LOWORD (kl)),
+			      make_fixnum (HIWORD (kl))),
 		       obj);
 	}
     }
@@ -3462,8 +3648,8 @@ The return value is the cons of the language id and the layout id.  */)
 {
   HKL kl = GetKeyboardLayout (dwWindowsThreadId);
 
-  return Fcons (make_number (LOWORD (kl)),
-		make_number (HIWORD (kl)));
+  return Fcons (make_fixnum (LOWORD (kl)),
+		make_fixnum (HIWORD (kl)));
 }
 
 
@@ -3477,11 +3663,11 @@ If successful, the new layout id is returned, otherwise nil.  */)
   HKL kl;
 
   CHECK_CONS (layout);
-  CHECK_NUMBER_CAR (layout);
-  CHECK_NUMBER_CDR (layout);
+  CHECK_FIXNUM (XCAR (layout));
+  CHECK_FIXNUM (XCDR (layout));
 
-  kl = (HKL) (UINT_PTR) ((XINT (XCAR (layout)) & 0xffff)
-			 | (XINT (XCDR (layout)) << 16));
+  kl = (HKL) (UINT_PTR) ((XFIXNUM (XCAR (layout)) & 0xffff)
+			 | (XFIXNUM (XCDR (layout)) << 16));
 
   /* Synchronize layout with input thread.  */
   if (dwWindowsThreadId)
@@ -3608,9 +3794,9 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
     {
       if (os_subtype == OS_9X)
 	{
-	  pCompareStringW =
-            (CompareStringW_Proc) GetProcAddress (LoadLibrary ("Unicows.dll"),
-                                                  "CompareStringW");
+	  pCompareStringW = (CompareStringW_Proc)
+            get_proc_addr (LoadLibrary ("Unicows.dll"),
+                                  "CompareStringW");
 	  if (!pCompareStringW)
 	    {
 	      errno = EINVAL;
@@ -3763,14 +3949,17 @@ them blocking when trying to access unmounted drives etc.  */);
 
   DEFVAR_INT ("w32-pipe-read-delay", w32_pipe_read_delay,
 	      doc: /* Forced delay before reading subprocess output.
-This is done to improve the buffering of subprocess output, by
-avoiding the inefficiency of frequently reading small amounts of data.
+This may need to be done to improve the buffering of subprocess output,
+by avoiding the inefficiency of frequently reading small amounts of data.
+Typically needed only with DOS programs on Windows 9X; set to 50 if
+throughput with such programs is slow.
 
 If positive, the value is the number of milliseconds to sleep before
-reading the subprocess output.  If negative, the magnitude is the number
-of time slices to wait (effectively boosting the priority of the child
-process temporarily).  A value of zero disables waiting entirely.  */);
-  w32_pipe_read_delay = 50;
+signaling that output from a subprocess is ready to be read.
+If negative, the value is the number of time slices to wait (effectively
+boosting the priority of the child process temporarily).
+A value of zero disables waiting entirely.  */);
+  w32_pipe_read_delay = 0;
 
   DEFVAR_INT ("w32-pipe-buffer-size", w32_pipe_buffer_size,
 	      doc: /* Size of buffer for pipes created to communicate with subprocesses.

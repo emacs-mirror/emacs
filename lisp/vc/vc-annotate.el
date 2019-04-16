@@ -1,6 +1,6 @@
 ;;; vc-annotate.el --- VC Annotate Support  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author:     Martin Lorentzson  <emwson@emw.ericsson.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -541,7 +541,9 @@ Return a cons (REV . FILENAME)."
 	(setq prev-rev
 	      (vc-call-backend vc-annotate-backend 'previous-revision
                                fname rev))
-	(vc-annotate-warp-revision prev-rev fname)))))
+	(if (not prev-rev)
+            (message "No previous revisions")
+          (vc-annotate-warp-revision prev-rev fname))))))
 
 (defvar log-view-vc-backend)
 (defvar log-view-vc-fileset)

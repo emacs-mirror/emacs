@@ -1,6 +1,6 @@
 ;;; image.el --- image API  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: multimedia
@@ -248,6 +248,7 @@ compatibility with versions of Emacs that lack the variable
 ;; Used to be in image-type-header-regexps, but now not used anywhere
 ;; (since 2009-08-28).
 (defun image-jpeg-p (data)
+  (declare (obsolete "It is unused inside Emacs and will be removed." "27.1"))
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
   (setq data (ignore-errors (string-to-unibyte data)))
@@ -260,7 +261,7 @@ We accept the tag Exif because that is the same format."
 	  (setq i (1+ i))
 	  (when (>= (+ i 2) len)
 	    (throw 'jfif nil))
-	  (let ((nbytes (+ (lsh (aref data (+ i 1)) 8)
+	  (let ((nbytes (+ (ash (aref data (+ i 1)) 8)
 			   (aref data (+ i 2))))
 		(code (aref data i)))
 	    (when (and (>= code #xe0) (<= code #xef))
@@ -414,13 +415,20 @@ must be available."
 (defun create-image (file-or-data &optional type data-p &rest props)
   "Create an image.
 FILE-OR-DATA is an image file name or image data.
+
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
 of image data.  If that doesn't work, and FILE-OR-DATA is a file name,
 use its file extension as image type.
+
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
+
 Optional PROPS are additional image attributes to assign to the image,
-like, e.g. `:mask MASK'.
+like, e.g. `:mask MASK'.  If the property `:scale' is not given and the
+display has a high resolution (more exactly, when the average width of a
+character in the default font is more than 10 pixels), the image is
+automatically scaled up in proportion to the default font.
+
 Value is the image created, or nil if images of type TYPE are not supported.
 
 Images should not be larger than specified by `max-image-size'.
@@ -796,19 +804,22 @@ If the image has a non-nil :speed property, it acts as a multiplier
 for the animation speed.  A negative value means to animate in reverse."
   (when (and (buffer-live-p (plist-get (cdr image) :animate-buffer))
              ;; Delayed more than two seconds more than expected.
-	     (or (<= (- (float-time) target-time) 2)
+	     (or (time-less-p (time-since target-time) 2)
 		 (progn
 		   (message "Stopping animation; animation possibly too big")
 		   nil)))
     (image-show-frame image n t)
     (let* ((speed (image-animate-get-speed image))
-	   (time (float-time))
+	   (time (current-time))
 	   (animation (image-multi-frame-p image))
+	   (time-to-load-image (time-since time))
+	   (stated-delay-time (/ (or (cdr animation)
+				     image-default-frame-delay)
+				 (float (abs speed))))
 	   ;; Subtract off the time we took to load the image from the
 	   ;; stated delay time.
-	   (delay (max (+ (* (or (cdr animation) image-default-frame-delay)
-			     (/ 1.0 (abs speed)))
-			  time (- (float-time)))
+	   (delay (max (float-time (time-subtract stated-delay-time
+						  time-to-load-image))
 		       image-minimum-frame-delay))
 	   done)
       (setq n (if (< speed 0)
@@ -917,7 +928,7 @@ has no effect."
   :version "24.3")
 
 (defcustom imagemagick-enabled-types
-  '(3FR ART ARW AVS BMP BMP2 BMP3 CAL CALS CMYK CMYKA CR2 CRW
+  '(3FR ARW AVS BMP BMP2 BMP3 CAL CALS CMYK CMYKA CR2 CRW
     CUR CUT DCM DCR DCX DDS DJVU DNG DPX EXR FAX FITS GBR GIF
     GIF87 GRB HRZ ICB ICO ICON J2C JNG JP2 JPC JPEG JPG JPX K25
     KDC MIFF MNG MRW MSL MSVG MTV NEF ORF OTB PBM PCD PCDS PCL
@@ -951,7 +962,7 @@ has no effect."
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (imagemagick-register-types))
-  :version "24.3")
+  :version "26.2")                      ; remove ART (bug#22289)
 
 (imagemagick-register-types)
 
@@ -981,8 +992,8 @@ default is 20%."
     image))
 
 (defun image--get-imagemagick-and-warn ()
-  (unless (or (fboundp 'imagemagick-types) (featurep 'ns))
-    (error "Cannot rescale images without ImageMagick support"))
+  (unless (or (fboundp 'imagemagick-types) (image-scaling-p))
+    (error "Cannot rescale images on this terminal"))
   (let ((image (image--get-image)))
     (image-flush image)
     (when (fboundp 'imagemagick-types)

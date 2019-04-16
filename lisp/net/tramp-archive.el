@@ -1,6 +1,6 @@
 ;;; tramp-archive.el --- Tramp archive manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -108,7 +108,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(require 'tramp-gvfs)
+;; Sometimes, compilation fails with "Variable binding depth exceeds
+;; max-specpdl-size".
+(eval-and-compile
+  (let ((max-specpdl-size (* 2 max-specpdl-size))) (require 'tramp-gvfs)))
 
 (autoload 'dired-uncache "dired")
 (autoload 'url-tramp-convert-url-to-tramp "url-tramp")
@@ -117,7 +120,7 @@
 (defvar url-tramp-protocols)
 
 ;; We cannot check `tramp-gvfs-enabled' in loaddefs.el, because this
-;; would load Tramp. So we make a cheaper check.
+;; would load Tramp.  So we make a cheaper check.
 ;;;###autoload
 (defvar tramp-archive-enabled (featurep 'dbusbind)
   "Non-nil when file archive support is available.")
@@ -174,7 +177,7 @@ It must be supported by libarchive(3).")
 ;;;###autoload
 (progn (defmacro tramp-archive-autoload-file-name-regexp ()
   "Regular expression matching archive file names."
-  `(concat
+  '(concat
     "\\`" "\\(" ".+" "\\."
       ;; Default suffixes ...
       (regexp-opt tramp-archive-suffixes)
@@ -198,15 +201,15 @@ It must be supported by libarchive(3).")
 (defconst tramp-archive-all-gvfs-methods
   (cons tramp-archive-method
 	(let ((values (cdr (cadr (get 'tramp-gvfs-methods 'custom-type)))))
-	  (setq values (mapcar 'last values)
-		values (mapcar 'car values))))
+	  (setq values (mapcar #'last values)
+		values (mapcar #'car values))))
   "List of all methods `tramp-gvfs-methods' offers.")
 
 
 ;; New handlers should be added here.
 ;;;###tramp-autoload
 (defconst tramp-archive-file-name-handler-alist
-  '((access-file . ignore)
+  '((access-file . tramp-archive-handle-access-file)
     (add-name-to-file . tramp-archive-handle-not-implemented)
     ;; `byte-compiler-base-file-name' performed by default handler.
     ;; `copy-directory' performed by default handler.
@@ -220,6 +223,7 @@ It must be supported by libarchive(3).")
      . tramp-handle-directory-files-and-attributes)
     (dired-compress-file . tramp-archive-handle-not-implemented)
     (dired-uncache . tramp-archive-handle-dired-uncache)
+    (exec-path . ignore)
     ;; `expand-file-name' performed by default handler.
     (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
     (file-acl . ignore)
@@ -252,7 +256,6 @@ It must be supported by libarchive(3).")
     (file-truename . tramp-archive-handle-file-truename)
     (file-writable-p . ignore)
     (find-backup-file-name . ignore)
-    ;; `find-file-noselect' performed by default handler.
     ;; `get-file-buffer' performed by default handler.
     (insert-directory . tramp-archive-handle-insert-directory)
     (insert-file-contents . tramp-archive-handle-insert-file-contents)
@@ -261,6 +264,7 @@ It must be supported by libarchive(3).")
     (make-directory . tramp-archive-handle-not-implemented)
     (make-directory-internal . tramp-archive-handle-not-implemented)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
+    (make-process . ignore)
     (make-symbolic-link . tramp-archive-handle-not-implemented)
     (process-file . ignore)
     (rename-file . tramp-archive-handle-not-implemented)
@@ -273,6 +277,7 @@ It must be supported by libarchive(3).")
     (start-file-process . tramp-archive-handle-not-implemented)
     ;; `substitute-in-file-name' performed by default handler.
     (temporary-file-directory . tramp-archive-handle-temporary-file-directory)
+    ;; `tramp-set-file-uid-gid' performed by default handler.
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
@@ -282,8 +287,9 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 
 (defsubst tramp-archive-file-name-for-operation (operation &rest args)
   "Like `tramp-file-name-for-operation', but for archive file name syntax."
-  (cl-letf (((symbol-function 'tramp-tramp-file-p) 'tramp-archive-file-name-p))
-    (apply 'tramp-file-name-for-operation operation args)))
+  (cl-letf (((symbol-function #'tramp-tramp-file-p)
+	     #'tramp-archive-file-name-p))
+    (apply #'tramp-file-name-for-operation operation args)))
 
 (defun tramp-archive-run-real-handler (operation args)
   "Invoke normal file name handler for OPERATION.
@@ -302,27 +308,37 @@ pass to the OPERATION."
   "Invoke the file archive related OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
-  (let* ((filename (apply 'tramp-archive-file-name-for-operation
-			  operation args))
-	 (archive (tramp-archive-file-name-archive filename)))
-    ;; The file archive could be a directory, see Bug#30293.
-    (if (and archive
-	     (tramp-archive-run-real-handler 'file-directory-p (list archive)))
-	(tramp-archive-run-real-handler operation args)
-      ;; Now run the handler.
-      (unless tramp-archive-enabled
-	(tramp-user-error nil "Package `tramp-archive' not supported"))
-      (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
-	    (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
-	    ;; Set uid and gid.  gvfsd-archive could do it, but it doesn't.
-	    (tramp-unknown-id-integer (user-uid))
-	    (tramp-unknown-id-string (user-login-name))
-	    (fn (assoc operation tramp-archive-file-name-handler-alist)))
-	(when (eq (cdr fn) 'tramp-archive-handle-not-implemented)
-	  (setq args (cons operation args)))
-	(if fn
-	    (save-match-data (apply (cdr fn) args))
-	  (tramp-archive-run-real-handler operation args))))))
+    (if (not tramp-archive-enabled)
+        ;; Unregister `tramp-archive-file-name-handler'.
+        (progn
+          (tramp-register-file-name-handlers)
+          (tramp-archive-run-real-handler operation args))
+
+      (let* ((filename (apply #'tramp-archive-file-name-for-operation
+			      operation args))
+	     (archive (tramp-archive-file-name-archive filename)))
+
+        ;; The file archive could be a directory, see Bug#30293.
+        (if (and archive
+	         (tramp-archive-run-real-handler
+                  #'file-directory-p (list archive)))
+            (tramp-archive-run-real-handler operation args)
+          ;; Now run the handler.
+          (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
+	        (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
+	        ;; Set uid and gid.  gvfsd-archive could do it, but it doesn't.
+	        (tramp-unknown-id-integer (user-uid))
+	        (tramp-unknown-id-string (user-login-name))
+	        (fn (assoc operation tramp-archive-file-name-handler-alist)))
+	    (when (eq (cdr fn) #'tramp-archive-handle-not-implemented)
+	      (setq args (cons operation args)))
+	    (if fn
+	        (save-match-data (apply (cdr fn) args))
+	      (tramp-archive-run-real-handler operation args)))))))
+
+;;;###autoload
+(defalias
+  'tramp-archive-autoload-file-name-handler #'tramp-autoload-file-name-handler)
 
 ;;;###autoload
 (progn (defun tramp-register-archive-file-name-handler ()
@@ -330,17 +346,17 @@ pass to the OPERATION."
   (when tramp-archive-enabled
     (add-to-list 'file-name-handler-alist
 	         (cons (tramp-archive-autoload-file-name-regexp)
-		       'tramp-autoload-file-name-handler))
-    (put 'tramp-archive-file-name-handler 'safe-magic t))))
+		       #'tramp-archive-autoload-file-name-handler))
+    (put 'tramp-archive-autoload-file-name-handler 'safe-magic t))))
 
 ;;;###autoload
 (progn
-  (add-hook 'after-init-hook 'tramp-register-archive-file-name-handler)
+  (add-hook 'after-init-hook #'tramp-register-archive-file-name-handler)
   (add-hook
    'tramp-archive-unload-hook
    (lambda ()
      (remove-hook
-      'after-init-hook 'tramp-register-archive-file-name-handler))))
+      'after-init-hook #'tramp-register-archive-file-name-handler))))
 
 ;; In older Emacsen (prior 27.1), the autoload above does not exist.
 ;; So we call it again; it doesn't hurt.
@@ -348,19 +364,19 @@ pass to the OPERATION."
 
 ;; Mark `operations' the handler is responsible for.
 (put 'tramp-archive-file-name-handler 'operations
-     (mapcar 'car tramp-archive-file-name-handler-alist))
+     (mapcar #'car tramp-archive-file-name-handler-alist))
 
 ;; `tramp-archive-file-name-handler' must be placed before `url-file-handler'.
 (when url-handler-mode (tramp-register-file-name-handlers))
 
 (eval-after-load 'url-handler
-  (progn
-    (add-hook 'url-handler-mode-hook 'tramp-register-file-name-handlers)
-    (add-hook
-     'tramp-archive-unload-hook
-     (lambda ()
-       (remove-hook
-	'url-handler-mode-hook 'tramp-register-file-name-handlers)))))
+  '(progn
+     (add-hook 'url-handler-mode-hook #'tramp-register-file-name-handlers)
+     (add-hook
+      'tramp-archive-unload-hook
+      (lambda ()
+	(remove-hook
+	 'url-handler-mode-hook #'tramp-register-file-name-handlers)))))
 
 
 ;; File name conversions.
@@ -368,6 +384,7 @@ pass to the OPERATION."
 (defun tramp-archive-file-name-p (name)
   "Return t if NAME is a string with archive file name syntax."
   (and (stringp name)
+       ;; We cannot use `string-match-p', the matches are used.
        (string-match tramp-archive-file-name-regexp name)
        t))
 
@@ -420,8 +437,9 @@ name is kept in slot `hop'"
        ;; http://...
        ((and url-handler-mode
 	     tramp-compat-use-url-tramp-p
-             (string-match url-handler-regexp archive)
-	     (string-match "https?" (url-type (url-generic-parse-url archive))))
+             (string-match-p url-handler-regexp archive)
+	     (string-match-p
+	      "https?" (url-type (url-generic-parse-url archive))))
 	(let* ((url-tramp-protocols
 		(cons
 		 (url-type (url-generic-parse-url archive))
@@ -438,9 +456,9 @@ name is kept in slot `hop'"
 
        ;; Anything else.  Here we call `file-local-copy', which we
        ;; have avoided so far.
-       (t (let* ((inhibit-file-name-operation 'file-local-copy)
+       (t (let* ((inhibit-file-name-operation #'file-local-copy)
 		 (inhibit-file-name-handlers
-		  (cons 'jka-compr-handler inhibit-file-name-handlers))
+		  (cons #'jka-compr-handler inhibit-file-name-handlers))
 		 (copy (file-local-copy archive)))
 	    (setf (tramp-file-name-host vec) (tramp-archive-gvfs-host copy))
 	    (puthash archive (cons vec copy) tramp-archive-hash))))
@@ -450,7 +468,6 @@ name is kept in slot `hop'"
       (setf (tramp-file-name-localname vec) localname)
       vec)))
 
-;;;###tramp-autoload
 (defun tramp-archive-cleanup-hash ()
   "Remove local copies of archives, used by GVFS."
   (maphash
@@ -465,11 +482,14 @@ name is kept in slot `hop'"
    tramp-archive-hash)
   (clrhash tramp-archive-hash))
 
-(add-hook 'kill-emacs-hook 'tramp-archive-cleanup-hash)
+(add-hook 'tramp-cleanup-all-connections-hook #'tramp-archive-cleanup-hash)
+(add-hook 'kill-emacs-hook #'tramp-archive-cleanup-hash)
 (add-hook 'tramp-archive-unload-hook
 	  (lambda ()
+	    (remove-hook 'tramp-cleanup-all-connections-hook
+			 #'tramp-archive-cleanup-hash)
 	    (remove-hook 'kill-emacs-hook
-			 'tramp-archive-cleanup-hash)))
+			 #'tramp-archive-cleanup-hash)))
 
 (defsubst tramp-file-name-archive (vec)
   "Extract the archive file name from VEC.
@@ -513,6 +533,10 @@ offered."
 
 
 ;; File name primitives.
+
+(defun tramp-archive-handle-access-file (filename string)
+  "Like `access-file' for Tramp files."
+  (access-file (tramp-archive-gvfs-file-name filename) string))
 
 (defun tramp-archive-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -560,9 +584,7 @@ offered."
 
 (defun tramp-archive-handle-file-readable-p (filename)
   "Like `file-readable-p' for file archives."
-  (with-parsed-tramp-file-name
-      (tramp-archive-gvfs-file-name filename) nil
-    (tramp-check-cached-permissions v ?r)))
+  (file-readable-p (tramp-archive-gvfs-file-name filename)))
 
 (defun tramp-archive-handle-file-system-info (filename)
   "Like `file-system-info' for file archives."
@@ -615,7 +637,7 @@ offered."
   "Generic handler for operations not implemented for file archives."
   (let ((v (ignore-errors
 	     (tramp-archive-dissect-file-name
-	      (apply 'tramp-archive-file-name-for-operation operation args)))))
+	      (apply #'tramp-archive-file-name-for-operation operation args)))))
     (tramp-message v 10 "%s" (cons operation args))
     (tramp-error
      v 'file-error

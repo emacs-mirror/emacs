@@ -1,6 +1,6 @@
 ;;; midnight.el --- run something every midnight, e.g., kill old buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Sam Steingold <sds@gnu.org>
 ;; Maintainer: Sam Steingold <sds@gnu.org>
@@ -64,7 +64,7 @@ the time when it is run.")
 
 (defcustom clean-buffer-list-delay-general 3
   "The number of days before any buffer becomes eligible for autokilling.
-The autokilling is done by `clean-buffer-list' when is it in `midnight-hook'.
+The autokilling is done by `clean-buffer-list' when it is in `midnight-hook'.
 Currently displayed and/or modified (unsaved) buffers, as well as buffers
 matching `clean-buffer-list-kill-never-buffer-names' and
 `clean-buffer-list-kill-never-regexps' are excluded."
@@ -81,7 +81,7 @@ displayed more than this many seconds ago."
   "List of regexps saying which buffers will be killed at midnight.
 If buffer name matches a regexp in the list and the buffer was not displayed
 in the last `clean-buffer-list-delay-special' seconds, it is killed by
-`clean-buffer-list' when is it in `midnight-hook'.
+`clean-buffer-list' when it is in `midnight-hook'.
 If a member of the list is a cons, its `car' is the regexp and its `cdr' is
 the number of seconds to use instead of `clean-buffer-list-delay-special'.
 See also `clean-buffer-list-kill-buffer-names',
@@ -101,7 +101,7 @@ if the buffer should be killed by `clean-buffer-list'."
   "List of strings saying which buffers will be killed at midnight.
 Buffers with names in this list, which were not displayed in the last
 `clean-buffer-list-delay-special' seconds, are killed by `clean-buffer-list'
-when is it in `midnight-hook'.
+when it is in `midnight-hook'.
 If a member of the list is a cons, its `car' is the name and its `cdr' is
 the number of seconds to use instead of `clean-buffer-list-delay-special'.
 See also `clean-buffer-list-kill-regexps',

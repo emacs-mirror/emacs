@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Searching and Matching
@@ -391,39 +391,9 @@ writing the starting and ending characters with a @samp{-} between them.
 Thus, @samp{[a-z]} matches any lower-case @acronym{ASCII} letter.
 Ranges may be intermixed freely with individual characters, as in
 @samp{[a-z$%.]}, which matches any lower case @acronym{ASCII} letter
-or @samp{$}, @samp{%} or period.
-
-If @code{case-fold-search} is non-@code{nil}, @samp{[a-z]} also
-matches upper-case letters.  Note that a range like @samp{[a-z]} is
-not affected by the locale's collation sequence, it always represents
-a sequence in @acronym{ASCII} order.
-@c This wasn't obvious to me, since, e.g., the grep manual "Character
-@c Classes and Bracket Expressions" specifically notes the opposite
-@c behavior.  But by experiment Emacs seems unaffected by LC_COLLATE
-@c in this regard.
-
-Note also that the usual regexp special characters are not special inside a
-character alternative.  A completely different set of characters is
-special inside character alternatives: @samp{]}, @samp{-} and @samp{^}.
-
-To include a @samp{]} in a character alternative, you must make it the
-first character.  For example, @samp{[]a]} matches @samp{]} or @samp{a}.
-To include a @samp{-}, write @samp{-} as the first or last character of
-the character alternative, or put it after a range.  Thus, @samp{[]-]}
-matches both @samp{]} and @samp{-}.  (As explained below, you cannot
-use @samp{\]} to include a @samp{]} inside a character alternative,
-since @samp{\} is not special there.)
-
-To include @samp{^} in a character alternative, put it anywhere but at
-the beginning.
-
-@c What if it starts with a multibyte and ends with a unibyte?
-@c That doesn't seem to match anything...?
-If a range starts with a unibyte character @var{c} and ends with a
-multibyte character @var{c2}, the range is divided into two parts: one
-spans the unibyte characters @samp{@var{c}..?\377}, the other the
-multibyte characters @samp{@var{c1}..@var{c2}}, where @var{c1} is the
-first character of the charset to which @var{c2} belongs.
+or @samp{$}, @samp{%} or period.  However, the ending character of one
+range should not be the starting point of another one; for example,
+@samp{[a-m-z]} should be avoided.
 
 A character alternative can also specify named character classes
 (@pxref{Char Classes}).  This is a POSIX feature.  For example,
@@ -431,12 +401,80 @@ A character alternative can also specify named character classes
 Using a character class is equivalent to mentioning each of the
 characters in that class; but the latter is not feasible in practice,
 since some classes include thousands of different characters.
+A character class should not appear as the lower or upper bound
+of a range.
+
+The usual regexp special characters are not special inside a
+character alternative.  A completely different set of characters is
+special: @samp{]}, @samp{-} and @samp{^}.
+To include @samp{]} in a character alternative, put it at the
+beginning.  To include @samp{^}, put it anywhere but at the beginning.
+To include @samp{-}, put it at the end.  Thus, @samp{[]^-]} matches
+all three of these special characters.  You cannot use @samp{\} to
+escape these three characters, since @samp{\} is not special here.
+
+The following aspects of ranges are specific to Emacs, in that POSIX
+allows but does not require this behavior and programs other than
+Emacs may behave differently:
+
+@enumerate
+@item
+If @code{case-fold-search} is non-@code{nil}, @samp{[a-z]} also
+matches upper-case letters.
+
+@item
+A range is not affected by the locale's collation sequence: it always
+represents the set of characters with codepoints ranging between those
+of its bounds, so that @samp{[a-z]} matches only ASCII letters, even
+outside the C or POSIX locale.
+
+@item
+If the lower bound of a range is greater than its upper bound, the
+range is empty and represents no characters.  Thus, @samp{[z-a]}
+always fails to match, and @samp{[^z-a]} matches any character,
+including newline.  However, a reversed range should always be from
+the letter @samp{z} to the letter @samp{a} to make it clear that it is
+not a typo; for example, @samp{[+-*/]} should be avoided, because it
+matches only @samp{/} rather than the likely-intended four characters.
+@end enumerate
+
+Some kinds of character alternatives are not the best style even
+though they have a well-defined meaning in Emacs.  They include:
+
+@enumerate
+@item
+Although a range's bound can be almost any character, it is better
+style to stay within natural sequences of ASCII letters and digits
+because most people have not memorized character code tables.
+For example, @samp{[.-9]} is less clear than @samp{[./0-9]},
+and @samp{[`-~]} is less clear than @samp{[`a-z@{|@}~]}.
+Unicode character escapes can help here; for example, for most programmers
+@samp{[ก-ฺ฿-๛]} is less clear than @samp{[\u0E01-\u0E3A\u0E3F-\u0E5B]}.
+
+@item
+Although a character alternative can include duplicates, it is better
+style to avoid them.  For example, @samp{[XYa-yYb-zX]} is less clear
+than @samp{[XYa-z]}.
+
+@item
+Although a range can denote just one, two, or three characters, it
+is simpler to list the characters.  For example,
+@samp{[a-a0]} is less clear than @samp{[a0]}, @samp{[i-j]} is less clear
+than @samp{[ij]}, and @samp{[i-k]} is less clear than @samp{[ijk]}.
+
+@item
+Although a @samp{-} can appear at the beginning of a character
+alternative or as the upper bound of a range, it is better style to
+put @samp{-} by itself at the end of a character alternative.  For
+example, although @samp{[-a-z]} is valid, @samp{[a-z-]} is better
+style; and although @samp{[*--]} is valid, @samp{[*+,-]} is clearer.
+@end enumerate
 
 @item @samp{[^ @dots{} ]}
 @cindex @samp{^} in regexp
 @samp{[^} begins a @dfn{complemented character alternative}.  This
 matches any character except the ones specified.  Thus,
-@samp{[^a-z0-9A-Z]} matches all characters @emph{except} letters and
+@samp{[^a-z0-9A-Z]} matches all characters @emph{except} ASCII letters and
 digits.
 
 @samp{^} is not special in a character alternative unless it is the first
@@ -559,7 +597,7 @@ tabs, and other characters whose Unicode @samp{general-category}
 property (@pxref{Character Properties}) indicates they are spacing
 separators.
 @item [:cntrl:]
-This matches any @acronym{ASCII} control character.
+This matches any character whose code is in the range 0--31.
 @item [:digit:]
 This matches @samp{0} through @samp{9}.  Thus, @samp{[-+[:digit:]]}
 matches any digit, as well as @samp{+} and @samp{-}.
@@ -950,7 +988,7 @@ whitespace:
 @end defun
 
 @cindex optimize regexp
-@defun regexp-opt strings &optional paren
+@defun regexp-opt strings &optional paren keep-order
 This function returns an efficient regular expression that will match
 any of the strings in the list @var{strings}.  This is useful when you
 need to make matching or searching as fast as possible---for example,
@@ -959,6 +997,9 @@ guarantee that its result is absolutely the most efficient form
 possible.  A hand-tuned regular expression can sometimes be slightly
 more efficient, but is almost never worth the effort.}.
 @c E.g., see https://debbugs.gnu.org/2816
+
+If @var{strings} is the empty list, the return value is a regexp that
+never matches anything.
 
 The optional argument @var{paren} can be any of the following:
 
@@ -985,8 +1026,15 @@ if it is necessary to ensure that a postfix operator appended to
 it will apply to the whole expression.
 @end table
 
-The resulting regexp of @code{regexp-opt} is equivalent to but usually
-more efficient than that of a simplified version:
+The optional argument @var{keep-order}, if @code{nil} or omitted,
+allows the returned regexp to match the strings in any order.  If
+non-@code{nil}, the match is guaranteed to be performed in the order
+given, as if the strings were made into a regexp by joining them with
+the @samp{\|} operator.
+
+Up to reordering, the resulting regexp of @code{regexp-opt} is
+equivalent to but usually more efficient than that of a simplified
+version:
 
 @example
 (defun simplified-regexp-opt (strings &optional paren)
@@ -997,9 +1045,9 @@ more efficient than that of a simplified version:
          ((eq paren 'symbols) '("\\_<\\(" . "\\)\\_>"))
          ((null paren)          '("\\(?:" . "\\)"))
          (t                       '("\\(" . "\\)")))))
-   (concat (car paren)
+   (concat (car parens)
            (mapconcat 'regexp-quote strings "\\|")
-           (cdr paren))))
+           (cdr parens))))
 @end example
 @end defun
 
@@ -1102,6 +1150,8 @@ comes back" twice.
 @end example
 @end deffn
 
+@c This anchor is referenced by re-search-backward's docstring.
+@anchor{re-search-backward}
 @deffn Command re-search-backward regexp &optional limit noerror count
 This function searches backward in the current buffer for a string of
 text that is matched by the regular expression @var{regexp}, leaving

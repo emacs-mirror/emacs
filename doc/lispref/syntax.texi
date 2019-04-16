@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Syntax Tables
@@ -339,11 +339,13 @@ same style will be recognized.  For a two-character comment delimiter,
 @cindex comment style
 Emacs supports several comment styles simultaneously in any one syntax
 table.  A comment style is a set of flags @samp{b}, @samp{c}, and
-@samp{n}, so there can be up to 8 different comment styles.
-Each comment delimiter has a style and only matches comment delimiters
-of the same style.  Thus if a comment starts with the comment-start
-sequence of style ``bn'', it will extend until the next matching
-comment-end sequence of style ``bn''.
+@samp{n}, so there can be up to 8 different comment styles, each one
+named by the set of its flags.  Each comment delimiter has a style and
+only matches comment delimiters of the same style.  Thus if a comment
+starts with the comment-start sequence of style ``bn'', it will extend
+until the next matching comment-end sequence of style ``bn''.  When
+the set of flags has neither flag @samp{b} nor flag @samp{c} set, the
+resulting style is called the ``a'' style.
 
 The appropriate comment syntax settings for C++ can be as follows:
 
@@ -554,8 +556,8 @@ the current syntax table in the usual way.
 
 @defvar parse-sexp-lookup-properties
 If this is non-@code{nil}, the syntax scanning functions, like
-@code{forward-sexp}, pay attention to syntax text properties.
-Otherwise they use only the current syntax table.
+@code{forward-sexp}, pay attention to @code{syntax-table} text
+properties.  Otherwise they use only the current syntax table.
 @end defvar
 
 @defvar syntax-propertize-function
@@ -925,9 +927,9 @@ nicely.
 
 @defvar multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
-non-@acronym{ASCII} characters as symbol constituents regardless
-of what the syntax table says about them.  (However, text properties
-can still override the syntax.)
+non-@acronym{ASCII} characters as symbol constituents regardless of
+what the syntax table says about them.  (However, @code{syntax-table
+}text properties can still override the syntax.)
 @end defvar
 
 @defopt parse-sexp-ignore-comments
@@ -937,7 +939,6 @@ whitespace by the functions in this section and by @code{forward-sexp},
 @code{scan-lists} and @code{scan-sexps}.
 @end defopt
 
-@vindex parse-sexp-lookup-properties
 The behavior of @code{parse-partial-sexp} is also affected by
 @code{parse-sexp-lookup-properties} (@pxref{Syntax Properties}).
 
@@ -1012,13 +1013,13 @@ corresponds to each syntax flag.
 @item
 @i{Prefix} @tab @i{Flag} @tab @i{Prefix} @tab @i{Flag}
 @item
-@samp{1} @tab @code{(lsh 1 16)} @tab @samp{p} @tab @code{(lsh 1 20)}
+@samp{1} @tab @code{(ash 1 16)} @tab @samp{p} @tab @code{(ash 1 20)}
 @item
-@samp{2} @tab @code{(lsh 1 17)} @tab @samp{b} @tab @code{(lsh 1 21)}
+@samp{2} @tab @code{(ash 1 17)} @tab @samp{b} @tab @code{(ash 1 21)}
 @item
-@samp{3} @tab @code{(lsh 1 18)} @tab @samp{n} @tab @code{(lsh 1 22)}
+@samp{3} @tab @code{(ash 1 18)} @tab @samp{n} @tab @code{(ash 1 22)}
 @item
-@samp{4} @tab @code{(lsh 1 19)} @tab @samp{c} @tab @code{(lsh 1 23)}
+@samp{4} @tab @code{(ash 1 19)} @tab @samp{c} @tab @code{(ash 1 23)}
 @end multitable
 
 @defun string-to-syntax desc
@@ -1040,8 +1041,8 @@ This function returns the syntax code for the raw syntax descriptor
 @var{syntax-code} component, masks off the high 16 bits which record
 the syntax flags, and returns the resulting integer.
 
-If @var{syntax} is @code{nil}, the return value is returns @code{nil}.
-This is so that the expression
+If @var{syntax} is @code{nil}, the return value is @code{nil}.  This
+is so that the expression
 
 @example
 (syntax-class (syntax-after pos))

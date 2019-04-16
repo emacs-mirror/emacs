@@ -1,6 +1,6 @@
 ;;; srecode/srt-mode.el --- Major mode for writing screcode macros
 
-;; Copyright (C) 2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -64,7 +64,7 @@
 (defvar srecode-font-lock-keywords
   '(
     ;; Template
-    ("^\\(template\\)\\s-+\\(\\w*\\)\\(\\( \\(:\\w+\\)\\|\\)+\\)$"
+    ("^\\(template\\)\\s-+\\(\\w*\\)\\(\\( \\(:\\w+\\)\\)*\\)$"
      (1 font-lock-keyword-face)
      (2 font-lock-function-name-face)
      (3 font-lock-builtin-face ))

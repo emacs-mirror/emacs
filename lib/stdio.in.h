@@ -1,6 +1,6 @@
 /* A GNU-like <stdio.h>.
 
-   Copyright (C) 2004, 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -118,11 +118,18 @@
 # include <unistd.h>
 #endif
 
+/* Android 4.3 declares renameat in <sys/stat.h>, not in <stdio.h>.  */
+/* But in any case avoid namespace pollution on glibc systems.  */
+#if (@GNULIB_RENAMEAT@ || defined GNULIB_POSIXCHECK) && defined __ANDROID__ \
+    && ! defined __GLIBC__
+# include <sys/stat.h>
+#endif
+
 /* MSVC declares 'perror' in <stdlib.h>, not in <stdio.h>.  We must include
    it before we  #define perror rpl_perror.  */
 /* But in any case avoid namespace pollution on glibc systems.  */
 #if (@GNULIB_PERROR@ || defined GNULIB_POSIXCHECK) \
-    && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__) \
+    && (defined _WIN32 && ! defined __CYGWIN__) \
     && ! defined __GLIBC__
 # include <stdlib.h>
 #endif
@@ -133,7 +140,7 @@
    it before we  #define rename rpl_rename.  */
 /* But in any case avoid namespace pollution on glibc systems.  */
 #if (@GNULIB_REMOVE@ || @GNULIB_RENAME@ || defined GNULIB_POSIXCHECK) \
-    && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__) \
+    && (defined _WIN32 && ! defined __CYGWIN__) \
     && ! defined __GLIBC__
 # include <io.h>
 #endif

@@ -1,6 +1,6 @@
 ;;; em-prompt.el --- command prompts  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -99,7 +99,7 @@ arriving, or after."
 
 ;;; Functions:
 
-(defun eshell-prompt-initialize ()
+(defun eshell-prompt-initialize ()  ;Called from `eshell-mode' via intern-soft!
   "Initialize the prompting code."
   (unless eshell-non-interactive-p
     (add-hook 'eshell-post-command-hook 'eshell-emit-prompt nil t)

@@ -1,6 +1,6 @@
 ;;; nnml.el --- mail spool access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@xemacs.org> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -259,7 +259,7 @@ non-nil.")
      (t
       (nnheader-re-read-dir nnml-current-directory)
       (nnmail-activate 'nnml)
-      (let ((active (nth 1 (assoc group nnml-group-alist))))
+      (let ((active (nth 1 (assoc-string group nnml-group-alist))))
 	(if (not active)
 	    (nnheader-report 'nnml "No such group: %s" decoded)
 	  (nnheader-report 'nnml "Selected group %s" decoded)
@@ -295,7 +295,7 @@ non-nil.")
     (nnheader-report 'nnml "%s is a file"
 		     (directory-file-name (nnml-group-pathname group
 							       nil server))))
-   ((assoc group nnml-group-alist)
+   ((assoc-string group nnml-group-alist)
     t)
    (t
     (let (active)
@@ -344,7 +344,8 @@ non-nil.")
     (while (and articles is-old)
       (if (and (setq article (nnml-article-to-file
 			      (setq number (pop articles))))
-	       (setq mod-time (nth 5 (file-attributes article)))
+	       (setq mod-time (file-attribute-modification-time
+			       (file-attributes article)))
 	       (nnml-deletable-article-p group number)
 	       (setq is-old (nnmail-expired-article-p group mod-time force
 						      nnml-inhibit-expiry)))
@@ -378,7 +379,7 @@ non-nil.")
 		  (nnml-nov-delete-article group number))
 	      (push number rest)))
 	(push number rest)))
-    (let ((active (nth 1 (assoc group nnml-group-alist))))
+    (let ((active (nth 1 (assoc-string group nnml-group-alist))))
       (when active
 	(setcar active (or (and active-articles
 				(apply 'min active-articles))
@@ -519,7 +520,7 @@ non-nil.")
       (nnheader-report 'nnml "No such directory: %s/" file))
     ;; Remove the group from all structures.
     (setq nnml-group-alist
-	  (delq (assoc group nnml-group-alist) nnml-group-alist)
+	  (delq (assoc-string group nnml-group-alist) nnml-group-alist)
 	  nnml-current-group nil
 	  nnml-current-directory nil)
     ;; Save the active file.
@@ -548,7 +549,7 @@ non-nil.")
       (when (<= (length (directory-files old-dir)) 2)
 	(ignore-errors (delete-directory old-dir)))
       ;; That went ok, so we change the internal structures.
-      (let ((entry (assoc group nnml-group-alist)))
+      (let ((entry (assoc-string group nnml-group-alist)))
 	(when entry
 	  (setcar entry new-name))
 	(setq nnml-current-directory nil
@@ -596,7 +597,7 @@ non-nil.")
     (when (setq path (nnml-article-to-file article))
       (when (file-writable-p path)
 	(or (not nnmail-keep-last-article)
-	    (not (eq (cdr (nth 1 (assoc group nnml-group-alist)))
+	    (not (eq (cdr (nth 1 (assoc-string group nnml-group-alist)))
 		     article)))))))
 
 ;; Find an article number in the current group given the Message-ID.
@@ -741,7 +742,7 @@ article number.  This function is called narrowed to an article."
   "Compute the next article number in GROUP on SERVER."
   (let* ((encoded (if nnmail-group-names-not-encoded-p
 		      (nnml-encoded-group-name group server)))
-	 (active (cadr (assoc (or encoded group) nnml-group-alist))))
+	 (active (cadr (assoc-string (or encoded group) nnml-group-alist))))
     ;; The group wasn't known to nnml, so we just create an active
     ;; entry for it.
     (unless active
@@ -782,7 +783,7 @@ article number.  This function is called narrowed to an article."
 	    (cdr nnml-incremental-nov-buffer-alist)))))
 
 (defun nnml-open-incremental-nov (group)
-  (or (cdr (assoc group nnml-incremental-nov-buffer-alist))
+  (or (cdr (assoc-string group nnml-incremental-nov-buffer-alist))
       (let ((buffer (nnml-get-nov-buffer group t)))
 	(push (cons group buffer) nnml-incremental-nov-buffer-alist)
 	buffer)))

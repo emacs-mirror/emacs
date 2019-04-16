@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997-1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -531,12 +531,10 @@ Each descriptor is a vector of the form
 (defsubst archive-name (suffix)
   (intern (concat "archive-" (symbol-name archive-subtype) "-" suffix)))
 
-(defun archive-l-e (str &optional len float)
+(defun archive-l-e (str &optional len)
   "Convert little endian string/vector STR to integer.
 Alternatively, STR may be a buffer position in the current buffer
-in which case a second argument, length LEN, should be supplied.
-FLOAT, if non-nil, means generate and return a float instead of an integer
-\(use this for numbers that can overflow the Emacs integer)."
+in which case a second argument, length LEN, should be supplied."
   (if (stringp str)
       (setq len (length str))
     (setq str (buffer-substring str (+ str len))))
@@ -545,7 +543,7 @@ FLOAT, if non-nil, means generate and return a float instead of an integer
         (i 0))
     (while (< i len)
       (setq i (1+ i)
-            result (+ (if float (* result 256.0) (ash result 8))
+            result (+ (ash result 8)
 		      (aref str (- len i)))))
     result))
 
@@ -583,7 +581,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 	       (len (length newmode))
 	       (i 1))
 	   (while (< i len)
-	     (setq result (+ (lsh result 3) (aref newmode i) (- ?0))
+	     (setq result (+ (ash result 3) (aref newmode i) (- ?0))
 		   i (1+ i)))
 	   (logior (logand oldmode 65024) result)))
 	((string-match "^\\([agou]+\\)\\([---+=]\\)\\([rwxst]+\\)$" newmode)
@@ -639,7 +637,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 
 (defun archive-unixdate (low high)
   "Stringify Unix (LOW HIGH) date."
-  (let* ((time (cons high low))
+  (let* ((time (list high low))
 	 (str (current-time-string time)))
     (format "%s-%s-%s"
 	    (substring str 8 10)
@@ -648,8 +646,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 
 (defun archive-unixtime (low high)
   "Stringify Unix (LOW HIGH) time."
-  (let ((str (current-time-string (cons high low))))
-    (substring str 11 19)))
+  (format-time-string "%H:%M:%S" (list high low)))
 
 (defun archive-get-lineno ()
   (if (>= (point) archive-file-list-start)
@@ -971,8 +968,8 @@ using `make-temp-file', and the generated name is returned."
                   (jka-compr-inhibit t))
               (write-region (point-min) (point-max) tmpfile nil 'quiet))
             (erase-buffer)
-            (let ((coding-system-for-read 'no-conversion))
-              (insert-file-contents tmpfile)))
+            (set-buffer-multibyte t)
+            (insert-file-contents tmpfile))
         (delete-file tmpfile)))))
 
 (defun archive-file-name-handler (op &rest args)
@@ -1501,14 +1498,13 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (fnlen   (or (string-match "\0" namefld) 13))
 	     (efnname (decode-coding-string (substring namefld 0 fnlen)
 					    archive-file-name-coding-system))
-	     ;; Convert to float to avoid overflow for very large files.
-             (csize   (archive-l-e (+ p 15) 4 'float))
+             (csize   (archive-l-e (+ p 15) 4))
              (moddate (archive-l-e (+ p 19) 2))
              (modtime (archive-l-e (+ p 21) 2))
-             (ucsize  (archive-l-e (+ p 25) 4 'float))
+             (ucsize  (archive-l-e (+ p 25) 4))
 	     (fiddle  (string= efnname (upcase efnname)))
              (ifnname (if fiddle (downcase efnname) efnname))
-             (text    (format "  %8.0f  %-11s  %-8s  %s"
+             (text    (format "  %8d  %-11s  %-8s  %s"
                               ucsize
                               (archive-dosdate moddate)
                               (archive-dostime modtime)
@@ -1521,11 +1517,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			   visual)
 	      files (cons (vector efnname ifnname fiddle nil (1- p))
                           files)
-	      ;; p needs to stay an integer, since we use it in char-after
-	      ;; above.  Passing through `round' limits the compressed size
-	      ;; to most-positive-fixnum, but if the compressed size exceeds
-	      ;; that, we cannot visit the archive anyway.
-              p (+ p 29 (round csize)))))
+              p (+ p 29 csize))))
     (goto-char (point-min))
     (let ((dash (concat "- --------  -----------  --------  "
 			(make-string maxlen ?-)
@@ -1534,7 +1526,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      dash)
       (archive-summarize-files (nreverse visual))
       (insert dash
-	      (format "  %8.0f                         %d file%s"
+	      (format "  %8d                         %d file%s"
 		      totalsize
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
@@ -1542,7 +1534,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (apply #'vector (nreverse files))))
 
 (defun archive-arc-rename-entry (newname descr)
-  (if (string-match "[:\\\\/]" newname)
+  (if (string-match "[:\\/]" newname)
       (error "File names in arc files must not contain a directory component"))
   (if (> (length newname) 12)
       (error "File names in arc files are limited to 12 characters"))
@@ -1567,10 +1559,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (while (progn (goto-char p)		;beginning of a base header.
 		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
       (let* ((hsize   (byte-after p))	;size of the base header (level 0 and 1)
-	     ;; Convert to float to avoid overflow for very large files.
-	     (csize   (archive-l-e (+ p 7) 4 'float)) ;size of a compressed file to follow (level 0 and 2),
+	     (csize   (archive-l-e (+ p 7) 4)) ;size of a compressed file to follow (level 0 and 2),
 					;size of extended headers + the compressed file to follow (level 1).
-             (ucsize  (archive-l-e (+ p 11) 4 'float))	;size of an uncompressed file.
+             (ucsize  (archive-l-e (+ p 11) 4))	;size of an uncompressed file.
 	     (time1   (archive-l-e (+ p 15) 2))	;date/time (MSDOS format in level 0, 1 headers
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
 	     (hdrlvl  (byte-after (+ p 20))) ;header level
@@ -1660,12 +1651,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			  (archive-unixtime time1 time2)
 			(archive-dostime time1)))
 	(setq text    (if archive-alternate-display
-			  (format "  %8.0f  %5S  %5S  %s"
+			  (format "  %8d  %5S  %5S  %s"
 				  ucsize
 				  (or uid "?")
 				  (or gid "?")
 				  ifnname)
-			(format "  %10s  %8.0f  %-11s  %-8s  %s"
+			(format "  %10s  %8d  %-11s  %-8s  %s"
 				modestr
 				ucsize
 				moddate
@@ -1680,13 +1671,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      files (cons (vector prname ifnname fiddle mode (1- p))
                           files))
 	(cond ((= hdrlvl 1)
-	       ;; p needs to stay an integer, since we use it in goto-char
-	       ;; above.  Passing through `round' limits the compressed size
-	       ;; to most-positive-fixnum, but if the compressed size exceeds
-	       ;; that, we cannot visit the archive anyway.
-	       (setq p (+ p hsize 2 (round csize))))
+	       (setq p (+ p hsize 2 csize)))
 	      ((or (= hdrlvl 2) (= hdrlvl 0))
-	       (setq p (+ p thsize 2 (round csize)))))
+	       (setq p (+ p thsize 2 csize))))
 	))
     (goto-char (point-min))
     (let ((dash (concat (if archive-alternate-display
@@ -1759,7 +1746,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		    (setq newval (funcall newval (archive-l-e (+ p2 ofs) 2))))
 		(goto-char (+ p2 ofs))
 		(delete-char 2)
-		(insert-unibyte (logand newval 255) (lsh newval -8))
+		(insert-unibyte (logand newval 255) (ash newval -8))
 		(goto-char (1+ p))
 		(delete-char 1)
 		(insert-unibyte (archive-lzh-resum (1+ p) hsize)))
@@ -1824,32 +1811,21 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       ;;
       ;; First, find the Zip64 end-of-central-directory locator.
       (search-backward "PK\006\007")
-      ;; Pay attention: the offset of Zip64 end-of-central-directory
-      ;; is a 64-bit field, so it could overflow the Emacs integer
-      ;; even on a 64-bit host, let alone 32-bit one.  But since we've
-      ;; already read the zip file into a buffer, and this is a byte
-      ;; offset into the file we've read, it must be short enough, so
-      ;; such an overflow can never happen, and we can safely read
-      ;; these 8 bytes into an Emacs integer.  Moreover, on host with
-      ;; 32-bit Emacs integer we can only read 4 bytes, since they are
-      ;; stored in little-endian byte order.
-      (setq emacs-int-has-32bits (<= most-positive-fixnum #x1fffffff))
       (setq p (+ (point-min)
-                 (archive-l-e (+ (point) 8) (if emacs-int-has-32bits 4 8))))
+                 (archive-l-e (+ (point) 8) 8)))
       (goto-char p)
       ;; We should be at Zip64 end-of-central-directory record now.
       (or (string= "PK\006\006" (buffer-substring p (+ p 4)))
           (error "Unrecognized ZIP file format"))
       ;; Offset to central directory:
-      (setq p (archive-l-e (+ p 48) (if emacs-int-has-32bits 4 8))))
+      (setq p (archive-l-e (+ p 48) 8)))
     (setq p (+ p (point-min)))
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
       (let* ((creator (byte-after (+ p 5)))
 	     ;; (method  (archive-l-e (+ p 10) 2))
              (modtime (archive-l-e (+ p 12) 2))
              (moddate (archive-l-e (+ p 14) 2))
-	     ;; Convert to float to avoid overflow for very large files.
-             (ucsize  (archive-l-e (+ p 24) 4 'float))
+             (ucsize  (archive-l-e (+ p 24) 4))
              (fnlen   (archive-l-e (+ p 28) 2))
              (exlen   (archive-l-e (+ p 30) 2))
              (fclen   (archive-l-e (+ p 32) 2))
@@ -1874,7 +1850,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			   (string= (upcase efnname) efnname)))
              (ifnname (if fiddle (downcase efnname) efnname))
 	     (width (string-width ifnname))
-             (text    (format "  %10s  %8.0f  %-11s  %-8s  %s"
+             (text    (format "  %10s  %8d  %-11s  %-8s  %s"
 			      modestr
                               ucsize
                               (archive-dosdate moddate)
@@ -1900,7 +1876,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      dash)
       (archive-summarize-files (nreverse visual))
       (insert dash
-	      (format "              %8.0f                         %d file%s"
+	      (format "              %8d                         %d file%s"
 		      totalsize
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
@@ -1949,11 +1925,11 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	  (cond ((memq creator '(2 3)) ; Unix
 		 (goto-char (+ p 40))
 		 (delete-char 2)
-		 (insert-unibyte (logand newval 255) (lsh newval -8)))
+		 (insert-unibyte (logand newval 255) (ash newval -8)))
 		((memq creator '(0 5 6 7 10 11 15)) ; Dos etc.
 		 (goto-char (+ p 38))
 		 (insert-unibyte (logior (logand (byte-after (point)) 254)
-					 (logand (logxor 1 (lsh newval -7)) 1)))
+					 (logand (logxor 1 (ash newval -7)) 1)))
 		 (delete-char 1))
 		(t (message "Don't know how to change mode for this member"))))
         ))))
@@ -1971,8 +1947,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (let* ((next    (1+ (archive-l-e (+ p 6) 4)))
              (moddate (archive-l-e (+ p 14) 2))
              (modtime (archive-l-e (+ p 16) 2))
-	     ;; Convert to float to avoid overflow for very large files.
-             (ucsize  (archive-l-e (+ p 20) 4 'float))
+             (ucsize  (archive-l-e (+ p 20) 4))
 	     (namefld (buffer-substring (+ p 38) (+ p 38 13)))
 	     (dirtype (byte-after (+ p 4)))
 	     (lfnlen  (if (= dirtype 2) (byte-after (+ p 56)) 0))
@@ -1995,7 +1970,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (fiddle  (and (= lfnlen 0) (string= efnname (upcase efnname))))
              (ifnname (if fiddle (downcase efnname) efnname))
 	     (width (string-width ifnname))
-             (text    (format "  %8.0f  %-11s  %-8s  %s"
+             (text    (format "  %8d  %-11s  %-8s  %s"
                               ucsize
                               (archive-dosdate moddate)
                               (archive-dostime modtime)
@@ -2017,7 +1992,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      dash)
       (archive-summarize-files (nreverse visual))
       (insert dash
-	      (format "  %8.0f                         %d file%s"
+	      (format "  %8d                         %d file%s"
 		      totalsize
 		      (length files)
 		      (if (= 1 (length files)) "" "s"))
@@ -2041,7 +2016,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (call-process "lsar" nil t nil "-l" (or file copy))
       (if copy (delete-file copy))
       (goto-char (point-min))
-      (re-search-forward "^\\(\s+=+\s?+\\)+\n")
+      (re-search-forward "^\\(\s+=+\s*\\)+\n")
       (while (looking-at (concat "^\s+[0-9.]+\s+D?-+\s+"   ; Flags
                                  "\\([0-9-]+\\)\s+"        ; Size
                                  "\\([-0-9.%]+\\|-+\\)\s+" ; Ratio
@@ -2090,7 +2065,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       ;; The code below assumes the name is relative and may do undesirable
       ;; things otherwise.
       (error "Can't extract files with non-relative names")
-    (archive-extract-by-file archive name `("unar" "-no-directory" "-o") "Successfully extracted")))
+    (archive-extract-by-file archive name '("unar" "-no-directory" "-o") "Successfully extracted")))
 
 ;;; Section: Rar self-extracting .exe archives.
 
@@ -2211,8 +2186,6 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (while (looking-at archive-ar-file-header-re)
       (let ((name (match-string 1))
             extname
-            ;; Emacs will automatically use float here because those
-            ;; timestamps don't fit in our ints.
             (time (string-to-number (match-string 2)))
             (user (match-string 3))
             (group (match-string 4))

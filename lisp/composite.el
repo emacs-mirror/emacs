@@ -1,6 +1,6 @@
 ;;; composite.el --- support character composition
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008, 2009, 2010, 2011
@@ -119,7 +119,7 @@ RULE is a cons of global and new reference point symbols
 	      (setq nref (cdr (assq nref reference-point-alist))))
 	  (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
 	      (error "Invalid composition rule: %S" rule))
-	  (logior (lsh xoff 16) (lsh yoff 8) (+ (* gref 12) nref)))
+	  (logior (ash xoff 16) (ash yoff 8) (+ (* gref 12) nref)))
       (error "Invalid composition rule: %S" rule))))
 
 ;; Decode encoded composition rule RULE-CODE.  The value is a cons of
@@ -130,8 +130,8 @@ RULE is a cons of global and new reference point symbols
 (defun decode-composition-rule (rule-code)
   (or (and (natnump rule-code) (< rule-code #x1000000))
       (error "Invalid encoded composition rule: %S" rule-code))
-  (let ((xoff (lsh rule-code -16))
-	(yoff (logand (lsh rule-code -8) #xFF))
+  (let ((xoff (ash rule-code -16))
+	(yoff (logand (ash rule-code -8) #xFF))
 	gref nref)
     (setq rule-code (logand rule-code #xFF)
 	  gref (car (rassq (/ rule-code 12) reference-point-alist))
@@ -829,9 +829,6 @@ This function is the default value of `auto-composition-function' (which see)."
 ;;;###autoload
 (define-minor-mode auto-composition-mode
   "Toggle Auto Composition mode.
-With a prefix argument ARG, enable Auto Composition mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 When Auto Composition mode is enabled, text characters are
 automatically composed by functions registered in
@@ -847,9 +844,6 @@ Auto Composition mode in all buffers (this is the default)."
 ;;;###autoload
 (define-minor-mode global-auto-composition-mode
   "Toggle Auto Composition mode in all buffers.
-With a prefix argument ARG, enable it if ARG is positive, and
-disable it otherwise.  If called from Lisp, enable it if ARG is
-omitted or nil.
 
 For more information on Auto Composition mode, see
 `auto-composition-mode' ."

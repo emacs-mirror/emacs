@@ -1,6 +1,6 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -385,13 +385,13 @@ not contain `d', so that a full listing is expected."
 	  ;; files we are about to display.
 	  (dolist (elt file-alist)
 	    (setq attr (cdr elt)
-		  fuid (nth 2 attr)
+		  fuid (file-attribute-user-id attr)
 		  uid-len (if (stringp fuid) (string-width fuid)
 			    (length (format "%d" fuid)))
-		  fgid (nth 3 attr)
+		  fgid (file-attribute-group-id attr)
 		  gid-len (if (stringp fgid) (string-width fgid)
 			    (length (format "%d" fgid)))
-		  file-size (nth 7 attr))
+		  file-size (file-attribute-size attr))
 	    (if (> uid-len max-uid-len)
 		(setq max-uid-len uid-len))
 	    (if (> gid-len max-gid-len)
@@ -418,7 +418,7 @@ not contain `d', so that a full listing is expected."
 		  files (cdr files)
 		  short (car elt)
 		  attr (cdr elt)
-		  file-size (nth 7 attr))
+		  file-size (file-attribute-size attr))
 	    (and attr
 		 (setq sum (+ file-size
 			      ;; Even if neither SUM nor file's size
@@ -474,10 +474,14 @@ not contain `d', so that a full listing is expected."
 		   (if (memq ?F switches)
 		       (ls-lisp-classify-file file fattr)
 		     file)
-		   fattr (nth 7 fattr)
-				  switches time-index))
-	(message "%s: doesn't exist or is inaccessible" file)
-	(ding) (sit-for 2)))))		; to show user the message!
+		   fattr (file-attribute-size fattr)
+                   switches time-index))
+        ;; Emulate what we do on Posix hosts when we call access-file
+        ;; in insert-directory.
+	(signal 'file-error
+                (list "Reading directory"
+                      "Directory doesn't exist or is inaccessible"
+                      file))))))
 
 (declare-function dired-read-dir-and-switches "dired" (str))
 (declare-function dired-goto-next-file "dired" ())
@@ -659,10 +663,9 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 		  (sort (copy-sequence file-alist) ; modifies its argument!
 			(cond ((memq ?S switches)
 			       (lambda (x y) ; sorted on size
-				 ;; 7th file attribute is file size
 				 ;; Make largest file come first
-				 (< (nth 7 (cdr y))
-				    (nth 7 (cdr x)))))
+				 (< (file-attribute-size (cdr y))
+				    (file-attribute-size (cdr x)))))
 			      ((setq index (ls-lisp-time-index switches))
 			       (lambda (x y) ; sorted on time
 				 (time-less-p (nth index (cdr y))
@@ -719,8 +722,8 @@ FATTR is the file attributes returned by `file-attributes' for the file.
 The file type indicators are `/' for directories, `@' for symbolic
 links, `|' for FIFOs, `=' for sockets, `*' for regular files that
 are executable, and nothing for other types of files."
-  (let* ((type (car fattr))
-	 (modestr (nth 8 fattr))
+  (let* ((type (file-attribute-type fattr))
+	 (modestr (file-attribute-modes fattr))
 	 (typestr (substring modestr 0 1))
          (file-name (propertize filename 'dired-filename t)))
     (cond
@@ -773,35 +776,13 @@ FOLLOWED by null and full filename, SOLELY for full alpha sort."
   "Format one line of long ls output for file FILE-NAME.
 FILE-ATTR and FILE-SIZE give the file's attributes and size.
 SWITCHES and TIME-INDEX give the full switch list and time data."
-  (let ((file-type (nth 0 file-attr))
+  (let ((file-type (file-attribute-type file-attr))
 	;; t for directory, string (name linked to)
 	;; for symbolic link, or nil.
-	(drwxrwxrwx (nth 8 file-attr)))	; attribute string ("drwxrwxrwx")
+	(drwxrwxrwx (file-attribute-modes file-attr)))
     (concat (if (memq ?i switches)	; inode number
-		(let ((inode (nth 10 file-attr)))
-		  (if (consp inode)
-		      (if (consp (cdr inode))
-			  ;; 2^(24+16) = 1099511627776.0, but
-			  ;; multiplying by it and then adding the
-			  ;; other members of the cons cell in one go
-			  ;; loses precision, since a double does not
-			  ;; have enough significant digits to hold a
-			  ;; full 64-bit value.  So below we split
-			  ;; 1099511627776 into high 13 and low 5
-			  ;; digits and compute in two parts.
-			  (let ((p1 (* (car inode) 10995116.0))
-				(p2 (+ (* (car inode) 27776.0)
-				       (* (cadr inode) 65536.0)
-				       (cddr inode))))
-			    (format " %13.0f%05.0f "
-				    ;; Use floor to emulate integer
-				    ;; division.
-				    (+ p1 (floor p2 100000.0))
-				    (mod p2 100000.0)))
-			(format " %18.0f "
-				(+ (* (car inode) 65536.0)
-				   (cdr inode))))
-		    (format " %18d " inode))))
+		(let ((inode (file-attribute-inode-number file-attr)))
+		  (format " %18d " inode)))
 	    ;; nil is treated like "" in concat
 	    (if (memq ?s switches)	; size in K, rounded up
 		;; In GNU ls, -h affects the size in blocks, displayed
@@ -819,14 +800,14 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 			  (fceiling (/ file-size 1024.0)))))
 	    drwxrwxrwx			; attribute string
 	    (if (memq 'links ls-lisp-verbosity)
-		(format "%3d" (nth 1 file-attr))) ; link count
+		(format "%3d" (file-attribute-link-number file-attr)))
 	    ;; Numeric uid/gid are more confusing than helpful;
 	    ;; Emacs should be able to make strings of them.
 	    ;; They tend to be bogus on non-UNIX platforms anyway so
 	    ;; optionally hide them.
 	    (if (memq 'uid ls-lisp-verbosity)
 		;; uid can be a string or an integer
-		(let ((uid (nth 2 file-attr)))
+		(let ((uid (file-attribute-user-id file-attr)))
                   (format (if (stringp uid)
 			      ls-lisp-uid-s-fmt
 			    ls-lisp-uid-d-fmt)
@@ -834,7 +815,7 @@ SWITCHES and TIME-INDEX give the full switch list and time data."
 	    (if (not (memq ?G switches)) ; GNU ls -- shows group by default
 		(if (or (memq ?g switches) ; UNIX ls -- no group by default
 			(memq 'gid ls-lisp-verbosity))
-                    (let ((gid (nth 3 file-attr)))
+                    (let ((gid (file-attribute-group-id file-attr)))
                       (format (if (stringp gid)
 				  ls-lisp-gid-s-fmt
 				ls-lisp-gid-d-fmt)

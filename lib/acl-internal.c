@@ -1,6 +1,6 @@
 /* Test whether a file has a nontrivial ACL.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 #include "acl-internal.h"
 
-#if USE_ACL && HAVE_ACL_GET_FILE
+#if USE_ACL && HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
 
 # if HAVE_ACL_TYPE_EXTENDED /* Mac OS X */
 
@@ -37,7 +37,7 @@ acl_extended_nontrivial (acl_t acl)
   return (acl_entries (acl) > 0);
 }
 
-# else /* Linux, FreeBSD, IRIX, Tru64 */
+# else /* Linux, FreeBSD, IRIX, Tru64, Cygwin >= 2.5 */
 
 /* ACL is an ACL, from a file, stored as type ACL_TYPE_ACCESS.
    Return 1 if the given ACL is non-trivial.
@@ -51,7 +51,7 @@ acl_access_nontrivial (acl_t acl)
      at least, allowing us to write
         return (3 < acl_entries (acl));
      but the following code is more robust.  */
-#  if HAVE_ACL_FIRST_ENTRY /* Linux, FreeBSD */
+#  if HAVE_ACL_FIRST_ENTRY /* Linux, FreeBSD, Cygwin >= 2.5 */
 
   acl_entry_t ace;
   int got_one;
@@ -124,7 +124,7 @@ acl_default_nontrivial (acl_t acl)
 
 # endif
 
-#elif USE_ACL && HAVE_FACL && defined GETACL /* Solaris, Cygwin, not HP-UX */
+#elif USE_ACL && HAVE_FACL && defined GETACL /* Solaris, Cygwin < 2.5, not HP-UX */
 
 /* Test an ACL retrieved with GETACL.
    Return 1 if the given ACL, consisting of COUNT entries, is non-trivial.
@@ -355,7 +355,7 @@ acl_nontrivial (int count, struct acl_entry *entries)
       struct acl_entry *ace = &entries[i];
 
       if (ace->uid != ACL_NSUSER && ace->gid != ACL_NSGROUP)
-	return 1;
+        return 1;
     }
   return 0;
 }
@@ -479,7 +479,7 @@ void
 free_permission_context (struct permission_context *ctx)
 {
 #if USE_ACL
-# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64 */
+# if HAVE_ACL_GET_FILE /* Linux, FreeBSD, Mac OS X, IRIX, Tru64, Cygwin >= 2.5 */
   if (ctx->acl)
     acl_free (ctx->acl);
 #  if !HAVE_ACL_TYPE_EXTENDED
@@ -487,7 +487,7 @@ free_permission_context (struct permission_context *ctx)
     acl_free (ctx->default_acl);
 #  endif
 
-# elif defined GETACL /* Solaris, Cygwin */
+# elif defined GETACL /* Solaris, Cygwin < 2.5 */
   free (ctx->entries);
 #  ifdef ACE_GETACL
   free (ctx->ace_entries);

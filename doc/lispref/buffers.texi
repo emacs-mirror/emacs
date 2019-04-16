@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Buffers
@@ -573,7 +573,6 @@ echo area; use @code{set-buffer-modified-p} (above) instead.
 This function returns @var{buffer}'s modification-count.  This is a
 counter that increments every time the buffer is modified.  If
 @var{buffer} is @code{nil} (or omitted), the current buffer is used.
-The counter can wrap around occasionally.
 @end defun
 
 @defun buffer-chars-modified-tick &optional buffer
@@ -586,6 +585,20 @@ calls, you can tell whether a character change occurred in that buffer
 in between the calls.  If @var{buffer} is @code{nil} (or omitted), the
 current buffer is used.
 @end defun
+
+Sometimes there's a need for modifying buffer in a way that doesn't
+really change its text, like if only its text properties are changed.
+If your program needs to modify a buffer without triggering any hooks
+and features that react to buffer modifications, use the
+@code{with-silent-modifications} macro.
+
+@defmac with-silent-modifications body@dots{}
+Execute @var{body} pretending it does not modify the buffer.  This
+includes checking whether the buffer's file is locked (@pxref{File
+Locks}), running buffer modification hooks (@pxref{Change Hooks}),
+etc.  Note that if @var{body} actually modifies the buffer text, its
+undo data may become corrupted.
+@end defmac
 
 @node Modification Time
 @section Buffer Modification Time
@@ -634,20 +647,18 @@ file should not be done.
 
 @defun visited-file-modtime
 This function returns the current buffer's recorded last file
-modification time, as a list of the form @code{(@var{high} @var{low}
-@var{microsec} @var{picosec})}.  (This is the same format that
-@code{file-attributes} uses to return time values; @pxref{File
-Attributes}.)
+modification time, as a Lisp timestamp (@pxref{Time of Day}).
 
 If the buffer has no recorded last modification time, this function
 returns zero.  This case occurs, for instance, if the buffer is not
 visiting a file or if the time has been explicitly cleared by
 @code{clear-visited-file-modtime}.  Note, however, that
-@code{visited-file-modtime} returns a list for some non-file buffers
+@code{visited-file-modtime} returns a timestamp for some non-file buffers
 too.  For instance, in a Dired buffer listing a directory, it returns
 the last modification time of that directory, as recorded by Dired.
 
-If the buffer is not visiting a file, this function returns @minus{}1.
+If the buffer is visiting a file that doesn't exist, this function
+returns @minus{}1.
 @end defun
 
 @defun set-visited-file-modtime &optional time
@@ -657,9 +668,8 @@ is not @code{nil}, and otherwise to the last modification time of the
 visited file.
 
 If @var{time} is neither @code{nil} nor an integer flag returned
-by @code{visited-file-modtime}, it should have the form
-@code{(@var{high} @var{low} @var{microsec} @var{picosec})},
-the format used by @code{current-time} (@pxref{Time of Day}).
+by @code{visited-file-modtime}, it should be a Lisp time value
+(@pxref{Time of Day}).
 
 This function is useful if the buffer was not read from the file
 normally, or if the file itself has been changed for some known benign
@@ -925,6 +935,10 @@ This is a normal hook run whenever the buffer list changes.  Functions
 (@pxref{Creating Buffers}), @code{rename-buffer} (@pxref{Buffer Names}),
 @code{kill-buffer} (@pxref{Killing Buffers}), @code{bury-buffer} (see
 above) and @code{select-window} (@pxref{Selecting Windows}).
+
+Functions run by this hook should avoid calling @code{select-window}
+with a nil @var{norecord} argument or @code{with-temp-buffer} since
+either may lead to infinite recursion.
 @end defvar
 
 @node Creating Buffers
@@ -1167,10 +1181,10 @@ the current buffer's base buffer and copies the rest of the current
 buffer's attributes.  (If the current buffer is not indirect, it is
 used as the base buffer.)
 
-If @var{display-flag} is non-@code{nil}, that means to display the new
-buffer by calling @code{pop-to-buffer}.  If @var{norecord} is
-non-@code{nil}, that means not to put the new buffer to the front of
-the buffer list.
+If @var{display-flag} is non-@code{nil}, as it always is in
+interactive calls, that means to display the new buffer by calling
+@code{pop-to-buffer}.  If @var{norecord} is non-@code{nil}, that means
+not to put the new buffer to the front of the buffer list.
 @end deffn
 
 @defun buffer-base-buffer &optional buffer

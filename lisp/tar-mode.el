@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs
 
-;; Copyright (C) 1990-1991, 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2019 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -95,6 +95,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'arc-mode)
 
 (defgroup tar nil
   "Simple editing of tar files."
@@ -304,7 +305,7 @@ write-date, checksum, link-type, and link-name."
            (tar-parse-octal-integer string tar-uid-offset tar-gid-offset)
            (tar-parse-octal-integer string tar-gid-offset tar-size-offset)
            (tar-parse-octal-integer string tar-size-offset tar-time-offset)
-           (tar-parse-octal-long-integer string tar-time-offset tar-chk-offset)
+           (tar-parse-octal-integer string tar-time-offset tar-chk-offset)
            (tar-parse-octal-integer string tar-chk-offset tar-linkp-offset)
            link-p
            linkname
@@ -342,20 +343,8 @@ write-date, checksum, link-type, and link-name."
 	      start (1+ start)))
       n)))
 
-(defun tar-parse-octal-long-integer (string &optional start end)
-  (if (null start) (setq start 0))
-  (if (null end) (setq end (length string)))
-  (if (= (aref string start) 0)
-      (list 0 0)
-    (let ((lo 0)
-	  (hi 0))
-      (while (< start end)
-	(if (>= (aref string start) ?0)
-	    (setq lo (+ (* lo 8) (- (aref string start) ?0))
-		  hi (+ (* hi 8) (ash lo -16))
-		  lo (logand lo 65535)))
-	(setq start (1+ start)))
-      (list hi lo))))
+(define-obsolete-function-alias 'tar-parse-octal-long-integer
+  'tar-parse-octal-integer "27.1")
 
 (defun tar-parse-octal-integer-safe (string)
   (if (zerop (length string)) (error "empty string"))
@@ -762,12 +751,10 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
 
 (define-minor-mode tar-subfile-mode
   "Minor mode for editing an element of a tar-file.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.  This mode arranges for \"saving\" this
-buffer to write the data into the tar-file buffer that it came
-from.  The changes will actually appear on disk when you save the
-tar-file's buffer."
+
+This mode arranges for \"saving\" this buffer to write the data
+into the tar-file buffer that it came from.  The changes will
+actually appear on disk when you save the tar-file's buffer."
   ;; Don't do this, because it is redundant and wastes mode line space.
   ;; :lighter " TarFile"
   nil nil nil
@@ -945,6 +932,7 @@ tar-file's buffer."
         (setq buffer-file-name new-buffer-file-name)
         (setq buffer-file-truename
               (abbreviate-file-name buffer-file-name))
+        (archive-try-jka-compr)       ;Pretty ugly hack :-(
         ;; Force buffer-file-coding-system to what
         ;; decode-coding-region actually used.
         (set-buffer-file-coding-system last-coding-system-used t)
@@ -1278,14 +1266,8 @@ for this to be permanent."
 
 
 (defun tar-octal-time (timeval)
-  ;; Format a timestamp as 11 octal digits.  Ghod, I hope this works...
-  (let ((hibits (car timeval)) (lobits (car (cdr timeval))))
-    (format "%05o%01o%05o"
-	    (lsh hibits -2)
-	    (logior (lsh (logand 3 hibits) 1)
-		    (if (> (logand lobits 32768) 0) 1 0))
-	    (logand 32767 lobits)
-	    )))
+  ;; Format a timestamp as 11 octal digits.
+  (format "%011o" (encode-time timeval 'integer)))
 
 (defun tar-subfile-save-buffer ()
   "In tar subfile mode, save this buffer into its parent tar-file buffer.

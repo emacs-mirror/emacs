@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lists
@@ -50,16 +50,19 @@ convention; at the level of cons cells, the @sc{car} and @sc{cdr}
 slots have similar properties).  Hence, the @sc{cdr} slot of each cons
 cell in a list refers to the following cons cell.
 
+@cindex proper list
 @cindex true list
   Also by convention, the @sc{cdr} of the last cons cell in a list is
 @code{nil}.  We call such a @code{nil}-terminated structure a
-@dfn{true list}.  In Emacs Lisp, the symbol @code{nil} is both a
-symbol and a list with no elements.  For convenience, the symbol
-@code{nil} is considered to have @code{nil} as its @sc{cdr} (and also
-as its @sc{car}).
+@dfn{proper list}@footnote{It is sometimes also referred to as a
+@dfn{true list}, but we generally do not use this terminology in this
+manual.}.  In Emacs Lisp, the symbol @code{nil} is both a symbol and a
+list with no elements.  For convenience, the symbol @code{nil} is
+considered to have @code{nil} as its @sc{cdr} (and also as its
+@sc{car}).
 
-  Hence, the @sc{cdr} of a true list is always a true list.  The
-@sc{cdr} of a nonempty true list is a true list containing all the
+  Hence, the @sc{cdr} of a proper list is always a proper list.  The
+@sc{cdr} of a nonempty proper list is a proper list containing all the
 elements except the first.
 
 @cindex dotted list
@@ -71,10 +74,10 @@ Pair Notation}).  There is one other possibility: some cons cell's
 @sc{cdr} could point to one of the previous cons cells in the list.
 We call that structure a @dfn{circular list}.
 
-  For some purposes, it does not matter whether a list is true,
+  For some purposes, it does not matter whether a list is proper,
 circular or dotted.  If a program doesn't look far enough down the
 list to see the @sc{cdr} of the final cons cell, it won't care.
-However, some functions that operate on lists demand true lists and
+However, some functions that operate on lists demand proper lists and
 signal errors if given a dotted list.  Most functions that try to find
 the end of a list enter infinite loops if given a circular list.
 
@@ -153,6 +156,22 @@ considered a list and @code{not} when it is considered a truth value
 @end example
 @end defun
 
+@defun proper-list-p object
+This function returns the length of @var{object} if it is a proper
+list, @code{nil} otherwise (@pxref{Cons Cells}).  In addition to
+satisfying @code{listp}, a proper list is neither circular nor dotted.
+
+@example
+@group
+(proper-list-p '(a b c))
+    @result{} 3
+@end group
+@group
+(proper-list-p '(a b . c))
+    @result{} nil
+@end group
+@end example
+@end defun
 
 @node List Elements
 @section Accessing Elements of Lists
@@ -522,7 +541,7 @@ object.  The final argument is not copied or converted; it becomes the
 is itself a list, then its elements become in effect elements of the
 result list.  If the final element is not a list, the result is a
 dotted list since its final @sc{cdr} is not @code{nil} as required
-in a true list.
+in a proper list (@pxref{Cons Cells}).
 @end defun
 
   Here is an example of using @code{append}:
@@ -637,7 +656,7 @@ resulting list.  Instead, the sequence becomes the final @sc{cdr}, like
 any other non-list final argument.
 
 @defun copy-tree tree &optional vecp
-This function returns a copy of the tree @code{tree}.  If @var{tree} is a
+This function returns a copy of the tree @var{tree}.  If @var{tree} is a
 cons cell, this makes a new cons cell with the same @sc{car} and
 @sc{cdr}, then recursively copies the @sc{car} and @sc{cdr} in the
 same way.
@@ -648,8 +667,20 @@ non-@code{nil}, it copies vectors too (and operates recursively on
 their elements).
 @end defun
 
+@defun flatten-tree tree
+This function returns a ``flattened'' copy of @var{tree}, that is,
+a list containing all the non-@code{nil} terminal nodes, or leaves, of
+the tree of cons cells rooted at @var{tree}.  Leaves in the returned
+list are in the same order as in @var{tree}.
+@end defun
+
+@example
+(flatten-tree '(1 (2 . 3) nil (4 5 (6)) 7))
+    @result{}(1 2 3 4 5 6 7)
+@end example
+
 @defun number-sequence from &optional to separation
-This returns a list of numbers starting with @var{from} and
+This function returns a list of numbers starting with @var{from} and
 incrementing by @var{separation}, and ending at or just before
 @var{to}.  @var{separation} can be positive or negative and defaults
 to 1.  If @var{to} is @code{nil} or numerically equal to @var{from},
@@ -1736,7 +1767,7 @@ alist
 @defun assoc-delete-all key alist &optional test
 This function is like @code{assq-delete-all} except that it accepts
 an optional argument @var{test}, a predicate function to compare the
-keys in @var{alist}. If omitted or @code{nil}, @var{test} defaults to
+keys in @var{alist}.  If omitted or @code{nil}, @var{test} defaults to
 @code{equal}.  As @code{assq-delete-all}, this function often modifies
 the original list structure of @var{alist}.
 @end defun

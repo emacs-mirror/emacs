@@ -57,7 +57,8 @@ INLINE_HEADER_BEGIN
 
 /* Minimum leading code of multibyte characters.  */
 #define MIN_MULTIBYTE_LEADING_CODE 0xC0
-/* Maximum leading code of multibyte characters.  */
+/* Maximum leading code of multibyte characters.  Note: this must be
+   updated if we ever increase MAX_CHAR above.  */
 #define MAX_MULTIBYTE_LEADING_CODE 0xF8
 
 /* Unicode character values.  */
@@ -122,7 +123,7 @@ enum
 #define MAX_MULTIBYTE_LENGTH 5
 
 /* Nonzero iff X is a character.  */
-#define CHARACTERP(x) (NATNUMP (x) && XFASTINT (x) <= MAX_CHAR)
+#define CHARACTERP(x) (FIXNATP (x) && XFIXNAT (x) <= MAX_CHAR)
 
 /* Nonzero iff C is valid as a character code.  */
 #define CHAR_VALID_P(c) UNSIGNED_CMP (c, <=, MAX_CHAR)
@@ -558,7 +559,7 @@ enum
 /* Return a non-outlandish value for the tab width.  */
 
 #define SANE_TAB_WIDTH(buf) \
-  sanitize_tab_width (XFASTINT (BVAR (buf, tab_width)))
+  sanitize_tab_width (XFIXNAT (BVAR (buf, tab_width)))
 INLINE int
 sanitize_tab_width (EMACS_INT width)
 {
@@ -594,7 +595,7 @@ sanitize_char_width (EMACS_INT width)
 #define CHARACTER_WIDTH(c)	\
   (ASCII_CHAR_P (c)		\
    ? ASCII_CHAR_WIDTH (c)	\
-   : sanitize_char_width (XINT (CHAR_TABLE_REF (Vchar_width_table, c))))
+   : sanitize_char_width (XFIXNUM (CHAR_TABLE_REF (Vchar_width_table, c))))
 
 /* If C is a variation selector, return the index of the
    variation selector (1..256).  Otherwise, return 0.  */
@@ -699,7 +700,7 @@ char_table_translate (Lisp_Object obj, int ch)
   eassert (CHAR_VALID_P (ch));
   eassert (CHAR_TABLE_P (obj));
   obj = CHAR_TABLE_REF (obj, ch);
-  return CHARACTERP (obj) ? XINT (obj) : ch;
+  return CHARACTERP (obj) ? XFIXNUM (obj) : ch;
 }
 
 #if defined __GNUC__ && !defined __STRICT_ANSI__

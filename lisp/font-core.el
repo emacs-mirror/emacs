@@ -1,6 +1,6 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, faces
@@ -78,9 +78,6 @@ It will be passed one argument, which is the current value of
 
 (define-minor-mode font-lock-mode
   "Toggle syntax highlighting in this buffer (Font Lock mode).
-With a prefix argument ARG, enable Font Lock mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 When Font Lock mode is enabled, text is fontified as you type it:
 

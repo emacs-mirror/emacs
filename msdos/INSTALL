@@ -1,6 +1,6 @@
 GNU Emacs Installation Guide for the DJGPP (a.k.a. MS-DOS) port
 
-Copyright (C) 1992, 1994, 1996-1997, 2000-2018 Free Software Foundation,
+Copyright (C) 1992, 1994, 1996-1997, 2000-2019 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -18,6 +18,15 @@ info/efaq.info) includes pointers to Internet sites where you can find
 the necessary utilities; search for "MS-DOS".  The configuration step
 (see below) will test for these utilities and will refuse to continue
 if any of them isn't found.
+
+You should carefully choose the version of GCC you use to build Emacs,
+because recent versions of GCC don't support building Emacs very well.
+The main issue is the debug info: the DJGPP build of Emacs must use
+the COFF debug info.  GCC support for COFF debug info was steadily
+deteriorating since GCC 5, and GCC 8.1 officially stopped supporting
+the -gcoff switch, which the Emacs build process needs.  We recommend
+using GCC 3.4.X and Binutils 2.26; GDB 7.2 is capable to debug an
+Emacs binary built by this combination.
 
 Bootstrapping Emacs or recompiling Lisp files in the `lisp'
 subdirectory using the various targets in the lisp/Makefile file
@@ -70,15 +79,15 @@ Running "config msdos" checks for several programs that are required
 to configure and build Emacs; if one of those programs is not found,
 CONFIG.BAT stops and prints an error message.
 
-On Windows NT and Windows 2000/XP/Vista/7, running "config msdos"
+On Windows NT and Windows 2000/XP and later, running "config msdos"
 might print an error message like "VDM has been already loaded".  This
 is because those systems have a program called `redir.exe' which is
 incompatible with a program by the same name supplied with DJGPP,
 which is used by config.bat.  To resolve this, move the DJGPP's `bin'
 subdirectory to the front of your PATH environment variable.
 
-Windows Vista/7 has several bugs in its DPMI server related to memory
-allocation: it fails DPMI resize memory block function, and it
+Windows Vista and later has several bugs in its DPMI server related to
+memory allocation: it fails DPMI resize memory block function, and it
 arbitrarily limits the default amount of DPMI memory to 32MB.  To work
 around these bugs, first configure Emacs to use the `malloc' function
 from the DJGPP library.  To this end, run CONFIG.BAT with the

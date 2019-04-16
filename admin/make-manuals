@@ -1,0 +1,214 @@
+#!/bin/bash
+### make-manuals - create the Emacs manuals to upload to the gnu.org website
+
+## Copyright 2018-2019 Free Software Foundation, Inc.
+
+## Author: Glenn Morris <rgm@gnu.org>
+
+## This file is part of GNU Emacs.
+
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+### Commentary:
+
+## This is a helper script to create the Emacs manuals as used on the
+## gnu.org website.  After this, use upload-manuals to upload them.
+##
+## Usage:
+## Call from the top-level directory of an Emacs source tree.
+## This should normally be a release.
+## The info files should exist.
+
+### Code:
+
+die ()                          # write error to stderr and exit
+{
+    [ $# -gt 0 ] && echo "$PN: $@" >&2
+    exit 1
+}
+
+PN=${0##*/}                     # basename of script
+
+usage ()
+{
+    cat 1>&2 <<EOF
+Usage: ${PN} [-c] [-e emacs]
+Create the Emacs manuals for the gnu.org website.
+Call this script from the top-level of the Emacs source tree that
+contains the manuals you want to use (normally a release).
+The admin/ directory is required.
+Options:
+-c: do not delete any pre-existing $outdir/ directory
+-e: Emacs executable to use (default $emacs)
+EOF
+    exit 1
+}
+
+
+## Defaults.
+continue=
+emacs=emacs
+
+## Parameters.
+outdir=manual
+gzip="gzip --best --no-name"
+tar="tar --numeric-owner --owner=0 --group=0 --mode=go+u,go-w"
+## Requires GNU tar >= 1.28 so that the tarballs are more reproducible.
+## (Personally I think this is way OOT.  I'm not even sure if anyone
+## uses these tarfiles, let alone cares whether they are reproducible.)
+tar --help | grep -- '--sort.*name' >& /dev/null && tar="$tar --sort=name"
+
+while getopts ":hce:" option ; do
+    case $option in
+        (h) usage ;;
+
+        (c) continue=t ;;
+
+        (e) emacs=$OPTARG ;;
+
+        (\?) die "Bad option -$OPTARG" ;;
+
+        (:) die "Option -$OPTARG requires an argument" ;;
+
+        (*) die "getopts error" ;;
+    esac
+done
+shift $(( --OPTIND ))
+OPTIND=1
+
+[ $# -eq 0 ] || usage
+
+
+[ -e admin/admin.el ] || die "admin/admin.el not found"
+
+
+tempfile=/tmp/$PN.$$
+trap "rm -f $tempfile 2> /dev/null" EXIT
+
+
+[ "$continue" ] || rm -rf $outdir
+
+if [ -e $outdir ]; then
+    ## Speed up repeat invocation.
+    echo "Re-using existing $outdir/ directory"
+
+else
+
+    ## This creates the manuals in a manual/ directory.
+    ## Note makeinfo >= 5 is much slower than makeinfo 4.
+    echo "Making manuals (slow)..."
+    $emacs --batch -Q -l admin/admin.el -f make-manuals \
+              >| $tempfile 2>&1 || {
+        cat $tempfile 1>&2
+
+        die "error running make-manuals"
+    }
+fi
+
+find $outdir -name '*~' -exec rm {} +
+
+
+echo "Adding compressed html files..."
+for f in emacs elisp; do
+    $tar -C $outdir/html_node -cf - $f | $gzip \
+       > $outdir/$f.html_node.tar.gz || die "error for $f"
+done
+
+
+echo "Making manual tarfiles..."
+$emacs --batch -Q -l admin/admin.el -f make-manuals-dist \
+          >| $tempfile || {
+
+    cat $tempfile 1>&2
+
+    die "error running make-manuals-dist"
+}
+
+o=$outdir/texi
+mkdir -p $o
+
+for f in $outdir/*.tar; do
+    of=${f##*/}
+    of=${of#emacs-}
+    of=${of%%-[0-9]*}.texi.tar
+    of=${of/lispintro/eintr}
+    of=${of/lispref/elisp}
+    of=${of/manual/emacs}
+    of=$o/$of
+    mv $f $of
+    $gzip $of || die "error compressing $f"
+done
+
+
+echo "Making refcards..."
+make -C etc/refcards dist >| $tempfile 2>&1 || {
+    cat $tempfile 1>&2
+    die "failed make dist"
+}
+
+## This may hang if eg german.sty is missing.
+make -k -C etc/refcards pdf >| $tempfile 2>&1 || {
+    cat $tempfile 1>&2
+    echo "Warning: ignored failure(s) from make pdf"
+}
+
+## Newer Texlive only provide mex (used by pl refcards) for pdf, AFAICS.
+make -k -C etc/refcards ps >| $tempfile 2>&1 || {
+    cat $tempfile 1>&2
+    echo "Warning: ignored failure(s) from make ps"
+}
+
+## Note that in the website, refcards/ is not a subdirectory of manual/.
+refdir=$outdir/refcards
+
+mkdir -p $refdir
+
+mv etc/refcards/emacs-refcards.tar $refdir
+$gzip $refdir/emacs-refcards.tar
+
+for fmt in pdf ps; do
+
+    o=$refdir/$fmt
+
+    mkdir -p $o
+
+    [ $fmt = pdf ] && {
+        cp etc/refcards/*.$fmt $o
+        rm $o/gnus-logo.pdf
+        continue
+    }
+
+    for f in  etc/refcards/*.$fmt; do
+        $gzip < $f > $o/${f##*/}.gz
+    done
+done
+
+make -C etc/refcards extraclean > /dev/null
+
+
+echo "Adding compressed info files..."
+
+o=$outdir/info
+mkdir -p $o
+
+for f in eintr.info elisp.info emacs.info; do
+
+    $gzip < info/$f > $o/$f.gz || die "error for $f"
+done
+
+
+echo "Finished OK, you might want to run upload-manuals now"
+
+
+exit 0

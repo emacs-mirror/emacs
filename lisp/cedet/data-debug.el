@@ -1,6 +1,6 @@
 ;;; data-debug.el --- Data structure debugger
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
 ;; Old-Version: 0.2
@@ -920,14 +920,14 @@ If PARENT is non-nil, it is somehow related as a parent to thing."
   (interactive)
   (forward-line 1)
   (beginning-of-line)
-  (skip-chars-forward " *-><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (point-at-eol)))
 
 (defun data-debug-prev ()
   "Go to the previous line in the Ddebug buffer."
   (interactive)
   (forward-line -1)
   (beginning-of-line)
-  (skip-chars-forward " *-><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (point-at-eol)))
 
 (defun data-debug-next-expando ()
   "Go to the next line in the Ddebug buffer.
@@ -1014,7 +1014,7 @@ Do nothing if already contracted."
 	   (data-debug-current-line-expanded-p))
       (data-debug-contract-current-line)
     (data-debug-expand-current-line))
-  (skip-chars-forward " *-><[]" (point-at-eol)))
+  (skip-chars-forward "- *><[]" (point-at-eol)))
 
 (defun data-debug-expand-or-contract-mouse (event)
   "Expand or contract anything at event EVENT."

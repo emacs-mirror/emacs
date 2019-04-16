@@ -1,6 +1,6 @@
 ;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
@@ -29,6 +29,15 @@
 ;;  - a node name MAY NOT contain a colon
 ;; This distinction is to support indexing of computer programming
 ;; language terms that may contain ":" but not ": ".
+
+;; The commands in this file should start either with "Info-" or with
+;; "info-".  The capitalized version is for commands that are bound to
+;; keys, and therefore are unlikely to be invoked by name via "M-x";
+;; the lower-case version is for commands invoked by name.  This
+;; arrangement makes completion of "info-" commands work better,
+;; because the "Info-" commands (of which there are a lot) don't get
+;; in the way.  Please adhere to this convention when you add commands
+;; here.
 
 ;;; Code:
 
@@ -633,21 +642,23 @@ Do the right thing if the file has been compressed or zipped."
 	  (insert-file-contents-literally fullname visit)
 	  (let ((inhibit-read-only t)
 		(coding-system-for-write 'no-conversion)
-		(inhibit-null-byte-detection t) ; Index nodes include null bytes
+		(inhibit-nul-byte-detection t) ; Index nodes include null bytes
 		(default-directory (or (file-name-directory fullname)
 				       default-directory)))
 	    (or (consp decoder)
 		(setq decoder (list decoder)))
 	    (apply #'call-process-region (point-min) (point-max)
 		   (car decoder) t t nil (cdr decoder))))
-      (let ((inhibit-null-byte-detection t)) ; Index nodes include null bytes
+      (let ((inhibit-nul-byte-detection t)) ; Index nodes include null bytes
 	(insert-file-contents fullname visit)))
 
     ;; Clear the caches of modified Info files.
     (let* ((attribs-old (cdr (assoc fullname Info-file-attributes)))
-	   (modtime-old (and attribs-old (nth 5 attribs-old)))
+	   (modtime-old (and attribs-old
+			     (file-attribute-modification-time attribs-old)))
 	   (attribs-new (and (stringp fullname) (file-attributes fullname)))
-	   (modtime-new (and attribs-new (nth 5 attribs-new))))
+	   (modtime-new (and attribs-new
+			     (file-attribute-modification-time attribs-new))))
       (when (and modtime-old modtime-new
 		 (time-less-p modtime-old modtime-new))
 	(setq Info-index-nodes (remove (assoc (or Info-current-file filename)
@@ -1366,7 +1377,7 @@ is non-nil)."
 			  ;; Index nodes include null bytes.  DIR
 			  ;; files should not have indices, but who
 			  ;; knows...
-			  (let ((inhibit-null-byte-detection t))
+			  (let ((inhibit-nul-byte-detection t))
 			    (insert-file-contents file)
 			    (setq Info-dir-file-name file)
 			    (push (current-buffer) buffers)
@@ -1520,7 +1531,7 @@ is non-nil)."
 	    (save-restriction
 	      (narrow-to-region start (point))
 	      (goto-char (point-min))
-	      (while (re-search-forward "^* \\([^:\n]+:\\(:\\|[^.\n]+\\).\\)" nil 'move)
+	      (while (re-search-forward "^\\* \\([^:\n]+:\\(:\\|[^.\n]+\\).\\)" nil 'move)
 		;; Fold case straight away; `member-ignore-case' here wasteful.
 		(let ((x (downcase (match-string 1))))
 		  (if (member x seen)
@@ -1591,7 +1602,7 @@ is non-nil)."
   "Unescape double quotes and backslashes in VALUE."
   (let ((start 0)
 	(unquote value))
-    (while (string-match "[^\\\"]*\\(\\\\\\)[\\\\\"]" unquote start)
+    (while (string-match "[^\\\"]*\\(\\\\\\)[\\\"]" unquote start)
       (setq unquote (replace-match "" t t unquote 1))
       (setq start (- (match-end 0) 1)))
     unquote))
@@ -1608,7 +1619,7 @@ escaped (\\\",\\\\)."
   (let ((start 0)
 	(parameter-alist))
     (while (string-match
-	    "\\s *\\([^=]+\\)=\\(?:\\([^\\s \"]+\\)\\|\\(?:\"\\(\\(?:[^\\\"]\\|\\\\[\\\\\"]\\)*\\)\"\\)\\)"
+	    "\\s *\\([^=]+\\)=\\(?:\\([^\\s \"]+\\)\\|\\(?:\"\\(\\(?:[^\\\"]\\|\\\\[\\\"]\\)*\\)\"\\)\\)"
 	    parameter-string start)
       (setq start (match-end 0))
       (push (cons (match-string 1 parameter-string)
@@ -2723,7 +2734,7 @@ Because of ambiguities, this should be concatenated with something like
           (user-error "No menu in this node"))
         (cond
          ((eq (car-safe action) 'boundaries) nil)
-         ((eq action 'metadata) `(metadata (category . info-menu)))
+         ((eq action 'metadata) '(metadata (category . info-menu)))
          ((eq action 'lambda)
           (re-search-forward
            (concat "\n\\* +" (regexp-quote string) ":") nil t))
@@ -3929,8 +3940,8 @@ If FORK is a string, it is the name to use for the new buffer."
 If FORK is non-nil, it is passed to `Info-goto-node'."
   (let (node)
     (cond
-     ((setq node (Info-get-token (point) "[hf]t?tps?://"
-				 "\\([hf]t?tps?://[^ \t\n\"`‘({<>})’']+\\)"))
+     ((setq node (Info-get-token (point) "\\(?:f\\(?:ile\\|tp\\)\\|https?\\)://"
+				 "\\(\\(?:f\\(?:ile\\|tp\\)\\|https?\\)://[^ \t\n\"`‘({<>})’']+\\)"))
       (browse-url node)
       (setq node t))
      ((setq node (Info-get-token (point) "\\*note[ \n\t]+"
@@ -4757,7 +4768,7 @@ first line or header line, and for breadcrumb links.")
             ;; This is a serious problem for trying to handle multiple
             ;; frame types at once.  We want this text to be invisible
             ;; on frames that can display the font above.
-            (when (memq (framep (selected-frame)) '(x pc w32 ns))
+            (when (display-multi-font-p)
               (add-text-properties (1- (match-beginning 2)) (match-end 2)
                                    '(invisible t front-sticky nil rear-nonsticky t))))))
 
@@ -5193,7 +5204,7 @@ The INDENT level is ignored."
 TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node (NAME . FILE).
 INDENT is the current indentation depth."
-  (cond ((string-match "+" text)	;we have to expand this file
+  (cond ((string-match "\\+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (if (speedbar-with-writable
 	      (save-excursion

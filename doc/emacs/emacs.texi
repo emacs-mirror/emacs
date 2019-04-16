@@ -27,7 +27,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifnottex
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1985--1987, 1993--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1114,6 +1114,7 @@ Customization
                           By changing them, you can redefine keys.
 * Init File::           How to write common customizations in the
                           initialization file.
+* Authentication::      Keeping persistent authentication information.
 
 Easy Customization Interface
 
@@ -1134,6 +1135,8 @@ Variables
 * Locals::              Per-buffer values of variables.
 * File Variables::      How files can specify variable values.
 * Directory Variables:: How variable values can be specified by directory.
+* Connection Variables:: Variables which are valid for buffers with a
+                           remote default directory.
 
 Local Variables in Files
 
@@ -1481,7 +1484,7 @@ Stevens, Andy Stewart, Jonathan Stigelman, Martin Stjernholm, Kim F.
 Storm, Steve Strassmann, Christopher Suckling, Olaf Sylvester, Naoto
 Takahashi, Steven Tamm, Jan Tatarik, Luc Teirlinck, Jean-Philippe Theberge, Jens
 T. Berger Thielemann, Spencer Thomas, Jim Thompson, Toru Tomabechi,
-David O'Toole, Markus Triska, Tom Tromey, Enami Tsugutomo, Eli
+David O'Toole, Markus Triska, Tom Tromey, Eli
 Tziperman, Daiki Ueno, Masanobu Umeda, Rajesh Vaidheeswarran, Neil
 W. Van Dyke, Didier Verna, Joakim Verona, Ulrik Vieth, Geoffrey
 Voelker, Johan Vromans, Inge Wallin, John Paul Wallington, Colin

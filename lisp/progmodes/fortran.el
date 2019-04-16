@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2018 Free Software Foundation,
+;; Copyright (C) 1986, 1993-1995, 1997-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -495,7 +495,7 @@ This is used to fontify fixed-format Fortran comments."
   ;; `byte-compile', but simple benchmarks indicate that it's probably not
   ;; worth the trouble (about 0.5% of slow down).
   (eval                         ;I hate `eval', but it's hard to avoid it here.
-   `(syntax-propertize-rules
+   '(syntax-propertize-rules
      ("^[CcDd\\*]" (0 "<"))
      ;; We mark all chars after line-length as "comment-start", rather than
      ;; just the first one.  This is so that a closing ' that's past the
@@ -1275,7 +1275,8 @@ Directive lines are treated as comments."
                      (concat "[ \t]*"
                              (regexp-quote fortran-continuation-string)))
                     (looking-at "[ \t]*$\\| \\{5\\}[^ 0\n]\\|\t[1-9]")
-                    (looking-at (concat "[ \t]*" comment-start-skip)))))
+                    (looking-at (concat "[ \t]*\\(?:"
+                                        comment-start-skip "\\)")))))
     (cond ((and continue-test
                 (not not-first-statement))
            (message "Incomplete continuation statement."))
@@ -1298,7 +1299,8 @@ Directive lines are treated as comments."
                 (or (looking-at fortran-comment-line-start-skip)
                     (looking-at fortran-directive-re)
                     (looking-at "[ \t]*$\\|     [^ 0\n]\\|\t[1-9]")
-                    (looking-at (concat "[ \t]*" comment-start-skip)))))
+                    (looking-at (concat "[ \t]*\\(?:"
+                                        comment-start-skip "\\)")))))
     (if (not not-last-statement)
         'last-statement)))
 
@@ -1795,7 +1797,7 @@ non-indentation text within the comment."
            (goto-char (match-end 0)))
           (t
            ;; Move past line number.
-           (skip-chars-forward "[ \t0-9]")))
+           (skip-chars-forward " \t0-9")))
     ;; Move past whitespace.
     (skip-chars-forward " \t")
     (current-column)))
@@ -2052,7 +2054,7 @@ If ALL is nil, only match comments that start in column > 0."
                 (when (<= (point) bos)
                   (move-to-column (1+ fill-column))
                   ;; What is this doing???
-                  (or (re-search-forward "[\t\n,'+-/*)=]" eol t)
+                  (or (re-search-forward "[-\t\n,'+/*)=]" eol t)
                       (goto-char bol)))
                 (if (bolp)
                     (re-search-forward "[ \t]" opoint t))
@@ -2146,7 +2148,8 @@ Always returns non-nil (to prevent `fill-paragraph' being called)."
               (or (looking-at "[ \t]*$")
                   (looking-at fortran-comment-line-start-skip)
                   (and comment-start-skip
-                       (looking-at (concat "[ \t]*" comment-start-skip)))))
+                       (looking-at (concat "[ \t]*\\(?:"
+                                           comment-start-skip "\\)")))))
       (save-excursion
         ;; Find beginning of statement.
         (fortran-next-statement)

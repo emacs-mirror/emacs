@@ -1,6 +1,6 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -2474,7 +2474,7 @@ specified."
 
 (defun vhdl-resolve-env-variable (string)
   "Resolve environment variables in STRING."
-  (while (string-match "\\(.*\\)${?\\(\\(\\w\\|_\\)+\\)}?\\(.*\\)" string)
+  (while (string-match "\\(.*\\)\\${?\\(\\(\\w\\|_\\)+\\)}?\\(.*\\)" string)
     (setq string (concat (match-string 1 string)
 			 (getenv (match-string 2 string))
 			 (match-string 4 string))))
@@ -6699,7 +6699,7 @@ search, and an argument indicating an interactive call."
     (if (and interactive
 	     (or (nth 3 state)
 		 (nth 4 state)
-		 (looking-at (concat "[ \t]*" comment-start-skip))))
+		 (looking-at (concat "[ \t]*\\(?:" comment-start-skip "\\)"))))
 	(forward-sentence (- count))
       (while (> count 0)
 	(vhdl-beginning-of-statement-1 lim)
@@ -7392,8 +7392,8 @@ only-lines."
 (defun vhdl-update-progress-info (string pos)
   "Update progress information."
   (when (and vhdl-progress-info (not noninteractive)
-	     (< vhdl-progress-interval
-		(- (nth 1 (current-time)) (aref vhdl-progress-info 2))))
+	     (time-less-p vhdl-progress-interval
+			  (time-since (aref vhdl-progress-info 2))))
     (let ((delta (- (aref vhdl-progress-info 1)
                     (aref vhdl-progress-info 0))))
       (message "%s... (%2d%%)" string
@@ -7401,7 +7401,7 @@ only-lines."
 		   100
                  (floor (* 100.0 (- pos (aref vhdl-progress-info 0)))
                         delta))))
-    (aset vhdl-progress-info 2 (nth 1 (current-time)))))
+    (aset vhdl-progress-info 2 (encode-time nil 'integer))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indentation commands
@@ -8142,12 +8142,12 @@ depending on parameter UPPER-CASE."
 		 (upcase-word -1)
 	       (downcase-word -1)))
 	 (when (and count vhdl-progress-interval (not noninteractive)
-		    (< vhdl-progress-interval
-		       (- (nth 1 (current-time)) last-update)))
+		    (time-less-p vhdl-progress-interval
+				 (time-since last-update)))
 	   (message "Fixing case... (%2d%s)"
 		    (+ (* count 20) (/ (* 20 (- (point) beg)) (- end beg)))
 		    "%")
-	   (setq last-update (nth 1 (current-time)))))
+	   (setq last-update (encode-time nil 'integer))))
        (goto-char end)))))
 
 (defun vhdl-fix-case-region (beg end &optional arg)
@@ -8707,17 +8707,11 @@ project is defined."
 ;;  Enabling/disabling
 
 (define-minor-mode vhdl-electric-mode
-  "Toggle VHDL electric mode.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable it if ARG
-is omitted or nil."
+  "Toggle VHDL electric mode."
   :global t :group 'vhdl-mode)
 
 (define-minor-mode vhdl-stutter-mode
-  "Toggle VHDL stuttering mode.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable it if ARG
-is omitted or nil."
+  "Toggle VHDL stuttering mode."
   :global t :group 'vhdl-mode)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -15121,7 +15115,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-project (text token indent)
   "Expand/contract the project under the cursor."
   (cond
-   ((string-match "+" text)		; expand project
+   ((string-match "\\+" text)		; expand project
     (speedbar-change-expand-button-char ?-)
     (unless (member token vhdl-speedbar-shown-project-list)
       (setq vhdl-speedbar-shown-project-list
@@ -15143,7 +15137,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-entity (text token indent)
   "Expand/contract the entity under the cursor."
   (cond
-   ((string-match "+" text)		; expand entity
+   ((string-match "\\+" text)		; expand entity
     (let* ((key (vhdl-speedbar-line-key indent))
 	   (ent-alist (vhdl-aget vhdl-entity-alist key))
 	   (ent-entry (vhdl-aget ent-alist token))
@@ -15212,7 +15206,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-architecture (text token indent)
   "Expand/contract the architecture under the cursor."
   (cond
-   ((string-match "+" text)		; expand architecture
+   ((string-match "\\+" text)		; expand architecture
     (let* ((key (vhdl-speedbar-line-key (1- indent)))
 	   (ent-alist (vhdl-aget vhdl-entity-alist key))
 	   (conf-alist (vhdl-aget vhdl-config-alist key))
@@ -15272,7 +15266,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-config (text token indent)
   "Expand/contract the configuration under the cursor."
   (cond
-   ((string-match "+" text)		; expand configuration
+   ((string-match "\\+" text)		; expand configuration
     (let* ((key (vhdl-speedbar-line-key indent))
 	   (conf-alist (vhdl-aget vhdl-config-alist key))
 	   (conf-entry (vhdl-aget conf-alist token))
@@ -15330,7 +15324,7 @@ otherwise use cached data."
 (defun vhdl-speedbar-expand-package (text token indent)
   "Expand/contract the package under the cursor."
   (cond
-   ((string-match "+" text)		; expand package
+   ((string-match "\\+" text)		; expand package
     (let* ((key (vhdl-speedbar-line-key indent))
 	   (pack-alist (vhdl-aget vhdl-package-alist key))
 	   (pack-entry (vhdl-aget pack-alist token))
@@ -15735,7 +15729,7 @@ NO-POSITION non-nil means do not re-position cursor."
 
 (defun vhdl-speedbar-dired (text token indent)
   "Speedbar click handler for directory expand button in hierarchy mode."
-  (cond ((string-match "+" text)	; we have to expand this dir
+  (cond ((string-match "\\+" text)	; we have to expand this dir
 	 (setq speedbar-shown-directories
 	       (cons (expand-file-name
 		      (concat (speedbar-line-directory indent) token "/"))

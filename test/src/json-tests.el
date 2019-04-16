@@ -1,6 +1,6 @@
 ;;; json-tests.el --- unit tests for json.c          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -26,8 +26,8 @@
 (require 'cl-lib)
 (require 'map)
 
-(declare-function json-serialize "json.c" (object))
-(declare-function json-insert "json.c" (object))
+(declare-function json-serialize "json.c" (object &rest args))
+(declare-function json-insert "json.c" (object &rest args))
 (declare-function json-parse-string "json.c" (string &rest args))
 (declare-function json-parse-buffer "json.c" (&rest args))
 
@@ -69,7 +69,31 @@
   (should-error (json-serialize '((1 . 2))) :type 'wrong-type-argument)
   (should-error (json-serialize '((a . 1) . b)) :type 'wrong-type-argument)
   (should-error (json-serialize '#1=((a . 1) . #1#)) :type 'circular-list)
-  (should-error (json-serialize '(#1=(a #1#)))))
+  (should-error (json-serialize '(#1=(a #1#))))
+
+  (should (equal (json-serialize '(:abc [1 2 t] :def :null))
+                 "{\"abc\":[1,2,true],\"def\":null}"))
+  (should (equal (json-serialize '(abc [1 2 t] :def :null))
+                 "{\"abc\":[1,2,true],\"def\":null}"))
+  (should-error (json-serialize '#1=(:a 1 . #1#)) :type 'circular-list)
+  (should-error (json-serialize '#1=(:a 1 :b . #1#)) :type 'circular-list)
+  (should-error (json-serialize '(:foo "bar" (unexpected-alist-key . 1)))
+                :type 'wrong-type-argument)
+  (should-error (json-serialize '((abc . "abc") :unexpected-plist-key "key"))
+                :type 'wrong-type-argument)
+  (should-error (json-serialize '(:foo bar :odd-numbered))
+                :type 'wrong-type-argument)
+  (should (equal
+           (json-serialize
+            (list :detect-hash-table #s(hash-table test equal data ("bla" "ble"))
+                  :detect-alist '((bla . "ble"))
+                  :detect-plist '(:bla "ble")))
+           "\
+{\
+\"detect-hash-table\":{\"bla\":\"ble\"},\
+\"detect-alist\":{\"bla\":\"ble\"},\
+\"detect-plist\":{\"bla\":\"ble\"}\
+}")))
 
 (ert-deftest json-serialize/object-with-duplicate-keys ()
   (skip-unless (fboundp 'json-serialize))
@@ -89,7 +113,17 @@
       (should (equal (cl-sort (map-pairs actual) #'string< :key #'car)
                      '(("abc" . [9 :false]) ("def" . :null)))))
     (should (equal (json-parse-string input :object-type 'alist)
-                   '((abc . [9 :false]) (def . :null))))))
+                   '((abc . [9 :false]) (def . :null))))
+    (should (equal (json-parse-string input :object-type 'plist)
+                   '(:abc [9 :false] :def :null)))))
+
+(ert-deftest json-parse-string/array ()
+  (skip-unless (fboundp 'json-parse-string))
+  (let ((input "[\"a\", 1, [\"b\", 2]]"))
+    (should (equal (json-parse-string input)
+                   ["a" 1 ["b" 2]]))
+    (should (equal (json-parse-string input :array-type 'list)
+                   '("a" 1 ("b" 2))))))
 
 (ert-deftest json-parse-string/string ()
   (skip-unless (fboundp 'json-parse-string))
@@ -183,6 +217,45 @@ Test with both unibyte and multibyte strings."
     (should-not (bobp))
     (should (looking-at-p (rx " [456]" eos)))))
 
+(ert-deftest json-parse-with-custom-null-and-false-objects ()
+  (skip-unless (and (fboundp 'json-serialize)
+                    (fboundp 'json-parse-string)))
+  (let* ((input
+          "{ \"abc\" : [9, false] , \"def\" : null }")
+         (output
+          (replace-regexp-in-string " " "" input)))
+    (should (equal (json-parse-string input
+                                      :object-type 'plist
+                                      :null-object :json-null
+                                      :false-object :json-false)
+                   '(:abc [9 :json-false] :def :json-null)))
+    (should (equal (json-parse-string input
+                                      :object-type 'plist
+                                      :false-object :json-false)
+                   '(:abc [9 :json-false] :def :null)))
+    (should (equal (json-parse-string input
+                                      :object-type 'alist
+                                      :null-object :zilch)
+                   '((abc . [9 :false]) (def . :zilch))))
+    (should (equal (json-parse-string input
+                                      :object-type 'alist
+                                      :false-object nil
+                                      :null-object nil)
+                   '((abc . [9 nil]) (def))))
+    (let* ((thingy '(1 2 3))
+           (retval (json-parse-string input
+                                      :object-type 'alist
+                                      :false-object thingy
+                                      :null-object nil)))
+      (should (equal retval `((abc . [9 ,thingy]) (def))))
+      (should (eq (elt (cdr (car retval)) 1) thingy)))
+    (should (equal output
+                   (json-serialize '((abc . [9 :myfalse]) (def . :mynull))
+                                   :false-object :myfalse
+                                   :null-object :mynull)))
+    ;; :object-type is not allowed in json-serialize
+    (should-error (json-serialize '() :object-type 'alist))))
+
 (ert-deftest json-insert/signal ()
   (skip-unless (fboundp 'json-insert))
   (with-temp-buffer
@@ -207,11 +280,20 @@ Test with both unibyte and multibyte strings."
                   (cl-incf calls)
                   (throw 'test-tag 'throw-value))
                 :local)
-      (should-error
-       (catch 'test-tag
-         (json-insert '((a . "b") (c . 123) (d . [1 2 t :false]))))
-       :type 'no-catch)
+      (should
+       (equal
+        (catch 'test-tag
+          (json-insert '((a . "b") (c . 123) (d . [1 2 t :false]))))
+        'throw-value))
       (should (equal calls 1)))))
+
+(ert-deftest json-serialize/bignum ()
+  (skip-unless (fboundp 'json-serialize))
+  (should (equal (json-serialize (vector (1+ most-positive-fixnum)
+                                         (1- most-negative-fixnum)))
+                 (format "[%d,%d]"
+                         (1+ most-positive-fixnum)
+                         (1- most-negative-fixnum)))))
 
 (provide 'json-tests)
 ;;; json-tests.el ends here

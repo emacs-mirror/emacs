@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lisp Data Types
@@ -109,15 +109,15 @@ not be evaluated later.  @xref{Input Functions}, for a description of
 @node Comments
 @section Comments
 @cindex comments
-@cindex @samp{;} in comment
+@cindex @samp{;} for commenting
 
-  A @dfn{comment} is text that is written in a program only for the sake
-of humans that read the program, and that has no effect on the meaning
-of the program.  In Lisp, a semicolon (@samp{;}) starts a comment if it
-is not within a string or character constant.  The comment continues to
-the end of line.  The Lisp reader discards comments; they do not become
-part of the Lisp objects which represent the program within the Lisp
-system.
+  A @dfn{comment} is text that is written in a program only for the
+sake of humans that read the program, and that has no effect on the
+meaning of the program.  In Lisp, an unescaped semicolon (@samp{;})
+starts a comment if it is not within a string or character constant.
+The comment continues to the end of line.  The Lisp reader discards
+comments; they do not become part of the Lisp objects which represent
+the program within the Lisp system.
 
   The @samp{#@@@var{count}} construct, which skips the next @var{count}
 characters, is useful for program-generated comments containing binary
@@ -166,7 +166,10 @@ latter are unique to Emacs Lisp.
 @node Integer Type
 @subsection Integer Type
 
-  The range of values for an integer depends on the machine.  The
+  Under the hood, there are two kinds of integers---small integers,
+called @dfn{fixnums}, and large integers, called @dfn{bignums}.
+
+  The range of values for a fixnum depends on the machine.  The
 minimum range is @minus{}536,870,912 to 536,870,911 (30 bits; i.e.,
 @ifnottex
 @minus{}2**29
@@ -182,8 +185,15 @@ to
 @math{2^{29}-1})
 @end tex
 but many machines provide a wider range.
-Emacs Lisp arithmetic functions do not check for integer overflow.  Thus
-@code{(1+ 536870911)} is @minus{}536,870,912 if Emacs integers are 30 bits.
+
+  Bignums can have arbitrary precision.  Operations that overflow a
+fixnum will return a bignum instead.
+
+  Fixnums can be compared with @code{eq}, but bignums require
+@code{eql} or @code{=}.  To test whether an integer is a fixnum or a
+bignum, you can compare it to @code{most-negative-fixnum} and
+@code{most-positive-fixnum}, or you can use the convenience predicates
+@code{fixnump} and @code{bignump} on any object.
 
   The read syntax for integers is a sequence of (base ten) digits with an
 optional sign at the beginning and an optional period at the end.  The
@@ -200,11 +210,6 @@ leading @samp{+} or a final @samp{.}.
 @end example
 
 @noindent
-As a special exception, if a sequence of digits specifies an integer
-too large or too small to be a valid integer object, the Lisp reader
-reads it as a floating-point number (@pxref{Floating-Point Type}).
-For instance, if Emacs integers are 30 bits, @code{536870912} is read
-as the floating-point number @code{536870912.0}.
 
   @xref{Numbers}, for more information.
 
@@ -1895,6 +1900,9 @@ with references to further information.
 @item arrayp
 @xref{Array Functions, arrayp}.
 
+@item bignump
+@xref{Predicates on Numbers, floatp}.
+
 @item bool-vector-p
 @xref{Bool-Vectors, bool-vector-p}.
 
@@ -1927,6 +1935,9 @@ with references to further information.
 
 @item custom-variable-p
 @xref{Variable Definitions, custom-variable-p}.
+
+@item fixnump
+@xref{Predicates on Numbers, floatp}.
 
 @item floatp
 @xref{Predicates on Numbers, floatp}.
@@ -2154,6 +2165,21 @@ Symbols}.
      @result{} nil
 @end group
 @end example
+
+@noindent
+@cindex identical-contents objects, and byte-compiler
+@cindex objects with identical contents, and byte-compiler
+The Emacs Lisp byte compiler may collapse identical literal objects,
+such as literal strings, into references to the same object, with the
+effect that the byte-compiled code will compare such objects as
+@code{eq}, while the interpreted version of the same code will not.
+Therefore, your code should never rely on objects with the same
+literal contents being either @code{eq} or not @code{eq}, it should
+instead use functions that compare object contents such as
+@code{equal}, described below.  Similarly, your code should not modify
+literal objects (e.g., put text properties on literal strings), since
+doing that might affect other literal objects of the same contents, if
+the byte compiler collapses them.
 @end defun
 
 @defun equal object1 object2

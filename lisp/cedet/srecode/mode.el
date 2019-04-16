@@ -1,6 +1,6 @@
 ;;; srecode/mode.el --- Minor mode for managing and using SRecode templates
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -89,14 +89,14 @@
      ])
    "---"
    '( "Insert ..." :filter srecode-minor-mode-templates-menu )
-   `( "Generate ..." :filter srecode-minor-mode-generate-menu )
+   '( "Generate ..." :filter srecode-minor-mode-generate-menu )
    "---"
-    (semantic-menu-item
-     ["Customize..."
-      (customize-group "srecode")
-      :active t
-      :help "Customize SRecode options"
-      ])
+   (semantic-menu-item
+    ["Customize..."
+     (customize-group "srecode")
+     :active t
+     :help "Customize SRecode options"
+     ])
    (list
     "Debugging Tools..."
     (semantic-menu-item
@@ -148,10 +148,10 @@
 ;;;###autoload
 (define-minor-mode srecode-minor-mode
   "Toggle srecode minor mode.
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled.
+
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled.
 
 \\{srecode-mode-map}"
   :keymap srecode-mode-map
@@ -176,8 +176,7 @@ minor mode is enabled.
 
 ;;;###autoload
 (define-minor-mode global-srecode-minor-mode
-  "Toggle global use of srecode minor mode.
-If ARG is positive or nil, enable, if it is negative, disable."
+  "Toggle global use of srecode minor mode."
   :global t :group 'srecode
   ;; Not needed because it's autoloaded instead.
   ;; :require 'srecode/mode

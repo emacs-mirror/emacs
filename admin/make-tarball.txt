@@ -87,9 +87,9 @@ General steps (for each step, check for possible errors):
      make -C etc/refcards
      make -C etc/refcards clean
 
-    If etc/refcards does not build you may need to downgrade or
-    upgrade your TeX installation, or do that part of the build by
-    hand.  For clues, search for the string "refcard" in the file
+    If some of the non-English etc/refcards fail to build, you
+    probably need to install some TeX foreign language packages.
+    For more information, search for the string "refcard" in the file
     admin/release-process.
 
 5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
@@ -202,50 +202,14 @@ The pages to update are:
 
 emacs.html (for a new major release, a more thorough update is needed)
 history.html
+add the new NEWS file as news/NEWS.xx.y
 
 For every new release, a banner is displayed on top of the emacs.html
 page.  Uncomment and the release banner in emacs.html.  Keep it on the
 page for about a month, then comment it again.
 
-Use M-x make-manuals from admin/admin.el to regenerate the html
-manuals in manual/.  If there are new manuals, add appropriate index
-pages in manual/ and add them to manual/index.html.  In the
-manual/html_node directory, delete any old manual pages that are no
-longer present.
-
-Tar up the generated html_node/emacs/ and elisp/ directories and update
-the files manual/elisp.html_node.tar.gz and emacs.html_node.tar.gz.
-Use GNU Tar 1.28 or later so that the tarballs are more reproducible,
-as follows:
-
-  cd manual
-  tar='tar --numeric-owner --owner=0 --group=0 --mode=go+u,go-w --sort=name'
-  gzip='gzip --best --no-name'
-  $tar -cf - html_node/emacs | $gzip >emacs.html_node.tar.gz
-  $tar -cf - html_node/elisp | $gzip >elisp.html_node.tar.gz
-
-Use M-x make-manuals-dist from admin/admin.el to update the
-manual/*.tar files.
-
-Add compressed copies of the main info pages from the tarfile to manual/info/
-as follows:
-
-  cd manual
-  mkdir info
-  gzip --best --no-name <../info/eintr.info >info/eintr.info.gz
-  gzip --best --no-name <../info/elisp.info >info/elisp.info.gz
-  gzip --best --no-name <../info/emacs.info >info/emacs.info.gz
-
-Update the refcards/pdf/ and ps/ directories, and also
-refcards/emacs-refcards.tar.gz (use make -C etc/refcards pdf ps dist).
-
-FIXME: The above instructions are not quite complete, as they do not
-specify the manual procedure used to copy the generated files in the
-'manual' directory to the corresponding web files, and to cvs remove
-and add files as needed.  Also, they are missing some files, e.g.,
-they generate manual/html_mono/ada-mode.html but do not generate the
-top-level ada-mode.html file for the one-node-per-page version; this
-is currently done by hand.
+Regenerate the various manuals in manual/.
+The scripts admin/make-manuals and admin/upload-manuals summarize the process.
 
 Browsing <https://web.cvs.savannah.gnu.org/viewvc/?root=emacs> is one
 way to check for any files that still need updating.

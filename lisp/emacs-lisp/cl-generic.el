@@ -1,6 +1,6 @@
 ;;; cl-generic.el --- CLOS-style generic functions for Elisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0
@@ -345,6 +345,9 @@ the specializer used will be the one returned by BODY."
                                    . ,(lambda () spec-args))
                                  macroexpand-all-environment)))
       (require 'cl-lib)        ;Needed to expand `cl-flet' and `cl-function'.
+      (when (interactive-form (cadr fun))
+        (message "Interactive forms unsupported in generic functions: %S"
+                 (interactive-form (cadr fun))))
       ;; First macroexpand away the cl-function stuff (e.g. &key and
       ;; destructuring args, `declare' and whatnot).
       (pcase (macroexpand fun macroenv)
@@ -935,7 +938,7 @@ MET-NAME is as returned by `cl--generic-load-hist-format'."
   (add-to-list 'find-function-regexp-alist
                `(cl-defmethod . ,#'cl--generic-search-method))
   (add-to-list 'find-function-regexp-alist
-               `(cl-defgeneric . cl--generic-find-defgeneric-regexp)))
+               '(cl-defgeneric . cl--generic-find-defgeneric-regexp)))
 
 (defun cl--generic-method-info (method)
   (let* ((specializers (cl--generic-method-specializers method))

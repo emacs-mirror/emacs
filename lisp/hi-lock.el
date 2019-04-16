@@ -1,6 +1,6 @@
 ;;; hi-lock.el --- minor mode for interactive automatic highlighting  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: David M. Koppelman <koppel@ece.lsu.edu>
 ;; Keywords: faces, minor-mode, matching, display
@@ -177,6 +177,26 @@ Instead, each hi-lock command will cycle through the faces in
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
+(defface hi-salmon
+  '((((min-colors 88) (background dark))
+     (:background "light salmon" :foreground "black"))
+    (((background dark)) (:background "red" :foreground "black"))
+    (((min-colors 88)) (:background "light salmon"))
+    (t (:background "red")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces
+  :version "27.1")
+
+(defface hi-aquamarine
+  '((((min-colors 88) (background dark))
+     (:background "aquamarine" :foreground "black"))
+    (((background dark)) (:background "blue" :foreground "black"))
+    (((min-colors 88)) (:background "aquamarine"))
+    (t (:background "blue")))
+  "Face for hi-lock mode."
+  :group 'hi-lock-faces
+  :version "27.1")
+
 (defface hi-black-b
   '((t (:weight bold)))
   "Face for hi-lock mode."
@@ -189,13 +209,13 @@ Instead, each hi-lock command will cycle through the faces in
   :group 'hi-lock-faces)
 
 (defface hi-green-b
-  '((((min-colors 88)) (:weight bold :foreground "green1"))
+  '((((min-colors 88)) (:weight bold :foreground "green3"))
     (t (:weight bold :foreground "green")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
 
 (defface hi-red-b
-  '((((min-colors 88)) (:weight bold :foreground "red1"))
+  '((((min-colors 88)) (:weight bold :foreground "firebrick2"))
     (t (:weight bold :foreground "red")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
@@ -216,8 +236,8 @@ Instead, each hi-lock command will cycle through the faces in
 (define-obsolete-variable-alias 'hi-lock-face-history
                                 'hi-lock-face-defaults "23.1")
 (defvar hi-lock-face-defaults
-  '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-black-b"
-    "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
+  '("hi-yellow" "hi-pink" "hi-green" "hi-blue" "hi-salmon" "hi-aquamarine"
+    "hi-black-b" "hi-blue-b" "hi-red-b" "hi-green-b" "hi-black-hb")
   "Default faces for hi-lock interactive functions.")
 
 (define-obsolete-variable-alias 'hi-lock-regexp-history
@@ -289,9 +309,6 @@ a library is being loaded.")
 ;;;###autoload
 (define-minor-mode hi-lock-mode
   "Toggle selective highlighting of patterns (Hi Lock mode).
-With a prefix argument ARG, enable Hi Lock mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Hi Lock mode is automatically enabled when you invoke any of the
 highlighting commands listed below, such as \\[highlight-regexp].
@@ -432,10 +449,12 @@ highlighting will not update as you type."
 ;;;###autoload
 (defalias 'highlight-regexp 'hi-lock-face-buffer)
 ;;;###autoload
-(defun hi-lock-face-buffer (regexp &optional face)
+(defun hi-lock-face-buffer (regexp &optional face subexp)
   "Set face of each match of REGEXP to FACE.
 Interactively, prompt for REGEXP using `read-regexp', then FACE.
-Use the global history list for FACE.
+Use the global history list for FACE.  Limit face setting to the
+corresponding SUBEXP (interactively, the prefix argument) of REGEXP.
+If SUBEXP is omitted or nil, the entire REGEXP is highlighted.
 
 Use Font lock mode, if enabled, to highlight REGEXP.  Otherwise,
 use overlays for highlighting.  If overlays are used, the
@@ -444,10 +463,11 @@ highlighting will not update as you type."
    (list
     (hi-lock-regexp-okay
      (read-regexp "Regexp to highlight" 'regexp-history-last))
-    (hi-lock-read-face-name)))
+    (hi-lock-read-face-name)
+    current-prefix-arg))
   (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-mode (hi-lock-mode 1))
-  (hi-lock-set-pattern regexp face))
+  (hi-lock-set-pattern regexp face subexp))
 
 ;;;###autoload
 (defalias 'highlight-phrase 'hi-lock-face-phrase-buffer)
@@ -559,7 +579,7 @@ then remove all hi-lock highlighting."
         (x-popup-menu
          t
          (cons
-          `keymap
+          'keymap
           (cons "Select Pattern to Unhighlight"
                 (mapcar (lambda (pattern)
                           (list (car pattern)
@@ -689,11 +709,14 @@ with completion and history."
       (add-to-list 'hi-lock-face-defaults face t))
     (intern face)))
 
-(defun hi-lock-set-pattern (regexp face)
-  "Highlight REGEXP with face FACE."
+(defun hi-lock-set-pattern (regexp face &optional subexp)
+  "Highlight SUBEXP of REGEXP with face FACE.
+If omitted or nil, SUBEXP defaults to zero, i.e. the entire
+REGEXP is highlighted."
   ;; Hashcons the regexp, so it can be passed to remove-overlays later.
   (setq regexp (hi-lock--hashcons regexp))
-  (let ((pattern (list regexp (list 0 (list 'quote face) 'prepend)))
+  (setq subexp (or subexp 0))
+  (let ((pattern (list regexp (list subexp (list 'quote face) 'prepend)))
         (no-matches t))
     ;; Refuse to highlight a text that is already highlighted.
     (if (assoc regexp hi-lock-interactive-patterns)
@@ -715,7 +738,8 @@ with completion and history."
             (goto-char search-start)
             (while (re-search-forward regexp search-end t)
               (when no-matches (setq no-matches nil))
-              (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
+              (let ((overlay (make-overlay (match-beginning subexp)
+                                           (match-end subexp))))
                 (overlay-put overlay 'hi-lock-overlay t)
                 (overlay-put overlay 'hi-lock-overlay-regexp regexp)
                 (overlay-put overlay 'face face))

@@ -1,6 +1,6 @@
 ;;; eudcb-mab.el --- Emacs Unified Directory Client - AddressBook backend
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>
@@ -53,15 +53,15 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 
   (let ((fmt-string "%ln:%fn:%p:%e")
 	(mab-buffer (get-buffer-create " *mab contacts*"))
-	(modified (nth 5 (file-attributes eudc-contacts-file)))
+	(modified (file-attribute-modification-time
+		   (file-attributes eudc-contacts-file)))
 	result)
     (with-current-buffer mab-buffer
       (make-local-variable 'eudc-buffer-time)
       (goto-char (point-min))
       (when (or (eobp) (time-less-p eudc-buffer-time modified))
 	(erase-buffer)
-	(call-process (executable-find "contacts") nil t nil
-		      "-H" "-l" "-f" fmt-string)
+	(call-process "contacts" nil t nil "-H" "-l" "-f" fmt-string)
 	(setq eudc-buffer-time modified))
       (goto-char (point-min))
       (while (not (eobp))

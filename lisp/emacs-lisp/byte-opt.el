@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -255,7 +255,7 @@
       (setq fn (or (symbol-function name)
                    (cdr (assq name byte-compile-function-environment)))))
     (pcase fn
-      (`nil
+      ('nil
        (byte-compile-warn "attempt to inline `%s' before it was defined"
                           name)
        form)
@@ -436,11 +436,6 @@
 		     (cons (byte-optimize-form (nth 1 form) for-effect)
 			   (byte-optimize-body (cdr (cdr form)) t)))
 	     (byte-optimize-form (nth 1 form) for-effect)))
-	  ((eq fn 'prog2)
-	   (cons 'prog2
-	     (cons (byte-optimize-form (nth 1 form) t)
-	       (cons (byte-optimize-form (nth 2 form) for-effect)
-		     (byte-optimize-body (cdr (cdr (cdr form))) t)))))
 
 	  ((memq fn '(save-excursion save-restriction save-current-buffer))
 	   ;; those subrs which have an implicit progn; it's not quite good
@@ -635,7 +630,7 @@
     (setq form (car (last (cdr form)))))
   (cond ((consp form)
          (pcase (car form)
-           (`quote (cadr form))
+           ('quote (cadr form))
            ;; Can't use recursion in a defsubst.
            ;; (`progn (byte-compile-trueconstp (car (last (cdr form)))))
            ))
@@ -649,7 +644,7 @@
     (setq form (car (last (cdr form)))))
   (cond ((consp form)
          (pcase (car form)
-           (`quote (null (cadr form)))
+           ('quote (null (cadr form)))
            ;; Can't use recursion in a defsubst.
            ;; (`progn (byte-compile-nilconstp (car (last (cdr form)))))
            ))
@@ -884,7 +879,8 @@
 (put 'symbolp 'byte-optimizer 'byte-optimize-predicate)
 (put 'stringp 'byte-optimizer 'byte-optimize-predicate)
 (put 'string< 'byte-optimizer 'byte-optimize-predicate)
-(put 'string-lessp 'byte-optimizer 'byte-optimize-predicate)
+(put 'string-lessp  'byte-optimizer 'byte-optimize-predicate)
+(put 'proper-list-p 'byte-optimizer 'byte-optimize-predicate)
 
 (put 'logand 'byte-optimizer 'byte-optimize-predicate)
 (put 'logior 'byte-optimizer 'byte-optimize-predicate)
@@ -982,8 +978,7 @@
   ;; (if <test> <then> nil) ==> (if <test> <then>)
   (let ((clause (nth 1 form)))
     (cond ((and (eq (car-safe clause) 'progn)
-                ;; `clause' is a proper list.
-                (null (cdr (last clause))))
+                (proper-list-p clause))
            (if (null (cddr clause))
                ;; A trivial `progn'.
                (byte-optimize-if `(if ,(cadr clause) ,@(nthcdr 2 form)))
@@ -1196,14 +1191,14 @@
 	 window-width zerop))
       (side-effect-and-error-free-fns
        '(arrayp atom
-	 bobp bolp bool-vector-p
+	 bignump bobp bolp bool-vector-p
 	 buffer-end buffer-list buffer-size buffer-string bufferp
 	 car-safe case-table-p cdr-safe char-or-string-p characterp
 	 charsetp commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps current-time
 	 eobp eolp eq equal eventp
-	 floatp following-char framep
+	 fixnump floatp following-char framep
 	 get-largest-window get-lru-window
 	 hash-table-p
 	 identity ignore integerp integer-or-marker-p interactive-p
@@ -1284,7 +1279,7 @@
 		  (setq bytedecomp-ptr (1+ bytedecomp-ptr))
 		  (+ (aref bytes bytedecomp-ptr)
 		     (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-			    (lsh (aref bytes bytedecomp-ptr) 8))))
+			    (ash (aref bytes bytedecomp-ptr) 8))))
 		 (t tem))))		;Offset was in opcode.
 	((>= bytedecomp-op byte-constant)
 	 (prog1 (- bytedecomp-op byte-constant)	;Offset in opcode.
@@ -1298,7 +1293,7 @@
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr))
 	 (+ (aref bytes bytedecomp-ptr)
 	    (progn (setq bytedecomp-ptr (1+ bytedecomp-ptr))
-		   (lsh (aref bytes bytedecomp-ptr) 8))))
+		   (ash (aref bytes bytedecomp-ptr) 8))))
 	((and (>= bytedecomp-op byte-listN)
 	      (<= bytedecomp-op byte-discardN))
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr)) ;Offset in next byte.

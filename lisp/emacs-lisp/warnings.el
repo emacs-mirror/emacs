@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -241,11 +241,15 @@ See also `warning-series', `warning-prefix-function' and
 	       (old (get-buffer buffer-name))
 	       (buffer (or old (get-buffer-create buffer-name)))
 	       (level-info (assq level warning-levels))
+               ;; `newline' may be unbound during bootstrap.
+               (newline (if (fboundp 'newline) #'newline
+                          (lambda () (insert "\n"))))
 	       start end)
 	  (with-current-buffer buffer
 	    ;; If we created the buffer, disable undo.
 	    (unless old
-	      (special-mode)
+	      (when (fboundp 'special-mode) ; Undefined during bootstrap.
+                (special-mode))
 	      (setq buffer-read-only t)
 	      (setq buffer-undo-list t))
 	    (goto-char (point-max))
@@ -256,7 +260,7 @@ See also `warning-series', `warning-prefix-function' and
 			(funcall warning-series)))))
 	    (let ((inhibit-read-only t))
 	      (unless (bolp)
-		(newline))
+		(funcall newline))
 	      (setq start (point))
 	      (if warning-prefix-function
 		  (setq level-info (funcall warning-prefix-function
@@ -264,7 +268,7 @@ See also `warning-series', `warning-prefix-function' and
 	      (insert (format (nth 1 level-info)
 			      (format warning-type-format typename))
 		      message)
-	      (newline)
+              (funcall newline)
 	      (when (and warning-fill-prefix (not (string-match "\n" message)))
 		(let ((fill-prefix warning-fill-prefix)
 		      (fill-column 78))

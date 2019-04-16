@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -3221,9 +3221,9 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	  short-f (concat ediff-temp-file-prefix short-p)
   	  f (cond (given-file)
 		  ((find-file-name-handler f 'insert-file-contents)
-		   ;; to thwart file handlers in write-region, e.g., if file
-		   ;; name ends with .Z or .gz
-		   ;; This is needed so that patches produced by ediff will
+		   ;; to thwart file name handlers in write-region,
+		   ;; e.g., if file name ends with .Z or .gz
+                   ;; This is needed so that patches produced by ediff will
 		   ;; have more meaningful names
 		   (ediff-make-empty-tmp-file short-f))
 		  (prefix
@@ -3546,25 +3546,19 @@ Ediff Control Panel to restore highlighting."
     (ediff-paint-background-regions 'unhighlight)
 
     (cond ((ediff-merge-job)
-	   (setq bufB ediff-buffer-C)
 	   ;; ask which buffer to compare to the merge buffer
-	   (while (cond ((eq answer ?A)
-			 (setq bufA ediff-buffer-A
-			       possibilities '(?B))
-			 nil)
-			((eq answer ?B)
-			 (setq bufA ediff-buffer-B
-			       possibilities '(?A))
-			 nil)
-			((equal answer ""))
-			(t (beep 1)
-			   (message "Valid values are A or B")
-			   (sit-for 2)
-			   t))
-	     (let ((cursor-in-echo-area t))
-	       (message
-		"Which buffer to compare to the merge buffer (A or B)? ")
-	       (setq answer (capitalize (read-char-exclusive))))))
+	   (setq answer (read-multiple-choice
+                         "Which buffer to compare?"
+                         '((?a "A")
+                           (?b "B"))))
+           (if (eq (car answer) ?a)
+               (setq bufA ediff-buffer-A)
+             (setq bufA ediff-buffer-B))
+           (setq bufB (if (and ediff-ancestor-buffer
+                               (y-or-n-p (format "Compare %s against ancestor buffer?"
+                                                 (cadr answer))))
+                          ediff-ancestor-buffer
+                        ediff-buffer-C)))
 
 	  ((ediff-3way-comparison-job)
 	   ;; ask which two buffers to compare

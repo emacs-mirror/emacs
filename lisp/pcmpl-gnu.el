@@ -1,6 +1,6 @@
 ;;; pcmpl-gnu.el --- completions for GNU project tools -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -316,7 +316,7 @@
     (while (pcomplete-here
 	    (if (and complete-within
                      (let* ((fa (file-attributes (pcomplete-arg 1)))
-                            (size (nth 7 fa)))
+                            (size (file-attribute-size fa)))
                        (and (numberp size)
                             (or (null large-file-warning-threshold)
                                 (< size large-file-warning-threshold)))))

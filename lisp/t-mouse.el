@@ -4,7 +4,7 @@
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mouse gpm linux
 
-;; Copyright (C) 1994-1995, 1998, 2006-2018 Free Software Foundation,
+;; Copyright (C) 1994-1995, 1998, 2006-2019 Free Software Foundation,
 ;; Inc.
 
 ;; This file is part of GNU Emacs.
@@ -67,9 +67,6 @@
 ;;;###autoload
 (define-minor-mode gpm-mouse-mode
   "Toggle mouse support in GNU/Linux consoles (GPM Mouse mode).
-With a prefix argument ARG, enable GPM Mouse mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 This allows the use of the mouse when operating on a GNU/Linux console,
 in the same way as you can use the mouse under X11.

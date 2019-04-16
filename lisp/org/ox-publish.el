@@ -1,5 +1,5 @@
 ;;; ox-publish.el --- Publish Related Org Mode Files as a Website -*- lexical-binding: t; -*-
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
@@ -793,13 +793,11 @@ Default for SITEMAP-FILENAME is `sitemap.org'."
 			   (not (string-lessp B A))))))
 		((or `anti-chronologically `chronologically)
 		 (let* ((adate (org-publish-find-date a project))
-			(bdate (org-publish-find-date b project))
-			(A (+ (lsh (car adate) 16) (cadr adate)))
-			(B (+ (lsh (car bdate) 16) (cadr bdate))))
+			(bdate (org-publish-find-date b project)))
 		   (setq retval
-			 (if (eq sort-files 'chronologically)
-			     (<= A B)
-			   (>= A B)))))
+			 (not (if (eq sort-files 'chronologically)
+				  (time-less-p bdate adate)
+				(time-less-p adate bdate))))))
 		(`nil nil)
 		(_ (user-error "Invalid sort value %s" sort-files)))
 	      ;; Directory-wise wins:
@@ -879,7 +877,8 @@ If FILE is an Org file and provides a DATE keyword use it.  In
 any other case use the file system's modification time.  Return
 time in `current-time' format."
   (let ((file (org-publish--expand-file-name file project)))
-    (if (file-directory-p file) (nth 5 (file-attributes file))
+    (if (file-directory-p file) (file-attribute-modification-time
+                                 (file-attributes file))
       (let ((date (org-publish-find-property file :date project)))
 	;; DATE is a secondary string.  If it contains a time-stamp,
 	;; convert it to internal format.  Otherwise, use FILE
@@ -889,7 +888,8 @@ time in `current-time' format."
 		      (let ((value (org-element-interpret-data ts)))
 			(and (org-string-nw-p value)
 			     (org-time-string-to-time value))))))
-	      ((file-exists-p file) (nth 5 (file-attributes file)))
+	      ((file-exists-p file) (file-attribute-modification-time
+                                     (file-attributes file)))
 	      (t (error "No such file: \"%s\"" file)))))))
 
 (defun org-publish-sitemap-default-entry (entry style project)
@@ -1348,8 +1348,7 @@ does not exist."
 	       (expand-file-name (or (file-symlink-p file) file)
 				 (file-name-directory file)))))
     (if (not attr) (error "No such file: \"%s\"" file)
-      (+ (lsh (car (nth 5 attr)) 16)
-	 (cadr (nth 5 attr))))))
+      (encode-time (file-attribute-modification-time attr) 'integer))))
 
 
 (provide 'ox-publish)

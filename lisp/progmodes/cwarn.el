@@ -1,6 +1,6 @@
 ;;; cwarn.el --- highlight suspicious C and C++ constructions
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: c, languages, faces
@@ -180,11 +180,7 @@ Suspicious constructs are highlighted using `font-lock-warning-face'.
 
 Note, in addition to enabling this minor mode, the major mode must
 be included in the variable `cwarn-configuration'.  By default C and
-C++ modes are included.
-
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil."
+C++ modes are included."
   :group 'cwarn :lighter cwarn-mode-text
   (cwarn-font-lock-keywords cwarn-mode)
   (font-lock-flush))

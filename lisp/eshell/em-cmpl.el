@@ -1,6 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -244,7 +244,7 @@ to writing a completion function."
   (let ((completion-at-point-functions '(lisp-completion-at-point)))
     (completion-at-point)))
 
-(defun eshell-cmpl-initialize ()
+(defun eshell-cmpl-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the completions module."
   (set (make-local-variable 'pcomplete-command-completion-function)
        eshell-command-completion-function)
@@ -288,9 +288,10 @@ to writing a completion function."
 	    (function
 	     (lambda ()
 	       (set (make-local-variable 'comint-file-name-quote-list)
-		    eshell-special-chars-outside-quoting))) nil t)
-  (add-hook 'pcomplete-quote-arg-hook 'eshell-quote-backslash nil t)
-  (define-key eshell-mode-map [(meta tab)] 'eshell-complete-lisp-symbol)
+		    eshell-special-chars-outside-quoting)))
+            nil t)
+  (add-hook 'pcomplete-quote-arg-hook #'eshell-quote-backslash nil t)
+  ;;(define-key eshell-mode-map [(meta tab)] 'eshell-complete-lisp-symbol) ; Redundant
   (define-key eshell-mode-map [(meta control ?i)] 'eshell-complete-lisp-symbol)
   (define-key eshell-command-map [(meta ?h)] 'eshell-completion-help)
   (define-key eshell-command-map [tab] 'pcomplete-expand-and-complete)
@@ -298,15 +299,14 @@ to writing a completion function."
     'pcomplete-expand-and-complete)
   (define-key eshell-command-map [space] 'pcomplete-expand)
   (define-key eshell-command-map [? ] 'pcomplete-expand)
-  (define-key eshell-mode-map [tab] 'eshell-pcomplete)
-  (define-key eshell-mode-map [(control ?i)] 'eshell-pcomplete)
+  ;;(define-key eshell-mode-map [tab] 'completion-at-point) ;Redundant!
+  (define-key eshell-mode-map [(control ?i)] 'completion-at-point)
   (add-hook 'completion-at-point-functions
             #'pcomplete-completions-at-point nil t)
   ;; jww (1999-10-19): Will this work on anything but X?
-  (if (featurep 'xemacs)
-      (define-key eshell-mode-map [iso-left-tab] 'pcomplete-reverse)
-    (define-key eshell-mode-map [backtab] 'pcomplete-reverse))
-  (define-key eshell-mode-map [(meta ??)] 'pcomplete-list))
+  (define-key eshell-mode-map
+    (if (featurep 'xemacs) [iso-left-tab] [backtab]) 'pcomplete-reverse)
+  (define-key eshell-mode-map [(meta ??)] 'completion-help-at-point))
 
 (defun eshell-completion-command-name ()
   "Return the command name, possibly sans globbing."
@@ -442,34 +442,24 @@ to writing a completion function."
 	 (if glob-name
 	     completions
 	   (setq completions
-		 (append (and (eshell-using-module 'eshell-alias)
-			      (funcall (symbol-function 'eshell-alias-completions)
-				       filename))
+		 (append (if (fboundp 'eshell-alias-completions)
+			      (eshell-alias-completions filename))
 			 (eshell-winnow-list
 			  (mapcar
 			   (function
 			    (lambda (name)
 			      (substring name 7)))
 			   (all-completions (concat "eshell/" filename)
-					    obarray 'functionp))
+					    obarray #'functionp))
 			  nil '(eshell-find-alias-function))
 			 completions))
 	   (append (and (or eshell-show-lisp-completions
 			    (and eshell-show-lisp-alternatives
 				 (null completions)))
-			(all-completions filename obarray 'functionp))
+			(all-completions filename obarray #'functionp))
 		   completions)))))))
 
-(defun eshell-pcomplete (&optional interactively)
-  "Eshell wrapper for `pcomplete'."
-  (interactive "p")
-  ;; Pretend to be pcomplete so that cycling works (bug#13293).
-  (setq this-command 'pcomplete)
-  (condition-case nil
-      (if interactively
-	  (call-interactively 'pcomplete)
-	(pcomplete))
-    (text-read-only (completion-at-point)))) ; Workaround for bug#12838.
+(define-obsolete-function-alias 'eshell-pcomplete #'completion-at-point "27.1")
 
 (provide 'em-cmpl)
 

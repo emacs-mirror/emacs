@@ -1,5 +1,5 @@
 ;;; epa-file.el --- the EasyPG Assistant, transparent file encryption -*- lexical-binding: t -*-
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -147,7 +147,6 @@ encryption is used."
      context
      (cons #'epa-progress-callback-function
 	   (format "Decrypting %s" file)))
-    (setf (epg-context-pinentry-mode context) epa-pinentry-mode)
     (unwind-protect
 	(progn
 	  (if replace
@@ -236,7 +235,6 @@ encryption is used."
      (cons #'epa-progress-callback-function
 	   (format "Encrypting %s" file)))
     (setf (epg-context-armor context) epa-armor)
-    (setf (epg-context-pinentry-mode context) epa-pinentry-mode)
     (condition-case error
 	(setq string
 	      (epg-encrypt-string

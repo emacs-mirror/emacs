@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Microsoft Windows
@@ -341,7 +341,7 @@ it doesn't support all of them.  Here's the list of the switches it
 does support: @option{-A}, @option{-a}, @option{-B}, @option{-C},
 @option{-c}, @option{-G}, @option{-g}, @option{-h}, @option{-i}, @option{-n},
 @option{-R}, @option{-r}, @option{-S}, @option{-s}, @option{-t}, @option{-U},
-@option{-u}, @option{v}, and @option{-X}.  The @option{-F} switch is
+@option{-u}, @option{-v}, and @option{-X}.  The @option{-F} switch is
 partially supported (it appends the character that classifies the
 file, but does not prevent symlink following).
 
@@ -808,6 +808,13 @@ communications with subprocesses to programs that exhibit unusual
 behavior with respect to buffering pipe I/O.
 
 @ifnottex
+@vindex w32-pipe-read-delay
+  If you need to invoke MS-DOS programs as Emacs subprocesses, you may
+see low rate of reading data from such programs.  Setting the variable
+@code{w32-pipe-read-delay} to a non-zero value may improve throughput
+in these cases; we suggest the value of 50 for such situations.  The
+default is zero.
+
 @findex w32-shell-execute
   The function @code{w32-shell-execute} can be useful for writing
 customized commands that run MS-Windows applications registered to

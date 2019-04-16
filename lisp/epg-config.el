@@ -1,6 +1,6 @@
 ;;; epg-config.el --- configuration of the EasyPG Library
 
-;; Copyright (C) 2006-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -48,44 +48,64 @@
 Setting this variable directly does not take effect;
 instead use \\[customize] (see the info node `Easy Customization')."
   :version "25.1"
-  :group 'epg
   :type 'string)
 
 (defcustom epg-gpgsm-program "gpgsm"
   "The `gpgsm' executable.
 Setting this variable directly does not take effect;
 instead use \\[customize] (see the info node `Easy Customization')."
-  :group 'epg
   :type 'string)
 
 (defcustom epg-gpgconf-program "gpgconf"
   "The `gpgconf' executable."
   :version "25.1"
-  :group 'epg
   :type 'string)
 
 (defcustom epg-gpg-home-directory nil
   "The directory which contains the configuration files of `epg-gpg-program'."
-  :group 'epg
   :type '(choice (const :tag "Default" nil) directory))
 
 (defcustom epg-passphrase-coding-system nil
   "Coding system to use with messages from `epg-gpg-program'."
-  :group 'epg
   :type 'symbol)
+
+(define-obsolete-variable-alias
+  'epa-pinentry-mode 'epg-pinentry-mode "27.1")
+
+;; In the doc string below, we say "symbol `error'" to avoid producing
+;; a hyperlink for `error' the function.
+(defcustom epg-pinentry-mode nil
+  "The pinentry mode.
+
+GnuPG 2.1 or later has an option to control the behavior of
+Pinentry invocation.  The value should be the symbol `error',
+`ask', `cancel', or `loopback'.  See the GnuPG manual for the
+meanings.
+
+A particularly useful mode is `loopback', which redirects all
+Pinentry queries to the caller, so Emacs can query passphrase
+through the minibuffer, instead of external Pinentry program."
+  :type '(choice (const nil)
+		 (const ask)
+		 (const cancel)
+		 (const error)
+		 (const loopback))
+  :version "27.1")
 
 (defcustom epg-debug nil
   "If non-nil, debug output goes to the \" *epg-debug*\" buffer.
 Note that the buffer name starts with a space."
-  :group 'epg
   :type 'boolean)
 
 (defconst epg-gpg-minimum-version "1.4.3")
+(defconst epg-gpg2-minimum-version "2.1.6")
 
 (defconst epg-config--program-alist
   `((OpenPGP
      epg-gpg-program
-     ("gpg2" . "2.1.6") ("gpg" . ,epg-gpg-minimum-version))
+     ("gpg2" . ,epg-gpg2-minimum-version)
+     ("gpg" . ((,epg-gpg-minimum-version . "2.0")
+               ,epg-gpg2-minimum-version)))
     (CMS
      epg-gpgsm-program
      ("gpgsm" . "2.0.4")))
@@ -211,14 +231,26 @@ version requirement is met."
   (epg-config--make-gpg-configuration epg-gpg-program))
 
 ;;;###autoload
-(defun epg-check-configuration (config &optional minimum-version)
-  "Verify that a sufficient version of GnuPG is installed."
+(defun epg-check-configuration (config &optional req-versions)
+  "Verify that a sufficient version of GnuPG is installed.
+CONFIG should be a `epg-configuration' object (a plist).
+REQ-VERSIONS should be a list with elements of the form (MIN
+. MAX) where MIN and MAX are version strings indicating a
+semi-open range of acceptable versions.  REQ-VERSIONS may also be
+a single minimum version string."
   (let ((version (alist-get 'version config)))
     (unless (stringp version)
       (error "Undetermined version: %S" version))
-    (unless (version<= (or minimum-version
-                           epg-gpg-minimum-version)
-                       version)
+    (catch 'version-ok
+      (pcase-dolist ((or `(,min . ,max)
+                         (and min (let max nil)))
+                     (if (listp req-versions) req-versions
+                       (list req-versions)))
+        (when (and (version<= (or min epg-gpg-minimum-version)
+                              version)
+                   (or (null max)
+                       (version< version max)))
+          (throw 'version-ok t)))
       (error "Unsupported version: %s" version))))
 
 ;;;###autoload

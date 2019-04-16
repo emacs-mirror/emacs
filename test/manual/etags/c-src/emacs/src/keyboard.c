@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2018 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.

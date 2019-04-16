@@ -1,6 +1,6 @@
 ;;; mail-utils.el --- utility functions used both by rmail and rnews
 
-;; Copyright (C) 1985, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: mail, news
@@ -29,7 +29,7 @@
 
 ;;;###autoload
 (defcustom mail-use-rfc822 nil
-  "If non-nil, use a full, hairy RFC822 parser on mail addresses.
+  "If non-nil, use a full, hairy RFC 822 (or later) parser on mail addresses.
 Otherwise, (the default) use a smaller, somewhat faster, and
 often correct parser."
   :type 'boolean
@@ -41,7 +41,7 @@ often correct parser."
 If this is nil, it is set the first time you compose a reply, to
 a value which excludes your own email address.
 
-Matching addresses are excluded from the CC field in replies, and
+Matching addresses are excluded from the Cc field in replies, and
 also the To field, unless this would leave an empty To field."
   :type '(choice regexp (const :tag "Your Name" nil))
   :group 'mail)
@@ -384,7 +384,7 @@ The buffer should be narrowed to just the header."
 	 (date (mail-fetch-field "date"))
 	 ;; A From: header can contain multiple addresses, a "From "
 	 ;; line must contain only one.  (Bug#7760)
-	 ;; See eg RFC 5322, 3.6.2. Originator Fields.
+	 ;; See, e.g., RFC 5322, 3.6.2. Originator Fields.
 	 (end (string-match "[ \t]*[,\n]" from)))
     (format "From %s %s\n" (if end
 			       (substring from 0 end)

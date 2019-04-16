@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
@@ -197,6 +197,7 @@ from the buffer-local hook list instead of from the global hook list.
 @cindex major mode
 
 @cindex major mode command
+@cindex suspend major mode temporarily
   Major modes specialize Emacs for editing or interacting with
 particular kinds of text.  Each buffer has exactly one major mode at a
 time.  Every major mode is associated with a @dfn{major mode command},
@@ -205,7 +206,8 @@ switching to that mode in the current buffer, by setting various
 buffer-local variables such as a local keymap.  @xref{Major Mode
 Conventions}.  Note that unlike minor modes there is no way to ``turn
 off'' a major mode, instead the buffer must be switched to a different
-one.
+one.  However, you can temporarily @dfn{suspend} a major mode and later
+@dfn{restore} the suspended mode, see below.
 
   The least specialized major mode is called @dfn{Fundamental mode},
 which has no mode-specific definitions or variable settings.
@@ -215,6 +217,24 @@ This is the major mode command for Fundamental mode.  Unlike other mode
 commands, it does @emph{not} run any mode hooks (@pxref{Major Mode
 Conventions}), since you are not supposed to customize this mode.
 @end deffn
+
+@defun major-mode-suspend
+This function works like @code{fundamental-mode}, in that it kills all
+buffer-local variables, but it also records the major mode in effect,
+so that it could subsequently be restored.  This function and
+@code{major-mode-restore} (described next) are useful when you need to
+put a buffer under some specialized mode other than the one Emacs
+chooses for it automatically (@pxref{Auto Major Mode}), but would also
+like to be able to switch back to the original mode later.
+@end defun
+
+@defun major-mode-restore &optional avoided-modes
+This function restores the major mode recorded by
+@code{major-mode-suspend}.  If no major mode was recorded, this
+function calls @code{normal-mode} (@pxref{Auto Major Mode,
+normal-mode}), but tries to force it not to choose any modes in
+@var{avoided-modes}, if that argument is non-@code{nil}.
+@end defun
 
   The easiest way to write a major mode is to use the macro
 @code{define-derived-mode}, which sets up the new mode as a variant of
@@ -995,6 +1015,29 @@ list-processes}).  The listing command should create or switch to a
 buffer, turn on the derived mode, specify the tabulated data, and
 finally call @code{tabulated-list-print} to populate the buffer.
 
+@defopt tabulated-list-gui-sort-indicator-asc
+This variable specifies the character to be used on GUI frames as an
+indication that the column is sorted in the ascending order.
+
+Whenever you change the sort direction in Tabulated List buffers, this
+indicator toggles between ascending (``asc'') and descending (``desc'').
+@end defopt
+
+@defopt tabulated-list-gui-sort-indicator-desc
+Like @code{tabulated-list-gui-sort-indicator-asc}, but used when the
+column is sorted in the descending order.
+@end defopt
+
+@defopt tabulated-list-tty-sort-indicator-asc
+Like @code{tabulated-list-gui-sort-indicator-asc}, but used for
+text-mode frames.
+@end defopt
+
+@defopt tabulated-list-tty-sort-indicator-desc
+Like @code{tabulated-list-tty-sort-indicator-asc}, but used when the
+column is sorted in the descending order.
+@end defopt
+
 @defvar tabulated-list-format
 This buffer-local variable specifies the format of the Tabulated List
 data.  Its value should be a vector.  Each element of the vector
@@ -1101,6 +1144,65 @@ that tags placed via @code{tabulated-list-put-tag} will not be removed
 from entries that haven't changed (normally all tags are removed).
 @end defun
 
+@defun tabulated-list-delete-entry
+This function deletes the entry at point.
+
+It returns a list @code{(@var{id} @var{cols})}, where @var{id} is the
+ID of the deleted entry and @var{cols} is a vector of its column
+descriptors.  It moves point to the beginning of the current line.  It
+returns @code{nil} if there is no entry at point.
+
+Note that this function only changes the buffer contents; it does not
+alter @code{tabulated-list-entries}.
+@end defun
+
+@defun tabulated-list-get-id &optional pos
+This @code{defsubst} returns the ID object from
+@code{tabulated-list-entries} (if that is a list) or from the list
+returned by @code{tabulated-list-entries} (if it is a function).  If
+omitted or @code{nil}, @var{pos} defaults to point.
+@end defun
+
+@defun tabulated-list-get-entry &optional pos
+This @code{defsubst} returns the entry object from
+@code{tabulated-list-entries} (if that is a list) or from the list
+returned by @code{tabulated-list-entries} (if it is a function).  This
+will be a vector for the ID at @var{pos}.  If there is no entry at
+@var{pos}, then the function returns @code{nil}.
+@end defun
+
+@vindex tabulated-list-use-header-line
+@defun tabulated-list-header-overlay-p &optional POS
+This @code{defsubst} returns non-nil if there is a fake header at
+@var{pos}.  A fake header is used if
+@code{tabulated-list-use-header-line} is @code{nil} to put the column
+names at the beginning of the buffer.  If omitted or @code{nil},
+@var{pos} defaults to @code{point-min}.
+@end defun
+
+@vindex tabulated-list-padding
+@defun tabulated-list-put-tag tag &optional advance
+This function puts @var{tag} in the padding area of the current line.
+The padding area can be empty space at the beginning of the line, the
+width of which is governed by @code{tabulated-list-padding}.
+@var{tag} should be a string, with a length less than or equal to
+@code{tabulated-list-padding}.  If @var{advance} is non-nil, this
+function advances point by one line.
+@end defun
+
+@defun tabulated-list-set-col col desc &optional change-entry-data
+This function changes the tabulated list entry at point, setting
+@var{col} to @var{desc}.  @var{col} is the column number to change, or
+the name of the column to change.  @var{desc} is the new column
+descriptor, which is inserted via @code{tabulated-list-print-col}.
+
+If @var{change-entry-data} is non-nil, this function modifies the
+underlying data (usually the column descriptor in the list
+@code{tabulated-list-entries}) by setting the column descriptor of the
+vector to @code{desc}.
+@end defun
+
+
 @node Generic Modes
 @subsection Generic Modes
 @cindex generic mode
@@ -1158,6 +1260,7 @@ the conventions listed above:
     (modify-syntax-entry ?\\ ".   " st)
     ;; Add 'p' so M-c on 'hello' leads to 'Hello', not 'hello'.
     (modify-syntax-entry ?' "w p" st)
+    @dots{}
     st)
   "Syntax table used while in `text-mode'.")
 @end group
@@ -1167,6 +1270,7 @@ the conventions listed above:
 (defvar text-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\e\t" 'ispell-complete-word)
+    @dots{}
     map)
   "Keymap for `text-mode'.
 Many other modes, such as `mail-mode', `outline-mode' and
@@ -1187,16 +1291,10 @@ You can thus get the full benefit of adaptive filling
 Turning on Text mode runs the normal hook `text-mode-hook'."
 @end group
 @group
-  (set (make-local-variable 'text-mode-variant) t)
-  (set (make-local-variable 'require-final-newline)
-       mode-require-final-newline)
-  (set (make-local-variable 'indent-line-function) 'indent-relative))
+  (setq-local text-mode-variant t)
+  (setq-local require-final-newline mode-require-final-newline))
 @end group
 @end smallexample
-
-@noindent
-(The last line is redundant nowadays, since @code{indent-relative} is
-the default value, and we'll delete it in a future version.)
 
 @cindex @file{lisp-mode.el}
   The three Lisp modes (Lisp mode, Emacs Lisp mode, and Lisp Interaction
@@ -1210,11 +1308,11 @@ illustrate how these modes are written.
 @smallexample
 @group
 ;; @r{Create mode-specific table variables.}
-(defvar lisp-mode-abbrev-table nil)
-(define-abbrev-table 'lisp-mode-abbrev-table ())
+(define-abbrev-table 'lisp-mode-abbrev-table ()
+  "Abbrev table for Lisp mode.")
 
 (defvar lisp-mode-syntax-table
-  (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
+  (let ((table (make-syntax-table lisp--mode-syntax-table)))
     (modify-syntax-entry ?\[ "_   " table)
     (modify-syntax-entry ?\] "_   " table)
     (modify-syntax-entry ?# "' 14" table)
@@ -1229,10 +1327,9 @@ each calls the following function to set various variables:
 
 @smallexample
 @group
-(defun lisp-mode-variables (&optional syntax keywords-case-insensitive)
+(defun lisp-mode-variables (&optional syntax keywords-case-insensitive elisp)
   (when syntax
     (set-syntax-table lisp-mode-syntax-table))
-  (setq local-abbrev-table lisp-mode-abbrev-table)
   @dots{}
 @end group
 @end smallexample
@@ -1243,8 +1340,7 @@ variable to handle Lisp comments:
 
 @smallexample
 @group
-  (make-local-variable 'comment-start)
-  (setq comment-start ";")
+  (setq-local comment-start ";")
   @dots{}
 @end group
 @end smallexample
@@ -1258,6 +1354,7 @@ common.  The following code sets up the common commands:
 @group
 (defvar lisp-mode-shared-map
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map prog-mode-map)
     (define-key map "\e\C-q" 'indent-sexp)
     (define-key map "\177" 'backward-delete-char-untabify)
     map)
@@ -1272,7 +1369,7 @@ And here is the code to set up the keymap for Lisp mode:
 @group
 (defvar lisp-mode-map
   (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap "Lisp")))
+        (menu-map (make-sparse-keymap "Lisp")))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'lisp-eval-defun)
     (define-key map "\C-c\C-z" 'run-lisp)
@@ -1296,17 +1393,13 @@ Blank lines separate paragraphs.  Semicolons start comments.
 
 \\@{lisp-mode-map@}
 Note that `run-lisp' may be used either to start an inferior Lisp job
-or to switch back to an existing one.
+or to switch back to an existing one."
 @end group
-
 @group
-Entry to this mode calls the value of `lisp-mode-hook'
-if that value is non-nil."
   (lisp-mode-variables nil t)
-  (set (make-local-variable 'find-tag-default-function)
-       'lisp-find-tag-default)
-  (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (setq-local find-tag-default-function 'lisp-find-tag-default)
+  (setq-local comment-start-skip
+              "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq imenu-case-fold-search t))
 @end group
 @end smallexample
@@ -1346,7 +1439,7 @@ The value of this variable is a list of all minor mode commands.
 @cindex conventions for writing minor modes
 
   There are conventions for writing minor modes just as there are for
-major modes.  These conventions are described below.  The easiest way to
+major modes (@pxref{Major Modes}).  These conventions are described below.  The easiest way to
 follow them is to use the macro @code{define-minor-mode}.
 @xref{Defining Minor Modes}.
 
@@ -1457,10 +1550,10 @@ or like this, using @code{add-to-list} (@pxref{List Variables}):
 @end smallexample
 @end itemize
 
-  In addition, several major mode conventions apply to minor modes as
-well: those regarding the names of global symbols, the use of a hook at
-the end of the initialization function, and the use of keymaps and other
-tables.
+  In addition, several major mode conventions (@pxref{Major Mode
+Conventions}) apply to minor modes as well: those regarding the names
+of global symbols, the use of a hook at the end of the initialization
+function, and the use of keymaps and other tables.
 
   The minor mode should, if possible, support enabling and disabling via
 Custom (@pxref{Customization}).  To do this, the mode variable should be
@@ -1839,10 +1932,13 @@ recursion.
 
 @item (:propertize @var{elt} @var{props}@dots{})
 A list whose first element is the symbol @code{:propertize} says to
-process the mode line construct @var{elt} recursively, then add the text
-properties specified by @var{props} to the result.  The argument
+process the mode line construct @var{elt} recursively, then add the
+text properties specified by @var{props} to the result.  The argument
 @var{props} should consist of zero or more pairs @var{text-property}
-@var{value}.
+@var{value}.  If @var{elt} is or produces a string with text
+properties, all the characters of that string should have the same
+properties, or else some of them might be removed by
+@code{:propertize}.
 
 @item (@var{symbol} @var{then} @var{else})
 A list whose first element is a symbol that is not a keyword specifies

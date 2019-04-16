@@ -1,6 +1,6 @@
 ;;; compile-tests.el --- Test suite for compile.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -343,6 +343,29 @@ meaning a range of columns starting on LINE and ending on
 END-LINE, if that matched.  TYPE can be left out, in which case
 any message type is accepted.")
 
+(defconst compile-tests--grep-regexp-testcases
+  ;; Bug#32051.
+  '(("c:/Users/my.name/src/project\\src\\kbhit.hpp\0\ 29:#include <termios.h>"
+     1 nil 29 "c:/Users/my.name/src/project\\src\\kbhit.hpp")
+    ("d:/gnu/emacs/branch/src/callproc.c\0\ 214:#ifdef DOS_NT"
+     1 nil 214 "d:/gnu/emacs/branch/src/callproc.c")
+    ("/gnu/emacs/branch/src/callproc.c\0\ 214:#ifdef DOS_NT"
+     1 nil 214 "/gnu/emacs/branch/src/callproc.c"))
+  "List of tests for `grep-regexp-list'.
+The format is the same as `compile-tests--test-regexps-data', but
+the match is expected to be the same when NUL bytes are replaced
+with colon.")
+
+(defconst compile-tests--grep-regexp-tricky-testcases
+  ;; Bug#7378.
+  '(("./x11-libs---nx/3.4.0:0:C.30253.1289557929.792611.C/nx-3.4.0.exheres-0\0\ 42:some text"
+     1 nil 42 "./x11-libs---nx/3.4.0:0:C.30253.1289557929.792611.C/nx-3.4.0.exheres-0")
+    ("2011-08-31_11:57:03_1\0\ 7:Date: Wed, 31 Aug 2011 11:57:03 +0000"
+     1 nil 7 "2011-08-31_11:57:03_1"))
+  "List of tricky tests for `grep-regexp-list'.
+Same as `compile-tests--grep-regexp-testcases', but these cases
+can only work with the NUL byte to disambiguate colons.")
+
 (defun compile--test-error-line (test)
   (erase-buffer)
   (setq compilation-locs (make-hash-table))
@@ -370,7 +393,8 @@ any message type is accepted.")
       (should (equal (car (nth 2 (compilation--loc->file-struct loc)))
                      (or end-line line)))
       (when type
-        (should (equal type (compilation--message->type msg)))))))
+        (should (equal type (compilation--message->type msg)))))
+    msg))
 
 (ert-deftest compile-test-error-regexps ()
   "Test the `compilation-error-regexp-alist' regexps.
@@ -378,5 +402,25 @@ The test data is in `compile-tests--test-regexps-data'."
   (with-temp-buffer
     (font-lock-mode -1)
     (mapc #'compile--test-error-line compile-tests--test-regexps-data)))
+
+(ert-deftest compile-test-grep-regexps ()
+  "Test the `grep-regexp-alist' regexps.
+The test data is in `compile-tests--grep-regexp-testcases'."
+  (with-temp-buffer
+    (grep-mode)
+    (setq buffer-read-only nil)
+    (font-lock-mode -1)
+    (dolist (testcase compile-tests--grep-regexp-testcases)
+      (let (msg1 msg2)
+        (setq msg1 (ert-info ((format "%S" testcase) :prefix "testcase: ")
+                     (compile--test-error-line testcase)))
+        ;; Make sure replacing the NUL character with a colon still matches.
+        (setf (car testcase) (replace-regexp-in-string "\0" ":" (car testcase)))
+        (setq msg2 (ert-info ((format "%S" testcase) :prefix "testcase: ")
+                     (compile--test-error-line testcase)))
+        (should (equal msg1 msg2))))
+    (dolist (testcase compile-tests--grep-regexp-tricky-testcases)
+      (ert-info ((format "%S" testcase) :prefix "testcase: ")
+        (compile--test-error-line testcase)))))
 
 ;;; compile-tests.el ends here

@@ -1,5 +1,5 @@
 /* Getopt for GNU.
-   Copyright (C) 1987-2018 Free Software Foundation, Inc.
+   Copyright (C) 1987-2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library and is also part of gnulib.
    Patches to this file should be submitted to both projects.
 
@@ -46,7 +46,7 @@
 /* When used standalone, flockfile and funlockfile might not be
    available.  */
 # if (!defined _POSIX_THREAD_SAFE_FUNCTIONS \
-      || ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__))
+      || (defined _WIN32 && ! defined __CYGWIN__))
 #  define flockfile(fp) /* nop */
 #  define funlockfile(fp) /* nop */
 # endif

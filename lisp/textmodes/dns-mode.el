@@ -1,6 +1,6 @@
 ;;; dns-mode.el --- a mode for viewing/editing Domain Name System master files
 
-;; Copyright (C) 2000-2001, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: DNS master zone file SOA comm
@@ -114,9 +114,9 @@
 			"26.1" 'set)
 
 (defcustom dns-mode-font-lock-keywords
-  `((,(concat "^$" (regexp-opt dns-mode-control-entities))
+  `((,(concat "^\\$" (regexp-opt dns-mode-control-entities))
      0 ,dns-mode-control-entity-face)
-    ("^$[a-z0-9A-Z]+" 0 ,dns-mode-bad-control-entity-face)
+    ("^\\$[a-z0-9A-Z]+" 0 ,dns-mode-bad-control-entity-face)
     (,(regexp-opt dns-mode-classes) 0 ,dns-mode-class-face)
     (,(regexp-opt dns-mode-types) 0 ,dns-mode-type-face))
   "Font lock keywords used to highlight text in DNS master file mode."
@@ -292,9 +292,9 @@ Examples:
   (skip-syntax-backward " ")
   (skip-syntax-backward "w_.")
   (re-search-forward "\\([[:xdigit:]:]+\\)\\(/-?[0-9]\\{2,3\\}\\)?")
-  (kill-new (match-string 0))
   (let ((address (match-string 1))
         (prefix-length (match-string 2)))
+    (kill-new (match-string 0))
     (when prefix-length
       (setq prefix-length (string-to-number (substring prefix-length 1)))
       (if negate-prefix

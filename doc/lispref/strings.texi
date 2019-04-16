@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
@@ -922,18 +922,25 @@ Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 @item %o
 @cindex integer to octal
 Replace the specification with the base-eight representation of an
-unsigned integer.
+integer.  Negative integers are formatted in a platform-dependent
+way.  The object can also be a nonnegative floating-point
+number that is formatted as an integer, dropping any fraction, if the
+integer does not exceed machine limits.
 
 @item %d
 Replace the specification with the base-ten representation of a signed
-integer.
+integer.  The object can also be a floating-point number that is
+formatted as an integer, dropping any fraction.
 
 @item %x
 @itemx %X
 @cindex integer to hexadecimal
 Replace the specification with the base-sixteen representation of an
-unsigned integer.  @samp{%x} uses lower case and @samp{%X} uses upper
-case.
+integer.  Negative integers are formatted in a platform-dependent
+way.  @samp{%x} uses lower case and @samp{%X} uses upper
+case.  The object can also be a nonnegative floating-point number that
+is formatted as an integer, dropping any fraction, if the integer does
+not exceed machine limits.
 
 @item %c
 Replace the specification with the character which is the value given.
@@ -1010,17 +1017,17 @@ numbered or unnumbered format specifications but not both, except that
   After the @samp{%} and any field number, you can put certain
 @dfn{flag characters}.
 
-  The flag @samp{+} inserts a plus sign before a positive number, so
+  The flag @samp{+} inserts a plus sign before a nonnegative number, so
 that it always has a sign.  A space character as flag inserts a space
-before a positive number.  (Otherwise, positive numbers start with the
-first digit.)  These flags are useful for ensuring that positive
-numbers and negative numbers use the same number of columns.  They are
+before a nonnegative number.  (Otherwise, nonnegative numbers start with the
+first digit.)  These flags are useful for ensuring that nonnegative
+and negative numbers use the same number of columns.  They are
 ignored except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}, and if
 both flags are used, @samp{+} takes precedence.
 
   The flag @samp{#} specifies an alternate form which depends on
 the format in use.  For @samp{%o}, it ensures that the result begins
-with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes the result
+with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes nonzero results
 with @samp{0x} or @samp{0X}.  For @samp{%e} and @samp{%f}, the
 @samp{#} flag means include a decimal point even if the precision is
 zero.  For @samp{%g}, it always includes a decimal point, and also
@@ -1102,6 +1109,17 @@ shows only the first three characters of the representation for
 @var{object}.  For other specification characters, the effect of
 precision is what the local library functions of the @code{printf}
 family produce.
+
+@cindex formatting numbers for rereading later
+  If you plan to use @code{read} later on the formatted string to
+retrieve a copy of the formatted value, use a specification that lets
+@code{read} reconstruct the value.  To format numbers in this
+reversible way you can use @samp{%s} and @samp{%S}, to format just
+integers you can also use @samp{%d}, and to format just nonnegative
+integers you can also use @samp{#x%x} and @samp{#o%o}.  Other formats
+may be problematic; for example, @samp{%d} and @samp{%g} can mishandle
+NaNs and can lose precision and type, and @samp{#x%x} and @samp{#o%o}
+can mishandle negative integers.  @xref{Input Functions}.
 
 @node Case Conversion
 @section Case Conversion in Lisp

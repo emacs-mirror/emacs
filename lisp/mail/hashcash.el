@@ -1,6 +1,6 @@
 ;;; hashcash.el --- Add hashcash payments to email  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: emacs-devel@gnu.org
@@ -182,8 +182,7 @@ Return immediately.  Call CALLBACK with process and result when ready."
 	(setq hashcash-process-alist (cons
 				      (cons process (current-buffer))
 				      hashcash-process-alist))
-	(set-process-filter process `(lambda (process output)
-				       (funcall ,callback process output))))
+	(set-process-filter process callback))
     (funcall callback nil nil)))
 
 (defun hashcash-check-payment (token str val)
@@ -244,8 +243,9 @@ Only start calculation.  Results are inserted when ready."
     (hashcash-generate-payment-async
      (hashcash-payment-to arg)
      (hashcash-payment-required arg)
-     `(lambda (process payment)
-	(hashcash-insert-payment-async-2 ,(current-buffer) process payment)))))
+     (let ((buf (current-buffer)))
+       (lambda (process payment)
+         (hashcash-insert-payment-async-2 buf process payment))))))
 
 (defun hashcash-insert-payment-async-2 (buffer process pay)
   (when (buffer-live-p buffer)

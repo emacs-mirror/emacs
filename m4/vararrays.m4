@@ -4,7 +4,7 @@
 
 # From Paul Eggert
 
-# Copyright (C) 2001, 2009-2018 Free Software Foundation, Inc.
+# Copyright (C) 2001, 2009-2019 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -18,44 +18,44 @@ AC_DEFUN([AC_C_VARARRAYS],
     ac_cv_c_vararrays,
     [AC_EGREP_CPP([defined],
        [#ifdef __STDC_NO_VLA__
-	defined
-	#endif
+        defined
+        #endif
        ],
        [ac_cv_c_vararrays='no: __STDC_NO_VLA__ is defined'],
        [AC_COMPILE_IFELSE(
-	  [AC_LANG_PROGRAM(
-	     [[/* Test for VLA support.  This test is partly inspired
-		  from examples in the C standard.  Use at least two VLA
-		  functions to detect the GCC 3.4.3 bug described in:
-		  https://lists.gnu.org/r/bug-gnulib/2014-08/msg00014.html
-		  */
-	       #ifdef __STDC_NO_VLA__
-		syntax error;
-	       #else
-		 extern int n;
-		 int B[100];
-		 int fvla (int m, int C[m][m]);
+          [AC_LANG_PROGRAM(
+             [[/* Test for VLA support.  This test is partly inspired
+                  from examples in the C standard.  Use at least two VLA
+                  functions to detect the GCC 3.4.3 bug described in:
+                  https://lists.gnu.org/r/bug-gnulib/2014-08/msg00014.html
+                  */
+               #ifdef __STDC_NO_VLA__
+                syntax error;
+               #else
+                 extern int n;
+                 int B[100];
+                 int fvla (int m, int C[m][m]);
 
-		 int
-		 simple (int count, int all[static count])
-		 {
-		   return all[count - 1];
-		 }
+                 int
+                 simple (int count, int all[static count])
+                 {
+                   return all[count - 1];
+                 }
 
-		 int
-		 fvla (int m, int C[m][m])
-		 {
-		   typedef int VLA[m][m];
-		   VLA x;
-		   int D[m];
-		   static int (*q)[m] = &B;
-		   int (*s)[n] = q;
-		   return C && &x[0][0] == &D[0] && &D[0] == s[0];
-		 }
-	       #endif
-	       ]])],
-	  [ac_cv_c_vararrays=yes],
-	  [ac_cv_c_vararrays=no])])])
+                 int
+                 fvla (int m, int C[m][m])
+                 {
+                   typedef int VLA[m][m];
+                   VLA x;
+                   int D[m];
+                   static int (*q)[m] = &B;
+                   int (*s)[n] = q;
+                   return C && &x[0][0] == &D[0] && &D[0] == s[0];
+                 }
+               #endif
+               ]])],
+          [ac_cv_c_vararrays=yes],
+          [ac_cv_c_vararrays=no])])])
   if test "$ac_cv_c_vararrays" = yes; then
     dnl This is for compatibility with Autoconf 2.61-2.69.
     AC_DEFINE([HAVE_C_VARARRAYS], 1,

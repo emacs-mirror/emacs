@@ -1,6 +1,6 @@
 ;;; org-colview.el --- Column View in Org            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -540,7 +540,7 @@ Where possible, use the standard interface for changing this line."
 	 (eol (line-end-position))
 	 (pom (or (get-text-property bol 'org-hd-marker) (point)))
 	 (key (or key (get-char-property (point) 'org-columns-key)))
-	 (org-columns--time (float-time (current-time)))
+	 (org-columns--time (float-time))
 	 (action
 	  (pcase key
 	    ("CLOCKSUM"
@@ -719,7 +719,7 @@ around it."
       (setq time-after (copy-sequence time))
       (setf (nth 3 time-before) (1- (nth 3 time)))
       (setf (nth 3 time-after) (1+ (nth 3 time)))
-      (mapcar (lambda (x) (format-time-string fmt (apply 'encode-time x)))
+      (mapcar (lambda (x) (format-time-string fmt (encode-time x)))
 	      (list time-before time time-after)))))
 
 (defun org-columns-open-link (&optional arg)
@@ -790,7 +790,7 @@ When COLUMNS-FMT-STRING is non-nil, use it as the column format."
   (org-columns-goto-top-level)
   ;; Initialize `org-columns-current-fmt' and
   ;; `org-columns-current-fmt-compiled'.
-  (let ((org-columns--time (float-time (current-time))))
+  (let ((org-columns--time (float-time)))
     (org-columns-get-format columns-fmt-string)
     (unless org-columns-inhibit-recalculation (org-columns-compute-all))
     (save-excursion
@@ -1070,7 +1070,7 @@ as a canonical duration, i.e., using units defined in
   (cond
    ((string-match-p org-ts-regexp s)
     (/ (- org-columns--time
-	  (float-time (apply #'encode-time (org-parse-time-string s))))
+	  (float-time (org-time-string-to-time s)))
        60))
    ((org-duration-p s) (org-duration-to-minutes s t)) ;skip user units
    (t (user-error "Invalid age: %S" s))))
@@ -1494,7 +1494,7 @@ PARAMS is a property list of parameters:
   (if (markerp org-columns-begin-marker)
       (move-marker org-columns-begin-marker (point))
     (setq org-columns-begin-marker (point-marker)))
-  (let* ((org-columns--time (float-time (current-time)))
+  (let* ((org-columns--time (float-time))
 	 (fmt
 	  (cond
 	   ((bound-and-true-p org-agenda-overriding-columns-format))

@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994, 1996-2018 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1996-2019 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -206,8 +206,8 @@ doc-emacsver:
 
 ## Temp files.
 mostlyclean:
-	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
-	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
+	rm -f ./*.aux ./*.log ./*.toc ./*.cp ./*.cps ./*.fn ./*.fns ./*.ky ./*.kys \
+	  ./*.op ./*.ops ./*.pg ./*.pgs ./*.tp ./*.tps ./*.vr ./*.vrs
 
 ## Products not in the release tarfiles.
 clean: mostlyclean

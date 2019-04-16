@@ -1,6 +1,6 @@
-;;; icomplete.el --- minibuffer completion incremental feedback
+;;; icomplete.el --- minibuffer completion incremental feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1994, 1997, 1999, 2001-2018 Free Software
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
@@ -145,7 +145,7 @@ icompletion is occurring."
 
 (defvar icomplete-minibuffer-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [?\M-\t] 'minibuffer-force-complete)
+    (define-key map [?\M-\t] 'icomplete-force-complete)
     (define-key map [?\C-j]  'icomplete-force-complete-and-exit)
     (define-key map [?\C-.]  'icomplete-forward-completions)
     (define-key map [?\C-,]  'icomplete-backward-completions)
@@ -161,6 +161,12 @@ the default otherwise."
           (> (icomplete--field-end) (icomplete--field-beg)))
       (minibuffer-force-complete-and-exit)
     (minibuffer-complete-and-exit)))
+
+(defun icomplete-force-complete ()
+  "Complete the icomplete minibuffer."
+  (interactive)
+  ;; We're not at all interested in cycling here (bug#34077).
+  (minibuffer-force-complete nil nil 'dont-cycle))
 
 (defun icomplete-forward-completions ()
   "Step forward completions by one entry.
@@ -194,9 +200,6 @@ Last entry becomes the first and can be selected with
 ;;;###autoload
 (define-minor-mode icomplete-mode
   "Toggle incremental minibuffer completion (Icomplete mode).
-With a prefix argument ARG, enable Icomplete mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 When this global minor mode is enabled, typing in the minibuffer
 continuously displays a list of possible completions that match
@@ -371,8 +374,21 @@ If there are multiple possibilities, `icomplete-separator' separates them.
 The displays for unambiguous matches have ` [Matched]' appended
 \(whether complete or not), or ` [No matches]', if no eligible
 matches exist."
-  (let* ((minibuffer-completion-table candidates)
-	 (minibuffer-completion-predicate predicate)
+  (let* ((ignored-extension-re
+          (and minibuffer-completing-file-name
+               icomplete-with-completion-tables
+               completion-ignored-extensions
+               (concat "\\(?:\\`\\.\\./\\|"
+                       (regexp-opt completion-ignored-extensions)
+                       "\\)\\'")))
+         (minibuffer-completion-table candidates)
+	 (minibuffer-completion-predicate
+          (if ignored-extension-re
+              (lambda (cand)
+                (and (not (string-match ignored-extension-re cand))
+                     (or (null predicate)
+                         (funcall predicate cand))))
+            predicate))
 	 (md (completion--field-metadata (icomplete--field-beg)))
 	 (comps (completion-all-sorted-completions
                  (icomplete--field-beg) (icomplete--field-end)))
@@ -383,11 +399,8 @@ matches exist."
     ;; `concat'/`mapconcat' is the slow part.
     (if (not (consp comps))
 	(progn ;;(debug (format "Candidates=%S field=%S" candidates name))
-	       (format " %sNo matches%s" open-bracket close-bracket))
+	  (format " %sNo matches%s" open-bracket close-bracket))
       (if last (setcdr last nil))
-      (when (and minibuffer-completing-file-name
-                 icomplete-with-completion-tables)
-        (setq comps (completion-pcm--filename-try-filter comps)))
       (let* ((most-try
               (if (and base-size (> base-size 0))
                   (completion-try-completion
@@ -473,11 +486,11 @@ matches exist."
 		  (if prefix-len (substring (car comps) prefix-len) (car comps))
 		  comps (cdr comps))
 	    (setq prospects-len
-                           (+ (string-width comp)
-			      (string-width icomplete-separator)
-			      prospects-len))
-		     (if (< prospects-len prospects-max)
-			 (push comp prospects)
+                  (+ (string-width comp)
+		     (string-width icomplete-separator)
+		     prospects-len))
+	    (if (< prospects-len prospects-max)
+		(push comp prospects)
 	      (setq limit t))))
 	(setq prospects (nreverse prospects))
 	;; Decorate first of the prospects.

@@ -1,5 +1,5 @@
 /* fpending.c -- return the number of pending output bytes on a stream
-   Copyright (C) 2000, 2004, 2006-2007, 2009-2018 Free Software Foundation,
+   Copyright (C) 2000, 2004, 2006-2007, 2009-2019 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,9 @@
 #include "fpending.h"
 
 #include "stdio-impl.h"
+
+/* This file is not used on systems that already have the __fpending function,
+   namely glibc >= 2.2, Solaris >= 7, Android API >= 23.  */
 
 /* Return the number of pending (aka buffered, unflushed)
    bytes on the stream, FP, that is open for writing.  */

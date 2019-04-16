@@ -1,6 +1,6 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons
 
-;; Copyright (C) 1993-1996, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -268,7 +268,8 @@ available:
 	(or (eolp) (not skeleton-end-newline) (newline-and-indent))
 	(run-hooks 'skeleton-end-hook)
 	(sit-for 0)
-	(or (pos-visible-in-window-p beg)
+	(or (not (eq (window-buffer) (current-buffer)))
+            (pos-visible-in-window-p beg)
 	    (progn
 	      (goto-char beg)
 	      (recenter 0)))

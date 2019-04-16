@@ -1,6 +1,6 @@
 ;;; url-dav.el --- WebDAV support
 
-;; Copyright (C) 2001, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2019 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -146,7 +146,7 @@ Returns nil if WebDAV is not supported."
       (setq time (parse-time-string date-string)))
 
     (if time
-	(setq time (apply 'encode-time time))
+	(setq time (encode-time time))
       (url-debug 'dav "Unable to decode date (%S) (%s)"
 		 (xml-node-name node) date-string))
     time))
@@ -204,22 +204,22 @@ Returns nil if WebDAV is not supported."
 	    value nil)
 
       (pcase node-type
-	((or `dateTime.iso8601tz
-             `dateTime.iso8601
-             `dateTime.tz
-             `dateTime.rfc1123
-             `dateTime
-             `date)                     ; date is our 'special' one...
+	((or 'dateTime.iso8601tz
+             'dateTime.iso8601
+             'dateTime.tz
+             'dateTime.rfc1123
+             'dateTime
+             'date)                     ; date is our 'special' one...
 	 ;; Some type of date/time string.
 	 (setq value (url-dav-process-date-property node)))
-	(`int
+	('int
 	 ;; Integer type...
 	 (setq value (url-dav-process-integer-property node)))
-	((or `number `float)
+	((or 'number 'float)
 	 (setq value (url-dav-process-number-property node)))
-	(`boolean
+	('boolean
 	 (setq value (url-dav-process-boolean-property node)))
-	(`uri
+	('uri
 	 (setq value (url-dav-process-uri-property node)))
 	(_
 	 (if (not (eq node-type 'unknown))
@@ -611,11 +611,11 @@ Returns t if the lock was successfully released."
       (setq lock (car supported-locks)
 	    supported-locks (cdr supported-locks))
       (pcase (car lock)
-	(`DAV:write
+	('DAV:write
 	 (pcase (cdr lock)
-	   (`DAV:shared			; group permissions (possibly world)
+	   ('DAV:shared			; group permissions (possibly world)
 	    (aset modes 5 ?w))
-	   (`DAV:exclusive
+	   ('DAV:exclusive
 	    (aset modes 2 ?w))		; owner permissions?
 	   (_
 	    (url-debug 'dav "Unrecognized DAV:lockscope (%S)" (cdr lock)))))

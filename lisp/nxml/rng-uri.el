@@ -1,6 +1,6 @@
 ;;; rng-uri.el --- URI parsing and manipulation  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -30,9 +30,10 @@ Multibyte characters are left as is.  Use `rng-uri-escape-multibyte' to
 escape them using %HH."
   (setq f (expand-file-name f))
   (let ((url
-	 (replace-regexp-in-string "[\000-\032\177<>#%\"{}|\\^[]`%?;]"
-				   'rng-percent-encode
-				   f)))
+	 ;; FIXME. Explain why the pattern doesn't also have "!$&'()*+,/:@=".
+	 ;; See Internet RFC 3986 section 2.2.
+	 (replace-regexp-in-string "[]\0-\s\"#%;<>?[\\^`{|}\177]"
+				   'rng-percent-encode f)))
     (concat "file:"
 	    (if (and (> (length url) 0)
 		     (= (aref url 0) ?/))
@@ -42,7 +43,7 @@ escape them using %HH."
 
 (defun rng-uri-escape-multibyte (uri)
   "Escape multibyte characters in URI."
-  (replace-regexp-in-string "[:nonascii:]"
+  (replace-regexp-in-string "[[:nonascii:]]"
 			    'rng-percent-encode
 			    (encode-coding-string uri 'utf-8)))
 

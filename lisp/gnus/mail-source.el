@@ -1,6 +1,6 @@
 ;;; mail-source.el --- functions for fetching mail
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -301,9 +301,9 @@ number."
   :group 'mail-source
   :type 'number)
 
-(defcustom mail-source-movemail-program nil
+(defcustom mail-source-movemail-program "movemail"
   "If non-nil, name of program for fetching new mail."
-  :version "22.1"
+  :version "26.2"
   :group 'mail-source
   :type '(choice (const nil) string))
 
@@ -602,7 +602,8 @@ If CONFIRM is non-nil, ask for confirmation before removing a file."
       (let* ((ffile (car files))
 	     (bfile (replace-regexp-in-string "\\`.*/\\([^/]+\\)\\'" "\\1"
 					      ffile))
-	     (filetime (nth 5 (file-attributes ffile))))
+	     (filetime (file-attribute-modification-time
+			(file-attributes ffile))))
 	(setq files (cdr files))
 	(when (and (> (time-to-number-of-days (time-subtract now filetime))
 		      diff)
@@ -618,7 +619,8 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 (defun mail-source-callback (callback info)
   "Call CALLBACK on the mail file.  Pass INFO on to CALLBACK."
   (if (or (not (file-exists-p mail-source-crash-box))
-	  (zerop (nth 7 (file-attributes mail-source-crash-box))))
+	  (zerop (file-attribute-size
+		  (file-attributes mail-source-crash-box))))
       (progn
 	(when (file-exists-p mail-source-crash-box)
 	  (delete-file mail-source-crash-box))
@@ -645,9 +647,9 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	  ;; Don't check for old incoming files more than once per day to
 	  ;; save a lot of file accesses.
 	  (when (or (null mail-source-incoming-last-checked-time)
-		    (> (float-time
-			(time-since mail-source-incoming-last-checked-time))
-		       (* 24 60 60)))
+		    (time-less-p
+		     (* 24 60 60)
+		     (time-since mail-source-incoming-last-checked-time)))
 	    (setq mail-source-incoming-last-checked-time (current-time))
 	    (mail-source-delete-old-incoming
 	     mail-source-delete-incoming
@@ -670,7 +672,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
        ((not (file-exists-p from))
 	;; There is no inbox.
 	(setq to nil))
-       ((zerop (nth 7 (file-attributes from)))
+       ((zerop (file-attribute-size (file-attributes from)))
 	;; Empty file.
 	(setq to nil))
        (t
@@ -682,12 +684,16 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	      (setq errors (generate-new-buffer " *mail source loss*"))
 	      (let ((default-directory "/"))
 		(setq result
+		      ;; call-process looks in exec-path, which
+		      ;; contains exec-directory, so will find
+		      ;; Mailutils movemail if it exists, else it will
+		      ;; find "our" movemail in exec-directory.
+		      ;; Bug#31737
 		      (apply
 		       'call-process
 		       (append
 			(list
-			 (or mail-source-movemail-program
-			     (expand-file-name "movemail" exec-directory))
+			 mail-source-movemail-program
 			 nil errors nil from to)))))
 	      (when (file-exists-p to)
 		(set-file-modes to mail-source-default-file-modes))

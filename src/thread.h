@@ -1,5 +1,5 @@
 /* Thread definitions
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef THREAD_H
 #define THREAD_H
 
-#include "regex.h"
+#include "regex-emacs.h"
 
 #ifdef WINDOWSNT
 #include <sys/socket.h>
@@ -30,7 +30,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #endif
 
 #include "sysselect.h"		/* FIXME */
-#include "systime.h"		/* FIXME */
 #include "systhread.h"
 
 struct thread_state
@@ -52,6 +51,9 @@ struct thread_state
   /* The thread's function.  */
   Lisp_Object function;
 
+  /* The thread's result, if function has finished.  */
+  Lisp_Object result;
+
   /* If non-nil, this thread has been signaled.  */
   Lisp_Object error_symbol;
   Lisp_Object error_data;
@@ -59,11 +61,11 @@ struct thread_state
   /* If we are waiting for some event, this holds the object we are
      waiting on.  */
   Lisp_Object event_object;
+  /* event_object must be the last Lisp field.  */
 
-  /* m_stack_bottom must be the first non-Lisp field.  */
   /* An address near the bottom of the stack.
      Tells GC how to save a copy of the stack.  */
-  char *m_stack_bottom;
+  char const *m_stack_bottom;
 #define stack_bottom (current_thread->m_stack_bottom)
 
   /* The address of an object near the C stack top, used to determine
@@ -73,7 +75,7 @@ struct thread_state
      error in Emacs.  If the C function F calls G which calls H which
      calls ... F, then at least one of the functions in the chain
      should set this to the address of a local variable.  */
-  void *stack_top;
+  void const *stack_top;
 
   struct catchtag *m_catchlist;
 #define catchlist (current_thread->m_catchlist)
@@ -102,15 +104,15 @@ struct thread_state
 #define specpdl_ptr (current_thread->m_specpdl_ptr)
 
   /* Depth in Lisp evaluations and function calls.  */
-  EMACS_INT m_lisp_eval_depth;
+  intmax_t m_lisp_eval_depth;
 #define lisp_eval_depth (current_thread->m_lisp_eval_depth)
 
   /* This points to the current buffer.  */
   struct buffer *m_current_buffer;
 #define current_buffer (current_thread->m_current_buffer)
 
-  /* Every call to re_match, etc., must pass &search_regs as the regs
-     argument unless you can show it is unnecessary (i.e., if re_match
+  /* Every call to re_search, etc., must pass &search_regs as the regs
+     argument unless you can show it is unnecessary (i.e., if re_search
      is certainly going to be called again before region-around-match
      can be called).
 
@@ -129,22 +131,8 @@ struct thread_state
   struct re_registers m_search_regs;
 #define search_regs (current_thread->m_search_regs)
 
-  /* If non-zero the match data have been saved in saved_search_regs
-     during the execution of a sentinel or filter. */
-  bool m_search_regs_saved;
-#define search_regs_saved (current_thread->m_search_regs_saved)
-
   struct re_registers m_saved_search_regs;
 #define saved_search_regs (current_thread->m_saved_search_regs)
-
-  /* This is the string or buffer in which we
-     are matching.  It is used for looking up syntax properties.
-
-     If the value is a Lisp string object, we are matching text in that
-     string; if it's nil, we are matching text in the current buffer; if
-     it's t, we are matching text in a C string.  */
-  Lisp_Object m_re_match_object;
-#define re_match_object (current_thread->m_re_match_object)
 
   /* This member is different from waiting_for_input.
      It is used to communicate to a lisp process-filter/sentinel (via the
@@ -190,7 +178,7 @@ struct thread_state
 
   /* Threads are kept on a linked list.  */
   struct thread_state *next_thread;
-};
+} GCALIGNED_STRUCT;
 
 INLINE bool
 THREADP (Lisp_Object a)
@@ -208,7 +196,7 @@ INLINE struct thread_state *
 XTHREAD (Lisp_Object a)
 {
   eassert (THREADP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
+  return XUNTAG (a, Lisp_Vectorlike, struct thread_state);
 }
 
 /* A mutex in lisp is represented by a system condition variable.
@@ -237,7 +225,7 @@ struct Lisp_Mutex
 
   /* The lower-level mutex object.  */
   lisp_mutex_t mutex;
-};
+} GCALIGNED_STRUCT;
 
 INLINE bool
 MUTEXP (Lisp_Object a)
@@ -255,7 +243,7 @@ INLINE struct Lisp_Mutex *
 XMUTEX (Lisp_Object a)
 {
   eassert (MUTEXP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Mutex);
 }
 
 /* A condition variable as a lisp object.  */
@@ -271,7 +259,7 @@ struct Lisp_CondVar
 
   /* The lower-level condition variable object.  */
   sys_cond_t cond;
-};
+} GCALIGNED_STRUCT;
 
 INLINE bool
 CONDVARP (Lisp_Object a)
@@ -289,7 +277,7 @@ INLINE struct Lisp_CondVar *
 XCONDVAR (Lisp_Object a)
 {
   eassert (CONDVARP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
+  return XUNTAG (a, Lisp_Vectorlike, struct Lisp_CondVar);
 }
 
 extern struct thread_state *current_thread;
@@ -302,7 +290,7 @@ extern void maybe_reacquire_global_lock (void);
 extern void init_threads_once (void);
 extern void init_threads (void);
 extern void syms_of_threads (void);
-extern bool main_thread_p (void *);
+extern bool main_thread_p (const void *);
 extern bool in_current_thread (void);
 
 typedef int select_func (int, fd_set *, fd_set *, fd_set *,

@@ -1,6 +1,6 @@
-;;; rlogin.el --- remote login interface
+;;; rlogin.el --- remote login interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1995, 1997-1998, 2001-2018 Free Software
+;; Copyright (C) 1992-1995, 1997-1998, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Noah Friedman
@@ -30,9 +30,9 @@
 ;; tracking and the sending of some special characters.
 
 ;; If you wish for rlogin mode to prompt you in the minibuffer for
-;; passwords when a password prompt appears, just enter m-x send-invisible
-;; and type in your line, or add `comint-watch-for-password-prompt' to
-;; `comint-output-filter-functions'.
+;; passwords when a password prompt appears, just enter
+;; M-x comint-send-invisible and type in your line (or tweak
+;; `comint-password-prompt-regexp' to match your password prompt).
 
 ;;; Code:
 

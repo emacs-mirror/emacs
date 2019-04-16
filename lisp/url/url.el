@@ -1,6 +1,6 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-1999, 2001, 2004-2018 Free Software Foundation,
+;; Copyright (C) 1996-1999, 2001, 2004-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
@@ -259,8 +259,7 @@ how long to wait for a response before giving up."
 	;; process output.
 	(while (and (not retrieval-done)
                     (or (not timeout)
-                        (< (float-time (time-subtract nil start-time))
-                           timeout)))
+			(time-less-p (time-since start-time) timeout)))
 	  (url-debug 'retrieval
 		     "Spinning in url-retrieve-synchronously: %S (%S)"
 		     retrieval-done asynch-buffer)

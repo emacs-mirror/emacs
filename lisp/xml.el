@@ -1,6 +1,6 @@
 ;;; xml.el --- XML parser -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -176,11 +176,11 @@ See also `xml-get-attribute-or-nil'."
 
 ;; [4] NameStartChar
 ;; See the definition of word syntax in `xml-syntax-table'.
-(defconst xml-name-start-char-re (concat "[[:word:]:_]"))
+(defconst xml-name-start-char-re "[[:word:]:_]")
 
 ;; [4a] NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7
 ;;                 | [#x0300-#x036F] | [#x203F-#x2040]
-(defconst xml-name-char-re (concat "[-0-9.[:word:]:_·̀-ͯ‿-⁀]"))
+(defconst xml-name-char-re "[[:word:]:_.0-9\u00B7\u0300-\u036F\u203F\u2040-]")
 
 ;; [5] Name     ::= NameStartChar (NameChar)*
 (defconst xml-name-re (concat xml-name-start-char-re xml-name-char-re "*"))
@@ -718,10 +718,10 @@ This follows the rule [28] in the XML specifications."
     (cond ((looking-at "PUBLIC\\s-+")
 	   (goto-char (match-end 0))
 	   (unless (or (re-search-forward
-			"\\=\"\\([[:space:][:alnum:]-'()+,./:=?;!*#@$_%]*\\)\""
+			"\\=\"\\([[:space:][:alnum:]'()+,./:=?;!*#@$_%-]*\\)\""
 			nil t)
 		       (re-search-forward
-			"\\='\\([[:space:][:alnum:]-()+,./:=?;!*#@$_%]*\\)'"
+			"\\='\\([[:space:][:alnum:]()+,./:=?;!*#@$_%-]*\\)'"
 			nil t))
 	     (error "XML: Missing Public ID"))
 	   (let ((pubid (match-string-no-properties 1)))

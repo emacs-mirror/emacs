@@ -1,6 +1,6 @@
-;;; font-lock.el --- Electric font lock mode
+;;; font-lock.el --- Electric font lock mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -656,7 +656,7 @@ be enabled."
       (cond (font-lock-fontified
 	     nil)
 	    ((or (null max-size) (> max-size (buffer-size)))
-	     (font-lock-fontify-buffer))
+             (with-no-warnings (font-lock-fontify-buffer)))
 	    (font-lock-verbose
 	     (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
 		      (buffer-name)))))))
@@ -926,9 +926,9 @@ The value of this variable is used when Font Lock mode is turned on."
 
 (defun font-lock-turn-on-thing-lock ()
   (pcase (font-lock-value-in-major-mode font-lock-support-mode)
-    (`fast-lock-mode (fast-lock-mode t))
-    (`lazy-lock-mode (lazy-lock-mode t))
-    (`jit-lock-mode
+    ('fast-lock-mode (fast-lock-mode t))
+    ('lazy-lock-mode (lazy-lock-mode t))
+    ('jit-lock-mode
      ;; Prepare for jit-lock
      (remove-hook 'after-change-functions
                   #'font-lock-after-change-function t)
@@ -1093,14 +1093,10 @@ accessible portion of the current buffer."
                 (or beg (point-min)) (or end (point-max)))))
 
 (defvar font-lock-ensure-function
-  (lambda (_beg _end)
+  (lambda (beg end)
     (unless font-lock-fontified
-      (font-lock-default-fontify-buffer)
-      (unless font-lock-mode
-        ;; If font-lock is not enabled, we don't have the hooks in place to
-        ;; track modifications, so a subsequent call to font-lock-ensure can't
-        ;; assume that the fontification is still valid.
-        (setq font-lock-fontified nil))))
+      (save-excursion
+        (font-lock-fontify-region (or beg (point-min)) (or end (point-max))))))
   "Function to make sure a region has been fontified.
 Called with two arguments BEG and END.")
 
@@ -1784,7 +1780,7 @@ If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
 	  (cons t (cons keywords
 			(mapcar #'font-lock-compile-keyword keywords))))
     (if (and (not syntactic-keywords)
-	     (let ((beg-function syntax-begin-function))
+	     (let ((beg-function (with-no-warnings syntax-begin-function)))
 	       (or (eq beg-function #'beginning-of-defun)
                    (if (symbolp beg-function)
                        (get beg-function 'font-lock-syntax-paren-check))))

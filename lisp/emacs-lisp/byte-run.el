@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -116,7 +116,10 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
              (if (not (eq (car-safe compiler-function) 'lambda))
                  `(eval-and-compile
                     (function-put ',f 'compiler-macro #',compiler-function))
-               (let ((cfname (intern (concat (symbol-name f) "--anon-cmacro"))))
+               (let ((cfname (intern (concat (symbol-name f) "--anon-cmacro")))
+                     ;; Avoid cadr/cddr so we can use `compiler-macro' before
+                     ;; defining cadr/cddr.
+                     (data (cdr compiler-function)))
                  `(progn
                     (eval-and-compile
                       (function-put ',f 'compiler-macro #',cfname))
@@ -125,8 +128,8 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
                     ;; if needed.
                     :autoload-end
                     (eval-and-compile
-                      (defun ,cfname (,@(cadr compiler-function) ,@args)
-                        ,@(cddr compiler-function))))))))
+                      (defun ,cfname (,@(car data) ,@args)
+                        ,@(cdr data))))))))
    (list 'doc-string
          #'(lambda (f _args pos)
              (list 'function-put (list 'quote f)

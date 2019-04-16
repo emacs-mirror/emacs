@@ -1,6 +1,6 @@
 ;;; blessmail.el --- decide whether movemail needs special privileges -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -49,15 +49,15 @@
   (setq attr (file-attributes dirname))
   (if (not (eq t (car attr)))
       (insert (format "echo %s is not a directory\n" rmail-spool-directory))
-    (setq modes (nth 8 attr))
+    (setq modes (file-attribute-modes attr))
     (cond ((= ?w (aref modes 8))
 	   ;; Nothing needs to be done.
 	   )
 	  ((= ?w (aref modes 5))
-	   (insert "chgrp " (number-to-string (nth 3 attr))
+	   (insert "chgrp " (number-to-string (file-attribute-group-id attr))
 		   " $* && chmod g+s $*\n"))
 	  ((= ?w (aref modes 2))
-	   (insert "chown " (number-to-string (nth 2 attr))
+	   (insert "chown " (number-to-string (file-attribute-user-id attr))
 		   " $* && chmod u+s $*\n"))
 	  (t
 	   (insert "chown root $* && chmod u+s $*\n"))))

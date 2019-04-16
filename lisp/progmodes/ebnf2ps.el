@@ -1,6 +1,6 @@
 ;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
@@ -5130,7 +5130,7 @@ killed after process termination."
 (defsubst ebnf-font-background (font) (nth 3 font))
 (defsubst ebnf-font-list (font) (nthcdr 4 font))
 (defsubst ebnf-font-attributes (font)
-  (lsh (ps-extension-bit (cdr font)) -2))
+  (ash (ps-extension-bit (cdr font)) -2))
 
 
 (defconst ebnf-font-name-select

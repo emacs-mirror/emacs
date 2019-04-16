@@ -1,6 +1,6 @@
 ;;; semantic/db.el --- Semantic tag database manager
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -611,8 +611,8 @@ The file associated with OBJ does not need to be in a buffer."
       ;; Buffer isn't loaded.  The only clue we have is if the file
       ;; is somehow different from our mark in the semanticdb table.
       (let* ((stats (file-attributes ff))
-	     (actualsize (nth 7 stats))
-	     (actualmod (nth 5 stats))
+	     (actualsize (file-attribute-size stats))
+	     (actualmod (file-attribute-modification-time stats))
 	     )
 
 	(or (not (slot-boundp obj 'tags))
@@ -631,8 +631,8 @@ The file associated with OBJ does not need to be in a buffer."
   (oset table tags new-tags)
   (oset table pointmax (point-max))
   (let ((fattr (file-attributes (semanticdb-full-filename table))))
-    (oset table fsize (nth 7 fattr))
-    (oset table lastmodtime (nth 5 fattr))
+    (oset table fsize (file-attribute-size fattr))
+    (oset table lastmodtime (file-attribute-modification-time fattr))
     )
   ;; Assume it is now up to date.
   (oset table unmatched-syntax semantic-unmatched-syntax-cache)

@@ -1,6 +1,6 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998-2019 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  emacs-devel@gnu.org
@@ -57,7 +57,7 @@
                     ;; (We actually shouldn't trust this, but there is
                     ;; no other way to learn this from CVS at the
                     ;; moment (version 1.9).)
-                    (string-match "r-..-..-." (nth 8 attrib)))
+		    (string-match "r-..-..-." (file-attribute-modes attrib)))
                'announce
              'implicit))))))
 
@@ -257,7 +257,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
   ;; If the file has not changed since checkout, consider it `up-to-date'.
   ;; Otherwise consider it `edited'.
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
-        (lastmod (nth 5 (file-attributes file))))
+        (lastmod (file-attribute-modification-time (file-attributes file))))
     (cond
      ((equal checkout-time lastmod) 'up-to-date)
      ((string= (vc-working-revision file) "0") 'added)
@@ -524,7 +524,8 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
                     (string= (match-string 1) "P "))
                 (vc-file-setprop file 'vc-state 'up-to-date)
                 (vc-file-setprop file 'vc-checkout-time
-                                 (nth 5 (file-attributes file)))
+				 (file-attribute-modification-time
+				  (file-attributes file)))
                 0);; indicate success to the caller
                ;; Merge successful, but our own changes are still in the file
                ((string= (match-string 1) "M ")
@@ -649,7 +650,7 @@ Optional arg REVISION is a revision to annotate from."
   "Return the current time, based at midnight of the current day, and
 encoded as fractional days."
   (vc-annotate-convert-time
-   (apply 'encode-time 0 0 0 (nthcdr 3 (decode-time)))))
+   (apply #'encode-time 0 0 0 (nthcdr 3 (decode-time)))))
 
 (defun vc-cvs-annotate-time ()
   "Return the time of the next annotation (as fraction of days)
@@ -748,7 +749,8 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 		    (vc-file-setprop file 'vc-state 'up-to-date)
 		    (vc-file-setprop file 'vc-working-revision nil)
 		    (vc-file-setprop file 'vc-checkout-time
-				     (nth 5 (file-attributes file))))
+				     (file-attribute-modification-time
+				      (file-attributes file))))
 		   ((or (string= state "M")
 			(string= state "C"))
 		    (vc-file-setprop file 'vc-state 'edited)
@@ -908,7 +910,7 @@ essential information. Note that this can never set the `ignored'
 state."
   (let (file status missing)
     (goto-char (point-min))
-    (while (looking-at "? \\(.*\\)")
+    (while (looking-at "\\? \\(.*\\)")
       (setq file (expand-file-name (match-string 1)))
       (vc-file-setprop file 'vc-state 'unregistered)
       (forward-line 1))
@@ -931,7 +933,8 @@ state."
 	 (cond
 	  ((string-match "Up-to-date" status)
 	   (vc-file-setprop file 'vc-checkout-time
-			    (nth 5 (file-attributes file)))
+			    (file-attribute-modification-time
+			     (file-attributes file)))
 	   'up-to-date)
 	  ((string-match "Locally Modified" status)             'edited)
 	  ((string-match "Needs Merge" status)                  'needs-merge)
@@ -1084,7 +1087,7 @@ CVS/Entries should only be accessed through this function."
   ;; an uppercase or lowercase letter and can contain uppercase and
   ;; lowercase letters, digits, `-', and `_'.
   (and (string-match "^[a-zA-Z]" tag)
-       (not (string-match "[^a-z0-9A-Z-_]" tag))))
+       (not (string-match "[^a-z0-9A-Z_-]" tag))))
 
 (defun vc-cvs-valid-revision-number-p (tag)
   "Return non-nil if TAG is a valid revision number."
@@ -1174,16 +1177,15 @@ is non-nil."
     ;; (which is based on textual comparison), because there can be problems
     ;; generating a time string that looks exactly like the one from CVS.
     (let* ((time (match-string 2))
-           (mtime (nth 5 (file-attributes file)))
+           (mtime (file-attribute-modification-time (file-attributes file)))
            (parsed-time (progn (require 'parse-time)
                                (parse-time-string (concat time " +0000")))))
       (cond ((and (not (string-match "\\+" time))
                   (car parsed-time)
                   ;; Compare just the seconds part of the file time,
                   ;; since CVS file time stamp resolution is just 1 second.
-                  (let ((ptime (apply 'encode-time parsed-time)))
-                    (and (eq (car mtime) (car ptime))
-                         (eq (cadr mtime) (cadr ptime)))))
+		  (= (encode-time mtime 'integer)
+		     (encode-time parsed-time 'integer)))
              (vc-file-setprop file 'vc-checkout-time mtime)
              (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
             (t

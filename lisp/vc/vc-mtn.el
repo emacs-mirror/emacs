@@ -1,6 +1,6 @@
 ;;; vc-mtn.el --- VC backend for Monotone  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
@@ -190,8 +190,8 @@ switches."
                 (setq branch (replace-match (cdr rule) t nil branch))))
           (format "Mtn%c%s"
                   (pcase (vc-state file)
-                    ((or `up-to-date `needs-update) ?-)
-                    (`added ?@)
+                    ((or 'up-to-date 'needs-update) ?-)
+                    ('added ?@)
                     (_ ?:))
                   branch))
       "")))

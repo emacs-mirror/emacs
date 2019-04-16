@@ -1,6 +1,6 @@
 ;;; semantic/db-file.el --- Save a semanticdb to a cache file.
 
-;;; Copyright (C) 2000-2005, 2007-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2000-2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -307,8 +307,8 @@ Argument OBJ is the object to write."
     ;; Make sure that the file size and other attributes are
     ;; up to date.
     (let ((fattr (file-attributes (semanticdb-full-filename obj))))
-      (oset obj fsize (nth 7 fattr))
-      (oset obj lastmodtime (nth 5 fattr))
+      (oset obj fsize (file-attribute-size fattr))
+      (oset obj lastmodtime (file-attribute-modification-time fattr))
       )
 
     ;; Do it!

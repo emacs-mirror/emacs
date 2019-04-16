@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1993, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node GNU Emacs Internals
@@ -18,6 +18,7 @@ internal aspects of GNU Emacs that may be of interest to C programmers.
 * Memory Usage::        Info about total size of Lisp objects made so far.
 * C Dialect::           What C variant Emacs is written in.
 * Writing Emacs Primitives::   Writing C code for Emacs.
+* Writing Dynamic Modules::    Writing loadable modules for Emacs.
 * Object Internals::    Data formats of buffers, windows, processes.
 * C Integer Types::     How C integer types are used inside Emacs.
 @end menu
@@ -47,24 +48,63 @@ environment.  After this step, the Emacs executable is no longer
 @dfn{bare}.
 
 @cindex dumping Emacs
+@cindex @option{--temacs} option, and dumping method
   Because it takes some time to load the standard Lisp files, the
 @file{temacs} executable usually isn't run directly by users.
-Instead, as one of the last steps of building Emacs, the command
-@samp{temacs -batch -l loadup dump} is run.  The special @samp{dump}
-argument causes @command{temacs} to dump out an executable program,
-called @file{emacs}, which has all the standard Lisp files preloaded.
-(The @samp{-batch} argument prevents @file{temacs} from trying to
-initialize any of its data on the terminal, so that the tables of
-terminal information are empty in the dumped Emacs.)
+Instead, one of the last steps of building Emacs runs the command
+@w{@samp{temacs -batch -l loadup --temacs=@var{dump-method}}}.  The
+special option @option{--temacs} tells @command{temacs} how to record
+all the standard preloaded Lisp functions and variables, so that when
+you subsequently run Emacs, it will start much faster.  The
+@option{--temacs} option requires an argument @var{dump-method}, which
+can be one of the following:
+
+@table @samp
+@item pdump
+@cindex portable dump file
+Record the preloaded Lisp data in a @dfn{portable dump} file.  This
+method produces an additional data file which Emacs will load at
+startup.  The portable dump file is usually called @file{emacs.pdmp},
+and is installed in the Emacs @code{exec-directory} (@pxref{Help
+Functions}).  This method is the most preferred one, as it does not
+require Emacs to employ any special techniques of memory allocation,
+which might get in the way of various memory-layout techniques used by
+modern systems to enhance security and privacy.
+
+@item pbootstrap
+@cindex bootstrapping Emacs
+Like @samp{pdump}, but used while @dfn{bootstrapping} Emacs, when no
+previous Emacs binary and no @file{*.elc} byte-compiled Lisp files are
+available.  The produced portable dump file is usually named
+@file{bootstrap-emacs.pdmp} in this case.
+
+@item dump
+@cindex unexec
+This method causes @command{temacs} to dump out an executable program,
+called @file{emacs}, which has all the standard Lisp files already
+preloaded into it.  (The @samp{-batch} argument prevents
+@command{temacs} from trying to initialize any of its data on the
+terminal, so that the tables of terminal information are empty in the
+dumped Emacs.)  This method is also known as @dfn{unexec}, because it
+produces a program file from a running process, and thus is in some
+sense the opposite of executing a program to start a process.
+
+@item bootstrap
+Like @samp{dump}, but used when bootstrapping Emacs with the
+@code{unexec} method.
+@end table
 
 @cindex preloaded Lisp files
 @vindex preloaded-file-list
   The dumped @file{emacs} executable (also called a @dfn{pure} Emacs)
-is the one which is installed.  The variable
-@code{preloaded-file-list} stores a list of the Lisp files preloaded
-into the dumped Emacs.  If you port Emacs to a new operating system,
-and are not able to implement dumping, then Emacs must load
-@file{loadup.el} each time it starts.
+is the one which is installed.  If the portable dumping was used to
+build Emacs, the @file{emacs} executable is actually an exact copy of
+@file{temacs}, and the corresponding @file{emacs.pdmp} file is
+installed as well.  The variable @code{preloaded-file-list} stores a
+list of the preloaded Lisp files recorded in the portable dump file or
+in the dumped Emacs executable.  If you port Emacs to a new operating
+system, and are not able to implement dumping of any kind, then Emacs
+must load @file{loadup.el} each time it starts.
 
 @cindex build details
 @cindex deterministic build
@@ -160,14 +200,41 @@ In the unlikely event that you need a more general functionality than
 @code{custom-initialize-delay} provides, you can use
 @code{before-init-hook} (@pxref{Startup Summary}).
 
+@defun dump-emacs-portable to-file &optional track-referrers
+This function dumps the current state of Emacs into a portable dump
+file @var{to-file}, using the @code{pdump} method.  Normally, the
+portable dump file is called @file{@var{emacs-name}.dmp}, where
+@var{emacs-name} is the name of the Emacs executable file.  The
+optional argument @var{track-referrers}, if non-@code{nil}, causes the
+portable dumping process keep additional information to help track
+down the provenance of object types that are not yet supported by the
+@code{pdump} method.
+
+If you want to use this function in an Emacs that was already dumped,
+you must run Emacs with the @samp{-batch} option.
+@end defun
+
 @defun dump-emacs to-file from-file
 @cindex unexec
 This function dumps the current state of Emacs into an executable file
-@var{to-file}.  It takes symbols from @var{from-file} (this is normally
-the executable file @file{temacs}).
+@var{to-file}, using the @code{unexec} method.  It takes symbols from
+@var{from-file} (this is normally the executable file @file{temacs}).
 
-If you want to use this function in an Emacs that was already dumped,
-you must run Emacs with @samp{-batch}.
+This function cannot be used in an Emacs that was already dumped.  If
+Emacs was built without @code{unexec} support, this function will not
+be available.
+@end defun
+
+@defun pdumper-stats
+If the current Emacs session restored its state from a portable dump
+file, this function returns information about the dump file and the
+time it took to restore the Emacs state.  The value is an alist
+@w{@code{((dumped-with-pdumper . t) (load-time . @var{time})
+(dump-file-name . @var{file}))}},
+where @var{file} is the name of the dump file, and @var{time} is the
+time in seconds it took to restore the state from the dump file.
+If the current session was not restored from a portable dump file, the
+value is nil.
 @end defun
 
 @node Pure Storage
@@ -246,8 +313,8 @@ of 8k bytes, and small vectors are packed into blocks of 4k bytes).
 
 @cindex vector-like objects, storage
 @cindex storage of vector-like Lisp objects
-  Beyond the basic vector, a lot of objects like window, buffer, and
-frame are managed as if they were vectors.  The corresponding C data
+  Beyond the basic vector, a lot of objects like markers, overlays and
+buffers are managed as if they were vectors.  The corresponding C data
 structures include the @code{union vectorlike_header} field whose
 @code{size} member contains the subtype enumerated by @code{enum pvec_type}
 and an information about how many @code{Lisp_Object} fields this structure
@@ -318,7 +385,6 @@ future allocations.  So an overall result is:
 @example
 ((@code{conses} @var{cons-size} @var{used-conses} @var{free-conses})
  (@code{symbols} @var{symbol-size} @var{used-symbols} @var{free-symbols})
- (@code{miscs} @var{misc-size} @var{used-miscs} @var{free-miscs})
  (@code{strings} @var{string-size} @var{used-strings} @var{free-strings})
  (@code{string-bytes} @var{byte-size} @var{used-bytes})
  (@code{vectors} @var{vector-size} @var{used-vectors})
@@ -334,7 +400,7 @@ Here is an example:
 @example
 (garbage-collect)
       @result{} ((conses 16 49126 8058) (symbols 48 14607 0)
-                 (miscs 40 34 56) (strings 32 2942 2607)
+                 (strings 32 2942 2607)
                  (string-bytes 1 78607) (vectors 16 7247)
                  (vector-slots 8 341609 29474) (floats 8 71 102)
                  (intervals 56 27 26) (buffers 944 8)
@@ -366,19 +432,6 @@ The number of symbols in use.
 The number of symbols for which space has been obtained from
 the operating system, but that are not currently being used.
 
-@item misc-size
-Internal size of a miscellaneous entity, i.e.,
-@code{sizeof (union Lisp_Misc)}, which is a size of the
-largest type enumerated in @code{enum Lisp_Misc_Type}.
-
-@item used-miscs
-The number of miscellaneous objects in use.  These include markers
-and overlays, plus certain objects not visible to users.
-
-@item free-miscs
-The number of miscellaneous objects for which space has been obtained
-from the operating system, but that are not currently being used.
-
 @item string-size
 Internal size of a string header, i.e., @code{sizeof (struct Lisp_String)}.
 
@@ -396,7 +449,7 @@ This is used for convenience and equals to @code{sizeof (char)}.
 The total size of all string data in bytes.
 
 @item vector-size
-Internal size of a vector header, i.e., @code{sizeof (struct Lisp_Vector)}.
+Size in bytes of a vector of length 1, including its header.
 
 @item used-vectors
 The number of vector headers allocated from the vector blocks.
@@ -406,6 +459,8 @@ Internal size of a vector slot, always equal to @code{sizeof (Lisp_Object)}.
 
 @item used-slots
 The number of slots in all used vectors.
+Slot counts might include some or all overhead from vector headers,
+depending on the platform.
 
 @item free-slots
 The number of free slots in all vector blocks.
@@ -507,10 +562,8 @@ function @code{memory-limit} provides information on the total amount of
 memory Emacs is currently using.
 
 @defun memory-limit
-This function returns the address of the last byte Emacs has allocated,
-divided by 1024.  We divide the value by 1024 to make sure it fits in a
-Lisp integer.
-
+This function returns an estimate of the total amount of bytes of
+virtual memory that Emacs is currently using, divided by 1024.
 You can use this to get a general idea of how your actions affect the
 memory usage.
 @end defun
@@ -595,6 +648,8 @@ in this Emacs session.
 @defvar vector-cells-consed
 The total number of vector cells that have been allocated so far
 in this Emacs session.
+This includes vector-like objects such as markers and overlays, plus
+certain objects not visible to users.
 @end defvar
 
 @defvar symbols-consed
@@ -605,12 +660,6 @@ in this Emacs session.
 @defvar string-chars-consed
 The total number of string characters that have been allocated so far
 in this session.
-@end defvar
-
-@defvar misc-objects-consed
-The total number of miscellaneous objects that have been allocated so
-far in this session.  These include markers and overlays, plus
-certain objects not visible to users.
 @end defvar
 
 @defvar intervals-consed
@@ -726,7 +775,8 @@ less than 8.
 @cindex interactive specification in primitives
 @item interactive
 This is an interactive specification, a string such as might be used
-as the argument of @code{interactive} in a Lisp function.  In the case
+as the argument of @code{interactive} in a Lisp function
+(@pxref{Using Interactive}).  In the case
 of @code{or}, it is 0 (a null pointer), indicating that @code{or}
 cannot be called interactively.  A value of @code{""} indicates a
 function that should receive no arguments when called interactively.
@@ -986,6 +1036,728 @@ in @file{byte-opt.el} that binds @code{side-effect-free-fns} and
 @code{side-effect-and-error-free-fns} so that the compiler optimizer
 knows about it.
 
+@node Writing Dynamic Modules
+@section Writing Dynamically-Loaded Modules
+@cindex writing emacs modules
+@cindex dynamic modules, writing
+
+@cindex module @acronym{API}
+  This section describes the Emacs module @acronym{API} and how to use
+it as part of writing extension modules for Emacs.  The module
+@acronym{API} is defined in the C programming language, therefore the
+description and the examples in this section assume the module is
+written in C@.  For other programming languages, you will need to use
+the appropriate bindings, interfaces and facilities for calling C code.
+Emacs C code requires a C99 or later compiler (@pxref{C Dialect}), and
+so the code examples in this section also follow that standard.
+
+Writing a module and integrating it into Emacs comprises the following
+tasks:
+
+@itemize @bullet
+@item
+Writing initialization code for the module.
+
+@item
+Writing one or more module functions.
+
+@item
+Communicating values and objects between Emacs and your module
+functions.
+
+@item
+Handling of error conditions and nonlocal exits.
+@end itemize
+
+@noindent
+The following subsections describe these tasks and the @acronym{API}
+itself in more detail.
+
+Once your module is written, compile it to produce a shared library,
+according to the conventions of the underlying platform.  Then place
+the shared library in a directory mentioned in @code{load-path}
+(@pxref{Library Search}), where Emacs will find it.
+
+If you wish to verify the conformance of a module to the Emacs dynamic
+module @acronym{API}, invoke Emacs with the @kbd{--module-assertions}
+option.  @xref{Initial Options,,,emacs, The GNU Emacs Manual}.
+
+@menu
+* Module Initialization::
+* Module Functions::
+* Module Values::
+* Module Misc::
+* Module Nonlocal::
+@end menu
+
+@node Module Initialization
+@subsection Module Initialization Code
+@cindex module initialization
+
+  Begin your module by including the header file @file{emacs-module.h}
+and defining the GPL compatibility symbol:
+
+@example
+#include <emacs-module.h>
+
+int plugin_is_GPL_compatible;
+@end example
+
+The @file{emacs-module.h} file is installed into your system's include
+tree as part of the Emacs installation.  Alternatively, you can find
+it in the Emacs source tree.
+
+@anchor{module initialization function}
+Next, write an initialization function for the module.
+
+@deftypefn Function int emacs_module_init (struct emacs_runtime *@var{runtime})
+Emacs calls this function when it loads a module.  If a module does
+not export a function named @code{emacs_module_init}, trying to load
+the module will signal an error.  The initialization function should
+return zero if the initialization succeeds, non-zero otherwise.  In
+the latter case, Emacs will signal an error, and the loading of the
+module will fail.  If the user presses @kbd{C-g} during the
+initialization, Emacs ignores the return value of the initialization
+function and quits (@pxref{Quitting}).  (If needed, you can catch user
+quitting inside the initialization function, @pxref{should_quit}.)
+
+The argument @var{runtime} is a pointer to a C @code{struct} that
+includes 2 public fields: @code{size}, which provides the size of the
+structure in bytes; and @code{get_environment}, which provides a
+pointer to a function that allows the module initialization function
+access to the Emacs environment object and its interfaces.
+
+The initialization function should perform whatever initialization is
+required for the module.  In addition, it can perform the following
+tasks:
+
+@table @asis
+@cindex compatibility, between modules and Emacs
+@item Compatibility verification
+A module can verify that the Emacs executable which loads the module
+is compatible with the module, by comparing the @code{size} member of
+the @var{runtime} structure with the value compiled into the module:
+
+@example
+int
+emacs_module_init (struct emacs_runtime *ert)
+@{
+  if (ert->size < sizeof (*ert))
+    return 1;
+@}
+@end example
+
+@noindent
+If the size of the runtime object passed to the module is smaller than
+what it expects, it means the module was compiled for an Emacs version
+newer (later) than the one which attempts to load it, i.e.@: the
+module might be incompatible with the Emacs binary.
+
+In addition, a module can verify the compatibility of the module
+@acronym{API} with what the module expects.  The following sample code
+assumes it is part of the @code{emacs_module_init} function shown
+above:
+
+@example
+  emacs_env *env = ert->get_environment (ert);
+  if (env->size < sizeof (*env))
+    return 2;
+@end example
+
+@noindent
+@cindex module runtime environment
+This calls the @code{get_environment} function using the pointer
+provided in the @code{runtime} structure to retrieve a pointer to the
+@acronym{API}'s @dfn{environment}, a C @code{struct} which also has a
+@code{size} field holding the size of the structure in bytes.
+
+Finally, you can write a module that will work with older versions of
+Emacs, by comparing the size of the environment passed by Emacs with
+known sizes, like this:
+
+@example
+  emacs_env *env = ert->get_environment (ert);
+  if (env->size >= sizeof (struct emacs_env_26))
+    emacs_version = 26;  /* Emacs 26 or later.  */
+  else if (env->size >= sizeof (struct emacs_env_25))
+    emacs_version = 25;
+  else
+    return 2; /* Unknown or unsupported version.  */
+@end example
+
+@noindent
+This works because later Emacs versions always @emph{add} members to
+the environment, never @emph{remove} any members, so the size can only
+grow with new Emacs releases.  Given the version of Emacs, the module
+can use only the parts of the module @acronym{API} that existed in
+that version, since those parts are identical in later versions.
+
+We recommend that modules always perform the compatibility
+verification, unless they do their job entirely in the initialization
+function, and don't access any Lisp objects or use any Emacs functions
+accessible through the environment structure.
+
+@item Binding module functions to Lisp symbols
+This gives the module functions names so that Lisp code could call it
+by that name.  We describe how to do this in @ref{Module Functions}
+below.
+@end table
+@end deftypefn
+
+@node Module Functions
+@subsection Writing Module Functions
+@cindex writing module functions
+@cindex module functions
+
+  The main reason for writing an Emacs module is to make additional
+functions available to Lisp programs that load the module.  This
+subsection describes how to write such @dfn{module functions}.
+
+A module function has the following general form and signature:
+
+@deftypefn Function emacs_value module_func (emacs_env *@var{env}, ptrdiff_t @var{nargs}, emacs_value *@var{args}, void *@var{data})
+The @var{env} argument provides a pointer to the @acronym{API}
+environment, needed to access Emacs objects and functions.  The
+@var{nargs} argument is the required number of arguments, which can be
+zero (see @code{make_function} below for more flexible specification
+of the argument number), and @var{args} is a pointer to the array of
+the function arguments.  The argument @var{data} points to additional
+data required by the function, which was arranged when
+@code{make_function} (see below) was called to create an Emacs
+function from @code{module_func}.
+
+Module functions use the type @code{emacs_value} to communicate Lisp
+objects between Emacs and the module (@pxref{Module Values}).  The
+@acronym{API}, described below and in the following subsections,
+provides facilities for conversion between basic C data types and the
+corresponding @code{emacs_value} objects.
+
+A module function always returns a value.  If the function returns
+normally, the Lisp code which called it will see the Lisp object
+corresponding to the @code{emacs_value} value the function returned.
+However, if the user typed @kbd{C-g}, or if the module function or its
+callees signaled an error or exited nonlocally (@pxref{Module
+Nonlocal}), Emacs will ignore the returned value and quit or throw as
+it does when Lisp code encounters the same situations.
+@end deftypefn
+
+After writing your C code for a module function, you should make a
+Lisp function object from it using the @code{make_function} function,
+whose pointer is provided in the environment (recall that the pointer
+to the environment is returned by @code{get_environment}).  This is
+normally done in the module initialization function (@pxref{module
+initialization function}), after verifying the @acronym{API}
+compatibility.
+
+@deftypefn Function emacs_value make_function (emacs_env *@var{env}, ptrdiff_t @var{min_arity}, ptrdiff_t @var{max_arity}, subr @var{func}, const char *@var{docstring}, void *@var{data})
+@vindex emacs_variadic_function
+This returns an Emacs function created from the C function @var{func},
+whose signature is as described for @code{module_func} above (assumed
+here to be @code{typedef}'ed as @code{subr}).  The arguments
+@var{min_arity} and @var{max_arity} specify the minimum and maximum
+number of arguments that @var{func} can accept.  The @var{max_arity}
+argument can have the special value @code{emacs_variadic_function},
+which makes the function accept an unlimited number of arguments, like
+the @code{&rest} keyword in Lisp (@pxref{Argument List}).
+
+The argument @var{data} is a way to arrange for arbitrary additional
+data to be passed to @var{func} when it is called.  Whatever pointer
+is passed to @code{make_function} will be passed unaltered to
+@var{func}.
+
+The argument @var{docstring} specifies the documentation string for
+the function.  It should be either an @acronym{ASCII} string, or a
+UTF-8 encoded non-@acronym{ASCII} string, or a @code{NULL} pointer; in
+the latter case the function will have no documentation.  The
+documentation string can end with a line that specifies the advertised
+calling convention, see @ref{Function Documentation}.
+
+Since every module function must accept the pointer to the environment
+as its first argument, the call to @code{make_function} could be made
+from any module function, but you will normally want to do that from
+the module initialization function, so that all the module functions
+are known to Emacs once the module is loaded.
+@end deftypefn
+
+Finally, you should bind the Lisp function to a symbol, so that Lisp
+code could call your function by name.  For that, use the module
+@acronym{API} function @code{intern} (@pxref{intern}) whose pointer is
+also provided in the environment that module functions can access.
+
+Combining the above steps, code that arranges for a C function
+@code{module_func} to be callable as @code{module-func} from Lisp will
+look like this, as part of the module initialization function:
+
+@example
+ emacs_env *env = ert->get_environment (ert);
+ emacs_value func = env->make_function (env, min_arity, max_arity,
+                                        module_func, docstring, data);
+ emacs_value symbol = env->intern (env, "module-func");
+ emacs_value args[] = @{symbol, func@};
+ env->funcall (env, env->intern (env, "defalias"), 2, args);
+@end example
+
+@noindent
+This makes the symbol @code{module-func} known to Emacs by calling
+@code{env->intern}, then invokes @code{defalias} from Emacs to bind
+the function to that symbol.  Note that it is possible to use
+@code{fset} instead of @code{defalias}; the differences are described
+in @ref{Defining Functions, defalias}.
+
+Using the module @acronym{API}, it is possible to define more complex
+function and data types: interactive functions, inline functions,
+macros, etc.  However, the resulting C code will be cumbersome and
+hard to read.  Therefore, we recommend that you limit the module code
+which creates functions and data structures to the absolute minimum,
+and leave the rest for a Lisp package that will accompany your module,
+because doing these additional tasks in Lisp is much easier, and will
+produce a much more readable code.  For example, given a module
+function @code{module-func} defined as above, one way of making an
+interactive command @code{module-cmd} based on it is with the
+following simple Lisp wrapper:
+
+@lisp
+(defun module-cmd (&rest args)
+  "Documentation string for the command."
+  (interactive @var{spec})
+  (apply 'module-func args))
+@end lisp
+
+The Lisp package which goes with your module could then load the
+module using the @code{module-load} primitive (@pxref{Dynamic
+Modules}) when the package is loaded into Emacs.
+
+@node Module Values
+@subsection Conversion Between Lisp and Module Values
+@cindex module values, conversion
+
+@cindex @code{emacs_value} data type
+  With very few exceptions, most modules need to exchange data with
+Lisp programs that call them: accept arguments to module functions and
+return values from module functions.  For this purpose, the module
+@acronym{API} provides the @code{emacs_value} type, which represents
+Emacs Lisp objects communicated via the @acronym{API}; it is the
+functional equivalent of the @code{Lisp_Object} type used in Emacs C
+primitives (@pxref{Writing Emacs Primitives}).  This section describes
+the parts of the module @acronym{API} that allow to create
+@code{emacs_value} objects corresponding to basic Lisp data types, and
+how to access from C data in @code{emacs_value} objects that
+correspond to Lisp objects.
+
+All of the functions described below are actually @emph{function
+pointers} provided via the pointer to the environment which every
+module function accepts.  Therefore, module code should call these
+functions through the environment pointer, like this:
+
+@example
+emacs_env *env;  /* the environment pointer */
+env->some_function (arguments@dots{});
+@end example
+
+@noindent
+The @code{emacs_env} pointer will usually come from the first argument
+to the module function, or from the call to @code{get_environment} if
+you need the environment in the module initialization function.
+
+Most of the functions described below became available in Emacs 25,
+the first Emacs release that supported dynamic modules.  For the few
+functions that became available in later Emacs releases, we mention
+the first Emacs version that supported them.
+
+The following @acronym{API} functions extract values of various C data
+types from @code{emacs_value} objects.  They all raise the
+@code{wrong-type-argument} error condition (@pxref{Type Predicates})
+if the argument @code{emacs_value} object is not of the type expected
+by the function.  @xref{Module Nonlocal}, for details of how signaling
+errors works in Emacs modules, and how to catch error conditions
+inside the module before they are reported to Emacs.  The
+@acronym{API} function @code{type_of} (@pxref{Module Misc, type_of})
+can be used to obtain the type of a @code{emacs_value} object.
+
+@deftypefn Function intmax_t extract_integer (emacs_env *@var{env}, emacs_value @var{arg})
+This function returns the value of a Lisp integer specified by
+@var{arg}.  The C data type of the return value, @code{intmax_t}, is
+the widest integral data type supported by the C compiler, typically
+@w{@code{long long}}.
+@end deftypefn
+
+@deftypefn Function double extract_float (emacs_env *@var{env}, emacs_value @var{arg})
+This function returns the value of a Lisp float specified by
+@var{arg}, as a C @code{double} value.
+@end deftypefn
+
+@deftypefn Function bool copy_string_contents (emacs_env *@var{env}, emacs_value @var{arg}, char *@var{buf}, ptrdiff_t *@var{len})
+This function stores the UTF-8 encoded text of a Lisp string specified
+by @var{arg} in the array of @code{char} pointed by @var{buf}, which
+should have enough space to hold at least @code{*@var{len}} bytes,
+including the terminating null byte.  The argument @var{len} must not
+be a @code{NULL} pointer, and, when the function is called, it should
+point to a value that specifies the size of @var{buf} in bytes.
+
+If the buffer size specified by @code{*@var{len}} is large enough to
+hold the string's text, the function stores in @code{*@var{len}} the
+actual number of bytes copied to @var{buf}, including the terminating
+null byte, and returns @code{true}.  If the buffer is too small, the
+function raises the @code{args-out-of-range} error condition, stores
+the required number of bytes in @code{*@var{len}}, and returns
+@code{false}.  @xref{Module Nonlocal}, for how to handle pending error
+conditions.
+
+The argument @var{buf} can be a @code{NULL} pointer, in which case the
+function stores in @code{*@var{len}} the number of bytes required for
+storing the contents of @var{arg}, and returns @code{true}.  This is
+how you can determine the size of @var{buf} needed to store a
+particular string: first call @code{copy_string_contents} with
+@code{NULL} as @var{buf}, then allocate enough memory to hold the
+number of bytes stored by the function in @code{*@var{len}}, and call
+the function again with non-@code{NULL} @var{buf} to actually perform
+the text copying.
+@end deftypefn
+
+@deftypefn Function emacs_value vec_get (emacs_env *@var{env}, emacs_value @var{vector}, ptrdiff_t @var{index})
+This function returns the element of @var{vector} at @var{index}.  The
+@var{index} of the first vector element is zero.  The function raises
+the @code{args-out-of-range} error condition if the value of
+@var{index} is invalid.  To extract C data from the value the function
+returns, use the other extraction functions described here, as
+appropriate for the Lisp data type stored in that element of the
+vector.
+@end deftypefn
+
+@deftypefn Function ptrdiff_t vec_size (emacs_env *@var{env}, emacs_value @var{vector})
+This function returns the number of elements in @var{vector}.
+@end deftypefn
+
+@deftypefn Function void vec_set (emacs_env *@var{env}, emacs_value @var{vector}, ptrdiff_t @var{index}, emacs_value @var{value})
+This function stores @var{value} in the element of @var{vector} whose
+index is @var{index}.  It raises the @code{args-out-of-range} error
+condition if the value of @var{index} is invalid.
+@end deftypefn
+
+The following @acronym{API} functions create @code{emacs_value}
+objects from basic C data types.  They all return the created
+@code{emacs_value} object.
+
+@deftypefn Function emacs_value make_integer (emacs_env *@var{env}, intmax_t @var{n})
+This function takes an integer argument @var{n} and returns the
+corresponding @code{emacs_value} object.  It raises the
+@code{overflow-error} error condition if the value of @var{n} cannot
+be represented as an Emacs integer, i.e.@: is not inside the limits
+set by @code{most-negative-fixnum} and @code{most-positive-fixnum}
+(@pxref{Integer Basics}).
+@end deftypefn
+
+@deftypefn Function emacs_value make_float (emacs_env *@var{env}, double @var{d})
+This function takes a @code{double} argument @var{d} and returns the
+corresponding Emacs floating-point value.
+@end deftypefn
+
+@deftypefn Function emacs_value make_string (emacs_env *@var{env}, const char *@var{str}, ptrdiff_t @var{strlen})
+This function creates an Emacs string from C text string pointed by
+@var{str} whose length in bytes, not including the terminating null
+byte, is @var{strlen}.  The original string in @var{str} can be either
+an @acronym{ASCII} string or a UTF-8 encoded non-@acronym{ASCII}
+string; it can include embedded null bytes, and doesn't have to end in
+a terminating null byte at @code{@var{str}[@var{strlen}]}.  The
+function raises the @code{overflow-error} error condition if
+@var{strlen} is negative or exceeds the maximum length of an Emacs
+string.
+@end deftypefn
+
+The @acronym{API} does not provide functions to manipulate Lisp data
+structures, for example, create lists with @code{cons} and @code{list}
+(@pxref{Building Lists}), extract list members with @code{car} and
+@code{cdr} (@pxref{List Elements}), create vectors with @code{vector}
+(@pxref{Vector Functions}), etc.  For these, use @code{intern} and
+@code{funcall}, described in the next subsection, to call the
+corresponding Lisp functions.
+
+Normally, @code{emacs_value} objects have a rather short lifetime: it
+ends when the @code{emacs_env} pointer used for their creation goes
+out of scope.  Occasionally, you may need to create @dfn{global
+references}: @code{emacs_value} objects that live as long as you
+wish.  Use the following two functions to manage such objects.
+
+@deftypefn Function emacs_value make_global_ref (emacs_env *@var{env}, emacs_value @var{value})
+This function returns a global reference for @var{value}.
+@end deftypefn
+
+@deftypefn Function void free_global_ref (emacs_env *@var{env}, emacs_value @var{global_value})
+This function frees the @var{global_value} previously created by
+@code{make_global_ref}.  The @var{global_value} is no longer valid
+after the call.  Your module code should pair each call to
+@code{make_global_ref} with the corresponding @code{free_global_ref}.
+@end deftypefn
+
+@cindex user pointer, using in module functions
+An alternative to keeping around C data structures that need to be
+passed to module functions later is to create @dfn{user pointer}
+objects.  A user pointer, or @code{user-ptr}, object is a Lisp object
+that encapsulates a C pointer and can have an associated finalizer
+function, which is called when the object is garbage-collected
+(@pxref{Garbage Collection}).  The module @acronym{API} provides
+functions to create and access @code{user-ptr} objects.  These
+functions raise the @code{wrong-type-argument} error condition if they
+are called on @code{emacs_value} that doesn't represent a
+@code{user-ptr} object.
+
+@deftypefn Function emacs_value make_user_ptr (emacs_env *@var{env}, emacs_finalizer @var{fin}, void *@var{ptr})
+This function creates and returns a @code{user-ptr} object which wraps
+the C pointer @var{ptr}.  The finalizer function @var{fin} can be a
+@code{NULL} pointer (meaning no finalizer), or it can be a function of
+the following signature:
+
+@example
+typedef void (*emacs_finalizer) (void *@var{ptr});
+@end example
+
+@noindent
+If @var{fin} is not a @code{NULL} pointer, it will be called with the
+@var{ptr} as the argument when the @code{user-ptr} object is
+garbage-collected.  Don't run any expensive code in a finalizer,
+because GC must finish quickly to keep Emacs responsive.
+@end deftypefn
+
+@deftypefn Function void *get_user_ptr (emacs_env *@var{env}, emacs_value val)
+This function extracts the C pointer from the Lisp object represented
+by @var{val}.
+@end deftypefn
+
+@deftypefn Function void set_user_ptr (emacs_env *@var{env}, emacs_value @var{value}, void *@var{ptr})
+This function sets the C pointer embedded in the @code{user-ptr}
+object represented by @var{value} to @var{ptr}.
+@end deftypefn
+
+@deftypefn Function emacs_finalizer get_user_finalizer (emacs_env *@var{env}, emacs_value val)
+This function returns the finalizer of the @code{user-ptr} object
+represented by @var{val}, or @code{NULL} if it doesn't have a finalizer.
+@end deftypefn
+
+@deftypefn Function void set_user_finalizer (emacs_env *@var{env}, emacs_value @var{val}, emacs_finalizer @var{fin})
+This function changes the finalizer of the @code{user-ptr} object
+represented by @var{val} to be @var{fin}.  If @var{fin} is a
+@code{NULL} pointer, the @code{user-ptr} object will have no finalizer.
+@end deftypefn
+
+@node Module Misc
+@subsection Miscellaneous Convenience Functions for Modules
+
+  This subsection describes a few convenience functions provided by
+the module @acronym{API}.  Like the functions described in previous
+subsections, all of them are actually function pointers, and need to
+be called via the @code{emacs_env} pointer.  Description of functions
+that were introduced after Emacs 25 calls out the first version where
+they became available.
+
+@deftypefn Function bool eq (emacs_env *@var{env}, emacs_value @var{val1}, emacs_value @var{val2})
+This function returns @code{true} if the Lisp objects represented by
+@var{val1} and @var{val2} are identical, @code{false} otherwise.  This
+is the same as the Lisp function @code{eq} (@pxref{Equality
+Predicates}), but avoids the need to intern the objects represented by
+the arguments.
+
+There are no @acronym{API} functions for other equality predicates, so
+you will need to use @code{intern} and @code{funcall}, described
+below, to perform more complex equality tests.
+@end deftypefn
+
+@deftypefn Function bool is_not_nil (emacs_env *@var{env}, emacs_value @var{val})
+This function tests whether the Lisp object represented by @var{val}
+is non-@code{nil}; it returns @code{true} or @code{false} accordingly.
+
+Note that you could implement an equivalent test by using
+@code{intern} to get an @code{emacs_value} representing @code{nil},
+then use @code{eq}, described above, to test for equality.  But using
+this function is more convenient.
+@end deftypefn
+
+@deftypefn Function emacs_value type_of (emacs_env *@var{env}, emacs_value @code{object})
+This function returns the type of @var{object} as a value that
+represents a symbol: @code{string} for a string, @code{integer} for an
+integer, @code{process} for a process, etc.  @xref{Type Predicates}.
+You can use @code{intern} and @code{eq} to compare against known type
+symbols, if your code needs to depend on the object type.
+@end deftypefn
+
+@anchor{intern}
+@deftypefn Function emacs_value intern (emacs_env *@var{env}, const char *name)
+This function returns an interned Emacs symbol whose name is
+@var{name}, which should be an @acronym{ASCII} null-terminated string.
+It creates a new symbol if one does not already exist.
+
+Together with @code{funcall}, described below, this function provides
+a means for invoking any Lisp-callable Emacs function, provided that
+its name is a pure @acronym{ASCII} string.  For example, here's how to
+intern a symbol whose name @code{name_str} is non-@acronym{ASCII}, by
+calling the more powerful Emacs @code{intern} function
+(@pxref{Creating Symbols}):
+
+@example
+emacs_value fintern = env->intern (env, "intern");
+emacs_value sym_name =
+  env->make_string (env, name_str, strlen (name_str));
+emacs_value intern_args[] = @{ sym_name, env->intern (env, "nil") @};
+emacs_value symbol = env->funcall (env, fintern, 2, intern_args);
+@end example
+
+@end deftypefn
+
+@deftypefn Function emacs_value funcall (emacs_env *@var{env}, emacs_value @var{func}, ptrdiff_t @var{nargs}, emacs_value *@var{args})
+This function calls the specified @var{func} passing it @var{nargs}
+arguments from the array pointed to by @var{args}.  The argument
+@var{func} can be a function symbol (e.g., returned by @code{intern}
+described above), a module function returned by @code{make_function}
+(@pxref{Module Functions}), a subroutine written in C, etc.  If
+@var{nargs} is zero, @var{args} can be a @code{NULL} pointer.
+
+The function returns the value that @var{func} returned.
+@end deftypefn
+
+If your module includes potentially long-running code, it is a good
+idea to check from time to time in that code whether the user wants to
+quit, e.g., by typing @kbd{C-g} (@pxref{Quitting}).  The following
+function, which is available since Emacs 26.1, is provided for that
+purpose.
+
+@anchor{should_quit}
+@deftypefn Function bool should_quit (emacs_env *@var{env})
+This function returns @code{true} if the user wants to quit.  In that
+case, we recommend that your module function aborts any on-going
+processing and returns as soon as possible.  In most cases, use
+@code{process_input} instead.
+@end deftypefn
+
+To process input events in addition to checking whether the user wants
+to quit, use the following function, which is available since Emacs
+27.1.
+
+@anchor{process_input}
+@deftypefn Function enum emacs_process_input_result process_input (emacs_env *@var{env})
+This function processes pending input events.  It returns
+@code{emacs_process_input_quit} if the user wants to quit or an error
+occurred while processing signals.  In that case, we recommend that
+your module function aborts any on-going processing and returns as
+soon as possible.  If the module code may continue running,
+@code{process_input} returns @code{emacs_process_input_continue}.  The
+return value is @code{emacs_process_input_continue} if and only if
+there is no pending nonlocal exit in @code{env}.  If the module
+continues after calling @code{process_input}, global state such as
+variable values and buffer content may have been modified in arbitrary
+ways.
+@end deftypefn
+
+@node Module Nonlocal
+@subsection Nonlocal Exits in Modules
+@cindex nonlocal exits, in modules
+
+  Emacs Lisp supports nonlocal exits, whereby program control is
+transfered from one point in a program to another remote point.
+@xref{Nonlocal Exits}.  Thus, Lisp functions called by your module
+might exit nonlocally by calling @code{signal} or @code{throw}, and
+your module functions must handle such nonlocal exits properly.  Such
+handling is needed because C programs will not automatically release
+resources and perform other cleanups in these cases; your module code
+must itself do it.  The module @acronym{API} provides facilities for
+that, described in this subsection.  They are generally available
+since Emacs 25; those of them that became available in later releases
+explicitly call out the first Emacs version where they became part of
+the @acronym{API}.
+
+When some Lisp code called by a module function signals an error or
+throws, the nonlocal exit is trapped, and the pending exit and its
+associated data are stored in the environment.  Whenever a nonlocal
+exit is pending in the environment, any module @acronym{API} function
+called with a pointer to that environment will return immediately
+without any processing (the functions @code{non_local_exit_check},
+@code{non_local_exit_get}, and @code{non_local_exit_clear} are
+exceptions from this rule).  If your module function then does nothing
+and returns to Emacs, a pending nonlocal exit will cause Emacs to act
+on it: signal an error or throw to the corresponding @code{catch}.
+
+So the simplest ``handling'' of nonlocal exits in module functions is
+to do nothing special and let the rest of your code to run as if
+nothing happened.  However, this can cause two classes of problems:
+
+@itemize @minus
+@item
+Your module function might use uninitialized or undefined values,
+since @acronym{API} functions return immediately without producing the
+expected results.
+
+@item
+Your module might leak resources, because it might not have the
+opportunity to release them.
+@end itemize
+
+Therefore, we recommend that your module functions check for nonlocal
+exit conditions and recover from them, using the functions described
+below.
+
+@deftypefn Function enum emacs_funcall_exit non_local_exit_check (emacs_env *@var{env})
+This function returns the kind of nonlocal exit condition stored in
+@var{env}.  The possible values are:
+
+@vindex emacs_funcall_exit@r{, enumeration}
+@vtable @code
+@item emacs_funcall_exit_return
+The last @acronym{API} function exited normally.
+@item emacs_funcall_exit_signal
+The last @acronym{API} function signaled an error.
+@item emacs_funcall_exit_throw
+The last @acronym{API} function exited via @code{throw}.
+@end vtable
+@end deftypefn
+
+@deftypefn Function enum emacs_funcall_exit non_local_exit_get (emacs_env *@var{env}, emacs_value *@var{symbol}, emacs_value *@var{data})
+This function returns the kind of nonlocal exit condition stored in
+@var{env}, like @code{non_local_exit_check} does, but it also returns
+the full information about the nonlocal exit, if any.  If the return
+value is @code{emacs_funcall_exit_signal}, the function stores the
+error symbol in @code{*@var{symbol}} and the error data in
+@code{*@var{data}} (@pxref{Signaling Errors}).  If the return value is
+@code{emacs_funcall_exit_throw}, the function stores the @code{catch}
+tag symbol in @code{*@var{symbol}} and the @code{throw} value in
+@code{*@var{data}}.  The function doesn't store anything in memory
+pointed by these arguments when the return value is
+@code{emacs_funcall_exit_return}.
+@end deftypefn
+
+You should check nonlocal exit conditions where it matters: before you
+allocated some resource or after you allocated a resource that might
+need freeing, or where a failure means further processing is
+impossible or infeasible.
+
+Once your module function detected that a nonlocal exit is pending, it
+can either return to Emacs (after performing the necessary local
+cleanup), or it can attempt to recover from the nonlocal exit.  The
+following @acronym{API} functions will help with these tasks.
+
+@deftypefn Function void non_local_exit_clear (emacs_env *@var{env})
+This function clears the pending nonlocal exit conditions and data
+from @var{env}.  After calling it, the module @acronym{API} functions
+will work normally.  Use this function if your module function can
+recover from nonlocal exits of the Lisp functions it calls and
+continue, and also before calling any of the following two functions
+(or any other @acronym{API} functions, if you want them to perform
+their intended processing when a nonlocal exit is pending).
+@end deftypefn
+
+@deftypefn Function void non_local_exit_throw (emacs_env *@var{env}, emacs_value @var{tag}, emacs_value @var{value})
+This function throws to the Lisp @code{catch} symbol represented by
+@var{tag}, passing it @var{value} as the value to return.  Your module
+function should in general return soon after calling this function.
+One use of this function is when you want to re-throw a non-local exit
+from one of the called @acronym{API} or Lisp functions.
+@end deftypefn
+
+@deftypefn Function void non_local_exit_signal (emacs_env *@var{env}, emacs_value @var{error}, emacs_value @var{data})
+This function signals the error represented by @var{error} with the
+specified error data @var{data}.  The module function should return
+soon after calling this function.  This function could be useful,
+e.g., for signaling errors from module functions to Emacs.
+@end deftypefn
+
+
 @node Object Internals
 @section Object Internals
 @cindex object internals
@@ -1002,7 +1774,7 @@ a special type to represent the pointers to all of them, which is known as
   In C, the tagged pointer is an object of type @code{Lisp_Object}.  Any
 initialized variable of such a type always holds the value of one of the
 following basic data types: integer, symbol, string, cons cell, float,
-vectorlike or miscellaneous object.  Each of these data types has the
+or vectorlike object.  Each of these data types has the
 corresponding tag value.  All tags are enumerated by @code{enum Lisp_Type}
 and placed into a 3-bit bitfield of the @code{Lisp_Object}.  The rest of the
 bits is the value itself.  Integers are immediate, i.e., directly
@@ -1034,22 +1806,17 @@ Symbol, the unique-named entity commonly used as an identifier.
 
 @item struct Lisp_Float
 Floating-point value.
-
-@item union Lisp_Misc
-Miscellaneous kinds of objects which don't fit into any of the above.
 @end table
 
   These types are the first-class citizens of an internal type system.
-Since the tag space is limited, all other types are the subtypes of either
-@code{Lisp_Vectorlike} or @code{Lisp_Misc}.  Vector subtypes are enumerated
+Since the tag space is limited, all other types are the subtypes of
+@code{Lisp_Vectorlike}.  Vector subtypes are enumerated
 by @code{enum pvec_type}, and nearly all complex objects like windows, buffers,
-frames, and processes fall into this category.  The rest of special types,
-including markers and overlays, are enumerated by @code{enum Lisp_Misc_Type}
-and form the set of subtypes of @code{Lisp_Misc}.
+frames, and processes fall into this category.
 
   Below there is a description of a few subtypes of @code{Lisp_Vectorlike}.
 Buffer object represents the text to display and edit.  Window is the part
-of display structure which shows the buffer or used as a container to
+of display structure which shows the buffer or is used as a container to
 recursively place other windows on the same frame.  (Do not confuse Emacs Lisp
 window object with the window as an entity managed by the user interface
 system like X; in Emacs terminology, the latter is called frame.)  Finally,
@@ -1076,7 +1843,8 @@ Here are some of the fields in @code{struct buffer_text}:
 
 @table @code
 @item beg
-The address of the buffer contents.
+The address of the buffer contents.  The buffer contents is a linear C
+array of @code{char}, with the gap somewhere in its midst.
 
 @item gpt
 @itemx gpt_byte
@@ -1100,8 +1868,8 @@ buffer-modification event, and is never otherwise changed;
 @code{save_modiff} contains the value of @code{modiff} the last time
 the buffer was visited or saved; @code{chars_modiff} counts only
 modifications to the characters in the buffer, ignoring all other
-kinds of changes; and @code{overlay_modiff} counts only modifications
-to the overlays.
+kinds of changes (such as text properties); and @code{overlay_modiff}
+counts only modifications to the buffer's overlays.
 
 @item beg_unchanged
 @itemx end_unchanged
@@ -1209,13 +1977,22 @@ position.
 
 @item name
 A Lisp string that names the buffer.  It is guaranteed to be unique.
-@xref{Buffer Names}.
+@xref{Buffer Names}.  This and the following fields have their names
+in the C struct definition end in a @code{_} to indicate that they
+should not be accessed directly, but via the @code{BVAR} macro, like
+this:
+
+@example
+  Lisp_Object buf_name = BVAR (buffer, name);
+@end example
 
 @item save_length
 The length of the file this buffer is visiting, when last read or
-saved.  This and other fields concerned with saving are not kept in
-the @code{buffer_text} structure because indirect buffers are never
-saved.
+saved.  It can have 2 special values: @minus{}1 means auto-saving was
+turned off in this buffer, and @minus{}2 means don't turn off
+auto-saving if buffer text shrinks a lot.  This and other fields
+concerned with saving are not kept in the @code{buffer_text} structure
+because indirect buffers are never saved.
 
 @item directory
 The directory for expanding relative file names.  This is the value of
@@ -1339,75 +2116,104 @@ if that window no longer displays this buffer.
 
 @table @code
 @item frame
-The frame that this window is on.
+The frame that this window is on, as a Lisp object.
 
-@item mini_p
-Non-@code{nil} if this window is a minibuffer window.
+@item mini
+Non-zero if this window is a minibuffer window, a window showing the
+minibuffer or the echo area.
+
+@item pseudo_window_p
+@cindex pseudo window
+Non-zero if this window is a @dfn{pseudo window}.  A pseudo window is
+either a window used to display the menu bar or the tool bar (when
+Emacs uses toolkits that don't display their own menu bar and tool
+bar) or a window showing a tooltip on a tooltip frame.  Pseudo windows
+are in general not accessible from Lisp code.
 
 @item parent
-Internally, Emacs arranges windows in a tree; each group of siblings has
-a parent window whose area includes all the siblings.  This field points
-to a window's parent.
+Internally, Emacs arranges windows in a tree; each group of siblings
+has a parent window whose area includes all the siblings.  This field
+points to the window's parent in that tree, as a Lisp object.  For the
+root window of the tree and a minibuffer window this is always
+@code{nil}.
 
 Parent windows do not display buffers, and play little role in display
-except to shape their child windows.  Emacs Lisp programs usually have
-no access to the parent windows; they operate on the windows at the
+except to shape their child windows.  Emacs Lisp programs cannot
+directly manipulate parent windows; they operate on the windows at the
 leaves of the tree, which actually display buffers.
 
-@c FIXME: These two slots and the 'buffer' slot below were replaced
-@c with a single slot 'contents' on 2013-03-28.  --xfq
-@item hchild
-@itemx vchild
-These fields contain the window's leftmost child and its topmost child
-respectively.  @code{hchild} is used if the window is subdivided
-horizontally by child windows, and @code{vchild} if it is subdivided
-vertically.  In a live window, only one of @code{hchild}, @code{vchild},
-and @code{buffer} (q.v.@:) is non-@code{nil}.
+@item contents
+For a leaf window and windows showing a tooltip, this is the buffer,
+as a Lisp object, that the window is displaying.  For an internal
+(``parent'') window, this is its first child window.  For a pseudo
+window showing a menu or tool bar this is @code{nil}.  It is also
+@code{nil} for a window that has been deleted.
 
 @item next
 @itemx prev
-The next sibling and previous sibling of this window.  @code{next} is
-@code{nil} if the window is the right-most or bottom-most in its group;
-@code{prev} is @code{nil} if it is the left-most or top-most in its
-group.
+The next and previous sibling of this window as Lisp objects.
+@code{next} is @code{nil} if the window is the right-most or
+bottom-most in its group; @code{prev} is @code{nil} if it is the
+left-most or top-most in its group.  Whether the sibling is left/right
+or up/down is determined by the @code{horizontal} field of the
+sibling's parent: if it's non-zero, the siblings are arranged
+horizontally.
+
+As a special case, @code{next} of a frame's root window points to the
+frame's minibuffer window, provided this is not a minibuffer-only or
+minibuffer-less frame.  On such frames @code{prev} of the minibuffer
+window points to that frame's root window.  In any other case, the
+root window's @code{next} and the minibuffer window's (if present)
+@code{prev} fields are @code{nil}.
 
 @item left_col
 The left-hand edge of the window, measured in columns, relative to the
-leftmost column in the frame (column 0).
+leftmost column (column 0) of the window's native frame.
 
 @item top_line
 The top edge of the window, measured in lines, relative to the topmost
-line in the frame (line 0).
+line (line 0) of the window's native frame.
+
+@item pixel_left
+@itemx pixel_top
+The left-hand and top edges of this window, measured in pixels,
+relative to the top-left corner (0, 0) of the window's native frame.
 
 @item total_cols
 @itemx total_lines
-The width and height of the window, measured in columns and lines
-respectively.  The width includes the scroll bar and fringes, and/or
-the separator line on the right of the window (if any).
+The total width and height of the window, measured in columns and
+lines respectively.  The values include scroll bars and fringes,
+dividers and/or the separator line on the right of the window (if
+any).
 
-@item buffer
-The buffer that the window is displaying.
+@item pixel_width;
+@itemx pixel_height;
+The total width and height of the window measured in pixels.
 
 @item start
 A marker pointing to the position in the buffer that is the first
-character displayed in the window.
+character (in the logical order, @pxref{Bidirectional Display})
+displayed in the window.
 
 @item pointm
 @cindex window point internals
 This is the value of point in the current buffer when this window is
 selected; when it is not selected, it retains its previous value.
 
+@item old_pointm
+The value of @code{pointm} at the last redisplay time.
+
 @item force_start
 If this flag is non-@code{nil}, it says that the window has been
-scrolled explicitly by the Lisp program.  This affects what the next
-redisplay does if point is off the screen: instead of scrolling the
-window to show the text around point, it moves point to a location that
-is on the screen.
+scrolled explicitly by the Lisp program, and the value of the the
+window's @code{start} was set for redisplay to honor.  This affects
+what the next redisplay does if point is off the screen: instead of
+scrolling the window to show the text around point, it moves point to
+a location that is on the screen.
 
-@item frozen_window_start_p
-This field is set temporarily to 1 to indicate to redisplay that
-@code{start} of this window should not be changed, even if point
-gets invisible.
+@item optional_new_start
+This is similar to @code{force_start}, but the next redisplay will
+only obey it if point stays visible.
 
 @item start_at_line_beg
 Non-@code{nil} means current value of @code{start} was the beginning of a line
@@ -1433,30 +2239,36 @@ The buffer's value of point, as of the last time a redisplay completed
 in this window.
 
 @item last_had_star
-A non-@code{nil} value means the window's buffer was modified when the
+A non-zero value means the window's buffer was modified when the
 window was last updated.
 
-@item vertical_scroll_bar
-This window's vertical scroll bar.
+@item vertical_scroll_bar_type
+@itemx horizontal_scroll_bar_type
+The types of this window's vertical and horizontal scroll bars.
+
+@item scroll_bar_width
+@itemx scroll_bar_height
+The width of this window's vertical scroll bar and the height of this
+window's horizontal scroll bar, in pixels.
 
 @item left_margin_cols
 @itemx right_margin_cols
 The widths of the left and right margins in this window.  A value of
-@code{nil} means no margin.
+zero means no margin.
 
 @item left_fringe_width
 @itemx right_fringe_width
-The widths of the left and right fringes in this window.  A value of
-@code{nil} or @code{t} means use the values of the frame.
+The pixel widths of the left and right fringes in this window.  A
+value of @minus{}1 means use the values of the frame.
 
 @item fringes_outside_margins
-A non-@code{nil} value means the fringes outside the display margins;
+A non-zero value means the fringes outside the display margins;
 othersize they are between the margin and the text.
 
 @item window_end_pos
 This is computed as @code{z} minus the buffer position of the last glyph
 in the current matrix of the window.  The value is only valid if
-@code{window_end_valid} is not @code{nil}.
+@code{window_end_valid} is non-zero.
 
 @item window_end_bytepos
 The byte position corresponding to @code{window_end_pos}.
@@ -1466,16 +2278,17 @@ The window-relative vertical position of the line containing
 @code{window_end_pos}.
 
 @item window_end_valid
-This field is set to a non-@code{nil} value if @code{window_end_pos} is truly
-valid.  This is @code{nil} if nontrivial redisplay is pre-empted, since in that
-case the display that @code{window_end_pos} was computed for did not get
-onto the screen.
+This field is set to a non-zero value if @code{window_end_pos} and
+@code{window_end_vpos} are truly valid.  This is zero if nontrivial
+redisplay is pre-empted, since in that case the display that
+@code{window_end_pos} was computed for did not get onto the screen.
 
 @item cursor
 A structure describing where the cursor is in this window.
 
-@item last_cursor
-The value of @code{cursor} as of the last redisplay that finished.
+@item last_cursor_vpos
+The window-relative vertical position of the line showing the cursor
+as of the last redisplay that finished.
 
 @item phys_cursor
 A structure describing where the cursor of this window physically is.
@@ -1503,8 +2316,16 @@ the last redisplay.
 This is set to 1 during redisplay when this window must be updated.
 
 @item hscroll
-This is the number of columns that the display in the window is scrolled
-horizontally to the left.  Normally, this is 0.
+This is the number of columns that the display in the window is
+scrolled horizontally to the left.  Normally, this is 0.  When only
+the current line is hscrolled, this describes how much the current
+line is scrolled.
+
+@item min_hscroll
+Minimum value of @code{hscroll}, set by the user via
+@code{set-window-hscroll} (@pxref{Horizontal Scrolling}).  When only
+the current line is hscrolled, this describes the horizontal scrolling
+of lines other than the current one.
 
 @item vscroll
 Vertical scroll amount, in pixels.  Normally, this is 0.
@@ -1512,24 +2333,37 @@ Vertical scroll amount, in pixels.  Normally, this is 0.
 @item dedicated
 Non-@code{nil} if this window is dedicated to its buffer.
 
+@item combination_limit
+This window's combination limit, meaningful only for a parent window.
+If this is @code{t}, then it is not allowed to delete this window and
+recombine its child windows with other siblings of this window.
+
+@item window_parameters
+The alist of this window's parameters.
+
 @item display_table
 The window's display table, or @code{nil} if none is specified for it.
 
 @item update_mode_line
-Non-@code{nil} means this window's mode line needs to be updated.
+Non-zero means this window's mode line needs to be updated.
+
+@item mode_line_height
+@itemx header_line_height
+The height in pixels of the mode line and the header line, or
+@minus{}1 if not known.
 
 @item base_line_number
-The line number of a certain position in the buffer, or @code{nil}.
+The line number of a certain position in the buffer, or zero.
 This is used for displaying the line number of point in the mode line.
 
 @item base_line_pos
 The position in the buffer for which the line number is known, or
-@code{nil} meaning none is known.  If it is a buffer, don't display
+zero meaning none is known.  If it is @minus{}1, don't display
 the line number as long as the window shows that buffer.
 
 @item column_number_displayed
-The column number currently displayed in this window's mode line, or @code{nil}
-if column numbers are not being displayed.
+The column number currently displayed in this window's mode line, or
+@minus{}1 if column numbers are not being displayed.
 
 @item current_matrix
 @itemx desired_matrix
@@ -1546,7 +2380,7 @@ Glyph matrices describing the current and desired display of this window.
 
 @table @code
 @item name
-A string, the name of the process.
+A Lisp string, the name of the process.
 
 @item command
 A list containing the command arguments that were used to start this
@@ -1554,10 +2388,10 @@ process.  For a network or serial process, it is @code{nil} if the
 process is running or @code{t} if the process is stopped.
 
 @item filter
-A function used to accept output from the process.
+A Lisp function used to accept output from the process.
 
 @item sentinel
-A function called whenever the state of the process changes.
+A Lisp function called whenever the state of the process changes.
 
 @item buffer
 The associated buffer of the process.
@@ -1584,7 +2418,8 @@ does not ask for confirmation about killing the process.
 The raw process status, as returned by the @code{wait} system call.
 
 @item status
-The process status, as @code{process-status} should return it.
+The process status, as @code{process-status} should return it.  This
+is a Lisp symbol, a cons cell, or a list.
 
 @item tick
 @itemx update_tick
@@ -1593,8 +2428,8 @@ needs to be reported, either by running the sentinel or by inserting a
 message in the process buffer.
 
 @item pty_flag
-Non-@code{nil} if communication with the subprocess uses a pty;
-@code{nil} if it uses a pipe.
+Non-zero if communication with the subprocess uses a pty; zero if it
+uses a pipe.
 
 @item infd
 The file descriptor for input from the process.

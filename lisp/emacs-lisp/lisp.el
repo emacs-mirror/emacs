@@ -1,6 +1,6 @@
 ;;; lisp.el --- Lisp editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -723,11 +723,13 @@ This command assumes point is not in a string or comment."
   (interactive "P")
   (insert-pair arg ?\( ?\)))
 
-(defun delete-pair ()
-  "Delete a pair of characters enclosing the sexp that follows point."
-  (interactive)
-  (save-excursion (forward-sexp 1) (delete-char -1))
-  (delete-char 1))
+(defun delete-pair (&optional arg)
+  "Delete a pair of characters enclosing ARG sexps following point.
+A negative ARG deletes a pair of characters around preceding ARG sexps."
+  (interactive "p")
+  (unless arg (setq arg 1))
+  (save-excursion (forward-sexp arg) (delete-char (if (> arg 0) -1 1)))
+  (delete-char (if (> arg 0) 1 -1)))
 
 (defun raise-sexp (&optional arg)
   "Raise ARG sexps higher up the tree."

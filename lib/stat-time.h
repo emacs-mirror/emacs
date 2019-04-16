@@ -1,6 +1,6 @@
 /* stat-related time functions.
 
-   Copyright (C) 2005, 2007, 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2009-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -168,10 +168,10 @@ get_stat_birthtime (struct stat const *st _GL_UNUSED)
 #elif defined HAVE_STRUCT_STAT_ST_BIRTHTIMENSEC
   t.tv_sec = st->st_birthtime;
   t.tv_nsec = st->st_birthtimensec;
-#elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#elif defined _WIN32 && ! defined __CYGWIN__
   /* Native Windows platforms (but not Cygwin) put the "file creation
      time" in st_ctime (!).  See
-     <https://msdn.microsoft.com/en-us/library/14h5k7ff(VS.80).aspx>.  */
+     <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/stat-functions>.  */
 # if _GL_WINDOWS_STAT_TIMESPEC
   t = st->st_ctim;
 # else
@@ -213,7 +213,7 @@ stat_time_normalize (int result, struct stat *st _GL_UNUSED)
 #if defined __sun && defined STAT_TIMESPEC
   if (result == 0)
     {
-      long int timespec_resolution = 1000000000;
+      long int timespec_hz = 1000000000;
       short int const ts_off[] = { offsetof (struct stat, st_atim),
                                    offsetof (struct stat, st_mtim),
                                    offsetof (struct stat, st_ctim) };
@@ -221,11 +221,11 @@ stat_time_normalize (int result, struct stat *st _GL_UNUSED)
       for (i = 0; i < sizeof ts_off / sizeof *ts_off; i++)
         {
           struct timespec *ts = (struct timespec *) ((char *) st + ts_off[i]);
-          long int q = ts->tv_nsec / timespec_resolution;
-          long int r = ts->tv_nsec % timespec_resolution;
+          long int q = ts->tv_nsec / timespec_hz;
+          long int r = ts->tv_nsec % timespec_hz;
           if (r < 0)
             {
-              r += timespec_resolution;
+              r += timespec_hz;
               q--;
             }
           ts->tv_nsec = r;

@@ -1,6 +1,6 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-backend.el
@@ -170,7 +170,7 @@ These were mostly extracted from the Radio Community Server at
 http://subhonker6.userland.com/rcsPublic/rssHotlist.
 
 You may add other entries in `newsticker-url-list'."
-  :type `(set ,@(mapcar `newsticker--splicer
+  :type `(set ,@(mapcar #'newsticker--splicer
                         newsticker--raw-url-list-defaults))
   :set 'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
@@ -1691,8 +1691,8 @@ Examples:
     nil))
 
 (defun newsticker--decode-rfc822-date (rfc822-string)
-  "Return RFC822-STRING in format like `decode-time'.
-Converts from RFC822 to Emacs representation.
+  "Convert RFC822-STRING to a Lisp timestamp.
+RFC822-STRING should use RFC 822 (or later) format.
 Examples:
 Sat, 07 September 2002 00:00:01 +0100
 Sat, 07 September 2002 00:00:01 MET
@@ -1800,8 +1800,9 @@ download it from URL first."
   (let ((image-name (concat directory feed-name)))
     (if (and (file-exists-p image-name)
              (time-less-p nil
-                          (time-add (nth 5 (file-attributes image-name))
-                                    (seconds-to-time 86400))))
+                          (time-add (file-attribute-modification-time
+				     (file-attributes image-name))
+				    86400)))
         (newsticker--debug-msg "%s: Getting image for %s skipped"
                                (format-time-string "%A, %H:%M")
                                feed-name)
@@ -1994,8 +1995,7 @@ older than TIME."
          (mapc
           (lambda (item)
             (when (eq (newsticker--age item) old-age)
-              (let ((exp-time (time-add (newsticker--time item)
-                                        (seconds-to-time time))))
+	      (let ((exp-time (time-add (newsticker--time item) time)))
                 (when (time-less-p exp-time nil)
                   (newsticker--debug-msg
                    "Item `%s' from %s has expired on %s"
@@ -2170,22 +2170,8 @@ well."
                  (throw 'result nil))
                 ((eq age2 'obsolete)
                  (throw 'result t)))))
-    (let* ((time1 (newsticker--time item1))
-           (time2 (newsticker--time item2)))
-      (cond ((< (nth 0 time1) (nth 0 time2))
-             nil)
-            ((> (nth 0 time1) (nth 0 time2))
-             t)
-            ((< (nth 1 time1) (nth 1 time2))
-             nil)
-            ((> (nth 1 time1) (nth 1 time2))
-             t)
-            ((< (or (nth 2 time1) 0) (or (nth 2 time2) 0))
-             nil)
-            ((> (or (nth 2 time1) 0) (or (nth 2 time2) 0))
-             t)
-            (t
-             nil)))))
+    (time-less-p (newsticker--time item2)
+		 (newsticker--time item1))))
 
 (defun newsticker--cache-item-compare-by-title (item1 item2)
   "Compare ITEM1 and ITEM2 by comparing their titles."

@@ -1,6 +1,6 @@
 ;;; sieve-manage.el --- Implementation of the managesieve protocol in elisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Albert Krewinkel <tarleb@moltkeplatz.de>
@@ -77,7 +77,6 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'sasl)
-(require 'starttls)
 (autoload 'sasl-find-mechanism "sasl")
 (autoload 'auth-source-search "auth-source")
 

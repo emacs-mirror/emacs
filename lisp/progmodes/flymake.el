@@ -1,10 +1,11 @@
 ;;; flymake.el --- A universal on-the-fly syntax checker  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author:  Pavel Kobyakov <pk_at_work@yahoo.com>
-;; Maintainer: Leo Liu <sdl.web@gmail.com>
-;; Version: 0.3
+;; Maintainer: João Távora <joaotavora@gmail.com>
+;; Version: 1.0.5
+;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: c languages tools
 
 ;; This file is part of GNU Emacs.
@@ -14,10 +15,10 @@
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
@@ -34,13 +35,77 @@
 ;; results produced by these backends, as well as entry points for
 ;; backends to hook on to.
 ;;
-;; The main entry points are `flymake-mode' and `flymake-start'
+;; The main interactive entry point is the `flymake-mode' minor mode,
+;; which periodically and automatically initiates checks as the user
+;; is editing the buffer.  The variables `flymake-no-changes-timeout',
+;; `flymake-start-syntax-check-on-newline' and
+;; `flymake-start-on-flymake-mode' give finer control over the events
+;; triggering a check, as does the interactive command
+;; `flymake-start', which immediately starts a check.
 ;;
-;; The docstrings of these variables are relevant to understanding how
-;; Flymake works for both the user and the backend programmer:
+;; Shortly after each check, a summary of collected diagnostics should
+;; appear in the mode-line.  If it doesn't, there might not be a
+;; suitable Flymake backend for the current buffer's major mode, in
+;; which case Flymake will indicate this in the mode-line.  The
+;; indicator will be `!' (exclamation mark), if all the configured
+;; backends errored (or decided to disable themselves) and `?'
+;; (question mark) if no backends were even configured.
 ;;
-;; * `flymake-diagnostic-functions'
-;; * `flymake-diagnostic-types-alist'
+;; For programmers interested in writing a new Flymake backend, the
+;; docstring of `flymake-diagnostic-functions', the Flymake manual,
+;; and the code of existing backends are probably a good starting
+;; point.
+;;
+;; The user wishing to customize the appearance of error types should
+;; set properties on the symbols associated with each diagnostic type.
+;; The standard diagnostic symbols are `:error', `:warning' and
+;; `:note' (though a specific backend may define and use more).  The
+;; following properties can be set:
+;;
+;; * `flymake-bitmap', an image displayed in the fringe according to
+;; `flymake-fringe-indicator-position'.  The value actually follows
+;; the syntax of `flymake-error-bitmap' (which see).  It is overridden
+;; by any `before-string' overlay property.
+;;
+;; * `flymake-severity', a non-negative integer specifying the
+;; diagnostic's severity.  The higher, the more serious.  If the
+;; overlay property `priority' is not specified, `severity' is used to
+;; set it and help sort overlapping overlays.
+;;
+;; * `flymake-overlay-control', an alist ((OVPROP . VALUE) ...) of
+;; further properties used to affect the appearance of Flymake
+;; annotations.  With the exception of `category' and `evaporate',
+;; these properties are applied directly to the created overlay.  See
+;; Info Node `(elisp)Overlay Properties'.
+;;
+;; * `flymake-category', a symbol whose property list is considered a
+;; default for missing values of any other properties.  This is useful
+;; to backend authors when creating new diagnostic types that differ
+;; from an existing type by only a few properties.  The category
+;; symbols `flymake-error', `flymake-warning' and `flymake-note' make
+;; good candidates for values of this property.
+;;
+;; For instance, to omit the fringe bitmap displayed for the standard
+;; `:note' type, set its `flymake-bitmap' property to nil:
+;;
+;;   (put :note 'flymake-bitmap nil)
+;;
+;; To change the face for `:note' type, add a `face' entry to its
+;; `flymake-overlay-control' property.
+;;
+;;   (push '(face . highlight) (get :note 'flymake-overlay-control))
+;;
+;; If you push another alist entry in front, it overrides the previous
+;; one.  So this effectively removes the face from `:note'
+;; diagnostics.
+;;
+;;   (push '(face . nil) (get :note 'flymake-overlay-control))
+;;
+;; To erase customizations and go back to the original look for
+;; `:note' types:
+;;
+;;   (cl-remf (symbol-plist :note) 'flymake-overlay-control)
+;;   (cl-remf (symbol-plist :note) 'flymake-bitmap)
 ;;
 ;;; Code:
 
@@ -132,9 +197,15 @@ If nil, never start checking buffer automatically like this."
   'flymake-start-on-flymake-mode "26.1")
 
 (defcustom flymake-start-on-flymake-mode t
-  "Start syntax check when `flymake-mode' is enabled.
+  "If non-nil, start syntax check when `flymake-mode' is enabled.
 Specifically, start it when the buffer is actually displayed."
   :version "26.1"
+  :type 'boolean)
+
+(defcustom flymake-start-on-save-buffer t
+  "If non-nil start syntax check when a buffer is saved.
+Specifically, start it when the saved buffer is actually displayed."
+  :version "27.1"
   :type 'boolean)
 
 (defcustom flymake-log-level -1
@@ -148,6 +219,15 @@ Specifically, start it when the buffer is actually displayed."
   "If non-nil, moving to errors wraps around buffer boundaries."
   :version "26.1"
   :type 'boolean)
+
+(defcustom flymake-suppress-zero-counters :warning
+  "Control appearance of zero-valued diagnostic counters in mode line.
+
+If set to t, supress all zero counters.  If set to a severity
+symbol like `:warning' (the default) suppress zero counters less
+severe than that severity, according to `warning-numeric-level'.
+If set to nil, don't supress any zero counters."
+  :type 'symbol)
 
 (when (fboundp 'define-fringe-bitmap)
   (define-fringe-bitmap 'flymake-double-exclamation-mark
@@ -222,18 +302,28 @@ generated it."
 
 (cl-defstruct (flymake--diag
                (:constructor flymake--diag-make))
-  buffer beg end type text backend)
+  buffer beg end type text backend data overlay-properties overlay)
 
 ;;;###autoload
 (defun flymake-make-diagnostic (buffer
                                 beg
                                 end
                                 type
-                                text)
+                                text
+                                &optional data
+                                overlay-properties)
   "Make a Flymake diagnostic for BUFFER's region from BEG to END.
-TYPE is a key to `flymake-diagnostic-types-alist' and TEXT is a
-description of the problem detected in this region."
-  (flymake--diag-make :buffer buffer :beg beg :end end :type type :text text))
+TYPE is a key to symbol and TEXT is a description of the problem
+detected in this region.  DATA is any object that the caller
+wishes to attach to the created diagnostic for later retrieval.
+
+OVERLAY-PROPERTIES is an an alist of properties attached to the
+created diagnostic, overriding the default properties and any
+properties of `flymake-overlay-control' of the diagnostic's
+type."
+  (flymake--diag-make :buffer buffer :beg beg :end end
+                      :type type :text text :data data
+                      :overlay-properties overlay-properties))
 
 ;;;###autoload
 (defun flymake-diagnostics (&optional beg end)
@@ -257,6 +347,7 @@ diagnostics at BEG."
 (flymake--diag-accessor flymake-diagnostic-beg flymake--diag-beg beg)
 (flymake--diag-accessor flymake-diagnostic-end flymake--diag-end end)
 (flymake--diag-accessor flymake-diagnostic-backend flymake--diag-backend backend)
+(flymake--diag-accessor flymake-diagnostic-data flymake--diag-data backend)
 
 (cl-defun flymake--overlays (&key beg end filter compare key)
   "Get flymake-related overlays.
@@ -279,10 +370,6 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
           (cl-sort ovs compare :key (or key
                                         #'identity))
         ovs))))
-
-(defun flymake-delete-own-overlays (&optional filter)
-  "Delete all Flymake overlays in BUFFER."
-  (mapc #'delete-overlay (flymake--overlays :filter filter)))
 
 (defface flymake-error
   '((((supports :underline (:style wave)))
@@ -333,7 +420,7 @@ region is invalid."
                        (beg)
                        (progn
                          (end-of-line)
-                         (skip-chars-backward " \t\f\t\n" beg)
+                         (skip-chars-backward " \t\f\n" beg)
                          (if (eq (point) beg)
                              (line-beginning-position 2)
                            (point)))))
@@ -370,9 +457,25 @@ number of arguments:
   detailed below;
 
 * the remaining arguments are keyword-value pairs in the
-  form (:KEY VALUE :KEY2 VALUE2...).  Currently, Flymake provides
-  no such arguments, but backend functions must be prepared to
-  accept and possibly ignore any number of them.
+  form (:KEY VALUE :KEY2 VALUE2...).
+
+Currently, Flymake may provide these keyword-value pairs:
+
+* `:recent-changes', a list of recent changes since the last time
+  the backend function was called for the buffer.  An empty list
+  indicates that no changes have been reocrded.  If it is the
+  first time that this backend function is called for this
+  activation of `flymake-mode', then this argument isn't provided
+  at all (i.e. it's not merely nil).
+
+  Each element is in the form (BEG END TEXT) where BEG and END
+  are buffer positions, and TEXT is a string containing the text
+  contained between those positions (if any) after the change was
+  performed.
+
+* `:changes-start' and `:changes-end', the minimum and maximum
+  buffer positions touched by the recent changes.  These are only
+  provided if `:recent-changes' is also provided.
 
 Whenever Flymake or the user decides to re-check the buffer,
 backend functions are called as detailed above and are expected
@@ -384,8 +487,9 @@ asynchronous processes or other asynchronous mechanisms.
 In any case, backend functions are expected to return quickly or
 signal an error, in which case the backend is disabled.  Flymake
 will not try disabled backends again for any future checks of
-this buffer.  Certain commands, like turning `flymake-mode' off
-and on again, reset the list of disabled backends.
+this buffer.  To reset the list of disabled backends, turn
+`flymake-mode' off and on again, or interactively call
+`flymake-start' with a prefix argument.
 
 If the function returns, Flymake considers the backend to be
 \"running\". If it has not done so already, the backend is
@@ -396,8 +500,9 @@ pairs in the form (:REPORT-KEY VALUE :REPORT-KEY2 VALUE2...).
 Currently accepted values for REPORT-ACTION are:
 
 * A (possibly empty) list of diagnostic objects created with
-  `flymake-make-diagnostic', causing Flymake to annotate the
-  buffer with this information.
+  `flymake-make-diagnostic', causing Flymake to delete all
+  previous diagnostic annotations in the buffer and create new
+  ones from this list.
 
   A backend may call REPORT-FN repeatedly in this manner, but
   only until Flymake considers that the most recently requested
@@ -417,78 +522,71 @@ Currently accepted REPORT-KEY arguments are:
   the situation encountered, if any.
 
 * `:force': value should be a boolean suggesting that Flymake
-  consider the report even if it was somehow unexpected.")
+  consider the report even if it was somehow unexpected.
+
+* `:region': a cons (BEG . END) of buffer positions indicating
+  that the report applies to that region only.  Specifically,
+  this means that Flymake will only delete diagnostic annotations
+  of past reports if they intersect the region by at least one
+  character.")
 
 (put 'flymake-diagnostic-functions 'safe-local-variable #'null)
 
-(defvar flymake-diagnostic-types-alist
-  `((:error
-     . ((flymake-category . flymake-error)))
-    (:warning
-     . ((flymake-category . flymake-warning)))
-    (:note
-     . ((flymake-category . flymake-note))))
-  "Alist ((KEY . PROPS)*) of properties of Flymake diagnostic types.
-KEY designates a kind of diagnostic can be anything passed as
-`:type' to `flymake-make-diagnostic'.
+(put :error 'flymake-category 'flymake-error)
+(put :warning 'flymake-category 'flymake-warning)
+(put :note 'flymake-category 'flymake-note)
 
-PROPS is an alist of properties that are applied, in order, to
-the diagnostics of the type designated by KEY.  The recognized
-properties are:
-
-* Every property pertaining to overlays, except `category' and
-  `evaporate' (see Info Node `(elisp)Overlay Properties'), used
-  to affect the appearance of Flymake annotations.
-
-* `bitmap', an image displayed in the fringe according to
-  `flymake-fringe-indicator-position'.  The value actually
-  follows the syntax of `flymake-error-bitmap' (which see).  It
-  is overridden by any `before-string' overlay property.
-
-* `severity', a non-negative integer specifying the diagnostic's
-  severity.  The higher, the more serious.  If the overlay
-  property `priority' is not specified, `severity' is used to set
-  it and help sort overlapping overlays.
-
-* `flymake-category', a symbol whose property list is considered
-  a default for missing values of any other properties.  This is
-  useful to backend authors when creating new diagnostic types
-  that differ from an existing type by only a few properties.")
+(defvar flymake-diagnostic-types-alist '() "")
+(make-obsolete-variable
+ 'flymake-diagnostic-types-alist
+ "Set properties on the diagnostic symbols instead. See Info
+Node `(Flymake)Flymake error types'"
+ "27.1")
 
 (put 'flymake-error 'face 'flymake-error)
-(put 'flymake-error 'bitmap 'flymake-error-bitmap)
+(put 'flymake-error 'flymake-bitmap 'flymake-error-bitmap)
 (put 'flymake-error 'severity (warning-numeric-level :error))
 (put 'flymake-error 'mode-line-face 'compilation-error)
 
 (put 'flymake-warning 'face 'flymake-warning)
-(put 'flymake-warning 'bitmap 'flymake-warning-bitmap)
+(put 'flymake-warning 'flymake-bitmap 'flymake-warning-bitmap)
 (put 'flymake-warning 'severity (warning-numeric-level :warning))
 (put 'flymake-warning 'mode-line-face 'compilation-warning)
 
 (put 'flymake-note 'face 'flymake-note)
-(put 'flymake-note 'bitmap 'flymake-note-bitmap)
+(put 'flymake-note 'flymake-bitmap 'flymake-note-bitmap)
 (put 'flymake-note 'severity (warning-numeric-level :debug))
 (put 'flymake-note 'mode-line-face 'compilation-info)
 
 (defun flymake--lookup-type-property (type prop &optional default)
-  "Look up PROP for TYPE in `flymake-diagnostic-types-alist'.
-If TYPE doesn't declare PROP in either
-`flymake-diagnostic-types-alist' or in the symbol of its
+  "Look up PROP for diagnostic TYPE.
+If TYPE doesn't declare PROP in its plist or in the symbol of its
 associated `flymake-category' return DEFAULT."
-  (let ((alist-probe (assoc type flymake-diagnostic-types-alist)))
-    (cond (alist-probe
-           (let* ((alist (cdr alist-probe))
-                  (prop-probe (assoc prop alist)))
-             (if prop-probe
-                 (cdr prop-probe)
-               (if-let* ((cat (assoc-default 'flymake-category alist))
-                         (plist (and (symbolp cat)
-                                     (symbol-plist cat)))
-                         (cat-probe (plist-member plist prop)))
-                   (cadr cat-probe)
-                 default))))
-          (t
-           default))))
+  ;; This function also consults `flymake-diagnostic-types-alist' for
+  ;; backward compatibility.
+  ;;
+  (if (plist-member (symbol-plist type) prop)
+      ;; allow nil values to survive
+      (get type prop)
+    (let (alist)
+      (or
+       (alist-get
+        prop (setq
+              alist
+              (alist-get type flymake-diagnostic-types-alist)))
+       (when-let* ((cat (or
+                         (get type 'flymake-category)
+                         (alist-get 'flymake-category alist)))
+                   (plist (and (symbolp cat)
+                               (symbol-plist cat)))
+                   (cat-probe (plist-member plist prop)))
+         (cadr cat-probe))
+       default))))
+
+(defun flymake--severity (type)
+  "Get the severity for diagnostic TYPE."
+  (flymake--lookup-type-property type 'severity
+                                 (warning-numeric-level :error)))
 
 (defun flymake--fringe-overlay-spec (bitmap &optional recursed)
   (if (and (symbolp bitmap)
@@ -505,34 +603,40 @@ associated `flymake-category' return DEFAULT."
                              (list bitmap)))))))
 
 (defun flymake--highlight-line (diagnostic)
-  "Highlight buffer with info in DIAGNOSTIC."
-  (when-let* ((ov (make-overlay
+  "Highlight buffer with info in DIGNOSTIC."
+  (when-let* ((type (flymake--diag-type diagnostic))
+              (ov (make-overlay
                    (flymake--diag-beg diagnostic)
                    (flymake--diag-end diagnostic))))
-    ;; First set `category' in the overlay, then copy over every other
-    ;; property.
+    ;; First set `category' in the overlay
     ;;
-    (let ((alist (assoc-default (flymake--diag-type diagnostic)
-                                flymake-diagnostic-types-alist)))
-      (overlay-put ov 'category (assoc-default 'flymake-category alist))
-      (cl-loop for (k . v) in alist
-               unless (eq k 'category)
-               do (overlay-put ov k v)))
+    (overlay-put ov 'category
+                 (flymake--lookup-type-property type 'flymake-category))
+    ;; Now "paint" the overlay with all the other non-category
+    ;; properties.
+    (cl-loop
+     for (ov-prop . value) in
+     (append (reverse
+              (flymake--diag-overlay-properties diagnostic))
+             (reverse ; ensure ealier props override later ones
+              (flymake--lookup-type-property type 'flymake-overlay-control))
+             (alist-get type flymake-diagnostic-types-alist))
+     do (overlay-put ov ov-prop value))
     ;; Now ensure some essential defaults are set
     ;;
     (cl-flet ((default-maybe
                 (prop value)
-                (unless (or (plist-member (overlay-properties ov) prop)
-                            (let ((cat (overlay-get ov
-                                                    'flymake-category)))
-                              (and cat
-                                   (plist-member (symbol-plist cat) prop))))
-                  (overlay-put ov prop value))))
-      (default-maybe 'bitmap 'flymake-error-bitmap)
+                (unless (plist-member (overlay-properties ov) prop)
+                  (overlay-put ov prop (flymake--lookup-type-property
+                                        type prop value)))))
       (default-maybe 'face 'flymake-error)
       (default-maybe 'before-string
         (flymake--fringe-overlay-spec
-         (overlay-get ov 'bitmap)))
+         (flymake--lookup-type-property
+          type
+          'flymake-bitmap
+          (alist-get 'bitmap (alist-get type ; backward compat
+                                        flymake-diagnostic-types-alist)))))
       (default-maybe 'help-echo
         (lambda (window _ov pos)
           (with-selected-window window
@@ -545,7 +649,8 @@ associated `flymake-category' return DEFAULT."
     ;; Some properties can't be overridden.
     ;;
     (overlay-put ov 'evaporate t)
-    (overlay-put ov 'flymake-diagnostic diagnostic)))
+    (overlay-put ov 'flymake-diagnostic diagnostic)
+    ov))
 
 ;; Nothing in Flymake uses this at all any more, so this is just for
 ;; third-party compatibility.
@@ -592,13 +697,15 @@ backend is operating normally.")
   (flymake-running-backends))
 
 (cl-defun flymake--handle-report (backend token report-action
-                                          &key explanation force
+                                          &key explanation force region
                                           &allow-other-keys)
   "Handle reports from BACKEND identified by TOKEN.
-BACKEND, REPORT-ACTION and EXPLANATION, and FORCE conform to the calling
-convention described in `flymake-diagnostic-functions' (which
-see). Optional FORCE says to handle a report even if TOKEN was
-not expected."
+BACKEND, REPORT-ACTION and EXPLANATION, and FORCE conform to the
+calling convention described in
+`flymake-diagnostic-functions' (which see).  Optional FORCE says
+to handle a report even if TOKEN was not expected.  REGION is
+a (BEG . END) pair of buffer positions indicating that this
+report applies to that region."
   (let* ((state (gethash backend flymake--backend-state))
          (first-report (not (flymake--backend-state-reported-p state))))
     (setf (flymake--backend-state-reported-p state) t)
@@ -630,16 +737,27 @@ not expected."
         (setq new-diags report-action)
         (save-restriction
           (widen)
-          ;; only delete overlays if this is the first report
-          (when first-report
-            (flymake-delete-own-overlays
-             (lambda (ov)
-               (eq backend
-                   (flymake--diag-backend
-                    (overlay-get ov 'flymake-diagnostic))))))
+          ;; Before adding to backend's diagnostic list, decide if
+          ;; some or all must be deleted.  When deleting, also delete
+          ;; the associated overlay.
+          (cond
+           (region
+            (cl-loop for diag in (flymake--backend-state-diags state)
+                     if (or (> (flymake--diag-end diag) (car region))
+                            (< (flymake--diag-beg diag) (cdr region)))
+                     do (delete-overlay (flymake--diag-overlay diag))
+                     else collect diag into surviving
+                     finally (setf (flymake--backend-state-diags state)
+                                   surviving)))
+           (first-report
+            (dolist (diag (flymake--backend-state-diags state))
+              (delete-overlay (flymake--diag-overlay diag)))
+            (setf (flymake--backend-state-diags state) nil)))
+          ;; Now make new ones
           (mapc (lambda (diag)
-                  (flymake--highlight-line diag)
-                  (setf (flymake--diag-backend diag) backend))
+                  (let ((overlay (flymake--highlight-line diag)))
+                    (setf (flymake--diag-backend diag) backend
+                          (flymake--diag-overlay diag) overlay)))
                 new-diags)
           (setf (flymake--backend-state-diags state)
                 (append new-diags (flymake--backend-state-diags state)))
@@ -647,7 +765,8 @@ not expected."
             (flymake-log :debug "backend %s reported %d diagnostics in %.2f second(s)"
                          backend
                          (length new-diags)
-                         (- (float-time) flymake-check-start-time)))
+			 (float-time
+			  (time-since flymake-check-start-time))))
           (when (and (get-buffer (flymake--diagnostics-buffer-name))
                      (get-buffer-window (flymake--diagnostics-buffer-name))
                      (null (cl-set-difference (flymake-running-backends)
@@ -711,14 +830,15 @@ If it is running also stop it."
           (flymake--backend-state-disabled state) explanation
           (flymake--backend-state-reported-p state) t)))
 
-(defun flymake--run-backend (backend)
-  "Run the backend BACKEND, reenabling if necessary."
+(defun flymake--run-backend (backend &optional args)
+  "Run the backend BACKEND, re-enabling if necessary.
+ARGS is a keyword-value plist passed to the backend along
+with a report function."
   (flymake-log :debug "Running backend %s" backend)
   (let ((run-token (cl-gensym "backend-token")))
     (flymake--with-backend-state backend state
       (setf (flymake--backend-state-running state) run-token
             (flymake--backend-state-disabled state) nil
-            (flymake--backend-state-diags state) nil
             (flymake--backend-state-reported-p state) nil))
     ;; FIXME: Should use `condition-case-unless-debug' here, but don't
     ;; for two reasons: (1) that won't let me catch errors from inside
@@ -729,10 +849,13 @@ If it is running also stop it."
     ;; backend) will trigger an annoying backtrace.
     ;;
     (condition-case err
-        (funcall backend
-                 (flymake-make-report-fn backend run-token))
+        (apply backend (flymake-make-report-fn backend run-token)
+               args)
       (error
        (flymake--disable-backend backend err)))))
+
+(defvar-local flymake--recent-changes nil
+  "Recent changes collected by `flymake-after-change-function'.")
 
 (defun flymake-start (&optional deferred force)
   "Start a syntax check for the current buffer.
@@ -779,18 +902,30 @@ Interactively, with a prefix arg, FORCE is t."
                        'append 'local))
             (t
              (setq flymake-check-start-time (float-time))
-             (run-hook-wrapped
-              'flymake-diagnostic-functions
-              (lambda (backend)
-                (cond
-                 ((and (not force)
-                       (flymake--with-backend-state backend state
-                         (flymake--backend-state-disabled state)))
-                  (flymake-log :debug "Backend %s is disabled, not starting"
-                               backend))
-                 (t
-                  (flymake--run-backend backend)))
-                nil)))))))
+             (let ((backend-args
+                    (and
+                     flymake--recent-changes
+                     (list :recent-changes
+                           flymake--recent-changes
+                           :changes-start
+                           (cl-reduce
+                            #'min (mapcar #'car flymake--recent-changes))
+                           :changes-end
+                           (cl-reduce
+                            #'max (mapcar #'cadr flymake--recent-changes))))))
+               (setq flymake--recent-changes nil)
+               (run-hook-wrapped
+                'flymake-diagnostic-functions
+                (lambda (backend)
+                  (cond
+                   ((and (not force)
+                         (flymake--with-backend-state backend state
+                           (flymake--backend-state-disabled state)))
+                    (flymake-log :debug "Backend %s is disabled, not starting"
+                                 backend))
+                   (t
+                    (flymake--run-backend backend backend-args)))
+                  nil))))))))
 
 (defvar flymake-mode-map
   (let ((map (make-sparse-keymap))) map)
@@ -799,9 +934,6 @@ Interactively, with a prefix arg, FORCE is t."
 ;;;###autoload
 (define-minor-mode flymake-mode
   "Toggle Flymake mode on or off.
-With a prefix argument ARG, enable Flymake mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil, and toggle it if ARG is `toggle'.
 
 Flymake is an Emacs minor mode for on-the-fly syntax checking.
 Flymake collects diagnostic information from multiple sources,
@@ -820,7 +952,9 @@ The commands `flymake-goto-next-error' and
 diagnostics annotated in the buffer.
 
 The visual appearance of each type of diagnostic can be changed
-in the variable `flymake-diagnostic-types-alist'.
+by setting properties `flymake-overlay-control', `flymake-bitmap'
+and `flymake-severity' on the symbols of diagnostic types (like
+`:error', `:warning' and `:note').
 
 Activation or deactivation of backends used by Flymake in each
 buffer happens via the special hook
@@ -840,7 +974,13 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
 
+    ;; If Flymake happened to be alrady already ON, we must cleanup
+    ;; existing diagnostic overlays, lest we forget them by blindly
+    ;; reinitializing `flymake--backend-state' in the next line.
+    ;; See https://github.com/joaotavora/eglot/issues/223.
+    (mapc #'delete-overlay (flymake--overlays))
     (setq flymake--backend-state (make-hash-table))
+    (setq flymake--recent-changes nil)
 
     (when flymake-start-on-flymake-mode (flymake-start t)))
 
@@ -851,7 +991,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (remove-hook 'kill-buffer-hook 'flymake-kill-buffer-hook t)
     ;;+(remove-hook 'find-file-hook (function flymake-find-file-hook) t)
 
-    (flymake-delete-own-overlays)
+    (mapc #'delete-overlay (flymake--overlays))
 
     (when flymake-timer
       (cancel-timer flymake-timer)
@@ -865,6 +1005,8 @@ Do it only if `flymake-no-changes-timeout' is non-nil."
     (setq
      flymake-timer
      (run-with-idle-timer
+      ;; This can use encode-time instead of seconds-to-time,
+      ;; once we can assume Emacs 27 or later.
       (seconds-to-time flymake-no-changes-timeout)
       nil
       (lambda (buffer)
@@ -893,15 +1035,17 @@ Do it only if `flymake-no-changes-timeout' is non-nil."
 (make-obsolete 'flymake-mode-off 'flymake-mode "26.1")
 
 (defun flymake-after-change-function (start stop _len)
-  "Start syntax check for current buffer if it isn't already running."
+  "Start syntax check for current buffer if it isn't already running.
+START and STOP and LEN are as in `after-change-functions'."
   (let((new-text (buffer-substring start stop)))
+    (push (list start stop new-text) flymake--recent-changes)
     (when (and flymake-start-syntax-check-on-newline (equal new-text "\n"))
       (flymake-log :debug "starting syntax check as new-line has been seen")
       (flymake-start t))
     (flymake--schedule-timer-maybe)))
 
 (defun flymake-after-save-hook ()
-  (when flymake-mode
+  (when flymake-start-on-save-buffer
     (flymake-log :debug "starting syntax check as buffer was saved")
     (flymake-start t)))
 
@@ -924,9 +1068,9 @@ arg, skip any diagnostics with a severity less than `:warning'.
 If `flymake-wrap-around' is non-nil and no more next diagnostics,
 resumes search from top.
 
-FILTER is a list of diagnostic types found in
-`flymake-diagnostic-types-alist', or nil, if no filter is to be
-applied."
+FILTER is a list of diagnostic types.  Only diagnostics with
+matching severities matching are considered.  If nil (the
+default) no filter is applied."
   ;; TODO: let filter be a number, a severity below which diags are
   ;; skipped.
   (interactive (list 1
@@ -940,9 +1084,12 @@ applied."
                                                 ov
                                                 'flymake-diagnostic)))
                                      (and diag
-                                          (or (not filter)
-                                              (memq (flymake--diag-type diag)
-                                                    filter)))))
+                                          (or
+                                           (not filter)
+                                           (cl-find
+                                            (flymake--severity
+                                             (flymake--diag-type diag))
+                                            filter :key #'flymake--severity)))))
                                  :compare (if (cl-plusp n) #'< #'>)
                                  :key #'overlay-start))
          (tail (cl-member-if (lambda (ov)
@@ -966,10 +1113,10 @@ applied."
               (funcall (overlay-get target 'help-echo)
                        (selected-window) target (point)))))
           (interactive
-           (user-error "No more Flymake errors%s"
+           (user-error "No more Flymake diagnostics%s"
                        (if filter
-                           (format " of types %s" filter)
-                         ""))))))
+                           (format " of %s severity"
+                                   (mapconcat #'symbol-name filter ", ")) ""))))))
 
 (defun flymake-goto-prev-error (&optional n filter interactive)
   "Go to Nth previous Flymake diagnostic that matches FILTER.
@@ -980,9 +1127,9 @@ prefix arg, skip any diagnostics with a severity less than
 If `flymake-wrap-around' is non-nil and no more previous
 diagnostics, resumes search from bottom.
 
-FILTER is a list of diagnostic types found in
-`flymake-diagnostic-types-alist', or nil, if no filter is to be
-applied."
+FILTER is a list of diagnostic types.  Only diagnostics with
+matching severities matching are considered.  If nil (the
+default) no filter is applied."
   (interactive (list 1 (if current-prefix-arg
                            '(:error :warning))
                      t))
@@ -992,7 +1139,7 @@ applied."
 ;;; Mode-line and menu
 ;;;
 (easy-menu-define flymake-menu flymake-mode-map "Flymake"
-  `("Flymake"
+  '("Flymake"
     [ "Go to next problem"      flymake-goto-next-error t ]
     [ "Go to previous problem"  flymake-goto-prev-error t ]
     [ "Check now"               flymake-start t ]
@@ -1001,9 +1148,10 @@ applied."
     [ "Go to log buffer"        flymake-switch-to-log-buffer t ]
     [ "Turn off Flymake"        flymake-mode t ]))
 
-(defvar flymake--mode-line-format `(:eval (flymake--mode-line-format)))
+(defvar flymake--mode-line-format '(:eval (flymake--mode-line-format)))
 
 (put 'flymake--mode-line-format 'risky-local-variable t)
+
 
 (defun flymake--mode-line-format ()
   "Produce a pretty minor mode indicator."
@@ -1040,16 +1188,16 @@ applied."
                       map))
       ,@(pcase-let ((`(,ind ,face ,explain)
                      (cond ((null known)
-                            `("?" mode-line "No known backends"))
+                            '("?" mode-line "No known backends"))
                            (some-waiting
                             `("Wait" compilation-mode-line-run
                               ,(format "Waiting for %s running backend(s)"
                                        (length some-waiting))))
                            (all-disabled
-                            `("!" compilation-mode-line-run
+                            '("!" compilation-mode-line-run
                               "All backends disabled"))
                            (t
-                            `(nil nil nil)))))
+                            '(nil nil nil)))))
           (when ind
             `((":"
                (:propertize ,ind
@@ -1063,22 +1211,23 @@ applied."
       ,@(unless (or all-disabled
                     (null known))
           (cl-loop
-           for (type . severity)
-           in (cl-sort (mapcar (lambda (type)
-                                 (cons type (flymake--lookup-type-property
-                                             type
-                                             'severity
-                                             (warning-numeric-level :error))))
-                               (cl-union (hash-table-keys diags-by-type)
-                                         '(:error :warning)))
-                       #'>
-                       :key #'cdr)
+           with types = (hash-table-keys diags-by-type)
+           with _augmented = (cl-loop for extra in '(:error :warning)
+                                      do (cl-pushnew extra types
+                                                     :key #'flymake--severity))
+           for type in (cl-sort types #'> :key #'flymake--severity)
            for diags = (gethash type diags-by-type)
            for face = (flymake--lookup-type-property type
                                                      'mode-line-face
                                                      'compilation-error)
            when (or diags
-                    (>= severity (warning-numeric-level :warning)))
+                    (cond ((eq flymake-suppress-zero-counters t)
+                           nil)
+                          (flymake-suppress-zero-counters
+                           (>= (flymake--severity type)
+                               (warning-numeric-level
+                                flymake-suppress-zero-counters)))
+                          (t t)))
            collect `(:propertize
                      ,(format "%d" (length diags))
                      face ,face
@@ -1182,14 +1331,14 @@ POS can be a buffer position or a button"
   "Flymake diagnostics"
   "A mode for listing Flymake diagnostics."
   (setq tabulated-list-format
-        `[("Line" 5 (lambda (l1 l2)
-                      (< (plist-get (car l1) :line)
-                         (plist-get (car l2) :line)))
+        `[("Line" 5 ,(lambda (l1 l2)
+                       (< (plist-get (car l1) :line)
+                          (plist-get (car l2) :line)))
            :right-align t)
           ("Col" 3 nil :right-align t)
-          ("Type" 8 (lambda (l1 l2)
-                      (< (plist-get (car l1) :severity)
-                         (plist-get (car l2) :severity))))
+          ("Type" 8 ,(lambda (l1 l2)
+                       (< (plist-get (car l1) :severity)
+                          (plist-get (car l2) :severity))))
           ("Message" 0 t)])
   (setq tabulated-list-entries
         'flymake--diagnostics-buffer-entries)
@@ -1206,9 +1355,9 @@ POS can be a buffer position or a button"
          (target (or (get-buffer name)
                      (with-current-buffer (get-buffer-create name)
                        (flymake-diagnostics-buffer-mode)
-                       (setq flymake--diagnostics-buffer-source source)
                        (current-buffer)))))
     (with-current-buffer target
+      (setq flymake--diagnostics-buffer-source source)
       (revert-buffer)
       (display-buffer (current-buffer)))))
 

@@ -1,6 +1,6 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -86,10 +86,10 @@ FILE can be created or overwritten."
 The actual return value is the last modification time of the cache file."
   (let* ((fname (url-cache-create-filename url))
 	 (attribs (file-attributes fname)))
-    (and fname				; got a filename
-	 (file-exists-p fname)		; file exists
-	 (not (eq (nth 0 attribs) t))	; Its not a directory
-	 (nth 5 attribs))))		; Can get last mod-time
+    (and fname
+	 (file-exists-p fname)
+	 (not (eq (file-attribute-type attribs) t))
+	 (file-attribute-modification-time attribs))))
 
 (defun url-cache-create-filename-human-readable (url)
   "Return a filename in the local cache for URL."
@@ -205,7 +205,7 @@ If `url-standalone-mode' is non-nil, cached items never expire."
 	  (time-less-p
 	   (time-add
 	    cache-time
-	    (seconds-to-time (or expire-time url-cache-expire-time)))
+	    (or expire-time url-cache-expire-time))
 	   nil)))))
 
 (defun url-cache-prune-cache (&optional directory)
@@ -226,8 +226,8 @@ considered \"expired\"."
 	      (setq deleted-files (1+ deleted-files))))
 	   ((time-less-p
 	     (time-add
-	      (nth 5 (file-attributes file))
-	      (seconds-to-time url-cache-expire-time))
+	      (file-attribute-modification-time (file-attributes file))
+	      url-cache-expire-time)
 	     now)
 	    (delete-file file)
 	    (setq deleted-files (1+ deleted-files))))))

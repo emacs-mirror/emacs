@@ -1,6 +1,6 @@
 ;;; eieio-testsinvoke.el -- eieio tests for method invocation
 
-;; Copyright (C) 2005, 2008, 2010, 2013-2018 Free Software Foundation,
+;; Copyright (C) 2005, 2008, 2010, 2013-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

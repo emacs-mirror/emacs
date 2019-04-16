@@ -1,6 +1,6 @@
 ;;; url-file.el --- File retrieval code  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -70,7 +70,7 @@ to them."
 	    buff func
 	    func args
 	    args efs))
-  (let ((size (nth 7 (file-attributes name))))
+  (let ((size (file-attribute-size (file-attributes name))))
     (with-current-buffer buff
       (goto-char (point-max))
       (if (/= -1 size)

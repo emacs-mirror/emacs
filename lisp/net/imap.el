@@ -1,6 +1,6 @@
 ;;; imap.el --- imap library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: mail
@@ -1696,18 +1696,6 @@ MAILBOX specifies a mailbox on the server in BUFFER."
 		  (concat "UID STORE " articles
 			  " +FLAGS" (if silent ".SILENT") " (" flags ")"))))))
 
-;; Cf. http://thread.gmane.org/gmane.emacs.gnus.general/65317/focus=65343
-;; Signal an error if we'd get an integer overflow.
-;;
-;; FIXME: Identify relevant calls to `string-to-number' and replace them with
-;; `imap-string-to-integer'.
-(defun imap-string-to-integer (string &optional base)
-  (let ((number (string-to-number string base)))
-    (if (> number most-positive-fixnum)
-	(error
-	 (format "String %s cannot be converted to a Lisp integer" number))
-      number)))
-
 (defun imap-fetch-safe (uids props &optional receive nouidfetch buffer)
   "Like `imap-fetch', but DTRT with Exchange 2007 bug.
 However, UIDS here is a cons, where the car is the canonical form
@@ -1930,18 +1918,14 @@ on failure."
 	  (unless (< len 10)
 	    (setq imap-have-messaged t)
 	    (message "imap read: %dk" len))
-	  (accept-process-output imap-process
-				 (truncate imap-read-timeout)
-				 (truncate (* (- imap-read-timeout
-						 (truncate imap-read-timeout))
-					      1000)))))
+	  (accept-process-output imap-process imap-read-timeout)))
       ;; A process can die _before_ we have processed everything it
       ;; has to say.  Moreover, this can happen in between the call to
       ;; accept-process-output and the call to process-status in an
       ;; iteration of the loop above.
       (when (and (null imap-continuation)
 		 (< imap-reached-tag tag))
-	(accept-process-output imap-process 0 0))
+	(accept-process-output imap-process 0))
       (when imap-have-messaged
 	(message ""))
       (and (memq (process-status imap-process) '(open run))
@@ -2088,23 +2072,23 @@ Return nil if no complete line has arrived."
 ;;                      addr-host ")"
 ;;
 ;;   addr-adl        = nstring
-;;                       ; Holds route from [RFC-822] route-addr if
+;;                       ; Holds route from [RFC-822 (or later)] route-addr if
 ;;                       ; non-nil
 ;;
 ;;   addr-host       = nstring
-;;                       ; nil indicates [RFC-822] group syntax.
-;;                       ; Otherwise, holds [RFC-822] domain name
+;;                       ; nil indicates [RFC-822 (or later)] group syntax.
+;;                       ; Otherwise, holds [RFC-822 (or later)] domain name
 ;;
 ;;   addr-mailbox    = nstring
-;;                       ; nil indicates end of [RFC-822] group; if
+;;                       ; nil indicates end of [RFC-822 (or later)] group; if
 ;;                       ; non-nil and addr-host is nil, holds
-;;                       ; [RFC-822] group name.
-;;                       ; Otherwise, holds [RFC-822] local-part
-;;                       ; after removing [RFC-822] quoting
+;;                       ; [RFC-822 (or later)] group name.
+;;                       ; Otherwise, holds [RFC-822 (or later)] local-part
+;;                       ; after removing [RFC-822 (or later)] quoting
 ;;
 ;;   addr-name       = nstring
-;;                       ; If non-nil, holds phrase from [RFC-822]
-;;                       ; mailbox after removing [RFC-822] quoting
+;;                       ; If non-nil, holds phrase from [RFC-822 (or later)]
+;;                       ; mailbox after removing [RFC-822 (or later)] quoting
 ;;
 
 (defsubst imap-parse-address ()

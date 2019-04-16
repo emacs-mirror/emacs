@@ -1,6 +1,6 @@
 ;; idlwave.el --- IDL editing mode for GNU Emacs
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -3690,7 +3690,7 @@ constants - a double quote followed by an octal digit."
    (save-excursion
      (forward-char)
      (re-search-backward (concat "\\(" idlwave-idl-keywords
-                                 "\\|[[(*+-/=,^><]\\)\\s-*\\*") limit t))))
+                                 "\\|[-[(*+/=,^><]\\)\\s-*\\*") limit t))))
 
 
 ;; Statement templates
@@ -5588,7 +5588,7 @@ be set to nil to disable library catalog scanning."
 	     (mapcar 'car idlwave-path-alist)))
 	  (old-libname "")
 	  dir-entry dir catalog all-routines)
-      (if message-base (message message-base))
+      (if message-base (message "%s" message-base))
       (while (setq dir (pop dirs))
 	(catch 'continue
 	  (when (file-readable-p
@@ -5603,8 +5603,7 @@ be set to nil to disable library catalog scanning."
 		     message-base
 		     (not (string= idlwave-library-catalog-libname
 				   old-libname)))
-		(message "%s" (concat message-base
-				      idlwave-library-catalog-libname))
+		(message "%s%s" message-base idlwave-library-catalog-libname)
 		(setq old-libname idlwave-library-catalog-libname))
 	      (when idlwave-library-catalog-routines
 		(setq all-routines
@@ -5618,7 +5617,7 @@ be set to nil to disable library catalog scanning."
 		       (setq dir-entry (assoc dir idlwave-path-alist)))
 	      (idlwave-path-alist-add-flag dir-entry 'lib)))))
       (unless no-load (setq idlwave-library-catalog-routines all-routines))
-      (if message-base (message (concat message-base "done"))))))
+      (if message-base (message "%sdone" message-base)))))
 
 ;;----- Communicating with the Shell -------------------
 
@@ -6455,10 +6454,10 @@ ARROW:  Location of the arrow"
      ((string-match "\\`[ \t]*\\(pro\\|function\\)\\>"
 		    match-string)
       nil)
-     ((string-match "OBJ_NEW([ \t]*['\"]\\([a-zA-Z0-9$_]*\\)?\\'"
+     ((string-match "OBJ_NEW([ \t]*['\"][a-zA-Z0-9$_]*\\'"
 		    match-string)
       (setq cw 'class))
-     ((string-match "\\<inherits\\s-+\\([a-zA-Z0-9$_]*\\)?\\'"
+     ((string-match "\\<inherits\\s-+[a-zA-Z0-9$_]*\\'"
 		    match-string)
       (setq cw 'class))
      ((and func
@@ -7591,7 +7590,7 @@ property indicating the link is added."
 	(case-fold-search t))
     (cond ((save-excursion
 	     ;; Check if the context is right for system variable
-	     (skip-chars-backward "[a-zA-Z0-9_$]")
+	     (skip-chars-backward "a-zA-Z0-9_$")
 	     (equal (char-before) ?!))
 	   (setq idlwave-completion-help-info '(idlwave-complete-sysvar-help))
 	   (idlwave-complete-in-buffer 'sysvar 'sysvar
@@ -9074,7 +9073,7 @@ Assumes that point is at the beginning of the unit as found by
 
 ;; Menus - using easymenu.el
 (defvar idlwave-mode-menu-def
-  `("IDLWAVE"
+  '("IDLWAVE"
     ["PRO/FUNC menu" idlwave-function-menu t]
     ("Motion"
      ["Subprogram Start" idlwave-beginning-of-subprogram t]
@@ -9151,7 +9150,7 @@ Assumes that point is at the beginning of the unit as found by
      ["Kill auto-created buffers" idlwave-kill-autoloaded-buffers t]
      "--"
      ["Insert TAB character" idlwave-hard-tab t])
-     "--"
+    "--"
     ("External"
      ["Start IDL shell" idlwave-shell t]
      ["Edit file in IDLDE" idlwave-edit-in-idlde t]

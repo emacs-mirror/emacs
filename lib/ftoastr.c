@@ -1,6 +1,6 @@
 /* floating point to accurate string
 
-   Copyright (C) 2010-2018 Free Software Foundation, Inc.
+   Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,9 +40,7 @@
 # define FLOAT_PREC_BOUND _GL_LDBL_PREC_BOUND
 # define FTOASTR ldtoastr
 # define PROMOTED_FLOAT long double
-# if HAVE_C99_STRTOLD
-#  define STRTOF strtold
-# endif
+# define STRTOF strtold
 #elif LENGTH == 2
 # define FLOAT double
 # define FLOAT_DIG DBL_DIG
@@ -63,7 +61,7 @@
 # endif
 #endif
 
-/* On pre-C99 hosts, approximate strtof and strtold with strtod.  This
+/* On pre-C99 hosts, approximate strtof with strtod.  This
    may generate one or two extra digits, but that's better than not
    working at all.  */
 #ifndef STRTOF

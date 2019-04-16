@@ -1,6 +1,6 @@
 ;;; timer-list.el --- list active timers in a buffer
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -37,16 +37,14 @@
                       ;; Idle.
                       (if (aref timer 7) "*" " ")
                       ;; Next time.
-                      (let ((time (float-time (list (aref timer 1)
-                                                    (aref timer 2)
-                                                    (aref timer 3)))))
+		      (let ((time (list (aref timer 1)
+					(aref timer 2)
+					(aref timer 3))))
                         (format "%.2f"
-                                (if (aref timer 7)
-                                    time
-                                  (- (float-time (list (aref timer 1)
-                                                       (aref timer 2)
-                                                       (aref timer 3)))
-                                     (float-time)))))
+				(float-time
+				 (if (aref timer 7)
+				     time
+				   (time-subtract time nil)))))
                       ;; Repeat.
                       (let ((repeat (aref timer 4)))
                         (cond

@@ -1,13 +1,13 @@
 ;;; auth-source-pass.el --- Integrate auth-source with password-store -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2017-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2017-2019 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>,
 ;;         Nicolas Petton <nicolas@petton.fr>
-;; Version: 2.0.0
-;; Package-Requires: ((emacs "24.4")
+;; Version: 4.0.1
+;; Package-Requires: ((emacs "25"))
+;; Url: https://github.com/DamienCassou/auth-password-store
 ;; Created: 07 Jun 2015
-;; Keywords: pass password-store auth-source username password login
 
 ;; This file is part of GNU Emacs.
 
@@ -45,14 +45,22 @@
 See `auth-source-search' for details on SPEC."
   (cl-assert (or (null type) (eq type (oref backend type)))
              t "Invalid password-store search: %s %s")
-  (when (listp host)
+  (when (consp host)
+    (warn "auth-source-pass ignores all but first host in spec.")
     ;; Take the first non-nil item of the list of hosts
     (setq host (seq-find #'identity host)))
-  (list (auth-source-pass--build-result host port user)))
+  (cond ((eq host t)
+         (warn "auth-source-pass does not handle host wildcards.")
+         nil)
+        ((null host)
+         ;; Do not build a result, as none will match when HOST is nil
+         nil)
+        (t
+         (list (auth-source-pass--build-result host port user)))))
 
 (defun auth-source-pass--build-result (host port user)
   "Build auth-source-pass entry matching HOST, PORT and USER."
-  (let ((entry (auth-source-pass--find-match host user)))
+  (let ((entry (auth-source-pass--find-match host user port)))
     (when entry
       (let ((retval (list
                      :host host
@@ -73,7 +81,7 @@ See `auth-source-search' for details on SPEC."
 
 (defvar auth-source-pass-backend
   (auth-source-backend
-   (format "Password store")
+   (when (<= emacs-major-version 25) "password-store")
    :source "." ;; not used
    :type 'password-store
    :search-function #'auth-source-pass-search)
@@ -84,7 +92,9 @@ See `auth-source-search' for details on SPEC."
   (when (eq entry 'password-store)
     (auth-source-backend-parse-parameters entry auth-source-pass-backend)))
 
-(add-hook 'auth-source-backend-parser-functions #'auth-source-pass-backend-parse)
+(if (boundp 'auth-source-backend-parser-functions)
+    (add-hook 'auth-source-backend-parser-functions #'auth-source-pass-backend-parse)
+  (advice-add 'auth-source-backend-parse :before-until #'auth-source-pass-backend-parse))
 
 
 (defun auth-source-pass-get (key entry)
@@ -124,12 +134,12 @@ ENTRY is the name of a password-store entry."
 (defun auth-source-pass--parse-secret (contents)
   "Parse the password-store data in the string CONTENTS and return its secret.
 The secret is the first line of CONTENTS."
-  (car (split-string contents "\\\n" t)))
+  (car (split-string contents "\n" t)))
 
 (defun auth-source-pass--parse-data (contents)
   "Parse the password-store data in the string CONTENTS and return an alist.
 CONTENTS is the contents of a password-store formatted file."
-  (let ((lines (split-string contents "\\\n" t "\\\s")))
+  (let ((lines (split-string contents "\n" t "[ \t]+")))
     (seq-remove #'null
                 (mapcar (lambda (line)
                           (let ((pair (mapcar (lambda (s) (string-trim s))
@@ -139,30 +149,10 @@ CONTENTS is the contents of a password-store formatted file."
                                     (mapconcat #'identity (cdr pair) ":")))))
                         (cdr lines)))))
 
-(defun auth-source-pass--hostname (host)
-  "Extract hostname from HOST."
-  (let ((url (url-generic-parse-url host)))
-    (or (url-host url) host)))
-
-(defun auth-source-pass--hostname-with-user (host)
-  "Extract hostname and user from HOST."
-  (let* ((url (url-generic-parse-url host))
-         (user (url-user url))
-         (hostname (url-host url)))
-    (cond
-     ((and user hostname) (format "%s@%s" user hostname))
-     (hostname hostname)
-     (t host))))
-
-(defun auth-source-pass--user (host)
-  "Extract user from HOST and return it.
-Return nil if no match was found."
-  (url-user (url-generic-parse-url host)))
-
 (defun auth-source-pass--do-debug (&rest msg)
   "Call `auth-source-do-debug` with MSG and a prefix."
   (apply #'auth-source-do-debug
-         (cons (concat "auth-source-password-store: " (car msg))
+         (cons (concat "auth-source-pass: " (car msg))
                (cdr msg))))
 
 (defun auth-source-pass--select-one-entry (entries user)
@@ -199,7 +189,7 @@ often."
   (let ((store-dir (expand-file-name "~/.password-store/")))
     (mapcar
      (lambda (file) (file-name-sans-extension (file-relative-name file store-dir)))
-     (directory-files-recursively store-dir "\.gpg$"))))
+     (directory-files-recursively store-dir "\\.gpg$"))))
 
 (defun auth-source-pass--find-all-by-entry-name (entryname user)
   "Search the store for all entries either matching ENTRYNAME/USER or ENTRYNAME.
@@ -230,27 +220,39 @@ matching USER."
          (car matching-entries))
       (_ (auth-source-pass--select-one-entry matching-entries user)))))
 
-(defun auth-source-pass--find-match (host user)
-  "Return a password-store entry name matching HOST and USER.
-If many matches are found, return the first one.  If no match is
-found, return nil."
+(defun auth-source-pass--find-match (host user port)
+  "Return a password-store entry name matching HOST, USER and PORT.
+
+Disambiguate between user provided inside HOST (e.g., user@server.com) and
+inside USER by giving priority to USER.  Same for PORT."
+  (let* ((url (url-generic-parse-url (if (string-match-p ".*://" host)
+                                         host
+                                       (format "https://%s" host)))))
+    (auth-source-pass--find-match-unambiguous
+     (or (url-host url) host)
+     (or user (url-user url))
+     ;; url-port returns 443 (because of the https:// above) by default
+     (or port (number-to-string (url-port url))))))
+
+(defun auth-source-pass--find-match-unambiguous (hostname user port)
+  "Return a password-store entry name matching HOSTNAME, USER and PORT.
+If many matches are found, return the first one.  If no match is found,
+return nil.
+
+HOSTNAME should not contain any username or port number."
   (or
-   (if (auth-source-pass--user host)
-       ;; if HOST contains a user (e.g., "user@host.com"), <HOST>
-       (auth-source-pass--find-one-by-entry-name (auth-source-pass--hostname-with-user host) user)
-     ;; otherwise, if USER is provided, search for <USER>@<HOST>
-     (when (stringp user)
-       (auth-source-pass--find-one-by-entry-name (concat user "@" (auth-source-pass--hostname host)) user)))
-   ;; if that didn't work, search for HOST without its user component, if any
-   (auth-source-pass--find-one-by-entry-name (auth-source-pass--hostname host) user)
-   ;; if that didn't work, search for HOST with user extracted from it
-   (auth-source-pass--find-one-by-entry-name
-    (auth-source-pass--hostname host) (auth-source-pass--user host))
+   (and user port (auth-source-pass--find-one-by-entry-name (format "%s@%s:%s" user hostname port) user))
+   (and user (auth-source-pass--find-one-by-entry-name (format "%s@%s" user hostname) user))
+   (and port (auth-source-pass--find-one-by-entry-name (format "%s:%s" hostname port) nil))
+   (auth-source-pass--find-one-by-entry-name hostname user)
    ;; if that didn't work, remove subdomain: foo.bar.com -> bar.com
-   (let ((components (split-string host "\\.")))
+   (let ((components (split-string hostname "\\.")))
      (when (= (length components) 3)
        ;; start from scratch
-       (auth-source-pass--find-match (mapconcat 'identity (cdr components) ".") user)))))
+       (auth-source-pass--find-match-unambiguous
+        (mapconcat 'identity (cdr components) ".")
+        user
+        port)))))
 
 (provide 'auth-source-pass)
 ;;; auth-source-pass.el ends here

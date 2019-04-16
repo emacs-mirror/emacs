@@ -1,6 +1,6 @@
 /* A GNU-like <stdlib.h>.
 
-   Copyright (C) 1995, 2001-2004, 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2004, 2006-2019 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@
 #endif
 
 /* Native Windows platforms declare mktemp() in <io.h>.  */
-#if 0 && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+#if 0 && (defined _WIN32 && ! defined __CYGWIN__)
 # include <io.h>
 #endif
 
@@ -90,9 +90,10 @@ struct random_data
 # endif
 #endif
 
-#if (@GNULIB_MKSTEMP@ || @GNULIB_MKSTEMPS@ || @GNULIB_GETSUBOPT@ || defined GNULIB_POSIXCHECK) && ! defined __GLIBC__ && !((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+#if (@GNULIB_MKSTEMP@ || @GNULIB_MKSTEMPS@ || @GNULIB_MKOSTEMP@ || @GNULIB_MKOSTEMPS@ || @GNULIB_GETSUBOPT@ || defined GNULIB_POSIXCHECK) && ! defined __GLIBC__ && !(defined _WIN32 && ! defined __CYGWIN__)
 /* On Mac OS X 10.3, only <unistd.h> declares mkstemp.  */
 /* On Mac OS X 10.5, only <unistd.h> declares mkstemps.  */
+/* On Mac OS X 10.13, only <unistd.h> declares mkostemp and mkostemps.  */
 /* On Cygwin 1.7.1, only <unistd.h> declares getsubopt.  */
 /* But avoid namespace pollution on glibc systems and native Windows.  */
 # include <unistd.h>
@@ -305,9 +306,18 @@ _GL_WARN_ON_USE (malloc, "malloc is not POSIX compliant everywhere - "
 _GL_FUNCDECL_RPL (mbtowc, int, (wchar_t *pwc, const char *s, size_t n));
 _GL_CXXALIAS_RPL (mbtowc, int, (wchar_t *pwc, const char *s, size_t n));
 # else
+#  if !@HAVE_MBTOWC@
+_GL_FUNCDECL_SYS (mbtowc, int, (wchar_t *pwc, const char *s, size_t n));
+#  endif
 _GL_CXXALIAS_SYS (mbtowc, int, (wchar_t *pwc, const char *s, size_t n));
 # endif
 _GL_CXXALIASWARN (mbtowc);
+#elif defined GNULIB_POSIXCHECK
+# undef mbtowc
+# if HAVE_RAW_DECL_MBTOWC
+_GL_WARN_ON_USE (mbtowc, "mbtowc is not portable - "
+                 "use gnulib module mbtowc for portability");
+# endif
 #endif
 
 #if @GNULIB_MKDTEMP@
@@ -572,10 +582,19 @@ _GL_WARN_ON_USE (qsort_r, "qsort_r is not portable - "
 
 
 #if @GNULIB_RANDOM@
-# if !@HAVE_RANDOM@
+# if @REPLACE_RANDOM@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef random
+#   define random rpl_random
+#  endif
+_GL_FUNCDECL_RPL (random, long, (void));
+_GL_CXXALIAS_RPL (random, long, (void));
+# else
+#  if !@HAVE_RANDOM@
 _GL_FUNCDECL_SYS (random, long, (void));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (random, long, (void));
+# endif
 _GL_CXXALIASWARN (random);
 #elif defined GNULIB_POSIXCHECK
 # undef random
@@ -586,10 +605,19 @@ _GL_WARN_ON_USE (random, "random is unportable - "
 #endif
 
 #if @GNULIB_RANDOM@
-# if !@HAVE_RANDOM@
+# if @REPLACE_RANDOM@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef srandom
+#   define srandom rpl_srandom
+#  endif
+_GL_FUNCDECL_RPL (srandom, void, (unsigned int seed));
+_GL_CXXALIAS_RPL (srandom, void, (unsigned int seed));
+# else
+#  if !@HAVE_RANDOM@
 _GL_FUNCDECL_SYS (srandom, void, (unsigned int seed));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (srandom, void, (unsigned int seed));
+# endif
 _GL_CXXALIASWARN (srandom);
 #elif defined GNULIB_POSIXCHECK
 # undef srandom
@@ -600,31 +628,52 @@ _GL_WARN_ON_USE (srandom, "srandom is unportable - "
 #endif
 
 #if @GNULIB_RANDOM@
-# if !@HAVE_RANDOM@ || !@HAVE_DECL_INITSTATE@
+# if @REPLACE_INITSTATE@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef initstate
+#   define initstate rpl_initstate
+#  endif
+_GL_FUNCDECL_RPL (initstate, char *,
+                  (unsigned int seed, char *buf, size_t buf_size)
+                  _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_RPL (initstate, char *,
+                  (unsigned int seed, char *buf, size_t buf_size));
+# else
+#  if !@HAVE_INITSTATE@ || !@HAVE_DECL_INITSTATE@
 _GL_FUNCDECL_SYS (initstate, char *,
                   (unsigned int seed, char *buf, size_t buf_size)
                   _GL_ARG_NONNULL ((2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (initstate, char *,
                   (unsigned int seed, char *buf, size_t buf_size));
+# endif
 _GL_CXXALIASWARN (initstate);
 #elif defined GNULIB_POSIXCHECK
 # undef initstate
-# if HAVE_RAW_DECL_INITSTATE_R
+# if HAVE_RAW_DECL_INITSTATE
 _GL_WARN_ON_USE (initstate, "initstate is unportable - "
                  "use gnulib module random for portability");
 # endif
 #endif
 
 #if @GNULIB_RANDOM@
-# if !@HAVE_RANDOM@ || !@HAVE_DECL_SETSTATE@
+# if @REPLACE_SETSTATE@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef setstate
+#   define setstate rpl_setstate
+#  endif
+_GL_FUNCDECL_RPL (setstate, char *, (char *arg_state) _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (setstate, char *, (char *arg_state));
+# else
+#  if !@HAVE_SETSTATE@ || !@HAVE_DECL_SETSTATE@
 _GL_FUNCDECL_SYS (setstate, char *, (char *arg_state) _GL_ARG_NONNULL ((1)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (setstate, char *, (char *arg_state));
+# endif
 _GL_CXXALIASWARN (setstate);
 #elif defined GNULIB_POSIXCHECK
 # undef setstate
-# if HAVE_RAW_DECL_SETSTATE_R
+# if HAVE_RAW_DECL_SETSTATE
 _GL_WARN_ON_USE (setstate, "setstate is unportable - "
                  "use gnulib module random for portability");
 # endif
@@ -880,6 +929,7 @@ _GL_WARN_ON_USE (setenv, "setenv is unportable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define strtod rpl_strtod
 #  endif
+#  define GNULIB_defined_strtod_function 1
 _GL_FUNCDECL_RPL (strtod, double, (const char *str, char **endp)
                                   _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (strtod, double, (const char *str, char **endp));
@@ -896,6 +946,32 @@ _GL_CXXALIASWARN (strtod);
 # if HAVE_RAW_DECL_STRTOD
 _GL_WARN_ON_USE (strtod, "strtod is unportable - "
                  "use gnulib module strtod for portability");
+# endif
+#endif
+
+#if @GNULIB_STRTOLD@
+ /* Parse a 'long double' from STRING, updating ENDP if appropriate.  */
+# if @REPLACE_STRTOLD@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   define strtold rpl_strtold
+#  endif
+#  define GNULIB_defined_strtold_function 1
+_GL_FUNCDECL_RPL (strtold, long double, (const char *str, char **endp)
+                                        _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (strtold, long double, (const char *str, char **endp));
+# else
+#  if !@HAVE_STRTOLD@
+_GL_FUNCDECL_SYS (strtold, long double, (const char *str, char **endp)
+                                        _GL_ARG_NONNULL ((1)));
+#  endif
+_GL_CXXALIAS_SYS (strtold, long double, (const char *str, char **endp));
+# endif
+_GL_CXXALIASWARN (strtold);
+#elif defined GNULIB_POSIXCHECK
+# undef strtold
+# if HAVE_RAW_DECL_STRTOLD
+_GL_WARN_ON_USE (strtold, "strtold is unportable - "
+                 "use gnulib module strtold for portability");
 # endif
 #endif
 

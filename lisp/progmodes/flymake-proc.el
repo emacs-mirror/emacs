@@ -1,10 +1,10 @@
 ;;; flymake-proc.el --- Flymake backend for external tools  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author:  Pavel Kobyakov <pk_at_work@yahoo.com>
-;; Maintainer: Leo Liu <sdl.web@gmail.com>
-;; Version: 0.3
+;; Maintainer: João Távora <joaotavora@gmail.com>
+;; Version: 1.0
 ;; Keywords: c languages tools
 
 ;; This file is part of GNU Emacs.
@@ -196,11 +196,10 @@ from compile.el")
   'flymake-proc-default-guess
   "Predicate matching against diagnostic text to detect its type.
 Takes a single argument, the diagnostic's text and should return
-a value suitable for indexing
-`flymake-diagnostic-types-alist' (which see).  If the returned
-value is nil, a type of `:error' is assumed.  For some backward
-compatibility, if a non-nil value is returned that doesn't
-index that alist, a type of `:warning' is assumed.
+a diagnostic symbol naming a type.  If the returned value is nil,
+a type of `:error' is assumed.  For some backward compatibility,
+if a non-nil value is returned that doesn't name a type,
+`:warning' is assumed.
 
 Instead of a function, it can also be a string, a regular
 expression.  A match indicates `:warning' type, otherwise
@@ -516,8 +515,8 @@ Create parent directories as needed."
                       :error))
                    ((functionp pred)
                     (let ((probe (funcall pred message)))
-                      (cond ((assoc-default probe
-                                            flymake-diagnostic-types-alist)
+                      (cond ((and (symbolp probe)
+                                  (get probe 'flymake-category))
                              probe)
                             (probe
                              :warning)
@@ -793,43 +792,43 @@ can also be executed interactively independently of
         (flymake-proc--clear-buildfile-cache)
         (flymake-proc--clear-project-include-dirs-cache)
 
-        (let* ((cleanup-f (flymake-proc--get-cleanup-function buffer-file-name))
-               (cmd-and-args (funcall init-f))
-               (cmd          (nth 0 cmd-and-args))
-               (args         (nth 1 cmd-and-args))
-               (dir          (nth 2 cmd-and-args))
-               (success nil))
+        (let ((cleanup-f (flymake-proc--get-cleanup-function buffer-file-name))
+              (success nil))
           (unwind-protect
-              (cond
-               ((not cmd-and-args)
-                (flymake-log 1 "init function %s for %s failed, cleaning up"
-                             init-f buffer-file-name))
-               (t
-                (setq proc
-                      (let ((default-directory (or dir default-directory)))
-                        (when dir
-                          (flymake-log 3 "starting process on dir %s" dir))
-                        (make-process
-                         :name "flymake-proc"
-                         :buffer (current-buffer)
-                         :command (cons cmd args)
-                         :noquery t
-                         :filter
-                         (lambda (proc string)
-                           (let ((flymake-proc--report-fn report-fn))
-                             (flymake-proc--process-filter proc string)))
-                         :sentinel
-                         (lambda (proc event)
-                           (let ((flymake-proc--report-fn report-fn))
-                             (flymake-proc--process-sentinel proc event))))))
-                (process-put proc 'flymake-proc--output-buffer
-                             (generate-new-buffer
-                              (format " *flymake output for %s*" (current-buffer))))
-                (setq flymake-proc--current-process proc)
-                (flymake-log 2 "started process %d, command=%s, dir=%s"
-                             (process-id proc) (process-command proc)
-                             default-directory)
-                (setq success t)))
+              (let* ((cmd-and-args (funcall init-f))
+                     (cmd          (nth 0 cmd-and-args))
+                     (args         (nth 1 cmd-and-args))
+                     (dir          (nth 2 cmd-and-args)))
+                (cond
+                 ((not cmd-and-args)
+                  (flymake-log 1 "init function %s for %s failed, cleaning up"
+                               init-f buffer-file-name))
+                 (t
+                  (setq proc
+                        (let ((default-directory (or dir default-directory)))
+                          (when dir
+                            (flymake-log 3 "starting process on dir %s" dir))
+                          (make-process
+                           :name "flymake-proc"
+                           :buffer (current-buffer)
+                           :command (cons cmd args)
+                           :noquery t
+                           :filter
+                           (lambda (proc string)
+                             (let ((flymake-proc--report-fn report-fn))
+                               (flymake-proc--process-filter proc string)))
+                           :sentinel
+                           (lambda (proc event)
+                             (let ((flymake-proc--report-fn report-fn))
+                               (flymake-proc--process-sentinel proc event))))))
+                  (process-put proc 'flymake-proc--output-buffer
+                               (generate-new-buffer
+                                (format " *flymake output for %s*" (current-buffer))))
+                  (setq flymake-proc--current-process proc)
+                  (flymake-log 2 "started process %d, command=%s, dir=%s"
+                               (process-id proc) (process-command proc)
+                               default-directory)
+                  (setq success t))))
             (unless success
               (funcall cleanup-f))))))))
 
@@ -875,7 +874,7 @@ can also be executed interactively independently of
   (unless (stringp file-name)
     (error "Invalid file-name"))
 
-  (let* ((dir       (file-name-directory file-name))
+  (let* ((dir       (file-name-directory (file-name-unquote file-name)))
          ;; Not sure what this slash-pos is all about, but I guess it's just
          ;; trying to remove the leading / of absolute file names.
 	 (slash-pos (string-match "/" dir))
@@ -888,7 +887,7 @@ can also be executed interactively independently of
 (defun flymake-proc--delete-temp-directory (dir-name)
   "Attempt to delete temp dir created by `flymake-proc-create-temp-with-folder-structure', do not fail on error."
   (let* ((temp-dir    temporary-file-directory)
-	 (suffix      (substring dir-name (1+ (length temp-dir)))))
+	 (suffix      (substring dir-name (1+ (length (directory-file-name temp-dir))))))
 
     (while (> (length suffix) 0)
       (setq suffix (directory-file-name suffix))
@@ -1134,7 +1133,7 @@ Use CREATE-TEMP-F for creating temp copy."
   (let* ((temp-master-file-name (flymake-proc--init-create-temp-source-and-master-buffer-copy
                                  'flymake-proc-get-include-dirs-dot 'flymake-proc-create-temp-inplace
 				 '("\\.tex\\'")
-				 "[ \t]*\\in\\(?:put\\|clude\\)[ \t]*{\\(.*%s\\)}")))
+				 "[ \t]*in\\(?:put\\|clude\\)[ \t]*{\\(.*%s\\)}")))
     (when temp-master-file-name
       (flymake-proc--get-tex-args temp-master-file-name))))
 

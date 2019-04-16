@@ -148,7 +148,17 @@ CC Mode
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @comment Define an index for syntactic symbols.
+@c Version for Texinfo <= 4.x
+@ifclear txicommandconditionals
+@ifnottex @c In texi2dvi, the @defindex would create an empty cc-mode.ss
+          @c For Info, unlike tex, @syncodeindex needs a matching @defindex.
 @defindex ss
+@end ifnottex
+@end ifclear
+@c Version for Texinfo >= 5.x
+@ifset txicommandconditionals
+@defindex ss
+@end ifset
 
 @comment Combine key, syntactic symbol and concept indices into one.
 @syncodeindex ss cp
@@ -157,7 +167,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2282,6 +2292,8 @@ method, ``Top-level commands or the customization interface''.
 
 If you make conflicting settings in several of these ways, the way
 that takes precedence is the one that appears latest in this list:
+@c Version of list for Texinfo <= 4.x
+@ifclear txicommandconditionals
 @itemize @w{}
 @item
 @table @asis
@@ -2292,6 +2304,18 @@ that takes precedence is the one that appears latest in this list:
 @itemx File Local Variable setting
 @end table
 @end itemize
+@end ifclear
+@c Version of list for Texinfo >= 5.x
+@ifset txicommandconditionals
+@itemize @w{}
+@item Style
+@item File Style@footnote{In earlier versions of @ccmode{}, a File Style setting took precedence over any other setting apart from a File Local Variable setting.}
+@item Top-level command or ``customization interface''
+@item Hook
+@item File Local Variable setting
+@end itemize
+@end ifset
+
 
 Here is a summary of the different ways of writing your configuration
 settings:
@@ -2548,7 +2572,7 @@ Basics}).
 @item
 The style variable @code{c-offsets-alist} (@pxref{c-offsets-alist}) is
 an association list with an element for each syntactic symbol.  It's
-handled a little differently from the other style variables.  It's
+handled a little differently from the other style variables.  Its
 default global binding is the empty list @code{nil}, rather than
 @code{set-from-style}.  Before the style system is initialized, you
 can add individual elements to @code{c-offsets-alist} by calling
@@ -5286,7 +5310,7 @@ The simplest and most used kind of ``offset'' setting in
 @defopt c-basic-offset
 @vindex basic-offset @r{(c-)}
 This style variable holds the basic offset between indentation levels.
-It's factory default is 4, but all the built-in styles set it
+Its factory default is 4, but all the built-in styles set it
 themselves, to some value between 2 (for @code{gnu} style) and 8 (for
 @code{bsd}, @code{linux}, and @code{python} styles).
 @end defopt
@@ -5614,9 +5638,9 @@ any problems writing custom line-up functions for AWK mode.
 
 The calling convention for line-up functions is described fully in
 @ref{Custom Line-Up}.  Roughly speaking, the return value is either an
-offset itself (such as @code{+} or @code{[0]}) or it's @code{nil},
-meaning ``this function is inappropriate in this case; try a
-different one''.  @xref{c-offsets-alist}.
+offset itself (such as @code{+} or @code{[0]}), another line-up
+function, or it's @code{nil}, meaning ``this function is inappropriate
+in this case - try a different one''.  @xref{c-offsets-alist}.
 
 The subsections below describe all the standard line-up functions,
 categorized by the sort of token the lining-up centers around.  For
@@ -5967,6 +5991,125 @@ brace block.
 @workswith @code{defun-block-intro}, @code{brace-list-intro},
 @code{statement-block-intro}, @code{statement-case-intro},
 @code{arglist-intro}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-2nd-brace-entry-in-arglist
+@findex lineup-2nd-brace-entry-in-arglist (c-)
+Line up the second entry of a brace block under the first, when the
+first line is also contained in an arglist or an enclosing brace
+@emph{on that line}.
+
+I.e. handle something like the following:
+
+@example
+@group
+set_line (line_t @{point_t@{0.4, 0.2@},
+                  point_t@{0.2, 0.5@},       @hereFn{brace-list-intro}
+                  .....@});
+         ^ enclosing parenthesis.
+@end group
+@end example
+                      
+
+The middle line of that example will have a syntactic context with
+three syntactic symbols, @code{arglist-cont-nonempty},
+@code{brace-list-intro}, and @code{brace-list-entry} (@pxref{Brace
+List Symbols}).
+
+This function is intended for use in a list.  If the construct being
+analyzed isn't like the preceding, the function returns nil.
+Otherwise it returns the function
+@code{c-lineup-arglist-intro-after-paren}, which the caller then uses
+to perform indentation.
+
+@workswith{} @code{brace-list-intro}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-class-decl-init-+
+@findex lineup-class-decl-init-+ (c-)
+Line up the second entry of a class (etc.) initializer
+@code{c-basic-offset} characters in from the identifier when:
+@enumerate
+@item
+The type is a class, struct, union, etc. (but not an enum);
+@item
+There is a brace block in the type declaration, specifying it; and
+@item
+The first element of the initializer is on the same line as its
+opening brace.
+@end enumerate
+
+I.e. we have a construct like this:
+
+@example
+@group
+struct STR @{
+    int i; float f;
+@} str_1 = @{1, 1.7@},
+    str_2 = @{2,
+         3.1          @hereFn{brace-list-intro}
+    @};
+    @sssTBasicOffset{}
+@end group
+@end example
+        
+
+Note that the syntactic context of the @code{brace-list-intro} line
+also has a syntactic element with the symbol @code{brace-list-entry}
+(@pxref{Brace List Symbols}).
+
+This function is intended for use in a list.  If the above structure
+isn't present, the function returns nil, allowing a different offset
+specification to indent the line.
+
+@workswith{} @code{brace-list-intro}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-class-decl-init-after-brace
+@findex lineup-class-decl-init-after-brace (c-)
+Line up the second entry of a class (etc.) initializer after its
+opening brace when:
+@enumerate
+@item
+The type is a class, struct, union, etc. (but not an enum);
+@item
+There is a brace block in the type declaration, specifying it; and
+@item
+The first element of the initializer is on the same line as its
+opening brace.
+@end enumerate
+
+I.e. we have a construct like this:
+
+@example
+@group
+struct STR @{
+    int i; float f;
+@} str_1 = @{1, 1.7@},
+    str_2 = @{2,
+             3.1      @hereFn{brace-list-intro}
+    @};
+@end group
+@end example
+        
+
+Note that the syntactic context of the @code{brace-list-intro} line
+also has a syntactic element with the symbol @code{brace-list-entry}
+(@pxref{Brace List Symbols}).  Also note that this function works by
+returning the symbol @code{c-lineup-arglist-intro-after-paren}, which
+the caller then uses to perform the indentation.
+
+This function is intended for use in a list.  If the above structure
+isn't present, the function returns nil, allowing a different offset
+specification to indent the line.
+
+@workswith{} @code{brace-list-intro}.
 @end defun
 
 @comment ------------------------------------------------------------

@@ -1,6 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -241,7 +241,7 @@ superset of iso-8859-1."
 	(widget-convert
 	 'list
 	 `(set :inline t :format "%v" ,@(nreverse rest))
-	 `(repeat :inline t :tag "Other options"
+	 '(repeat :inline t :tag "Other options"
 		  (cons :format "%v"
 			(symbol :size 3 :format "(%v")
 			(symbol :size 3 :format " . %v)\n")))))))
@@ -827,7 +827,7 @@ decompressed data.  The buffer's multibyteness must be turned off."
 					    (insert-file-contents err-file)
 					    (buffer-string)
 					  (erase-buffer))
-                                        t)
+					nil t)
 				       " ")
 			    "\n")
 		    (setq err-msg

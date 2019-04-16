@@ -8,7 +8,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1995--1997, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--1997, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -4330,7 +4330,7 @@ Same as @code{tabstop}, but affects all buffers.
 @cindex auto fill
 @cindex word wrap
 wrapmargin: In append mode Vi automatically
-puts a <lf> whenever there is a <sp> or <ht>
+puts an <lf> whenever there is an <sp> or <ht>
 within <wm> columns from the right margin.
 @item wrapscan
 @itemx ws

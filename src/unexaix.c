@@ -1,5 +1,5 @@
 /* Dump an executable image.
-   Copyright (C) 1985-1988, 1999, 2001-2018 Free Software Foundation,
+   Copyright (C) 1985-1988, 1999, 2001-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.

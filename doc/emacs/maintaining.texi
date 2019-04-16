@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual., Abbrevs, This is part of the Emacs manual., Top
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining
@@ -831,6 +831,14 @@ working tree containing the current VC fileset).  If you invoke this
 command from a Dired buffer, it applies to the working tree containing
 the directory.
 
+@findex vc-root-version-diff
+@kindex C-u C-x v D
+  To compare two arbitrary revisions of the whole trees, call
+@code{vc-root-diff} with a prefix argument: @kbd{C-u C-x v D}.  This
+prompts for two revision IDs (@pxref{VCS Concepts}), and displays a
+diff between those versions of the entire version-controlled directory
+trees (RCS, SCCS, CVS, and SRC do not support this feature).
+
 @vindex vc-diff-switches
   You can customize the @command{diff} options that @kbd{C-x v =} and
 @kbd{C-x v D} use for generating diffs.  The options used are taken
@@ -963,6 +971,7 @@ and the maximum number of revisions to display.
 Directory Mode}) or a Dired buffer (@pxref{Dired}), it applies to the
 file listed on the current line.
 
+@kindex C-x v L
 @findex vc-print-root-log
 @findex log-view-toggle-entry-display
   @kbd{C-x v L} (@code{vc-print-root-log}) displays a
@@ -1655,10 +1664,20 @@ not just to the next change log entry.  You can also use
 log files into a buffer in Change Log Mode, preserving the date
 ordering of entries.
 
+@vindex add-log-dont-create-changelog-file
   Version control systems are another way to keep track of changes in
-your program and keep a change log.  In the VC log buffer, typing
-@kbd{C-c C-a} (@code{log-edit-insert-changelog}) inserts the relevant
-change log entry, if one exists.  @xref{Log Buffer}.
+your program and keep a change log.  Many projects that use a VCS don't
+keep a separate versioned change log file nowadays, so you may wish to
+avoid having such a file in the repository.  If the value of
+@code{add-log-dont-create-changelog-file} is non-@code{nil}, commands
+like @kbd{C-x 4 a} (@code{add-change-log-entry-other-window}) will
+record changes in a suitably named temporary buffer instead of a file,
+if such a file does not already exist.
+
+Whether you have a change log file or use a temporary buffer for
+change logs, you can type @kbd{C-c C-a}
+(@code{log-edit-insert-changelog}) in the VC Log buffer to insert the
+relevant change log entries, if they exist.  @xref{Log Buffer}.
 
 @node Format of ChangeLog
 @subsection Format of ChangeLog
@@ -1813,6 +1832,8 @@ Find definitions of identifier, but display it in another window
 @item C-x 5 .@: @key{RET}
 Find definition of identifier, and display it in a new frame
 (@code{xref-find-definitions-other-frame}).
+@item M-x xref-find-definitions-at-mouse
+Find definition of identifier at mouse click.
 @item M-,
 Go back to where you previously invoked @kbd{M-.} and friends
 (@code{xref-pop-marker-stack}).
@@ -1852,6 +1873,11 @@ buffer in another window, and one that makes a new frame for it.  The
 former is @w{@kbd{C-x 4 .}}
 (@code{xref-find-definitions-other-window}), and the latter is
 @w{@kbd{C-x 5 .}}  (@code{xref-find-definitions-other-frame}).
+
+  The command @code{xref-find-definitions-at-mouse} works like
+@code{xref-find-definitions}, but it looks for the identifier name at
+or around the place of a mouse event.  This command is intended to be
+bound to a mouse event, such as @kbd{C-M-mouse-1}, for example.
 
 @findex xref-find-apropos
 @kindex C-M-.
@@ -1964,15 +1990,20 @@ table.
 @item M-x tags-query-replace @key{RET} @var{regexp} @key{RET} @var{replacement} @key{RET}
 Perform a @code{query-replace-regexp} on each file in the selected tags table.
 
-@item M-x tags-loop-continue
+@item M-x fileloop-continue
 Restart one of the last 2 commands above, from the current location of point.
 @end table
 
 @kindex M-?
 @findex xref-find-references
-  @kbd{M-?} finds all the references for the identifier at point.  If
-there's no identifier at point, or when invoked with a prefix
-argument, the command prompts for the identifier, with completion.  It
+  @kbd{M-?} finds all the references for the identifier at point,
+prompting for the identifier as needed, with completion.  Depending on
+the current backend (@pxref{Xref}), the command may prompt even if it
+finds a valid identifier at point.  When invoked with a prefix
+argument, it always prompts for the identifier.  (If you want it to
+prompt always, customize the value of the variable
+@code{xref-prompt-for-identifier} to @code{t}; or set it to @code{nil}
+to prompt only if there's no usable identifier at point.)  The command
 then presents the @file{*xref*} buffer with all the references to the
 identifier, showing the file name and the line where the identifier is
 referenced.  The XREF mode commands are available in this buffer, see
@@ -1995,9 +2026,9 @@ you can follow its progress.  As soon as it finds an occurrence,
 @code{tags-search} returns.  This command requires tags tables to be
 available (@pxref{Tags Tables}).
 
-@findex tags-loop-continue
+@findex fileloop-continue
   Having found one match with @code{tags-search}, you probably want to
-find all the rest.  @kbd{M-x tags-loop-continue} resumes the
+find all the rest.  @kbd{M-x fileloop-continue} resumes the
 @code{tags-search}, finding one more match.  This searches the rest of
 the current buffer, followed by the remaining files of the tags table.
 
@@ -2020,10 +2051,10 @@ default is to use the same setting as the value of
 single invocation of @kbd{M-x tags-query-replace}.  But often it is
 useful to exit temporarily, which you can do with any input event that
 has no special query replace meaning.  You can resume the query
-replace subsequently by typing @kbd{M-x tags-loop-continue}; this
+replace subsequently by typing @kbd{M-x fileloop-continue}; this
 command resumes the last tags search or replace command that you did.
 For instance, to skip the rest of the current file, you can type
-@w{@kbd{M-> M-x tags-loop-continue}}.
+@w{@kbd{M-> M-x fileloop-continue}}.
 
   Note that the commands described above carry out much broader
 searches than the @code{xref-find-definitions} family.  The
@@ -2055,7 +2086,7 @@ Display a list of all known identifiers matching @var{regexp}.
 Display a list of the identifiers defined in the program file
 @var{file}.
 
-@item M-x next-file
+@item M-x tags-next-file
 Visit files recorded in the selected tags table.
 @end table
 
@@ -2094,8 +2125,8 @@ variable @code{tags-apropos-additional-actions}; see its documentation
 for details.
 @end ignore
 
-@findex next-file
-  @kbd{M-x next-file} visits files covered by the selected tags table.
+@findex tags-next-file
+  @kbd{M-x tags-next-file} visits files covered by the selected tags table.
 The first time it is called, it visits the first file covered by the
 table.  Each subsequent call visits the next covered file, unless a
 prefix argument is supplied, in which case it returns to the first

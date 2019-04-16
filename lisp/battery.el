@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997-1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -175,9 +175,6 @@ The text being displayed in the echo area is controlled by the variables
 ;;;###autoload
 (define-minor-mode display-battery-mode
   "Toggle battery status display in mode line (Display Battery mode).
-With a prefix argument ARG, enable Display Battery mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 The text displayed in the mode line is controlled by
 `battery-mode-line-format' and `battery-status-function'.
@@ -378,12 +375,12 @@ The following %-sequences are provided:
 			    last-full-capacity design-capacity))
     (and capacity rate
 	 (setq minutes (if (zerop rate) 0
-			 (floor (* (/ (float (if (string= charging-state
-							  "charging")
-						 (- full-capacity capacity)
-					       capacity))
-				      rate)
-				   60)))
+			 (floor (* (if (string= charging-state
+						"charging")
+				       (- full-capacity capacity)
+				     capacity)
+				   60)
+				rate))
 	       hours (/ minutes 60)))
     (list (cons ?c (or (and capacity (number-to-string capacity)) "N/A"))
 	  (cons ?L (or (battery-search-for-one-match-in-files
@@ -417,8 +414,7 @@ The following %-sequences are provided:
 	  (cons ?p (or (and full-capacity capacity
 			    (> full-capacity 0)
 			    (number-to-string
-			     (floor (/ capacity
-				       (/ (float full-capacity) 100)))))
+			     (floor (* 100 capacity) full-capacity)))
 		       "N/A")))))
 
 
@@ -474,9 +470,9 @@ The following %-sequences are provided:
                  "POWER_SUPPLY_\\(CURRENT\\|POWER\\)_NOW=\\([0-9]*\\)$"
                  nil t)
 	    (cl-incf power-now
-		     (* (float (string-to-number (match-string 2)))
+		     (* (string-to-number (match-string 2))
 			(if (eq (char-after (match-beginning 1)) ?C)
-			    voltage-now 1.0))))
+			    voltage-now 1))))
 	  (goto-char (point-min))
 	  (when (re-search-forward "POWER_SUPPLY_TEMP=\\([0-9]*\\)$" nil t)
 	    (setq temperature (match-string 1)))
@@ -588,9 +584,7 @@ The following %-sequences are provided:
     (when seconds
       (setq minutes (/ seconds 60)
             hours (/ minutes 60)
-            remaining-time
-            (format "%d:%02d" (truncate hours)
-                    (- (truncate minutes) (* 60 (truncate hours))))))
+	    remaining-time (format "%d:%02d" hours (mod minutes 60))))
     (list (cons ?c (or (and energy
                             (number-to-string (round (* 1000 energy))))
                        "N/A"))
@@ -623,46 +617,71 @@ The following %-sequences are provided:
 %h Remaining battery charge time in hours
 %t Remaining battery charge time in the form `h:min'"
   (let* ((os-name (car (split-string
-			(shell-command-to-string "/usr/bin/uname"))))
-	 (apm-flag (if (equal os-name "OpenBSD") "P" "s"))
-	 (apm-cmd (concat "/usr/sbin/apm -ablm" apm-flag))
-	 (apm-output (split-string (shell-command-to-string apm-cmd)))
-	 ;; Battery status
-	 (battery-status
-	  (let ((stat (string-to-number (nth 0 apm-output))))
-	    (cond ((eq stat 0) '("high" . ""))
-		  ((eq stat 1) '("low" . "-"))
-		  ((eq stat 2) '("critical" . "!"))
-		  ((eq stat 3) '("charging" . "+"))
-		  ((eq stat 4) '("absent" . nil)))))
-	 ;; Battery percentage
-	 (battery-percentage (nth 1 apm-output))
-	 ;; Battery life
-	 (battery-life (nth 2 apm-output))
-	 ;; AC status
-	 (line-status
-	  (let ((ac (string-to-number (nth 3 apm-output))))
-	    (cond ((eq ac 0) "disconnected")
-		  ((eq ac 1) "connected")
-		  ((eq ac 2) "backup power"))))
-	 ;; Advanced power savings mode
-	 (apm-mode
-	  (let ((apm (string-to-number (nth 4 apm-output))))
-	    (if (string= os-name "OpenBSD")
-		(cond ((eq apm 0) "manual")
-		      ((eq apm 1) "automatic")
-		      ((eq apm 2) "cool running"))
-	      (if (eq apm 1) "on" "off"))))
+                        ;; FIXME: Can't we use something like `system-type'?
+                        (shell-command-to-string "/usr/bin/uname"))))
+         (apm-flag (pcase os-name
+                     ("OpenBSD" "mP")
+                     ("FreeBSD" "st")
+                     (_         "ms")))
+         (apm-cmd (concat "/usr/sbin/apm -abl" apm-flag))
+         (apm-output (split-string (shell-command-to-string apm-cmd)))
+         (indices (pcase os-name
+                    ;; FreeBSD's manpage documents that multiple
+                    ;; outputs are ordered by "the order in which
+                    ;; they're listed in the manpage", which is alphabetical
+                    ;; and is also the order in which we pass them.
+                    ("FreeBSD" '((ac . 0)
+                                 (battery-status . 1)
+                                 (battery-percent . 2)
+                                 (apm-mode . 3)
+                                 (battery-life . 4)))
+                    ;; For NetBSD and OpenBSD, the manpage doesn't document
+                    ;; the order.  The previous code used this order, so let's
+                    ;; assume it's right.
+                    (_         '((ac . 3)
+                                 (battery-status . 0)
+                                 (battery-percent . 1)
+                                 (apm-mode . 4)
+                                 (battery-life . 2)))))
+         ;; Battery status
+         (battery-status
+          (pcase (string-to-number
+                  (nth (alist-get 'battery-status indices) apm-output))
+            (0 '("high" . ""))
+            (1 '("low" . "-"))
+            (2 '("critical" . "!"))
+            (3 '("charging" . "+"))
+            (4 '("absent" . nil))))
+         ;; Battery percentage
+         (battery-percentage
+          (nth (alist-get 'battery-percent indices) apm-output))
+         ;; Battery life
+         (battery-life (nth (alist-get 'battery-life indices) apm-output))
+         ;; AC status
+         (line-status
+          (pcase (string-to-number (nth (alist-get 'ac indices) apm-output))
+            (0 "disconnected")
+            (1 "connected")
+            (2 "backup power")))
+         ;; Advanced power savings mode
+         (apm-mode
+          (let ((apm (string-to-number
+                      (nth (alist-get 'apm-mode indices) apm-output))))
+            (if (string= os-name "OpenBSD")
+                (pcase apm
+                  (0 "manual")
+                  (1 "automatic")
+		  (2 "cool running"))
+	      (if (eql apm 1) "on" "off"))))
 	 seconds minutes hours remaining-time)
     (unless (member battery-life '("unknown" "-1"))
       (if (member os-name '("OpenBSD" "NetBSD"))
 	  (setq minutes (string-to-number battery-life)
 		seconds (* 60 minutes))
 	(setq seconds (string-to-number battery-life)
-	      minutes (truncate (/ seconds 60))))
-      (setq hours (truncate (/ minutes 60))
-	    remaining-time (format "%d:%02d" hours
-				   (- minutes (* 60 hours)))))
+	      minutes (truncate seconds 60)))
+      (setq hours (truncate minutes 60)
+	    remaining-time (format "%d:%02d" hours (mod minutes 60))))
     (list (cons ?L (or line-status "N/A"))
 	  (cons ?B (or (car battery-status) "N/A"))
 	  (cons ?b (or (cdr battery-status) "N/A"))

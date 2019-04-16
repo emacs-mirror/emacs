@@ -1,7 +1,7 @@
-# serial 10
+# serial 11
 # See if we need to provide fdopendir.
 
-dnl Copyright (C) 2009-2018 Free Software Foundation, Inc.
+dnl Copyright (C) 2009-2019 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -45,10 +45,12 @@ DIR *fdopendir (int);
          [gl_cv_func_fdopendir_works=yes],
          [gl_cv_func_fdopendir_works=no],
          [case "$host_os" in
-                    # Guess yes on glibc systems.
-            *-gnu*) gl_cv_func_fdopendir_works="guessing yes" ;;
-                    # If we don't know, assume the worst.
-            *)      gl_cv_func_fdopendir_works="guessing no" ;;
+                     # Guess yes on glibc systems.
+            *-gnu*)  gl_cv_func_fdopendir_works="guessing yes" ;;
+                     # Guess yes on musl systems.
+            *-musl*) gl_cv_func_fdopendir_works="guessing yes" ;;
+                     # If we don't know, assume the worst.
+            *)       gl_cv_func_fdopendir_works="guessing no" ;;
           esac
          ])])
     case "$gl_cv_func_fdopendir_works" in

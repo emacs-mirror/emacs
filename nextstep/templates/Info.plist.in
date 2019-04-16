@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-Copyright (C) 2008-2018 Free Software Foundation, Inc.
+Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -675,5 +675,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 	</array>
 	<key>NSAppleScriptEnabled</key>
 	<string>YES</string>
+        <key>NSAppleEventsUsageDescription</key>
+        <string>Emacs requires permission to send AppleEvents to other applications.</string>
 </dict>
 </plist>

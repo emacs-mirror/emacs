@@ -1,6 +1,6 @@
 ;;; iso-transl.el --- keyboard input for ISO 10646 chars -*- coding: utf-8 -*-
 
-;; Copyright (C) 1987, 1993-1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1987, 1993-1999, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Howard Gayle
@@ -234,18 +234,18 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 ;; Language-specific translation lists.
 (defvar iso-transl-language-alist
   '(("Esperanto"
-     ("C"  . [?Æ])
-     ("G"  . [?Ø])
-     ("H"  . [?¦])
-     ("J"  . [?¬])
-     ("S"  . [?Þ])
-     ("U"  . [?Ý])
-     ("c"  . [?æ])
-     ("g"  . [?ø])
-     ("h"  . [?¶])
-     ("j"  . [?¼])
-     ("s"  . [?þ])
-     ("u"  . [?ý]))
+     ("C"  . [?Ĉ])
+     ("G"  . [?Ĝ])
+     ("H"  . [?Ĥ])
+     ("J"  . [?Ĵ])
+     ("S"  . [?Ŝ])
+     ("U"  . [?Ŭ])
+     ("c"  . [?ĉ])
+     ("g"  . [?ĝ])
+     ("h"  . [?ĥ])
+     ("j"  . [?ĵ])
+     ("s"  . [?ŝ])
+     ("u"  . [?ŭ]))
     ("French"
      ("C"  . [?Ç])
      ("c"  . [?ç]))

@@ -1,6 +1,6 @@
 ;;; epg-tests.el --- Test suite for epg.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,8 +30,28 @@
   (expand-file-name "data/epg" (getenv "EMACS_TEST_DIRECTORY"))
   "Directory containing epg test data.")
 
-(defun epg-tests-find-usable-gpg-configuration (&optional _require-passphrase)
-  (epg-find-configuration 'OpenPGP 'no-cache))
+(defconst epg-tests--config-program-alist
+  ;; The default `epg-config--program-alist' requires gpg2 2.1 or
+  ;; greater due to some practical problems with pinentry.  But most
+  ;; tests here work fine with 2.0 as well.
+  (let ((prog-alist (copy-tree epg-config--program-alist)))
+    (setf (alist-get "gpg2"
+                     (alist-get 'OpenPGP prog-alist)
+                     nil nil #'equal)
+          "2.0")
+    prog-alist))
+
+(defun epg-tests-find-usable-gpg-configuration
+    (&optional require-passphrase require-public-key)
+  ;; Clear config cache because we may be using a different
+  ;; program-alist.  We do want to update the cache, so that
+  ;; `epg-make-context' can use our result.
+  (setq epg--configurations nil)
+  (epg-find-configuration 'OpenPGP nil
+                          ;; The symmetric operations fail on Hydra
+                          ;; with gpg 2.0.
+                          (if (or (not require-passphrase) require-public-key)
+                              epg-tests--config-program-alist)))
 
 (defun epg-tests-passphrase-callback (_c _k _d)
   ;; Need to create a copy here, since the string will be wiped out
@@ -51,16 +71,18 @@
 		  (format "GNUPGHOME=%s" epg-tests-home-directory))
 	    process-environment)))
      (unwind-protect
-	 (let ((context (epg-make-context 'OpenPGP)))
+         ;; GNUPGHOME is needed to find a usable gpg, so we can't
+         ;; check whether to skip any earlier (Bug#23561).
+         (let ((epg-config (or (epg-tests-find-usable-gpg-configuration
+                                ,require-passphrase ,require-public-key)
+                               (ert-skip "No usable gpg config")))
+               (context (epg-make-context 'OpenPGP)))
            (setf (epg-context-program context)
-                 (alist-get 'program
-                            (epg-tests-find-usable-gpg-configuration
-                             ,(if require-passphrase
-                                  `'require-passphrase))))
+                 (alist-get 'program epg-config))
 	   (setf (epg-context-home-directory context)
 		 epg-tests-home-directory)
 	   ,(if require-passphrase
-		`(with-temp-file (expand-file-name
+		'(with-temp-file (expand-file-name
                                   "gpg-agent.conf" epg-tests-home-directory)
                    (insert "pinentry-program "
                            (expand-file-name "dummy-pinentry"
@@ -70,11 +92,11 @@
                     context
                     #'epg-tests-passphrase-callback)))
 	   ,(if require-public-key
-		`(epg-import-keys-from-file
+		'(epg-import-keys-from-file
 		  context
 		  (expand-file-name "pubkey.asc" epg-tests-data-directory)))
 	   ,(if require-secret-key
-		`(epg-import-keys-from-file
+		'(epg-import-keys-from-file
 		  context
 		  (expand-file-name "seckey.asc" epg-tests-data-directory)))
 	   (with-temp-buffer
@@ -85,8 +107,10 @@
 	 (delete-directory epg-tests-home-directory t)))))
 
 (ert-deftest epg-decrypt-1 ()
-  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
+  :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed) ; fixme
   (with-epg-tests (:require-passphrase t)
+    (with-temp-file (expand-file-name "gpg.conf" epg-tests-home-directory)
+      (insert "ignore-mdc-error"))
     (should (equal "test"
 		   (epg-decrypt-string epg-tests-context "\
 -----BEGIN PGP MESSAGE-----
@@ -97,14 +121,13 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
 -----END PGP MESSAGE-----")))))
 
 (ert-deftest epg-roundtrip-1 ()
-  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
+ :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed) ; fixme
   (with-epg-tests (:require-passphrase t)
     (let ((cipher (epg-encrypt-string epg-tests-context "symmetric" nil)))
       (should (equal "symmetric"
 		     (epg-decrypt-string epg-tests-context cipher))))))
 
 (ert-deftest epg-roundtrip-2 ()
-  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -115,7 +138,6 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
 		     (epg-decrypt-string epg-tests-context cipher))))))
 
 (ert-deftest epg-sign-verify-1 ()
-  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -129,7 +151,6 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
 (ert-deftest epg-sign-verify-2 ()
-  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -145,7 +166,6 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
 (ert-deftest epg-sign-verify-3 ()
-  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -160,7 +180,6 @@ jA0EAwMCE19JBLTvvmhgyRrGGglRbnKkK9PJG8fDwO5ccjysrR7IcdNcnA==
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
 (ert-deftest epg-import-1 ()
-  (skip-unless (epg-tests-find-usable-gpg-configuration 'require-passphrase))
   (with-epg-tests (:require-passphrase nil)
     (should (= 0 (length (epg-list-keys epg-tests-context))))
     (should (= 0 (length (epg-list-keys epg-tests-context nil t)))))

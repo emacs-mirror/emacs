@@ -1,6 +1,6 @@
 /* Common functions for the Microsoft Windows and Cygwin builds.
 
-Copyright (C) 2018 Free Software Foundation, Inc.
+Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -23,6 +23,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 #include "w32common.h"
+
+static Lisp_Object ATTRIBUTE_FORMAT_PRINTF (1, 2)
+format_string (char const *format, ...)
+{
+  va_list args;
+  va_start (args, format);
+  Lisp_Object str = vformat_string (format, args);
+  va_end (args);
+  return str;
+}
 
 DEFUN ("w32-battery-status", Fw32_battery_status, Sw32_battery_status, 0, 0, 0,
        doc: /* Get power status information from Windows system.
@@ -92,43 +102,27 @@ The following %-sequences are provided:
       if (system_status.BatteryLifePercent > 100)
 	load_percentage = build_string ("N/A");
       else
-	{
-	  char buffer[16];
-	  snprintf (buffer, 16, "%d", system_status.BatteryLifePercent);
-	  load_percentage = build_string (buffer);
-	}
+	load_percentage = format_string ("%d", system_status.BatteryLifePercent);
 
       if (seconds_left < 0)
 	seconds = minutes = hours = remain = build_string ("N/A");
       else
 	{
-	  long m;
-	  double h;
-	  char buffer[16];
-	  snprintf (buffer, 16, "%ld", seconds_left);
-	  seconds = build_string (buffer);
-
-	  m = seconds_left / 60;
-	  snprintf (buffer, 16, "%ld", m);
-	  minutes = build_string (buffer);
-
-	  h = seconds_left / 3600.0;
-	  snprintf (buffer, 16, "%3.1f", h);
-	  hours = build_string (buffer);
-
-	  snprintf (buffer, 16, "%ld:%02ld", m / 60, m % 60);
-	  remain = build_string (buffer);
+	  long m = seconds_left / 60;
+	  seconds = format_string ("%ld", seconds_left);
+	  minutes = format_string ("%ld", m);
+	  hours = format_string ("%3.1f", seconds_left / 3600.0);
+	  remain = format_string ("%ld:%02ld", m / 60, m % 60);
 	}
 
-      status = listn (CONSTYPE_HEAP, 8,
-		      Fcons (make_number ('L'), line_status),
-		      Fcons (make_number ('B'), battery_status),
-		      Fcons (make_number ('b'), battery_status_symbol),
-		      Fcons (make_number ('p'), load_percentage),
-		      Fcons (make_number ('s'), seconds),
-		      Fcons (make_number ('m'), minutes),
-		      Fcons (make_number ('h'), hours),
-		      Fcons (make_number ('t'), remain));
+      status =  list (Fcons (make_fixnum ('L'), line_status),
+		      Fcons (make_fixnum ('B'), battery_status),
+		      Fcons (make_fixnum ('b'), battery_status_symbol),
+		      Fcons (make_fixnum ('p'), load_percentage),
+		      Fcons (make_fixnum ('s'), seconds),
+		      Fcons (make_fixnum ('m'), minutes),
+		      Fcons (make_fixnum ('h'), hours),
+		      Fcons (make_fixnum ('t'), remain));
     }
   return status;
 }

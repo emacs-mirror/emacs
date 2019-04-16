@@ -1,6 +1,6 @@
 ;;; imenu-tests.el --- Test suite for imenu.
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO <yamato@redhat.com>
 ;; Keywords: tools convenience

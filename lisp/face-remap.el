@@ -1,6 +1,6 @@
 ;;; face-remap.el --- Functions for managing `face-remapping-alist'  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: faces, face remapping, display, user commands
@@ -229,9 +229,6 @@ Each positive or negative step scales the default face height by this amount."
 
 (define-minor-mode text-scale-mode
   "Minor mode for displaying buffer text in a larger/smaller font.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.
 
 The amount of scaling is determined by the variable
 `text-scale-mode-amount': one step scales the global default
@@ -387,10 +384,9 @@ plist, etc."
 ;;;###autoload
 (define-minor-mode buffer-face-mode
   "Minor mode for a buffer-specific default face.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil.  When enabled, the face specified by the
-variable `buffer-face-mode-face' is used to display the buffer text."
+
+When enabled, the face specified by the variable
+`buffer-face-mode-face' is used to display the buffer text."
   :lighter " BufFace"
   (when buffer-face-mode-remapping
     (face-remap-remove-relative buffer-face-mode-remapping))

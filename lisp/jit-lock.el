@@ -1,6 +1,6 @@
 ;;; jit-lock.el --- just-in-time fontification  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
@@ -266,6 +266,7 @@ If you need to debug code run from jit-lock, see `jit-lock-debug-mode'."
 
 (define-minor-mode jit-lock-debug-mode
   "Minor mode to help debug code run from jit-lock.
+
 When this minor mode is enabled, jit-lock runs as little code as possible
 during redisplay and moves the rest to a timer, where things
 like `debug-on-error' and Edebug can be used."

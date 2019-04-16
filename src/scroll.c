@@ -1,6 +1,6 @@
 /* Calculate what line insertion or deletion to do, and do it
 
-Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2018 Free Software
+Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -28,12 +28,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "termhooks.h"
 
-/* All costs measured in characters.
-   So no cost can exceed the area of a frame, measured in characters.
-   Let's hope this is never more than 1000000 characters.  */
-
-#define INFINITY 1000000
-
 struct matrix_elt
   {
     /* Cost of outputting through this line
@@ -47,13 +41,13 @@ struct matrix_elt
     int deletecost;
     /* Number of inserts so far in this run of inserts,
        for the cost in insertcost.  */
-    unsigned char insertcount;
+    int insertcount;
     /* Number of deletes so far in this run of deletes,
        for the cost in deletecost.  */
-    unsigned char deletecount;
+    int deletecount;
     /* Number of writes so far since the last insert
        or delete for the cost in writecost. */
-    unsigned char writecount;
+    int writecount;
   };
 
 static void do_direct_scrolling (struct frame *,
@@ -113,15 +107,13 @@ calculate_scrolling (struct frame *frame,
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * frame_total_lines);
-
-  if (baud_rate <= 0)
-    extra_cost = 1;
+  int extra_cost
+    = clip_to_bounds (1, baud_rate / (10 * 4) / frame_total_lines, INT_MAX / 2);
 
   /* initialize the top left corner of the matrix */
   matrix->writecost = 0;
-  matrix->insertcost = INFINITY;
-  matrix->deletecost = INFINITY;
+  matrix->insertcost = SCROLL_INFINITY;
+  matrix->deletecost = SCROLL_INFINITY;
   matrix->insertcount = 0;
   matrix->deletecount = 0;
 
@@ -132,8 +124,8 @@ calculate_scrolling (struct frame *frame,
       p = matrix + i * (window_size + 1);
       cost += draw_cost[i] + next_insert_cost[i] + extra_cost;
       p->insertcost = cost;
-      p->writecost = INFINITY;
-      p->deletecost = INFINITY;
+      p->writecost = SCROLL_INFINITY;
+      p->deletecost = SCROLL_INFINITY;
       p->insertcount = i;
       p->deletecount = 0;
     }
@@ -144,8 +136,8 @@ calculate_scrolling (struct frame *frame,
     {
       cost += next_delete_cost[j];
       matrix[j].deletecost = cost;
-      matrix[j].writecost = INFINITY;
-      matrix[j].insertcost = INFINITY;
+      matrix[j].writecost = SCROLL_INFINITY;
+      matrix[j].insertcost = SCROLL_INFINITY;
       matrix[j].deletecount = j;
       matrix[j].insertcount = 0;
     }
@@ -192,13 +184,13 @@ calculate_scrolling (struct frame *frame,
 	else
 	  {
 	    cost = p1->writecost + first_insert_cost[i];
-	    if ((int) p1->insertcount > i)
+	    if (p1->insertcount > i)
 	      emacs_abort ();
 	    cost1 = p1->insertcost + next_insert_cost[i - p1->insertcount];
 	  }
 	p->insertcost = min (cost, cost1) + draw_cost[i] + extra_cost;
 	p->insertcount = (cost < cost1) ? 1 : p1->insertcount + 1;
-	if ((int) p->insertcount > i)
+	if (p->insertcount > i)
 	  emacs_abort ();
 
 	/* Calculate the cost if we do a delete line after
@@ -452,10 +444,8 @@ calculate_direct_scrolling (struct frame *frame,
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * frame_total_lines);
-
-  if (baud_rate <= 0)
-    extra_cost = 1;
+  int extra_cost
+    = clip_to_bounds (1, baud_rate / (10 * 4) / frame_total_lines, INT_MAX / 2);
 
   /* Overhead of setting the scroll window, plus the extra
      cost of scrolling by a distance of one.  The extra cost is
@@ -465,8 +455,8 @@ calculate_direct_scrolling (struct frame *frame,
 
   /* initialize the top left corner of the matrix */
   matrix->writecost = 0;
-  matrix->insertcost = INFINITY;
-  matrix->deletecost = INFINITY;
+  matrix->insertcost = SCROLL_INFINITY;
+  matrix->deletecost = SCROLL_INFINITY;
   matrix->writecount = 0;
   matrix->insertcount = 0;
   matrix->deletecount = 0;
@@ -478,8 +468,8 @@ calculate_direct_scrolling (struct frame *frame,
       p = matrix + i * (window_size + 1);
       cost += draw_cost[i];
       p->insertcost = cost;
-      p->writecost = INFINITY;
-      p->deletecost = INFINITY;
+      p->writecost = SCROLL_INFINITY;
+      p->deletecost = SCROLL_INFINITY;
       p->insertcount = i;
       p->writecount = 0;
       p->deletecount = 0;
@@ -489,8 +479,8 @@ calculate_direct_scrolling (struct frame *frame,
   for (j = 1; j <= window_size; j++)
     {
       matrix[j].deletecost = 0;
-      matrix[j].writecost = INFINITY;
-      matrix[j].insertcost = INFINITY;
+      matrix[j].writecost = SCROLL_INFINITY;
+      matrix[j].insertcost = SCROLL_INFINITY;
       matrix[j].deletecount = j;
       matrix[j].writecount = 0;
       matrix[j].insertcount = 0;

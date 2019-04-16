@@ -1,6 +1,6 @@
 /* Functions for the NeXT/Open/GNUstep and macOS window system.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2018 Free Software
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2019 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -48,7 +48,6 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include <IOKit/graphics/IOGraphicsLib.h>
 #include "macfont.h"
 #endif
-
 
 #ifdef HAVE_NS
 
@@ -209,7 +208,7 @@ interpret_services_menu (NSMenu *menu, Lisp_Object prefix, Lisp_Object old)
           if (keys && [keys length] )
             {
               key = [keys characterAtIndex: 0];
-              res = make_number (key|super_modifier);
+              res = make_fixnum (key|super_modifier);
             }
           else
             {
@@ -363,7 +362,7 @@ x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
       if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
         return;
     }
-  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
+  else if (!STRINGP (oldval) && NILP (oldval) == NILP (arg))
     return;
 
   fset_icon_name (f, arg);
@@ -589,8 +588,8 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (TYPE_RANGED_INTEGERP (int, value))
-    nlines = XINT (value);
+  if (TYPE_RANGED_FIXNUMP (int, value))
+    nlines = XFIXNUM (value);
   else
     nlines = 0;
 
@@ -627,8 +626,8 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (RANGED_INTEGERP (0, value, INT_MAX))
-    nlines = XFASTINT (value);
+  if (RANGED_FIXNUMP (0, value, INT_MAX))
+    nlines = XFIXNAT (value);
   else
     nlines = 0;
 
@@ -686,7 +685,7 @@ x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldva
   int old_width = FRAME_INTERNAL_BORDER_WIDTH (f);
 
   CHECK_TYPE_RANGED_INTEGER (int, arg);
-  f->internal_border_width = XINT (arg);
+  f->internal_border_width = XFIXNUM (arg);
   if (FRAME_INTERNAL_BORDER_WIDTH (f) < 0)
     f->internal_border_width = 0;
 
@@ -884,10 +883,10 @@ x_icon (struct frame *f, Lisp_Object parms)
   icon_y = x_get_arg (dpyinfo, parms, Qicon_top, 0, 0,  RES_TYPE_NUMBER);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
-      CHECK_NUMBER (icon_x);
-      CHECK_NUMBER (icon_y);
-      f->output_data.ns->icon_top = XINT (icon_y);
-      f->output_data.ns->icon_left = XINT (icon_x);
+      CHECK_FIXNUM (icon_x);
+      CHECK_FIXNUM (icon_y);
+      f->output_data.ns->icon_top = XFIXNUM (icon_y);
+      f->output_data.ns->icon_left = XFIXNUM (icon_x);
     }
   else if (!EQ (icon_x, Qunbound) || !EQ (icon_y, Qunbound))
     error ("Both left and top icon corners of icon must be specified");
@@ -1086,7 +1085,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
-    CHECK_NUMBER (parent);
+    CHECK_FIXNUM (parent);
 
   /* make_frame_without_minibuffer can run Lisp code and garbage collect.  */
   /* No need to protect DISPLAY because that's not used after passing
@@ -1127,9 +1126,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   record_unwind_protect (unwind_create_frame, frame);
 
   f->output_data.ns->window_desc = desc_ctr++;
-  if (TYPE_RANGED_INTEGERP (Window, parent))
+  if (TYPE_RANGED_FIXNUMP (Window, parent))
     {
-      f->output_data.ns->parent_desc = XFASTINT (parent);
+      f->output_data.ns->parent_desc = XFIXNAT (parent);
       f->output_data.ns->explicit_parent = 1;
     }
   else
@@ -1170,7 +1169,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
     /* use for default font name */
     id font = [NSFont userFixedPitchFontOfSize: -1.0]; /* default */
     x_default_parameter (f, parms, Qfontsize,
-                                    make_number (0 /* (int)[font pointSize] */),
+                                    make_fixnum (0 /* (int)[font pointSize] */),
                                     "fontSize", "FontSize", RES_TYPE_NUMBER);
     // Remove ' Regular', not handled by backends.
     char *fontname = xstrdup ([[font displayName] UTF8String]);
@@ -1184,14 +1183,14 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   }
   unblock_input ();
 
-  x_default_parameter (f, parms, Qborder_width, make_number (0),
+  x_default_parameter (f, parms, Qborder_width, make_fixnum (0),
 		       "borderwidth", "BorderWidth", RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (2),
+  x_default_parameter (f, parms, Qinternal_border_width, make_fixnum (2),
                       "internalBorderWidth", "InternalBorderWidth",
                       RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qright_divider_width, make_number (0),
+  x_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
 		       NULL, NULL, RES_TYPE_NUMBER);
-  x_default_parameter (f, parms, Qbottom_divider_width, make_number (0),
+  x_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
 		       NULL, NULL, RES_TYPE_NUMBER);
 
   /* default vertical scrollbars on right on Mac */
@@ -1226,10 +1225,10 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
   /* Read comment about this code in corresponding place in xfns.c.  */
   tem = x_get_arg (dpyinfo, parms, Qmin_width, NULL, NULL, RES_TYPE_NUMBER);
-  if (NUMBERP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_width, tem);
   tem = x_get_arg (dpyinfo, parms, Qmin_height, NULL, NULL, RES_TYPE_NUMBER);
-  if (NUMBERP (tem))
+  if (FIXNUMP (tem))
     store_frame_param (f, Qmin_height, tem);
   adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
 		     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 5, 1,
@@ -1275,11 +1274,11 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
      variables; ignore them here.  */
   x_default_parameter (f, parms, Qmenu_bar_lines,
 		       NILP (Vmenu_bar_mode)
-		       ? make_number (0) : make_number (1),
+		       ? make_fixnum (0) : make_fixnum (1),
 		       NULL, NULL, RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qtool_bar_lines,
 		       NILP (Vtool_bar_mode)
-		       ? make_number (0) : make_number (1),
+		       ? make_fixnum (0) : make_fixnum (1),
 		       NULL, NULL, RES_TYPE_NUMBER);
 
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil, "bufferPredicate",
@@ -1291,7 +1290,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   window_prompting = x_figure_window_size (f, parms, true, &x_width, &x_height);
 
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
-  f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !EQ (tem, Qnil));
+  f->no_split = minibuffer_only || (!EQ (tem, Qunbound) && !NILP (tem));
 
   /* NOTE: on other terms, this is done in set_mouse_color, however this
      was not getting called under Nextstep.  */
@@ -1451,9 +1450,9 @@ Frames are listed from topmost (first) to bottommost (last).  */)
     {
       Lisp_Object frame;
 
-      /* Check against [win parentWindow] so that it doesn't match
-	 itself.  */
-      if (parent == nil || ns_window_is_ancestor (parent, [win parentWindow]))
+      /* Check against [win parentWindow] so that it doesn't match itself. */
+      if ([[win delegate] isKindOfClass:[EmacsView class]]
+          && (parent == nil || ns_window_is_ancestor (parent, [win parentWindow])))
         {
           XSETFRAME (frame, ((EmacsView *)[win delegate])->emacsframe);
           frames = Fcons(frame, frames);
@@ -1781,7 +1780,7 @@ DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
   (Lisp_Object terminal)
 {
   check_ns_display_info (terminal);
-  return make_number (1);
+  return make_fixnum (1);
 }
 
 
@@ -1791,7 +1790,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
 {
   struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
 
-  return make_number (x_display_pixel_height (dpyinfo) / (92.0/25.4));
+  return make_fixnum (x_display_pixel_height (dpyinfo) / (92.0/25.4));
 }
 
 
@@ -1801,7 +1800,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
 {
   struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
 
-  return make_number (x_display_pixel_width (dpyinfo) / (92.0/25.4));
+  return make_fixnum (x_display_pixel_width (dpyinfo) / (92.0/25.4));
 }
 
 
@@ -2135,7 +2134,7 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
 	      // coerce the result to the appropriate ObjC type
 	      desc = [returnDescriptor coerceToDescriptorType: typeUTF8Text];
 	      if (desc)
-		*result = make_number([desc int32Value]);
+		*result = make_fixnum([desc int32Value]);
             }
         }
     }
@@ -2362,7 +2361,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
 {
   struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
 
-  return make_number (x_display_pixel_width (dpyinfo));
+  return make_fixnum (x_display_pixel_width (dpyinfo));
 }
 
 
@@ -2373,7 +2372,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
 {
   struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
 
-  return make_number (x_display_pixel_height (dpyinfo));
+  return make_fixnum (x_display_pixel_height (dpyinfo));
 }
 
 #ifdef NS_IMPL_COCOA
@@ -2476,7 +2475,7 @@ ns_make_monitor_attribute_list (struct MonitorInfo *monitors,
                                 int primary_monitor,
                                 const char *source)
 {
-  Lisp_Object monitor_frames = Fmake_vector (make_number (n_monitors), Qnil);
+  Lisp_Object monitor_frames = make_nil_vector (n_monitors);
   Lisp_Object frame, rest;
   NSArray *screens = [NSScreen screens];
   int i;
@@ -2617,7 +2616,7 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
   (Lisp_Object terminal)
 {
   check_ns_display_info (terminal);
-  return make_number
+  return make_fixnum
     (NSBitsPerPixelFromDepth ([[[NSScreen screens] objectAtIndex:0] depth]));
 }
 
@@ -2629,7 +2628,7 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
 {
   struct ns_display_info *dpyinfo = check_ns_display_info (terminal);
   /* We force 24+ bit depths to 24-bit to prevent an overflow.  */
-  return make_number (1 << min (dpyinfo->n_planes, 24));
+  return make_fixnum (1 << min (dpyinfo->n_planes, 24));
 }
 
 /* TODO: move to xdisp or similar */
@@ -2653,15 +2652,15 @@ compute_tip_xy (struct frame *f,
   right = Fcdr (Fassq (Qright, parms));
   bottom = Fcdr (Fassq (Qbottom, parms));
 
-  if ((!INTEGERP (left) && !INTEGERP (right))
-      || (!INTEGERP (top) && !INTEGERP (bottom)))
+  if ((!FIXNUMP (left) && !FIXNUMP (right))
+      || (!FIXNUMP (top) && !FIXNUMP (bottom)))
     pt = [NSEvent mouseLocation];
   else
     {
       /* Absolute coordinates.  */
-      pt.x = INTEGERP (left) ? XINT (left) : XINT (right);
+      pt.x = FIXNUMP (left) ? XFIXNUM (left) : XFIXNUM (right);
       pt.y = (x_display_pixel_height (FRAME_DISPLAY_INFO (f))
-	      - (INTEGERP (top) ? XINT (top) : XINT (bottom))
+	      - (FIXNUMP (top) ? XFIXNUM (top) : XFIXNUM (bottom))
 	      - height);
     }
 
@@ -2681,30 +2680,30 @@ compute_tip_xy (struct frame *f,
      versions of macOS and in GNUstep.  */
 
   /* Ensure in bounds.  (Note, screen origin = lower left.) */
-  if (INTEGERP (left) || INTEGERP (right))
+  if (FIXNUMP (left) || FIXNUMP (right))
     *root_x = pt.x;
-  else if (pt.x + XINT (dx) <= screen.frame.origin.x)
+  else if (pt.x + XFIXNUM (dx) <= screen.frame.origin.x)
     *root_x = screen.frame.origin.x;
-  else if (pt.x + XINT (dx) + width
+  else if (pt.x + XFIXNUM (dx) + width
 	   <= screen.frame.origin.x + screen.frame.size.width)
     /* It fits to the right of the pointer.  */
-    *root_x = pt.x + XINT (dx);
-  else if (width + XINT (dx) <= pt.x)
+    *root_x = pt.x + XFIXNUM (dx);
+  else if (width + XFIXNUM (dx) <= pt.x)
     /* It fits to the left of the pointer.  */
-    *root_x = pt.x - width - XINT (dx);
+    *root_x = pt.x - width - XFIXNUM (dx);
   else
     /* Put it left justified on the screen -- it ought to fit that way.  */
     *root_x = screen.frame.origin.x;
 
-  if (INTEGERP (top) || INTEGERP (bottom))
+  if (FIXNUMP (top) || FIXNUMP (bottom))
     *root_y = pt.y;
-  else if (pt.y - XINT (dy) - height >= screen.frame.origin.y)
+  else if (pt.y - XFIXNUM (dy) - height >= screen.frame.origin.y)
     /* It fits below the pointer.  */
-    *root_y = pt.y - height - XINT (dy);
-  else if (pt.y + XINT (dy) + height
+    *root_y = pt.y - height - XFIXNUM (dy);
+  else if (pt.y + XFIXNUM (dy) + height
 	   <= screen.frame.origin.y + screen.frame.size.height)
     /* It fits above the pointer.  */
-      *root_y = pt.y + XINT (dy);
+      *root_y = pt.y + XFIXNUM (dy);
   else
     /* Put it on the top.  */
     *root_y = screen.frame.origin.y + screen.frame.size.height - height;
@@ -2729,19 +2728,19 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   str = SSDATA (string);
   f = decode_window_system_frame (frame);
   if (NILP (timeout))
-    timeout = make_number (5);
+    timeout = make_fixnum (5);
   else
-    CHECK_NATNUM (timeout);
+    CHECK_FIXNAT (timeout);
 
   if (NILP (dx))
-    dx = make_number (5);
+    dx = make_fixnum (5);
   else
-    CHECK_NUMBER (dx);
+    CHECK_FIXNUM (dx);
 
   if (NILP (dy))
-    dy = make_number (-10);
+    dy = make_fixnum (-10);
   else
-    CHECK_NUMBER (dy);
+    CHECK_FIXNUM (dy);
 
   block_input ();
   if (ns_tooltip == nil)
@@ -2765,7 +2764,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   compute_tip_xy (f, parms, dx, dy, (int)size.width, (int)size.height,
 		  &root_x, &root_y);
 
-  [ns_tooltip showAtX: root_x Y: root_y for: XINT (timeout)];
+  [ns_tooltip showAtX: root_x Y: root_y for: XFIXNUM (timeout)];
   unblock_input ();
 
   return unbind_to (count, Qnil);
@@ -2812,44 +2811,41 @@ frame_geometry (Lisp_Object frame, Lisp_Object attribute)
 
   /* Construct list.  */
   if (EQ (attribute, Qouter_edges))
-    return list4 (make_number (f->left_pos), make_number (f->top_pos),
-		  make_number (f->left_pos + outer_width),
-		  make_number (f->top_pos + outer_height));
+    return list4i (f->left_pos, f->top_pos,
+		   f->left_pos + outer_width,
+		   f->top_pos + outer_height);
   else if (EQ (attribute, Qnative_edges))
-    return list4 (make_number (native_left), make_number (native_top),
-		  make_number (native_right), make_number (native_bottom));
+    return list4i (native_left, native_top,
+		   native_right, native_bottom);
   else if (EQ (attribute, Qinner_edges))
-    return list4 (make_number (native_left + internal_border_width),
-		  make_number (native_top
-			       + tool_bar_height
-			       + internal_border_width),
-		  make_number (native_right - internal_border_width),
-		  make_number (native_bottom - internal_border_width));
+    return list4i (native_left + internal_border_width,
+		   native_top + tool_bar_height + internal_border_width,
+		   native_right - internal_border_width,
+		   native_bottom - internal_border_width);
   else
     return
-      listn (CONSTYPE_HEAP, 10,
-	     Fcons (Qouter_position,
-		    Fcons (make_number (f->left_pos),
-			   make_number (f->top_pos))),
+       list (Fcons (Qouter_position,
+		    Fcons (make_fixnum (f->left_pos),
+			   make_fixnum (f->top_pos))),
 	     Fcons (Qouter_size,
-		    Fcons (make_number (outer_width),
-			   make_number (outer_height))),
+		    Fcons (make_fixnum (outer_width),
+			   make_fixnum (outer_height))),
 	     Fcons (Qexternal_border_size,
 		    (fullscreen
-		     ? Fcons (make_number (0), make_number (0))
-		     : Fcons (make_number (border), make_number (border)))),
+		     ? Fcons (make_fixnum (0), make_fixnum (0))
+		     : Fcons (make_fixnum (border), make_fixnum (border)))),
 	     Fcons (Qtitle_bar_size,
-		    Fcons (make_number (0), make_number (title_height))),
+		    Fcons (make_fixnum (0), make_fixnum (title_height))),
 	     Fcons (Qmenu_bar_external, Qnil),
-	     Fcons (Qmenu_bar_size, Fcons (make_number (0), make_number (0))),
+	     Fcons (Qmenu_bar_size, Fcons (make_fixnum (0), make_fixnum (0))),
 	     Fcons (Qtool_bar_external,
 		    FRAME_EXTERNAL_TOOL_BAR (f) ? Qt : Qnil),
 	     Fcons (Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f)),
 	     Fcons (Qtool_bar_size,
-		    Fcons (make_number (tool_bar_width),
-			   make_number (tool_bar_height))),
+		    Fcons (make_fixnum (tool_bar_width),
+			   make_fixnum (tool_bar_height))),
 	     Fcons (Qinternal_border_width,
-		    make_number (internal_border_width)));
+		    make_fixnum (internal_border_width)));
 }
 
 DEFUN ("ns-frame-geometry", Fns_frame_geometry, Sns_frame_geometry, 0, 1, 0,
@@ -2947,13 +2943,13 @@ The coordinates X and Y are interpreted in pixels relative to a position
   CHECK_TYPE_RANGED_INTEGER (int, x);
   CHECK_TYPE_RANGED_INTEGER (int, y);
 
-  mouse_x = screen_frame.origin.x + XINT (x);
+  mouse_x = screen_frame.origin.x + XFIXNUM (x);
 
   if (screen == primary_screen)
-    mouse_y = screen_frame.origin.y + XINT (y);
+    mouse_y = screen_frame.origin.y + XFIXNUM (y);
   else
     mouse_y = (primary_screen_height - screen_frame.size.height
-               - screen_frame.origin.y) + XINT (y);
+               - screen_frame.origin.y) + XFIXNUM (y);
 
   CGPoint mouse_pos = CGPointMake(mouse_x, mouse_y);
   CGWarpMouseCursorPosition (mouse_pos);
@@ -2976,8 +2972,8 @@ position (0, 0) of the selected frame's terminal.  */)
   NSScreen *screen = [[view window] screen];
   NSPoint pt = [NSEvent mouseLocation];
 
-  return Fcons(make_number(pt.x - screen.frame.origin.x),
-               make_number(screen.frame.size.height -
+  return Fcons(make_fixnum(pt.x - screen.frame.origin.x),
+               make_fixnum(screen.frame.size.height -
                            (pt.y - screen.frame.origin.y)));
 }
 
@@ -3125,7 +3121,6 @@ handlePanelKeys (NSSavePanel *panel, NSEvent *theEvent)
 
    ========================================================================== */
 
-
 void
 syms_of_nsfns (void)
 {
@@ -3215,5 +3210,6 @@ Default is t.  */);
 
   as_status = 0;
   as_script = Qnil;
+  staticpro (&as_script);
   as_result = 0;
 }

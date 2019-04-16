@@ -1,6 +1,6 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 
-;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2018 Free Software
+;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -298,9 +298,6 @@ automatically inserts the matching closing request after point."
 
 (define-minor-mode nroff-electric-mode
   "Toggle automatic nroff request pairing (Nroff Electric mode).
-With a prefix argument ARG, enable Nroff Electric mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Nroff Electric mode is a buffer-local minor mode, for use with
 `nroff-mode'.  When enabled, Emacs checks for an nroff request at

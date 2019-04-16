@@ -1,5 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,7 +28,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_TIMERFD
 #include <errno.h>
-# include <sys/timerfd.h>
+#include <sys/timerfd.h>
+# ifdef CYGWIN
+# include <sys/utsname.h>
+# endif
 #endif
 
 #ifdef MSDOS
@@ -113,10 +116,10 @@ start_atimer (enum atimer_type type, struct timespec timestamp,
   sigset_t oldset;
 
   /* Round TIMESTAMP up to the next full second if we don't have itimers.  */
-#ifndef HAVE_SETITIMER
+#if ! (defined HAVE_ITIMERSPEC || defined HAVE_SETITIMER)
   if (timestamp.tv_nsec != 0 && timestamp.tv_sec < TYPE_MAXIMUM (time_t))
     timestamp = make_timespec (timestamp.tv_sec + 1, 0);
-#endif /* not HAVE_SETITIMER */
+#endif
 
   /* Get an atimer structure from the free-list, or allocate
      a new one.  */
@@ -494,15 +497,14 @@ debug_timer_callback (struct atimer *t)
     r->intime = 0;
   else if (result >= 0)
     {
-#ifdef HAVE_SETITIMER
+      bool intime = true;
+#if defined HAVE_ITIMERSPEC || defined HAVE_SETITIMER
       struct timespec delta = timespec_sub (now, r->expected);
       /* Too late if later than expected + 0.02s.  FIXME:
 	 this should depend from system clock resolution.  */
-      if (timespec_cmp (delta, make_timespec (0, 20000000)) > 0)
-	r->intime = 0;
-      else
-#endif /* HAVE_SETITIMER */
-	r->intime = 1;
+      intime = timespec_cmp (delta, make_timespec (0, 20000000)) <= 0;
+#endif
+      r->intime = intime;
     }
 }
 
@@ -558,13 +560,28 @@ Return t if all self-tests are passed, nil otherwise.  */)
 
 #endif /* ENABLE_CHECKING */
 
+/* Cygwin has the timerfd interface starting with release 3.0.0, but
+   it is buggy until release 3.0.2. */
+#ifdef HAVE_TIMERFD
+static bool
+have_buggy_timerfd (void)
+{
+# ifdef CYGWIN
+  struct utsname name;
+  return uname (&name) < 0 || strverscmp (name.release, "3.0.2") < 0;
+# else
+  return false;
+# endif
+}
+#endif
+
 void
 init_atimer (void)
 {
 #ifdef HAVE_ITIMERSPEC
 # ifdef HAVE_TIMERFD
   /* Until this feature is considered stable, you can ask to not use it.  */
-  timerfd = (egetenv ("EMACS_IGNORE_TIMERFD") ? -1 :
+  timerfd = (egetenv ("EMACS_IGNORE_TIMERFD") || have_buggy_timerfd () ? -1 :
 	     timerfd_create (CLOCK_REALTIME, TFD_NONBLOCK | TFD_CLOEXEC));
 # endif
   if (timerfd < 0)
@@ -585,6 +602,7 @@ init_atimer (void)
   sigaction (SIGALRM, &action, 0);
 
 #ifdef ENABLE_CHECKING
-  defsubr (&Sdebug_timer_check);
+  if (!initialized)
+    defsubr (&Sdebug_timer_check);
 #endif
 }

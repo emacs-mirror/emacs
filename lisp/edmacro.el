@@ -1,6 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993-1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Dave Gillespie <daveg@synaptics.com>
@@ -547,7 +547,7 @@ doubt, use whitespace."
                                                        ?\M-\^@ ?\s-\^@ ?\S-\^@)
                                           when (/= (logand ch bit) 0)
                                           concat (format "%c-" pf))
-				 (let ((ch2 (logand ch (1- (lsh 1 18)))))
+				 (let ((ch2 (logand ch (1- (ash 1 18)))))
 				   (cond ((<= ch2 32)
 					  (pcase ch2
 					    (0 "NUL") (9 "TAB") (10 "LFD")
@@ -623,12 +623,16 @@ This function assumes that the events can be stored in a string."
 		 (push (vector 'menu-bar (car ev)) result))
 		;; It would be nice to do pop-up menus, too, but not enough
 		;; info is recorded in macros to make this possible.
-		(noerror
-		 ;; Just ignore mouse events.
+		((or (mouse-event-p ev) (mouse-movement-p ev)
+		     (memq (event-basic-type ev)
+			   (list mouse-wheel-down-event mouse-wheel-up-event
+				 mouse-wheel-right-event
+				 mouse-wheel-left-event)))
 		 nil)
+		(noerror nil)
 		(t
-		 (error "Macros with mouse clicks are not %s"
-			"supported by this command"))))
+		 (error "`edmacro-fix-menu-commands': Unsupported event: %S"
+			ev))))
 	;; Reverse them again and make them back into a vector.
 	(vconcat (nreverse result)))
     macro))

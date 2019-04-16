@@ -12,7 +12,7 @@
 @copying
 This manual documents EIEIO, an object framework for Emacs Lisp.
 
-Copyright @copyright{} 2007--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -88,11 +88,11 @@ framework for writing object-oriented applications in Emacs.
 use @eieio{} to create classes, methods for those classes, and
 instances of classes.
 
-Here is a simple example of a class named @code{record}, containing
+Here is a simple example of a class named @code{person}, containing
 three slots named @code{name}, @code{birthday}, and @code{phone}:
 
 @example
-(defclass record () ; No superclasses
+(defclass person () ; No superclasses
   ((name :initarg :name
          :initform ""
          :type string
@@ -106,23 +106,23 @@ three slots named @code{name}, @code{birthday}, and @code{phone}:
    (phone :initarg :phone
           :initform ""
           :documentation "Phone number."))
-  "A single record for tracking people I know.")
+  "A class for tracking people I know.")
 @end example
 
 Each class can have methods, which are defined like this:
 
 @example
-(cl-defmethod call-record ((rec record) &optional scriptname)
-  "Dial the phone for the record REC.
+(cl-defmethod call-person ((pers person) &optional scriptname)
+  "Dial the phone for the person PERS.
 Execute the program SCRIPTNAME to dial the phone."
-  (message "Dialing the phone for %s"  (oref rec name))
+  (message "Dialing the phone for %s"  (oref pers name))
   (shell-command (concat (or scriptname "dialphone.sh")
                          " "
-                         (oref rec phone))))
+                         (oref pers phone))))
 @end example
 
 @noindent
-In this example, the first argument to @code{call-record} is a list,
+In this example, the first argument to @code{call-person} is a list,
 of the form (@var{varname} @var{classname}).  @var{varname} is the
 name of the variable used for the first argument; @var{classname} is
 the name of the class that is expected as the first argument for this
@@ -130,17 +130,17 @@ method.
 
 @eieio{} dispatches methods based on the type of the first argument.
 You can have multiple methods with the same name for different classes
-of object.  When the @code{call-record} method is called, the first
+of object.  When the @code{call-person} method is called, the first
 argument is examined to determine the class of that argument, and the
 method matching the input type is then executed.
 
 Once the behavior of a class is defined, you can create a new
-object of type @code{record}.  Objects are created by calling the
+object of type @code{person}.  Objects are created by calling the
 constructor.  The constructor is a function with the same name as your
 class which returns a new instance of that class.  Here is an example:
 
 @example
-(setq rec (record :name "Eric" :birthday "June" :phone "555-5555"))
+(setq pers (person :name "Eric" :birthday "June" :phone "555-5555"))
 @end example
 
 @noindent
@@ -157,19 +157,19 @@ first argument should be an object of a class which has had this
 method defined for it.  In this example it would look like this:
 
 @example
-(call-record rec)
+(call-person pers)
 @end example
 
 @noindent
 or
 
 @example
-(call-record rec "my-call-script")
+(call-person pers "my-call-script")
 @end example
 
 In these examples, @eieio{} automatically examines the class of
-@code{rec}, and ensures that the method defined above is called.  If
-@code{rec} is some other class lacking a @code{call-record} method, or
+@code{pers}, and ensures that the method defined above is called.  If
+@code{pers} is some other class lacking a @code{call-person} method, or
 some other data type, Emacs signals a @code{cl-no-applicable-method}
 error.  @ref{Signals}.
 
@@ -270,10 +270,18 @@ by a symbol with the name @var{class-name}.  @eieio{} stores the structure of
 the class as a symbol property of @var{class-name} (@pxref{Symbol
 Components,,,elisp,GNU Emacs Lisp Reference Manual}).
 
+When defining a class, @eieio{} overwrites any preexisting variable or
+function bindings for the symbol @var{class-name}, which may lead to
+undesired consequences.  Before naming a new class, you should check
+for name conflicts.  To help avoid cross-package conflicts you should
+choose a name with the same prefix you chose for the rest of your
+package's functions and variables (@pxref{Coding
+Conventions,,,elisp,GNU Emacs Lisp Reference Manual}).
+
 The @var{class-name} symbol's variable documentation string is a
 modified version of the doc string found in @var{options-and-doc}.
 Each time a method is defined, the symbol's documentation string is
-updated to include the methods documentation as well.
+updated to include the method's documentation as well.
 
 The parent classes for @var{class-name} is @var{superclass-list}.
 Each element of @var{superclass-list} must be a class.  These classes
@@ -625,10 +633,10 @@ function of @code{:initform}.
 @node Making New Objects
 @chapter Making New Objects
 
-Suppose we have a simple class is defined, such as:
+Suppose we have defined a simple class, such as:
 
 @example
-(defclass record ()
+(defclass my-class ()
    ( ) "Doc String")
 @end example
 
@@ -636,10 +644,10 @@ Suppose we have a simple class is defined, such as:
 It is now possible to create objects of that class type.
 
 Calling @code{defclass} has defined two new functions.  One is the
-constructor @var{record}, and the other is the predicate,
-@var{record}-p.
+constructor @var{my-class}, and the other is the predicate,
+@var{my-class}-p.
 
-@defun record object-name &rest slots
+@defun my-class object-name &rest slots
 
 This creates and returns a new object.  This object is not assigned to
 anything, and will be garbage collected if not saved.  This object
@@ -657,7 +665,7 @@ can do any valid Lispy thing you want with it, such as
 Example of creating an object from a class:
 
 @example
-(record :value 3 :reference nil)
+(my-class :value 3 :reference nil)
 @end example
 
 @end defun

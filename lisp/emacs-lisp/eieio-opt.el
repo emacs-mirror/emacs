@@ -1,6 +1,6 @@
 ;;; eieio-opt.el -- eieio optional functions (debug, printing, speedbar)
 
-;; Copyright (C) 1996, 1998-2003, 2005, 2008-2018 Free Software
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -327,7 +327,7 @@ current expansion depth."
 (defun eieio-sb-expand (text class indent)
   "For button TEXT, expand CLASS at the current location.
 Argument INDENT is the depth of indentation."
-  (cond ((string-match "+" text)	;we have to expand this file
+  (cond ((string-match "\\+" text)	;we have to expand this file
 	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-with-writable
 	   (save-excursion

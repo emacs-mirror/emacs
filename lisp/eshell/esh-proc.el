@@ -1,6 +1,6 @@
 ;;; esh-proc.el --- process management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -23,9 +23,7 @@
 
 ;;; Code:
 
-(provide 'esh-proc)
-
-(require 'esh-cmd)
+(require 'esh-io)
 
 (defgroup eshell-proc nil
   "When Eshell invokes external commands, it always does so
@@ -118,14 +116,17 @@ information, for example."
 Runs `eshell-reset-after-proc' and `eshell-kill-hook', passing arguments
 PROC and STATUS to functions on the latter."
   ;; Was there till 24.1, but it is not optional.
-  (if (memq 'eshell-reset-after-proc eshell-kill-hook)
-      (setq eshell-kill-hook (delq 'eshell-reset-after-proc eshell-kill-hook)))
+  (if (memq #'eshell-reset-after-proc eshell-kill-hook)
+      (setq eshell-kill-hook (delq #'eshell-reset-after-proc eshell-kill-hook)))
   (eshell-reset-after-proc status)
   (run-hook-with-args 'eshell-kill-hook proc status))
 
-(defun eshell-proc-initialize ()
+(defun eshell-proc-initialize ()    ;Called from `eshell-mode' via intern-soft!
   "Initialize the process handling code."
   (make-local-variable 'eshell-process-list)
+  ;; This is supposedly run after enabling esh-mode, when eshell-command-map
+  ;; already exists.
+  (defvar eshell-command-map)
   (define-key eshell-command-map [(meta ?i)] 'eshell-insert-process)
   (define-key eshell-command-map [(control ?c)]  'eshell-interrupt-process)
   (define-key eshell-command-map [(control ?k)]  'eshell-kill-process)
@@ -139,9 +140,11 @@ PROC and STATUS to functions on the latter."
   "Reset the command input location after a process terminates.
 The signals which will cause this to happen are matched by
 `eshell-reset-signals'."
-  (if (and (stringp status)
-	   (string-match eshell-reset-signals status))
-      (eshell-reset)))
+  (when (and (stringp status)
+	     (string-match eshell-reset-signals status))
+    (require 'esh-mode)
+    (declare-function eshell-reset "esh-mode" (&optional no-hooks))
+    (eshell-reset)))
 
 (defun eshell-wait-for-process (&rest procs)
   "Wait until PROC has successfully completed."
@@ -209,7 +212,8 @@ The prompt will be set to PROMPT."
 		    (function
 		     (lambda (proc)
 		       (cons (process-name proc) t)))
-		    (process-list)) nil t))
+		    (process-list))
+                   nil t))
 
 (defun eshell-insert-process (process)
   "Insert the name of PROCESS into the current buffer at point."
@@ -220,10 +224,12 @@ The prompt will be set to PROMPT."
 
 (defsubst eshell-record-process-object (object)
   "Record OBJECT as now running."
-  (if (and (eshell-processp object)
-	   eshell-current-subjob-p)
-      (eshell-interactive-print
-       (format "[%s] %d\n" (process-name object) (process-id object))))
+  (when (and (eshell-processp object)
+	     eshell-current-subjob-p)
+    (require 'esh-mode)
+    (declare-function eshell-interactive-print "esh-mode" (string))
+    (eshell-interactive-print
+     (format "[%s] %d\n" (process-name object) (process-id object))))
   (setq eshell-process-list
 	(cons (list object eshell-current-handles
 		    eshell-current-subjob-p nil nil)
@@ -254,7 +260,7 @@ the full name of a command, otherwise just the nondirectory part must match.")
 (defun eshell-needs-pipe-p (command)
   "Return non-nil if COMMAND needs `process-connection-type' to be nil.
 See `eshell-needs-pipe'."
-  (and eshell-in-pipeline-p
+  (and (bound-and-true-p eshell-in-pipeline-p)
        (not (eq eshell-in-pipeline-p 'first))
        ;; FIXME should this return non-nil for anything that is
        ;; neither 'first nor 'last?  See bug#1388 discussion.
@@ -267,6 +273,8 @@ See `eshell-needs-pipe'."
 
 (defun eshell-gather-process-output (command args)
   "Gather the output from COMMAND + ARGS."
+  (require 'esh-var)
+  (declare-function eshell-environment-variables "esh-var" ())
   (unless (and (file-executable-p command)
 	       (file-regular-p (file-truename command)))
     (error "%s: not an executable file" command))
@@ -282,17 +290,15 @@ See `eshell-needs-pipe'."
 	    (let ((process-connection-type
 		   (unless (eshell-needs-pipe-p command)
 		     process-connection-type))
-		  (command (file-local-name command)))
-	      (apply 'start-file-process
-		     (file-name-nondirectory command) nil
-		     ;; `start-process' can't deal with relative filenames.
-		     (append (list (expand-file-name command)) args))))
+		  (command (file-local-name (expand-file-name command))))
+	      (apply #'start-file-process
+		     (file-name-nondirectory command) nil command args)))
       (eshell-record-process-object proc)
       (set-process-buffer proc (current-buffer))
-      (if (eshell-interactive-output-p)
-	  (set-process-filter proc 'eshell-output-filter)
-	(set-process-filter proc 'eshell-insertion-filter))
-      (set-process-sentinel proc 'eshell-sentinel)
+      (set-process-filter proc (if (eshell-interactive-output-p)
+	                           #'eshell-output-filter
+                                 #'eshell-insertion-filter))
+      (set-process-sentinel proc #'eshell-sentinel)
       (run-hook-with-args 'eshell-exec-hook proc)
       (when (fboundp 'process-coding-system)
 	(let ((coding-systems (process-coding-system proc)))
@@ -327,14 +333,14 @@ See `eshell-needs-pipe'."
 	(set-buffer oldbuf)
 	(run-hook-with-args 'eshell-exec-hook command)
 	(setq exit-status
-	      (apply 'call-process-region
+	      (apply #'call-process-region
 		     (append (list eshell-last-sync-output-start (point)
 				   command t
 				   eshell-scratch-buffer nil)
 			     args)))
 	;; When in a pipeline, record the place where the output of
 	;; this process will begin.
-	(and eshell-in-pipeline-p
+	(and (bound-and-true-p eshell-in-pipeline-p)
 	     (set-marker eshell-last-sync-output-start (point)))
 	;; Simulate the effect of the process filter.
 	(when (numberp exit-status)
@@ -351,11 +357,14 @@ See `eshell-needs-pipe'."
 	    (setq lbeg lend)
 	    (set-buffer proc-buf))
 	  (set-buffer oldbuf))
+        (require 'esh-mode)
+        (declare-function eshell-update-markers "esh-mode" (pmark))
+        (defvar eshell-last-output-end)         ;Defined in esh-mode.el.
 	(eshell-update-markers eshell-last-output-end)
 	;; Simulate the effect of eshell-sentinel.
 	(eshell-close-handles (if (numberp exit-status) exit-status -1))
 	(eshell-kill-process-function command exit-status)
-	(or eshell-in-pipeline-p
+	(or (bound-and-true-p eshell-in-pipeline-p)
 	    (setq eshell-last-sync-output-start nil))
 	(if (not (numberp exit-status))
 	  (error "%s: external command failed: %s" command exit-status))
@@ -500,7 +509,7 @@ See the variable `eshell-kill-processes-on-exit'."
 					(buffer-name))))
 	  (eshell-round-robin-kill
 	   (if (eq eshell-kill-processes-on-exit 'every)
-	       (format-message "Kill Eshell child process `%s'? "))))
+	       "Kill Eshell child process `%s'? ")))
       (let ((buf (get-buffer "*Process List*")))
 	(if (and buf (buffer-live-p buf))
 	    (kill-buffer buf)))
@@ -542,7 +551,11 @@ See the variable `eshell-kill-processes-on-exit'."
 (defun eshell-send-eof-to-process ()
   "Send EOF to process."
   (interactive)
+  (require 'esh-mode)
+  (declare-function eshell-send-input "esh-mode"
+                    (&optional use-region queue-p no-newline))
   (eshell-send-input nil nil t)
   (eshell-process-interact 'process-send-eof))
 
+(provide 'esh-proc)
 ;;; esh-proc.el ends here

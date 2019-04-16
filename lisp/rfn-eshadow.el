@@ -1,6 +1,6 @@
 ;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text
 ;;
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience minibuffer
@@ -132,9 +132,7 @@ system, `file-name-shadow-properties' is used instead."
 
 ;; An overlay covering the shadowed part of the filename (local to the
 ;; minibuffer).
-(defvar rfn-eshadow-overlay)
-(make-variable-buffer-local 'rfn-eshadow-overlay)
-
+(defvar-local rfn-eshadow-overlay nil)
 
 ;;; Hook functions
 
@@ -209,9 +207,6 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 
 (define-minor-mode file-name-shadow-mode
   "Toggle file-name shadowing in minibuffers (File-Name Shadow mode).
-With a prefix argument ARG, enable File-Name Shadow mode if ARG
-is positive, and disable it otherwise.  If called from Lisp,
-enable the mode if ARG is omitted or nil.
 
 File-Name Shadow mode is a global minor mode.  When enabled, any
 part of a filename being read in the minibuffer that would be

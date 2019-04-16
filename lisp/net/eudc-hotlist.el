@@ -1,6 +1,6 @@
 ;;; eudc-hotlist.el --- hotlist management for EUDC
 
-;; Copyright (C) 1998-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>
@@ -55,11 +55,6 @@ These are the special commands of this mode:
     t -- Transpose the server at point and the previous one
     q -- Commit the changes and quit.
     x -- Quit without committing the changes."
-  (when (featurep 'xemacs)
-    (setq mode-popup-menu eudc-hotlist-menu)
-    (when (featurep 'menubar)
-      (set-buffer-menubar current-menubar)
-      (add-submenu nil (cons "EUDC-Hotlist" (cdr (cdr eudc-hotlist-menu))))))
   (setq buffer-read-only t))
 
 ;;;###autoload
@@ -179,10 +174,9 @@ These are the special commands of this mode:
     ["Save and Quit" eudc-hotlist-quit-edit t]
     ["Exit without Saving" kill-this-buffer t]))
 
-(when (not (featurep 'xemacs))
-  (easy-menu-define eudc-hotlist-emacs-menu
+(easy-menu-define eudc-hotlist-emacs-menu
     eudc-hotlist-mode-map
     ""
-    eudc-hotlist-menu))
+    eudc-hotlist-menu)
 
 ;;; eudc-hotlist.el ends here

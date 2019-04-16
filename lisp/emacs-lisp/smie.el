@@ -1,6 +1,6 @@
 ;;; smie.el --- Simple Minded Indentation Engine -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: languages, lisp, internal, parsing, indentation
@@ -533,9 +533,9 @@ PREC2 is a table as returned by `smie-precs->prec2' or
                      (setq y (cons nil (cons nil nil)))
                      (push (cons (cdr k) y) table))
                    (pcase v
-                     (`= (push (cons x y) eqs))
-                     (`< (push (cons x y) csts))
-                     (`> (push (cons y x) csts))
+                     ('= (push (cons x y) eqs))
+                     ('< (push (cons x y) csts))
+                     ('> (push (cons y x) csts))
                      (_ (error "SMIE error: prec2 has %S↦%S which ∉ {<,+,>}"
                                k v))))))
              prec2)
@@ -612,8 +612,8 @@ PREC2 is a table as returned by `smie-precs->prec2' or
     (dolist (x (gethash :smie-open/close-alist prec2))
       (let* ((token (car x))
              (cons (pcase (cdr x)
-                     (`closer (cddr (assoc token table)))
-                     (`opener (cdr (assoc token table))))))
+                     ('closer (cddr (assoc token table)))
+                     ('opener (cdr (assoc token table))))))
         ;; `cons' can be nil for openers/closers which only contain
         ;; "atomic" elements.
         (when cons
@@ -1446,9 +1446,9 @@ in order to figure out the indentation of some other (further down) point."
   (and (smie-indent--bolp)
        (save-excursion
          (comment-normalize-vars)
-         (re-search-forward (concat comment-start-skip
+         (re-search-forward (concat "\\(?:" comment-start-skip "\\)"
                                     "fixindent"
-                                    comment-end-skip)
+                                    "\\(?:" comment-end-skip "\\)")
                             ;; 1+ to account for the \n comment termination.
                             (1+ (line-end-position)) t))
        (current-column)))
@@ -1856,9 +1856,9 @@ KEYWORDS are additional arguments, which can use the following keywords:
     (let ((k (pop keywords))
           (v (pop keywords)))
       (pcase k
-        (`:forward-token
+        (:forward-token
          (set (make-local-variable 'smie-forward-token-function) v))
-        (`:backward-token
+        (:backward-token
          (set (make-local-variable 'smie-backward-token-function) v))
         (_ (message "smie-setup: ignoring unknown keyword %s" k)))))
   (let ((ca (cdr (assq :smie-closer-alist grammar))))

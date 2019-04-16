@@ -1,6 +1,6 @@
 ;;; ox-ascii.el --- ASCII Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1474,8 +1474,8 @@ contextual information."
 		   (replace-regexp-in-string
 		    "-" "•"
 		    (replace-regexp-in-string
-		     "+" "⁃"
-		     (replace-regexp-in-string "*" "‣" bul))))))))
+		     "\\+" "⁃"
+		     (replace-regexp-in-string "\\*" "‣" bul))))))))
 	 (indentation (if (eq list-type 'descriptive) org-ascii-quote-margin
 			(string-width bullet))))
     (concat

@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs. -*- coding: utf-8 -*-
-   Copyright (C) 1985-1986, 1993-1995, 1997-2018 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997-2019 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -29,6 +29,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "window.h"
 #include "region-cache.h"
+#include "pdumper.h"
 
 static void insert_from_string_1 (Lisp_Object, ptrdiff_t, ptrdiff_t, ptrdiff_t,
 				  ptrdiff_t, bool, bool);
@@ -707,7 +708,7 @@ insert_char (int c)
   insert ((char *) str, len);
 }
 
-/* Insert the null-terminated string S before point.  */
+/* Insert the NUL-terminated string S before point.  */
 
 void
 insert_string (const char *s)
@@ -902,7 +903,7 @@ insert_1_both (const char *string,
      the insertion.  This, together with recording the insertion,
      will add up to the right stuff in the undo list.  */
   record_insert (PT, nchars);
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   memcpy (GPT_ADDR, string, nbytes);
@@ -930,7 +931,7 @@ insert_1_both (const char *string,
   offset_intervals (current_buffer, PT, nchars);
 
   if (!inherit && buffer_intervals (current_buffer))
-    set_text_properties (make_number (PT), make_number (PT + nchars),
+    set_text_properties (make_fixnum (PT), make_fixnum (PT + nchars),
 			 Qnil, Qnil, Qnil);
 
   adjust_point (nchars, nbytes);
@@ -1030,7 +1031,7 @@ insert_from_string_1 (Lisp_Object string, ptrdiff_t pos, ptrdiff_t pos_byte,
 #endif
 
   record_insert (PT, nchars);
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   GAP_SIZE -= outgoing_nbytes;
@@ -1087,7 +1088,7 @@ insert_from_gap (ptrdiff_t nchars, ptrdiff_t nbytes, bool text_at_gap_tail)
      of this dance.  */
   invalidate_buffer_caches (current_buffer, GPT, GPT);
   record_insert (GPT, nchars);
-  MODIFF++;
+  modiff_incr (&MODIFF);
 
   GAP_SIZE -= nbytes;
   if (! text_at_gap_tail)
@@ -1227,7 +1228,7 @@ insert_from_buffer_1 (struct buffer *buf,
 #endif
 
   record_insert (PT, nchars);
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   GAP_SIZE -= outgoing_nbytes;
@@ -1328,7 +1329,7 @@ adjust_after_replace (ptrdiff_t from, ptrdiff_t from_byte,
 
   if (len == 0)
     evaporate_overlays (from);
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 }
 
@@ -1523,7 +1524,7 @@ replace_range (ptrdiff_t from, ptrdiff_t to, Lisp_Object new,
 
   check_markers ();
 
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   if (adjust_match_data)
@@ -1654,7 +1655,7 @@ replace_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
 
   check_markers ();
 
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 }
 
@@ -1829,7 +1830,7 @@ del_range_2 (ptrdiff_t from, ptrdiff_t from_byte,
      at the end of the text before the gap.  */
   adjust_markers_for_delete (from, from_byte, to, to_byte);
 
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   /* Relocate point as if it were a marker.  */
@@ -1883,7 +1884,7 @@ modify_text (ptrdiff_t start, ptrdiff_t end)
   BUF_COMPUTE_UNCHANGED (current_buffer, start - 1, end);
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
-  MODIFF++;
+  modiff_incr (&MODIFF);
   CHARS_MODIFF = MODIFF;
 
   bset_point_before_scroll (current_buffer, Qnil);
@@ -1927,6 +1928,14 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
   if (!NILP (BVAR (current_buffer, read_only)))
     Fbarf_if_buffer_read_only (temp);
 
+  /* If we're about to modify a buffer the contents of which come from
+     a dump file, copy the contents to private storage first so we
+     don't take a COW fault on the buffer text and keep it around
+     forever.  */
+  if (pdumper_object_p (BEG_ADDR))
+    enlarge_buffer_text (current_buffer, 0);
+  eassert (!pdumper_object_p (BEG_ADDR));
+
   run_undoable_change();
 
   bset_redisplay (current_buffer);
@@ -1936,7 +1945,7 @@ prepare_to_modify_buffer_1 (ptrdiff_t start, ptrdiff_t end,
       if (preserve_ptr)
 	{
 	  Lisp_Object preserve_marker;
-	  preserve_marker = Fcopy_marker (make_number (*preserve_ptr), Qnil);
+	  preserve_marker = Fcopy_marker (make_fixnum (*preserve_ptr), Qnil);
 	  verify_interval_modification (current_buffer, start, end);
 	  *preserve_ptr = marker_position (preserve_marker);
 	  unchain_marker (XMARKER (preserve_marker));
@@ -2046,7 +2055,7 @@ invalidate_buffer_caches (struct buffer *buf, ptrdiff_t start, ptrdiff_t end)
 
 #define PRESERVE_VALUE							\
   if (preserve_ptr && NILP (preserve_marker))				\
-    preserve_marker = Fcopy_marker (make_number (*preserve_ptr), Qnil)
+    preserve_marker = Fcopy_marker (make_fixnum (*preserve_ptr), Qnil)
 
 #define RESTORE_VALUE						\
   if (! NILP (preserve_marker))					\
@@ -2103,8 +2112,8 @@ signal_before_change (ptrdiff_t start_int, ptrdiff_t end_int,
   ptrdiff_t count = SPECPDL_INDEX ();
   struct rvoe_arg rvoe_arg;
 
-  start = make_number (start_int);
-  end = make_number (end_int);
+  start = make_fixnum (start_int);
+  end = make_fixnum (end_int);
   preserve_marker = Qnil;
   start_marker = Qnil;
   end_marker = Qnil;
@@ -2210,26 +2219,26 @@ signal_after_change (ptrdiff_t charpos, ptrdiff_t lendel, ptrdiff_t lenins)
 
       /* Actually run the hook functions.  */
       CALLN (Frun_hook_with_args, Qafter_change_functions,
-	     make_number (charpos), make_number (charpos + lenins),
-	     make_number (lendel));
+	     make_fixnum (charpos), make_fixnum (charpos + lenins),
+	     make_fixnum (lendel));
 
       /* There was no error: unarm the reset_on_error.  */
       rvoe_arg.errorp = 0;
     }
 
   if (buffer_has_overlays ())
-    report_overlay_modification (make_number (charpos),
-				 make_number (charpos + lenins),
+    report_overlay_modification (make_fixnum (charpos),
+				 make_fixnum (charpos + lenins),
 				 1,
-				 make_number (charpos),
-				 make_number (charpos + lenins),
-				 make_number (lendel));
+				 make_fixnum (charpos),
+				 make_fixnum (charpos + lenins),
+				 make_fixnum (lendel));
 
   /* After an insertion, call the text properties
      insert-behind-hooks or insert-in-front-hooks.  */
   if (lendel == 0)
-    report_interval_modification (make_number (charpos),
-				  make_number (charpos + lenins));
+    report_interval_modification (make_fixnum (charpos),
+				  make_fixnum (charpos + lenins));
 
   unbind_to (count, Qnil);
 }
@@ -2255,7 +2264,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
 
   /* It is rare for combine_after_change_buffer to be invalid, but
      possible.  It can happen when combine-after-change-calls is
-     non-nil, and insertion calls a file handler (e.g. through
+     non-nil, and insertion calls a file name handler (e.g. through
      lock_file) which scribbles into a temp file -- cyd  */
   if (!BUFFERP (combine_after_change_buffer)
       || !BUFFER_LIVE_P (XBUFFER (combine_after_change_buffer)))
@@ -2287,17 +2296,17 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
       elt = XCAR (tail);
       if (! CONSP (elt))
 	continue;
-      thisbeg = XINT (XCAR (elt));
+      thisbeg = XFIXNUM (XCAR (elt));
 
       elt = XCDR (elt);
       if (! CONSP (elt))
 	continue;
-      thisend = XINT (XCAR (elt));
+      thisend = XFIXNUM (XCAR (elt));
 
       elt = XCDR (elt);
       if (! CONSP (elt))
 	continue;
-      thischange = XINT (XCAR (elt));
+      thischange = XFIXNUM (XCAR (elt));
 
       /* Merge this range into the accumulated range.  */
       change += thischange;

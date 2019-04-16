@@ -1,6 +1,6 @@
 ;;; ede/detect.el --- EDE project detection and file associations
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -198,7 +198,7 @@ Return a cons cell:
 	(ans (ede-detect-directory-for-project default-directory)))
     (if ans
 	(message "Project found in %d sec @ %s of type %s"
-		 (float-time (time-subtract nil start))
+		 (encode-time (time-since start) 'integer)
 		 (car ans)
 		 (eieio-object-name-string (cdr ans)))
       (message "No Project found.") )))

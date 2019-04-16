@@ -1,6 +1,6 @@
 ;;; calc-math.el --- mathematical functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -1697,7 +1697,7 @@ If this can't be done, return NIL."
     (while (not (Math-lessp x pow))
       (setq pows (cons pow pows)
 	    pow (math-sqr pow)))
-    (setq n (lsh 1 (1- (length pows)))
+    (setq n (ash 1 (1- (length pows)))
 	  sum n
 	  pow (car pows))
     (while (and (setq pows (cdr pows))

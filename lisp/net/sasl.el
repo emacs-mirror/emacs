@@ -1,6 +1,6 @@
 ;;; sasl.el --- SASL client framework
 
-;; Copyright (C) 2000, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: SASL
@@ -183,7 +183,7 @@ It contain at least 64 bits of entropy."
   ;; Don't use microseconds from (current-time), they may be unsupported.
   ;; Instead we use this randomly inited counter.
   (setq sasl-unique-id-char
-	(% (1+ (or sasl-unique-id-char (logand (random) (1- (lsh 1 20)))))
+	(% (1+ (or sasl-unique-id-char (logand (random) (1- (ash 1 20)))))
 	   ;; (current-time) returns 16-bit ints,
 	   ;; and 2^16*25 just fits into 4 digits i base 36.
 	   (* 25 25)))
@@ -191,10 +191,10 @@ It contain at least 64 bits of entropy."
     (concat
      (sasl-unique-id-number-base36
       (+ (car   tm)
-	 (lsh (% sasl-unique-id-char 25) 16)) 4)
+	 (ash (% sasl-unique-id-char 25) 16)) 4)
      (sasl-unique-id-number-base36
       (+ (nth 1 tm)
-	 (lsh (/ sasl-unique-id-char 25) 16)) 4))))
+	 (ash (/ sasl-unique-id-char 25) 16)) 4))))
 
 (defun sasl-unique-id-number-base36 (num len)
   (if (if (< len 0)

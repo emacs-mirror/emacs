@@ -1,6 +1,6 @@
 ;;; mh-xface.el --- MH-E X-Face and Face header field display
 
-;; Copyright (C) 2002-2003, 2005-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2019 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -197,7 +197,7 @@ The directories are searched for in the order they appear in the list.")
                         (mh-funcall-if-exists ietf-drums-parse-address
                                               from-field))))
            (host (and from
-                      (string-match "\\([^+]*\\)\\(+.*\\)?@\\(.*\\)" from)
+                      (string-match "\\([^+]*\\)\\(\\+.*\\)?@\\(.*\\)" from)
                       (downcase (match-string 3 from))))
            (user (and host (downcase (match-string 1 from))))
            (canonical-address (format "%s@%s" user host))

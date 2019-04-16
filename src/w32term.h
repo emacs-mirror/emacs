@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -478,7 +478,7 @@ struct scroll_bar {
 
 #ifdef _WIN64
 /* Building a 64-bit C integer from two 32-bit lisp integers.  */
-#define SCROLL_BAR_PACK(low, high) (XINT (high) << 32 | XINT (low))
+#define SCROLL_BAR_PACK(low, high) (XFIXNUM (high) << 32 | XFIXNUM (low))
 
 /* Setting two lisp integers to the low and high words of a 64-bit C int.  */
 #define SCROLL_BAR_UNPACK(low, high, int64) \
@@ -486,7 +486,7 @@ struct scroll_bar {
    XSETINT ((high), ((DWORDLONG)(int64) >> 32) & 0xffffffff))
 #else  /* not _WIN64 */
 /* Building a 32-bit C unsigned integer from two 16-bit lisp integers.  */
-#define SCROLL_BAR_PACK(low, high) ((UINT_PTR)(XINT (high) << 16 | XINT (low)))
+#define SCROLL_BAR_PACK(low, high) ((UINT_PTR)(XFIXNUM (high) << 16 | XFIXNUM (low)))
 
 /* Setting two lisp integers to the low and high words of a 32-bit C int.  */
 #define SCROLL_BAR_UNPACK(low, high, int32) \

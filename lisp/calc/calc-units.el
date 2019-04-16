@@ -1,6 +1,6 @@
-;;; calc-units.el --- unit conversion functions for Calc
+;;; calc-units.el --- unit conversion functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -45,6 +45,9 @@
 
 ;; CODATA values updated February 2016, using 2014 adjustment
 ;; http://arxiv.org/pdf/1507.07956.pdf
+
+;; Updated November 2018 for the redefinition of the SI
+;; https://www.bipm.org/utils/en/pdf/CGPM/Draft-Resolution-A-EN.pdf
 
 (defvar math-standard-units
   '( ;; Length
@@ -118,7 +121,7 @@
     ( mph     "mi/hr"                "*Miles per hour" )
     ( kph     "km/hr"                "Kilometers per hour" )
     ( knot    "nmi/hr"               "Knot" )
-    ( c       "299792458 m/s"        "Speed of light" ) ;;; CODATA
+    ( c       "299792458 m/s"        "Speed of light" ) ;; SI definition
 
     ;; Acceleration
     ( ga      "980665*10^(-5) m/s^2" "*\"g\" acceleration" nil
@@ -207,8 +210,8 @@
     ( C       "A s"                   "Coulomb" )
     ( Fdy     "ech Nav"               "Faraday" )
     ( e       "ech"                   "Elementary charge" )
-    ( ech     "1.6021766208*10^(-19) C"     "Elementary charge" nil
-              "1.6021766208 10^-19 C (*)") ;;(approx) CODATA
+    ( ech     "1.602176634*10^(-19) C"    "Elementary charge" nil
+              "1.602176634 10^-19 C")     ;; SI definition
     ( V       "W/A"                   "Volt" )
     ( ohm     "V/A"                   "Ohm" )
     ( Ω       "ohm"                   "Ohm" )
@@ -256,18 +259,21 @@
     ( sr      nil                      "*Steradian" )
 
     ;; Other physical quantities
-    ;; The values are from CODATA, and are approximate.
-    ( h       "6.626070040*10^(-34) J s"     "*Planck's constant" nil
-              "6.626070040 10^-34 J s (*)")
+    ;; Unless otherwise mentioned, the values are from CODATA,
+    ;; and are approximate.
+    ( h       "6.62607015*10^(-34) J s"     "*Planck's constant" nil
+              "6.62607015 10^-34 J s")      ;; SI definition
     ( hbar    "h / (2 pi)"                  "Planck's constant" ) ;; Exact
-    ( mu0     "4 pi 10^(-7) H/m"            "Permeability of vacuum") ;; Exact
-    ( μ0      "mu0"                         "Permeability of vacuum") ;; Exact
-    ( eps0    "1 / (mu0 c^2)"               "Permittivity of vacuum" )
+    ;; After the 2018 SI redefinition, eps0 and mu0 are measured quantities,
+    ;; and mu0 no longer has the previous exact value of 4 pi 10^(-7) H/m.
+    ( eps0    "ech^2 / (2 alpha h c)"       "Permittivity of vacuum" )
     ( ε0      "eps0"                        "Permittivity of vacuum" )
+    ( mu0     "1 / (eps0 c^2)"              "Permeability of vacuum") ;; Exact
+    ( μ0      "mu0"                         "Permeability of vacuum") ;; Exact
     ( G       "6.67408*10^(-11) m^3/(kg s^2)"    "Gravitational constant" nil
               "6.67408 10^-11 m^3/(kg s^2) (*)")
-    ( Nav     "6.022140857*10^(23) / mol"    "Avogadro's constant" nil
-              "6.022140857 10^23 / mol (*)")
+    ( Nav     "6.02214076*10^(23) / mol"    "Avogadro's constant" nil
+              "6.02214076 10^23 / mol")     ;; SI definition
     ( me      "9.10938356*10^(-31) kg"      "Electron rest mass" nil
               "9.10938356 10^-31 kg (*)")
     ( mp      "1.672621898*10^(-27) kg"     "Proton rest mass" nil
@@ -280,12 +286,10 @@
               "1.883531594 10^-28 kg (*)")
     ( Ryd     "10973731.568508 /m"          "Rydberg's constant" nil
               "10973731.568508 /m (*)")
-    ( k       "1.38064852*10^(-23) J/K"      "Boltzmann's constant" nil
-              "1.38064852 10^-23 J/K (*)")
-    ( sigma   "5.670367*10^(-8) W/(m^2 K^4)" "Stefan-Boltzmann constant" nil
-              "5.670367 10^-8 W/(m^2 K^4) (*)")
-    ( σ       "sigma" "Stefan-Boltzmann constant" nil
-              "5.670367 10^-8 W/(m^2 K^4) (*)")
+    ( k       "1.380649*10^(-23) J/K"       "Boltzmann's constant" nil
+              "1.380649 10^-23 J/K")        ;; SI definition
+    ( sigma   "2 pi^5 k^4 / (15 h^3 c^2)"   "Stefan-Boltzmann constant")
+    ( σ       "sigma"                       "Stefan-Boltzmann constant")
     ( alpha   "7.2973525664*10^(-3)"        "Fine structure constant" nil
               "7.2973525664 10^-3 (*)")
     ( α       "alpha"                        "Fine structure constant" nil
@@ -298,8 +302,7 @@
               "-928.4764620 10^-26 J/T (*)")
     ( mup     "1.4106067873*10^(-26) J/T"    "Proton magnetic moment" nil
               "1.4106067873 10^-26 J/T (*)")
-    ( R0      "8.3144598 J/(mol K)"          "Molar gas constant" nil
-              "8.3144598 J/(mol K) (*)")
+    ( R0      "Nav k"                       "Molar gas constant") ;; Exact
     ( V0      "22.710947*10^(-3) m^3/mol"   "Standard volume of ideal gas" nil
               "22.710947 10^-3 m^3/mol (*)")
     ;; Logarithmic units
@@ -452,7 +455,6 @@ If COMP or STD is non-nil, put that in the units table instead."
 	 (uoldname nil)
          (unitscancel nil)
          (nouold nil)
-	 unew
          units
          defunits)
      (if (or (not (math-units-in-expr-p expr t))
@@ -669,8 +671,8 @@ If COMP or STD is non-nil, put that in the units table instead."
 				       (substring name (1+ pos)))))
 		(setq name (concat "(" name ")"))))
 	  (or (eq (nth 1 expr) (car u))
-	      (setq name (concat (nth 2 (assq (aref (symbol-name
-						     (nth 1 expr)) 0)
+	      (setq name (concat (nth 2 (assq (aref (symbol-name (nth 1 expr))
+                                                    0)
 					      math-unit-prefixes))
 				 (if (and (string-match "[^a-zA-Zα-ωΑ-Ω0-9']" name)
 					  (not (memq (car u) '(mHg gf))))
@@ -854,7 +856,7 @@ If COMP or STD is non-nil, put that in the units table instead."
   (or math-units-table
       (let* ((combined-units (append math-additional-units
 				     math-standard-units))
-	     (math-cu-unit-list (mapcar 'car combined-units))
+	     (math-cu-unit-list (mapcar #'car combined-units))
 	     tab)
 	(message "Building units table...")
 	(setq math-units-table-buffer-valid nil)
@@ -877,7 +879,7 @@ If COMP or STD is non-nil, put that in the units table instead."
                                    (nth 4 x))))
 			  combined-units))
 	(let ((math-units-table tab))
-	  (mapc 'math-find-base-units tab))
+	  (mapc #'math-find-base-units tab))
 	(message "Building units table...done")
 	(setq math-units-table tab))))
 
@@ -887,15 +889,16 @@ If COMP or STD is non-nil, put that in the units table instead."
 (defvar math-fbu-base)
 (defvar math-fbu-entry)
 
-(defun math-find-base-units (math-fbu-entry)
-  (if (eq (nth 4 math-fbu-entry) 'boom)
-      (error "Circular definition involving unit %s" (car math-fbu-entry)))
-  (or (nth 4 math-fbu-entry)
-      (let (math-fbu-base)
-	(setcar (nthcdr 4 math-fbu-entry) 'boom)
-	(math-find-base-units-rec (nth 1 math-fbu-entry) 1)
+(defun math-find-base-units (entry)
+  (if (eq (nth 4 entry) 'boom)
+      (error "Circular definition involving unit %s" (car entry)))
+  (or (nth 4 entry)
+      (let (math-fbu-base
+            (math-fbu-entry entry))
+	(setcar (nthcdr 4 entry) 'boom)
+	(math-find-base-units-rec (nth 1 entry) 1)
 	'(or math-fbu-base
-	    (error "Dimensionless definition for unit %s" (car math-fbu-entry)))
+	    (error "Dimensionless definition for unit %s" (car entry)))
 	(while (eq (cdr (car math-fbu-base)) 0)
 	  (setq math-fbu-base (cdr math-fbu-base)))
 	(let ((b math-fbu-base))
@@ -904,7 +907,7 @@ If COMP or STD is non-nil, put that in the units table instead."
 		(setcdr b (cdr (cdr b)))
 	      (setq b (cdr b)))))
 	(setq math-fbu-base (sort math-fbu-base 'math-compare-unit-names))
-	(setcar (nthcdr 4 math-fbu-entry) math-fbu-base)
+	(setcar (nthcdr 4 entry) math-fbu-base)
 	math-fbu-base)))
 
 (defun math-compare-unit-names (a b)
@@ -939,7 +942,8 @@ If COMP or STD is non-nil, put that in the units table instead."
 	       (error "Unknown name %s in defining expression for unit %s"
 		      (nth 1 expr) (car math-fbu-entry))))
           ((equal expr '(calcFunc-ln 10)))
-	  (t (error "Malformed defining expression for unit %s" (car math-fbu-entry))))))
+	  (t (error "Malformed defining expression for unit %s"
+                    (car math-fbu-entry))))))
 
 
 (defun math-units-in-expr-p (expr sub-exprs)
@@ -1015,8 +1019,9 @@ If COMP or STD is non-nil, put that in the units table instead."
 ;; math-to-standard-units.
 (defvar math-which-standard)
 
-(defun math-to-standard-units (expr math-which-standard)
-  (math-to-standard-rec expr))
+(defun math-to-standard-units (expr which-standard)
+  (let ((math-which-standard which-standard))
+    (math-to-standard-rec expr)))
 
 (defun math-to-standard-rec (expr)
   (if (eq (car-safe expr) 'var)
@@ -1049,7 +1054,7 @@ If COMP or STD is non-nil, put that in the units table instead."
               (eq (car-safe (nth 1 expr)) 'var)))
 	expr
       (cons (car expr)
-	    (mapcar 'math-to-standard-rec (cdr expr))))))
+	    (mapcar #'math-to-standard-rec (cdr expr))))))
 
 (defun math-apply-units (expr units ulist &optional pure)
   (setq expr (math-simplify-units expr))
@@ -1082,8 +1087,7 @@ If COMP or STD is non-nil, put that in the units table instead."
        (let ((entry (list units calc-internal-prec calc-prefer-frac)))
 	 (or (equal entry (car math-decompose-units-cache))
 	     (let ((ulist nil)
-		   (utemp units)
-		   qty unit)
+		   (utemp units))
 	       (while (eq (car-safe utemp) '+)
 		 (setq ulist (cons (math-decompose-unit-part (nth 2 utemp))
 				   ulist)
@@ -1141,15 +1145,15 @@ If COMP or STD is non-nil, put that in the units table instead."
 (defvar math-cu-new-units)
 (defvar math-cu-pure)
 
-(defun math-convert-units (expr math-cu-new-units &optional math-cu-pure)
-  (if (eq (car-safe math-cu-new-units) 'var)
-      (let ((unew (assq (nth 1 math-cu-new-units)
+(defun math-convert-units (expr new-units &optional pure)
+  (if (eq (car-safe new-units) 'var)
+      (let ((unew (assq (nth 1 new-units)
                         (math-build-units-table))))
         (if (eq (car-safe (nth 1 unew)) '+)
-            (setq math-cu-new-units (nth 1 unew)))))
+            (setq new-units (nth 1 unew)))))
   (math-with-extra-prec 2
-    (let ((compat (and (not math-cu-pure)
-                       (math-find-compatible-unit expr math-cu-new-units)))
+    (let ((compat (and (not pure)
+                       (math-find-compatible-unit expr new-units)))
 	  (math-cu-unit-list nil)
 	  (math-combining-units nil))
       (if compat
@@ -1157,21 +1161,23 @@ If COMP or STD is non-nil, put that in the units table instead."
 	   (math-mul (math-mul (math-simplify-units
 				(math-div expr (math-pow (car compat)
 							 (cdr compat))))
-			       (math-pow math-cu-new-units (cdr compat)))
+			       (math-pow new-units (cdr compat)))
 		     (math-simplify-units
 		      (math-to-standard-units
-		       (math-pow (math-div (car compat) math-cu-new-units)
+		       (math-pow (math-div (car compat) new-units)
 				 (cdr compat))
 		       nil))))
-	(when (setq math-cu-unit-list (math-decompose-units math-cu-new-units))
-	  (setq math-cu-new-units (nth 2 (car math-cu-unit-list))))
+	(when (setq math-cu-unit-list (math-decompose-units new-units))
+	  (setq new-units (nth 2 (car math-cu-unit-list))))
 	(when (eq (car-safe expr) '+)
 	  (setq expr (math-simplify-units expr)))
 	(if (math-units-in-expr-p expr t)
-	    (math-convert-units-rec expr)
+            (let ((math-cu-new-units new-units)
+                  (math-cu-pure pure))
+	      (math-convert-units-rec expr))
 	  (math-apply-units (math-to-standard-units
-			     (list '/ expr math-cu-new-units) nil)
-			    math-cu-new-units math-cu-unit-list math-cu-pure))))))
+			     (list '/ expr new-units) nil)
+			    new-units math-cu-unit-list pure))))))
 
 (defun math-convert-units-rec (expr)
   (if (math-units-in-expr-p expr nil)
@@ -1181,7 +1187,7 @@ If COMP or STD is non-nil, put that in the units table instead."
     (if (Math-primp expr)
 	expr
       (cons (car expr)
-	    (mapcar 'math-convert-units-rec (cdr expr))))))
+	    (mapcar #'math-convert-units-rec (cdr expr))))))
 
 (defun math-convert-temperature (expr old new &optional pure)
   (let* ((units (math-single-units-in-expr-p expr))
@@ -1225,37 +1231,34 @@ If COMP or STD is non-nil, put that in the units table instead."
     (math-simplify a)))
 (defalias 'calcFunc-usimplify 'math-simplify-units)
 
-;; The function created by math-defsimplify uses the variable
-;; math-simplify-expr, and so is used by functions in math-defsimplify
-(defvar math-simplify-expr)
-
+;; The function created by math-defsimplify uses the variable `expr'.
 (math-defsimplify (+ -)
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
-       (let* ((units (math-extract-units (nth 1 math-simplify-expr)))
+       (math-units-in-expr-p (nth 1 expr) nil)
+       (let* ((units (math-extract-units (nth 1 expr)))
 	      (ratio (math-simplify (math-to-standard-units
-				     (list '/ (nth 2 math-simplify-expr) units) nil))))
+				     (list '/ (nth 2 expr) units) nil))))
 	 (if (math-units-in-expr-p ratio nil)
 	     (progn
-	       (calc-record-why "*Inconsistent units" math-simplify-expr)
-	       math-simplify-expr)
-	   (list '* (math-add (math-remove-units (nth 1 math-simplify-expr))
-			      (if (eq (car math-simplify-expr) '-)
+	       (calc-record-why "*Inconsistent units" expr)
+	       expr)
+	   (list '* (math-add (math-remove-units (nth 1 expr))
+			      (if (eq (car expr) '-)
                                   (math-neg ratio) ratio))
 		 units)))))
 
 (math-defsimplify *
-  (math-simplify-units-prod))
+  (math-simplify-units-prod expr))
 
-(defun math-simplify-units-prod ()
+(defun math-simplify-units-prod (expr)
   (and math-simplifying-units
        calc-autorange-units
-       (Math-realp (nth 1 math-simplify-expr))
-       (let* ((num (math-float (nth 1 math-simplify-expr)))
+       (Math-realp (nth 1 expr))
+       (let* ((num (math-float (nth 1 expr)))
 	      (xpon (calcFunc-xpon num))
-	      (unitp (cdr (cdr math-simplify-expr)))
+	      (unitp (cdr (cdr expr)))
 	      (unit (car unitp))
-	      (pow (if (eq (car math-simplify-expr) '*) 1 -1))
+	      (pow (if (eq (car expr) '*) 1 -1))
 	      u)
 	 (and (eq (car-safe unit) '*)
 	      (setq unitp (cdr unit)
@@ -1305,46 +1308,46 @@ If COMP or STD is non-nil, put that in the units table instead."
 		     (or (not (eq p pref))
 			 (< xpon (+ pxpon (* (math-abs pow) 3))))
 		     (progn
-		       (setcar (cdr math-simplify-expr)
+		       (setcar (cdr expr)
 			       (let ((calc-prefer-frac nil))
-				 (calcFunc-scf (nth 1 math-simplify-expr)
+				 (calcFunc-scf (nth 1 expr)
 					       (- uxpon pxpon))))
 		       (setcar unitp pname)
-		       math-simplify-expr)))))))
+		       expr)))))))
 
 (defvar math-try-cancel-units)
 
 (math-defsimplify /
   (and math-simplifying-units
-       (let ((np (cdr math-simplify-expr))
+       (let ((np (cdr expr))
 	     (math-try-cancel-units 0)
-	     n nn)
-	 (setq n (if (eq (car-safe (nth 2 math-simplify-expr)) '*)
-		     (cdr (nth 2 math-simplify-expr))
-		   (nthcdr 2 math-simplify-expr)))
+	     n)
+	 (setq n (if (eq (car-safe (nth 2 expr)) '*)
+		     (cdr (nth 2 expr))
+		   (nthcdr 2 expr)))
 	 (if (math-realp (car n))
 	     (progn
-	       (setcar (cdr math-simplify-expr) (math-mul (nth 1 math-simplify-expr)
+	       (setcar (cdr expr) (math-mul (nth 1 expr)
 					    (let ((calc-prefer-frac nil))
 					      (math-div 1 (car n)))))
 	       (setcar n 1)))
 	 (while (eq (car-safe (setq n (car np))) '*)
-	   (math-simplify-units-divisor (cdr n) (cdr (cdr math-simplify-expr)))
+	   (math-simplify-units-divisor (cdr n) (cdr (cdr expr)))
 	   (setq np (cdr (cdr n))))
-	 (math-simplify-units-divisor np (cdr (cdr math-simplify-expr)))
+	 (math-simplify-units-divisor np (cdr (cdr expr)))
 	 (if (eq math-try-cancel-units 0)
 	     (let* ((math-simplifying-units nil)
 		    (base (math-simplify
-                           (math-to-standard-units math-simplify-expr nil))))
+                           (math-to-standard-units expr nil))))
 	       (if (Math-numberp base)
-		   (setq math-simplify-expr base))))
-	 (if (eq (car-safe math-simplify-expr) '/)
-	     (math-simplify-units-prod))
-	 math-simplify-expr)))
+		   (setq expr base))))
+	 (if (eq (car-safe expr) '/)
+	     (math-simplify-units-prod expr))
+	 expr)))
 
 (defun math-simplify-units-divisor (np dp)
   (let ((n (car np))
-	d dd temp)
+	d temp)
     (while (eq (car-safe (setq d (car dp))) '*)
       (when (setq temp (math-simplify-units-quotient n (nth 1 d)))
 	(setcar np (setq n temp))
@@ -1384,23 +1387,23 @@ If COMP or STD is non-nil, put that in the units table instead."
 
 (math-defsimplify ^
   (and math-simplifying-units
-       (math-realp (nth 2 math-simplify-expr))
-       (if (memq (car-safe (nth 1 math-simplify-expr)) '(* /))
-	   (list (car (nth 1 math-simplify-expr))
-		 (list '^ (nth 1 (nth 1 math-simplify-expr))
-                       (nth 2 math-simplify-expr))
-		 (list '^ (nth 2 (nth 1 math-simplify-expr))
-                       (nth 2 math-simplify-expr)))
-	 (math-simplify-units-pow (nth 1 math-simplify-expr)
-                                  (nth 2 math-simplify-expr)))))
+       (math-realp (nth 2 expr))
+       (if (memq (car-safe (nth 1 expr)) '(* /))
+	   (list (car (nth 1 expr))
+		 (list '^ (nth 1 (nth 1 expr))
+                       (nth 2 expr))
+		 (list '^ (nth 2 (nth 1 expr))
+                       (nth 2 expr)))
+	 (math-simplify-units-pow (nth 1 expr)
+                                  (nth 2 expr)))))
 
 (math-defsimplify calcFunc-sqrt
   (and math-simplifying-units
-       (if (memq (car-safe (nth 1 math-simplify-expr)) '(* /))
-	   (list (car (nth 1 math-simplify-expr))
-		 (list 'calcFunc-sqrt (nth 1 (nth 1 math-simplify-expr)))
-		 (list 'calcFunc-sqrt (nth 2 (nth 1 math-simplify-expr))))
-	 (math-simplify-units-pow (nth 1 math-simplify-expr) '(frac 1 2)))))
+       (if (memq (car-safe (nth 1 expr)) '(* /))
+	   (list (car (nth 1 expr))
+		 (list 'calcFunc-sqrt (nth 1 (nth 1 expr)))
+		 (list 'calcFunc-sqrt (nth 2 (nth 1 expr))))
+	 (math-simplify-units-pow (nth 1 expr) '(frac 1 2)))))
 
 (math-defsimplify (calcFunc-floor
 		   calcFunc-ceil
@@ -1413,21 +1416,21 @@ If COMP or STD is non-nil, put that in the units table instead."
 		   calcFunc-abs
 		   calcFunc-clean)
   (and math-simplifying-units
-       (= (length math-simplify-expr) 2)
-       (if (math-only-units-in-expr-p (nth 1 math-simplify-expr))
-	   (nth 1 math-simplify-expr)
-	 (if (and (memq (car-safe (nth 1 math-simplify-expr)) '(* /))
+       (= (length expr) 2)
+       (if (math-only-units-in-expr-p (nth 1 expr))
+	   (nth 1 expr)
+	 (if (and (memq (car-safe (nth 1 expr)) '(* /))
 		  (or (math-only-units-in-expr-p
-		       (nth 1 (nth 1 math-simplify-expr)))
+		       (nth 1 (nth 1 expr)))
 		      (math-only-units-in-expr-p
-		       (nth 2 (nth 1 math-simplify-expr)))))
-	     (list (car (nth 1 math-simplify-expr))
-		   (cons (car math-simplify-expr)
-			 (cons (nth 1 (nth 1 math-simplify-expr))
-			       (cdr (cdr math-simplify-expr))))
-		   (cons (car math-simplify-expr)
-			 (cons (nth 2 (nth 1 math-simplify-expr))
-			       (cdr (cdr math-simplify-expr)))))))))
+		       (nth 2 (nth 1 expr)))))
+	     (list (car (nth 1 expr))
+		   (cons (car expr)
+			 (cons (nth 1 (nth 1 expr))
+			       (cdr (cdr expr))))
+		   (cons (car expr)
+			 (cons (nth 2 (nth 1 expr))
+			       (cdr (cdr expr)))))))))
 
 (defun math-simplify-units-pow (a pow)
   (if (and (eq (car-safe a) '^)
@@ -1450,10 +1453,10 @@ If COMP or STD is non-nil, put that in the units table instead."
 
 (math-defsimplify calcFunc-sin
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (math-units-in-expr-p (nth 1 expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+		    (math-to-standard-units (nth 1 expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))
@@ -1463,10 +1466,10 @@ If COMP or STD is non-nil, put that in the units table instead."
 
 (math-defsimplify calcFunc-cos
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (math-units-in-expr-p (nth 1 expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+		    (math-to-standard-units (nth 1 expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))
@@ -1476,10 +1479,10 @@ If COMP or STD is non-nil, put that in the units table instead."
 
 (math-defsimplify calcFunc-tan
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (math-units-in-expr-p (nth 1 expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+		    (math-to-standard-units (nth 1 expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))
@@ -1489,10 +1492,10 @@ If COMP or STD is non-nil, put that in the units table instead."
 
 (math-defsimplify calcFunc-sec
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (math-units-in-expr-p (nth 1 expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+		    (math-to-standard-units (nth 1 expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))
@@ -1502,10 +1505,10 @@ If COMP or STD is non-nil, put that in the units table instead."
 
 (math-defsimplify calcFunc-csc
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (math-units-in-expr-p (nth 1 expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+		    (math-to-standard-units (nth 1 expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))
@@ -1515,10 +1518,10 @@ If COMP or STD is non-nil, put that in the units table instead."
 
 (math-defsimplify calcFunc-cot
   (and math-simplifying-units
-       (math-units-in-expr-p (nth 1 math-simplify-expr) nil)
+       (math-units-in-expr-p (nth 1 expr) nil)
        (let ((rad (math-simplify-units
 		   (math-evaluate-expr
-		    (math-to-standard-units (nth 1 math-simplify-expr) nil))))
+		    (math-to-standard-units (nth 1 expr) nil))))
 	     (calc-angle-mode 'rad))
 	 (and (eq (car-safe rad) '*)
 	      (math-realp (nth 1 rad))
@@ -1533,13 +1536,13 @@ If COMP or STD is non-nil, put that in the units table instead."
     (if (Math-primp expr)
 	expr
       (cons (car expr)
-	    (mapcar 'math-remove-units (cdr expr))))))
+	    (mapcar #'math-remove-units (cdr expr))))))
 
 (defun math-extract-units (expr)
   (cond
    ((memq (car-safe expr) '(* /))
     (cons (car expr)
-          (mapcar 'math-extract-units (cdr expr))))
+          (mapcar #'math-extract-units (cdr expr))))
    ((eq (car-safe expr) 'neg)
     (math-extract-units (nth 1 expr)))
    ((eq (car-safe expr) '^)
@@ -1666,7 +1669,7 @@ In symbolic mode, return the list (^ a b)."
 (defun math-extract-logunits (expr)
   (if (memq (car-safe expr) '(* /))
       (cons (car expr)
-	    (mapcar 'math-extract-logunits (cdr expr)))
+	    (mapcar #'math-extract-logunits (cdr expr)))
     (if (memq (car-safe expr) '(^))
         (list '^ (math-extract-logunits (nth 1 expr)) (nth 2 expr))
       (if (member expr math-logunits) expr 1))))

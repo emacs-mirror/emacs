@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -643,12 +643,14 @@ FIXME: multiple comma-separated values should be allowed!"
               (setq year  (nth 2 mdy))))
         ;; create the decoded date-time
         ;; FIXME!?!
-        (condition-case nil
-            (decode-time (encode-time second minute hour day month year zone))
-          (error
-           (message "Cannot decode \"%s\"" isodatetimestring)
-           ;; hope for the best...
-           (list second minute hour day month year 0 nil 0))))
+	(let ((decoded-time (list second minute hour day month year
+				  nil -1 zone)))
+	  (condition-case nil
+	      (decode-time (encode-time decoded-time 'integer))
+	    (error
+	     (message "Cannot decode \"%s\"" isodatetimestring)
+	     ;; Hope for the best....
+	     decoded-time))))
     ;; isodatetimestring == nil
     nil))
 
@@ -1016,9 +1018,7 @@ current iCalendar object, as a string.  Increase
       (setq icalendar--uid-count (1+ icalendar--uid-count))
       (setq uid (replace-regexp-in-string
                  "%t"
-                 (format "%d%d%d" (car (current-time))
-                         (cadr (current-time))
-                         (car (cddr (current-time))))
+                 (format-time-string "%s%N")
                  uid t t))
       (setq uid (replace-regexp-in-string
                  "%h"
@@ -1598,8 +1598,7 @@ regular expression matching the start of non-marking entries.
 ENTRY-MAIN is the first line of the diary entry.
 
 Optional argument START determines the first day of the
-enumeration, given as a time value, in same format as returned by
-`current-time' -- used for test purposes."
+enumeration, given as a Lisp time value -- used for test purposes."
   (cond ((string-match (concat nonmarker
                                "%%(and \\(([^)]+)\\))\\(\\s-*.*?\\) ?$")
                        entry-main)
@@ -1623,8 +1622,7 @@ enumeration, given as a time value, in same format as returned by
                    (mapcar
                     (lambda (offset)
                       (let* ((day (decode-time (time-add now
-                                                         (seconds-to-time
-                                                          (* offset 60 60 24)))))
+							 (* 60 60 24 offset))))
                              (d (nth 3 day))
                              (m (nth 4 day))
                              (y (nth 5 day))

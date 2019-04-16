@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1993, 1999, 2001-2018 Free Software Foundation,
+@c Copyright (C) 1990-1993, 1999, 2001-2019 Free Software Foundation,
 @c Inc.
 @c See the file elisp.texi for copying conditions.
 @node Standard Errors
@@ -11,7 +11,7 @@
 by concept.  The list includes each symbol's message and a cross reference
 to a description of how the error can occur.
 
-  Each error symbol has an set of parent error conditions that is a
+  Each error symbol has a set of parent error conditions that is a
 list of symbols.  Normally this list includes the error symbol itself
 and the symbol @code{error}.  Occasionally it includes additional
 symbols, which are intermediate classifications, narrower than
@@ -159,6 +159,11 @@ The message is @samp{No catch for tag}.  @xref{Catch and Throw}.
 The message is @samp{Attempt to modify a protected file}.
 @end ignore
 
+@item range-error
+The message is @code{Arithmetic range error}.
+This can happen with integers exceeding the @code{integer-width} limit.
+@xref{Integer Basics}.
+
 @item scan-error
 The message is @samp{Scan error}.  This happens when certain
 syntax-parsing functions find invalid syntax or mismatched
@@ -222,9 +227,6 @@ The message is @samp{Arithmetic domain error}.
 @item overflow-error
 The message is @samp{Arithmetic overflow error}.  This is a subcategory
 of @code{domain-error}.
-
-@item range-error
-The message is @code{Arithmetic range error}.
 
 @item singularity-error
 The message is @samp{Arithmetic singularity error}.  This is a

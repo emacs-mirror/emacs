@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -112,24 +112,29 @@ activate the packages in the latter case, @code{package-activate-all}
 should be called explicitly (e.g., via the @samp{--funcall} option).
 
 @vindex initial-window-system@r{, and startup}
-@vindex window-system-initialization-alist
+@findex window-system-initialization
 @item
 If not running in batch mode, it initializes the window system that
 the variable @code{initial-window-system} specifies (@pxref{Window
-Systems, initial-window-system}).  The initialization function for
-each supported window system is specified by
-@code{window-system-initialization-alist}.  If the value
-of @code{initial-window-system} is @var{windowsystem}, then the
-appropriate initialization function is defined in the file
-@file{term/@var{windowsystem}-win.el}.  This file should have been
-compiled into the Emacs executable when it was built.
+Systems, initial-window-system}).  The initialization function,
+@code{window-system-initialization}, is a @dfn{generic function}
+(@pxref{Generic Functions}) whose actual implementation is different
+for each supported window system.  If the value of
+@code{initial-window-system} is @var{windowsystem}, then the
+appropriate implementation of the initialization function is defined
+in the file @file{term/@var{windowsystem}-win.el}.  This file should
+have been compiled into the Emacs executable when it was built.
 
 @item
 It runs the normal hook @code{before-init-hook}.
 
 @item
-If appropriate, it creates a graphical frame.  This is not done in
-batch (noninteractive) or daemon mode.
+If appropriate, it creates a graphical frame.  As part of creating the
+graphical frame, it initializes the window system specified by
+@code{initial-frame-alist} and @code{default-frame-alist}
+(@pxref{Initial Parameters}) for the graphical frame, by calling the
+@code{window-system-initialization} function for that window system.
+This is not done in batch (noninteractive) or daemon mode.
 
 @item
 It initializes the initial frame's faces, and sets up the menu bar
@@ -1197,24 +1202,19 @@ Titles}).
 @cindex UID
 @defun user-real-uid
 This function returns the real @acronym{UID} of the user.
-The value may be floating point, in the (unlikely) event that
-the UID is too large to fit in a Lisp integer.
 @end defun
 
 @defun user-uid
 This function returns the effective @acronym{UID} of the user.
-The value may be floating point.
 @end defun
 
 @cindex GID
 @defun group-gid
 This function returns the effective @acronym{GID} of the Emacs process.
-The value may be floating point.
 @end defun
 
 @defun group-real-gid
 This function returns the real @acronym{GID} of the Emacs process.
-The value may be floating point.
 @end defun
 
 @defun system-users
@@ -1230,6 +1230,11 @@ groups on the system.  If Emacs cannot retrieve this information, the
 return value is @code{nil}.
 @end defun
 
+@defun group-name gid
+This function returns the group name that corresponds to the numeric
+group ID @var{gid}, or @code{nil} if there is no such group.
+@end defun
+
 
 @node Time of Day
 @section Time of Day
@@ -1238,11 +1243,44 @@ return value is @code{nil}.
   This section explains how to determine the current time and time
 zone.
 
+@cindex Lisp timestamp
+@cindex timestamp, Lisp
+  Many functions like @code{current-time} and @code{file-attributes}
+return @dfn{Lisp timestamp} values that count seconds, and that can
+represent absolute time by counting seconds since the @dfn{epoch} of
+1970-01-01 00:00:00 UTC.
+
+  Although traditionally Lisp timestamps were integer pairs, their
+form has evolved and programs ordinarily should not depend on the
+current default form.  If your program needs a particular timestamp
+form, you can use the @code{encode-time} function to convert it to the
+needed form.  @xref{Time Conversion}.
+
 @cindex epoch
-  Most of these functions represent time as a list of four integers
-@code{(@var{sec-high} @var{sec-low} @var{microsec} @var{picosec})}.
-This represents the number of seconds from the @dfn{epoch} (January
-1, 1970 at 00:00 UTC), using the formula:
+  There are currently three forms of Lisp timestamps, each of
+which represents a number of seconds:
+
+@itemize @bullet
+@item
+An integer.  Although this is the simplest form, it cannot represent
+subsecond timestamps.
+
+@item
+A pair of integers @code{(@var{ticks} . @var{hz})}, where @var{hz} is
+positive.  This represents @var{ticks}/@var{hz} seconds, which is the
+same time as plain @var{ticks} if @var{hz} is 1.  A common value for
+@var{hz} is 1000000000, for a nanosecond-resolution
+clock.@footnote{Currently @var{hz} should be at least 65536 to avoid
+compatibility warnings when the timestamp is passed to standard
+functions, as previous versions of Emacs would interpret such a
+timestamps differently due to backward-compatibility concerns.  These
+warnings are intended to be removed in a future Emacs version.}
+
+@item
+A list of four integers @code{(@var{high} @var{low} @var{micro}
+@var{pico})}, where 0 @leq{} @var{low} < 65536, 0 @leq{} @var{micro} <
+1000000, and 0 @leq{} @var{pico} < 1000000.
+This represents the number of seconds using the formula:
 @ifnottex
 @var{high} * 2**16 + @var{low} + @var{micro} * 10**@minus{}6 +
 @var{pico} * 10**@minus{}12.
@@ -1250,21 +1288,23 @@ This represents the number of seconds from the @dfn{epoch} (January
 @tex
 $high*2^{16} + low + micro*10^{-6} + pico*10^{-12}$.
 @end tex
-The return value of @code{current-time} represents time using this
-form, as do the timestamps in the return values of other functions
-such as @code{file-attributes} (@pxref{Definition of
-file-attributes}).  In some cases, functions may return two- or
+In some cases, functions may default to returning two- or
 three-element lists, with omitted @var{microsec} and @var{picosec}
 components defaulting to zero.
+On all current machines @var{picosec} is a multiple of 1000, but this
+may change as higher-resolution clocks become available.
+@end itemize
 
 @cindex time value
   Function arguments, e.g., the @var{time} argument to
 @code{current-time-string}, accept a more-general @dfn{time value}
-format, which can be a list of integers as above, or a single number
-for seconds since the epoch, or @code{nil} for the current time.  You
-can convert a time value into a human-readable string using
-@code{current-time-string} and @code{format-time-string}, into a list
-of integers using @code{seconds-to-time}, and into other forms using
+format, which can be a Lisp timestamp, @code{nil} for the current
+time, a single floating-point number for seconds, or a list
+@code{(@var{high} @var{low} @var{micro})} or @code{(@var{high}
+@var{low})} that is a truncated list timestamp with missing elements
+taken to be zero.  You can convert a time value into
+a human-readable string using @code{format-time-string}, into a Lisp
+timestamp using @code{encode-time}, and into other forms using
 @code{decode-time} and @code{float-time}.  These functions are
 described in the following sections.
 
@@ -1273,9 +1313,10 @@ This function returns the current time and date as a human-readable
 string.  The format does not vary for the initial part of the string,
 which contains the day of week, month, day of month, and time of day
 in that order: the number of characters used for these fields is
-always the same, so you can reliably
-use @code{substring} to extract them.  You should count
-characters from the beginning of the string rather than from the end,
+always the same, although (unless you require English weekday or
+month abbreviations regardless of locale) it is typically more
+convenient to use @code{format-time-string} than to extract
+fields from the output of @code{current-time-string},
 as the year might not have exactly four digits, and additional
 information may some day be added at the end.
 
@@ -1292,12 +1333,7 @@ defaults to the current time zone rule.  @xref{Time Zone Rules}.
 @end defun
 
 @defun current-time
-This function returns the current time, represented as a list of four
-integers @code{(@var{sec-high} @var{sec-low} @var{microsec} @var{picosec})}.
-These integers have trailing zeros on systems that return time with
-lower resolutions.  On all current machines @var{picosec} is a
-multiple of 1000, but this may change as higher-resolution clocks
-become available.
+This function returns the current time as a Lisp timestamp.
 @end defun
 
 @defun float-time &optional time
@@ -1309,13 +1345,6 @@ given, specifies a time to convert instead of the current time.
 exact.  Do not use this function if precise time stamps are required.
 
 @code{time-to-seconds} is an alias for this function.
-@end defun
-
-@defun seconds-to-time time
-This function converts a time value to list-of-integer form.
-For example, if @var{time} is a number, @code{(time-to-seconds
-(seconds-to-time @var{time}))} equals the number unless overflow
-or rounding errors occur.
 @end defun
 
 @node Time Zone Rules
@@ -1428,7 +1457,8 @@ The year, an integer typically greater than 1900.
 The day of week, as an integer between 0 and 6, where 0 stands for
 Sunday.
 @item dst
-@code{t} if daylight saving time is effect, otherwise @code{nil}.
+@code{t} if daylight saving time is effect, @code{nil} if it is not
+in effect, and @minus{}1 if this information is not available.
 @item utcoff
 An integer indicating the Universal Time offset in seconds, i.e., the number of
 seconds east of Greenwich.
@@ -1438,32 +1468,63 @@ seconds east of Greenwich.
 @var{dow} and @var{utcoff}.
 @end defun
 
-@defun encode-time seconds minutes hour day month year &optional zone
-This function is the inverse of @code{decode-time}.  It converts seven
-items of calendrical data into a list-of-integer time value.  For the
-meanings of the arguments, see the table above under
-@code{decode-time}.
+@defun encode-time &optional time form &rest obsolescent-arguments
+This function converts @var{time} to a Lisp timestamp.
+It can act as the inverse of @code{decode-time}.
+
+The first argument can be a time value such as a number of seconds, a
+pair @code{(@var{ticks} . @var{hz})}, a list @code{(@var{high}
+@var{low} @var{micro} @var{pico})}, or @code{nil} (the default) for
+the current time (@pxref{Time of Day}).  It can also be a list
+@code{(@var{second} @var{minute} @var{hour} @var{day} @var{month}
+@var{year} @var{ignored} @var{dst} @var{zone})} that specifies a
+decoded time in the style of @code{decode-time}, so that
+@code{(encode-time (decode-time ...))}  works.  For the meanings of
+these list members, see the table under @code{decode-time}.
+
+The optional @var{form} argument specifies the desired timestamp form
+to be returned.  If @var{form} is the symbol @code{integer}, this
+function returns an integer count of seconds.  If @var{form} is a
+positive integer, it specifies a clock frequency and this function
+returns an integer-pair timestamp @code{(@var{ticks}
+. @var{form})}.@footnote{Currently a positive integer @var{form}
+should be at least 65536 if the returned value is intended to be given
+to standard functions expecting Lisp timestamps.}  If @var{form} is
+@code{t}, this function treats it as a positive integer suitable for
+representing the timestamp; for example, it is treated as 1000000000
+if the platform timestamp has nanosecond resolution.  If @var{form} is
+@code{list}, this function returns an integer list @code{(@var{high}
+@var{low} @var{micro} @var{pico})}.  Although an omitted or @code{nil}
+@var{form} currently acts like @code{list}, this is planned to change
+in a future Emacs version, so callers requiring list timestamps should
+pass @code{list} explicitly.
+
+As an obsolescent calling convention, this function can be given six
+or more arguments.  The first six arguments @var{second},
+@var{minute}, @var{hour}, @var{day}, @var{month}, and @var{year}
+specify most of the components of a decoded time.  If there are more
+than six arguments the @emph{last} argument is used as @var{zone} and
+any other extra arguments are ignored, so that @code{(apply
+#\\='encode-time (decode-time ...))} works; otherwise @var{zone} defaults
+to the current time zone rule (@pxref{Time Zone Rules}).  The decoded
+time's @var{dst} component is treated as if it was @minus{}1, and
+@var{form} takes its default value.
 
 Year numbers less than 100 are not treated specially.  If you want them
 to stand for years above 1900, or years above 2000, you must alter them
 yourself before you call @code{encode-time}.
 
-The optional argument @var{zone} defaults to the current time zone rule.
-@xref{Time Zone Rules}.
-
-If you pass more than seven arguments to @code{encode-time}, the first
-six are used as @var{seconds} through @var{year}, the last argument is
-used as @var{zone}, and the arguments in between are ignored.  This
-feature makes it possible to use the elements of a list returned by
-@code{decode-time} as the arguments to @code{encode-time}, like this:
+The @code{encode-time} function acts as a rough inverse to
+@code{decode-time}.  For example, you can pass the output of
+the latter to the former as follows:
 
 @example
-(apply 'encode-time (decode-time @dots{}))
+(encode-time (decode-time @dots{}))
 @end example
 
 You can perform simple date arithmetic by using out-of-range values for
-the @var{seconds}, @var{minutes}, @var{hour}, @var{day}, and @var{month}
-arguments; for example, day 0 means the day preceding the given month.
+@var{seconds}, @var{minutes}, @var{hour}, @var{day}, and @var{month};
+for example, day 0 means the day preceding the given month.
 
 The operating system puts limits on the range of possible time values;
 if you try to encode a time that is out of range, an error results.
@@ -1478,12 +1539,33 @@ on others, years as early as 1901 do work.
 @cindex formatting time values
 
   These functions convert time values to text in a string, and vice versa.
-Time values include @code{nil}, numbers, and lists of two to four
-integers (@pxref{Time of Day}).
+Time values include @code{nil}, numbers, and Lisp timestamps
+(@pxref{Time of Day}).
 
 @defun date-to-time string
 This function parses the time-string @var{string} and returns the
-corresponding time value.
+corresponding Lisp timestamp.  The argument @var{string} should represent
+a date-time, and should be in one of the forms recognized by
+@code{parse-time-string} (see below).  This function assumes the GMT
+timezone if @var{string} lacks an explicit timezone information.
+@end defun
+
+@defun parse-time-string string
+This function parses the time-string @var{string} into a list of the
+following form:
+
+@example
+(@var{sec} @var{min} @var{hour} @var{day} @var{mon} @var{year} @var{dow} @var{dst} @var{tz})
+@end example
+
+@noindent
+The format of this list is the same as what @code{decode-time} accepts
+(@pxref{Time Conversion}), and is described in more detail there.  Any
+element that cannot be determined from the input will be set to
+@code{nil}.  The argument @var{string} should resemble an RFC 822 (or later) or
+ISO 8601 string, like ``Fri, 25 Mar 2016 16:24:56 +0100'' or
+``1998-09-12T12:21:54-0200'', but this function will attempt to parse
+less well-formed time strings as well.
 @end defun
 
 @defun format-time-string format-string &optional time zone
@@ -1518,7 +1600,9 @@ This is a synonym for @samp{%m/%d/%y}.
 @item %e
 This stands for the day of month, blank-padded.
 @item %F
-This stands for the ISO 8601 date format, i.e., @samp{"%Y-%m-%d"}.
+This stands for the ISO 8601 date format, which is like
+@samp{%+4Y-%m-%d} except that any flags or field width override the
+@samp{+} and (after subtracting 6) the @samp{4}.
 @item %g
 This stands for the year corresponding to the ISO week within the century.
 @item %G
@@ -1598,7 +1682,9 @@ This stands for a single @samp{%}.
 @end table
 
 One or more flag characters can appear immediately after the @samp{%}.
-@samp{0} pads with zeros, @samp{_} pads with blanks, @samp{-}
+@samp{0} pads with zeros, @samp{+} pads with zeros and also puts
+@samp{+} before nonnegative year numbers with more than four digits,
+@samp{_} pads with blanks, @samp{-}
 suppresses padding, @samp{^} upper-cases letters, and @samp{#}
 reverses the case of letters.
 
@@ -1681,10 +1767,6 @@ You can also specify the field width by following the @samp{%} with a
 number; shorter numbers will be padded with blanks.  An optional
 period before the width requests zero-padding instead.  For example,
 @code{"%.3Y"} might produce @code{"004 years"}.
-
-@emph{Warning:} This function works only with values of @var{seconds}
-that don't exceed @code{most-positive-fixnum} (@pxref{Integer Basics,
-most-positive-fixnum}).
 @end defun
 
 @node Processor Run Time
@@ -1709,10 +1791,8 @@ When called interactively, it prints the uptime in the echo area.
 @end deffn
 
 @defun get-internal-run-time
-This function returns the processor run time used by Emacs as a list
-of four integers: @code{(@var{sec-high} @var{sec-low} @var{microsec}
-@var{picosec})}, using the same format as @code{current-time}
-(@pxref{Time of Day}).
+This function returns the processor run time used by Emacs, as a Lisp
+timestamp (@pxref{Time of Day}).
 
 Note that the time returned by this function excludes the time Emacs
 was not using the processor, and if the Emacs process has several
@@ -1737,26 +1817,36 @@ interactively, it prints the duration in the echo area.
 @cindex calendrical computations
 
   These functions perform calendrical computations using time values
-(@pxref{Time of Day}).  A value of @code{nil} for any of their
+(@pxref{Time of Day}).  As with any time value, a value of
+@code{nil} for any of their
 time-value arguments stands for the current system time, and a single
-integer number stands for the number of seconds since the epoch.
+number stands for the number of seconds since the epoch.
 
 @defun time-less-p t1 t2
 This returns @code{t} if time value @var{t1} is less than time value
 @var{t2}.
+The result is @code{nil} if either argument is a NaN.
+@end defun
+
+@defun time-equal-p t1 t2
+This returns @code{t} if @var{t1} and @var{t2} are equal time values.
+The result is @code{nil} if either argument is a NaN.
 @end defun
 
 @defun time-subtract t1 t2
 This returns the time difference @var{t1} @minus{} @var{t2} between
-two time values, as a time value.  If you need the difference in units
+two time values, as a time value.  However, the result is a float
+if either argument is a float infinity or NaN@.
+If you need the difference in units
 of elapsed seconds, use @code{float-time} (@pxref{Time of Day,
 float-time}) to convert the result into seconds.
 @end defun
 
 @defun time-add t1 t2
 This returns the sum of two time values, as a time value.
+However, the result is a float if either argument is a float infinity or NaN@.
 One argument should represent a time difference rather than a point in time,
-either as a list or as a single number of elapsed seconds.
+as a time value that is often just a single number of elapsed seconds.
 Here is how to add a number of seconds to a time value:
 
 @example
@@ -1787,7 +1877,7 @@ special object that stores the information about the next invocation
 times and the function to invoke.
 
 @defun timerp object
-This predicate function returns non-@code{nil} of @code{object} is a
+This predicate function returns non-@code{nil} if @code{object} is a
 timer.
 @end defun
 
@@ -1999,8 +2089,7 @@ the idleness time, as described below.
 
 @defun current-idle-time
 If Emacs is idle, this function returns the length of time Emacs has
-been idle, as a list of four integers: @code{(@var{sec-high}
-@var{sec-low} @var{microsec} @var{picosec})}, using the same format as
+been idle, using the same format as
 @code{current-time} (@pxref{Time of Day}).
 
 When Emacs is not idle, @code{current-idle-time} returns @code{nil}.
@@ -2335,7 +2424,7 @@ to be outputting to an erasable screen.  The idea is that you specify
 Lisp programs to run; when they are finished, Emacs should exit.  The
 way to specify the programs to run is with @samp{-l @var{file}}, which
 loads the library named @var{file}, or @samp{-f @var{function}}, which
-calls @var{function} with no arguments, or @samp{--eval @var{form}}.
+calls @var{function} with no arguments, or @samp{--eval=@var{form}}.
 
   Any Lisp program output that would normally go to the echo area,
 either using @code{message}, or using @code{prin1}, etc., with
@@ -3039,7 +3128,7 @@ Although Emacs normally respects access permissions of the underlying
 operating system, in some cases it handles accesses specially.  For
 example, file names can have handlers that treat the files specially,
 with their own access checking.  @xref{Magic File Names}.  Also, a
-buffer can be read-only even if the corresponding file is writeable,
+buffer can be read-only even if the corresponding file is writable,
 and vice versa, which can result in messages such as @samp{File passwd
 is write-protected; try to save anyway? (yes or no)}.  @xref{Read Only
 Buffers}.

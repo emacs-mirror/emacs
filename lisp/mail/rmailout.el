@@ -1,6 +1,6 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file
 
-;; Copyright (C) 1985, 1987, 1993-1994, 2001-2018 Free Software
+;; Copyright (C) 1985, 1987, 1993-1994, 2001-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -54,6 +54,13 @@ a file name as a string."
 The function `rmail-delete-unwanted-fields' uses this, ignoring case."
   :type '(choice (const :tag "None" nil)
 		 regexp)
+  :group 'rmail-output)
+
+(defcustom rmail-output-reset-deleted-flag nil
+  "Non-nil means reset the \"deleted\" flag when outputting a message to a file."
+  :type '(choice (const :tag "Output with the \"deleted\" flag reset" t)
+                 (const :tag "Output with the \"deleted\" flag intact" nil))
+  :version "27.1"
   :group 'rmail-output)
 
 (defun rmail-output-read-file-name ()
@@ -472,9 +479,15 @@ buffer, updates it accordingly.
 This command always outputs the complete message header, even if
 the header display is currently pruned.
 
+If `rmail-output-reset-deleted-flag' is non-nil, the message's
+deleted flag is reset in the message appended to the destination
+file.  Otherwise, the appended message will remain marked as
+deleted if it was deleted before invoking this command.
+
 Optional prefix argument COUNT (default 1) says to output that
 many consecutive messages, starting with the current one (ignoring
-deleted messages).  If `rmail-delete-after-output' is non-nil, deletes
+deleted messages, unless `rmail-output-reset-deleted-flag' is
+non-nil).  If `rmail-delete-after-output' is non-nil, deletes
 messages after output.
 
 The optional third argument NOATTRIBUTE, if non-nil, says not to
@@ -533,30 +546,47 @@ from a non-Rmail buffer.  In this case, COUNT is ignored."
       (if (zerop rmail-total-messages)
 	  (error "No messages to output"))
       (let ((orig-count count)
-	    beg end)
+	    beg end delete-attr-reset-p)
 	(while (> count 0)
-	  (setq beg (rmail-msgbeg rmail-current-message)
-		end (rmail-msgend rmail-current-message))
-	  ;; All access to the buffer's local variables is now finished...
-	  (save-excursion
-	    ;; ... so it is ok to go to a different buffer.
-	    (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
-	    (setq cur (current-buffer))
-	    (save-restriction
-	      (widen)
-	      (with-temp-buffer
-		(insert-buffer-substring cur beg end)
-		(if babyl-format
-		    (rmail-output-as-babyl file-name noattribute)
-		  (rmail-output-as-mbox file-name noattribute)))))
+          (when (and rmail-output-reset-deleted-flag
+                     (rmail-message-deleted-p rmail-current-message))
+            (rmail-set-attribute rmail-deleted-attr-index nil)
+            (setq delete-attr-reset-p t))
+          ;; Make sure we undo our messing with the DELETED attribute.
+          (unwind-protect
+              (progn
+	        (setq beg (rmail-msgbeg rmail-current-message)
+		      end (rmail-msgend rmail-current-message))
+	        ;; All access to the buffer's local variables is now finished...
+	        (save-excursion
+	          ;; ... so it is ok to go to a different buffer.
+	          (if (rmail-buffers-swapped-p) (set-buffer rmail-view-buffer))
+	          (setq cur (current-buffer))
+	          (save-restriction
+	            (widen)
+	            (with-temp-buffer
+		      (insert-buffer-substring cur beg end)
+		      (if babyl-format
+		          (rmail-output-as-babyl file-name noattribute)
+		        (rmail-output-as-mbox file-name noattribute))))))
+            (if delete-attr-reset-p
+                (rmail-set-attribute rmail-deleted-attr-index t)))
 	  (or noattribute		; mark message as "filed"
 	      (rmail-set-attribute rmail-filed-attr-index t))
 	  (setq count (1- count))
 	  (let ((next-message-p
-		 (if rmail-delete-after-output
-		     (rmail-delete-forward)
-		   (if (> count 0)
-		       (rmail-next-undeleted-message 1))))
+                 (if rmail-output-reset-deleted-flag
+                     (progn
+                       (if rmail-delete-after-output
+                           (rmail-delete-message))
+                       (if (> count 0)
+                           (let ((msgnum rmail-current-message))
+                             (rmail-next-message 1)
+                             (eq rmail-current-message (1+ msgnum)))))
+		   (if rmail-delete-after-output
+		       (rmail-delete-forward)
+		     (if (> count 0)
+		         (rmail-next-undeleted-message 1)))))
 		(num-appended (- orig-count count)))
 	    (if (and (> count 0) (not next-message-p))
 		(error "Only %d message%s appended" num-appended

@@ -1,6 +1,6 @@
 ;;; org-timer.el --- Timer code for Org mode         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -139,12 +139,7 @@ the region 0:00:00."
 		   (format "Restart timer with offset [%s]: " def)))
 	  (unless (string-match "\\S-" s) (setq s def))
 	  (setq delta (org-timer-hms-to-secs (org-timer-fix-incomplete s)))))
-	(setq org-timer-start-time
-	      (seconds-to-time
-	       ;; Pass `current-time' result to `float-time' (instead
-	       ;; of calling without arguments) so that only
-	       ;; `current-time' has to be overridden in tests.
-	       (- (float-time (current-time)) delta))))
+	(setq org-timer-start-time (time-since delta)))
       (setq org-timer-pause-time nil)
       (org-timer-set-mode-line 'on)
       (message "Timer start time set to %s, current value is %s"
@@ -167,14 +162,9 @@ With prefix arg STOP, stop it entirely."
 	    (setq org-timer-countdown-timer
 		  (org-timer--run-countdown-timer
 		   new-secs org-timer-countdown-timer-title))
-	    (setq org-timer-start-time
-		  (time-add (current-time) (seconds-to-time new-secs))))
+	    (setq org-timer-start-time (time-add nil new-secs)))
 	(setq org-timer-start-time
-	      ;; Pass `current-time' result to `float-time' (instead
-	      ;; of calling without arguments) so that only
-	      ;; `current-time' has to be overridden in tests.
-	      (seconds-to-time (- (float-time (current-time))
-				  (- pause-secs start-secs)))))
+	      (time-since (- pause-secs start-secs))))
       (setq org-timer-pause-time nil)
       (org-timer-set-mode-line 'on)
       (run-hooks 'org-timer-continue-hook)
@@ -233,14 +223,9 @@ it in the buffer."
 	   (abs (floor (org-timer-seconds))))))
 
 (defun org-timer-seconds ()
-  ;; Pass `current-time' result to `float-time' (instead of calling
-  ;; without arguments) so that only `current-time' has to be
-  ;; overridden in tests.
-  (if org-timer-countdown-timer
-      (- (float-time org-timer-start-time)
-	 (float-time (or org-timer-pause-time (current-time))))
-    (- (float-time (or org-timer-pause-time (current-time)))
-       (float-time org-timer-start-time))))
+  (let ((s (float-time (time-subtract org-timer-pause-time
+				      org-timer-start-time))))
+    (if org-timer-countdown-timer (- s) s)))
 
 ;;;###autoload
 (defun org-timer-change-times-in-region (beg end delta)
@@ -400,7 +385,7 @@ VALUE can be `on', `off', or `paused'."
       (message "No timer set")
     (let* ((rtime (decode-time
 		   (time-subtract (timer--time org-timer-countdown-timer)
-				  (current-time))))
+				  nil)))
 	   (rsecs (nth 0 rtime))
 	   (rmins (nth 1 rtime)))
       (message "%d minute(s) %d seconds left before next time out"
@@ -463,8 +448,7 @@ using three `C-u' prefix arguments."
 		(org-timer--run-countdown-timer
 		 secs org-timer-countdown-timer-title))
 	  (run-hooks 'org-timer-set-hook)
-	  (setq org-timer-start-time
-		(time-add (current-time) (seconds-to-time secs)))
+	  (setq org-timer-start-time (time-add nil secs))
 	  (setq org-timer-pause-time nil)
 	  (org-timer-set-mode-line 'on))))))
 

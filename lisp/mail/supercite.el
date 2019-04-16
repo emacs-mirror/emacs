@@ -1,6 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -315,7 +315,7 @@ during the initial citing via `sc-cite-original'."
   :group 'supercite-hooks)
 
 (defcustom sc-mail-warn-if-non-rfc822-p t
-  "Warn if mail headers don't conform to RFC822."
+  "Warn if mail headers don't conform to RFC 822 (or later)."
   :type 'boolean
   :group 'supercite-attr)
 (defcustom sc-mumble ""
@@ -738,10 +738,10 @@ If optional ATTRIBS-P is non-nil, the key/value pair is placed in
   nil)
 
 (defun sc-mail-error-in-mail-field ()
-  "Issue warning that mail headers don't conform to RFC 822."
+  "Issue warning that mail headers don't conform to email RFCs."
   (let* ((len (min (length curline) 10))
 	 (ellipsis (if (< len (length curline)) "..." ""))
-	 (msg "Mail header \"%s%s\" doesn't conform to RFC 822. skipping..."))
+	 (msg "Mail header \"%s%s\" doesn't conform to RFC 822 (or later). skipping..."))
     (message msg (substring curline 0 len) ellipsis))
   (beep)
   (sit-for 2)

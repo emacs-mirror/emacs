@@ -1,6 +1,6 @@
 ;;; ps-print.el --- print text from the buffer as PostScript -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -6299,7 +6299,7 @@ If FACE is not a valid face name, use default face."
        (ps-font-number 'ps-font-for-text
 		       (or (aref ps-font-type (logand effect 3))
 			   face))
-       fg-color bg-color (lsh effect -2)))))
+       fg-color bg-color (ash effect -2)))))
   (goto-char to))
 
 

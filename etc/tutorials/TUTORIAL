@@ -704,7 +704,7 @@ Emacs deletes its auto save file.
 If the computer crashes, you can recover your auto-saved editing by
 finding the file normally (the file you were editing, not the auto
 save file) and then typing M-x recover-this-file <Return>.  When it
-asks fo confirmation, type yes<Return> to go ahead and recover the
+asks for confirmation, type yes<Return> to go ahead and recover the
 auto-save data.
 
 
@@ -1116,7 +1116,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial is a part of GNU Emacs.  It is copyrighted
 and comes with permission to distribute copies on certain conditions:
 
-  Copyright (C) 1985, 1996, 1998, 2001-2018 Free Software Foundation,
+  Copyright (C) 1985, 1996, 1998, 2001-2019 Free Software Foundation,
   Inc.
 
   This file is part of GNU Emacs.

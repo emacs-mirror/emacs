@@ -1,6 +1,6 @@
 ;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -70,9 +70,6 @@
 (require 'eieio)
 (require 'ring)
 (require 'project)
-
-(eval-when-compile
-  (require 'semantic/symref)) ;; for hit-lines slot
 
 (defgroup xref nil "Cross-referencing commands"
   :version "25.1"
@@ -317,27 +314,33 @@ backward."
 ;;; Marker stack  (M-. pushes, M-, pops)
 
 (defcustom xref-marker-ring-length 16
-  "Length of the xref marker ring."
-  :type 'integer)
+  "Length of the xref marker ring.
+If this variable is not set through Customize, you must call
+`xref-set-marker-ring-length' for changes to take effect."
+  :type 'integer
+  :initialize #'custom-initialize-default
+  :set #'xref-set-marker-ring-length)
 
 (defcustom xref-prompt-for-identifier '(not xref-find-definitions
                                             xref-find-definitions-other-window
                                             xref-find-definitions-other-frame)
-  "When t, always prompt for the identifier name.
+  "If non-nil, prompt for the identifier to find.
+
+When t, always prompt for the identifier name.
 
 When nil, prompt only when there's no value at point we can use,
 or when the command has been called with the prefix argument.
 
-Otherwise, it's a list of xref commands which will prompt
-anyway (the value at point, if any, will be used as the default).
-
+Otherwise, it's a list of xref commands which will always prompt,
+with the identifier at point, if any, used as the default.
 If the list starts with `not', the meaning of the rest of the
-elements is negated."
-  :type '(choice (const :tag "always" t)
-                 (const :tag "auto" nil)
-                 (set :menu-tag "command specific" :tag "commands"
+elements is negated: these commands will NOT prompt."
+  :type '(choice (const :tag "Always prompt for identifier" t)
+                 (const :tag "Prompt if no identifier at point" nil)
+                 (set :menu-tag "Prompt according to command"
+                      :tag "Prompt according to command"
 		      :value (not)
-		      (const :tag "Except" not)
+		      (const :tag "Except for commands listed below" not)
 		      (repeat :inline t (symbol :tag "command")))))
 
 (defcustom xref-after-jump-hook '(recenter
@@ -351,6 +354,14 @@ elements is negated."
 
 (defvar xref--marker-ring (make-ring xref-marker-ring-length)
   "Ring of markers to implement the marker stack.")
+
+(defun xref-set-marker-ring-length (var val)
+  "Set `xref-marker-ring-length'.
+VAR is the symbol `xref-marker-ring-length' and VAL is the new
+value."
+  (set-default var val)
+  (if (ring-p xref--marker-ring)
+      (ring-resize xref--marker-ring val)))
 
 (defun xref-push-marker-stack (&optional m)
   "Add point M (defaults to `point-marker') to the marker stack."
@@ -437,6 +448,18 @@ If SELECT is non-nil, select the target window."
 (defconst xref-buffer-name "*xref*"
   "The name of the buffer to show xrefs.")
 
+(defface xref-file-header '((t :inherit compilation-info))
+  "Face used to highlight file header in the xref buffer."
+  :version "27.1")
+
+(defface xref-line-number '((t :inherit compilation-line-number))
+  "Face for displaying line numbers in the xref buffer."
+  :version "27.1")
+
+(defface xref-match '((t :inherit highlight))
+  "Face used to highlight matches in the xref buffer."
+  :version "27.1")
+
 (defmacro xref--with-dedicated-window (&rest body)
   `(let* ((xref-w (get-buffer-window xref-buffer-name))
           (xref-w-dedicated (window-dedicated-p xref-w)))
@@ -463,27 +486,17 @@ and finally return the window."
           (or (eq xref--original-window-intent 'frame)
               pop-up-frames))
          (action
-          (cond ((memq
-                  xref--original-window-intent
-                  '(window frame))
+          (cond ((eq xref--original-window-intent 'frame)
                  t)
+                ((eq xref--original-window-intent 'window)
+                 '(display-buffer-same-window))
                 ((and
                   (window-live-p xref--original-window)
                   (or (not (window-dedicated-p xref--original-window))
                       (eq (window-buffer xref--original-window) buf)))
-                 `(,(lambda (buf _alist)
-                      (set-window-buffer xref--original-window buf)
-                      xref--original-window))))))
-    (with-selected-window
-        (with-selected-window
-            ;; Just before `display-buffer', place ourselves in the
-            ;; original window to suggest preserving it. Of course, if
-            ;; user has deleted the original window, all bets are off,
-            ;; just use the selected one.
-            (or (and (window-live-p xref--original-window)
-                     xref--original-window)
-                (selected-window))
-          (display-buffer buf action))
+                 `((display-buffer-in-previous-window)
+                   (previous-window . ,xref--original-window))))))
+    (with-selected-window (display-buffer buf action)
       (xref--goto-char pos)
       (run-hooks 'xref-after-jump-hook)
       (let ((buf (current-buffer)))
@@ -540,9 +553,10 @@ SELECT is `quit', also quit the *xref* window."
 Non-interactively, non-nil QUIT means to first quit the *xref*
 buffer."
   (interactive)
-  (let ((buffer (current-buffer))
-        (xref (or (xref--item-at-point)
-                  (user-error "No reference at point"))))
+  (let* ((buffer (current-buffer))
+         (xref (or (xref--item-at-point)
+                   (user-error "No reference at point")))
+         (xref--current-item xref))
     (xref--show-location (xref-item-location xref) (if quit 'quit t))
     (next-error-found buffer (current-buffer))))
 
@@ -692,8 +706,10 @@ references displayed in the current *xref* buffer."
   (let ((backward (< n 0))
         (n (abs n))
         (xref nil))
-    (dotimes (_ n)
-      (setq xref (xref--search-property 'xref-item backward)))
+    (if (= n 0)
+        (setq xref (get-text-property (point) 'xref-item))
+      (dotimes (_ n)
+        (setq xref (xref--search-property 'xref-item backward))))
     (cond (xref
            ;; Save the current position (when the buffer is visible,
            ;; it gets reset to that window's point from time to time).
@@ -733,18 +749,17 @@ GROUP is a string for decoration purposes and XREF is an
            for line-format = (and max-line-width
                                   (format "%%%dd: " max-line-width))
            do
-           (xref--insert-propertized '(face compilation-info) group "\n")
+           (xref--insert-propertized '(face xref-file-header) group "\n")
            (cl-loop for (xref . more2) on xrefs do
                     (with-slots (summary location) xref
                       (let* ((line (xref-location-line location))
                              (prefix
                               (if line
                                   (propertize (format line-format line)
-                                              'face 'compilation-line-number)
+                                              'face 'xref-line-number)
                                 "  ")))
                         (xref--insert-propertized
                          (list 'xref-item xref
-                               ;; 'face 'font-lock-keyword-face
                                'mouse-face 'highlight
                                'keymap xref--button-map
                                'help-echo
@@ -793,6 +808,7 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
 (defvar xref--read-pattern-history nil)
 
 (defun xref--show-xrefs (xrefs display-action &optional always-show-list)
+  (unless (region-active-p) (push-mark nil t))
   (cond
    ((and (not (cdr xrefs)) (not always-show-list))
     (xref-push-marker-stack)
@@ -869,9 +885,26 @@ buffer where the user can select from the list."
 ;;;###autoload
 (defun xref-find-references (identifier)
   "Find references to the identifier at point.
-With prefix argument, prompt for the identifier."
+This command might prompt for the identifier as needed, perhaps
+offering the symbol at point as the default.
+With prefix argument, or if `xref-prompt-for-identifier' is t,
+always prompt for the identifier.  If `xref-prompt-for-identifier'
+is nil, prompt only if there's no usable symbol at point."
   (interactive (list (xref--read-identifier "Find references of: ")))
   (xref--find-xrefs identifier 'references identifier nil))
+
+;;;###autoload
+(defun xref-find-definitions-at-mouse (event)
+  "Find the definition of identifier at or around mouse click.
+This command is intended to be bound to a mouse event."
+  (interactive "e")
+  (let ((identifier
+         (save-excursion
+           (mouse-set-point event)
+           (xref-backend-identifier-at-point (xref-find-backend)))))
+    (if identifier
+        (xref-find-definitions identifier)
+      (user-error "No identifier here"))))
 
 (declare-function apropos-parse-pattern "apropos" (pattern))
 
@@ -973,7 +1006,7 @@ IGNORES is a list of glob patterns."
        ;; do that reliably enough, without creating false negatives?
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
-                                     (expand-file-name dir)
+                                     (file-local-name (expand-file-name dir))
                                      ignores))
        (def default-directory)
        (buf (get-buffer-create " *xref-grep*"))
@@ -984,7 +1017,7 @@ IGNORES is a list of glob patterns."
       (erase-buffer)
       (setq default-directory def)
       (setq status
-            (call-process-shell-command command nil t))
+            (process-file-shell-command command nil t))
       (goto-char (point-min))
       ;; Can't use the exit status: Grep exits with 1 to mean "no
       ;; matches found".  Find exits with 1 if any of the invocations
@@ -1086,6 +1119,7 @@ Such as the current syntax table and the applied syntax properties."
 
 (defun xref--collect-matches (hit regexp tmp-buffer)
   (pcase-let* ((`(,line ,file ,text) hit)
+               (file (and file (concat (file-remote-p default-directory) file)))
                (buf (xref--find-buffer-visiting file))
                (syntax-needed (xref--regexp-syntax-dependent-p regexp)))
     (if buf
@@ -1136,7 +1170,7 @@ Such as the current syntax table and the applied syntax properties."
              (end-column (- (match-end 0) line-beg))
              (loc (xref-make-file-location file line beg-column))
              (summary (buffer-substring line-beg line-end)))
-        (add-face-text-property beg-column end-column 'highlight
+        (add-face-text-property beg-column end-column 'xref-match
                                 t summary)
         (push (xref-make-match summary loc (- end-column beg-column))
               matches)))

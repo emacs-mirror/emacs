@@ -1,6 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1038,7 +1038,7 @@ header line with the old Message-ID."
 	  (gnus-inews-yank-articles yank))))))
 
 (defun gnus-msg-treat-broken-reply-to (&optional force)
-  "Remove the Reply-to header if broken-reply-to."
+  "Remove the Reply-To header if broken-reply-to."
   (when (or force
 	    (gnus-group-find-parameter
 	     gnus-newsgroup-name 'broken-reply-to))
@@ -1483,7 +1483,7 @@ See `gnus-summary-mail-forward' for ARG."
 		   (not (member group (message-tokenize-header
 				       followup-to ", ")))))
 	  (if followup-to
-	      (gnus-message 1 "Followup-to restricted")
+	      (gnus-message 1 "Followup-To restricted")
 	    (gnus-message 1 "Not a crossposted article"))
 	(set-buffer gnus-summary-buffer)
 	(gnus-summary-reply-with-original 1)
@@ -1542,7 +1542,7 @@ If YANK is non-nil, include the original article."
                        (X-Debbugs-Version
                         . ,(format "%s" (gnus-continuum-version))))))
     (when gnus-bug-create-help-buffer
-      (push `(gnus-bug-kill-buffer) message-send-actions))
+      (push '(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
     (message-goto-body)
     (insert "\n\n\n\n\n")

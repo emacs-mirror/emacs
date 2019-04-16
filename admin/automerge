@@ -1,7 +1,7 @@
 #!/bin/bash
 ### automerge - automatically merge the Emacs release branch to master
 
-## Copyright (C) 2018 Free Software Foundation, Inc.
+## Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 
@@ -172,6 +172,12 @@ merge ()
 
 
 merge
+
+
+## FIXME it would be better to trap this in gitmerge.
+## NEWS should never be modified, only eg NEWS.26.
+git diff --stat --cached origin/master | grep -q "etc/NEWS " && \
+    die "etc/NEWS has been modified"
 
 
 [ "$build" ] || exit 0

@@ -1,6 +1,6 @@
 ;;; delsel.el --- delete selection if you insert  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1997-1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1992, 1997-1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
@@ -70,12 +70,6 @@ Value must be the register (key) to use.")
 ;;;###autoload
 (define-minor-mode delete-selection-mode
   "Toggle Delete Selection mode.
-Interactively, with a prefix argument, enable
-Delete Selection mode if the prefix argument is positive,
-and disable it otherwise.  If called from Lisp, toggle
-the mode if ARG is `toggle', disable the mode if ARG is
-a non-positive integer, and enable the mode otherwise
-\(including if ARG is omitted or nil or a positive integer).
 
 When Delete Selection mode is enabled, typed text replaces the selection
 if the selection is active.  Otherwise, typed text is just inserted at
@@ -300,18 +294,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
     (abort-recursive-edit)))
 
 (define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-ns-map "\C-g" 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-completion-map "\C-g" 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-must-match-map "\C-g" 'minibuffer-keyboard-quit)
-(define-key minibuffer-local-isearch-map "\C-g" 'minibuffer-keyboard-quit)
 
 (defun delsel-unload-function ()
   "Unload the Delete Selection library."
   (define-key minibuffer-local-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-ns-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-completion-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
-  (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit)
   (dolist (sym '(self-insert-command insert-char quoted-insert yank
                  clipboard-yank insert-register newline-and-indent
                  reindent-then-newline-and-indent newline open-line))

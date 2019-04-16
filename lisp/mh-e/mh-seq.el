@@ -1,6 +1,6 @@
 ;;; mh-seq.el --- MH-E sequences support
 
-;; Copyright (C) 1993, 1995, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

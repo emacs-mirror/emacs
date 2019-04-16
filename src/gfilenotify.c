@@ -1,5 +1,5 @@
 /* Filesystem notifications support with glib API.
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -77,7 +77,6 @@ dir_monitor_callback (GFileMonitor *monitor,
 
   /* Determine callback function.  */
   monitor_object = make_pointer_integer (monitor);
-  eassert (INTEGERP (monitor_object));
   watch_object = assq_no_quit (monitor_object, watch_list);
 
   if (CONSP (watch_object))
@@ -87,11 +86,11 @@ dir_monitor_callback (GFileMonitor *monitor,
 
       /* Check, whether event_type is expected.  */
       flags = XCAR (XCDR (XCDR (watch_object)));
-      if ((!NILP (Fmember (Qchange, flags)) &&
-	   !NILP (Fmember (symbol, list5 (Qchanged, Qchanges_done_hint,
-					  Qdeleted, Qcreated, Qmoved)))) ||
-	  (!NILP (Fmember (Qattribute_change, flags)) &&
-	   ((EQ (symbol, Qattribute_changed)))))
+      if ((!NILP (Fmember (Qchange, flags))
+	   && !NILP (Fmember (symbol, list5 (Qchanged, Qchanges_done_hint,
+					     Qdeleted, Qcreated, Qmoved))))
+	  || (!NILP (Fmember (Qattribute_change, flags))
+	      && EQ (symbol, Qattribute_changed)))
 	{
 	  /* Construct an event.  */
 	  EVENT_INIT (event);
@@ -109,9 +108,9 @@ dir_monitor_callback (GFileMonitor *monitor,
 	}
 
       /* Cancel monitor if file or directory is deleted.  */
-      if (!NILP (Fmember (symbol, list2 (Qdeleted, Qmoved))) &&
-	  (strcmp (name, SSDATA (XCAR (XCDR (watch_object)))) == 0) &&
-	  !g_file_monitor_is_cancelled (monitor))
+      if (!NILP (Fmember (symbol, list2 (Qdeleted, Qmoved)))
+	  && strcmp (name, SSDATA (XCAR (XCDR (watch_object)))) == 0
+	  && !g_file_monitor_is_cancelled (monitor))
 	g_file_monitor_cancel (monitor);
     }
 
@@ -203,10 +202,10 @@ will be reported only in case of the `moved' event.  */)
   if (! monitor)
     xsignal2 (Qfile_notify_error, build_string ("Cannot watch file"), file);
 
-  Lisp_Object watch_descriptor = make_pointer_integer (monitor);
+  Lisp_Object watch_descriptor = make_pointer_integer_unsafe (monitor);
 
-  /* Check the dicey assumption that make_pointer_integer is safe.  */
-  if (! INTEGERP (watch_descriptor))
+  if (! (FIXNUMP (watch_descriptor)
+	 && XFIXNUMPTR (watch_descriptor) == monitor))
     {
       g_object_unref (monitor);
       xsignal2 (Qfile_notify_error, build_string ("Unsupported file watcher"),
@@ -239,12 +238,12 @@ WATCH-DESCRIPTOR should be an object returned by `gfile-add-watch'.  */)
     xsignal2 (Qfile_notify_error, build_string ("Not a watch descriptor"),
 	      watch_descriptor);
 
-  eassert (INTEGERP (watch_descriptor));
-  GFileMonitor *monitor = XINTPTR (watch_descriptor);
-  if (!g_file_monitor_is_cancelled (monitor) &&
-      !g_file_monitor_cancel (monitor))
-      xsignal2 (Qfile_notify_error, build_string ("Could not rm watch"),
-		watch_descriptor);
+  eassert (FIXNUMP (watch_descriptor));
+  GFileMonitor *monitor = XFIXNUMPTR (watch_descriptor);
+  if (!g_file_monitor_is_cancelled (monitor)
+      && !g_file_monitor_cancel (monitor))
+    xsignal2 (Qfile_notify_error, build_string ("Could not rm watch"),
+	      watch_descriptor);
 
   /* Remove watch descriptor from watch list.  */
   watch_list = Fdelq (watch_object, watch_list);
@@ -271,7 +270,7 @@ invalid.  */)
     return Qnil;
   else
     {
-      GFileMonitor *monitor = XINTPTR (watch_descriptor);
+      GFileMonitor *monitor = XFIXNUMPTR (watch_descriptor);
       return g_file_monitor_is_cancelled (monitor) ? Qnil : Qt;
     }
 }
@@ -290,7 +289,7 @@ If WATCH-DESCRIPTOR is not valid, nil is returned.  */)
     return Qnil;
   else
     {
-      GFileMonitor *monitor = XINTPTR (watch_descriptor);
+      GFileMonitor *monitor = XFIXNUMPTR (watch_descriptor);
       return intern (G_OBJECT_TYPE_NAME (monitor));
     }
 }

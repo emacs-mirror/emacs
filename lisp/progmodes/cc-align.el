@@ -1,6 +1,6 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2019 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -868,12 +868,11 @@ returned if there's no template argument on the first line.
 
 Works with: template-args-cont."
   (save-excursion
-    (c-with-syntax-table c++-template-syntax-table
-      (beginning-of-line)
-      (backward-up-list 1)
-      (if (and (eq (char-after) ?<)
-	       (zerop (c-forward-token-2 1 nil (c-point 'eol))))
-	  (vector (current-column))))))
+    (beginning-of-line)
+    (backward-up-list 1)
+    (if (and (eq (char-after) ?<)
+	     (zerop (c-forward-token-2 1 nil (c-point 'eol))))
+	(vector (current-column)))))
 
 (defun c-lineup-ObjC-method-call (langelem)
   "Line up selector args as Emacs Lisp mode does with function args:
@@ -1083,6 +1082,130 @@ arglist-cont."
 		(vector (current-column))
 	      (vector (+ (current-column) c-basic-offset))))
 	(vector 0)))))
+
+(defun c-lineup-2nd-brace-entry-in-arglist (langelem)
+  "Lineup the second entry of a brace block under the first, when the first
+line is also contained in an arglist or an enclosing brace ON THAT LINE.
+
+I.e. handle something like the following:
+
+    set_line (line_t {point_t{0.4, 0.2},
+                      point_t{0.2, 0.5},       <---- brace-list-intro
+                      .....});
+             ^ enclosing parenthesis.
+
+The middle line of that example will have a syntactic context
+with three syntactic symbols, arglist-cont-nonempty, brace-list-intro, and
+brace-list-entry.
+
+This function is intended for use in a list.  If the construct
+being analyzed isn't like the preceding, the function returns nil.
+Otherwise it returns the function `c-lineup-arglist-intro-after-paren', which
+the caller then uses to perform indentation.
+
+Works with brace-list-intro."
+  ;; brace-list-intro and brace-list-entry are both present for the second
+  ;; entry of the list when the first entry is on the same line as the opening
+  ;; brace.
+  (and (assq 'brace-list-intro c-syntactic-context)
+       (assq 'brace-list-entry c-syntactic-context)
+       (or (assq 'arglist-cont-nonempty c-syntactic-context) ; "(" earlier on
+							     ; the line.
+	   (save-excursion		; "{" earlier on the line
+	     (goto-char (c-langelem-pos
+			 (assq 'brace-list-intro c-syntactic-context)))
+	     (and
+	      (eq (c-backward-token-2
+		   1 nil
+		   (c-point 'bol (c-langelem-pos
+				  (assq 'brace-list-entry
+					c-syntactic-context))))
+		  0)
+	      (eq (char-after) ?{))))
+       'c-lineup-arglist-intro-after-paren))
+
+(defun c-lineup-class-decl-init-+ (langelem)
+  "Line up the second entry of a class (etc.) initializer c-basic-offset
+characters in from the identifier when:
+\(i) The type is a class, struct, union, etc. (but not an enum);
+\(ii) There is a brace block in the type declaration, specifying it; and
+\(iii) The first element of the initializer is on the same line as its opening
+brace.
+
+I.e. we have a construct like this:
+
+    struct STR {
+        int i; float f;
+    } str_1 = {1, 1.7},
+        str_2 = {2,
+             3.1                   <---- brace-list-intro
+        };
+        <-->                       <---- c-basic-offset
+
+Note that the syntactic context of the brace-list-intro line also has a
+syntactic element with the symbol brace-list-entry.
+
+This function is intended for use in a list.  If the above structure isn't
+present, this function returns nil, allowing a different offset specification
+to indent the line.
+
+Works with: brace-list-intro."
+  (and (assq 'brace-list-intro c-syntactic-context)
+       (assq 'brace-list-entry c-syntactic-context)
+       (let ((init-pos (c-point 'boi (c-langelem-pos
+				      (assq 'brace-list-entry
+					    c-syntactic-context))))
+	     )
+	 (save-excursion
+	   (goto-char (c-langelem-pos (assq 'brace-list-intro
+					    c-syntactic-context)))
+	   (and
+	    (c-forward-class-decl)
+	    (not (c-do-declarators init-pos t nil nil nil))
+	    (eq (point) init-pos)
+	    (vector (+ (current-column) c-basic-offset)))))))
+
+(defun c-lineup-class-decl-init-after-brace (langelem)
+  "Line up the second entry of a class (etc.) initializer after its opening
+brace when:
+\(i) The type is a class, struct, union, etc. (but not an enum);
+\(ii) There is a brace block in the type declaration, specifying it; and
+\(iii) The first element of the initializer is on the same line as its opening
+brace.
+
+I.e. we have a construct like this:
+
+    struct STR {
+        int i; float f;
+    } str_1 = {1, 1.7},
+        str_2 = {2,
+                 3.1                   <---- brace-list-intro
+        };
+
+Note that the syntactic context of the brace-list-intro line also has a
+syntactic element with the symbol brace-list-entry.  Also note that this
+function works by returning the symbol `c-lineup-arglist-intro-after-paren',
+which the caller then uses to perform the indentation.
+
+This function is intended for use in a list.  If the above structure isn't
+present, this function returns nil, allowing a different offset specification
+to indent the line.
+
+Works with: brace-list-intro."
+  (and (assq 'brace-list-intro c-syntactic-context)
+       (assq 'brace-list-entry c-syntactic-context)
+       (let ((init-pos (c-point 'boi (c-langelem-pos
+				      (assq 'brace-list-entry
+					    c-syntactic-context))))
+	     )
+	 (save-excursion
+	   (goto-char (c-langelem-pos (assq 'brace-list-intro
+					    c-syntactic-context)))
+	   (and
+	    (c-forward-class-decl)
+	    (not (c-do-declarators init-pos t nil nil nil))
+	    (eq (point) init-pos)
+	    'c-lineup-arglist-intro-after-paren)))))
 
 (defun c-lineup-cpp-define (_langelem)
   "Line up macro continuation lines according to the indentation of

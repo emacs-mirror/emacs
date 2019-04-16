@@ -1,6 +1,6 @@
 ;;; esh-mode.el --- user interface  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -58,13 +58,10 @@
 
 ;;; Code:
 
-(provide 'esh-mode)
-
 (require 'esh-util)
 (require 'esh-module)
 (require 'esh-cmd)
-(require 'esh-io)
-(require 'esh-var)
+(require 'esh-arg)                      ;For eshell-parse-arguments
 
 (defgroup eshell-mode nil
   "This module contains code for handling input from the user."
@@ -182,10 +179,11 @@ inserted.  They return the string as it should be inserted."
   :group 'eshell-mode)
 
 (defcustom eshell-password-prompt-regexp
-  (format "\\(%s\\).*:\\s *\\'" (regexp-opt password-word-equivalents))
+  (format "\\(%s\\)[^:：៖]*[:：៖]\\s *\\'" (regexp-opt password-word-equivalents))
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
+  :version "27.1"
   :group 'eshell-mode)
 
 (defcustom eshell-skip-prompt-function nil
@@ -200,6 +198,12 @@ This is used by `eshell-watch-for-password-prompt'."
   "If non-nil, let the user know a command is running in the mode line."
   :type 'boolean
   :group 'eshell-mode)
+
+(defcustom eshell-directory-name
+  (locate-user-emacs-file "eshell/" ".eshell/")
+  "The directory where Eshell control files should be kept."
+  :type 'directory
+  :group 'eshell)
 
 (defvar eshell-first-time-p t
   "A variable which is non-nil the first time Eshell is loaded.")
@@ -291,7 +295,7 @@ and the hook `eshell-exit-hook'."
   ;; It's fine to run this unconditionally since it can be customized
   ;; via the `eshell-kill-processes-on-exit' variable.
   (and (fboundp 'eshell-query-kill-processes)
-       (not (memq 'eshell-query-kill-processes eshell-exit-hook))
+       (not (memq #'eshell-query-kill-processes eshell-exit-hook))
        (eshell-query-kill-processes))
   (run-hooks 'eshell-exit-hook))
 
@@ -333,7 +337,6 @@ and the hook `eshell-exit-hook'."
   (define-key eshell-command-map [(control ?b)] 'eshell-backward-argument)
   (define-key eshell-command-map [(control ?e)] 'eshell-show-maximum-output)
   (define-key eshell-command-map [(control ?f)] 'eshell-forward-argument)
-  (define-key eshell-command-map [return]       'eshell-copy-old-input)
   (define-key eshell-command-map [(control ?m)] 'eshell-copy-old-input)
   (define-key eshell-command-map [(control ?o)] 'eshell-kill-output)
   (define-key eshell-command-map [(control ?r)] 'eshell-show-output)
@@ -409,23 +412,23 @@ and the hook `eshell-exit-hook'."
       (when (and load-hook (boundp load-hook))
         (if (memq initfunc (symbol-value load-hook)) (setq initfunc nil))
         (run-hooks load-hook))
-      ;; So we don't need the -initialize functions on the hooks (b#5375).
+      ;; So we don't need the -initialize functions on the hooks (bug#5375).
       (and initfunc (fboundp initfunc) (funcall initfunc))))
 
   (if eshell-send-direct-to-subprocesses
-      (add-hook 'pre-command-hook 'eshell-intercept-commands t t))
+      (add-hook 'pre-command-hook #'eshell-intercept-commands t t))
 
   (if eshell-scroll-to-bottom-on-input
-      (add-hook 'pre-command-hook 'eshell-preinput-scroll-to-bottom t t))
+      (add-hook 'pre-command-hook #'eshell-preinput-scroll-to-bottom t t))
 
   (when eshell-scroll-show-maximum-output
     (set (make-local-variable 'scroll-conservatively) 1000))
 
   (when eshell-status-in-mode-line
-    (add-hook 'eshell-pre-command-hook 'eshell-command-started nil t)
-    (add-hook 'eshell-post-command-hook 'eshell-command-finished nil t))
+    (add-hook 'eshell-pre-command-hook #'eshell-command-started nil t)
+    (add-hook 'eshell-post-command-hook #'eshell-command-finished nil t))
 
-  (add-hook 'kill-buffer-hook 'eshell-kill-buffer-function t t)
+  (add-hook 'kill-buffer-hook #'eshell-kill-buffer-function t t)
 
   (if eshell-first-time-p
       (run-hooks 'eshell-first-time-mode-hook))
@@ -450,10 +453,10 @@ and the hook `eshell-exit-hook'."
   (if eshell-send-direct-to-subprocesses
       (progn
 	(setq eshell-send-direct-to-subprocesses nil)
-	(remove-hook 'pre-command-hook 'eshell-intercept-commands t)
+	(remove-hook 'pre-command-hook #'eshell-intercept-commands t)
 	(message "Sending subprocess input on RET"))
     (setq eshell-send-direct-to-subprocesses t)
-    (add-hook 'pre-command-hook 'eshell-intercept-commands t t)
+    (add-hook 'pre-command-hook #'eshell-intercept-commands t t)
     (message "Sending subprocess input directly")))
 
 (defun eshell-self-insert-command ()
@@ -542,7 +545,7 @@ and the hook `eshell-exit-hook'."
   "Push a mark at the end of the last input text."
   (push-mark (1- eshell-last-input-end) t))
 
-(custom-add-option 'eshell-pre-command-hook 'eshell-push-command-mark)
+(custom-add-option 'eshell-pre-command-hook #'eshell-push-command-mark)
 
 (defsubst eshell-goto-input-start ()
   "Goto the start of the last command input.
@@ -550,7 +553,7 @@ Putting this function on `eshell-pre-command-hook' will mimic Plan 9's
 9term behavior."
   (goto-char eshell-last-input-start))
 
-(custom-add-option 'eshell-pre-command-hook 'eshell-push-command-mark)
+(custom-add-option 'eshell-pre-command-hook #'eshell-goto-input-start)
 
 (defsubst eshell-interactive-print (string)
   "Print STRING to the eshell display buffer."
@@ -884,8 +887,7 @@ If SCROLLBACK is non-nil, clear the scrollback contents."
   (interactive)
   (if scrollback
       (eshell/clear-scrollback)
-    (let ((eshell-input-filter-functions
-           (remq 'eshell-add-to-history eshell-input-filter-functions)))
+    (let ((eshell-input-filter-functions nil))
       (insert (make-string (window-size) ?\n))
       (eshell-send-input))))
 
@@ -1021,4 +1023,5 @@ This function could be in the list `eshell-output-filter-functions'."
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-ansi-color)
 
+(provide 'esh-mode)
 ;;; esh-mode.el ends here

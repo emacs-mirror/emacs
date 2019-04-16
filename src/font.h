@@ -1,5 +1,5 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
    Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -185,16 +185,16 @@ enum font_property_index
 
 /* Return the numeric weight value of FONT.  */
 #define FONT_WEIGHT_NUMERIC(font)		\
-  (INTEGERP (AREF ((font), FONT_WEIGHT_INDEX))	\
-   ? (XINT (AREF ((font), FONT_WEIGHT_INDEX)) >> 8) : -1)
+  (FIXNUMP (AREF ((font), FONT_WEIGHT_INDEX))	\
+   ? (XFIXNUM (AREF ((font), FONT_WEIGHT_INDEX)) >> 8) : -1)
 /* Return the numeric slant value of FONT.  */
 #define FONT_SLANT_NUMERIC(font)		\
-  (INTEGERP (AREF ((font), FONT_SLANT_INDEX))	\
-   ? (XINT (AREF ((font), FONT_SLANT_INDEX)) >> 8) : -1)
+  (FIXNUMP (AREF ((font), FONT_SLANT_INDEX))	\
+   ? (XFIXNUM (AREF ((font), FONT_SLANT_INDEX)) >> 8) : -1)
 /* Return the numeric width value of FONT.  */
 #define FONT_WIDTH_NUMERIC(font)		\
-  (INTEGERP (AREF ((font), FONT_WIDTH_INDEX))	\
-   ? (XINT (AREF ((font), FONT_WIDTH_INDEX)) >> 8) : -1)
+  (FIXNUMP (AREF ((font), FONT_WIDTH_INDEX))	\
+   ? (XFIXNUM (AREF ((font), FONT_WIDTH_INDEX)) >> 8) : -1)
 /* Return the symbolic weight value of FONT.  */
 #define FONT_WEIGHT_SYMBOLIC(font)	\
   font_style_symbolic (font, FONT_WEIGHT_INDEX, false)
@@ -228,7 +228,7 @@ enum font_property_index
    style-related font property index (FONT_WEIGHT/SLANT/WIDTH_INDEX).
    VAL (integer or symbol) is the numeric or symbolic style value.  */
 #define FONT_SET_STYLE(font, prop, val)	\
-  ASET ((font), prop, make_number (font_style_to_value (prop, val, true)))
+  ASET ((font), prop, make_fixnum (font_style_to_value (prop, val, true)))
 
 #ifndef MSDOS
 #define FONT_WIDTH(f) ((f)->max_width)
@@ -284,7 +284,7 @@ struct font
   /* By which pixel size the font is opened.  */
   int pixel_size;
 
-  /* Height of the font.  On X window, this is the same as
+  /* Height of the font.  On X window system, this is the same as
      (font->ascent + font->descent).  */
   int height;
 
@@ -293,7 +293,7 @@ struct font
   int space_width;
 
   /* Average width of glyphs in the font.  If the font itself doesn't
-     have that information but has glyphs of ASCII characters, the
+     have that information, but has glyphs of ASCII characters, the
      value is the average width of those glyphs.  Otherwise, the value
      is 0.  */
   int average_width;
@@ -494,42 +494,42 @@ INLINE struct font_spec *
 XFONT_SPEC (Lisp_Object p)
 {
   eassert (FONT_SPEC_P (p));
-  return XUNTAG (p, Lisp_Vectorlike);
+  return XUNTAG (p, Lisp_Vectorlike, struct font_spec);
 }
 
 INLINE struct font_spec *
 GC_XFONT_SPEC (Lisp_Object p)
 {
   eassert (GC_FONT_SPEC_P (p));
-  return XUNTAG (p, Lisp_Vectorlike);
+  return XUNTAG (p, Lisp_Vectorlike, struct font_spec);
 }
 
 INLINE struct font_entity *
 XFONT_ENTITY (Lisp_Object p)
 {
   eassert (FONT_ENTITY_P (p));
-  return XUNTAG (p, Lisp_Vectorlike);
+  return XUNTAG (p, Lisp_Vectorlike, struct font_entity);
 }
 
 INLINE struct font_entity *
 GC_XFONT_ENTITY (Lisp_Object p)
 {
   eassert (GC_FONT_ENTITY_P (p));
-  return XUNTAG (p, Lisp_Vectorlike);
+  return XUNTAG (p, Lisp_Vectorlike, struct font_entity);
 }
 
 INLINE struct font *
 XFONT_OBJECT (Lisp_Object p)
 {
   eassert (FONT_OBJECT_P (p));
-  return XUNTAG (p, Lisp_Vectorlike);
+  return XUNTAG (p, Lisp_Vectorlike, struct font);
 }
 
 INLINE struct font *
 GC_XFONT_OBJECT (Lisp_Object p)
 {
   eassert (GC_FONT_OBJECT_P (p));
-  return XUNTAG (p, Lisp_Vectorlike);
+  return XUNTAG (p, Lisp_Vectorlike, struct font);
 }
 
 #define XSETFONT(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FONT))
@@ -576,8 +576,8 @@ struct font_driver
      cons whose cdr part is the actual cache area.  */
   Lisp_Object (*get_cache) (struct frame *f);
 
-  /* List fonts exactly matching with FONT_SPEC on FRAME.  The value
-     is a list of font-entities.  The font properties to be considered
+  /* List fonts exactly matching FONT_SPEC on FRAME.  The value is
+     a list of font-entities.  The font properties to be considered
      are: :foundry, :family, :adstyle, :registry, :script, :lang, and
      :otf.  See the function `font-spec' for their meanings.  Note
      that the last three properties are stored in FONT_EXTRA_INDEX
@@ -593,27 +593,27 @@ struct font_driver
      The `open' method of the same font-backend is called with one of
      the returned font-entities.  If the backend needs additional
      information to be used in `open' method, this method can add any
-     Lispy value by the property :font-entity to the entities.
+     Lispy value using the property :font-entity to the entities.
 
      This and the following `match' are the only APIs that allocate
      font-entities.  */
   Lisp_Object (*list) (struct frame *frame, Lisp_Object font_spec);
 
-  /* Return a font-entity most closely matching with FONT_SPEC on
-     FRAME.  Which font property to consider, and how to calculate the
-     closeness is determined by the font backend, thus
+  /* Return a font-entity most closely matching FONT_SPEC on FRAME.
+     Which font property to consider, and how to calculate the
+     closeness, is determined by the font backend, thus
      `face-font-selection-order' is ignored here.
 
-     The properties that the font-entity has is the same as `list'
-     method.  */
-  Lisp_Object (*match) (struct frame *f, Lisp_Object spec);
+     The properties that the font-entity has are the same as described
+     for the `list' method above.  */
+  Lisp_Object (*match) (struct frame *f, Lisp_Object font_spec);
 
   /* Optional.
      List available families.  The value is a list of family names
      (symbols).  */
   Lisp_Object (*list_family) (struct frame *f);
 
-  /* Optional (if FONT_EXTRA_INDEX is not Lisp_Save_Value).
+  /* Optional.
      Free FONT_EXTRA_INDEX field of FONT_ENTITY.  */
   void (*free_entity) (Lisp_Object font_entity);
 
@@ -630,7 +630,7 @@ struct font_driver
   void (*prepare_face) (struct frame *f, struct face *face);
 
   /* Optional.
-     Done FACE for displaying characters by FACE->font on frame F.  */
+     Done with FACE for displaying characters by FACE->font on frame F.  */
   void (*done_face) (struct frame *f, struct face *face);
 
   /* Optional.
@@ -662,8 +662,8 @@ struct font_driver
 
   /* Optional.
      Store bitmap data for glyph-code CODE of FONT in BITMAP.  It is
-     intended that this method is called from the other font-driver
-     for actual drawing.  */
+     intended that this method is called from other font-driver
+     methods for actual drawing.  */
   int (*get_bitmap) (struct font *font, unsigned code,
                      struct font_bitmap *bitmap,
                      int bits_per_pixel);
@@ -677,13 +677,16 @@ struct font_driver
   /* Optional.
      Get coordinates of the INDEXth anchor point of the glyph whose
      code is CODE.  Store the coordinates in *X and *Y.  Return 0 if
-     the operations was successful.  Otherwise return -1.  */
+     the operation was successful.  Otherwise return -1.  */
   int (*anchor_point) (struct font *font, unsigned code, int index,
                        int *x, int *y);
 
   /* Optional.
      Return a list describing which scripts/languages FONT
-     supports by which GSUB/GPOS features of OpenType tables.  */
+     supports by which GSUB/GPOS features of OpenType tables.
+     The list should be of the form (GSUB GPOS), where both
+     GSUB and GPOS are lists of the form
+     ((SCRIPT (LANGSYS FEATURE ...) ...) ...)  */
   Lisp_Object (*otf_capability) (struct font *font);
 
   /* Optional.
@@ -707,17 +710,16 @@ struct font_driver
 
   /* Optional.
      Make the font driver ready for frame F.  Usually this function
-     makes some data specific to F and stores it in F by calling
-     font_put_frame_data ().  */
+     makes some data specific to F and stores it in F's font_data
+     member by calling font_put_frame_data.  */
   int (*start_for_frame) (struct frame *f);
 
   /* Optional.
-     End using the driver for frame F.  Usually this function free
-     some data stored for F.  */
+     End using the driver for frame F.  Usually this function frees
+     some font data stored in frame F's font_data member.  */
   int (*end_for_frame) (struct frame *f);
 
   /* Optional.
-
      Shape text in GSTRING.  See the docstring of
      `composition-get-gstring' for the format of GSTRING.  If the
      (N+1)th element of GSTRING is nil, input of shaping is from the
@@ -728,19 +730,17 @@ struct font_driver
      output glyphs (M) are more than the input glyphs (N), (N+1)th
      through (M)th elements of GSTRING are updated possibly by making
      a new glyph object and storing it in GSTRING.  If (M) is greater
-     than the length of GSTRING, nil should be return.  In that case,
-     this function is called again with the larger GSTRING.  */
+     than the length of GSTRING, this method should return nil.  In
+     that case, the method is called again with a larger GSTRING.  */
   Lisp_Object (*shape) (Lisp_Object lgstring);
 
   /* Optional.
-
      If FONT is usable on frame F, return 0.  Otherwise return -1.
      This method is used only for debugging.  If this method is NULL,
      Emacs assumes that the font is usable on any frame.  */
   int (*check) (struct frame *f, struct font *font);
 
   /* Optional.
-
      Return the number of variation glyphs of character C supported by
      FONT.  VARIATIONS is an array of 256 elements.  If the variation
      selector N (1..256) defines a glyph, that glyph code is stored in
@@ -748,24 +748,27 @@ struct font_driver
   int (*get_variation_glyphs) (struct font *font,
                                int c, unsigned variations[256]);
 
+  /* Optional.
+     Set attributes of FONT according to PROPERTIES.
+     PROPERTIES is an alist of pairs (KEY . VALUE) that specifies
+     font properties.  This method should use font-put to set
+     properties of FONT supported by the font driver.
+     See font_filter_properties for more details.  */
   void (*filter_properties) (Lisp_Object font, Lisp_Object properties);
 
   /* Optional.
-
      Return non-zero if FONT_OBJECT can be used as a (cached) font
      for ENTITY on frame F.  */
   bool (*cached_font_ok) (struct frame *f,
                           Lisp_Object font_object,
                           Lisp_Object entity);
 
-  /* Optional
-
-     Return non-nil if the driver support rendering of combining
+  /* Optional.
+     Return non-nil if the driver supports rendering of combining
      characters for FONT according to Unicode combining class.  */
   Lisp_Object (*combining_capability) (struct font *font);
 
-  /* Optional
-
+  /* Optional.
      Called when frame F is double-buffered and its size changes; Xft
      relies on this hook to throw away its old XftDraw (which won't
      work after the size change) and get a new one.  */

@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -185,6 +185,8 @@ extern MultiByteToWideChar_Proc pMultiByteToWideChar;
 extern WideCharToMultiByte_Proc pWideCharToMultiByte;
 extern DWORD multiByteToWideCharFlags;
 
+extern const char *w32_relocate (const char *);
+
 extern void init_environment (char **);
 extern void check_windows_init_file (void);
 extern void syms_of_ntproc (void);
@@ -195,11 +197,13 @@ extern int  filename_from_ansi (const char *, char *);
 extern int  filename_to_ansi (const char *, char *);
 extern int  filename_from_utf16 (const wchar_t *, char *);
 extern int  filename_to_utf16 (const char *, wchar_t *);
+extern Lisp_Object w32_get_internal_run_time (void);
 extern void w32_init_file_name_codepage (void);
 extern int  codepage_for_filenames (CPINFO *);
 extern Lisp_Object ansi_encode_filename (Lisp_Object);
 extern int  w32_copy_file (const char *, const char *, int, int, int);
 extern int  w32_accessible_directory_p (const char *, ptrdiff_t);
+extern void w32_init_current_directory (void);
 
 extern BOOL init_winsock (int load_now);
 extern void srandom (int);
@@ -227,6 +231,8 @@ extern int w32_compare_strings (const char *, const char *, char *, int);
 /* Return a cryptographically secure seed for PRNG.  */
 extern int w32_init_random (void *, ptrdiff_t);
 
+extern Lisp_Object w32_read_registry (HKEY, Lisp_Object, Lisp_Object);
+
 #ifdef HAVE_GNUTLS
 #include <gnutls/gnutls.h>
 
@@ -238,18 +244,5 @@ extern ssize_t emacs_gnutls_pull (gnutls_transport_ptr_t p,
 extern ssize_t emacs_gnutls_push (gnutls_transport_ptr_t p,
                                   const void* buf, size_t sz);
 #endif /* HAVE_GNUTLS */
-
-/* Definine a function that will be loaded from a DLL.  */
-#define DEF_DLL_FN(type, func, args) static type (FAR CDECL *fn_##func) args
-
-/* Load a function from the DLL.  */
-#define LOAD_DLL_FN(lib, func)						\
-  do									\
-    {									\
-      fn_##func = (void *) GetProcAddress (lib, #func);			\
-      if (!fn_##func)							\
-	return false;							\
-    }									\
-  while (false)
 
 #endif /* EMACS_W32_H */

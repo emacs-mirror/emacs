@@ -1,7 +1,7 @@
 	  Building and Installing Emacs on 64-bit MS-Windows
 		      using MSYS2 and MinGW-w64
 
-  Copyright (c) 2015-2018 Free Software Foundation, Inc.
+  Copyright (c) 2015-2019 Free Software Foundation, Inc.
   See the end of the file for license conditions.
 
 This document describes how to compile a 64-bit GNU Emacs using MSYS2

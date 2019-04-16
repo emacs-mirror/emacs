@@ -1,6 +1,6 @@
 ;;; semantic/wisent/grammar.el --- Wisent's input grammar mode
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -194,7 +194,7 @@ See also the function `wisent-skip-block'."
   "Expand call to SKIP-TOKEN grammar macro.
 Return the form to skip the lookahead token.
 See also the function `wisent-skip-token'."
-  `(wisent-skip-token))
+  '(wisent-skip-token))
 
 (defun wisent-grammar-assocs ()
   "Return associativity and precedence level definitions."

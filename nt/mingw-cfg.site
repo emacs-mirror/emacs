@@ -109,6 +109,7 @@ gl_cv_func_pthread_sigmask_return_works=yes
 gl_cv_func_pthread_sigmask_unblock_works="not relevant"
 # Implemented in w32proc.c
 emacs_cv_langinfo_codeset=yes
+emacs_cv_langinfo__nl_paper_width=yes
 # Declared in ms-w32.h
 ac_cv_have_decl_alarm=yes
 # Avoid including the gnulib dup2 module

@@ -1,6 +1,6 @@
 ;;; esh-opt.el --- command options processing  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -23,9 +23,6 @@
 
 ;;; Code:
 
-(provide 'esh-opt)
-
-(require 'esh-ext)
 
 ;; Unused.
 ;; (defgroup eshell-opt nil
@@ -35,6 +32,10 @@
 ;;   :group 'eshell)
 
 ;;; User Functions:
+
+;; Macro expansion of eshell-eval-using-options refers to eshell-stringify-list
+;; defined in esh-util.
+(require 'esh-util)
 
 (defmacro eshell-eval-using-options (name macro-args options &rest body-forms)
   "Process NAME's MACRO-ARGS using a set of command line OPTIONS.
@@ -77,8 +78,12 @@ arguments, some do not.  The recognized :KEYWORDS are:
   arguments.
 
 :preserve-args
-  If present, do not pass MACRO-ARGS through `eshell-flatten-list'
+  If present, do not pass MACRO-ARGS through `flatten-tree'
 and `eshell-stringify-list'.
+
+:parse-leading-options-only
+  If present, do not parse dash or switch arguments after the first
+positional argument.  Instead, treat them as positional arguments themselves.
 
 For example, OPTIONS might look like:
 
@@ -102,7 +107,7 @@ let-bound variable `args'."
            ,(if (memq ':preserve-args (cadr options))
                 macro-args
               (list 'eshell-stringify-list
-                    (list 'eshell-flatten-list macro-args))))
+                    (list 'flatten-tree macro-args))))
           (processed-args (eshell--do-opts ,name ,options temp-args))
           ,@(delete-dups
              (delq nil (mapcar (lambda (opt)
@@ -123,6 +128,8 @@ let-bound variable `args'."
 (defun eshell--do-opts (name options args)
   "Helper function for `eshell-eval-using-options'.
 This code doesn't really need to be macro expanded everywhere."
+  (require 'esh-ext)
+  (declare-function eshell-external-command "esh-ext" (command args))
   (let ((ext-command
          (catch 'eshell-ext-command
            (let ((usage-msg
@@ -141,6 +148,8 @@ This code doesn't really need to be macro expanded everywhere."
 
 (defun eshell-show-usage (name options)
   "Display the usage message for NAME, using OPTIONS."
+  (require 'esh-ext)
+  (declare-function eshell-search-path "esh-ext" (name))
   (let ((usage (format "usage: %s %s\n\n" name
 		       (cadr (memq ':usage options))))
 	(extcmd (memq ':external options))
@@ -196,11 +205,7 @@ will be modified."
             (if (eq (nth 2 opt) t)
                 (if (> ai (length eshell--args))
                     (error "%s: missing option argument" name)
-                  (prog1 (nth ai eshell--args)
-                    (if (> ai 0)
-                        (setcdr (nthcdr (1- ai) eshell--args)
-                                (nthcdr (1+ ai) eshell--args))
-                      (setq eshell--args (cdr eshell--args)))))
+                  (pop (nthcdr ai eshell--args)))
               (or (nth 2 opt) t)))))
 
 (defun eshell--process-option (name switch kind ai options opt-vals)
@@ -245,27 +250,33 @@ switch is unrecognized."
                                              (list sym)))))
 				     options)))
          (ai 0) arg
-         (eshell--args args))
-    (while (< ai (length args))
-      (setq arg (nth ai args))
+         (eshell--args args)
+         (pos-argument-found nil))
+    (while (and (< ai (length eshell--args))
+                ;; Abort if we saw the first pos argument and option is set
+                (not (and pos-argument-found
+                          (memq :parse-leading-options-only options))))
+      (setq arg (nth ai eshell--args))
       (if (not (and (stringp arg)
 		    (string-match "^-\\(-\\)?\\(.*\\)" arg)))
-	  (setq ai (1+ ai))
+          ;; Positional argument found, skip
+	  (setq ai (1+ ai)
+                pos-argument-found t)
+        ;; dash or switch argument found, parse
 	(let* ((dash (match-string 1 arg))
 	       (switch (match-string 2 arg)))
-	  (if (= ai 0)
-	      (setq args (cdr args))
-	    (setcdr (nthcdr (1- ai) args) (nthcdr (1+ ai) args)))
+	  (pop (nthcdr ai eshell--args))
 	  (if dash
 	      (if (> (length switch) 0)
 		  (eshell--process-option name switch 1 ai options opt-vals)
-		(setq ai (length args)))
+		(setq ai (length eshell--args)))
 	    (let ((len (length switch))
 		  (index 0))
 	      (while (< index len)
 		(eshell--process-option name (aref switch index)
                                         0 ai options opt-vals)
 		(setq index (1+ index))))))))
-    (nconc (mapcar #'cdr opt-vals) args)))
+    (nconc (mapcar #'cdr opt-vals) eshell--args)))
 
+(provide 'esh-opt)
 ;;; esh-opt.el ends here

@@ -1,6 +1,6 @@
 # emacs-buffer.gdb --- gdb macros for recovering buffers from emacs coredumps
 
-# Copyright (C) 2005-2018 Free Software Foundation, Inc.
+# Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
 # Author: Noah Friedman <friedman@splode.com>
 # Created: 2005-04-28

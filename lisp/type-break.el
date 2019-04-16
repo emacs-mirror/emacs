@@ -1,6 +1,6 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1994-1995, 1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Noah Friedman
@@ -287,9 +287,6 @@ again in a short period of time.  The idea is to give the user enough time
 to find a good breaking point in his or her work, but be sufficiently
 annoying to discourage putting typing breaks off indefinitely.
 
-A negative prefix argument disables this mode.
-No argument or any non-negative argument enables it.
-
 The user may enable or disable this mode by setting the variable of the
 same name, though setting it in that way doesn't reschedule a break or
 reset the keystroke counter.
@@ -406,9 +403,6 @@ problems."
 
 (define-minor-mode type-break-mode-line-message-mode
   "Toggle warnings about typing breaks in the mode line.
-With a prefix argument ARG, enable these warnings if ARG is
-positive, and disable them otherwise.  If called from Lisp,
-enable them if ARG is omitted or nil.
 
 The user may also enable or disable this mode simply by setting
 the variable of the same name.
@@ -423,9 +417,6 @@ Variables controlling the display of messages in the mode line include:
 
 (define-minor-mode type-break-query-mode
   "Toggle typing break queries.
-With a prefix argument ARG, enable these queries if ARG is
-positive, and disable them otherwise.  If called from Lisp,
-enable them if ARG is omitted or nil.
 
 The user may also enable or disable this mode simply by setting
 the variable of the same name."
@@ -469,8 +460,7 @@ the variable of the same name."
 	      ))))))
 
 (defun timep (time)
-  "If TIME is in the format returned by `current-time' then
-return TIME, else return nil."
+  "If TIME is a Lisp time value then return TIME, else return nil."
   (condition-case nil
       (and (float-time time) time)
     (error nil)))
@@ -490,8 +480,7 @@ return TIME, else return nil."
 
 (defun type-break-get-previous-time ()
   "Get previous break time from `type-break-file-name'.
-Returns nil if the file is missing or if the time breaks with the
-`current-time' format."
+Return nil if the file is missing or if the time is not a Lisp time value."
   (let ((file (type-break-choose-file)))
     (if file
         (timep ;; returns expected format, else nil
@@ -817,7 +806,7 @@ this or ask the user to start one right now."
    ((and (car type-break-keystroke-threshold)
          (< type-break-keystroke-count (car type-break-keystroke-threshold))))
    ((> type-break-time-warning-count 0)
-    (let ((timeleft (type-break-time-difference (current-time)
+    (let ((timeleft (type-break-time-difference nil
                                                 type-break-time-next-break)))
       (setq type-break-warning-countdown-string (number-to-string timeleft))
       (cond
@@ -914,8 +903,8 @@ Current keystroke count     : %s"
                                (current-time-string type-break-time-next-break)
                                (type-break-format-time
                                 (type-break-time-difference
-                                (current-time)
-                                type-break-time-next-break)))
+				 nil
+				 type-break-time-next-break)))
                      "none scheduled")
                    (or (car type-break-keystroke-threshold) "none")
                    (or (cdr type-break-keystroke-threshold) "none")
@@ -1099,7 +1088,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
             (erase-buffer)
             (setq elapsed (type-break-time-difference
                            type-break-time-last-break
-                           (current-time)))
+			   nil))
             (let ((good-interval (or type-break-good-rest-interval
                                      type-break-good-break-interval)))
               (cond

@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2019 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -11,6 +11,8 @@
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
 ;; Keywords:   c languages
+;; The version header below is used for ELPA packaging.
+;; Version: 5.33.1
 
 ;; This file is part of GNU Emacs.
 
@@ -499,9 +501,10 @@ preferably use the `c-mode-menu' language constant directly."
 ;; `basic-save-buffer' does (insert ?\n) when `require-final-newline' is
 ;; non-nil; (ii) to detect when Emacs fails to invoke
 ;; `before-change-functions'.  This can happen when reverting a buffer - see
-;; bug #24094.  It seems these failures happen only in GNU Emacs; XEmacs
-;; seems to maintain the strict alternation of calls to
-;; `before-change-functions' and `after-change-functions'.
+;; bug #24094.  It seems these failures happen only in GNU Emacs; XEmacs seems
+;; to maintain the strict alternation of calls to `before-change-functions'
+;; and `after-change-functions'.  Note that this variable is not set when
+;; `c-before-change' is invoked by a change to text properties.
 
 (defun c-basic-common-init (mode default-style)
   "Do the necessary initialization for the syntax handling routines
@@ -563,7 +566,7 @@ that requires a literal mode spec at compile time."
 
   (when (or c-recognize-<>-arglists
 	    (c-major-mode-is 'awk-mode)
-	    (c-major-mode-is '(java-mode c-mode c++-mode objc-mode)))
+	    (c-major-mode-is '(java-mode c-mode c++-mode objc-mode pike-mode)))
     ;; We'll use the syntax-table text property to change the syntax
     ;; of some chars for this language, so do the necessary setup for
     ;; that.
@@ -675,14 +678,12 @@ that requires a literal mode spec at compile time."
 (make-variable-buffer-local 'c-new-BEG)
 (defvar c-new-END 0)
 (make-variable-buffer-local 'c-new-END)
-;; The following two variables record the values of `c-new-BEG' and
-;; `c-new-END' just after `c-new-END' has been adjusted for the length of text
-;; inserted or removed.  They may be read by any after-change function (but
-;; should not be altered by one).
-(defvar c-old-BEG 0)
-(make-variable-buffer-local 'c-old-BEG)
-(defvar c-old-END 0)
-(make-variable-buffer-local 'c-old-END)
+
+;; Buffer local variable which notes the value of calling `c-in-literal' just
+;; before a change.  It is one of 'string, 'c, 'c++ (for the two sorts of
+;; comments), or nil.
+(defvar c-old-END-literality nil)
+(make-variable-buffer-local 'c-old-END-literality)
 
 (defun c-common-init (&optional mode)
   "Common initialization for all CC Mode modes.
@@ -897,7 +898,8 @@ Note that the style variables are always made local to the buffer."
 
 (defun c-depropertize-CPP (beg end)
   ;; Remove the punctuation syntax-table text property from the CPP parts of
-  ;; (c-new-BEG c-new-END).
+  ;; (c-new-BEG c-new-END), and remove all syntax-table properties from any
+  ;; raw strings within these CPP parts.
   ;;
   ;; This function is in the C/C++/ObjC values of
   ;; `c-get-state-before-change-functions' and is called exclusively as a
@@ -909,6 +911,7 @@ Note that the style variables are always made local to the buffer."
       (goto-char (match-beginning 1))
       (setq m-beg (point))
       (c-end-of-macro)
+      (save-excursion (c-depropertize-raw-strings-in-region m-beg (point)))
       (c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
 
     (while (and (< (point) end)
@@ -917,14 +920,16 @@ Note that the style variables are always made local to the buffer."
       (goto-char (match-beginning 1))
       (setq m-beg (point))
       (c-end-of-macro))
-    (if (and ss-found (> (point) end))
-	(c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
+    (when (and ss-found (> (point) end))
+      (save-excursion (c-depropertize-raw-strings-in-region m-beg (point)))
+      (c-clear-char-property-with-value m-beg (point) 'syntax-table '(1)))
 
     (while (and (< (point) c-new-END)
 		(search-forward-regexp c-anchored-cpp-prefix c-new-END 'bound))
       (goto-char (match-beginning 1))
       (setq m-beg (point))
       (c-end-of-macro)
+      (save-excursion (c-depropertize-raw-strings-in-region m-beg (point)))
       (c-clear-char-property-with-value
        m-beg (point) 'syntax-table '(1)))))
 
@@ -996,9 +1001,9 @@ Note that the style variables are always made local to the buffer."
   ;; characters, ones which would interact syntactically with stuff outside
   ;; this region.
   ;;
-  ;; These are unmatched string delimiters, or unmatched
-  ;; parens/brackets/braces.  An unclosed comment is regarded as valid, NOT
-  ;; obtrusive.
+  ;; These are unmatched parens/brackets/braces.  An unclosed comment is
+  ;; regarded as valid, NOT obtrusive.  Unbalanced strings are handled
+  ;; elsewhere.
   (save-excursion
     (let (s)
       (while
@@ -1008,9 +1013,11 @@ Note that the style variables are always made local to the buffer."
 	     ((< (nth 0 s) 0)		; found an unmated ),},]
 	      (c-put-char-property (1- (point)) 'syntax-table '(1))
 	      t)
-	     ((nth 3 s)			; In a string
-	      (c-put-char-property (nth 8 s) 'syntax-table '(1))
-	      t)
+	     ;; Unbalanced strings are now handled by
+	     ;; `c-before-change-check-unbalanced-strings', etc.
+	     ;; ((nth 3 s)			; In a string
+	     ;;  (c-put-char-property (nth 8 s) 'syntax-table '(1))
+	     ;;  t)
 	     ((> (nth 0 s) 0)		; In a (,{,[
 	      (c-put-char-property (nth 1 s) 'syntax-table '(1))
 	      t)
@@ -1069,6 +1076,312 @@ Note that the style variables are always made local to the buffer."
 	      (c-neutralize-CPP-line mbeg (point)) ; "punctuation" properties
 	    (forward-line))	      ; no infinite loop with, e.g., "#//"
 	  )))))
+
+(defun c-unescaped-nls-in-string-p (&optional quote-pos)
+  ;; Return whether unescaped newlines can be inside strings.
+  ;;
+  ;; QUOTE-POS, if present, is the position of the opening quote of a string.
+  ;; Depending on the language, there might be a special character before it
+  ;; signifying the validity of such NLs.
+  (cond
+   ((null c-multiline-string-start-char) nil)
+   ((c-characterp c-multiline-string-start-char)
+    (and quote-pos
+	 (eq (char-before quote-pos) c-multiline-string-start-char)))
+   (t t)))
+
+(defun c-multiline-string-start-is-being-detached (end)
+  ;; If (e.g.), the # character in Pike is being detached from the string
+  ;; opener it applies to, return t.  Else return nil.  END is the argument
+  ;; supplied to every before-change function.
+  (and (memq (char-after end) c-string-delims)
+       (c-characterp c-multiline-string-start-char)
+       (eq (char-before end) c-multiline-string-start-char)))
+
+(defun c-pps-to-string-delim (end)
+  ;; parse-partial-sexp forward to the next string quote, which is deemed to
+  ;; be a closing quote.  Return nil.
+  ;;
+  ;; We remove string-fence syntax-table text properties from characters we
+  ;; pass over.
+  (let* ((start (point))
+	 (no-st-s `(0 nil nil ?\" nil nil 0 nil ,start nil nil))
+	 (st-s `(0 nil nil t nil nil 0 nil ,start nil nil))
+	 no-st-pos st-pos
+	 )
+    (parse-partial-sexp start end nil nil no-st-s 'syntax-table)
+    (setq no-st-pos (point))
+    (goto-char start)
+    (while (progn
+	     (parse-partial-sexp (point) end nil nil st-s 'syntax-table)
+	     (unless (bobp)
+	       (c-clear-char-property (1- (point)) 'syntax-table))
+	     (setq st-pos (point))
+	     (and (< (point) end)
+		  (not (eq (char-before) ?\")))))
+    (goto-char (min no-st-pos st-pos))
+    nil))
+
+(defun c-multiline-string-check-final-quote ()
+  ;; Check that the final quote in the buffer is correctly marked or not with
+  ;; a string-fence syntax-table text propery.  The return value has no
+  ;; significance.
+  (let (pos-ll pos-lt)
+    (save-excursion
+      (goto-char (point-max))
+      (skip-chars-backward "^\"")
+      (while
+	  (and
+	   (not (bobp))
+	   (cond
+	    ((progn
+	       (setq pos-ll (c-literal-limits)
+		     pos-lt (c-literal-type pos-ll))
+	       (memq pos-lt '(c c++)))
+	     ;; In a comment.
+	     (goto-char (car pos-ll)))
+	    ((save-excursion
+	       (backward-char)	; over "
+	       (eq (logand (skip-chars-backward "\\\\") 1) 1))
+	     ;; At an escaped string.
+	     (backward-char)
+	     t)
+	    (t
+	     ;; At a significant "
+	     (c-clear-char-property (1- (point)) 'syntax-table)
+	     (setq pos-ll (c-literal-limits)
+		   pos-lt (c-literal-type pos-ll))
+	     nil)))
+	(skip-chars-backward "^\""))
+      (cond
+       ((bobp))
+       ((eq pos-lt 'string)
+	(c-put-char-property (1- (point)) 'syntax-table '(15)))
+       (t nil)))))
+
+(defvar c-bc-changed-stringiness nil)
+;; Non-nil when, in a before-change function, the deletion of a range of text
+;; will change the "stringiness" of the subsequent text.  Only used when
+;; `c-multiline-sting-start-char' is a non-nil value which isn't a character.
+
+(defun c-before-change-check-unbalanced-strings (beg end)
+  ;; If BEG or END is inside an unbalanced string, remove the syntax-table
+  ;; text property from respectively the start or end of the string.  Also
+  ;; extend the region (c-new-BEG c-new-END) as necessary to cope with the
+  ;; coming change involving the insertion or deletion of an odd number of
+  ;; quotes.
+  ;;
+  ;; POINT is undefined both at entry to and exit from this function, the
+  ;; buffer will have been widened, and match data will have been saved.
+  ;;
+  ;; This function is called exclusively as a before-change function via
+  ;; `c-get-state-before-change-functions'.
+  (c-save-buffer-state
+      ((end-limits
+	(progn
+	  (goto-char (if (c-multiline-string-start-is-being-detached end)
+			 (1+ end)
+		       end))
+	  (c-literal-limits)))
+       (end-literal-type (and end-limits
+                                      (c-literal-type end-limits)))
+       (beg-limits
+	(progn
+	  (goto-char beg)
+	  (c-literal-limits)))
+       (beg-literal-type (and beg-limits
+                                      (c-literal-type beg-limits))))
+
+    (when (eq end-literal-type 'string)
+      (setq c-new-END (max c-new-END (cdr end-limits))))
+    ;; It is possible the buffer change will include inserting a string quote.
+    ;; This could have the effect of flipping the meaning of any following
+    ;; quotes up until the next unescaped EOL.  Also guard against the change
+    ;; being the insertion of \ before an EOL, escaping it.
+    (cond
+     ((c-characterp c-multiline-string-start-char)
+      ;; The text about to be inserted might contain a multiline string
+      ;; opener.  Set c-new-END after anything which might be affected.
+      ;; Go to the end of the putative multiline string.
+      (goto-char end)
+      (c-pps-to-string-delim (point-max))
+      (when (< (point) (point-max))
+	(while
+	    (and
+	     (progn
+	       (while
+		   (and
+		    (c-syntactic-re-search-forward
+		     (if c-single-quotes-quote-strings
+			 "[\"']\\|\\s|"
+		       "\"\\|\\s|")
+		     (point-max) t t)
+		    (progn
+		      (c-clear-char-property (1- (point)) 'syntax-table)
+		      (c-truncate-semi-nonlit-pos-cache (1- (point)))
+		      (not (memq (char-before) c-string-delims)))))
+	       (memq (char-before) c-string-delims))
+	     (progn
+	       (c-pps-to-string-delim (point-max))
+	       (< (point) (point-max))))))
+      (setq c-new-END (max (point) c-new-END)))
+
+     (c-multiline-string-start-char
+      (setq c-bc-changed-stringiness
+	    (not (eq (eq end-literal-type 'string)
+		     (eq beg-literal-type 'string))))
+      ;; Deal with deletion of backslashes before "s.
+      (goto-char end)
+      (if (and (looking-at (if c-single-quotes-quote-strings
+			       "\\\\*[\"']"
+			     "\\\\*\""))
+	       (eq (logand (skip-chars-backward "\\\\" beg) 1) 1))
+	  (setq c-bc-changed-stringiness (not c-bc-changed-stringiness)))
+      (if (eq beg-literal-type 'string)
+	  (setq c-new-BEG (min (car beg-limits) c-new-BEG))))
+
+     ((< end (point-max))
+      (goto-char (1+ end))	; might be a newline.
+      ;; In the following regexp, the initial \n caters for a newline getting
+      ;; joined to a preceding \ by the removal of what comes between.
+      (re-search-forward "[\n\r]?\\(\\\\\\(.\\|\n\\|\r\\)\\|[^\\\n\r]\\)*"
+			 nil t)
+      ;; We're at an EOLL or point-max.
+      (setq c-new-END (max c-new-END (min (1+ (point)) (point-max))))
+      (if (equal (c-get-char-property (point) 'syntax-table) '(15))
+	  (if (memq (char-after) '(?\n ?\r))
+	      ;; Normally terminated invalid string.
+	      (let ((eoll-1 (point)))
+		(forward-char)
+		(backward-sexp)
+		(c-clear-char-property eoll-1 'syntax-table)
+		(c-clear-char-property (point) 'syntax-table)
+		(c-truncate-semi-nonlit-pos-cache (point)))
+	    ;; Opening " at EOB.
+	    (c-clear-char-property (1- (point)) 'syntax-table))
+	(when (and (c-search-backward-char-property 'syntax-table '(15) c-new-BEG)
+		   (memq (char-after) c-string-delims)) ; Ignore an unterminated raw string's (.
+	  ;; Opening " on last line of text (without EOL).
+	  (c-clear-char-property (point) 'syntax-table)
+	  (c-truncate-semi-nonlit-pos-cache (point)))))
+
+     (t (goto-char end)			; point-max
+	(when
+	    (and
+	     (c-search-backward-char-property 'syntax-table '(15) c-new-BEG)
+	     (memq (char-after) c-string-delims))
+	  (c-clear-char-property (point) 'syntax-table)
+	  (c-truncate-semi-nonlit-pos-cache (point)))))
+
+    (unless (and c-multiline-string-start-char
+		 (not (c-characterp c-multiline-string-start-char)))
+      (when (and (eq end-literal-type 'string)
+		 (not (eq (char-before (cdr end-limits)) ?\()))
+	(c-clear-char-property (1- (cdr end-limits)) 'syntax-table)
+	(c-truncate-semi-nonlit-pos-cache (1- (cdr end-limits))))
+
+      (when (and (eq beg-literal-type 'string)
+		 (memq (char-after (car beg-limits)) c-string-delims))
+	(setq c-new-BEG (min c-new-BEG (car beg-limits)))
+	(c-clear-char-property (car beg-limits) 'syntax-table)
+	(c-truncate-semi-nonlit-pos-cache (car beg-limits))))))
+
+(defun c-after-change-mark-abnormal-strings (beg end _old-len)
+  ;; Mark any unbalanced strings in the region (c-new-BEG c-new-END) with
+  ;; string fence syntax-table text properties.
+  ;;
+  ;; POINT is undefined both at entry to and exit from this function, the
+  ;; buffer will have been widened, and match data will have been saved.
+  ;;
+  ;; This function is called exclusively as an after-change function via
+  ;; `c-before-font-lock-functions'.
+  (if (and c-multiline-string-start-char
+	   (not (c-characterp c-multiline-string-start-char)))
+      ;; Only the last " might need to be marked.
+      (c-save-buffer-state
+	  ((beg-literal-limits
+	    (progn (goto-char beg) (c-literal-limits)))
+	   (beg-literal-type (c-literal-type beg-literal-limits))
+	   end-literal-limits end-literal-type)
+	(when (and (eq beg-literal-type 'string)
+		   (c-get-char-property (car beg-literal-limits) 'syntax-table))
+	  (c-clear-char-property (car beg-literal-limits) 'syntax-table)
+	  (setq c-bc-changed-stringiness (not c-bc-changed-stringiness)))
+	(setq end-literal-limits (progn (goto-char end) (c-literal-limits))
+	      end-literal-type (c-literal-type end-literal-limits))
+	;; Deal with the insertion of backslashes before a ".
+	(goto-char end)
+	(if (and (looking-at "\\\\*\"")
+		 (eq (logand (skip-chars-backward "\\\\" beg) 1) 1))
+	    (setq c-bc-changed-stringiness (not c-bc-changed-stringiness)))
+	(when (eq (eq (eq beg-literal-type 'string)
+		      (eq end-literal-type 'string))
+		  c-bc-changed-stringiness)
+	  (c-multiline-string-check-final-quote)))
+    ;; There could be several "s needing marking.
+    (c-save-buffer-state
+	((cll (progn (goto-char c-new-BEG)
+		     (c-literal-limits)))
+	 (beg-literal-type (and cll (c-literal-type cll)))
+	 (beg-limits
+	  (cond
+	   ((and (eq beg-literal-type 'string)
+		 (c-unescaped-nls-in-string-p (car cll)))
+	    (cons
+	     (car cll)
+	     (progn
+	       (goto-char (1+ (car cll)))
+	       (search-forward-regexp
+		(cdr (assq (char-after (car cll)) c-string-innards-re-alist))
+		nil t)
+	       (min (1+ (point)) (point-max)))))
+	   ((and (null beg-literal-type)
+		 (goto-char beg)
+		 (and (not (bobp))
+		      (eq (char-before) c-multiline-string-start-char))
+		 (memq (char-after) c-string-delims))
+	    (cons (point)
+		  (progn
+		    (forward-char)
+		    (search-forward-regexp
+		     (cdr (assq (char-before) c-string-innards-re-alist)) nil t)
+		    (1+ (point)))))
+	   (cll)))
+	 s)
+      (goto-char
+       (cond ((null beg-literal-type)
+	      c-new-BEG)
+	     ((eq beg-literal-type 'string)
+	      (car beg-limits))
+	     (t				; comment
+	      (cdr beg-limits))))
+      (while
+	  (and
+	   (< (point) c-new-END)
+	   (progn
+	     ;; Skip over any comments before the next string.
+	     (while (progn
+		      (setq s (parse-partial-sexp (point) c-new-END nil
+						  nil s 'syntax-table))
+		      (and (< (point) c-new-END)
+			   (or (not (nth 3 s))
+			       (not (memq (char-before) c-string-delims))))))
+	     ;; We're at the start of a string.
+	     (memq (char-before) c-string-delims)))
+	(unless (and (c-major-mode-is 'c++-mode)
+		     (c-maybe-re-mark-raw-string))
+	  (if (c-unescaped-nls-in-string-p (1- (point)))
+	      (looking-at "\\(\\\\\\(.\\|\n\\|\r\\)\\|[^\"]\\)*")
+	    (looking-at (cdr (assq (char-before) c-string-innards-re-alist))))
+	  (cond
+	   ((memq (char-after (match-end 0)) '(?\n ?\r))
+	    (c-put-char-property (1- (point)) 'syntax-table '(15))
+	    (c-put-char-property (match-end 0) 'syntax-table '(15)))
+	   ((or (eq (match-end 0) (point-max))
+		(eq (char-after (match-end 0)) ?\\)) ; \ at EOB
+	    (c-put-char-property (1- (point)) 'syntax-table '(15))))
+	  (goto-char (min (1+ (match-end 0)) (point-max))))
+	(setq s nil)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Parsing of quotes.
@@ -1172,7 +1485,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 		 (goto-char (match-beginning 0))
 		 (save-excursion (search-forward "'" (match-end 0) t)))))))))
 
-(defun c-parse-quotes-before-change (beg end)
+(defun c-parse-quotes-before-change (_beg _end)
   ;; This function analyzes 's near the region (c-new-BEG c-new-END), amending
   ;; those two variables as needed to include 's into that region when they
   ;; might be syntactically relevant to the change in progress.
@@ -1184,7 +1497,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;;
   ;; This function is called exclusively as a before-change function via the
   ;; variable `c-get-state-before-change-functions'.
-  (c-save-buffer-state ()
+  (c-save-buffer-state (case-fold-search)
     (goto-char c-new-BEG)
     ;; We need to scan for 's from the BO (logical) line.
     (beginning-of-line)
@@ -1200,13 +1513,13 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
        ((c-quoted-number-head-before-point)
 	(if (>= (point) c-new-BEG)
 	    (setq c-new-BEG (match-beginning 0))))
-       ((looking-at "\\([^'\\]\\|\\\\.\\)'")
+       ((looking-at
+	 "\\([^'\\]\\|\\\\\\([0-7]\\{1,3\\}\\|[xuU][0-9a-fA-F]+\\|.\\)\\)'")
 	(goto-char (match-end 0))
 	(if (> (match-end 0) c-new-BEG)
 	    (setq c-new-BEG (1- (match-beginning 0)))))
-       ((or (>= (point) (1- c-new-BEG))
-	    (and (eq (point) (- c-new-BEG 2))
-		 (eq (char-after) ?\\)))
+       ((save-excursion
+	  (not (search-forward "'" c-new-BEG t)))
 	(setq c-new-BEG (1- (point))))
        (t nil)))
 
@@ -1226,19 +1539,26 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	(goto-char (match-end 0))
 	(if (> (match-end 0) c-new-END)
 	    (setq c-new-END (match-end 0))))
-       ((looking-at "\\([^'\\]\\|\\\\.\\)'")
+       ((looking-at
+	 "\\([^'\\]\\|\\\\\\([0-7]\\{1,3\\}\\|[xuU][0-9a-fA-F]+\\|.\\)\\)'")
 	(goto-char (match-end 0))
 	(if (> (match-end 0) c-new-END)
 	    (setq c-new-END (match-end 0))))
+       ((equal (c-get-char-property (1- (point)) 'syntax-table) '(1))
+	(when (c-search-forward-char-property-with-value-on-char
+	       'syntax-table '(1) ?\' (c-point 'eoll))
+	  (setq c-new-END (max (point) c-new-END))))
        (t nil)))
     ;; Having reached c-new-END, handle any 's after it whose context may be
-    ;; changed by the current buffer change.
+    ;; changed by the current buffer change.  The idea is to catch
+    ;; monstrosities like ',',',',',' changing "polarity".
     (goto-char c-new-END)
     (cond
      ((c-quoted-number-tail-after-point)
       (setq c-new-END (match-end 0)))
      ((looking-at
-       "\\(\\\\.\\|.\\)?\\('\\([^'\\]\\|\\\\.\\)\\)*'")
+       "\\(\\\\\\([0-7]\\{1,3\\}\\|[xuU][0-9a-fA-F]+\\|.\\)\\|.\\)?\
+\\('\\([^'\\]\\|\\\\\\([0-7]\\{1,3\\}\\|[xuU][0-9a-fA-F]+\\|.\\)\\)\\)*'")
       (setq c-new-END (match-end 0))))
 
     ;; Remove the '(1) syntax-table property from any "'"s within (c-new-BEG
@@ -1259,7 +1579,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	 'c-digit-separator t
 	 ?')))))
 
-(defun c-parse-quotes-after-change (beg end old-len)
+(defun c-parse-quotes-after-change (_beg _end _old-len)
   ;; This function applies syntax-table properties (value '(1)) and
   ;; c-digit-separator properties as needed to 's within the range (c-new-BEG
   ;; c-new-END).  This operation is performed even within strings and
@@ -1267,7 +1587,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;;
   ;; This function is called exclusively as an after-change function via the
   ;; variable `c-before-font-lock-functions'.
-  (c-save-buffer-state (num-beg num-end)
+  (c-save-buffer-state (num-beg num-end case-fold-search)
     ;; Apply the needed syntax-table and c-digit-separator text properties to
     ;; quotes.
     (save-restriction
@@ -1289,7 +1609,9 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	       (c-put-char-properties-on-char num-beg num-end
 					      'c-digit-separator t ?')
 	       (goto-char num-end))
-	      ((looking-at "\\([^\\']\\|\\\\.\\)'") ; balanced quoted expression.
+	      ((looking-at
+		"\\([^\\']\\|\\\\\\([0-7]\\{1,3\\}\\|[xuU][0-9a-fA-F]+\\|.\\)\
+\\)'") ; balanced quoted expression.
 	       (goto-char (match-end 0)))
 	      (t
 	       (c-invalidate-state-cache (1- (point)))
@@ -1332,7 +1654,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	  ;; Are we coalescing two tokens together, e.g. "fo o" -> "foo"?
 	  (when (< beg end)
 	    (c-unfind-coalesced-tokens beg end))
-	  (c-invalidate-sws-region-before end)
+	  (c-invalidate-sws-region-before beg end)
 	  ;; Are we (potentially) disrupting the syntactic context which
 	  ;; makes a type a type?  E.g. by inserting stuff after "foo" in
 	  ;; "foo bar;", or before "foo" in "typedef foo *bar;"?
@@ -1418,7 +1740,8 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; without an intervening call to `before-change-functions' when reverting
   ;; the buffer (see bug #24094).  Whatever the cause, assume that the entire
   ;; buffer has changed.
-  (when (not c-just-done-before-change)
+  (when (and (not c-just-done-before-change)
+	     (not (c-called-from-text-property-change-p)))
     (save-restriction
       (widen)
       (c-before-change (point-min) (point-max))
@@ -1429,7 +1752,6 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; (c-new-BEG c-new-END) will be the region to fontify.  It may become
   ;; larger than (beg end).
   (setq c-new-END (- (+ c-new-END (- end beg)) old-len))
-  (setq c-old-BEG c-new-BEG  c-old-END c-new-END)
 
   (unless (c-called-from-text-property-change-p)
     (setq c-just-done-before-change nil)
@@ -1487,6 +1809,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; lock context (etc.) fontification.
   (goto-char pos)
   (let ((lit-start (c-literal-start))
+	old-pos
 	(new-pos pos)
 	capture-opener
 	bod-lim bo-decl)
@@ -1509,10 +1832,24 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
     (while
 	;; Go to a less nested declaration each time round this loop.
 	(and
-	 (c-syntactic-skip-backward "^;{}" bod-lim t)
+	 (setq old-pos (point))
+	 (let (pseudo)
+	   (while
+	       (progn
+		 (c-syntactic-skip-backward "^;{}" bod-lim t)
+		 (and (eq (char-before) ?})
+		      (save-excursion
+			(backward-char)
+			(setq pseudo (c-cheap-inside-bracelist-p (c-parse-state))))))
+	     (goto-char pseudo))
+	   t)
 	 (> (point) bod-lim)
 	 (progn (c-forward-syntactic-ws)
-		(setq bo-decl (point))
+		;; Have we got stuck in a comment at EOB?
+		(not (and (eobp)
+			  (c-literal-start))))
+	 (< (point) old-pos)
+	 (progn (setq bo-decl (point))
 		(or (not (looking-at c-protection-key))
 		    (c-forward-keyword-clause 1)))
 	 (progn
@@ -1829,6 +2166,7 @@ Key bindings:
   (c-common-init 'c-mode)
   (easy-menu-add c-c-menu)
   (cc-imenu-init cc-imenu-c-generic-expression)
+  (add-hook 'flymake-diagnostic-functions 'flymake-cc nil t)
   (c-run-mode-hooks 'c-mode-common-hook))
 
 (defconst c-or-c++-mode--regexp
@@ -1916,6 +2254,7 @@ Key bindings:
   (c-common-init 'c++-mode)
   (easy-menu-add c-c++-menu)
   (cc-imenu-init cc-imenu-c++-generic-expression)
+  (add-hook 'flymake-diagnostic-functions 'flymake-cc nil t)
   (c-run-mode-hooks 'c-mode-common-hook))
 
 

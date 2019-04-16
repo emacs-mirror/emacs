@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993-1994, 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 1999-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -125,6 +125,10 @@ struct frame
      The selected window of the selected frame is Emacs's selected window.  */
   Lisp_Object selected_window;
 
+  /* This frame's selected window when run_window_change_functions was
+     called the last time on this frame.  */
+  Lisp_Object old_selected_window;
+
   /* This frame's minibuffer window.
      Most frames have their own minibuffer windows,
      but only the selected frame's minibuffer window
@@ -177,7 +181,7 @@ struct frame
   Lisp_Object menu_bar_window;
 #endif
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   /* A window used to display the tool-bar of a frame.  */
   Lisp_Object tool_bar_window;
 
@@ -185,9 +189,6 @@ struct frame
   Lisp_Object desired_tool_bar_string;
   Lisp_Object current_tool_bar_string;
 #endif
-
-  /* Desired and current tool-bar items.  */
-  Lisp_Object tool_bar_items;
 
 #ifdef USE_GTK
   /* Where tool bar is, can be left, right, top or bottom.
@@ -200,12 +201,14 @@ struct frame
   Lisp_Object font_data;
 #endif
 
-  /* Beyond here, there should be no more Lisp_Object components.  */
+  /* Desired and current tool-bar items.  */
+  Lisp_Object tool_bar_items;
+  /* tool_bar_items should be the last Lisp_Object member.  */
 
   /* Cache of realized faces.  */
   struct face_cache *face_cache;
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   /* Tool-bar item index of the item on which a mouse button was pressed.  */
   int last_tool_bar_item;
 #endif
@@ -253,13 +256,13 @@ struct frame
   /* Set to true when current redisplay has updated frame.  */
   bool_bf updated_p : 1;
 
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
   /* Set to true to minimize tool-bar height even when
      auto-resize-tool-bar is set to grow-only.  */
   bool_bf minimize_tool_bar_window_p : 1;
 #endif
 
-#if defined (USE_GTK) || defined (HAVE_NS)
+#ifdef HAVE_EXT_TOOL_BAR
   /* True means using a tool bar that comes from the toolkit.  */
   bool_bf external_tool_bar : 1;
 #endif
@@ -274,9 +277,8 @@ struct frame
   /* True if it needs to be redisplayed.  */
   bool_bf redisplay : 1;
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)	\
-    || defined (HAVE_NS) || defined (USE_GTK)
-  /* True means using a menu bar that comes from the X toolkit.  */
+#ifdef HAVE_EXT_MENU_BAR
+  /* True means using a menu bar that comes from the toolkit.  */
   bool_bf external_menu_bar : 1;
 #endif
 
@@ -321,9 +323,18 @@ struct frame
      cleared.  */
   bool_bf explicit_name : 1;
 
-  /* True if configuration of windows on this frame has changed since
-     last call of run_window_size_change_functions.  */
-  bool_bf window_configuration_changed : 1;
+  /* True if at least one window on this frame changed since the last
+     call of run_window_change_functions.  Changes are either "state
+     changes" (a window has been created, deleted or got assigned
+     another buffer) or "size changes" (the total or body size of a
+     window changed).  run_window_change_functions exits early unless
+     either this flag is true or a window selection happened on this
+     frame.  */
+  bool_bf window_change : 1;
+
+  /* True if running window state change functions has been explicitly
+     requested for this frame since last redisplay.  */
+  bool_bf window_state_change : 1;
 
   /* True if the mouse has moved on this display device
      since the last time we checked.  */
@@ -404,7 +415,25 @@ struct frame
   /* Non-zero if this frame's faces need to be recomputed.  */
   bool_bf face_change : 1;
 
+  /* Non-zero if this frame's image cache cannot be freed because the
+     frame is in the process of being redisplayed.  */
+  bool_bf inhibit_clear_image_cache : 1;
+
   /* Bitfield area ends here.  */
+
+  /* This frame's change stamp, set the last time window change
+     functions were run for this frame.  Should never be 0 because
+     that's the change stamp of a new window.  A window was not on a
+     frame the last run_window_change_functions was called on it if
+     it's change stamp differs from that of its frame.  */
+  int change_stamp;
+
+  /* This frame's number of windows, set the last time window change
+     functions were run for this frame.  Should never be 0 even for
+     minibuffer-only frames.  If no window has been added, this allows
+     to detect whether a window was deleted on this frame since the
+     last time run_window_change_functions was called on it.  */
+  ptrdiff_t number_of_windows;
 
   /* Number of lines (rounded up) of tool bar.  REMOVE THIS  */
   int tool_bar_lines;
@@ -553,7 +582,7 @@ struct frame
   int config_scroll_bar_lines;
 
   /* The baud rate that was used to calculate costs for this frame.  */
-  int cost_calculation_baud_rate;
+  intmax_t cost_calculation_baud_rate;
 
   /* Frame opacity
      alpha[0]: alpha transparency of the active frame
@@ -578,7 +607,7 @@ struct frame
   enum ns_appearance_type ns_appearance;
   bool_bf ns_transparent_titlebar;
 #endif
-};
+} GCALIGNED_STRUCT;
 
 /* Most code should use these functions to set Lisp fields in struct frame.  */
 
@@ -662,6 +691,11 @@ fset_selected_window (struct frame *f, Lisp_Object val)
   f->selected_window = val;
 }
 INLINE void
+fset_old_selected_window (struct frame *f, Lisp_Object val)
+{
+  f->old_selected_window = val;
+}
+INLINE void
 fset_title (struct frame *f, Lisp_Object val)
 {
   f->title = val;
@@ -678,7 +712,7 @@ fset_tool_bar_position (struct frame *f, Lisp_Object val)
   f->tool_bar_position = val;
 }
 #endif /* USE_GTK */
-#if defined (HAVE_WINDOW_SYSTEM) && ! defined (USE_GTK) && ! defined (HAVE_NS)
+#if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)
 INLINE void
 fset_tool_bar_window (struct frame *f, Lisp_Object val)
 {
@@ -726,7 +760,7 @@ default_pixels_per_inch_y (void)
 #define FRAME_IMAGE_CACHE(F) ((F)->terminal->image_cache)
 
 #define XFRAME(p) \
-  (eassert (FRAMEP (p)), (struct frame *) XUNTAG (p, Lisp_Vectorlike))
+  (eassert (FRAMEP (p)), XUNTAG (p, Lisp_Vectorlike, struct frame))
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
@@ -846,7 +880,7 @@ default_pixels_per_inch_y (void)
 
 /* True if this frame should display a tool bar
    in a way that does not use any text lines.  */
-#if defined (USE_GTK) || defined (HAVE_NS)
+#ifdef HAVE_EXT_TOOL_BAR
 #define FRAME_EXTERNAL_TOOL_BAR(f) (f)->external_tool_bar
 #else
 #define FRAME_EXTERNAL_TOOL_BAR(f) false
@@ -875,8 +909,7 @@ default_pixels_per_inch_y (void)
 
 /* True if this frame should display a menu bar
    in a way that does not use any text lines.  */
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-     || defined (HAVE_NS) || defined (USE_GTK)
+#ifdef HAVE_EXT_MENU_BAR
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) false
@@ -908,10 +941,13 @@ default_pixels_per_inch_y (void)
    are frozen on frame F.  */
 #define FRAME_WINDOWS_FROZEN(f) (f)->frozen_window_starts
 
-/* True if the frame's window configuration has changed since last call
-   of run_window_size_change_functions.  */
-#define FRAME_WINDOW_CONFIGURATION_CHANGED(f)	\
-  (f)->window_configuration_changed
+/* True if at least one window changed on frame F since the last time
+   window change functions were run on F.  */
+#define FRAME_WINDOW_CHANGE(f) (f)->window_change
+
+/* True if running window state change functions has been explicitly
+   requested for this frame since last redisplay.  */
+#define FRAME_WINDOW_STATE_CHANGE(f) (f)->window_state_change
 
 /* The minibuffer window of frame F, if it has one; otherwise nil.  */
 #define FRAME_MINIBUF_WINDOW(f) f->minibuffer_window
@@ -919,8 +955,10 @@ default_pixels_per_inch_y (void)
 /* The root window of the window tree of frame F.  */
 #define FRAME_ROOT_WINDOW(f) f->root_window
 
-/* The currently selected window of the window tree of frame F.  */
+/* The currently selected window of frame F.  */
 #define FRAME_SELECTED_WINDOW(f) f->selected_window
+/* The old selected window of frame F.  */
+#define FRAME_OLD_SELECTED_WINDOW(f) f->old_selected_window
 
 #define FRAME_INSERT_COST(f) (f)->insert_line_cost
 #define FRAME_DELETE_COST(f) (f)->delete_line_cost
@@ -1215,8 +1253,9 @@ SET_FRAME_VISIBLE (struct frame *f, int v)
   (f)->iconified = (eassert (0 <= (i) && (i) <= 1), (i))
 
 extern Lisp_Object selected_frame;
+extern Lisp_Object old_selected_frame;
 
-#if ! (defined USE_GTK || defined HAVE_NS)
+#ifndef HAVE_EXT_TOOL_BAR
 extern int frame_default_tool_bar_height;
 #endif
 
@@ -1360,17 +1399,13 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
    canonical char width is to be used.  X must be a Lisp integer or
    float.  Value is a C integer.  */
 #define FRAME_PIXEL_X_FROM_CANON_X(F, X)		\
-  (INTEGERP (X)						\
-   ? XINT (X) * FRAME_COLUMN_WIDTH (F)			\
-   : (int) (XFLOAT_DATA (X) * FRAME_COLUMN_WIDTH (F)))
+  ((int) (XFLOATINT (X) * FRAME_COLUMN_WIDTH (F)))
 
 /* Convert canonical value Y to pixels.  F is the frame whose
    canonical character height is to be used.  X must be a Lisp integer
    or float.  Value is a C integer.  */
 #define FRAME_PIXEL_Y_FROM_CANON_Y(F, Y)		\
-  (INTEGERP (Y)						\
-   ? XINT (Y) * FRAME_LINE_HEIGHT (F)			\
-   : (int) (XFLOAT_DATA (Y) * FRAME_LINE_HEIGHT (F)))
+  ((int) (XFLOATINT (Y) * FRAME_LINE_HEIGHT (F)))
 
 /* Convert pixel-value X to canonical units.  F is the frame whose
    canonical character width is to be used.  X is a C integer.  Result
@@ -1379,7 +1414,7 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 #define FRAME_CANON_X_FROM_PIXEL_X(F, X)			\
   ((X) % FRAME_COLUMN_WIDTH (F) != 0				\
    ? make_float ((double) (X) / FRAME_COLUMN_WIDTH (F))		\
-   : make_number ((X) / FRAME_COLUMN_WIDTH (F)))
+   : make_fixnum ((X) / FRAME_COLUMN_WIDTH (F)))
 
 /* Convert pixel-value Y to canonical units.  F is the frame whose
    canonical character height is to be used.  Y is a C integer.
@@ -1388,7 +1423,7 @@ FRAME_BOTTOM_DIVIDER_WIDTH (struct frame *f)
 #define FRAME_CANON_Y_FROM_PIXEL_Y(F, Y)			\
   ((Y) % FRAME_LINE_HEIGHT (F)					\
    ? make_float ((double) (Y) / FRAME_LINE_HEIGHT (F))		\
-   : make_number ((Y) / FRAME_LINE_HEIGHT (F)))
+   : make_fixnum ((Y) / FRAME_LINE_HEIGHT (F)))
 
 
 

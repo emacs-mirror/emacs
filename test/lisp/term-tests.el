@@ -1,6 +1,6 @@
 ;;; term-tests.el --- tests for term.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -89,6 +89,13 @@ first line\r_next line\r\n"))
                                               "\e[2;1Hc"
                                               "\e[1;2Hb"
                                               "\e[1;1Ha") "" t))))
+  (should (equal "abcde    j"
+                 (term-test-screen-from-input
+                  10 12 '("abcdefghij"
+                          "\e[H"  ;move back to point-min
+                          "abcde"
+                          "    j"))))
+
   ;; Relative positioning.
   (should (equal "ab\ncd"
                  (term-test-screen-from-input
@@ -135,6 +142,26 @@ the first character of the line."
                      "\r_")))
     (should (equal (term-test-screen-from-input width 12 strs)
                    (make-string width ?_)))))
+
+(ert-deftest term-to-margin ()
+  "Test cursor movement at the scroll margin.
+This is a reduced example from GNU nano's initial screen."
+  (let* ((width 10)
+         (x (make-string width ?x))
+         (y (make-string width ?y)))
+    (should (equal (term-test-screen-from-input
+                    width 3
+                    `("\e[1;3r"       ; Setup 3 line scrolling region.
+                      "\e[2;1H"       ; Move to 2nd last line.
+                      ,x              ; Fill with 'x'.
+                      "\r\e[1B"       ; Next line.
+                      ,y))            ; Fill with 'y'.
+                   (concat "\n" x "\n" y)))
+    ;; Same idea, but moving upwards.
+    (should (equal (term-test-screen-from-input
+                    width 3
+                    `("\e[1;3r" "\e[2;1H" ,x "\r\e[1A" ,y))
+                   (concat y "\n" x)))))
 
 (provide 'term-tests)
 

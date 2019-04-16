@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 1999-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs
@@ -273,6 +273,10 @@ new contents by invoking the @samp{*Rescan*} item in the menu.
 Rescanning happens automatically if you set @code{imenu-auto-rescan} to
 a non-@code{nil} value.  There is no need to rescan because of small
 changes in the text.
+
+@vindex imenu-auto-rescan-maxout
+  @code{imenu-auto-rescan} will be disabled in buffers that are larger
+than @code{imenu-auto-rescan-maxout} in bytes.
 
 @vindex imenu-sort-function
   You can customize the way the menus are sorted by setting the
@@ -1662,7 +1666,9 @@ chaotically indented code.  If you are new to CC Mode, you might find
 it disconcerting.  You can toggle electric action with the command
 @kbd{C-c C-l}; when it is enabled, @samp{/@var{c}l} appears in the
 mode line after the mode name (where @var{c}, if present, is @samp{*}
-or @samp{/}):
+or @samp{/}, depending on whether the comment style is block or line).
+@xref{Minor Modes,,, ccmode, The CC Mode Manual}, for more about
+mode-line indicators in CC Mode.
 
 @table @kbd
 @item C-c C-l

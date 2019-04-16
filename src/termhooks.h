@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2018 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1994, 2001-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -222,6 +222,10 @@ enum event_kind
   , DBUS_EVENT
 #endif
 
+#ifdef THREADS_ENABLED
+  , THREAD_EVENT
+#endif
+
   , CONFIG_CHANGED_EVENT
 
 #ifdef HAVE_NTGUI
@@ -346,7 +350,7 @@ enum {
      FIXNUM_BITS, so using it to represent a modifier key means that
      characters thus modified have different integer equivalents
      depending on the architecture they're running on.  Oh, and
-     applying XINT to a character whose 2^28 bit is set might sign-extend
+     applying XFIXNUM to a character whose 2^28 bit is set might sign-extend
      it, so you get a bunch of bits in the mask you didn't want.
 
      The CHAR_ macros are defined in lisp.h.  */
@@ -404,7 +408,7 @@ struct terminal
      whether the mapping is available.  */
   Lisp_Object glyph_code_table;
 
-  /* All fields before `next_terminal' should be Lisp_Object and are traced
+  /* All earlier fields should be Lisp_Objects and are traced
      by the GC.  All fields afterwards are ignored by the GC.  */
 
   /* Chain of all terminal devices. */
@@ -657,7 +661,7 @@ struct terminal
      frames on the terminal when it calls this hook, so infinite
      recursion is prevented.  */
   void (*delete_terminal_hook) (struct terminal *);
-};
+} GCALIGNED_STRUCT;
 
 INLINE bool
 TERMINALP (Lisp_Object a)
@@ -669,7 +673,7 @@ INLINE struct terminal *
 XTERMINAL (Lisp_Object a)
 {
   eassert (TERMINALP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
+  return XUNTAG (a, Lisp_Vectorlike, struct terminal);
 }
 
 /* Most code should use these functions to set Lisp fields in struct
@@ -729,6 +733,7 @@ extern struct terminal *get_named_terminal (const char *);
 extern struct terminal *create_terminal (enum output_method,
 					 struct redisplay_interface *);
 extern void delete_terminal (struct terminal *);
+extern void delete_terminal_internal (struct terminal *);
 extern Lisp_Object terminal_glyph_code (struct terminal *, int);
 
 /* The initial terminal device, created by initial_term_init.  */

@@ -1,6 +1,6 @@
 ;;; nndoc.el --- single file access for Gnus
 
-;; Copyright (C) 1995-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -701,7 +701,7 @@ from the document.")
 
 (defun nndoc-lanl-gov-announce-type-p ()
   (when (let ((case-fold-search nil))
-	  (re-search-forward "^\\\\\\\\\n\\(Paper\\( (\\*cross-listing\\*)\\)?: [a-zA-Z-\\.]+/[0-9]+\\|arXiv:\\)" nil t))
+	  (re-search-forward "^\\\\\\\\\n\\(Paper\\( (\\*cross-listing\\*)\\)?: [a-zA-Z\\.-]+/[0-9]+\\|arXiv:\\)" nil t))
     t))
 
 (defun nndoc-transform-lanl-gov-announce (article)
@@ -732,7 +732,7 @@ from the document.")
       (save-restriction
 	(narrow-to-region (car entry) (nth 1 entry))
 	(goto-char (point-min))
-	(when (looking-at "^\\(Paper.*: \\|arXiv:\\)\\([0-9a-zA-Z-\\./]+\\)")
+	(when (looking-at "^\\(Paper.*: \\|arXiv:\\)\\([0-9a-zA-Z\\./-]+\\)")
 	  (setq subject (concat " (" (match-string 2) ")"))
 	  (when (re-search-forward "^From: \\(.*\\)" nil t)
 	    (setq from (concat "<"
@@ -769,9 +769,9 @@ from the document.")
 
 (defun nndoc-read-little-endian ()
   (+ (prog1 (char-after) (forward-char 1))
-     (lsh (prog1 (char-after) (forward-char 1)) 8)
-     (lsh (prog1 (char-after) (forward-char 1)) 16)
-     (lsh (prog1 (char-after) (forward-char 1)) 24)))
+     (ash (prog1 (char-after) (forward-char 1)) 8)
+     (ash (prog1 (char-after) (forward-char 1)) 16)
+     (ash (prog1 (char-after) (forward-char 1)) 24)))
 
 (defun nndoc-oe-dbx-decode-block ()
   (list

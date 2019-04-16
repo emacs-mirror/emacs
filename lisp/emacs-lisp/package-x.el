@@ -1,6 +1,6 @@
 ;;; package-x.el --- Package extras
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;; Created: 10 Mar 2007
@@ -202,8 +202,8 @@ if it exists."
 	       (split-version (package-desc-version pkg-desc))
 	       (commentary
                 (pcase file-type
-                  (`single (lm-commentary))
-                  (`tar nil))) ;; FIXME: Get it from the README file.
+                  ('single (lm-commentary))
+                  ('tar nil))) ;; FIXME: Get it from the README file.
                (extras (package-desc-extras pkg-desc))
 	       (pkg-version (package-version-join split-version))
 	       (pkg-buffer (current-buffer)))

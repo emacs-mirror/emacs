@@ -1,6 +1,6 @@
 ;;; latin-post.el --- Quail packages for inputting various European characters  -*-coding: utf-8;-*-
 
-;; Copyright (C) 1997-1998, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -737,6 +737,54 @@ Doubling the postfix separates the letter and postfix: e.g. a\\='\\=' -> a\\='
  ("u~~" ["u~"])
  ("u--" ["u-"])
  ("z~~" ["z~"])
+ )
+
+;;; Hawaiian postfix input method.  It's a small subset of Latin-4
+;;; with the addition of an ʻokina mapping.  Hopefully the ʻokina shows
+;;; correctly on most displays.
+
+;;; This reference is an authoritative guide to Hawaiian orthography:
+;;; http://www2.hawaii.edu/~strauch/tips/HawaiianOrthography.html
+
+;;; Initial coding 2018-09-08 Bob Newell, Honolulu, Hawaiʻi
+;;; Comments to bobnewell@bobnewell.net
+
+(quail-define-package
+ "hawaiian-postfix" "Hawaiian Postfix" "H<" t
+ "Hawaiian characters input method with postfix modifiers
+
+             | postfix | examples
+ ------------+---------+----------
+  ʻokina     |    \\=`    | \\=` -> ʻ
+  kahakō     |    -    | a- -> ā
+
+Doubling the postfix separates the letter and postfix. a-- -> a-
+" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("A-" ?Ā)
+ ("E-" ?Ē)
+ ("I~" ?Ĩ)
+ ("O-" ?Ō)
+ ("U-" ?Ū)
+ ("a-" ?ā)
+ ("e-" ?ē)
+ ("i-" ?ī)
+ ("o-" ?ō)
+ ("u-" ?ū)
+ ("`" ?ʻ)
+
+ ("A--" ["A-"])
+ ("E--" ["E-"])
+ ("I--" ["I-"])
+ ("O--" ["O-"])
+ ("U--" ["U-"])
+ ("a--" ["a-"])
+ ("e--" ["e-"])
+ ("i--" ["i-"])
+ ("o--" ["o-"])
+ ("u--" ["u-"])
+ ("``"  ["`"])
  )
 
 (quail-define-package

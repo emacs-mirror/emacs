@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-2018 Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2019 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Text
 @chapter Text
@@ -62,6 +62,7 @@ the character after point.
 * GnuTLS Cryptography:: Cryptographic algorithms imported from GnuTLS.
 * Parsing HTML/XML:: Parsing HTML and XML.
 * Parsing JSON::     Parsing and generating JSON values.
+* JSONRPC::          JSON Remote Procedure Call protocol
 * Atomic Changes::   Installing several buffer changes atomically.
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
@@ -499,14 +500,14 @@ after point.  It leaves the mark after the inserted text.  The value
 is @code{nil}.
 @end deffn
 
-@deffn Command self-insert-command count
+@deffn Command self-insert-command count &optional char
 @cindex character insertion
 @cindex self-insertion
-This command inserts the last character typed; it does so @var{count}
-times, before point, and returns @code{nil}.  Most printing characters
-are bound to this command.  In routine use, @code{self-insert-command}
-is the most frequently called function in Emacs, but programs rarely use
-it except to install it on a keymap.
+This command inserts the character @var{char} (the last character typed);
+it does so @var{count} times, before point, and returns @code{nil}.
+Most printing characters are bound to this command.  In routine use,
+@code{self-insert-command} is the most frequently called function in Emacs,
+but programs rarely use it except to install it on a keymap.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 
@@ -722,12 +723,18 @@ You thought
 @end example
 @end deffn
 
-@deffn Command delete-indentation &optional join-following-p
+@deffn Command delete-indentation &optional join-following-p beg end
 This function joins the line point is on to the previous line, deleting
 any whitespace at the join and in some cases replacing it with one
 space.  If @var{join-following-p} is non-@code{nil},
 @code{delete-indentation} joins this line to the following line
-instead.  The function returns @code{nil}.
+instead.  Otherwise, if @var{beg} and @var{end} are non-@code{nil},
+this function joins all lines in the region they define.
+
+In an interactive call, @var{join-following-p} is the prefix argument,
+and @var{beg} and @var{end} are, respectively, the start and end of
+the region if it is active, else @code{nil}.  The function returns
+@code{nil}.
 
 If there is a fill prefix, and the second of the lines being joined
 starts with the prefix, then @code{delete-indentation} deletes the
@@ -1326,9 +1333,8 @@ elements follow immediately after this element.
 
 @item (t . @var{time-flag})
 This kind of element indicates that an unmodified buffer became
-modified.  A @var{time-flag} of the form
-@code{(@var{sec-high} @var{sec-low} @var{microsec}
-@var{picosec})} represents the visited file's modification time as of
+modified.  A @var{time-flag} that is a non-integer Lisp timestamp
+represents the visited file's modification time as of
 when it was previously visited or saved, using the same format as
 @code{current-time}; see @ref{Time of Day}.
 A @var{time-flag} of 0 means the buffer does not correspond to any file;
@@ -2571,11 +2577,11 @@ The quick brown fox jum  @point{}ped.
 @end example
 @end deffn
 
-@deffn Command indent-relative-maybe
+@deffn Command indent-relative-first-indent-point
 @comment !!SourceFile indent.el
 This command indents the current line like the previous nonblank line,
 by calling @code{indent-relative} with @code{t} as the
-@var{unindented-ok} argument.  The return value is unpredictable.
+@var{first-only} argument.  The return value is unpredictable.
 
 If the previous nonblank line has no indent points beyond the current
 column, this command does nothing.
@@ -3038,9 +3044,10 @@ construct each part with @code{propertize} and then combine them with
 buffer but does not copy its properties.
 
 @findex with-silent-modifications
-  If you wish to add or remove text properties to a buffer without
-marking the buffer as modified, you can wrap the calls above in the
-@code{with-silent-modifications} macro.
+  If you wish to add text properties to a buffer or remove them
+without marking the buffer as modified, you can wrap the calls above
+in the @code{with-silent-modifications} macro.  @xref{Buffer
+Modification}.
 
 @node Property Search
 @subsection Text Property Search Functions
@@ -3324,6 +3331,17 @@ foreground or background color, similar to @code{(:foreground
 @var{color-name})} or @code{(:background @var{color-name})}.  This
 form is supported for backward compatibility only, and should be
 avoided.
+
+@item
+A cons cell of the form @w{@code{(:filtered @var{filter}
+@var{face-spec})}}, that specifies the face given by @var{face-spec},
+but only if @var{filter} matches when the face is used for display.
+The @var{face-spec} can use any of the forms mentioned above.  The
+@var{filter} should be of the form @w{@code{(:window @var{param}
+@var{value})}}, which matches for windows whose parameter @var{param}
+is @code{eq} to @var{value}.  If the variable
+@code{face-filters-always-match} is non-@code{nil}, all face filters
+are deemed to have matched.
 @end itemize
 
 Font Lock mode (@pxref{Font Lock Mode}) works in most buffers by
@@ -3484,8 +3502,13 @@ property is obsolete; use the @code{cursor-intangible} property instead.
 @kindex cursor-intangible @r{(text property)}
 @findex cursor-intangible-mode
 When the minor mode @code{cursor-intangible-mode} is turned on, point
-is moved away of any position that has a non-@code{nil}
+is moved away from any position that has a non-@code{nil}
 @code{cursor-intangible} property, just before redisplay happens.
+
+@vindex cursor-sensor-inhibit
+When the variable @code{cursor-sensor-inhibit} is non-@code{nil}, the
+@code{cursor-intangible} property and the
+@code{cursor-sensor-functions} property (described below) are ignored.
 
 @item field
 @kindex field @r{(text property)}
@@ -3668,6 +3691,9 @@ depending on whether the cursor is entering the text that has this
 property or leaving it.  The functions are called only when the minor
 mode @code{cursor-sensor-mode} is turned on.
 
+When the variable @code{cursor-sensor-inhibit} is non-@code{nil}, the
+@code{cursor-sensor-functions} property is ignored.
+
 @item composition
 @kindex composition @r{(text property)}
 This text property is used to display a sequence of characters as a
@@ -3696,6 +3722,12 @@ string to display, which is passed through
 @code{substitute-command-keys} before being given to the function; see
 @ref{Keys in Documentation}.  Tooltip mode (@pxref{Tooltips,,, emacs,
 The GNU Emacs Manual}) provides an example.
+@end defvar
+
+@defvar face-filters-always-match
+If this variable is non-@code{nil}, face filters that specify
+attributes applied only when certain conditions are met will be deemed
+to match always.
 @end defvar
 
 @node Format Properties
@@ -4410,21 +4442,58 @@ all markers unrelocated.
   You can use the following function to replace the text of one buffer
 with the text of another buffer:
 
-@deffn Command replace-buffer-contents source
+@deffn Command replace-buffer-contents source &optional max-secs max-costs
 This function replaces the accessible portion of the current buffer
 with the accessible portion of the buffer @var{source}.  @var{source}
 may either be a buffer object or the name of a buffer.  When
 @code{replace-buffer-contents} succeeds, the text of the accessible
 portion of the current buffer will be equal to the text of the
-accessible portion of the @var{source} buffer.  This function attempts
-to keep point, markers, text properties, and overlays in the current
-buffer intact.  One potential case where this behavior is useful is
-external code formatting programs: they typically write the
-reformatted text into a temporary buffer or file, and using
-@code{delete-region} and @code{insert-buffer-substring} would destroy
-these properties.  However, the latter combination is typically
-faster.  @xref{Deletion}, and @ref{Insertion}.
+accessible portion of the @var{source} buffer.
+
+This function attempts to keep point, markers, text properties, and
+overlays in the current buffer intact.  One potential case where this
+behavior is useful is external code formatting programs: they
+typically write the reformatted text into a temporary buffer or file,
+and using @code{delete-region} and @code{insert-buffer-substring}
+would destroy these properties.  However, the latter combination is
+typically faster (@xref{Deletion}, and @ref{Insertion}).
+
+For its working, @code{replace-buffer-contents} needs to compare the
+contents of the original buffer with that of @code{source} which is a
+costly operation if the buffers are huge and there is a high number of
+differences between them.  In order to keep
+@code{replace-buffer-contents}'s runtime in bounds, it has two
+optional arguments.
+
+@code{max-secs} defines a hard boundary in terms of seconds.  If given
+and exceeded, it will fall back to @code{delete-region} and
+@code{insert-buffer-substring}.
+
+@code{max-costs} defines the quality of the difference computation.
+If the actual costs exceed this limit, heuristics are used to provide
+a faster but suboptimal solution.  The default value is 1000000.
+
+@code{replace-buffer-contents} returns t if a non-destructive
+replacement could be performed.  Otherwise, i.e., if @code{max-secs}
+was exceeded, it returns nil.
 @end deffn
+
+@defun replace-region-contents beg end replace-fn &optional max-secs max-costs
+This function replaces the region between @code{beg} and @code{end}
+using the given @code{replace-fn}.  The function @code{replace-fn} is
+run in the current buffer narrowed to the specified region and it
+should return either a string or a buffer replacing the region.
+
+The replacement is performed using @code{replace-buffer-contents} (see
+above) which also describes the @code{max-secs} and @code{max-costs}
+arguments and the return value.
+
+Note: If the replacement is a string, it will be placed in a temporary
+buffer so that @code{replace-buffer-contents} can operate on it.
+Therefore, if you already have the replacement in a buffer, it makes
+no sense to convert it to a string using @code{buffer-substring} or
+similar.
+@end defun
 
 @node Decompression
 @section Dealing With Compressed Data
@@ -4444,14 +4513,17 @@ This function returns non-@code{nil} if built-in zlib decompression is
 available.
 @end defun
 
-@defun zlib-decompress-region start end
+@defun zlib-decompress-region start end &optional allow-partial
 This function decompresses the region between @var{start} and
 @var{end}, using built-in zlib decompression.  The region should
 contain data that were compressed with gzip or zlib.  On success, the
 function replaces the contents of the region with the decompressed
-data.  On failure, the function leaves the region unchanged and
-returns @code{nil}.  This function can be called only in unibyte
-buffers.
+data.  If @var{allow-partial} is @code{nil} or omitted, then on
+failure, the function leaves the region unchanged and returns
+@code{nil}.  Otherwise, it returns the number of bytes that were not
+decompressed and replaces the region text by whatever data was
+successfully decompressed.  This function can be called only in
+unibyte buffers.
 @end defun
 
 
@@ -4998,26 +5070,27 @@ textual nodes that just contain white-space.
 @node Parsing JSON
 @section Parsing and generating JSON values
 @cindex JSON
+@cindex JavaScript Object Notation
 
-  When Emacs is compiled with JSON support, it provides a couple of
-functions to convert between Lisp objects and JSON values.  Any JSON
-value can be converted to a Lisp object, but not vice versa.
-Specifically:
+  When Emacs is compiled with @acronym{JSON} (@dfn{JavaScript Object
+Notation}) support, it provides several functions to convert
+between Lisp objects and JSON values.  Any JSON value can be converted
+to a Lisp object, but not vice versa.  Specifically:
 
 @itemize
-
 @item
-JSON has a couple of keywords: @code{null}, @code{false}, and
-@code{true}.  These are represented in Lisp using the keywords
-@code{:null}, @code{:false}, and @code{t}, respectively.
+JSON uses three keywords: @code{true}, @code{null}, @code{false}.
+@code{true} is represented by the symbol @code{t}.  By default, the
+remaining two are represented, respectively, by the symbols
+@code{:null} and @code{:false}.
 
 @item
 JSON only has floating-point numbers.  They can represent both Lisp
 integers and Lisp floating-point numbers.
 
 @item
-JSON strings are always Unicode strings.  Lisp strings can contain
-non-Unicode characters.
+JSON strings are always Unicode strings encoded in UTF-8.  Lisp
+strings can contain non-Unicode characters.
 
 @item
 JSON has only one sequence type, the array.  JSON arrays are
@@ -5025,67 +5098,318 @@ represented using Lisp vectors.
 
 @item
 JSON has only one map type, the object.  JSON objects are represented
-using Lisp hashtables or alists.  When an alist contains several
-elements with the same key, Emacs uses only the first element for
-serialization, in accordance with the behavior of @code{assq}.
-
+using Lisp hashtables, alists or plists.  When an alist or plist
+contains several elements with the same key, Emacs uses only the first
+element for serialization, in accordance with the behavior of
+@code{assq}.
 @end itemize
 
 @noindent
-Note that @code{nil} is a valid alist and represents the empty JSON
-object, @code{@{@}}, not @code{null}, @code{false}, or an empty array,
-all of which are different JSON values.
+Note that @code{nil}, being both a valid alist and a valid plist,
+represents @code{@{@}}, the empty JSON object; not @code{null},
+@code{false}, or an empty array, all of which are different JSON
+values.
 
   If some Lisp object can't be represented in JSON, the serialization
 functions will signal an error of type @code{wrong-type-argument}.
-The parsing functions will signal the following errors:
+The parsing functions can also signal the following errors:
 
 @table @code
-
 @item json-end-of-file
-    Signaled when encountering a premature end of the input text.
+Signaled when encountering a premature end of the input text.
 
 @item json-trailing-content
-    Signaled when encountering unexpected input after the first JSON
-    object parsed.
+Signaled when encountering unexpected input after the first JSON
+object parsed.
 
 @item json-parse-error
-    Signaled when encountering invalid JSON syntax.
-
+Signaled when encountering invalid JSON syntax.
 @end table
 
   Only top-level values (arrays and objects) can be serialized to
 JSON.  The subobjects within these top-level values can be of any
 type.  Likewise, the parsing functions will only return vectors,
-hashtables, and alists.
+hashtables, alists, and plists.
 
-  The parsing functions accept keyword arguments.  Currently only one
-keyword argument, @code{:object-type}, is recognized; its value can be
-either @code{hash-table} to parse JSON objects as hashtables with
-string keys (the default) or @code{alist} to parse them as alists.
-
-@defun json-serialize object
+@defun json-serialize object &rest args
 This function returns a new Lisp string which contains the JSON
-representation of @var{object}.
+representation of @var{object}.  The argument @var{args} is a list of
+keyword/argument pairs.  The following keywords are accepted:
+
+@table @code
+@item :null-object
+The value decides which Lisp object to use to represent the JSON
+keyword @code{null}.  It defaults to the symbol @code{:null}.
+
+@item :false-object
+The value decides which Lisp object to use to represent the JSON
+keyword @code{false}.  It defaults to the symbol @code{:false}.
+@end table
+
 @end defun
 
-@defun json-insert object
+@defun json-insert object &rest args
 This function inserts the JSON representation of @var{object} into the
-current buffer before point.
+current buffer before point.  The argument @var{args} are interpreted
+as in @code{json-parse-string}.
 @end defun
 
-@defun json-parse-string string &key (object-type @code{hash-table})
+@defun json-parse-string string &rest args
 This function parses the JSON value in @var{string}, which must be a
-Lisp string.
+Lisp string.  If @var{string} doesn't contain a valid JSON object,
+this function signals the @code{json-parse-error} error.
+
+The argument @var{args} is a list of keyword/argument pairs.  The
+following keywords are accepted:
+
+@table @code
+@item :object-type
+The value decides which Lisp object to use for representing the
+key-value mappings of a JSON object.  It can be either
+@code{hash-table}, the default, to make hashtables with strings as
+keys; @code{alist} to use alists with symbols as keys; or @code{plist}
+to use plists with keyword symbols as keys.
+
+@item :array-type
+The value decides which Lisp object to use for representing a JSON
+array.  It can be either @code{array}, the default, to use Lisp
+arrays; or @code{list} to use lists.
+
+@item :null-object
+The value decides which Lisp object to use to represent the JSON
+keyword @code{null}.  It defaults to the symbol @code{:null}.
+
+@item :false-object
+The value decides which Lisp object to use to represent the JSON
+keyword @code{false}.  It defaults to the symbol @code{:false}.
+@end table
+
 @end defun
 
-@defun json-parse-buffer &key (object-type @code{hash-table})
+@defun json-parse-buffer &rest args
 This function reads the next JSON value from the current buffer,
 starting at point.  It moves point to the position immediately after
-the value if a value could be read and converted to Lisp; otherwise it
-doesn't move point.
+the value if contains a valid JSON object; otherwise it signals the
+@code{json-parse-error} error and doesn't move point.  The arguments
+@var{args} are interpreted as in @code{json-parse-string}.
 @end defun
 
+@node JSONRPC
+@section JSONRPC communication
+@cindex JSON remote procedure call protocol
+@cindex JSONRPC
+
+The @code{jsonrpc} library implements the @acronym{JSONRPC}
+specification, version 2.0, as it is described in
+@uref{http://www.jsonrpc.org/}.  As the name suggests, JSONRPC is a
+generic @dfn{Remote Procedure Call} protocol designed around
+@acronym{JSON} objects, which you can convert to and from Lisp objects
+(@pxref{Parsing JSON}).
+
+@menu
+* JSONRPC Overview::
+* Process-based JSONRPC connections::
+* JSONRPC JSON object format::
+* JSONRPC deferred requests::
+@end menu
+
+@node JSONRPC Overview
+@subsection Overview
+
+Quoting from the @uref{http://www.jsonrpc.org/, spec}, JSONRPC "is
+transport agnostic in that the concepts can be used within the same
+process, over sockets, over http, or in many various message passing
+environments."
+
+@findex jsonrpc-connection
+To model this agnosticism, the @code{jsonrpc} library uses objects of
+a @code{jsonrpc-connection} class, which represent a connection to a
+remote JSON endpoint (for details on Emacs's object system,
+@pxref{Top,EIEIO,,eieio,EIEIO}).  In modern object-oriented parlance,
+this class is ``abstract'', i.e.@: the actual class of a useful
+connection object is always a subclass of @code{jsonrpc-connection}.
+Nevertheless, we can define two distinct APIs around the
+@code{jsonrpc-connection} class:
+
+@cindex JSONRPC application interfaces
+@enumerate
+
+@item A user interface for building JSONRPC applications
+
+@findex :request-dispatcher
+@findex :notification-dispatcher
+@findex jsonrpc-notify
+@findex jsonrpc-request
+@findex jsonrpc-async-request
+In this scenario, the JSONRPC application selects a concrete subclass
+of @code{jsonrpc-connection}, and proceeds to create objects of that
+subclass using @code{make-instance}.  To initiate a contact to the
+remote endpoint, the JSONRPC application passes this object to the
+functions @code{jsonrpc-notify}, @code{jsonrpc-request}, and/or
+@code{jsonrpc-async-request}.  For handling remotely initiated
+contacts, which generally come in asynchronously, the instantiation
+should include @code{:request-dispatcher} and
+@code{:notification-dispatcher} initargs, which are both functions of
+3 arguments: the connection object; a symbol naming the JSONRPC method
+invoked remotely; and a JSONRPC @code{params} object.
+
+@findex jsonrpc-error
+The function passed as @code{:request-dispatcher} is responsible for
+handling the remote endpoint's requests, which expect a reply from the
+local endpoint (in this case, the program you're building).  Inside
+that function, you may either return locally (a normal return) or
+non-locally (an error return).  A local return value must be a Lisp
+object that can be serialized as JSON (@pxref{Parsing JSON}).  This
+determines a success response, and the object is forwarded to the
+server as the JSONRPC @code{result} object.  A non-local return,
+achieved by calling the function @code{jsonrpc-error}, causes an error
+response to be sent to the server.  The details of the accompanying
+JSONRPC @code{error} are filled out with whatever was passed to
+@code{jsonrpc-error}.  A non-local return triggered by an unexpected
+error of any other type also causes an error response to be sent
+(unless you have set @code{debug-on-error}, in which case this calls
+the Lisp debugger, @pxref{Error Debugging}).
+
+@item A inheritance interface for building JSONRPC transport implementations
+
+In this scenario, @code{jsonrpc-connection} is subclassed to implement
+a different underlying transport strategy (for details on how to
+subclass, see @ref{Inheritance,Inheritance,,eieio}.).  Users of the
+application-building interface can then instantiate objects of this
+concrete class (using the @code{make-instance} function) and connect
+to JSONRPC endpoints using that strategy.
+
+This API has mandatory and optional parts.
+
+@findex jsonrpc-connection-send
+To allow its users to initiate JSONRPC contacts (notifications or
+requests) or reply to endpoint requests, the subclass must have an
+implementation of the @code{jsonrpc-connection-send} method.
+
+@findex jsonrpc-connection-receive
+Likewise, for handling the three types of remote contacts (requests,
+notifications, and responses to local requests), the transport
+implementation must arrange for the function
+@code{jsonrpc-connection-receive} to be called after noticing a new
+JSONRPC message on the wire (whatever that "wire" may be).
+
+@findex jsonrpc-shutdown
+@findex jsonrpc-running-p
+Finally, and optionally, the @code{jsonrpc-connection} subclass should
+implement the @code{jsonrpc-shutdown} and @code{jsonrpc-running-p}
+methods if these concepts apply to the transport.  If they do, then
+any system resources (e.g.@: processes, timers, etc.) used to listen for
+messages on the wire should be released in @code{jsonrpc-shutdown},
+i.e.@: they should only be needed while @code{jsonrpc-running-p} is
+non-nil.
+
+@end enumerate
+
+@node Process-based JSONRPC connections
+@subsection Process-based JSONRPC connections
+@cindex JSONRPC process-based connections
+
+@findex jsonrpc-process-connection
+For convenience, the @code{jsonrpc} library comes with a built-in
+@code{jsonrpc-process-connection} transport implementation that can
+talk to local subprocesses (using the standard input and standard
+output); or TCP hosts (using sockets); or any other remote endpoint
+that Emacs's process object can represent (@pxref{Processes}).
+
+Using this transport, the JSONRPC messages are encoded on the wire as
+plain text and prefaced by some basic HTTP-style enveloping headers,
+such as ``Content-Length''.
+
+For an example of an application using this transport scheme on top of
+JSONRPC, see the
+@uref{https://microsoft.github.io/language-server-protocol/specification,
+Language Server Protocol}.
+
+@cindex JSONRPC connection initargs
+Along with the mandatory @code{:request-dispatcher} and
+@code{:notification-dispatcher} initargs, users of the
+@code{jsonrpc-process-connection} class should pass the following
+initargs as keyword-value pairs to @code{make-instance}:
+
+@table @code
+@item :process
+Value must be a live process object or a function of no arguments
+producing one such object.  If passed a process object, the object is
+expected to contain a pre-established connection; otherwise, the
+function is called immediately after the object is made.
+
+@item :on-shutdown
+Value must be a function of a single argument, the
+@code{jsonrpc-process-connection} object.  The function is called
+after the underlying process object has been deleted (either
+deliberately by @code{jsonrpc-shutdown}, or unexpectedly, because of
+some external cause).
+@end table
+
+@node JSONRPC JSON object format
+@subsection JSONRPC JSON object format
+@cindex JSONRPC object format
+
+JSONRPC JSON objects are exchanged as Lisp plists (@pxref{Property
+Lists}): JSON-compatible plists are handed to the dispatcher functions
+and, likewise, JSON-compatible plists should be given to
+@code{jsonrpc-notify}, @code{jsonrpc-request}, and
+@code{jsonrpc-async-request}.
+
+@findex jsonrpc-lambda
+To facilitate handling plists, this library makes liberal use of
+@code{cl-lib} library (@pxref{Top,cl-lib,,cl,Common Lisp Extensions
+for GNU Emacs Lisp}) and suggests (but doesn't force) its clients to
+do the same.  A macro @code{jsonrpc-lambda} can be used to create a
+lambda for destructuring a JSON-object like in this example:
+
+@example
+(jsonrpc-async-request
+ myproc :frobnicate `(:foo "trix")
+ :success-fn (jsonrpc-lambda (&key bar baz &allow-other-keys)
+               (message "Server replied back with %s and %s!"
+                        bar baz))
+ :error-fn (jsonrpc-lambda (&key code message _data)
+             (message "Sadly, server reports %s: %s"
+                      code message)))
+@end example
+
+@node JSONRPC deferred requests
+@subsection Deferred JSONRPC requests
+@cindex JSONRPC deferred requests
+
+In many @acronym{RPC} situations, synchronization between the two
+communicating endpoints is a matter of correctly designing the RPC
+application: when synchronization is needed, requests (which are
+blocking) should be used; when it isn't, notifications should suffice.
+However, when Emacs acts as one of these endpoints, asynchronous
+events (e.g. timer- or process-related) may be triggered while there
+is still uncertainty about the state of the remote endpoint.
+Furthermore, acting on these events may only sometimes demand
+synchronization, depending on the event's specific nature.
+
+@findex :deferred@r{, JSONRPC keyword}
+The @code{:deferred} keyword argument to @code{jsonrpc-request} and
+@code{jsonrpc-async-request} is designed to let the caller indicate
+that the specific request needs synchronization and its actual
+issuance may be delayed to the future, until some condition is
+satisfied.  Specifying @code{:deferred} for a request doesn't mean it
+@emph{will} be delayed, only that it @emph{can} be.  If the request
+isn't sent immediately, @code{jsonrpc} will make renewed efforts to
+send it at certain key times during communication, such as when
+receiving or sending other messages to the endpoint.
+
+@findex jsonrpc-connection-ready-p
+Before any attempt to send the request, the application-specific
+conditions are checked.  Since the @code{jsonrpc} library can't know
+what these conditions are, the program can use the
+@code{jsonrpc-connection-ready-p} generic function (@pxref{Generic
+Functions}) to specify them.  The default method for this function
+returns @code{t}, but you can add overriding methods that return
+@code{nil} in some situations, based on the arguments passed to it,
+which are the @code{jsonrpc-connection} object (@pxref{JSONRPC
+Overview}) and whichever value you passed as the @code{:deferred}
+keyword argument.
 
 @node Atomic Changes
 @section Atomic Change Groups

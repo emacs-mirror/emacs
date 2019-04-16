@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Vincent Belaïche  <vincentb1@users.sourceforge.net>
@@ -837,7 +837,7 @@ updated again."
 (defmacro ses--time-check (format &rest args)
   "If `ses-start-time' is more than a second ago, call `message' with FORMAT
 and ARGS and reset `ses-start-time' to the current time."
-  `(when (> (- (float-time) ses-start-time) 1.0)
+  `(when (time-less-p 1 (time-since ses-start-time))
      (message ,format ,@args)
      (setq ses-start-time (float-time))))
 
@@ -858,7 +858,7 @@ cell (ROW,COL).  This is undoable.  The cell's data will be updated through
              ,(let ((field (progn (cl-assert (eq (car field) 'quote))
                                   (cadr field))))
                 (if (eq field 'value)
-                    `(ses-set-with-undo (ses-cell-symbol cell) val)
+                    '(ses-set-with-undo (ses-cell-symbol cell) val)
                   ;; (let* ((slots (get 'ses-cell 'cl-struct-slots))
                   ;;        (slot (or (assq field slots)
                   ;;                  (error "Unknown field %S" field)))
@@ -3956,17 +3956,17 @@ Use `math-format-value' as a printer for Calc objects."
     (while rest
       (let ((x (pop rest)))
 	(pcase x
-	  (`>v (setq transpose nil reorient-x nil reorient-y nil))
-	  (`>^ (setq transpose nil reorient-x nil reorient-y t))
-	  (`<^ (setq transpose nil reorient-x t reorient-y t))
-	  (`<v (setq transpose nil reorient-x t reorient-y nil))
-	  (`v> (setq transpose t reorient-x nil reorient-y t))
-	  (`^> (setq transpose t reorient-x nil reorient-y nil))
-	  (`^< (setq transpose t reorient-x t reorient-y nil))
-	  (`v< (setq transpose t reorient-x t reorient-y t))
-	  ((or `* `*2 `*1) (setq vectorize x))
-	  (`! (setq clean 'ses--clean-!))
-	  (`_ (setq clean `(lambda (&rest x)
+	  ('>v (setq transpose nil reorient-x nil reorient-y nil))
+	  ('>^ (setq transpose nil reorient-x nil reorient-y t))
+	  ('<^ (setq transpose nil reorient-x t reorient-y t))
+	  ('<v (setq transpose nil reorient-x t reorient-y nil))
+	  ('v> (setq transpose t reorient-x nil reorient-y t))
+	  ('^> (setq transpose t reorient-x nil reorient-y nil))
+	  ('^< (setq transpose t reorient-x t reorient-y nil))
+	  ('v< (setq transpose t reorient-x t reorient-y t))
+	  ((or '* '*2 '*1) (setq vectorize x))
+	  ('! (setq clean 'ses--clean-!))
+	  ('_ (setq clean `(lambda (&rest x)
                              (ses--clean-_  x ,(if rest (pop rest) 0)))))
 	  (_
 	   (cond
@@ -4001,10 +4001,10 @@ Use `math-format-value' as a printer for Calc objects."
                                            (cons  clean (cons (quote 'vec) x)))
                                          result)))))
       (pcase vectorize
-	(`nil (cons clean (apply #'append result)))
-	(`*1 (vectorize-*1 clean result))
-	(`*2 (vectorize-*2 clean result))
-	(`* (funcall (if (cdr result)
+	('nil (cons clean (apply #'append result)))
+	('*1 (vectorize-*1 clean result))
+	('*2 (vectorize-*2 clean result))
+	('* (funcall (if (cdr result)
                          #'vectorize-*2
                        #'vectorize-*1)
                      clean result))))))

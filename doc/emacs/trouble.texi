@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -1162,11 +1162,11 @@ name that indicates whether it is the old version or your new changed
 one.
 
 @item
-Write the change log entries for your changes.  This is both to save us
+Write the commit log entries for your changes.  This is both to save us
 the extra work of writing them, and to help explain your changes so we
 can understand them.
 
-The purpose of the change log is to show people where to find what was
+The purpose of the commit log is to show people where to find what was
 changed.  So you need to be specific about what functions you changed;
 in large functions, it's often helpful to indicate where within the
 function the change was.
@@ -1177,9 +1177,9 @@ new function, all you need to say about it is that it is new.  If you
 feel that the purpose needs explaining, it probably does---but put the
 explanation in comments in the code.  It will be more useful there.
 
-Please look at the change log entries of recent commits to see what
-sorts of information to put in, and to learn the style that we use.  Note that,
-unlike some other projects, we do require change logs for
+Please look at the commit log entries of recent commits to see what
+sorts of information to put in, and to learn the style that we use.
+Note that, unlike some other projects, we do require commit logs for
 documentation, i.e., Texinfo files.
 @xref{Change Log},
 @ifset WWW_GNU_ORG

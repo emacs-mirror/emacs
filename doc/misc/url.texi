@@ -21,7 +21,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2018 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2019 Free Software
 Foundation, Inc.
 
 @quotation
@@ -1342,7 +1342,7 @@ The User Agent string used for sending @acronym{HTTP}/@acronym{HTTPS}
 requests.  The value should be @code{nil}, which means that no
 @samp{User-Agent} header is generated, @code{default}, which means
 that a string is generated based on the setting of
-@code{url-privacy-leve}, a string or a function of no arguments that
+@code{url-privacy-level}, a string or a function of no arguments that
 returns a string.
 
 The default is @code{default}, which means that the

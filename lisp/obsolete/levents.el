@@ -1,6 +1,6 @@
 ;;; levents.el --- emulate the Lucid event data type and associated functions
 
-;; Copyright (C) 1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: emulations
@@ -145,7 +145,7 @@ It will be the next event read after all pending events."
 The value is an ASCII printing character (not upper case) or a symbol."
   (if (symbolp event)
       (car (get event 'event-symbol-elements))
-    (let ((base (logand event (1- (lsh 1 18)))))
+    (let ((base (logand event (1- (ash 1 18)))))
       (downcase (if (< base 32) (logior base 64) base)))))
 
 (defun event-object (event)

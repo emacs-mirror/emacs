@@ -1,6 +1,6 @@
 ;;; uniquify.el --- unique buffer names dependent on file name -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1995-1997, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1989, 1995-1997, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Dick King <king@reasoning.com>

@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-2018 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1992, 1994-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -60,8 +60,7 @@ string or function value that this variable has."
 	  (const     :tag "Remember Mode notes buffer" remember-notes)
 	  (function  :tag "Function")
 	  (const     :tag "Lisp scratch buffer" t))
-  :version "23.1"
-  :group 'initialization)
+  :version "23.1")
 
 (defvaralias 'inhibit-splash-screen 'inhibit-startup-screen)
 (defvaralias 'inhibit-startup-message 'inhibit-startup-screen)
@@ -71,8 +70,7 @@ string or function value that this variable has."
 
 This is for use in your personal init file (but NOT site-start.el),
 once you are familiar with the contents of the startup screen."
-  :type 'boolean
-  :group 'initialization)
+  :type 'boolean)
 
 (defvar startup-screen-inhibit-startup-screen nil)
 
@@ -101,18 +99,15 @@ instead:
 Thus, someone else using a copy of your init file will see the
 startup message unless he personally acts to inhibit it."
   :type '(choice (const :tag "Don't inhibit")
-		 (string :tag "Enter your user name, to inhibit"))
-  :group 'initialization)
+		 (string :tag "Enter your user name, to inhibit")))
 
 (defcustom inhibit-default-init nil
   "Non-nil inhibits loading the `default' library."
-  :type 'boolean
-  :group 'initialization)
+  :type 'boolean)
 
 (defcustom inhibit-startup-buffer-menu nil
   "Non-nil inhibits display of buffer list when more than 2 files are loaded."
-  :type 'boolean
-  :group 'initialization)
+  :type 'boolean)
 
 (defvar command-switch-alist nil
   "Alist of command-line switches.
@@ -336,8 +331,7 @@ is due to historical reasons, and does not reflect its purpose very well.)")
 
 (defcustom initial-major-mode 'lisp-interaction-mode
   "Major mode command symbol to use for the initial `*scratch*' buffer."
-  :type 'function
-  :group 'initialization)
+  :type 'function)
 
 (defvar init-file-user nil
   "Identity of user whose init file is or was read.
@@ -376,7 +370,6 @@ it visible in the relevant context.  However, actually customizing it
 is not allowed, since it would not work anyway.  The only way to set
 this variable usefully is to set it while building and dumping Emacs."
   :type '(choice (const :tag "none" nil) string)
-  :group 'initialization
   :initialize #'custom-initialize-default
   :set (lambda (_variable _value)
 	  (error "Customizing `site-run-file' does not work")))
@@ -560,9 +553,17 @@ It is the default value of the variable `top-level'."
 	    (if default-directory
 		(setq default-directory
                       (if (eq system-type 'windows-nt)
-                          ;; Convert backslashes to forward slashes.
-                          (expand-file-name
-                           (decode-coding-string default-directory coding t))
+                          ;; We pass the decoded default-directory as
+                          ;; the 2nd arg to expand-file-name to make
+                          ;; sure it sees a multibyte string as the
+                          ;; default directory; this avoids the side
+                          ;; effect of returning a unibyte string from
+                          ;; expand-file-name because it still sees
+                          ;; the undecoded value of default-directory.
+                          (let ((defdir (decode-coding-string default-directory
+                                                              coding t)))
+                            ;; Convert backslashes to forward slashes.
+                            (expand-file-name defdir defdir))
                         (decode-coding-string default-directory coding t))))))
 
 	;; Decode all the important variables and directory lists, now
@@ -878,7 +879,7 @@ If STYLE is nil, display appropriately for the terminal."
           (when standard-display-table
             (aset standard-display-table char nil)))))))
 
-(defun load-user-init-file
+(defun startup--load-user-init-file
     (filename-function &optional alternate-filename-function load-defaults)
   "Load a user init-file.
 FILENAME-FUNCTION is called with no arguments and should return
@@ -905,11 +906,17 @@ init-file, or to a default value if loading is not possible."
               ;; the name of the file that it loads into
               ;; `user-init-file'.
               (setq user-init-file t)
-              (load init-file-name 'noerror 'nomessage)
+              (load (if (equal (file-name-extension init-file-name)
+                               "el")
+                        (file-name-sans-extension init-file-name)
+                      init-file-name)
+                    'noerror 'nomessage)
 
               (when (and (eq user-init-file t) alternate-filename-function)
-                (load (funcall alternate-filename-function)
-                      'noerror 'nomessage))
+                (let ((alt-file (funcall alternate-filename-function)))
+                  (and (equal (file-name-extension alt-file) "el")
+                       (setq alt-file (file-name-sans-extension alt-file)))
+                  (load alt-file 'noerror 'nomessage)))
 
               ;; If we did not find the user's init file, set
               ;; user-init-file conclusively.  Don't let it be
@@ -1048,7 +1055,8 @@ please check its value")
       (let* ((longopts '(("--no-init-file") ("--no-site-file")
                          ("--no-x-resources") ("--debug-init")
                          ("--user") ("--iconic") ("--icon-type") ("--quick")
-			 ("--no-blinking-cursor") ("--basic-display")))
+			 ("--no-blinking-cursor") ("--basic-display")
+                         ("--dump-file") ("--temacs")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -1100,6 +1108,9 @@ please check its value")
 	  (push '(visibility . icon) initial-frame-alist))
 	 ((member argi '("-nbc" "-no-blinking-cursor"))
 	  (setq no-blinking-cursor t))
+         ((member argi '("-dump-file" "-temacs"))  ; Handled in C
+          (or argval (pop args))
+          (setq argval nil))
 	 ;; Push the popped arg back on the list of arguments.
 	 (t
           (push argi args)
@@ -1118,11 +1129,11 @@ please check its value")
   ;; Re-evaluate predefined variables whose initial value depends on
   ;; the runtime context.
   (let (current-load-list) ; c-r-s may call defvar, and hence LOADHIST_ATTACH
-    (mapc 'custom-reevaluate-setting
+    (setq custom-delayed-init-variables
           ;; Initialize them in the same order they were loaded, in case there
           ;; are dependencies between them.
-          (prog1 (nreverse custom-delayed-init-variables)
-            (setq custom-delayed-init-variables nil))))
+          (nreverse custom-delayed-init-variables))
+    (mapc 'custom-reevaluate-setting custom-delayed-init-variables))
 
   ;; Warn for invalid user name.
   (when init-file-user
@@ -1152,10 +1163,14 @@ please check its value")
                          :error))))
 
   ;; Load the early init file, if found.
-  (load-user-init-file
+  (startup--load-user-init-file
    (lambda ()
      (expand-file-name
-      "early-init"
+      ;; We use an explicit .el extension here to force
+      ;; startup--load-user-init-file to set user-init-file to "early-init.el",
+      ;; with the .el extension, if the file doesn't exist, not just
+      ;; "early-init" without an extension, as it does for ".emacs".
+      "early-init.el"
       (file-name-as-directory
        (concat "~" init-file-user "/.emacs.d")))))
   (setq early-init-file user-init-file)
@@ -1254,6 +1269,13 @@ please check its value")
     (startup--setup-quote-display)
     (setq internal--text-quoting-flag t))
 
+  ;; Re-evaluate again the predefined variables whose initial value
+  ;; depends on the runtime context, in case some of them depend on
+  ;; the window-system features.  Example: blink-cursor-mode.
+  (let (current-load-list) ; c-r-s may call defvar, and hence LOADHIST_ATTACH
+    (mapc 'custom-reevaluate-setting custom-delayed-init-variables)
+    (setq custom-delayed-init-variables nil))
+
   (normal-erase-is-backspace-setup-frame)
 
   ;; Register default TTY colors for the case the terminal hasn't a
@@ -1279,14 +1301,13 @@ please check its value")
     ;; should check init-file-user instead, since that is already set.
     ;; See cus-edit.el for an example.
     (if site-run-file
-	(load site-run-file t t))
-
-    ;; Sites should not disable this.  Only individuals should disable
-    ;; the startup screen.
-    (setq inhibit-startup-screen nil)
+        ;; Sites should not disable the startup screen.
+        ;; Only individuals should disable the startup screen.
+        (let ((inhibit-startup-screen inhibit-startup-screen))
+	  (load site-run-file t t)))
 
     ;; Load that user's init file, or the default one, or none.
-    (load-user-init-file
+    (startup--load-user-init-file
      (lambda ()
        (cond
         ((eq system-type 'ms-dos)
@@ -1459,8 +1480,7 @@ settings will be marked as \"CHANGED outside of Customize\"."
   "Initial documentation displayed in *scratch* buffer at startup.
 If this is nil, no message will be displayed."
   :type '(choice (text :tag "Message")
-		 (const :tag "none" nil))
-  :group 'initialization)
+		 (const :tag "none" nil)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1614,13 +1634,13 @@ Each element in the list should be a list of strings or pairs
 
 
 (defgroup fancy-splash-screen ()
+  ;; FIXME: Do we really need this group with a single custom var?
   "Fancy splash screen when Emacs starts."
   :version "21.1"
   :group 'initialization)
 
 (defcustom fancy-splash-image nil
   "The image to show in the splash screens, or nil for defaults."
-  :group 'fancy-splash-screen
   :type '(choice (const :tag "Default" nil)
 		 (file :tag "File")))
 
@@ -1741,7 +1761,7 @@ a face or button specification."
    :face 'variable-pitch "To quit a partially entered command, type "
    :face 'default "Control-g"
    :face 'variable-pitch ".\n")
-  (fancy-splash-insert :face `(variable-pitch font-lock-builtin-face)
+  (fancy-splash-insert :face '(variable-pitch font-lock-builtin-face)
 		       "\nThis is "
 		       (emacs-version)
 		       "\n"
@@ -1889,7 +1909,8 @@ we put it on this frame."
       (if (and (frame-visible-p frame)
 	       (not (window-minibuffer-p (frame-selected-window frame))))
 	  (setq chosen-frame frame)))
-    chosen-frame))
+    ;; If there are no visible frames yet, try the selected one.
+    (or chosen-frame (selected-frame))))
 
 (defun use-fancy-splash-screens-p ()
   "Return t if fancy splash screens should be used."
@@ -2519,9 +2540,9 @@ nil default-directory" name)
                    ((eq initial-buffer-choice t)
                     (get-buffer-create "*scratch*"))
                    (t
-                    (error "initial-buffer-choice must be a string, a function, or t.")))))
+                    (error "`initial-buffer-choice' must be a string, a function, or t")))))
         (unless (buffer-live-p buf)
-          (error "initial-buffer-choice is not a live buffer."))
+          (error "Value returned by `initial-buffer-choice' is not a live buffer: %S" buf))
         (setq displayable-buffers (cons buf (delq buf displayable-buffers)))))
 
     ;; Display the first two buffers in `displayable-buffers'.  If

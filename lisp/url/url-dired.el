@@ -1,6 +1,6 @@
 ;;; url-dired.el --- URL Dired minor mode
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, files
 
@@ -43,10 +43,7 @@
   (url-dired-find-file))
 
 (define-minor-mode url-dired-minor-mode
-  "Minor mode for directory browsing.
-With a prefix argument ARG, enable the mode if ARG is positive,
-and disable it otherwise.  If called from Lisp, enable the mode
-if ARG is omitted or nil."
+  "Minor mode for directory browsing."
   :lighter " URL" :keymap url-dired-minor-mode-map)
 
 (defun url-find-file-dired (dir)

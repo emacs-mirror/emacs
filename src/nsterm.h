@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2018 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -648,7 +648,6 @@ typedef id instancetype;
 - (NSColor *)stippleMask;
 - (Lisp_Object)getMetadata;
 - (BOOL)setFrame: (unsigned int) index;
-- (void)setSizeFromSpec: (Lisp_Object) spec;
 - (instancetype)rotate: (double)rotation;
 @end
 
@@ -1019,9 +1018,9 @@ struct x_output
 #define FRAME_FONT(f) ((f)->output_data.ns->font)
 
 #ifdef __OBJC__
-#define XNS_SCROLL_BAR(vec) ((id) XSAVE_POINTER (vec, 0))
+#define XNS_SCROLL_BAR(vec) ((id) xmint_pointer (vec))
 #else
-#define XNS_SCROLL_BAR(vec) XSAVE_POINTER (vec, 0)
+#define XNS_SCROLL_BAR(vec) xmint_pointer (vec)
 #endif
 
 /* Compute pixel height of the frame's titlebar.  */
@@ -1197,6 +1196,7 @@ extern bool ns_load_image (struct frame *f, struct image *img,
 			   Lisp_Object spec_file, Lisp_Object spec_data);
 extern int ns_image_width (void *img);
 extern int ns_image_height (void *img);
+extern void ns_image_set_size (void *img, int width, int height);
 extern unsigned long ns_get_pixel (void *img, int x, int y);
 extern void ns_put_pixel (void *img, int x, int y, unsigned long argb);
 extern void ns_set_alpha (void *img, int x, int y, unsigned char a);

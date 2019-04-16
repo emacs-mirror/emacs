@@ -1,6 +1,6 @@
 ;;; wheatgrass-theme.el --- custom theme for faces
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -82,9 +82,5 @@ of green, brown, and blue.")
    `(realgud-backtrace-number      ((,class (:foreground "dark cyan" :weight bold))))))
 
 (provide-theme 'wheatgrass)
-
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
 
 ;;; wheatgrass-theme.el ends here

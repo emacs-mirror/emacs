@@ -1,6 +1,6 @@
 ;;; org-eww.el --- Store url and kill from Eww mode for Org  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Marco Wahl <marcowahlsoft>a<gmailcom>
 ;; Keywords: link, eww

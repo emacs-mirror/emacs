@@ -1,6 +1,6 @@
 ;;; generator.el --- generators  -*- lexical-binding: t -*-
 
-;;; Copyright (C) 2015-2018 Free Software Foundation, Inc.
+;;; Copyright (C) 2015-2019 Free Software Foundation, Inc.
 
 ;; Author: Daniel Colascione <dancol@dancol.org>
 ;; Keywords: extensions, elisp
@@ -213,8 +213,8 @@ don't yield.")
 
     ;; Process `and'.
 
-    (`(and)                             ; (and) -> t
-      (cps--transform-1 t next-state))
+    ('(and)                             ; (and) -> t
+     (cps--transform-1 t next-state))
     (`(and ,condition)                  ; (and CONDITION) -> CONDITION
       (cps--transform-1 condition next-state))
     (`(and ,condition . ,rest)
@@ -246,8 +246,8 @@ don't yield.")
     ;; Process `cond': transform into `if' or `or' depending on the
     ;; precise kind of the condition we're looking at.
 
-    (`(cond)                            ; (cond) -> nil
-      (cps--transform-1 nil next-state))
+    ('(cond)                            ; (cond) -> nil
+     (cps--transform-1 nil next-state))
     (`(cond (,condition) . ,rest)
       (cps--transform-1 `(or ,condition (cond ,@rest))
                         next-state))
@@ -281,14 +281,14 @@ don't yield.")
     ;; Process `progn' and `inline': they are identical except for the
     ;; name, which has some significance to the byte compiler.
 
-    (`(inline) (cps--transform-1 nil next-state))
+    ('(inline) (cps--transform-1 nil next-state))
     (`(inline ,form) (cps--transform-1 form next-state))
     (`(inline ,form . ,rest)
       (cps--transform-1 form
                         (cps--transform-1 `(inline ,@rest)
                                           next-state)))
 
-    (`(progn) (cps--transform-1 nil next-state))
+    ('(progn) (cps--transform-1 nil next-state))
     (`(progn ,form) (cps--transform-1 form next-state))
     (`(progn ,form . ,rest)
       (cps--transform-1 form
@@ -345,7 +345,7 @@ don't yield.")
 
     ;; Process `or'.
 
-    (`(or) (cps--transform-1 nil next-state))
+    ('(or) (cps--transform-1 nil next-state))
     (`(or ,condition) (cps--transform-1 condition next-state))
     (`(or ,condition . ,rest)
       (cps--transform-1
@@ -373,13 +373,6 @@ don't yield.")
                     (cps--add-state "prog1inner"
                       `(setf ,cps--value-symbol ,temp-var-symbol
                              ,cps--state-symbol ,next-state))))))))
-
-    ;; Process `prog2'.
-
-    (`(prog2 ,form1 ,form2 . ,body)
-      (cps--transform-1
-       `(progn ,form1 (prog1 ,form2 ,@body))
-       next-state))
 
     ;; Process `unwind-protect': If we're inside an unwind-protect, we
     ;; have a block of code UNWINDFORMS which we would like to run
@@ -567,8 +560,11 @@ modified copy."
            (unless ,normal-exit-symbol
              ,@unwind-forms))))))
 
-(put 'iter-end-of-sequence 'error-conditions '(iter-end-of-sequence))
-(put 'iter-end-of-sequence 'error-message "iteration terminated")
+(define-error 'iter-end-of-sequence "Iteration terminated"
+  ;; FIXME: This was not defined originally as an `error' condition, so
+  ;; we reproduce this by passing itself as the parent, which avoids the
+  ;; default `error' parent.  Maybe it *should* be in the `error' category?
+  'iter-end-of-sequence)
 
 (defun cps--make-close-iterator-form (terminal-state)
   (if cps--cleanup-table-symbol
@@ -643,11 +639,11 @@ modified copy."
                          ,(cps--make-close-iterator-form terminal-state)))))
                   (t (error "unknown iterator operation %S" op))))))
          ,(when finalizer-symbol
-                `(funcall iterator
-                          :stash-finalizer
-                          (make-finalizer
-                           (lambda ()
-                             (iter-close iterator)))))
+            '(funcall iterator
+                      :stash-finalizer
+                      (make-finalizer
+                       (lambda ()
+                         (iter-close iterator)))))
          iterator))))
 
 (defun iter-yield (value)
@@ -699,6 +695,14 @@ of values.  Callers can retrieve each value using `iter-next'."
   (cl-assert lexical-binding)
   `(lambda ,arglist
      ,(cps-generate-evaluator body)))
+
+(defmacro iter-make (&rest body)
+  "Return a new iterator."
+  (declare (debug t))
+  (cps-generate-evaluator body))
+
+(defconst iter-empty (lambda (_op _val) (signal 'iter-end-of-sequence nil))
+  "Trivial iterator that always signals the end of sequence.")
 
 (defun iter-next (iterator &optional yield-result)
   "Extract a value from an iterator.

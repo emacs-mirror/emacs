@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus
 
-;; Copyright (C) 1996-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -271,9 +271,7 @@ Return a list of updated types."
 	       (insert " ")))
 	 (insert-char ?  (max (- ,column (current-column)) 0))))))
 
-(defun gnus-correct-length (string)
-  "Return the correct width of STRING."
-  (apply #'+ (mapcar #'char-width string)))
+(define-obsolete-function-alias 'gnus-correct-length 'string-width "27.1")
 
 (defun gnus-correct-substring (string start &optional end)
   (let ((wstart 0)

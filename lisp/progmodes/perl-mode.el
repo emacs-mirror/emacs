@@ -1,6 +1,6 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990, 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: emacs-devel@gnu.org
@@ -323,8 +323,8 @@
               (cons (car (string-to-syntax "< c"))
                     ;; Remember the names of heredocs found on this line.
                     (cons (cons (pcase (aref name 0)
-                                  (`?\\ (substring name 1))
-                                  ((or `?\" `?\' `?\`) (substring name 1 -1))
+                                  (?\\ (substring name 1))
+                                  ((or ?\" ?\' ?\`) (substring name 1 -1))
                                   (_ name))
                                 indented)
                           (cdr st)))))))

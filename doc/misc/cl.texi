@@ -7,7 +7,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -784,7 +784,7 @@ default.  Some examples:
 (cl-deftype null () '(satisfies null))    ; predefined
 (cl-deftype list () '(or null cons))      ; predefined
 (cl-deftype unsigned-byte (&optional bits)
-  (list 'integer 0 (if (eq bits '*) bits (1- (lsh 1 bits)))))
+  (list 'integer 0 (if (eq bits '*) bits (1- (ash 1 bits)))))
 (unsigned-byte 8)  @equiv{}  (integer 0 255)
 (unsigned-byte)  @equiv{}  (integer 0 *)
 unsigned-byte  @equiv{}  (integer 0 *)
@@ -1299,17 +1299,18 @@ These forms make @code{let}-like bindings to functions instead
 of variables.
 
 @defmac cl-flet (bindings@dots{}) forms@dots{}
-This form establishes @code{let}-style bindings on the function
-cells of symbols rather than on the value cells.  Each @var{binding}
-must be a list of the form @samp{(@var{name} @var{arglist}
-@var{forms}@dots{})}, which defines a function exactly as if
-it were a @code{cl-defun} form.  The function @var{name} is defined
-accordingly but only within the body of the @code{cl-flet}, hiding any external
-definition if applicable.
+This form establishes @code{let}-style bindings for functions rather
+than values.  Each @var{binding} must be a list of the form
+@samp{(@var{name} @var{arglist} @var{body}@dots{})}.  Within
+@var{forms}, any reference to the function @var{name} uses the local
+definition instead of the global one.
+
+A ``reference'' to a function name is either a call to that function,
+or a use of its name quoted by @code{function} to be passed on to,
+say, @code{mapcar}.
 
 The bindings are lexical in scope.  This means that all references to
-the named functions must appear physically within the body of the
-@code{cl-flet} form.
+the named functions must appear physically within @var{forms}.
 
 Functions defined by @code{cl-flet} may use the full Common Lisp
 argument notation supported by @code{cl-defun}; also, the function
@@ -1335,10 +1336,6 @@ functions must appear physically within the body of the
 @var{forms} of @code{cl-labels} itself, and in the bodies of
 the functions themselves.  Thus, @code{cl-labels} can define
 local recursive functions, or mutually-recursive sets of functions.
-
-A ``reference'' to a function name is either a call to that
-function, or a use of its name quoted by @code{quote} or
-@code{function} to be passed on to, say, @code{mapcar}.
 
 Note that the @file{cl.el} version of this macro behaves slightly
 differently.  @xref{Obsolete Macros}.
@@ -4152,7 +4149,7 @@ package, @code{cl-typep} simply looks for a function called
 only if they used the default predicate name.
 
 @item :include
-This option implements a very limited form of C++-style inheritance.
+This option implements a very limited form of C@t{++}-style inheritance.
 The argument is the name of another structure type previously
 created with @code{cl-defstruct}.  The effect is to cause the new
 structure type to inherit all of the included structure's slots
@@ -4196,6 +4193,10 @@ other way around).  Every @code{astronaut} includes all the slots
 of a @code{person}, plus extra slots that are specific to
 astronauts.  Operations that work on people (like @code{person-name})
 work on astronauts just like other people.
+
+@item :noinline
+If this option is present, this structure's functions will not be
+inlined, even functions that normally would.
 
 @item :print-function
 In full Common Lisp, this option allows you to specify a function

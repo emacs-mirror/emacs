@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -183,7 +183,7 @@ are not shown in the @kbd{l} or @kbd{L} listings.
 @kindex DEL @r{(Gnus Group mode)}
 @item @key{DEL}
 Move point to the previous group containing unread articles
-(@code{gnus-group-prev-unread-group}.)
+(@code{gnus-group-prev-unread-group}).
 
 @kindex n @r{(Gnus Group mode)}
 @findex gnus-group-next-unread-group
@@ -314,7 +314,28 @@ You can decide to register a permanent security exception for an
 unverified connection, a temporary exception, or refuse the connection
 entirely.
 
-Below is a list of the checks done on the @code{medium} level.
+@vindex network-security-protocol-checks
+In addition to the basic certificate correctness checks, several
+@acronym{TLS} algorithm checks are available.  Some encryption
+technologies that were previously thought to be secure have shown
+themselves to be fragile, so Emacs (by default) warns you about some
+of these problems.
+
+The protocol network checks is controlled via the
+@code{network-security-protocol-checks} variable.
+
+It's an alist where the first element of each association is the name
+of the check, the second element is the security level where the check
+should be used, and the optional third element is a parameter supplied
+to the check.
+
+An element like @code{(rc4 medium)} will result in the function
+@code{nsm-protocol-check--rc4} being called like thus:
+@w{@code{(nsm-protocol-check--rc4 host port status optional-parameter)}}.
+The function should return non-@code{nil} if the connection should
+proceed and @code{nil} otherwise.
+
+Below is a list of the checks done on the default @code{medium} level.
 
 @table @asis
 
@@ -352,12 +373,44 @@ over these connections.  Similarly, if you're sending email via
 connection to be encrypted.  If the connection isn't encrypted,
 @acronym{NSM} will warn you.
 
+@item Diffie-Hellman low prime bits
+When doing the public key exchange, the number of prime bits should be
+high enough to ensure that the channel can't be eavesdropped on by third
+parties.  If this number is too low, Emacs will warn you.  (This is the
+@code{diffie-hellman-prime-bits} check in
+@code{network-security-protocol-checks}).
+
+@item @acronym{RC4} stream cipher
+The @acronym{RC4} stream cipher is believed to be of low quality and
+may allow eavesdropping by third parties.  (This is the @code{rc4}
+check in @code{network-security-protocol-checks}).
+
+@item @acronym{SHA1} in the host certificate or in intermediate certificates
+It is believed that if an intermediate certificate uses the
+@acronym{SHA1} hashing algorithm, then third parties can issue
+certificates pretending to be that issuing instance.  These
+connections are therefore vulnerable to man-in-the-middle attacks.
+(These are the @code{signature-sha1} and @code{intermediate-sha1}
+checks in @code{network-security-protocol-checks}).
+
+@item @acronym{SSL1}, @acronym{SSL2} and @acronym{SSL3}
+The protocols older than @acronym{TLS1.0} are believed to be
+vulnerable to a variety of attacks, and you may want to avoid using
+these if what you're doing requires higher security.  (This is the
+@code{ssl} check in @code{network-security-protocol-checks}).
+
 @end table
 
 If @code{network-security-level} is @code{high}, the following checks
 will be made, in addition to the above:
 
 @table @asis
+@item @acronym{3DES} cipher
+The @acronym{3DES} stream cipher provides at most 112 bits of
+effective security, which is considered to be towards the low end.
+(This is the @code{3des} check in
+@code{network-security-protocol-checks}).
+
 @item a validated certificate changes the public key
 Servers change their keys occasionally, and that is normally nothing
 to be concerned about.  However, if you are worried that your network
@@ -365,19 +418,6 @@ connections are being hijacked by agencies who have access to pliable
 Certificate Authorities which issue new certificates for third-party
 services, you may want to keep track of these changes.
 
-@item Diffie-Hellman low prime bits
-When doing the public key exchange, the number of prime bits
-should be high to ensure that the channel can't be eavesdropped on by
-third parties.  If this number is too low, you will be warned.
-
-@item @acronym{RC4} stream cipher
-The @acronym{RC4} stream cipher is believed to be of low quality and
-may allow eavesdropping by third parties.
-
-@item @acronym{SSL1}, @acronym{SSL2} and @acronym{SSL3}
-The protocols older than @acronym{TLS1.0} are believed to be
-vulnerable to a variety of attacks, and you may want to avoid using
-these if what you're doing requires higher security.
 @end table
 
 Finally, if @code{network-security-level} is @code{paranoid}, you will
@@ -402,6 +442,7 @@ This means that one can't casually read the settings file to see what
 servers the user has connected to.  If this variable is @code{t},
 @acronym{NSM} will also save host names in the
 @code{nsm-settings-file}.
+
 @end table
 
 
@@ -686,7 +727,7 @@ either in the echo area (if it is short), or in an Emacs buffer named
 @file{*Shell Command Output*}, displayed in another window (if the
 output is long).  The variables @code{resize-mini-windows} and
 @code{max-mini-window-height} (@pxref{Minibuffer Edit}) control when
-the output is considered too long for the echo area.
+Emacs should consider the output to be too long for the echo area.
 
   For instance, one way to decompress a file named @file{foo.gz} is to
 type @kbd{M-! gunzip foo.gz @key{RET}}.  That shell command normally
@@ -754,6 +795,10 @@ to @command{gpg}.  This will output the list of keys to the
 name is relative, Emacs searches the directories listed in
 @code{exec-path} (@pxref{Shell}).
 
+  If the default directory is remote (@pxref{Remote Files}), the
+default value is @file{/bin/sh}.  This can be changed by declaring
+@code{shell-file-name} connection-local (@pxref{Connection Variables}).
+
   To specify a coding system for @kbd{M-!} or @kbd{M-|}, use the command
 @kbd{C-x @key{RET} c} immediately beforehand.  @xref{Communication Coding}.
 
@@ -784,7 +829,8 @@ text in the buffer.  To give input to the subshell, go to the end of
 the buffer and type the input, terminated by @key{RET}.
 
   By default, when the subshell is invoked interactively, the
-@file{*shell*} buffer is displayed in a new window.  This behavior can
+@file{*shell*} buffer is displayed in a new window, unless the current
+window already shows the @file{*shell*} buffer.  This behavior can
 be customized via @code{display-buffer-alist} (@pxref{Window Choice}).
 
   While the subshell is waiting or running a command, you can switch
@@ -984,8 +1030,8 @@ Move backward across one shell command, but not beyond the current line
 Ask the shell for its working directory, and update the Shell buffer's
 default directory.  @xref{Directory Tracking}.
 
-@item M-x send-invisible @key{RET} @var{text} @key{RET}
-@findex send-invisible
+@item M-x comint-send-invisible @key{RET} @var{text} @key{RET}
+@findex comint-send-invisible
 Send @var{text} as input to the shell, after reading it without
 echoing.  This is useful when a shell command runs a program that asks
 for a password.
@@ -1071,7 +1117,7 @@ Emacs Lisp Reference Manual}).
 @vindex comint-use-prompt-regexp
 @vindex shell-prompt-pattern
   If you change the variable @code{comint-use-prompt-regexp} to a
-non-@code{nil} value, then Comint mode recognize prompts using a
+non-@code{nil} value, then Comint mode will recognize prompts using a
 regular expression (@pxref{Regexps}).  In Shell mode, the regular
 expression is specified by the variable @code{shell-prompt-pattern}.
 The default value of @code{comint-use-prompt-regexp} is @code{nil},
@@ -1132,7 +1178,7 @@ Fetch the next subsequent command from the history
 
 @item C-c .
 @kindex C-c . @r{(Shell mode)}
-@findex comint-input-previous-argument
+@findex comint-insert-previous-argument
 Fetch one argument from an old shell command
 (@code{comint-input-previous-argument}).
 
@@ -1145,10 +1191,11 @@ Display the buffer's history of shell commands in another window
 
   Shell buffers provide a history of previously entered shell
 commands.  To reuse shell commands from the history, use the editing
-commands @kbd{M-p}, @kbd{M-n}, @kbd{M-r} and @kbd{M-s}.  These work
-just like the minibuffer history commands (@pxref{Minibuffer
+commands @kbd{M-p}, @kbd{M-n}, and @kbd{M-r}.  These work
+similar to the minibuffer history commands (@pxref{Minibuffer
 History}), except that they operate within the Shell buffer rather
-than the minibuffer.
+than the minibuffer, and @code{M-r} in a Shell buffer invokes
+incremental search through shell command history.
 
   @kbd{M-p} fetches an earlier shell command to the end of the shell
 buffer.  Successive use of @kbd{M-p} fetches successively earlier
@@ -1178,14 +1225,20 @@ you just repeated.  Then type @key{RET} to reexecute this command.  You
 can reexecute several successive commands by typing @kbd{C-c C-x
 @key{RET}} over and over.
 
-  The command @kbd{C-c .}@: (@code{comint-input-previous-argument})
+  The command @kbd{C-c .}@: (@code{comint-insert-previous-argument})
 copies an individual argument from a previous command, like
-@kbd{@key{ESC} .} in Bash.  The simplest use copies the last argument from the
-previous shell command.  With a prefix argument @var{n}, it copies the
-@var{n}th argument instead.  Repeating @kbd{C-c .} copies from an
-earlier shell command instead, always using the same value of @var{n}
-(don't give a prefix argument when you repeat the @kbd{C-c .}
-command).
+@kbd{@key{ESC} .}@: in Bash and @command{zsh}.  The simplest use
+copies the last argument from the previous shell command.  With a
+prefix argument @var{n}, it copies the @var{n}th argument instead.
+Repeating @kbd{C-c .} copies from an earlier shell commands, always
+using the same value of @var{n}  (don't give a prefix argument when
+you repeat the @kbd{C-c .} command).
+
+@vindex comint-insert-previous-argument-from-end
+  If you set @code{comint-insert-previous-argument-from-end} to a
+non-@code{nil} value, @kbd{C-c .}@: will instead copy the @var{n}th
+argument counting from the last one; this emulates @kbd{@key{ESC} .}@:
+in @command{zsh}.
 
   These commands get the text of previous shell commands from a special
 history list, not from the shell buffer itself.  Thus, editing the shell
@@ -1510,8 +1563,8 @@ interface is similar to the @code{more} program.
 @cindex Rlogin
 
   You can login to a remote computer, using whatever commands you
-would from a regular terminal (e.g., using the @code{ssh} or
-@code{telnet} or @code{rlogin} commands), from a Term window.
+would from a regular terminal (e.g., using the @command{ssh} or
+@command{telnet} or @code{rlogin} commands), from a Term window.
 
   A program that asks you for a password will normally suppress
 echoing of the password, so the password will not show up in the
@@ -1644,7 +1697,9 @@ each one a unique @dfn{server name}, using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable @key{RET}
 server-name @key{RET} "foo" @key{RET}} sets the server name to
 @samp{foo}.  The @code{emacsclient} program can specify a server by
-name, using the @samp{-s} option (@pxref{emacsclient Options}).
+name, using the @samp{-s} or the @samp{-f} option (@pxref{emacsclient
+Options}), depending on whether or not the server uses a TCP socket
+(@pxref{TCP Emacs server}).
 
   If you want to run multiple Emacs daemons (@pxref{Initial Options}),
 you can give each daemon its own server name like this:
@@ -1709,21 +1764,23 @@ use @kbd{M-x server-generate-key} to get a random key.
   When you start a TCP Emacs server, Emacs creates a @dfn{server file}
 containing the TCP information to be used by @command{emacsclient} to
 connect to the server.  The variable @code{server-auth-dir} specifies
-the directory containing the server file; by default, this is
+the default directory containing the server file; by default, this is
 @file{~/.emacs.d/server/}.  In the absence of a local socket with file
 permissions, the permissions of this directory determine which users
 can have their @command{emacsclient} processes talk to the Emacs
-server.
+server.  If @code{server-name} is an absolute file name, the server
+file is created where specified by that file name.
 
 @vindex EMACS_SERVER_FILE@r{, environment variable}
   To tell @command{emacsclient} to connect to the server over TCP with
 a specific server file, use the @samp{-f} or @samp{--server-file}
 option, or set the @env{EMACS_SERVER_FILE} environment variable
 (@pxref{emacsclient Options}).  If @code{server-auth-dir} is set to a
-non-standard value, @command{emacsclient} needs an absolute file name
-to the server file, as the default @code{server-auth-dir} is
-hard-coded in @command{emacsclient} to be used as the directory for
-resolving relative filenames.
+non-standard value, or if @code{server-name} is set to an absolute
+file name, @command{emacsclient} needs an absolute file name to the
+server file, as the default @code{server-auth-dir} is hard-coded in
+@command{emacsclient} to be used as the directory for resolving
+relative filenames.
 
 @node Invoking emacsclient
 @subsection Invoking @code{emacsclient}
@@ -1912,10 +1969,17 @@ evaluation performed is for side-effect rather than result.
 
 @item -s @var{server-name}
 @itemx --socket-name=@var{server-name}
-Connect to the Emacs server named @var{server-name}.  The server name
-is given by the variable @code{server-name} on the Emacs server.  If
-this option is omitted, @command{emacsclient} connects to the first
-server it finds.  (This option is not supported on MS-Windows.)
+Connect to the Emacs server named @var{server-name}.  (This option is
+not supported on MS-Windows.)  The server name is given by the
+variable @code{server-name} on the Emacs server.  If this option is
+omitted, @command{emacsclient} connects to the first server it finds.
+If you set @code{server-name} of the Emacs server to an absolute file
+name, give the same absolute file name as @var{server-name} to this
+option to instruct @command{emacsclient} to connect to that server.
+
+Alternatively, you can set the @env{EMACS_SOCKET_NAME} environment
+variable to point to the server socket.  (The command-line option
+overrides the environment variable.)
 
 @item -t
 @itemx --tty
@@ -2852,7 +2916,7 @@ which has a similar feature of its own.
 @cindex finding file at point
 
   The FFAP package replaces certain key bindings for finding files,
-such as @kbd{C-x C-f}, with commands that provide more sensitive
+such as @kbd{C-x C-f}, with commands that provide more sensible
 defaults.  These commands behave like the ordinary ones when given a
 prefix argument.  Otherwise, they get the default file name or URL
 from the text around point.  If what is found in the buffer has the

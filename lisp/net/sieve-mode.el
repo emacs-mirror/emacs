@@ -1,6 +1,6 @@
 ;;; sieve-mode.el --- Sieve code editing commands for Emacs
 
-;; Copyright (C) 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -100,23 +100,20 @@
 
 (defconst sieve-font-lock-keywords
   (eval-when-compile
-    (list
-     ;; control commands
-     (cons (regexp-opt '("require" "if" "else" "elsif" "stop")
-                       'words)
-	   'sieve-control-commands)
-     ;; action commands
-     (cons (regexp-opt '("fileinto" "redirect" "reject" "keep" "discard")
-                       'words)
-	   'sieve-action-commands)
-     ;; test commands
-     (cons (regexp-opt '("address" "allof" "anyof" "exists" "false"
-			 "true" "header" "not" "size" "envelope"
-                         "body")
-                       'words)
-	   'sieve-test-commands)
-     (cons "\\Sw+:\\sw+"
-	   'sieve-tagged-arguments))))
+    `(
+      ;; control commands
+      (,(regexp-opt '("require" "if" "else" "elsif" "stop") 'words)
+       . 'sieve-control-commands)
+      ;; action commands
+      (,(regexp-opt '("fileinto" "redirect" "reject" "keep" "discard") 'words)
+       . 'sieve-action-commands)
+      ;; test commands
+      (,(regexp-opt '("address" "allof" "anyof" "exists" "false"
+		      "true" "header" "not" "size" "envelope"
+                      "body")
+                    'words)
+       . 'sieve-test-commands)
+      ("\\Sw+:\\sw+" . 'sieve-tagged-arguments))))
 
 ;; Syntax table
 

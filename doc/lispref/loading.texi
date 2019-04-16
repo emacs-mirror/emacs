@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Loading
@@ -1139,8 +1139,6 @@ Features}).
 @section Emacs Dynamic Modules
 @cindex dynamic modules
 
-@c FIXME: This is intentionally incomplete, as the module integration
-@c is not yet finished.  To be refined later.
   A @dfn{dynamic Emacs module} is a shared library that provides
 additional functionality for use in Emacs Lisp programs, just like a
 package written in Emacs Lisp would.
@@ -1162,30 +1160,43 @@ Every dynamic module should export a C-callable function named
 @code{load} or @code{require} which loads the module.  It should also
 export a symbol named @code{plugin_is_GPL_compatible} to indicate that
 its code is released under the GPL or compatible license; Emacs will
-refuse to load modules that don't export such a symbol.
+signal an error if your program tries to load modules that don't
+export such a symbol.
 
 If a module needs to call Emacs functions, it should do so through the
-API defined and documented in the header file @file{emacs-module.h}
-that is part of the Emacs distribution.
+@acronym{API} (Application Programming Interface) defined and
+documented in the header file @file{emacs-module.h} that is part of
+the Emacs distribution.  @xref{Writing Dynamic Modules}, for details
+of using that API when writing your own modules.
 
 @cindex user-ptr object
+@cindex user pointer object
 Modules can create @code{user-ptr} Lisp objects that embed pointers to
 C struct's defined by the module.  This is useful for keeping around
 complex data structures created by a module, to be passed back to the
 module's functions.  User-ptr objects can also have associated
 @dfn{finalizers} -- functions to be run when the object is GC'ed; this
 is useful for freeing any resources allocated for the underlying data
-structure, such as memory, open file descriptors, etc.
+structure, such as memory, open file descriptors, etc.  @xref{Module
+Values}.
 
 @defun user-ptrp object
 This function returns @code{t} if its argument is a @code{user-ptr}
 object.
 @end defun
 
+@defun module-load file
+Emacs calls this low-level primitive to load a module from the
+specified @var{file} and perform the necessary initialization of the
+module.  This is the primitive which makes sure the module exports the
+@code{plugin_is_GPL_compatible} symbol, calls the module's
+@code{emacs_module_init} function, and signals an error if that
+function returns an error indication, or if the use typed @kbd{C-g}
+during the initialization.  If the initialization succeeds,
+@code{module-load} returns @code{t}.  Note that @var{file} must
+already have the proper file-name extension, as this function doesn't
+try looking for files with known extensions, unlike @code{load}.
+@end defun
+
 Loadable modules in Emacs are enabled by using the
 @kbd{--with-modules} option at configure time.
-
-If you write your own dynamic modules, you may wish to verify their
-conformance to the Emacs dynamic module API.  Invoking Emacs with the
-@kbd{--module-assertions} option will help you in this matter.
-@xref{Initial Options,,,emacs, The GNU Emacs Manual}.

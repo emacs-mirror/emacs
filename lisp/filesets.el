@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -242,8 +242,7 @@ key is supported."
 (defun filesets-set-config (fileset var val)
   "Set-default wrapper function."
   (filesets-reset-fileset fileset)
-  (set-default var val))
-;  (customize-set-variable var val))
+  (customize-set-variable var val))
 ;  (filesets-build-menu))
 
 ;; It seems this is a workaround for the XEmacs issue described in the
@@ -566,7 +565,7 @@ including directory trees to the menu can take a lot of memory."
   :group 'filesets)
 
 (defcustom filesets-commands
-  `(("Isearch"
+  '(("Isearch"
      multi-isearch-files
      (filesets-cmd-isearch-getargs))
     ("Isearch (regexp)"
@@ -1287,10 +1286,10 @@ on-close-all ... Not used"
 		  (filesets-get-external-viewer filename)))))
     (filesets-alist-get def
 			(pcase event
-			  (`on-open-all       ':ignore-on-open-all)
-			  (`on-grep           ':ignore-on-read-text)
-			  (`on-cmd nil)
-			  (`on-close-all nil))
+			  ('on-open-all       ':ignore-on-open-all)
+			  ('on-grep           ':ignore-on-read-text)
+			  ('on-cmd nil)
+			  ('on-close-all nil))
 			nil t)))
 
 (defun filesets-filetype-get-prop (property filename &optional entry)
@@ -1560,7 +1559,7 @@ SAVE-FUNCTION takes no argument, but works on the current buffer."
 (defun filesets-get-fileset-from-name (name &optional mode)
   "Get fileset definition for NAME."
   (pcase mode
-    ((or `:ingroup `:tree) name)
+    ((or :ingroup :tree) name)
     (_ (assoc name filesets-data))))
 
 

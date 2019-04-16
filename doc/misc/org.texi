@@ -260,7 +260,7 @@
 @copying
 This manual is for Org version @value{VERSION}.
 
-Copyright @copyright{} 2004--2018 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2019 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -325,7 +325,6 @@ Jambunathan K, Dan Davison, Thomas Dye, David O'Toole, and Philip Rooke.
 * Working with source code::    Export, evaluate, and tangle code blocks
 * Miscellaneous::               All the rest which did not fit elsewhere
 * Hacking::                     How to hack your way around
-* MobileOrg::                   Viewing and capture on a mobile device
 * History and acknowledgments::  How Org came into being
 * GNU Free Documentation License::  The license for this documentation.
 * Main Index::                  An index of Org's concepts and features
@@ -760,11 +759,18 @@ Miscellaneous
 * TTY keys::                    Using Org on a tty
 * Interaction::                 With other Emacs packages
 * org-crypt::                   Encrypting Org files
+* Org Mobile::                  Viewing and capture on a mobile device
 
 Interaction with other packages
 
 * Cooperation::                 Packages Org cooperates with
 * Conflicts::                   Packages that lead to conflicts
+
+Org Mobile
+
+* Setting up the staging area::  For the mobile device
+* Pushing to the mobile application::  Uploading Org files and agendas
+* Pulling from the mobile application::  Integrating captured and flagged items
 
 Hacking
 
@@ -787,12 +793,6 @@ Tables and lists in arbitrary syntax
 * A @LaTeX{} example::          Step by step, almost a tutorial
 * Translator functions::        Copy and modify
 * Radio lists::                 Sending and receiving lists
-
-MobileOrg
-
-* Setting up the staging area::  For the mobile device
-* Pushing to MobileOrg::        Uploading Org files and agendas
-* Pulling from MobileOrg::      Integrating captured and flagged items
 
 @end detailmenu
 @end menu
@@ -5134,7 +5134,7 @@ that Org can parse this line correctly:
 
 In this example, @samp{GTD} is the @emph{group tag} and it is related to two
 other tags: @samp{Control}, @samp{Persp}.  Defining @samp{Control} and
-@samp{Persp} as group tags creates an hierarchy of tags:
+@samp{Persp} as group tags creates a hierarchy of tags:
 
 @example
 #+TAGS: [ Control : Context Task ]
@@ -11178,7 +11178,7 @@ Org exports text in this block only when using ASCII back-end.
 @cindex horizontal rules, in ASCII export
 
 ASCII back-end recognizes only one attribute, @code{:width}, which specifies
-the width of an horizontal rule in number of characters.  The keyword and
+the width of a horizontal rule in number of characters.  The keyword and
 syntax for specifying widths is:
 
 @example
@@ -13789,7 +13789,7 @@ Copyright information is printed on the back of the title page.
 
   This is a short example of a complete Texinfo file, version 1.0.
 
-  Copyright \copy 2018 Free Software Foundation, Inc.
+  Copyright \copy 2019 Free Software Foundation, Inc.
 @end example
 
 @node Info directory file
@@ -14066,7 +14066,7 @@ This manual is for GNU Sample (version @{@{@{version@}@}@},
   This manual is for GNU Sample (version @{@{@{version@}@}@},
   @{@{@{updated@}@}@}), which is an example in the Texinfo documentation.
 
-  Copyright \copy 2018 Free Software Foundation, Inc.
+  Copyright \copy 2019 Free Software Foundation, Inc.
 
   #+BEGIN_QUOTE
   Permission is granted to copy, distribute and/or modify this
@@ -17251,6 +17251,7 @@ emacs -Q --batch --eval "
 * TTY keys::                    Using Org on a tty
 * Interaction::                 With other Emacs packages
 * org-crypt::                   Encrypting Org files
+* Org Mobile::                  Viewing and capture on a mobile device
 @end menu
 
 
@@ -17991,7 +17992,7 @@ supports Imenu menus.  Enable it with a mode hook as follows:
 @end lisp
 @vindex org-imenu-depth
 By default the Imenu index is two levels deep.  Change the index depth using
-thes variable, @code{org-imenu-depth}.
+the variable @code{org-imenu-depth}.
 @item @file{speedbar.el} by Eric M. Ludlam
 @cindex @file{speedbar.el}
 @cindex Ludlam, Eric M.
@@ -18065,7 +18066,7 @@ different replacement keys, look at the variable @code{org-disputed-keys}.
 @cindex @file{ecomplete.el}
 
 Ecomplete provides ``electric'' address completion in address header
-lines in message buffers.  Sadly Orgtbl mode cuts ecompletes power
+lines in message buffers.  Sadly Orgtbl mode cuts ecomplete's power
 supply: No completion happens when Orgtbl mode is enabled in message
 buffers while entering text in address header lines.  If one wants to
 use ecomplete one should @emph{not} follow the advice to automagically
@@ -18184,6 +18185,150 @@ Suggested Org crypt settings in Emacs init file:
 
 Excluding the crypt tag from inheritance prevents encrypting previously
 encrypted text.
+
+@node Org Mobile
+@section Org Mobile
+
+@cindex smartphone
+
+Org Mobile is a protocol for synchronizing Org files between Emacs and
+other applications, e.g., on mobile devices.  It enables offline-views
+and capture support for an Org mode system that is rooted on a ``real''
+computer.  The external application can also record changes to
+existing entries.
+
+This appendix describes Org's support for agenda view formats
+compatible with Org Mobile.  It also describes synchronizing changes,
+such as to notes, between the mobile application and the computer.
+
+To change tags and TODO states in the mobile application, first
+customize the variables @code{org-todo-keywords} and @code{org-tag-alist}.
+These should cover all the important tags and TODO keywords, even if
+Org files use only some of them.  Though the mobile application is
+expected to support in-buffer settings, it is required to understand
+TODO states @emph{sets} (see @ref{Per-file keywords}) and
+@emph{mutually exclusive} tags (see @ref{Setting tags}) only for those set in
+these variables.
+
+@menu
+* Setting up the staging area::  For the mobile device
+* Pushing to the mobile application::  Uploading Org files and agendas
+* Pulling from the mobile application::  Integrating captured and flagged items
+@end menu
+
+@node Setting up the staging area
+@subsection Setting up the staging area
+
+@vindex org-mobile-directory
+The mobile application needs access to a file directory on
+a server@footnote{For a server to host files, consider using a WebDAV server,
+such as @uref{https://nextcloud.com, Nextcloud}.  Additional help is at this @uref{https://orgmode.org/worg/org-faq.html#mobileorg_webdav, FAQ entry}.} to interact with Emacs.  Pass its location through
+the @code{org-mobile-directory} variable.  If you can mount that directory
+locally just set the variable to point to that directory:
+
+@lisp
+(setq org-mobile-directory "~/orgmobile/")
+@end lisp
+
+@noindent
+Alternatively, by using TRAMP (see @ref{Top,TRAMP User Manual,,tramp,}),
+@code{org-mobile-directory} may point to a remote directory accessible
+through, for example, SSH and SCP:
+
+@lisp
+(setq org-mobile-directory "/scpc:user@@remote.host:org/webdav/")
+@end lisp
+
+@vindex org-mobile-encryption
+With a public server, consider encrypting the files.  Org also
+requires OpenSSL installed on the local computer.  To turn on
+encryption, set the same password in the mobile application and in
+Emacs.  Set the password in the variable
+@code{org-mobile-use-encryption}@footnote{If Emacs is configured for safe storing of passwords, then
+configure the variable @code{org-mobile-encryption-password}; please read
+the docstring of that variable.}.  Note that even after the mobile
+application encrypts the file contents, the file name remains visible
+on the file systems of the local computer, the server, and the mobile
+device.
+
+@node Pushing to the mobile application
+@subsection Pushing to the mobile application
+
+@findex org-mobile-push
+@vindex org-mobile-files
+The command @code{org-mobile-push} copies files listed in
+@code{org-mobile-files} into the staging area.  Files include agenda files
+(as listed in @code{org-agenda-files}).  Customize @code{org-mobile-files} to
+add other files.  File names are staged with paths relative to
+@code{org-directory}, so all files should be inside this directory@footnote{Symbolic links in @code{org-directory} need to have the same name
+as their targets.}.
+
+Push creates a special Org file @samp{agendas.org} with custom agenda views
+defined by the user@footnote{While creating the agendas, Org mode forces ID properties on
+all referenced entries, so that these entries can be uniquely
+identified if Org Mobile flags them for further action.  To avoid
+setting properties configure the variable
+@code{org-mobile-force-id-on-agenda-items} to @code{nil}.  Org mode then relies
+on outline paths, assuming they are unique.}.
+
+Finally, Org writes the file @samp{index.org}, containing links to other
+files.  The mobile application reads this file first from the server
+to determine what other files to download for agendas.  For faster
+downloads, it is expected to only read files whose checksums@footnote{Checksums are stored automatically in the file
+@samp{checksums.dat}.}
+have changed.
+
+@node Pulling from the mobile application
+@subsection Pulling from the mobile application
+
+@findex org-mobile-pull
+The command @code{org-mobile-pull} synchronizes changes with the server.
+More specifically, it first pulls the Org files for viewing.  It then
+appends captured entries and pointers to flagged or changed entries to
+the file @samp{mobileorg.org} on the server.  Org ultimately integrates its
+data in an inbox file format, through the following steps:
+
+@enumerate
+@item
+@vindex org-mobile-inbox-for-pull
+Org moves all entries found in @samp{mobileorg.org}@footnote{The file will be empty after this operation.} and appends
+them to the file pointed to by the variable
+@code{org-mobile-inbox-for-pull}.  It should reside neither in the
+staging area nor on the server.  Each captured entry and each
+editing event is a top-level entry in the inbox file.
+
+@item
+@cindex @samp{FLAGGED}, tag
+After moving the entries, Org processes changes to the shared
+files.  Some of them are applied directly and without user
+interaction.  Examples include changes to tags, TODO state,
+headline and body text.  Entries requiring further action are
+tagged as @samp{FLAGGED}.  Org marks entries with problems with an error
+message in the inbox.  They have to be resolved manually.
+
+@item
+Org generates an agenda view for flagged entries for user
+intervention to clean up.  For notes stored in flagged entries, Org
+displays them in the echo area when point is on the corresponding
+agenda item.
+
+@table @asis
+@item @kbd{?}
+Pressing @kbd{?} displays the entire flagged note in
+another window.  Org also pushes it to the kill ring.  To
+store flagged note as a normal note, use @kbd{? z C-y C-c C-c}.  Pressing @kbd{?} twice does these things: first
+it removes the @samp{FLAGGED} tag; second, it removes the flagged
+note from the property drawer; third, it signals that manual
+editing of the flagged entry is now finished.
+@end table
+@end enumerate
+
+@kindex ? @r{(Agenda dispatcher)}
+From the agenda dispatcher, @kbd{?} returns to the view to finish
+processing flagged entries.  Note that these entries may not be the
+most recent since the mobile application searches files that were last
+pulled.  To get an updated agenda view with changes since the last
+pull, pull again.
 
 @node Hacking
 @appendix Hacking
@@ -19148,140 +19293,6 @@ The following example counts the number of entries with TODO keyword
 @lisp
 (length (org-map-entries t "/+WAITING" 'agenda))
 @end lisp
-
-@node MobileOrg
-@appendix MobileOrg
-@cindex iPhone
-@cindex MobileOrg
-
-MobileOrg is a companion mobile app that runs on iOS and Android devices.
-MobileOrg enables offline-views and capture support for an Org mode system
-that is rooted on a ``real'' computer.  MobileOrg can record changes to
-existing entries.
-
-The @uref{https://github.com/MobileOrg/, iOS implementation} for the
-@emph{iPhone/iPod Touch/iPad} series of devices, was started by Richard
-Moreland and is now in the hands Sean Escriva.  Android users should check
-out @uref{http://wiki.github.com/matburt/mobileorg-android/, MobileOrg
-Android} by Matt Jones.  Though the two implementations are not identical,
-they offer similar features.
-
-This appendix describes Org's support for agenda view formats compatible with
-MobileOrg.  It also describes synchronizing changes, such as to notes,
-between MobileOrg and the computer.
-
-To change tags and TODO states in MobileOrg, first customize the variables
-@code{org-todo-keywords} and @code{org-tag-alist}.  These should cover all
-the important tags and TODO keywords, even if Org files use only some of
-them.  Though MobileOrg has in-buffer settings, it understands TODO states
-@emph{sets} (@pxref{Per-file keywords}) and @emph{mutually exclusive} tags
-(@pxref{Setting tags}) only for those set in these variables.
-
-@menu
-* Setting up the staging area::  For the mobile device
-* Pushing to MobileOrg::        Uploading Org files and agendas
-* Pulling from MobileOrg::      Integrating captured and flagged items
-@end menu
-
-@node Setting up the staging area
-@section Setting up the staging area
-
-MobileOrg needs access to a file directory on a server to interact with
-Emacs.  With a public server, consider encrypting the files.  MobileOrg
-version 1.5 supports encryption for the iPhone.  Org also requires
-@file{openssl} installed on the local computer.  To turn on encryption, set
-the same password in MobileOrg and in Emacs.  Set the password in the
-variable @code{org-mobile-use-encryption}@footnote{If Emacs is configured for
-safe storing of passwords, then configure the variable,
-@code{org-mobile-encryption-password}; please read the docstring of that
-variable.}.  Note that even after MobileOrg encrypts the file contents, the
-file names will remain visible on the file systems of the local computer, the
-server, and the mobile device.
-
-For a server to host files, consider options like
-@uref{http://dropbox.com,Dropbox.com} account@footnote{An alternative is to
-use webdav server.  MobileOrg documentation has details of webdav server
-configuration.  Additional help is at
-@uref{https://orgmode.org/worg/org-faq.html#mobileorg_webdav, FAQ entry}.}.
-On first connection, MobileOrg creates a directory @file{MobileOrg/} on
-Dropbox.  Pass its location to Emacs through an init file variable as
-follows:
-
-@lisp
-(setq org-mobile-directory "~/Dropbox/MobileOrg")
-@end lisp
-
-Org copies files to the above directory for MobileOrg.  Org also uses the
-same directory for sharing notes between Org and MobileOrg.
-
-@node Pushing to MobileOrg
-@section Pushing to MobileOrg
-
-Org pushes files listed in @code{org-mobile-files} to
-@code{org-mobile-directory}.  Files include agenda files (as listed in
-@code{org-agenda-files}).  Customize @code{org-mobile-files} to add other
-files.  File names will be staged with paths relative to
-@code{org-directory}, so all files should be inside this
-directory@footnote{Symbolic links in @code{org-directory} should have the
-same name as their targets.}.
-
-Push creates a special Org file @file{agendas.org} with custom agenda views
-defined by the user@footnote{While creating the agendas, Org mode will force
-ID properties on all referenced entries, so that these entries can be
-uniquely identified if MobileOrg flags them for further action.  To avoid
-setting properties configure the variable
-@code{org-mobile-force-id-on-agenda-items} to @code{nil}.  Org mode will then
-rely on outline paths, assuming they are unique.}.
-
-Org writes the file @file{index.org}, containing links to other files.
-MobileOrg reads this file first from the server to determine what other files
-to download for agendas.  For faster downloads, MobileOrg will read only
-those files whose checksums@footnote{Checksums are stored automatically in
-the file @file{checksums.dat}.} have changed.
-
-@node Pulling from MobileOrg
-@section Pulling from MobileOrg
-
-When MobileOrg synchronizes with the server, it pulls the Org files for
-viewing.  It then appends to the file @file{mobileorg.org} on the server the
-captured entries, pointers to flagged and changed entries.  Org integrates
-its data in an inbox file format.
-
-@enumerate
-@item
-Org moves all entries found in
-@file{mobileorg.org}@footnote{@file{mobileorg.org} will be empty after this
-operation.} and appends them to the file pointed to by the variable
-@code{org-mobile-inbox-for-pull}.  Each captured entry and each editing event
-is a top-level entry in the inbox file.
-@item
-After moving the entries, Org attempts changes to MobileOrg.  Some changes
-are applied directly and without user interaction.  Examples include changes
-to tags, TODO state, headline and body text.  Entries for further action are
-tagged as @code{:FLAGGED:}.  Org marks entries with problems with an error
-message in the inbox.  They have to be resolved manually.
-@item
-Org generates an agenda view for flagged entries for user intervention to
-clean up.  For notes stored in flagged entries, MobileOrg displays them in
-the echo area when the cursor is on the corresponding agenda item.
-
-@table @kbd
-@kindex ?
-@item ?
-Pressing @kbd{?} displays the entire flagged note in another window.  Org
-also pushes it to the kill ring.  To store flagged note as a normal note, use
-@kbd{?  z C-y C-c C-c}.  Pressing @kbd{?} twice does these things: first it
-removes the @code{:FLAGGED:} tag; second, it removes the flagged note from
-the property drawer; third, it signals that manual editing of the flagged
-entry is now finished.
-@end table
-@end enumerate
-
-@kindex C-c a ?
-@kbd{C-c a ?} returns to the agenda view to finish processing flagged
-entries.  Note that these entries may not be the most recent since MobileOrg
-searches files that were last pulled.  To get an updated agenda view with
-changes since the last pull, pull again.
 
 @node History and acknowledgments
 @appendix History and acknowledgments

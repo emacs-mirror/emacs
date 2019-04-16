@@ -1,6 +1,6 @@
-;;; calc.el --- the GNU Emacs calculator
+;;; calc.el --- the GNU Emacs calculator  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Keywords: convenience, extensions
@@ -178,7 +178,7 @@
 (declare-function math-read-radix-digit "calc-misc" (dig))
 (declare-function calc-digit-dots "calc-incom" ())
 (declare-function math-normalize-fancy "calc-ext" (a))
-(declare-function math-normalize-nonstandard "calc-ext" ())
+(declare-function math-normalize-nonstandard "calc-ext" (a))
 (declare-function math-recompile-eval-rules "calc-alg" ())
 (declare-function math-apply-rewrites "calc-rewr" (expr rules &optional heads math-apply-rw-ruleset))
 (declare-function calc-record-why "calc-misc" (&rest stuff))
@@ -203,7 +203,7 @@
 (declare-function math-compose-expr "calccomp" (a prec &optional div))
 (declare-function math-comp-width "calccomp" (c))
 (declare-function math-composition-to-string "calccomp" (c &optional width))
-(declare-function math-stack-value-offset-fancy "calccomp" ())
+(declare-function math-stack-value-offset-fancy "calccomp" (c))
 (declare-function math-format-flat-expr-fancy "calc-ext" (a prec))
 (declare-function math-adjust-fraction "calc-ext" (a))
 (declare-function math-format-binary "calc-bin" (a))
@@ -395,10 +395,17 @@ This is not required to be present for user-written mode annotations."
                                   (string :tag "Closing annotation delimiter"))))
 
 (defcustom calc-gnuplot-name
-  (if (eq system-type 'windows-nt) "pgnuplot" "gnuplot")
+  (if (and (eq system-type 'windows-nt)
+           ;; Gnuplot v4.x on MS-Windows came with a special
+           ;; pipe-enabled gnuplot executable for batch-mode
+           ;; execution; newer versions allow using gnuplot.exe.
+           (executable-find "pgnuplot"))
+      "pgnuplot"
+    "gnuplot")
   "Name of GNUPLOT program, for calc-graph features."
   :group 'calc
-  :type '(string))
+  :type '(string)
+  :version "26.2")
 
 (defcustom calc-gnuplot-plot-command
   nil
@@ -486,8 +493,8 @@ to be identified as that note."
   "Face used to show the selected portion of a formula."
   :group 'calc)
 
-(defvar calc-bug-address "emacs-devel@gnu.org"
-  "Address of the maintainer of Calc, for use by `report-calc-bug'.")
+(define-obsolete-variable-alias 'calc-bug-address 'report-emacs-bug-address
+  "26.2")
 
 (defvar calc-scan-for-dels t
   "If t, scan keymaps to find all DEL-like keys.
@@ -1331,16 +1338,17 @@ Notations:  3.14e6     3.14 * 10^6
 "
   (interactive)
   (mapc (function           ;FIXME: Why (set-default v (symbol-value v)) ?!?!?
-	 (lambda (v) (set-default v (symbol-value v)))) calc-local-var-list)
+	 (lambda (v) (set-default v (symbol-value v))))
+        calc-local-var-list)
   (kill-all-local-variables)
   (use-local-map (if (eq calc-algebraic-mode 'total)
 		     (progn (require 'calc-ext) calc-alg-map) calc-mode-map))
   (mapc #'make-local-variable calc-local-var-list)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
-  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
+  (add-hook 'change-major-mode-hook #'font-lock-defontify nil t)
   (add-hook 'kill-buffer-query-functions
-            'calc-kill-stack-buffer
+            #'calc-kill-stack-buffer
             t t)
   (setq truncate-lines t)
   (setq buffer-read-only t)
@@ -1795,7 +1803,7 @@ See calc-keypad for details."
 		     (if calc-hyperbolic-flag "Hyp " "")
 		     (if calc-keep-args-flag "Keep " "")
 		     (if (/= calc-stack-top 1) "Narrow " "")
-		     (apply 'concat calc-other-modes)))))
+		     (apply #'concat calc-other-modes)))))
       (if (equal new-mode-string mode-line-buffer-identification)
 	  nil
 	(setq mode-line-buffer-identification new-mode-string)
@@ -1869,7 +1877,7 @@ See calc-keypad for details."
   (if (and (consp vals)
 	   (or (integerp (car vals))
 	       (consp (car vals))))
-      (setq vals (mapcar 'calc-normalize vals))
+      (setq vals (mapcar #'calc-normalize vals))
     (setq vals (calc-normalize vals)))
   (or (and (consp vals)
 	   (or (integerp (car vals))
@@ -1952,8 +1960,8 @@ See calc-keypad for details."
           (mapcar (lambda (x) (calc-get-stack-element x sel-mode)) top)))))
 
 (defun calc-top-list-n (&optional n m sel-mode)
-  (mapcar 'math-check-complete
-	  (mapcar 'calc-normalize (calc-top-list n m sel-mode))))
+  (mapcar #'math-check-complete
+	  (mapcar #'calc-normalize (calc-top-list n m sel-mode))))
 
 
 (defun calc-renumber-stack ()
@@ -2207,7 +2215,7 @@ the United States."
   (setq calc-aborted-prefix name)
   (if (null arg)
       (calc-enter-result 2 name (cons (or func2 func)
-				      (mapcar 'math-check-complete
+				      (mapcar #'math-check-complete
 					      (calc-top-list 2))))
     (require 'calc-ext)
     (calc-binary-op-fancy name func arg ident unary)))
@@ -2422,7 +2430,7 @@ the United States."
 	  (beep)
 	(and (not (calc-minibuffer-contains "[-+]?\\(1[5-9]\\|[2-9][0-9]\\)#.*"))
 	     (search-forward "e" nil t))
-	(if (looking-at "+")
+	(if (looking-at "\\+")
 	    (delete-char 1))
 	(if (looking-at "-")
 	    (delete-char 1)
@@ -2619,78 +2627,78 @@ largest Emacs integer.")
 (defvar math-eval-rules-cache-other)
 ;;; Reduce an object to canonical (normalized) form.  [O o; Z Z] [Public]
 
-(defvar math-normalize-a)
 (defvar math-normalize-error nil
   "Non-nil if the last call the `math-normalize' returned an error.")
 
-(defun math-normalize (math-normalize-a)
+(defun math-normalize (a)
   (setq math-normalize-error nil)
   (cond
-   ((not (consp math-normalize-a))
-    (if (integerp math-normalize-a)
-	(if (or (>= math-normalize-a math-small-integer-size)
-                (<= math-normalize-a (- math-small-integer-size)))
-	    (math-bignum math-normalize-a)
-	  math-normalize-a)
-      math-normalize-a))
-   ((eq (car math-normalize-a) 'bigpos)
-    (if (eq (nth (1- (length math-normalize-a)) math-normalize-a) 0)
-	(let* ((last (setq math-normalize-a
-                           (copy-sequence math-normalize-a))) (digs math-normalize-a))
+   ((not (consp a))
+    (if (integerp a)
+	(if (or (>= a math-small-integer-size)
+                (<= a (- math-small-integer-size)))
+	    (math-bignum a)
+	  a)
+      a))
+   ((eq (car a) 'bigpos)
+    (if (eq (nth (1- (length a)) a) 0)
+	(let* ((last (setq a
+                           (copy-sequence a)))
+               (digs a))
 	  (while (setq digs (cdr digs))
 	    (or (eq (car digs) 0) (setq last digs)))
 	  (setcdr last nil)))
-    (if (cdr (cdr (cdr math-normalize-a)))
-	math-normalize-a
+    (if (cdr (cdr (cdr a)))
+	a
       (cond
-       ((cdr (cdr math-normalize-a)) (+ (nth 1 math-normalize-a)
-                                        (* (nth 2 math-normalize-a)
+       ((cdr (cdr a)) (+ (nth 1 a)
+                                        (* (nth 2 a)
                                            math-bignum-digit-size)))
-       ((cdr math-normalize-a) (nth 1 math-normalize-a))
+       ((cdr a) (nth 1 a))
        (t 0))))
-   ((eq (car math-normalize-a) 'bigneg)
-    (if (eq (nth (1- (length math-normalize-a)) math-normalize-a) 0)
-	(let* ((last (setq math-normalize-a (copy-sequence math-normalize-a)))
-               (digs math-normalize-a))
+   ((eq (car a) 'bigneg)
+    (if (eq (nth (1- (length a)) a) 0)
+	(let* ((last (setq a (copy-sequence a)))
+               (digs a))
 	  (while (setq digs (cdr digs))
 	    (or (eq (car digs) 0) (setq last digs)))
 	  (setcdr last nil)))
-    (if (cdr (cdr (cdr math-normalize-a)))
-	math-normalize-a
+    (if (cdr (cdr (cdr a)))
+	a
       (cond
-       ((cdr (cdr math-normalize-a)) (- (+ (nth 1 math-normalize-a)
-                                           (* (nth 2 math-normalize-a)
+       ((cdr (cdr a)) (- (+ (nth 1 a)
+                                           (* (nth 2 a)
                                               math-bignum-digit-size))))
-       ((cdr math-normalize-a) (- (nth 1 math-normalize-a)))
+       ((cdr a) (- (nth 1 a)))
        (t 0))))
-   ((eq (car math-normalize-a) 'float)
-    (math-make-float (math-normalize (nth 1 math-normalize-a))
-                     (nth 2 math-normalize-a)))
-   ((or (memq (car math-normalize-a)
+   ((eq (car a) 'float)
+    (math-make-float (math-normalize (nth 1 a))
+                     (nth 2 a)))
+   ((or (memq (car a)
               '(frac cplx polar hms date mod sdev intv vec var quote
                      special-const calcFunc-if calcFunc-lambda
                      calcFunc-quote calcFunc-condition
                      calcFunc-evalto))
-	(integerp (car math-normalize-a))
-	(and (consp (car math-normalize-a))
-             (not (eq (car (car math-normalize-a)) 'lambda))))
+	(integerp (car a))
+	(and (consp (car a))
+             (not (eq (car (car a)) 'lambda))))
     (require 'calc-ext)
-    (math-normalize-fancy math-normalize-a))
+    (math-normalize-fancy a))
    (t
     (or (and calc-simplify-mode
 	     (require 'calc-ext)
-	     (math-normalize-nonstandard))
-	(let ((args (mapcar 'math-normalize (cdr math-normalize-a))))
+             (math-normalize-nonstandard a))
+	(let ((args (mapcar #'math-normalize (cdr a))))
 	  (or (condition-case err
 		  (let ((func
-                         (assq (car math-normalize-a) '( ( + . math-add )
-                                                         ( - . math-sub )
-                                                         ( * . math-mul )
-                                                         ( / . math-div )
-                                                         ( % . math-mod )
-                                                         ( ^ . math-pow )
-                                                         ( neg . math-neg )
-                                                         ( | . math-concat ) ))))
+                         (assq (car a) '( ( + . math-add )
+                                          ( - . math-sub )
+                                          ( * . math-mul )
+                                          ( / . math-div )
+                                          ( % . math-mod )
+                                          ( ^ . math-pow )
+                                          ( neg . math-neg )
+                                          ( | . math-concat ) ))))
 		    (or (and var-EvalRules
 			     (progn
 			       (or (eq var-EvalRules math-eval-rules-cache-tag)
@@ -2698,59 +2706,59 @@ largest Emacs integer.")
 				     (require 'calc-ext)
 				     (math-recompile-eval-rules)))
 			       (and (or math-eval-rules-cache-other
-					(assq (car math-normalize-a)
+					(assq (car a)
                                               math-eval-rules-cache))
 				    (math-apply-rewrites
-				     (cons (car math-normalize-a) args)
+				     (cons (car a) args)
 				     (cdr math-eval-rules-cache)
 				     nil math-eval-rules-cache))))
 			(if func
 			    (apply (cdr func) args)
-			  (and (or (consp (car math-normalize-a))
-				   (fboundp (car math-normalize-a))
+			  (and (or (consp (car a))
+				   (fboundp (car a))
 				   (and (not (featurep 'calc-ext))
 					(require 'calc-ext)
-					(fboundp (car math-normalize-a))))
-			       (apply (car math-normalize-a) args)))))
+					(fboundp (car a))))
+			       (apply (car a) args)))))
 		(wrong-number-of-arguments
                  (setq math-normalize-error t)
 		 (calc-record-why "*Wrong number of arguments"
-				  (cons (car math-normalize-a) args))
+				  (cons (car a) args))
 		 nil)
 		(wrong-type-argument
 		 (or calc-next-why
                      (calc-record-why "Wrong type of argument"
-                                      (cons (car math-normalize-a) args)))
+                                      (cons (car a) args)))
 		 nil)
 		(args-out-of-range
                  (setq math-normalize-error t)
 		 (calc-record-why "*Argument out of range"
-                                  (cons (car math-normalize-a) args))
+                                  (cons (car a) args))
 		 nil)
 		(inexact-result
 		 (calc-record-why "No exact representation for result"
-				  (cons (car math-normalize-a) args))
+				  (cons (car a) args))
 		 nil)
 		(math-overflow
                  (setq math-normalize-error t)
 		 (calc-record-why "*Floating-point overflow occurred"
-				  (cons (car math-normalize-a) args))
+				  (cons (car a) args))
 		 nil)
 		(math-underflow
                  (setq math-normalize-error t)
 		 (calc-record-why "*Floating-point underflow occurred"
-				  (cons (car math-normalize-a) args))
+				  (cons (car a) args))
 		 nil)
 		(void-variable
                  (setq math-normalize-error t)
 		 (if (eq (nth 1 err) 'var-EvalRules)
 		     (progn
 		       (setq var-EvalRules nil)
-		       (math-normalize (cons (car math-normalize-a) args)))
+		       (math-normalize (cons (car a) args)))
 		   (calc-record-why "*Variable is void" (nth 1 err)))))
-	      (if (consp (car math-normalize-a))
+	      (if (consp (car a))
 		  (math-dimension-error)
-		(cons (car math-normalize-a) args))))))))
+		(cons (car a) args))))))))
 
 
 
@@ -2781,13 +2789,6 @@ largest Emacs integer.")
   (cond
    ((>= a 0)
     (cons 'bigpos (math-bignum-big a)))
-   ((= a most-negative-fixnum)
-    ;; Note: cannot get the negation directly because
-    ;; (- most-negative-fixnum) is most-negative-fixnum.
-    ;;
-    ;; most-negative-fixnum := -most-positive-fixnum - 1
-    (math-sub (cons 'bigneg (math-bignum-big most-positive-fixnum))
-	      1))
    (t
     (cons 'bigneg (math-bignum-big (- a))))))
 
@@ -2841,7 +2842,7 @@ largest Emacs integer.")
 	((eq (car a) 'frac) (math-div (math-float (nth 1 a)) (nth 2 a)))
 	((eq (car a) 'float) a)
 	((memq (car a) '(cplx polar vec hms date sdev mod))
-	 (cons (car a) (mapcar 'math-float (cdr a))))
+	 (cons (car a) (mapcar #'math-float (cdr a))))
 	(t (math-float-fancy a))))
 
 
@@ -2852,7 +2853,7 @@ largest Emacs integer.")
 	((memq (car a) '(frac float))
 	 (list (car a) (Math-integer-neg (nth 1 a)) (nth 2 a)))
 	((memq (car a) '(cplx vec hms date calcFunc-idn))
-	 (cons (car a) (mapcar 'math-neg (cdr a))))
+	 (cons (car a) (mapcar #'math-neg (cdr a))))
 	(t (math-neg-fancy a))))
 
 
@@ -3432,22 +3433,21 @@ largest Emacs integer.")
     (setcar (cdr entry) (calc-count-lines s))
     s))
 
-;; The variables math-svo-c, math-svo-wid and math-svo-off are local
+;; The variables math-svo-wid and math-svo-off are local
 ;; to math-stack-value-offset, but are used by math-stack-value-offset-fancy
 ;; in calccomp.el.
 
-(defvar math-svo-c)
 (defvar math-svo-wid)
 (defvar math-svo-off)
 
-(defun math-stack-value-offset (math-svo-c)
+(defun math-stack-value-offset (c)
   (let* ((num (if calc-line-numbering 4 0))
 	 (math-svo-wid (calc-window-width))
 	 math-svo-off)
     (if calc-display-just
 	(progn
 	  (require 'calc-ext)
-	  (math-stack-value-offset-fancy))
+	  (math-stack-value-offset-fancy c))
       (setq math-svo-off (or calc-display-origin 0))
       (when (integerp calc-line-breaking)
 	(setq math-svo-wid calc-line-breaking)))
@@ -3880,7 +3880,7 @@ The prefix `calcFunc-' is added to the specified name to get the
 actual Lisp function name.
 
 See Info node `(calc)Defining Functions'."
-  (declare (doc-string 3))
+  (declare (doc-string 3)) ;; FIXME: Edebug spec?
   (require 'calc-ext)
   (math-do-defmath func args body))
 

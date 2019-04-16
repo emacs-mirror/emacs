@@ -1,6 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2018 Free Software Foundation, Inc.
+Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -187,7 +187,8 @@ enum token
   STATIC_CAST,			/* static_cast */
   TYPEID,			/* typeid */
   USING,			/* using */
-  WCHAR				/* wchar_t */
+  WCHAR,			/* wchar_t */
+  FINAL                         /* final */
 };
 
 /* Storage classes, in a wider sense.  */
@@ -471,7 +472,7 @@ static struct sym *add_sym (const char *, struct sym *);
 static void add_global_defn (char *, char *, int, unsigned, int, int, int);
 static void add_global_decl (char *, char *, int, unsigned, int, int, int);
 static struct member *add_member (struct sym *, char *, int, int, unsigned);
-static void class_definition (struct sym *, int, int, int);
+static void class_definition (struct sym *, const char *, int, int, int);
 static char *operator_name (int *);
 static void parse_qualified_param_ident_or_type (char **);
 
@@ -2035,6 +2036,7 @@ token_string (int t)
     case USING:			return "using";
     case WCHAR:			return "wchar_t";
     case YYEOF:                 return "EOF";
+    case FINAL:                 return "final";
 
     default:
       if (t < 255)
@@ -2140,6 +2142,7 @@ init_scanner (void)
   insert_keyword ("explicit", EXPLICIT);
   insert_keyword ("extern", EXTERN);
   insert_keyword ("false", FALSE);
+  insert_keyword ("final", FINAL);
   insert_keyword ("float", FLOAT);
   insert_keyword ("for", FOR);
   insert_keyword ("friend", FRIEND);
@@ -2501,9 +2504,9 @@ member (struct sym *cls, int vis)
   char *regexp = NULL;
   int pos;
   int is_constructor;
-  int anonymous = 0;
   int flags = 0;
   int class_tag;
+  char *class_name;
   int type_seen = 0;
   int paren_seen = 0;
   unsigned hash = 0;
@@ -2626,7 +2629,7 @@ member (struct sym *cls, int vis)
           class_tag = LA1;
           type_seen = 1;
           MATCH ();
-          anonymous = 1;
+          class_name = NULL;
 
           /* More than one ident here to allow for MS-DOS specialties
              like `_export class' etc.  The last IDENT seen counts
@@ -2634,14 +2637,33 @@ member (struct sym *cls, int vis)
 	  while (!LOOKING_AT4 (YYEOF, ';', ':', '{'))
 	    {
 	      if (LOOKING_AT (IDENT))
-		anonymous = 0;
-	      MATCH ();
+                {
+                  if (class_name)
+                    {
+                      int size = strlen (yytext);
+
+                      if(strlen (class_name) < size)
+                        {
+                          class_name = (char *) xrealloc(class_name, size + 1);
+                        }
+
+                      memcpy(class_name, yytext, size + 1);
+                    }
+                  else
+                    {
+                      class_name = xstrdup(yytext);
+                    }
+                }
+
+              MATCH ();
 	    }
 
           if (LOOKING_AT2 (':', '{'))
-	    class_definition (anonymous ? NULL : cls, class_tag, flags, 1);
+	    class_definition (class_name ? cls : NULL, class_name ? class_name : yytext, class_tag, flags, 1);
           else
             skip_to (';');
+
+          free(class_name);
           break;
 
         case INT:       case CHAR:      case LONG:      case UNSIGNED:
@@ -2997,7 +3019,7 @@ parse_qualified_param_ident_or_type (char **last_id)
    Current lookahead is the class name.  */
 
 static void
-class_definition (struct sym *containing, int tag, int flags, int nested)
+class_definition (struct sym *containing, const char *class_name, int tag, int flags, int nested)
 {
   struct sym *current;
   struct sym *base_class;
@@ -3009,7 +3031,7 @@ class_definition (struct sym *containing, int tag, int flags, int nested)
     current = NULL;
   else
     {
-      current = add_sym (yytext, containing);
+      current = add_sym (class_name, containing);
       current->pos = BUFFER_POS ();
       current->regexp = matching_regexp ();
       current->filename = filename;
@@ -3292,8 +3314,8 @@ declaration (int flags)
 static int
 globals (int start_flags)
 {
-  int anonymous;
   int class_tk;
+  char *class_name;
   int flags = start_flags;
 
   for (;;)
@@ -3362,7 +3384,7 @@ globals (int start_flags)
         case CLASS: case STRUCT: case UNION:
           class_tk = LA1;
           MATCH ();
-          anonymous = 1;
+          class_name = NULL;
 
           /* More than one ident here to allow for MS-DOS and OS/2
              specialties like `far', `_Export' etc.  Some C++ libs
@@ -3371,19 +3393,37 @@ globals (int start_flags)
 	  while (!LOOKING_AT4 (YYEOF, ';', ':', '{'))
 	    {
 	      if (LOOKING_AT (IDENT))
-		anonymous = 0;
+                {
+                  if (class_name)
+                    {
+                      int size = strlen (yytext);
+
+                      if(strlen (class_name) < size)
+                        {
+                          class_name = (char *) xrealloc(class_name, size + 1);
+                        }
+
+                      memcpy(class_name, yytext, size + 1);
+                    }
+                  else
+                    {
+                      class_name = xstrdup(yytext);
+                    }
+                }
+
 	      MATCH ();
 	    }
 
           /* Don't add anonymous unions.  */
-          if (LOOKING_AT2 (':', '{') && !anonymous)
-              class_definition (NULL, class_tk, flags, 0);
+          if (LOOKING_AT2 (':', '{') && class_name)
+            class_definition (NULL, class_name, class_tk, flags, 0);
           else
             {
               if (skip_to (';') == ';')
                 MATCH ();
             }
 
+          free(class_name);
           flags = start_flags;
           break;
 

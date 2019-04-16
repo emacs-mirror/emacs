@@ -1,7 +1,7 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993-1994, 1999, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1999, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
@@ -193,10 +193,10 @@ See Info node `(elisp)Derived Modes' for more details."
     ;; Process the keyword args.
     (while (keywordp (car body))
       (pcase (pop body)
-	(`:group (setq group (pop body)))
-	(`:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
-	(`:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
-        (`:after-hook (setq after-hook (pop body)))
+	(:group (setq group (pop body)))
+	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
+	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+        (:after-hook (setq after-hook (pop body)))
 	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring

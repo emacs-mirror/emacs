@@ -1,6 +1,6 @@
 ;;; soap-inspect.el --- Interactive WSDL inspector    -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Alexandru Harsanyi <AlexHarsanyi@gmail.com>
 ;; Created: October 2010
@@ -49,10 +49,10 @@ for encoding it using TYPE when making SOAP requests.
 
 This is a generic function, depending on TYPE a specific function
 will be called."
-  (let ((sample-value (get (aref type 0) 'soap-sample-value)))
+  (let ((sample-value (get (soap-type-of type) 'soap-sample-value)))
     (if sample-value
         (funcall sample-value type)
-      (error "Cannot provide sample value for type %s" (aref type 0)))))
+      (error "Cannot provide sample value for type %s" (soap-type-of type)))))
 
 (defun soap-sample-value-for-xs-basic-type (type)
   "Provide a sample value for TYPE, an xs-basic-type.
@@ -174,31 +174,31 @@ This is a specialization of `soap-sample-value' for
 
 (progn
   ;; Install soap-sample-value methods for our types
-  (put (aref (make-soap-xs-basic-type) 0)
+  (put (soap-type-of (make-soap-xs-basic-type))
        'soap-sample-value
        'soap-sample-value-for-xs-basic-type)
 
-  (put (aref (make-soap-xs-element) 0)
+  (put (soap-type-of (make-soap-xs-element))
        'soap-sample-value
        'soap-sample-value-for-xs-element)
 
-  (put (aref (make-soap-xs-attribute) 0)
+  (put (soap-type-of (make-soap-xs-attribute))
        'soap-sample-value
        'soap-sample-value-for-xs-attribute)
 
-  (put (aref (make-soap-xs-attribute) 0)
+  (put (soap-type-of (make-soap-xs-attribute))
        'soap-sample-value
        'soap-sample-value-for-xs-attribute-group)
 
-  (put (aref (make-soap-xs-simple-type) 0)
+  (put (soap-type-of (make-soap-xs-simple-type))
        'soap-sample-value
        'soap-sample-value-for-xs-simple-type)
 
-  (put (aref (make-soap-xs-complex-type) 0)
+  (put (soap-type-of (make-soap-xs-complex-type))
        'soap-sample-value
        'soap-sample-value-for-xs-complex-type)
 
-  (put (aref (make-soap-message) 0)
+  (put (soap-type-of (make-soap-message))
        'soap-sample-value
        'soap-sample-value-for-message))
 
@@ -222,7 +222,7 @@ Used to implement the BACK button.")
 The buffer is populated with information about ELEMENT with links
 to its sub elements.  If ELEMENT is the WSDL document itself, the
 entire WSDL can be inspected."
-  (let ((inspect (get (aref element 0) 'soap-inspect)))
+  (let ((inspect (get (soap-type-of element) 'soap-inspect)))
     (unless inspect
       (error "Soap-inspect: no inspector for element"))
 
@@ -507,39 +507,39 @@ TYPE is a `soap-xs-complex-type'"
 (progn
   ;; Install the soap-inspect methods for our types
 
-  (put (aref (make-soap-xs-basic-type) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-xs-basic-type)) 'soap-inspect
        'soap-inspect-xs-basic-type)
 
-  (put (aref (make-soap-xs-element) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-xs-element)) 'soap-inspect
        'soap-inspect-xs-element)
 
-  (put (aref (make-soap-xs-simple-type) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-xs-simple-type)) 'soap-inspect
        'soap-inspect-xs-simple-type)
 
-  (put (aref (make-soap-xs-complex-type) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-xs-complex-type)) 'soap-inspect
        'soap-inspect-xs-complex-type)
 
-  (put (aref (make-soap-xs-attribute) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-xs-attribute)) 'soap-inspect
        'soap-inspect-xs-attribute)
 
-  (put (aref (make-soap-xs-attribute-group) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-xs-attribute-group)) 'soap-inspect
        'soap-inspect-xs-attribute-group)
 
-  (put (aref (make-soap-message) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-message)) 'soap-inspect
        'soap-inspect-message)
-  (put (aref (make-soap-operation) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-operation)) 'soap-inspect
        'soap-inspect-operation)
 
-  (put (aref (make-soap-port-type) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-port-type)) 'soap-inspect
        'soap-inspect-port-type)
 
-  (put (aref (make-soap-binding) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-binding)) 'soap-inspect
        'soap-inspect-binding)
 
-  (put (aref (make-soap-port) 0) 'soap-inspect
+  (put (soap-type-of (make-soap-port)) 'soap-inspect
        'soap-inspect-port)
 
-  (put (aref (soap-make-wsdl "origin") 0) 'soap-inspect
+  (put (soap-type-of (soap-make-wsdl "origin")) 'soap-inspect
        'soap-inspect-wsdl))
 
 (provide 'soap-inspect)

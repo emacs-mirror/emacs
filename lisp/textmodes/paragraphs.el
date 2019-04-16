@@ -1,6 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
-;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2018 Free Software
+;; Copyright (C) 1985-1987, 1991, 1994-1997, 1999-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -36,9 +36,6 @@
 (put 'use-hard-newlines 'permanent-local t)
 (define-minor-mode use-hard-newlines
   "Toggle distinguishing between hard and soft newlines.
-With a prefix argument ARG, enable the feature if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-it if ARG is omitted or nil.
 
 When enabled, the functions `newline' and `open-line' add the
 text-property `hard' to newlines that they insert, and a line is

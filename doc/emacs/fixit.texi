@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit
@@ -186,7 +186,7 @@ Otherwise, a reverse search (@kbd{C-r}) is often the best way.
 dragging the word preceding or containing point forward as well.  The
 punctuation characters between the words do not move.  For example,
 @w{@samp{FOO, BAR}} transposes into @w{@samp{BAR, FOO}} rather than
-@samp{@w{BAR FOO,}}.  When point is at the end of the line, it will
+@w{@samp{BAR FOO,}}.  When point is at the end of the line, it will
 transpose the word before point with the first word on the next line.
 
 @findex transpose-sentences
@@ -427,11 +427,15 @@ dictionary.
 @cindex mode, Flyspell
 @findex flyspell-mode
   Flyspell mode is a minor mode that performs automatic spell-checking
-as you type.  When it finds a word that it does not recognize, it
-highlights that word.  Type @kbd{M-x flyspell-mode} to toggle Flyspell
-mode in the current buffer.  To enable Flyspell mode in all text mode
-buffers, add @code{flyspell-mode} to @code{text-mode-hook}.
-@xref{Hooks}.
+of the text you type as you type it.  When it finds a word that it
+does not recognize, it highlights that word.  Type @kbd{M-x
+flyspell-mode} to toggle Flyspell mode in the current buffer.  To
+enable Flyspell mode in all text mode buffers, add
+@code{flyspell-mode} to @code{text-mode-hook}.  @xref{Hooks}.  Note
+that, as Flyspell mode needs to check each word across which you move,
+it will slow down cursor motion and scrolling commands.  It also
+doesn't automatically check the text you didn't type or move across;
+use @code{flyspell-region} or @code{flyspell-buffer} for that.
 
 @findex flyspell-correct-word
 @findex flyspell-auto-correct-word

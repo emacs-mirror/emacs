@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2018 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2019 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -167,7 +167,7 @@ UTILITIES = profile${EXEEXT} hexl${EXEEXT} \
 	    $(if $(with_mailutils), , movemail${EXEEXT}) \
             $(and $(use_gamedir), update-game-score${EXEEXT})
 
-DONT_INSTALL= make-docfile${EXEEXT}
+DONT_INSTALL= make-docfile${EXEEXT} make-fingerprint${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -204,8 +204,6 @@ LIBRESOLV=@LIBRESOLV@
 LIBS_MAIL=@LIBS_MAIL@
 ## empty or -lrt or -lposix4 if HAVE_CLOCK_GETTIME
 LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
-## empty or -lrt or -lposix4 if HAVE_FDATASYNC
-LIB_FDATASYNC = @LIB_FDATASYNC@
 ## empty or -lwsock2 for MinGW
 LIB_WSOCK32=@LIB_WSOCK32@
 
@@ -334,7 +332,7 @@ uninstall:
 	fi
 
 mostlyclean:
-	rm -f core *.o *.res
+	rm -f core ./*.o ./*.res
 
 clean: mostlyclean
 	rm -f ${EXE_FILES}
@@ -345,7 +343,7 @@ distclean: clean
 bootstrap-clean maintainer-clean: distclean
 
 extraclean: maintainer-clean
-	rm -f *~ \#*
+	rm -f ./*~ \#*
 
 ## Test the contents of the directory.
 check:
@@ -361,13 +359,9 @@ TAGS: etags${EXEEXT} ${tagsfiles}
 ../lib/libgnu.a: $(config_h)
 	$(MAKE) -C ../lib all
 
-regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h $(config_h)
-	$(AM_V_CC)$(CC) -c $(CPP_CFLAGS) $<
-
-
-etags_deps = ${srcdir}/etags.c regex.o $(NTLIB) $(config_h)
+etags_deps = ${srcdir}/etags.c $(NTLIB) $(config_h)
 etags_cflags = -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" -o $@
-etags_libs = regex.o $(NTLIB) $(LOADLIBES)
+etags_libs = $(NTLIB) $(LOADLIBES)
 
 etags${EXEEXT}: ${etags_deps}
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $(etags_cflags) $< $(etags_libs)
@@ -391,6 +385,9 @@ profile${EXEEXT}: ${srcdir}/profile.c $(NTLIB) $(config_h)
 make-docfile${EXEEXT}: ${srcdir}/make-docfile.c $(NTLIB) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< $(NTLIB) $(LOADLIBES) -o $@
 
+make-fingerprint${EXEEXT}: ${srcdir}/make-fingerprint.c $(NTLIB) $(config_h)
+	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< $(NTLIB) $(LOADLIBES) -o $@
+
 movemail${EXEEXT}: ${srcdir}/movemail.c pop.o $(NTLIB) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} $< pop.o \
 	  $(NTLIB) $(LOADLIBES) $(LIBS_MOVE) -o $@
@@ -400,12 +397,12 @@ pop.o: ${srcdir}/pop.c ${srcdir}/pop.h ${srcdir}/../lib/min-max.h $(config_h)
 
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< \
-	   -DVERSION="\"${version}\"" $(NTLIB) $(LOADLIBES) $(LIB_FDATASYNC) \
+	   -DVERSION="\"${version}\"" $(NTLIB) $(LOADLIBES) \
 	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o $@
 
 emacsclientw${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(CLIENTRES) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $(CLIENTRES) -mwindows $< \
-	   -DVERSION="\"${version}\"" $(LOADLIBES) $(LIB_FDATASYNC) \
+	   -DVERSION="\"${version}\"" $(LOADLIBES) \
 	   $(LIB_WSOCK32) $(LIBS_ECLIENT) -o $@
 
 NTINC = ${srcdir}/../nt/inc

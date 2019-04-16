@@ -1,6 +1,6 @@
 ;;; benchmark.el --- support for benchmarking code  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
 ;; Author: Dave Love  <fx@gnu.org>
 ;; Keywords: lisp, extensions
@@ -38,7 +38,7 @@
     `(let (,t1)
        (setq ,t1 (current-time))
        ,@forms
-       (float-time (time-subtract nil ,t1)))))
+       (float-time (time-since ,t1)))))
 
 ;;;###autoload
 (defmacro benchmark-run (&optional repetitions &rest forms)
@@ -81,7 +81,7 @@ result.  The overhead of the `lambda's is accounted for."
 	(gcs (make-symbol "gcs"))
 	(gc (make-symbol "gc"))
 	(code (byte-compile `(lambda () ,@forms)))
-	(lambda-code (byte-compile `(lambda ()))))
+	(lambda-code (byte-compile '(lambda ()))))
     `(let ((,gc gc-elapsed)
 	   (,gcs gcs-done))
        (list ,(if (or (symbolp repetitions) (> repetitions 1))

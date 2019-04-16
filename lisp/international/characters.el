@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1997, 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2019 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -643,10 +643,22 @@ with L, LRE, or LRO Unicode bidi character type.")
     (setq c (1+ c)))
 
   ;; Circled Latin
-  (setq c #x24b6)
-  (while (<= c #x24cf)
+  (setq c #x24B6)
+  (while (<= c #x24CF)
     (modify-category-entry c ?l)
     (modify-category-entry (+ c 26) ?l)
+    (setq c (1+ c)))
+
+  ;; Supplemental Mathematical Operators
+  (setq c #x2A00)
+  (while (<= c #x2AFF)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+
+  ;; Miscellaneous Symbols and Arrows
+  (setq c #x2B00)
+  (while (<= c #x2BFF)
+    (set-case-syntax c "." tbl)
     (setq c (1+ c)))
 
   ;; Coptic
@@ -655,6 +667,12 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; in this block are derived from Greek letters, so let's be
   ;; consistent about their category.
   (modify-category-entry '(#x2C80 . #x2CFF) ?g)
+
+  ;; Supplemental Punctuation
+  (setq c #x2E00)
+  (while (<= c #x2E7F)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
 
   ;; Fullwidth Latin
   (setq c #xff21)
@@ -969,11 +987,12 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#x103D . #x103E)
 	   (#x1058 . #x1059)
 	   (#x105E . #x1160)
-	   (#x1171 . #x1074)
+	   (#x1071 . #x1074)
 	   (#x1082 . #x1082)
 	   (#x1085 . #x1086)
 	   (#x108D . #x108D)
 	   (#x109D . #x109D)
+           (#x1160 . #x11FF)
 	   (#x135D . #x135F)
 	   (#x1712 . #x1714)
 	   (#x1732 . #x1734)
@@ -1063,6 +1082,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#xABE5 . #xABE5)
 	   (#xABE8 . #xABE8)
 	   (#xABED . #xABED)
+           (#xD7B0 . #xD7FB)
 	   (#xFB1E . #xFB1E)
 	   (#xFE00 . #xFE0F)
 	   (#xFE20 . #xFE2F)
@@ -1199,10 +1219,11 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#xFE30 . #xFE6F)
 	   (#xFF01 . #xFF60)
 	   (#xFFE0 . #xFFE6)
-	   (#x16FE0 . #x16FE1)
-	   (#x17000 . #x187EC)
+	   (#x16FE0 . #x16FE3)
+	   (#x17000 . #x187F7)
 	   (#x18800 . #x18AF2)
-	   (#x1B000 . #x1B11E)
+	   (#x1B000 . #x1B152)
+           (#x1B164 . #x1B167)
            (#x1B170 . #x1B2FB)
 	   (#x1F004 . #x1F004)
 	   (#x1F0CF . #x1F0CF)
@@ -1232,14 +1253,22 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#x1F680 . #x1F6C5)
 	   (#x1F6CC . #x1F6CC)
 	   (#x1F6D0 . #x1F6D2)
+           (#x1F6D5 . #x1F6D5)
 	   (#x1F6EB . #x1F6EC)
-	   (#x1F6F4 . #x1F6F8)
-	   (#x1F910 . #x1F93E)
-	   (#x1F940 . #x1F94C)
-	   (#x1F950 . #x1F96B)
-	   (#x1F980 . #x1F997)
-	   (#x1F9C0 . #x1F9C0)
-           (#x1F9D0 . #x1F9E6)
+	   (#x1F6F4 . #x1F6FA)
+           (#x1F7E0 . #x1F7EB)
+	   (#x1F90D . #x1F971)
+	   (#x1F973 . #x1F976)
+	   (#x1F97A . #x1F9A2)
+           (#x1F9A5 . #x1F9AA)
+           (#x1F9AE . #x1F9CA)
+           (#x1F9CD . #x1F9FF)
+           (#x1FA00 . #x1FA53)
+           (#x1FA60 . #x1FA6D)
+           (#x1FA70 . #x1FA73)
+           (#x1FA78 . #x1FA7A)
+           (#x1FA80 . #x1FA82)
+           (#x1FA90 . #x1FA95)
 	   (#x20000 . #x2FFFF)
 	   (#x30000 . #x3FFFF))))
   (dolist (elt l)
@@ -1313,7 +1342,7 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 
 ;; Setting char-script-table.
-(if purify-flag
+(if dump-mode
     ;; While dumping, we can't use require, and international is not
     ;; in load-path.
     (load "international/charscript")
@@ -1403,7 +1432,9 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 (defun update-glyphless-char-display (&optional variable value)
   "Make the setting of `glyphless-char-display-control' take effect.
-This function updates the char-table `glyphless-char-display'."
+This function updates the char-table `glyphless-char-display',
+and is intended to be used in the `:set' attribute of the
+option `glyphless-char-display'."
   (when value
     (set-default variable value))
   (dolist (elt value)

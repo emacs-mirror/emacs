@@ -1,6 +1,6 @@
 ;;; calc-tests.el --- tests for calc                 -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
 ;; Author: Leo Liu <sdl.web@gmail.com>
 ;; Keywords: maint
@@ -85,6 +85,13 @@ An existing calc stack is reused, otherwise a new one is created."
   (should (calc-tests-equal (calc-tests-simple #'calc-convert-units "-1 m"
 					       (math-read-expr "1m") "cm")
 			    '(* -100 (var cm var-cm)))))
+
+(ert-deftest calc-imaginary-i ()
+  "Test `math-imaginary-i' for non-special-const values."
+  (let ((var-i (calcFunc-polar (calcFunc-sqrt -1))))
+    (should (math-imaginary-i)))
+  (let ((var-i (calcFunc-sqrt -1)))
+    (should (math-imaginary-i))))
 
 (ert-deftest test-calc-23889 ()
   "Test for https://debbugs.gnu.org/23889 and 25652."

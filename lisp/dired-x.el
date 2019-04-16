@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1997, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1997, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -139,9 +139,6 @@ folding to be used on case-insensitive filesystems only."
 
 (define-minor-mode dired-omit-mode
   "Toggle omission of uninteresting files in Dired (Dired-Omit mode).
-With a prefix argument ARG, enable Dired-Omit mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil.
 
 Dired-Omit mode is a buffer-local minor mode.  When enabled in a
 Dired buffer, Dired does not list files whose filenames match
@@ -191,21 +188,6 @@ a normal and a wildcard buffer for the same directory, \\[dired] will
 toggle between those two."
   :type 'boolean
   :group 'dired-x)
-
-(defcustom dired-enable-local-variables t
-  "Control use of local-variables lists in Dired.
-This temporarily overrides the value of `enable-local-variables' when
-listing a directory.  See also `dired-local-variables-file'."
-  :risky t
-  :type '(choice (const :tag "Query Unsafe" t)
-		 (const :tag "Safe Only" :safe)
-		 (const :tag "Do all" :all)
-		 (const :tag "Ignore" nil)
-		 (other :tag "Query" other))
-  :group 'dired-x)
-
-(make-obsolete-variable 'dired-enable-local-variables
-                        "use a standard `dir-locals-file' instead." "24.1")
 
 (defcustom dired-guess-shell-gnutar
   (catch 'found
@@ -330,7 +312,6 @@ See also the functions:
   `dired-do-find-marked-files'"
   (interactive)
   ;; These must be done in each new dired buffer.
-  (dired-hack-local-variables)
   (dired-omit-startup))
 
 
@@ -464,6 +445,7 @@ See variables `dired-texinfo-unclean-extensions',
                                 dired-tex-unclean-extensions
                                 (list ".dvi"))))
 
+(defvar archive-superior-buffer)
 (defvar tar-superior-buffer)
 ;;; JUMP.
 
@@ -480,8 +462,14 @@ Interactively with prefix argument, read FILE-NAME."
   (interactive
    (list nil (and current-prefix-arg
                   (read-file-name "Jump to Dired file: "))))
-  (if (bound-and-true-p tar-subfile-mode)
-      (switch-to-buffer tar-superior-buffer)
+  (cond
+   ((and (bound-and-true-p archive-subfile-mode)
+         (buffer-live-p archive-superior-buffer))
+    (switch-to-buffer archive-superior-buffer))
+   ((and (bound-and-true-p tar-subfile-mode)
+         (buffer-live-p tar-superior-buffer))
+    (switch-to-buffer tar-superior-buffer))
+   (t
     ;; Expand file-name before `dired-goto-file' call:
     ;; `dired-goto-file' requires its argument to be an absolute
     ;; file name; the result of `read-file-name' could be
@@ -509,7 +497,7 @@ Interactively with prefix argument, read FILE-NAME."
                 ;; Toggle omitting, if it is on, and try again.
                 (when dired-omit-mode
                   (dired-omit-mode)
-                  (dired-goto-file file))))))))
+                  (dired-goto-file file)))))))))
 
 ;;;###autoload
 (defun dired-jump-other-window (&optional file-name)
@@ -785,34 +773,6 @@ Also useful for `auto-mode-alist' like this:
 ;; mechanism is provided for special handling of the working directory in
 ;; special major modes.
 
-(define-obsolete-variable-alias 'default-directory-alist
-  'dired-default-directory-alist "24.1")
-
-;; It's easier to add to this alist than redefine function
-;; default-directory while keeping the old information.
-(defconst dired-default-directory-alist
-  '((dired-mode . (if (fboundp 'dired-current-directory)
-                      (dired-current-directory)
-                    default-directory)))
-  "Alist of major modes and their opinion on `default-directory'.
-Each element has the form (MAJOR . EXPRESSION).
-The function `dired-default-directory' evaluates EXPRESSION to
-determine a default directory.")
-
-(put 'dired-default-directory-alist 'risky-local-variable t) ; gets eval'd
-(make-obsolete-variable 'dired-default-directory-alist
-                        "this feature is due to be removed." "24.1")
-
-(defun dired-default-directory ()
-  "Return the `dired-default-directory-alist' entry for the current major-mode.
-If none, return `default-directory'."
-  ;; It looks like this was intended to be something of a "general"
-  ;; feature, but it only ever seems to have been used in
-  ;; dired-smart-shell-command, and doesn't seem worth keeping around.
-  (declare (obsolete nil "24.1"))
-  (or (eval (cdr (assq major-mode dired-default-directory-alist)))
-      default-directory))
-
 (defun dired-smart-shell-command (command &optional output-buffer error-buffer)
   "Like function `shell-command', but in the current Virtual Dired directory."
   (interactive
@@ -827,85 +787,6 @@ If none, return `default-directory'."
                                     (dired-current-directory))
                                default-directory)))
     (shell-command command output-buffer error-buffer)))
-
-
-;;; LOCAL VARIABLES FOR DIRED BUFFERS.
-
-;; Brief Description  (This feature is obsolete as of Emacs 24.1)
-;;
-;; * `dired-extra-startup' is part of the `dired-mode-hook'.
-;;
-;; * `dired-extra-startup' calls `dired-hack-local-variables'
-;;
-;; * `dired-hack-local-variables' checks the value of
-;;   `dired-local-variables-file'
-;;
-;; * Check if `dired-local-variables-file' is a non-nil string and is a
-;;   filename found in the directory of the Dired Buffer being created.
-;;
-;; * If `dired-local-variables-file' satisfies the above, then temporarily
-;;   include it in the Dired Buffer at the bottom.
-;;
-;; * Set `enable-local-variables' temporarily to the user variable
-;;   `dired-enable-local-variables' and run `hack-local-variables' on the
-;;   Dired Buffer.
-
-(defcustom dired-local-variables-file (convert-standard-filename ".dired")
-  "Filename, as string, containing local Dired buffer variables to be hacked.
-If this file found in current directory, then it will be inserted into dired
-buffer and `hack-local-variables' will be run.  See Info node
-`(emacs)File Variables' for more information on local variables.
-See also `dired-enable-local-variables'."
-  :type 'file
-  :group 'dired)
-
-(make-obsolete-variable 'dired-local-variables-file 'dir-locals-file "24.1")
-
-(defun dired-hack-local-variables ()
-  "Evaluate local variables in `dired-local-variables-file' for Dired buffer."
-  (declare (obsolete hack-dir-local-variables-non-file-buffer "24.1"))
-  (and (stringp dired-local-variables-file)
-       (file-exists-p dired-local-variables-file)
-       (let ((opoint (point-max))
-             (inhibit-read-only t)
-             ;; In case user has `enable-local-variables' set to nil we
-             ;; override it locally with dired's variable.
-             (enable-local-variables dired-enable-local-variables))
-         ;; Insert 'em.
-         (save-excursion
-           (goto-char opoint)
-           (insert "\^L\n")
-           (insert-file-contents dired-local-variables-file))
-         ;; Hack 'em.
-         (unwind-protect
-             (let ((buffer-file-name dired-local-variables-file))
-               (hack-local-variables))
-           ;; Delete this stuff: `eobp' is used to find last subdir by dired.el.
-           (delete-region opoint (point-max)))
-         ;; Make sure that the mode line shows the proper information.
-         (dired-sort-set-mode-line))))
-
-;; Does not seem worth a dedicated command.
-;; See the more general features in files-x.el.
-(defun dired-omit-here-always ()
-  "Create `dir-locals-file' setting `dired-omit-mode' to t in `dired-mode'.
-If in a Dired buffer, reverts it."
-  (declare (obsolete add-dir-local-variable "24.1"))
-  (interactive)
-  (if (file-exists-p dired-local-variables-file)
-      (error "Old-style dired-local-variables-file `./%s' found;
-replace it with a dir-locals-file `./%s'"
-             dired-local-variables-file
-             dir-locals-file))
-  (if (file-exists-p dir-locals-file)
-      (message "File `./%s' already exists." dir-locals-file)
-    (add-dir-local-variable 'dired-mode 'subdirs nil)
-    (add-dir-local-variable 'dired-mode 'dired-omit-mode t)
-    ;; Run extra-hooks and revert directory.
-    (when (derived-mode-p 'dired-mode)
-      (hack-dir-local-variables-non-file-buffer)
-      (dired-extra-startup)
-      (dired-revert))))
 
 
 ;;; GUESS SHELL COMMAND.

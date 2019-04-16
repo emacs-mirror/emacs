@@ -1,5 +1,5 @@
 /* The emacs frame widget.
-   Copyright (C) 1992-1993, 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 2000-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -282,7 +282,7 @@ set_frame_size (EmacsFrame ew)
 
   frame_size_history_add
     (f, Qset_frame_size, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
-     list2 (make_number (ew->core.width), make_number (ew->core.height)));
+     list2i (ew->core.width, ew->core.height));
 }
 
 static void
@@ -297,7 +297,6 @@ update_wm_hints (EmacsFrame ew)
   int char_height;
   int base_width;
   int base_height;
-  int min_rows = 0, min_cols = 0;
 
   /* This happens when the frame is just created.  */
   if (! wmshell) return;
@@ -323,8 +322,8 @@ update_wm_hints (EmacsFrame ew)
 		 XtNbaseHeight, (XtArgVal) base_height,
 		 XtNwidthInc, (XtArgVal) (frame_resize_pixelwise ? 1 : cw),
 		 XtNheightInc, (XtArgVal) (frame_resize_pixelwise ? 1 : ch),
-		 XtNminWidth, (XtArgVal) (base_width + min_cols * cw),
-		 XtNminHeight, (XtArgVal) (base_height + min_rows * ch),
+		 XtNminWidth, (XtArgVal) base_width,
+		 XtNminHeight, (XtArgVal) base_height,
 		 NULL);
 }
 
@@ -421,10 +420,10 @@ EmacsFrameResize (Widget widget)
 
   frame_size_history_add
     (f, QEmacsFrameResize, width, height,
-     list5 (make_number (ew->core.width), make_number (ew->core.height),
-	    make_number (FRAME_TOP_MARGIN_HEIGHT (f)),
-	    make_number (FRAME_SCROLL_BAR_AREA_HEIGHT (f)),
-	    make_number (2 * FRAME_INTERNAL_BORDER_WIDTH (f))));
+     list5 (make_fixnum (ew->core.width), make_fixnum (ew->core.height),
+	    make_fixnum (FRAME_TOP_MARGIN_HEIGHT (f)),
+	    make_fixnum (FRAME_SCROLL_BAR_AREA_HEIGHT (f)),
+	    make_fixnum (2 * FRAME_INTERNAL_BORDER_WIDTH (f))));
 
   change_frame_size (f, width, height, 0, 1, 0, 1);
 
@@ -435,21 +434,20 @@ EmacsFrameResize (Widget widget)
 }
 
 static XtGeometryResult
-EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeometry *result)
+EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request,
+			 XtWidgetGeometry *result)
 {
-  EmacsFrame ew = (EmacsFrame) widget;
-
   int mask = request->request_mode;
-  Dimension ok_width, ok_height;
 
-  if (mask & (CWWidth | CWHeight))
+  if (mask & (CWWidth | CWHeight) && !frame_resize_pixelwise)
     {
-      if (!frame_resize_pixelwise)
-	round_size_to_char (ew,
-			    (mask & CWWidth) ? request->width : ew->core.width,
-			    ((mask & CWHeight) ? request->height
-			     : ew->core.height),
-			    &ok_width, &ok_height);
+      EmacsFrame ew = (EmacsFrame) widget;
+      Dimension ok_width, ok_height;
+
+      round_size_to_char (ew,
+			  mask & CWWidth ? request->width : ew->core.width,
+			  mask & CWHeight ? request->height : ew->core.height,
+			  &ok_width, &ok_height);
       if ((mask & CWWidth) && (ok_width != request->width))
 	{
 	  result->request_mode |= CWWidth;

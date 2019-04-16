@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993-1994, 1998-2018 Free Software Foundation,
+   Copyright (C) 1989, 1993-1994, 1998-2019 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -50,17 +50,8 @@ typedef Widget xt_or_gtk_widget;
 #include <gdk/gdkx.h>
 #endif /* USE_GTK */
 
-/* True iff GTK's version is at least I.J.K.  */
-#ifndef GTK_CHECK_VERSION
-# ifdef USE_GTK
-#  define GTK_CHECK_VERSION(i, j, k) \
-     ((i) \
-      < GTK_MAJOR_VERSION + ((j) \
-			     < GTK_MINOR_VERSION + ((k) \
-						    <= GTK_MICRO_VERSION)))
-# else
-#  define GTK_CHECK_VERSION(i, j, k) false
-# endif
+#ifndef USE_GTK
+#define GTK_CHECK_VERSION(i, j, k) false
 #endif
 
 #ifdef USE_GTK
@@ -75,11 +66,6 @@ typedef GtkWidget *xt_or_gtk_widget;
                          XSync (d, b);  } while (false)
 #endif
 #endif /* USE_GTK */
-
-/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
-#if GTK_CHECK_VERSION (2, 14, 0)
-#define USE_GTK_TOOLTIP
-#endif
 
 #ifdef USE_CAIRO
 #include <cairo-xlib.h>
@@ -594,12 +580,9 @@ struct x_output
   GdkGeometry size_hints;
   long hint_flags;
 
-#ifdef USE_GTK_TOOLTIP
   GtkTooltip *ttip_widget;
   GtkWidget *ttip_lbl;
   GtkWindow *ttip_window;
-#endif /* USE_GTK_TOOLTIP */
-
 #endif /* USE_GTK */
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the
@@ -793,18 +776,6 @@ extern void x_mark_frame_dirty (struct frame *f);
                                FRAME_X_WINDOW (f))
 #else
 #ifdef USE_GTK
-/* Functions not present in older Gtk+ */
-
-#ifndef HAVE_GTK_WIDGET_GET_WINDOW
-#define gtk_widget_get_window(w) ((w)->window)
-#endif
-#ifndef HAVE_GTK_WIDGET_GET_MAPPED
-#define gtk_widget_get_mapped(w) (GTK_WIDGET_MAPPED (w))
-#endif
-#ifndef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
-#define gtk_adjustment_get_page_size(w) ((w)->page_size)
-#define gtk_adjustment_get_upper(w) ((w)->upper)
-#endif
 
 #ifdef HAVE_GTK3
 #define DEFAULT_GDK_DISPLAY() \
@@ -897,7 +868,7 @@ struct scroll_bar
   /* The next and previous in the chain of scroll bars in this frame.  */
   Lisp_Object next, prev;
 
-  /* Fields from `x_window' down will not be traced by the GC.  */
+  /* Fields after 'prev' are not traced by the GC.  */
 
   /* The X window representing this scroll bar.  */
   Window x_window;
@@ -937,7 +908,7 @@ struct scroll_bar
 
   /* True if the scroll bar is horizontal.  */
   bool horizontal;
-};
+} GCALIGNED_STRUCT;
 
 /* Turning a lisp vector value into a pointer to a struct scroll_bar.  */
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))

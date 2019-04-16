@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft Windows API.
 
-Copyright (C) 1989, 1993-2018 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -478,8 +478,8 @@ x_set_frame_alpha (struct frame *f)
 
   if (FLOATP (Vframe_alpha_lower_limit))
     alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
-  else if (INTEGERP (Vframe_alpha_lower_limit))
-    alpha_min = (XINT (Vframe_alpha_lower_limit)) / 100.0;
+  else if (FIXNUMP (Vframe_alpha_lower_limit))
+    alpha_min = (XFIXNUM (Vframe_alpha_lower_limit)) / 100.0;
 
   if (alpha < 0.0)
     return;
@@ -800,29 +800,32 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
 	  height > 0))
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+      int face_id =
+	!NILP (Vface_remapping_alist)
+	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	: INTERNAL_BORDER_FACE_ID;
+      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
-      {
-	HDC hdc = get_frame_dc (f);
-	struct face *face = FACE_FROM_ID_OR_NULL (f, INTERNAL_BORDER_FACE_ID);
 
-	if (face)
-	  {
-	    /* Fill border with internal border face.  */
-	    unsigned long color = face->background;
+      HDC hdc = get_frame_dc (f);
+      if (face)
+	{
+	  /* Fill border with internal border face.  */
+	  unsigned long color = face->background;
 
-	    w32_fill_area (f, hdc, color, 0, y, width, height);
-	    w32_fill_area (f, hdc, color, FRAME_PIXEL_WIDTH (f) - width,
-			   y, width, height);
-	  }
-	else
-	  {
-	    w32_clear_area (f, hdc, 0, y, width, height);
-	    w32_clear_area (f, hdc, FRAME_PIXEL_WIDTH (f) - width,
-			    y, width, height);
-	  }
-	release_frame_dc (f, hdc);
-      }
+	  w32_fill_area (f, hdc, color, 0, y, width, height);
+	  w32_fill_area (f, hdc, color, FRAME_PIXEL_WIDTH (f) - width,
+			 y, width, height);
+	}
+      else
+	{
+	  w32_clear_area (f, hdc, 0, y, width, height);
+	  w32_clear_area (f, hdc, FRAME_PIXEL_WIDTH (f) - width,
+			  y, width, height);
+	}
+      release_frame_dc (f, hdc);
+
       unblock_input ();
     }
 }
@@ -1476,7 +1479,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 	{
 	  sprintf ((char *) buf, "%0*X",
 		   glyph->u.glyphless.ch < 0x10000 ? 4 : 6,
-		   (unsigned int) glyph->u.glyphless.ch);
+		   (unsigned int) glyph->u.glyphless.ch & 0xffffff);
 	  str = buf;
 	}
 
@@ -1874,9 +1877,42 @@ x_draw_image_foreground (struct glyph_string *s)
       HBRUSH fg_brush = CreateSolidBrush (s->gc->foreground);
       HBRUSH orig_brush = SelectObject (s->hdc, fg_brush);
       HGDIOBJ orig_obj = SelectObject (compat_hdc, s->img->pixmap);
+      LONG orig_width, orig_height;
+      DIBSECTION dib;
       SetBkColor (compat_hdc, RGB (255, 255, 255));
       SetTextColor (s->hdc, RGB (0, 0, 0));
       x_set_glyph_string_clipping (s);
+      /* Extract the original dimensions of the bitmap.  */
+      if (GetObject (s->img->pixmap, sizeof (dib), &dib) > 0)
+	{
+	  BITMAP bmp = dib.dsBm;
+	  orig_width = bmp.bmWidth;
+	  orig_height = bmp.bmHeight;
+	}
+      else
+	{
+	  DebPrint (("x_draw_image_foreground: GetObject failed!\n"));
+	  orig_width = s->slice.width;
+	  orig_height = s->slice.height;
+	}
+
+      double w_factor = 1.0, h_factor = 1.0;
+      bool scaled = false;
+      int orig_slice_width  = s->slice.width,
+	  orig_slice_height = s->slice.height;
+      int orig_slice_x = s->slice.x, orig_slice_y = s->slice.y;
+      /* For scaled images we need to restore the original slice's
+	 dimensions and origin coordinates, from before the scaling.  */
+      if (s->img->width != orig_width || s->img->height != orig_height)
+	{
+	  scaled = true;
+	  w_factor = (double) orig_width  / (double) s->img->width;
+	  h_factor = (double) orig_height / (double) s->img->height;
+	  orig_slice_width = s->slice.width * w_factor + 0.5;
+	  orig_slice_height = s->slice.height * h_factor + 0.5;
+	  orig_slice_x = s->slice.x * w_factor + 0.5;
+	  orig_slice_y = s->slice.y * h_factor + 0.5;
+	}
 
       if (s->img->mask)
 	{
@@ -1885,14 +1921,36 @@ x_draw_image_foreground (struct glyph_string *s)
 
 	  SetTextColor (s->hdc, RGB (255, 255, 255));
 	  SetBkColor (s->hdc, RGB (0, 0, 0));
-
-	  BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
-		  compat_hdc, s->slice.x, s->slice.y, SRCINVERT);
-	  BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
-		  mask_dc, s->slice.x, s->slice.y, SRCAND);
-	  BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
-		  compat_hdc, s->slice.x, s->slice.y, SRCINVERT);
-
+	  if (!scaled)
+	    {
+	      BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+		      compat_hdc, s->slice.x, s->slice.y, SRCINVERT);
+	      BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+		      mask_dc, s->slice.x, s->slice.y, SRCAND);
+	      BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+		      compat_hdc, s->slice.x, s->slice.y, SRCINVERT);
+	    }
+	  else
+	    {
+	      int pmode = 0;
+	      /* HALFTONE produces better results, especially when
+		 scaling to a larger size, but Windows 9X doesn't
+		 support HALFTONE.  */
+	      if (os_subtype == OS_NT
+		  && (pmode = SetStretchBltMode (s->hdc, HALFTONE)) != 0)
+		SetBrushOrgEx (s->hdc, 0, 0, NULL);
+	      StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+			  compat_hdc, orig_slice_x, orig_slice_y,
+			  orig_slice_width, orig_slice_height, SRCINVERT);
+	      StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+			  mask_dc, orig_slice_x, orig_slice_y,
+			  orig_slice_width, orig_slice_height, SRCAND);
+	      StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+			  compat_hdc, orig_slice_x, orig_slice_y,
+			  orig_slice_width, orig_slice_height, SRCINVERT);
+	      if (pmode)
+		SetStretchBltMode (s->hdc, pmode);
+	    }
 	  SelectObject (mask_dc, mask_orig_obj);
 	  DeleteDC (mask_dc);
 	}
@@ -1900,9 +1958,22 @@ x_draw_image_foreground (struct glyph_string *s)
 	{
 	  SetTextColor (s->hdc, s->gc->foreground);
 	  SetBkColor (s->hdc, s->gc->background);
-
-          BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
-                  compat_hdc, s->slice.x, s->slice.y, SRCCOPY);
+	  if (!scaled)
+	    BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+		    compat_hdc, s->slice.x, s->slice.y, SRCCOPY);
+	  else
+	    {
+	      int pmode = 0;
+	      /* Windows 9X doesn't support HALFTONE.  */
+	      if (os_subtype == OS_NT
+		  && (pmode = SetStretchBltMode (s->hdc, HALFTONE)) != 0)
+		SetBrushOrgEx (s->hdc, 0, 0, NULL);
+	      StretchBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+			  compat_hdc, orig_slice_x, orig_slice_y,
+			  orig_slice_width, orig_slice_height, SRCCOPY);
+	      if (pmode)
+		SetStretchBltMode (s->hdc, pmode);
+	    }
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -1979,14 +2050,14 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->face->id == TOOL_BAR_FACE_ID)
     {
       if (CONSP (Vtool_bar_button_margin)
-	  && INTEGERP (XCAR (Vtool_bar_button_margin))
-	  && INTEGERP (XCDR (Vtool_bar_button_margin)))
+	  && FIXNUMP (XCAR (Vtool_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtool_bar_button_margin)))
 	{
-	  extra_x = XINT (XCAR (Vtool_bar_button_margin));
-	  extra_y = XINT (XCDR (Vtool_bar_button_margin));
+	  extra_x = XFIXNUM (XCAR (Vtool_bar_button_margin));
+	  extra_y = XFIXNUM (XCDR (Vtool_bar_button_margin));
 	}
-      else if (INTEGERP (Vtool_bar_button_margin))
-	extra_x = extra_y = XINT (Vtool_bar_button_margin);
+      else if (FIXNUMP (Vtool_bar_button_margin))
+	extra_x = extra_y = XFIXNUM (Vtool_bar_button_margin);
     }
 
   top_p = bot_p = left_p = right_p = 0;
@@ -2031,6 +2102,10 @@ w32_draw_image_foreground_1 (struct glyph_string *s, HBITMAP pixmap)
   if (s->slice.y == 0)
     y += s->img->vmargin;
 
+  /* FIXME (maybe): The below doesn't support image scaling.  But it
+     seems to never be called, because the conditions for its call in
+     x_draw_image_glyph_string are never fulfilled (they will be if
+     the #ifdef'ed away part of that function is ever activated).  */
   if (s->img->pixmap)
     {
       HDC compat_hdc = CreateCompatibleDC (hdc);
@@ -2481,8 +2556,8 @@ x_draw_glyph_string (struct glyph_string *s)
 		  Lisp_Object val
 		    = buffer_local_value (Qunderline_minimum_offset,
 					s->w->contents);
-		  if (INTEGERP (val))
-		    minimum_offset = XFASTINT (val);
+		  if (FIXNUMP (val))
+		    minimum_offset = XFIXNAT (val);
 		  else
 		    minimum_offset = 1;
 		  val = buffer_local_value (Qx_underline_at_descent_line,
@@ -2886,20 +2961,6 @@ x_focus_changed (int type, int state, struct w32_display_info *dpyinfo,
         {
           x_new_focus_frame (dpyinfo, frame);
           dpyinfo->w32_focus_event_frame = frame;
-
-          /* Don't stop displaying the initial startup message
-             for a switch-frame event we don't need.  */
-          if (NILP (Vterminal_frame)
-              && CONSP (Vframe_list)
-              && !NILP (XCDR (Vframe_list)))
-            {
-              bufp->arg = Qt;
-            }
-          else
-            {
-              bufp->arg = Qnil;
-            }
-
           bufp->kind = FOCUS_IN_EVENT;
           XSETFRAME (bufp->frame_or_window, frame);
         }
@@ -3587,8 +3648,8 @@ w32_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
 static void
 w32_handle_tool_bar_click (struct frame *f, struct input_event *button_event)
 {
-  int x = XFASTINT (button_event->x);
-  int y = XFASTINT (button_event->y);
+  int x = XFIXNAT (button_event->x);
+  int y = XFIXNAT (button_event->y);
 
   if (button_event->modifiers & down_modifier)
     handle_tool_bar_click (f, x, y, 1, 0);
@@ -3629,7 +3690,7 @@ x_window_to_scroll_bar (Window window_id, int type)
 			       ! NILP (bar));
 	   bar = XSCROLL_BAR (bar)->next)
 	if (SCROLL_BAR_W32_WINDOW (XSCROLL_BAR (bar)) == window_id
-	    && (type = 2
+	    && (type == 2
 		|| (type == 1 && XSCROLL_BAR (bar)->horizontal)
 		|| (type == 0 && !XSCROLL_BAR (bar)->horizontal)))
 	  return XSCROLL_BAR (bar);
@@ -3835,7 +3896,7 @@ x_scroll_bar_create (struct window *w, int left, int top, int width, int height,
   HWND hwnd;
   SCROLLINFO si;
   struct scroll_bar *bar
-    = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, top, PVEC_OTHER);
+    = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, w32_widget_high, PVEC_OTHER);
   Lisp_Object barobj;
 
   block_input ();
@@ -4783,7 +4844,7 @@ w32_read_socket (struct terminal *terminal,
 
 	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
-	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+	      if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
 		{
 		  clear_mouse_face (hlinfo);
@@ -4808,7 +4869,7 @@ w32_read_socket (struct terminal *terminal,
 
 	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
-	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+	      if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
 		{
 		  clear_mouse_face (hlinfo);
@@ -4886,7 +4947,7 @@ w32_read_socket (struct terminal *terminal,
 
 	  if (f && !FRAME_ICONIFIED_P (f))
 	    {
-	      if (!hlinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+	      if (!hlinfo->mouse_face_hidden && FIXNUMP (Vmouse_highlight)
 		  && !EQ (f->tool_bar_window, hlinfo->mouse_face_window))
 		{
 		  clear_mouse_face (hlinfo);
@@ -5010,8 +5071,8 @@ w32_read_socket (struct terminal *terminal,
                     && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)))
                   {
                     Lisp_Object window;
-		    int x = XFASTINT (inev.x);
-		    int y = XFASTINT (inev.y);
+		    int x = XFIXNAT (inev.x);
+		    int y = XFIXNAT (inev.y);
 
                     window = window_from_coordinates (f, x, y, 0, 1);
 
@@ -6156,11 +6217,11 @@ x_calc_absolute_position (struct frame *f)
           geometry = Fassoc (Qgeometry, attributes, Qnil);
           if (!NILP (geometry))
             {
-              monitor_left = Fnth (make_number (1), geometry);
-              monitor_top  = Fnth (make_number (2), geometry);
+              monitor_left = Fnth (make_fixnum (1), geometry);
+              monitor_top  = Fnth (make_fixnum (2), geometry);
 
-              display_left = min (display_left, XINT (monitor_left));
-              display_top  = min (display_top,  XINT (monitor_top));
+              display_left = min (display_left, XFIXNUM (monitor_left));
+              display_top  = min (display_top,  XFIXNUM (monitor_top));
             }
         }
     }
@@ -6446,10 +6507,10 @@ x_set_window_size (struct frame *f, bool change_gravity,
     {
       frame_size_history_add
 	(f, Qx_set_window_size_1, width, height,
-	 list2 (Fcons (make_number (pixelwidth),
-		       make_number (pixelheight)),
-		Fcons (make_number (rect.right - rect.left),
-		       make_number (rect.bottom - rect.top))));
+	 list2 (Fcons (make_fixnum (pixelwidth),
+		       make_fixnum (pixelheight)),
+		Fcons (make_fixnum (rect.right - rect.left),
+		       make_fixnum (rect.bottom - rect.top))));
 
       if (!FRAME_PARENT_FRAME (f))
 	my_set_window_pos (FRAME_W32_WINDOW (f), NULL,
@@ -6693,7 +6754,10 @@ x_make_frame_visible (struct frame *f)
     }
 
   if (!FLOATP (Vx_wait_for_event_timeout))
+    {
+      unblock_input ();
       return;
+    }
 
   /* Synchronize to ensure Emacs knows the frame is visible
      before we do anything else.  We do this loop with input not blocked
@@ -7279,7 +7343,7 @@ w32_initialize (void)
 
   /* Initialize input mode: interrupt_input off, no flow control, allow
      8 bit character input, standard quit char.  */
-  Fset_input_mode (Qnil, Qnil, make_number (2), Qnil);
+  Fset_input_mode (Qnil, Qnil, make_fixnum (2), Qnil);
 
   {
     LCID input_locale_id = LOWORD (GetKeyboardLayout (0));

@@ -1,10 +1,10 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2016-2018 Free Software Foundation, Inc.
+Copyright (C) 2016-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
-Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
-If possible, use M-x report-emacs-bug.
+Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
+If possible, use 'M-x report-emacs-bug'.
 
 This file is about changes in Emacs version 26.
 
@@ -13,7 +13,157 @@ See files NEWS.25, NEWS.24, ..., NEWS.18, and NEWS.1-17 for changes
 in older Emacs versions.
 
 You can narrow news to a specific version by calling 'view-emacs-news'
-with a prefix argument or by typing C-u C-h C-n.
+with a prefix argument or by typing 'C-u C-h C-n'.
+
+
+* Installation Changes in Emacs 26.2
+
+** Building Emacs with the '--with-xwidgets' option now requires WebKit2.
+To build Emacs with xwidgets support, you will need to install the
+webkit2gtk-4.0 package; version 2.12 or later is required.
+(This change was actually made in Emacs 26.1, but was not called out
+in its NEWS.)
+
+** Installing Emacs now installs the emacs-module.h file.
+The emacs-module.h file is now installed in the system-wide include
+directory as part of the Emacs installation.  This allows to build
+Emacs modules outside of the Emacs source tree.
+
+
+* Startup Changes in Emacs 26.2
+
+
+* Changes in Emacs 26.2
+
+** Emacs is now compliant with the latest version 11.0 of the Unicode Standard.
+
+** New variable 'xft-ignore-color-fonts'.
+Default t means don't try to load color fonts when using Xft, as they
+often cause crashes.  Set it to nil if you really need those fonts.
+
+
+* Editing Changes in Emacs 26.2
+
+
+* Changes in Specialized Modes and Packages in Emacs 26.2
+
+** Dired
+
+*** The 'Z' command on a directory name compresses all of its files.
+It produces a compressed '.tar.gz' archive with all the files in the
+directory and all of its subdirectories.  For symmetry, 'Z' on a
+'.tar.gz' or a '.tgz' archive extracts all the archived files into the
+current directory; thus, typing 'Z' on a '.tar.gz' archive created by
+a previous 'Z' command will extract the archived files into a
+directory whose name is the archive name sans the '.tar.gz' extension.
+(This change was actually made in Emacs 25.1 but was only
+partially called out in its NEWS; 'tgz' handling was added in 26.1.)
+
+** Ibuffer
+
+*** New toggle 'ibuffer-do-toggle-lock', bound to 'L'.
+
+** Imenu
+
+*** The value for 'imenu-auto-rescan-maxout' has been increased to 600000.
+
+** Gnus
+
+*** Mailutils movemail will now be used if found at runtime.
+The default value of 'mail-source-movemail-program' is now "movemail".
+This ensures that the movemail program from GNU Mailutils will be used
+if found in 'exec-path', even if it was not found at build time.  To
+use a different program, customize 'mail-source-movemail-program' to the
+absolute file name of the desired executable.
+
+** Shadowfile
+
+*** shadowfile.el has been rewritten to support Tramp file names.
+
+** Shell mode
+
+*** Shell mode buffers now have 'scroll-conservatively' set to 101.
+This is so as to better emulate the scrolling behavior of a text
+terminal when new output is added to the screen buffer.  To get back
+the previous behavior, reset 'scroll-conservatively' to zero (or any
+other value you like) in a function and add it to 'shell-mode-hook'.
+(This change was actually made in Emacs 26.1, but was not called out
+in its NEWS.)
+
+** VC
+
+*** VC support for Mercurial was improved.
+Emacs now avoids invoking 'hg' as much as possible, for faster operation.
+(This and the following changes were actually made in Emacs 26.1, but
+were not called out in its NEWS.)
+
+**** New vc-hg options.
+The new option 'vc-hg-parse-hg-data-structures' controls whether vc-hg
+will try parsing the Mercurial data structures directly instead of
+running 'hg'; it defaults to t (set to nil if you want the pre-26.1
+behavior).
+The new option 'vc-hg-symbolic-revision-styles' controls how versions
+in a Mercurial repository are presented symbolically on the mode line.
+The new option 'vc-hg-use-file-version-for-mode-line-version' controls
+whether the version shown on the mode line is that of the visited file
+or of the repository working copy.
+
+**** Display of Mercurial revisions in the mode line has changed.
+Previously, the mode line displayed the local number (1, 2, 3, ...) of
+the revision.  Starting with Emacs 26.1, the default has changed, and
+it now shows the global revision number, in the form of its changeset
+hash value.  To get back the previous behavior, customize the new
+option 'vc-hg-symbolic-revision-styles' to the value '("{rev}")'.
+
+
+* New Modes and Packages in Emacs 26.2
+
+
+* Incompatible Lisp Changes in Emacs 26.2
+
+** shadowfile config files have changed their syntax.
+Existing files "~/.emacs.d/shadows" and "~/.emacs.d/shadow_todo" must
+be removed prior using the changed 'shadow-*' commands.
+
+** 'thread-alive-p' has been renamed to 'thread-live-p'.
+The old name is an alias of the new name.  Future Emacs version will
+obsolete it.
+
+** 'while-no-input' does not return due to input from subprocesses.
+Input that arrived from subprocesses while some code executed inside
+the 'while-no-input' form injected an internal buffer-switch event
+that counted as input and would cause 'while-no-input' to return,
+perhaps prematurely.  These buffer-switch events are now by default
+ignored by 'while-no-input'; if you need to get the old behavior,
+remove 'buffer-switch' from the list of events in
+'while-no-input-ignore-events'.
+
+
+* Lisp Changes in Emacs 26.2
+
+** The new function 'read-answer' accepts either long or short answers
+depending on the new customizable variable 'read-answer-short'.
+
+** New function 'assoc-delete-all'.
+Like 'assq-delete-all', but uses 'equal' for comparison.
+
+** The function 'thing-at-point' behaves as before Emacs 26.1.
+The behavior of 'thing-at-point' when called with argument 'list' has
+changed in Emacs 26.1, in that it didn't consider text inside comments
+and strings as a potential list.  This change is now reverted, and
+'thing-at-point' behaves like it did before Emacs 26.1.
+
+** To cater to use cases where comments and strings are to be ignored
+when looking for a list, the function 'list-at-point' now takes an
+optional argument to do so.
+
+
+* Changes in Emacs 26.2 on Non-Free Operating Systems
+
+** macOS features can now be detected at run-time as well as at
+build-time.  See nextstep/INSTALL for details.
+(This change was actually made in Emacs 26.1, but was undocumented and
+not called out in its NEWS.)
 
 
 * Installation Changes in Emacs 26.1
@@ -26,11 +176,11 @@ version 2.6.6 or later.
 
 ** The new option 'configure --with-mailutils' causes Emacs to rely on
 GNU Mailutils to retrieve email.  It is recommended, and is the
-default if GNU Mailutils is installed.  When --with-mailutils is not
+default if GNU Mailutils is installed.  When '--with-mailutils' is not
 in effect, the Emacs build procedure by default continues to build and
 install a limited 'movemail' substitute that retrieves POP3 email only
 via insecure channels.  To avoid this problem, use either
---with-mailutils or --without-pop when configuring; --without-pop
+'--with-mailutils' or '--without-pop' when configuring; '--without-pop'
 is the default on platforms other than native MS-Windows.
 
 ** The new option 'configure --enable-gcc-warnings=warn-only' causes
@@ -42,17 +192,17 @@ now the default in developer builds.  As before, use
 ** When GCC warnings are enabled, '--enable-check-lisp-object-type' is
 now enabled by default when configuring.
 
-** The Emacs server now has socket-launching support.  This allows
-socket based activation, where an external process like systemd can
-invoke the Emacs server process upon a socket connection event and
-hand the socket over to Emacs.  Emacs uses this socket to service
-emacsclient commands.  This new functionality can be disabled with the
-configure option '--disable-libsystemd'.
+** The Emacs server now has socket-launching support.
+This allows socket based activation, where an external process like
+systemd can invoke the Emacs server process upon a socket connection
+event and hand the socket over to Emacs.  Emacs uses this socket to
+service emacsclient commands.  This new functionality can be disabled
+with the configure option '--disable-libsystemd'.
 
-** A systemd user unit file is provided.  Use it in the standard way:
-'systemctl --user enable emacs'.
-(If your Emacs is installed in a non-standard location, you may
-need to copy the emacs.service file to eg ~/.config/systemd/user/)
+** A systemd user unit file is provided.
+Use it in the standard way: 'systemctl --user enable emacs'.  (If your
+Emacs is installed in a non-standard location, you may need to copy
+the emacs.service file to eg ~/.config/systemd/user/)
 
 ** New configure option '--disable-build-details' attempts to build an
 Emacs that is more likely to be reproducible; that is, if you build
@@ -63,7 +213,6 @@ following variables nil: 'emacs-build-system', 'emacs-build-time',
 'erc-emacs-build-time'.
 
 ** Emacs can now be built with support for Little CMS.
-
 If the lcms2 library is installed, Emacs will enable features built on
 top of that library.  The new configure option '--without-lcms2' can
 be used to build without lcms2 support even if it is installed.  Emacs
@@ -106,9 +255,9 @@ The effect is similar to that of "toolBar" resource on the tool bar.
 
 * Changes in Emacs 26.1
 
-** Option 'buffer-offer-save' can be set to new value, 'always'.  When
-set to 'always', the command 'save-some-buffers' will always offer
-this buffer for saving.
+** Option 'buffer-offer-save' can be set to new value, 'always'.
+When set to 'always', the command 'save-some-buffers' will always
+offer this buffer for saving.
 
 ** Security vulnerability related to Enriched Text mode is removed.
 
@@ -594,7 +743,7 @@ This can be customized via the 'info-menu' category in
 A new option 'ediff-show-ancestor' and a new toggle
 'ediff-toggle-show-ancestor'.
 
-** TeX: Add luatex and xetex as alternatives to pdftex
+** TeX: Add luatex and xetex as alternatives to pdftex.
 
 ** Electric-Buffer-menu
 
@@ -630,6 +779,9 @@ added: 'C-c C-s C-m C-m'.
 zone name instead of the numeric form.  The '%z' format continues to
 be the numeric form.  The new behavior is compatible with
 'format-time-string'.
+
+*** New user option 'gnus-rcvstore-options' provides a way to
+specify additional options when saving messages to an MH folder.
 
 ** Ibuffer
 
@@ -718,6 +870,13 @@ breakpoint (e.g. with "f" and "o") by customizing the new option
 *** New customizable option 'edebug-max-depth'.
 This allows you to enlarge the maximum recursion depth when
 instrumenting code.
+
+*** 'edebug-prin1-to-string' now aliases 'cl-prin1-to-string'.
+This means edebug output is affected by variables 'cl-print-readably'
+and 'cl-print-compiled'.  To completely restore the previous printing
+behavior, use
+
+    (fset 'edebug-prin1-to-string #'prin1-to-string)
 
 ** Eshell
 
@@ -991,7 +1150,6 @@ to a format suitable for reverse lookup zone files.
 ** Ispell
 
 *** Enchant is now supported as a spell-checker.
-
 Enchant is a meta-spell-checker that uses providers such as Hunspell
 to do the actual checking.  With it, users can use spell-checkers not
 directly supported by Emacs, such as Voikko, Hspell and AppleSpell,
@@ -1001,8 +1159,7 @@ configure different spelling-checkers for different languages.
 
 ** Flymake
 
-*** Flymake has been completely redesigned
-
+*** Flymake has been completely redesigned.
 Flymake now annotates arbitrary buffer regions, not just lines.  It
 supports arbitrary diagnostic types, not just errors and warnings (see
 variable 'flymake-diagnostic-types-alist').
@@ -1018,7 +1175,6 @@ backend", which has been updated to benefit from the new UI features.
 ** Term
 
 *** 'term-char-mode' now makes its buffer read-only.
-
 The buffer is made read-only to prevent changes from being made by
 anything other than the process filter; and movements of point away
 from the process mark are counter-acted so that the cursor is in the
@@ -1034,7 +1190,6 @@ the previous behavior.
 ** Xref
 
 *** When an *xref* buffer is needed, 'TAB' quits and jumps to an xref.
-
 A new command 'xref-quit-and-goto-xref', bound to 'TAB' in *xref*
 buffers, quits the window before jumping to the destination.  In many
 situations, the intended window configuration is restored, just as if
@@ -1130,11 +1285,11 @@ change FOO, respectively.  The exhaustive list of removed variables is:
 
 *** Many variables obsoleted in 22.1 referring to face symbols.
 
-** The variable 'text-quoting-style' is now a customizable option.  It
-controls whether to and how to translate ASCII quotes in messages and
-help output.  Its possible values and their semantics remain unchanged
-from Emacs 25.  In particular, when this variable's value is 'grave',
-all quotes in formats are output as-is.
+** The variable 'text-quoting-style' is now a customizable option.
+It controls whether to and how to translate ASCII quotes in messages
+and help output.  Its possible values and their semantics remain
+unchanged from Emacs 25.  In particular, when this variable's value is
+'grave', all quotes in formats are output as-is.
 
 ** Functions like 'check-declare-file' and 'check-declare-directory'
 now generate less chatter and more-compact diagnostics.  The auxiliary
@@ -1278,6 +1433,13 @@ passphrases, but it was also removed from other pinentry programs as
 the attack is unrealistic on modern computer systems which don't
 utilize swap memory usually.
 
+** The function 'display-buffer-in-major-side-window' no longer exists.
+It has been renamed as internal function 'window--make-major-side-window',
+however applications should instead call 'display-buffer-in-side-window'
+(passing the SIDE and SLOT parameters as elements of ALIST).  This approach
+is backwards-compatible with versions of Emacs in which the old function
+exists.  See the node "Displaying Buffers in Side Windows" in the ELisp
+manual for more details.
 
 * Lisp Changes in Emacs 26.1
 
@@ -1398,10 +1560,11 @@ to provide region boundaries (for rectangular regions more than one)
 to an interactively callable function as a single argument instead of
 two separate arguments 'region-beginning' and 'region-end'.
 
-** 'parse-partial-sexp' state has a new element.  Element 10 is
-non-nil when the last character scanned might be the first character
-of a two character construct, i.e., a comment delimiter or escaped
-character.  Its value is the syntax of that last character.
+** 'parse-partial-sexp' state has a new element.
+Element 10 is non-nil when the last character scanned might be the
+first character of a two character construct, i.e., a comment
+delimiter or escaped character.  Its value is the syntax of that last
+character.
 
 ** 'parse-partial-sexp's state, element 9, has now been confirmed as
 permanent and documented, and may be used by Lisp programs.  Its value
@@ -1665,8 +1828,9 @@ the ELisp manual.
 *** 'select-frame-by-name' now may return a frame on another display
 if it does not find a suitable one on the current display.
 
-** 'tcl-auto-fill-mode' is now declared obsolete.  Its functionality
-can be replicated simply by setting 'comment-auto-fill-only-comments'.
+** 'tcl-auto-fill-mode' is now declared obsolete.
+Its functionality can be replicated simply by setting
+'comment-auto-fill-only-comments'.
 
 ** New pcase pattern 'rx' to match against an rx-style regular expression.
 For details, see the doc string of 'rx--pcase-macroexpander'.

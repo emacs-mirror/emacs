@@ -1,6 +1,6 @@
 ;;; srecode/table.el --- Tables of Semantic Recoders
 
-;; Copyright (C) 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -187,8 +187,8 @@ INIT are the initialization parameters for the new template table."
 	 (new (apply 'srecode-template-table
 		     (file-name-nondirectory file)
 		     :file file
-		     :filesize (nth 7 attr)
-		     :filedate (nth 5 attr)
+		     :filesize (file-attribute-size attr)
+		     :filedate (file-attribute-modification-time attr)
 		     :major-mode mode
 		     init
 		     )))

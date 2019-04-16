@@ -1,6 +1,6 @@
 ;;; eval-tests.el --- unit tests for src/eval.c      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'ert)
+(eval-when-compile (require 'cl-lib))
 
 (ert-deftest eval-tests--bug24673 ()
   "Check that Bug#24673 has been fixed."
@@ -116,5 +117,56 @@ crash/abort/malloc assert failure on the next test."
 (ert-deftest defvar/bug31072 ()
   "Check that Bug#31072 is fixed."
   (should-error (eval '(defvar 1) t) :type 'wrong-type-argument))
+
+(ert-deftest defvaralias-overwrite-warning ()
+  "Test for Bug#5950."
+  (defvar eval-tests--foo)
+  (setq eval-tests--foo 2)
+  (defvar eval-tests--foo-alias)
+  (setq eval-tests--foo-alias 1)
+  (cl-letf (((symbol-function 'display-warning)
+             (lambda (type &rest _)
+               (throw 'got-warning type))))
+    ;; Warn if we lose a value through aliasing.
+    (should (equal
+             '(defvaralias losing-value eval-tests--foo-alias)
+             (catch 'got-warning
+               (defvaralias 'eval-tests--foo-alias 'eval-tests--foo))))
+    ;; Don't warn if we don't.
+    (makunbound 'eval-tests--foo-alias)
+    (should (eq 'no-warning
+                (catch 'got-warning
+                  (defvaralias 'eval-tests--foo-alias 'eval-tests--foo)
+                  'no-warning)))))
+
+(ert-deftest eval-tests-byte-code-being-evaluated-is-protected-from-gc ()
+  "Regression test for Bug#33014.
+Check that byte-compiled objects being executed by exec-byte-code
+are found on the stack and therefore not garbage collected."
+  (should (string= (eval-tests-33014-func)
+                   "before after: ok foo: (e) bar: (a b c d e) baz: a bop: c")))
+
+(defvar eval-tests-33014-var "ok")
+(defun eval-tests-33014-func ()
+  "A function which has a non-trivial constants vector when byte-compiled."
+  (let ((result "before "))
+    (eval-tests-33014-redefine)
+    (garbage-collect)
+    (setq result (concat result (format "after: %s" eval-tests-33014-var)))
+    (let ((vals '(0 1 2 3))
+          (things '(a b c d e)))
+      (dolist (val vals)
+        (setq result
+              (concat result " "
+                      (cond
+                       ((= val 0) (format "foo: %s" (last things)))
+                       ((= val 1) (format "bar: %s" things))
+                       ((= val 2) (format "baz: %s" (car things)))
+                       (t (format "bop: %s" (nth 2 things))))))))
+    result))
+
+(defun eval-tests-33014-redefine ()
+  "Remove the Lisp reference to the byte-compiled object."
+  (setf (symbol-function #'eval-tests-33014-func) nil))
 
 ;;; eval-tests.el ends here

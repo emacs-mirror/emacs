@@ -1,6 +1,6 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
-;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2018 Free Software
+;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>
@@ -552,13 +552,7 @@ if large.  You can use `Info-split' to do this manually."
 
 (defvar texinfo-accent-commands
   (concat
-   "@^\\|"
-   "@`\\|"
-   "@'\\|"
-   "@\"\\|"
-   "@,\\|"
-   "@=\\|"
-   "@~\\|"
+   "@[\"',=^`~]\\|"
    "@OE{\\|"
    "@oe{\\|"
    "@AA{\\|"

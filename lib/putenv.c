@@ -1,4 +1,4 @@
-/* Copyright (C) 1991, 1994, 1997-1998, 2000, 2003-2018 Free Software
+/* Copyright (C) 1991, 1994, 1997-1998, 2000, 2003-2019 Free Software
    Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with the GNU C
@@ -34,7 +34,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+#if defined _WIN32 && ! defined __CYGWIN__
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 #endif
@@ -153,7 +153,7 @@ putenv (char *string)
             *ep = string;
             break;
           }
-# if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+# if defined _WIN32 && ! defined __CYGWIN__
       if (putenv_result == 0)
         {
           /* _putenv propagated "NAME= " into the subprocess environment;

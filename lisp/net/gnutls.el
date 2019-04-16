@@ -1,6 +1,6 @@
 ;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 
-;; Copyright (C) 2010-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
@@ -38,6 +38,9 @@
 (require 'cl-lib)
 (require 'puny)
 
+(declare-function network-stream-certificate "network-stream"
+                  (host service parameters))
+
 (defgroup gnutls nil
   "Emacs interface to the GnuTLS library."
   :version "24.1"
@@ -47,7 +50,15 @@
 (defcustom gnutls-algorithm-priority nil
   "If non-nil, this should be a TLS priority string.
 For instance, if you want to skip the \"dhe-rsa\" algorithm,
-set this variable to \"normal:-dhe-rsa\"."
+set this variable to \"normal:-dhe-rsa\".
+
+This variable can be useful for modifying low-level TLS
+connection parameters (for instance if you need to connect to a
+host that only accepts a specific algorithm).  However, in
+general, Emacs network security is handled by the Network
+Security Manager (NSM), and the default value of nil delegates
+the job of checking the connection security to the NSM.
+See Info node `(emacs) Network Security'."
   :group 'gnutls
   :type '(choice (const nil)
                  string))
@@ -73,7 +84,13 @@ flags and the corresponding conditions to be tested are:
 If the condition test fails, an error will be signaled.
 
 If the value of this variable is t, every connection will be subjected
-to all of the tests described above."
+to all of the tests described above.
+
+The default value of this variable is nil, which means that no
+checks are performed at the gnutls level.  Instead the checks are
+performed via `open-network-stream' at a higher level by the
+Network Security Manager.  See Info node `(emacs) Network
+Security'."
   :group 'gnutls
   :version "24.4"
   :type '(choice
@@ -112,12 +129,19 @@ number with fewer than this number of bits, the handshake is
 rejected.  \(The smaller the prime number, the less secure the
 key exchange is against man-in-the-middle attacks.)
 
-A value of nil says to use the default GnuTLS value."
+A value of nil says to use the default GnuTLS value.
+
+The default value of this variable is such that virtually any
+connection can be established, whether this connection can be
+considered cryptographically \"safe\" or not.  However, Emacs
+network security is handled at a higher level via
+`open-network-stream' and the Network Security Manager.  See Info
+node `(emacs) Network Security'."
   :type '(choice (const :tag "Use default value" nil)
                  (integer :tag "Number of bits" 512))
   :group 'gnutls)
 
-(defun open-gnutls-stream (name buffer host service &optional nowait)
+(defun open-gnutls-stream (name buffer host service &optional parameters)
   "Open a SSL/TLS connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
@@ -128,12 +152,15 @@ BUFFER is the buffer (or `buffer-name') to associate with the process.
  a filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
-Third arg is name of the host to connect to, or its IP address.
-Fourth arg SERVICE is name of the service desired, or an integer
+Third arg HOST is the name of the host to connect to, or its IP address.
+Fourth arg SERVICE is the name of the service desired, or an integer
 specifying a port number to connect to.
-Fifth arg NOWAIT (which is optional) means that the socket should
-be opened asynchronously.  The connection process will be
-returned to the caller before TLS negotiation has happened.
+Fifth arg PARAMETERS is an optional list of keyword/value pairs.
+Only :client-certificate and :nowait keywords are recognized, and
+have the same meaning as for `open-network-stream'.
+For historical reasons PARAMETERS can also be a symbol, which is
+interpreted the same as passing a list containing :nowait and the
+value of that symbol.
 
 Usage example:
 
@@ -147,19 +174,33 @@ This is a very simple wrapper around `gnutls-negotiate'.  See its
 documentation for the specific parameters you can use to open a
 GnuTLS connection, including specifying the credential type,
 trust and key files, and priority string."
-  (let ((process (open-network-stream
-                  name buffer host service
-                  :nowait nowait
-                  :tls-parameters
-                  (and nowait
-                       (cons 'gnutls-x509pki
-                             (gnutls-boot-parameters
-                              :type 'gnutls-x509pki
-                              :hostname (puny-encode-domain host)))))))
+  (let* ((parameters
+          (cond ((symbolp parameters)
+                 (list :nowait parameters))
+                ((not (cl-evenp (length parameters)))
+                 (error "Malformed keyword list"))
+                ((consp parameters)
+                 parameters)
+                (t
+                 (error "Unknown parameter type"))))
+         (cert (network-stream-certificate host service parameters))
+         (keylist (and cert (list cert)))
+         (nowait (plist-get parameters :nowait))
+         (process (open-network-stream
+                   name buffer host service
+                   :nowait nowait
+                   :tls-parameters
+                   (and nowait
+                        (cons 'gnutls-x509pki
+                              (gnutls-boot-parameters
+                               :type 'gnutls-x509pki
+                               :keylist keylist
+                               :hostname (puny-encode-domain host)))))))
     (if nowait
         process
       (gnutls-negotiate :process process
                         :type 'gnutls-x509pki
+                        :keylist keylist
                         :hostname (puny-encode-domain host)))))
 
 (define-error 'gnutls-error "GnuTLS error")

@@ -1,6 +1,6 @@
 ;;; mh-speed.el --- MH-E speedbar support
 
-;; Copyright (C) 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -163,7 +163,7 @@ The optional arguments from speedbar are IGNORED."
              (speedbar-change-expand-button-char ?-)
              (add-text-properties
               (mh-line-beginning-position) (1+ (line-beginning-position))
-              `(mh-expanded t)))))))
+              '(mh-expanded t)))))))
 
 (defun mh-speed-view (&rest ignored)
   "Visits the selected folder just as if you had used \\<mh-folder-mode-map>\\[mh-visit-folder].
@@ -199,7 +199,7 @@ created."
                       (1+ (mh-line-beginning-position))))
     (add-text-properties
      (mh-line-beginning-position) (1+ (line-beginning-position))
-     `(mh-folder nil mh-expanded nil mh-children-p t mh-level 0))
+     '(mh-folder nil mh-expanded nil mh-children-p t mh-level 0))
     (mh-speed-stealth-update t)
     (when (> mh-speed-update-interval 0)
       (mh-speed-flists nil))))
@@ -568,7 +568,7 @@ The function invalidates the latest ancestor that is present."
         (mh-speedbar-change-expand-button-char ?+)
         (add-text-properties
          (mh-line-beginning-position) (1+ (mh-line-beginning-position))
-         `(mh-children-p t)))
+         '(mh-children-p t)))
       (when (get-text-property (mh-line-beginning-position) 'mh-expanded)
         (mh-speed-toggle))
       (setq mh-speed-refresh-flag t))))

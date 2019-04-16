@@ -8,9 +8,11 @@
 @end ignore
 @set txicodequoteundirected
 @set txicodequotebacktick
+@iftex
 @c It turns out TeX sometimes fails to hyphenate, so we help it here
 @hyphenation{au-to-mat-i-cal-ly}
 @hyphenation{spec-i-fied}
 @hyphenation{work-a-round}
 @hyphenation{work-a-rounds}
 @hyphenation{un-marked}
+@end iftex

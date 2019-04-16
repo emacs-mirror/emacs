@@ -1,6 +1,6 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;; Copyright (C) 1998-2000, 2003, 2005, 2007-2018 Free Software
+;; Copyright (C) 1998-2000, 2003, 2005, 2007-2019 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -532,7 +532,7 @@ DIR is the directory to apply to new targets."
 		     (project-rescan tmp)
 		     (setq ntargets (cons tmp ntargets)))
 		   (makefile-macro-file-list macro))
-	   ;; Non-indirect will have a target whos sources
+	   ;; Non-indirect will have a target whose sources
 	   ;; are actual files, not names of other targets.
 	   (let ((files (makefile-macro-file-list macro)))
 	     (when files

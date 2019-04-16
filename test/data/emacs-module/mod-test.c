@@ -1,6 +1,6 @@
 /* Test GNU Emacs modules.
 
-Copyright 2015-2018 Free Software Foundation, Inc.
+Copyright 2015-2019 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,11 +17,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
+#include "config.h"
+
 #include <assert.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
+#include <string.h>
+#include <time.h>
+
 #include <emacs-module.h>
+
+#include "timespec.h"
 
 int plugin_is_GPL_compatible;
 
@@ -86,7 +94,7 @@ Fmod_test_signal (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   assert (env->non_local_exit_check (env) == emacs_funcall_exit_return);
   env->non_local_exit_signal (env, env->intern (env, "error"),
 			      env->make_integer (env, 56));
-  return env->intern (env, "nil");
+  return NULL;
 }
 
 
@@ -98,7 +106,7 @@ Fmod_test_throw (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   assert (env->non_local_exit_check (env) == emacs_funcall_exit_return);
   env->non_local_exit_throw (env, env->intern (env, "tag"),
 			     env->make_integer (env, 65));
-  return env->intern (env, "nil");
+  return NULL;
 }
 
 
@@ -155,6 +163,24 @@ Fmod_test_globref_make (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
   emacs_value lisp_str = env->make_string (env, str, sizeof str);
   return env->make_global_ref (env, lisp_str);
 }
+
+/* Create a few global references from arguments and free them.  */
+static emacs_value
+Fmod_test_globref_free (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
+			void *data)
+{
+  emacs_value refs[10];
+  for (int i = 0; i < 10; i++)
+    {
+      refs[i] = env->make_global_ref (env, args[i % nargs]);
+    }
+  for (int i = 0; i < 10; i++)
+    {
+      env->free_global_ref (env, refs[i]);
+    }
+  return env->intern (env, "ok");
+}
+
 
 
 /* Return a copy of the argument string where every 'a' is replaced
@@ -278,9 +304,67 @@ Fmod_test_invalid_finalizer (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
 {
   current_env = env;
   env->make_user_ptr (env, invalid_finalizer, NULL);
-  return env->funcall (env, env->intern (env, "garbage-collect"), 0, NULL);
+  return env->intern (env, "nil");
 }
 
+static void
+signal_wrong_type_argument (emacs_env *env, const char *predicate,
+                            emacs_value arg)
+{
+  emacs_value symbol = env->intern (env, "wrong-type-argument");
+  emacs_value elements[2] = {env->intern (env, predicate), arg};
+  emacs_value data = env->funcall (env, env->intern (env, "list"), 2, elements);
+  env->non_local_exit_signal (env, symbol, data);
+}
+
+static void
+signal_errno (emacs_env *env, const char *function)
+{
+  const char *message = strerror (errno);
+  emacs_value message_value = env->make_string (env, message, strlen (message));
+  emacs_value symbol = env->intern (env, "file-error");
+  emacs_value elements[2]
+    = {env->make_string (env, function, strlen (function)), message_value};
+  emacs_value data = env->funcall (env, env->intern (env, "list"), 2, elements);
+  env->non_local_exit_signal (env, symbol, data);
+}
+
+/* A long-running operation that occasionally calls `should_quit' or
+   `process_input'.  */
+
+static emacs_value
+Fmod_test_sleep_until (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
+                       void *data)
+{
+  assert (nargs == 2);
+  const double until_seconds = env->extract_float (env, args[0]);
+  if (env->non_local_exit_check (env))
+    return NULL;
+  if (until_seconds <= 0)
+    {
+      signal_wrong_type_argument (env, "cl-plusp", args[0]);
+      return NULL;
+    }
+  const bool process_input = env->is_not_nil (env, args[1]);
+  const struct timespec until = dtotimespec (until_seconds);
+  const struct timespec amount = make_timespec(0,  10000000);
+  while (true)
+    {
+      const struct timespec now = current_timespec ();
+      if (timespec_cmp (now, until) >= 0)
+        break;
+      if (nanosleep (&amount, NULL) && errno != EINTR)
+        {
+          signal_errno (env, "nanosleep");
+          return NULL;
+        }
+      if ((process_input
+           && env->process_input (env) == emacs_process_input_quit)
+          || env->should_quit (env))
+        return NULL;
+    }
+  return env->intern (env, "finished");
+}
 
 /* Lisp utilities for easier readability (simple wrappers).  */
 
@@ -339,6 +423,7 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-non-local-exit-funcall", Fmod_test_non_local_exit_funcall,
 	 1, 1, NULL, NULL);
   DEFUN ("mod-test-globref-make", Fmod_test_globref_make, 0, 0, NULL, NULL);
+  DEFUN ("mod-test-globref-free", Fmod_test_globref_free, 4, 4, NULL, NULL);
   DEFUN ("mod-test-string-a-to-b", Fmod_test_string_a_to_b, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-make", Fmod_test_userptr_make, 1, 1, NULL, NULL);
   DEFUN ("mod-test-userptr-get", Fmod_test_userptr_get, 1, 1, NULL, NULL);
@@ -348,6 +433,7 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-invalid-load", Fmod_test_invalid_load, 0, 0, NULL, NULL);
   DEFUN ("mod-test-invalid-finalizer", Fmod_test_invalid_finalizer, 0, 0,
          NULL, NULL);
+  DEFUN ("mod-test-sleep-until", Fmod_test_sleep_until, 2, 2, NULL, NULL);
 
 #undef DEFUN
 

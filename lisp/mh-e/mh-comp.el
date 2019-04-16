@@ -1,6 +1,6 @@
 ;;; mh-comp.el --- MH-E functions for composing and sending messages
 
-;; Copyright (C) 1993, 1995, 1997, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1993, 1995, 1997, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -73,6 +73,14 @@ This allows transaction log to be visible if -watch, -verbose or
   "Name of file to be used as a skeleton for composing messages.
 
 Default is \"components\".
+
+If not an absolute file name, the file is searched for first in the
+user's MH directory, then in the system MH lib directory.")
+
+(defvar mh-dist-formfile "distcomps"
+  "Name of file to be used as a skeleton for redistributing messages.
+
+Default is \"distcomps\".
 
 If not an absolute file name, the file is searched for first in the
 user's MH directory, then in the system MH lib directory.")
@@ -324,7 +332,7 @@ message and scan line."
       ;; message in your +outbox, and best of all doesn't break threading for
       ;; the recipient if you reply to a message in your +outbox.
       (setq mh-send-args (concat "-msgid " mh-send-args))
-      ;; The default BCC encapsulation will make a MIME message unreadable.
+      ;; The default Bcc encapsulation will make a MIME message unreadable.
       ;; With nmh use the -mime arg to prevent this.
       (if (and (mh-variant-p 'nmh)
                (mh-goto-header-field "Bcc:")
@@ -413,7 +421,7 @@ See also `mh-send'."
   (interactive (list (mh-get-msg-num t)))
   (let* ((from-folder mh-current-folder)
          (config (current-window-configuration))
-         (components-file (mh-bare-components))
+         (components-file (mh-bare-components mh-comp-formfile))
          (draft
           (cond ((and mh-draft-folder (equal from-folder mh-draft-folder))
                  (pop-to-buffer (find-file-noselect (mh-msg-filename message))
@@ -604,7 +612,7 @@ See also `mh-compose-forward-as-mime-flag',
               (goto-char (mh-mail-header-end))
               (while
                   (re-search-forward
-                   "^#forw \\[\\([^]]+\\)\\] \\(+\\S-+\\) \\(.*\\)$"
+                   "^#forw \\[\\([^]]+\\)\\] \\(\\+\\S-+\\) \\(.*\\)$"
                    (point-max) t)
                 (let ((description (if (equal (match-string 1)
                                               "forwarded messages")
@@ -649,15 +657,16 @@ Original message has headers FROM and SUBJECT."
   (format mh-forward-subject-format from subject))
 
 ;;;###mh-autoload
-(defun mh-redistribute (to cc &optional message)
+(defun mh-redistribute (to cc identity &optional message)
   "Redistribute a message.
 
 This command is similar in function to forwarding mail, but it
 does not allow you to edit the message, nor does it add your name
 to the \"From\" header field. It appears to the recipient as if
 the message had come from the original sender. When you run this
-command, you are prompted for the TO and CC recipients. The
-default MESSAGE is the current message.
+command, you are prompted for the TO and CC recipients. You are
+also prompted for the sending IDENTITY to use. The default
+MESSAGE is the current message.
 
 Also investigate the command \\[mh-edit-again] for another way to
 redistribute messages.
@@ -668,6 +677,9 @@ The hook `mh-annotate-msg-hook' is run after annotating the
 message and scan line."
   (interactive (list (mh-read-address "Redist-To: ")
                      (mh-read-address "Redist-Cc: ")
+                     (if mh-identity-list
+                         (mh-select-identity mh-identity-default)
+                       nil)
                      (mh-get-msg-num t)))
   (or message
       (setq message (mh-get-msg-num t)))
@@ -677,14 +689,51 @@ message and scan line."
                                 (if mh-redist-full-contents-flag
                                     (mh-msg-filename message)
                                   nil)
-                                nil)))
-      (mh-goto-header-end 0)
-      (insert "Resent-To: " to "\n")
-      (if (not (equal cc "")) (insert "Resent-cc: " cc "\n"))
-      (mh-clean-msg-header
-       (point-min)
-       "^Message-Id:\\|^Received:\\|^Return-Path:\\|^Sender:\\|^Date:\\|^From:"
-       nil)
+                                nil))
+          (from (mh-identity-field identity "From"))
+          (fcc  (mh-identity-field identity "Fcc"))
+          (bcc  (mh-identity-field identity "Bcc"))
+          comp-fcc comp-to comp-cc comp-bcc)
+      (if mh-redist-full-contents-flag
+          (mh-clean-msg-header
+           (point-min)
+           "^Message-Id:\\|^Received:\\|^Return-Path:\\|^Date:\\|^Resent-.*:"
+           nil))
+      ;; Read fields from the distcomps file and put them in our
+      ;; draft. For "To", "Cc", "Bcc", and "Fcc", multiple headers are
+      ;; combined into a single header with comma-separated entries.
+      ;; For "From", the first value wins, with the identity's "From"
+      ;; trumping anything in the distcomps file.
+      (let ((components-file (mh-bare-components mh-dist-formfile)))
+        (mh-mapc
+         (function
+          (lambda (header-field)
+            (let ((field (car header-field))
+                  (value (cdr header-field))
+                  (case-fold-search t))
+              (cond
+               ((string-match field "^Resent-Fcc$")
+                (setq comp-fcc value))
+               ((string-match field "^Resent-From$")
+                (or from
+                    (setq from value)))
+               ((string-match field "^Resent-To$")
+                (setq comp-to value))
+               ((string-match field "^Resent-Cc$")
+                (setq comp-cc value))
+               ((string-match field "^Resent-Bcc$")
+                (setq comp-bcc value))
+               ((string-match field "^Resent-.*$")
+                (mh-insert-fields field value))))))
+         (mh-components-to-list components-file))
+        (delete-file components-file))
+      (mh-insert-fields "Resent-To:" (mapconcat 'identity (list to comp-to) ", ")
+                        "Resent-Cc:" (mapconcat 'identity (list cc comp-cc) ", ")
+                        "Resent-Fcc:" (mapconcat 'identity (list fcc
+                                                                 comp-fcc) ", ")
+                        "Resent-Bcc:" (mapconcat 'identity (list bcc
+                                                                 comp-bcc) ", ")
+                        "Resent-From:" from)
       (save-buffer)
       (message "Redistributing...")
       (let ((env "mhdist=1"))
@@ -702,7 +751,8 @@ message and scan line."
         ;; Annotate...
         (mh-annotate-msg message folder mh-note-dist
                          "-component" "Resent:"
-                         "-text" (format "\"%s %s\"" to cc)))
+                         "-text" (format "\"To: %s Cc: %s From: %s\""
+                                         to cc from)))
       (kill-buffer draft)
       (message "Redistributing...done"))))
 
@@ -898,7 +948,7 @@ CONFIG is the window configuration before sending mail."
     (message "Composing a message...")
     (let ((draft (mh-read-draft
                   "message"
-                  (mh-bare-components)
+                  (mh-bare-components mh-comp-formfile)
                   t)))
       (mh-insert-fields "To:" to "Subject:" subject "Cc:" cc)
       (goto-char (point-max))
@@ -908,27 +958,31 @@ CONFIG is the window configuration before sending mail."
       (mh-letter-mode-message)
       (mh-letter-adjust-point))))
 
-(defun mh-bare-components ()
-  "Generate a temporary, clean components file and return its path."
-  ;; Let comp(1) create the skeleton for us.  This is particularly
+(defun mh-bare-components (formfile)
+  "Generate a temporary, clean components file from FORMFILE.
+Return the path to the temporary file."
+  ;; Let comp(1) create the skeleton for us. This is particularly
   ;; important with nmh-1.5, because its default "components" needs
-  ;; some processing before it can be used.  Unfortunately, comp(1)
-  ;; doesn't have a -build option.  So, to avoid the possibility of
-  ;; clobbering an existing draft, create a temporary directory and
-  ;; use it as the drafts folder.  Then copy the skeleton to a regular
-  ;; temp file, and return the regular temp file.
+  ;; some processing before it can be used. Unfortunately, comp(1)
+  ;; didn't have a -build option until later versions of nmh. So, to
+  ;; avoid the possibility of clobbering an existing draft, create
+  ;; a temporary directory and use it as the drafts folder. Then
+  ;; copy the skeleton to a regular temp file, and return the
+  ;; regular temp file.
   (let (new
         (temp-folder (make-temp-file
                       (concat mh-user-path "draftfolder.") t)))
     (mh-exec-cmd "comp" "-nowhatnowproc"
                  "-draftfolder" (format "+%s"
                                         (file-name-nondirectory temp-folder))
-                 (if (stringp mh-comp-formfile)
-                     (list "-form" mh-comp-formfile)))
+                 (if (stringp formfile)
+                     (list "-form" formfile)))
     (setq new (make-temp-file "comp."))
     (rename-file (concat temp-folder "/" "1") new t)
-    (delete-file (concat temp-folder "/" ".mh_sequences"))
-    (delete-directory temp-folder)
+    ;; The temp folder could contain various metadata files.  Rather
+    ;; than trying to enumerate all the known files, just do a
+    ;; recursive delete on the directory.
+    (delete-directory temp-folder t)
     new))
 
 (defun mh-read-draft (use initial-contents delete-contents-file)

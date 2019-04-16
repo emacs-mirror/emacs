@@ -1,6 +1,6 @@
 /* A more-standard <time.h>.
 
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 
-/* Some systems don't define struct timespec (e.g., AIX 4.1, Ultrix 4.3).
+/* Some systems don't define struct timespec (e.g., AIX 4.1).
    Or they define it with the wrong member names or define it in <sys/time.h>
    (e.g., FreeBSD circa 1997).  Stock Mingw prior to 3.0 does not define it,
    but the pthreads-win32 library defines it in <pthread.h>.  */
@@ -212,7 +212,7 @@ _GL_CXXALIASWARN (gmtime_r);
 #    define localtime rpl_localtime
 #   endif
 _GL_FUNCDECL_RPL (localtime, struct tm *, (time_t const *__timer)
-		                          _GL_ARG_NONNULL ((1)));
+                                          _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (localtime, struct tm *, (time_t const *__timer));
 #  else
 _GL_CXXALIAS_SYS (localtime, struct tm *, (time_t const *__timer));

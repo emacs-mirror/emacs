@@ -1,6 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for 32-bit Windows
 
-;; Copyright (C) 1994, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2019 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -38,6 +38,8 @@
     ;; Map all versions of a filename (8.3, longname, mixed case) to the
     ;; same buffer.
     (setq find-file-visit-truename t))
+
+;;;; Shells
 
 (defun w32-shell-name ()
   "Return the name of the shell being used."
@@ -120,6 +122,8 @@ You should set this to t when using a non-system shell.\n\n"))))
 
 (add-hook 'after-init-hook 'w32-check-shell-configuration)
 
+;;;; Coding-systems, locales, etc.
+
 ;; Override setting chosen at startup.
 (defun w32-set-default-process-coding-system ()
   ;; Most programs on Windows will accept Unix line endings on input
@@ -186,31 +190,6 @@ You should set this to t when using a non-system shell.\n\n"))))
 ;;	  (lambda ()
 ;;	    (setq source-directory (file-name-as-directory
 ;;				     (expand-file-name ".." exec-directory)))))
-
-(defun w32-convert-standard-filename (filename)
-  "Convert a standard file's name to something suitable for MS-Windows.
-This means to guarantee valid names and perhaps to canonicalize
-certain patterns.
-
-This function is called by `convert-standard-filename'.
-
-Replace invalid characters and turn Cygwin names into native
-names."
-  (save-match-data
-    (let ((name
-	   (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
-               (replace-match "\\1:/" t nil filename)
-             (copy-sequence filename)))
-	  (start 0))
-      ;; leave ':' if part of drive specifier
-      (if (and (> (length name) 1)
-	       (eq (aref name 1) ?:))
-	  (setq start 2))
-      ;; destructively replace invalid filename characters with !
-      (while (string-match "[?*:<>|\"\000-\037]" name start)
-	(aset name (match-beginning 0) ?!)
-	(setq start (match-end 0)))
-      name)))
 
 (defun w32-set-system-coding-system (coding-system)
   "Set the coding system used by the Windows system to CODING-SYSTEM.
@@ -279,8 +258,8 @@ bit output with no translation."
   (w32-add-charset-info "iso8859-9" 'w32-charset-turkish 1254)
   (w32-add-charset-info "iso8859-13" 'w32-charset-baltic 1257)
   (w32-add-charset-info "koi8-r" 'w32-charset-russian 20866)
-  (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
-  (w32-add-charset-info "tis620-2533" 'w32-charset-thai 874)
+  (w32-add-charset-info "tis620-2533" 'w32-charset-russian 28595)
+  (w32-add-charset-info "iso8859-11" 'w32-charset-thai 874)
   (w32-add-charset-info "windows-1258" 'w32-charset-vietnamese 1258)
   (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
   (w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)
@@ -296,6 +275,76 @@ bit output with no translation."
   (w32-add-charset-info "ksc5601.1987-0" 'w32-charset-hangeul 949)
   (w32-add-charset-info "tis620-0" 'w32-charset-thai 874)
   (w32-add-charset-info "iso8859-1" 'w32-charset-ansi 1252))
+
+;;;; Standard filenames
+
+(defun w32-convert-standard-filename (filename)
+  "Convert a standard file's name to something suitable for MS-Windows.
+This means to guarantee valid names and perhaps to canonicalize
+certain patterns.
+
+This function is called by `convert-standard-filename'.
+
+Replace invalid characters and turn Cygwin names into native
+names."
+  (save-match-data
+    (let ((name
+	   (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
+               (replace-match "\\1:/" t nil filename)
+             (copy-sequence filename)))
+	  (start 0))
+      ;; leave ':' if part of drive specifier
+      (if (and (> (length name) 1)
+	       (eq (aref name 1) ?:))
+	  (setq start 2))
+      ;; destructively replace invalid filename characters with !
+      (while (string-match "[?*:<>|\"\000-\037]" name start)
+	(aset name (match-beginning 0) ?!)
+	(setq start (match-end 0)))
+      name)))
+
+;;;; System name and version for emacsbug.el
+
+(defun w32--os-description ()
+  "Return a string describing the underlying OS and its version."
+  (let* ((w32ver (car (w32-version)))
+         (w9x-p (< w32ver 5))
+         (key (if w9x-p
+                  "SOFTWARE/Microsoft/Windows/CurrentVersion"
+                "SOFTWARE/Microsoft/Windows NT/CurrentVersion"))
+         (os-name (w32-read-registry 'HKLM key "ProductName"))
+         (os-version (if w9x-p
+                         (w32-read-registry 'HKLM key "VersionNumber")
+                       (let ((vmajor
+                              (w32-read-registry 'HKLM key
+                                                 "CurrentMajorVersionNumber"))
+                             (vminor
+                              (w32-read-registry 'HKLM key
+                                                 "CurrentMinorVersionNumber")))
+                         (if (and vmajor vmajor)
+                             (format "%d.%d" vmajor vminor)
+                           (w32-read-registry 'HKLM key "CurrentVersion")))))
+         (os-csd (w32-read-registry 'HKLM key "CSDVersion"))
+         (os-rel (or (w32-read-registry 'HKLM key "ReleaseID")
+                     (w32-read-registry 'HKLM key "CSDBuildNumber")
+                 "0"))  ; No Release ID before Windows Vista
+         (os-build (w32-read-registry 'HKLM key "CurrentBuildNumber"))
+         (os-rev (w32-read-registry 'HKLM key "UBR"))
+         (os-rev (if os-rev (format "%d" os-rev))))
+    (if w9x-p
+        (concat
+         (if (not (string-match "\\`Microsoft " os-name)) "Microsoft ")
+         os-name
+         " (v" os-version ")")
+      (concat
+       (if (not (string-match "\\`Microsoft " os-name)) "Microsoft ")
+       os-name      ; Windows 7 Enterprise
+       " "
+       os-csd       ; Service Pack 1
+       (if (and os-csd (> (length os-csd) 0)) " " "")
+       "(v"
+       os-version "." os-rel "." os-build (if os-rev (concat "." os-rev))
+       ")"))))
 
 
 ;;;; Support for build process

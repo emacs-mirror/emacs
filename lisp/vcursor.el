@@ -1,6 +1,6 @@
 ;;; vcursor.el --- manipulate an alternative ("virtual") cursor
 
-;; Copyright (C) 1994, 1996, 1998, 2001-2018 Free Software Foundation,
+;; Copyright (C) 1994, 1996, 1998, 2001-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>
@@ -815,8 +815,7 @@ out how much to copy."
 
 (define-minor-mode vcursor-use-vcursor-map
   "Toggle the state of the vcursor key map.
-With a prefix argument ARG, enable it if ARG is positive, and disable
-it otherwise.  If called from Lisp, enable it if ARG is omitted or nil.
+
 When on, the keys defined in it are mapped directly on top of the main
 keymap, allowing you to move the vcursor with ordinary motion keys.
 An indication \"!VC\" appears in the mode list.  The effect is

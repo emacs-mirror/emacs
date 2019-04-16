@@ -2,15 +2,15 @@
 @c texi/trampver.texi.  Generated from trampver.texi.in by configure.
 
 @c This is part of the Emacs manual.
-@c Copyright (C) 2003-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2003-2019 Free Software Foundation, Inc.
 @c See file doclicense.texi for copying conditions.
 
-@c In the Tramp GIT, the version number is auto-frobbed from
-@c configure.ac, so you should edit that file and run
-@c "autoconf && ./configure" to change the version number.
-@set trampver 2.4.0-pre
+@c In the Tramp GIT, the version number is auto-frobbed from tramp.el,
+@c and the bug report address is auto-frobbed from configure.ac.
+@set trampver 2.4.2-pre
+@set tramp-bug-report-address tramp-devel@@gnu.org
 
-@c Other flags from configuration
+@c Other flags from configuration.
 @set instprefix /usr/local
 @set lispdir /usr/local/share/emacs/site-lisp
 @set infodir /usr/local/share/info
@@ -44,3 +44,17 @@
 @set ipv6prefix
 @set ipv6postfix
 @end ifset
+
+@c Macro for formatting a file name according to the respective
+@c syntax.  trampver.texi is included several times in tramp.texi and
+@c trampinst.texi.  Redefining the macro is reported as warning for
+@c creating the dvi and pdf files, so we declare the macro only the
+@c first time this file is included.
+@ifclear trampfndefined
+@set trampfndefined
+@macro trampfn {method, userhost, localname}
+@value{prefix}@c
+\method\@value{postfixhop}@c
+\userhost\@value{postfix}\localname\
+@end macro
+@end ifclear

@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1996, 1998, 2000-2018 Free Software Foundation,
+;; Copyright (C) 1989-1996, 1998, 2000-2019 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
@@ -1361,11 +1361,13 @@ only return the directory part of FILE."
 		  (ange-ftp-real-expand-file-name ange-ftp-netrc-filename)))
       (setq attr (ange-ftp-real-file-attributes file)))
     (if (and attr			; file exists.
-	     (not (equal (nth 5 attr) ange-ftp-netrc-modtime)))	; file changed
+	     (not (equal (file-attribute-modification-time attr)
+			 ange-ftp-netrc-modtime)))	; file changed
 	(save-match-data
 	  (if (or ange-ftp-disable-netrc-security-check
-		  (and (eq (nth 2 attr) (user-uid)) ; Same uids.
-		       (string-match ".r..------" (nth 8 attr))))
+		  (and (eq (file-attribute-user-id attr) (user-uid)) ; Same uids.
+		       (string-match ".r..------"
+				     (file-attribute-modes attr))))
 	      (with-current-buffer
 		;; we are cheating a bit here.  I'm trying to do the equivalent
 		;; of find-file on the .netrc file, but then nuke it afterwards.
@@ -1389,7 +1391,8 @@ only return the directory part of FILE."
 	    (ange-ftp-message "%s either not owned by you or badly protected."
 			      ange-ftp-netrc-filename)
 	    (sit-for 1))
-	  (setq ange-ftp-netrc-modtime (nth 5 attr))))))
+	  (setq ange-ftp-netrc-modtime
+		(file-attribute-modification-time attr))))))
 
 ;; Return a list of prefixes of the form 'user@host:' to be used when
 ;; completion is done in the root directory.
@@ -2676,7 +2679,7 @@ The main reason for this alist is to deal with file versions in VMS.")
 
 (defmacro ange-ftp-parse-filename ()
   ;;Extract the filename from the current line of a dired-like listing.
-  `(save-match-data
+  '(save-match-data
      (let ((eol (progn (end-of-line) (point))))
        (beginning-of-line)
        (if (re-search-forward directory-listing-before-filename-regexp eol t)
@@ -2725,7 +2728,7 @@ The main reason for this alist is to deal with file versions in VMS.")
 	    ;; seem to believe in the F-switch
 	    (if (or (and symlink (string-match "@\\'" file))
 		    (and directory (string-match "/\\'" file))
-		    (and executable (string-match "*\\'" file))
+		    (and executable (string-match "\\*\\'" file))
 		    (and socket (string-match "=\\'" file)))
 		(setq file (substring file 0 -1)))))
       (puthash file (or symlink directory) tbl)
@@ -2758,7 +2761,7 @@ match subdirectories as well.")
 (defmacro ange-ftp-dl-parser ()
   ;; Parse the current buffer, which is assumed to be a descriptive
   ;; listing, and return a hashtable.
-  `(let ((tbl (make-hash-table :test 'equal)))
+  '(let ((tbl (make-hash-table :test 'equal)))
      (while (not (eobp))
        (puthash
         (buffer-substring (point)
@@ -2868,7 +2871,6 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 ;; 2. The syntax of FILE and DIR make it impossible that FILE could be a valid
 ;;     subdirectory. This is of course an OS dependent judgment.
 
-(defvar dired-local-variables-file)
 (defmacro ange-ftp-allow-child-lookup (dir file)
   `(not
     (let* ((efile ,file)		; expand once.
@@ -2877,10 +2879,6 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
            (host-type (ange-ftp-host-type
                        (car parsed))))
       (or
-       ;; Deal with dired
-       (and (boundp 'dired-local-variables-file) ; in the dired-x package
-	    (stringp dired-local-variables-file)
-	    (string-equal dired-local-variables-file efile))
        ;; No dots in dir names in vms.
        (and (eq host-type 'vms)
 	    (string-match "\\." efile))
@@ -3247,7 +3245,8 @@ system TYPE.")
 		;; tell the process filter what size the transfer will be.
 		(let ((attr (file-attributes temp)))
 		  (if attr
-		      (ange-ftp-set-xfer-size host user (nth 7 attr))))
+		      (ange-ftp-set-xfer-size host user
+					      (file-attribute-size attr))))
 
 		;; put or append the file.
 		(let ((result (ange-ftp-send-cmd host user
@@ -3486,8 +3485,8 @@ system TYPE.")
   (let ((f1-parsed (ange-ftp-ftp-name f1))
         (f2-parsed (ange-ftp-ftp-name f2)))
     (if (or f1-parsed f2-parsed)
-        (let ((f1-mt (nth 5 (file-attributes f1)))
-              (f2-mt (nth 5 (file-attributes f2))))
+        (let ((f1-mt (file-attribute-modification-time (file-attributes f1)))
+              (f2-mt (file-attribute-modification-time (file-attributes f2))))
           (cond ((null f1-mt) nil)
                 ((null f2-mt) t)
 		(t (time-less-p f2-mt f1-mt))))
@@ -3787,7 +3786,8 @@ so return the size on the remote host exactly. See RFC 3659."
 	    ;; tell the process filter what size the file is.
 	    (let ((attr (file-attributes (or temp2 filename))))
 	      (if attr
-		  (ange-ftp-set-xfer-size t-host t-user (nth 7 attr))))
+		  (ange-ftp-set-xfer-size t-host t-user
+					  (file-attribute-size attr))))
 
 	    (ange-ftp-send-cmd
 	     t-host
@@ -4277,7 +4277,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 			       nil
 			       t
 			       nil
-			       "-c"
+			       shell-command-switch
 			       (format "compress -f -c < %s > %s" tmp1 tmp2))
 	  (and ange-ftp-process-verbose
 	       (ange-ftp-message "Compressing %s...done" abbr))
@@ -4313,7 +4313,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 			       nil
 			       t
 			       nil
-			       "-c"
+			       shell-command-switch
 			       (format "uncompress -c < %s > %s" tmp1 tmp2))
 	  (and ange-ftp-process-verbose
 	       (ange-ftp-message "Uncompressing %s...done" abbr))
@@ -4441,6 +4441,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 
 ;; We can handle process-file in a restricted way (just for chown).
 ;; Nothing possible for `start-file-process'.
+(put 'exec-path 'ange-ftp 'ignore)
+(put 'make-process 'ange-ftp 'ignore)
 (put 'process-file 'ange-ftp 'ange-ftp-process-file)
 (put 'start-file-process 'ange-ftp 'ignore)
 (put 'shell-command 'ange-ftp 'ange-ftp-shell-command)

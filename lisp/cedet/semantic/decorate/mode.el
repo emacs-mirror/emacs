@@ -1,6 +1,6 @@
 ;;; semantic/decorate/mode.el --- Minor mode for decorating tags
 
-;; Copyright (C) 2000-2005, 2007-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2019 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -249,13 +249,13 @@ by `semantic-decoration-styles'."
 
 (define-minor-mode semantic-decoration-mode
   "Minor mode for decorating tags.
-Decorations are specified in `semantic-decoration-styles'.
-You can define new decoration styles with
+Decorations are specified in `semantic-decoration-styles'.  You
+can define new decoration styles with
 `define-semantic-decoration-style'.
-With prefix argument ARG, turn on if positive, otherwise off.  The
-minor mode can be turned on only if semantic feature is available and
-the current buffer was set up for parsing.  Return non-nil if the
-minor mode is enabled."
+
+The minor mode can be turned on only if semantic feature is
+available and the current buffer was set up for parsing.  Return
+non-nil if the minor mode is enabled."
 ;;
 ;;\\{semantic-decoration-map}"
   nil nil nil

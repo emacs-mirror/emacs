@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2019 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -44,7 +44,7 @@
 (declare-function mail-content-type-get "mail-parse" (ct attribute))
 ;; mm-decode loads mm-bodies, which loads mm-util.
 (declare-function mm-charset-to-coding-system "mm-util"
-                 (charset &optional lbt allow-override silent))
+                  (charset &optional lbt allow-override silent))
 
 ;; Implementation status
 ;; ---------------------
@@ -102,10 +102,7 @@
 
 ;;;###autoload
 (define-minor-mode url-handler-mode
-  "Toggle using `url' library for URL filenames (URL Handler mode).
-With a prefix argument ARG, enable URL Handler mode if ARG is
-positive, and disable it otherwise.  If called from Lisp, enable
-the mode if ARG is omitted or nil."
+  "Toggle using `url' library for URL filenames (URL Handler mode)."
   :global t :group 'url
   ;; Remove old entry, if any.
   (setq file-name-handler-alist
@@ -263,15 +260,15 @@ the arguments that would have been passed to OPERATION."
 ;; The actual implementation
 ;;;###autoload
 (defun url-copy-file (url newname &optional ok-if-already-exists
-			  _keep-time _preserve-uid-gid)
+                          _keep-time _preserve-uid-gid _preserve-permissions)
   "Copy URL to NEWNAME.  Both args must be strings.
-Signals a `file-already-exists' error if file NEWNAME already exists,
+Signal a `file-already-exists' error if file NEWNAME already exists,
 unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
 A number as third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.
 Fourth arg KEEP-TIME non-nil means give the new file the same
 last-modified time as the old one.  (This works on only some systems.)
-Fifth arg PRESERVE-UID-GID is ignored.
+Args PRESERVE-UID-GID and PRESERVE-PERMISSIONS are ignored.
 A prefix arg makes KEEP-TIME non-nil."
   (if (and (file-exists-p newname)
 	   (not ok-if-already-exists))
@@ -354,7 +351,7 @@ if it had been inserted from a file named URL."
     (unless buffer (signal 'file-error (list url "No Data")))
     (with-current-buffer buffer
       ;; XXX: This is HTTP/S specific and should be moved to url-http
-      ;; instead.  See https://debbugs.gnu.org/17549.
+      ;; instead.  See bug#17549.
       (when (bound-and-true-p url-http-response-status)
         ;; Don't signal an error if VISIT is non-nil, because
         ;; 'insert-file-contents' doesn't.  This is required to
@@ -367,7 +364,7 @@ if it had been inserted from a file named URL."
                          (< url-http-response-status 300)))
           (let ((desc (nth 2 (assq url-http-response-status url-http-codes))))
             (kill-buffer buffer)
-            ;; Signal file-error per https://debbugs.gnu.org/16733.
+            ;; Signal file-error per bug#16733.
             (signal 'file-error (list url desc))))))
     (url-insert-buffer-contents buffer url visit beg end replace)))
 

@@ -1,7 +1,7 @@
 
 ;;; authors.el --- utility for maintaining Emacs's AUTHORS file
 
-;; Copyright (C) 2000-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -958,7 +958,7 @@ in the repository.")
     ("nxml/test.invalid.xml" . "test-invalid.xml")
     ("nxml/test.valid.xml" . "test-valid.xml")
     ("automated/Makefile.in" . "test/Makefile.in")
-    ("rmailmm.el" . "test/rmailmm.el")
+    ("test/rmailmm.el" . "rmailmm.el")
     ;; The one in lisp is eshell/eshell.el.
     ("eshell.el" . "eshell-tests.el")
     ("automated/eshell.el" . "eshell-tests.el")

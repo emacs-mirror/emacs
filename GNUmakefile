@@ -1,6 +1,6 @@
 # Build Emacs from a fresh tarball or version-control checkout.
 
-# Copyright (C) 2011-2018 Free Software Foundation, Inc.
+# Copyright (C) 2011-2019 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -27,10 +27,10 @@
 # newly-built Makefile.  If the source tree is already configured,
 # this file defers to the existing Makefile.
 
-# If you are using a non-GNU 'make', or if you want non-default build
-# options, or if you want to build in an out-of-source tree, please
-# run "configure" by hand.  But run autogen.sh first, if the source
-# was checked out directly from the repository.
+# If you want non-default build options, or if you want to build in an
+# out-of-source tree, you should run 'configure' before running 'make'.
+# But run 'autogen.sh' first, if the source was checked out directly
+# from the repository.
 
 # If a Makefile already exists, just use it.
 

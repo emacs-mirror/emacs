@@ -1,6 +1,6 @@
 ;;; pgg-parse.el --- OpenPGP packet parsing
 
-;; Copyright (C) 1999, 2002-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2002-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
@@ -116,17 +116,17 @@
   )
 
 (defmacro pgg-parse-time-field (bytes)
-  `(list (logior (lsh (car ,bytes) 8)
+  `(list (logior (ash (car ,bytes) 8)
 		 (nth 1 ,bytes))
-	 (logior (lsh (nth 2 ,bytes) 8)
+	 (logior (ash (nth 2 ,bytes) 8)
 		 (nth 3 ,bytes))
 	 0))
 
 (defmacro pgg-byte-after (&optional pos)
-  `(pgg-char-int (char-after ,(or pos `(point)))))
+  `(pgg-char-int (char-after ,(or pos '(point)))))
 
 (defmacro pgg-read-byte ()
-  `(pgg-char-int (char-after (prog1 (point) (forward-char)))))
+  '(pgg-char-int (char-after (prog1 (point) (forward-char)))))
 
 (defmacro pgg-read-bytes-string (nbytes)
   `(buffer-substring
@@ -184,21 +184,21 @@
       (ccl-execute-on-string pgg-parse-crc24 h string)
       (format "%c%c%c"
 	      (logand (aref h 1) 255)
-	      (logand (lsh (aref h 2) -8) 255)
+	      (logand (ash (aref h 2) -8) 255)
 	      (logand (aref h 2) 255)))))
 
 (defmacro pgg-parse-length-type (c)
   `(cond
     ((< ,c 192) (cons ,c 1))
     ((< ,c 224)
-     (cons (+ (lsh (- ,c 192) 8)
+     (cons (+ (ash (- ,c 192) 8)
 	      (pgg-byte-after (+ 2 (point)))
 	      192)
 	   2))
     ((= ,c 255)
-     (cons (cons (logior (lsh (pgg-byte-after (+ 2 (point))) 8)
+     (cons (cons (logior (ash (pgg-byte-after (+ 2 (point))) 8)
 			 (pgg-byte-after (+ 3 (point))))
-		 (logior (lsh (pgg-byte-after (+ 4 (point))) 8)
+		 (logior (ash (pgg-byte-after (+ 4 (point))) 8)
 			 (pgg-byte-after (+ 5 (point)))))
 	   5))
     (t;partial body length
@@ -210,13 +210,13 @@
     (if (zerop (logand 64 ptag));Old format
 	(progn
 	  (setq length-type (logand ptag 3)
-		length-type (if (= 3 length-type) 0 (lsh 1 length-type))
-		content-tag (logand 15 (lsh ptag -2))
+		length-type (if (= 3 length-type) 0 (ash 1 length-type))
+		content-tag (logand 15 (ash ptag -2))
 		packet-bytes 0
 		header-bytes (1+ length-type))
 	  (dotimes (i length-type)
 	    (setq packet-bytes
-		  (logior (lsh packet-bytes 8)
+		  (logior (ash packet-bytes 8)
 			  (pgg-byte-after (+ 1 i (point)))))))
       (setq content-tag (logand 63 ptag)
 	    length-type (pgg-parse-length-type
@@ -317,10 +317,10 @@
 	   (let ((name-bytes (pgg-read-bytes 2))
 		 (value-bytes (pgg-read-bytes 2)))
 	     (cons (pgg-read-bytes-string
-		    (logior (lsh (car name-bytes) 8)
+		    (logior (ash (car name-bytes) 8)
 			    (nth 1 name-bytes)))
 		   (pgg-read-bytes-string
-		    (logior (lsh (car value-bytes) 8)
+		    (logior (ash (car value-bytes) 8)
 			    (nth 1 value-bytes)))))))
     (21 ;preferred hash algorithms
      (cons 'preferred-hash-algorithm
@@ -380,7 +380,7 @@
       (pgg-set-alist result
 		     'hash-algorithm (pgg-read-byte))
       (when (>= 10000 (setq n (pgg-read-bytes 2)
-			    n (logior (lsh (car n) 8)
+			    n (logior (ash (car n) 8)
 				      (nth 1 n))))
 	(save-restriction
 	  (narrow-to-region (point)(+ n (point)))
@@ -391,7 +391,7 @@
 			  #'pgg-parse-signature-subpacket)))
 	  (goto-char (point-max))))
       (when (>= 10000 (setq n (pgg-read-bytes 2)
-			    n (logior (lsh (car n) 8)
+			    n (logior (ash (car n) 8)
 				      (nth 1 n))))
 	(save-restriction
 	  (narrow-to-region (point)(+ n (point)))

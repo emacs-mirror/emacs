@@ -1,6 +1,6 @@
 ;;; semantic/decorate.el --- Utilities for decorating/highlighting tokens.
 
-;;; Copyright (C) 1999-2003, 2005-2007, 2009-2018 Free Software
+;;; Copyright (C) 1999-2003, 2005-2007, 2009-2019 Free Software
 ;;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

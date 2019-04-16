@@ -1,6 +1,6 @@
 ;;; frameset.el --- save and restore frame and window setup -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;; Keywords: convenience
@@ -675,7 +675,7 @@ nil while the filtering is done to restore it."
       ;; of a frameset, so we must copy parameters to avoid inadvertent
       ;; modifications.
       (pcase (cdr (assq (car current) filter-alist))
-	(`nil
+	('nil
 	 (push (if saving current (copy-tree current)) filtered))
 	(:never
 	 nil)
@@ -903,7 +903,7 @@ NOTE: This only works for non-iconified frames."
 		      (< fr-right  left) (> fr-right  right)
 		      (< fr-top    top)  (> fr-top    bottom)))
 	    ;; Displaced to the left, right, above or below the screen.
-	    (`t   (or (> fr-left   right)
+	    ('t   (or (> fr-left   right)
 		      (< fr-right  left)
 		      (> fr-top    bottom)
 		      (< fr-bottom top)))
@@ -1195,11 +1195,11 @@ All keyword parameters default to nil."
 	 ;; will decide which ones can be reused, and how to deal with any leftover.
 	 (frameset--reuse-list
 	  (pcase reuse-frames
-	    (`t
+	    ('t
 	     frames)
-	    (`nil
+	    ('nil
 	     nil)
-	    (`match
+	    ('match
 	     (cl-loop for (state) in (frameset-states frameset)
 		      when (frameset-frame-with-id (frameset-cfg-id state) frames)
 		      collect it))
@@ -1364,11 +1364,11 @@ Called from `jump-to-register'.  Internal use only."
 		     ;; iconify frames
 		     (lambda (frame action)
 		       (pcase action
-			 (`rejected (iconify-frame frame))
+			 ('rejected (iconify-frame frame))
 			 ;; In the unexpected case that a frame was a candidate
 			 ;; (matching frame id) and yet not restored, remove it
 			 ;; because it is in fact a duplicate.
-			 (`ignored (delete-frame frame))))))
+			 ('ignored (delete-frame frame))))))
 
   ;; Restore selected frame, buffer and point.
   (let ((frame (frameset-frame-with-id (aref data 1)))

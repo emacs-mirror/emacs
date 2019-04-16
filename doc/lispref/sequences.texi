@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990-1995, 1998-1999, 2001-2018 Free Software
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2019 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Sequences Arrays Vectors
@@ -63,7 +63,8 @@ But it is possible to add elements to the list, or remove elements.
 
 @defun sequencep object
 This function returns @code{t} if @var{object} is a list, vector,
-string, bool-vector, or char-table, @code{nil} otherwise.
+string, bool-vector, or char-table, @code{nil} otherwise.  See also
+@code{seqp} below.
 @end defun
 
 @defun length sequence
@@ -71,11 +72,13 @@ string, bool-vector, or char-table, @code{nil} otherwise.
 @cindex list length
 @cindex vector length
 @cindex sequence length
+@cindex bool-vector length
 @cindex char-table length
 @anchor{Definition of length}
-This function returns the number of elements in @var{sequence}.  If
-@var{sequence} is a dotted list, a @code{wrong-type-argument} error is
-signaled.  Circular lists may cause an infinite loop.  For a
+This function returns the number of elements in @var{sequence}.  The
+function signals the @code{wrong-type-argument} error if the argument
+is not a sequence or is a dotted list; it signals the
+@code{circular-list} error if the argument is a circular list.  For a
 char-table, the value returned is always one more than the maximum
 Emacs character code.
 
@@ -474,10 +477,11 @@ built-in sequence types, @code{seq-length} behaves like @code{length}.
 @xref{Definition of length}.
 @end defun
 
-@defun seqp sequence
-  This function returns non-@code{nil} if @var{sequence} is a sequence
+@defun seqp object
+  This function returns non-@code{nil} if @var{object} is a sequence
 (a list or array), or any additional type of sequence defined via
-@file{seq.el} generic functions.
+@file{seq.el} generic functions.  This is an extensible variant of
+@code{sequencep}.
 
 @example
 @group
@@ -778,10 +782,11 @@ before being sorted.  @var{function} is a function of one argument.
 @end defun
 
 
-@defun seq-contains sequence elt &optional function
-  This function returns the first element in @var{sequence} that is equal to
-@var{elt}.  If the optional argument @var{function} is non-@code{nil},
-it is a function of two arguments to use instead of the default @code{equal}.
+@defun seq-contains-p sequence elt &optional function
+  This function returns non-@code{nil} if at least one element in
+@var{sequence} is equal to @var{elt}.  If the optional argument
+@var{function} is non-@code{nil}, it is a function of two arguments to
+use instead of the default @code{equal}.
 
 @example
 @group
@@ -1045,15 +1050,18 @@ that @var{sequence} can be a list, vector or string.  This is
 primarily useful for side-effects.
 @end defmac
 
-@defmac seq-let arguments sequence body@dots{}
+@anchor{seq-let}
+@defmac seq-let var-sequence val-sequence body@dots{}
 @cindex sequence destructuring
-  This macro binds the variables defined in @var{arguments} to the
-elements of @var{sequence}.  @var{arguments} can themselves include
-sequences, allowing for nested destructuring.
+  This macro binds the variables defined in @var{var-sequence} to the
+values that are the corresponding elements of @var{val-sequence}.
+This is known as @dfn{destructuring binding}.  The elements of
+@var{var-sequence} can themselves include sequences, allowing for
+nested destructuring.
 
-The @var{arguments} sequence can also include the @code{&rest} marker
-followed by a variable name to be bound to the rest of
-@code{sequence}.
+The @var{var-sequence} sequence can also include the @code{&rest}
+marker followed by a variable name to be bound to the rest of
+@var{val-sequence}.
 
 @example
 @group
@@ -1077,6 +1085,9 @@ followed by a variable name to be bound to the rest of
 @end group
 @result{} [3 4]
 @end example
+
+The @code{pcase} patterns provide an alternative facility for
+destructuring binding, see @ref{Destructuring with pcase Patterns}.
 @end defmac
 
 @defun seq-random-elt sequence
@@ -1353,7 +1364,7 @@ each initialized to @var{object}.
 @defun vconcat &rest sequences
 @cindex copying vectors
 This function returns a new vector containing all the elements of
-@var{sequences}.  The arguments @var{sequences} may be true lists,
+@var{sequences}.  The arguments @var{sequences} may be proper lists,
 vectors, strings or bool-vectors.  If no @var{sequences} are given,
 the empty vector is returned.
 
@@ -1765,6 +1776,11 @@ element.  The return value is not significant.
 
 If the ring is full, this function removes the newest element to make
 room for the inserted element.
+@end defun
+
+@defun ring-resize ring size
+Set the size of @var{ring} to @var{size}.  If the new size is smaller,
+then the oldest items in the ring are discarded.
 @end defun
 
 @cindex fifo data structure

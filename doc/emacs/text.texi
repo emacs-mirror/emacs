@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2018 Free Software
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2019 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text
@@ -2416,11 +2416,13 @@ to the commands above.
 @subsection Setting Other Text Properties
 
   The Special Properties submenu of Text Properties has entries for
-adding or removing three other text properties: @code{read-only},
+adding or removing four other text properties: @code{read-only},
 (which disallows alteration of the text), @code{invisible} (which
-hides text), and @code{intangible} (which disallows moving point
-within the text).  The @samp{Remove Special} menu item removes all of
-these special properties from the text in the region.
+hides text), @code{intangible} (which disallows moving point within
+the text), and @code{charset} (which is important for selecting a
+proper font to display a character).  The @samp{Remove Special} menu
+item removes all of these special properties from the text in the
+region.
 
   The @code{invisible} and @code{intangible} properties are not saved.
 

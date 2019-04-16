@@ -1,6 +1,6 @@
 ;;; opascal.el --- major mode for editing Object Pascal source in Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-1999, 2001-2018 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2001-2019 Free Software Foundation, Inc.
 
 ;; Authors: Ray Blaak <blaak@infomatch.com>,
 ;;          Simon South <ssouth@member.fsf.org>
@@ -140,7 +140,7 @@ That is, regardless of where in the line point is at the time."
    opascal-directives)
   "OPascal4 keywords.")
 
-(defconst opascal-previous-terminators `(semicolon comma)
+(defconst opascal-previous-terminators '(semicolon comma)
   "Expression/statement terminators that denote a previous expression.")
 
 (defconst opascal-comments
@@ -186,7 +186,7 @@ are followed by an expression.")
   `(except finally ,@opascal-visibilities)
   "Statements that mark mid sections of the enclosing block.")
 
-(defconst opascal-end-block-statements `(end until)
+(defconst opascal-end-block-statements '(end until)
   "Statements that end block sections.")
 
 (defconst opascal-match-block-statements
@@ -210,7 +210,7 @@ are followed by an expression.")
   '(interface implementation program library package)
   "Unit sections within which the indent is 0.")
 
-(defconst opascal-use-clauses `(uses requires exports contains)
+(defconst opascal-use-clauses '(uses requires exports contains)
   "Statements that refer to foreign symbols.")
 
 (defconst opascal-unit-statements
@@ -393,17 +393,17 @@ routine.")
         (if (null (nth 8 ppss))
             (when (looking-at opascal--literal-start-re)
               (pcase (char-after)
-                (`?/  'comment-single-line)
-                (`?\{ 'comment-multi-line-1)
-                (`?\( 'comment-multi-line-2)
-                (`?\' 'string)
-                (`?\" 'double-quoted-string)))
+                (?/  'comment-single-line)
+                (?\{ 'comment-multi-line-1)
+                (?\( 'comment-multi-line-2)
+                (?\' 'string)
+                (?\" 'double-quoted-string)))
           (if (nth 3 ppss)   ;String.
               (if (eq (nth 3 ppss) ?\")
                   'double-quoted-string 'string)
             (pcase (nth 7 ppss)
-              (`2 'comment-single-line)
-              (`1 'comment-multi-line-2)
+              (2 'comment-single-line)
+              (1 'comment-multi-line-2)
               (_  'comment-multi-line-1))))))))
 
 (defun opascal-literal-start-pattern (literal-kind)
@@ -1519,7 +1519,7 @@ value of `opascal-tab-always-indents' and the current line position."
         (setq dir-name (match-string 1 dir-name)
               recurse t))
     ;; Ensure the trailing slash is removed.
-    (if (string-match "^\\(.+\\)[\\\\/]$" dir-name)
+    (if (string-match "^\\(.+\\)[\\/]$" dir-name)
         (setq dir-name (match-string 1 dir-name)))
     (opascal-search-directory unit dir-name recurse)))
 

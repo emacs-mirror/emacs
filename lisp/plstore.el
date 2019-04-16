@@ -1,5 +1,5 @@
 ;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
-;; Copyright (C) 2011-2018 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG

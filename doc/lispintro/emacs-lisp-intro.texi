@@ -113,7 +113,7 @@ Edition @value{edition-number}, @value{update-date}
 Distributed with Emacs version @value{EMACSVER}.
 @end ifnottex
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2018 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2019 Free Software
 Foundation, Inc.
 @sp 1
 
@@ -198,6 +198,31 @@ supports it in developing GNU and promoting software freedom.''
 @end ifset
 @end ifnothtml
 
+@c If you think this manual is too large for an introduction, please
+@c consider this email exchange:
+@c
+@c       >> The intro is almost 300 pages in full.  I had expected 60 pages.
+@c       >
+@c       > This is an important point in its own right.  Could you
+@c       > write a simplified introduction that is only 50 pages or so?
+@c       > That would be helpful to many potential users, I'd think.
+@c
+@c   > The problem with the introduction is that it was written when
+@c   > programming was only starting to be a skill "normal" people could
+@c   > have access to.  So the text is extremely verbose and is
+@c   > sometimes hard to follow because of that.  The gist of the
+@c   > document could be summarized in 50 pages.
+@c
+@c This book is intentionally addressed to people who don't know how to
+@c program.  That is its purpose.  We recommend people start learning to
+@c program using this book.
+@c
+@c If you DO know how to program in some other language, you can probably
+@c learn Emacs Lisp starting with the Emacs Lisp Reference Manual.
+@c
+@c        Richard Stallman <rms@gnu.org>,
+@c        https://lists.gnu.org/archive/html/emacs-devel/2018-05/msg00374.html
+
 @shortcontents
 @contents
 
@@ -219,6 +244,10 @@ To view this manual in other formats, click
 This master menu first lists each chapter and index; then it lists
 every node in every chapter.
 @end ifnottex
+
+@c Uncomment the 3 lines below, starting with @iftex, if you want the
+@c pages of Preface to be numbered in roman numerals.  Use -9 instead
+@c of -11 for smallbook format.
 
 @c >>>> Set pageno appropriately <<<<
 
@@ -455,7 +484,7 @@ Narrowing and Widening
 
 @code{car}, @code{cdr}, @code{cons}: Fundamental Functions
 
-* Strange Names::               An historical aside: why the strange names?
+* Strange Names::               A historical aside: why the strange names?
 * car & cdr::                   Functions for extracting part of a list.
 * cons::                        Constructing a list.
 * nthcdr::                      Calling @code{cdr} repeatedly.
@@ -797,10 +826,10 @@ programming language, the examples and guided tours will give you an
 opportunity to get acquainted with Emacs as a Lisp programming
 environment.  GNU Emacs supports programming and provides tools that
 you will want to become comfortable using, such as @kbd{M-.} (the key
-which invokes the @code{find-tag} command).  You will also learn about
-buffers and other objects that are part of the environment.
-Learning about these features of Emacs is like learning new routes
-around your home town.
+which invokes the @code{xref-find-definitions} command).  You will
+also learn about buffers and other objects that are part of the
+environment.  Learning about these features of Emacs is like learning
+new routes around your home town.
 
 @ignore
 In addition, I have written several programs as extended examples.
@@ -987,6 +1016,8 @@ bob@@gnu.org
 @c makes a link to something in the first 4 pages though?).
 @c E.g., note that the Emacs manual has a preface, but does not bother
 @c resetting the page numbers back to 1 after that.
+@c Alternatively, uncomment the 3 lines above (search for ``pageno'')
+@c to have the preface numbered in roman numerals.
 @iftex
 @headings off
 @evenheading @thispage @| @| @thischapter
@@ -1006,7 +1037,14 @@ putting them between parentheses.  The parentheses mark the boundaries
 of the list.  Sometimes a list is preceded by an apostrophe @samp{'},
 called a @dfn{single-quote} in Lisp.@footnote{A single-quote is an
 abbreviation for the special form @code{quote}; you need not think
-about special forms now.  @xref{Complications}.}  Lists are the basis
+about special forms now.
+@ifnottex
+@xref{Complications}.
+@end ifnottex
+@iftex
+@xref{Lisp Interpreter}.
+@end iftex
+}  Lists are the basis
 of Lisp.
 
 @menu
@@ -1264,11 +1302,13 @@ hand parenthesis of the following list and then type @kbd{C-x C-e}:
 
 @c use code for the number four, not samp.
 @noindent
-You will see the number @code{4} appear in the echo area.  (What
-you have just done is evaluate the list.  The echo area
-is the line at the bottom of the screen that displays or echoes
-text.)  Now try the same thing with a quoted list:  place the cursor
-right after the following list and type @kbd{C-x C-e}:
+You will see the number @code{4} appear in the echo area@footnote{
+Emacs shows integer values in decimal, in octal and in hex, and also
+as a character, but let's ignore this convenience feature for now.
+}.  (What you have just done is evaluate the list.  The echo area is
+the line at the bottom of the screen that displays or echoes text.)
+Now try the same thing with a quoted list: place the cursor right
+after the following list and type @kbd{C-x C-e}:
 
 @smallexample
 '(this is a quoted list)
@@ -1339,10 +1379,12 @@ following in it:
 ---------- Buffer: *Backtrace* ----------
 Debugger entered--Lisp error: (void-function this)
   (this is an unquoted list)
-  eval((this is an unquoted list))
-  eval-last-sexp-1(nil)
+  eval((this is an unquoted list) nil)
+  elisp--eval-last-sexp(nil)
   eval-last-sexp(nil)
-  call-interactively(eval-last-sexp)
+  funcall-interactively(eval-last-sexp nil)
+  call-interactively(eval-last-sexp nil nil)
+  command-execute(eval-last-sexp)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -1776,10 +1818,12 @@ You will create a @file{*Backtrace*} buffer that says:
 ---------- Buffer: *Backtrace* ----------
 Debugger entered--Lisp error: (void-function fill-column)
   (fill-column)
-  eval((fill-column))
-  eval-last-sexp-1(nil)
+  eval((fill-column) nil)
+  elisp--eval-last-sexp(nil)
   eval-last-sexp(nil)
-  call-interactively(eval-last-sexp)
+  funcall-interactively(eval-last-sexp nil)
+  call-interactively(eval-last-sexp nil nil)
+  command-execute(eval-last-sexp)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -1826,9 +1870,11 @@ says:
 ---------- Buffer: *Backtrace* ----------
 Debugger entered--Lisp error: (void-variable +)
   eval(+)
-  eval-last-sexp-1(nil)
+  elisp--eval-last-sexp(nil)
   eval-last-sexp(nil)
-  call-interactively(eval-last-sexp)
+  funcall-interactively(eval-last-sexp nil)
+  call-interactively(eval-last-sexp nil nil)
+  command-execute(eval-last-sexp)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -2095,10 +2141,12 @@ You will create and enter a @file{*Backtrace*} buffer that says:
 Debugger entered--Lisp error:
          (wrong-type-argument number-or-marker-p hello)
   +(2 hello)
-  eval((+ 2 'hello))
-  eval-last-sexp-1(nil)
+  eval((+ 2 'hello) nil)
+  elisp--eval-last-sexp(t)
   eval-last-sexp(nil)
-  call-interactively(eval-last-sexp)
+  funcall-interactively(eval-print-last-sexp nil)
+  call-interactively(eval-print-last-sexp nil nil)
+  command-execute(eval-print-last-sexp)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -2681,8 +2729,8 @@ In the old days, when you lacked a @file{~/.emacs} file and started an
 Emacs session by typing the command @code{emacs} alone, without naming
 any files, Emacs started with the @file{*scratch*} buffer visible.
 Nowadays, you will see a splash screen.  You can follow one of the
-commands suggested on the splash screen, visit a file, or press the
-spacebar to reach the @file{*scratch*} buffer.
+commands suggested on the splash screen, visit a file, or press @kbd{q}
+to quit the splash screen and reach the @file{*scratch*} buffer.
 
 If you switch to the @file{*scratch*} buffer, type
 @code{(buffer-name)}, position the cursor after it, and then type
@@ -4586,16 +4634,25 @@ file, you can use the @code{xref-find-definitions} function to jump to
 it.  @code{xref-find-definitions} works with a wide variety of
 languages, not just Lisp, and C, and it works with non-programming
 text as well.  For example, @code{xref-find-definitions} will jump to
-the various nodes in the Texinfo source file of this document.
+the various nodes in the Texinfo source file of this document
+(provided that you've run the @command{etags} utility to record all
+the nodes in the manuals that come with Emacs; @pxref{Create Tags
+Table,,, emacs, The GNU Emacs Manual}).
 
 To use the @code{xref-find-definitions} command, type @kbd{M-.}
 (i.e., press the period key while holding down the @key{META} key, or
 else type the @key{ESC} key and then type the period key), and then,
 at the prompt, type in the name of the function whose source code you
 want to see, such as @code{mark-whole-buffer}, and then type
-@key{RET}.  Emacs will switch buffers and display the source code for
-the function on your screen.  To switch back to your current buffer,
-type @kbd{C-x b @key{RET}}.  (On some keyboards, the @key{META} key is
+@key{RET}.  (If the command doesn't prompt, invoke it with an
+argument: @kbd{C-u M-.}; @pxref{Interactive Options}.)  Emacs will
+switch buffers and display the source code for the function on your
+screen@footnote{
+If instead of showing the source code for a Lisp function, Emacs asks
+you which tags table to visit, invoke @kbd{M-.} from a buffer whose
+major mode is Emacs Lisp or Lisp Interaction.
+}.  To switch back to your current buffer, type @kbd{M-,} or
+@kbd{C-x b @key{RET}}.  (On some keyboards, the @key{META} key is
 labeled @key{ALT}.)
 
 @cindex Library, as term for ``file''
@@ -5267,8 +5324,8 @@ in GNU Emacs 22
 
 The @code{append-to-buffer} function definition inserts text from the
 buffer in which you are currently to a named buffer.  It happens that
-@code{insert-buffer-substring} copies text from another buffer to the
-current buffer, just the reverse---that is why the
+@code{insert-buffer-substring} does just the reverse---it copies text
+from another buffer to the current buffer---that is why the
 @code{append-to-buffer} definition starts out with a @code{let} that
 binds the local symbol @code{oldbuf} to the value returned by
 @code{current-buffer}.
@@ -5332,7 +5389,7 @@ Here is a brief summary of the various functions discussed in this chapter.
 Print the documentation for a function or variable.
 Conventionally bound to @kbd{C-h f} and @kbd{C-h v}.
 
-@item find-tag
+@item xref-find-definitions
 Find the file containing the source for a function or variable and
 switch buffers to it, positioning point at the beginning of the item.
 Conventionally bound to @kbd{M-.} (that's a period following the
@@ -5386,8 +5443,8 @@ Use @code{if} and @code{get-buffer} to write a function that prints a
 message telling you whether a buffer exists.
 
 @item
-Using @code{find-tag}, find the source for the @code{copy-to-buffer}
-function.
+Using @code{xref-find-definitions}, find the source for the
+@code{copy-to-buffer} function.
 @end itemize
 
 @node More Complex
@@ -6746,7 +6803,7 @@ will see @code{cons} as well as two variants on @code{cdr},
 namely, @code{setcdr} and @code{nthcdr}.  (@xref{copy-region-as-kill}.)
 
 @menu
-* Strange Names::               An historical aside: why the strange names?
+* Strange Names::               A historical aside: why the strange names?
 * car & cdr::                   Functions for extracting part of a list.
 * cons::                        Constructing a list.
 * nthcdr::                      Calling @code{cdr} repeatedly.
@@ -7627,7 +7684,7 @@ The first part of the code looks like this:
 @end smallexample
 
 @noindent
-@code{char-table-p} is an hitherto unseen function.  It determines
+@code{char-table-p} is a hitherto unseen function.  It determines
 whether its argument is a character table.  When it is, it sets the
 character passed to @code{zap-to-char} to one of them, if that
 character exists, or to the character itself.  (This becomes important
@@ -9992,7 +10049,7 @@ kill-ring     kill-ring-yank-pointer
             |              |            |
             |              |             --> "yet more text"
             |              |
-            |               --> "a different piece of text
+            |               --> "a different piece of text"
             |
              --> "some text"
 @end group
@@ -14729,10 +14786,11 @@ creating one if none already exists."
 
 @noindent
 (The most recent version of the @code{find-file} function definition
-permits you to specify optional wildcards to visit multiple files; that
-makes the definition more complex and we will not discuss it here,
-since it is not relevant.  You can see its source using either
-@kbd{M-.} (@code{find-tag}) or @kbd{C-h f} (@code{describe-function}).)
+permits you to specify optional wildcards to visit multiple files;
+that makes the definition more complex and we will not discuss it
+here, since it is not relevant.  You can see its source using either
+@kbd{M-.} (@code{xref-find-definitions}) or @kbd{C-h f}
+(@code{describe-function}).)
 
 @ignore
 In Emacs 22
@@ -14767,7 +14825,7 @@ According to its documentation as shown by @kbd{C-h f} (the
 @code{describe-function} command), the @code{find-file-noselect}
 function reads the named file into a buffer and returns the buffer.
 (Its most recent version includes an optional @var{wildcards} argument,
-too, as well as another to read a file literally and an other you
+too, as well as another to read a file literally and another to
 suppress warning messages.  These optional arguments are irrelevant.)
 
 However, the @code{find-file-noselect} function does not select the
@@ -15541,7 +15599,7 @@ like this:
    (recursive-lengths-list-many-files
     (files-in-below-directory "/usr/local/src/emacs/lisp/"))
    '<)
-  (insert (format "%s" (current-time-string))))
+  (insert (current-time-string)))
 @end ignore
 
 @node Counting function definitions
@@ -16369,9 +16427,9 @@ Install @code{graph-symbol}, @code{graph-blank},
 @iftex
 @ref{Readying a Graph, , Readying a Graph},
 @end iftex
-@ifinfo
+@ifnottex
 @ref{Columns of a graph},
-@end ifinfo
+@end ifnottex
 and @code{graph-body-print}.
 
 @need 800
@@ -18052,10 +18110,11 @@ Debugger entered--Lisp error: (void-function 1=)
   triangle-bugged(4)
 @end group
 @group
-  eval((triangle-bugged 4))
-  eval-last-sexp-1(nil)
-  eval-last-sexp(nil)
-  call-interactively(eval-last-sexp)
+  eval((triangle-bugged 4) nil)
+  eval-expression((triangle-bugged 4) nil nil 127)
+  funcall-interactively(eval-expression (triangle-bugged 4) nil nil 127)
+  call-interactively(eval-expression nil nil)
+  command-execute(eval-expression)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -18169,12 +18228,13 @@ function:
 ---------- Buffer: *Backtrace* ----------
 Debugger entered--entering a function:
 * triangle-bugged(5)
-  eval((triangle-bugged 5))
+  eval((triangle-bugged 5) nil)
 @end group
 @group
-  eval-last-sexp-1(nil)
-  eval-last-sexp(nil)
-  call-interactively(eval-last-sexp)
+  eval-expression((triangle-bugged 5) nil nil 127)
+  funcall-interactively(eval-expression (triangle-bugged 5) nil nil 127)
+  call-interactively(eval-expression nil nil)
+  command-execute(eval-expression)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -18193,9 +18253,11 @@ Debugger entered--beginning evaluation of function call form:
   eval((triangle-bugged 5))
 @end group
 @group
-  eval-last-sexp-1(nil)
-  eval-last-sexp(nil)
-  call-interactively(eval-last-sexp)
+  eval((triangle-bugged 5) nil)
+  eval-expression((triangle-bugged 5) nil nil 127)
+  funcall-interactively(eval-expression (triangle-bugged 5) nil nil 127)
+  call-interactively(eval-expression nil nil)
+  command-execute(eval-expression)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -18220,12 +18282,13 @@ Debugger entered--beginning evaluation of function call form:
 * (let ((total 0)) (while (> number 0) (setq total ...)
         (setq number ...)) total)
 * triangle-bugged(5)
-  eval((triangle-bugged 5))
+  eval((triangle-bugged 5) nil)
 @group
 @end group
-  eval-last-sexp-1(nil)
-  eval-last-sexp(nil)
-  call-interactively(eval-last-sexp)
+  eval-expression((triangle-bugged 5) nil nil 127)
+  funcall-interactively(eval-expression (triangle-bugged 5) nil nil 127)
+  call-interactively(eval-expression nil nil)
+  command-execute(eval-expression)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -18519,8 +18582,8 @@ introduction, it comes as a Texinfo source file, so you can read it
 on your computer and as a typeset, printed book.)
 
 Go to the other built-in help that is part of GNU Emacs: the built-in
-documentation for all functions and variables, and @code{find-tag},
-the program that takes you to sources.
+documentation for all functions and variables, and
+@code{xref-find-definitions}, the program that takes you to sources.
 
 Here is an example of how I explore the sources.  Because of its name,
 @file{simple.el} is the file I looked at first, a long time ago.  As
@@ -18556,7 +18619,7 @@ contains the name of the library containing the function's source.
 You can put point over the name of the library and press the @key{RET} key,
 which in this situation is bound to @code{help-follow}, and be taken
 directly to the source, in the same way as @kbd{M-.}
-(@code{find-tag}).
+(@code{xref-find-definitions}).
 
 The definition for @code{describe-function} illustrates how to
 customize the @code{interactive} expression without using the standard
@@ -18564,13 +18627,14 @@ character codes; and it shows how to create a temporary buffer.
 
 (The @code{indent-to} function is written in C rather than Emacs Lisp;
 it is a built-in function.  @code{help-follow} takes you to its
-source as does @code{find-tag}, when properly set up.)
+source as does @code{xref-find-definitions}, when properly set up.)
 
-You can look at a function's source using @code{find-tag}, which is
-bound to @kbd{M-.}  Finally, you can find out what the Reference
-Manual has to say by visiting the manual in Info, and typing @kbd{i}
-(@code{Info-index}) and the name of the function, or by looking up the
-function in the index to a printed copy of the manual.
+You can look at a function's source using
+@code{xref-find-definitions}, which is bound to @kbd{M-.}  Finally,
+you can find out what the Reference Manual has to say by visiting the
+manual in Info, and typing @kbd{i} (@code{Info-index}) and the name of
+the function, or by looking up the function in the index to a printed
+copy of the manual.
 
 Similarly, you can find out what is meant by
 @code{insert-and-inherit}.
@@ -19149,11 +19213,14 @@ Local variables can only be accessed
 within the @code{let} that defines them or the function that specifies
 them in an argument list (and within expressions called by them).
 
-@ignore
 @c texi2dvi fails when the name of the section is within ifnottex ...
+@ifnottex
 (@xref{Prevent confusion, , @code{let} Prevents Confusion}, and
+@end ifnottex
+@iftex
+(@xref{Permanent Installation, , @code{let} Prevents Confusion}, and
+@end iftex
 @ref{defun, , The @code{defun} Macro}.)
-@end ignore
 
 @node yank
 @appendixsec @code{yank}

@@ -1,6 +1,6 @@
 Debugging GNU Emacs
 
-Copyright (C) 1985, 2000-2018 Free Software Foundation, Inc.
+Copyright (C) 1985, 2000-2019 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 ** Preliminaries
@@ -77,6 +77,14 @@ There are other ways to overcome that difficulty, they are all
 described in the node "Auto-loading safe path" in the GDB user manual.
 If nothing else helps, type "source /path/to/.gdbinit RET" at the GDB
 prompt, to unconditionally load the GDB init file.
+
+Running GDB on macOS sometimes brings an error message like this:
+
+  Unable to find Mach task port for process-id NNN: (os/kern) failure (0x5).
+
+To overcome this, search the Internet for the phrase "Unable to find
+Mach task port for process-id", and you will find detailed
+instructions to follow.
 
 *** Use the Emacs GDB UI front-end
 
@@ -640,9 +648,17 @@ process invoked with the -nw option a server and want to trace X
 protocol errors from subsequent invocations of emacsclient in a GUI
 frame.  In that case calling the initial Emacs via
 
-emacs -nw --eval '(setq x-command-line-resources "emacs.synchronous: true")'
+  emacs -nw --eval '(setq x-command-line-resources "emacs.synchronous: true")'
 
 should give more reliable results.
+
+For X protocol errors related to displaying unusual characters or to
+font-related customizations, try invoking Emacs like this:
+
+  XFT_DEBUG=16 emacs -xrm "emacs.synchronous: true"
+
+This should produce information from the libXft library which could
+give useful hints regarding font-related problems in that library.
 
 Some bugs related to the X protocol disappear when Emacs runs in a
 synchronous mode.  To track down those bugs, we suggest the following
@@ -920,7 +936,7 @@ its own versions, and because the dumping process might be
 incompatible with the way these packages use to track allocated
 memory.  Here are some of the changes you might find necessary:
 
-  - Edit configure, to set system_malloc and CANNOT_DUMP to "yes".
+  - Make sure unexec is disabled, e.g., './configure --without-unexec'.
 
   - Configure with a different --prefix= option.  If you use GCC,
     version 2.7.2 is preferred, as some malloc debugging packages

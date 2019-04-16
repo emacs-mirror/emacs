@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2018 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2019 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -288,28 +288,6 @@ extern void enlarge_buffer_text (struct buffer *, ptrdiff_t);
    or convert between a byte position and an address.
    These macros do not check that the position is in range.  */
 
-/* Access a Lisp position value in POS,
-   and store the charpos in CHARPOS and the bytepos in BYTEPOS.  */
-
-#define DECODE_POSITION(charpos, bytepos, pos)				\
-  do									\
-    {									\
-      Lisp_Object __pos = (pos);					\
-      if (NUMBERP (__pos))						\
-	{								\
-	  charpos = __pos;						\
-	  bytepos = buf_charpos_to_bytepos (current_buffer, __pos);	\
-	}								\
-      else if (MARKERP (__pos))						\
-	{								\
-	  charpos = marker_position (__pos);				\
-	  bytepos = marker_byte_position (__pos);			\
-	}								\
-      else								\
-	wrong_type_argument (Qinteger_or_marker_p, __pos);		\
-    }									\
-  while (false)
-
 /* Maximum number of bytes in a buffer.
    A buffer cannot contain more bytes than a 1-origin fixnum can represent,
    nor can it be so large that C pointer arithmetic stops working.
@@ -444,20 +422,20 @@ struct buffer_text
     ptrdiff_t gpt_byte;		/* Byte pos of gap in buffer.  */
     ptrdiff_t z_byte;		/* Byte pos of end of buffer.  */
     ptrdiff_t gap_size;		/* Size of buffer's gap.  */
-    EMACS_INT modiff;		/* This counts buffer-modification events
+    modiff_count modiff;	/* This counts buffer-modification events
 				   for this buffer.  It is incremented for
 				   each such event, and never otherwise
 				   changed.  */
-    EMACS_INT chars_modiff;	/* This is modified with character change
+    modiff_count chars_modiff;	/* This is modified with character change
 				   events for this buffer.  It is set to
 				   modiff for each such event, and never
 				   otherwise changed.  */
-    EMACS_INT save_modiff;	/* Previous value of modiff, as of last
+    modiff_count save_modiff;	/* Previous value of modiff, as of last
 				   time buffer visited or saved a file.  */
 
-    EMACS_INT overlay_modiff;	/* Counts modifications to overlays.  */
+    modiff_count overlay_modiff; /* Counts modifications to overlays.  */
 
-    EMACS_INT compact;		/* Set to modiff each time when compact_buffer
+    modiff_count compact;	/* Set to modiff each time when compact_buffer
 				   is called for this buffer.  */
 
     /* Minimum value of GPT - BEG since last redisplay that finished.  */
@@ -468,12 +446,12 @@ struct buffer_text
 
     /* MODIFF as of last redisplay that finished; if it matches MODIFF,
        beg_unchanged and end_unchanged contain no useful information.  */
-    EMACS_INT unchanged_modified;
+    modiff_count unchanged_modified;
 
     /* BUF_OVERLAY_MODIFF of current buffer, as of last redisplay that
        finished; if it matches BUF_OVERLAY_MODIFF, beg_unchanged and
        end_unchanged contain no useful information.  */
-    EMACS_INT overlay_unchanged_modified;
+    modiff_count overlay_unchanged_modified;
 
     /* Properties of this buffer's text.  */
     INTERVAL intervals;
@@ -763,8 +741,8 @@ struct buffer
      See `cursor-type' for other values.  */
   Lisp_Object cursor_in_non_selected_windows_;
 
-  /* No more Lisp_Object beyond this point.  Except undo_list,
-     which is handled specially in Fgarbage_collect.  */
+  /* No more Lisp_Object beyond cursor_in_non_selected_windows_.
+     Except undo_list, which is handled specially in Fgarbage_collect.  */
 
   /* This structure holds the coordinates of the buffer contents
      in ordinary buffers.  In indirect buffers, this is not used.  */
@@ -834,11 +812,11 @@ struct buffer
   off_t modtime_size;
 
   /* The value of text->modiff at the last auto-save.  */
-  EMACS_INT auto_save_modified;
+  modiff_count auto_save_modified;
 
   /* The value of text->modiff at the last display error.
      Redisplay of this buffer is inhibited until it changes again.  */
-  EMACS_INT display_error_modiff;
+  modiff_count display_error_modiff;
 
   /* The time at which we detected a failure to auto-save,
      Or 0 if we didn't have a failure.  */
@@ -877,6 +855,13 @@ struct buffer
   /* Non-zero whenever the narrowing is changed in this buffer.  */
   bool_bf clip_changed : 1;
 
+  /* Non-zero for internally used temporary buffers that don't need to
+     run hooks kill-buffer-hook, buffer-list-update-hook, and
+     kill-buffer-query-functions.  This is used in coding.c to avoid
+     slowing down en/decoding when there are a lot of these hooks
+     defined.  */
+  bool_bf inhibit_buffer_hooks : 1;
+
   /* List of overlays that end at or before the current center,
      in order of end-position.  */
   struct Lisp_Overlay *overlays_before;
@@ -912,7 +897,7 @@ INLINE struct buffer *
 XBUFFER (Lisp_Object a)
 {
   eassert (BUFFERP (a));
-  return XUNTAG (a, Lisp_Vectorlike);
+  return XUNTAG (a, Lisp_Vectorlike, struct buffer);
 }
 
 /* Most code should use these functions to set Lisp fields in struct
@@ -1034,14 +1019,12 @@ bset_width_table (struct buffer *b, Lisp_Object val)
    structure, make sure that this is still correct.  */
 
 #define BUFFER_LISP_SIZE						\
-  ((offsetof (struct buffer, own_text) - header_size) / word_size)
+  PSEUDOVECSIZE (struct buffer, cursor_in_non_selected_windows_)
 
-/* Size of the struct buffer part beyond leading Lisp_Objects, in word_size
-   units.  Rounding is needed for --with-wide-int configuration.  */
+/* Allocated size of the struct buffer part beyond leading
+   Lisp_Objects, in word_size units.  */
 
-#define BUFFER_REST_SIZE						\
-  ((((sizeof (struct buffer) - offsetof (struct buffer, own_text))	\
-     + (word_size - 1)) & ~(word_size - 1)) / word_size)
+#define BUFFER_REST_SIZE (VECSIZE (struct buffer) - BUFFER_LISP_SIZE)
 
 /* Initialize the pseudovector header of buffer object.  BUFFER_LISP_SIZE
    is required for GC, but BUFFER_REST_SIZE is set up just to be consistent
@@ -1349,7 +1332,7 @@ extern int last_per_buffer_idx;
 
 
 #define PER_BUFFER_IDX(OFFSET) \
-      XINT (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_flags))
+      XFIXNUM (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_flags))
 
 /* Functions to get and set default value of the per-buffer
    variable at offset OFFSET in the buffer structure.  */
@@ -1387,7 +1370,7 @@ downcase (int c)
 {
   Lisp_Object downcase_table = BVAR (current_buffer, downcase_table);
   Lisp_Object down = CHAR_TABLE_REF (downcase_table, c);
-  return NATNUMP (down) ? XFASTINT (down) : c;
+  return FIXNATP (down) ? XFIXNAT (down) : c;
 }
 
 /* Upcase a character C, or make no change if that cannot be done. */
@@ -1396,7 +1379,7 @@ upcase (int c)
 {
   Lisp_Object upcase_table = BVAR (current_buffer, upcase_table);
   Lisp_Object up = CHAR_TABLE_REF (upcase_table, c);
-  return NATNUMP (up) ? XFASTINT (up) : c;
+  return FIXNATP (up) ? XFIXNAT (up) : c;
 }
 
 /* True if C is upper case.  */
