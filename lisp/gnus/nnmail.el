@@ -1026,8 +1026,8 @@ If SOURCE is a directory spec, try to return the group name component."
       (nnmail-check-duplication message-id func artnum-func))
     1))
 
-(defvar nnmail-group-names-not-encoded-p t
-  "Non-nil means group names are not encoded.")
+(make-obsolete-variable 'nnmail-group-names-not-encoded-p
+			"Group names are always decoded" "27.1")
 
 (defun nnmail-split-incoming (incoming func &optional exit-func
 				       group artnum-func junk-func)
@@ -1035,13 +1035,12 @@ If SOURCE is a directory spec, try to return the group name component."
 FUNC will be called with the buffer narrowed to each mail.
 INCOMING can also be a buffer object.  In that case, the mail
 will be copied over from that buffer."
-  (let ( ;; If this is a group-specific split, we bind the split
+  (let (;; If this is a group-specific split, we bind the split
 	;; methods to just this group.
 	(nnmail-split-methods (if (and group
 				       (not nnmail-resplit-incoming))
 				  (list (list group ""))
-				nnmail-split-methods))
-	(nnmail-group-names-not-encoded-p t))
+				nnmail-split-methods)))
     ;; Insert the incoming file.
     (with-current-buffer (get-buffer-create nnmail-article-buffer)
       (erase-buffer)
