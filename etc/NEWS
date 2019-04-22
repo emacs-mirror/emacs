@@ -1633,6 +1633,12 @@ The function now returns non-nil when the argument MODE is derived
 from any alias of any of MODES.
 
 +++
+** 'define-derived-mode' can now specify a :before-hook form, which
+is evaluated before the 'change-major-mode-hook' functions.  This allows
+the macro to be used to define mode functions which need to act before
+'kill-all-local-variables'.
+
++++
 ** New frame focus state inspection interface.
 The hooks 'focus-in-hook' and 'focus-out-hook' are now obsolete.
 Instead, attach to 'after-focus-change-function' using 'add-function'

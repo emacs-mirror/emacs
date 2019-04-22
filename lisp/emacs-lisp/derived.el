@@ -137,6 +137,9 @@ BODY can start with a bunch of keyword arguments.  The following keyword
 :abbrev-table TABLE
 	Use TABLE instead of the default (CHILD-abbrev-table).
 	A nil value means to simply use the same abbrev-table as the parent.
+:before-hook FORM
+	A single lisp form which will be evaluated before anything else
+	happens in `change-major-mode-hook'.  It should not be quoted.
 :after-hook FORM
 	A single lisp form which is evaluated after the mode hooks have been
 	run.  It should not be quoted.
@@ -188,6 +191,7 @@ See Info node `(elisp)Derived Modes' for more details."
 	(declare-syntax t)
 	(hook (derived-mode-hook-name child))
 	(group nil)
+        (before-hook nil)
         (after-hook nil))
 
     ;; Process the keyword args.
@@ -196,6 +200,7 @@ See Info node `(elisp)Derived Modes' for more details."
 	(:group (setq group (pop body)))
 	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
 	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+        (:before-hook (setq before-hook (pop body)))
         (:after-hook (setq after-hook (pop body)))
 	(_ (pop body))))
 
@@ -241,6 +246,9 @@ No problems result if this variable is not bound.
        (defun ,child ()
 	 ,docstring
 	 (interactive)
+         ,@(when before-hook
+             `((add-hook 'change-major-mode-hook (lambda () ,before-hook)
+                         nil t)))
 					; Run the parent.
 	 (delay-mode-hooks
 

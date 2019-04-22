@@ -807,8 +807,8 @@ documentation string.  If you omit @var{docstring},
 @code{define-derived-mode} generates a documentation string.
 
 The @var{keyword-args} are pairs of keywords and values.  The values,
-except for @code{:after-hook}'s, are evaluated.  The following
-keywords are currently supported:
+except for those of @code{:before-hook} and @code{:after-hook}, are
+evaluated.  The following keywords are currently supported:
 
 @table @code
 @item :syntax-table
@@ -831,6 +831,14 @@ If this is specified, the value should be the customization group for
 this mode.  (Not all major modes have one.)  The command
 @code{customize-mode} uses this.  @code{define-derived-mode} does
 @emph{not} automatically define the specified customization group.
+
+@item :before-hook
+This optional keyword specifies a single Lisp form to evaluate as the
+very first act of the mode function, before any of the functions in
+@code{change-major-mode-hook} have been called.  It should not be
+quoted.  A @code{:before-hook} form is useful when the mode needs to
+see the original buffer state, before @code{kill-all-local-variables}
+has taken effect.
 
 @item :after-hook
 This optional keyword specifies a single Lisp form to evaluate as the
