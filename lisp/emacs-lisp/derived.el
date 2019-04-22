@@ -139,7 +139,8 @@ BODY can start with a bunch of keyword arguments.  The following keyword
 	A nil value means to simply use the same abbrev-table as the parent.
 :before-hook FORM
 	A single lisp form which will be evaluated before anything else
-	happens in `change-major-mode-hook'.  It should not be quoted.
+	happens (i.e. before `change-major-mode-hook').  It should not be
+	quoted.
 :after-hook FORM
 	A single lisp form which is evaluated after the mode hooks have been
 	run.  It should not be quoted.
@@ -247,8 +248,7 @@ No problems result if this variable is not bound.
 	 ,docstring
 	 (interactive)
          ,@(when before-hook
-             `((add-hook 'change-major-mode-hook (lambda () ,before-hook)
-                         nil t)))
+             `(,before-hook))
 					; Run the parent.
 	 (delay-mode-hooks
 
