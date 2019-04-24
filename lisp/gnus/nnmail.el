@@ -595,7 +595,7 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
 (defun nnmail-request-post (&optional server)
   (mail-send-and-exit nil))
 
-(defvar nnmail-file-coding-system 'undecided
+(defvar nnmail-file-coding-system 'raw-text
   "Coding system used in nnmail.")
 
 (defvar nnmail-incoming-coding-system
