@@ -676,7 +676,7 @@ nn*-request-list should have been called before calling this function."
       (forward-line 1))
     group-assoc))
 
-(defcustom nnmail-active-file-coding-system 'undecided
+(defcustom nnmail-active-file-coding-system 'utf-8-emacs
   "Coding system for active file."
   :group 'nnmail-various
   :type 'coding-system)
