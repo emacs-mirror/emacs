@@ -1178,7 +1178,6 @@ ARG is passed to the first function."
 (defun gnus-write-active-file (file hashtb &optional full-names)
   (let ((coding-system-for-write nnmail-active-file-coding-system))
     (with-temp-file file
-      (insert (format ";; -*- encoding: %s; -*-\n\n" coding-system-for-write))
       (maphash
        (lambda (group active)
 	 (when active
