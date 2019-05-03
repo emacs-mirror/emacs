@@ -69,7 +69,7 @@ typedef int Window;
 typedef struct _GdkDisplay Display;
 
 /* Xism */
-typedef Lisp_Object XrmDatabase;
+typedef void *XrmDatabase;
 
 
 /* some sort of attempt to normalize rectangle handling.. seems a bit much

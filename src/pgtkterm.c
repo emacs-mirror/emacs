@@ -134,12 +134,12 @@ mark_pgtkterm(void)
 #if false  /* marked in alloc.c:compact_font_caches() */
     mark_object (dpyinfo->name_list_element);
 #endif
-    mark_object (dpyinfo->xrdb);
+    mark_object (dpyinfo->rdb);
   }
 }
 
 char *
-x_get_keysym_name (int keysym)
+get_keysym_name (int keysym)
 /* --------------------------------------------------------------------------
     Called by keyboard.c.  Not sure if the return val is important, except
     that it be unique.
@@ -181,7 +181,7 @@ x_free_frame_resources (struct frame *f)
   do { if (f == dpyinfo->FIELD) dpyinfo->FIELD = 0; } while (false)
 
   CLEAR_IF_EQ(x_focus_frame);
-  CLEAR_IF_EQ(x_highlight_frame);
+  CLEAR_IF_EQ(highlight_frame);
   CLEAR_IF_EQ(x_focus_event_frame);
   CLEAR_IF_EQ(last_mouse_frame);
   CLEAR_IF_EQ(last_mouse_motion_frame);
@@ -407,16 +407,16 @@ pgtk_set_window_size (struct frame *f,
 }
 
 void
-x_iconify_frame (struct frame *f)
+pgtk_iconify_frame (struct frame *f)
 /* --------------------------------------------------------------------------
      External: Iconify window
    -------------------------------------------------------------------------- */
 {
-  PGTK_TRACE("x_iconify_frame");
+  PGTK_TRACE("pgtk_iconify_frame");
 
   /* Don't keep the highlight on an invisible frame.  */
-  if (FRAME_DISPLAY_INFO (f)->x_highlight_frame == f)
-    FRAME_DISPLAY_INFO (f)->x_highlight_frame = 0;
+  if (FRAME_DISPLAY_INFO (f)->highlight_frame == f)
+    FRAME_DISPLAY_INFO (f)->highlight_frame = 0;
 
   if (FRAME_ICONIFIED_P (f))
     return;
@@ -469,12 +469,12 @@ x_iconify_frame (struct frame *f)
 }
 
 void
-x_make_frame_visible (struct frame *f)
+pgtk_make_frame_visible (struct frame *f)
 /* --------------------------------------------------------------------------
      External: Show the window (X11 semantics)
    -------------------------------------------------------------------------- */
 {
-  PGTK_TRACE("x_make_frame_visible");
+  PGTK_TRACE("pgtk_make_frame_visible");
 #if 0
   NSTRACE ("x_make_frame_visible");
   /* XXX: at some points in past this was not needed, as the only place that
@@ -523,12 +523,12 @@ x_make_frame_visible (struct frame *f)
 
 
 void
-x_make_frame_invisible (struct frame *f)
+pgtk_make_frame_invisible (struct frame *f)
 /* --------------------------------------------------------------------------
      External: Hide the window (X11 semantics)
    -------------------------------------------------------------------------- */
 {
-  PGTK_TRACE("x_make_frame_invisible");
+  PGTK_TRACE("pgtk_make_frame_invisible");
 #if 0
   NSView *view;
   NSTRACE ("x_make_frame_invisible");
@@ -541,9 +541,9 @@ x_make_frame_invisible (struct frame *f)
 }
 
 static Lisp_Object
-x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
+pgtk_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
-  PGTK_TRACE("x_new_font");
+  PGTK_TRACE("pgtk_new_font");
   struct font *font = XFONT_OBJECT (font_object);
   int font_ascent, font_descent;
 
@@ -730,7 +730,7 @@ pgtk_initialize_display_info (struct pgtk_display_info *dpyinfo)
     dpyinfo->color_p = 1;
     dpyinfo->n_planes = 32;
     dpyinfo->root_window = 42; /* a placeholder.. */
-    dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame = NULL;
+    dpyinfo->highlight_frame = dpyinfo->x_focus_frame = NULL;
     dpyinfo->n_fonts = 0;
     dpyinfo->smallest_font_height = 1;
     dpyinfo->smallest_char_width = 1;
@@ -2606,6 +2606,7 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
   PGTK_TRACE("draw_window_cursor: %d, %d, %d, %d, %d, %d.",
 	       x, y, cursor_type, cursor_width, on_p, active_p);
   struct frame *f = XFRAME (WINDOW_FRAME (w));
+  PGTK_TRACE("%p\n", f->output_data.pgtk);
 
   if (on_p)
     {
@@ -2735,7 +2736,7 @@ pgtk_scroll_run (struct window *w, struct run *run)
   block_input ();
 
   /* Cursor off.  Will be switched on again in x_update_window_end.  */
-  x_clear_cursor (w);
+  gui_clear_cursor (w);
 
   {
     cairo_rectangle_t src_rect = { x, from_y, width, height };
@@ -2913,9 +2914,9 @@ pgtk_update_window_end (struct window *w, bool cursor_on_p,
       if (draw_window_fringes (w, true))
 	{
 	  if (WINDOW_RIGHT_DIVIDER_WIDTH (w))
-	    x_draw_right_divider (w);
+	    gui_draw_right_divider (w);
 	  else
-	    x_draw_vertical_border (w);
+	    gui_draw_vertical_border (w);
 	}
 
       unblock_input ();
@@ -2989,7 +2990,7 @@ pgtk_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   seat = gdk_display_get_default_seat(dpyinfo->gdpy);
   device = gdk_seat_get_pointer(seat);
 
-  if (x_mouse_grabbed (dpyinfo)) {
+  if (gui_mouse_grabbed (dpyinfo)) {
     GdkWindow *win;
     GdkModifierType mask;
     /* get x, y relative to edit window of f1. */
@@ -3279,18 +3280,18 @@ extern frame_parm_handler pgtk_frame_parm_handlers[];
 static struct redisplay_interface pgtk_redisplay_interface =
 {
   pgtk_frame_parm_handlers,
-  x_produce_glyphs,
-  x_write_glyphs,
-  x_insert_glyphs,
-  x_clear_end_of_line,
+  gui_produce_glyphs,
+  gui_write_glyphs,
+  gui_insert_glyphs,
+  gui_clear_end_of_line,
   pgtk_scroll_run,
   pgtk_after_update_window_line,
   pgtk_update_window_begin,
   pgtk_update_window_end,
   pgtk_flush_display,
-  x_clear_window_mouse_face,
-  x_get_glyph_overhangs,
-  x_fix_overlapping_area,
+  gui_clear_window_mouse_face,
+  gui_get_glyph_overhangs,
+  gui_fix_overlapping_area,
   pgtk_draw_fringe_bitmap,
   pgtk_define_fringe_bitmap,
   pgtk_destroy_fringe_bitmap,
@@ -3298,6 +3299,7 @@ static struct redisplay_interface pgtk_redisplay_interface =
   pgtk_draw_glyph_string,
   pgtk_define_frame_cursor,
   pgtk_clear_frame_area,
+  pgtk_clear_under_internal_border,
   pgtk_draw_window_cursor,
   pgtk_draw_vertical_window_border,
   pgtk_draw_window_divider,
@@ -4275,7 +4277,7 @@ pgtk_delete_terminal (struct terminal *terminal)
   /* Normally, the display is available...  */
   if (dpyinfo->gdpy)
     {
-      x_destroy_all_bitmaps (dpyinfo);
+      image_destroy_all_bitmaps (dpyinfo);
 
       xg_display_close (dpyinfo->gdpy);
 
@@ -4336,8 +4338,16 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->condemn_scroll_bars_hook = pgtk_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = pgtk_redeem_scroll_bar;
   terminal->judge_scroll_bars_hook = pgtk_judge_scroll_bars;
+  terminal->get_string_resource_hook = pgtk_get_string_resource;
   terminal->delete_frame_hook = x_destroy_window;
   terminal->delete_terminal_hook = pgtk_delete_terminal;
+  terminal->query_frame_background_color = pgtk_query_frame_background_color;
+  terminal->defined_color_hook = pgtk_defined_color;
+  terminal->set_new_font_hook = pgtk_new_font;
+  terminal->implicit_set_name_hook = pgtk_implicitly_set_name;
+  terminal->iconify_frame_hook = pgtk_iconify_frame;
+  terminal->set_scroll_bar_default_width_hook = pgtk_set_scroll_bar_default_width;
+  terminal->set_scroll_bar_default_height_hook = pgtk_set_scroll_bar_default_height;
   terminal->set_window_size_hook = pgtk_set_window_size;
   terminal->query_colors = pgtk_query_colors;
   terminal->get_focus_frame = x_get_focus_frame;
@@ -5075,7 +5085,7 @@ frame_highlight (struct frame *f)
   x_uncatch_errors ();
 #endif
   unblock_input ();
-  x_update_cursor (f, true);
+  gui_update_cursor (f, true);
 #if 0
   x_set_frame_alpha (f);
 #endif
@@ -5097,7 +5107,7 @@ frame_unhighlight (struct frame *f)
   x_uncatch_errors ();
 #endif
   unblock_input ();
-  x_update_cursor (f, true);
+  gui_update_cursor (f, true);
 #if 0
   x_set_frame_alpha (f);
 #endif
@@ -5107,29 +5117,29 @@ frame_unhighlight (struct frame *f)
 static void
 x_frame_rehighlight (struct pgtk_display_info *dpyinfo)
 {
-  struct frame *old_highlight = dpyinfo->x_highlight_frame;
+  struct frame *old_highlight = dpyinfo->highlight_frame;
 
   if (dpyinfo->x_focus_frame)
     {
-      dpyinfo->x_highlight_frame
+      dpyinfo->highlight_frame
 	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
 	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
 	   : dpyinfo->x_focus_frame);
-      if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
+      if (! FRAME_LIVE_P (dpyinfo->highlight_frame))
 	{
 	  fset_focus_frame (dpyinfo->x_focus_frame, Qnil);
-	  dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
+	  dpyinfo->highlight_frame = dpyinfo->x_focus_frame;
 	}
     }
   else
-    dpyinfo->x_highlight_frame = 0;
+    dpyinfo->highlight_frame = 0;
 
-  if (dpyinfo->x_highlight_frame != old_highlight)
+  if (dpyinfo->highlight_frame != old_highlight)
     {
       if (old_highlight)
 	frame_unhighlight (old_highlight);
-      if (dpyinfo->x_highlight_frame)
-	frame_highlight (dpyinfo->x_highlight_frame);
+      if (dpyinfo->highlight_frame)
+	frame_highlight (dpyinfo->highlight_frame);
     }
 }
 
@@ -5376,7 +5386,7 @@ motion_notify_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 
   frame = pgtk_any_window_to_frame(gtk_widget_get_window(widget));
   dpyinfo = FRAME_DISPLAY_INFO (frame);
-  f = (x_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
+  f = (gui_mouse_grabbed (dpyinfo) ? dpyinfo->last_mouse_frame
        : pgtk_any_window_to_frame(gtk_widget_get_window(widget)));
   hlinfo = MOUSE_HL_INFO (f);
 
@@ -5545,7 +5555,7 @@ button_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   x_display_set_last_user_time (dpyinfo, event->button.time);
 #endif
 
-  if (x_mouse_grabbed (dpyinfo))
+  if (gui_mouse_grabbed (dpyinfo))
     f = dpyinfo->last_mouse_frame;
   else
     {
@@ -5558,7 +5568,7 @@ button_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
 	     into a parent frame with the child frame selected and
 	     `no-accept-focus' is not set, select the clicked
 	     frame.  */
-	  struct frame *hf = dpyinfo->x_highlight_frame;
+	  struct frame *hf = dpyinfo->highlight_frame;
 
 	  if (FRAME_PARENT_FRAME (f) || (hf && frame_ancestor_p (f, hf)))
 	    {
@@ -5635,7 +5645,7 @@ scroll_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
   frame = pgtk_any_window_to_frame(gtk_widget_get_window(widget));
   dpyinfo = FRAME_DISPLAY_INFO (frame);
 
-  if (x_mouse_grabbed (dpyinfo))
+  if (gui_mouse_grabbed (dpyinfo))
     f = dpyinfo->last_mouse_frame;
   else
     f = pgtk_any_window_to_frame(gtk_widget_get_window(widget));

@@ -168,7 +168,7 @@ struct pgtk_display_info
   Window root_window;
 
   /* Xism */
-  XrmDatabase xrdb;
+  XrmDatabase rdb;
 
   /* The cursor to use for vertical scroll bars. */
   Emacs_Cursor vertical_scroll_bar_cursor;
@@ -180,7 +180,7 @@ struct pgtk_display_info
      mouse-face.  */
   Mouse_HLInfo mouse_highlight;
 
-  struct frame *x_highlight_frame;
+  struct frame *highlight_frame;
   struct frame *x_focus_frame;
 
   /* The last frame mentioned in a FocusIn or FocusOut event.  This is
@@ -384,6 +384,7 @@ enum
 
 /* This gives the pgtk_display_info structure for the display F is on.  */
 #define FRAME_X_OUTPUT(f)         ((f)->output_data.pgtk)
+#define FRAME_OUTPUT_DATA(f)      FRAME_X_OUTPUT (f)
 
 #define FRAME_DISPLAY_INFO(f)     (FRAME_X_OUTPUT(f)->display_info)
 #define FRAME_FOREGROUND_COLOR(f) (FRAME_X_OUTPUT(f)->foreground_color)
@@ -397,6 +398,7 @@ enum
 /* aliases */
 #define FRAME_PGTK_VIEW(f)         FRAME_GTK_WIDGET(f)
 #define FRAME_X_WINDOW(f)          FRAME_GTK_WIDGET(f)
+#define FRAME_NATIVE_WINDOW(f)     FRAME_GTK_WIDGET(f)
 
 #define FRAME_X_DISPLAY(f)        (FRAME_DISPLAY_INFO(f)->gdpy)
 
@@ -500,6 +502,8 @@ extern char *pgtk_xlfd_to_fontname (const char *xlfd);
 /* Implemented in pgtkfns. */
 extern void pgtk_set_doc_edited (void);
 extern const char *pgtk_get_defaults_value (const char *key);
+extern const char *pgtk_get_string_resource (XrmDatabase rdb, const char *name, const char *class);
+extern void pgtk_implicitly_set_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval);
 
 /* Color management implemented in pgtkterm. */
 extern bool pgtk_defined_color (struct frame *f,
