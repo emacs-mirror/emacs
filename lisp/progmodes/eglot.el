@@ -2297,10 +2297,9 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                               :end (eglot--pos-to-lsp-position end))
                  :context
                  `(:diagnostics
-                   [,@(mapcar (lambda (diag)
-                                (cdr (assoc 'eglot-lsp-diag
-                                            (eglot--diag-data diag))))
-                              (flymake-diagnostics beg end))]))))
+                   [,@(cl-loop for diag in (flymake-diagnostics beg end)
+                               when (cdr (assoc 'eglot-lsp-diag (eglot--diag-data diag)))
+                               collect it)]))))
          (menu-items
           (or (mapcar (jsonrpc-lambda (&rest all &key title &allow-other-keys)
                         (cons title all))
