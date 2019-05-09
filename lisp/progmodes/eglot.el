@@ -2075,7 +2075,8 @@ Buffer is displayed with `display-buffer', which obeys
   (when format
     (let ((string (apply #'format format args))) ;; FIXME: overworking?
       (when (or (eq t eglot-put-doc-in-help-buffer)
-                (funcall eglot-put-doc-in-help-buffer string))
+                (and eglot-put-doc-in-help-buffer
+                     (funcall eglot-put-doc-in-help-buffer string)))
         (with-current-buffer (eglot--help-buffer)
           (rename-buffer (format "*eglot-help for %s*" eglot--eldoc-hint))
           (let ((inhibit-read-only t))
