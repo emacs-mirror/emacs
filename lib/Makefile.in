@@ -26,6 +26,8 @@ abs_top_srcdir = @abs_top_srcdir@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
+CFLAGS = -fPIC @CFLAGS@
+
 all:
 .PHONY: all
 
@@ -50,7 +52,7 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 =
 
-ALL_CFLAGS= \
+ALL_CFLAGS= -fPIC \
   $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) $(DEPFLAGS) \
   $(GNULIB_WARN_CFLAGS) $(WERROR_CFLAGS) $(PROFILING_CFLAGS) $(CFLAGS) \
   -I. -I../src -I$(srcdir) -I$(srcdir)/../src \
