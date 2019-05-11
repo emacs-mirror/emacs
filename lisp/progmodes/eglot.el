@@ -174,6 +174,10 @@ as 0, i.e. don't block at all."
   "If non-nil, shut down server after killing last managed buffer."
   :type 'boolean)
 
+(defcustom eglot-send-changes-idle-time 0.5
+  "Don't tell server of changes before Emacs's been idle for this many seconds."
+  :type 'number)
+
 (defcustom eglot-events-buffer-size 2000000
   "Control the size of the Eglot events buffer.
 If a number, don't let the buffer grow larger than that many
@@ -1591,10 +1595,11 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
   (let ((buf (current-buffer)))
     (setq eglot--change-idle-timer
           (run-with-idle-timer
-           0.5 nil (lambda () (eglot--with-live-buffer buf
-                                (when eglot--managed-mode
-                                  (eglot--signal-textDocument/didChange)
-                                  (setq eglot--change-idle-timer nil))))))))
+           eglot-send-changes-idle-time
+           nil (lambda () (eglot--with-live-buffer buf
+                            (when eglot--managed-mode
+                              (eglot--signal-textDocument/didChange)
+                              (setq eglot--change-idle-timer nil))))))))
 
 ;; HACK! Launching a deferred sync request with outstanding changes is a
 ;; bad idea, since that might lead to the request never having a
