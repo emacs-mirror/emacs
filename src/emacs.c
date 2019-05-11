@@ -1598,6 +1598,11 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   init_json ();
 #endif
 
+#ifdef HAVE_LIBGCCJIT
+  if (!initialized)
+    syms_of_comp ();
+#endif
+
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
@@ -1771,6 +1776,12 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* Setting LANG here will defeat the startup locale processing...  */
 #ifdef AIX
   xputenv ("LANG=C");
+#endif
+
+  /* This is here because init_buffer can already call Lisp.  */
+#ifdef HAVE_LIBGCCJIT
+  if (initialized)
+    init_comp();
 #endif
 
   /* Init buffer storage and default directory of main buffer.  */
@@ -2388,6 +2399,10 @@ all of which are called before Emacs is actually killed.  */
       listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
       unlink (SSDATA (listfile));
     }
+
+#ifdef HAVE_LIBGCCJIT
+  release_comp();
+#endif
 
   if (FIXNUMP (arg))
     exit_code = (XFIXNUM (arg) < 0
