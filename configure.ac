@@ -463,6 +463,7 @@ OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_ON([modules],[compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
+OPTION_DEFAULT_ON([nativecomp],[don't compile with emacs lisp native compiler support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -3670,6 +3671,17 @@ if test "${HAVE_ZLIB}" = "yes"; then
 fi
 AC_SUBST(LIBZ)
 
+HAVE_LIBGCCJIT=no
+LIBGCCJIT_LIB=
+if test "${with_nativecomp}" != "no"; then
+  AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, HAVE_LIBGCCJIT=yes, , -lgccjit)
+  if test "${HAVE_LIBGCCJIT}" = "yes"; then
+    LIBGCCJIT_LIB=-lgccjit
+    AC_DEFINE([HAVE_LIBGCCJIT], 1, [Define to 1 if you have the libgccjit library (-lgccjit).])
+  fi
+fi
+AC_SUBST([LIBGCCJIT_LIB])
+
 ### Dynamic modules support
 LIBMODULES=
 HAVE_MODULES=no
@@ -5714,6 +5726,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs support the portable dumper?                 ${with_pdumper}
   Does Emacs support legacy unexec dumping?               ${with_unexec}
   Which dumping strategy does Emacs use?                  ${with_dumping}
+  Does Emacs have native lisp compiler?                   ${with_nativecomp}
 "])
 
 if test -n "${EMACSDATA}"; then
