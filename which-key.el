@@ -2279,6 +2279,21 @@ current evil state. "
       (message "which-key: No map named %s" map-sym))))
 
 ;;;###autoload
+(defun which-key-dump-bindings (prefix buffer-name)
+  "Dump bindings from PREFIX into buffer named BUFFER-NAME.
+
+PREFIX should be a string suitable for `kbd'."
+  (interactive "sPrefix: \nB")
+  (let* ((buffer (get-buffer-create buffer-name))
+         (keys (which-key--get-bindings (kbd prefix))))
+    (with-current-buffer buffer
+      (point-max)
+      (save-excursion
+        (dolist (key keys)
+          (insert (apply #'format "%s%s%s\n" key)))))
+    (switch-to-buffer-other-window buffer)))
+
+;;;###autoload
 (defun which-key-undo-key (&optional _)
   "Undo last keypress and force which-key update."
   (interactive)
