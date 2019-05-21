@@ -353,30 +353,34 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 
-	case Bvarbind:
-	  printf("Bvarbind\n");
-	  break;
-	case Bvarbind1:
-	  printf("Bvarbind1\n");
-	  break;
-	case Bvarbind2:
-	  printf("Bvarbind2\n");
-	  break;
-	case Bvarbind3:
-	  printf("Bvarbind3\n");
-	  break;
-	case Bvarbind4:
-	  printf("Bvarbind4\n");
-	  break;
-	case Bvarbind5:
-	  printf("Bvarbind5\n");
-	  break;
 	case Bvarbind6:
-	  printf("Bvarbind6\n");
-	  break;
+	  op = FETCH;
+	  goto varbind;
+
 	case Bvarbind7:
-	  printf("Bvarbind7\n");
-	  break;
+	  op = FETCH2;
+	  goto varbind;
+
+	case Bvarbind:
+	case Bvarbind1:
+	case Bvarbind2:
+	case Bvarbind3:
+	case Bvarbind4:
+	case Bvarbind5:
+	  op -= Bvarbind;
+	varbind:
+	  {
+	    POP1;
+	    args[1] = args[0];
+	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
+							  comp.lisp_obj,
+							  vectorp[op]);
+
+	    res = jit_emit_call ("specbind", 2, args);
+	    PUSH (gcc_jit_lvalue_as_rvalue (res));
+	    break;
+	  }
+
 	case Bcall:
 	  printf("Bcall\n");
 	  break;
