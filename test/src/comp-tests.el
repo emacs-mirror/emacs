@@ -76,6 +76,17 @@
 
   (should (= comp-tests-var1 55)))
 
+(ert-deftest  comp-tests-ffuncall ()
+  "Testing varset."
+  (defun comp-tests-ffuncall-callee-f (x y z)
+    (list x y z))
+  (defun comp-tests-ffuncall-caller-f ()
+    (comp-tests-ffuncall-callee-f 1 2 3))
+  (byte-compile #'comp-tests-ffuncall-caller-f)
+  (native-compile #'comp-tests-ffuncall-caller-f)
+
+  (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3))))
+
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
   (dotimes (_ 100000)

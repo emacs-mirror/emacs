@@ -29,7 +29,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "bytecode.h"
 #include "atimer.h"
 
+#define COMP_DEBUG 0
+
 #define MAX_FUN_NAME 256
+
+/* Max number of args we are able to handle while emitting function calls.  */
+
+#define MAX_ARGS 16
 
 #define DISASS_FILE_NAME "emacs-asm.s"
 
@@ -83,14 +89,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 typedef struct {
   gcc_jit_context *ctxt;
-  gcc_jit_type *lisp_obj;
+  gcc_jit_type *lisp_obj_type;
   gcc_jit_type *int_type;
+  gcc_jit_type *ptrdiff_type;
   gcc_jit_function *func; /* Current function being compiled  */
+  gcc_jit_function *Ffuncall; /* Current function being compiled  */
+  gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
   gcc_jit_block *block; /* Current basic block  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
 } comp_t;
 
 static comp_t comp;
+
+Lisp_Object scratch_call_area[MAX_ARGS];
+
+FILE *logfile;
 
 /* The result of one function compilation.  */
 
@@ -98,6 +111,9 @@ typedef struct {
   gcc_jit_result *gcc_res;
   short min_args, max_args;
 } comp_f_res_t;
+
+INLINE static void pop (unsigned n, gcc_jit_rvalue ***stack_ref,
+			gcc_jit_rvalue *args[]);
 
 static gcc_jit_function *jit_func_declare (const char *f_name, unsigned nargs,
 					   gcc_jit_rvalue **args,
@@ -107,10 +123,26 @@ static gcc_jit_function *jit_func_declare (const char *f_name, unsigned nargs,
 void emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 			   Lisp_Object func, bool dump_asm);
 
+/* Pop form the main evaluation stack and place the elements in args in reversed
+ order.  */
+
+INLINE static void
+pop (unsigned n, gcc_jit_rvalue ***stack_ref, gcc_jit_rvalue *args[])
+{
+  gcc_jit_rvalue **stack = *stack_ref;
+
+  while (n--)
+    {
+      stack--;
+      args[n] = *stack;
+    }
+
+  *stack_ref = stack;
+}
+
 static gcc_jit_function *
 jit_func_declare (const char *f_name, unsigned nargs, gcc_jit_rvalue **args,
-		  enum  gcc_jit_function_kind kind,
-		  bool reusable)
+		  enum  gcc_jit_function_kind kind, bool reusable)
 {
   gcc_jit_param *param[4];
   gcc_jit_type *type[4];
@@ -122,7 +154,7 @@ jit_func_declare (const char *f_name, unsigned nargs, gcc_jit_rvalue **args,
       type[i] = gcc_jit_rvalue_get_type (args[i]);
   else
     for (int i = 0; i < nargs; i++)
-      type[i] = comp.lisp_obj;
+      type[i] = comp.lisp_obj_type;
 
   switch (nargs) {
   case 4:
@@ -163,7 +195,7 @@ jit_func_declare (const char *f_name, unsigned nargs, gcc_jit_rvalue **args,
   gcc_jit_function *func =
     gcc_jit_context_new_function(comp.ctxt, NULL,
 				 kind,
-				 comp.lisp_obj,
+				 comp.lisp_obj_type,
 				 f_name,
 				 nargs,
 				 param,
@@ -207,7 +239,7 @@ jit_emit_call (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 
   gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
 						   NULL,
-						   comp.lisp_obj,
+						   comp.lisp_obj_type,
 						   "res");
   gcc_jit_block_add_assignment(comp.block, NULL,
 			       res,
@@ -215,6 +247,64 @@ jit_emit_call (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 							NULL,
 							func,
 							nargs,
+							args));
+  return res;
+}
+
+static gcc_jit_lvalue *
+jit_emit_Ffuncall (unsigned nargs, gcc_jit_rvalue **args)
+{
+
+  /* Here we set all the pointers into the scratch call area.  */
+  /* TODO: distinguish primitive for faster call convention.  */
+
+  /*
+  Lisp_Object *p;
+  p = scratch_call_area;
+
+  p[0] = 0x...;
+  .
+  .
+  .
+  p[n] = 0x...;
+  */
+
+  gcc_jit_lvalue *p =
+    gcc_jit_function_new_local(comp.func,
+			       NULL,
+			       gcc_jit_type_get_pointer (comp.lisp_obj_type),
+			       "p");
+
+  gcc_jit_block_add_assignment(comp.block, NULL,
+			       p,
+			       comp.scratch);
+
+  for (int i = 0; i < nargs; i++) {
+    gcc_jit_rvalue *idx =
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   gcc_jit_context_get_type(comp.ctxt,
+								    GCC_JIT_TYPE_UNSIGNED_INT),
+					   i);
+    gcc_jit_block_add_assignment (comp.block, NULL,
+				  gcc_jit_context_new_array_access (comp.ctxt,
+								    NULL,
+								    gcc_jit_lvalue_as_rvalue(p),
+								    idx),
+				  args[i + 1]);
+  }
+
+  args[1] = comp.scratch;
+
+  gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
+						   NULL,
+						   comp.lisp_obj,
+						   "res");
+  gcc_jit_block_add_assignment(comp.block, NULL,
+			       res,
+			       gcc_jit_context_new_call(comp.ctxt,
+							NULL,
+							comp.Ffuncall,
+							2,
 							args));
   return res;
 }
@@ -381,30 +471,34 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	case Bcall:
-	  printf("Bcall\n");
-	  break;
-	case Bcall1:
-	  printf("Bcall1\n");
-	  break;
-	case Bcall2:
-	  printf("Bcall2\n");
-	  break;
-	case Bcall3:
-	  printf("Bcall3\n");
-	  break;
-	case Bcall4:
-	  printf("Bcall4\n");
-	  break;
-	case Bcall5:
-	  printf("Bcall5\n");
-	  break;
 	case Bcall6:
-	  printf("Bcall6\n");
-	  break;
+	  op = FETCH;
+	  goto docall;
+
 	case Bcall7:
-	  printf("Bcall7\n");
-	  break;
+	  op = FETCH2;
+	  goto docall;
+
+	case Bcall:
+	case Bcall1:
+	case Bcall2:
+	case Bcall3:
+	case Bcall4:
+	case Bcall5:
+	  op -= Bcall;
+	docall:
+	  {
+	    ptrdiff_t nargs = op + 1;
+
+	    args[0] = gcc_jit_context_new_rvalue_from_int(comp.ctxt,
+							  comp.ptrdiff_type,
+							  nargs);
+	    pop (nargs, &stack, &args[1]);
+
+	    res = jit_emit_Ffuncall (nargs, args);
+	    PUSH (gcc_jit_lvalue_as_rvalue (res));
+	    break;
+	  }
 	case Bunbind:
 	  printf("Bunbind\n");
 	  break;
@@ -916,6 +1010,7 @@ emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 
   x->s.header.size = PVEC_SUBR << PSEUDOVECTOR_AREA_BITS;
   x->s.function.a0 = gcc_jit_result_get_code(comp_res.gcc_res, c_f_name);
+  eassert (x->s.function.a0);
   x->s.min_args = comp_res.min_args;
   x->s.max_args = comp_res.max_args;
   x->s.symbol_name = lisp_f_name;
@@ -1007,15 +1102,61 @@ init_comp (void)
 #endif
 
   comp.int_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_INT);
+
+  enum gcc_jit_types ptrdiff_t_gcc;
+  if (sizeof (ptrdiff_t) == sizeof (int))
+    ptrdiff_t_gcc = GCC_JIT_TYPE_INT;
+  else if (sizeof (ptrdiff_t) == sizeof (long int))
+    ptrdiff_t_gcc = GCC_JIT_TYPE_LONG;
+  else if (sizeof (ptrdiff_t) == sizeof (long long int))
+    ptrdiff_t_gcc = GCC_JIT_TYPE_LONG_LONG;
+  else
+    eassert ("ptrdiff_t size not handled.");
+
+  comp.ptrdiff_type = gcc_jit_context_get_type(comp.ctxt, ptrdiff_t_gcc);
+
+  gcc_jit_param *funcall_param[2] = {
+    gcc_jit_context_new_param(comp.ctxt,
+			      NULL,
+			      comp.ptrdiff_type,
+			      "nargs"),
+    gcc_jit_context_new_param(comp.ctxt,
+			      NULL,
+			      gcc_jit_type_get_pointer (comp.lisp_obj),
+			      "args") };
+
+  comp.Ffuncall =
+    gcc_jit_context_new_function(comp.ctxt, NULL,
+				 GCC_JIT_FUNCTION_IMPORTED,
+				 comp.lisp_obj,
+				 "Ffuncall",
+				 2,
+				 funcall_param,
+				 0);
+
+  comp.scratch =
+    gcc_jit_lvalue_get_address(
+    gcc_jit_context_new_global (comp.ctxt, NULL,
+				GCC_JIT_GLOBAL_IMPORTED,
+				comp.lisp_obj,
+				"scratch_call_area"),
+    NULL);
+
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
-  /* gcc_jit_context_set_bool_option(comp.ctxt, */
-  /* 				  GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING, */
-  /* 				  1); */
+  if (COMP_DEBUG) {
+    logfile = fopen ("libjit.log", "w");
+    gcc_jit_context_set_logfile (comp.ctxt,
+				 logfile,
+				 0, 0);
+    gcc_jit_context_set_bool_option (comp.ctxt,
+				     GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
+				     1);
+  }
 
-  gcc_jit_context_set_bool_option(comp.ctxt,
-				  GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
-				  1);
+  gcc_jit_context_set_bool_option (comp.ctxt,
+				   GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
+				   1);
 }
 
 void
@@ -1023,6 +1164,9 @@ release_comp (void)
 {
   if (comp.ctxt)
     gcc_jit_context_release(comp.ctxt);
+
+  if (COMP_DEBUG)
+    fclose (logfile);
 }
 
 void
