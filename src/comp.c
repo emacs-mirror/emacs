@@ -297,7 +297,7 @@ jit_emit_Ffuncall (unsigned nargs, gcc_jit_rvalue **args)
 
   gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
 						   NULL,
-						   comp.lisp_obj,
+						   comp.lisp_obj_type,
 						   "res");
   gcc_jit_block_add_assignment(comp.block, NULL,
 			       res,
@@ -403,7 +403,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	varref:
 	  {
 	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj,
+							  comp.lisp_obj_type,
 							  vectorp[op]);
 	    res = jit_emit_call ("Fsymbol_value", 1, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
@@ -430,10 +430,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    POP1;
 	    args[1] = args[0];
 	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj,
+							  comp.lisp_obj_type,
 							  vectorp[op]);
 	    args[2] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj,
+							  comp.lisp_obj_type,
 							  Qnil);
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
@@ -460,12 +460,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op -= Bvarbind;
 	varbind:
 	  {
-	    POP1;
-	    args[1] = args[0];
 	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj,
+							  comp.lisp_obj_type,
 							  vectorp[op]);
-
+	    pop (1, &stack, &args[1]);
 	    res = jit_emit_call ("specbind", 2, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
@@ -590,7 +588,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    POP1;
 	    args[1] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj,
+							  comp.lisp_obj_type,
 							  Qnil);
 	    res = jit_emit_call ("Fcons", 2, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
@@ -943,7 +941,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	      {
 		gcc_jit_rvalue *c =
 		  gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-						      comp.lisp_obj,
+						      comp.lisp_obj_type,
 						      vectorp[op]);
 		PUSH (c);
 		Fprint(vectorp[op], Qnil);
@@ -1095,10 +1093,10 @@ init_comp (void)
 
 #if EMACS_INT_MAX <= LONG_MAX
   /* 32-bit builds without wide ints, 64-bit builds on Posix hosts.  */
-  comp.lisp_obj = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
+  comp.lisp_obj_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
 #else
   /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.  */
-  comp.lisp_obj = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_LONG_LONG);
+  comp.lisp_obj_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_LONG_LONG);
 #endif
 
   comp.int_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_INT);
@@ -1122,13 +1120,13 @@ init_comp (void)
 			      "nargs"),
     gcc_jit_context_new_param(comp.ctxt,
 			      NULL,
-			      gcc_jit_type_get_pointer (comp.lisp_obj),
+			      gcc_jit_type_get_pointer (comp.lisp_obj_type),
 			      "args") };
 
   comp.Ffuncall =
     gcc_jit_context_new_function(comp.ctxt, NULL,
 				 GCC_JIT_FUNCTION_IMPORTED,
-				 comp.lisp_obj,
+				 comp.lisp_obj_type,
 				 "Ffuncall",
 				 2,
 				 funcall_param,
@@ -1138,7 +1136,7 @@ init_comp (void)
     gcc_jit_lvalue_get_address(
     gcc_jit_context_new_global (comp.ctxt, NULL,
 				GCC_JIT_GLOBAL_IMPORTED,
-				comp.lisp_obj,
+				comp.lisp_obj_type,
 				"scratch_call_area"),
     NULL);
 
