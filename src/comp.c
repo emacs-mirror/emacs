@@ -49,6 +49,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     stack++;					\
   } while (0)
 
+#define POP0
+
 #define POP1					\
   do {						\
     stack--;					\
@@ -120,6 +122,7 @@ typedef struct {
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_function *func; /* Current function being compiled  */
+  gcc_jit_rvalue *nil;
   gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
   gcc_jit_block *block; /* Current basic block  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
@@ -454,9 +457,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 							  comp.lisp_obj_type,
 							  vectorp[op]);
-	    args[2] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj_type,
-							  Qnil);
+	    args[2] = comp.nil;
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
 							   SET_INTERNAL_SET);
@@ -674,7 +675,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (following_char, 0);
 
 	case Bpreceding_char:
-	  res = jit_emit_call (Fprevious_char, comp.lisp_obj_type, 0, args);
+	  res = jit_emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 
@@ -1088,6 +1089,10 @@ init_comp (void)
     eassert ("ptrdiff_t size not handled.");
 
   comp.ptrdiff_type = gcc_jit_context_get_type(comp.ctxt, ptrdiff_t_gcc);
+
+  comp.nil = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
+						 comp.lisp_obj_type,
+						 Qnil);
 
   comp.scratch =
     gcc_jit_lvalue_get_address(
