@@ -275,15 +275,15 @@ jit_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 static gcc_jit_lvalue *
 jit_emit_Ffuncall (unsigned nargs, gcc_jit_rvalue **args)
 {
-
   /* Here we set all the pointers into the scratch call area.  */
-  /* TODO: distinguish primitive for faster call convention.  */
+  /* TODO: distinguish primitives for faster calling convention.  */
 
   /*
   Lisp_Object *p;
   p = scratch_call_area;
 
-  p[0] = 0x...;
+  p[0] = nargs;
+  p[1] = 0x...;
   .
   .
   .
@@ -311,9 +311,12 @@ jit_emit_Ffuncall (unsigned nargs, gcc_jit_rvalue **args)
 								    NULL,
 								    gcc_jit_lvalue_as_rvalue(p),
 								    idx),
-				  args[i + 1]);
+				  args[i]);
   }
 
+  args[0] = gcc_jit_context_new_rvalue_from_int(comp.ctxt,
+						comp.ptrdiff_type,
+						nargs);
   args[1] = comp.scratch;
 
   gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
@@ -508,12 +511,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	docall:
 	  {
 	    ptrdiff_t nargs = op + 1;
-
-	    args[0] = gcc_jit_context_new_rvalue_from_int(comp.ctxt,
-							  comp.ptrdiff_type,
-							  nargs);
-	    pop (nargs, &stack, &args[1]);
-
+	    pop (nargs, &stack, args);
 	    res = jit_emit_Ffuncall (nargs, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
