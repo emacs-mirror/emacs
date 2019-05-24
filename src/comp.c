@@ -384,7 +384,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   while (pc < bytestr_length)
     {
       op = FETCH;
-      printf ("pc %td\t%ud\n", pc, op);
+
       switch (op)
 	{
 	case Bstack_ref1:
@@ -540,13 +540,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 	case Bpophandler:
-	  printf("Bpophandler\n");
+	  error ("Bpophandler\n");
 	  break;
 	case Bpushconditioncase:
-	  printf("Bpushconditioncase\n");
+	  error ("Bpushconditioncase\n");
 	  break;
 	case Bpushcatch:
-	  printf("Bpushcatch\n");
+	  error ("Bpushcatch\n");
 	  break;
 
 	CASE_CALL_NARGS (nth, 2);
@@ -612,31 +612,31 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsub1:
-	  printf("Bsub1\n");
+	  error ("Bsub1\n");
 	  break;
 	case Badd1:
-	  printf("Badd1\n");
+	  error ("Badd1\n");
 	  break;
 	case Beqlsign:
-	  printf("Beqlsign\n");
+	  error ("Beqlsign\n");
 	  break;
 	case Bgtr:
-	  printf("Bgtr\n");
+	  error ("Bgtr\n");
 	  break;
 	case Blss:
-	  printf("Blss\n");
+	  error ("Blss\n");
 	  break;
 	case Bleq:
-	  printf("Bleq\n");
+	  error ("Bleq\n");
 	  break;
 	case Bgeq:
-	  printf("Bgeq\n");
+	  error ("Bgeq\n");
 	  break;
 	case Bdiff:
 	  EMIT_SCRATCH_CALL_N ("Fminus", 2);
 	  break;
 	case Bnegate:
-	  printf("Bnegate\n");
+	  error ("Bnegate\n");
 	  break;
 	case Bplus:
 	  EMIT_SCRATCH_CALL_N ("Fplus", 2);
@@ -651,10 +651,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  EMIT_SCRATCH_CALL_N ("Ftimes", 2);
 	  break;
 	case Bpoint:
-	  printf("Bpoint\n");
+	  error ("Bpoint\n");
 	  break;
 	case Bsave_current_buffer:
-	  printf("Bsave_current_buffer\n");
+	  error ("Bsave_current_buffer\n");
 	  break;
 
 	CASE_CALL_NARGS (goto_char, 1);
@@ -664,104 +664,105 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bpoint_max:
-	  printf("Bpoint_max\n");
+	  error ("Bpoint_max\n");
 	  break;
 	case Bpoint_min:
-	  printf("Bpoint_min\n");
+	  error ("Bpoint_min\n");
 	  break;
 	case Bchar_after:
-	  printf("Bchar_after\n");
+	  error ("Bchar_after\n");
 	  break;
 	case Bfollowing_char:
-	  printf("Bfollowing_char\n");
+	  error ("Bfollowing_char\n");
 	  break;
 	case Bpreceding_char:
-	  printf("Bpreceding_char\n");
+	  error ("Bpreceding_char\n");
 	  break;
 	case Bcurrent_column:
-	  printf("Bcurrent_column\n");
+	  error ("Bcurrent_column\n");
 	  break;
 	case Bindent_to:
-	  printf("Bindent_to\n");
+	  error ("Bindent_to\n");
 	  break;
 	case Beolp:
-	  printf("Beolp\n");
+	  error ("Beolp\n");
 	  break;
 	case Beobp:
-	  printf("Beobp\n");
+	  error ("Beobp\n");
 	  break;
 	case Bbolp:
-	  printf("Bbolp\n");
+	  error ("Bbolp\n");
 	  break;
 	case Bbobp:
-	  printf("Bbobp\n");
+	  error ("Bbobp\n");
 	  break;
 	case Bcurrent_buffer:
-	  printf("Bcurrent_buffer\n");
+	  error ("Bcurrent_buffer\n");
 	  break;
 	case Bset_buffer:
-	  printf("Bset_buffer\n");
+	  error ("Bset_buffer\n");
 	  break;
 	case Bsave_current_buffer_1:
-	  printf("Bsave_current_buffer_1\n");
+	  error ("Bsave_current_buffer_1\n");
 	  break;
 	case Binteractive_p:
-	  printf("Binteractive_p\n");
+	  error ("Binteractive_p\n");
 	  break;
 	case Bforward_char:
-	  printf("Bforward_char\n");
+	  error ("Bforward_char\n");
 	  break;
 	case Bforward_word:
-	  printf("Bforward_word\n");
+	  error ("Bforward_word\n");
 	  break;
 	case Bskip_chars_forward:
-	  printf("Bskip_chars_forward\n");
+	  error ("Bskip_chars_forward\n");
 	  break;
 	case Bskip_chars_backward:
-	  printf("Bskip_chars_backward\n");
+	  error ("Bskip_chars_backward\n");
 	  break;
 	case Bforward_line:
-	  printf("Bforward_line\n");
+	  error ("Bforward_line\n");
 	  break;
 	case Bchar_syntax:
-	  printf("Bchar_syntax\n");
+	  error ("Bchar_syntax\n");
 	  break;
 	case Bbuffer_substring:
-	  printf("Bbuffer_substring\n");
+	  error ("Bbuffer_substring\n");
 	  break;
 	case Bdelete_region:
-	  printf("Bdelete_region\n");
+	  error ("Bdelete_region\n");
 	  break;
 	case Bnarrow_to_region:
-	  printf("Bnarrow_to_region\n");
+	  error ("Bnarrow_to_region\n");
 	  break;
 	case Bwiden:
-	  printf("Bwiden\n");
+	  error ("Bwiden\n");
 	  break;
 	case Bend_of_line:
-	  printf("Bend_of_line\n");
+	  error ("Bend_of_line\n");
 	  break;
+
 	case Bconstant2:
-	  printf("Bconstant2\n");
 	  goto do_constant;
 	  break;
+
 	case Bgoto:
-	  printf("Bgoto\n");
+	  error ("Bgoto\n");
 	  break;
 	case Bgotoifnil:
-	  printf("Bgotoifnil\n");
+	  error ("Bgotoifnil\n");
 	  break;
 	case Bgotoifnonnil:
-	  printf("Bgotoifnonnil\n");
+	  error ("Bgotoifnonnil\n");
 	  break;
 	case Bgotoifnilelsepop:
-	  printf("Bgotoifnilelsepop\n");
+	  error ("Bgotoifnilelsepop\n");
 	  break;
 	case Bgotoifnonnilelsepop:
-	  printf("Bgotoifnonnilelsepop\n");
+	  error ("Bgotoifnonnilelsepop\n");
 	  break;
+
 	case Breturn:
-	  printf("Breturn\n");
 	  break;
 
 	case Bdiscard:
@@ -773,127 +774,127 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsave_excursion:
-	  printf("Bsave_excursion\n");
+	  error ("Bsave_excursion\n");
 	  break;
 	case Bsave_window_excursion:
-	  printf("Bsave_window_excursion\n");
+	  error ("Bsave_window_excursion\n");
 	  break;
 	case Bsave_restriction:
-	  printf("Bsave_restriction\n");
+	  error ("Bsave_restriction\n");
 	  break;
 	case Bcatch:
-	  printf("Bcatch\n");
+	  error ("Bcatch\n");
 	  break;
 	case Bunwind_protect:
-	  printf("Bunwind_protect\n");
+	  error ("Bunwind_protect\n");
 	  break;
 	case Bcondition_case:
-	  printf("Bcondition_case\n");
+	  error ("Bcondition_case\n");
 	  break;
 	case Btemp_output_buffer_setup:
-	  printf("Btemp_output_buffer_setup\n");
+	  error ("Btemp_output_buffer_setup\n");
 	  break;
 	case Btemp_output_buffer_show:
-	  printf("Btemp_output_buffer_show\n");
+	  error ("Btemp_output_buffer_show\n");
 	  break;
 	case Bunbind_all:
-	  printf("Bunbind_all\n");
+	  error ("Bunbind_all\n");
 	  break;
 	case Bset_marker:
-	  printf("Bset_marker\n");
+	  error ("Bset_marker\n");
 	  break;
 	case Bmatch_beginning:
-	  printf("Bmatch_beginning\n");
+	  error ("Bmatch_beginning\n");
 	  break;
 	case Bmatch_end:
-	  printf("Bmatch_end\n");
+	  error ("Bmatch_end\n");
 	  break;
 	case Bupcase:
-	  printf("Bupcase\n");
+	  error ("Bupcase\n");
 	  break;
 	case Bdowncase:
-	  printf("Bdowncase\n");
+	  error ("Bdowncase\n");
 	  break;
 	case Bstringeqlsign:
-	  printf("Bstringeqlsign\n");
+	  error ("Bstringeqlsign\n");
 	  break;
 	case Bstringlss:
-	  printf("Bstringlss\n");
+	  error ("Bstringlss\n");
 	  break;
 	case Bequal:
-	  printf("Bequal\n");
+	  error ("Bequal\n");
 	  break;
 	case Bnthcdr:
-	  printf("Bnthcdr\n");
+	  error ("Bnthcdr\n");
 	  break;
 	case Belt:
-	  printf("Belt\n");
+	  error ("Belt\n");
 	  break;
 	case Bmember:
-	  printf("Bmember\n");
+	  error ("Bmember\n");
 	  break;
 	case Bassq:
-	  printf("Bassq\n");
+	  error ("Bassq\n");
 	  break;
 	case Bnreverse:
-	  printf("Bnreverse\n");
+	  error ("Bnreverse\n");
 	  break;
 	case Bsetcar:
-	  printf("Bsetcar\n");
+	  error ("Bsetcar\n");
 	  break;
 	case Bsetcdr:
-	  printf("Bsetcdr\n");
+	  error ("Bsetcdr\n");
 	  break;
 	case Bcar_safe:
-	  printf("Bcar_safe\n");
+	  error ("Bcar_safe\n");
 	  break;
 	case Bcdr_safe:
-	  printf("Bcdr_safe\n");
+	  error ("Bcdr_safe\n");
 	  break;
 	case Bnconc:
-	  printf("Bnconc\n");
+	  error ("Bnconc\n");
 	  break;
 	case Bquo:
-	  printf("Bquo\n");
+	  error ("Bquo\n");
 	  break;
 	case Brem:
-	  printf("Brem\n");
+	  error ("Brem\n");
 	  break;
 	case Bnumberp:
-	  printf("Bnumberp\n");
+	  error ("Bnumberp\n");
 	  break;
 	case Bintegerp:
-	  printf("Bintegerp\n");
+	  error ("Bintegerp\n");
 	  break;
 	case BRgoto:
-	  printf("BRgoto\n");
+	  error ("BRgoto\n");
 	  break;
 	case BRgotoifnil:
-	  printf("BRgotoifnil\n");
+	  error ("BRgotoifnil\n");
 	  break;
 	case BRgotoifnonnil:
-	  printf("BRgotoifnonnil\n");
+	  error ("BRgotoifnonnil\n");
 	  break;
 	case BRgotoifnilelsepop:
-	  printf("BRgotoifnilelsepop\n");
+	  error ("BRgotoifnilelsepop\n");
 	  break;
 	case BRgotoifnonnilelsepop:
-	  printf("BRgotoifnonnilelsepop\n");
+	  error ("BRgotoifnonnilelsepop\n");
 	  break;
 	case BinsertN:
-	  printf("BinsertN\n");
+	  error ("BinsertN\n");
 	  break;
 	case Bstack_set:
-	  printf("Bstack_set\n");
+	  error ("Bstack_set\n");
 	  break;
 	case Bstack_set2:
-	  printf("Bstack_set2\n");
+	  error ("Bstack_set2\n");
 	  break;
 	case BdiscardN:
-	  printf("BdiscardN\n");
+	  error ("BdiscardN\n");
 	  break;
 	case Bswitch:
-	  printf("Bswitch\n");
+	  error ("Bswitch\n");
 	  /* The cases of Bswitch that we handle (which in theory is
 	     all of them) are done in Bconstant, below.  This is done
 	     due to a design issue with Bswitch -- it should have
@@ -903,7 +904,6 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 	default:
 	case Bconstant:
-	  printf("Bconstant ");
 	  {
 	    if (op < Bconstant || op > Bconstant + vector_size)
 	      goto fail;
@@ -919,7 +919,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 						      comp.lisp_obj_type,
 						      vectorp[op]);
 		PUSH (c);
-		Fprint(vectorp[op], Qnil);
+		/* Fprint(vectorp[op], Qnil); */
 		break;
 	      }
 
