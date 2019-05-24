@@ -552,29 +552,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bpushcatch:
 	  printf("Bpushcatch\n");
 	  break;
-	case Bnth:
-	  printf("Bnth\n");
-	  break;
-	case Bsymbolp:
-	  printf("Bsymbolp\n");
-	  break;
-	case Bconsp:
-	  printf("Bconsp\n");
-	  break;
-	case Bstringp:
-	  printf("Bstringp\n");
-	  break;
-	case Blistp:
-	  printf("Blistp\n");
-	  break;
 
+	CASE_CALL_NARGS (nth, 2);
+	CASE_CALL_NARGS (symbolp, 1);
+	CASE_CALL_NARGS (consp, 1);
+	CASE_CALL_NARGS (stringp, 1);
+	CASE_CALL_NARGS (listp, 1);
 	CASE_CALL_NARGS (eq, 2);
 	CASE_CALL_NARGS (memq, 1);
-
-	case Bnot:
-	  printf("Bnot\n");
-	  break;
-
+	CASE_CALL_NARGS (not, 1);
 	CASE_CALL_NARGS (car, 1);
 	CASE_CALL_NARGS (cdr, 1);
 	CASE_CALL_NARGS (cons, 2);
@@ -612,9 +598,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (symbol_function, 1);
 	CASE_CALL_NARGS (set, 2);
 	CASE_CALL_NARGS (fset, 2);
-	CASE_CALL_NARGS (fget, 2);
-	CASE_CALL_NARGS (fget, 2);
-	CASE_CALL_NARGS (Bsubstring, 3);
+	CASE_CALL_NARGS (get, 2);
+	CASE_CALL_NARGS (substring, 3);
 
 	case Bconcat2:
 	  printf("Bconcat2\n");
