@@ -106,6 +106,15 @@
 
   (should (= (comp-tests-symbol-value-f) 3)))
 
+(ert-deftest  comp-tests-concat ()
+  "Testing concatX opcodes."
+  (defun comp-tests-concat-f (x)
+    (concat "a" "b" "c" "d"
+            (concat "a" "b" "c" (concat "a" "b" (concat "foo" x)))))
+  (byte-compile #'comp-tests-concat-f)
+  (native-compile #'comp-tests-concat-f)
+
+  (should (string= (comp-tests-concat-f "bar") "abcdabcabfoobar")))
 
 (ert-deftest  comp-tests-ffuncall ()
   "Testing varset."

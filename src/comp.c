@@ -91,8 +91,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define STR(s) #s
 
-/* With most of the ops we need to do the same stuff so this save some
-   typing.  */
+/* With most of the ops we need to do the same stuff so this macros are meant
+   to save some typing.  */
+
+/* Generate appropriate case and emit convential calls to function. */
 
 #define CASE_CALL_NARGS(name, nargs)					\
   case B##name:								\
@@ -100,6 +102,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   res = jit_emit_call (STR(F##name), comp.lisp_obj_type, nargs, args);	\
   PUSH (gcc_jit_lvalue_as_rvalue (res));				\
   break
+
+/* Emit calls to functions with prototype (ptrdiff_t nargs, Lisp_Object *args)
+   This is done aggregating args into the scratch_call_area.  */
+
+#define EMIT_SCRATCH_CALL_N(name, nargs)		\
+  pop (nargs, &stack, args);				\
+  res = jit_emit_callN (name, nargs, args);		\
+  PUSH (gcc_jit_lvalue_as_rvalue (res))
 
 /* The compiler context  */
 
@@ -588,14 +598,19 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (substring, 3);
 
 	case Bconcat2:
-	  printf("Bconcat2\n");
+	  EMIT_SCRATCH_CALL_N ("Fconcat", 2);
 	  break;
 	case Bconcat3:
-	  printf("Bconcat3\n");
+	  EMIT_SCRATCH_CALL_N ("Fconcat", 3);
 	  break;
 	case Bconcat4:
-	  printf("Bconcat4\n");
+	  EMIT_SCRATCH_CALL_N ("Fconcat", 4);
 	  break;
+	case BconcatN:
+	  op = FETCH;
+	  EMIT_SCRATCH_CALL_N ("Fconcat", op);
+	  break;
+
 	case Bsub1:
 	  printf("Bsub1\n");
 	  break;
@@ -863,9 +878,6 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 	case BRgotoifnonnilelsepop:
 	  printf("BRgotoifnonnilelsepop\n");
-	  break;
-	case BconcatN:
-	  printf("BconcatN\n");
 	  break;
 	case BinsertN:
 	  printf("BinsertN\n");
