@@ -117,10 +117,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 typedef struct {
   gcc_jit_context *ctxt;
-  gcc_jit_type *lisp_obj_type;
+  gcc_jit_type *void_type;
   gcc_jit_type *int_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
+  gcc_jit_type *lisp_obj_type;
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *nil;
   gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
@@ -654,9 +655,6 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bpoint:
 	  error ("Bpoint\n");
 	  break;
-	case Bsave_current_buffer:
-	  error ("Bsave_current_buffer\n");
-	  break;
 
 	CASE_CALL_NARGS (goto_char, 1);
 
@@ -682,29 +680,32 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (current_column, 0);
 
 	case Bindent_to:
-	  error ("Bindent_to\n");
+	  POP1;
+	  args[1] = comp.nil;
+	  res = jit_emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
 	  break;
-	case Beolp:
-	  error ("Beolp\n");
-	  break;
+
+	CASE_CALL_NARGS (eolp, 0);
+
 	case Beobp:
 	  error ("Beobp\n");
 	  break;
-	case Bbolp:
-	  error ("Bbolp\n");
-	  break;
+
+	CASE_CALL_NARGS (bolp, 0);
+
 	case Bbobp:
 	  error ("Bbobp\n");
 	  break;
-	case Bcurrent_buffer:
-	  error ("Bcurrent_buffer\n");
-	  break;
-	case Bset_buffer:
-	  error ("Bset_buffer\n");
-	  break;
+
+	CASE_CALL_NARGS (current_buffer, 0);
+	CASE_CALL_NARGS (set_buffer, 1);
+
+	case Bsave_current_buffer: /* Obsolete since ??.  */
 	case Bsave_current_buffer_1:
-	  error ("Bsave_current_buffer_1\n");
+	  jit_emit_call ("record_unwind_current_buffer",
+			 comp.void_type, 0, NULL);
 	  break;
+
 	case Binteractive_p:
 	  error ("Binteractive_p\n");
 	  break;
@@ -1074,6 +1075,7 @@ init_comp (void)
   comp.lisp_obj_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_LONG_LONG);
 #endif
 
+  comp.void_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.int_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_INT);
   comp.void_ptr_type =
     gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
