@@ -612,9 +612,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  res = jit_emit_call ("Flength", comp.lisp_obj_type, 1, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
+
 	case Baref:
-	  printf("Baref\n");
+	  POP2;
+	  res = jit_emit_call ("Faref", comp.lisp_obj_type, 2, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
+
 	case Baset:
 	  printf("Baset\n");
 	  break;

@@ -85,6 +85,15 @@
 
   (should (= (comp-tests-length-f) 3)))
 
+(ert-deftest  comp-tests-aref ()
+  "Testing aref."
+  (defun comp-tests-aref-f ()
+      (aref [1 2 3] 2))
+  (byte-compile #'comp-tests-aref-f)
+  (native-compile #'comp-tests-aref-f)
+
+  (should (= (comp-tests-aref-f) 3)))
+
 (ert-deftest  comp-tests-ffuncall ()
   "Testing varset."
   (defun comp-tests-ffuncall-callee-f (x y z)
