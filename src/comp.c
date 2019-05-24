@@ -110,7 +110,6 @@ typedef struct {
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_function *func; /* Current function being compiled  */
-  gcc_jit_function *Ffuncall; /* Current function being compiled  */
   gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
   gcc_jit_block *block; /* Current basic block  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
@@ -273,8 +272,7 @@ jit_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 }
 
 static gcc_jit_lvalue *
-jit_emit_callN (gcc_jit_function *func, unsigned nargs,
-		   gcc_jit_rvalue **args)
+jit_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 {
   /* Here we set all the pointers into the scratch call area.  */
   /* TODO: distinguish primitives for faster calling convention.  */
@@ -320,18 +318,7 @@ jit_emit_callN (gcc_jit_function *func, unsigned nargs,
 						nargs);
   args[1] = comp.scratch;
 
-  gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
-						   NULL,
-						   comp.lisp_obj_type,
-						   "res");
-  gcc_jit_block_add_assignment(comp.block, NULL,
-			       res,
-			       gcc_jit_context_new_call(comp.ctxt,
-							NULL,
-							func,
-							2,
-							args));
-  return res;
+  return jit_emit_call (f_name, comp.lisp_obj_type, 2, args);
 }
 
 static comp_f_res_t
@@ -513,7 +500,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    ptrdiff_t nargs = op + 1;
 	    pop (nargs, &stack, args);
-	    res = jit_emit_callN (comp.Ffuncall, nargs, args);
+	    res = jit_emit_callN ("Ffuncall", nargs, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
 	  }
@@ -1089,25 +1076,6 @@ init_comp (void)
     eassert ("ptrdiff_t size not handled.");
 
   comp.ptrdiff_type = gcc_jit_context_get_type(comp.ctxt, ptrdiff_t_gcc);
-
-  gcc_jit_param *funcall_param[2] = {
-    gcc_jit_context_new_param(comp.ctxt,
-			      NULL,
-			      comp.ptrdiff_type,
-			      "nargs"),
-    gcc_jit_context_new_param(comp.ctxt,
-			      NULL,
-			      gcc_jit_type_get_pointer (comp.lisp_obj_type),
-			      "args") };
-
-  comp.Ffuncall =
-    gcc_jit_context_new_function(comp.ctxt, NULL,
-				 GCC_JIT_FUNCTION_IMPORTED,
-				 comp.lisp_obj_type,
-				 "Ffuncall",
-				 2,
-				 funcall_param,
-				 0);
 
   comp.scratch =
     gcc_jit_lvalue_get_address(
