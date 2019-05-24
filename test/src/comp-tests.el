@@ -85,14 +85,16 @@
 
   (should (= (comp-tests-length-f) 3)))
 
-(ert-deftest  comp-tests-aref ()
-  "Testing aref."
-  (defun comp-tests-aref-f ()
-      (aref [1 2 3] 2))
-  (byte-compile #'comp-tests-aref-f)
-  (native-compile #'comp-tests-aref-f)
+(ert-deftest  comp-tests-aref-aset ()
+  "Testing aref and aset."
+  (defun comp-tests-aref-aset-f ()
+    (let ((vec [1 2 3]))
+      (aset vec 2 100)
+      (aref vec 2)))
+  (byte-compile #'comp-tests-aref-aset-f)
+  (native-compile #'comp-tests-aref-aset-f)
 
-  (should (= (comp-tests-aref-f) 3)))
+  (should (= (comp-tests-aref-aset-f) 100)))
 
 (ert-deftest  comp-tests-ffuncall ()
   "Testing varset."

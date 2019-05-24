@@ -624,8 +624,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Baset:
-	  printf("Baset\n");
+	  POP3;
+	  res = jit_emit_call ("Faset", comp.lisp_obj_type, 3, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
+
 	case Bsymbol_value:
 	  printf("Bsymbol_value\n");
 	  break;
