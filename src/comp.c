@@ -115,7 +115,9 @@ typedef struct {
 INLINE static void pop (unsigned n, gcc_jit_rvalue ***stack_ref,
 			gcc_jit_rvalue *args[]);
 
-static gcc_jit_function *jit_func_declare (const char *f_name, unsigned nargs,
+static gcc_jit_function *jit_func_declare (const char *f_name,
+					   gcc_jit_type *ret_type,
+					   unsigned nargs,
 					   gcc_jit_rvalue **args,
 					   enum gcc_jit_function_kind kind,
 					   bool reusable);
@@ -141,7 +143,8 @@ pop (unsigned n, gcc_jit_rvalue ***stack_ref, gcc_jit_rvalue *args[])
 }
 
 static gcc_jit_function *
-jit_func_declare (const char *f_name, unsigned nargs, gcc_jit_rvalue **args,
+jit_func_declare (const char *f_name, gcc_jit_type *ret_type,
+		  unsigned nargs, gcc_jit_rvalue **args,
 		  enum  gcc_jit_function_kind kind, bool reusable)
 {
   gcc_jit_param *param[4];
@@ -219,7 +222,8 @@ jit_func_declare (const char *f_name, unsigned nargs, gcc_jit_rvalue **args,
 }
 
 static gcc_jit_lvalue *
-jit_emit_call (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
+jit_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
+	       gcc_jit_rvalue **args)
 {
   Lisp_Object key = make_string (f_name, strlen (f_name));
   EMACS_UINT hash = 0;
@@ -228,7 +232,7 @@ jit_emit_call (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 
   if (i == -1)
     {
-      jit_func_declare(f_name, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
+      jit_func_declare(f_name, ret_type, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
 		       true);
       i = hash_lookup (ht, key, &hash);
       eassert (i != -1);
@@ -239,7 +243,7 @@ jit_emit_call (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 
   gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
 						   NULL,
-						   comp.lisp_obj_type,
+						   ret_type,
 						   "res");
   gcc_jit_block_add_assignment(comp.block, NULL,
 			       res,
@@ -351,8 +355,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 
   /* Current function being compiled. Return a lips obj. */
-  comp.func = jit_func_declare (f_name, comp_res.max_args, NULL,
-				GCC_JIT_FUNCTION_EXPORTED, false);
+  comp.func = jit_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
+				NULL, GCC_JIT_FUNCTION_EXPORTED, false);
 
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
     PUSH (gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func, i)));
@@ -405,7 +409,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 							  comp.lisp_obj_type,
 							  vectorp[op]);
-	    res = jit_emit_call ("Fsymbol_value", 1, args);
+	    res = jit_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
 	  }
@@ -438,7 +442,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
 							   SET_INTERNAL_SET);
-	    res = jit_emit_call ("set_internal", 4, args);
+	    res = jit_emit_call ("set_internal", comp.lisp_obj_type, 4, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  }
 	  break;
@@ -464,7 +468,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							  comp.lisp_obj_type,
 							  vectorp[op]);
 	    pop (1, &stack, &args[1]);
-	    res = jit_emit_call ("specbind", 2, args);
+	    res = jit_emit_call ("specbind", comp.lisp_obj_type, 2, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
 	  }
@@ -519,7 +523,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							  comp.ptrdiff_type,
 							  op);
 
-	    res = jit_emit_call ("unbind_n", 1, args);
+	    res = jit_emit_call ("unbind_n", comp.lisp_obj_type, 1, args);
 	  }
 	  break;
 	case Bpophandler:
@@ -548,12 +552,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 	case Beq:
 	  POP2;
-	  res = jit_emit_call ("Feq", 2, args);
+	  res = jit_emit_call ("Feq", comp.lisp_obj_type, 2, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 	case Bmemq:
 	  POP1;
-	  res = jit_emit_call ("Fmemq", 1, args);
+	  res = jit_emit_call ("Fmemq", comp.lisp_obj_type, 1, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 	  break;
@@ -562,17 +566,17 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 	case Bcar:
 	  POP1;
-	  res = jit_emit_call ("Fcar", 1, args);
+	  res = jit_emit_call ("Fcar", comp.lisp_obj_type, 1, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 	case Bcdr:
 	  POP1;
-	  res = jit_emit_call ("Fcdr", 1, args);
+	  res = jit_emit_call ("Fcdr", comp.lisp_obj_type, 1, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 	case Bcons:
 	  POP2;
-	  res = jit_emit_call ("Fcons", 2, args);
+	  res = jit_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 
@@ -591,12 +595,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    args[1] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 							  comp.lisp_obj_type,
 							  Qnil);
-	    res = jit_emit_call ("Fcons", 2, args);
+	    res = jit_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    for (int i = 0; i < op; ++i)
 	      {
 		POP2;
-		res = jit_emit_call ("Fcons", 2, args);
+		res = jit_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
 		PUSH (gcc_jit_lvalue_as_rvalue (res));
 	      }
 	    break;
