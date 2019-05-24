@@ -76,6 +76,15 @@
 
   (should (= comp-tests-var1 55)))
 
+(ert-deftest  comp-tests-length ()
+  "Testing length."
+  (defun comp-tests-length-f ()
+      (length '(1 2 3)))
+  (byte-compile #'comp-tests-length-f)
+  (native-compile #'comp-tests-length-f)
+
+  (should (= (comp-tests-length-f) 3)))
+
 (ert-deftest  comp-tests-ffuncall ()
   "Testing varset."
   (defun comp-tests-ffuncall-callee-f (x y z)

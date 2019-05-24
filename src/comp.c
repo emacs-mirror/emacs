@@ -608,7 +608,9 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 
 	case Blength:
-	  printf("Blength\n");
+	  POP1;
+	  res = jit_emit_call ("Flength", comp.lisp_obj_type, 1, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 	case Baref:
 	  printf("Baref\n");
