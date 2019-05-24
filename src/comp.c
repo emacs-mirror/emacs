@@ -497,29 +497,30 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
 	  }
-	case Bunbind:
-	  printf("Bunbind\n");
-	  break;
-	case Bunbind1:
-	  printf("Bunbind1\n");
-	  break;
-	case Bunbind2:
-	  printf("Bunbind2\n");
-	  break;
-	case Bunbind3:
-	  printf("Bunbind3\n");
-	  break;
-	case Bunbind4:
-	  printf("Bunbind4\n");
-	  break;
-	case Bunbind5:
-	  printf("Bunbind5\n");
-	  break;
+
 	case Bunbind6:
-	  printf("Bunbind6\n");
-	  break;
+	  op = FETCH;
+	  goto dounbind;
+
 	case Bunbind7:
-	  printf("Bunbind7\n");
+	  op = FETCH2;
+	  goto dounbind;
+
+	case Bunbind:
+	case Bunbind1:
+	case Bunbind2:
+	case Bunbind3:
+	case Bunbind4:
+	case Bunbind5:
+	  op -= Bunbind;
+	dounbind:
+	  {
+	    args[0] = gcc_jit_context_new_rvalue_from_int(comp.ctxt,
+							  comp.ptrdiff_type,
+							  op);
+
+	    res = jit_emit_call ("unbind_n", 1, args);
+	  }
 	  break;
 	case Bpophandler:
 	  printf("Bpophandler\n");
