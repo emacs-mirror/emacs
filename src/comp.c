@@ -669,18 +669,17 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bpoint_min:
 	  error ("Bpoint_min\n");
 	  break;
-	case Bchar_after:
-	  error ("Bchar_after\n");
-	  break;
-	case Bfollowing_char:
-	  error ("Bfollowing_char\n");
-	  break;
+
+	CASE_CALL_NARGS (char_after, 1);
+	CASE_CALL_NARGS (following_char, 0);
+
 	case Bpreceding_char:
-	  error ("Bpreceding_char\n");
+	  res = jit_emit_call (Fprevious_char, comp.lisp_obj_type, 0, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
-	case Bcurrent_column:
-	  error ("Bcurrent_column\n");
-	  break;
+
+	CASE_CALL_NARGS (current_column, 0);
+
 	case Bindent_to:
 	  error ("Bindent_to\n");
 	  break;
