@@ -89,6 +89,18 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define DISCARD(n) (stack -= (n))
 
+#define STR(s) #s
+
+/* With most of the ops we need to do the same stuff so this save some
+   typing.  */
+
+#define CASE_CALL_NARGS(name, nargs)					\
+  case B##name:								\
+  POP##nargs;								\
+  res = jit_emit_call (STR(F##name), comp.lisp_obj_type, nargs, args);	\
+  PUSH (gcc_jit_lvalue_as_rvalue (res));				\
+  break
+
 /* The compiler context  */
 
 typedef struct {
@@ -555,35 +567,17 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Blistp:
 	  printf("Blistp\n");
 	  break;
-	case Beq:
-	  POP2;
-	  res = jit_emit_call ("Feq", comp.lisp_obj_type, 2, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
-	case Bmemq:
-	  POP1;
-	  res = jit_emit_call ("Fmemq", comp.lisp_obj_type, 1, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
-	  break;
+
+	CASE_CALL_NARGS (eq, 2);
+	CASE_CALL_NARGS (memq, 1);
+
 	case Bnot:
 	  printf("Bnot\n");
 	  break;
-	case Bcar:
-	  POP1;
-	  res = jit_emit_call ("Fcar", comp.lisp_obj_type, 1, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
-	case Bcdr:
-	  POP1;
-	  res = jit_emit_call ("Fcdr", comp.lisp_obj_type, 1, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
-	case Bcons:
-	  POP2;
-	  res = jit_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
+
+	CASE_CALL_NARGS (car, 1);
+	CASE_CALL_NARGS (cdr, 1);
+	CASE_CALL_NARGS (cons, 2);
 
 	case BlistN:
 	  op = FETCH;
@@ -611,45 +605,17 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	case Blength:
-	  POP1;
-	  res = jit_emit_call ("Flength", comp.lisp_obj_type, 1, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
+	CASE_CALL_NARGS (length, 1);
+	CASE_CALL_NARGS (aref, 2);
+	CASE_CALL_NARGS (aset, 3);
+	CASE_CALL_NARGS (symbol_value, 1);
+	CASE_CALL_NARGS (symbol_function, 1);
+	CASE_CALL_NARGS (set, 2);
+	CASE_CALL_NARGS (fset, 2);
+	CASE_CALL_NARGS (fget, 2);
+	CASE_CALL_NARGS (fget, 2);
+	CASE_CALL_NARGS (Bsubstring, 3);
 
-	case Baref:
-	  POP2;
-	  res = jit_emit_call ("Faref", comp.lisp_obj_type, 2, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
-
-	case Baset:
-	  POP3;
-	  res = jit_emit_call ("Faset", comp.lisp_obj_type, 3, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
-
-	case Bsymbol_value:
-	  POP1;
-	  res = jit_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
-	  PUSH (gcc_jit_lvalue_as_rvalue (res));
-	  break;
-
-	case Bsymbol_function:
-	  printf("Bsymbol_function\n");
-	  break;
-	case Bset:
-	  printf("Bset\n");
-	  break;
-	case Bfset:
-	  printf("Bfset\n");
-	  break;
-	case Bget:
-	  printf("Bget\n");
-	  break;
-	case Bsubstring:
-	  printf("Bsubstring\n");
-	  break;
 	case Bconcat2:
 	  printf("Bconcat2\n");
 	  break;
