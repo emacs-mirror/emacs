@@ -633,22 +633,22 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  printf("Bgeq\n");
 	  break;
 	case Bdiff:
-	  printf("Bdiff\n");
+	  EMIT_SCRATCH_CALL_N ("Fminus", 2);
 	  break;
 	case Bnegate:
 	  printf("Bnegate\n");
 	  break;
 	case Bplus:
-	  printf("Bplus\n");
+	  EMIT_SCRATCH_CALL_N ("Fplus", 2);
 	  break;
 	case Bmax:
-	  printf("Bmax\n");
+	  EMIT_SCRATCH_CALL_N ("Fmax", 2);
 	  break;
 	case Bmin:
-	  printf("Bmin\n");
+	  EMIT_SCRATCH_CALL_N ("Fmin", 2);
 	  break;
 	case Bmult:
-	  printf("Bmult\n");
+	  EMIT_SCRATCH_CALL_N ("Ftimes", 2);
 	  break;
 	case Bpoint:
 	  printf("Bpoint\n");
@@ -656,12 +656,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bsave_current_buffer:
 	  printf("Bsave_current_buffer\n");
 	  break;
-	case Bgoto_char:
-	  printf("Bgoto_char\n");
-	  break;
+
+	CASE_CALL_NARGS (goto_char, 1);
+
 	case Binsert:
-	  printf("Binsert\n");
+	  EMIT_SCRATCH_CALL_N ("Finsert", 1);
 	  break;
+
 	case Bpoint_max:
 	  printf("Bpoint_max\n");
 	  break;
