@@ -85,6 +85,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define FETCH2 (op = FETCH, op + (FETCH << 8))
 
+/* Discard n values from the stack.  */
+
+#define DISCARD(n) (stack -= (n))
+
 /* The compiler context  */
 
 typedef struct {
@@ -800,12 +804,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Breturn:
 	  printf("Breturn\n");
 	  break;
+
 	case Bdiscard:
-	  printf("Bdiscard\n");
+	  DISCARD (1);
 	  break;
+
 	case Bdup:
-	  printf("Bdup\n");
+	  PUSH (*(stack - 1));
 	  break;
+
 	case Bsave_excursion:
 	  printf("Bsave_excursion\n");
 	  break;
