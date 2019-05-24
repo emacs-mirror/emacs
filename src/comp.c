@@ -630,8 +630,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsymbol_value:
-	  printf("Bsymbol_value\n");
+	  POP1;
+	  res = jit_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
+
 	case Bsymbol_function:
 	  printf("Bsymbol_function\n");
 	  break;
