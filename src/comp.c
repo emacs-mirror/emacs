@@ -91,6 +91,7 @@ typedef struct {
   gcc_jit_context *ctxt;
   gcc_jit_type *lisp_obj_type;
   gcc_jit_type *int_type;
+  gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_function *Ffuncall; /* Current function being compiled  */
@@ -1105,6 +1106,8 @@ init_comp (void)
 #endif
 
   comp.int_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_INT);
+  comp.void_ptr_type =
+    gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
 
   enum gcc_jit_types ptrdiff_t_gcc;
   if (sizeof (ptrdiff_t) == sizeof (int))
