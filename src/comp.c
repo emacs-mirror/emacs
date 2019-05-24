@@ -273,7 +273,8 @@ jit_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 }
 
 static gcc_jit_lvalue *
-jit_emit_Ffuncall (unsigned nargs, gcc_jit_rvalue **args)
+jit_emit_callN (gcc_jit_function *func, unsigned nargs,
+		   gcc_jit_rvalue **args)
 {
   /* Here we set all the pointers into the scratch call area.  */
   /* TODO: distinguish primitives for faster calling convention.  */
@@ -327,7 +328,7 @@ jit_emit_Ffuncall (unsigned nargs, gcc_jit_rvalue **args)
 			       res,
 			       gcc_jit_context_new_call(comp.ctxt,
 							NULL,
-							comp.Ffuncall,
+							func,
 							2,
 							args));
   return res;
@@ -512,7 +513,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    ptrdiff_t nargs = op + 1;
 	    pop (nargs, &stack, args);
-	    res = jit_emit_Ffuncall (nargs, args);
+	    res = jit_emit_callN (comp.Ffuncall, nargs, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
 	  }
