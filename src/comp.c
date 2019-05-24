@@ -763,6 +763,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Breturn:
+	  POP1;
+	  gcc_jit_block_end_with_return(comp.block,
+					NULL,
+					args[0]);
 	  break;
 
 	case Bdiscard:
@@ -930,10 +934,6 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	}
     }
 
-  stack--;
-  gcc_jit_block_end_with_return(comp.block,
-				NULL,
-				*stack);
   comp_res.gcc_res = gcc_jit_context_compile(comp.ctxt);
 
   goto exit;
