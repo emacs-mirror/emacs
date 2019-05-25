@@ -102,7 +102,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define CASE_CALL_NARGS(name, nargs)					\
   case B##name:								\
   POP##nargs;								\
-  res = jit_emit_call (STR(F##name), comp.lisp_obj_type, nargs, args);	\
+  res = gcc_emit_call (STR(F##name), comp.lisp_obj_type, nargs, args);	\
   PUSH (gcc_jit_lvalue_as_rvalue (res));				\
   break
 
@@ -111,7 +111,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define EMIT_SCRATCH_CALL_N(name, nargs)		\
   pop (nargs, &stack, args);				\
-  res = jit_emit_callN (name, nargs, args);		\
+  res = gcc_emit_callN (name, nargs, args);		\
   PUSH (gcc_jit_lvalue_as_rvalue (res))
 
 /* The compiler context  */
@@ -174,7 +174,7 @@ pop (unsigned n, gcc_jit_rvalue ***stack_ref, gcc_jit_rvalue *args[])
 }
 
 static gcc_jit_function *
-jit_func_declare (const char *f_name, gcc_jit_type *ret_type,
+gcc_func_declare (const char *f_name, gcc_jit_type *ret_type,
 		  unsigned nargs, gcc_jit_rvalue **args,
 		  enum  gcc_jit_function_kind kind, bool reusable)
 {
@@ -253,7 +253,7 @@ jit_func_declare (const char *f_name, gcc_jit_type *ret_type,
 }
 
 static gcc_jit_lvalue *
-jit_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
+gcc_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 	       gcc_jit_rvalue **args)
 {
   Lisp_Object key = make_string (f_name, strlen (f_name));
@@ -263,7 +263,7 @@ jit_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 
   if (i == -1)
     {
-      jit_func_declare(f_name, ret_type, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
+      gcc_func_declare(f_name, ret_type, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
 		       true);
       i = hash_lookup (ht, key, &hash);
       eassert (i != -1);
@@ -287,7 +287,7 @@ jit_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 }
 
 static gcc_jit_lvalue *
-jit_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
+gcc_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 {
   /* Here we set all the pointers into the scratch call area.  */
   /* TODO: distinguish primitives for faster calling convention.  */
@@ -333,7 +333,7 @@ jit_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 						nargs);
   args[1] = comp.scratch;
 
-  return jit_emit_call (f_name, comp.lisp_obj_type, 2, args);
+  return gcc_emit_call (f_name, comp.lisp_obj_type, 2, args);
 }
 
 static comp_f_res_t
@@ -378,7 +378,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 
   /* Current function being compiled. Return a lips obj. */
-  comp.func = jit_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
+  comp.func = gcc_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
 				NULL, GCC_JIT_FUNCTION_EXPORTED, false);
 
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
@@ -432,7 +432,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 							  comp.lisp_obj_type,
 							  vectorp[op]);
-	    res = jit_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
+	    res = gcc_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
 	  }
@@ -463,7 +463,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
 							   SET_INTERNAL_SET);
-	    res = jit_emit_call ("set_internal", comp.lisp_obj_type, 4, args);
+	    res = gcc_emit_call ("set_internal", comp.lisp_obj_type, 4, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  }
 	  break;
@@ -489,7 +489,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							  comp.lisp_obj_type,
 							  vectorp[op]);
 	    pop (1, &stack, &args[1]);
-	    res = jit_emit_call ("specbind", comp.lisp_obj_type, 2, args);
+	    res = gcc_emit_call ("specbind", comp.lisp_obj_type, 2, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
 	  }
@@ -513,7 +513,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    ptrdiff_t nargs = op + 1;
 	    pop (nargs, &stack, args);
-	    res = jit_emit_callN ("Ffuncall", nargs, args);
+	    res = gcc_emit_callN ("Ffuncall", nargs, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    break;
 	  }
@@ -539,7 +539,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							  comp.ptrdiff_type,
 							  op);
 
-	    res = jit_emit_call ("unbind_n", comp.lisp_obj_type, 1, args);
+	    res = gcc_emit_call ("unbind_n", comp.lisp_obj_type, 1, args);
 	  }
 	  break;
 	case Bpophandler:
@@ -579,12 +579,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    args[1] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 							  comp.lisp_obj_type,
 							  Qnil);
-	    res = jit_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
+	    res = gcc_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
 	    PUSH (gcc_jit_lvalue_as_rvalue (res));
 	    for (int i = 0; i < op; ++i)
 	      {
 		POP2;
-		res = jit_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
+		res = gcc_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
 		PUSH (gcc_jit_lvalue_as_rvalue (res));
 	      }
 	    break;
@@ -674,7 +674,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (following_char, 0);
 
 	case Bpreceding_char:
-	  res = jit_emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
+	  res = gcc_emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 
@@ -683,7 +683,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bindent_to:
 	  POP1;
 	  args[1] = comp.nil;
-	  res = jit_emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
+	  res = gcc_emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 
@@ -704,7 +704,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	case Bsave_current_buffer: /* Obsolete since ??.  */
 	case Bsave_current_buffer_1:
-	  jit_emit_call ("record_unwind_current_buffer",
+	  gcc_emit_call ("record_unwind_current_buffer",
 			 comp.void_type, 0, NULL);
 	  break;
 
@@ -712,7 +712,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH (gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 						    comp.lisp_obj_type,
 						    intern ("interactive-p")));
-	  res = jit_emit_call ("call0", comp.lisp_obj_type, 1, args);
+	  res = gcc_emit_call ("call0", comp.lisp_obj_type, 1, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 
@@ -764,13 +764,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsave_excursion:
-	  res = jit_emit_call ("record_unwind_protect_excursion",
+	  res = gcc_emit_call ("record_unwind_protect_excursion",
 			       comp.void_type, 0, args);
 	  break;
 
 	case Bsave_window_excursion: /* Obsolete since 24.1.  */
 	  POP1;
-	  res = jit_emit_call ("helper_save_window_excursion",
+	  res = gcc_emit_call ("helper_save_window_excursion",
 			       comp.lisp_obj_type, 1, args);
 	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
@@ -780,11 +780,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							comp.void_ptr_type,
 							save_restriction_restore);
 	  args[1] =
-	    gcc_jit_lvalue_as_rvalue (jit_emit_call ("save_restriction_save",
+	    gcc_jit_lvalue_as_rvalue (gcc_emit_call ("save_restriction_save",
 						     comp.lisp_obj_type,
 						     0,
 						     NULL));
-	  jit_emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
+	  gcc_emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
 	  break;
 
 	case Bcatch:		/* Obsolete since 24.4.  */
@@ -793,12 +793,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  args[1] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 							comp.void_ptr_type,
 							eval_sub);
-	  jit_emit_call ("internal_catch", comp.void_ptr_type, 3, args);
+	  gcc_emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
 
 	case Bunwind_protect:	/* FIXME: avoid closure for lexbind.  */
 	  POP1;
-	  jit_emit_call ("helper_unwind_protect", comp.void_type, 1, args);
+	  gcc_emit_call ("helper_unwind_protect", comp.void_type, 1, args);
 	  break;
 
 	case Bcondition_case:
