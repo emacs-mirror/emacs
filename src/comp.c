@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "bytecode.h"
 #include "atimer.h"
+#include "window.h"
 
 #define COMP_DEBUG 0
 
@@ -145,15 +146,15 @@ typedef struct {
 INLINE static void pop (unsigned n, gcc_jit_rvalue ***stack_ref,
 			gcc_jit_rvalue *args[]);
 
-static gcc_jit_function *jit_func_declare (const char *f_name,
-					   gcc_jit_type *ret_type,
-					   unsigned nargs,
-					   gcc_jit_rvalue **args,
-					   enum gcc_jit_function_kind kind,
-					   bool reusable);
-
 void emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 			   Lisp_Object func, bool dump_asm);
+
+
+static void
+bcall0 (Lisp_Object f)
+{
+  Ffuncall (1, &f);
+}
 
 /* Pop form the main evaluation stack and place the elements in args in reversed
  order.  */
@@ -683,6 +684,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  args[1] = comp.nil;
 	  res = jit_emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
 
 	CASE_CALL_NARGS (eolp, 0);
@@ -706,42 +708,25 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 			 comp.void_type, 0, NULL);
 	  break;
 
-	case Binteractive_p:
-	  error ("Binteractive_p not supported");
+	case Binteractive_p:	/* Obsolete since 24.1.  */
+	  PUSH (gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
+						    comp.lisp_obj_type,
+						    intern ("interactive-p")));
+	  res = jit_emit_call ("call0", comp.lisp_obj_type, 1, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
-	case Bforward_char:
-	  error ("Bforward_char not supported");
-	  break;
-	case Bforward_word:
-	  error ("Bforward_word not supported");
-	  break;
-	case Bskip_chars_forward:
-	  error ("Bskip_chars_forward not supported");
-	  break;
-	case Bskip_chars_backward:
-	  error ("Bskip_chars_backward not supported");
-	  break;
-	case Bforward_line:
-	  error ("Bforward_line not supported");
-	  break;
-	case Bchar_syntax:
-	  error ("Bchar_syntax not supported");
-	  break;
-	case Bbuffer_substring:
-	  error ("Bbuffer_substring not supported");
-	  break;
-	case Bdelete_region:
-	  error ("Bdelete_region not supported");
-	  break;
-	case Bnarrow_to_region:
-	  error ("Bnarrow_to_region not supported");
-	  break;
-	case Bwiden:
-	  error ("Bwiden not supported");
-	  break;
-	case Bend_of_line:
-	  error ("Bend_of_line not supported");
-	  break;
+
+	CASE_CALL_NARGS (forward_char, 1);
+	CASE_CALL_NARGS (forward_word, 1);
+	CASE_CALL_NARGS (skip_chars_forward, 2);
+	CASE_CALL_NARGS (skip_chars_backward, 2);
+	CASE_CALL_NARGS (forward_line, 1);
+	CASE_CALL_NARGS (char_syntax, 1);
+	CASE_CALL_NARGS (buffer_substring, 2);
+	CASE_CALL_NARGS (delete_region, 2);
+	CASE_CALL_NARGS (narrow_to_region, 2);
+	CASE_CALL_NARGS (widen, 0);
+	CASE_CALL_NARGS (end_of_line, 1);
 
 	case Bconstant2:
 	  goto do_constant;
@@ -779,20 +764,43 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsave_excursion:
-	  error ("Bsave_excursion not supported");
+	  res = jit_emit_call ("record_unwind_protect_excursion",
+			       comp.void_type, 0, args);
 	  break;
-	case Bsave_window_excursion:
-	  error ("Bsave_window_excursion not supported");
+
+	case Bsave_window_excursion: /* Obsolete since 24.1.  */
+	  POP1;
+	  res = jit_emit_call ("helper_save_window_excursion",
+			       comp.lisp_obj_type, 1, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
+
 	case Bsave_restriction:
-	  error ("Bsave_restriction not supported");
+	  args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
+							comp.void_ptr_type,
+							save_restriction_restore);
+	  args[1] =
+	    gcc_jit_lvalue_as_rvalue (jit_emit_call ("save_restriction_save",
+						     comp.lisp_obj_type,
+						     0,
+						     NULL));
+	  jit_emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
 	  break;
-	case Bcatch:
-	  error ("Bcatch not supported");
+
+	case Bcatch:		/* Obsolete since 24.4.  */
+	  POP2;
+	  args[2] = args[1];
+	  args[1] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
+							comp.void_ptr_type,
+							eval_sub);
+	  jit_emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
-	case Bunwind_protect:
-	  error ("Bunwind_protect not supported");
+
+	case Bunwind_protect:	/* FIXME: avoid closure for lexbind.  */
+	  POP1;
+	  jit_emit_call ("helper_unwind_protect", comp.void_type, 1, args);
 	  break;
+
 	case Bcondition_case:
 	  error ("Bcondition_case not supported");
 	  break;
@@ -1137,6 +1145,33 @@ syms_of_comp (void)
   defsubr (&Snative_compile);
   comp.func_hash = Qnil;
   staticpro (&comp.func_hash);
+}
+
+/******************************************************************************/
+/* Helper functions called from the runtime.				      */
+/* These can't be statics till shared mechanism is used to solve relocations. */
+/******************************************************************************/
+
+Lisp_Object helper_save_window_excursion (Lisp_Object v1);
+
+void helper_unwind_protect (Lisp_Object handler);
+
+Lisp_Object
+helper_save_window_excursion (Lisp_Object v1)
+{
+  ptrdiff_t count1 = SPECPDL_INDEX ();
+  record_unwind_protect (restore_window_configuration,
+			 Fcurrent_window_configuration (Qnil));
+  v1 = Fprogn (v1);
+  unbind_to (count1, v1);
+  return v1;
+}
+
+void helper_unwind_protect (Lisp_Object handler)
+{
+  /* Support for a function here is new in 24.4.  */
+  record_unwind_protect (FUNCTIONP (handler) ? bcall0 : prog_ignore,
+			 handler);
 }
 
 #endif /* HAVE_LIBJIT */
