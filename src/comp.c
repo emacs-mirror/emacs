@@ -116,10 +116,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     PUSH (gcc_jit_lvalue_as_rvalue (res));	\
   } while (0)
 
-/* Current basic block we are emiting in.  */
-
-#define BBLOCK comp.bblocks[comp.bb_n]
-
 /* The compiler context  */
 
 typedef struct {
@@ -132,8 +128,7 @@ typedef struct {
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *nil;
   gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
-  gcc_jit_block **bblocks; /* Basic blocks  */
-  unsigned bb_n; /* Current basic block number  */
+  gcc_jit_block *bblock; /* Current basic block  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
 } comp_t;
 
@@ -283,7 +278,7 @@ gcc_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 						   NULL,
 						   ret_type,
 						   "res");
-  gcc_jit_block_add_assignment(BBLOCK, NULL,
+  gcc_jit_block_add_assignment(comp.bblock, NULL,
 			       res,
 			       gcc_jit_context_new_call(comp.ctxt,
 							NULL,
@@ -317,7 +312,7 @@ gcc_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 			       gcc_jit_type_get_pointer (comp.lisp_obj_type),
 			       "p");
 
-  gcc_jit_block_add_assignment(BBLOCK, NULL,
+  gcc_jit_block_add_assignment(comp.bblock, NULL,
 			       p,
 			       comp.scratch);
 
@@ -327,7 +322,7 @@ gcc_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 					   gcc_jit_context_get_type(comp.ctxt,
 								    GCC_JIT_TYPE_UNSIGNED_INT),
 					   i);
-    gcc_jit_block_add_assignment (BBLOCK, NULL,
+    gcc_jit_block_add_assignment (comp.bblock, NULL,
 				  gcc_jit_context_new_array_access (comp.ctxt,
 								    NULL,
 								    gcc_jit_lvalue_as_rvalue(p),
@@ -341,6 +336,122 @@ gcc_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
   args[1] = comp.scratch;
 
   return gcc_emit_call (f_name, comp.lisp_obj_type, 2, args);
+}
+
+static int
+ucmp(const void *a, const void *b)
+{
+#define _I(x) *(const int*)x
+  return _I(a) < _I(b) ? -1 : _I(a) > _I(b);
+#undef _I
+}
+
+/* Compute and initialize all basic blocks.  */
+static gcc_jit_block **
+compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
+{
+  ptrdiff_t pc = 0;
+  unsigned op;
+  bool new_bb = true;
+  gcc_jit_block **bb_map = xmalloc (bytestr_length * sizeof (gcc_jit_block *));
+  unsigned *bb_start_pc = xmalloc (bytestr_length * sizeof (unsigned));
+  unsigned bb_n = 0;
+
+  while (pc < bytestr_length)
+    {
+      if (new_bb)
+	{
+	  bb_start_pc[bb_n++] = pc;
+	  new_bb = false;
+	}
+
+      op = FETCH;
+      switch (op)
+	{
+	  /* 3 byte non branch ops */
+	case Bvarref7:
+	case Bvarset7:
+	case Bvarbind7:
+	case Bcall7:
+	case Bunbind7:
+	case Bpushcatch:
+	case Bpushconditioncase:
+	case Bstack_ref7:
+	case Bstack_set2:
+	  pc += 2;
+	  break;
+	  /* 2 byte non branch ops */
+	case Bvarref6:
+	case Bvarset6:
+	case Bvarbind6:
+	case Bcall6:
+	case Bunbind6:
+	case Bconstant2:
+	case BlistN:
+	case BconcatN:
+	case BinsertN:
+	case Bstack_ref6:
+	case Bstack_set:
+	case BdiscardN:
+	  ++pc;
+	  break;
+	  /* Absolute branches */
+	case Bgoto:
+	case Bgotoifnil:
+	case Bgotoifnonnil:
+	case Bgotoifnilelsepop:
+	case Bgotoifnonnilelsepop:
+	  op = FETCH2;
+	  bb_start_pc[bb_n++] = op;
+	  new_bb = true;
+	  break;
+	  /* PC relative branches */
+	case BRgoto:
+	case BRgotoifnil:
+	case BRgotoifnonnil:
+	case BRgotoifnilelsepop:
+	case BRgotoifnonnilelsepop:
+	  op = FETCH - 128;
+	  bb_start_pc[bb_n++] = op;
+	  new_bb = true;
+	  break;
+	  /* Return */
+	case Breturn:
+	  new_bb = true;
+	  break;
+	default:
+	  break;
+	}
+    }
+
+  /* Sort and remove possible duplicates.  */
+  qsort (bb_start_pc, bb_n, sizeof(unsigned), ucmp);
+  {
+    unsigned i, j;
+    for (i = j = 0; i < bb_n; i++)
+      if (bb_start_pc[i] != bb_start_pc[j])
+	bb_start_pc[++j] = bb_start_pc[i];
+    bb_n = j + 1;
+  }
+
+  /* for (int i = 0; i < bb_n; i++) */
+  /*   printf ("%d ", bb_start_pc[i]); */
+  /* printf ("\n"); */
+
+  gcc_jit_block *curr_bb;
+  for (int i = 0, pc = 0; pc < bytestr_length; pc++)
+    {
+      if (i < bb_n && pc == bb_start_pc[i])
+	{
+	  ++i;
+	  curr_bb = gcc_jit_function_new_block (comp.func, NULL);
+	}
+      bb_map[pc] = curr_bb;
+    }
+
+  xfree (bb_start_pc);
+
+  return bb_map;
 }
 
 static comp_f_res_t
@@ -361,10 +472,6 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   stack_base = stack =
     (gcc_jit_rvalue **) xmalloc (stack_depth * sizeof (gcc_jit_rvalue *));
   stack_over = stack_base + stack_depth;
-
-  comp.bblocks =
-    (gcc_jit_block **) xzalloc (bytestr_length * sizeof (gcc_jit_block *));
-  comp.bb_n = 0;
 
   if (FIXNUMP (args_template))
     {
@@ -388,17 +495,19 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
     eassert (SYMBOLP (args_template) && args_template == Qnil);
 
 
-  /* Current function being compiled. Return a lips obj. */
+  /* Current function being compiled.  */
   comp.func = gcc_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
 				NULL, GCC_JIT_FUNCTION_EXPORTED, false);
+
+  gcc_jit_block **bb_map = compute_bblocks (bytestr_length, bytestr_data);
+
 
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
     PUSH (gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func, i)));
 
-  BBLOCK = gcc_jit_function_new_block(comp.func, NULL);
-
   while (pc < bytestr_length)
     {
+      comp.bblock = bb_map[pc];
       op = FETCH;
 
       switch (op)
@@ -747,7 +856,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  error ("Bgoto not supported");
 	  break;
 	case Bgotoifnil:
-	  error ("Bgotoifnil not supported");
+	  POP1;
+	  op = FETCH2;
+	  /* PUSH_PC (op); */
+	  /* error ("Bgotoifnil not supported"); */
 	  break;
 	case Bgotoifnonnil:
 	  error ("Bgotoifnonnil not supported");
@@ -761,7 +873,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	case Breturn:
 	  POP1;
-	  gcc_jit_block_end_with_return(BBLOCK,
+	  gcc_jit_block_end_with_return(comp.bblock,
 					NULL,
 					args[0]);
 	  break;
@@ -977,6 +1089,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
  exit:
   xfree (stack_base);
+  xfree (bb_map);
   return comp_res;
 }
 
