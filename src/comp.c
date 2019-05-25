@@ -109,10 +109,16 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Emit calls to functions with prototype (ptrdiff_t nargs, Lisp_Object *args)
    This is done aggregating args into the scratch_call_area.  */
 
-#define EMIT_SCRATCH_CALL_N(name, nargs)		\
-  pop (nargs, &stack, args);				\
-  res = gcc_emit_callN (name, nargs, args);		\
-  PUSH (gcc_jit_lvalue_as_rvalue (res))
+#define EMIT_SCRATCH_CALL_N(name, nargs)	\
+  do {						\
+    pop (nargs, &stack, args);			\
+    res = gcc_emit_callN (name, nargs, args);	\
+    PUSH (gcc_jit_lvalue_as_rvalue (res));	\
+  } while (0)
+
+/* Current basic block we are emiting in.  */
+
+#define BBLOCK comp.bblocks[comp.bb_n]
 
 /* The compiler context  */
 
@@ -126,7 +132,8 @@ typedef struct {
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *nil;
   gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
-  gcc_jit_block *block; /* Current basic block  */
+  gcc_jit_block **bblocks; /* Basic blocks  */
+  unsigned bb_n; /* Current basic block number  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
 } comp_t;
 
@@ -276,7 +283,7 @@ gcc_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 						   NULL,
 						   ret_type,
 						   "res");
-  gcc_jit_block_add_assignment(comp.block, NULL,
+  gcc_jit_block_add_assignment(BBLOCK, NULL,
 			       res,
 			       gcc_jit_context_new_call(comp.ctxt,
 							NULL,
@@ -310,7 +317,7 @@ gcc_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 			       gcc_jit_type_get_pointer (comp.lisp_obj_type),
 			       "p");
 
-  gcc_jit_block_add_assignment(comp.block, NULL,
+  gcc_jit_block_add_assignment(BBLOCK, NULL,
 			       p,
 			       comp.scratch);
 
@@ -320,7 +327,7 @@ gcc_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 					   gcc_jit_context_get_type(comp.ctxt,
 								    GCC_JIT_TYPE_UNSIGNED_INT),
 					   i);
-    gcc_jit_block_add_assignment (comp.block, NULL,
+    gcc_jit_block_add_assignment (BBLOCK, NULL,
 				  gcc_jit_context_new_array_access (comp.ctxt,
 								    NULL,
 								    gcc_jit_lvalue_as_rvalue(p),
@@ -355,6 +362,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
     (gcc_jit_rvalue **) xmalloc (stack_depth * sizeof (gcc_jit_rvalue *));
   stack_over = stack_base + stack_depth;
 
+  comp.bblocks =
+    (gcc_jit_block **) xzalloc (bytestr_length * sizeof (gcc_jit_block *));
+  comp.bb_n = 0;
+
   if (FIXNUMP (args_template))
     {
       ptrdiff_t at = XFIXNUM (args_template);
@@ -384,7 +395,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
     PUSH (gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func, i)));
 
-  comp.block = gcc_jit_function_new_block(comp.func, "foo_blk");
+  BBLOCK = gcc_jit_function_new_block(comp.func, NULL);
 
   while (pc < bytestr_length)
     {
@@ -750,7 +761,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	case Breturn:
 	  POP1;
-	  gcc_jit_block_end_with_return(comp.block,
+	  gcc_jit_block_end_with_return(BBLOCK,
 					NULL,
 					args[0]);
 	  break;
