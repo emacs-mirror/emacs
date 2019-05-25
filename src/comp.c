@@ -707,40 +707,40 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Binteractive_p:
-	  error ("Binteractive_p\n");
+	  error ("Binteractive_p not supported");
 	  break;
 	case Bforward_char:
-	  error ("Bforward_char\n");
+	  error ("Bforward_char not supported");
 	  break;
 	case Bforward_word:
-	  error ("Bforward_word\n");
+	  error ("Bforward_word not supported");
 	  break;
 	case Bskip_chars_forward:
-	  error ("Bskip_chars_forward\n");
+	  error ("Bskip_chars_forward not supported");
 	  break;
 	case Bskip_chars_backward:
-	  error ("Bskip_chars_backward\n");
+	  error ("Bskip_chars_backward not supported");
 	  break;
 	case Bforward_line:
-	  error ("Bforward_line\n");
+	  error ("Bforward_line not supported");
 	  break;
 	case Bchar_syntax:
-	  error ("Bchar_syntax\n");
+	  error ("Bchar_syntax not supported");
 	  break;
 	case Bbuffer_substring:
-	  error ("Bbuffer_substring\n");
+	  error ("Bbuffer_substring not supported");
 	  break;
 	case Bdelete_region:
-	  error ("Bdelete_region\n");
+	  error ("Bdelete_region not supported");
 	  break;
 	case Bnarrow_to_region:
-	  error ("Bnarrow_to_region\n");
+	  error ("Bnarrow_to_region not supported");
 	  break;
 	case Bwiden:
-	  error ("Bwiden\n");
+	  error ("Bwiden not supported");
 	  break;
 	case Bend_of_line:
-	  error ("Bend_of_line\n");
+	  error ("Bend_of_line not supported");
 	  break;
 
 	case Bconstant2:
@@ -748,19 +748,19 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bgoto:
-	  error ("Bgoto\n");
+	  error ("Bgoto not supported");
 	  break;
 	case Bgotoifnil:
-	  error ("Bgotoifnil\n");
+	  error ("Bgotoifnil not supported");
 	  break;
 	case Bgotoifnonnil:
-	  error ("Bgotoifnonnil\n");
+	  error ("Bgotoifnonnil not supported");
 	  break;
 	case Bgotoifnilelsepop:
-	  error ("Bgotoifnilelsepop\n");
+	  error ("Bgotoifnilelsepop not supported");
 	  break;
 	case Bgotoifnonnilelsepop:
-	  error ("Bgotoifnonnilelsepop\n");
+	  error ("Bgotoifnonnilelsepop not supported");
 	  break;
 
 	case Breturn:
@@ -779,127 +779,127 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsave_excursion:
-	  error ("Bsave_excursion\n");
+	  error ("Bsave_excursion not supported");
 	  break;
 	case Bsave_window_excursion:
-	  error ("Bsave_window_excursion\n");
+	  error ("Bsave_window_excursion not supported");
 	  break;
 	case Bsave_restriction:
-	  error ("Bsave_restriction\n");
+	  error ("Bsave_restriction not supported");
 	  break;
 	case Bcatch:
-	  error ("Bcatch\n");
+	  error ("Bcatch not supported");
 	  break;
 	case Bunwind_protect:
-	  error ("Bunwind_protect\n");
+	  error ("Bunwind_protect not supported");
 	  break;
 	case Bcondition_case:
-	  error ("Bcondition_case\n");
+	  error ("Bcondition_case not supported");
 	  break;
 	case Btemp_output_buffer_setup:
-	  error ("Btemp_output_buffer_setup\n");
+	  error ("Btemp_output_buffer_setup not supported");
 	  break;
 	case Btemp_output_buffer_show:
-	  error ("Btemp_output_buffer_show\n");
+	  error ("Btemp_output_buffer_show not supported");
 	  break;
 	case Bunbind_all:
-	  error ("Bunbind_all\n");
+	  error ("Bunbind_all not supported");
 	  break;
 	case Bset_marker:
-	  error ("Bset_marker\n");
+	  error ("Bset_marker not supported");
 	  break;
 	case Bmatch_beginning:
-	  error ("Bmatch_beginning\n");
+	  error ("Bmatch_beginning not supported");
 	  break;
 	case Bmatch_end:
-	  error ("Bmatch_end\n");
+	  error ("Bmatch_end not supported");
 	  break;
 	case Bupcase:
-	  error ("Bupcase\n");
+	  error ("Bupcase not supported");
 	  break;
 	case Bdowncase:
-	  error ("Bdowncase\n");
+	  error ("Bdowncase not supported");
 	  break;
 	case Bstringeqlsign:
-	  error ("Bstringeqlsign\n");
+	  error ("Bstringeqlsign not supported");
 	  break;
 	case Bstringlss:
-	  error ("Bstringlss\n");
+	  error ("Bstringlss not supported");
 	  break;
 	case Bequal:
-	  error ("Bequal\n");
+	  error ("Bequal not supported");
 	  break;
 	case Bnthcdr:
-	  error ("Bnthcdr\n");
+	  error ("Bnthcdr not supported");
 	  break;
 	case Belt:
-	  error ("Belt\n");
+	  error ("Belt not supported");
 	  break;
 	case Bmember:
-	  error ("Bmember\n");
+	  error ("Bmember not supported");
 	  break;
 	case Bassq:
-	  error ("Bassq\n");
+	  error ("Bassq not supported");
 	  break;
 	case Bnreverse:
-	  error ("Bnreverse\n");
+	  error ("Bnreverse not supported");
 	  break;
 	case Bsetcar:
-	  error ("Bsetcar\n");
+	  error ("Bsetcar not supported");
 	  break;
 	case Bsetcdr:
-	  error ("Bsetcdr\n");
+	  error ("Bsetcdr not supported");
 	  break;
 	case Bcar_safe:
-	  error ("Bcar_safe\n");
+	  error ("Bcar_safe not supported");
 	  break;
 	case Bcdr_safe:
-	  error ("Bcdr_safe\n");
+	  error ("Bcdr_safe not supported");
 	  break;
 	case Bnconc:
-	  error ("Bnconc\n");
+	  error ("Bnconc not supported");
 	  break;
 	case Bquo:
-	  error ("Bquo\n");
+	  error ("Bquo not supported");
 	  break;
 	case Brem:
-	  error ("Brem\n");
+	  error ("Brem not supported");
 	  break;
 	case Bnumberp:
-	  error ("Bnumberp\n");
+	  error ("Bnumberp not supported");
 	  break;
 	case Bintegerp:
-	  error ("Bintegerp\n");
+	  error ("Bintegerp not supported");
 	  break;
 	case BRgoto:
-	  error ("BRgoto\n");
+	  error ("BRgoto not supported");
 	  break;
 	case BRgotoifnil:
-	  error ("BRgotoifnil\n");
+	  error ("BRgotoifnil not supported");
 	  break;
 	case BRgotoifnonnil:
-	  error ("BRgotoifnonnil\n");
+	  error ("BRgotoifnonnil not supported");
 	  break;
 	case BRgotoifnilelsepop:
-	  error ("BRgotoifnilelsepop\n");
+	  error ("BRgotoifnilelsepop not supported");
 	  break;
 	case BRgotoifnonnilelsepop:
-	  error ("BRgotoifnonnilelsepop\n");
+	  error ("BRgotoifnonnilelsepop not supported");
 	  break;
 	case BinsertN:
-	  error ("BinsertN\n");
+	  error ("BinsertN not supported");
 	  break;
 	case Bstack_set:
-	  error ("Bstack_set\n");
+	  error ("Bstack_set not supported");
 	  break;
 	case Bstack_set2:
-	  error ("Bstack_set2\n");
+	  error ("Bstack_set2 not supported");
 	  break;
 	case BdiscardN:
-	  error ("BdiscardN\n");
+	  error ("BdiscardN not supported");
 	  break;
 	case Bswitch:
-	  error ("Bswitch\n");
+	  error ("Bswitch not supported");
 	  /* The cases of Bswitch that we handle (which in theory is
 	     all of them) are done in Bconstant, below.  This is done
 	     due to a design issue with Bswitch -- it should have
