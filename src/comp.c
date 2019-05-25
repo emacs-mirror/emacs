@@ -539,7 +539,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							  comp.ptrdiff_type,
 							  op);
 
-	    res = gcc_emit_call ("unbind_n", comp.lisp_obj_type, 1, args);
+	    gcc_emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
 	  }
 	  break;
 	case Bpophandler:
@@ -801,16 +801,30 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  gcc_emit_call ("helper_unwind_protect", comp.void_type, 1, args);
 	  break;
 
-	case Bcondition_case:
-	  error ("Bcondition_case not supported");
+	case Bcondition_case:		/* Obsolete since 24.4.  */
+	  POP3;
+	  gcc_emit_call ("internal_lisp_condition_case",
+			       comp.lisp_obj_type, 3, args);
 	  break;
-	case Btemp_output_buffer_setup:
-	  error ("Btemp_output_buffer_setup not supported");
+
+	case Btemp_output_buffer_setup: /* Obsolete since 24.1.  */
+	  POP1;
+	  res = gcc_emit_call ("helper_temp_output_buffer_setup", comp.lisp_obj_type,
+			       1, args);
+	  PUSH (gcc_jit_lvalue_as_rvalue (res));
 	  break;
-	case Btemp_output_buffer_show:
-	  error ("Btemp_output_buffer_show not supported");
+
+	case Btemp_output_buffer_show: /* Obsolete since 24.1.  */
+	  POP2;
+	  gcc_emit_call ("temp_output_buffer_show", comp.void_type, 1,
+			 &args[1]);
+	  PUSH (args[0]);
+	  gcc_emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
+
 	  break;
-	case Bunbind_all:
+	case Bunbind_all:	/* Obsolete.  Never used.  */
+	  /* To unbind back to the beginning of this frame.  Not used yet,
+	     but will be needed for tail-recursion elimination.  */
 	  error ("Bunbind_all not supported");
 	  break;
 	case Bset_marker:
@@ -1156,6 +1170,10 @@ Lisp_Object helper_save_window_excursion (Lisp_Object v1);
 
 void helper_unwind_protect (Lisp_Object handler);
 
+Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
+
+Lisp_Object helper_unbind_n (int val);
+
 Lisp_Object
 helper_save_window_excursion (Lisp_Object v1)
 {
@@ -1172,6 +1190,20 @@ void helper_unwind_protect (Lisp_Object handler)
   /* Support for a function here is new in 24.4.  */
   record_unwind_protect (FUNCTIONP (handler) ? bcall0 : prog_ignore,
 			 handler);
+}
+
+Lisp_Object
+helper_temp_output_buffer_setup (Lisp_Object x)
+{
+  CHECK_STRING (x);
+  temp_output_buffer_setup (SSDATA (x));
+  return Vstandard_output;
+}
+
+Lisp_Object
+helper_unbind_n (int val)
+{
+  return unbind_to (SPECPDL_INDEX () - val, Qnil);
 }
 
 #endif /* HAVE_LIBJIT */
