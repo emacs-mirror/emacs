@@ -127,6 +127,25 @@
 
   (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3))))
 
+(ert-deftest  comp-tests-conditionals ()
+  "Testing conditionals."
+  (defun comp-tests-conditionals-1-f (x)
+    ;; Generate goto-if-nil
+    (if x 1 2))
+  (defun comp-tests-conditionals-2-f (x)
+    ;; Generate goto-if-nil-else-pop
+    (when x
+        1340))
+  (byte-compile #'comp-tests-conditionals-1-f)
+  (byte-compile #'comp-tests-conditionals-2-f)
+  (native-compile #'comp-tests-conditionals-1-f)
+  (native-compile #'comp-tests-conditionals-2-f)
+
+  (should (= (comp-tests-conditionals-1-f t) 1))
+  (should (= (comp-tests-conditionals-1-f nil) 2))
+  (should (= (comp-tests-conditionals-2-f t) 1340))
+  (should (eq (comp-tests-conditionals-2-f nil) nil)))
+
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
   (dotimes (_ 100000)
