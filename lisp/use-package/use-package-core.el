@@ -1419,7 +1419,7 @@ no keyword implies `:all'."
 (defun use-package-handler/:custom-face (name _keyword args rest state)
   "Generate use-package custom-face keyword code."
   (use-package-concat
-   (mapcar #'(lambda (def) `(custom-set-faces (quote ,def))) args)
+   (mapcar #'(lambda (def) `(custom-set-faces (backquote ,def))) args)
    (use-package-process-keywords name rest state)))
 
 ;;;; :init
