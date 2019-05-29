@@ -1741,6 +1741,7 @@ ones. PREFIX is for internal use and should not be used."
                           ((eq 'lambda (car-safe def)) "lambda")
                           ((eq 'menu-item (car-safe def)) "menu-item")
                           ((stringp def) def)
+                          ((vectorp def) (key-description def))
                           (t "unknown")))
                    bindings :test (lambda (a b) (string= (car a) (car b)))))))))
      keymap)

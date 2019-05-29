@@ -130,20 +130,23 @@
     (define-key map "c" "c")
     (define-key map "dd" "dd")
     (define-key map "eee" "eee")
+    (define-key map "f" [123 45 6])
     (should (equal
              (sort (which-key--get-keymap-bindings map)
                    (lambda (a b) (string-lessp (car a) (car b))))
              '(("b" . "ignore")
                ("c" . "c")
                ("d" . "Prefix Command")
-               ("e" . "Prefix Command"))))
+               ("e" . "Prefix Command")
+               ("f" . "{ - C-f"))))
     (should (equal
              (sort (which-key--get-keymap-bindings map t)
                    (lambda (a b) (string-lessp (car a) (car b))))
              '(("b" . "ignore")
                ("c" . "c")
                ("d d" . "dd")
-               ("e e e" . "eee"))))))
+               ("e e e" . "eee")
+               ("f" . "{ - C-f"))))))
 
 (provide 'which-key-tests)
 ;;; which-key-tests.el ends here
