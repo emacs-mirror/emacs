@@ -1125,7 +1125,7 @@
   (match-expansion
    (use-package foo :custom-face (foo ((t (:background "#e4edfc")))))
    `(progn
-      (custom-set-faces '(foo ((t (:background "#e4edfc")))))
+      (custom-set-faces (backquote (foo ((t (:background "#e4edfc"))))))
       (require 'foo nil nil))))
 
 (ert-deftest use-package-test/:init-1 ()
