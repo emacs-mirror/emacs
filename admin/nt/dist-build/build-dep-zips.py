@@ -28,13 +28,33 @@ from subprocess import check_output
 ## Constants
 EMACS_MAJOR_VERSION="27"
 
+# This list derives from the features we want Emacs to compile with.
+PKG_REQ='''mingw-w64-x86_64-giflib
+mingw-w64-x86_64-gnutls
+mingw-w64-x86_64-lcms2
+mingw-w64-x86_64-libjpeg-turbo
+mingw-w64-x86_64-libpng
+mingw-w64-x86_64-librsvg
+mingw-w64-x86_64-libtiff
+mingw-w64-x86_64-libxml2
+mingw-w64-x86_64-xpm-nox'''.split()
+
 
 ## Options
 DRY_RUN=False
 
 ## Packages to fiddle with
-SKIP_PKGS=["mingw-w64-gcc-libs"]
-MUNGE_PKGS ={"mingw-w64-libwinpthread-git":"mingw-w64-winpthreads-git"}
+## Source for gcc-libs is part of gcc
+SKIP_SRC_PKGS=["mingw-w64-gcc-libs"]
+SKIP_DEP_PKGS=["mingw-w64-x86_64-glib2"]
+MUNGE_SRC_PKGS={"mingw-w64-libwinpthread-git":"mingw-w64-winpthreads-git"}
+MUNGE_DEP_PKGS={
+    "mingw-w64-i686-libwinpthread":"mingw-w64-i686-libwinpthread-git",
+    "mingw-w64-x86_64-libwinpthread":"mingw-w64-x86_64-libwinpthread-git",
+
+    "mingw-w64-x86_64-libtre": "mingw-w64-x86_64-libtre-git",
+    "mingw-w64-i686-libtre": "mingw-w64-i686-libtre-git"
+}
 
 ## Currently no packages seem to require this!
 ARCH_PKGS=[]
@@ -47,27 +67,45 @@ def check_output_maybe(*args,**kwargs):
     else:
         return check_output(*args,**kwargs)
 
+def immediate_deps(pkg):
+    print("pkg", pkg)
+    package_info = check_output(["pacman", "-Si", pkg]).decode("utf-8").split("\n")
+
+    #print(package_info)
+    #print([x for x in package_info if x.startswith("Depends On")])
+    ## Extract the "Depends On" line
+    depends_on = [x for x in package_info if x.startswith("Depends On")][0]
+    ## Remove "Depends On" prefix
+    dependencies = depends_on.split(":")[1]
+    print(1, dependencies)
+    ## Split into dependencies
+    dependencies = dependencies.strip().split(" ")
+    print(2, dependencies)
+    ## Remove > signs TODO can we get any other punctation here?
+    dependencies = [d.split(">")[0] for d in dependencies if d]
+    dependencies = [d for d in dependencies if not d == "None"]
+    print(3, dependencies)
+    dependencies = [MUNGE_DEP_PKGS.get(d, d) for d in dependencies]
+    print(4, dependencies)
+
+    return dependencies
+
+
 def extract_deps():
 
     print( "Extracting deps" )
-    # This list derives from the features we want Emacs to compile with.
-    PKG_REQ='''mingw-w64-x86_64-giflib
-mingw-w64-x86_64-gnutls
-mingw-w64-x86_64-libjpeg-turbo
-mingw-w64-x86_64-libpng
-mingw-w64-x86_64-librsvg
-mingw-w64-x86_64-libtiff
-mingw-w64-x86_64-libxml2
-mingw-w64-x86_64-xpm-nox
-mingw-w64-x86_64-lcms2'''.split()
 
     # Get a list of all dependencies needed for packages mentioned above.
-    # Run `pactree -lu' for each element of $PKG_REQ.
-    pkgs = set()
-    for x in PKG_REQ:
-        pkgs.update(
-            check_output(["pactree", "-lu", x]).decode("utf-8").split()
-        )
+    pkgs = PKG_REQ[:]
+    print("Initial pkgs", pkgs)
+    n = 0
+    while n < len(pkgs):
+        subdeps = immediate_deps(pkgs[n])
+        for p in subdeps:
+            if not (p in pkgs or p in SKIP_DEP_PKGS):
+                print("adding", p)
+                pkgs.append(p)
+        n = n + 1
 
     return sorted(pkgs)
 
@@ -145,7 +183,7 @@ def gather_source(deps):
         ## make a simple name to make lookup easier
         simple_pkg_name = re.sub(r"x86_64-","",pkg_name)
 
-        if(simple_pkg_name in SKIP_PKGS):
+        if(simple_pkg_name in SKIP_SRC_PKGS):
             continue
 
         ## Some packages have different source files for different
@@ -158,7 +196,7 @@ def gather_source(deps):
 
         for d in downloads:
             ## Switch names if necessary
-            d = MUNGE_PKGS.get(d,d)
+            d = MUNGE_SRC_PKGS.get(d,d)
 
             tarball = "{}-{}.src.tar.gz".format(d,pkg_version)
 
@@ -208,12 +246,20 @@ parser.add_argument("-c", help="clean only",
 parser.add_argument("-d", help="dry run",
                     action="store_true")
 
+parser.add_argument("-l", help="list dependencies only",
+                    action="store_true")
+
 args = parser.parse_args()
 do_all=not (args.c or args.r or args.f or args.t)
 
 deps=extract_deps()
 
 DRY_RUN=args.d
+
+if( args.l ):
+    print("List of dependencies")
+    print( extract_deps() )
+    exit(0)
 
 if args.s:
     DATE="{}-".format(check_output(["date", "+%Y-%m-%d"]).decode("utf-8").strip())
