@@ -1108,21 +1108,52 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bintegerp:
 	  error ("Bintegerp not supported");
 	  break;
+
 	case BRgoto:
-	  error ("BRgoto not supported");
+	  op = FETCH - 128;
+	  op += pc;
+	  gcc_jit_block_end_with_jump (comp.bblock->gcc_bb,
+				       NULL,
+				       bb_map[op].gcc_bb);
+	  comp.bblock->terminated = true;
 	  break;
+
 	case BRgotoifnil:
-	  error ("BRgotoifnil not supported");
+	  op = FETCH - 128;
+	  op += pc;
+	  POP1;
+	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], comp.nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
+
 	case BRgotoifnonnil:
-	  error ("BRgotoifnonnil not supported");
+	  op = FETCH - 128;
+	  op += pc;
+	  POP1;
+	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], comp.nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
+
 	case BRgotoifnilelsepop:
-	  error ("BRgotoifnilelsepop not supported");
+	  op = FETCH - 128;
+	  op += pc;
+	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ,
+				gcc_jit_lvalue_as_rvalue (TOS),
+				comp.nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  POP1;
 	  break;
+
 	case BRgotoifnonnilelsepop:
-	  error ("BRgotoifnonnilelsepop not supported");
+	  op = FETCH - 128;
+	  op += pc;
+	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE,
+				gcc_jit_lvalue_as_rvalue (TOS),
+				comp.nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  POP1;
 	  break;
+
 	case BinsertN:
 	  error ("BinsertN not supported");
 	  break;
