@@ -161,7 +161,7 @@ static void test(int mode)
 
   printf("test(%s)\n", mode_name[mode]);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), mps_args_none), "arena");
+  die(mps_arena_create_k(&arena, mps_arena_class_vm(), mps_args_none), "arena");
   mps_message_type_enable(arena, mps_message_type_finalization());
   die(mps_thread_reg(&thread, arena), "thread");
 
