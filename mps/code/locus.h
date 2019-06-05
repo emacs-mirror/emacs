@@ -1,7 +1,7 @@
 /* locus.h: GENERATION CHAINS
  *
  * $Id$
- * Copyright (c) 2001-2016 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2019 Ravenbrook Limited.  See end of file for license.
  */
 
 #ifndef locus_h
@@ -97,7 +97,7 @@ extern void GenDescEndTrace(GenDesc gen, Trace trace);
 extern void GenDescCondemned(GenDesc gen, Trace trace, Size size);
 extern void GenDescSurvived(GenDesc gen, Trace trace, Size forwarded, Size preservedInPlace);
 extern Res GenDescDescribe(GenDesc gen, mps_lib_FILE *stream, Count depth);
-#define GenDescOfTraceRing(node, trace) PARENT(GenDescStruct, trace[trace->ti], RING_ELT(GenTrace, traceRing, node))
+#define GenDescOfTraceRing(node, tr) PARENT(GenDescStruct, trace, &RING_ELT(GenTrace, traceRing, node)[-tr->ti])
 
 extern Res ChainCreate(Chain *chainReturn, Arena arena, size_t genCount,
                        GenParam params);
@@ -130,7 +130,7 @@ extern Res PoolGenDescribe(PoolGen gen, mps_lib_FILE *stream, Count depth);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2016 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2019 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
