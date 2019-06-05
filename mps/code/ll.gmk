@@ -3,7 +3,7 @@
 # ll.gmk: GNUMAKEFILE FRAGMENT FOR CLANG/LLVM
 #
 # $Id$
-# Copyright (c) 2001-2014 Ravenbrook Limited.  See end of file for license.
+# Copyright (c) 2001-2019 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the Clang/LLVM
 # compiler.  It defines the compiler-specific variables that the
@@ -24,7 +24,6 @@ CFLAGSCOMPILER := \
 	-Wmissing-prototypes \
 	-Wmissing-variable-declarations \
 	-Wnested-externs \
-	-Wno-extended-offsetof \
 	-Wpointer-arith \
 	-Wshadow \
 	-Wstrict-aliasing=2 \
@@ -53,7 +52,7 @@ endef
 
 # C. COPYRIGHT AND LICENSE
 #
-# Copyright (C) 2001-2014 Ravenbrook Limited <http://www.ravenbrook.com/>.
+# Copyright (C) 2001-2019 Ravenbrook Limited <http://www.ravenbrook.com/>.
 # All rights reserved.  This is an open source license.  Contact
 # Ravenbrook for commercial licensing options.
 # 
