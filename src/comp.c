@@ -733,13 +733,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 	case Bpophandler:
-	  error ("Bpophandler\n");
+	  error ("Bpophandler unsupported bytecode\n");
 	  break;
 	case Bpushconditioncase:
-	  error ("Bpushconditioncase\n");
+	  error ("Bpushconditioncase unsupported bytecode\n");
 	  break;
 	case Bpushcatch:
-	  error ("Bpushcatch\n");
+	  error ("Bpushcatch unsupported bytecode\n");
 	  break;
 
 	CASE_CALL_NARGS (nth, 2);
@@ -805,31 +805,31 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsub1:
-	  error ("Bsub1\n");
+	  error ("Bsub1 unsupported bytecode\n");
 	  break;
 	case Badd1:
-	  error ("Badd1\n");
+	  error ("Badd1 unsupported bytecode\n");
 	  break;
 	case Beqlsign:
-	  error ("Beqlsign\n");
+	  error ("Beqlsign unsupported bytecode\n");
 	  break;
 	case Bgtr:
-	  error ("Bgtr\n");
+	  error ("Bgtr unsupported bytecode\n");
 	  break;
 	case Blss:
-	  error ("Blss\n");
+	  error ("Blss unsupported bytecode\n");
 	  break;
 	case Bleq:
-	  error ("Bleq\n");
+	  error ("Bleq unsupported bytecode\n");
 	  break;
 	case Bgeq:
-	  error ("Bgeq\n");
+	  error ("Bgeq unsupported bytecode\n");
 	  break;
 	case Bdiff:
 	  EMIT_SCRATCH_CALL_N ("Fminus", 2);
 	  break;
 	case Bnegate:
-	  error ("Bnegate\n");
+	  error ("Bnegate unsupported bytecode\n");
 	  break;
 	case Bplus:
 	  EMIT_SCRATCH_CALL_N ("Fplus", 2);
@@ -844,7 +844,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  EMIT_SCRATCH_CALL_N ("Ftimes", 2);
 	  break;
 	case Bpoint:
-	  error ("Bpoint\n");
+	  error ("Bpoint unsupported bytecode\n");
 	  break;
 
 	CASE_CALL_NARGS (goto_char, 1);
@@ -854,10 +854,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bpoint_max:
-	  error ("Bpoint_max\n");
+	  error ("Bpoint_max unsupported bytecode\n");
 	  break;
 	case Bpoint_min:
-	  error ("Bpoint_min\n");
+	  error ("Bpoint_min unsupported bytecode\n");
 	  break;
 
 	CASE_CALL_NARGS (char_after, 1);
@@ -880,13 +880,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (eolp, 0);
 
 	case Beobp:
-	  error ("Beobp\n");
+	  error ("Beobp unsupported bytecode\n");
 	  break;
 
 	CASE_CALL_NARGS (bolp, 0);
 
 	case Bbobp:
-	  error ("Bbobp\n");
+	  error ("Bbobp unsupported bytecode\n");
 	  break;
 
 	CASE_CALL_NARGS (current_buffer, 0);
