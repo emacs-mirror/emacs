@@ -2887,7 +2887,19 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
       (set (nth (seq-position gnus-variable-list 'gnus-newsrc-alist)
 		gnus-variable-list)
 	   (mapcar (lambda (g)
-		     (nth 1 (gethash g gnus-newsrc-hashtb)))
+		     (let ((entry (copy-sequence
+				   (nth 1 (gethash g gnus-newsrc-hashtb)))))
+		       ;; Encode in order to keep newsrc.eld files
+		       ;; compatible with older versions of Gnus.  At
+		       ;; some point, if/when a new version of Gnus is
+		       ;; released, drop this (and the corresponding
+		       ;; decode in
+		       ;; `gnus-make-hashtable-from-newsrc-alist').
+		       (setf (car entry)
+			     (encode-coding-string
+			      (car entry)
+			      'utf-8-emacs))
+		       entry))
 		   (delete "dummy.group" gnus-group-list)))
 
       ;; Insert the variables into the file.
