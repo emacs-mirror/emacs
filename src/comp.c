@@ -475,7 +475,7 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	  bb_start_pc[bb_n++] = op;
 	  new_bb = true;
 	  break;
-	  /* Return */
+	case Bsub1:
 	case Breturn:
 	  new_bb = true;
 	  break;
@@ -517,21 +517,32 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 
 /* Close current basic block emitting a conditional.  */
 
-static gcc_jit_rvalue *
+static void
 comp_emit_conditional (enum gcc_jit_comparison op,
-		       gcc_jit_rvalue *a, gcc_jit_rvalue *b,
+		       gcc_jit_rvalue *test,
 		       gcc_jit_block *then_target, gcc_jit_block *else_target)
 {
-  gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt,
-							 NULL,
-							 op,
-							 a, b);
   gcc_jit_block_end_with_conditional (comp.bblock->gcc_bb,
 				      NULL,
 				      test,
 				      then_target,
 				      else_target);
   comp.bblock->terminated = true;
+}
+
+/* Close current basic block emitting a comparison between two rval.  */
+
+static gcc_jit_rvalue *
+comp_emit_comparison (enum gcc_jit_comparison op,
+		      gcc_jit_rvalue *a, gcc_jit_rvalue *b,
+		      gcc_jit_block *then_target, gcc_jit_block *else_target)
+{
+  gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt,
+							 NULL,
+							 op,
+							 a, b);
+
+  comp_emit_conditional (op, test, then_target, else_target);
 
   return test;
 }
@@ -830,7 +841,42 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsub1:
-	  error ("Bsub1 unsupported bytecode\n");
+	  {
+	    gcc_jit_block *sub1_inline =
+	      gcc_jit_function_new_block (comp.func, "-1 inline");
+	    gcc_jit_block *sub1_fcall =
+	      gcc_jit_function_new_block (comp.func, "-1 fcall");
+
+	    gcc_jit_rvalue *tos_as_num =
+	      gcc_jit_rvalue_access_field (gcc_jit_lvalue_as_rvalue (TOS),
+					   NULL,
+					   comp.lisp_obj_as_num);
+	    comp_emit_comparison (GCC_JIT_COMPARISON_NE,
+				  tos_as_num,
+				  comp.most_negative_fixnum,
+				  sub1_inline, sub1_fcall);
+	    gcc_jit_rvalue *sub1_inline_res =
+	      gcc_jit_context_new_binary_op (comp.ctxt,
+					     NULL,
+					     GCC_JIT_BINARY_OP_MINUS,
+					     comp.lisp_obj_type,
+					     tos_as_num,
+					     comp.one);
+	    gcc_jit_block_add_assignment (sub1_inline,
+					  NULL,
+					  TOS,
+					  sub1_inline_res);
+
+	    /* TODO fill sub1_fcall */
+	    /* comp.bblock->gcc_bb = sub1_fcall; */
+	    /* comp.bblock->terminated = false; */
+
+	    gcc_jit_block_end_with_jump (sub1_inline, NULL,
+					 bb_map[pc].gcc_bb);
+	    gcc_jit_block_end_with_jump (sub1_fcall, NULL,
+					 bb_map[pc].gcc_bb);
+	  }
+
 	  break;
 	case Badd1:
 	  error ("Badd1 unsupported bytecode\n");
@@ -957,32 +1003,32 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bgotoifnil:
 	  op = FETCH2;
 	  POP1;
-	  comp_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], nil,
-				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comparison (GCC_JIT_COMPARISON_EQ, args[0], nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case Bgotoifnonnil:
 	  op = FETCH2;
 	  POP1;
-	  comp_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], nil,
-				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comparison (GCC_JIT_COMPARISON_NE, args[0], nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case Bgotoifnilelsepop:
 	  op = FETCH2;
-	  comp_emit_conditional (GCC_JIT_COMPARISON_EQ,
-				 gcc_jit_lvalue_as_rvalue (TOS),
-				 nil,
-				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comparison (GCC_JIT_COMPARISON_EQ,
+				gcc_jit_lvalue_as_rvalue (TOS),
+				nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
 	case Bgotoifnonnilelsepop:
 	  op = FETCH2;
-	  comp_emit_conditional (GCC_JIT_COMPARISON_NE,
-				 gcc_jit_lvalue_as_rvalue (TOS),
-				 nil,
-				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comparison (GCC_JIT_COMPARISON_NE,
+				gcc_jit_lvalue_as_rvalue (TOS),
+				nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
@@ -1143,35 +1189,35 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
-	  comp_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], nil,
-				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comparison (GCC_JIT_COMPARISON_EQ, args[0], nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case BRgotoifnonnil:
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
-	  comp_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], nil,
-				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comparison (GCC_JIT_COMPARISON_NE, args[0], nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case BRgotoifnilelsepop:
 	  op = FETCH - 128;
 	  op += pc;
-	  comp_emit_conditional (GCC_JIT_COMPARISON_EQ,
-				 gcc_jit_lvalue_as_rvalue (TOS),
-				 nil,
-				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comparison (GCC_JIT_COMPARISON_EQ,
+				gcc_jit_lvalue_as_rvalue (TOS),
+				nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
 	case BRgotoifnonnilelsepop:
 	  op = FETCH - 128;
 	  op += pc;
-	  comp_emit_conditional (GCC_JIT_COMPARISON_NE,
-				 gcc_jit_lvalue_as_rvalue (TOS),
-				 nil,
-				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comparison (GCC_JIT_COMPARISON_NE,
+				gcc_jit_lvalue_as_rvalue (TOS),
+				nil,
+				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
@@ -1397,15 +1443,15 @@ init_comp (void)
 						       lisp_obj_fields);
   comp.most_positive_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.long_type, /* FIXME? */
+					  comp.long_long_type, /* FIXME? */
 					  MOST_POSITIVE_FIXNUM);
   comp.most_negative_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.long_type, /* FIXME? */
+					  comp.long_long_type, /* FIXME? */
 					  MOST_NEGATIVE_FIXNUM);
   comp.one =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.int_type,
+					 comp.long_long_type,  /* FIXME? */
 					 1);
 
   enum gcc_jit_types ptrdiff_t_gcc;
