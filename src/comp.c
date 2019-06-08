@@ -150,12 +150,16 @@ typedef struct {
   gcc_jit_context *ctxt;
   gcc_jit_type *void_type;
   gcc_jit_type *int_type;
+  gcc_jit_type *long_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *lisp_obj_type;
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *nil;
   gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
+  gcc_jit_rvalue *most_positive_fixnum;
+  gcc_jit_rvalue *most_negative_fixnum;
+  gcc_jit_rvalue *one;
   basic_block_t *bblock; /* Current basic block  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
 } comp_t;
@@ -1348,9 +1352,21 @@ init_comp (void)
 
   comp.void_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.int_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_INT);
+  comp.long_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_LONG);
   comp.void_ptr_type =
     gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
-
+  comp.most_positive_fixnum =
+    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					  comp.long_type, /* FIXME? */
+					  MOST_POSITIVE_FIXNUM);
+  comp.most_negative_fixnum =
+    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					  comp.long_type, /* FIXME? */
+					  MOST_NEGATIVE_FIXNUM);
+  comp.one =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.lisp_obj_type,
+					 1);
   enum gcc_jit_types ptrdiff_t_gcc;
   if (sizeof (ptrdiff_t) == sizeof (int))
     ptrdiff_t_gcc = GCC_JIT_TYPE_INT;
