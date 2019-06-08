@@ -40,7 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define DISASS_FILE_NAME "emacs-asm.s"
 
-#define CHECK_STACK				\
+#define CHECK_STACK					\
   eassert (stack >= stack_base && stack < stack_over)
 
 #define PUSH_LVAL(obj)							\
@@ -125,7 +125,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define CASE_CALL_NARGS(name, nargs)					\
   case B##name:								\
   POP##nargs;								\
-  res = gcc_emit_call (STR(F##name), comp.lisp_obj_type, nargs, args);	\
+  res = comp_emit_call (STR(F##name), comp.lisp_obj_type, nargs, args);	\
   PUSH_LVAL (res);							\
   break
 
@@ -135,7 +135,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMIT_SCRATCH_CALL_N(name, nargs)	\
   do {						\
     pop (nargs, &stack, args);			\
-    res = gcc_emit_callN (name, nargs, args);	\
+    res = comp_emit_callN (name, nargs, args);	\
     PUSH_LVAL (res);				\
   } while (0)
 
@@ -193,7 +193,7 @@ bcall0 (Lisp_Object f)
 }
 
 /* Pop form the main evaluation stack and place the elements in args in reversed
- order.  */
+   order.  */
 
 INLINE static void
 pop (unsigned n, gcc_jit_lvalue ***stack_ref, gcc_jit_rvalue *args[])
@@ -212,11 +212,11 @@ pop (unsigned n, gcc_jit_lvalue ***stack_ref, gcc_jit_rvalue *args[])
 /* Construct fill and return a lisp object form a raw pointer.  */
 
 INLINE static gcc_jit_rvalue *
-gcc_lisp_obj_as_ptr_from_ptr (basic_block_t *bblock, void *p)
+comp_lisp_obj_as_ptr_from_ptr (basic_block_t *bblock, void *p)
 {
   gcc_jit_lvalue *lisp_obj = gcc_jit_function_new_local (comp.func,
-							  NULL,
-							  comp.lisp_obj_type,
+							 NULL,
+							 comp.lisp_obj_type,
 							 "lisp_obj");
   gcc_jit_lvalue *lisp_obj_as_ptr =
     gcc_jit_lvalue_access_field (lisp_obj,
@@ -236,9 +236,9 @@ gcc_lisp_obj_as_ptr_from_ptr (basic_block_t *bblock, void *p)
 }
 
 static gcc_jit_function *
-gcc_func_declare (const char *f_name, gcc_jit_type *ret_type,
-		  unsigned nargs, gcc_jit_rvalue **args,
-		  enum  gcc_jit_function_kind kind, bool reusable)
+comp_func_declare (const char *f_name, gcc_jit_type *ret_type,
+		   unsigned nargs, gcc_jit_rvalue **args,
+		   enum  gcc_jit_function_kind kind, bool reusable)
 {
   gcc_jit_param *param[4];
   gcc_jit_type *type[4];
@@ -315,8 +315,8 @@ gcc_func_declare (const char *f_name, gcc_jit_type *ret_type,
 }
 
 static gcc_jit_lvalue *
-gcc_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
-	       gcc_jit_rvalue **args)
+comp_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
+		gcc_jit_rvalue **args)
 {
   Lisp_Object key = make_string (f_name, strlen (f_name));
   EMACS_UINT hash = 0;
@@ -325,8 +325,8 @@ gcc_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 
   if (i == -1)
     {
-      gcc_func_declare(f_name, ret_type, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
-		       true);
+      comp_func_declare(f_name, ret_type, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
+			true);
       i = hash_lookup (ht, key, &hash);
       eassert (i != -1);
     }
@@ -349,21 +349,21 @@ gcc_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 }
 
 static gcc_jit_lvalue *
-gcc_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
+comp_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 {
   /* Here we set all the pointers into the scratch call area.  */
   /* TODO: distinguish primitives for faster calling convention.  */
 
   /*
-  Lisp_Object *p;
-  p = scratch_call_area;
+    Lisp_Object *p;
+    p = scratch_call_area;
 
-  p[0] = nargs;
-  p[1] = 0x...;
-  .
-  .
-  .
-  p[n] = 0x...;
+    p[0] = nargs;
+    p[1] = 0x...;
+    .
+    .
+    .
+    p[n] = 0x...;
   */
 
   gcc_jit_lvalue *p =
@@ -395,7 +395,7 @@ gcc_emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 						nargs);
   args[1] = comp.scratch;
 
-  return gcc_emit_call (f_name, comp.lisp_obj_type, 2, args);
+  return comp_emit_call (f_name, comp.lisp_obj_type, 2, args);
 }
 
 static int
@@ -518,9 +518,9 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 /* Close current basic block emitting a conditional.  */
 
 static gcc_jit_rvalue *
-gcc_emit_conditional (enum gcc_jit_comparison op,
-		      gcc_jit_rvalue *a, gcc_jit_rvalue *b,
-		      gcc_jit_block *then_target, gcc_jit_block *else_target)
+comp_emit_conditional (enum gcc_jit_comparison op,
+		       gcc_jit_rvalue *a, gcc_jit_rvalue *b,
+		       gcc_jit_block *then_target, gcc_jit_block *else_target)
 {
   gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt,
 							 NULL,
@@ -578,8 +578,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 
   /* Current function being compiled.  */
-  comp.func = gcc_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
-				NULL, GCC_JIT_FUNCTION_EXPORTED, false);
+  comp.func = comp_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
+				 NULL, GCC_JIT_FUNCTION_EXPORTED, false);
 
   char local_name[256];
   for (int i = 0; i < stack_depth; ++i)
@@ -596,7 +596,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
     PUSH_PARAM (gcc_jit_function_get_param (comp.func, i));
 
-  gcc_jit_rvalue *nil = gcc_lisp_obj_as_ptr_from_ptr (&bb_map[0], Qnil);
+  gcc_jit_rvalue *nil = comp_lisp_obj_as_ptr_from_ptr (&bb_map[0], Qnil);
 
   comp.bblock = NULL;
 
@@ -652,8 +652,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH;
 	varref:
 	  {
-	    args[0] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
-	    res = gcc_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
+	    args[0] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+	    res = comp_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
 	    PUSH_LVAL (res);
 	    break;
 	  }
@@ -677,12 +677,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    POP1;
 	    args[1] = args[0];
-	    args[0] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+	    args[0] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
 	    args[2] = nil;
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
 							   SET_INTERNAL_SET);
-	    res = gcc_emit_call ("set_internal", comp.lisp_obj_type, 4, args);
+	    res = comp_emit_call ("set_internal", comp.lisp_obj_type, 4, args);
 	    PUSH_LVAL (res);
 	  }
 	  break;
@@ -704,9 +704,9 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op -= Bvarbind;
 	varbind:
 	  {
-	    args[0] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+	    args[0] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
 	    pop (1, &stack, &args[1]);
-	    res = gcc_emit_call ("specbind", comp.lisp_obj_type, 2, args);
+	    res = comp_emit_call ("specbind", comp.lisp_obj_type, 2, args);
 	    PUSH_LVAL (res);
 	    break;
 	  }
@@ -730,7 +730,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    ptrdiff_t nargs = op + 1;
 	    pop (nargs, &stack, args);
-	    res = gcc_emit_callN ("Ffuncall", nargs, args);
+	    res = comp_emit_callN ("Ffuncall", nargs, args);
 	    PUSH_LVAL (res);
 	    break;
 	  }
@@ -756,7 +756,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							  comp.ptrdiff_type,
 							  op);
 
-	    gcc_emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
+	    comp_emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
 	  }
 	  break;
 	case Bpophandler:
@@ -794,12 +794,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    POP1;
 	    args[1] = nil;
-	    res = gcc_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
+	    res = comp_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
 	    PUSH_LVAL (res);
 	    for (int i = 0; i < op; ++i)
 	      {
 		POP2;
-		res = gcc_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
+		res = comp_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
 		PUSH_LVAL (res);
 	      }
 	    break;
@@ -889,7 +889,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (following_char, 0);
 
 	case Bpreceding_char:
-	  res = gcc_emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
+	  res = comp_emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
 	  PUSH_LVAL (res);
 	  break;
 
@@ -898,7 +898,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bindent_to:
 	  POP1;
 	  args[1] = nil;
-	  res = gcc_emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
+	  res = comp_emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
 	  PUSH_LVAL (res);
 	  break;
 
@@ -919,14 +919,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	case Bsave_current_buffer: /* Obsolete since ??.  */
 	case Bsave_current_buffer_1:
-	  gcc_emit_call ("record_unwind_current_buffer",
-			 comp.void_type, 0, NULL);
+	  comp_emit_call ("record_unwind_current_buffer",
+			  comp.void_type, 0, NULL);
 	  break;
 
 	case Binteractive_p:	/* Obsolete since 24.1.  */
-	  PUSH_RVAL (gcc_lisp_obj_as_ptr_from_ptr (comp.bblock,
-						   intern ("interactive-p")));
-	  res = gcc_emit_call ("call0", comp.lisp_obj_type, 1, args);
+	  PUSH_RVAL (comp_lisp_obj_as_ptr_from_ptr (comp.bblock,
+						    intern ("interactive-p")));
+	  res = comp_emit_call ("call0", comp.lisp_obj_type, 1, args);
 	  PUSH_LVAL (res);
 	  break;
 
@@ -957,32 +957,32 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bgotoifnil:
 	  op = FETCH2;
 	  POP1;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], nil,
+				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case Bgotoifnonnil:
 	  op = FETCH2;
 	  POP1;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], nil,
+				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case Bgotoifnilelsepop:
 	  op = FETCH2;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ,
-				gcc_jit_lvalue_as_rvalue (TOS),
-				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_conditional (GCC_JIT_COMPARISON_EQ,
+				 gcc_jit_lvalue_as_rvalue (TOS),
+				 nil,
+				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
 	case Bgotoifnonnilelsepop:
 	  op = FETCH2;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE,
-				gcc_jit_lvalue_as_rvalue (TOS),
-				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_conditional (GCC_JIT_COMPARISON_NE,
+				 gcc_jit_lvalue_as_rvalue (TOS),
+				 nil,
+				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
@@ -1003,59 +1003,59 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsave_excursion:
-	  res = gcc_emit_call ("record_unwind_protect_excursion",
-			       comp.void_type, 0, args);
+	  res = comp_emit_call ("record_unwind_protect_excursion",
+				comp.void_type, 0, args);
 	  break;
 
 	case Bsave_window_excursion: /* Obsolete since 24.1.  */
 	  POP1;
-	  res = gcc_emit_call ("helper_save_window_excursion",
-			       comp.lisp_obj_type, 1, args);
+	  res = comp_emit_call ("helper_save_window_excursion",
+				comp.lisp_obj_type, 1, args);
 	  PUSH_LVAL (res);
 	  break;
 
 	case Bsave_restriction:
-	  args[0] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock,
-						  save_restriction_restore);
+	  args[0] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock,
+						   save_restriction_restore);
 	  args[1] =
-	    gcc_jit_lvalue_as_rvalue (gcc_emit_call ("save_restriction_save",
-						     comp.lisp_obj_type,
-						     0,
-						     NULL));
-	  gcc_emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
+	    gcc_jit_lvalue_as_rvalue (comp_emit_call ("save_restriction_save",
+						      comp.lisp_obj_type,
+						      0,
+						      NULL));
+	  comp_emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
 	  break;
 
 	case Bcatch:		/* Obsolete since 24.4.  */
 	  POP2;
 	  args[2] = args[1];
-	  args[1] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, eval_sub);
-	  gcc_emit_call ("internal_catch", comp.void_ptr_type, 3, args);
+	  args[1] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock, eval_sub);
+	  comp_emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
 
 	case Bunwind_protect:	/* FIXME: avoid closure for lexbind.  */
 	  POP1;
-	  gcc_emit_call ("helper_unwind_protect", comp.void_type, 1, args);
+	  comp_emit_call ("helper_unwind_protect", comp.void_type, 1, args);
 	  break;
 
 	case Bcondition_case:		/* Obsolete since 24.4.  */
 	  POP3;
-	  gcc_emit_call ("internal_lisp_condition_case",
-			       comp.lisp_obj_type, 3, args);
+	  comp_emit_call ("internal_lisp_condition_case",
+			  comp.lisp_obj_type, 3, args);
 	  break;
 
 	case Btemp_output_buffer_setup: /* Obsolete since 24.1.  */
 	  POP1;
-	  res = gcc_emit_call ("helper_temp_output_buffer_setup", comp.lisp_obj_type,
-			       1, args);
+	  res = comp_emit_call ("helper_temp_output_buffer_setup", comp.lisp_obj_type,
+				1, args);
 	  PUSH_LVAL (res);
 	  break;
 
 	case Btemp_output_buffer_show: /* Obsolete since 24.1.  */
 	  POP2;
-	  gcc_emit_call ("temp_output_buffer_show", comp.void_type, 1,
-			 &args[1]);
+	  comp_emit_call ("temp_output_buffer_show", comp.void_type, 1,
+			  &args[1]);
 	  PUSH_RVAL (args[0]);
-	  gcc_emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
+	  comp_emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
 
 	  break;
 	case Bunbind_all:	/* Obsolete.  Never used.  */
@@ -1143,35 +1143,35 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], nil,
+				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case BRgotoifnonnil:
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], nil,
+				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case BRgotoifnilelsepop:
 	  op = FETCH - 128;
 	  op += pc;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ,
-				gcc_jit_lvalue_as_rvalue (TOS),
-				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_conditional (GCC_JIT_COMPARISON_EQ,
+				 gcc_jit_lvalue_as_rvalue (TOS),
+				 nil,
+				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
 	case BRgotoifnonnilelsepop:
 	  op = FETCH - 128;
 	  op += pc;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE,
-				gcc_jit_lvalue_as_rvalue (TOS),
-				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_conditional (GCC_JIT_COMPARISON_NE,
+				 gcc_jit_lvalue_as_rvalue (TOS),
+				 nil,
+				 bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
@@ -1209,7 +1209,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    if (pc >= bytestr_length || bytestr_data[pc] != Bswitch)
 	      {
 		gcc_jit_rvalue *c =
-		  gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+		  comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
 		PUSH_RVAL (c);
 		/* Fprint(vectorp[op], Qnil); */
 		break;
@@ -1422,11 +1422,11 @@ init_comp (void)
 
   comp.scratch =
     gcc_jit_lvalue_get_address(
-    gcc_jit_context_new_global (comp.ctxt, NULL,
-				GCC_JIT_GLOBAL_IMPORTED,
-				comp.lisp_obj_type,
-				"scratch_call_area"),
-    NULL);
+      gcc_jit_context_new_global (comp.ctxt, NULL,
+				  GCC_JIT_GLOBAL_IMPORTED,
+				  comp.lisp_obj_type,
+				  "scratch_call_area"),
+      NULL);
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
