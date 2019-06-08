@@ -151,11 +151,13 @@ typedef struct {
   gcc_jit_type *void_type;
   gcc_jit_type *int_type;
   gcc_jit_type *long_type;
+  gcc_jit_type *long_long_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *lisp_obj_type;
+  gcc_jit_field *lisp_obj_as_ptr;
+  gcc_jit_field *lisp_obj_as_num;
   gcc_jit_function *func; /* Current function being compiled  */
-  gcc_jit_rvalue *nil;
   gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
@@ -205,6 +207,32 @@ pop (unsigned n, gcc_jit_lvalue ***stack_ref, gcc_jit_rvalue *args[])
     }
 
   *stack_ref = stack;
+}
+
+/* Construct fill and return a lisp object form a raw pointer.  */
+
+INLINE static gcc_jit_rvalue *
+gcc_lisp_obj_as_ptr_from_ptr (basic_block_t *bblock, void *p)
+{
+  gcc_jit_lvalue *lisp_obj = gcc_jit_function_new_local (comp.func,
+							  NULL,
+							  comp.lisp_obj_type,
+							 "lisp_obj");
+  gcc_jit_lvalue *lisp_obj_as_ptr =
+    gcc_jit_lvalue_access_field (lisp_obj,
+				 NULL,
+				 comp.lisp_obj_as_ptr);
+
+  gcc_jit_rvalue *void_ptr =
+    gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
+					comp.void_ptr_type,
+					p);
+
+  gcc_jit_block_add_assignment (bblock->gcc_bb,
+				NULL,
+				lisp_obj_as_ptr,
+				void_ptr);
+  return gcc_jit_lvalue_as_rvalue (lisp_obj);
 }
 
 static gcc_jit_function *
@@ -564,10 +592,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
     }
 
   basic_block_t *bb_map = compute_bblocks (bytestr_length, bytestr_data);
-  /* basic_block_t *nil_ret_bb = NULL; */
 
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
     PUSH_PARAM (gcc_jit_function_get_param (comp.func, i));
+
+  gcc_jit_rvalue *nil = gcc_lisp_obj_as_ptr_from_ptr (&bb_map[0], Qnil);
 
   comp.bblock = NULL;
 
@@ -623,9 +652,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH;
 	varref:
 	  {
-	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj_type,
-							  vectorp[op]);
+	    args[0] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
 	    res = gcc_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
 	    PUSH_LVAL (res);
 	    break;
@@ -650,10 +677,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    POP1;
 	    args[1] = args[0];
-	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj_type,
-							  vectorp[op]);
-	    args[2] = comp.nil;
+	    args[0] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+	    args[2] = nil;
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
 							   SET_INTERNAL_SET);
@@ -679,9 +704,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op -= Bvarbind;
 	varbind:
 	  {
-	    args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj_type,
-							  vectorp[op]);
+	    args[0] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
 	    pop (1, &stack, &args[1]);
 	    res = gcc_emit_call ("specbind", comp.lisp_obj_type, 2, args);
 	    PUSH_LVAL (res);
@@ -770,9 +793,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	make_list:
 	  {
 	    POP1;
-	    args[1] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							  comp.lisp_obj_type,
-							  Qnil);
+	    args[1] = nil;
 	    res = gcc_emit_call ("Fcons", comp.lisp_obj_type, 2, args);
 	    PUSH_LVAL (res);
 	    for (int i = 0; i < op; ++i)
@@ -876,7 +897,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	case Bindent_to:
 	  POP1;
-	  args[1] = comp.nil;
+	  args[1] = nil;
 	  res = gcc_emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
 	  PUSH_LVAL (res);
 	  break;
@@ -903,9 +924,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Binteractive_p:	/* Obsolete since 24.1.  */
-	  PUSH_RVAL (gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
-							  comp.lisp_obj_type,
-							  intern ("interactive-p")));
+	  PUSH_RVAL (gcc_lisp_obj_as_ptr_from_ptr (comp.bblock,
+						   intern ("interactive-p")));
 	  res = gcc_emit_call ("call0", comp.lisp_obj_type, 1, args);
 	  PUSH_LVAL (res);
 	  break;
@@ -937,14 +957,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bgotoifnil:
 	  op = FETCH2;
 	  POP1;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], comp.nil,
+	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case Bgotoifnonnil:
 	  op = FETCH2;
 	  POP1;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], comp.nil,
+	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
@@ -952,7 +972,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH2;
 	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ,
 				gcc_jit_lvalue_as_rvalue (TOS),
-				comp.nil,
+				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
@@ -961,7 +981,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH2;
 	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE,
 				gcc_jit_lvalue_as_rvalue (TOS),
-				comp.nil,
+				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
@@ -995,9 +1015,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsave_restriction:
-	  args[0] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							comp.void_ptr_type,
-							save_restriction_restore);
+	  args[0] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock,
+						  save_restriction_restore);
 	  args[1] =
 	    gcc_jit_lvalue_as_rvalue (gcc_emit_call ("save_restriction_save",
 						     comp.lisp_obj_type,
@@ -1009,9 +1028,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bcatch:		/* Obsolete since 24.4.  */
 	  POP2;
 	  args[2] = args[1];
-	  args[1] = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-							comp.void_ptr_type,
-							eval_sub);
+	  args[1] = gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, eval_sub);
 	  gcc_emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
 
@@ -1126,7 +1143,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], comp.nil,
+	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
@@ -1134,7 +1151,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
-	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], comp.nil,
+	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
@@ -1143,7 +1160,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op += pc;
 	  gcc_emit_conditional (GCC_JIT_COMPARISON_EQ,
 				gcc_jit_lvalue_as_rvalue (TOS),
-				comp.nil,
+				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
@@ -1153,7 +1170,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op += pc;
 	  gcc_emit_conditional (GCC_JIT_COMPARISON_NE,
 				gcc_jit_lvalue_as_rvalue (TOS),
-				comp.nil,
+				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
@@ -1192,9 +1209,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    if (pc >= bytestr_length || bytestr_data[pc] != Bswitch)
 	      {
 		gcc_jit_rvalue *c =
-		  gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-						      comp.lisp_obj_type,
-						      vectorp[op]);
+		  gcc_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
 		PUSH_RVAL (c);
 		/* Fprint(vectorp[op], Qnil); */
 		break;
@@ -1342,19 +1357,44 @@ init_comp (void)
 {
   comp.ctxt = gcc_jit_context_acquire();
 
+  comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
+  comp.void_ptr_type =
+    gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
+  comp.int_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_INT);
+  comp.long_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_LONG);
+  comp.long_long_type = gcc_jit_context_get_type (comp.ctxt,
+						  GCC_JIT_TYPE_LONG_LONG);
+
 #if EMACS_INT_MAX <= LONG_MAX
   /* 32-bit builds without wide ints, 64-bit builds on Posix hosts.  */
-  comp.lisp_obj_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
+  comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.void_ptr_type,
+						    "obj");
+  comp.lisp_obj_as_num =  gcc_jit_context_new_field (comp.ctxt,
+						     NULL,
+						     comp.long_long_type,
+						     "num");
+
 #else
   /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.  */
-  comp.lisp_obj_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_LONG_LONG);
+  comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.long_long_type,
+						    "obj");
+  comp.lisp_obj_as_num = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.long_long_type,
+						    "num");
 #endif
 
-  comp.void_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID);
-  comp.int_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_INT);
-  comp.long_type = gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_LONG);
-  comp.void_ptr_type =
-    gcc_jit_context_get_type(comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
+  gcc_jit_field *lisp_obj_fields[2] = { comp.lisp_obj_as_ptr,
+                                        comp.lisp_obj_as_num };
+  comp.lisp_obj_type = gcc_jit_context_new_union_type (comp.ctxt,
+						       NULL,
+						       "LispObj",
+						       2,
+						       lisp_obj_fields);
   comp.most_positive_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 					  comp.long_type, /* FIXME? */
@@ -1365,8 +1405,9 @@ init_comp (void)
 					  MOST_NEGATIVE_FIXNUM);
   comp.one =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.lisp_obj_type,
+					 comp.int_type,
 					 1);
+
   enum gcc_jit_types ptrdiff_t_gcc;
   if (sizeof (ptrdiff_t) == sizeof (int))
     ptrdiff_t_gcc = GCC_JIT_TYPE_INT;
@@ -1378,10 +1419,6 @@ init_comp (void)
     eassert ("ptrdiff_t size not handled.");
 
   comp.ptrdiff_type = gcc_jit_context_get_type(comp.ctxt, ptrdiff_t_gcc);
-
-  comp.nil = gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
-						 comp.lisp_obj_type,
-						 Qnil);
 
   comp.scratch =
     gcc_jit_lvalue_get_address(
