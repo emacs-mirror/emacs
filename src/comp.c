@@ -1355,9 +1355,13 @@ DEFUN ("native-compile", Fnative_compile, Snative_compile,
 
   /* FIXME how many other characters are not allowed in C?
      This will introduce name clashs too. */
-  for (int i; i < strlen(c_f_name); i++)
-    if (c_f_name[i] == '-')
-      c_f_name[i] = '_';
+  char *c = c_f_name;
+  while (*c)
+    {
+      if (*c == '-')
+	*c = '_';
+      ++c;
+    }
 
   func = indirect_function (func);
   if (!COMPILEDP (func))
