@@ -1457,6 +1457,9 @@ init_comp (void)
 {
   comp.ctxt = gcc_jit_context_acquire();
 
+  if (COMP_DEBUG > 1)
+    gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
+
   comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.void_ptr_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
