@@ -146,6 +146,22 @@
   (should (= (comp-tests-conditionals-2-f t) 1340))
   (should (eq (comp-tests-conditionals-2-f nil) nil)))
 
+(ert-deftest  comp-tests-fixnum ()
+  "Testing some fixnum inline operation."
+  (defun comp-tests-fixnum-1-f (x)
+    (1- x))
+
+  (byte-compile #'comp-tests-fixnum-1-f)
+  (native-compile #'comp-tests-fixnum-1-f)
+
+  (should (= (comp-tests-fixnum-1-f 10) 9))
+  (should (= (comp-tests-fixnum-1-f most-negative-fixnum)
+             (1- most-negative-fixnum)))
+  (should (equal (condition-case err
+                     (comp-tests-fixnum-1-f 'a)
+                   (error (print err)))
+                 '(wrong-type-argument number-or-marker-p a))))
+
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
   (dotimes (_ 100000)

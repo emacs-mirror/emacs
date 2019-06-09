@@ -149,7 +149,9 @@ typedef struct {
 typedef struct {
   gcc_jit_context *ctxt;
   gcc_jit_type *void_type;
+  gcc_jit_type *bool_type;
   gcc_jit_type *int_type;
+  gcc_jit_type *unsigned_type;
   gcc_jit_type *long_type;
   gcc_jit_type *long_long_type;
   gcc_jit_type *void_ptr_type;
@@ -157,6 +159,13 @@ typedef struct {
   gcc_jit_type *lisp_obj_type;
   gcc_jit_field *lisp_obj_as_ptr;
   gcc_jit_field *lisp_obj_as_num;
+  /* libgccjit has really limited support for casting therefore this union will
+     be used for the scope.  */
+  gcc_jit_type *cast_union_type;
+  gcc_jit_field *cast_union_as_ll;
+  gcc_jit_field *cast_union_as_u;
+  gcc_jit_field *cast_union_as_i;
+  gcc_jit_field *cast_union_as_b;
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
   gcc_jit_rvalue *most_positive_fixnum;
@@ -211,22 +220,118 @@ pop (unsigned n, gcc_jit_lvalue ***stack_ref, gcc_jit_rvalue *args[])
   *stack_ref = stack;
 }
 
-INLINE static gcc_jit_rvalue *
-comp_xfixnum (gcc_jit_rvalue *obj)
+INLINE static gcc_jit_field *
+type_to_cast_field (gcc_jit_type *type)
 {
-  return gcc_jit_context_new_binary_op (
-	   comp.ctxt,
-	   NULL,
-	   GCC_JIT_BINARY_OP_RSHIFT,
-	   comp.long_long_type,
-	   gcc_jit_rvalue_access_field (obj,
-					NULL,
-					comp.lisp_obj_as_num),
-	   comp.inttypebits);
+  gcc_jit_field *field;
+
+  if (type == comp.long_long_type)
+    field = comp.cast_union_as_ll;
+  else if (type == comp.unsigned_type)
+    field = comp.cast_union_as_u;
+  else if (type == comp.int_type)
+    field = comp.cast_union_as_i;
+  else if (type == comp.bool_type)
+    field = comp.cast_union_as_b;
+  else
+    error ("unsopported cast\n");
+
+  return field;
+}
+
+static gcc_jit_rvalue *
+comp_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
+{
+  gcc_jit_field *orig_field =
+    type_to_cast_field (gcc_jit_rvalue_get_type (obj));
+  gcc_jit_field *dest_field = type_to_cast_field (new_type);
+
+  gcc_jit_lvalue *tmp_u =
+    gcc_jit_function_new_local (comp.func,
+				NULL,
+				comp.cast_union_type,
+				"union_cast");
+  gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+				NULL,
+				gcc_jit_lvalue_access_field (tmp_u,
+							     NULL,
+							     orig_field),
+				obj);
+
+  return gcc_jit_rvalue_access_field ( gcc_jit_lvalue_as_rvalue (tmp_u),
+				       NULL,
+				       dest_field);
 }
 
 INLINE static gcc_jit_rvalue *
-comp_make_fixnum (gcc_jit_rvalue *obj)
+comp_XLI (gcc_jit_rvalue *obj)
+{
+  return gcc_jit_rvalue_access_field (obj,
+				      NULL,
+				      comp.lisp_obj_as_num);
+}
+
+static gcc_jit_rvalue *
+comp_FIXNUMP (gcc_jit_rvalue *obj)
+{
+  /* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS))
+        - (unsigned) (Lisp_Int0 >> !USE_LSB_TAG))
+	& ((1 << INTTYPEBITS) - 1)))  */
+
+  gcc_jit_rvalue *sh_res =
+    gcc_jit_context_new_binary_op (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_BINARY_OP_RSHIFT,
+      comp.long_long_type,
+      comp_XLI (obj),
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.long_long_type,
+					   (USE_LSB_TAG ? 0 : FIXNUM_BITS)));
+
+  gcc_jit_rvalue *minus_res =
+    gcc_jit_context_new_binary_op (comp.ctxt,
+				   NULL,
+				   GCC_JIT_BINARY_OP_MINUS,
+				   comp.unsigned_type,
+				   comp_cast (comp.unsigned_type, sh_res),
+				   gcc_jit_context_new_rvalue_from_int (
+				     comp.ctxt,
+				     comp.unsigned_type,
+				     (Lisp_Int0 >> !USE_LSB_TAG)));
+
+  gcc_jit_rvalue *res =
+   gcc_jit_context_new_unary_op (
+     comp.ctxt,
+     NULL,
+     GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
+     comp.int_type,
+     gcc_jit_context_new_binary_op (comp.ctxt,
+				    NULL,
+				    GCC_JIT_BINARY_OP_BITWISE_AND,
+				    comp.unsigned_type,
+				    minus_res,
+				    gcc_jit_context_new_rvalue_from_int (
+				      comp.ctxt,
+				      comp.unsigned_type,
+				      ((1 << INTTYPEBITS) - 1))));
+
+  return res;
+}
+
+static gcc_jit_rvalue *
+comp_XFIXNUM (gcc_jit_rvalue *obj)
+{
+  return gcc_jit_context_new_binary_op (comp.ctxt,
+					NULL,
+					GCC_JIT_BINARY_OP_RSHIFT,
+					comp.long_long_type,
+					comp_XLI (obj),
+					comp.inttypebits);
+}
+
+static gcc_jit_rvalue *
+comp_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 {
   gcc_jit_rvalue *tmp =
     gcc_jit_context_new_binary_op (comp.ctxt,
@@ -248,7 +353,7 @@ comp_make_fixnum (gcc_jit_rvalue *obj)
 						    comp.lisp_obj_type,
 						    "lisp_obj_fixnum");
 
-  gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+  gcc_jit_block_add_assignment (block,
 				NULL,
 				gcc_jit_lvalue_access_field (
 				  res,
@@ -261,7 +366,7 @@ comp_make_fixnum (gcc_jit_rvalue *obj)
 
 /* Construct fill and return a lisp object form a raw pointer.  */
 
-INLINE static gcc_jit_rvalue *
+static gcc_jit_rvalue *
 comp_lisp_obj_as_ptr_from_ptr (basic_block_t *bblock, void *p)
 {
   gcc_jit_lvalue *lisp_obj = gcc_jit_function_new_local (comp.func,
@@ -567,9 +672,8 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 
 /* Close current basic block emitting a conditional.  */
 
-static void
-comp_emit_conditional (enum gcc_jit_comparison op,
-		       gcc_jit_rvalue *test,
+INLINE static void
+comp_emit_cond_jump (gcc_jit_rvalue *test,
 		       gcc_jit_block *then_target, gcc_jit_block *else_target)
 {
   gcc_jit_block_end_with_conditional (comp.bblock->gcc_bb,
@@ -583,16 +687,16 @@ comp_emit_conditional (enum gcc_jit_comparison op,
 /* Close current basic block emitting a comparison between two rval.  */
 
 static gcc_jit_rvalue *
-comp_emit_comparison (enum gcc_jit_comparison op,
-		      gcc_jit_rvalue *a, gcc_jit_rvalue *b,
-		      gcc_jit_block *then_target, gcc_jit_block *else_target)
+comp_emit_comp_jump (enum gcc_jit_comparison op,
+		     gcc_jit_rvalue *a, gcc_jit_rvalue *b,
+		     gcc_jit_block *then_target, gcc_jit_block *else_target)
 {
   gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt,
 							 NULL,
 							 op,
 							 a, b);
 
-  comp_emit_conditional (op, test, then_target, else_target);
+  comp_emit_cond_jump (test, then_target, else_target);
 
   return test;
 }
@@ -892,38 +996,60 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	case Bsub1:
 	  {
-	    gcc_jit_block *sub1_inline =
-	      gcc_jit_function_new_block (comp.func, "-1 inline");
-	    gcc_jit_block *sub1_fcall =
-	      gcc_jit_function_new_block (comp.func, "-1 fcall");
+
+	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
+	       ? make_fixnum (XFIXNUM (TOP) - 1)
+	       : Fsub1 (TOP)) */
+
+	    gcc_jit_block *sub1_inline_block =
+		 gcc_jit_function_new_block (comp.func, "inline-1");
+	    gcc_jit_block *sub1_fcall_block =
+		 gcc_jit_function_new_block (comp.func, "fcall-1");
 
 	    gcc_jit_rvalue *tos_as_num =
-	      gcc_jit_rvalue_access_field (gcc_jit_lvalue_as_rvalue (TOS),
-					   NULL,
-					   comp.lisp_obj_as_num);
-	    comp_emit_comparison (GCC_JIT_COMPARISON_NE,
-				  tos_as_num,
-				  comp.most_negative_fixnum,
-				  sub1_inline, sub1_fcall);
+	      comp_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
+
+	    comp_emit_cond_jump (
+	      gcc_jit_context_new_binary_op (
+		comp.ctxt,
+		NULL,
+		GCC_JIT_BINARY_OP_LOGICAL_AND,
+		comp.bool_type,
+		comp_cast (comp.bool_type,
+			   comp_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS))),
+		gcc_jit_context_new_comparison (comp.ctxt,
+						NULL,
+						GCC_JIT_COMPARISON_NE,
+						tos_as_num,
+						comp.most_negative_fixnum)),
+	      sub1_inline_block,
+	      sub1_fcall_block);
+
 	    gcc_jit_rvalue *sub1_inline_res =
 	      gcc_jit_context_new_binary_op (comp.ctxt,
 					     NULL,
 					     GCC_JIT_BINARY_OP_MINUS,
-					     comp.lisp_obj_type,
+					     comp.long_long_type,
 					     tos_as_num,
 					     comp.one);
-	    gcc_jit_block_add_assignment (sub1_inline,
+
+	    gcc_jit_block_add_assignment (sub1_inline_block,
 					  NULL,
 					  TOS,
-					  sub1_inline_res);
+					  comp_make_fixnum (sub1_inline_block,
+							    sub1_inline_res));
+	    basic_block_t bb_orig = *comp.bblock;
 
-	    /* TODO fill sub1_fcall */
-	    /* comp.bblock->gcc_bb = sub1_fcall; */
-	    /* comp.bblock->terminated = false; */
+	    comp.bblock->gcc_bb = sub1_fcall_block;
+	    POP1;
+	    res = comp_emit_call ("Fsub1", comp.lisp_obj_type, 1, args);
+	    PUSH_LVAL (res);
 
-	    gcc_jit_block_end_with_jump (sub1_inline, NULL,
+	    *comp.bblock = bb_orig;
+
+	    gcc_jit_block_end_with_jump (sub1_inline_block, NULL,
 					 bb_map[pc].gcc_bb);
-	    gcc_jit_block_end_with_jump (sub1_fcall, NULL,
+	    gcc_jit_block_end_with_jump (sub1_fcall_block, NULL,
 					 bb_map[pc].gcc_bb);
 	  }
 
@@ -1053,32 +1179,32 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bgotoifnil:
 	  op = FETCH2;
 	  POP1;
-	  comp_emit_comparison (GCC_JIT_COMPARISON_EQ, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comp_jump (GCC_JIT_COMPARISON_EQ, args[0], nil,
+			       bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case Bgotoifnonnil:
 	  op = FETCH2;
 	  POP1;
-	  comp_emit_comparison (GCC_JIT_COMPARISON_NE, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comp_jump (GCC_JIT_COMPARISON_NE, args[0], nil,
+			       bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case Bgotoifnilelsepop:
 	  op = FETCH2;
-	  comp_emit_comparison (GCC_JIT_COMPARISON_EQ,
-				gcc_jit_lvalue_as_rvalue (TOS),
-				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comp_jump (GCC_JIT_COMPARISON_EQ,
+			       gcc_jit_lvalue_as_rvalue (TOS),
+			       nil,
+			       bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
 	case Bgotoifnonnilelsepop:
 	  op = FETCH2;
-	  comp_emit_comparison (GCC_JIT_COMPARISON_NE,
-				gcc_jit_lvalue_as_rvalue (TOS),
-				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comp_jump (GCC_JIT_COMPARISON_NE,
+			       gcc_jit_lvalue_as_rvalue (TOS),
+			       nil,
+			       bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
@@ -1239,35 +1365,35 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
-	  comp_emit_comparison (GCC_JIT_COMPARISON_EQ, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comp_jump (GCC_JIT_COMPARISON_EQ, args[0], nil,
+			       bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case BRgotoifnonnil:
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
-	  comp_emit_comparison (GCC_JIT_COMPARISON_NE, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comp_jump (GCC_JIT_COMPARISON_NE, args[0], nil,
+			       bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
 	case BRgotoifnilelsepop:
 	  op = FETCH - 128;
 	  op += pc;
-	  comp_emit_comparison (GCC_JIT_COMPARISON_EQ,
-				gcc_jit_lvalue_as_rvalue (TOS),
-				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comp_jump (GCC_JIT_COMPARISON_EQ,
+			       gcc_jit_lvalue_as_rvalue (TOS),
+			       nil,
+			       bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
 	case BRgotoifnonnilelsepop:
 	  op = FETCH - 128;
 	  op += pc;
-	  comp_emit_comparison (GCC_JIT_COMPARISON_NE,
-				gcc_jit_lvalue_as_rvalue (TOS),
-				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  comp_emit_comp_jump (GCC_JIT_COMPARISON_NE,
+			       gcc_jit_lvalue_as_rvalue (TOS),
+			       nil,
+			       bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  POP1;
 	  break;
 
@@ -1464,6 +1590,9 @@ init_comp (void)
   comp.void_ptr_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
   comp.int_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_INT);
+  comp.unsigned_type = gcc_jit_context_get_type (comp.ctxt,
+						 GCC_JIT_TYPE_UNSIGNED_INT);
+  comp.bool_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_BOOL);
   comp.long_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_LONG);
   comp.long_long_type = gcc_jit_context_get_type (comp.ctxt,
 						  GCC_JIT_TYPE_LONG_LONG);
@@ -1498,6 +1627,38 @@ init_comp (void)
 						       "LispObj",
 						       2,
 						       lisp_obj_fields);
+
+  comp.cast_union_as_ll =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.long_long_type,  /* FIXME? */
+			       "ll");
+  comp.cast_union_as_u =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.unsigned_type,
+			       "u");
+  comp.cast_union_as_i =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.int_type,
+			       "i");
+  comp.cast_union_as_b =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.bool_type,
+			       "b");
+
+  gcc_jit_field *cast_union_fields[4] =
+    { comp.cast_union_as_ll,
+      comp.cast_union_as_u,
+      comp.cast_union_as_i,
+      comp.cast_union_as_b,};
+  comp.cast_union_type = gcc_jit_context_new_union_type (comp.ctxt,
+							 NULL,
+							 "cast_union",
+							 4,
+							 cast_union_fields);
   comp.most_positive_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 					  comp.long_long_type, /* FIXME? */
