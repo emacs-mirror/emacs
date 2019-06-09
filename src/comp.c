@@ -162,6 +162,8 @@ typedef struct {
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
   gcc_jit_rvalue *one;
+  gcc_jit_rvalue *inttypebits;
+  gcc_jit_rvalue *lisp_int0;
   basic_block_t *bblock; /* Current basic block  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
 } comp_t;
@@ -209,6 +211,54 @@ pop (unsigned n, gcc_jit_lvalue ***stack_ref, gcc_jit_rvalue *args[])
   *stack_ref = stack;
 }
 
+INLINE static gcc_jit_rvalue *
+comp_xfixnum (gcc_jit_rvalue *obj)
+{
+  return gcc_jit_context_new_binary_op (
+	   comp.ctxt,
+	   NULL,
+	   GCC_JIT_BINARY_OP_RSHIFT,
+	   comp.long_long_type,
+	   gcc_jit_rvalue_access_field (obj,
+					NULL,
+					comp.lisp_obj_as_num),
+	   comp.inttypebits);
+}
+
+INLINE static gcc_jit_rvalue *
+comp_make_fixnum (gcc_jit_rvalue *obj)
+{
+  gcc_jit_rvalue *tmp =
+    gcc_jit_context_new_binary_op (comp.ctxt,
+				   NULL,
+				   GCC_JIT_BINARY_OP_LSHIFT,
+				   comp.long_long_type,
+				   obj,
+				   comp.inttypebits);
+
+  tmp = gcc_jit_context_new_binary_op (comp.ctxt,
+				       NULL,
+				       GCC_JIT_BINARY_OP_PLUS,
+				       comp.long_long_type,
+				       tmp,
+				       comp.lisp_int0);
+
+  gcc_jit_lvalue *res = gcc_jit_function_new_local (comp.func,
+						    NULL,
+						    comp.lisp_obj_type,
+						    "lisp_obj_fixnum");
+
+  gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+				NULL,
+				gcc_jit_lvalue_access_field (
+				  res,
+				  NULL,
+				  comp.lisp_obj_as_num),
+				tmp);
+
+  return gcc_jit_lvalue_as_rvalue (res);
+}
+
 /* Construct fill and return a lisp object form a raw pointer.  */
 
 INLINE static gcc_jit_rvalue *
@@ -217,7 +267,7 @@ comp_lisp_obj_as_ptr_from_ptr (basic_block_t *bblock, void *p)
   gcc_jit_lvalue *lisp_obj = gcc_jit_function_new_local (comp.func,
 							 NULL,
 							 comp.lisp_obj_type,
-							 "lisp_obj");
+							 "lisp_obj_from_ptr");
   gcc_jit_lvalue *lisp_obj_as_ptr =
     gcc_jit_lvalue_access_field (lisp_obj,
 				 NULL,
@@ -1457,6 +1507,15 @@ init_comp (void)
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					 comp.long_long_type,  /* FIXME? */
 					 1);
+  comp.inttypebits =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.long_long_type,  /* FIXME? */
+					 INTTYPEBITS);
+
+  comp.lisp_int0 =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.long_long_type,  /* FIXME? */
+					 Lisp_Int0);
 
   enum gcc_jit_types ptrdiff_t_gcc;
   if (sizeof (ptrdiff_t) == sizeof (int))
