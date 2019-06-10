@@ -41,6 +41,7 @@
 (defvar gnus-agent-covered-methods)
 (defvar gnus-agent-file-loading-local)
 (defvar gnus-agent-file-loading-cache)
+(defvar gnus-topic-alist)
 
 (defcustom gnus-startup-file (nnheader-concat gnus-home-directory ".newsrc")
   "Your `.newsrc' file.
@@ -2403,6 +2404,17 @@ If FORCE is non-nil, the .newsrc file is read."
 	(when gnus-newsrc-assoc
 	  (setq gnus-newsrc-alist gnus-newsrc-assoc))))
     (gnus-make-hashtable-from-newsrc-alist)
+    (when gnus-topic-alist
+      (setq gnus-topic-alist
+	    (mapcar
+	     (lambda (elt)
+	       (cons (car elt)
+		     (mapcar (lambda (g)
+			       (if (string-match-p "[^\000-\177]" g)
+				   (gnus-group-decoded-name g)
+				 g))
+			     (cdr elt))))
+	     gnus-topic-alist)))
     (when (file-newer-than-file-p file ding-file)
       ;; Old format quick file
       (gnus-message 5 "Reading %s..." file)
@@ -2858,7 +2870,12 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
       (princ "(setq gnus-newsrc-file-version ")
       (princ (gnus-prin1-to-string gnus-version))
       (princ ")\n"))
-
+    ;; Sort `gnus-newsrc-alist' according to order in
+    ;; `gnus-group-list'.
+    (setq gnus-newsrc-alist
+	  (mapcar (lambda (g)
+		    (nth 1 (gethash g gnus-newsrc-hashtb)))
+		  (delete "dummy.group" gnus-group-list)))
     (let* ((print-quoted t)
            (print-readably t)
            (print-escape-multibyte nil)
@@ -2878,30 +2895,26 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 		  ;; Remove the `gnus-killed-list' from the list of variables
 		  ;; to be saved, if required.
 		  (delq 'gnus-killed-list (copy-sequence gnus-variable-list)))))
+	   ;; Encode group names in `gnus-newsrc-alist' and
+	   ;; `gnus-topic-alist' in order to keep newsrc.eld files
+	   ;; compatible with older versions of Gnus.  At some point,
+	   ;; if/when a new version of Gnus is released, stop doing
+	   ;; this and move the corresponding decode in
+	   ;; `gnus-read-newsrc-el-file' into a conversion routine.
+	   (gnus-newsrc-alist
+	    (mapcar (lambda (info)
+		      (encode-coding-string (car info) 'utf-8-emacs))
+		    gnus-newsrc-alist))
+	   (gnus-topic-alist
+	    (when (memq 'gnus-topic-alist variables)
+	     (mapcar (lambda (elt)
+		       (cons (car elt) ; Topic name
+			     (mapcar (lambda (g)
+				       (encode-coding-string
+					g 'utf-8-emacs))
+				     (cdr elt))))
+		     gnus-topic-alist)))
 	   variable)
-      ;; A bit of a fake-out here: the original value of
-      ;; `gnus-newsrc-alist' isn't written to file, instead it is
-      ;; constructed at the last minute by combining the group
-      ;; ordering in `gnus-group-list' with the group infos from
-      ;; `gnus-newsrc-hashtb'.
-      (set (nth (seq-position gnus-variable-list 'gnus-newsrc-alist)
-		gnus-variable-list)
-	   (mapcar (lambda (g)
-		     (let ((entry (copy-sequence
-				   (nth 1 (gethash g gnus-newsrc-hashtb)))))
-		       ;; Encode in order to keep newsrc.eld files
-		       ;; compatible with older versions of Gnus.  At
-		       ;; some point, if/when a new version of Gnus is
-		       ;; released, drop this (and the corresponding
-		       ;; decode in
-		       ;; `gnus-make-hashtable-from-newsrc-alist').
-		       (setf (car entry)
-			     (encode-coding-string
-			      (car entry)
-			      'utf-8-emacs))
-		       entry))
-		   (delete "dummy.group" gnus-group-list)))
-
       ;; Insert the variables into the file.
       (while variables
 	(when (and (boundp (setq variable (pop variables)))
