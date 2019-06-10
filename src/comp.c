@@ -1540,7 +1540,8 @@ DEFUN ("native-compile", Fnative_compile, Snative_compile,
   char *c = c_f_name;
   while (*c)
     {
-      if (*c == '-')
+      if (*c == '-' ||
+	  *c == '+')
 	*c = '_';
       ++c;
     }
