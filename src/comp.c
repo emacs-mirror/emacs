@@ -652,10 +652,6 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
     bb_n = j + 1;
   }
 
-  /* for (int i = 0; i < bb_n; i++) */
-  /*   printf ("%d ", bb_start_pc[i]); */
-  /* printf ("\n"); */
-
   basic_block_t curr_bb;
   for (int i = 0, pc = 0; pc < bytestr_length; pc++)
     {
@@ -1492,7 +1488,6 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 		gcc_jit_rvalue *c =
 		  comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
 		PUSH_RVAL (c);
-		/* Fprint(vectorp[op], Qnil); */
 		break;
 	      }
 
@@ -1511,8 +1506,6 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   error ("Something went wrong");
 
  exit:
-  /* if (nil_ret_bb) */
-  /*   xfree (nil_ret_bb); */
   xfree (stack_base);
   xfree (bb_map);
   return comp_res;
