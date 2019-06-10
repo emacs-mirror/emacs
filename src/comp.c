@@ -30,6 +30,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "atimer.h"
 #include "window.h"
 
+#define DEFAULT_SPEED 2 /* From 0 to 3 map to gcc -O */
+
 #define COMP_DEBUG 1
 
 #define MAX_FUN_NAME 256
@@ -194,7 +196,7 @@ INLINE static void pop (unsigned n, gcc_jit_lvalue ***stack_ref,
 			gcc_jit_rvalue *args[]);
 
 void emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
-			   Lisp_Object func, bool dump_asm);
+			   Lisp_Object func, int opt_level, bool dump_asm);
 
 
 static void
@@ -1461,7 +1463,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 void
 emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
-		      Lisp_Object func, bool dump_asm)
+		      Lisp_Object func, int opt_level, bool dump_asm)
 {
   Lisp_Object bytestr = AREF (func, COMPILED_BYTECODE);
   CHECK_STRING (bytestr);
@@ -1486,6 +1488,10 @@ emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
   /* Gcc doesn't like being interrupted.  */
   sigset_t oldset;
   block_atimers (&oldset);
+
+  gcc_jit_context_set_int_option (comp.ctxt,
+				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
+				  opt_level);
 
   comp_f_res_t comp_res = compile_f (c_f_name, bytestr_length, SDATA (bytestr),
 				     XFIXNAT (maxdepth) + 1,
@@ -1512,9 +1518,9 @@ emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 }
 
 DEFUN ("native-compile", Fnative_compile, Snative_compile,
-       1, 2, 0,
+       1, 3, 0,
        doc: /* Compile as native code function FUNC and load it.  */) /* FIXME doc */
-     (Lisp_Object func, Lisp_Object disassemble)
+     (Lisp_Object func, Lisp_Object speed, Lisp_Object disassemble)
 {
   static char c_f_name[MAX_FUN_NAME];
   char *lisp_f_name;
@@ -1543,7 +1549,20 @@ DEFUN ("native-compile", Fnative_compile, Snative_compile,
   if (!COMPILEDP (func))
     error ("Not a byte-compiled function");
 
-  emacs_native_compile (lisp_f_name, c_f_name, func, disassemble != Qnil);
+  if (speed != Qnil &&
+      (!FIXNUMP (speed) ||
+       !(XFIXNUM (speed) >= 0 &&
+	 XFIXNUM (speed) <= 3)))
+    error ("opt-level must be number between 0 and 3");
+
+  int opt_level;
+  if (speed == Qnil)
+    opt_level = DEFAULT_SPEED;
+  else
+    opt_level = XFIXNUM (speed);
+
+  emacs_native_compile (lisp_f_name, c_f_name, func, opt_level,
+			disassemble != Qnil);
 
   if (disassemble)
     {
