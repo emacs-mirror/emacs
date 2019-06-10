@@ -634,6 +634,7 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	  break;
 	case Bsub1:
 	case Badd1:
+	case Bnegate:
 	case Breturn:
 	  new_bb = true;
 	  break;
@@ -997,8 +998,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
-	       ? make_fixnum (XFIXNUM (TOP) - 1)
-	       : Fsub1 (TOP)) */
+	         ? make_fixnum (XFIXNUM (TOP) - 1)
+	         : Fsub1 (TOP)) */
 
 	    gcc_jit_block *sub1_inline_block =
 		 gcc_jit_function_new_block (comp.func, "inline_sub1");
@@ -1057,8 +1058,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_POSITIVE_FIXNUM
-	       ? make_fixnum (XFIXNUM (TOP) + 1)
-	       : Fadd (TOP)) */
+	         ? make_fixnum (XFIXNUM (TOP) + 1)
+	         : Fadd (TOP)) */
 
 	    gcc_jit_block *add1_inline_block =
 		 gcc_jit_function_new_block (comp.func, "inline_add1");
@@ -1131,7 +1132,59 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  EMIT_SCRATCH_CALL_N ("Fminus", 2);
 	  break;
 	case Bnegate:
-	  error ("Bnegate unsupported bytecode\n");
+	  {
+
+	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
+		 ? make_fixnum (- XFIXNUM (TOP))
+		 : Fminus (1, &TOP)) */
+
+	    gcc_jit_block *negate_inline_block =
+		 gcc_jit_function_new_block (comp.func, "inline_negate");
+	    gcc_jit_block *negate_fcall_block =
+		 gcc_jit_function_new_block (comp.func, "fcall_negate");
+
+	    gcc_jit_rvalue *tos_as_num =
+	      comp_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
+
+	    comp_emit_cond_jump (
+	      gcc_jit_context_new_binary_op (
+		comp.ctxt,
+		NULL,
+		GCC_JIT_BINARY_OP_LOGICAL_AND,
+		comp.bool_type,
+		comp_cast (comp.bool_type,
+			   comp_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS))),
+		gcc_jit_context_new_comparison (comp.ctxt,
+						NULL,
+						GCC_JIT_COMPARISON_NE,
+						tos_as_num,
+						comp.most_negative_fixnum)),
+	      negate_inline_block,
+	      negate_fcall_block);
+
+	    gcc_jit_rvalue *negate_inline_res =
+	      gcc_jit_context_new_unary_op (comp.ctxt,
+					    NULL,
+					    GCC_JIT_UNARY_OP_MINUS,
+					    comp.long_long_type,
+					    tos_as_num);
+
+	    gcc_jit_block_add_assignment (negate_inline_block,
+					  NULL,
+					  TOS,
+					  comp_make_fixnum (negate_inline_block,
+							    negate_inline_res));
+	    basic_block_t bb_orig = *comp.bblock;
+
+	    comp.bblock->gcc_bb = negate_fcall_block;
+	    EMIT_SCRATCH_CALL_N ("Fminus", 1);
+	    *comp.bblock = bb_orig;
+
+	    gcc_jit_block_end_with_jump (negate_inline_block, NULL,
+					 bb_map[pc].gcc_bb);
+	    gcc_jit_block_end_with_jump (negate_fcall_block, NULL,
+					 bb_map[pc].gcc_bb);
+	  }
 	  break;
 	case Bplus:
 	  EMIT_SCRATCH_CALL_N ("Fplus", 2);

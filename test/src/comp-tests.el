@@ -148,28 +148,42 @@
 
 (ert-deftest  comp-tests-fixnum ()
   "Testing some fixnum inline operation."
-  (defun comp-tests-fixnum-1--f (x)
+  (defun comp-tests-fixnum-1-minus-f (x)
+    ;; Bsub1
     (1- x))
-  (defun comp-tests-fixnum-1+-f (x)
+  (defun comp-tests-fixnum-1-plus-f (x)
+    ;; Badd1
     (1+ x))
+  (defun comp-tests-fixnum-minus-f (x)
+    ;; Bnegate
+    (- x))
 
-  (byte-compile #'comp-tests-fixnum-1--f)
-  (byte-compile #'comp-tests-fixnum-1+-f)
-  ;; (native-compile #'comp-tests-fixnum-1--f)
-  (native-compile #'comp-tests-fixnum-1+-f)
+  (byte-compile #'comp-tests-fixnum-1-minus-f)
+  (byte-compile #'comp-tests-fixnum-1-plus-f)
+  (byte-compile #'comp-tests-fixnum-minus-f)
+  (native-compile #'comp-tests-fixnum-1-minus-f)
+  (native-compile #'comp-tests-fixnum-1-plus-f)
+  (native-compile #'comp-tests-fixnum-minus-f)
 
-  (should (= (comp-tests-fixnum-1--f 10) 9))
-  (should (= (comp-tests-fixnum-1--f most-negative-fixnum)
+  (should (= (comp-tests-fixnum-1-minus-f 10) 9))
+  (should (= (comp-tests-fixnum-1-minus-f most-negative-fixnum)
              (1- most-negative-fixnum)))
   (should (equal (condition-case err
-                     (comp-tests-fixnum-1--f 'a)
+                     (comp-tests-fixnum-1-minus-f 'a)
                    (error err))
                  '(wrong-type-argument number-or-marker-p a)))
-  (should (= (comp-tests-fixnum-1+-f 10) 11))
-  (should (= (comp-tests-fixnum-1+-f most-positive-fixnum)
+  (should (= (comp-tests-fixnum-1-plus-f 10) 11))
+  (should (= (comp-tests-fixnum-1-plus-f most-positive-fixnum)
              (1+ most-positive-fixnum)))
   (should (equal (condition-case err
-                     (comp-tests-fixnum-1+-f 'a)
+                     (comp-tests-fixnum-1-plus-f 'a)
+                   (error err))
+                 '(wrong-type-argument number-or-marker-p a)))
+  (should (= (comp-tests-fixnum-minus-f 10) -10))
+  (should (= (comp-tests-fixnum-minus-f most-negative-fixnum)
+             (- most-negative-fixnum)))
+  (should (equal (condition-case err
+                     (comp-tests-fixnum-minus-f 'a)
                    (error err))
                  '(wrong-type-argument number-or-marker-p a))))
 
