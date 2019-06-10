@@ -287,8 +287,6 @@ Memory Management Glossary: C
 
     cold end
 
-        .. opposite:: :term:`hot end`
-
         A :term:`control stack` has two ends: the oldest items are at
         the *cold end* and the newest items are at the *hot end*.
         Sometimes the cold end is called the "bottom" of the stack,
@@ -303,6 +301,8 @@ Memory Management Glossary: C
             stack (or the part of the stack that might contain
             references to memory managed by the MPS) to
             :c:func:`mps_root_create_thread`.
+
+        .. opposite:: :term:`hot end`
 
     collect
 
