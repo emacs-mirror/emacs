@@ -148,18 +148,29 @@
 
 (ert-deftest  comp-tests-fixnum ()
   "Testing some fixnum inline operation."
-  (defun comp-tests-fixnum-1-f (x)
+  (defun comp-tests-fixnum-1--f (x)
     (1- x))
+  (defun comp-tests-fixnum-1+-f (x)
+    (1+ x))
 
-  (byte-compile #'comp-tests-fixnum-1-f)
-  (native-compile #'comp-tests-fixnum-1-f)
+  (byte-compile #'comp-tests-fixnum-1--f)
+  (byte-compile #'comp-tests-fixnum-1+-f)
+  ;; (native-compile #'comp-tests-fixnum-1--f)
+  (native-compile #'comp-tests-fixnum-1+-f)
 
-  (should (= (comp-tests-fixnum-1-f 10) 9))
-  (should (= (comp-tests-fixnum-1-f most-negative-fixnum)
+  (should (= (comp-tests-fixnum-1--f 10) 9))
+  (should (= (comp-tests-fixnum-1--f most-negative-fixnum)
              (1- most-negative-fixnum)))
   (should (equal (condition-case err
-                     (comp-tests-fixnum-1-f 'a)
-                   (error (print err)))
+                     (comp-tests-fixnum-1--f 'a)
+                   (error err))
+                 '(wrong-type-argument number-or-marker-p a)))
+  (should (= (comp-tests-fixnum-1+-f 10) 11))
+  (should (= (comp-tests-fixnum-1+-f most-positive-fixnum)
+             (1+ most-positive-fixnum)))
+  (should (equal (condition-case err
+                     (comp-tests-fixnum-1+-f 'a)
+                   (error err))
                  '(wrong-type-argument number-or-marker-p a))))
 
 (ert-deftest comp-tests-gc ()

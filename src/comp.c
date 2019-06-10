@@ -633,6 +633,7 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	  new_bb = true;
 	  break;
 	case Bsub1:
+	case Badd1:
 	case Breturn:
 	  new_bb = true;
 	  break;
@@ -1004,9 +1005,9 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	       : Fsub1 (TOP)) */
 
 	    gcc_jit_block *sub1_inline_block =
-		 gcc_jit_function_new_block (comp.func, "inline-1");
+		 gcc_jit_function_new_block (comp.func, "inline_sub1");
 	    gcc_jit_block *sub1_fcall_block =
-		 gcc_jit_function_new_block (comp.func, "fcall-1");
+		 gcc_jit_function_new_block (comp.func, "fcall_sub1");
 
 	    gcc_jit_rvalue *tos_as_num =
 	      comp_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
@@ -1057,7 +1058,63 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	  break;
 	case Badd1:
-	  error ("Badd1 unsupported bytecode\n");
+	  {
+
+	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_POSITIVE_FIXNUM
+	       ? make_fixnum (XFIXNUM (TOP) + 1)
+	       : Fadd (TOP)) */
+
+	    gcc_jit_block *add1_inline_block =
+		 gcc_jit_function_new_block (comp.func, "inline_add1");
+	    gcc_jit_block *add1_fcall_block =
+		 gcc_jit_function_new_block (comp.func, "fcall_add1");
+
+	    gcc_jit_rvalue *tos_as_num =
+	      comp_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
+
+	    comp_emit_cond_jump (
+	      gcc_jit_context_new_binary_op (
+		comp.ctxt,
+		NULL,
+		GCC_JIT_BINARY_OP_LOGICAL_AND,
+		comp.bool_type,
+		comp_cast (comp.bool_type,
+			   comp_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS))),
+		gcc_jit_context_new_comparison (comp.ctxt,
+						NULL,
+						GCC_JIT_COMPARISON_NE,
+						tos_as_num,
+						comp.most_positive_fixnum)),
+	      add1_inline_block,
+	      add1_fcall_block);
+
+	    gcc_jit_rvalue *add1_inline_res =
+	      gcc_jit_context_new_binary_op (comp.ctxt,
+					     NULL,
+					     GCC_JIT_BINARY_OP_PLUS,
+					     comp.long_long_type,
+					     tos_as_num,
+					     comp.one);
+
+	    gcc_jit_block_add_assignment (add1_inline_block,
+					  NULL,
+					  TOS,
+					  comp_make_fixnum (add1_inline_block,
+							    add1_inline_res));
+	    basic_block_t bb_orig = *comp.bblock;
+
+	    comp.bblock->gcc_bb = add1_fcall_block;
+	    POP1;
+	    res = comp_emit_call ("Fadd1", comp.lisp_obj_type, 1, args);
+	    PUSH_LVAL (res);
+
+	    *comp.bblock = bb_orig;
+
+	    gcc_jit_block_end_with_jump (add1_inline_block, NULL,
+					 bb_map[pc].gcc_bb);
+	    gcc_jit_block_end_with_jump (add1_fcall_block, NULL,
+					 bb_map[pc].gcc_bb);
+	  }
 	  break;
 	case Beqlsign:
 	  error ("Beqlsign unsupported bytecode\n");
