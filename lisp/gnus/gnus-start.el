@@ -2903,7 +2903,8 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 	   ;; `gnus-read-newsrc-el-file' into a conversion routine.
 	   (gnus-newsrc-alist
 	    (mapcar (lambda (info)
-		      (encode-coding-string (car info) 'utf-8-emacs))
+		      (cons (encode-coding-string (car info) 'utf-8-emacs)
+			    (cdr info)))
 		    gnus-newsrc-alist))
 	   (gnus-topic-alist
 	    (when (memq 'gnus-topic-alist variables)
