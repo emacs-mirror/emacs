@@ -250,6 +250,28 @@
   (should (equal (comp-tests-setcar-f '(10 . 10) 3) '(3 . 10)))
   (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3))))
 
+(defun comp-bubble-sort ()
+  "Run bubble sort."
+  (defun comp-bubble-sort-f (list)
+    (let ((i (length list)))
+      (while (> i 1)
+        (let ((b list))
+          (while (cdr b)
+            (when (< (cadr b) (car b))
+              (setcar b (prog1 (cadr b)
+                          (setcdr b (cons (car b) (cddr b))))))
+            (setq b (cdr b))))
+        (setq i (1- i)))
+      list))
+
+  (byte-compile #'comp-bubble-sort-f)
+  (native-compile #'comp-bubble-sort-f)
+
+  (let* ((list1 (mapcar 'random (make-list 1000 most-positive-fixnum)))
+         (list2 (copy-sequence list1)))
+    (should (equal (comp-bubble-sort-f list1)
+                   (sort list2 #'<)))))
+
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
   (dotimes (_ 100000)
