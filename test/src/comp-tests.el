@@ -272,6 +272,15 @@
     (should (equal (comp-bubble-sort-f list1)
                    (sort list2 #'<)))))
 
+(ert-deftest comp-tests-list-inline ()
+  "Test some inlined list functions."
+  (defun comp-tests-consp-f (x)
+    ;; Bconsp
+    (consp x))
+
+  (should (eq (comp-tests-consp-f '(1)) t))
+  (should (eq (comp-tests-consp-f 1) nil)))
+
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
   (dotimes (_ 100000)

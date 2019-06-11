@@ -330,6 +330,12 @@ comp_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
 }
 
 static gcc_jit_rvalue *
+comp_CONSP (gcc_jit_rvalue *obj)
+{
+  return comp_TAGGEDP(obj, Lisp_Cons);
+}
+
+static gcc_jit_rvalue *
 comp_FIXNUMP (gcc_jit_rvalue *obj)
 {
   /* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS))
@@ -1004,7 +1010,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE_CALL_NARGS (nth, 2);
 	CASE_CALL_NARGS (symbolp, 1);
-	CASE_CALL_NARGS (consp, 1);
+
+	case Bconsp:
+	  gcc_jit_block_add_assignment (
+	    comp.bblock->gcc_bb,
+	    NULL,
+	    TOS,
+	    comp_CONSP(gcc_jit_lvalue_as_rvalue (TOS)));
+	  break;
+
 	CASE_CALL_NARGS (stringp, 1);
 	CASE_CALL_NARGS (listp, 1);
 	CASE_CALL_NARGS (eq, 2);
