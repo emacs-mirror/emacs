@@ -141,6 +141,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     PUSH_LVAL (res);				\
   } while (0)
 
+#define EMIT_ARITHCOMPARE(comparison)					\
+  do {									\
+    POP2;								\
+    args[2] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,		\
+						   comp.int_type,	\
+						   comparison);		\
+    res = comp_emit_call ("arithcompare", comp.lisp_obj_type, 3, args);	\
+    PUSH_LVAL (res);							\
+  } while (0)
+
+
 typedef struct {
   gcc_jit_block *gcc_bb;
   bool terminated;
@@ -191,9 +202,6 @@ typedef struct {
   gcc_jit_result *gcc_res;
   short min_args, max_args;
 } comp_f_res_t;
-
-INLINE static void pop (unsigned n, gcc_jit_lvalue ***stack_ref,
-			gcc_jit_rvalue *args[]);
 
 void emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 			   Lisp_Object func, int opt_level, bool dump_asm);
@@ -1113,24 +1121,31 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					 bb_map[pc].gcc_bb);
 	  }
 	  break;
+
 	case Beqlsign:
-	  error ("Beqlsign unsupported bytecode\n");
+	  EMIT_ARITHCOMPARE (ARITH_EQUAL);
 	  break;
+
 	case Bgtr:
-	  error ("Bgtr unsupported bytecode\n");
+	  EMIT_ARITHCOMPARE (ARITH_GRTR);
 	  break;
+
 	case Blss:
-	  error ("Blss unsupported bytecode\n");
+	  EMIT_ARITHCOMPARE (ARITH_LESS);
 	  break;
+
 	case Bleq:
-	  error ("Bleq unsupported bytecode\n");
+	  EMIT_ARITHCOMPARE (ARITH_LESS_OR_EQUAL);
 	  break;
+
 	case Bgeq:
-	  error ("Bgeq unsupported bytecode\n");
+	  EMIT_ARITHCOMPARE (ARITH_GRTR_OR_EQUAL);
 	  break;
+
 	case Bdiff:
 	  EMIT_SCRATCH_CALL_N ("Fminus", 2);
 	  break;
+
 	case Bnegate:
 	  {
 

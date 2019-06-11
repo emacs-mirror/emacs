@@ -187,6 +187,52 @@
                    (error err))
                  '(wrong-type-argument number-or-marker-p a))))
 
+(ert-deftest  comp-tests-arith-comp ()
+  "Testing arithmetic comparisons."
+  (defun comp-tests-eqlsign-f (x y)
+    ;; Beqlsign
+    (= x y))
+  (defun comp-tests-gtr-f (x y)
+    ;; Bgtr
+    (> x y))
+  (defun comp-tests-lss-f (x y)
+    ;; Blss
+    (< x y))
+  (defun comp-tests-les-f (x y)
+    ;; Bleq
+    (<= x y))
+  (defun comp-tests-geq-f (x y)
+    ;; Bgeq
+    (>= x y))
+
+  (byte-compile #'comp-tests-eqlsign-f)
+  (byte-compile #'comp-tests-gtr-f)
+  (byte-compile #'comp-tests-lss-f)
+  (byte-compile #'comp-tests-les-f)
+  (byte-compile #'comp-tests-geq-f)
+
+  (native-compile #'comp-tests-eqlsign-f)
+  (native-compile #'comp-tests-gtr-f)
+  (native-compile #'comp-tests-lss-f)
+  (native-compile #'comp-tests-les-f)
+  (native-compile #'comp-tests-geq-f)
+
+  (should (eq (comp-tests-eqlsign-f 4 3) nil))
+  (should (eq (comp-tests-eqlsign-f 3 3) t))
+  (should (eq (comp-tests-eqlsign-f 2 3) nil))
+  (should (eq (comp-tests-gtr-f 4 3) t))
+  (should (eq (comp-tests-gtr-f 3 3) nil))
+  (should (eq (comp-tests-gtr-f 2 3) nil))
+  (should (eq (comp-tests-lss-f 4 3) nil))
+  (should (eq (comp-tests-lss-f 3 3) nil))
+  (should (eq (comp-tests-lss-f 2 3) t))
+  (should (eq (comp-tests-les-f 4 3) nil))
+  (should (eq (comp-tests-les-f 3 3) t))
+  (should (eq (comp-tests-les-f 2 3) t))
+  (should (eq (comp-tests-geq-f 4 3) t))
+  (should (eq (comp-tests-geq-f 3 3) t))
+  (should (eq (comp-tests-geq-f 2 3) nil)))
+
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
   (dotimes (_ 100000)
