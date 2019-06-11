@@ -282,6 +282,54 @@ comp_XLI (gcc_jit_rvalue *obj)
 }
 
 static gcc_jit_rvalue *
+comp_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
+{
+   /* (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
+	- (unsigned) (tag)) \
+	& ((1 << GCTYPEBITS) - 1))) */
+
+  gcc_jit_rvalue *sh_res =
+    gcc_jit_context_new_binary_op (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_BINARY_OP_RSHIFT,
+      comp.long_long_type,
+      comp_XLI (obj),
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.long_long_type,
+					   (USE_LSB_TAG ? 0 : VALBITS)));
+
+  gcc_jit_rvalue *minus_res =
+    gcc_jit_context_new_binary_op (comp.ctxt,
+				   NULL,
+				   GCC_JIT_BINARY_OP_MINUS,
+				   comp.unsigned_type,
+				   comp_cast (comp.unsigned_type, sh_res),
+				   gcc_jit_context_new_rvalue_from_int (
+				     comp.ctxt,
+				     comp.unsigned_type,
+				     tag));
+
+  gcc_jit_rvalue *res =
+   gcc_jit_context_new_unary_op (
+     comp.ctxt,
+     NULL,
+     GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
+     comp.int_type,
+     gcc_jit_context_new_binary_op (comp.ctxt,
+				    NULL,
+				    GCC_JIT_BINARY_OP_BITWISE_AND,
+				    comp.unsigned_type,
+				    minus_res,
+				    gcc_jit_context_new_rvalue_from_int (
+				      comp.ctxt,
+				      comp.unsigned_type,
+				      ((1 << GCTYPEBITS) - 1))));
+
+  return res;
+}
+
+static gcc_jit_rvalue *
 comp_FIXNUMP (gcc_jit_rvalue *obj)
 {
   /* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS))
