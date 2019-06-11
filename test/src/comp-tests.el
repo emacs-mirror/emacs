@@ -233,6 +233,23 @@
   (should (eq (comp-tests-geq-f 3 3) t))
   (should (eq (comp-tests-geq-f 2 3) nil)))
 
+(ert-deftest comp-tests-setcarcdr ()
+  "Testing setcar setcdr."
+  (defun comp-tests-setcar-f (x y)
+    (setcar x y)
+    x)
+  (defun comp-tests-setcdr-f (x y)
+    (setcdr x y)
+    x)
+
+  (byte-compile #'comp-tests-setcar-f)
+  (byte-compile #'comp-tests-setcdr-f)
+  (native-compile #'comp-tests-setcar-f)
+  (native-compile #'comp-tests-setcdr-f)
+
+  (should (equal (comp-tests-setcar-f '(10 . 10) 3) '(3 . 10)))
+  (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3))))
+
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
   (dotimes (_ 100000)

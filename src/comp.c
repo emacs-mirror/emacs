@@ -1447,12 +1447,19 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bnreverse:
 	  error ("Bnreverse not supported");
 	  break;
+
 	case Bsetcar:
-	  error ("Bsetcar not supported");
+	  POP2;
+	  res = comp_emit_call ("Fsetcar", comp.lisp_obj_type, 2, args);
+	  PUSH_LVAL (res);
 	  break;
+
 	case Bsetcdr:
-	  error ("Bsetcdr not supported");
+	  POP2;
+	  res = comp_emit_call ("Fsetcdr", comp.lisp_obj_type, 2, args);
+	  PUSH_LVAL (res);
 	  break;
+
 	case Bcar_safe:
 	  error ("Bcar_safe not supported");
 	  break;
