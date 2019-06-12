@@ -1288,7 +1288,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  EMIT_SCRATCH_CALL_N ("Ftimes", 2);
 	  break;
 	case Bpoint:
-	  error ("Bpoint unsupported bytecode\n");
+	  args[0] =
+	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						 comp.ptrdiff_type,
+						 PT);
+	  res = comp_emit_call ("make_fixed_natnum",
+				comp.lisp_obj_type,
+				1,
+				args);
+	  PUSH_LVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (goto_char, 1);
@@ -1298,10 +1306,27 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bpoint_max:
-	  error ("Bpoint_max unsupported bytecode\n");
+	  args[0] =
+	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						 comp.ptrdiff_type,
+						 ZV);
+	  res = comp_emit_call ("make_fixed_natnum",
+				comp.lisp_obj_type,
+				1,
+				args);
+	  PUSH_LVAL (res);
 	  break;
+
 	case Bpoint_min:
-	  error ("Bpoint_min unsupported bytecode\n");
+	  args[0] =
+	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						 comp.ptrdiff_type,
+						 BEGV);
+	  res = comp_emit_call ("make_fixed_natnum",
+				comp.lisp_obj_type,
+				1,
+				args);
+	  PUSH_LVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (char_after, 1);
@@ -1322,17 +1347,9 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	CASE_CALL_NARGS (eolp, 0);
-
-	case Beobp:
-	  error ("Beobp unsupported bytecode\n");
-	  break;
-
+	CASE_CALL_NARGS (eobp, 0);
 	CASE_CALL_NARGS (bolp, 0);
-
-	case Bbobp:
-	  error ("Bbobp unsupported bytecode\n");
-	  break;
-
+	CASE_CALL_NARGS (bobp, 0);
 	CASE_CALL_NARGS (current_buffer, 0);
 	CASE_CALL_NARGS (set_buffer, 1);
 
@@ -1482,57 +1499,32 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	     but will be needed for tail-recursion elimination.  */
 	  error ("Bunbind_all not supported");
 	  break;
-	case Bset_marker:
-	  error ("Bset_marker not supported");
-	  break;
-	case Bmatch_beginning:
-	  error ("Bmatch_beginning not supported");
-	  break;
-	case Bmatch_end:
-	  error ("Bmatch_end not supported");
-	  break;
-	case Bupcase:
-	  error ("Bupcase not supported");
-	  break;
-	case Bdowncase:
-	  error ("Bdowncase not supported");
-	  break;
+
+	CASE_CALL_NARGS (set_marker, 3);
+	CASE_CALL_NARGS (match_beginning, 1);
+	CASE_CALL_NARGS (match_end, 1);
+	CASE_CALL_NARGS (upcase, 1);
+	CASE_CALL_NARGS (downcase, 1);
+
 	case Bstringeqlsign:
-	  error ("Bstringeqlsign not supported");
+	  POP2;
+	  res = comp_emit_call ("Fstring_equal", comp.lisp_obj_type, 2, args);
+	  PUSH_LVAL (res);
 	  break;
+
 	case Bstringlss:
-	  error ("Bstringlss not supported");
-	  break;
-	case Bequal:
-	  error ("Bequal not supported");
-	  break;
-	case Bnthcdr:
-	  error ("Bnthcdr not supported");
-	  break;
-	case Belt:
-	  error ("Belt not supported");
-	  break;
-	case Bmember:
-	  error ("Bmember not supported");
-	  break;
-	case Bassq:
-	  error ("Bassq not supported");
-	  break;
-	case Bnreverse:
-	  error ("Bnreverse not supported");
-	  break;
-
-	case Bsetcar:
 	  POP2;
-	  res = comp_emit_call ("Fsetcar", comp.lisp_obj_type, 2, args);
+	  res = comp_emit_call ("Fstring_lessp", comp.lisp_obj_type, 2, args);
 	  PUSH_LVAL (res);
 	  break;
 
-	case Bsetcdr:
-	  POP2;
-	  res = comp_emit_call ("Fsetcdr", comp.lisp_obj_type, 2, args);
-	  PUSH_LVAL (res);
-	  break;
+	CASE_CALL_NARGS (equal, 2);
+	CASE_CALL_NARGS (nthcdr, 2);
+	CASE_CALL_NARGS (elt, 2);
+	CASE_CALL_NARGS (member, 2);
+	CASE_CALL_NARGS (assq, 2);
+	CASE_CALL_NARGS (setcar, 2);
+	CASE_CALL_NARGS (setcdr, 2);
 
 	case Bcar_safe:
 	  error ("Bcar_safe not supported");
@@ -1540,18 +1532,21 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bcdr_safe:
 	  error ("Bcdr_safe not supported");
 	  break;
+
 	case Bnconc:
-	  error ("Bnconc not supported");
+	  EMIT_SCRATCH_CALL_N ("Fnconc", 2);
 	  break;
+
 	case Bquo:
-	  error ("Bquo not supported");
+	  EMIT_SCRATCH_CALL_N ("Fquo", 2);
 	  break;
-	case Brem:
-	  error ("Brem not supported");
-	  break;
+
+	CASE_CALL_NARGS (rem, 2);
+
 	case Bnumberp:
 	  error ("Bnumberp not supported");
 	  break;
+
 	case Bintegerp:
 	  error ("Bintegerp not supported");
 	  break;
@@ -1932,7 +1927,7 @@ init_comp (void)
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
   if (COMP_DEBUG) {
-    logfile = fopen ("libjit.log", "w");
+    logfile = fopen ("libgccjit.log", "w");
     gcc_jit_context_set_logfile (comp.ctxt,
 				 logfile,
 				 0, 0);
@@ -2009,4 +2004,4 @@ helper_unbind_n (int val)
   return unbind_to (SPECPDL_INDEX () - val, Qnil);
 }
 
-#endif /* HAVE_LIBJIT */
+#endif /* HAVE_LIBGCCJIT */
