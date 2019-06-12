@@ -379,10 +379,18 @@ comp_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 static gcc_jit_rvalue *
 comp_lisp_obj_as_ptr_from_ptr (basic_block_t *bblock, void *p)
 {
+  static unsigned i;
+  char ptr_var_name[40];
+
+  int res = snprintf (ptr_var_name, sizeof (ptr_var_name),
+		      "lisp_obj_from_ptr_%u", i++);
+  if (res >= sizeof (ptr_var_name))
+    error ("Internal error, truncating temporary variable");
+
   gcc_jit_lvalue *lisp_obj = gcc_jit_function_new_local (comp.func,
 							 NULL,
 							 comp.lisp_obj_type,
-							 "lisp_obj_from_ptr");
+							 ptr_var_name);
   gcc_jit_lvalue *lisp_obj_as_ptr =
     gcc_jit_lvalue_access_field (lisp_obj,
 				 NULL,
