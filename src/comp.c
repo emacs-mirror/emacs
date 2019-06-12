@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define PUSH_PARAM(obj)							\
   do {									\
     CHECK_STACK;							\
-    gcc_jit_block_add_assignment (bb_map[0].gcc_bb,			\
+    gcc_jit_block_add_assignment (prologue_bb,				\
 				  NULL,					\
 				  *stack,				\
 				  gcc_jit_param_as_rvalue(obj));	\
@@ -729,7 +729,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   gcc_jit_rvalue *args[4];
   unsigned op;
 
-  /* This is the stack we use to flat the bytecode written for push and pop
+  /* Meta-stack we use to flat the bytecode written for push and pop
      Emacs VM.*/
   gcc_jit_lvalue **stack_base, **stack, **stack_over;
   stack_base = stack =
@@ -772,10 +772,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					     local_name);
     }
 
+  gcc_jit_block *prologue_bb =
+    gcc_jit_function_new_block (comp.func, "prologue");
+
   basic_block_t *bb_map = compute_bblocks (bytestr_length, bytestr_data);
 
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
     PUSH_PARAM (gcc_jit_function_get_param (comp.func, i));
+  gcc_jit_block_end_with_jump (prologue_bb, NULL, bb_map[0].gcc_bb);
 
   gcc_jit_rvalue *nil = comp_lisp_obj_as_ptr_from_ptr (&bb_map[0], Qnil);
 
