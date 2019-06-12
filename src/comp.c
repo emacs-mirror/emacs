@@ -1812,8 +1812,24 @@ init_comp (void)
 {
   comp.ctxt = gcc_jit_context_acquire();
 
+  if (COMP_DEBUG)
+    {
+      logfile = fopen ("libgccjit.log", "w");
+      gcc_jit_context_set_logfile (comp.ctxt,
+				   logfile,
+				   0, 0);
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
+				       1);
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
+				       1);
+    }
   if (COMP_DEBUG > 1)
-    gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
+    {
+      gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
+      gcc_jit_context_dump_to_file (comp.ctxt, "emacs-gcc-code.c", 0);
+    }
 
   comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.void_ptr_type =
@@ -1931,20 +1947,6 @@ init_comp (void)
       NULL);
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
-
-  if (COMP_DEBUG) {
-    logfile = fopen ("libgccjit.log", "w");
-    gcc_jit_context_set_logfile (comp.ctxt,
-				 logfile,
-				 0, 0);
-    gcc_jit_context_set_bool_option (comp.ctxt,
-				     GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
-				     1);
-  }
-
-  gcc_jit_context_set_bool_option (comp.ctxt,
-				   GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
-				   1);
 }
 
 void
