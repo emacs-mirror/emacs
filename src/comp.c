@@ -330,6 +330,12 @@ comp_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
 }
 
 static gcc_jit_rvalue *
+comp_VECTORLIKEP (gcc_jit_rvalue *obj)
+{
+  return comp_TAGGEDP(obj, Lisp_Vectorlike);
+}
+
+static gcc_jit_rvalue *
 comp_CONSP (gcc_jit_rvalue *obj)
 {
   return comp_TAGGEDP(obj, Lisp_Cons);
