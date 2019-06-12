@@ -1530,9 +1530,18 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case BinsertN:
 	  error ("BinsertN not supported");
 	  break;
+
 	case Bstack_set:
-	  error ("Bstack_set not supported");
+	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
+	  op = FETCH;
+	  POP1;
+	  if (op > 0)
+	    gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+					  NULL,
+					  *(stack - op),
+					  args[0]);
 	  break;
+
 	case Bstack_set2:
 	  error ("Bstack_set2 not supported");
 	  break;
