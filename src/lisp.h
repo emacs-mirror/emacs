@@ -4745,8 +4745,6 @@ extern void syms_of_profiler (void);
 
 /* Defined in comp.c.  */
 #ifdef HAVE_LIBGCCJIT
-extern void init_comp (void);
-extern void release_comp (void);
 extern void syms_of_comp (void);
 #endif /* HAVE_LIBGCCJIT */
 

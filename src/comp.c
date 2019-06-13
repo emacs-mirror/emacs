@@ -777,6 +777,162 @@ comp_emit_comp_jump (enum gcc_jit_comparison op,
   return test;
 }
 
+static void
+init_comp (int opt_level)
+{
+  comp.ctxt = gcc_jit_context_acquire();
+
+  if (COMP_DEBUG)
+    {
+      logfile = fopen ("libgccjit.log", "w");
+      gcc_jit_context_set_logfile (comp.ctxt,
+				   logfile,
+				   0, 0);
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
+				       1);
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
+				       1);
+    }
+  if (COMP_DEBUG > 1)
+    {
+      gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
+      gcc_jit_context_dump_to_file (comp.ctxt, "emacs-gcc-code.c", 0);
+    }
+
+  gcc_jit_context_set_int_option (comp.ctxt,
+				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
+				  opt_level);
+
+  comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
+  comp.void_ptr_type =
+    gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
+  comp.int_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_INT);
+  comp.unsigned_type = gcc_jit_context_get_type (comp.ctxt,
+						 GCC_JIT_TYPE_UNSIGNED_INT);
+  comp.bool_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_BOOL);
+  comp.long_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_LONG);
+  comp.long_long_type = gcc_jit_context_get_type (comp.ctxt,
+						  GCC_JIT_TYPE_LONG_LONG);
+
+#if EMACS_INT_MAX <= LONG_MAX
+  /* 32-bit builds without wide ints, 64-bit builds on Posix hosts.  */
+  comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.void_ptr_type,
+						    "obj");
+  comp.lisp_obj_as_num =  gcc_jit_context_new_field (comp.ctxt,
+						     NULL,
+						     comp.long_long_type,
+						     "num");
+
+#else
+  /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.  */
+  comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.long_long_type,
+						    "obj");
+  comp.lisp_obj_as_num = gcc_jit_context_new_field (comp.ctxt,
+						    NULL,
+						    comp.long_long_type,
+						    "num");
+#endif
+
+  gcc_jit_field *lisp_obj_fields[2] = { comp.lisp_obj_as_ptr,
+                                        comp.lisp_obj_as_num };
+  comp.lisp_obj_type = gcc_jit_context_new_union_type (comp.ctxt,
+						       NULL,
+						       "LispObj",
+						       2,
+						       lisp_obj_fields);
+
+  comp.cast_union_as_ll =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.long_long_type,  /* FIXME? */
+			       "ll");
+  comp.cast_union_as_u =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.unsigned_type,
+			       "u");
+  comp.cast_union_as_i =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.int_type,
+			       "i");
+  comp.cast_union_as_b =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.bool_type,
+			       "b");
+
+  gcc_jit_field *cast_union_fields[4] =
+    { comp.cast_union_as_ll,
+      comp.cast_union_as_u,
+      comp.cast_union_as_i,
+      comp.cast_union_as_b,};
+  comp.cast_union_type = gcc_jit_context_new_union_type (comp.ctxt,
+							 NULL,
+							 "cast_union",
+							 4,
+							 cast_union_fields);
+  comp.most_positive_fixnum =
+    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					  comp.long_long_type, /* FIXME? */
+					  MOST_POSITIVE_FIXNUM);
+  comp.most_negative_fixnum =
+    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					  comp.long_long_type, /* FIXME? */
+					  MOST_NEGATIVE_FIXNUM);
+  comp.one =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.long_long_type,  /* FIXME? */
+					 1);
+  comp.inttypebits =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.long_long_type,  /* FIXME? */
+					 INTTYPEBITS);
+
+  comp.lisp_int0 =
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.long_long_type,  /* FIXME? */
+					 Lisp_Int0);
+
+  enum gcc_jit_types ptrdiff_t_gcc;
+  if (sizeof (ptrdiff_t) == sizeof (int))
+    ptrdiff_t_gcc = GCC_JIT_TYPE_INT;
+  else if (sizeof (ptrdiff_t) == sizeof (long int))
+    ptrdiff_t_gcc = GCC_JIT_TYPE_LONG;
+  else if (sizeof (ptrdiff_t) == sizeof (long long int))
+    ptrdiff_t_gcc = GCC_JIT_TYPE_LONG_LONG;
+  else
+    eassert ("ptrdiff_t size not handled.");
+
+  comp.ptrdiff_type = gcc_jit_context_get_type(comp.ctxt, ptrdiff_t_gcc);
+
+  comp.scratch =
+    gcc_jit_lvalue_get_address(
+      gcc_jit_context_new_global (comp.ctxt, NULL,
+				  GCC_JIT_GLOBAL_IMPORTED,
+				  comp.lisp_obj_type,
+				  "scratch_call_area"),
+      NULL);
+
+  comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
+}
+
+static void
+release_comp (void)
+{
+  if (comp.ctxt)
+    gcc_jit_context_release(comp.ctxt);
+
+  if (logfile)
+    fclose (logfile);
+}
+
 static comp_f_res_t
 compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	   unsigned char *bytestr_data,
@@ -1674,6 +1830,7 @@ void
 emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 		      Lisp_Object func, int opt_level, bool dump_asm)
 {
+  init_comp (opt_level);
   Lisp_Object bytestr = AREF (func, COMPILED_BYTECODE);
   CHECK_STRING (bytestr);
 
@@ -1698,10 +1855,6 @@ emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
   sigset_t oldset;
   block_atimers (&oldset);
 
-  gcc_jit_context_set_int_option (comp.ctxt,
-				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
-				  opt_level);
-
   comp_f_res_t comp_res = compile_f (c_f_name, bytestr_length, SDATA (bytestr),
 				     XFIXNAT (maxdepth) + 1,
 				     vectorp, ASIZE (vector),
@@ -1724,6 +1877,7 @@ emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 				      DISASS_FILE_NAME);
     }
   unblock_atimers (&oldset);
+  release_comp ();
 }
 
 DEFUN ("native-compile", Fnative_compile, Snative_compile,
@@ -1805,158 +1959,6 @@ DEFUN ("native-compile", Fnative_compile, Snative_compile,
     }
 
   return Qnil;
-}
-
-void
-init_comp (void)
-{
-  comp.ctxt = gcc_jit_context_acquire();
-
-  if (COMP_DEBUG)
-    {
-      logfile = fopen ("libgccjit.log", "w");
-      gcc_jit_context_set_logfile (comp.ctxt,
-				   logfile,
-				   0, 0);
-      gcc_jit_context_set_bool_option (comp.ctxt,
-				       GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
-				       1);
-      gcc_jit_context_set_bool_option (comp.ctxt,
-				       GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
-				       1);
-    }
-  if (COMP_DEBUG > 1)
-    {
-      gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
-      gcc_jit_context_dump_to_file (comp.ctxt, "emacs-gcc-code.c", 0);
-    }
-
-  comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
-  comp.void_ptr_type =
-    gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
-  comp.int_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_INT);
-  comp.unsigned_type = gcc_jit_context_get_type (comp.ctxt,
-						 GCC_JIT_TYPE_UNSIGNED_INT);
-  comp.bool_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_BOOL);
-  comp.long_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_LONG);
-  comp.long_long_type = gcc_jit_context_get_type (comp.ctxt,
-						  GCC_JIT_TYPE_LONG_LONG);
-
-#if EMACS_INT_MAX <= LONG_MAX
-  /* 32-bit builds without wide ints, 64-bit builds on Posix hosts.  */
-  comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
-						    NULL,
-						    comp.void_ptr_type,
-						    "obj");
-  comp.lisp_obj_as_num =  gcc_jit_context_new_field (comp.ctxt,
-						     NULL,
-						     comp.long_long_type,
-						     "num");
-
-#else
-  /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.  */
-  comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
-						    NULL,
-						    comp.long_long_type,
-						    "obj");
-  comp.lisp_obj_as_num = gcc_jit_context_new_field (comp.ctxt,
-						    NULL,
-						    comp.long_long_type,
-						    "num");
-#endif
-
-  gcc_jit_field *lisp_obj_fields[2] = { comp.lisp_obj_as_ptr,
-                                        comp.lisp_obj_as_num };
-  comp.lisp_obj_type = gcc_jit_context_new_union_type (comp.ctxt,
-						       NULL,
-						       "LispObj",
-						       2,
-						       lisp_obj_fields);
-
-  comp.cast_union_as_ll =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.long_long_type,  /* FIXME? */
-			       "ll");
-  comp.cast_union_as_u =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.unsigned_type,
-			       "u");
-  comp.cast_union_as_i =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.int_type,
-			       "i");
-  comp.cast_union_as_b =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.bool_type,
-			       "b");
-
-  gcc_jit_field *cast_union_fields[4] =
-    { comp.cast_union_as_ll,
-      comp.cast_union_as_u,
-      comp.cast_union_as_i,
-      comp.cast_union_as_b,};
-  comp.cast_union_type = gcc_jit_context_new_union_type (comp.ctxt,
-							 NULL,
-							 "cast_union",
-							 4,
-							 cast_union_fields);
-  comp.most_positive_fixnum =
-    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.long_long_type, /* FIXME? */
-					  MOST_POSITIVE_FIXNUM);
-  comp.most_negative_fixnum =
-    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.long_long_type, /* FIXME? */
-					  MOST_NEGATIVE_FIXNUM);
-  comp.one =
-    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.long_long_type,  /* FIXME? */
-					 1);
-  comp.inttypebits =
-    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.long_long_type,  /* FIXME? */
-					 INTTYPEBITS);
-
-  comp.lisp_int0 =
-    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.long_long_type,  /* FIXME? */
-					 Lisp_Int0);
-
-  enum gcc_jit_types ptrdiff_t_gcc;
-  if (sizeof (ptrdiff_t) == sizeof (int))
-    ptrdiff_t_gcc = GCC_JIT_TYPE_INT;
-  else if (sizeof (ptrdiff_t) == sizeof (long int))
-    ptrdiff_t_gcc = GCC_JIT_TYPE_LONG;
-  else if (sizeof (ptrdiff_t) == sizeof (long long int))
-    ptrdiff_t_gcc = GCC_JIT_TYPE_LONG_LONG;
-  else
-    eassert ("ptrdiff_t size not handled.");
-
-  comp.ptrdiff_type = gcc_jit_context_get_type(comp.ctxt, ptrdiff_t_gcc);
-
-  comp.scratch =
-    gcc_jit_lvalue_get_address(
-      gcc_jit_context_new_global (comp.ctxt, NULL,
-				  GCC_JIT_GLOBAL_IMPORTED,
-				  comp.lisp_obj_type,
-				  "scratch_call_area"),
-      NULL);
-
-  comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
-}
-
-void
-release_comp (void)
-{
-  if (comp.ctxt)
-    gcc_jit_context_release(comp.ctxt);
-
-  if (logfile)
-    fclose (logfile);
 }
 
 void
