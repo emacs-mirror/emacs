@@ -437,7 +437,7 @@ comp_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 /* Construct fill and return a lisp object form a raw pointer.  */
 
 static gcc_jit_rvalue *
-comp_lisp_obj_as_ptr_from_ptr (basic_block_t *bblock, void *p)
+comp_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 {
   static unsigned i;
   char ptr_var_name[40];
@@ -997,7 +997,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
     PUSH_PARAM (gcc_jit_function_get_param (comp.func, i));
   gcc_jit_block_end_with_jump (prologue_bb, NULL, bb_map[0].gcc_bb);
 
-  gcc_jit_rvalue *nil = comp_lisp_obj_as_ptr_from_ptr (&bb_map[0], Qnil);
+  gcc_jit_rvalue *nil = comp_lisp_obj_from_ptr (&bb_map[0], Qnil);
 
   comp.bblock = NULL;
 
@@ -1053,7 +1053,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH;
 	varref:
 	  {
-	    args[0] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+	    args[0] = comp_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
 	    res = comp_emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
 	    PUSH_LVAL (res);
 	    break;
@@ -1078,7 +1078,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    POP1;
 	    args[1] = args[0];
-	    args[0] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+	    args[0] = comp_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
 	    args[2] = nil;
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
@@ -1105,7 +1105,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op -= Bvarbind;
 	varbind:
 	  {
-	    args[0] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+	    args[0] = comp_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
 	    pop (1, &stack, &args[1]);
 	    res = comp_emit_call ("specbind", comp.lisp_obj_type, 2, args);
 	    PUSH_LVAL (res);
@@ -1522,8 +1522,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Binteractive_p:	/* Obsolete since 24.1.  */
-	  PUSH_RVAL (comp_lisp_obj_as_ptr_from_ptr (comp.bblock,
-						    intern ("interactive-p")));
+	  PUSH_RVAL (comp_lisp_obj_from_ptr (comp.bblock,
+					     intern ("interactive-p")));
 	  res = comp_emit_call ("call0", comp.lisp_obj_type, 1, args);
 	  PUSH_LVAL (res);
 	  break;
@@ -1613,8 +1613,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsave_restriction:
-	  args[0] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock,
-						   save_restriction_restore);
+	  args[0] = comp_lisp_obj_from_ptr (comp.bblock,
+					    save_restriction_restore);
 	  args[1] =
 	    gcc_jit_lvalue_as_rvalue (comp_emit_call ("save_restriction_save",
 						      comp.lisp_obj_type,
@@ -1626,7 +1626,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bcatch:		/* Obsolete since 24.4.  */
 	  POP2;
 	  args[2] = args[1];
-	  args[1] = comp_lisp_obj_as_ptr_from_ptr (comp.bblock, eval_sub);
+	  args[1] = comp_lisp_obj_from_ptr (comp.bblock, eval_sub);
 	  comp_emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
 
@@ -1801,7 +1801,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    if (pc >= bytestr_length || bytestr_data[pc] != Bswitch)
 	      {
 		gcc_jit_rvalue *c =
-		  comp_lisp_obj_as_ptr_from_ptr (comp.bblock, vectorp[op]);
+		  comp_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
 		PUSH_RVAL (c);
 		break;
 	      }
