@@ -274,11 +274,35 @@ comp_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 }
 
 INLINE static gcc_jit_rvalue *
-comp_XLI (gcc_jit_rvalue *obj)
+comp_rval_XLI (gcc_jit_rvalue *obj)
 {
   return gcc_jit_rvalue_access_field (obj,
 				      NULL,
 				      comp.lisp_obj_as_num);
+}
+
+INLINE static gcc_jit_lvalue *
+comp_lval_XLI (gcc_jit_lvalue *obj)
+{
+  return gcc_jit_lvalue_access_field (obj,
+				      NULL,
+				      comp.lisp_obj_as_num);
+}
+
+INLINE static gcc_jit_rvalue *
+comp_rval_XLP (gcc_jit_rvalue *obj)
+{
+  return gcc_jit_rvalue_access_field (obj,
+				      NULL,
+				      comp.lisp_obj_as_ptr);
+}
+
+INLINE static gcc_jit_lvalue *
+comp_lval_XLP (gcc_jit_lvalue *obj)
+{
+  return gcc_jit_lvalue_access_field (obj,
+				      NULL,
+				      comp.lisp_obj_as_ptr);
 }
 
 static gcc_jit_rvalue *
@@ -294,7 +318,7 @@ comp_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
       NULL,
       GCC_JIT_BINARY_OP_RSHIFT,
       comp.long_long_type,
-      comp_XLI (obj),
+      comp_rval_XLI (obj),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.long_long_type,
 					   (USE_LSB_TAG ? 0 : VALBITS)));
@@ -354,7 +378,7 @@ comp_FIXNUMP (gcc_jit_rvalue *obj)
       NULL,
       GCC_JIT_BINARY_OP_RSHIFT,
       comp.long_long_type,
-      comp_XLI (obj),
+      comp_rval_XLI (obj),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.long_long_type,
 					   (USE_LSB_TAG ? 0 : FIXNUM_BITS)));
@@ -396,7 +420,7 @@ comp_XFIXNUM (gcc_jit_rvalue *obj)
 					NULL,
 					GCC_JIT_BINARY_OP_RSHIFT,
 					comp.long_long_type,
-					comp_XLI (obj),
+					comp_rval_XLI (obj),
 					comp.inttypebits);
 }
 
@@ -425,10 +449,7 @@ comp_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 
   gcc_jit_block_add_assignment (block,
 				NULL,
-				gcc_jit_lvalue_access_field (
-				  res,
-				  NULL,
-				  comp.lisp_obj_as_num),
+				comp_lval_XLI (res),
 				tmp);
 
   return gcc_jit_lvalue_as_rvalue (res);
@@ -451,11 +472,6 @@ comp_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 							 NULL,
 							 comp.lisp_obj_type,
 							 ptr_var_name);
-  gcc_jit_lvalue *lisp_obj_as_ptr =
-    gcc_jit_lvalue_access_field (lisp_obj,
-				 NULL,
-				 comp.lisp_obj_as_ptr);
-
   gcc_jit_rvalue *void_ptr =
     gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 					comp.void_ptr_type,
@@ -463,7 +479,7 @@ comp_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 
   gcc_jit_block_add_assignment (bblock->gcc_bb,
 				NULL,
-				lisp_obj_as_ptr,
+				comp_lval_XLP (lisp_obj),
 				void_ptr);
   return gcc_jit_lvalue_as_rvalue (lisp_obj);
 }
