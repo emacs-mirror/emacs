@@ -1266,8 +1266,12 @@ meaning:
                             (concat (symbol-name sym)
                                     use-package-hook-name-suffix)))
                    (function ,fun)))
-             (if (use-package-non-nil-symbolp syms) (list syms) syms)))))
+             (use-package-hook-handler-flatten-mode-symbols syms)))))
     (use-package-normalize-commands args))))
+
+(defun use-package-hook-handler-flatten-mode-symbols (syms)
+  "Ensure that `SYMS' turns into a list of modes."
+  (if (use-package-non-nil-symbolp syms) (list syms) syms))
 
 ;;;; :commands
 
