@@ -186,6 +186,7 @@ typedef struct {
   gcc_jit_rvalue *one;
   gcc_jit_rvalue *inttypebits;
   gcc_jit_rvalue *lisp_int0;
+  gcc_jit_function *pseudovectorp;
   basic_block_t *bblock; /* Current basic block  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
 } comp_t;
@@ -247,6 +248,150 @@ type_to_cast_field (gcc_jit_type *type)
     error ("unsopported cast\n");
 
   return field;
+}
+
+static gcc_jit_function *
+comp_func_declare (const char *f_name, gcc_jit_type *ret_type,
+		   unsigned nargs, gcc_jit_rvalue **args,
+		   enum  gcc_jit_function_kind kind, bool reusable)
+{
+  gcc_jit_param *param[4];
+  gcc_jit_type *type[4];
+
+  /* If args are passed types are extracted from that otherwise assume params */
+  /* are all lisp objs.  */
+  if (args)
+    for (int i = 0; i < nargs; i++)
+      type[i] = gcc_jit_rvalue_get_type (args[i]);
+  else
+    for (int i = 0; i < nargs; i++)
+      type[i] = comp.lisp_obj_type;
+
+  switch (nargs) {
+  case 4:
+    param[3] = gcc_jit_context_new_param(comp.ctxt,
+					 NULL,
+					 type[3],
+					 "c");
+    /* Fall through */
+    FALLTHROUGH;
+  case 3:
+    param[2] = gcc_jit_context_new_param(comp.ctxt,
+					 NULL,
+					 type[2],
+					 "c");
+    /* Fall through */
+    FALLTHROUGH;
+  case 2:
+    param[1] = gcc_jit_context_new_param(comp.ctxt,
+					 NULL,
+					 type[1],
+					 "b");
+    /* Fall through */
+    FALLTHROUGH;
+  case 1:
+    param[0] = gcc_jit_context_new_param(comp.ctxt,
+					 NULL,
+					 type[0],
+					 "a");
+    /* Fall through */
+    FALLTHROUGH;
+  case 0:
+    break;
+  default:
+    /* Argnum not supported  */
+    eassert (0);
+  }
+
+  gcc_jit_function *func =
+    gcc_jit_context_new_function(comp.ctxt, NULL,
+				 kind,
+				 ret_type,
+				 f_name,
+				 nargs,
+				 param,
+				 0);
+
+  if (reusable)
+    {
+      Lisp_Object value;
+      Lisp_Object key = make_string (f_name, strlen (f_name));
+      value = make_pointer_integer (XPL (func));
+
+      EMACS_UINT hash = 0;
+      struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_hash);
+      ptrdiff_t i = hash_lookup (ht, key, &hash);
+      /* Don't want to declare the same function two times */
+      eassert (i == -1);
+      hash_put (ht, key, value, hash);
+    }
+
+  return func;
+}
+
+static gcc_jit_lvalue *
+comp_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
+		gcc_jit_rvalue **args)
+{
+  Lisp_Object key = make_string (f_name, strlen (f_name));
+  EMACS_UINT hash = 0;
+  struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_hash);
+  ptrdiff_t i = hash_lookup (ht, key, &hash);
+
+  if (i == -1)
+    {
+      comp_func_declare(f_name, ret_type, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
+			true);
+      i = hash_lookup (ht, key, &hash);
+      eassert (i != -1);
+    }
+
+  Lisp_Object value = HASH_VALUE (ht, hash_lookup (ht, key, &hash));
+  gcc_jit_function *func = (gcc_jit_function *) XFIXNUMPTR (value);
+
+  gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
+						   NULL,
+						   ret_type,
+						   "res");
+  gcc_jit_block_add_assignment(comp.bblock->gcc_bb, NULL,
+			       res,
+			       gcc_jit_context_new_call(comp.ctxt,
+							NULL,
+							func,
+							nargs,
+							args));
+  return res;
+}
+
+/* Close current basic block emitting a conditional.  */
+
+INLINE static void
+comp_emit_cond_jump (gcc_jit_rvalue *test,
+		     gcc_jit_block *then_target, gcc_jit_block *else_target)
+{
+  gcc_jit_block_end_with_conditional (comp.bblock->gcc_bb,
+				      NULL,
+				      test,
+				      then_target,
+				      else_target);
+  comp.bblock->terminated = true;
+}
+
+/* Close current basic block emitting a comparison between two rval.  */
+
+static gcc_jit_rvalue *
+comp_emit_comp_jump (enum gcc_jit_comparison op, /* TODO add basick block as param */
+		     gcc_jit_rvalue *a, gcc_jit_rvalue *b,
+		     gcc_jit_block *then_target, gcc_jit_block *else_target)
+{
+  gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt,
+							 NULL,
+							 op,
+							 a, b);
+
+  comp_emit_cond_jump (test, then_target, else_target);
+
+  return test;
 }
 
 static gcc_jit_rvalue *
@@ -363,6 +508,79 @@ static gcc_jit_rvalue *
 comp_CONSP (gcc_jit_rvalue *obj)
 {
   return comp_TAGGEDP(obj, Lisp_Cons);
+}
+
+/* static gcc_jit_rvalue * */
+/* comp_BIGNUMP (gcc_jit_rvalue *obj) */
+/* { */
+
+/* } */
+
+
+/* Declare a substitute for PSEUDOVECTORP as inline function.  */
+
+static void
+declare_PSEUDOVECTORP (void)
+{
+  gcc_jit_param *param[2] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "a"),
+      gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.int_type,
+				 "code") };
+
+  comp.pseudovectorp =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.bool_type,
+				  "PSEUDOVECTORP",
+				  2,
+				  param,
+				  0);
+
+  gcc_jit_block *initial_block =
+    gcc_jit_function_new_block (comp.pseudovectorp, "PSEUDOVECTORP_initial_block");
+
+  gcc_jit_block *ret_false_b =
+    gcc_jit_function_new_block (comp.pseudovectorp, "ret_false");
+
+  gcc_jit_block *call_pseudovector_typep_b =
+    gcc_jit_function_new_block (comp.pseudovectorp, "call_pseudovector");
+
+  /* Set current context as needed */
+  basic_block_t bblock = { .gcc_bb = initial_block,
+			   .terminated = false };
+  comp.bblock = &bblock;
+  comp.func = comp.pseudovectorp;
+
+  comp_emit_cond_jump (
+    comp_cast (comp.bool_type,
+	       comp_VECTORLIKEP (gcc_jit_param_as_rvalue (param[0]))),
+    call_pseudovector_typep_b,
+    ret_false_b);
+
+  comp.bblock->gcc_bb = ret_false_b;
+  gcc_jit_block_end_with_return (ret_false_b,
+				 NULL,
+				 gcc_jit_context_new_rvalue_from_int(
+				   comp.ctxt,
+				   comp.bool_type,
+				   false));
+
+  gcc_jit_rvalue *args[2] =
+    { gcc_jit_param_as_rvalue (param[0]),
+      gcc_jit_param_as_rvalue (param[1]) };
+  comp.bblock->gcc_bb = call_pseudovector_typep_b;
+  gcc_jit_block_end_with_return (call_pseudovector_typep_b,
+				 NULL,
+				 gcc_jit_lvalue_as_rvalue(
+				   comp_emit_call ("helper_PSEUDOVECTOR_TYPEP",
+						   comp.bool_type,
+						   2,
+						   args)));
 }
 
 static gcc_jit_rvalue *
@@ -482,119 +700,6 @@ comp_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 				comp_lval_XLP (lisp_obj),
 				void_ptr);
   return gcc_jit_lvalue_as_rvalue (lisp_obj);
-}
-
-static gcc_jit_function *
-comp_func_declare (const char *f_name, gcc_jit_type *ret_type,
-		   unsigned nargs, gcc_jit_rvalue **args,
-		   enum  gcc_jit_function_kind kind, bool reusable)
-{
-  gcc_jit_param *param[4];
-  gcc_jit_type *type[4];
-
-  /* If args are passed types are extracted from that otherwise assume params */
-  /* are all lisp objs.  */
-  if (args)
-    for (int i = 0; i < nargs; i++)
-      type[i] = gcc_jit_rvalue_get_type (args[i]);
-  else
-    for (int i = 0; i < nargs; i++)
-      type[i] = comp.lisp_obj_type;
-
-  switch (nargs) {
-  case 4:
-    param[3] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[3],
-					 "c");
-    /* Fall through */
-    FALLTHROUGH;
-  case 3:
-    param[2] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[2],
-					 "c");
-    /* Fall through */
-    FALLTHROUGH;
-  case 2:
-    param[1] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[1],
-					 "b");
-    /* Fall through */
-    FALLTHROUGH;
-  case 1:
-    param[0] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[0],
-					 "a");
-    /* Fall through */
-    FALLTHROUGH;
-  case 0:
-    break;
-  default:
-    /* Argnum not supported  */
-    eassert (0);
-  }
-
-  gcc_jit_function *func =
-    gcc_jit_context_new_function(comp.ctxt, NULL,
-				 kind,
-				 comp.lisp_obj_type,
-				 f_name,
-				 nargs,
-				 param,
-				 0);
-
-  if (reusable)
-    {
-      Lisp_Object value;
-      Lisp_Object key = make_string (f_name, strlen (f_name));
-      value = make_pointer_integer (XPL (func));
-
-      EMACS_UINT hash = 0;
-      struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_hash);
-      ptrdiff_t i = hash_lookup (ht, key, &hash);
-      /* Don't want to declare the same function two times */
-      eassert (i == -1);
-      hash_put (ht, key, value, hash);
-    }
-
-  return func;
-}
-
-static gcc_jit_lvalue *
-comp_emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
-		gcc_jit_rvalue **args)
-{
-  Lisp_Object key = make_string (f_name, strlen (f_name));
-  EMACS_UINT hash = 0;
-  struct Lisp_Hash_Table *ht = XHASH_TABLE (comp.func_hash);
-  ptrdiff_t i = hash_lookup (ht, key, &hash);
-
-  if (i == -1)
-    {
-      comp_func_declare(f_name, ret_type, nargs, args, GCC_JIT_FUNCTION_IMPORTED,
-			true);
-      i = hash_lookup (ht, key, &hash);
-      eassert (i != -1);
-    }
-
-  Lisp_Object value = HASH_VALUE (ht, hash_lookup (ht, key, &hash));
-  gcc_jit_function *func = (gcc_jit_function *) XFIXNUMPTR (value);
-
-  gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
-						   NULL,
-						   ret_type,
-						   "res");
-  gcc_jit_block_add_assignment(comp.bblock->gcc_bb, NULL,
-			       res,
-			       gcc_jit_context_new_call(comp.ctxt,
-							NULL,
-							func,
-							nargs,
-							args));
-  return res;
 }
 
 static gcc_jit_lvalue *
@@ -762,37 +867,6 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
   return bb_map;
 }
 
-/* Close current basic block emitting a conditional.  */
-
-INLINE static void
-comp_emit_cond_jump (gcc_jit_rvalue *test,
-		       gcc_jit_block *then_target, gcc_jit_block *else_target)
-{
-  gcc_jit_block_end_with_conditional (comp.bblock->gcc_bb,
-				      NULL,
-				      test,
-				      then_target,
-				      else_target);
-  comp.bblock->terminated = true;
-}
-
-/* Close current basic block emitting a comparison between two rval.  */
-
-static gcc_jit_rvalue *
-comp_emit_comp_jump (enum gcc_jit_comparison op,
-		     gcc_jit_rvalue *a, gcc_jit_rvalue *b,
-		     gcc_jit_block *then_target, gcc_jit_block *else_target)
-{
-  gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt,
-							 NULL,
-							 op,
-							 a, b);
-
-  comp_emit_cond_jump (test, then_target, else_target);
-
-  return test;
-}
-
 static void
 init_comp (int opt_level)
 {
@@ -937,6 +1011,8 @@ init_comp (int opt_level)
       NULL);
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
+
+  declare_PSEUDOVECTORP ();
 }
 
 static void
@@ -1998,6 +2074,9 @@ Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 
 Lisp_Object helper_unbind_n (int val);
 
+bool helper_PSEUDOVECTOR_TYPEP (const union vectorlike_header *a,
+				enum pvec_type code);
+
 Lisp_Object
 helper_save_window_excursion (Lisp_Object v1)
 {
@@ -2028,6 +2107,13 @@ Lisp_Object
 helper_unbind_n (int val)
 {
   return unbind_to (SPECPDL_INDEX () - val, Qnil);
+}
+
+bool
+helper_PSEUDOVECTOR_TYPEP (const union vectorlike_header *a,
+			   enum pvec_type code)
+{
+  return PSEUDOVECTOR_TYPEP (a, code);
 }
 
 #endif /* HAVE_LIBGCCJIT */
