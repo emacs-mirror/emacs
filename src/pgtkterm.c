@@ -4253,14 +4253,6 @@ pgtk_fullscreen_hook (struct frame *f)
     }
 }
 
-static Lisp_Object
-pgtk_menu_show (struct frame *f, int x, int y, int menuflags,
-	     Lisp_Object title, const char **error_name)
-{
-  // not implemented.
-  return Qnil;
-}
-
 /* This function is called when the last frame on a display is deleted. */
 void
 pgtk_delete_terminal (struct terminal *terminal)
@@ -4332,7 +4324,8 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   // terminal->frame_raise_lower_hook = pgtk_frame_raise_lower;
   terminal->fullscreen_hook = pgtk_fullscreen_hook;
   terminal->menu_show_hook = pgtk_menu_show;
-  // terminal->popup_dialog_hook = pgtk_popup_dialog;
+  terminal->activate_menubar_hook = pgtk_activate_menubar;
+  terminal->popup_dialog_hook = pgtk_popup_dialog;
   terminal->set_vertical_scroll_bar_hook = pgtk_set_vertical_scroll_bar;
   terminal->set_horizontal_scroll_bar_hook = pgtk_set_horizontal_scroll_bar;
   terminal->condemn_scroll_bars_hook = pgtk_condemn_scroll_bars;

@@ -465,31 +465,63 @@ pgtk_set_doc_edited (void)
 static void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-#if 0
   int nlines;
-  if (FRAME_MINIBUF_ONLY_P (f))
+  /* Right now, menu bars don't work properly in minibuf-only frames;
+     most of the commands try to apply themselves to the minibuffer
+     frame itself, and get an error because you can't switch buffers
+     in or split the minibuffer window.  */
+  if (FRAME_MINIBUF_ONLY_P (f) || FRAME_PARENT_FRAME (f))
     return;
 
-  if (TYPE_RANGED_INTEGERP (int, value))
+  if (TYPE_RANGED_FIXNUMP (int, value))
     nlines = XFIXNUM (value);
   else
     nlines = 0;
 
+  /* Make sure we redisplay all windows in this frame.  */
+  fset_redisplay (f);
+
   FRAME_MENU_BAR_LINES (f) = 0;
+  FRAME_MENU_BAR_HEIGHT (f) = 0;
   if (nlines)
     {
       FRAME_EXTERNAL_MENU_BAR (f) = 1;
-      /* does for all frames, whereas we just want for one frame
-	 [NSMenu setMenuBarVisible: YES]; */
+      if (FRAME_PGTK_P (f) && f->output_data.pgtk->menubar_widget == 0)
+	/* Make sure next redisplay shows the menu bar.  */
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = true;
     }
   else
     {
       if (FRAME_EXTERNAL_MENU_BAR (f) == 1)
-        free_frame_menubar (f);
-      /*      [NSMenu setMenuBarVisible: NO]; */
+	free_frame_menubar (f);
       FRAME_EXTERNAL_MENU_BAR (f) = 0;
+      if (FRAME_X_P (f))
+	f->output_data.pgtk->menubar_widget = 0;
     }
-#endif
+
+  adjust_frame_glyphs (f);
+}
+
+/* Set the pixel height of the tool bar of frame F to HEIGHT.  */
+static void
+x_change_tool_bar_height (struct frame *f, int height)
+{
+  FRAME_TOOL_BAR_LINES (f) = 0;
+  FRAME_TOOL_BAR_HEIGHT (f) = 0;
+  if (height)
+    {
+      FRAME_EXTERNAL_TOOL_BAR (f) = true;
+      if (FRAME_X_P (f) && f->output_data.pgtk->toolbar_widget == 0)
+	/* Make sure next redisplay shows the tool bar.  */
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = true;
+      update_frame_tool_bar (f);
+    }
+  else
+    {
+      if (FRAME_EXTERNAL_TOOL_BAR (f))
+        free_frame_tool_bar (f);
+      FRAME_EXTERNAL_TOOL_BAR (f) = false;
+    }
 }
 
 
@@ -497,70 +529,20 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 static void
 x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-#if 0
-  /* Currently, when the tool bar change state, the frame is resized.
-
-     TODO: It would be better if this didn't occur when 1) the frame
-     is full height or maximized or 2) when specified by
-     `frame-inhibit-implied-resize'. */
   int nlines;
 
-  NSTRACE ("x_set_tool_bar_lines");
-
+  /* Treat tool bars like menu bars.  */
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (RANGED_INTEGERP (0, value, INT_MAX))
+  /* Use VALUE only if an int >= 0.  */
+  if (RANGED_FIXNUMP (0, value, INT_MAX))
     nlines = XFIXNAT (value);
   else
     nlines = 0;
 
-  if (nlines)
-    {
-      FRAME_EXTERNAL_TOOL_BAR (f) = 1;
-      update_frame_tool_bar (f);
-    }
-  else
-    {
-      if (FRAME_EXTERNAL_TOOL_BAR (f))
-        {
-          free_frame_tool_bar (f);
-          FRAME_EXTERNAL_TOOL_BAR (f) = 0;
+  x_change_tool_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 
-          {
-            EmacsView *view = FRAME_PGTK_VIEW (f);
-            int fs_state = [view fullscreenState];
-
-            if (fs_state == FULLSCREEN_MAXIMIZED)
-              {
-                [view setFSValue:FULLSCREEN_WIDTH];
-              }
-            else if (fs_state == FULLSCREEN_HEIGHT)
-              {
-                [view setFSValue:FULLSCREEN_NONE];
-              }
-          }
-       }
-    }
-
-  {
-    int inhibit
-      = ((f->after_make_frame
-	  && !f->tool_bar_resized
-	  && (EQ (frame_inhibit_implied_resize, Qt)
-	      || (CONSP (frame_inhibit_implied_resize)
-		  && !NILP (Fmemq (Qtool_bar_lines,
-				   frame_inhibit_implied_resize))))
-	  && NILP (get_frame_param (f, Qfullscreen)))
-	 ? 0
-	 : 2);
-
-    NSTRACE_MSG ("inhibit:%d", inhibit);
-
-    frame_size_history_add (f, Qupdate_frame_tool_bar, 0, 0, Qnil);
-    adjust_frame_size (f, -1, -1, inhibit, 0, Qtool_bar_lines);
-  }
-#endif
 }
 
 
@@ -1327,25 +1309,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
   gui_default_parameter (f, parms, Qno_accept_focus, Qnil,
 		       NULL, NULL, RES_TYPE_BOOLEAN);
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Create the menu bar.  */
   if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
     {
-#if 0
       /* If this signals an error, we haven't set size hints for the
 	 frame and we didn't make it visible.  */
       initialize_frame_menubar (f);
-#endif
 
-#ifndef USE_GTK
-      /* This is a no-op, except under Motif where it arranges the
-	 main window for the widgets on it.  */
-      lw_set_main_areas (FRAME_X_OUTPUT(f)->column_widget,
-			 FRAME_X_OUTPUT(f)->menubar_widget,
-			 FRAME_X_OUTPUT(f)->edit_widget);
-#endif /* not USE_GTK */
     }
-#endif /* USE_X_TOOLKIT || USE_GTK */
 
   /* Consider frame official, now.  */
   f->can_set_window_size = true;

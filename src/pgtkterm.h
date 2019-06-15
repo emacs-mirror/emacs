@@ -548,6 +548,12 @@ extern void pgtk_set_cr_source_with_color (struct frame *f, unsigned long color)
 extern void pgtk_cr_draw_frame (cairo_t *cr, struct frame *f);
 extern void pgtk_cr_destroy_surface(struct frame *f);
 
+/* Defined in pgtkmenu.c */
+extern Lisp_Object pgtk_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents);
+extern Lisp_Object pgtk_dialog_show (struct frame *f, Lisp_Object title, Lisp_Object header, char **error);
+extern void initialize_frame_menubar (struct frame *);
+
+
 /* Symbol initializations implemented in each pgtk sources. */
 extern void syms_of_pgtkterm (void);
 extern void syms_of_pgtkfns (void);

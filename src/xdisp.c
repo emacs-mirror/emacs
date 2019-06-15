@@ -25028,6 +25028,11 @@ display_menu_bar (struct window *w)
   if (FRAME_W32_P (f))
     return;
 #endif
+#if defined (HAVE_PGTK)
+  if (FRAME_PGTK_P (f))
+    return;
+#endif
+
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   if (FRAME_X_P (f))
     return;
