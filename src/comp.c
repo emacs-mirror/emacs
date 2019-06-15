@@ -572,6 +572,7 @@ declare_PSEUDOVECTORP (void)
 static gcc_jit_rvalue *
 emit_BIGNUMP (gcc_jit_rvalue *obj)
 {
+  /* PSEUDOVECTORP (x, PVEC_BIGNUM); */
   gcc_jit_rvalue *args[2] = {
     obj,
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
@@ -641,6 +642,17 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
 					comp.long_long_type,
 					emit_rval_XLI (obj),
 					comp.inttypebits);
+}
+
+static gcc_jit_rvalue *
+emit_INTEGERP (gcc_jit_rvalue *obj)
+{
+  return gcc_jit_context_new_binary_op (comp.ctxt,
+					NULL,
+					GCC_JIT_BINARY_OP_LOGICAL_OR,
+					comp.bool_type,
+					emit_FIXNUMP (obj),
+					emit_BIGNUMP (obj));
 }
 
 static gcc_jit_rvalue *
