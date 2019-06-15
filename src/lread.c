@@ -4178,7 +4178,7 @@ intern_c_string_1 (const char *str, ptrdiff_t len)
 
   if (!SYMBOLP (tem))
     {
-      if NILP (Vpurify_flag)
+      if (NILP (Vpurify_flag))
 	string = make_string (str, len);
       else
 	string = make_pure_c_string (str, len);
