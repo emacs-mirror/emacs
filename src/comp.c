@@ -503,13 +503,6 @@ emit_CONSP (gcc_jit_rvalue *obj)
   return emit_TAGGEDP(obj, Lisp_Cons);
 }
 
-/* static gcc_jit_rvalue * */
-/* emit_BIGNUMP (gcc_jit_rvalue *obj) */
-/* { */
-
-/* } */
-
-
 /* Declare a substitute for PSEUDOVECTORP as inline function.  */
 
 static void
@@ -574,6 +567,21 @@ declare_PSEUDOVECTORP (void)
 					    comp.bool_type,
 					    2,
 					    args));
+}
+
+static gcc_jit_rvalue *
+emit_BIGNUMP (gcc_jit_rvalue *obj)
+{
+  gcc_jit_rvalue *args[2] = {
+    obj,
+    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					 comp.int_type,
+					 PVEC_BIGNUM) };
+
+  return emit_call ("PSEUDOVECTORP",
+		    comp.bool_type,
+		    2,
+		    args);
 }
 
 static gcc_jit_rvalue *
