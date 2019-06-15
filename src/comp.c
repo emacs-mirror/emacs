@@ -128,7 +128,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   case B##name:								\
   POP##nargs;								\
   res = emit_call (STR(F##name), comp.lisp_obj_type, nargs, args);	\
-  PUSH_LVAL (res);							\
+  PUSH_RVAL (res);							\
   break
 
 /* Emit calls to functions with prototype (ptrdiff_t nargs, Lisp_Object *args)
@@ -138,7 +138,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   do {						\
     pop (nargs, &stack, args);			\
     res = emit_callN (name, nargs, args);	\
-    PUSH_LVAL (res);				\
+    PUSH_RVAL (res);				\
   } while (0)
 
 #define EMIT_ARITHCOMPARE(comparison)					\
@@ -148,7 +148,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 						   comp.int_type,	\
 						   comparison);		\
     res = emit_call ("arithcompare", comp.lisp_obj_type, 3, args);	\
-    PUSH_LVAL (res);							\
+    PUSH_RVAL (res);							\
   } while (0)
 
 
@@ -329,10 +329,9 @@ emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
   return func;
 }
 
-/* TODO this should return an rval  */
-static gcc_jit_lvalue *
+static gcc_jit_rvalue *
 emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
-		gcc_jit_rvalue **args)
+	   gcc_jit_rvalue **args)
 {
   Lisp_Object key = make_string (f_name, strlen (f_name));
   EMACS_UINT hash = 0;
@@ -350,18 +349,11 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
   Lisp_Object value = HASH_VALUE (ht, hash_lookup (ht, key, &hash));
   gcc_jit_function *func = (gcc_jit_function *) XFIXNUMPTR (value);
 
-  gcc_jit_lvalue *res = gcc_jit_function_new_local(comp.func,
-						   NULL,
-						   ret_type,
-						   "res");
-  gcc_jit_block_add_assignment(comp.bblock->gcc_bb, NULL,
-			       res,
-			       gcc_jit_context_new_call(comp.ctxt,
-							NULL,
-							func,
-							nargs,
-							args));
-  return res;
+  return gcc_jit_context_new_call(comp.ctxt,
+				  NULL,
+				  func,
+				  nargs,
+				  args);
 }
 
 /* Close current basic block emitting a conditional.  */
@@ -578,12 +570,10 @@ declare_PSEUDOVECTORP (void)
   /* FIXME XUNTAG missing here. */
   gcc_jit_block_end_with_return (call_pseudovector_typep_b,
 				 NULL,
-				 gcc_jit_lvalue_as_rvalue(
-				   emit_call (
-				     "helper_PSEUDOVECTOR_TYPEP_XUNTAG",
-				     comp.bool_type,
-				     2,
-				     args)));
+				 emit_call ("helper_PSEUDOVECTOR_TYPEP_XUNTAG",
+					    comp.bool_type,
+					    2,
+					    args));
 }
 
 static gcc_jit_rvalue *
@@ -705,7 +695,7 @@ emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
   return gcc_jit_lvalue_as_rvalue (lisp_obj);
 }
 
-static gcc_jit_lvalue *
+static gcc_jit_rvalue *
 emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 {
   /* Here we set all the pointers into the scratch call area.  */
@@ -1034,7 +1024,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	   EMACS_INT stack_depth, Lisp_Object *vectorp,
 	   ptrdiff_t vector_size, Lisp_Object args_template)
 {
-  gcc_jit_lvalue *res;
+  gcc_jit_rvalue *res;
   comp_f_res_t comp_res = { NULL, 0, 0 };
   ptrdiff_t pc = 0;
   gcc_jit_rvalue *args[4];
@@ -1150,7 +1140,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    args[0] = emit_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
 	    res = emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
-	    PUSH_LVAL (res);
+	    PUSH_RVAL (res);
 	    break;
 	  }
 
@@ -1179,7 +1169,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							   comp.int_type,
 							   SET_INTERNAL_SET);
 	    res = emit_call ("set_internal", comp.lisp_obj_type, 4, args);
-	    PUSH_LVAL (res);
+	    PUSH_RVAL (res);
 	  }
 	  break;
 
@@ -1203,7 +1193,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    args[0] = emit_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
 	    pop (1, &stack, &args[1]);
 	    res = emit_call ("specbind", comp.lisp_obj_type, 2, args);
-	    PUSH_LVAL (res);
+	    PUSH_RVAL (res);
 	    break;
 	  }
 
@@ -1227,7 +1217,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    ptrdiff_t nargs = op + 1;
 	    pop (nargs, &stack, args);
 	    res = emit_callN ("Ffuncall", nargs, args);
-	    PUSH_LVAL (res);
+	    PUSH_RVAL (res);
 	    break;
 	  }
 
@@ -1299,12 +1289,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    POP1;
 	    args[1] = nil;
 	    res = emit_call ("Fcons", comp.lisp_obj_type, 2, args);
-	    PUSH_LVAL (res);
+	    PUSH_RVAL (res);
 	    for (int i = 0; i < op; ++i)
 	      {
 		POP2;
 		res = emit_call ("Fcons", comp.lisp_obj_type, 2, args);
-		PUSH_LVAL (res);
+		PUSH_RVAL (res);
 	      }
 	    break;
 	  }
@@ -1382,7 +1372,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    comp.bblock->gcc_bb = sub1_fcall_block;
 	    POP1;
 	    res = emit_call ("Fsub1", comp.lisp_obj_type, 1, args);
-	    PUSH_LVAL (res);
+	    PUSH_RVAL (res);
 
 	    *comp.bblock = bb_orig;
 
@@ -1442,7 +1432,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    comp.bblock->gcc_bb = add1_fcall_block;
 	    POP1;
 	    res = emit_call ("Fadd1", comp.lisp_obj_type, 1, args);
-	    PUSH_LVAL (res);
+	    PUSH_RVAL (res);
 
 	    *comp.bblock = bb_orig;
 
@@ -1553,7 +1543,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 			   comp.lisp_obj_type,
 			   1,
 			   args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (goto_char, 1);
@@ -1571,7 +1561,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 			   comp.lisp_obj_type,
 			   1,
 			   args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	case Bpoint_min:
@@ -1583,7 +1573,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 			   comp.lisp_obj_type,
 			   1,
 			   args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (char_after, 1);
@@ -1591,7 +1581,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	case Bpreceding_char:
 	  res = emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (current_column, 0);
@@ -1600,7 +1590,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  args[1] = nil;
 	  res = emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (eolp, 0);
@@ -1620,7 +1610,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (emit_lisp_obj_from_ptr (comp.bblock,
 					     intern ("interactive-p")));
 	  res = emit_call ("call0", comp.lisp_obj_type, 1, args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (forward_char, 1);
@@ -1704,17 +1694,16 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  res = emit_call ("helper_save_window_excursion",
 			   comp.lisp_obj_type, 1, args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	case Bsave_restriction:
 	  args[0] = emit_lisp_obj_from_ptr (comp.bblock,
 					    save_restriction_restore);
-	  args[1] =
-	    gcc_jit_lvalue_as_rvalue (emit_call ("save_restriction_save",
-						 comp.lisp_obj_type,
-						 0,
-						 NULL));
+	  args[1] = emit_call ("save_restriction_save",
+			       comp.lisp_obj_type,
+			       0,
+			       NULL);
 	  emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
 	  break;
 
@@ -1740,7 +1729,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  res = emit_call ("helper_temp_output_buffer_setup", comp.lisp_obj_type,
 			   1, args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	case Btemp_output_buffer_show: /* Obsolete since 24.1.  */
@@ -1766,13 +1755,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bstringeqlsign:
 	  POP2;
 	  res = emit_call ("Fstring_equal", comp.lisp_obj_type, 2, args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	case Bstringlss:
 	  POP2;
 	  res = emit_call ("Fstring_lessp", comp.lisp_obj_type, 2, args);
-	  PUSH_LVAL (res);
+	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (equal, 2);
