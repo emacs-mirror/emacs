@@ -579,10 +579,11 @@ declare_PSEUDOVECTORP (void)
   gcc_jit_block_end_with_return (call_pseudovector_typep_b,
 				 NULL,
 				 gcc_jit_lvalue_as_rvalue(
-				   emit_call ("helper_PSEUDOVECTOR_TYPEP",
-					      comp.bool_type,
-					      2,
-					      args)));
+				   emit_call (
+				     "helper_PSEUDOVECTOR_TYPEP_XUNTAG",
+				     comp.bool_type,
+				     2,
+				     args)));
 }
 
 static gcc_jit_rvalue *
@@ -2076,8 +2077,8 @@ Lisp_Object helper_temp_output_buffer_setup (Lisp_Object x);
 
 Lisp_Object helper_unbind_n (int val);
 
-bool helper_PSEUDOVECTOR_TYPEP (const union vectorlike_header *a,
-				enum pvec_type code);
+bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
+				       enum pvec_type code);
 
 Lisp_Object
 helper_save_window_excursion (Lisp_Object v1)
@@ -2112,10 +2113,12 @@ helper_unbind_n (int val)
 }
 
 bool
-helper_PSEUDOVECTOR_TYPEP (const union vectorlike_header *a,
-			   enum pvec_type code)
+helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
+				  enum pvec_type code)
 {
-  return PSEUDOVECTOR_TYPEP (a, code);
+  return PSEUDOVECTOR_TYPEP (XUNTAG (a, Lisp_Vectorlike,
+				     union vectorlike_header),
+			     code);
 }
 
 #endif /* HAVE_LIBGCCJIT */
