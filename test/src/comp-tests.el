@@ -307,6 +307,20 @@
   (should (eq (comp-tests-numberp-f 'a) nil))
   (should (eq (comp-tests-numberp-f 3.5) t)))
 
+(ert-deftest comp-tests-stack ()
+  "Test some stack operation."
+  (defun comp-tests-discardn-f (x)
+    ;; BdiscardN
+    (1+ (let ((a 1)
+            (_b)
+            (_c))
+        a)))
+
+  (byte-compile #'comp-tests-discardn-f)
+  (native-compile #'comp-tests-discardn-f)
+
+  (should (= (comp-tests-discardn-f 10) 2)))
+
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
   (dotimes (_ 100000)

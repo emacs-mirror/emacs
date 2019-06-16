@@ -1197,20 +1197,16 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bstack_ref3:
 	case Bstack_ref4:
 	case Bstack_ref5:
-	  {
-	    PUSH_LVAL (stack_base[(stack - stack_base) - (op - Bstack_ref) - 1]);
-	    break;
-	  }
+	  PUSH_LVAL (stack_base[(stack - stack_base) - (op - Bstack_ref) - 1]);
+	  break;
+
 	case Bstack_ref6:
-	  {
-	    PUSH_LVAL (stack_base[(stack - stack_base) - FETCH - 1]);
-	    break;
-	  }
+	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH - 1]);
+	  break;
+
 	case Bstack_ref7:
-	  {
-	    PUSH_LVAL (stack_base[(stack - stack_base) - FETCH2 - 1]);
-	    break;
-	  }
+	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH2 - 1]);
+	  break;
 
 	case Bvarref7:
 	  op = FETCH2;
@@ -1966,8 +1962,20 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bstack_set2:
 	  error ("Bstack_set2 not supported");
 	  break;
+
 	case BdiscardN:
-	  error ("BdiscardN not supported");
+	  op = FETCH;
+	  if (op & 0x80)
+	    {
+	      op &= 0x7F;
+	      POP1;
+	      gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+					    NULL,
+					    *(stack - op - 1),
+					    args[0]);
+	    }
+
+	  stack -= op;
 	  break;
 	case Bswitch:
 	  error ("Bswitch not supported");
@@ -1978,6 +1986,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	     a constant on the stack.  */
 	  goto fail;
 	  break;
+
 	default:
 	case Bconstant:
 	  {
