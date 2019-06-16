@@ -1961,7 +1961,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bstack_set2:
-	  error ("Bstack_set2 not supported");
+	  op = FETCH2;
+	  POP1;
+	  gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+					NULL,
+					*(stack - op),
+					args[0]);
 	  break;
 
 	case BdiscardN:
