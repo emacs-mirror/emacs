@@ -171,6 +171,7 @@ typedef struct {
   gcc_jit_type *unsigned_type;
   gcc_jit_type *long_type;
   gcc_jit_type *long_long_type;
+  gcc_jit_type *emacs_int_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *lisp_obj_type;
@@ -180,6 +181,7 @@ typedef struct {
      be used for the scope.  */
   gcc_jit_type *cast_union_type;
   gcc_jit_field *cast_union_as_ll;
+  gcc_jit_field *cast_union_as_l;
   gcc_jit_field *cast_union_as_u;
   gcc_jit_field *cast_union_as_i;
   gcc_jit_field *cast_union_as_b;
@@ -243,6 +245,8 @@ type_to_cast_field (gcc_jit_type *type)
 
   if (type == comp.long_long_type)
     field = comp.cast_union_as_ll;
+  else if (type == comp.long_type)
+    field = comp.cast_union_as_l;
   else if (type == comp.unsigned_type)
     field = comp.cast_union_as_u;
   else if (type == comp.int_type)
@@ -460,10 +464,10 @@ emit_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
       comp.ctxt,
       NULL,
       GCC_JIT_BINARY_OP_RSHIFT,
-      comp.long_long_type,
+      comp.emacs_int_type,
       emit_rval_XLI (obj),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.long_long_type,
+					   comp.emacs_int_type,
 					   (USE_LSB_TAG ? 0 : VALBITS)));
 
   gcc_jit_rvalue *minus_res =
@@ -543,10 +547,10 @@ emit_FIXNUMP (gcc_jit_rvalue *obj)
       comp.ctxt,
       NULL,
       GCC_JIT_BINARY_OP_RSHIFT,
-      comp.long_long_type,
+      comp.emacs_int_type,
       emit_rval_XLI (obj),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   comp.long_long_type,
+					   comp.emacs_int_type,
 					   (USE_LSB_TAG ? 0 : FIXNUM_BITS)));
 
   gcc_jit_rvalue *minus_res =
@@ -585,7 +589,7 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
   return gcc_jit_context_new_binary_op (comp.ctxt,
 					NULL,
 					GCC_JIT_BINARY_OP_RSHIFT,
-					comp.long_long_type,
+					comp.emacs_int_type,
 					emit_rval_XLI (obj),
 					comp.inttypebits);
 }
@@ -621,14 +625,14 @@ emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
     gcc_jit_context_new_binary_op (comp.ctxt,
 				   NULL,
 				   GCC_JIT_BINARY_OP_LSHIFT,
-				   comp.long_long_type,
+				   comp.emacs_int_type,
 				   obj,
 				   comp.inttypebits);
 
   tmp = gcc_jit_context_new_binary_op (comp.ctxt,
 				       NULL,
 				       GCC_JIT_BINARY_OP_PLUS,
-				       comp.long_long_type,
+				       comp.emacs_int_type,
 				       tmp,
 				       comp.lisp_int0);
 
@@ -999,22 +1003,25 @@ init_comp (int opt_level)
 						    NULL,
 						    comp.void_ptr_type,
 						    "obj");
-  comp.lisp_obj_as_num =  gcc_jit_context_new_field (comp.ctxt,
-						     NULL,
-						     comp.long_long_type,
-						     "num");
-
 #else
   /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.  */
   comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
 						    NULL,
 						    comp.long_long_type,
 						    "obj");
-  comp.lisp_obj_as_num = gcc_jit_context_new_field (comp.ctxt,
-						    NULL,
-						    comp.long_long_type,
-						    "num");
 #endif
+
+  if (sizeof (EMACS_INT) == sizeof (long))
+    comp.emacs_int_type = comp.long_type;
+  else if (sizeof (EMACS_INT) == sizeof (long long))
+    comp.emacs_int_type = comp.long_long_type;
+  else
+    error ("Unexpected EMACS_INT size.");
+
+  comp.lisp_obj_as_num =  gcc_jit_context_new_field (comp.ctxt,
+						     NULL,
+						     comp.emacs_int_type,
+						     "num");
 
   gcc_jit_field *lisp_obj_fields[2] = { comp.lisp_obj_as_ptr,
                                         comp.lisp_obj_as_num };
@@ -1027,8 +1034,13 @@ init_comp (int opt_level)
   comp.cast_union_as_ll =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
-			       comp.long_long_type,  /* FIXME? */
+			       comp.long_long_type,
 			       "ll");
+  comp.cast_union_as_l =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.long_type,
+			       "l");
   comp.cast_union_as_u =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
@@ -1045,36 +1057,39 @@ init_comp (int opt_level)
 			       comp.bool_type,
 			       "b");
 
-  gcc_jit_field *cast_union_fields[4] =
+  gcc_jit_field *cast_union_fields[5] =
     { comp.cast_union_as_ll,
+      comp.cast_union_as_l,
       comp.cast_union_as_u,
       comp.cast_union_as_i,
       comp.cast_union_as_b,};
-  comp.cast_union_type = gcc_jit_context_new_union_type (comp.ctxt,
-							 NULL,
-							 "cast_union",
-							 4,
-							 cast_union_fields);
+  comp.cast_union_type =
+    gcc_jit_context_new_union_type (comp.ctxt,
+				    NULL,
+				    "cast_union",
+				    sizeof (cast_union_fields) /
+				    sizeof (*cast_union_fields),
+				    cast_union_fields);
   comp.most_positive_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.long_long_type, /* FIXME? */
+					  comp.emacs_int_type,
 					  MOST_POSITIVE_FIXNUM);
   comp.most_negative_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.long_long_type, /* FIXME? */
+					  comp.emacs_int_type,
 					  MOST_NEGATIVE_FIXNUM);
   comp.one =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.long_long_type,  /* FIXME? */
+					 comp.emacs_int_type,
 					 1);
   comp.inttypebits =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.long_long_type,  /* FIXME? */
+					 comp.emacs_int_type,
 					 INTTYPEBITS);
 
   comp.lisp_int0 =
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					 comp.long_long_type,  /* FIXME? */
+					 comp.emacs_int_type,
 					 Lisp_Int0);
 
   enum gcc_jit_types ptrdiff_t_gcc;
@@ -1452,7 +1467,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	      gcc_jit_context_new_binary_op (comp.ctxt,
 					     NULL,
 					     GCC_JIT_BINARY_OP_MINUS,
-					     comp.long_long_type,
+					     comp.emacs_int_type,
 					     tos_as_num,
 					     comp.one);
 
@@ -1512,7 +1527,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	      gcc_jit_context_new_binary_op (comp.ctxt,
 					     NULL,
 					     GCC_JIT_BINARY_OP_PLUS,
-					     comp.long_long_type,
+					     comp.emacs_int_type,
 					     tos_as_num,
 					     comp.one);
 
@@ -1596,7 +1611,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	      gcc_jit_context_new_unary_op (comp.ctxt,
 					    NULL,
 					    GCC_JIT_UNARY_OP_MINUS,
-					    comp.long_long_type,
+					    comp.emacs_int_type,
 					    tos_as_num);
 
 	    gcc_jit_block_add_assignment (negate_inline_block,
