@@ -278,8 +278,25 @@
     ;; Bconsp
     (consp x))
 
+  ;; (byte-compile #'comp-tests-consp-f)
+  ;; (native-compile #'comp-tests-consp-f)
+
   (should (eq (comp-tests-consp-f '(1)) t))
   (should (eq (comp-tests-consp-f 1) nil)))
+
+(ert-deftest comp-tests-num-inline ()
+  "Test some inlined number functions."
+  (defun comp-tests-integerp-f (x)
+    ;; Bintegerp
+    (integerp x))
+
+  (byte-compile #'comp-tests-integerp-f)
+  (native-compile #'comp-tests-integerp-f)
+
+  (should (eq (comp-tests-integerp-f 1) t))
+  (should (eq (comp-tests-integerp-f '(1)) nil))
+  (should (eq (comp-tests-integerp-f 3.5) nil))
+  (should (eq (comp-tests-integerp-f (1+ most-negative-fixnum)) t)))
 
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."

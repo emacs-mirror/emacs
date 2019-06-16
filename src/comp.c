@@ -187,6 +187,7 @@ typedef struct {
   gcc_jit_rvalue *inttypebits;
   gcc_jit_rvalue *lisp_int0;
   gcc_jit_function *pseudovectorp;
+  gcc_jit_function *bool_to_lisp_obj;
   basic_block_t *bblock; /* Current basic block  */
   Lisp_Object func_hash; /* f_name -> gcc_func  */
 } comp_t;
@@ -360,7 +361,7 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 
 INLINE static void
 emit_cond_jump (gcc_jit_rvalue *test,
-		     gcc_jit_block *then_target, gcc_jit_block *else_target)
+		gcc_jit_block *then_target, gcc_jit_block *else_target)
 {
   gcc_jit_block_end_with_conditional (comp.bblock->gcc_bb,
 				      NULL,
@@ -503,72 +504,6 @@ emit_CONSP (gcc_jit_rvalue *obj)
   return emit_TAGGEDP(obj, Lisp_Cons);
 }
 
-/* Declare a substitute for PSEUDOVECTORP as inline function.  */
-
-static void
-declare_PSEUDOVECTORP (void)
-{
-  gcc_jit_param *param[2] =
-    { gcc_jit_context_new_param (comp.ctxt,
-				 NULL,
-				 comp.lisp_obj_type,
-				 "a"),
-      gcc_jit_context_new_param (comp.ctxt,
-				 NULL,
-				 comp.int_type,
-				 "code") };
-
-  comp.pseudovectorp =
-    gcc_jit_context_new_function (comp.ctxt, NULL,
-				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
-				  comp.bool_type,
-				  "PSEUDOVECTORP",
-				  2,
-				  param,
-				  0);
-
-  gcc_jit_block *initial_block =
-    gcc_jit_function_new_block (comp.pseudovectorp, "PSEUDOVECTORP_initial_block");
-
-  gcc_jit_block *ret_false_b =
-    gcc_jit_function_new_block (comp.pseudovectorp, "ret_false");
-
-  gcc_jit_block *call_pseudovector_typep_b =
-    gcc_jit_function_new_block (comp.pseudovectorp, "call_pseudovector");
-
-  /* Set current context as needed */
-  basic_block_t bblock = { .gcc_bb = initial_block,
-			   .terminated = false };
-  comp.bblock = &bblock;
-  comp.func = comp.pseudovectorp;
-
-  emit_cond_jump (
-    emit_cast (comp.bool_type,
-	       emit_VECTORLIKEP (gcc_jit_param_as_rvalue (param[0]))),
-    call_pseudovector_typep_b,
-    ret_false_b);
-
-  comp.bblock->gcc_bb = ret_false_b;
-  gcc_jit_block_end_with_return (ret_false_b,
-				 NULL,
-				 gcc_jit_context_new_rvalue_from_int(
-				   comp.ctxt,
-				   comp.bool_type,
-				   false));
-
-  gcc_jit_rvalue *args[2] =
-    { gcc_jit_param_as_rvalue (param[0]),
-      gcc_jit_param_as_rvalue (param[1]) };
-  comp.bblock->gcc_bb = call_pseudovector_typep_b;
-  /* FIXME XUNTAG missing here. */
-  gcc_jit_block_end_with_return (call_pseudovector_typep_b,
-				 NULL,
-				 emit_call ("helper_PSEUDOVECTOR_TYPEP_XUNTAG",
-					    comp.bool_type,
-					    2,
-					    args));
-}
-
 static gcc_jit_rvalue *
 emit_BIGNUMP (gcc_jit_rvalue *obj)
 {
@@ -579,10 +514,11 @@ emit_BIGNUMP (gcc_jit_rvalue *obj)
 					 comp.int_type,
 					 PVEC_BIGNUM) };
 
-  return emit_call ("PSEUDOVECTORP",
-		    comp.bool_type,
-		    2,
-		    args);
+  return gcc_jit_context_new_call (comp.ctxt,
+				   NULL,
+				   comp.pseudovectorp,
+				   2,
+				   args);
 }
 
 static gcc_jit_rvalue *
@@ -651,7 +587,8 @@ emit_INTEGERP (gcc_jit_rvalue *obj)
 					NULL,
 					GCC_JIT_BINARY_OP_LOGICAL_OR,
 					comp.bool_type,
-					emit_FIXNUMP (obj),
+					emit_cast (comp.bool_type,
+						   emit_FIXNUMP (obj)),
 					emit_BIGNUMP (obj));
 }
 
@@ -687,7 +624,7 @@ emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 }
 
 /* Construct fill and return a lisp object form a raw pointer.  */
-
+/* TODO should we pass the bb?  */
 static gcc_jit_rvalue *
 emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 {
@@ -745,16 +682,19 @@ emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 
   for (int i = 0; i < nargs; i++) {
     gcc_jit_rvalue *idx =
-      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-					   gcc_jit_context_get_type(comp.ctxt,
-								    GCC_JIT_TYPE_UNSIGNED_INT),
-					   i);
-    gcc_jit_block_add_assignment (comp.bblock->gcc_bb, NULL,
-				  gcc_jit_context_new_array_access (comp.ctxt,
-								    NULL,
-								    gcc_jit_lvalue_as_rvalue(p),
-								    idx),
-				  args[i]);
+      gcc_jit_context_new_rvalue_from_int (
+	comp.ctxt,
+	gcc_jit_context_get_type(comp.ctxt,
+				 GCC_JIT_TYPE_UNSIGNED_INT),
+	i);
+    gcc_jit_block_add_assignment (
+      comp.bblock->gcc_bb,
+      NULL,
+      gcc_jit_context_new_array_access (comp.ctxt,
+					NULL,
+					gcc_jit_lvalue_as_rvalue(p),
+					idx),
+      args[i]);
   }
 
   args[0] = gcc_jit_context_new_rvalue_from_int(comp.ctxt,
@@ -763,6 +703,118 @@ emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
   args[1] = comp.scratch;
 
   return emit_call (f_name, comp.lisp_obj_type, 2, args);
+}
+
+/* Declare a substitute for PSEUDOVECTORP as inline function.  */
+
+static void
+declare_PSEUDOVECTORP (void)
+{
+  gcc_jit_param *param[2] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "a"),
+      gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.int_type,
+				 "code") };
+
+  comp.pseudovectorp =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.bool_type,
+				  "PSEUDOVECTORP",
+				  2,
+				  param,
+				  0);
+
+  gcc_jit_block *initial_block =
+    gcc_jit_function_new_block (comp.pseudovectorp, "PSEUDOVECTORP_initial_block");
+
+  gcc_jit_block *ret_false_b =
+    gcc_jit_function_new_block (comp.pseudovectorp, "ret_false");
+
+  gcc_jit_block *call_pseudovector_typep_b =
+    gcc_jit_function_new_block (comp.pseudovectorp, "call_pseudovector");
+
+  /* Set current context as needed */
+  basic_block_t bblock = { .gcc_bb = initial_block,
+			   .terminated = false };
+  comp.bblock = &bblock;
+  comp.func = comp.pseudovectorp;
+
+  emit_cond_jump (
+    emit_cast (comp.bool_type,
+	       emit_VECTORLIKEP (gcc_jit_param_as_rvalue (param[0]))),
+    call_pseudovector_typep_b,
+    ret_false_b);
+
+  comp.bblock->gcc_bb = ret_false_b;
+  gcc_jit_block_end_with_return (ret_false_b,
+				 NULL,
+				 gcc_jit_context_new_rvalue_from_int(
+				   comp.ctxt,
+				   comp.bool_type,
+				   false));
+
+  gcc_jit_rvalue *args[2] =
+    { gcc_jit_param_as_rvalue (param[0]),
+      gcc_jit_param_as_rvalue (param[1]) };
+  comp.bblock->gcc_bb = call_pseudovector_typep_b;
+  /* FIXME XUNTAG missing here. */
+  gcc_jit_block_end_with_return (call_pseudovector_typep_b,
+				 NULL,
+				 emit_call ("helper_PSEUDOVECTOR_TYPEP_XUNTAG",
+					    comp.bool_type,
+					    2,
+					    args));
+}
+
+/* Declare a function to convert boolean into t or nil */
+
+static void
+declare_bool_to_lisp_obj (void)
+{
+  /* x ? Qt : Qnil */
+  gcc_jit_param *param = gcc_jit_context_new_param (comp.ctxt,
+						    NULL,
+						    comp.bool_type,
+						    "x");
+  comp.bool_to_lisp_obj =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.lisp_obj_type,
+				  "bool_to_lisp_obj",
+				  1,
+				  &param,
+				  0);
+  gcc_jit_block *initial_block =
+    gcc_jit_function_new_block (comp.bool_to_lisp_obj,
+				"bool_to_lisp_obj_initial_block");
+  gcc_jit_block *ret_t_block =
+    gcc_jit_function_new_block (comp.bool_to_lisp_obj,
+				"ret_t");
+  gcc_jit_block *ret_nil_block =
+    gcc_jit_function_new_block (comp.bool_to_lisp_obj,
+				"ret_nil");
+  /* Set current context as needed */
+  basic_block_t bblock = { .gcc_bb = initial_block,
+			   .terminated = false };
+  comp.bblock = &bblock;
+  comp.func = comp.bool_to_lisp_obj;
+
+  emit_cond_jump (gcc_jit_param_as_rvalue (param),
+		  ret_t_block,
+		  ret_nil_block);
+  bblock.gcc_bb = ret_t_block;
+  gcc_jit_block_end_with_return (ret_t_block,
+				 NULL,
+				 emit_lisp_obj_from_ptr (&bblock, Qt));
+  bblock.gcc_bb = ret_nil_block;
+  gcc_jit_block_end_with_return (ret_nil_block,
+				 NULL,
+				 emit_lisp_obj_from_ptr (&bblock, Qnil));
 }
 
 static int
@@ -1026,6 +1078,7 @@ init_comp (int opt_level)
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
   declare_PSEUDOVECTORP ();
+  declare_bool_to_lisp_obj ();
 }
 
 static void
@@ -1814,7 +1867,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bintegerp:
-	  error ("Bintegerp not supported");
+	  POP1;
+	  res = emit_INTEGERP(args[0]);
+	  res = gcc_jit_context_new_call (comp.ctxt,
+					  NULL,
+					  comp.bool_to_lisp_obj,
+					  1, &res);
+	  PUSH_RVAL (res);
 	  break;
 
 	case BRgoto:
