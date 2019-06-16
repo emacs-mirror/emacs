@@ -122,23 +122,28 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* With most of the ops we need to do the same stuff so this macros are meant
    to save some typing.  */
 
-/* Generate appropriate case and emit convential calls to function. */
+/* Pop from the meta-stack, emit the call and push the result */
+
+#define EMIT_CALL_N(name, nargs)					\
+  POP##nargs;								\
+  res = emit_call (name, comp.lisp_obj_type, nargs, args);		\
+  PUSH_RVAL (res);
+
+/* Generate appropriate case and emit call to function. */
 
 #define CASE_CALL_NARGS(name, nargs)					\
   case B##name:								\
-  POP##nargs;								\
-  res = emit_call (STR(F##name), comp.lisp_obj_type, nargs, args);	\
-  PUSH_RVAL (res);							\
+  EMIT_CALL_N (STR(F##name), nargs)					\
   break
 
 /* Emit calls to functions with prototype (ptrdiff_t nargs, Lisp_Object *args)
    This is done aggregating args into the scratch_call_area.  */
 
-#define EMIT_SCRATCH_CALL_N(name, nargs)	\
-  do {						\
-    pop (nargs, &stack, args);			\
-    res = emit_callN (name, nargs, args);	\
-    PUSH_RVAL (res);				\
+#define EMIT_SCRATCH_CALL_N(name, nargs)		\
+  do {							\
+    pop (nargs, &stack, args);				\
+    res = emit_scratch_callN (name, nargs, args);	\
+    PUSH_RVAL (res);					\
   } while (0)
 
 #define EMIT_ARITHCOMPARE(comparison)					\
@@ -150,7 +155,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     res = emit_call ("arithcompare", comp.lisp_obj_type, 3, args);	\
     PUSH_RVAL (res);							\
   } while (0)
-
 
 typedef struct {
   gcc_jit_block *gcc_bb;
@@ -671,7 +675,7 @@ emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 }
 
 static gcc_jit_rvalue *
-emit_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
+emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 {
   /* Here we set all the pointers into the scratch call area.  */
   /* TODO: distinguish primitives for faster calling convention.  */
@@ -1303,7 +1307,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    ptrdiff_t nargs = op + 1;
 	    pop (nargs, &stack, args);
-	    res = emit_callN ("Ffuncall", nargs, args);
+	    res = emit_scratch_callN ("Ffuncall", nargs, args);
 	    PUSH_RVAL (res);
 	    break;
 	  }
@@ -1781,10 +1785,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Bsave_window_excursion: /* Obsolete since 24.1.  */
-	  POP1;
-	  res = emit_call ("helper_save_window_excursion",
-			   comp.lisp_obj_type, 1, args);
-	  PUSH_RVAL (res);
+	  EMIT_CALL_N ("helper_save_window_excursion", 1);
 	  break;
 
 	case Bsave_restriction:
@@ -1843,15 +1844,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (downcase, 1);
 
 	case Bstringeqlsign:
-	  POP2;
-	  res = emit_call ("Fstring_equal", comp.lisp_obj_type, 2, args);
-	  PUSH_RVAL (res);
+	  EMIT_CALL_N ("Fstring_equal", 2);
 	  break;
 
 	case Bstringlss:
-	  POP2;
-	  res = emit_call ("Fstring_lessp", comp.lisp_obj_type, 2, args);
-	  PUSH_RVAL (res);
+	  EMIT_CALL_N ("Fstring_lessp", 2);
 	  break;
 
 	CASE_CALL_NARGS (equal, 2);
@@ -1863,15 +1860,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (setcdr, 2);
 
 	case Bcar_safe:
-	  POP2;
-	  res = emit_call ("CAR_SAFE", comp.lisp_obj_type, 1, args);
-	  PUSH_RVAL (res);
+	  EMIT_CALL_N ("CAR_SAFE", 1);
 	  break;
 
 	case Bcdr_safe:
-	  POP2;
-	  res = emit_call ("CDR_SAFE", comp.lisp_obj_type, 1, args);
-	  PUSH_RVAL (res);
+	  EMIT_CALL_N ("CDR_SAFE", 1);
 	  break;
 
 	case Bnconc:
