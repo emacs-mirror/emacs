@@ -2165,7 +2165,11 @@ The info element is shared with the same element of
 			     (skip-chars-forward " \t")
 			     (memq (char-after)
 				   '(?= ?x ?j)))))
-		(progn (puthash group (cons min max) hashtb)
+		(progn (when (string-match-p "[^\000-\177]" group)
+			 ;; NNTP servers may give us encoded group
+			 ;; names.
+			 (setq group (gnus-group-decoded-name group)))
+		       (puthash group (cons min max) hashtb)
 		       ;; If group is moderated, stick it in the
 		       ;; moderation cache.
 		       (when (eq (char-after) ?m)
