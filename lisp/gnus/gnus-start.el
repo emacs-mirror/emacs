@@ -2517,7 +2517,9 @@ If FORCE is non-nil, the .newsrc file is read."
 		 (read buf))
 	    group (if (numberp group)
 		      (number-to-string group)
-		    (symbol-name group)))
+		    ;; newsrc files are written as 'raw-text.
+		    (decode-coding-string
+		     (symbol-name group) 'utf-8)))
       (widen)
       (cond
        ;; It's possible that "group" is actually an options line.
