@@ -45,11 +45,25 @@
   "Testing cons car cdr."
   (defun comp-tests-list-f ()
     (list 1 2 3))
+  (defun comp-tests-car-safe-f (x)
+    ;; Bcar_safe
+    (car-safe x))
+  (defun comp-tests-cdr-safe-f (x)
+    ;; Bcdr_safe
+    (cdr-safe x))
 
   (byte-compile #'comp-tests-list-f)
   (native-compile #'comp-tests-list-f)
+  (byte-compile #'comp-tests-car-safe-f)
+  (native-compile #'comp-tests-car-safe-f)
+  (byte-compile #'comp-tests-cdr-safe-f)
+  (native-compile #'comp-tests-cdr-safe-f)
 
-  (should (equal (comp-tests-list-f) '(1 2 3))))
+  (should (equal (comp-tests-list-f) '(1 2 3)))
+  (should (= (comp-tests-car-safe-f '(1 . 2)) 1))
+  (should (null (comp-tests-car-safe-f 'a)))
+  (should (= (comp-tests-cdr-safe-f '(1 . 2)) 2))
+  (should (null (comp-tests-cdr-safe-f 'a))))
 
 (ert-deftest  comp-tests-cons-car-cdr ()
   "Testing cons car cdr."

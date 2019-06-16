@@ -1863,10 +1863,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (setcdr, 2);
 
 	case Bcar_safe:
-	  error ("Bcar_safe not supported");
+	  POP2;
+	  res = emit_call ("CAR_SAFE", comp.lisp_obj_type, 1, args);
+	  PUSH_RVAL (res);
 	  break;
+
 	case Bcdr_safe:
-	  error ("Bcdr_safe not supported");
+	  POP2;
+	  res = emit_call ("CDR_SAFE", comp.lisp_obj_type, 1, args);
+	  PUSH_RVAL (res);
 	  break;
 
 	case Bnconc:
@@ -2189,7 +2194,6 @@ Lisp_Object helper_unbind_n (int val);
 
 bool helper_PSEUDOVECTOR_TYPEP_XUNTAG (const union vectorlike_header *a,
 				       enum pvec_type code);
-
 Lisp_Object
 helper_save_window_excursion (Lisp_Object v1)
 {
