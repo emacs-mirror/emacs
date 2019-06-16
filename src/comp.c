@@ -495,13 +495,13 @@ emit_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
 static gcc_jit_rvalue *
 emit_VECTORLIKEP (gcc_jit_rvalue *obj)
 {
-  return emit_TAGGEDP(obj, Lisp_Vectorlike);
+  return emit_TAGGEDP (obj, Lisp_Vectorlike);
 }
 
 static gcc_jit_rvalue *
 emit_CONSP (gcc_jit_rvalue *obj)
 {
-  return emit_TAGGEDP(obj, Lisp_Cons);
+  return emit_TAGGEDP (obj, Lisp_Cons);
 }
 
 static gcc_jit_rvalue *
@@ -1332,11 +1332,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (symbolp, 1);
 
 	case Bconsp:
-	  gcc_jit_block_add_assignment (
-	    comp.bblock->gcc_bb,
-	    NULL,
-	    TOS,
-	    emit_CONSP(gcc_jit_lvalue_as_rvalue (TOS)));
+	  POP1;
+	  res = emit_cast (comp.bool_type,
+			   emit_CONSP (args[0]));
+	  res = gcc_jit_context_new_call (comp.ctxt,
+					  NULL,
+					  comp.bool_to_lisp_obj,
+					  1, &res);
+	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (stringp, 1);

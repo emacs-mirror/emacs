@@ -278,8 +278,8 @@
     ;; Bconsp
     (consp x))
 
-  ;; (byte-compile #'comp-tests-consp-f)
-  ;; (native-compile #'comp-tests-consp-f)
+  (byte-compile #'comp-tests-consp-f)
+  (native-compile #'comp-tests-consp-f)
 
   (should (eq (comp-tests-consp-f '(1)) t))
   (should (eq (comp-tests-consp-f 1) nil)))
