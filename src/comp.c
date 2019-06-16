@@ -505,6 +505,12 @@ emit_CONSP (gcc_jit_rvalue *obj)
 }
 
 static gcc_jit_rvalue *
+emit_FLOATP (gcc_jit_rvalue *obj)
+{
+  return emit_TAGGEDP (obj, Lisp_Float);
+}
+
+static gcc_jit_rvalue *
 emit_BIGNUMP (gcc_jit_rvalue *obj)
 {
   /* PSEUDOVECTORP (x, PVEC_BIGNUM); */
@@ -590,6 +596,18 @@ emit_INTEGERP (gcc_jit_rvalue *obj)
 					emit_cast (comp.bool_type,
 						   emit_FIXNUMP (obj)),
 					emit_BIGNUMP (obj));
+}
+
+static gcc_jit_rvalue *
+emit_NUMBERP (gcc_jit_rvalue *obj)
+{
+  return gcc_jit_context_new_binary_op (comp.ctxt,
+					NULL,
+					GCC_JIT_BINARY_OP_LOGICAL_OR,
+					comp.bool_type,
+					emit_INTEGERP(obj),
+					emit_cast (comp.bool_type,
+						   emit_FLOATP (obj)));
 }
 
 static gcc_jit_rvalue *
@@ -1866,7 +1884,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (rem, 2);
 
 	case Bnumberp:
-	  error ("Bnumberp not supported");
+	  POP1;
+	  res = emit_NUMBERP (args[0]);
+	  res = gcc_jit_context_new_call (comp.ctxt,
+					  NULL,
+					  comp.bool_to_lisp_obj,
+					  1, &res);
+	  PUSH_RVAL (res);
 	  break;
 
 	case Bintegerp:

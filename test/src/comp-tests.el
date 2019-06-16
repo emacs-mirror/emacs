@@ -289,14 +289,23 @@
   (defun comp-tests-integerp-f (x)
     ;; Bintegerp
     (integerp x))
+  (defun comp-tests-numberp-f (x)
+    ;; Bnumberp
+    (numberp x))
 
   (byte-compile #'comp-tests-integerp-f)
   (native-compile #'comp-tests-integerp-f)
+  (byte-compile #'comp-tests-numberp-f)
+  (native-compile #'comp-tests-numberp-f)
 
   (should (eq (comp-tests-integerp-f 1) t))
   (should (eq (comp-tests-integerp-f '(1)) nil))
   (should (eq (comp-tests-integerp-f 3.5) nil))
-  (should (eq (comp-tests-integerp-f (1+ most-negative-fixnum)) t)))
+  (should (eq (comp-tests-integerp-f (1+ most-negative-fixnum)) t))
+
+  (should (eq (comp-tests-numberp-f 1) t))
+  (should (eq (comp-tests-numberp-f 'a) nil))
+  (should (eq (comp-tests-numberp-f 3.5) t)))
 
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."
