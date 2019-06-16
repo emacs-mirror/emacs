@@ -314,12 +314,22 @@
     (1+ (let ((a 1)
             (_b)
             (_c))
-        a)))
+          a)))
+  (defun comp-tests-insertn-f (a b c d)
+    ;; Binsert
+    (insert a b c d))
 
   (byte-compile #'comp-tests-discardn-f)
   (native-compile #'comp-tests-discardn-f)
+  (byte-compile #'comp-tests-insertn-f)
+  (native-compile #'comp-tests-insertn-f)
 
-  (should (= (comp-tests-discardn-f 10) 2)))
+  (should (= (comp-tests-discardn-f 10) 2))
+
+  (should (string= (with-temp-buffer
+                      (comp-tests-insertn-f "a" "b" "c" "d")
+                      (buffer-string))
+                   "abcd")))
 
 (ert-deftest comp-tests-gc ()
   "Try to do some longer computation to let the gc kick in."

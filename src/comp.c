@@ -1945,7 +1945,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case BinsertN:
-	  error ("BinsertN not supported");
+	  op = FETCH;
+	  EMIT_SCRATCH_CALL_N ("Finsert", op);
 	  break;
 
 	case Bstack_set:
