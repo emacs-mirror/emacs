@@ -1832,10 +1832,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	case Btemp_output_buffer_setup: /* Obsolete since 24.1.  */
-	  POP1;
-	  res = emit_call ("helper_temp_output_buffer_setup", comp.lisp_obj_type,
-			   1, args);
-	  PUSH_RVAL (res);
+	  EMIT_CALL_N ("helper_temp_output_buffer_setup", 1);
 	  break;
 
 	case Btemp_output_buffer_show: /* Obsolete since 24.1.  */
