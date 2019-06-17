@@ -1836,7 +1836,7 @@ The info element is shared with the same element of
 	    (gnus-info-set-method info (car rest))
 	  (push method methods)))
       ;; Check for encoded group names and decode them.
-      (when (string-match-p "[^\000-\177]" (setq gname (car info)))
+      (when (string-match-p "[^[:ascii:]]" (setq gname (car info)))
 	(let ((decoded (gnus-group-decoded-name gname)))
 	 (setf gname decoded
 	       (car info) decoded)))
@@ -2165,7 +2165,7 @@ The info element is shared with the same element of
 			     (skip-chars-forward " \t")
 			     (memq (char-after)
 				   '(?= ?x ?j)))))
-		(progn (when (string-match-p "[^\000-\177]" group)
+		(progn (when (string-match-p "[^[:ascii:]]" group)
 			 ;; NNTP servers may give us encoded group
 			 ;; names.
 			 (setq group (gnus-group-decoded-name group)))
@@ -2414,7 +2414,7 @@ If FORCE is non-nil, the .newsrc file is read."
 	     (lambda (elt)
 	       (cons (car elt)
 		     (mapcar (lambda (g)
-			       (if (string-match-p "[^\000-\177]" g)
+			       (if (string-match-p "[^[:ascii:]]" g)
 				   (gnus-group-decoded-name g)
 				 g))
 			     (cdr elt))))

@@ -280,7 +280,7 @@ Encode names if ENCODE is non-nil, otherwise decode."
 	       (remhash group-name grouphash)
 	       (puthash (encode-coding-string group-name 'utf-8-emacs)
 			val grouphash))
-	   (when (string-match-p "[^\000-\177]" group-name)
+	   (when (string-match-p "[^[:ascii:]]" group-name)
 	     (remhash group-name grouphash)
 	     (puthash (decode-coding-string group-name 'utf-8-emacs) val grouphash))))
        grouphash))
@@ -290,7 +290,7 @@ Encode names if ENCODE is non-nil, otherwise decode."
 	 (when (seq-some (lambda (g)
 			   (if encode
 			       (multibyte-string-p g)
-			     (string-match-p "[^\000-\177]" g)))
+			     (string-match-p "[^[:ascii:]]" g)))
 			 groups)
 	   ;; Create a replacement DATA.
 	   (push (list id (cons (cons 'group (mapcar

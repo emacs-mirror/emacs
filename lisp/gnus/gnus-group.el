@@ -2159,7 +2159,7 @@ or vector."
   (let* ((choices
 	  (mapcar
 	   (lambda (g)
-	     (if (string-match "[^\000-\177]" g)
+	     (if (string-match "[^[:ascii:]]" g)
 		 (gnus-group-decoded-name g)
 	       g))
 	   (cond ((listp collection)

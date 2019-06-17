@@ -5656,7 +5656,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 	  (concat
 	   msg-id (if msg-id " (")
 	   (if (car name)
-	       (if (string-match "[^\000-\177]" (car name))
+	       (if (string-match "[^[:ascii:]]" (car name))
 		   ;; Quote a string containing non-ASCII characters.
 		   ;; It will make the RFC2047 encoder cause an error
 		   ;; if there are special characters.
