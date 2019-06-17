@@ -264,6 +264,50 @@ This can slow pruning down.  Set to nil to perform no sorting."
    (cadr (assq 'creation-time r))
    (cadr (assq 'creation-time l))))
 
+;; Remove this from the save routine (and fix it to only decode) at
+;; next Gnus version bump.
+(defun gnus-registry--munge-group-names (db &optional encode)
+  "Encode/decode group names in DB, before saving or after loading.
+Encode names if ENCODE is non-nil, otherwise decode."
+  (let ((datahash (slot-value db 'data))
+	(grouphash (registry-lookup-secondary db 'group))
+	reset-pairs)
+    (when (hash-table-p grouphash)
+      (maphash
+       (lambda (group-name val)
+	 (if encode
+	     (when (multibyte-string-p group-name)
+	       (remhash group-name grouphash)
+	       (puthash (encode-coding-string group-name 'utf-8-emacs)
+			val grouphash))
+	   (when (string-match-p "[^\000-\177]" group-name)
+	     (remhash group-name grouphash)
+	     (puthash (decode-coding-string group-name 'utf-8-emacs) val grouphash))))
+       grouphash))
+    (maphash
+     (lambda (id data)
+       (let ((groups (cdr-safe (assq 'group data))))
+	 (when (seq-some (lambda (g)
+			   (if encode
+			       (multibyte-string-p g)
+			     (string-match-p "[^\000-\177]" g)))
+			 groups)
+	   ;; Create a replacement DATA.
+	   (push (list id (cons (cons 'group (mapcar
+			   (lambda (g)
+			     (funcall
+			      (if encode
+				  #'encode-coding-string
+				#'decode-coding-string)
+			      g 'utf-8-emacs))
+			   groups))
+				(assq-delete-all 'group data)))
+		 reset-pairs))))
+     datahash)
+    (pcase-dolist (`(,id ,data) reset-pairs)
+      (registry-delete db (list id) nil)
+      (registry-insert db id data))))
+
 (defun gnus-registry-fixup-registry (db)
   (when db
     (let ((old (oref db tracked)))
@@ -281,7 +325,8 @@ This can slow pruning down.  Set to nil to perform no sorting."
                     '(mark group keyword)))
       (when (not (equal old (oref db tracked)))
         (gnus-message 9 "Reindexing the Gnus registry (tracked change)")
-        (registry-reindex db))))
+        (registry-reindex db))
+      (gnus-registry--munge-group-names db)))
   db)
 
 (defun gnus-registry-make-db (&optional file)
@@ -351,14 +396,20 @@ This is not required after changing `gnus-registry-cache-file'."
 (defun gnus-registry-save (&optional file db)
   "Save the registry cache file."
   (interactive)
-  (let ((file (or file gnus-registry-cache-file))
-        (db (or db gnus-registry-db)))
+  (let* ((file (or file gnus-registry-cache-file))
+         (db (or db gnus-registry-db))
+	 (clone (clone db)))
     (gnus-message 5 "Saving Gnus registry (%d entries) to %s..."
                   (registry-size db) file)
     (registry-prune
      db gnus-registry-default-sort-function)
+    ;; Write a clone of the database with non-ascii group names
+    ;; encoded as 'utf-8.  Let-bind `gnus-registry-db' so that
+    ;; functions in the munging process work on our clone.
+    (let ((gnus-registry-db clone))
+     (gnus-registry--munge-group-names clone 'encode))
     ;; TODO: call (gnus-string-remove-all-properties v) on all elements?
-    (eieio-persistent-save db file)
+    (eieio-persistent-save clone file)
     (gnus-message 5 "Saving Gnus registry (size %d) to %s...done"
                   (registry-size db) file)))
 
