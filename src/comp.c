@@ -113,14 +113,14 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define FETCH (bytestr_data[pc++])
 
 /* Fetch two bytes from the bytecode stream and make a 16-bit number
-   out of them.  */
+   out of them.	 */
 
 #define FETCH2 (op = FETCH, op + (FETCH << 8))
 
 #define STR(s) #s
 
 /* With most of the ops we need to do the same stuff so this macros are meant
-   to save some typing.  */
+   to save some typing.	 */
 
 /* Pop from the meta-stack, emit the call and push the result */
 
@@ -161,7 +161,7 @@ typedef struct {
   bool terminated;
 } basic_block_t;
 
-/* The compiler context  */
+/* The compiler context	 */
 
 typedef struct {
   gcc_jit_context *ctxt;
@@ -180,7 +180,17 @@ typedef struct {
   gcc_jit_type *lisp_obj_ptr_type;
   gcc_jit_field *lisp_obj_as_ptr;
   gcc_jit_field *lisp_obj_as_num;
+  /* struct handler.  */
   gcc_jit_struct *handler;
+  gcc_jit_field *handler_jmp_field;
+  gcc_jit_field *handler_val_field;
+  gcc_jit_field *handler_next_field;
+  gcc_jit_type *handler_ptr_type;
+  /* struct thread_state.  */
+  gcc_jit_struct *thread_state;
+  gcc_jit_field *m_handlerlist;
+  gcc_jit_type *thread_state_ptr_type;
+  gcc_jit_rvalue *current_thread;
   /* libgccjit has really limited support for casting therefore this union will
      be used for the scope.  */
   gcc_jit_type *cast_union_type;
@@ -198,8 +208,8 @@ typedef struct {
   gcc_jit_rvalue *lisp_int0;
   gcc_jit_function *pseudovectorp;
   gcc_jit_function *bool_to_lisp_obj;
-  basic_block_t *bblock; /* Current basic block  */
-  Lisp_Object func_hash; /* f_name -> gcc_func  */
+  basic_block_t *bblock; /* Current basic block	 */
+  Lisp_Object func_hash; /* f_name -> gcc_func	*/
 } comp_t;
 
 static comp_t comp;
@@ -266,13 +276,13 @@ type_to_cast_field (gcc_jit_type *type)
 static gcc_jit_function *
 emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
 		   unsigned nargs, gcc_jit_rvalue **args,
-		   enum  gcc_jit_function_kind kind, bool reusable)
+		   enum	 gcc_jit_function_kind kind, bool reusable)
 {
   gcc_jit_param *param[4];
   gcc_jit_type *type[4];
 
   /* If args are passed types are extracted from that otherwise assume params */
-  /* are all lisp objs.  */
+  /* are all lisp objs.	 */
   if (args)
     for (int i = 0; i < nargs; i++)
       type[i] = gcc_jit_rvalue_get_type (args[i]);
@@ -543,7 +553,7 @@ static gcc_jit_rvalue *
 emit_FIXNUMP (gcc_jit_rvalue *obj)
 {
   /* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS))
-        - (unsigned) (Lisp_Int0 >> !USE_LSB_TAG))
+	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG))
 	& ((1 << INTTYPEBITS) - 1)))  */
 
   gcc_jit_rvalue *sh_res =
@@ -653,8 +663,8 @@ emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
   return gcc_jit_lvalue_as_rvalue (res);
 }
 
-/* Construct fill and return a lisp object form a raw pointer.  */
-/* TODO should we pass the bb?  */
+/* Construct fill and return a lisp object form a raw pointer.	*/
+/* TODO should we pass the bb?	*/
 static gcc_jit_rvalue *
 emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 {
@@ -735,9 +745,27 @@ emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
   return emit_call (f_name, comp.lisp_obj_type, 2, args);
 }
 
+/* struct handler definition  */
+
 static void
 define_handler_struct (void)
 {
+  comp.handler = gcc_jit_context_new_opaque_struct (comp.ctxt, NULL, "handler");
+  comp.handler_ptr_type =
+    gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.handler));
+
+  comp.handler_jmp_field = gcc_jit_context_new_field (comp.ctxt,
+						      NULL,
+						      comp.jmp_buf_type,
+						      "jmp");
+  comp.handler_val_field = gcc_jit_context_new_field (comp.ctxt,
+						      NULL,
+						      comp.lisp_obj_type,
+						      "val");
+  comp.handler_next_field = gcc_jit_context_new_field (comp.ctxt,
+						       NULL,
+						       comp.handler_ptr_type,
+						       "next");
   gcc_jit_field *fields[] =
     { gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
@@ -751,17 +779,11 @@ define_handler_struct (void)
 				 NULL,
 				 comp.int_type,
 				 "nonlocal_exit"),
+      comp.handler_val_field,
+      comp.handler_next_field,
       gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
-				 comp.lisp_obj_type,
-				 "val"),
-      gcc_jit_context_new_field (comp.ctxt,
-				 NULL,
-				 comp.void_ptr_type,
-				 "next"),
-      gcc_jit_context_new_field (comp.ctxt,
-				 NULL,
-				 comp.void_ptr_type,
+				 comp.handler_ptr_type,
 				 "nextfree"),
       gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
@@ -771,10 +793,7 @@ define_handler_struct (void)
 				 NULL,
 				 comp.int_type,
 				 "bytecode_dest"),
-      gcc_jit_context_new_field (comp.ctxt,
-				 NULL,
-				 comp.jmp_buf_type,
-				 "jmp"),
+      comp.handler_jmp_field,
       gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
 				 comp.emacs_int_type,
@@ -791,13 +810,55 @@ define_handler_struct (void)
 				 NULL,
 				 comp.int_type,
 				 "interrupt_input_blocked") };
-  comp.handler =
+  gcc_jit_struct_set_fields (comp.handler,
+			     NULL,
+			     sizeof (fields) / sizeof (*fields),
+			     fields);
+
+}
+
+static void
+define_thread_state_struct (void)
+{
+  /* Partially opaque definition for `thread_state'.
+     Because we need to access just m_handlerlist hopefully this is requires
+     less manutention then the full deifnition.	 */
+
+  comp.m_handlerlist = gcc_jit_context_new_field (comp.ctxt,
+						  NULL,
+						  comp.handler_ptr_type,
+						  "m_handlerlist");
+  gcc_jit_field *fields[] =
+    { gcc_jit_context_new_field (
+	comp.ctxt,
+	NULL,
+	gcc_jit_context_new_array_type (comp.ctxt,
+					NULL,
+					comp.char_type,
+					offsetof (struct thread_state,
+						  m_handlerlist)),
+	"pad0"),
+      comp.m_handlerlist,
+      gcc_jit_context_new_field (
+	comp.ctxt,
+	NULL,
+	gcc_jit_context_new_array_type (comp.ctxt,
+					NULL,
+					comp.char_type,
+					sizeof (struct thread_state)
+					- offsetof (struct thread_state,
+						    m_handlerlist)
+					- sizeof (struct handler *)),
+	"pad1") };
+
+  comp.thread_state =
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
-				     "handler",
-				     sizeof (fields)
-				     / sizeof (*fields),
+				     "thread_state",
+				     sizeof (fields) / sizeof (*fields),
 				     fields);
+  comp.thread_state_ptr_type =
+    gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.thread_state));
 }
 
 /* Declare a substitute for PSEUDOVECTORP as inline function.  */
@@ -948,8 +1009,6 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	case Bvarbind7:
 	case Bcall7:
 	case Bunbind7:
-	case Bpushcatch:
-	case Bpushconditioncase:
 	case Bstack_ref7:
 	case Bstack_set2:
 	  pc += 2;
@@ -989,6 +1048,9 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	  bb_start_pc[bb_n++] = op;
 	  new_bb = true;
 	  break;
+	  /* Other ops changing bb */
+	case Bpushcatch:
+	case Bpushconditioncase:
 	case Bsub1:
 	case Badd1:
 	case Bnegate:
@@ -1074,7 +1136,7 @@ init_comp (int opt_level)
 						    comp.void_ptr_type,
 						    "obj");
 #else
-  /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.  */
+  /* 64-bit builds on MS-Windows, 32-bit builds with wide ints.	 */
   comp.lisp_obj_as_ptr = gcc_jit_context_new_field (comp.ctxt,
 						    NULL,
 						    comp.long_long_type,
@@ -1192,6 +1254,11 @@ init_comp (int opt_level)
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
   define_handler_struct ();
+  define_thread_state_struct ();
+  comp.current_thread =
+    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
+					 comp.thread_state_ptr_type,
+					 current_thread);
   define_PSEUDOVECTORP ();
   define_bool_to_lisp_obj ();
 }
@@ -1276,6 +1343,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
   while (pc < bytestr_length)
     {
+      enum handlertype type;
+
       /* If we are changing BB and the last was one wasn't terminated
 	 terminate it with a fall through.  */
       if (comp.bblock && comp.bblock->gcc_bb != bb_map[pc].gcc_bb &&
@@ -1429,14 +1498,92 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
 	  }
 	  break;
+
 	case Bpophandler:
-	  error ("Bpophandler unsupported bytecode\n");
-	  break;
-	case Bpushconditioncase:
-	  error ("Bpushconditioncase unsupported bytecode\n");
-	  break;
-	case Bpushcatch:
-	  error ("Bpushcatch unsupported bytecode\n");
+	  {
+	  /* current_thread->m_handlerlist =
+	       current_thread->m_handlerlist->next;  */
+	    gcc_jit_lvalue *m_handlerlist =
+	      gcc_jit_rvalue_dereference_field (comp.current_thread,
+						NULL,
+						comp.m_handlerlist);
+
+	    gcc_jit_block_add_assignment(
+	      comp.bblock->gcc_bb,
+	      NULL,
+	      m_handlerlist,
+	      gcc_jit_lvalue_as_rvalue (
+		gcc_jit_rvalue_dereference_field (
+			gcc_jit_lvalue_as_rvalue (m_handlerlist),
+			NULL,
+			comp.handler_next_field)));
+	    break;
+	  }
+
+	case Bpushconditioncase: /* New in 24.4.  */
+	  type = CATCHER;
+	  goto pushhandler;
+
+	case Bpushcatch:	/* New in 24.4.	 */
+	  type = CONDITION_CASE;;
+	pushhandler:
+	  {
+	    /* struct handler *c = push_handler (POP, type); */
+	    int handler_pc = FETCH2;
+	    gcc_jit_rvalue *c;
+	    POP1;
+	    args[1] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+							   comp.int_type,
+							   type);
+	    c = emit_call ("push_handler", comp.handler_ptr_type, 2, args);
+	    args[0] =
+	      gcc_jit_lvalue_get_address (
+		gcc_jit_rvalue_dereference_field (c,
+						  NULL,
+						  comp.handler_jmp_field),
+					  NULL);
+#ifdef HAVE__SETJMP
+	    res = emit_call ("_setjmp", comp.int_type, 1, args);
+#else
+	    res = emit_call ("setjmp", comp.int_type, 1, args);
+#endif
+	    gcc_jit_block *push_h_val_block =
+	      gcc_jit_function_new_block (comp.func, "push_h_val");
+	    emit_cond_jump (
+	      /* This negation is just to move to bool.  */
+	      gcc_jit_context_new_unary_op (comp.ctxt,
+					    NULL,
+					    GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
+					    comp.bool_type,
+					    res),
+	      bb_map[pc].gcc_bb,
+	      push_h_val_block);
+
+	    basic_block_t bb_orig = *comp.bblock;
+	    comp.bblock->gcc_bb = push_h_val_block;
+	    /* current_thread->m_handlerlist = c->next; */
+	    gcc_jit_lvalue *m_handlerlist =
+	      gcc_jit_rvalue_dereference_field (comp.current_thread,
+						NULL,
+						comp.m_handlerlist);
+	    gcc_jit_block_add_assignment(comp.bblock->gcc_bb,
+					 NULL,
+					 m_handlerlist,
+					 gcc_jit_lvalue_as_rvalue(
+					   gcc_jit_rvalue_dereference_field (
+					     c,
+					     NULL,
+					     comp.handler_next_field)));
+	    /* PUSH (c->val); */
+	    PUSH_LVAL (
+	      gcc_jit_rvalue_dereference_field (c,
+						NULL,
+						comp.handler_val_field));
+	    *comp.bblock = bb_orig;
+
+	    gcc_jit_block_end_with_jump (push_h_val_block, NULL,
+					 bb_map[handler_pc].gcc_bb);
+	  }
 	  break;
 
 	CASE_CALL_NARGS (nth, 2);
@@ -1514,8 +1661,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
-	         ? make_fixnum (XFIXNUM (TOP) - 1)
-	         : Fsub1 (TOP)) */
+		 ? make_fixnum (XFIXNUM (TOP) - 1)
+		 : Fsub1 (TOP)) */
 
 	    gcc_jit_block *sub1_inline_block =
 		 gcc_jit_function_new_block (comp.func, "inline_sub1");
@@ -1574,8 +1721,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_POSITIVE_FIXNUM
-	         ? make_fixnum (XFIXNUM (TOP) + 1)
-	         : Fadd (TOP)) */
+		 ? make_fixnum (XFIXNUM (TOP) + 1)
+		 : Fadd (TOP)) */
 
 	    gcc_jit_block *add1_inline_block =
 		 gcc_jit_function_new_block (comp.func, "inline_add1");
@@ -1793,7 +1940,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 		     comp.void_type, 0, NULL);
 	  break;
 
-	case Binteractive_p:	/* Obsolete since 24.1.  */
+	case Binteractive_p:	/* Obsolete since 24.1.	 */
 	  PUSH_RVAL (emit_lisp_obj_from_ptr (comp.bblock,
 					     intern ("interactive-p")));
 	  res = emit_call ("call0", comp.lisp_obj_type, 1, args);
@@ -1891,7 +2038,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
 	  break;
 
-	case Bcatch:		/* Obsolete since 24.4.  */
+	case Bcatch:		/* Obsolete since 24.4.	 */
 	  POP2;
 	  args[2] = args[1];
 	  args[1] = emit_lisp_obj_from_ptr (comp.bblock, eval_sub);
@@ -1903,17 +2050,17 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_call ("helper_unwind_protect", comp.void_type, 1, args);
 	  break;
 
-	case Bcondition_case:		/* Obsolete since 24.4.  */
+	case Bcondition_case:		/* Obsolete since 24.4.	 */
 	  POP3;
 	  emit_call ("internal_lisp_condition_case",
 		     comp.lisp_obj_type, 3, args);
 	  break;
 
-	case Btemp_output_buffer_setup: /* Obsolete since 24.1.  */
+	case Btemp_output_buffer_setup: /* Obsolete since 24.1.	 */
 	  EMIT_CALL_N ("helper_temp_output_buffer_setup", 1);
 	  break;
 
-	case Btemp_output_buffer_show: /* Obsolete since 24.1.  */
+	case Btemp_output_buffer_show: /* Obsolete since 24.1.	*/
 	  POP2;
 	  emit_call ("temp_output_buffer_show", comp.void_type, 1,
 		     &args[1]);
@@ -1923,7 +2070,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 	case Bunbind_all:	/* Obsolete.  Never used.  */
 	  /* To unbind back to the beginning of this frame.  Not used yet,
-	     but will be needed for tail-recursion elimination.  */
+	     but will be needed for tail-recursion elimination.	 */
 	  error ("Bunbind_all not supported");
 	  break;
 
@@ -2074,7 +2221,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	case Bswitch:
 	  error ("Bswitch not supported");
 	  /* The cases of Bswitch that we handle (which in theory is
-	     all of them) are done in Bconstant, below.  This is done
+	     all of them) are done in Bconstant, below.	 This is done
 	     due to a design issue with Bswitch -- it should have
 	     taken a constant pool index inline, but instead looks for
 	     a constant on the stack.  */
@@ -2099,7 +2246,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 		break;
 	      }
 
-	    /* We're compiling Bswitch instead.  */
+	    /* We're compiling Bswitch instead.	 */
 	    ++pc;
 	    break;
 	  }
@@ -2131,7 +2278,7 @@ emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
     /* BYTESTR must have been produced by Emacs 20.2 or the earlier
        because they produced a raw 8-bit string for byte-code and now
        such a byte-code string is loaded as multibyte while raw 8-bit
-       characters converted to multibyte form.  Thus, now we must
+       characters converted to multibyte form.	Thus, now we must
        convert them back to the originally intended unibyte form.  */
     bytestr = Fstring_as_unibyte (bytestr);
 
