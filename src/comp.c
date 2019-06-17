@@ -167,6 +167,7 @@ typedef struct {
   gcc_jit_context *ctxt;
   gcc_jit_type *void_type;
   gcc_jit_type *bool_type;
+  gcc_jit_type *char_type;
   gcc_jit_type *int_type;
   gcc_jit_type *unsigned_type;
   gcc_jit_type *long_type;
@@ -174,9 +175,12 @@ typedef struct {
   gcc_jit_type *emacs_int_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
+  gcc_jit_type *jmp_buf_type;
   gcc_jit_type *lisp_obj_type;
+  gcc_jit_type *lisp_obj_ptr_type;
   gcc_jit_field *lisp_obj_as_ptr;
   gcc_jit_field *lisp_obj_as_num;
+  gcc_jit_struct *handler;
   /* libgccjit has really limited support for casting therefore this union will
      be used for the scope.  */
   gcc_jit_type *cast_union_type;
@@ -731,10 +735,75 @@ emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
   return emit_call (f_name, comp.lisp_obj_type, 2, args);
 }
 
+static void
+define_handler_struct (void)
+{
+  gcc_jit_field *fields[] =
+    { gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.int_type,
+				 "type"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "tag_or_ch"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.int_type,
+				 "nonlocal_exit"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "val"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.void_ptr_type,
+				 "next"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.void_ptr_type,
+				 "nextfree"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_ptr_type,
+				 "bytecode_top"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.int_type,
+				 "bytecode_dest"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.jmp_buf_type,
+				 "jmp"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.emacs_int_type,
+				 "f_lisp_eval_depth"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.ptrdiff_type,
+				 "pdlcount"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.int_type,
+				 "poll_suppress_count"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.int_type,
+				 "interrupt_input_blocked") };
+  comp.handler =
+    gcc_jit_context_new_struct_type (comp.ctxt,
+				     NULL,
+				     "handler",
+				     sizeof (fields)
+				     / sizeof (*fields),
+				     fields);
+}
+
 /* Declare a substitute for PSEUDOVECTORP as inline function.  */
 
 static void
-declare_PSEUDOVECTORP (void)
+define_PSEUDOVECTORP (void)
 {
   gcc_jit_param *param[2] =
     { gcc_jit_context_new_param (comp.ctxt,
@@ -800,7 +869,7 @@ declare_PSEUDOVECTORP (void)
 /* Declare a function to convert boolean into t or nil */
 
 static void
-declare_bool_to_lisp_obj (void)
+define_bool_to_lisp_obj (void)
 {
   /* x ? Qt : Qnil */
   gcc_jit_param *param = gcc_jit_context_new_param (comp.ctxt,
@@ -989,6 +1058,7 @@ init_comp (int opt_level)
   comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.void_ptr_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
+  comp.char_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_CHAR);
   comp.int_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_INT);
   comp.unsigned_type = gcc_jit_context_get_type (comp.ctxt,
 						 GCC_JIT_TYPE_UNSIGNED_INT);
@@ -1023,13 +1093,15 @@ init_comp (int opt_level)
 						     comp.emacs_int_type,
 						     "num");
 
-  gcc_jit_field *lisp_obj_fields[2] = { comp.lisp_obj_as_ptr,
-                                        comp.lisp_obj_as_num };
+  gcc_jit_field *lisp_obj_fields[] = { comp.lisp_obj_as_ptr,
+				       comp.lisp_obj_as_num };
   comp.lisp_obj_type = gcc_jit_context_new_union_type (comp.ctxt,
 						       NULL,
 						       "LispObj",
-						       2,
+						       sizeof (lisp_obj_fields)
+						       / sizeof (*lisp_obj_fields),
 						       lisp_obj_fields);
+  comp.lisp_obj_ptr_type = gcc_jit_type_get_pointer (comp.lisp_obj_type);
 
   comp.cast_union_as_ll =
     gcc_jit_context_new_field (comp.ctxt,
@@ -1057,7 +1129,7 @@ init_comp (int opt_level)
 			       comp.bool_type,
 			       "b");
 
-  gcc_jit_field *cast_union_fields[5] =
+  gcc_jit_field *cast_union_fields[] =
     { comp.cast_union_as_ll,
       comp.cast_union_as_l,
       comp.cast_union_as_u,
@@ -1067,8 +1139,8 @@ init_comp (int opt_level)
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
 				    "cast_union",
-				    sizeof (cast_union_fields) /
-				    sizeof (*cast_union_fields),
+				    sizeof (cast_union_fields)
+				    / sizeof (*cast_union_fields),
 				    cast_union_fields);
   comp.most_positive_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -1102,8 +1174,13 @@ init_comp (int opt_level)
   else
     eassert ("ptrdiff_t size not handled.");
 
-  comp.ptrdiff_type = gcc_jit_context_get_type(comp.ctxt, ptrdiff_t_gcc);
+  comp.ptrdiff_type = gcc_jit_context_get_type (comp.ctxt, ptrdiff_t_gcc);
 
+  /* Opaque definition for jmp_buf.  */
+  comp.jmp_buf_type = gcc_jit_context_new_array_type (comp.ctxt,
+						      NULL,
+						      comp.char_type,
+						      sizeof (jmp_buf));
   comp.scratch =
     gcc_jit_lvalue_get_address(
       gcc_jit_context_new_global (comp.ctxt, NULL,
@@ -1114,8 +1191,9 @@ init_comp (int opt_level)
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
-  declare_PSEUDOVECTORP ();
-  declare_bool_to_lisp_obj ();
+  define_handler_struct ();
+  define_PSEUDOVECTORP ();
+  define_bool_to_lisp_obj ();
 }
 
 static void
