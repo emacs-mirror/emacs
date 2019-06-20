@@ -1111,8 +1111,12 @@ init_comp (int opt_level)
     }
   if (COMP_DEBUG > 1)
     {
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
+				       1);
+
       gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
-      gcc_jit_context_dump_to_file (comp.ctxt, "emacs-gcc-code.c", 0);
+
     }
 
   gcc_jit_context_set_int_option (comp.ctxt,
@@ -1268,6 +1272,8 @@ init_comp (int opt_level)
 static void
 release_comp (void)
 {
+  if (COMP_DEBUG)
+    gcc_jit_context_dump_to_file (comp.ctxt, "gcc-ctxt-dump.c", 1);
   if (comp.ctxt)
     gcc_jit_context_release(comp.ctxt);
 
