@@ -1073,12 +1073,14 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
   }
 
   basic_block_t curr_bb;
+  char block_name[256];
   for (int i = 0, pc = 0; pc < bytestr_length; pc++)
     {
       if (i < bb_n && pc == bb_start_pc[i])
 	{
 	  ++i;
-	  curr_bb.gcc_bb = gcc_jit_function_new_block (comp.func, NULL);
+	  snprintf (block_name, sizeof (block_name), "bb_%d", i);
+	  curr_bb.gcc_bb = gcc_jit_function_new_block (comp.func, block_name);
 	  curr_bb.terminated = false;
 	}
       bb_map[pc] = curr_bb;
