@@ -2147,44 +2147,25 @@ be permanent."
 					     require-match initial-input hist
 					     def)
   "Read a group name with completion.
-Non-ASCII group names are allowed.  The arguments are the same as
-`completing-read' except that COLLECTION and HIST default to
-`gnus-active-hashtb' and `gnus-group-history' respectively if
-they are omitted.  Can handle COLLECTION as a list, hash table,
-or vector."
-  ;; This function is a little more complicated for backwards
-  ;; compatibility.  In theory, `collection' will only ever be a list
-  ;; or a hash table, and the group names will all be fully decoded.
+The arguments are the same as `completing-read' except that
+COLLECTION and HIST default to `gnus-active-hashtb' and
+`gnus-group-history' respectively if they are omitted.  Can
+handle COLLECTION as a list, hash table, or vector."
+  ;; This function handles vectors for backwards compatibility.  In
+  ;; theory, `collection' will only ever be a list or a hash table.
   (or collection (setq collection gnus-active-hashtb))
   (let* ((choices
-	  (mapcar
-	   (lambda (g)
-	     (if (string-match "[^[:ascii:]]" g)
-		 (gnus-group-decoded-name g)
-	       g))
 	   (cond ((listp collection)
 		  collection)
 		 ((vectorp collection)
 		  (mapatoms #'symbol-name collection))
 		 ((hash-table-p collection)
-		  (hash-table-keys collection)))))
+		  (hash-table-keys collection))))
 	 (group
 	  (gnus-completing-read (or prompt "Group") (reverse choices)
 				require-match initial-input
 				(or hist 'gnus-group-history)
 				def)))
-    (unless (cond ((and (listp collection)
-			(symbolp (car collection)))
-		   (member group (mapcar 'symbol-name collection)))
-		  ((listp collection)
-		   (member group collection))
-		  ((vectorp collection)
-		   (symbol-value (intern-soft group collection)))
-		  ((hash-table-p collection)
-		   (gethash group collection)))
-      (setq group
-	    (encode-coding-string
-	     group (gnus-group-name-charset nil group))))
     (replace-regexp-in-string "\n" "" group)))
 
 ;;;###autoload
