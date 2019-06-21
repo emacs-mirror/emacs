@@ -2703,52 +2703,74 @@ The following commands are available:
   "Read the category alist."
   (setq gnus-category-alist
         (or
-         (with-temp-buffer
-           (ignore-errors
-            (nnheader-insert-file-contents (nnheader-concat gnus-agent-directory "lib/categories"))
-            (goto-char (point-min))
-            ;; This code isn't temp, it will be needed so long as
-            ;; anyone may be migrating from an older version.
+	 (let ((list
+		(with-temp-buffer
+		  (ignore-errors
+		    (nnheader-insert-file-contents (nnheader-concat gnus-agent-directory "lib/categories"))
+		    (goto-char (point-min))
+		    ;; This code isn't temp, it will be needed so long as
+		    ;; anyone may be migrating from an older version.
 
-            ;; Once we're certain that people will not revert to an
-            ;; earlier version, we can take out the old-list code in
-            ;; gnus-category-write.
-            (let* ((old-list (read (current-buffer)))
-                   (new-list (ignore-errors (read (current-buffer)))))
-              (if new-list
-                  new-list
-                ;; Convert from a positional list to an alist.
-                (mapcar
-                 (lambda (c)
-                   (setcdr c
-                           (delq nil
-                                 (gnus-mapcar
-                                  (lambda (valu symb)
-                                    (if valu
-                                        (cons symb valu)))
-                                  (cdr c)
-                                  '(agent-predicate agent-score-file agent-groups))))
-                   c)
-                 old-list)))))
+		    ;; Once we're certain that people will not revert to an
+		    ;; earlier version, we can take out the old-list code in
+		    ;; gnus-category-write.
+		    (let* ((old-list (read (current-buffer)))
+			   (new-list (ignore-errors (read (current-buffer)))))
+		      (if new-list
+			  new-list
+			;; Convert from a positional list to an alist.
+			(mapcar
+			 (lambda (c)
+			   (setcdr c
+				   (delq nil
+					 (gnus-mapcar
+					  (lambda (valu symb)
+					    (if valu
+						(cons symb valu)))
+					  (cdr c)
+					  '(agent-predicate agent-score-file agent-groups))))
+			   c)
+			 old-list)))))))
+	   ;; Possibly decode group names.
+	   (dolist (cat list)
+	     (setf (alist-get 'agent-groups cat)
+		   (mapcar (lambda (g)
+			     (if (string-match-p "[^[:ascii:]]" g)
+				 (decode-coding-string g 'utf-8-emacs)
+			       g))
+			   (alist-get 'agent-groups cat))))
+	   list)
          (list (gnus-agent-cat-make 'default 'short)))))
 
 (defun gnus-category-write ()
   "Write the category alist."
   (setq gnus-category-predicate-cache nil
 	gnus-category-group-cache nil)
-  (gnus-make-directory (nnheader-concat gnus-agent-directory "lib"))
-  (with-temp-file (nnheader-concat gnus-agent-directory "lib/categories")
-    ;; This prin1 is temporary.  It exists so that people can revert
-    ;; to an earlier version of gnus-agent.
-    (prin1 (mapcar (lambda (c)
-              (list (car c)
-                    (cdr (assoc 'agent-predicate c))
-                    (cdr (assoc 'agent-score-file c))
-                    (cdr (assoc 'agent-groups c))))
-                   gnus-category-alist)
-           (current-buffer))
-    (newline)
-    (prin1 gnus-category-alist (current-buffer))))
+  ;; Temporarily encode non-ascii group names when saving to file,
+  ;; pending an upgrade of Gnus' file formats.
+  (let ((gnus-category-alist
+	 (mapcar (lambda (cat)
+		   (setf (alist-get 'agent-groups cat)
+			 (mapcar (lambda (g)
+				   (if (multibyte-string-p g)
+				       (encode-coding-string g 'utf-8-emacs)
+				     g))
+				 (alist-get 'agent-groups cat)))
+		   cat)
+		 (copy-tree gnus-category-alist))))
+   (gnus-make-directory (nnheader-concat gnus-agent-directory "lib"))
+   (with-temp-file (nnheader-concat gnus-agent-directory "lib/categories")
+     ;; This prin1 is temporary.  It exists so that people can revert
+     ;; to an earlier version of gnus-agent.
+     (prin1 (mapcar (lambda (c)
+		      (list (car c)
+			    (cdr (assoc 'agent-predicate c))
+			    (cdr (assoc 'agent-score-file c))
+			    (cdr (assoc 'agent-groups c))))
+                    gnus-category-alist)
+            (current-buffer))
+     (newline)
+     (prin1 gnus-category-alist (current-buffer)))))
 
 (defun gnus-category-edit-predicate (category)
   "Edit the predicate for CATEGORY."
