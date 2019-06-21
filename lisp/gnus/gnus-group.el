@@ -2824,13 +2824,9 @@ and NEW-NAME will be prompted for."
        (error "This back end does not support renaming groups"))
      (setq new-name (gnus-read-group
 		     "Rename group to: "
-		     (gnus-group-real-name (gnus-group-decoded-name group)))
+		     (gnus-group-real-name group))
 	   method (gnus-info-method (gnus-get-info group)))
-     (list group (encode-coding-string
-		  new-name
-		  (gnus-group-name-charset
-		   method
-		   (gnus-group-prefixed-name new-name method))))))
+     (list group (gnus-group-prefixed-name new-name method))))
 
   (unless (gnus-check-backend-function 'request-rename-group group)
     (error "This back end does not support renaming groups"))
