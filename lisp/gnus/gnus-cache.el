@@ -430,41 +430,7 @@ Returns the list of articles removed."
       (and unread (memq 'unread class))
       (and (not unread) (not ticked) (not dormant) (memq 'read class))))
 
-(defvar gnus-cache-decoded-group-names nil
-  "Alist of original group names and decoded group names.
-Decoding is done according to `gnus-group-name-charset-method-alist'
-or `gnus-group-name-charset-group-alist'.")
-
-(defvar gnus-cache-unified-group-names nil
-  "Alist of unified decoded group names and original group names.
-A group name is decoded according to
-`gnus-group-name-charset-method-alist' or
-`gnus-group-name-charset-group-alist' first, and is encoded and
-decoded again according to `nnmail-pathname-coding-system',
-`file-name-coding-system', or `default-file-name-coding-system'.
-
-It is used when asking for an original group name from a cache
-directory name, in which non-ASCII characters might have been unified
-into the ones of a certain charset particularly if the `utf-8' coding
-system for example was used.")
-
-(defun gnus-cache-decoded-group-name (group)
-  "Return a decoded group name of GROUP."
-  (or (cdr (assoc group gnus-cache-decoded-group-names))
-      (let ((decoded (gnus-group-decoded-name group))
-	    (coding (or nnmail-pathname-coding-system
-			file-name-coding-system
-			default-file-name-coding-system)))
-	(push (cons group decoded) gnus-cache-decoded-group-names)
-	(push (cons (decode-coding-string
-		     (encode-coding-string decoded coding)
-		     coding)
-		    group)
-	      gnus-cache-unified-group-names)
-	decoded)))
-
 (defun gnus-cache-file-name (group article)
-  (setq group (gnus-cache-decoded-group-name group))
   (expand-file-name
    (if (stringp article) article (int-to-string article))
    (file-name-as-directory
@@ -733,12 +699,7 @@ If LOW, update the lower bound instead."
 	(push (pop files) alphs)))
     ;; If we have nums, then this is probably a valid group.
     (when (setq nums (sort nums '<))
-      ;; Use non-decoded group name.
-      ;; FIXME: this is kind of a workaround.  The active file should
-      ;; be updated at the time articles are cached.  It will make
-      ;; `gnus-cache-unified-group-names' needless.
-      (puthash (or (cdr (assoc group gnus-cache-unified-group-names))
-		   group)
+      (puthash group
 	       (cons (car nums) (car (last nums)))
 	       gnus-cache-active-hashtb))
     ;; Go through all the other files.

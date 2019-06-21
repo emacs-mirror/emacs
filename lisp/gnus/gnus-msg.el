@@ -413,7 +413,7 @@ Thank you for your help in stamping out bugs.
 (defun gnus-inews-make-draft (articles)
   `(lambda ()
      (gnus-inews-make-draft-meta-information
-      ,(gnus-group-decoded-name gnus-newsgroup-name) ',articles)))
+      ,gnus-newsgroup-name ',articles)))
 
 (autoload 'nnir-article-number "nnir" nil nil 'macro)
 (autoload 'nnir-article-group "nnir" nil nil 'macro)
@@ -1722,7 +1722,6 @@ this is a reply."
 (defun gnus-inews-insert-gcc (&optional group)
   "Insert the Gcc to say where the article is to be archived."
   (let* ((group (or group gnus-newsgroup-name))
-         (group (when group (gnus-group-decoded-name group)))
          (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
 	  (and group (not (gnus-virtual-group-p group))

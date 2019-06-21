@@ -367,7 +367,7 @@ for decoding when the cdr that the data specify is not available.")
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (dolist (group groups)
-      (let ((elem (assoc-string (gnus-group-decoded-name group) nnrss-server-data)))
+      (let ((elem (assoc-string group nnrss-server-data)))
 	(insert (format "%S %s 1 y\n" group (or (cadr elem) 0)))))
     'active))
 

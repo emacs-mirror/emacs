@@ -1884,7 +1884,6 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (autoload 'gnus-delay-article "gnus-delay")
 (autoload 'gnus-extract-address-components "gnus-util")
 (autoload 'gnus-find-method-for-group "gnus")
-(autoload 'gnus-group-decoded-name "gnus-group")
 (autoload 'gnus-group-name-charset "gnus-group")
 (autoload 'gnus-group-name-decode "gnus-group")
 (autoload 'gnus-groups-from-server "gnus")
@@ -7322,12 +7321,11 @@ news, Source is the list of newsgroups is was posted to."
   (let* ((group (message-fetch-field "newsgroups"))
 	 (from (message-fetch-field "from"))
 	 (prefix
-	  (if group
-	      (gnus-group-decoded-name group)
-	    (or (and from (or
-			   (car (gnus-extract-address-components from))
-			   (cadr (gnus-extract-address-components from))))
-		"(nowhere)"))))
+	  (or group
+	      (or (and from (or
+			     (car (gnus-extract-address-components from))
+			     (cadr (gnus-extract-address-components from))))
+		  "(nowhere)"))))
     (concat "["
 	    (if message-forward-decoded-p
 		prefix
@@ -7341,10 +7339,9 @@ Source is the sender, and if the original message was news, Source is
 the list of newsgroups is was posted to."
   (let* ((group (message-fetch-field "newsgroups"))
 	 (prefix
-	  (if group
-	      (gnus-group-decoded-name group)
-	    (or (message-fetch-field "from")
-		"(nowhere)"))))
+	  (or group
+	      (or (message-fetch-field "from")
+		  "(nowhere)"))))
     (concat "["
 	    (if message-forward-decoded-p
 		prefix
