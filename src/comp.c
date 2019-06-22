@@ -122,6 +122,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* With most of the ops we need to do the same stuff so this macros are meant
    to save some typing.	 */
 
+#define CASE(op)					\
+  case op :						\
+  if (COMP_DEBUG)					\
+    gcc_jit_block_add_comment (comp.bblock->gcc_bb,	\
+			       NULL,			\
+			       "Opcode " STR(op));
+
 /* Pop from the meta-stack, emit the call and push the result */
 
 #define EMIT_CALL_N(name, nargs)					\
@@ -134,7 +141,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Generate appropriate case and emit call to function. */
 
 #define CASE_CALL_NARGS(name, nargs)					\
-  case B##name:								\
+  CASE (B##name)							\
   EMIT_CALL_N (STR(F##name), nargs);					\
   break
 
@@ -1386,36 +1393,47 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
       switch (op)
 	{
-	case Bstack_ref1:
-	case Bstack_ref2:
-	case Bstack_ref3:
-	case Bstack_ref4:
-	case Bstack_ref5:
+	CASE (Bstack_ref1)
+	  goto stack_ref;
+	CASE (Bstack_ref2)
+	  goto stack_ref;
+	CASE (Bstack_ref3)
+	  goto stack_ref;
+	CASE (Bstack_ref4)
+	  goto stack_ref;
+	CASE (Bstack_ref5)
+	  stack_ref:
 	  PUSH_LVAL (stack_base[(stack - stack_base) - (op - Bstack_ref) - 1]);
 	  break;
 
-	case Bstack_ref6:
+	CASE (Bstack_ref6)
 	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH - 1]);
 	  break;
 
-	case Bstack_ref7:
+	CASE (Bstack_ref7)
 	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH2 - 1]);
 	  break;
 
-	case Bvarref7:
+	CASE (Bvarref7)
 	  op = FETCH2;
 	  goto varref;
 
-	case Bvarref:
-	case Bvarref1:
-	case Bvarref2:
-	case Bvarref3:
-	case Bvarref4:
-	case Bvarref5:
+	CASE (Bvarref)
+	  goto varref_count;
+	CASE (Bvarref1)
+	  goto varref_count;
+	CASE (Bvarref2)
+	  goto varref_count;
+	CASE (Bvarref3)
+	  goto varref_count;
+	CASE (Bvarref4)
+	  goto varref_count;
+	CASE (Bvarref5)
+	  varref_count:
 	  op -= Bvarref;
 	  goto varref;
 
-	case Bvarref6:
+	CASE (Bvarref6)
 	  op = FETCH;
 	varref:
 	  {
@@ -1425,20 +1443,26 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	case Bvarset:
-	case Bvarset1:
-	case Bvarset2:
-	case Bvarset3:
-	case Bvarset4:
-	case Bvarset5:
+	CASE (Bvarset)
+	  goto varset_count;
+	CASE (Bvarset1)
+	  goto varset_count;
+	CASE (Bvarset2)
+	  goto varset_count;
+	CASE (Bvarset3)
+	  goto varset_count;
+	CASE (Bvarset4)
+	  goto varset_count;
+	CASE (Bvarset5)
+	  varset_count:
 	  op -= Bvarset;
 	  goto varset;
 
-	case Bvarset7:
+	CASE (Bvarset7)
 	  op = FETCH2;
 	  goto varset;
 
-	case Bvarset6:
+	CASE (Bvarset6)
 	  op = FETCH;
 	varset:
 	  {
@@ -1454,20 +1478,26 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 
-	case Bvarbind6:
+	CASE (Bvarbind6)
 	  op = FETCH;
 	  goto varbind;
 
-	case Bvarbind7:
+	CASE (Bvarbind7)
 	  op = FETCH2;
 	  goto varbind;
 
-	case Bvarbind:
-	case Bvarbind1:
-	case Bvarbind2:
-	case Bvarbind3:
-	case Bvarbind4:
-	case Bvarbind5:
+	CASE (Bvarbind)
+	  goto varbind_count;
+	CASE (Bvarbind1)
+	  goto varbind_count;
+	CASE (Bvarbind2)
+	  goto varbind_count;
+	CASE (Bvarbind3)
+	  goto varbind_count;
+	CASE (Bvarbind4)
+	  goto varbind_count;
+	CASE (Bvarbind5)
+	  varbind_count:
 	  op -= Bvarbind;
 	varbind:
 	  {
@@ -1478,20 +1508,26 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	case Bcall6:
+	CASE (Bcall6)
 	  op = FETCH;
 	  goto docall;
 
-	case Bcall7:
+	CASE (Bcall7)
 	  op = FETCH2;
 	  goto docall;
 
-	case Bcall:
-	case Bcall1:
-	case Bcall2:
-	case Bcall3:
-	case Bcall4:
-	case Bcall5:
+	CASE (Bcall)
+	  goto docall_count;
+	CASE (Bcall1)
+	  goto docall_count;
+	CASE (Bcall2)
+	  goto docall_count;
+	CASE (Bcall3)
+	  goto docall_count;
+	CASE (Bcall4)
+	  goto docall_count;
+	CASE (Bcall5)
+	docall_count:
 	  op -= Bcall;
 	docall:
 	  {
@@ -1502,20 +1538,26 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	case Bunbind6:
+	CASE (Bunbind6)
 	  op = FETCH;
 	  goto dounbind;
 
-	case Bunbind7:
+	CASE (Bunbind7)
 	  op = FETCH2;
 	  goto dounbind;
 
-	case Bunbind:
-	case Bunbind1:
-	case Bunbind2:
-	case Bunbind3:
-	case Bunbind4:
-	case Bunbind5:
+	CASE (Bunbind)
+	  goto dounbind_count;
+	CASE (Bunbind1)
+	  goto dounbind_count;
+	CASE (Bunbind2)
+	  goto dounbind_count;
+	CASE (Bunbind3)
+	  goto dounbind_count;
+	CASE (Bunbind4)
+	  goto dounbind_count;
+	CASE (Bunbind5)
+	dounbind_count:
 	  op -= Bunbind;
 	dounbind:
 	  {
@@ -1527,7 +1569,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 
-	case Bpophandler:
+	CASE (Bpophandler)
 	  {
 	  /* current_thread->m_handlerlist =
 	       current_thread->m_handlerlist->next;  */
@@ -1548,11 +1590,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	case Bpushconditioncase: /* New in 24.4.  */
+	CASE (Bpushconditioncase) /* New in 24.4.  */
 	  type = CATCHER;
 	  goto pushhandler;
 
-	case Bpushcatch:	/* New in 24.4.	 */
+	CASE (Bpushcatch)	/* New in 24.4.	 */
 	  type = CONDITION_CASE;;
 	pushhandler:
 	  {
@@ -1632,7 +1674,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (nth, 2);
 	CASE_CALL_NARGS (symbolp, 1);
 
-	case Bconsp:
+	CASE (Bconsp)
 	  POP1;
 	  res = emit_cast (comp.bool_type,
 			   emit_CONSP (args[0]));
@@ -1652,14 +1694,18 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (cdr, 1);
 	CASE_CALL_NARGS (cons, 2);
 
-	case BlistN:
+	CASE (BlistN)
 	  op = FETCH;
 	  goto make_list;
 
-	case Blist1:
-	case Blist2:
-	case Blist3:
-	case Blist4:
+	CASE (Blist1)
+	  goto make_list_count;
+	CASE (Blist2)
+	  goto make_list_count;
+	CASE (Blist3)
+	  goto make_list_count;
+	CASE (Blist4)
+	make_list_count:
 	  op = op - Blist1;
 	make_list:
 	  {
@@ -1686,21 +1732,21 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (get, 2);
 	CASE_CALL_NARGS (substring, 3);
 
-	case Bconcat2:
+	CASE (Bconcat2)
 	  EMIT_SCRATCH_CALL_N ("Fconcat", 2);
 	  break;
-	case Bconcat3:
+	CASE (Bconcat3)
 	  EMIT_SCRATCH_CALL_N ("Fconcat", 3);
 	  break;
-	case Bconcat4:
+	CASE (Bconcat4)
 	  EMIT_SCRATCH_CALL_N ("Fconcat", 4);
 	  break;
-	case BconcatN:
+	CASE (BconcatN)
 	  op = FETCH;
 	  EMIT_SCRATCH_CALL_N ("Fconcat", op);
 	  break;
 
-	case Bsub1:
+	CASE (Bsub1)
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
@@ -1760,7 +1806,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 
 	  break;
-	case Badd1:
+	CASE (Badd1)
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_POSITIVE_FIXNUM
@@ -1820,31 +1866,31 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 
-	case Beqlsign:
+	CASE (Beqlsign)
 	  EMIT_ARITHCOMPARE (ARITH_EQUAL);
 	  break;
 
-	case Bgtr:
+	CASE (Bgtr)
 	  EMIT_ARITHCOMPARE (ARITH_GRTR);
 	  break;
 
-	case Blss:
+	CASE (Blss)
 	  EMIT_ARITHCOMPARE (ARITH_LESS);
 	  break;
 
-	case Bleq:
+	CASE (Bleq)
 	  EMIT_ARITHCOMPARE (ARITH_LESS_OR_EQUAL);
 	  break;
 
-	case Bgeq:
+	CASE (Bgeq)
 	  EMIT_ARITHCOMPARE (ARITH_GRTR_OR_EQUAL);
 	  break;
 
-	case Bdiff:
+	CASE (Bdiff)
 	  EMIT_SCRATCH_CALL_N ("Fminus", 2);
 	  break;
 
-	case Bnegate:
+	CASE (Bnegate)
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
@@ -1899,19 +1945,19 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					 bb_map[pc].gcc_bb);
 	  }
 	  break;
-	case Bplus:
+	CASE (Bplus)
 	  EMIT_SCRATCH_CALL_N ("Fplus", 2);
 	  break;
-	case Bmax:
+	CASE (Bmax)
 	  EMIT_SCRATCH_CALL_N ("Fmax", 2);
 	  break;
-	case Bmin:
+	CASE (Bmin)
 	  EMIT_SCRATCH_CALL_N ("Fmin", 2);
 	  break;
-	case Bmult:
+	CASE (Bmult)
 	  EMIT_SCRATCH_CALL_N ("Ftimes", 2);
 	  break;
-	case Bpoint:
+	CASE (Bpoint)
 	  args[0] =
 	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						 comp.ptrdiff_type,
@@ -1925,11 +1971,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE_CALL_NARGS (goto_char, 1);
 
-	case Binsert:
+	CASE (Binsert)
 	  EMIT_SCRATCH_CALL_N ("Finsert", 1);
 	  break;
 
-	case Bpoint_max:
+	CASE (Bpoint_max)
 	  args[0] =
 	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						 comp.ptrdiff_type,
@@ -1941,7 +1987,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	case Bpoint_min:
+	CASE (Bpoint_min)
 	  args[0] =
 	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						 comp.ptrdiff_type,
@@ -1956,14 +2002,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (char_after, 1);
 	CASE_CALL_NARGS (following_char, 0);
 
-	case Bpreceding_char:
+	CASE (Bpreceding_char)
 	  res = emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
 	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_NARGS (current_column, 0);
 
-	case Bindent_to:
+	CASE (Bindent_to)
 	  POP1;
 	  args[1] = nil;
 	  res = emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
@@ -1977,13 +2023,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (current_buffer, 0);
 	CASE_CALL_NARGS (set_buffer, 1);
 
-	case Bsave_current_buffer: /* Obsolete since ??.  */
-	case Bsave_current_buffer_1:
+	CASE (Bsave_current_buffer) /* Obsolete since ??.  */
+	  goto save_current;
+	CASE (Bsave_current_buffer_1)
+	  save_current:
 	  emit_call ("record_unwind_current_buffer",
 		     comp.void_type, 0, NULL);
 	  break;
 
-	case Binteractive_p:	/* Obsolete since 24.1.	 */
+	CASE (Binteractive_p)	/* Obsolete since 24.1.	 */
 	  PUSH_RVAL (emit_lisp_obj_from_ptr (comp.bblock,
 					     intern ("interactive-p")));
 	  res = emit_call ("call0", comp.lisp_obj_type, 1, args);
@@ -2002,11 +2050,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (widen, 0);
 	CASE_CALL_NARGS (end_of_line, 1);
 
-	case Bconstant2:
+	CASE (Bconstant2)
 	  goto do_constant;
 	  break;
 
-	case Bgoto:
+	CASE (Bgoto)
 	  op = FETCH2;
 	  gcc_jit_block_end_with_jump (comp.bblock->gcc_bb,
 				       NULL,
@@ -2014,21 +2062,21 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  comp.bblock->terminated = true;
 	  break;
 
-	case Bgotoifnil:
+	CASE (Bgotoifnil)
 	  op = FETCH2;
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
-	case Bgotoifnonnil:
+	CASE (Bgotoifnonnil)
 	  op = FETCH2;
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
-	case Bgotoifnilelsepop:
+	CASE (Bgotoifnilelsepop)
 	  op = FETCH2;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ,
 				gcc_jit_lvalue_as_rvalue (TOS),
@@ -2037,7 +2085,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  break;
 
-	case Bgotoifnonnilelsepop:
+	CASE (Bgotoifnonnilelsepop)
 	  op = FETCH2;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE,
 				gcc_jit_lvalue_as_rvalue (TOS),
@@ -2046,7 +2094,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  break;
 
-	case Breturn:
+	CASE (Breturn)
 	  POP1;
 	  gcc_jit_block_end_with_return(comp.bblock->gcc_bb,
 					NULL,
@@ -2054,24 +2102,24 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  comp.bblock->terminated = true;
 	  break;
 
-	case Bdiscard:
+	CASE (Bdiscard)
 	  POP1;
 	  break;
 
-	case Bdup:
+	CASE (Bdup)
 	  PUSH_LVAL (TOS);
 	  break;
 
-	case Bsave_excursion:
+	CASE (Bsave_excursion)
 	  res = emit_call ("record_unwind_protect_excursion",
 				comp.void_type, 0, args);
 	  break;
 
-	case Bsave_window_excursion: /* Obsolete since 24.1.  */
+	CASE (Bsave_window_excursion) /* Obsolete since 24.1.  */
 	  EMIT_CALL_N ("helper_save_window_excursion", 1);
 	  break;
 
-	case Bsave_restriction:
+	CASE (Bsave_restriction)
 	  args[0] = emit_lisp_obj_from_ptr (comp.bblock,
 					    save_restriction_restore);
 	  args[1] = emit_call ("save_restriction_save",
@@ -2081,29 +2129,29 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
 	  break;
 
-	case Bcatch:		/* Obsolete since 24.4.	 */
+	CASE (Bcatch)		/* Obsolete since 24.4.	 */
 	  POP2;
 	  args[2] = args[1];
 	  args[1] = emit_lisp_obj_from_ptr (comp.bblock, eval_sub);
 	  emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
 
-	case Bunwind_protect:	/* FIXME: avoid closure for lexbind.  */
+	CASE (Bunwind_protect)	/* FIXME: avoid closure for lexbind.  */
 	  POP1;
 	  emit_call ("helper_unwind_protect", comp.void_type, 1, args);
 	  break;
 
-	case Bcondition_case:		/* Obsolete since 24.4.	 */
+	CASE (Bcondition_case)		/* Obsolete since 24.4.	 */
 	  POP3;
 	  emit_call ("internal_lisp_condition_case",
 		     comp.lisp_obj_type, 3, args);
 	  break;
 
-	case Btemp_output_buffer_setup: /* Obsolete since 24.1.	 */
+	CASE (Btemp_output_buffer_setup) /* Obsolete since 24.1.	 */
 	  EMIT_CALL_N ("helper_temp_output_buffer_setup", 1);
 	  break;
 
-	case Btemp_output_buffer_show: /* Obsolete since 24.1.	*/
+	CASE (Btemp_output_buffer_show) /* Obsolete since 24.1.	*/
 	  POP2;
 	  emit_call ("temp_output_buffer_show", comp.void_type, 1,
 		     &args[1]);
@@ -2111,7 +2159,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
 
 	  break;
-	case Bunbind_all:	/* Obsolete.  Never used.  */
+	CASE (Bunbind_all)	/* Obsolete.  Never used.  */
 	  /* To unbind back to the beginning of this frame.  Not used yet,
 	     but will be needed for tail-recursion elimination.	 */
 	  error ("Bunbind_all not supported");
@@ -2123,11 +2171,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (upcase, 1);
 	CASE_CALL_NARGS (downcase, 1);
 
-	case Bstringeqlsign:
+	CASE (Bstringeqlsign)
 	  EMIT_CALL_N ("Fstring_equal", 2);
 	  break;
 
-	case Bstringlss:
+	CASE (Bstringlss)
 	  EMIT_CALL_N ("Fstring_lessp", 2);
 	  break;
 
@@ -2139,25 +2187,25 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (setcar, 2);
 	CASE_CALL_NARGS (setcdr, 2);
 
-	case Bcar_safe:
+	CASE (Bcar_safe)
 	  EMIT_CALL_N ("CAR_SAFE", 1);
 	  break;
 
-	case Bcdr_safe:
+	CASE (Bcdr_safe)
 	  EMIT_CALL_N ("CDR_SAFE", 1);
 	  break;
 
-	case Bnconc:
+	CASE (Bnconc)
 	  EMIT_SCRATCH_CALL_N ("Fnconc", 2);
 	  break;
 
-	case Bquo:
+	CASE (Bquo)
 	  EMIT_SCRATCH_CALL_N ("Fquo", 2);
 	  break;
 
 	CASE_CALL_NARGS (rem, 2);
 
-	case Bnumberp:
+	CASE (Bnumberp)
 	  POP1;
 	  res = emit_NUMBERP (args[0]);
 	  res = gcc_jit_context_new_call (comp.ctxt,
@@ -2167,7 +2215,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	case Bintegerp:
+	CASE (Bintegerp)
 	  POP1;
 	  res = emit_INTEGERP(args[0]);
 	  res = gcc_jit_context_new_call (comp.ctxt,
@@ -2177,7 +2225,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	case BRgoto:
+	CASE (BRgoto)
 	  op = FETCH - 128;
 	  op += pc;
 	  gcc_jit_block_end_with_jump (comp.bblock->gcc_bb,
@@ -2186,7 +2234,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  comp.bblock->terminated = true;
 	  break;
 
-	case BRgotoifnil:
+	CASE (BRgotoifnil)
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
@@ -2194,7 +2242,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
-	case BRgotoifnonnil:
+	CASE (BRgotoifnonnil)
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
@@ -2202,7 +2250,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  break;
 
-	case BRgotoifnilelsepop:
+	CASE (BRgotoifnilelsepop)
 	  op = FETCH - 128;
 	  op += pc;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ,
@@ -2212,7 +2260,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  break;
 
-	case BRgotoifnonnilelsepop:
+	CASE (BRgotoifnonnilelsepop)
 	  op = FETCH - 128;
 	  op += pc;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE,
@@ -2222,12 +2270,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  break;
 
-	case BinsertN:
+	CASE (BinsertN)
 	  op = FETCH;
 	  EMIT_SCRATCH_CALL_N ("Finsert", op);
 	  break;
 
-	case Bstack_set:
+	CASE (Bstack_set)
 	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
 	  op = FETCH;
 	  POP1;
@@ -2238,7 +2286,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					  args[0]);
 	  break;
 
-	case Bstack_set2:
+	CASE (Bstack_set2)
 	  op = FETCH2;
 	  POP1;
 	  gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
@@ -2247,7 +2295,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					args[0]);
 	  break;
 
-	case BdiscardN:
+	CASE (BdiscardN)
 	  op = FETCH;
 	  if (op & 0x80)
 	    {
@@ -2261,7 +2309,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	  stack -= op;
 	  break;
-	case Bswitch:
+	CASE (Bswitch)
 	  error ("Bswitch not supported");
 	  /* The cases of Bswitch that we handle (which in theory is
 	     all of them) are done in Bconstant, below.	 This is done
@@ -2272,7 +2320,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	default:
-	case Bconstant:
+	CASE (Bconstant)
 	  {
 	    if (op < Bconstant || op > Bconstant + vector_size)
 	      goto fail;
