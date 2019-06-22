@@ -671,21 +671,30 @@ static gcc_jit_rvalue *
 emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 {
   static unsigned i;
-  char ptr_var_name[40];
+  char scratch[256];
 
-  int res = snprintf (ptr_var_name, sizeof (ptr_var_name),
+  int res = snprintf (scratch, sizeof (scratch),
 		      "lisp_obj_from_ptr_%u", i++);
-  if (res >= sizeof (ptr_var_name))
+  if (res >= sizeof (scratch))
     error ("Internal error, truncating temporary variable");
 
   gcc_jit_lvalue *lisp_obj = gcc_jit_function_new_local (comp.func,
 							 NULL,
 							 comp.lisp_obj_type,
-							 ptr_var_name);
+							 scratch);
   gcc_jit_rvalue *void_ptr =
     gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 					comp.void_ptr_type,
 					p);
+
+  if (SYMBOLP (p))
+    {
+      snprintf (scratch, sizeof (scratch),
+		"Symbol %s", (char *) SDATA (SYMBOL_NAME (p)));
+      gcc_jit_block_add_comment (bblock->gcc_bb,
+				 NULL,
+				 scratch);
+    }
 
   gcc_jit_block_add_assignment (bblock->gcc_bb,
 				NULL,
@@ -697,6 +706,8 @@ emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 static gcc_jit_rvalue *
 emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 {
+  char tmp_str[256];
+
   /* Here we set all the pointers into the scratch call area.  */
   /* TODO: distinguish primitives for faster calling convention.  */
 
