@@ -1319,6 +1319,7 @@ style_changed_cb (GObject *go,
 
 /* Called when a delete-event occurs on WIDGET.  */
 
+#ifndef HAVE_PGTK
 static gboolean
 delete_cb (GtkWidget *widget,
            GdkEvent  *event,
@@ -1326,6 +1327,7 @@ delete_cb (GtkWidget *widget,
 {
   return TRUE;
 }
+#endif
 
 /* Create and set up the GTK widgets for frame F.
    Return true if creation succeeded.  */
@@ -4738,6 +4740,7 @@ xg_tool_bar_help_callback (GtkWidget *w,
 }
 
 
+#ifndef HAVE_GTK3
 /* This callback is called when a tool bar item shall be redrawn.
    It modifies the expose event so that the GtkImage widget redraws the
    whole image.  This to overcome a bug that makes GtkImage draw the image
@@ -4767,6 +4770,7 @@ xg_tool_bar_item_expose_callback (GtkWidget *w,
 
   return FALSE;
 }
+#endif
 
 /* Attach a tool bar to frame F.  */
 

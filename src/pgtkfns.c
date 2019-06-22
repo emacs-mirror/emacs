@@ -181,7 +181,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   PGTK_TRACE("x_set_background_color: col.pixel=%08lx.", col.pixel);
   FRAME_X_OUTPUT(f)->background_color = col.pixel;
   FRAME_BACKGROUND_PIXEL (f) =
-    ARGB_TO_ULONG ((int)(0xff), (int)(col.red>>8), (int)(col.green>>8), (int)(col.blue>>8));
+    ARGB_TO_ULONG ((unsigned int)(0xff), (unsigned int)(col.red>>8), (unsigned int)(col.green>>8), (unsigned int)(col.blue>>8));
 
   xg_set_background_color(f, col.pixel);
   update_face_from_frame_parameter (f, Qbackground_color, arg);
@@ -2579,6 +2579,67 @@ visible.  */)
   return Qnil;
 }
 
+DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
+       doc: /* Read file name, prompting with PROMPT in directory DIR.
+Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
+selection box, if specified.  If MUSTMATCH is non-nil, the returned file
+or directory must exist.
+
+This function is defined only on PGTK, NS, MS Windows, and X Windows with the
+Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
+Otherwise, if ONLY-DIR-P is non-nil, the user can select only directories.
+On MS Windows 7 and later, the file selection dialog "remembers" the last
+directory where the user selected a file, and will open that directory
+instead of DIR on subsequent invocations of this function with the same
+value of DIR as in previous invocations; this is standard MS Windows behavior.  */)
+  (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
+{
+  struct frame *f = SELECTED_FRAME ();
+  char *fn;
+  Lisp_Object file = Qnil;
+  Lisp_Object decoded_file;
+  ptrdiff_t count = SPECPDL_INDEX ();
+  char *cdef_file;
+
+  check_window_system (f);
+
+  CHECK_STRING (prompt);
+  CHECK_STRING (dir);
+
+  /* Prevent redisplay.  */
+  specbind (Qinhibit_redisplay, Qt);
+#if 0
+  record_unwind_protect_void (clean_up_dialog);
+#endif
+
+  block_input ();
+
+  if (STRINGP (default_filename))
+    cdef_file = SSDATA (default_filename);
+  else
+    cdef_file = SSDATA (dir);
+
+  fn = xg_get_file_name (f, SSDATA (prompt), cdef_file,
+                         ! NILP (mustmatch),
+                         ! NILP (only_dir_p));
+
+  if (fn)
+    {
+      file = build_string (fn);
+      xfree (fn);
+    }
+
+  unblock_input ();
+
+  /* Make "Cancel" equivalent to C-g.  */
+  if (NILP (file))
+    quit ();
+
+  decoded_file = DECODE_FILE (file);
+
+  return unbind_to (count, decoded_file);
+}
+
 DEFUN ("pgtk-backend-display-class", Fpgtk_backend_display_class, Spgtk_backend_display_class,
        0, 1, "",
        doc: /* Returns the name of the Gdk backend display class of the TERMINAL.
@@ -2710,6 +2771,8 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Spgtk_get_page_setup);
   defsubr (&Spgtk_print_frames_dialog);
   defsubr (&Spgtk_backend_display_class);
+
+  defsubr (&Sx_file_dialog);
 
   as_status = 0;
   as_script = Qnil;

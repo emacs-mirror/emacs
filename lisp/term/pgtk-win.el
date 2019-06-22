@@ -43,34 +43,6 @@
 
 ;;;; File handling.
 
-(defun x-file-dialog (prompt dir default_filename mustmatch only_dir_p)
-"Read file name, prompting with PROMPT in directory DIR.
-Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
-selection box, if specified.  If MUSTMATCH is non-nil, the returned file
-or directory must exist.
-
-This function is only defined on PGTK, MS Windows, and X Windows with the
-Motif or Gtk toolkits.  With the Motif toolkit, ONLY-DIR-P is ignored.
-Otherwise, if ONLY-DIR-P is non-nil, the user can only select directories."
-  (pgtk-read-file-name prompt dir mustmatch default_filename only_dir_p))
-
-(defun pgtk-open-file-using-panel ()
-  "Pop up open-file panel, and load the result in a buffer."
-  (interactive)
-  ;; Prompt dir defaultName isLoad initial.
-  (setq pgtk-input-file (pgtk-read-file-name "Select File to Load" nil t nil))
-  (if pgtk-input-file
-      (and (setq pgtk-input-file (list pgtk-input-file)) (pgtk-find-file))))
-
-(defun pgtk-write-file-using-panel ()
-  "Pop up save-file panel, and save buffer in resulting name."
-  (interactive)
-  (let (pgtk-output-file)
-    ;; Prompt dir defaultName isLoad initial.
-    (setq pgtk-output-file (pgtk-read-file-name "Save As" nil nil nil))
-    (message pgtk-output-file)
-    (if pgtk-output-file (write-file pgtk-output-file))))
-
 (defcustom pgtk-pop-up-frames 'fresh
   "Non-nil means open files upon request from the Workspace in a new frame.
 If t, always do so.  Any other non-nil value means open a new frame
@@ -82,33 +54,6 @@ unless the current buffer is a scratch buffer."
   :group 'pgtk)
 
 (declare-function pgtk-hide-emacs "pgtkfns.c" (on))
-
-(defun pgtk-find-file ()
-  "Do a `find-file' with the `pgtk-input-file' as argument."
-  (interactive)
-  (let* ((f (file-truename
-	     (expand-file-name (pop pgtk-input-file)
-			       command-line-default-directory)))
-         (file (find-file-noselect f))
-         (bufwin1 (get-buffer-window file 'visible))
-         (bufwin2 (get-buffer-window "*scratch*" 'visible)))
-    (cond
-     (bufwin1
-      (select-frame (window-frame bufwin1))
-      (raise-frame (window-frame bufwin1))
-      (select-window bufwin1))
-     ((and (eq pgtk-pop-up-frames 'fresh) bufwin2)
-      (pgtk-hide-emacs 'activate)
-      (select-frame (window-frame bufwin2))
-      (raise-frame (window-frame bufwin2))
-      (select-window bufwin2)
-      (find-file f))
-     (pgtk-pop-up-frames
-      (pgtk-hide-emacs 'activate)
-      (let ((pop-up-frames t)) (pop-to-buffer file nil)))
-     (t
-      (pgtk-hide-emacs 'activate)
-      (find-file f)))))
 
 
 (defun pgtk-drag-n-drop (event &optional new-frame force-text)
