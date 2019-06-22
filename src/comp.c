@@ -1311,6 +1311,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   ptrdiff_t pc = 0;
   gcc_jit_rvalue *args[4];
   unsigned op;
+  char scratch_name[256];
+  unsigned pushhandler_n  = 0;
 
   /* Meta-stack we use to flat the bytecode written for push and pop
      Emacs VM.*/
@@ -1345,14 +1347,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   comp.func = emit_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
 				 NULL, GCC_JIT_FUNCTION_EXPORTED, false);
 
-  char local_name[256];
   for (int i = 0; i < stack_depth; ++i)
     {
-      snprintf (local_name, sizeof (local_name), "local_%d", i);
+      snprintf (scratch_name, sizeof (scratch_name), "local_%d", i);
       stack[i] = gcc_jit_function_new_local (comp.func,
 					     NULL,
 					     comp.lisp_obj_type,
-					     local_name);
+					     scratch_name);
     }
 
   gcc_jit_block *prologue_bb =
@@ -1557,27 +1558,41 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    /* struct handler *c = push_handler (POP, type); */
 	    int handler_pc = FETCH2;
-	    gcc_jit_rvalue *c;
+	    snprintf (scratch_name, sizeof (scratch_name), "c_%u",
+		      pushhandler_n);
+	    gcc_jit_lvalue *c =
+	      gcc_jit_function_new_local (comp.func,
+					  NULL,
+					  comp.handler_ptr_type,
+					  scratch_name);
 	    POP1;
 	    args[1] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
 							   type);
-	    c = emit_call ("push_handler", comp.handler_ptr_type, 2, args);
+	    gcc_jit_block_add_assignment (
+	      comp.bblock->gcc_bb,
+	      NULL,
+	      c,
+	      emit_call ("push_handler", comp.handler_ptr_type, 2, args));
+
 	    args[0] =
 	      gcc_jit_lvalue_get_address (
-		gcc_jit_rvalue_dereference_field (c,
-						  NULL,
-						  comp.handler_jmp_field),
-					  NULL);
+		gcc_jit_rvalue_dereference_field (
+		  gcc_jit_lvalue_as_rvalue (c),
+		  NULL,
+		  comp.handler_jmp_field),
+		NULL);
 #ifdef HAVE__SETJMP
 	    res = emit_call ("_setjmp", comp.int_type, 1, args);
 #else
 	    res = emit_call ("setjmp", comp.int_type, 1, args);
 #endif
+	    snprintf (scratch_name, sizeof (scratch_name), "push_h_val_%u",
+		      pushhandler_n);
 	    gcc_jit_block *push_h_val_block =
-	      gcc_jit_function_new_block (comp.func, "push_h_val");
+	      gcc_jit_function_new_block (comp.func, scratch_name);
 	    emit_cond_jump (
-	      /* This negation is just to move to bool.  */
+	      /* This negation is just to have a bool.  */
 	      gcc_jit_context_new_unary_op (comp.ctxt,
 					    NULL,
 					    GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
@@ -1598,18 +1613,19 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					 m_handlerlist,
 					 gcc_jit_lvalue_as_rvalue(
 					   gcc_jit_rvalue_dereference_field (
-					     c,
+					     gcc_jit_lvalue_as_rvalue (c),
 					     NULL,
 					     comp.handler_next_field)));
 	    /* PUSH (c->val); */
 	    PUSH_LVAL (
-	      gcc_jit_rvalue_dereference_field (c,
+	      gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
 						NULL,
 						comp.handler_val_field));
 	    *comp.bblock = bb_orig;
 
 	    gcc_jit_block_end_with_jump (push_h_val_block, NULL,
 					 bb_map[handler_pc].gcc_bb);
+	    ++pushhandler_n;
 	  }
 	  break;
 
