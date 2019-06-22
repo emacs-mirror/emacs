@@ -125,15 +125,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Pop from the meta-stack, emit the call and push the result */
 
 #define EMIT_CALL_N(name, nargs)					\
-  POP##nargs;								\
-  res = emit_call (name, comp.lisp_obj_type, nargs, args);		\
-  PUSH_RVAL (res);
+  do {									\
+    POP##nargs;								\
+    res = emit_call (name, comp.lisp_obj_type, nargs, args);		\
+    PUSH_RVAL (res);							\
+  } while (0)
 
 /* Generate appropriate case and emit call to function. */
 
 #define CASE_CALL_NARGS(name, nargs)					\
   case B##name:								\
-  EMIT_CALL_N (STR(F##name), nargs)					\
+  EMIT_CALL_N (STR(F##name), nargs);					\
   break
 
 /* Emit calls to functions with prototype (ptrdiff_t nargs, Lisp_Object *args)
