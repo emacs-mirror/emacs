@@ -712,6 +712,12 @@ emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
     p[n] = 0x...;
   */
 
+  snprintf (tmp_str, sizeof (tmp_str), "calling %s", f_name);
+
+  gcc_jit_block_add_comment (comp.bblock->gcc_bb,
+			     NULL,
+			     tmp_str);
+
   gcc_jit_lvalue *p =
     gcc_jit_function_new_local(comp.func,
 			       NULL,
