@@ -190,6 +190,10 @@ typedef struct {
   gcc_jit_type *lisp_obj_ptr_type;
   gcc_jit_field *lisp_obj_as_ptr;
   gcc_jit_field *lisp_obj_as_num;
+  /* struct Lisp_Cons */
+  gcc_jit_struct *lisp_cons_s;
+  gcc_jit_field *lisp_cons_u;
+  gcc_jit_type *lisp_cons_ptr;
   /* struct jmp_buf.  */
   gcc_jit_struct *jmp_buf_s;
   /* struct handler.  */
@@ -728,7 +732,112 @@ emit_call_n_ref (const char *f_name, unsigned nargs,
   return emit_call (f_name, comp.lisp_obj_type, 2, arguments);
 }
 
-/* opaque jmp_buf definition  */
+/* struct Lisp_Cons definition.  */
+
+static void
+define_lisp_cons (void)
+{
+  /*
+    union cdr_u
+    {
+      Lisp_Object cdr;
+      struct Lisp_Cons *chain;
+    };
+
+    struct cons_s
+    {
+      Lisp_Object car;
+      union cdr_u u;
+    };
+
+    union cons_u
+    {
+      struct cons_s s;
+      char align_pad[sizeof (struct Lisp_Cons)];
+    };
+
+    struct Lisp_Cons
+    {
+      union cons_u u;
+    };
+  */
+
+  comp.lisp_cons_s =
+    gcc_jit_context_new_opaque_struct (comp.ctxt,
+				       NULL,
+				       "comp_Lisp_Cons");
+  comp.lisp_cons_ptr =
+    gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.lisp_cons_s));
+
+  gcc_jit_field *cdr_u_fields[] =
+    { gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "cdr"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.lisp_cons_ptr,
+				 "chain") };
+
+  gcc_jit_type *cdr_u =
+    gcc_jit_context_new_union_type (comp.ctxt,
+				    NULL,
+				    "comp_cdr_u",
+				    sizeof (cdr_u_fields)
+				    / sizeof (*cdr_u_fields),
+				    cdr_u_fields);
+
+  gcc_jit_field *cons_s_fields[] =
+    { gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "car"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 cdr_u,
+				 "u") };
+
+  gcc_jit_struct *cons_s =
+    gcc_jit_context_new_struct_type (comp.ctxt,
+				     NULL,
+				     "comp_cons_s",
+				     sizeof (cons_s_fields)
+				     / sizeof (*cons_s_fields),
+				     cons_s_fields);
+
+  gcc_jit_field *cons_u_fields[] =
+    { gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 gcc_jit_struct_as_type (cons_s),
+				 "s"),
+      gcc_jit_context_new_field (
+	comp.ctxt,
+	NULL,
+	gcc_jit_context_new_array_type (comp.ctxt,
+					NULL,
+					comp.char_type,
+					sizeof (struct Lisp_Cons)),
+	"align_pad") };
+
+  gcc_jit_type *cons_u =
+    gcc_jit_context_new_union_type (comp.ctxt,
+				    NULL,
+				    "comp_cons_u",
+				    sizeof (cons_u_fields)
+				    / sizeof (*cons_u_fields),
+				    cons_u_fields);
+
+  comp.lisp_cons_u =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       cons_u,
+			       "u");
+  gcc_jit_struct_set_fields (comp.lisp_cons_s,
+			     NULL, 1, &comp.lisp_cons_u);
+
+}
+
+/* opaque jmp_buf definition.  */
 
 static void
 define_jmp_buf (void)
@@ -1159,7 +1268,7 @@ init_comp (int opt_level)
 				       comp.lisp_obj_as_num };
   comp.lisp_obj_type = gcc_jit_context_new_union_type (comp.ctxt,
 						       NULL,
-						       "LispObj",
+						       "comp_Lisp_Object",
 						       sizeof (lisp_obj_fields)
 						       / sizeof (*lisp_obj_fields),
 						       lisp_obj_fields);
@@ -1240,6 +1349,7 @@ init_comp (int opt_level)
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
+  define_lisp_cons ();
   define_jmp_buf ();
   define_handler_struct ();
   define_thread_state_struct ();
