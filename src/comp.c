@@ -48,7 +48,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define PUSH_LVAL(obj)							\
   do {									\
     CHECK_STACK;							\
-    gcc_jit_block_add_assignment (comp.bblock->gcc_bb,			\
+    gcc_jit_block_add_assignment (comp.block->gcc_bb,			\
 				  NULL,					\
 				  *stack,				\
 				  gcc_jit_lvalue_as_rvalue(obj));	\
@@ -58,7 +58,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define PUSH_RVAL(obj)					\
   do {							\
     CHECK_STACK;					\
-    gcc_jit_block_add_assignment (comp.bblock->gcc_bb,	\
+    gcc_jit_block_add_assignment (comp.block->gcc_bb,	\
 				  NULL,			\
 				  *stack,		\
 				  (obj));		\
@@ -127,7 +127,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define CASE(op)					\
   case op :						\
   if (COMP_DEBUG)					\
-    gcc_jit_block_add_comment (comp.bblock->gcc_bb,	\
+    gcc_jit_block_add_comment (comp.block->gcc_bb,	\
 			       NULL,			\
 			       "Opcode " STR(op));
 
@@ -222,7 +222,7 @@ typedef struct {
   gcc_jit_rvalue *lisp_int0;
   gcc_jit_function *pseudovectorp;
   gcc_jit_function *bool_to_lisp_obj;
-  basic_block_t *bblock; /* Current basic block	 */
+  basic_block_t *block; /* Current basic block	 */
   Lisp_Object func_hash; /* f_name -> gcc_func	*/
 } comp_t;
 
@@ -412,12 +412,12 @@ INLINE static void
 emit_cond_jump (gcc_jit_rvalue *test,
 		gcc_jit_block *then_target, gcc_jit_block *else_target)
 {
-  gcc_jit_block_end_with_conditional (comp.bblock->gcc_bb,
+  gcc_jit_block_end_with_conditional (comp.block->gcc_bb,
 				      NULL,
 				      test,
 				      then_target,
 				      else_target);
-  comp.bblock->terminated = true;
+  comp.block->terminated = true;
 }
 
 /* Close current basic block emitting a comparison between two rval.  */
@@ -449,7 +449,7 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 				NULL,
 				comp.cast_union_type,
 				"union_cast");
-  gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+  gcc_jit_block_add_assignment (comp.block->gcc_bb,
 				NULL,
 				gcc_jit_lvalue_access_field (tmp_u,
 							     NULL,
@@ -693,7 +693,7 @@ emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 /* Construct fill and return a lisp object form a raw pointer.	*/
 /* TODO should we pass the bb?	*/
 static gcc_jit_rvalue *
-emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
+emit_lisp_obj_from_ptr (basic_block_t *block, void *p)
 {
   static unsigned i;
 
@@ -709,12 +709,12 @@ emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 
   if (SYMBOLP (p))
     gcc_jit_block_add_comment (
-      bblock->gcc_bb,
+      block->gcc_bb,
       NULL,
       format_string ("Symbol %s",
 		     (char *) SDATA (SYMBOL_NAME (p))));
 
-  gcc_jit_block_add_assignment (bblock->gcc_bb,
+  gcc_jit_block_add_assignment (block->gcc_bb,
 				NULL,
 				emit_lval_XLP (lisp_obj),
 				void_ptr);
@@ -739,7 +739,7 @@ emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
     p[n] = 0x...;
   */
 
-  gcc_jit_block_add_comment (comp.bblock->gcc_bb,
+  gcc_jit_block_add_comment (comp.block->gcc_bb,
 			     NULL,
 			     format_string ("calling %s", f_name));
 
@@ -749,7 +749,7 @@ emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 			       gcc_jit_type_get_pointer (comp.lisp_obj_type),
 			       "p");
 
-  gcc_jit_block_add_assignment(comp.bblock->gcc_bb, NULL,
+  gcc_jit_block_add_assignment(comp.block->gcc_bb, NULL,
 			       p,
 			       comp.scratch);
 
@@ -761,7 +761,7 @@ emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 				 GCC_JIT_TYPE_UNSIGNED_INT),
 	i);
     gcc_jit_block_add_assignment (
-      comp.bblock->gcc_bb,
+      comp.block->gcc_bb,
       NULL,
       gcc_jit_context_new_array_access (comp.ctxt,
 					NULL,
@@ -939,9 +939,9 @@ define_PSEUDOVECTORP (void)
     gcc_jit_function_new_block (comp.pseudovectorp, "call_pseudovector");
 
   /* Set current context as needed */
-  basic_block_t bblock = { .gcc_bb = initial_block,
+  basic_block_t block = { .gcc_bb = initial_block,
 			   .terminated = false };
-  comp.bblock = &bblock;
+  comp.block = &block;
   comp.func = comp.pseudovectorp;
 
   emit_cond_jump (
@@ -950,7 +950,7 @@ define_PSEUDOVECTORP (void)
     call_pseudovector_typep_b,
     ret_false_b);
 
-  comp.bblock->gcc_bb = ret_false_b;
+  comp.block->gcc_bb = ret_false_b;
   gcc_jit_block_end_with_return (ret_false_b,
 				 NULL,
 				 gcc_jit_context_new_rvalue_from_int(
@@ -961,7 +961,7 @@ define_PSEUDOVECTORP (void)
   gcc_jit_rvalue *args[2] =
     { gcc_jit_param_as_rvalue (param[0]),
       gcc_jit_param_as_rvalue (param[1]) };
-  comp.bblock->gcc_bb = call_pseudovector_typep_b;
+  comp.block->gcc_bb = call_pseudovector_typep_b;
   /* FIXME XUNTAG missing here. */
   gcc_jit_block_end_with_return (call_pseudovector_typep_b,
 				 NULL,
@@ -999,22 +999,22 @@ define_bool_to_lisp_obj (void)
     gcc_jit_function_new_block (comp.bool_to_lisp_obj,
 				"ret_nil");
   /* Set current context as needed */
-  basic_block_t bblock = { .gcc_bb = initial_block,
+  basic_block_t block = { .gcc_bb = initial_block,
 			   .terminated = false };
-  comp.bblock = &bblock;
+  comp.block = &block;
   comp.func = comp.bool_to_lisp_obj;
 
   emit_cond_jump (gcc_jit_param_as_rvalue (param),
 		  ret_t_block,
 		  ret_nil_block);
-  bblock.gcc_bb = ret_t_block;
+  block.gcc_bb = ret_t_block;
   gcc_jit_block_end_with_return (ret_t_block,
 				 NULL,
-				 emit_lisp_obj_from_ptr (&bblock, Qt));
-  bblock.gcc_bb = ret_nil_block;
+				 emit_lisp_obj_from_ptr (&block, Qt));
+  block.gcc_bb = ret_nil_block;
   gcc_jit_block_end_with_return (ret_nil_block,
 				 NULL,
-				 emit_lisp_obj_from_ptr (&bblock, Qnil));
+				 emit_lisp_obj_from_ptr (&block, Qnil));
 }
 
 static int
@@ -1027,7 +1027,7 @@ ucmp(const void *a, const void *b)
 
 /* Compute and initialize all basic blocks.  */
 static basic_block_t *
-compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
+compute_blocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 {
   ptrdiff_t pc = 0;
   unsigned op;
@@ -1376,7 +1376,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   gcc_jit_block *prologue_bb =
     gcc_jit_function_new_block (comp.func, "prologue");
 
-  basic_block_t *bb_map = compute_bblocks (bytestr_length, bytestr_data);
+  basic_block_t *bb_map = compute_blocks (bytestr_length, bytestr_data);
 
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
     PUSH_PARAM (gcc_jit_function_get_param (comp.func, i));
@@ -1384,7 +1384,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
   gcc_jit_rvalue *nil = emit_lisp_obj_from_ptr (&bb_map[0], Qnil);
 
-  comp.bblock = NULL;
+  comp.block = NULL;
 
   while (pc < bytestr_length)
     {
@@ -1392,13 +1392,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
       /* If we are changing BB and the last was one wasn't terminated
 	 terminate it with a fall through.  */
-      if (comp.bblock && comp.bblock->gcc_bb != bb_map[pc].gcc_bb &&
-	  !comp.bblock->terminated)
+      if (comp.block && comp.block->gcc_bb != bb_map[pc].gcc_bb &&
+	  !comp.block->terminated)
 	{
-	  gcc_jit_block_end_with_jump (comp.bblock->gcc_bb, NULL, bb_map[pc].gcc_bb);
-	  comp.bblock->terminated = true;
+	  gcc_jit_block_end_with_jump (comp.block->gcc_bb, NULL, bb_map[pc].gcc_bb);
+	  comp.block->terminated = true;
 	}
-      comp.bblock = &bb_map[pc];
+      comp.block = &bb_map[pc];
       if (bb_map[pc].top)
 	stack = bb_map[pc].top;
       op = FETCH;
@@ -1449,7 +1449,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH;
 	varref:
 	  {
-	    args[0] = emit_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
+	    args[0] = emit_lisp_obj_from_ptr (comp.block, vectorp[op]);
 	    res = emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
 	    PUSH_RVAL (res);
 	    break;
@@ -1480,7 +1480,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    POP1;
 	    args[1] = args[0];
-	    args[0] = emit_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
+	    args[0] = emit_lisp_obj_from_ptr (comp.block, vectorp[op]);
 	    args[2] = nil;
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
@@ -1513,7 +1513,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op -= Bvarbind;
 	varbind:
 	  {
-	    args[0] = emit_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
+	    args[0] = emit_lisp_obj_from_ptr (comp.block, vectorp[op]);
 	    pop (1, &stack, &args[1]);
 	    res = emit_call ("specbind", comp.lisp_obj_type, 2, args);
 	    PUSH_RVAL (res);
@@ -1591,7 +1591,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 						comp.m_handlerlist);
 
 	    gcc_jit_block_add_assignment(
-	      comp.bblock->gcc_bb,
+	      comp.block->gcc_bb,
 	      NULL,
 	      m_handlerlist,
 	      gcc_jit_lvalue_as_rvalue (
@@ -1623,7 +1623,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 							   comp.int_type,
 							   type);
 	    gcc_jit_block_add_assignment (
-	      comp.bblock->gcc_bb,
+	      comp.block->gcc_bb,
 	      NULL,
 	      c,
 	      emit_call ("push_handler", comp.handler_ptr_type, 2, args));
@@ -1657,14 +1657,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    gcc_jit_lvalue **stack_to_restore = stack;
 	    /* This emit the handler part.  */
 
-	    basic_block_t bb_orig = *comp.bblock;
-	    comp.bblock->gcc_bb = push_h_val_block;
+	    basic_block_t bb_orig = *comp.block;
+	    comp.block->gcc_bb = push_h_val_block;
 	    /* current_thread->m_handlerlist = c->next; */
 	    gcc_jit_lvalue *m_handlerlist =
 	      gcc_jit_rvalue_dereference_field (comp.current_thread,
 						NULL,
 						comp.m_handlerlist);
-	    gcc_jit_block_add_assignment(comp.bblock->gcc_bb,
+	    gcc_jit_block_add_assignment(comp.block->gcc_bb,
 					 NULL,
 					 m_handlerlist,
 					 gcc_jit_lvalue_as_rvalue(
@@ -1678,7 +1678,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 						NULL,
 						comp.handler_val_field));
 	    bb_map[handler_pc].top = stack;
-	    *comp.bblock = bb_orig;
+	    *comp.block = bb_orig;
 
 	    gcc_jit_block_end_with_jump (push_h_val_block, NULL,
 					 bb_map[handler_pc].gcc_bb);
@@ -1807,14 +1807,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					  TOS,
 					  emit_make_fixnum (sub1_inline_block,
 							    sub1_inline_res));
-	    basic_block_t bb_orig = *comp.bblock;
+	    basic_block_t bb_orig = *comp.block;
 
-	    comp.bblock->gcc_bb = sub1_fcall_block;
+	    comp.block->gcc_bb = sub1_fcall_block;
 	    POP1;
 	    res = emit_call ("Fsub1", comp.lisp_obj_type, 1, args);
 	    PUSH_RVAL (res);
 
-	    *comp.bblock = bb_orig;
+	    *comp.block = bb_orig;
 
 	    gcc_jit_block_end_with_jump (sub1_inline_block, NULL,
 					 bb_map[pc].gcc_bb);
@@ -1867,14 +1867,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					  TOS,
 					  emit_make_fixnum (add1_inline_block,
 							    add1_inline_res));
-	    basic_block_t bb_orig = *comp.bblock;
+	    basic_block_t bb_orig = *comp.block;
 
-	    comp.bblock->gcc_bb = add1_fcall_block;
+	    comp.block->gcc_bb = add1_fcall_block;
 	    POP1;
 	    res = emit_call ("Fadd1", comp.lisp_obj_type, 1, args);
 	    PUSH_RVAL (res);
 
-	    *comp.bblock = bb_orig;
+	    *comp.block = bb_orig;
 
 	    gcc_jit_block_end_with_jump (add1_inline_block, NULL,
 					 bb_map[pc].gcc_bb);
@@ -1950,11 +1950,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					  TOS,
 					  emit_make_fixnum (negate_inline_block,
 							    negate_inline_res));
-	    basic_block_t bb_orig = *comp.bblock;
+	    basic_block_t bb_orig = *comp.block;
 
-	    comp.bblock->gcc_bb = negate_fcall_block;
+	    comp.block->gcc_bb = negate_fcall_block;
 	    EMIT_SCRATCH_CALL_N ("Fminus", 1);
-	    *comp.bblock = bb_orig;
+	    *comp.block = bb_orig;
 
 	    gcc_jit_block_end_with_jump (negate_inline_block, NULL,
 					 bb_map[pc].gcc_bb);
@@ -2049,7 +2049,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	CASE (Binteractive_p)	/* Obsolete since 24.1.	 */
-	  PUSH_RVAL (emit_lisp_obj_from_ptr (comp.bblock,
+	  PUSH_RVAL (emit_lisp_obj_from_ptr (comp.block,
 					     intern ("interactive-p")));
 	  res = emit_call ("call0", comp.lisp_obj_type, 1, args);
 	  PUSH_RVAL (res);
@@ -2073,10 +2073,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE (Bgoto)
 	  op = FETCH2;
-	  gcc_jit_block_end_with_jump (comp.bblock->gcc_bb,
+	  gcc_jit_block_end_with_jump (comp.block->gcc_bb,
 				       NULL,
 				       bb_map[op].gcc_bb);
-	  comp.bblock->terminated = true;
+	  comp.block->terminated = true;
 	  bb_map[op].top = stack;
 	  break;
 
@@ -2118,10 +2118,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE (Breturn)
 	  POP1;
-	  gcc_jit_block_end_with_return(comp.bblock->gcc_bb,
+	  gcc_jit_block_end_with_return(comp.block->gcc_bb,
 					NULL,
 					args[0]);
-	  comp.bblock->terminated = true;
+	  comp.block->terminated = true;
 	  break;
 
 	CASE (Bdiscard)
@@ -2142,7 +2142,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	CASE (Bsave_restriction)
-	  args[0] = emit_lisp_obj_from_ptr (comp.bblock,
+	  args[0] = emit_lisp_obj_from_ptr (comp.block,
 					    save_restriction_restore);
 	  args[1] = emit_call ("save_restriction_save",
 			       comp.lisp_obj_type,
@@ -2154,7 +2154,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE (Bcatch)		/* Obsolete since 24.4.	 */
 	  POP2;
 	  args[2] = args[1];
-	  args[1] = emit_lisp_obj_from_ptr (comp.bblock, eval_sub);
+	  args[1] = emit_lisp_obj_from_ptr (comp.block, eval_sub);
 	  emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
 
@@ -2250,10 +2250,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE (BRgoto)
 	  op = FETCH - 128;
 	  op += pc;
-	  gcc_jit_block_end_with_jump (comp.bblock->gcc_bb,
+	  gcc_jit_block_end_with_jump (comp.block->gcc_bb,
 				       NULL,
 				       bb_map[op].gcc_bb);
-	  comp.bblock->terminated = true;
+	  comp.block->terminated = true;
 	  bb_map[op].top = stack;
 	  break;
 
@@ -2307,7 +2307,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH;
 	  POP1;
 	  if (op > 0)
-	    gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+	    gcc_jit_block_add_assignment (comp.block->gcc_bb,
 					  NULL,
 					  *(stack - op),
 					  args[0]);
@@ -2316,7 +2316,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE (Bstack_set2)
 	  op = FETCH2;
 	  POP1;
-	  gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+	  gcc_jit_block_add_assignment (comp.block->gcc_bb,
 					NULL,
 					*(stack - op),
 					args[0]);
@@ -2328,7 +2328,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    {
 	      op &= 0x7F;
 	      POP1;
-	      gcc_jit_block_add_assignment (comp.bblock->gcc_bb,
+	      gcc_jit_block_add_assignment (comp.block->gcc_bb,
 					    NULL,
 					    *(stack - op - 1),
 					    args[0]);
@@ -2359,7 +2359,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    if (pc >= bytestr_length || bytestr_data[pc] != Bswitch)
 	      {
 		gcc_jit_rvalue *c =
-		  emit_lisp_obj_from_ptr (comp.bblock, vectorp[op]);
+		  emit_lisp_obj_from_ptr (comp.block, vectorp[op]);
 		PUSH_RVAL (c);
 		break;
 	      }
