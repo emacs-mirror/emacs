@@ -167,6 +167,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 typedef struct {
   gcc_jit_block *gcc_bb;
+  /* When non zero indicates a stack pointer restart.  */
+  gcc_jit_lvalue **top;
   bool terminated;
 } basic_block_t;
 
@@ -1060,6 +1062,8 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	case Bgotoifnonnil:
 	case Bgotoifnilelsepop:
 	case Bgotoifnonnilelsepop:
+	case Bpushcatch:
+	case Bpushconditioncase:
 	  op = FETCH2;
 	  bb_start_pc[bb_n++] = op;
 	  new_bb = true;
@@ -1075,8 +1079,6 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	  new_bb = true;
 	  break;
 	  /* Other ops changing bb */
-	case Bpushcatch:
-	case Bpushconditioncase:
 	case Bsub1:
 	case Badd1:
 	case Bnegate:
@@ -1107,6 +1109,7 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	  ++i;
 	  snprintf (block_name, sizeof (block_name), "bb_%d", i);
 	  curr_bb.gcc_bb = gcc_jit_function_new_block (comp.func, block_name);
+	  curr_bb.top = NULL;
 	  curr_bb.terminated = false;
 	}
       bb_map[pc] = curr_bb;
@@ -1389,6 +1392,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  comp.bblock->terminated = true;
 	}
       comp.bblock = &bb_map[pc];
+      if (bb_map[pc].top)
+	stack = bb_map[pc].top;
       op = FETCH;
 
       switch (op)
@@ -1591,11 +1596,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 
 	CASE (Bpushconditioncase) /* New in 24.4.  */
-	  type = CATCHER;
+	  type = CONDITION_CASE;
 	  goto pushhandler;
 
 	CASE (Bpushcatch)	/* New in 24.4.	 */
-	  type = CONDITION_CASE;;
+	  type = CATCHER;
 	pushhandler:
 	  {
 	    /* struct handler *c = push_handler (POP, type); */
@@ -1643,6 +1648,9 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	      bb_map[pc].gcc_bb,
 	      push_h_val_block);
 
+	    gcc_jit_lvalue **stack_to_restore = stack;
+	    /* This emit the handler part.  */
+
 	    basic_block_t bb_orig = *comp.bblock;
 	    comp.bblock->gcc_bb = push_h_val_block;
 	    /* current_thread->m_handlerlist = c->next; */
@@ -1663,10 +1671,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	      gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
 						NULL,
 						comp.handler_val_field));
+	    bb_map[handler_pc].top = stack;
 	    *comp.bblock = bb_orig;
 
 	    gcc_jit_block_end_with_jump (push_h_val_block, NULL,
 					 bb_map[handler_pc].gcc_bb);
+
+	    stack = stack_to_restore;
 	    ++pushhandler_n;
 	  }
 	  break;
