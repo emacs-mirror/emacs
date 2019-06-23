@@ -186,11 +186,12 @@ typedef struct {
   gcc_jit_type *emacs_int_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *ptrdiff_type;
-  gcc_jit_type *jmp_buf_type;
   gcc_jit_type *lisp_obj_type;
   gcc_jit_type *lisp_obj_ptr_type;
   gcc_jit_field *lisp_obj_as_ptr;
   gcc_jit_field *lisp_obj_as_num;
+  /* struct jmp_buf.  */
+  gcc_jit_struct *jmp_buf;
   /* struct handler.  */
   gcc_jit_struct *handler;
   gcc_jit_field *handler_jmp_field;
@@ -773,18 +774,40 @@ emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
   return emit_call (f_name, comp.lisp_obj_type, 2, args);
 }
 
+/* opaque jmp_buf definition  */
+
+static void
+define_jmp_buf (void)
+{
+  gcc_jit_field *field =
+    gcc_jit_context_new_field (
+      comp.ctxt,
+      NULL,
+      gcc_jit_context_new_array_type (comp.ctxt,
+				      NULL,
+				      comp.char_type,
+				      sizeof (jmp_buf)),
+      "stuff");
+  comp.jmp_buf =
+    gcc_jit_context_new_struct_type (comp.ctxt,
+				     NULL,
+				     "comp_jmp_buf",
+				     1, &field);
+}
+
 /* struct handler definition  */
 
 static void
 define_handler_struct (void)
 {
-  comp.handler = gcc_jit_context_new_opaque_struct (comp.ctxt, NULL, "handler");
+  comp.handler = gcc_jit_context_new_opaque_struct (comp.ctxt, NULL, "comp_handler");
   comp.handler_ptr_type =
     gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.handler));
 
   comp.handler_jmp_field = gcc_jit_context_new_field (comp.ctxt,
 						      NULL,
-						      comp.jmp_buf_type,
+						      gcc_jit_struct_as_type (
+							comp.jmp_buf),
 						      "jmp");
   comp.handler_val_field = gcc_jit_context_new_field (comp.ctxt,
 						      NULL,
@@ -821,6 +844,13 @@ define_handler_struct (void)
 				 NULL,
 				 comp.int_type,
 				 "bytecode_dest"),
+      gcc_jit_context_new_field (comp.ctxt,
+				 NULL,
+				 gcc_jit_context_new_array_type (comp.ctxt,
+								 NULL,
+								 comp.char_type,
+								 4),
+				 "pad"),
       comp.handler_jmp_field,
       gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
@@ -1273,11 +1303,6 @@ init_comp (int opt_level)
 
   comp.ptrdiff_type = gcc_jit_context_get_type (comp.ctxt, ptrdiff_t_gcc);
 
-  /* Opaque definition for jmp_buf.  */
-  comp.jmp_buf_type = gcc_jit_context_new_array_type (comp.ctxt,
-						      NULL,
-						      comp.char_type,
-						      sizeof (jmp_buf));
   comp.scratch =
     gcc_jit_lvalue_get_address(
       gcc_jit_context_new_global (comp.ctxt, NULL,
@@ -1288,6 +1313,7 @@ init_comp (int opt_level)
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
+  define_jmp_buf ();
   define_handler_struct ();
   define_thread_state_struct ();
   comp.current_thread =
