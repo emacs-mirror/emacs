@@ -243,6 +243,19 @@ void emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 			   Lisp_Object func, int opt_level, bool dump_asm);
 
 
+static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
+format_string (const char *format, ...)
+{
+  static char scratch_area[512];
+  va_list va;
+  va_start (va, format);
+  int res = vsnprintf (scratch_area, sizeof (scratch_area), format, va);
+  if (res >= sizeof (scratch_area))
+    error ("Truncating string");
+  va_end (va);
+  return scratch_area;
+}
+
 static void
 bcall0 (Lisp_Object f)
 {
@@ -683,30 +696,23 @@ static gcc_jit_rvalue *
 emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 {
   static unsigned i;
-  char scratch[256];
 
-  int res = snprintf (scratch, sizeof (scratch),
-		      "lisp_obj_from_ptr_%u", i++);
-  if (res >= sizeof (scratch))
-    error ("Internal error, truncating temporary variable");
-
-  gcc_jit_lvalue *lisp_obj = gcc_jit_function_new_local (comp.func,
-							 NULL,
-							 comp.lisp_obj_type,
-							 scratch);
+  gcc_jit_lvalue *lisp_obj =
+    gcc_jit_function_new_local (comp.func,
+				NULL,
+				comp.lisp_obj_type,
+				format_string ("lisp_obj_from_ptr_%u", i++));
   gcc_jit_rvalue *void_ptr =
     gcc_jit_context_new_rvalue_from_ptr(comp.ctxt,
 					comp.void_ptr_type,
 					p);
 
   if (SYMBOLP (p))
-    {
-      snprintf (scratch, sizeof (scratch),
-		"Symbol %s", (char *) SDATA (SYMBOL_NAME (p)));
-      gcc_jit_block_add_comment (bblock->gcc_bb,
-				 NULL,
-				 scratch);
-    }
+    gcc_jit_block_add_comment (
+      bblock->gcc_bb,
+      NULL,
+      format_string ("Symbol %s",
+		     (char *) SDATA (SYMBOL_NAME (p))));
 
   gcc_jit_block_add_assignment (bblock->gcc_bb,
 				NULL,
@@ -718,8 +724,6 @@ emit_lisp_obj_from_ptr (basic_block_t *bblock, void *p)
 static gcc_jit_rvalue *
 emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
 {
-  char tmp_str[256];
-
   /* Here we set all the pointers into the scratch call area.  */
   /* TODO: distinguish primitives for faster calling convention.  */
 
@@ -735,11 +739,9 @@ emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
     p[n] = 0x...;
   */
 
-  snprintf (tmp_str, sizeof (tmp_str), "calling %s", f_name);
-
   gcc_jit_block_add_comment (comp.bblock->gcc_bb,
 			     NULL,
-			     tmp_str);
+			     format_string ("calling %s", f_name));
 
   gcc_jit_lvalue *p =
     gcc_jit_function_new_local(comp.func,
@@ -1115,14 +1117,13 @@ compute_bblocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
   }
 
   basic_block_t curr_bb;
-  char block_name[256];
   for (int i = 0, pc = 0; pc < bytestr_length; pc++)
     {
       if (i < bb_n && pc == bb_start_pc[i])
 	{
 	  ++i;
-	  snprintf (block_name, sizeof (block_name), "bb_%d", i);
-	  curr_bb.gcc_bb = gcc_jit_function_new_block (comp.func, block_name);
+	  curr_bb.gcc_bb =
+	    gcc_jit_function_new_block (comp.func, format_string ("bb_%d", i));
 	  curr_bb.top = NULL;
 	  curr_bb.terminated = false;
 	}
@@ -1331,7 +1332,6 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   ptrdiff_t pc = 0;
   gcc_jit_rvalue *args[4];
   unsigned op;
-  char scratch_name[256];
   unsigned pushhandler_n  = 0;
 
   /* Meta-stack we use to flat the bytecode written for push and pop
@@ -1368,13 +1368,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				 NULL, GCC_JIT_FUNCTION_EXPORTED, false);
 
   for (int i = 0; i < stack_depth; ++i)
-    {
-      snprintf (scratch_name, sizeof (scratch_name), "local_%d", i);
-      stack[i] = gcc_jit_function_new_local (comp.func,
-					     NULL,
-					     comp.lisp_obj_type,
-					     scratch_name);
-    }
+    stack[i] = gcc_jit_function_new_local (comp.func,
+					   NULL,
+					   comp.lisp_obj_type,
+					   format_string ("local_%d", i));
 
   gcc_jit_block *prologue_bb =
     gcc_jit_function_new_block (comp.func, "prologue");
@@ -1615,13 +1612,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    /* struct handler *c = push_handler (POP, type); */
 	    int handler_pc = FETCH2;
-	    snprintf (scratch_name, sizeof (scratch_name), "c_%u",
-		      pushhandler_n);
 	    gcc_jit_lvalue *c =
 	      gcc_jit_function_new_local (comp.func,
 					  NULL,
 					  comp.handler_ptr_type,
-					  scratch_name);
+					  format_string ("c_%u",
+							 pushhandler_n));
 	    POP1;
 	    args[1] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
@@ -1644,10 +1640,10 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 #else
 	    res = emit_call ("setjmp", comp.int_type, 1, args);
 #endif
-	    snprintf (scratch_name, sizeof (scratch_name), "push_h_val_%u",
-		      pushhandler_n);
 	    gcc_jit_block *push_h_val_block =
-	      gcc_jit_function_new_block (comp.func, scratch_name);
+	      gcc_jit_function_new_block (comp.func,
+					  format_string ("push_h_val_%u",
+							 pushhandler_n));
 	    emit_cond_jump (
 	      /* This negation is just to have a bool.  */
 	      gcc_jit_context_new_unary_op (comp.ctxt,
