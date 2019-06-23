@@ -79,6 +79,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define TOS (*(stack - 1))
 
+#define DISCARD(n) (stack -= (n))
+
 #define POP0
 
 #define POP1						\
@@ -2104,7 +2106,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  bb_map[op].top = stack;
-	  POP1;
+	  DISCARD (1);
 	  break;
 
 	CASE (Bgotoifnonnilelsepop)
@@ -2114,7 +2116,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  bb_map[op].top = stack;
-	  POP1;
+	  DISCARD (1);
 	  break;
 
 	CASE (Breturn)
@@ -2126,7 +2128,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	CASE (Bdiscard)
-	  POP1;
+	  DISCARD (1);
 	  break;
 
 	CASE (Bdup)
@@ -2135,7 +2137,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE (Bsave_excursion)
 	  res = emit_call ("record_unwind_protect_excursion",
-				comp.void_type, 0, args);
+			   comp.void_type, 0, args);
 	  break;
 
 	CASE (Bsave_window_excursion) /* Obsolete since 24.1.  */
@@ -2284,7 +2286,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  bb_map[op].top = stack;
-	  POP1;
+	  DISCARD (1);
 	  break;
 
 	CASE (BRgotoifnonnilelsepop)
@@ -2295,7 +2297,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
 	  bb_map[op].top = stack;
-	  POP1;
+	  DISCARD (1);
 	  break;
 
 	CASE (BinsertN)
@@ -2335,7 +2337,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					    args[0]);
 	    }
 
-	  stack -= op;
+	  DISCARD (op);
 	  break;
 	CASE (Bswitch)
 	  error ("Bswitch not supported");
