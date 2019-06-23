@@ -138,7 +138,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Generate appropriate case and emit call to function. */
 
-#define CASE_CALL_NARGS(name, nargs)					\
+#define CASE_CALL_N(name, nargs)					\
   CASE (B##name)							\
   EMIT_CALL_N (STR(F##name), nargs);					\
   break
@@ -1643,8 +1643,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 
-	CASE_CALL_NARGS (nth, 2);
-	CASE_CALL_NARGS (symbolp, 1);
+	CASE_CALL_N (nth, 2);
+	CASE_CALL_N (symbolp, 1);
 
 	CASE (Bconsp)
 	  POP1;
@@ -1657,14 +1657,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE_CALL_NARGS (stringp, 1);
-	CASE_CALL_NARGS (listp, 1);
-	CASE_CALL_NARGS (eq, 2);
-	CASE_CALL_NARGS (memq, 1);
-	CASE_CALL_NARGS (not, 1);
-	CASE_CALL_NARGS (car, 1);
-	CASE_CALL_NARGS (cdr, 1);
-	CASE_CALL_NARGS (cons, 2);
+	CASE_CALL_N (stringp, 1);
+	CASE_CALL_N (listp, 1);
+	CASE_CALL_N (eq, 2);
+	CASE_CALL_N (memq, 1);
+	CASE_CALL_N (not, 1);
+	CASE_CALL_N (car, 1);
+	CASE_CALL_N (cdr, 1);
+	CASE_CALL_N (cons, 2);
 
 	CASE (BlistN)
 	  op = FETCH;
@@ -1694,15 +1694,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	CASE_CALL_NARGS (length, 1);
-	CASE_CALL_NARGS (aref, 2);
-	CASE_CALL_NARGS (aset, 3);
-	CASE_CALL_NARGS (symbol_value, 1);
-	CASE_CALL_NARGS (symbol_function, 1);
-	CASE_CALL_NARGS (set, 2);
-	CASE_CALL_NARGS (fset, 2);
-	CASE_CALL_NARGS (get, 2);
-	CASE_CALL_NARGS (substring, 3);
+	CASE_CALL_N (length, 1);
+	CASE_CALL_N (aref, 2);
+	CASE_CALL_N (aset, 3);
+	CASE_CALL_N (symbol_value, 1);
+	CASE_CALL_N (symbol_function, 1);
+	CASE_CALL_N (set, 2);
+	CASE_CALL_N (fset, 2);
+	CASE_CALL_N (get, 2);
+	CASE_CALL_N (substring, 3);
 
 	CASE (Bconcat2)
 	  EMIT_CALL_N_REF ("Fconcat", 2);
@@ -1941,7 +1941,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE_CALL_NARGS (goto_char, 1);
+	CASE_CALL_N (goto_char, 1);
 
 	CASE (Binsert)
 	  EMIT_CALL_N_REF ("Finsert", 1);
@@ -1971,15 +1971,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE_CALL_NARGS (char_after, 1);
-	CASE_CALL_NARGS (following_char, 0);
+	CASE_CALL_N (char_after, 1);
+	CASE_CALL_N (following_char, 0);
 
 	CASE (Bpreceding_char)
 	  res = emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE_CALL_NARGS (current_column, 0);
+	CASE_CALL_N (current_column, 0);
 
 	CASE (Bindent_to)
 	  POP1;
@@ -1988,12 +1988,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE_CALL_NARGS (eolp, 0);
-	CASE_CALL_NARGS (eobp, 0);
-	CASE_CALL_NARGS (bolp, 0);
-	CASE_CALL_NARGS (bobp, 0);
-	CASE_CALL_NARGS (current_buffer, 0);
-	CASE_CALL_NARGS (set_buffer, 1);
+	CASE_CALL_N (eolp, 0);
+	CASE_CALL_N (eobp, 0);
+	CASE_CALL_N (bolp, 0);
+	CASE_CALL_N (bobp, 0);
+	CASE_CALL_N (current_buffer, 0);
+	CASE_CALL_N (set_buffer, 1);
 
 	CASE (Bsave_current_buffer) /* Obsolete since ??.  */
 	  goto save_current;
@@ -2010,17 +2010,17 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE_CALL_NARGS (forward_char, 1);
-	CASE_CALL_NARGS (forward_word, 1);
-	CASE_CALL_NARGS (skip_chars_forward, 2);
-	CASE_CALL_NARGS (skip_chars_backward, 2);
-	CASE_CALL_NARGS (forward_line, 1);
-	CASE_CALL_NARGS (char_syntax, 1);
-	CASE_CALL_NARGS (buffer_substring, 2);
-	CASE_CALL_NARGS (delete_region, 2);
-	CASE_CALL_NARGS (narrow_to_region, 2);
-	CASE_CALL_NARGS (widen, 0);
-	CASE_CALL_NARGS (end_of_line, 1);
+	CASE_CALL_N (forward_char, 1);
+	CASE_CALL_N (forward_word, 1);
+	CASE_CALL_N (skip_chars_forward, 2);
+	CASE_CALL_N (skip_chars_backward, 2);
+	CASE_CALL_N (forward_line, 1);
+	CASE_CALL_N (char_syntax, 1);
+	CASE_CALL_N (buffer_substring, 2);
+	CASE_CALL_N (delete_region, 2);
+	CASE_CALL_N (narrow_to_region, 2);
+	CASE_CALL_N (widen, 0);
+	CASE_CALL_N (end_of_line, 1);
 
 	CASE (Bconstant2)
 	  goto do_constant;
@@ -2142,11 +2142,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  error ("Bunbind_all not supported");
 	  break;
 
-	CASE_CALL_NARGS (set_marker, 3);
-	CASE_CALL_NARGS (match_beginning, 1);
-	CASE_CALL_NARGS (match_end, 1);
-	CASE_CALL_NARGS (upcase, 1);
-	CASE_CALL_NARGS (downcase, 1);
+	CASE_CALL_N (set_marker, 3);
+	CASE_CALL_N (match_beginning, 1);
+	CASE_CALL_N (match_end, 1);
+	CASE_CALL_N (upcase, 1);
+	CASE_CALL_N (downcase, 1);
 
 	CASE (Bstringeqlsign)
 	  EMIT_CALL_N ("Fstring_equal", 2);
@@ -2156,13 +2156,13 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  EMIT_CALL_N ("Fstring_lessp", 2);
 	  break;
 
-	CASE_CALL_NARGS (equal, 2);
-	CASE_CALL_NARGS (nthcdr, 2);
-	CASE_CALL_NARGS (elt, 2);
-	CASE_CALL_NARGS (member, 2);
-	CASE_CALL_NARGS (assq, 2);
-	CASE_CALL_NARGS (setcar, 2);
-	CASE_CALL_NARGS (setcdr, 2);
+	CASE_CALL_N (equal, 2);
+	CASE_CALL_N (nthcdr, 2);
+	CASE_CALL_N (elt, 2);
+	CASE_CALL_N (member, 2);
+	CASE_CALL_N (assq, 2);
+	CASE_CALL_N (setcar, 2);
+	CASE_CALL_N (setcdr, 2);
 
 	CASE (Bcar_safe)
 	  EMIT_CALL_N ("CAR_SAFE", 1);
@@ -2180,7 +2180,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  EMIT_CALL_N_REF ("Fquo", 2);
 	  break;
 
-	CASE_CALL_NARGS (rem, 2);
+	CASE_CALL_N (rem, 2);
 
 	CASE (Bnumberp)
 	  POP1;
