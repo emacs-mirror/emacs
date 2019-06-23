@@ -1367,11 +1367,24 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   comp.func = emit_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
 				 NULL, GCC_JIT_FUNCTION_EXPORTED, false);
 
+  gcc_jit_lvalue *meta_stack_array =
+    gcc_jit_function_new_local (
+      comp.func,
+      NULL,
+      gcc_jit_context_new_array_type (comp.ctxt,
+				      NULL,
+				      comp.lisp_obj_type,
+				      stack_depth),
+      "local");
+
   for (int i = 0; i < stack_depth; ++i)
-    stack[i] = gcc_jit_function_new_local (comp.func,
-					   NULL,
-					   comp.lisp_obj_type,
-					   format_string ("local_%d", i));
+    stack[i] = gcc_jit_context_new_array_access (
+		 comp.ctxt,
+		 NULL,
+		 gcc_jit_lvalue_as_rvalue (meta_stack_array),
+		 gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						      comp.int_type,
+						      i));
 
   gcc_jit_block *prologue_bb =
     gcc_jit_function_new_block (comp.func, "prologue");
