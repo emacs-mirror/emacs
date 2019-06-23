@@ -36,10 +36,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define MAX_FUN_NAME 256
 
-/* Max number of args we are able to handle while emitting function calls.  */
-
-#define MAX_ARGS 16
-
 #define DISASS_FILE_NAME "emacs-asm.s"
 
 #define CHECK_STACK					\
@@ -147,13 +143,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   EMIT_CALL_N (STR(F##name), nargs);					\
   break
 
-/* Emit calls to functions with prototype (ptrdiff_t nargs, Lisp_Object *args)
-   This is done aggregating args into the scratch_call_area.  */
+/*
+  Emit calls to functions with prototype (ptrdiff_t nargs, Lisp_Object *args).
+  This is done by passing a reference to the first obj involved on the stack.
+*/
 
-#define EMIT_SCRATCH_CALL_N(name, nargs)		\
+#define EMIT_CALL_N_REF(name, nargs)			\
   do {							\
-    pop (nargs, &stack, args);				\
-    res = emit_scratch_callN (name, nargs, args);	\
+    DISCARD (nargs);					\
+    res = emit_call_n_ref (name, nargs, *stack);	\
     PUSH_RVAL (res);					\
   } while (0)
 
@@ -214,7 +212,6 @@ typedef struct {
   gcc_jit_field *cast_union_as_i;
   gcc_jit_field *cast_union_as_b;
   gcc_jit_function *func; /* Current function being compiled  */
-  gcc_jit_rvalue *scratch; /* Will point to scratch_call_area  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
   gcc_jit_rvalue *one;
@@ -227,8 +224,6 @@ typedef struct {
 } comp_t;
 
 static comp_t comp;
-
-Lisp_Object scratch_call_area[MAX_ARGS];
 
 FILE *logfile = NULL;
 
@@ -722,60 +717,15 @@ emit_lisp_obj_from_ptr (basic_block_t *block, void *p)
 }
 
 static gcc_jit_rvalue *
-emit_scratch_callN (const char *f_name, unsigned nargs, gcc_jit_rvalue **args)
+emit_call_n_ref (const char *f_name, unsigned nargs,
+		 gcc_jit_lvalue *base_arg)
 {
-  /* Here we set all the pointers into the scratch call area.  */
-  /* TODO: distinguish primitives for faster calling convention.  */
-
-  /*
-    Lisp_Object *p;
-    p = scratch_call_area;
-
-    p[0] = nargs;
-    p[1] = 0x...;
-    .
-    .
-    .
-    p[n] = 0x...;
-  */
-
-  gcc_jit_block_add_comment (comp.block->gcc_bb,
-			     NULL,
-			     format_string ("calling %s", f_name));
-
-  gcc_jit_lvalue *p =
-    gcc_jit_function_new_local(comp.func,
-			       NULL,
-			       gcc_jit_type_get_pointer (comp.lisp_obj_type),
-			       "p");
-
-  gcc_jit_block_add_assignment(comp.block->gcc_bb, NULL,
-			       p,
-			       comp.scratch);
-
-  for (int i = 0; i < nargs; i++) {
-    gcc_jit_rvalue *idx =
-      gcc_jit_context_new_rvalue_from_int (
-	comp.ctxt,
-	gcc_jit_context_get_type(comp.ctxt,
-				 GCC_JIT_TYPE_UNSIGNED_INT),
-	i);
-    gcc_jit_block_add_assignment (
-      comp.block->gcc_bb,
-      NULL,
-      gcc_jit_context_new_array_access (comp.ctxt,
-					NULL,
-					gcc_jit_lvalue_as_rvalue(p),
-					idx),
-      args[i]);
-  }
-
-  args[0] = gcc_jit_context_new_rvalue_from_int(comp.ctxt,
+  gcc_jit_rvalue *arguments[2] =
+    { gcc_jit_context_new_rvalue_from_int(comp.ctxt,
 						comp.ptrdiff_type,
-						nargs);
-  args[1] = comp.scratch;
-
-  return emit_call (f_name, comp.lisp_obj_type, 2, args);
+						nargs),
+      gcc_jit_lvalue_get_address (base_arg, NULL) };
+  return emit_call (f_name, comp.lisp_obj_type, 2, arguments);
 }
 
 /* opaque jmp_buf definition  */
@@ -1288,14 +1238,6 @@ init_comp (int opt_level)
 
   comp.ptrdiff_type = gcc_jit_context_get_type (comp.ctxt, ptrdiff_t_gcc);
 
-  comp.scratch =
-    gcc_jit_lvalue_get_address(
-      gcc_jit_context_new_global (comp.ctxt, NULL,
-				  GCC_JIT_GLOBAL_IMPORTED,
-				  comp.lisp_obj_type,
-				  "scratch_call_area"),
-      NULL);
-
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
   define_jmp_buf ();
@@ -1557,8 +1499,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	docall:
 	  {
 	    ptrdiff_t nargs = op + 1;
-	    pop (nargs, &stack, args);
-	    res = emit_scratch_callN ("Ffuncall", nargs, args);
+	    DISCARD (nargs);
+	    res = emit_call_n_ref ("Ffuncall", nargs, *stack);
 	    PUSH_RVAL (res);
 	    break;
 	  }
@@ -1763,17 +1705,17 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (substring, 3);
 
 	CASE (Bconcat2)
-	  EMIT_SCRATCH_CALL_N ("Fconcat", 2);
+	  EMIT_CALL_N_REF ("Fconcat", 2);
 	  break;
 	CASE (Bconcat3)
-	  EMIT_SCRATCH_CALL_N ("Fconcat", 3);
+	  EMIT_CALL_N_REF ("Fconcat", 3);
 	  break;
 	CASE (Bconcat4)
-	  EMIT_SCRATCH_CALL_N ("Fconcat", 4);
+	  EMIT_CALL_N_REF ("Fconcat", 4);
 	  break;
 	CASE (BconcatN)
 	  op = FETCH;
-	  EMIT_SCRATCH_CALL_N ("Fconcat", op);
+	  EMIT_CALL_N_REF ("Fconcat", op);
 	  break;
 
 	CASE (Bsub1)
@@ -1917,7 +1859,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	CASE (Bdiff)
-	  EMIT_SCRATCH_CALL_N ("Fminus", 2);
+	  EMIT_CALL_N_REF ("Fminus", 2);
 	  break;
 
 	CASE (Bnegate)
@@ -1966,7 +1908,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    basic_block_t bb_orig = *comp.block;
 
 	    comp.block->gcc_bb = negate_fcall_block;
-	    EMIT_SCRATCH_CALL_N ("Fminus", 1);
+	    EMIT_CALL_N_REF ("Fminus", 1);
 	    *comp.block = bb_orig;
 
 	    gcc_jit_block_end_with_jump (negate_inline_block, NULL,
@@ -1976,16 +1918,16 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 	CASE (Bplus)
-	  EMIT_SCRATCH_CALL_N ("Fplus", 2);
+	  EMIT_CALL_N_REF ("Fplus", 2);
 	  break;
 	CASE (Bmax)
-	  EMIT_SCRATCH_CALL_N ("Fmax", 2);
+	  EMIT_CALL_N_REF ("Fmax", 2);
 	  break;
 	CASE (Bmin)
-	  EMIT_SCRATCH_CALL_N ("Fmin", 2);
+	  EMIT_CALL_N_REF ("Fmin", 2);
 	  break;
 	CASE (Bmult)
-	  EMIT_SCRATCH_CALL_N ("Ftimes", 2);
+	  EMIT_CALL_N_REF ("Ftimes", 2);
 	  break;
 	CASE (Bpoint)
 	  args[0] =
@@ -2002,7 +1944,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_NARGS (goto_char, 1);
 
 	CASE (Binsert)
-	  EMIT_SCRATCH_CALL_N ("Finsert", 1);
+	  EMIT_CALL_N_REF ("Finsert", 1);
 	  break;
 
 	CASE (Bpoint_max)
@@ -2231,11 +2173,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	CASE (Bnconc)
-	  EMIT_SCRATCH_CALL_N ("Fnconc", 2);
+	  EMIT_CALL_N_REF ("Fnconc", 2);
 	  break;
 
 	CASE (Bquo)
-	  EMIT_SCRATCH_CALL_N ("Fquo", 2);
+	  EMIT_CALL_N_REF ("Fquo", 2);
 	  break;
 
 	CASE_CALL_NARGS (rem, 2);
@@ -2312,7 +2254,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE (BinsertN)
 	  op = FETCH;
-	  EMIT_SCRATCH_CALL_N ("Finsert", op);
+	  EMIT_CALL_N_REF ("Finsert", op);
 	  break;
 
 	CASE (Bstack_set)
