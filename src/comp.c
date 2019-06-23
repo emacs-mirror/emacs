@@ -887,13 +887,13 @@ define_thread_state_struct (void)
 					sizeof (struct thread_state)
 					- offsetof (struct thread_state,
 						    m_handlerlist)
-					- sizeof (struct handler *)),
+					- sizeof (((struct thread_state *) 0)->m_handlerlist)),
 	"pad1") };
 
   comp.thread_state =
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
-				     "thread_state",
+				     "comp_thread_state",
 				     sizeof (fields) / sizeof (*fields),
 				     fields);
   comp.thread_state_ptr_type =
