@@ -2078,6 +2078,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				       NULL,
 				       bb_map[op].gcc_bb);
 	  comp.bblock->terminated = true;
+	  bb_map[op].top = stack;
 	  break;
 
 	CASE (Bgotoifnil)
@@ -2085,6 +2086,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  bb_map[op].top = stack;
 	  break;
 
 	CASE (Bgotoifnonnil)
@@ -2092,6 +2094,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  bb_map[op].top = stack;
 	  break;
 
 	CASE (Bgotoifnilelsepop)
@@ -2100,6 +2103,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				gcc_jit_lvalue_as_rvalue (TOS),
 				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  bb_map[op].top = stack;
 	  POP1;
 	  break;
 
@@ -2109,6 +2113,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				gcc_jit_lvalue_as_rvalue (TOS),
 				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  bb_map[op].top = stack;
 	  POP1;
 	  break;
 
@@ -2250,6 +2255,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				       NULL,
 				       bb_map[op].gcc_bb);
 	  comp.bblock->terminated = true;
+	  bb_map[op].top = stack;
 	  break;
 
 	CASE (BRgotoifnil)
@@ -2258,6 +2264,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  bb_map[op].top = stack;
 	  break;
 
 	CASE (BRgotoifnonnil)
@@ -2266,6 +2273,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE, args[0], nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  bb_map[op].top = stack;
 	  break;
 
 	CASE (BRgotoifnilelsepop)
@@ -2275,6 +2283,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				gcc_jit_lvalue_as_rvalue (TOS),
 				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  bb_map[op].top = stack;
 	  POP1;
 	  break;
 
@@ -2285,6 +2294,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 				gcc_jit_lvalue_as_rvalue (TOS),
 				nil,
 				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+	  bb_map[op].top = stack;
 	  POP1;
 	  break;
 
