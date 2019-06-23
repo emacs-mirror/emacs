@@ -193,15 +193,15 @@ typedef struct {
   gcc_jit_field *lisp_obj_as_ptr;
   gcc_jit_field *lisp_obj_as_num;
   /* struct jmp_buf.  */
-  gcc_jit_struct *jmp_buf;
+  gcc_jit_struct *jmp_buf_s;
   /* struct handler.  */
-  gcc_jit_struct *handler;
+  gcc_jit_struct *handler_s;
   gcc_jit_field *handler_jmp_field;
   gcc_jit_field *handler_val_field;
   gcc_jit_field *handler_next_field;
   gcc_jit_type *handler_ptr_type;
   /* struct thread_state.  */
-  gcc_jit_struct *thread_state;
+  gcc_jit_struct *thread_state_s;
   gcc_jit_field *m_handlerlist;
   gcc_jit_type *thread_state_ptr_type;
   gcc_jit_rvalue *current_thread;
@@ -790,7 +790,7 @@ define_jmp_buf (void)
 				      comp.char_type,
 				      sizeof (jmp_buf)),
       "stuff");
-  comp.jmp_buf =
+  comp.jmp_buf_s =
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "comp_jmp_buf",
@@ -802,14 +802,15 @@ define_jmp_buf (void)
 static void
 define_handler_struct (void)
 {
-  comp.handler = gcc_jit_context_new_opaque_struct (comp.ctxt, NULL, "comp_handler");
+  comp.handler_s =
+    gcc_jit_context_new_opaque_struct (comp.ctxt, NULL, "comp_handler");
   comp.handler_ptr_type =
-    gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.handler));
+    gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.handler_s));
 
   comp.handler_jmp_field = gcc_jit_context_new_field (comp.ctxt,
 						      NULL,
 						      gcc_jit_struct_as_type (
-							comp.jmp_buf),
+							comp.jmp_buf_s),
 						      "jmp");
   comp.handler_val_field = gcc_jit_context_new_field (comp.ctxt,
 						      NULL,
@@ -851,7 +852,7 @@ define_handler_struct (void)
 					- offsetof (struct handler, jmp)
 					- sizeof (((struct handler *) 0)->jmp)),
 	"pad2") };
-  gcc_jit_struct_set_fields (comp.handler,
+  gcc_jit_struct_set_fields (comp.handler_s,
 			     NULL,
 			     sizeof (fields) / sizeof (*fields),
 			     fields);
@@ -892,14 +893,14 @@ define_thread_state_struct (void)
 					- sizeof (((struct thread_state *) 0)->m_handlerlist)),
 	"pad1") };
 
-  comp.thread_state =
+  comp.thread_state_s =
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "comp_thread_state",
 				     sizeof (fields) / sizeof (*fields),
 				     fields);
   comp.thread_state_ptr_type =
-    gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.thread_state));
+    gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.thread_state_s));
 }
 
 /* Declare a substitute for PSEUDOVECTORP as inline function.  */
