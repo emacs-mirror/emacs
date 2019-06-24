@@ -194,7 +194,10 @@ typedef struct {
   /* struct Lisp_Cons */
   gcc_jit_struct *lisp_cons_s;
   gcc_jit_field *lisp_cons_u;
-  gcc_jit_type *lisp_cons_ptr;
+  gcc_jit_field *lisp_cons_u_s;
+  gcc_jit_field *lisp_cons_u_s_car;
+  gcc_jit_type *lisp_cons_type;
+  gcc_jit_type *lisp_cons_ptr_type;
   /* struct jmp_buf.  */
   gcc_jit_struct *jmp_buf_s;
   /* struct handler.  */
@@ -217,6 +220,7 @@ typedef struct {
   gcc_jit_field *cast_union_as_i;
   gcc_jit_field *cast_union_as_b;
   gcc_jit_field *cast_union_as_c_p;
+  gcc_jit_field *cast_union_as_lisp_cons_ptr;
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
@@ -225,6 +229,7 @@ typedef struct {
   gcc_jit_rvalue *lisp_int0;
   gcc_jit_function *pseudovectorp;
   gcc_jit_function *bool_to_lisp_obj;
+  gcc_jit_function *car;
   basic_block_t *block; /* Current basic block	 */
   Lisp_Object func_hash; /* f_name -> gcc_func	*/
 } comp_t;
@@ -297,6 +302,8 @@ type_to_cast_field (gcc_jit_type *type)
     field = comp.cast_union_as_b;
   else if (type == comp.char_ptr_type)
     field = comp.cast_union_as_c_p;
+  else if (type == comp.lisp_cons_ptr_type)
+    field = comp.cast_union_as_lisp_cons_ptr;
   else
     error ("unsopported cast\n");
 
@@ -768,6 +775,8 @@ emit_NILP (gcc_jit_rvalue *x)
 {
   return emit_EQ (x, emit_lisp_obj_from_ptr (comp.block, Qnil));
 }
+
+static gcc_jit_rvalue *
 emit_call_n_ref (const char *f_name, unsigned nargs,
 		 gcc_jit_lvalue *base_arg)
 {
@@ -813,8 +822,10 @@ define_lisp_cons (void)
     gcc_jit_context_new_opaque_struct (comp.ctxt,
 				       NULL,
 				       "comp_Lisp_Cons");
-  comp.lisp_cons_ptr =
-    gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.lisp_cons_s));
+  comp.lisp_cons_type =
+    gcc_jit_struct_as_type (comp.lisp_cons_s);
+  comp.lisp_cons_ptr_type =
+    gcc_jit_type_get_pointer (comp.lisp_cons_type);
 
   gcc_jit_field *cdr_u_fields[] =
     { gcc_jit_context_new_field (comp.ctxt,
@@ -823,7 +834,7 @@ define_lisp_cons (void)
 				 "cdr"),
       gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
-				 comp.lisp_cons_ptr,
+				 comp.lisp_cons_ptr_type,
 				 "chain") };
 
   gcc_jit_type *cdr_u =
@@ -834,11 +845,12 @@ define_lisp_cons (void)
 				    / sizeof (*cdr_u_fields),
 				    cdr_u_fields);
 
+  comp.lisp_cons_u_s_car = gcc_jit_context_new_field (comp.ctxt,
+					    NULL,
+					    comp.lisp_obj_type,
+					    "car");
   gcc_jit_field *cons_s_fields[] =
-    { gcc_jit_context_new_field (comp.ctxt,
-				 NULL,
-				 comp.lisp_obj_type,
-				 "car"),
+    { comp.lisp_cons_u_s_car,
       gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
 				 cdr_u,
@@ -852,11 +864,13 @@ define_lisp_cons (void)
 				     / sizeof (*cons_s_fields),
 				     cons_s_fields);
 
-  gcc_jit_field *cons_u_fields[] =
-    { gcc_jit_context_new_field (comp.ctxt,
+  comp.lisp_cons_u_s = gcc_jit_context_new_field (comp.ctxt,
 				 NULL,
 				 gcc_jit_struct_as_type (cons_s),
-				 "s"),
+				 "s");
+
+  gcc_jit_field *cons_u_fields[] =
+    { comp.lisp_cons_u_s,
       gcc_jit_context_new_field (
 	comp.ctxt,
 	NULL,
@@ -866,7 +880,7 @@ define_lisp_cons (void)
 					sizeof (struct Lisp_Cons)),
 	"align_pad") };
 
-  gcc_jit_type *cons_u =
+  gcc_jit_type *lisp_cons_u_type =
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
 				    "comp_cons_u",
@@ -877,7 +891,7 @@ define_lisp_cons (void)
   comp.lisp_cons_u =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
-			       cons_u,
+			       lisp_cons_u_type,
 			       "u");
   gcc_jit_struct_set_fields (comp.lisp_cons_s,
 			     NULL, 1, &comp.lisp_cons_u);
@@ -1087,29 +1101,30 @@ define_CAR (void)
 				  1,
 				  &param,
 				  0);
+  gcc_jit_rvalue *c = gcc_jit_param_as_rvalue (param);
   gcc_jit_block *initial_block =
     gcc_jit_function_new_block (comp.car, "CAR_initial_block");
 
-  /* gcc_jit_block *is_cons_b = */
-  /*   gcc_jit_function_new_block (comp.pseudovectorp, "is_cons"); */
+  gcc_jit_block *is_cons_b =
+    gcc_jit_function_new_block (comp.car, "is_cons");
 
-  /* gcc_jit_block *not_a_cons_b = */
-  /*   gcc_jit_function_new_block (comp.pseudovectorp, "not_a_cons"); */
+  gcc_jit_block *not_a_cons_b =
+    gcc_jit_function_new_block (comp.car, "not_a_cons");
 
 
   /* Set current context as needed */
   basic_block_t block = { .gcc_bb = initial_block,
-                          .terminated = false };
+			  .terminated = false };
   comp.block = &block;
   comp.func = comp.car;
 
-  /* emit_cond_jump ( */
-  /*   emit_cast (comp.bool_type, */
-  /* 	       emit_CONSP (gcc_jit_param_as_rvalue (param))), */
-  /*   is_cons_b, */
-  /*   not_a_cons_b); */
+  emit_cond_jump (
+    emit_cast (comp.bool_type,
+	       emit_CONSP (c)),
+    is_cons_b,
+    not_a_cons_b);
 
-  /* comp.block->gcc_bb = is_cons_b; */
+  comp.block->gcc_bb = is_cons_b;
 
   gcc_jit_rvalue *res_car =
     /* c->u.s.car */
@@ -1119,7 +1134,7 @@ define_CAR (void)
 	/* c->u */
 	gcc_jit_lvalue_as_rvalue (
 	  gcc_jit_rvalue_dereference_field (
-	    emit_rval_XCONS (gcc_jit_param_as_rvalue (param)),
+	    emit_rval_XCONS (c),
 	    NULL,
 	    comp.lisp_cons_u)),
 	NULL,
@@ -1127,10 +1142,37 @@ define_CAR (void)
       NULL,
       comp.lisp_cons_u_s_car);
 
-  gcc_jit_block_end_with_return (initial_block,
+  gcc_jit_block_end_with_return (comp.block->gcc_bb,
 				 NULL,
 				 res_car);
 
+  comp.block->gcc_bb = not_a_cons_b;
+
+  gcc_jit_block *is_nil_b =
+    gcc_jit_function_new_block (comp.car, "is_nil");
+  gcc_jit_block *not_nil_b =
+    gcc_jit_function_new_block (comp.car, "not_nil");
+
+  emit_cond_jump (emit_NILP (c),
+		  is_nil_b,
+		  not_nil_b);
+
+  comp.block->gcc_bb = is_nil_b;
+  gcc_jit_block_end_with_return (comp.block->gcc_bb,
+				 NULL,
+				 emit_lisp_obj_from_ptr (comp.block, Qnil));
+
+  comp.block->gcc_bb = not_nil_b;
+  gcc_jit_rvalue *wrong_type_args[] =
+    { emit_lisp_obj_from_ptr (comp.block, Qlistp), c };
+
+  gcc_jit_block_add_eval (comp.block->gcc_bb,
+			  NULL,
+			  emit_call ("wrong_type_argument",
+				     comp.lisp_obj_type, 2, wrong_type_args));
+  gcc_jit_block_end_with_return (comp.block->gcc_bb,
+				 NULL,
+				 emit_lisp_obj_from_ptr (comp.block, Qnil));
 }
 
 /* Declare a substitute for PSEUDOVECTORP as always inlined function.  */
@@ -1496,6 +1538,10 @@ init_comp (int opt_level)
     gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
 					 comp.thread_state_ptr_type,
 					 current_thread);
+
+  /* Define inline functions.  */
+
+  define_CAR();
   define_PSEUDOVECTORP ();
   define_bool_to_lisp_obj ();
 }
@@ -1911,7 +1957,16 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_N (eq, 2);
 	CASE_CALL_N (memq, 1);
 	CASE_CALL_N (not, 1);
-	CASE_CALL_N (car, 1);
+
+	case Bcar:
+	  POP1;
+	  res = gcc_jit_context_new_call (comp.ctxt,
+					  NULL,
+					  comp.car,
+					  1, args);
+	  PUSH_RVAL (res);
+	  break;
+
 	CASE_CALL_N (cdr, 1);
 	CASE_CALL_N (cons, 2);
 
