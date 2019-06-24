@@ -514,6 +514,14 @@ emit_rval_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
 	     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.int_type,
 					   lisp_word_tag)));
+static gcc_jit_rvalue *
+emit_rval_XCONS (gcc_jit_rvalue *a)
+{
+  return emit_rval_XUNTAG (a,
+			   gcc_jit_struct_as_type (comp.lisp_cons_s),
+			   LISP_WORD_TAG (Lisp_Cons));
+}
+
 }
 
 static gcc_jit_rvalue *
