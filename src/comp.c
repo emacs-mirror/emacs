@@ -777,6 +777,26 @@ emit_NILP (gcc_jit_rvalue *x)
 }
 
 static gcc_jit_rvalue *
+emit_XCAR (gcc_jit_rvalue *c)
+{
+   /* XCONS (c)->u.s.car */
+  return
+    gcc_jit_rvalue_access_field (
+      /* c->u.s */
+      gcc_jit_rvalue_access_field (
+	/* c->u */
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_rvalue_dereference_field (
+	    emit_rval_XCONS (c),
+	    NULL,
+	    comp.lisp_cons_u)),
+	NULL,
+	comp.lisp_cons_u_s),
+      NULL,
+      comp.lisp_cons_u_s_car);
+}
+
+static gcc_jit_rvalue *
 emit_call_n_ref (const char *f_name, unsigned nargs,
 		 gcc_jit_lvalue *base_arg)
 {
@@ -1103,7 +1123,7 @@ define_CAR (void)
 				  0);
   gcc_jit_rvalue *c = gcc_jit_param_as_rvalue (param);
   gcc_jit_block *initial_block =
-    gcc_jit_function_new_block (comp.car, "CAR_initial_block");
+    gcc_jit_function_new_block (comp.car, "initial_block");
 
   gcc_jit_block *is_cons_b =
     gcc_jit_function_new_block (comp.car, "is_cons");
@@ -1126,25 +1146,9 @@ define_CAR (void)
 
   comp.block->gcc_bb = is_cons_b;
 
-  gcc_jit_rvalue *res_car =
-    /* c->u.s.car */
-    gcc_jit_rvalue_access_field (
-      /* c->u.s */
-      gcc_jit_rvalue_access_field (
-	/* c->u */
-	gcc_jit_lvalue_as_rvalue (
-	  gcc_jit_rvalue_dereference_field (
-	    emit_rval_XCONS (c),
-	    NULL,
-	    comp.lisp_cons_u)),
-	NULL,
-	comp.lisp_cons_u_s),
-      NULL,
-      comp.lisp_cons_u_s_car);
-
   gcc_jit_block_end_with_return (comp.block->gcc_bb,
 				 NULL,
-				 res_car);
+				 emit_XCAR (c));
 
   comp.block->gcc_bb = not_a_cons_b;
 
