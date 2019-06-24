@@ -522,6 +522,15 @@ emit_rval_XCONS (gcc_jit_rvalue *a)
 			   LISP_WORD_TAG (Lisp_Cons));
 }
 
+static gcc_jit_rvalue *
+emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
+{
+  return gcc_jit_context_new_comparison (
+	   comp.ctxt,
+	   NULL,
+	   GCC_JIT_COMPARISON_EQ,
+	   emit_rval_XLI (x),
+	   emit_rval_XLI (y));
 }
 
 static gcc_jit_rvalue *
