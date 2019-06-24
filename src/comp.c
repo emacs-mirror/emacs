@@ -1206,9 +1206,6 @@ init_comp (int opt_level)
 				   logfile,
 				   0, 0);
       gcc_jit_context_set_bool_option (comp.ctxt,
-				       GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
-				       1);
-      gcc_jit_context_set_bool_option (comp.ctxt,
 				       GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
 				       1);
     }
@@ -1216,6 +1213,9 @@ init_comp (int opt_level)
     {
       gcc_jit_context_set_bool_option (comp.ctxt,
 				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
+				       1);
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_DUMP_INITIAL_GIMPLE,
 				       1);
 
       gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
@@ -1225,6 +1225,10 @@ init_comp (int opt_level)
   gcc_jit_context_set_int_option (comp.ctxt,
 				  GCC_JIT_INT_OPTION_OPTIMIZATION_LEVEL,
 				  opt_level);
+
+  /* Do not inline within a compilation unit.  */
+  gcc_jit_context_add_command_line_option (comp.ctxt, "-fno-inline");
+
 
   comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.void_ptr_type =
