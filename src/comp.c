@@ -233,6 +233,7 @@ typedef struct {
   gcc_jit_function *bool_to_lisp_obj;
   gcc_jit_function *car;
   gcc_jit_function *cdr;
+  gcc_jit_function *check_type;
   basic_block_t *block; /* Current basic block	 */
   Lisp_Object func_hash; /* f_name -> gcc_func	*/
 } comp_t;
@@ -824,6 +825,12 @@ emit_XCDR (gcc_jit_rvalue *c)
 }
 
 static gcc_jit_rvalue *
+emit_CHECK_CONS (gcc_jit_rvalue *x)
+{
+  return NULL;
+}
+
+static gcc_jit_rvalue *
 emit_call_n_ref (const char *f_name, unsigned nargs,
 		 gcc_jit_lvalue *base_arg)
 {
@@ -1134,6 +1141,66 @@ define_cast_union (void)
 				    cast_union_fields);
 }
 
+static void
+define_check_type (void)
+{
+  gcc_jit_param *param[] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.int_type,
+				 "ok"),
+      gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "predicate"),
+      gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "x") };
+  comp.check_type =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.void_type,
+				  "CHECK_TYPE",
+				  3,
+				  param,
+				  0);
+  gcc_jit_rvalue *ok = gcc_jit_param_as_rvalue (param[0]);
+  gcc_jit_rvalue *predicate = gcc_jit_param_as_rvalue (param[1]);
+  gcc_jit_rvalue *x = gcc_jit_param_as_rvalue (param[2]);
+
+  gcc_jit_block *initial_block =
+    gcc_jit_function_new_block (comp.check_type, "initial_block");
+  gcc_jit_block *ok_block =
+    gcc_jit_function_new_block (comp.check_type, "ok_block");
+  gcc_jit_block *not_ok_block =
+    gcc_jit_function_new_block (comp.check_type, "not_ok_block");
+
+  /* Set current context as needed */
+  basic_block_t block = { .gcc_bb = initial_block,
+			  .terminated = false };
+  comp.block = &block;
+  comp.func = comp.check_type;
+
+  emit_cond_jump (emit_cast (comp.bool_type, ok),
+		  ok_block,
+		  not_ok_block);
+
+  gcc_jit_block_end_with_void_return (ok_block, NULL);
+
+  comp.block->gcc_bb = not_ok_block;
+
+  gcc_jit_rvalue *wrong_type_args[] = { predicate, x };
+
+  gcc_jit_block_add_eval (comp.block->gcc_bb,
+			  NULL,
+			  emit_call ("wrong_type_argument",
+				     comp.lisp_obj_type, 2, wrong_type_args));
+
+  gcc_jit_block_end_with_void_return (not_ok_block, NULL);
+}
+
+
 /* Declare a substitute for CAR as always inlined function.  */
 
 static void
@@ -1261,7 +1328,7 @@ define_PSEUDOVECTORP (void)
 				  0);
 
   gcc_jit_block *initial_block =
-    gcc_jit_function_new_block (comp.pseudovectorp, "PSEUDOVECTORP_initial_block");
+    gcc_jit_function_new_block (comp.pseudovectorp, "initial_block");
 
   gcc_jit_block *ret_false_b =
     gcc_jit_function_new_block (comp.pseudovectorp, "ret_false");
@@ -1594,6 +1661,7 @@ init_comp (int opt_level)
   define_handler_struct ();
   define_thread_state_struct ();
   define_cast_union ();
+  define_check_type ();
 
   comp.current_thread =
     gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
