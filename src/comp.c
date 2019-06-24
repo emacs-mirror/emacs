@@ -967,13 +967,14 @@ define_thread_state_struct (void)
       gcc_jit_context_new_field (
 	comp.ctxt,
 	NULL,
-	gcc_jit_context_new_array_type (comp.ctxt,
-					NULL,
-					comp.char_type,
-					sizeof (struct thread_state)
-					- offsetof (struct thread_state,
-						    m_handlerlist)
-					- sizeof (((struct thread_state *) 0)->m_handlerlist)),
+	gcc_jit_context_new_array_type (
+	  comp.ctxt,
+	  NULL,
+	  comp.char_type,
+	  sizeof (struct thread_state)
+	  - offsetof (struct thread_state,
+		      m_handlerlist)
+	  - sizeof (((struct thread_state *) 0)->m_handlerlist)),
 	"pad1") };
 
   comp.thread_state_s =
