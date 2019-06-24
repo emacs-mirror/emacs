@@ -753,6 +753,10 @@ emit_lisp_obj_from_ptr (basic_block_t *block, void *p)
 }
 
 static gcc_jit_rvalue *
+emit_NILP (gcc_jit_rvalue *x)
+{
+  return emit_EQ (x, emit_lisp_obj_from_ptr (comp.block, Qnil));
+}
 emit_call_n_ref (const char *f_name, unsigned nargs,
 		 gcc_jit_lvalue *base_arg)
 {
