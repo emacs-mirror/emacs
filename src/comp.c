@@ -497,6 +497,24 @@ emit_lval_XLP (gcc_jit_lvalue *obj)
 }
 
 static gcc_jit_rvalue *
+emit_rval_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
+{
+  /* #define XUNTAG(a, type, ctype) ((ctype *)
+     ((char *) XLP (a) - LISP_WORD_TAG (type))) */
+
+  return emit_cast (type,
+	   gcc_jit_context_new_binary_op (
+	     comp.ctxt,
+	     NULL,
+	     GCC_JIT_BINARY_OP_MINUS,
+	     comp.emacs_int_type,
+	     emit_rval_XLI (a),
+	     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.int_type,
+					   lisp_word_tag)));
+}
+
+static gcc_jit_rvalue *
 emit_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
 {
    /* (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
