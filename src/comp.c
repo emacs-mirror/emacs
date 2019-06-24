@@ -443,6 +443,8 @@ emit_comparison_jump (enum gcc_jit_comparison op, /* TODO add basick block as pa
 static gcc_jit_rvalue *
 emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 {
+  static unsigned i;
+
   gcc_jit_field *orig_field =
     type_to_cast_field (gcc_jit_rvalue_get_type (obj));
   gcc_jit_field *dest_field = type_to_cast_field (new_type);
@@ -451,7 +453,7 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
     gcc_jit_function_new_local (comp.func,
 				NULL,
 				comp.cast_union_type,
-				"union_cast");
+				format_string ("union_cast_%u", i++));
   gcc_jit_block_add_assignment (comp.block->gcc_bb,
 				NULL,
 				gcc_jit_lvalue_access_field (tmp_u,
