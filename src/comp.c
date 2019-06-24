@@ -987,7 +987,128 @@ define_thread_state_struct (void)
     gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.thread_state_s));
 }
 
-/* Declare a substitute for PSEUDOVECTORP as inline function.  */
+static void
+define_cast_union (void)
+{
+
+  comp.cast_union_as_ll =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.long_long_type,
+			       "ll");
+  comp.cast_union_as_l =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.long_type,
+			       "l");
+  comp.cast_union_as_u =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.unsigned_type,
+			       "u");
+  comp.cast_union_as_i =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.int_type,
+			       "i");
+  comp.cast_union_as_b =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.bool_type,
+			       "b");
+  comp.cast_union_as_c_p =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.char_ptr_type,
+			       "c_p");
+  comp.cast_union_as_lisp_cons_ptr =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.lisp_cons_ptr_type,
+			       "cons_ptr");
+
+  gcc_jit_field *cast_union_fields[] =
+    { comp.cast_union_as_ll,
+      comp.cast_union_as_l,
+      comp.cast_union_as_u,
+      comp.cast_union_as_i,
+      comp.cast_union_as_b,
+      comp.cast_union_as_c_p,
+      comp.cast_union_as_lisp_cons_ptr, };
+  comp.cast_union_type =
+    gcc_jit_context_new_union_type (comp.ctxt,
+				    NULL,
+				    "cast_union",
+				    sizeof (cast_union_fields)
+				    / sizeof (*cast_union_fields),
+				    cast_union_fields);
+}
+
+/* Declare a substitute for CAR as always inlined function.  */
+
+static void
+define_CAR (void)
+{
+  gcc_jit_param *param =
+    gcc_jit_context_new_param (comp.ctxt,
+			       NULL,
+			       comp.lisp_obj_type,
+			       "c");
+  comp.car =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.lisp_obj_type,
+				  "CAR",
+				  1,
+				  &param,
+				  0);
+  gcc_jit_block *initial_block =
+    gcc_jit_function_new_block (comp.car, "CAR_initial_block");
+
+  /* gcc_jit_block *is_cons_b = */
+  /*   gcc_jit_function_new_block (comp.pseudovectorp, "is_cons"); */
+
+  /* gcc_jit_block *not_a_cons_b = */
+  /*   gcc_jit_function_new_block (comp.pseudovectorp, "not_a_cons"); */
+
+
+  /* Set current context as needed */
+  basic_block_t block = { .gcc_bb = initial_block,
+                          .terminated = false };
+  comp.block = &block;
+  comp.func = comp.car;
+
+  /* emit_cond_jump ( */
+  /*   emit_cast (comp.bool_type, */
+  /* 	       emit_CONSP (gcc_jit_param_as_rvalue (param))), */
+  /*   is_cons_b, */
+  /*   not_a_cons_b); */
+
+  /* comp.block->gcc_bb = is_cons_b; */
+
+  gcc_jit_rvalue *res_car =
+    /* c->u.s.car */
+    gcc_jit_rvalue_access_field (
+      /* c->u.s */
+      gcc_jit_rvalue_access_field (
+	/* c->u */
+	gcc_jit_lvalue_as_rvalue (
+	  gcc_jit_rvalue_dereference_field (
+	    emit_rval_XCONS (gcc_jit_param_as_rvalue (param)),
+	    NULL,
+	    comp.lisp_cons_u)),
+	NULL,
+	comp.lisp_cons_u_s),
+      NULL,
+      comp.lisp_cons_u_s_car);
+
+  gcc_jit_block_end_with_return (initial_block,
+				 NULL,
+				 res_car);
+
+}
+
+/* Declare a substitute for PSEUDOVECTORP as always inlined function.  */
 
 static void
 define_PSEUDOVECTORP (void)
@@ -1022,7 +1143,7 @@ define_PSEUDOVECTORP (void)
 
   /* Set current context as needed */
   basic_block_t block = { .gcc_bb = initial_block,
-			   .terminated = false };
+                          .terminated = false };
   comp.block = &block;
   comp.func = comp.pseudovectorp;
 
@@ -1044,7 +1165,7 @@ define_PSEUDOVECTORP (void)
     { gcc_jit_param_as_rvalue (param[0]),
       gcc_jit_param_as_rvalue (param[1]) };
   comp.block->gcc_bb = call_pseudovector_typep_b;
-  /* FIXME XUNTAG missing here. */
+  /* FIXME use XUNTAG now that's available.  */
   gcc_jit_block_end_with_return (call_pseudovector_typep_b,
 				 NULL,
 				 emit_call ("helper_PSEUDOVECTOR_TYPEP_XUNTAG",
@@ -1302,51 +1423,6 @@ init_comp (int opt_level)
 						       lisp_obj_fields);
   comp.lisp_obj_ptr_type = gcc_jit_type_get_pointer (comp.lisp_obj_type);
 
-  comp.cast_union_as_ll =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.long_long_type,
-			       "ll");
-  comp.cast_union_as_l =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.long_type,
-			       "l");
-  comp.cast_union_as_u =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.unsigned_type,
-			       "u");
-  comp.cast_union_as_i =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.int_type,
-			       "i");
-  comp.cast_union_as_b =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.bool_type,
-			       "b");
-  comp.cast_union_as_c_p =
-    gcc_jit_context_new_field (comp.ctxt,
-			       NULL,
-			       comp.bool_type,
-			       "c_p");
-
-  gcc_jit_field *cast_union_fields[] =
-    { comp.cast_union_as_ll,
-      comp.cast_union_as_l,
-      comp.cast_union_as_u,
-      comp.cast_union_as_i,
-      comp.cast_union_as_b,
-      comp.cast_union_as_c_p, };
-  comp.cast_union_type =
-    gcc_jit_context_new_union_type (comp.ctxt,
-				    NULL,
-				    "cast_union",
-				    sizeof (cast_union_fields)
-				    / sizeof (*cast_union_fields),
-				    cast_union_fields);
   comp.most_positive_fixnum =
     gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 					  comp.emacs_int_type,
@@ -1383,10 +1459,14 @@ init_comp (int opt_level)
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
+  /* Define data structures.  */
+
   define_lisp_cons ();
   define_jmp_buf ();
   define_handler_struct ();
   define_thread_state_struct ();
+  define_cast_union ();
+
   comp.current_thread =
     gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
 					 comp.thread_state_ptr_type,
