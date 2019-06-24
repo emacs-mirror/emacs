@@ -185,6 +185,7 @@ typedef struct {
   gcc_jit_type *long_long_type;
   gcc_jit_type *emacs_int_type;
   gcc_jit_type *void_ptr_type;
+  gcc_jit_type *char_ptr_type;
   gcc_jit_type *ptrdiff_type;
   gcc_jit_type *lisp_obj_type;
   gcc_jit_type *lisp_obj_ptr_type;
@@ -215,6 +216,7 @@ typedef struct {
   gcc_jit_field *cast_union_as_u;
   gcc_jit_field *cast_union_as_i;
   gcc_jit_field *cast_union_as_b;
+  gcc_jit_field *cast_union_as_c_p;
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
@@ -293,6 +295,8 @@ type_to_cast_field (gcc_jit_type *type)
     field = comp.cast_union_as_i;
   else if (type == comp.bool_type)
     field = comp.cast_union_as_b;
+  else if (type == comp.char_ptr_type)
+    field = comp.cast_union_as_c_p;
   else
     error ("unsopported cast\n");
 
@@ -1234,6 +1238,7 @@ init_comp (int opt_level)
   comp.void_ptr_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
   comp.char_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_CHAR);
+  comp.char_ptr_type = gcc_jit_type_get_pointer (comp.char_type);
   comp.int_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_INT);
   comp.unsigned_type = gcc_jit_context_get_type (comp.ctxt,
 						 GCC_JIT_TYPE_UNSIGNED_INT);
@@ -1303,13 +1308,19 @@ init_comp (int opt_level)
 			       NULL,
 			       comp.bool_type,
 			       "b");
+  comp.cast_union_as_c_p =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.bool_type,
+			       "c_p");
 
   gcc_jit_field *cast_union_fields[] =
     { comp.cast_union_as_ll,
       comp.cast_union_as_l,
       comp.cast_union_as_u,
       comp.cast_union_as_i,
-      comp.cast_union_as_b,};
+      comp.cast_union_as_b,
+      comp.cast_union_as_c_p, };
   comp.cast_union_type =
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
