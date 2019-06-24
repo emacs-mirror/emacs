@@ -32,7 +32,7 @@
 (defvar comp-tests-var1 3)
 
 (ert-deftest  comp-tests-varref ()
-  "Testing cons car cdr."
+  "Testing varref."
   (defun comp-tests-varref-f ()
     comp-tests-var1)
 
@@ -45,6 +45,12 @@
   "Testing cons car cdr."
   (defun comp-tests-list-f ()
     (list 1 2 3))
+  (defun comp-tests-car-f (x)
+    ;; Bcar
+    (car x))
+  (defun comp-tests-cdr-f (x)
+    ;; Bcdr
+    (cdr x))
   (defun comp-tests-car-safe-f (x)
     ;; Bcar_safe
     (car-safe x))
@@ -54,12 +60,28 @@
 
   (byte-compile #'comp-tests-list-f)
   (native-compile #'comp-tests-list-f)
+  (byte-compile #'comp-tests-car-f)
+  (native-compile #'comp-tests-car-f)
+  (byte-compile #'comp-tests-cdr-f)
+  (native-compile #'comp-tests-cdr-f)
   (byte-compile #'comp-tests-car-safe-f)
   (native-compile #'comp-tests-car-safe-f)
   (byte-compile #'comp-tests-cdr-safe-f)
   (native-compile #'comp-tests-cdr-safe-f)
 
   (should (equal (comp-tests-list-f) '(1 2 3)))
+  (should (= (comp-tests-car-f '(1 . 2)) 1))
+  (should (null (comp-tests-car-f nil)))
+  (should (= (condition-case err
+                 (comp-tests-car-f 3)
+               (error 10))
+             10))
+  (should (= (comp-tests-cdr-f '(1 . 2)) 2))
+  (should (null (comp-tests-cdr-f nil)))
+  (should (= (condition-case err
+                 (comp-tests-cdr-f 3)
+               (error 10))
+             10))
   (should (= (comp-tests-car-safe-f '(1 . 2)) 1))
   (should (null (comp-tests-car-safe-f 'a)))
   (should (= (comp-tests-cdr-safe-f '(1 . 2)) 2))
