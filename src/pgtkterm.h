@@ -297,6 +297,7 @@ struct pgtk_output
   /* The last size hints set.  */
   GdkGeometry size_hints;
   long hint_flags;
+  int preferred_width, preferred_height;
 
   /* The widget of this screen.  This is the window of a top widget.  */
   GtkWidget *widget;

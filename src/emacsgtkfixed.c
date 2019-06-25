@@ -188,11 +188,13 @@ emacs_fixed_get_preferred_width (GtkWidget *widget,
   EmacsFixedPrivate *priv = fixed->priv;
 #ifdef HAVE_PGTK
   int w = priv->f->output_data.pgtk->size_hints.min_width;
+  if (minimum) *minimum = w;
+  if (natural) *natural = priv->f->output_data.pgtk->preferred_width;
 #else
   int w = priv->f->output_data.x->size_hints.min_width;
-#endif
   if (minimum) *minimum = w;
   if (natural) *natural = w;
+#endif
 }
 
 static void
@@ -204,11 +206,13 @@ emacs_fixed_get_preferred_height (GtkWidget *widget,
   EmacsFixedPrivate *priv = fixed->priv;
 #ifdef HAVE_PGTK
   int h = priv->f->output_data.pgtk->size_hints.min_height;
+  if (minimum) *minimum = h;
+  if (natural) *natural = priv->f->output_data.pgtk->preferred_height;
 #else
   int h = priv->f->output_data.x->size_hints.min_height;
-#endif
   if (minimum) *minimum = h;
   if (natural) *natural = h;
+#endif
 }
 
 
