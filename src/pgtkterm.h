@@ -255,7 +255,7 @@ struct pgtk_output
      mapped to display an hourglass cursor.  */
   GtkWidget *hourglass_widget;
 
-  XGCValues cursor_xgcv;
+  Emacs_GC cursor_xgcv;
 
   /* lord knows why Emacs needs to know about our Window ids.. */
   Window window_desc, parent_desc;
@@ -349,7 +349,7 @@ struct pgtk_output
   /* Relief GCs, colors etc.  */
   struct relief
   {
-    XGCValues xgcv;
+    Emacs_GC xgcv;
     unsigned long pixel;
   }
   black_relief, white_relief;
@@ -542,8 +542,8 @@ extern int pgtk_select (int nfds, fd_set *readfds, fd_set *writefds,
 /* Cairo related functions implemented in pgtkterm.c */
 extern cairo_t *pgtk_begin_cr_clip (struct frame *f);
 extern void pgtk_end_cr_clip (struct frame *f);
-extern void pgtk_set_cr_source_with_gc_foreground (struct frame *f, XGCValues *gc);
-extern void pgtk_set_cr_source_with_gc_background (struct frame *f, XGCValues *gc);
+extern void pgtk_set_cr_source_with_gc_foreground (struct frame *f, Emacs_GC *gc);
+extern void pgtk_set_cr_source_with_gc_background (struct frame *f, Emacs_GC *gc);
 extern void pgtk_set_cr_source_with_color (struct frame *f, unsigned long color);
 extern void pgtk_cr_draw_frame (cairo_t *cr, struct frame *f);
 extern void pgtk_cr_destroy_surface(struct frame *f);

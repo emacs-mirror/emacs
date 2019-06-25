@@ -43,26 +43,7 @@ typedef unichar XChar2b;
   (*(chp) & 0x00ff)
 
 
-/* XXX: xfaces requires these structures, but the question is are we
-        forced to use them? */
-typedef struct _XGCValues
-{
-  unsigned long foreground;
-  unsigned long background;
-  void *font;
-} XGCValues;
-
-typedef XGCValues * GC;
-
-#define GCForeground 0x01
-#define GCBackground 0x02
-#define GCFont 0x03
-
-typedef void *Pixmap;
-
-typedef void *Cursor;
-
-#define No_Cursor (0)
+typedef void *Emacs_Cursor;
 
 typedef void * Color;
 typedef int Window;

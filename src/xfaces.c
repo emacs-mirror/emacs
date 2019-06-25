@@ -578,18 +578,18 @@ x_free_gc (struct frame *f, Emacs_GC *gc)
 #ifdef HAVE_PGTK
 /* PGTK emulation of GCs */
 
-static GC
+static Emacs_GC *
 x_create_gc (struct frame *f,
 	     unsigned long mask,
-	     XGCValues *xgcv)
+	     Emacs_GC *xgcv)
 {
-  GC gc = xmalloc (sizeof *gc);
+  Emacs_GC *gc = xmalloc (sizeof *gc);
   *gc = *xgcv;
   return gc;
 }
 
 static void
-x_free_gc (struct frame *f, GC gc)
+x_free_gc (struct frame *f, Emacs_GC *gc)
 {
   xfree (gc);
 }

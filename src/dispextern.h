@@ -1402,7 +1402,7 @@ struct glyph_string
   HDC hdc;
 #endif
 #if defined (HAVE_PGTK)
-  XGCValues xgcv;
+  Emacs_GC xgcv;
 #endif
 
   /* A pointer to the first glyph in the string.  This glyph
