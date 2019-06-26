@@ -187,6 +187,7 @@ typedef struct {
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *char_ptr_type;
   gcc_jit_type *ptrdiff_type;
+  gcc_jit_type *uintptr_type;
   gcc_jit_type *lisp_obj_type;
   gcc_jit_type *lisp_obj_ptr_type;
   gcc_jit_field *lisp_obj_as_ptr;
@@ -1649,8 +1650,18 @@ init_comp (int opt_level)
     ptrdiff_t_gcc = GCC_JIT_TYPE_LONG_LONG;
   else
     eassert ("ptrdiff_t size not handled.");
-
   comp.ptrdiff_type = gcc_jit_context_get_type (comp.ctxt, ptrdiff_t_gcc);
+
+  enum gcc_jit_types uintptr_t_gcc;
+  if (sizeof (uintptr_t) == sizeof (unsigned))
+    uintptr_t_gcc = GCC_JIT_TYPE_UNSIGNED_INT;
+  else if (sizeof (uintptr_t) == sizeof (unsigned long))
+    uintptr_t_gcc = GCC_JIT_TYPE_UNSIGNED_LONG;
+  else if (sizeof (uintptr_t) == sizeof (unsigned long long))
+    uintptr_t_gcc = GCC_JIT_TYPE_UNSIGNED_LONG_LONG;
+  else
+    eassert ("uintptr_t size not handled.");
+  comp.uintptr_type = gcc_jit_context_get_type (comp.ctxt, uintptr_t_gcc);
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
