@@ -835,12 +835,12 @@ static gcc_jit_rvalue *
 emit_call_n_ref (const char *f_name, unsigned nargs,
 		 gcc_jit_lvalue *base_arg)
 {
-  gcc_jit_rvalue *arguments[2] =
+  gcc_jit_rvalue *args[] =
     { gcc_jit_context_new_rvalue_from_int(comp.ctxt,
-						comp.ptrdiff_type,
-						nargs),
+					  comp.ptrdiff_type,
+					  nargs),
       gcc_jit_lvalue_get_address (base_arg, NULL) };
-  return emit_call (f_name, comp.lisp_obj_type, 2, arguments);
+  return emit_call (f_name, comp.lisp_obj_type, 2, args);
 }
 
 /* struct Lisp_Cons definition.  */
