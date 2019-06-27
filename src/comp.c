@@ -182,7 +182,9 @@ typedef struct {
   gcc_jit_type *int_type;
   gcc_jit_type *unsigned_type;
   gcc_jit_type *long_type;
+  gcc_jit_type *unsigned_long_type;
   gcc_jit_type *long_long_type;
+  gcc_jit_type *unsigned_long_long_type;
   gcc_jit_type *emacs_int_type;
   gcc_jit_type *void_ptr_type;
   gcc_jit_type *char_ptr_type;
@@ -218,12 +220,16 @@ typedef struct {
      be used for the scope.  */
   gcc_jit_type *cast_union_type;
   gcc_jit_field *cast_union_as_ll;
+  gcc_jit_field *cast_union_as_ull;
   gcc_jit_field *cast_union_as_l;
+  gcc_jit_field *cast_union_as_ul;
   gcc_jit_field *cast_union_as_u;
   gcc_jit_field *cast_union_as_i;
   gcc_jit_field *cast_union_as_b;
   gcc_jit_field *cast_union_as_c_p;
+  gcc_jit_field *cast_union_as_v_p;
   gcc_jit_field *cast_union_as_lisp_cons_ptr;
+  gcc_jit_field *cast_union_as_lisp_obj;
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
@@ -297,20 +303,28 @@ type_to_cast_field (gcc_jit_type *type)
 
   if (type == comp.long_long_type)
     field = comp.cast_union_as_ll;
+  else if (type == comp.unsigned_long_long_type)
+    field = comp.cast_union_as_ull;
   else if (type == comp.long_type)
     field = comp.cast_union_as_l;
+  else if (type == comp.unsigned_long_type)
+    field = comp.cast_union_as_ul;
   else if (type == comp.unsigned_type)
     field = comp.cast_union_as_u;
   else if (type == comp.int_type)
     field = comp.cast_union_as_i;
   else if (type == comp.bool_type)
     field = comp.cast_union_as_b;
+  else if (type == comp.void_ptr_type)
+    field = comp.cast_union_as_v_p;
   else if (type == comp.char_ptr_type)
     field = comp.cast_union_as_c_p;
   else if (type == comp.lisp_cons_ptr_type)
     field = comp.cast_union_as_lisp_cons_ptr;
+  else if (type == comp.lisp_obj_type)
+    field = comp.cast_union_as_lisp_obj;
   else
-    error ("unsopported cast\n");
+    error ("unsupported cast\n");
 
   return field;
 }
@@ -1094,11 +1108,21 @@ define_cast_union (void)
 			       NULL,
 			       comp.long_long_type,
 			       "ll");
+  comp.cast_union_as_ull =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.unsigned_long_long_type,
+			       "ull");
   comp.cast_union_as_l =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
 			       comp.long_type,
 			       "l");
+  comp.cast_union_as_ul =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.unsigned_long_type,
+			       "ul");
   comp.cast_union_as_u =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
@@ -1119,20 +1143,34 @@ define_cast_union (void)
 			       NULL,
 			       comp.char_ptr_type,
 			       "c_p");
+  comp.cast_union_as_v_p =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.void_ptr_type,
+			       "v_p");
   comp.cast_union_as_lisp_cons_ptr =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
 			       comp.lisp_cons_ptr_type,
 			       "cons_ptr");
+  comp.cast_union_as_lisp_obj =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.lisp_obj_type,
+			       "lisp_obj");
 
   gcc_jit_field *cast_union_fields[] =
     { comp.cast_union_as_ll,
+      comp.cast_union_as_ull,
       comp.cast_union_as_l,
+      comp.cast_union_as_ul,
       comp.cast_union_as_u,
       comp.cast_union_as_i,
       comp.cast_union_as_b,
       comp.cast_union_as_c_p,
-      comp.cast_union_as_lisp_cons_ptr, };
+      comp.cast_union_as_v_p,
+      comp.cast_union_as_lisp_cons_ptr,
+      comp.cast_union_as_lisp_obj};
   comp.cast_union_type =
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
@@ -1573,15 +1611,19 @@ init_comp (int opt_level)
   comp.void_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID);
   comp.void_ptr_type =
     gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_VOID_PTR);
+  comp.bool_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_BOOL);
   comp.char_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_CHAR);
-  comp.char_ptr_type = gcc_jit_type_get_pointer (comp.char_type);
   comp.int_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_INT);
   comp.unsigned_type = gcc_jit_context_get_type (comp.ctxt,
 						 GCC_JIT_TYPE_UNSIGNED_INT);
-  comp.bool_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_BOOL);
   comp.long_type = gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_LONG);
-  comp.long_long_type = gcc_jit_context_get_type (comp.ctxt,
-						  GCC_JIT_TYPE_LONG_LONG);
+  comp.unsigned_long_type =
+    gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_UNSIGNED_LONG);
+  comp.long_long_type =
+    gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_LONG_LONG);
+  comp.unsigned_long_long_type =
+    gcc_jit_context_get_type (comp.ctxt, GCC_JIT_TYPE_UNSIGNED_LONG_LONG);
+  comp.char_ptr_type = gcc_jit_type_get_pointer (comp.char_type);
 
 #if EMACS_INT_MAX <= LONG_MAX
   /* 32-bit builds without wide ints, 64-bit builds on Posix hosts.  */
