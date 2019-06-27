@@ -1172,7 +1172,6 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (add-hook 'pre-command-hook 'eglot--pre-command-hook nil t)
     (eglot--setq-saving eldoc-documentation-function #'eglot-eldoc-function)
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend t))
-    (add-function :before-until (local 'eldoc-message-function) #'eglot--eldoc-message)
     (add-function :around (local 'imenu-create-index-function) #'eglot-imenu)
     (flymake-mode 1)
     (eldoc-mode 1))
@@ -1189,7 +1188,6 @@ and just return it.  PROMPT shouldn't end with a question mark."
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-onoff t)
     (remove-hook 'post-self-insert-hook 'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook 'eglot--pre-command-hook t)
-    (remove-function (local 'eldoc-message-function) #'eglot--eldoc-message)
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
     (setq eglot--current-flymake-report-fn nil))))
@@ -2050,8 +2048,6 @@ is not active."
          (buffer-string))))
    when moresigs concat "\n"))
 
-(defvar eglot--eldoc-hint nil)
-
 (defvar eglot--help-buffer nil)
 
 (defun eglot--help-buffer ()
@@ -2100,29 +2096,30 @@ Buffer is displayed with `display-buffer', which obeys
 `display-buffer-alist' & friends."
   :type 'boolean)
 
-(defun eglot--eldoc-message (format &rest args)
-  (when format
-    (let ((string (apply #'format format args))) ;; FIXME: overworking?
-      (when (or (eq t eglot-put-doc-in-help-buffer)
-                (and eglot-put-doc-in-help-buffer
-                     (funcall eglot-put-doc-in-help-buffer string)))
-        (with-current-buffer (eglot--help-buffer)
-          (rename-buffer (format "*eglot-help for %s*" eglot--eldoc-hint))
-          (let ((inhibit-read-only t))
-            (erase-buffer)
-            (insert string)
-            (goto-char (point-min))
-            (if eglot-auto-display-help-buffer
-                (display-buffer (current-buffer))
-              (unless (get-buffer-window (current-buffer))
-                (eglot--message
-                 "%s\n(...truncated. Full help is in `%s')"
-                 (truncate-string-to-width
-                  (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
-                  (frame-width) nil nil "...")
-                 (buffer-name eglot--help-buffer))))
-            (help-mode)
-            t))))))
+(defun eglot--update-doc (string hint)
+  "Put updated documentation STRING where it belongs.
+Honours `eglot-put-doc-in-help-buffer'.  HINT is used to
+potentially rename EGLOT's help buffer."
+  (if (or (eq t eglot-put-doc-in-help-buffer)
+          (and eglot-put-doc-in-help-buffer
+               (funcall eglot-put-doc-in-help-buffer string)))
+      (with-current-buffer (eglot--help-buffer)
+        (rename-buffer (format "*eglot-help for %s*" hint))
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (insert string)
+          (goto-char (point-min))
+          (if eglot-auto-display-help-buffer
+              (display-buffer (current-buffer))
+            (unless (get-buffer-window (current-buffer))
+              (eglot--message
+               "%s\n(...truncated. Full help is in `%s')"
+               (truncate-string-to-width
+                (replace-regexp-in-string "\\(.*\\)\n.*" "\\1" string)
+                (frame-width) nil nil "...")
+               (buffer-name eglot--help-buffer))))
+          (help-mode)))
+    (eldoc-message string)))
 
 (defun eglot-eldoc-function ()
   "EGLOT's `eldoc-documentation-function' function.
@@ -2132,7 +2129,6 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
          (position-params (eglot--TextDocumentPositionParams))
          sig-showing
          (thing-at-point (thing-at-point 'symbol)))
-    (setq eglot--eldoc-hint thing-at-point)
     (cl-macrolet ((when-buffer-window
                    (&body body) ; notice the exception when testing with `ert'
                    `(when (or (get-buffer-window buffer) (ert-running-test))
@@ -2146,10 +2142,10 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
            (when-buffer-window
             (when (cl-plusp (length signatures))
               (setq sig-showing t)
-              (let ((eglot--eldoc-hint thing-at-point))
-                (eldoc-message (eglot--sig-info signatures
-                                                activeSignature
-                                                activeParameter))))))
+              (eglot--update-doc (eglot--sig-info signatures
+                                                    activeSignature
+                                                    activeParameter)
+                                   thing-at-point))))
          :deferred :textDocument/signatureHelp))
       (when (eglot--server-capable :hoverProvider)
         (jsonrpc-async-request
@@ -2160,8 +2156,7 @@ If SKIP-SIGNATURE, don't try to send textDocument/signatureHelp."
                           (when-let (info (and contents
                                                (eglot--hover-info contents
                                                                   range)))
-                            (let ((eglot--eldoc-hint thing-at-point))
-                              (eldoc-message info))))))
+                            (eglot--update-doc info thing-at-point)))))
          :deferred :textDocument/hover))
       (when (eglot--server-capable :documentHighlightProvider)
         (jsonrpc-async-request
