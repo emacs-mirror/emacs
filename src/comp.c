@@ -1639,12 +1639,9 @@ init_comp (int opt_level)
 						    "obj");
 #endif
 
-  if (sizeof (EMACS_INT) == sizeof (long))
-    comp.emacs_int_type = comp.long_type;
-  else if (sizeof (EMACS_INT) == sizeof (long long))
-    comp.emacs_int_type = comp.long_long_type;
-  else
-    error ("Unexpected EMACS_INT size.");
+  comp.emacs_int_type = gcc_jit_context_get_int_type (comp.ctxt,
+						      sizeof (EMACS_INT),
+						      true);
 
   comp.lisp_obj_as_num =  gcc_jit_context_new_field (comp.ctxt,
 						     NULL,
@@ -1683,27 +1680,13 @@ init_comp (int opt_level)
 					 comp.emacs_int_type,
 					 Lisp_Int0);
 
-  enum gcc_jit_types ptrdiff_t_gcc;
-  if (sizeof (ptrdiff_t) == sizeof (int))
-    ptrdiff_t_gcc = GCC_JIT_TYPE_INT;
-  else if (sizeof (ptrdiff_t) == sizeof (long int))
-    ptrdiff_t_gcc = GCC_JIT_TYPE_LONG;
-  else if (sizeof (ptrdiff_t) == sizeof (long long int))
-    ptrdiff_t_gcc = GCC_JIT_TYPE_LONG_LONG;
-  else
-    eassert ("ptrdiff_t size not handled.");
-  comp.ptrdiff_type = gcc_jit_context_get_type (comp.ctxt, ptrdiff_t_gcc);
+  comp.ptrdiff_type = gcc_jit_context_get_int_type (comp.ctxt,
+						    sizeof (void *),
+						    true);
 
-  enum gcc_jit_types uintptr_t_gcc;
-  if (sizeof (uintptr_t) == sizeof (unsigned))
-    uintptr_t_gcc = GCC_JIT_TYPE_UNSIGNED_INT;
-  else if (sizeof (uintptr_t) == sizeof (unsigned long))
-    uintptr_t_gcc = GCC_JIT_TYPE_UNSIGNED_LONG;
-  else if (sizeof (uintptr_t) == sizeof (unsigned long long))
-    uintptr_t_gcc = GCC_JIT_TYPE_UNSIGNED_LONG_LONG;
-  else
-    eassert ("uintptr_t size not handled.");
-  comp.uintptr_type = gcc_jit_context_get_type (comp.ctxt, uintptr_t_gcc);
+  comp.uintptr_type = gcc_jit_context_get_int_type (comp.ctxt,
+						    sizeof (void *),
+						    false);
 
   comp.func_hash = CALLN (Fmake_hash_table, QCtest, Qequal, QCweakness, Qt);
 
