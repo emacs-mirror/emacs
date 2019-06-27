@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <libgccjit.h>
 
 #include "lisp.h"
+#include "puresize.h"
 #include "buffer.h"
 #include "bytecode.h"
 #include "atimer.h"
@@ -216,6 +217,8 @@ typedef struct {
   gcc_jit_field *m_handlerlist;
   gcc_jit_type *thread_state_ptr_type;
   gcc_jit_rvalue *current_thread;
+  /* other globals */
+  gcc_jit_rvalue *pure;
   /* libgccjit has really limited support for casting therefore this union will
      be used for the scope.  */
   gcc_jit_type *cast_union_type;
@@ -241,6 +244,7 @@ typedef struct {
   gcc_jit_function *car;
   gcc_jit_function *cdr;
   gcc_jit_function *check_type;
+  gcc_jit_function *check_impure;
   basic_block_t *block; /* Current basic block	 */
   Lisp_Object func_hash; /* f_name -> gcc_func	*/
 } comp_t;
@@ -839,10 +843,40 @@ emit_XCDR (gcc_jit_rvalue *c)
       comp.lisp_cons_u_s_u_cdr);
 }
 
-static gcc_jit_rvalue *
+static void
 emit_CHECK_CONS (gcc_jit_rvalue *x)
 {
-  return NULL;
+  gcc_jit_rvalue *args[] =
+    { emit_CONSP (x),
+      emit_lisp_obj_from_ptr (comp.block, Qconsp),
+      x };
+
+
+  gcc_jit_context_new_call (comp.ctxt,
+			    NULL,
+			    comp.check_type,
+			    3,
+			    args);
+}
+
+static gcc_jit_rvalue *
+emit_PURE_P (gcc_jit_rvalue *ptr)
+{
+  return
+    gcc_jit_context_new_comparison (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_COMPARISON_LE,
+      gcc_jit_context_new_binary_op (
+	comp.ctxt,
+	NULL,
+	GCC_JIT_BINARY_OP_MINUS,
+	comp.uintptr_type,
+	emit_cast (comp.uintptr_type, ptr),
+	emit_cast (comp.uintptr_type, comp.pure)),
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.uintptr_type,
+					   PURESIZE));
 }
 
 static gcc_jit_rvalue *
@@ -1181,7 +1215,7 @@ define_cast_union (void)
 }
 
 static void
-define_check_type (void)
+define_CHECK_TYPE (void)
 {
   gcc_jit_param *param[] =
     { gcc_jit_context_new_param (comp.ctxt,
@@ -1406,6 +1440,61 @@ define_PSEUDOVECTORP (void)
 					    comp.bool_type,
 					    2,
 					    args));
+}
+
+static void
+define_CHECK_IMPURE (void)
+{
+  gcc_jit_param *param[] =
+    { gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.lisp_obj_type,
+				 "obj"),
+      gcc_jit_context_new_param (comp.ctxt,
+				 NULL,
+				 comp.void_ptr_type,
+				 "ptr") };
+  comp.check_impure =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.void_type,
+				  "CHECK_IMPURE",
+				  2,
+				  param,
+				  0);
+    gcc_jit_block *initial_block =
+      gcc_jit_function_new_block (comp.check_impure,
+				  "initial_block");
+    gcc_jit_block *err_block =
+      gcc_jit_function_new_block (comp.check_impure,
+				  "err_block");
+    gcc_jit_block *ok_block =
+      gcc_jit_function_new_block (comp.check_impure,
+				  "ok_block");
+
+    /* Set current context as needed */
+    basic_block_t block = { .gcc_bb = initial_block,
+			    .terminated = false };
+    comp.block = &block;
+    comp.func = comp.check_impure;
+
+    emit_cond_jump (emit_cast (comp.bool_type,
+			       emit_PURE_P (gcc_jit_param_as_rvalue (param[0]))), /* FIXME */
+		    err_block,
+		    ok_block);
+    gcc_jit_block_end_with_void_return (ok_block, NULL);
+
+    gcc_jit_rvalue *pure_write_error_arg =
+      gcc_jit_param_as_rvalue (param[0]);
+
+    comp.block->gcc_bb = err_block;
+    gcc_jit_block_add_eval (comp.block->gcc_bb,
+			    NULL,
+			    emit_call ("pure_write_error",
+				       comp.void_type, 1,
+				       &pure_write_error_arg));
+
+    gcc_jit_block_end_with_void_return (err_block, NULL);
 }
 
 /* Declare a function to convert boolean into t or nil */
@@ -1697,17 +1786,22 @@ init_comp (int opt_level)
   define_handler_struct ();
   define_thread_state_struct ();
   define_cast_union ();
-  define_check_type ();
 
   comp.current_thread =
     gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
 					 comp.thread_state_ptr_type,
 					 current_thread);
+  comp.pure =
+    gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
+					 comp.void_ptr_type,
+					 pure);
 
   /* Define inline functions.  */
 
   define_CAR_CDR();
   define_PSEUDOVECTORP ();
+  define_CHECK_TYPE ();
+  define_CHECK_IMPURE ();
   define_bool_to_lisp_obj ();
 }
 
