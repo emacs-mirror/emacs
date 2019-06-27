@@ -1020,8 +1020,14 @@ If optional MARKER, return a marker instead"
     (forward-line (min most-positive-fixnum
                        (plist-get pos-plist :line)))
     (unless (eobp) ;; if line was excessive leave point at eob
-      (let ((tab-width 1))
-        (funcall eglot-move-to-column-function (plist-get pos-plist :character))))
+      (let ((tab-width 1)
+            (col (plist-get pos-plist :character)))
+        (unless (wholenump col)
+          (eglot--warn
+           :eglot "Caution: LSP server sent invalid character position %s. Using 0 instead."
+           col)
+          (setq col 0))
+        (funcall eglot-move-to-column-function col)))
     (if marker (copy-marker (point-marker)) (point))))
 
 (defun eglot--path-to-uri (path)
