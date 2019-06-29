@@ -123,10 +123,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define CASE(op)					\
   case op :						\
-  if (COMP_DEBUG)					\
-    gcc_jit_block_add_comment (comp.block->gcc_bb,	\
-			       NULL,			\
-			       "Opcode " STR(op));
+  emit_comment (STR(op))
 
 /* Pop from the meta-stack, emit the call and push the result */
 
@@ -140,7 +137,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Generate appropriate case and emit call to function. */
 
 #define CASE_CALL_N(name, nargs)					\
-  CASE (B##name)							\
+  CASE (B##name);							\
   EMIT_CALL_N (STR(F##name), nargs);					\
   break
 
@@ -334,6 +331,15 @@ type_to_cast_field (gcc_jit_type *type)
   return field;
 }
 
+INLINE static void
+emit_comment (const char *str)
+{
+  if (COMP_DEBUG)
+    gcc_jit_block_add_comment (comp.block->gcc_bb,
+			       NULL,
+			       str);
+}
+
 static gcc_jit_function *
 emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
 		   unsigned nargs, gcc_jit_rvalue **args,
@@ -500,6 +506,8 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 INLINE static gcc_jit_rvalue *
 emit_XLI (gcc_jit_rvalue *obj)
 {
+  emit_comment ("XLI");
+
   return gcc_jit_rvalue_access_field (obj,
 				      NULL,
 				      comp.lisp_obj_as_num);
@@ -508,6 +516,8 @@ emit_XLI (gcc_jit_rvalue *obj)
 INLINE static gcc_jit_lvalue *
 emit_lval_XLI (gcc_jit_lvalue *obj)
 {
+  emit_comment ("lval_XLI");
+
   return gcc_jit_lvalue_access_field (obj,
 				      NULL,
 				      comp.lisp_obj_as_num);
@@ -516,6 +526,8 @@ emit_lval_XLI (gcc_jit_lvalue *obj)
 INLINE static gcc_jit_rvalue *
 emit_XLP (gcc_jit_rvalue *obj)
 {
+  emit_comment ("XLP");
+
   return gcc_jit_rvalue_access_field (obj,
 				      NULL,
 				      comp.lisp_obj_as_ptr);
@@ -524,6 +536,8 @@ emit_XLP (gcc_jit_rvalue *obj)
 INLINE static gcc_jit_lvalue *
 emit_lval_XLP (gcc_jit_lvalue *obj)
 {
+  emit_comment ("lval_XLP");
+
   return gcc_jit_lvalue_access_field (obj,
 				      NULL,
 				      comp.lisp_obj_as_ptr);
@@ -534,6 +548,7 @@ emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
 {
   /* #define XUNTAG(a, type, ctype) ((ctype *)
      ((char *) XLP (a) - LISP_WORD_TAG (type))) */
+  emit_comment ("XUNTAG");
 
   return emit_cast (gcc_jit_type_get_pointer (type),
 	   gcc_jit_context_new_binary_op (
@@ -550,6 +565,8 @@ emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
 static gcc_jit_rvalue *
 emit_XCONS (gcc_jit_rvalue *a)
 {
+  emit_comment ("XCONS");
+
   return emit_XUNTAG (a,
 		      gcc_jit_struct_as_type (comp.lisp_cons_s),
 		      LISP_WORD_TAG (Lisp_Cons));
@@ -558,6 +575,8 @@ emit_XCONS (gcc_jit_rvalue *a)
 static gcc_jit_rvalue *
 emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
 {
+  emit_comment ("EQ");
+
   return gcc_jit_context_new_comparison (
 	   comp.ctxt,
 	   NULL,
@@ -572,6 +591,7 @@ emit_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
    /* (! (((unsigned) (XLI (a) >> (USE_LSB_TAG ? 0 : VALBITS)) \
 	- (unsigned) (tag)) \
 	& ((1 << GCTYPEBITS) - 1))) */
+  emit_comment ("TAGGEDP");
 
   gcc_jit_rvalue *sh_res =
     gcc_jit_context_new_binary_op (
@@ -617,18 +637,24 @@ emit_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
 static gcc_jit_rvalue *
 emit_VECTORLIKEP (gcc_jit_rvalue *obj)
 {
+  emit_comment ("VECTORLIKEP");
+
   return emit_TAGGEDP (obj, Lisp_Vectorlike);
 }
 
 static gcc_jit_rvalue *
 emit_CONSP (gcc_jit_rvalue *obj)
 {
+ emit_comment ("CONSP");
+
   return emit_TAGGEDP (obj, Lisp_Cons);
 }
 
 static gcc_jit_rvalue *
 emit_FLOATP (gcc_jit_rvalue *obj)
 {
+  emit_comment ("FLOATP");
+
   return emit_TAGGEDP (obj, Lisp_Float);
 }
 
@@ -636,6 +662,8 @@ static gcc_jit_rvalue *
 emit_BIGNUMP (gcc_jit_rvalue *obj)
 {
   /* PSEUDOVECTORP (x, PVEC_BIGNUM); */
+  emit_comment ("BIGNUMP");
+
   gcc_jit_rvalue *args[2] = {
     obj,
     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
@@ -655,6 +683,7 @@ emit_FIXNUMP (gcc_jit_rvalue *obj)
   /* (! (((unsigned) (XLI (x) >> (USE_LSB_TAG ? 0 : FIXNUM_BITS))
 	- (unsigned) (Lisp_Int0 >> !USE_LSB_TAG))
 	& ((1 << INTTYPEBITS) - 1)))  */
+  emit_comment ("FIXNUMP");
 
   gcc_jit_rvalue *sh_res =
     gcc_jit_context_new_binary_op (
@@ -700,6 +729,8 @@ emit_FIXNUMP (gcc_jit_rvalue *obj)
 static gcc_jit_rvalue *
 emit_XFIXNUM (gcc_jit_rvalue *obj)
 {
+  emit_comment ("XFIXNUM");
+
   return gcc_jit_context_new_binary_op (comp.ctxt,
 					NULL,
 					GCC_JIT_BINARY_OP_RSHIFT,
@@ -711,6 +742,8 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
 static gcc_jit_rvalue *
 emit_INTEGERP (gcc_jit_rvalue *obj)
 {
+  emit_comment ("INTEGERP");
+
   return gcc_jit_context_new_binary_op (comp.ctxt,
 					NULL,
 					GCC_JIT_BINARY_OP_LOGICAL_OR,
@@ -723,6 +756,8 @@ emit_INTEGERP (gcc_jit_rvalue *obj)
 static gcc_jit_rvalue *
 emit_NUMBERP (gcc_jit_rvalue *obj)
 {
+  emit_comment ("NUMBERP");
+
   return gcc_jit_context_new_binary_op (comp.ctxt,
 					NULL,
 					GCC_JIT_BINARY_OP_LOGICAL_OR,
@@ -735,6 +770,8 @@ emit_NUMBERP (gcc_jit_rvalue *obj)
 static gcc_jit_rvalue *
 emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 {
+  emit_comment ("make_fixnum");
+
   gcc_jit_rvalue *tmp =
     gcc_jit_context_new_binary_op (comp.ctxt,
 				   NULL,
@@ -764,11 +801,14 @@ emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 }
 
 /* Construct fill and return a lisp object form a raw pointer.	*/
-/* TODO should we pass the bb?	*/
+/* FIXME do not pass bb	*/
 static gcc_jit_rvalue *
 emit_lisp_obj_from_ptr (basic_block_t *block, void *p)
 {
   static unsigned i;
+
+  comp.block = block;
+  emit_comment ("lisp_obj_from_ptr");
 
   gcc_jit_lvalue *lisp_obj =
     gcc_jit_function_new_local (comp.func,
@@ -781,9 +821,7 @@ emit_lisp_obj_from_ptr (basic_block_t *block, void *p)
 					p);
 
   if (SYMBOLP (p))
-    gcc_jit_block_add_comment (
-      block->gcc_bb,
-      NULL,
+    emit_comment (
       format_string ("Symbol %s",
 		     (char *) SDATA (SYMBOL_NAME (p))));
 
@@ -797,12 +835,16 @@ emit_lisp_obj_from_ptr (basic_block_t *block, void *p)
 static gcc_jit_rvalue *
 emit_NILP (gcc_jit_rvalue *x)
 {
+  emit_comment ("NILP");
+
   return emit_EQ (x, emit_lisp_obj_from_ptr (comp.block, Qnil));
 }
 
 static gcc_jit_rvalue *
 emit_XCAR (gcc_jit_rvalue *c)
 {
+  emit_comment ("XCAR");
+
   /* XCONS (c)->u.s.car */
   return
     gcc_jit_rvalue_access_field (
@@ -823,6 +865,8 @@ emit_XCAR (gcc_jit_rvalue *c)
 static gcc_jit_lvalue *
 emit_lval_XCAR (gcc_jit_rvalue *c)
 {
+  emit_comment ("lval_XCAR");
+
   /* XCONS (c)->u.s.car */
   return
     gcc_jit_lvalue_access_field (
@@ -842,6 +886,7 @@ emit_lval_XCAR (gcc_jit_rvalue *c)
 static gcc_jit_rvalue *
 emit_XCDR (gcc_jit_rvalue *c)
 {
+  emit_comment ("XCDR");
   /* XCONS (c)->u.s.u.cdr */
   return
     gcc_jit_rvalue_access_field (
@@ -866,6 +911,8 @@ emit_XCDR (gcc_jit_rvalue *c)
 static void
 emit_CHECK_CONS (gcc_jit_rvalue *x)
 {
+  emit_comment ("CHECK_CONS");
+
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
       emit_lisp_obj_from_ptr (comp.block, Qconsp),
@@ -882,12 +929,16 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
 static gcc_jit_rvalue *
 emit_car_addr (gcc_jit_rvalue *c)
 {
+  emit_comment ("car_addr");
+
   return gcc_jit_lvalue_get_address (emit_lval_XCAR (c), NULL);
 }
 
 static void
 emit_XSETCAR (gcc_jit_rvalue *c, gcc_jit_rvalue *n)
 {
+  emit_comment ("XSETCAR");
+
   gcc_jit_block_add_assignment(
     comp.block->gcc_bb,
     NULL,
@@ -900,6 +951,9 @@ emit_XSETCAR (gcc_jit_rvalue *c, gcc_jit_rvalue *n)
 static gcc_jit_rvalue *
 emit_PURE_P (gcc_jit_rvalue *ptr)
 {
+
+  emit_comment ("PURE_P");
+
   return
     gcc_jit_context_new_comparison (
       comp.ctxt,
@@ -1995,47 +2049,47 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
       switch (op)
 	{
-	CASE (Bstack_ref1)
+	CASE (Bstack_ref1);
 	  goto stack_ref;
-	CASE (Bstack_ref2)
+	CASE (Bstack_ref2);
 	  goto stack_ref;
-	CASE (Bstack_ref3)
+	CASE (Bstack_ref3);
 	  goto stack_ref;
-	CASE (Bstack_ref4)
+	CASE (Bstack_ref4);
 	  goto stack_ref;
-	CASE (Bstack_ref5)
+	CASE (Bstack_ref5);
 	  stack_ref:
 	  PUSH_LVAL (stack_base[(stack - stack_base) - (op - Bstack_ref) - 1]);
 	  break;
 
-	CASE (Bstack_ref6)
+	CASE (Bstack_ref6);
 	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH - 1]);
 	  break;
 
-	CASE (Bstack_ref7)
+	CASE (Bstack_ref7);
 	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH2 - 1]);
 	  break;
 
-	CASE (Bvarref7)
+	CASE (Bvarref7);
 	  op = FETCH2;
 	  goto varref;
 
-	CASE (Bvarref)
+	CASE (Bvarref);
 	  goto varref_count;
-	CASE (Bvarref1)
+	CASE (Bvarref1);
 	  goto varref_count;
-	CASE (Bvarref2)
+	CASE (Bvarref2);
 	  goto varref_count;
-	CASE (Bvarref3)
+	CASE (Bvarref3);
 	  goto varref_count;
-	CASE (Bvarref4)
+	CASE (Bvarref4);
 	  goto varref_count;
-	CASE (Bvarref5)
+	CASE (Bvarref5);
 	  varref_count:
 	  op -= Bvarref;
 	  goto varref;
 
-	CASE (Bvarref6)
+	CASE (Bvarref6);
 	  op = FETCH;
 	varref:
 	  {
@@ -2045,26 +2099,26 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	CASE (Bvarset)
+	CASE (Bvarset);
 	  goto varset_count;
-	CASE (Bvarset1)
+	CASE (Bvarset1);
 	  goto varset_count;
-	CASE (Bvarset2)
+	CASE (Bvarset2);
 	  goto varset_count;
-	CASE (Bvarset3)
+	CASE (Bvarset3);
 	  goto varset_count;
-	CASE (Bvarset4)
+	CASE (Bvarset4);
 	  goto varset_count;
-	CASE (Bvarset5)
+	CASE (Bvarset5);
 	  varset_count:
 	  op -= Bvarset;
 	  goto varset;
 
-	CASE (Bvarset7)
+	CASE (Bvarset7);
 	  op = FETCH2;
 	  goto varset;
 
-	CASE (Bvarset6)
+	CASE (Bvarset6);
 	  op = FETCH;
 	varset:
 	  {
@@ -2080,25 +2134,25 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 
-	CASE (Bvarbind6)
+	CASE (Bvarbind6);
 	  op = FETCH;
 	  goto varbind;
 
-	CASE (Bvarbind7)
+	CASE (Bvarbind7);
 	  op = FETCH2;
 	  goto varbind;
 
-	CASE (Bvarbind)
+	CASE (Bvarbind);
 	  goto varbind_count;
-	CASE (Bvarbind1)
+	CASE (Bvarbind1);
 	  goto varbind_count;
-	CASE (Bvarbind2)
+	CASE (Bvarbind2);
 	  goto varbind_count;
-	CASE (Bvarbind3)
+	CASE (Bvarbind3);
 	  goto varbind_count;
-	CASE (Bvarbind4)
+	CASE (Bvarbind4);
 	  goto varbind_count;
-	CASE (Bvarbind5)
+	CASE (Bvarbind5);
 	  varbind_count:
 	  op -= Bvarbind;
 	varbind:
@@ -2110,25 +2164,25 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	CASE (Bcall6)
+	CASE (Bcall6);
 	  op = FETCH;
 	  goto docall;
 
-	CASE (Bcall7)
+	CASE (Bcall7);
 	  op = FETCH2;
 	  goto docall;
 
-	CASE (Bcall)
+	CASE (Bcall);
 	  goto docall_count;
-	CASE (Bcall1)
+	CASE (Bcall1);
 	  goto docall_count;
-	CASE (Bcall2)
+	CASE (Bcall2);
 	  goto docall_count;
-	CASE (Bcall3)
+	CASE (Bcall3);
 	  goto docall_count;
-	CASE (Bcall4)
+	CASE (Bcall4);
 	  goto docall_count;
-	CASE (Bcall5)
+	CASE (Bcall5);
 	docall_count:
 	  op -= Bcall;
 	docall:
@@ -2140,25 +2194,25 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	CASE (Bunbind6)
+	CASE (Bunbind6);
 	  op = FETCH;
 	  goto dounbind;
 
-	CASE (Bunbind7)
+	CASE (Bunbind7);
 	  op = FETCH2;
 	  goto dounbind;
 
-	CASE (Bunbind)
+	CASE (Bunbind);
 	  goto dounbind_count;
-	CASE (Bunbind1)
+	CASE (Bunbind1);
 	  goto dounbind_count;
-	CASE (Bunbind2)
+	CASE (Bunbind2);
 	  goto dounbind_count;
-	CASE (Bunbind3)
+	CASE (Bunbind3);
 	  goto dounbind_count;
-	CASE (Bunbind4)
+	CASE (Bunbind4);
 	  goto dounbind_count;
-	CASE (Bunbind5)
+	CASE (Bunbind5);
 	dounbind_count:
 	  op -= Bunbind;
 	dounbind:
@@ -2171,7 +2225,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 
-	CASE (Bpophandler)
+	CASE (Bpophandler);
 	  {
 	  /* current_thread->m_handlerlist =
 	       current_thread->m_handlerlist->next;  */
@@ -2192,11 +2246,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    break;
 	  }
 
-	CASE (Bpushconditioncase) /* New in 24.4.  */
+	CASE (Bpushconditioncase); /* New in 24.4.  */
 	  type = CONDITION_CASE;
 	  goto pushhandler;
 
-	CASE (Bpushcatch)	/* New in 24.4.	 */
+	CASE (Bpushcatch);	/* New in 24.4.	 */
 	  type = CATCHER;
 	pushhandler:
 	  {
@@ -2281,7 +2335,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_N (nth, 2);
 	CASE_CALL_N (symbolp, 1);
 
-	CASE (Bconsp)
+	CASE (Bconsp);
 	  POP1;
 	  res = emit_cast (comp.bool_type,
 			   emit_CONSP (args[0]));
@@ -2318,17 +2372,17 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE_CALL_N (cons, 2);
 
-	CASE (BlistN)
+	CASE (BlistN);
 	  op = FETCH;
 	  goto make_list;
 
-	CASE (Blist1)
+	CASE (Blist1);
 	  goto make_list_count;
-	CASE (Blist2)
+	CASE (Blist2);
 	  goto make_list_count;
-	CASE (Blist3)
+	CASE (Blist3);
 	  goto make_list_count;
-	CASE (Blist4)
+	CASE (Blist4);
 	make_list_count:
 	  op = op - Blist1;
 	make_list:
@@ -2356,21 +2410,21 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_N (get, 2);
 	CASE_CALL_N (substring, 3);
 
-	CASE (Bconcat2)
+	CASE (Bconcat2);
 	  EMIT_CALL_N_REF ("Fconcat", 2);
 	  break;
-	CASE (Bconcat3)
+	CASE (Bconcat3);
 	  EMIT_CALL_N_REF ("Fconcat", 3);
 	  break;
-	CASE (Bconcat4)
+	CASE (Bconcat4);
 	  EMIT_CALL_N_REF ("Fconcat", 4);
 	  break;
-	CASE (BconcatN)
+	CASE (BconcatN);
 	  op = FETCH;
 	  EMIT_CALL_N_REF ("Fconcat", op);
 	  break;
 
-	CASE (Bsub1)
+	CASE (Bsub1);
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
@@ -2430,7 +2484,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 
 	  break;
-	CASE (Badd1)
+	CASE (Badd1);
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_POSITIVE_FIXNUM
@@ -2490,31 +2544,31 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  }
 	  break;
 
-	CASE (Beqlsign)
+	CASE (Beqlsign);
 	  EMIT_ARITHCOMPARE (ARITH_EQUAL);
 	  break;
 
-	CASE (Bgtr)
+	CASE (Bgtr);
 	  EMIT_ARITHCOMPARE (ARITH_GRTR);
 	  break;
 
-	CASE (Blss)
+	CASE (Blss);
 	  EMIT_ARITHCOMPARE (ARITH_LESS);
 	  break;
 
-	CASE (Bleq)
+	CASE (Bleq);
 	  EMIT_ARITHCOMPARE (ARITH_LESS_OR_EQUAL);
 	  break;
 
-	CASE (Bgeq)
+	CASE (Bgeq);
 	  EMIT_ARITHCOMPARE (ARITH_GRTR_OR_EQUAL);
 	  break;
 
-	CASE (Bdiff)
+	CASE (Bdiff);
 	  EMIT_CALL_N_REF ("Fminus", 2);
 	  break;
 
-	CASE (Bnegate)
+	CASE (Bnegate);
 	  {
 
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
@@ -2569,19 +2623,19 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					 bb_map[pc].gcc_bb);
 	  }
 	  break;
-	CASE (Bplus)
+	CASE (Bplus);
 	  EMIT_CALL_N_REF ("Fplus", 2);
 	  break;
-	CASE (Bmax)
+	CASE (Bmax);
 	  EMIT_CALL_N_REF ("Fmax", 2);
 	  break;
-	CASE (Bmin)
+	CASE (Bmin);
 	  EMIT_CALL_N_REF ("Fmin", 2);
 	  break;
-	CASE (Bmult)
+	CASE (Bmult);
 	  EMIT_CALL_N_REF ("Ftimes", 2);
 	  break;
-	CASE (Bpoint)
+	CASE (Bpoint);
 	  args[0] =
 	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						 comp.ptrdiff_type,
@@ -2595,11 +2649,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE_CALL_N (goto_char, 1);
 
-	CASE (Binsert)
+	CASE (Binsert);
 	  EMIT_CALL_N_REF ("Finsert", 1);
 	  break;
 
-	CASE (Bpoint_max)
+	CASE (Bpoint_max);
 	  args[0] =
 	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						 comp.ptrdiff_type,
@@ -2611,7 +2665,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE (Bpoint_min)
+	CASE (Bpoint_min);
 	  args[0] =
 	    gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						 comp.ptrdiff_type,
@@ -2626,14 +2680,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_N (char_after, 1);
 	CASE_CALL_N (following_char, 0);
 
-	CASE (Bpreceding_char)
+	CASE (Bpreceding_char);
 	  res = emit_call ("Fprevious_char", comp.lisp_obj_type, 0, args);
 	  PUSH_RVAL (res);
 	  break;
 
 	CASE_CALL_N (current_column, 0);
 
-	CASE (Bindent_to)
+	CASE (Bindent_to);
 	  POP1;
 	  args[1] = nil;
 	  res = emit_call ("Findent_to", comp.lisp_obj_type, 2, args);
@@ -2647,15 +2701,15 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_N (current_buffer, 0);
 	CASE_CALL_N (set_buffer, 1);
 
-	CASE (Bsave_current_buffer) /* Obsolete since ??.  */
+	CASE (Bsave_current_buffer); /* Obsolete since ??.  */
 	  goto save_current;
-	CASE (Bsave_current_buffer_1)
+	CASE (Bsave_current_buffer_1);
 	  save_current:
 	  emit_call ("record_unwind_current_buffer",
 		     comp.void_type, 0, NULL);
 	  break;
 
-	CASE (Binteractive_p)	/* Obsolete since 24.1.	 */
+	CASE (Binteractive_p);	/* Obsolete since 24.1.	 */
 	  PUSH_RVAL (emit_lisp_obj_from_ptr (comp.block,
 					     intern ("interactive-p")));
 	  res = emit_call ("call0", comp.lisp_obj_type, 1, args);
@@ -2674,11 +2728,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_N (widen, 0);
 	CASE_CALL_N (end_of_line, 1);
 
-	CASE (Bconstant2)
+	CASE (Bconstant2);
 	  goto do_constant;
 	  break;
 
-	CASE (Bgoto)
+	CASE (Bgoto);
 	  op = FETCH2;
 	  gcc_jit_block_end_with_jump (comp.block->gcc_bb,
 				       NULL,
@@ -2687,7 +2741,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  bb_map[op].top = stack;
 	  break;
 
-	CASE (Bgotoifnil)
+	CASE (Bgotoifnil);
 	  op = FETCH2;
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ, args[0], nil,
@@ -2695,7 +2749,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  bb_map[op].top = stack;
 	  break;
 
-	CASE (Bgotoifnonnil)
+	CASE (Bgotoifnonnil);
 	  op = FETCH2;
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE, args[0], nil,
@@ -2703,7 +2757,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  bb_map[op].top = stack;
 	  break;
 
-	CASE (Bgotoifnilelsepop)
+	CASE (Bgotoifnilelsepop);
 	  op = FETCH2;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ,
 				gcc_jit_lvalue_as_rvalue (TOS),
@@ -2713,7 +2767,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  DISCARD (1);
 	  break;
 
-	CASE (Bgotoifnonnilelsepop)
+	CASE (Bgotoifnonnilelsepop);
 	  op = FETCH2;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE,
 				gcc_jit_lvalue_as_rvalue (TOS),
@@ -2723,7 +2777,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  DISCARD (1);
 	  break;
 
-	CASE (Breturn)
+	CASE (Breturn);
 	  POP1;
 	  gcc_jit_block_end_with_return(comp.block->gcc_bb,
 					NULL,
@@ -2731,24 +2785,24 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  comp.block->terminated = true;
 	  break;
 
-	CASE (Bdiscard)
+	CASE (Bdiscard);
 	  DISCARD (1);
 	  break;
 
-	CASE (Bdup)
+	CASE (Bdup);
 	  PUSH_LVAL (TOS);
 	  break;
 
-	CASE (Bsave_excursion)
+	CASE (Bsave_excursion);
 	  res = emit_call ("record_unwind_protect_excursion",
 			   comp.void_type, 0, args);
 	  break;
 
-	CASE (Bsave_window_excursion) /* Obsolete since 24.1.  */
+	CASE (Bsave_window_excursion); /* Obsolete since 24.1.  */
 	  EMIT_CALL_N ("helper_save_window_excursion", 1);
 	  break;
 
-	CASE (Bsave_restriction)
+	CASE (Bsave_restriction);
 	  args[0] = emit_lisp_obj_from_ptr (comp.block,
 					    save_restriction_restore);
 	  args[1] = emit_call ("save_restriction_save",
@@ -2758,29 +2812,29 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_call ("record_unwind_protect", comp.void_ptr_type, 2, args);
 	  break;
 
-	CASE (Bcatch)		/* Obsolete since 24.4.	 */
+	CASE (Bcatch);		/* Obsolete since 24.4.	 */
 	  POP2;
 	  args[2] = args[1];
 	  args[1] = emit_lisp_obj_from_ptr (comp.block, eval_sub);
 	  emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
 
-	CASE (Bunwind_protect)	/* FIXME: avoid closure for lexbind.  */
+	CASE (Bunwind_protect);	/* FIXME: avoid closure for lexbind.  */
 	  POP1;
 	  emit_call ("helper_unwind_protect", comp.void_type, 1, args);
 	  break;
 
-	CASE (Bcondition_case)		/* Obsolete since 24.4.	 */
+	CASE (Bcondition_case);		/* Obsolete since 24.4.	 */
 	  POP3;
 	  emit_call ("internal_lisp_condition_case",
 		     comp.lisp_obj_type, 3, args);
 	  break;
 
-	CASE (Btemp_output_buffer_setup) /* Obsolete since 24.1.	 */
+	CASE (Btemp_output_buffer_setup); /* Obsolete since 24.1.	 */
 	  EMIT_CALL_N ("helper_temp_output_buffer_setup", 1);
 	  break;
 
-	CASE (Btemp_output_buffer_show) /* Obsolete since 24.1.	*/
+	CASE (Btemp_output_buffer_show); /* Obsolete since 24.1.	*/
 	  POP2;
 	  emit_call ("temp_output_buffer_show", comp.void_type, 1,
 		     &args[1]);
@@ -2788,7 +2842,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_call ("helper_unbind_n", comp.lisp_obj_type, 1, args);
 
 	  break;
-	CASE (Bunbind_all)	/* Obsolete.  Never used.  */
+	CASE (Bunbind_all);	/* Obsolete.  Never used.  */
 	  /* To unbind back to the beginning of this frame.  Not used yet,
 	     but will be needed for tail-recursion elimination.	 */
 	  error ("Bunbind_all not supported");
@@ -2800,11 +2854,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_N (upcase, 1);
 	CASE_CALL_N (downcase, 1);
 
-	CASE (Bstringeqlsign)
+	CASE (Bstringeqlsign);
 	  EMIT_CALL_N ("Fstring_equal", 2);
 	  break;
 
-	CASE (Bstringlss)
+	CASE (Bstringlss);
 	  EMIT_CALL_N ("Fstring_lessp", 2);
 	  break;
 
@@ -2825,25 +2879,25 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE_CALL_N (setcdr, 2);
 
-	CASE (Bcar_safe)
+	CASE (Bcar_safe);
 	  EMIT_CALL_N ("CAR_SAFE", 1);
 	  break;
 
-	CASE (Bcdr_safe)
+	CASE (Bcdr_safe);
 	  EMIT_CALL_N ("CDR_SAFE", 1);
 	  break;
 
-	CASE (Bnconc)
+	CASE (Bnconc);
 	  EMIT_CALL_N_REF ("Fnconc", 2);
 	  break;
 
-	CASE (Bquo)
+	CASE (Bquo);
 	  EMIT_CALL_N_REF ("Fquo", 2);
 	  break;
 
 	CASE_CALL_N (rem, 2);
 
-	CASE (Bnumberp)
+	CASE (Bnumberp);
 	  POP1;
 	  res = emit_NUMBERP (args[0]);
 	  res = gcc_jit_context_new_call (comp.ctxt,
@@ -2853,7 +2907,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE (Bintegerp)
+	CASE (Bintegerp);
 	  POP1;
 	  res = emit_INTEGERP(args[0]);
 	  res = gcc_jit_context_new_call (comp.ctxt,
@@ -2863,7 +2917,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  PUSH_RVAL (res);
 	  break;
 
-	CASE (BRgoto)
+	CASE (BRgoto);
 	  op = FETCH - 128;
 	  op += pc;
 	  gcc_jit_block_end_with_jump (comp.block->gcc_bb,
@@ -2873,7 +2927,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  bb_map[op].top = stack;
 	  break;
 
-	CASE (BRgotoifnil)
+	CASE (BRgotoifnil);
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
@@ -2882,7 +2936,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  bb_map[op].top = stack;
 	  break;
 
-	CASE (BRgotoifnonnil)
+	CASE (BRgotoifnonnil);
 	  op = FETCH - 128;
 	  op += pc;
 	  POP1;
@@ -2891,7 +2945,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  bb_map[op].top = stack;
 	  break;
 
-	CASE (BRgotoifnilelsepop)
+	CASE (BRgotoifnilelsepop);
 	  op = FETCH - 128;
 	  op += pc;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ,
@@ -2902,7 +2956,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  DISCARD (1);
 	  break;
 
-	CASE (BRgotoifnonnilelsepop)
+	CASE (BRgotoifnonnilelsepop);
 	  op = FETCH - 128;
 	  op += pc;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE,
@@ -2913,12 +2967,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  DISCARD (1);
 	  break;
 
-	CASE (BinsertN)
+	CASE (BinsertN);
 	  op = FETCH;
 	  EMIT_CALL_N_REF ("Finsert", op);
 	  break;
 
-	CASE (Bstack_set)
+	CASE (Bstack_set);
 	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
 	  op = FETCH;
 	  POP1;
@@ -2929,7 +2983,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					  args[0]);
 	  break;
 
-	CASE (Bstack_set2)
+	CASE (Bstack_set2);
 	  op = FETCH2;
 	  POP1;
 	  gcc_jit_block_add_assignment (comp.block->gcc_bb,
@@ -2938,7 +2992,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					args[0]);
 	  break;
 
-	CASE (BdiscardN)
+	CASE (BdiscardN);
 	  op = FETCH;
 	  if (op & 0x80)
 	    {
@@ -2952,7 +3006,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	  DISCARD (op);
 	  break;
-	CASE (Bswitch)
+	CASE (Bswitch);
 	  error ("Bswitch not supported");
 	  /* The cases of Bswitch that we handle (which in theory is
 	     all of them) are done in Bconstant, below.	 This is done
@@ -2963,7 +3017,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	default:
-	CASE (Bconstant)
+	CASE (Bconstant);
 	  {
 	    if (op < Bconstant || op > Bconstant + vector_size)
 	      goto fail;
