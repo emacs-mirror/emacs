@@ -130,7 +130,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMIT_CALL_N(name, nargs)					\
   do {									\
     POP##nargs;								\
-    res = emit_call (name, comp.lisp_obj_type, nargs, args);		\
+    res = emit_call ((name), comp.lisp_obj_type, (nargs), args);	\
     PUSH_RVAL (res);							\
   } while (0)
 
@@ -149,7 +149,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMIT_CALL_N_REF(name, nargs)			\
   do {							\
     DISCARD (nargs);					\
-    res = emit_call_n_ref (name, nargs, *stack);	\
+    res = emit_call_n_ref ((name), (nargs), *stack);	\
     PUSH_RVAL (res);					\
   } while (0)
 
@@ -158,10 +158,23 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     POP2;								\
     args[2] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,		\
 						   comp.int_type,	\
-						   comparison);		\
+						   (comparison));	\
     res = emit_call ("arithcompare", comp.lisp_obj_type, 3, args);	\
     PUSH_RVAL (res);							\
   } while (0)
+
+
+#define SAFE_ALLOCA_BLOCK(ptr, func, name)			\
+do {								\
+  (ptr) = SAFE_ALLOCA (sizeof (basic_block_t));			\
+  (ptr)->gcc_bb = gcc_jit_function_new_block ((func), (name));	\
+  (ptr)->terminated = false;					\
+  (ptr)->top = NULL;						\
+ } while (0)
+
+#define DECL_AND_SAFE_ALLOCA_BLOCK(name, func)	\
+  basic_block_t *(name);			\
+  SAFE_ALLOCA_BLOCK ((name), (func), STR(name))
 
 typedef struct {
   gcc_jit_block *gcc_bb;
@@ -260,7 +273,6 @@ typedef struct {
 
 void emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 			   Lisp_Object func, int opt_level, bool dump_asm);
-
 
 static char * ATTRIBUTE_FORMAT_PRINTF (1, 2)
 format_string (const char *format, ...)
@@ -450,22 +462,22 @@ emit_call (const char *f_name, gcc_jit_type *ret_type, unsigned nargs,
 
 INLINE static void
 emit_cond_jump (gcc_jit_rvalue *test,
-		gcc_jit_block *then_target, gcc_jit_block *else_target)
+		basic_block_t *then_target, basic_block_t *else_target)
 {
   gcc_jit_block_end_with_conditional (comp.block->gcc_bb,
 				      NULL,
 				      test,
-				      then_target,
-				      else_target);
+				      then_target->gcc_bb,
+				      else_target->gcc_bb);
   comp.block->terminated = true;
 }
 
 /* Close current basic block emitting a comparison between two rval.  */
 
 static gcc_jit_rvalue *
-emit_comparison_jump (enum gcc_jit_comparison op, /* TODO add basick block as param */
+emit_comparison_jump (enum gcc_jit_comparison op,
 		     gcc_jit_rvalue *a, gcc_jit_rvalue *b,
-		     gcc_jit_block *then_target, gcc_jit_block *else_target)
+		     basic_block_t *then_target, basic_block_t *else_target)
 {
   gcc_jit_rvalue *test = gcc_jit_context_new_comparison (comp.ctxt,
 							 NULL,
@@ -768,7 +780,7 @@ emit_NUMBERP (gcc_jit_rvalue *obj)
 }
 
 static gcc_jit_rvalue *
-emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
+emit_make_fixnum (gcc_jit_rvalue *obj)
 {
   emit_comment ("make_fixnum");
 
@@ -792,7 +804,7 @@ emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 						    comp.lisp_obj_type,
 						    "lisp_obj_fixnum");
 
-  gcc_jit_block_add_assignment (block,
+  gcc_jit_block_add_assignment (comp.block->gcc_bb,
 				NULL,
 				emit_lval_XLI (res),
 				tmp);
@@ -801,13 +813,10 @@ emit_make_fixnum (gcc_jit_block *block, gcc_jit_rvalue *obj)
 }
 
 /* Construct fill and return a lisp object form a raw pointer.	*/
-/* FIXME do not pass bb	*/
 static gcc_jit_rvalue *
-emit_lisp_obj_from_ptr (basic_block_t *block, void *p)
+emit_lisp_obj_from_ptr (void *p)
 {
   static unsigned i;
-
-  comp.block = block;
   emit_comment ("lisp_obj_from_ptr");
 
   gcc_jit_lvalue *lisp_obj =
@@ -825,10 +834,11 @@ emit_lisp_obj_from_ptr (basic_block_t *block, void *p)
       format_string ("Symbol %s",
 		     (char *) SDATA (SYMBOL_NAME (p))));
 
-  gcc_jit_block_add_assignment (block->gcc_bb,
+  gcc_jit_block_add_assignment (comp.block->gcc_bb,
 				NULL,
 				emit_lval_XLP (lisp_obj),
 				void_ptr);
+
   return gcc_jit_lvalue_as_rvalue (lisp_obj);
 }
 
@@ -837,7 +847,7 @@ emit_NILP (gcc_jit_rvalue *x)
 {
   emit_comment ("NILP");
 
-  return emit_EQ (x, emit_lisp_obj_from_ptr (comp.block, Qnil));
+  return emit_EQ (x, emit_lisp_obj_from_ptr (Qnil));
 }
 
 static gcc_jit_rvalue *
@@ -915,9 +925,8 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
 
   gcc_jit_rvalue *args[] =
     { emit_CONSP (x),
-      emit_lisp_obj_from_ptr (comp.block, Qconsp),
+      emit_lisp_obj_from_ptr (Qconsp),
       x };
-
 
   gcc_jit_context_new_call (comp.ctxt,
 			    NULL,
@@ -1309,6 +1318,7 @@ define_cast_union (void)
 static void
 define_CHECK_TYPE (void)
 {
+  USE_SAFE_ALLOCA;
   gcc_jit_param *param[] =
     { gcc_jit_context_new_param (comp.ctxt,
 				 NULL,
@@ -1334,26 +1344,20 @@ define_CHECK_TYPE (void)
   gcc_jit_rvalue *predicate = gcc_jit_param_as_rvalue (param[1]);
   gcc_jit_rvalue *x = gcc_jit_param_as_rvalue (param[2]);
 
-  gcc_jit_block *initial_block =
-    gcc_jit_function_new_block (comp.check_type, "initial_block");
-  gcc_jit_block *ok_block =
-    gcc_jit_function_new_block (comp.check_type, "ok_block");
-  gcc_jit_block *not_ok_block =
-    gcc_jit_function_new_block (comp.check_type, "not_ok_block");
+  DECL_AND_SAFE_ALLOCA_BLOCK (init_block, comp.check_type);
+  DECL_AND_SAFE_ALLOCA_BLOCK (ok_block, comp.check_type);
+  DECL_AND_SAFE_ALLOCA_BLOCK (not_ok_block, comp.check_type);
 
-  /* Set current context as needed */
-  basic_block_t block = { .gcc_bb = initial_block,
-			  .terminated = false };
-  comp.block = &block;
+  comp.block = init_block;
   comp.func = comp.check_type;
 
   emit_cond_jump (emit_cast (comp.bool_type, ok),
 		  ok_block,
 		  not_ok_block);
 
-  gcc_jit_block_end_with_void_return (ok_block, NULL);
+  gcc_jit_block_end_with_void_return (ok_block->gcc_bb, NULL);
 
-  comp.block->gcc_bb = not_ok_block;
+  comp.block = not_ok_block;
 
   gcc_jit_rvalue *wrong_type_args[] = { predicate, x };
 
@@ -1362,7 +1366,9 @@ define_CHECK_TYPE (void)
 			  emit_call ("wrong_type_argument",
 				     comp.lisp_obj_type, 2, wrong_type_args));
 
-  gcc_jit_block_end_with_void_return (not_ok_block, NULL);
+  gcc_jit_block_end_with_void_return (not_ok_block->gcc_bb, NULL);
+
+  SAFE_FREE ();
 }
 
 
@@ -1371,6 +1377,8 @@ define_CHECK_TYPE (void)
 static void
 define_CAR_CDR (void)
 {
+  USE_SAFE_ALLOCA;
+
   gcc_jit_param *car_param =
 	gcc_jit_context_new_param (comp.ctxt,
 				   NULL,
@@ -1404,20 +1412,11 @@ define_CAR_CDR (void)
   for (int i = 0; i < 2; i++)
     {
       gcc_jit_rvalue *c = gcc_jit_param_as_rvalue (param);
-      gcc_jit_block *initial_block =
-	gcc_jit_function_new_block (f, "initial_block");
+      DECL_AND_SAFE_ALLOCA_BLOCK (init_block, f);
+      DECL_AND_SAFE_ALLOCA_BLOCK (is_cons_b, f);
+      DECL_AND_SAFE_ALLOCA_BLOCK (not_a_cons_b, f);
 
-      gcc_jit_block *is_cons_b =
-	gcc_jit_function_new_block (f, "is_cons");
-
-      gcc_jit_block *not_a_cons_b =
-	gcc_jit_function_new_block (f, "not_a_cons");
-
-
-      /* Set current context as needed */
-      basic_block_t block = { .gcc_bb = initial_block,
-	.terminated = false };
-      comp.block = &block;
+      comp.block = init_block;
       comp.func = f;
 
       emit_cond_jump (emit_cast (comp.bool_type,
@@ -1425,7 +1424,7 @@ define_CAR_CDR (void)
 		      is_cons_b,
 		      not_a_cons_b);
 
-      comp.block->gcc_bb = is_cons_b;
+      comp.block = is_cons_b;
 
       if (f == comp.car)
 	gcc_jit_block_end_with_return (comp.block->gcc_bb,
@@ -1436,25 +1435,23 @@ define_CAR_CDR (void)
 				       NULL,
 				       emit_XCDR (c));
 
-      comp.block->gcc_bb = not_a_cons_b;
+      comp.block = not_a_cons_b;
 
-      gcc_jit_block *is_nil_b =
-	gcc_jit_function_new_block (f, "is_nil");
-      gcc_jit_block *not_nil_b =
-	gcc_jit_function_new_block (f, "not_nil");
+      DECL_AND_SAFE_ALLOCA_BLOCK (is_nil_b, f);
+      DECL_AND_SAFE_ALLOCA_BLOCK (not_nil_b, f);
 
       emit_cond_jump (emit_NILP (c),
 		      is_nil_b,
 		      not_nil_b);
 
-      comp.block->gcc_bb = is_nil_b;
+      comp.block = is_nil_b;
       gcc_jit_block_end_with_return (comp.block->gcc_bb,
 				     NULL,
-				     emit_lisp_obj_from_ptr (comp.block, Qnil));
+				     emit_lisp_obj_from_ptr (Qnil));
 
-      comp.block->gcc_bb = not_nil_b;
+      comp.block = not_nil_b;
       gcc_jit_rvalue *wrong_type_args[] =
-	{ emit_lisp_obj_from_ptr (comp.block, Qlistp), c };
+	{ emit_lisp_obj_from_ptr (Qlistp), c };
 
       gcc_jit_block_add_eval (comp.block->gcc_bb,
 			      NULL,
@@ -1462,15 +1459,18 @@ define_CAR_CDR (void)
 					 comp.lisp_obj_type, 2, wrong_type_args));
       gcc_jit_block_end_with_return (comp.block->gcc_bb,
 				     NULL,
-				     emit_lisp_obj_from_ptr (comp.block, Qnil));
+				     emit_lisp_obj_from_ptr (Qnil));
       f = comp.cdr;
       param = cdr_param;
     }
+
+  SAFE_FREE ();
 }
 
 static void
 define_setcar (void)
 {
+  USE_SAFE_ALLOCA;
 
   gcc_jit_param *cell =
     gcc_jit_context_new_param (comp.ctxt,
@@ -1492,12 +1492,9 @@ define_setcar (void)
 				  2,
 				  param,
 				  0);
-  gcc_jit_block *initial_block =
-    gcc_jit_function_new_block (comp.setcar, "initial_block");
-  /* Set current context as needed */
-  basic_block_t block = { .gcc_bb = initial_block,
-    .terminated = false };
-  comp.block = &block;
+
+  DECL_AND_SAFE_ALLOCA_BLOCK (init_block, comp.setcar);
+  comp.block = init_block;
   comp.func = comp.setcar;
 
   emit_CHECK_CONS (gcc_jit_param_as_rvalue (cell));
@@ -1505,16 +1502,18 @@ define_setcar (void)
   emit_XSETCAR (gcc_jit_param_as_rvalue (cell),
 	        gcc_jit_param_as_rvalue (new_car));
 
-  gcc_jit_block_end_with_return (initial_block,
+  gcc_jit_block_end_with_return (init_block->gcc_bb,
 				 NULL,
 				 gcc_jit_param_as_rvalue (new_car));
-
+  SAFE_FREE ();
 }
 /* Declare a substitute for PSEUDOVECTORP as always inlined function.  */
 
 static void
 define_PSEUDOVECTORP (void)
 {
+  USE_SAFE_ALLOCA;
+
   gcc_jit_param *param[] =
     { gcc_jit_context_new_param (comp.ctxt,
 				 NULL,
@@ -1534,19 +1533,11 @@ define_PSEUDOVECTORP (void)
 				  param,
 				  0);
 
-  gcc_jit_block *initial_block =
-    gcc_jit_function_new_block (comp.pseudovectorp, "initial_block");
+  DECL_AND_SAFE_ALLOCA_BLOCK (init_block, comp.pseudovectorp);
+  DECL_AND_SAFE_ALLOCA_BLOCK (ret_false_b, comp.pseudovectorp);
+  DECL_AND_SAFE_ALLOCA_BLOCK (call_pseudovector_typep_b, comp.pseudovectorp);
 
-  gcc_jit_block *ret_false_b =
-    gcc_jit_function_new_block (comp.pseudovectorp, "ret_false");
-
-  gcc_jit_block *call_pseudovector_typep_b =
-    gcc_jit_function_new_block (comp.pseudovectorp, "call_pseudovector");
-
-  /* Set current context as needed */
-  basic_block_t block = { .gcc_bb = initial_block,
-                          .terminated = false };
-  comp.block = &block;
+  comp.block = init_block;
   comp.func = comp.pseudovectorp;
 
   emit_cond_jump (
@@ -1555,8 +1546,9 @@ define_PSEUDOVECTORP (void)
     call_pseudovector_typep_b,
     ret_false_b);
 
-  comp.block->gcc_bb = ret_false_b;
-  gcc_jit_block_end_with_return (ret_false_b,
+  comp.block = ret_false_b;
+  gcc_jit_block_end_with_return (ret_false_b->gcc_bb
+				 ,
 				 NULL,
 				 gcc_jit_context_new_rvalue_from_int(
 				   comp.ctxt,
@@ -1566,19 +1558,23 @@ define_PSEUDOVECTORP (void)
   gcc_jit_rvalue *args[2] =
     { gcc_jit_param_as_rvalue (param[0]),
       gcc_jit_param_as_rvalue (param[1]) };
-  comp.block->gcc_bb = call_pseudovector_typep_b;
+  comp.block = call_pseudovector_typep_b;
   /* FIXME use XUNTAG now that's available.  */
-  gcc_jit_block_end_with_return (call_pseudovector_typep_b,
+  gcc_jit_block_end_with_return (call_pseudovector_typep_b->gcc_bb
+				 ,
 				 NULL,
 				 emit_call ("helper_PSEUDOVECTOR_TYPEP_XUNTAG",
 					    comp.bool_type,
 					    2,
 					    args));
+  SAFE_FREE ();
 }
 
 static void
 define_CHECK_IMPURE (void)
 {
+  USE_SAFE_ALLOCA;
+
   gcc_jit_param *param[] =
     { gcc_jit_context_new_param (comp.ctxt,
 				 NULL,
@@ -1596,46 +1592,42 @@ define_CHECK_IMPURE (void)
 				  2,
 				  param,
 				  0);
-    gcc_jit_block *initial_block =
-      gcc_jit_function_new_block (comp.check_impure,
-				  "initial_block");
-    gcc_jit_block *err_block =
-      gcc_jit_function_new_block (comp.check_impure,
-				  "err_block");
-    gcc_jit_block *ok_block =
-      gcc_jit_function_new_block (comp.check_impure,
-				  "ok_block");
 
-    /* Set current context as needed */
-    basic_block_t block = { .gcc_bb = initial_block,
-			    .terminated = false };
-    comp.block = &block;
+    DECL_AND_SAFE_ALLOCA_BLOCK (init_block, comp.check_impure);
+    DECL_AND_SAFE_ALLOCA_BLOCK (err_block, comp.check_impure);
+    DECL_AND_SAFE_ALLOCA_BLOCK (ok_block, comp.check_impure);
+
+    comp.block = init_block;
     comp.func = comp.check_impure;
 
-    emit_cond_jump (emit_cast (comp.bool_type,
-			       emit_PURE_P (gcc_jit_param_as_rvalue (param[0]))), /* FIXME */
-		    err_block,
-		    ok_block);
-    gcc_jit_block_end_with_void_return (ok_block, NULL);
+    emit_cond_jump (
+      emit_cast (comp.bool_type,
+		 emit_PURE_P (gcc_jit_param_as_rvalue (param[0]))), /* FIXME */
+      err_block,
+      ok_block);
+    gcc_jit_block_end_with_void_return (ok_block->gcc_bb, NULL);
 
     gcc_jit_rvalue *pure_write_error_arg =
       gcc_jit_param_as_rvalue (param[0]);
 
-    comp.block->gcc_bb = err_block;
+    comp.block = err_block;
     gcc_jit_block_add_eval (comp.block->gcc_bb,
 			    NULL,
 			    emit_call ("pure_write_error",
 				       comp.void_type, 1,
 				       &pure_write_error_arg));
 
-    gcc_jit_block_end_with_void_return (err_block, NULL);
-}
+    gcc_jit_block_end_with_void_return (err_block->gcc_bb, NULL);
+
+    SAFE_FREE ();}
 
 /* Declare a function to convert boolean into t or nil */
 
 static void
 define_bool_to_lisp_obj (void)
 {
+  USE_SAFE_ALLOCA;
+
   /* x ? Qt : Qnil */
   gcc_jit_param *param = gcc_jit_context_new_param (comp.ctxt,
 						    NULL,
@@ -1649,32 +1641,27 @@ define_bool_to_lisp_obj (void)
 				  1,
 				  &param,
 				  0);
-  gcc_jit_block *initial_block =
-    gcc_jit_function_new_block (comp.bool_to_lisp_obj,
-				"bool_to_lisp_obj_initial_block");
-  gcc_jit_block *ret_t_block =
-    gcc_jit_function_new_block (comp.bool_to_lisp_obj,
-				"ret_t");
-  gcc_jit_block *ret_nil_block =
-    gcc_jit_function_new_block (comp.bool_to_lisp_obj,
-				"ret_nil");
-  /* Set current context as needed */
-  basic_block_t block = { .gcc_bb = initial_block,
-			   .terminated = false };
-  comp.block = &block;
+  DECL_AND_SAFE_ALLOCA_BLOCK (init_block, comp.bool_to_lisp_obj);
+  DECL_AND_SAFE_ALLOCA_BLOCK (ret_t_block, comp.bool_to_lisp_obj);
+  DECL_AND_SAFE_ALLOCA_BLOCK (ret_nil_block, comp.bool_to_lisp_obj);
+  comp.block = init_block;
   comp.func = comp.bool_to_lisp_obj;
 
   emit_cond_jump (gcc_jit_param_as_rvalue (param),
 		  ret_t_block,
 		  ret_nil_block);
-  block.gcc_bb = ret_t_block;
-  gcc_jit_block_end_with_return (ret_t_block,
+
+  comp.block = ret_t_block;
+  gcc_jit_block_end_with_return (ret_t_block->gcc_bb,
 				 NULL,
-				 emit_lisp_obj_from_ptr (&block, Qt));
-  block.gcc_bb = ret_nil_block;
-  gcc_jit_block_end_with_return (ret_nil_block,
+				 emit_lisp_obj_from_ptr (Qt));
+
+  comp.block = ret_nil_block;
+  gcc_jit_block_end_with_return (ret_nil_block->gcc_bb,
 				 NULL,
-				 emit_lisp_obj_from_ptr (&block, Qnil));
+				 emit_lisp_obj_from_ptr (Qnil));
+
+  SAFE_FREE ();
 }
 
 static int
@@ -1965,6 +1952,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
   unsigned op;
   unsigned pushhandler_n  = 0;
 
+  USE_SAFE_ALLOCA;
+
   /* Meta-stack we use to flat the bytecode written for push and pop
      Emacs VM.*/
   gcc_jit_lvalue **stack_base, **stack, **stack_over;
@@ -2026,7 +2015,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
     PUSH_PARAM (gcc_jit_function_get_param (comp.func, i));
   gcc_jit_block_end_with_jump (prologue_bb, NULL, bb_map[0].gcc_bb);
 
-  gcc_jit_rvalue *nil = emit_lisp_obj_from_ptr (&bb_map[0], Qnil);
+  comp.block = &bb_map[0];
+  gcc_jit_rvalue *nil = emit_lisp_obj_from_ptr (Qnil);
 
   comp.block = NULL;
 
@@ -2093,7 +2083,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH;
 	varref:
 	  {
-	    args[0] = emit_lisp_obj_from_ptr (comp.block, vectorp[op]);
+	    args[0] = emit_lisp_obj_from_ptr (vectorp[op]);
 	    res = emit_call ("Fsymbol_value", comp.lisp_obj_type, 1, args);
 	    PUSH_RVAL (res);
 	    break;
@@ -2124,7 +2114,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  {
 	    POP1;
 	    args[1] = args[0];
-	    args[0] = emit_lisp_obj_from_ptr (comp.block, vectorp[op]);
+	    args[0] = emit_lisp_obj_from_ptr (vectorp[op]);
 	    args[2] = nil;
 	    args[3] = gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 							   comp.int_type,
@@ -2157,7 +2147,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op -= Bvarbind;
 	varbind:
 	  {
-	    args[0] = emit_lisp_obj_from_ptr (comp.block, vectorp[op]);
+	    args[0] = emit_lisp_obj_from_ptr (vectorp[op]);
 	    pop (1, &stack, &args[1]);
 	    res = emit_call ("specbind", comp.lisp_obj_type, 2, args);
 	    PUSH_RVAL (res);
@@ -2284,10 +2274,11 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 #else
 	    res = emit_call ("setjmp", comp.int_type, 1, args);
 #endif
-	    gcc_jit_block *push_h_val_block =
-	      gcc_jit_function_new_block (comp.func,
-					  format_string ("push_h_val_%u",
-							 pushhandler_n));
+	    basic_block_t *push_h_val_block;
+	    SAFE_ALLOCA_BLOCK (push_h_val_block,
+			       comp.func,
+			       format_string ("push_h_val_%u",
+					      pushhandler_n));
 	    emit_cond_jump (
 	      /* This negation is just to have a bool.  */
 	      gcc_jit_context_new_unary_op (comp.ctxt,
@@ -2295,14 +2286,14 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					    GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
 					    comp.bool_type,
 					    res),
-	      bb_map[pc].gcc_bb,
+	      &bb_map[pc],
 	      push_h_val_block);
 
 	    gcc_jit_lvalue **stack_to_restore = stack;
 	    /* This emit the handler part.  */
 
-	    basic_block_t bb_orig = *comp.block;
-	    comp.block->gcc_bb = push_h_val_block;
+	    basic_block_t *bb_orig = comp.block;
+	    comp.block = push_h_val_block;
 	    /* current_thread->m_handlerlist = c->next; */
 	    gcc_jit_lvalue *m_handlerlist =
 	      gcc_jit_rvalue_dereference_field (comp.current_thread,
@@ -2322,9 +2313,9 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 						NULL,
 						comp.handler_val_field));
 	    bb_map[handler_pc].top = stack;
-	    *comp.block = bb_orig;
+	    comp.block = bb_orig;
 
-	    gcc_jit_block_end_with_jump (push_h_val_block, NULL,
+	    gcc_jit_block_end_with_jump (push_h_val_block->gcc_bb, NULL,
 					 bb_map[handler_pc].gcc_bb);
 
 	    stack = stack_to_restore;
@@ -2426,15 +2417,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE (Bsub1);
 	  {
-
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
 		 ? make_fixnum (XFIXNUM (TOP) - 1)
 		 : Fsub1 (TOP)) */
 
-	    gcc_jit_block *sub1_inline_block =
-		 gcc_jit_function_new_block (comp.func, "inline_sub1");
-	    gcc_jit_block *sub1_fcall_block =
-		 gcc_jit_function_new_block (comp.func, "fcall_sub1");
+	    DECL_AND_SAFE_ALLOCA_BLOCK (sub1_inline_block, comp.func);
+	    DECL_AND_SAFE_ALLOCA_BLOCK (sub1_fcall_block, comp.func);
 
 	    gcc_jit_rvalue *tos_as_num =
 	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
@@ -2463,38 +2451,38 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					     tos_as_num,
 					     comp.one);
 
-	    gcc_jit_block_add_assignment (sub1_inline_block,
+	    basic_block_t *bb_orig = comp.block;
+
+	    comp.block = sub1_inline_block;
+	    gcc_jit_block_add_assignment (sub1_inline_block->gcc_bb,
 					  NULL,
 					  TOS,
-					  emit_make_fixnum (sub1_inline_block,
-							    sub1_inline_res));
-	    basic_block_t bb_orig = *comp.block;
+					  emit_make_fixnum (sub1_inline_res));
 
-	    comp.block->gcc_bb = sub1_fcall_block;
+	    comp.block = sub1_fcall_block;
 	    POP1;
 	    res = emit_call ("Fsub1", comp.lisp_obj_type, 1, args);
 	    PUSH_RVAL (res);
 
-	    *comp.block = bb_orig;
-
-	    gcc_jit_block_end_with_jump (sub1_inline_block, NULL,
+	    gcc_jit_block_end_with_jump (sub1_inline_block->gcc_bb,
+					 NULL,
 					 bb_map[pc].gcc_bb);
-	    gcc_jit_block_end_with_jump (sub1_fcall_block, NULL,
+	    gcc_jit_block_end_with_jump (sub1_fcall_block->gcc_bb,
+					 NULL,
 					 bb_map[pc].gcc_bb);
+	    comp.block = bb_orig;
+	    SAFE_FREE ();
 	  }
 
 	  break;
 	CASE (Badd1);
 	  {
-
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_POSITIVE_FIXNUM
 		 ? make_fixnum (XFIXNUM (TOP) + 1)
 		 : Fadd (TOP)) */
 
-	    gcc_jit_block *add1_inline_block =
-		 gcc_jit_function_new_block (comp.func, "inline_add1");
-	    gcc_jit_block *add1_fcall_block =
-		 gcc_jit_function_new_block (comp.func, "fcall_add1");
+	    DECL_AND_SAFE_ALLOCA_BLOCK (add1_inline_block, comp.func);
+	    DECL_AND_SAFE_ALLOCA_BLOCK (add1_fcall_block, comp.func);
 
 	    gcc_jit_rvalue *tos_as_num =
 	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
@@ -2523,24 +2511,27 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					     tos_as_num,
 					     comp.one);
 
-	    gcc_jit_block_add_assignment (add1_inline_block,
+	    basic_block_t *bb_orig = comp.block;
+	    comp.block = add1_inline_block;
+
+	    gcc_jit_block_add_assignment (add1_inline_block->gcc_bb
+					  ,
 					  NULL,
 					  TOS,
-					  emit_make_fixnum (add1_inline_block,
-							    add1_inline_res));
-	    basic_block_t bb_orig = *comp.block;
-
-	    comp.block->gcc_bb = add1_fcall_block;
+					  emit_make_fixnum (add1_inline_res));
+	    comp.block = add1_fcall_block;
 	    POP1;
 	    res = emit_call ("Fadd1", comp.lisp_obj_type, 1, args);
 	    PUSH_RVAL (res);
 
-	    *comp.block = bb_orig;
-
-	    gcc_jit_block_end_with_jump (add1_inline_block, NULL,
+	    gcc_jit_block_end_with_jump (add1_inline_block->gcc_bb,
+					 NULL,
 					 bb_map[pc].gcc_bb);
-	    gcc_jit_block_end_with_jump (add1_fcall_block, NULL,
+	    gcc_jit_block_end_with_jump (add1_fcall_block->gcc_bb,
+					 NULL,
 					 bb_map[pc].gcc_bb);
+	    comp.block = bb_orig;
+	    SAFE_FREE ();
 	  }
 	  break;
 
@@ -2570,15 +2561,12 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 	CASE (Bnegate);
 	  {
-
 	    /* (FIXNUMP (TOP) && XFIXNUM (TOP) != MOST_NEGATIVE_FIXNUM
 		 ? make_fixnum (- XFIXNUM (TOP))
 		 : Fminus (1, &TOP)) */
 
-	    gcc_jit_block *negate_inline_block =
-		 gcc_jit_function_new_block (comp.func, "inline_negate");
-	    gcc_jit_block *negate_fcall_block =
-		 gcc_jit_function_new_block (comp.func, "fcall_negate");
+	    DECL_AND_SAFE_ALLOCA_BLOCK (negate_inline_block, comp.func);
+	    DECL_AND_SAFE_ALLOCA_BLOCK (negate_fcall_block, comp.func);
 
 	    gcc_jit_rvalue *tos_as_num =
 	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
@@ -2606,21 +2594,25 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 					    comp.emacs_int_type,
 					    tos_as_num);
 
-	    gcc_jit_block_add_assignment (negate_inline_block,
+	    basic_block_t *bb_orig = comp.block;
+
+	    comp.block = negate_inline_block;
+	    gcc_jit_block_add_assignment (negate_inline_block->gcc_bb,
 					  NULL,
 					  TOS,
-					  emit_make_fixnum (negate_inline_block,
-							    negate_inline_res));
-	    basic_block_t bb_orig = *comp.block;
+					  emit_make_fixnum (negate_inline_res));
 
-	    comp.block->gcc_bb = negate_fcall_block;
+	    comp.block = negate_fcall_block;
 	    EMIT_CALL_N_REF ("Fminus", 1);
-	    *comp.block = bb_orig;
 
-	    gcc_jit_block_end_with_jump (negate_inline_block, NULL,
+	    gcc_jit_block_end_with_jump (negate_inline_block->gcc_bb,
+					 NULL,
 					 bb_map[pc].gcc_bb);
-	    gcc_jit_block_end_with_jump (negate_fcall_block, NULL,
+	    gcc_jit_block_end_with_jump (negate_fcall_block->gcc_bb,
+					 NULL,
 					 bb_map[pc].gcc_bb);
+	    comp.block = bb_orig;
+	    SAFE_FREE ();
 	  }
 	  break;
 	CASE (Bplus);
@@ -2710,8 +2702,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	CASE (Binteractive_p);	/* Obsolete since 24.1.	 */
-	  PUSH_RVAL (emit_lisp_obj_from_ptr (comp.block,
-					     intern ("interactive-p")));
+	  PUSH_RVAL (emit_lisp_obj_from_ptr (intern ("interactive-p")));
 	  res = emit_call ("call0", comp.lisp_obj_type, 1, args);
 	  PUSH_RVAL (res);
 	  break;
@@ -2745,7 +2736,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH2;
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
 	  break;
 
@@ -2753,7 +2744,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op = FETCH2;
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
 	  break;
 
@@ -2762,7 +2753,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ,
 				gcc_jit_lvalue_as_rvalue (TOS),
 				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
 	  DISCARD (1);
 	  break;
@@ -2772,7 +2763,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE,
 				gcc_jit_lvalue_as_rvalue (TOS),
 				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
 	  DISCARD (1);
 	  break;
@@ -2803,8 +2794,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  break;
 
 	CASE (Bsave_restriction);
-	  args[0] = emit_lisp_obj_from_ptr (comp.block,
-					    save_restriction_restore);
+	  args[0] = emit_lisp_obj_from_ptr (save_restriction_restore);
 	  args[1] = emit_call ("save_restriction_save",
 			       comp.lisp_obj_type,
 			       0,
@@ -2815,7 +2805,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE (Bcatch);		/* Obsolete since 24.4.	 */
 	  POP2;
 	  args[2] = args[1];
-	  args[1] = emit_lisp_obj_from_ptr (comp.block, eval_sub);
+	  args[1] = emit_lisp_obj_from_ptr (eval_sub);
 	  emit_call ("internal_catch", comp.void_ptr_type, 3, args);
 	  break;
 
@@ -2932,7 +2922,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op += pc;
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
 	  break;
 
@@ -2941,7 +2931,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  op += pc;
 	  POP1;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE, args[0], nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
 	  break;
 
@@ -2951,7 +2941,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ,
 				gcc_jit_lvalue_as_rvalue (TOS),
 				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
 	  DISCARD (1);
 	  break;
@@ -2962,7 +2952,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE,
 				gcc_jit_lvalue_as_rvalue (TOS),
 				nil,
-				bb_map[op].gcc_bb, bb_map[pc].gcc_bb);
+				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
 	  DISCARD (1);
 	  break;
@@ -3029,7 +3019,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	    if (pc >= bytestr_length || bytestr_data[pc] != Bswitch)
 	      {
 		gcc_jit_rvalue *c =
-		  emit_lisp_obj_from_ptr (comp.block, vectorp[op]);
+		  emit_lisp_obj_from_ptr (vectorp[op]);
 		PUSH_RVAL (c);
 		break;
 	      }
@@ -3051,6 +3041,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
  exit:
   xfree (stack_base);
   xfree (bb_map);
+  SAFE_FREE ();
   return comp_res;
 }
 
