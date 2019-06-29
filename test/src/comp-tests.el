@@ -313,12 +313,20 @@
   (defun comp-tests-consp-f (x)
     ;; Bconsp
     (consp x))
+  (defun comp-tests-car-f (x)
+    ;; Bsetcar
+    (setcar x 3))
 
   (byte-compile #'comp-tests-consp-f)
   (native-compile #'comp-tests-consp-f)
+  (byte-compile #'comp-tests-car-f)
+  (native-compile #'comp-tests-car-f)
 
   (should (eq (comp-tests-consp-f '(1)) t))
-  (should (eq (comp-tests-consp-f 1) nil)))
+  (should (eq (comp-tests-consp-f 1) nil))
+  (let ((x (cons 1 2)))
+    (should (= (comp-tests-car-f x) 3))
+    (should (equal x '(3 . 2)))))
 
 (ert-deftest comp-tests-num-inline ()
   "Test some inlined number functions."

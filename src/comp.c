@@ -243,6 +243,7 @@ typedef struct {
   gcc_jit_function *bool_to_lisp_obj;
   gcc_jit_function *car;
   gcc_jit_function *cdr;
+  gcc_jit_function *setcar;
   gcc_jit_function *check_type;
   gcc_jit_function *check_impure;
   basic_block_t *block; /* Current basic block	 */
@@ -819,6 +820,25 @@ emit_XCAR (gcc_jit_rvalue *c)
       comp.lisp_cons_u_s_car);
 }
 
+static gcc_jit_lvalue *
+emit_lval_XCAR (gcc_jit_rvalue *c)
+{
+  /* XCONS (c)->u.s.car */
+  return
+    gcc_jit_lvalue_access_field (
+      /* XCONS (c)->u.s */
+      gcc_jit_lvalue_access_field (
+	/* XCONS (c)->u */
+	gcc_jit_rvalue_dereference_field (
+	  emit_XCONS (c),
+	  NULL,
+	  comp.lisp_cons_u),
+	NULL,
+	comp.lisp_cons_u_s),
+      NULL,
+      comp.lisp_cons_u_s_car);
+}
+
 static gcc_jit_rvalue *
 emit_XCDR (gcc_jit_rvalue *c)
 {
@@ -857,6 +877,24 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
 			    comp.check_type,
 			    3,
 			    args);
+}
+
+static gcc_jit_rvalue *
+emit_car_addr (gcc_jit_rvalue *c)
+{
+  return gcc_jit_lvalue_get_address (emit_lval_XCAR (c), NULL);
+}
+
+static void
+emit_XSETCAR (gcc_jit_rvalue *c, gcc_jit_rvalue *n)
+{
+  gcc_jit_block_add_assignment(
+    comp.block->gcc_bb,
+    NULL,
+    gcc_jit_rvalue_dereference (
+      emit_car_addr (c),
+      NULL),
+    n);
 }
 
 static gcc_jit_rvalue *
@@ -1376,12 +1414,54 @@ define_CAR_CDR (void)
     }
 }
 
+static void
+define_setcar (void)
+{
+
+  gcc_jit_param *cell =
+    gcc_jit_context_new_param (comp.ctxt,
+			       NULL,
+			       comp.lisp_obj_type,
+			       "cell");
+  gcc_jit_param *new_car =
+    gcc_jit_context_new_param (comp.ctxt,
+			       NULL,
+			       comp.lisp_obj_type,
+			       "new_car");
+
+  gcc_jit_param *param[] = { cell, new_car };
+  comp.setcar =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_ALWAYS_INLINE,
+				  comp.lisp_obj_type,
+				  "setcar",
+				  2,
+				  param,
+				  0);
+  gcc_jit_block *initial_block =
+    gcc_jit_function_new_block (comp.setcar, "initial_block");
+  /* Set current context as needed */
+  basic_block_t block = { .gcc_bb = initial_block,
+    .terminated = false };
+  comp.block = &block;
+  comp.func = comp.setcar;
+
+  emit_CHECK_CONS (gcc_jit_param_as_rvalue (cell));
+
+  emit_XSETCAR (gcc_jit_param_as_rvalue (cell),
+	        gcc_jit_param_as_rvalue (new_car));
+
+  gcc_jit_block_end_with_return (initial_block,
+				 NULL,
+				 gcc_jit_param_as_rvalue (new_car));
+
+}
 /* Declare a substitute for PSEUDOVECTORP as always inlined function.  */
 
 static void
 define_PSEUDOVECTORP (void)
 {
-  gcc_jit_param *param[2] =
+  gcc_jit_param *param[] =
     { gcc_jit_context_new_param (comp.ctxt,
 				 NULL,
 				 comp.lisp_obj_type,
@@ -1803,6 +1883,7 @@ init_comp (int opt_level)
   define_CHECK_TYPE ();
   define_CHECK_IMPURE ();
   define_bool_to_lisp_obj ();
+  define_setcar();
 }
 
 static void
@@ -2732,7 +2813,16 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 	CASE_CALL_N (elt, 2);
 	CASE_CALL_N (member, 2);
 	CASE_CALL_N (assq, 2);
-	CASE_CALL_N (setcar, 2);
+
+	case Bsetcar:
+	  POP2;
+	  res = gcc_jit_context_new_call (comp.ctxt,
+					  NULL,
+					  comp.setcar,
+					  2, args);
+	  PUSH_RVAL (res);
+	  break;
+
 	CASE_CALL_N (setcdr, 2);
 
 	CASE (Bcar_safe)
