@@ -497,7 +497,7 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 }
 
 INLINE static gcc_jit_rvalue *
-emit_rval_XLI (gcc_jit_rvalue *obj)
+emit_XLI (gcc_jit_rvalue *obj)
 {
   return gcc_jit_rvalue_access_field (obj,
 				      NULL,
@@ -513,7 +513,7 @@ emit_lval_XLI (gcc_jit_lvalue *obj)
 }
 
 INLINE static gcc_jit_rvalue *
-emit_rval_XLP (gcc_jit_rvalue *obj)
+emit_XLP (gcc_jit_rvalue *obj)
 {
   return gcc_jit_rvalue_access_field (obj,
 				      NULL,
@@ -529,7 +529,7 @@ emit_lval_XLP (gcc_jit_lvalue *obj)
 }
 
 static gcc_jit_rvalue *
-emit_rval_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
+emit_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
 {
   /* #define XUNTAG(a, type, ctype) ((ctype *)
      ((char *) XLP (a) - LISP_WORD_TAG (type))) */
@@ -540,18 +540,18 @@ emit_rval_XUNTAG (gcc_jit_rvalue *a, gcc_jit_type *type, unsigned lisp_word_tag)
 	     NULL,
 	     GCC_JIT_BINARY_OP_MINUS,
 	     comp.emacs_int_type,
-	     emit_rval_XLI (a),
+	     emit_XLI (a),
 	     gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 						  comp.emacs_int_type,
 						  lisp_word_tag)));
 }
 
 static gcc_jit_rvalue *
-emit_rval_XCONS (gcc_jit_rvalue *a)
+emit_XCONS (gcc_jit_rvalue *a)
 {
-  return emit_rval_XUNTAG (a,
-			   gcc_jit_struct_as_type (comp.lisp_cons_s),
-			   LISP_WORD_TAG (Lisp_Cons));
+  return emit_XUNTAG (a,
+		      gcc_jit_struct_as_type (comp.lisp_cons_s),
+		      LISP_WORD_TAG (Lisp_Cons));
 }
 
 static gcc_jit_rvalue *
@@ -561,8 +561,8 @@ emit_EQ (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
 	   comp.ctxt,
 	   NULL,
 	   GCC_JIT_COMPARISON_EQ,
-	   emit_rval_XLI (x),
-	   emit_rval_XLI (y));
+	   emit_XLI (x),
+	   emit_XLI (y));
 }
 
 static gcc_jit_rvalue *
@@ -578,7 +578,7 @@ emit_TAGGEDP (gcc_jit_rvalue *obj, unsigned tag)
       NULL,
       GCC_JIT_BINARY_OP_RSHIFT,
       comp.emacs_int_type,
-      emit_rval_XLI (obj),
+      emit_XLI (obj),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.emacs_int_type,
 					   (USE_LSB_TAG ? 0 : VALBITS)));
@@ -661,7 +661,7 @@ emit_FIXNUMP (gcc_jit_rvalue *obj)
       NULL,
       GCC_JIT_BINARY_OP_RSHIFT,
       comp.emacs_int_type,
-      emit_rval_XLI (obj),
+      emit_XLI (obj),
       gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					   comp.emacs_int_type,
 					   (USE_LSB_TAG ? 0 : FIXNUM_BITS)));
@@ -703,7 +703,7 @@ emit_XFIXNUM (gcc_jit_rvalue *obj)
 					NULL,
 					GCC_JIT_BINARY_OP_RSHIFT,
 					comp.emacs_int_type,
-					emit_rval_XLI (obj),
+					emit_XLI (obj),
 					comp.inttypebits);
 }
 
@@ -810,7 +810,7 @@ emit_XCAR (gcc_jit_rvalue *c)
 	/* XCONS (c)->u */
 	gcc_jit_lvalue_as_rvalue (
 	  gcc_jit_rvalue_dereference_field (
-	    emit_rval_XCONS (c),
+	    emit_XCONS (c),
 	    NULL,
 	    comp.lisp_cons_u)),
 	NULL,
@@ -832,7 +832,7 @@ emit_XCDR (gcc_jit_rvalue *c)
 	  /* XCONS (c)->u */
 	  gcc_jit_lvalue_as_rvalue (
 	    gcc_jit_rvalue_dereference_field (
-	      emit_rval_XCONS (c),
+	      emit_XCONS (c),
 	      NULL,
 	      comp.lisp_cons_u)),
 	  NULL,
