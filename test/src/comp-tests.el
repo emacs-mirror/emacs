@@ -153,15 +153,25 @@
   (should (string= (comp-tests-concat-f "bar") "abcdabcabfoobar")))
 
 (ert-deftest  comp-tests-ffuncall ()
-  "Testing varset."
+  "Test calling conventions."
   (defun comp-tests-ffuncall-callee-f (x y z)
     (list x y z))
   (defun comp-tests-ffuncall-caller-f ()
     (comp-tests-ffuncall-callee-f 1 2 3))
+
   (byte-compile #'comp-tests-ffuncall-caller-f)
   (native-compile #'comp-tests-ffuncall-caller-f)
 
-  (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3))))
+  (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3)))
+
+  (defun comp-tests-ffuncall-native-f ()
+    "Call a primitive with no dedicate op."
+    (make-vector 1 nil))
+
+  (byte-compile #'comp-tests-ffuncall-native-f)
+  (native-compile #'comp-tests-ffuncall-native-f)
+
+  (should (vectorp (comp-tests-ffuncall-native-f))))
 
 (ert-deftest  comp-tests-conditionals ()
   "Testing conditionals."
