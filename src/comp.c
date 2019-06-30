@@ -2286,7 +2286,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    if (stack->const_set &&
 		stack->type == Lisp_Symbol)
 	      {
-		ptrdiff_t native_nargs = nargs - 1;
+		ptrdiff_t native_nargs = op;
 		char *sym_name = (char *) SDATA (SYMBOL_NAME (stack->constant));
 		if (!strcmp (sym_name,
 			     lisp_f_name))
@@ -2304,29 +2304,39 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 						 sym_name));
 		    struct Lisp_Subr *subr =
 		      XSUBR ((XSYMBOL (stack->constant)->u.s.function));
-		    gcc_jit_type *types[native_nargs];
+		    if (subr->max_args == MANY)
+		      {
+			/* FIXME: do we want to optimize this case too?  */
+			goto dofuncall;
+		      } else
+		      {
+			gcc_jit_type *types[native_nargs];
 
-		    for (int i = 0; i < native_nargs; i++)
-		      types[i] = comp.lisp_obj_type;
+			for (int i = 0; i < native_nargs; i++)
+			  types[i] = comp.lisp_obj_type;
 
-		    gcc_jit_type *fn_ptr_type =
-		      gcc_jit_context_new_function_ptr_type (comp.ctxt,
-							     NULL,
-							     comp.lisp_obj_type,
-							     native_nargs,
-							     types,
-							     0);
-		    res =
-		      gcc_jit_context_new_call_through_ptr (
-		        comp.ctxt,
-			NULL,
-			gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
-							     fn_ptr_type,
-							     subr->function.a0),
-			native_nargs,
-			args + 1);
+			gcc_jit_type *fn_ptr_type =
+			  gcc_jit_context_new_function_ptr_type (
+			    comp.ctxt,
+			    NULL,
+			    comp.lisp_obj_type,
+			    native_nargs,
+			    types,
+			    0);
+			res =
+			  gcc_jit_context_new_call_through_ptr (
+			    comp.ctxt,
+			    NULL,
+			    gcc_jit_context_new_rvalue_from_ptr (
+			      comp.ctxt,
+			      fn_ptr_type,
+			      subr->function.a0),
+			    native_nargs,
+			    args + 1);
+		      }
 		  }
 	      }
+	  dofuncall:
 	    /* Fall back to regular funcall dispatch mechanism. */
 	    if (!res)
 	      res = emit_call_n_ref ("Ffuncall", nargs, stack->gcc_lval);

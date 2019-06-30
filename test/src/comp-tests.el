@@ -171,7 +171,15 @@
   (byte-compile #'comp-tests-ffuncall-native-f)
   (native-compile #'comp-tests-ffuncall-native-f)
 
-  (should (vectorp (comp-tests-ffuncall-native-f))))
+  (should (vectorp (comp-tests-ffuncall-native-f)))
+
+  (defun comp-tests-ffuncall-apply-many-f (x)
+    (apply #'list x))
+
+  (byte-compile #'comp-tests-ffuncall-apply-many-f)
+  (native-compile #'comp-tests-ffuncall-apply-many-f)
+
+  (should (equal (comp-tests-ffuncall-apply-many-f '(1 2 3)) '(1 2 3))))
 
 (ert-deftest  comp-tests-conditionals ()
   "Testing conditionals."
