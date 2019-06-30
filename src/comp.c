@@ -47,8 +47,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     CHECK_STACK;							\
     gcc_jit_block_add_assignment (comp.block->gcc_bb,			\
 				  NULL,					\
-				  (stack)->gcc_lval,			\
+				  stack->gcc_lval,			\
 				  gcc_jit_lvalue_as_rvalue(obj));	\
+    stack->type = -1;							\
+    stack->sym_val = NULL;						\
     stack++;								\
   } while (0)
 
@@ -57,8 +59,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     CHECK_STACK;					\
     gcc_jit_block_add_assignment (comp.block->gcc_bb,	\
 				  NULL,			\
-				  (stack)->gcc_lval,	\
+				  stack->gcc_lval,	\
 				  (obj));		\
+    stack->type = -1;					\
+    stack->sym_val = NULL;				\
     stack++;						\
   } while (0)
 
@@ -69,8 +73,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     CHECK_STACK;							\
     gcc_jit_block_add_assignment (prologue_bb,				\
 				  NULL,					\
-				  (stack)->gcc_lval,			\
+				  stack->gcc_lval,			\
 				  gcc_jit_param_as_rvalue(obj));	\
+    stack->type = -1;							\
+    stack->sym_val = NULL;						\
     stack++;								\
   } while (0)
 
@@ -84,27 +90,27 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   do {								\
     stack--;							\
     CHECK_STACK;						\
-    args[0] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    args[0] = gcc_jit_lvalue_as_rvalue (stack->gcc_lval);	\
   } while (0)
 
 #define POP2							\
   do {								\
     stack--;							\
     CHECK_STACK;						\
-    args[1] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    args[1] = gcc_jit_lvalue_as_rvalue (stack->gcc_lval);	\
     stack--;							\
-    args[0] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    args[0] = gcc_jit_lvalue_as_rvalue (stack->gcc_lval);	\
   } while (0)
 
 #define POP3							\
   do {								\
     stack--;							\
     CHECK_STACK;						\
-    args[2] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    args[2] = gcc_jit_lvalue_as_rvalue (stack->gcc_lval);	\
     stack--;							\
-    args[1] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    args[1] = gcc_jit_lvalue_as_rvalue (stack->gcc_lval);	\
     stack--;							\
-    args[0] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    args[0] = gcc_jit_lvalue_as_rvalue (stack->gcc_lval);	\
   } while (0)
 
 /* Fetch the next byte from the bytecode stream.  */
@@ -149,7 +155,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define EMIT_CALL_N_REF(name, nargs)				\
   do {								\
     DISCARD (nargs);						\
-    res = emit_call_n_ref ((name), (nargs), (stack)->gcc_lval);	\
+    res = emit_call_n_ref ((name), (nargs), stack->gcc_lval);	\
     PUSH_RVAL (res);						\
   } while (0)
 
@@ -179,6 +185,8 @@ do {								\
 /* Element of the meta stack.  */
 typedef struct {
   gcc_jit_lvalue *gcc_lval;
+  enum Lisp_Type type; /* -1 if not set.  */
+  char *sym_val;
 } stack_el_t;
 
 typedef struct {
@@ -2267,8 +2275,21 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	docall:
 	  {
 	    ptrdiff_t nargs = op + 1;
-	    DISCARD (nargs);
-	    res = emit_call_n_ref ("Ffuncall", nargs, stack->gcc_lval);
+	    pop (nargs, &stack, args);
+	    if (stack->type == Lisp_Symbol &&
+		!strcmp (stack->sym_val, lisp_f_name))
+	      {
+		/* Optimize self calls.  */
+		res = gcc_jit_context_new_call (comp.ctxt,
+						NULL,
+						comp.func,
+						nargs - 1,
+						args + 1);
+	      }
+	    else
+	      {
+		res = emit_call_n_ref ("Ffuncall", nargs, stack->gcc_lval);
+	      }
 	    PUSH_RVAL (res);
 	    break;
 	  }
@@ -3110,6 +3131,11 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 		gcc_jit_rvalue *c =
 		  emit_lisp_obj_from_ptr (vectorp[op]);
 		PUSH_RVAL (c);
+		TOS.type = XTYPE (vectorp[op]);
+		if (TOS.type == Lisp_Symbol)
+		  /* Store the symbol value for later use is used while
+		     optimizing native and self calls.  */
+		  TOS.sym_val = (char *) SDATA (SYMBOL_NAME (vectorp[op]));
 		break;
 	      }
 
