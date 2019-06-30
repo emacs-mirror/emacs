@@ -289,6 +289,11 @@
                      err
                      (comp-tests-setcar-f 3 10)
                    (error err))
+                 '(wrong-type-argument consp 3)))
+  (should (equal (condition-case
+                     err
+                     (comp-tests-setcdr-f 3 10)
+                   (error err))
                  '(wrong-type-argument consp 3))))
 
 (defun comp-bubble-sort ()
