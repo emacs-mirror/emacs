@@ -179,7 +179,17 @@
   (byte-compile #'comp-tests-ffuncall-apply-many-f)
   (native-compile #'comp-tests-ffuncall-apply-many-f)
 
-  (should (equal (comp-tests-ffuncall-apply-many-f '(1 2 3)) '(1 2 3))))
+  (should (equal (comp-tests-ffuncall-apply-many-f '(1 2 3)) '(1 2 3)))
+
+  (defun comp-tests-ffuncall-lambda-f (x)
+    (let ((fun (lambda (x)
+                 (1+ x))))
+      (funcall fun x)))
+
+  (byte-compile #'comp-tests-ffuncall-lambda-f)
+  (native-compile #'comp-tests-ffuncall-lambda-f)
+
+  (should (= (comp-tests-ffuncall-lambda-f 1) 2)))
 
 (ert-deftest  comp-tests-conditionals ()
   "Testing conditionals."
