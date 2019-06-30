@@ -465,11 +465,26 @@ INLINE static void
 emit_cond_jump (gcc_jit_rvalue *test,
 		basic_block_t *then_target, basic_block_t *else_target)
 {
-  gcc_jit_block_end_with_conditional (comp.block->gcc_bb,
+  if (gcc_jit_rvalue_get_type (test) == comp.bool_type)
+    gcc_jit_block_end_with_conditional (comp.block->gcc_bb,
 				      NULL,
 				      test,
 				      then_target->gcc_bb,
 				      else_target->gcc_bb);
+  else
+    /* In case test is not bool we do a logical negation to obtain a bool as
+       result.  */
+    gcc_jit_block_end_with_conditional (
+      comp.block->gcc_bb,
+      NULL,
+      gcc_jit_context_new_unary_op (comp.ctxt,
+				    NULL,
+				    GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
+				    comp.bool_type,
+				    test),
+      else_target->gcc_bb,
+      then_target->gcc_bb);
+
   comp.block->terminated = true;
 }
 
@@ -1402,9 +1417,7 @@ define_CHECK_TYPE (void)
   comp.block = init_block;
   comp.func = comp.check_type;
 
-  emit_cond_jump (emit_cast (comp.bool_type, ok),
-		  ok_block,
-		  not_ok_block);
+  emit_cond_jump (ok, ok_block, not_ok_block);
 
   gcc_jit_block_end_with_void_return (ok_block->gcc_bb, NULL);
 
@@ -1470,10 +1483,7 @@ define_CAR_CDR (void)
       comp.block = init_block;
       comp.func = f;
 
-      emit_cond_jump (emit_cast (comp.bool_type,
-				 emit_CONSP (c)),
-		      is_cons_b,
-		      not_a_cons_b);
+      emit_cond_jump (emit_CONSP (c), is_cons_b, not_a_cons_b);
 
       comp.block = is_cons_b;
 
@@ -1491,9 +1501,7 @@ define_CAR_CDR (void)
       DECL_AND_SAFE_ALLOCA_BLOCK (is_nil_b, f);
       DECL_AND_SAFE_ALLOCA_BLOCK (not_nil_b, f);
 
-      emit_cond_jump (emit_NILP (c),
-		      is_nil_b,
-		      not_nil_b);
+      emit_cond_jump (emit_NILP (c), is_nil_b, not_nil_b);
 
       comp.block = is_nil_b;
       gcc_jit_block_end_with_return (comp.block->gcc_bb,
@@ -1619,11 +1627,9 @@ define_PSEUDOVECTORP (void)
   comp.block = init_block;
   comp.func = comp.pseudovectorp;
 
-  emit_cond_jump (
-    emit_cast (comp.bool_type,
-	       emit_VECTORLIKEP (gcc_jit_param_as_rvalue (param[0]))),
-    call_pseudovector_typep_b,
-    ret_false_b);
+  emit_cond_jump (emit_VECTORLIKEP (gcc_jit_param_as_rvalue (param[0])),
+		  call_pseudovector_typep_b,
+		  ret_false_b);
 
   comp.block = ret_false_b;
   gcc_jit_block_end_with_return (ret_false_b->gcc_bb
@@ -1680,8 +1686,8 @@ define_CHECK_IMPURE (void)
     comp.func = comp.check_impure;
 
     emit_cond_jump (emit_PURE_P (gcc_jit_param_as_rvalue (param[0])), /* FIXME */
-      err_block,
-      ok_block);
+		    err_block,
+		    ok_block);
     gcc_jit_block_end_with_void_return (ok_block->gcc_bb, NULL);
 
     gcc_jit_rvalue *pure_write_error_arg =
@@ -2356,15 +2362,8 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 			       comp.func,
 			       format_string ("push_h_val_%u",
 					      pushhandler_n));
-	    emit_cond_jump (
-	      /* This negation is just to have a bool.  */
-	      gcc_jit_context_new_unary_op (comp.ctxt,
-					    NULL,
-					    GCC_JIT_UNARY_OP_LOGICAL_NEGATE,
-					    comp.bool_type,
-					    res),
-	      &bb_map[pc],
-	      push_h_val_block);
+
+	    emit_cond_jump (res, push_h_val_block, &bb_map[pc]);
 
 	    gcc_jit_lvalue **stack_to_restore = stack;
 	    /* This emit the handler part.  */
