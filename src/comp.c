@@ -50,7 +50,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 				  stack->gcc_lval,			\
 				  gcc_jit_lvalue_as_rvalue(obj));	\
     stack->type = -1;							\
-    stack->sym_val = NULL;						\
+    stack->const_set = false;						\
     stack++;								\
   } while (0)
 
@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 				  stack->gcc_lval,	\
 				  (obj));		\
     stack->type = -1;					\
-    stack->sym_val = NULL;				\
+    stack->const_set = false;				\
     stack++;						\
   } while (0)
 
@@ -76,7 +76,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 				  stack->gcc_lval,			\
 				  gcc_jit_param_as_rvalue(obj));	\
     stack->type = -1;							\
-    stack->sym_val = NULL;						\
+    stack->const_set = false;						\
     stack++;								\
   } while (0)
 
@@ -186,7 +186,8 @@ do {								\
 typedef struct {
   gcc_jit_lvalue *gcc_lval;
   enum Lisp_Type type; /* -1 if not set.  */
-  char *sym_val;
+  Lisp_Object constant; /* This is used for constant propagation.   */
+  bool const_set;
 } stack_el_t;
 
 typedef struct {
@@ -2274,22 +2275,57 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  op -= Bcall;
 	docall:
 	  {
+	    res = NULL;
 	    ptrdiff_t nargs = op + 1;
 	    pop (nargs, &stack, args);
-	    if (stack->type == Lisp_Symbol &&
-		!strcmp (stack->sym_val, lisp_f_name))
+	    if (stack->const_set &&
+		stack->type == Lisp_Symbol)
 	      {
-		/* Optimize self calls.  */
-		res = gcc_jit_context_new_call (comp.ctxt,
-						NULL,
-						comp.func,
-						nargs - 1,
-						args + 1);
+		ptrdiff_t native_nargs = nargs - 1;
+		char *sym_name = (char *) SDATA (SYMBOL_NAME (stack->constant));
+		if (!strcmp (sym_name,
+			     lisp_f_name))
+		  {
+		    /* Optimize self calls.  */
+		    res = gcc_jit_context_new_call (comp.ctxt,
+						    NULL,
+						    comp.func,
+						    native_nargs,
+						    args + 1);
+		  } else if (SUBRP ((XSYMBOL (stack->constant)->u.s.function)))
+		  {
+		    /* Optimize primitive native calls.  */
+		    emit_comment (format_string ("Calling primitive %s",
+						 sym_name));
+		    struct Lisp_Subr *subr =
+		      XSUBR ((XSYMBOL (stack->constant)->u.s.function));
+		    gcc_jit_type *types[native_nargs];
+
+		    for (int i = 0; i < native_nargs; i++)
+		      types[i] = comp.lisp_obj_type;
+
+		    gcc_jit_type *fn_ptr_type =
+		      gcc_jit_context_new_function_ptr_type (comp.ctxt,
+							     NULL,
+							     comp.lisp_obj_type,
+							     native_nargs,
+							     types,
+							     0);
+		    res =
+		      gcc_jit_context_new_call_through_ptr (
+		        comp.ctxt,
+			NULL,
+			gcc_jit_context_new_rvalue_from_ptr (comp.ctxt,
+							     fn_ptr_type,
+							     subr->function.a0),
+			native_nargs,
+			args + 1);
+		  }
 	      }
-	    else
-	      {
-		res = emit_call_n_ref ("Ffuncall", nargs, stack->gcc_lval);
-	      }
+	    /* Fall back to regular funcall dispatch. */
+	    if (!res)
+	      res = emit_call_n_ref ("Ffuncall", nargs, stack->gcc_lval);
+
 	    PUSH_RVAL (res);
 	    break;
 	  }
@@ -3133,9 +3169,12 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 		PUSH_RVAL (c);
 		TOS.type = XTYPE (vectorp[op]);
 		if (TOS.type == Lisp_Symbol)
-		  /* Store the symbol value for later use is used while
-		     optimizing native and self calls.  */
-		  TOS.sym_val = (char *) SDATA (SYMBOL_NAME (vectorp[op]));
+		  {
+		    /* Store the symbol value for later use is used while
+		       optimizing native and self calls.  */
+		    TOS.constant = vectorp[op];
+		    TOS.const_set = true;
+		  }
 		break;
 	      }
 
