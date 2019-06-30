@@ -42,42 +42,31 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define CHECK_STACK					\
   eassert (stack >= stack_base && stack < stack_over)
 
-#define PUSH_LVAL(obj)							\
-  do {									\
-    CHECK_STACK;							\
-    gcc_jit_block_add_assignment (comp.block->gcc_bb,			\
-				  NULL,					\
-				  stack->gcc_lval,			\
-				  gcc_jit_lvalue_as_rvalue(obj));	\
-    stack->type = -1;							\
-    stack->const_set = false;						\
-    stack++;								\
+#define PUSH_LVAL(obj)						\
+  do {								\
+    CHECK_STACK;						\
+    emit_assign_to_stack_slot (comp.block,			\
+			       stack,				\
+			       gcc_jit_lvalue_as_rvalue (obj));	\
+    stack++;							\
   } while (0)
 
-#define PUSH_RVAL(obj)					\
-  do {							\
-    CHECK_STACK;					\
-    gcc_jit_block_add_assignment (comp.block->gcc_bb,	\
-				  NULL,			\
-				  stack->gcc_lval,	\
-				  (obj));		\
-    stack->type = -1;					\
-    stack->const_set = false;				\
-    stack++;						\
+#define PUSH_RVAL(obj)						\
+  do {								\
+    CHECK_STACK;						\
+    emit_assign_to_stack_slot (comp.block, stack, (obj));	\
+    stack++;							\
   } while (0)
 
 /* This always happens in the first basic block.  */
 
-#define PUSH_PARAM(obj)							\
-  do {									\
-    CHECK_STACK;							\
-    gcc_jit_block_add_assignment (prologue_bb,				\
-				  NULL,					\
-				  stack->gcc_lval,			\
-				  gcc_jit_param_as_rvalue(obj));	\
-    stack->type = -1;							\
-    stack->const_set = false;						\
-    stack++;								\
+#define PUSH_PARAM(obj)						\
+  do {								\
+    CHECK_STACK;						\
+    emit_assign_to_stack_slot (prologue,			\
+			       stack,				\
+			       gcc_jit_param_as_rvalue (obj));	\
+    stack++;							\
   } while (0)
 
 #define TOS (*(stack - 1))
@@ -127,8 +116,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* With most of the ops we need to do the same stuff so this macros are meant
    to save some typing.	 */
 
-#define CASE(op)					\
-  case op :						\
+#define CASE(op)				\
+  case op :					\
   emit_comment (STR(op))
 
 /* Pop from the meta-stack, emit the call and push the result */
@@ -366,6 +355,23 @@ emit_comment (const char *str)
 			       NULL,
 			       str);
 }
+
+
+/* Assignments to the meta-stack slots should be emitted usign this to always */
+/* reset annotation fields.   */
+
+static void
+emit_assign_to_stack_slot(basic_block_t *block, stack_el_t *slot,
+			  gcc_jit_rvalue *val)
+{
+  gcc_jit_block_add_assignment (block->gcc_bb,
+				NULL,
+				slot->gcc_lval,
+				val);
+  slot->type = -1;
+  slot->const_set = false;
+}
+
 
 static gcc_jit_function *
 emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
@@ -2103,14 +2109,13 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 							   comp.int_type,
 							   i));
 
-  gcc_jit_block *prologue_bb =
-    gcc_jit_function_new_block (comp.func, "prologue");
+  DECL_AND_SAFE_ALLOCA_BLOCK(prologue, comp.func);
 
   basic_block_t *bb_map = compute_blocks (bytestr_length, bytestr_data);
 
   for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
     PUSH_PARAM (gcc_jit_function_get_param (comp.func, i));
-  gcc_jit_block_end_with_jump (prologue_bb, NULL, bb_map[0].gcc_bb);
+  gcc_jit_block_end_with_jump (prologue->gcc_bb, NULL, bb_map[0].gcc_bb);
 
   comp.block = &bb_map[0];
   gcc_jit_rvalue *nil = emit_lisp_obj_from_ptr (Qnil);
@@ -2322,7 +2327,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 			args + 1);
 		  }
 	      }
-	    /* Fall back to regular funcall dispatch. */
+	    /* Fall back to regular funcall dispatch mechanism. */
 	    if (!res)
 	      res = emit_call_n_ref ("Ffuncall", nargs, stack->gcc_lval);
 
@@ -2438,14 +2443,14 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	      gcc_jit_rvalue_dereference_field (comp.current_thread,
 						NULL,
 						comp.m_handlerlist);
-	    gcc_jit_block_add_assignment(comp.block->gcc_bb,
-					 NULL,
-					 m_handlerlist,
-					 gcc_jit_lvalue_as_rvalue(
-					   gcc_jit_rvalue_dereference_field (
-					     gcc_jit_lvalue_as_rvalue (c),
-					     NULL,
-					     comp.handler_next_field)));
+	    gcc_jit_block_add_assignment (comp.block->gcc_bb,
+					  NULL,
+					  m_handlerlist,
+					  gcc_jit_lvalue_as_rvalue(
+					    gcc_jit_rvalue_dereference_field (
+					      gcc_jit_lvalue_as_rvalue (c),
+					      NULL,
+					      comp.handler_next_field)));
 	    /* PUSH (c->val); */
 	    PUSH_LVAL (gcc_jit_rvalue_dereference_field (
 			 gcc_jit_lvalue_as_rvalue (c),
@@ -2593,11 +2598,9 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    basic_block_t *bb_orig = comp.block;
 
 	    comp.block = sub1_inline_block;
-	    gcc_jit_block_add_assignment (sub1_inline_block->gcc_bb,
-					  NULL,
-					  TOS.gcc_lval,
-					  emit_make_fixnum (sub1_inline_res));
-
+	    emit_assign_to_stack_slot (sub1_inline_block,
+				       &TOS,
+				       emit_make_fixnum (sub1_inline_res));
 	    comp.block = sub1_fcall_block;
 	    POP1;
 	    res = emit_call ("Fsub1", comp.lisp_obj_type, 1, args);
@@ -2652,12 +2655,9 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 
 	    basic_block_t *bb_orig = comp.block;
 	    comp.block = add1_inline_block;
-
-	    gcc_jit_block_add_assignment (add1_inline_block->gcc_bb
-					  ,
-					  NULL,
-					  TOS.gcc_lval,
-					  emit_make_fixnum (add1_inline_res));
+	    emit_assign_to_stack_slot(add1_inline_block,
+				      &TOS,
+				      emit_make_fixnum (add1_inline_res));
 	    comp.block = add1_fcall_block;
 	    POP1;
 	    res = emit_call ("Fadd1", comp.lisp_obj_type, 1, args);
@@ -2736,11 +2736,9 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    basic_block_t *bb_orig = comp.block;
 
 	    comp.block = negate_inline_block;
-	    gcc_jit_block_add_assignment (negate_inline_block->gcc_bb,
-					  NULL,
-					  TOS.gcc_lval,
-					  emit_make_fixnum (negate_inline_res));
-
+	    emit_assign_to_stack_slot (negate_inline_block,
+				       &TOS,
+				       emit_make_fixnum (negate_inline_res));
 	    comp.block = negate_fcall_block;
 	    EMIT_CALL_N_REF ("Fminus", 1);
 
@@ -3113,19 +3111,13 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  op = FETCH;
 	  POP1;
 	  if (op > 0)
-	    gcc_jit_block_add_assignment (comp.block->gcc_bb,
-					  NULL,
-					  (*(stack - op)).gcc_lval,
-					  args[0]);
+	    emit_assign_to_stack_slot (comp.block, stack - op, args[0]);
 	  break;
 
 	CASE (Bstack_set2);
 	  op = FETCH2;
 	  POP1;
-	  gcc_jit_block_add_assignment (comp.block->gcc_bb,
-					NULL,
-					(*(stack - op)).gcc_lval,
-					args[0]);
+	  emit_assign_to_stack_slot (comp.block, stack - op, args[0]);
 	  break;
 
 	CASE (BdiscardN);
@@ -3134,10 +3126,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    {
 	      op &= 0x7F;
 	      POP1;
-	      gcc_jit_block_add_assignment (comp.block->gcc_bb,
-					    NULL,
-					    (*(stack - op - 1)).gcc_lval,
-					    args[0]);
+	      emit_assign_to_stack_slot (comp.block, stack - op - 1, args[0]);
 	    }
 
 	  DISCARD (op);
