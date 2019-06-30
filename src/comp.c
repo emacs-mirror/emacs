@@ -47,7 +47,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     CHECK_STACK;							\
     gcc_jit_block_add_assignment (comp.block->gcc_bb,			\
 				  NULL,					\
-				  *stack,				\
+				  (stack)->gcc_lval,			\
 				  gcc_jit_lvalue_as_rvalue(obj));	\
     stack++;								\
   } while (0)
@@ -57,7 +57,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     CHECK_STACK;					\
     gcc_jit_block_add_assignment (comp.block->gcc_bb,	\
 				  NULL,			\
-				  *stack,		\
+				  (stack)->gcc_lval,	\
 				  (obj));		\
     stack++;						\
   } while (0)
@@ -69,7 +69,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
     CHECK_STACK;							\
     gcc_jit_block_add_assignment (prologue_bb,				\
 				  NULL,					\
-				  *stack,				\
+				  (stack)->gcc_lval,			\
 				  gcc_jit_param_as_rvalue(obj));	\
     stack++;								\
   } while (0)
@@ -80,31 +80,31 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define POP0
 
-#define POP1						\
-  do {							\
-    stack--;						\
-    CHECK_STACK;					\
-    args[0] = gcc_jit_lvalue_as_rvalue (*stack);	\
+#define POP1							\
+  do {								\
+    stack--;							\
+    CHECK_STACK;						\
+    args[0] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
   } while (0)
 
-#define POP2						\
-  do {							\
-    stack--;						\
-    CHECK_STACK;					\
-    args[1] = gcc_jit_lvalue_as_rvalue (*stack);	\
-    stack--;						\
-    args[0] = gcc_jit_lvalue_as_rvalue (*stack);	\
+#define POP2							\
+  do {								\
+    stack--;							\
+    CHECK_STACK;						\
+    args[1] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    stack--;							\
+    args[0] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
   } while (0)
 
-#define POP3						\
-  do {							\
-    stack--;						\
-    CHECK_STACK;					\
-    args[2] = gcc_jit_lvalue_as_rvalue (*stack);	\
-    stack--;						\
-    args[1] = gcc_jit_lvalue_as_rvalue (*stack);	\
-    stack--;						\
-    args[0] = gcc_jit_lvalue_as_rvalue (*stack);	\
+#define POP3							\
+  do {								\
+    stack--;							\
+    CHECK_STACK;						\
+    args[2] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    stack--;							\
+    args[1] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
+    stack--;							\
+    args[0] = gcc_jit_lvalue_as_rvalue ((stack)->gcc_lval);	\
   } while (0)
 
 /* Fetch the next byte from the bytecode stream.  */
@@ -146,11 +146,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
   This is done by passing a reference to the first obj involved on the stack.
 */
 
-#define EMIT_CALL_N_REF(name, nargs)			\
-  do {							\
-    DISCARD (nargs);					\
-    res = emit_call_n_ref ((name), (nargs), *stack);	\
-    PUSH_RVAL (res);					\
+#define EMIT_CALL_N_REF(name, nargs)				\
+  do {								\
+    DISCARD (nargs);						\
+    res = emit_call_n_ref ((name), (nargs), (stack)->gcc_lval);	\
+    PUSH_RVAL (res);						\
   } while (0)
 
 #define EMIT_ARITHCOMPARE(comparison)					\
@@ -176,10 +176,15 @@ do {								\
   basic_block_t *(name);			\
   SAFE_ALLOCA_BLOCK ((name), (func), STR(name))
 
+/* Element of the meta stack.  */
+typedef struct {
+  gcc_jit_lvalue *gcc_lval;
+} stack_el_t;
+
 typedef struct {
   gcc_jit_block *gcc_bb;
   /* When non zero indicates a stack pointer restart.  */
-  gcc_jit_lvalue **top;
+  stack_el_t *top;
   bool terminated;
 } basic_block_t;
 
@@ -298,14 +303,14 @@ bcall0 (Lisp_Object f)
    order.  */
 
 INLINE static void
-pop (unsigned n, gcc_jit_lvalue ***stack_ref, gcc_jit_rvalue *args[])
+pop (unsigned n, stack_el_t **stack_ref, gcc_jit_rvalue *args[])
 {
-  gcc_jit_lvalue **stack = *stack_ref;
+  stack_el_t *stack = *stack_ref;
 
   while (n--)
     {
       stack--;
-      args[n] = gcc_jit_lvalue_as_rvalue (*stack);
+      args[n] = gcc_jit_lvalue_as_rvalue (stack->gcc_lval);
     }
 
   *stack_ref = stack;
@@ -2039,9 +2044,9 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 
   /* Meta-stack we use to flat the bytecode written for push and pop
      Emacs VM.*/
-  gcc_jit_lvalue **stack_base, **stack, **stack_over;
-  stack_base = stack =
-    (gcc_jit_lvalue **) xmalloc (stack_depth * sizeof (gcc_jit_lvalue *));
+  stack_el_t *stack_base, *stack, *stack_over;
+  SAFE_NALLOCA (stack_base, sizeof (stack_el_t), stack_depth);
+  stack = stack_base;
   stack_over = stack_base + stack_depth;
 
   if (FIXNUMP (args_template))
@@ -2081,13 +2086,13 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
       "local");
 
   for (int i = 0; i < stack_depth; ++i)
-    stack[i] = gcc_jit_context_new_array_access (
-		 comp.ctxt,
-		 NULL,
-		 gcc_jit_lvalue_as_rvalue (meta_stack_array),
-		 gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-						      comp.int_type,
-						      i));
+    stack[i].gcc_lval = gcc_jit_context_new_array_access (
+		      comp.ctxt,
+		      NULL,
+		      gcc_jit_lvalue_as_rvalue (meta_stack_array),
+		      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+							   comp.int_type,
+							   i));
 
   gcc_jit_block *prologue_bb =
     gcc_jit_function_new_block (comp.func, "prologue");
@@ -2132,15 +2137,16 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  goto stack_ref;
 	CASE (Bstack_ref5);
 	  stack_ref:
-	  PUSH_LVAL (stack_base[(stack - stack_base) - (op - Bstack_ref) - 1]);
+	  PUSH_LVAL (
+	    stack_base[(stack - stack_base) - (op - Bstack_ref) - 1].gcc_lval);
 	  break;
 
 	CASE (Bstack_ref6);
-	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH - 1]);
+	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH - 1].gcc_lval);
 	  break;
 
 	CASE (Bstack_ref7);
-	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH2 - 1]);
+	  PUSH_LVAL (stack_base[(stack - stack_base) - FETCH2 - 1].gcc_lval);
 	  break;
 
 	CASE (Bvarref7);
@@ -2262,7 +2268,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  {
 	    ptrdiff_t nargs = op + 1;
 	    DISCARD (nargs);
-	    res = emit_call_n_ref ("Ffuncall", nargs, *stack);
+	    res = emit_call_n_ref ("Ffuncall", nargs, stack->gcc_lval);
 	    PUSH_RVAL (res);
 	    break;
 	  }
@@ -2365,7 +2371,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 
 	    emit_cond_jump (res, push_h_val_block, &bb_map[pc]);
 
-	    gcc_jit_lvalue **stack_to_restore = stack;
+	    stack_el_t *stack_to_restore = stack;
 	    /* This emit the handler part.  */
 
 	    basic_block_t *bb_orig = comp.block;
@@ -2384,10 +2390,10 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 					     NULL,
 					     comp.handler_next_field)));
 	    /* PUSH (c->val); */
-	    PUSH_LVAL (
-	      gcc_jit_rvalue_dereference_field (gcc_jit_lvalue_as_rvalue (c),
-						NULL,
-						comp.handler_val_field));
+	    PUSH_LVAL (gcc_jit_rvalue_dereference_field (
+			 gcc_jit_lvalue_as_rvalue (c),
+			 NULL,
+			 comp.handler_val_field));
 	    bb_map[handler_pc].top = stack;
 	    comp.block = bb_orig;
 
@@ -2501,7 +2507,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    DECL_AND_SAFE_ALLOCA_BLOCK (sub1_fcall_block, comp.func);
 
 	    gcc_jit_rvalue *tos_as_num =
-	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
+	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS.gcc_lval));
 
 	    emit_cond_jump (
 	      gcc_jit_context_new_binary_op (
@@ -2510,7 +2516,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 		GCC_JIT_BINARY_OP_LOGICAL_AND,
 		comp.bool_type,
 		emit_cast (comp.bool_type,
-			   emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS))),
+			   emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS.gcc_lval))),
 		gcc_jit_context_new_comparison (comp.ctxt,
 						NULL,
 						GCC_JIT_COMPARISON_NE,
@@ -2532,7 +2538,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    comp.block = sub1_inline_block;
 	    gcc_jit_block_add_assignment (sub1_inline_block->gcc_bb,
 					  NULL,
-					  TOS,
+					  TOS.gcc_lval,
 					  emit_make_fixnum (sub1_inline_res));
 
 	    comp.block = sub1_fcall_block;
@@ -2561,7 +2567,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    DECL_AND_SAFE_ALLOCA_BLOCK (add1_fcall_block, comp.func);
 
 	    gcc_jit_rvalue *tos_as_num =
-	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
+	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS.gcc_lval));
 
 	    emit_cond_jump (
 	      gcc_jit_context_new_binary_op (
@@ -2570,7 +2576,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 		GCC_JIT_BINARY_OP_LOGICAL_AND,
 		comp.bool_type,
 		emit_cast (comp.bool_type,
-			   emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS))),
+			   emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS.gcc_lval))),
 		gcc_jit_context_new_comparison (comp.ctxt,
 						NULL,
 						GCC_JIT_COMPARISON_NE,
@@ -2593,7 +2599,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    gcc_jit_block_add_assignment (add1_inline_block->gcc_bb
 					  ,
 					  NULL,
-					  TOS,
+					  TOS.gcc_lval,
 					  emit_make_fixnum (add1_inline_res));
 	    comp.block = add1_fcall_block;
 	    POP1;
@@ -2645,7 +2651,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    DECL_AND_SAFE_ALLOCA_BLOCK (negate_fcall_block, comp.func);
 
 	    gcc_jit_rvalue *tos_as_num =
-	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS));
+	      emit_XFIXNUM (gcc_jit_lvalue_as_rvalue (TOS.gcc_lval));
 
 	    emit_cond_jump (
 	      gcc_jit_context_new_binary_op (
@@ -2654,7 +2660,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 		GCC_JIT_BINARY_OP_LOGICAL_AND,
 		comp.bool_type,
 		emit_cast (comp.bool_type,
-			   emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS))),
+			   emit_FIXNUMP (gcc_jit_lvalue_as_rvalue (TOS.gcc_lval))),
 		gcc_jit_context_new_comparison (comp.ctxt,
 						NULL,
 						GCC_JIT_COMPARISON_NE,
@@ -2675,7 +2681,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	    comp.block = negate_inline_block;
 	    gcc_jit_block_add_assignment (negate_inline_block->gcc_bb,
 					  NULL,
-					  TOS,
+					  TOS.gcc_lval,
 					  emit_make_fixnum (negate_inline_res));
 
 	    comp.block = negate_fcall_block;
@@ -2827,7 +2833,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	CASE (Bgotoifnilelsepop);
 	  op = FETCH2;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ,
-				gcc_jit_lvalue_as_rvalue (TOS),
+				gcc_jit_lvalue_as_rvalue (TOS.gcc_lval),
 				nil,
 				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
@@ -2837,7 +2843,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	CASE (Bgotoifnonnilelsepop);
 	  op = FETCH2;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE,
-				gcc_jit_lvalue_as_rvalue (TOS),
+				gcc_jit_lvalue_as_rvalue (TOS.gcc_lval),
 				nil,
 				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
@@ -2857,7 +2863,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  break;
 
 	CASE (Bdup);
-	  PUSH_LVAL (TOS);
+	  PUSH_LVAL (TOS.gcc_lval);
 	  break;
 
 	CASE (Bsave_excursion);
@@ -3022,7 +3028,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  op = FETCH - 128;
 	  op += pc;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_EQ,
-				gcc_jit_lvalue_as_rvalue (TOS),
+				gcc_jit_lvalue_as_rvalue (TOS.gcc_lval),
 				nil,
 				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
@@ -3033,7 +3039,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  op = FETCH - 128;
 	  op += pc;
 	  emit_comparison_jump (GCC_JIT_COMPARISON_NE,
-				gcc_jit_lvalue_as_rvalue (TOS),
+				gcc_jit_lvalue_as_rvalue (TOS.gcc_lval),
 				nil,
 				&bb_map[op], &bb_map[pc]);
 	  bb_map[op].top = stack;
@@ -3052,7 +3058,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  if (op > 0)
 	    gcc_jit_block_add_assignment (comp.block->gcc_bb,
 					  NULL,
-					  *(stack - op),
+					  (*(stack - op)).gcc_lval,
 					  args[0]);
 	  break;
 
@@ -3061,7 +3067,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  POP1;
 	  gcc_jit_block_add_assignment (comp.block->gcc_bb,
 					NULL,
-					*(stack - op),
+					(*(stack - op)).gcc_lval,
 					args[0]);
 	  break;
 
@@ -3073,7 +3079,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	      POP1;
 	      gcc_jit_block_add_assignment (comp.block->gcc_bb,
 					    NULL,
-					    *(stack - op - 1),
+					    (*(stack - op - 1)).gcc_lval,
 					    args[0]);
 	    }
 
@@ -3122,7 +3128,6 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
   error ("Something went wrong");
 
  exit:
-  xfree (stack_base);
   xfree (bb_map);
   SAFE_FREE ();
   return comp_res;
