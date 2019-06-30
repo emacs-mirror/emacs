@@ -2023,8 +2023,8 @@ release_comp (void)
 }
 
 static comp_f_res_t
-compile_f (const char *f_name, ptrdiff_t bytestr_length,
-	   unsigned char *bytestr_data,
+compile_f (const char *lisp_f_name, const char *c_f_name,
+	   ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	   EMACS_INT stack_depth, Lisp_Object *vectorp,
 	   ptrdiff_t vector_size, Lisp_Object args_template)
 {
@@ -2067,7 +2067,7 @@ compile_f (const char *f_name, ptrdiff_t bytestr_length,
 
 
   /* Current function being compiled.  */
-  comp.func = emit_func_declare (f_name, comp.lisp_obj_type, comp_res.max_args,
+  comp.func = emit_func_declare (c_f_name, comp.lisp_obj_type, comp_res.max_args,
 				 NULL, GCC_JIT_FUNCTION_EXPORTED, false);
 
   gcc_jit_lvalue *meta_stack_array =
@@ -3157,8 +3157,8 @@ emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
   sigset_t oldset;
   block_atimers (&oldset);
 
-  comp_f_res_t comp_res = compile_f (c_f_name, bytestr_length, SDATA (bytestr),
-				     XFIXNAT (maxdepth) + 1,
+  comp_f_res_t comp_res = compile_f (lisp_f_name, c_f_name, bytestr_length,
+				     SDATA (bytestr), XFIXNAT (maxdepth) + 1,
 				     vectorp, ASIZE (vector),
 				     AREF (func, COMPILED_ARGLIST));
 
