@@ -306,7 +306,7 @@
                    (error err))
                  '(wrong-type-argument consp 3))))
 
-(defun comp-bubble-sort ()
+(ert-deftest comp-tests-bubble-sort ()
   "Run bubble sort."
   (defun comp-bubble-sort-f (list)
     (let ((i (length list)))
