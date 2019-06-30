@@ -657,7 +657,7 @@ emit_VECTORLIKEP (gcc_jit_rvalue *obj)
 static gcc_jit_rvalue *
 emit_CONSP (gcc_jit_rvalue *obj)
 {
- emit_comment ("CONSP");
+  emit_comment ("CONSP");
 
   return emit_TAGGEDP (obj, Lisp_Cons);
 }
@@ -928,11 +928,14 @@ emit_CHECK_CONS (gcc_jit_rvalue *x)
       emit_lisp_obj_from_ptr (Qconsp),
       x };
 
-  gcc_jit_context_new_call (comp.ctxt,
-			    NULL,
-			    comp.check_type,
-			    3,
-			    args);
+  gcc_jit_block_add_eval (
+    comp.block->gcc_bb,
+    NULL,
+    gcc_jit_context_new_call (comp.ctxt,
+			      NULL,
+			      comp.check_type,
+			      3,
+			      args));
 }
 
 static gcc_jit_rvalue *
@@ -1497,11 +1500,28 @@ define_setcar (void)
   comp.block = init_block;
   comp.func = comp.setcar;
 
+  /* CHECK_CONS (cell); */
   emit_CHECK_CONS (gcc_jit_param_as_rvalue (cell));
 
+  /* CHECK_IMPURE (cell, XCONS (cell)); */
+  gcc_jit_rvalue *args[] =
+    { gcc_jit_param_as_rvalue (cell),
+      emit_XCONS (gcc_jit_param_as_rvalue (cell)) };
+
+  gcc_jit_block_add_eval (
+    init_block->gcc_bb,
+    NULL,
+    gcc_jit_context_new_call (comp.ctxt,
+			      NULL,
+			      comp.check_impure,
+			      2,
+			      args));
+
+  /* XSETCAR (cell, newcar); */
   emit_XSETCAR (gcc_jit_param_as_rvalue (cell),
 	        gcc_jit_param_as_rvalue (new_car));
 
+  /* return newcar; */
   gcc_jit_block_end_with_return (init_block->gcc_bb,
 				 NULL,
 				 gcc_jit_param_as_rvalue (new_car));
@@ -1600,9 +1620,7 @@ define_CHECK_IMPURE (void)
     comp.block = init_block;
     comp.func = comp.check_impure;
 
-    emit_cond_jump (
-      emit_cast (comp.bool_type,
-		 emit_PURE_P (gcc_jit_param_as_rvalue (param[0]))), /* FIXME */
+    emit_cond_jump (emit_PURE_P (gcc_jit_param_as_rvalue (param[0])), /* FIXME */
       err_block,
       ok_block);
     gcc_jit_block_end_with_void_return (ok_block->gcc_bb, NULL);

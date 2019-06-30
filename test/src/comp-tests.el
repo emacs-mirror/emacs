@@ -284,7 +284,12 @@
   (native-compile #'comp-tests-setcdr-f)
 
   (should (equal (comp-tests-setcar-f '(10 . 10) 3) '(3 . 10)))
-  (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3))))
+  (should (equal (comp-tests-setcdr-f '(10 . 10) 3) '(10 . 3)))
+  (should (equal (condition-case
+                     err
+                     (comp-tests-setcar-f 3 10)
+                   (error err))
+                 '(wrong-type-argument consp 3))))
 
 (defun comp-bubble-sort ()
   "Run bubble sort."
