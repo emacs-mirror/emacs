@@ -37,6 +37,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define MAX_FUN_NAME 256
 
+/* Max number of entries of the meta-stack that can get poped.  */
+
+#define MAX_POP 64
+
 #define DISASS_FILE_NAME "emacs-asm.s"
 
 #define CHECK_STACK					\
@@ -303,6 +307,7 @@ bcall0 (Lisp_Object f)
 INLINE static void
 pop (unsigned n, stack_el_t **stack_ref, gcc_jit_rvalue *args[])
 {
+  eassert (n <= MAX_POP); /* FIXME?  */
   stack_el_t *stack = *stack_ref;
 
   while (n--)
@@ -2051,7 +2056,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
   gcc_jit_rvalue *res;
   comp_f_res_t comp_res = { NULL, 0, 0 };
   ptrdiff_t pc = 0;
-  gcc_jit_rvalue *args[4];
+  gcc_jit_rvalue *args[MAX_POP];
   unsigned op;
   unsigned pushhandler_n  = 0;
 
@@ -3297,9 +3302,9 @@ DEFUN ("native-compile", Fnative_compile, Snative_compile,
     opt_level = XFIXNUM (speed);
 
   emacs_native_compile (lisp_f_name, c_f_name, func, opt_level,
-			disassemble != Qnil);
+			!NILP (disassemble));
 
-  if (disassemble)
+  if (!NILP (disassemble))
     {
       FILE *fd;
       Lisp_Object str;
