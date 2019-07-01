@@ -2053,14 +2053,15 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	   EMACS_INT stack_depth, Lisp_Object *vectorp,
 	   ptrdiff_t vector_size, Lisp_Object args_template)
 {
+  USE_SAFE_ALLOCA;
   gcc_jit_rvalue *res;
   comp_f_res_t comp_res = { NULL, 0, 0 };
   ptrdiff_t pc = 0;
   gcc_jit_rvalue *args[MAX_POP];
   unsigned op;
-  unsigned pushhandler_n  = 0;
-
-  USE_SAFE_ALLOCA;
+  unsigned pushhandler_n = 0;
+  comp_res.min_args = 0;
+  comp_res.max_args = MANY;
 
   /* Meta-stack we use to flat the bytecode written for push and pop
      Emacs VM.*/
@@ -2069,6 +2070,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
   stack = stack_base;
   stack_over = stack_base + stack_depth;
 
+  bool parse_args = true;
   if (FIXNUMP (args_template))
     {
       ptrdiff_t at = XFIXNUM (args_template);
@@ -2081,19 +2083,16 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
       eassert (!rest);
 
       if (!rest && nonrest < SUBR_MAX_ARGS)
-	comp_res.max_args = nonrest;
+	{
+	  comp_res.max_args = nonrest;
+	  parse_args = false;
+	}
     }
-  else if (CONSP (args_template))
-    /* FIXME */
-    comp_res.min_args = comp_res.max_args = XFIXNUM (Flength (args_template));
 
-  else
-    eassert (SYMBOLP (args_template) && args_template == Qnil);
-
-
-  /* Current function being compiled.  */
-  comp.func = emit_func_declare (c_f_name, comp.lisp_obj_type, comp_res.max_args,
-				 NULL, GCC_JIT_FUNCTION_EXPORTED, false);
+  eassert (!parse_args);
+  comp.func =
+    emit_func_declare (c_f_name, comp.lisp_obj_type, comp_res.max_args, NULL,
+		       GCC_JIT_FUNCTION_EXPORTED, false);
 
   gcc_jit_lvalue *meta_stack_array =
     gcc_jit_function_new_local (
