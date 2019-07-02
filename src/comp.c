@@ -394,53 +394,23 @@ emit_func_declare (const char *f_name, gcc_jit_type *ret_type,
 		   unsigned nargs, gcc_jit_rvalue **args,
 		   enum	 gcc_jit_function_kind kind, bool reusable)
 {
-  gcc_jit_param *param[4];
-  gcc_jit_type *type[4];
+  gcc_jit_param *param[nargs];
+  gcc_jit_type *type[nargs];
 
   /* If args are passed types are extracted from that otherwise assume params */
   /* are all lisp objs.	 */
   if (args)
-    for (int i = 0; i < nargs; i++)
+    for (unsigned i = 0; i < nargs; i++)
       type[i] = gcc_jit_rvalue_get_type (args[i]);
   else
-    for (int i = 0; i < nargs; i++)
+    for (unsigned i = 0; i < nargs; i++)
       type[i] = comp.lisp_obj_type;
 
-  switch (nargs) {
-  case 4:
-    param[3] = gcc_jit_context_new_param(comp.ctxt,
+  for (int i = nargs - 1; i >= 0; i--)
+    param[i] = gcc_jit_context_new_param(comp.ctxt,
 					 NULL,
-					 type[3],
-					 "c");
-    /* Fall through */
-    FALLTHROUGH;
-  case 3:
-    param[2] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[2],
-					 "c");
-    /* Fall through */
-    FALLTHROUGH;
-  case 2:
-    param[1] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[1],
-					 "b");
-    /* Fall through */
-    FALLTHROUGH;
-  case 1:
-    param[0] = gcc_jit_context_new_param(comp.ctxt,
-					 NULL,
-					 type[0],
-					 "a");
-    /* Fall through */
-    FALLTHROUGH;
-  case 0:
-    break;
-  default:
-    /* Argnum not supported  */
-    eassert (0);
-  }
+					 type[i],
+					 format_string ("par_%d", i));
 
   gcc_jit_function *func =
     gcc_jit_context_new_function(comp.ctxt, NULL,
@@ -569,8 +539,8 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 
 /*
    Emit the equivalent of
-   ptr[i]
-   ptr + size_of_ptr_ref * i
+
+   (typeof_ptr) ((uintptr) ptr + size_of_ptr_ref * i)
 */
 
 static gcc_jit_rvalue *
@@ -2144,8 +2114,6 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 
       comp_res.min_args = mandatory;
 
-      eassert (!rest);
-
       if (!rest && nonrest < SUBR_MAX_ARGS)
 	{
 	  comp_res.max_args = nonrest;
@@ -2179,7 +2147,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 				      2,
 				      param,
 				      0);
-	}
+    }
 
 
   gcc_jit_lvalue *meta_stack_array =
@@ -2202,6 +2170,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 							       i));
 
   DECL_AND_SAFE_ALLOCA_BLOCK(prologue, comp.func);
+  comp.block = prologue;
 
   basic_block_t *bb_map = compute_blocks (bytestr_length, bytestr_data);
 
@@ -2209,8 +2178,6 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
     {
       for (ptrdiff_t i = 0; i < comp_res.max_args; ++i)
 	PUSH_PARAM (gcc_jit_function_get_param (comp.func, i));
-
-      gcc_jit_block_end_with_jump (prologue->gcc_bb, NULL, bb_map[0].gcc_bb);
     }
   else
     {
@@ -2218,92 +2185,58 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	 nargs will be known at runtime therfore we emit:
 
 	 prologue:
-	   i = 0;
-	 push_nargs_check:
-	   if (i < nargs) goto push_args; else goto bb1;
-	 push_nargs:
-	   local[i] = *(args + sizeof (Lisp_Object) * i);
-	   i = i + 1;
-	   goto push_nargs_check;
+	   local[0] = *args;
+	   ++args;
+	   .
+	   .
+	   .
+	   local[min_args - 1] = *args;
+	   ++args;
+	   local[min_args] = list (nargs - min_args, args);
 	 bb_1:
 	   .
 	   .
 	   .
       */
-      DECL_AND_SAFE_ALLOCA_BLOCK(push_nargs_check, comp.func);
-      DECL_AND_SAFE_ALLOCA_BLOCK(push_nargs, comp.func);
+      gcc_jit_lvalue *nargs =
+	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 0));
+      gcc_jit_lvalue *args =
+	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 1));
+      gcc_jit_rvalue *min_args =
+	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					     comp.ptrdiff_type,
+					     comp_res.min_args);
 
-      gcc_jit_rvalue *nargs =
-	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func, 0));
-      gcc_jit_rvalue *args =
-	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func, 1));
-      gcc_jit_lvalue *i = gcc_jit_function_new_local (comp.func,
-						      NULL,
-						      comp.ptrdiff_type,
-						      "i");
-      gcc_jit_block_add_assignment (
-	prologue->gcc_bb,
-	NULL,
-	i,
-	gcc_jit_context_new_rvalue_from_int(comp.ctxt,
-					    comp.ptrdiff_type,
-					    0));
+      for (ptrdiff_t i = 0; i < comp_res.min_args; ++i)
+	{
+	  PUSH_LVAL (gcc_jit_rvalue_dereference (
+		       gcc_jit_lvalue_as_rvalue (args),
+		       NULL));
+	  gcc_jit_block_add_assignment (prologue->gcc_bb,
+					NULL,
+					args,
+					emit_ptr_arithmetic (
+					  gcc_jit_lvalue_as_rvalue (args),
+					  comp.lisp_obj_ptr_type,
+					  sizeof (Lisp_Object),
+					  comp.one));
+	}
 
-      gcc_jit_block_end_with_jump (prologue->gcc_bb,
-				   NULL,
-				   push_nargs_check->gcc_bb);
-      emit_comparison_jump (GCC_JIT_COMPARISON_LE,
-			    gcc_jit_lvalue_as_rvalue (i),
-			    gcc_jit_param_as_rvalue (
-			      gcc_jit_function_get_param (comp.func, 0)), /* nargs */
-			    push_nargs, &bb_map[0]);
-      gcc_jit_lvalue *arg =
-	gcc_jit_rvalue_dereference (
-	  gcc_jit_context_new_binary_op (
-	    comp.ctxt,
-	    NULL,
-	    GCC_JIT_BINARY_OP_PLUS,
-	    comp.ptrdiff_type,
-	    gcc_jit_param_as_rvalue (
-	      gcc_jit_function_get_param (comp.func, 1)), /* args */
-	    gcc_jit_context_new_binary_op (
-	      comp.ctxt,
-	      NULL,
-	      GCC_JIT_BINARY_OP_MULT,
-	      comp.ptrdiff_type,
-	      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-						   comp.ptrdiff_type,
-						   sizeof (Lisp_Object)),
-	      gcc_jit_lvalue_as_rvalue (i))),
-	  NULL);
+      /*
+	rest arguments
+      */
+      gcc_jit_rvalue *list_args[] =
+	{ gcc_jit_context_new_binary_op (comp.ctxt,
+					 NULL,
+					 GCC_JIT_BINARY_OP_MINUS,
+					 comp.ptrdiff_type,
+					 gcc_jit_lvalue_as_rvalue (nargs),
+					 min_args),
+	  gcc_jit_lvalue_as_rvalue (args) };
 
-      /* FIXME check side stack values */
-      gcc_jit_block_add_assignment (
-	push_nargs->gcc_bb,
-	NULL,
-	gcc_jit_context_new_array_access (
-	  comp.ctxt,
-	  NULL,
-	  gcc_jit_lvalue_as_rvalue (meta_stack_array),
-	  gcc_jit_lvalue_as_rvalue (i)),
-	gcc_jit_lvalue_as_rvalue (arg));
-
-      gcc_jit_block_add_assignment (
-	push_nargs->gcc_bb,
-	NULL,
-	i,
-	gcc_jit_context_new_binary_op (comp.ctxt,
-				       NULL,
-				       GCC_JIT_BINARY_OP_PLUS,
-				       comp.ptrdiff_type,
-				       gcc_jit_lvalue_as_rvalue (i),
-				       comp.one));
-
-      gcc_jit_block_end_with_jump (push_nargs->gcc_bb,
-				   NULL,
-				   push_nargs_check->gcc_bb);
+      PUSH_RVAL (emit_call ("Flist", comp.lisp_obj_type, 2, list_args));
     }
-
+  gcc_jit_block_end_with_jump (prologue->gcc_bb, NULL, bb_map[0].gcc_bb);
   comp.block = &bb_map[0];
   gcc_jit_rvalue *nil = emit_lisp_obj_from_ptr (Qnil);
 

@@ -164,6 +164,24 @@
 
   (should (equal (comp-tests-ffuncall-caller-f) '(1 2 3)))
 
+  (defun comp-tests-ffuncall-callee-optional-f (a b &optional c d)
+    (list a b c d))
+  (byte-compile #'comp-tests-ffuncall-callee-optional-f)
+  (native-compile #'comp-tests-ffuncall-callee-optional-f)
+
+  (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3 4) '(1 2 3 4)))
+  (should (equal (comp-tests-ffuncall-callee-optional-f 1 2 3) '(1 2 3 nil)))
+  (should (equal (comp-tests-ffuncall-callee-optional-f 1 2) '(1 2 nil nil)))
+
+  (defun comp-tests-ffuncall-callee-rest-f (a b &rest c)
+    (list a b c))
+  (byte-compile #'comp-tests-ffuncall-callee-rest-f)
+  (native-compile #'comp-tests-ffuncall-callee-rest-f)
+
+  (should (equal (comp-tests-ffuncall-callee-rest-f 1 2) '(1 2 nil)))
+  (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3) '(1 2 (3))))
+  (should (equal (comp-tests-ffuncall-callee-rest-f 1 2 3 4) '(1 2 (3 4))))
+
   (defun comp-tests-ffuncall-native-f ()
     "Call a primitive with no dedicate op."
     (make-vector 1 nil))
