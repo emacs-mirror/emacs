@@ -246,10 +246,13 @@ typedef struct {
   gcc_jit_field *cast_union_as_u;
   gcc_jit_field *cast_union_as_i;
   gcc_jit_field *cast_union_as_b;
+  gcc_jit_field *cast_union_as_uintptr;
+  gcc_jit_field *cast_union_as_ptrdiff;
   gcc_jit_field *cast_union_as_c_p;
   gcc_jit_field *cast_union_as_v_p;
   gcc_jit_field *cast_union_as_lisp_cons_ptr;
   gcc_jit_field *cast_union_as_lisp_obj;
+  gcc_jit_field *cast_union_as_lisp_obj_ptr;
   gcc_jit_function *func; /* Current function being compiled  */
   gcc_jit_rvalue *most_positive_fixnum;
   gcc_jit_rvalue *most_negative_fixnum;
@@ -340,12 +343,18 @@ type_to_cast_field (gcc_jit_type *type)
     field = comp.cast_union_as_b;
   else if (type == comp.void_ptr_type)
     field = comp.cast_union_as_v_p;
+  else if (type == comp.uintptr_type)
+    field = comp.cast_union_as_uintptr;
+  else if (type == comp.ptrdiff_type)
+    field = comp.cast_union_as_ptrdiff;
   else if (type == comp.char_ptr_type)
     field = comp.cast_union_as_c_p;
   else if (type == comp.lisp_cons_ptr_type)
     field = comp.cast_union_as_lisp_cons_ptr;
   else if (type == comp.lisp_obj_type)
     field = comp.cast_union_as_lisp_obj;
+  else if (type == comp.lisp_obj_ptr_type)
+    field = comp.cast_union_as_lisp_obj_ptr;
   else
     error ("unsupported cast\n");
 
@@ -366,8 +375,8 @@ emit_comment (const char *str)
 /* reset annotation fields.   */
 
 static void
-emit_assign_to_stack_slot(basic_block_t *block, stack_el_t *slot,
-			  gcc_jit_rvalue *val)
+emit_assign_to_stack_slot (basic_block_t *block, stack_el_t *slot,
+			   gcc_jit_rvalue *val)
 {
   gcc_jit_block_add_assignment (block->gcc_bb,
 				NULL,
@@ -1366,6 +1375,16 @@ define_cast_union (void)
 			       NULL,
 			       comp.bool_type,
 			       "b");
+  comp.cast_union_as_uintptr =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.uintptr_type,
+			       "uintptr");
+  comp.cast_union_as_ptrdiff =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.ptrdiff_type,
+			       "ptrdiff");
   comp.cast_union_as_c_p =
     gcc_jit_context_new_field (comp.ctxt,
 			       NULL,
@@ -1386,6 +1405,12 @@ define_cast_union (void)
 			       NULL,
 			       comp.lisp_obj_type,
 			       "lisp_obj");
+  comp.cast_union_as_lisp_obj_ptr =
+    gcc_jit_context_new_field (comp.ctxt,
+			       NULL,
+			       comp.lisp_obj_ptr_type,
+			       "lisp_obj_ptr");
+
 
   gcc_jit_field *cast_union_fields[] =
     { comp.cast_union_as_ll,
@@ -1395,10 +1420,13 @@ define_cast_union (void)
       comp.cast_union_as_u,
       comp.cast_union_as_i,
       comp.cast_union_as_b,
+      comp.cast_union_as_uintptr,
+      comp.cast_union_as_ptrdiff,
       comp.cast_union_as_c_p,
       comp.cast_union_as_v_p,
       comp.cast_union_as_lisp_cons_ptr,
-      comp.cast_union_as_lisp_obj};
+      comp.cast_union_as_lisp_obj,
+      comp.cast_union_as_lisp_obj_ptr };
   comp.cast_union_type =
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
@@ -2170,6 +2198,10 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
       DECL_AND_SAFE_ALLOCA_BLOCK(push_nargs_check, comp.func);
       DECL_AND_SAFE_ALLOCA_BLOCK(push_nargs, comp.func);
 
+      gcc_jit_rvalue *nargs =
+	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func, 0));
+      gcc_jit_rvalue *args =
+	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func, 1));
       gcc_jit_lvalue *i = gcc_jit_function_new_local (comp.func,
 						      NULL,
 						      comp.ptrdiff_type,
