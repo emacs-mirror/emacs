@@ -1024,7 +1024,7 @@ If optional MARKER, return a marker instead"
             (col (plist-get pos-plist :character)))
         (unless (wholenump col)
           (eglot--warn
-           :eglot "Caution: LSP server sent invalid character position %s. Using 0 instead."
+           "Caution: LSP server sent invalid character position %s. Using 0 instead."
            col)
           (setq col 0))
         (funcall eglot-move-to-column-function col)))
