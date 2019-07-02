@@ -567,6 +567,41 @@ emit_cast (gcc_jit_type *new_type, gcc_jit_rvalue *obj)
 				       dest_field);
 }
 
+/*
+   Emit the equivalent of
+   ptr[i]
+   ptr + size_of_ptr_ref * i
+*/
+
+static gcc_jit_rvalue *
+emit_ptr_arithmetic (gcc_jit_rvalue *ptr, gcc_jit_type *ptr_type,
+		     int size_of_ptr_ref, gcc_jit_rvalue *i)
+{
+  emit_comment ("ptr_arithmetic");
+
+  gcc_jit_rvalue *offset =
+    gcc_jit_context_new_binary_op (
+      comp.ctxt,
+      NULL,
+      GCC_JIT_BINARY_OP_MULT,
+      comp.uintptr_type,
+      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+					   comp.uintptr_type,
+					   size_of_ptr_ref),
+      emit_cast (comp.uintptr_type, i));
+
+  return
+    emit_cast (
+      ptr_type,
+      gcc_jit_context_new_binary_op (
+        comp.ctxt,
+	NULL,
+	GCC_JIT_BINARY_OP_PLUS,
+	comp.uintptr_type,
+	emit_cast (comp.uintptr_type, ptr),
+	offset));
+}
+
 INLINE static gcc_jit_rvalue *
 emit_XLI (gcc_jit_rvalue *obj)
 {
