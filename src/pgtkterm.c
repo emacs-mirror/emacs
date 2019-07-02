@@ -462,12 +462,23 @@ pgtk_iconify_frame (struct frame *f)
   SET_FRAME_ICONIFIED (f, true);
   SET_FRAME_VISIBLE (f, 0);
 
-#if 0
-  XFlush (FRAME_X_DISPLAY (f));
-#else
-  gdk_flush();
-#endif
   unblock_input ();
+}
+
+static gboolean
+pgtk_make_frame_visible_wait_for_map_event_cb (GtkWidget *widget, GdkEventAny *event, gpointer user_data)
+{
+  int *foundptr = user_data;
+  *foundptr = 1;
+  return FALSE;
+}
+
+static gboolean
+pgtk_make_frame_visible_wait_for_map_event_timeout (gpointer user_data)
+{
+  int *timedoutptr = user_data;
+  *timedoutptr = 1;
+  return FALSE;
 }
 
 void
@@ -478,54 +489,26 @@ pgtk_make_frame_visible (struct frame *f)
 {
   PGTK_TRACE("pgtk_make_frame_visible");
 
-  GtkWidget *win = FRAME_OUTPUT_DATA(f)->widget;
+  GtkWidget *win = FRAME_GTK_OUTER_WIDGET (f);
 
-  gtk_widget_show(win);
-
-#if 0
-  NSTRACE ("x_make_frame_visible");
-  /* XXX: at some points in past this was not needed, as the only place that
-     called this (frame.c:Fraise_frame ()) also called raise_lower;
-     if this ends up the case again, comment this out again. */
-  if (!FRAME_VISIBLE_P (f))
+  if (! FRAME_VISIBLE_P (f))
     {
-      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
-      NSWindow *window = [view window];
+      gtk_widget_show(win);
+      gtk_window_deiconify(GTK_WINDOW(win));
 
-      SET_FRAME_VISIBLE (f, 1);
-      ns_raise_frame (f, ! FRAME_NO_FOCUS_ON_MAP (f));
-
-      /* Making a new frame from a fullscreen frame will make the new frame
-         fullscreen also.  So skip handleFS as this will print an error.  */
-      if ([view fsIsNative] && f->want_fullscreen == FULLSCREEN_BOTH
-          && [view isFullscreen])
-        return;
-
-      if (f->want_fullscreen != FULLSCREEN_NONE)
-        {
-          block_input ();
-          [view handleFS];
-          unblock_input ();
-        }
-
-      /* Making a frame invisible seems to break the parent->child
-         relationship, so reinstate it. */
-      if ([window parentWindow] == nil && FRAME_PARENT_FRAME (f) != NULL)
-        {
-          NSWindow *parent = [FRAME_NS_VIEW (FRAME_PARENT_FRAME (f)) window];
-
-          block_input ();
-          [parent addChildWindow: window
-                         ordered: NSWindowAbove];
-          unblock_input ();
-
-          /* If the parent frame moved while the child frame was
-             invisible, the child frame's position won't have been
-             updated.  Make sure it's in the right place now. */
-          x_set_offset(f, f->left_pos, f->top_pos, 0);
-        }
+      if (FLOATP (Vpgtk_wait_for_event_timeout)) {
+	guint msec = (guint) (XFLOAT_DATA (Vpgtk_wait_for_event_timeout) * 1000);
+	int found = 0;
+	int timed_out = 0;
+	gulong id = g_signal_connect(win, "map-event", G_CALLBACK(pgtk_make_frame_visible_wait_for_map_event_cb), &found);
+	guint src = g_timeout_add(msec, pgtk_make_frame_visible_wait_for_map_event_timeout, &timed_out);
+	while (!found && !timed_out)
+	  gtk_main_iteration();
+	g_signal_handler_disconnect (win, id);
+	if (!timed_out)
+	  g_source_remove(src);
+      }
     }
-#endif
 }
 
 
@@ -541,15 +524,17 @@ pgtk_make_frame_invisible (struct frame *f)
 
   gtk_widget_hide(win);
 
-#if 0
-  NSView *view;
-  NSTRACE ("x_make_frame_invisible");
-  check_window_system (f);
-  view = FRAME_NS_VIEW (f);
-  [[view window] orderOut: NSApp];
   SET_FRAME_VISIBLE (f, 0);
-  SET_FRAME_ICONIFIED (f, 0);
-#endif
+  SET_FRAME_ICONIFIED (f, false);
+}
+
+static void
+pgtk_make_frame_visible_invisible (struct frame *f, bool visible)
+{
+  if (visible)
+    pgtk_make_frame_visible (f);
+  else
+    pgtk_make_frame_invisible (f);
 }
 
 static Lisp_Object
@@ -3296,9 +3281,6 @@ pgtk_hide_hourglass(struct frame *f)
 static void
 pgtk_flush_display (struct frame *f)
 {
-  block_input ();
-  gdk_flush();
-  unblock_input ();
 }
 
 extern frame_parm_handler pgtk_frame_parm_handlers[];
@@ -4348,6 +4330,7 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->mouse_position_hook = pgtk_mouse_position;
   // terminal->frame_rehighlight_hook = pgtk_frame_rehighlight;
   // terminal->frame_raise_lower_hook = pgtk_frame_raise_lower;
+  terminal->frame_visible_invisible_hook = pgtk_make_frame_visible_invisible;
   terminal->fullscreen_hook = pgtk_fullscreen_hook;
   terminal->menu_show_hook = pgtk_menu_show;
   terminal->activate_menubar_hook = pgtk_activate_menubar;
@@ -5014,7 +4997,7 @@ static gboolean map_event(GtkWidget *widget, GdkEvent *event, gpointer *user_dat
 
   if (inev.ie.kind != NO_EVENT)
     evq_enqueue(&inev);
-  return TRUE;
+  return FALSE;
 }
 
 static gboolean window_state_event(GtkWidget *widget, GdkEvent *event, gpointer *user_data)
