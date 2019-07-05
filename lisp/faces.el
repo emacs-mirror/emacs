@@ -1151,13 +1151,14 @@ an integer value."
            (:height
             'integerp)
            (:stipple
-            (and (memq (window-system frame) '(x ns)) ; No stipple on w32
-                 (mapcar #'list
+            (and (memq (window-system frame) '(x ns pgtk)) ; No stipple on w32
+                 (mapcar (lambda (f)
+                           (cons (file-name-base f) f))
                          (apply #'nconc
                                 (mapcar (lambda (dir)
                                           (and (file-readable-p dir)
                                                (file-directory-p dir)
-                                               (directory-files dir)))
+                                               (directory-files dir 'full)))
                                         x-bitmap-file-path)))))
            (:inherit
             (cons '("none" . nil)

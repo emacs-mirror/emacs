@@ -984,6 +984,66 @@ x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
 }
 
 
+static cairo_surface_t *
+create_background_surface_by_face (struct frame *f, struct face *face, int x, int y, int width, int height)
+{
+  cairo_surface_t *surface = cairo_surface_create_similar (FRAME_CR_SURFACE (f),
+							  CAIRO_CONTENT_COLOR,
+							  width,
+							  height);
+
+  {
+    cairo_t *cr = cairo_create (surface);
+
+    double r = ((face->background >> 16) & 0xff) / 255.0;
+    double g = ((face->background >>  8) & 0xff) / 255.0;
+    double b = ((face->background >>  0) & 0xff) / 255.0;
+    cairo_set_source_rgb (cr, r, g, b);
+    cairo_paint (cr);
+
+    cairo_destroy (cr);
+  }
+
+  if (face->stipple != 0) {
+    GdkPixbuf *pixbuf = FRAME_DISPLAY_INFO (f)->bitmaps[face->stipple - 1].img;
+    GdkPixbuf *pb = gdk_pixbuf_add_alpha (pixbuf, TRUE, 255, 255, 255);
+    cairo_surface_t *mask = cairo_surface_create_similar_image (FRAME_CR_SURFACE (f),
+								CAIRO_FORMAT_A1,
+								width,
+								height);
+
+    {
+      cairo_t *cr = cairo_create (mask);
+      gdk_cairo_set_source_pixbuf (cr, pb, 0, 0);
+      cairo_pattern_set_extend (cairo_get_source (cr), CAIRO_EXTEND_REPEAT);
+      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+      cairo_paint (cr);
+      cairo_destroy (cr);
+    }
+
+    {
+      cairo_t *cr = cairo_create (surface);
+      double r = ((face->foreground >> 16) & 0xff) / 255.0;
+      double g = ((face->foreground >>  8) & 0xff) / 255.0;
+      double b = ((face->foreground >>  0) & 0xff) / 255.0;
+      cairo_set_source_rgb (cr, r, g, b);
+      cairo_mask_surface (cr, mask, 0, 0);
+      cairo_destroy (cr);
+    }
+
+    cairo_surface_destroy (mask);
+    g_object_unref (pb);
+  }
+
+  return surface;
+}
+
+static cairo_surface_t *
+create_background_surface (struct glyph_string *s, int x, int y, int width, int height)
+{
+  return create_background_surface_by_face (s->f, s->face, x, y, width, height);
+}
+
 /* Draw the background of glyph_string S.  If S->background_filled_p
    is non-zero don't draw it.  FORCE_P non-zero means draw the
    background even if it wouldn't be drawn normally.  This is used
@@ -1007,20 +1067,28 @@ x_draw_glyph_string_background (struct glyph_string *s, bool force_p)
       PGTK_TRACE("x_draw_glyph_string_background: 2. %d.", s->font_not_found_p);
       PGTK_TRACE("x_draw_glyph_string_background: 2. %d.", s->extends_to_end_of_line_p);
       PGTK_TRACE("x_draw_glyph_string_background: 2. %d.", force_p);
-#if 0
+
       if (s->stippled_p)
 	{
 	  /* Fill background with a stipple pattern.  */
-	  XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-	  x_fill_rectangle (s->f, s->gc, s->x,
-			  s->y + box_line_width,
-			  s->background_width,
-			  s->height - 2 * box_line_width);
-	  XSetFillStyle (s->display, s->gc, FillSolid);
+
+	  cairo_surface_t *bg = create_background_surface (s,
+							   s->x, s->y + box_line_width,
+							   s->background_width, s->height - 2 * box_line_width);
+
+	  cairo_t *cr = pgtk_begin_cr_clip (s->f);
+	  cairo_set_source_surface (cr, bg, s->x, s->y + box_line_width);
+	  cairo_rectangle (cr,
+			   s->x, s->y + box_line_width,
+			   s->background_width, s->height - 2 * box_line_width);
+	  cairo_fill (cr);
+	  pgtk_end_cr_clip (s->f);
+
+	  cairo_surface_destroy (bg);
+
 	  s->background_filled_p = true;
 	}
       else
-#endif
 	if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       /* When xdisp.c ignores FONT_HEIGHT, we cannot trust
 		  font dimensions, since the actual glyphs might be
@@ -1821,16 +1889,21 @@ x_draw_image_relief (struct glyph_string *s)
 static void
 x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
-#if 0
   if (s->stippled_p)
     {
       /* Fill background with a stipple pattern.  */
-      XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-      x_fill_rectangle (s->f, s->gc, x, y, w, h);
-      XSetFillStyle (s->display, s->gc, FillSolid);
+
+      cairo_surface_t *bg = create_background_surface (s, x, y, w, h);
+
+      cairo_t *cr = pgtk_begin_cr_clip (s->f);
+      cairo_set_source_surface (cr, bg, x, y);
+      cairo_rectangle (cr, x, y, w, h);
+      cairo_fill (cr);
+      pgtk_end_cr_clip (s->f);
+
+      cairo_surface_destroy (bg);
     }
   else
-#endif
     x_clear_glyph_string_rect (s, x, y, w, h);
 }
 
@@ -1881,7 +1954,6 @@ x_draw_image_glyph_string (struct glyph_string *s)
   int box_line_hwidth = eabs (s->face->box_line_width);
   int box_line_vwidth = max (s->face->box_line_width, 0);
   int height;
-  cairo_surface_t *surface = NULL;
 
   height = s->height;
   if (s->slice.y == 0)
@@ -1903,43 +1975,15 @@ x_draw_image_glyph_string (struct glyph_string *s)
     {
       if (s->img->mask)
 	{
-	  /* Create a pixmap as large as the glyph string.  Fill it
-	     with the background color.  Copy the image to it, using
-	     its mask.  Copy the temporary pixmap to the display.  */
+	  cairo_surface_t *bg = create_background_surface (s, s->x, s->y, s->background_width, s->height);
 
-	  /* Create a pixmap as large as the glyph string.  */
-	  surface = cairo_surface_create_similar(FRAME_CR_SURFACE(s->f), CAIRO_CONTENT_COLOR_ALPHA,
-						 s->background_width,
-						 s->height);
+	  cairo_t *cr = pgtk_begin_cr_clip (s->f);
+	  cairo_set_source_surface (cr, bg, s->x, s->y);
+	  cairo_rectangle (cr, s->x, s->y, s->background_width, s->height);
+	  cairo_fill (cr);
+	  pgtk_end_cr_clip (s->f);
 
-	  /* Don't clip in the following because we're working on the
-	     pixmap.  */
-	  // XSetClipMask (s->display, s->gc, None);
-
-	  /* Fill the pixmap with the background color/stipple.  */
-#if 0
-	  if (s->stippled_p)
-	    {
-	      /* Fill background with a stipple pattern.  */
-	      XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-	      XSetTSOrigin (s->display, s->gc, - s->x, - s->y);
-	      XFillRectangle (s->display, pixmap, s->gc,
-			      0, 0, s->background_width, s->height);
-	      XSetFillStyle (s->display, s->gc, FillSolid);
-	      XSetTSOrigin (s->display, s->gc, 0, 0);
-	    }
-	  else
-#endif
-	    {
-	      cairo_t *cr = cairo_create(surface);
-	      int red = (s->xgcv.background >> 16) & 0xff;
-	      int green = (s->xgcv.background >> 8) & 0xff;
-	      int blue = (s->xgcv.background >> 0) & 0xff;
-	      cairo_set_source_rgb (cr, red / 255.0, green / 255.0, blue / 255.0);
-	      cairo_rectangle(cr, 0, 0, s->background_width, s->height);
-	      cairo_fill(cr);
-	      cairo_destroy(cr);
-	    }
+	  cairo_surface_destroy (bg);
 	}
       else
 	{
@@ -1957,7 +2001,15 @@ x_draw_image_glyph_string (struct glyph_string *s)
 	  if (s->slice.y == 0)
 	    y += box_line_vwidth;
 
-	  x_draw_glyph_string_bg_rect (s, x, y, width, height);
+	  cairo_surface_t *bg = create_background_surface (s, x, y, width, height);
+
+	  cairo_t *cr = pgtk_begin_cr_clip (s->f);
+	  cairo_set_source_surface (cr, bg, x, y);
+	  cairo_rectangle (cr, x, y, width, height);
+	  cairo_fill (cr);
+	  pgtk_end_cr_clip (s->f);
+
+	  cairo_surface_destroy (bg);
 	}
 
       s->background_filled_p = true;
@@ -1979,18 +2031,6 @@ x_draw_image_glyph_string (struct glyph_string *s)
       pgtk_end_cr_clip (s->f);
     }
   else
-    if (surface != NULL)
-    {
-      cairo_t *cr = pgtk_begin_cr_clip(s->f);
-
-      x_draw_image_foreground_1 (s, surface);
-      x_set_glyph_string_clipping (s, cr);
-
-      cairo_set_source_surface(cr, surface, 0, 0);
-      cairo_rectangle(cr, s->x, s->y, s->background_width, s->height);
-      pgtk_end_cr_clip(s->f);
-    }
-  else
     x_draw_image_foreground (s);
 
   /* If we must draw a relief around the image, do it.  */
@@ -1998,9 +2038,6 @@ x_draw_image_glyph_string (struct glyph_string *s)
       || s->hl == DRAW_IMAGE_RAISED
       || s->hl == DRAW_IMAGE_SUNKEN)
     x_draw_image_relief (s);
-
-  if (surface != NULL)
-    cairo_surface_destroy(surface);
 }
 
 /* Draw stretch glyph string S.  */
@@ -2071,16 +2108,18 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	  get_glyph_string_clip_rect (s, &r);
 	  x_set_clip_rectangles (s->f, cr, &r, 1);
 
-#if 0
 	  if (s->face->stipple)
 	    {
 	      /* Fill background with a stipple pattern.  */
-	      XSetFillStyle (s->display, gc, FillOpaqueStippled);
-	      x_fill_rectangle (s->f, gc, x, y, w, h);
-	      XSetFillStyle (s->display, gc, FillSolid);
+	      cairo_surface_t *bg = create_background_surface (s, x, y, w, h);
+	      cairo_t *cr = pgtk_begin_cr_clip (s->f);
+	      cairo_set_source_surface (cr, bg, x, y);
+	      cairo_rectangle (cr, x, y, w, h);
+	      cairo_fill (cr);
+	      pgtk_end_cr_clip (s->f);
+	      cairo_surface_destroy (bg);
 	    }
 	  else
-#endif
 	    {
 	      pgtk_fill_rectangle(s->f, color, x, y, w, h);
 	    }
@@ -3195,15 +3234,19 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fr
 	 for something displayed in the text (e.g. face `region' on
 	 mono-displays, the fill style may have been changed to
 	 FillSolid in x_draw_glyph_string_background.  */
-#if 0
-      if (face->stipple)
-	XSetFillStyle (display, face->gc, FillOpaqueStippled);
-      else
-#endif
+      if (face->stipple) {
+	cairo_surface_t *bg = create_background_surface_by_face(f, face, p->bx, p->by, p->nx, p->ny);
+	cairo_t *cr = pgtk_begin_cr_clip (f);
+	cairo_set_source_surface (cr, bg, p->bx, p->by);
+	cairo_rectangle (cr, p->bx, p->by, p->nx, p->ny);
+	cairo_fill (cr);
+	pgtk_end_cr_clip (f);
+	cairo_surface_destroy (bg);
+      } else {
 	pgtk_set_cr_source_with_color(f, face->background);
-
-      cairo_rectangle(cr, p->bx, p->by, p->nx, p->ny);
-      cairo_fill(cr);
+	cairo_rectangle(cr, p->bx, p->by, p->nx, p->ny);
+	cairo_fill(cr);
+      }
     }
 
   PGTK_TRACE("which: %d, max_fringe_bmp: %d.", p->which, max_fringe_bmp);
