@@ -2398,12 +2398,10 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	docall:
 	  {
 	    res = NULL;
-	    ptrdiff_t nargs = op + 1;
-	    pop (nargs, &stack, args);
+	    pop (op + 1, &stack, args);
 	    if (stack->const_set &&
 		stack->type == Lisp_Symbol)
 	      {
-		ptrdiff_t native_nargs = op;
 		char *sym_name = (char *) SDATA (SYMBOL_NAME (stack->constant));
 		if (!strcmp (sym_name,
 			     lisp_f_name))
@@ -2412,24 +2410,49 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 		    res = gcc_jit_context_new_call (comp.ctxt,
 						    NULL,
 						    comp.func,
-						    native_nargs,
+						    op,
 						    args + 1);
 		  } else if (SUBRP ((XSYMBOL (stack->constant)->u.s.function)))
 		  {
 		    /* Optimize primitive native calls.  */
 		    emit_comment (format_string ("Calling primitive %s",
 						 sym_name));
+		    /* FIXME we really should check is a primitive too!!  */
 		    struct Lisp_Subr *subr =
 		      XSUBR ((XSYMBOL (stack->constant)->u.s.function));
 		    if (subr->max_args == MANY)
 		      {
-			/* FIXME: do we want to optimize this case too?  */
-			goto dofuncall;
+			/* f (nargs, args); */
+			args[0] =
+			  gcc_jit_context_new_rvalue_from_int (
+			    comp.ctxt,
+			    comp.ptrdiff_type,
+			    op);
+			args[1] =
+			  gcc_jit_lvalue_get_address ((stack + 1)->gcc_lval,
+						      NULL);
+			gcc_jit_type *types[] =
+			  { comp.ptrdiff_type, comp.lisp_obj_ptr_type };
+			gcc_jit_type *fn_ptr_type =
+			  gcc_jit_context_new_function_ptr_type (
+			    comp.ctxt,
+			    NULL,
+			    comp.lisp_obj_type,
+			    2, types, 0);
+			res =
+			  gcc_jit_context_new_call_through_ptr (
+			    comp.ctxt,
+			    NULL,
+			    gcc_jit_context_new_rvalue_from_ptr (
+			      comp.ctxt,
+			      fn_ptr_type,
+			      subr->function.a0),
+			    2, args);
 		      } else
 		      {
-			gcc_jit_type *types[native_nargs];
+			gcc_jit_type *types[op];
 
-			for (int i = 0; i < native_nargs; i++)
+			for (int i = 0; i < op; i++)
 			  types[i] = comp.lisp_obj_type;
 
 			gcc_jit_type *fn_ptr_type =
@@ -2437,7 +2460,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 			    comp.ctxt,
 			    NULL,
 			    comp.lisp_obj_type,
-			    native_nargs,
+			    op,
 			    types,
 			    0);
 			res =
@@ -2448,15 +2471,14 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 			      comp.ctxt,
 			      fn_ptr_type,
 			      subr->function.a0),
-			    native_nargs,
+			    op,
 			    args + 1);
 		      }
 		  }
 	      }
-	  dofuncall:
 	    /* Fall back to regular funcall dispatch mechanism. */
 	    if (!res)
-	      res = emit_call_n_ref ("Ffuncall", nargs, stack->gcc_lval);
+	      res = emit_call_n_ref ("Ffuncall", op + 1, stack->gcc_lval);
 
 	    PUSH_RVAL (res);
 	    break;

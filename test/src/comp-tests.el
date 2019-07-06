@@ -189,7 +189,16 @@
   (byte-compile #'comp-tests-ffuncall-native-f)
   (native-compile #'comp-tests-ffuncall-native-f)
 
-  (should (vectorp (comp-tests-ffuncall-native-f)))
+  (should (equal (comp-tests-ffuncall-native-f) [nil]))
+
+  (defun comp-tests-ffuncall-native-rest-f ()
+    "Call a primitive with no dedicate op with &rest."
+    (vector 1 2 3))
+
+  (byte-compile #'comp-tests-ffuncall-native-rest-f)
+  (native-compile #'comp-tests-ffuncall-native-rest-f)
+
+  (should (equal (comp-tests-ffuncall-native-rest-f) [1 2 3]))
 
   (defun comp-tests-ffuncall-apply-many-f (x)
     (apply #'list x))
