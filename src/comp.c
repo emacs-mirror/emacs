@@ -1853,7 +1853,6 @@ compute_blocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	case Bvarbind6:
 	case Bcall6:
 	case Bunbind6:
-	case Bconstant2:
 	case BlistN:
 	case BconcatN:
 	case BinsertN:
@@ -1895,11 +1894,12 @@ compute_blocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	  /* Handled in Bconstant case.  */
 	  emacs_abort ();
 	  break;
+	case Bconstant2:
+	  op = FETCH2;
+	  FALLTHROUGH;
+	default:
 	case Bconstant:
 	  {
-	    if (!(Bconstant <= op && op < Bconstant + const_length))
-	      emacs_abort ();
-
 	    if (bytestr_data[pc] != Bswitch)
 	      break;
 	    /* Jump table with following Bswitch.  */
@@ -1915,8 +1915,6 @@ compute_blocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	    bb_start_pc[bb_n++] = pc;
 	    ++pc;
 	  }
-	default:
-	  break;
 	}
     }
 
@@ -3032,8 +3030,8 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	CASE_CALL_N (end_of_line, 1);
 
 	CASE (Bconstant2);
-	  goto do_constant;
-	  break;
+	op = FETCH2;
+	goto do_constant;
 
 	CASE (Bgoto);
 	  op = FETCH2;
