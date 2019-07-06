@@ -4734,19 +4734,32 @@ pgtk_clear_under_internal_border (struct frame *f)
 
       block_input ();
 
+      struct {
+	int x, y, w, h;
+      } rects[] = {
+	{ 0,              margin,          width,  border },
+	{ 0,              0,               border, height },
+	{ width - border, 0,               border, height },
+	{ 0,              height - border, width,  border },
+      };
+
       if (face)
 	{
-	  pgtk_fill_rectangle (f, color, 0, margin, width, border);
-	  pgtk_fill_rectangle (f, color, 0, 0, border, height);
-	  pgtk_fill_rectangle (f, color, width - border, 0, border, height);
-	  pgtk_fill_rectangle (f, color, 0, height - border, width, border);
+	  for (int i = 0; i < 4; i++) {
+	    int x = rects[i].x;
+	    int y = rects[i].y;
+	    int w = rects[i].w;
+	    int h = rects[i].h;
+	    cairo_surface_t *bg = create_background_surface_by_face (f, face, x, y, w, h);
+	    cairo_set_source_surface (cr, bg, x, y);
+	    cairo_rectangle (cr, x, y, w, h);
+	    cairo_fill (cr);
+	  }
 	}
       else
 	{
-	  pgtk_clear_area (f, 0, 0, border, height);
-	  pgtk_clear_area (f, 0, margin, width, border);
-	  pgtk_clear_area (f, width - border, 0, border, height);
-	  pgtk_clear_area (f, 0, height - border, width, border);
+	  for (int i = 0; i < 4; i++)
+	    pgtk_clear_area (f, rects[i].x, rects[i].y, rects[i].w, rects[i].h);
 	}
 
       unblock_input ();
