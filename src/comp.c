@@ -1816,7 +1816,8 @@ ucmp(const void *a, const void *b)
 
 /* Compute and initialize all basic blocks.  */
 static basic_block_t *
-compute_blocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
+compute_blocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data,
+		Lisp_Object *vectorp, ptrdiff_t const_length)
 {
   ptrdiff_t pc = 0;
   unsigned op;
@@ -1890,6 +1891,30 @@ compute_blocks (ptrdiff_t bytestr_length, unsigned char *bytestr_data)
 	case Breturn:
 	  new_bb = true;
 	  break;
+	case Bswitch:
+	  /* Handled in Bconstant case.  */
+	  emacs_abort ();
+	  break;
+	case Bconstant:
+	  {
+	    if (!(Bconstant <= op && op < Bconstant + const_length))
+	      emacs_abort ();
+
+	    if (bytestr_data[pc] != Bswitch)
+	      break;
+	    /* Jump table with following Bswitch.  */
+	    ++pc;
+	    op -= Bconstant;
+	    struct Lisp_Hash_Table *h = XHASH_TABLE (vectorp[op]);
+	    for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+	      if (!NILP (HASH_HASH (h, i)))
+		{
+		  Lisp_Object pc = HASH_VALUE (h, i);
+		  bb_start_pc[bb_n++] = XFIXNUM (pc);
+		}
+	    bb_start_pc[bb_n++] = pc;
+	    ++pc;
+	  }
 	default:
 	  break;
 	}
@@ -2082,7 +2107,7 @@ static comp_f_res_t
 compile_f (const char *lisp_f_name, const char *c_f_name,
 	   ptrdiff_t bytestr_length, unsigned char *bytestr_data,
 	   EMACS_INT stack_depth, Lisp_Object *vectorp,
-	   ptrdiff_t vector_size, Lisp_Object args_template)
+	   ptrdiff_t const_length, Lisp_Object args_template)
 {
   USE_SAFE_ALLOCA;
   gcc_jit_rvalue *res;
@@ -2169,7 +2194,8 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
   DECL_AND_SAFE_ALLOCA_BLOCK(prologue, comp.func);
   comp.block = prologue;
 
-  basic_block_t *bb_map = compute_blocks (bytestr_length, bytestr_data);
+  basic_block_t *bb_map =
+    compute_blocks (bytestr_length, bytestr_data, vectorp, const_length);
 
   if (!parse_args)
     {
@@ -3281,7 +3307,6 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	  DISCARD (op);
 	  break;
 	CASE (Bswitch);
-	  error ("Bswitch not supported");
 	  /* The cases of Bswitch that we handle (which in theory is
 	     all of them) are done in Bconstant, below.	 This is done
 	     due to a design issue with Bswitch -- it should have
@@ -3293,7 +3318,7 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	default:
 	CASE (Bconstant);
 	  {
-	    if (op < Bconstant || op > Bconstant + vector_size)
+	    if (op < Bconstant || op > Bconstant + const_length)
 	      goto fail;
 
 	    op -= Bconstant;
@@ -3316,8 +3341,27 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 		break;
 	      }
 
-	    /* We're compiling Bswitch instead.	 */
+	    /* Jump table with following Bswitch.  */
 	    ++pc;
+
+	    struct Lisp_Hash_Table *h = XHASH_TABLE (vectorp[op]);
+	    POP1;
+	    basic_block_t *jump_block;
+	    for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (h); ++i)
+	      if (!NILP (HASH_HASH (h, i)))
+		{
+		  SAFE_ALLOCA_BLOCK (jump_block,
+				     comp.func,
+				     format_string ("jump_t_%ld",
+						    i));
+		  ptrdiff_t target_pc = XFIXNUM (HASH_VALUE (h, i));
+		  gcc_jit_rvalue *val =
+		    emit_lisp_obj_from_ptr (HASH_KEY (h, i));
+		  emit_cond_jump (emit_EQ (args[0], val), &bb_map[target_pc],
+				  jump_block);
+		  comp.block = jump_block;
+		}
+
 	    break;
 	  }
 	}
