@@ -4351,6 +4351,190 @@ pgtk_free_pixmap (struct frame *_f, Emacs_Pixmap pixmap)
     }
 }
 
+void
+pgtk_focus_frame (struct frame *f, bool noactivate)
+{
+  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+
+  GtkWidget *wid = FRAME_GTK_OUTER_WIDGET(f);
+
+  if (dpyinfo->x_focus_frame != f)
+    {
+      block_input ();
+      gtk_window_present (GTK_WINDOW (wid));
+      unblock_input ();
+    }
+}
+
+
+static void set_opacity_recursively (GtkWidget *w, gpointer data)
+{
+  gtk_widget_set_opacity (w, *(double *) data);
+  if (GTK_IS_CONTAINER (w))
+    gtk_container_foreach (GTK_CONTAINER (w), set_opacity_recursively, data);
+}
+
+static void
+x_set_frame_alpha (struct frame *f)
+{
+  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  double alpha = 1.0;
+  double alpha_min = 1.0;
+
+  if (dpyinfo->highlight_frame == f)
+    alpha = f->alpha[0];
+  else
+    alpha = f->alpha[1];
+
+  if (alpha < 0.0)
+    return;
+
+  if (FLOATP (Vframe_alpha_lower_limit))
+    alpha_min = XFLOAT_DATA (Vframe_alpha_lower_limit);
+  else if (FIXNUMP (Vframe_alpha_lower_limit))
+    alpha_min = (XFIXNUM (Vframe_alpha_lower_limit)) / 100.0;
+
+  if (alpha > 1.0)
+    alpha = 1.0;
+  else if (alpha < alpha_min && alpha_min <= 1.0)
+    alpha = alpha_min;
+
+#if 0
+  /* If there is a parent from the window manager, put the property there
+     also, to work around broken window managers that fail to do that.
+     Do this unconditionally as this function is called on reparent when
+     alpha has not changed on the frame.  */
+
+  if (!FRAME_PARENT_FRAME (f))
+    {
+      Window parent = x_find_topmost_parent (f);
+      if (parent != None)
+	XChangeProperty (dpy, parent, dpyinfo->Xatom_net_wm_window_opacity,
+			 XA_CARDINAL, 32, PropModeReplace,
+			 (unsigned char *) &opac, 1);
+    }
+#endif
+
+  set_opacity_recursively (FRAME_GTK_OUTER_WIDGET (f), &alpha);
+  /* without this, blending mode is strange on wayland. */
+  gtk_widget_queue_resize_no_redraw (FRAME_GTK_OUTER_WIDGET (f));
+}
+
+static void
+frame_highlight (struct frame *f)
+{
+  /* We used to only do this if Vx_no_window_manager was non-nil, but
+     the ICCCM (section 4.1.6) says that the window's border pixmap
+     and border pixel are window attributes which are "private to the
+     client", so we can always change it to whatever we want.  */
+  block_input ();
+  /* I recently started to get errors in this XSetWindowBorder, depending on
+     the window-manager in use, tho something more is at play since I've been
+     using that same window-manager binary for ever.  Let's not crash just
+     because of this (bug#9310).  */
+#if 0
+  x_catch_errors (FRAME_X_DISPLAY (f));
+  XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    FRAME_X_OUTPUT(f)->border_pixel);
+  x_uncatch_errors ();
+#endif
+  unblock_input ();
+  gui_update_cursor (f, true);
+  x_set_frame_alpha (f);
+}
+
+static void
+frame_unhighlight (struct frame *f)
+{
+  /* We used to only do this if Vx_no_window_manager was non-nil, but
+     the ICCCM (section 4.1.6) says that the window's border pixmap
+     and border pixel are window attributes which are "private to the
+     client", so we can always change it to whatever we want.  */
+  block_input ();
+  /* Same as above for XSetWindowBorder (bug#9310).  */
+#if 0
+  x_catch_errors (FRAME_X_DISPLAY (f));
+  XSetWindowBorderPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			  FRAME_X_OUTPUT(f)->border_tile);
+  x_uncatch_errors ();
+#endif
+  unblock_input ();
+  gui_update_cursor (f, true);
+  x_set_frame_alpha (f);
+}
+
+
+static void
+pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo)
+{
+  struct frame *old_highlight = dpyinfo->highlight_frame;
+
+  if (dpyinfo->x_focus_frame)
+    {
+      dpyinfo->highlight_frame
+	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
+	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
+	   : dpyinfo->x_focus_frame);
+      if (! FRAME_LIVE_P (dpyinfo->highlight_frame))
+	{
+	  fset_focus_frame (dpyinfo->x_focus_frame, Qnil);
+	  dpyinfo->highlight_frame = dpyinfo->x_focus_frame;
+	}
+    }
+  else
+    dpyinfo->highlight_frame = 0;
+
+  if (dpyinfo->highlight_frame != old_highlight)
+    {
+      if (old_highlight)
+	frame_unhighlight (old_highlight);
+      if (dpyinfo->highlight_frame)
+	frame_highlight (dpyinfo->highlight_frame);
+    }
+}
+
+/* The focus has changed, or we have redirected a frame's focus to
+   another frame (this happens when a frame uses a surrogate
+   mini-buffer frame).  Shift the highlight as appropriate.
+
+   The FRAME argument doesn't necessarily have anything to do with which
+   frame is being highlighted or un-highlighted; we only use it to find
+   the appropriate X display info.  */
+
+static void
+XTframe_rehighlight (struct frame *frame)
+{
+  pgtk_frame_rehighlight (FRAME_DISPLAY_INFO (frame));
+}
+
+/* The focus has changed.  Update the frames as necessary to reflect
+   the new situation.  Note that we can't change the selected frame
+   here, because the Lisp code we are interrupting might become confused.
+   Each event gets marked with the frame in which it occurred, so the
+   Lisp code can tell when the switch took place by examining the events.  */
+
+static void
+x_new_focus_frame (struct pgtk_display_info *dpyinfo, struct frame *frame)
+{
+  struct frame *old_focus = dpyinfo->x_focus_frame;
+  /* doesn't work on wayland */
+
+  if (frame != dpyinfo->x_focus_frame)
+    {
+      /* Set this before calling other routines, so that they see
+	 the correct value of x_focus_frame.  */
+      dpyinfo->x_focus_frame = frame;
+
+      if (old_focus && old_focus->auto_lower)
+	gdk_window_lower (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (old_focus)));
+
+      if (dpyinfo->x_focus_frame && dpyinfo->x_focus_frame->auto_raise)
+	gdk_window_raise (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (dpyinfo->x_focus_frame)));
+    }
+
+  pgtk_frame_rehighlight (dpyinfo);
+}
+
 static struct terminal *
 pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
 /* --------------------------------------------------------------------------
@@ -4371,7 +4555,7 @@ pgtk_create_terminal (struct pgtk_display_info *dpyinfo)
   terminal->read_socket_hook = pgtk_read_socket;
   // terminal->frame_up_to_date_hook = pgtk_frame_up_to_date;
   terminal->mouse_position_hook = pgtk_mouse_position;
-  // terminal->frame_rehighlight_hook = pgtk_frame_rehighlight;
+  terminal->frame_rehighlight_hook = XTframe_rehighlight;
   // terminal->frame_raise_lower_hook = pgtk_frame_raise_lower;
   terminal->frame_visible_invisible_hook = pgtk_make_frame_visible_invisible;
   terminal->fullscreen_hook = pgtk_fullscreen_hook;
@@ -5095,132 +5279,6 @@ static gboolean delete_event(GtkWidget *widget, GdkEvent *event, gpointer *user_
   return TRUE;
 }
 
-void
-pgtk_focus_frame (struct frame *f, bool noactivate)
-{
-  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
-
-  GtkWidget *wid = FRAME_GTK_OUTER_WIDGET(f);
-
-  if (dpyinfo->x_focus_frame != f)
-    {
-      block_input ();
-      gtk_window_present (GTK_WINDOW (wid));
-      unblock_input ();
-    }
-}
-
-
-static void
-frame_highlight (struct frame *f)
-{
-  /* We used to only do this if Vx_no_window_manager was non-nil, but
-     the ICCCM (section 4.1.6) says that the window's border pixmap
-     and border pixel are window attributes which are "private to the
-     client", so we can always change it to whatever we want.  */
-  block_input ();
-  /* I recently started to get errors in this XSetWindowBorder, depending on
-     the window-manager in use, tho something more is at play since I've been
-     using that same window-manager binary for ever.  Let's not crash just
-     because of this (bug#9310).  */
-#if 0
-  x_catch_errors (FRAME_X_DISPLAY (f));
-  XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    FRAME_X_OUTPUT(f)->border_pixel);
-  x_uncatch_errors ();
-#endif
-  unblock_input ();
-  gui_update_cursor (f, true);
-#if 0
-  x_set_frame_alpha (f);
-#endif
-}
-
-static void
-frame_unhighlight (struct frame *f)
-{
-  /* We used to only do this if Vx_no_window_manager was non-nil, but
-     the ICCCM (section 4.1.6) says that the window's border pixmap
-     and border pixel are window attributes which are "private to the
-     client", so we can always change it to whatever we want.  */
-  block_input ();
-  /* Same as above for XSetWindowBorder (bug#9310).  */
-#if 0
-  x_catch_errors (FRAME_X_DISPLAY (f));
-  XSetWindowBorderPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			  FRAME_X_OUTPUT(f)->border_tile);
-  x_uncatch_errors ();
-#endif
-  unblock_input ();
-  gui_update_cursor (f, true);
-#if 0
-  x_set_frame_alpha (f);
-#endif
-}
-
-
-static void
-x_frame_rehighlight (struct pgtk_display_info *dpyinfo)
-{
-  struct frame *old_highlight = dpyinfo->highlight_frame;
-
-  if (dpyinfo->x_focus_frame)
-    {
-      dpyinfo->highlight_frame
-	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
-	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
-	   : dpyinfo->x_focus_frame);
-      if (! FRAME_LIVE_P (dpyinfo->highlight_frame))
-	{
-	  fset_focus_frame (dpyinfo->x_focus_frame, Qnil);
-	  dpyinfo->highlight_frame = dpyinfo->x_focus_frame;
-	}
-    }
-  else
-    dpyinfo->highlight_frame = 0;
-
-  if (dpyinfo->highlight_frame != old_highlight)
-    {
-      if (old_highlight)
-	frame_unhighlight (old_highlight);
-      if (dpyinfo->highlight_frame)
-	frame_highlight (dpyinfo->highlight_frame);
-    }
-}
-
-/* The focus has changed.  Update the frames as necessary to reflect
-   the new situation.  Note that we can't change the selected frame
-   here, because the Lisp code we are interrupting might become confused.
-   Each event gets marked with the frame in which it occurred, so the
-   Lisp code can tell when the switch took place by examining the events.  */
-
-static void
-x_new_focus_frame (struct pgtk_display_info *dpyinfo, struct frame *frame)
-{
-  struct frame *old_focus = dpyinfo->x_focus_frame;
-
-  if (frame != dpyinfo->x_focus_frame)
-    {
-      /* Set this before calling other routines, so that they see
-	 the correct value of x_focus_frame.  */
-      dpyinfo->x_focus_frame = frame;
-
-#if 0
-      if (old_focus && old_focus->auto_lower)
-	x_lower_frame (old_focus);
-#endif
-
-#if 0
-      if (dpyinfo->x_focus_frame && dpyinfo->x_focus_frame->auto_raise)
-	dpyinfo->x_pending_autoraise_frame = dpyinfo->x_focus_frame;
-      else
-	dpyinfo->x_pending_autoraise_frame = NULL;
-#endif
-    }
-
-  x_frame_rehighlight (dpyinfo);
-}
-
 /* The focus may have changed.  Figure out if it is a real focus change,
    by checking both FocusIn/Out and Enter/LeaveNotify events.
 
@@ -5269,10 +5327,8 @@ x_focus_changed (gboolean is_enter, int state, struct pgtk_display_info *dpyinfo
           XSETFRAME (bufp->ie.frame_or_window, frame);
         }
 
-#if 0
       if (frame->pointer_invisible)
-        XTtoggle_invisible_pointer (frame, false);
-#endif
+	XTtoggle_invisible_pointer (frame, false);
     }
 }
 

@@ -579,5 +579,6 @@ extern void pgtk_set_scroll_bar_default_width (struct frame *f);
 extern void pgtk_set_scroll_bar_default_height (struct frame *f);
 extern Lisp_Object x_get_focus_frame (struct frame *frame);
 
+extern void pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo);
 
 #endif	/* HAVE_PGTK */
