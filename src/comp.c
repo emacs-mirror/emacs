@@ -1931,6 +1931,12 @@ init_comp (int opt_level)
 
   if (COMP_DEBUG)
     {
+      gcc_jit_context_set_bool_option (comp.ctxt,
+				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
+				       1);
+    }
+  if (COMP_DEBUG > 1)
+    {
       logfile = fopen ("libgccjit.log", "w");
       gcc_jit_context_set_logfile (comp.ctxt,
 				   logfile,
@@ -1938,16 +1944,9 @@ init_comp (int opt_level)
       gcc_jit_context_set_bool_option (comp.ctxt,
 				       GCC_JIT_BOOL_OPTION_KEEP_INTERMEDIATES,
 				       1);
-    }
-  if (COMP_DEBUG > 1)
-    {
       gcc_jit_context_set_bool_option (comp.ctxt,
-				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
+				       GCC_JIT_BOOL_OPTION_DUMP_EVERYTHING,
 				       1);
-      gcc_jit_context_set_bool_option (comp.ctxt,
-				       GCC_JIT_BOOL_OPTION_DUMP_INITIAL_GIMPLE,
-				       1);
-
       gcc_jit_context_dump_reproducer_to_file (comp.ctxt, "comp_reproducer.c");
 
     }
@@ -2072,8 +2071,6 @@ init_comp (int opt_level)
 static void
 release_comp (void)
 {
-  if (COMP_DEBUG)
-    gcc_jit_context_dump_to_file (comp.ctxt, "gcc-ctxt-dump.c", 1);
   if (comp.ctxt)
     gcc_jit_context_release(comp.ctxt);
 
@@ -3304,6 +3301,8 @@ compile_f (const char *lisp_f_name, const char *c_f_name,
 	}
     }
 
+  if (COMP_DEBUG)
+    gcc_jit_context_dump_to_file (comp.ctxt, "gcc-ctxt-dump.c", 1);
   comp_res.gcc_res = gcc_jit_context_compile(comp.ctxt);
 
   goto exit;
@@ -3363,9 +3362,9 @@ emacs_native_compile (const char *lisp_f_name, const char *c_f_name,
 
   if (dump_asm)
     {
-      gcc_jit_context_compile_to_file(comp.ctxt,
-				      GCC_JIT_OUTPUT_KIND_ASSEMBLER,
-				      DISASS_FILE_NAME);
+      gcc_jit_context_compile_to_file (comp.ctxt,
+				       GCC_JIT_OUTPUT_KIND_ASSEMBLER,
+				       DISASS_FILE_NAME);
     }
   unblock_atimers (&oldset);
   release_comp ();
