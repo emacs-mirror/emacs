@@ -196,6 +196,13 @@ x_free_frame_resources (struct frame *f)
 
   gtk_widget_destroy(FRAME_GTK_OUTER_WIDGET(f));
 
+  if (FRAME_X_OUTPUT(f)->border_color_css_provider != NULL) {
+    GtkStyleContext *ctxt = gtk_widget_get_style_context(FRAME_GTK_OUTER_WIDGET(f));
+    GtkCssProvider *old = FRAME_X_OUTPUT(f)->border_color_css_provider;
+    gtk_style_context_remove_provider(ctxt, GTK_STYLE_PROVIDER(old));
+    FRAME_X_OUTPUT(f)->border_color_css_provider = NULL;
+  }
+
   if (FRAME_X_OUTPUT(f)->cr_surface_visible_bell != NULL) {
     cairo_surface_destroy(FRAME_X_OUTPUT(f)->cr_surface_visible_bell);
     FRAME_X_OUTPUT(f)->cr_surface_visible_bell = NULL;
@@ -4432,12 +4439,20 @@ frame_highlight (struct frame *f)
      the window-manager in use, tho something more is at play since I've been
      using that same window-manager binary for ever.  Let's not crash just
      because of this (bug#9310).  */
-#if 0
-  x_catch_errors (FRAME_X_DISPLAY (f));
-  XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    FRAME_X_OUTPUT(f)->border_pixel);
-  x_uncatch_errors ();
-#endif
+
+  char *css = g_strdup_printf("decoration { border: solid %dpx #%06x; }", f->border_width, (unsigned int) FRAME_X_OUTPUT(f)->border_pixel & 0x00ffffff);
+  GtkStyleContext *ctxt = gtk_widget_get_style_context(FRAME_GTK_OUTER_WIDGET(f));
+  GtkCssProvider *css_provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_data(css_provider, css, -1, NULL);
+  gtk_style_context_add_provider(ctxt, GTK_STYLE_PROVIDER(css_provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+  g_object_unref(css_provider);
+  g_free(css);
+
+  GtkCssProvider *old = FRAME_X_OUTPUT(f)->border_color_css_provider;
+  FRAME_X_OUTPUT(f)->border_color_css_provider = css_provider;
+  if (old != NULL)
+    gtk_style_context_remove_provider(ctxt, GTK_STYLE_PROVIDER(old));
+
   unblock_input ();
   gui_update_cursor (f, true);
   x_set_frame_alpha (f);
@@ -4452,19 +4467,27 @@ frame_unhighlight (struct frame *f)
      client", so we can always change it to whatever we want.  */
   block_input ();
   /* Same as above for XSetWindowBorder (bug#9310).  */
-#if 0
-  x_catch_errors (FRAME_X_DISPLAY (f));
-  XSetWindowBorderPixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			  FRAME_X_OUTPUT(f)->border_tile);
-  x_uncatch_errors ();
-#endif
+
+  char *css = g_strdup_printf("decoration { border: dotted %dpx #ffffff; }", f->border_width);
+  GtkStyleContext *ctxt = gtk_widget_get_style_context(FRAME_GTK_OUTER_WIDGET(f));
+  GtkCssProvider *css_provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_data(css_provider, css, -1, NULL);
+  gtk_style_context_add_provider(ctxt, GTK_STYLE_PROVIDER(css_provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
+  g_object_unref(css_provider);
+  g_free(css);
+
+  GtkCssProvider *old = FRAME_X_OUTPUT(f)->border_color_css_provider;
+  FRAME_X_OUTPUT(f)->border_color_css_provider = css_provider;
+  if (old != NULL)
+    gtk_style_context_remove_provider(ctxt, GTK_STYLE_PROVIDER(old));
+
   unblock_input ();
   gui_update_cursor (f, true);
   x_set_frame_alpha (f);
 }
 
 
-static void
+void
 pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo)
 {
   struct frame *old_highlight = dpyinfo->highlight_frame;
@@ -4484,13 +4507,10 @@ pgtk_frame_rehighlight (struct pgtk_display_info *dpyinfo)
   else
     dpyinfo->highlight_frame = 0;
 
-  if (dpyinfo->highlight_frame != old_highlight)
-    {
-      if (old_highlight)
-	frame_unhighlight (old_highlight);
-      if (dpyinfo->highlight_frame)
-	frame_highlight (dpyinfo->highlight_frame);
-    }
+  if (old_highlight)
+    frame_unhighlight (old_highlight);
+  if (dpyinfo->highlight_frame)
+    frame_highlight (dpyinfo->highlight_frame);
 }
 
 /* The focus has changed, or we have redirected a frame's focus to

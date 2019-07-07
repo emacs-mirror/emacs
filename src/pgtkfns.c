@@ -48,6 +48,7 @@ static int as_status;
 
 static ptrdiff_t image_cache_refcount;
 
+static int x_decode_color (struct frame *f, Lisp_Object color_name, int mono_color);
 static struct pgtk_display_info *pgtk_display_info_for_name (Lisp_Object);
 static void pgtk_set_name_as_filename (struct frame *);
 
@@ -193,6 +194,16 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   unblock_input ();
 }
 
+static void
+x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  int pix;
+
+  CHECK_STRING (arg);
+  pix = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+  FRAME_X_OUTPUT(f)->border_pixel = pix;
+  pgtk_frame_rehighlight (FRAME_DISPLAY_INFO (f));
+}
 
 static void
 x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -710,8 +721,8 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
   gui_set_autoraise, /* generic OK */
   gui_set_autolower, /* generic OK */
   x_set_background_color,
-  0, /* x_set_border_color,  may be impossible under Nextstep */
-  0, /* x_set_border_width,  may be impossible under Nextstep */
+  x_set_border_color,
+  gui_set_border_width,
   x_set_cursor_color,
   x_set_cursor_type,
   gui_set_font, /* generic OK */
@@ -1381,6 +1392,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   for (tem = parms; CONSP (tem); tem = XCDR (tem))
     if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
       fset_param_alist (f, Fcons (XCAR (tem), f->param_alist));
+
+  FRAME_X_OUTPUT(f)->border_color_css_provider = NULL;
 
   FRAME_X_OUTPUT(f)->cr_surface_visible_bell = NULL;
   FRAME_X_OUTPUT(f)->atimer_visible_bell = NULL;
